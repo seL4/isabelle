@@ -28,6 +28,10 @@ lemma (in prob_space) indep_events_def:
   apply auto
   done
 
+lemma (in prob_space) indep_eventsI:
+  "(\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M) \<Longrightarrow> (\<And>J. J \<subseteq> I \<Longrightarrow> finite J \<Longrightarrow> J \<noteq> {} \<Longrightarrow> prob (\<Inter>i\<in>J. F i) = (\<Prod>i\<in>J. prob (F i))) \<Longrightarrow> indep_events F I"
+  by (auto simp: indep_events_def)
+
 definition (in prob_space)
   "indep_event A B \<longleftrightarrow> indep_events (case_bool A B) UNIV"
 
@@ -379,6 +383,25 @@ proof -
     unfolding indep_set_def
     by (rule indep_sets_mono_sets) (auto split: bool.split)
 qed
+
+lemma (in prob_space) indep_eventsI_indep_vars:
+  assumes indep: "indep_vars N X I"
+  assumes P: "\<And>i. i \<in> I \<Longrightarrow> {x\<in>space (N i). P i x} \<in> sets (N i)"
+  shows "indep_events (\<lambda>i. {x\<in>space M. P i (X i x)}) I"
+proof -
+  have "indep_sets (\<lambda>i. {X i -` A \<inter> space M |A. A \<in> sets (N i)}) I"
+    using indep unfolding indep_vars_def2 by auto
+  then show ?thesis
+    unfolding indep_events_def_alt
+  proof (rule indep_sets_mono_sets)
+    fix i assume "i \<in> I"
+    then have "{{x \<in> space M. P i (X i x)}} = {X i -` {x\<in>space (N i). P i x} \<inter> space M}"
+      using indep by (auto simp: indep_vars_def dest: measurable_space)
+    also have "\<dots> \<subseteq> {X i -` A \<inter> space M |A. A \<in> sets (N i)}"
+      using P[OF `i \<in> I`] by blast
+    finally show "{{x \<in> space M. P i (X i x)}} \<subseteq> {X i -` A \<inter> space M |A. A \<in> sets (N i)}" .
+  qed
+qed                              
 
 lemma (in prob_space) indep_sets_collect_sigma:
   fixes I :: "'j \<Rightarrow> 'i set" and J :: "'j set" and E :: "'i \<Rightarrow> 'a set set"
@@ -772,6 +795,23 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
     finally show "(\<Inter>n. ?Q n) \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
       by simp
   qed
+qed
+
+lemma (in prob_space) borel_0_1_law_AE:
+  fixes P :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes "indep_events (\<lambda>m. {x\<in>space M. P m x}) UNIV" (is "indep_events ?P _")
+  shows "(AE x in M. infinite {m. P m x}) \<or> (AE x in M. finite {m. P m x})"
+proof -
+  have [measurable]: "\<And>m. {x\<in>space M. P m x} \<in> sets M"
+    using assms by (auto simp: indep_events_def)
+  have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<or> prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 1"
+    by (rule borel_0_1_law) fact
+  also have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<longleftrightarrow> (AE x in M. finite {m. P m x})"
+    by (subst prob_eq_0) (auto simp add: finite_nat_iff_bounded Ball_def not_less[symmetric])
+  also have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 1 \<longleftrightarrow> (AE x in M. infinite {m. P m x})"
+    by (subst prob_eq_1) (simp_all add: Bex_def infinite_nat_iff_unbounded_le)
+  finally show ?thesis
+    by metis
 qed
 
 lemma (in prob_space) indep_sets_finite:

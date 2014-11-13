@@ -66,6 +66,9 @@ by blast
 lemma some_eq_ex: "P (SOME x. P x) =  (\<exists>x. P x)"
 by (blast intro: someI)
 
+lemma some_in_eq: "(SOME x. x \<in> A) \<in> A \<longleftrightarrow> A \<noteq> {}"
+  unfolding ex_in_conv[symmetric] by (rule some_eq_ex)
+
 lemma some_eq_trivial [simp]: "(SOME y. y=x) = x"
 apply (rule some_equality)
 apply (rule refl, assumption)

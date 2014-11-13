@@ -135,6 +135,12 @@ lemma zero_ne_eSuc [simp]: "0 \<noteq> eSuc n"
 lemma eSuc_inject [simp]: "eSuc m = eSuc n \<longleftrightarrow> m = n"
   by (simp add: eSuc_def split: enat.splits)
 
+lemma eSuc_enat_iff: "eSuc x = enat y \<longleftrightarrow> (\<exists>n. y = Suc n \<and> x = enat n)"
+  by (cases y) (auto simp: enat_0 eSuc_enat[symmetric])
+
+lemma enat_eSuc_iff: "enat y = eSuc x \<longleftrightarrow> (\<exists>n. y = Suc n \<and> enat n = x)"
+  by (cases y) (auto simp: enat_0 eSuc_enat[symmetric])
+
 subsection {* Addition *}
 
 instantiation enat :: comm_monoid_add

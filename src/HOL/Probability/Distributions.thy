@@ -873,7 +873,7 @@ proof -
       then show "((\<lambda>a. - (exp (- a\<^sup>2 - s\<^sup>2 * a\<^sup>2) / (2 + 2 * s\<^sup>2))) ---> 0) at_top"
         by (simp add: field_simps)
     qed (auto intro!: derivative_eq_intros simp: field_simps add_nonneg_eq_0_iff)
-  qed
+  qed rule
   also have "... = ereal (pi / 4)"
   proof (subst nn_integral_FTC_atLeast)
     show "((\<lambda>a. arctan a / 2) ---> (pi / 2) / 2 ) at_top"

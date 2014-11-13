@@ -1193,8 +1193,6 @@ proof -
       using nonneg by (auto simp: incseq_def le_fun_def split: split_indicator)
     show "\<And>i. (?f i) \<in> borel_measurable lborel"
       using f_borel by auto
-    show "\<And>i x. 0 \<le> ?f i x"
-      using nonneg by (auto split: split_indicator)
   qed
   also have "\<dots> = (SUP i::nat. ereal (F (a + real i) - F a))"
     by (subst nn_integral_FTC_Icc[OF f_borel f nonneg]) auto

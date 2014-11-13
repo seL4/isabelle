@@ -425,6 +425,13 @@ next
   finally show "emeasure (PiM I M) X = emeasure M' X" ..
 qed
 
+lemma (in product_prob_space) AE_component: "i \<in> I \<Longrightarrow> AE x in M i. P x \<Longrightarrow> AE x in PiM I M. P (x i)"
+  apply (rule AE_distrD[of "\<lambda>\<omega>. \<omega> i" "PiM I M" "M i" P])
+  apply simp
+  apply (subst PiM_component)
+  apply simp_all
+  done
+
 subsection {* Sequence space *}
 
 definition comb_seq :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)" where

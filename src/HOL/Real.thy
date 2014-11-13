@@ -1020,13 +1020,17 @@ instance ..
 end
 
 declare [[coercion_enabled]]
-declare [[coercion "real::nat\<Rightarrow>real"]]
-declare [[coercion "real::int\<Rightarrow>real"]]
-declare [[coercion "int"]]
+
+declare [[coercion "of_nat :: nat \<Rightarrow> int"]]
+declare [[coercion "real   :: nat \<Rightarrow> real"]]
+declare [[coercion "real   :: int \<Rightarrow> real"]]
+
+(* We do not add rat to the coerced types, this has often unpleasant side effects when writing
+inverse (Suc n) which sometimes gets two coercions: of_rat (inverse (of_nat (Suc n))) *)
 
 declare [[coercion_map map]]
-declare [[coercion_map "% f g h x. g (h (f x))"]]
-declare [[coercion_map "% f g (x,y) . (f x, g y)"]]
+declare [[coercion_map "\<lambda>f g h x. g (h (f x))"]]
+declare [[coercion_map "\<lambda>f g (x,y). (f x, g y)"]]
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..

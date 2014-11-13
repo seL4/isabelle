@@ -1021,6 +1021,12 @@ lemma less_1_mult:
   using assms mult_strict_mono [of 1 m 1 n]
     by (simp add:  less_trans [OF zero_less_one]) 
 
+lemma mult_left_le: "c \<le> 1 \<Longrightarrow> 0 \<le> a \<Longrightarrow> a * c \<le> a"
+  using mult_left_mono[of c 1 a] by simp
+
+lemma mult_le_one: "a \<le> 1 \<Longrightarrow> 0 \<le> b \<Longrightarrow> b \<le> 1 \<Longrightarrow> a * b \<le> 1"
+  using mult_mono[of a 1 b 1] by simp
+
 end
 
 class linordered_idom = comm_ring_1 +

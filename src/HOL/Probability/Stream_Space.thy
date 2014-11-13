@@ -5,6 +5,7 @@ theory Stream_Space
 imports
   Infinite_Product_Measure
   "~~/src/HOL/Library/Stream"
+  "~~/src/HOL/Library/Linear_Temporal_Logic_on_Streams"
 begin
 
 lemma stream_eq_Stream_iff: "s = x ## t \<longleftrightarrow> (shd s = x \<and> stl s = t)"
@@ -19,6 +20,9 @@ definition to_stream :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a stream" where
 lemma to_stream_nat_case: "to_stream (case_nat x X) = x ## to_stream X"
   unfolding to_stream_def
   by (subst siterate.ctr) (simp add: smap_siterate[symmetric] stream.map_comp comp_def)
+
+lemma to_stream_in_streams: "to_stream X \<in> streams S \<longleftrightarrow> (\<forall>n. X n \<in> S)"
+  by (simp add: to_stream_def streams_iff_snth)
 
 definition stream_space :: "'a measure \<Rightarrow> 'a stream measure" where
   "stream_space M =
@@ -97,6 +101,61 @@ lemma measurable_smap[measurable]:
 lemma measurable_stake[measurable]: 
   "stake i \<in> measurable (stream_space (count_space UNIV)) (count_space (UNIV :: 'a::countable list set))"
   by (induct i) auto
+
+lemma measurable_shift[measurable]: 
+  assumes f: "f \<in> measurable N (stream_space M)"
+  assumes [measurable]: "g \<in> measurable N (stream_space M)"
+  shows "(\<lambda>x. stake n (f x) @- g x) \<in> measurable N (stream_space M)"
+  using f by (induction n arbitrary: f) simp_all
+
+lemma measurable_ev_at[measurable]:
+  assumes [measurable]: "Measurable.pred (stream_space M) P"
+  shows "Measurable.pred (stream_space M) (ev_at P n)"
+  by (induction n) auto
+
+lemma measurable_alw[measurable]:
+  "Measurable.pred (stream_space M) P \<Longrightarrow> Measurable.pred (stream_space M) (alw P)"
+  unfolding alw_def
+  by (coinduction rule: measurable_gfp_coinduct) (auto simp: Order_Continuity.down_continuous_def)
+
+lemma measurable_ev[measurable]:
+  "Measurable.pred (stream_space M) P \<Longrightarrow> Measurable.pred (stream_space M) (ev P)"
+  unfolding ev_def
+  by (coinduction rule: measurable_lfp_coinduct) (auto simp: Order_Continuity.continuous_def)
+
+lemma measurable_until:
+  assumes [measurable]: "Measurable.pred (stream_space M) \<phi>" "Measurable.pred (stream_space M) \<psi>"
+  shows "Measurable.pred (stream_space M) (\<phi> until \<psi>)"
+  unfolding UNTIL_def
+  by (coinduction rule: measurable_gfp_coinduct) (simp_all add: down_continuous_def fun_eq_iff)
+
+lemma measurable_holds [measurable]: "Measurable.pred M P \<Longrightarrow> Measurable.pred (stream_space M) (holds P)"
+  unfolding holds.simps[abs_def]
+  by (rule measurable_compose[OF measurable_shd]) simp
+
+lemma measurable_hld[measurable]: assumes [measurable]: "t \<in> sets M" shows "Measurable.pred (stream_space M) (HLD t)"
+  unfolding HLD_def by measurable
+
+lemma measurable_nxt[measurable (raw)]:
+  "Measurable.pred (stream_space M) P \<Longrightarrow> Measurable.pred (stream_space M) (nxt P)"
+  unfolding nxt.simps[abs_def] by simp
+
+lemma measurable_suntil[measurable]:
+  assumes [measurable]: "Measurable.pred (stream_space M) Q" "Measurable.pred (stream_space M) P"
+  shows "Measurable.pred (stream_space M) (Q suntil P)"
+  unfolding suntil_def by (coinduction rule: measurable_lfp_coinduct) (auto simp: Order_Continuity.continuous_def)
+
+lemma measurable_szip:
+  "(\<lambda>(\<omega>1, \<omega>2). szip \<omega>1 \<omega>2) \<in> measurable (stream_space M \<Otimes>\<^sub>M stream_space N) (stream_space (M \<Otimes>\<^sub>M N))"
+proof (rule measurable_stream_space2)
+  fix n
+  have "(\<lambda>x. (case x of (\<omega>1, \<omega>2) \<Rightarrow> szip \<omega>1 \<omega>2) !! n) = (\<lambda>(\<omega>1, \<omega>2). (\<omega>1 !! n, \<omega>2 !! n))"
+    by auto
+  also have "\<dots> \<in> measurable (stream_space M \<Otimes>\<^sub>M stream_space N) (M \<Otimes>\<^sub>M N)"
+    by measurable
+  finally show "(\<lambda>x. (case x of (\<omega>1, \<omega>2) \<Rightarrow> szip \<omega>1 \<omega>2) !! n) \<in> measurable (stream_space M \<Otimes>\<^sub>M stream_space N) (M \<Otimes>\<^sub>M N)"
+    .
+qed
 
 lemma (in prob_space) prob_space_stream_space: "prob_space (stream_space M)"
 proof -
@@ -188,5 +247,186 @@ proof -
   then show ?thesis
     unfolding stream_all_def by (simp add: AE_all_countable)
 qed
+
+lemma streams_sets:
+  assumes X[measurable]: "X \<in> sets M" shows "streams X \<in> sets (stream_space M)"
+proof -
+  have "streams X = {x\<in>space (stream_space M). x \<in> streams X}"
+    using streams_mono[OF _ sets.sets_into_space[OF X]] by (auto simp: space_stream_space)
+  also have "\<dots> = {x\<in>space (stream_space M). gfp (\<lambda>p x. shd x \<in> X \<and> p (stl x)) x}"
+    apply (simp add: set_eq_iff streams_def streamsp_def)
+    apply (intro allI conj_cong refl arg_cong2[where f=gfp] ext)
+    apply (case_tac xa)
+    apply auto
+    done
+  also have "\<dots> \<in> sets (stream_space M)"
+    apply (intro predE)
+    apply (coinduction rule: measurable_gfp_coinduct)
+    apply (auto simp: down_continuous_def)
+    done
+  finally show ?thesis .
+qed
+
+lemma sets_stream_space_in_sets:
+  assumes space: "space N = streams (space M)"
+  assumes sets: "\<And>i. (\<lambda>x. x !! i) \<in> measurable N M"
+  shows "sets (stream_space M) \<subseteq> sets N"
+  unfolding stream_space_def sets_distr
+  by (auto intro!: sets_image_in_sets measurable_Sup_sigma2 measurable_vimage_algebra2 del: subsetI equalityI 
+           simp add: sets_PiM_eq_proj snth_in space sets cong: measurable_cong_sets)
+
+lemma sets_stream_space_eq: "sets (stream_space M) =
+    sets (\<Squnion>\<^sub>\<sigma> i\<in>UNIV. vimage_algebra (streams (space M)) (\<lambda>s. s !! i) M)"
+  by (auto intro!: sets_stream_space_in_sets sets_Sup_in_sets sets_image_in_sets
+                   measurable_Sup_sigma1  snth_in measurable_vimage_algebra1 del: subsetI
+           simp: space_Sup_sigma space_stream_space)
+
+lemma sets_restrict_stream_space:
+  assumes S[measurable]: "S \<in> sets M"
+  shows "sets (restrict_space (stream_space M) (streams S)) = sets (stream_space (restrict_space M S))"
+  using  S[THEN sets.sets_into_space]
+  apply (subst restrict_space_eq_vimage_algebra)
+  apply (simp add: space_stream_space streams_mono2)
+  apply (subst vimage_algebra_cong[OF sets_stream_space_eq])
+  apply (subst sets_stream_space_eq)
+  apply (subst sets_vimage_Sup_eq)
+  apply simp
+  apply (auto intro: streams_mono) []
+  apply (simp add: image_image space_restrict_space)
+  apply (intro SUP_sigma_cong)
+  apply (simp add: vimage_algebra_cong[OF restrict_space_eq_vimage_algebra])
+  apply (subst (1 2) vimage_algebra_vimage_algebra_eq)
+  apply (auto simp: streams_mono snth_in)
+  done
+
+
+primrec sstart :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a stream set" where
+  "sstart S [] = streams S"
+| [simp del]: "sstart S (x # xs) = op ## x ` sstart S xs"
+
+lemma in_sstart[simp]: "s \<in> sstart S (x # xs) \<longleftrightarrow> shd s = x \<and> stl s \<in> sstart S xs"
+  by (cases s) (auto simp: sstart.simps(2))
+
+lemma sstart_in_streams: "xs \<in> lists S \<Longrightarrow> sstart S xs \<subseteq> streams S"
+  by (induction xs) (auto simp: sstart.simps(2))
+
+lemma sstart_eq: "x \<in> streams S \<Longrightarrow> x \<in> sstart S xs = (\<forall>i<length xs. x !! i = xs ! i)"
+  by (induction xs arbitrary: x) (auto simp: nth_Cons streams_stl split: nat.splits)
+
+lemma sstart_sets: "sstart S xs \<in> sets (stream_space (count_space UNIV))"
+proof (induction xs)
+  case (Cons x xs)
+  note Cons[measurable]
+  have "sstart S (x # xs) =
+    {s\<in>space (stream_space (count_space UNIV)). shd s = x \<and> stl s \<in> sstart S xs}"
+    by (simp add: set_eq_iff space_stream_space)
+  also have "\<dots> \<in> sets (stream_space (count_space UNIV))"
+    by measurable
+  finally show ?case .
+qed (simp add: streams_sets)
+
+lemma sets_stream_space_sstart:
+  assumes S[simp]: "countable S"
+  shows "sets (stream_space (count_space S)) = sets (sigma (streams S) (sstart S`lists S \<union> {{}}))"
+proof
+  have [simp]: "sstart S ` lists S \<subseteq> Pow (streams S)"
+    by (simp add: image_subset_iff sstart_in_streams)
+
+  let ?S = "sigma (streams S) (sstart S ` lists S \<union> {{}})"
+  { fix i a assume "a \<in> S"
+    { fix x have "(x !! i = a \<and> x \<in> streams S) \<longleftrightarrow> (\<exists>xs\<in>lists S. length xs = i \<and> x \<in> sstart S (xs @ [a]))"
+      proof (induction i arbitrary: x)
+        case (Suc i) from this[of "stl x"] show ?case
+          by (simp add: length_Suc_conv Bex_def ex_simps[symmetric] del: ex_simps)
+             (metis stream.collapse streams_Stream)
+      qed (insert `a \<in> S`, auto intro: streams_stl in_streams) }
+    then have "(\<lambda>x. x !! i) -` {a} \<inter> streams S = (\<Union>xs\<in>{xs\<in>lists S. length xs = i}. sstart S (xs @ [a]))"
+      by (auto simp add: set_eq_iff)
+    also have "\<dots> \<in> sets ?S"
+      using `a\<in>S` by (intro sets.countable_UN') (auto intro!: sigma_sets.Basic image_eqI)
+    finally have " (\<lambda>x. x !! i) -` {a} \<inter> streams S \<in> sets ?S" . }
+  then show "sets (stream_space (count_space S)) \<subseteq> sets (sigma (streams S) (sstart S`lists S \<union> {{}}))"
+    by (intro sets_stream_space_in_sets) (auto simp: measurable_count_space_eq_countable snth_in)
+
+  have "sigma_sets (space (stream_space (count_space S))) (sstart S`lists S \<union> {{}}) \<subseteq> sets (stream_space (count_space S))"
+  proof (safe intro!: sets.sigma_sets_subset)
+    fix xs assume "\<forall>x\<in>set xs. x \<in> S"
+    then have "sstart S xs = {x\<in>space (stream_space (count_space S)). \<forall>i<length xs. x !! i = xs ! i}"
+      by (induction xs)
+         (auto simp: space_stream_space nth_Cons split: nat.split intro: in_streams streams_stl)
+    also have "\<dots> \<in> sets (stream_space (count_space S))"
+      by measurable
+    finally show "sstart S xs \<in> sets (stream_space (count_space S))" .
+  qed
+  then show "sets (sigma (streams S) (sstart S`lists S \<union> {{}})) \<subseteq> sets (stream_space (count_space S))"
+    by (simp add: space_stream_space)
+qed
+
+lemma Int_stable_sstart: "Int_stable (sstart S`lists S \<union> {{}})"
+proof -
+  { fix xs ys assume "xs \<in> lists S" "ys \<in> lists S"
+    then have "sstart S xs \<inter> sstart S ys \<in> sstart S ` lists S \<union> {{}}"
+    proof (induction xs ys rule: list_induct2')
+      case (4 x xs y ys)
+      show ?case
+      proof cases
+        assume "x = y"
+        then have "sstart S (x # xs) \<inter> sstart S (y # ys) = op ## x ` (sstart S xs \<inter> sstart S ys)"
+          by (auto simp: image_iff intro!: stream.collapse[symmetric])
+        also have "\<dots> \<in> sstart S ` lists S \<union> {{}}"
+          using 4 by (auto simp: sstart.simps(2)[symmetric] del: in_listsD)
+        finally show ?case .
+      qed auto
+    qed (simp_all add: sstart_in_streams inf.absorb1 inf.absorb2 image_eqI[where x="[]"]) }
+  then show ?thesis
+    by (auto simp: Int_stable_def)
+qed
+
+lemma stream_space_eq_sstart:
+  assumes S[simp]: "countable S"
+  assumes P: "prob_space M" "prob_space N"
+  assumes ae: "AE x in M. x \<in> streams S" "AE x in N. x \<in> streams S"
+  assumes sets_M: "sets M = sets (stream_space (count_space UNIV))"
+  assumes sets_N: "sets N = sets (stream_space (count_space UNIV))"
+  assumes *: "\<And>xs. xs \<noteq> [] \<Longrightarrow> xs \<in> lists S \<Longrightarrow> emeasure M (sstart S xs) = emeasure N (sstart S xs)"
+  shows "M = N"
+proof (rule measure_eqI_restrict_generator[OF Int_stable_sstart])
+  have [simp]: "sstart S ` lists S \<subseteq> Pow (streams S)"
+    by (simp add: image_subset_iff sstart_in_streams)
+
+  interpret M: prob_space M by fact
+
+  show "sstart S ` lists S \<union> {{}} \<subseteq> Pow (streams S)"
+    by (auto dest: sstart_in_streams del: in_listsD)
+
+  { fix M :: "'a stream measure" assume M: "sets M = sets (stream_space (count_space UNIV))"
+    have "sets (restrict_space M (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"
+      apply (simp add: sets_eq_imp_space_eq[OF M] space_stream_space restrict_space_eq_vimage_algebra
+        vimage_algebra_cong[OF M])
+      apply (simp add: sets_eq_imp_space_eq[OF M] space_stream_space restrict_space_eq_vimage_algebra[symmetric])
+      apply (simp add: sets_restrict_stream_space restrict_count_space sets_stream_space_sstart)
+      done }
+  from this[OF sets_M] this[OF sets_N]
+  show "sets (restrict_space M (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"
+       "sets (restrict_space N (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"
+    by auto
+  show "{streams S} \<subseteq> sstart S ` lists S \<union> {{}}"
+    "\<Union>{streams S} = streams S" "\<And>s. s \<in> {streams S} \<Longrightarrow> emeasure M s \<noteq> \<infinity>"
+    using M.emeasure_space_1 space_stream_space[of "count_space S"] sets_eq_imp_space_eq[OF sets_M]
+    by (auto simp add: image_eqI[where x="[]"])
+  show "sets M = sets N"
+    by (simp add: sets_M sets_N)
+next
+  fix X assume "X \<in> sstart S ` lists S \<union> {{}}"
+  then obtain xs where "X = {} \<or> (xs \<in> lists S \<and> X = sstart S xs)"
+    by auto
+  moreover have "emeasure M (streams S) = 1"
+    using ae by (intro prob_space.emeasure_eq_1_AE[OF P(1)]) (auto simp: sets_M streams_sets)
+  moreover have "emeasure N (streams S) = 1"
+    using ae by (intro prob_space.emeasure_eq_1_AE[OF P(2)]) (auto simp: sets_N streams_sets)
+  ultimately show "emeasure M X = emeasure N X"
+    using P[THEN prob_space.emeasure_space_1]
+    by (cases "xs = []") (auto simp: * space_stream_space del: in_listsD)
+qed (auto simp: * ae sets_M del: in_listsD intro!: streams_sets)
 
 end

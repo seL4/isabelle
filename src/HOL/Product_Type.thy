@@ -1108,6 +1108,9 @@ lemma Compl_Times_UNIV2 [simp]: "- (A <*> UNIV) = (-A) <*> UNIV"
 lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
   by blast
 
+lemma Sigma_empty_iff: "(SIGMA i:I. X i) = {} \<longleftrightarrow> (\<forall>i\<in>I. X i = {})"
+  by auto
+
 lemma Times_subset_cancel2: "x:C ==> (A <*> C <= B <*> C) = (A <= B)"
   by blast
 

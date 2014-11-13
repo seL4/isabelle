@@ -1296,6 +1296,11 @@ lemma integrable_mult_indicator:
   shows "A \<in> sets M \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
   by (rule integrable_bound[of M f]) (auto split: split_indicator)
 
+lemma integrable_real_mult_indicator:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "A \<in> sets M \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. f x * indicator A x)"
+  using integrable_mult_indicator[of A M f] by (simp add: mult_ac)
+
 lemma integrable_abs[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
   assumes [measurable]: "integrable M f" shows "integrable M (\<lambda>x. \<bar>f x\<bar>)"
@@ -2254,6 +2259,36 @@ lemma (in finite_measure) integrable_const_bound:
   apply (cases "0 \<le> B")
   apply auto
   done
+
+lemma integral_indicator_finite_real:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes [simp]: "finite A"
+  assumes [measurable]: "\<And>a. a \<in> A \<Longrightarrow> {a} \<in> sets M"
+  assumes finite: "\<And>a. a \<in> A \<Longrightarrow> emeasure M {a} < \<infinity>"
+  shows "(\<integral>x. f x * indicator A x \<partial>M) = (\<Sum>a\<in>A. f a * measure M {a})"
+proof -
+  have "(\<integral>x. f x * indicator A x \<partial>M) = (\<integral>x. (\<Sum>a\<in>A. f a * indicator {a} x) \<partial>M)"
+  proof (intro integral_cong refl)
+    fix x show "f x * indicator A x = (\<Sum>a\<in>A. f a * indicator {a} x)"
+      by (auto split: split_indicator simp: eq_commute[of x] cong: conj_cong)
+  qed
+  also have "\<dots> = (\<Sum>a\<in>A. f a * measure M {a})"
+    using finite by (subst integral_setsum) (auto simp add: integrable_mult_left_iff)
+  finally show ?thesis .
+qed
+
+lemma (in finite_measure) ereal_integral_real:
+  assumes [measurable]: "f \<in> borel_measurable M" 
+  assumes ae: "AE x in M. 0 \<le> f x" "AE x in M. f x \<le> ereal B"
+  shows "ereal (\<integral>x. real (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
+proof (subst nn_integral_eq_integral[symmetric])
+  show "integrable M (\<lambda>x. real (f x))"
+    using ae by (intro integrable_const_bound[where B=B]) (auto simp: real_le_ereal_iff)
+  show "AE x in M. 0 \<le> real (f x)"
+    using ae by (auto simp: real_of_ereal_pos)
+  show "(\<integral>\<^sup>+ x. ereal (real (f x)) \<partial>M) = integral\<^sup>N M f"
+    using ae by (intro nn_integral_cong_AE) (auto simp: ereal_real)
+qed
 
 lemma (in finite_measure) integral_less_AE:
   fixes X Y :: "'a \<Rightarrow> real"

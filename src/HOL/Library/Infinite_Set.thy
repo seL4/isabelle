@@ -67,39 +67,14 @@ text {*
   infinite.
 *}
 
-lemma finite_nat_bounded:
-  assumes S: "finite (S::nat set)"
-  shows "\<exists>k. S \<subseteq> {..<k}"  (is "\<exists>k. ?bounded S k")
-  using S
-proof induct
-  have "?bounded {} 0" by simp
-  then show "\<exists>k. ?bounded {} k" ..
-next
-  fix S x
-  assume "\<exists>k. ?bounded S k"
-  then obtain k where k: "?bounded S k" ..
-  show "\<exists>k. ?bounded (insert x S) k"
-  proof (cases "x < k")
-    case True
-    with k show ?thesis by auto
-  next
-    case False
-    with k have "?bounded S (Suc x)" by auto
-    then show ?thesis by auto
-  qed
-qed
+lemma finite_nat_bounded: assumes S: "finite (S::nat set)" shows "\<exists>k. S \<subseteq> {..<k}"
+proof cases
+  assume "S \<noteq> {}" with Max_less_iff[OF S this] show ?thesis
+    by auto
+qed simp
 
-lemma finite_nat_iff_bounded:
-  "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs by (rule finite_nat_bounded)
-next
-  assume ?rhs
-  then obtain k where "S \<subseteq> {..<k}" ..
-  then show "finite S"
-    by (rule finite_subset) simp
-qed
+lemma finite_nat_iff_bounded: "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"
+  by (auto intro: finite_nat_bounded dest: finite_subset)
 
 lemma finite_nat_iff_bounded_le:
   "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..k})"  (is "?lhs \<longleftrightarrow> ?rhs")
@@ -116,56 +91,12 @@ next
     by (rule finite_subset) simp
 qed
 
-lemma infinite_nat_iff_unbounded:
-  "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> n \<in> S)"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  show ?rhs
-  proof (rule ccontr)
-    assume "\<not> ?rhs"
-    then obtain m where m: "\<forall>n. m < n \<longrightarrow> n \<notin> S" by blast
-    then have "S \<subseteq> {..m}"
-      by (auto simp add: sym [OF linorder_not_less])
-    with `?lhs` show False
-      by (simp add: finite_nat_iff_bounded_le)
-  qed
-next
-  assume ?rhs
-  show ?lhs
-  proof
-    assume "finite S"
-    then obtain m where "S \<subseteq> {..m}"
-      by (auto simp add: finite_nat_iff_bounded_le)
-    then have "\<forall>n. m < n \<longrightarrow> n \<notin> S" by auto
-    with `?rhs` show False by blast
-  qed
-qed
+lemma infinite_nat_iff_unbounded: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> n \<in> S)"
+  unfolding finite_nat_iff_bounded_le by (auto simp: subset_eq not_le)
 
 lemma infinite_nat_iff_unbounded_le:
   "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m \<le> n \<and> n \<in> S)"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  show ?rhs
-  proof
-    fix m
-    from `?lhs` obtain n where "m < n \<and> n \<in> S"
-      by (auto simp add: infinite_nat_iff_unbounded)
-    then have "m \<le> n \<and> n \<in> S" by simp
-    then show "\<exists>n. m \<le> n \<and> n \<in> S" ..
-  qed
-next
-  assume ?rhs
-  show ?lhs
-  proof (auto simp add: infinite_nat_iff_unbounded)
-    fix m
-    from `?rhs` obtain n where "Suc m \<le> n \<and> n \<in> S"
-      by blast
-    then have "m < n \<and> n \<in> S" by simp
-    then show "\<exists>n. m < n \<and> n \<in> S" ..
-  qed
-qed
+  unfolding finite_nat_iff_bounded by (auto simp: subset_eq not_less)
 
 text {*
   For a set of natural numbers to be infinite, it is enough to know

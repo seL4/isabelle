@@ -29,6 +29,9 @@ lemma space_pair_measure:
   unfolding pair_measure_def using pair_measure_closed[of A B]
   by (rule space_measure_of)
 
+lemma SIGMA_Collect_eq: "(SIGMA x:space M. {y\<in>space N. P x y}) = {x\<in>space (M \<Otimes>\<^sub>M N). P (fst x) (snd x)}"
+  by (auto simp: space_pair_measure)
+
 lemma sets_pair_measure:
   "sets (A \<Otimes>\<^sub>M B) = sigma_sets (space A \<times> space B) {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
   unfolding pair_measure_def using pair_measure_closed[of A B]

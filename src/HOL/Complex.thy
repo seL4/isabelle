@@ -132,7 +132,8 @@ subsection {* Numerals, Arithmetic, and Embedding from Reals *}
 abbreviation complex_of_real :: "real \<Rightarrow> complex"
   where "complex_of_real \<equiv> of_real"
 
-declare [[coercion complex_of_real]]
+declare [[coercion "of_real :: real \<Rightarrow> complex"]]
+declare [[coercion "of_rat :: rat \<Rightarrow> complex"]]
 declare [[coercion "of_int :: int \<Rightarrow> complex"]]
 declare [[coercion "of_nat :: nat \<Rightarrow> complex"]]
 

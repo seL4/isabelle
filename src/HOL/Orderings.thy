@@ -1524,6 +1524,9 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   by (rule le_funE)
 
+lemma mono_compose: "mono Q \<Longrightarrow> mono (\<lambda>i x. Q i (f x))"
+  unfolding mono_def le_fun_def by auto
+
 
 subsection {* Order on unary and binary predicates *}
 

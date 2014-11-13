@@ -198,6 +198,14 @@ proof -
     by (simp add: eq_commute)
 qed
 
+lemma pred_count_space_const1[measurable (raw)]:
+  "f \<in> measurable M (count_space UNIV) \<Longrightarrow> Measurable.pred M (\<lambda>x. f x = c)"
+  by (intro pred_eq_const1[where N="count_space UNIV"]) (auto )
+
+lemma pred_count_space_const2[measurable (raw)]:
+  "f \<in> measurable M (count_space UNIV) \<Longrightarrow> Measurable.pred M (\<lambda>x. c = f x)"
+  by (intro pred_eq_const2[where N="count_space UNIV"]) (auto )
+
 lemma pred_le_const[measurable (raw generic)]:
   assumes f: "f \<in> measurable M N" and c: "{.. c} \<in> sets N" shows "pred M (\<lambda>x. f x \<le> c)"
   using measurable_sets[OF f c]
@@ -335,6 +343,9 @@ lemma measurable_count_space_insert[measurable (raw)]:
   "s \<in> S \<Longrightarrow> A \<in> sets (count_space S) \<Longrightarrow> insert s A \<in> sets (count_space S)"
   by simp
 
+lemma sets_UNIV [measurable (raw)]: "A \<in> sets (count_space UNIV)"
+  by simp
+
 lemma measurable_card[measurable]:
   fixes S :: "'a \<Rightarrow> nat set"
   assumes [measurable]: "\<And>i. {x\<in>space M. i \<in> S x} \<in> sets M"
@@ -393,6 +404,187 @@ proof -
     by (rule down_continuous_gfp[symmetric]) fact
   finally show ?thesis .
 qed
+
+lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
+  assumes "P M"
+  assumes "Order_Continuity.continuous F"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
+  shows "Measurable.pred M (lfp F)"
+proof -
+  { fix i from `P M` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. False) x)"
+      by (induct i arbitrary: M) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x)"
+    by measurable
+  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x) = (SUP i. (F ^^ i) bot)"
+    by (auto simp add: bot_fun_def)
+  also have "\<dots> = lfp F"
+    by (rule continuous_lfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
+  assumes "P M"
+  assumes "Order_Continuity.down_continuous F"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
+  shows "Measurable.pred M (gfp F)"
+proof -
+  { fix i from `P M` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. True) x)"
+      by (induct i arbitrary: M) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x)"
+    by measurable
+  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x) = (INF i. (F ^^ i) top)"
+    by (auto simp add: top_fun_def)
+  also have "\<dots> = gfp F"
+    by (rule down_continuous_gfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma measurable_lfp2_coinduct[consumes 1, case_names continuity step]:
+  assumes "P M s"
+  assumes "Order_Continuity.continuous F"
+  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> Measurable.pred N (A t)) \<Longrightarrow> Measurable.pred M (F A s)"
+  shows "Measurable.pred M (lfp F s)"
+proof -
+  { fix i from `P M s` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>t x. False) s x)"
+      by (induct i arbitrary: M s) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>t x. False) s x)"
+    by measurable
+  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>t x. False) s x) = (SUP i. (F ^^ i) bot) s"
+    by (auto simp add: bot_fun_def)
+  also have "(SUP i. (F ^^ i) bot) = lfp F"
+    by (rule continuous_lfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma measurable_gfp2_coinduct[consumes 1, case_names continuity step]:
+  assumes "P M s"
+  assumes "Order_Continuity.down_continuous F"
+  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> Measurable.pred N (A t)) \<Longrightarrow> Measurable.pred M (F A s)"
+  shows "Measurable.pred M (gfp F s)"
+proof -
+  { fix i from `P M s` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>t x. True) s x)"
+      by (induct i arbitrary: M s) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>t x. True) s x)"
+    by measurable
+  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>t x. True) s x) = (INF i. (F ^^ i) top) s"
+    by (auto simp add: top_fun_def)
+  also have "(INF i. (F ^^ i) top) = gfp F"
+    by (rule down_continuous_gfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma measurable_enat_coinduct:
+  fixes f :: "'a \<Rightarrow> enat"
+  assumes "R f"
+  assumes *: "\<And>f. R f \<Longrightarrow> \<exists>g h i P. R g \<and> f = (\<lambda>x. if P x then h x else eSuc (g (i x))) \<and> 
+    Measurable.pred M P \<and>
+    i \<in> measurable M M \<and>
+    h \<in> measurable M (count_space UNIV)"
+  shows "f \<in> measurable M (count_space UNIV)"
+proof (simp add: measurable_count_space_eq2_countable, rule )
+  fix a :: enat
+  have "f -` {a} \<inter> space M = {x\<in>space M. f x = a}"
+    by auto
+  { fix i :: nat
+    from `R f` have "Measurable.pred M (\<lambda>x. f x = enat i)"
+    proof (induction i arbitrary: f)
+      case 0
+      from *[OF this] obtain g h i P
+        where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and
+          [measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
+        by auto
+      have "Measurable.pred M (\<lambda>x. P x \<and> h x = 0)"
+        by measurable
+      also have "(\<lambda>x. P x \<and> h x = 0) = (\<lambda>x. f x = enat 0)"
+        by (auto simp: f zero_enat_def[symmetric])
+      finally show ?case .
+    next
+      case (Suc n)
+      from *[OF Suc.prems] obtain g h i P
+        where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and "R g" and
+          M[measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
+        by auto
+      have "(\<lambda>x. f x = enat (Suc n)) =
+        (\<lambda>x. (P x \<longrightarrow> h x = enat (Suc n)) \<and> (\<not> P x \<longrightarrow> g (i x) = enat n))"
+        by (auto simp: f zero_enat_def[symmetric] eSuc_enat[symmetric])
+      also have "Measurable.pred M \<dots>"
+        by (intro pred_intros_logic measurable_compose[OF M(2)] Suc `R g`) measurable
+      finally show ?case .
+    qed
+    then have "f -` {enat i} \<inter> space M \<in> sets M"
+      by (simp add: pred_def Int_def conj_commute) }
+  note fin = this
+  show "f -` {a} \<inter> space M \<in> sets M"
+  proof (cases a)
+    case infinity
+    then have "f -` {a} \<inter> space M = space M - (\<Union>n. f -` {enat n} \<inter> space M)"
+      by auto
+    also have "\<dots> \<in> sets M"
+      by (intro sets.Diff sets.top sets.Un sets.countable_UN) (auto intro!: fin)
+    finally show ?thesis .
+  qed (simp add: fin)
+qed
+
+lemma measurable_pred_countable[measurable (raw)]:
+  assumes "countable X"
+  shows 
+    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
+    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
+  unfolding pred_def
+  by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
+
+lemma measurable_THE:
+  fixes P :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
+  assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
+  assumes I[simp]: "countable I" "\<And>i x. x \<in> space M \<Longrightarrow> P i x \<Longrightarrow> i \<in> I"
+  assumes unique: "\<And>x i j. x \<in> space M \<Longrightarrow> P i x \<Longrightarrow> P j x \<Longrightarrow> i = j"
+  shows "(\<lambda>x. THE i. P i x) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_def
+proof safe
+  fix X
+  def f \<equiv> "\<lambda>x. THE i. P i x" def undef \<equiv> "THE i::'a. False"
+  { fix i x assume "x \<in> space M" "P i x" then have "f x = i"
+      unfolding f_def using unique by auto }
+  note f_eq = this
+  { fix x assume "x \<in> space M" "\<forall>i\<in>I. \<not> P i x"
+    then have "\<And>i. \<not> P i x"
+      using I(2)[of x] by auto
+    then have "f x = undef"
+      by (auto simp: undef_def f_def) }
+  then have "f -` X \<inter> space M = (\<Union>i\<in>I \<inter> X. {x\<in>space M. P i x}) \<union>
+     (if undef \<in> X then space M - (\<Union>i\<in>I. {x\<in>space M. P i x}) else {})"
+    by (auto dest: f_eq)
+  also have "\<dots> \<in> sets M"
+    by (auto intro!: sets.Diff sets.countable_UN')
+  finally show "f -` X \<inter> space M \<in> sets M" .
+qed simp
+
+lemma measurable_bot[measurable]: "Measurable.pred M bot"
+  by (simp add: bot_fun_def)
+
+lemma measurable_top[measurable]: "Measurable.pred M top"
+  by (simp add: top_fun_def)
+
+lemma measurable_Ex1[measurable (raw)]:
+  assumes [simp]: "countable I" and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> Measurable.pred M (P i)"
+  shows "Measurable.pred M (\<lambda>x. \<exists>!i\<in>I. P i x)"
+  unfolding bex1_def by measurable
+
+lemma measurable_split_if[measurable (raw)]:
+  "(c \<Longrightarrow> Measurable.pred M f) \<Longrightarrow> (\<not> c \<Longrightarrow> Measurable.pred M g) \<Longrightarrow>
+   Measurable.pred M (if c then f else g)"
+  by simp
+
+lemma pred_restrict_space:
+  assumes "S \<in> sets M"
+  shows "Measurable.pred (restrict_space M S) P \<longleftrightarrow> Measurable.pred M (\<lambda>x. x \<in> S \<and> P x)"
+  unfolding pred_def sets_Collect_restrict_space_iff[OF assms] ..
+
+lemma measurable_predpow[measurable]:
+  assumes "Measurable.pred M T"
+  assumes "\<And>Q. Measurable.pred M Q \<Longrightarrow> Measurable.pred M (R Q)"
+  shows "Measurable.pred M ((R ^^ n) T)"
+  by (induct n) (auto intro: assms)
 
 hide_const (open) pred
 

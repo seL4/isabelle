@@ -1117,6 +1117,8 @@ proof -
   with `n > 0` show ?thesis by simp
 qed
 
+lemma div_eq_0_iff: "(a div b::nat) = 0 \<longleftrightarrow> a < b \<or> b = 0"
+  by (metis div_less div_positive div_by_0 gr0I less_numeral_extra(3) not_less)
 
 subsubsection {* Remainder *}
 

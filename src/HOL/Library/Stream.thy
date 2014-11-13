@@ -36,6 +36,8 @@ theorem sset_induct[consumes 1, case_names shd stl, induct set: sset]:
   shows "P y s"
 using assms by induct (metis stream.sel(1), auto)
 
+lemma smap_ctr: "smap f s = x ## s' \<longleftrightarrow> f (shd s) = x \<and> smap f (stl s) = s'"
+  by (cases s) simp
 
 subsection {* prepend list to stream *}
 
@@ -68,6 +70,15 @@ coinductive_set
   for A :: "'a set"
 where
   Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> a ## s \<in> streams A"
+
+lemma in_streams: "stl s \<in> streams S \<Longrightarrow> shd s \<in> S \<Longrightarrow> s \<in> streams S"
+  by (cases s) auto
+
+lemma streamsE: "s \<in> streams A \<Longrightarrow> (shd s \<in> A \<Longrightarrow> stl s \<in> streams A \<Longrightarrow> P) \<Longrightarrow> P"
+  by (erule streams.cases) simp_all
+
+lemma Stream_image: "x ## y \<in> (op ## x') ` Y \<longleftrightarrow> x = x' \<and> y \<in> Y"
+  by auto
 
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"
   by (induct w) auto
@@ -102,6 +113,9 @@ lemma streams_iff_sset: "s \<in> streams A \<longleftrightarrow> sset s \<subset
 lemma streams_mono:  "s \<in> streams A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> s \<in> streams B"
   unfolding streams_iff_sset by auto
 
+lemma streams_mono2: "S \<subseteq> T \<Longrightarrow> streams S \<subseteq> streams T"
+  by (auto intro: streams_mono)
+
 lemma smap_streams: "s \<in> streams A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> smap f s \<in> streams B"
   unfolding streams_iff_sset stream.set_map by auto
 
@@ -116,6 +130,9 @@ subsection {* nth, take, drop for streams *}
 primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
   "s !! 0 = shd s"
 | "s !! Suc n = stl s !! n"
+
+lemma snth_Stream: "(x ## s) !! Suc i = s !! i"
+  by simp
 
 lemma snth_smap[simp]: "smap f s !! n = f (s !! n)"
   by (induct n arbitrary: s) auto
@@ -142,6 +159,12 @@ proof (intro equalityI subsetI)
     thus ?case by (auto intro: range_eqI[of _ _ "Suc n"])
   qed (auto intro: range_eqI[of _ _ 0])
 qed auto
+
+lemma streams_iff_snth: "s \<in> streams X \<longleftrightarrow> (\<forall>n. s !! n \<in> X)"
+  by (force simp: streams_iff_sset sset_range)
+
+lemma snth_in: "s \<in> streams X \<Longrightarrow> s !! n \<in> X"
+  by (simp add: streams_iff_snth)
 
 primrec stake :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a list" where
   "stake 0 s = []"

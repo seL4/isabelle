@@ -764,6 +764,18 @@ proof -
   } from this [of "{a. P a}"] assms show ?thesis by simp
 qed
 
+lemma infinite_growing:
+  assumes "X \<noteq> {}"
+  assumes *: "\<And>x. x \<in> X \<Longrightarrow> \<exists>y\<in>X. y > x"
+  shows "\<not> finite X"
+proof
+  assume "finite X"
+  with `X \<noteq> {}` have "Max X \<in> X" "\<forall>x\<in>X. x \<le> Max X"
+    by auto
+  with *[of "Max X"] show False
+    by auto
+qed
+
 end
 
 context linordered_ab_semigroup_add

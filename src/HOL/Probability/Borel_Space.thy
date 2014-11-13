@@ -1320,6 +1320,28 @@ lemma borel_measurable_suminf[measurable (raw)]:
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
+lemma borel_measurable_sup[measurable (raw)]:
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow>
+    (\<lambda>x. sup (f x) (g x)::ereal) \<in> borel_measurable M"
+  by simp
+
+lemma borel_measurable_lfp[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> ereal) \<Rightarrow> ('a \<Rightarrow> ereal)"
+  assumes "Order_Continuity.continuous F"
+  assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
+  shows "lfp F \<in> borel_measurable M"
+proof -
+  { fix i have "((F ^^ i) (\<lambda>t. bot)) \<in> borel_measurable M"
+      by (induct i) (auto intro!: * simp: bot_fun_def) }
+  then have "(\<lambda>x. SUP i. (F ^^ i) (\<lambda>t. bot) x) \<in> borel_measurable M"
+    by measurable
+  also have "(\<lambda>x. SUP i. (F ^^ i) (\<lambda>t. bot) x) = (SUP i. (F ^^ i) bot)"
+    by (auto simp add: bot_fun_def)
+  also have "(SUP i. (F ^^ i) bot) = lfp F"
+    by (rule continuous_lfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
 (* Proof by Jeremy Avigad and Luke Serafin *)
 lemma isCont_borel:
   fixes f :: "'b::metric_space \<Rightarrow> 'a::metric_space"

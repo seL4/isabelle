@@ -774,120 +774,6 @@ qed
 
 subsection {* Sums *}
 
-lemma setsum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
-proof (cases "finite A")
-  case True
-  then show ?thesis by induct auto
-next
-  case False
-  then show ?thesis by simp
-qed
-
-lemma setsum_Pinfty:
-  fixes f :: "'a \<Rightarrow> ereal"
-  shows "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> finite P \<and> (\<exists>i\<in>P. f i = \<infinity>)"
-proof safe
-  assume *: "setsum f P = \<infinity>"
-  show "finite P"
-  proof (rule ccontr)
-    assume "infinite P"
-    with * show False
-      by auto
-  qed
-  show "\<exists>i\<in>P. f i = \<infinity>"
-  proof (rule ccontr)
-    assume "\<not> ?thesis"
-    then have "\<And>i. i \<in> P \<Longrightarrow> f i \<noteq> \<infinity>"
-      by auto
-    with `finite P` have "setsum f P \<noteq> \<infinity>"
-      by induct auto
-    with * show False
-      by auto
-  qed
-next
-  fix i
-  assume "finite P" and "i \<in> P" and "f i = \<infinity>"
-  then show "setsum f P = \<infinity>"
-  proof induct
-    case (insert x A)
-    show ?case using insert by (cases "x = i") auto
-  qed simp
-qed
-
-lemma setsum_Inf:
-  fixes f :: "'a \<Rightarrow> ereal"
-  shows "\<bar>setsum f A\<bar> = \<infinity> \<longleftrightarrow> finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
-proof
-  assume *: "\<bar>setsum f A\<bar> = \<infinity>"
-  have "finite A"
-    by (rule ccontr) (insert *, auto)
-  moreover have "\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>"
-  proof (rule ccontr)
-    assume "\<not> ?thesis"
-    then have "\<forall>i\<in>A. \<exists>r. f i = ereal r"
-      by auto
-    from bchoice[OF this] obtain r where "\<forall>x\<in>A. f x = ereal (r x)" ..
-    with * show False
-      by auto
-  qed
-  ultimately show "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
-    by auto
-next
-  assume "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
-  then obtain i where "finite A" "i \<in> A" and "\<bar>f i\<bar> = \<infinity>"
-    by auto
-  then show "\<bar>setsum f A\<bar> = \<infinity>"
-  proof induct
-    case (insert j A)
-    then show ?case
-      by (cases rule: ereal3_cases[of "f i" "f j" "setsum f A"]) auto
-  qed simp
-qed
-
-lemma setsum_real_of_ereal:
-  fixes f :: "'i \<Rightarrow> ereal"
-  assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
-  shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
-proof -
-  have "\<forall>x\<in>S. \<exists>r. f x = ereal r"
-  proof
-    fix x
-    assume "x \<in> S"
-    from assms[OF this] show "\<exists>r. f x = ereal r"
-      by (cases "f x") auto
-  qed
-  from bchoice[OF this] obtain r where "\<forall>x\<in>S. f x = ereal (r x)" ..
-  then show ?thesis
-    by simp
-qed
-
-lemma setsum_ereal_0:
-  fixes f :: "'a \<Rightarrow> ereal"
-  assumes "finite A"
-    and "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i"
-  shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
-proof
-  assume *: "(\<Sum>x\<in>A. f x) = 0"
-  then have "(\<Sum>x\<in>A. f x) \<noteq> \<infinity>"
-    by auto
-  then have "\<forall>i\<in>A. \<bar>f i\<bar> \<noteq> \<infinity>"
-    using assms by (force simp: setsum_Pinfty)
-  then have "\<forall>i\<in>A. \<exists>r. f i = ereal r"
-    by auto
-  from bchoice[OF this] * assms show "\<forall>i\<in>A. f i = 0"
-    using setsum_nonneg_eq_0_iff[of A "\<lambda>i. real (f i)"] by auto
-qed (rule setsum.neutral)
-
-lemma setsum_ereal_right_distrib:
-  fixes f :: "'a \<Rightarrow> ereal"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i"
-  shows "r * setsum f A = (\<Sum>n\<in>A. r * f n)"
-proof cases
-  assume "finite A"
-  then show ?thesis using assms
-    by induct (auto simp: ereal_right_distrib setsum_nonneg)
-qed simp
-
 lemma sums_ereal_positive:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>i. 0 \<le> f i"
@@ -1462,6 +1348,9 @@ next
 qed
 
 subsection "Relate extended reals and the indicator function"
+
+lemma ereal_indicator_le_0: "(indicator S x::ereal) \<le> 0 \<longleftrightarrow> x \<notin> S"
+  by (auto split: split_indicator simp: one_ereal_def)
 
 lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
   by (auto simp: indicator_def one_ereal_def)

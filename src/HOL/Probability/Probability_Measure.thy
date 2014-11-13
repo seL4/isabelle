@@ -60,6 +60,11 @@ proof (rule AE_I)
     using assms emeasure_space_1 by (simp add: emeasure_compl)
 qed (insert assms, auto)
 
+lemma prob_space_restrict_space:
+  "S \<in> sets M \<Longrightarrow> emeasure M S = 1 \<Longrightarrow> prob_space (restrict_space M S)"
+  by (intro prob_spaceI)
+     (simp add: emeasure_restrict_space space_restrict_space)
+
 lemma (in prob_space) prob_compl:
   assumes A: "A \<in> events"
   shows "prob (space M - A) = 1 - prob A"
@@ -107,6 +112,9 @@ qed
 lemma (in prob_space) AE_const[simp]: "(AE x in M. P) \<longleftrightarrow> P"
   by (cases P) (auto simp: AE_False)
 
+lemma (in prob_space) ae_filter_bot: "ae_filter M \<noteq> bot"
+  by (simp add: trivial_limit_def)
+
 lemma (in prob_space) AE_contr:
   assumes ae: "AE \<omega> in M. P \<omega>" "AE \<omega> in M. \<not> P \<omega>"
   shows False
@@ -114,6 +122,10 @@ proof -
   from ae have "AE \<omega> in M. False" by eventually_elim auto
   then show False by auto
 qed
+
+lemma (in prob_space) emeasure_eq_1_AE:
+  "S \<in> sets M \<Longrightarrow> AE x in M. x \<in> S \<Longrightarrow> emeasure M S = 1"
+  by (subst emeasure_eq_AE[where B="space M"]) (auto simp: emeasure_space_1)
 
 lemma (in prob_space) integral_ge_const:
   fixes c :: real
@@ -355,6 +367,31 @@ proof -
   show ?thesis
     unfolding * ** using S P disj
     by (intro finite_measure_UNION) auto
+qed
+
+lemma (in prob_space) prob_setsum:
+  assumes [simp, intro]: "finite I"
+  assumes P: "\<And>n. n \<in> I \<Longrightarrow> {x\<in>space M. P n x} \<in> events"
+  assumes Q: "{x\<in>space M. Q x} \<in> events"
+  assumes ae: "AE x in M. (\<forall>n\<in>I. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n\<in>I. P n x))"
+  shows "\<P>(x in M. Q x) = (\<Sum>n\<in>I. \<P>(x in M. P n x))"
+proof -
+  from ae[THEN AE_E_prob] guess S . note S = this
+  then have disj: "disjoint_family_on (\<lambda>n. {x\<in>space M. P n x} \<inter> S) I"
+    by (auto simp: disjoint_family_on_def)
+  from S have ae_S:
+    "AE x in M. x \<in> {x\<in>space M. Q x} \<longleftrightarrow> x \<in> (\<Union>n\<in>I. {x\<in>space M. P n x} \<inter> S)"
+    "\<And>n. n \<in> I \<Longrightarrow> AE x in M. x \<in> {x\<in>space M. P n x} \<longleftrightarrow> x \<in> {x\<in>space M. P n x} \<inter> S"
+    using ae by (auto dest!: AE_prob_1)
+  from ae_S have *:
+    "\<P>(x in M. Q x) = prob (\<Union>n\<in>I. {x\<in>space M. P n x} \<inter> S)"
+    using P Q S by (intro finite_measure_eq_AE) (auto intro!: sets.Int)
+  from ae_S have **:
+    "\<And>n. n \<in> I \<Longrightarrow> \<P>(x in M. P n x) = prob ({x\<in>space M. P n x} \<inter> S)"
+    using P Q S by (intro finite_measure_eq_AE) auto
+  show ?thesis
+    using S P disj
+    by (auto simp add: * ** simp del: UN_simps intro!: finite_measure_finite_Union)
 qed
 
 lemma (in prob_space) prob_EX_countable:
@@ -1104,5 +1141,22 @@ qed
 
 lemma prob_space_uniform_count_measure: "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> prob_space (uniform_count_measure A)"
   by default (auto simp: emeasure_uniform_count_measure space_uniform_count_measure one_ereal_def)
+
+lemma (in prob_space) measure_uniform_measure_eq_cond_prob:
+  assumes [measurable]: "Measurable.pred M P" "Measurable.pred M Q"
+  shows "\<P>(x in uniform_measure M {x\<in>space M. Q x}. P x) = \<P>(x in M. P x \<bar> Q x)"
+proof cases
+  assume Q: "measure M {x\<in>space M. Q x} = 0"
+  then have "AE x in M. \<not> Q x"
+    by (simp add: prob_eq_0)
+  then have "AE x in M. indicator {x\<in>space M. Q x} x / ereal 0 = 0"
+    by (auto split: split_indicator)
+  from density_cong[OF _ _ this] show ?thesis
+    by (simp add: uniform_measure_def emeasure_eq_measure cond_prob_def Q measure_density_const)
+qed (auto simp add: emeasure_eq_measure cond_prob_def intro!: arg_cong[where f=prob])
+
+lemma prob_space_point_measure:
+  "finite S \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> 0 \<le> p s) \<Longrightarrow> (\<Sum>s\<in>S. p s) = 1 \<Longrightarrow> prob_space (point_measure S p)"
+  by (rule prob_spaceI) (simp add: space_point_measure emeasure_point_measure_finite)
 
 end

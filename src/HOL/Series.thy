@@ -666,4 +666,14 @@ lemma summable_rabs_cancel: "summable (\<lambda>n. \<bar>f n :: real\<bar>) \<Lo
 lemma summable_rabs: "summable (\<lambda>n. \<bar>f n :: real\<bar>) \<Longrightarrow> \<bar>suminf f\<bar> \<le> (\<Sum>n. \<bar>f n\<bar>)"
   by (fold real_norm_def) (rule summable_norm)
 
+lemma summable_power_series:
+  fixes z :: real
+  assumes le_1: "\<And>i. f i \<le> 1" and nonneg: "\<And>i. 0 \<le> f i" and z: "0 \<le> z" "z < 1"
+  shows "summable (\<lambda>i. f i * z^i)"
+proof (rule summable_comparison_test[OF _ summable_geometric])
+  show "norm z < 1" using z by (auto simp: less_imp_le)
+  show "\<And>n. \<exists>N. \<forall>na\<ge>N. norm (f na * z ^ na) \<le> z ^ na"
+    using z by (auto intro!: exI[of _ 0] mult_left_le_one_le simp: abs_mult nonneg power_abs less_imp_le le_1)
+qed
+
 end

@@ -570,6 +570,108 @@ lemma incseq_setsumI2:
   using assms
   unfolding incseq_def by (auto intro: setsum_mono)
 
+lemma setsum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
+proof (cases "finite A")
+  case True
+  then show ?thesis by induct auto
+next
+  case False
+  then show ?thesis by simp
+qed
+
+lemma setsum_Pinfty:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> finite P \<and> (\<exists>i\<in>P. f i = \<infinity>)"
+proof safe
+  assume *: "setsum f P = \<infinity>"
+  show "finite P"
+  proof (rule ccontr)
+    assume "\<not> finite P"
+    with * show False
+      by auto
+  qed
+  show "\<exists>i\<in>P. f i = \<infinity>"
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "\<And>i. i \<in> P \<Longrightarrow> f i \<noteq> \<infinity>"
+      by auto
+    with `finite P` have "setsum f P \<noteq> \<infinity>"
+      by induct auto
+    with * show False
+      by auto
+  qed
+next
+  fix i
+  assume "finite P" and "i \<in> P" and "f i = \<infinity>"
+  then show "setsum f P = \<infinity>"
+  proof induct
+    case (insert x A)
+    show ?case using insert by (cases "x = i") auto
+  qed simp
+qed
+
+lemma setsum_Inf:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "\<bar>setsum f A\<bar> = \<infinity> \<longleftrightarrow> finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
+proof
+  assume *: "\<bar>setsum f A\<bar> = \<infinity>"
+  have "finite A"
+    by (rule ccontr) (insert *, auto)
+  moreover have "\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>"
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "\<forall>i\<in>A. \<exists>r. f i = ereal r"
+      by auto
+    from bchoice[OF this] obtain r where "\<forall>x\<in>A. f x = ereal (r x)" ..
+    with * show False
+      by auto
+  qed
+  ultimately show "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
+    by auto
+next
+  assume "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
+  then obtain i where "finite A" "i \<in> A" and "\<bar>f i\<bar> = \<infinity>"
+    by auto
+  then show "\<bar>setsum f A\<bar> = \<infinity>"
+  proof induct
+    case (insert j A)
+    then show ?case
+      by (cases rule: ereal3_cases[of "f i" "f j" "setsum f A"]) auto
+  qed simp
+qed
+
+lemma setsum_real_of_ereal:
+  fixes f :: "'i \<Rightarrow> ereal"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
+  shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
+proof -
+  have "\<forall>x\<in>S. \<exists>r. f x = ereal r"
+  proof
+    fix x
+    assume "x \<in> S"
+    from assms[OF this] show "\<exists>r. f x = ereal r"
+      by (cases "f x") auto
+  qed
+  from bchoice[OF this] obtain r where "\<forall>x\<in>S. f x = ereal (r x)" ..
+  then show ?thesis
+    by simp
+qed
+
+lemma setsum_ereal_0:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "finite A"
+    and "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i"
+  shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
+proof
+  assume "setsum f A = 0" with assms show "\<forall>i\<in>A. f i = 0"
+  proof (induction A)
+    case (insert a A)
+    then have "f a = 0 \<and> (\<Sum>a\<in>A. f a) = 0"
+      by (subst ereal_add_nonneg_eq_0_iff[symmetric]) (simp_all add: setsum_nonneg)
+    with insert show ?case
+      by simp
+  qed simp
+qed auto
 
 subsubsection "Multiplication"
 
@@ -615,6 +717,9 @@ proof
 qed
 
 end
+
+lemma one_not_le_zero_ereal[simp]: "\<not> (1 \<le> (0::ereal))"
+  by (simp add: one_ereal_def zero_ereal_def)
 
 lemma real_ereal_1[simp]: "real (1::ereal) = 1"
   unfolding one_ereal_def by simp
@@ -761,10 +866,10 @@ lemma ereal_left_mult_cong:
   shows "(c \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = c * b"
   by (cases "c = 0") simp_all
 
-lemma ereal_right_mult_cong:
-  fixes a b c :: ereal
-  shows "(c \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> a * c = b * c"
-  by (cases "c = 0") simp_all
+lemma ereal_right_mult_cong: 
+  fixes a b c d :: ereal
+  shows "c = d \<Longrightarrow> (d \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = d * b"
+  by (cases "d = 0") simp_all
 
 lemma ereal_distrib:
   fixes a b c :: ereal
@@ -780,6 +885,11 @@ lemma numeral_eq_ereal [simp]: "numeral w = ereal (numeral w)"
   apply (simp only: numeral_One one_ereal_def)
   apply (simp only: numeral_inc ereal_plus_1)
   done
+
+lemma setsum_ereal_right_distrib:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> r * setsum f A = (\<Sum>n\<in>A. r * f n)"
+  by (induct A rule: infinite_finite_induct)  (auto simp: ereal_right_distrib setsum_nonneg)
 
 lemma ereal_le_epsilon:
   fixes x y :: ereal
@@ -1167,6 +1277,9 @@ lemma ereal_divide_one[simp]: "x / 1 = (x::ereal)"
 lemma ereal_divide_ereal[simp]: "\<infinity> / ereal r = (if 0 \<le> r then \<infinity> else -\<infinity>)"
   unfolding divide_ereal_def by simp
 
+lemma ereal_inverse_nonneg_iff: "0 \<le> inverse (x :: ereal) \<longleftrightarrow> 0 \<le> x \<or> x = -\<infinity>"
+  by (cases x) auto
+
 lemma zero_le_divide_ereal[simp]:
   fixes a :: ereal
   assumes "0 \<le> a"
@@ -1229,6 +1342,9 @@ lemma ereal_mult_less_right:
   by (cases rule: ereal3_cases[of a b c])
      (auto split: split_if_asm simp: zero_less_mult_iff zero_le_mult_iff)
 
+lemma ereal_mult_divide: fixes a b :: ereal shows "0 < b \<Longrightarrow> b < \<infinity> \<Longrightarrow> b * (a / b) = a"
+  by (cases a b rule: ereal2_cases) auto
+
 lemma ereal_power_divide:
   fixes x y :: ereal
   shows "y \<noteq> 0 \<Longrightarrow> (x / y) ^ n = x^n / y^n"
@@ -1290,6 +1406,9 @@ lemma ereal_times_divide_eq_left[simp]:
   shows "b / c * a = b * a / c"
   by (cases a b c rule: ereal3_cases) (auto simp: field_simps zero_less_mult_iff mult_less_0_iff)
 
+lemma ereal_times_divide_eq: "a * (b / c :: ereal) = a * b / c"
+  by (cases a b c rule: ereal3_cases)
+     (auto simp: field_simps zero_less_mult_iff)
 
 subsection "Complete lattice"
 
@@ -1652,6 +1771,71 @@ next
       using * `0 \<le> c` by auto
   qed
 qed
+
+lemma SUP_ereal_mult_right:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "I \<noteq> {}"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
+    and "0 \<le> c"
+  shows "(SUP i:I. c * f i) = c * (SUP i:I. f i)"
+proof (rule SUP_eqI)
+  fix i assume "i \<in> I"
+  then have "f i \<le> SUPREMUM I f"
+    by (rule SUP_upper)
+  then show "c * f i \<le> c * SUPREMUM I f"
+    using `0 \<le> c` by (rule ereal_mult_left_mono)
+next
+  fix y assume *: "\<And>i. i \<in> I \<Longrightarrow> c * f i \<le> y"
+  { assume "c = \<infinity>" have "c * SUPREMUM I f \<le> y"
+    proof cases
+      assume "\<forall>i\<in>I. f i = 0"
+      then show ?thesis
+        using * `c = \<infinity>` by (auto simp: SUP_constant bot_ereal_def)
+    next
+      assume "\<not> (\<forall>i\<in>I. f i = 0)"
+      then obtain i where "f i \<noteq> 0" "i \<in> I"
+        by auto
+      with *[of i] `c = \<infinity>` `i \<in> I \<Longrightarrow> 0 \<le> f i` show ?thesis
+        by (auto split: split_if_asm)
+    qed }
+  moreover
+  { assume "c \<noteq> 0" "c \<noteq> \<infinity>"
+    moreover with `0 \<le> c` * have "SUPREMUM I f \<le> y / c"
+      by (intro SUP_least) (auto simp: ereal_le_divide_pos)
+    ultimately have "c * SUPREMUM I f \<le> y"
+      using `0 \<le> c` * by (auto simp: ereal_le_divide_pos) }
+  moreover { assume "c = 0" with * `I \<noteq> {}` have "c * SUPREMUM I f \<le> y" by auto }
+  ultimately show "c * SUPREMUM I f \<le> y"
+    by blast
+qed
+
+lemma SUP_ereal_add_left:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "I \<noteq> {}"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
+    and "0 \<le> c"
+  shows "(SUP i:I. f i + c) = SUPREMUM I f + c"
+proof (intro SUP_eqI)
+  fix B assume *: "\<And>i. i \<in> I \<Longrightarrow> f i + c \<le> B"
+  show "SUPREMUM I f + c \<le> B"
+  proof cases
+    assume "c = \<infinity>" with `I \<noteq> {}` * show ?thesis
+      by auto
+  next
+    assume "c \<noteq> \<infinity>"
+    with `0 \<le> c` have [simp]: "\<bar>c\<bar> \<noteq> \<infinity>"
+      by simp
+    have "SUPREMUM I f \<le> B - c"
+      by (simp add: SUP_le_iff ereal_le_minus *)
+    then show ?thesis
+      by (simp add: ereal_le_minus)
+  qed
+qed (auto intro: ereal_add_mono SUP_upper)
+
+lemma SUP_ereal_add_right:
+  fixes c :: ereal
+  shows "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> 0 \<le> c \<Longrightarrow> (SUP i:I. c + f i) = c + SUPREMUM I f"
+  using SUP_ereal_add_left[of I f c] by (simp add: add_ac)
 
 lemma SUP_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"

@@ -1732,6 +1732,12 @@ lemma (in sigma_algebra) space_measure_of_eq[simp]: "space (measure_of \<Omega> 
 lemma measure_of_subset: "M \<subseteq> Pow \<Omega> \<Longrightarrow> M' \<subseteq> M \<Longrightarrow> sets (measure_of \<Omega> M' \<mu>) \<subseteq> sets (measure_of \<Omega> M \<mu>')"
   by (auto intro!: sigma_sets_subseteq)
 
+lemma emeasure_sigma: "emeasure (sigma \<Omega> A) = (\<lambda>x. 0)"
+  unfolding measure_of_def emeasure_def
+  by (subst Abs_measure_inverse)
+     (auto simp: measure_space_def positive_def countably_additive_def
+           intro!: sigma_algebra_sigma_sets sigma_algebra_trivial)
+
 lemma sigma_sets_mono'':
   assumes "A \<in> sigma_sets C D"
   assumes "B \<subseteq> D"
@@ -1838,10 +1844,6 @@ proof (cases M N rule: measure_cases[case_product measure_cases])
   ultimately show "M = N"
     by (simp add: measure_measure)
 qed
-
-lemma emeasure_sigma: "A \<subseteq> Pow \<Omega> \<Longrightarrow> emeasure (sigma \<Omega> A) = (\<lambda>_. 0)"
-  using measure_space_0[of A \<Omega>]
-  by (simp add: measure_of_def emeasure_def Abs_measure_inverse)
 
 lemma sigma_eqI:
   assumes [simp]: "M \<subseteq> Pow \<Omega>" "N \<subseteq> Pow \<Omega>" "sigma_sets \<Omega> M = sigma_sets \<Omega> N"
@@ -2115,22 +2117,30 @@ proof -
     unfolding measurable_def by auto
 qed
 
-lemma measurable_compose_countable:
-  assumes f: "\<And>i::'i::countable. (\<lambda>x. f i x) \<in> measurable M N" and g: "g \<in> measurable M (count_space UNIV)"
+lemma measurable_compose_countable':
+  assumes f: "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. f i x) \<in> measurable M N"
+  and g: "g \<in> measurable M (count_space I)" and I: "countable I"
   shows "(\<lambda>x. f (g x) x) \<in> measurable M N"
   unfolding measurable_def
 proof safe
   fix x assume "x \<in> space M" then show "f (g x) x \<in> space N"
-    using f[THEN measurable_space] g[THEN measurable_space] by auto
+    using measurable_space[OF f] g[THEN measurable_space] by auto
 next
   fix A assume A: "A \<in> sets N"
-  have "(\<lambda>x. f (g x) x) -` A \<inter> space M = (\<Union>i. (g -` {i} \<inter> space M) \<inter> (f i -` A \<inter> space M))"
-    by auto
-  also have "\<dots> \<in> sets M" using f[THEN measurable_sets, OF A] g[THEN measurable_sets]
-    by (auto intro!: sets.countable_UN measurable_sets)
+  have "(\<lambda>x. f (g x) x) -` A \<inter> space M = (\<Union>i\<in>I. (g -` {i} \<inter> space M) \<inter> (f i -` A \<inter> space M))"
+    using measurable_space[OF g] by auto
+  also have "\<dots> \<in> sets M" using f[THEN measurable_sets, OF _ A] g[THEN measurable_sets]
+    apply (auto intro!: sets.countable_UN' measurable_sets I)
+    apply (rule sets.Int)
+    apply auto
+    done
   finally show "(\<lambda>x. f (g x) x) -` A \<inter> space M \<in> sets M" .
 qed
 
+lemma measurable_compose_countable:
+  assumes f: "\<And>i::'i::countable. (\<lambda>x. f i x) \<in> measurable M N" and g: "g \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. f (g x) x) \<in> measurable M N"
+  by (rule measurable_compose_countable'[OF assms]) auto
 lemma measurable_count_space_const:
   "(\<lambda>x. c) \<in> measurable M (count_space UNIV)"
   by (simp add: measurable_const)
@@ -2241,6 +2251,10 @@ lemma sets_Sup_sigma: "sets (Sup_sigma M) = sigma_sets (\<Union>x\<in>M. space x
 lemma in_Sup_sigma: "m \<in> M \<Longrightarrow> A \<in> sets m \<Longrightarrow> A \<in> sets (Sup_sigma M)"
   unfolding sets_Sup_sigma by auto
 
+lemma SUP_sigma_cong: 
+  assumes *: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (\<Squnion>\<^sub>\<sigma> i\<in>I. M i) = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. N i)"
+  using * sets_eq_imp_space_eq[OF *] by (simp add: Sup_sigma_def)
+
 lemma sets_Sup_in_sets: 
   assumes "M \<noteq> {}"
   assumes "\<And>m. m \<in> M \<Longrightarrow> space m = space N"
@@ -2290,6 +2304,9 @@ lemma sets_vimage_algebra2:
   using sigma_sets_vimage_commute[of f X "space M" "sets M"]
   unfolding sets_vimage_algebra sets.sigma_sets_eq by simp
 
+lemma vimage_algebra_cong: "sets M = sets N \<Longrightarrow> sets (vimage_algebra X f M) = sets (vimage_algebra X f N)"
+  by (simp add: sets_vimage_algebra)
+
 lemma in_vimage_algebra: "A \<in> sets M \<Longrightarrow> f -` A \<inter> X \<in> sets (vimage_algebra X f M)"
   by (auto simp: vimage_algebra_def)
 
@@ -2317,6 +2334,34 @@ proof (rule measurable_measure_of)
     using f Y by (rule measurable_sets)
   finally show "g -` A \<inter> space N \<in> sets N" .
 qed (insert g, auto)
+
+lemma vimage_algebra_vimage_algebra_eq:
+  assumes *: "f \<in> X \<rightarrow> Y" "g \<in> Y \<rightarrow> space M"
+  shows "vimage_algebra X f (vimage_algebra Y g M) = vimage_algebra X (\<lambda>x. g (f x)) M"
+  (is "?VV = ?V")
+proof (rule measure_eqI)
+  have "(\<lambda>x. g (f x)) \<in> X \<rightarrow> space M" "\<And>A. A \<inter> f -` Y \<inter> X = A \<inter> X"
+    using * by auto
+  with * show "sets ?VV = sets ?V"
+    by (simp add: sets_vimage_algebra2 ex_simps[symmetric] vimage_comp comp_def del: ex_simps)
+qed (simp add: vimage_algebra_def emeasure_sigma)
+
+lemma sets_vimage_Sup_eq:
+  assumes *: "M \<noteq> {}" "\<And>m. m \<in> M \<Longrightarrow> f \<in> X \<rightarrow> space m"
+  shows "sets (vimage_algebra X f (Sup_sigma M)) = sets (\<Squnion>\<^sub>\<sigma> m \<in> M. vimage_algebra X f m)"
+  (is "?IS = ?SI")
+proof
+  show "?IS \<subseteq> ?SI"
+    by (intro sets_image_in_sets measurable_Sup_sigma2 measurable_Sup_sigma1)
+       (auto simp: space_Sup_sigma measurable_vimage_algebra1 *)
+  { fix m assume "m \<in> M"
+    moreover then have "f \<in> X \<rightarrow> space (Sup_sigma M)" "f \<in> X \<rightarrow> space m"
+      using * by (auto simp: space_Sup_sigma)
+    ultimately have "f \<in> measurable (vimage_algebra X f (Sup_sigma M)) m"
+      by (auto simp add: measurable_def sets_vimage_algebra2 intro: in_Sup_sigma) }
+  then show "?SI \<subseteq> ?IS"
+    by (auto intro!: sets_image_in_sets sets_Sup_in_sets del: subsetI simp: *)
+qed
 
 subsubsection {* Restricted Space Sigma Algebra *}
 
@@ -2357,6 +2402,27 @@ proof (subst sets_restrict_space, safe)
   finally show "\<Omega> \<inter> A \<in> sets M"
     by auto
 qed auto
+
+lemma sets_restrict_space_cong: "sets M = sets N \<Longrightarrow> sets (restrict_space M \<Omega>) = sets (restrict_space N \<Omega>)"
+  by (simp add: sets_restrict_space)
+
+lemma restrict_space_eq_vimage_algebra:
+  "\<Omega> \<subseteq> space M \<Longrightarrow> sets (restrict_space M \<Omega>) = sets (vimage_algebra \<Omega> (\<lambda>x. x) M)"
+  unfolding restrict_space_def
+  apply (subst sets_measure_of)
+  apply (auto simp add: image_subset_iff dest: sets.sets_into_space) []
+  apply (auto simp add: sets_vimage_algebra intro!: arg_cong2[where f=sigma_sets])
+  done
+
+lemma sets_Collect_restrict_space_iff: 
+  assumes "S \<in> sets M"
+  shows "{x\<in>space (restrict_space M S). P x} \<in> sets (restrict_space M S) \<longleftrightarrow> {x\<in>space M. x \<in> S \<and> P x} \<in> sets M"
+proof -
+  have "{x\<in>S. P x} = {x\<in>space M. x \<in> S \<and> P x}"
+    using sets.sets_into_space[OF assms] by auto
+  then show ?thesis
+    by (subst sets_restrict_space_iff) (auto simp add: space_restrict_space assms)
+qed
 
 lemma measurable_restrict_space1:
   assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M" and f: "f \<in> measurable M N"

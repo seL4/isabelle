@@ -478,6 +478,8 @@ lemma strong_bex_cong [cong]:
     (EX x:A. P x) = (EX x:B. Q x)"
   by (simp add: simp_implies_def Bex_def cong: conj_cong)
 
+lemma bex1_def: "(\<exists>!x\<in>X. P x) \<longleftrightarrow> (\<exists>x\<in>X. P x) \<and> (\<forall>x\<in>X. \<forall>y\<in>X. P x \<longrightarrow> P y \<longrightarrow> x = y)"
+  by auto
 
 subsection {* Basic operations *}
 

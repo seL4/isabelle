@@ -493,7 +493,6 @@ apply clarsimp
 apply (rule_tac x="b - Suc a" in exI, arith)
 done
 
-
 subsection {* Cases and induction *}
 
 text{*Now we replace the case analysis rule by a more conventional one:
@@ -816,6 +815,12 @@ next
   qed
   with False show ?thesis by simp
 qed
+
+lemma nat_abs_int_diff: "nat \<bar>int a - int b\<bar> = (if a \<le> b then b - a else a - b)"
+  by auto
+
+lemma nat_int_add: "nat (int a + int b) = a + b"
+  by auto
 
 context ring_1
 begin

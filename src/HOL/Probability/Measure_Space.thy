@@ -422,7 +422,10 @@ lemma emeasure_le_0_iff: "emeasure M A \<le> 0 \<longleftrightarrow> emeasure M 
 
 lemma emeasure_less_0_iff: "emeasure M A < 0 \<longleftrightarrow> False"
   using emeasure_nonneg[of M A] by auto
-  
+
+lemma emeasure_single_in_space: "emeasure M {x} \<noteq> 0 \<Longrightarrow> x \<in> space M"
+  using emeasure_notin_sets[of "{x}" M] by (auto dest: sets.sets_into_space)
+
 lemma emeasure_countably_additive: "countably_additive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
 
@@ -544,6 +547,32 @@ lemma Lim_emeasure_decseq:
   shows "(\<lambda>i. emeasure M (A i)) ----> emeasure M (\<Inter>i. A i)"
   using LIMSEQ_INF[OF decseq_emeasure, OF A]
   using INF_emeasure_decseq[OF A fin] by simp
+
+lemma emeasure_lfp[consumes 1, case_names cont measurable]:
+  assumes "P M"
+  assumes cont: "Order_Continuity.continuous F"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
+  shows "emeasure M {x\<in>space M. lfp F x} = (SUP i. emeasure M {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
+proof -
+  have "emeasure M {x\<in>space M. lfp F x} = emeasure M (\<Union>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
+    using continuous_lfp[OF cont] by (auto simp add: bot_fun_def intro!: arg_cong2[where f=emeasure])
+  moreover { fix i from `P M` have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M"
+    by (induct i arbitrary: M) (auto simp add: pred_def[symmetric] intro: *) }
+  moreover have "incseq (\<lambda>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
+  proof (rule incseq_SucI)
+    fix i
+    have "(F ^^ i) (\<lambda>x. False) \<le> (F ^^ (Suc i)) (\<lambda>x. False)"
+    proof (induct i)
+      case 0 show ?case by (simp add: le_fun_def)
+    next
+      case Suc thus ?case using monoD[OF continuous_mono[OF cont] Suc] by auto
+    qed
+    then show "{x \<in> space M. (F ^^ i) (\<lambda>x. False) x} \<subseteq> {x \<in> space M. (F ^^ Suc i) (\<lambda>x. False) x}"
+      by auto
+  qed
+  ultimately show ?thesis
+    by (subst SUP_emeasure_incseq) auto
+qed
 
 lemma emeasure_subadditive:
   assumes [measurable]: "A \<in> sets M" "B \<in> sets M"
@@ -997,6 +1026,25 @@ proof
     unfolding eventually_ae_filter by auto
 qed auto
 
+lemma AE_ball_countable: 
+  assumes [intro]: "countable X"
+  shows "(AE x in M. \<forall>y\<in>X. P x y) \<longleftrightarrow> (\<forall>y\<in>X. AE x in M. P x y)"
+proof
+  assume "\<forall>y\<in>X. AE x in M. P x y"
+  from this[unfolded eventually_ae_filter Bex_def, THEN bchoice]
+  obtain N where N: "\<And>y. y \<in> X \<Longrightarrow> N y \<in> null_sets M" "\<And>y. y \<in> X \<Longrightarrow> {x\<in>space M. \<not> P x y} \<subseteq> N y"
+    by auto
+  have "{x\<in>space M. \<not> (\<forall>y\<in>X. P x y)} \<subseteq> (\<Union>y\<in>X. {x\<in>space M. \<not> P x y})"
+    by auto
+  also have "\<dots> \<subseteq> (\<Union>y\<in>X. N y)"
+    using N by auto
+  finally have "{x\<in>space M. \<not> (\<forall>y\<in>X. P x y)} \<subseteq> (\<Union>y\<in>X. N y)" .
+  moreover from N have "(\<Union>y\<in>X. N y) \<in> null_sets M"
+    by (intro null_sets_UN') auto
+  ultimately show "AE x in M. \<forall>y\<in>X. P x y"
+    unfolding eventually_ae_filter by auto
+qed auto
+
 lemma AE_discrete_difference:
   assumes X: "countable X"
   assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
@@ -1040,6 +1088,15 @@ lemma emeasure_eq_AE:
   assumes A: "A \<in> sets M" and B: "B \<in> sets M"
   shows "emeasure M A = emeasure M B"
   using assms by (safe intro!: antisym emeasure_mono_AE) auto
+
+lemma emeasure_Collect_eq_AE:
+  "AE x in M. P x \<longleftrightarrow> Q x \<Longrightarrow> Measurable.pred M Q \<Longrightarrow> Measurable.pred M P \<Longrightarrow>
+   emeasure M {x\<in>space M. P x} = emeasure M {x\<in>space M. Q x}"
+   by (intro emeasure_eq_AE) auto
+
+lemma emeasure_eq_0_AE: "AE x in M. \<not> P x \<Longrightarrow> emeasure M {x\<in>space M. P x} = 0"
+  using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"]
+  by (cases "{x\<in>space M. P x} \<in> sets M") (simp_all add: emeasure_notin_sets)
 
 subsection {* @{text \<sigma>}-finite Measures *}
 
@@ -1162,6 +1219,42 @@ proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space N) (sets N)" ..
 qed fact
 
+lemma emeasure_Collect_distr:
+  assumes X[measurable]: "X \<in> measurable M N" "Measurable.pred N P"
+  shows "emeasure (distr M N X) {x\<in>space N. P x} = emeasure M {x\<in>space M. P (X x)}"
+  by (subst emeasure_distr)
+     (auto intro!: arg_cong2[where f=emeasure] X(1)[THEN measurable_space])
+
+lemma emeasure_lfp2[consumes 1, case_names cont f measurable]:
+  assumes "P M"
+  assumes cont: "Order_Continuity.continuous F"
+  assumes f: "\<And>M. P M \<Longrightarrow> f \<in> measurable M' M"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
+  shows "emeasure M' {x\<in>space M'. lfp F (f x)} = (SUP i. emeasure M' {x\<in>space M'. (F ^^ i) (\<lambda>x. False) (f x)})"
+proof (subst (1 2) emeasure_Collect_distr[symmetric, where X=f])
+  show "f \<in> measurable M' M"  "f \<in> measurable M' M"
+    using f[OF `P M`] by auto
+  { fix i show "Measurable.pred M ((F ^^ i) (\<lambda>x. False))"
+    using `P M` by (induction i arbitrary: M) (auto intro!: *) }
+  show "Measurable.pred M (lfp F)"
+    using `P M` cont * by (rule measurable_lfp_coinduct[of P])
+
+  have "emeasure (distr M' M f) {x \<in> space (distr M' M f). lfp F x} =
+    (SUP i. emeasure (distr M' M f) {x \<in> space (distr M' M f). (F ^^ i) (\<lambda>x. False) x})"
+    using `P M`
+  proof (coinduction arbitrary: M rule: emeasure_lfp)
+    case (measurable A N) then have "\<And>N. P N \<Longrightarrow> Measurable.pred (distr M' N f) A"
+      by metis
+    then have "\<And>N. P N \<Longrightarrow> Measurable.pred N A"
+      by simp
+    with `P N`[THEN *] show ?case
+      by auto
+  qed fact
+  then show "emeasure (distr M' M f) {x \<in> space M. lfp F x} =
+    (SUP i. emeasure (distr M' M f) {x \<in> space M. (F ^^ i) (\<lambda>x. False) x})"
+   by simp
+qed
+
 lemma distr_id[simp]: "distr N N (\<lambda>x. x) = N"
   by (rule measure_eqI) (auto simp: emeasure_distr)
 
@@ -1216,6 +1309,9 @@ subsection {* Real measure values *}
 
 lemma measure_nonneg: "0 \<le> measure M A"
   using emeasure_nonneg[of M A] unfolding measure_def by (auto intro: real_of_ereal_pos)
+
+lemma measure_le_0_iff: "measure M X \<le> 0 \<longleftrightarrow> measure M X = 0"
+  using measure_nonneg[of M X] by auto
 
 lemma measure_empty[simp]: "measure M {} = 0"
   unfolding measure_def by simp
@@ -1780,6 +1876,39 @@ proof (rule measure_eqI)
        (auto simp: sets_restrict_space_iff emeasure_restrict_space emeasure_distr
              intro!: measurable_restrict_space2)
 qed (simp add: sets_restrict_space)
+
+lemma measure_eqI_restrict_generator:
+  assumes E: "Int_stable E" "E \<subseteq> Pow \<Omega>" "\<And>X. X \<in> E \<Longrightarrow> emeasure M X = emeasure N X"
+  assumes sets_eq: "sets M = sets N" and \<Omega>: "\<Omega> \<in> sets M"
+  assumes "sets (restrict_space M \<Omega>) = sigma_sets \<Omega> E"
+  assumes "sets (restrict_space N \<Omega>) = sigma_sets \<Omega> E" 
+  assumes ae: "AE x in M. x \<in> \<Omega>" "AE x in N. x \<in> \<Omega>"
+  assumes A: "countable A" "A \<noteq> {}" "A \<subseteq> E" "\<Union>A = \<Omega>" "\<And>a. a \<in> A \<Longrightarrow> emeasure M a \<noteq> \<infinity>"
+  shows "M = N"
+proof (rule measure_eqI)
+  fix X assume X: "X \<in> sets M"
+  then have "emeasure M X = emeasure (restrict_space M \<Omega>) (X \<inter> \<Omega>)"
+    using ae \<Omega> by (auto simp add: emeasure_restrict_space intro!: emeasure_eq_AE)
+  also have "restrict_space M \<Omega> = restrict_space N \<Omega>"
+  proof (rule measure_eqI_generator_eq)
+    fix X assume "X \<in> E"
+    then show "emeasure (restrict_space M \<Omega>) X = emeasure (restrict_space N \<Omega>) X"
+      using E \<Omega> by (subst (1 2) emeasure_restrict_space) (auto simp: sets_eq sets_eq[THEN sets_eq_imp_space_eq])
+  next
+    show "range (from_nat_into A) \<subseteq> E" "(\<Union>i. from_nat_into A i) = \<Omega>"
+      unfolding Sup_image_eq[symmetric, where f="from_nat_into A"] using A by auto
+  next
+    fix i
+    have "emeasure (restrict_space M \<Omega>) (from_nat_into A i) = emeasure M (from_nat_into A i)"
+      using A \<Omega> by (subst emeasure_restrict_space)
+                   (auto simp: sets_eq sets_eq[THEN sets_eq_imp_space_eq] intro: from_nat_into)
+    with A show "emeasure (restrict_space M \<Omega>) (from_nat_into A i) \<noteq> \<infinity>"
+      by (auto intro: from_nat_into)
+  qed fact+
+  also have "emeasure (restrict_space N \<Omega>) (X \<inter> \<Omega>) = emeasure N X"
+    using X ae \<Omega> by (auto simp add: emeasure_restrict_space sets_eq intro!: emeasure_eq_AE)
+  finally show "emeasure M X = emeasure N X" .
+qed fact
 
 end
 

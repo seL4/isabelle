@@ -1391,6 +1391,12 @@ lemma Suc_funpow[simp]: "Suc ^^ n = (op + n)"
 lemma id_funpow[simp]: "id ^^ n = id"
   by (induct n) simp_all
 
+lemma funpow_mono:
+  fixes f :: "'a \<Rightarrow> ('a::lattice)"
+  shows "mono f \<Longrightarrow> A \<le> B \<Longrightarrow> (f ^^ n) A \<le> (f ^^ n) B"
+  by (induct n arbitrary: A B)
+     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right mono_def)
+
 subsection {* Kleene iteration *}
 
 lemma Kleene_iter_lpfp:
@@ -1848,7 +1854,27 @@ text {* Further induction rule similar to @{thm inc_induct} *}
 lemma dec_induct[consumes 1, case_names base step]:
   "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
   by (induct j arbitrary: i) (auto simp: le_Suc_eq)
- 
+
+subsection \<open> Monotonicity of funpow \<close>
+
+lemma funpow_increasing:
+  fixes f :: "'a \<Rightarrow> ('a::{lattice, order_top})"
+  shows "m \<le> n \<Longrightarrow> mono f \<Longrightarrow> (f ^^ n) \<top> \<le> (f ^^ m) \<top>"
+  by (induct rule: inc_induct)
+     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right
+           intro: order_trans[OF _ funpow_mono])
+
+lemma funpow_decreasing:
+  fixes f :: "'a \<Rightarrow> ('a::{lattice, order_bot})"
+  shows "m \<le> n \<Longrightarrow> mono f \<Longrightarrow> (f ^^ m) \<bottom> \<le> (f ^^ n) \<bottom>"
+  by (induct rule: dec_induct)
+     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right
+           intro: order_trans[OF _ funpow_mono])
+
+lemma mono_funpow:
+  fixes Q :: "('i \<Rightarrow> 'a::{lattice, order_bot}) \<Rightarrow> ('i \<Rightarrow> 'a)"
+  shows "mono Q \<Longrightarrow> mono (\<lambda>i. (Q ^^ i) \<bottom>)"
+  by (auto intro!: funpow_decreasing simp: mono_def)
 
 subsection {* The divides relation on @{typ nat} *}
 

@@ -666,15 +666,17 @@ text {* The following proof is convenient in induction proofs where
 new elements get indices at the beginning. So it is used to transform
 @{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}. *}
 
+lemma zero_notin_Suc_image: "0 \<notin> Suc ` A"
+  by auto
+
 lemma lessThan_Suc_eq_insert_0: "{..<Suc n} = insert 0 (Suc ` {..<n})"
-proof safe
-  fix x assume "x < Suc n" "x \<notin> Suc ` {..<n}"
-  then have "x \<noteq> Suc (x - 1)" by auto
-  with `x < Suc n` show "x = 0" by auto
-qed
+  by (auto simp: image_iff less_Suc_eq_0_disj)
 
 lemma lessThan_Suc_atMost: "lessThan (Suc k) = atMost k"
 by (simp add: lessThan_def atMost_def less_Suc_eq_le)
+
+lemma Iic_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
+  unfolding lessThan_Suc_atMost[symmetric] lessThan_Suc_eq_insert_0[of "Suc n"] ..
 
 lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
 by blast
