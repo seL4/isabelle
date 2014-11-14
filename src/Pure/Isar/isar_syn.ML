@@ -7,30 +7,6 @@ Outer syntax for Isabelle/Pure.
 structure Isar_Syn: sig end =
 struct
 
-(** markup commands **)
-
-val _ =
-  Outer_Syntax.markup_command Outer_Syntax.Markup_Env
-    @{command_spec "text"} "formal comment (theory)"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.local_theory_markup);
-
-val _ =
-  Outer_Syntax.markup_command Outer_Syntax.Verbatim
-    @{command_spec "text_raw"} "raw document preparation text"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.local_theory_markup);
-
-val _ =
-  Outer_Syntax.markup_command Outer_Syntax.Markup_Env
-    @{command_spec "txt"} "formal comment (proof)"
-    (Parse.document_source >> Thy_Output.proof_markup);
-
-val _ =
-  Outer_Syntax.markup_command Outer_Syntax.Verbatim
-    @{command_spec "txt_raw"} "raw document preparation text (proof)"
-    (Parse.document_source >> Thy_Output.proof_markup);
-
-
-
 (** theory commands **)
 
 (* sorts *)

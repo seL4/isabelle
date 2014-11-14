@@ -180,13 +180,20 @@ argument. Minor INCOMPATIBILITY.
 
 *** Document preparation ***
 
-* Document headings work uniformly via the commands 'chapter',
-'section', 'subsection', 'subsubsection' -- in any context, even
-before the initial 'theory' command.  Obsolete proof commands 'sect',
-'subsect', 'subsubsect' have been discontinued.  The Obsolete 'header'
-command is still retained for some time, but should be replaced by
-'chapter', 'section' etc. (using "isabelle update_header"). Minor
-INCOMPATIBILITY.
+* Document markup commands 'chapter', 'section', 'subsection',
+'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
+context, even before the initial 'theory' command. Obsolete proof
+commands 'sect', 'subsect', 'subsubsect', 'txt_raw' have been
+discontinued, use 'section', 'subsection', 'subsubsection', 'text_raw'
+instead. The old 'header' command is still retained for some time, but
+should be replaced by 'chapter', 'section' etc. (using "isabelle
+update_header"). Minor INCOMPATIBILITY.
+
+* Diagnostic commands and document markup commands within a proof do not
+affect the command tag for output. Thus commands like 'thm' are subject
+to proof document structure, and no longer "stick out" accidentally.
+Commands 'text' and 'txt' merely differ in the LaTeX style, not their
+tags. Potential INCOMPATIBILITY in exotic situations.
 
 * Official support for "tt" style variants, via \isatt{...} or
 \begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or

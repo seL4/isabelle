@@ -7,7 +7,9 @@ Isar keyword classification.
 signature KEYWORD =
 sig
   val diag: string
-  val heading: string
+  val document_heading: string
+  val document_body: string
+  val document_raw: string
   val thy_begin: string
   val thy_end: string
   val thy_decl: string
@@ -41,8 +43,11 @@ sig
   val is_literal: keywords -> string -> bool
   val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
+  val is_vacuous: keywords -> string -> bool
   val is_diag: keywords -> string -> bool
-  val is_heading: keywords -> string -> bool
+  val is_document_heading: keywords -> string -> bool
+  val is_document_body: keywords -> string -> bool
+  val is_document_raw: keywords -> string -> bool
   val is_theory_begin: keywords -> string -> bool
   val is_theory_load: keywords -> string -> bool
   val is_theory: keywords -> string -> bool
@@ -64,7 +69,9 @@ struct
 (* kinds *)
 
 val diag = "diag";
-val heading = "heading";
+val document_heading = "document_heading";
+val document_body = "document_body";
+val document_raw = "document_raw";
 val thy_begin = "thy_begin";
 val thy_end = "thy_end";
 val thy_decl = "thy_decl";
@@ -87,9 +94,9 @@ val prf_asm_goal_script = "prf_asm_goal_script";
 val prf_script = "prf_script";
 
 val kinds =
-  [diag, heading, thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_goal,
-    qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+  [diag, document_heading, document_body, document_raw, thy_begin, thy_end, thy_load, thy_decl,
+    thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open,
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 
 (* specifications *)
@@ -196,9 +203,14 @@ fun command_category ks =
       | SOME {kind, ...} => Symtab.defined tab kind);
   in pred end;
 
+val is_vacuous = command_category [diag, document_heading, document_body, document_raw];
+
 val is_diag = command_category [diag];
 
-val is_heading = command_category [heading];
+val is_document_heading = command_category [document_heading];
+val is_document_body = command_category [document_body];
+val is_document_raw = command_category [document_raw];
+val is_document = command_category [document_heading, document_body, document_raw];
 
 val is_theory_begin = command_category [thy_begin];
 
@@ -215,8 +227,8 @@ val is_proof = command_category
     prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_proof_body = command_category
-  [diag, heading, prf_block, prf_open, prf_close, prf_chain, prf_decl, prf_asm,
-    prf_asm_goal, prf_asm_goal_script, prf_script];
+  [diag, document_heading, document_body, document_raw, prf_block, prf_open, prf_close,
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];

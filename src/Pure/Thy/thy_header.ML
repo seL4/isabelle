@@ -46,6 +46,9 @@ val chapterN = "chapter";
 val sectionN = "section";
 val subsectionN = "subsection";
 val subsubsectionN = "subsubsection";
+val textN = "text";
+val txtN = "txt";
+val text_rawN = "text_raw";
 
 val theoryN = "theory";
 val importsN = "imports";
@@ -65,11 +68,14 @@ val bootstrap_keywords =
      (beginN, NONE),
      (importsN, NONE),
      (keywordsN, NONE),
-     (headerN, SOME ((Keyword.heading, []), [])),
-     (chapterN, SOME ((Keyword.heading, []), [])),
-     (sectionN, SOME ((Keyword.heading, []), [])),
-     (subsectionN, SOME ((Keyword.heading, []), [])),
-     (subsubsectionN, SOME ((Keyword.heading, []), [])),
+     (headerN, SOME ((Keyword.document_heading, []), [])),
+     (chapterN, SOME ((Keyword.document_heading, []), [])),
+     (sectionN, SOME ((Keyword.document_heading, []), [])),
+     (subsectionN, SOME ((Keyword.document_heading, []), [])),
+     (subsubsectionN, SOME ((Keyword.document_heading, []), [])),
+     (textN, SOME ((Keyword.document_body, []), [])),
+     (txtN, SOME ((Keyword.document_body, []), [])),
+     (text_rawN, SOME ((Keyword.document_raw, []), [])),
      (theoryN, SOME ((Keyword.thy_begin, []), ["theory"])),
      ("ML_file", SOME ((Keyword.thy_load, []), ["ML"]))];
 
@@ -138,7 +144,10 @@ val heading =
     Parse.command chapterN ||
     Parse.command sectionN ||
     Parse.command subsectionN ||
-    Parse.command subsubsectionN) --
+    Parse.command subsubsectionN ||
+    Parse.command textN ||
+    Parse.command txtN ||
+    Parse.command text_rawN) --
   Parse.tags -- Parse.!!! Parse.document_source;
 
 val header =

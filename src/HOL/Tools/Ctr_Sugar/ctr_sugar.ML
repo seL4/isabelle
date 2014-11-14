@@ -7,7 +7,6 @@ Wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR =
 sig
-
   datatype ctr_sugar_kind = Datatype | Codatatype | Record | Unknown
 
   type ctr_sugar =

@@ -654,31 +654,31 @@ text \<open>
 theorem True
 proof
 (*>*)
-  txt_raw \<open>\begin{minipage}[t]{0.45\textwidth}\<close>
+  text_raw \<open>\begin{minipage}[t]{0.45\textwidth}\<close>
   {
     fix x
     have "B x" sorry %noproof
   }
   note \<open>\<And>x. B x\<close>
-  txt_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     assume A
     have B sorry %noproof
   }
   note \<open>A \<Longrightarrow> B\<close>
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     def x \<equiv> a
     have "B x" sorry %noproof
   }
   note \<open>B a\<close>
-  txt_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     obtain x where "A x" sorry %noproof
     have B sorry %noproof
   }
   note \<open>B\<close>
-  txt_raw \<open>\end{minipage}\<close>
+  text_raw \<open>\end{minipage}\<close>
 (*<*)
 qed
 (*>*)
@@ -819,14 +819,14 @@ text \<open>
 text_raw \<open>\begingroup\footnotesize\<close>
 (*<*)notepad begin
 (*>*)
-  txt_raw \<open>\begin{minipage}[t]{0.18\textwidth}\<close>
+  text_raw \<open>\begin{minipage}[t]{0.18\textwidth}\<close>
   have "A \<longrightarrow> B"
   proof
     assume A
     show B
       sorry %noproof
   qed
-  txt_raw \<open>\end{minipage}\quad
+  text_raw \<open>\end{minipage}\quad
 \begin{minipage}[t]{0.06\textwidth}
 @{text "begin"} \\
 \\
@@ -886,7 +886,7 @@ begin
     show "C x y" sorry %noproof
   qed
 
-txt_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
+text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 
 (*<*)
 next
@@ -898,7 +898,7 @@ next
     show "C x y" sorry %noproof
   qed
 
-txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}\<close>
+text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}\<close>
 
 (*<*)
 next
@@ -910,7 +910,7 @@ next
     show "C x y" sorry
   qed
 
-txt_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
+text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 (*<*)
 next
 (*>*)

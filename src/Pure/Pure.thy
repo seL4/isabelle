@@ -12,8 +12,8 @@ theory Pure
     "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
-  and "text" "text_raw" :: thy_decl
-  and "txt" "txt_raw" :: prf_decl % "proof"
+  and "text" "txt" :: document_body
+  and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""
   and "typedecl" "type_synonym" "nonterminal" "judgment"
     "consts" "syntax" "no_syntax" "translations" "no_translations" "defs"

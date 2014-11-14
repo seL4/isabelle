@@ -240,12 +240,12 @@ we have the two cases @{text P} and @{text Q}:
 show "R"
 proof cases
   assume "P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 next
   assume "\<not> P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 text_raw {* }
 \end{minipage}\index{cases@@{text cases}}
@@ -254,16 +254,16 @@ text_raw {* }
 \isa{%
 *}
 (*<*)lemma "R" proof-(*>*)
-have "P \<or> Q" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+have "P \<or> Q" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 then show "R"
 proof
   assume "P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 next
   assume "Q"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -279,12 +279,12 @@ How to prove a logical equivalence:
 show "P \<longleftrightarrow> Q"
 proof
   assume "P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "Q" (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "Q" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 next
   assume "Q"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P" (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "P" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 text_raw {* }
 \medskip
@@ -299,8 +299,8 @@ Proofs by contradiction (@{thm[source] ccontr} stands for ``classical contradict
 show "\<not> P"
 proof
   assume "P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "False" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -313,8 +313,8 @@ text_raw {* }
 show "P"
 proof (rule ccontr)
   assume "\<not>P"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "False" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -332,8 +332,8 @@ How to prove quantified formulas:
 show "\<forall>x. P(x)"
 proof
   fix x
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(x)" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "P(x)" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -345,8 +345,8 @@ text_raw {* }
 (*<*)lemma "EX x. P(x)" proof-(*>*)
 show "\<exists>x. P(x)"
 proof
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(witness)" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "P(witness)" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed
 (*<*)oops(*>*)
 
@@ -367,7 +367,7 @@ How to reason forward from \noquotes{@{prop[source] "\<exists>x. P(x)"}}:
 \end{isamarkuptext}%
 *}
 (*<*)lemma True proof- assume 1: "EX x. P x"(*>*)
-have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)txt_raw{*\ $\dots$\\*}
+have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw{*\ $\dots$\\*}
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
 text{*
@@ -401,9 +401,9 @@ Finally, how to prove set equality and subset relationship:
 (*<*)lemma "A = (B::'a set)" proof-(*>*)
 show "A = B"
 proof
-  show "A \<subseteq> B" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  show "A \<subseteq> B" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 next
-  show "B \<subseteq> A" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  show "B \<subseteq> A" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
@@ -417,8 +417,8 @@ show "A \<subseteq> B"
 proof
   fix x
   assume "x \<in> A"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "x \<in> B" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "x \<in> B" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
@@ -444,12 +444,12 @@ the pattern for later use. As an example, consider the proof pattern for
 show "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" (is "?L \<longleftrightarrow> ?R")
 proof
   assume "?L"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?R" (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "?R" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 next
   assume "?R"
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?L" (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show "?L" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text{* Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
@@ -462,8 +462,8 @@ The unknown \indexed{@{text"?thesis"}}{thesis} is implicitly matched against any
 
 lemma "formula"
 proof -
-  txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show ?thesis (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
+  show ?thesis (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 qed
 
 text{* 
@@ -511,12 +511,12 @@ but one can also combine them with \isacom{moreover}, as shown on the left:
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have "P\<^sub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-moreover have "P\<^sub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+have "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+moreover have "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 moreover
-txt_raw{*\\$\vdots$\\\hspace{-1.4ex}*}(*<*)have "True" ..(*>*)
-moreover have "P\<^sub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-ultimately have "P"  (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}(*<*)have "True" ..(*>*)
+moreover have "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+ultimately have "P"  (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 (*<*)oops(*>*)
 
 text_raw {* }
@@ -527,12 +527,12 @@ text_raw {* }
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$*}
-txt_raw{*\\$\vdots$\\\hspace{-1.4ex}*}
-have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-from lab\<^sub>1 lab\<^sub>2 txt_raw{*\ $\dots$\\*}
-have "P"  (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ $\dots$*}
+text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}
+have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+from lab\<^sub>1 lab\<^sub>2 text_raw{*\ $\dots$\\*}
+have "P"  (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 (*<*)oops(*>*)
 
 text_raw {* }
@@ -733,12 +733,12 @@ pattern for induction over @{typ nat} is shown on the left-hand side:
 show "P(n)"
 proof (induction n)
   case 0
-  txt_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
+  show ?case (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 next
   case (Suc n)
-  txt_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
+  text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
+  show ?case (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
@@ -904,18 +904,18 @@ lemma "I x \<Longrightarrow> P x" proof-(*>*)
 show "I x \<Longrightarrow> P x"
 proof(induction rule: I.induct)
   case rule\<^sub>1
-  txt_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
+  show ?case (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 next
-  txt_raw{*\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
+  text_raw{*\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
 (*<*)
   case rule\<^sub>2
   show ?case sorry
 (*>*)
 next
   case rule\<^sub>n
-  txt_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+  text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
+  show ?case (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text{*

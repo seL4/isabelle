@@ -6,14 +6,10 @@ Isabelle/Isar outer syntax.
 
 signature OUTER_SYNTAX =
 sig
-  datatype markup = Markup | Markup_Env | Verbatim
-  val is_markup: theory -> markup -> string -> bool
   val help: theory -> string list -> unit
   val print_commands: theory -> unit
   type command_spec = string * Position.T
   val command: command_spec -> string ->
-    (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val markup_command: markup -> command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val local_theory': command_spec -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
@@ -47,19 +43,16 @@ fun err_dup_command name ps =
 
 (* command parsers *)
 
-datatype markup = Markup | Markup_Env | Verbatim;
-
 datatype command = Command of
  {comment: string,
-  markup: markup option,
   parse: (Toplevel.transition -> Toplevel.transition) parser,
   pos: Position.T,
   id: serial};
 
 fun eq_command (Command {id = id1, ...}, Command {id = id2, ...}) = id1 = id2;
 
-fun new_command comment markup parse pos =
-  Command {comment = comment, markup = markup, parse = parse, pos = pos, id = serial ()};
+fun new_command comment parse pos =
+  Command {comment = comment, parse = parse, pos = pos, id = serial ()};
 
 fun command_pos (Command {pos, ...}) = pos;
 
@@ -74,45 +67,22 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
         command_markup false cmd], name) :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
 
 
-(* type syntax *)
-
-datatype syntax = Syntax of
- {commands: command Symtab.table,
-  markups: (string * markup) list};
-
-fun make_syntax (commands, markups) =
-  Syntax {commands = commands, markups = markups};
+(* theory data *)
 
 structure Data = Theory_Data
 (
-  type T = syntax;
-  val empty = make_syntax (Symtab.empty, []);
+  type T = command Symtab.table;
+  val empty = Symtab.empty;
   val extend = I;
-  fun merge (Syntax {commands = commands1, markups = markups1},
-      Syntax {commands = commands2, markups = markups2}) =
-    let
-      val commands' = (commands1, commands2)
-        |> Symtab.join (fn name => fn (cmd1, cmd2) =>
-          if eq_command (cmd1, cmd2) then raise Symtab.SAME
-          else err_dup_command name [command_pos cmd1, command_pos cmd2]);
-      val markups' = AList.merge (op =) (K true) (markups1, markups2);
-    in make_syntax (commands', markups') end;
+  fun merge data : T =
+    data |> Symtab.join (fn name => fn (cmd1, cmd2) =>
+      if eq_command (cmd1, cmd2) then raise Symtab.SAME
+      else err_dup_command name [command_pos cmd1, command_pos cmd2]);
 );
 
-
-(* inspect syntax *)
-
-val get_syntax = Data.get;
-
-val dest_commands =
-  get_syntax #> (fn Syntax {commands, ...} => commands |> Symtab.dest |> sort_wrt #1);
-
-val lookup_commands =
-  get_syntax #> (fn Syntax {commands, ...} => Symtab.lookup commands);
-
-val is_markup =
-  get_syntax #> (fn Syntax {markups, ...} => fn kind => fn name =>
-    AList.lookup (op =) markups name = SOME kind);
+val get_commands = Data.get;
+val dest_commands = get_commands #> Symtab.dest #> sort_wrt #1;
+val lookup_commands = Symtab.lookup o get_commands;
 
 fun help thy pats =
   dest_commands thy
@@ -132,36 +102,28 @@ fun print_commands thy =
   end;
 
 
-(* build syntax *)
+(* maintain commands *)
 
-fun add_command name cmd thy = thy |> Data.map (fn Syntax {commands, ...} =>
+fun add_command name cmd thy =
   let
-    val keywords = Thy_Header.get_keywords thy;
     val _ =
-      Keyword.is_command keywords name orelse
+      Keyword.is_command (Thy_Header.get_keywords thy) name orelse
         err_command "Undeclared outer syntax command " name [command_pos cmd];
-
     val _ =
-      (case Symtab.lookup commands name of
+      (case lookup_commands thy name of
         NONE => ()
       | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
-
     val _ =
       Context_Position.report_generic (ML_Context.the_generic_context ())
         (command_pos cmd) (command_markup true (name, cmd));
-
-    val commands' = Symtab.update (name, cmd) commands;
-    val markups' =
-      Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
-        commands' [];
-  in make_syntax (commands', markups') end);
+  in Data.map (Symtab.update (name, cmd)) thy end;
 
 val _ = Theory.setup (Theory.at_end (fn thy =>
   let
-    val keywords = Thy_Header.get_keywords thy;
-    val major = Keyword.major_keywords keywords;
+    val command_keywords =
+      Scan.dest_lexicon (Keyword.major_keywords (Thy_Header.get_keywords thy));
     val _ =
-      (case subtract (op =) (map #1 (dest_commands thy)) (Scan.dest_lexicon major) of
+      (case subtract (op =) (map #1 (dest_commands thy)) command_keywords of
         [] => ()
       | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
   in NONE end));
@@ -172,10 +134,7 @@ val _ = Theory.setup (Theory.at_end (fn thy =>
 type command_spec = string * Position.T;
 
 fun command (name, pos) comment parse =
-  Theory.setup (add_command name (new_command comment NONE parse pos));
-
-fun markup_command markup (name, pos) comment parse =
-  Theory.setup (add_command name (new_command comment (SOME markup) parse pos));
+  Theory.setup (add_command name (new_command comment parse pos));
 
 fun local_theory_command trans command_spec comment parse =
   command command_spec comment (Parse.opt_target -- parse >> (fn (loc, f) => trans loc f));
