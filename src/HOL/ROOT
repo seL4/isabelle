@@ -19,7 +19,7 @@ session "HOL-Proofs" = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false]
+  options [document = false, quick_and_dirty = false]
   theories Proofs (*sequential change of global flag!*)
   theories "~~/src/HOL/Library/Old_Datatype"
   files
@@ -400,7 +400,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {*
     Examples for program extraction in Higher-Order Logic.
   *}
-  options [condition = ML_SYSTEM_POLYML, parallel_proofs = 0]
+  options [condition = ML_SYSTEM_POLYML, parallel_proofs = 0, quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -425,7 +425,8 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
   *}
-  options [document_graph, print_mode = "no_brackets", parallel_proofs = 0]
+  options [document_graph, print_mode = "no_brackets", parallel_proofs = 0,
+    quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
   theories
