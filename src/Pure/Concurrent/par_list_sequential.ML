@@ -10,6 +10,7 @@ struct
 fun managed_results _ f = map (Exn.capture f);
 fun map_name _ = map;
 val map = map;
+val map_independent = map;
 val get_some = get_first;
 val find_some = find_first;
 val exists = exists;

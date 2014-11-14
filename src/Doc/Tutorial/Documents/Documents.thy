@@ -503,19 +503,12 @@ text {*
   single argument).
 
   \medskip Text blocks are introduced by the commands \bfindex{text}
-  and \bfindex{txt}, for theory and proof contexts, respectively.
-  Each takes again a single $text$ argument, which is interpreted as a
-  free-form paragraph in {\LaTeX} (surrounded by some additional
-  vertical space).  This behavior may be changed by redefining the
-  {\LaTeX} environments of \verb,isamarkuptext, or
-  \verb,isamarkuptxt,, respectively (via \verb,\renewenvironment,) The
-  text style of the body is determined by \verb,\isastyletext, and
-  \verb,\isastyletxt,; the default setup uses a smaller font within
-  proofs.  This may be changed as follows:
-
-\begin{verbatim}
-  \renewcommand{\isastyletxt}{\isastyletext}
-\end{verbatim}
+  and \bfindex{txt}. Each takes again a single $text$ argument,
+  which is interpreted as a free-form paragraph in {\LaTeX}
+  (surrounded by some additional vertical space).  The typesetting
+  may be changed by redefining the {\LaTeX} environments of
+  \verb,isamarkuptext, or \verb,isamarkuptxt,, respectively
+  (via \verb,\renewenvironment,).
 
   \medskip The $text$ part of Isabelle markup commands essentially
   inserts \emph{quoted material} into a formal text, mainly for
