@@ -1,5 +1,5 @@
 theory Further
-imports Setup
+imports Setup "~~/src/Tools/Permanent_Interpretation"
 begin
 
 section {* Further issues \label{sec:further} *}
@@ -202,7 +202,7 @@ text {*
   The interpretation itself is enriched with an equation @{text "t = c"}:
 *}
 
-interpretation %quote fun_power: power "\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n" where
+interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)" where
   "power.powers (\<lambda>n f. f ^^ n) = funpows"
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute funpows_def)
@@ -216,7 +216,27 @@ text {*
 
 text %quotetypewriter {*
   @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
-*}
+*} (*<*)
+
+(*>*) text {*
+  Fortunately, an even more succint approach is available using command
+  @{command permanent_interpretation}.  This is available
+  by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}.
+  Then the pattern above collapses to
+*} (*<*)
+
+setup {* Sign.add_path "funpows" *}
+hide_const (open) funpows
+
+(*>*)
+permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
+  defining funpows = "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+  by unfold_locales
+    (simp_all add: fun_eq_iff funpow_mult mult.commute) (*<*)
+
+setup {* Sign.parent_path *}
+
+(*>*)
 
 
 subsection {* Parallel computation *}

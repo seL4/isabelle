@@ -1,5 +1,5 @@
 theory Spec
-imports Base Main
+imports Base Main "~~/src/Tools/Permanent_Interpretation"
 begin
 
 chapter \<open>Specifications\<close>
@@ -793,6 +793,81 @@ text \<open>
     first.  The locale package does not attempt to remove subsumed
     interpretations.
   \end{warn}
+\<close>
+
+
+subsubsection \<open>Permanent locale interpretation\<close>
+
+text \<open>
+  Permanent locale interpretation is a library extension on top
+  of @{command "interpretation"} and @{command "sublocale"}.  It is
+  available by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}
+  and provides
+  \begin{enumerate}
+    \item a unified view on arbitrary suitable local theories as interpretation target; 
+    \item rewrite morphisms by means of \emph{mixin definitions}. 
+  \end{enumerate}
+  
+  \begin{matharray}{rcl}
+    @{command_def "permanent_interpretation"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  \end{matharray}
+
+  @{rail \<open>
+    @@{command permanent_interpretation} @{syntax locale_expr} \<newline>
+      definitions? equations?
+    ;
+
+    definitions: @'defining' (@{syntax thmdecl}? @{syntax name} \<newline>
+      @{syntax mixfix}? @'=' @{syntax term} + @'and');
+    equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "permanent_interpretation"}~@{text "expr \<DEFINING> defs \<WHERE> eqns"}
+  interprets @{text expr} in the current local theory.  The command
+  generates proof obligations for the instantiated specifications.
+  Instantiated declarations (in particular, facts) are added to the
+  local theory's underlying target in a post-processing phase.  When
+  adding declarations to locales, interpreted versions of these
+  declarations are added to any target for all interpretations
+  in that target as well. That is, permanent interpretations
+  dynamically participate in any declarations added to
+  locales.
+  
+  The local theory's underlying target must explicitly support
+  permanent interpretations.  Prominent examples are global theories
+  (where @{command "permanent_interpretation"} is technically
+  corresponding to @{command "interpretation"}) and locales
+  (where @{command "permanent_interpretation"} is technically
+  corresponding to @{command "sublocale"}).  Unnamed contexts
+  \secref{sec:target} are not admissible since they are
+  non-permanent due to their very nature.  
+
+  In additions to \emph{rewrite morphisms} specified by @{text eqns},
+  also \emph{mixin definitions} may be specified.  Semantically, a
+  mixin definition results in a corresponding definition in
+  the local theory's underlying target \emph{and} a mixin equation
+  in the resulting rewrite morphisms which is symmetric to the
+  original definition equation.
+  
+  The technical difference to a conventional definition plus
+  an explicit mixin equation is that
+  
+  \begin{enumerate}
+  
+    \item definitions are parsed in the syntactic interpretation
+      context, just like equations;
+  
+    \item the proof needs not consider the equations stemming from
+      definitions -- they are proved implicitly by construction.
+      
+  \end{enumerate}
+  
+  Mixin definitions yield a pattern for introducing new explicit
+  operations for existing terms after interpretation.
+  
+  \end{description}
 \<close>
 
 
