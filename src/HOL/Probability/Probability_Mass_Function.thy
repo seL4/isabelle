@@ -281,6 +281,12 @@ lemma map_pmf_cong:
   unfolding `p = q`[symmetric] measure_pmf_inject[symmetric] map_pmf.rep_eq
   by (auto simp add: emeasure_distr AE_measure_pmf_iff intro!: emeasure_eq_AE measure_eqI)
 
+lemma emeasure_map_pmf[simp]: "emeasure (map_pmf f M) X = emeasure M (f -` X)"
+  unfolding map_pmf.rep_eq by (subst emeasure_distr) auto
+
+lemma nn_integral_map_pmf[simp]: "(\<integral>\<^sup>+x. f x \<partial>map_pmf g M) = (\<integral>\<^sup>+x. f (g x) \<partial>M)"
+  unfolding map_pmf.rep_eq by (intro nn_integral_distr) auto
+
 lemma pmf_set_map: 
   fixes f :: "'a \<Rightarrow> 'b"
   shows "set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
@@ -433,6 +439,17 @@ lemma pmf_bernoulli_False[simp]: "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longri
 lemma set_pmf_bernoulli: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (bernoulli_pmf p) = UNIV"
   by (auto simp add: set_pmf_iff UNIV_bool)
 
+lemma nn_integral_bernoulli_pmf[simp]: 
+  assumes [simp]: "0 \<le> p" "p \<le> 1" "\<And>x. 0 \<le> f x"
+  shows "(\<integral>\<^sup>+x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
+  by (subst nn_integral_measure_pmf_support[of UNIV])
+     (auto simp: UNIV_bool field_simps)
+
+lemma integral_bernoulli_pmf[simp]: 
+  assumes [simp]: "0 \<le> p" "p \<le> 1"
+  shows "(\<integral>x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
+  by (subst integral_measure_pmf[of UNIV]) (auto simp: UNIV_bool)
+
 lift_definition geometric_pmf :: "nat pmf" is "\<lambda>n. 1 / 2^Suc n"
 proof
   note geometric_sums[of "1 / 2"]
@@ -445,7 +462,7 @@ qed simp
 lemma pmf_geometric[simp]: "pmf geometric_pmf n = 1 / 2^Suc n"
   by transfer rule
 
-lemma set_pmf_geometric: "set_pmf geometric_pmf = UNIV"
+lemma set_pmf_geometric[simp]: "set_pmf geometric_pmf = UNIV"
   by (auto simp: set_pmf_iff)
 
 context
@@ -484,6 +501,9 @@ lemma pmf_of_set[simp]: "pmf pmf_of_set x = indicator S x / card S"
 
 lemma set_pmf_of_set[simp]: "set_pmf pmf_of_set = S"
   using S_finite S_not_empty by (auto simp: set_pmf_iff)
+
+lemma emeasure_pmf_of_set[simp]: "emeasure pmf_of_set S = 1"
+  by (rule measure_pmf.emeasure_eq_1_AE) (auto simp: AE_measure_pmf_iff)
 
 end
 
@@ -558,11 +578,17 @@ lemma join_return_pmf: "join_pmf (return_pmf M) = M"
 lemma map_return_pmf: "map_pmf f (return_pmf x) = return_pmf (f x)"
   by transfer (simp add: distr_return)
 
-lemma set_pmf_return: "set_pmf (return_pmf x) = {x}"
+lemma set_return_pmf: "set_pmf (return_pmf x) = {x}"
   by transfer (auto simp add: measure_return split: split_indicator)
 
 lemma pmf_return: "pmf (return_pmf x) y = indicator {y} x"
   by transfer (simp add: measure_return)
+
+lemma nn_integral_return_pmf[simp]: "0 \<le> f x \<Longrightarrow> (\<integral>\<^sup>+x. f x \<partial>return_pmf x) = f x"
+  unfolding return_pmf.rep_eq by (intro nn_integral_return) auto
+
+lemma emeasure_return_pmf[simp]: "emeasure (return_pmf x) X = indicator X x"
+  unfolding return_pmf.rep_eq by (intro emeasure_return) auto
 
 end
 
@@ -584,6 +610,41 @@ lemma pmf_bind: "pmf (bind_pmf N f) i = (\<integral>x. pmf (f x) i \<partial>mea
 lemma bind_return_pmf: "bind_pmf (return_pmf x) f = f x"
   unfolding bind_pmf_def map_return_pmf join_return_pmf ..
 
+lemma set_bind_pmf: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
+  apply (simp add: set_eq_iff set_pmf_iff pmf_bind)
+  apply (subst integral_nonneg_eq_0_iff_AE)
+  apply (auto simp: pmf_nonneg pmf_le_1 AE_measure_pmf_iff
+              intro!: measure_pmf.integrable_const_bound[where B=1])
+  done
+
+lemma measurable_pair_restrict_pmf2:
+  assumes "countable A"
+  assumes "\<And>y. y \<in> A \<Longrightarrow> (\<lambda>x. f (x, y)) \<in> measurable M L"
+  shows "f \<in> measurable (M \<Otimes>\<^sub>M restrict_space (measure_pmf N) A) L"
+  apply (subst measurable_cong_sets)
+  apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
+  apply (simp_all add: restrict_count_space)
+  apply (subst split_eta[symmetric])
+  unfolding measurable_split_conv
+  apply (rule measurable_compose_countable'[OF _ measurable_snd `countable A`])
+  apply (rule measurable_compose[OF measurable_fst])
+  apply fact
+  done
+
+lemma measurable_pair_restrict_pmf1:
+  assumes "countable A"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) \<in> measurable N L"
+  shows "f \<in> measurable (restrict_space (measure_pmf M) A \<Otimes>\<^sub>M N) L"
+  apply (subst measurable_cong_sets)
+  apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
+  apply (simp_all add: restrict_count_space)
+  apply (subst split_eta[symmetric])
+  unfolding measurable_split_conv
+  apply (rule measurable_compose_countable'[OF _ measurable_fst `countable A`])
+  apply (rule measurable_compose[OF measurable_snd])
+  apply fact
+  done
+                                
 lemma bind_commute_pmf: "bind_pmf A (\<lambda>x. bind_pmf B (C x)) = bind_pmf B (\<lambda>y. bind_pmf A (\<lambda>x. C x y))"
   unfolding pmf_eq_iff pmf_bind
 proof
@@ -601,36 +662,15 @@ proof
   have "(\<integral> x. \<integral> y. pmf (C x y) i \<partial>B \<partial>A) = (\<integral> x. (\<integral> y. pmf (C x y) i \<partial>restrict_space B B) \<partial>A)"
     by (rule integral_cong) (auto intro!: integral_pmf_restrict)
   also have "\<dots> = (\<integral> x. (\<integral> y. pmf (C x y) i \<partial>restrict_space B B) \<partial>restrict_space A A)"
-    apply (intro integral_pmf_restrict B.borel_measurable_lebesgue_integral)
-    apply (auto simp: measurable_split_conv)
-    apply (subst measurable_cong_sets)
-    apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
-    apply (simp add: restrict_count_space)
-    apply (rule measurable_compose_countable'[OF _ measurable_snd])
-    apply (rule measurable_compose[OF measurable_fst])
-    apply (auto intro: countable_set_pmf)
-    done
+    by (intro integral_pmf_restrict B.borel_measurable_lebesgue_integral measurable_pair_restrict_pmf2
+              countable_set_pmf borel_measurable_count_space)
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>restrict_space A A \<partial>restrict_space B B)"
-    apply (rule AB.Fubini_integral[symmetric])
-    apply (auto intro!: AB.integrable_const_bound[where B=1] simp: pmf_nonneg pmf_le_1)
-    apply (auto simp: measurable_split_conv)
-    apply (subst measurable_cong_sets)
-    apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
-    apply (simp add: restrict_count_space)
-    apply (rule measurable_compose_countable'[OF _ measurable_snd])
-    apply (rule measurable_compose[OF measurable_fst])
-    apply (auto intro: countable_set_pmf)
-    done
+    by (rule AB.Fubini_integral[symmetric])
+       (auto intro!: AB.integrable_const_bound[where B=1] measurable_pair_restrict_pmf2
+             simp: pmf_nonneg pmf_le_1 countable_set_pmf measurable_restrict_space1)
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>restrict_space A A \<partial>B)"
-    apply (intro integral_pmf_restrict[symmetric] A.borel_measurable_lebesgue_integral)
-    apply (auto simp: measurable_split_conv)
-    apply (subst measurable_cong_sets)
-    apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
-    apply (simp add: restrict_count_space)
-    apply (rule measurable_compose_countable'[OF _ measurable_snd])
-    apply (rule measurable_compose[OF measurable_fst])
-    apply (auto intro: countable_set_pmf)
-    done
+    by (intro integral_pmf_restrict[symmetric] A.borel_measurable_lebesgue_integral measurable_pair_restrict_pmf2
+              countable_set_pmf borel_measurable_count_space)
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>A \<partial>B)"
     by (rule integral_cong) (auto intro!: integral_pmf_restrict[symmetric])
   finally show "(\<integral> x. \<integral> y. pmf (C x y) i \<partial>B \<partial>A) = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>A \<partial>B)" .
@@ -641,6 +681,22 @@ context
 begin
 
 interpretation pmf_as_measure .
+
+lemma measure_pmf_bind: "measure_pmf (bind_pmf M f) = (measure_pmf M \<guillemotright>= (\<lambda>x. measure_pmf (f x)))"
+  by transfer simp
+
+lemma nn_integral_bind_pmf[simp]: "(\<integral>\<^sup>+x. f x \<partial>bind_pmf M N) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
+  using measurable_measure_pmf[of N]
+  unfolding measure_pmf_bind
+  apply (subst (1 3) nn_integral_max_0[symmetric])
+  apply (intro nn_integral_bind[where B="count_space UNIV"])
+  apply auto
+  done
+
+lemma emeasure_bind_pmf[simp]: "emeasure (bind_pmf M N) X = (\<integral>\<^sup>+x. emeasure (N x) X \<partial>M)"
+  using measurable_measure_pmf[of N]
+  unfolding measure_pmf_bind
+  by (subst emeasure_bind[where N="count_space UNIV"]) auto
 
 lemma bind_return_pmf': "bind_pmf N return_pmf = N"
 proof (transfer, clarify)
@@ -661,9 +717,6 @@ lemma bind_assoc_pmf: "bind_pmf (bind_pmf A B) C = bind_pmf A (\<lambda>x. bind_
      (auto intro!: bind_assoc[where N="count_space UNIV" and R="count_space UNIV"]
            simp: measurable_def space_subprob_algebra prob_space_imp_subprob_space)
 
-lemma measure_pmf_bind: "measure_pmf (bind_pmf M f) = (measure_pmf M \<guillemotright>= (\<lambda>x. measure_pmf (f x)))"
-  by transfer simp
-
 end
 
 definition "pair_pmf A B = bind_pmf A (\<lambda>x. bind_pmf B (\<lambda>y. return_pmf (x, y)))"
@@ -675,6 +728,9 @@ lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
   apply (subst integral_measure_pmf[where A="{a}"])
   apply (auto simp: indicator_eq_0_iff setsum_nonneg_eq_0_iff pmf_nonneg)
   done
+
+lemma set_pair_pmf: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
+  unfolding pair_pmf_def set_bind_pmf set_return_pmf by auto
 
 lemma bind_pair_pmf:
   assumes M[measurable]: "M \<in> measurable (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) (subprob_algebra N)"
@@ -700,18 +756,18 @@ proof (rule measure_eqI)
   then show "emeasure ?L X = emeasure ?R X"
     apply (simp add: emeasure_bind[OF _ M' X])
     unfolding pair_pmf_def measure_pmf_bind[of A]
-    apply (subst nn_integral_bind[OF _ emeasure_nonneg])
+    apply (subst nn_integral_bind)
     apply (rule measurable_compose[OF M' measurable_emeasure_subprob_algebra, OF X])
     apply (subst measurable_cong_sets[OF sets_measure_pmf_count_space refl])
     apply (subst subprob_algebra_cong[OF sets_measure_pmf_count_space])
     apply measurable
     unfolding measure_pmf_bind
-    apply (subst nn_integral_bind[OF _ emeasure_nonneg])
+    apply (subst nn_integral_bind)
     apply (rule measurable_compose[OF M' measurable_emeasure_subprob_algebra, OF X])
     apply (subst measurable_cong_sets[OF sets_measure_pmf_count_space refl])
     apply (subst subprob_algebra_cong[OF sets_measure_pmf_count_space])
     apply measurable
-    apply (simp add: nn_integral_measure_pmf_finite set_pmf_return emeasure_nonneg pmf_return one_ereal_def[symmetric])
+    apply (simp add: nn_integral_measure_pmf_finite set_return_pmf emeasure_nonneg pmf_return one_ereal_def[symmetric])
     apply (subst emeasure_bind[OF _ _ X])
     apply simp
     apply (rule measurable_bind[where N="count_space UNIV"])
@@ -727,15 +783,6 @@ proof (rule measure_eqI)
     done
 qed
 
-lemma set_pmf_bind: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
-  apply (simp add: set_eq_iff set_pmf_iff pmf_bind)
-  apply (subst integral_nonneg_eq_0_iff_AE)
-  apply (auto simp: pmf_nonneg pmf_le_1 AE_measure_pmf_iff
-              intro!: measure_pmf.integrable_const_bound[where B=1])
-  done
-
-lemma set_pmf_pair_pmf: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
-  unfolding pair_pmf_def set_pmf_bind set_pmf_return by auto
 
 (*
 

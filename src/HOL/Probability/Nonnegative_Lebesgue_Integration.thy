@@ -552,7 +552,7 @@ proof -
     (\<Sum>y\<in>f`space M. y * (\<Sum>z\<in>g`space M. 
       if \<exists>x\<in>space M. y = f x \<and> z = g x then emeasure M {x\<in>space M. g x = z} else 0))"
     unfolding simple_integral_def
-  proof (safe intro!: setsum.cong ereal_left_mult_cong)
+  proof (safe intro!: setsum.cong ereal_right_mult_cong)
     fix y assume y: "y \<in> space M" "f y \<noteq> 0"
     have [simp]: "g ` space M \<inter> {z. \<exists>x\<in>space M. f y = f x \<and> z = g x} = 
         {z. \<exists>x\<in>space M. f y = f x \<and> z = g x}"
@@ -1894,7 +1894,7 @@ lemma simple_integral_restrict_space:
   using simple_function_restrict_space_ereal[THEN iffD1, OF \<Omega>, THEN simple_functionD(1)]
   by (auto simp add: space_restrict_space emeasure_restrict_space[OF \<Omega>(1)] le_infI2 simple_integral_def
            split: split_indicator split_indicator_asm
-           intro!: setsum.mono_neutral_cong_left ereal_left_mult_cong arg_cong2[where f=emeasure])
+           intro!: setsum.mono_neutral_cong_left ereal_right_mult_cong[OF refl] arg_cong2[where f=emeasure])
 
 lemma one_not_less_zero[simp]: "\<not> 1 < (0::ereal)"
   by (simp add: zero_ereal_def one_ereal_def) 

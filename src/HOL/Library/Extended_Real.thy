@@ -863,13 +863,13 @@ lemma ereal_zero_less_0_iff:
 
 lemma ereal_left_mult_cong:
   fixes a b c :: ereal
-  shows "(c \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = c * b"
+  shows  "c = d \<Longrightarrow> (d \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> a * c = b * d"
   by (cases "c = 0") simp_all
 
 lemma ereal_right_mult_cong: 
-  fixes a b c d :: ereal
+  fixes a b c :: ereal
   shows "c = d \<Longrightarrow> (d \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = d * b"
-  by (cases "d = 0") simp_all
+  by (cases "c = 0") simp_all
 
 lemma ereal_distrib:
   fixes a b c :: ereal
@@ -890,6 +890,10 @@ lemma setsum_ereal_right_distrib:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> r * setsum f A = (\<Sum>n\<in>A. r * f n)"
   by (induct A rule: infinite_finite_induct)  (auto simp: ereal_right_distrib setsum_nonneg)
+
+lemma setsum_ereal_left_distrib:
+  "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> setsum f A * r = (\<Sum>n\<in>A. f n * r :: ereal)"
+  using setsum_ereal_right_distrib[of A f r] by (simp add: mult_ac)
 
 lemma ereal_le_epsilon:
   fixes x y :: ereal

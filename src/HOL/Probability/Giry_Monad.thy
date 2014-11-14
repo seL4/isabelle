@@ -785,7 +785,7 @@ lemma emeasure_bind:
       \<Longrightarrow> emeasure (M \<guillemotright>= f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
   by (simp add: bind_nonempty'' emeasure_join nn_integral_distr measurable_emeasure_subprob_algebra)
 
-lemma nn_integral_bind:
+lemma nn_integral_bind':
   assumes f: "f \<in> borel_measurable B" "\<And>x. 0 \<le> f x"
   assumes N: "N \<in> measurable M (subprob_algebra B)"
   shows "(\<integral>\<^sup>+x. f x \<partial>(M \<guillemotright>= N)) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
@@ -794,6 +794,15 @@ proof cases
     unfolding bind_nonempty''[OF N M] nn_integral_join[OF f sets_distr]
     by (rule nn_integral_distr[OF N nn_integral_measurable_subprob_algebra[OF f]])
 qed (simp add: bind_empty space_empty[of M] nn_integral_count_space)
+
+lemma nn_integral_bind:
+  assumes [measurable]: "f \<in> borel_measurable B"
+  assumes N: "N \<in> measurable M (subprob_algebra B)"
+  shows "(\<integral>\<^sup>+x. f x \<partial>(M \<guillemotright>= N)) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
+  apply (subst (1 3) nn_integral_max_0[symmetric])
+  apply (rule nn_integral_bind'[OF _ _ N])
+  apply auto
+  done
 
 lemma AE_bind:
   assumes P[measurable]: "Measurable.pred B P"
