@@ -265,8 +265,8 @@ proof -
       let ?g = "gcd (a * b' + b * a') (b * b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
-        of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]
-        of_int_div[where ?'a = 'a, OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
+        of_int_div [where ?'a = 'a, OF gz gcd_dvd1 [of "a * b' + b * a'" "b * b'"]]
+        of_int_div [where ?'a = 'a, OF gz gcd_dvd2 [of "a * b' + b * a'" "b * b'"]]
         by (simp add: x y Nadd_def INum_def normNum_def Let_def) (simp add: field_simps)
     }
     ultimately have ?thesis using aa' bb'
@@ -289,8 +289,8 @@ proof -
   { assume z: "a \<noteq> 0" "a' \<noteq> 0" "b \<noteq> 0" "b' \<noteq> 0"
     let ?g="gcd (a*a') (b*b')"
     have gz: "?g \<noteq> 0" using z by simp
-    from z of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a*a'" and y="b*b'"]]
-      of_int_div[where ?'a = 'a , OF gz gcd_dvd2_int[where x="a*a'" and y="b*b'"]]
+    from z of_int_div [where ?'a = 'a, OF gz gcd_dvd1 [of "a * a'" "b * b'"]]
+      of_int_div [where ?'a = 'a , OF gz gcd_dvd2 [of "a * a'" "b * b'"]]
     have ?thesis by (simp add: Nmul_def x y Let_def INum_def) }
   ultimately show ?thesis by blast
 qed
