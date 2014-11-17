@@ -1304,7 +1304,6 @@ lemma distr_distr:
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
-
 subsection {* Real measure values *}
 
 lemma measure_nonneg: "0 \<le> measure M A"
@@ -1730,6 +1729,25 @@ proof (rule emeasure_measure_of_sigma)
     qed
   qed
 qed
+
+lemma distr_bij_count_space:
+  assumes f: "bij_betw f A B"
+  shows "distr (count_space A) (count_space B) f = count_space B"
+proof (rule measure_eqI)
+  have f': "f \<in> measurable (count_space A) (count_space B)"
+    using f unfolding Pi_def bij_betw_def by auto
+  fix X assume "X \<in> sets (distr (count_space A) (count_space B) f)"
+  then have X: "X \<in> sets (count_space B)" by auto
+  moreover then have "f -` X \<inter> A = the_inv_into A f ` X"
+    using f by (auto simp: bij_betw_def subset_image_iff image_iff the_inv_into_f_f intro: the_inv_into_f_f[symmetric])
+  moreover have "inj_on (the_inv_into A f) B"
+    using X f by (auto simp: bij_betw_def inj_on_the_inv_into)
+  with X have "inj_on (the_inv_into A f) X"
+    by (auto intro: subset_inj_on)
+  ultimately show "emeasure (distr (count_space A) (count_space B) f) X = emeasure (count_space B) X"
+    using f unfolding emeasure_distr[OF f' X]
+    by (subst (1 2) emeasure_count_space) (auto simp: card_image dest: finite_imageD)
+qed simp
 
 lemma emeasure_count_space_finite[simp]:
   "X \<subseteq> A \<Longrightarrow> finite X \<Longrightarrow> emeasure (count_space A) X = ereal (card X)"

@@ -1705,6 +1705,13 @@ proof -
   finally show ?thesis .
 qed
 
+lemma nn_integral_bij_count_space:
+  assumes g: "bij_betw g A B"
+  shows "(\<integral>\<^sup>+x. f (g x) \<partial>count_space A) = (\<integral>\<^sup>+x. f x \<partial>count_space B)"
+  using g[THEN bij_betw_imp_funcset]
+  by (subst distr_bij_count_space[OF g, symmetric])
+     (auto intro!: nn_integral_distr[symmetric])
+
 lemma nn_integral_indicator_finite:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "finite A" and nn: "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x" and [measurable]: "\<And>a. a \<in> A \<Longrightarrow> {a} \<in> sets M"
