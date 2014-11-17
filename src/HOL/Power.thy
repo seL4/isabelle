@@ -149,7 +149,12 @@ lemma of_nat_power:
   "of_nat (m ^ n) = of_nat m ^ n"
   by (induct n) (simp_all add: of_nat_mult)
 
-lemma power_zero_numeral [simp]: "(0::'a) ^ numeral k = 0"
+lemma zero_power:
+  "0 < n \<Longrightarrow> 0 ^ n = 0"
+  by (cases n) simp_all
+
+lemma power_zero_numeral [simp]:
+  "0 ^ numeral k = 0"
   by (simp add: numeral_eq_Suc)
 
 lemma zero_power2: "0\<^sup>2 = 0" (* delete? *)

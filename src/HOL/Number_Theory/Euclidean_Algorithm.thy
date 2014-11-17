@@ -6,33 +6,6 @@ theory Euclidean_Algorithm
 imports Complex_Main
 begin
 
-lemma finite_int_set_iff_bounded_le:
-  "finite (N::int set) = (\<exists>m\<ge>0. \<forall>n\<in>N. abs n \<le> m)"
-proof
-  assume "finite (N::int set)"
-  hence "finite (nat ` abs ` N)" by (intro finite_imageI)
-  hence "\<exists>m. \<forall>n\<in>nat`abs`N. n \<le> m" by (simp add: finite_nat_set_iff_bounded_le)
-  then obtain m :: nat where "\<forall>n\<in>N. nat (abs n) \<le> nat (int m)" by auto
-  then show "\<exists>m\<ge>0. \<forall>n\<in>N. abs n \<le> m" by (intro exI[of _ "int m"]) (auto simp: nat_le_eq_zle)
-next
-  assume "\<exists>m\<ge>0. \<forall>n\<in>N. abs n \<le> m"
-  then obtain m where "m \<ge> 0" and "\<forall>n\<in>N. abs n \<le> m" by blast
-  hence "\<forall>n\<in>N. nat (abs n) \<le> nat m" by (auto simp: nat_le_eq_zle)
-  hence "\<forall>n\<in>nat`abs`N. n \<le> nat m" by (auto simp: nat_le_eq_zle)
-  hence A: "finite ((nat \<circ> abs)`N)" unfolding o_def 
-      by (subst finite_nat_set_iff_bounded_le) blast
-  {
-    assume "\<not>finite N"
-    from pigeonhole_infinite[OF this A] obtain x 
-       where "x \<in> N" and B: "~finite {a\<in>N. nat (abs a) = nat (abs x)}" 
-       unfolding o_def by blast
-    have "{a\<in>N. nat (abs a) = nat (abs x)} \<subseteq> {x, -x}" by auto
-    hence "finite {a\<in>N. nat (abs a) = nat (abs x)}" by (rule finite_subset) simp
-    with B have False by contradiction
-  }
-  then show "finite N" by blast
-qed
-
 context semiring_div
 begin
 
@@ -45,32 +18,6 @@ proof
   also from `x \<in> A` have "insert x (A - {x}) = A" by blast
   finally show "setprod f A = f x * setprod f (A - {x})" .
 qed
-
-lemma dvd_mult_cancel_left:
-  assumes "a \<noteq> 0" and "a * b dvd a * c"
-  shows "b dvd c"
-proof-
-  from assms(2) obtain k where "a * c = a * b * k" unfolding dvd_def by blast
-  hence "c * a = b * k * a" by (simp add: ac_simps)
-  hence "c * (a div a) = b * k * (a div a)" by (simp add: div_mult_swap)
-  also from `a \<noteq> 0` have "a div a = 1" by simp
-  finally show ?thesis by simp
-qed
-
-lemma dvd_mult_cancel_right:
-  "a \<noteq> 0 \<Longrightarrow> b * a dvd c * a \<Longrightarrow> b dvd c"
-  by (subst (asm) (1 2) ac_simps, rule dvd_mult_cancel_left)
-
-lemma nonzero_pow_nonzero:
-  "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
-  by (induct n) (simp_all add: no_zero_divisors)
-
-lemma zero_pow_zero: "n \<noteq> 0 \<Longrightarrow> 0 ^ n = 0"
-  by (cases n, simp_all)
-
-lemma pow_zero_iff:
-  "n \<noteq> 0 \<Longrightarrow> a^n = 0 \<longleftrightarrow> a = 0"
-  using nonzero_pow_nonzero zero_pow_zero by auto
 
 end
 
@@ -260,9 +207,9 @@ proof
     hence [simp]: "x dvd y" "y dvd x" using `associated x y`
         unfolding associated_def by simp_all
     hence "1 = x div y * (y div x)"
-      by (simp add: div_mult_swap dvd_div_mult_self)
+      by (simp add: div_mult_swap)
     hence "is_unit (x div y)" unfolding is_unit_def by (rule dvdI)
-    moreover have "x = (x div y) * y" by (simp add: dvd_div_mult_self)
+    moreover have "x = (x div y) * y" by simp
     ultimately show ?thesis by blast
   qed
 next
@@ -364,7 +311,7 @@ proof (cases "x = 0", simp)
   have "?nf (x div ?nf x) * ?nf (?nf x) = ?nf (x div ?nf x * ?nf x)" 
     by (simp add: normalisation_factor_mult)
   also have "x div ?nf x * ?nf x = x" using `x \<noteq> 0`
-    by (simp add: dvd_div_mult_self)
+    by simp
   also have "?nf (?nf x) = ?nf x" using `x \<noteq> 0` 
     normalisation_factor_is_unit normalisation_factor_unit by simp
   finally show ?thesis using `x \<noteq> 0` and `?nf x \<noteq> 0` 
@@ -653,7 +600,7 @@ proof-
   also have "... = k * gcd x y div ?nf k"
     by (metis dvd_div_mult dvd_eq_mod_eq_0 mod_0 normalisation_factor_dvd)
   finally show ?thesis
-    by (simp add: ac_simps dvd_mult_div_cancel)
+    by simp
 qed
 
 lemma euclidean_size_gcd_le1 [simp]:
@@ -711,7 +658,7 @@ lemma gcd_right_idem: "gcd (gcd p q) q = gcd p q"
   apply (simp add: ac_simps)
   apply (rule gcd_dvd2)
   apply (rule gcd_greatest, erule (1) gcd_greatest, assumption)
-  apply (simp add: gcd_zero)
+  apply simp
   done
 
 lemma gcd_left_idem: "gcd p (gcd p q) = gcd p q"
@@ -719,7 +666,7 @@ lemma gcd_left_idem: "gcd p (gcd p q) = gcd p q"
   apply simp
   apply (rule dvd_trans, rule gcd_dvd2, rule gcd_dvd2)
   apply (rule gcd_greatest, assumption, erule gcd_greatest, assumption)
-  apply (simp add: gcd_zero)
+  apply simp
   done
 
 lemma comp_fun_idem_gcd: "comp_fun_idem gcd"
@@ -754,7 +701,7 @@ proof (rule gcdI)
   have "gcd c d dvd d" by simp
   with A show "gcd a b dvd d" by (rule dvd_trans)
   show "normalisation_factor (gcd a b) = (if gcd a b = 0 then 0 else 1)"
-    by (simp add: gcd_zero)
+    by simp
   fix l assume "l dvd c" and "l dvd d"
   hence "l dvd gcd c d" by (rule gcd_greatest)
   from this and B show "l dvd gcd a b" by (rule dvd_trans)
@@ -786,10 +733,10 @@ next
   moreover from `?lhs` have "b dvd a * c" unfolding associated_def by (metis dvd_mult_left) 
   hence "b dvd a" by (simp add: coprime_dvd_mult_iff)
   moreover from `?lhs` have "c dvd d * b" 
-    unfolding associated_def by (metis dvd_mult_right ac_simps)
+    unfolding associated_def by (auto dest: dvd_mult_right simp add: ac_simps)
   hence "c dvd d" by (simp add: coprime_dvd_mult_iff gcd.commute)
   moreover from `?lhs` have "d dvd c * a"
-    unfolding associated_def by (metis dvd_mult_right ac_simps)
+    unfolding associated_def by (auto dest: dvd_mult_right simp add: ac_simps)
   hence "d dvd c" by (simp add: coprime_dvd_mult_iff gcd.commute)
   ultimately show ?rhs unfolding associated_def by simp
 qed
@@ -819,17 +766,18 @@ lemma div_gcd_coprime:
 proof (rule coprimeI)
   fix l assume "l dvd a'" "l dvd b'"
   then obtain s t where "a' = l * s" "b' = l * t" unfolding dvd_def by blast
-  moreover have "a = a' * d" "b = b' * d" by (simp_all add: dvd_div_mult_self)
+  moreover have "a = a' * d" "b = b' * d" by simp_all
   ultimately have "a = (l * d) * s" "b = (l * d) * t"
-    by (metis ac_simps)+
+    by (simp_all only: ac_simps)
   hence "l*d dvd a" and "l*d dvd b" by (simp_all only: dvd_triv_left)
   hence "l*d dvd d" by (simp add: gcd_greatest)
-  then obtain u where "u * l * d = d" unfolding dvd_def
-    by (metis ac_simps mult_assoc)
-  moreover from nz have "d \<noteq> 0" by (simp add: gcd_zero)
-  ultimately have "u * l = 1" 
-    by (metis div_mult_self1_is_id div_self ac_simps)
-  then show "l dvd 1" by force
+  then obtain u where "d = l * d * u" ..
+  then have "d * (l * u) = d" by (simp add: ac_simps)
+  moreover from nz have "d \<noteq> 0" by simp
+  with div_mult_self1_is_id have "d * (l * u) div d = l * u" . 
+  ultimately have "1 = l * u"
+    using `d \<noteq> 0` by simp
+  then show "l dvd 1" ..
 qed
 
 lemma coprime_mult: 
@@ -866,7 +814,7 @@ lemma gcd_coprime:
   assumes z: "gcd a b \<noteq> 0" and a: "a = a' * gcd a b" and b: "b = b' * gcd a b"
   shows "gcd a' b' = 1"
 proof -
-  from z have "a \<noteq> 0 \<or> b \<noteq> 0" by (simp add: gcd_zero)
+  from z have "a \<noteq> 0 \<or> b \<noteq> 0" by simp
   with div_gcd_coprime have "gcd (a div gcd a b) (b div gcd a b) = 1" .
   also from assms have "a div gcd a b = a'" by (metis div_mult_self2_is_id)+
   also from assms have "b div gcd a b = b'" by (metis div_mult_self2_is_id)+
@@ -886,7 +834,7 @@ lemma gcd_coprime_exists:
   shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> gcd a' b' = 1"
   apply (rule_tac x = "a div gcd a b" in exI)
   apply (rule_tac x = "b div gcd a b" in exI)
-  apply (insert nz, auto simp add: dvd_div_mult gcd_0_left  gcd_zero intro: div_gcd_coprime)
+  apply (insert nz, auto intro: div_gcd_coprime)
   done
 
 lemma coprime_exp:
@@ -934,7 +882,7 @@ lemma division_decomp:
   shows "\<exists>b' c'. a = b' * c' \<and> b' dvd b \<and> c' dvd c"
 proof (cases "gcd a b = 0")
   assume "gcd a b = 0"
-  hence "a = 0 \<and> b = 0" by (simp add: gcd_zero)
+  hence "a = 0 \<and> b = 0" by simp
   hence "a = 0 * c \<and> 0 dvd b \<and> c dvd c" by simp
   then show ?thesis by blast
 next
@@ -947,7 +895,7 @@ next
   with dc have "a' dvd b*c" using dvd_trans[of a' a "b*c"] by simp
   from dc ab'(1,2) have "a'*?d dvd (b'*?d) * c" by simp
   hence "?d * a' dvd ?d * (b' * c)" by (simp add: mult_ac)
-  with `?d \<noteq> 0` have "a' dvd b' * c" by (rule dvd_mult_cancel_left)
+  with `?d \<noteq> 0` have "a' dvd b' * c" by simp
   with coprime_dvd_mult[OF ab'(3)] 
     have "a' dvd c" by (subst (asm) ac_simps, blast)
   with ab'(1) have "a = ?d * a' \<and> ?d dvd b \<and> a' dvd c" by (simp add: mult_ac)
@@ -959,12 +907,12 @@ lemma pow_divides_pow:
   shows "a dvd b"
 proof (cases "gcd a b = 0")
   assume "gcd a b = 0"
-  then show ?thesis by (simp add: gcd_zero)
+  then show ?thesis by simp
 next
   let ?d = "gcd a b"
   assume "?d \<noteq> 0"
   from n obtain m where m: "n = Suc m" by (cases n, simp_all)
-  from `?d \<noteq> 0` have zn: "?d ^ n \<noteq> 0" by (rule nonzero_pow_nonzero)
+  from `?d \<noteq> 0` have zn: "?d ^ n \<noteq> 0" by (rule power_not_zero)
   from gcd_coprime_exists[OF `?d \<noteq> 0`]
     obtain a' b' where ab': "a = a' * ?d" "b = b' * ?d" "gcd a' b' = 1"
     by blast
@@ -972,7 +920,7 @@ next
     by (simp add: ab'(1,2)[symmetric])
   hence "?d^n * a'^n dvd ?d^n * b'^n"
     by (simp only: power_mult_distrib ac_simps)
-  with zn have "a'^n dvd b'^n" by (rule dvd_mult_cancel_left)
+  with zn have "a'^n dvd b'^n" by simp
   hence "a' dvd b'^n" using dvd_trans[of a' "a'^n" "b'^n"] by (simp add: m)
   hence "a' dvd b'^m * b'" by (simp add: m ac_simps)
   with coprime_dvd_mult[OF coprime_exp[OF ab'(3), of m]]
@@ -1022,8 +970,18 @@ proof -
 qed
 
 lemma invertible_coprime:
-  "x * y mod m = 1 \<Longrightarrow> gcd x m = 1"
-  by (metis coprime_lmult gcd_1 ac_simps gcd_red)
+  assumes "x * y mod m = 1"
+  shows "coprime x m"
+proof -
+  from assms have "coprime m (x * y mod m)"
+    by simp
+  then have "coprime m (x * y)"
+    by simp
+  then have "coprime m x"
+    by (rule coprime_lmult)
+  then show ?thesis
+    by (simp add: ac_simps)
+qed
 
 lemma lcm_gcd:
   "lcm a b = a * b div (gcd a b * normalisation_factor (a*b))"
@@ -1108,7 +1066,7 @@ proof -
   {
     assume "a \<noteq> 0" "b \<noteq> 0"
     hence "a * b div ?nf (a * b) \<noteq> 0" by (simp add: no_zero_divisors)
-    moreover from `a \<noteq> 0` and `b \<noteq> 0` have "gcd a b \<noteq> 0" by (simp add: gcd_zero)
+    moreover from `a \<noteq> 0` and `b \<noteq> 0` have "gcd a b \<noteq> 0" by simp
     ultimately have "lcm a b \<noteq> 0" using lcm_gcd_prod[of a b] by (intro notI, simp)
   } moreover {
     assume "a = 0 \<or> b = 0"
@@ -1123,7 +1081,7 @@ lemma gcd_lcm:
   assumes "lcm a b \<noteq> 0"
   shows "gcd a b = a * b div (lcm a b * normalisation_factor (a * b))"
 proof-
-  from assms have "gcd a b \<noteq> 0" by (simp add: gcd_zero lcm_zero)
+  from assms have "gcd a b \<noteq> 0" by (simp add: lcm_zero)
   let ?c = "normalisation_factor (a*b)"
   from `lcm a b \<noteq> 0` have "?c \<noteq> 0" by (intro notI, simp add: lcm_zero no_zero_divisors)
   hence "is_unit ?c" by simp
@@ -1383,7 +1341,7 @@ proof -
     {
       fix l' assume "\<forall>x\<in>A. x dvd l'"
       with `\<forall>x\<in>A. x dvd l` have "\<forall>x\<in>A. x dvd gcd l l'" by (auto intro: gcd_greatest)
-      moreover from `l \<noteq> 0` have "gcd l l' \<noteq> 0" by (simp add: gcd_zero)
+      moreover from `l \<noteq> 0` have "gcd l l' \<noteq> 0" by simp
       ultimately have "\<exists>b. b \<noteq> 0 \<and> (\<forall>x\<in>A. x dvd b) \<and> euclidean_size b = euclidean_size (gcd l l')"
         by (intro exI[of _ "gcd l l'"], auto)
       hence "euclidean_size (gcd l l') \<ge> n" by (subst n_def) (rule Least_le)
@@ -1585,7 +1543,7 @@ next
   then show "g' dvd Gcd A" by (simp add: Gcd_Lcm)
 next
   show "normalisation_factor (Gcd A) = (if Gcd A = 0 then 0 else 1)"
-    by (simp add: Gcd_Lcm normalisation_factor_Lcm)
+    by (simp add: Gcd_Lcm)
 qed
 
 lemma GcdI:
@@ -1619,7 +1577,7 @@ proof (rule gcdI)
   fix l assume "l dvd a" and "l dvd Gcd A"
   hence "\<forall>x\<in>A. l dvd x" by (blast intro: dvd_trans Gcd_dvd)
   with `l dvd a` show "l dvd Gcd (insert a A)" by (force intro: Gcd_dvd)
-qed (auto intro: Gcd_dvd dvd_Gcd simp: normalisation_factor_Gcd)
+qed auto
 
 lemma Gcd_finite:
   assumes "finite A"
@@ -1653,11 +1611,11 @@ subclass euclidean_ring ..
 
 lemma gcd_neg1 [simp]:
   "gcd (-x) y = gcd x y"
-  by (rule sym, rule gcdI, simp_all add: gcd_greatest gcd_zero)
+  by (rule sym, rule gcdI, simp_all add: gcd_greatest)
 
 lemma gcd_neg2 [simp]:
   "gcd x (-y) = gcd x y"
-  by (rule sym, rule gcdI, simp_all add: gcd_greatest gcd_zero)
+  by (rule sym, rule gcdI, simp_all add: gcd_greatest)
 
 lemma gcd_neg_numeral_1 [simp]:
   "gcd (- numeral n) x = gcd (numeral n) x"

@@ -134,13 +134,13 @@ lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>k. a = b * k \<Longrightar
 
 end
 
-class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult + dvd
-  (*previously almost_semiring*)
+context comm_monoid_mult
 begin
 
-subclass semiring_1 ..
+subclass dvd .
 
-lemma dvd_refl[simp]: "a dvd a"
+lemma dvd_refl [simp]:
+  "a dvd a"
 proof
   show "a = a * 1" by simp
 qed
@@ -155,30 +155,25 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_0_left_iff [simp]: "0 dvd a \<longleftrightarrow> a = 0"
-by (auto intro: dvd_refl elim!: dvdE)
+lemma one_dvd [simp]:
+  "1 dvd a"
+  by (auto intro!: dvdI)
 
-lemma dvd_0_right [iff]: "a dvd 0"
-proof
-  show "0 = a * 0" by simp
-qed
+lemma dvd_mult [simp]:
+  "a dvd c \<Longrightarrow> a dvd (b * c)"
+  by (auto intro!: mult.left_commute dvdI elim!: dvdE)
 
-lemma one_dvd [simp]: "1 dvd a"
-by (auto intro!: dvdI)
+lemma dvd_mult2 [simp]:
+  "a dvd b \<Longrightarrow> a dvd (b * c)"
+  using dvd_mult [of a b c] by (simp add: ac_simps) 
 
-lemma dvd_mult[simp]: "a dvd c \<Longrightarrow> a dvd (b * c)"
-by (auto intro!: mult.left_commute dvdI elim!: dvdE)
+lemma dvd_triv_right [simp]:
+  "a dvd b * a"
+  by (rule dvd_mult) (rule dvd_refl)
 
-lemma dvd_mult2[simp]: "a dvd b \<Longrightarrow> a dvd (b * c)"
-  apply (subst mult.commute)
-  apply (erule dvd_mult)
-  done
-
-lemma dvd_triv_right [simp]: "a dvd b * a"
-by (rule dvd_mult) (rule dvd_refl)
-
-lemma dvd_triv_left [simp]: "a dvd a * b"
-by (rule dvd_mult2) (rule dvd_refl)
+lemma dvd_triv_left [simp]:
+  "a dvd a * b"
+  by (rule dvd_mult2) (rule dvd_refl)
 
 lemma mult_dvd_mono:
   assumes "a dvd b"
@@ -191,17 +186,39 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
-by (simp add: dvd_def mult.assoc, blast)
+lemma dvd_mult_left:
+  "a * b dvd c \<Longrightarrow> a dvd c"
+  by (simp add: dvd_def mult.assoc) blast
 
-lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
-  unfolding mult.commute [of a] by (rule dvd_mult_left)
+lemma dvd_mult_right:
+  "a * b dvd c \<Longrightarrow> b dvd c"
+  using dvd_mult_left [of b a c] by (simp add: ac_simps)
+  
+end
 
-lemma dvd_0_left: "0 dvd a \<Longrightarrow> a = 0"
-by simp
+class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
+  (*previously almost_semiring*)
+begin
 
-lemma dvd_add[simp]:
-  assumes "a dvd b" and "a dvd c" shows "a dvd (b + c)"
+subclass semiring_1 ..
+
+lemma dvd_0_left_iff [simp]:
+  "0 dvd a \<longleftrightarrow> a = 0"
+  by (auto intro: dvd_refl elim!: dvdE)
+
+lemma dvd_0_right [iff]:
+  "a dvd 0"
+proof
+  show "0 = a * 0" by simp
+qed
+
+lemma dvd_0_left:
+  "0 dvd a \<Longrightarrow> a = 0"
+  by simp
+
+lemma dvd_add [simp]:
+  assumes "a dvd b" and "a dvd c"
+  shows "a dvd (b + c)"
 proof -
   from `a dvd b` obtain b' where "b = a * b'" ..
   moreover from `a dvd c` obtain c' where "c = a * c'" ..

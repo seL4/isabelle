@@ -28,6 +28,14 @@ begin
 
 subclass semiring_no_zero_divisors ..
 
+lemma power_not_zero: -- \<open>FIXME cf. @{text field_power_not_zero}\<close>
+  "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
+  by (induct n) (simp_all add: no_zero_divisors)
+
+lemma semiring_div_power_eq_0_iff: -- \<open>FIXME cf. @{text power_eq_0_iff}, @{text power_eq_0_nat_iff}\<close>
+  "n \<noteq> 0 \<Longrightarrow> a ^ n = 0 \<longleftrightarrow> a = 0"
+  using power_not_zero [of a n] by (auto simp add: zero_power)
+
 text {* @{const div} and @{const mod} *}
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
@@ -390,6 +398,20 @@ lemma mult_mod_left: "(a mod b) * c = (a * c) mod (b * c)"
 lemma mult_mod_right: "c * (a mod b) = (c * a) mod (c * b)"
   by (fact mod_mult_mult1 [symmetric])
 
+lemma dvd_times_left_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
+  assumes "c \<noteq> 0"
+  shows "c * a dvd c * b \<longleftrightarrow> a dvd b"
+proof -
+  have "(c * b) mod (c * a) = 0 \<longleftrightarrow> b mod a = 0" (is "?P \<longleftrightarrow> ?Q")
+    using assms by (simp add: mod_mult_mult1)
+  then show ?thesis by (simp add: mod_eq_0_iff_dvd)
+qed
+
+lemma dvd_times_right_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
+  assumes "c \<noteq> 0"
+  shows "a * c dvd b * c \<longleftrightarrow> a dvd b"
+  using assms dvd_times_left_cancel_iff [of c a b] by (simp add: ac_simps)
+
 lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod n)"
   unfolding dvd_def by (auto simp add: mod_mult_mult1)
 
@@ -642,20 +664,6 @@ begin
 lemma diff_zero [simp]:
   "a - 0 = a"
   by (rule diff_invert_add1 [symmetric]) simp
-
-lemma dvd_times_left_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
-  assumes "c \<noteq> 0"
-  shows "c * a dvd c * b \<longleftrightarrow> a dvd b"
-proof -
-  have "(c * b) mod (c * a) = 0 \<longleftrightarrow> b mod a = 0" (is "?P \<longleftrightarrow> ?Q")
-    using assms by (simp add: mod_mult_mult1)
-  then show ?thesis by (simp add: mod_eq_0_iff_dvd)
-qed
-
-lemma dvd_times_right_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
-  assumes "c \<noteq> 0"
-  shows "a * c dvd b * c \<longleftrightarrow> a dvd b"
-  using assms dvd_times_left_cancel_iff [of c a b] by (simp add: ac_simps)
 
 subclass semiring_div_parity
 proof
