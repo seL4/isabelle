@@ -79,7 +79,7 @@ proof cases
   assume M: "a : set_of M"
   with assms have a: "prime a" by auto
   with M have "a ^ count M a dvd (PROD i :# M. i)"
-    by (auto simp add: msetprod_multiplicity intro: dvd_setprod)
+    by (auto simp add: msetprod_multiplicity)
   also have "... dvd (PROD i :# N. i)" by (rule assms)
   also have "... = (PROD i : (set_of N). i ^ (count N i))"
     by (simp add: msetprod_multiplicity)
@@ -309,7 +309,7 @@ proof -
     apply (simp add: set_of_def msetprod_multiplicity)
     done
   with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
-    by (simp add: Abs_multiset_inverse)
+    by simp
   with S_eq show ?thesis
     by (simp add: set_of_def multiset_def prime_factors_nat_def multiplicity_nat_def)
 qed
@@ -681,7 +681,7 @@ lemma prime_factors_altdef2_nat: "(n::nat) > 0 \<Longrightarrow>
   apply (rule dvd_trans) 
   apply (rule dvd_power [where x = p and n = "multiplicity p n"])
   apply (subst (asm) prime_factors_altdef_nat, force)
-  apply (rule dvd_setprod)
+  apply rule
   apply auto
   apply (metis One_nat_def Zero_not_Suc dvd_multiplicity_nat le0 le_antisym multiplicity_not_factor_nat multiplicity_prime_nat)  
   done

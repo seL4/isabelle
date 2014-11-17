@@ -7,21 +7,6 @@ imports Complex_Main
 begin
 
 context semiring_div
-begin
-
-lemma dvd_setprod [intro]:
-  assumes "finite A" and "x \<in> A"
-  shows "f x dvd setprod f A"
-proof
-  from `finite A` have "setprod f (insert x (A - {x})) = f x * setprod f (A - {x})"
-    by (intro setprod.insert) auto
-  also from `x \<in> A` have "insert x (A - {x}) = A" by blast
-  finally show "setprod f A = f x * setprod f (A - {x})" .
-qed
-
-end
-
-context semiring_div
 begin 
 
 definition ring_inv :: "'a \<Rightarrow> 'a"
@@ -1463,7 +1448,7 @@ proof -
       apply (rule no_zero_divisors)
       apply blast+
       done
-    moreover from `finite A` have "\<forall>x\<in>A. x dvd \<Prod>A" by (intro ballI dvd_setprod)
+    moreover from `finite A` have "\<forall>x\<in>A. x dvd \<Prod>A" by blast
     ultimately have "\<exists>l. l \<noteq> 0 \<and> (\<forall>x\<in>A. x dvd l)" by blast
     with Lcm0_iff' have "Lcm A \<noteq> 0" by simp
   }

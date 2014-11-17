@@ -820,7 +820,7 @@ proof -
         apply (drule (1) bspec)
         apply (erule conjE)
         apply assumption
-        apply (rule dvd_setprod)
+        apply rule
         using fin a apply auto
         done
       finally show ?thesis
@@ -863,7 +863,7 @@ proof -
     apply (rule cong_dvd_modulus_nat)
     apply (rule cong_mod_nat)
     using prodnz apply auto
-    apply (rule dvd_setprod)
+    apply rule
     apply (rule fin)
     apply assumption
     done
