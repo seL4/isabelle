@@ -16,6 +16,9 @@ sig
   val abs_eq_of_lift_def: lift_def -> thm
   val rep_eq_of_lift_def: lift_def -> thm option
   val transfer_rules_of_lift_def: lift_def -> thm list
+  val morph_lift_def: morphism -> lift_def -> lift_def
+  val inst_of_lift_def: Proof.context -> typ -> lift_def -> lift_def
+  val mk_lift_const_of_lift_def: typ -> lift_def -> term
 
   val generate_parametric_transfer_rule:
     Proof.context -> thm -> thm -> thm
@@ -69,6 +72,31 @@ fun mk_lift_def rty qty rhs lift_const def_thm rsp_thm abs_eq rep_eq transfer_ru
             rhs = rhs, lift_const = lift_const,
             def_thm = def_thm, rsp_thm = rsp_thm, abs_eq = abs_eq, rep_eq = rep_eq,
             transfer_rules = transfer_rules };
+
+fun map_lift_def f1 f2 f3 f4 f5 f6 f7 f8 f9
+  (LIFT_DEF {rty = rty, qty = qty, rhs = rhs, lift_const = lift_const,
+  def_thm = def_thm, rsp_thm = rsp_thm, abs_eq = abs_eq, rep_eq = rep_eq, 
+  transfer_rules = transfer_rules }) =
+  LIFT_DEF {rty = f1 rty, qty = f2 qty, rhs = f3 rhs, lift_const = f4 lift_const,
+            def_thm = f5 def_thm, rsp_thm = f6 rsp_thm, abs_eq = f7 abs_eq, rep_eq = f8 rep_eq,
+            transfer_rules = f9 transfer_rules }
+
+fun morph_lift_def phi =
+  let
+    val mtyp = Morphism.typ phi
+    val mterm = Morphism.term phi
+    val mthm = Morphism.thm phi
+  in
+    map_lift_def mtyp mtyp mterm mterm mthm mthm mthm (Option.map mthm) (map mthm)
+  end
+
+fun mk_inst_of_lift_def qty lift_def = Vartab.empty |> Type.raw_match (qty_of_lift_def lift_def, qty)
+
+fun mk_lift_const_of_lift_def qty lift_def = Envir.subst_term_types (mk_inst_of_lift_def qty lift_def)
+  (lift_const_of_lift_def lift_def)
+
+fun inst_of_lift_def ctxt qty lift_def =  mk_inst_of_lift_def qty lift_def
+  |> instT_morphism ctxt |> (fn phi => morph_lift_def phi lift_def)
 
 (* Reflexivity prover *)
 
@@ -529,7 +557,8 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
             SOME rep_eq_thm => (snd oo Local_Theory.note) ((rep_eq_thm_name, []), [rep_eq_thm])
             | NONE => I)
       |> register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty)
-      |> pair lift_def
+      |> ` (fn lthy => morph_lift_def (Local_Theory.target_morphism lthy) lift_def)
+      ||> Local_Theory.restore
   end
 
 local
