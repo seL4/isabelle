@@ -10,7 +10,11 @@ sig
     Proof.context -> thm -> thm -> thm
 
   val add_lift_def:
-    (binding * mixfix) -> typ -> term -> thm -> thm list -> local_theory -> local_theory
+    binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> local_theory
+    
+  val lift_def: 
+    binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
+    local_theory -> local_theory
 
   val lift_def_cmd:
     (binding * string option * mixfix) * string * (Facts.ref * Token.src list) list ->
@@ -600,17 +604,8 @@ fun get_cr_pcr_eqs ctxt =
     Symtab.fold (fn (_, data) => fn l => collect data l) table []
   end
 
-(*
-
-  lifting_definition command. It opens a proof of a corresponding respectfulness 
-  theorem in a user-friendly, readable form. Then add_lift_def is called internally.
-
-*)
-
-fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
+fun prepare_lift_def var qty rhs par_thms lthy =
   let
-    val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
     val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
     val forced_rhs = force_rty_type lthy rty_forced rhs;
@@ -624,13 +619,12 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
       |>> snd
     val to_rsp = rsp_prsp_eq RS Drule.equal_elim_rule2
     val opt_proven_rsp_thm = try_prove_reflexivity lthy prsp_tm
-    val par_thms = Attrib.eval_thms lthy par_xthms
     
     fun after_qed internal_rsp_thm lthy = 
-      add_lift_def (binding, mx) qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
+      add_lift_def var qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
   in
     case opt_proven_rsp_thm of
-      SOME thm => Proof.theorem NONE (K (after_qed thm)) [] lthy
+      SOME thm => (NONE, K (after_qed thm))
       | NONE =>  
         let
           val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
@@ -646,8 +640,41 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
               after_qed internal_rsp_thm lthy
             end
         in
-          Proof.theorem NONE after_qed' [[(readable_rsp_tm_tnames,[])]] lthy
+          (SOME readable_rsp_tm_tnames, after_qed')
         end 
+  end
+
+fun lift_def var qty rhs tac par_thms lthy =
+  let
+    val (goal, after_qed) = prepare_lift_def var qty rhs par_thms lthy
+  in
+    case goal of
+      SOME goal => 
+        let 
+          val rsp_thm = Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} => tac ctxt)
+            |> Thm.close_derivation
+        in
+          after_qed [[rsp_thm]] lthy
+        end
+      | NONE => after_qed [[Drule.dummy_thm]] lthy
+  end
+
+(*
+
+  lifting_definition command. It opens a proof of a corresponding respectfulness 
+  theorem in a user-friendly, readable form. Then add_lift_def is called internally.
+
+*)
+
+fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
+  let
+    val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
+    val var = (binding, mx)
+    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
+    val par_thms = Attrib.eval_thms lthy par_xthms
+    val (goal, after_qed) = prepare_lift_def var qty rhs par_thms lthy
+  in
+    Proof.theorem NONE after_qed [map (rpair []) (the_list goal)] lthy
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =
