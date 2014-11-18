@@ -6,15 +6,26 @@ Definitions for constants on quotient types.
 
 signature LIFTING_DEF =
 sig
+  type lift_def
+  val rty_of_lift_def: lift_def -> typ
+  val qty_of_lift_def: lift_def -> typ
+  val rhs_of_lift_def: lift_def -> term
+  val lift_const_of_lift_def: lift_def -> term
+  val def_thm_of_lift_def: lift_def -> thm
+  val rsp_thm_of_lift_def: lift_def -> thm
+  val abs_eq_of_lift_def: lift_def -> thm
+  val rep_eq_of_lift_def: lift_def -> thm option
+  val transfer_rules_of_lift_def: lift_def -> thm list
+
   val generate_parametric_transfer_rule:
     Proof.context -> thm -> thm -> thm
 
   val add_lift_def:
-    binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> local_theory
+    binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> lift_def * local_theory
     
   val lift_def: 
     binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
-    local_theory -> local_theory
+    local_theory -> lift_def * local_theory
 
   val lift_def_cmd:
     (binding * string option * mixfix) * string * (Facts.ref * Token.src list) list ->
@@ -29,6 +40,35 @@ struct
 open Lifting_Util
 
 infix 0 MRSL
+
+datatype lift_def = LIFT_DEF of {
+  rty: typ,
+  qty: typ,
+  rhs: term,
+  lift_const: term,
+  def_thm: thm,
+  rsp_thm: thm,
+  abs_eq: thm,
+  rep_eq: thm option,
+  transfer_rules: thm list
+};
+
+fun rep_lift_def (LIFT_DEF lift_def) = lift_def;
+val rty_of_lift_def = #rty o rep_lift_def;
+val qty_of_lift_def = #qty o rep_lift_def;
+val rhs_of_lift_def = #rhs o rep_lift_def;
+val lift_const_of_lift_def = #lift_const o rep_lift_def;
+val def_thm_of_lift_def = #def_thm o rep_lift_def;
+val rsp_thm_of_lift_def = #rsp_thm o rep_lift_def;
+val abs_eq_of_lift_def = #abs_eq o rep_lift_def;
+val rep_eq_of_lift_def = #rep_eq o rep_lift_def;
+val transfer_rules_of_lift_def = #transfer_rules o rep_lift_def;
+
+fun mk_lift_def rty qty rhs lift_const def_thm rsp_thm abs_eq rep_eq transfer_rules =
+  LIFT_DEF {rty = rty, qty = qty,
+            rhs = rhs, lift_const = lift_const,
+            def_thm = def_thm, rsp_thm = rsp_thm, abs_eq = abs_eq, rep_eq = rep_eq,
+            transfer_rules = transfer_rules };
 
 (* Reflexivity prover *)
 
@@ -462,7 +502,7 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
-    val ((_, (_ , def_thm)), lthy') = 
+    val ((lift_const, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
     val transfer_rules = generate_transfer_rules lthy' quot_thm rsp_thm def_thm par_thms
@@ -478,6 +518,8 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
     val rep_eq_thm_name = qualify lhs_name "rep_eq"
     val transfer_rule_name = qualify lhs_name "transfer"
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val lift_def = mk_lift_def rty_forced qty newrhs lift_const def_thm rsp_thm abs_eq_thm 
+      opt_rep_eq_thm transfer_rules 
   in
     lthy'
       |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
@@ -487,6 +529,7 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
             SOME rep_eq_thm => (snd oo Local_Theory.note) ((rep_eq_thm_name, []), [rep_eq_thm])
             | NONE => I)
       |> register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty)
+      |> pair lift_def
   end
 
 local
@@ -674,7 +717,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val par_thms = Attrib.eval_thms lthy par_xthms
     val (goal, after_qed) = prepare_lift_def var qty rhs par_thms lthy
   in
-    Proof.theorem NONE after_qed [map (rpair []) (the_list goal)] lthy
+    Proof.theorem NONE (snd oo after_qed) [map (rpair []) (the_list goal)] lthy
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =
