@@ -11,6 +11,13 @@ sig
   exception MERGE_TRANSFER_REL of Pretty.T
   exception CHECK_RTY of typ * typ
 
+  type 'a fold_quot_thm = { constr: typ -> thm * 'a -> thm * 'a, lift: typ -> thm * 'a -> thm * 'a, 
+  comp_lift: typ -> thm * 'a -> thm * 'a }
+
+  val force_qty_type: Proof.context -> typ -> thm -> thm
+
+  val prove_schematic_quot_thm: 'a fold_quot_thm -> Proof.context -> typ * typ -> 'a -> thm * 'a
+
   val instantiate_rtys: Proof.context -> typ * typ -> typ * typ
 
   val prove_quot_thm: Proof.context -> typ * typ -> thm
@@ -218,25 +225,34 @@ fun instantiate_rtys ctxt (rty, (qty as Type (qty_name, _))) =
   end
   | instantiate_rtys _ _ = error "instantiate_rtys: not Type"
 
-fun prove_schematic_quot_thm ctxt (rty, qty) =
+type 'a fold_quot_thm = { constr: typ -> thm * 'a -> thm * 'a, lift: typ -> thm * 'a -> thm * 'a, 
+  comp_lift: typ -> thm * 'a -> thm * 'a }
+
+fun prove_schematic_quot_thm actions ctxt (rty, qty) fold_val =
   let
     fun lifting_step (rty, qty) =
       let
         val (rty', rtyq) = instantiate_rtys ctxt (rty, qty)
         val (rty's, rtyqs) = if rty_is_TVar ctxt qty then ([rty'],[rtyq]) 
           else (Targs rty', Targs rtyq) 
-        val args = map (prove_schematic_quot_thm ctxt) (rty's ~~ rtyqs)
+        val (args, fold_val) = 
+          fold_map (prove_schematic_quot_thm actions ctxt) (rty's ~~ rtyqs) fold_val
       in
         if forall is_id_quot args
         then
-          get_quot_thm ctxt (Tname qty)
+          let
+            val quot_thm = get_quot_thm ctxt (Tname qty)
+          in
+            #lift actions qty (quot_thm, fold_val)
+          end
         else
           let
             val quot_thm = get_quot_thm ctxt (Tname qty)
             val rel_quot_thm = if rty_is_TVar ctxt qty then the_single args else
               args MRSL (get_rel_quot_thm ctxt (Tname rty))
+            val comp_quot_thm = [rel_quot_thm, quot_thm] MRSL @{thm Quotient_compose}
           in
-            [rel_quot_thm, quot_thm] MRSL @{thm Quotient_compose}
+            #comp_lift actions qty (comp_quot_thm, fold_val)
          end
       end
   in
@@ -245,13 +261,18 @@ fun prove_schematic_quot_thm ctxt (rty, qty) =
         if s = s'
         then
           let
-            val args = map (prove_schematic_quot_thm ctxt) (zip_Tvars ctxt s tys tys')
+            val (args, fold_val) = 
+              fold_map (prove_schematic_quot_thm actions ctxt) (zip_Tvars ctxt s tys tys') fold_val
           in
             if forall is_id_quot args
             then
-              @{thm identity_quotient}
+              (@{thm identity_quotient}, fold_val)
             else
-              args MRSL (get_rel_quot_thm ctxt s)
+              let
+                val quot_thm = args MRSL (get_rel_quot_thm ctxt s)
+              in
+                #constr actions qty (quot_thm, fold_val)
+              end
           end
         else
           lifting_step (rty, qty)
@@ -267,9 +288,10 @@ fun prove_schematic_quot_thm ctxt (rty, qty) =
             let                                               
               val rty_pat = Type (s', map (fn _ => TFree ("a",[])) tys')
             in
-              prove_schematic_quot_thm ctxt (rty_pat, qty)
+              prove_schematic_quot_thm actions ctxt (rty_pat, qty) fold_val
             end)
-      | _ => @{thm identity_quotient})
+      | _ => (@{thm identity_quotient}, fold_val)
+      )
   end
   handle QUOT_THM_INTERNAL pretty_msg => raise QUOT_THM (rty, qty, pretty_msg)
 
@@ -302,14 +324,19 @@ fun check_rty_type ctxt rty quot_thm =
     qty, a representation type of the theorem is an instance of rty in general.
 *)
 
-fun prove_quot_thm ctxt (rty, qty) =
-  let
-    val schematic_quot_thm = prove_schematic_quot_thm ctxt (rty, qty)
+
+local
+  val id_actions = { constr = K I, lift = K I, comp_lift = K I }
+in
+  fun prove_quot_thm ctxt (rty, qty) =
+    let
+      val (schematic_quot_thm, _) = prove_schematic_quot_thm id_actions ctxt (rty, qty) ()
     val quot_thm = force_qty_type ctxt qty schematic_quot_thm
-    val _ = check_rty_type ctxt rty quot_thm
-  in
-    quot_thm
-  end
+      val _ = check_rty_type ctxt rty quot_thm
+    in
+      quot_thm
+    end
+end
 
 (*
   Computes the composed abstraction function for rty and qty.

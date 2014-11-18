@@ -289,7 +289,6 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
       SOME (simplify_code_eq ctxt (unabs_def RS @{thm meta_eq_to_obj_eq}))
     else 
       let
-        val thy = Proof_Context.theory_of ctxt
         val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
         val rel_fun = prove_rel ctxt rsp_thm (rty, qty)
         val rep_abs_thm = [quot_thm, rel_fun] MRSL @{thm Quotient_rep_abs_eq}
