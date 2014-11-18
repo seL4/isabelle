@@ -589,11 +589,15 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
         val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
             eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
-        val eq_onp_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
+        val intro_top_rule = @{thm eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
+        val kill_tops = Transfer.top_sweep_rewr_conv [@{thm eq_onp_top_eq_eq[THEN eq_reflection]}]
+        val eq_onp_assms_tac = (CONVERSION kill_tops THEN' 
+          TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
           THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
         val relator_eq_onp_conv = Conv.bottom_conv
           (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac
-            (Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
+            (intro_top_rule :: Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
+          then_conv kill_tops
         val relator_eq_conv = Conv.bottom_conv
           (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
