@@ -283,7 +283,7 @@ fun predicator bnf lthy =
     fun qualify defname suffix = Binding.qualified true suffix defname
     val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
     val rel_eq_onp_thm_name = qualify (base_name_of_bnf bnf) "rel_eq_onp"
-    val pred_data = {pred_def = pred_def, rel_eq_onp = rel_eq_onp}
+    val pred_data = Transfer.mk_pred_data pred_def rel_eq_onp []
     val type_name = type_name_of_bnf bnf
     val relator_domain_attr = @{attributes [relator_domain]}
     val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)]),
@@ -398,18 +398,26 @@ fun pred_injects fp_sugar lthy =
     fun qualify defname suffix = Binding.qualified true suffix defname
     val pred_inject_thm_name = qualify (base_name_of_bnf (bnf_of_fp_sugar fp_sugar)) "pred_inject"
     val simp_attrs = @{attributes [simp]}
+    val type_name = type_name_of_bnf (#fp_bnf fp_sugar)
+    val pred_data = lookup_defined_pred_data lthy type_name 
+      |> Transfer.update_pred_simps pred_injects
   in
-    [((pred_inject_thm_name, []), [(pred_injects, simp_attrs)])]
+    lthy 
+    |> Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) 
+    |> snd
+    |> Local_Theory.declaration {syntax = false, pervasive = true}
+      (fn phi => Transfer.update_pred_data type_name  (Transfer.morph_pred_data phi pred_data))
+    |> Local_Theory.restore
   end
 
 
 fun transfer_fp_sugars_interpretation fp_sugar lthy =
   let
-    val pred_injects_notes = pred_injects fp_sugar lthy
+    val lthy = pred_injects fp_sugar lthy
     val transfer_rules_notes = fp_sugar_transfer_rules fp_sugar
   in
     lthy
-    |> Local_Theory.notes (pred_injects_notes @ transfer_rules_notes)
+    |> Local_Theory.notes transfer_rules_notes
     |> snd
   end
 
