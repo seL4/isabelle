@@ -283,10 +283,7 @@ fun predicator bnf lthy =
     fun qualify defname suffix = Binding.qualified true suffix defname
     val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
     val rel_eq_onp_thm_name = qualify (base_name_of_bnf bnf) "rel_eq_onp"
-    val rel_eq_onp_internal = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
-      (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
-        rel_eq_onp
-    val pred_data = {rel_eq_onp = rel_eq_onp_internal}
+    val pred_data = {pred_def = pred_def, rel_eq_onp = rel_eq_onp}
     val type_name = type_name_of_bnf bnf
     val relator_domain_attr = @{attributes [relator_domain]}
     val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)]),
@@ -340,7 +337,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
         map type_name_of_bnf (#fp_nesting_bnfs fp_sugar)
       @ map type_name_of_bnf (#live_nesting_bnfs fp_sugar)
       @ map type_name_of_bnf (#bnfs (#fp_res fp_sugar)))
-    val eq_onps = map (Transfer.rel_eq_onp o lookup_defined_pred_data lthy) involved_types
+    val eq_onps = map (Transfer.rel_eq_onp_with_tops o lookup_defined_pred_data lthy) involved_types
     val old_lthy = lthy
     val (As, lthy) = mk_TFrees' (map Type.sort_of_atyp (lives_of_fp fp_sugar)) lthy
     val predTs = map mk_pred1T As

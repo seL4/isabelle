@@ -9,9 +9,12 @@ signature TRANSFER =
 sig
   type pred_data
   val rel_eq_onp: pred_data -> thm
+  val rel_eq_onp_with_tops: pred_data -> thm
+  val pred_def: pred_data -> thm
 
   val bottom_rewr_conv: thm list -> conv
   val top_rewr_conv: thm list -> conv
+  val top_sweep_rewr_conv: thm list -> conv
 
   val prep_conv: conv
   val get_transfer_raw: Proof.context -> thm list
@@ -46,15 +49,23 @@ end
 structure Transfer : TRANSFER =
 struct
 
+fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+fun top_sweep_rewr_conv rewrs = Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) @{context}
+
 (** Theory Data **)
 
 val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o apply2 snd) (single o fst);
 val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
-type pred_data = {rel_eq_onp: thm}
+type pred_data = {pred_def:thm, rel_eq_onp: thm}
 
 val rel_eq_onp: pred_data -> thm = #rel_eq_onp
+val rel_eq_onp_with_tops: pred_data -> thm = (Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
+  (top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}))))
+  o #rel_eq_onp
+val pred_def: pred_data -> thm = #pred_def
 
 structure Data = Generic_Data
 (
@@ -181,9 +192,6 @@ fun transfer_raw_add thm ctxt = add_transfer_thm thm ctxt
 fun transfer_raw_del thm ctxt = del_transfer_thm thm ctxt
 
 (** Conversions **)
-
-fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
-fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
 
 fun transfer_rel_conv conv =
   Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.fun2_conv (Conv.arg_conv conv)))
@@ -788,7 +796,9 @@ val transferred_attribute_parser =
 val untransferred_attribute_parser =
   Attrib.thms >> untransferred_attribute
 
-fun morph_pred_data phi {rel_eq_onp} = {rel_eq_onp = Morphism.thm phi rel_eq_onp}
+fun morph_pred_data phi {pred_def, rel_eq_onp} = 
+  {pred_def =  Morphism.thm phi pred_def,
+  rel_eq_onp = Morphism.thm phi rel_eq_onp}
 
 fun lookup_pred_data ctxt type_name = Symtab.lookup (get_pred_data ctxt) type_name
   |> Option.map (morph_pred_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
