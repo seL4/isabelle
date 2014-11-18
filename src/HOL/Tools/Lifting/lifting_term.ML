@@ -14,9 +14,12 @@ sig
   type 'a fold_quot_thm = { constr: typ -> thm * 'a -> thm * 'a, lift: typ -> thm * 'a -> thm * 'a, 
   comp_lift: typ -> thm * 'a -> thm * 'a }
 
+  type quotients = Lifting_Info.quotient Symtab.table
+  
   val force_qty_type: Proof.context -> typ -> thm -> thm
 
-  val prove_schematic_quot_thm: 'a fold_quot_thm -> Proof.context -> typ * typ -> 'a -> thm * 'a
+  val prove_schematic_quot_thm: 'a fold_quot_thm -> quotients -> Proof.context -> 
+    typ * typ -> 'a -> thm * 'a
 
   val instantiate_rtys: Proof.context -> typ * typ -> typ * typ
 
@@ -47,6 +50,8 @@ exception PARAM_QUOT_THM of typ * Pretty.T
 exception MERGE_TRANSFER_REL of Pretty.T
 exception CHECK_RTY of typ * typ
 
+type quotients = Lifting_Info.quotient Symtab.table
+
 fun match ctxt err ty_pat ty =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -68,43 +73,43 @@ fun equiv_match_err ctxt ty_pat ty =
        Pretty.str "don't match."])
   end
 
-fun get_quot_data ctxt s =
-  case Lifting_Info.lookup_quotients ctxt s of
+fun get_quot_data quotients s =
+  case Symtab.lookup quotients s of
     SOME qdata => qdata
   | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
     [Pretty.str ("No quotient type " ^ quote s), 
      Pretty.brk 1, 
      Pretty.str "found."])
 
-fun get_quot_thm ctxt s =
+fun get_quot_thm quotients ctxt s =
   let
     val thy = Proof_Context.theory_of ctxt
   in
-    Thm.transfer thy (#quot_thm (get_quot_data ctxt s))
+    Thm.transfer thy (#quot_thm (get_quot_data quotients s))
   end
 
-fun has_pcrel_info ctxt s = is_some (#pcr_info (get_quot_data ctxt s))
+fun has_pcrel_info quotients s = is_some (#pcr_info (get_quot_data quotients s))
 
-fun get_pcrel_info ctxt s =
-  case #pcr_info (get_quot_data ctxt s) of
+fun get_pcrel_info quotients s =
+  case #pcr_info (get_quot_data quotients s) of
     SOME pcr_info => pcr_info
   | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
     [Pretty.str ("No parametrized correspondce relation for " ^ quote s), 
      Pretty.brk 1, 
      Pretty.str "found."])
 
-fun get_pcrel_def ctxt s =
+fun get_pcrel_def quotients ctxt s =
   let
     val thy = Proof_Context.theory_of ctxt
   in
-    Thm.transfer thy (#pcrel_def (get_pcrel_info ctxt s))
+    Thm.transfer thy (#pcrel_def (get_pcrel_info quotients s))
   end
 
-fun get_pcr_cr_eq ctxt s =
+fun get_pcr_cr_eq quotients ctxt s =
   let
     val thy = Proof_Context.theory_of ctxt
   in
-    Thm.transfer thy (#pcr_cr_eq (get_pcrel_info ctxt s))
+    Thm.transfer thy (#pcr_cr_eq (get_pcrel_info quotients s))
   end
 
 fun get_rel_quot_thm ctxt s =
@@ -195,11 +200,12 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
           rel_quot_thm_prems
       end
 
-fun rty_is_TVar ctxt qty = (is_TVar o fst o quot_thm_rty_qty o get_quot_thm ctxt o Tname) qty
+fun gen_rty_is_TVar quotients ctxt qty = qty |> Tname |> get_quot_thm quotients ctxt |> 
+  quot_thm_rty_qty |> fst |> is_TVar
 
-fun instantiate_rtys ctxt (rty, (qty as Type (qty_name, _))) =
+fun gen_instantiate_rtys quotients ctxt (rty, (qty as Type (qty_name, _))) =
   let
-    val quot_thm = get_quot_thm ctxt qty_name
+    val quot_thm = get_quot_thm quotients ctxt qty_name
     val (rty_pat, qty_pat) = quot_thm_rty_qty quot_thm
 
     fun inst_rty (Type (s, tys), Type (s', tys')) = 
@@ -223,32 +229,35 @@ fun instantiate_rtys ctxt (rty, (qty as Type (qty_name, _))) =
   in
     (inst_rty (rty_pat, rty), Envir.subst_type qtyenv rty_pat)
   end
-  | instantiate_rtys _ _ = error "instantiate_rtys: not Type"
+  | gen_instantiate_rtys _ _ _ = error "gen_instantiate_rtys: not Type"
+
+fun instantiate_rtys ctxt (rty, qty) = 
+  gen_instantiate_rtys (Lifting_Info.get_quotients ctxt) ctxt (rty, qty)
 
 type 'a fold_quot_thm = { constr: typ -> thm * 'a -> thm * 'a, lift: typ -> thm * 'a -> thm * 'a, 
   comp_lift: typ -> thm * 'a -> thm * 'a }
 
-fun prove_schematic_quot_thm actions ctxt (rty, qty) fold_val =
+fun prove_schematic_quot_thm actions quotients ctxt (rty, qty) fold_val =
   let
     fun lifting_step (rty, qty) =
       let
-        val (rty', rtyq) = instantiate_rtys ctxt (rty, qty)
-        val (rty's, rtyqs) = if rty_is_TVar ctxt qty then ([rty'],[rtyq]) 
+        val (rty', rtyq) = gen_instantiate_rtys quotients ctxt (rty, qty)
+        val (rty's, rtyqs) = if gen_rty_is_TVar quotients ctxt qty then ([rty'],[rtyq]) 
           else (Targs rty', Targs rtyq) 
         val (args, fold_val) = 
-          fold_map (prove_schematic_quot_thm actions ctxt) (rty's ~~ rtyqs) fold_val
+          fold_map (prove_schematic_quot_thm actions quotients ctxt) (rty's ~~ rtyqs) fold_val
       in
         if forall is_id_quot args
         then
           let
-            val quot_thm = get_quot_thm ctxt (Tname qty)
+            val quot_thm = get_quot_thm quotients ctxt (Tname qty)
           in
             #lift actions qty (quot_thm, fold_val)
           end
         else
           let
-            val quot_thm = get_quot_thm ctxt (Tname qty)
-            val rel_quot_thm = if rty_is_TVar ctxt qty then the_single args else
+            val quot_thm = get_quot_thm quotients ctxt (Tname qty)
+            val rel_quot_thm = if gen_rty_is_TVar quotients ctxt qty then the_single args else
               args MRSL (get_rel_quot_thm ctxt (Tname rty))
             val comp_quot_thm = [rel_quot_thm, quot_thm] MRSL @{thm Quotient_compose}
           in
@@ -262,7 +271,8 @@ fun prove_schematic_quot_thm actions ctxt (rty, qty) fold_val =
         then
           let
             val (args, fold_val) = 
-              fold_map (prove_schematic_quot_thm actions ctxt) (zip_Tvars ctxt s tys tys') fold_val
+              fold_map (prove_schematic_quot_thm actions quotients ctxt) 
+                (zip_Tvars ctxt s tys tys') fold_val
           in
             if forall is_id_quot args
             then
@@ -277,7 +287,7 @@ fun prove_schematic_quot_thm actions ctxt (rty, qty) fold_val =
         else
           lifting_step (rty, qty)
       | (_, Type (s', tys')) => 
-        (case try (get_quot_thm ctxt) s' of
+        (case try (get_quot_thm quotients ctxt) s' of
           SOME quot_thm => 
             let
               val rty_pat = (fst o quot_thm_rty_qty) quot_thm
@@ -288,7 +298,7 @@ fun prove_schematic_quot_thm actions ctxt (rty, qty) fold_val =
             let                                               
               val rty_pat = Type (s', map (fn _ => TFree ("a",[])) tys')
             in
-              prove_schematic_quot_thm actions ctxt (rty_pat, qty) fold_val
+              prove_schematic_quot_thm actions quotients ctxt (rty_pat, qty) fold_val
             end)
       | _ => (@{thm identity_quotient}, fold_val)
       )
@@ -330,8 +340,9 @@ local
 in
   fun prove_quot_thm ctxt (rty, qty) =
     let
-      val (schematic_quot_thm, _) = prove_schematic_quot_thm id_actions ctxt (rty, qty) ()
-    val quot_thm = force_qty_type ctxt qty schematic_quot_thm
+      val quotients = Lifting_Info.get_quotients ctxt
+      val (schematic_quot_thm, _) = prove_schematic_quot_thm id_actions quotients ctxt (rty, qty) ()
+      val quot_thm = force_qty_type ctxt qty schematic_quot_thm
       val _ = check_rty_type ctxt rty quot_thm
     in
       quot_thm
@@ -476,17 +487,7 @@ local
   fun rewrs_imp rules = first_imp (map rewr_imp rules)
 in
 
-  (*
-    ctm - of the form "[POS|NEG] (par_R OO T) t f) ?X", where par_R is a parametricity transfer 
-    relation for t and T is a transfer relation between t and f, which consists only from
-    parametrized transfer relations (i.e., pcr_?) and equalities op=. POS or NEG encodes
-    co-variance or contra-variance.
-    
-    The function merges par_R OO T using definitions of parametrized correspondence relations
-    (e.g., (rel_S R) OO (pcr_T op=) --> pcr_T R using the definition pcr_T R = (rel_S R) OO cr_T).
-  *)
-
-  fun merge_transfer_relations ctxt ctm =
+  fun gen_merge_transfer_relations quotients ctxt ctm =
     let
       val ctm = Thm.dest_arg ctm
       val tm = Thm.term_of ctm
@@ -534,19 +535,21 @@ in
                 in
                   case distr_rule of
                     NONE => raise MERGE_TRANSFER_REL (cannot_merge_error_msg ())
-                    | SOME distr_rule =>  (map (merge_transfer_relations ctxt) (cprems_of distr_rule)) 
+                    | SOME distr_rule =>  (map (gen_merge_transfer_relations quotients ctxt) 
+                                            (cprems_of distr_rule)) 
                       MRSL distr_rule
                 end
               else
                 let 
-                  val pcrel_def = get_pcrel_def ctxt ((fst o dest_Type) qty)
+                  val pcrel_def = get_pcrel_def quotients ctxt ((fst o dest_Type) qty)
                   val pcrel_const = (head_of o fst o Logic.dest_equals o Thm.prop_of) pcrel_def
                 in
                   if same_constants pcrel_const (head_of trans_rel) then
                     let
                       val unfolded_ctm = Thm.rhs_of (Conv.arg1_conv (Conv.arg_conv (Conv.rewr_conv pcrel_def)) ctm)
                       val distr_rule = rewrs_imp @{thms POS_pcr_rule NEG_pcr_rule} unfolded_ctm
-                      val result = (map (merge_transfer_relations ctxt) (cprems_of distr_rule)) MRSL distr_rule
+                      val result = (map (gen_merge_transfer_relations quotients ctxt) 
+                        (cprems_of distr_rule)) MRSL distr_rule
                       val fold_pcr_rel = Conv.rewr_conv (Thm.symmetric pcrel_def)
                     in  
                       Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.combination_conv 
@@ -558,17 +561,22 @@ in
             end
     end
     handle QUOT_THM_INTERNAL pretty_msg => raise MERGE_TRANSFER_REL pretty_msg
+
+  (*
+    ctm - of the form "[POS|NEG] (par_R OO T) t f) ?X", where par_R is a parametricity transfer 
+    relation for t and T is a transfer relation between t and f, which consists only from
+    parametrized transfer relations (i.e., pcr_?) and equalities op=. POS or NEG encodes
+    co-variance or contra-variance.
+    
+    The function merges par_R OO T using definitions of parametrized correspondence relations
+    (e.g., (rel_S R) OO (pcr_T op=) --> pcr_T R using the definition pcr_T R = (rel_S R) OO cr_T).
+  *)
+
+  fun merge_transfer_relations ctxt ctm = gen_merge_transfer_relations 
+    (Lifting_Info.get_quotients ctxt) ctxt ctm
 end
 
-(*
-  It replaces cr_T by pcr_T op= in the transfer relation. For composed
-  abstract types, it replaces T_rel R OO cr_T by pcr_T R. If the parametrized
-  correspondce relation does not exist, the original relation is kept.
-
-  thm - a transfer rule
-*)
-
-fun parametrize_transfer_rule ctxt thm =
+fun gen_parametrize_transfer_rule quotients ctxt thm =
   let
     fun parametrize_relation_conv ctm =
       let
@@ -585,21 +593,21 @@ fun parametrize_transfer_rule ctxt thm =
               val q = (fst o dest_Type) qty
             in
               let
-                val (rty', rtyq) = instantiate_rtys ctxt (rty, qty)
-                val (rty's, rtyqs) = if rty_is_TVar ctxt qty then ([rty'],[rtyq]) 
+                val (rty', rtyq) = gen_instantiate_rtys quotients ctxt (rty, qty)
+                val (rty's, rtyqs) = if gen_rty_is_TVar quotients ctxt qty then ([rty'],[rtyq]) 
                   else (Targs rty', Targs rtyq)
               in
                 if forall op= (rty's ~~ rtyqs) then
                   let
-                    val pcr_cr_eq = (Thm.symmetric o mk_meta_eq) (get_pcr_cr_eq ctxt q)
+                    val pcr_cr_eq = (Thm.symmetric o mk_meta_eq) (get_pcr_cr_eq quotients ctxt q)
                   in      
                     Conv.rewr_conv pcr_cr_eq ctm
                   end
                   handle QUOT_THM_INTERNAL _ => Conv.all_conv ctm
                 else
-                  if has_pcrel_info ctxt q then
+                  if has_pcrel_info quotients q then
                     let 
-                      val pcrel_def = Thm.symmetric (get_pcrel_def ctxt q)
+                      val pcrel_def = Thm.symmetric (get_pcrel_def quotients ctxt q)
                     in
                       (Conv.rewr_conv pcrel_def then_conv all_args_conv parametrize_relation_conv) ctm
                     end
@@ -611,4 +619,16 @@ fun parametrize_transfer_rule ctxt thm =
     in
       Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.fun2_conv parametrize_relation_conv)) thm
     end
+
+(*
+  It replaces cr_T by pcr_T op= in the transfer relation. For composed
+  abstract types, it replaces T_rel R OO cr_T by pcr_T R. If the parametrized
+  correspondce relation does not exist, the original relation is kept.
+
+  thm - a transfer rule
+*)
+
+fun parametrize_transfer_rule ctxt thm = 
+  gen_parametrize_transfer_rule (Lifting_Info.get_quotients ctxt) ctxt thm
+
 end
