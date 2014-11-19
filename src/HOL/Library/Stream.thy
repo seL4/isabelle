@@ -380,7 +380,7 @@ proof
   qed
 qed simp
 
-lemma same_cycle: "sconst x = cycle [x]"
+lemma sconst_cycle: "sconst x = cycle [x]"
   by coinduction auto
 
 lemma smap_sconst: "smap f (sconst x) = sconst (f x)"
