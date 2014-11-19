@@ -54,11 +54,11 @@ fun mk_step id rule prems concl fixes =
   VeriT_Step {id = id, rule = rule, prems = prems, concl = concl, fixes = fixes}
 
 val veriT_step_prefix = ".c"
-val veriT_alpha_conv_rule = "tmp_alphaconv"
 val veriT_input_rule = "input"
 val veriT_la_generic_rule = "la_generic"
 val veriT_rewrite_rule = "__rewrite" (* arbitrary *)
 val veriT_simp_arith_rule = "simp_arith"
+val veriT_tmp_alphaconv_rule = "tmp_alphaconv"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
 
@@ -293,7 +293,7 @@ fun remove_alpha_conversion _ [] = []
       val correct_dependency = map (perhaps (Symtab.lookup replace_table))
       val find_predecessor = perhaps (Symtab.lookup replace_table)
     in
-      if rule = veriT_alpha_conv_rule then
+      if rule = veriT_tmp_alphaconv_rule then
         remove_alpha_conversion (Symtab.update (id, find_predecessor (hd prems))
           replace_table) steps
       else
