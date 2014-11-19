@@ -56,7 +56,6 @@ fun inline_z3_hypotheses _ _ [] = []
           let
             val add_hyps = filter_out (null o inter (op =) deps o snd) hyps
             val t' = add_z3_hypotheses (map fst add_hyps) t
-            val deps' = subtract (op =) hyp_names deps
             val hyps' = fold (AList.update (op =) o apsnd (insert (op =) name)) add_hyps hyps
           in
             (name, role, t', rule, deps') :: inline_z3_hypotheses hyp_names hyps' lines
