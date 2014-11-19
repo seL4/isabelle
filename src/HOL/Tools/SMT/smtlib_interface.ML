@@ -139,18 +139,23 @@ fun sdtyp (fp, dtyps) =
     (space_implode "\n  " (map sdatatype dtyps)))
 
 fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
-  Buffer.empty
-  |> fold (Buffer.add o enclose "; " "\n") comments
-  |> fold (fn (k, v) => Buffer.add ("(set-option " ^ k ^ " " ^ v ^ ")\n")) smt_options
-  |> Buffer.add logic
-  |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
-  |> fold sdtyp (AList.coalesce (op =) dtyps)
-  |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
-      (sort (fast_string_ord o pairself fst) funcs)
-  |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
-      (SMTLIB.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t))))) (map_index I ts)
-  |> Buffer.add "(check-sat)\n(get-proof)\n"
-  |> Buffer.content
+  let
+    val unsat_core = member (op =) smt_options (":produce-unsat-cores", "true")
+  in
+    Buffer.empty
+    |> fold (Buffer.add o enclose "; " "\n") comments
+    |> fold (fn (k, v) => Buffer.add ("(set-option " ^ k ^ " " ^ v ^ ")\n")) smt_options
+    |> Buffer.add logic
+    |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
+    |> fold sdtyp (AList.coalesce (op =) dtyps)
+    |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
+        (sort (fast_string_ord o pairself fst) funcs)
+    |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
+        (SMTLIB.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t))))) (map_index I ts)
+    |> Buffer.add "(check-sat)\n"
+    |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else "(get-proof)\n")
+    |> Buffer.content
+  end
 
 (* interface *)
 

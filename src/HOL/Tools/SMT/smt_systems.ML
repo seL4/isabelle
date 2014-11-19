@@ -85,10 +85,10 @@ val cvc4: SMT_Solver.solver_config = {
   avail = make_avail "CVC4",
   command = make_command "CVC4",
   options = cvc4_options,
-  smt_options = [],
+  smt_options = [(":produce-unsat-cores", "true")],
   default_max_relevant = 400 (* FUDGE *),
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
-  parse_proof = NONE,
+  parse_proof = SOME (K CVC4_Proof_Parse.parse_proof),
   replay = NONE }
 
 end
