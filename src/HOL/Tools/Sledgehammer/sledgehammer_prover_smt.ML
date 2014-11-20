@@ -49,7 +49,8 @@ val z3_failures =
    (110, MalformedInput),
    (112, TimedOut)]
 val unix_failures =
-  [(138, Crashed),
+  [(134, Crashed),
+   (138, Crashed),
    (139, Crashed)]
 val smt_failures = z3_failures @ unix_failures
 
