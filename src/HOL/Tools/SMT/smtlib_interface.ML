@@ -104,7 +104,7 @@ fun tree_of_sterm l (SMT_Translate.SVar i) = SMTLIB.Sym (var (l - i - 1))
           | quant_name SMT_Translate.SExists = "exists"
 
         fun gen_trees_of_pat keyword ps =
-          [SMTLIB.Key keyword, (case map (tree_of_sterm l') ps of [t] => t | ts => SMTLIB.S ts)]
+          [SMTLIB.Key keyword, SMTLIB.S (map (tree_of_sterm l') ps)]
         fun trees_of_pat (SMT_Translate.SPat ps) = gen_trees_of_pat "pattern" ps
           | trees_of_pat (SMT_Translate.SNoPat ps) = gen_trees_of_pat "no-pattern" ps
         fun tree_of_pats [] t = t
