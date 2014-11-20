@@ -230,7 +230,7 @@ options.
 *}
 
 declare [[cvc3_options = ""]]
-declare [[cvc4_options = "--full-saturate-quant --quant-cf"]]
+declare [[cvc4_options = "--full-saturate-quant"]]
 declare [[veriT_options = ""]]
 declare [[z3_options = ""]]
 
