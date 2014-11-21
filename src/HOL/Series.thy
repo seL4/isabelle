@@ -676,4 +676,67 @@ proof (rule summable_comparison_test[OF _ summable_geometric])
     using z by (auto intro!: exI[of _ 0] mult_left_le_one_le simp: abs_mult nonneg power_abs less_imp_le le_1)
 qed
 
+lemma
+   fixes f :: "nat \<Rightarrow> real"
+   assumes "summable f"
+   and "inj g"
+   and pos: "!!x. 0 \<le> f x"
+   shows summable_reindex: "summable (f o g)"
+   and suminf_reindex_mono: "suminf (f o g) \<le> suminf f"
+   and suminf_reindex: "(\<And>x. x \<notin> range g \<Longrightarrow> f x = 0) \<Longrightarrow> suminf (f \<circ> g) = suminf f"
+proof -
+  from \<open>inj g\<close> have [simp]: "\<And>A. inj_on g A" by(rule subset_inj_on) simp
+
+  have smaller: "\<forall>n. (\<Sum>i<n. (f \<circ> g) i) \<le> suminf f"
+  proof
+    fix n
+    have "\<forall> n' \<in> (g ` {..<n}). n' < Suc (Max (g ` {..<n}))" 
+      by(metis Max_ge finite_imageI finite_lessThan not_le not_less_eq)
+    then obtain m where n: "\<And>n'. n' < n \<Longrightarrow> g n' < m" by blast
+
+    have "(\<Sum>i<n. f (g i)) = setsum f (g ` {..<n})"
+      by (simp add: setsum.reindex)
+    also have "\<dots> \<le> (\<Sum>i<m. f i)"
+      by (rule setsum_mono3) (auto simp add: pos n[rule_format])
+    also have "\<dots> \<le> suminf f"
+      using `summable f` 
+      by (rule setsum_le_suminf) (simp add: pos)
+    finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f" by simp
+  qed
+
+  have "incseq (\<lambda>n. \<Sum>i<n. (f \<circ> g) i)"
+    by (rule incseq_SucI) (auto simp add: pos)
+  then obtain  L where L: "(\<lambda> n. \<Sum>i<n. (f \<circ> g) i) ----> L"
+    using smaller by(rule incseq_convergent)
+  hence "(f \<circ> g) sums L" by (simp add: sums_def)
+  thus "summable (f o g)" by (auto simp add: sums_iff)
+
+  hence "(\<lambda>n. \<Sum>i<n. (f \<circ> g) i) ----> suminf (f \<circ> g)"
+    by(rule summable_LIMSEQ)
+  thus le: "suminf (f \<circ> g) \<le> suminf f"
+    by(rule LIMSEQ_le_const2)(blast intro: smaller[rule_format])
+
+  assume f: "\<And>x. x \<notin> range g \<Longrightarrow> f x = 0"
+
+  from \<open>summable f\<close> have "suminf f \<le> suminf (f \<circ> g)"
+  proof(rule suminf_le_const)
+    fix n
+    have "\<forall> n' \<in> (g -` {..<n}). n' < Suc (Max (g -` {..<n}))"
+      by(auto intro: Max_ge simp add: finite_vimageI less_Suc_eq_le)
+    then obtain m where n: "\<And>n'. g n' < n \<Longrightarrow> n' < m" by blast
+
+    have "(\<Sum>i<n. f i) = (\<Sum>i\<in>{..<n} \<inter> range g. f i)"
+      using f by(auto intro: setsum.mono_neutral_cong_right)
+    also have "\<dots> = (\<Sum>i\<in>g -` {..<n}. (f \<circ> g) i)"
+      by(rule setsum.reindex_cong[where l=g])(auto)
+    also have "\<dots> \<le> (\<Sum>i<m. (f \<circ> g) i)"
+      by(rule setsum_mono3)(auto simp add: pos n)
+    also have "\<dots> \<le> suminf (f \<circ> g)"
+      using \<open>summable (f o g)\<close>
+      by(rule setsum_le_suminf)(simp add: pos)
+    finally show "setsum f {..<n} \<le> suminf (f \<circ> g)" .
+  qed
+  with le show "suminf (f \<circ> g) = suminf f" by(rule antisym)
+qed
+
 end
