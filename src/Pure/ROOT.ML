@@ -183,6 +183,8 @@ use "unify.ML";
 use "theory.ML";
 use "proofterm.ML";
 use "thm.ML";
+use "more_pattern.ML";
+use "more_unify.ML";
 use "more_thm.ML";
 use "facts.ML";
 use "global_theory.ML";
