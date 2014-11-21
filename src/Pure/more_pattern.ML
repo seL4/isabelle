@@ -44,7 +44,8 @@ fun matches_subterm thy (pat, obj) =
   in msub 0 obj end;
 
 fun first_order (Abs (_, _, t)) = first_order t
-  | first_order (t $ u) = first_order t andalso first_order u andalso not (is_Var t)
+  | first_order (Var _ $ _) = false
+  | first_order (t $ u) = first_order t andalso first_order u
   | first_order _ = true;
 
 fun pattern (Abs (_, _, t)) = pattern t
