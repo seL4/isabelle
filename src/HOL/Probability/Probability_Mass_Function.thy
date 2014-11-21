@@ -603,6 +603,12 @@ proof (transfer fixing: N i)
     by (intro subprob_space.measure_bind[where N="count_space UNIV", OF N]) auto
 qed (auto simp: Transfer.Rel_def rel_fun_def cr_pmf_def)
 
+lemma set_pmf_join_pmf: "set_pmf (join_pmf f) = (\<Union>p\<in>set_pmf f. set_pmf p)"
+apply(simp add: set_eq_iff set_pmf_iff pmf_join)
+apply(subst integral_nonneg_eq_0_iff_AE)
+apply(auto simp add: pmf_le_1 pmf_nonneg AE_measure_pmf_iff intro!: measure_pmf.integrable_const_bound[where B=1])
+done
+
 lift_definition return_pmf :: "'a \<Rightarrow> 'a pmf" is "return (count_space UNIV)"
   by (auto intro!: prob_space_return simp: AE_return measure_return)
 
