@@ -1951,6 +1951,20 @@ lemma nn_integral_count_space_indicator:
   shows "(\<integral>\<^sup>+x. f x \<partial>count_space X) = (\<integral>\<^sup>+x. f x * indicator X x \<partial>count_space UNIV)"
   by (simp add: nn_integral_restrict_space[symmetric] restrict_count_space)
 
+lemma nn_integral_ge_point:
+  assumes "x \<in> A"
+  shows "p x \<le> \<integral>\<^sup>+ x. p x \<partial>count_space A"
+proof -
+  from assms have "p x \<le> \<integral>\<^sup>+ x. p x \<partial>count_space {x}"
+    by(auto simp add: nn_integral_count_space_finite max_def)
+  also have "\<dots> = \<integral>\<^sup>+ x'. p x' * indicator {x} x' \<partial>count_space A"
+    using assms by(auto simp add: nn_integral_count_space_indicator indicator_def intro!: nn_integral_cong)
+  also have "\<dots> \<le> \<integral>\<^sup>+ x. max 0 (p x) \<partial>count_space A"
+    by(rule nn_integral_mono)(simp add: indicator_def)
+  also have "\<dots> = \<integral>\<^sup>+ x. p x \<partial>count_space A" by(simp add: nn_integral_def o_def)
+  finally show ?thesis .
+qed
+
 subsubsection {* Measure spaces with an associated density *}
 
 definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where

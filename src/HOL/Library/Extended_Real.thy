@@ -1178,6 +1178,11 @@ lemma ereal_add_le_add_iff:
     a \<le> b \<or> c = \<infinity> \<or> (c = -\<infinity> \<and> a \<noteq> \<infinity> \<and> b \<noteq> \<infinity>)"
   by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
 
+lemma ereal_add_le_add_iff2:
+  fixes a b c :: ereal
+  shows "a + c \<le> b + c \<longleftrightarrow> a \<le> b \<or> c = \<infinity> \<or> (c = -\<infinity> \<and> a \<noteq> \<infinity> \<and> b \<noteq> \<infinity>)"
+by(cases rule: ereal3_cases[of a b c])(simp_all add: field_simps)
+
 lemma ereal_mult_le_mult_iff:
   fixes a b c :: ereal
   shows "\<bar>c\<bar> \<noteq> \<infinity> \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"

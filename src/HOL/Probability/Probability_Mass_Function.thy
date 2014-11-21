@@ -1,5 +1,7 @@
 (*  Title:      HOL/Probability/Probability_Mass_Function.thy
-    Author:     Johannes Hölzl, TU München *)
+    Author:     Johannes Hölzl, TU München 
+    Author:     Andreas Lochbihler, ETH Zurich
+*)
 
 section \<open> Probability mass function \<close>
 
@@ -133,7 +135,7 @@ qed (auto simp: measurable_def prob_space.prob_space_distr)
 
 declare [[coercion set_pmf]]
 
-lemma countable_set_pmf: "countable (set_pmf p)"
+lemma countable_set_pmf [simp]: "countable (set_pmf p)"
   by transfer (metis prob_space.finite_measure finite_measure.countable_support)
 
 lemma sets_measure_pmf[simp]: "sets (measure_pmf p) = UNIV"
@@ -193,6 +195,10 @@ lemma set_pmf_iff: "x \<in> set_pmf M \<longleftrightarrow> pmf M x \<noteq> 0"
 lemma emeasure_measure_pmf_finite: "finite S \<Longrightarrow> emeasure (measure_pmf M) S = (\<Sum>s\<in>S. pmf M s)"
   by (subst emeasure_eq_setsum_singleton) (auto simp: emeasure_pmf_single)
 
+lemma measure_measure_pmf_finite: "finite S \<Longrightarrow> measure (measure_pmf M) S = setsum (pmf M) S"
+using emeasure_measure_pmf_finite[of S M]
+by(simp add: measure_pmf.emeasure_eq_measure)
+
 lemma nn_integral_measure_pmf_support:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "finite A" and nn: "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x" "\<And>x. x \<in> set_pmf M \<Longrightarrow> x \<notin> A \<Longrightarrow> f x = 0"
@@ -234,7 +240,7 @@ proof -
   then have "integrable (count_space X) (pmf M) = integrable (count_space (M \<inter> X)) (pmf M)"
     by (simp add: integrable_iff_bounded pmf_nonneg)
   then show ?thesis
-    by (simp add: pmf.rep_eq measure_pmf.integrable_measure countable_set_pmf disjoint_family_on_def)
+    by (simp add: pmf.rep_eq measure_pmf.integrable_measure disjoint_family_on_def)
 qed
 
 lemma integral_pmf: "(\<integral>x. pmf M x \<partial>count_space X) = measure M X"
@@ -266,6 +272,11 @@ proof -
     using measure_pmf.emeasure_space_1 by simp
 qed
 
+lemma in_null_sets_measure_pmfI:
+  "A \<inter> set_pmf p = {} \<Longrightarrow> A \<in> null_sets (measure_pmf p)"
+using emeasure_eq_0_AE[where ?P="\<lambda>x. x \<in> A" and M="measure_pmf p"]
+by(auto simp add: null_sets_def AE_measure_pmf_iff)
+
 lemma map_pmf_id[simp]: "map_pmf id = id"
   by (rule, transfer) (auto simp: emeasure_distr measurable_def intro!: measure_eqI)
 
@@ -286,6 +297,16 @@ lemma emeasure_map_pmf[simp]: "emeasure (map_pmf f M) X = emeasure M (f -` X)"
 
 lemma nn_integral_map_pmf[simp]: "(\<integral>\<^sup>+x. f x \<partial>map_pmf g M) = (\<integral>\<^sup>+x. f (g x) \<partial>M)"
   unfolding map_pmf.rep_eq by (intro nn_integral_distr) auto
+
+lemma ereal_pmf_map: "pmf (map_pmf f p) x = (\<integral>\<^sup>+ y. indicator (f -` {x}) y \<partial>measure_pmf p)"
+proof(transfer fixing: f x)
+  fix p :: "'b measure"
+  presume "prob_space p"
+  then interpret prob_space p .
+  presume "sets p = UNIV"
+  then show "ereal (measure (distr p (count_space UNIV) f) {x}) = integral\<^sup>N p (indicator (f -` {x}))"
+    by(simp add: measure_distr measurable_def emeasure_eq_measure)
+qed simp_all
 
 lemma pmf_set_map: 
   fixes f :: "'a \<Rightarrow> 'b"
@@ -316,6 +337,19 @@ qed
 
 lemma set_map_pmf: "set_pmf (map_pmf f M) = f`set_pmf M"
   using pmf_set_map[of f] by (auto simp: comp_def fun_eq_iff)
+
+lemma nn_integral_pmf: "(\<integral>\<^sup>+ x. pmf p x \<partial>count_space A) = emeasure (measure_pmf p) A"
+proof -
+  have "(\<integral>\<^sup>+ x. pmf p x \<partial>count_space A) = (\<integral>\<^sup>+ x. pmf p x \<partial>count_space (A \<inter> set_pmf p))"
+    by(auto simp add: nn_integral_count_space_indicator indicator_def set_pmf_iff intro: nn_integral_cong)
+  also have "\<dots> = emeasure (measure_pmf p) (\<Union>x\<in>A \<inter> set_pmf p. {x})"
+    by(subst emeasure_UN_countable)(auto simp add: emeasure_pmf_single disjoint_family_on_def)
+  also have "\<dots> = emeasure (measure_pmf p) ((\<Union>x\<in>A \<inter> set_pmf p. {x}) \<union> {x. x \<in> A \<and> x \<notin> set_pmf p})"
+    by(rule emeasure_Un_null_set[symmetric])(auto intro: in_null_sets_measure_pmfI)
+  also have "\<dots> = emeasure (measure_pmf p) A"
+    by(auto intro: arg_cong2[where f=emeasure])
+  finally show ?thesis .
+qed
 
 subsection {* PMFs as function *}
 
@@ -667,7 +701,7 @@ proof
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>restrict_space A A \<partial>restrict_space B B)"
     by (rule AB.Fubini_integral[symmetric])
        (auto intro!: AB.integrable_const_bound[where B=1] measurable_pair_restrict_pmf2
-             simp: pmf_nonneg pmf_le_1 countable_set_pmf measurable_restrict_space1)
+             simp: pmf_nonneg pmf_le_1 measurable_restrict_space1)
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>restrict_space A A \<partial>B)"
     by (intro integral_pmf_restrict[symmetric] A.borel_measurable_lebesgue_integral measurable_pair_restrict_pmf2
               countable_set_pmf borel_measurable_count_space)
@@ -783,18 +817,19 @@ proof (rule measure_eqI)
     done
 qed
 
+inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
+for R p q
+where
+  "\<lbrakk> \<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y; 
+     map_pmf fst pq = p; map_pmf snd pq = q \<rbrakk>
+  \<Longrightarrow> rel_pmf R p q"
 
-(*
-
-definition
-  "rel_pmf P d1 d2 \<longleftrightarrow> (\<exists>p3. (\<forall>(x, y) \<in> set_pmf p3. P x y) \<and> map_pmf fst p3 = d1 \<and> map_pmf snd p3 = d2)"
-
-bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: pmf_rel
+bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
 proof -
   show "map_pmf id = id" by (rule map_pmf_id)
   show "\<And>f g. map_pmf (f \<circ> g) = map_pmf f \<circ> map_pmf g" by (rule map_pmf_compose) 
   show "\<And>f g::'a \<Rightarrow> 'b. \<And>p. (\<And>x. x \<in> set_pmf p \<Longrightarrow> f x = g x) \<Longrightarrow> map_pmf f p = map_pmf g p"
-    by (intro map_pmg_cong refl)
+    by (intro map_pmf_cong refl)
 
   show "\<And>f::'a \<Rightarrow> 'b. set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
     by (rule pmf_set_map)
@@ -807,46 +842,595 @@ proof -
       by (metis Field_natLeq card_of_least natLeq_Well_order)
     finally show "(card_of (set_pmf p), natLeq) \<in> ordLeq" . }
 
-  show "\<And>R. pmf_rel R =
-         (BNF_Util.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf fst))\<inverse>\<inverse> OO
-         BNF_Util.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf snd)"
-     by (auto simp add: fun_eq_iff pmf_rel_def BNF_Util.Grp_def OO_def)
+  show "\<And>R. rel_pmf R =
+         (BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf fst))\<inverse>\<inverse> OO
+         BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf snd)"
+     by (auto simp add: fun_eq_iff BNF_Def.Grp_def OO_def rel_pmf.simps)
 
-  { let ?f = "map_pmf fst" and ?s = "map_pmf snd"
-    fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and A assume "\<And>x y. (x, y) \<in> set_pmf A \<Longrightarrow> R x y"
-    fix S :: "'b \<Rightarrow> 'c \<Rightarrow> bool" and B assume "\<And>y z. (y, z) \<in> set_pmf B \<Longrightarrow> S y z"
-    assume "?f B = ?s A"
-    have "\<exists>C. (\<forall>(x, z)\<in>set_pmf C. \<exists>y. R x y \<and> S y z) \<and> ?f C = ?f A \<and> ?s C = ?s B"
-      sorry }
-oops
-  then show "\<And>R::'a \<Rightarrow> 'b \<Rightarrow> bool. \<And>S::'b \<Rightarrow> 'c \<Rightarrow> bool. pmf_rel R OO pmf_rel S \<le> pmf_rel (R OO S)"
-      by (auto simp add: subset_eq pmf_rel_def fun_eq_iff OO_def Ball_def)
+  { fix p :: "'a pmf" and f :: "'a \<Rightarrow> 'b" and g x
+    assume p: "\<And>z. z \<in> set_pmf p \<Longrightarrow> f z = g z"
+      and x: "x \<in> set_pmf p"
+    thus "f x = g x" by simp }
+
+  fix R :: "'a => 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
+  { fix p q r
+    assume pq: "rel_pmf R p q"
+      and qr:"rel_pmf S q r"
+    from pq obtain pq where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y"
+      and p: "p = map_pmf fst pq" and q: "q = map_pmf snd pq" by cases auto
+    from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
+      and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
+
+    have support_subset: "set_pmf pq O set_pmf qr \<subseteq> set_pmf p \<times> set_pmf r"
+      by(auto simp add: p r set_map_pmf intro: rev_image_eqI)
+
+    let ?A = "\<lambda>y. {x. (x, y) \<in> set_pmf pq}"
+      and ?B = "\<lambda>y. {z. (y, z) \<in> set_pmf qr}"
+
+
+    def ppp \<equiv> "\<lambda>A. \<lambda>f :: 'a \<Rightarrow> real. \<lambda>n. if n \<in> to_nat_on A ` A then f (from_nat_into A n) else 0"
+    have [simp]: "\<And>A f n. (\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> 0 \<le> ppp A f n"
+                 "\<And>A f n x. \<lbrakk> x \<in> A; countable A \<rbrakk> \<Longrightarrow> ppp A f (to_nat_on A x) = f x"
+                 "\<And>A f n. n \<notin> to_nat_on A ` A \<Longrightarrow> ppp A f n = 0"
+      by(auto simp add: ppp_def intro: from_nat_into)
+    def rrr \<equiv> "\<lambda>A. \<lambda>f :: 'c \<Rightarrow> real. \<lambda>n. if n \<in> to_nat_on A ` A then f (from_nat_into A n) else 0"
+    have [simp]: "\<And>A f n. (\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> 0 \<le> rrr A f n"
+                 "\<And>A f n x. \<lbrakk> x \<in> A; countable A \<rbrakk> \<Longrightarrow> rrr A f (to_nat_on A x) = f x"
+                 "\<And>A f n. n \<notin> to_nat_on A ` A \<Longrightarrow> rrr A f n = 0"
+      by(auto simp add: rrr_def intro: from_nat_into)
+
+    def pp \<equiv> "\<lambda>y. ppp (?A y) (\<lambda>x. pmf pq (x, y))"
+     and rr \<equiv> "\<lambda>y. rrr (?B y) (\<lambda>z. pmf qr (y, z))"
+
+    have pos_p [simp]: "\<And>y n. 0 \<le> pp y n"
+      and pos_r [simp]: "\<And>y n. 0 \<le> rr y n"
+      by(simp_all add: pmf_nonneg pp_def rr_def)
+    { fix y n
+      have "pp y n \<le> 0 \<longleftrightarrow> pp y n = 0" "\<not> 0 < pp y n \<longleftrightarrow> pp y n = 0"
+        and "min (pp y n) 0 = 0" "min 0 (pp y n) = 0"
+        using pos_p[of y n] by(auto simp del: pos_p) }
+    note pp_convs [simp] = this
+    { fix y n
+      have "rr y n \<le> 0 \<longleftrightarrow> rr y n = 0" "\<not> 0 < rr y n \<longleftrightarrow> rr y n = 0"
+        and "min (rr y n) 0 = 0" "min 0 (rr y n) = 0"
+        using pos_r[of y n] by(auto simp del: pos_r) }
+    note r_convs [simp] = this
+
+    have "\<And>y. ?A y \<subseteq> set_pmf p" by(auto simp add: p set_map_pmf intro: rev_image_eqI)
+    then have [simp]: "\<And>y. countable (?A y)" by(rule countable_subset) simp
+
+    have "\<And>y. ?B y \<subseteq> set_pmf r" by(auto simp add: r set_map_pmf intro: rev_image_eqI)
+    then have [simp]: "\<And>y. countable (?B y)" by(rule countable_subset) simp
+
+    let ?P = "\<lambda>y. to_nat_on (?A y)"
+      and ?R = "\<lambda>y. to_nat_on (?B y)"
+
+    have eq: "\<And>y. (\<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV) = \<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV"
+    proof -
+      fix y
+      have "(\<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ x. pp y x \<partial>count_space (?P y ` ?A y))"
+        by(auto simp add: pp_def nn_integral_count_space_indicator indicator_def intro!: nn_integral_cong)
+      also have "\<dots> = (\<integral>\<^sup>+ x. pp y (?P y x) \<partial>count_space (?A y))"
+        by(intro nn_integral_bij_count_space[symmetric] inj_on_imp_bij_betw inj_on_to_nat_on) simp
+      also have "\<dots> = (\<integral>\<^sup>+ x. pmf pq (x, y) \<partial>count_space (?A y))"
+        by(rule nn_integral_cong)(simp add: pp_def)
+      also have "\<dots> = \<integral>\<^sup>+ x. emeasure (measure_pmf pq) {(x, y)} \<partial>count_space (?A y)"
+        by(simp add: emeasure_pmf_single)
+      also have "\<dots> = emeasure (measure_pmf pq) (\<Union>x\<in>?A y. {(x, y)})"
+        by(subst emeasure_UN_countable)(simp_all add: disjoint_family_on_def)
+      also have "\<dots> = emeasure (measure_pmf pq) ((\<Union>x\<in>?A y. {(x, y)}) \<union> {(x, y'). x \<notin> ?A y \<and> y' = y})"
+        by(rule emeasure_Un_null_set[symmetric])+
+          (auto simp add: q set_map_pmf split_beta intro!: in_null_sets_measure_pmfI intro: rev_image_eqI)
+      also have "\<dots> = emeasure (measure_pmf pq) (snd -` {y})"
+        by(rule arg_cong2[where f=emeasure])+auto
+      also have "\<dots> = pmf q y" by(simp add: q ereal_pmf_map)
+      also have "\<dots> = emeasure (measure_pmf qr) (fst -` {y})"
+        by(simp add: q' ereal_pmf_map)
+      also have "\<dots> = emeasure (measure_pmf qr) ((\<Union>z\<in>?B y. {(y, z)}) \<union> {(y', z). z \<notin> ?B y \<and> y' = y})"
+        by(rule arg_cong2[where f=emeasure])+auto
+      also have "\<dots> = emeasure (measure_pmf qr) (\<Union>z\<in>?B y. {(y, z)})"
+        by(rule emeasure_Un_null_set)
+          (auto simp add: q' set_map_pmf split_beta intro!: in_null_sets_measure_pmfI intro: rev_image_eqI)
+      also have "\<dots> = \<integral>\<^sup>+ z. emeasure (measure_pmf qr) {(y, z)} \<partial>count_space (?B y)"
+        by(subst emeasure_UN_countable)(simp_all add: disjoint_family_on_def)
+      also have "\<dots> = (\<integral>\<^sup>+ z. pmf qr (y, z) \<partial>count_space (?B y))"
+        by(simp add: emeasure_pmf_single)
+      also have "\<dots> = (\<integral>\<^sup>+ z. rr y (?R y z) \<partial>count_space (?B y))"
+        by(rule nn_integral_cong)(simp add: rr_def)
+      also have "\<dots> = (\<integral>\<^sup>+ z. rr y z \<partial>count_space (?R y ` ?B y))"
+        by(intro nn_integral_bij_count_space inj_on_imp_bij_betw inj_on_to_nat_on) simp
+      also have "\<dots> = \<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV"
+        by(auto simp add: rr_def nn_integral_count_space_indicator indicator_def intro!: nn_integral_cong)
+      finally show "?thesis y" .
+    qed
+
+    def assign_aux \<equiv> "\<lambda>y remainder start weight z.
+       if z < start then 0
+       else if z = start then min weight remainder
+       else if remainder + setsum (rr y) {Suc start ..<z} < weight then min (weight - remainder - setsum (rr y) {Suc start..<z}) (rr y z) else 0"
+    hence assign_aux_alt_def: "\<And>y remainder start weight z. assign_aux y remainder start weight z = 
+       (if z < start then 0
+        else if z = start then min weight remainder
+        else if remainder + setsum (rr y) {Suc start ..<z} < weight then min (weight - remainder - setsum (rr y) {Suc start..<z}) (rr y z) else 0)"
+       by simp
+    { fix y and remainder :: real and start and weight :: real
+      assume weight_nonneg: "0 \<le> weight"
+      let ?assign_aux = "assign_aux y remainder start weight"
+      { fix z
+        have "setsum ?assign_aux {..<z} =
+           (if z \<le> start then 0 else if remainder + setsum (rr y) {Suc start..<z} < weight then remainder + setsum (rr y) {Suc start..<z} else weight)"
+        proof(induction z)
+          case (Suc z) show ?case
+            by(auto simp add: Suc.IH assign_aux_alt_def[where z=z] not_less)(metis add.commute add.left_commute add_increasing pos_r)
+        qed(auto simp add: assign_aux_def) }
+      note setsum_start_assign_aux = this
+      moreover {
+        assume remainder_nonneg: "0 \<le> remainder"
+        have [simp]: "\<And>z. 0 \<le> ?assign_aux z"
+          by(simp add: assign_aux_def weight_nonneg remainder_nonneg)
+        moreover have "\<And>z. \<lbrakk> rr y z = 0; remainder \<le> rr y start \<rbrakk> \<Longrightarrow> ?assign_aux z = 0"
+          using remainder_nonneg weight_nonneg
+          by(auto simp add: assign_aux_def min_def)
+        moreover have "(\<integral>\<^sup>+ z. ?assign_aux z \<partial>count_space UNIV) = 
+          min weight (\<integral>\<^sup>+ z. (if z < start then 0 else if z = start then remainder else rr y z) \<partial>count_space UNIV)"
+          (is "?lhs = ?rhs" is "_ = min _ (\<integral>\<^sup>+ y. ?f y \<partial>_)")
+        proof -
+          have "?lhs = (SUP n. \<Sum>z<n. ereal (?assign_aux z))"
+            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
+          also have "\<dots> = (SUP n. min weight (\<Sum>z<n. ?f z))"
+          proof(rule arg_cong2[where f=SUPREMUM] ext refl)+
+            fix n
+            have "(\<Sum>z<n. ereal (?assign_aux z)) = min weight ((if n > start then remainder else 0) + setsum ?f {Suc start..<n})"
+              using weight_nonneg remainder_nonneg by(simp add: setsum_start_assign_aux min_def)
+            also have "\<dots> = min weight (setsum ?f {start..<n})"
+              by(simp add: setsum_head_upt_Suc)
+            also have "\<dots> = min weight (setsum ?f {..<n})"
+              by(intro arg_cong2[where f=min] setsum.mono_neutral_left) auto
+            finally show "(\<Sum>z<n. ereal (?assign_aux z)) = \<dots>" .
+          qed
+          also have "\<dots> = min weight (SUP n. setsum ?f {..<n})"
+            unfolding inf_min[symmetric] by(subst inf_SUP) simp
+          also have "\<dots> = ?rhs"
+            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP remainder_nonneg)
+          finally show ?thesis .
+        qed
+        moreover note calculation }
+      moreover note calculation }
+    note setsum_start_assign_aux = this(1)
+      and assign_aux_nonneg [simp] = this(2)
+      and assign_aux_eq_0_outside = this(3)
+      and nn_integral_assign_aux = this(4)
+    { fix y and remainder :: real and start target
+      have "setsum (rr y) {Suc start..<target} \<ge> 0" by(simp add: setsum_nonneg)
+      moreover assume "0 \<le> remainder"
+      ultimately have "assign_aux y remainder start 0 target = 0"
+        by(auto simp add: assign_aux_def min_def) }
+    note assign_aux_weight_0 [simp] = this
+
+    def find_start \<equiv> "\<lambda>y weight. if \<exists>n. weight \<le> setsum (rr y)  {..n} then Some (LEAST n. weight \<le> setsum (rr y) {..n}) else None"
+    have find_start_eq_Some_above:
+      "\<And>y weight n. find_start y weight = Some n \<Longrightarrow> weight \<le> setsum (rr y) {..n}"
+      by(drule sym)(auto simp add: find_start_def split: split_if_asm intro: LeastI)
+    { fix y weight n
+      assume find_start: "find_start y weight = Some n"
+      and weight: "0 \<le> weight"
+      have "setsum (rr y) {..n} \<le> rr y n + weight"
+      proof(rule ccontr)
+        assume "\<not> ?thesis"
+        hence "rr y n + weight < setsum (rr y) {..n}" by simp
+        moreover with weight obtain n' where "n = Suc n'" by(cases n) auto
+        ultimately have "weight \<le> setsum (rr y) {..n'}" by simp
+        hence "(LEAST n. weight \<le> setsum (rr y) {..n}) \<le> n'" by(rule Least_le)
+        moreover from find_start have "n = (LEAST n. weight \<le> setsum (rr y) {..n})"
+          by(auto simp add: find_start_def split: split_if_asm)
+        ultimately show False using \<open>n = Suc n'\<close> by auto
+      qed }
+    note find_start_eq_Some_least = this
+    have find_start_0 [simp]: "\<And>y. find_start y 0 = Some 0"
+      by(auto simp add: find_start_def intro!: exI[where x=0])
+    { fix y and weight :: real
+      assume "weight < \<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV"
+      also have "(\<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV) = (SUP n. \<Sum>z<n. ereal (rr y z))"
+        by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
+      finally obtain n where "weight < (\<Sum>z<n. rr y z)" by(auto simp add: less_SUP_iff)
+      hence "weight \<in> dom (find_start y)"
+        by(auto simp add: find_start_def)(meson atMost_iff finite_atMost lessThan_iff less_imp_le order_trans pos_r setsum_mono3 subsetI) }
+    note in_dom_find_startI = this
+    { fix y and w w' :: real and m
+      let ?m' = "LEAST m. w' \<le> setsum (rr y) {..m}"
+      assume "w' \<le> w"
+      also  assume "find_start y w = Some m"
+      hence "w \<le> setsum (rr y) {..m}" by(rule find_start_eq_Some_above)
+      finally have "find_start y w' = Some ?m'" by(auto simp add: find_start_def)
+      moreover from \<open>w' \<le> setsum (rr y) {..m}\<close> have "?m' \<le> m" by(rule Least_le)
+      ultimately have "\<exists>m'. find_start y w' = Some m' \<and> m' \<le> m" by blast }
+    note find_start_mono = this[rotated]
+
+    def assign \<equiv> "\<lambda>y x z. let used = setsum (pp y) {..<x}
+      in case find_start y used of None \<Rightarrow> 0
+         | Some start \<Rightarrow> assign_aux y (setsum (rr y) {..start} - used) start (pp y x) z"
+    hence assign_alt_def: "\<And>y x z. assign y x z = 
+      (let used = setsum (pp y) {..<x}
+       in case find_start y used of None \<Rightarrow> 0
+          | Some start \<Rightarrow> assign_aux y (setsum (rr y) {..start} - used) start (pp y x) z)"
+      by simp
+    have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z"
+      by(simp add: assign_def diff_le_iff find_start_eq_Some_above split: option.split)
+    have assign_eq_0_outside: "\<And>y x z. \<lbrakk> pp y x = 0 \<or> rr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
+      by(auto simp add: assign_def assign_aux_eq_0_outside diff_le_iff find_start_eq_Some_above find_start_eq_Some_least setsum_nonneg split: option.split)
+
+    { fix y x z
+      have "(\<Sum>n<Suc x. assign y n z) =
+            (case find_start y (setsum (pp y) {..<x}) of None \<Rightarrow> rr y z
+             | Some m \<Rightarrow> if z < m then rr y z 
+                         else min (rr y z) (max 0 (setsum (pp y) {..<x} + pp y x - setsum (rr y) {..<z})))"
+        (is "?lhs x = ?rhs x")
+      proof(induction x)
+        case 0 thus ?case 
+          by(auto simp add: assign_def assign_aux_def setsum_head_upt_Suc atLeast0LessThan[symmetric] not_less field_simps max_def)
+      next
+        case (Suc x)
+        have "?lhs (Suc x) = ?lhs x + assign y (Suc x) z" by simp
+        also have "?lhs x = ?rhs x" by(rule Suc.IH)
+        also have "?rhs x + assign y (Suc x) z = ?rhs (Suc x)"
+        proof(cases "find_start y (setsum (pp y) {..<Suc x})")
+          case None
+          thus ?thesis
+            by(auto split: option.split simp add: assign_def min_def max_def diff_le_iff setsum_nonneg not_le field_simps)
+              (metis add.commute add_increasing find_start_def lessThan_Suc_atMost less_imp_le option.distinct(1) setsum_lessThan_Suc)+
+        next
+          case (Some m)
+          have [simp]: "setsum (rr y) {..m} = rr y m + setsum (rr y) {..<m}"
+            by(simp add: ivl_disj_un(2)[symmetric])
+          from Some obtain m' where m': "find_start y (setsum (pp y) {..<x}) = Some m'" "m' \<le> m"
+            by(auto dest: find_start_mono[where w'2="setsum (pp y) {..<x}"])
+          moreover {
+            assume "z < m"
+            then have "setsum (rr y) {..z} \<le> setsum (rr y) {..<m}"
+              by(auto intro: setsum_mono3)
+            also have "\<dots> \<le> setsum (pp y) {..<Suc x}" using find_start_eq_Some_least[OF Some]
+              by(simp add: ivl_disj_un(2)[symmetric] setsum_nonneg)
+            finally have "rr y z \<le> max 0 (setsum (pp y) {..<x} + pp y x - setsum (rr y) {..<z})"
+              by(auto simp add: ivl_disj_un(2)[symmetric] max_def diff_le_iff simp del: r_convs)
+          } moreover {
+            assume "m \<le> z"
+            have "setsum (pp y) {..<Suc x} \<le> setsum (rr y) {..m}"
+              using Some by(rule find_start_eq_Some_above)
+            also have "\<dots> \<le> setsum (rr y) {..<Suc z}" using \<open>m \<le> z\<close> by(intro setsum_mono3) auto
+            finally have "max 0 (setsum (pp y) {..<x} + pp y x - setsum (rr y) {..<z}) \<le> rr y z" by simp
+            moreover have "z \<noteq> m \<Longrightarrow> setsum (rr y) {..m} + setsum (rr y) {Suc m..<z} = setsum (rr y) {..<z}"
+              using \<open>m \<le> z\<close>
+              by(subst ivl_disj_un(8)[where l="Suc m", symmetric])
+                (simp_all add: setsum_Un ivl_disj_un(2)[symmetric] setsum.neutral)
+            moreover note calculation
+          } moreover {
+            assume "m < z"
+            have "setsum (pp y) {..<Suc x} \<le> setsum (rr y) {..m}"
+              using Some by(rule find_start_eq_Some_above)
+            also have "\<dots> \<le> setsum (rr y) {..<z}" using \<open>m < z\<close> by(intro setsum_mono3) auto
+            finally have "max 0 (setsum (pp y) {..<Suc x} - setsum (rr y) {..<z}) = 0" by simp }
+          moreover have "setsum (pp y) {..<Suc x} \<ge> setsum (rr y) {..<m}"
+            using find_start_eq_Some_least[OF Some]
+            by(simp add: setsum_nonneg ivl_disj_un(2)[symmetric])
+          moreover hence "setsum (pp y) {..<Suc (Suc x)} \<ge> setsum (rr y) {..<m}"
+            by(fastforce intro: order_trans)
+          ultimately show ?thesis using Some
+            by(auto simp add: assign_def assign_aux_def Let_def field_simps max_def)
+        qed
+        finally show ?case .
+      qed }
+    note setsum_assign = this
+
+    have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = rr y z"
+    proof -
+      fix y z
+      have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = (SUP n. ereal (\<Sum>x<n. assign y x z))"
+        by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
+      also have "\<dots> = rr y z"
+      proof(rule antisym)
+        show "(SUP n. ereal (\<Sum>x<n. assign y x z)) \<le> rr y z"
+        proof(rule SUP_least)
+          fix n
+          show "ereal (\<Sum>x<n. (assign y x z)) \<le> rr y z"
+            using setsum_assign[of y z "n - 1"]
+            by(cases n)(simp_all split: option.split)
+        qed
+        show "rr y z \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))"
+        proof(cases "setsum (rr y) {..z} < \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV")
+          case True
+          then obtain n where "setsum (rr y) {..z} < setsum (pp y) {..<n}"
+            by(auto simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP less_SUP_iff)
+          moreover have "\<And>k. k < z \<Longrightarrow> setsum (rr y) {..k} \<le> setsum (rr y) {..<z}"
+            by(auto intro: setsum_mono3)
+          ultimately have "rr y z \<le> (\<Sum>x<Suc n. assign y x z)"
+            by(subst setsum_assign)(auto split: option.split dest!: find_start_eq_Some_above simp add: ivl_disj_un(2)[symmetric] add.commute add_increasing le_diff_eq le_max_iff_disj)
+          also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))" 
+            by(rule SUP_upper) simp
+          finally show ?thesis by simp
+        next
+          case False
+          have "setsum (rr y) {..z} = \<integral>\<^sup>+ z. rr y z \<partial>count_space {..z}"
+            by(simp add: nn_integral_count_space_finite max_def)
+          also have "\<dots> \<le> \<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV"
+            by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
+          also have "\<dots> = \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV" by(simp add: eq)
+          finally have *: "setsum (rr y) {..z} = \<dots>" using False by simp
+          also have "\<dots> = (SUP n. ereal (\<Sum>x<n. pp y x))"
+            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
+          also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z)) + setsum (rr y) {..<z}"
+          proof(rule SUP_least)
+            fix n
+            have "setsum (pp y) {..<n} = \<integral>\<^sup>+ x. pp y x \<partial>count_space {..<n}"
+              by(simp add: nn_integral_count_space_finite max_def)
+            also have "\<dots> \<le> \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV"
+              by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
+            also have "\<dots> = setsum (rr y) {..z}" using * by simp
+            finally obtain k where k: "find_start y (setsum (pp y) {..<n}) = Some k"
+              by(fastforce simp add: find_start_def)
+            with \<open>ereal (setsum (pp y) {..<n}) \<le> setsum (rr y) {..z}\<close>
+            have "k \<le> z" by(auto simp add: find_start_def split: split_if_asm intro: Least_le)
+            then have "setsum (pp y) {..<n} - setsum (rr y) {..<z} \<le> ereal (\<Sum>x<Suc n. assign y x z)"
+              using \<open>ereal (setsum (pp y) {..<n}) \<le> setsum (rr y) {..z}\<close>
+              by(subst setsum_assign)(auto simp add: field_simps max_def k ivl_disj_un(2)[symmetric], metis le_add_same_cancel2 max.bounded_iff max_def pos_p)
+            also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))"
+              by(rule SUP_upper) simp
+            finally show "ereal (\<Sum>x<n. pp y x) \<le> \<dots> + setsum (rr y) {..<z}" 
+              by(simp add: ereal_minus(1)[symmetric] ereal_minus_le del: ereal_minus(1))
+          qed
+          finally show ?thesis
+            by(simp add: ivl_disj_un(2)[symmetric] plus_ereal.simps(1)[symmetric] ereal_add_le_add_iff2 del: plus_ereal.simps(1))
+        qed
+      qed
+      finally show "?thesis y z" .
+    qed
+
+    { fix y x
+      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = pp y x"
+      proof(cases "setsum (pp y) {..<x} = \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV")
+        case False
+        let ?used = "setsum (pp y) {..<x}"
+        have "?used = \<integral>\<^sup>+ x. pp y x \<partial>count_space {..<x}"
+          by(simp add: nn_integral_count_space_finite max_def)
+        also have "\<dots> \<le> \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV"
+          by(auto simp add: nn_integral_count_space_indicator indicator_def intro!: nn_integral_mono)
+        finally have "?used < \<dots>" using False by auto
+        also note eq finally have "?used \<in> dom (find_start y)" by(rule in_dom_find_startI)
+        then obtain k where k: "find_start y ?used = Some k" by auto
+        let ?f = "\<lambda>z. if z < k then 0 else if z = k then setsum (rr y) {..k} - ?used else rr y z"
+        let ?g = "\<lambda>x'. if x' < x then 0 else pp y x'"
+        have "pp y x = ?g x" by simp
+        also have "?g x \<le> \<integral>\<^sup>+ x'. ?g x' \<partial>count_space UNIV" by(rule nn_integral_ge_point) simp
+        also {
+          have "?used = \<integral>\<^sup>+ x. pp y x \<partial>count_space {..<x}"
+            by(simp add: nn_integral_count_space_finite max_def)
+          also have "\<dots> = \<integral>\<^sup>+ x'. (if x' < x then pp y x' else 0) \<partial>count_space UNIV"
+            by(simp add: nn_integral_count_space_indicator indicator_def if_distrib zero_ereal_def cong: if_cong)
+          also have "(\<integral>\<^sup>+ x'. ?g x' \<partial>count_space UNIV) + \<dots> = \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV"
+            by(subst nn_integral_add[symmetric])(auto intro: nn_integral_cong)
+          also note calculation }
+        ultimately have "ereal (pp y x) + ?used \<le> \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV"
+          by (metis (no_types, lifting) ereal_add_mono order_refl)
+        also note eq
+        also have "(\<integral>\<^sup>+ z. rr y z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV) + (\<integral>\<^sup>+ z. (if z < k then rr y z else if z = k then ?used - setsum (rr y) {..<k} else 0) \<partial>count_space UNIV)"
+          using k by(subst nn_integral_add[symmetric])(auto intro!: nn_integral_cong simp add: ivl_disj_un(2)[symmetric] setsum_nonneg dest: find_start_eq_Some_least find_start_eq_Some_above)
+        also have "(\<integral>\<^sup>+ z. (if z < k then rr y z else if z = k then ?used - setsum (rr y) {..<k} else 0) \<partial>count_space UNIV) =
+          (\<integral>\<^sup>+ z. (if z < k then rr y z else if z = k then ?used - setsum (rr y) {..<k} else 0) \<partial>count_space {..k})"
+          by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_cong)
+        also have "\<dots> = ?used" 
+          using k by(auto simp add: nn_integral_count_space_finite max_def ivl_disj_un(2)[symmetric] diff_le_iff setsum_nonneg dest: find_start_eq_Some_least)
+        finally have "pp y x \<le> (\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV)"
+          by(cases "\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV") simp_all
+        then show ?thesis using k
+          by(simp add: assign_def nn_integral_assign_aux diff_le_iff find_start_eq_Some_above min_def)
+      next
+        case True
+        have "setsum (pp y) {..x} = \<integral>\<^sup>+ x. pp y x \<partial>count_space {..x}"
+          by(simp add: nn_integral_count_space_finite max_def)
+        also have "\<dots> \<le> \<integral>\<^sup>+ x. pp y x \<partial>count_space UNIV"
+          by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
+        also have "\<dots> = setsum (pp y) {..<x}" by(simp add: True)
+        finally have "pp y x = 0" by(simp add: ivl_disj_un(2)[symmetric] eq_iff del: pp_convs)
+        thus ?thesis
+          by(cases "find_start y (setsum (pp y) {..<x})")(simp_all add: assign_def diff_le_iff find_start_eq_Some_above)
+      qed }
+    note nn_integral_assign2 = this
+
+    let ?f = "\<lambda>y x z. if x \<in> ?A y \<and> z \<in> ?B y then assign y (?P y x) (?R y z) else 0"
+    def f \<equiv> "\<lambda>y x z. ereal (?f y x z)"
+
+    have pos: "\<And>y x z. 0 \<le> f y x z" by(simp add: f_def)
+    { fix y x z
+      have "f y x z \<le> 0 \<longleftrightarrow> f y x z = 0" using pos[of y x z] by simp }
+    note f [simp] = this
+    have support:
+      "\<And>x y z. (x, y) \<notin> set_pmf pq \<Longrightarrow> f y x z = 0"
+      "\<And>x y z. (y, z) \<notin> set_pmf qr \<Longrightarrow> f y x z = 0"
+      by(auto simp add: f_def)
+
+    from pos support have support':
+      "\<And>x z. x \<notin> set_pmf p \<Longrightarrow> (\<integral>\<^sup>+ y. f y x z \<partial>count_space UNIV) = 0"
+      "\<And>x z. z \<notin> set_pmf r \<Longrightarrow> (\<integral>\<^sup>+ y. f y x z \<partial>count_space UNIV) = 0"
+    and support'':
+      "\<And>x y z. x \<notin> set_pmf p \<Longrightarrow> f y x z = 0"
+      "\<And>x y z. y \<notin> set_pmf q \<Longrightarrow> f y x z = 0"
+      "\<And>x y z. z \<notin> set_pmf r \<Longrightarrow> f y x z = 0"
+      by(auto simp add: nn_integral_0_iff_AE AE_count_space p q r set_map_pmf image_iff)(metis fst_conv snd_conv)+
+
+    have f_x: "\<And>y z. (\<integral>\<^sup>+ x. f y x z \<partial>count_space (set_pmf p)) = pmf qr (y, z)"
+    proof(case_tac "z \<in> ?B y")
+      fix y z
+      assume z: "z \<in> ?B y"
+      have "(\<integral>\<^sup>+ x. f y x z \<partial>count_space (set_pmf p)) = (\<integral>\<^sup>+ x. ?f y x z \<partial>count_space (?A y))"
+        using support''(1)[of _ y z]
+        by(fastforce simp add: f_def nn_integral_count_space_indicator indicator_def intro!: nn_integral_cong)
+      also have "\<dots> = \<integral>\<^sup>+ x. assign y (?P y x) (?R y z) \<partial>count_space (?A y)"
+        using z by(intro nn_integral_cong) simp
+      also have "\<dots> = \<integral>\<^sup>+ x. assign y x (?R y z) \<partial>count_space (?P y ` ?A y)"
+        by(intro nn_integral_bij_count_space inj_on_imp_bij_betw inj_on_to_nat_on) simp
+      also have "\<dots> = \<integral>\<^sup>+ x. assign y x (?R y z) \<partial>count_space UNIV"
+        by(auto simp add: nn_integral_count_space_indicator indicator_def assign_eq_0_outside pp_def intro!: nn_integral_cong)
+      also have "\<dots> = rr y (?R y z)" by(rule nn_integral_assign1)
+      also have "\<dots> = pmf qr (y, z)" using z by(simp add: rr_def)
+      finally show "?thesis y z" .
+    qed(auto simp add: f_def zero_ereal_def[symmetric] set_pmf_iff)
+
+    have f_z: "\<And>x y. (\<integral>\<^sup>+ z. f y x z \<partial>count_space (set_pmf r)) = pmf pq (x, y)"
+    proof(case_tac "x \<in> ?A y")
+      fix x y
+      assume x: "x \<in> ?A y"
+      have "(\<integral>\<^sup>+ z. f y x z \<partial>count_space (set_pmf r)) = (\<integral>\<^sup>+ z. ?f y x z \<partial>count_space (?B y))"
+        using support''(3)[of _ y x]
+        by(fastforce simp add: f_def nn_integral_count_space_indicator indicator_def intro!: nn_integral_cong)
+      also have "\<dots> = \<integral>\<^sup>+ z. assign y (?P y x) (?R y z) \<partial>count_space (?B y)"
+        using x by(intro nn_integral_cong) simp
+      also have "\<dots> = \<integral>\<^sup>+ z. assign y (?P y x) z \<partial>count_space (?R y ` ?B y)"
+        by(intro nn_integral_bij_count_space inj_on_imp_bij_betw inj_on_to_nat_on) simp
+      also have "\<dots> = \<integral>\<^sup>+ z. assign y (?P y x) z \<partial>count_space UNIV"
+        by(auto simp add: nn_integral_count_space_indicator indicator_def assign_eq_0_outside rr_def intro!: nn_integral_cong)
+      also have "\<dots> = pp y (?P y x)" by(rule nn_integral_assign2)
+      also have "\<dots> = pmf pq (x, y)" using x by(simp add: pp_def)
+      finally show "?thesis x y" .
+    qed(auto simp add: f_def zero_ereal_def[symmetric] set_pmf_iff)
+
+    let ?pr = "\<lambda>(x, z). \<integral>\<^sup>+ y. f y x z \<partial>count_space UNIV"
+
+    have pr_pos: "\<And>xz. 0 \<le> ?pr xz"
+      by(auto simp add: nn_integral_nonneg)
+
+    have pr': "?pr = (\<lambda>(x, z). \<integral>\<^sup>+ y. f y x z \<partial>count_space (set_pmf q))"
+      by(auto simp add: fun_eq_iff nn_integral_count_space_indicator indicator_def support'' intro: nn_integral_cong)
+    
+    have "(\<integral>\<^sup>+ xz. ?pr xz \<partial>count_space UNIV) = (\<integral>\<^sup>+ xz. ?pr xz * indicator (set_pmf p \<times> set_pmf r) xz \<partial>count_space UNIV)"
+      by(rule nn_integral_cong)(auto simp add: indicator_def support' intro: ccontr)
+    also have "\<dots> = (\<integral>\<^sup>+ xz. ?pr xz \<partial>count_space (set_pmf p \<times> set_pmf r))"
+      by(simp add: nn_integral_count_space_indicator)
+    also have "\<dots> = (\<integral>\<^sup>+ xz. ?pr xz \<partial>(count_space (set_pmf p) \<Otimes>\<^sub>M count_space (set_pmf r)))"
+      by(simp add: pair_measure_countable)
+    also have "\<dots> = (\<integral>\<^sup>+ (x, z). \<integral>\<^sup>+ y. f y x z \<partial>count_space (set_pmf q) \<partial>(count_space (set_pmf p) \<Otimes>\<^sub>M count_space (set_pmf r)))"
+      by(simp add: pr')
+    also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ z. \<integral>\<^sup>+ y. f y x z \<partial>count_space (set_pmf q) \<partial>count_space (set_pmf r) \<partial>count_space (set_pmf p))"
+      by(subst sigma_finite_measure.nn_integral_fst[symmetric, OF sigma_finite_measure_count_space_countable])(simp_all add: pair_measure_countable)
+    also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. \<integral>\<^sup>+ z. f y x z \<partial>count_space (set_pmf r) \<partial>count_space (set_pmf q) \<partial>count_space (set_pmf p))"
+      by(subst (2) pair_sigma_finite.Fubini')(simp_all add: pair_sigma_finite.intro sigma_finite_measure_count_space_countable pair_measure_countable)
+    also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. pmf pq (x, y) \<partial>count_space (set_pmf q) \<partial>count_space (set_pmf p))"
+      by(simp add: f_z)
+    also have "\<dots> = (\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. pmf pq (x, y) \<partial>count_space (set_pmf p) \<partial>count_space (set_pmf q))"
+      by(subst pair_sigma_finite.Fubini')(simp_all add: pair_sigma_finite.intro sigma_finite_measure_count_space_countable pair_measure_countable)
+    also have "\<dots> = (\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. emeasure (measure_pmf pq) {(x, y)} \<partial>count_space (set_pmf p) \<partial>count_space (set_pmf q))"
+      by(simp add: emeasure_pmf_single)
+    also have "\<dots> = (\<integral>\<^sup>+ y. emeasure (measure_pmf pq) (\<Union>x\<in>set_pmf p. {(x, y)}) \<partial>count_space (set_pmf q))"
+      by(subst emeasure_UN_countable)(simp_all add: disjoint_family_on_def)
+    also have "\<dots> = (\<integral>\<^sup>+ y. emeasure (measure_pmf pq) ((\<Union>x\<in>set_pmf p. {(x, y)}) \<union> {(x, y'). x \<notin> set_pmf p \<and> y' = y}) \<partial>count_space (set_pmf q))"
+      by(rule nn_integral_cong emeasure_Un_null_set[symmetric])+
+        (auto simp add: p set_map_pmf split_beta intro!: in_null_sets_measure_pmfI intro: rev_image_eqI)
+    also have "\<dots> = (\<integral>\<^sup>+ y. emeasure (measure_pmf pq) (snd -` {y}) \<partial>count_space (set_pmf q))"
+      by(rule nn_integral_cong arg_cong2[where f=emeasure])+auto
+    also have "\<dots> = (\<integral>\<^sup>+ y. pmf q y \<partial>count_space (set_pmf q))"
+      by(simp add: ereal_pmf_map q)
+    also have "\<dots> = (\<integral>\<^sup>+ y. pmf q y \<partial>count_space UNIV)"
+      by(auto simp add: nn_integral_count_space_indicator indicator_def set_pmf_iff intro: nn_integral_cong)
+    also have "\<dots> = 1"
+      by(subst nn_integral_pmf)(simp add: measure_pmf.emeasure_eq_1_AE)
+    finally have pr_prob: "(\<integral>\<^sup>+ xz. ?pr xz \<partial>count_space UNIV) = 1" .
+
+    have pr_bounded: "\<And>xz. ?pr xz \<noteq> \<infinity>"
+    proof -
+      fix xz
+      have "?pr xz \<le> \<integral>\<^sup>+ xz. ?pr xz \<partial>count_space UNIV"
+        by(rule nn_integral_ge_point) simp
+      also have "\<dots> = 1" by(fact pr_prob)
+      finally show "?thesis xz" by auto
+    qed
+
+    def pr \<equiv> "embed_pmf (real \<circ> ?pr)"
+    have pmf_pr: "\<And>xz. pmf pr xz = real (?pr xz)" using pr_pos pr_prob
+      unfolding pr_def by(subst pmf_embed_pmf)(auto simp add: real_of_ereal_pos ereal_real pr_bounded)
+
+    have set_pmf_pr_subset: "set_pmf pr \<subseteq> set_pmf pq O set_pmf qr"
+    proof
+      fix xz :: "'a \<times> 'c"
+      obtain x z where xz: "xz = (x, z)" by(cases xz)
+      assume "xz \<in> set_pmf pr"
+      with xz have "pmf pr (x, z) \<noteq> 0" by(simp add: set_pmf_iff)
+      hence "\<exists>y. f y x z \<noteq> 0" by(rule contrapos_np)(simp add: pmf_pr)
+      then obtain y where y: "f y x z \<noteq> 0" ..
+      then have "(x, y) \<in> set_pmf pq" "(y, z) \<in> set_pmf qr" 
+        using support by fastforce+
+      then show "xz \<in> set_pmf pq O set_pmf qr" using xz by auto
+    qed
+    hence "\<And>x z. (x, z) \<in> set_pmf pr \<Longrightarrow> (R OO S) x z" using pq qr by blast
+    moreover
+    have "map_pmf fst pr = p"
+    proof(rule pmf_eqI)
+      fix x
+      have "pmf (map_pmf fst pr) x = emeasure (measure_pmf pr) (fst -` {x})"
+        by(simp add: ereal_pmf_map)
+      also have "\<dots> = \<integral>\<^sup>+ xz. pmf pr xz \<partial>count_space (fst -` {x})"
+        by(simp add: nn_integral_pmf)
+      also have "\<dots> = \<integral>\<^sup>+ xz. ?pr xz \<partial>count_space (fst -` {x})"
+        by(simp add: pmf_pr ereal_real pr_bounded pr_pos)
+      also have "\<dots> =  \<integral>\<^sup>+ xz. ?pr xz \<partial>count_space {x} \<Otimes>\<^sub>M count_space (set_pmf r)"
+        by(auto simp add: nn_integral_count_space_indicator indicator_def support' pair_measure_countable intro!: nn_integral_cong)
+      also have "\<dots> = \<integral>\<^sup>+ z. \<integral>\<^sup>+ x. ?pr (x, z) \<partial>count_space {x} \<partial>count_space (set_pmf r)"
+        by(subst pair_sigma_finite.nn_integral_snd[symmetric])(simp_all add: pair_measure_countable pair_sigma_finite.intro sigma_finite_measure_count_space_countable)
+      also have "\<dots> = \<integral>\<^sup>+ z. ?pr (x, z) \<partial>count_space (set_pmf r)"
+        using pr_pos by(clarsimp simp add: nn_integral_count_space_finite max_def)
+      also have "\<dots> = \<integral>\<^sup>+ z. \<integral>\<^sup>+ y. f y x z \<partial>count_space (set_pmf q) \<partial>count_space (set_pmf r)"
+        by(simp add: pr')
+      also have "\<dots> =  \<integral>\<^sup>+ y. \<integral>\<^sup>+ z. f y x z \<partial>count_space (set_pmf r) \<partial>count_space (set_pmf q)"
+        by(subst pair_sigma_finite.Fubini')(simp_all add: pair_sigma_finite.intro sigma_finite_measure_count_space_countable pair_measure_countable)
+      also have "\<dots> = \<integral>\<^sup>+ y. pmf pq (x, y) \<partial>count_space (set_pmf q)"
+        by(simp add: f_z)
+      also have "\<dots> = \<integral>\<^sup>+ y. emeasure (measure_pmf pq) {(x, y)} \<partial>count_space (set_pmf q)"
+        by(simp add: emeasure_pmf_single)
+      also have "\<dots> = emeasure (measure_pmf pq) (\<Union>y\<in>set_pmf q. {(x, y)})"
+        by(subst emeasure_UN_countable)(simp_all add: disjoint_family_on_def)
+      also have "\<dots> = emeasure (measure_pmf pq) ((\<Union>y\<in>set_pmf q. {(x, y)}) \<union> {(x', y). y \<notin> set_pmf q \<and> x' = x})"
+        by(rule emeasure_Un_null_set[symmetric])+
+          (auto simp add: q set_map_pmf split_beta intro!: in_null_sets_measure_pmfI intro: rev_image_eqI)
+      also have "\<dots> = emeasure (measure_pmf pq) (fst -` {x})"
+        by(rule arg_cong2[where f=emeasure])+auto
+      also have "\<dots> = pmf p x" by(simp add: ereal_pmf_map p)
+      finally show "pmf (map_pmf fst pr) x = pmf p x" by simp
+    qed
+    moreover
+    have "map_pmf snd pr = r"
+    proof(rule pmf_eqI)
+      fix z
+      have "pmf (map_pmf snd pr) z = emeasure (measure_pmf pr) (snd -` {z})"
+        by(simp add: ereal_pmf_map)
+      also have "\<dots> = \<integral>\<^sup>+ xz. pmf pr xz \<partial>count_space (snd -` {z})"
+        by(simp add: nn_integral_pmf)
+      also have "\<dots> = \<integral>\<^sup>+ xz. ?pr xz \<partial>count_space (snd -` {z})"
+        by(simp add: pmf_pr ereal_real pr_bounded pr_pos)
+      also have "\<dots> =  \<integral>\<^sup>+ xz. ?pr xz \<partial>count_space (set_pmf p) \<Otimes>\<^sub>M count_space {z}"
+        by(auto simp add: nn_integral_count_space_indicator indicator_def support' pair_measure_countable intro!: nn_integral_cong)
+      also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ z. ?pr (x, z) \<partial>count_space {z} \<partial>count_space (set_pmf p)"
+        by(subst sigma_finite_measure.nn_integral_fst[symmetric])(simp_all add: pair_measure_countable sigma_finite_measure_count_space_countable)
+      also have "\<dots> = \<integral>\<^sup>+ x. ?pr (x, z) \<partial>count_space (set_pmf p)"
+        using pr_pos by(clarsimp simp add: nn_integral_count_space_finite max_def)
+      also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f y x z \<partial>count_space (set_pmf q) \<partial>count_space (set_pmf p)"
+        by(simp add: pr')
+      also have "\<dots> =  \<integral>\<^sup>+ y. \<integral>\<^sup>+ x. f y x z \<partial>count_space (set_pmf p) \<partial>count_space (set_pmf q)"
+        by(subst pair_sigma_finite.Fubini')(simp_all add: pair_sigma_finite.intro sigma_finite_measure_count_space_countable pair_measure_countable)
+      also have "\<dots> = \<integral>\<^sup>+ y. pmf qr (y, z) \<partial>count_space (set_pmf q)"
+        by(simp add: f_x)
+      also have "\<dots> = \<integral>\<^sup>+ y. emeasure (measure_pmf qr) {(y, z)} \<partial>count_space (set_pmf q)"
+        by(simp add: emeasure_pmf_single)
+      also have "\<dots> = emeasure (measure_pmf qr) (\<Union>y\<in>set_pmf q. {(y, z)})"
+        by(subst emeasure_UN_countable)(simp_all add: disjoint_family_on_def)
+      also have "\<dots> = emeasure (measure_pmf qr) ((\<Union>y\<in>set_pmf q. {(y, z)}) \<union> {(y, z'). y \<notin> set_pmf q \<and> z' = z})"
+        by(rule emeasure_Un_null_set[symmetric])+
+          (auto simp add: q' set_map_pmf split_beta intro!: in_null_sets_measure_pmfI intro: rev_image_eqI)
+      also have "\<dots> = emeasure (measure_pmf qr) (snd -` {z})"
+        by(rule arg_cong2[where f=emeasure])+auto
+      also have "\<dots> = pmf r z" by(simp add: ereal_pmf_map r)
+      finally show "pmf (map_pmf snd pr) z = pmf r z" by simp
+    qed
+    ultimately have "rel_pmf (R OO S) p r" .. }
+  then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
+    by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
-
-notepad
-begin
-  fix x y :: "nat \<Rightarrow> real"
-  def IJz \<equiv> "rec_nat ((0, 0), \<lambda>_. 0) (\<lambda>n ((I, J), z).
-    let a = x I - (\<Sum>j<J. z (I, j)) ; b = y J - (\<Sum>i<I. z (i, J)) in
-      ((if a \<le> b then I + 1 else I, if b \<le> a then J + 1 else J), z((I, J) := min a b)))"
-  def I == "fst \<circ> fst \<circ> IJz" def J == "snd \<circ> fst \<circ> IJz" def z == "snd \<circ> IJz"
-  let ?a = "\<lambda>n. x (I n) - (\<Sum>j<J n. z n (I n, j))" and ?b = "\<lambda>n. y (J n) - (\<Sum>i<I n. z n (i, J n))"
-  have IJz_0[simp]: "\<And>p. z 0 p = 0" "I 0 = 0" "J 0 = 0"
-    by (simp_all add: I_def J_def z_def IJz_def)
-  have z_Suc[simp]: "\<And>n. z (Suc n) = (z n)((I n, J n) := min (?a n) (?b n))"
-    by (simp add: z_def I_def J_def IJz_def Let_def split_beta)
-  have I_Suc[simp]: "\<And>n. I (Suc n) = (if ?a n \<le> ?b n then I n + 1 else I n)"
-    by (simp add: z_def I_def J_def IJz_def Let_def split_beta)
-  have J_Suc[simp]: "\<And>n. J (Suc n) = (if ?b n \<le> ?a n then J n + 1 else J n)"
-    by (simp add: z_def I_def J_def IJz_def Let_def split_beta)
-  
-  { fix N have "\<And>p. z N p \<noteq> 0 \<Longrightarrow> \<exists>n<N. p = (I n, J n)"
-      by (induct N) (auto simp add: less_Suc_eq split: split_if_asm) }
-  
-  { fix i n assume "i < I n"
-    then have "(\<Sum>j. z n (i, j)) = x i" 
-    oops
-*)
 
 end
 
