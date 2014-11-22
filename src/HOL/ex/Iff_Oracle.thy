@@ -3,21 +3,21 @@
     Author:     Makarius
 *)
 
-section {* Example of Declaring an Oracle *}
+section \<open>Example of Declaring an Oracle\<close>
 
 theory Iff_Oracle
 imports Main
 begin
 
-subsection {* Oracle declaration *}
+subsection \<open>Oracle declaration\<close>
 
-text {*
-  This oracle makes tautologies of the form @{prop "P <-> P <-> P <-> P"}.
+text \<open>
+  This oracle makes tautologies of the form @{prop "P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P"}.
   The length is specified by an integer, which is checked to be even
   and positive.
-*}
+\<close>
 
-oracle iff_oracle = {*
+oracle iff_oracle = \<open>
   let
     fun mk_iff 1 = Var (("P", 0), @{typ bool})
       | mk_iff n = HOLogic.mk_eq (Var (("P", 0), @{typ bool}), mk_iff (n - 1));
@@ -27,45 +27,48 @@ oracle iff_oracle = {*
       then Thm.cterm_of thy (HOLogic.mk_Trueprop (mk_iff n))
       else raise Fail ("iff_oracle: " ^ string_of_int n)
   end
-*}
+\<close>
 
 
-subsection {* Oracle as low-level rule *}
+subsection \<open>Oracle as low-level rule\<close>
 
-ML {* iff_oracle (@{theory}, 2) *}
-ML {* iff_oracle (@{theory}, 10) *}
-ML {* Thm.peek_status (iff_oracle (@{theory}, 10)) *}
+ML \<open>iff_oracle (@{theory}, 2)\<close>
+ML \<open>iff_oracle (@{theory}, 10)\<close>
 
-text {* These oracle calls had better fail. *}
+ML \<open>
+  Thm.peek_status (iff_oracle (@{theory}, 10));
+  @{assert} (#oracle it);
+\<close>
 
-ML {*
+text \<open>These oracle calls had better fail.\<close>
+
+ML \<open>
   (iff_oracle (@{theory}, 5); error "Bad oracle")
-    handle Fail _ => warning "Oracle failed, as expected"
-*}
+    handle Fail _ => writeln "Oracle failed, as expected"
+\<close>
 
-ML {*
+ML \<open>
   (iff_oracle (@{theory}, 1); error "Bad oracle")
-    handle Fail _ => warning "Oracle failed, as expected"
-*}
+    handle Fail _ => writeln "Oracle failed, as expected"
+\<close>
 
 
-subsection {* Oracle as proof method *}
+subsection \<open>Oracle as proof method\<close>
 
-method_setup iff = {*
-  Scan.lift Parse.nat >> (fn n => fn ctxt =>
+method_setup iff =
+  \<open>Scan.lift Parse.nat >> (fn n => fn ctxt =>
     SIMPLE_METHOD
       (HEADGOAL (rtac (iff_oracle (Proof_Context.theory_of ctxt, n)))
-        handle Fail _ => no_tac))
-*}
+        handle Fail _ => no_tac))\<close>
 
 
-lemma "A <-> A"
+lemma "A \<longleftrightarrow> A"
   by (iff 2)
 
-lemma "A <-> A <-> A <-> A <-> A <-> A <-> A <-> A <-> A <-> A"
+lemma "A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A"
   by (iff 10)
 
-lemma "A <-> A <-> A <-> A <-> A"
+lemma "A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A \<longleftrightarrow> A"
   apply (iff 5)?
   oops
 
