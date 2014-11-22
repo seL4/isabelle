@@ -154,7 +154,7 @@ lemma effect_deterministic:
   using assms unfolding effect_def by auto
 
 named_theorems effect_intros "introduction rules for effect"
-named_theorems effect_elims "elimination rules for effect"
+  and effect_elims "elimination rules for effect"
 
 lemma effect_LetI [effect_intros]:
   assumes "x = t" "effect (f x) h h' r"

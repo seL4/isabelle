@@ -1948,14 +1948,10 @@ quickcheck_params [size = 5, iterations = 50]
 
 subsubsection {* Nitpick setup *}
 
-named_theorems nitpick_unfold
-  "alternative definitions of constants as needed by Nitpick"
-named_theorems nitpick_simp
-  "equational specification of constants as needed by Nitpick"
-named_theorems nitpick_psimp
-  "partial equational specification of constants as needed by Nitpick"
-named_theorems nitpick_choice_spec
-  "choice specification of constants as needed by Nitpick"
+named_theorems nitpick_unfold "alternative definitions of constants as needed by Nitpick"
+  and nitpick_simp "equational specification of constants as needed by Nitpick"
+  and nitpick_psimp "partial equational specification of constants as needed by Nitpick"
+  and nitpick_choice_spec "choice specification of constants as needed by Nitpick"
 
 declare if_bool_eq_conj [nitpick_unfold, no_atp]
         if_bool_eq_disj [no_atp]
@@ -1963,12 +1959,9 @@ declare if_bool_eq_conj [nitpick_unfold, no_atp]
 
 subsection {* Preprocessing for the predicate compiler *}
 
-named_theorems code_pred_def
-  "alternative definitions of constants for the Predicate Compiler"
-named_theorems code_pred_inline
-  "inlining definitions for the Predicate Compiler"
-named_theorems code_pred_simp
-  "simplification rules for the optimisations in the Predicate Compiler"
+named_theorems code_pred_def "alternative definitions of constants for the Predicate Compiler"
+  and code_pred_inline "inlining definitions for the Predicate Compiler"
+  and code_pred_simp "simplification rules for the optimisations in the Predicate Compiler"
 
 
 subsection {* Legacy tactics and ML bindings *}

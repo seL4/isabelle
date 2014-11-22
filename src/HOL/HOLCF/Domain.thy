@@ -317,7 +317,7 @@ by (simp add: emb_cfun_def prj_cfun_def cfcomp1 encode_cfun_map)
 subsection {* Setting up the domain package *}
 
 named_theorems domain_defl_simps "theorems like DEFL('a t) = t_defl$DEFL('a)"
-named_theorems domain_isodefl "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
+  and domain_isodefl "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 
 ML_file "Tools/Domain/domain_isomorphism.ML"
 ML_file "Tools/Domain/domain_axioms.ML"

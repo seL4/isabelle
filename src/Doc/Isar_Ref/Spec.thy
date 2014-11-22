@@ -1394,7 +1394,7 @@ text \<open>
       (@'for' (@{syntax vars} + @'and'))?
     ;
     @@{command named_theorems} @{syntax target}?
-      @{syntax name} @{syntax text}?
+      (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 
   \begin{description}
