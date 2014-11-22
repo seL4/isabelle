@@ -14,6 +14,7 @@ sig
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
   val token: 'a parser -> Token.T parser
+  val range: 'a parser -> ('a * Position.range) parser
   val position: 'a parser -> ('a * Position.T) parser
   val source_position: 'a parser -> Symbol_Pos.source parser
   val inner_syntax: 'a parser -> string parser
@@ -172,6 +173,7 @@ val not_eof = RESET_VALUE (Scan.one Token.not_eof);
 
 fun token atom = Scan.ahead not_eof --| atom;
 
+fun range scan = (Scan.ahead not_eof >> (Token.range_of o single)) -- scan >> Library.swap;
 fun position scan = (Scan.ahead not_eof >> Token.pos_of) -- scan >> Library.swap;
 fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.inner_syntax_of;

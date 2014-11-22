@@ -15,7 +15,7 @@ sig
   val print_ast_translation: Symbol_Pos.source -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
-  val oracle: bstring * Position.T -> Symbol_Pos.source -> theory -> theory
+  val oracle: bstring * Position.range -> Symbol_Pos.source -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Token.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
     Symbol_Pos.source -> local_theory -> local_theory
@@ -127,21 +127,25 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 
 (* oracles *)
 
-fun oracle (name, pos) source =
+fun oracle (name, range) source =
   let
+    val body_range = #range source;
     val body = ML_Lex.read_source false source;
+
+    val hidden = ML_Lex.read Position.none;
+    val visible = ML_Lex.read_set_range;
     val ants =
-      ML_Lex.read Position.none
+      hidden
        ("local\n\
-        \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\
-        \  val body = ") @ body @ ML_Lex.read Position.none (";\n\
+        \  val binding = " ^ ML_Syntax.make_binding (name, #1 range) ^ ";\n\
+        \  val") @ visible body_range "oracle" @ hidden "=" @ body @ hidden (";\n\
         \in\n\
-        \  val " ^ name ^
-        " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
-        \end;\n");
+        \  val") @ visible range name @ hidden "=\
+        \ snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, oracle))));\n\
+        \end;\n";
   in
     Context.theory_map
-      (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#1 (#range source)) ants))
+      (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#1 body_range) ants))
   end;
 
 
