@@ -2,16 +2,13 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Antiquotations *}
+section \<open>Antiquotations\<close>
 
 theory Antiquote
 imports Main
 begin
 
-text {*
-  A simple example on quote / antiquote in higher-order abstract
-  syntax.
-*}
+text \<open>A simple example on quote / antiquote in higher-order abstract syntax.\<close>
 
 definition var :: "'a \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"  ("VAR _" [1000] 999)
   where "var x env = env x"
@@ -22,23 +19,21 @@ definition Expr :: "(('a \<Rightarrow> nat) \<Rightarrow> nat) \<Rightarrow> ('a
 syntax
   "_Expr" :: "'a \<Rightarrow> 'a"  ("EXPR _" [1000] 999)
 
-parse_translation {*
-  [Syntax_Trans.quote_antiquote_tr
-    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
-*}
+parse_translation
+  \<open>[Syntax_Trans.quote_antiquote_tr
+    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]\<close>
 
-print_translation {*
-  [Syntax_Trans.quote_antiquote_tr'
-    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
-*}
+print_translation
+  \<open>[Syntax_Trans.quote_antiquote_tr'
+    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]\<close>
 
 term "EXPR (a + b + c)"
 term "EXPR (a + b + c + VAR x + VAR y + 1)"
 term "EXPR (VAR (f w) + VAR x)"
 
-term "Expr (\<lambda>env. env x)"    -- {* improper *}
+term "Expr (\<lambda>env. env x)"    -- \<open>improper\<close>
 term "Expr (\<lambda>env. f env)"
-term "Expr (\<lambda>env. f env + env x)"    -- {* improper *}
+term "Expr (\<lambda>env. f env + env x)"    -- \<open>improper\<close>
 term "Expr (\<lambda>env. f env y z)"
 term "Expr (\<lambda>env. f env + g y env)"
 term "Expr (\<lambda>env. f env + g env y + h a env z)"

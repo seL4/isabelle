@@ -2,18 +2,18 @@
     Author:     Makarius
 *)
 
-section {* Abstract Natural Numbers primitive recursion *}
+section \<open>Abstract Natural Numbers primitive recursion\<close>
 
 theory Abstract_NAT
 imports Main
 begin
 
-text {* Axiomatic Natural Numbers (Peano) -- a monomorphic theory. *}
+text \<open>Axiomatic Natural Numbers (Peano) -- a monomorphic theory.\<close>
 
 locale NAT =
   fixes zero :: 'n
     and succ :: "'n \<Rightarrow> 'n"
-  assumes succ_inject [simp]: "(succ m = succ n) = (m = n)"
+  assumes succ_inject [simp]: "succ m = succ n \<longleftrightarrow> m = n"
     and succ_neq_zero [simp]: "succ m \<noteq> zero"
     and induct [case_names zero succ, induct type: 'n]:
       "P zero \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (succ n)) \<Longrightarrow> P n"
@@ -23,7 +23,7 @@ lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
   by (rule succ_neq_zero [symmetric])
 
 
-text {* \medskip Primitive recursion as a (functional) relation -- polymorphic! *}
+text \<open>\medskip Primitive recursion as a (functional) relation -- polymorphic!\<close>
 
 inductive Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
   for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -47,7 +47,7 @@ proof -
     qed
   next
     case (succ m)
-    from `\<exists>!y. ?R m y`
+    from \<open>\<exists>!y. ?R m y\<close>
     obtain y where y: "?R m y"
       and yy': "\<And>y'. ?R m y' \<Longrightarrow> y = y'" by blast
     show "\<exists>!z. ?R (succ m) z"
@@ -61,7 +61,7 @@ proof -
 qed
 
 
-text {* \medskip The recursion operator -- polymorphic! *}
+text \<open>\medskip The recursion operator -- polymorphic!\<close>
 
 definition rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
   where "rec e r x = (THE y. Rec e r x y)"
@@ -86,7 +86,7 @@ proof (rule rec_eval)
 qed
 
 
-text {* \medskip Example: addition (monomorphic) *}
+text \<open>\medskip Example: addition (monomorphic)\<close>
 
 definition add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
   where "add m n = rec n (\<lambda>_ k. succ k) m"
@@ -109,7 +109,7 @@ lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
   by simp
 
 
-text {* \medskip Example: replication (polymorphic) *}
+text \<open>\medskip Example: replication (polymorphic)\<close>
 
 definition repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
   where "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
@@ -124,12 +124,12 @@ lemma "repl (succ (succ (succ zero))) True = [True, True, True]"
 end
 
 
-text {* \medskip Just see that our abstract specification makes sense \dots *}
+text \<open>\medskip Just see that our abstract specification makes sense \dots\<close>
 
 interpretation NAT 0 Suc
 proof (rule NAT.intro)
   fix m n
-  show "(Suc m = Suc n) = (m = n)" by simp
+  show "Suc m = Suc n \<longleftrightarrow> m = n" by simp
   show "Suc m \<noteq> 0" by simp
   fix P
   assume zero: "P 0"

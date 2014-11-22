@@ -2,11 +2,13 @@
     Author:     Oscar Slotosch and Markus Wenzel, TU Muenchen
 *)
 
-section {* Partial equivalence relations *}
+section \<open>Partial equivalence relations\<close>
 
-theory PER imports Main begin
+theory PER
+imports Main
+begin
 
-text {*
+text \<open>
   Higher-order quotients are defined over partial equivalence
   relations (PERs) instead of total ones.  We provide axiomatic type
   classes @{text "equiv < partial_equiv"} and a type constructor
@@ -17,41 +19,41 @@ text {*
   Implementation in Isabelle HOL.}  Elsa L. Gunter and Amy Felty,
   editors, Theorem Proving in Higher Order Logics: TPHOLs '97,
   Springer LNCS 1275, 1997.
-*}
+\<close>
 
 
-subsection {* Partial equivalence *}
+subsection \<open>Partial equivalence\<close>
 
-text {*
+text \<open>
   Type class @{text partial_equiv} models partial equivalence
-  relations (PERs) using the polymorphic @{text "\<sim> :: 'a => 'a =>
+  relations (PERs) using the polymorphic @{text "\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow>
   bool"} relation, which is required to be symmetric and transitive,
   but not necessarily reflexive.
-*}
+\<close>
 
 class partial_equiv =
-  fixes eqv :: "'a => 'a => bool"    (infixl "\<sim>" 50)
-  assumes partial_equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
-  assumes partial_equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<sim>" 50)
+  assumes partial_equiv_sym [elim?]: "x \<sim> y \<Longrightarrow> y \<sim> x"
+  assumes partial_equiv_trans [trans]: "x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> x \<sim> z"
 
-text {*
+text \<open>
   \medskip The domain of a partial equivalence relation is the set of
   reflexive elements.  Due to symmetry and transitivity this
   characterizes exactly those elements that are connected with
   \emph{any} other one.
-*}
+\<close>
 
 definition
   "domain" :: "'a::partial_equiv set" where
   "domain = {x. x \<sim> x}"
 
-lemma domainI [intro]: "x \<sim> x ==> x \<in> domain"
+lemma domainI [intro]: "x \<sim> x \<Longrightarrow> x \<in> domain"
   unfolding domain_def by blast
 
-lemma domainD [dest]: "x \<in> domain ==> x \<sim> x"
+lemma domainD [dest]: "x \<in> domain \<Longrightarrow> x \<sim> x"
   unfolding domain_def by blast
 
-theorem domainI' [elim?]: "x \<sim> y ==> x \<in> domain"
+theorem domainI' [elim?]: "x \<sim> y \<Longrightarrow> x \<in> domain"
 proof
   assume xy: "x \<sim> y"
   also from xy have "y \<sim> x" ..
@@ -59,35 +61,34 @@ proof
 qed
 
 
-subsection {* Equivalence on function spaces *}
+subsection \<open>Equivalence on function spaces\<close>
 
-text {*
+text \<open>
   The @{text \<sim>} relation is lifted to function spaces.  It is
   important to note that this is \emph{not} the direct product, but a
   structural one corresponding to the congruence property.
-*}
+\<close>
 
 instantiation "fun" :: (partial_equiv, partial_equiv) partial_equiv
 begin
 
-definition
-  eqv_fun_def: "f \<sim> g == \<forall>x \<in> domain. \<forall>y \<in> domain. x \<sim> y --> f x \<sim> g y"
+definition "f \<sim> g \<longleftrightarrow> (\<forall>x \<in> domain. \<forall>y \<in> domain. x \<sim> y \<longrightarrow> f x \<sim> g y)"
 
 lemma partial_equiv_funI [intro?]:
-    "(!!x y. x \<in> domain ==> y \<in> domain ==> x \<sim> y ==> f x \<sim> g y) ==> f \<sim> g"
+    "(\<And>x y. x \<in> domain \<Longrightarrow> y \<in> domain \<Longrightarrow> x \<sim> y \<Longrightarrow> f x \<sim> g y) \<Longrightarrow> f \<sim> g"
   unfolding eqv_fun_def by blast
 
 lemma partial_equiv_funD [dest?]:
-    "f \<sim> g ==> x \<in> domain ==> y \<in> domain ==> x \<sim> y ==> f x \<sim> g y"
+    "f \<sim> g \<Longrightarrow> x \<in> domain \<Longrightarrow> y \<in> domain \<Longrightarrow> x \<sim> y \<Longrightarrow> f x \<sim> g y"
   unfolding eqv_fun_def by blast
 
-text {*
+text \<open>
   The class of partial equivalence relations is closed under function
   spaces (in \emph{both} argument positions).
-*}
+\<close>
 
 instance proof
-  fix f g h :: "'a::partial_equiv => 'b::partial_equiv"
+  fix f g h :: "'a::partial_equiv \<Rightarrow> 'b::partial_equiv"
   assume fg: "f \<sim> g"
   show "g \<sim> f"
   proof
@@ -112,29 +113,29 @@ qed
 end
 
 
-subsection {* Total equivalence *}
+subsection \<open>Total equivalence\<close>
 
-text {*
+text \<open>
   The class of total equivalence relations on top of PERs.  It
   coincides with the standard notion of equivalence, i.e.\ @{text "\<sim>
-  :: 'a => 'a => bool"} is required to be reflexive, transitive and
+  :: 'a \<Rightarrow> 'a \<Rightarrow> bool"} is required to be reflexive, transitive and
   symmetric.
-*}
+\<close>
 
 class equiv =
   assumes eqv_refl [intro]: "x \<sim> x"
 
-text {*
+text \<open>
   On total equivalences all elements are reflexive, and congruence
   holds unconditionally.
-*}
+\<close>
 
 theorem equiv_domain [intro]: "(x::'a::equiv) \<in> domain"
 proof
   show "x \<sim> x" ..
 qed
 
-theorem equiv_cong [dest?]: "f \<sim> g ==> x \<sim> y ==> f x \<sim> g (y::'a::equiv)"
+theorem equiv_cong [dest?]: "f \<sim> g \<Longrightarrow> x \<sim> y \<Longrightarrow> f x \<sim> g (y::'a::equiv)"
 proof -
   assume "f \<sim> g"
   moreover have "x \<in> domain" ..
@@ -144,12 +145,12 @@ proof -
 qed
 
 
-subsection {* Quotient types *}
+subsection \<open>Quotient types\<close>
 
-text {*
+text \<open>
   The quotient type @{text "'a quot"} consists of all
   \emph{equivalence classes} over elements of the base type @{typ 'a}.
-*}
+\<close>
 
 definition "quot = {{x. a \<sim> x}| a::'a::partial_equiv. True}"
 
@@ -159,17 +160,16 @@ typedef 'a quot = "quot :: 'a::partial_equiv set set"
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
   unfolding quot_def by blast
 
-lemma quotE [elim]: "R \<in> quot ==> (!!a. R = {x. a \<sim> x} ==> C) ==> C"
+lemma quotE [elim]: "R \<in> quot \<Longrightarrow> (\<And>a. R = {x. a \<sim> x} \<Longrightarrow> C) \<Longrightarrow> C"
   unfolding quot_def by blast
 
-text {*
+text \<open>
   \medskip Abstracted equivalence classes are the canonical
   representation of elements of a quotient type.
-*}
+\<close>
 
-definition
-  eqv_class :: "('a::partial_equiv) => 'a quot"    ("\<lfloor>_\<rfloor>") where
-  "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
+definition eqv_class :: "('a::partial_equiv) \<Rightarrow> 'a quot"  ("\<lfloor>_\<rfloor>")
+  where "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
@@ -184,19 +184,19 @@ lemma quot_cases [cases type: quot]:
   using quot_rep by blast
 
 
-subsection {* Equality on quotients *}
+subsection \<open>Equality on quotients\<close>
 
-text {*
+text \<open>
   Equality of canonical quotient elements corresponds to the original
   relation as follows.
-*}
+\<close>
 
-theorem eqv_class_eqI [intro]: "a \<sim> b ==> \<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
+theorem eqv_class_eqI [intro]: "a \<sim> b \<Longrightarrow> \<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
 proof -
   assume ab: "a \<sim> b"
   have "{x. a \<sim> x} = {x. b \<sim> x}"
   proof (rule Collect_cong)
-    fix x show "(a \<sim> x) = (b \<sim> x)"
+    fix x show "a \<sim> x \<longleftrightarrow> b \<sim> x"
     proof
       from ab have "b \<sim> a" ..
       also assume "a \<sim> x"
@@ -210,7 +210,7 @@ proof -
   then show ?thesis by (simp only: eqv_class_def)
 qed
 
-theorem eqv_class_eqD' [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<in> domain ==> a \<sim> b"
+theorem eqv_class_eqD' [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> \<Longrightarrow> a \<in> domain \<Longrightarrow> a \<sim> b"
 proof (unfold eqv_class_def)
   assume "Abs_quot {x. a \<sim> x} = Abs_quot {x. b \<sim> x}"
   then have "{x. a \<sim> x} = {x. b \<sim> x}" by (simp only: Abs_quot_inject quotI)
@@ -220,25 +220,24 @@ proof (unfold eqv_class_def)
   then show "a \<sim> b" ..
 qed
 
-theorem eqv_class_eqD [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<sim> (b::'a::equiv)"
+theorem eqv_class_eqD [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> \<Longrightarrow> a \<sim> (b::'a::equiv)"
 proof (rule eqv_class_eqD')
   show "a \<in> domain" ..
 qed
 
-lemma eqv_class_eq' [simp]: "a \<in> domain ==> (\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
+lemma eqv_class_eq' [simp]: "a \<in> domain \<Longrightarrow> \<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> \<longleftrightarrow> a \<sim> b"
   using eqv_class_eqI eqv_class_eqD' by (blast del: eqv_refl)
 
-lemma eqv_class_eq [simp]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> (b::'a::equiv))"
+lemma eqv_class_eq [simp]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> \<longleftrightarrow> a \<sim> (b::'a::equiv)"
   using eqv_class_eqI eqv_class_eqD by blast
 
 
-subsection {* Picking representing elements *}
+subsection \<open>Picking representing elements\<close>
 
-definition
-  pick :: "'a::partial_equiv quot => 'a" where
-  "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
+definition pick :: "'a::partial_equiv quot \<Rightarrow> 'a"
+  where "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
-theorem pick_eqv' [intro?, simp]: "a \<in> domain ==> pick \<lfloor>a\<rfloor> \<sim> a"
+theorem pick_eqv' [intro?, simp]: "a \<in> domain \<Longrightarrow> pick \<lfloor>a\<rfloor> \<sim> a"
 proof (unfold pick_def)
   assume a: "a \<in> domain"
   show "(SOME x. \<lfloor>a\<rfloor> = \<lfloor>x\<rfloor>) \<sim> a"

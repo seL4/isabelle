@@ -4,13 +4,13 @@ Example theory involving Unicode characters (UTF-8 encoding) -- both
 formal and informal ones.
 *)
 
-section {* A Hebrew theory *}
+section \<open>A Hebrew theory\<close>
 
 theory Hebrew
 imports Main
 begin
 
-text {* The Hebrew Alef-Bet (א-ב). *}
+text \<open>The Hebrew Alef-Bet (א-ב).\<close>
 
 datatype alef_bet =
     Alef    ("א")
@@ -39,9 +39,10 @@ datatype alef_bet =
 thm alef_bet.induct
 
 
-text {* Interpreting Hebrew letters as numbers. *}
+text \<open>Interpreting Hebrew letters as numbers.\<close>
 
-primrec mispar :: "alef_bet => nat" where
+primrec mispar :: "alef_bet => nat"
+where
   "mispar א = 1"
 | "mispar ב = 2"
 | "mispar ג = 3"

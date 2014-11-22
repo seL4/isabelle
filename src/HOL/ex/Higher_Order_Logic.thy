@@ -2,21 +2,21 @@
     Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
 *)
 
-section {* Foundations of HOL *}
+section \<open>Foundations of HOL\<close>
 
 theory Higher_Order_Logic imports Pure begin
 
-text {*
+text \<open>
   The following theory development demonstrates Higher-Order Logic
   itself, represented directly within the Pure framework of Isabelle.
   The ``HOL'' logic given here is essentially that of Gordon
   @{cite "Gordon:1985:HOL"}, although we prefer to present basic concepts
   in a slightly more conventional manner oriented towards plain
   Natural Deduction.
-*}
+\<close>
 
 
-subsection {* Pure Logic *}
+subsection \<open>Pure Logic\<close>
 
 class type
 default_sort type
@@ -26,7 +26,7 @@ instance o :: type ..
 instance "fun" :: (type, type) type ..
 
 
-subsubsection {* Basic logical connectives *}
+subsubsection \<open>Basic logical connectives\<close>
 
 judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
@@ -41,7 +41,7 @@ where
   allE [dest]: "\<forall>x. P x \<Longrightarrow> P a"
 
 
-subsubsection {* Extensional equality *}
+subsubsection \<open>Extensional equality\<close>
 
 axiomatization
   equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"   (infixl "=" 50)
@@ -75,35 +75,26 @@ theorem iff2 [elim]: "A = B \<Longrightarrow> B \<Longrightarrow> A"
   by (rule subst) (rule sym)
 
 
-subsubsection {* Derived connectives *}
+subsubsection \<open>Derived connectives\<close>
 
-definition
-  false :: o  ("\<bottom>") where
-  "\<bottom> \<equiv> \<forall>A. A"
+definition false :: o  ("\<bottom>") where "\<bottom> \<equiv> \<forall>A. A"
 
-definition
-  true :: o  ("\<top>") where
-  "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
+definition true :: o  ("\<top>") where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
-definition
-  not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40) where
-  "not \<equiv> \<lambda>A. A \<longrightarrow> \<bottom>"
+definition not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40)
+  where "not \<equiv> \<lambda>A. A \<longrightarrow> \<bottom>"
 
-definition
-  conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) where
-  "conj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> C"
+definition conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35)
+  where "conj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> C"
 
-definition
-  disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30) where
-  "disj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C"
+definition disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30)
+  where "disj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C"
 
-definition
-  Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10) where
-  "\<exists>x. P x \<equiv> \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
+definition Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
+  where "\<exists>x. P x \<equiv> \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
 
-abbreviation
-  not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"  (infixl "\<noteq>" 50) where
-  "x \<noteq> y \<equiv> \<not> (x = y)"
+abbreviation not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"  (infixl "\<noteq>" 50)
+  where "x \<noteq> y \<equiv> \<not> (x = y)"
 
 theorem falseE [elim]: "\<bottom> \<Longrightarrow> A"
 proof (unfold false_def)
@@ -133,7 +124,7 @@ qed
 lemma notE': "A \<Longrightarrow> \<not> A \<Longrightarrow> B"
   by (rule notE)
 
-lemmas contradiction = notE notE'  -- {* proof by contradiction in any order *}
+lemmas contradiction = notE notE'  -- \<open>proof by contradiction in any order\<close>
 
 theorem conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
 proof (unfold conj_def)
@@ -143,8 +134,8 @@ proof (unfold conj_def)
     fix C show "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> C"
     proof
       assume "A \<longrightarrow> B \<longrightarrow> C"
-      also note `A`
-      also note `B`
+      also note \<open>A\<close>
+      also note \<open>B\<close>
       finally show C .
     qed
   qed
@@ -180,7 +171,7 @@ proof (unfold disj_def)
     fix C show "(A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C"
     proof
       assume "A \<longrightarrow> C"
-      also note `A`
+      also note \<open>A\<close>
       finally have C .
       then show "(B \<longrightarrow> C) \<longrightarrow> C" ..
     qed
@@ -197,7 +188,7 @@ proof (unfold disj_def)
       show "(B \<longrightarrow> C) \<longrightarrow> C"
       proof
         assume "B \<longrightarrow> C"
-        also note `B`
+        also note \<open>B\<close>
         finally show C .
       qed
     qed
@@ -229,7 +220,7 @@ proof (unfold Ex_def)
     proof
       assume "\<forall>x. P x \<longrightarrow> C"
       then have "P a \<longrightarrow> C" ..
-      also note `P a`
+      also note \<open>P a\<close>
       finally show C .
     qed
   qed
@@ -252,7 +243,7 @@ proof (unfold Ex_def)
 qed
 
 
-subsection {* Classical logic *}
+subsection \<open>Classical logic\<close>
 
 locale classical =
   assumes classical: "(\<not> A \<Longrightarrow> A) \<Longrightarrow> A"
@@ -267,7 +258,7 @@ proof
     have "A \<longrightarrow> B"
     proof
       assume A
-      with `\<not> A` show B by (rule contradiction)
+      with \<open>\<not> A\<close> show B by (rule contradiction)
     qed
     with a show A ..
   qed
@@ -280,7 +271,7 @@ proof -
   show A
   proof (rule classical)
     assume "\<not> A"
-    with `\<not> \<not> A` show ?thesis by (rule contradiction)
+    with \<open>\<not> \<not> A\<close> show ?thesis by (rule contradiction)
   qed
 qed
 
@@ -293,10 +284,10 @@ proof (rule double_negation)
     have "\<not> A"
     proof
       assume A then have "A \<or> \<not> A" ..
-      with `\<not> (A \<or> \<not> A)` show \<bottom> by (rule contradiction)
+      with \<open>\<not> (A \<or> \<not> A)\<close> show \<bottom> by (rule contradiction)
     qed
     then have "A \<or> \<not> A" ..
-    with `\<not> (A \<or> \<not> A)` show \<bottom> by (rule contradiction)
+    with \<open>\<not> (A \<or> \<not> A)\<close> show \<bottom> by (rule contradiction)
   qed
 qed
 

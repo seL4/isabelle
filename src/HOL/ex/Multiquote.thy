@@ -2,22 +2,22 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Multiple nested quotations and anti-quotations *}
+section \<open>Multiple nested quotations and anti-quotations\<close>
 
 theory Multiquote
 imports Main
 begin
 
-text {*
+text \<open>
   Multiple nested quotations and anti-quotations -- basically a
   generalized version of de-Bruijn representation.
-*}
+\<close>
 
 syntax
   "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"    ("\<guillemotleft>_\<guillemotright>" [0] 1000)
   "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"    ("\<acute>_" [1000] 1000)
 
-parse_translation {*
+parse_translation \<open>
   let
     fun antiquote_tr i (Const (@{syntax_const "_antiquote"}, _) $
           (t as Const (@{syntax_const "_antiquote"}, _) $ _)) = skip_antiquote_tr i t
@@ -33,15 +33,15 @@ parse_translation {*
     fun quote_tr [t] = Abs ("s", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
       | quote_tr ts = raise TERM ("quote_tr", ts);
   in [(@{syntax_const "_quote"}, K quote_tr)] end
-*}
+\<close>
 
-text {* basic examples *}
+text \<open>basic examples\<close>
 term "\<guillemotleft>a + b + c\<guillemotright>"
 term "\<guillemotleft>a + b + c + \<acute>x + \<acute>y + 1\<guillemotright>"
 term "\<guillemotleft>\<acute>(f w) + \<acute>x\<guillemotright>"
 term "\<guillemotleft>f \<acute>x \<acute>y z\<guillemotright>"
 
-text {* advanced examples *}
+text \<open>advanced examples\<close>
 term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>x + \<acute>y\<guillemotright>\<guillemotright>"
 term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>x + \<acute>y\<guillemotright> \<circ> \<acute>f\<guillemotright>"
 term "\<guillemotleft>\<acute>(f \<circ> \<acute>g)\<guillemotright>"
