@@ -415,10 +415,7 @@ val close_target = transaction (fn _ =>
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
 
-
-local
-
-fun local_theory_presentation loc f = present_transaction (fn int =>
+fun local_theory' loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val (finish, lthy) = Named_Target.switch loc gthy;
@@ -427,15 +424,16 @@ fun local_theory_presentation loc f = present_transaction (fn int =>
             |> f int
             |> Local_Theory.reset_group;
         in Theory (finish lthy', SOME lthy') end
-    | _ => raise UNDEF));
+    | _ => raise UNDEF))
+  (K ());
 
-in
-
-fun local_theory' loc f = local_theory_presentation loc f (K ());
 fun local_theory loc f = local_theory' loc (K f);
-fun present_local_theory loc = local_theory_presentation loc (K I);
 
-end;
+fun present_local_theory loc = present_transaction (fn int =>
+  (fn Theory (gthy, _) =>
+        let val (finish, lthy) = Named_Target.switch loc gthy;
+        in Theory (finish lthy, SOME lthy) end
+    | _ => raise UNDEF));
 
 
 (* proof transitions *)
