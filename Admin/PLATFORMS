@@ -33,9 +33,10 @@ too old nor too new):
   x86-linux         Ubuntu 10.04 LTS
   x86_64-linux      Ubuntu 10.04 LTS
 
-  x86_64-darwin     Mac OS X Lion (macbroy6)
-                    Mac OS X Mountain Lion (macbroy30)
-                    Mac OS X Mavericks (macbroy2)
+  x86_64-darwin     Mac OS X 10.7 Lion (macbroy6)
+                    Mac OS X 10.8 Mountain Lion (macbroy30)
+                    Mac OS X 10.9 Mavericks (macbroy2)
+                    Mac OS X 10.10 Yosemite (macbroy31)
 
   x86-cygwin        Cygwin 1.7 (vmbroy9)
 
