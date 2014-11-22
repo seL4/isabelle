@@ -48,6 +48,7 @@ sig
   val is_document_heading: keywords -> string -> bool
   val is_document_body: keywords -> string -> bool
   val is_document_raw: keywords -> string -> bool
+  val is_document: keywords -> string -> bool
   val is_theory_begin: keywords -> string -> bool
   val is_theory_load: keywords -> string -> bool
   val is_theory: keywords -> string -> bool
