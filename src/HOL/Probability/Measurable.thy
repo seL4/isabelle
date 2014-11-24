@@ -61,10 +61,13 @@ attribute_setup measurable = {*
 *} "declaration of measurability theorems"
 
 attribute_setup measurable_dest = Measurable.dest_thm_attr
-  "add dest rule for measurability prover"
+  "add dest rule to measurability prover"
 
 attribute_setup measurable_app = Measurable.app_thm_attr
-  "add application rule for measurability prover"
+  "add application rule to measurability prover"
+
+attribute_setup measurable_cong = Measurable.cong_thm_attr
+  "add congurence rules to measurability prover"
 
 method_setup measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
   "measurability prover"
@@ -72,7 +75,7 @@ method_setup measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.m
 simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
 
 setup {*
-  Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all o Context.proof_of)
+  Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
 *}
 
 declare
@@ -90,11 +93,14 @@ declare
 declare
   measurable_count_space[measurable (raw)]
   measurable_ident[measurable (raw)]
-  measurable_ident_sets[measurable (raw)]
+  measurable_id[measurable (raw)]
   measurable_const[measurable (raw)]
   measurable_If[measurable (raw)]
   measurable_comp[measurable (raw)]
   measurable_sets[measurable (raw)]
+
+declare measurable_cong_sets[measurable_cong]
+declare sets_restrict_space_cong[measurable_cong]
 
 lemma predE[measurable (raw)]: 
   "pred M P \<Longrightarrow> {x\<in>space M. P x} \<in> sets M"
@@ -589,3 +595,4 @@ lemma measurable_predpow[measurable]:
 hide_const (open) pred
 
 end
+

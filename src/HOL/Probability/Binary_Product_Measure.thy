@@ -43,7 +43,7 @@ lemma sets_pair_in_sets:
   shows "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets N"
   using assms by (auto intro!: sets.sigma_sets_subset simp: sets_pair_measure N)
 
-lemma sets_pair_measure_cong[cong]:
+lemma sets_pair_measure_cong[measurable_cong, cong]:
   "sets M1 = sets M1' \<Longrightarrow> sets M2 = sets M2' \<Longrightarrow> sets (M1 \<Otimes>\<^sub>M M2) = sets (M1' \<Otimes>\<^sub>M M2')"
   unfolding sets_pair_measure by (simp cong: sets_eq_imp_space_eq)
 

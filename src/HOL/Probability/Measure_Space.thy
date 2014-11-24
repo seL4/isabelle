@@ -1180,7 +1180,7 @@ definition distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rig
   "distr M N f = measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
 
 lemma
-  shows sets_distr[simp]: "sets (distr M N f) = sets N"
+  shows sets_distr[simp, measurable_cong]: "sets (distr M N f) = sets N"
     and space_distr[simp]: "space (distr M N f) = space N"
   by (auto simp: distr_def)
 

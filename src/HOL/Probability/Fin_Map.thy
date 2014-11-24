@@ -1311,7 +1311,7 @@ lemma mapmeasure_PiF:
   assumes "X \<in> sets (PiF (Collect finite) (\<lambda>_. N))"
   shows "emeasure (mapmeasure M (\<lambda>_. N)) X = emeasure M ((fm -` X \<inter> extensional J))"
   using assms
-  by (auto simp: measurable_eqI[OF s1 refl s2 refl] mapmeasure_def emeasure_distr
+  by (auto simp: measurable_cong_sets[OF s2 refl] mapmeasure_def emeasure_distr
     fm_measurable space_PiM PiE_def)
 
 lemma mapmeasure_PiM:
@@ -1322,7 +1322,7 @@ lemma mapmeasure_PiM:
   assumes X: "X \<in> sets M"
   shows "emeasure M X = emeasure (mapmeasure M (\<lambda>_. N)) (fm ` X)"
   unfolding mapmeasure_def
-proof (subst emeasure_distr, subst measurable_eqI[OF s1 refl s2 refl], rule fm_measurable)
+proof (subst emeasure_distr, subst measurable_cong_sets[OF s2 refl], rule fm_measurable)
   have "X \<subseteq> space (Pi\<^sub>M J (\<lambda>_. N))" using assms by (simp add: sets.sets_into_space)
   from assms inj_on_fm[of "\<lambda>_. N"] set_mp[OF this] have "fm -` fm ` X \<inter> space (Pi\<^sub>M J (\<lambda>_. N)) = X"
     by (auto simp: vimage_image_eq inj_on_def)

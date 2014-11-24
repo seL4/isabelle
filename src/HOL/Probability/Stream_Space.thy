@@ -41,7 +41,8 @@ lemma stream_space_Stream:
 lemma stream_space_eq_distr: "stream_space M = distr (\<Pi>\<^sub>M i\<in>UNIV. M) (stream_space M) to_stream"
   unfolding stream_space_def by (rule distr_cong) auto
 
-lemma sets_stream_space_cong: "sets M = sets N \<Longrightarrow> sets (stream_space M) = sets (stream_space N)"
+lemma sets_stream_space_cong[measurable_cong]:
+  "sets M = sets N \<Longrightarrow> sets (stream_space M) = sets (stream_space N)"
   using sets_eq_imp_space_eq[of M N] by (simp add: stream_space_def vimage_algebra_def cong: sets_PiM_cong)
 
 lemma measurable_snth_PiM: "(\<lambda>\<omega> n. \<omega> !! n) \<in> measurable (stream_space M) (\<Pi>\<^sub>M i\<in>UNIV. M)"

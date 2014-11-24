@@ -1933,12 +1933,6 @@ lemma measurable_cong_strong:
     f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable N N'"
   by (metis measurable_cong)
 
-lemma measurable_eqI:
-     "\<lbrakk> space m1 = space m1' ; space m2 = space m2' ;
-        sets m1 = sets m1' ; sets m2 = sets m2' \<rbrakk>
-      \<Longrightarrow> measurable m1 m2 = measurable m1' m2'"
-  by (simp add: measurable_def sigma_algebra_iff2)
-
 lemma measurable_compose:
   assumes f: "f \<in> measurable M N" and g: "g \<in> measurable N L"
   shows "(\<lambda>x. g (f x)) \<in> measurable M L"
@@ -1989,6 +1983,9 @@ qed
 
 lemma measurable_ident: "id \<in> measurable M M"
   by (auto simp add: measurable_def)
+
+lemma measurable_id: "(\<lambda>x. x) \<in> measurable M M"
+  by (simp add: measurable_def)
 
 lemma measurable_ident_sets:
   assumes eq: "sets M = sets M'" shows "(\<lambda>x. x) \<in> measurable M M'"

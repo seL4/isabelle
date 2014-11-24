@@ -98,6 +98,9 @@ interpretation measure_pmf!: prob_space "measure_pmf M" for M
 interpretation measure_pmf!: subprob_space "measure_pmf M" for M
   by (rule prob_space_imp_subprob_space) unfold_locales
 
+lemma subprob_space_measure_pmf: "subprob_space (measure_pmf x)"
+  by unfold_locales
+
 locale pmf_as_measure
 begin
 
@@ -141,11 +144,15 @@ lemma countable_set_pmf [simp]: "countable (set_pmf p)"
 lemma sets_measure_pmf[simp]: "sets (measure_pmf p) = UNIV"
   by transfer metis
 
-lemma sets_measure_pmf_count_space: "sets (measure_pmf M) = sets (count_space UNIV)"
+lemma sets_measure_pmf_count_space[measurable_cong]:
+  "sets (measure_pmf M) = sets (count_space UNIV)"
   by simp
 
 lemma space_measure_pmf[simp]: "space (measure_pmf p) = UNIV"
   using sets_eq_imp_space_eq[of "measure_pmf p" "count_space UNIV"] by simp
+
+lemma measure_pmf_in_subprob_algebra[measurable (raw)]: "measure_pmf x \<in> space (subprob_algebra (count_space UNIV))"
+  by (simp add: space_subprob_algebra subprob_space_measure_pmf)
 
 lemma measurable_pmf_measure1[simp]: "measurable (M :: 'a pmf) N = UNIV \<rightarrow> space N"
   by (auto simp: measurable_def)
@@ -555,11 +562,11 @@ lemma bind_pmf_cong:
   shows "bind (measure_pmf x) A = bind (measure_pmf x) B"
 proof (rule measure_eqI)
   show "sets (measure_pmf x \<guillemotright>= A) = sets (measure_pmf x \<guillemotright>= B)"
-    using assms by (subst (1 2) sets_bind) auto
+    using assms by (subst (1 2) sets_bind) (auto simp: space_subprob_algebra)
 next
   fix X assume "X \<in> sets (measure_pmf x \<guillemotright>= A)"
   then have X: "X \<in> sets N"
-    using assms by (subst (asm) sets_bind) auto
+    using assms by (subst (asm) sets_bind) (auto simp: space_subprob_algebra)
   show "emeasure (measure_pmf x \<guillemotright>= A) X = emeasure (measure_pmf x \<guillemotright>= B) X"
     using assms
     by (subst (1 2) emeasure_bind[where N=N, OF _ _ X])
@@ -575,21 +582,19 @@ lift_definition join_pmf :: "'a pmf pmf \<Rightarrow> 'a pmf" is "\<lambda>M. me
 proof (intro conjI)
   fix M :: "'a pmf pmf"
 
-  have *: "measure_pmf \<in> measurable (measure_pmf M) (subprob_algebra (count_space UNIV))"
-    using measurable_measure_pmf[of "\<lambda>x. x"] by simp
-  
   interpret bind: prob_space "measure_pmf M \<guillemotright>= measure_pmf"
-    apply (rule measure_pmf.prob_space_bind[OF _ *])
-    apply (auto intro!: AE_I2)
+    apply (intro measure_pmf.prob_space_bind[where S="count_space UNIV"] AE_I2)
+    apply (auto intro!: subprob_space_measure_pmf simp: space_subprob_algebra)
     apply unfold_locales
     done
   show "prob_space (measure_pmf M \<guillemotright>= measure_pmf)"
     by intro_locales
   show "sets (measure_pmf M \<guillemotright>= measure_pmf) = UNIV"
-    by (subst sets_bind[OF *]) auto
+    by (subst sets_bind) auto
   have "AE x in measure_pmf M \<guillemotright>= measure_pmf. emeasure (measure_pmf M \<guillemotright>= measure_pmf) {x} \<noteq> 0"
-    by (auto simp add: AE_bind[OF _ *] AE_measure_pmf_iff emeasure_bind[OF _ *]
-        nn_integral_0_iff_AE measure_pmf.emeasure_eq_measure measure_le_0_iff set_pmf_iff pmf.rep_eq)
+    by (auto simp: AE_bind[where B="count_space UNIV"] measure_pmf_in_subprob_algebra
+                   emeasure_bind[where N="count_space UNIV"] AE_measure_pmf_iff nn_integral_0_iff_AE
+                   measure_pmf.emeasure_eq_measure measure_le_0_iff set_pmf_iff pmf.rep_eq)
   then show "AE x in measure_pmf M \<guillemotright>= measure_pmf. measure (measure_pmf M \<guillemotright>= measure_pmf) {x} \<noteq> 0"
     unfolding bind.emeasure_eq_measure by simp
 qed
@@ -772,6 +777,10 @@ lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
 lemma set_pair_pmf: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
   unfolding pair_pmf_def set_bind_pmf set_return_pmf by auto
 
+lemma measure_pmf_in_subprob_space[measurable (raw)]:
+  "measure_pmf M \<in> space (subprob_algebra (count_space UNIV))"
+  by (simp add: space_subprob_algebra) intro_locales
+
 lemma bind_pair_pmf:
   assumes M[measurable]: "M \<in> measurable (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) (subprob_algebra N)"
   shows "measure_pmf (pair_pmf A B) \<guillemotright>= M = (measure_pmf A \<guillemotright>= (\<lambda>x. measure_pmf B \<guillemotright>= (\<lambda>y. M (x, y))))"
@@ -780,46 +789,25 @@ proof (rule measure_eqI)
   have M'[measurable]: "M \<in> measurable (pair_pmf A B) (subprob_algebra N)"
     using M[THEN measurable_space] by (simp_all add: space_pair_measure)
 
+  note measurable_bind[where N="count_space UNIV", measurable]
+  note measure_pmf_in_subprob_space[simp]
+
   have sets_eq_N: "sets ?L = N"
-    by (simp add: sets_bind[OF M'])
+    by (subst sets_bind[OF sets_kernel[OF M']]) auto
   show "sets ?L = sets ?R"
-    unfolding sets_eq_N
-    apply (subst sets_bind[where N=N])
-    apply (rule measurable_bind)
-    apply (rule measurable_compose[OF _ measurable_measure_pmf])
-    apply measurable
-    apply (auto intro!: sets_pair_measure_cong sets_measure_pmf_count_space)
-    done
+    using measurable_space[OF M]
+    by (simp add: sets_eq_N space_pair_measure space_subprob_algebra)
   fix X assume "X \<in> sets ?L"
   then have X[measurable]: "X \<in> sets N"
     unfolding sets_eq_N .
   then show "emeasure ?L X = emeasure ?R X"
     apply (simp add: emeasure_bind[OF _ M' X])
-    unfolding pair_pmf_def measure_pmf_bind[of A]
-    apply (subst nn_integral_bind)
-    apply (rule measurable_compose[OF M' measurable_emeasure_subprob_algebra, OF X])
-    apply (subst measurable_cong_sets[OF sets_measure_pmf_count_space refl])
-    apply (subst subprob_algebra_cong[OF sets_measure_pmf_count_space])
-    apply measurable
-    unfolding measure_pmf_bind
-    apply (subst nn_integral_bind)
-    apply (rule measurable_compose[OF M' measurable_emeasure_subprob_algebra, OF X])
-    apply (subst measurable_cong_sets[OF sets_measure_pmf_count_space refl])
-    apply (subst subprob_algebra_cong[OF sets_measure_pmf_count_space])
-    apply measurable
-    apply (simp add: nn_integral_measure_pmf_finite set_return_pmf emeasure_nonneg pmf_return one_ereal_def[symmetric])
+    apply (simp add: nn_integral_bind[where B="count_space UNIV"] pair_pmf_def measure_pmf_bind[of A]
+      nn_integral_measure_pmf_finite set_return_pmf emeasure_nonneg pmf_return one_ereal_def[symmetric])
     apply (subst emeasure_bind[OF _ _ X])
-    apply simp
-    apply (rule measurable_bind[where N="count_space UNIV"])
-    apply (rule measurable_compose[OF _ measurable_measure_pmf])
     apply measurable
-    apply (rule sets_pair_measure_cong sets_measure_pmf_count_space refl)+
-    apply (subst measurable_cong_sets[OF sets_pair_measure_cong[OF sets_measure_pmf_count_space refl] refl])
-    apply simp
     apply (subst emeasure_bind[OF _ _ X])
-    apply simp
-    apply (rule measurable_compose[OF _ M])
-    apply (auto simp: space_pair_measure)
+    apply measurable
     done
 qed
 

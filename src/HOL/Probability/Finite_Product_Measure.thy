@@ -369,7 +369,8 @@ lemma sets_PiM_in_sets:
   unfolding sets_PiM_single space[symmetric]
   by (intro sets.sigma_sets_subset subsetI) (auto intro: sets)
 
-lemma sets_PiM_cong: assumes "I = J" "\<And>i. i \<in> J \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (PiM I M) = sets (PiM J N)"
+lemma sets_PiM_cong[measurable_cong]:
+  assumes "I = J" "\<And>i. i \<in> J \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (PiM I M) = sets (PiM J N)"
   using assms sets_eq_imp_space_eq[OF assms(2)] by (simp add: sets_PiM_single cong: PiE_cong conj_cong)
 
 lemma sets_PiM_I:
@@ -470,7 +471,7 @@ lemma measurable_case_nat[measurable (raw)]:
     "\<And>j. i = Suc j \<Longrightarrow> (\<lambda>x. g x j) \<in> measurable M N"
   shows "(\<lambda>x. case_nat (f x) (g x) i) \<in> measurable M N"
   by (cases i) simp_all
-
+ 
 lemma measurable_case_nat'[measurable (raw)]:
   assumes fg[measurable]: "f \<in> measurable N M" "g \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
   shows "(\<lambda>x. case_nat (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
@@ -884,6 +885,8 @@ proof (intro measure_eqI[symmetric])
 
   have eq: "\<And>x. x \<in> extensional {i} \<Longrightarrow> (\<lambda>j\<in>{i}. x i) = x"
     by (auto simp: extensional_def restrict_def)
+
+  have [measurable]: "\<And>j. j \<in> {i} \<Longrightarrow> (\<lambda>x. x) \<in> measurable (M i) (M j)" by simp
 
   fix A assume A: "A \<in> sets ?P"
   then have "emeasure ?P A = (\<integral>\<^sup>+x. indicator A x \<partial>?P)" 

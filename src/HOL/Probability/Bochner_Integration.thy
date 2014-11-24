@@ -2330,7 +2330,7 @@ lemma (in finite_measure) integral_less_AE_space:
 
 lemma tendsto_integral_at_top:
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
-  assumes [simp]: "sets M = sets borel" and f[measurable]: "integrable M f"
+  assumes [measurable_cong]: "sets M = sets borel" and f[measurable]: "integrable M f"
   shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
 proof (rule tendsto_at_topI_sequentially)
   fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"

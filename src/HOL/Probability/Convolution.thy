@@ -23,7 +23,7 @@ lemma
 
 lemma nn_integral_convolution:
   assumes "finite_measure M" "finite_measure N"
-  assumes [simp]: "sets N = sets borel" "sets M = sets borel"
+  assumes [measurable_cong]: "sets N = sets borel" "sets M = sets borel"
   assumes [measurable]: "f \<in> borel_measurable borel"
   shows "(\<integral>\<^sup>+x. f x \<partial>convolution M N) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f (x + y) \<partial>N \<partial>M)"
 proof -
@@ -53,7 +53,7 @@ lemma convolution_emeasure':
 
 lemma convolution_finite:
   assumes [simp]: "finite_measure M" "finite_measure N"
-  assumes [simp]: "sets N = sets borel" "sets M = sets borel"
+  assumes [measurable_cong]: "sets N = sets borel" "sets M = sets borel"
   shows "finite_measure (M \<star> N)"
   unfolding convolution_def
   by (intro finite_measure_pair_measure finite_measure.finite_measure_distr) auto
@@ -71,7 +71,7 @@ lemma convolution_emeasure_3:
 lemma convolution_emeasure_3':
   assumes [simp, measurable]:"A \<in> sets borel"
   assumes [simp]: "finite_measure M" "finite_measure N"  "finite_measure L"
-  assumes [simp]: "sets N = sets borel" "sets M = sets borel" "sets L = sets borel"
+  assumes [measurable_cong, simp]: "sets N = sets borel" "sets M = sets borel" "sets L = sets borel"
   shows "emeasure ((L \<star> M) \<star> N ) A = \<integral>\<^sup>+x. \<integral>\<^sup>+y. \<integral>\<^sup>+z. indicator A (x + y + z) \<partial>N \<partial>M \<partial>L"
   apply (subst nn_integral_indicator[symmetric], simp)+
   apply (subst nn_integral_convolution)
@@ -82,7 +82,7 @@ lemma convolution_emeasure_3':
 
 lemma convolution_commutative:
   assumes [simp]: "finite_measure M" "finite_measure N"
-  assumes [simp]: "sets N = sets borel" "sets M = sets borel"
+  assumes [measurable_cong, simp]: "sets N = sets borel" "sets M = sets borel"
   shows "(M \<star> N) = (N \<star> M)"
 proof (rule measure_eqI)  
   interpret M: finite_measure M by fact

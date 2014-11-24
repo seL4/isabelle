@@ -300,7 +300,7 @@ lemma emeasure_interval_measure_Ioc_eq:
     emeasure (interval_measure F) {a <.. b} = (if a \<le> b then F b - F a else 0)"
   using emeasure_interval_measure_Ioc[of a b F] by auto
 
-lemma sets_interval_measure [simp]: "sets (interval_measure F) = sets borel"
+lemma sets_interval_measure [simp, measurable_cong]: "sets (interval_measure F) = sets borel"
   apply (simp add: sets_extend_measure interval_measure_def borel_sigma_sets_Ioc)
   apply (rule sigma_sets_eqI)
   apply auto
@@ -367,7 +367,7 @@ definition lborel :: "('a :: euclidean_space) measure" where
   "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. interval_measure (\<lambda>x. x)) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
 
 lemma 
-  shows sets_lborel[simp]: "sets lborel = sets borel"
+  shows sets_lborel[simp, measurable_cong]: "sets lborel = sets borel"
     and space_lborel[simp]: "space lborel = space borel"
     and measurable_lborel1[simp]: "measurable M lborel = measurable M borel"
     and measurable_lborel2[simp]: "measurable lborel M = measurable borel M"

@@ -1971,7 +1971,7 @@ definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Right
   "density M f = measure_of (space M) (sets M) (\<lambda>A. \<integral>\<^sup>+ x. f x * indicator A x \<partial>M)"
 
 lemma 
-  shows sets_density[simp]: "sets (density M f) = sets M"
+  shows sets_density[simp, measurable_cong]: "sets (density M f) = sets M"
     and space_density[simp]: "space (density M f) = space M"
   by (auto simp: density_def)
 
@@ -2204,6 +2204,9 @@ lemma
     and sets_point_measure: "sets (point_measure A f) = Pow A"
   by (auto simp: point_measure_def)
 
+lemma sets_point_measure_count_space[measurable_cong]: "sets (point_measure A f) = sets (count_space A)"
+  by (simp add: sets_point_measure)
+
 lemma measurable_point_measure_eq1[simp]:
   "g \<in> measurable (point_measure A f) M \<longleftrightarrow> g \<in> A \<rightarrow> space M"
   unfolding point_measure_def by simp
@@ -2272,7 +2275,7 @@ subsubsection {* Uniform measure *}
 definition "uniform_measure M A = density M (\<lambda>x. indicator A x / emeasure M A)"
 
 lemma
-  shows sets_uniform_measure[simp]: "sets (uniform_measure M A) = sets M"
+  shows sets_uniform_measure[simp, measurable_cong]: "sets (uniform_measure M A) = sets M"
     and space_uniform_measure[simp]: "space (uniform_measure M A) = space M"
   by (auto simp: uniform_measure_def)
 
@@ -2356,6 +2359,10 @@ lemma
   shows space_uniform_count_measure: "space (uniform_count_measure A) = A"
     and sets_uniform_count_measure: "sets (uniform_count_measure A) = Pow A"
     unfolding uniform_count_measure_def by (auto simp: space_point_measure sets_point_measure)
+
+lemma sets_uniform_count_measure_count_space[measurable_cong]:
+  "sets (uniform_count_measure A) = sets (count_space A)"
+  by (simp add: sets_uniform_count_measure)
  
 lemma emeasure_uniform_count_measure:
   "finite A \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (uniform_count_measure A) X = card X / card A"
