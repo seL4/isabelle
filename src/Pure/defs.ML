@@ -132,12 +132,8 @@ val prt = Pretty.string_of oo pretty_const;
 fun err ctxt (c, args) (d, Us) s1 s2 =
   error (s1 ^ " dependency of constant " ^ prt ctxt (c, args) ^ " -> " ^ prt ctxt (d, Us) ^ s2);
 
-fun contained (U as TVar _) (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
-  | contained _ _ = false;
-
 fun acyclic ctxt (c, args) (d, Us) =
   c <> d orelse
-  exists (fn U => exists (contained U) args) Us orelse
   is_none (match_args (args, Us)) orelse
   err ctxt (c, args) (d, Us) "Circular" "";
 
