@@ -230,7 +230,7 @@ options.
 *}
 
 declare [[cvc3_options = ""]]
-declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call"]]
+declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call --inst-no-entail"]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 
