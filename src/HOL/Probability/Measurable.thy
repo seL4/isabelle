@@ -51,23 +51,23 @@ lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Lon
 ML_file "measurable.ML"
 
 attribute_setup measurable = {*
-  Scan.lift (Scan.optional (Args.$$$ "del" >> K false) true --
-    Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
+  Scan.lift (
+    (Args.add >> K true || Args.del >> K false || Scan.succeed true) --
+    Scan.optional (Args.parens (
+      Scan.optional (Args.$$$ "raw" >> K true) false --
       Scan.optional (Args.$$$ "generic" >> K Measurable.Generic) Measurable.Concrete))
-    (false, Measurable.Concrete) >> (Thm.declaration_attribute o uncurry Measurable.add_del_thm))
+    (false, Measurable.Concrete) >>
+    Measurable.measurable_thm_attr)
 *} "declaration of measurability theorems"
 
-attribute_setup measurable_dest = {*
-  Scan.lift (Scan.succeed (Thm.declaration_attribute Measurable.add_dest))
-*} "add dest rule for measurability prover"
+attribute_setup measurable_dest = Measurable.dest_thm_attr
+  "add dest rule for measurability prover"
 
-attribute_setup measurable_app = {*
-  Scan.lift (Scan.succeed (Thm.declaration_attribute Measurable.add_app))
-*} "add application rule for measurability prover"
+attribute_setup measurable_app = Measurable.app_thm_attr
+  "add application rule for measurability prover"
 
-method_setup measurable = {*
-  Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => Measurable.measurable_tac ctxt facts)))
-*} "measurability prover"
+method_setup measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
+  "measurability prover"
 
 simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
 
