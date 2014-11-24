@@ -1371,12 +1371,11 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
         val ctr_alists = @{map 6} (fn disc_alist => maps oooo prove_ctr disc_alist) disc_alists
           (map (map snd) sel_alists) corec_specs disc_eqnss sel_eqnss ctr_specss;
-        val ctr_thmss' = map (map snd) ctr_alists;
-        val ctr_thmss = map (map snd o order_list) ctr_alists;
+        val ctr_thmss0 = map (map snd) ctr_alists;
+        val ctr_thmss = map (map (snd o snd) o sort (int_ord o pairself fst)) ctr_alists;
 
         val code_thmss =
-          @{map 6} prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss'
-            ctr_specss;
+          @{map 6} prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss0 ctr_specss;
 
         val disc_iff_or_disc_thmss =
           map2 (fn [] => I | disc_iffs => K disc_iffs) disc_iff_thmss disc_thmss;
