@@ -385,8 +385,8 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
           not_co_datatype0 T
       | not_co_datatype T = not_co_datatype0 T;
     fun not_mutually_nested_rec Ts1 Ts2 =
-      error (qsotys Ts1 ^ " is neither mutually recursive with " ^ qsotys Ts2 ^
-        " nor nested recursive through " ^
+      error (qsotys Ts1 ^ " is neither mutually " ^ co_prefix fp ^ "recursive with " ^ qsotys Ts2 ^
+        " nor nested " ^ co_prefix fp ^ "recursive through " ^
         (if Ts1 = Ts2 andalso length Ts1 = 1 then "itself" else qsotys Ts2));
 
     val sorted_actual_Ts =
