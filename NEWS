@@ -141,10 +141,17 @@ Minor INCOMPATIBILITY.
 
 * Product over lists via constant "listprod".
 
+* Nitpick:
+  - Fixed soundness bug related to the strict and nonstrict subset
+    operations.
+
 * Sledgehammer:
   - Minimization is now always enabled by default.
     Removed subcommand:
       min
+  - The proof reconstruction, both one-liners and Isar, has been
+    dramatically improved.
+  - Improved support for CVC4 and veriT.
 
 * Old and new SMT modules:
   - The old 'smt' method has been renamed 'old_smt' and moved to
