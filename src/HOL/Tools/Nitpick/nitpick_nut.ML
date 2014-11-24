@@ -49,7 +49,6 @@ sig
     Or |
     And |
     Less |
-    Subset |
     DefEq |
     Eq |
     Triad |
@@ -162,7 +161,6 @@ datatype op2 =
   Or |
   And |
   Less |
-  Subset |
   DefEq |
   Eq |
   Triad |
@@ -225,7 +223,6 @@ fun string_for_op2 All = "All"
   | string_for_op2 Or = "Or"
   | string_for_op2 And = "And"
   | string_for_op2 Less = "Less"
-  | string_for_op2 Subset = "Subset"
   | string_for_op2 DefEq = "DefEq"
   | string_for_op2 Eq = "Eq"
   | string_for_op2 Triad = "Triad"
@@ -567,9 +564,7 @@ fun nut_from_term (hol_ctxt as {ctxt, ...}) eq =
             do_apply t0 ts
         | (t0 as Const (x as (@{const_name ord_class.less_eq}, T)),
            ts as [t1, t2]) =>
-          if is_set_like_type (domain_type T) then
-            Op2 (Subset, bool_T, Any, sub t1, sub t2)
-          else if is_built_in_const x then
+          if is_built_in_const x then
             (* FIXME: find out if this case is necessary *)
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
           else
@@ -914,21 +909,6 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, data_types, ofs, ...})
             val u2 = sub u2
             val R = bool_rep polar (exists (is_opt_rep o rep_of) [u1, u2])
           in s_op2 Less T R u1 u2 end
-        | Op2 (Subset, T, _, u1, u2) =>
-          let
-            val u1 = sub u1
-            val u2 = sub u2
-            val opt = exists (is_opt_rep o rep_of) [u1, u2]
-            val R = bool_rep polar opt
-          in
-            if is_opt_rep R then
-              triad_fn (fn polar => s_op2 Subset T (Formula polar) u1 u2)
-            else if not opt orelse unsound orelse polar = Neg orelse
-                    is_concrete_type data_types true (type_of u1) then
-              s_op2 Subset T R u1 u2
-            else
-              Cst (False, T, Formula Pos)
-          end
         | Op2 (DefEq, T, _, u1, u2) =>
           s_op2 DefEq T (Formula Neut) (sub u1) (sub u2)
         | Op2 (Eq, T, _, u1, u2) =>

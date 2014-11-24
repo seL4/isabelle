@@ -804,36 +804,6 @@ fun kodkod_formula_from_nut ofs
          | Op2 (Less, T, Formula polar, u1, u2) =>
            formula_from_opt_atom polar bool_j0
                (to_r (Op2 (Less, T, Opt bool_atom_R, u1, u2)))
-         | Op2 (Subset, _, _, u1, u2) =>
-           let
-             val dom_T = pseudo_domain_type (type_of u1)
-             val R1 = rep_of u1
-             val R2 = rep_of u2
-             val (dom_R, ran_R) =
-               case min_rep R1 R2 of
-                 Func Rp => Rp
-               | R => (Atom (card_of_domain_from_rep 2 R,
-                             offset_of_type ofs dom_T),
-                       if is_opt_rep R then Opt bool_atom_R else Formula Neut)
-             val set_R = Func (dom_R, ran_R)
-           in
-             if not (is_opt_rep ran_R) then
-               to_set_bool_op kk_implies kk_subset u1 u2
-             else if polar = Neut then
-               raise NUT ("Nitpick_Kodkod.to_f (Subset)", [u])
-             else
-               let
-                 (* FIXME: merge with similar code below *)
-                 fun set_to_r widen u =
-                   if widen then
-                     kk_difference (full_rel_for_rep dom_R)
-                                   (kk_join (to_rep set_R u) false_atom)
-                   else
-                     kk_join (to_rep set_R u) true_atom
-                 val widen1 = (polar = Pos andalso is_opt_rep R1)
-                 val widen2 = (polar = Neg andalso is_opt_rep R2)
-               in kk_subset (set_to_r widen1 u1) (set_to_r widen2 u2) end
-           end
          | Op2 (DefEq, _, _, u1, u2) =>
            (case min_rep (rep_of u1) (rep_of u2) of
               Formula polar =>
@@ -1230,7 +1200,6 @@ fun kodkod_formula_from_nut ofs
                      (to_rep (Func (Struct [b_R, c_R], Formula Neut)) u2)
            | Opt (Atom (2, _)) =>
              let
-               (* FIXME: merge with similar code above *)
                fun must R1 R2 u =
                  kk_join (to_rep (Func (Struct [R1, R2], body_R)) u) true_atom
                fun may R1 R2 u =

@@ -415,8 +415,6 @@ val built_in_typed_consts =
    ((@{const_name uminus_class.uminus}, int_T --> int_T), 0),
    ((@{const_name ord_class.less}, int_T --> int_T --> bool_T), 2),
    ((@{const_name ord_class.less_eq}, int_T --> int_T --> bool_T), 2)]
-val built_in_set_like_consts =
-  [(@{const_name ord_class.less_eq}, 2)]
 
 fun unarize_type @{typ "unsigned_bit word"} = nat_T
   | unarize_type @{typ "signed_bit word"} = int_T
@@ -1382,10 +1380,7 @@ fun arity_of_built_in_const (s, T) =
         case s of
           @{const_name zero_class.zero} => if is_iterator_type T then SOME 0 else NONE
         | @{const_name Suc} => if is_iterator_type (domain_type T) then SOME 0 else NONE
-        | _ => if is_fun_type T andalso is_set_like_type (domain_type T) then
-                 AList.lookup (op =) built_in_set_like_consts s
-               else
-                 NONE
+        | _ => NONE
 
 val is_built_in_const = is_some o arity_of_built_in_const
 
