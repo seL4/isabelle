@@ -344,6 +344,7 @@ lemma [z3_rule]:
   "(P \<longrightarrow> True) = True"
   "(False \<longrightarrow> P) = True"
   "(P \<longrightarrow> P) = True"
+  "(\<not> (A \<longleftrightarrow> \<not> B)) \<longleftrightarrow> (A \<longleftrightarrow> B)"
   by auto
 
 lemma [z3_rule]:
