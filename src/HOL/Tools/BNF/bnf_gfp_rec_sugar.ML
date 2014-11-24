@@ -310,7 +310,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
           val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
             domain_type (fastype_of1 (bound_Ts, t)));
         in
-          Term.lambda var (massage_call bound_Ts U T (betapply (t, var)))
+          Term.lambda var (Term.incr_boundvars 1 (massage_call bound_Ts U T (betapply (t, var))))
         end)
     and massage_call bound_Ts U T =
       massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
@@ -890,6 +890,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
           else Const (@{const_name undefined}, T))
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel lthy has_call) sel_eqnss ctr_specss;
+
     fun currys [] t = t
       | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
