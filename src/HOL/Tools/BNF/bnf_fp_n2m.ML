@@ -185,9 +185,21 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val fp_or_nesting_rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
     val fp_or_nesting_rel_monos = map rel_mono_of_bnf fp_or_nesting_bnfs;
 
+    val rel_xtor_co_inducts_inst =
+      let
+        val extract =
+          case_fp fp (snd o Term.dest_comb) (snd o Term.dest_comb o fst o Term.dest_comb);
+        val raw_phis = map (extract o HOLogic.dest_Trueprop o Thm.concl_of) rel_xtor_co_inducts;
+        val thetas = AList.group (op =)
+          (mutual_cliques ~~ map (pairself (certify lthy)) (raw_phis ~~ pre_phis));
+      in
+        map2 (Drule.cterm_instantiate o the o AList.lookup (op =) thetas)
+        mutual_cliques rel_xtor_co_inducts
+      end
+
     val xtor_rel_co_induct =
       mk_xtor_rel_co_induct_thm fp (@{map 3} cast castAs castBs pre_rels) pre_phis rels phis xs ys
-        xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs
+        xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts_inst rel_defs
           rel_monos fp_or_nesting_rel_eqs fp_or_nesting_rel_monos)
         lthy;
 
