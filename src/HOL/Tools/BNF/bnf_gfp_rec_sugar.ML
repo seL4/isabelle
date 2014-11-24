@@ -696,7 +696,7 @@ fun dissect_coeqn_ctr lthy fun_names sequentials (basic_ctr_specss : basic_corec
 
     val disc_concl = betapply (disc, lhs);
     val (eqn_data_disc_opt, matchedsss') =
-      if null (tl basic_ctr_specs) then
+      if null (tl basic_ctr_specs) andalso not (null sels) then
         (NONE, matchedsss)
       else
         apfst SOME (dissect_coeqn_disc lthy fun_names sequentials basic_ctr_specss eqn_pos
