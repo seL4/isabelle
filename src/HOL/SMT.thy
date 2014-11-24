@@ -231,7 +231,7 @@ options.
 
 declare [[cvc3_options = ""]]
 declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call"]]
-declare [[veriT_options = ""]]
+declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 
 text {*

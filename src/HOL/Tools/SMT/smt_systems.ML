@@ -96,7 +96,7 @@ end
 (* veriT *)
 
 val veriT: SMT_Solver.solver_config = {
-  name = "veriT",
+  name = "verit",
   class = K SMTLIB_Interface.smtlibC,
   avail = make_avail "VERIT",
   command = make_command "VERIT",
