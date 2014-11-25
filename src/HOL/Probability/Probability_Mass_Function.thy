@@ -11,7 +11,17 @@ imports
   "~~/src/HOL/Library/Multiset"
 begin
 
-lemma (in finite_measure) countable_support: (* replace version in pmf *)
+lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<guillemotright>= return N = M"
+   by (cases "space M = {}")
+      (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return'
+                cong: subprob_algebra_cong)
+
+
+lemma (in prob_space) distr_const[simp]:
+  "c \<in> space N \<Longrightarrow> distr M N (\<lambda>x. c) = return N c"
+  by (rule measure_eqI) (auto simp: emeasure_distr emeasure_space_1)
+
+lemma (in finite_measure) countable_support:
   "countable {x. measure M {x} \<noteq> 0}"
 proof cases
   assume "measure M (space M) = 0"
@@ -623,6 +633,9 @@ lemma join_return_pmf: "join_pmf (return_pmf M) = M"
 lemma map_return_pmf: "map_pmf f (return_pmf x) = return_pmf (f x)"
   by transfer (simp add: distr_return)
 
+lemma map_pmf_const[simp]: "map_pmf (\<lambda>_. c) M = return_pmf c"
+  by transfer (auto simp: prob_space.distr_const)
+
 lemma set_return_pmf: "set_pmf (return_pmf x) = {x}"
   by transfer (auto simp add: measure_return split: split_indicator)
 
@@ -654,6 +667,12 @@ lemma pmf_bind: "pmf (bind_pmf N f) i = (\<integral>x. pmf (f x) i \<partial>mea
 
 lemma bind_return_pmf: "bind_pmf (return_pmf x) f = f x"
   unfolding bind_pmf_def map_return_pmf join_return_pmf ..
+
+lemma join_eq_bind_pmf: "join_pmf M = bind_pmf M id"
+  by (simp add: bind_pmf_def)
+
+lemma bind_pmf_const[simp]: "bind_pmf M (\<lambda>x. c) = c"
+  unfolding bind_pmf_def map_pmf_const join_return_pmf ..
 
 lemma set_bind_pmf: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
   apply (simp add: set_eq_iff set_pmf_iff pmf_bind)
@@ -764,6 +783,11 @@ lemma bind_assoc_pmf: "bind_pmf (bind_pmf A B) C = bind_pmf A (\<lambda>x. bind_
 
 end
 
+lemma map_join_pmf: "map_pmf f (join_pmf AA) = join_pmf (map_pmf (map_pmf f) AA)"
+  unfolding bind_pmf_def[symmetric]
+  unfolding bind_return_pmf''[symmetric] join_eq_bind_pmf bind_assoc_pmf
+  by (simp add: bind_return_pmf'')
+
 definition "pair_pmf A B = bind_pmf A (\<lambda>x. bind_pmf B (\<lambda>y. return_pmf (x, y)))"
 
 lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
@@ -810,6 +834,15 @@ proof (rule measure_eqI)
     apply measurable
     done
 qed
+
+lemma join_map_return_pmf: "join_pmf (map_pmf return_pmf A) = A"
+  unfolding bind_pmf_def[symmetric] bind_return_pmf' ..
+
+lemma map_fst_pair_pmf: "map_pmf fst (pair_pmf A B) = A"
+  by (simp add: pair_pmf_def bind_return_pmf''[symmetric] bind_assoc_pmf bind_return_pmf bind_return_pmf')
+
+lemma map_snd_pair_pmf: "map_pmf snd (pair_pmf A B) = B"
+  by (simp add: pair_pmf_def bind_return_pmf''[symmetric] bind_assoc_pmf bind_return_pmf bind_return_pmf')
 
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
 for R p q
