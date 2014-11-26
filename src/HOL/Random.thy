@@ -156,7 +156,7 @@ val seed = Unsynchronized.ref
     val now = Time.toMilliseconds (Time.now ());
     val (q, s1) = IntInf.divMod (now, 2147483562);
     val s2 = q mod 2147483398;
-  in pairself Code_Numeral.natural_of_integer (s1 + 1, s2 + 1) end);
+  in apply2 Code_Numeral.natural_of_integer (s1 + 1, s2 + 1) end);
 
 in
 

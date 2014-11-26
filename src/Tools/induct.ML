@@ -297,7 +297,7 @@ fun mk_att f g name =
     in (context', thm') end);
 
 fun del_att which =
-  Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
+  Thm.declaration_attribute (fn th => Data.map (which (apply2 (fn rs =>
     fold Item_Net.remove (filter_rules rs th) rs))));
 
 fun add_casesT rule x = @{apply 4(1)} (apfst (Item_Net.update rule)) x;

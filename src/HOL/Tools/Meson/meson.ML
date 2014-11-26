@@ -109,7 +109,7 @@ fun first_order_resolve thA thB =
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
-          val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+          val ct_pairs = map (apply2 (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
@@ -594,7 +594,7 @@ fun get_F_pattern T t u =
   let
     fun pat t u =
       let
-        val ((head1, args1), (head2, args2)) = (t, u) |> pairself strip_comb
+        val ((head1, args1), (head2, args2)) = (t, u) |> apply2 strip_comb
       in
         if head1 = head2 then
           let val pats = map2 pat args1 args2 in
@@ -631,7 +631,7 @@ fun cong_extensionalize_thm thy th =
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
        SOME p =>
-       let val inst = [pairself (cterm_of thy) (F_ext_cong_neq, p)] in
+       let val inst = [apply2 (cterm_of thy) (F_ext_cong_neq, p)] in
          th RS cterm_instantiate inst ext_cong_neq
        end
      | NONE => th)

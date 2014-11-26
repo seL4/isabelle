@@ -30,7 +30,7 @@ local open Conv in
 fun invert_perm pi =
       (pi @ subtract (op =) pi (0 upto (fold Integer.max pi 0)))
            |> map_index I
-           |> sort (int_ord o pairself snd)
+           |> sort (int_ord o apply2 snd)
            |> map fst
 
 (* rearrange_prems as a conversion *)

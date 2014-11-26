@@ -104,7 +104,7 @@ fun take_time timeout tac arg =
 fun resolve_fact_names ctxt names =
   (names
    |>> map string_of_label
-   |> pairself (maps (thms_of_name ctxt)))
+   |> apply2 (maps (thms_of_name ctxt)))
   handle ERROR msg => error ("preplay error: " ^ msg)
 
 fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
@@ -176,7 +176,7 @@ fun preplay_isar_step ctxt timeout0 hopeless step =
     val meths = proof_methods_of_isar_step step |> subtract (op =) hopeless
   in
     par_list_map_filter_with_timeout get_time min_preplay_timeout timeout0 preplay meths
-    |> sort (play_outcome_ord o pairself snd)
+    |> sort (play_outcome_ord o apply2 snd)
   end
 
 type isar_preplay_data = (proof_method * play_outcome Lazy.lazy) list Canonical_Label_Tab.table
@@ -188,7 +188,7 @@ fun add_preplay_outcomes Play_Failed _ = Play_Failed
   | add_preplay_outcomes _ Play_Failed = Play_Failed
   | add_preplay_outcomes (Played time1) (Played time2) = Played (Time.+ (time1, time2))
   | add_preplay_outcomes play1 play2 =
-    Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
+    Play_Timed_Out (Time.+ (apply2 time_of_play (play1, play2)))
 
 fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
       (step as Prove (_, _, l, _, _, _, meths, _)) meths_outcomes0 =
@@ -207,7 +207,7 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
 fun get_best_method_outcome force =
   tap (List.app (K () o Lazy.future Future.default_params o snd)) (* could be parallelized *)
   #> map (apsnd force)
-  #> sort (play_outcome_ord o pairself snd)
+  #> sort (play_outcome_ord o apply2 snd)
   #> hd
 
 fun forced_intermediate_preplay_outcome_of_isar_step preplay_data l =

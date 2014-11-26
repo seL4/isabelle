@@ -549,7 +549,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           val all_proto_sels = flat (@{map 3} (fn k => fn xs => map (pair k o pair xs)) ks xss xss);
           val sel_infos =
             AList.group (op =) (sel_binding_index ~~ all_proto_sels)
-            |> sort (int_ord o pairself fst)
+            |> sort (int_ord o apply2 fst)
             |> map snd |> curry (op ~~) uniq_sel_bindings;
           val sel_bindings = map fst sel_infos;
 
@@ -666,7 +666,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
       let
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
-        val rho_As = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
+        val rho_As = map (apply2 (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
 
         fun inst_thm t thm =
           Drule.instantiate' [] [SOME (certify lthy t)]
@@ -717,7 +717,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           in
             (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
-            |> pairself (singleton (Proof_Context.export names_lthy lthy) #>
+            |> apply2 (singleton (Proof_Context.export names_lthy lthy) #>
               Thm.close_derivation)
           end;
 

@@ -123,7 +123,7 @@ fun kodkod_formula_from_term ctxt total card complete concrete frees =
         if pos andalso not (concrete T) then
           False
         else
-          (t1, t2) |> pairself (to_R_rep Ts)
+          (t1, t2) |> apply2 (to_R_rep Ts)
                    |> (if pos then Some o Intersect else Lone o Union)
     and to_F pos Ts t =
       (case t of

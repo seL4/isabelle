@@ -33,7 +33,7 @@ fun identify default_props exn =
 fun the_serial exn =
   Markup.parse_int (the (Properties.get (Exn_Properties.get exn) Markup.serialN));
 
-val exn_ord = rev_order o int_ord o pairself the_serial;
+val exn_ord = rev_order o int_ord o apply2 the_serial;
 
 
 (* parallel exceptions *)

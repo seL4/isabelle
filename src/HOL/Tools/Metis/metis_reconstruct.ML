@@ -175,7 +175,7 @@ fun incr_type_indexes inc th =
   let
     val tvs = Term.add_tvars (Thm.full_prop_of th) []
     val thy = Thm.theory_of_thm th
-    fun inc_tvar ((a, i), s) = pairself (ctyp_of thy) (TVar ((a, i), s), TVar ((a, i + inc), s))
+    fun inc_tvar ((a, i), s) = apply2 (ctyp_of thy) (TVar ((a, i), s), TVar ((a, i + inc), s))
   in
     Thm.instantiate (map inc_tvar tvs, []) th
   end
@@ -213,7 +213,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           |> rpair (Envir.empty ~1)
           |-> fold (Pattern.unify (Context.Proof ctxt))
           |> Envir.type_env |> Vartab.dest
-          |> map (fn (x, (S, T)) => pairself (ctyp_of thy) (TVar (x, S), T))
+          |> map (fn (x, (S, T)) => apply2 (ctyp_of thy) (TVar (x, S), T))
       in
         (* The unifier, which is invoked from "Thm.bicompose", will sometimes refuse to unify
            "?a::?'a" with "?a::?'b" or "?a::nat" and throw a "TERM" exception (with "add_ffpair" as
@@ -221,7 +221,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
            again. We could do this the first time around but this error occurs seldom and we don't
            want to break existing proofs in subtle ways or slow them down. *)
         if null ps then raise TERM z
-        else res (pairself (Drule.instantiate_normalize (ps, [])) (tha, thb))
+        else res (apply2 (Drule.instantiate_normalize (ps, [])) (tha, thb))
       end
   end
 
@@ -270,7 +270,7 @@ fun select_literal ctxt = negate_head ctxt oo make_last
 
 fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
   let
-    val (i_th1, i_th2) = pairself (lookth th_pairs) (th1, th2)
+    val (i_th1, i_th2) = apply2 (lookth th_pairs) (th1, th2)
     val _ = trace_msg ctxt (fn () =>
         "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1 ^ "\n\
         \  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
@@ -374,7 +374,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill-typed but gives right max*)
       val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
-      val eq_terms = map (pairself (cterm_of thy))
+      val eq_terms = map (apply2 (cterm_of thy))
         (ListPair.zip (Misc_Legacy.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
   in
     cterm_instantiate eq_terms subst'
@@ -522,7 +522,7 @@ fun unify_first_prem_with_concl thy i th =
       | _ => I)
 
     val t_inst =
-      [] |> try (unify_terms (prem, concl) #> map (pairself (cterm_of thy)))
+      [] |> try (unify_terms (prem, concl) #> map (apply2 (cterm_of thy)))
          |> the_default [] (* FIXME *)
   in
     cterm_instantiate t_inst th
@@ -574,8 +574,8 @@ fun instantiate_forall_tac thy t i st =
             Envir.Envir {maxidx = Vartab.fold (Integer.max o snd o fst) tyenv 0,
               tenv = Vartab.empty, tyenv = tyenv}
           val ty_inst =
-            Vartab.fold (fn (x, (S, T)) => cons (pairself (ctyp_of thy) (TVar (x, S), T))) tyenv []
-          val t_inst = [pairself (cterm_of thy o Envir.norm_term env) (Var var, t')]
+            Vartab.fold (fn (x, (S, T)) => cons (apply2 (ctyp_of thy) (TVar (x, S), T))) tyenv []
+          val t_inst = [apply2 (cterm_of thy o Envir.norm_term env) (Var var, t')]
         in
           Drule.instantiate_normalize (ty_inst, t_inst) th
         end
@@ -617,7 +617,7 @@ fun release_clusters_tac _ _ _ [] = K all_tac
 fun cluster_key ((ax_no, (cluster_no, index_no)), skolem) =
   (ax_no, (cluster_no, (skolem, index_no)))
 fun cluster_ord p =
-  prod_ord int_ord (prod_ord int_ord (prod_ord bool_ord int_ord)) (pairself cluster_key p)
+  prod_ord int_ord (prod_ord int_ord (prod_ord bool_ord int_ord)) (apply2 cluster_key p)
 
 val tysubst_ord =
   list_ord (prod_ord Term_Ord.fast_indexname_ord (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))
@@ -630,7 +630,7 @@ structure Int_Pair_Graph =
   Graph(type key = int * int val ord = prod_ord int_ord int_ord)
 
 fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (axiom_no, index_no)
-fun shuffle_ord p = prod_ord int_ord int_ord (pairself shuffle_key p)
+fun shuffle_ord p = prod_ord int_ord int_ord (apply2 shuffle_key p)
 
 (* Attempts to derive the theorem "False" from a theorem of the form
    "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
@@ -651,10 +651,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             tenv |> Vartab.dest
                  |> filter (Meson_Clausify.is_zapped_var_name o fst o fst)
                  |> sort (cluster_ord
-                          o pairself (Meson_Clausify.cluster_of_zapped_var_name
+                          o apply2 (Meson_Clausify.cluster_of_zapped_var_name
                                       o fst o fst))
-                 |> map (Meson.term_pair_of
-                         #> pairself (Envir.subst_term_types tyenv))
+                 |> map (Meson.term_pair_of #> apply2 (Envir.subst_term_types tyenv))
           val tysubst = tyenv |> Vartab.dest
         in (tysubst, tsubst) end
 
@@ -686,7 +685,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
 
       val prems = Logic.strip_imp_prems (prop_of prems_imp_false)
       val substs = prems |> map2 subst_info_of_prem (1 upto length prems)
-                         |> sort (int_ord o pairself fst)
+                         |> sort (int_ord o apply2 fst)
       val depss = maps (map_filter deps_of_term_subst o snd o snd o snd) substs
       val clusters = maps (op ::) depss
       val ordered_clusters =
@@ -725,7 +724,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tysubst: " ^ @{make_string} tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
-                     o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
+                     o apply2 (Syntax.string_of_term ctxt)) tsubst) ^ "}"
       val _ = tracing ("ORDERED CLUSTERS: " ^ @{make_string} ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ @{make_string} ax_counts)
       val _ = tracing ("OUTER PARAMS: " ^ @{make_string} outer_param_names)

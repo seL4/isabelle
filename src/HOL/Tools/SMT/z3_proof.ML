@@ -221,7 +221,7 @@ fun opp_quant (@{const_name HOL.All}, _) (@{const_name HOL.Ex}, _) = true
 fun with_quant pred i (Const q1 $ Abs (_, T1, t1), Const q2 $ Abs (_, T2, t2)) =
       if pred q1 q2 andalso T1 = T2 then
         let val t = Var (("", i), T1)
-        in SOME (pairself Term.subst_bound ((t, t1), (t, t2))) end
+        in SOME (apply2 Term.subst_bound ((t, t1), (t, t2))) end
       else NONE
   | with_quant _ _ _ = NONE
 

@@ -15,7 +15,7 @@ fun hex_digit i = if i < 10 then chr (ord "0" + i) else chr (ord "a" + i - 10);
 
 fun hex_string arr i =
   let val c = CInterface.fromCchar (CInterface.offset i CInterface.Cchar arr)
-  in (op ^) (pairself hex_digit (Integer.div_mod (Char.ord c) 16)) end
+  in (op ^) (apply2 hex_digit (Integer.div_mod (Char.ord c) 16)) end
 
 val lib_path =
   ("$ML_HOME/" ^ (if ML_System.platform_is_cygwin then "sha1.dll" else "libsha1.so"))

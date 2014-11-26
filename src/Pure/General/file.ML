@@ -167,7 +167,7 @@ fun write_buffer path buf = open_output (Buffer.output buf) path;
 (* eq *)
 
 fun eq paths =
-  (case try (pairself (OS.FileSys.fileId o platform_path)) paths of
+  (case try (apply2 (OS.FileSys.fileId o platform_path)) paths of
     SOME ids => is_equal (OS.FileSys.compare ids)
   | NONE => false);
 

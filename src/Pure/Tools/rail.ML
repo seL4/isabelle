@@ -265,11 +265,11 @@ in
 fun prepare_trees (CAT (ts, _)) = Cat (0, map prepare_tree ts)
 and prepare_tree (BAR (Ts, _)) = bar (map prepare_trees Ts)
   | prepare_tree (STAR (Ts, _)) =
-      let val (cat1, cat2) = pairself prepare_trees Ts in
+      let val (cat1, cat2) = apply2 prepare_trees Ts in
         if is_empty cat2 then plus (empty, cat1)
         else bar [empty, cat [plus (cat1, cat2)]]
       end
-  | prepare_tree (PLUS (Ts, _)) = plus (pairself prepare_trees Ts)
+  | prepare_tree (PLUS (Ts, _)) = plus (apply2 prepare_trees Ts)
   | prepare_tree (MAYBE (t, _)) = bar [empty, cat [prepare_tree t]]
   | prepare_tree (NEWLINE _) = Newline 0
   | prepare_tree (NONTERMINAL (a, _)) = Nonterminal a

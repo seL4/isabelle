@@ -350,7 +350,7 @@ fun split_map_mode f mode ts =
         else if eq_mode (m, Output) then (NONE,  SOME t)
         else raise Fail "split_map_mode: mode and term do not match"
   in
-    (pairself (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) ts)
+    (apply2 (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) ts)
   end
 
 (* splits mode and maps function to higher-order argument types *)
@@ -368,7 +368,7 @@ fun split_map_modeT f mode Ts =
       | split_arg_mode' Output T = (NONE,  SOME T)
       | split_arg_mode' _ _ = raise Fail "split_modeT': mode and type do not match"
   in
-    (pairself (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) Ts)
+    (apply2 (map_filter I) o split_list) (map2 split_arg_mode' (strip_fun_mode mode) Ts)
   end
 
 fun split_mode mode ts = split_map_mode (fn _ => fn _ => (NONE, NONE)) mode ts
@@ -400,7 +400,7 @@ fun split_modeT mode Ts =
       | split_arg_mode Output T = ([], [T])
       | split_arg_mode _ _ = raise Fail "split_modeT: mode and type do not match"
   in
-    (pairself flat o split_list) (map2 split_arg_mode (strip_fun_mode mode) Ts)
+    (apply2 flat o split_list) (map2 split_arg_mode (strip_fun_mode mode) Ts)
   end
 
 fun string_of_mode mode =

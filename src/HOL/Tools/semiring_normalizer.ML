@@ -145,11 +145,11 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val cz = rule 34 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
       val cn = rule 36 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
       val ((clx, crx), (cly, cry)) =
-        rule 13 |> Thm.rhs_of |> Thm.dest_binop |> pairself Thm.dest_binop;
+        rule 13 |> Thm.rhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
       val ((ca, cb), (cc, cd)) =
-        rule 20 |> Thm.lhs_of |> Thm.dest_binop |> pairself Thm.dest_binop;
+        rule 20 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
       val cm = rule 1 |> Thm.rhs_of |> Thm.dest_arg;
-      val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> pairself Thm.dest_arg;
+      val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_arg;
 
       val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
       val semiring = (sr_ops, sr_rules');

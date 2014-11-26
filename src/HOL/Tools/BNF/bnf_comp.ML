@@ -655,7 +655,7 @@ fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
   end;
 
 fun default_comp_sort Ass =
-  Library.sort (Term_Ord.typ_ord o pairself TFree) (fold (fold (insert (op =))) Ass []);
+  Library.sort (Term_Ord.typ_ord o apply2 TFree) (fold (fold (insert (op =))) Ass []);
 
 fun raw_compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfreess accum =
   let
@@ -914,7 +914,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val lives = lives_of_bnf bnf;
             val tvars' = Term.add_tvarsT T' [];
             val Ds_As =
-              pairself (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
+              apply2 (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
                 (deads, lives);
           in ((bnf, Ds_As), accum) end
         else

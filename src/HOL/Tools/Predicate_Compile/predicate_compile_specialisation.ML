@@ -19,7 +19,7 @@ open Predicate_Compile_Aux;
 structure Specialisations = Theory_Data
 (
   type T = (term * term) Item_Net.T
-  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst)
+  val empty : T = Item_Net.init (op aconv o apply2 fst) (single o fst)
   val extend = I
   val merge = Item_Net.merge
 )
@@ -49,7 +49,7 @@ fun is_nontrivial_constrt thy t =
         (Var _, []) => (true, true)
       | (Free _, []) => (true, true)
       | (Const (@{const_name Pair}, _), ts) =>
-        pairself (forall I) (split_list (map check ts))
+        apply2 (forall I) (split_list (map check ts))
       | (Const (s, T), ts) =>
           (case (AList.lookup (op =) cnstrs s, body_type T) of
             (SOME (i, Tname), Type (Tname', _)) => (false,

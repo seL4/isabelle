@@ -187,7 +187,7 @@ fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
       fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
     in
       fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
-      |> map (`weight_of) |> sort (int_ord o pairself fst o swap)
+      |> map (`weight_of) |> sort (int_ord o apply2 fst o swap)
       |> map snd |> take max_facts
     end
 
@@ -363,7 +363,7 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
       if at = num_facts then acc else ret (at + 1) (Array.sub (posterior, at) :: acc)
   in
     select_visible_facts 100000.0 posterior visible_facts;
-    sort_array_suffix (Real.compare o pairself snd) max_suggs posterior;
+    sort_array_suffix (Real.compare o apply2 snd) max_suggs posterior;
     ret (Integer.max 0 (num_facts - max_suggs)) []
   end
 
@@ -396,7 +396,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
       end
 
     val _ = List.app do_feat goal_feats
-    val _ = sort_array_suffix (Real.compare o pairself snd) num_facts overlaps_sqr
+    val _ = sort_array_suffix (Real.compare o apply2 snd) num_facts overlaps_sqr
     val no_recommends = Unsynchronized.ref 0
     val recommends = Array.tabulate (num_facts, rpair 0.0)
     val age = Unsynchronized.ref 500000000.0
@@ -438,7 +438,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
     while1 ();
     while2 ();
     select_visible_facts 1000000000.0 recommends visible_facts;
-    sort_array_suffix (Real.compare o pairself snd) max_suggs recommends;
+    sort_array_suffix (Real.compare o apply2 snd) max_suggs recommends;
     ret [] (Integer.max 0 (num_facts - max_suggs))
   end
 
@@ -777,24 +777,24 @@ fun crude_theory_ord p =
   else if Theory.subthy (swap p) then
     GREATER
   else
-    (case int_ord (pairself (length o Theory.ancestors_of) p) of
-      EQUAL => string_ord (pairself Context.theory_name p)
+    (case int_ord (apply2 (length o Theory.ancestors_of) p) of
+      EQUAL => string_ord (apply2 Context.theory_name p)
     | order => order)
 
 fun crude_thm_ord p =
-  (case crude_theory_ord (pairself theory_of_thm p) of
+  (case crude_theory_ord (apply2 theory_of_thm p) of
     EQUAL =>
     (* The hack below is necessary because of odd dependencies that are not reflected in the theory
        comparison. *)
-    let val q = pairself nickname_of_thm p in
+    let val q = apply2 nickname_of_thm p in
       (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
-      (case bool_ord (pairself (String.isSuffix "_def") (swap q)) of
+      (case bool_ord (apply2 (String.isSuffix "_def") (swap q)) of
         EQUAL => string_ord q
       | ord => ord)
     end
   | ord => ord)
 
-val thm_less_eq = Theory.subthy o pairself theory_of_thm
+val thm_less_eq = Theory.subthy o apply2 theory_of_thm
 fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
@@ -1154,7 +1154,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     val algorithm = the_mash_algorithm ()
 
     val facts = facts
-      |> rev_sort_list_prefix (crude_thm_ord o pairself snd)
+      |> rev_sort_list_prefix (crude_thm_ord o apply2 snd)
         (Int.max (num_extra_feature_facts, max_proximity_facts))
 
     val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
@@ -1184,7 +1184,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
 
     val goal_feats =
       fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats0)
-      |> debug ? sort (Real.compare o swap o pairself snd)
+      |> debug ? sort (Real.compare o swap o apply2 snd)
 
     val parents = maximal_wrt_access_graph access_G facts
     val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
@@ -1209,7 +1209,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
   in
     find_mash_suggestions ctxt max_suggs suggs facts chained unknown
-    |> pairself (map fact_of_raw_fact)
+    |> apply2 (map fact_of_raw_fact)
   end
 
 fun mash_unlearn () = (clear_state (); writeln "Reset MaSh.")
@@ -1268,7 +1268,7 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
       let
         val thy = Proof_Context.theory_of ctxt
         val feats = features_of ctxt thy (Local, General) [t]
-        val facts = rev_sort_list_prefix (crude_thm_ord o pairself snd) 1 facts
+        val facts = rev_sort_list_prefix (crude_thm_ord o apply2 snd) 1 facts
       in
         map_state ctxt
           (fn {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
@@ -1397,7 +1397,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
           else
             let
               val new_facts = facts
-                |> sort (crude_thm_ord o pairself snd)
+                |> sort (crude_thm_ord o apply2 snd)
                 |> attach_parents_to_facts []
                 |> filter_out (is_in_access_G o snd)
               val (learns, (num_nontrivial, _, _)) =
@@ -1444,7 +1444,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               val old_facts = facts
                 |> filter is_in_access_G
                 |> map (`(priority_of o snd))
-                |> sort (int_ord o pairself fst)
+                |> sort (int_ord o apply2 fst)
                 |> map snd
               val ((relearns, flops), (num_nontrivial, _, _)) =
                 (([], []), (num_nontrivial, next_commit_time (), false))
@@ -1469,7 +1469,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
     val ctxt = ctxt |> Config.put instantiate_inducts false
     val facts =
       nearly_all_facts ctxt false fact_override Keyword.empty_keywords css chained [] @{prop True}
-      |> sort (crude_thm_ord o pairself snd o swap)
+      |> sort (crude_thm_ord o apply2 snd o swap)
     val num_facts = length facts
     val prover = hd provers
 

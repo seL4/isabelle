@@ -195,7 +195,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
         let
           val cand_key = apfst (length o get_successors)
           val cand_ord =
-            prod_ord int_ord (prod_ord (int_ord o swap) (int_ord o swap)) o pairself cand_key
+            prod_ord int_ord (prod_ord (int_ord o swap) (int_ord o swap)) o apply2 cand_key
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =

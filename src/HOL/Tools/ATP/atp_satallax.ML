@@ -426,7 +426,7 @@ fun atp_proof_of_tstplike_proof _ _ "" = []
     | NONE =>
       tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof local_prover problem
-      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o pairself #1)))
+      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1)))
       |> local_prover = zipperpositionN ? rev)
 
 end;

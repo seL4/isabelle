@@ -205,7 +205,7 @@ fun Trueprop_conv cv ct =
 
 fun conj_intr thP thQ =
   let
-    val (P, Q) = pairself (Object_Logic.dest_judgment o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = apply2 (Object_Logic.dest_judgment o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
   in Drule.implies_elim_list (inst @{thm conjI}) [thP, thQ] end;

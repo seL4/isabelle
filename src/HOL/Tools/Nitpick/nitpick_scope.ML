@@ -214,7 +214,7 @@ fun scopes_equivalent (s1 : scope, s2 : scope) =
   #data_types s1 = #data_types s2 andalso #card_assigns s1 = #card_assigns s2
 
 fun scope_less_eq (s1 : scope) (s2 : scope) =
-  (s1, s2) |> pairself (map snd o #card_assigns) |> op ~~ |> forall (op <=)
+  (s1, s2) |> apply2 (map snd o #card_assigns) |> op ~~ |> forall (op <=)
 
 fun rank_of_row (_, ks) = length ks
 
@@ -293,7 +293,7 @@ val all_combinations_ordered_smartly =
           k :: ks |> map (fn k => (k + linearity) * (k + linearity))
                   |> Integer.sum
   in
-    all_combinations #> map (`cost) #> sort (int_ord o pairself fst) #> map snd
+    all_combinations #> map (`cost) #> sort (int_ord o apply2 fst) #> map snd
   end
 
 fun is_self_recursive_constr_type T =
@@ -449,7 +449,7 @@ fun data_type_spec_from_scope_descriptor (hol_ctxt as {ctxt, ...})
     val xs = binarized_and_boxed_data_type_constrs hol_ctxt binarize T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
-      List.partition I self_recs |> pairself length
+      List.partition I self_recs |> apply2 length
     val self_rec = num_self_recs > 0
     fun is_complete facto =
       has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T
@@ -467,7 +467,7 @@ fun data_type_spec_from_scope_descriptor (hol_ctxt as {ctxt, ...})
     val constrs =
       fold_rev (add_constr_spec desc (not co) card sum_dom_cards num_self_recs
                                 num_non_self_recs)
-               (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
+               (sort (bool_ord o swap o apply2 fst) (self_recs ~~ xs)) []
   in
     {typ = T, card = card, co = co, self_rec = self_rec, complete = complete,
      concrete = concrete, deep = deep, constrs = constrs}

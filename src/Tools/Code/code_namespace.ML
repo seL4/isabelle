@@ -384,7 +384,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
         val (name_fragments_common, (diff, diff')) =
           chop_prefix (op =) (name_fragments, name_fragments');
         val is_cross_module = not (null diff andalso null diff');
-        val dep = pairself hd (map Code_Symbol.Module diff @ [sym], map Code_Symbol.Module diff' @ [sym']);
+        val dep = apply2 hd (map Code_Symbol.Module diff @ [sym], map Code_Symbol.Module diff' @ [sym']);
         val add_edge = if is_cross_module andalso not cyclic_modules
           then add_edge_acyclic_error (fn _ => "Dependency "
             ^ Code_Symbol.quote ctxt sym ^ " -> "
@@ -407,7 +407,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
           |> List.partition
               (fn sym => case Code_Symbol.Graph.get_node nodes sym
                 of (_, Module _) => true | _ => false)
-          |> pairself (prioritize sym_priority)
+          |> apply2 (prioritize sym_priority)
         fun declare namify sym (nsps, nodes) =
           let
             val (base, node) = Code_Symbol.Graph.get_node nodes sym;

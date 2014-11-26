@@ -82,7 +82,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
           (used_facts,
            (case AList.lookup (op =) ress preferred_meth of
              SOME play => (preferred_meth, play)
-           | NONE => hd (sort (play_outcome_ord o pairself snd) (rev ress))))
+           | NONE => hd (sort (play_outcome_ord o apply2 snd) (rev ress))))
         | try_methss ress (meths :: methss) =
           let
             fun mk_step fact_names meths =

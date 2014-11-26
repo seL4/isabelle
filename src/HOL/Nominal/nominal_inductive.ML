@@ -62,7 +62,7 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
                  in (add_binders thy i u
                    (fold (fn (u, T) =>
                       if exists (fn j => j < i) (loose_bnos u) then I
-                      else insert (op aconv o pairself fst)
+                      else insert (op aconv o apply2 fst)
                         (incr_boundvars (~i) u, T)) cargs1 bs'), cargs2)
                  end) cargs (bs, ts ~~ Ts))))
       | _ => fold (add_binders thy i) ts bs)
@@ -164,7 +164,7 @@ fun prove_strong_ind s avoids ctxt =
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
     val ps = map (fst o snd) concls;
 
-    val _ = (case duplicates (op = o pairself fst) avoids of
+    val _ = (case duplicates (op = o apply2 fst) avoids of
         [] => ()
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
     val _ = avoids |> forall (fn (a, xs) => null (duplicates (op =) xs) orelse
@@ -338,7 +338,7 @@ fun prove_strong_ind s avoids ctxt =
                  val pis'' = fold (concat_perm #> map) pis' pis;
                  val env = Pattern.first_order_match thy (ihypt, prop_of ihyp)
                    (Vartab.empty, Vartab.empty);
-                 val ihyp' = Thm.instantiate ([], map (pairself (cterm_of thy))
+                 val ihyp' = Thm.instantiate ([], map (apply2 (cterm_of thy))
                    (map (Envir.subst_term env) vs ~~
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;

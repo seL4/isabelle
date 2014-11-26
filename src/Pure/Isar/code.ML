@@ -655,7 +655,7 @@ fun check_abstype_cert thy proto_thm =
     val ((abs, raw_ty), ((rep, rep_ty), param)) = (apsnd (apfst dest_Const o dest_comb)
         o apfst dest_Const o dest_comb) lhs
       handle TERM _ => bad_thm "Not an abstype certificate";
-    val _ = pairself (fn c => if (is_some o Axclass.class_of_param thy) c
+    val _ = apply2 (fn c => if (is_some o Axclass.class_of_param thy) c
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
@@ -1035,12 +1035,12 @@ fun print_codesetup thy =
     val functions = the_functions exec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
-      |> sort (string_ord o pairself fst);
+      |> sort (string_ord o apply2 fst);
     val datatypes = the_types exec
       |> Symtab.dest
       |> map (fn (tyco, (_, (vs, spec)) :: _) =>
           ((tyco, vs), constructors_of spec))
-      |> sort (string_ord o pairself (fst o fst));
+      |> sort (string_ord o apply2 (fst o fst));
     val cases = Symtab.dest ((fst o the_cases o the_exec) thy);
     val undefineds = Symtab.keys ((snd o the_cases o the_exec) thy);
   in
@@ -1171,7 +1171,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     val T_cong = nth Ts pos;
     fun mk_prem z = Free (z, T_cong);
     fun mk_concl z = list_comb (Const (case_const, T), map2 (curry Free) (ws @ z :: vs) Ts);
-    val (prem, concl) = pairself Logic.mk_equals (pairself mk_prem (x, y), pairself mk_concl (x, y));
+    val (prem, concl) = apply2 Logic.mk_equals (apply2 mk_prem (x, y), apply2 mk_concl (x, y));
   in
     Goal.prove_sorry_global thy (x :: y :: zs) [prem] concl
       (fn {context = ctxt', prems} =>

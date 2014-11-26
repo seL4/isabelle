@@ -352,7 +352,7 @@ fun markup_fixed ctxt x =
 
 fun dest_fixes ctxt =
   Name_Space.fold_table (fn (x, y) => cons (y, x)) (fixes_of ctxt) []
-  |> sort (Name_Space.entry_ord (fixes_space ctxt) o pairself #2);
+  |> sort (Name_Space.entry_ord (fixes_space ctxt) o apply2 #2);
 
 
 (* collect variables *)
@@ -403,7 +403,7 @@ fun add_fixes_binding bs ctxt =
         [] => ()
       | bads => error ("Illegal internal Skolem constant(s): " ^ commas (map Binding.print bads)));
     val _ =
-      (case duplicates (op = o pairself Binding.name_of) bs of
+      (case duplicates (op = o apply2 Binding.name_of) bs of
         [] => ()
       | dups => err_dups dups);
 

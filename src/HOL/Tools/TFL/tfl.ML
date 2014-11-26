@@ -333,7 +333,7 @@ fun mk_functional thy clauses =
                                     {path=[a], rows=rows}
      val patts1 = map (fn (_,tag,[pat]) => (pat,tag)) patts
           handle Match => mk_functional_err "error in pattern-match translation"
-     val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
+     val patts2 = Library.sort (Library.int_ord o apply2 row_of_pat) patts1
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
      val dummy = case (subtract (op =) finals originals)

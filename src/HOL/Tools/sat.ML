@@ -128,7 +128,7 @@ fun resolve_raw_clauses _ [] =
         fun merge xs [] = xs
           | merge [] ys = ys
           | merge (x :: xs) (y :: ys) =
-              (case (lit_ord o pairself fst) (x, y) of
+              (case lit_ord (apply2 fst (x, y)) of
                 LESS => x :: merge xs (y :: ys)
               | EQUAL => x :: merge xs ys
               | GREATER => y :: merge (x :: xs) ys)
@@ -139,7 +139,7 @@ fun resolve_raw_clauses _ [] =
           | find_res_hyps (_, []) _ =
               raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
           | find_res_hyps (h1 :: hyps1, h2 :: hyps2) acc =
-              (case (lit_ord o pairself fst) (h1, h2) of
+              (case lit_ord  (apply2 fst (h1, h2)) of
                 LESS  => find_res_hyps (hyps1, h2 :: hyps2) (h1 :: acc)
               | EQUAL =>
                   let
@@ -227,7 +227,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
           let
             val _ = cond_tracing ctxt (fn () => "Using original clause #" ^ string_of_int id)
             val raw = CNF.clause2raw_thm thm
-            val hyps = sort (lit_ord o pairself fst) (map_filter (fn chyp =>
+            val hyps = sort (lit_ord o apply2 fst) (map_filter (fn chyp =>
               Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
             val clause = (raw, hyps)
             val _ = Array.update (clauses, id, RAW_CLAUSE clause)
@@ -304,7 +304,7 @@ fun rawsat_thm ctxt clauses =
     (* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
     (* terms sorted in descending order, while only linear for terms      *)
     (* sorted in ascending order                                          *)
-    val sorted_clauses = sort (Term_Ord.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
+    val sorted_clauses = sort (Term_Ord.fast_term_ord o apply2 Thm.term_of) nontrivial_clauses
     val _ =
       cond_tracing ctxt (fn () =>
         "Sorted non-trivial clauses:\n" ^

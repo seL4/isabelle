@@ -21,7 +21,7 @@ open Predicate_Compile_Aux;
 structure Fun_Pred = Theory_Data
 (
   type T = (term * term) Item_Net.T;
-  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
+  val empty : T = Item_Net.init (op aconv o apply2 fst) (single o fst);
   val extend = I;
   val merge = Item_Net.merge;
 )
@@ -295,7 +295,7 @@ fun define_predicates specs thy =
           map Drule.export_without_context (filter (Predicate_Compile_Aux.is_intro predname) intrs)))
         dst_prednames
       val thy'' = Fun_Pred.map
-        (fold Item_Net.update (map (pairself Logic.varify_global)
+        (fold Item_Net.update (map (apply2 Logic.varify_global)
           (dst_funs ~~ dst_preds))) thy'
       fun functional_mode_of T =
         list_fun_mode (replicate (length (binder_types T)) Input @ [Output])

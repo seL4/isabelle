@@ -510,7 +510,7 @@ fun upt_conv ctxt ct =
   case term_of ct of
     (@{const upt} $ n $ m) =>
       let
-        val (i, j) = pairself (snd o HOLogic.dest_number) (n, m);
+        val (i, j) = apply2 (snd o HOLogic.dest_number) (n, m);
         val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
           |> mk_nat_clist;
         val prop = Thm.mk_binop @{cterm "op = :: nat list => _"} ct ns

@@ -207,7 +207,7 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         |> map (pair 0)
         |> Monomorph.monomorph atp_schematic_consts_of ctxt
         |> chop (length conj_clauses)
-        |> pairself (maps (map (zero_var_indexes o snd)))
+        |> apply2 (maps (map (zero_var_indexes o snd)))
     val num_conjs = length conj_clauses
     (* Pretend every clause is a "simp" rule, to guide the term ordering. *)
     val clauses =

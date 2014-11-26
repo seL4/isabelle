@@ -68,7 +68,7 @@ fun unused_thms (base_thys, thys) =
 
     val new_thms =
       fold (add_facts o Global_Theory.facts_of) thys []
-      |> sort_distinct (string_ord o pairself #1);
+      |> sort_distinct (string_ord o apply2 #1);
 
     val used =
       Proofterm.fold_body_thms

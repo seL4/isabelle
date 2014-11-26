@@ -3502,7 +3502,7 @@ let
 
   fun term_of_float_float_option NONE = @{term "None :: (float \<times> float) option"}
     | term_of_float_float_option (SOME ff) = @{term "Some :: float \<times> float \<Rightarrow> _"}
-        $ HOLogic.mk_prod (pairself term_of_float ff);
+        $ HOLogic.mk_prod (apply2 term_of_float ff);
 
   val term_of_float_float_option_list =
     HOLogic.mk_list @{typ "(float \<times> float) option"} o map term_of_float_float_option;
@@ -3551,7 +3551,7 @@ let
 
   fun float_float_option_of_term @{term "None :: (float \<times> float) option"} = NONE
     | float_float_option_of_term (@{term "Some :: float \<times> float \<Rightarrow> _"} $ ff) =
-        SOME (pairself float_of_term (HOLogic.dest_prod ff))
+        SOME (apply2 float_of_term (HOLogic.dest_prod ff))
     | float_float_option_of_term (@{term approx'} $ n $ a $ ffs) = @{code approx'}
         (nat_of_term n) (floatarith_of_term a) (float_float_option_list_of_term ffs)
     | float_float_option_of_term t = bad t

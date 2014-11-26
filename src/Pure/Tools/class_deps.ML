@@ -30,7 +30,7 @@ fun gen_visualize prep_sort ctxt raw_super raw_sub =
             dir = "", unfold = true, path = "", content = []});
     val gr =
       Graph.fold (cons o entry) classes []
-      |> sort (int_ord o pairself #1) |> map #2;
+      |> sort (int_ord o apply2 #1) |> map #2;
   in Graph_Display.display_graph gr end;
 
 val visualize = gen_visualize (Type.cert_sort o Proof_Context.tsig_of);

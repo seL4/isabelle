@@ -674,7 +674,7 @@ fun unskolemize_term skos =
             val (haves, have_nots) =
               HOLogic.disjuncts t
               |> List.partition (exists_subterm (curry (op =) (Var v)))
-              |> pairself (fn lits => fold (curry s_disj) lits @{term False})
+              |> apply2 (fn lits => fold (curry s_disj) lits @{term False})
           in
             s_disj (HOLogic.all_const T
                 $ Abs (s, T, unskolem (safe_abstract_over (Var v, kill_skolem_arg haves))),

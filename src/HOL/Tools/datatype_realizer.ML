@@ -106,7 +106,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
+    val inst = map (apply2 cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
     val thm =

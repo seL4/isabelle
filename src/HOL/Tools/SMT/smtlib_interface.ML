@@ -149,7 +149,7 @@ fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
     |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
     |> fold sdtyp (AList.coalesce (op =) dtyps)
     |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
-        (sort (fast_string_ord o pairself fst) funcs)
+        (sort (fast_string_ord o apply2 fst) funcs)
     |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
         (SMTLIB.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t))))) (map_index I ts)
     |> Buffer.add "(check-sat)\n"

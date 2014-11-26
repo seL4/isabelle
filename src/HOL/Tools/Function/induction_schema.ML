@@ -339,7 +339,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
       |> (curry op COMP) wf_thm
       |> (curry op COMP) istep
 
-    val steps_sorted = map snd (sort (int_ord o pairself fst) steps)
+    val steps_sorted = map snd (sort (int_ord o apply2 fst) steps)
   in
     (steps_sorted, induct_rule)
   end
@@ -356,8 +356,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     val x = Free (xn, ST)
     val cert = cterm_of (Proof_Context.theory_of ctxt)
 
-    val ineqss = mk_ineqs R scheme
-      |> map (map (pairself (Thm.assume o cert)))
+    val ineqss = mk_ineqs R scheme |> map (map (apply2 (Thm.assume o cert)))
     val complete =
       map_range (mk_completeness ctxt scheme #> cert #> Thm.assume) (length branches)
     val wf_thm = mk_wf R scheme |> cert |> Thm.assume

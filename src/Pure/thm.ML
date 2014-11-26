@@ -338,7 +338,7 @@ fun crep_thm (Thm (_, {thy, tags, maxidx, shyps, hyps, tpairs, prop})) =
   let fun cterm max t = Cterm {thy = thy, t = t, T = propT, maxidx = max, sorts = shyps} in
    {thy = thy, tags = tags, maxidx = maxidx, shyps = shyps,
     hyps = map (cterm ~1) hyps,
-    tpairs = map (pairself (cterm maxidx)) tpairs,
+    tpairs = map (apply2 (cterm maxidx)) tpairs,
     prop = cterm maxidx prop}
   end;
 
@@ -1000,7 +1000,7 @@ fun flexflex_rule opt_ctxt (th as Thm (der, {thy, maxidx, shyps, hyps, tpairs, p
       if Envir.is_empty env then th
       else
         let
-          val tpairs' = tpairs |> map (pairself (Envir.norm_term env))
+          val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
             (*remove trivial tpairs, of the form t==t*)
             |> filter_out (op aconv);
           val der' = deriv_rule1 (Proofterm.norm_proof' env) der;
@@ -1039,7 +1039,7 @@ fun generalize ([], []) _ th = th
 
         val gen = Term_Subst.generalize (tfrees, frees) idx;
         val prop' = gen prop;
-        val tpairs' = map (pairself gen) tpairs;
+        val tpairs' = map (apply2 gen) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
       in
         Thm (deriv_rule1 (Proofterm.generalize (tfrees, frees) idx) der,
@@ -1291,7 +1291,7 @@ fun lift_rule goal orule =
         maxidx = maxidx + inc,
         shyps = Sorts.union shyps sorts,  (*sic!*)
         hyps = hyps,
-        tpairs = map (pairself lift_abs) tpairs,
+        tpairs = map (apply2 lift_abs) tpairs,
         prop = Logic.list_implies (map lift_all As, lift_all B)})
   end;
 
@@ -1305,7 +1305,7 @@ fun incr_indexes i (thm as Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ..
       maxidx = maxidx + i,
       shyps = shyps,
       hyps = hyps,
-      tpairs = map (pairself (Logic.incr_indexes ([], i))) tpairs,
+      tpairs = map (apply2 (Logic.incr_indexes ([], i))) tpairs,
       prop = Logic.incr_indexes ([], i) prop});
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption. *)
@@ -1324,7 +1324,7 @@ fun assumption opt_ctxt i state =
         hyps = hyps,
         tpairs =
           if Envir.is_empty env then tpairs
-          else map (pairself (Envir.norm_term env)) tpairs,
+          else map (apply2 (Envir.norm_term env)) tpairs,
         prop =
           if Envir.is_empty env then (*avoid wasted normalizations*)
             Logic.list_implies (Bs, C)
@@ -1504,7 +1504,7 @@ fun rename_bvs [] _ _ _ _ = K I
           |> fold (add_var o snd) tpairs;
         val vids' = fold (add_var o strip_lifted B) As [];
         (*unknowns appearing elsewhere be preserved!*)
-        val al' = distinct ((op =) o pairself fst)
+        val al' = distinct ((op =) o apply2 fst)
           (filter_out (fn (x, y) =>
              not (member (op =) vids' x) orelse
              member (op =) vids x orelse member (op =) vids y) al);
@@ -1598,7 +1598,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
            val (ntpairs, normp) =
              if Envir.is_empty env then (tpairs, (Bs @ As, C))
              else
-             let val ntps = map (pairself normt) tpairs
+             let val ntps = map (apply2 normt) tpairs
              in if Envir.above env smax then
                   (*no assignments in state; normalize the rule only*)
                   if lifted

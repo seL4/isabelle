@@ -1176,7 +1176,7 @@ end;
 
 fun dest_cases ctxt =
   Name_Space.fold_table (fn (a, (c, i)) => cons (i, (a, c))) (cases_of ctxt) []
-  |> sort (int_ord o pairself #1) |> map #2;
+  |> sort (int_ord o apply2 #1) |> map #2;
 
 local
 
@@ -1255,7 +1255,7 @@ fun pretty_abbrevs show_globals ctxt =
   let
     val space = const_space ctxt;
     val (constants, global_constants) =
-      pairself (#constants o Consts.dest) (#consts (rep_data ctxt));
+      apply2 (#constants o Consts.dest) (#consts (rep_data ctxt));
     val globals = Symtab.make global_constants;
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME t)) =

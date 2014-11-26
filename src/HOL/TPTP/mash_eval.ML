@@ -66,7 +66,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
         (if is_none outcome then
            "Success (" ^ ATP_Util.string_of_time run_time ^ "): " ^
            (used_facts |> map (with_index facts o fst)
-                       |> sort (int_ord o pairself fst)
+                       |> sort (int_ord o apply2 fst)
                        |> map index_str
                        |> space_implode " ") ^
            (if length facts < the max_facts then

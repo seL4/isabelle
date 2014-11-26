@@ -128,7 +128,7 @@ fun invalid_map ctxt t =
 fun unexpected_corec_call ctxt t =
   error ("Unexpected corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
 
-fun sort_list_duplicates xs = map snd (sort (int_ord o pairself fst) xs);
+fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
 
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
@@ -415,7 +415,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val coinduct_attrs_pair =
       (case gfp_sugar_thms of SOME ((_, attrs_pair), _, _, _, _) => attrs_pair | NONE => ([], []));
 
-    val perm_fp_sugars = sort (int_ord o pairself #fp_res_index) fp_sugars;
+    val perm_fp_sugars = sort (int_ord o apply2 #fp_res_index) fp_sugars;
 
     val indices = map #fp_res_index fp_sugars;
     val perm_indices = map #fp_res_index perm_fp_sugars;
@@ -998,7 +998,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val callssss =
       map_filter (try (fn Sel x => x)) eqns_data
-      |> partition_eq (op = o pairself #fun_name)
+      |> partition_eq (op = o apply2 #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (flat o snd)
       |> map2 (fold o find_corec_calls lthy has_call) basic_ctr_specss
@@ -1012,21 +1012,24 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val ctr_specss = map #ctr_specs corec_specs;
 
     val disc_eqnss' = map_filter (try (fn Disc x => x)) eqns_data
-      |> partition_eq (op = o pairself #fun_name)
+      |> partition_eq (op = o apply2 #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
-      |> map (sort (op < o pairself #ctr_no |> make_ord) o flat o snd);
+      |> map (sort (op < o apply2 #ctr_no |> make_ord) o flat o snd);
 
     val _ = disc_eqnss' |> map (fn x =>
-      let val d = duplicates (op = o pairself #ctr_no) x in null d orelse
-        (if forall (is_some o #ctr_rhs_opt) x then
-          primcorec_error_eqns "multiple equations for constructor(s)"
-            (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
-              |> map (the o #ctr_rhs_opt)) else
-          primcorec_error_eqns "excess discriminator formula in definition"
-            (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn)) end);
+      let val d = duplicates (op = o apply2 #ctr_no) x in
+        null d orelse
+         (if forall (is_some o #ctr_rhs_opt) x then
+            primcorec_error_eqns "multiple equations for constructor(s)"
+              (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
+                |> map (the o #ctr_rhs_opt))
+          else
+            primcorec_error_eqns "excess discriminator formula in definition"
+              (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn))
+      end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
-      |> partition_eq (op = o pairself #fun_name)
+      |> partition_eq (op = o apply2 #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (flat o snd);
 
@@ -1316,7 +1319,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                   let
                     val ms = map (Logic.count_prems o prop_of) ctr_thms;
                     val (raw_goal, goal) = (raw_rhs, rhs)
-                      |> pairself (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
+                      |> apply2 (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                         #> curry Logic.list_all (map dest_Free fun_args));
                     val (distincts, discIs, _, split_sels, split_sel_asms) =
                       case_thms_of_term lthy raw_rhs;
@@ -1372,7 +1375,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         val ctr_alists = @{map 6} (fn disc_alist => maps oooo prove_ctr disc_alist) disc_alists
           (map (map snd) sel_alists) corec_specs disc_eqnss sel_eqnss ctr_specss;
         val ctr_thmss0 = map (map snd) ctr_alists;
-        val ctr_thmss = map (map (snd o snd) o sort (int_ord o pairself fst)) ctr_alists;
+        val ctr_thmss = map (map (snd o snd) o sort (int_ord o apply2 fst)) ctr_alists;
 
         val code_thmss =
           @{map 6} prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss0 ctr_specss;

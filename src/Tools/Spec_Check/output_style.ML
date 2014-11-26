@@ -24,7 +24,7 @@ val perl_style =
         val countw = 20
         val allw = namew + resultw + countw + 2
 
-        val maybe_sort = if sort_examples then sort (int_ord o pairself size) else I
+        val maybe_sort = if sort_examples then sort (int_ord o apply2 size) else I
 
         fun result ({count = 0, ...}, _) _ = "dubious"
           | result (_ : Property.stats, badobjs) false = if null badobjs then "ok" else "FAILED"

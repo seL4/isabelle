@@ -135,7 +135,7 @@ fun calculate prep_rules final raw_rules int state =
     val pretty_thm_item = Display.pretty_thm_item ctxt;
 
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
-    val eq_prop = op aconv o pairself (Envir.beta_eta_contract o strip_assums_concl);
+    val eq_prop = op aconv o apply2 (Envir.beta_eta_contract o strip_assums_concl);
     fun check_projection ths th =
       (case find_index (curry eq_prop th) ths of
         ~1 => Seq.Result [th]

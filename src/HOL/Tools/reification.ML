@@ -231,7 +231,7 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
         val substt =
           let
             val ih = Drule.cterm_rule (Thm.instantiate (subst_ty, []));
-          in map (pairself ih) (subst_ns @ subst_vs @ cts) end;
+          in map (apply2 ih) (subst_ns @ subst_vs @ cts) end;
         val th = (Drule.instantiate_normalize (subst_ty, substt) eq) RS sym;
       in (hd (Variable.export ctxt'' ctxt [th]), bds) end)
       handle Pattern.MATCH => tryeqs eqs (ct, ctxt) bds);
@@ -279,7 +279,8 @@ fun conv ctxt eqs ct =
   let
     val (congs, bds) = mk_congs ctxt eqs;
     val congs = rearrange congs;
-    val (th, bds') = apfst mk_eq (divide_and_conquer' (decomp_reify (mk_decompatom eqs) congs) (ct, ctxt) bds);
+    val (th, bds') =
+      apfst mk_eq (divide_and_conquer' (decomp_reify (mk_decompatom eqs) congs) (ct, ctxt) bds);
     fun is_list_var (Var (_, t)) = can dest_listT t
       | is_list_var _ = false;
     val vars = th |> prop_of |> Logic.dest_equals |> snd
@@ -287,7 +288,7 @@ fun conv ctxt eqs ct =
     val cert = cterm_of (Proof_Context.theory_of ctxt);
     val vs = map (fn v as Var (_, T) =>
       (v, the (AList.lookup Type.could_unify bds' T) |> snd |> HOLogic.mk_list (dest_listT T))) vars;
-    val th' = Drule.instantiate_normalize ([], (map o pairself) cert vs) th;
+    val th' = Drule.instantiate_normalize ([], (map o apply2) cert vs) th;
     val th'' = Thm.symmetric (dereify ctxt [] (Thm.lhs_of th'));
   in Thm.transitive th'' th' end;
 

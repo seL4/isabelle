@@ -33,10 +33,10 @@ open Fdl_Parser;
 
 fun err_unfinished () = error "An unfinished SPARK environment is still open."
 
-val strip_number = pairself implode o take_suffix Fdl_Lexer.is_digit o raw_explode;
+val strip_number = apply2 implode o take_suffix Fdl_Lexer.is_digit o raw_explode;
 
 val name_ord = prod_ord string_ord (option_ord int_ord) o
-  pairself (strip_number ##> Int.fromString);
+  apply2 (strip_number ##> Int.fromString);
 
 structure VCtab = Table(type key = string val ord = name_ord);
 
@@ -72,7 +72,7 @@ structure VCs = Theory_Data
 
 val to_lower = raw_explode #> map Symbol.to_ascii_lower #> implode;
 
-val lcase_eq = (op =) o pairself (to_lower o Long_Name.base_name);
+val lcase_eq = (op =) o apply2 (to_lower o Long_Name.base_name);
 
 fun lookup_prfx "" tab s = Symtab.lookup tab s
   | lookup_prfx prfx tab s = (case Symtab.lookup tab s of
@@ -366,7 +366,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
               | SOME {fields, ...} =>
                   let val fields' = invert_map cmap fields
                   in
-                    (case subtract (lcase_eq o pairself fst) fldTs fields' of
+                    (case subtract (lcase_eq o apply2 fst) fldTs fields' of
                        [] => ()
                      | flds => assoc_ty_err thy rT s ("has extra field(s) " ^
                          commas (map (Long_Name.base_name o fst) flds));
@@ -862,8 +862,8 @@ fun add_proof_fun prep (s, (optty, raw_t)) thy =
 
 fun check_mapping _ _ [] _ = ()
   | check_mapping err s cmap cs =
-      (case duplicates (op = o pairself fst) cmap of
-         [] => (case duplicates (op = o pairself snd) cmap of
+      (case duplicates (op = o apply2 fst) cmap of
+         [] => (case duplicates (op = o apply2 snd) cmap of
              [] => (case subtract (op = o apsnd snd) cs cmap of
                  [] => (case subtract (op = o apfst snd) cmap cs of
                      [] => ()

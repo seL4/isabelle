@@ -65,8 +65,8 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
             |> fold Variable.declare_thm (raw_thm :: prems);
           val thm_concl = Thm.cprop_of raw_thm |> strip_imp_concl;
           val (rhoTs, rhots) = Thm.match (thm_concl, concl)
-            |>> map (pairself typ_of)
-            ||> map (pairself term_of);
+            |>> map (apply2 typ_of)
+            ||> map (apply2 term_of);
           val xs = hd (Thm.prems_of raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
             |> map (subst_atomic_types rhoTs);
           val raw_eqs = map (fn x => (x, AList.lookup op aconv rhots x |> the)) xs;

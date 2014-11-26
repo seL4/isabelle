@@ -98,14 +98,14 @@ fun lookup (Cache {path = cache_path, table}) str =
               else if i < p + len2 then (i+1, apsnd (cons line) xsp)
               else (i, xsp)
             val (out, err) =
-              pairself rev (snd (File.fold_lines load cache_path (1, ([], []))))
+              apply2 rev (snd (File.fold_lines load cache_path (1, ([], []))))
           in ((SOME {output = err, redirected_output = out, return_code = 0}, key), tab) end))
   end
 
 fun run_and_cache (Cache {path = cache_path, table}) key make_cmd str =
   let
     val {output = err, redirected_output=out, return_code} = run make_cmd str
-    val (l1, l2) = pairself length (out, err)
+    val (l1, l2) = apply2 length (out, err)
     val header = key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
     val lines = map (suffix "\n") (header :: out @ err)
 

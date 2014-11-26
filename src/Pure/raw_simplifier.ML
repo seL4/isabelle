@@ -342,7 +342,7 @@ fun merge_ss (ss1, ss2) =
       val rules' = Net.merge eq_rrule (rules1, rules2);
       val prems' = Thm.merge_thms (prems1, prems2);
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
-      val congs' = merge (Thm.eq_thm_prop o pairself #2) (congs1, congs2);
+      val congs' = merge (Thm.eq_thm_prop o apply2 #2) (congs1, congs2);
       val weak' = merge (op =) (weak1, weak2);
       val procs' = Net.merge eq_proc (procs1, procs2);
       val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
@@ -1036,7 +1036,7 @@ fun congc prover ctxt maxt cong t =
         (case check_conv ctxt true (Drule.beta_eta_conversion t) thm2 of
           NONE => err ("Congruence proof failed.  Should not have proved", thm2)
         | SOME thm2' =>
-            if op aconv (pairself term_of (Thm.dest_equals (cprop_of thm2')))
+            if op aconv (apply2 term_of (Thm.dest_equals (cprop_of thm2')))
             then NONE else SOME thm2'))
   end;
 

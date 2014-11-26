@@ -362,7 +362,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (fold2 (fn T_name => fn Const (size_name, _) =>
              Symtab.update (T_name, (size_name,
-               pairself (map (Morphism.thm (phi0 $> phi))) (size_simps, flat size_gen_o_map_thmss))))
+               apply2 (map (Morphism.thm (phi0 $> phi))) (size_simps, flat size_gen_o_map_thmss))))
            T_names size_consts))
     end
   | generate_datatype_size _ lthy = lthy;

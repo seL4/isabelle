@@ -145,7 +145,7 @@ fun reverse_greedy typing_spot_tab =
     val (typing_spots, tvar_count_tab) =
       Var_Set_Tab.fold (fn kv as (k, _) => apfst (cons kv) #> apsnd (update_count 1 k))
         typing_spot_tab ([], Vartab.empty)
-      |>> sort_distinct (rev_order o cost_ord o pairself snd)
+      |>> sort_distinct (rev_order o cost_ord o apply2 snd)
   in
     fold drop_superfluous typing_spots ([], tvar_count_tab) |> fst
   end

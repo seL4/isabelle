@@ -123,7 +123,7 @@ fun extract_case thy (case_outline, raw_prop) name hyp_names concls =
               (app (map (Term.dummy_pattern o #2) fixes2) (fold_rev Term.abs fixes2 t));
         val (assumes1, assumes2) =
           extract_assumes name hyp_names case_outline prop
-          |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
+          |> apply2 (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = Object_Logic.drop_judgment thy (Logic.strip_assums_concl prop);
         val binds =
@@ -428,7 +428,7 @@ fun internalize_params rule =
 local
 
 fun equal_cterms ts us =
-  is_equal (list_ord (Term_Ord.fast_term_ord o pairself Thm.term_of) (ts, us));
+  is_equal (list_ord (Term_Ord.fast_term_ord o apply2 Thm.term_of) (ts, us));
 
 fun prep_rule n th =
   let

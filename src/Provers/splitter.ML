@@ -274,7 +274,7 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) thy
   in posns Ts [] [] t end;
 
 fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
-  prod_ord (int_ord o pairself length) (order o pairself length)
+  prod_ord (int_ord o apply2 length) (order o apply2 length)
     ((ps, pos), (qs, qos));
 
 

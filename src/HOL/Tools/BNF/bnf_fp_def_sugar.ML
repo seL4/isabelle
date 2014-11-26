@@ -2167,7 +2167,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             val sel_bTs =
               flat sel_bindingss ~~ flat sel_Tss
               |> filter_out (Binding.is_empty o fst)
-              |> distinct (Binding.eq_name o pairself fst);
+              |> distinct (Binding.eq_name o apply2 fst);
             val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy;
 
             val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;

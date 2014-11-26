@@ -164,7 +164,7 @@ val ssubst = Drule.zero_var_indexes (Data.sym RS Data.subst);
 
 fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>
-      Data.dest_Trueprop #> Data.dest_eq #> pairself contract) (Thm.term_of cBi) of
+      Data.dest_Trueprop #> Data.dest_eq #> apply2 contract) (Thm.term_of cBi) of
     SOME (t, t') =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -183,10 +183,10 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
             (case (if b then t else t') of
               Bound j => subst_bounds (map Bound ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
             | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
-        val (instT, _) = Thm.match (pairself (cterm_of thy o Logic.mk_type) (V, U));
+        val (instT, _) = Thm.match (apply2 (cterm_of thy o Logic.mk_type) (V, U));
       in
         compose_tac ctxt (true, Drule.instantiate_normalize (instT,
-          map (pairself (cterm_of thy))
+          map (apply2 (cterm_of thy))
             [(Var (ixn, Ts ---> U --> body_type T), u),
              (Var (fst (dest_Var (head_of v1)), Ts ---> U), fold_rev Term.abs ps t),
              (Var (fst (dest_Var (head_of v2)), Ts ---> U), fold_rev Term.abs ps t')]) rl',

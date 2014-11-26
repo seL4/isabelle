@@ -390,7 +390,7 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
         (if Ts1 = Ts2 andalso length Ts1 = 1 then "itself" else qsotys Ts2));
 
     val sorted_actual_Ts =
-      sort (prod_ord int_ord Term_Ord.typ_ord o pairself (`Term.size_of_typ)) actual_Ts;
+      sort (prod_ord int_ord Term_Ord.typ_ord o apply2 (`Term.size_of_typ)) actual_Ts;
 
     fun the_ctrs_of (Type (s, Ts)) = map (mk_ctr Ts) (#ctrs (the (ctr_sugar_of lthy s)));
 

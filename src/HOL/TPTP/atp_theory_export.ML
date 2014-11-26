@@ -127,7 +127,7 @@ fun ident_of_problem_line (Class_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Class_Memb (ident, _, _, _)) = ident
   | ident_of_problem_line (Formula ((ident, _), _, _, _, _)) = ident
 
-fun order_facts ord = sort (ord o pairself ident_of_problem_line)
+fun order_facts ord = sort (ord o apply2 ident_of_problem_line)
 
 fun order_problem_facts _ [] = []
   | order_problem_facts ord ((heading, lines) :: problem) =
@@ -166,7 +166,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val facts =
       Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) true false
                                   Keyword.empty_keywords [] [] css_table
-      |> sort (Sledgehammer_MaSh.crude_thm_ord o pairself snd)
+      |> sort (Sledgehammer_MaSh.crude_thm_ord o apply2 snd)
     val problem =
       facts
       |> map (fn ((_, loc), th) =>
@@ -202,7 +202,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val order_tab =
       Symtab.empty
       |> fold (Symtab.insert (op =)) (ordered_names ~~ (1 upto length ordered_names))
-    val name_ord = int_ord o pairself (the o Symtab.lookup order_tab)
+    val name_ord = int_ord o apply2 (the o Symtab.lookup order_tab)
   in
     problem
     |> (case format of
@@ -297,7 +297,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
       problem_of_theory ctxt thy format infer_policy type_enc
       |> split_last
       ||> (snd
-           #> chop_maximal_groups (op = o pairself theory_name_of_fact)
+           #> chop_maximal_groups (op = o apply2 theory_name_of_fact)
            #> map (`(include_base_name_of_fact o hd)))
     fun write_prelude () =
       let val ss = lines_of_problem ctxt format prelude in

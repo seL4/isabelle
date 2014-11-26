@@ -575,7 +575,7 @@ fun sdpa_of_blockdiagonal k m =
       Inttriplefunc.fold
         (fn ((b, i, j), c) => fn a => if i > j then a else ((b, i, j), c) :: a)
         m []
-    val entss = sort (triple_int_ord o pairself fst) ents
+    val entss = sort (triple_int_ord o apply2 fst) ents
   in
     fold_rev (fn ((b,i,j),c) => fn a =>
       pfx ^ string_of_int b ^ " " ^ string_of_int i ^ " " ^ string_of_int j ^

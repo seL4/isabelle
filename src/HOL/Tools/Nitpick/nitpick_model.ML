@@ -107,7 +107,7 @@ fun add_wacky_syntax ctxt =
       Sign.declare_const_global ((@{binding nitpick_step}, @{typ "'a => 'a"}),
                           Mixfix (step_mixfix (), [1000], 1000)) thy
   in
-    (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
+    (apply2 (apply2 name_of) ((maybe_t, abs_t), (base_t, step_t)),
      Proof_Context.transfer thy ctxt)
   end
 
@@ -158,7 +158,7 @@ fun extract_real_number (Const (@{const_name divide}, _) $ t1 $ t2) =
   | extract_real_number t = real (snd (HOLogic.dest_number t))
 
 fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
-  | nice_term_ord tp = Real.compare (pairself extract_real_number tp)
+  | nice_term_ord tp = Real.compare (apply2 extract_real_number tp)
     handle TERM ("dest_number", _) =>
            case tp of
              (t11 $ t12, t21 $ t22) =>
@@ -213,7 +213,7 @@ fun unarize_unbox_etc_term (Const (@{const_name FunBox}, _) $ t1) =
 
 fun factor_out_types (T1 as Type (@{type_name prod}, [T11, T12]))
                      (T2 as Type (@{type_name prod}, [T21, T22])) =
-    let val (n1, n2) = pairself num_factors_in_type (T11, T21) in
+    let val (n1, n2) = apply2 num_factors_in_type (T11, T21) in
       if n1 = n2 then
         let
           val ((T11', opt_T12'), (T21', opt_T22')) = factor_out_types T12 T22
@@ -259,13 +259,13 @@ val dest_plain_fun =
           (maybe_opt, (t1 :: ts1, t2 :: ts2))
         end
       | aux t = raise TERM ("Nitpick_Model.dest_plain_fun", [t])
-  in apsnd (pairself rev) o aux end
+  in apsnd (apply2 rev) o aux end
 
 fun break_in_two T T1 T2 t =
   let
     val ps = HOLogic.flat_tupleT_paths T
     val cut = length (HOLogic.strip_tupleT T1)
-    val (ps1, ps2) = pairself HOLogic.flat_tupleT_paths (T1, T2)
+    val (ps1, ps2) = apply2 HOLogic.flat_tupleT_paths (T1, T2)
     val (ts1, ts2) = t |> HOLogic.strip_ptuple ps |> chop cut
   in (HOLogic.mk_ptuple ps1 T1 ts1, HOLogic.mk_ptuple ps2 T2 ts2) end
 
@@ -446,7 +446,7 @@ and reconstruct_term maybe_opt unfold pool
              Type (@{type_name option}, [T2']) =>
              let
                val (maybe_opt, ts_pair) =
-                 dest_plain_fun t ||> pairself (map (polish_funs Ts))
+                 dest_plain_fun t ||> apply2 (map (polish_funs Ts))
              in make_map maybe_opt T1 T2 T2' (rev (op ~~ ts_pair)) end
            | _ => raise SAME ()
          else
@@ -472,7 +472,7 @@ and reconstruct_term maybe_opt unfold pool
              | t => t
     fun make_fun_or_set maybe_opt T T1 T2 T' ts1 ts2 =
       ts1 ~~ ts2
-      |> sort (nice_term_ord o pairself fst)
+      |> sort (nice_term_ord o apply2 fst)
       |> (case T of
             Type (@{type_name set}, _) =>
             sort_wrt (truth_const_sort_key o snd)
@@ -703,7 +703,7 @@ fun const_format thy def_tables (x as (s, T)) =
 fun intersect_formats _ [] = []
   | intersect_formats [] _ = []
   | intersect_formats ks1 ks2 =
-    let val ((ks1', k1), (ks2', k2)) = pairself split_last (ks1, ks2) in
+    let val ((ks1', k1), (ks2', k2)) = apply2 split_last (ks1, ks2) in
       intersect_formats (ks1' @ (if k1 > k2 then [k1 - k2] else []))
                         (ks2' @ (if k2 > k1 then [k2 - k1] else [])) @
       [Int.min (k1, k2)]
@@ -870,7 +870,7 @@ fun bisimilar_values _ 0 _ = true
       if exists_subtype (member (op =) coTs) T then
         let
           val ((head1, args1), (head2, args2)) =
-            pairself (strip_comb o unfold_outer_the_binders) (t1, t2)
+            apply2 (strip_comb o unfold_outer_the_binders) (t1, t2)
           val max_depth = max_depth - (if member (op =) coTs T then 1 else 0)
         in
           head1 = head2 andalso

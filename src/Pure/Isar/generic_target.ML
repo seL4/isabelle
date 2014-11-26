@@ -167,7 +167,7 @@ fun background_declaration decl lthy =
 
 fun background_abbrev (b, global_rhs) params =
   Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, global_rhs))
-  #>> pairself (fn t => Term.list_comb (Logic.unvarify_global t, params))
+  #>> apply2 (fn t => Term.list_comb (Logic.unvarify_global t, params))
 
 
 (** lifting primitive to local theory operations **)
@@ -190,7 +190,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
-    val term_params = map Free (sort (Variable.fixed_ord lthy o pairself #1) xs);
+    val term_params = map Free (sort (Variable.fixed_ord lthy o apply2 #1) xs);
     val params = type_params @ term_params;
 
     val U = map Term.fastype_of params ---> T;
@@ -247,8 +247,8 @@ fun import_export_proof ctxt (name, raw_th) =
 
     val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
     val inst = filter (is_Var o fst) (vars ~~ frees);
-    val cinstT = map (pairself certT o apfst TVar) instT;
-    val cinst = map (pairself (cert o Term.map_types (Term_Subst.instantiateT instT))) inst;
+    val cinstT = map (apply2 certT o apfst TVar) instT;
+    val cinst = map (apply2 (cert o Term.map_types (Term_Subst.instantiateT instT))) inst;
     val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)
@@ -287,7 +287,7 @@ fun abbrev abbrev' prmode ((b, mx), rhs) lthy =
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     val rhs' = Assumption.export_term lthy (Local_Theory.target_of lthy) rhs;
-    val term_params = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy rhs' []));
+    val term_params = map Free (sort (Variable.fixed_ord lthy o apply2 #1) (Variable.add_fixed lthy rhs' []));
     val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 

@@ -219,7 +219,7 @@ fun unify ctxt =
       quote (Syntax.string_of_typ ctxt (Type (a, replicate (length Ts) dummyT)));
 
     fun unif (T1, T2) (env as (tye, _)) =
-      (case pairself (`Type_Infer.is_paramT o Type_Infer.deref tye) (T1, T2) of
+      (case apply2 (`Type_Infer.is_paramT o Type_Infer.deref tye) (T1, T2) of
         ((true, TVar (xi, S)), (_, T)) => assign xi T S env
       | ((_, T), (true, TVar (xi, S))) => assign xi T S env
       | ((_, Type (a, Ts)), (_, Type (b, Us))) =>

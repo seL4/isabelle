@@ -330,9 +330,9 @@ end;
 local
 
 val index_ord = option_ord (K EQUAL);
-val hidden_ord = bool_ord o pairself Long_Name.is_hidden;
-val qual_ord = int_ord o pairself Long_Name.qualification;
-val txt_ord = int_ord o pairself size;
+val hidden_ord = bool_ord o apply2 Long_Name.is_hidden;
+val qual_ord = int_ord o apply2 Long_Name.qualification;
+val txt_ord = int_ord o apply2 size;
 
 fun nicer_name (x, i) (y, j) =
   (case hidden_ord (x, y) of EQUAL =>
@@ -368,9 +368,9 @@ fun nicer_shortest ctxt =
 
 fun rem_thm_dups nicer xs =
   (xs ~~ (1 upto length xs))
-  |> sort (Term_Ord.fast_term_ord o pairself (Thm.full_prop_of o #2 o #1))
+  |> sort (Term_Ord.fast_term_ord o apply2 (Thm.full_prop_of o #2 o #1))
   |> rem_cdups nicer
-  |> sort (int_ord o pairself #2)
+  |> sort (int_ord o apply2 #2)
   |> map #1;
 
 end;

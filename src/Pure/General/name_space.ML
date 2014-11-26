@@ -152,7 +152,7 @@ fun the_entry (Name_Space {kind, entries, ...}) name =
     NONE => error (undefined kind name)
   | SOME (_, entry) => entry);
 
-fun entry_ord space = int_ord o pairself (#serial o the_entry space);
+fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
 
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
@@ -216,7 +216,7 @@ fun extern ctxt space name =
     else ext (get_accesses space name)
   end;
 
-fun extern_ord ctxt space = string_ord o pairself (extern ctxt space);
+fun extern_ord ctxt space = string_ord o apply2 (extern ctxt space);
 
 fun extern_shortest ctxt =
   extern
@@ -235,9 +235,9 @@ fun completion context space (xname, pos) =
   if Position.is_reported pos andalso xname <> "" andalso xname <> "_" then
     let
       fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
-        (case bool_ord (pairself Long_Name.is_local (name2, name1)) of
+        (case bool_ord (apply2 Long_Name.is_local (name2, name1)) of
           EQUAL =>
-            (case int_ord (pairself Long_Name.qualification (xname1, xname2)) of
+            (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
               EQUAL => string_ord (xname1, xname2)
             | ord => ord)
         | ord => ord);
@@ -373,7 +373,7 @@ fun accesses naming binding =
     val spec = #2 (name_spec naming binding);
     val sfxs = mandatory_suffixes spec;
     val pfxs = mandatory_prefixes spec;
-  in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
+  in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
 
 
 (* hide *)

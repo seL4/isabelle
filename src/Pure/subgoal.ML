@@ -86,7 +86,7 @@ fun lift_import idx params th ctxt =
           else (Ts ---> T, ts);
         val u = Free (y, U);
         in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;
-    val (inst1, inst2) = split_list (map (pairself (pairself cert)) (map2 var_inst vars ys));
+    val (inst1, inst2) = split_list (map (apply2 (apply2 cert)) (map2 var_inst vars ys));
 
     val th'' = Thm.instantiate ([], inst1) th';
   in ((inst2, th''), ctxt'') end;

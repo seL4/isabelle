@@ -100,7 +100,7 @@ fun decompose thy Ts (p as (t, u)) env =
       if a <> b then cantunify thy p
       else apfst flat (fold_map (decompose thy Ts) (ts ~~ us) (uT env T U))
   in
-    case pairself (strip_comb o Envir.head_norm env) p of
+    case apply2 (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
     | ((Bound i, ts), (Bound j, us)) =>
@@ -254,7 +254,7 @@ fun solve _ [] bigenv = bigenv
       let
         fun search env [] = error ("Unsolvable constraints:\n" ^
               Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                Goal_Display.pretty_flexpair (Syntax.init_pretty_global thy) (pairself
+                Goal_Display.pretty_flexpair (Syntax.init_pretty_global thy) (apply2
                   (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
@@ -289,7 +289,7 @@ fun reconstruct_proof thy prop cprf =
     val (t, prf, cs, env, _) = make_constraints_cprf thy
       (Envir.empty (Proofterm.maxidx_proof cprf ~1)) cprf';
     val cs' =
-      map (pairself (Envir.norm_term env)) ((t, prop') :: cs)
+      map (apply2 (Envir.norm_term env)) ((t, prop') :: cs)
       |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve thy cs' env

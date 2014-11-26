@@ -57,7 +57,7 @@ fun init proof_file _ thy =
     fun do_line line =
       (case line |> space_explode ":" of
         [line_num, offset, proof] =>
-        SOME (pairself (the o Int.fromString) (line_num, offset),
+        SOME (apply2 (the o Int.fromString) (line_num, offset),
               proof |> space_explode " " |> filter_out (curry (op =) ""))
        | _ => NONE)
     val proofs = File.read (Path.explode proof_file)

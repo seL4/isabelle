@@ -324,7 +324,7 @@ fun quot_normal_name_for_type ctxt T =
 
 val strip_first_name_sep =
   Substring.full #> Substring.position name_sep ##> Substring.triml 1
-  #> pairself Substring.string
+  #> apply2 Substring.string
 
 fun original_name s =
   if String.isPrefix nitpick_prefix s then
@@ -460,7 +460,7 @@ fun strict_type_match thy (T1, T2) =
   (Sign.typ_match thy (T2, T1) Vartab.empty; true)
   handle Type.TYPE_MATCH => false
 
-fun type_match thy = strict_type_match thy o pairself unarize_unbox_etc_type
+fun type_match thy = strict_type_match thy o apply2 unarize_unbox_etc_type
 
 fun const_match thy ((s1, T1), (s2, T2)) =
   s1 = s2 andalso type_match thy (T1, T2)
@@ -1329,7 +1329,7 @@ fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
   | is_ground_term _ = false
 
 fun special_bounds ts =
-  fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o pairself fst)
+  fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o apply2 fst)
 
 fun is_funky_typedef_name ctxt s =
   member (op =) [@{type_name unit}, @{type_name prod}, @{type_name set},
@@ -1350,7 +1350,7 @@ fun all_defs_of thy subst =
     Theory.nodes_of thy
     |> maps Thm.axioms_of
     |> map (apsnd (subst_atomic subst o prop_of))
-    |> sort (fast_string_ord o pairself fst)
+    |> sort (fast_string_ord o apply2 fst)
     |> Ord_List.inter (fast_string_ord o apsnd fst) def_names
     |> map snd
   end
@@ -1607,7 +1607,7 @@ fun optimized_case_def (hol_ctxt as {ctxt, ...}) Ts dataT res_T func_ts =
                   discriminate_value hol_ctxt x (Bound 0)))
       |> AList.group (op aconv)
       |> map (apsnd (List.foldl s_disj @{const False}))
-      |> sort (int_ord o pairself (size_of_term o snd))
+      |> sort (int_ord o apply2 (size_of_term o snd))
       |> rev
   in
     if res_T = bool_T then
@@ -1727,7 +1727,7 @@ fun unfold_defs_in_term
         else
           do_const depth Ts t x [t1, t2, t3]
       | Const (@{const_name Let}, _) $ t1 $ t2 =>
-        s_betapply Ts (pairself (do_term depth Ts) (t2, t1))
+        s_betapply Ts (apply2 (do_term depth Ts) (t2, t1))
       | Const x => do_const depth Ts t x []
       | t1 $ t2 =>
         (case strip_comb t of
@@ -1979,7 +1979,7 @@ fun inverse_axioms_for_rep_fun ctxt (x as (_, T)) =
   in
     typedef_info ctxt (fst (dest_Type abs_T)) |> the
     |> pairf #Abs_inverse #Rep_inverse
-    |> pairself (specialize_type thy x o prop_of o the)
+    |> apply2 (specialize_type thy x o prop_of o the)
     ||> single |> op ::
   end
 
@@ -2089,7 +2089,7 @@ val tuple_for_args = HOLogic.mk_tuple o snd o strip_comb
 fun wf_constraint_for rel side concl main =
   let
     val core = HOLogic.mk_mem (HOLogic.mk_prod
-                               (pairself tuple_for_args (main, concl)), Var rel)
+                               (apply2 tuple_for_args (main, concl)), Var rel)
     val t = List.foldl HOLogic.mk_imp core side
     val vars = filter_out (curry (op =) rel) (Term.add_vars t [])
   in
@@ -2182,7 +2182,7 @@ fun ap_curry [_] _ t = t
     end
 
 fun num_occs_of_bound_in_term j (t1 $ t2) =
-    op + (pairself (num_occs_of_bound_in_term j) (t1, t2))
+    op + (apply2 (num_occs_of_bound_in_term j) (t1, t2))
   | num_occs_of_bound_in_term j (Abs (_, _, t')) =
     num_occs_of_bound_in_term (j + 1) t'
   | num_occs_of_bound_in_term j (Bound j') = if j' = j then 1 else 0
@@ -2397,7 +2397,7 @@ fun merged_type_var_table_for_terms thy ts =
             filter_out (fn (S', _) => Sign.subsort thy (S, S'))
             #> cons (S, s))
     val tfrees = [] |> fold Term.add_tfrees ts
-                    |> sort (string_ord o pairself fst)
+                    |> sort (string_ord o apply2 fst)
   in [] |> fold add tfrees |> rev end
 
 fun merge_type_vars_in_term thy merge_type_vars table =

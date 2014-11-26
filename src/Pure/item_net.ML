@@ -64,7 +64,7 @@ fun merge
 fun remove x (items as Items {eq, index, content, next, net}) =
   if member items x then
     mk_items eq index (Library.remove eq x content) next
-      (fold (fn t => Net.delete_term_safe (eq o pairself #2) (t, (0, x))) (index x) net)
+      (fold (fn t => Net.delete_term_safe (eq o apply2 #2) (t, (0, x))) (index x) net)
   else items;
 
 fun update x items = cons x (remove x items);

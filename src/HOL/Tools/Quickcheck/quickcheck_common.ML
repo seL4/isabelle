@@ -417,7 +417,7 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
     else case perhaps_constrain thy insts vs
      of SOME constrain => instantiate config descr
           (map constrain vs) tycos prfx (names, auxnames)
-            ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
+            ((apply2 o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;
 
@@ -491,7 +491,7 @@ fun post_process_term t =
       Type (@{type_name fun}, [T1, T2]) =>
         (case try dest_fun_upds t of
           SOME (tps, t) =>
-            (map (pairself post_process_term) tps, map_Abs post_process_term t)
+            (map (apply2 post_process_term) tps, map_Abs post_process_term t)
             |> (case T2 of
               @{typ bool} => 
                 (case t of

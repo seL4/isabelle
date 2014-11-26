@@ -415,7 +415,7 @@ fun elim ctxt (ineqs, hist) =
      let val c =
            fold (fn Lineq(_,_,l,_) => fn cs => union (op =) l cs) eqs []
            |> filter (fn i => i <> 0)
-           |> sort (int_ord o pairself abs)
+           |> sort (int_ord o apply2 abs)
            |> hd
          val (eq as Lineq(_,_,ceq,_),othereqs) =
                extract_first (fn Lineq(_,_,l,_) => member (op =) l c) eqs

@@ -110,7 +110,7 @@ fun pretty_consts ctxt raw_criteria =
 
     val matches =
       fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c))) constants []
-      |> sort (prod_ord (rev_order o int_ord) (string_ord o pairself fst))
+      |> sort (prod_ord (rev_order o int_ord) (string_ord o apply2 fst))
       |> map (apsnd fst o snd);
 
     val position_markup = Position.markup (Position.thread_data ()) Markup.position;

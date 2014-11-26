@@ -4006,7 +4006,7 @@ let
 fun binopT T = T --> T --> T;
 fun relT T = T --> T --> @{typ bool};
 
-val mk_C = @{code C} o pairself @{code int_of_integer};
+val mk_C = @{code C} o apply2 @{code int_of_integer};
 val mk_poly_Bound = @{code poly.Bound} o @{code nat_of_integer};
 val mk_Bound = @{code Bound} o @{code nat_of_integer};
 
@@ -4082,7 +4082,7 @@ fun fm_of_term fs ps @{term True} = @{code T}
 
 fun term_of_num T ps (@{code poly.C} (a, b)) =
       let
-        val (c, d) = pairself (@{code integer_of_int}) (a, b)
+        val (c, d) = apply2 (@{code integer_of_int}) (a, b)
       in
         (if d = 1 then HOLogic.mk_number T c
         else if d = 0 then Const (@{const_name Groups.zero}, T)

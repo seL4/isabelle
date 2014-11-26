@@ -225,7 +225,7 @@ fun remove_int_nat_coercions (eqs, defs) =
         SOME (@{const of_nat (int)}, _) => true
       | SOME (@{const nat}, _) => true
       | _ => false)
-  in pairself (replace_vars nats) (eqs', filter_out is_coercion defs) end
+  in apply2 (replace_vars nats) (eqs', filter_out is_coercion defs) end
 
 fun unfold_funapp (eqs, defs) =
   let
@@ -263,13 +263,13 @@ val unfold_eqs =
 
     fun unfold_vars (es, ds) =
       (case first_eq rewr_var es of
-        SOME (lr, es') => unfold_vars (pairself (replace lr) (es', ds))
+        SOME (lr, es') => unfold_vars (apply2 (replace lr) (es', ds))
       | NONE => (es, ds))
 
     fun unfold_frees ues (es, ds) =
       (case first_eq rewr_free es of
         SOME (lr, es') =>
-          pairself (replace lr) (es', ds)
+          apply2 (replace lr) (es', ds)
           |> unfold_frees (HOLogic.mk_eq lr :: replace lr ues)
       | NONE => (ues @ es, ds))
 
@@ -310,7 +310,7 @@ fun is_free_def (Const (@{const_name HOL.eq}, _) $ Free _ $ _) = true
   | is_free_def _ = false
 
 fun defined tp =
-  try (pairself (fst o HOLogic.dest_eq)) tp
+  try (apply2 (fst o HOLogic.dest_eq)) tp
   |> the_default false o Option.map (op aconv)
 
 fun add_free_defs free_cs defs =

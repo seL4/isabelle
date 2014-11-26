@@ -274,7 +274,7 @@ fun compile_eqs match_name eqs =
         | [] => fixrec_err "no defining equations for function"
         | _ => fixrec_err "all equations in block must define the same function"
     val vars =
-        case distinct (op = o pairself length) (map fst matchers) of
+        case distinct (op = o apply2 length) (map fst matchers) of
           [vars] => vars
         | _ => fixrec_err "all equations in block must have the same arity"
     (* rename so all matchers use same free variables *)

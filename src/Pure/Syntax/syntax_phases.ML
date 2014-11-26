@@ -864,8 +864,8 @@ fun print_checks ctxt =
   let
     fun split_checks checks =
       List.partition (fn ((_, un), _) => not un) checks
-      |> pairself (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
-          #> sort (int_ord o pairself fst));
+      |> apply2 (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
+          #> sort (int_ord o apply2 fst));
     fun pretty_checks kind checks =
       checks |> map (fn (i, names) => Pretty.block
         [Pretty.str (kind ^ " (stage " ^ signed_string_of_int i ^ "):"),
@@ -915,7 +915,7 @@ fun check which uncheck ctxt0 xs0 =
   let
     val funs = which (Checks.get (Context.Proof ctxt0))
       |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
-      |> Library.sort (int_ord o pairself fst) |> map snd
+      |> Library.sort (int_ord o apply2 fst) |> map snd
       |> not uncheck ? map rev;
   in #1 (perhaps (check_all funs) (xs0, ctxt0)) end;
 

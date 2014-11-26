@@ -187,7 +187,7 @@ val init_eval_state =
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state memo};
 
 fun eval_exec_id (Eval {exec_id, ...}) = exec_id;
-val eval_eq = op = o pairself eval_exec_id;
+val eval_eq = op = o apply2 eval_exec_id;
 
 val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
@@ -291,7 +291,7 @@ datatype print = Print of
   exec_id: Document_ID.exec, print_process: unit memo};
 
 fun print_exec_id (Print {exec_id, ...}) = exec_id;
-val print_eq = op = o pairself print_exec_id;
+val print_eq = op = o apply2 print_exec_id;
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 

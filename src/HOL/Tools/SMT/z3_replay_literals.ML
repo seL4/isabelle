@@ -254,7 +254,7 @@ fun join is_conj littab t =
       | NONE =>
           (case lookup_rule t of
             (rewrite, SOME lit) => (s, rewrite lit)
-          | (_, NONE) => (s, comp (pairself join1 (dest t)))))
+          | (_, NONE) => (s, comp (apply2 join1 (dest t)))))
 
   in snd (join1 (if is_conj then (false, t) else (true, t))) end
 
@@ -289,7 +289,7 @@ local
         SOME rs => extract_lit thm rs
       | NONE =>
           the (Termtab.get_first contra_lits rules)
-          |> pairself (extract_lit thm)
+          |> apply2 (extract_lit thm)
           |> (fn (nlit, plit) => nlit COMP (plit COMP contra_rule)))
     end
 

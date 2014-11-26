@@ -317,10 +317,9 @@ fun subst_term ([] : (term * term) list) (t : term) = t
           new
       | NONE     =>
           (case t of Abs (a, T, body) =>
-            let val pairs' = map (pairself (incr_boundvars 1)) pairs
+            let val pairs' = map (apply2 (incr_boundvars 1)) pairs
             in  Abs (a, T, subst_term pairs' body)  end
-          | t1 $ t2                   =>
-            subst_term pairs t1 $ subst_term pairs t2
+          | t1 $ t2 => subst_term pairs t1 $ subst_term pairs t2
           | _ => t));
 
 (* approximates the effect of one application of split_tac (followed by NNF  *)

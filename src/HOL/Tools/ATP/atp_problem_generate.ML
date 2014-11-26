@@ -789,8 +789,8 @@ fun lift_lams_part_2 ctxt (facts, lifted) =
   (facts, lifted)
   (* Lambda-lifting sometimes leaves some lambdas around; we need some way to
      get rid of them *)
-  |> pairself (map (introduce_combinators ctxt))
-  |> pairself (map constify_lifted)
+  |> apply2 (map (introduce_combinators ctxt))
+  |> apply2 (map constify_lifted)
   (* Requires bound variables not to clash with any schematic variables (as
      should be the case right after lambda-lifting). *)
   |>> map (hol_open_form (unprefix hol_close_form_prefix))
@@ -1317,7 +1317,7 @@ fun type_arg_cover thy pos s ary =
         []
       else
         0 upto length footprint - 1 ~~ footprint
-        |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
+        |> sort (rev_order o list_ord Term_Ord.indexname_ord o apply2 snd)
         |> cover []
     end
 
@@ -1752,7 +1752,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
                  ths ~~ (1 upto length ths)
                  |> maps (dub_and_inst needs_sound o apfst (apsnd prop_of))
                  |> make_facts
-                 |> union (op = o pairself #iformula))
+                 |> union (op = o apply2 #iformula))
            (if completish then completish_helper_table else helper_table)
     end
   | NONE => I)
@@ -1860,7 +1860,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts c
       |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
-      |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
+      |> presimp ? apply2 (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
       |> (if lam_trans = no_lamsN then
             rpair []
           else
@@ -2604,7 +2604,7 @@ fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried
     fun firstorderize in_helper =
       firstorderize_fact thy ctrss type_enc (uncurried_aliases andalso not in_helper) completish
         sym_tab0
-    val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
+    val (conjs, facts) = (conjs, facts) |> apply2 (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
@@ -2705,7 +2705,7 @@ fun atp_problem_selection_weights problem =
     |> fold (fold (add_line_weights type_info_default_weight) o get)
             [explicit_declsN, subclassesN, tconsN]
     |> Symtab.dest
-    |> sort (prod_ord Real.compare string_ord o pairself swap)
+    |> sort (prod_ord Real.compare string_ord o apply2 swap)
   end
 
 (* Ugly hack: may make innocent victims (collateral damage) *)
@@ -2733,8 +2733,7 @@ fun strip_ahorn_etc (ATyQuant (_, _, phi)) = strip_ahorn_etc phi
 
 fun strip_iff_etc (ATyQuant (_, _, phi)) = strip_iff_etc phi
   | strip_iff_etc (AQuant (_, _, phi)) = strip_iff_etc phi
-  | strip_iff_etc (AConn (AIff, [phi1, phi2])) =
-    pairself strip_up_to_predicator (phi1, phi2)
+  | strip_iff_etc (AConn (AIff, [phi1, phi2])) = apply2 strip_up_to_predicator (phi1, phi2)
   | strip_iff_etc _ = ([], [])
 
 val max_term_order_weight = 2147483647
@@ -2800,7 +2799,7 @@ fun atp_problem_term_order_info problem =
   in
     (* Sorting is not just for aesthetics: It specifies the precedence order for
        the term ordering (KBO or LPO), from smaller to larger values. *)
-    [] |> add_weights 1 (Graph.minimals graph) |> sort (int_ord o pairself snd)
+    [] |> add_weights 1 (Graph.minimals graph) |> sort (int_ord o apply2 snd)
   end
 
 end;

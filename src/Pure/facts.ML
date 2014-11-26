@@ -206,7 +206,7 @@ fun dest_static verbose prev_facts facts =
 
 (* indexed props *)
 
-val prop_ord = Term_Ord.term_ord o pairself Thm.full_prop_of;
+val prop_ord = Term_Ord.term_ord o apply2 Thm.full_prop_of;
 
 fun props (Facts {props, ...}) = sort_distinct prop_ord (Net.content props);
 fun could_unify (Facts {props, ...}) = Net.unify_term props;

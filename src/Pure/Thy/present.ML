@@ -277,7 +277,7 @@ fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
 
 (* finish session -- output all generated text *)
 
-fun sorted_index index = map snd (sort (int_ord o pairself fst) (rev index));
+fun sorted_index index = map snd (sort (int_ord o apply2 fst) (rev index));
 fun index_buffer index = Buffer.add (implode (sorted_index index)) Buffer.empty;
 
 fun write_tex src name path =

@@ -305,7 +305,7 @@ fun map_terms_bottom_up f (t as IConst _) = f t
       ((v, ty) `|=> map_terms_bottom_up f t)
   | map_terms_bottom_up f (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) = f
       (ICase { term = map_terms_bottom_up f t, typ = ty,
-        clauses = (map o pairself) (map_terms_bottom_up f) clauses,
+        clauses = (map o apply2) (map_terms_bottom_up f) clauses,
         primitive = map_terms_bottom_up f t0 });
 
 fun map_classparam_instances_as_term f =
@@ -889,7 +889,7 @@ fun read_const_exprs_internal ctxt =
           then ([], consts_of_select (Context.this_theory thy (unsuffix "._" s)))
           else ([Code.read_const thy str], [])
       | NONE => ([Code.read_const thy str], []));
-  in pairself flat o split_list o map read_const_expr end;
+  in apply2 flat o split_list o map read_const_expr end;
 
 fun read_const_exprs_all ctxt = op @ o read_const_exprs_internal ctxt;
 

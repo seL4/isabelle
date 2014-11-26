@@ -196,7 +196,7 @@ fun unify weak ctxt =
       quote (Syntax.string_of_typ ctxt (Type (a, replicate (length Ts) dummyT)));
 
     fun unif (T1, T2) (env as (tye, _)) =
-      (case pairself (`Type_Infer.is_paramT o Type_Infer.deref tye) (T1, T2) of
+      (case apply2 (`Type_Infer.is_paramT o Type_Infer.deref tye) (T1, T2) of
         ((true, TVar (xi, S)), (_, T)) => assign xi T S env
       | ((_, T), (true, TVar (xi, S))) => assign xi T S env
       | ((_, Type (a, Ts)), (_, Type (b, Us))) =>
@@ -348,7 +348,7 @@ fun process_constraints ctxt err cs tye_idx =
 
     fun split_cs _ [] = ([], [])
       | split_cs f (c :: cs) =
-          (case pairself f (fst c) of
+          (case apply2 f (fst c) of
             (false, false) => apsnd (cons c) (split_cs f cs)
           | _ => apfst (cons c) (split_cs f cs));
 
@@ -392,7 +392,7 @@ fun process_constraints ctxt err cs tye_idx =
             val test_update = is_typeT orf is_freeT orf is_fixedvarT;
             val (ch, done') =
               done
-              |> map (apfst (pairself (Type_Infer.deref tye')))
+              |> map (apfst (apply2 (Type_Infer.deref tye')))
               |> (if not (null new) then rpair []  else split_cs test_update);
             val todo' = ch @ todo;
           in
@@ -667,7 +667,8 @@ fun process_constraints ctxt err cs tye_idx =
 
 fun gen_coercion ctxt err tye TU =
   let
-    fun gen (T1, T2) = (case pairself (Type_Infer.deref tye) (T1, T2) of
+    fun gen (T1, T2) =
+      (case apply2 (Type_Infer.deref tye) (T1, T2) of
         (T1 as (Type (a, [])), T2 as (Type (b, []))) =>
             if a = b
             then mk_identity T1
@@ -949,7 +950,7 @@ fun transitive_coercion ctxt tab G (a, b) =
     val coercions = map (fst o the o Symreltab.lookup tab) path';
     val trans_co = singleton (Variable.polymorphic ctxt)
       (fold safe_app coercions (mk_identity dummyT));
-    val (Ts, Us) = pairself (snd o Term.dest_Type) (Term.dest_funT (type_of trans_co))
+    val (Ts, Us) = apply2 (snd o Term.dest_Type) (Term.dest_funT (type_of trans_co));
   in
     (trans_co, ((Ts, Us), coercions))
   end;
@@ -1076,7 +1077,7 @@ fun print_coercions ctxt =
 
     val type_space = Proof_Context.type_space ctxt;
     val tmaps =
-      sort (Name_Space.extern_ord ctxt type_space o pairself #1)
+      sort (Name_Space.extern_ord ctxt type_space o apply2 #1)
         (Symtab.dest (tmaps_of ctxt));
     fun show_map (c, (t, _)) =
       Pretty.block

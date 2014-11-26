@@ -213,7 +213,7 @@ fun min_rep (Opt R1) (Opt R2) = Opt (min_rep R1 R2)
   | min_rep (Struct Rs) _ = Struct Rs
   | min_rep _ (Struct Rs) = Struct Rs
   | min_rep (R1 as Func (R11, R12)) (R2 as Func (R21, R22)) =
-    (case pairself is_opt_rep (R12, R22) of
+    (case apply2 is_opt_rep (R12, R22) of
        (true, false) => R1
      | (false, true) => R2
      | _ => if R11 = R21 then Func (R11, min_rep R12 R22)

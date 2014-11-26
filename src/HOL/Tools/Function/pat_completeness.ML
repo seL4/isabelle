@@ -26,8 +26,7 @@ fun inst_free var inst = Thm.forall_elim inst o Thm.forall_intr var
 fun inst_case_thm thy x P thm =
   let val [Pv, xv] = Term.add_vars (prop_of thm) []
   in
-    thm |> cterm_instantiate (map (pairself (cterm_of thy))
-      [(Var xv, x), (Var Pv, P)])
+    thm |> cterm_instantiate (map (apply2 (cterm_of thy)) [(Var xv, x), (Var Pv, P)])
   end
 
 fun invent_vars constr i =

@@ -402,13 +402,13 @@ fun the_descr thy prefs (T_names0 as T_name01 :: _) =
 
     val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
     val protoTs as (dataTs, _) = chop k descr
-      |> (pairself o map)
+      |> (apply2 o map)
         (fn (_, (T_name, Ds, _)) => (T_name, map (Old_Datatype_Aux.typ_of_dtyp descr) Ds));
 
     val T_names = map fst dataTs;
     val _ = eq_set (op =) (T_names, T_names0) orelse not_mutually_recursive T_names0
 
-    val (Ts, Us) = (pairself o map) Type protoTs;
+    val (Ts, Us) = apply2 (map Type) protoTs;
 
     val names = map Long_Name.base_name T_names;
     val (auxnames, _) = Name.make_context names

@@ -23,8 +23,8 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
       (head_of (Logic.incr_indexes (Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
-      (map (pairself (ctyp_of thy)) tyinst')
-      (map (pairself (cterm_of thy)) tinst')
+      (map (apply2 (ctyp_of thy)) tyinst')
+      (map (apply2 (cterm_of thy)) tinst')
       (Thm.lift_rule cgoal th)
   in
     compose_tac ctxt (elim, th', nprems_of th) i st

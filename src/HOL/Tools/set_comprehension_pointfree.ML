@@ -78,7 +78,7 @@ fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
 
 fun mk_prod1 Ts (t1, t2) =
   let
-    val (T1, T2) = pairself (curry fastype_of1 Ts) (t1, t2)
+    val (T1, T2) = apply2 (curry fastype_of1 Ts) (t1, t2)
   in
     HOLogic.pair_const T1 T2 $ t1 $ t2
   end;
@@ -206,8 +206,8 @@ fun restricted_merge ([], pats) = pats
   end;
   
 fun map_atoms f (Atom a) = Atom (f a)
-  | map_atoms f (Un (fm1, fm2)) = Un (pairself (map_atoms f) (fm1, fm2))
-  | map_atoms f (Int (fm1, fm2)) = Int (pairself (map_atoms f) (fm1, fm2))
+  | map_atoms f (Un (fm1, fm2)) = Un (apply2 (map_atoms f) (fm1, fm2))
+  | map_atoms f (Int (fm1, fm2)) = Int (apply2 (map_atoms f) (fm1, fm2))
 
 fun extend Ts bs t = foldr1 mk_sigma (t :: map (fn b => HOLogic.mk_UNIV (nth Ts b)) bs)
 
@@ -237,7 +237,7 @@ fun adjust_atoms vs pats fm = map_atoms (adjust vs pats) fm
 fun merge_inter vs (pats1, fm1) (pats2, fm2) =
   let
     val pats = restricted_merge (map dest_Pattern pats1, map dest_Pattern pats2) 
-    val (fm1', fm2') = pairself (adjust_atoms vs pats) (fm1, fm2)
+    val (fm1', fm2') = apply2 (adjust_atoms vs pats) (fm1, fm2)
   in
     (map Pattern pats, Int (fm1', fm2'))
   end;
@@ -245,7 +245,7 @@ fun merge_inter vs (pats1, fm1) (pats2, fm2) =
 fun merge_union vs (pats1, fm1) (pats2, fm2) = 
   let
     val pats = merge (map dest_Pattern pats1, map dest_Pattern pats2)
-    val (fm1', fm2') = pairself (adjust_atoms vs pats) (fm1, fm2)
+    val (fm1', fm2') = apply2 (adjust_atoms vs pats) (fm1, fm2)
   in
     (map Pattern pats, Un (fm1', fm2'))
   end;

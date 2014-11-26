@@ -57,8 +57,8 @@ structure Env = Generic_Data
   fun extend (data : T) = make_data (false, #tables data, #sml_tables data);
   fun merge (data : T * T) =
     make_data (false,
-      merge_tables (pairself #tables data),
-      merge_tables (pairself #sml_tables data));
+      merge_tables (apply2 #tables data),
+      merge_tables (apply2 #sml_tables data));
 );
 
 val inherit = Env.put o Env.get;
@@ -85,7 +85,7 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
         Context.thread_data ()
         |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (#tables (Env.get context))))
         |> append (sel2 ML_Name_Space.global ()))
-      |> sort_distinct (string_ord o pairself #1);
+      |> sort_distinct (string_ord o apply2 #1);
 
     fun enter ap1 sel2 entry =
       if SML <> exchange then

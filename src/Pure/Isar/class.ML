@@ -215,7 +215,7 @@ fun register class sups params base_sort base_morph export_morph
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
-        make_class_data (((map o pairself) fst params, base_sort,
+        make_class_data (((map o apply2) fst params, base_sort,
           base_morph, export_morph, some_assm_intro, of_class, some_axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;

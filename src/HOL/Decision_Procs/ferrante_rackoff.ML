@@ -57,7 +57,7 @@ let
  val ((p1_v,p2_v),(mp1_v,mp2_v)) =
    funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
      (funpow 4 Thm.dest_arg (cprop_of (hd minf)))
-   |> Thm.dest_binop |> pairself Thm.dest_binop |> apfst (pairself Thm.dest_fun)
+   |> Thm.dest_binop |> apply2 Thm.dest_binop |> apfst (apply2 Thm.dest_fun)
 
  fun myfwd (th1, th2, th3, th4, th5) p1 p2
       [(th_1,th_2,th_3,th_4,th_5), (th_1',th_2',th_3',th_4',th_5')] =

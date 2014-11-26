@@ -33,7 +33,7 @@ val advisory_simp = Attrib.setup_config_bool @{binding metis_advisory_simp} (K t
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
-  exists (member (Term.aconv_untyped o pairself prop_of) ths1) (map Meson.make_meta_clause ths2)
+  exists (member (Term.aconv_untyped o apply2 prop_of) ths1) (map Meson.make_meta_clause ths2)
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
@@ -126,7 +126,7 @@ fun kbo_advisory_simp_ordering ord_info =
     fun weight (m, _) =
       AList.lookup (op =) ord_info (Metis_Name.toString m) |> the_default 1
     fun precedence p =
-      (case int_ord (pairself weight p) of
+      (case int_ord (apply2 weight p) of
         EQUAL => #precedence Metis_KnuthBendixOrder.default p
       | ord => ord)
   in {weight = weight, precedence = precedence} end

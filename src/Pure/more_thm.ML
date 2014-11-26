@@ -112,7 +112,7 @@ struct
 
 (* collecting cterms *)
 
-val op aconvc = op aconv o pairself Thm.term_of;
+val op aconvc = op aconv o apply2 Thm.term_of;
 
 fun add_cterm_frees ct =
   let
@@ -179,7 +179,7 @@ fun thm_ord (th1, th2) =
 
 (* tables and caches *)
 
-structure Ctermtab = Table(type key = cterm val ord = Term_Ord.fast_term_ord o pairself Thm.term_of);
+structure Ctermtab = Table(type key = cterm val ord = Term_Ord.fast_term_ord o apply2 Thm.term_of);
 structure Thmtab = Table(type key = thm val ord = thm_ord);
 
 fun cterm_cache f = Cache.create Ctermtab.empty Ctermtab.lookup Ctermtab.update f;
@@ -193,11 +193,11 @@ fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
 
 val eq_thm = is_equal o thm_ord;
 
-val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
+val eq_thm_prop = op aconv o apply2 Thm.full_prop_of;
 
 fun eq_thm_strict ths =
   eq_thm ths andalso
-    let val (rep1, rep2) = pairself Thm.rep_thm ths in
+    let val (rep1, rep2) = apply2 Thm.rep_thm ths in
       Theory.eq_thy (#thy rep1, #thy rep2) andalso
       #maxidx rep1 = #maxidx rep2 andalso
       #tags rep1 = #tags rep2
@@ -207,7 +207,7 @@ fun eq_thm_strict ths =
 (* pattern equivalence *)
 
 fun equiv_thm ths =
-  Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
+  Pattern.equiv (Theory.merge (apply2 Thm.theory_of_thm ths)) (apply2 Thm.full_prop_of ths);
 
 
 (* type classes and sorts *)
@@ -397,7 +397,7 @@ fun stripped_sorts thy t =
     val tfrees = rev (map TFree (Term.add_tfrees t []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT (length tfrees));
     val strip = tfrees ~~ tfrees';
-    val recover = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
+    val recover = map (apply2 (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
     val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
   in (strip, recover, t') end;
 

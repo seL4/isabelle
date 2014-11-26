@@ -262,7 +262,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     val vs1 = map Var (filter_out (fn ((a, _), _) => member (op =) rvs a) xs);
     val rlzvs = rev (Term.add_vars (prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
-    val rs = map Var (subtract (op = o pairself fst) xs rlzvs);
+    val rs = map Var (subtract (op = o apply2 fst) xs rlzvs);
     val rlz' = fold_rev Logic.all rs (prop_of rrule)
   in (name, (vs,
     if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
@@ -340,7 +340,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
           val s' = Long_Name.base_name s;
           val T' = Logic.unvarifyT_global T;
         in (((s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end)
-      |> distinct (op = o pairself (#1 o #1))
+      |> distinct (op = o apply2 (#1 o #1))
       |> map (apfst (apfst (apfst Binding.name)))
       |> split_list;
 
@@ -369,7 +369,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     fun add_ind_realizer Ps thy =
       let
-        val vs' = rename (map (pairself (fst o fst o dest_Var))
+        val vs' = rename (map (apply2 (fst o fst o dest_Var))
           (params ~~ List.take (snd (strip_comb (HOLogic.dest_Trueprop
             (hd (prems_of (hd inducts))))), nparms))) vs;
         val rs = indrule_realizer thy induct raw_induct rsets params'
@@ -491,7 +491,7 @@ fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
       Inductive.the_inductive (Proof_Context.init_global thy) name;
-    val vss = sort (int_ord o pairself length)
+    val vss = sort (int_ord o apply2 length)
       (subsets (map fst (relevant_vars (concl_of (hd intrs)))))
   in
     fold_rev (add_ind_realizer rsets intrs induct raw_induct elims) vss thy

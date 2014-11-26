@@ -177,7 +177,7 @@ fun transform_function_data ({add_simps, case_names, fnames, fs, R, dom, psimps,
 structure FunctionData = Generic_Data
 (
   type T = (term * info) Item_Net.T;
-  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
+  val empty : T = Item_Net.init (op aconv o apply2 fst) (single o fst);
   val extend = I;
   fun merge tabs : T = Item_Net.merge tabs;
 )

@@ -1664,7 +1664,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
 
     val induct_aux_rec = Drule.cterm_instantiate
-      (map (pairself (cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
+      (map (apply2 (cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
          (map (fn (aT, f) => (Logic.varify_global f, Abs ("z", HOLogic.unitT,
             Const (@{const_name Nominal.supp}, fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @

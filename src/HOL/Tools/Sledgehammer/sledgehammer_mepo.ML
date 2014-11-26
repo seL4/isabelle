@@ -361,7 +361,7 @@ fun take_most_relevant ctxt max_facts remaining_max
       Real.ceil (Math.pow (max_imperfect,
         Math.pow (Real.fromInt remaining_max / Real.fromInt max_facts, max_imperfect_exp)))
     val (perfect, imperfect) = candidates
-      |> sort (Real.compare o swap o pairself snd)
+      |> sort (Real.compare o swap o apply2 snd)
       |> take_prefix (fn (_, w) => w > 0.99999)
     val ((accepts, more_rejects), rejects) =
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max

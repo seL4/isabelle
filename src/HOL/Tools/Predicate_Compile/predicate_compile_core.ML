@@ -210,7 +210,7 @@ fun check_matches_type ctxt predname T ms =
       | check _ _ = false
     fun check_consistent_modes ms =
       if forall (fn Fun _ => true | _ => false) ms then
-        pairself check_consistent_modes (split_list (map (fn Fun (m1, m2) => (m1, m2)) ms))
+        apply2 check_consistent_modes (split_list (map (fn Fun (m1, m2) => (m1, m2)) ms))
         |> (fn (res1, res2) => res1 andalso res2)
       else if forall (fn Input => true | Output => true | Pair _ => true | _ => false) ms then
         true
@@ -864,7 +864,7 @@ fun mk_switch_tree ctxt mode moded_clauses =
   let
     fun select_best_switch moded_clauses input_position best_switch =
       let
-        val ord = option_ord (rev_order o int_ord o (pairself (length o snd o snd)))
+        val ord = option_ord (rev_order o int_ord o (apply2 (length o snd o snd)))
         val partition = partition_clause ctxt input_position moded_clauses
         val switch = if (length (fst partition) > 1) then SOME (input_position, partition) else NONE
       in

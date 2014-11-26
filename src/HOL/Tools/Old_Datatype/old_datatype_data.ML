@@ -162,7 +162,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
     val protoTs as (dataTs, _) =
       chop k descr
-      |> (pairself o map)
+      |> (apply2 o map)
         (fn (_, (tyco, dTs, _)) => (tyco, map (Old_Datatype_Aux.typ_of_dtyp descr) dTs));
 
     val tycos = map fst dataTs;
@@ -172,7 +172,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
         error ("Type constructors " ^ commas_quote raw_tycos ^
           " do not belong exhaustively to one mutually recursive old-style datatype");
 
-    val (Ts, Us) = (pairself o map) Type protoTs;
+    val (Ts, Us) = apply2 (map Type) protoTs;
 
     val names = map Long_Name.base_name tycos;
     val (auxnames, _) =

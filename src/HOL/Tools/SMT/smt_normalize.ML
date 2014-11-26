@@ -171,7 +171,7 @@ local
     if has_all_vars vs (Thm.term_of ct) then
       (case Thm.term_of ct of
         _ $ _ =>
-          (case pairself (minimal_pats vs) (Thm.dest_comb ct) of
+          (case apply2 (minimal_pats vs) (Thm.dest_comb ct) of
             ([], []) => [[ct]]
           | (ctss, ctss') => union (eq_set (op aconvc)) ctss ctss')
       | _ => [])
@@ -189,7 +189,7 @@ local
   fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =
-    pairself (Thm.cterm_of @{theory}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
+    apply2 (Thm.cterm_of @{theory}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
   val mk_pat_list = mk_list (mk_clist @{typ pattern})
   val mk_mpat_list = mk_list (mk_clist @{typ "pattern symb_list"})

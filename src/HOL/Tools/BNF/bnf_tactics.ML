@@ -51,7 +51,7 @@ fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt o the_default [0];
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm
   |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
-  |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
+  |> apply2 (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
   |> mk_Trueprop_eq
   |> (fn goal => Goal.prove_sorry ctxt [] [] goal
     (K (rtac @{thm ext} 1 THEN

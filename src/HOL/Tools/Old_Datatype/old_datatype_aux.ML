@@ -396,7 +396,7 @@ fun find_nonempty descr is i =
     fun max xs = fold max_inf xs (SOME 0);
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
     val xs =
-      sort (int_ord o pairself snd)
+      sort (int_ord o apply2 snd)
         (map_filter (fn (s, dts) => Option.map (pair s)
           (max (map (arg_nonempty o strip_dtyp) dts))) constrs)
   in if null xs then NONE else SOME (hd xs) end;

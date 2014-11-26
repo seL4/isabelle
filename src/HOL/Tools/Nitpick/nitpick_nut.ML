@@ -765,7 +765,7 @@ fun s_op2 oper T R u1 u2 =
       else if is_Cst True u2 then u1
       else raise SAME ()
     | Eq =>
-      (case pairself (is_Cst Unrep) (u1, u2) of
+      (case apply2 (is_Cst Unrep) (u1, u2) of
          (true, true) => unknown_boolean T R
        | (false, false) => raise SAME ()
        | _ => if forall (is_opt_rep o rep_of) [u1, u2] then raise SAME ()

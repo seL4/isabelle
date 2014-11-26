@@ -344,7 +344,7 @@ fun add_constructors
       fun dist_le (con1, args1) (con2, args2) =
         let
           val (vs1, zs1) = get_vars args1
-          val (vs2, _) = get_vars args2 |> pairself (map prime)
+          val (vs2, _) = get_vars args2 |> apply2 (map prime)
           val lhs = mk_below (list_ccomb (con1, vs1), list_ccomb (con2, vs2))
           val rhss = map mk_undef zs1
           val goal = mk_trp (iff_disj (lhs, rhss))
@@ -355,7 +355,7 @@ fun add_constructors
       fun dist_eq (con1, args1) (con2, args2) =
         let
           val (vs1, zs1) = get_vars args1
-          val (vs2, zs2) = get_vars args2 |> pairself (map prime)
+          val (vs2, zs2) = get_vars args2 |> apply2 (map prime)
           val lhs = mk_eq (list_ccomb (con1, vs1), list_ccomb (con2, vs2))
           val rhss1 = map mk_undef zs1
           val rhss2 = map mk_undef zs2

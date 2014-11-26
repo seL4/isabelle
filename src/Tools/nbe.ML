@@ -64,7 +64,7 @@ fun add_const_alias thm thy =
     val lhs_rhs = case try Logic.dest_equals eqn
      of SOME lhs_rhs => lhs_rhs
       | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
-    val c_c' = case try (pairself (Axclass.unoverload_const thy o dest_Const)) lhs_rhs
+    val c_c' = case try (apply2 (Axclass.unoverload_const thy o dest_Const)) lhs_rhs
      of SOME c_c' => c_c'
       | _ => error ("Not an equation with two constants: "
           ^ Syntax.string_of_term_global thy eqn);

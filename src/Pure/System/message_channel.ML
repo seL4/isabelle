@@ -26,7 +26,7 @@ fun chunk ss =
 
 fun message name raw_props body =
   let
-    val robust_props = map (pairself YXML.embed_controls) raw_props;
+    val robust_props = map (apply2 YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((name, robust_props), []));
   in Message (chunk [header] @ chunk body) end;
 

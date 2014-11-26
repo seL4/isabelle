@@ -118,7 +118,7 @@ fun generic_try0 mode timeout_opt quad st =
     val st = Proof.map_contexts (silence_methods false) st;
     fun trd (_, _, t) = t;
     fun par_map f =
-      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself trd)
+      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o apply2 trd)
       else Par_List.get_some f #> the_list;
   in
     if mode = Normal then

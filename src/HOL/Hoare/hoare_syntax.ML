@@ -22,7 +22,7 @@ fun idt_name (Free (x, _)) = SOME x
   | idt_name _ = NONE;
 
 fun eq_idt tu =
-  (case pairself idt_name tu of
+  (case apply2 idt_name tu of
     (SOME x, SOME y) => x = y
   | _ => false);
 

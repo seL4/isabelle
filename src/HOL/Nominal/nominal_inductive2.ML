@@ -173,7 +173,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
     val ps = map (fst o snd) concls;
 
-    val _ = (case duplicates (op = o pairself fst) avoids of
+    val _ = (case duplicates (op = o apply2 fst) avoids of
         [] => ()
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
     val _ = (case subtract (op =) induct_cases (map fst avoids) of

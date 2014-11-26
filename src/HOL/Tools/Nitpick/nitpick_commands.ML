@@ -187,7 +187,7 @@ fun extract_params ctxt mode default_params override_params =
            | ["", s2] => ("-" ^ s2, "-" ^ s2)
            | [s1, s2] => (s1, s2)
            | _ => raise Option.Option)
-          |> pairself (maxed_int_from_string min_int)
+          |> apply2 (maxed_int_from_string min_int)
       in if k1 <= k2 then k1 upto k2 else k1 downto k2 end
       handle Option.Option =>
              error ("Parameter " ^ quote name ^

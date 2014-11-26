@@ -81,7 +81,7 @@ fun valid_conj _ _ env [] = Seq.single (env, [])
         (valid_conj ctxt facts
            (Pattern.match (Proof_Context.theory_of ctxt) (t, u) env) ts
          handle Pattern.MATCH => Seq.empty))
-          (Seq.of_list (sort (int_ord o pairself snd) (Net.unify_term facts t)));
+          (Seq.of_list (sort (int_ord o apply2 snd) (Net.unify_term facts t)));
 
 (* Instantiate variables that only occur free in conlusion *)
 fun inst_extra_vars ctxt dom cs =
@@ -115,7 +115,7 @@ fun is_valid_disj _ _ [] = false
 
 fun string_of_facts ctxt s facts =
   Pretty.string_of (Pretty.big_list s
-    (map (Syntax.pretty_term ctxt) (map fst (sort (int_ord o pairself snd) (Net.content facts)))));
+    (map (Syntax.pretty_term ctxt) (map fst (sort (int_ord o apply2 snd) (Net.content facts)))));
 
 fun valid ctxt rules goal dom facts nfacts nparams =
   let

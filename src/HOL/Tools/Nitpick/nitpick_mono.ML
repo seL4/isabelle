@@ -161,7 +161,7 @@ fun repair_mtype _ _ MAlpha = MAlpha
   | repair_mtype cache seen (MFun (M1, aa, M2)) =
     MFun (repair_mtype cache seen M1, aa, repair_mtype cache seen M2)
   | repair_mtype cache seen (MPair Mp) =
-    MPair (pairself (repair_mtype cache seen) Mp)
+    MPair (apply2 (repair_mtype cache seen) Mp)
   | repair_mtype cache seen (MType (s, Ms)) =
     MType (s, maps (flatten_mtype o repair_mtype cache seen) Ms)
   | repair_mtype cache seen (MRec (z as (s, _))) =
@@ -228,7 +228,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       else case T of
         Type (@{type_name fun}, [T1, T2]) =>
         MFun (fresh_mfun_for_fun_type mdata all_minus T1 T2)
-      | Type (@{type_name prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
+      | Type (@{type_name prod}, [T1, T2]) => MPair (apply2 do_type (T1, T2))
       | Type (@{type_name set}, [T']) => do_type (T' --> bool_T)
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
@@ -320,7 +320,7 @@ fun resolve_mtype asgs =
     fun aux MAlpha = MAlpha
       | aux (MFun (M1, aa, M2)) =
         MFun (aux M1, resolve_annotation_atom asgs aa, aux M2)
-      | aux (MPair Mp) = MPair (pairself aux Mp)
+      | aux (MPair Mp) = MPair (apply2 aux Mp)
       | aux (MType (s, Ms)) = MType (s, map aux Ms)
       | aux (MRec z) = MRec z
   in aux end
@@ -506,8 +506,8 @@ fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
-    Prop_Logic.SAnd (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
-             prop_for_bool_var_equality (pairself snd_var (x1, x2)))
+    Prop_Logic.SAnd (prop_for_bool_var_equality (apply2 fst_var (x1, x2)),
+             prop_for_bool_var_equality (apply2 snd_var (x1, x2)))
 
 val prop_for_assign_clause = Prop_Logic.exists o map prop_for_assign_literal
 
@@ -530,9 +530,9 @@ fun extract_assigns max_var assigns asgs =
   fold (fn x => fn accum =>
            if AList.defined (op =) asgs x then
              accum
-           else case (fst_var x, snd_var x) |> pairself assigns of
+           else case (fst_var x, snd_var x) |> apply2 assigns of
              (NONE, NONE) => accum
-           | bp => (x, annotation_from_bools (pairself (the_default false) bp))
+           | bp => (x, annotation_from_bools (apply2 (the_default false) bp))
                    :: accum)
        (max_var downto 1) asgs
 

@@ -124,7 +124,7 @@ fun eval_antiquotes (ants, pos) opt_context =
                   val keywords = Thy_Header.get_keywords' ctxt;
                   val (decl, ctxt') =
                     apply_antiquotation (Token.read_antiq keywords antiq (ss, #1 range)) ctxt;
-                  val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
+                  val decl' = decl #> apply2 (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', ctxt') end;
 
           val ctxt =
@@ -134,7 +134,7 @@ fun eval_antiquotes (ants, pos) opt_context =
 
           val (decls, ctxt') = fold_map expand ants ctxt;
           val (ml_env, ml_body) =
-            decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
+            decls |> map (fn decl => decl ctxt') |> split_list |> apply2 flat;
         in ((begin_env visible @ ml_env, ml_body), SOME (Context.Proof ctxt')) end;
   in ((ml_env @ end_env, ml_body), opt_ctxt') end;
 

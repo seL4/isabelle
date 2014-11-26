@@ -149,8 +149,8 @@ fun make_id_prop ctxt variances (tyco, mapper) =
     val lhs1 = list_comb (head, map (HOLogic.id_const) arg_Ts);
     val lhs2 = list_comb (head, map (fn arg_T => Abs ("x", arg_T, Bound 0)) arg_Ts);
     val rhs = HOLogic.id_const T;
-    val (id_prop, identity_prop) = pairself
-      (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
+    val (id_prop, identity_prop) =
+      apply2 (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
     fun prove_identity ctxt id_thm = Goal.prove_sorry ctxt [] [] identity_prop
       (K (ALLGOALS (Method.insert_tac [id_thm] THEN'
         Simplifier.asm_lr_simp_tac (put_simpset identity_ss ctxt))));
@@ -206,11 +206,12 @@ fun analyze_variances ctxt tyco T =
     fun bad_typ () = error ("Bad mapper type: " ^ Syntax.string_of_typ ctxt T);
     val (Ts, T1, T2) = split_mapper_typ tyco T
       handle List.Empty => bad_typ ();
-    val _ = pairself
-      ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o fst o dest_Type) (T1, T2)
-      handle TYPE _ => bad_typ ();
-    val (vs1, vs2) = pairself (map dest_TFree o snd o dest_Type) (T1, T2)
-      handle TYPE _ => bad_typ ();
+    val _ =
+      apply2 ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o fst o dest_Type) (T1, T2)
+        handle TYPE _ => bad_typ ();
+    val (vs1, vs2) =
+      apply2 (map dest_TFree o snd o dest_Type) (T1, T2)
+        handle TYPE _ => bad_typ ();
     val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
       then bad_typ () else ();
     fun check_variance_pair (var1 as (_, sort1), var2 as (_, sort2)) =
@@ -239,7 +240,7 @@ fun gen_functor prep_term some_prfx raw_mapper lthy =
       let
         val typ_instance = Sign.typ_instance (Context.theory_of context);
         val mapper' = Morphism.term phi mapper;
-        val T_T' = pairself fastype_of (mapper, mapper');
+        val T_T' = apply2 fastype_of (mapper, mapper');
         val vars = Term.add_vars mapper' [];
       in
         if null vars andalso typ_instance T_T' andalso typ_instance (swap T_T')

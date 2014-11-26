@@ -68,7 +68,7 @@ type direct_proof = direct_inference list
 
 val atom_eq = is_equal o Atom.ord
 val clause_ord = dict_ord Atom.ord
-fun direct_sequent_ord seqp = prod_ord clause_ord clause_ord (pairself snd seqp)
+fun direct_sequent_ord seqp = prod_ord clause_ord clause_ord (apply2 snd seqp)
 fun direct_sequent_eq seqp = is_equal (direct_sequent_ord seqp)
 
 fun make_refute_graph bot infers =

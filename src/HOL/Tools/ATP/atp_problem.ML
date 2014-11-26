@@ -304,7 +304,7 @@ fun raw_polarities_of_conn ANot = (SOME false, NONE)
   | raw_polarities_of_conn AIff = (NONE, NONE)
 fun polarities_of_conn NONE = K (NONE, NONE)
   | polarities_of_conn (SOME pos) =
-    raw_polarities_of_conn #> not pos ? pairself (Option.map not)
+    raw_polarities_of_conn #> not pos ? apply2 (Option.map not)
 
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
@@ -776,10 +776,10 @@ exception CLAUSIFY of unit
 fun clausify_formula pos (phi as AAtom _) = [phi |> not pos ? mk_anot]
   | clausify_formula pos (AConn (ANot, [phi])) = clausify_formula (not pos) phi
   | clausify_formula true (AConn (AOr, [phi1, phi2])) =
-    (phi1, phi2) |> pairself (clausify_formula true)
+    (phi1, phi2) |> apply2 (clausify_formula true)
                  |> uncurry (map_product (mk_aconn AOr))
   | clausify_formula false (AConn (AAnd, [phi1, phi2])) =
-    (phi1, phi2) |> pairself (clausify_formula false)
+    (phi1, phi2) |> apply2 (clausify_formula false)
                  |> uncurry (map_product (mk_aconn AOr))
   | clausify_formula true (AConn (AImplies, [phi1, phi2])) =
     clausify_formula true (AConn (AOr, [mk_anot phi1, phi2]))

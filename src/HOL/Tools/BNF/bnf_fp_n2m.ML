@@ -74,7 +74,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val nesting_bnfss =
       map (fn sugar => #fp_nesting_bnfs sugar @ #live_nesting_bnfs sugar) fp_sugars;
     val fp_or_nesting_bnfss = fp_bnfs :: nesting_bnfss;
-    val fp_or_nesting_bnfs = distinct (op = o pairself T_of_bnf) (flat fp_or_nesting_bnfss);
+    val fp_or_nesting_bnfs = distinct (op = o apply2 T_of_bnf) (flat fp_or_nesting_bnfss);
 
     val fp_absTs = map #absT fp_absT_infos;
     val fp_repTs = map #repT fp_absT_infos;
@@ -139,7 +139,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val rels =
       let
         fun find_rel T As Bs = fp_or_nesting_bnfss
-          |> map (filter_out (curry (op = o pairself name_of_bnf) BNF_Comp.DEADID_bnf))
+          |> map (filter_out (curry (op = o apply2 name_of_bnf) BNF_Comp.DEADID_bnf))
           |> get_first (find_first (fn bnf => Type.could_unify (T_of_bnf bnf, T)))
           |> Option.map (fn bnf =>
             let val live = live_of_bnf bnf;
@@ -191,7 +191,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           case_fp fp (snd o Term.dest_comb) (snd o Term.dest_comb o fst o Term.dest_comb);
         val raw_phis = map (extract o HOLogic.dest_Trueprop o Thm.concl_of) rel_xtor_co_inducts;
         val thetas = AList.group (op =)
-          (mutual_cliques ~~ map (pairself (certify lthy)) (raw_phis ~~ pre_phis));
+          (mutual_cliques ~~ map (apply2 (certify lthy)) (raw_phis ~~ pre_phis));
       in
         map2 (Drule.cterm_instantiate o the o AList.lookup (op =) thetas)
         mutual_cliques rel_xtor_co_inducts
@@ -286,7 +286,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
 
         val fold_pre_deads_only_Ts =
           map (typ_subst_nonatomic_sorted (map (rpair dummyT)
-            (As @ sort (int_ord o pairself Term.size_of_typ) fpTs))) fold_preTs';
+            (As @ sort (int_ord o apply2 Term.size_of_typ) fpTs))) fold_preTs';
 
         val (mutual_clique, TUs) =
           map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
@@ -439,7 +439,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           @{thms fst_convol map_prod_o_convol convol_o fst_comp_map_prod}
           @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum map_sum_o_inj(1)};
 
-        val eq_thm_prop_untyped = Term.aconv_untyped o pairself Thm.full_prop_of;
+        val eq_thm_prop_untyped = Term.aconv_untyped o apply2 Thm.full_prop_of;
 
         val map_thms = no_refl (maps (fn bnf =>
            let val map_comp0 = map_comp0_of_bnf bnf RS sym

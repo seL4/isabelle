@@ -375,7 +375,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
                th ctxt ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], map (pairself (cterm_of thy))
+      Thm.instantiate ([], map (apply2 (cterm_of thy))
                                [(Var (("i", 0), @{typ nat}),
                                  HOLogic.mk_nat ax_no)])
                       (zero_var_indexes @{thm skolem_COMBK_D})

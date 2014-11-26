@@ -13,7 +13,7 @@ end;
 structure RewriteHOLProof : REWRITE_HOL_PROOF =
 struct
 
-val rews = map (pairself (Proof_Syntax.proof_of_term @{theory} true) o
+val rews = map (apply2 (Proof_Syntax.proof_of_term @{theory} true) o
     Logic.dest_equals o Logic.varify_global o Proof_Syntax.read_term @{theory} true propT)
 
   (** eliminate meta-equality rules **)

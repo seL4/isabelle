@@ -145,7 +145,7 @@ fun declare_theory_data pos empty extend merge =
   in k end;
 
 val extend_data = Datatab.map invoke_extend;
-fun merge_data pp = Datatab.join (invoke_merge pp) o pairself extend_data;
+fun merge_data pp = Datatab.join (invoke_merge pp) o apply2 extend_data;
 
 end;
 
@@ -238,7 +238,7 @@ fun merge_ids
 
 (* equality and inclusion *)
 
-val eq_thy = op = o pairself (#id o identity_of);
+val eq_thy = op = o apply2 (#id o identity_of);
 
 fun proper_subthy (Theory ({id, ...}, _, _, _), Theory ({ids, ...}, _, _, _)) =
   Inttab.defined ids id;

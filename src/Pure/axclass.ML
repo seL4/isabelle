@@ -321,7 +321,7 @@ fun unoverload_const thy (c_ty as (c, _)) =
 fun cert_classrel thy raw_rel =
   let
     val string_of_sort = Syntax.string_of_sort_global thy;
-    val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
+    val (c1, c2) = apply2 (Sign.certify_class thy) raw_rel;
     val _ = Sign.primitive_classrel (c1, c2) thy;
     val _ =
       (case subtract (op =) (all_params_of thy [c1]) (all_params_of thy [c2]) of
@@ -331,7 +331,7 @@ fun cert_classrel thy raw_rel =
   in (c1, c2) end;
 
 fun read_classrel thy raw_rel =
-  cert_classrel thy (pairself (Proof_Context.read_class (Proof_Context.init_global thy)) raw_rel)
+  cert_classrel thy (apply2 (Proof_Context.read_class (Proof_Context.init_global thy)) raw_rel)
     handle TYPE (msg, _, _) => error msg;
 
 

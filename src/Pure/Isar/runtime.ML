@@ -119,7 +119,7 @@ fun exn_messages_ids e =
             | _ => raised exn (robust (Pretty.string_of o Exn_Output.pretty) exn) []);
         in [((i, msg), id)] end)
       and sorted_msgs context exn =
-        sort_distinct (int_ord o pairself (fst o fst)) (maps exn_msgs (flatten context exn));
+        sort_distinct (int_ord o apply2 (fst o fst)) (maps exn_msgs (flatten context exn));
 
   in sorted_msgs NONE e end;
 

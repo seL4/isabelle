@@ -62,7 +62,7 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
     val t = list_comb (Const (c, tys ---> ty),
       map Free (Name.invent_names Name.context "a" tys));
     val (arg, rhs) =
-      pairself (Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
+      apply2 (Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         (t,
           map_aterms (fn t as Free (_, ty) => HOLogic.mk_term_of ty t | t => t)
             (HOLogic.reflect_term t));

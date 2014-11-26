@@ -348,7 +348,7 @@ fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, 
   | normalize_eq t = t
 
 fun if_thm_before th th' =
-  if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
+  if Theory.subthy (apply2 Thm.theory_of_thm (th, th')) then th else th'
 
 (* Hack: Conflate the facts about a class as seen from the outside with the corresponding low-level
    facts, so that MaSh can learn from the low-level proofs. *)
@@ -373,7 +373,7 @@ fun build_name_tables name_of facts =
 
 fun fact_distinct eq facts =
   fold (fn fact as (_, th) =>
-      Net.insert_term_safe (eq o pairself (normalize_eq o prop_of o snd))
+      Net.insert_term_safe (eq o apply2 (normalize_eq o prop_of o snd))
         (normalize_eq (prop_of th), fact))
     facts Net.empty
   |> Net.entries
@@ -542,7 +542,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} keywords css chained hyp_ts co
            o fact_of_ref ctxt keywords chained css) add
        else
          let
-           val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
+           val (add, del) = apply2 (Attrib.eval_thms ctxt) (add, del)
            val facts =
              all_facts ctxt false ho_atp keywords add chained css
              |> filter_out ((member Thm.eq_thm_prop del orf

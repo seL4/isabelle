@@ -159,7 +159,7 @@ fun prepare schematic_consts_of rthms =
 
 fun instantiate thy subst =
   let
-    fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
+    fun cert (ix, (S, T)) = apply2 (Thm.ctyp_of thy) (TVar (ix, S), T)
     fun cert' subst = Vartab.fold (cons o cert) subst []
   in Thm.instantiate (cert' subst, []) end
 
@@ -287,15 +287,15 @@ fun collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts =
 fun size_of_subst subst =
   Vartab.fold (Integer.add o size_of_typ o snd o snd) subst 0
 
-fun subst_ord subst = int_ord (pairself size_of_subst subst)
+fun subst_ord subst = int_ord (apply2 size_of_subst subst)
 
 fun instantiated_thms _ _ (Ground thm) = [(0, thm)]
   | instantiated_thms _ _ Ignored = []
   | instantiated_thms max_thm_insts insts (Schematic {id, ...}) =
     Inttab.lookup_list insts id
-    |> (fn rthms => if length rthms <= max_thm_insts then rthms
-      else take max_thm_insts
-        (sort (prod_ord int_ord subst_ord o pairself fst) rthms))
+    |> (fn rthms =>
+      if length rthms <= max_thm_insts then rthms
+      else take max_thm_insts (sort (prod_ord int_ord subst_ord o apply2 fst) rthms))
     |> map (apfst fst)
 
 fun monomorph schematic_consts_of ctxt rthms =

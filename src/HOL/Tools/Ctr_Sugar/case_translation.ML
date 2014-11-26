@@ -283,7 +283,7 @@ fun mk_group (name, T) rows =
               else raise CASE_ERROR ("Wrong number of arguments for constructor " ^ quote name, i)
             else ((in_group, row :: not_in_group), names)
         | _ => raise CASE_ERROR ("Not a constructor pattern", i)))
-    rows (([], []), replicate k "") |>> pairself rev
+    rows (([], []), replicate k "") |>> apply2 rev
   end;
 
 
@@ -506,7 +506,7 @@ fun dest_case ctxt d used t =
                     (Const (s, map fastype_of xs ---> fastype_of x), p, is_dependent k t)
                   end) (constructors ~~ fs);
                 val cases' =
-                  sort (int_ord o swap o pairself (length o snd))
+                  sort (int_ord o swap o apply2 (length o snd))
                     (fold_rev count_cases cases []);
                 val R = fastype_of t;
                 val dummy =

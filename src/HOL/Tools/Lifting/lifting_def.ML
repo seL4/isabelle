@@ -99,7 +99,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
           end;
         
         val subst = fold make_subst free_vars [];
-        val csubst = map (pairself (cterm_of thy)) subst;
+        val csubst = map (apply2 (cterm_of thy)) subst;
         val inst_thm = Drule.cterm_instantiate csubst thm;
       in
         Conv.fconv_rule 

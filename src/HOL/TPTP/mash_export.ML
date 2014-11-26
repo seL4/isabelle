@@ -65,7 +65,7 @@ fun has_thys thys th = exists (has_thm_thy th) thys
 fun all_facts ctxt =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
     Sledgehammer_Fact.all_facts ctxt true false Keyword.empty_keywords [] [] css
-    |> sort (crude_thm_ord o pairself snd)
+    |> sort (crude_thm_ord o apply2 snd)
   end
 
 fun filter_accessible_from th = filter (fn (_, th') => thm_less (th', th))

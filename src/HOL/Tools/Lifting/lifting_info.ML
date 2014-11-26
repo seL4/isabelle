@@ -306,15 +306,16 @@ fun introduce_polarities rule =
     val dest_less_eq = HOLogic.dest_bin @{const_name "less_eq"} dummyT
     val prems_pairs = map (dest_less_eq o HOLogic.dest_Trueprop) (prems_of rule)
     val equal_prems = filter op= prems_pairs
-    val _ = if null equal_prems then () 
+    val _ =
+      if null equal_prems then () 
       else error "The rule contains reflexive assumptions."
     val concl_pairs = rule 
       |> concl_of
       |> HOLogic.dest_Trueprop
       |> dest_less_eq
-      |> pairself (snd o strip_comb)
-      |> op~~
-      |> filter_out op=
+      |> apply2 (snd o strip_comb)
+      |> op ~~
+      |> filter_out op =
     
     val _ = if has_duplicates op= concl_pairs 
       then error "The rule contains duplicated variables in the conlusion." else ()
@@ -323,7 +324,7 @@ fun introduce_polarities rule =
       if member op= concl_pairs prem_pair
       then HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm POS_def}))
       else if member op= concl_pairs (swap prem_pair)
-        then HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm NEG_def}))
+      then HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm NEG_def}))
       else error "The rule contains a non-relevant assumption."
     
     fun rewrite_prems [] = Conv.all_conv

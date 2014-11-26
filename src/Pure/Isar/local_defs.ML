@@ -149,7 +149,7 @@ fun export inner outer =    (*beware of closure sizes*)
                     if t aconv u then (asm, false)
                     else (Drule.abs_def (Drule.gen_all asm), true))
               end)));
-      in (pairself (map #1) (List.partition #2 defs_asms), th') end
+      in (apply2 (map #1) (List.partition #2 defs_asms), th') end
   end;
 
 (*

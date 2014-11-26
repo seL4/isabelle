@@ -81,7 +81,7 @@ val assume_prefix = "a"
 val have_prefix = "f"
 
 fun label_ord ((s1, i1), (s2, i2)) =
-  (case int_ord (pairself String.size (s1, s2)) of
+  (case int_ord (apply2 String.size (s1, s2)) of
     EQUAL =>
     (case string_ord (s1, s2) of
       EQUAL => int_ord (i1, i2)

@@ -224,6 +224,9 @@ PARALLEL_GOALS.
 available as parameterized antiquotations, e.g. @{map 4} for lists of
 quadruples.
 
+* Renamed "pairself" to "apply2", in accordance to @{apply 2}.
+INCOMPATIBILITY.
+
 
 *** System ***
 

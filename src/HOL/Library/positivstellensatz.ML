@@ -64,13 +64,13 @@ structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord in
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = Term_Ord.fast_term_ord);
 
-val cterm_ord = Term_Ord.fast_term_ord o pairself term_of
+val cterm_ord = Term_Ord.fast_term_ord o apply2 term_of
 
 structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
 type monomial = int Ctermfunc.table;
 
-val monomial_ord = list_ord (prod_ord cterm_ord int_ord) o pairself Ctermfunc.dest
+val monomial_ord = list_ord (prod_ord cterm_ord int_ord) o apply2 Ctermfunc.dest
 
 structure Monomialfunc = FuncFun(type key = monomial val ord = monomial_ord)
 
@@ -78,7 +78,7 @@ type poly = Rat.rat Monomialfunc.table;
 
 (* The ordering so we can create canonical HOL polynomials.                  *)
 
-fun dest_monomial mon = sort (cterm_ord o pairself fst) (Ctermfunc.dest mon);
+fun dest_monomial mon = sort (cterm_ord o apply2 fst) (Ctermfunc.dest mon);
 
 fun monomial_order (m1,m2) =
   if Ctermfunc.is_empty m2 then LESS

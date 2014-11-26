@@ -204,10 +204,10 @@ fun approx_decstr_by_bin n decstr =
   end
 
 fun mk_float (a, b) = @{term "float"} $
-  HOLogic.mk_prod (pairself (HOLogic.mk_number HOLogic.intT) (a, b));
+  HOLogic.mk_prod (apply2 (HOLogic.mk_number HOLogic.intT) (a, b));
 
 fun dest_float (Const (@{const_name float}, _) $ (Const (@{const_name Pair}, _) $ a $ b)) =
-      pairself (snd o HOLogic.dest_number) (a, b)
+      apply2 (snd o HOLogic.dest_number) (a, b)
   | dest_float t = ((snd o HOLogic.dest_number) t, 0);
 
 fun approx_float prec f value =

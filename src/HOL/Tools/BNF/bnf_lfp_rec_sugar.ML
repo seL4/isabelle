@@ -182,7 +182,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
          common_induct, induct_attrs, n2m, lthy) =
       basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0;
 
-    val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
+    val perm_basic_lfp_sugars = sort (int_ord o apply2 #fp_res_index) basic_lfp_sugars;
 
     val indices = map #fp_res_index basic_lfp_sugars;
     val perm_indices = map #fp_res_index perm_basic_lfp_sugars;
@@ -421,10 +421,10 @@ fun build_defs ctxt nonexhaustive bs mxs (funs_data : eqn_data list list)
 
     val recs = take n_funs rec_specs |> map #recx;
     val rec_args = ctr_spec_eqn_data_list
-      |> sort (op < o pairself (#offset o fst) |> make_ord)
+      |> sort (op < o apply2 (#offset o fst) |> make_ord)
       |> map (uncurry (build_rec_arg ctxt funs_data has_call) o apsnd (try the_single));
     val ctr_poss = map (fn x =>
-      if length (distinct (op = o pairself (length o #left_args)) x) <> 1 then
+      if length (distinct (op = o apply2 (length o #left_args)) x) <> 1 then
         raise PRIMREC ("inconstant constructor pattern position for function " ^
           quote (#fun_name (hd x)), [])
       else
@@ -480,7 +480,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
     val fun_names = map Binding.name_of bs;
     val eqns_data = map (dissect_eqn lthy0 fun_names) specs;
     val funs_data = eqns_data
-      |> partition_eq (op = o pairself #fun_name)
+      |> partition_eq (op = o apply2 #fun_name)
       |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
       |> map (fn (x, y) => the_single y
           handle List.Empty => raise PRIMREC ("missing equations for function " ^ quote x, []));
@@ -490,7 +490,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
     val arg_Ts = map (#rec_type o hd) funs_data;
     val res_Ts = map (#res_type o hd) funs_data;
     val callssss = funs_data
-      |> map (partition_eq (op = o pairself #ctr))
+      |> map (partition_eq (op = o apply2 #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
 
     fun is_only_old_datatype (Type (s, _)) =
@@ -519,7 +519,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
         : rec_spec) (fun_data : eqn_data list) =
       let
         val js =
-          find_indices (op = o pairself (fn {fun_name, ctr, ...} => (fun_name, ctr)))
+          find_indices (op = o apply2 (fn {fun_name, ctr, ...} => (fun_name, ctr)))
             fun_data eqns_data;
 
         val def_thms = map (snd o snd) def_thms';

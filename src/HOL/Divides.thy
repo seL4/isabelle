@@ -2104,20 +2104,23 @@ local
   fun binary_proc proc ctxt ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
-      (case try (pairself (`(snd o HOLogic.dest_number))) (t, u) of
+      (case try (apply2 (`(snd o HOLogic.dest_number))) (t, u) of
         SOME args => proc ctxt args
       | NONE => NONE)
     | _ => NONE);
 in
   fun divmod_proc posrule negrule =
     binary_proc (fn ctxt => fn ((a, t), (b, u)) =>
-      if b = 0 then NONE else let
-        val (q, r) = pairself mk_number (Integer.div_mod a b)
-        val goal1 = HOLogic.mk_eq (t, plus $ (times $ u $ q) $ r)
-        val (goal2, goal3, rule) = if b > 0
-          then (le $ zero $ r, less $ r $ u, posrule RS eq_reflection)
-          else (le $ r $ zero, less $ u $ r, negrule RS eq_reflection)
-      in SOME (rule OF map (prove ctxt) [goal1, goal2, goal3]) end)
+      if b = 0 then NONE
+      else
+        let
+          val (q, r) = apply2 mk_number (Integer.div_mod a b)
+          val goal1 = HOLogic.mk_eq (t, plus $ (times $ u $ q) $ r)
+          val (goal2, goal3, rule) =
+            if b > 0
+            then (le $ zero $ r, less $ r $ u, posrule RS eq_reflection)
+            else (le $ r $ zero, less $ u $ r, negrule RS eq_reflection)
+        in SOME (rule OF map (prove ctxt) [goal1, goal2, goal3]) end)
 end
 *}
 

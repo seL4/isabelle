@@ -691,7 +691,7 @@ val imp_program =
       | imp_monad_bind (v_ty `|=> t) = v_ty `|=> imp_monad_bind t
       | imp_monad_bind (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) =
           ICase { term = imp_monad_bind t, typ = ty,
-            clauses = (map o pairself) imp_monad_bind clauses, primitive = imp_monad_bind t0 };
+            clauses = (map o apply2) imp_monad_bind clauses, primitive = imp_monad_bind t0 };
 
   in (Code_Symbol.Graph.map o K o map_terms_stmt) imp_monad_bind end;
 

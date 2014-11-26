@@ -234,7 +234,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
       let
         fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
         fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
-          |> snd |> Vartab.dest |> map (pairself (cterm_of thy) o term_pair_of)
+          |> snd |> Vartab.dest |> map (apply2 (cterm_of thy) o term_pair_of)
         val (cases, (eqs, prems)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
           rewrite_rule ctxt (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
@@ -445,8 +445,8 @@ fun force_modes_and_compilations pred_name compilations thy =
   let
     (* thm refl is a dummy thm *)
     val modes = map fst compilations
-    val (needs_random, non_random_modes) = pairself (map fst)
-      (List.partition (fn (_, (_, random)) => random) compilations)
+    val (needs_random, non_random_modes) =
+      apply2 (map fst) (List.partition (fn (_, (_, random)) => random) compilations)
     val non_random_dummys = map (rpair "dummy") non_random_modes
     val all_dummys = map (rpair "dummy") modes
     val dummy_function_names =

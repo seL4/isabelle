@@ -389,7 +389,7 @@ fun EXISTL vlist th =
 fun IT_EXISTS blist th =
    let val thy = Thm.theory_of_thm th
        val tych = cterm_of thy
-       val blist' = map (pairself Thm.term_of) blist
+       val blist' = map (apply2 Thm.term_of) blist
        fun ex v M  = cterm_of thy (USyntax.mk_exists{Bvar=v,Body = M})
 
   in

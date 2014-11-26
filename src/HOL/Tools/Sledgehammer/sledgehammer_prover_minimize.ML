@@ -178,7 +178,7 @@ fun binary_minimize test timeout result xs =
             | _ =>
               let
                 val (sup_r0, (l, result)) = min depth result (sup @ r0) l0
-                val (sup, r0) = (sup, r0) |> pairself (filter_used_facts true (map fst sup_r0))
+                val (sup, r0) = (sup, r0) |> apply2 (filter_used_facts true (map fst sup_r0))
                 val (sup_l, (r, result)) = min depth result (sup @ l) r0
                 val sup = sup |> filter_used_facts true (map fst sup_l)
               in (sup, (l @ r, result)) end))

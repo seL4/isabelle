@@ -115,7 +115,7 @@ fun mk_inv_def ctxt rhs =
 fun prove_inj_eq ctxt ct =
   let
     val (lhs, rhs) =
-      pairself Old_SMT_Utils.mk_cprop (Thm.dest_binop (Old_SMT_Utils.dest_cprop ct))
+      apply2 Old_SMT_Utils.mk_cprop (Thm.dest_binop (Old_SMT_Utils.dest_cprop ct))
     val lhs_thm = Thm.implies_intr rhs (prove_lhs ctxt rhs lhs)
     val rhs_thm =
       Thm.implies_intr lhs (prove_rhs ctxt (mk_inv_def ctxt rhs) lhs rhs)
@@ -126,7 +126,7 @@ val swap_eq_thm = mk_meta_eq @{thm eq_commute}
 val swap_disj_thm = mk_meta_eq @{thm disj_commute}
 
 fun swap_conv dest eq =
-  Old_SMT_Utils.if_true_conv ((op <) o pairself Term.size_of_term o dest)
+  Old_SMT_Utils.if_true_conv ((op <) o apply2 Term.size_of_term o dest)
     (Conv.rewr_conv eq)
 
 val swap_eq_conv = swap_conv HOLogic.dest_eq swap_eq_thm

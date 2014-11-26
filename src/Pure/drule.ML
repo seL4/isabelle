@@ -797,7 +797,7 @@ fun cterm_instantiate [] th = th
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
             cons (certT (TVar (xi, S)), certT (Envir.norm_type tye T))) tye [];
-        val inst = map (pairself (Thm.instantiate_cterm (instT, []))) ctpairs;
+        val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
       in instantiate_normalize (instT, inst) th end
       handle TERM (msg, _) => raise THM (msg, 0, [th])
         | TYPE (msg, _, _) => raise THM (msg, 0, [th]);

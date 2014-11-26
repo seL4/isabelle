@@ -147,7 +147,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
           (Options.bool options "document_graph")
           (Options.string options "document_output")
           (Present.document_variants (Options.string options "document_variants"))
-          (map (pairself Path.explode) document_files)
+          (map (apply2 Path.explode) document_files)
           parent_name (chapter, name)
           verbose;
 

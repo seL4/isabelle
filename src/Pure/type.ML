@@ -188,7 +188,7 @@ fun build_tsig (classes, default, types) =
   let
     val log_types =
       Name_Space.fold_table (fn (c, LogicalType n) => cons (c, n) | _ => I) types []
-      |> Library.sort (int_ord o pairself snd) |> map fst;
+      |> Library.sort (int_ord o apply2 snd) |> map fst;
   in make_tsig (classes, default, types, log_types) end;
 
 fun map_tsig f (TSig {classes, default, types, log_types = _}) =
@@ -639,7 +639,7 @@ fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), defau
 fun add_classrel pp rel tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
-      val rel' = pairself (cert_class tsig) rel
+      val rel' = apply2 (cert_class tsig) rel
         handle TYPE (msg, _, _) => error msg;
       val classes' = classes |> Sorts.add_classrel pp rel';
     in ((space, classes'), default, types) end);

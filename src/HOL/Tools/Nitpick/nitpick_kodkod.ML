@@ -201,12 +201,12 @@ fun tabulate_nat_op2 debug univ_card (k, j0) f =
 
 fun tabulate_int_op2 debug univ_card (k, j0) f =
   tabulate_op2 debug univ_card (k, j0) j0
-               (atom_for_int (k, 0) o f o pairself (int_for_atom (k, 0)))
+               (atom_for_int (k, 0) o f o apply2 (int_for_atom (k, 0)))
 
 fun tabulate_int_op2_2 debug univ_card (k, j0) f =
   tabulate_op2_2 debug univ_card (k, j0) j0
-                 (pairself (atom_for_int (k, 0)) o f
-                  o pairself (int_for_atom (k, 0)))
+                 (apply2 (atom_for_int (k, 0)) o f
+                  o apply2 (int_for_atom (k, 0)))
 
 fun isa_div (m, n) = m div n handle General.Div => 0
 fun isa_mod (m, n) = m mod n handle General.Div => m
@@ -215,7 +215,7 @@ fun isa_gcd (m, 0) = m
   | isa_gcd (m, n) = isa_gcd (n, isa_mod (m, n))
 
 fun isa_lcm (m, n) = isa_div (m * n, isa_gcd (m, n))
-val isa_zgcd = isa_gcd o pairself abs
+val isa_zgcd = isa_gcd o apply2 abs
 
 fun isa_norm_frac (m, n) =
   if n < 0 then isa_norm_frac (~m, ~n)
@@ -1058,7 +1058,7 @@ fun kodkod_formula_from_nut ofs
               if card_of_rep R1 <> 1 then
                 raise REP ("Nitpick_Kodkod.to_r (Converse)", [R])
               else
-                pairself (Atom o pair 1 o offset_of_type ofs) (b_T, a_T)
+                apply2 (Atom o pair 1 o offset_of_type ofs) (b_T, a_T)
             | _ => raise REP ("Nitpick_Kodkod.to_r (Converse)", [R])
           val body_R = body_rep R
           val a_arity = arity_of_rep a_R
@@ -1163,7 +1163,7 @@ fun kodkod_formula_from_nut ofs
                          (fold kk_and (map_filter (fn (u, r) =>
                               if is_opt_rep (rep_of u) then SOME (kk_some r)
                               else NONE) [(u1, r1), (u2, r2)]) KK.True)
-                         (atom_from_formula kk bool_j0 (KK.LT (pairself
+                         (atom_from_formula kk bool_j0 (KK.LT (apply2
                              (int_expr_from_atom kk (type_of u1)) (r1, r2))))
                          KK.None)
                  (to_rep R1 u1) (to_rep R1 u2)
@@ -1604,7 +1604,7 @@ fun constr_quadruple ({const = (s, T), delta, epsilon, ...} : constr_spec) =
   (delta, (epsilon, (num_binder_types T, s)))
 val constr_ord =
   prod_ord int_ord (prod_ord int_ord (prod_ord int_ord string_ord))
-  o pairself constr_quadruple
+  o apply2 constr_quadruple
 
 fun data_type_ord (({card = card1, self_rec = self_rec1, constrs = constr1, ...},
                     {card = card2, self_rec = self_rec2, constrs = constr2, ...})

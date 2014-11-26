@@ -103,14 +103,14 @@ fun condrew thy rules procs =
           fun ren t = the_default t (Term.rename_abs tm1 tm t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
           val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm) (Vartab.empty, Vartab.empty);
-          val prems' = map (pairself (Envir.subst_term env o inc o ren)) prems;
+          val prems' = map (apply2 (Envir.subst_term env o inc o ren)) prems;
           val env' = Envir.Envir
             {maxidx = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u) prems' ~1,
              tenv = tenv, tyenv = Tenv};
-          val env'' = fold (Pattern.unify (Context.Theory thy) o pairself (lookup rew)) prems' env';
+          val env'' = fold (Pattern.unify (Context.Theory thy) o apply2 (lookup rew)) prems' env';
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
-          (sort (int_ord o pairself fst)
+          (sort (int_ord o apply2 fst)
             (Net.match_term rules (Envir.eta_contract tm)))
       end;
 
@@ -207,7 +207,7 @@ structure ExtractionData = Theory_Data
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = AList.merge (op =) (K true) (types1, types2),
-     realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
+     realizers = Symtab.merge_list (eq_set (op =) o apply2 #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
      prep = if is_some prep1 then prep1 else prep2};

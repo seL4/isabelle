@@ -117,11 +117,11 @@ val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
 
 fun cert_syms ctxt =
   Code_Symbol.map_attr (apfst (cert_const ctxt)) (apfst (cert_tyco ctxt))
-    (apfst (cert_class ctxt)) ((apfst o pairself) (cert_class ctxt)) (apfst (cert_inst ctxt)) I;
+    (apfst (cert_class ctxt)) ((apfst o apply2) (cert_class ctxt)) (apfst (cert_inst ctxt)) I;
 
 fun read_syms ctxt =
   Code_Symbol.map_attr (apfst (read_const ctxt)) (apfst (read_tyco ctxt))
-    (apfst (Proof_Context.read_class ctxt)) ((apfst o pairself) (Proof_Context.read_class ctxt)) (apfst (read_inst ctxt)) I;
+    (apfst (Proof_Context.read_class ctxt)) ((apfst o apply2) (Proof_Context.read_class ctxt)) (apfst (read_inst ctxt)) I;
 
 fun check_name is_module s =
   let

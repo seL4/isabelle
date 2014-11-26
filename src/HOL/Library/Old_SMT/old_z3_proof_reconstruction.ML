@@ -287,7 +287,7 @@ local
     end
 
   fun dest_arg2 ct = Thm.dest_arg (Thm.dest_arg ct)
-  fun dest ct = pairself dest_arg2 (Thm.dest_binop ct)
+  fun dest ct = apply2 dest_arg2 (Thm.dest_binop ct)
   val contrapos =
     Old_Z3_Proof_Tools.precompose2 dest @{lemma "(~P ==> ~Q) ==> Q ==> P" by fast}
 in
@@ -482,7 +482,7 @@ local
 
   fun prove_refl (ct, _) = Thm.reflexive ct
   fun prove_comb f g cp =
-    let val ((ct1, ct2), (cu1, cu2)) = pairself Thm.dest_comb cp
+    let val ((ct1, ct2), (cu1, cu2)) = apply2 Thm.dest_comb cp
     in Thm.combination (f (ct1, cu1)) (g (ct2, cu2)) end
   fun prove_arg f = prove_comb prove_refl f
 
@@ -506,7 +506,7 @@ local
   fun prove_distinct f = prove_arg (with_length (prove_list f))
 
   fun prove_eq exn lookup cp =
-    (case lookup (Logic.mk_equals (pairself Thm.term_of cp)) of
+    (case lookup (Logic.mk_equals (apply2 Thm.term_of cp)) of
       SOME eq => eq
     | NONE => if exn then raise MONO else prove_refl cp)
   

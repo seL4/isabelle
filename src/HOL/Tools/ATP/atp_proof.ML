@@ -243,7 +243,7 @@ fun extract_important_message output =
 
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_tstplike_proof delims output =
-  (case pairself (find_first (fn s => String.isSubstring s output)) (ListPair.unzip delims) of
+  (case apply2 (find_first (fn s => String.isSubstring s output)) (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) => extract_delimited (begin_delim, end_delim) output
   | _ => "")
 
@@ -269,9 +269,9 @@ fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
 val vampire_fact_prefix = "f"
 
 fun vampire_step_name_ord p =
-  let val q = pairself fst p in
+  let val q = apply2 fst p in
     (* The "unprefix" part is to cope with Vampire's output. *)
-    (case pairself (Int.fromString o perhaps (try (unprefix vampire_fact_prefix))) q of
+    (case apply2 (Int.fromString o perhaps (try (unprefix vampire_fact_prefix))) q of
       (SOME i, SOME j) => int_ord (i, j)
     | _ => raise Fail "not Vampire")
   end
@@ -286,8 +286,8 @@ type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, strin
    with "$" and possibly with "!" in them (for "z3_tptp"). *)
 val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
-  || (Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig >> (op ^ o pairself implode))
-    -- Scan.optional (Scan.repeat ($$ "!") -- Scan.many1 Symbol.is_letdig >> (op ^ o pairself implode)) ""
+  || (Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig >> (op ^ o apply2 implode))
+    -- Scan.optional (Scan.repeat ($$ "!") -- Scan.many1 Symbol.is_letdig >> (op ^ o apply2 implode)) ""
     >> op ^
 
 val skip_term =
@@ -429,7 +429,7 @@ fun is_same_term subst tm1 tm2 =
               else K NONE)
           end
       | do_term_pair (ATerm ((s1, _), args1)) (ATerm ((s2, _), args2)) (SOME subst) =
-        (case pairself is_tptp_variable (s1, s2) of
+        (case apply2 is_tptp_variable (s1, s2) of
           (true, true) =>
           (case AList.lookup (op =) subst s1 of
             SOME s2' => if s2' = s2 then SOME subst else NONE

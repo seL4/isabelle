@@ -173,10 +173,9 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       end
     and do_equals new_Ts old_Ts s0 T0 t1 t2 =
       let
-        val (t1, t2) = pairself (do_term new_Ts old_Ts Neut) (t1, t2)
-        val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
-        val T = if def then T1
-                else [T1, T2] |> sort (int_ord o pairself size_of_typ) |> hd
+        val (t1, t2) = apply2 (do_term new_Ts old_Ts Neut) (t1, t2)
+        val (T1, T2) = apply2 (curry fastype_of1 new_Ts) (t1, t2)
+        val T = if def then T1 else [T1, T2] |> sort (int_ord o apply2 size_of_typ) |> hd
       in
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
@@ -608,9 +607,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
         | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const HOL.conj} $ t1 $ t2 =>
-          s_conj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
+          s_conj (apply2 (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const HOL.disj} $ t1 $ t2 =>
-          s_disj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
+          s_disj (apply2 (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const HOL.implies} $ t1 $ t2 =>
           @{const HOL.implies} $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
@@ -758,7 +757,7 @@ fun specialize_consts_in_term
                 val _ = not (null fixed_js) orelse raise SAME ()
                 val fixed_args = filter_indices fixed_js args
                 val vars = fold Term.add_vars fixed_args []
-                           |> sort (Term_Ord.fast_indexname_ord o pairself fst)
+                           |> sort (Term_Ord.fast_indexname_ord o apply2 fst)
                 val bound_js = fold (fn t => fn js => add_loose_bnos (t, 0, js))
                                     fixed_args []
                                |> sort int_ord
@@ -811,11 +810,11 @@ val cong_var_prefix = "c"
 
 fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
   let
-    val (bounds1, bounds2) = pairself (map Var o special_bounds) (ts1, ts2)
+    val (bounds1, bounds2) = apply2 (map Var o special_bounds) (ts1, ts2)
     val Ts = binder_types T
     val max_j = fold (fold Integer.max) [js1, js2] ~1
     val (eqs, (args1, args2)) =
-      fold (fn j => case pairself (fn ps => AList.lookup (op =) ps j)
+      fold (fn j => case apply2 (fn ps => AList.lookup (op =) ps j)
                                   (js1 ~~ ts1, js2 ~~ ts2) of
                       (SOME t1, SOME t2) => apfst (cons (t1, t2))
                     | (SOME t1, NONE) => apsnd (apsnd (cons t1))
@@ -823,7 +822,7 @@ fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
                     | (NONE, NONE) =>
                       let val v = Var ((cong_var_prefix ^ nat_subscript j, 0),
                                        nth Ts j) in
-                        apsnd (pairself (cons v))
+                        apsnd (apply2 (cons v))
                       end) (max_j downto 0) ([], ([], []))
   in
     Logic.list_implies (eqs |> filter_out (op aconv) |> distinct (op =)
@@ -849,7 +848,7 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) ts =
       | do_pass_1 T skipped _ [] = do_pass_2 T skipped
       | do_pass_1 T skipped all (z :: zs) =
         case filter (is_more_specific z) all
-             |> sort (int_ord o pairself generality) of
+             |> sort (int_ord o apply2 generality) of
           [] => do_pass_1 T (z :: skipped) all zs
         | (z' :: _) => cons (special_congruence_axiom T z z')
                        #> do_pass_1 T skipped all zs
@@ -883,7 +882,7 @@ fun assumption_exclusively_defines_free assm_ts t =
 fun all_table_entries table = Symtab.fold (append o snd) table []
 
 fun extra_table tables s =
-  Symtab.make [(s, pairself all_table_entries tables |> op @)]
+  Symtab.make [(s, apply2 all_table_entries tables |> op @)]
 
 fun eval_axiom_for_term j t =
   Logic.mk_equals (Const (eval_prefix ^ string_of_int j, fastype_of t), t)
@@ -1199,7 +1198,7 @@ val push_quantifiers_inward =
                          val (costly_boundss, (j, js)) =
                            js |> map (`(merge costly_boundss o single))
                               |> sort (int_ord
-                                       o pairself (Integer.sum o map snd o fst))
+                                       o apply2 (Integer.sum o map snd o fst))
                               |> split_list |>> hd ||> pairf hd tl
                        in
                          j :: heuristically_best_permutation costly_boundss js
@@ -1208,7 +1207,7 @@ val push_quantifiers_inward =
                      if length Ts <= quantifier_cluster_threshold then
                        all_permutations (index_seq 0 num_Ts)
                        |> map (`(cost (t_boundss ~~ t_costs)))
-                       |> sort (int_ord o pairself fst) |> hd |> snd
+                       |> sort (int_ord o apply2 fst) |> hd |> snd
                      else
                        heuristically_best_permutation (t_boundss ~~ t_costs)
                                                       (index_seq 0 num_Ts)

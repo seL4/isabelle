@@ -112,8 +112,8 @@ type T = T;
 type data = {filter: Plugin_Name.filter, naming: Name_Space.naming, value: T, id: serial};
 type interp = {name: string, apply: T -> local_theory -> local_theory, id: serial};
 
-val eq_data: data * data -> bool = op = o pairself #id;
-val eq_interp: interp * interp -> bool = op = o pairself #id;
+val eq_data: data * data -> bool = op = o apply2 #id;
+val eq_interp: interp * interp -> bool = op = o apply2 #id;
 
 fun mk_data filter naming x : data = {filter = filter, naming = naming, value = x, id = serial ()};
 fun mk_interp name f : interp = {name = name, apply = f, id = serial ()};

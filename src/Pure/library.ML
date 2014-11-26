@@ -44,7 +44,7 @@ sig
   val swap: 'a * 'b -> 'b * 'a
   val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
   val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
-  val pairself: ('a -> 'b) -> 'a * 'a -> 'b * 'b
+  val apply2: ('a -> 'b) -> 'a * 'a -> 'b * 'b
 
   (*booleans*)
   val equal: ''a -> ''a -> bool
@@ -283,7 +283,7 @@ fun swap (x, y) = (y, x);
 
 fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
-fun pairself f (x, y) = (f x, f y);
+fun apply2 f (x, y) = (f x, f y);
 
 
 (* booleans *)
@@ -964,7 +964,7 @@ fun sort ord = mergesort false ord;
 fun sort_distinct ord = mergesort true ord;
 
 val sort_strings = sort string_ord;
-fun sort_wrt key xs = sort (string_ord o pairself key) xs;
+fun sort_wrt key xs = sort (string_ord o apply2 key) xs;
 
 
 (* items tagged by integer index *)
@@ -981,7 +981,7 @@ fun untag_list [] = []
       else x :: untag_list rest;
 
 (*return list elements in original order*)
-fun order_list list = untag_list (sort (int_ord o pairself fst) list);
+fun order_list list = untag_list (sort (int_ord o apply2 fst) list);
 
 
 

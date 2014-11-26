@@ -1226,7 +1226,7 @@ fun fomatch Ts tymatch j instsp p =
       | (f $ t, g $ u) => mtch (mtch instsp (f, g)) (t, u)
       | (Bound i, Bound j) => if i=j then instsp else raise PMatch
       | _ => raise PMatch
-  in mtch instsp (pairself Envir.beta_eta_contract p) end;
+  in mtch instsp (apply2 Envir.beta_eta_contract p) end;
 
 fun match_proof Ts tymatch =
   let

@@ -1475,7 +1475,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
       | [x] => (head_of x, false));
     val rule'' =
       cterm_instantiate
-        (map (pairself cert)
+        (map (apply2 cert)
           (case rev params of
             [] =>
               (case AList.lookup (op =) (Term.add_frees g []) s of
@@ -1758,7 +1758,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+          ([apply2 (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
         |> Axclass.unoverload thy;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =

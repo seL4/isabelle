@@ -115,7 +115,7 @@ fun thms_in_proof max_thms name_tabs th =
   (case try Thm.proof_body_of th of
     NONE => NONE
   | SOME body =>
-    let val map_names = (case name_tabs of SOME p => pairself Symtab.lookup p | NONE => `I SOME) in
+    let val map_names = (case name_tabs of SOME p => apply2 Symtab.lookup p | NONE => `I SOME) in
       SOME (fold_body_thm max_thms (Thm.get_name_hint th) map_names (Proofterm.strip_thm body))
       handle TOO_MANY () => NONE
     end)

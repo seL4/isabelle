@@ -48,7 +48,7 @@ struct
 
 (** Theory Data **)
 
-val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o pairself snd) (single o fst);
+val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o apply2 snd) (single o fst);
 val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
