@@ -47,7 +47,7 @@ fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
-      (print_exception_trace Runtime.exn_message Output.system_message (fn () => cmd args)
+      (Runtime.exn_trace_system (fn () => cmd args)
         handle _ (*sic!*) => error ("Isabelle protocol command failure: " ^ quote name)));
 
 end;

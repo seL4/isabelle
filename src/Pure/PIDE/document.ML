@@ -559,7 +559,7 @@ fun removed_execs node0 (command_id, exec_ids) =
 
 in
 
-fun update old_version_id new_version_id edits state =
+fun update old_version_id new_version_id edits state = Runtime.exn_trace_system (fn () =>
   let
     val old_version = the_version state old_version_id;
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
@@ -575,61 +575,63 @@ fun update old_version_id new_version_id edits state =
           (singleton o Future.forks)
             {name = "Document.update", group = NONE,
               deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
-            (fn () => timeit ("Document.update " ^ name) (fn () =>
-              let
-                val keywords = get_keywords ();
-                val imports = map (apsnd Future.join) deps;
-                val imports_result_changed = exists (#4 o #1 o #2) imports;
-                val node_required = Symtab.defined required name;
-              in
-                if Symtab.defined edited name orelse visible_node node orelse
-                  imports_result_changed orelse Symtab.defined required0 name <> node_required
-                then
+            (fn () =>
+              timeit ("Document.update " ^ name) (fn () =>
+                Runtime.exn_trace_system (fn () =>
                   let
-                    val node0 = node_of old_version name;
-                    val init = init_theory imports node;
-                    val proper_init =
-                      check_theory false name node andalso
-                      forall (fn (name, (_, node)) => check_theory true name node) imports;
+                    val keywords = get_keywords ();
+                    val imports = map (apsnd Future.join) deps;
+                    val imports_result_changed = exists (#4 o #1 o #2) imports;
+                    val node_required = Symtab.defined required name;
+                  in
+                    if Symtab.defined edited name orelse visible_node node orelse
+                      imports_result_changed orelse Symtab.defined required0 name <> node_required
+                    then
+                      let
+                        val node0 = node_of old_version name;
+                        val init = init_theory imports node;
+                        val proper_init =
+                          check_theory false name node andalso
+                          forall (fn (name, (_, node)) => check_theory true name node) imports;
 
-                    val (print_execs, common, (still_visible, initial)) =
-                      if imports_result_changed then (assign_update_empty, NONE, (true, true))
-                      else last_common keywords state node_required node0 node;
-                    val common_command_exec = the_default_entry node common;
+                        val (print_execs, common, (still_visible, initial)) =
+                          if imports_result_changed then (assign_update_empty, NONE, (true, true))
+                          else last_common keywords state node_required node0 node;
+                        val common_command_exec = the_default_entry node common;
 
-                    val (updated_execs, (command_id', (eval', _)), _) =
-                      (print_execs, common_command_exec, if initial then SOME init else NONE)
-                      |> (still_visible orelse node_required) ?
-                        iterate_entries_after common
-                          (fn ((prev, id), _) => fn res =>
-                            if not node_required andalso prev = visible_last node then NONE
-                            else new_exec keywords state node proper_init id res) node;
+                        val (updated_execs, (command_id', (eval', _)), _) =
+                          (print_execs, common_command_exec, if initial then SOME init else NONE)
+                          |> (still_visible orelse node_required) ?
+                            iterate_entries_after common
+                              (fn ((prev, id), _) => fn res =>
+                                if not node_required andalso prev = visible_last node then NONE
+                                else new_exec keywords state node proper_init id res) node;
 
-                    val assigned_execs =
-                      (node0, updated_execs) |-> iterate_entries_after common
-                        (fn ((_, command_id0), exec0) => fn res =>
-                          if is_none exec0 then NONE
-                          else if assign_update_defined updated_execs command_id0 then SOME res
-                          else SOME (assign_update_new (command_id0, NONE) res));
+                        val assigned_execs =
+                          (node0, updated_execs) |-> iterate_entries_after common
+                            (fn ((_, command_id0), exec0) => fn res =>
+                              if is_none exec0 then NONE
+                              else if assign_update_defined updated_execs command_id0 then SOME res
+                              else SOME (assign_update_new (command_id0, NONE) res));
 
-                    val last_exec =
-                      if command_id' = Document_ID.none then NONE else SOME command_id';
-                    val result =
-                      if is_none last_exec orelse is_some (after_entry node last_exec) then NONE
-                      else SOME eval';
+                        val last_exec =
+                          if command_id' = Document_ID.none then NONE else SOME command_id';
+                        val result =
+                          if is_none last_exec orelse is_some (after_entry node last_exec) then NONE
+                          else SOME eval';
 
-                    val assign_update = assign_update_result assigned_execs;
-                    val removed = maps (removed_execs node0) assign_update;
-                    val _ = List.app Execution.cancel removed;
+                        val assign_update = assign_update_result assigned_execs;
+                        val removed = maps (removed_execs node0) assign_update;
+                        val _ = List.app Execution.cancel removed;
 
-                    val node' = node
-                      |> assign_update_apply assigned_execs
-                      |> set_result result;
-                    val assigned_node = SOME (name, node');
-                    val result_changed = changed_result node0 node';
-                  in ((removed, assign_update, assigned_node, result_changed), node') end
-                else (([], [], NONE, false), node)
-              end)))
+                        val node' = node
+                          |> assign_update_apply assigned_execs
+                          |> set_result result;
+                        val assigned_node = SOME (name, node');
+                        val result_changed = changed_result node0 node';
+                      in ((removed, assign_update, assigned_node, result_changed), node') end
+                    else (([], [], NONE, false), node)
+                  end))))
       |> Future.joins |> map #1);
 
     val removed = maps #1 updated;
@@ -639,7 +641,7 @@ fun update old_version_id new_version_id edits state =
     val state' = state
       |> define_version new_version_id (fold put_node assigned_nodes new_version);
 
-  in (removed, assign_update, state') end;
+  in (removed, assign_update, state') end);
 
 end;
 

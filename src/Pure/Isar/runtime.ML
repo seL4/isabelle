@@ -17,6 +17,7 @@ sig
   val exn_error_message: exn -> unit
   val exn_system_message: exn -> unit
   val exn_trace: (unit -> 'a) -> 'a
+  val exn_trace_system: (unit -> 'a) -> 'a
   val debugging: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
@@ -134,6 +135,7 @@ fun exn_message exn =
 val exn_error_message = Output.error_message o exn_message;
 val exn_system_message = Output.system_message o exn_message;
 fun exn_trace e = print_exception_trace exn_message tracing e;
+fun exn_trace_system e = print_exception_trace exn_message Output.system_message e;
 
 
 
