@@ -93,7 +93,7 @@ fun quit () = exit 0;
 
 (* ML runtime system *)
 
-fun print_exception_trace (_: exn -> string) = PolyML.exception_trace;
+fun print_exception_trace (_: exn -> string) (_: string -> unit) = PolyML.exception_trace;
 val timing = PolyML.timing;
 val profiling = PolyML.profiling;
 

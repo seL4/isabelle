@@ -76,7 +76,7 @@ fun ml_prompts p1 p2 =
 fun profile (n: int) f x = f x;
 
 (*dummy implementation*)
-fun print_exception_trace (_: exn -> string) f = f ();
+fun print_exception_trace (_: exn -> string) (_: string -> unit) f = f ();
 
 
 (* ML command execution *)

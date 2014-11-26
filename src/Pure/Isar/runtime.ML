@@ -7,7 +7,6 @@ Isar toplevel runtime support.
 signature RUNTIME =
 sig
   exception UNDEF
-  exception TERMINATE
   exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
   val exn_context: Proof.context option -> exn -> exn
@@ -30,7 +29,6 @@ struct
 (** exceptions **)
 
 exception UNDEF;
-exception TERMINATE;
 exception EXCURSION_FAIL of exn * string;
 exception TOPLEVEL_ERROR;
 
@@ -96,8 +94,7 @@ fun exn_messages_ids e =
         let
           val msg =
             (case exn of
-              TERMINATE => "Exit"
-            | TimeLimit.TimeOut => "Timeout"
+              TimeLimit.TimeOut => "Timeout"
             | TOPLEVEL_ERROR => "Error"
             | ERROR "" => "Error"
             | ERROR msg => msg
@@ -136,7 +133,7 @@ fun exn_message exn =
 
 val exn_error_message = Output.error_message o exn_message;
 val exn_system_message = Output.system_message o exn_message;
-fun exn_trace e = print_exception_trace exn_message e;
+fun exn_trace e = print_exception_trace exn_message tracing e;
 
 
 
@@ -144,8 +141,7 @@ fun exn_trace e = print_exception_trace exn_message e;
 
 fun debugging opt_context f x =
   if ML_Options.exception_trace_enabled opt_context
-  then print_exception_trace exn_message (fn () => f x)
-  else f x;
+  then exn_trace (fn () => f x) else f x;
 
 fun controlled_execution opt_context f x =
   (f |> debugging opt_context |> Future.interruptible_task) x;

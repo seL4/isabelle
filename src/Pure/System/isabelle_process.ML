@@ -47,9 +47,8 @@ fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
-      (Runtime.debugging NONE cmd args handle exn =>
-        error ("Isabelle protocol command failure: " ^ quote name ^ "\n" ^
-          Runtime.exn_message exn)));
+      (print_exception_trace Runtime.exn_message Output.system_message (fn () => cmd args)
+        handle _ (*sic!*) => error ("Isabelle protocol command failure: " ^ quote name)));
 
 end;
 
@@ -158,9 +157,8 @@ fun read_chunk channel len =
   end;
 
 fun read_command channel =
-  (case System_Channel.input_line channel of
-    NONE => raise Runtime.TERMINATE
-  | SOME line => map (read_chunk channel) (space_explode "," line));
+  System_Channel.input_line channel
+  |> Option.map (fn line => map (read_chunk channel) (space_explode "," line));
 
 fun task_context e =
   Future.task_context "Isabelle_Process.loop" (Future.new_group NONE) e ();
@@ -168,12 +166,13 @@ fun task_context e =
 in
 
 fun loop channel =
-  let val continue =
-    (case read_command channel of
-      [] => (Output.system_message "Isabelle process: no input"; true)
-    | name :: args => (task_context (fn () => run_command name args); true))
-    handle Runtime.TERMINATE => false
-      | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
+  let
+    val continue =
+      (case read_command channel of
+        NONE => false
+      | SOME [] => (Output.system_message "Isabelle process: no input"; true)
+      | SOME (name :: args) => (task_context (fn () => run_command name args); true))
+      handle exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
   in
     if continue then loop channel
     else (Future.shutdown (); Execution.reset (); ())

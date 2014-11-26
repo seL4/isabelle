@@ -80,7 +80,7 @@ sig
   val add_hook: (transition -> state -> state -> unit) -> unit
   val get_timing: transition -> Time.time option
   val put_timing: Time.time option -> transition -> transition
-  val transition: bool -> transition -> state -> (state * (exn * string) option) option
+  val transition: bool -> transition -> state -> state * (exn * string) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
   val reset_theory: state -> state option
@@ -569,18 +569,12 @@ in
 
 fun transition int tr st =
   let
-    val hooks = get_hooks ();
-    fun apply_hooks st' = hooks |> List.app (fn f => (try (fn () => f tr st st') (); ()));
-
-    val ctxt = try context_of st;
-    val res =
-      (case app int tr st of
-        (_, SOME Runtime.TERMINATE) => NONE
-      | (st', SOME (Runtime.EXCURSION_FAIL exn_info)) => SOME (st', SOME exn_info)
-      | (st', SOME exn) => SOME (st', SOME (Runtime.exn_context ctxt exn, at_command tr))
-      | (st', NONE) => SOME (st', NONE));
-    val _ = (case res of SOME (st', NONE) => apply_hooks st' | _ => ());
-  in res end;
+    val (st', opt_err) = app int tr st;
+    val opt_err' = opt_err |> Option.map
+      (fn Runtime.EXCURSION_FAIL exn_info => exn_info
+        | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
+    val _ = get_hooks () |> List.app (fn f => (try (fn () => f tr st st') (); ()));
+  in (st', opt_err') end;
 
 end;
 
@@ -589,16 +583,15 @@ end;
 
 fun command_errors int tr st =
   (case transition int tr st of
-    SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (Runtime.exn_messages_ids exn, NONE)
-  | NONE => (Runtime.exn_messages_ids Runtime.TERMINATE, NONE));
+    (st', NONE) => ([], SOME st')
+  | (_, SOME (exn, _)) => (Runtime.exn_messages_ids exn, NONE));
 
 fun command_exception int tr st =
   (case transition int tr st of
-    SOME (st', NONE) => st'
-  | SOME (_, SOME (exn, info)) =>
-      if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
-  | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
+    (st', NONE) => st'
+  | (_, SOME (exn, info)) =>
+      if Exn.is_interrupt exn then reraise exn
+      else raise Runtime.EXCURSION_FAIL (exn, info));
 
 val command = command_exception false;
 
