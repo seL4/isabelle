@@ -827,14 +827,15 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
         Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
       else alt_name;
 
+    val is_auxiliary = length cs >= 2; 
     val ((rec_const, (_, fp_def)), lthy') = lthy
-      |> Local_Theory.conceal
+      |> is_auxiliary ? Local_Theory.conceal
       |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Thm.def_binding rec_name, @{attributes [nitpick_unfold]}),
+         ((Binding.conceal (Thm.def_binding rec_name), @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
-      ||> Local_Theory.restore_naming lthy;
+      ||> is_auxiliary ? Local_Theory.restore_naming lthy;
     val fp_def' =
       Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
         (cterm_of (Proof_Context.theory_of lthy') (list_comb (rec_const, params)));
