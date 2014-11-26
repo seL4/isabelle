@@ -9,29 +9,29 @@ begin
 context semiring_div
 begin 
 
-definition ring_inv :: "'a \<Rightarrow> 'a"
+abbreviation is_unit :: "'a \<Rightarrow> bool"
 where
-  "ring_inv x = 1 div x"
-
-definition is_unit :: "'a \<Rightarrow> bool"
-where
-  "is_unit x \<longleftrightarrow> x dvd 1"
+  "is_unit x \<equiv> x dvd 1"
 
 definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
 where
   "associated x y \<longleftrightarrow> x dvd y \<and> y dvd x"
 
+definition ring_inv :: "'a \<Rightarrow> 'a"
+where
+  "ring_inv x = 1 div x"
+
 lemma unit_prod [intro]:
   "is_unit x \<Longrightarrow> is_unit y \<Longrightarrow> is_unit (x * y)"
-  unfolding is_unit_def by (subst mult_1_left [of 1, symmetric], rule mult_dvd_mono) 
+  by (subst mult_1_left [of 1, symmetric], rule mult_dvd_mono) 
 
 lemma unit_ring_inv:
   "is_unit y \<Longrightarrow> x div y = x * ring_inv y"
-  by (simp add: div_mult_swap ring_inv_def is_unit_def)
+  by (simp add: div_mult_swap ring_inv_def)
 
 lemma unit_ring_inv_ring_inv [simp]:
   "is_unit x \<Longrightarrow> ring_inv (ring_inv x) = x"
-  unfolding is_unit_def ring_inv_def
+  unfolding ring_inv_def
   by (metis div_mult_mult1_if div_mult_self1_is_id dvd_mult_div_cancel mult_1_right)
 
 lemma inv_imp_eq_ring_inv:
@@ -40,7 +40,7 @@ lemma inv_imp_eq_ring_inv:
 
 lemma ring_inv_is_inv1 [simp]:
   "is_unit a \<Longrightarrow> a * ring_inv a = 1"
-  unfolding is_unit_def ring_inv_def by simp
+  unfolding ring_inv_def by simp
 
 lemma ring_inv_is_inv2 [simp]:
   "is_unit a \<Longrightarrow> ring_inv a * a = 1"
@@ -51,7 +51,7 @@ lemma unit_ring_inv_unit [simp, intro]:
   shows "is_unit (ring_inv x)"
 proof -
   from assms have "1 = ring_inv x * x" by simp
-  then show "is_unit (ring_inv x)" unfolding is_unit_def by (rule dvdI)
+  then show "is_unit (ring_inv x)" by (rule dvdI)
 qed
 
 lemma mult_unit_dvd_iff:
@@ -104,11 +104,11 @@ lemma unit_div_commute:
 
 lemma unit_imp_dvd [dest]:
   "is_unit y \<Longrightarrow> y dvd x"
-  by (rule dvd_trans [of _ 1]) (simp_all add: is_unit_def)
+  by (rule dvd_trans [of _ 1]) simp_all
 
 lemma dvd_unit_imp_unit:
   "is_unit y \<Longrightarrow> x dvd y \<Longrightarrow> is_unit x"
-  by (unfold is_unit_def) (rule dvd_trans)
+  by (rule dvd_trans)
 
 lemma ring_inv_0 [simp]:
   "ring_inv 0 = 0"
@@ -138,15 +138,15 @@ lemma associated_0 [simp]:
 
 lemma associated_unit:
   "is_unit x \<Longrightarrow> associated x y \<Longrightarrow> is_unit y"
-  unfolding associated_def by (fast dest: dvd_unit_imp_unit)
+  unfolding associated_def using dvd_unit_imp_unit by auto
 
 lemma is_unit_1 [simp]:
   "is_unit 1"
-  unfolding is_unit_def by simp
+  by simp
 
 lemma not_is_unit_0 [simp]:
   "\<not> is_unit 0"
-  unfolding is_unit_def by auto
+  by auto
 
 lemma unit_mult_left_cancel:
   assumes "is_unit x"
@@ -193,7 +193,7 @@ proof
         unfolding associated_def by simp_all
     hence "1 = x div y * (y div x)"
       by (simp add: div_mult_swap)
-    hence "is_unit (x div y)" unfolding is_unit_def by (rule dvdI)
+    hence "is_unit (x div y)" ..
     moreover have "x = (x div y) * y" by simp
     ultimately show ?thesis by blast
   qed
@@ -218,21 +218,21 @@ begin
 
 lemma is_unit_neg [simp]:
   "is_unit (- x) \<Longrightarrow> is_unit x"
-  unfolding is_unit_def by simp
+  by simp
 
 lemma is_unit_neg_1 [simp]:
   "is_unit (-1)"
-  unfolding is_unit_def by simp
+  by simp
 
 end
 
 lemma is_unit_nat [simp]:
   "is_unit (x::nat) \<longleftrightarrow> x = 1"
-  unfolding is_unit_def by simp
+  by simp
 
 lemma is_unit_int:
   "is_unit (x::int) \<longleftrightarrow> x = 1 \<or> x = -1"
-  unfolding is_unit_def by auto
+  by auto
 
 text {*
   A Euclidean semiring is a semiring upon which the Euclidean algorithm can be
@@ -741,7 +741,7 @@ lemma coprimeI: "(\<And>l. \<lbrakk>l dvd x; l dvd y\<rbrakk> \<Longrightarrow> 
   by (rule sym, rule gcdI, simp_all)
 
 lemma coprime: "gcd a b = 1 \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> is_unit d)"
-  by (auto simp: is_unit_def intro: coprimeI gcd_greatest dvd_gcd_D1 dvd_gcd_D2)
+  by (auto intro: coprimeI gcd_greatest dvd_gcd_D1 dvd_gcd_D2)
 
 lemma div_gcd_coprime:
   assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
@@ -858,7 +858,7 @@ qed
 lemma coprime_common_divisor: 
   "gcd a b = 1 \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> is_unit x"
   apply (subgoal_tac "x dvd gcd a b")
-  apply (simp add: is_unit_def)
+  apply simp
   apply (erule (1) gcd_greatest)
   done
 
@@ -1144,14 +1144,15 @@ lemma lcm_1_iff:
   "lcm a b = 1 \<longleftrightarrow> is_unit a \<and> is_unit b"
 proof
   assume "lcm a b = 1"
-  then show "is_unit a \<and> is_unit b" unfolding is_unit_def by auto
+  then show "is_unit a \<and> is_unit b" by auto
 next
   assume "is_unit a \<and> is_unit b"
-  hence "a dvd 1" and "b dvd 1" unfolding is_unit_def by simp_all
-  hence "is_unit (lcm a b)" unfolding is_unit_def by (rule lcm_least)
+  hence "a dvd 1" and "b dvd 1" by simp_all
+  hence "is_unit (lcm a b)" by (rule lcm_least)
   hence "lcm a b = normalisation_factor (lcm a b)"
     by (subst normalisation_factor_unit, simp_all)
-  also have "\<dots> = 1" using `is_unit a \<and> is_unit b` by (auto simp add: is_unit_def)
+  also have "\<dots> = 1" using `is_unit a \<and> is_unit b`
+    by auto
   finally show "lcm a b = 1" .
 qed
 
@@ -1389,7 +1390,7 @@ lemma Lcm_1_iff:
   "Lcm A = 1 \<longleftrightarrow> (\<forall>x\<in>A. is_unit x)"
 proof
   assume "Lcm A = 1"
-  then show "\<forall>x\<in>A. is_unit x" unfolding is_unit_def by auto
+  then show "\<forall>x\<in>A. is_unit x" by auto
 qed (rule LcmI [symmetric], auto)
 
 lemma Lcm_no_units:
@@ -1733,7 +1734,7 @@ definition [simp]:
   "normalisation_factor_nat (n::nat) = (if n = 0 then 0 else 1 :: nat)"
 
 instance proof
-qed (simp_all add: is_unit_def)
+qed simp_all
 
 end
 
@@ -1749,11 +1750,11 @@ definition [simp]:
 instance proof
   case goal2 then show ?case by (auto simp add: abs_mult nat_mult_distrib)
 next
-  case goal3 then show ?case by (simp add: zsgn_def is_unit_def)
+  case goal3 then show ?case by (simp add: zsgn_def)
 next
-  case goal5 then show ?case by (auto simp: zsgn_def is_unit_def)
+  case goal5 then show ?case by (auto simp: zsgn_def)
 next
-  case goal6 then show ?case by (auto split: abs_split simp: zsgn_def is_unit_def)
+  case goal6 then show ?case by (auto split: abs_split simp: zsgn_def)
 qed (auto simp: sgn_times split: abs_split)
 
 end
