@@ -510,7 +510,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
           (if null ts andalso null us then resolve_tac [intr] 1
            else
             EVERY (replicate (length ts + length us - 1) (eresolve_tac @{thms conjE} 1)) THEN
-            Subgoal.FOCUS_PREMS (fn {context = ctxt'', params, prems, ...} =>
+            Subgoal.FOCUS_PREMS (fn {context = ctxt'', prems, ...} =>
               let
                 val (eqs, prems') = chop (length us) prems;
                 val rew_thms = map (fn th => th RS @{thm eq_reflection}) eqs;
@@ -1003,11 +1003,8 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
 (* external interfaces *)
 
 fun gen_add_inductive_i mk_def
-    (flags as {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono})
-    cnames_syn pnames spec monos lthy =
+    flags cnames_syn pnames spec monos lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
-
 
     (* abbrevs *)
 
