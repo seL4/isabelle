@@ -49,17 +49,18 @@ structure Data = Theory_Data
 fun mk_data (c, k, s) = {ignore_consts = c, keep_functions = k, processed_specs = s}
 fun map_data f {ignore_consts = c, keep_functions = k, processed_specs = s} = mk_data (f (c, k, s))
 
-fun ignore_consts cs = Data.map (map_data (apfst3 (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
+fun ignore_consts cs =
+  Data.map (map_data (@{apply 3(1)} (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
 
-fun keep_functions cs = Data.map (map_data (apsnd3 (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
+fun keep_functions cs =
+  Data.map (map_data (@{apply 3(2)} (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
 
 fun keep_function thy = Symtab.defined (#keep_functions (Data.get thy))
 
 fun processed_specs thy = Symtab.lookup (#processed_specs (Data.get thy))
 
 fun store_processed_specs (constname, specs) =
-  Data.map (map_data (aptrd3 (Symtab.update_new (constname, specs))))
-(* *)
+  Data.map (map_data (@{apply 3(3)} (Symtab.update_new (constname, specs))))
 
 
 fun defining_term_of_introrule_term t =

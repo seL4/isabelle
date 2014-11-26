@@ -300,17 +300,12 @@ fun del_att which =
   Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
     fold Item_Net.remove (filter_rules rs th) rs))));
 
-fun map1 f (x, y, z, s) = (f x, y, z, s);
-fun map2 f (x, y, z, s) = (x, f y, z, s);
-fun map3 f (x, y, z, s) = (x, y, f z, s);
-fun map4 f (x, y, z, s) = (x, y, z, f s);
-
-fun add_casesT rule x = map1 (apfst (Item_Net.update rule)) x;
-fun add_casesP rule x = map1 (apsnd (Item_Net.update rule)) x;
-fun add_inductT rule x = map2 (apfst (Item_Net.update rule)) x;
-fun add_inductP rule x = map2 (apsnd (Item_Net.update rule)) x;
-fun add_coinductT rule x = map3 (apfst (Item_Net.update rule)) x;
-fun add_coinductP rule x = map3 (apsnd (Item_Net.update rule)) x;
+fun add_casesT rule x = @{apply 4(1)} (apfst (Item_Net.update rule)) x;
+fun add_casesP rule x = @{apply 4(1)} (apsnd (Item_Net.update rule)) x;
+fun add_inductT rule x = @{apply 4(2)} (apfst (Item_Net.update rule)) x;
+fun add_inductP rule x = @{apply 4(2)} (apsnd (Item_Net.update rule)) x;
+fun add_coinductT rule x = @{apply 4(3)} (apfst (Item_Net.update rule)) x;
+fun add_coinductP rule x = @{apply 4(3)} (apsnd (Item_Net.update rule)) x;
 
 val consumes0 = Rule_Cases.default_consumes 0;
 val consumes1 = Rule_Cases.default_consumes 1;
@@ -319,18 +314,18 @@ in
 
 val cases_type = mk_att add_casesT consumes0;
 val cases_pred = mk_att add_casesP consumes1;
-val cases_del = del_att map1;
+val cases_del = del_att @{apply 4(1)};
 
 val induct_type = mk_att add_inductT consumes0;
 val induct_pred = mk_att add_inductP consumes1;
-val induct_del = del_att map2;
+val induct_del = del_att @{apply 4(2)};
 
 val coinduct_type = mk_att add_coinductT consumes0;
 val coinduct_pred = mk_att add_coinductP consumes1;
-val coinduct_del = del_att map3;
+val coinduct_del = del_att @{apply 4(3)};
 
 fun map_simpset f context =
-  context |> (Data.map o map4 o Simplifier.simpset_map (Context.proof_of context)) f;
+  context |> (Data.map o @{apply 4(4)} o Simplifier.simpset_map (Context.proof_of context)) f;
 
 fun induct_simp f =
   Thm.declaration_attribute (fn thm => map_simpset (fn ctxt => f (ctxt, [thm])));

@@ -6,10 +6,6 @@ Auxilary functions for predicate compiler.
 
 signature PREDICATE_COMPILE_AUX =
 sig
-  (* general functions *)
-  val apfst3 : ('a -> 'd) -> 'a * 'b * 'c -> 'd * 'b * 'c
-  val apsnd3 : ('b -> 'd) -> 'a * 'b * 'c -> 'a * 'd * 'c
-  val aptrd3 : ('c -> 'd) -> 'a * 'b * 'c -> 'a * 'b * 'd
   val find_indices : ('a -> bool) -> 'a list -> int list
   (* mode *)
   datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
@@ -171,10 +167,6 @@ structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
 struct
 
 (* general functions *)
-
-fun apfst3 f (x, y, z) = (f x, y, z)
-fun apsnd3 f (x, y, z) = (x, f y, z)
-fun aptrd3 f (x, y, z) = (x, y, f z)
 
 fun comb_option f (SOME x1, SOME x2) = SOME (f (x1, x2))
   | comb_option f (NONE, SOME x2) = SOME x2

@@ -226,7 +226,21 @@ val _ = Theory.setup
       \      | split_list" ^ tuple_cons n ^ " =\n\
       \          let val" ^ tuple_vars "xs" n ^ " = split_list xs\n\
       \          in " ^ cons_tuple n ^ "end\n\
-      \  in split_list list end")))
+      \  in split_list list end")) #>
+  ML_Antiquotation.value @{binding apply}
+    (Scan.lift (parameter -- Scan.option (Args.parens (Parse.position Parse.nat))) >>
+      (fn (n, opt_index) =>
+        let
+          val cond =
+            (case opt_index of
+              NONE => K true
+            | SOME (index, index_pos) =>
+                if 1 <= index andalso index <= n then equal (string_of_int index)
+                else error ("Bad index: " ^ string_of_int index ^ Position.here index_pos));
+        in
+          "fn f => fn " ^ tuple_vars "x" n ^ " => " ^
+            tuple (map (fn a => (if cond a then "f x" else "x") ^ a) (indices n))
+        end)));
 
 end;
 
