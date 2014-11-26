@@ -184,6 +184,22 @@ fun CRITICAL e = NAMED_CRITICAL "" e;
 
 end;
 
+fun synchronized name lock e =
+  Exn.release (uninterruptible (fn restore_attributes => fn () =>
+    let
+      val immediate =
+        if Mutex.trylock lock then true
+        else
+          let
+            val _ = tracing 5 (fn () => name ^ ": locking ...");
+            val time = real_time Mutex.lock lock;
+            val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
+          in false end;
+      val result = Exn.capture (restore_attributes e) ();
+      val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
+      val _ = Mutex.unlock lock;
+    in result end) ());
+
 
 (* serial numbers *)
 

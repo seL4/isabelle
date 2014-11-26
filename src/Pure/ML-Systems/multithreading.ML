@@ -31,6 +31,7 @@ sig
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
   val real_time: ('a -> unit) -> 'a -> Time.time
   val self_critical: unit -> bool
+  val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
   val serial: unit -> int
 end;
 
@@ -73,6 +74,8 @@ fun real_time f x = (f x; Time.zeroTime);
 fun self_critical () = false;
 fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
+
+fun synchronized _ _ e = e ();
 
 
 (* serial numbers *)

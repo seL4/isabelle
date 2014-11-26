@@ -18,8 +18,6 @@ use "General/print_mode.ML";
 use "General/alist.ML";
 use "General/table.ML";
 
-use "Concurrent/simple_thread.ML";
-
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
@@ -49,6 +47,7 @@ fun use s =
         handle ERROR msg => (writeln msg; error "ML error")) ();
 
 val toplevel_pp = Secure.toplevel_pp;
+
 
 
 (** bootstrap phase 1: towards ML within Isar context *)
@@ -106,6 +105,8 @@ if ML_System.name = "polyml-5.5.0"
   orelse ML_System.name = "polyml-5.5.3"
 then use "ML/ml_statistics_polyml-5.5.0.ML"
 else use "ML/ml_statistics_dummy.ML";
+
+use "Concurrent/simple_thread.ML";
 
 use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()

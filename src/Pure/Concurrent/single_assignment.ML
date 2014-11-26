@@ -32,7 +32,7 @@ fun var name = Var
 fun peek (Var {var, ...}) = SingleAssignment.savalue var;
 
 fun await (v as Var {name, lock, cond, ...}) =
-  Simple_Thread.synchronized name lock (fn () =>
+  Multithreading.synchronized name lock (fn () =>
     let
       fun wait () =
         (case peek v of
@@ -44,7 +44,7 @@ fun await (v as Var {name, lock, cond, ...}) =
     in wait () end);
 
 fun assign (v as Var {name, lock, cond, var}) x =
-  Simple_Thread.synchronized name lock (fn () =>
+  Multithreading.synchronized name lock (fn () =>
     (case peek v of
       SOME _ => raise Fail ("Duplicate assignment to " ^ name)
     | NONE =>
