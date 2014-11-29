@@ -27,13 +27,10 @@ object Token_Markup
 {
   /* editing support for control symbols */
 
-  val is_control_style =
-    Set(Symbol.sub_decoded, Symbol.sup_decoded, Symbol.bold_decoded)
-
   def update_control_style(control: String, text: String): String =
   {
     val result = new StringBuilder
-    for (sym <- Symbol.iterator(text) if !is_control_style(sym)) {
+    for (sym <- Symbol.iterator(text) if !HTML.control_decoded.isDefinedAt(sym)) {
       if (Symbol.is_controllable(sym)) result ++= control
       result ++= sym
     }
@@ -49,7 +46,7 @@ object Token_Markup
     text_area.getSelection.foreach(sel => {
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
       JEdit_Lib.try_get_text(buffer, before) match {
-        case Some(s) if is_control_style(s) =>
+        case Some(s) if HTML.control_decoded.isDefinedAt(s) =>
           text_area.extendSelection(before.start, before.stop)
         case _ =>
       }

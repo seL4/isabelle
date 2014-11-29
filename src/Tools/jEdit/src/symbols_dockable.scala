@@ -30,7 +30,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     action =
       Action(decoded) {
         val text_area = view.getTextArea
-        if (Token_Markup.is_control_style(decoded))
+        if (HTML.control_decoded.isDefinedAt(decoded))
           Token_Markup.edit_control_style(text_area, decoded)
         else text_area.setSelectedText(decoded)
         text_area.requestFocus

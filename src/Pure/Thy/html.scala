@@ -10,21 +10,48 @@ package isabelle
 
 object HTML
 {
-  /* encode text */
+  /* encode text with control symbols */
+
+  val control_decoded =
+    Map(Symbol.sub_decoded -> "sub",
+      Symbol.sup_decoded -> "sup",
+      Symbol.bold_decoded -> "b")
 
   def encode(text: String): String =
   {
-    val s = new StringBuilder
-    for (c <- text.iterator) c match {
-      case '<' => s ++= "&lt;"
-      case '>' => s ++= "&gt;"
-      case '&' => s ++= "&amp;"
-      case '"' => s ++= "&quot;"
-      case '\'' => s ++= "&#39;"
-      case '\n' => s ++= "<br/>"
-      case _ => s += c
+    val result = new StringBuilder
+
+    def encode_char(c: Char) =
+      c match {
+        case '<' => result ++= "&lt;"
+        case '>' => result ++= "&gt;"
+        case '&' => result ++= "&amp;"
+        case '"' => result ++= "&quot;"
+        case '\'' => result ++= "&#39;"
+        case '\n' => result ++= "<br/>"
+        case c => result += c
+      }
+    def encode_chars(s: String) = s.iterator.foreach(encode_char(_))
+
+    var control = ""
+    for (sym <- Symbol.iterator(text)) {
+      if (control_decoded.isDefinedAt(sym)) control = sym
+      else {
+        control_decoded.get(control) match {
+          case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
+            result ++= ("<" + elem + ">")
+            encode_chars(sym)
+            result ++= ("</" + elem + ">")
+          case _ =>
+            encode_chars(control)
+            encode_chars(sym)
+        }
+        control = ""
+      }
     }
-    s.toString
+    encode_chars(control)
+
+    result.toString
   }
 
 
