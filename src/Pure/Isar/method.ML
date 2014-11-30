@@ -284,7 +284,7 @@ val parse_tactic =
           ML_Context.expression (Input.range_of source)
             "tactic" "Morphism.morphism -> thm list -> tactic"
             "Method.set_tactic tactic"
-            (ML_Lex.read Position.none "fn morphism: Morphism.morphism => fn facts: thm list =>" @
+            (ML_Lex.read "fn morphism: Morphism.morphism => fn facts: thm list =>" @
              ML_Lex.read_source false source);
         val tac = the_tactic context';
       in

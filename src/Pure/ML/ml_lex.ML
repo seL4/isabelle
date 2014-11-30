@@ -25,7 +25,8 @@ sig
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
-  val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read_pos: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read: Symbol_Pos.text -> token Antiquote.antiquote list
   val read_set_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
   val read_source: bool -> Input.source -> token Antiquote.antiquote list
 end;
@@ -324,11 +325,12 @@ fun source src =
 
 val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
-val read = gen_read false;
+val read_pos = gen_read false;
+
+val read = read_pos Position.none;
 
 fun read_set_range range =
-  read Position.none
-  #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
+  read #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
 
 fun read_source SML source =
   let

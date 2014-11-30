@@ -142,10 +142,7 @@ setup -- "document antiquotation"
   Thy_Output.antiquotation @{binding ML_cartouche}
     (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn source =>
       let
-        val toks =
-          ML_Lex.read Position.none "fn _ => (" @
-          ML_Lex.read_source false source @
-          ML_Lex.read Position.none ");";
+        val toks = ML_Lex.read "fn _ => (" @ ML_Lex.read_source false source @ ML_Lex.read ");";
         val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags (Input.pos_of source) toks;
       in "" end);
 *}
@@ -215,8 +212,7 @@ struct
       val ctxt' = ctxt |> Context.proof_map
         (ML_Context.expression (Input.range_of source) "tactic" "Proof.context -> tactic"
           "Context.map_proof (ML_Tactic.set tactic)"
-          (ML_Lex.read Position.none "fn ctxt: Proof.context =>" @
-           ML_Lex.read_source false source));
+          (ML_Lex.read "fn ctxt: Proof.context =>" @ ML_Lex.read_source false source));
     in Data.get ctxt' ctxt end;
 end;
 *}

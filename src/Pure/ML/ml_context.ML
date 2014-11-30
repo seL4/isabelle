@@ -170,7 +170,7 @@ end;
 
 fun eval_file flags path =
   let val pos = Path.position path
-  in eval flags pos (ML_Lex.read pos (File.read path)) end;
+  in eval flags pos (ML_Lex.read_pos pos (File.read path)) end;
 
 fun eval_source flags source =
   eval flags (Input.pos_of source) (ML_Lex.read_source (#SML flags) source);
@@ -184,16 +184,11 @@ fun eval_source_in ctxt flags source =
     (fn () => eval_source flags source) ();
 
 fun expression range name constraint body ants =
-  let
-    val hidden = ML_Lex.read Position.none;
-    val visible = ML_Lex.read_set_range range;
-  in
-    exec (fn () =>
-      eval ML_Compiler.flags (#1 range)
-       (hidden "Context.set_thread_data (SOME (let val " @ visible name @
-        hidden (": " ^ constraint ^ " =") @ ants @
-        hidden ("in " ^ body ^ " end (ML_Context.the_generic_context ())));")))
-  end;
+  exec (fn () =>
+    eval ML_Compiler.flags (#1 range)
+     (ML_Lex.read "Context.set_thread_data (SOME (let val " @ ML_Lex.read_set_range range name @
+      ML_Lex.read (": " ^ constraint ^ " =") @ ants @
+      ML_Lex.read ("in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
 
 end;
 

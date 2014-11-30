@@ -671,9 +671,7 @@ fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
     verbatim_text ctxt (Input.source_content source)));
 
 fun ml_enclose bg en source =
-  ML_Lex.read Position.none bg @
-  ML_Lex.read_source false source @
-  ML_Lex.read Position.none en;
+  ML_Lex.read bg @ ML_Lex.read_source false source @ ML_Lex.read en;
 
 in
 
@@ -686,7 +684,7 @@ val _ = Theory.setup
 
   ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
-      ML_Lex.read Position.none ("ML_Env.check_functor " ^
+      ML_Lex.read ("ML_Env.check_functor " ^
         ML_Syntax.print_string (Input.source_content source))) #>
 
   ml_text @{binding ML_text} (K []));

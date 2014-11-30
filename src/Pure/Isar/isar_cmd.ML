@@ -131,15 +131,13 @@ fun oracle (name, range) source =
     val body_range = Input.range_of source;
     val body = ML_Lex.read_source false source;
 
-    val hidden = ML_Lex.read Position.none;
-    val visible = ML_Lex.read_set_range;
     val ants =
-      hidden
+      ML_Lex.read
        ("local\n\
         \  val binding = " ^ ML_Syntax.make_binding (name, #1 range) ^ ";\n\
-        \  val") @ visible body_range "oracle" @ hidden "=" @ body @ hidden (";\n\
-        \in\n\
-        \  val") @ visible range name @ hidden "=\
+        \  val") @ ML_Lex.read_set_range body_range "oracle" @ ML_Lex.read "=" @ body @
+        ML_Lex.read (";\nin\n\
+        \  val") @ ML_Lex.read_set_range range name @ ML_Lex.read "=\
         \ snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, oracle))));\n\
         \end;\n";
   in

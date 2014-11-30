@@ -37,28 +37,29 @@ fun clean_name "\<dots>" = "dots"
 
 local
 
-val ml_toks = ML_Lex.read Position.none;
+fun ml_val (toks1, []) = ML_Lex.read "fn _ => (" @ toks1 @ ML_Lex.read ");"
+  | ml_val (toks1, toks2) =
+      ML_Lex.read "fn _ => (" @ toks1 @ ML_Lex.read " : " @ toks2 @ ML_Lex.read ");";
 
-fun ml_val (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks ");"
-  | ml_val (toks1, toks2) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : " @ toks2 @ ml_toks ");";
+fun ml_op (toks1, []) = ML_Lex.read "fn _ => (op " @ toks1 @ ML_Lex.read ");"
+  | ml_op (toks1, toks2) =
+      ML_Lex.read "fn _ => (op " @ toks1 @ ML_Lex.read " : " @ toks2 @ ML_Lex.read ");";
 
-fun ml_op (toks1, []) = ml_toks "fn _ => (op " @ toks1 @ ml_toks ");"
-  | ml_op (toks1, toks2) = ml_toks "fn _ => (op " @ toks1 @ ml_toks " : " @ toks2 @ ml_toks ");";
-
-fun ml_type (toks1, []) = ml_toks "val _ = NONE : (" @ toks1 @ ml_toks ") option;"
+fun ml_type (toks1, []) = ML_Lex.read "val _ = NONE : (" @ toks1 @ ML_Lex.read ") option;"
   | ml_type (toks1, toks2) =
-      ml_toks "val _ = [NONE : (" @ toks1 @ ml_toks ") option, NONE : (" @
-        toks2 @ ml_toks ") option];";
+      ML_Lex.read "val _ = [NONE : (" @ toks1 @ ML_Lex.read ") option, NONE : (" @
+        toks2 @ ML_Lex.read ") option];";
 
-fun ml_exception (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : exn);"
+fun ml_exception (toks1, []) = ML_Lex.read "fn _ => (" @ toks1 @ ML_Lex.read " : exn);"
   | ml_exception (toks1, toks2) =
-      ml_toks "fn _ => (" @ toks1 @ ml_toks " : " @ toks2 @ ml_toks " -> exn);";
+      ML_Lex.read "fn _ => (" @ toks1 @ ML_Lex.read " : " @ toks2 @ ML_Lex.read " -> exn);";
 
 fun ml_structure (toks, _) =
-  ml_toks "functor XXX() = struct structure XX = " @ toks @ ml_toks " end;";
+  ML_Lex.read "functor XXX() = struct structure XX = " @ toks @ ML_Lex.read " end;";
 
 fun ml_functor (Antiquote.Text tok :: _, _) =
-      ml_toks "ML_Env.check_functor " @ ml_toks (ML_Syntax.print_string (ML_Lex.content_of tok))
+      ML_Lex.read "ML_Env.check_functor " @
+      ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | ml_functor _ = raise Fail "Bad ML functor specification";
 
 val is_name = ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.LongIdent);
