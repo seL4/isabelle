@@ -486,10 +486,9 @@ fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
 fun pretty_text_report ctxt source =
-  let
-    val (s, pos) = Input.source_content source;
-    val _ = Context_Position.report ctxt pos (Markup.language_text (Input.is_delimited source));
-  in pretty_text ctxt s end;
+ (Context_Position.report ctxt (Input.pos_of source)
+    (Markup.language_text (Input.is_delimited source));
+  pretty_text ctxt (Input.source_content source));
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
@@ -669,8 +668,7 @@ local
 fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
   (fn {context = ctxt, ...} => fn source =>
    (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of source) (ml source);
-    Input.source_content source |> #1
-    |> verbatim_text ctxt));
+    verbatim_text ctxt (Input.source_content source)));
 
 fun ml_enclose bg en source =
   ML_Lex.read Position.none bg @
@@ -689,7 +687,7 @@ val _ = Theory.setup
   ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
       ML_Lex.read Position.none ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (#1 (Input.source_content source)))) #>
+        ML_Syntax.print_string (Input.source_content source))) #>
 
   ml_text @{binding ML_text} (K []));
 

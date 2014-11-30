@@ -13,7 +13,7 @@ sig
   val range_of: source -> Position.range
   val source: bool -> Symbol_Pos.text -> Position.range -> source
   val source_explode: source -> Symbol_Pos.T list
-  val source_content: source -> string * Position.T
+  val source_content: source -> string
 end;
 
 structure Input: INPUT =
@@ -33,9 +33,7 @@ fun source delimited text range =
 fun source_explode (Source {text, range = (pos, _), ...}) =
   Symbol_Pos.explode (text, pos);
 
-fun source_content (Source {text, range = (pos, _), ...}) =
-  let val syms = Symbol_Pos.explode (text, pos)
-  in (Symbol_Pos.content syms, pos) end;
+val source_content = source_explode #> Symbol_Pos.content;
 
 end;
 
