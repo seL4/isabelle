@@ -230,7 +230,7 @@ let
      REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
                         ORELSE' eresolve_tac (asm_rl :: @{thm PartE} :: @{thm SigmaE2} ::
                                               type_elims)
-                        ORELSE' hyp_subst_tac ctxt1)),
+                        ORELSE' hyp_subst_tac ctxt)),
      if !Ind_Syntax.trace then print_tac ctxt "The subgoal after monos, type_elims:"
      else all_tac,
      DEPTH_SOLVE (swap_res_tac ctxt (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
