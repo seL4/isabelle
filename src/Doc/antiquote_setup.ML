@@ -69,7 +69,7 @@ fun ml_name txt =
   | _ => error ("Single ML name expected in input: " ^ quote txt));
 
 fun prep_ml source =
-  (#1 (Symbol_Pos.source_content source), ML_Lex.read_source false source);
+  (#1 (Input.source_content source), ML_Lex.read_source false source);
 
 fun index_ml name kind ml = Thy_Output.antiquotation name
   (Scan.lift (Args.text_source_position -- Scan.option (Args.colon |-- Args.text_source_position)))
@@ -90,7 +90,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
 
-      val (pos, _) = #range source1;
+      val pos = Input.pos_of source1;
       val _ =
         ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (ml (toks1, toks2))
           handle ERROR msg => error (msg ^ Position.here pos);

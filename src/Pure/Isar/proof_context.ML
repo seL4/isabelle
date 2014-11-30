@@ -403,7 +403,7 @@ fun check_class ctxt (xname, pos) =
 
 fun read_class ctxt text =
   let
-    val (c, reports) = check_class ctxt (Symbol_Pos.source_content (Syntax.read_token text));
+    val (c, reports) = check_class ctxt (Input.source_content (Syntax.read_token text));
     val _ = Position.reports reports;
   in c end;
 
@@ -471,7 +471,7 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
 fun read_type_name ctxt flags text =
   let
     val (T, reports) =
-      check_type_name ctxt flags (Symbol_Pos.source_content (Syntax.read_token text));
+      check_type_name ctxt flags (Input.source_content (Syntax.read_token text));
     val _ = Position.reports reports;
   in T end;
 
@@ -519,7 +519,7 @@ fun check_const {proper, strict} ctxt (c, ps) =
 
 fun read_const ctxt flags text =
   let
-    val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
+    val (xname, pos) = Input.source_content (Syntax.read_token text);
     val (t, reports) = check_const ctxt flags (xname, [pos]);
     val _ = Position.reports reports;
   in t end;

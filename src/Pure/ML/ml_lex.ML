@@ -27,7 +27,7 @@ sig
   val tokenize: string -> token list
   val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
   val read_set_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
-  val read_source: bool -> Symbol_Pos.source -> token Antiquote.antiquote list
+  val read_source: bool -> Input.source -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -330,13 +330,15 @@ fun read_set_range range =
   read Position.none
   #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
 
-fun read_source SML ({delimited, text, range = (pos, _)}: Symbol_Pos.source) =
+fun read_source SML source =
   let
+    val pos = Input.pos_of source;
     val language = if SML then Markup.language_SML else Markup.language_ML;
     val _ =
-      if Position.is_reported_range pos then Position.report pos (language delimited)
+      if Position.is_reported_range pos
+      then Position.report pos (language (Input.is_delimited source))
       else ();
-  in gen_read SML pos text end;
+  in gen_read SML pos (Input.text_of source) end;
 
 end;
 

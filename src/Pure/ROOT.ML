@@ -32,6 +32,7 @@ use "General/source.ML";
 use "General/symbol.ML";
 use "General/position.ML";
 use "General/symbol_pos.ML";
+use "General/input.ML";
 use "General/antiquote.ML";
 use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";

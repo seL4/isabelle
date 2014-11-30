@@ -15,7 +15,7 @@ sig
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
   val read_token_pos: string -> Position.T
-  val read_token: string -> Symbol_Pos.source
+  val read_token: string -> Input.source
   val parse_token: Proof.context -> (XML.tree list -> 'a) ->
     (bool -> Markup.T) -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
@@ -169,11 +169,11 @@ fun token_range (XML.Elem ((name, props), _)) =
       else (false, Position.no_range)
   | token_range (XML.Text _) = (false, Position.no_range);
 
-fun token_source tree : Symbol_Pos.source =
+fun token_source tree : Input.source =
   let
     val text = XML.content_of [tree];
     val (delimited, range) = token_range tree;
-  in {delimited = delimited, text = text, range = range} end;
+  in Input.source delimited text range end;
 
 in
 
@@ -186,9 +186,9 @@ fun parse_token ctxt decode markup parse str =
     fun parse_tree tree =
       let
         val source = token_source tree;
-        val syms = Symbol_Pos.source_explode source;
-        val (pos, _) = #range source;
-        val _ = Context_Position.report ctxt pos (markup (#delimited source));
+        val syms = Input.source_explode source;
+        val pos = Input.pos_of source;
+        val _ = Context_Position.report ctxt pos (markup (Input.is_delimited source));
       in parse (syms, pos) end;
   in
     (case YXML.parse_body str handle Fail msg => error msg of

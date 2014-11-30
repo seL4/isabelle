@@ -281,11 +281,10 @@ end;
 
 (* read *)
 
-fun read ctxt (source: Symbol_Pos.source) =
+fun read ctxt source =
   let
-    val {text, range = (pos, _), ...} = source;
-    val _ = Context_Position.report ctxt pos Markup.language_rail;
-    val toks = tokenize (Symbol_Pos.explode (text, pos));
+    val _ = Context_Position.report ctxt (Input.pos_of source) Markup.language_rail;
+    val toks = tokenize (Input.source_explode source);
     val _ = Context_Position.reports ctxt (maps reports_of_token toks);
     val rules = parse_rules toks;
     val _ = Position.reports (maps (reports_of_tree ctxt o #2) rules);

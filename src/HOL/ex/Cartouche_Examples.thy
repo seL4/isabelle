@@ -146,8 +146,7 @@ setup -- "document antiquotation"
           ML_Lex.read Position.none "fn _ => (" @
           ML_Lex.read_source false source @
           ML_Lex.read Position.none ");";
-        val (pos, _) = #range source;
-        val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags pos toks;
+        val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags (Input.pos_of source) toks;
       in "" end);
 *}
 
@@ -204,7 +203,7 @@ ML {*
 structure ML_Tactic:
 sig
   val set: (Proof.context -> tactic) -> Proof.context -> Proof.context
-  val ml_tactic: Symbol_Pos.source -> Proof.context -> tactic
+  val ml_tactic: Input.source -> Proof.context -> tactic
 end =
 struct
   structure Data = Proof_Data(type T = Proof.context -> tactic fun init _ = K no_tac);
@@ -214,7 +213,7 @@ struct
   fun ml_tactic source ctxt =
     let
       val ctxt' = ctxt |> Context.proof_map
-        (ML_Context.expression (#range source) "tactic" "Proof.context -> tactic"
+        (ML_Context.expression (Input.range_of source) "tactic" "Proof.context -> tactic"
           "Context.map_proof (ML_Tactic.set tactic)"
           (ML_Lex.read Position.none "fn ctxt: Proof.context =>" @
            ML_Lex.read_source false source));

@@ -208,7 +208,7 @@ val _ =
     (Resources.provide_parse_files "SML_file" >> (fn files => Toplevel.theory (fn thy =>
         let
           val ([{lines, pos, ...}], thy') = files thy;
-          val source = {delimited = true, text = cat_lines lines, range = (pos, pos)};
+          val source = Input.source true (cat_lines lines) (pos, pos);
           val flags = {SML = true, exchange = false, redirect = true, verbose = true};
         in
           thy' |> Context.theory_map

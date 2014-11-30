@@ -41,7 +41,7 @@ sig
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val local_setup: Binding.binding -> attribute context_parser -> string ->
     local_theory -> local_theory
-  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
+  val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
   val add_del: attribute -> attribute -> attribute context_parser
@@ -49,7 +49,7 @@ sig
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
   val check_attribs: Proof.context -> Token.src list -> Token.src list
-  val read_attribs: Proof.context -> Symbol_Pos.source -> Token.src list
+  val read_attribs: Proof.context -> Input.source -> Token.src list
   val transform_facts: morphism ->
     (Attrib.binding * (thm list * Token.src list) list) list ->
     (Attrib.binding * (thm list * Token.src list) list) list
@@ -208,7 +208,7 @@ fun local_setup binding scan comment = define binding (attribute_syntax scan) co
 
 fun attribute_setup name source comment =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "parser" "Thm.attribute context_parser"
+  |> ML_Context.expression (Input.range_of source) "parser" "Thm.attribute context_parser"
     ("Context.map_proof (Attrib.local_setup " ^ ML_Syntax.atomic (ML_Syntax.make_binding name) ^
       " parser " ^ ML_Syntax.print_string comment ^ ")")
   |> Context.proof_map;
@@ -287,11 +287,11 @@ fun check_attribs ctxt raw_srcs =
 fun read_attribs ctxt source =
   let
     val keywords = Thy_Header.get_keywords' ctxt;
-    val syms = Symbol_Pos.source_explode source;
+    val syms = Input.source_explode source;
   in
     (case Token.read_no_commands keywords Parse.attribs syms of
       [raw_srcs] => check_attribs ctxt raw_srcs
-    | _ => error ("Malformed attributes" ^ Position.here (#1 (#range source))))
+    | _ => error ("Malformed attributes" ^ Position.here (Input.pos_of source)))
   end;
 
 

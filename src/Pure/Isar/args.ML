@@ -22,11 +22,11 @@ sig
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
   val cartouche_inner_syntax: string parser
-  val cartouche_source_position: Symbol_Pos.source parser
-  val text_source_position: Symbol_Pos.source parser
+  val cartouche_source_position: Input.source parser
+  val text_source_position: Input.source parser
   val text: string parser
   val name_inner_syntax: string parser
-  val name_source_position: Symbol_Pos.source parser
+  val name_source_position: Input.source parser
   val name: string parser
   val binding: binding parser
   val alt_name: string parser
@@ -46,7 +46,7 @@ sig
   val named_fact: (string -> string option * thm list) -> thm list parser
   val named_attribute: (string * Position.T -> morphism -> attribute) ->
     (morphism -> attribute) parser
-  val text_declaration: (Symbol_Pos.source -> declaration) -> declaration parser
+  val text_declaration: (Input.source -> declaration) -> declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser

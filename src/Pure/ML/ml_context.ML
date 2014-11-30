@@ -21,10 +21,10 @@ sig
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
   val eval_file: ML_Compiler.flags -> Path.T -> unit
-  val eval_source: ML_Compiler.flags -> Symbol_Pos.source -> unit
+  val eval_source: ML_Compiler.flags -> Input.source -> unit
   val eval_in: Proof.context option -> ML_Compiler.flags -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
-  val eval_source_in: Proof.context option -> ML_Compiler.flags -> Symbol_Pos.source -> unit
+  val eval_source_in: Proof.context option -> ML_Compiler.flags -> Input.source -> unit
   val expression: Position.range -> string -> string -> string ->
     ML_Lex.token Antiquote.antiquote list -> Context.generic -> Context.generic
 end
@@ -173,7 +173,7 @@ fun eval_file flags path =
   in eval flags pos (ML_Lex.read pos (File.read path)) end;
 
 fun eval_source flags source =
-  eval flags (#1 (#range source)) (ML_Lex.read_source (#SML flags) source);
+  eval flags (Input.pos_of source) (ML_Lex.read_source (#SML flags) source);
 
 fun eval_in ctxt flags pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)

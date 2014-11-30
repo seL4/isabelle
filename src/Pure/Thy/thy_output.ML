@@ -23,7 +23,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val eval_antiq: Toplevel.state -> Antiquote.antiq -> string
-  val check_text: Symbol_Pos.source -> Toplevel.state -> unit
+  val check_text: Input.source -> Toplevel.state -> unit
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
@@ -33,8 +33,8 @@ sig
     Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
-  val old_header_command: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
-  val document_command: (xstring * Position.T) option * Symbol_Pos.source ->
+  val old_header_command: Input.source -> Toplevel.transition -> Toplevel.transition
+  val document_command: (xstring * Position.T) option * Input.source ->
     Toplevel.transition -> Toplevel.transition
 end;
 
@@ -192,10 +192,10 @@ fun eval_antiquote state (txt, pos) =
     val _ = Position.reports (maps words ants);
   in implode (map expand ants) end;
 
-fun check_text ({delimited, text, range}: Symbol_Pos.source) state =
- (Position.report (fst range) (Markup.language_document delimited);
+fun check_text source state =
+ (Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote state (text, fst range)));
+  else ignore (eval_antiquote state (Input.text_of source, Input.pos_of source)));
 
 
 
@@ -377,8 +377,11 @@ fun present_thy thy command_results toks =
           Token.is_command tok andalso pred keywords (Token.content_of tok))) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
-      >> (fn (((tok, pos'), tags), {text, range = (pos, _), ...}) =>
-        let val name = Token.content_of tok
+      >> (fn (((tok, pos'), tags), source) =>
+        let
+          val name = Token.content_of tok;
+          val text = Input.text_of source;
+          val pos = Input.pos_of source;
         in (SOME (name, pos', tags), (mk (name, (text, pos)), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
@@ -389,8 +392,8 @@ fun present_thy thy command_results toks =
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
-      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source)
-      >> (fn {text, range = (pos, _), ...} => (NONE, (MarkupToken ("cmt", (text, pos)), ("", d)))));
+      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >> (fn source =>
+        (NONE, (MarkupToken ("cmt", (Input.text_of source, Input.pos_of source)), ("", d)))));
 
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
@@ -487,9 +490,8 @@ fun pretty_text ctxt =
 
 fun pretty_text_report ctxt source =
   let
-    val {delimited, range = (pos, _), ...} = source;
-    val _ = Context_Position.report ctxt pos (Markup.language_text delimited);
-    val (s, _) = Symbol_Pos.source_content source;
+    val (s, pos) = Input.source_content source;
+    val _ = Context_Position.report ctxt pos (Markup.language_text (Input.is_delimited source));
   in pretty_text ctxt s end;
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
@@ -669,8 +671,8 @@ local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
   (fn {context = ctxt, ...} => fn source =>
-   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (#1 (#range source)) (ml source);
-    Symbol_Pos.source_content source |> #1
+   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of source) (ml source);
+    Input.source_content source |> #1
     |> verbatim_text ctxt));
 
 fun ml_enclose bg en source =
@@ -690,7 +692,7 @@ val _ = Theory.setup
   ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
       ML_Lex.read Position.none ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (#1 (Symbol_Pos.source_content source)))) #>
+        ML_Syntax.print_string (#1 (Input.source_content source)))) #>
 
   ml_text @{binding ML_text} (K []));
 

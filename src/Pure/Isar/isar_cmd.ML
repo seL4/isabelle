@@ -6,20 +6,19 @@ Miscellaneous Isar commands.
 
 signature ISAR_CMD =
 sig
-  val global_setup: Symbol_Pos.source -> theory -> theory
-  val local_setup: Symbol_Pos.source -> Proof.context -> Proof.context
-  val parse_ast_translation: Symbol_Pos.source -> theory -> theory
-  val parse_translation: Symbol_Pos.source -> theory -> theory
-  val print_translation: Symbol_Pos.source -> theory -> theory
-  val typed_print_translation: Symbol_Pos.source -> theory -> theory
-  val print_ast_translation: Symbol_Pos.source -> theory -> theory
+  val global_setup: Input.source -> theory -> theory
+  val local_setup: Input.source -> Proof.context -> Proof.context
+  val parse_ast_translation: Input.source -> theory -> theory
+  val parse_translation: Input.source -> theory -> theory
+  val print_translation: Input.source -> theory -> theory
+  val typed_print_translation: Input.source -> theory -> theory
+  val print_ast_translation: Input.source -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
-  val oracle: bstring * Position.range -> Symbol_Pos.source -> theory -> theory
+  val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Token.src list) list -> theory -> theory
-  val declaration: {syntax: bool, pervasive: bool} ->
-    Symbol_Pos.source -> local_theory -> local_theory
-  val simproc_setup: string * Position.T -> string list -> Symbol_Pos.source ->
+  val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
+  val simproc_setup: string * Position.T -> string list -> Input.source ->
     string list -> local_theory -> local_theory
   val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
@@ -32,7 +31,7 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val ml_diag: bool -> Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val ml_diag: bool -> Input.source -> Toplevel.transition -> Toplevel.transition
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val pretty_theorems: bool -> Toplevel.state -> Pretty.T list
@@ -60,13 +59,13 @@ struct
 
 fun global_setup source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "setup" "theory -> theory"
+  |> ML_Context.expression (Input.range_of source) "setup" "theory -> theory"
     "Context.map_theory setup"
   |> Context.theory_map;
 
 fun local_setup source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "local_setup" "local_theory -> local_theory"
+  |> ML_Context.expression (Input.range_of source) "local_setup" "local_theory -> local_theory"
     "Context.map_proof local_setup"
   |> Context.proof_map;
 
@@ -75,35 +74,35 @@ fun local_setup source =
 
 fun parse_ast_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "parse_ast_translation"
+  |> ML_Context.expression (Input.range_of source) "parse_ast_translation"
     "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
   |> Context.theory_map;
 
 fun parse_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "parse_translation"
+  |> ML_Context.expression (Input.range_of source) "parse_translation"
     "(string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.parse_translation parse_translation)"
   |> Context.theory_map;
 
 fun print_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "print_translation"
+  |> ML_Context.expression (Input.range_of source) "print_translation"
     "(string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.print_translation print_translation)"
   |> Context.theory_map;
 
 fun typed_print_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "typed_print_translation"
+  |> ML_Context.expression (Input.range_of source) "typed_print_translation"
     "(string * (Proof.context -> typ -> term list -> term)) list"
     "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
   |> Context.theory_map;
 
 fun print_ast_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "print_ast_translation"
+  |> ML_Context.expression (Input.range_of source) "print_ast_translation"
     "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
   |> Context.theory_map;
@@ -129,7 +128,7 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 
 fun oracle (name, range) source =
   let
-    val body_range = #range source;
+    val body_range = Input.range_of source;
     val body = ML_Lex.read_source false source;
 
     val hidden = ML_Lex.read Position.none;
@@ -164,7 +163,7 @@ fun add_defs ((unchecked, overloaded), args) thy =
 
 fun declaration {syntax, pervasive} source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "declaration" "Morphism.declaration"
+  |> ML_Context.expression (Input.range_of source) "declaration" "Morphism.declaration"
     ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
       \pervasive = " ^ Bool.toString pervasive ^ "} declaration)")
   |> Context.proof_map;
@@ -174,7 +173,7 @@ fun declaration {syntax, pervasive} source =
 
 fun simproc_setup name lhss source identifier =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source) "proc"
+  |> ML_Context.expression (Input.range_of source) "proc"
     "Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \

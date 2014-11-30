@@ -16,7 +16,7 @@ sig
   val token: 'a parser -> Token.T parser
   val range: 'a parser -> ('a * Position.range) parser
   val position: 'a parser -> ('a * Position.T) parser
-  val source_position: 'a parser -> Symbol_Pos.source parser
+  val source_position: 'a parser -> Input.source parser
   val inner_syntax: 'a parser -> string parser
   val command_: string parser
   val keyword: string parser
@@ -92,8 +92,8 @@ sig
   val simple_fixes: (binding * string option) list parser
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
-  val ML_source: Symbol_Pos.source parser
-  val document_source: Symbol_Pos.source parser
+  val ML_source: Input.source parser
+  val document_source: Input.source parser
   val term_group: string parser
   val prop_group: string parser
   val term: string parser
