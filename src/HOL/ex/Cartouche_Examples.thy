@@ -1,4 +1,4 @@
-section {* Some examples with text cartouches *}
+section \<open>Some examples with text cartouches\<close>
 
 theory Cartouche_Examples
 imports Main
@@ -7,7 +7,7 @@ keywords
   "text_cartouche" :: thy_decl
 begin
 
-subsection {* Regular outer syntax *}
+subsection \<open>Regular outer syntax\<close>
 
 text \<open>Text cartouches may be used in the outer syntax category "text",
   as alternative to the traditional "verbatim" tokens.  An example is
@@ -33,21 +33,21 @@ begin
 end
 
 
-subsection {* Outer syntax: cartouche within command syntax *}
+subsection \<open>Outer syntax: cartouche within command syntax\<close>
 
-ML {*
+ML \<open>
   Outer_Syntax.command @{command_spec "cartouche"} ""
     (Parse.cartouche >> (fn s =>
       Toplevel.imperative (fn () => writeln s)))
-*}
+\<close>
 
 cartouche \<open>abc\<close>
 cartouche \<open>abc \<open>\<alpha>\<beta>\<gamma>\<close> xzy\<close>
 
 
-subsection {* Inner syntax: string literals via cartouche *}
+subsection \<open>Inner syntax: string literals via cartouche\<close>
 
-ML {*
+ML \<open>
   local
     val mk_nib =
       Syntax.const o Lexicon.mark_const o
@@ -76,14 +76,14 @@ ML {*
         | _ => err ())
       end;
   end;
-*}
+\<close>
 
 syntax "_cartouche_string" :: "cartouche_position \<Rightarrow> string"  ("_")
 
-parse_translation {*
+parse_translation \<open>
   [(@{syntax_const "_cartouche_string"},
     K (string_tr (Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
-*}
+\<close>
 
 term "\<open>\<close>"
 term "\<open>abc\<close>"
@@ -92,15 +92,15 @@ term "\<open>\<newline>\<close>"
 term "\<open>\001\010\100\<close>"
 
 
-subsection {* Alternate outer and inner syntax: string literals *}
+subsection \<open>Alternate outer and inner syntax: string literals\<close>
 
-subsubsection {* Nested quotes *}
+subsubsection \<open>Nested quotes\<close>
 
 syntax "_string_string" :: "string_position \<Rightarrow> string"  ("_")
 
-parse_translation {*
+parse_translation \<open>
   [(@{syntax_const "_string_string"}, K (string_tr Lexicon.explode_string))]
-*}
+\<close>
 
 term "\"\""
 term "\"abc\""
@@ -109,9 +109,9 @@ term "\"\<newline>\""
 term "\"\001\010\100\""
 
 
-subsubsection {* Term cartouche and regular quotes *}
+subsubsection \<open>Term cartouche and regular quotes\<close>
 
-ML {*
+ML \<open>
   Outer_Syntax.command @{command_spec "term_cartouche"} ""
     (Parse.inner_syntax Parse.cartouche >> (fn s =>
       Toplevel.keep (fn state =>
@@ -119,7 +119,7 @@ ML {*
           val ctxt = Toplevel.context_of state;
           val t = Syntax.read_term ctxt s;
         in writeln (Syntax.string_of_term ctxt t) end)))
-*}
+\<close>
 
 term_cartouche \<open>""\<close>
 term_cartouche \<open>"abc"\<close>
@@ -128,34 +128,34 @@ term_cartouche \<open>"\<newline>"\<close>
 term_cartouche \<open>"\001\010\100"\<close>
 
 
-subsubsection {* Further nesting: antiquotations *}
+subsubsection \<open>Further nesting: antiquotations\<close>
 
 setup -- "ML antiquotation"
-{*
+\<open>
   ML_Antiquotation.inline @{binding term_cartouche}
     (Args.context -- Scan.lift (Parse.inner_syntax Parse.cartouche) >>
       (fn (ctxt, s) => ML_Syntax.atomic (ML_Syntax.print_term (Syntax.read_term ctxt s))))
-*}
+\<close>
 
 setup -- "document antiquotation"
-{*
+\<open>
   Thy_Output.antiquotation @{binding ML_cartouche}
     (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn source =>
       let
         val toks = ML_Lex.read "fn _ => (" @ ML_Lex.read_source false source @ ML_Lex.read ");";
         val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags (Input.pos_of source) toks;
       in "" end);
-*}
+\<close>
 
-ML {*
+ML \<open>
   @{term_cartouche \<open>""\<close>};
   @{term_cartouche \<open>"abc"\<close>};
   @{term_cartouche \<open>"abc" @ "xyz"\<close>};
   @{term_cartouche \<open>"\<newline>"\<close>};
   @{term_cartouche \<open>"\001\010\100"\<close>};
-*}
+\<close>
 
-text {*
+text \<open>
   @{ML_cartouche
     \<open>
       (
@@ -167,16 +167,16 @@ text {*
       )
     \<close>
   }
-*}
+\<close>
 
 
-subsubsection {* Uniform nesting of sub-languages: document source, ML, term, string literals *}
+subsubsection \<open>Uniform nesting of sub-languages: document source, ML, term, string literals\<close>
 
-ML {*
+ML \<open>
   Outer_Syntax.command
     @{command_spec "text_cartouche"} ""
     (Parse.opt_target -- Parse.source_position Parse.cartouche >> Thy_Output.document_command)
-*}
+\<close>
 
 text_cartouche
 \<open>
@@ -194,9 +194,9 @@ text_cartouche
 \<close>
 
 
-subsection {* Proof method syntax: ML tactic expression *}
+subsection \<open>Proof method syntax: ML tactic expression\<close>
 
-ML {*
+ML \<open>
 structure ML_Tactic:
 sig
   val set: (Proof.context -> tactic) -> Proof.context -> Proof.context
@@ -215,15 +215,15 @@ struct
           (ML_Lex.read "fn ctxt: Proof.context =>" @ ML_Lex.read_source false source));
     in Data.get ctxt' ctxt end;
 end;
-*}
+\<close>
 
 
-subsubsection {* Explicit version: method with cartouche argument *}
+subsubsection \<open>Explicit version: method with cartouche argument\<close>
 
-method_setup ml_tactic = {*
+method_setup ml_tactic = \<open>
   Scan.lift Args.cartouche_source_position
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
-*}
+\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
   apply (ml_tactic \<open>rtac @{thm impI} 1\<close>)
@@ -234,17 +234,17 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
 
 lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)
 
-ML {* @{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)} *}
+ML \<open>@{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>
 
-text {* @{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"} *}
+text \<open>@{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"}\<close>
 
 
-subsubsection {* Implicit version: method with special name "cartouche" (dynamic!) *}
+subsubsection \<open>Implicit version: method with special name "cartouche" (dynamic!)\<close>
 
-method_setup "cartouche" = {*
+method_setup "cartouche" = \<open>
   Scan.lift Args.cartouche_source_position
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
-*}
+\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
   apply \<open>rtac @{thm impI} 1\<close>
