@@ -14,7 +14,7 @@ sig
     'a antiquote list -> Position.report_text list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
-  val read: Symbol_Pos.T list * Position.T -> Symbol_Pos.T list antiquote list
+  val read: Input.source -> Symbol_Pos.T list antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -75,9 +75,10 @@ end;
 
 (* read *)
 
-fun read (syms, pos) =
-  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
+fun read source =
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) (Input.source_explode source) of
     SOME xs => (Position.reports_text (antiquote_reports (K []) xs); xs)
-  | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
+  | NONE =>
+      error ("Malformed quotation/antiquotation source" ^ Position.here (Input.pos_of source)));
 
 end;

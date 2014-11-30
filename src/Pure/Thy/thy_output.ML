@@ -180,7 +180,7 @@ fun eval_antiq state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
 
 (* check_text *)
 
-fun eval_antiquote state (txt, pos) =
+fun eval_antiquote state source =
   let
     fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
       | words (Antiquote.Antiq _) = [];
@@ -188,14 +188,14 @@ fun eval_antiquote state (txt, pos) =
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
       | expand (Antiquote.Antiq antiq) = eval_antiq state antiq;
 
-    val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
+    val ants = Antiquote.read source;
     val _ = Position.reports (maps words ants);
   in implode (map expand ants) end;
 
 fun check_text source state =
  (Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote state (Input.text_of source, Input.pos_of source)));
+  else ignore (eval_antiquote state source));
 
 
 
@@ -206,22 +206,22 @@ fun check_text source state =
 (* presentation tokens *)
 
 datatype token =
-    NoToken
-  | BasicToken of Token.T
-  | MarkupToken of string * (string * Position.T)
-  | MarkupEnvToken of string * (string * Position.T)
-  | VerbatimToken of string * Position.T;
+    No_Token
+  | Basic_Token of Token.T
+  | Markup_Token of string * Input.source
+  | Markup_Env_Token of string * Input.source
+  | Verbatim_Token of Input.source;
 
 fun output_token state =
   let val eval = eval_antiquote state in
-    fn NoToken => ""
-     | BasicToken tok => Latex.output_basic tok
-     | MarkupToken (cmd, txt) => Latex.output_markup cmd (eval txt)
-     | MarkupEnvToken (cmd, txt) => Latex.output_markup_env cmd (eval txt)
-     | VerbatimToken txt => Latex.output_verbatim (eval txt)
+    fn No_Token => ""
+     | Basic_Token tok => Latex.output_basic tok
+     | Markup_Token (cmd, source) => Latex.output_markup cmd (eval source)
+     | Markup_Env_Token (cmd, source) => Latex.output_markup_env cmd (eval source)
+     | Verbatim_Token source => Latex.output_verbatim (eval source)
   end;
 
-fun basic_token pred (BasicToken tok) = pred tok
+fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
 
 val improper_token = basic_token Token.is_improper;
@@ -369,7 +369,7 @@ fun present_thy thy command_results toks =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (NoToken, ("", d))));
+      >> (fn d => (NONE, (No_Token, ("", d))));
 
     fun markup pred mk flag = Scan.peek (fn d =>
       improper |--
@@ -378,38 +378,35 @@ fun present_thy thy command_results toks =
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
       >> (fn (((tok, pos'), tags), source) =>
-        let
-          val name = Token.content_of tok;
-          val text = Input.text_of source;
-          val pos = Input.pos_of source;
-        in (SOME (name, pos', tags), (mk (name, (text, pos)), (flag, d))) end));
+        let val name = Token.content_of tok
+        in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       Parse.position (Scan.one (Token.is_command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
         let val name = Token.content_of tok
-        in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
+        in (SOME (name, pos, tags), (Basic_Token tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
-      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >> (fn source =>
-        (NONE, (MarkupToken ("cmt", (Input.text_of source, Input.pos_of source)), ("", d)))));
+      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >>
+        (fn source => (NONE, (Markup_Token ("cmt", source), ("", d)))));
 
     val other = Scan.peek (fn d =>
-       Parse.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
+       Parse.not_eof >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
 
     val token =
       ignored ||
-      markup Keyword.is_document_heading MarkupToken Latex.markup_true ||
-      markup Keyword.is_document_body MarkupEnvToken Latex.markup_true ||
-      markup Keyword.is_document_raw (VerbatimToken o #2) "" ||
+      markup Keyword.is_document_heading Markup_Token Latex.markup_true ||
+      markup Keyword.is_document_body Markup_Env_Token Latex.markup_true ||
+      markup Keyword.is_document_raw (Verbatim_Token o #2) "" ||
       command || cmt || other;
 
 
     (* spans *)
 
-    val is_eof = fn (_, (BasicToken x, _)) => Token.is_eof x | _ => false;
-    val stopper = Scan.stopper (K (NONE, (BasicToken Token.eof, ("", 0)))) is_eof;
+    val is_eof = fn (_, (Basic_Token x, _)) => Token.is_eof x | _ => false;
+    val stopper = Scan.stopper (K (NONE, (Basic_Token Token.eof, ("", 0)))) is_eof;
 
     val cmd = Scan.one (is_some o fst);
     val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
