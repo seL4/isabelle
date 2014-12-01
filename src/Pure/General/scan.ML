@@ -280,6 +280,7 @@ fun drain get stopper scan ((state, xs), src) =
 datatype lexicon = Lexicon of (bool * lexicon) Symtab.table;
 
 val empty_lexicon = Lexicon Symtab.empty;
+fun is_empty_lexicon (Lexicon tab) = Symtab.is_empty tab;
 
 fun is_literal _ [] = false
   | is_literal (Lexicon tab) (c :: cs) =
@@ -328,7 +329,11 @@ fun dest path (Lexicon tab) = Symtab.fold (fn (d, (tip, lex)) =>
   in append (if tip then rev path' :: content else content) end) tab [];
 
 val dest_lexicon = map implode o dest [];
-fun merge_lexicons (lex1, lex2) = fold extend_lexicon (dest [] lex2) lex1;
+
+fun merge_lexicons (lex1, lex2) =
+  if pointer_eq (lex1, lex2) then lex1
+  else if is_empty_lexicon lex1 then lex2
+  else fold extend_lexicon (dest [] lex2) lex1;
 
 end;
 
