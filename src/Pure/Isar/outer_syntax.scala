@@ -112,6 +112,17 @@ final class Outer_Syntax private(
     }
 
 
+  /* merge */
+
+  def ++ (other: Outer_Syntax): Outer_Syntax =
+    if (this eq other) this
+    else {
+      val keywords1 = keywords ++ other.keywords
+      val completion1 = completion ++ other.completion
+      new Outer_Syntax(keywords1, completion1, language_context, has_tokens)
+    }
+
+
   /* load commands */
 
   def load_command(name: String): Option[List[String]] = keywords.load_command(name)
