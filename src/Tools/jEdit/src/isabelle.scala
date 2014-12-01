@@ -15,6 +15,7 @@ import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
@@ -64,6 +65,9 @@ object Isabelle
       case "sml" => Some(sml_syntax)
       case _ => None
     }
+
+  def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
+    mode_syntax(JEdit_Lib.buffer_mode(buffer))
 
 
   /* token markers */
