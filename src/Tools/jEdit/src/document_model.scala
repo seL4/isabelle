@@ -281,12 +281,14 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
     buffer.addBufferListener(buffer_listener)
-    Token_Markup.refresh_buffer(buffer)
+    Isabelle.buffer_token_marker(buffer).foreach(marker =>
+      JEdit_Lib.update_token_marker(buffer, marker))
   }
 
   private def deactivate()
   {
     buffer.removeBufferListener(buffer_listener)
-    Token_Markup.refresh_buffer(buffer)
+    Isabelle.mode_token_marker(JEdit_Lib.buffer_mode(buffer)).foreach(marker =>
+      JEdit_Lib.update_token_marker(buffer, marker))
   }
 }

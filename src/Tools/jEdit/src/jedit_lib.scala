@@ -20,6 +20,7 @@ import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
+import org.gjt.sp.jedit.syntax.TokenMarker
 
 
 object JEdit_Lib
@@ -112,6 +113,12 @@ object JEdit_Lib
   }
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+
+  def update_token_marker(buffer: JEditBuffer, marker: TokenMarker)
+  {
+    buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
+    buffer.setTokenMarker(marker)
+  }
 
 
   /* main jEdit components */

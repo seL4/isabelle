@@ -261,7 +261,7 @@ class Pretty_Text_Area(
   getPainter.setStructureHighlightEnabled(false)
   getPainter.setLineHighlightEnabled(false)
 
-  getBuffer.setTokenMarker(Isabelle.token_marker("isabelle-output").get)
+  getBuffer.setTokenMarker(Isabelle.mode_token_marker("isabelle-output").get)
   getBuffer.setReadOnly(true)
   getBuffer.setStringProperty("noWordSep", "_'.?")
 

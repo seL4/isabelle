@@ -47,15 +47,18 @@ object Isabelle
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens
 
+  private lazy val bootstrap_syntax: Outer_Syntax =
+    Thy_Header.bootstrap_syntax()
+
   def session_syntax(): Option[Outer_Syntax] =
     PIDE.session.recent_syntax match {
       case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
       case _ => None
     }
 
-  def mode_syntax(name: String): Option[Outer_Syntax] =
-    name match {
-      case "isabelle" => session_syntax()
+  def mode_syntax(mode: String): Option[Outer_Syntax] =
+    mode match {
+      case "isabelle" => Some(bootstrap_syntax)
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
@@ -66,16 +69,26 @@ object Isabelle
     }
 
   def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
-    mode_syntax(JEdit_Lib.buffer_mode(buffer))
+    JEdit_Lib.buffer_mode(buffer) match {
+      case "isabelle" => session_syntax()
+      case mode => mode_syntax(mode)
+    }
 
 
   /* token markers */
 
-  private val markers: Map[String, TokenMarker] =
-    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*) +
+  private val mode_markers: Map[String, TokenMarker] =
+    Map(modes.map(mode => (mode, new Token_Markup.Marker(mode, None))): _*) +
       ("bibtex" -> new Bibtex_JEdit.Token_Marker)
 
-  def token_marker(name: String): Option[TokenMarker] = markers.get(name)
+  def mode_token_marker(mode: String): Option[TokenMarker] = mode_markers.get(mode)
+
+  def buffer_token_marker(buffer: Buffer): Option[TokenMarker] =
+  {
+    val mode = JEdit_Lib.buffer_mode(buffer)
+    if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
+    else mode_token_marker(mode)
+  }
 
 
   /* structure matchers */
