@@ -30,7 +30,6 @@ object Isabelle
     List(
       "isabelle",         // theory source
       "isabelle-ml",      // ML source
-      "isabelle-markup",  // SideKick markup tree
       "isabelle-news",    // NEWS
       "isabelle-options", // etc/options
       "isabelle-output",  // pretty text area output
@@ -56,7 +55,7 @@ object Isabelle
 
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
-      case "isabelle" | "isabelle-markup" => session_syntax()
+      case "isabelle" => session_syntax()
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)

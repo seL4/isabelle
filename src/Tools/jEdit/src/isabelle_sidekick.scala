@@ -83,7 +83,7 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
     // FIXME lock buffer (!??)
     val data = Isabelle_Sidekick.root_data(buffer)
-    val syntax = Isabelle.mode_syntax(name)
+    val syntax = Isabelle.buffer_syntax(buffer)
     val ok =
       if (syntax.isDefined) {
         val ok = parser(buffer, syntax.get, data)
