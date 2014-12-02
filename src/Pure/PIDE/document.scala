@@ -244,6 +244,7 @@ object Document
   final class Node private(
     val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.no_header,
+    val syntax: Option[Prover.Syntax] = None,
     val perspective: Node.Perspective_Command = Node.no_perspective_command,
     _commands: Node.Commands = Node.Commands.empty)
   {
@@ -256,15 +257,18 @@ object Document
     def commands: Linear_Set[Command] = _commands.commands
     def load_commands: List[Command] = _commands.load_commands
 
-    def clear: Node = new Node(header = header)
+    def clear: Node = new Node(header = header, syntax = syntax)
 
-    def init_blob(blob: Document.Blob): Node = new Node(Some(blob.unchanged))
+    def init_blob(blob: Document.Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
-      new Node(get_blob, new_header, perspective, _commands)
+      new Node(get_blob, new_header, syntax, perspective, _commands)
+
+    def update_syntax(new_syntax: Option[Prover.Syntax]): Node =
+      new Node(get_blob, header, new_syntax, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(get_blob, header, new_perspective, _commands)
+      new Node(get_blob, header, syntax, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
@@ -273,7 +277,7 @@ object Document
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(get_blob, header, perspective, Node.Commands(new_commands))
+      else new Node(get_blob, header, syntax, perspective, Node.Commands(new_commands))
 
     def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.iterator(i)
@@ -344,14 +348,11 @@ object Document
   object Version
   {
     val init: Version = new Version()
-
-    def make(syntax: Option[Prover.Syntax], nodes: Nodes): Version =
-      new Version(Document_ID.make(), syntax, nodes)
+    def make(nodes: Nodes): Version = new Version(Document_ID.make(), nodes)
   }
 
   final class Version private(
     val id: Document_ID.Version = Document_ID.none,
-    val syntax: Option[Prover.Syntax] = None,
     val nodes: Nodes = Nodes.empty)
   {
     override def toString: String = "Version(" + id + ")"

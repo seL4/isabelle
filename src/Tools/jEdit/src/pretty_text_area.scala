@@ -43,7 +43,7 @@ object Pretty_Text_Area
     val nodes0 = version0.nodes
 
     val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
-    val version1 = Document.Version.make(version0.syntax, nodes1)
+    val version1 = Document.Version.make(nodes1)
     val state1 =
       state0.continue_history(Future.value(version0), edits, Future.value(version1))
         .define_version(version1, state0.the_assignment(version0))

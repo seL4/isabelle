@@ -153,7 +153,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
   {
     val opt_snapshot =
       GUI_Thread.now {
-        Document_Model(buffer) match {
+        PIDE.document_model(buffer) match {
           case Some(model) if model.is_theory => Some(model.snapshot)
           case _ => None
         }

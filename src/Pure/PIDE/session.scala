@@ -47,7 +47,7 @@ object Session
 
   sealed case class Change(
     previous: Document.Version,
-    syntax_changed: Boolean,
+    syntax_changed: List[Document.Node.Name],
     deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
     version: Document.Version)
@@ -231,11 +231,9 @@ class Session(val resources: Resources)
   private val global_state = Synchronized(Document.State.init)
   def current_state(): Document.State = global_state.value
 
-  def recent_syntax(): Prover.Syntax =
-  {
-    val version = current_state().recent_finished.version.get_finished
-    version.syntax getOrElse resources.base_syntax
-  }
+  def recent_syntax(name: Document.Node.Name): Prover.Syntax =
+    current_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
+    resources.base_syntax
 
 
   /* protocol handlers */

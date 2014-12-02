@@ -114,7 +114,7 @@ class JEdit_Resources(
 
   override def commit(change: Session.Change)
   {
-    if (change.syntax_changed) GUI_Thread.later { jEdit.propertiesChanged() }
+    if (!change.syntax_changed.isEmpty) GUI_Thread.later { jEdit.propertiesChanged() }
     if (change.deps_changed && PIDE.options.bool("jedit_auto_load")) PIDE.deps_changed()
   }
 }

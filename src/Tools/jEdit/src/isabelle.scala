@@ -47,18 +47,9 @@ object Isabelle
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens
 
-  private lazy val bootstrap_syntax: Outer_Syntax =
-    Thy_Header.bootstrap_syntax()
-
-  def session_syntax(): Option[Outer_Syntax] =
-    PIDE.session.recent_syntax match {
-      case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
-      case _ => None
-    }
-
   def mode_syntax(mode: String): Option[Outer_Syntax] =
     mode match {
-      case "isabelle" => Some(bootstrap_syntax)
+      case "isabelle" => Some(PIDE.resources.base_syntax.asInstanceOf[Outer_Syntax])
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
@@ -69,9 +60,10 @@ object Isabelle
     }
 
   def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
-    JEdit_Lib.buffer_mode(buffer) match {
-      case "isabelle" => session_syntax()
-      case mode => mode_syntax(mode)
+    (JEdit_Lib.buffer_mode(buffer), PIDE.document_model(buffer)) match {
+      case ("isabelle", Some(model)) =>
+        Some(PIDE.session.recent_syntax(model.node_name).asInstanceOf[Outer_Syntax])
+      case (mode, _) => mode_syntax(mode)
     }
 
 
@@ -86,8 +78,10 @@ object Isabelle
   def buffer_token_marker(buffer: Buffer): Option[TokenMarker] =
   {
     val mode = JEdit_Lib.buffer_mode(buffer)
-    if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
-    else mode_token_marker(mode)
+    val new_token_marker =
+      if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
+      else mode_token_marker(mode)
+    if (new_token_marker == Some(buffer.getTokenMarker)) None else new_token_marker
   }
 
 

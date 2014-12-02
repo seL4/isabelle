@@ -114,12 +114,6 @@ object JEdit_Lib
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def update_token_marker(buffer: JEditBuffer, marker: TokenMarker)
-  {
-    buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
-    buffer.setTokenMarker(marker)
-  }
-
 
   /* main jEdit components */
 

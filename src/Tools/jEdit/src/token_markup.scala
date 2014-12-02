@@ -308,8 +308,17 @@ object Token_Markup
 
   /* token marker */
 
-  class Marker(mode: String, opt_buffer: Option[Buffer]) extends TokenMarker
+  class Marker(
+    protected val mode: String,
+    protected val opt_buffer: Option[Buffer]) extends TokenMarker
   {
+    override def hashCode: Int = (mode, opt_buffer).hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Marker => mode == other.mode && opt_buffer == other.opt_buffer
+        case _ => false
+      }
+
     override def toString: String =
       opt_buffer match {
         case None => "Marker(" + mode + ")"
