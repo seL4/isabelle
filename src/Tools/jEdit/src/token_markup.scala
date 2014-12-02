@@ -193,19 +193,18 @@ object Token_Markup
   }
 
   def buffer_line_context(buffer: JEditBuffer, line: Int): Line_Context =
-    Untyped.get(buffer, "lineMgr") match {
-      case line_mgr: LineManager =>
-        def context =
-          line_mgr.getLineContext(line) match {
-            case c: Line_Context => Some(c)
-            case _ => None
-          }
-        context getOrElse {
-          buffer.markTokens(line, DummyTokenHandler.INSTANCE)
-          context getOrElse Line_Context.init
-        }
-      case _ => Line_Context.init
+  {
+    val line_mgr = Untyped.get[LineManager](buffer, "lineMgr")
+    def context =
+      line_mgr.getLineContext(line) match {
+        case c: Line_Context => Some(c)
+        case _ => None
+      }
+    context getOrElse {
+      buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+      context getOrElse Line_Context.init
     }
+  }
 
 
   /* line tokens */

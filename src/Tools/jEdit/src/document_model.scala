@@ -288,7 +288,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def syntax_changed()
   {
-    Untyped.get(buffer, "lineMgr").asInstanceOf[LineManager].setFirstInvalidLineContext(0)
+    Untyped.get[LineManager](buffer, "lineMgr").setFirstInvalidLineContext(0)
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
       val c = Class.forName("org.gjt.sp.jedit.textarea.TextArea")
       val m = c.getDeclaredMethod("foldStructureChanged")

@@ -20,8 +20,8 @@ object Untyped
     }
   }
 
-  def get(obj: AnyRef, x: String): AnyRef =
-    if (obj == null) null
+  def get[A](obj: AnyRef, x: String): A =
+    if (obj == null) null.asInstanceOf[A]
     else {
       val iterator =
         for {
@@ -32,7 +32,7 @@ object Untyped
           field.setAccessible(true)
           field.get(obj)
         }
-      if (iterator.hasNext) iterator.next
+      if (iterator.hasNext) iterator.next.asInstanceOf[A]
       else error("No field " + quote(x) + " for " + obj)
     }
 }
