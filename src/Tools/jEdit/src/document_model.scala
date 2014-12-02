@@ -15,7 +15,7 @@ import scala.collection.mutable
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer, LineManager}
 
 
 object Document_Model
@@ -284,28 +284,42 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   }
 
 
-  /* activation */
+  /* syntax */
 
-  private def refresh_token_marker()
+  def syntax_changed()
+  {
+    Untyped.get(buffer, "lineMgr").asInstanceOf[LineManager].setFirstInvalidLineContext(0)
+    for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
+      val c = Class.forName("org.gjt.sp.jedit.textarea.TextArea")
+      val m = c.getDeclaredMethod("foldStructureChanged")
+      m.setAccessible(true)
+      m.invoke(text_area)
+    }
+  }
+
+  private def init_token_marker()
   {
     Isabelle.buffer_token_marker(buffer) match {
       case Some(marker) if marker != buffer.getTokenMarker =>
-        buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
         buffer.setTokenMarker(marker)
+        syntax_changed()
       case _ =>
     }
   }
+
+
+  /* activation */
 
   private def activate()
   {
     pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
     buffer.addBufferListener(buffer_listener)
-    refresh_token_marker()
+    init_token_marker()
   }
 
   private def deactivate()
   {
     buffer.removeBufferListener(buffer_listener)
-    refresh_token_marker()
+    init_token_marker()
   }
 }

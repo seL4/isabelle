@@ -114,7 +114,15 @@ class JEdit_Resources(
 
   override def commit(change: Session.Change)
   {
-    if (!change.syntax_changed.isEmpty) GUI_Thread.later { jEdit.propertiesChanged() }
+    if (!change.syntax_changed.isEmpty)
+      GUI_Thread.later {
+        val changed = change.syntax_changed.toSet
+        for {
+          buffer <- JEdit_Lib.jedit_buffers()
+          model <- PIDE.document_model(buffer)
+          if changed(model.node_name)
+        } model.syntax_changed()
+      }
     if (change.deps_changed && PIDE.options.bool("jedit_auto_load")) PIDE.deps_changed()
   }
 }
