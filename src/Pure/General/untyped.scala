@@ -8,8 +8,18 @@ Untyped, unscoped, unchecked access to JVM objects.
 package isabelle
 
 
+import java.lang.reflect.Method
+
+
 object Untyped
 {
+  def method(c: Class[_], name: String, arg_types: Class[_]*): Method =
+  {
+    val m = c.getDeclaredMethod(name, arg_types: _*)
+    m.setAccessible(true)
+    m
+  }
+
   def classes(obj: AnyRef): Iterator[Class[_ <: AnyRef]] = new Iterator[Class[_ <: AnyRef]] {
     private var next_elem: Class[_ <: AnyRef] = obj.getClass
     def hasNext(): Boolean = next_elem != null

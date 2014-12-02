@@ -289,12 +289,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   def syntax_changed()
   {
     Untyped.get[LineManager](buffer, "lineMgr").setFirstInvalidLineContext(0)
-    for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-      val c = Class.forName("org.gjt.sp.jedit.textarea.TextArea")
-      val m = c.getDeclaredMethod("foldStructureChanged")
-      m.setAccessible(true)
-      m.invoke(text_area)
-    }
+    for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
+      Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
+        invoke(text_area)
   }
 
   private def init_token_marker()

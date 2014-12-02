@@ -255,17 +255,14 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     factory_cons.setAccessible(true)
     val factory = factory_cons.newInstance()
 
-    val add = factory_class.getDeclaredMethod("add", classOf[String])
-    add.setAccessible(true)
+    val add = Untyped.method(factory_class, "add", classOf[String])
 
     for {
       word <- main_dictionary.iterator ++ included_iterator()
       if !excluded(word)
     } add.invoke(factory, word)
 
-    val create = factory_class.getDeclaredMethod("create")
-    create.setAccessible(true)
-    dict = create.invoke(factory)
+    dict = Untyped.method(factory_class, "create").invoke(factory)
   }
   load()
 
@@ -299,10 +296,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
     if (include) {
       if (permanent) save()
-
-      val m = dict.getClass.getDeclaredMethod("add", classOf[String])
-      m.setAccessible(true)
-      m.invoke(dict, word)
+      Untyped.method(dict.getClass, "add", classOf[String]).invoke(dict, word)
     }
     else { save(); load() }
   }
@@ -320,11 +314,8 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   /* check known words */
 
   def contains(word: String): Boolean =
-  {
-    val m = dict.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
-    m.setAccessible(true)
-    m.invoke(dict, word).asInstanceOf[java.lang.Boolean].booleanValue
-  }
+    Untyped.method(dict.getClass.getSuperclass, "exist", classOf[String]).
+      invoke(dict, word).asInstanceOf[java.lang.Boolean].booleanValue
 
   def check(word: String): Boolean =
     word match {
@@ -342,10 +333,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   private def suggestions(word: String): Option[List[String]] =
   {
-    val m = dict.getClass.getSuperclass.getDeclaredMethod("searchSuggestions", classOf[String])
-    m.setAccessible(true)
     val res =
-      m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+      Untyped.method(dict.getClass.getSuperclass, "searchSuggestions", classOf[String]).
+        invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
     if (res.isEmpty) None else Some(res)
   }
 
