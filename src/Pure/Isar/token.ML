@@ -89,6 +89,7 @@ sig
   val source_strict: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+  val explode: Keyword.keywords -> Position.T -> string -> T list
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
   val read_no_commands: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
@@ -538,7 +539,7 @@ fun token k ss =
 fun token_range k (pos1, (ss, pos2)) =
   Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.content ss), Slot);
 
-fun scan keywords = !!! "bad input"
+fun scan_token keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
     Symbol_Pos.scan_string_bq err_prefix >> token_range Alt_String ||
     scan_verbatim >> token_range Verbatim ||
@@ -571,7 +572,7 @@ in
 
 fun source' strict keywords =
   let
-    val scan_strict = Scan.bulk (scan keywords);
+    val scan_strict = Scan.bulk (scan_token keywords);
     val scan = if strict then scan_strict else Scan.recover scan_strict recover;
   in Source.source Symbol_Pos.stopper scan end;
 
@@ -579,6 +580,15 @@ fun source keywords pos src = Symbol_Pos.source pos src |> source' false keyword
 fun source_strict keywords pos src = Symbol_Pos.source pos src |> source' true keywords;
 
 end;
+
+
+(* explode *)
+
+fun explode keywords pos =
+  Source.of_string #>
+  Symbol.source #>
+  source keywords pos #>
+  Source.exhaust;
 
 
 

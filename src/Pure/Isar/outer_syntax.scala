@@ -7,7 +7,6 @@ Isabelle/Isar outer syntax.
 package isabelle
 
 
-import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.collection.mutable
 import scala.annotation.tailrec
 
@@ -184,33 +183,6 @@ final class Outer_Syntax private(
   }
 
 
-  /* token language */
-
-  def scan(input: CharSequence): List[Token] =
-  {
-    val in: Reader[Char] = new CharSequenceReader(input)
-    Token.Parsers.parseAll(Token.Parsers.rep(Token.Parsers.token(keywords)), in) match {
-      case Token.Parsers.Success(tokens, _) => tokens
-      case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
-    }
-  }
-
-  def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
-  {
-    var in: Reader[Char] = new CharSequenceReader(input)
-    val toks = new mutable.ListBuffer[Token]
-    var ctxt = context
-    while (!in.atEnd) {
-      Token.Parsers.parse(Token.Parsers.token_line(keywords, ctxt), in) match {
-        case Token.Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
-        case Token.Parsers.NoSuccess(_, rest) =>
-          error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
-      }
-    }
-    (toks.toList, ctxt)
-  }
-
-
   /* command spans */
 
   def parse_spans(toks: List[Token]): List[Command_Span.Span] =
@@ -249,7 +221,7 @@ final class Outer_Syntax private(
   }
 
   def parse_spans(input: CharSequence): List[Command_Span.Span] =
-    parse_spans(scan(input))
+    parse_spans(Token.explode(keywords, input))
 
 
   /* overall document structure */

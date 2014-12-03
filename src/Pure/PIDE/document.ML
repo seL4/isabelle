@@ -333,7 +333,7 @@ fun define_command command_id name command_blobs text =
       val span =
         Lazy.lazy (fn () =>
           Position.setmp_thread_data (Position.id_only id)
-            (fn () => Outer_Syntax.scan (get_keywords ()) (Position.id id) text) ());
+            (fn () => Token.explode (get_keywords ()) (Position.id id) text) ());
       val _ =
         Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();

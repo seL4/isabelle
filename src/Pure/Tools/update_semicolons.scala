@@ -13,7 +13,7 @@ object Update_Semicolons
   {
     val text0 = File.read(path)
     val text1 =
-      (for (tok <- Outer_Syntax.empty.scan(text0).iterator if tok.source != ";")
+      (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator if tok.source != ";")
         yield tok.source).mkString
 
     if (text0 != text1) {

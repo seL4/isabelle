@@ -19,7 +19,6 @@ sig
     (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: command_spec -> string ->
     (local_theory -> Proof.state) parser -> unit
-  val scan: Keyword.keywords -> Position.T -> string -> Token.T list
   val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_tokens: theory -> Token.T list -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
@@ -147,15 +146,6 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 
 (** toplevel parsing **)
-
-(* scan tokens *)
-
-fun scan keywords pos =
-  Source.of_string #>
-  Symbol.source #>
-  Token.source keywords pos #>
-  Source.exhaust;
-
 
 (* parse commands *)
 

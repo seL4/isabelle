@@ -218,7 +218,7 @@ object Token_Markup
     for {
       ctxt <- line_context.context
       text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))
-    } yield syntax.scan_line(text, ctxt)._1
+    } yield Token.explode_line(syntax.keywords, text, ctxt)._1
   }
 
   def line_token_iterator(
@@ -346,7 +346,7 @@ object Token_Markup
               (styled_tokens, new Line_Context(Some(ctxt1), structure))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
-              val (tokens, ctxt1) = syntax.scan_line(line, ctxt)
+              val (tokens, ctxt1) = Token.explode_line(syntax.keywords, line, ctxt)
               val structure1 = syntax.line_structure(tokens, structure)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))

@@ -204,7 +204,7 @@ fun check_command ctxt (name, pos) =
     Keyword.is_command keywords name andalso
       let
         val markup =
-          Outer_Syntax.scan keywords Position.none name
+          Token.explode keywords Position.none name
           |> maps (Outer_Syntax.command_reports thy)
           |> map (snd o fst);
         val _ = Context_Position.reports ctxt (map (pair pos) markup);

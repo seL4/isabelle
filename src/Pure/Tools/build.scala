@@ -259,7 +259,7 @@ object Build
 
     def parse_entries(root: Path): List[(String, Session_Entry)] =
     {
-      val toks = root_syntax.scan(File.read(root))
+      val toks = Token.explode(root_syntax.keywords, File.read(root))
 
       parse_all(rep(chapter | session_entry), Token.reader(toks, root.implode)) match {
         case Success(result, _) =>

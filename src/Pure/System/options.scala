@@ -108,7 +108,7 @@ object Options
     def parse_file(syntax: Outer_Syntax, parser: Parser[Options => Options],
       options: Options, file: Path): Options =
     {
-      val toks = syntax.scan(File.read(file))
+      val toks = Token.explode(syntax.keywords, File.read(file))
       val ops =
         parse_all(rep(parser), Token.reader(toks, file.implode)) match {
           case Success(result, _) => result
