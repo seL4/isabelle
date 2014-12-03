@@ -7,9 +7,13 @@ Outer token syntax for Isabelle/Isar.
 signature TOKEN =
 sig
   datatype kind =
-    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
-    Error of string | EOF
+    (*immediate source*)
+    Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
+    Float | Space |
+    (*delimited content*)
+    String | Alt_String | Verbatim | Cartouche | Comment |
+    (*special content*)
+    Error of string | Internal_Value | EOF
   val str_of_kind: kind -> string
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
@@ -101,32 +105,36 @@ struct
 (* token kind *)
 
 datatype kind =
-  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
-  Error of string | EOF;
+  (*immediate source*)
+  Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
+  Float | Space |
+  (*delimited content*)
+  String | Alt_String | Verbatim | Cartouche | Comment |
+  (*special content*)
+  Error of string | Internal_Value | EOF;
 
 val str_of_kind =
  fn Command => "command"
   | Keyword => "keyword"
   | Ident => "identifier"
-  | LongIdent => "long identifier"
-  | SymIdent => "symbolic identifier"
+  | Long_Ident => "long identifier"
+  | Sym_Ident => "symbolic identifier"
   | Var => "schematic variable"
-  | TypeIdent => "type variable"
-  | TypeVar => "schematic type variable"
+  | Type_Ident => "type variable"
+  | Type_Var => "schematic type variable"
   | Nat => "natural number"
   | Float => "floating-point number"
+  | Space => "white space"
   | String => "quoted string"
-  | AltString => "back-quoted string"
+  | Alt_String => "back-quoted string"
   | Verbatim => "verbatim text"
   | Cartouche => "text cartouche"
-  | Space => "white space"
   | Comment => "comment text"
-  | InternalValue => "internal value"
+  | Internal_Value => "internal value"
   | Error _ => "bad input"
   | EOF => "end-of-input";
 
-val delimited_kind = member (op =) [String, AltString, Verbatim, Cartouche, Comment];
+val delimited_kind = member (op =) [String, Alt_String, Verbatim, Cartouche, Comment];
 
 
 (* datatype token *)
@@ -219,7 +227,7 @@ fun kind_of (Token (_, (k, _), _)) = k;
 fun is_kind k (Token (_, (k', _), _)) = k = k';
 
 val is_command = is_kind Command;
-val is_name = is_kind Ident orf is_kind SymIdent orf is_kind String orf is_kind Nat;
+val is_name = is_kind Ident orf is_kind Sym_Ident orf is_kind String orf is_kind Nat;
 
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;
@@ -279,25 +287,25 @@ fun content_of (Token (_, (_, x), _)) = x;
 local
 
 val token_kind_markup =
- fn Command       => (Markup.command, "")
-  | Keyword       => (Markup.keyword2, "")
-  | Ident         => (Markup.empty, "")
-  | LongIdent     => (Markup.empty, "")
-  | SymIdent      => (Markup.empty, "")
-  | Var           => (Markup.var, "")
-  | TypeIdent     => (Markup.tfree, "")
-  | TypeVar       => (Markup.tvar, "")
-  | Nat           => (Markup.empty, "")
-  | Float         => (Markup.empty, "")
-  | String        => (Markup.string, "")
-  | AltString     => (Markup.altstring, "")
-  | Verbatim      => (Markup.verbatim, "")
-  | Cartouche     => (Markup.cartouche, "")
-  | Space         => (Markup.empty, "")
-  | Comment       => (Markup.comment, "")
-  | InternalValue => (Markup.empty, "")
-  | Error msg     => (Markup.bad, msg)
-  | EOF           => (Markup.empty, "");
+ fn Command => (Markup.command, "")
+  | Keyword => (Markup.keyword2, "")
+  | Ident => (Markup.empty, "")
+  | Long_Ident => (Markup.empty, "")
+  | Sym_Ident => (Markup.empty, "")
+  | Var => (Markup.var, "")
+  | Type_Ident => (Markup.tfree, "")
+  | Type_Var => (Markup.tvar, "")
+  | Nat => (Markup.empty, "")
+  | Float => (Markup.empty, "")
+  | Space => (Markup.empty, "")
+  | String => (Markup.string, "")
+  | Alt_String => (Markup.alt_string, "")
+  | Verbatim => (Markup.verbatim, "")
+  | Cartouche => (Markup.cartouche, "")
+  | Comment => (Markup.comment, "")
+  | Error msg => (Markup.bad, msg)
+  | Internal_Value => (Markup.empty, "")
+  | EOF => (Markup.empty, "");
 
 in
 
@@ -326,7 +334,7 @@ end;
 fun unparse (Token (_, (kind, x), _)) =
   (case kind of
     String => Symbol_Pos.quote_string_qq x
-  | AltString => Symbol_Pos.quote_string_bq x
+  | Alt_String => Symbol_Pos.quote_string_bq x
   | Verbatim => enclose "{*" "*}" x
   | Cartouche => cartouche x
   | Comment => enclose "(*" "*)" x
@@ -366,7 +374,7 @@ fun put_files [] tok = tok
 (* access values *)
 
 fun make_value name v =
-  Token ((name, Position.no_range), (InternalValue, name), Value (SOME v));
+  Token ((name, Position.no_range), (Internal_Value, name), Value (SOME v));
 
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;
@@ -532,7 +540,7 @@ fun token_range k (pos1, (ss, pos2)) =
 
 fun scan keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
-    Symbol_Pos.scan_string_bq err_prefix >> token_range AltString ||
+    Symbol_Pos.scan_string_bq err_prefix >> token_range Alt_String ||
     scan_verbatim >> token_range Verbatim ||
     scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range Comment ||
@@ -541,14 +549,14 @@ fun scan keywords = !!! "bad input"
       (Scan.max token_leq
         (Scan.literal (Keyword.major_keywords keywords) >> pair Command)
         (Scan.literal (Keyword.minor_keywords keywords) >> pair Keyword))
-      (Lexicon.scan_longid >> pair LongIdent ||
+      (Lexicon.scan_longid >> pair Long_Ident ||
         Lexicon.scan_id >> pair Ident ||
         Lexicon.scan_var >> pair Var ||
-        Lexicon.scan_tid >> pair TypeIdent ||
-        Lexicon.scan_tvar >> pair TypeVar ||
+        Lexicon.scan_tid >> pair Type_Ident ||
+        Lexicon.scan_tvar >> pair Type_Var ||
         Lexicon.scan_float >> pair Float ||
         Lexicon.scan_nat >> pair Nat ||
-        scan_symid >> pair SymIdent) >> uncurry token));
+        scan_symid >> pair Sym_Ident) >> uncurry token));
 
 fun recover msg =
   (Symbol_Pos.recover_string_qq ||

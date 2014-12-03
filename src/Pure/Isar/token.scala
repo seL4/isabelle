@@ -13,6 +13,7 @@ object Token
 
   object Kind extends Enumeration
   {
+    /*immediate source*/
     val COMMAND = Value("command")
     val KEYWORD = Value("keyword")
     val IDENT = Value("identifier")
@@ -23,12 +24,14 @@ object Token
     val TYPE_VAR = Value("schematic type variable")
     val NAT = Value("natural number")
     val FLOAT = Value("floating-point number")
+    val SPACE = Value("white space")
+    /*delimited content*/
     val STRING = Value("string")
     val ALT_STRING = Value("back-quoted string")
     val VERBATIM = Value("verbatim text")
     val CARTOUCHE = Value("text cartouche")
-    val SPACE = Value("white space")
     val COMMENT = Value("comment text")
+    /*special content*/
     val ERROR = Value("bad input")
     val UNPARSED = Value("unparsed input")
   }

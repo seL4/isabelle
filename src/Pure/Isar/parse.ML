@@ -185,15 +185,15 @@ fun kind k =
 val command_ = kind Token.Command;
 val keyword = kind Token.Keyword;
 val short_ident = kind Token.Ident;
-val long_ident = kind Token.LongIdent;
-val sym_ident = kind Token.SymIdent;
+val long_ident = kind Token.Long_Ident;
+val sym_ident = kind Token.Sym_Ident;
 val term_var = kind Token.Var;
-val type_ident = kind Token.TypeIdent;
-val type_var = kind Token.TypeVar;
+val type_ident = kind Token.Type_Ident;
+val type_var = kind Token.Type_Var;
 val number = kind Token.Nat;
 val float_number = kind Token.Float;
 val string = kind Token.String;
-val alt_string = kind Token.AltString;
+val alt_string = kind Token.Alt_String;
 val verbatim = kind Token.Verbatim;
 val cartouche = kind Token.Cartouche;
 val eof = kind Token.EOF;
@@ -405,8 +405,8 @@ val opt_target = Scan.option target;
 local
 
 val argument_kinds =
- [Token.Ident, Token.LongIdent, Token.SymIdent, Token.Var, Token.TypeIdent, Token.TypeVar,
-  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Cartouche, Token.Verbatim];
+ [Token.Ident, Token.Long_Ident, Token.Sym_Ident, Token.Var, Token.Type_Ident, Token.Type_Var,
+  Token.Nat, Token.Float, Token.String, Token.Alt_String, Token.Cartouche, Token.Verbatim];
 
 fun arguments is_symid =
   let

@@ -115,7 +115,7 @@ sig
   val text_foldN: string val text_fold: T
   val commandN: string val command: T
   val stringN: string val string: T
-  val altstringN: string val altstring: T
+  val alt_stringN: string val alt_string: T
   val verbatimN: string val verbatim: T
   val cartoucheN: string val cartouche: T
   val commentN: string val comment: T
@@ -463,7 +463,7 @@ val (quasi_keywordN, quasi_keyword) = markup_elem "quasi_keyword";
 val (improperN, improper) = markup_elem "improper";
 val (operatorN, operator) = markup_elem "operator";
 val (stringN, string) = markup_elem "string";
-val (altstringN, altstring) = markup_elem "altstring";
+val (alt_stringN, alt_string) = markup_elem "alt_string";
 val (verbatimN, verbatim) = markup_elem "verbatim";
 val (cartoucheN, cartouche) = markup_elem "cartouche";
 val (commentN, comment) = markup_elem "comment";
