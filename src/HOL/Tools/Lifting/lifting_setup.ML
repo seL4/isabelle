@@ -221,7 +221,8 @@ fun lifting_bundle qty_full_name qinfo lthy =
 
     val thy = Proof_Context.theory_of lthy
     val dummy_thm = Thm.transfer thy Drule.dummy_thm
-    val pointer = Token.explode (Thy_Header.get_keywords thy) Position.none bundle_name
+    val pointer =
+      Token.explode (Thy_Header.get_keywords thy) Position.none (cartouche bundle_name)
     val restore_lifting_att = 
       ([dummy_thm], [Token.src ("Lifting.lifting_restore_internal", Position.none) pointer])
   in
@@ -920,7 +921,8 @@ fun lifting_restore_internal bundle_name ctxt =
 
 val lifting_restore_internal_attribute_setup =
   Attrib.setup @{binding lifting_restore_internal}
-     (Scan.lift Args.name >> (fn name => Thm.declaration_attribute (K (lifting_restore_internal name))))
+    (Scan.lift Parse.cartouche >>
+      (fn name => Thm.declaration_attribute (K (lifting_restore_internal name))))
     "restoring lifting infrastructure; internal attribute; not meant to be used directly by regular users"
 
 val _ = Theory.setup lifting_restore_internal_attribute_setup 
@@ -969,7 +971,7 @@ fun pointer_of_bundle_name bundle_name ctxt =
     case bundle of
       [(_, [arg_src])] => 
         let
-          val (name, _) = Token.syntax (Scan.lift Args.name) arg_src ctxt
+          val (name, _) = Token.syntax (Scan.lift Parse.cartouche) arg_src ctxt
             handle ERROR _ => error "The provided bundle is not a lifting bundle."
         in name end
       | _ => error "The provided bundle is not a lifting bundle."
