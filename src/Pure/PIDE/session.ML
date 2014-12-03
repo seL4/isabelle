@@ -8,6 +8,7 @@ signature SESSION =
 sig
   val name: unit -> string
   val welcome: unit -> string
+  val get_keywords: unit -> Keyword.keywords
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     (Path.T * Path.T) list -> string -> string * string -> bool -> unit
   val finish: unit -> unit
@@ -29,6 +30,12 @@ fun welcome () =
   if Distribution.is_identified then
     "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
   else "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")";
+
+
+(* base syntax *)
+
+val keywords = Unsynchronized.ref Keyword.empty_keywords;
+fun get_keywords () = ! keywords;
 
 
 (* init *)
@@ -57,6 +64,9 @@ fun finish () =
   Future.shutdown ();
   Event_Timer.shutdown ();
   Future.shutdown ();
+  keywords :=
+    fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
+      (Thy_Info.get_names ()) Keyword.empty_keywords;
   session_finished := true);
 
 

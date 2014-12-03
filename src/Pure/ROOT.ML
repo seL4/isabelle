@@ -315,6 +315,7 @@ use "PIDE/command.ML";
 use "PIDE/query_operation.ML";
 use "PIDE/resources.ML";
 use "Thy/thy_info.ML";
+use "PIDE/session.ML";
 use "PIDE/document.ML";
 
 (*theory and proof operations*)
@@ -325,7 +326,6 @@ use "subgoal.ML";
 
 (* Isabelle/Isar system *)
 
-use "PIDE/session.ML";
 use "System/command_line.ML";
 use "System/system_channel.ML";
 use "System/message_channel.ML";

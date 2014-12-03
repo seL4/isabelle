@@ -97,8 +97,9 @@ object Thy_Syntax
       val syntax =
         if (node.is_empty) None
         else {
-          val imports_syntax = node.header.imports.flatMap(a => nodes(a).syntax)
-          Some((resources.base_syntax /: imports_syntax)(_ ++ _).add_keywords(node.header.keywords))
+          val header = node.header
+          val imports_syntax = header.imports.flatMap(a => nodes(a).syntax)
+          Some((resources.base_syntax /: imports_syntax)(_ ++ _).add_keywords(header.keywords))
         }
       nodes += (name -> node.update_syntax(syntax))
     }
