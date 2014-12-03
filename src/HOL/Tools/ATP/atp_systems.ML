@@ -709,7 +709,7 @@ val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
     (K (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
-  remotify_atp e "EP" ["1.7", "1.6", "1.5", "1"]
+  remotify_atp e "EP" ["1.8", "1.7", "1.6", "1.5", "1"]
     (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
