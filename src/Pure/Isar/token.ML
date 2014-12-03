@@ -90,6 +90,7 @@ sig
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   val explode: Keyword.keywords -> Position.T -> string -> T list
+  val make: (int * int) * string -> Position.T -> T * Position.T
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
   val read_no_commands: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
@@ -134,6 +135,10 @@ val str_of_kind =
   | Internal_Value => "internal value"
   | Error _ => "bad input"
   | EOF => "end-of-input";
+
+val immediate_kinds =
+  Vector.fromList
+    [Command, Keyword, Ident, Long_Ident, Sym_Ident, Var, Type_Ident, Type_Var, Nat, Float, Space];
 
 val delimited_kind = member (op =) [String, Alt_String, Verbatim, Cartouche, Comment];
 
@@ -589,6 +594,22 @@ fun explode keywords pos =
   Symbol.source #>
   source keywords pos #>
   Source.exhaust;
+
+
+(* make *)
+
+fun make ((k, n), s) pos =
+  let
+    val pos' = Position.advance_offset n pos;
+    val range = Position.range pos pos';
+    val tok =
+      if k < Vector.length immediate_kinds then
+        Token ((s, range), (Vector.sub (immediate_kinds, k), s), Slot)
+      else
+        (case explode Keyword.empty_keywords pos s of
+          [tok] => tok
+        | _ => Token ((s, range), (Error (err_prefix ^ "exactly one token expected"), s), Slot))
+  in (tok, pos') end;
 
 
 

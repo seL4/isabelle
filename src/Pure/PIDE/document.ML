@@ -20,8 +20,8 @@ sig
   val init_state: state
   val define_blob: string -> string -> state -> state
   type blob_digest = (string * string option) Exn.result
-  val define_command: Document_ID.command -> string -> blob_digest list -> string ->
-    state -> state
+  val define_command: Document_ID.command -> string -> blob_digest list ->
+    ((int * int) * string) list -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
@@ -326,14 +326,14 @@ fun resolve_blob state (blob_digest: blob_digest) =
 
 (* commands *)
 
-fun define_command command_id name command_blobs text =
+fun define_command command_id name command_blobs toks =
   map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
       val span =
         Lazy.lazy (fn () =>
           Position.setmp_thread_data (Position.id_only id)
-            (fn () => Token.explode (get_keywords ()) (Position.id id) text) ());
+            (fn () => #1 (fold_map Token.make toks (Position.id id))) ());
       val _ =
         Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
