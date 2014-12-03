@@ -128,7 +128,7 @@ fun output_basic tok =
       "\\isakeyword{" ^ output_syms s ^ "}"
     else if Token.is_kind Token.String tok then
       enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
-    else if Token.is_kind Token.AltString tok then
+    else if Token.is_kind Token.Alt_String tok then
       enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
     else if Token.is_kind Token.Verbatim tok then
       let

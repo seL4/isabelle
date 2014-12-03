@@ -36,21 +36,18 @@ class PIDE_Docking_Framework extends DockableWindowManagerProvider
       val detach_operation: Option[() => Unit] =
         container match {
           case floating: FloatingWindowContainer =>
-            val entry = Untyped.get(floating, "entry")
-            val win = Untyped.get(entry, "win")
-            win match {
+            Untyped.get[AnyRef](Untyped.get[AnyRef](floating, "entry"), "win") match {
               case dockable: Dockable => dockable.detach_operation
               case _ => None
             }
 
           case panel: PanelWindowContainer =>
-            val entries =
-              Untyped.get(panel, "dockables").asInstanceOf[java.util.List[AnyRef]].toArray
+            val entries = Untyped.get[java.util.List[AnyRef]](panel, "dockables").toArray
             val wins =
               (for {
                 entry <- entries.iterator
-                if Untyped.get(Untyped.get(entry, "factory"), "name") == dockable_name
-                win = Untyped.get(entry, "win")
+                if Untyped.get[String](Untyped.get(entry, "factory"), "name") == dockable_name
+                win = Untyped.get[Any](entry, "win")
                 if win != null
               } yield win).toList
             wins match {

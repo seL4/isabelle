@@ -15,6 +15,7 @@ import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
@@ -29,7 +30,6 @@ object Isabelle
     List(
       "isabelle",         // theory source
       "isabelle-ml",      // ML source
-      "isabelle-markup",  // SideKick markup tree
       "isabelle-news",    // NEWS
       "isabelle-options", // etc/options
       "isabelle-output",  // pretty text area output
@@ -47,15 +47,9 @@ object Isabelle
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens
 
-  def session_syntax(): Option[Outer_Syntax] =
-    PIDE.session.recent_syntax match {
-      case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
-      case _ => None
-    }
-
-  def mode_syntax(name: String): Option[Outer_Syntax] =
-    name match {
-      case "isabelle" | "isabelle-markup" => session_syntax()
+  def mode_syntax(mode: String): Option[Outer_Syntax] =
+    mode match {
+      case "isabelle" => Some(PIDE.resources.base_syntax.asInstanceOf[Outer_Syntax])
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
@@ -65,14 +59,30 @@ object Isabelle
       case _ => None
     }
 
+  def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
+    (JEdit_Lib.buffer_mode(buffer), PIDE.document_model(buffer)) match {
+      case ("isabelle", Some(model)) =>
+        Some(PIDE.session.recent_syntax(model.node_name).asInstanceOf[Outer_Syntax])
+      case (mode, _) => mode_syntax(mode)
+    }
+
 
   /* token markers */
 
-  private val markers: Map[String, TokenMarker] =
-    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*) +
+  private val mode_markers: Map[String, TokenMarker] =
+    Map(modes.map(mode => (mode, new Token_Markup.Marker(mode, None))): _*) +
       ("bibtex" -> new Bibtex_JEdit.Token_Marker)
 
-  def token_marker(name: String): Option[TokenMarker] = markers.get(name)
+  def mode_token_marker(mode: String): Option[TokenMarker] = mode_markers.get(mode)
+
+  def buffer_token_marker(buffer: Buffer): Option[TokenMarker] =
+  {
+    val mode = JEdit_Lib.buffer_mode(buffer)
+    val new_token_marker =
+      if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
+      else mode_token_marker(mode)
+    if (new_token_marker == Some(buffer.getTokenMarker)) None else new_token_marker
+  }
 
 
   /* structure matchers */

@@ -17,6 +17,7 @@ import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug}
 import org.jedit.options.CombinedOptions
 import org.gjt.sp.jedit.gui.AboutDialog
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 
@@ -64,7 +65,11 @@ object PIDE
 
   /* document model and view */
 
-  def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
+  def document_model(buffer: JEditBuffer): Option[Document_Model] =
+    buffer match {
+      case b: Buffer => Document_Model(b)
+      case _ => None
+    }
 
   def document_view(text_area: TextArea): Option[Document_View] = Document_View(text_area)
 
@@ -111,11 +116,7 @@ object PIDE
       } {
         JEdit_Lib.buffer_lock(buffer) {
           val node_name = resources.node_name(buffer)
-          val model =
-            document_model(buffer) match {
-              case Some(model) if model.node_name == node_name => model
-              case _ => Document_Model.init(session, buffer, node_name)
-            }
+          val model = Document_Model.init(session, buffer, node_name, document_model(buffer))
           for {
             text_area <- JEdit_Lib.jedit_text_areas(buffer)
             if document_view(text_area).map(_.model) != Some(model)
@@ -314,7 +315,6 @@ class Plugin extends EBPlugin
               "This is " + Distribution.version +".",
               "It is for testing only, not for production use.")
           }
-
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||

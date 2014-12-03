@@ -392,10 +392,21 @@ trait Protocol
           { case Exn.Res((a, b)) =>
               (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
+
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }
+
+    val toks = command.span.content
+    val toks_yxml =
+    { import XML.Encode._
+      val encode_tok: T[Token] =
+        (tok => pair(int, int)((tok.kind.id, Symbol.iterator(tok.source).length)))
+      YXML.string_of_body(list(encode_tok)(toks))
+    }
+
     protocol_command("Document.define_command",
-      Document_ID(command.id), encode(command.name), blobs_yxml, encode(command.source))
+      (Document_ID(command.id) :: encode(command.name) :: blobs_yxml :: toks_yxml ::
+        toks.map(tok => encode(tok.source))): _*)
   }
 
 

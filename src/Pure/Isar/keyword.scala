@@ -83,12 +83,8 @@ object Keyword
   class Keywords private(
     val minor: Scan.Lexicon = Scan.Lexicon.empty,
     val major: Scan.Lexicon = Scan.Lexicon.empty,
-    commands: Map[String, (String, List[String])] = Map.empty)
+    protected val commands: Map[String, (String, List[String])] = Map.empty)
   {
-    /* content */
-
-    def is_empty: Boolean = minor.isEmpty && major.isEmpty
-
     override def toString: String =
     {
       val keywords1 = minor.iterator.map(quote(_)).toList
@@ -99,6 +95,24 @@ object Keyword
         }
       (keywords1 ::: keywords2).mkString("keywords\n  ", " and\n  ", "")
     }
+
+
+    /* merge */
+
+    def is_empty: Boolean = minor.is_empty && major.is_empty
+
+    def ++ (other: Keywords): Keywords =
+      if (this eq other) this
+      else if (is_empty) other
+      else {
+        val minor1 = minor ++ other.minor
+        val major1 = major ++ other.major
+        val commands1 =
+          if (commands eq other.commands) commands
+          else if (commands.isEmpty) other.commands
+          else (commands /: other.commands) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
+        new Keywords(minor1, major1, commands1)
+      }
 
 
     /* add keywords */

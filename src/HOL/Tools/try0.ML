@@ -43,7 +43,7 @@ fun apply_generic timeout_opt name command pre post apply st =
 
 fun parse_method keywords s =
   enclose "(" ")" s
-  |> Outer_Syntax.scan keywords Position.start
+  |> Token.explode keywords Position.start
   |> filter Token.is_proper
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");

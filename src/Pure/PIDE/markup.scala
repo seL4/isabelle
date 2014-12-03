@@ -261,7 +261,7 @@ object Markup
   val IMPROPER = "improper"
   val OPERATOR = "operator"
   val STRING = "string"
-  val ALTSTRING = "altstring"
+  val ALT_STRING = "alt_string"
   val VERBATIM = "verbatim"
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"

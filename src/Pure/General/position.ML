@@ -14,6 +14,7 @@ sig
   val end_offset_of: T -> int option
   val file_of: T -> string option
   val advance: Symbol.symbol -> T -> T
+  val advance_offset: int -> T -> T
   val distance_of: T -> T -> int
   val none: T
   val start: T
@@ -100,6 +101,11 @@ fun invalid_count (i, j, _: int) =
 
 fun advance sym (pos as (Pos (count, props))) =
   if invalid_count count then pos else Pos (advance_count sym count, props);
+
+fun advance_offset offset (pos as (Pos (count as (i, j, k), props))) =
+  if invalid_count count then pos
+  else if valid i then raise Fail "Illegal line position"
+  else Pos ((i, if_valid j (j + offset), k), props);
 
 
 (* distance of adjacent positions *)

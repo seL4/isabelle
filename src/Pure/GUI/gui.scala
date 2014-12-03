@@ -60,13 +60,11 @@ object GUI
     if (Platform.is_windows || Platform.is_macos) None
     else
       try {
-        val XWM = Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader)
-        val getWM = XWM.getDeclaredMethod("getWM")
-        getWM.setAccessible(true)
-        getWM.invoke(null) match {
-          case null => None
-          case wm => Some(wm.toString)
-        }
+        val wm =
+          Untyped.method(Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader),
+            "getWM").invoke(null)
+        if (wm == null) None
+        else Some(wm.toString)
       }
       catch {
         case _: ClassNotFoundException => None

@@ -8,7 +8,7 @@ signature ML_LEX =
 sig
   val keywords: string list
   datatype token_kind =
-    Keyword | Ident | LongIdent | TypeVar | Word | Int | Real | Char | String |
+    Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
     Space | Comment | Error of string | EOF
   eqtype token
   val stopper: token Scan.stopper
@@ -61,7 +61,7 @@ val lexicon = Scan.make_lexicon (map raw_explode keywords);
 (* datatype token *)
 
 datatype token_kind =
-  Keyword | Ident | LongIdent | TypeVar | Word | Int | Real | Char | String |
+  Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
   Space | Comment | Error of string | EOF;
 
 datatype token = Token of Position.range * (token_kind * string);
@@ -135,19 +135,19 @@ val flatten = implode o flatten_content;
 local
 
 fun token_kind_markup SML =
- fn Keyword   => (Markup.empty, "")
-  | Ident     => (Markup.empty, "")
-  | LongIdent => (Markup.empty, "")
-  | TypeVar   => (Markup.ML_tvar, "")
-  | Word      => (Markup.ML_numeral, "")
-  | Int       => (Markup.ML_numeral, "")
-  | Real      => (Markup.ML_numeral, "")
-  | Char      => (Markup.ML_char, "")
-  | String    => (if SML then Markup.SML_string else Markup.ML_string, "")
-  | Space     => (Markup.empty, "")
-  | Comment   => (if SML then Markup.SML_comment else Markup.ML_comment, "")
+ fn Keyword => (Markup.empty, "")
+  | Ident => (Markup.empty, "")
+  | Long_Ident => (Markup.empty, "")
+  | Type_Var => (Markup.ML_tvar, "")
+  | Word => (Markup.ML_numeral, "")
+  | Int => (Markup.ML_numeral, "")
+  | Real => (Markup.ML_numeral, "")
+  | Char => (Markup.ML_char, "")
+  | String => (if SML then Markup.SML_string else Markup.ML_string, "")
+  | Space => (Markup.empty, "")
+  | Comment => (if SML then Markup.SML_comment else Markup.ML_comment, "")
   | Error msg => (Markup.bad, msg)
-  | EOF       => (Markup.empty, "");
+  | EOF => (Markup.empty, "");
 
 in
 
@@ -280,9 +280,9 @@ val scan_ml =
    (scan_word >> token Word ||
     scan_real >> token Real ||
     scan_int >> token Int ||
-    scan_long_ident >> token LongIdent ||
+    scan_long_ident >> token Long_Ident ||
     scan_ident >> token Ident ||
-    scan_type_var >> token TypeVar));
+    scan_type_var >> token Type_Var));
 
 val scan_antiq = Antiquote.scan_antiq >> Antiquote.Antiq || scan_ml >> Antiquote.Text;
 

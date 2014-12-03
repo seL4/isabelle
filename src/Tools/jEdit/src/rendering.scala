@@ -74,11 +74,11 @@ object Rendering
       Token.Kind.TYPE_VAR -> NULL,
       Token.Kind.NAT -> NULL,
       Token.Kind.FLOAT -> NULL,
+      Token.Kind.SPACE -> NULL,
       Token.Kind.STRING -> LITERAL1,
       Token.Kind.ALT_STRING -> LITERAL2,
       Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.CARTOUCHE -> COMMENT4,
-      Token.Kind.SPACE -> NULL,
       Token.Kind.COMMENT -> COMMENT1,
       Token.Kind.ERROR -> INVALID
     ).withDefaultValue(NULL)
@@ -132,7 +132,7 @@ object Rendering
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
   private val language_context_elements =
-    Markup.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
@@ -194,7 +194,7 @@ object Rendering
       active_elements
 
   private val foreground_elements =
-    Markup.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   private val bullet_elements =
@@ -704,7 +704,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.IMPROPER -> improper_color,
       Markup.OPERATOR -> operator_color,
       Markup.STRING -> Color.BLACK,
-      Markup.ALTSTRING -> Color.BLACK,
+      Markup.ALT_STRING -> Color.BLACK,
       Markup.VERBATIM -> Color.BLACK,
       Markup.CARTOUCHE -> Color.BLACK,
       Markup.LITERAL -> keyword1_color,

@@ -13,8 +13,9 @@ import isabelle._
 
 import scala.collection.mutable
 
+import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer, LineManager}
 
 
 object Document_Model
@@ -44,15 +45,23 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer, node_name: Document.Node.Name): Document_Model =
+  def init(session: Session, buffer: Buffer, node_name: Document.Node.Name,
+    old_model: Option[Document_Model]): Document_Model =
   {
     GUI_Thread.require {}
-    apply(buffer).map(_.deactivate)
-    val model = new Document_Model(session, buffer, node_name)
-    buffer.setProperty(key, model)
-    model.activate()
-    buffer.propertiesChanged
-    model
+
+    old_model match {
+      case Some(old)
+      if old.node_name == node_name && Isabelle.buffer_token_marker(buffer).isEmpty => old
+
+      case _ =>
+        apply(buffer).map(_.deactivate)
+        val model = new Document_Model(session, buffer, node_name)
+        buffer.setProperty(key, model)
+        model.activate()
+        buffer.propertiesChanged
+        model
+    }
   }
 }
 
@@ -275,18 +284,39 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   }
 
 
+  /* syntax */
+
+  def syntax_changed()
+  {
+    Untyped.get[LineManager](buffer, "lineMgr").setFirstInvalidLineContext(0)
+    for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
+      Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
+        invoke(text_area)
+  }
+
+  private def init_token_marker()
+  {
+    Isabelle.buffer_token_marker(buffer) match {
+      case Some(marker) if marker != buffer.getTokenMarker =>
+        buffer.setTokenMarker(marker)
+        syntax_changed()
+      case _ =>
+    }
+  }
+
+
   /* activation */
 
   private def activate()
   {
     pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
     buffer.addBufferListener(buffer_listener)
-    Token_Markup.refresh_buffer(buffer)
+    init_token_marker()
   }
 
   private def deactivate()
   {
     buffer.removeBufferListener(buffer_listener)
-    Token_Markup.refresh_buffer(buffer)
+    init_token_marker()
   }
 }

@@ -27,8 +27,8 @@ object Command
   {
     type Entry = (Long, XML.Tree)
     val empty = new Results(SortedMap.empty)
-    def make(es: List[Results.Entry]): Results = (empty /: es)(_ + _)
-    def merge(rs: List[Results]): Results = (empty /: rs)(_ ++ _)
+    def make(args: TraversableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
+    def merge(args: TraversableOnce[Results]): Results = (empty /: args)(_ ++ _)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])

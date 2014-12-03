@@ -276,12 +276,35 @@ object Completion
 }
 
 final class Completion private(
-  keywords: Map[String, Boolean] = Map.empty,
-  words_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  words_map: Multi_Map[String, String] = Multi_Map.empty,
-  abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
+  protected val keywords: Map[String, Boolean] = Map.empty,
+  protected val words_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  protected val words_map: Multi_Map[String, String] = Multi_Map.empty,
+  protected val abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  protected val abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
 {
+  /* merge */
+
+  def is_empty: Boolean =
+    keywords.isEmpty &&
+    words_lex.is_empty &&
+    words_map.isEmpty &&
+    abbrevs_lex.is_empty &&
+    abbrevs_map.isEmpty
+
+  def ++ (other: Completion): Completion =
+    if (this eq other) this
+    else if (is_empty) other
+    else {
+      val keywords1 =
+        (keywords /: other.keywords) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
+      val words_lex1 = words_lex ++ other.words_lex
+      val words_map1 = words_map ++ other.words_map
+      val abbrevs_lex1 = abbrevs_lex ++ other.abbrevs_lex
+      val abbrevs_map1 = abbrevs_map ++ other.abbrevs_map
+      new Completion(keywords1, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
+    }
+
+
   /* keywords */
 
   private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)

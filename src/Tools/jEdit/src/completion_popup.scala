@@ -157,7 +157,7 @@ object Completion_Popup
       val buffer = text_area.getBuffer
       val decode = Isabelle_Encoding.is_active(buffer)
 
-      Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
+      Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
           val context =
             (for {

@@ -13,7 +13,7 @@ object Update_Header
   {
     val text0 = File.read(path)
     val text1 =
-      (for (tok <- Outer_Syntax.empty.scan(text0).iterator)
+      (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield { if (tok.source == "header") section else tok.source }).mkString
 
     if (text0 != text1) {

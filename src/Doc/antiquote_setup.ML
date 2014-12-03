@@ -62,7 +62,8 @@ fun ml_functor (Antiquote.Text tok :: _, _) =
       ML_Lex.read (ML_Syntax.print_string (ML_Lex.content_of tok))
   | ml_functor _ = raise Fail "Bad ML functor specification";
 
-val is_name = ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.LongIdent);
+val is_name =
+  ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.Long_Ident);
 
 fun ml_name txt =
   (case filter is_name (ML_Lex.tokenize txt) of
@@ -203,7 +204,7 @@ fun check_command ctxt (name, pos) =
     Keyword.is_command keywords name andalso
       let
         val markup =
-          Outer_Syntax.scan keywords Position.none name
+          Token.explode keywords Position.none name
           |> maps (Outer_Syntax.command_reports thy)
           |> map (snd o fst);
         val _ = Context_Position.reports ctxt (map (pair pos) markup);

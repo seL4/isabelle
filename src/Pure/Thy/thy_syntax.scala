@@ -69,11 +69,9 @@ object Thy_Syntax
     resources: Resources,
     previous: Document.Version,
     edits: List[Document.Edit_Text]):
-    (Prover.Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
-      List[Document.Edit_Command]) =
+    (List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
   {
-    var updated_imports = false
-    var updated_keywords = false
+    val syntax_changed0 = new mutable.ListBuffer[Document.Node.Name]
     var nodes = previous.nodes
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
 
@@ -84,32 +82,29 @@ object Thy_Syntax
           !node.header.errors.isEmpty || !header.errors.isEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
-          updated_imports = updated_imports || (node.header.imports != node1.header.imports)
-          updated_keywords = updated_keywords || (node.header.keywords != node1.header.keywords)
+          if (node.header.imports != node1.header.imports ||
+              node.header.keywords != node1.header.keywords) syntax_changed0 += name
           nodes += (name -> node1)
           doc_edits += (name -> Document.Node.Deps(header))
         }
       case _ =>
     }
 
-    val (syntax, syntax_changed) =
-      previous.syntax match {
-        case Some(syntax) if !updated_keywords =>
-          (syntax, false)
-        case _ =>
-          val syntax =
-            (resources.base_syntax /: nodes.iterator) {
-              case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
-            }
-          (syntax, true)
-      }
+    val syntax_changed = nodes.descendants(syntax_changed0.toList)
 
-    val reparse =
-      if (updated_imports || updated_keywords)
-        nodes.descendants(doc_edits.iterator.map(_._1).toList)
-      else Nil
+    for (name <- syntax_changed) {
+      val node = nodes(name)
+      val syntax =
+        if (node.is_empty) None
+        else {
+          val header = node.header
+          val imports_syntax = header.imports.flatMap(a => nodes(a).syntax)
+          Some((resources.base_syntax /: imports_syntax)(_ ++ _).add_keywords(header.keywords))
+        }
+      nodes += (name -> node.update_syntax(syntax))
+    }
 
-    (syntax, syntax_changed, updated_imports, reparse, nodes, doc_edits.toList)
+    (syntax_changed, nodes, doc_edits.toList)
   }
 
 
@@ -311,14 +306,13 @@ object Thy_Syntax
     def get_blob(name: Document.Node.Name) =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
-    val (syntax, syntax_changed, deps_changed, reparse0, nodes0, doc_edits0) =
-      header_edits(resources, previous, edits)
+    val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
     val (doc_edits, version) =
-      if (edits.isEmpty) (Nil, Document.Version.make(Some(syntax), previous.nodes))
+      if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
       else {
         val reparse =
-          (reparse0 /: nodes0.iterator)({
+          (syntax_changed /: nodes0.iterator)({
             case (reparse, (name, node)) =>
               if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
                 name :: reparse
@@ -336,6 +330,7 @@ object Thy_Syntax
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
+            val syntax = node.syntax getOrElse resources.base_syntax
             val commands = node.commands
 
             val node1 =
@@ -354,9 +349,9 @@ object Thy_Syntax
 
             nodes += (name -> node2)
         }
-        (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(Some(syntax), nodes))
+        (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(nodes))
       }
 
-    Session.Change(previous, syntax_changed, deps_changed, doc_edits, version)
+    Session.Change(previous, syntax_changed, !syntax_changed.isEmpty, doc_edits, version)
   }
 }

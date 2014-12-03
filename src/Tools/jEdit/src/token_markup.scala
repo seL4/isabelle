@@ -14,7 +14,7 @@ import java.awt.font.TextAttribute
 import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
-import org.gjt.sp.jedit.{jEdit, Mode}
+import org.gjt.sp.jedit.{jEdit, Mode, Buffer}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, DummyTokenHandler,
   ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
@@ -193,19 +193,18 @@ object Token_Markup
   }
 
   def buffer_line_context(buffer: JEditBuffer, line: Int): Line_Context =
-    Untyped.get(buffer, "lineMgr") match {
-      case line_mgr: LineManager =>
-        def context =
-          line_mgr.getLineContext(line) match {
-            case c: Line_Context => Some(c)
-            case _ => None
-          }
-        context getOrElse {
-          buffer.markTokens(line, DummyTokenHandler.INSTANCE)
-          context getOrElse Line_Context.init
-        }
-      case _ => Line_Context.init
+  {
+    val line_mgr = Untyped.get[LineManager](buffer, "lineMgr")
+    def context =
+      line_mgr.getLineContext(line) match {
+        case c: Line_Context => Some(c)
+        case _ => None
+      }
+    context getOrElse {
+      buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+      context getOrElse Line_Context.init
     }
+  }
 
 
   /* line tokens */
@@ -219,7 +218,7 @@ object Token_Markup
     for {
       ctxt <- line_context.context
       text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))
-    } yield syntax.scan_line(text, ctxt)._1
+    } yield Token.explode_line(syntax.keywords, text, ctxt)._1
   }
 
   def line_token_iterator(
@@ -308,8 +307,23 @@ object Token_Markup
 
   /* token marker */
 
-  class Marker(mode: String) extends TokenMarker
+  class Marker(
+    protected val mode: String,
+    protected val opt_buffer: Option[Buffer]) extends TokenMarker
   {
+    override def hashCode: Int = (mode, opt_buffer).hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Marker => mode == other.mode && opt_buffer == other.opt_buffer
+        case _ => false
+      }
+
+    override def toString: String =
+      opt_buffer match {
+        case None => "Marker(" + mode + ")"
+        case Some(buffer) => "Marker(" + mode + "," + JEdit_Lib.buffer_name(buffer) + ")"
+      }
+
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
@@ -319,15 +333,20 @@ object Token_Markup
 
       val context1 =
       {
+        val opt_syntax =
+          opt_buffer match {
+            case Some(buffer) => Isabelle.buffer_syntax(buffer)
+            case None => Isabelle.mode_syntax(mode)
+          }
         val (styled_tokens, context1) =
-          (line_context.context, Isabelle.mode_syntax(mode)) match {
+          (line_context.context, opt_syntax) match {
             case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
               val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
               val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
               (styled_tokens, new Line_Context(Some(ctxt1), structure))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
-              val (tokens, ctxt1) = syntax.scan_line(line, ctxt)
+              val (tokens, ctxt1) = Token.explode_line(syntax.keywords, line, ctxt)
               val structure1 = syntax.line_structure(tokens, structure)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
@@ -378,17 +397,7 @@ object Token_Markup
     override def loadMode(mode: Mode, xmh: XModeHandler)
     {
       super.loadMode(mode, xmh)
-      Isabelle.token_marker(mode.getName).foreach(mode.setTokenMarker _)
-    }
-  }
-
-  def refresh_buffer(buffer: JEditBuffer)
-  {
-    Isabelle.token_marker(JEdit_Lib.buffer_mode(buffer)) match {
-      case None =>
-      case Some(marker) =>
-        buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
-        buffer.setTokenMarker(marker)
+      Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)
     }
   }
 }

@@ -128,10 +128,7 @@ class JEdit_Editor extends Editor[View]
   {
     val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
     if (navigator != null) {
-      try {
-        val m = navigator.getClass.getDeclaredMethod("pushPosition", view.getClass)
-        m.invoke(null, view)
-      }
+      try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
       catch { case _: NoSuchMethodException => }
     }
   }

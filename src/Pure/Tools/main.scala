@@ -122,7 +122,7 @@ object Main
 
           val jedit =
             Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
-          val jedit_main = jedit.getDeclaredMethod("main", classOf[Array[String]])
+          val jedit_main = jedit.getMethod("main", classOf[Array[String]])
 
           () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)
         }

@@ -40,7 +40,7 @@ object Structure_Matching
       val caret_line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
 
-      Isabelle.session_syntax() match {
+      Isabelle.buffer_syntax(text_area.getBuffer) match {
         case Some(syntax) =>
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
@@ -143,7 +143,7 @@ object Structure_Matching
     {
       def get_span(offset: Text.Offset): Option[Text.Range] =
         for {
-          syntax <- Isabelle.session_syntax()
+          syntax <- Isabelle.buffer_syntax(text_area.getBuffer)
           span <- Token_Markup.command_span(syntax, text_area.getBuffer, offset)
         } yield span.range
 

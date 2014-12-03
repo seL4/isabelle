@@ -151,7 +151,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
-    val toks = Outer_Syntax.scan keywords text_pos text;
+    val toks = Token.explode keywords text_pos text;
     val spans = Outer_Syntax.parse_spans toks;
     val elements = Thy_Syntax.parse_elements keywords spans;
 

@@ -7,12 +7,17 @@ Outer token syntax for Isabelle/Isar.
 package isabelle
 
 
+import scala.collection.mutable
+import scala.util.parsing.input
+
+
 object Token
 {
   /* tokens */
 
   object Kind extends Enumeration
   {
+    /*immediate source*/
     val COMMAND = Value("command")
     val KEYWORD = Value("keyword")
     val IDENT = Value("identifier")
@@ -23,12 +28,14 @@ object Token
     val TYPE_VAR = Value("schematic type variable")
     val NAT = Value("natural number")
     val FLOAT = Value("floating-point number")
+    val SPACE = Value("white space")
+    /*delimited content*/
     val STRING = Value("string")
     val ALT_STRING = Value("back-quoted string")
     val VERBATIM = Value("verbatim text")
     val CARTOUCHE = Value("text cartouche")
-    val SPACE = Value("white space")
     val COMMENT = Value("comment text")
+    /*special content*/
     val ERROR = Value("bad input")
     val UNPARSED = Value("unparsed input")
   }
@@ -115,6 +122,34 @@ object Token
 
       string | (alt_string | (verb | (cart | (cmt | other))))
     }
+  }
+
+
+  /* explode */
+
+  def explode(keywords: Keyword.Keywords, inp: CharSequence): List[Token] =
+  {
+    val in: input.Reader[Char] = new input.CharSequenceReader(inp)
+    Parsers.parseAll(Parsers.rep(Parsers.token(keywords)), in) match {
+      case Parsers.Success(tokens, _) => tokens
+      case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
+    }
+  }
+
+  def explode_line(keywords: Keyword.Keywords, inp: CharSequence, context: Scan.Line_Context)
+    : (List[Token], Scan.Line_Context) =
+  {
+    var in: input.Reader[Char] = new input.CharSequenceReader(inp)
+    val toks = new mutable.ListBuffer[Token]
+    var ctxt = context
+    while (!in.atEnd) {
+      Parsers.parse(Parsers.token_line(keywords, ctxt), in) match {
+        case Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
+        case Parsers.NoSuccess(_, rest) =>
+          error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
+      }
+    }
+    (toks.toList, ctxt)
   }
 
 

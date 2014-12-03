@@ -23,16 +23,12 @@ val _ =
       end);
 
 val _ =
-  Isabelle_Process.protocol_command "Document.init_keywords"
-    (fn [] => Document.init_keywords ());
-
-val _ =
   Isabelle_Process.protocol_command "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
-    (fn [id, name, blobs_yxml, text] =>
+    (fn id :: name :: blobs_yxml :: toks_yxml :: sources =>
       let
         val blobs =
           YXML.parse_body blobs_yxml |>
@@ -41,8 +37,10 @@ val _ =
                [fn ([], a) => Exn.Res (pair string (option string) a),
                 fn ([], a) => Exn.Exn (ERROR (string a))])
             end;
+        val toks =
+          (YXML.parse_body toks_yxml |> let open XML.Decode in list (pair int int) end) ~~ sources;
       in
-        Document.change_state (Document.define_command (Document_ID.parse id) name blobs text)
+        Document.change_state (Document.define_command (Document_ID.parse id) name blobs toks)
       end);
 
 val _ =

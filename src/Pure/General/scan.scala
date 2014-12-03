@@ -318,10 +318,10 @@ object Scan
   {
     /* auxiliary operations */
 
-    private def content(tree: Lexicon.Tree, result: List[String]): List[String] =
+    private def dest(tree: Lexicon.Tree, result: List[String]): List[String] =
       (result /: tree.branches.toList) ((res, entry) =>
         entry match { case (_, (s, tr)) =>
-          if (s.isEmpty) content(tr, res) else content(tr, s :: res) })
+          if (s.isEmpty) dest(tr, res) else dest(tr, s :: res) })
 
     private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] =
     {
@@ -341,20 +341,20 @@ object Scan
 
     def completions(str: CharSequence): List[String] =
       lookup(str) match {
-        case Some((true, tree)) => content(tree, List(str.toString))
-        case Some((false, tree)) => content(tree, Nil)
+        case Some((true, tree)) => dest(tree, List(str.toString))
+        case Some((false, tree)) => dest(tree, Nil)
         case None => Nil
       }
 
 
     /* pseudo Set methods */
 
-    def iterator: Iterator[String] = content(rep, Nil).sorted.iterator
+    def raw_iterator: Iterator[String] = dest(rep, Nil).iterator
+    def iterator: Iterator[String] = dest(rep, Nil).sorted.iterator
 
     override def toString: String = iterator.mkString("Lexicon(", ", ", ")")
 
-    def empty: Lexicon = Lexicon.empty
-    def isEmpty: Boolean = rep.branches.isEmpty
+    def is_empty: Boolean = rep.branches.isEmpty
 
     def contains(elem: String): Boolean =
       lookup(elem) match {
@@ -363,7 +363,7 @@ object Scan
       }
 
 
-    /* add elements */
+    /* build lexicon */
 
     def + (elem: String): Lexicon =
       if (contains(elem)) this
@@ -387,6 +387,11 @@ object Scan
       }
 
     def ++ (elems: TraversableOnce[String]): Lexicon = (this /: elems)(_ + _)
+
+    def ++ (other: Lexicon): Lexicon =
+      if (this eq other) this
+      else if (is_empty) other
+      else this ++ other.raw_iterator
 
 
     /* scan */

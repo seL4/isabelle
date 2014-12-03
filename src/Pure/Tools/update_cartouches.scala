@@ -20,7 +20,7 @@ object Update_Cartouches
   {
     val text0 = File.read(path)
     val text1 =
-      (for (tok <- Outer_Syntax.empty.scan(text0).iterator)
+      (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield {
           if (tok.kind == Token.Kind.ALT_STRING) cartouche(tok.content)
           else if (tok.kind == Token.Kind.VERBATIM) {
