@@ -16,7 +16,7 @@ sig
   type flat_program
   val flat_program: Proof.context
     -> { module_prefix: string, module_name: string,
-    reserved: Name.context, identifiers: Code_Target.identifier_data, empty_nsp: 'a,
+    reserved: Name.context, identifiers: Code_Printer.identifiers, empty_nsp: 'a,
     namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
     modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
       -> Code_Symbol.T list -> Code_Thingol.program
@@ -30,7 +30,7 @@ sig
   type ('a, 'b) hierarchical_program
   val hierarchical_program: Proof.context
     -> { module_name: string,
-    reserved: Name.context, identifiers: Code_Target.identifier_data,
+    reserved: Name.context, identifiers: Code_Printer.identifiers,
     empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
     cyclic_modules: bool,

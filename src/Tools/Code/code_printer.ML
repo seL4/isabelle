@@ -88,6 +88,18 @@ sig
   val gen_print_bind: (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> fixity
     -> iterm -> var_ctxt -> Pretty.T * var_ctxt
+
+  type identifiers
+  type printings
+  type data
+  val empty_data: data
+  val map_data: (string list * identifiers * printings
+    -> string list * identifiers * printings)
+    -> data -> data
+  val merge_data: data * data -> data
+  val the_reserved: data -> string list;
+  val the_identifiers: data -> identifiers;
+  val the_printings: data -> printings;
 end;
 
 structure Code_Printer : CODE_PRINTER =
@@ -407,5 +419,31 @@ fun parse_tyco_syntax x =
 
 val parse_const_syntax =
   parse_mixfix >> syntax_of_mixfix plain_const_syntax simple_const_syntax fst;
+
+
+(** custom data structure **)
+
+type identifiers = (string list * string, string list * string, string list * string, string list * string,
+  string list * string, string list * string) Code_Symbol.data;
+type printings = (const_syntax, tyco_syntax, string, unit, unit,
+    (Pretty.T * string list)) Code_Symbol.data;
+
+datatype data = Data of { reserved: string list, identifiers: identifiers,
+  printings: printings };
+
+fun make_data (reserved, identifiers, printings) =
+  Data { reserved = reserved, identifiers = identifiers, printings = printings };
+val empty_data = make_data ([], Code_Symbol.empty_data, Code_Symbol.empty_data);
+fun map_data f (Data { reserved, identifiers, printings }) =
+  make_data (f (reserved, identifiers, printings));
+fun merge_data (Data { reserved = reserved1, identifiers = identifiers1, printings = printings1 },
+    Data { reserved = reserved2, identifiers = identifiers2, printings = printings2 }) =
+  make_data (merge (op =) (reserved1, reserved2),
+    Code_Symbol.merge_data (identifiers1, identifiers2), Code_Symbol.merge_data (printings1, printings2));
+
+fun the_reserved (Data { reserved, ... }) = reserved;
+fun the_identifiers (Data { identifiers , ... }) = identifiers;
+fun the_printings (Data { printings, ... }) = printings;
+
 
 end; (*struct*)

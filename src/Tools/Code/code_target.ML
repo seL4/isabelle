@@ -50,7 +50,6 @@ sig
   val set_default_code_width: int -> theory -> theory
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
-  type identifier_data
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
     -> theory -> theory
   val set_printings: (Code_Printer.raw_const_syntax, Code_Printer.tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
@@ -74,8 +73,6 @@ type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl =
     class * (string * 'c option) list, (class * class) * (string * 'd option) list,
     (class * string) * (string * 'e option) list,
     string * (string * 'f option) list) Code_Symbol.attr;
-type identifier_data = (string list * string, string list * string, string list * string, string list * string,
-  string list * string, string list * string) Code_Symbol.data;
 
 type tyco_syntax = Code_Printer.tyco_syntax;
 type raw_const_syntax = Code_Printer.raw_const_syntax;
@@ -172,7 +169,7 @@ type serializer = Token.T list
   -> {
     module_name: string,
     reserved_syms: string list,
-    identifiers: identifier_data,
+    identifiers: Code_Printer.identifiers,
     includes: (string * Pretty.T) list,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
@@ -187,72 +184,55 @@ type serializer = Token.T list
 type language = { serializer: serializer, literals: literals,
   check: { env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string } }; 
 
-type target_base = { serial: serial, language: language,
-  ancestry: (string * (Code_Thingol.program -> Code_Thingol.program)) list };
+type ancestry = (string * (Code_Thingol.program -> Code_Thingol.program)) list;
 
-datatype target_data = Target_Data of { reserved: string list, identifiers: identifier_data,
-  printings: (Code_Printer.const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
-    (Pretty.T * string list)) Code_Symbol.data };
+val merge_ancestry : ancestry * ancestry -> ancestry = AList.join (op =) (K snd);
 
-fun make_target_data (reserved, identifiers, printings) =
-  Target_Data { reserved = reserved, identifiers = identifiers, printings = printings };
-val empty_target_data = make_target_data ([], Code_Symbol.empty_data, Code_Symbol.empty_data);
-fun map_target_data f (Target_Data { reserved, identifiers, printings }) =
-  make_target_data (f (reserved, identifiers, printings));
-fun merge_target_data (Target_Data { reserved = reserved1, identifiers = identifiers1, printings = printings1 },
-    Target_Data { reserved = reserved2, identifiers = identifiers2, printings = printings2 }) =
-  make_target_data (merge (op =) (reserved1, reserved2),
-    Code_Symbol.merge_data (identifiers1, identifiers2), Code_Symbol.merge_data (printings1, printings2));
-
-fun the_reserved (Target_Data { reserved, ... }) = reserved;
-fun the_identifiers (Target_Data { identifiers , ... }) = identifiers;
-fun the_printings (Target_Data { printings, ... }) = printings;
-
-type target = target_base * target_data;  
+type target = { serial: serial, language: language, ancestry: ancestry };
 
 structure Targets = Theory_Data
 (
-  type T = target Symtab.table * int;
+  type T = (target * Code_Printer.data) Symtab.table * int;
   val empty = (Symtab.empty, 80);
   val extend = I;
-  fun merge ((target1, width1), (target2, width2)) : T =
-    (Symtab.join (fn target_name => fn ((base1, data1), (base2, data2)) =>
-      if #serial base1 = #serial base2 then
-      ({ serial = #serial base1, language = #language base1,
-        ancestry = AList.join (op =) (K snd) (#ancestry base1, #ancestry base2)},
-        merge_target_data (data1, data2))
+  fun merge ((targets1, width1), (targets2, width2)) : T =
+    (Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
+      if #serial target1 = #serial target2 then
+      ({ serial = #serial target1, language = #language target1,
+        ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
+        Code_Printer.merge_data (data1, data2))
       else error ("Incompatible targets: " ^ quote target_name) 
-    ) (target1, target2), Int.max (width1, width2))
+    ) (targets1, targets2), Int.max (width1, width2))
 );
 
 fun exists_target thy = Symtab.defined (fst (Targets.get thy));
-fun lookup_target thy = Symtab.lookup (fst (Targets.get thy));
+fun lookup_target_data thy = Symtab.lookup (fst (Targets.get thy));
 
 fun join_ancestry thy target_name =
   let
-    val the_target = the o lookup_target thy;
-    val (base, this_data) = the_target target_name;
-    val ancestry = #ancestry base;
+    val the_target_data = the o lookup_target_data thy;
+    val (target, this_data) = the_target_data target_name;
+    val ancestry = #ancestry target;
     val modifies = rev (map snd ancestry);
     val modify = fold (curry (op o)) modifies I;
-    val datas = rev (map (snd o the_target o fst) ancestry) @ [this_data];
-    val data = fold (fn data' => fn data => merge_target_data (data, data'))
+    val datas = rev (map (snd o the_target_data o fst) ancestry) @ [this_data];
+    val data = fold (fn data' => fn data => Code_Printer.merge_data (data, data'))
       (tl datas) (hd datas);
-  in (modify, (base, data)) end;
+  in (modify, (target, data)) end;
 
 fun assert_target ctxt target_name =
   if exists_target (Proof_Context.theory_of ctxt) target_name
   then target_name
   else error ("Unknown code target language: " ^ quote target_name);
 
-fun allocate_target target_name target_base thy =
+fun allocate_target target_name target thy =
   let
     val _ = if exists_target thy target_name
       then error ("Attempt to overwrite existing target " ^ quote target_name)
       else ();
   in
     thy
-    |> (Targets.map o apfst o Symtab.update) (target_name, (target_base, empty_target_data)) 
+    |> (Targets.map o apfst o Symtab.update) (target_name, (target, Code_Printer.empty_data))  
   end;
 
 fun add_target (target_name, language) =
@@ -260,7 +240,7 @@ fun add_target (target_name, language) =
 
 fun extend_target (target_name, (super, modify)) thy =
   let
-    val super_base = case lookup_target thy super of
+    val super_base = case lookup_target_data thy super of
       NONE => error ("Unknown code target language: " ^ quote super)
     | SOME (super_base, _) => super_base;
   in
@@ -273,7 +253,7 @@ fun map_data target_name f thy =
     val _ = assert_target (Proof_Context.init_global thy) target_name;
   in
     thy
-    |> (Targets.map o apfst o Symtab.map_entry target_name o apsnd o map_target_data) f
+    |> (Targets.map o apfst o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
   end;
 
 fun map_reserved target_name =
@@ -291,7 +271,7 @@ fun set_default_code_width k = (Targets.map o apsnd) (K k);
 (* montage *)
 
 fun the_language ctxt =
-  #language o fst o the o lookup_target (Proof_Context.theory_of ctxt)
+  #language o fst o the o lookup_target_data (Proof_Context.theory_of ctxt);
 
 fun the_literals ctxt = #literals o the_language ctxt;
 
@@ -301,8 +281,8 @@ fun activate_target ctxt target_name =
   let
     val thy = Proof_Context.theory_of ctxt
     val (_, default_width) = Targets.get thy;
-    val (modify, target) = join_ancestry thy target_name;
-  in (default_width, target, modify) end;
+    val (modify, target_data) = join_ancestry thy target_name;
+  in (default_width, target_data, modify) end;
 
 fun project_program ctxt syms_hidden syms1 program2 =
   let
@@ -340,11 +320,12 @@ fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
 
 fun mount_serializer ctxt target_name some_width module_name args program syms =
   let
-    val (default_width, (target_base, target_data), modify) = activate_target ctxt target_name;
-    val serializer = (#serializer o #language) target_base;
+    val (default_width, (target, data), modify) = activate_target ctxt target_name;
+    val serializer = (#serializer o #language) target;
     val (prepared_serializer, (prepared_syms, prepared_program)) =
       prepare_serializer ctxt serializer
-        (the_reserved target_data) (the_identifiers target_data) (the_printings target_data)
+        (Code_Printer.the_reserved data) (Code_Printer.the_identifiers data)
+        (Code_Printer.the_printings data)
         module_name args (modify program) syms
     val width = the_default default_width some_width;
   in (fn program => fn syms => prepared_serializer syms program width, (prepared_syms, prepared_program)) end;
@@ -522,8 +503,8 @@ end;
 
 fun add_reserved target_name sym thy =
   let
-    val (_, (_, target_data)) = join_ancestry thy target_name;
-    val _ = if member (op =) (the_reserved target_data) sym
+    val (_, (_, data)) = join_ancestry thy target_name;
+    val _ = if member (op =) (Code_Printer.the_reserved data) sym
       then error ("Reserved symbol " ^ quote sym ^ " already declared")
       else ();
   in
