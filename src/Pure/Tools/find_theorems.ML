@@ -170,7 +170,7 @@ fun filter_intro ctxt goal (_, thm) =
     val concl = Logic.concl_of_goal goal 1;
   in
     (case is_matching_thm extract_intro ctxt true concl thm of
-      SOME ss => SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, ss)
+      SOME k => SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, k)
     | NONE => NONE)
   end;
 
@@ -244,7 +244,7 @@ fun matches_subterm thy (pat, obj) =
   let
     fun msub bounds obj = Pattern.matches thy (pat, obj) orelse
       (case obj of
-        Abs (x, T, t) => msub (bounds + 1) (snd (Term.dest_abs (Name.bound bounds, T, t)))
+        Abs (_, T, t) => msub (bounds + 1) (snd (Term.dest_abs (Name.bound bounds, T, t)))
       | t $ u => msub bounds t orelse msub bounds u
       | _ => false)
   in msub 0 obj end;
@@ -572,3 +572,4 @@ val _ =
     else error "Unknown context");
 
 end;
+
