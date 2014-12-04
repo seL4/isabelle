@@ -11,6 +11,17 @@ imports
   "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
+lemma topological_basis_trivial: "topological_basis {A. open A}"
+  by (auto simp: topological_basis_def)
+
+lemma open_prod_generated: "open = generate_topology {A \<times> B | A B. open A \<and> open B}"
+proof -
+  have "{A \<times> B :: ('a \<times> 'b) set | A B. open A \<and> open B} = ((\<lambda>(a, b). a \<times> b) ` ({A. open A} \<times> {A. open A}))"
+    by auto
+  then show ?thesis
+    by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)  
+qed
+
 subsection {* Generic Borel spaces *}
 
 definition borel :: "'a::topological_space measure" where
@@ -147,6 +158,50 @@ lemma box_borel[measurable]: "box a b \<in> sets borel"
 lemma borel_compact: "compact (A::'a::t2_space set) \<Longrightarrow> A \<in> sets borel"
   by (auto intro: borel_closed dest!: compact_imp_closed)
 
+lemma second_countable_borel_measurable:
+  fixes X :: "'a::second_countable_topology set set"
+  assumes eq: "open = generate_topology X"
+  shows "borel = sigma UNIV X"
+  unfolding borel_def
+proof (intro sigma_eqI sigma_sets_eqI)
+  interpret X: sigma_algebra UNIV "sigma_sets UNIV X"
+    by (rule sigma_algebra_sigma_sets) simp
+
+  fix S :: "'a set" assume "S \<in> Collect open"
+  then have "generate_topology X S"
+    by (auto simp: eq)
+  then show "S \<in> sigma_sets UNIV X"
+  proof induction
+    case (UN K)
+    then have K: "\<And>k. k \<in> K \<Longrightarrow> open k"
+      unfolding eq by auto
+    from ex_countable_basis obtain B :: "'a set set" where
+      B:  "\<And>b. b \<in> B \<Longrightarrow> open b" "\<And>X. open X \<Longrightarrow> \<exists>b\<subseteq>B. (\<Union>b) = X" and "countable B"
+      by (auto simp: topological_basis_def)
+    from B(2)[OF K] obtain m where m: "\<And>k. k \<in> K \<Longrightarrow> m k \<subseteq> B" "\<And>k. k \<in> K \<Longrightarrow> (\<Union>m k) = k"
+      by metis
+    def U \<equiv> "(\<Union>k\<in>K. m k)"
+    with m have "countable U"
+      by (intro countable_subset[OF _ `countable B`]) auto
+    have "\<Union>U = (\<Union>A\<in>U. A)" by simp
+    also have "\<dots> = \<Union>K"
+      unfolding U_def UN_simps by (simp add: m)
+    finally have "\<Union>U = \<Union>K" .
+
+    have "\<forall>b\<in>U. \<exists>k\<in>K. b \<subseteq> k"
+      using m by (auto simp: U_def)
+    then obtain u where u: "\<And>b. b \<in> U \<Longrightarrow> u b \<in> K" and "\<And>b. b \<in> U \<Longrightarrow> b \<subseteq> u b"
+      by metis
+    then have "(\<Union>b\<in>U. u b) \<subseteq> \<Union>K" "\<Union>U \<subseteq> (\<Union>b\<in>U. u b)"
+      by auto
+    then have "\<Union>K = (\<Union>b\<in>U. u b)"
+      unfolding `\<Union>U = \<Union>K` by auto
+    also have "\<dots> \<in> sigma_sets UNIV X"
+      using u UN by (intro X.countable_UN' `countable U`) auto
+    finally show "\<Union>K \<in> sigma_sets UNIV X" .
+  qed auto
+qed (auto simp: eq intro: generate_topology.Basis)
+
 lemma borel_measurable_continuous_on_if:
   assumes A: "A \<in> sets borel" and f: "continuous_on A f" and g: "continuous_on (- A) g"
   shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> borel_measurable borel"
@@ -259,6 +314,145 @@ proof -
   have eq: "(\<lambda>x. H (f x) (g x)) = (\<lambda>x. (\<lambda>x. H (fst x) (snd x)) (f x, g x))" by auto
   show ?thesis
     unfolding eq by (rule borel_measurable_continuous_on[OF H]) auto
+qed
+
+subsection {* Borel spaces on order topologies *}
+
+
+lemma borel_Iio:
+  "borel = sigma UNIV (range lessThan :: 'a::{linorder_topology, second_countable_topology} set set)"
+  unfolding second_countable_borel_measurable[OF open_generated_order]
+proof (intro sigma_eqI sigma_sets_eqI)
+  from countable_dense_setE guess D :: "'a set" . note D = this
+
+  interpret L: sigma_algebra UNIV "sigma_sets UNIV (range lessThan)"
+    by (rule sigma_algebra_sigma_sets) simp
+
+  fix A :: "'a set" assume "A \<in> range lessThan \<union> range greaterThan"
+  then obtain y where "A = {y <..} \<or> A = {..< y}"
+    by blast
+  then show "A \<in> sigma_sets UNIV (range lessThan)"
+  proof
+    assume A: "A = {y <..}"
+    show ?thesis
+    proof cases
+      assume "\<forall>x>y. \<exists>d. y < d \<and> d < x"
+      with D(2)[of "{y <..< x}" for x] have "\<forall>x>y. \<exists>d\<in>D. y < d \<and> d < x"
+        by (auto simp: set_eq_iff)
+      then have "A = UNIV - (\<Inter>d\<in>{d\<in>D. y < d}. {..< d})"
+        by (auto simp: A) (metis less_asym)
+      also have "\<dots> \<in> sigma_sets UNIV (range lessThan)"
+        using D(1) by (intro L.Diff L.top L.countable_INT'') auto
+      finally show ?thesis .
+    next
+      assume "\<not> (\<forall>x>y. \<exists>d. y < d \<and> d < x)"
+      then obtain x where "y < x"  "\<And>d. y < d \<Longrightarrow> \<not> d < x"
+        by auto
+      then have "A = UNIV - {..< x}"
+        unfolding A by (auto simp: not_less[symmetric])
+      also have "\<dots> \<in> sigma_sets UNIV (range lessThan)"
+        by auto
+      finally show ?thesis .
+    qed
+  qed auto
+qed auto
+
+lemma borel_Ioi:
+  "borel = sigma UNIV (range greaterThan :: 'a::{linorder_topology, second_countable_topology} set set)"
+  unfolding second_countable_borel_measurable[OF open_generated_order]
+proof (intro sigma_eqI sigma_sets_eqI)
+  from countable_dense_setE guess D :: "'a set" . note D = this
+
+  interpret L: sigma_algebra UNIV "sigma_sets UNIV (range greaterThan)"
+    by (rule sigma_algebra_sigma_sets) simp
+
+  fix A :: "'a set" assume "A \<in> range lessThan \<union> range greaterThan"
+  then obtain y where "A = {y <..} \<or> A = {..< y}"
+    by blast
+  then show "A \<in> sigma_sets UNIV (range greaterThan)"
+  proof
+    assume A: "A = {..< y}"
+    show ?thesis
+    proof cases
+      assume "\<forall>x<y. \<exists>d. x < d \<and> d < y"
+      with D(2)[of "{x <..< y}" for x] have "\<forall>x<y. \<exists>d\<in>D. x < d \<and> d < y"
+        by (auto simp: set_eq_iff)
+      then have "A = UNIV - (\<Inter>d\<in>{d\<in>D. d < y}. {d <..})"
+        by (auto simp: A) (metis less_asym)
+      also have "\<dots> \<in> sigma_sets UNIV (range greaterThan)"
+        using D(1) by (intro L.Diff L.top L.countable_INT'') auto
+      finally show ?thesis .
+    next
+      assume "\<not> (\<forall>x<y. \<exists>d. x < d \<and> d < y)"
+      then obtain x where "x < y"  "\<And>d. y > d \<Longrightarrow> x \<ge> d"
+        by (auto simp: not_less[symmetric])
+      then have "A = UNIV - {x <..}"
+        unfolding A Compl_eq_Diff_UNIV[symmetric] by auto
+      also have "\<dots> \<in> sigma_sets UNIV (range greaterThan)"
+        by auto
+      finally show ?thesis .
+    qed
+  qed auto
+qed auto
+
+lemma borel_measurableI_less:
+  fixes f :: "'a \<Rightarrow> 'b::{linorder_topology, second_countable_topology}"
+  shows "(\<And>y. {x\<in>space M. f x < y} \<in> sets M) \<Longrightarrow> f \<in> borel_measurable M"
+  unfolding borel_Iio
+  by (rule measurable_measure_of) (auto simp: Int_def conj_commute)
+
+lemma borel_measurableI_greater:
+  fixes f :: "'a \<Rightarrow> 'b::{linorder_topology, second_countable_topology}"
+  shows "(\<And>y. {x\<in>space M. y < f x} \<in> sets M) \<Longrightarrow> f \<in> borel_measurable M"
+  unfolding borel_Ioi
+  by (rule measurable_measure_of) (auto simp: Int_def conj_commute)
+
+lemma borel_measurable_SUP[measurable (raw)]:
+  fixes F :: "_ \<Rightarrow> _ \<Rightarrow> _::{complete_linorder, linorder_topology, second_countable_topology}"
+  assumes [simp]: "countable I"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
+  shows "(\<lambda>x. SUP i:I. F i x) \<in> borel_measurable M"
+  by (rule borel_measurableI_greater) (simp add: less_SUP_iff)
+
+lemma borel_measurable_INF[measurable (raw)]:
+  fixes F :: "_ \<Rightarrow> _ \<Rightarrow> _::{complete_linorder, linorder_topology, second_countable_topology}"
+  assumes [simp]: "countable I"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
+  shows "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable M"
+  by (rule borel_measurableI_less) (simp add: INF_less_iff)
+
+lemma borel_measurable_lfp[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_linorder, linorder_topology, second_countable_topology})"
+  assumes "Order_Continuity.continuous F"
+  assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
+  shows "lfp F \<in> borel_measurable M"
+proof -
+  { fix i have "((F ^^ i) bot) \<in> borel_measurable M"
+      by (induct i) (auto intro!: *) }
+  then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> borel_measurable M"
+    by measurable
+  also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = (SUP i. (F ^^ i) bot)"
+    by auto
+  also have "(SUP i. (F ^^ i) bot) = lfp F"
+    by (rule continuous_lfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma borel_measurable_gfp[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_linorder, linorder_topology, second_countable_topology})"
+  assumes "Order_Continuity.down_continuous F"
+  assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
+  shows "gfp F \<in> borel_measurable M"
+proof -
+  { fix i have "((F ^^ i) top) \<in> borel_measurable M"
+      by (induct i) (auto intro!: * simp: bot_fun_def) }
+  then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> borel_measurable M"
+    by measurable
+  also have "(\<lambda>x. INF i. (F ^^ i) top x) = (INF i. (F ^^ i) top)"
+    by auto
+  also have "\<dots> = gfp F"
+    by (rule down_continuous_gfp[symmetric]) fact
+  finally show ?thesis .
 qed
 
 subsection {* Borel spaces on euclidean spaces *}
@@ -1169,32 +1363,6 @@ proof cases
   thus ?thesis using assms by induct auto
 qed simp
 
-lemma borel_measurable_SUP[measurable (raw)]:
-  fixes f :: "'d\<Colon>countable \<Rightarrow> 'a \<Rightarrow> ereal"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(\<lambda>x. SUP i : A. f i x) \<in> borel_measurable M" (is "?sup \<in> borel_measurable M")
-  unfolding borel_measurable_ereal_iff_ge
-proof
-  fix a
-  have "?sup -` {a<..} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. a < f i x})"
-    by (auto simp: less_SUP_iff)
-  then show "?sup -` {a<..} \<inter> space M \<in> sets M"
-    using assms by auto
-qed
-
-lemma borel_measurable_INF[measurable (raw)]:
-  fixes f :: "'d :: countable \<Rightarrow> 'a \<Rightarrow> ereal"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(\<lambda>x. INF i : A. f i x) \<in> borel_measurable M" (is "?inf \<in> borel_measurable M")
-  unfolding borel_measurable_ereal_iff_less
-proof
-  fix a
-  have "?inf -` {..<a} \<inter> space M = (\<Union>i\<in>A. {x\<in>space M. f i x < a})"
-    by (auto simp: INF_less_iff)
-  then show "?inf -` {..<a} \<inter> space M \<in> sets M"
-    using assms by auto
-qed
-
 lemma [measurable (raw)]:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. f i \<in> borel_measurable M"
@@ -1324,23 +1492,6 @@ lemma borel_measurable_sup[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow>
     (\<lambda>x. sup (f x) (g x)::ereal) \<in> borel_measurable M"
   by simp
-
-lemma borel_measurable_lfp[consumes 1, case_names continuity step]:
-  fixes F :: "('a \<Rightarrow> ereal) \<Rightarrow> ('a \<Rightarrow> ereal)"
-  assumes "Order_Continuity.continuous F"
-  assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
-  shows "lfp F \<in> borel_measurable M"
-proof -
-  { fix i have "((F ^^ i) (\<lambda>t. bot)) \<in> borel_measurable M"
-      by (induct i) (auto intro!: * simp: bot_fun_def) }
-  then have "(\<lambda>x. SUP i. (F ^^ i) (\<lambda>t. bot) x) \<in> borel_measurable M"
-    by measurable
-  also have "(\<lambda>x. SUP i. (F ^^ i) (\<lambda>t. bot) x) = (SUP i. (F ^^ i) bot)"
-    by (auto simp add: bot_fun_def)
-  also have "(SUP i. (F ^^ i) bot) = lfp F"
-    by (rule continuous_lfp[symmetric]) fact
-  finally show ?thesis .
-qed
 
 (* Proof by Jeremy Avigad and Luke Serafin *)
 lemma isCont_borel:

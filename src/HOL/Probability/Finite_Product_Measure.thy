@@ -362,6 +362,101 @@ lemma sets_PiM_eq_proj:
   apply (auto intro!: arg_cong2[where f=sigma_sets])
   done
 
+lemma
+  shows space_PiM_empty: "space (Pi\<^sub>M {} M) = {\<lambda>k. undefined}"
+    and sets_PiM_empty: "sets (Pi\<^sub>M {} M) = { {}, {\<lambda>k. undefined} }"
+  by (simp_all add: space_PiM sets_PiM_single image_constant sigma_sets_empty_eq)
+
+lemma sets_PiM_sigma:
+  assumes \<Omega>_cover: "\<And>i. i \<in> I \<Longrightarrow> \<exists>S\<subseteq>E i. countable S \<and> \<Omega> i = \<Union>S"
+  assumes E: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (\<Omega> i)"
+  assumes J: "\<And>j. j \<in> J \<Longrightarrow> finite j" "\<Union>J = I"
+  defines "P \<equiv> {{f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A i} | A j. j \<in> J \<and> A \<in> Pi j E}"
+  shows "sets (\<Pi>\<^sub>M i\<in>I. sigma (\<Omega> i) (E i)) = sets (sigma (\<Pi>\<^sub>E i\<in>I. \<Omega> i) P)"
+proof cases
+  assume "I = {}" 
+  with `\<Union>J = I` have "P = {{\<lambda>_. undefined}} \<or> P = {}"
+    by (auto simp: P_def)
+  with `I = {}` show ?thesis
+    by (auto simp add: sets_PiM_empty sigma_sets_empty_eq)
+next
+  let ?F = "\<lambda>i. {(\<lambda>x. x i) -` A \<inter> Pi\<^sub>E I \<Omega> |A. A \<in> E i}"
+  assume "I \<noteq> {}"
+  then have "sets (Pi\<^sub>M I (\<lambda>i. sigma (\<Omega> i) (E i))) = 
+      sets (\<Squnion>\<^sub>\<sigma> i\<in>I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. \<Omega> i) (\<lambda>x. x i) (sigma (\<Omega> i) (E i)))"
+    by (subst sets_PiM_eq_proj) (auto simp: space_measure_of_conv)
+  also have "\<dots> = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. sigma (Pi\<^sub>E I \<Omega>) (?F i))"
+    using E by (intro SUP_sigma_cong arg_cong[where f=sets] vimage_algebra_sigma) auto
+  also have "\<dots> = sets (sigma (Pi\<^sub>E I \<Omega>) (\<Union>i\<in>I. ?F i))"
+    using `I \<noteq> {}` by (intro arg_cong[where f=sets] SUP_sigma_sigma) auto
+  also have "\<dots> = sets (sigma (Pi\<^sub>E I \<Omega>) P)"
+  proof (intro arg_cong[where f=sets] sigma_eqI sigma_sets_eqI)
+    show "(\<Union>i\<in>I. ?F i) \<subseteq> Pow (Pi\<^sub>E I \<Omega>)" "P \<subseteq> Pow (Pi\<^sub>E I \<Omega>)"
+      by (auto simp: P_def)
+  next
+    interpret P: sigma_algebra "\<Pi>\<^sub>E i\<in>I. \<Omega> i" "sigma_sets (\<Pi>\<^sub>E i\<in>I. \<Omega> i) P"
+      by (auto intro!: sigma_algebra_sigma_sets simp: P_def)
+
+    fix Z assume "Z \<in> (\<Union>i\<in>I. ?F i)"
+    then obtain i A where i: "i \<in> I" "A \<in> E i" and Z_def: "Z = (\<lambda>x. x i) -` A \<inter> Pi\<^sub>E I \<Omega>"
+      by auto
+    from `i \<in> I` J obtain j where j: "i \<in> j" "j \<in> J" "j \<subseteq> I" "finite j"
+      by auto
+    obtain S where S: "\<And>i. i \<in> j \<Longrightarrow> S i \<subseteq> E i" "\<And>i. i \<in> j \<Longrightarrow> countable (S i)"
+      "\<And>i. i \<in> j \<Longrightarrow> \<Omega> i = \<Union>(S i)"
+      by (metis subset_eq \<Omega>_cover `j \<subseteq> I`)
+    def A' \<equiv> "\<lambda>n. n(i := A)"
+    then have A'_i: "\<And>n. A' n i = A"
+      by simp
+    { fix n assume "n \<in> Pi\<^sub>E (j - {i}) S"
+      then have "A' n \<in> Pi j E"
+        unfolding PiE_def Pi_def using S(1) by (auto simp: A'_def `A \<in> E i` )
+      with `j \<in> J` have "{f \<in> Pi\<^sub>E I \<Omega>. \<forall>i\<in>j. f i \<in> A' n i} \<in> P"
+        by (auto simp: P_def) }
+    note A'_in_P = this
+
+    { fix x assume "x i \<in> A" "x \<in> Pi\<^sub>E I \<Omega>"
+      with S(3) `j \<subseteq> I` have "\<forall>i\<in>j. \<exists>s\<in>S i. x i \<in> s"
+        by (auto simp: PiE_def Pi_def)
+      then obtain s where s: "\<And>i. i \<in> j \<Longrightarrow> s i \<in> S i" "\<And>i. i \<in> j \<Longrightarrow> x i \<in> s i"
+        by metis
+      with `x i \<in> A` have "\<exists>n\<in>PiE (j-{i}) S. \<forall>i\<in>j. x i \<in> A' n i"
+        by (intro bexI[of _ "restrict (s(i := A)) (j-{i})"]) (auto simp: A'_def split: if_splits) }
+    then have "Z = (\<Union>n\<in>PiE (j-{i}) S. {f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A' n i})"
+      unfolding Z_def
+      by (auto simp add: set_eq_iff ball_conj_distrib `i\<in>j` A'_i dest: bspec[OF _ `i\<in>j`]
+               cong: conj_cong)
+    also have "\<dots> \<in> sigma_sets (\<Pi>\<^sub>E i\<in>I. \<Omega> i) P"
+      using `finite j` S(2)
+      by (intro P.countable_UN' countable_PiE) (simp_all add: image_subset_iff A'_in_P)
+    finally show "Z \<in> sigma_sets (\<Pi>\<^sub>E i\<in>I. \<Omega> i) P" .
+  next
+    interpret F: sigma_algebra "\<Pi>\<^sub>E i\<in>I. \<Omega> i" "sigma_sets (\<Pi>\<^sub>E i\<in>I. \<Omega> i) (\<Union>i\<in>I. ?F i)"
+      by (auto intro!: sigma_algebra_sigma_sets)
+
+    fix b assume "b \<in> P"
+    then obtain A j where b: "b = {f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A i}" "j \<in> J" "A \<in> Pi j E"
+      by (auto simp: P_def)
+    show "b \<in> sigma_sets (Pi\<^sub>E I \<Omega>) (\<Union>i\<in>I. ?F i)"
+    proof cases
+      assume "j = {}"
+      with b have "b = (\<Pi>\<^sub>E i\<in>I. \<Omega> i)"
+        by auto
+      then show ?thesis
+        by blast
+    next
+      assume "j \<noteq> {}"
+      with J b(2,3) have eq: "b = (\<Inter>i\<in>j. ((\<lambda>x. x i) -` A i \<inter> Pi\<^sub>E I \<Omega>))"
+        unfolding b(1)
+        by (auto simp: PiE_def Pi_def)
+      show ?thesis
+        unfolding eq using `A \<in> Pi j E` `j \<in> J` J(2)
+        by (intro F.finite_INT J `j \<in> J` `j \<noteq> {}` sigma_sets.Basic) blast
+    qed
+  qed
+  finally show "?thesis" .
+qed
+
 lemma sets_PiM_in_sets:
   assumes space: "space N = (\<Pi>\<^sub>E i\<in>I. space (M i))"
   assumes sets: "\<And>i A. i \<in> I \<Longrightarrow> A \<in> sets (M i) \<Longrightarrow> {x\<in>space N. x i \<in> A} \<in> sets N"
@@ -599,11 +694,6 @@ proof -
       using `\<And>i. incseq (F i)`[THEN incseq_SucD] by auto
   qed
 qed
-
-lemma
-  shows space_PiM_empty: "space (Pi\<^sub>M {} M) = {\<lambda>k. undefined}"
-    and sets_PiM_empty: "sets (Pi\<^sub>M {} M) = { {}, {\<lambda>k. undefined} }"
-  by (simp_all add: space_PiM sets_PiM_single image_constant sigma_sets_empty_eq)
 
 lemma emeasure_PiM_empty[simp]: "emeasure (PiM {} M) {\<lambda>_. undefined} = 1"
 proof -
@@ -926,116 +1016,6 @@ qed
 lemma sets_Collect_single:
   "i \<in> I \<Longrightarrow> A \<in> sets (M i) \<Longrightarrow> { x \<in> space (Pi\<^sub>M I M). x i \<in> A } \<in> sets (Pi\<^sub>M I M)"
   by simp
-
-lemma sigma_prod_algebra_sigma_eq_infinite:
-  fixes E :: "'i \<Rightarrow> 'a set set"
-  assumes S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
-    and S_in_E: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> E i"
-  assumes E_closed: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (space (M i))"
-    and E_generates: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sigma_sets (space (M i)) (E i)"
-  defines "P == {{f\<in>\<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> A} | i A. i \<in> I \<and> A \<in> E i}"
-  shows "sets (PiM I M) = sigma_sets (space (PiM I M)) P"
-proof
-  let ?P = "sigma (space (Pi\<^sub>M I M)) P"
-  have P_closed: "P \<subseteq> Pow (space (Pi\<^sub>M I M))"
-    using E_closed by (auto simp: space_PiM P_def subset_eq)
-  then have space_P: "space ?P = (\<Pi>\<^sub>E i\<in>I. space (M i))"
-    by (simp add: space_PiM)
-  have "sets (PiM I M) =
-      sigma_sets (space ?P) {{f \<in> \<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> A} |i A. i \<in> I \<and> A \<in> sets (M i)}"
-    using sets_PiM_single[of I M] by (simp add: space_P)
-  also have "\<dots> \<subseteq> sets (sigma (space (PiM I M)) P)"
-  proof (safe intro!: sets.sigma_sets_subset)
-    fix i A assume "i \<in> I" and A: "A \<in> sets (M i)"
-    then have "(\<lambda>x. x i) \<in> measurable ?P (sigma (space (M i)) (E i))"
-      apply (subst measurable_iff_measure_of)
-      apply (simp_all add: P_closed)
-      using E_closed
-      apply (force simp: subset_eq space_PiM)
-      apply (force simp: subset_eq space_PiM)
-      apply (auto simp: P_def intro!: sigma_sets.Basic exI[of _ i])
-      apply (rule_tac x=Aa in exI)
-      apply (auto simp: space_PiM)
-      done
-    from measurable_sets[OF this, of A] A `i \<in> I` E_closed
-    have "(\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
-      by (simp add: E_generates)
-    also have "(\<lambda>x. x i) -` A \<inter> space ?P = {f \<in> \<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> A}"
-      using P_closed by (auto simp: space_PiM)
-    finally show "\<dots> \<in> sets ?P" .
-  qed
-  finally show "sets (PiM I M) \<subseteq> sigma_sets (space (PiM I M)) P"
-    by (simp add: P_closed)
-  show "sigma_sets (space (PiM I M)) P \<subseteq> sets (PiM I M)"
-    unfolding P_def space_PiM[symmetric]
-    by (intro sets.sigma_sets_subset) (auto simp: E_generates sets_Collect_single)
-qed
-
-lemma sigma_prod_algebra_sigma_eq:
-  fixes E :: "'i \<Rightarrow> 'a set set" and S :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"
-  assumes "finite I"
-  assumes S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
-    and S_in_E: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> E i"
-  assumes E_closed: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (space (M i))"
-    and E_generates: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sigma_sets (space (M i)) (E i)"
-  defines "P == { Pi\<^sub>E I F | F. \<forall>i\<in>I. F i \<in> E i }"
-  shows "sets (PiM I M) = sigma_sets (space (PiM I M)) P"
-proof
-  let ?P = "sigma (space (Pi\<^sub>M I M)) P"
-  from `finite I`[THEN ex_bij_betw_finite_nat] guess T ..
-  then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
-    by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f)
-  have P_closed: "P \<subseteq> Pow (space (Pi\<^sub>M I M))"
-    using E_closed by (auto simp: space_PiM P_def subset_eq)
-  then have space_P: "space ?P = (\<Pi>\<^sub>E i\<in>I. space (M i))"
-    by (simp add: space_PiM)
-  have "sets (PiM I M) =
-      sigma_sets (space ?P) {{f \<in> \<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> A} |i A. i \<in> I \<and> A \<in> sets (M i)}"
-    using sets_PiM_single[of I M] by (simp add: space_P)
-  also have "\<dots> \<subseteq> sets (sigma (space (PiM I M)) P)"
-  proof (safe intro!: sets.sigma_sets_subset)
-    fix i A assume "i \<in> I" and A: "A \<in> sets (M i)"
-    have "(\<lambda>x. x i) \<in> measurable ?P (sigma (space (M i)) (E i))"
-    proof (subst measurable_iff_measure_of)
-      show "E i \<subseteq> Pow (space (M i))" using `i \<in> I` by fact
-      from space_P `i \<in> I` show "(\<lambda>x. x i) \<in> space ?P \<rightarrow> space (M i)" by auto
-      show "\<forall>A\<in>E i. (\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
-      proof
-        fix A assume A: "A \<in> E i"
-        then have "(\<lambda>x. x i) -` A \<inter> space ?P = (\<Pi>\<^sub>E j\<in>I. if i = j then A else space (M j))"
-          using E_closed `i \<in> I` by (auto simp: space_P subset_eq split: split_if_asm)
-        also have "\<dots> = (\<Pi>\<^sub>E j\<in>I. \<Union>n. if i = j then A else S j n)"
-          by (intro PiE_cong) (simp add: S_union)
-        also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>\<^sub>E j\<in>I. if i = j then A else S j (xs ! T j))"
-          using T
-          apply (auto simp: PiE_iff bchoice_iff)
-          apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
-          apply (auto simp: bij_betw_def)
-          done
-        also have "\<dots> \<in> sets ?P"
-        proof (safe intro!: sets.countable_UN)
-          fix xs show "(\<Pi>\<^sub>E j\<in>I. if i = j then A else S j (xs ! T j)) \<in> sets ?P"
-            using A S_in_E
-            by (simp add: P_closed)
-               (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j (xs ! T j)"])
-        qed
-        finally show "(\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
-          using P_closed by simp
-      qed
-    qed
-    from measurable_sets[OF this, of A] A `i \<in> I` E_closed
-    have "(\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
-      by (simp add: E_generates)
-    also have "(\<lambda>x. x i) -` A \<inter> space ?P = {f \<in> \<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> A}"
-      using P_closed by (auto simp: space_PiM)
-    finally show "\<dots> \<in> sets ?P" .
-  qed
-  finally show "sets (PiM I M) \<subseteq> sigma_sets (space (PiM I M)) P"
-    by (simp add: P_closed)
-  show "sigma_sets (space (PiM I M)) P \<subseteq> sets (PiM I M)"
-    using `finite I`
-    by (auto intro!: sets.sigma_sets_subset sets_PiM_I_finite simp: E_generates P_def)
-qed
 
 lemma pair_measure_eq_distr_PiM:
   fixes M1 :: "'a measure" and M2 :: "'a measure"

@@ -594,6 +594,65 @@ lemma (in pair_sigma_finite) Fubini':
 
 subsection {* Products on counting spaces, densities and distributions *}
 
+lemma sigma_prod:
+  assumes X_cover: "\<exists>E\<subseteq>A. countable E \<and> X = \<Union>E" and A: "A \<subseteq> Pow X"
+  assumes Y_cover: "\<exists>E\<subseteq>B. countable E \<and> Y = \<Union>E" and B: "B \<subseteq> Pow Y"
+  shows "sigma X A \<Otimes>\<^sub>M sigma Y B = sigma (X \<times> Y) {a \<times> b | a b. a \<in> A \<and> b \<in> B}"
+    (is "?P = ?S")
+proof (rule measure_eqI)
+  have [simp]: "snd \<in> X \<times> Y \<rightarrow> Y" "fst \<in> X \<times> Y \<rightarrow> X"
+    by auto
+  let ?XY = "{{fst -` a \<inter> X \<times> Y | a. a \<in> A}, {snd -` b \<inter> X \<times> Y | b. b \<in> B}}"
+  have "sets ?P = 
+    sets (\<Squnion>\<^sub>\<sigma> xy\<in>?XY. sigma (X \<times> Y) xy)"
+    by (simp add: vimage_algebra_sigma sets_pair_eq_sets_fst_snd A B)
+  also have "\<dots> = sets (sigma (X \<times> Y) (\<Union>?XY))"
+    by (intro Sup_sigma_sigma arg_cong[where f=sets]) auto
+  also have "\<dots> = sets ?S"
+  proof (intro arg_cong[where f=sets] sigma_eqI sigma_sets_eqI) 
+    show "\<Union>?XY \<subseteq> Pow (X \<times> Y)" "{a \<times> b |a b. a \<in> A \<and> b \<in> B} \<subseteq> Pow (X \<times> Y)"
+      using A B by auto
+  next
+    interpret XY: sigma_algebra "X \<times> Y" "sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
+      using A B by (intro sigma_algebra_sigma_sets) auto
+    fix Z assume "Z \<in> \<Union>?XY"
+    then show "Z \<in> sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
+    proof safe
+      fix a assume "a \<in> A"
+      from Y_cover obtain E where E: "E \<subseteq> B" "countable E" and "Y = \<Union>E"
+        by auto
+      with `a \<in> A` A have eq: "fst -` a \<inter> X \<times> Y = (\<Union>e\<in>E. a \<times> e)"
+        by auto
+      show "fst -` a \<inter> X \<times> Y \<in> sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
+        using `a \<in> A` E unfolding eq by (auto intro!: XY.countable_UN')
+    next
+      fix b assume "b \<in> B"
+      from X_cover obtain E where E: "E \<subseteq> A" "countable E" and "X = \<Union>E"
+        by auto
+      with `b \<in> B` B have eq: "snd -` b \<inter> X \<times> Y = (\<Union>e\<in>E. e \<times> b)"
+        by auto
+      show "snd -` b \<inter> X \<times> Y \<in> sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
+        using `b \<in> B` E unfolding eq by (auto intro!: XY.countable_UN')
+    qed
+  next
+    fix Z assume "Z \<in> {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
+    then obtain a b where "Z = a \<times> b" and ab: "a \<in> A" "b \<in> B"
+      by auto
+    then have Z: "Z = (fst -` a \<inter> X \<times> Y) \<inter> (snd -` b \<inter> X \<times> Y)"
+      using A B by auto
+    interpret XY: sigma_algebra "X \<times> Y" "sigma_sets (X \<times> Y) (\<Union>?XY)"
+      by (intro sigma_algebra_sigma_sets) auto
+    show "Z \<in> sigma_sets (X \<times> Y) (\<Union>?XY)"
+      unfolding Z by (rule XY.Int) (blast intro: ab)+
+  qed
+  finally show "sets ?P = sets ?S" .
+next
+  interpret finite_measure "sigma X A" for X A
+    proof qed (simp add: emeasure_sigma)
+  fix A assume "A \<in> sets ?P" then show "emeasure ?P A = emeasure ?S A"
+    by (simp add: emeasure_pair_measure_alt emeasure_sigma)
+qed
+
 lemma sigma_sets_pair_measure_generator_finite:
   assumes "finite A" and "finite B"
   shows "sigma_sets (A \<times> B) { a \<times> b | a b. a \<subseteq> A \<and> b \<subseteq> B} = Pow (A \<times> B)"
@@ -616,6 +675,18 @@ next
   assume "x \<in> sigma_sets ?prod ?sets" and "(a, b) \<in> x"
   from sigma_sets_into_sp[OF _ this(1)] this(2)
   show "a \<in> A" and "b \<in> B" by auto
+qed
+
+lemma borel_prod:
+  "(borel \<Otimes>\<^sub>M borel) = (borel :: ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
+  (is "?P = ?B")
+proof -
+  have "?B = sigma UNIV {A \<times> B | A B. open A \<and> open B}"
+    by (rule second_countable_borel_measurable[OF open_prod_generated])
+  also have "\<dots> = ?P"
+    unfolding borel_def
+    by (subst sigma_prod) (auto intro!: exI[of _ "{UNIV}"])
+  finally show ?thesis ..
 qed
 
 lemma pair_measure_count_space:
@@ -819,50 +890,6 @@ proof -
     qed simp }
   ultimately show ?thesis
     by auto
-qed
-
-lemma borel_prod: "sets (borel \<Otimes>\<^sub>M borel) =
-    (sets borel :: ('a::second_countable_topology \<times> 'b::second_countable_topology) set set)"
-  (is "?l = ?r")
-proof -
-  obtain A :: "'a set set" where A: "countable A" "topological_basis A"
-    by (metis ex_countable_basis)
-  moreover obtain B :: "'b set set" where B: "countable B" "topological_basis B"
-    by (metis ex_countable_basis)
-  ultimately have AB: "countable ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))" "topological_basis ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))"
-    by (auto intro!: topological_basis_prod)
-  have "sets (borel \<Otimes>\<^sub>M borel) = sigma_sets UNIV {a \<times> b |a b. a \<in> sigma_sets UNIV A \<and> b \<in> sigma_sets UNIV B}"
-    by (simp add: sets_pair_measure
-       borel_eq_countable_basis[OF A] borel_eq_countable_basis[OF B])
-  also have "\<dots> \<supseteq> sigma_sets UNIV ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))" (is "... \<supseteq> ?A")
-    by (auto intro!: sigma_sets_mono)
-  also (xtrans) have "?A = sets borel"
-    by (simp add: borel_eq_countable_basis[OF AB])
-  finally have "?r \<subseteq> ?l" .
-  moreover have "?l \<subseteq> ?r"
-  proof (simp add: sets_pair_measure, safe intro!: sigma_sets_mono)
-    fix A::"('a \<times> 'b) set" assume "A \<in> sigma_sets UNIV {a \<times> b |a b. a \<in> sets borel \<and> b \<in> sets borel}"
-    then show "A \<in> sets borel"
-      by (induct A) (auto intro!: borel_Times)
-  qed
-  ultimately show ?thesis by auto
-qed
-
-lemma borel_prod':
-  "borel \<Otimes>\<^sub>M borel = (borel :: 
-      ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
-proof (rule measure_eqI[OF borel_prod])
-  interpret sigma_finite_measure "borel :: 'b measure"
-    proof qed (intro exI[of _ "{UNIV}"], auto simp: borel_def emeasure_sigma)
-  fix X :: "('a \<times> 'b) set" assume asm: "X \<in> sets (borel \<Otimes>\<^sub>M borel)"
-  have "UNIV \<times> UNIV \<in> sets (borel \<Otimes>\<^sub>M borel :: ('a \<times> 'b) measure)" 
-      by (simp add: borel_prod)
-  moreover have "emeasure (borel \<Otimes>\<^sub>M borel) (UNIV \<times> UNIV :: ('a \<times> 'b) set) = 0"
-      by (subst emeasure_pair_measure_Times, simp_all add: borel_def emeasure_sigma)
-  moreover have "X \<subseteq> UNIV \<times> UNIV" by auto
-  ultimately have "emeasure (borel \<Otimes>\<^sub>M borel) X = 0" by (rule emeasure_eq_0)
-  thus "emeasure (borel \<Otimes>\<^sub>M borel) X = emeasure borel X"
-      by (simp add: borel_def emeasure_sigma)
 qed
 
 lemma finite_measure_pair_measure:

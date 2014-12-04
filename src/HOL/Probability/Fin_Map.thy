@@ -1005,7 +1005,7 @@ proof (intro set_eqI iffI)
   then show "f \<in> (\<Union>n. Pi' I (A n))" by auto
 qed (auto simp: Pi'_def `finite I`)
 
-text {* adapted from @{thm sigma_prod_algebra_sigma_eq} *}
+text {* adapted from @{thm sets_PiM_sigma} *}
 
 lemma sigma_fprod_algebra_sigma_eq:
   fixes E :: "'i \<Rightarrow> 'a set set" and S :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"

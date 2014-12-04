@@ -377,105 +377,129 @@ proof safe
   qed
 qed rule
 
+lemma measurable_pred_countable[measurable (raw)]:
+  assumes "countable X"
+  shows 
+    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
+    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
+  unfolding pred_def
+  by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
+
 subsection {* Measurability for (co)inductive predicates *}
 
-lemma measurable_lfp:
-  assumes "Order_Continuity.continuous F"
-  assumes *: "\<And>A. pred M A \<Longrightarrow> pred M (F A)"
-  shows "pred M (lfp F)"
-proof -
-  { fix i have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. False) x)"
-      by (induct i) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x)"
+lemma measurable_bot[measurable]: "bot \<in> measurable M (count_space UNIV)"
+  by (simp add: bot_fun_def)
+
+lemma measurable_top[measurable]: "top \<in> measurable M (count_space UNIV)"
+  by (simp add: top_fun_def)
+
+lemma measurable_SUP[measurable]:
+  fixes F :: "'i \<Rightarrow> 'a \<Rightarrow> 'b::{complete_lattice, countable}"
+  assumes [simp]: "countable I"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. SUP i:I. F i x) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_count_space_eq2_countable
+proof (safe intro!: UNIV_I)
+  fix a 
+  have "(\<lambda>x. SUP i:I. F i x) -` {a} \<inter> space M =
+    {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
+    unfolding SUP_le_iff[symmetric] by auto
+  also have "\<dots> \<in> sets M"
     by measurable
-  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x) = (SUP i. (F ^^ i) bot)"
-    by (auto simp add: bot_fun_def)
-  also have "\<dots> = lfp F"
-    by (rule continuous_lfp[symmetric]) fact
+  finally show "(\<lambda>x. SUP i:I. F i x) -` {a} \<inter> space M \<in> sets M" .
+qed
+
+lemma measurable_INF[measurable]:
+  fixes F :: "'i \<Rightarrow> 'a \<Rightarrow> 'b::{complete_lattice, countable}"
+  assumes [simp]: "countable I"
+  assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. INF i:I. F i x) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_count_space_eq2_countable
+proof (safe intro!: UNIV_I)
+  fix a 
+  have "(\<lambda>x. INF i:I. F i x) -` {a} \<inter> space M =
+    {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
+    unfolding le_INF_iff[symmetric] by auto
+  also have "\<dots> \<in> sets M"
+    by measurable
+  finally show "(\<lambda>x. INF i:I. F i x) -` {a} \<inter> space M \<in> sets M" .
+qed
+
+lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
+  assumes "P M"
+  assumes F: "Order_Continuity.continuous F"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
+  shows "lfp F \<in> measurable M (count_space UNIV)"
+proof -
+  { fix i from `P M` have "((F ^^ i) bot) \<in> measurable M (count_space UNIV)"
+      by (induct i arbitrary: M) (auto intro!: *) }
+  then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> measurable M (count_space UNIV)"
+    by measurable
+  also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = lfp F"
+    by (subst continuous_lfp) (auto intro: F)
+  finally show ?thesis .
+qed
+
+lemma measurable_lfp:
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
+  assumes F: "Order_Continuity.continuous F"
+  assumes *: "\<And>A. A \<in> measurable M (count_space UNIV) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
+  shows "lfp F \<in> measurable M (count_space UNIV)"
+  by (coinduction rule: measurable_lfp_coinduct[OF _ F]) (blast intro: *)
+
+lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
+  assumes "P M"
+  assumes F: "Order_Continuity.down_continuous F"
+  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
+  shows "gfp F \<in> measurable M (count_space UNIV)"
+proof -
+  { fix i from `P M` have "((F ^^ i) top) \<in> measurable M (count_space UNIV)"
+      by (induct i arbitrary: M) (auto intro!: *) }
+  then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> measurable M (count_space UNIV)"
+    by measurable
+  also have "(\<lambda>x. INF i. (F ^^ i) top x) = gfp F"
+    by (subst down_continuous_gfp) (auto intro: F)
   finally show ?thesis .
 qed
 
 lemma measurable_gfp:
-  assumes "Order_Continuity.down_continuous F"
-  assumes *: "\<And>A. pred M A \<Longrightarrow> pred M (F A)"
-  shows "pred M (gfp F)"
-proof -
-  { fix i have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. True) x)"
-      by (induct i) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x)"
-    by measurable
-  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x) = (INF i. (F ^^ i) top)"
-    by (auto simp add: top_fun_def)
-  also have "\<dots> = gfp F"
-    by (rule down_continuous_gfp[symmetric]) fact
-  finally show ?thesis .
-qed
-
-lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
-  assumes "P M"
-  assumes "Order_Continuity.continuous F"
-  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
-  shows "Measurable.pred M (lfp F)"
-proof -
-  { fix i from `P M` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. False) x)"
-      by (induct i arbitrary: M) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x)"
-    by measurable
-  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x) = (SUP i. (F ^^ i) bot)"
-    by (auto simp add: bot_fun_def)
-  also have "\<dots> = lfp F"
-    by (rule continuous_lfp[symmetric]) fact
-  finally show ?thesis .
-qed
-
-lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
-  assumes "P M"
-  assumes "Order_Continuity.down_continuous F"
-  assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
-  shows "Measurable.pred M (gfp F)"
-proof -
-  { fix i from `P M` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. True) x)"
-      by (induct i arbitrary: M) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x)"
-    by measurable
-  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x) = (INF i. (F ^^ i) top)"
-    by (auto simp add: top_fun_def)
-  also have "\<dots> = gfp F"
-    by (rule down_continuous_gfp[symmetric]) fact
-  finally show ?thesis .
-qed
+  fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
+  assumes F: "Order_Continuity.down_continuous F"
+  assumes *: "\<And>A. A \<in> measurable M (count_space UNIV) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
+  shows "gfp F \<in> measurable M (count_space UNIV)"
+  by (coinduction rule: measurable_gfp_coinduct[OF _ F]) (blast intro: *)
 
 lemma measurable_lfp2_coinduct[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'c \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'c \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M s"
-  assumes "Order_Continuity.continuous F"
-  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> Measurable.pred N (A t)) \<Longrightarrow> Measurable.pred M (F A s)"
-  shows "Measurable.pred M (lfp F s)"
+  assumes F: "Order_Continuity.continuous F"
+  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
+  shows "lfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M s` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>t x. False) s x)"
+  { fix i from `P M s` have "(\<lambda>x. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M s) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>t x. False) s x)"
+  then have "(\<lambda>x. SUP i. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
     by measurable
-  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>t x. False) s x) = (SUP i. (F ^^ i) bot) s"
-    by (auto simp add: bot_fun_def)
-  also have "(SUP i. (F ^^ i) bot) = lfp F"
-    by (rule continuous_lfp[symmetric]) fact
+  also have "(\<lambda>x. SUP i. (F ^^ i) bot s x) = lfp F s"
+    by (subst continuous_lfp) (auto simp: F)
   finally show ?thesis .
 qed
 
 lemma measurable_gfp2_coinduct[consumes 1, case_names continuity step]:
+  fixes F :: "('a \<Rightarrow> 'c \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'c \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M s"
-  assumes "Order_Continuity.down_continuous F"
-  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> Measurable.pred N (A t)) \<Longrightarrow> Measurable.pred M (F A s)"
-  shows "Measurable.pred M (gfp F s)"
+  assumes F: "Order_Continuity.down_continuous F"
+  assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
+  shows "gfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M s` have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>t x. True) s x)"
+  { fix i from `P M s` have "(\<lambda>x. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M s) (auto intro!: *) }
-  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>t x. True) s x)"
+  then have "(\<lambda>x. INF i. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
     by measurable
-  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>t x. True) s x) = (INF i. (F ^^ i) top) s"
-    by (auto simp add: top_fun_def)
-  also have "(INF i. (F ^^ i) top) = gfp F"
-    by (rule down_continuous_gfp[symmetric]) fact
+  also have "(\<lambda>x. INF i. (F ^^ i) top s x) = gfp F s"
+    by (subst down_continuous_gfp) (auto simp: F)
   finally show ?thesis .
 qed
 
@@ -531,14 +555,6 @@ proof (simp add: measurable_count_space_eq2_countable, rule )
   qed (simp add: fin)
 qed
 
-lemma measurable_pred_countable[measurable (raw)]:
-  assumes "countable X"
-  shows 
-    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
-    "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
-  unfolding pred_def
-  by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
-
 lemma measurable_THE:
   fixes P :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
   assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
@@ -564,12 +580,6 @@ proof safe
     by (auto intro!: sets.Diff sets.countable_UN')
   finally show "f -` X \<inter> space M \<in> sets M" .
 qed simp
-
-lemma measurable_bot[measurable]: "Measurable.pred M bot"
-  by (simp add: bot_fun_def)
-
-lemma measurable_top[measurable]: "Measurable.pred M top"
-  by (simp add: top_fun_def)
 
 lemma measurable_Ex1[measurable (raw)]:
   assumes [simp]: "countable I" and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> Measurable.pred M (P i)"

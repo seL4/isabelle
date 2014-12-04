@@ -364,6 +364,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in sigma_algebra) countable_INT'':
+  "UNIV \<in> M \<Longrightarrow> countable I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i \<in> M) \<Longrightarrow> (\<Inter>i\<in>I. F i) \<in> M"
+  by (cases "I = {}") (auto intro: countable_INT')
 
 lemma (in sigma_algebra) countable:
   assumes "\<And>a. a \<in> A \<Longrightarrow> {a} \<in> M" "countable A"
@@ -2285,6 +2288,30 @@ proof (rule measurable_measure_of)
     using measurable_space[OF f] M by auto
 qed (auto intro: measurable_sets f dest: sets.sets_into_space)
 
+lemma Sup_sigma_sigma:
+  assumes [simp]: "M \<noteq> {}" and M: "\<And>m. m \<in> M \<Longrightarrow> m \<subseteq> Pow \<Omega>"
+  shows "(\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> m) = sigma \<Omega> (\<Union>M)"
+proof (rule measure_eqI)
+  { fix a m assume "a \<in> sigma_sets \<Omega> m" "m \<in> M"
+    then have "a \<in> sigma_sets \<Omega> (\<Union>M)"
+     by induction (auto intro: sigma_sets.intros) }
+  then show "sets (\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> m) = sets (sigma \<Omega> (\<Union>M))"
+    apply (simp add: sets_Sup_sigma space_measure_of_conv M Union_least)
+    apply (rule sigma_sets_eqI)
+    apply auto
+    done
+qed (simp add: Sup_sigma_def emeasure_sigma)
+
+lemma SUP_sigma_sigma:
+  assumes M: "M \<noteq> {}" "\<And>m. m \<in> M \<Longrightarrow> f m \<subseteq> Pow \<Omega>"
+  shows "(\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> (f m)) = sigma \<Omega> (\<Union>m\<in>M. f m)"
+proof -
+  have "Sup_sigma (sigma \<Omega> ` f ` M) = sigma \<Omega> (\<Union>(f ` M))"
+    using M by (intro Sup_sigma_sigma) auto
+  then show ?thesis
+    by (simp add: image_image)
+qed
+
 subsection {* The smallest $\sigma$-algebra regarding a function *}
 
 definition
@@ -2332,10 +2359,20 @@ proof (rule measurable_measure_of)
   finally show "g -` A \<inter> space N \<in> sets N" .
 qed (insert g, auto)
 
+lemma vimage_algebra_sigma:
+  assumes X: "X \<subseteq> Pow \<Omega>'" and f: "f \<in> \<Omega> \<rightarrow> \<Omega>'"
+  shows "vimage_algebra \<Omega> f (sigma \<Omega>' X) = sigma \<Omega> {f -` A \<inter> \<Omega> | A. A \<in> X }" (is "?V = ?S")
+proof (rule measure_eqI)
+  have \<Omega>: "{f -` A \<inter> \<Omega> |A. A \<in> X} \<subseteq> Pow \<Omega>" by auto
+  show "sets ?V = sets ?S"
+    using sigma_sets_vimage_commute[OF f, of X]
+    by (simp add: space_measure_of_conv f sets_vimage_algebra2 \<Omega> X)
+qed (simp add: vimage_algebra_def emeasure_sigma)
+
 lemma vimage_algebra_vimage_algebra_eq:
   assumes *: "f \<in> X \<rightarrow> Y" "g \<in> Y \<rightarrow> space M"
   shows "vimage_algebra X f (vimage_algebra Y g M) = vimage_algebra X (\<lambda>x. g (f x)) M"
-  (is "?VV = ?V")
+    (is "?VV = ?V")
 proof (rule measure_eqI)
   have "(\<lambda>x. g (f x)) \<in> X \<rightarrow> space M" "\<And>A. A \<inter> f -` Y \<inter> X = A \<inter> X"
     using * by auto
