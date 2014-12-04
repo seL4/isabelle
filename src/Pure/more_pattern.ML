@@ -11,7 +11,6 @@ sig
   val matches: theory -> term * term -> bool
   val matchess: theory -> term list * term list -> bool
   val equiv: theory -> term * term -> bool
-  val matches_subterm: theory -> term * term -> bool
   val first_order: term -> bool
   val pattern: term -> bool
   val match_rew: theory -> term -> term * term -> (term * term) option
@@ -31,17 +30,6 @@ fun matchess thy (ps, os) =
       handle Pattern.MATCH => false);
 
 fun equiv thy (t, u) = matches thy (t, u) andalso matches thy (u, t);
-
-
-(* Does pat match a subterm of obj? *)
-fun matches_subterm thy (pat, obj) =
-  let
-    fun msub bounds obj = matches thy (pat, obj) orelse
-      (case obj of
-        Abs (x, T, t) => msub (bounds + 1) (snd (Term.dest_abs (Name.bound bounds, T, t)))
-      | t $ u => msub bounds t orelse msub bounds u
-      | _ => false)
-  in msub 0 obj end;
 
 fun first_order (Abs (_, _, t)) = first_order t
   | first_order (Var _ $ _) = false

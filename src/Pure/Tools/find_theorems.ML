@@ -239,6 +239,16 @@ fun filter_simp ctxt t (_, thm) =
 
 fun get_names t = Term.add_const_names t (Term.add_free_names t []);
 
+(* Does pat match a subterm of obj? *)
+fun matches_subterm thy (pat, obj) =
+  let
+    fun msub bounds obj = Pattern.matches thy (pat, obj) orelse
+      (case obj of
+        Abs (x, T, t) => msub (bounds + 1) (snd (Term.dest_abs (Name.bound bounds, T, t)))
+      | t $ u => msub bounds t orelse msub bounds u
+      | _ => false)
+  in msub 0 obj end;
+
 (*Including all constants and frees is only sound because matching
   uses higher-order patterns. If full matching were used, then
   constants that may be subject to beta-reduction after substitution
@@ -254,7 +264,7 @@ fun filter_pattern ctxt pat =
     fun check ((x, thm), NONE) = check ((x, thm), SOME (get_names (Thm.full_prop_of thm)))
       | check ((_, thm), c as SOME thm_consts) =
          (if subset (op =) (pat_consts, thm_consts) andalso
-            Pattern.matches_subterm (Proof_Context.theory_of ctxt) (pat, Thm.full_prop_of thm)
+            matches_subterm (Proof_Context.theory_of ctxt) (pat, Thm.full_prop_of thm)
           then SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, 0) else NONE, c);
   in check end;
 
