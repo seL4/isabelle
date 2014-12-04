@@ -1,3 +1,7 @@
+(*  Title:      HOL/ex/Cartouche_Examples.thy
+    Author:     Makarius
+*)
+
 section \<open>Some examples with text cartouches\<close>
 
 theory Cartouche_Examples
