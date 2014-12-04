@@ -229,6 +229,8 @@ structure Targets = Theory_Data
     (Symtab.join (merge_target true) (target1, target2), Int.max (width1, width2));
 );
 
+fun lookup_target thy = Symtab.lookup (fst (Targets.get thy));
+
 fun assert_target ctxt target_name =
   if Symtab.defined (fst (Targets.get (Proof_Context.theory_of ctxt))) target_name
   then target_name
@@ -236,12 +238,11 @@ fun assert_target ctxt target_name =
 
 fun put_target (target_name, target_language) thy =
   let
-    val lookup_target = Symtab.lookup (fst (Targets.get thy));
     val _ = case target_language
-     of Extension (super, _) => if is_some (lookup_target super) then ()
+     of Extension (super, _) => if is_some (lookup_target thy super) then ()
           else error ("Unknown code target language: " ^ quote super)
       | _ => ();
-    val overwriting = case (Option.map the_language o lookup_target) target_name
+    val overwriting = case (Option.map the_language o lookup_target thy) target_name
      of NONE => false
       | SOME (Extension _) => true
       | SOME (Fundamental _) => (case target_language
@@ -257,7 +258,8 @@ fun put_target (target_name, target_language) thy =
           ([], (Code_Symbol.empty_data, Code_Symbol.empty_data))))
   end;
 
-fun add_target (target_name, fundamental) = put_target (target_name, Fundamental fundamental);
+fun add_target (target_name, fundamental) =
+  put_target (target_name, Fundamental fundamental);
 fun extend_target (target_name, (super, modify)) =
   put_target (target_name, Extension (super, modify));
 
@@ -285,8 +287,8 @@ fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
 fun the_fundamental ctxt =
   let
-    val (targets, _) = Targets.get (Proof_Context.theory_of ctxt);
-    fun fundamental target_name = case Symtab.lookup targets target_name
+    val thy = Proof_Context.theory_of ctxt;
+    fun fundamental target_name = case lookup_target thy target_name
      of SOME target => (case the_language target
          of Fundamental fundamental => fundamental
           | Extension (super, _) => fundamental super)
@@ -297,10 +299,10 @@ fun the_literals ctxt = #literals o the_fundamental ctxt;
 
 fun collapse_hierarchy ctxt =
   let
-    val (targets, _) = Targets.get (Proof_Context.theory_of ctxt);
+    val thy = Proof_Context.theory_of ctxt;
     fun collapse target_name =
       let
-        val target = case Symtab.lookup targets target_name
+        val target = case lookup_target thy target_name
          of SOME target => target
           | NONE => error ("Unknown code target language: " ^ quote target_name);
       in case the_language target
@@ -315,8 +317,7 @@ local
 
 fun activate_target ctxt target_name =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val (_, default_width) = Targets.get thy;
+    val (_, default_width) = Targets.get (Proof_Context.theory_of ctxt);
     val (modify, target) = collapse_hierarchy ctxt target_name;
   in (default_width, target, modify) end;
 
