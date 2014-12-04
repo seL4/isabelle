@@ -218,6 +218,13 @@ fun filter_simp ctxt t (_, thm) =
 
 (* filter_pattern *)
 
+fun expand_abs t =
+  let
+    val m = Term.maxidx_of_term t + 1;
+    val vs = strip_abs_vars t;
+    val ts = map_index (fn (k, (_, T)) => Var ((Name.aT, m + k), T)) vs;
+  in betapplys (t, ts) end;
+
 fun get_names t = Term.add_const_names t (Term.add_free_names t []);
 
 (* Does pat match a subterm of obj? *)
@@ -240,12 +247,12 @@ fun matches_subterm thy (pat, obj) =
 
 fun filter_pattern ctxt pat =
   let
-    val pat_consts = get_names pat;
-
+    val pat' = (expand_abs o Envir.eta_contract) pat;
+    val pat_consts = get_names pat';
     fun check ((x, thm), NONE) = check ((x, thm), SOME (get_names (Thm.full_prop_of thm)))
       | check ((_, thm), c as SOME thm_consts) =
          (if subset (op =) (pat_consts, thm_consts) andalso
-            matches_subterm (Proof_Context.theory_of ctxt) (pat, Thm.full_prop_of thm)
+            matches_subterm (Proof_Context.theory_of ctxt) (pat', Thm.full_prop_of thm)
           then SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, 0) else NONE, c);
   in check end;
 
