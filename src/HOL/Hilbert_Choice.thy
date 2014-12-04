@@ -809,7 +809,6 @@ proof(cases "a \<in> A")
   thus ?thesis using bij_betw_id[of A] by auto
 next
   assume Case2: "a \<in> A"
-find_theorems "\<not> finite _"
   have "\<not> finite (A - {a})" using INF by auto
   with infinite_iff_countable_subset[of "A - {a}"] obtain f::"nat \<Rightarrow> 'a"
   where 1: "inj f" and 2: "f ` UNIV \<le> A - {a}" by blast

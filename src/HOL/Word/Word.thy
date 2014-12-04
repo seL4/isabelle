@@ -63,7 +63,6 @@ proof
   fix x :: "'a word"
   assume "\<And>x. PROP P (word_of_int x)"
   then have "PROP P (word_of_int (uint x))" .
-  find_theorems word_of_int uint
   then show "PROP P x" by (simp add: word_of_int_uint)
 qed
 
