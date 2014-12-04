@@ -31,32 +31,13 @@ struct
 datatype 'term criterion =
   Name of string | Intro | Elim | Dest | Solves | Simp of 'term | Pattern of 'term;
 
-fun apply_dummies tm =
-  let
-    val (xs, _) = Term.strip_abs tm;
-    val tm' = Term.betapplys (tm, map (Term.dummy_pattern o #2) xs);
-  in #1 (Term.replace_dummy_patterns tm' 1) end;
-
-fun parse_pattern ctxt nm =
-  let
-    val consts = Proof_Context.consts_of ctxt;
-    val nm' =
-      (case Syntax.parse_term ctxt nm of
-        Const (c, _) => c
-      | _ => Consts.intern consts nm);
-  in
-    (case try (Consts.the_abbreviation consts) nm' of
-      SOME (_, rhs) => apply_dummies (Proof_Context.expand_abbrevs ctxt rhs)
-    | NONE => Proof_Context.read_term_pattern ctxt nm)
-  end;
-
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (Proof_Context.read_term_pattern ctxt str)
-  | read_criterion ctxt (Pattern str) = Pattern (parse_pattern ctxt str);
+  | read_criterion ctxt (Pattern str) = Pattern (Proof_Context.read_term_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
   let
