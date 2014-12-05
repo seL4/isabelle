@@ -2,8 +2,8 @@ theory Adaptation
 imports Setup
 begin
 
-setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", I))
-  #> Code_Target.extend_target ("\<SMLdummy>", ("Haskell", I)) *}
+setup %invisible {* Code_Target.add_derived_target ("\<SML>", [("SML", I)])
+  #> Code_Target.add_derived_target ("\<SMLdummy>", [("Haskell", I)]) *}
 
 section {* Adaptation to target languages \label{sec:adaptation} *}
 

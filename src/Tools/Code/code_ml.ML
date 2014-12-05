@@ -861,13 +861,13 @@ fun fun_syntax print_typ fxy [ty1, ty2] =
   );
 
 val setup =
-  Code_Target.add_target
+  Code_Target.add_language
     (target_SML, { serializer = serializer_sml, literals = literals_sml,
       check = { env_var = "ISABELLE_PROCESS",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
         make_command = fn _ =>
           "\"$ISABELLE_PROCESS\" -r -q -e 'datatype ref = datatype Unsynchronized.ref; use \"ROOT.ML\" handle _ => exit 1' Pure" } })
-  #> Code_Target.add_target
+  #> Code_Target.add_language
     (target_OCaml, { serializer = serializer_ocaml, literals = literals_ocaml,
       check = { env_var = "ISABELLE_OCAML",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),

@@ -34,12 +34,10 @@ sig
 
   type serializer
   type literals = Code_Printer.literals
-  val add_target: string * { serializer: serializer, literals: literals,
-    check: { env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string } }
-    -> theory -> theory
-  val extend_target: string *
-      (string * (Code_Thingol.program -> Code_Thingol.program))
-    -> theory -> theory
+  type language
+  type ancestry
+  val add_language: string * language -> theory -> theory
+  val add_derived_target: string * ancestry -> theory -> theory
   val assert_target: Proof.context -> string -> string
   val the_literals: Proof.context -> string -> literals
   type serialization
@@ -208,6 +206,8 @@ structure Targets = Theory_Data
 fun exists_target thy = Symtab.defined (fst (Targets.get thy));
 fun lookup_target_data thy = Symtab.lookup (fst (Targets.get thy));
 
+fun fold1 f xs = fold f (tl xs) (hd xs);
+
 fun join_ancestry thy target_name =
   let
     val the_target_data = the o lookup_target_data thy;
@@ -216,8 +216,7 @@ fun join_ancestry thy target_name =
     val modifies = rev (map snd ancestry);
     val modify = fold (curry (op o)) modifies I;
     val datas = rev (map (snd o the_target_data o fst) ancestry) @ [this_data];
-    val data = fold (fn data' => fn data => Code_Printer.merge_data (data, data'))
-      (tl datas) (hd datas);
+    val data = fold1 (fn data' => fn data => Code_Printer.merge_data (data, data')) datas;
   in (modify, (target, data)) end;
 
 fun assert_target ctxt target_name =
@@ -235,17 +234,26 @@ fun allocate_target target_name target thy =
     |> (Targets.map o apfst o Symtab.update) (target_name, (target, Code_Printer.empty_data))  
   end;
 
-fun add_target (target_name, language) =
+fun add_language (target_name, language) =
   allocate_target target_name { serial = serial (), language = language, ancestry = [] };
 
-fun extend_target (target_name, (super, modify)) thy =
+fun add_derived_target (target_name, initial_ancestry) thy =
   let
-    val super_base = case lookup_target_data thy super of
-      NONE => error ("Unknown code target language: " ^ quote super)
-    | SOME (super_base, _) => super_base;
+    val _ = if null initial_ancestry
+      then error "Must derive from existing target(s)" else ();
+    fun the_target_data target_name' = case lookup_target_data thy target_name' of
+      NONE => error ("Unknown code target language: " ^ quote target_name')
+    | SOME target_data' => target_data';
+    val targets = rev (map (fst o the_target_data o fst) initial_ancestry);
+    val supremum = fold1 (fn target' => fn target =>
+      if #serial target = #serial target'
+      then target else error "Incompatible targets") targets;
+    val ancestries = map #ancestry targets @ [initial_ancestry];
+    val ancestry = fold1 (fn ancestry' => fn ancestry =>
+      merge_ancestry (ancestry, ancestry')) ancestries;
   in
-    allocate_target target_name { serial = #serial super_base, language = #language super_base,
-      ancestry = (super, modify) :: #ancestry super_base } thy 
+    allocate_target target_name { serial = #serial supremum, language = #language supremum,
+      ancestry = ancestry } thy 
   end;
   
 fun map_data target_name f thy =

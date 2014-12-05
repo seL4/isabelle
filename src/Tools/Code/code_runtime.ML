@@ -68,7 +68,7 @@ val structure_generated = "Generated_Code";
 datatype truth = Holds;
 
 val _ = Theory.setup
-  (Code_Target.extend_target (target, (Code_ML.target_SML, I))
+  (Code_Target.add_derived_target (target, [(Code_ML.target_SML, I)])
   #> Code_Target.set_printings (Type_Constructor (@{type_name prop},
     [(target, SOME (0, (K o K o K) (Code_Printer.str s_truth)))]))
   #> Code_Target.set_printings (Constant (@{const_name Code_Generator.holds},

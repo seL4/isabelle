@@ -697,9 +697,9 @@ val imp_program =
 
 in
 
-Code_Target.extend_target ("SML_imp", ("SML", imp_program))
-#> Code_Target.extend_target ("OCaml_imp", ("OCaml", imp_program))
-#> Code_Target.extend_target ("Scala_imp", ("Scala", imp_program))
+Code_Target.add_derived_target ("SML_imp", [("SML", imp_program)])
+#> Code_Target.add_derived_target ("OCaml_imp", [("OCaml", imp_program)])
+#> Code_Target.add_derived_target ("Scala_imp", [("Scala", imp_program)])
 
 end
 

@@ -9,7 +9,7 @@ begin
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
-setup {* Code_Target.extend_target ("Quickcheck", (Code_Runtime.target, I)) *}
+setup {* Code_Target.add_derived_target ("Quickcheck", [(Code_Runtime.target, I)]) *}
 
 subsection {* Catching Match exceptions *}
 

@@ -424,7 +424,7 @@ in Literals {
 (** Isar setup **)
 
 val setup =
-  Code_Target.add_target
+  Code_Target.add_language
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "SCALA_HOME",
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),

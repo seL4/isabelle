@@ -499,7 +499,7 @@ val _ =
       Toplevel.theory (add_monad target raw_bind)));
 
 val setup =
-  Code_Target.add_target
+  Code_Target.add_language
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>

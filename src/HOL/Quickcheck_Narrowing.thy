@@ -11,7 +11,7 @@ subsection {* Counterexample generator *}
 
 subsubsection {* Code generation setup *}
 
-setup {* Code_Target.extend_target ("Haskell_Quickcheck", (Code_Haskell.target, I)) *}
+setup {* Code_Target.add_derived_target ("Haskell_Quickcheck", [(Code_Haskell.target, I)]) *}
 
 code_printing
   code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) {*
