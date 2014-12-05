@@ -17,6 +17,10 @@ sig
   val setup_by_typedef_thm: config -> thm -> local_theory -> binding * local_theory
 
   val lifting_restore: Lifting_Info.quotient -> Context.generic -> Context.generic
+
+  val lifting_forget: string -> local_theory -> local_theory
+  val update_transfer_rules: string -> local_theory -> local_theory
+  val pointer_of_bundle_binding: Proof.context -> binding -> string
 end
 
 structure Lifting_Setup: LIFTING_SETUP =
@@ -987,6 +991,9 @@ fun pointer_of_bundle_name bundle_name ctxt =
         in name end
       | _ => error "The provided bundle is not a lifting bundle."
   end
+
+fun pointer_of_bundle_binding ctxt binding = Name_Space.full_name (Name_Space.naming_of 
+      (Context.Theory (Proof_Context.theory_of ctxt))) binding
 
 fun lifting_forget pointer lthy =
   let
