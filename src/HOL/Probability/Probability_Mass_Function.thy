@@ -8,6 +8,7 @@ section \<open> Probability mass function \<close>
 theory Probability_Mass_Function
 imports
   Giry_Monad
+  "~~/src/HOL/Number_Theory/Binomial"
   "~~/src/HOL/Library/Multiset"
 begin
 
@@ -479,6 +480,8 @@ begin
 
 interpretation pmf_as_function .
 
+subsubsection \<open> Bernoulli Distribution \<close>
+
 lift_definition bernoulli_pmf :: "real \<Rightarrow> bool pmf" is
   "\<lambda>p b. ((\<lambda>p. if b then p else 1 - p) \<circ> min 1 \<circ> max 0) p"
   by (auto simp: nn_integral_count_space_finite[where A="{False, True}"] UNIV_bool
@@ -504,6 +507,8 @@ lemma integral_bernoulli_pmf[simp]:
   shows "(\<integral>x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
   by (subst integral_measure_pmf[of UNIV]) (auto simp: UNIV_bool)
 
+subsubsection \<open> Geometric Distribution \<close>
+
 lift_definition geometric_pmf :: "nat pmf" is "\<lambda>n. 1 / 2^Suc n"
 proof
   note geometric_sums[of "1 / 2"]
@@ -518,6 +523,8 @@ lemma pmf_geometric[simp]: "pmf geometric_pmf n = 1 / 2^Suc n"
 
 lemma set_pmf_geometric[simp]: "set_pmf geometric_pmf = UNIV"
   by (auto simp: set_pmf_iff)
+
+subsubsection \<open> Uniform Multiset Distribution \<close>
 
 context
   fixes M :: "'a multiset" assumes M_not_empty: "M \<noteq> {#}"
@@ -540,6 +547,8 @@ lemma set_pmf_of_multiset[simp]: "set_pmf pmf_of_multiset = set_of M"
 
 end
 
+subsubsection \<open> Uniform Distribution \<close>
+
 context
   fixes S :: "'a set" assumes S_not_empty: "S \<noteq> {}" and S_finite: "finite S"
 begin
@@ -561,9 +570,75 @@ lemma emeasure_pmf_of_set[simp]: "emeasure pmf_of_set S = 1"
 
 end
 
+subsubsection \<open> Poisson Distribution \<close>
+
+context
+  fixes rate :: real assumes rate_pos: "0 < rate"
+begin
+
+lift_definition poisson_pmf :: "nat pmf" is "\<lambda>k. rate ^ k / fact k * exp (-rate)"
+proof
+  (* Proof by Manuel Eberl *)
+
+  have summable: "summable (\<lambda>x::nat. rate ^ x / fact x)" using summable_exp
+    by (simp add: field_simps field_divide_inverse[symmetric])
+  have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x * exp (-rate) \<partial>count_space UNIV) =
+          exp (-rate) * (\<integral>\<^sup>+(x::nat). rate ^ x / fact x \<partial>count_space UNIV)"
+    by (simp add: field_simps nn_integral_cmult[symmetric])
+  also from rate_pos have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x \<partial>count_space UNIV) = (\<Sum>x. rate ^ x / fact x)"
+    by (simp_all add: nn_integral_count_space_nat suminf_ereal summable suminf_ereal_finite)
+  also have "... = exp rate" unfolding exp_def
+    by (simp add: field_simps field_divide_inverse[symmetric] transfer_int_nat_factorial)
+  also have "ereal (exp (-rate)) * ereal (exp rate) = 1"
+    by (simp add: mult_exp_exp)
+  finally show "(\<integral>\<^sup>+ x. ereal (rate ^ x / real (fact x) * exp (- rate)) \<partial>count_space UNIV) = 1" .
+qed (simp add: rate_pos[THEN less_imp_le])
+
+lemma pmf_poisson[simp]: "pmf poisson_pmf k = rate ^ k / fact k * exp (-rate)"
+  by transfer rule
+
+lemma set_pmf_poisson[simp]: "set_pmf poisson_pmf = UNIV"
+  using rate_pos by (auto simp: set_pmf_iff)
+
 end
 
-subsection {* Monad interpretation *}
+subsubsection \<open> Binomial Distribution \<close>
+
+context
+  fixes n :: nat and p :: real assumes p_nonneg: "0 \<le> p" and p_le_1: "p \<le> 1"
+begin
+
+lift_definition binomial_pmf :: "nat pmf" is "\<lambda>k. (n choose k) * p^k * (1 - p)^(n - k)"
+proof
+  have "(\<integral>\<^sup>+k. ereal (real (n choose k) * p ^ k * (1 - p) ^ (n - k)) \<partial>count_space UNIV) =
+    ereal (\<Sum>k\<le>n. real (n choose k) * p ^ k * (1 - p) ^ (n - k))"
+    using p_le_1 p_nonneg by (subst nn_integral_count_space') auto
+  also have "(\<Sum>k\<le>n. real (n choose k) * p ^ k * (1 - p) ^ (n - k)) = (p + (1 - p)) ^ n"
+    by (subst binomial_ring) (simp add: atLeast0AtMost real_of_nat_def)
+  finally show "(\<integral>\<^sup>+ x. ereal (real (n choose x) * p ^ x * (1 - p) ^ (n - x)) \<partial>count_space UNIV) = 1"
+    by simp
+qed (insert p_nonneg p_le_1, simp)
+
+lemma pmf_binomial[simp]: "pmf binomial_pmf k = (n choose k) * p^k * (1 - p)^(n - k)"
+  by transfer rule
+
+lemma set_pmf_binomial_eq: "set_pmf binomial_pmf = (if p = 0 then {0} else if p = 1 then {n} else {.. n})"
+  using p_nonneg p_le_1 unfolding set_eq_iff set_pmf_iff pmf_binomial by (auto simp: set_pmf_iff)
+
+end
+
+end
+
+lemma set_pmf_binomial_0[simp]: "set_pmf (binomial_pmf n 0) = {0}"
+  by (simp add: set_pmf_binomial_eq)
+
+lemma set_pmf_binomial_1[simp]: "set_pmf (binomial_pmf n 1) = {n}"
+  by (simp add: set_pmf_binomial_eq)
+
+lemma set_pmf_binomial[simp]: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (binomial_pmf n p) = {..n}"
+  by (simp add: set_pmf_binomial_eq)
+
+subsection \<open> Monad Interpretation \<close>
 
 lemma measurable_measure_pmf[measurable]:
   "(\<lambda>x. measure_pmf (M x)) \<in> measurable (count_space UNIV) (subprob_algebra (count_space UNIV))"
