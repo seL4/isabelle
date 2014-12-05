@@ -265,6 +265,13 @@ lemma open_typedef_to_part_equivp:
   shows "part_equivp (eq_onp P)"
   using typedef_to_part_equivp [OF assms] by simp
 
+lemma type_definition_Quotient_not_empty: "Quotient (eq_onp P) Abs Rep T \<Longrightarrow> \<exists>x. P x"
+unfolding eq_onp_def by (drule Quotient_rep_reflp) blast
+
+lemma type_definition_Quotient_not_empty_witness: "Quotient (eq_onp P) Abs Rep T \<Longrightarrow> P (Rep undefined)"
+unfolding eq_onp_def by (drule Quotient_rep_reflp) blast
+
+
 text {* Generating transfer rules for quotients. *}
 
 context
@@ -538,6 +545,12 @@ by (simp add: eq_onp_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 
 end
 
+(* needed for lifting_def_code_dt.ML (moved from Lifting_Set) *)
+lemma right_total_UNIV_transfer: 
+  assumes "right_total A"
+  shows "(rel_set A) (Collect (Domainp A)) UNIV"
+  using assms unfolding right_total_def rel_set_def Domainp_iff by blast
+
 subsection {* ML setup *}
 
 ML_file "Tools/Lifting/lifting_util.ML"
@@ -555,6 +568,7 @@ ML_file "Tools/Lifting/lifting_bnf.ML"
 ML_file "Tools/Lifting/lifting_term.ML"
 ML_file "Tools/Lifting/lifting_def.ML"
 ML_file "Tools/Lifting/lifting_setup.ML"
+ML_file "Tools/Lifting/lifting_def_code_dt.ML"
 
 hide_const (open) POS NEG
 

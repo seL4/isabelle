@@ -23,6 +23,7 @@ sig
   val mk_lift_const_of_lift_def: typ -> lift_def -> term
 
   type config = { notes: bool }
+  val map_config: (bool -> bool) -> config -> config
   val default_config: config
 
   val generate_parametric_transfer_rule:
@@ -47,10 +48,6 @@ sig
   val lift_def: 
     config -> binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
     local_theory -> lift_def * local_theory
-
-  val lift_def_cmd:
-    (binding * string option * mixfix) * string * (Facts.ref * Token.src list) list ->
-    local_theory -> Proof.state
 
   val can_generate_code_cert: thm -> bool
 end
@@ -123,6 +120,7 @@ fun inst_of_lift_def ctxt qty lift_def =  mk_inst_of_lift_def qty lift_def
 (* Config *)
 
 type config = { notes: bool };
+fun map_config f1 { notes = notes } = { notes = f1 notes }
 val default_config = { notes = true };
 
 (* Reflexivity prover *)
@@ -743,77 +741,5 @@ fun gen_lift_def add_lift_def var qty rhs tac par_thms lthy =
 
 fun lift_def config var qty rhs tac par_thms lthy = gen_lift_def (add_lift_def config)
   var qty rhs tac par_thms lthy
-
-(*
-
-  lifting_definition command. It opens a proof of a corresponding respectfulness 
-  theorem in a user-friendly, readable form. Then add_lift_def is called internally.
-
-*)
-
-fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
-  let
-    val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val var = (binding, mx)
-    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
-    val par_thms = Attrib.eval_thms lthy par_xthms
-    val (goal, after_qed) = prepare_lift_def (add_lift_def default_config) var qty rhs par_thms lthy
-  in
-    Proof.theorem NONE (snd oo after_qed) [map (rpair []) (the_list goal)] lthy
-  end
-
-fun quot_thm_err ctxt (rty, qty) pretty_msg =
-  let
-    val error_msg = cat_lines
-       ["Lifting failed for the following types:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Raw type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Abstract type:", Pretty.brk 2, Syntax.pretty_typ ctxt qty]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:", Pretty.brk 2, pretty_msg]))]
-  in
-    error error_msg
-  end
-
-fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
-  let
-    val (_, ctxt') = yield_singleton Proof_Context.read_vars raw_var ctxt 
-    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
-    val error_msg = cat_lines
-       ["Lifting failed for the following term:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty_schematic]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:", 
-          Pretty.brk 2, 
-          Pretty.str "The type of the term cannot be instantiated to",
-          Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
-          Pretty.str "."]))]
-    in
-      error error_msg
-    end
-
-fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, par_xthms) lthy =
-  (lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy
-    handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
-    handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) => 
-      check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw)
-
-(* parser and command *)
-val liftdef_parser =
-  (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')) >> Parse.triple2)
-    --| @{keyword "is"} -- Parse.term -- 
-      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1
-val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword lift_definition}
-    "definition for constants over the quotient type"
-      (liftdef_parser >> lift_def_cmd_with_err_handling)
-
 
 end (* structure *)

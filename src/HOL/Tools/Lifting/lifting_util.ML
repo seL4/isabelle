@@ -16,6 +16,8 @@ sig
   val quot_thm_rep: thm -> term
   val quot_thm_crel: thm -> term
   val quot_thm_rty_qty: thm -> typ * typ
+  val Quotient_conv: conv -> conv -> conv -> conv -> conv
+  val Quotient_R_conv: conv -> conv
 
   val undisch: thm -> thm
   val undisch_all: thm -> thm
@@ -34,6 +36,7 @@ sig
   val map_interrupt: ('a -> 'b option) -> 'a list -> 'b list option
   val instT_thm: Proof.context -> Type.tyenv -> thm -> thm
   val instT_morphism: Proof.context -> Type.tyenv -> morphism
+  val conceal_naming_result: (local_theory -> 'a * local_theory) -> local_theory -> 'a * local_theory
 end
 
 
@@ -81,6 +84,11 @@ fun quot_thm_rty_qty quot_thm =
   in
     (domain_type abs_type, range_type abs_type)
   end
+
+fun Quotient_conv R_conv Abs_conv Rep_conv T_conv = Conv.combination_conv (Conv.combination_conv 
+  (Conv.combination_conv (Conv.arg_conv R_conv) Abs_conv) Rep_conv) T_conv;
+  
+fun Quotient_R_conv R_conv = Quotient_conv R_conv Conv.all_conv Conv.all_conv Conv.all_conv;
 
 fun undisch thm =
   let
@@ -148,5 +156,9 @@ fun instT_morphism ctxt env =
     typ = [Envir.subst_type env],
     term = [Envir.subst_term_types env],
     fact = [map (instT_thm ctxt env)]};
+
+fun conceal_naming_result f lthy = 
+  let val old_lthy = lthy
+  in lthy |> Proof_Context.concealed |> f ||> Proof_Context.restore_naming old_lthy end;
 
 end

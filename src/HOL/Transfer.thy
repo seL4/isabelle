@@ -269,6 +269,8 @@ lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
 lemma Domainp_refl[transfer_domain_rule]:
   "Domainp T = Domainp T" ..
 
+lemma Domain_eq_top: "Domainp op= = top" by auto
+
 lemma Domainp_prod_fun_eq[relator_domain]:
   "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
 by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
