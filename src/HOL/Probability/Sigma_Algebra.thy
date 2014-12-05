@@ -2328,8 +2328,15 @@ lemma sets_vimage_algebra2:
   using sigma_sets_vimage_commute[of f X "space M" "sets M"]
   unfolding sets_vimage_algebra sets.sigma_sets_eq by simp
 
-lemma vimage_algebra_cong: "sets M = sets N \<Longrightarrow> sets (vimage_algebra X f M) = sets (vimage_algebra X f N)"
+lemma sets_vimage_algebra_cong: "sets M = sets N \<Longrightarrow> sets (vimage_algebra X f M) = sets (vimage_algebra X f N)"
   by (simp add: sets_vimage_algebra)
+
+lemma vimage_algebra_cong:
+  assumes "X = Y"
+  assumes "\<And>x. x \<in> Y \<Longrightarrow> f x = g x"
+  assumes "sets M = sets N"
+  shows "vimage_algebra X f M = vimage_algebra Y g N"
+  by (auto simp: vimage_algebra_def assms intro!: arg_cong2[where f=sigma])
 
 lemma in_vimage_algebra: "A \<in> sets M \<Longrightarrow> f -` A \<inter> X \<in> sets (vimage_algebra X f M)"
   by (auto simp: vimage_algebra_def)
@@ -2396,6 +2403,14 @@ proof
   then show "?SI \<subseteq> ?IS"
     by (auto intro!: sets_image_in_sets sets_Sup_in_sets del: subsetI simp: *)
 qed
+
+lemma vimage_algebra_Sup_sigma:
+  assumes [simp]: "MM \<noteq> {}" and "\<And>M. M \<in> MM \<Longrightarrow> f \<in> X \<rightarrow> space M"
+  shows "vimage_algebra X f (Sup_sigma MM) = Sup_sigma (vimage_algebra X f ` MM)"
+proof (rule measure_eqI)
+  show "sets (vimage_algebra X f (Sup_sigma MM)) = sets (Sup_sigma (vimage_algebra X f ` MM))"
+    using assms by (rule sets_vimage_Sup_eq)
+qed (simp add: vimage_algebra_def Sup_sigma_def emeasure_sigma)
 
 subsubsection {* Restricted Space Sigma Algebra *}
 

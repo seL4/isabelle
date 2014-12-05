@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* December 2014: Johannes Hölzl, Manuel Eberl, Sudeep Kanav, TUM and Jeremy Avigad, Luke Serafin, CMU
+  Various integration theorems: mostly integration on intervals and substitution.
+
 * September 2014: Florian Haftmann, TUM
   Lexicographic order on functions and
   sum/product over function bodies.

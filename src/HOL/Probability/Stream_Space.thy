@@ -288,14 +288,14 @@ lemma sets_restrict_stream_space:
   using  S[THEN sets.sets_into_space]
   apply (subst restrict_space_eq_vimage_algebra)
   apply (simp add: space_stream_space streams_mono2)
-  apply (subst vimage_algebra_cong[OF sets_stream_space_eq])
+  apply (subst vimage_algebra_cong[OF refl refl sets_stream_space_eq])
   apply (subst sets_stream_space_eq)
   apply (subst sets_vimage_Sup_eq)
   apply simp
   apply (auto intro: streams_mono) []
   apply (simp add: image_image space_restrict_space)
   apply (intro SUP_sigma_cong)
-  apply (simp add: vimage_algebra_cong[OF restrict_space_eq_vimage_algebra])
+  apply (simp add: vimage_algebra_cong[OF refl refl restrict_space_eq_vimage_algebra])
   apply (subst (1 2) vimage_algebra_vimage_algebra_eq)
   apply (auto simp: streams_mono snth_in)
   done
@@ -325,6 +325,23 @@ proof (induction xs)
     by measurable
   finally show ?case .
 qed (simp add: streams_sets)
+
+lemma sigma_sets_singletons:
+  assumes "countable S"
+  shows "sigma_sets S ((\<lambda>s. {s})`S) = Pow S"
+proof safe
+  interpret sigma_algebra S "sigma_sets S ((\<lambda>s. {s})`S)"
+    by (rule sigma_algebra_sigma_sets) auto
+  fix A assume "A \<subseteq> S"
+  with assms have "(\<Union>a\<in>A. {a}) \<in> sigma_sets S ((\<lambda>s. {s})`S)"
+    by (intro countable_UN') (auto dest: countable_subset)
+  then show "A \<in> sigma_sets S ((\<lambda>s. {s})`S)"
+    by simp
+qed (auto dest: sigma_sets_into_sp[rotated])
+
+lemma sets_count_space_eq_sigma:
+  "countable S \<Longrightarrow> sets (count_space S) = sets (sigma S ((\<lambda>s. {s})`S))"
+  by (subst sets_measure_of) (auto simp: sigma_sets_singletons)
 
 lemma sets_stream_space_sstart:
   assumes S[simp]: "countable S"
@@ -402,11 +419,8 @@ proof (rule measure_eqI_restrict_generator[OF Int_stable_sstart])
 
   { fix M :: "'a stream measure" assume M: "sets M = sets (stream_space (count_space UNIV))"
     have "sets (restrict_space M (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"
-      apply (simp add: sets_eq_imp_space_eq[OF M] space_stream_space restrict_space_eq_vimage_algebra
-        vimage_algebra_cong[OF M])
-      apply (simp add: sets_eq_imp_space_eq[OF M] space_stream_space restrict_space_eq_vimage_algebra[symmetric])
-      apply (simp add: sets_restrict_stream_space restrict_count_space sets_stream_space_sstart)
-      done }
+      by (subst sets_restrict_space_cong[OF M])
+         (simp add: sets_restrict_stream_space restrict_count_space sets_stream_space_sstart) }
   from this[OF sets_M] this[OF sets_N]
   show "sets (restrict_space M (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"
        "sets (restrict_space N (streams S)) = sigma_sets (streams S) (sstart S ` lists S \<union> {{}})"

@@ -7,7 +7,7 @@ spaces.
 *)
 
 theory Giry_Monad
-  imports Probability_Measure "~~/src/HOL/Library/Monad_Syntax"
+  imports Probability_Measure Lebesgue_Integral_Substitution "~~/src/HOL/Library/Monad_Syntax" 
 begin
 
 section {* Sub-probability spaces *}
@@ -49,6 +49,65 @@ lemma (in subprob_space) subprob_emeasure_le_1: "emeasure M X \<le> 1"
 
 lemma (in subprob_space) subprob_measure_le_1: "measure M X \<le> 1"
   using subprob_emeasure_le_1[of X] by (simp add: emeasure_eq_measure)
+
+lemma emeasure_density_distr_interval:
+  fixes h :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real" and g' :: "real \<Rightarrow> real"
+  assumes [simp]: "a \<le> b"
+  assumes Mf[measurable]: "f \<in> borel_measurable borel"
+  assumes Mg[measurable]: "g \<in> borel_measurable borel"
+  assumes Mg'[measurable]: "g' \<in> borel_measurable borel"
+  assumes Mh[measurable]: "h \<in> borel_measurable borel"
+  assumes prob: "subprob_space (density lborel f)"
+  assumes nonnegf: "\<And>x. f x \<ge> 0"
+  assumes derivg: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes contg': "continuous_on {a..b} g'"
+  assumes mono: "strict_mono_on g {a..b}" and inv: "\<And>x. h x \<in> {a..b} \<Longrightarrow> g (h x) = x"
+  assumes range: "{a..b} \<subseteq> range h"
+  shows "emeasure (distr (density lborel f) lborel h) {a..b} = 
+             emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}"
+proof (cases "a < b")
+  assume "a < b"
+  from mono have inj: "inj_on g {a..b}" by (rule strict_mono_on_imp_inj_on)
+  from mono have mono': "mono_on g {a..b}" by (rule strict_mono_on_imp_mono_on)
+  from mono' derivg have "\<And>x. x \<in> {a<..<b} \<Longrightarrow> g' x \<ge> 0"
+    by (rule mono_on_imp_deriv_nonneg) (auto simp: interior_atLeastAtMost_real)
+  from contg' this have derivg_nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
+    by (rule continuous_ge_on_Iii) (simp_all add: `a < b`)
+
+  from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
+  have A: "h -` {a..b} = {g a..g b}"
+  proof (intro equalityI subsetI)
+    fix x assume x: "x \<in> h -` {a..b}"
+    hence "g (h x) \<in> {g a..g b}" by (auto intro: mono_onD[OF mono'])
+    with inv and x show "x \<in> {g a..g b}" by simp
+  next
+    fix y assume y: "y \<in> {g a..g b}"
+    with IVT'[OF _ _ _ contg, of y] obtain x where "x \<in> {a..b}" "y = g x" by auto
+    with range and inv show "y \<in> h -` {a..b}" by auto
+  qed
+
+  have prob': "subprob_space (distr (density lborel f) lborel h)"
+    by (rule subprob_space.subprob_space_distr[OF prob]) (simp_all add: Mh)
+  have B: "emeasure (distr (density lborel f) lborel h) {a..b} = 
+            \<integral>\<^sup>+x. f x * indicator (h -` {a..b}) x \<partial>lborel"
+    by (subst emeasure_distr) (simp_all add: emeasure_density Mf Mh measurable_sets_borel[OF Mh])
+  also note A
+  also have "emeasure (distr (density lborel f) lborel h) {a..b} \<le> 1"
+    by (rule subprob_space.subprob_emeasure_le_1) (rule prob')
+  hence "emeasure (distr (density lborel f) lborel h) {a..b} \<noteq> \<infinity>" by auto
+  with assms have "(\<integral>\<^sup>+x. f x * indicator {g a..g b} x \<partial>lborel) = 
+                      (\<integral>\<^sup>+x. f (g x) * g' x * indicator {a..b} x \<partial>lborel)"
+    by (intro nn_integral_substitution_aux)
+       (auto simp: derivg_nonneg A B emeasure_density mult.commute `a < b`)
+  also have "... = emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}" 
+    by (simp add: emeasure_density)
+  finally show ?thesis .
+next
+  assume "\<not>a < b"
+  with `a \<le> b` have [simp]: "b = a" by (simp add: not_less del: `a \<le> b`)
+  from inv and range have "h -` {a} = {g a}" by auto
+  thus ?thesis by (simp_all add: emeasure_distr emeasure_density measurable_sets_borel[OF Mh])
+qed
 
 locale pair_subprob_space = 
   pair_sigma_finite M1 M2 + M1: subprob_space M1 + M2: subprob_space M2 for M1 M2

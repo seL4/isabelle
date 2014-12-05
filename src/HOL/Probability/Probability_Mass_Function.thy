@@ -385,7 +385,7 @@ proof (intro conjI)
     by (simp split: split_indicator)
   show "AE x in density (count_space UNIV) (ereal \<circ> f).
     measure (density (count_space UNIV) (ereal \<circ> f)) {x} \<noteq> 0"
-    by (simp add: AE_density nonneg emeasure_density measure_def nn_integral_cmult_indicator)
+    by (simp add: AE_density nonneg measure_def emeasure_density max_def)
   show "prob_space (density (count_space UNIV) (ereal \<circ> f))"
     by default (simp add: emeasure_density prob)
 qed simp
@@ -395,7 +395,7 @@ proof transfer
   have *[simp]: "\<And>x y. ereal (f y) * indicator {x} y = ereal (f x) * indicator {x} y"
     by (simp split: split_indicator)
   fix x show "measure (density (count_space UNIV) (ereal \<circ> f)) {x} = f x"
-    by transfer (simp add: measure_def emeasure_density nn_integral_cmult_indicator nonneg)
+    by transfer (simp add: measure_def emeasure_density nonneg max_def)
 qed
 
 end
