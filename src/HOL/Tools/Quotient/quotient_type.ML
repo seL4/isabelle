@@ -125,9 +125,11 @@ fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
       | Const (@{const_name part_equivp}, _) $ _ =>
           (NONE, [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient})
       | _ => error "unsupported equivalence theorem")
+    val config = { notes = true }
   in
     lthy'
-      |> Lifting_Setup.setup_by_quotient quot_thm reflp_thm opt_par_thm
+      |> Lifting_Setup.setup_by_quotient config quot_thm reflp_thm opt_par_thm
+      |> snd
       |> (snd oo Local_Theory.note) ((quotient_thm_name, []), [quot_thm])
   end
 

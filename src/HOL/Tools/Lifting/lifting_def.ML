@@ -20,14 +20,18 @@ sig
   val inst_of_lift_def: Proof.context -> typ -> lift_def -> lift_def
   val mk_lift_const_of_lift_def: typ -> lift_def -> term
 
+  type config = { notes: bool }
+  val default_config: config
+
   val generate_parametric_transfer_rule:
     Proof.context -> thm -> thm -> thm
 
-  val add_lift_def:
-    binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> lift_def * local_theory
+  val add_lift_def: 
+    config -> binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> 
+      lift_def * local_theory
     
   val lift_def: 
-    binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
+    config -> binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
     local_theory -> lift_def * local_theory
 
   val lift_def_cmd:
@@ -97,6 +101,11 @@ fun mk_lift_const_of_lift_def qty lift_def = Envir.subst_term_types (mk_inst_of_
 
 fun inst_of_lift_def ctxt qty lift_def =  mk_inst_of_lift_def qty lift_def
   |> instT_morphism ctxt |> (fn phi => morph_lift_def phi lift_def)
+
+(* Config *)
+
+type config = { notes: bool };
+val default_config = { notes = true };
 
 (* Reflexivity prover *)
 
@@ -518,7 +527,7 @@ end
   par_thms - a parametricity theorem for rhs
 *)
 
-fun add_lift_def var qty rhs rsp_thm par_thms lthy =
+fun add_lift_def config var qty rhs rsp_thm par_thms lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
@@ -529,33 +538,41 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
     val prop = Logic.mk_equals (lhs, absrep_trm $ forced_rhs)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
+    val var = (#notes config = false ? apfst Binding.concealed) var
+    val def_name = if #notes config then Thm.def_binding (#1 var) else Binding.empty
+    
+    val ((lift_const, (_ , def_thm)), lthy) = 
+      Local_Theory.define (var, ((def_name, []), newrhs)) lthy
 
-    val ((lift_const, (_ , def_thm)), lthy') = 
-      Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
+    val transfer_rules = generate_transfer_rules lthy quot_thm rsp_thm def_thm par_thms
 
-    val transfer_rules = generate_transfer_rules lthy' quot_thm rsp_thm def_thm par_thms
-
-    val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
-    val opt_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)
+    val abs_eq_thm = generate_abs_eq lthy def_thm rsp_thm quot_thm
+    val opt_rep_eq_thm = generate_rep_eq lthy def_thm rsp_thm (rty_forced, qty)
 
     fun qualify defname suffix = Binding.qualified true suffix defname
 
-    val lhs_name = (#1 var)
-    val rsp_thm_name = qualify lhs_name "rsp"
-    val abs_eq_thm_name = qualify lhs_name "abs_eq"
-    val rep_eq_thm_name = qualify lhs_name "rep_eq"
-    val transfer_rule_name = qualify lhs_name "transfer"
-    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    fun notes names =
+      let
+        val lhs_name = (#1 var)
+        val rsp_thmN = qualify lhs_name "rsp"
+        val abs_eq_thmN = qualify lhs_name "abs_eq"
+        val rep_eq_thmN = qualify lhs_name "rep_eq"
+        val transfer_ruleN = qualify lhs_name "transfer"
+        val notes = 
+          [(rsp_thmN, [], [rsp_thm]), 
+          (transfer_ruleN, @{attributes [transfer_rule]}, transfer_rules),
+          (abs_eq_thmN, [], [abs_eq_thm])] 
+          @ (case opt_rep_eq_thm of SOME rep_eq_thm => [(rep_eq_thmN, [], [rep_eq_thm])] | NONE => [])
+      in
+        if names then map (fn (name, attrs, thms) => ((name, []), [(thms, attrs)])) notes
+        else map_filter (fn (_, attrs, thms) => if null attrs then NONE 
+          else SOME ((Binding.empty, []), [(thms, attrs)])) notes
+      end
     val lift_def = mk_lift_def rty_forced qty newrhs lift_const def_thm rsp_thm abs_eq_thm 
-      opt_rep_eq_thm transfer_rules 
+          opt_rep_eq_thm transfer_rules
   in
-    lthy'
-      |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
-      |> (snd oo Local_Theory.note) ((transfer_rule_name, [transfer_attr]), transfer_rules)
-      |> (snd oo Local_Theory.note) ((abs_eq_thm_name, []), [abs_eq_thm])
-      |> (case opt_rep_eq_thm of 
-            SOME rep_eq_thm => (snd oo Local_Theory.note) ((rep_eq_thm_name, []), [rep_eq_thm])
-            | NONE => I)
+    lthy
+      |> Local_Theory.notes (notes (#notes config)) |> snd
       |> register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty)
       |> ` (fn lthy => morph_lift_def (Local_Theory.target_morphism lthy) lift_def)
       ||> Local_Theory.restore
@@ -680,7 +697,7 @@ fun get_cr_pcr_eqs ctxt =
     Symtab.fold (fn (_, data) => fn l => collect data l) table []
   end
 
-fun prepare_lift_def var qty rhs par_thms lthy =
+fun prepare_lift_def config var qty rhs par_thms lthy =
   let
     val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
@@ -697,7 +714,7 @@ fun prepare_lift_def var qty rhs par_thms lthy =
     val opt_proven_rsp_thm = try_prove_reflexivity lthy prsp_tm
     
     fun after_qed internal_rsp_thm lthy = 
-      add_lift_def var qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
+      add_lift_def config var qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
   in
     case opt_proven_rsp_thm of
       SOME thm => (NONE, K (after_qed thm))
@@ -720,9 +737,9 @@ fun prepare_lift_def var qty rhs par_thms lthy =
         end 
   end
 
-fun lift_def var qty rhs tac par_thms lthy =
+fun lift_def config var qty rhs tac par_thms lthy =
   let
-    val (goal, after_qed) = prepare_lift_def var qty rhs par_thms lthy
+    val (goal, after_qed) = prepare_lift_def config var qty rhs par_thms lthy
   in
     case goal of
       SOME goal => 
@@ -748,7 +765,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val var = (binding, mx)
     val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
     val par_thms = Attrib.eval_thms lthy par_xthms
-    val (goal, after_qed) = prepare_lift_def var qty rhs par_thms lthy
+    val (goal, after_qed) = prepare_lift_def default_config var qty rhs par_thms lthy
   in
     Proof.theorem NONE (snd oo after_qed) [map (rpair []) (the_list goal)] lthy
   end

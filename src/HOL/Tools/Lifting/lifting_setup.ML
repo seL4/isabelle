@@ -8,9 +8,13 @@ signature LIFTING_SETUP =
 sig
   exception SETUP_LIFTING_INFR of string
 
-  val setup_by_quotient: thm -> thm option -> thm option -> local_theory -> local_theory
+  type config = { notes: bool };
+  val default_config: config;
 
-  val setup_by_typedef_thm: thm -> local_theory -> local_theory
+  val setup_by_quotient: config -> thm -> thm option -> thm option -> local_theory -> 
+    binding * local_theory
+
+  val setup_by_typedef_thm: config -> thm -> local_theory -> binding * local_theory
 
   val lifting_restore: Lifting_Info.quotient -> Context.generic -> Context.generic
 end
@@ -24,18 +28,25 @@ infix 0 MRSL
 
 exception SETUP_LIFTING_INFR of string
 
-fun define_crel rep_fun lthy =
+(* Config *)
+
+type config = { notes: bool };
+val default_config = { notes = true };
+
+fun define_crel config rep_fun lthy =
   let
     val (qty, rty) = (dest_funT o fastype_of) rep_fun
     val rep_fun_graph = (HOLogic.eq_const rty) $ Bound 1 $ (rep_fun $ Bound 0)
     val def_term = Abs ("x", rty, Abs ("y", qty, rep_fun_graph))
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     val crel_name = Binding.prefix_name "cr_" qty_name
-    val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
-    val ((_, (_ , def_thm)), lthy'') =
-      Local_Theory.define ((crel_name, NoSyn), ((Thm.def_binding crel_name, []), fixed_def_term)) lthy'
-  in
-    (def_thm, lthy'')
+    val (fixed_def_term, lthy) = yield_singleton (Variable.importT_terms) def_term lthy
+    val ((_, (_ , def_thm)), lthy) = if #notes config then
+        Local_Theory.define ((crel_name, NoSyn), ((Thm.def_binding crel_name, []), fixed_def_term)) lthy
+      else 
+        Local_Theory.define ((Binding.concealed crel_name, NoSyn), ((Binding.empty, []), fixed_def_term)) lthy
+  in  
+    (def_thm, lthy)
   end
 
 fun print_define_pcrel_warning msg = 
@@ -48,7 +59,7 @@ fun print_define_pcrel_warning msg =
     warning warning_msg
   end
 
-fun define_pcrel crel lthy =
+fun define_pcrel config crel lthy =
   let
     val (fixed_crel, lthy) = yield_singleton Variable.importT_terms crel lthy
     val [rty', qty] = (binder_types o fastype_of) fixed_crel
@@ -67,14 +78,25 @@ fun define_pcrel crel lthy =
           (rty --> rty' --> HOLogic.boolT) --> 
           (rty' --> qty --> HOLogic.boolT) --> 
           rty --> qty --> HOLogic.boolT)
-    val relator_type = foldr1 (op -->) ((map type_of args_fixed) @ [rty, qty, HOLogic.boolT])
     val qty_name = (fst o dest_Type) qty
     val pcrel_name = Binding.prefix_name "pcr_" ((Binding.name o Long_Name.base_name) qty_name)
+    val relator_type = foldr1 (op -->) ((map type_of args_fixed) @ [rty, qty, HOLogic.boolT])
     val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args_fixed)
     val rhs = relcomp_op $ param_rel_fixed $ fixed_crel
     val definition_term = Logic.mk_equals (lhs, rhs)
-    val ((_, (_, def_thm)), lthy) = Specification.definition ((SOME (pcrel_name, SOME relator_type, NoSyn)), 
-      ((Binding.empty, []), definition_term)) lthy
+    fun note_def lthy =
+      Specification.definition ((SOME (pcrel_name, SOME relator_type, NoSyn)), 
+        ((Binding.empty, []), definition_term)) lthy |>> (snd #> snd);
+    fun raw_def lthy =
+      let
+        val ((_, rhs), prove) = Local_Defs.derived_def lthy true definition_term;
+        val ((_, (_, raw_th)), lthy) = lthy
+          |> Local_Theory.define ((Binding.concealed pcrel_name, NoSyn), ((Binding.empty, []), rhs));
+        val th = prove lthy raw_th;
+      in
+        (th, lthy)
+      end
+    val (def_thm, lthy) = if #notes config then note_def lthy else raw_def lthy
   in
     (SOME def_thm, lthy)
   end
@@ -96,7 +118,7 @@ local
       error error_msg
     end
 in
-  fun define_pcr_cr_eq lthy pcr_rel_def =
+  fun define_pcr_cr_eq config lthy pcr_rel_def =
     let
       val lhs = (Thm.term_of o Thm.lhs_of) pcr_rel_def
       val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type o List.last o binder_types o fastype_of) lhs
@@ -127,8 +149,8 @@ in
             |> Conv.fconv_rule (Conv.arg_conv (Conv.rewr_conv eq_OO_meta))
             |> mk_HOL_eq
             |> singleton (Variable.export lthy orig_lthy)
-          val ((_, [thm]), lthy) =
-            Local_Theory.note ((Binding.qualified true "pcr_cr_eq" qty_name, []), [thm]) lthy
+          val lthy = (#notes config ? (Local_Theory.note 
+              ((Binding.qualified true "pcr_cr_eq" qty_name, []), [thm]) #> snd)) lthy
         in
           (thm, lthy)
         end
@@ -229,18 +251,19 @@ fun lifting_bundle qty_full_name qinfo lthy =
       |> Local_Theory.declaration {syntax = false, pervasive = true}
            (fn phi => Lifting_Info.init_restore_data bundle_name (phi_qinfo phi))
       |> Bundle.bundle ((binding, [restore_lifting_att])) []
+      |> pair binding
   end
 
-fun setup_lifting_infr quot_thm opt_reflp_thm lthy =
+fun setup_lifting_infr config quot_thm opt_reflp_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qty) = quot_thm_rty_qty quot_thm
-    val (pcrel_def, lthy) = define_pcrel (quot_thm_crel quot_thm) lthy
+    val (pcrel_def, lthy) = define_pcrel config (quot_thm_crel quot_thm) lthy
     (**)
     val pcrel_def = Option.map (Morphism.thm (Local_Theory.target_morphism lthy)) pcrel_def
     (**)
     val (pcr_cr_eq, lthy) = case pcrel_def of
-      SOME pcrel_def => apfst SOME (define_pcr_cr_eq lthy pcrel_def)
+      SOME pcrel_def => apfst SOME (define_pcr_cr_eq config lthy pcrel_def)
       | NONE => (NONE, lthy)
     val pcr_info = case pcrel_def of
       SOME pcrel_def => SOME { pcrel_def = pcrel_def, pcr_cr_eq = the pcr_cr_eq }
@@ -444,10 +467,10 @@ in
         (dom_thm RS @{thm pcr_Domainp})
           |> fold_Domainp_pcrel pcrel_def
       val thms =
-        [("domain",                 pcr_Domainp),
-         ("domain_par",             pcr_Domainp_par),
-         ("domain_par_left_total",  pcr_Domainp_par_left_total),
-         ("domain_eq",              pcr_Domainp_eq)]
+        [("domain",                 [pcr_Domainp], @{attributes [transfer_domain_rule]}),
+         ("domain_par",             [pcr_Domainp_par], @{attributes [transfer_domain_rule]}),
+         ("domain_par_left_total",  [pcr_Domainp_par_left_total], @{attributes [transfer_domain_rule]}),
+         ("domain_eq",              [pcr_Domainp_eq], @{attributes [transfer_domain_rule]})]
     in
       thms
     end
@@ -459,7 +482,7 @@ in
           |> fold_Domainp_pcrel pcrel_def 
           |> reduce_Domainp ctxt (Transfer.get_relator_domain ctxt)
     in
-      [("domain", thm)]
+      [("domain", [thm], @{attributes [transfer_domain_rule]})]
     end
 
 end
@@ -470,6 +493,19 @@ fun get_pcrel_info ctxt qty_full_name =
 fun get_Domainp_thm quot_thm =
    the (get_first (try(curry op RS quot_thm)) [@{thm eq_onp_to_Domainp}, @{thm Quotient_to_Domainp}])
 
+fun notes names thms = 
+  let
+    val notes =
+        if names then map (fn (name, thms, attrs) => ((name, []), [(thms, attrs)])) thms
+        else map_filter (fn (_, thms, attrs) => if null attrs then NONE 
+          else SOME ((Binding.empty, []), [(thms, attrs)])) thms
+  in
+    Local_Theory.notes notes #> snd
+  end
+
+fun map_thms map_name map_thm thms = 
+  map (fn (name, thms, attr) => (map_name name, map map_thm thms, attr)) thms
+
 (*
   Sets up the Lifting package by a quotient theorem.
 
@@ -479,64 +515,55 @@ fun get_Domainp_thm quot_thm =
   opt_par_thm - a parametricity theorem for R
 *)
 
-fun setup_by_quotient quot_thm opt_reflp_thm opt_par_thm lthy =
+fun setup_by_quotient config quot_thm opt_reflp_thm opt_par_thm lthy =
   let
     (**)
     val quot_thm = Morphism.thm (Local_Theory.target_morphism lthy) quot_thm
     (**)
-    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
-    val transfer_domain_attr = Attrib.internal (K Transfer.transfer_domain_add)
     val (rty, qty) = quot_thm_rty_qty quot_thm
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_full_name = (fst o dest_Type) qty
     val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
     fun qualify suffix = Binding.qualified true suffix qty_name
-    val lthy = case opt_reflp_thm of
+    val notes1 = case opt_reflp_thm of
       SOME reflp_thm =>
         let 
           val thms =
-            [("abs_induct",     @{thm Quotient_total_abs_induct}, [induct_attr]),
-             ("abs_eq_iff",     @{thm Quotient_total_abs_eq_iff}, []           )]
+            [("abs_induct",     @{thms Quotient_total_abs_induct}, [induct_attr]),
+             ("abs_eq_iff",     @{thms Quotient_total_abs_eq_iff}, []           )]
         in
-          lthy
-            |> fold (fn (name, thm, attr) => (snd oo Local_Theory.note) ((qualify name, attr), 
-              [[quot_thm, reflp_thm] MRSL thm])) thms
+          map_thms qualify (fn thm => [quot_thm, reflp_thm] MRSL thm) thms
         end
       | NONE =>
         let
           val thms = 
-            [("abs_induct",     @{thm Quotient_abs_induct},       [induct_attr])]
+            [("abs_induct",     @{thms Quotient_abs_induct},       [induct_attr])]
         in
-          fold (fn (name, thm, attr) => (snd oo Local_Theory.note) ((qualify name, attr), 
-            [quot_thm RS thm])) thms lthy
+          map_thms qualify (fn thm => quot_thm RS thm) thms
         end
     val dom_thm = get_Domainp_thm quot_thm
 
-    fun setup_transfer_rules_nonpar lthy =
+    fun setup_transfer_rules_nonpar notes =
       let
-        val lthy =
+        val notes1 =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let 
                 val thms =
-                  [("id_abs_transfer",@{thm Quotient_id_abs_transfer}),
-                   ("left_total",     @{thm Quotient_left_total}     ),
-                   ("bi_total",       @{thm Quotient_bi_total})]
+                  [("id_abs_transfer",@{thms Quotient_id_abs_transfer}, @{attributes [transfer_rule]}),
+                   ("left_total",     @{thms Quotient_left_total},      @{attributes [transfer_rule]}),
+                   ("bi_total",       @{thms Quotient_bi_total},        @{attributes [transfer_rule]})]
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                    [[quot_thm, reflp_thm] MRSL thm])) thms lthy
+                map_thms qualify (fn thm => [quot_thm, reflp_thm] MRSL thm) thms
               end
-            | NONE =>
-              lthy
-              |> (snd oo Local_Theory.note) ((qualify "domain", [transfer_domain_attr]), [dom_thm])
+            | NONE => map_thms qualify I [("domain", [dom_thm], @{attributes [transfer_domain_rule]})]
 
-        val thms = 
-          [("rel_eq_transfer", @{thm Quotient_rel_eq_transfer}),
-           ("right_unique",    @{thm Quotient_right_unique}   ), 
-           ("right_total",     @{thm Quotient_right_total}    )]
+        val notes2 = map_thms qualify (fn thm => quot_thm RS thm)
+          [("rel_eq_transfer", @{thms Quotient_rel_eq_transfer}, @{attributes [transfer_rule]}),
+           ("right_unique",    @{thms Quotient_right_unique},    @{attributes [transfer_rule]}), 
+           ("right_total",     @{thms Quotient_right_total},     @{attributes [transfer_rule]})]
       in
-        fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-          [quot_thm RS thm])) thms lthy
+         notes2 @ notes1 @ notes
       end
 
     fun generate_parametric_rel_eq lthy transfer_rule opt_param_thm =
@@ -551,11 +578,11 @@ fun setup_by_quotient quot_thm opt_reflp_thm opt_par_thm lthy =
           error error_msg
         end
 
-    fun setup_transfer_rules_par lthy =
+    fun setup_transfer_rules_par lthy notes =
       let
         val pcrel_info = (the (get_pcrel_info lthy qty_full_name))
         val pcrel_def = #pcrel_def pcrel_info
-        val lthy =
+        val notes1 =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
@@ -568,22 +595,17 @@ fun setup_by_quotient quot_thm opt_reflp_thm opt_par_thm lthy =
                 val left_total = parametrize_class_constraint lthy pcrel_def left_total
                 val bi_total = parametrize_class_constraint lthy pcrel_def bi_total
                 val thms = 
-                  [("id_abs_transfer",id_abs_transfer),
-                   ("left_total",     left_total     ),  
-                   ("bi_total",       bi_total       )]
+                  [("id_abs_transfer", [id_abs_transfer], @{attributes [transfer_rule]}),
+                   ("left_total",      [left_total],      @{attributes [transfer_rule]}),  
+                   ("bi_total",        [bi_total],        @{attributes [transfer_rule]})]
               in
-                lthy
-                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                     [thm])) thms
-                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
-                     [thm])) domain_thms
+                map_thms qualify I thms @ map_thms qualify I domain_thms
               end
             | NONE =>
               let
                 val thms = parametrize_domain dom_thm pcrel_info lthy
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
-                  [thm])) thms lthy
+                map_thms qualify I thms
               end
 
         val rel_eq_transfer = generate_parametric_rel_eq lthy 
@@ -593,22 +615,25 @@ fun setup_by_quotient quot_thm opt_reflp_thm opt_par_thm lthy =
             (quot_thm RS @{thm Quotient_right_unique})
         val right_total = parametrize_class_constraint lthy pcrel_def 
             (quot_thm RS @{thm Quotient_right_total})
-        val thms = 
-          [("rel_eq_transfer", rel_eq_transfer),
-           ("right_unique",    right_unique   ), 
-           ("right_total",     right_total    )]      
+        val notes2 = map_thms qualify I
+          [("rel_eq_transfer", [rel_eq_transfer], @{attributes [transfer_rule]}),
+           ("right_unique",    [right_unique],    @{attributes [transfer_rule]}), 
+           ("right_total",     [right_total],     @{attributes [transfer_rule]})]      
       in
-        fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-          [thm])) thms lthy
+        notes2 @ notes1 @ notes
       end
 
-    fun setup_transfer_rules lthy = 
-      if is_some (get_pcrel_info lthy qty_full_name) then setup_transfer_rules_par lthy
-                                                     else setup_transfer_rules_nonpar lthy
+    fun setup_rules lthy = 
+      let
+        val thms =  if is_some (get_pcrel_info lthy qty_full_name) 
+          then setup_transfer_rules_par lthy notes1 else setup_transfer_rules_nonpar notes1
+      in
+        notes (#notes config) thms lthy
+      end
   in
     lthy
-      |> setup_lifting_infr quot_thm opt_reflp_thm
-      |> setup_transfer_rules
+      |> setup_lifting_infr config quot_thm opt_reflp_thm
+      ||> setup_rules
   end
 
 (*
@@ -619,12 +644,10 @@ fun setup_by_quotient quot_thm opt_reflp_thm opt_par_thm lthy =
   typedef_thm - a typedef theorem (type_definition Rep Abs S)
 *)
 
-fun setup_by_typedef_thm typedef_thm lthy =
+fun setup_by_typedef_thm config typedef_thm lthy =
   let
-    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
-    val transfer_domain_attr = Attrib.internal (K Transfer.transfer_domain_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o Thm.prop_of) typedef_thm
-    val (T_def, lthy) = define_crel rep_fun lthy
+    val (T_def, lthy) = define_crel config rep_fun lthy
     (**)
     val T_def = Morphism.thm (Local_Theory.target_morphism lthy) T_def
     (**)    
@@ -646,40 +669,37 @@ fun setup_by_typedef_thm typedef_thm lthy =
         | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
 
-    fun setup_transfer_rules_nonpar lthy =
+    fun setup_transfer_rules_nonpar notes =
       let
-        val lthy =
+        val notes1 =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let 
                 val thms =
-                  [("id_abs_transfer",@{thm Quotient_id_abs_transfer}),
-                   ("left_total",     @{thm Quotient_left_total}     ),
-                   ("bi_total",     @{thm Quotient_bi_total}         )]
+                  [("id_abs_transfer",@{thms Quotient_id_abs_transfer}, @{attributes [transfer_rule]}),
+                   ("left_total",     @{thms Quotient_left_total},      @{attributes [transfer_rule]}),
+                   ("bi_total",       @{thms Quotient_bi_total},        @{attributes [transfer_rule]})]
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                    [[quot_thm, reflp_thm] MRSL thm])) thms lthy
+                map_thms qualify (fn thm => [quot_thm, reflp_thm] MRSL thm) thms
               end
             | NONE =>
-              lthy
-              |> (snd oo Local_Theory.note) ((qualify "domain", [transfer_domain_attr]), [dom_thm])
+              map_thms qualify I [("domain", [dom_thm], @{attributes [transfer_domain_rule]})]
         val thms = 
-          [("rep_transfer", @{thm typedef_rep_transfer}),
-           ("left_unique",  @{thm typedef_left_unique} ),
-           ("right_unique", @{thm typedef_right_unique}), 
-           ("right_total",  @{thm typedef_right_total} ),
-           ("bi_unique",    @{thm typedef_bi_unique}   )]
-      in
-        fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-          [[typedef_thm, T_def] MRSL thm])) thms lthy
+          [("rep_transfer", @{thms typedef_rep_transfer}, @{attributes [transfer_rule]}),
+           ("left_unique",  @{thms typedef_left_unique},  @{attributes [transfer_rule]}),
+           ("right_unique", @{thms typedef_right_unique}, @{attributes [transfer_rule]}), 
+           ("right_total",  @{thms typedef_right_total},  @{attributes [transfer_rule]}),
+           ("bi_unique",    @{thms typedef_bi_unique},    @{attributes [transfer_rule]})]
+      in                                               
+        map_thms qualify (fn thm => [typedef_thm, T_def] MRSL thm) thms @ notes1 @ notes
       end
 
-    fun setup_transfer_rules_par lthy =
+    fun setup_transfer_rules_par lthy notes =
       let
         val pcrel_info = (the (get_pcrel_info lthy qty_full_name))
         val pcrel_def = #pcrel_def pcrel_info
 
-        val lthy =
+        val notes1 =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
@@ -692,48 +712,46 @@ fun setup_by_typedef_thm typedef_thm lthy =
                   (Lifting_Term.parametrize_transfer_rule lthy
                     ([quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}))
                 val thms = 
-                  [("left_total",     left_total     ),
-                   ("bi_total",       bi_total       ),
-                   ("id_abs_transfer",id_abs_transfer)]              
+                  [("left_total",     [left_total],      @{attributes [transfer_rule]}),
+                   ("bi_total",       [bi_total],        @{attributes [transfer_rule]}),
+                   ("id_abs_transfer",[id_abs_transfer], @{attributes [transfer_rule]})]              
               in
-                lthy
-                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                     [thm])) thms
-                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
-                     [thm])) domain_thms
+                map_thms qualify I thms @ map_thms qualify I domain_thms
               end
             | NONE =>
               let
                 val thms = parametrize_domain dom_thm pcrel_info lthy
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
-                  [thm])) thms lthy
+                map_thms qualify I thms
               end
               
-        val thms = 
-          ("rep_transfer", generate_parametric_id lthy rty 
-            (Lifting_Term.parametrize_transfer_rule lthy ([typedef_thm, T_def] MRSL @{thm typedef_rep_transfer})))
-          ::
-          (map_snd (fn thm => parametrize_class_constraint lthy pcrel_def ([typedef_thm, T_def] MRSL thm))
-          [("left_unique",  @{thm typedef_left_unique} ),
-           ("right_unique", @{thm typedef_right_unique}),
-           ("bi_unique",    @{thm typedef_bi_unique} ),
-           ("right_total",  @{thm typedef_right_total} )])
+        val notes2 = map_thms qualify (fn thm => generate_parametric_id lthy rty 
+            (Lifting_Term.parametrize_transfer_rule lthy ([typedef_thm, T_def] MRSL thm)))
+          [("rep_transfer", @{thms typedef_rep_transfer}, @{attributes [transfer_rule]})];
+        val notes3 =
+          map_thms qualify
+          (fn thm => parametrize_class_constraint lthy pcrel_def ([typedef_thm, T_def] MRSL thm))
+          [("left_unique",  @{thms typedef_left_unique}, @{attributes [transfer_rule]}),
+           ("right_unique", @{thms typedef_right_unique},@{attributes [transfer_rule]}),
+           ("bi_unique",    @{thms typedef_bi_unique},   @{attributes [transfer_rule]}),
+           ("right_total",  @{thms typedef_right_total}, @{attributes [transfer_rule]})]
       in
-        fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-          [thm])) thms lthy
+        notes3 @ notes2 @ notes1 @ notes
       end
 
-    fun setup_transfer_rules lthy = 
-      if is_some (get_pcrel_info lthy qty_full_name) then setup_transfer_rules_par lthy
-                                                     else setup_transfer_rules_nonpar lthy
+    val notes1 = [(Binding.prefix_name "Quotient_" qty_name, [quot_thm], [])]
 
+    fun setup_rules lthy = 
+      let
+        val thms =  if is_some (get_pcrel_info lthy qty_full_name) 
+          then setup_transfer_rules_par lthy notes1 else setup_transfer_rules_nonpar notes1
+      in
+        notes (#notes config) thms lthy
+      end
   in
     lthy
-      |> (snd oo Local_Theory.note) ((Binding.prefix_name "Quotient_" qty_name, []), 
-            [quot_thm])
-      |> setup_lifting_infr quot_thm opt_reflp_thm
-      |> setup_transfer_rules
+      |> setup_lifting_infr config quot_thm opt_reflp_thm
+      ||> setup_rules
   end
 
 fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
@@ -755,7 +773,8 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
     fun check_qty qty = if not (is_Type qty) 
           then error "The abstract type must be a type constructor."
           else ()
-
+    val config = { notes = true }       
+   
     fun setup_quotient () = 
       let
         val opt_reflp_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_reflp_xthm
@@ -763,7 +782,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
         val _ = check_qty (snd (quot_thm_rty_qty input_thm))
       in
-        setup_by_quotient input_thm opt_reflp_thm opt_par_thm lthy
+        setup_by_quotient config input_thm opt_reflp_thm opt_par_thm lthy |> snd
       end
 
     fun setup_typedef () = 
@@ -776,7 +795,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
           | NONE => (
             case opt_par_xthm of
               SOME _ => error "The parametricity theorem cannot be specified if the type_definition theorem is used."
-              | NONE => setup_by_typedef_thm input_thm lthy
+              | NONE => setup_by_typedef_thm config input_thm lthy |> snd
           )
       end
   in
