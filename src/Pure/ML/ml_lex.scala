@@ -1,7 +1,7 @@
 /*  Title:      Pure/ML/ml_lex.scala
     Author:     Makarius
 
-Lexical syntax for SML.
+Lexical syntax for Isabelle/ML and Standard ML.
 */
 
 package isabelle
@@ -90,8 +90,8 @@ object ML_Lex
       repeated(character(Symbol.is_ascii_digit), 3, 3)
 
     private val str =
-      one(Symbol.is_symbolic) |
       one(character(c => c != '"' && c != '\\' && ' ' <= c && c <= '~')) |
+      one(s => Symbol.is_symbolic(s) | Symbol.is_control(s)) |
       "\\" ~ escape ^^ { case x ~ y => x + y }
 
 

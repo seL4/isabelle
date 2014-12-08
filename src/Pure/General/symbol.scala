@@ -438,7 +438,7 @@ object Symbol
 
     /* control symbols */
 
-    val ctrl_decoded: Set[Symbol] =
+    val control_decoded: Set[Symbol] =
       Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
 
     val sub_decoded = decode("\\<^sub>")
@@ -516,11 +516,11 @@ object Symbol
 
   /* control symbols */
 
-  def is_ctrl(sym: Symbol): Boolean =
-    sym.startsWith("\\<^") || symbols.ctrl_decoded.contains(sym)
+  def is_control(sym: Symbol): Boolean =
+    sym.startsWith("\\<^") || symbols.control_decoded.contains(sym)
 
   def is_controllable(sym: Symbol): Boolean =
-    !is_blank(sym) && !is_ctrl(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)
+    !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)
 
   def sub_decoded: Symbol = symbols.sub_decoded
   def sup_decoded: Symbol = symbols.sup_decoded

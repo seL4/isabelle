@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_lex.ML
     Author:     Makarius
 
-Lexical syntax for SML.
+Lexical syntax for Isabelle/ML and Standard ML.
 *)
 
 signature ML_LEX =
@@ -295,7 +295,10 @@ fun recover msg =
 
 fun gen_read SML pos text =
   let
-    val syms = Symbol_Pos.explode (text, pos);
+    val syms =
+      Symbol_Pos.explode (text, pos)
+      |> SML ? maps (fn (s, p) => raw_explode s |> map (rpair p));
+
     val termination =
       if null syms then []
       else

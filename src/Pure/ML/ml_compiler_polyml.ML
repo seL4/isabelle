@@ -80,9 +80,12 @@ fun eval (flags: flags) pos toks =
 
     val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
+    val input_explode =
+      if #SML flags then String.explode
+      else maps (String.explode o Symbol.esc) o Symbol.explode;
+
     val input_buffer =
-      Unsynchronized.ref (toks |> map
-        (`(maps (String.explode o Symbol.esc) o Symbol.explode o ML_Lex.check_content_of)));
+      Unsynchronized.ref (toks |> map (`(input_explode o ML_Lex.check_content_of)));
 
     fun get () =
       (case ! input_buffer of
