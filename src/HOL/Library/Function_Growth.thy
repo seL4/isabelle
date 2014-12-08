@@ -14,12 +14,12 @@ text {*
   on Landau Symbols (``O-Notation'').  However these come at the cost of notational
   oddities, particularly writing @{text "f = O(g)"} for @{text "f \<in> O(g)"} etc.
   
-  Here we suggest a diffent way, following Hardy (G.~H.~Hardy and J.~E.~Littlewood,
+  Here we suggest a different way, following Hardy (G.~H.~Hardy and J.~E.~Littlewood,
   Some problems of Diophantine approximation, Acta Mathematica 37 (1914), p.~225).
   We establish a quasi order relation @{text "\<lesssim>"} on functions such that
   @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.  From a didactic point of view, this does not only
   avoid the notational oddities mentioned above but also emphasizes the key insight
-  of a growth hierachy of functions:
+  of a growth hierarchy of functions:
   @{text "(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> Discrete.log \<lesssim> Discrete.sqrt \<lesssim> id \<lesssim> \<dots>"}.
 *}
 
@@ -147,7 +147,7 @@ lemma not_less_funE:
   using assms unfolding less_fun_def linorder_not_less [symmetric] by blast
 
 text {*
-  I did not found a proof for @{text "f \<prec> g \<longleftrightarrow> f \<in> o(g)"}.  Maybe this only
+  I did not find a proof for @{text "f \<prec> g \<longleftrightarrow> f \<in> o(g)"}.  Maybe this only
   holds if @{text f} and/or @{text g} are of a certain class of functions.
   However @{text "f \<in> o(g) \<longrightarrow> f \<prec> g"} is provable, and this yields a
   handy introduction rule.
@@ -282,7 +282,7 @@ subsection {* Simple examples *}
 text {*
   Most of these are left as constructive exercises for the reader.  Note that additional
   preconditions to the functions may be necessary.  The list here is by no means to be
-  intended as complete contruction set for typical functions, here surely something
+  intended as complete construction set for typical functions, here surely something
   has to be added yet.
 *}
 
