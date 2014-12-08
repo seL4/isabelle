@@ -297,6 +297,31 @@ next
   case (Basis S) then show ?case by (fastforce intro: exI[of _ y] lt_ex)
 qed blast+
 
+subsubsection {* Boolean is an order topology *}
+
+text {* It also is a discrete topology, but don't have a type class for it (yet). *}
+
+instantiation bool :: order_topology
+begin
+
+definition open_bool :: "bool set \<Rightarrow> bool" where
+  "open_bool = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
+
+instance
+  proof qed (rule open_bool_def)
+
+end
+
+lemma open_bool[simp, intro!]: "open (A::bool set)"
+proof -
+  have *: "{False <..} = {True}" "{..< True} = {False}"
+    by auto
+  have "A = UNIV \<or> A = {} \<or> A = {False <..} \<or> A = {..< True}"
+    using subset_UNIV[of A] unfolding UNIV_bool * by auto
+  then show "open A"
+    by auto
+qed
+
 subsection {* Filters *}
 
 text {*
@@ -2476,6 +2501,55 @@ lemma connectedD:
 
 end
 
+lemma connected_iff_const:
+  fixes S :: "'a::topological_space set"
+  shows "connected S \<longleftrightarrow> (\<forall>P::'a \<Rightarrow> bool. continuous_on S P \<longrightarrow> (\<exists>c. \<forall>s\<in>S. P s = c))"
+proof safe
+  fix P :: "'a \<Rightarrow> bool" assume "connected S" "continuous_on S P"
+  then have "\<And>b. \<exists>A. open A \<and> A \<inter> S = P -` {b} \<inter> S"
+    unfolding continuous_on_open_invariant by simp
+  from this[of True] this[of False]
+  obtain t f where "open t" "open f" and *: "f \<inter> S = P -` {False} \<inter> S" "t \<inter> S = P -` {True} \<inter> S"
+    by auto
+  then have "t \<inter> S = {} \<or> f \<inter> S = {}"
+    by (intro connectedD[OF `connected S`])  auto
+  then show "\<exists>c. \<forall>s\<in>S. P s = c"
+  proof (rule disjE)
+    assume "t \<inter> S = {}" then show ?thesis
+      unfolding * by (intro exI[of _ False]) auto
+  next
+    assume "f \<inter> S = {}" then show ?thesis
+      unfolding * by (intro exI[of _ True]) auto
+  qed
+next
+  assume P: "\<forall>P::'a \<Rightarrow> bool. continuous_on S P \<longrightarrow> (\<exists>c. \<forall>s\<in>S. P s = c)"
+  show "connected S"
+  proof (rule connectedI)
+    fix A B assume *: "open A" "open B" "A \<inter> S \<noteq> {}" "B \<inter> S \<noteq> {}" "A \<inter> B \<inter> S = {}" "S \<subseteq> A \<union> B"
+    have "continuous_on S (\<lambda>x. x \<in> A)"
+      unfolding continuous_on_open_invariant
+    proof safe
+      fix C :: "bool set"
+      have "C = UNIV \<or> C = {True} \<or> C = {False} \<or> C = {}"
+        using subset_UNIV[of C] unfolding UNIV_bool by auto
+      with * show "\<exists>T. open T \<and> T \<inter> S = (\<lambda>x. x \<in> A) -` C \<inter> S"
+        by (intro exI[of _ "(if True \<in> C then A else {}) \<union> (if False \<in> C then B else {})"]) auto
+    qed
+    from P[rule_format, OF this] obtain c where "\<And>s. s \<in> S \<Longrightarrow> (s \<in> A) = c" by blast
+    with * show False
+      by (cases c) auto
+  qed
+qed
+
+lemma connectedD_const:
+  fixes P :: "'a::topological_space \<Rightarrow> bool"
+  shows "connected S \<Longrightarrow> continuous_on S P \<Longrightarrow> \<exists>c. \<forall>s\<in>S. P s = c"
+  unfolding connected_iff_const by auto
+
+lemma connectedI_const:
+  "(\<And>P::'a::topological_space \<Rightarrow> bool. continuous_on S P \<Longrightarrow> \<exists>c. \<forall>s\<in>S. P s = c) \<Longrightarrow> connected S"
+  unfolding connected_iff_const by auto
+
 lemma connected_local_const:
   assumes "connected A" "a \<in> A" "b \<in> A"
   assumes *: "\<forall>a\<in>A. eventually (\<lambda>b. f a = f b) (at a within A)"
@@ -2522,26 +2596,13 @@ lemma connected_continuous_image:
   assumes *: "continuous_on s f"
   assumes "connected s"
   shows "connected (f ` s)"
-proof (rule connectedI)
-  fix A B assume A: "open A" "A \<inter> f ` s \<noteq> {}" and B: "open B" "B \<inter> f ` s \<noteq> {}" and
-    AB: "A \<inter> B \<inter> f ` s = {}" "f ` s \<subseteq> A \<union> B"
-  obtain A' where A': "open A'" "f -` A \<inter> s = A' \<inter> s"
-    using * `open A` unfolding continuous_on_open_invariant by metis
-  obtain B' where B': "open B'" "f -` B \<inter> s = B' \<inter> s"
-    using * `open B` unfolding continuous_on_open_invariant by metis
-
-  have "\<exists>A B. open A \<and> open B \<and> s \<subseteq> A \<union> B \<and> A \<inter> B \<inter> s = {} \<and> A \<inter> s \<noteq> {} \<and> B \<inter> s \<noteq> {}"
-  proof (rule exI[of _ A'], rule exI[of _ B'], intro conjI)
-    have "s \<subseteq> (f -` A \<inter> s) \<union> (f -` B \<inter> s)" using AB by auto
-    then show "s \<subseteq> A' \<union> B'" using A' B' by auto
-  next
-    have "(f -` A \<inter> s) \<inter> (f -` B \<inter> s) = {}" using AB by auto
-    then show "A' \<inter> B' \<inter> s = {}" using A' B' by auto
-  qed (insert A' B' A B, auto)
-  with `connected s` show False
-    unfolding connected_def by blast
+proof (rule connectedI_const)
+  fix P :: "'b \<Rightarrow> bool" assume "continuous_on (f ` s) P"
+  then have "continuous_on s (P \<circ> f)"
+    by (rule continuous_on_compose[OF *])
+  from connectedD_const[OF `connected s` this] show "\<exists>c. \<forall>s\<in>f ` s. P s = c"
+    by auto
 qed
-
 
 section {* Connectedness *}
 
