@@ -295,7 +295,10 @@ fun recover msg =
 
 fun gen_read SML pos text =
   let
-    val syms = Symbol_Pos.explode (text, pos);
+    val syms =
+      Symbol_Pos.explode (text, pos)
+      |> SML ? maps (fn (s, p) => raw_explode s |> map (rpair p));
+
     val termination =
       if null syms then []
       else
