@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_lex.ML
     Author:     Makarius
 
-Lexical syntax for SML.
+Lexical syntax for Isabelle/ML and Standard ML.
 *)
 
 signature ML_LEX =

@@ -1,7 +1,7 @@
 /*  Title:      Pure/ML/ml_lex.scala
     Author:     Makarius
 
-Lexical syntax for SML.
+Lexical syntax for Isabelle/ML and Standard ML.
 */
 
 package isabelle
