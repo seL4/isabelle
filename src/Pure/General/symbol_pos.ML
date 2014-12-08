@@ -37,7 +37,7 @@ sig
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
   val implode: T list -> text
-  val implode_range: Position.T -> Position.T -> T list -> text * Position.range
+  val implode_range: Position.range -> T list -> text * Position.range
   val explode: text * Position.T -> T list
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
@@ -238,7 +238,7 @@ fun pad [] = []
 
 val implode = implode o pad;
 
-fun implode_range pos1 pos2 syms =
+fun implode_range (pos1, pos2) syms =
   let val syms' = (("", pos1) :: syms @ [("", pos2)])
   in (implode syms', range syms') end;
 

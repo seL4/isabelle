@@ -99,6 +99,7 @@ sig
   val ML_numeralN: string val ML_numeral: T
   val ML_charN: string val ML_char: T
   val ML_stringN: string val ML_string: T
+  val ML_cartoucheN: string val ML_cartouche: T
   val ML_commentN: string val ML_comment: T
   val SML_stringN: string val SML_string: T
   val SML_commentN: string val SML_comment: T
@@ -427,6 +428,7 @@ val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
 val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
 val (ML_charN, ML_char) = markup_elem "ML_char";
 val (ML_stringN, ML_string) = markup_elem "ML_string";
+val (ML_cartoucheN, ML_cartouche) = markup_elem "ML_cartouche";
 val (ML_commentN, ML_comment) = markup_elem "ML_comment";
 val (SML_stringN, SML_string) = markup_elem "SML_string";
 val (SML_commentN, SML_comment) = markup_elem "SML_comment";

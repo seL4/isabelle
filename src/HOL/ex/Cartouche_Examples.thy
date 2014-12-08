@@ -260,4 +260,15 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
 lemma "A \<and> B \<longrightarrow> B \<and> A"
   by (\<open>rtac @{thm impI} 1\<close>, \<open>etac @{thm conjE} 1\<close>, \<open>rtac @{thm conjI} 1\<close>, \<open>atac 1\<close>+)
 
+
+subsection \<open>ML syntax: input source\<close>
+
+ML \<open>
+  val s: Input.source = \<open>abc\<close>;
+  writeln ("Look here!" ^ Position.here (Input.pos_of s));
+
+  \<open>abc123def456\<close> |> Input.source_explode |> List.app (fn (s, pos) =>
+    if Symbol.is_digit s then Position.report pos Markup.ML_numeral else ());
+\<close>
+
 end

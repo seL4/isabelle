@@ -42,16 +42,12 @@ val cons_thms = Data.map o apsnd o cons;
 val _ = Theory.setup
   (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse.attribs)
     (fn _ => fn raw_srcs => fn ctxt =>
-      let
-        val i = serial ();
-
-        val (a, ctxt') = ctxt
-          |> ML_Antiquotation.variant "attributes"
-          ||> put_attributes (i, Attrib.check_attribs ctxt raw_srcs);
-        val ml =
-          ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
-            string_of_int i ^ ";\n", "Isabelle." ^ a);
-      in (K ml, ctxt') end));
+      let val i = serial () in
+        ctxt
+        |> put_attributes (i, Attrib.check_attribs ctxt raw_srcs)
+        |> ML_Context.value_decl "attributes"
+            ("ML_Thms.the_attributes ML_context " ^ string_of_int i)
+      end));
 
 
 (* fact references *)
@@ -59,7 +55,7 @@ val _ = Theory.setup
 fun thm_binding kind is_single thms ctxt =
   let
     val initial = null (get_thmss ctxt);
-    val (name, ctxt') = ML_Antiquotation.variant kind ctxt;
+    val (name, ctxt') = ML_Context.variant kind ctxt;
     val ctxt'' = cons_thms ((name, is_single), thms) ctxt';
 
     val ml_body = "Isabelle." ^ name;

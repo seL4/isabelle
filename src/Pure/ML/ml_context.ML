@@ -13,7 +13,9 @@ sig
   val thms: xstring -> thm list
   val exec: (unit -> unit) -> Context.generic -> Context.generic
   val check_antiquotation: Proof.context -> xstring * Position.T -> string
+  val variant: string -> Proof.context -> string * Proof.context
   type decl = Proof.context -> string * string
+  val value_decl: string -> string -> Proof.context -> decl * Proof.context
   val add_antiquotation: binding -> (Token.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
   val print_antiquotations: Proof.context -> unit
@@ -50,9 +52,38 @@ fun exec (e: unit -> unit) context =
 
 (** ML antiquotations **)
 
-(* theory data *)
+(* unique names *)
+
+structure Names = Proof_Data
+(
+  type T = Name.context;
+  val init_names = ML_Syntax.reserved |> fold Name.declare ["ML_context", "ML_print_depth"];
+  fun init _ = init_names;
+);
+
+fun variant a ctxt =
+  let
+    val names = Names.get ctxt;
+    val (b, names') = Name.variant (Name.desymbolize (SOME false) a) names;
+    val ctxt' = Names.put names' ctxt;
+  in (b, ctxt') end;
+
+
+(* decl *)
 
 type decl = Proof.context -> string * string;  (*final context -> ML env, ML body*)
+
+fun value_decl a s ctxt =
+  let
+    val (b, ctxt') = variant a ctxt;
+    val env = "val " ^ b ^ " = " ^ s ^ ";\n";
+    val body = "Isabelle." ^ b;
+    fun decl (_: Proof.context) = (env, body);
+  in (decl, ctxt') end;
+
+
+(* theory data *)
+
 structure Antiquotations = Theory_Data
 (
   type T = (Token.src -> Proof.context -> decl * Proof.context) Name_Space.table;
@@ -101,6 +132,9 @@ fun begin_env visible =
 val end_env = ML_Lex.tokenize "end;";
 val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";
 
+fun expanding (Antiquote.Text tok) = ML_Lex.is_cartouche tok
+  | expanding (Antiquote.Antiq _) = true;
+
 in
 
 fun eval_antiquotes (ants, pos) opt_context =
@@ -112,20 +146,32 @@ fun eval_antiquotes (ants, pos) opt_context =
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
 
     val ((ml_env, ml_body), opt_ctxt') =
-      if forall Antiquote.is_text ants
+      if forall (not o expanding) ants
       then ((begin_env0, map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
-          fun no_decl _ = ([], []);
+          fun tokenize range = apply2 (ML_Lex.tokenize #> map (ML_Lex.set_range range));
 
-          fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
-            | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
+          fun expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
                 let
                   val keywords = Thy_Header.get_keywords' ctxt;
                   val (decl, ctxt') =
                     apply_antiquotation (Token.read_antiq keywords antiq (ss, #1 range)) ctxt;
-                  val decl' = decl #> apply2 (ML_Lex.tokenize #> map (ML_Lex.set_range range));
-                in (decl', ctxt') end;
+                in (decl #> tokenize range, ctxt') end
+            | expand (Antiquote.Text tok) ctxt =
+                if ML_Lex.is_cartouche tok then
+                  let
+                    val range = ML_Lex.range_of tok;
+                    val text =
+                      Symbol_Pos.explode (ML_Lex.content_of tok, #1 range)
+                      |> Symbol_Pos.cartouche_content
+                      |> Symbol_Pos.implode_range range |> #1;
+                    val (decl, ctxt') =
+                      value_decl "input"
+                        ("Input.source true " ^ ML_Syntax.print_string text  ^ " " ^
+                          ML_Syntax.atomic (ML_Syntax.print_range range)) ctxt;
+                  in (decl #> tokenize range, ctxt') end
+                else (K ([], [tok]), ctxt);
 
           val ctxt =
             (case opt_ctxt of

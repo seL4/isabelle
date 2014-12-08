@@ -20,7 +20,7 @@ val _ = Theory.setup
       (fn src => fn output => fn ctxt =>
         let
           val (_, pos) = Token.name_of_src src;
-          val (a, ctxt') = ML_Antiquotation.variant "output" ctxt;
+          val (a, ctxt') = ML_Context.variant "output" ctxt;
           val env =
             "val " ^ a ^ ": string -> unit =\n\
             \  (" ^ output ^ ") o (fn s => s ^ Position.here (" ^
@@ -28,16 +28,6 @@ val _ = Theory.setup
           val body =
             "(fn x => (Isabelle." ^ a ^ " (" ^ ml_make_string ^ " x); x))";
         in (K (env, body), ctxt') end));
-
-
-(* embedded source *)
-
-val _ = Theory.setup
- (ML_Antiquotation.value @{binding source}
-    (Scan.lift Args.text_source_position >> (fn source =>
-      "Input.source " ^ Bool.toString (Input.is_delimited source) ^ " " ^
-        ML_Syntax.print_string (Input.text_of source) ^ " " ^
-        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))));
 
 
 (* formal entities *)

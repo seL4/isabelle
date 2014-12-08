@@ -8,7 +8,6 @@ signature ANTIQUOTE =
 sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
   datatype 'a antiquote = Text of 'a | Antiq of antiq
-  val is_text: 'a antiquote -> bool
   val antiq_reports: antiq -> Position.report list
   val antiquote_reports: ('a -> Position.report_text list) ->
     'a antiquote list -> Position.report_text list
@@ -24,9 +23,6 @@ struct
 
 type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
 datatype 'a antiquote = Text of 'a | Antiq of antiq;
-
-fun is_text (Text _) = true
-  | is_text _ = false;
 
 
 (* reports *)

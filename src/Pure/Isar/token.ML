@@ -542,7 +542,7 @@ fun token k ss =
   Token ((Symbol_Pos.implode ss, Symbol_Pos.range ss), (k, Symbol_Pos.content ss), Slot);
 
 fun token_range k (pos1, (ss, pos2)) =
-  Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.content ss), Slot);
+  Token (Symbol_Pos.implode_range (pos1, pos2) ss, (k, Symbol_Pos.content ss), Slot);
 
 fun scan_token keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||

@@ -218,6 +218,9 @@ style.
 
 *** ML ***
 
+* Cartouches within ML sources are turned into values of type
+Input.source (with formal position information).
+
 * Proper context for various elementary tactics: assume_tac,
 match_tac, compose_tac, Splitter.split_tac etc.  Minor
 INCOMPATIBILITY.

@@ -241,6 +241,7 @@ object Markup
   val ML_NUMERAL = "ML_numeral"
   val ML_CHAR = "ML_char"
   val ML_STRING = "ML_string"
+  val ML_CARTOUCHE = "ML_cartouche"
   val ML_COMMENT = "ML_comment"
   val SML_STRING = "SML_string"
   val SML_COMMENT = "SML_comment"

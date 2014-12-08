@@ -9,12 +9,14 @@ sig
   val keywords: string list
   datatype token_kind =
     Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
-    Space | Comment | Error of string | EOF
+    Space | Cartouche | Comment | Error of string | EOF
   eqtype token
   val stopper: token Scan.stopper
+  val is_cartouche: token -> bool
   val is_regular: token -> bool
   val is_improper: token -> bool
   val set_range: Position.range -> token -> token
+  val range_of: token -> Position.range
   val pos_of: token -> Position.T
   val end_pos_of: token -> Position.T
   val kind_of: token -> token_kind
@@ -62,7 +64,7 @@ val lexicon = Scan.make_lexicon (map raw_explode keywords);
 
 datatype token_kind =
   Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
-  Space | Comment | Error of string | EOF;
+  Space | Cartouche | Comment | Error of string | EOF;
 
 datatype token = Token of Position.range * (token_kind * string);
 
@@ -70,9 +72,10 @@ datatype token = Token of Position.range * (token_kind * string);
 (* position *)
 
 fun set_range range (Token (_, x)) = Token (range, x);
+fun range_of (Token (range, _)) = range;
 
-fun pos_of (Token ((pos, _), _)) = pos;
-fun end_pos_of (Token ((_, pos), _)) = pos;
+val pos_of = #1 o range_of;
+val end_pos_of = #2 o range_of;
 
 
 (* stopper *)
@@ -100,6 +103,9 @@ fun is_keyword (Token (_, (Keyword, _))) = true
 fun is_delimiter (Token (_, (Keyword, x))) = not (Symbol.is_ascii_identifier x)
   | is_delimiter _ = false;
 
+fun is_cartouche (Token (_, (Cartouche, _))) = true
+  | is_cartouche _ = false;
+
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
   | is_regular _ = true;
@@ -120,6 +126,9 @@ fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
   | _ => content_of tok);
+
+
+(* flatten *)
 
 fun flatten_content (tok :: (toks as tok' :: _)) =
       Symbol.escape (check_content_of tok) ::
@@ -145,6 +154,7 @@ fun token_kind_markup SML =
   | Char => (Markup.ML_char, "")
   | String => (if SML then Markup.SML_string else Markup.ML_string, "")
   | Space => (Markup.empty, "")
+  | Cartouche => (Markup.ML_cartouche, "")
   | Comment => (if SML then Markup.SML_comment else Markup.ML_comment, "")
   | Error msg => (Markup.bad, msg)
   | EOF => (Markup.empty, "");
@@ -284,11 +294,17 @@ val scan_ml =
     scan_ident >> token Ident ||
     scan_type_var >> token Type_Var));
 
-val scan_antiq = Antiquote.scan_antiq >> Antiquote.Antiq || scan_ml >> Antiquote.Text;
+val scan_sml = scan_ml >> Antiquote.Text;
+
+val scan_ml_antiq =
+  Antiquote.scan_antiq >> Antiquote.Antiq ||
+  Symbol_Pos.scan_cartouche err_prefix >> (Antiquote.Text o token Cartouche) ||
+  scan_ml >> Antiquote.Text;
 
 fun recover msg =
  (recover_char ||
   recover_string ||
+  Symbol_Pos.recover_cartouche ||
   Symbol_Pos.recover_comment ||
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));
@@ -307,7 +323,7 @@ fun gen_read SML pos text =
           val pos2 = Position.advance Symbol.space pos1;
         in [Antiquote.Text (Token (Position.range pos1 pos2, (Space, Symbol.space)))] end;
 
-    val scan = if SML then scan_ml >> Antiquote.Text else scan_antiq;
+    val scan = if SML then scan_sml else scan_ml_antiq;
     fun check (Antiquote.Text tok) = (check_content_of tok; if SML then () else warn tok)
       | check _ = ();
     val input =
