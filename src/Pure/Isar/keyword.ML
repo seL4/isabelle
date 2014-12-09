@@ -41,6 +41,7 @@ sig
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
+  val command_kind: keywords -> string -> string option
   val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
   val is_vacuous: keywords -> string -> bool
@@ -177,10 +178,12 @@ fun is_literal keywords = is_keyword keywords orf is_command keywords;
 
 (* command kind *)
 
-fun command_kind (Keywords {commands, ...}) = Symtab.lookup commands;
+fun lookup_command (Keywords {commands, ...}) = Symtab.lookup commands;
+
+fun command_kind keywords = Option.map #kind o lookup_command keywords;
 
 fun command_files keywords name path =
-  (case command_kind keywords name of
+  (case lookup_command keywords name of
     NONE => []
   | SOME {kind, files, ...} =>
       if kind <> thy_load then []
@@ -188,7 +191,7 @@ fun command_files keywords name path =
       else map (fn ext => Path.ext ext path) files);
 
 fun command_tags keywords name =
-  (case command_kind keywords name of
+  (case lookup_command keywords name of
     SOME {tags, ...} => tags
   | NONE => []);
 
@@ -199,7 +202,7 @@ fun command_category ks =
   let
     val tab = Symtab.make_set ks;
     fun pred keywords name =
-      (case command_kind keywords name of
+      (case lookup_command keywords name of
         NONE => false
       | SOME {kind, ...} => Symtab.defined tab kind);
   in pred end;

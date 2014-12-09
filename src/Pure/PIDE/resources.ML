@@ -158,7 +158,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
     fun init () =
       begin_theory master_dir header parents
       |> Present.begin_theory update_time
-          (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
+          (fn () => HTML.html_mode (implode o map (Thy_Syntax.present_span keywords)) spans);
 
     val (results, thy) =
       cond_timeit true ("theory " ^ quote name)

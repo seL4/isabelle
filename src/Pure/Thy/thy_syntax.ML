@@ -6,9 +6,9 @@ Superficial theory syntax: tokens and spans.
 
 signature THY_SYNTAX =
 sig
-  val reports_of_tokens: Token.T list -> bool * Position.report_text list
-  val present_token: Token.T -> Output.output
-  val present_span: Command_Span.span -> Output.output
+  val reports_of_tokens: Keyword.keywords -> Token.T list -> bool * Position.report_text list
+  val present_token: Keyword.keywords -> Token.T -> Output.output
+  val present_span: Keyword.keywords -> Command_Span.span -> Output.output
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
   val map_element: ('a -> 'b) -> 'a element -> 'b element
@@ -24,7 +24,7 @@ struct
 
 local
 
-fun reports_of_token tok =
+fun reports_of_token keywords tok =
   let
     val malformed_symbols =
       Input.source_explode (Token.source_position_of tok)
@@ -32,21 +32,21 @@ fun reports_of_token tok =
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val reports = Token.report tok :: Token.completion_report tok @ malformed_symbols;
+    val reports = Token.report keywords tok :: Token.completion_report tok @ malformed_symbols;
   in (is_malformed, reports) end;
 
 in
 
-fun reports_of_tokens toks =
-  let val results = map reports_of_token toks
+fun reports_of_tokens keywords toks =
+  let val results = map (reports_of_token keywords) toks
   in (exists fst results, maps snd results) end;
 
 end;
 
-fun present_token tok =
-  Markup.enclose (Token.markup tok) (Output.output (Token.unparse tok));
+fun present_token keywords tok =
+  Markup.enclose (Token.markup keywords tok) (Output.output (Token.unparse tok));
 
-val present_span = implode o map present_token o Command_Span.content;
+fun present_span keywords = implode o map (present_token keywords) o Command_Span.content;
 
 
 

@@ -36,9 +36,8 @@ body { background-color: #FFFFFF; }
 .bold           { font-weight: bold; }
 
 .keyword1       { color: #006699; font-weight: bold; }
-.command        { color: #006699; font-weight: bold; }
 .keyword2       { color: #009966; font-weight: bold; }
-.keyword        { color: #009966; font-weight: bold; }
+.keyword3       { color: #0099FF; font-weight: bold; }
 .operator       { }
 .string         { color: #FF00CC; }
 .alt_string     { color: #CC00CC; }
