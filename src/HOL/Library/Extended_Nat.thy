@@ -6,7 +6,7 @@
 section {* Extended natural numbers (i.e. with infinity) *}
 
 theory Extended_Nat
-imports Complex_Main Countable
+imports Main Countable
 begin
 
 class infinity =
@@ -646,17 +646,6 @@ qed (simp_all add:
 end
 
 instance enat :: complete_linorder ..
-
-instantiation enat :: linorder_topology
-begin
-
-definition open_enat :: "enat set \<Rightarrow> bool" where
-  "open_enat = generate_topology (range lessThan \<union> range greaterThan)"
-
-instance
-  proof qed (rule open_enat_def)
-
-end
 
 subsection {* Traditional theorem names *}
 

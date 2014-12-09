@@ -13,6 +13,90 @@ begin
 
 text {*
 
+This should be part of @{theory Extended_Nat}, but then the AFP-entry @{text "Jinja_Thread"} fails, as it does
+overload certain named from @{theory Complex_Main}.
+
+*}
+
+instantiation enat :: linorder_topology
+begin
+
+definition open_enat :: "enat set \<Rightarrow> bool" where
+  "open_enat = generate_topology (range lessThan \<union> range greaterThan)"
+
+instance
+  proof qed (rule open_enat_def)
+
+end
+
+lemma open_enat: "open {enat n}"
+proof (cases n)
+  case 0
+  then have "{enat n} = {..< eSuc 0}"
+    by (auto simp: enat_0)
+  then show ?thesis
+    by simp
+next
+  case (Suc n')
+  then have "{enat n} = {enat n' <..< enat (Suc n)}"
+    apply auto
+    apply (case_tac x)
+    apply auto
+    done
+  then show ?thesis
+    by simp
+qed
+
+lemma open_enat_iff:
+  fixes A :: "enat set"
+  shows "open A \<longleftrightarrow> (\<infinity> \<in> A \<longrightarrow> (\<exists>n::nat. {n <..} \<subseteq> A))"
+proof safe
+  assume "\<infinity> \<notin> A"
+  then have "A = (\<Union>n\<in>{n. enat n \<in> A}. {enat n})"
+    apply auto
+    apply (case_tac x)
+    apply auto
+    done
+  moreover have "open \<dots>"
+    by (auto intro: open_enat)
+  ultimately show "open A"
+    by simp
+next
+  fix n assume "{enat n <..} \<subseteq> A"
+  then have "A = (\<Union>n\<in>{n. enat n \<in> A}. {enat n}) \<union> {enat n <..}"
+    apply auto
+    apply (case_tac x)
+    apply auto
+    done
+  moreover have "open \<dots>"
+    by (intro open_Un open_UN ballI open_enat open_greaterThan)
+  ultimately show "open A"
+    by simp
+next
+  assume "open A" "\<infinity> \<in> A"
+  then have "generate_topology (range lessThan \<union> range greaterThan) A" "\<infinity> \<in> A"
+    unfolding open_enat_def by auto
+  then show "\<exists>n::nat. {n <..} \<subseteq> A"
+  proof induction
+    case (Int A B)
+    then obtain n m where "{enat n<..} \<subseteq> A" "{enat m<..} \<subseteq> B"
+      by auto
+    then have "{enat (max n m) <..} \<subseteq> A \<inter> B"
+      by (auto simp add: subset_eq Ball_def max_def enat_ord_code(1)[symmetric] simp del: enat_ord_code(1))
+    then show ?case
+      by auto
+  next
+    case (UN K)
+    then obtain k where "k \<in> K" "\<infinity> \<in> k"
+      by auto
+    with UN.IH[OF this] show ?case
+      by auto
+  qed auto
+qed
+
+
+text {*
+
 For more lemmas about the extended real numbers go to
   @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
 
