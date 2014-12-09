@@ -135,7 +135,7 @@ object Rendering
   private val language_context_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
-      Markup.ML_STRING, Markup.ML_COMMENT)
+      Markup.ML_STRING, Markup.ML_CARTOUCHE, Markup.ML_COMMENT)
 
   private val language_elements = Markup.Elements(Markup.LANGUAGE)
 
@@ -285,7 +285,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
           else None
         case Text.Info(_, elem)
-        if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
+        if elem.name == Markup.ML_STRING ||
+          elem.name == Markup.ML_CARTOUCHE ||
+          elem.name == Markup.ML_COMMENT =>
           Some(Completion.Language_Context.ML_inner)
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
