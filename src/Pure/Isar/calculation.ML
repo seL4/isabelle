@@ -111,7 +111,13 @@ val _ = Theory.setup
 (** proof commands **)
 
 fun assert_sane final =
-  if final then Proof.assert_forward else Proof.assert_forward_or_chain;
+  if final then Proof.assert_forward
+  else
+    Proof.assert_forward_or_chain #>
+    tap (fn state =>
+      if can Proof.assert_chain state then
+        Context_Position.report (Proof.context_of state) (Position.thread_data ()) Markup.improper
+      else ());
 
 fun maintain_calculation int final calc state =
   let
