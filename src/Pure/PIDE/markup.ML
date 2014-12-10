@@ -202,6 +202,7 @@ sig
   val output: T -> Output.output * Output.output
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
+  val markups: T list -> string -> string
   val markup_only: T -> string
   val markup_report: string -> string
 end;
@@ -644,6 +645,8 @@ val enclose = output #-> Library.enclose;
 fun markup m =
   let val (bg, en) = output m
   in Library.enclose (Output.escape bg) (Output.escape en) end;
+
+val markups = fold_rev markup;
 
 fun markup_only m = markup m "";
 

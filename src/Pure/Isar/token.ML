@@ -60,8 +60,8 @@ sig
   val content_of: T -> string
   val keyword_markup: bool * Markup.T -> string -> Markup.T
   val completion_report: T -> Position.report_text list
-  val report: Keyword.keywords -> T -> Position.report_text
-  val markup: Keyword.keywords -> T -> Markup.T
+  val reports: Keyword.keywords -> T -> Position.report_text list
+  val markups: Keyword.keywords -> T -> Markup.T list
   val unparse: T -> string
   val unparse_src: src -> string list
   val print: T -> string
@@ -305,15 +305,13 @@ val token_kind_markup =
   | Error msg => (Markup.bad, msg)
   | _ => (Markup.empty, "");
 
-fun keyword_report tok markup = ((pos_of tok, markup), "");
+fun keyword_reports tok = map (fn markup => ((pos_of tok, markup), ""));
 
-fun command_markup keywords x =
-  (case Keyword.command_kind keywords x of
-    SOME k =>
-      if k = Keyword.thy_end then Markup.keyword2
-      else if k = Keyword.prf_asm orelse k = Keyword.prf_asm_goal then Markup.keyword3
-      else Markup.keyword1
-  | NONE => Markup.keyword1);
+fun command_markups keywords x =
+  if Keyword.is_theory_end keywords x then [Markup.keyword2]
+  else if Keyword.is_proof_asm keywords x then [Markup.keyword3]
+  else if Keyword.is_improper keywords x then [Markup.keyword1, Markup.improper]
+  else [Markup.keyword1];
 
 in
 
@@ -325,16 +323,16 @@ fun completion_report tok =
   then map (fn m => ((pos_of tok, m), "")) (Completion.suppress_abbrevs (content_of tok))
   else [];
 
-fun report keywords tok =
+fun reports keywords tok =
   if is_command tok then
-    keyword_report tok (command_markup keywords (content_of tok))
+    keyword_reports tok (command_markups keywords (content_of tok))
   else if is_kind Keyword tok then
-    keyword_report tok (keyword_markup (false, Markup.keyword2) (content_of tok))
+    keyword_reports tok [keyword_markup (false, Markup.keyword2) (content_of tok)]
   else
     let val (m, text) = token_kind_markup (kind_of tok)
-    in ((pos_of tok, m), text) end;
+    in [((pos_of tok, m), text)] end;
 
-fun markup keywords = #2 o #1 o report keywords;
+fun markups keywords = map (#2 o #1) o reports keywords;
 
 end;
 
@@ -353,18 +351,18 @@ fun unparse (Token (_, (kind, x), _)) =
 
 fun unparse_src (Src {args, ...}) = map unparse args;
 
-fun print tok = Markup.markup (markup Keyword.empty_keywords tok) (unparse tok);
+fun print tok = Markup.markups (markups Keyword.empty_keywords tok) (unparse tok);
 
 fun text_of tok =
   let
     val k = str_of_kind (kind_of tok);
-    val m = markup Keyword.empty_keywords tok;
+    val ms = markups Keyword.empty_keywords tok;
     val s = unparse tok;
   in
     if s = "" then (k, "")
     else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
-    then (k ^ " " ^ Markup.markup m s, "")
-    else (k, Markup.markup m s)
+    then (k ^ " " ^ Markup.markups ms s, "")
+    else (k, Markup.markups ms s)
   end;
 
 
@@ -455,7 +453,7 @@ fun pretty_value ctxt tok =
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
       Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Display.pretty_thm ctxt) ths))
-  | _ => Pretty.mark_str (markup Keyword.empty_keywords tok, unparse tok));
+  | _ => Pretty.marks_str (markups Keyword.empty_keywords tok, unparse tok));
 
 fun pretty_src ctxt src =
   let
@@ -466,6 +464,7 @@ fun pretty_src ctxt src =
       | SOME (_, markup) => Pretty.mark_str (markup, name));
     val prt_arg = pretty_value ctxt;
   in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
+
 
 
 (** scanners **)

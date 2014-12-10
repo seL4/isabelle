@@ -44,9 +44,6 @@ body { background-color: #FFFFFF; }
 .verbatim       { color: #6600CC; }
 .cartouche      { color: #CC6600; }
 .comment        { color: #CC0000; }
-.control        { background-color: #FF6A6A; }
+.improper       { color: #FF5050; }
 .bad            { background-color: #FF6A6A; }
-
-.keyword1       { font-weight: bold; }
-.keyword2       { font-weight: bold; }
 

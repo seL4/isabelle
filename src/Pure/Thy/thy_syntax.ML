@@ -32,7 +32,7 @@ fun reports_of_token keywords tok =
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val reports = Token.report keywords tok :: Token.completion_report tok @ malformed_symbols;
+    val reports = Token.reports keywords tok @ Token.completion_report tok @ malformed_symbols;
   in (is_malformed, reports) end;
 
 in
@@ -44,7 +44,7 @@ fun reports_of_tokens keywords toks =
 end;
 
 fun present_token keywords tok =
-  Markup.enclose (Token.markup keywords tok) (Output.output (Token.unparse tok));
+  fold_rev Markup.enclose (Token.markups keywords tok) (Output.output (Token.unparse tok));
 
 fun present_span keywords = implode o map (present_token keywords) o Command_Span.content;
 
