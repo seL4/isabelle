@@ -45,7 +45,7 @@ object Structure_Matching
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
           def is_command_kind(token: Token, pred: String => Boolean): Boolean =
-            syntax.keywords.is_command_kind(token, pred)
+            token.is_command_kind(syntax.keywords, pred)
 
           def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
             Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).

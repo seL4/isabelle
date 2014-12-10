@@ -128,27 +128,37 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         GUI_Thread.assert {}
 
         val gutter = text_area.getGutter
-        val width = GutterOptionPane.getSelectionAreaWidth
+        val sel_width = GutterOptionPane.getSelectionAreaWidth
         val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
         val FOLD_MARKER_SIZE = 12
 
-        if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-          val buffer = model.buffer
-          JEdit_Lib.buffer_lock(buffer) {
-            val rendering = get_rendering()
+        val buffer = model.buffer
+        JEdit_Lib.buffer_lock(buffer) {
+          val rendering = get_rendering()
 
-            for (i <- 0 until physical_lines.length) {
-              if (physical_lines(i) != -1) {
-                val line_range = Text.Range(start(i), end(i))
+          for (i <- 0 until physical_lines.length) {
+            if (physical_lines(i) != -1) {
+              val line_range = Text.Range(start(i), end(i))
 
-                // gutter icons
-                rendering.gutter_icon(line_range) match {
-                  case Some(icon) =>
-                    val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
-                    val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
+              rendering.gutter_content(line_range) match {
+                case Some((icon, color)) =>
+                  // icons within selection area
+                  if (!gutter.isExpanded &&
+                      gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12)
+                  {
+                    val x0 =
+                      (FOLD_MARKER_SIZE + sel_width - border_width - icon.getIconWidth) max 10
+                    val y0 =
+                      y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
                     icon.paintIcon(gutter, gfx, x0, y0)
-                  case None =>
-                }
+                  }
+                  // background
+                  else {
+                    val y0 = y + i * line_height
+                    gfx.setColor(color)
+                    gfx.fillRect(0, y0, gutter.getWidth, line_height)
+                  }
+                case None =>
               }
             }
           }

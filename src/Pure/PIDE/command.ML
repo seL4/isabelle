@@ -162,7 +162,7 @@ fun read keywords thy master_dir init blobs span =
         SOME tok => Token.pos_of tok
       | NONE => #1 proper_range);
 
-    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens span;
+    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens keywords span;
     val _ = Position.reports_text (token_reports @ maps command_reports span);
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"

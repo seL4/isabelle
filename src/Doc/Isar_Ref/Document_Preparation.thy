@@ -468,8 +468,8 @@ text \<open>
 
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
-  @{file "~~/lib/texinputs/pdfsetup.sty"}, which can be used via
-  @{verbatim \<open>\usepackage{pdfsetup}\<close>} in @{verbatim "root.tex"}, for
+  @{file "~~/lib/texinputs/railsetup.sty"}, which can be used via
+  @{verbatim \<open>\usepackage{railsetup}\<close>} in @{verbatim "root.tex"}, for
   example.
 
   The rail specification language is quoted here as Isabelle @{syntax

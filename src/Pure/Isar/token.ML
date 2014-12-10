@@ -60,8 +60,8 @@ sig
   val content_of: T -> string
   val keyword_markup: bool * Markup.T -> string -> Markup.T
   val completion_report: T -> Position.report_text list
-  val report: T -> Position.report_text
-  val markup: T -> Markup.T
+  val reports: Keyword.keywords -> T -> Position.report_text list
+  val markups: Keyword.keywords -> T -> Markup.T list
   val unparse: T -> string
   val unparse_src: src -> string list
   val print: T -> string
@@ -233,6 +233,7 @@ fun kind_of (Token (_, (k, _), _)) = k;
 fun is_kind k (Token (_, (k', _), _)) = k = k';
 
 val is_command = is_kind Command;
+
 val is_name = is_kind Ident orf is_kind Sym_Ident orf is_kind String orf is_kind Nat;
 
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
@@ -293,25 +294,24 @@ fun content_of (Token (_, (_, x), _)) = x;
 local
 
 val token_kind_markup =
- fn Command => (Markup.command, "")
-  | Keyword => (Markup.keyword2, "")
-  | Ident => (Markup.empty, "")
-  | Long_Ident => (Markup.empty, "")
-  | Sym_Ident => (Markup.empty, "")
-  | Var => (Markup.var, "")
+ fn Var => (Markup.var, "")
   | Type_Ident => (Markup.tfree, "")
   | Type_Var => (Markup.tvar, "")
-  | Nat => (Markup.empty, "")
-  | Float => (Markup.empty, "")
-  | Space => (Markup.empty, "")
   | String => (Markup.string, "")
   | Alt_String => (Markup.alt_string, "")
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
   | Comment => (Markup.comment, "")
   | Error msg => (Markup.bad, msg)
-  | Internal_Value => (Markup.empty, "")
-  | EOF => (Markup.empty, "");
+  | _ => (Markup.empty, "");
+
+fun keyword_reports tok = map (fn markup => ((pos_of tok, markup), ""));
+
+fun command_markups keywords x =
+  if Keyword.is_theory_end keywords x then [Markup.keyword2]
+  else if Keyword.is_proof_asm keywords x then [Markup.keyword3]
+  else if Keyword.is_improper keywords x then [Markup.keyword1, Markup.improper]
+  else [Markup.keyword1];
 
 in
 
@@ -323,14 +323,16 @@ fun completion_report tok =
   then map (fn m => ((pos_of tok, m), "")) (Completion.suppress_abbrevs (content_of tok))
   else [];
 
-fun report tok =
-  if is_kind Keyword tok then
-    ((pos_of tok, keyword_markup (false, Markup.keyword2) (content_of tok)), "")
+fun reports keywords tok =
+  if is_command tok then
+    keyword_reports tok (command_markups keywords (content_of tok))
+  else if is_kind Keyword tok then
+    keyword_reports tok [keyword_markup (false, Markup.keyword2) (content_of tok)]
   else
     let val (m, text) = token_kind_markup (kind_of tok)
-    in ((pos_of tok, m), text) end;
+    in [((pos_of tok, m), text)] end;
 
-val markup = #2 o #1 o report;
+fun markups keywords = map (#2 o #1) o reports keywords;
 
 end;
 
@@ -349,18 +351,18 @@ fun unparse (Token (_, (kind, x), _)) =
 
 fun unparse_src (Src {args, ...}) = map unparse args;
 
-fun print tok = Markup.markup (markup tok) (unparse tok);
+fun print tok = Markup.markups (markups Keyword.empty_keywords tok) (unparse tok);
 
 fun text_of tok =
   let
     val k = str_of_kind (kind_of tok);
-    val m = markup tok;
+    val ms = markups Keyword.empty_keywords tok;
     val s = unparse tok;
   in
     if s = "" then (k, "")
     else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
-    then (k ^ " " ^ Markup.markup m s, "")
-    else (k, Markup.markup m s)
+    then (k ^ " " ^ Markup.markups ms s, "")
+    else (k, Markup.markups ms s)
   end;
 
 
@@ -451,7 +453,7 @@ fun pretty_value ctxt tok =
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
       Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Display.pretty_thm ctxt) ths))
-  | _ => Pretty.mark_str (markup tok, unparse tok));
+  | _ => Pretty.marks_str (markups Keyword.empty_keywords tok, unparse tok));
 
 fun pretty_src ctxt src =
   let
@@ -462,6 +464,7 @@ fun pretty_src ctxt src =
       | SOME (_, markup) => Pretty.mark_str (markup, name));
     val prt_arg = pretty_value ctxt;
   in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
+
 
 
 (** scanners **)

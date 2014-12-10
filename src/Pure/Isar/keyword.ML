@@ -41,6 +41,7 @@ sig
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
+  val command_kind: keywords -> string -> string option
   val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
   val is_vacuous: keywords -> string -> bool
@@ -50,6 +51,7 @@ sig
   val is_document_raw: keywords -> string -> bool
   val is_document: keywords -> string -> bool
   val is_theory_begin: keywords -> string -> bool
+  val is_theory_end: keywords -> string -> bool
   val is_theory_load: keywords -> string -> bool
   val is_theory: keywords -> string -> bool
   val is_theory_body: keywords -> string -> bool
@@ -59,6 +61,8 @@ sig
   val is_proof_goal: keywords -> string -> bool
   val is_qed: keywords -> string -> bool
   val is_qed_global: keywords -> string -> bool
+  val is_proof_asm: keywords -> string -> bool
+  val is_improper: keywords -> string -> bool
   val is_printed: keywords -> string -> bool
 end;
 
@@ -177,10 +181,12 @@ fun is_literal keywords = is_keyword keywords orf is_command keywords;
 
 (* command kind *)
 
-fun command_kind (Keywords {commands, ...}) = Symtab.lookup commands;
+fun lookup_command (Keywords {commands, ...}) = Symtab.lookup commands;
+
+fun command_kind keywords = Option.map #kind o lookup_command keywords;
 
 fun command_files keywords name path =
-  (case command_kind keywords name of
+  (case lookup_command keywords name of
     NONE => []
   | SOME {kind, files, ...} =>
       if kind <> thy_load then []
@@ -188,7 +194,7 @@ fun command_files keywords name path =
       else map (fn ext => Path.ext ext path) files);
 
 fun command_tags keywords name =
-  (case command_kind keywords name of
+  (case lookup_command keywords name of
     SOME {tags, ...} => tags
   | NONE => []);
 
@@ -199,7 +205,7 @@ fun command_category ks =
   let
     val tab = Symtab.make_set ks;
     fun pred keywords name =
-      (case command_kind keywords name of
+      (case lookup_command keywords name of
         NONE => false
       | SOME {kind, ...} => Symtab.defined tab kind);
   in pred end;
@@ -214,6 +220,7 @@ val is_document_raw = command_category [document_raw];
 val is_document = command_category [document_heading, document_body, document_raw];
 
 val is_theory_begin = command_category [thy_begin];
+val is_theory_end = command_category [thy_end];
 
 val is_theory_load = command_category [thy_load];
 
@@ -235,6 +242,9 @@ val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
+
+val is_proof_asm = command_category [prf_asm, prf_asm_goal];
+val is_improper = command_category [qed_script, prf_script, prf_asm_goal_script];
 
 fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;
 

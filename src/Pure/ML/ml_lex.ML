@@ -144,20 +144,16 @@ val flatten = implode o flatten_content;
 local
 
 fun token_kind_markup SML =
- fn Keyword => (Markup.empty, "")
-  | Ident => (Markup.empty, "")
-  | Long_Ident => (Markup.empty, "")
-  | Type_Var => (Markup.ML_tvar, "")
+ fn Type_Var => (Markup.ML_tvar, "")
   | Word => (Markup.ML_numeral, "")
   | Int => (Markup.ML_numeral, "")
   | Real => (Markup.ML_numeral, "")
   | Char => (Markup.ML_char, "")
   | String => (if SML then Markup.SML_string else Markup.ML_string, "")
-  | Space => (Markup.empty, "")
   | Cartouche => (Markup.ML_cartouche, "")
   | Comment => (if SML then Markup.SML_comment else Markup.ML_comment, "")
   | Error msg => (Markup.bad, msg)
-  | EOF => (Markup.empty, "");
+  | _ => (Markup.empty, "");
 
 in
 

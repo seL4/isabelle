@@ -156,7 +156,7 @@ final class Outer_Syntax private(
     val command1 = tokens.exists(_.is_command)
 
     val depth1 =
-      if (tokens.exists(tok => keywords.is_command_kind(tok, Keyword.theory))) 0
+      if (tokens.exists(tok => tok.is_command_kind(keywords, Keyword.theory))) 0
       else if (command1) struct.after_span_depth
       else struct.span_depth
 
@@ -164,15 +164,15 @@ final class Outer_Syntax private(
       ((struct.span_depth, struct.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
-            if (keywords.is_command_kind(tok, Keyword.theory_goal))
+            if (tok.is_command_kind(keywords, Keyword.theory_goal))
               (2, 1)
-            else if (keywords.is_command_kind(tok, Keyword.theory))
+            else if (tok.is_command_kind(keywords, Keyword.theory))
               (1, 0)
-            else if (keywords.is_command_kind(tok, Keyword.proof_goal) || tok.is_begin_block)
+            else if (tok.is_command_kind(keywords, Keyword.proof_goal) || tok.is_begin_block)
               (y + 2, y + 1)
-            else if (keywords.is_command_kind(tok, Keyword.qed) || tok.is_end_block)
+            else if (tok.is_command_kind(keywords, Keyword.qed) || tok.is_end_block)
               (y + 1, y - 1)
-            else if (keywords.is_command_kind(tok, Keyword.qed_global))
+            else if (tok.is_command_kind(keywords, Keyword.qed_global))
               (1, 0)
             else (x, y)
           }

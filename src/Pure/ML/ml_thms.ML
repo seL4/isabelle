@@ -58,7 +58,7 @@ fun thm_binding kind is_single thms ctxt =
     val (name, ctxt') = ML_Context.variant kind ctxt;
     val ctxt'' = cons_thms ((name, is_single), thms) ctxt';
 
-    val ml_body = "Isabelle." ^ name;
+    val ml_body = ML_Context.struct_name ctxt ^ "." ^ name;
     fun decl final_ctxt =
       if initial then
         let

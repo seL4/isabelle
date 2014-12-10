@@ -139,10 +139,6 @@ object Keyword
 
     def command_kind(name: String): Option[String] = commands.get(name).map(_._1)
 
-    def is_command_kind(token: Token, pred: String => Boolean): Boolean =
-      token.is_command &&
-        (command_kind(token.source) match { case Some(k) => pred(k) case None => false })
-
 
     /* load commands */
 

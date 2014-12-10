@@ -3,13 +3,13 @@
 body { background-color: #FFFFFF; }
 
 .head     { background-color: #FFFFFF; }
-.source   { background-color: #F0F0F0; padding: 10px; }
+.source   { background-color: #FFFFFF; padding: 10px; }
 
-.external_source { background-color: #F0F0F0; padding: 10px; }
+.external_source { background-color: #FFFFFF; padding: 10px; }
 .external_footer { background-color: #FFFFFF; }
 
-.theories { background-color: #F0F0F0; padding: 10px; }
-.sessions { background-color: #F0F0F0; padding: 10px; }
+.theories { background-color: #FFFFFF; padding: 10px; }
+.sessions { background-color: #FFFFFF; padding: 10px; }
 
 .name     { font-style: italic; }
 .filename { font-family: fixed; }
@@ -29,23 +29,21 @@ body { background-color: #FFFFFF; }
 .numeral        { }
 .literal        { font-weight: bold; }
 .delimiter      { }
-.inner_string   { color: #D2691E; }
+.inner_string   { color: #FF00CC; }
 .inner_cartouche { color: #CC6600; }
-.inner_comment  { color: #8B0000; }
+.inner_comment  { color: #CC0000; }
 
 .bold           { font-weight: bold; }
 
-.keyword        { font-weight: bold; }
+.keyword1       { color: #006699; font-weight: bold; }
+.keyword2       { color: #009966; font-weight: bold; }
+.keyword3       { color: #0099FF; font-weight: bold; }
 .operator       { }
-.command        { font-weight: bold; }
-.string         { color: #008B00; }
-.altstring      { color: #8B8B00; }
-.verbatim       { color: #00008B; }
+.string         { color: #FF00CC; }
+.alt_string     { color: #CC00CC; }
+.verbatim       { color: #6600CC; }
 .cartouche      { color: #CC6600; }
-.comment        { color: #8B0000; }
-.control        { background-color: #FF6A6A; }
+.comment        { color: #CC0000; }
+.improper       { color: #FF5050; }
 .bad            { background-color: #FF6A6A; }
-
-.keyword1       { font-weight: bold; }
-.keyword2       { font-weight: bold; }
 
