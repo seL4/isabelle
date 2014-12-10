@@ -61,4 +61,6 @@ val initial_structure : (string * structureVal) list = [];
 val initial_signature : (string * signatureVal) list = [];
 val initial_functor : (string * functorVal) list = [];
 
+fun forget_global_structure (_: string) = ();
+
 end;

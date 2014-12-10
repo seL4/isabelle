@@ -19,6 +19,7 @@ struct
   val initial_structure = #allStruct global ();
   val initial_signature = #allSig global ();
   val initial_functor = #allFunct global ();
+  val forget_global_structure = PolyML.Compiler.forgetStructure;
 end;
 
 
@@ -173,6 +174,7 @@ fun toplevel_pp context (_: string list) pp =
   use_text context (1, "pp") false
     ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
-val ml_make_string =
-  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, Isabelle.ML_print_depth ())))))";
+fun ml_make_string struct_name =
+  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, " ^
+    struct_name ^ ".ML_print_depth ())))))";
 

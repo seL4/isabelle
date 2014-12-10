@@ -359,7 +359,7 @@ fun print_code is_first const ctxt =
     val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
     val (ml_code, consts_map) = Lazy.force acc_code;
     val ml_code = if is_first then ml_code else "";
-    val body = "Isabelle." ^ the (AList.lookup (op =) consts_map const);
+    val body = ML_Context.struct_name ctxt ^ "." ^ the (AList.lookup (op =) consts_map const);
   in (ml_code, body) end;
 
 in

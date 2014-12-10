@@ -13,12 +13,14 @@ val _ = Theory.setup
  (ML_Antiquotation.inline @{binding assert}
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
-  ML_Antiquotation.inline @{binding make_string} (Scan.succeed ml_make_string) #>
+  ML_Antiquotation.inline @{binding make_string}
+    (Args.context >> (ml_make_string o ML_Context.struct_name)) #>
 
   ML_Antiquotation.declaration @{binding print}
     (Scan.lift (Scan.optional Args.name "Output.writeln"))
       (fn src => fn output => fn ctxt =>
         let
+          val struct_name = ML_Context.struct_name ctxt;
           val (_, pos) = Token.name_of_src src;
           val (a, ctxt') = ML_Context.variant "output" ctxt;
           val env =
@@ -26,7 +28,7 @@ val _ = Theory.setup
             \  (" ^ output ^ ") o (fn s => s ^ Position.here (" ^
             ML_Syntax.print_position pos ^ "));\n";
           val body =
-            "(fn x => (Isabelle." ^ a ^ " (" ^ ml_make_string ^ " x); x))";
+            "(fn x => (" ^ struct_name ^ "." ^ a ^ " (" ^ ml_make_string struct_name ^ " x); x))";
         in (K (env, body), ctxt') end));
 
 
@@ -52,7 +54,8 @@ val _ = Theory.setup
        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
 
-  ML_Antiquotation.inline @{binding context} (Scan.succeed "Isabelle.ML_context") #>
+  ML_Antiquotation.inline @{binding context}
+    (Args.context >> (fn ctxt => ML_Context.struct_name ctxt ^ ".ML_context")) #>
 
   ML_Antiquotation.inline @{binding typ} (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
   ML_Antiquotation.inline @{binding term} (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>

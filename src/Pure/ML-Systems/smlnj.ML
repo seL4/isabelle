@@ -65,7 +65,7 @@ in
   val _ = default_print_depth 10;
 end;
 
-val ml_make_string = "(fn _ => \"?\")";
+fun ml_make_string (_: string) = "(fn _ => \"?\")";
 
 
 (*prompts*)
