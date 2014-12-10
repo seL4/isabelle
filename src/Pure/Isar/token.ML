@@ -294,25 +294,16 @@ fun content_of (Token (_, (_, x), _)) = x;
 local
 
 val token_kind_markup =
- fn Command => (Markup.keyword1, "")
-  | Keyword => (Markup.keyword2, "")
-  | Ident => (Markup.empty, "")
-  | Long_Ident => (Markup.empty, "")
-  | Sym_Ident => (Markup.empty, "")
-  | Var => (Markup.var, "")
+ fn Var => (Markup.var, "")
   | Type_Ident => (Markup.tfree, "")
   | Type_Var => (Markup.tvar, "")
-  | Nat => (Markup.empty, "")
-  | Float => (Markup.empty, "")
-  | Space => (Markup.empty, "")
   | String => (Markup.string, "")
   | Alt_String => (Markup.alt_string, "")
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
   | Comment => (Markup.comment, "")
   | Error msg => (Markup.bad, msg)
-  | Internal_Value => (Markup.empty, "")
-  | EOF => (Markup.empty, "");
+  | _ => (Markup.empty, "");
 
 fun keyword_report tok markup = ((pos_of tok, markup), "");
 
