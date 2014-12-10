@@ -261,14 +261,27 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
   by (\<open>rtac @{thm impI} 1\<close>, \<open>etac @{thm conjE} 1\<close>, \<open>rtac @{thm conjI} 1\<close>, \<open>atac 1\<close>+)
 
 
-subsection \<open>ML syntax: input source\<close>
+subsection \<open>ML syntax\<close>
 
+text \<open>Input source with position information:\<close>
 ML \<open>
   val s: Input.source = \<open>abc\<close>;
-  writeln ("Look here!" ^ Position.here (Input.pos_of s));
+  writeln (Markup.markup Markup.information ("Look here!" ^ Position.here (Input.pos_of s)));
 
   \<open>abc123def456\<close> |> Input.source_explode |> List.app (fn (s, pos) =>
     if Symbol.is_digit s then Position.report pos Markup.ML_numeral else ());
 \<close>
+
+text \<open>Nested ML evaluation:\<close>
+ML \<open>
+  val ML = ML_Context.eval_source ML_Compiler.flags;
+
+  ML \<open>ML \<open>val a = @{thm refl}\<close>\<close>;
+  ML \<open>val b = @{thm sym}\<close>;
+  val c = @{thm trans}
+  val thms = [a, b, c];
+\<close>
+
+ML \<open>\<close>
 
 end
