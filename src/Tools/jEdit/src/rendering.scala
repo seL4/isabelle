@@ -223,7 +223,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val information_color = color_value("information_color")
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
-  val error1_color = color_value("error1_color")
   val writeln_message_color = color_value("writeln_message_color")
   val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
@@ -552,13 +551,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else if (Protocol.is_information(msg)) Rendering.information_pri
     else 0
 
-  private lazy val gutter_icons = Map(
-    Rendering.information_pri -> JEdit_Lib.load_icon(options.string("gutter_information_icon")),
-    Rendering.warning_pri -> JEdit_Lib.load_icon(options.string("gutter_warning_icon")),
-    Rendering.legacy_pri -> JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
-    Rendering.error_pri -> JEdit_Lib.load_icon(options.string("gutter_error_icon")))
+  private lazy val gutter_message_content = Map(
+    Rendering.information_pri ->
+      (JEdit_Lib.load_icon(options.string("gutter_information_icon")), information_message_color),
+    Rendering.warning_pri ->
+      (JEdit_Lib.load_icon(options.string("gutter_warning_icon")), warning_message_color),
+    Rendering.legacy_pri ->
+      (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), warning_message_color),
+    Rendering.error_pri ->
+      (JEdit_Lib.load_icon(options.string("gutter_error_icon")), error_message_color))
 
-  def gutter_icon(range: Text.Range): Option[Icon] =
+  def gutter_content(range: Text.Range): Option[(Icon, Color)] =
   {
     val pris =
       snapshot.cumulate[Int](range, 0, Rendering.gutter_elements, _ =>
@@ -568,7 +571,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case _ => None
         }).map(_.info)
 
-    gutter_icons.get((0 /: pris)(_ max _))
+    gutter_message_content.get((0 /: pris)(_ max _))
   }
 
 
