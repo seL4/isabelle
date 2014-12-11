@@ -265,7 +265,7 @@ subsection \<open>ML syntax\<close>
 
 text \<open>Input source with position information:\<close>
 ML \<open>
-  val s: Input.source = \<open>abc\<close>;
+  val s: Input.source = \<open>abc123def456\<close>;
   writeln (Markup.markup Markup.information ("Look here!" ^ Position.here (Input.pos_of s)));
 
   \<open>abc123def456\<close> |> Input.source_explode |> List.app (fn (s, pos) =>
@@ -281,7 +281,5 @@ ML \<open>
   val c = @{thm trans}
   val thms = [a, b, c];
 \<close>
-
-ML \<open>\<close>
 
 end
