@@ -62,9 +62,7 @@ object Par_List
   def find_some[A](P: A => Boolean, xs: List[A]): Option[A] =
     get_some((x: A) => if (P(x)) Some(x) else None, xs)
 
-  def exists[A](P: A => Boolean, xs: List[A]): Boolean =
-    get_some((x: A) => if (P(x)) Some(()) else None, xs).isDefined
-
+  def exists[A](P: A => Boolean, xs: List[A]): Boolean = find_some(P, xs).isDefined
   def forall[A](P: A => Boolean, xs: List[A]): Boolean = !exists((x: A) => !P(x), xs)
 }
 

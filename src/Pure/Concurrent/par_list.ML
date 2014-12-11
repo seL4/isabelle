@@ -68,8 +68,7 @@ fun get_some f xs =
 
 fun find_some P = get_some (fn x => if P x then SOME x else NONE);
 
-fun exists P = is_some o get_some (fn x => if P x then SOME () else NONE);
-
+fun exists P = is_some o find_some P;
 fun forall P = not o exists (not o P);
 
 end;
