@@ -697,10 +697,8 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
            (in_bdN, [Lazy.force (#in_bd facts)]),
            (in_monoN, [Lazy.force (#in_mono facts)]),
-           (in_relN, [Lazy.force (#in_rel facts)]),
            (map_comp0N, [#map_comp0 axioms]),
            (rel_mono_strong0N, [Lazy.force (#rel_mono_strong0 facts)]),
-           (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)]),
            (set_map0N, #set_map0 axioms),
            (set_bdN, #set_bd axioms)] @
           (witNs ~~ wit_thmss_of_bnf bnf)
@@ -714,7 +712,8 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
     fun note_unless_dont_note (noted0, lthy0) =
       let
         val notes =
-          [(inj_mapN, [Lazy.force (#inj_map facts)], []),
+          [(in_relN, [Lazy.force (#in_rel facts)], []),
+           (inj_mapN, [Lazy.force (#inj_map facts)], []),
            (inj_map_strongN, [Lazy.force (#inj_map_strong facts)], []),
            (map_compN, [Lazy.force (#map_comp facts)], []),
            (map_cong0N, [#map_cong0 axioms], []),
@@ -732,6 +731,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
            (rel_mapN, Lazy.force (#rel_map facts), []),
            (rel_monoN, [Lazy.force (#rel_mono facts)], mono_attrs),
+           (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)], []),
            (rel_transferN, [Lazy.force (#rel_transfer facts)], []),
            (set_mapN, map Lazy.force (#set_map facts), []),
            (set_transferN, Lazy.force (#set_transfer facts), [])]
