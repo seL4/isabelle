@@ -925,8 +925,10 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
               in qualify' o Binding.qualify true namei end;
             val odead = dead_of_bnf bnf;
             val olive = live_of_bnf bnf;
-            val oDs_pos = find_indices op = [TFree ("dead", [])] (snd (Term.dest_Type
-              (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) bnf)));
+            val Ds = map (fn i => TFree (string_of_int i, [])) (1 upto odead);
+            val Us = snd (Term.dest_Type (mk_T_of_bnf Ds (replicate olive dummyT) bnf));
+            val oDs_pos = map (fn x => find_index (fn y => x = y) Us) Ds
+              |> filter (fn x => x >= 0);
             val oDs = map (nth Ts) oDs_pos;
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (accum', lthy')) =
