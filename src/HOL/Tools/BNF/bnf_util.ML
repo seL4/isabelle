@@ -147,7 +147,9 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
     val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (#2 (Binding.dest b))) b;
     val ((name, info), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.conceal
       |> Typedef.add_typedef true (b', Ts, mx) set opt_morphs tac
+      ||> Local_Theory.restore_naming lthy
       ||> `Local_Theory.restore;
     val phi = Proof_Context.export_morphism lthy_old lthy;
   in
