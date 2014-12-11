@@ -80,8 +80,7 @@ fun uninterruptible f x =
 val available = true;
 
 fun max_threads_result m =
-  if m > 0 then m
-  else Int.min (Int.max (Thread.numProcessors (), 1), 8);
+  if m > 0 then m else Int.min (Int.max (Thread.numProcessors (), 1), 8);
 
 val max_threads = ref 1;
 

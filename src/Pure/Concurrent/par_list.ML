@@ -56,21 +56,20 @@ fun map_independent f = map (Exn.interruptible_capture f) #> Par_Exn.release_all
 
 fun get_some f xs =
   let
-    exception FOUND of 'b option;
-    fun found (Exn.Exn (FOUND some)) = some
-      | found _ = NONE;
+    exception FOUND of 'b;
     val results =
       managed_results "Par_List.get_some"
-        (fn x => (case f x of NONE => () | some => raise FOUND some)) xs;
+        (fn x => (case f x of NONE => () | SOME y => raise FOUND y)) xs;
   in
-    (case get_first found results of
-      SOME y => SOME y
-    | NONE => (Par_Exn.release_first results; NONE))
+    (case get_first (fn Exn.Exn (FOUND res) => SOME res | _ => NONE) results of
+      NONE => (Par_Exn.release_first results; NONE)
+    | some => some)
   end;
 
 fun find_some P = get_some (fn x => if P x then SOME x else NONE);
 
 fun exists P = is_some o get_some (fn x => if P x then SOME () else NONE);
+
 fun forall P = not o exists (not o P);
 
 end;

@@ -345,9 +345,7 @@ object Build
       val graph = tree.graph
       val sessions = graph.keys
 
-      val timings =
-        sessions.par.map((name: String) =>
-          Exn.capture { (name, load_timings(name)) }).toList.map(Exn.release(_))
+      val timings = Par_List.map((name: String) => (name, load_timings(name)), sessions)
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =

@@ -26,6 +26,15 @@ object Exn
       case Exn(exn) => throw exn
     }
 
+  def release_first[A](results: List[Result[A]]): List[A] =
+    if (results.forall({ case Res(_) => true case _ => false }))
+      results.map(release(_))
+    else
+      results.find({ case Exn(exn) => !is_interrupt(exn) case _ => false }) match {
+        case Some(Exn(exn)) => throw exn
+        case _ => results match { case Exn(exn) :: _ => throw exn case _ => ??? }
+      }
+
 
   /* interrupts */
 
