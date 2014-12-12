@@ -235,6 +235,9 @@ quadruples.
 * Renamed "pairself" to "apply2", in accordance to @{apply 2}.
 INCOMPATIBILITY.
 
+* Synchronized.value (ML) is actually synchronized (as in Scala):
+subtle change of semantics with minimal potential for INCOMPATIBILITY.
+
 
 *** System ***
 

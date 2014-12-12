@@ -2019,8 +2019,8 @@ text %mlref \<open>
   individual exceptions by conventional @{verbatim "handle"} of ML.
 
   \item @{ML Par_Exn.release_first} is similar to @{ML
-  Par_Exn.release_all}, but only the first exception that has occurred
-  in the original evaluation process is raised again, the others are
+  Par_Exn.release_all}, but only the first (meaningful) exception that has
+  occurred in the original evaluation process is raised again, the others are
   ignored.  That single exception may get handled by conventional
   means in ML.
 

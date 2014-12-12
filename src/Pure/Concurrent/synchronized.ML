@@ -33,7 +33,8 @@ fun var name x = Var
   cond = ConditionVar.conditionVar (),
   var = Unsynchronized.ref x};
 
-fun value (Var {var, ...}) = ! var;
+fun value (Var {name, lock, var, ...}) =
+  Multithreading.synchronized name lock (fn () => ! var);
 
 
 (* synchronized access *)

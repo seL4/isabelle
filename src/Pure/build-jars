@@ -14,6 +14,7 @@ declare -a SOURCES=(
   Concurrent/event_timer.scala
   Concurrent/future.scala
   Concurrent/mailbox.scala
+  Concurrent/par_list.scala
   Concurrent/simple_thread.scala
   Concurrent/synchronized.scala
   GUI/color_value.scala
