@@ -883,6 +883,52 @@ lemma measure_pmf_in_subprob_space[measurable (raw)]:
   "measure_pmf M \<in> space (subprob_algebra (count_space UNIV))"
   by (simp add: space_subprob_algebra) intro_locales
 
+lemma nn_integral_pair_pmf': "(\<integral>\<^sup>+x. f x \<partial>pair_pmf A B) = (\<integral>\<^sup>+a. \<integral>\<^sup>+b. f (a, b) \<partial>B \<partial>A)"
+proof -
+  have "(\<integral>\<^sup>+x. f x \<partial>pair_pmf A B) = (\<integral>\<^sup>+x. max 0 (f x) * indicator (A \<times> B) x \<partial>pair_pmf A B)"
+    by (subst nn_integral_max_0[symmetric])
+       (auto simp: AE_measure_pmf_iff set_pair_pmf intro!: nn_integral_cong_AE)
+  also have "\<dots> = (\<integral>\<^sup>+a. \<integral>\<^sup>+b. max 0 (f (a, b)) * indicator (A \<times> B) (a, b) \<partial>B \<partial>A)"
+    by (simp add: pair_pmf_def)
+  also have "\<dots> = (\<integral>\<^sup>+a. \<integral>\<^sup>+b. max 0 (f (a, b)) \<partial>B \<partial>A)"
+    by (auto intro!: nn_integral_cong_AE simp: AE_measure_pmf_iff)
+  finally show ?thesis
+    unfolding nn_integral_max_0 .
+qed
+
+lemma pair_map_pmf1: "pair_pmf (map_pmf f A) B = map_pmf (apfst f) (pair_pmf A B)"
+proof (safe intro!: pmf_eqI)
+  fix a :: "'a" and b :: "'b"
+  have [simp]: "\<And>c d. indicator (apfst f -` {(a, b)}) (c, d) = indicator (f -` {a}) c * (indicator {b} d::ereal)"
+    by (auto split: split_indicator)
+
+  have "ereal (pmf (pair_pmf (map_pmf f A) B) (a, b)) =
+         ereal (pmf (map_pmf (apfst f) (pair_pmf A B)) (a, b))"
+    unfolding pmf_pair ereal_pmf_map
+    by (simp add: nn_integral_pair_pmf' max_def emeasure_pmf_single nn_integral_multc pmf_nonneg
+                  emeasure_map_pmf[symmetric] del: emeasure_map_pmf)
+  then show "pmf (pair_pmf (map_pmf f A) B) (a, b) = pmf (map_pmf (apfst f) (pair_pmf A B)) (a, b)"
+    by simp
+qed
+
+lemma pair_map_pmf2: "pair_pmf A (map_pmf f B) = map_pmf (apsnd f) (pair_pmf A B)"
+proof (safe intro!: pmf_eqI)
+  fix a :: "'a" and b :: "'b"
+  have [simp]: "\<And>c d. indicator (apsnd f -` {(a, b)}) (c, d) = indicator {a} c * (indicator (f -` {b}) d::ereal)"
+    by (auto split: split_indicator)
+
+  have "ereal (pmf (pair_pmf A (map_pmf f B)) (a, b)) =
+         ereal (pmf (map_pmf (apsnd f) (pair_pmf A B)) (a, b))"
+    unfolding pmf_pair ereal_pmf_map
+    by (simp add: nn_integral_pair_pmf' max_def emeasure_pmf_single nn_integral_cmult nn_integral_multc pmf_nonneg
+                  emeasure_map_pmf[symmetric] del: emeasure_map_pmf)
+  then show "pmf (pair_pmf A (map_pmf f B)) (a, b) = pmf (map_pmf (apsnd f) (pair_pmf A B)) (a, b)"
+    by simp
+qed
+
+lemma map_pair: "map_pmf (\<lambda>(a, b). (f a, g b)) (pair_pmf A B) = pair_pmf (map_pmf f A) (map_pmf g B)"
+  by (simp add: pair_map_pmf2 pair_map_pmf1 map_pmf_comp split_beta')
+
 lemma bind_pair_pmf:
   assumes M[measurable]: "M \<in> measurable (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) (subprob_algebra N)"
   shows "measure_pmf (pair_pmf A B) \<guillemotright>= M = (measure_pmf A \<guillemotright>= (\<lambda>x. measure_pmf B \<guillemotright>= (\<lambda>y. M (x, y))))"
@@ -1383,6 +1429,83 @@ proof -
   then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
+
+lemma rel_pmf_return_pmf1: "rel_pmf R (return_pmf x) M \<longleftrightarrow> (\<forall>a\<in>M. R x a)"
+proof safe
+  fix a assume "a \<in> M" "rel_pmf R (return_pmf x) M"
+  then obtain pq where *: "\<And>a b. (a, b) \<in> set_pmf pq \<Longrightarrow> R a b"
+    and eq: "return_pmf x = map_pmf fst pq" "M = map_pmf snd pq"
+    by (force elim: rel_pmf.cases)
+  moreover have "set_pmf (return_pmf x) = {x}"
+    by (simp add: set_return_pmf)
+  with `a \<in> M` have "(x, a) \<in> pq"
+    by (force simp: eq set_map_pmf)
+  with * show "R x a"
+    by auto
+qed (auto intro!: rel_pmf.intros[where pq="pair_pmf (return_pmf x) M"]
+          simp: map_fst_pair_pmf map_snd_pair_pmf set_pair_pmf set_return_pmf)
+
+lemma rel_pmf_return_pmf2: "rel_pmf R M (return_pmf x) \<longleftrightarrow> (\<forall>a\<in>M. R a x)"
+  by (subst pmf.rel_flip[symmetric]) (simp add: rel_pmf_return_pmf1)
+
+lemma rel_pmf_rel_prod:
+  "rel_pmf (rel_prod R S) (pair_pmf A A') (pair_pmf B B') \<longleftrightarrow> rel_pmf R A B \<and> rel_pmf S A' B'"
+proof safe
+  assume "rel_pmf (rel_prod R S) (pair_pmf A A') (pair_pmf B B')"
+  then obtain pq where pq: "\<And>a b c d. ((a, c), (b, d)) \<in> set_pmf pq \<Longrightarrow> R a b \<and> S c d"
+    and eq: "map_pmf fst pq = pair_pmf A A'" "map_pmf snd pq = pair_pmf B B'"
+    by (force elim: rel_pmf.cases)
+  show "rel_pmf R A B"
+  proof (rule rel_pmf.intros)
+    let ?f = "\<lambda>(a, b). (fst a, fst b)"
+    have [simp]: "(\<lambda>x. fst (?f x)) = fst o fst" "(\<lambda>x. snd (?f x)) = fst o snd"
+      by auto
+
+    show "map_pmf fst (map_pmf ?f pq) = A"
+      by (simp add: map_pmf_comp pmf.map_comp[symmetric] eq map_fst_pair_pmf)
+    show "map_pmf snd (map_pmf ?f pq) = B"
+      by (simp add: map_pmf_comp pmf.map_comp[symmetric] eq map_fst_pair_pmf)
+
+    fix a b assume "(a, b) \<in> set_pmf (map_pmf ?f pq)"
+    then obtain c d where "((a, c), (b, d)) \<in> set_pmf pq"
+      by (auto simp: set_map_pmf)
+    from pq[OF this] show "R a b" ..
+  qed
+  show "rel_pmf S A' B'"
+  proof (rule rel_pmf.intros)
+    let ?f = "\<lambda>(a, b). (snd a, snd b)"
+    have [simp]: "(\<lambda>x. fst (?f x)) = snd o fst" "(\<lambda>x. snd (?f x)) = snd o snd"
+      by auto
+
+    show "map_pmf fst (map_pmf ?f pq) = A'"
+      by (simp add: map_pmf_comp pmf.map_comp[symmetric] eq map_snd_pair_pmf)
+    show "map_pmf snd (map_pmf ?f pq) = B'"
+      by (simp add: map_pmf_comp pmf.map_comp[symmetric] eq map_snd_pair_pmf)
+
+    fix c d assume "(c, d) \<in> set_pmf (map_pmf ?f pq)"
+    then obtain a b where "((a, c), (b, d)) \<in> set_pmf pq"
+      by (auto simp: set_map_pmf)
+    from pq[OF this] show "S c d" ..
+  qed
+next
+  assume "rel_pmf R A B" "rel_pmf S A' B'"
+  then obtain Rpq Spq
+    where Rpq: "\<And>a b. (a, b) \<in> set_pmf Rpq \<Longrightarrow> R a b"
+        "map_pmf fst Rpq = A" "map_pmf snd Rpq = B"
+      and Spq: "\<And>a b. (a, b) \<in> set_pmf Spq \<Longrightarrow> S a b"
+        "map_pmf fst Spq = A'" "map_pmf snd Spq = B'"
+    by (force elim: rel_pmf.cases)
+
+  let ?f = "(\<lambda>((a, c), (b, d)). ((a, b), (c, d)))"
+  let ?pq = "map_pmf ?f (pair_pmf Rpq Spq)"
+  have [simp]: "(\<lambda>x. fst (?f x)) = (\<lambda>(a, b). (fst a, fst b))" "(\<lambda>x. snd (?f x)) = (\<lambda>(a, b). (snd a, snd b))"
+    by auto
+
+  show "rel_pmf (rel_prod R S) (pair_pmf A A') (pair_pmf B B')"
+    by (rule rel_pmf.intros[where pq="?pq"])
+       (auto simp: map_snd_pair_pmf map_fst_pair_pmf set_pair_pmf set_map_pmf map_pmf_comp Rpq Spq
+                   map_pair)
+qed
 
 end
 
