@@ -6,7 +6,7 @@
 section {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice Metis Basic_BNF_Least_Fixpoints
+imports Hilbert_Choice Metis Basic_BNF_LFPs
 begin
 
 subsection {* Relator for function space *}

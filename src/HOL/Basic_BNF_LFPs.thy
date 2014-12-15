@@ -1,11 +1,11 @@
-(*  Title:      HOL/Basic_BNF_Least_Fixpoints.thy
+(*  Title:      HOL/Basic_BNF_LFPs.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2014
 
 Registration of basic types as BNF least fixpoints (datatypes).
 *)
 
-theory Basic_BNF_Least_Fixpoints
+theory Basic_BNF_LFPs
 imports BNF_Least_Fixpoint
 begin
 

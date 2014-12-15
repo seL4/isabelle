@@ -5,7 +5,7 @@
 section {* Function Definitions and Termination Proofs *}
 
 theory Fun_Def
-imports Basic_BNF_Least_Fixpoints Partial_Function SAT
+imports Basic_BNF_LFPs Partial_Function SAT
 keywords "function" "termination" :: thy_goal and "fun" "fun_cases" :: thy_decl
 begin
 
