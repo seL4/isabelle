@@ -27,23 +27,21 @@ fun mk_selectors T Ts sels =
 
 fun get_ctr_sugar_decl ({ctrs = ctrs0, selss = selss0, ...} : Ctr_Sugar.ctr_sugar) T Ts ctxt =
   let
-    fun mk_constr ctr0 sels0 =
-      let
-        val sels = map (Ctr_Sugar.mk_disc_or_sel Ts) sels0
-        val ctr = Ctr_Sugar.mk_ctr Ts ctr0
-        val binder_Ts = binder_types (fastype_of ctr)
-      in
-        mk_selectors T binder_Ts sels #>> pair ctr
-      end
+    val selss = map (map (Ctr_Sugar.mk_disc_or_sel Ts)) selss0
+    val ctrs = map (Ctr_Sugar.mk_ctr Ts) ctrs0
 
-    val selss =
-      if has_duplicates (op aconv) (flat selss0) orelse
-         exists (exists (can (dest_funT o range_type o fastype_of))) selss0 then
-        []
-      else
-        selss0
+    fun mk_constr ctr sels =
+      mk_selectors T (binder_types (fastype_of ctr)) sels #>> pair ctr
+
+    val selss' =
+      (if has_duplicates (op aconv) (flat selss) orelse
+          exists (exists (can (dest_funT o range_type o fastype_of))) selss then
+         []
+       else
+         selss)
+      |> Ctr_Sugar_Util.pad_list [] (length ctrs)
   in
-    @{fold_map 2} mk_constr ctrs0 (Ctr_Sugar_Util.pad_list [] (length ctrs0) selss) ctxt
+    @{fold_map 2} mk_constr ctrs selss' ctxt
     |>> (pair T #> single)
   end
 
