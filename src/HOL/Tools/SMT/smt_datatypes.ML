@@ -36,7 +36,12 @@ fun get_ctr_sugar_decl ({ctrs = ctrs0, selss = selss0, ...} : Ctr_Sugar.ctr_suga
         mk_selectors T binder_Ts sels #>> pair ctr
       end
 
-    val selss = if has_duplicates (op aconv) (flat selss0) then [] else selss0
+    val selss =
+      if has_duplicates (op aconv) (flat selss0) orelse
+         exists (exists (can (dest_funT o range_type o fastype_of))) selss0 then
+        []
+      else
+        selss0
   in
     @{fold_map 2} mk_constr ctrs0 (Ctr_Sugar_Util.pad_list [] (length ctrs0) selss) ctxt
     |>> (pair T #> single)
