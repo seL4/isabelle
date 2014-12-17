@@ -186,4 +186,3 @@ fun interpretation name f =
   #> perhaps consolidate';
 
 end;
-

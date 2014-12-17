@@ -59,9 +59,6 @@ fun mk_pointfull ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
-val rec_o_map_simps =
-  @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod id_bnf_def};
-
 val size_gen_o_map_simps = @{thms prod.inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
 fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
@@ -77,8 +74,8 @@ fun mk_size_neq ctxt cts exhaust sizes =
   ALLGOALS (REPEAT_DETERM o (rtac @{thm zero_less_Suc} ORELSE' rtac @{thm trans_less_add2}));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
-      fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_maps = ctor_rec_o_maps, ...}, fp_nesting_bnfs,
-      live_nesting_bnfs, ...} : fp_sugar) :: _) lthy0 =
+        fp_res = {bnfs = fp_bnfs, ...}, fp_nesting_bnfs, live_nesting_bnfs, ...} : fp_sugar) :: _)
+      lthy0 =
     let
       val data = Data.get (Context.Proof lthy0);
 
