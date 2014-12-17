@@ -715,6 +715,7 @@ session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
     Probability
     "ex/Dining_Cryptographers"
     "ex/Koepf_Duermuth_Countermeasure"
+    "ex/Measure_Not_CCC"
   document_files "root.tex"
 
 session "HOL-Nominal" (main) in Nominal = HOL +
