@@ -32,7 +32,7 @@ abstype 'a lazy = Lazy of 'a expr Synchronized.var
 with
 
 fun peek (Lazy var) =
-  (case Synchronized.value var of
+  (case Synchronized.peek var of
     Expr _ => NONE
   | Result res => Future.peek res);
 
