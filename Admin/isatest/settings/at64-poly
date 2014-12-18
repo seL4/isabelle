@@ -8,8 +8,6 @@ init_components /home/isabelle/contrib "$HOME/admin/components/main"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="--minheap 1000 --maxheap 3000 --gcthreads 1"
 
-ISABELLE_GHC=/usr/bin/ghc
-
 ISABELLE_HOME_USER=~/isabelle-at64-poly
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
@@ -26,5 +24,5 @@ ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
-ISABELLE_BUILD_OPTIONS="browser_info=true document=pdf"
+ISABELLE_BUILD_OPTIONS="threads=1"
 
