@@ -376,13 +376,14 @@ local
 
 val kinds = Synchronized.var "Proof_Data" (Datatab.empty: (theory -> Any.T) Datatab.table);
 
-fun invoke_init k =
-  (case Datatab.lookup (Synchronized.value kinds) k of
+fun invoke_init tab k =
+  (case Datatab.lookup tab k of
     SOME init => init
   | NONE => raise Fail "Invalid proof data identifier");
 
 fun init_data thy =
-  Datatab.map (fn k => fn _ => invoke_init k thy) (Synchronized.value kinds);
+  let val tab = Synchronized.value kinds
+  in Datatab.map (fn k => fn _ => invoke_init tab k thy) tab end;
 
 fun init_new_data data thy =
   Datatab.merge (K true) (data, init_data thy);
@@ -414,7 +415,10 @@ fun declare init =
 fun get k dest prf =
   (case Datatab.lookup (data_of_proof prf) k of
     SOME x => x
-  | NONE => invoke_init k (Proof_Context.theory_of prf)) |> dest;  (*adhoc value for old theories*)
+  | NONE =>
+      (*adhoc value for old theories*)
+      invoke_init (Synchronized.value kinds) k (Proof_Context.theory_of prf))
+  |> dest;
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
