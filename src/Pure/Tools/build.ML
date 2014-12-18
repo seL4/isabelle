@@ -82,9 +82,11 @@ fun protocol_message props output =
           val pos = Position.of_properties args;
           val {elapsed, ...} = Markup.parse_timing_properties args;
         in
-          (case approximative_id name pos of
-            SOME id => inline_message (#2 function) (Markup.command_timing_properties id elapsed)
-          | NONE => ())
+          if Timing.is_relevant_time elapsed then
+            (case approximative_id name pos of
+              SOME id => inline_message (#2 function) (Markup.command_timing_properties id elapsed)
+            | NONE => ())
+          else ()
         end
       else
         (case Markup.dest_loading_theory props of
