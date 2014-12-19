@@ -40,45 +40,37 @@ open Predicate_Compile_Aux;
 
 type seed = Random_Engine.seed;
 
-(* FIXME just one data slot (record) per program unit *)
-
-structure Pred_Result = Proof_Data
+structure Data = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
-    Code_Numeral.natural -> seed -> term list Predicate.pred
-  fun init _ () = raise Fail "Pred_Result"
-)
-val put_pred_result = Pred_Result.put
+  type T =
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+      Code_Numeral.natural -> seed -> term list Predicate.pred) *
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+      seed -> term list Limited_Sequence.dseq * seed) *
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+      seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence) *
+    (unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence) *
+    (unit -> Code_Numeral.natural -> (bool * term list) option);
+  val empty: T =
+   (fn () => raise Fail "pred_result",
+    fn () => raise Fail "dseq_result",
+    fn () => raise Fail "lseq_result",
+    fn () => raise Fail "new_dseq_result",
+    fn () => raise Fail "cps_result");
+  fun init _ = empty;
+);
 
-structure Dseq_Result = Proof_Data
-(
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
-    seed -> term list Limited_Sequence.dseq * seed
-  fun init _ () = raise Fail "Dseq_Result"
-)
-val put_dseq_result = Dseq_Result.put
+val get_pred_result = #1 o Data.get;
+val get_dseq_result = #2 o Data.get;
+val get_lseq_result = #3 o Data.get;
+val get_new_dseq_result = #4 o Data.get;
+val get_cps_result = #5 o Data.get;
 
-structure Lseq_Result = Proof_Data
-(
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
-    seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
-  fun init _ () = raise Fail "Lseq_Result"
-)
-val put_lseq_result = Lseq_Result.put
-
-structure New_Dseq_Result = Proof_Data
-(
-  type T = unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
-  fun init _ () = raise Fail "New_Dseq_Random_Result"
-)
-val put_new_dseq_result = New_Dseq_Result.put
-
-structure CPS_Result = Proof_Data
-(
-  type T = unit -> Code_Numeral.natural -> (bool * term list) option
-  fun init _ () = raise Fail "CPS_Result"
-)
-val put_cps_result = CPS_Result.put
+val put_pred_result = Data.map o @{apply 5(1)} o K;
+val put_dseq_result = Data.map o @{apply 5(2)} o K;
+val put_lseq_result = Data.map o @{apply 5(3)} o K;
+val put_new_dseq_result = Data.map o @{apply 5(4)} o K;
+val put_cps_result = Data.map o @{apply 5(5)} o K;
 
 val target = "Quickcheck"
 
@@ -293,9 +285,11 @@ fun compile_term compilation options ctxt t =
         Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
+              Code_Runtime.dynamic_value_strict
+                (get_dseq_result, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
                 (Proof_Context.init_global thy4) (SOME target)
-                (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (Limited_Sequence.map o map) proc)
+                (fn proc => fn g => fn n => fn size => fn s =>
+                  g n size s |>> (Limited_Sequence.map o map) proc)
                 qc_term []
           in
             (fn size => fn nrandom => fn depth =>
@@ -306,7 +300,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
+                (get_lseq_result, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
@@ -322,18 +316,20 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Quickcheck.put_new_dseq_result")
+                (get_new_dseq_result, put_new_dseq_result,
+                  "Predicate_Compile_Quickcheck.put_new_dseq_result")
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.map o map) proc)
                 qc_term []
           in
-            fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield (compiled_term depth))
+            fn size => fn nrandom => fn depth =>
+              Option.map fst (Lazy_Sequence.yield (compiled_term depth))
           end
       | Pos_Generator_CPS =>
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (CPS_Result.get, put_cps_result, "Predicate_Compile_Quickcheck.put_cps_result")
+                (get_cps_result, put_cps_result, "Predicate_Compile_Quickcheck.put_cps_result")
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> Option.map (apsnd (map proc)))
                 qc_term []
@@ -343,8 +339,9 @@ fun compile_term compilation options ctxt t =
        | Depth_Limited_Random =>
           let
             val compiled_term = Code_Runtime.dynamic_value_strict
-              (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
-                (Proof_Context.init_global thy4) (SOME target) (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
+              (get_pred_result, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
+                (Proof_Context.init_global thy4) (SOME target)
+                  (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)
                 qc_term []
           in

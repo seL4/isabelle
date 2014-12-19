@@ -266,23 +266,27 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
+
 (** building and compiling generator expressions **)
 
-(* FIXME just one data slot (record) per program unit *)
-
-structure Counterexample = Proof_Data
+structure Data = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> (bool * term list) option * seed
-  fun init _ () = raise Fail "Counterexample"
+  type T =
+    (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed ->
+      (bool * term list) option * seed) *
+    (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed ->
+      ((bool * term list) option * (bool list * bool)) * seed);
+  val empty: T =
+   (fn () => raise Fail "counterexample",
+    fn () => raise Fail "counterexample_report");
+  fun init _ = empty;
 );
-val put_counterexample = Counterexample.put;
 
-structure Counterexample_Report = Proof_Data
-(
-  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed
-  fun init _ () = raise Fail "Counterexample_Report"
-);
-val put_counterexample_report = Counterexample_Report.put;
+val get_counterexample = #1 o Data.get;
+val get_counterexample_report = #2 o Data.get;
+
+val put_counterexample = Data.map o @{apply 2(1)} o K;
+val put_counterexample_report = Data.map o @{apply 2(2)} o K;
 
 val target = "Quickcheck";
 
@@ -407,11 +411,14 @@ fun compile_generator_expr_raw ctxt ts =
     if Config.get ctxt Quickcheck.report then
       let
         val t' = mk_parametric_reporting_generator_expr ctxt ts;
-        val compile = Code_Runtime.dynamic_value_strict
-          (Counterexample_Report.get, put_counterexample_report, "Random_Generators.put_counterexample_report")
-          ctxt (SOME target)
-          (fn proc => fn g => fn c => fn b => fn s => g c b s
-            #>> (apfst o Option.map o apsnd o map) proc) t' [];
+        val compile =
+          Code_Runtime.dynamic_value_strict
+            (get_counterexample_report, put_counterexample_report,
+              "Random_Generators.put_counterexample_report")
+            ctxt (SOME target)
+            (fn proc => fn g => fn c => fn b => fn s =>
+              g c b s #>> (apfst o Option.map o apsnd o map) proc)
+            t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run
         fun iterate_and_collect _ _ 0 report = (NONE, report)
           | iterate_and_collect genuine_only (card, size) j report =
@@ -429,11 +436,13 @@ fun compile_generator_expr_raw ctxt ts =
     else
       let
         val t' = mk_parametric_generator_expr ctxt ts;
-        val compile = Code_Runtime.dynamic_value_strict
-          (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
-          ctxt (SOME target)
-          (fn proc => fn g => fn c => fn b => fn s => g c b s
-            #>> (Option.map o apsnd o map) proc) t' [];
+        val compile =
+          Code_Runtime.dynamic_value_strict
+            (get_counterexample, put_counterexample, "Random_Generators.put_counterexample")
+            ctxt (SOME target)
+            (fn proc => fn g => fn c => fn b => fn s =>
+              g c b s #>> (Option.map o apsnd o map) proc)
+            t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run
         fun iterate _ _ 0 = NONE
           | iterate genuine_only (card, size) j =

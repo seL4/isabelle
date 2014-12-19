@@ -134,7 +134,7 @@ fun mk_apply (T, t) (U, u) =
     (U', Const (@{const_name Quickcheck_Narrowing.apply},
       narrowingT U --> narrowingT T --> narrowingT U') $ u $ t)
   end
-  
+
 fun mk_sum (t, u) =
   let
     val T = fastype_of t
@@ -171,7 +171,7 @@ fun mk_equations descr vs narrowings =
   in
     eqs
   end
-    
+
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
     (case Old_Datatype_Aux.strip_dtyp dT of (_ :: _, Old_Datatype_Aux.DtRec _) => true | _ => false)))) xs
@@ -217,19 +217,19 @@ fun with_overlord_dir name f =
 fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
-  
+
 fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code_modules, _) =
   let
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
     fun message s = if quiet then () else writeln s
     fun verbose_message s = if not quiet andalso verbose then writeln s else ()
     val current_size = Unsynchronized.ref 0
-    val current_result = Unsynchronized.ref Quickcheck.empty_result 
+    val current_result = Unsynchronized.ref Quickcheck.empty_result
     val tmp_prefix = "Quickcheck_Narrowing"
     val ghc_options = Config.get ctxt ghc_options
     val with_tmp_dir =
-      if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
-    fun run in_path = 
+      if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir
+    fun run in_path =
       let
         fun mk_code_file name = Path.append in_path (Path.basic (name ^ ".hs"))
         val generatedN = Code_Target.generatedN
@@ -282,7 +282,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
                     ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
                   val ctxt' = ctxt
                     |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-                    |> Context.proof_map (exec false ml_code);                 
+                    |> Context.proof_map (exec false ml_code);
                   val counterexample = get ctxt' ()
                 in
                   if is_genuine counterexample then
@@ -296,7 +296,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
                       with_size true (k + 1))
                     end
                end
-            end 
+            end
       in with_size genuine_only 0 end
   in
     with_tmp_dir tmp_prefix run
@@ -309,44 +309,45 @@ fun dynamic_value_strict opts cookie ctxt postproc t =
         (Code_Target.evaluator ctxt target program deps true vs_ty_t);
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t) end;
 
+
 (** counterexample generator **)
 
-(* FIXME just one data slot (record) per program unit *)
-structure Counterexample = Proof_Data
-(
-  type T = unit -> (bool * term list) option
-  fun init _ () = raise Fail "Counterexample"
-)
-
-datatype counterexample = Universal_Counterexample of (term * counterexample)
+datatype counterexample =
+    Universal_Counterexample of (term * counterexample)
   | Existential_Counterexample of (term * counterexample) list
   | Empty_Assignment
-  
+
 fun map_counterexample f Empty_Assignment = Empty_Assignment
   | map_counterexample f (Universal_Counterexample (t, c)) =
       Universal_Counterexample (f t, map_counterexample f c)
   | map_counterexample f (Existential_Counterexample cs) =
       Existential_Counterexample (map (fn (t, c) => (f t, map_counterexample f c)) cs)
 
-(* FIXME just one data slot (record) per program unit *)
-structure Existential_Counterexample = Proof_Data
+structure Data = Proof_Data
 (
-  type T = unit -> counterexample option
-  fun init _ () = raise Fail "Counterexample"
-)
+  type T =
+    (unit -> (bool * term list) option) *
+    (unit -> counterexample option);
+  val empty: T =
+   (fn () => raise Fail "counterexample",
+    fn () => raise Fail "existential_counterexample");
+  fun init _ = empty;
+);
 
-val put_existential_counterexample = Existential_Counterexample.put
+val get_counterexample = #1 o Data.get;
+val get_existential_counterexample = #2 o Data.get;
 
-val put_counterexample = Counterexample.put
+val put_counterexample = Data.map o @{apply 2(1)} o K;
+val put_existential_counterexample = Data.map o @{apply 2(2)} o K;
 
 fun finitize_functions (xTs, t) =
   let
     val (names, boundTs) = split_list xTs
     fun mk_eval_ffun dT rT =
-      Const (@{const_name "Quickcheck_Narrowing.eval_ffun"}, 
+      Const (@{const_name "Quickcheck_Narrowing.eval_ffun"},
         Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT]) --> dT --> rT)
     fun mk_eval_cfun dT rT =
-      Const (@{const_name "Quickcheck_Narrowing.eval_cfun"}, 
+      Const (@{const_name "Quickcheck_Narrowing.eval_cfun"},
         Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT]) --> dT --> rT)
     fun eval_function (Type (@{type_name fun}, [dT, rT])) =
       let
@@ -437,10 +438,10 @@ fun mk_terms ctxt qs result =
       map (fn (p, (_, (x, _))) => (x, mk_case_term ctxt p qs result)) ps
       |> map (apsnd post_process)
     end
-  
+
 fun test_term ctxt catch_code_errors (t, _) =
   let
-    fun dest_result (Quickcheck.Result r) = r 
+    fun dest_result (Quickcheck.Result r) = r
     val opts =
       ((Config.get ctxt Quickcheck.genuine_only,
        (Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.verbose)),
@@ -457,12 +458,14 @@ fun test_term ctxt catch_code_errors (t, _) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         val (qs, prop_t) = finitize (strip_quantifiers pnf_t)
         val act = if catch_code_errors then try else (fn f => SOME o f)
-        val execute = dynamic_value_strict (true, opts)
-          ((K true, fn _ => error ""), (Existential_Counterexample.get, Existential_Counterexample.put,
-            "Narrowing_Generators.put_existential_counterexample"))
-          ctxt (apfst o Option.map o map_counterexample)
-      in  
-        case act execute (mk_property qs prop_t) of 
+        val execute =
+          dynamic_value_strict (true, opts)
+            ((K true, fn _ => error ""),
+              (get_existential_counterexample, put_existential_counterexample,
+                "Narrowing_Generators.put_existential_counterexample"))
+            ctxt (apfst o Option.map o map_counterexample)
+      in
+        case act execute (mk_property qs prop_t) of
           SOME (counterexample, result) => Quickcheck.Result
             {counterexample = Option.map (pair true o mk_terms ctxt qs) counterexample,
             evaluation_terms = Option.map (K []) counterexample,
@@ -479,16 +482,18 @@ fun test_term ctxt catch_code_errors (t, _) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-        fun is_genuine (SOME (true, _)) = true 
+        fun is_genuine (SOME (true, _)) = true
           | is_genuine _ = false
         val counterexample_of = Option.map (apsnd (curry (op ~~) (map fst frees) o map post_process))
         val act = if catch_code_errors then try else (fn f => SOME o f)
-        val execute = dynamic_value_strict (false, opts)
-          ((is_genuine, counterexample_of),
-            (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample"))
-          ctxt (apfst o Option.map o apsnd o map)
+        val execute =
+          dynamic_value_strict (false, opts)
+            ((is_genuine, counterexample_of),
+              (get_counterexample, put_counterexample,
+                "Narrowing_Generators.put_counterexample"))
+            ctxt (apfst o Option.map o apsnd o map)
       in
-        case act execute (ensure_testable (finitize t')) of 
+        case act execute (ensure_testable (finitize t')) of
           SOME (counterexample, result) =>
             Quickcheck.Result
              {counterexample = counterexample_of counterexample,
@@ -528,5 +533,5 @@ val _ =
     #> Quickcheck_Common.datatype_interpretation @{plugin quickcheck_narrowing}
       (@{sort narrowing}, instantiate_narrowing_datatype)
     #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals))));
-    
+
 end;

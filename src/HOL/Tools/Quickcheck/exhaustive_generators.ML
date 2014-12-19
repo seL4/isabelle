@@ -440,32 +440,30 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
         Bound 0 $ @{term "None :: term list option"} $ return)
   in HOLogic.mk_comp (wrap, mk_validator_expr ctxt t) end
   
+
 (** generator compiliation **)
 
-(* FIXME just one data slot (record) per program unit *)
-
-structure Counterexample = Proof_Data
+structure Data = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> bool ->
-    Code_Numeral.natural -> (bool * term list) option
-  fun init _ () = raise Fail "Counterexample"
+  type T =
+    (unit -> Code_Numeral.natural -> bool ->
+      Code_Numeral.natural -> (bool * term list) option) *
+    (unit -> (Code_Numeral.natural -> term list option) list) *
+    (unit -> (Code_Numeral.natural -> bool) list);
+  val empty: T =
+   (fn () => raise Fail "counterexample",
+    fn () => raise Fail "counterexample_batch",
+    fn () => raise Fail "validator_batch");
+  fun init _ = empty;
 );
-val put_counterexample = Counterexample.put;
 
-structure Counterexample_Batch = Proof_Data
-(
-  type T = unit -> (Code_Numeral.natural -> term list option) list
-  fun init _ () = raise Fail "Counterexample"
-);
-val put_counterexample_batch = Counterexample_Batch.put;
+val get_counterexample = #1 o Data.get;
+val get_counterexample_batch = #2 o Data.get;
+val get_validator_batch = #3 o Data.get;
 
-structure Validator_Batch = Proof_Data
-(
-  type T = unit -> (Code_Numeral.natural -> bool) list
-  fun init _ () = raise Fail "Counterexample"
-);
-val put_validator_batch = Validator_Batch.put;
-
+val put_counterexample = Data.map o @{apply 3(1)} o K;
+val put_counterexample_batch = Data.map o @{apply 3(2)} o K;
+val put_validator_batch = Data.map o @{apply 3(3)} o K;
 
 val target = "Quickcheck";
 
@@ -477,7 +475,7 @@ fun compile_generator_expr_raw ctxt ts =
       else if Config.get ctxt full_support then mk_full_generator_expr else mk_generator_expr
     val t' = mk_parametric_generator_expr mk_generator_expr ctxt ts;
     val compile = Code_Runtime.dynamic_value_strict
-      (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
+      (get_counterexample, put_counterexample, "Exhaustive_Generators.put_counterexample")
       ctxt (SOME target) (fn proc => fn g =>
         fn card => fn genuine_only => fn size => g card genuine_only size
           |> (Option.map o apsnd o map) proc) t' []
@@ -498,7 +496,7 @@ fun compile_generator_exprs_raw ctxt ts =
   let
     val ts' = map (fn t => mk_generator_expr ctxt (t, [])) ts;
     val compiles = Code_Runtime.dynamic_value_strict
-      (Counterexample_Batch.get, put_counterexample_batch,
+      (get_counterexample_batch, put_counterexample_batch,
         "Exhaustive_Generators.put_counterexample_batch")
       ctxt (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
       (HOLogic.mk_list @{typ "natural => term list option"} ts') []
@@ -516,7 +514,7 @@ fun compile_validator_exprs_raw ctxt ts =
     val ts' = map (mk_validator_expr ctxt) ts
   in
     Code_Runtime.dynamic_value_strict
-      (Validator_Batch.get, put_validator_batch, "Exhaustive_Generators.put_validator_batch")
+      (get_validator_batch, put_validator_batch, "Exhaustive_Generators.put_validator_batch")
       ctxt (SOME target) (K I) (HOLogic.mk_list @{typ "natural => bool"} ts') []
   end;
 
