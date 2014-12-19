@@ -154,6 +154,8 @@ sig
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
+
+  val mk_parametricity_goal: Proof.context -> term list -> term -> term -> term
 end;
 
 structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =

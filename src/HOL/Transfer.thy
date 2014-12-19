@@ -6,7 +6,7 @@
 section {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice Metis Basic_BNF_LFPs
+imports Basic_BNF_LFPs Hilbert_Choice Metis
 begin
 
 subsection {* Relator for function space *}
@@ -361,7 +361,21 @@ lemma bi_unique_fun[transfer_rule]:
 
 end
 
+lemma if_conn:
+  "(if P \<and> Q then t else e) = (if P then if Q then t else e else e)"
+  "(if P \<or> Q then t else e) = (if P then t else if Q then t else e)"
+  "(if P \<longrightarrow> Q then t else e) = (if P then if Q then t else e else t)"
+  "(if \<not> P then t else e) = (if P then e else t)"
+by auto
+
 ML_file "Tools/Transfer/transfer_bnf.ML"
+ML_file "Tools/BNF/bnf_fp_rec_sugar_transfer.ML"
+
+ML {*
+val _ = Theory.setup (BNF_LFP_Rec_Sugar.primrec_interpretation
+  BNF_FP_Rec_Sugar_Transfer.primrec_transfer_pluginN
+  BNF_FP_Rec_Sugar_Transfer.primrec_transfer_interpretation)
+*}
 
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]

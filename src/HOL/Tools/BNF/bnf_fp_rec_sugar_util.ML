@@ -8,9 +8,19 @@ Library for recursor and corecursor sugar.
 
 signature BNF_FP_REC_SUGAR_UTIL =
 sig
+
   datatype fp_kind = Least_FP | Greatest_FP
 
   val case_fp: fp_kind -> 'a -> 'a -> 'a
+
+  type fp_rec_sugar =
+    {transfers: bool list,
+     fun_names: string list,
+     funs: term list,
+     fun_defs: thm list,
+     fpTs: typ list}
+
+  val morph_fp_rec_sugar: morphism -> fp_rec_sugar -> fp_rec_sugar
 
   val flat_rec_arg_args: 'a list list -> 'a list
 
@@ -50,6 +60,20 @@ datatype fp_kind = Least_FP | Greatest_FP;
 
 fun case_fp Least_FP l _ = l
   | case_fp Greatest_FP _ g = g;
+
+type fp_rec_sugar =
+  {transfers: bool list,
+   fun_names: string list,
+   funs: term list,
+   fun_defs: thm list,
+   fpTs: typ list}
+
+fun morph_fp_rec_sugar phi {transfers, fun_names, funs, fun_defs, fpTs} =
+  {transfers = transfers,
+   fun_names = fun_names,
+   funs = map (Morphism.term phi) funs,
+   fun_defs = map (Morphism.thm phi) fun_defs,
+   fpTs = map (Morphism.typ phi) fpTs};
 
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred

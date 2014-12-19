@@ -8,7 +8,7 @@ Recursor sugar ("primrec").
 
 signature BNF_LFP_REC_SUGAR =
 sig
-  datatype primrec_option = Nonexhaustive_Option
+  datatype primrec_option = Nonexhaustive_Option | Transfer_Option;
 
   datatype rec_call =
     No_Rec of int * typ |
@@ -55,7 +55,11 @@ sig
     * local_theory
   val rec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
-    (bool * rec_spec list * typ list * thm * thm list * Token.src list) * local_theory
+    (bool * rec_spec list * typ list * thm * thm list * Token.src list * typ list) * local_theory
+
+  val primrec_interpretation:
+    string -> (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) ->
+    theory -> theory
 
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory
@@ -88,7 +92,7 @@ val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_att
 exception OLD_PRIMREC of unit;
 exception PRIMREC of string * term list;
 
-datatype primrec_option = Nonexhaustive_Option;
+datatype primrec_option = Nonexhaustive_Option | Transfer_Option;
 
 datatype rec_call =
   No_Rec of int * typ |
@@ -174,6 +178,16 @@ fun rewrite_nested_rec_call ctxt =
     SOME {rewrite_nested_rec_call = SOME f, ...} => f ctxt
   | _ => error "Unsupported nested recursion");
 
+val transfer_primrec = morph_fp_rec_sugar o Morphism.transfer_morphism;
+
+structure Primrec_Plugin = Plugin(type T = fp_rec_sugar);
+
+fun primrec_interpretation name f =
+  Primrec_Plugin.interpretation name (fn fp_rec_sugar => fn lthy =>
+    f (transfer_primrec (Proof_Context.theory_of lthy) fp_rec_sugar) lthy);
+
+val interpret_primrec = Primrec_Plugin.data_default;
+
 fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
@@ -242,7 +256,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
     ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts,
-      induct_attrs), lthy)
+      induct_attrs, map #T basic_lfp_sugars), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
@@ -401,23 +415,28 @@ fun build_rec_arg ctxt (funs_data : eqn_data list list) has_call (ctr_spec : rec
       |> fold_rev lambda (args @ left_args @ right_args)
     end);
 
-fun build_defs ctxt nonexhaustive bs mxs (funs_data : eqn_data list list)
+fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
     (rec_specs : rec_spec list) has_call =
   let
     val n_funs = length funs_data;
 
     val ctr_spec_eqn_data_list' =
-      map #ctr_specs (take n_funs rec_specs) ~~ funs_data
-      |> maps (uncurry (finds (fn (x, y) => #ctr x = #ctr y))
-        ##> (fn x => null x orelse
-          raise PRIMREC ("excess equations in definition", map #rhs_term x)) #> fst);
-    val _ = ctr_spec_eqn_data_list' |> map (fn ({ctr, ...}, x) =>
+      maps (fn ((xs, ys), z) =>
+        let
+          val zs = replicate (length xs) z
+          val (b, c) = finds (fn ((x,_), y) => #ctr x = #ctr y) (xs ~~ zs) ys
+          val (_ : bool ) = (fn x => null x orelse
+            raise PRIMREC ("excess equations in definition", map #rhs_term x)) c
+        in b end) (map #ctr_specs (take n_funs rec_specs) ~~ funs_data ~~ nonexhaustives);
+
+    val (_ : unit list) = ctr_spec_eqn_data_list' |> map (fn (({ctr, ...}, nonexhaustive), x) =>
       if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
       else if length x = 1 orelse nonexhaustive then ()
       else warning ("no equation for constructor " ^ Syntax.string_of_term ctxt ctr));
 
     val ctr_spec_eqn_data_list =
-      ctr_spec_eqn_data_list' @ (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
+      map (fn ((x, y), z) => (x, z)) ctr_spec_eqn_data_list' @
+        (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
 
     val recs = take n_funs rec_specs |> map #recx;
     val rec_args = ctr_spec_eqn_data_list
@@ -472,7 +491,7 @@ fun mk_primrec_tac ctxt num_extra_args map_ident0s map_comps fun_defs recx =
   unfold_thms_tac ctxt (nested_simps ctxt @ map_ident0s @ map_comps) THEN
   HEADGOAL (rtac refl);
 
-fun prepare_primrec nonexhaustive fixes specs lthy0 =
+fun prepare_primrec nonexhaustives transfers fixes specs lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -502,7 +521,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
         [] => ()
       | (b, _) :: _ => raise PRIMREC ("type of " ^ Binding.print b ^ " contains top sort", []));
 
-    val ((n2m, rec_specs, _, common_induct, inducts, induct_attrs), lthy) =
+    val ((n2m, rec_specs, _, common_induct, inducts, induct_attrs, Ts), lthy) =
       rec_specs_of bs arg_Ts res_Ts frees callssss lthy0;
 
     val actual_nn = length funs_data;
@@ -513,10 +532,10 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
         raise PRIMREC ("argument " ^ quote (Syntax.string_of_term lthy ctr) ^
           " is not a constructor in left-hand side", [user_eqn])) eqns_data;
 
-    val defs = build_defs lthy nonexhaustive bs mxs funs_data rec_specs has_call;
+    val defs = build_defs lthy nonexhaustives bs mxs funs_data rec_specs has_call;
 
-    fun prove lthy' def_thms' ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...}
-        : rec_spec) (fun_data : eqn_data list) =
+    fun prove def_thms' ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...}
+        : rec_spec) (fun_data : eqn_data list) lthy' =
       let
         val js =
           find_indices (op = o apply2 (fn {fun_name, ctr, ...} => (fun_name, ctr)))
@@ -534,7 +553,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
               |> Thm.close_derivation)
             js;
       in
-        (js, simp_thms)
+        ((js, simp_thms), lthy')
       end;
 
     val notes =
@@ -555,19 +574,33 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
   in
     (((fun_names, defs),
       fn lthy => fn defs =>
-        split_list (map2 (prove lthy defs) (take actual_nn rec_specs) funs_data)),
+        let
+          val def_thms = map (snd o snd) defs;
+          val ts = map fst defs;
+          val phi = Local_Theory.target_morphism lthy;
+        in
+          map_prod split_list
+            (interpret_primrec {transfers = transfers, fun_names = fun_names,
+               funs = (map (Morphism.term phi) ts), fun_defs = (Morphism.fact phi def_thms),
+               fpTs = (take actual_nn Ts)})
+            (@{fold_map 2} (prove defs) (take actual_nn rec_specs) funs_data lthy)
+        end),
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
 fun add_primrec_simple' opts fixes ts lthy =
   let
-    val nonexhaustive = member (op =) opts Nonexhaustive_Option;
-    val (((names, defs), prove), lthy') = prepare_primrec nonexhaustive fixes ts lthy
+    val actual_nn = length fixes;
+    val nonexhaustives = replicate actual_nn (member (op =) opts Nonexhaustive_Option);
+    val transfers = replicate actual_nn (member (op =) opts Transfer_Option);
+    val (((names, defs), prove), lthy') = prepare_primrec nonexhaustives transfers fixes ts lthy
       handle ERROR str => raise PRIMREC (str, []);
   in
     lthy'
     |> fold_map Local_Theory.define defs
-    |-> (fn defs => `(fn lthy => (names, (map fst defs, prove lthy defs))))
+    |-> (fn defs => fn lthy =>
+      let val (thms, lthy) = prove lthy defs;
+      in ((names, (map fst defs, thms)), lthy) end)
   end
   handle PRIMREC (str, eqns) =>
          if null eqns then
@@ -626,7 +659,8 @@ fun add_primrec_overloaded ops fixes specs =
   ##> Local_Theory.exit_global;
 
 val primrec_option_parser = Parse.group (fn () => "option")
-  (Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option)
+  (Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option
+  || Parse.reserved "transfer" >> K Transfer_Option)
 
 val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   "define primitive recursive functions"

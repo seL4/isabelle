@@ -8,7 +8,7 @@ Corecursor sugar ("primcorec" and "primcorecursive").
 
 signature BNF_GFP_REC_SUGAR =
 sig
-  datatype primcorec_option = Sequential_Option | Exhaustive_Option
+  datatype primcorec_option = Sequential_Option | Exhaustive_Option | Transfer_Option
 
   datatype corec_call =
     Dummy_No_Corec of int |
@@ -31,7 +31,8 @@ sig
      corec_sels: thm list}
 
   type corec_spec =
-    {corec: term,
+    {T: typ,
+     corec: term,
      exhaust_discs: thm list,
      sel_defs: thm list,
      fp_nesting_maps: thm list,
@@ -43,6 +44,11 @@ sig
     (term * term list list) list list -> local_theory ->
     corec_spec list * typ list * thm * thm * thm list * thm list * (Token.src list * Token.src list)
     * bool * local_theory
+
+  val primcorec_interpretation:
+    string -> (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) ->
+    theory -> theory
+
   val add_primcorecursive_cmd: primcorec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
@@ -81,7 +87,7 @@ fun primcorec_error str = raise PRIMCOREC (str, []);
 fun primcorec_error_eqn str eqn = raise PRIMCOREC (str, [eqn]);
 fun primcorec_error_eqns str eqns = raise PRIMCOREC (str, eqns);
 
-datatype primcorec_option = Sequential_Option | Exhaustive_Option;
+datatype primcorec_option = Sequential_Option | Exhaustive_Option | Transfer_Option;
 
 datatype corec_call =
   Dummy_No_Corec of int |
@@ -109,7 +115,8 @@ type corec_ctr_spec =
    corec_sels: thm list};
 
 type corec_spec =
-  {corec: term,
+  {T: typ,
+   corec: term,
    exhaust_discs: thm list,
    sel_defs: thm list,
    fp_nesting_maps: thm list,
@@ -403,6 +410,16 @@ fun map_thms_of_typ ctxt (Type (s, _)) =
     (case fp_sugar_of ctxt s of SOME {fp_bnf_sugar = {map_thms, ...}, ...} => map_thms | NONE => [])
   | map_thms_of_typ _ _ = [];
 
+val transfer_primcorec = morph_fp_rec_sugar o Morphism.transfer_morphism;
+
+structure Primcorec_Plugin = Plugin(type T = fp_rec_sugar);
+
+fun primcorec_interpretation name f =
+  Primcorec_Plugin.interpretation name (fn fp_rec_sugar => fn lthy =>
+    f (transfer_primcorec (Proof_Context.theory_of lthy) fp_rec_sugar) lthy);
+
+val interpret_primcorec = Primcorec_Plugin.data_default;
+
 fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
@@ -501,7 +518,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_spec ({T, fp_ctr_sugar = {ctr_sugar as {exhaust_discs, sel_defs, ...}, ...},
         fp_co_induct_sugar = {co_rec = corec, co_rec_thms = corec_thms, co_rec_discs = corec_discs,
         co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
-      {corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec, exhaust_discs = exhaust_discs,
+      {T = T, corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec, exhaust_discs = exhaust_discs,
        sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
        fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs,
@@ -976,6 +993,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val sequentials = replicate actual_nn (member (op =) opts Sequential_Option);
     val exhaustives = replicate actual_nn (member (op =) opts Exhaustive_Option);
+    val transfers = replicate actual_nn (member (op =) opts Transfer_Option);
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
@@ -990,7 +1008,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       let
         val missing = fun_names
           |> filter (map (fn Disc x => #fun_name x | Sel x => #fun_name x) eqns_data
-            |> not oo member (op =))
+            |> not oo member (op =));
       in
         null missing
           orelse primcorec_error_eqns ("missing equations for function(s): " ^ commas missing) []
@@ -1107,6 +1125,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     fun prove thmss'' def_infos lthy =
       let
         val def_thms = map (snd o snd) def_infos;
+        val ts = map fst def_infos;
 
         val (nchotomy_thmss, exclude_thmss) =
           (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'');
@@ -1421,8 +1440,16 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat code_thmss)
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes)
         |> snd
+        |> (fn lthy =>
+          let
+            val phi = Local_Theory.target_morphism lthy;
+            val Ts = take actual_nn (map #T corec_specs);
+          in
+            interpret_primcorec {transfers = transfers, fun_names = fun_names,
+              funs = map (Morphism.term phi) ts, fun_defs = Morphism.fact phi def_thms, fpTs = Ts}
+              lthy
+          end)
       end;
-
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
   in
     (goalss, after_qed, lthy')
@@ -1458,7 +1485,8 @@ val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
 
 val primcorec_option_parser = Parse.group (fn () => "option")
   (Parse.reserved "sequential" >> K Sequential_Option
-  || Parse.reserved "exhaustive" >> K Exhaustive_Option)
+  || Parse.reserved "exhaustive" >> K Exhaustive_Option
+  || Parse.reserved "transfer" >> K Transfer_Option)
 
 (* FIXME: should use "Parse_Spec.spec" instead of "Parse.prop" and honor binding *)
 val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
@@ -1475,5 +1503,9 @@ val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 primcorec_option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
+
+val _ = Theory.setup (primcorec_interpretation
+  BNF_FP_Rec_Sugar_Transfer.primcorec_transfer_pluginN
+  BNF_FP_Rec_Sugar_Transfer.primcorec_transfer_interpretation)
 
 end;
