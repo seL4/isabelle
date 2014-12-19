@@ -81,7 +81,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
         (fn phi =>
           (case Quotient_Info.transform_quotconsts phi qconst_data of
             qcinfo as {qconst = Const (c, _), ...} =>
-              Quotient_Info.update_quotconsts c qcinfo
+              Quotient_Info.update_quotconsts (c, qcinfo)
           | _ => I))
       |> (snd oo Local_Theory.note) 
         ((rsp_thm_name, @{attributes [quot_respect]}), [rsp_thm])

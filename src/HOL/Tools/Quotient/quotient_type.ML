@@ -145,8 +145,8 @@ fun init_quotient_infr gen_code quot_thm equiv_thm opt_par_thm lthy =
   in
     lthy
       |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients qty_full_name (quot_info phi)
-          #> Quotient_Info.update_abs_rep qty_full_name (abs_rep_info phi))
+        (fn phi => Quotient_Info.update_quotients (qty_full_name, quot_info phi)
+          #> Quotient_Info.update_abs_rep (qty_full_name, abs_rep_info phi))
       |> setup_lifting_package gen_code quot_thm equiv_thm opt_par_thm
   end
 
