@@ -14,9 +14,6 @@ end;
 structure Coinduction : COINDUCTION =
 struct
 
-open Ctr_Sugar_Util
-open Ctr_Sugar_General_Tactics
-
 fun filter_in_out _ [] = ([], [])
   | filter_in_out P (x :: xs) =
       let
@@ -79,21 +76,23 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
           val phi = eqs @ map (HOLogic.dest_Trueprop o prop_of) prems
             |> try (Library.foldr1 HOLogic.mk_conj)
             |> the_default @{term True}
-            |> list_exists_free vars
+            |> Ctr_Sugar_Util.list_exists_free vars
             |> Term.map_abs_vars (Variable.revert_fixed ctxt)
             |> fold_rev Term.absfree (names ~~ Ts)
-            |> certify ctxt;
-          val thm = cterm_instantiate_pos [SOME phi] raw_thm;
+            |> Ctr_Sugar_Util.certify ctxt;
+          val thm = Ctr_Sugar_Util.cterm_instantiate_pos [SOME phi] raw_thm;
           val e = length eqs;
           val p = length prems;
         in
           HEADGOAL (EVERY' [resolve_tac [thm],
             EVERY' (map (fn var =>
-              resolve_tac [cterm_instantiate_pos [NONE, SOME (certify ctxt var)] exI]) vars),
-            if p = 0 then CONJ_WRAP' (K (resolve_tac [refl])) eqs
+              resolve_tac
+                [Ctr_Sugar_Util.cterm_instantiate_pos
+                  [NONE, SOME (Ctr_Sugar_Util.certify ctxt var)] exI]) vars),
+            if p = 0 then Ctr_Sugar_Util.CONJ_WRAP' (K (resolve_tac [refl])) eqs
             else
               REPEAT_DETERM_N e o (resolve_tac [conjI] THEN' resolve_tac [refl]) THEN'
-              CONJ_WRAP' (resolve_tac o single) prems,
+              Ctr_Sugar_Util.CONJ_WRAP' (resolve_tac o single) prems,
             K (ALLGOALS_SKIP skip
                (REPEAT_DETERM_N (length vars) o (eresolve_tac [exE] THEN' rotate_tac ~1) THEN'
                DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
@@ -110,7 +109,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
                         val assms = assms' @ drop e inv_thms
                       in
                         HEADGOAL (Method.insert_tac (assms @ case_prems)) THEN
-                        unfold_thms_tac ctxt eqs
+                        Ctr_Sugar_General_Tactics.unfold_thms_tac ctxt eqs
                       end)) ctxt)))])
         end) ctxt) THEN'
       K (prune_params_tac ctxt))
@@ -137,7 +136,8 @@ fun rule get_type get_pred =
   named_rule Induct.setN (Args.const {proper = false, strict = false}) get_pred ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;
 
-val coinduct_rule = rule Induct.lookup_coinductT Induct.lookup_coinductP >> single_rule;
+val coinduct_rule =
+  rule Induct.lookup_coinductT Induct.lookup_coinductP >> single_rule;
 
 fun unless_more_args scan = Scan.unless (Scan.lift
   ((Args.$$$ arbitraryN || Args.$$$ Induct.typeN ||
