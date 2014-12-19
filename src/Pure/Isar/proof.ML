@@ -1100,8 +1100,7 @@ local
 structure Result = Proof_Data
 (
   type T = thm option;
-  val empty = NONE;
-  fun init _ = empty;
+  fun init _ = NONE;
 );
 
 fun the_result ctxt =

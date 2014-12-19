@@ -336,7 +336,8 @@ structure Code_Antiq_Data = Proof_Data
 (
   type T = (string list * string list) * (bool
     * (string * (string * string) list) lazy);
-  fun init _ = (([], []), (true, (Lazy.value ("", []))));
+  val empty: T = (([], []), (true, (Lazy.value ("", []))));
+  fun init _ = empty;
 );
 
 val is_first_occ = fst o snd o Code_Antiq_Data.get;

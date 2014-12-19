@@ -484,21 +484,23 @@ datatype instantiation = Instantiation of {
     (*(instantiation parameter, type constructor), (local instantiation parameter, typ)*)
 }
 
+fun make_instantiation (arities, params) =
+  Instantiation {arities = arities, params = params};
+
+val empty_instantiation = make_instantiation (([], [], []), []);
+
 structure Instantiation = Proof_Data
 (
   type T = instantiation;
-  fun init _ = Instantiation {arities = ([], [], []), params = []};
+  fun init _ = empty_instantiation;
 );
-
-fun mk_instantiation (arities, params) =
-  Instantiation {arities = arities, params = params};
 
 val get_instantiation =
   (fn Instantiation data => data) o Instantiation.get o Local_Theory.target_of;
 
 fun map_instantiation f =
   (Local_Theory.target o Instantiation.map)
-    (fn Instantiation {arities, params} => mk_instantiation (f (arities, params)));
+    (fn Instantiation {arities, params} => make_instantiation (f (arities, params)));
 
 fun the_instantiation lthy =
   (case get_instantiation lthy of
@@ -624,7 +626,7 @@ fun instantiation (tycos, vs, sort) thy =
     thy
     |> Sign.change_begin
     |> Proof_Context.init_global
-    |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
+    |> Instantiation.put (make_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
     |> (Overloading.map_improvable_syntax o apfst)

@@ -633,8 +633,7 @@ local
 structure Result = Proof_Data
 (
   type T = result;
-  val empty: T = Result_List [];
-  fun init _ = empty;
+  fun init _ = Result_List [];
 );
 
 val get_result = Result.get o Proof.context_of;

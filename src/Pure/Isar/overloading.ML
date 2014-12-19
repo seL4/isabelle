@@ -36,7 +36,7 @@ structure Improvable_Syntax = Proof_Data
     unchecks: (term * term) list,
     passed: bool
   };
-  fun init _ = {
+  val empty: T = {
     primary_constraints = [],
     secondary_constraints = [],
     improve = K NONE,
@@ -45,6 +45,7 @@ structure Improvable_Syntax = Proof_Data
     unchecks = [],
     passed = true
   };
+  fun init _ = empty;
 );
 
 fun map_improvable_syntax f = Improvable_Syntax.map (fn {primary_constraints,

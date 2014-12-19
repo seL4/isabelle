@@ -104,12 +104,14 @@ fun make_data
   Data {is_body = is_body, names = names, consts = consts, bounds = bounds, fixes = fixes,
     binds = binds, type_occs = type_occs, maxidx = maxidx, sorts = sorts, constraints = constraints};
 
+val empty_data =
+  make_data (false, Name.context, Symtab.empty, (0, []), empty_fixes, Vartab.empty,
+    Symtab.empty, ~1, [], (Vartab.empty, Vartab.empty));
+
 structure Data = Proof_Data
 (
   type T = data;
-  fun init _ =
-    make_data (false, Name.context, Symtab.empty, (0, []), empty_fixes, Vartab.empty,
-      Symtab.empty, ~1, [], (Vartab.empty, Vartab.empty));
+  fun init _ = empty_data;
 );
 
 fun map_data f =
