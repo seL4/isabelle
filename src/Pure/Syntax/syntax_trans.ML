@@ -47,11 +47,11 @@ sig
   val quote_antiquote_tr': string -> string -> string ->
     string * (Proof.context -> term list -> term)
   val update_name_tr': term -> term
+  val get_idents: Proof.context -> {structs: string list, fixes: string list}
+  val put_idents: {structs: string list, fixes: string list} -> Proof.context -> Proof.context
   val pure_parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
   val pure_parse_translation: (string * (Proof.context -> term list -> term)) list
   val pure_print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
-  val struct_tr: string list -> string * (Proof.context -> term list -> term)
-  val struct_ast_tr': string list -> string * (Proof.context -> Ast.ast list -> Ast.ast)
 end;
 
 structure Syntax_Trans: SYNTAX_TRANS =
@@ -225,6 +225,15 @@ fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T)
 
 (* indexed syntax *)
 
+structure Idents = Proof_Data
+(
+  type T = {structs: string list, fixes: string list};
+  fun init _ : T = {structs = [], fixes = []};
+);
+
+val get_idents = Idents.get;
+val put_idents = Idents.put;
+
 fun indexdefault_ast_tr [] =
       Ast.Appl [Ast.Constant "_index",
         Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]]
@@ -239,13 +248,11 @@ fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
 fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
-fun struct_tr structs =
-  ("_struct", fn _ =>
-    (fn [Const ("_indexdefault", _)] =>
-        (case structs of
-          x :: _ => Syntax.const (Lexicon.mark_fixed x)
-        | _ => error "Illegal reference to implicit structure")
-      | ts => raise TERM ("struct_tr", ts)));
+fun struct_tr ctxt [Const ("_indexdefault", _)] =
+      (case #structs (get_idents ctxt) of
+        x :: _ => Syntax.const (Lexicon.mark_fixed x)
+      | _ => error "Illegal reference to implicit structure")
+  | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
 
@@ -457,13 +464,11 @@ end;
 fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
-fun struct_ast_tr' structs =
-  ("_struct", fn _ =>
-    (fn [Ast.Constant "_indexdefault"] =>
-        (case structs of
-          x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
-        | _ => raise Match)
-      | _ => raise Match));
+fun struct_ast_tr' ctxt [Ast.Constant "_indexdefault"] =
+      (case #structs (get_idents ctxt) of
+        x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
+      | _ => raise Match)
+  | struct_ast_tr' _ _ = raise Match;
 
 
 
@@ -492,7 +497,8 @@ val pure_parse_translation =
   ("_TYPE", fn _ => type_tr),
   ("_DDDOT", fn _ => dddot_tr),
   ("_update_name", fn _ => update_name_tr),
-  ("_index", fn _ => index_tr)];
+  ("_index", fn _ => index_tr),
+  ("_struct", struct_tr)];
 
 val pure_print_ast_translation =
  [("\\<^type>fun", fn _ => fun_ast_tr'),
@@ -500,7 +506,8 @@ val pure_print_ast_translation =
   ("_idts", fn _ => idtyp_ast_tr' "_idts"),
   ("_pttrns", fn _ => idtyp_ast_tr' "_pttrns"),
   ("\\<^const>Pure.imp", fn _ => impl_ast_tr'),
-  ("_index", fn _ => index_ast_tr')];
+  ("_index", fn _ => index_ast_tr'),
+  ("_struct", struct_ast_tr')];
 
 end;
 

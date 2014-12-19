@@ -22,7 +22,6 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
-  val syntax_of: Proof.context -> Local_Syntax.T
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
@@ -248,6 +247,16 @@ fun map_mode f =
 fun map_syntax f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
     (mode, f syntax, tsig, consts, facts, cases));
+
+fun map_syntax_idents f ctxt =
+  let
+    val idents = Syntax_Trans.get_idents ctxt;
+    val (opt_idents', syntax') = f (#syntax (rep_data ctxt));
+  in
+    ctxt
+    |> map_syntax (K syntax')
+    |> (case opt_idents' of NONE => I | SOME idents' => Syntax_Trans.put_idents idents')
+  end;
 
 fun map_tsig f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
@@ -1065,8 +1074,8 @@ fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax _ _ = NONE;
 
 fun gen_notation syntax add mode args ctxt =
-  ctxt |> map_syntax
-    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (syntax ctxt) args));
+  ctxt |> map_syntax_idents
+    (Local_Syntax.update_modesyntax ctxt add mode (map_filter (syntax ctxt) args));
 
 in
 
@@ -1135,15 +1144,12 @@ fun generic_revert_abbrev mode arg =
 (* fixes *)
 
 fun add_fixes raw_vars ctxt =
-  let
-    val thy = theory_of ctxt;
-    val vars = #1 (cert_vars raw_vars ctxt);
-  in
+  let val vars = #1 (cert_vars raw_vars ctxt) in
     ctxt
     |> Variable.add_fixes_binding (map #1 vars)
     |-> (fn xs =>
       fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
-      #-> (map_syntax o Local_Syntax.add_syntax thy o map (pair Local_Syntax.Fixed))
+      #-> (map_syntax_idents o Local_Syntax.add_syntax ctxt o map (pair Local_Syntax.Fixed))
       #> pair xs)
   end;
 
@@ -1366,7 +1372,7 @@ fun pretty_ctxt ctxt =
       val prt_term = Syntax.pretty_term ctxt;
 
       (*structures*)
-      val {structs, ...} = Local_Syntax.idents_of (syntax_of ctxt);
+      val {structs, ...} = Syntax_Trans.get_idents ctxt;
       val prt_structs =
         if null structs then []
         else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::

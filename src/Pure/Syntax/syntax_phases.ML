@@ -599,8 +599,9 @@ fun prune_types ctxt tm =
           in (t1' $ t2', seen'') end;
   in #1 (prune (tm, [])) end;
 
-fun mark_atoms {structs, fixes} is_syntax_const ctxt tm =
+fun mark_atoms is_syntax_const ctxt tm =
   let
+    val {structs, fixes} = Syntax_Trans.get_idents ctxt;
     val show_structs = Config.get ctxt show_structs;
 
     fun mark ((t as Const (c, _)) $ u) =
@@ -627,7 +628,7 @@ fun mark_atoms {structs, fixes} is_syntax_const ctxt tm =
 
 in
 
-fun term_to_ast idents is_syntax_const ctxt trf tm =
+fun term_to_ast is_syntax_const ctxt trf tm =
   let
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
@@ -670,7 +671,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     |> mark_aprop
     |> show_types ? prune_types ctxt
     |> Variable.revert_bounds ctxt
-    |> mark_atoms idents is_syntax_const ctxt
+    |> mark_atoms is_syntax_const ctxt
     |> ast_of
   end;
 
@@ -779,9 +780,8 @@ fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val syn = Proof_Context.syn_of ctxt;
-    val idents = Local_Syntax.idents_of (Proof_Context.syntax_of ctxt);
   in
-    unparse_t (term_to_ast idents (is_some o Syntax.lookup_const syn))
+    unparse_t (term_to_ast (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
       (Markup.language_term false) ctxt
   end;
