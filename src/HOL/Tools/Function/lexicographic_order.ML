@@ -209,7 +209,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   end) 1 st;
 
 fun lexicographic_order_tac quiet ctxt =
-  TRY (Function_Common.apply_termination_rule ctxt 1) THEN
+  TRY (Function_Common.termination_rule_tac ctxt 1) THEN
   lex_order_tac quiet ctxt
     (auto_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems termination_simp})))
 

@@ -279,7 +279,7 @@ val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_case_cong)))
 
 val get_congs = Function_Context_Tree.get_function_congs
 
-fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
+fun get_info ctxt t = Item_Net.retrieve (get_functions ctxt) t
   |> the_single |> snd
 
 

@@ -23,7 +23,7 @@ fun inst_state_tac inst st =
   | _ => Seq.empty;
 
 fun relation_tac ctxt rel i =
-  TRY (Function_Common.apply_termination_rule ctxt i)
+  TRY (Function_Common.termination_rule_tac ctxt i)
   THEN inst_state_tac rel;
 
 
@@ -45,7 +45,7 @@ fun inst_state_infer_tac ctxt rel st =
   | _ => Seq.empty;
 
 fun relation_infer_tac ctxt rel i =
-  TRY (Function_Common.apply_termination_rule ctxt i)
+  TRY (Function_Common.termination_rule_tac ctxt i)
   THEN inst_state_infer_tac ctxt rel;
 
 end

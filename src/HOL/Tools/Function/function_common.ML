@@ -6,27 +6,25 @@ Common definitions and other infrastructure for the function package.
 
 signature FUNCTION_DATA =
 sig
-
-type info =
- {is_partial : bool,
-  defname : string,
-    (* contains no logical entities: invariant under morphisms: *)
-  add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Token.src list -> thm list -> local_theory -> thm list * local_theory,
-  fnames : string list,
-  case_names : string list,
-  fs : term list,
-  R : term,
-  dom: term,
-  psimps: thm list,
-  pinducts: thm list,
-  simps : thm list option,
-  inducts : thm list option,
-  termination : thm,
-  cases : thm list,
-  pelims: thm list list,
-  elims: thm list list option}
-
+  type info =
+   {is_partial : bool,
+    defname : string,
+      (*contains no logical entities: invariant under morphisms:*)
+    add_simps : (binding -> binding) -> string -> (binding -> binding) ->
+      Token.src list -> thm list -> local_theory -> thm list * local_theory,
+    fnames : string list,
+    case_names : string list,
+    fs : term list,
+    R : term,
+    dom: term,
+    psimps: thm list,
+    pinducts: thm list,
+    simps : thm list option,
+    inducts : thm list option,
+    termination : thm,
+    cases : thm list,
+    pelims: thm list list,
+    elims: thm list list option}
 end
 
 structure Function_Data : FUNCTION_DATA =
@@ -35,7 +33,7 @@ struct
 type info =
  {is_partial : bool,
   defname : string,
-    (* contains no logical entities: invariant under morphisms: *)
+    (*contains no logical entities: invariant under morphisms:*)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
     Token.src list -> thm list -> local_theory -> thm list * local_theory,
   fnames : string list,
@@ -64,7 +62,30 @@ sig
   val graph_name : string -> string
   val rel_name : string -> string
   val dom_name : string -> string
-  val apply_termination_rule : Proof.context -> int -> tactic
+  val split_def : Proof.context -> (string -> 'a) -> term ->
+    string * (string * typ) list * term list * term list * term
+  val check_defs : Proof.context -> ((string * typ) * 'a) list -> term list -> unit
+  type fixes = ((string * typ) * mixfix) list
+  type 'a spec = (Attrib.binding * 'a list) list
+  datatype function_config = FunctionConfig of
+   {sequential: bool,
+    default: string option,
+    domintros: bool,
+    partials: bool}
+  type preproc = function_config -> Proof.context -> fixes -> term spec ->
+    (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
+  val fname_of : term -> string
+  val mk_case_names : int -> string -> int -> string list
+  val empty_preproc : (Proof.context -> ((string * typ) * mixfix) list -> term list -> 'c) ->
+    preproc
+  val termination_rule_tac : Proof.context -> int -> tactic
+  val store_termination_rule : thm -> Context.generic -> Context.generic
+  val get_functions : Proof.context -> (term * info) Item_Net.T
+  val add_function_data : info -> Context.generic -> Context.generic
+  val termination_prover_tac : Proof.context -> tactic
+  val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
+  val get_preproc: Proof.context -> preproc
+  val set_preproc: preproc -> Context.generic -> Context.generic
   datatype function_result = FunctionResult of
    {fs: term list,
     G: term,
@@ -77,33 +98,12 @@ sig
     termination : thm,
     domintros : thm list option}
   val transform_function_data : info -> morphism -> info
-  val get_function : Proof.context -> (term * info) Item_Net.T
   val import_function_data : term -> Proof.context -> info option
   val import_last_function : Proof.context -> info option
-  val add_function_data : info -> Context.generic -> Context.generic
-  val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
-  val get_termination_prover : Proof.context -> tactic
-  val store_termination_rule : thm -> Context.generic -> Context.generic
-  datatype function_config = FunctionConfig of
-   {sequential: bool,
-    default: string option,
-    domintros: bool,
-    partials: bool}
   val default_config : function_config
-  val split_def : Proof.context -> (string -> 'a) -> term ->
-    string * (string * typ) list * term list * term list * term
-  val check_defs : Proof.context -> ((string * typ) * 'a) list -> term list -> unit
-  type fixes = ((string * typ) * mixfix) list
-  type 'a spec = (Attrib.binding * 'a list) list
-  type preproc = function_config -> Proof.context -> fixes -> term spec ->
-    (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
-  val fname_of : term -> string
-  val mk_case_names : int -> string -> int -> string list
-  val empty_preproc : (Proof.context -> ((string * typ) * mixfix) list -> term list -> 'c) -> preproc
-  val get_preproc: Proof.context -> preproc
-  val set_preproc: preproc -> Context.generic -> Context.generic
   val function_parser : function_config ->
-    ((function_config * (binding * string option * mixfix) list) * (Attrib.binding * string) list) parser
+    ((function_config * (binding * string option * mixfix) list) *
+      (Attrib.binding * string) list) parser
 end
 
 structure Function_Common : FUNCTION_COMMON =
@@ -113,159 +113,24 @@ open Function_Data
 
 local open Function_Lib in
 
-(* Profiling *)
-val profile = Unsynchronized.ref false;
+
+(* profiling *)
+
+val profile = Unsynchronized.ref false
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
 
 val acc_const_name = @{const_name Wellfounded.accp}
 fun mk_acc domT R =
-  Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R 
+  Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R
 
 val function_name = suffix "C"
 val graph_name = suffix "_graph"
 val rel_name = suffix "_rel"
 val dom_name = suffix "_dom"
 
-(* Termination rules *)
 
-(* FIXME just one data slot (record) per program unit *)
-structure TerminationRule = Generic_Data
-(
-  type T = thm list
-  val empty = []
-  val extend = I
-  val merge = Thm.merge_thms
-);
-
-val get_termination_rules = TerminationRule.get
-val store_termination_rule = TerminationRule.map o cons
-val apply_termination_rule = resolve_tac o get_termination_rules o Context.Proof
-
-
-(* Function definition result data *)
-
-datatype function_result = FunctionResult of
- {fs: term list,
-  G: term,
-  R: term,
-  dom: term,
-  psimps : thm list,
-  simple_pinducts : thm list,
-  cases : thm list,
-  pelims : thm list list,
-  termination : thm,
-  domintros : thm list option}
-
-fun transform_function_data ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) phi =
-    let
-      val term = Morphism.term phi
-      val thm = Morphism.thm phi
-      val fact = Morphism.fact phi
-      val name = Binding.name_of o Morphism.binding phi o Binding.name
-    in
-      { add_simps = add_simps, case_names = case_names, fnames = fnames,
-        fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
-        pinducts = fact pinducts, simps = Option.map fact simps,
-        inducts = Option.map fact inducts, termination = thm termination,
-        defname = name defname, is_partial=is_partial, cases = fact cases,
-        elims = Option.map (map fact) elims, pelims = map fact pelims }
-    end
-
-(* FIXME just one data slot (record) per program unit *)
-structure FunctionData = Generic_Data
-(
-  type T = (term * info) Item_Net.T;
-  val empty : T = Item_Net.init (op aconv o apply2 fst) (single o fst);
-  val extend = I;
-  fun merge tabs : T = Item_Net.merge tabs;
-)
-
-val get_function = FunctionData.get o Context.Proof;
-
-fun lift_morphism thy f =
-  let
-    fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of thy t))
-  in
-    Morphism.morphism "lift_morphism"
-      {binding = [],
-       typ = [Logic.type_map term],
-       term = [term],
-       fact = [map f]}
-  end
-
-fun import_function_data t ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val ct = cterm_of thy t
-    val inst_morph = lift_morphism thy o Thm.instantiate
-
-    fun match (trm, data) =
-      SOME (transform_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
-      handle Pattern.MATCH => NONE
-  in
-    get_first match (Item_Net.retrieve (get_function ctxt) t)
-  end
-
-fun import_last_function ctxt =
-  case Item_Net.content (get_function ctxt) of
-    [] => NONE
-  | (t, _) :: _ =>
-    let
-      val ([t'], ctxt') = Variable.import_terms true [t] ctxt
-    in
-      import_function_data t' ctxt'
-    end
-
-fun add_function_data (data : info as {fs, termination, ...}) =
-  FunctionData.map (fold (fn f => Item_Net.update (f, data)) fs)
-  #> store_termination_rule termination
-
-
-(* Default Termination Prover *)
-
-(* FIXME just one data slot (record) per program unit *)
-structure TerminationProver = Generic_Data
-(
-  type T = Proof.context -> tactic
-  val empty = (fn _ => error "Termination prover not configured")
-  val extend = I
-  fun merge (a, _) = a
-)
-
-val set_termination_prover = TerminationProver.put
-fun get_termination_prover ctxt = TerminationProver.get (Context.Proof ctxt) ctxt
-
-
-(* Configuration management *)
-datatype function_opt
-  = Sequential
-  | Default of string
-  | DomIntros
-  | No_Partials
-
-datatype function_config = FunctionConfig of
- {sequential: bool,
-  default: string option,
-  domintros: bool,
-  partials: bool}
-
-fun apply_opt Sequential (FunctionConfig {sequential, default, domintros, partials}) =
-    FunctionConfig {sequential=true, default=default, domintros=domintros, partials=partials}
-  | apply_opt (Default d) (FunctionConfig {sequential, default, domintros, partials}) =
-    FunctionConfig {sequential=sequential, default=SOME d, domintros=domintros, partials=partials}
-  | apply_opt DomIntros (FunctionConfig {sequential, default, domintros, partials}) =
-    FunctionConfig {sequential=sequential, default=default, domintros=true, partials=partials}
-  | apply_opt No_Partials (FunctionConfig {sequential, default, domintros, partials}) =
-    FunctionConfig {sequential=sequential, default=default, domintros=domintros, partials=false}
-
-val default_config =
-  FunctionConfig { sequential=false, default=NONE,
-    domintros=false, partials=true}
-
-
-(* Analyzing function equations *)
+(* analyzing function equations *)
 
 fun split_def ctxt check_head geq =
   let
@@ -285,7 +150,7 @@ fun split_def ctxt check_head geq =
     (fname, qs, gs, args, rhs)
   end
 
-(* Check for all sorts of errors in the input *)
+(*check for all sorts of errors in the input*)
 fun check_defs ctxt fixes eqs =
   let
     val fnames = map (fst o fst) fixes
@@ -315,7 +180,9 @@ fun check_defs ctxt fixes eqs =
           orelse input_error "Defined function may not occur in premises or arguments"
 
         val freeargs = map (fn t => subst_bounds (rev (map Free qs), t)) args
-        val funvars = filter (fn q => exists (exists_subterm (fn (Free q') $ _ => q = q' | _ => false)) freeargs) qs
+        val funvars =
+          filter
+            (fn q => exists (exists_subterm (fn (Free q') $ _ => q = q' | _ => false)) freeargs) qs
         val _ = null funvars orelse (warning (cat_lines
           ["Bound variable" ^ plural " " "s " funvars ^
           commas_quote (map fst funvars) ^ " occur" ^ plural "s" "" funvars ^
@@ -327,9 +194,9 @@ fun check_defs ctxt fixes eqs =
     val grouped_args = AList.group (op =) (map check eqs)
     val _ = grouped_args
       |> map (fn (fname, ars) =>
-        length (distinct (op =) ars) = 1
-        orelse error ("Function " ^ quote fname ^
-          " has different numbers of arguments in different equations"))
+        length (distinct (op =) ars) = 1 orelse
+          error ("Function " ^ quote fname ^
+            " has different numbers of arguments in different equations"))
 
     val not_defined = subtract (op =) (map fst grouped_args) fnames
     val _ = null not_defined
@@ -347,10 +214,18 @@ fun check_defs ctxt fixes eqs =
     ()
   end
 
-(* Preprocessors *)
+
+(* preprocessors *)
 
 type fixes = ((string * typ) * mixfix) list
 type 'a spec = (Attrib.binding * 'a list) list
+
+datatype function_config = FunctionConfig of
+ {sequential: bool,
+  default: string option,
+  domintros: bool,
+  partials: bool}
+
 type preproc = function_config -> Proof.context -> fixes -> term spec ->
   (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
@@ -358,7 +233,7 @@ val fname_of = fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o
   HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all
 
 fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
-  | mk_case_names _ n 0 = []
+  | mk_case_names _ _ 0 = []
   | mk_case_names _ n 1 = [n]
   | mk_case_names _ n k = map (fn i => n ^ "_" ^ string_of_int i) (1 upto k)
 
@@ -370,7 +245,7 @@ fun empty_preproc check (_: function_config) (ctxt: Proof.context) (fixes: fixes
     val fnames = map (fst o fst) fixes
     val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) ts
 
-    fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) 
+    fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1)
       (indices ~~ xs) |> map (map snd)
 
     (* using theorem names for case name currently disabled *)
@@ -379,19 +254,132 @@ fun empty_preproc check (_: function_config) (ctxt: Proof.context) (fixes: fixes
     (ts, curry op ~~ bnds o Library.unflat tss, sort, cnames)
   end
 
-(* FIXME just one data slot (record) per program unit *)
-structure Preprocessor = Generic_Data
+
+(* context data *)
+
+structure Data = Generic_Data
 (
-  type T = preproc
-  val empty : T = empty_preproc check_defs
+  type T =
+    thm list *
+    (term * info) Item_Net.T *
+    (Proof.context -> tactic) *
+    preproc
+  val empty: T =
+   ([],
+    Item_Net.init (op aconv o apply2 fst) (single o fst),
+    fn _ => error "Termination prover not configured",
+    empty_preproc check_defs)
   val extend = I
-  fun merge (a, _) = a
+  fun merge
+   ((termination_rules1, functions1, termination_prover1, preproc1),
+    (termination_rules2, functions2, _, _)) : T =
+   (Thm.merge_thms (termination_rules1, termination_rules2),
+    Item_Net.merge (functions1, functions2),
+    termination_prover1,
+    preproc1)
 )
 
-val get_preproc = Preprocessor.get o Context.Proof
-val set_preproc = Preprocessor.map o K
+val termination_rule_tac = resolve_tac o #1 o Data.get o Context.Proof
+val store_termination_rule = Data.map o @{apply 4(1)} o cons
+
+val get_functions = #2 o Data.get o Context.Proof
+fun add_function_data (info : info as {fs, termination, ...}) =
+  (Data.map o @{apply 4(2)}) (fold (fn f => Item_Net.update (f, info)) fs)
+  #> store_termination_rule termination
+
+fun termination_prover_tac ctxt = #3 (Data.get (Context.Proof ctxt)) ctxt
+val set_termination_prover = Data.map o @{apply 4(3)} o K
+
+val get_preproc = #4 o Data.get o Context.Proof
+val set_preproc = Data.map o @{apply 4(4)} o K
 
 
+(* function definition result data *)
+
+datatype function_result = FunctionResult of
+ {fs: term list,
+  G: term,
+  R: term,
+  dom: term,
+  psimps : thm list,
+  simple_pinducts : thm list,
+  cases : thm list,
+  pelims : thm list list,
+  termination : thm,
+  domintros : thm list option}
+
+fun transform_function_data ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
+  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) phi =
+    let
+      val term = Morphism.term phi
+      val thm = Morphism.thm phi
+      val fact = Morphism.fact phi
+      val name = Binding.name_of o Morphism.binding phi o Binding.name
+    in
+      { add_simps = add_simps, case_names = case_names, fnames = fnames,
+        fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
+        pinducts = fact pinducts, simps = Option.map fact simps,
+        inducts = Option.map fact inducts, termination = thm termination,
+        defname = name defname, is_partial=is_partial, cases = fact cases,
+        elims = Option.map (map fact) elims, pelims = map fact pelims }
+    end
+
+fun lift_morphism thy f =
+  let
+    fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of thy t))
+  in
+    Morphism.morphism "lift_morphism"
+      {binding = [],
+       typ = [Logic.type_map term],
+       term = [term],
+       fact = [map f]}
+  end
+
+fun import_function_data t ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val ct = cterm_of thy t
+    val inst_morph = lift_morphism thy o Thm.instantiate
+
+    fun match (trm, data) =
+      SOME (transform_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
+      handle Pattern.MATCH => NONE
+  in
+    get_first match (Item_Net.retrieve (get_functions ctxt) t)
+  end
+
+fun import_last_function ctxt =
+  (case Item_Net.content (get_functions ctxt) of
+    [] => NONE
+  | (t, _) :: _ =>
+      let val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+      in import_function_data t' ctxt' end)
+
+
+(* configuration management *)
+
+datatype function_opt =
+    Sequential
+  | Default of string
+  | DomIntros
+  | No_Partials
+
+fun apply_opt Sequential (FunctionConfig {sequential = _, default, domintros, partials}) =
+      FunctionConfig
+        {sequential = true, default = default, domintros = domintros, partials = partials}
+  | apply_opt (Default d) (FunctionConfig {sequential, default = _, domintros, partials}) =
+      FunctionConfig
+        {sequential = sequential, default = SOME d, domintros = domintros, partials = partials}
+  | apply_opt DomIntros (FunctionConfig {sequential, default, domintros = _, partials}) =
+      FunctionConfig
+        {sequential = sequential, default = default, domintros = true, partials = partials}
+  | apply_opt No_Partials (FunctionConfig {sequential, default, domintros, partials = _}) =
+      FunctionConfig
+        {sequential = sequential, default = default, domintros = domintros, partials = false}
+
+val default_config =
+  FunctionConfig { sequential=false, default=NONE,
+    domintros=false, partials=true}
 
 local
   val option_parser = Parse.group (fn () => "option")

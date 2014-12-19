@@ -314,7 +314,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt =
     end)
 
 fun gen_sizechange_tac orders autom_tac ctxt =
-  TRY (Function_Common.apply_termination_rule ctxt 1)
+  TRY (Function_Common.termination_rule_tac ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
   THEN (rtac @{thm wf_empty} 1 ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
 
