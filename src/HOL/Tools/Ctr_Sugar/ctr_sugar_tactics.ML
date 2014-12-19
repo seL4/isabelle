@@ -19,6 +19,7 @@ sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_case_distrib_tac: Proof.context -> cterm -> thm -> thm list -> tactic
   val mk_case_eq_if_tac: Proof.context -> int -> thm -> thm list -> thm list list ->
     thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
@@ -143,6 +144,10 @@ fun mk_case_tac ctxt n k case_def injects distinctss =
         (if k' = k then mk_case_same_ctr_tac ctxt injects
          else mk_case_distinct_ctrs_tac ctxt distincts)) ks distinctss))
   end;
+
+fun mk_case_distrib_tac ctxt ct exhaust cases =
+  HEADGOAL (rtac (cterm_instantiate_pos [SOME ct] exhaust)) THEN
+  ALLGOALS (hyp_subst_tac ctxt THEN' SELECT_GOAL (unfold_thms_tac ctxt cases) THEN' rtac refl);
 
 fun mk_case_cong_tac ctxt uexhaust cases =
   HEADGOAL (rtac uexhaust THEN'

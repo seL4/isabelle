@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Ctr_Sugar/ctr_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, TU Muenchen
     Copyright   2012, 2013
 
 Wrapping existing freely generated type's constructors.
@@ -23,6 +24,7 @@ sig
      case_thms: thm list,
      case_cong: thm,
      case_cong_weak: thm,
+     case_distribs: thm list,
      split: thm,
      split_asm: thm,
      disc_defs: thm list,
@@ -111,6 +113,7 @@ type ctr_sugar =
    case_thms: thm list,
    case_cong: thm,
    case_cong_weak: thm,
+   case_distribs: thm list,
    split: thm,
    split_asm: thm,
    disc_defs: thm list,
@@ -128,9 +131,9 @@ type ctr_sugar =
    case_eq_ifs: thm list};
 
 fun morph_ctr_sugar phi ({kind, T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
-    case_thms, case_cong, case_cong_weak, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
-    sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands, split_sels,
-    split_sel_asms, case_eq_ifs} : ctr_sugar) =
+    case_thms, case_cong, case_cong_weak, case_distribs, split, split_asm, disc_defs, disc_thmss,
+    discIs, sel_defs, sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands,
+    split_sels, split_sel_asms, case_eq_ifs} : ctr_sugar) =
   {kind = kind,
    T = Morphism.typ phi T,
    ctrs = map (Morphism.term phi) ctrs,
@@ -144,6 +147,7 @@ fun morph_ctr_sugar phi ({kind, T, ctrs, casex, discs, selss, exhaust, nchotomy,
    case_thms = map (Morphism.thm phi) case_thms,
    case_cong = Morphism.thm phi case_cong,
    case_cong_weak = Morphism.thm phi case_cong_weak,
+   case_distribs = map (Morphism.thm phi) case_distribs,
    split = Morphism.thm phi split,
    split_asm = Morphism.thm phi split_asm,
    disc_defs = map (Morphism.thm phi) disc_defs,
@@ -244,6 +248,7 @@ val split_sel_asmN = "split_sel_asm";
 val splitsN = "splits";
 val split_selsN = "split_sels";
 val case_cong_weak_thmsN = "case_cong_weak";
+val case_distribN = "case_distrib";
 
 val cong_attrs = @{attributes [cong]};
 val dest_attrs = @{attributes [dest]};
@@ -394,10 +399,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     fun qualify mandatory = Binding.qualify mandatory fc_b_name;
 
-    val (unsorted_As, B) =
+    val (unsorted_As, [B, C]) =
       no_defs_lthy
       |> variant_tfrees (map (fst o dest_TFree_or_TVar) As0)
-      ||> the_single o fst o mk_TFrees 1;
+      ||> fst o mk_TFrees 2;
 
     val As = map2 (resort_tfree_or_tvar o snd o dest_TFree_or_TVar) As0 unsorted_As;
 
@@ -445,13 +450,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val (((((((([exh_y], (xss, xss')), yss), fs), gs), [u', v']), [w]), (p, p')), names_lthy) =
+    val ((((((((([exh_y], (xss, xss')), yss), fs), gs), [h]), [u', v']), [w]), (p, p')), names_lthy) =
       no_defs_lthy
       |> mk_Frees "y" [fcT] (* for compatibility with "datatype_realizer.ML" *)
       ||>> mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
+      ||>> mk_Frees "h" [B --> C]
       ||>> (apfst (map (rpair fcT)) oo Variable.variant_fixes) [fc_b_name, fc_b_name ^ "'"]
       ||>> mk_Frees "z" [B]
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
@@ -497,6 +503,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case0 = Morphism.term phi raw_case;
     val casex = mk_case As B case0;
+    val casexC = mk_case As C case0;
 
     val fcase = Term.list_comb (casex, fs);
 
@@ -662,8 +669,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss;
 
-    fun after_qed ([exhaust_thm] :: thmss) lthy =
+    fun after_qed thmss0 lthy =
       let
+        val [exhaust_thm] :: thmss = thmss0
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
         val rho_As = map (apply2 (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
@@ -981,6 +989,20 @@ fun prepare_free_constructors kind prep_plugins prep_term
                [expand_thm], [split_sel_thm], [split_sel_asm_thm], [case_eq_if_thm])
             end;
 
+        val case_distrib_thm =
+          let
+            val args = @{map 2} (fn f => fn argTs =>
+              let val (args, _) = mk_Frees "x" argTs lthy in
+                fold_rev Term.lambda args (h $ list_comb (f, args))
+              end) fs ctr_Tss;
+            val goal = mk_Trueprop_eq (h $ ufcase, list_comb (casexC, args) $ u);
+          in
+            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+              mk_case_distrib_tac ctxt (certify ctxt u) exhaust_thm case_thms)
+            |> singleton (Proof_Context.export names_lthy lthy)
+            |> Thm.close_derivation
+          end;
+
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
@@ -999,6 +1021,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           [(caseN, case_thms, code_attrs @ nitpicksimp_attrs @ simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_cong_weak_thmsN, [case_cong_weak_thm], cong_attrs),
+           (case_distribN, [case_distrib_thm], []),
            (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, if ms = [0] then [] else simp_attrs),
            (discN, flat nontriv_disc_thmss, simp_attrs),
@@ -1048,12 +1071,13 @@ fun prepare_free_constructors kind prep_plugins prep_term
           {kind = kind, T = fcT, ctrs = ctrs, casex = casex, discs = discs, selss = selss,
            exhaust = exhaust_thm, nchotomy = nchotomy_thm, injects = inject_thms,
            distincts = distinct_thms, case_thms = case_thms, case_cong = case_cong_thm,
-           case_cong_weak = case_cong_weak_thm, split = split_thm, split_asm = split_asm_thm,
-           disc_defs = disc_defs, disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs,
-           sel_thmss = sel_thmss, distinct_discsss = distinct_disc_thmsss,
-           exhaust_discs = exhaust_disc_thms, exhaust_sels = exhaust_sel_thms,
-           collapses = all_collapse_thms, expands = expand_thms, split_sels = split_sel_thms,
-           split_sel_asms = split_sel_asm_thms, case_eq_ifs = case_eq_if_thms}
+           case_cong_weak = case_cong_weak_thm, case_distribs = [case_distrib_thm], split = split_thm,
+           split_asm = split_asm_thm, disc_defs = disc_defs, disc_thmss = disc_thmss,
+           discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
+           distinct_discsss = distinct_disc_thmsss, exhaust_discs = exhaust_disc_thms,
+           exhaust_sels = exhaust_sel_thms, collapses = all_collapse_thms, expands = expand_thms,
+           split_sels = split_sel_thms, split_sel_asms = split_sel_asm_thms,
+           case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in
         (ctr_sugar, lthy' |> register_ctr_sugar plugins ctr_sugar)

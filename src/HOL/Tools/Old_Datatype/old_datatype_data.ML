@@ -110,6 +110,7 @@ fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case
      case_thms = case_rewrites,
      case_cong = case_cong,
      case_cong_weak = case_cong_weak,
+     case_distribs = [],
      split = split,
      split_asm = split_asm,
      disc_defs = [],
