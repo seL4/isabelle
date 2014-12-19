@@ -159,8 +159,9 @@ fun static_value cookie = partiality_as_none ooo static_value_exn cookie;
 
 structure Truth_Result = Proof_Data
 (
-  type T = unit -> truth
-  fun init _ () = raise Fail "Truth_Result"
+  type T = unit -> truth;
+  val empty: T = fn () => raise Fail "Truth_Result";
+  fun init _ = empty;
 );
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
