@@ -7,7 +7,6 @@ Prototype of an code generator for logic programming languages
 
 signature CODE_PROLOG =
 sig
-  datatype prolog_system = SWI_PROLOG | YAP
   type code_options =
     {ensure_groundness : bool,
      limit_globally : int option,
@@ -20,6 +19,9 @@ sig
     -> code_options -> code_options
   val code_options_of : theory -> code_options
   val map_code_options : (code_options -> code_options) -> theory -> theory
+
+  val prolog_system: string Config.T
+  val prolog_timeout: real Config.T
 
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
@@ -37,7 +39,7 @@ sig
   val generate : Predicate_Compile_Aux.mode option * bool ->
     Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) ->
+  val run : Proof.context -> logic_program -> (string * prol_term list) ->
     string list -> int option -> prol_term list list
 
   val active : bool Config.T
@@ -121,15 +123,18 @@ datatype prolog_system = SWI_PROLOG | YAP
 fun string_of_system SWI_PROLOG = "swiprolog"
   | string_of_system YAP = "yap"
 
-type system_configuration = {timeout : Time.time, prolog_system : prolog_system}
+val prolog_system = Attrib.setup_config_string @{binding prolog_system} (K "swiprolog")
 
-structure System_Config = Generic_Data
-(
-  type T = system_configuration
-  val empty = {timeout = seconds 10.0, prolog_system = SWI_PROLOG}
-  val extend = I;
-  fun merge (a, _) = a
-)
+fun get_prolog_system ctxt =
+  (case Config.get ctxt prolog_system of
+    "swiprolog" => SWI_PROLOG
+  | "yap" => YAP
+  | name => error ("Bad prolog system: " ^ quote name ^ " (\"swiprolog\" or \"yap\" expected)"))
+
+
+val prolog_timeout = Attrib.setup_config_real @{binding prolog_timeout} (K 10.0)
+
+fun get_prolog_timeout ctxt = seconds (Config.get ctxt prolog_timeout)
 
 
 (* internal program representation *)
@@ -868,8 +873,10 @@ fun parse_solutions sol =
 
 (* calling external interpreter and getting results *)
 
-fun run (timeout, system) p (query_rel, args) vnames nsols =
+fun run ctxt p (query_rel, args) vnames nsols =
   let
+    val timeout = get_prolog_timeout ctxt
+    val system = get_prolog_system ctxt
     val renaming = fold mk_renaming (fold add_vars args vnames) []
     val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
     val args' = map (rename_vars_term renaming) args
@@ -971,9 +978,7 @@ fun values ctxt soln t_compr =
     val constant_table' = declare_consts (fold Term.add_const_names all_args []) constant_table
     val args' = map (translate_term ctxt constant_table') all_args
     val _ = tracing "Running prolog program..."
-    val system_config = System_Config.get (Context.Proof ctxt)
-    val tss = run (#timeout system_config, #prolog_system system_config)
-      p (translate_const constant_table' name, args') output_names soln
+    val tss = run ctxt p (translate_const constant_table' name, args') output_names soln
     val _ = tracing "Restoring terms..."
     val empty = Const(@{const_name bot}, fastype_of t_compr)
     fun mk_insert x S =
@@ -1055,9 +1060,9 @@ fun test_term ctxt (t, eval_terms) =
     val (p, constant_table) = generate (NONE, true) ctxt' full_constname
       |> post_process ctxt' (set_ensure_groundness options) full_constname
     val _ = tracing "Running prolog program..."
-    val system_config = System_Config.get (Context.Proof ctxt)
-    val tss = run (#timeout system_config, #prolog_system system_config)
-      p (translate_const constant_table full_constname, map (Var o fst) vs') (map fst vs') (SOME 1)
+    val tss =
+      run ctxt p (translate_const constant_table full_constname, map (Var o fst) vs')
+        (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
     val counterexample =
       (case tss of
