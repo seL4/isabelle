@@ -767,6 +767,9 @@ Section~\ref{ssec:code-generator}.)
 \item[@{text "t."}\hthm{case_cong_weak} @{text "[cong]"}\rm:] ~ \\
 @{thm list.case_cong_weak[no_vars]}
 
+\item[@{text "t."}\hthm{case_distrib}\rm:] ~ \\
+@{thm list.case_distrib[no_vars]}
+
 \item[@{text "t."}\hthm{split}\rm:] ~ \\
 @{thm list.split[no_vars]}
 
