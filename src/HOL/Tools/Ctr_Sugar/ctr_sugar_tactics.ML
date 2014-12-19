@@ -23,6 +23,8 @@ sig
   val mk_case_eq_if_tac: Proof.context -> int -> thm -> thm list -> thm list list ->
     thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
+  val mk_disc_eq_case_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
+    tactic
   val mk_exhaust_disc_tac: int -> thm -> thm list -> tactic
   val mk_exhaust_sel_tac: int -> thm -> thm list -> tactic
   val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
@@ -92,6 +94,14 @@ fun mk_collapse_tac ctxt m discD sels =
      else
        REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac ctxt THEN'
        SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl));
+
+fun mk_disc_eq_case_tac ctxt ct exhaust discs distincts cases =
+  HEADGOAL Goal.conjunction_tac THEN
+  ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+    (hyp_subst_tac ctxt THEN'
+     SELECT_GOAL (unfold_thms_tac ctxt (@{thms not_True_eq_False not_False_eq_True} @ cases @
+       ((refl :: discs @ distincts) RL [eqTrueI, eqFalseI]))) THEN'
+     resolve_tac @{thms TrueI True_not_False False_not_True}));
 
 fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_discsss
     distinct_discsss' =

@@ -1787,9 +1787,9 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
      discs = [], selss = [], exhaust = exhaust, nchotomy = Drule.dummy_thm, injects = [inject],
      distincts = [], case_thms = [], case_cong = Drule.dummy_thm, case_cong_weak = Drule.dummy_thm,
      case_distribs = [], split = Drule.dummy_thm, split_asm = Drule.dummy_thm, disc_defs = [],
-     disc_thmss = [], discIs = [], sel_defs = [], sel_thmss = [sel_thms], distinct_discsss = [],
-     exhaust_discs = [], exhaust_sels = [], collapses = [], expands = [], split_sels = [],
-     split_sel_asms = [], case_eq_ifs = []};
+     disc_thmss = [], discIs = [], disc_eq_cases = [], sel_defs = [], sel_thmss = [sel_thms],
+     distinct_discsss = [], exhaust_discs = [], exhaust_sels = [], collapses = [], expands = [],
+     split_sels = [], split_sel_asms = [], case_eq_ifs = []};
 
 
 (* definition *)

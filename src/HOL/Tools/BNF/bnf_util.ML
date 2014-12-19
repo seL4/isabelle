@@ -66,8 +66,6 @@ sig
   val mk_nthN: int -> term -> int -> term
 
   (*parameterized thms*)
-  val eqTrueI: thm
-  val eqFalseI: thm
   val prod_injectD: thm
   val prod_injectI: thm
   val ctrans: thm
@@ -345,8 +343,6 @@ fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
 
 (*TODO: antiquote heavily used theorems once*)
-val eqTrueI = @{thm iffD2[OF eq_True]};
-val eqFalseI =  @{thm iffD2[OF eq_False]};
 val prod_injectD = @{thm iffD1[OF prod.inject]};
 val prod_injectI = @{thm iffD2[OF prod.inject]};
 val ctrans = @{thm ordLeq_transitive};

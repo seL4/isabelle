@@ -116,6 +116,7 @@ fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case
      disc_defs = [],
      disc_thmss = [],
      discIs = [],
+     disc_eq_cases = [],
      sel_defs = [],
      sel_thmss = [],
      distinct_discsss = [],

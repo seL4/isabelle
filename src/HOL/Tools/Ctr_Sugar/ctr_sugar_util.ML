@@ -74,6 +74,10 @@ sig
 
   val ss_only: thm list -> Proof.context -> Proof.context
 
+  (*parameterized thms*)
+  val eqTrueI: thm
+  val eqFalseI: thm
+
   val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
   val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
     tactic
@@ -250,6 +254,9 @@ val parse_binding_colon = Parse.binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
+
+val eqTrueI = @{thm iffD2[OF eq_True]};
+val eqFalseI =  @{thm iffD2[OF eq_False]};
 
 (*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
 fun WRAP gen_before gen_after xs core_tac =
