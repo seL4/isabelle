@@ -174,7 +174,8 @@ val _ = Context.>> (Syntax_Phases.term_check 0 "termify" check_termify);
 structure Evaluation = Proof_Data
 (
   type T = unit -> term
-  fun init _ () = raise Fail "Evaluation"
+  val empty: T = fn () => raise Fail "Evaluation"
+  fun init _ = empty
 );
 val put_term = Evaluation.put;
 val cookie = (Evaluation.get, put_term, "Code_Evaluation.put_term");

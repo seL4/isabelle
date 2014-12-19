@@ -233,9 +233,11 @@ fun ml_fundefs ([(name, [([], e)])]) =
 
 structure Univs = Proof_Data
 (
-  type T = unit -> Univ list -> Univ list
-  fun init _ () = raise Fail "Univs"
+  type T = unit -> Univ list -> Univ list;
+  val empty: T = fn () => raise Fail "Univs";
+  fun init _ = empty;
 );
+val get_result = Univs.get;
 val put_result = Univs.put;
 
 local
@@ -247,7 +249,7 @@ local
   val name_same = prefix ^ "same";
 in
 
-val univs_cookie = (Univs.get, put_result, name_put);
+val univs_cookie = (get_result, put_result, name_put);
 
 fun nbe_fun idx_of 0 (Code_Symbol.Constant "") = "nbe_value"
   | nbe_fun idx_of i sym = "c_" ^ string_of_int (idx_of sym)
