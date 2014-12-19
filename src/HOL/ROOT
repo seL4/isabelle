@@ -725,9 +725,26 @@ session "HOL-Nominal" (main) in Nominal = HOL +
 session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   options [condition = ML_SYSTEM_POLYML, document = false]
   theories
-    Nominal_Examples_Base
-  theories [condition = ISABELLE_FULL_TEST]
-    Nominal_Examples
+    Class3
+    CK_Machine
+    Compile
+    Contexts
+    Crary
+    CR_Takahashi
+    CR
+    Fsub
+    Height
+    Lambda_mu
+    Lam_Funs
+    LocalWeakening
+    Pattern
+    SN
+    SOS
+    Standardization
+    Support
+    Type_Preservation
+    Weakening
+    W
   theories [quick_and_dirty]
     VC_Condition
 
