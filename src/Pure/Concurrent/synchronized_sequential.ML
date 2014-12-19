@@ -11,6 +11,7 @@ abstype 'a var = Var of 'a Unsynchronized.ref
 with
 
 fun var _ x = Var (Unsynchronized.ref x);
+fun peek (Var var) = ! var;
 fun value (Var var) = ! var;
 
 fun timed_access (Var var) _ f =
