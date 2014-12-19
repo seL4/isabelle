@@ -273,16 +273,14 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
 structure Counterexample = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> (bool * term list) option * seed
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Counterexample"
+  fun init _ () = raise Fail "Counterexample"
 );
 val put_counterexample = Counterexample.put;
 
 structure Counterexample_Report = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Counterexample_Report"
+  fun init _ () = raise Fail "Counterexample_Report"
 );
 val put_counterexample_report = Counterexample_Report.put;
 

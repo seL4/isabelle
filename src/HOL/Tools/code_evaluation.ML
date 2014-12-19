@@ -174,8 +174,7 @@ val _ = Context.>> (Syntax_Phases.term_check 0 "termify" check_termify);
 structure Evaluation = Proof_Data
 (
   type T = unit -> term
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Evaluation"
+  fun init _ () = raise Fail "Evaluation"
 );
 val put_term = Evaluation.put;
 val cookie = (Evaluation.get, put_term, "Code_Evaluation.put_term");

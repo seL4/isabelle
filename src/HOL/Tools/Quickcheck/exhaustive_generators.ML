@@ -446,25 +446,23 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> (bool * term list) option
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Counterexample"
+  type T = unit -> Code_Numeral.natural -> bool ->
+    Code_Numeral.natural -> (bool * term list) option
+  fun init _ () = raise Fail "Counterexample"
 );
 val put_counterexample = Counterexample.put;
 
 structure Counterexample_Batch = Proof_Data
 (
   type T = unit -> (Code_Numeral.natural -> term list option) list
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Counterexample"
+  fun init _ () = raise Fail "Counterexample"
 );
 val put_counterexample_batch = Counterexample_Batch.put;
 
 structure Validator_Batch = Proof_Data
 (
   type T = unit -> (Code_Numeral.natural -> bool) list
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Counterexample"
+  fun init _ () = raise Fail "Counterexample"
 );
 val put_validator_batch = Validator_Batch.put;
 

@@ -234,18 +234,17 @@ fun ml_fundefs ([(name, [([], e)])]) =
 structure Univs = Proof_Data
 (
   type T = unit -> Univ list -> Univ list
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Univs"
+  fun init _ () = raise Fail "Univs"
 );
 val put_result = Univs.put;
 
 local
-  val prefix =     "Nbe.";
-  val name_put =   prefix ^ "put_result";
+  val prefix = "Nbe.";
+  val name_put = prefix ^ "put_result";
   val name_const = prefix ^ "Const";
-  val name_abss =  prefix ^ "abss";
-  val name_apps =  prefix ^ "apps";
-  val name_same =  prefix ^ "same";
+  val name_abss = prefix ^ "abss";
+  val name_apps = prefix ^ "apps";
+  val name_same = prefix ^ "same";
 in
 
 val univs_cookie = (Univs.get, put_result, name_put);

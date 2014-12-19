@@ -1687,56 +1687,49 @@ val code_pred_cmd = generic_code_pred Code.read_const
 structure Pred_Result = Proof_Data
 (
   type T = unit -> term Predicate.pred
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Pred_Result"
+  fun init _ () = raise Fail "Pred_Result"
 );
 val put_pred_result = Pred_Result.put;
 
 structure Pred_Random_Result = Proof_Data
 (
   type T = unit -> seed -> term Predicate.pred * seed
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Pred_Random_Result"
+  fun init _ () = raise Fail "Pred_Random_Result"
 );
 val put_pred_random_result = Pred_Random_Result.put;
 
 structure Dseq_Result = Proof_Data
 (
   type T = unit -> term Limited_Sequence.dseq
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Dseq_Result"
+  fun init _ () = raise Fail "Dseq_Result"
 );
 val put_dseq_result = Dseq_Result.put;
 
 structure Dseq_Random_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term Limited_Sequence.dseq * seed
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Dseq_Random_Result"
+  fun init _ () = raise Fail "Dseq_Random_Result"
 );
 val put_dseq_random_result = Dseq_Random_Result.put;
 
 structure New_Dseq_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> term Lazy_Sequence.lazy_sequence
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "New_Dseq_Random_Result"
+  fun init _ () = raise Fail "New_Dseq_Random_Result"
 );
 val put_new_dseq_result = New_Dseq_Result.put;
 
 structure Lseq_Random_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural -> term Lazy_Sequence.lazy_sequence
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Lseq_Random_Result"
+  fun init _ () = raise Fail "Lseq_Random_Result"
 );
 val put_lseq_random_result = Lseq_Random_Result.put;
 
 structure Lseq_Random_Stats_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural -> (term * Code_Numeral.natural) Lazy_Sequence.lazy_sequence
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Lseq_Random_Stats_Result"
+  fun init _ () = raise Fail "Lseq_Random_Stats_Result"
 );
 val put_lseq_random_stats_result = Lseq_Random_Stats_Result.put;
 

@@ -44,41 +44,39 @@ type seed = Random_Engine.seed;
 
 structure Pred_Result = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Predicate.pred
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Pred_Result"
+  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+    Code_Numeral.natural -> seed -> term list Predicate.pred
+  fun init _ () = raise Fail "Pred_Result"
 )
 val put_pred_result = Pred_Result.put
 
 structure Dseq_Result = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Limited_Sequence.dseq * seed
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Dseq_Result"
+  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+    seed -> term list Limited_Sequence.dseq * seed
+  fun init _ () = raise Fail "Dseq_Result"
 )
 val put_dseq_result = Dseq_Result.put
 
 structure Lseq_Result = Proof_Data
 (
-  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Lseq_Result"
+  type T = unit -> Code_Numeral.natural -> Code_Numeral.natural ->
+    seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
+  fun init _ () = raise Fail "Lseq_Result"
 )
 val put_lseq_result = Lseq_Result.put
 
 structure New_Dseq_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "New_Dseq_Random_Result"
+  fun init _ () = raise Fail "New_Dseq_Random_Result"
 )
 val put_new_dseq_result = New_Dseq_Result.put
 
 structure CPS_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> (bool * term list) option
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "CPS_Result"
+  fun init _ () = raise Fail "CPS_Result"
 )
 val put_cps_result = CPS_Result.put
 

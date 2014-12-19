@@ -315,7 +315,7 @@ fun dynamic_value_strict opts cookie ctxt postproc t =
 structure Counterexample = Proof_Data
 (
   type T = unit -> (bool * term list) option
-  fun init _ () = error "Counterexample"
+  fun init _ () = raise Fail "Counterexample"
 )
 
 datatype counterexample = Universal_Counterexample of (term * counterexample)
@@ -332,7 +332,7 @@ fun map_counterexample f Empty_Assignment = Empty_Assignment
 structure Existential_Counterexample = Proof_Data
 (
   type T = unit -> counterexample option
-  fun init _ () = error "Counterexample"
+  fun init _ () = raise Fail "Counterexample"
 )
 
 val put_existential_counterexample = Existential_Counterexample.put

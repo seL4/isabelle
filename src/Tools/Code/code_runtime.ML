@@ -160,8 +160,7 @@ fun static_value cookie = partiality_as_none ooo static_value_exn cookie;
 structure Truth_Result = Proof_Data
 (
   type T = unit -> truth
-  (* FIXME avoid user error with non-user text *)
-  fun init _ () = error "Truth_Result"
+  fun init _ () = raise Fail "Truth_Result"
 );
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
