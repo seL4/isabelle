@@ -835,6 +835,10 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{case_eq_if}\rm:] ~ \\
 @{thm list.case_eq_if[no_vars]}
 
+\item[@{text "t."}\hthm{disc_eq_case}\rm:] ~ \\
+@{thm list.disc_eq_case(1)[no_vars]} \\
+@{thm list.disc_eq_case(2)[no_vars]}
+
 \end{description}
 \end{indentblock}
 
