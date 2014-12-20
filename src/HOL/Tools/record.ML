@@ -59,7 +59,7 @@ sig
     typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
-  val iso_tuple_intros_tac: int -> tactic
+  val iso_tuple_intros_tac: Proof.context -> int -> tactic
   val named_cterm_instantiate: (string * cterm) list -> thm -> thm
 end;
 
@@ -165,8 +165,8 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
     ((isom, cons $ isom), thm_thy)
   end;
 
-val iso_tuple_intros_tac =
-  resolve_from_net_tac iso_tuple_intros THEN'
+fun iso_tuple_intros_tac ctxt =
+  resolve_from_net_tac ctxt iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
       val thy = Thm.theory_of_cterm cgoal;
@@ -968,7 +968,7 @@ fun get_accupd_simps thy term defset =
           Goal.prove (Proof_Context.init_global thy) [] [] prop
             (fn {context = ctxt, ...} =>
               simp_tac (put_simpset defset ctxt) 1 THEN
-              REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
+              REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
               TRY (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms id_apply id_o o_id}) 1));
         val dest =
           if is_sel_upd_pair thy acc upd
@@ -992,7 +992,7 @@ fun get_updupd_simp thy defset u u' comp =
       Goal.prove (Proof_Context.init_global thy) [] [] prop
         (fn {context = ctxt, ...} =>
           simp_tac (put_simpset defset ctxt) 1 THEN
-          REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
+          REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
           TRY (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms id_apply}) 1));
     val dest = if comp then @{thm o_eq_dest_lhs} else @{thm o_eq_dest};
   in Drule.export_without_context (othm RS dest) end;
@@ -1127,7 +1127,7 @@ fun get_upd_acc_cong_thm upd acc thy ss =
     Goal.prove (Proof_Context.init_global thy) [] [] prop
       (fn {context = ctxt, ...} =>
         simp_tac (put_simpset ss ctxt) 1 THEN
-        REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
+        REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
         TRY (resolve_tac [updacc_cong_idI] 1))
   end;
 
@@ -1595,7 +1595,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
               (rtac @{thm refl_conj_eq} 1 ORELSE
-                Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
+                Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
                 rtac refl 1))));
 
 
@@ -1612,7 +1612,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
-          REPEAT_ALL_NEW Iso_Tuple_Support.iso_tuple_intros_tac 1;
+          REPEAT_ALL_NEW (Iso_Tuple_Support.iso_tuple_intros_tac defs_ctxt) 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
         val [halfway] = Seq.list_of (tactic1 start);
         val [surject] = Seq.list_of (tactic2 (Drule.export_without_context halfway));
@@ -1952,7 +1952,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
           val tactic =
             simp_tac (put_simpset HOL_basic_ss ext_ctxt addsimps ext_defs) 1 THEN
-            REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE terminal);
+            REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac ext_ctxt 1 ORELSE terminal);
           val updaccs = Seq.list_of (tactic init_thm);
         in
           (updaccs RL [updacc_accessor_eqE],
@@ -2137,7 +2137,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
            [rtac surject_assist_idE 1,
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps ext_defs) 1,
             REPEAT
-              (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE
+              (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
                 (rtac surject_assistI 1 THEN
                   simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt
                     addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));

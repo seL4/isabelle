@@ -25,18 +25,18 @@ fun remdups_tac ctxt = SUBGOAL (fn (g, i) =>
 
 fun REMDUPS tac ctxt = tac ctxt THEN_ALL_NEW remdups_tac ctxt;
 
-val bires_tac = Tactic.biresolution_from_nets_tac Context_Rules.orderlist;
+fun bires_tac ctxt = Tactic.biresolution_from_nets_tac ctxt Context_Rules.orderlist;
 
 fun safe_step_tac ctxt =
   Context_Rules.Swrap ctxt
    (eq_assume_tac ORELSE'
-    bires_tac true (Context_Rules.netpair_bang ctxt));
+    bires_tac ctxt true (Context_Rules.netpair_bang ctxt));
 
 fun unsafe_step_tac ctxt =
   Context_Rules.wrap ctxt
    (assume_tac ctxt APPEND'
-    bires_tac false (Context_Rules.netpair_bang ctxt) APPEND'
-    bires_tac false (Context_Rules.netpair ctxt));
+    bires_tac ctxt false (Context_Rules.netpair_bang ctxt) APPEND'
+    bires_tac ctxt false (Context_Rules.netpair ctxt));
 
 fun step_tac ctxt i =
   REPEAT_DETERM1 (REMDUPS safe_step_tac ctxt i) ORELSE

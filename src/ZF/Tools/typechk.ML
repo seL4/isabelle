@@ -93,15 +93,15 @@ fun typecheck_step_tac ctxt =
 
 fun typecheck_tac ctxt = REPEAT (typecheck_step_tac ctxt);
 
-(*Compiles a term-net for speed*)
-val basic_res_tac = net_resolve_tac [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl},
-                                     @{thm ballI}, @{thm allI}, @{thm conjI}, @{thm impI}];
+(*Compile a term-net for speed*)
+val basic_net =
+  Tactic.build_net @{thms TrueI refl reflexive iff_refl ballI allI conjI impI};
 
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)
 fun type_solver_tac ctxt hyps = SELECT_GOAL
     (DEPTH_SOLVE (eresolve_tac @{thms FalseE} 1
-                  ORELSE basic_res_tac 1
+                  ORELSE resolve_from_net_tac ctxt basic_net 1
                   ORELSE (ares_tac hyps 1
                           APPEND typecheck_step_tac ctxt)));
 

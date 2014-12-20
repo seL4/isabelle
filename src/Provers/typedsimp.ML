@@ -8,7 +8,7 @@ simp.ML.
 *)
 
 signature TSIMP_DATA =
-  sig
+sig
   val refl: thm         (*Reflexive law*)
   val sym: thm          (*Symmetric law*)
   val trans: thm        (*Transitive law*)
@@ -19,23 +19,22 @@ signature TSIMP_DATA =
   val default_rls: thm list
   (*Type checking or similar -- solution of routine conditions*)
   val routine_tac: Proof.context -> thm list -> int -> tactic
-  end;
+end;
 
 signature TSIMP =
-  sig
-  val asm_res_tac: Proof.context -> thm list -> int -> tactic   
+sig
+  val asm_res_tac: Proof.context -> thm list -> int -> tactic
   val cond_norm_tac: Proof.context -> ((int->tactic) * thm list * thm list) -> tactic
   val cond_step_tac: Proof.context -> ((int->tactic) * thm list * thm list) -> int -> tactic
   val norm_tac: Proof.context -> (thm list * thm list) -> tactic
   val process_rules: thm list -> thm list * thm list
-  val rewrite_res_tac: int -> tactic   
+  val rewrite_res_tac: Proof.context -> int -> tactic
   val split_eqn: thm
   val step_tac: Proof.context -> (thm list * thm list) -> int -> tactic
-  val subconv_res_tac: thm list -> int -> tactic   
-  end;
+  val subconv_res_tac: Proof.context -> thm list -> int -> tactic
+end;
 
-
-functor TSimpFun (TSimp_data: TSIMP_DATA) : TSIMP = 
+functor TSimpFun (TSimp_data: TSIMP_DATA) : TSIMP =
 struct
 local open TSimp_data
 in
@@ -72,45 +71,46 @@ fun add_rule rl (simp_rls, other_rls) =
 fun process_rules rls = fold_rev add_rule rls ([], []);
 
 (*Given list of rewrite rules, return list of both forms, reject others*)
-fun process_rewrites rls = 
+fun process_rewrites rls =
   case process_rules rls of
       (simp_rls,[])  =>  simp_rls
-    | (_,others) => raise THM 
+    | (_,others) => raise THM
         ("process_rewrites: Ill-formed rewrite", 0, others);
 
 (*Process the default rewrite rules*)
 val simp_rls = process_rewrites default_rls;
+val simp_net = Tactic.build_net simp_rls;
 
 (*If subgoal is too flexible (e.g. ?a=?b or just ?P) then filt_resolve_tac
   will fail!  The filter will pass all the rules, and the bound permits
   no ambiguity.*)
 
 (*Resolution with rewrite/sub rules.  Builds the tree for filt_resolve_tac.*)
-val rewrite_res_tac = filt_resolve_tac simp_rls 2;
+fun rewrite_res_tac ctxt = filt_resolve_from_net_tac ctxt 2 simp_net;
 
 (*The congruence rules for simplifying subterms.  If subgoal is too flexible
     then only refl,refl_red will be used (if even them!). *)
-fun subconv_res_tac congr_rls =
-  filt_resolve_tac (map subconv_rule congr_rls) 2
-  ORELSE'  filt_resolve_tac [refl,refl_red] 1;
+fun subconv_res_tac ctxt congr_rls =
+  filt_resolve_from_net_tac ctxt 2 (Tactic.build_net (map subconv_rule congr_rls))
+  ORELSE'  filt_resolve_from_net_tac ctxt 1 (Tactic.build_net [refl, refl_red]);
 
 (*Resolve with asms, whether rewrites or not*)
 fun asm_res_tac ctxt asms =
-    let val (xsimp_rls,xother_rls) = process_rules asms
-    in  routine_tac ctxt xother_rls  ORELSE'  
-        filt_resolve_tac xsimp_rls 2
+    let val (xsimp_rls, xother_rls) = process_rules asms
+    in  routine_tac ctxt xother_rls  ORELSE'
+        filt_resolve_from_net_tac ctxt 2 (Tactic.build_net xsimp_rls)
     end;
 
 (*Single step for simple rewriting*)
-fun step_tac ctxt (congr_rls,asms) =
-    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac  ORELSE'  
-    subconv_res_tac congr_rls;
+fun step_tac ctxt (congr_rls, asms) =
+    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac ctxt  ORELSE'
+    subconv_res_tac ctxt congr_rls;
 
 (*Single step for conditional rewriting: prove_cond_tac handles new subgoals.*)
 fun cond_step_tac ctxt (prove_cond_tac, congr_rls, asms) =
-    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac  ORELSE'  
-    (resolve_tac [trans, red_trans]  THEN'  prove_cond_tac)  ORELSE'  
-    subconv_res_tac congr_rls;
+    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac ctxt  ORELSE'
+    (resolve_tac [trans, red_trans]  THEN'  prove_cond_tac)  ORELSE'
+    subconv_res_tac ctxt congr_rls;
 
 (*Unconditional normalization tactic*)
 fun norm_tac ctxt arg = REPEAT_FIRST (step_tac ctxt arg)  THEN
@@ -122,5 +122,4 @@ fun cond_norm_tac ctxt arg = REPEAT_FIRST (cond_step_tac ctxt arg)  THEN
 
 end;
 end;
-
 

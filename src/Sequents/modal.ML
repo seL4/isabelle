@@ -7,22 +7,22 @@ Simple modal reasoner.
 
 signature MODAL_PROVER_RULE =
 sig
-    val rewrite_rls      : thm list
-    val safe_rls         : thm list
-    val unsafe_rls       : thm list
-    val bound_rls        : thm list
-    val aside_rls        : thm list
+  val rewrite_rls      : thm list
+  val safe_rls         : thm list
+  val unsafe_rls       : thm list
+  val bound_rls        : thm list
+  val aside_rls        : thm list
 end;
 
-signature MODAL_PROVER = 
+signature MODAL_PROVER =
 sig
-    val rule_tac   : thm list -> int ->tactic
-    val step_tac   : int -> tactic
-    val solven_tac : int -> int -> tactic
-    val solve_tac  : Proof.context -> int -> tactic
+  val rule_tac   : Proof.context -> thm list -> int ->tactic
+  val step_tac   : Proof.context -> int -> tactic
+  val solven_tac : Proof.context -> int -> int -> tactic
+  val solve_tac  : Proof.context -> int -> tactic
 end;
 
-functor Modal_ProverFun (Modal_Rule: MODAL_PROVER_RULE) : MODAL_PROVER = 
+functor Modal_ProverFun (Modal_Rule: MODAL_PROVER_RULE) : MODAL_PROVER =
 struct
 
 (*Returns the list of all formulas in the sequent*)
@@ -35,7 +35,7 @@ fun forms_of_seq (Const(@{const_name SeqO'},_) $ P $ u) = P :: forms_of_seq u
   Assumes each formula in seqc is surrounded by sequence variables
   -- checks that each concl formula looks like some subgoal formula.*)
 fun could_res (seqp,seqc) =
-      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc)) 
+      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc))
                               (forms_of_seq seqp))
              (forms_of_seq seqc);
 
@@ -59,11 +59,12 @@ fun fresolve_tac rls n = filseq_resolve_tac rls 999 n;
 
 (* NB No back tracking possible with aside rules *)
 
-fun aside_tac n = DETERM(REPEAT (filt_resolve_tac Modal_Rule.aside_rls 999 n));
-fun rule_tac rls n = fresolve_tac rls n THEN aside_tac n;
+val aside_net = Tactic.build_net Modal_Rule.aside_rls;
+fun aside_tac ctxt n = DETERM (REPEAT (filt_resolve_from_net_tac ctxt 999 aside_net n));
+fun rule_tac ctxt rls n = fresolve_tac rls n THEN aside_tac ctxt n;
 
 val fres_safe_tac = fresolve_tac Modal_Rule.safe_rls;
-val fres_unsafe_tac = fresolve_tac Modal_Rule.unsafe_rls THEN' aside_tac;
+fun fres_unsafe_tac ctxt = fresolve_tac Modal_Rule.unsafe_rls THEN' aside_tac ctxt;
 val fres_bound_tac = fresolve_tac Modal_Rule.bound_rls;
 
 fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
@@ -71,18 +72,19 @@ fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
                     in fn st => tac (nprems_of st) st end;
 
 (* Depth first search bounded by d *)
-fun solven_tac d n state = state |>
-       (if d<0 then no_tac
-        else if (nprems_of state = 0) then all_tac 
-        else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac d)) ORELSE
-                 ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
-                   (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
+fun solven_tac ctxt d n st = st |>
+ (if d < 0 then no_tac
+  else if nprems_of st = 0 then all_tac
+  else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac ctxt d)) ORELSE
+           ((fres_unsafe_tac ctxt n  THEN UPTOGOAL n (solven_tac ctxt d)) APPEND
+             (fres_bound_tac n  THEN UPTOGOAL n (solven_tac ctxt (d - 1)))));
 
-fun solve_tac ctxt d = rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac d 1;
+fun solve_tac ctxt d =
+  rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac ctxt d 1;
 
-fun step_tac n = 
-    COND (has_fewer_prems 1) all_tac 
-         (DETERM(fres_safe_tac n) ORELSE 
-          (fres_unsafe_tac n APPEND fres_bound_tac n));
+fun step_tac ctxt n =
+  COND (has_fewer_prems 1) all_tac
+       (DETERM(fres_safe_tac n) ORELSE
+        (fres_unsafe_tac ctxt n APPEND fres_bound_tac n));
 
 end;

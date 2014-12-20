@@ -348,26 +348,34 @@ local
     @{thms elimL_rls} @ @{thms refl_elem}
 in
 
-fun routine_tac rls ctxt prems = ASSUME ctxt (filt_resolve_tac (prems @ rls) 4);
+fun routine_tac rls ctxt prems =
+  ASSUME ctxt (filt_resolve_from_net_tac ctxt 4 (Tactic.build_net (prems @ rls)));
 
 (*Solve all subgoals "A type" using formation rules. *)
-fun form_tac ctxt = REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac @{thms form_rls} 1));
+val form_net = Tactic.build_net @{thms form_rls};
+fun form_tac ctxt =
+  REPEAT_FIRST (ASSUME ctxt (filt_resolve_from_net_tac ctxt 1 form_net));
 
 (*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
 fun typechk_tac ctxt thms =
-  let val tac = filt_resolve_tac (thms @ @{thms form_rls} @ @{thms element_rls}) 3
+  let val tac =
+    filt_resolve_from_net_tac ctxt 3
+      (Tactic.build_net (thms @ @{thms form_rls} @ @{thms element_rls}))
   in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Solve a:A (a flexible, A rigid) by introduction rules.
   Cannot use stringtrees (filt_resolve_tac) since
   goals like ?a:SUM(A,B) have a trivial head-string *)
 fun intr_tac ctxt thms =
-  let val tac = filt_resolve_tac(thms @ @{thms form_rls} @ @{thms intr_rls}) 1
+  let val tac =
+    filt_resolve_from_net_tac ctxt 1
+      (Tactic.build_net (thms @ @{thms form_rls} @ @{thms intr_rls}))
   in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
 fun equal_tac ctxt thms =
-  REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac (thms @ equal_rls) 3))
+  REPEAT_FIRST
+    (ASSUME ctxt (filt_resolve_from_net_tac ctxt 3 (Tactic.build_net (thms @ equal_rls))))
 
 end
 *}
@@ -404,8 +412,9 @@ lemmas reduction_rls = comp_rls [THEN trans_elem]
 ML {*
 (*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
   Uses other intro rules to avoid changing flexible goals.*)
+val eqintr_net = Tactic.build_net @{thms EqI intr_rls}
 fun eqintr_tac ctxt =
-  REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac (@{thm EqI} :: @{thms intr_rls}) 1))
+  REPEAT_FIRST (ASSUME ctxt (filt_resolve_from_net_tac ctxt 1 eqintr_net))
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented!

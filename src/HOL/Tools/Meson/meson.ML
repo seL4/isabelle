@@ -502,7 +502,7 @@ fun check_tac st =
   then  Seq.empty  else  Seq.single st;
 
 
-(* net_resolve_tac actually made it slower... *)
+(* resolve_from_net_tac actually made it slower... *)
 fun prolog_step_tac ctxt horns i =
     (assume_tac ctxt i APPEND resolve_tac horns i) THEN check_tac THEN
     TRYALL_eq_assume_tac;
@@ -744,7 +744,7 @@ fun depth_meson_tac ctxt =
 fun prolog_step_tac' ctxt horns =
     let val (horn0s, _) = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
-        val nrtac = net_resolve_tac horns
+        val nrtac = resolve_from_net_tac ctxt (Tactic.build_net horns)
     in  fn i => eq_assume_tac i ORELSE
                 match_tac ctxt horn0s i ORELSE  (*no backtracking if unit MATCHES*)
                 ((assume_tac ctxt i APPEND nrtac i) THEN check_tac)
