@@ -365,10 +365,6 @@ struct
   datatype context = Context of Any.T Datatab.table * theory;
 end;
 
-fun theory_of_proof (Proof.Context (_, thy)) = thy;
-fun data_of_proof (Proof.Context (data, _)) = data;
-fun map_prf f (Proof.Context (data, thy)) = Proof.Context (f data, thy);
-
 
 (* proof data kinds *)
 
@@ -376,29 +372,30 @@ local
 
 val kinds = Synchronized.var "Proof_Data" (Datatab.empty: (theory -> Any.T) Datatab.table);
 
-fun invoke_init tab k =
-  (case Datatab.lookup tab k of
-    SOME init => init
-  | NONE => raise Fail "Invalid proof data identifier");
-
 fun init_data thy =
-  let val tab = Synchronized.value kinds
-  in Datatab.map (fn k => fn _ => invoke_init tab k thy) tab end;
+  Synchronized.value kinds |> Datatab.map (fn _ => fn init => init thy);
 
-fun init_new_data data thy =
-  Datatab.merge (K true) (data, init_data thy);
+fun init_new_data thy =
+  Synchronized.value kinds |> Datatab.fold (fn (k, init) => fn data =>
+    if Datatab.defined data k then data
+    else Datatab.update (k, init thy) data);
+
+fun init_fallback k thy =
+  (case Datatab.lookup (Synchronized.value kinds) k of
+    SOME init => init thy
+  | NONE => raise Fail "Invalid proof data identifier");
 
 in
 
 fun raw_transfer thy' (Proof.Context (data, thy)) =
   let
     val _ = subthy (thy, thy') orelse error "Cannot transfer proof context: not a super theory";
-    val data' = init_new_data data thy';
+    val data' = init_new_data thy' data;
   in Proof.Context (data', thy') end;
 
 structure Proof_Context =
 struct
-  val theory_of = theory_of_proof;
+  fun theory_of (Proof.Context (_, thy)) = thy;
   fun init_global thy = Proof.Context (init_data thy, thy);
   fun get_global thy name = init_global (get_theory thy name);
 end;
@@ -412,15 +409,13 @@ fun declare init =
     val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
-fun get k dest prf =
-  (case Datatab.lookup (data_of_proof prf) k of
+fun get k dest (Proof.Context (data, thy)) =
+  (case Datatab.lookup data k of
     SOME x => x
-  | NONE =>
-      (*adhoc value for old theories*)
-      invoke_init (Synchronized.value kinds) k (Proof_Context.theory_of prf))
-  |> dest;
+  | NONE => init_fallback k thy) |> dest;
 
-fun put k mk x = map_prf (Datatab.update (k, mk x));
+fun put k mk x (Proof.Context (data, thy)) =
+  Proof.Context (Datatab.update (k, mk x) data, thy);
 
 end;
 
