@@ -1550,9 +1550,11 @@ using assms unfolding Func_def by force
 lemma Pfunc_mono[simp]:
 assumes "A1 \<subseteq> A2" and "B1 \<subseteq> B2"
 shows "Pfunc A B1 \<subseteq> Pfunc A B2"
-using assms in_mono unfolding Pfunc_def apply safe
-apply(case_tac "x a", auto)
-by (metis in_mono option.simps(5))
+using assms unfolding Pfunc_def
+apply safe
+apply (case_tac "x a", auto)
+apply (metis in_mono option.simps(5))
+done
 
 lemma card_of_Func_UNIV_UNIV:
 "|Func (UNIV::'a set) (UNIV::'b set)| =o |UNIV::('a \<Rightarrow> 'b) set|"
