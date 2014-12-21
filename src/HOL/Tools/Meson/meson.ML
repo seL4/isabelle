@@ -358,12 +358,6 @@ in
     in (th RS spec', ctxt') end
 end;
 
-(*Used with METAHYPS below. There is one assumption, which gets bound to prem
-  and then normalized via function nf. The normal form is given to resolve_tac,
-  instantiate a Boolean variable created by resolution with disj_forward. Since
-  (nf prem) returns a LIST of theorems, we can backtrack to get all combinations.*)
-fun resop nf [prem] = resolve_tac (nf prem) 1;
-
 fun apply_skolem_theorem (th, rls) =
   let
     fun tryall [] = raise THM ("apply_skolem_theorem", 0, th::rls)
@@ -392,10 +386,12 @@ fun cnf old_skolem_ths ctxt (th, ths) =
           | Const (@{const_name HOL.disj}, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
-              let val tac =
-                  Misc_Legacy.METAHYPS ctxt (resop cnf_nil) 1 THEN
-                   (fn st' => st' |> Misc_Legacy.METAHYPS ctxt (resop cnf_nil) 1)
-              in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
+              (*There is one assumption, which gets bound to prem and then normalized via
+                cnf_nil. The normal form is given to resolve_tac, instantiate a Boolean
+                variable created by resolution with disj_forward. Since (cnf_nil prem)
+                returns a LIST of theorems, we can backtrack to get all combinations.*)
+              let val tac = Misc_Legacy.METAHYPS ctxt (fn [prem] => resolve_tac (cnf_nil prem) 1) 1
+              in  Seq.list_of ((tac THEN tac) (th RS disj_forward)) @ ths  end
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th, [])
       val cls =
