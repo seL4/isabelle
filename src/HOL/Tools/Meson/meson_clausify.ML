@@ -370,9 +370,10 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
     val (opt, (nnf_th, ctxt)) =
       nnf_axiom choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
-      make_cnf (if new_skolem orelse null choice_ths then []
-                else map (old_skolem_theorem_of_def ctxt) (old_skolem_defs th))
-               th ctxt ctxt
+      make_cnf
+       (if new_skolem orelse null choice_ths then []
+        else map (old_skolem_theorem_of_def ctxt) (old_skolem_defs th))
+       th ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
       Thm.instantiate ([], map (apply2 (cterm_of thy))

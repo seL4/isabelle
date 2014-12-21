@@ -14,9 +14,7 @@ sig
   val first_order_resolve : thm -> thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
-  val make_cnf:
-    thm list -> thm -> Proof.context
-    -> Proof.context -> thm list * Proof.context
+  val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val presimplified_consts : string list
   val presimplify: Proof.context -> thm -> thm
@@ -194,7 +192,7 @@ fun forward_res ctxt nf st =
             Display.string_of_thm ctxt st ::
             "Premises:" :: map (Display.string_of_thm ctxt) prems))
   in
-    case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS tacf) st) of
+    case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS ctxt tacf) st) of
       SOME (th, _) => th
     | NONE => raise THM ("forward_res", 0, [st])
   end;
@@ -285,10 +283,11 @@ fun refl_clause th =
 (*** Removal of duplicate literals ***)
 
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
-fun forward_res2 nf hyps st =
+fun forward_res2 ctxt nf hyps st =
   case Seq.pull
         (REPEAT
-         (Misc_Legacy.METAHYPS (fn major::minors => resolve_tac [nf (minors @ hyps) major] 1) 1)
+         (Misc_Legacy.METAHYPS ctxt
+           (fn major::minors => resolve_tac [nf (minors @ hyps) major] 1) 1)
          st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
@@ -297,7 +296,7 @@ fun forward_res2 nf hyps st =
   rls (initially []) accumulates assumptions of the form P==>False*)
 fun nodups_aux ctxt rls th = nodups_aux ctxt rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
-    handle THM _ => tryres(forward_res2 (nodups_aux ctxt) rls (th RS disj_forward2),
+    handle THM _ => tryres(forward_res2 ctxt (nodups_aux ctxt) rls (th RS disj_forward2),
                            [disj_FalseD1, disj_FalseD2, asm_rl])
     handle THM _ => th;
 
@@ -375,18 +374,18 @@ fun apply_skolem_theorem (th, rls) =
 (* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
    Strips universal quantifiers and breaks up conjunctions.
    Eliminates existential quantifiers using Skolemization theorems. *)
-fun cnf old_skolem_ths ctxt ctxt0 (th, ths) =
-  let val ctxt0r = Unsynchronized.ref ctxt0   (* FIXME ??? *)
+fun cnf old_skolem_ths ctxt (th, ths) =
+  let val ctxt_ref = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns [@{const_name All}, @{const_name Ex}, @{const_name HOL.conj}] (prop_of th))
-        then nodups ctxt0 th :: ths (*no work to do, terminate*)
+        then nodups ctxt th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
             Const (@{const_name HOL.conj}, _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
           | Const (@{const_name All}, _) => (*universal quantifier*)
-                let val (th',ctxt0') = freeze_spec th (!ctxt0r)
-                in  ctxt0r := ctxt0'; cnf_aux (th', ths) end
+                let val (th', ctxt') = freeze_spec th (! ctxt_ref)
+                in  ctxt_ref := ctxt'; cnf_aux (th', ths) end
           | Const (@{const_name Ex}, _) =>
               (*existential quantifier: Insert Skolem functions*)
               cnf_aux (apply_skolem_theorem (th, old_skolem_ths), ths)
@@ -394,20 +393,21 @@ fun cnf old_skolem_ths ctxt ctxt0 (th, ths) =
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               let val tac =
-                  Misc_Legacy.METAHYPS (resop cnf_nil) 1 THEN
-                   (fn st' => st' |> Misc_Legacy.METAHYPS (resop cnf_nil) 1)
+                  Misc_Legacy.METAHYPS ctxt (resop cnf_nil) 1 THEN
+                   (fn st' => st' |> Misc_Legacy.METAHYPS ctxt (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
-          | _ => nodups ctxt0 th :: ths  (*no work to do*)
-      and cnf_nil th = cnf_aux (th,[])
+          | _ => nodups ctxt th :: ths  (*no work to do*)
+      and cnf_nil th = cnf_aux (th, [])
       val cls =
         if has_too_many_clauses ctxt (concl_of th) then
           (trace_msg ctxt (fn () =>
-               "cnf is ignoring: " ^ Display.string_of_thm ctxt0 th); ths)
+               "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
         else
           cnf_aux (th, ths)
-  in (cls, !ctxt0r) end
-fun make_cnf old_skolem_ths th ctxt ctxt0 =
-  cnf old_skolem_ths ctxt ctxt0 (th, [])
+  in (cls, !ctxt_ref) end
+
+fun make_cnf old_skolem_ths th ctxt =
+  cnf old_skolem_ths ctxt (th, [])
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
@@ -670,9 +670,11 @@ fun try_skolemize_etc ctxt th =
   end
 
 fun add_clauses ctxt th cls =
-  let val ctxt0 = Variable.global_thm_context th
-      val (cnfs, ctxt) = make_cnf [] th ctxt ctxt0
-  in Variable.export ctxt ctxt0 cnfs @ cls end;
+  let
+    val (cnfs, ctxt') = ctxt
+      |> Variable.declare_thm th
+      |> make_cnf [] th;
+  in Variable.export ctxt' ctxt cnfs @ cls end;
 
 (*Sort clauses by number of literals*)
 fun fewerlits (th1, th2) = nliterals (prop_of th1) < nliterals (prop_of th2)

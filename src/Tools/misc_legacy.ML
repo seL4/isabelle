@@ -22,7 +22,7 @@ sig
   val term_frees: term -> term list
   val mk_defpair: term * term -> string * term
   val get_def: theory -> xstring -> thm
-  val METAHYPS: (thm list -> tactic) -> int -> tactic
+  val METAHYPS: Proof.context -> (thm list -> tactic) -> int -> tactic
   val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val freeze_thaw: thm -> thm * (thm -> thm)
 end;
@@ -158,7 +158,7 @@ fun metahyps_split_prem prem =
       val (params,hyps,concl) = strip_context prem'
   in (insts,params,hyps,concl)  end;
 
-fun metahyps_aux_tac tacf (prem,gno) state =
+fun metahyps_aux_tac ctxt tacf (prem,gno) state =
   let val (insts,params,hyps,concl) = metahyps_split_prem prem
       val maxidx = Thm.maxidx_of state
       val cterm = Thm.cterm_of (Thm.theory_of_thm state)
@@ -204,15 +204,13 @@ fun metahyps_aux_tac tacf (prem,gno) state =
         end
       (*function to replace the current subgoal*)
       fun next st =
-        Thm.bicompose NONE {flatten = true, match = false, incremented = false}
+        Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}
           (false, relift st, nprems_of st) gno state
   in Seq.maps next (tacf subprems (Thm.trivial (cterm concl))) end;
 
-fun print_vars_terms n thm =
+fun print_vars_terms ctxt n thm =
   let
-    val thy = theory_of_thm thm
-    fun typed s ty =
-      "  " ^ s ^ " has type: " ^ Syntax.string_of_typ_global thy ty;
+    fun typed s ty = "  " ^ s ^ " has type: " ^ Syntax.string_of_typ ctxt ty;
     fun find_vars (Const (c, ty)) =
           if null (Term.add_tvarsT ty []) then I
           else insert (op =) (typed c ty)
@@ -228,8 +226,8 @@ fun print_vars_terms n thm =
 
 in
 
-fun METAHYPS tacf n thm = SUBGOAL (metahyps_aux_tac tacf) n thm
-  handle THM("assume: variables",_,_) => (print_vars_terms n thm; Seq.empty)
+fun METAHYPS ctxt tacf n thm = SUBGOAL (metahyps_aux_tac ctxt tacf) n thm
+  handle THM ("assume: variables", _, _) => (print_vars_terms ctxt n thm; Seq.empty)
 
 end;
 
