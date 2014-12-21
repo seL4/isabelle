@@ -221,8 +221,13 @@ fun add_norm_tags congs =
 
 fun normed_rews congs =
   let val add_norms = add_norm_tags congs in
-    fn thm => Variable.tradeT
-      (K (map (add_norms o mk_trans) o maps mk_rew_rules)) (Variable.global_thm_context thm) [thm]
+    fn thm =>
+      let
+        val ctxt =
+          Thm.theory_of_thm thm
+          |> Proof_Context.init_global
+          |> Variable.declare_thm thm;
+      in Variable.tradeT (K (map (add_norms o mk_trans) o maps mk_rew_rules)) ctxt [thm] end
   end;
 
 fun NORM norm_lhs_tac = EVERY'[rtac red2 , norm_lhs_tac, refl_tac];
