@@ -87,14 +87,15 @@ fun mk_meta_cong (_: Proof.context) rl = zero_var_indexes
      else error "Conclusion of congruence rules must be =-equality"
    end);
 
-fun mk_atomize pairs =
+fun mk_atomize ctxt pairs =
   let
     fun atoms thm =
       let
         fun res th = map (fn rl => th RS rl);   (*exception THM*)
+        val thm_ctxt = Variable.declare_thm thm ctxt;
         fun res_fixed rls =
           if Thm.maxidx_of (Thm.adjust_maxidx_thm ~1 thm) = ~1 then res thm rls
-          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.global_thm_context thm) [thm];
+          else Variable.trade (K (fn [thm'] => res thm' rls)) thm_ctxt [thm];
       in
         case concl_of thm
           of Const (@{const_name Trueprop}, _) $ p => (case head_of p
@@ -106,8 +107,8 @@ fun mk_atomize pairs =
       end;
   in atoms end;
 
-fun mksimps pairs (_: Proof.context) =
-  map_filter (try mk_eq) o mk_atomize pairs o gen_all;
+fun mksimps pairs ctxt =
+  map_filter (try mk_eq) o mk_atomize ctxt pairs o gen_all;
 
 val simp_legacy_precond =
   Attrib.setup_config_bool @{binding "simp_legacy_precond"} (K false)

@@ -86,7 +86,7 @@ fun remove_suc ctxt thms =
         case map_filter (fn thm'' =>
             SOME (thm'', singleton
               (Variable.trade (K (fn [thm'''] => [thm''' RS thm']))
-                (Variable.global_thm_context thm'')) thm'')
+                (Variable.declare_thm thm'' ctxt)) thm'')
           handle THM _ => NONE) thms of
             [] => NONE
           | thmps =>
@@ -95,13 +95,13 @@ fun remove_suc ctxt thms =
       end
   in get_first mk_thms eqs end;
 
-fun eqn_suc_base_preproc thy thms =
+fun eqn_suc_base_preproc ctxt thms =
   let
     val dest = fst o Logic.dest_equals o prop_of;
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) thms andalso exists (contains_suc o dest) thms
-      then thms |> perhaps_loop (remove_suc thy) |> (Option.map o map) Drule.zero_var_indexes
+      then thms |> perhaps_loop (remove_suc ctxt) |> (Option.map o map) Drule.zero_var_indexes
        else NONE
   end;
 
