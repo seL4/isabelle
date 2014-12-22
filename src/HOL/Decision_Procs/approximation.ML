@@ -142,10 +142,11 @@ fun approximate_cmd modes raw_t state =
     val t' = approx 30 ctxt t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
-    val p = Print_Mode.with_modes modes (fn () =>
+  in
+    Print_Mode.with_modes modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
-  in Pretty.writeln p end;
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ()
+  end |> Pretty.writeln;
 
 val opt_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
