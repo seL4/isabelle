@@ -53,7 +53,6 @@ sig
   val andf: ('a -> bool) * ('a -> bool) -> 'a -> bool
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
-  val setmp_CRITICAL: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -295,10 +294,7 @@ val exists = List.exists;
 val forall = List.all;
 
 
-(* flags *)
-
-fun setmp_CRITICAL flag value f x =
-  NAMED_CRITICAL "setmp" (fn () => Unsynchronized.setmp flag value f x);
+(* thread data *)
 
 fun setmp_thread_data tag orig_data data f x =
   uninterruptible (fn restore_attributes => fn () =>
