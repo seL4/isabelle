@@ -7,8 +7,6 @@ file dependencies.
 
 signature THY_INFO =
 sig
-  datatype action = Update | Remove
-  val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
@@ -28,20 +26,6 @@ end;
 
 structure Thy_Info: THY_INFO =
 struct
-
-(** theory loader actions and hooks **)
-
-datatype action = Update | Remove;
-
-local
-  val hooks = Synchronized.var "Thy_Info.hooks" ([]: (action -> string -> unit) list);
-in
-  fun add_hook f = Synchronized.change hooks (cons f);
-  fun perform action name =
-    List.app (fn f => (try (fn () => f action name) (); ())) (Synchronized.value hooks);
-end;
-
-
 
 (** thy database **)
 
@@ -136,7 +120,6 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
     let
       val succs = thy_graph String_Graph.all_succs [name];
       val _ = writeln ("Theory loader: removing " ^ commas_quote succs);
-      val _ = List.app (perform Remove) succs;
       val _ = change_thys (fold String_Graph.del_node succs);
     in () end);
 
@@ -151,7 +134,6 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
     val _ = kill_thy name;
     val _ = map get_theory parents;
     val _ = change_thys (new_entry name parents (SOME deps, SOME theory));
-    val _ = perform Update name;
   in () end);
 
 
