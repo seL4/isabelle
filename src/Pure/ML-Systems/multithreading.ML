@@ -4,15 +4,8 @@
 Dummy implementation of multithreading setup.
 *)
 
-signature BASIC_MULTITHREADING =
-sig
-  val NAMED_CRITICAL: string -> (unit -> 'a) -> 'a
-  val CRITICAL: (unit -> 'a) -> 'a
-end;
-
 signature MULTITHREADING =
 sig
-  include BASIC_MULTITHREADING
   val available: bool
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
@@ -30,7 +23,6 @@ sig
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
   val real_time: ('a -> unit) -> 'a -> Time.time
-  val self_critical: unit -> bool
   val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
   val serial: unit -> int
 end;
@@ -69,11 +61,7 @@ fun tracing_time _ _ _ = ();
 fun real_time f x = (f x; Time.zeroTime);
 
 
-(* critical section *)
-
-fun self_critical () = false;
-fun NAMED_CRITICAL _ e = e ();
-fun CRITICAL e = e ();
+(* synchronized evaluation *)
 
 fun synchronized _ _ e = e ();
 
@@ -85,5 +73,3 @@ in fun serial () = (count := ! count + 1; ! count) end;
 
 end;
 
-structure Basic_Multithreading: BASIC_MULTITHREADING = Multithreading;
-open Basic_Multithreading;

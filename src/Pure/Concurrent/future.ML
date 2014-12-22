@@ -522,8 +522,6 @@ fun join_results xs =
   let
     val _ =
       if forall is_finished xs then ()
-      else if Multithreading.self_critical () then
-        raise Fail "Cannot join future values within critical section"
       else if is_some (worker_task ()) then join_work (map task_of xs)
       else List.app (ignore o Single_Assignment.await o result_of) xs;
   in map get_result xs end;

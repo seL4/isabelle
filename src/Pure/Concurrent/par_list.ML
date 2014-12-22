@@ -30,8 +30,7 @@ structure Par_List: PAR_LIST =
 struct
 
 fun managed_results name f xs =
-  if null xs orelse null (tl xs) orelse
-      not (Multithreading.enabled ()) orelse Multithreading.self_critical ()
+  if null xs orelse null (tl xs) orelse not (Multithreading.enabled ())
   then map (Exn.capture f) xs
   else
     uninterruptible (fn restore_attributes => fn () =>

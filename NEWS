@@ -218,6 +218,13 @@ style.
 
 *** ML ***
 
+* Former combinators NAMED_CRITICAL and CRITICAL for central critical
+sections have been discontinued, in favour of the more elementary
+Multithreading.synchronized and its high-level derivative
+Synchronized.var (which is usually sufficient in applications). Subtle
+INCOMPATIBILITY: synchronized access needs to be atomic and cannot be
+nested.
+
 * Cartouches within ML sources are turned into values of type
 Input.source (with formal position information).
 

@@ -4,22 +4,11 @@
 Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
 *)
 
-signature MULTITHREADING_POLYML =
-sig
-  val interruptible: ('a -> 'b) -> 'a -> 'b
-  val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
-end;
-
-signature BASIC_MULTITHREADING =
-sig
-  include BASIC_MULTITHREADING
-  include MULTITHREADING_POLYML
-end;
-
 signature MULTITHREADING =
 sig
   include MULTITHREADING
-  include MULTITHREADING_POLYML
+  val interruptible: ('a -> 'b) -> 'a -> 'b
+  val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -138,50 +127,7 @@ fun real_time f x =
   in time end;
 
 
-(* critical section -- may be nested within the same thread *)
-
-local
-
-val critical_lock = Mutex.mutex ();
-val critical_thread = ref (NONE: Thread.thread option);
-val critical_name = ref "";
-
-fun show "" = "" | show name = " " ^ name;
-fun show' "" = "" | show' name = " [" ^ name ^ "]";
-
-in
-
-fun self_critical () =
-  (case ! critical_thread of
-    NONE => false
-  | SOME t => Thread.equal (t, Thread.self ()));
-
-fun NAMED_CRITICAL name e =
-  if self_critical () then e ()
-  else
-    Exn.release (uninterruptible (fn restore_attributes => fn () =>
-      let
-        val name' = ! critical_name;
-        val _ =
-          if Mutex.trylock critical_lock then ()
-          else
-            let
-              val _ = tracing 5 (fn () => "CRITICAL" ^ show name ^ show' name' ^ ": waiting");
-              val time = real_time Mutex.lock critical_lock;
-              val _ = tracing_time true time (fn () =>
-                "CRITICAL" ^ show name ^ show' name' ^ ": passed after " ^ Time.toString time);
-            in () end;
-        val _ = critical_thread := SOME (Thread.self ());
-        val _ = critical_name := name;
-        val result = Exn.capture (restore_attributes e) ();
-        val _ = critical_name := "";
-        val _ = critical_thread := NONE;
-        val _ = Mutex.unlock critical_lock;
-      in result end) ());
-
-fun CRITICAL e = NAMED_CRITICAL "" e;
-
-end;
+(* synchronized evaluation *)
 
 fun synchronized name lock e =
   Exn.release (uninterruptible (fn restore_attributes => fn () =>
@@ -221,5 +167,6 @@ end;
 
 end;
 
-structure Basic_Multithreading: BASIC_MULTITHREADING = Multithreading;
-open Basic_Multithreading;
+val interruptible = Multithreading.interruptible;
+val uninterruptible = Multithreading.uninterruptible;
+

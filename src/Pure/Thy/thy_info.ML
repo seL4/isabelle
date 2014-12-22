@@ -222,11 +222,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
 in
 
 fun schedule_tasks tasks =
-  if not (Multithreading.enabled ()) then schedule_seq tasks
-  else if Multithreading.self_critical () then
-     (warning "Theory loader: no multithreading within critical section";
-      schedule_seq tasks)
-  else schedule_futures tasks;
+  if Multithreading.enabled () then schedule_futures tasks else schedule_seq tasks;
 
 end;
 

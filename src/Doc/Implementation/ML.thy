@@ -1718,7 +1718,7 @@ text \<open>Multiple threads help to organize advanced operations of the
 
   \begin{warn}
   Parallel computing resources are managed centrally by the
-  Isabelle/ML infrastructure.  User programs must not fork their own
+  Isabelle/ML infrastructure.  User programs should not fork their own
   ML threads to perform heavy computations.
   \end{warn}
 \<close>
@@ -1765,8 +1765,8 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   Instead of poking initial values into (private) global references, a
   new state record can be created on each invocation, and passed
   through any auxiliary functions of the component.  The state record
-  may well contain mutable references, without requiring any special
-  synchronizations, as long as each invocation gets its own copy, and the
+  contain mutable references in special situations, without requiring any
+  synchronization, as long as each invocation gets its own copy and the
   tool itself is single-threaded.
 
   \item Avoid raw output on @{text "stdout"} or @{text "stderr"}.  The
@@ -1827,38 +1827,21 @@ ML \<open>
 
 subsection \<open>Explicit synchronization\<close>
 
-text \<open>Isabelle/ML also provides some explicit synchronization
-  mechanisms, for the rare situations where mutable shared resources
-  are really required.  These are based on the synchronizations
-  primitives of Poly/ML, which have been adapted to the specific
-  assumptions of the concurrent Isabelle/ML environment.  User code
-  must not use the Poly/ML primitives directly!
+text \<open>Isabelle/ML provides explicit synchronization for mutable variables over
+  immutable data, which may be updated atomically and exclusively. This
+  addresses the rare situations where mutable shared resources are really
+  required. Synchronization in Isabelle/ML is based on primitives of Poly/ML,
+  which have been adapted to the specific assumptions of the concurrent
+  Isabelle environment. User code should not break this abstraction, but stay
+  within the confines of concurrent Isabelle/ML.
 
-  \medskip The most basic synchronization concept is a single
-  \emph{critical section} (also called ``monitor'' in the literature).
-  A thread that enters the critical section prevents all other threads
-  from doing the same.  A thread that is already within the critical
-  section may re-enter it in an idempotent manner.
-
-  Such centralized locking is convenient, because it prevents
-  deadlocks by construction.
-
-  \medskip More fine-grained locking works via \emph{synchronized
-  variables}.  An explicit state component is associated with
-  mechanisms for locking and signaling.  There are operations to
-  await a condition, change the state, and signal the change to all
-  other waiting threads.
-
-  Here the synchronized access to the state variable is \emph{not}
-  re-entrant: direct or indirect nesting within the same thread will
-  cause a deadlock!
-\<close>
+  A \emph{synchronized variable} is an explicit state component is associated
+  with mechanisms for locking and signaling. There are operations to await a
+  condition, change the state, and signal the change to all other waiting
+  threads. Synchronized access to the state variable is \emph{not} re-entrant:
+  direct or indirect nesting within the same thread will cause a deadlock!\<close>
 
 text %mlref \<open>
-  \begin{mldecls}
-  @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
-  @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
-  \end{mldecls}
   \begin{mldecls}
   @{index_ML_type "'a Synchronized.var"} \\
   @{index_ML Synchronized.var: "string -> 'a -> 'a Synchronized.var"} \\
@@ -1867,19 +1850,6 @@ text %mlref \<open>
   \end{mldecls}
 
   \begin{description}
-
-  \item @{ML NAMED_CRITICAL}~@{text "name e"} evaluates @{text "e ()"}
-  within the central critical section of Isabelle/ML.  No other thread
-  may do so at the same time, but non-critical parallel execution will
-  continue.  The @{text "name"} argument is used for tracing and might
-  help to spot sources of congestion.
-
-  Entering the critical section without contention is very fast.  Each
-  thread should stay within the critical section only very briefly,
-  otherwise parallel performance may degrade.
-
-  \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
-  name argument.
 
   \item Type @{ML_type "'a Synchronized.var"} represents synchronized
   variables with state of type @{ML_type 'a}.
@@ -1907,8 +1877,7 @@ text %mlref \<open>
 
 text %mlex \<open>The following example implements a counter that produces
   positive integers that are unique over the runtime of the Isabelle
-  process:
-\<close>
+  process:\<close>
 
 ML \<open>
   local
