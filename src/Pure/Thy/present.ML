@@ -134,9 +134,8 @@ fun map_browser_info f {theories, tex_index, html_index, graph} =
 
 (* state *)
 
-val browser_info = Unsynchronized.ref empty_browser_info;
-fun change_browser_info f =
-  CRITICAL (fn () => Unsynchronized.change browser_info (map_browser_info f));
+val browser_info = Synchronized.var "browser_info" empty_browser_info;
+fun change_browser_info f = Synchronized.change browser_info (map_browser_info f);
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
@@ -217,7 +216,7 @@ fun document_variants str =
 fun init build info info_path doc doc_graph document_output doc_variants doc_files
     (chapter, name) verbose thys =
   if not build andalso not info andalso doc = "" then
-    (browser_info := empty_browser_info; session_info := NONE)
+    (Synchronized.change browser_info (K empty_browser_info); session_info := NONE)
   else
     let
       val doc_output =
@@ -239,7 +238,7 @@ fun init build info info_path doc doc_graph document_output doc_variants doc_fil
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
           doc_graph, doc_output, doc_files, documents, verbose, readme));
-      browser_info := init_browser_info (chapter, name) thys;
+      Synchronized.change browser_info (K (init_browser_info (chapter, name) thys));
       add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
 
@@ -290,7 +289,7 @@ fun finish () =
   with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph,
     doc_output, doc_files, documents, verbose, readme, ...} =>
   let
-    val {theories, tex_index, html_index, graph} = ! browser_info;
+    val {theories, tex_index, html_index, graph} = Synchronized.value browser_info;
     val thys = Symtab.dest theories;
 
     val chapter_prefix = Path.append info_path (Path.basic chapter);
@@ -360,7 +359,7 @@ fun finish () =
 
     val _ = jobs |> Par_List.map (fn job => job ()) |> List.app (op |>);
   in
-    browser_info := empty_browser_info;
+    Synchronized.change browser_info (K empty_browser_info);
     session_info := NONE
   end);
 
