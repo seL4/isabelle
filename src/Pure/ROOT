@@ -62,6 +62,7 @@ session Pure =
     "Concurrent/par_exn.ML"
     "Concurrent/par_list.ML"
     "Concurrent/par_list_sequential.ML"
+    "Concurrent/random.ML"
     "Concurrent/simple_thread.ML"
     "Concurrent/single_assignment.ML"
     "Concurrent/single_assignment_sequential.ML"

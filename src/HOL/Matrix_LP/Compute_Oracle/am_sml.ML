@@ -12,7 +12,7 @@ sig
   val save_result : (string * term) -> unit
   val set_compiled_rewriter : (term -> term) -> unit
   val list_nth : 'a list * int -> 'a
-  val dump_output : (string option) Unsynchronized.ref 
+  val dump_output : string option Unsynchronized.ref 
 end
 
 structure AM_SML : AM_SML = struct
@@ -490,7 +490,7 @@ fun use_source src = use_text ML_Env.local_context (1, "") false src
 fun compile rules = 
     let
         val guid = get_guid ()
-        val code = Real.toString (random ())
+        val code = Real.toString (Random.random ())
         val name = "AMSML_"^guid
         val (inlinetab, source) = sml_prog name code rules
         val _ = case !dump_output of NONE => () | SOME p => writeTextFile p source

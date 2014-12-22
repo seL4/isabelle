@@ -1434,7 +1434,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               val max_isar = 1000 * max_dependencies
 
               fun priority_of th =
-                random_range 0 max_isar +
+                Random.random_range 0 max_isar +
                 (case try (Graph.get_node access_G) (nickname_of_thm th) of
                   SOME (Isar_Proof, _, deps) => ~100 * length deps
                 | SOME (Automatic_Proof, _, _) => 2 * max_isar

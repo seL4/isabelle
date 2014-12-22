@@ -199,11 +199,6 @@ sig
   val untag_list: (int * 'a) list -> 'a list
   val order_list: (int * 'a) list -> 'a list
 
-  (*random numbers*)
-  exception RANDOM
-  val random: unit -> real
-  val random_range: int -> int -> int
-
   (*misc*)
   val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
   val divide_and_conquer': ('a -> 'b -> ('a list * ('c list * 'b -> 'c * 'b)) * 'b) ->
@@ -982,30 +977,6 @@ fun untag_list [] = []
 
 (*return list elements in original order*)
 fun order_list list = untag_list (sort (int_ord o apply2 fst) list);
-
-
-
-(** random numbers **)
-
-exception RANDOM;
-
-fun rmod x y = x - y * Real.realFloor (x / y);
-
-local
-  val a = 16807.0;
-  val m = 2147483647.0;
-  val random_seed = Unsynchronized.ref 1.0;
-in
-
-fun random () = CRITICAL (fn () =>
-  let val r = rmod (a * ! random_seed) m
-  in (random_seed := r; r) end);
-
-end;
-
-fun random_range l h =
-  if h < l orelse l < 0 then raise RANDOM
-  else l + Real.floor (rmod (random ()) (real (h - l + 1)));
 
 
 

@@ -351,10 +351,9 @@ fun run_atp mode name
       with_cleanup clean_up run () |> tap export
 
     val important_message =
-      if mode = Normal andalso random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
-        extract_important_message output
-      else
-        ""
+      if mode = Normal andalso Random.random_range 0 (atp_important_message_keep_quotient - 1) = 0
+      then extract_important_message output
+      else ""
 
     val (used_facts, preferred_methss, message) =
       (case outcome of
