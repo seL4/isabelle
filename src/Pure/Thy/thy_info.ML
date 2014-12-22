@@ -10,10 +10,8 @@ sig
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
-  val is_finished: string -> bool
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  val kill_thy: string -> unit
   val use_theories:
     {document: bool, last_timing: Toplevel.transition -> Time.time option, master_dir: Path.T} ->
     (string * Position.T) list -> unit
@@ -45,7 +43,7 @@ fun new_entry name parents entry =
   String_Graph.new_node (name, entry) #> add_deps name parents;
 
 
-(* thy database *)
+(* global thys *)
 
 type deps =
  {master: (Path.T * SHA1.digest),  (*master dependencies for thy file*)
@@ -53,45 +51,41 @@ type deps =
 
 fun make_deps master imports : deps = {master = master, imports = imports};
 
-fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
+fun master_dir (d: deps option) =
+  the_default Path.current (Option.map (Path.dir o #1 o #master) d);
+
 fun base_name s = Path.implode (Path.base (Path.explode s));
 
 local
-  val database =
-    Unsynchronized.ref (String_Graph.empty: (deps option * theory option) String_Graph.T);
+  val global_thys =
+    Synchronized.var "Thy_Info.thys"
+      (String_Graph.empty: (deps option * theory option) String_Graph.T);
 in
-  fun get_thys () = ! database;
-  fun change_thys f = NAMED_CRITICAL "Thy_Info" (fn () => Unsynchronized.change database f);
+  fun get_thys () = Synchronized.value global_thys;
+  fun change_thys f = Synchronized.change global_thys f;
 end;
-
-
-(* access thy graph *)
-
-fun thy_graph f x = f (get_thys ()) x;
 
 fun get_names () = String_Graph.topological_order (get_thys ());
 
 
 (* access thy *)
 
-fun lookup_thy name =
-  SOME (thy_graph String_Graph.get_node name) handle String_Graph.UNDEF _ => NONE;
+fun lookup thys name = try (String_Graph.get_node thys) name;
+fun lookup_thy name = lookup (get_thys ()) name;
 
-val known_thy = is_some o lookup_thy;
-
-fun get_thy name =
-  (case lookup_thy name of
+fun get thys name =
+  (case lookup thys name of
     SOME thy => thy
   | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
+
+fun get_thy name = get (get_thys ()) name;
 
 
 (* access deps *)
 
 val lookup_deps = Option.map #1 o lookup_thy;
-val get_deps = #1 o get_thy;
 
-val is_finished = is_none o get_deps;
-val master_directory = master_dir o get_deps;
+val master_directory = master_dir o #1 o get_thy;
 
 
 (* access theory *)
@@ -112,29 +106,33 @@ val get_imports = Resources.imports_of o get_theory;
 
 (** thy operations **)
 
-(* main loader actions *)
+(* remove *)
 
-fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  if is_finished name then error ("Cannot update finished theory " ^ quote name)
-  else
-    let
-      val succs = thy_graph String_Graph.all_succs [name];
-      val _ = writeln ("Theory loader: removing " ^ commas_quote succs);
-      val _ = change_thys (fold String_Graph.del_node succs);
-    in () end);
+fun remove name thys =
+  (case lookup thys name of
+    NONE => thys
+  | SOME (NONE, _) => error ("Cannot update finished theory " ^ quote name)
+  | SOME _ =>
+      let
+        val succs = String_Graph.all_succs thys [name];
+        val _ = writeln ("Theory loader: removing " ^ commas_quote succs);
+      in fold String_Graph.del_node succs thys end);
 
-fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  if known_thy name then remove_thy name
-  else ());
+val remove_thy = change_thys o remove;
 
-fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
+
+(* update *)
+
+fun update deps theory thys =
   let
     val name = Context.theory_name theory;
     val parents = map Context.theory_name (Theory.parents_of theory);
-    val _ = kill_thy name;
-    val _ = map get_theory parents;
-    val _ = change_thys (new_entry name parents (SOME deps, SOME theory));
-  in () end);
+
+    val thys' = remove name thys;
+    val _ = map (get thys') parents;
+  in new_entry name parents (SOME deps, SOME theory) thys' end;
+
+fun update_thy deps theory = change_thys (update deps theory);
 
 
 (* scheduling loader tasks *)
@@ -242,7 +240,7 @@ fun required_by _ [] = ""
 
 fun load_thy document last_timing initiators update_time deps text (name, pos) keywords parents =
   let
-    val _ = kill_thy name;
+    val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
     val _ = Output.try_protocol_message (Markup.loading_theory name) [];
 
@@ -370,10 +368,11 @@ fun register_thy theory =
     val {master, ...} = Resources.check_thy (Resources.master_directory theory) name;
     val imports = Resources.imports_of theory;
   in
-    NAMED_CRITICAL "Thy_Info" (fn () =>
-     (kill_thy name;
-      writeln ("Registering theory " ^ quote name);
-      update_thy (make_deps master imports) theory))
+    change_thys (fn thys =>
+      let
+        val thys' = remove name thys;
+        val _ = writeln ("Registering theory " ^ quote name);
+      in update (make_deps master imports) theory thys' end)
   end;
 
 
