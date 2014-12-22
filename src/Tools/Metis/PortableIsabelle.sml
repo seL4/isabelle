@@ -12,7 +12,11 @@ val ml = "isabelle"
 
 fun pointerEqual (x : 'a, y : 'a) = pointer_eq (x, y)
 
-fun critical e () = NAMED_CRITICAL "metis" e
+local
+  val lock = Mutex.mutex ();
+in
+  fun critical e () = Multithreading.synchronized "metis" lock e
+end;
 
 val randomWord = Random.nextWord
 val randomBool = Random.nextBool
