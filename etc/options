@@ -20,6 +20,8 @@ option thy_output_break : bool = false
   -- "control line breaks in non-display material"
 option thy_output_quotes : bool = false
   -- "indicate if the output should be enclosed in double quotes"
+option thy_output_margin : int = 76
+  -- "right margin / page width for printing of display material"
 option thy_output_indent : int = 0
   -- "indentation for pretty printing of display material"
 option thy_output_source : bool = false
@@ -55,9 +57,6 @@ option names_unique : bool = true
 
 option eta_contract : bool = true
   -- "print terms in eta-contracted form"
-
-option pretty_margin : int = 76
-  -- "right margin / page width of pretty printer in Isabelle/ML"
 
 option print_mode : string = ""
   -- "additional print modes for prover output (separated by commas)"

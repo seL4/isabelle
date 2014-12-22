@@ -109,8 +109,7 @@ fun use_theories last_timing options =
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Multithreading.max_threads_setmp (Options.int options "threads")
-    |> Unsynchronized.setmp Future.ML_statistics true
-    |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin");
+    |> Unsynchronized.setmp Future.ML_statistics true;
 
 fun use_theories_condition last_timing (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in

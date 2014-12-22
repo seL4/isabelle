@@ -127,7 +127,9 @@ val _ =
       #> (if Config.get ctxt Thy_Output.display
           then
             map (fn (p, name) =>
-              Output.output (Pretty.string_of (Pretty.indent (Config.get ctxt Thy_Output.indent) p)) ^
+              Output.output
+                (Thy_Output.string_of_margin ctxt
+                  (Pretty.indent (Config.get ctxt Thy_Output.indent) p)) ^
               "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
             #> space_implode "\\par\\smallskip%\n"
             #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"

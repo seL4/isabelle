@@ -206,7 +206,7 @@ session Sugar (doc) in "Sugar" = HOL +
     "root.tex"
 
 session Locales (doc) in "Locales" = HOL +
-  options [document_variants = "locales", pretty_margin = 65, skip_proofs = false]
+  options [document_variants = "locales", thy_output_margin = 65, skip_proofs = false]
   theories
     Examples1
     Examples2
@@ -387,7 +387,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "Documents/Documents"
   theories [document = ""]
     "Types/Setup"
-  theories [pretty_margin = 64, thy_output_indent = 0]
+  theories [thy_output_margin = 64, thy_output_indent = 0]
     "Types/Numbers"
     "Types/Pairs"
     "Types/Records"
@@ -397,7 +397,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "Rules/Basic"
     "Rules/Blast"
     "Rules/Force"
-  theories [pretty_margin = 64, thy_output_indent = 5]
+  theories [thy_output_margin = 64, thy_output_indent = 5]
     "Rules/TPrimes"
     "Rules/Forward"
     "Rules/Tacticals"
