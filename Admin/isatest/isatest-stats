@@ -12,15 +12,10 @@ ISABELLE_SESSIONS="
   HOL
   HOL-Algebra
   HOL-Auth
-  HOL-BNF
-  HOL-BNF-Examples
-  HOL-BNF-LFP
-  HOL-BNF-Nitpick_Examples
   HOL-Bali
   HOL-Cardinals
-  HOL-Cardinals-Base
   HOL-Codegenerator_Test
-  HOL-Datatype_Benchmark
+  HOL-Datatype_Examples
   HOL-Decision_Procs
   HOL-Hahn_Banach
   HOL-Hoare
@@ -44,6 +39,7 @@ ISABELLE_SESSIONS="
   HOL-NSA
   HOL-NSA-Examples
   HOL-NanoJava
+  HOL-Nitpick_Examples
   HOL-Nominal
   HOL-Nominal-Examples
   HOL-Number_Theory
