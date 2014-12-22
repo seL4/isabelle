@@ -97,82 +97,119 @@ ISABELLE_SESSIONS="
 "
 
 AFP_SESSIONS="
+  AODV
   AVL-Trees
+  AWN
   Abortable_Linearizable_Modules
   Abstract-Hoare-Logics
   Abstract-Rewriting
+  Abstract_Completeness
+  Affine_Arithmetic
+  Amortized_Complexity
   ArrowImpossibilityGS
   AutoFocus-Stream
+  Automatic_Refinement
   BDD
   BinarySearchTree
   Binomial-Heaps
   Binomial-Queues
   Bondy
+  Boolean_Expression_Checkers
+  Bounded_Deducibility_Security
   BytecodeLogicJmlTypes
+  CAVA_Automata
+  CAVA_LTL_Modelchecker
   CCS
+  CISC-Kernel
   Category
   Category2
   Cauchy
+  Cayley_Hamilton
+  Certification_Monads
   Circus
   ClockSynchInst
   CofGroups
   Coinductive
+  Coinductive_Languages
   Collections
   Compiling-Exceptions-Correctly
   Completeness
+  ComponentDependencies
   Containers
   CoreC++
+  CryptoBasedCompositionalProperties
   DPT-SAT-Solver
   DataRefinementIBP
   Datatype_Order_Generator
+  Decreasing-Diagrams
+  Density_Compiler
   Depth-First-Search
   Dijkstra_Shortest_Path
+  Discrete_Summation
   DiskPaxos
   Efficient-Mergesort
   Example-Submission
   FFT
   FOL-Fitting
   FeatherweightJava
+  Featherweight_OCL
   Fermat3_4
   FileRefinement
   FinFun
   Finger-Trees
   Flyspeck-Tame
+  FocusStreamsCaseStudies
   Free-Boolean-Algebra
   Free-Groups
   FunWithFunctions
   FunWithTilings
   Functional-Automata
+  GPU_Kernel_PL
+  Gabow_SCC
   Gauss-Jordan-Elim-Fun
+  Gauss_Jordan
   GenClock
   General-Triangle
   Girth_Chromatic
+  GoedelGod
   GraphMarkingIBP
   Graph_Theory
   Group-Ring-Module
   HRB-Slicing
   Heard_Of
+  HereditarilyFinite
   HotelKeyCards
   Huffman
+  HyperCTL
+  IEEE_Floating_Point
+  Imperative_Insertion_Sort
   Impossible_Geometry
+  Incompleteness
   Inductive_Confidentiality
   InformationFlowSlicing
   Integration
   Jinja
   JinjaThreads
   JiveDataStoreModel
+  Jordan_Hoelder
+  KAT_and_DRA
   KBPs
   Kleene_Algebra
+  Koenigsberg_Friendship
+  LTL_to_GBA
   Lam-ml-Normalization
   LatticeProperties
   Launchbury
   Lazy-Lists-II
+  Lehmer
+  Lifting_Definition_Option
   LightweightJava
   LinearQuantifierElim
   List-Index
   List-Infinite
   Locally-Nameless-Sigma
   Lower_Semicontinuous
+  MSO_Regex_Equivalence
   Markov_Models
   Marriage
   Matrix
@@ -182,7 +219,10 @@ AFP_SESSIONS="
   MuchAdoAboutTwo
   Myhill-Nerode
   Nat-Interval-Logic
+  Native_Word
+  Network_Security_Policy_Verification
   Nominal2
+  Noninterference_CSP
   NormByEval
   Open_Induction
   Ordinal
@@ -190,50 +230,81 @@ AFP_SESSIONS="
   Ordinary_Differential_Equations
   PCF
   POPLmark-deBruijn
+  Partial_Function_MR
   Perfect-Number-Thm
   Pi_Calculus
   Polynomials
+  Pop_Refinement
   Possibilistic_Noninterference
+  Pratt_Certificate
   Presburger-Automata
+  Priority_Queue_Braun
+  Probabilistic_Noninterference
   Program-Conflict-Analysis
+  Promela
   PseudoHoops
   Psi_Calculi
   RIPEMD-160-SPARK
   RSAPSS
   Ramsey-Infinite
+  Random_Graph_Subgraph_Threshold
   Rank_Nullity_Theorem
+  Real_Impl
   Recursion-Theory-I
   Refine_Monadic
+  RefinementReactive
+  Regex_Equivalence
   Regular-Sets
+  Regular_Algebras
+  Relation_Algebra
   Ribbon_Proofs
   Robbins-Conjecture
+  Roy_Floyd_Warshall
   SATSolverVerification
   SIFPL
+  SIFUM_Type_Systems
+  Secondary_Sylow
+  Selection_Heap_Sort
   SenSocialChoice
   Separation_Algebra
   Separation_Logic_Imperative_HOL
   SequentInvertibility
   Shivers-CFA
   ShortestPath
+  Show
   Simpl
+  Skew_Heap
   Slicing
+  Sort_Encodings
+  Special_Function_Bounds
+  Splay_Tree
   Sqrt_Babylonian
   Statecharts
   Stream-Fusion
+  Stream_Fusion_Code
+  Strong_Security
+  Sturm_Sequences
+  Sturm_Tarski
   Stuttering_Equivalence
   SumSquares
   TLA
+  Tail_Recursive_Functions
   Tarskis_Geometry
   Topology
   Transitive-Closure
   Transitive-Closure-II
   Tree-Automata
   Tycon
+  UPF
   Valuation
+  VectorSpace
   Verified-Prover
   VolpanoSmith
+  WHATandWHERE_Security
   Well_Quasi_Orders
   WorkerWrapper
+  XML
+  pGCL
 "
 
 for PLATFORM in $PLATFORMS
