@@ -222,8 +222,15 @@ object GUI
   def imitate_font(family: String, font: Font, scale: Double = 1.0): Font =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
-    val size = scale * (font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
-    font1.deriveFont(size.round.toInt)
+    val size = font_metrics(font).getHeight.toDouble / font_metrics(font1).getHeight * font.getSize
+    font1.deriveFont((scale * size).toInt)
+  }
+
+  def imitate_font_css(family: String, font: Font, scale: Double = 1.0): String =
+  {
+    val font1 = new Font(family, font.getStyle, font.getSize)
+    val rel_size = font_metrics(font).getHeight.toDouble / font_metrics(font1).getHeight
+    "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
   }
 
   def transform_font(font: Font, transform: AffineTransform): Font =

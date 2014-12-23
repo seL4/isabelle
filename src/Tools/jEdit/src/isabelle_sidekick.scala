@@ -12,7 +12,7 @@ import isabelle._
 
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
-import javax.swing.Icon
+import javax.swing.{JLabel, Icon}
 
 import org.gjt.sp.jedit.Buffer
 import sidekick.{SideKickParser, SideKickParsedData, IAsset}
@@ -32,12 +32,14 @@ object Isabelle_Sidekick
 
   class Keyword_Asset(keyword: String, text: String, range: Text.Range) extends IAsset
   {
+    private val css = GUI.imitate_font_css(Font_Info.main_family(), (new JLabel).getFont)
+
     protected var _name = text
     protected var _start = int_to_pos(range.start)
     protected var _end = int_to_pos(range.stop)
     override def getIcon: Icon = null
     override def getShortString: String =
-      "<html><span style=\"font-family: " + Font_Info.main_family() + ";\">" +
+      "<html><span style=\"" + css + "\">" +
       (if (keyword != "" && _name.startsWith(keyword))
         "<b>" + HTML.encode(keyword) + "</b>" + HTML.encode(_name.substring(keyword.length))
        else HTML.encode(_name)) + "</span></html>"
