@@ -344,8 +344,6 @@ object Markup
   val SERIAL = "serial"
   val Serial = new Properties.Long(SERIAL)
 
-  val MESSAGE = "message"
-
   val INIT = "init"
   val STATUS = "status"
   val REPORT = "report"
