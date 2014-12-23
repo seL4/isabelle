@@ -58,7 +58,7 @@ fun run_solver ctxt input =
 (* method setup *)
 
 fun print_cert cert =
-  (writeln o Markup.markup Markup.information)
+  Output.information
     ("To repeat this proof with a certificate use this command:\n" ^
       Active.sendback_markup [] ("by (sos \"" ^ Positivstellensatz_Tools.print_cert cert ^ "\")"))
 

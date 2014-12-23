@@ -555,12 +555,11 @@ fun try_quickcheck auto state =
       NONE => (unknownN, [])
     | SOME results =>
         let
-          val msg = pretty_counterex ctxt auto (Option.map (the o get_first response_of) results)
+          val msg =
+            Pretty.string_of
+              (pretty_counterex ctxt auto (Option.map (the o get_first response_of) results))
         in
-          if is_some results then
-            (genuineN,
-              if auto then [Pretty.string_of (Pretty.mark Markup.information msg)]
-              else (writeln (Pretty.string_of msg); []))
+          if is_some results then (genuineN, if auto then [msg] else (writeln msg; []))
           else (noneN, [])
         end)
   end

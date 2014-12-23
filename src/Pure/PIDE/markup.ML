@@ -140,7 +140,6 @@ sig
   val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
-  val stateN: string val state: T
   val goalN: string val goal: T
   val subgoalN: string val subgoal: string -> T
   val taskN: string
@@ -157,6 +156,8 @@ sig
   val statusN: string
   val resultN: string
   val writelnN: string
+  val stateN: string
+  val informationN: string
   val tracingN: string
   val warningN: string
   val errorN: string
@@ -167,7 +168,6 @@ sig
   val no_reportN: string val no_report: T
   val badN: string val bad: T
   val intensifyN: string val intensify: T
-  val informationN: string val information: T
   val browserN: string
   val graphviewN: string
   val sendbackN: string
@@ -516,7 +516,6 @@ fun parse_command_timing_properties props =
 val subgoalsN = "subgoals";
 val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 
-val (stateN, state) = markup_elem "state";
 val (goalN, goal) = markup_elem "goal";
 val (subgoalN, subgoal) = markup_string "subgoal" nameN;
 
@@ -544,6 +543,8 @@ val initN = "init";
 val statusN = "status";
 val resultN = "result";
 val writelnN = "writeln";
+val stateN = "state"
+val informationN = "information";
 val tracingN = "tracing";
 val warningN = "warning";
 val errorN = "error";
@@ -558,7 +559,6 @@ val (no_reportN, no_report) = markup_elem "no_report";
 val (badN, bad) = markup_elem "bad";
 
 val (intensifyN, intensify) = markup_elem "intensify";
-val (informationN, information) = markup_elem "information";
 
 
 (* active areas *)

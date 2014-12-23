@@ -148,11 +148,11 @@ in
 fun print_results do_print pos ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
-    (Pretty.writeln o Pretty.mark Markup.state)
+    (Output.state o Pretty.string_of)
       (Pretty.block (position_markup pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
         pretty_facts ctxt facts))
   else
-    (Pretty.writeln o Pretty.mark Markup.state)
+    (Output.state o Pretty.string_of)
       (case facts of
         [fact] => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
           Proof_Context.pretty_fact ctxt fact])
@@ -182,7 +182,7 @@ in
 
 fun print_consts do_print pos ctxt pred cs =
   if not do_print orelse null cs then ()
-  else Pretty.writeln (Pretty.mark Markup.state (pretty_consts pos ctxt pred cs));
+  else Output.state (Pretty.string_of (pretty_consts pos ctxt pred cs));
 
 end;
 

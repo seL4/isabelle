@@ -111,7 +111,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
             in
               if auto_time_limit > 0.0 then
                 (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
-                  (true, (_, outcome)) => List.app writeln outcome
+                  (true, (_, outcome)) => List.app Output.information outcome
                 | _ => ())
               else ()
             end handle exn => if Exn.is_interrupt exn then reraise exn else ()}

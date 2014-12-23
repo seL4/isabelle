@@ -213,9 +213,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
   in
     if mode = Auto_Try then
       let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
-        (outcome_code,
-          if outcome_code = someN then [Markup.markup Markup.information (message ())]
-          else [])
+        (outcome_code, if outcome_code = someN then [message ()] else [])
       end
     else if blocking then
       let

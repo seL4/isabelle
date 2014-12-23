@@ -118,6 +118,8 @@ fun init_channels channel =
     Output.result_fn :=
       (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s);
     Output.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
+    Output.state_fn := (fn s => standard_message (serial_props ()) Markup.stateN s);
+    Output.information_fn := (fn s => standard_message (serial_props ()) Markup.informationN s);
     Output.tracing_fn :=
       (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
     Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);

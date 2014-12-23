@@ -27,18 +27,27 @@ object Rendering
 
   /* message priorities */
 
-  private val writeln_pri = 1
-  private val information_pri = 2
-  private val tracing_pri = 3
-  private val warning_pri = 4
-  private val legacy_pri = 5
-  private val error_pri = 6
+  private val state_pri = 1
+  private val writeln_pri = 2
+  private val information_pri = 3
+  private val tracing_pri = 4
+  private val warning_pri = 5
+  private val legacy_pri = 6
+  private val error_pri = 7
 
   private val message_pri = Map(
-    Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
-    Markup.TRACING -> tracing_pri, Markup.TRACING_MESSAGE -> tracing_pri,
-    Markup.WARNING -> warning_pri, Markup.WARNING_MESSAGE -> warning_pri,
-    Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
+    Markup.STATE -> state_pri,
+    Markup.STATE_MESSAGE -> state_pri,
+    Markup.WRITELN -> writeln_pri,
+    Markup.WRITELN_MESSAGE -> writeln_pri,
+    Markup.INFORMATION -> information_pri,
+    Markup.INFORMATION_MESSAGE -> information_pri,
+    Markup.TRACING -> tracing_pri,
+    Markup.TRACING_MESSAGE -> tracing_pri,
+    Markup.WARNING -> warning_pri,
+    Markup.WARNING_MESSAGE -> warning_pri,
+    Markup.ERROR -> error_pri,
+    Markup.ERROR_MESSAGE -> error_pri)
 
 
   /* popup window bounds */
@@ -152,7 +161,8 @@ object Rendering
       Markup.SENDBACK, Markup.SIMP_TRACE_PANEL)
 
   private val tooltip_message_elements =
-    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING,
+      Markup.ERROR, Markup.BAD)
 
   private val tooltip_descriptions =
     Map(
@@ -172,21 +182,21 @@ object Rendering
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
-    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.ERROR)
 
   private val squiggly_elements =
-    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.ERROR)
 
   private val line_background_elements =
-    Markup.Elements(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
-      Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE,
-      Markup.INFORMATION)
+    Markup.Elements(Markup.WRITELN_MESSAGE, Markup.STATE_MESSAGE, Markup.INFORMATION_MESSAGE,
+      Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE)
 
   private val separator_elements =
     Markup.Elements(Markup.SEPARATOR)
 
   private val background_elements =
     Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
+      Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
       active_elements
@@ -224,6 +234,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
   val writeln_message_color = color_value("writeln_message_color")
+  val state_message_color = color_value("state_message_color")
   val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
@@ -448,16 +459,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       snapshot.cumulate[List[Text.Info[Command.Results.Entry]]](
         range, Nil, Rendering.tooltip_message_elements, _ =>
         {
-          case (msgs, Text.Info(info_range,
-            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-          if name == Markup.WRITELN || name == Markup.WARNING || name == Markup.ERROR =>
-            val entry: Command.Results.Entry =
-              (serial -> XML.Elem(Markup(Markup.message(name), props), body))
-            Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
-
           case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
           if !body.isEmpty =>
             val entry: Command.Results.Entry = (Document_ID.make(), msg)
+            Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
+
+          case (msgs, Text.Info(info_range,
+            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body))) =>
+            val entry: Command.Results.Entry =
+              (serial -> XML.Elem(Markup(Markup.message(name), props), body))
             Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
 
           case _ => None
@@ -588,11 +598,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val results =
       snapshot.cumulate[Int](range, 0, Rendering.squiggly_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) =>
-            if (Protocol.is_information(elem))
-              Some(pri max Rendering.information_pri)
-            else
-              Some(pri max Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
         })
     for {
       Text.Info(r, pri) <- results
@@ -605,6 +611,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private lazy val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
+    Rendering.state_pri -> state_message_color,
     Rendering.information_pri -> information_message_color,
     Rendering.tracing_pri -> tracing_message_color,
     Rendering.warning_pri -> warning_message_color,
@@ -615,11 +622,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val results =
       snapshot.cumulate[Int](range, 0, Rendering.line_background_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) =>
-            if (elem.name == Markup.INFORMATION)
-              Some(pri max Rendering.information_pri)
-            else
-              Some(pri max Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 

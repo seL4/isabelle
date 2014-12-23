@@ -227,12 +227,17 @@ object Protocol
       case _ => false
     }
 
-  def is_writeln_markup(msg: XML.Tree, name: String): Boolean =
+  def is_state(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.WRITELN, _),
-        List(XML.Elem(markup, _))) => markup.name == name
-      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _),
-        List(XML.Elem(markup, _))) => markup.name == name
+      case XML.Elem(Markup(Markup.STATE, _), _) => true
+      case XML.Elem(Markup(Markup.STATE_MESSAGE, _), _) => true
+      case _ => false
+    }
+
+  def is_information(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.INFORMATION, _), _) => true
+      case XML.Elem(Markup(Markup.INFORMATION_MESSAGE, _), _) => true
       case _ => false
     }
 
@@ -259,8 +264,6 @@ object Protocol
       case _ => false
     }
 
-  def is_state(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.STATE)
-  def is_information(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.INFORMATION)
   def is_legacy(msg: XML.Tree): Boolean = is_warning_markup(msg, Markup.LEGACY)
 
   def is_inlined(msg: XML.Tree): Boolean =

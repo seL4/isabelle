@@ -147,10 +147,7 @@ fun generic_try0 mode timeout_opt quad st =
             [(_, ms)] => " (" ^ time_string ms ^ ")."
           | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ").")
       in
-        (true,
-          (name,
-            if mode = Auto_Try then [Markup.markup Markup.information message]
-            else (writeln message; [])))
+        (true, (name, if mode = Auto_Try then [message] else (writeln message; [])))
       end)
   end;
 

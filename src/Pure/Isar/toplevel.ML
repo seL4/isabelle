@@ -200,7 +200,7 @@ fun pretty_state state =
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
-val print_state = pretty_state #> Pretty.markup_chunks Markup.state #> Pretty.writeln;
+val print_state = pretty_state #> Pretty.chunks #> Pretty.string_of #> Output.state;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
@@ -387,7 +387,7 @@ fun begin_local_theory begin f = transaction (fn _ =>
           val gthy = if begin then Context.Proof lthy else Context.Theory (Named_Target.exit lthy);
           val _ =
             if begin then
-              Pretty.writeln (Pretty.mark Markup.state (Pretty.chunks (Local_Theory.pretty lthy)))
+              Output.state (Pretty.string_of (Pretty.chunks (Local_Theory.pretty lthy)))
             else ();
         in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));

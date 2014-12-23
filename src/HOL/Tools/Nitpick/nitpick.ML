@@ -238,8 +238,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val outcome = Synchronized.var "Nitpick.outcome" (Queue.empty: string Queue.T)
     fun pprint print prt =
       if mode = Auto_Try then
-        Synchronized.change outcome
-          (Queue.enqueue (Pretty.string_of (Pretty.mark Markup.information prt)))
+        Synchronized.change outcome (Queue.enqueue (Pretty.string_of prt))
       else
         print (Pretty.string_of prt)
     val pprint_a = pprint writeln

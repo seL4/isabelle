@@ -311,7 +311,6 @@ object Markup
   val SUBGOALS = "subgoals"
   val PROOF_STATE = "proof_state"
 
-  val STATE = "state"
   val GOAL = "goal"
   val SUBGOAL = "subgoal"
 
@@ -352,6 +351,8 @@ object Markup
   val REPORT = "report"
   val RESULT = "result"
   val WRITELN = "writeln"
+  val STATE = "state"
+  val INFORMATION = "information"
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"
@@ -362,13 +363,20 @@ object Markup
   val EXIT = "exit"
 
   val WRITELN_MESSAGE = "writeln_message"
+  val STATE_MESSAGE = "state_message"
+  val INFORMATION_MESSAGE = "information_message"
   val TRACING_MESSAGE = "tracing_message"
   val WARNING_MESSAGE = "warning_message"
   val ERROR_MESSAGE = "error_message"
 
-  val messages =
-    Map(WRITELN -> WRITELN_MESSAGE, TRACING -> TRACING_MESSAGE,
-        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE)
+  val messages = Map(
+    WRITELN -> WRITELN_MESSAGE,
+    STATE -> STATE_MESSAGE,
+    INFORMATION -> INFORMATION_MESSAGE,
+    TRACING -> TRACING_MESSAGE,
+    WARNING -> WARNING_MESSAGE,
+    ERROR -> ERROR_MESSAGE)
+
   val message: String => String = messages.withDefault((s: String) => s)
 
   val Return_Code = new Properties.Int("return_code")
@@ -380,7 +388,6 @@ object Markup
   val BAD = "bad"
 
   val INTENSIFY = "intensify"
-  val INFORMATION = "information"
 
 
   /* active areas */
