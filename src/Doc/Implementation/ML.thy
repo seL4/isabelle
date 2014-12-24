@@ -1835,7 +1835,7 @@ text \<open>Isabelle/ML provides explicit synchronization for mutable variables 
   Isabelle environment. User code should not break this abstraction, but stay
   within the confines of concurrent Isabelle/ML.
 
-  A \emph{synchronized variable} is an explicit state component is associated
+  A \emph{synchronized variable} is an explicit state component associated
   with mechanisms for locking and signaling. There are operations to await a
   condition, change the state, and signal the change to all other waiting
   threads. Synchronized access to the state variable is \emph{not} re-entrant:
