@@ -1,10 +1,10 @@
-section {* Operational Semantics *}
+section \<open>Operational Semantics\<close>
 
 theory OG_Tran imports OG_Com begin
 
 type_synonym 'a ann_com_op = "('a ann_com) option"
 type_synonym 'a ann_triple_op = "('a ann_com_op \<times> 'a assn)"
-  
+
 primrec com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op" where
   "com (c, q) = c"
 
@@ -14,10 +14,10 @@ primrec post :: "'a ann_triple_op \<Rightarrow> 'a assn" where
 definition All_None :: "'a ann_triple_op list \<Rightarrow> bool" where
   "All_None Ts \<equiv> \<forall>(c, q) \<in> set Ts. c = None"
 
-subsection {* The Transition Relation *}
+subsection \<open>The Transition Relation\<close>
 
 inductive_set
-  ann_transition :: "(('a ann_com_op \<times> 'a) \<times> ('a ann_com_op \<times> 'a)) set"        
+  ann_transition :: "(('a ann_com_op \<times> 'a) \<times> ('a ann_com_op \<times> 'a)) set"
   and transition :: "(('a com \<times> 'a) \<times> ('a com \<times> 'a)) set"
   and ann_transition' :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
     ("_ -1\<rightarrow> _"[81,81] 100)
@@ -32,9 +32,9 @@ where
 
 | AnnBasic:  "(Some (AnnBasic r f), s) -1\<rightarrow> (None, f s)"
 
-| AnnSeq1: "(Some c0, s) -1\<rightarrow> (None, t) \<Longrightarrow> 
+| AnnSeq1: "(Some c0, s) -1\<rightarrow> (None, t) \<Longrightarrow>
                (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some c1, t)"
-| AnnSeq2: "(Some c0, s) -1\<rightarrow> (Some c2, t) \<Longrightarrow> 
+| AnnSeq2: "(Some c0, s) -1\<rightarrow> (Some c2, t) \<Longrightarrow>
                (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some (AnnSeq c2 c1), t)"
 
 | AnnCond1T: "s \<in> b  \<Longrightarrow> (Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (Some c1, s)"
@@ -44,11 +44,11 @@ where
 | AnnCond2F: "s \<notin> b \<Longrightarrow> (Some (AnnCond2 r b c), s) -1\<rightarrow> (None, s)"
 
 | AnnWhileF: "s \<notin> b \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> (None, s)"
-| AnnWhileT: "s \<in> b  \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> 
+| AnnWhileT: "s \<in> b  \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow>
                          (Some (AnnSeq c (AnnWhile i b i c)), s)"
 
 | AnnAwait: "\<lbrakk> s \<in> b; atom_com c; (c, s) -P*\<rightarrow> (Parallel [], t) \<rbrakk> \<Longrightarrow>
-                   (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)" 
+                   (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)"
 
 | Parallel: "\<lbrakk> i<length Ts; Ts!i = (Some c, q); (Some c, s) -1\<rightarrow> (r, t) \<rbrakk>
               \<Longrightarrow> (Parallel Ts, s) -P1\<rightarrow> (Parallel (Ts [i:=(r, q)]), t)"
@@ -66,10 +66,10 @@ where
 
 monos "rtrancl_mono"
 
-text {* The corresponding abbreviations are: *}
+text \<open>The corresponding abbreviations are:\<close>
 
 abbreviation
-  ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a) 
+  ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a)
                            \<Rightarrow> bool"  ("_ -_\<rightarrow> _"[81,81] 100)  where
   "con_0 -n\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition ^^ n"
 
@@ -79,11 +79,11 @@ abbreviation
   "con_0 -*\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition\<^sup>*"
 
 abbreviation
-  transition_n :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  
+  transition_n :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
                           ("_ -P_\<rightarrow> _"[81,81,81] 100)  where
   "con_0 -Pn\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition ^^ n"
 
-subsection {* Definition of Semantics *}
+subsection \<open>Definition of Semantics\<close>
 
 definition ann_sem :: "'a ann_com \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "ann_sem c \<equiv> \<lambda>s. {t. (Some c, s) -*\<rightarrow> (None, t)}"
@@ -104,17 +104,17 @@ primrec fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 
     "fwhile b c 0 = \<Omega>"
   | "fwhile b c (Suc n) = Cond b (Seq c (fwhile b c n)) (Basic id)"
 
-subsubsection {* Proofs *}
+subsubsection \<open>Proofs\<close>
 
 declare ann_transition_transition.intros [intro]
-inductive_cases transition_cases: 
-    "(Parallel T,s) -P1\<rightarrow> t"  
+inductive_cases transition_cases:
+    "(Parallel T,s) -P1\<rightarrow> t"
     "(Basic f, s) -P1\<rightarrow> t"
-    "(Seq c1 c2, s) -P1\<rightarrow> t" 
+    "(Seq c1 c2, s) -P1\<rightarrow> t"
     "(Cond b c1 c2, s) -P1\<rightarrow> t"
     "(While b i c, s) -P1\<rightarrow> t"
 
-lemma Parallel_empty_lemma [rule_format (no_asm)]: 
+lemma Parallel_empty_lemma [rule_format (no_asm)]:
   "(Parallel [],s) -Pn\<rightarrow> (Parallel Ts,t) \<longrightarrow> Ts=[] \<and> n=0 \<and> s=t"
 apply(induct n)
  apply(simp (no_asm))
@@ -123,7 +123,7 @@ apply(drule relpow_Suc_D2)
 apply(force elim:transition_cases)
 done
 
-lemma Parallel_AllNone_lemma [rule_format (no_asm)]: 
+lemma Parallel_AllNone_lemma [rule_format (no_asm)]:
  "All_None Ss \<longrightarrow> (Parallel Ss,s) -Pn\<rightarrow> (Parallel Ts,t) \<longrightarrow> Ts=Ss \<and> n=0 \<and> s=t"
 apply(induct "n")
  apply(simp (no_asm))
@@ -148,25 +148,25 @@ apply(rule Parallel_AllNone)
 apply(simp add:All_None_def)
 done
 
-text {* Set of lemmas from Apt and Olderog "Verification of sequential
-and concurrent programs", page 63. *}
+text \<open>Set of lemmas from Apt and Olderog "Verification of sequential
+and concurrent programs", page 63.\<close>
 
-lemma L3_5i: "X\<subseteq>Y \<Longrightarrow> SEM c X \<subseteq> SEM c Y" 
+lemma L3_5i: "X\<subseteq>Y \<Longrightarrow> SEM c X \<subseteq> SEM c Y"
 apply (unfold SEM_def)
 apply force
 done
 
-lemma L3_5ii_lemma1: 
- "\<lbrakk> (c1, s1) -P*\<rightarrow> (Parallel Ts, s2); All_None Ts;  
-  (c2, s2) -P*\<rightarrow> (Parallel Ss, s3); All_None Ss \<rbrakk> 
+lemma L3_5ii_lemma1:
+ "\<lbrakk> (c1, s1) -P*\<rightarrow> (Parallel Ts, s2); All_None Ts;
+  (c2, s2) -P*\<rightarrow> (Parallel Ss, s3); All_None Ss \<rbrakk>
  \<Longrightarrow> (Seq c1 c2, s1) -P*\<rightarrow> (Parallel Ss, s3)"
 apply(erule converse_rtrancl_induct2)
 apply(force intro:converse_rtrancl_into_rtrancl)+
 done
 
-lemma L3_5ii_lemma2 [rule_format (no_asm)]: 
- "\<forall>c1 c2 s t. (Seq c1 c2, s) -Pn\<rightarrow> (Parallel Ts, t) \<longrightarrow>  
-  (All_None Ts) \<longrightarrow> (\<exists>y m Rs. (c1,s) -P*\<rightarrow> (Parallel Rs, y) \<and> 
+lemma L3_5ii_lemma2 [rule_format (no_asm)]:
+ "\<forall>c1 c2 s t. (Seq c1 c2, s) -Pn\<rightarrow> (Parallel Ts, t) \<longrightarrow>
+  (All_None Ts) \<longrightarrow> (\<exists>y m Rs. (c1,s) -P*\<rightarrow> (Parallel Rs, y) \<and>
   (All_None Rs) \<and> (c2, y) -Pm\<rightarrow> (Parallel Ts, t) \<and>  m \<le> n)"
 apply(induct "n")
  apply(force)
@@ -176,9 +176,9 @@ apply(erule transition_cases,simp_all)
 apply (fast intro!: le_SucI elim!: relpow_imp_rtrancl converse_rtrancl_into_rtrancl)
 done
 
-lemma L3_5ii_lemma3: 
- "\<lbrakk>(Seq c1 c2,s) -P*\<rightarrow> (Parallel Ts,t); All_None Ts\<rbrakk> \<Longrightarrow> 
-    (\<exists>y Rs. (c1,s) -P*\<rightarrow> (Parallel Rs,y) \<and> All_None Rs 
+lemma L3_5ii_lemma3:
+ "\<lbrakk>(Seq c1 c2,s) -P*\<rightarrow> (Parallel Ts,t); All_None Ts\<rbrakk> \<Longrightarrow>
+    (\<exists>y Rs. (c1,s) -P*\<rightarrow> (Parallel Rs,y) \<and> All_None Rs
    \<and> (c2,y) -P*\<rightarrow> (Parallel Ts,t))"
 apply(drule rtrancl_imp_UN_relpow)
 apply(fast dest: L3_5ii_lemma2 relpow_imp_rtrancl)
@@ -206,7 +206,7 @@ apply(erule converse_rtranclE)
 done
 
 
-lemma  L3_5v_lemma1[rule_format]: 
+lemma  L3_5v_lemma1[rule_format]:
  "(S,s) -Pn\<rightarrow> (T,t) \<longrightarrow> S=\<Omega> \<longrightarrow> (\<not>(\<exists>Rs. T=(Parallel Rs) \<and> All_None Rs))"
 apply (unfold UNIV_def)
 apply(rule nat_less_induct)
@@ -238,8 +238,8 @@ apply (unfold SEM_def sem_def)
 apply(fast dest: L3_5v_lemma2)
 done
 
-lemma L3_5v_lemma4 [rule_format]: 
- "\<forall>s. (While b i c, s) -Pn\<rightarrow> (Parallel Ts, t) \<longrightarrow> All_None Ts \<longrightarrow>  
+lemma L3_5v_lemma4 [rule_format]:
+ "\<forall>s. (While b i c, s) -Pn\<rightarrow> (Parallel Ts, t) \<longrightarrow> All_None Ts \<longrightarrow>
   (\<exists>k. (fwhile b c k, s) -P*\<rightarrow> (Parallel Ts, t))"
 apply(rule nat_less_induct)
 apply safe
@@ -262,8 +262,8 @@ apply(rule converse_rtrancl_into_rtrancl)
 apply(fast elim: L3_5ii_lemma1)
 done
 
-lemma L3_5v_lemma5 [rule_format]: 
- "\<forall>s. (fwhile b c k, s) -P*\<rightarrow> (Parallel Ts, t) \<longrightarrow> All_None Ts \<longrightarrow>  
+lemma L3_5v_lemma5 [rule_format]:
+ "\<forall>s. (fwhile b c k, s) -P*\<rightarrow> (Parallel Ts, t) \<longrightarrow> All_None Ts \<longrightarrow>
   (While b i c, s) -P*\<rightarrow> (Parallel Ts,t)"
 apply(induct "k")
  apply(force dest: L3_5v_lemma2)
@@ -292,7 +292,7 @@ apply safe
 apply(fast intro: L3_5v_lemma5)
 done
 
-section {* Validity of Correctness Formulas *}
+section \<open>Validity of Correctness Formulas\<close>
 
 definition com_validity :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool" ("(3\<parallel>= _// _//_)" [90,55,90] 50) where
   "\<parallel>= p c q \<equiv> SEM c p \<subseteq> q"

@@ -2,8 +2,8 @@ theory OG_Syntax
 imports OG_Tactics Quote_Antiquote
 begin
 
-text{* Syntax for commands and for assertions and boolean expressions in 
- commands @{text com} and annotated commands @{text ann_com}. *}
+text\<open>Syntax for commands and for assertions and boolean expressions in
+ commands @{text com} and annotated commands @{text ann_com}.\<close>
 
 abbreviation Skip :: "'a com"  ("SKIP" 63)
   where "SKIP \<equiv> Basic id"
@@ -28,14 +28,14 @@ syntax
                     ("_ //IF _ /THEN _ /ELSE _ /FI"  [90,0,0,0] 61)
   "_AnnCond2"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com"
                     ("_ //IF _ /THEN _ /FI"  [90,0,0] 61)
-  "_AnnWhile"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a assn \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com" 
+  "_AnnWhile"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a assn \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com"
                     ("_ //WHILE _ /INV _ //DO _//OD"  [90,0,0,0] 61)
   "_AnnAwait"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a com \<Rightarrow> 'a ann_com"
                     ("_ //AWAIT _ /THEN /_ /END"  [90,0,0] 61)
   "_AnnAtom"     :: "'a assn  \<Rightarrow> 'a com \<Rightarrow> 'a ann_com"   ("_//\<langle>_\<rangle>" [90,0] 61)
   "_AnnWait"     :: "'a assn \<Rightarrow> 'a bexp \<Rightarrow> 'a ann_com"   ("_//WAIT _ END" [90,0] 61)
 
-  "_Cond"        :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com" 
+  "_Cond"        :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"
                                   ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
   "_Cond2"       :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"   ("IF _ THEN _ FI" [0,0] 56)
   "_While_inv"   :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"
@@ -55,7 +55,7 @@ translations
   "r AWAIT b THEN c END" \<rightharpoonup> "CONST AnnAwait r \<lbrace>b\<rbrace> c"
   "r \<langle>c\<rangle>" \<rightleftharpoons> "r AWAIT CONST True THEN c END"
   "r WAIT b END" \<rightleftharpoons> "r AWAIT b THEN SKIP END"
- 
+
 nonterminal prgs
 
 syntax
@@ -63,7 +63,7 @@ syntax
   "_prg" :: "['a, 'a] \<Rightarrow> prgs"        ("_//_" [60, 90] 57)
   "_prgs" :: "['a, 'a, prgs] \<Rightarrow> prgs"  ("_//_//\<parallel>//_" [60,90,57] 57)
 
-  "_prg_scheme" :: "['a, 'a, 'a, 'a, 'a] \<Rightarrow> prgs"  
+  "_prg_scheme" :: "['a, 'a, 'a, 'a, 'a] \<Rightarrow> prgs"
                   ("SCHEME [_ \<le> _ < _] _// _" [0,0,0,60, 90] 57)
 
 translations
@@ -73,7 +73,7 @@ translations
 
   "_prg_scheme j i k c q" \<rightleftharpoons> "CONST map (\<lambda>i. (CONST Some c, q)) [j..<k]"
 
-print_translation {*
+print_translation \<open>
   let
     fun quote_tr' f (t :: ts) =
           Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
@@ -123,6 +123,6 @@ print_translation {*
     (@{const_syntax AnnCond1}, K (annbexp_tr' @{syntax_const "_AnnCond1"})),
     (@{const_syntax AnnCond2}, K (annbexp_tr' @{syntax_const "_AnnCond2"}))]
   end;
-*}
+\<close>
 
 end

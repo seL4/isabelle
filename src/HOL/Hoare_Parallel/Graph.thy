@@ -1,6 +1,6 @@
-chapter {* Case Study: Single and Multi-Mutator Garbage Collection Algorithms *}
+chapter \<open>Case Study: Single and Multi-Mutator Garbage Collection Algorithms\<close>
 
-section {* Formalization of the Memory *}
+section \<open>Formalization of the Memory\<close>
 
 theory Graph imports Main begin
 
@@ -29,22 +29,22 @@ definition Reach :: "edges \<Rightarrow> nat set" where
               \<and> (\<forall>i<length path - 1. (\<exists>j<length E. E!j=(path!(i+1), path!i))))
               \<or> x\<in>Roots}"
 
-text{* Reach: the set of reachable nodes is the set of Roots together with the
+text\<open>Reach: the set of reachable nodes is the set of Roots together with the
 nodes reachable from some Root by a path represented by a list of
   nodes (at least two since we traverse at least one edge), where two
-consecutive nodes correspond to an edge in E. *}
+consecutive nodes correspond to an edge in E.\<close>
 
-subsection {* Proofs about Graphs *}
+subsection \<open>Proofs about Graphs\<close>
 
 lemmas Graph_defs= Blacks_def Proper_Roots_def Proper_Edges_def BtoW_def
 declare Graph_defs [simp]
 
-subsubsection{* Graph 1 *}
+subsubsection\<open>Graph 1\<close>
 
-lemma Graph1_aux [rule_format]: 
+lemma Graph1_aux [rule_format]:
   "\<lbrakk> Roots\<subseteq>Blacks M; \<forall>i<length E. \<not>BtoW(E!i,M)\<rbrakk>
-  \<Longrightarrow> 1< length path \<longrightarrow> (path!(length path - 1))\<in>Roots \<longrightarrow>  
-  (\<forall>i<length path - 1. (\<exists>j. j < length E \<and> E!j=(path!(Suc i), path!i))) 
+  \<Longrightarrow> 1< length path \<longrightarrow> (path!(length path - 1))\<in>Roots \<longrightarrow>
+  (\<forall>i<length path - 1. (\<exists>j. j < length E \<and> E!j=(path!(Suc i), path!i)))
   \<longrightarrow> M!(path!0) = Black"
 apply(induct_tac "path")
  apply force
@@ -70,8 +70,8 @@ apply(erule_tac x = "Suc i" in allE)
 apply force
 done
 
-lemma Graph1: 
-  "\<lbrakk>Roots\<subseteq>Blacks M; Proper_Edges(M, E); \<forall>i<length E. \<not>BtoW(E!i,M) \<rbrakk> 
+lemma Graph1:
+  "\<lbrakk>Roots\<subseteq>Blacks M; Proper_Edges(M, E); \<forall>i<length E. \<not>BtoW(E!i,M) \<rbrakk>
   \<Longrightarrow> Reach E\<subseteq>Blacks M"
 apply (unfold Reach_def)
 apply simp
@@ -87,9 +87,9 @@ apply(erule disjE)
 apply auto
 done
 
-subsubsection{* Graph 2 *}
+subsubsection\<open>Graph 2\<close>
 
-lemma Ex_first_occurrence [rule_format]: 
+lemma Ex_first_occurrence [rule_format]:
   "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i. i<m \<longrightarrow> \<not> P i))"
 apply(rule nat_less_induct)
 apply clarify
@@ -102,14 +102,14 @@ apply(rule_tac x = "l - n" in exI)
 apply arith
 done
 
-lemma Ex_last_occurrence: 
+lemma Ex_last_occurrence:
   "\<lbrakk>P (n::nat); n\<le>l\<rbrakk> \<Longrightarrow> (\<exists>m. P (l - m) \<and> (\<forall>i. i<m \<longrightarrow> \<not>P (l - i)))"
 apply(drule Compl_lemma)
 apply clarify
 apply(erule Ex_first_occurrence)
 done
 
-lemma Graph2: 
+lemma Graph2:
   "\<lbrakk>T \<in> Reach E; R<length E\<rbrakk> \<Longrightarrow> T \<in> Reach (E[R:=(fst(E!R), T)])"
 apply (unfold Reach_def)
 apply clarify
@@ -141,7 +141,7 @@ apply simp
 apply(subgoal_tac "(length path - Suc m) + nat \<le> length path")
  prefer 2 apply arith
 apply(subgoal_tac "length path - Suc m + nat = length path - Suc 0")
- prefer 2 apply arith 
+ prefer 2 apply arith
 apply clarify
 apply(case_tac "i")
  apply(force simp add: nth_list_update)
@@ -181,22 +181,22 @@ apply simp
 done
 
 
-subsubsection{* Graph 3 *}
+subsubsection\<open>Graph 3\<close>
 
 declare min.absorb1 [simp] min.absorb2 [simp]
 
-lemma Graph3: 
+lemma Graph3:
   "\<lbrakk> T\<in>Reach E; R<length E \<rbrakk> \<Longrightarrow> Reach(E[R:=(fst(E!R),T)]) \<subseteq> Reach E"
 apply (unfold Reach_def)
 apply clarify
 apply simp
 apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
---{* the changed edge is part of the path *}
+--\<open>the changed edge is part of the path\<close>
  apply(erule exE)
  apply(drule_tac P = "\<lambda>i. i<length path - 1 \<and> (fst(E!R),T)=(path!Suc i,path!i)" in Ex_first_occurrence)
  apply clarify
  apply(erule disjE)
---{* T is NOT a root *}
+--\<open>T is NOT a root\<close>
   apply clarify
   apply(rule_tac x = "(take m path)@patha" in exI)
   apply(subgoal_tac "\<not>(length path\<le>m)")
@@ -240,7 +240,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
   apply(subgoal_tac "Suc (i - m)=(Suc i - m)" )
     prefer 2 apply arith
    apply simp
---{* T is a root *}
+--\<open>T is a root\<close>
  apply(case_tac "m=0")
   apply force
  apply(rule_tac x = "take (Suc m) path" in exI)
@@ -253,7 +253,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
  apply(case_tac "R=j")
   apply(force simp add: nth_list_update)
  apply(force simp add: nth_list_update)
---{* the changed edge is not part of the path *}
+--\<open>the changed edge is not part of the path\<close>
 apply(rule_tac x = "path" in exI)
 apply simp
 apply clarify
@@ -265,18 +265,18 @@ apply(case_tac "R=j")
 apply(force simp add: nth_list_update)
 done
 
-subsubsection{* Graph 4 *}
+subsubsection\<open>Graph 4\<close>
 
-lemma Graph4: 
-  "\<lbrakk>T \<in> Reach E; Roots\<subseteq>Blacks M; I\<le>length E; T<length M; R<length E; 
-  \<forall>i<I. \<not>BtoW(E!i,M); R<I; M!fst(E!R)=Black; M!T\<noteq>Black\<rbrakk> \<Longrightarrow> 
+lemma Graph4:
+  "\<lbrakk>T \<in> Reach E; Roots\<subseteq>Blacks M; I\<le>length E; T<length M; R<length E;
+  \<forall>i<I. \<not>BtoW(E!i,M); R<I; M!fst(E!R)=Black; M!T\<noteq>Black\<rbrakk> \<Longrightarrow>
   (\<exists>r. I\<le>r \<and> r<length E \<and> BtoW(E[R:=(fst(E!R),T)]!r,M))"
 apply (unfold Reach_def)
 apply simp
 apply(erule disjE)
  prefer 2 apply force
 apply clarify
---{* there exist a black node in the path to T *}
+--\<open>there exist a black node in the path to T\<close>
 apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(erule exE)
  apply(drule_tac P = "\<lambda>m. m<length path \<and> M!(path!m)=Black" in Ex_first_occurrence)
@@ -307,18 +307,18 @@ done
 
 declare min.absorb1 [simp del] min.absorb2 [simp del]
 
-subsubsection {* Graph 5 *}
+subsubsection \<open>Graph 5\<close>
 
-lemma Graph5: 
-  "\<lbrakk> T \<in> Reach E ; Roots \<subseteq> Blacks M; \<forall>i<R. \<not>BtoW(E!i,M); T<length M; 
-    R<length E; M!fst(E!R)=Black; M!snd(E!R)=Black; M!T \<noteq> Black\<rbrakk> 
+lemma Graph5:
+  "\<lbrakk> T \<in> Reach E ; Roots \<subseteq> Blacks M; \<forall>i<R. \<not>BtoW(E!i,M); T<length M;
+    R<length E; M!fst(E!R)=Black; M!snd(E!R)=Black; M!T \<noteq> Black\<rbrakk>
    \<Longrightarrow> (\<exists>r. R<r \<and> r<length E \<and> BtoW(E[R:=(fst(E!R),T)]!r,M))"
 apply (unfold Reach_def)
 apply simp
 apply(erule disjE)
  prefer 2 apply force
 apply clarify
---{* there exist a black node in the path to T*}
+--\<open>there exist a black node in the path to T\<close>
 apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(erule exE)
  apply(drule_tac P = "\<lambda>m. m<length path \<and> M!(path!m)=Black" in Ex_first_occurrence)
@@ -350,27 +350,27 @@ apply(case_tac "length path")
 apply force
 done
 
-subsubsection {* Other lemmas about graphs *}
+subsubsection \<open>Other lemmas about graphs\<close>
 
-lemma Graph6: 
+lemma Graph6:
  "\<lbrakk>Proper_Edges(M,E); R<length E ; T<length M\<rbrakk> \<Longrightarrow> Proper_Edges(M,E[R:=(fst(E!R),T)])"
 apply (unfold Proper_Edges_def)
  apply(force  simp add: nth_list_update)
 done
 
-lemma Graph7: 
+lemma Graph7:
  "\<lbrakk>Proper_Edges(M,E)\<rbrakk> \<Longrightarrow> Proper_Edges(M[T:=a],E)"
 apply (unfold Proper_Edges_def)
 apply force
 done
 
-lemma Graph8: 
+lemma Graph8:
  "\<lbrakk>Proper_Roots(M)\<rbrakk> \<Longrightarrow> Proper_Roots(M[T:=a])"
 apply (unfold Proper_Roots_def)
 apply force
 done
 
-text{* Some specific lemmata for the verification of garbage collection algorithms. *}
+text\<open>Some specific lemmata for the verification of garbage collection algorithms.\<close>
 
 lemma Graph9: "j<length M \<Longrightarrow> Blacks M\<subseteq>Blacks (M[j := Black])"
 apply (unfold Blacks_def)
@@ -384,7 +384,7 @@ apply(case_tac "i")
 apply auto
 done
 
-lemma Graph11 [rule_format (no_asm)]: 
+lemma Graph11 [rule_format (no_asm)]:
   "\<lbrakk> M!j\<noteq>Black;j<length M\<rbrakk> \<Longrightarrow> Blacks M \<subset> Blacks (M[j := Black])"
 apply (unfold Blacks_def)
 apply(rule psubsetI)

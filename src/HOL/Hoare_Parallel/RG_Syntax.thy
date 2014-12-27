@@ -1,4 +1,4 @@
-section {* Concrete Syntax *}
+section \<open>Concrete Syntax\<close>
 
 theory RG_Syntax
 imports RG_Hoare Quote_Antiquote
@@ -45,17 +45,17 @@ syntax
 translations
   "_prg_scheme j i k c" \<rightleftharpoons> "(CONST map (\<lambda>i. c) [j..<k])"
 
-text {* Translations for variables before and after a transition: *}
+text \<open>Translations for variables before and after a transition:\<close>
 
-syntax 
+syntax
   "_before" :: "id \<Rightarrow> 'a" ("\<ordmasculine>_")
   "_after"  :: "id \<Rightarrow> 'a" ("\<ordfeminine>_")
- 
+
 translations
   "\<ordmasculine>x" \<rightleftharpoons> "x \<acute>CONST fst"
   "\<ordfeminine>x" \<rightleftharpoons> "x \<acute>CONST snd"
 
-print_translation {*
+print_translation \<open>
   let
     fun quote_tr' f (t :: ts) =
           Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
@@ -77,6 +77,6 @@ print_translation {*
     (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
     (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While"}))]
   end
-*}
+\<close>
 
 end

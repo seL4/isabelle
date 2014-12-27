@@ -1,12 +1,12 @@
-section {* Operational Semantics *}
+section \<open>Operational Semantics\<close>
 
 theory RG_Tran
 imports RG_Com
 begin
 
-subsection {* Semantics of Component Programs *}
+subsection \<open>Semantics of Component Programs\<close>
 
-subsubsection {* Environment transitions *}
+subsubsection \<open>Environment transitions\<close>
 
 type_synonym 'a conf = "(('a com) option) \<times> 'a"
 
@@ -20,7 +20,7 @@ where
 lemma etranE: "c -e\<rightarrow> c' \<Longrightarrow> (\<And>P s t. c = (P, s) \<Longrightarrow> c' = (P, t) \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (induct c, induct c', erule etran.cases, blast)
 
-subsubsection {* Component transitions *}
+subsubsection \<open>Component transitions\<close>
 
 inductive_set
   ctran :: "('a conf \<times> 'a conf) set"
@@ -46,7 +46,7 @@ where
 
 monos "rtrancl_mono"
 
-subsection {* Semantics of Parallel Programs *}
+subsection \<open>Semantics of Parallel Programs\<close>
 
 type_synonym 'a par_conf = "('a par_com) \<times> 'a"
 
@@ -69,9 +69,9 @@ lemma par_ctranE: "c -pc\<rightarrow> c' \<Longrightarrow>
      (Ps ! i, s) -c\<rightarrow> (r, t) \<Longrightarrow> P) \<Longrightarrow> P"
   by (induct c, induct c', erule par_ctran.cases, blast)
 
-subsection {* Computations *}
+subsection \<open>Computations\<close>
 
-subsubsection {* Sequential computations *}
+subsubsection \<open>Sequential computations\<close>
 
 type_synonym 'a confs = "'a conf list"
 
@@ -84,7 +84,7 @@ where
 definition cp :: "('a com) option \<Rightarrow> 'a \<Rightarrow> ('a confs) set" where
   "cp P s \<equiv> {l. l!0=(P,s) \<and> l \<in> cptn}"  
 
-subsubsection {* Parallel computations *}
+subsubsection \<open>Parallel computations\<close>
 
 type_synonym 'a par_confs = "'a par_conf list"
 
@@ -97,7 +97,7 @@ where
 definition par_cp :: "'a par_com \<Rightarrow> 'a \<Rightarrow> ('a par_confs) set" where
   "par_cp P s \<equiv> {l. l!0=(P,s) \<and> l \<in> par_cptn}"  
 
-subsection{* Modular Definition of Computation *}
+subsection\<open>Modular Definition of Computation\<close>
 
 definition lift :: "'a com \<Rightarrow> 'a conf \<Rightarrow> 'a conf" where
   "lift Q \<equiv> \<lambda>(P, s). (if P=None then (Some Q,s) else (Some(Seq (the P) Q), s))"
@@ -125,7 +125,7 @@ where
   (Some(While b P), snd(last ((Some P, s)#xs)))#ys \<in> cptn_mod\<rbrakk> 
   \<Longrightarrow> (Some(While b P), s)#(Some(Seq P (While b P)), s)#zs \<in> cptn_mod"
 
-subsection {* Equivalence of Both Definitions.*}
+subsection \<open>Equivalence of Both Definitions.\<close>
 
 lemma last_length: "((a#xs)!(length xs))=last (a#xs)"
   by (induct xs) auto
@@ -178,20 +178,20 @@ lemma cptn_onlyif_cptn_mod_aux [rule_format]:
   \<longrightarrow> (Some a, s) # (Q, t) # xs \<in> cptn_mod"
 apply(induct a)
 apply simp_all
---{* basic *}
+--\<open>basic\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,rule Basic,simp)
 apply clarify
 apply(erule ctran.cases,simp_all)
---{* Seq1 *}
+--\<open>Seq1\<close>
 apply(rule_tac xs="[(None,ta)]" in CptnModSeq2)
   apply(erule CptnModNone)
   apply(rule CptnModOne)
  apply simp
 apply simp
 apply(simp add:lift_def)
---{* Seq2 *}
+--\<open>Seq2\<close>
 apply(erule_tac x=sa in allE)
 apply(erule_tac x="Some P2" in allE)
 apply(erule allE,erule impE, assumption)
@@ -208,12 +208,12 @@ apply(erule_tac CptnModSeq2)
   apply (simp add:last_length)
  apply (simp add:last_length)
 apply(simp add:lift_def)
---{* Cond *}
+--\<open>Cond\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(force elim: CptnModCondT)
 apply(force elim: CptnModCondF)
---{* While *}
+--\<open>While\<close>
 apply  clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule WhileF,simp)
@@ -223,7 +223,7 @@ apply (erule disjE)
  apply(force elim:CptnModWhile1)
 apply clarify
 apply(force simp add:last_length elim:CptnModWhile2)
---{* await *}
+--\<open>await\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule Await,simp+)
@@ -295,7 +295,7 @@ apply(erule cptn_mod.induct)
       apply(erule CondT,simp)
     apply(rule CptnComp)
      apply(erule CondF,simp)
---{* Seq1 *}
+--\<open>Seq1\<close>
 apply(erule cptn.cases,simp_all)
   apply(rule CptnOne)
  apply clarify
@@ -315,7 +315,7 @@ apply(rule CptnComp)
  apply(rule Seq2,simp)
 apply(drule_tac P=P1 in lift_is_cptn)
 apply(simp add:lift_def)
---{* Seq2 *}
+--\<open>Seq2\<close>
 apply(rule cptn_append_is_cptn)
   apply(drule_tac P=P1 in lift_is_cptn)
   apply(simp add:lift_def)
@@ -325,12 +325,12 @@ apply(frule_tac P=P1 in last_lift)
  apply(rule last_fst_esp)
  apply (simp add:last_length)
 apply(simp add:Cons_lift lift_def split_def last_conv_nth)
---{* While1 *}
+--\<open>While1\<close>
 apply(rule CptnComp)
  apply(rule WhileT,simp)
 apply(drule_tac P="While b P" in lift_is_cptn)
 apply(simp add:lift_def)
---{* While2 *}
+--\<open>While2\<close>
 apply(rule CptnComp)
  apply(rule WhileT,simp)
 apply(rule cptn_append_is_cptn)
@@ -349,9 +349,9 @@ apply(rule iffI)
 apply(erule cptn_if_cptn_mod)
 done
 
-section {* Validity  of Correctness Formulas*}
+section \<open>Validity  of Correctness Formulas\<close>
 
-subsection {* Validity for Component Programs. *}
+subsection \<open>Validity for Component Programs.\<close>
 
 type_synonym 'a rgformula =
   "'a com \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
@@ -370,7 +370,7 @@ definition com_validity :: "'a com \<Rightarrow> 'a set \<Rightarrow> ('a \<time
   "\<Turnstile> P sat [pre, rely, guar, post] \<equiv> 
    \<forall>s. cp (Some P) s \<inter> assum(pre, rely) \<subseteq> comm(guar, post)"
 
-subsection {* Validity for Parallel Programs. *}
+subsection \<open>Validity for Parallel Programs.\<close>
 
 definition All_None :: "(('a com) option) list \<Rightarrow> bool" where
   "All_None xs \<equiv> \<forall>c\<in>set xs. c=None"
@@ -389,9 +389,9 @@ definition par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> (
   "\<Turnstile> Ps SAT [pre, rely, guar, post] \<equiv> 
    \<forall>s. par_cp Ps s \<inter> par_assum(pre, rely) \<subseteq> par_comm(guar, post)"
 
-subsection {* Compositionality of the Semantics *}
+subsection \<open>Compositionality of the Semantics\<close>
 
-subsubsection {* Definition of the conjoin operator *}
+subsubsection \<open>Definition of the conjoin operator\<close>
 
 definition same_length :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool" where
   "same_length c clist \<equiv> (\<forall>i<length clist. length(clist!i)=length c)"
@@ -411,7 +411,7 @@ definition compat_label :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightar
 definition conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  ("_ \<propto> _" [65,65] 64) where
   "c \<propto> clist \<equiv> (same_length c clist) \<and> (same_state c clist) \<and> (same_program c clist) \<and> (compat_label c clist)"
 
-subsubsection {* Some previous lemmas *}
+subsubsection \<open>Some previous lemmas\<close>
 
 lemma list_eq_if [rule_format]: 
   "\<forall>ys. xs=ys \<longrightarrow> (length xs = length ys) \<longrightarrow> (\<forall>i<length xs. xs!i=ys!i)"
@@ -482,7 +482,7 @@ lemma tl_zero[rule_format]:
   "P (ys!Suc j) \<longrightarrow> Suc j<length ys \<longrightarrow> ys\<noteq>[] \<longrightarrow> P (tl(ys)!j)"
   by (induct ys) simp_all
 
-subsection {* The Semantics is Compositional *}
+subsection \<open>The Semantics is Compositional\<close>
 
 lemma aux_if [rule_format]: 
   "\<forall>xs s clist. (length clist = length xs \<and> (\<forall>i<length xs. (xs!i,s)#clist!i \<in> cptn) 
@@ -496,7 +496,7 @@ apply(simp add:conjoin_def compat_label_def)
 apply clarify
 apply(erule_tac x="0" and P="\<lambda>j. ?H j \<longrightarrow> (?P j \<or> ?Q j)" in all_dupE,simp)
 apply(erule disjE)
---{* first step is a Component step *}
+--\<open>first step is a Component step\<close>
  apply clarify 
  apply simp
  apply(subgoal_tac "a=(xs[i:=(fst(clist!i!0))])")
@@ -516,7 +516,7 @@ apply(erule disjE)
   apply(erule etranE,simp)
  apply(rule ParCptnComp)
   apply(erule ParComp,simp)
---{* applying the induction hypothesis *}
+--\<open>applying the induction hypothesis\<close>
  apply(erule_tac x="xs[i := fst (clist ! i ! 0)]" in allE)
  apply(erule_tac x="snd (clist ! i ! 0)" in allE)
  apply(erule mp)
@@ -630,7 +630,7 @@ apply(erule disjE)
    apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
   apply force
  apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
---{* first step is an environmental step *}
+--\<open>first step is an environmental step\<close>
 apply clarify
 apply(erule par_etran.cases)
 apply simp
