@@ -77,7 +77,7 @@ fun memo_exec execution_id (Memo v) =
   |> (fn NONE => error "Conflicting command execution" | _ => ());
 
 fun memo_fork params execution_id (Memo v) =
-  (case Synchronized.value v of
+  (case Synchronized.peek v of
     Result _ => ()
   | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec execution_id (Memo v))));
 
