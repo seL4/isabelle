@@ -8,7 +8,6 @@ signature SYNCHRONIZED =
 sig
   type 'a var
   val var: string -> 'a -> 'a var
-  val peek: 'a var -> 'a
   val value: 'a var -> 'a
   val timed_access: 'a var -> ('a -> Time.time option) -> ('a -> ('b * 'a) option) -> 'b option
   val guarded_access: 'a var -> ('a -> ('b * 'a) option) -> 'b
@@ -33,8 +32,6 @@ fun var name x = Var
   lock = Mutex.mutex (),
   cond = ConditionVar.conditionVar (),
   var = Unsynchronized.ref x};
-
-fun peek (Var {var, ...}) = ! var;
 
 fun value (Var {name, lock, var, ...}) =
   Multithreading.synchronized name lock (fn () => ! var);

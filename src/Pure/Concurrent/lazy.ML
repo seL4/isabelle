@@ -37,7 +37,7 @@ fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
 fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
 
 fun peek (Lazy var) =
-  (case Synchronized.peek var of
+  (case Synchronized.value var of
     Expr _ => NONE
   | Result res => Future.peek res);
 
