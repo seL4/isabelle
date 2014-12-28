@@ -36,10 +36,14 @@ fun peek (Lazy var) =
     Expr _ => NONE
   | Result res => Future.peek res);
 
+fun is_finished (Lazy var) =
+  (case Synchronized.value var of
+    Expr _ => false
+  | Result res =>
+      Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res)));
+
 fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
 fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
-
-fun is_finished x = is_some (peek x);
 
 
 (* force result *)
