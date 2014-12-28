@@ -9,10 +9,12 @@ multiple evaluation (unless interrupted).
 signature LAZY =
 sig
   type 'a lazy
-  val peek: 'a lazy -> 'a Exn.result option
-  val is_finished: 'a lazy -> bool
   val lazy: (unit -> 'a) -> 'a lazy
   val value: 'a -> 'a lazy
+  val peek: 'a lazy -> 'a Exn.result option
+  val is_running: 'a lazy -> bool
+  val is_finished: 'a lazy -> bool
+  val finished_result: 'a lazy -> 'a Exn.result option
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
@@ -31,19 +33,36 @@ datatype 'a expr =
 abstype 'a lazy = Lazy of 'a expr Synchronized.var
 with
 
+fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
+fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
+
 fun peek (Lazy var) =
   (case Synchronized.peek var of
     Expr _ => NONE
   | Result res => Future.peek res);
 
-fun is_finished (Lazy var) =
+
+(* status *)
+
+fun is_future pred (Lazy var) =
   (case Synchronized.value var of
     Expr _ => false
-  | Result res =>
-      Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res)));
+  | Result res => pred res);
 
-fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
-fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
+fun is_running x = is_future (not o Future.is_finished) x;
+
+fun is_finished x =
+  is_future (fn res =>
+    Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res))) x;
+
+fun finished_result (Lazy var) =
+  (case Synchronized.value var of
+    Expr _ => NONE
+  | Result res =>
+      if Future.is_finished res then
+        let val result = Future.join_result res
+        in if Exn.is_interrupt_exn result then NONE else SOME result end
+      else NONE);
 
 
 (* force result *)

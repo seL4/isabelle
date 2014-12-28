@@ -36,55 +36,6 @@ end;
 structure Command: COMMAND =
 struct
 
-(** memo results **)
-
-datatype 'a expr =
-  Expr of Document_ID.exec * (unit -> 'a) |
-  Result of 'a Exn.result;
-
-abstype 'a memo = Memo of 'a expr Synchronized.var
-with
-
-fun memo exec_id e = Memo (Synchronized.var "Command.memo" (Expr (exec_id, e)));
-fun memo_value a = Memo (Synchronized.var "Command.memo" (Result (Exn.Res a)));
-
-fun memo_result (Memo v) =
-  (case Synchronized.value v of
-    Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id)
-  | Result res => Exn.release res);
-
-fun memo_finished (Memo v) =
-  (case Synchronized.value v of Expr _ => false | Result _ => true);
-
-fun memo_exec execution_id (Memo v) =
-  Synchronized.timed_access v (K (SOME Time.zeroTime))
-    (fn expr =>
-      (case expr of
-        Expr (exec_id, body) =>
-          uninterruptible (fn restore_attributes => fn () =>
-            let val group = Future.worker_subgroup () in
-              if Execution.running execution_id exec_id [group] then
-                let
-                  val res =
-                    (body
-                      |> restore_attributes
-                      |> Future.task_context "Command.memo_exec" group
-                      |> Exn.interruptible_capture) ();
-                in SOME ((), Result res) end
-              else SOME ((), expr)
-            end) ()
-      | Result _ => SOME ((), expr)))
-  |> (fn NONE => error "Conflicting command execution" | _ => ());
-
-fun memo_fork params execution_id (Memo v) =
-  (case Synchronized.peek v of
-    Result _ => ()
-  | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec execution_id (Memo v))));
-
-end;
-
-
-
 (** main phases of execution **)
 
 (* read *)
@@ -184,15 +135,19 @@ type eval_state =
 val init_eval_state =
   {failed = false, malformed = false, command = Toplevel.empty, state = Toplevel.toplevel};
 
-datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state memo};
+datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state lazy};
 
 fun eval_exec_id (Eval {exec_id, ...}) = exec_id;
 val eval_eq = op = o apply2 eval_exec_id;
 
 val eval_running = Execution.is_running_exec o eval_exec_id;
-fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
+fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 
-fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
+fun eval_result (Eval {exec_id, eval_process}) =
+  (case Lazy.finished_result eval_process of
+    SOME result => Exn.release result
+  | NONE => error ("Unfinished execution result: " ^ Document_ID.print exec_id));
+
 val eval_result_state = #state o eval_result;
 
 local
@@ -279,7 +234,7 @@ fun eval keywords master_dir init blobs span eval0 =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
             (fn () => read keywords thy master_dir init blobs span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
-  in Eval {exec_id = exec_id, eval_process = memo exec_id process} end;
+  in Eval {exec_id = exec_id, eval_process = Lazy.lazy process} end;
 
 end;
 
@@ -288,7 +243,7 @@ end;
 
 datatype print = Print of
  {name: string, args: string list, delay: Time.time option, pri: int, persistent: bool,
-  exec_id: Document_ID.exec, print_process: unit memo};
+  exec_id: Document_ID.exec, print_process: unit lazy};
 
 fun print_exec_id (Print {exec_id, ...}) = exec_id;
 val print_eq = op = o apply2 print_exec_id;
@@ -310,7 +265,7 @@ fun print_error tr opt_context e =
       if Exn.is_interrupt exn then reraise exn
       else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages_ids exn);
 
-fun print_finished (Print {print_process, ...}) = memo_finished print_process;
+fun print_finished (Print {print_process, ...}) = Lazy.is_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 
@@ -337,7 +292,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
       in
         Print {
           name = name, args = args, delay = delay, pri = pri, persistent = persistent,
-          exec_id = exec_id, print_process = memo exec_id process}
+          exec_id = exec_id, print_process = Lazy.lazy process}
       end;
 
     fun bad_print name args exn =
@@ -408,32 +363,45 @@ val _ =
 
 type exec = eval * print list;
 val no_exec: exec =
-  (Eval {exec_id = Document_ID.none, eval_process = memo_value init_eval_state}, []);
+  (Eval {exec_id = Document_ID.none, eval_process = Lazy.value init_eval_state}, []);
 
 fun exec_ids NONE = []
   | exec_ids (SOME (eval, prints)) = eval_exec_id eval :: map print_exec_id prints;
 
 local
 
-fun run_print execution_id (Print {name, delay, pri, print_process, ...}) =
-  if pri <= 0 orelse (Multithreading.enabled () andalso Options.default_bool "parallel_print")
+fun run_process execution_id exec_id process =
+  let val group = Future.worker_subgroup () in
+    if Execution.running execution_id exec_id [group] then
+      ignore (Future.task_context "Command.run_process" group Lazy.force_result process)
+    else ()
+  end;
+
+fun run_eval execution_id (Eval {exec_id, eval_process}) =
+  if Lazy.is_finished eval_process then ()
+  else run_process execution_id exec_id eval_process;
+
+fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...}) =
+  if Lazy.is_running print_process orelse Lazy.is_finished print_process then ()
+  else if pri <= 0 orelse (Multithreading.enabled () andalso Options.default_bool "parallel_print")
   then
     let
       val group = Future.worker_subgroup ();
       fun fork () =
-        memo_fork {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
-          execution_id print_process;
+        ignore ((singleton o Future.forks)
+          {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
+          (fn () => run_process execution_id exec_id print_process));
     in
       (case delay of
         NONE => fork ()
       | SOME d => ignore (Event_Timer.request (Time.+ (Time.now (), d)) fork))
     end
-  else memo_exec execution_id print_process;
+  else run_process execution_id exec_id print_process;
 
 in
 
-fun exec execution_id (Eval {eval_process, ...}, prints) =
-  (memo_exec execution_id eval_process; List.app (run_print execution_id) prints);
+fun exec execution_id (eval, prints) =
+  (run_eval execution_id eval; List.app (run_print execution_id) prints);
 
 end;
 
