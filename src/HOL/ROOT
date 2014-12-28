@@ -559,6 +559,8 @@ session "HOL-ex" in ex = HOL +
     PER
     NatSum
     ThreeDivides
+    Cubic_Quartic
+	Pythagoras
     Intuitionistic
     CTL
     Arith_Examples
