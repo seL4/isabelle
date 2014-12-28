@@ -17,15 +17,17 @@ datatype 'a expr =
 abstype 'a lazy = Lazy of 'a expr Unsynchronized.ref
 with
 
+fun lazy e = Lazy (Unsynchronized.ref (Expr e));
+fun value a = Lazy (Unsynchronized.ref (Result (Exn.Res a)));
+
 fun peek (Lazy r) =
   (case ! r of
     Expr _ => NONE
   | Result res => SOME res);
 
-fun lazy e = Lazy (Unsynchronized.ref (Expr e));
-fun value a = Lazy (Unsynchronized.ref (Result (Exn.Res a)));
-
+fun is_running _ = false;
 fun is_finished x = is_some (peek x);
+val finished_result = peek;
 
 
 (* force result *)
