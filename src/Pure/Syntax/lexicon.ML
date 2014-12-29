@@ -66,6 +66,7 @@ sig
   val is_marked: string -> bool
   val dummy_type: term
   val fun_type: term
+  val pp_lexicon: Scan.lexicon -> Pretty.T
 end;
 
 structure Lexicon: LEXICON =
@@ -450,5 +451,11 @@ val is_marked =
 
 val dummy_type = Syntax.const (mark_type "dummy");
 val fun_type = Syntax.const (mark_type "fun");
+
+
+(* toplevel pretty printing *)
+
+val pp_lexicon =
+  Pretty.str_list "{" "}" o map quote o Scan.dest_lexicon;
 
 end;
