@@ -24,6 +24,7 @@ sig
   (*options*)
   val oracle: bool Config.T
   val timeout: real Config.T
+  val reconstruction_step_timeout: real Config.T
   val random_seed: int Config.T
   val read_only_certificates: bool Config.T
   val verbose: bool Config.T
@@ -35,6 +36,7 @@ sig
   val sat_solver: string Config.T
 
   (*tools*)
+  val with_time_limit: Proof.context -> real Config.T -> ('a -> 'b) -> 'a -> 'b
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
 
   (*diagnostics*)
@@ -149,6 +151,7 @@ val setup_solver =
 
 val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
 val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
+val reconstruction_step_timeout = Attrib.setup_config_real @{binding smt_reconstruction_step_timeout} (K 10.0)
 val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
 val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
 val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
@@ -171,9 +174,11 @@ fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 
 (* tools *)
 
-fun with_timeout ctxt f x =
-  TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f x
+fun with_time_limit ctxt timeout_config f x =
+  TimeLimit.timeLimit (seconds (Config.get ctxt timeout_config)) f x
   handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
+
+fun with_timeout ctxt = with_time_limit ctxt timeout
 
 
 (* certificates *)

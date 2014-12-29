@@ -66,8 +66,12 @@ fun replay_thm ctxt assumed nthms (Z3_Proof.Z3_Step {id, rule, concl, fixes, is_
       (if is_fix_step then (map snd nthms, []) else ([], nthms)) fixes concl
 
 fun replay_step ctxt assumed (step as Z3_Proof.Z3_Step {id, prems, fixes, ...}) proofs =
-  let val nthms = map (the o Inttab.lookup proofs) prems
-  in Inttab.update (id, (fixes, replay_thm ctxt assumed nthms step)) proofs end
+  let
+    val nthms = map (the o Inttab.lookup proofs) prems
+    val replay = replay_thm ctxt assumed nthms
+    val thm = SMT_Config.with_time_limit ctxt SMT_Config.reconstruction_step_timeout replay step
+      handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
+  in Inttab.update (id, (fixes, thm)) proofs end
 
 local
   val remove_trigger = mk_meta_eq @{thm trigger_def}
