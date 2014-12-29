@@ -551,7 +551,7 @@ apply (simp only: wf_java_mdecl_def)
 apply (subgoal_tac "(\<forall>y\<in>set pns. y \<notin> set (map fst lvars))")
 apply (simp add: init_vars_def locvars_xstate_def locvars_locals_def galldefs unique_def split_def map_of_map_as_map_upd del: map_map)
 apply (intro strip)
-apply (simp (no_asm_simp) only: append_Cons [THEN sym])
+apply (simp (no_asm_simp) only: append_Cons [symmetric])
 apply (rule progression_lvar_init_aux)
 apply (auto simp: unique_def map_of_in_set disjoint_varnames_def)
 done
@@ -648,8 +648,8 @@ apply (simp add: gh_def)
 apply (rule_tac x3="fst s" and s3="snd s"and x'3="fst s'"  
   in eval_type_sound [THEN conjunct2 [THEN conjunct1 [THEN mp]], simplified])
 apply assumption+
-apply (simp (no_asm_use) add: surjective_pairing [THEN sym])
-apply (simp only: surjective_pairing [THEN sym])
+apply (simp (no_asm_use) add: surjective_pairing [symmetric])
+apply (simp only: surjective_pairing [symmetric])
 apply (auto simp add: gs_def gx_def)
 done
 
@@ -662,9 +662,9 @@ apply (frule conf_hext, assumption, assumption)
 apply (frule eval_evals_exec_type_sound [THEN conjunct2 [THEN conjunct1 [THEN mp]]]) 
 apply (subgoal_tac "G \<turnstile> (gx s, (gh s, gl s)) -es[\<succ>]vs-> (gx s', (gh s', gl s'))")
 apply assumption
-apply (simp add: gx_def gh_def gl_def surjective_pairing [THEN sym])
+apply (simp add: gx_def gh_def gl_def surjective_pairing [symmetric])
 apply (case_tac E)
-apply (simp add: gx_def gs_def gh_def gl_def surjective_pairing [THEN sym])
+apply (simp add: gx_def gs_def gh_def gl_def surjective_pairing [symmetric])
 done
 
 lemma eval_of_class: "\<lbrakk> G \<turnstile> s -e\<succ>a'-> s'; E \<turnstile> e :: Class C; 
@@ -1062,7 +1062,7 @@ apply (frule_tac xs=s1 and xs'="(x, h, l)" in state_ok_evals)
 apply (simp (no_asm_simp) only: env_of_jmb_fst, assumption, simp only: env_of_jmb_fst)
 
 (* establish \<exists> lc. a' = Addr lc *)
-apply (frule (5) eval_of_class, rule env_of_jmb_fst [THEN sym])
+apply (frule (5) eval_of_class, rule env_of_jmb_fst [symmetric])
 apply (subgoal_tac "G,h \<turnstile> a' ::\<preceq> Class C")
 apply (subgoal_tac "is_class G dynT")
 
@@ -1097,7 +1097,7 @@ prefer 2 apply (simp add: wf_prog_ws_prog [THEN comp_method])
 (* establish length pns = length pTs *)
 apply (frule method_preserves_length, assumption, assumption) 
 (* establish length pvs = length ps *)
-apply (frule evals_preserves_length [THEN sym])
+apply (frule evals_preserves_length [symmetric])
 
 (** start evaluating subexpressions **)
 apply (simp (no_asm_use) only: compExpr.simps compExprs.simps)
@@ -1179,10 +1179,10 @@ apply assumption+
 apply (simp only: env_of_jmb_fst) 
 apply (simp add: conforms_def xconf_def gs_def)
 apply simp
-apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
+apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [symmetric])
 apply (simp (no_asm_use) only: ty_exprs_list_all2) apply simp
 apply simp
-apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
+apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [symmetric])
     (* list_all2 (\<lambda>T T'. G \<turnstile> T \<preceq> T') pTsa pTs *)
     apply (rule max_spec_widen, simp only: env_of_jmb_fst)
 
