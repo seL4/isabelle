@@ -65,13 +65,16 @@ fun replay_thm ctxt assumed nthms (Z3_Proof.Z3_Step {id, rule, concl, fixes, is_
     under_fixes (Z3_Replay_Methods.method_for rule) ctxt
       (if is_fix_step then (map snd nthms, []) else ([], nthms)) fixes concl
 
-fun replay_step ctxt assumed (step as Z3_Proof.Z3_Step {id, prems, fixes, ...}) proofs =
+fun replay_step ctxt assumed (step as Z3_Proof.Z3_Step {id, rule, prems, fixes, ...}) state =
   let
+    val (proofs, stats) = state
     val nthms = map (the o Inttab.lookup proofs) prems
-    val replay = replay_thm ctxt assumed nthms
-    val thm = SMT_Config.with_time_limit ctxt SMT_Config.reconstruction_step_timeout replay step
+    val replay = Timing.timing (replay_thm ctxt assumed nthms)
+    val ({elapsed, ...}, thm) =
+      SMT_Config.with_time_limit ctxt SMT_Config.reconstruction_step_timeout replay step
       handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
-  in Inttab.update (id, (fixes, thm)) proofs end
+    val stats' = Symtab.cons_list (Z3_Proof.string_of_rule rule, Time.toMilliseconds elapsed) stats
+  in (Inttab.update (id, (fixes, thm)) proofs, stats') end
 
 local
   val remove_trigger = mk_meta_eq @{thm trigger_def}
@@ -205,6 +208,25 @@ fun parse_proof outer_ctxt
        fact_helper_ts prem_ids conjecture_id fact_helper_ids' steps}
   end
 
+fun pretty_statistics total stats =
+  let
+    fun mean_of is =
+      let
+        val len = length is
+        val mid = len div 2
+      in if len mod 2 = 0 then (nth is (mid - 1) + nth is mid) div 2 else nth is mid end
+    fun pretty_item name p = Pretty.item (Pretty.separate ":" [Pretty.str name, p])
+    fun pretty (name, milliseconds) = pretty_item name (Pretty.block (Pretty.separate "," [
+      Pretty.str (string_of_int (length milliseconds) ^ " occurrences") ,
+      Pretty.str (string_of_int (mean_of milliseconds) ^ " ms mean time"),
+      Pretty.str (string_of_int (fold Integer.max milliseconds 0) ^ " ms maximum time"),
+      Pretty.str (string_of_int (fold Integer.add milliseconds 0) ^ " ms total time")]))
+  in
+    Pretty.big_list "Z3 proof reconstruction statistics:" (
+      pretty_item "total time" (Pretty.str (string_of_int total ^ " ms")) ::
+      map pretty (Symtab.dest stats))
+  end
+
 fun replay outer_ctxt
     ({context = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT_Translate.replay_data) output =
   let
@@ -214,8 +236,11 @@ fun replay outer_ctxt
       ctxt3
       |> put_simpset (Z3_Replay_Util.make_simpset ctxt3 [])
       |> Config.put SAT.solver (Config.get ctxt3 SMT_Config.sat_solver)
-    val proofs = fold (replay_step ctxt4 assumed) steps assumed
+    val ({elapsed, ...}, (proofs, stats)) =
+      Timing.timing (fold (replay_step ctxt4 assumed) steps) (assumed, Symtab.empty)
     val (_, Z3_Proof.Z3_Step {id, ...}) = split_last steps
+    val total = Time.toMilliseconds elapsed
+    val _ = SMT_Config.statistics_msg ctxt4 (Pretty.string_of o pretty_statistics total) stats
   in
     Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
   end

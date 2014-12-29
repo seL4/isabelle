@@ -29,6 +29,7 @@ sig
   val read_only_certificates: bool Config.T
   val verbose: bool Config.T
   val trace: bool Config.T
+  val statistics: bool Config.T
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
   val infer_triggers: bool Config.T
@@ -42,6 +43,7 @@ sig
   (*diagnostics*)
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val verbose_msg: Proof.context -> ('a -> string) -> 'a -> unit
+  val statistics_msg: Proof.context -> ('a -> string) -> 'a -> unit
 
   (*certificates*)
   val select_certificates: string -> Context.generic -> Context.generic
@@ -174,6 +176,7 @@ val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
 val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
 val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
 val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
+val statistics = Attrib.setup_config_bool @{binding smt_statistics} (K false)
 val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
 val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
 val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
@@ -186,8 +189,8 @@ val sat_solver = Attrib.setup_config_string @{binding smt_sat_solver} (K "cdclit
 fun cond_trace flag f x = if flag then tracing ("SMT: " ^ f x) else ()
 
 fun verbose_msg ctxt = cond_trace (Config.get ctxt verbose)
-
 fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
+fun statistics_msg ctxt = cond_trace (Config.get ctxt statistics)
 
 
 (* tools *)
