@@ -163,6 +163,16 @@ fun pending_result node =
     SOME eval => not (Command.eval_finished eval)
   | NONE => false);
 
+fun finished_result node =
+  (case get_result node of
+    SOME eval => Command.eval_finished eval
+  | NONE => false);
+
+fun loaded_theory name =
+  (case try (unsuffix ".thy") name of
+    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
+  | NONE => NONE);
+
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
 fun default_node name = String_Graph.default_node (name, empty_node);
@@ -413,28 +423,31 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val _ = Future.cancel delay_request;
       val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
 
+      fun finished_import (name, (node, _)) =
+        finished_result node orelse is_some (loaded_theory name);
       val _ =
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
               let
                 fun body () =
-                  iterate_entries (fn (_, opt_exec) => fn () =>
-                    (case opt_exec of
-                      SOME exec =>
-                        if Execution.is_running execution_id
-                        then SOME (Command.exec execution_id exec)
-                        else NONE
-                    | NONE => NONE)) node ()
-                  handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn;
+                  if forall finished_import deps then
+                    iterate_entries (fn (_, opt_exec) => fn () =>
+                      (case opt_exec of
+                        SOME exec =>
+                          if Execution.is_running execution_id
+                          then SOME (Command.exec execution_id exec)
+                          else NONE
+                      | NONE => NONE)) node ()
+                  else ();
                 val future =
                   (singleton o Future.forks)
                    {name = "theory:" ^ name,
                     group = SOME (Future.new_group NONE),
-                    deps = Future.task_of delay_request' :: maps #2 deps,
+                    deps = Future.task_of delay_request' :: maps (the_list o #2 o #2) deps,
                     pri = 0, interrupts = false} body;
-              in [Future.task_of future] end
-            else []);
+              in (node, SOME (Future.task_of future)) end
+            else (node, NONE));
       val execution' =
         {version_id = version_id, execution_id = execution_id, delay_request = delay_request'};
     in (versions, blobs, commands, execution') end));
@@ -477,11 +490,6 @@ fun make_required nodes =
       exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
         Symtab.update (a, ())) all_visible all_required
   end;
-
-fun loaded_theory name =
-  (case try (unsuffix ".thy") name of
-    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
-  | NONE => NONE);
 
 fun init_theory deps node span =
   let
