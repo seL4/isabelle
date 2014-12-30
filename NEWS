@@ -254,6 +254,10 @@ Minor INCOMPATIBILITY.
 * JVM system property "isabelle.threads" determines size of Scala thread
 pool, like Isabelle system option "threads" for ML.
 
+* JVM system property "isabelle.laf" determines the default Swing
+look-and-feel, via internal class name or symbolic name as in the jEdit
+menu Global Options / Appearance.
+
 * System option "pretty_margin" is superseded by "thy_output_margin",
 which is also accessible via document antiquotation option "margin".
 Only the margin for document output may be changed, but not the global
