@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/model.scala
+/*  Title:      Tools/Graphview/model.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Internal graph representation.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/shapes.scala
+/*  Title:      Tools/Graphview/shapes.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Drawable shapes.

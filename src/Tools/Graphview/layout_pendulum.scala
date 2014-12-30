@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/layout_pendulum.scala
+/*  Title:      Tools/Graphview/layout_pendulum.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Pendulum DAG layout algorithm.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/mutator_dialog.scala
+/*  Title:      Tools/Graphview/mutator_dialog.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Mutator selection and configuration dialog.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/main_panel.scala
+/*  Title:      Tools/Graphview/main_panel.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Graph Panel wrapper.
