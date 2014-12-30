@@ -251,6 +251,9 @@ subtle change of semantics with minimal potential for INCOMPATIBILITY.
 * Support for Proof General and Isar TTY loop has been discontinued.
 Minor INCOMPATIBILITY.
 
+* JVM system property "isabelle.threads" determines size of Scala thread
+pool, like Isabelle system option "threads" for ML.
+
 * System option "pretty_margin" is superseded by "thy_output_margin",
 which is also accessible via document antiquotation option "margin".
 Only the margin for document output may be changed, but not the global
