@@ -123,6 +123,7 @@ fun init_channels channel =
     Output.tracing_fn :=
       (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
     Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
+    Output.legacy_fn := (fn s => standard_message (serial_props ()) Markup.legacyN s);
     Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Output.system_message_fn := message Markup.systemN [];

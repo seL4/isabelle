@@ -58,7 +58,7 @@ object Protocol
           case Markup.JOINED => forks -= 1
           case Markup.RUNNING => touched = true; runs += 1
           case Markup.FINISHED => runs -= 1
-          case Markup.WARNING => warned = true
+          case Markup.WARNING | Markup.LEGACY => warned = true
           case Markup.FAILED | Markup.ERROR => failed = true
           case _ =>
         }
@@ -105,7 +105,7 @@ object Protocol
       Markup.FINISHED, Markup.FAILED)
 
   val liberal_status_elements =
-    proper_status_elements + Markup.WARNING + Markup.ERROR
+    proper_status_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
 
   /* command timing */
@@ -241,19 +241,17 @@ object Protocol
       case _ => false
     }
 
-  def is_warning_markup(msg: XML.Tree, name: String): Boolean =
-    msg match {
-      case XML.Elem(Markup(Markup.WARNING, _),
-        List(XML.Elem(markup, _))) => markup.name == name
-      case XML.Elem(Markup(Markup.WARNING_MESSAGE, _),
-        List(XML.Elem(markup, _))) => markup.name == name
-      case _ => false
-    }
-
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WARNING, _), _) => true
       case XML.Elem(Markup(Markup.WARNING_MESSAGE, _), _) => true
+      case _ => false
+    }
+
+  def is_legacy(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.LEGACY, _), _) => true
+      case XML.Elem(Markup(Markup.LEGACY_MESSAGE, _), _) => true
       case _ => false
     }
 
@@ -263,8 +261,6 @@ object Protocol
       case XML.Elem(Markup(Markup.ERROR_MESSAGE, _), _) => true
       case _ => false
     }
-
-  def is_legacy(msg: XML.Tree): Boolean = is_warning_markup(msg, Markup.LEGACY)
 
   def is_inlined(msg: XML.Tree): Boolean =
     !(is_result(msg) || is_tracing(msg) || is_state(msg))

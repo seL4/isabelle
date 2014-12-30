@@ -9,6 +9,7 @@ sig
   val writeln: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
+  val legacy_feature: string -> unit
 end;
 
 signature OUTPUT =
@@ -46,6 +47,7 @@ sig
   val information_fn: (output list -> unit) Unsynchronized.ref
   val tracing_fn: (output list -> unit) Unsynchronized.ref
   val warning_fn: (output list -> unit) Unsynchronized.ref
+  val legacy_fn: (output list -> unit) Unsynchronized.ref
   val error_message_fn: (serial * output list -> unit) Unsynchronized.ref
   val system_message_fn: (output list -> unit) Unsynchronized.ref
   val status_fn: (output list -> unit) Unsynchronized.ref
@@ -102,6 +104,8 @@ val state_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
 val information_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
 val tracing_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
 val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### " o implode);
+val legacy_fn = Unsynchronized.ref (fn ss => ! warning_fn ss);
+
 val error_message_fn =
   Unsynchronized.ref (fn (_: serial, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
 val system_message_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
@@ -117,6 +121,7 @@ fun state s = ! state_fn [output s];
 fun information s = ! information_fn [output s];
 fun tracing s = ! tracing_fn [output s];
 fun warning s = ! warning_fn [output s];
+fun legacy_feature s = ! legacy_fn [output ("Legacy feature! " ^ s)];
 fun error_message' (i, s) = ! error_message_fn (i, [output s]);
 fun error_message s = error_message' (serial (), s);
 fun system_message s = ! system_message_fn [output s];
