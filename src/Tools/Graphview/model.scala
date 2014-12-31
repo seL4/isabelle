@@ -56,7 +56,7 @@ object Model
   type Graph = isabelle.Graph[String, Info]
 
   val decode_graph: XML.Decode.T[Graph] =
-    isabelle.Graph.decode(XML.Decode.string, decode_info)
+    isabelle.Graph.decode(XML.Decode.string, decode_info, converse = true)
 }
 
 class Model(private val graph: Model.Graph) {  
