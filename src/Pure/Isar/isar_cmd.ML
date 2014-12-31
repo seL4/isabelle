@@ -274,27 +274,29 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
     val thy_session = Present.session_name thy;
-
-    val gr_nodes = rev (Theory.nodes_of thy) |> map (fn node =>
-      let
-        val name = Context.theory_name node;
-        val parents = map Context.theory_name (Theory.parents_of node);
-        val session = Present.session_name node;
-        val unfold = (session = thy_session);
-      in
-       ((name, Graph_Display.session_node
-         {name = name, directory = session, unfold = unfold, path = ""}), parents)
-      end);
-  in Graph_Display.display_graph (map (fst o fst) gr_nodes, Graph.make gr_nodes) end);
+  in
+    Theory.nodes_of thy
+    |> map (fn thy_node =>
+        let
+          val name = Context.theory_name thy_node;
+          val parents = map Context.theory_name (Theory.parents_of thy_node);
+          val session = Present.session_name thy_node;
+          val node =
+            Graph_Display.session_node
+              {name = name, directory = session, unfold = session = thy_session, path = ""};
+        in ((name, node), parents) end)
+    |> Graph_Display.display_graph
+  end);
 
 val locale_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val gr = Locale.pretty_locale_deps thy
-      |> map (fn {name, parents, body} => ((name,
-          Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-      |> Graph.make;
-  in Graph_Display.display_graph ([], gr) end);
+  in
+    Locale.pretty_locale_deps thy
+    |> map (fn {name, parents, body} =>
+      ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
+    |> Graph_Display.display_graph
+  end);
 
 
 (* print theorems, terms, types etc. *)

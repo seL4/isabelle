@@ -9,7 +9,10 @@ sig
   type node
   val content_node: string -> Pretty.T list -> node
   val session_node: {name: string, unfold: bool, directory: string, path: string} -> node
-  type graph = string list * node Graph.T
+  type entry = (string * node) * string list
+  val eq_entry: entry * entry -> bool
+  type graph = entry list
+  val sort_graph: graph -> graph
   val write_graph_browser: Path.T -> graph -> unit
   val browserN: string
   val graphviewN: string
@@ -20,19 +23,44 @@ end;
 structure Graph_Display: GRAPH_DISPLAY =
 struct
 
-(* abstract graph representation *)
+(* type node *)
 
-type node = {name: string, content: Pretty.T list,
-  unfold: bool, directory: string, path: string};
-
-type graph = string list * node Graph.T;
-  (*partial explicit order in left argument*)
+datatype node =
+  Node of {name: string, content: Pretty.T list, unfold: bool, directory: string, path: string};
 
 fun content_node name content =
-  {name = name, content = content, unfold = true, directory = "", path = ""};
+  Node {name = name, content = content, unfold = true, directory = "", path = ""};
 
-fun session_node {name: string, unfold: bool, directory: string, path: string} =
-  {name = name, content = [], unfold = unfold, directory = directory, path = path};
+fun session_node {name, unfold, directory, path} =
+  Node {name = name, content = [], unfold = unfold, directory = directory, path = path};
+
+
+(* type graph *)
+
+type entry = (string * node) * string list;
+val eq_entry: entry * entry -> bool = op = o apply2 (#1 o #1);
+
+type graph = entry list;
+
+structure Aux_Graph =
+  Graph(type key = string * string val ord = prod_ord string_ord string_ord);
+
+fun sort_graph (graph: graph) =
+  let
+    val ident_names =
+      fold (fn ((ident, Node {name, ...}), _) => Symtab.update_new (ident, (name, ident)))
+        graph Symtab.empty;
+    val the_key = the o Symtab.lookup ident_names;
+    val G =
+      Aux_Graph.empty
+      |> fold (fn ((ident, node), _) => Aux_Graph.new_node (the_key ident, node)) graph
+      |> fold (fn ((ident, _), parents) =>
+          fold (fn parent => Aux_Graph.add_edge (the_key parent, the_key ident)) parents) graph
+  in
+    Aux_Graph.topological_order G |> map (fn key =>
+      let val (_, (node, (preds, _))) = Aux_Graph.get_entry G key
+      in ((#2 key, node), map #2 (Aux_Graph.Keys.dest preds)) end)
+  end;
 
 
 (* print modes *)
@@ -49,41 +77,43 @@ fun is_browser () =
 
 (* encode graph *)
 
-fun encode_browser ((keys, gr) : graph) =
-  fold_rev (update (op =)) (Graph.keys gr) keys
-  |> map (fn key => case Graph.get_node gr key of {name, unfold, content, directory, path} =>
+val encode_browser =
+  map (fn ((key, Node {name, unfold, content, directory, path}), parents) =>
     "\"" ^ name ^ "\" \"" ^ key ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote (Graph.immediate_succs gr key)) ^ " ;")
-  |> cat_lines;
+    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;")
+  #> cat_lines;
 
-fun write_graph_browser path graph = File.write path (encode_browser graph);
+fun write_graph_browser path graph =
+  File.write path (encode_browser graph);
 
 
-val encode_content = YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks;
+fun encode_node (Node {name, content, ...}) =
+  (name, content) |>
+    let open XML.Encode
+    in pair string (YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks) end;
 
-fun encode_graphview ((_, gr): graph) =
-  gr
-  |> Graph.map (fn _ => fn {name, content, ...} => (name, content))
-  |> let open XML.Encode in Graph.encode string (pair string encode_content) end;
+val encode_graph =
+  let open XML.Encode in list (pair (pair string encode_node) (list string)) end;
 
 
 (* display graph *)
 
-fun display_graph graph =
-  if print_mode_active active_graphN then
-    let
-      val (markup, body) =
-        if is_browser () then (Markup.browserN, encode_browser graph)
-        else (Markup.graphviewN, YXML.string_of_body (encode_graphview graph));
-      val ((bg1, bg2), en) =
-        YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
-    in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end
-  else
-    let
-      val _ = writeln "Displaying graph ...";
-      val path = Isabelle_System.create_tmp_path "graph" "";
-      val _ = write_graph_browser path graph;
-      val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
-    in () end;
+val display_graph =
+  sort_graph #> (fn graph =>
+    if print_mode_active active_graphN then
+      let
+        val (markup, body) =
+          if is_browser () then (Markup.browserN, encode_browser graph)
+          else (Markup.graphviewN, YXML.string_of_body (encode_graph graph));
+        val ((bg1, bg2), en) =
+          YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
+      in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end
+    else
+      let
+        val _ = writeln "Displaying graph ...";
+        val path = Isabelle_System.create_tmp_path "graph" "";
+        val _ = write_graph_browser path graph;
+        val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
+      in () end);
 
 end;

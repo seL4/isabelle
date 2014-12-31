@@ -38,8 +38,10 @@ fun thm_deps thy thms =
               {name = Long_Name.base_name name, directory = directory,
                 unfold = false, path = ""}), parents)
           end;
-    val gr = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) [];
-  in Graph_Display.display_graph (sort_wrt I (map (fst o fst) gr), Graph.make gr) end;
+  in
+    Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) []
+    |> Graph_Display.display_graph
+  end;
 
 val _ =
   Outer_Syntax.command @{command_spec "thm_deps"} "visualize theorem dependencies"

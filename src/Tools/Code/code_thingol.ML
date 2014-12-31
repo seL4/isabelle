@@ -927,12 +927,14 @@ fun code_deps ctxt consts =
   let
     val thy = Proof_Context.theory_of ctxt;
     val namify = commas o map (Code.string_of_const thy);
-    val gr =
-      code_depgr ctxt consts
-      |> Graph.map (fn c => fn _ => c)
-      |> join_strong_conn 
-      |> Graph.map (fn _ => fn cs => Graph_Display.content_node (namify cs) [])
-  in Graph_Display.display_graph ([], gr) end;
+  in
+    code_depgr ctxt consts
+    |> Graph.map (fn c => fn _ => c)
+    |> join_strong_conn
+    |> Graph.dest
+    |> map (fn ((c, cs), ds) => ((c, Graph_Display.content_node (namify cs) []), ds))
+    |> Graph_Display.display_graph
+  end;
 
 local
 
@@ -953,7 +955,7 @@ val _ =
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_context o
-      Toplevel.keep (fn state => code_deps_cmd (Toplevel.context_of state) cs)));
+      Toplevel.keep (fn st => code_deps_cmd (Toplevel.context_of st) cs)));
 
 end;
 
