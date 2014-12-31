@@ -60,8 +60,8 @@ val session_chapter_name = (fn {chapter, name} => [chapter, name]) o Browser_Inf
 
 (** graphs **)
 
-fun ID_of sess s = space_implode "/" (sess @ [s]);
-fun ID_of_thy thy = ID_of (session_chapter_name thy) (Context.theory_name thy);
+fun ident_of sess s = space_implode "/" (sess @ [s]);
+fun ident_of_thy thy = ident_of (session_chapter_name thy) (Context.theory_name thy);
 
 fun theory_link (curr_chapter, curr_session) thy =
   let
@@ -89,11 +89,11 @@ fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
       | SOME p => Path.implode p);
     val graph_entry =
      {name = thy_name,
-      ident = ID_of [chapter, session_name] thy_name,
+      ident = ident_of [chapter, session_name] thy_name,
       directory = session_name,
       path = path,
       unfold = false,
-      parents = map ID_of_thy (Theory.parents_of thy)};
+      parents = map ident_of_thy (Theory.parents_of thy)};
   in (0, graph_entry) end);
 
 fun ins_graph_entry (i, entry as {ident, ...}) (graph: (int * browser_node) list) =
@@ -393,11 +393,11 @@ fun begin_theory update_time mk_text thy =
 
       val graph_entry =
        {name = name,
-        ident = ID_of [chapter, session_name] name,
+        ident = ident_of [chapter, session_name] name,
         directory = session_name,
         unfold = true,
         path = Path.implode (html_path name),
-        parents = map ID_of_thy parents};
+        parents = map ident_of_thy parents};
     in
       init_theory_info name (make_theory_info ("", html_source));
       add_graph_entry (update_time, graph_entry);
