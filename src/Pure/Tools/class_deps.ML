@@ -26,8 +26,8 @@ fun gen_visualize prep_sort ctxt raw_super raw_sub =
       (le_super andf sub_le) (K NONE) original_algebra;
     val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
-      (i, {name = Name_Space.extern ctxt space c, ID = c, parents = Graph.Keys.dest cs,
-            dir = "", unfold = true, path = "", content = []});
+      (i, {name = Name_Space.extern ctxt space c, ident = c, parents = Graph.Keys.dest cs,
+            directory = "", unfold = true, path = "", content = []});
     val graph =
       Graph.fold (cons o entry) classes []
       |> sort (int_ord o apply2 #1) |> map #2;

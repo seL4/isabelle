@@ -86,16 +86,16 @@ fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
       | SOME p => Path.implode p);
     val entry =
      {name = thy_name,
-      ID = ID_of [chapter, session_name] thy_name,
-      dir = session_name,
+      ident = ID_of [chapter, session_name] thy_name,
+      directory = session_name,
       path = path,
       unfold = false,
       parents = map ID_of_thy (Theory.parents_of thy),
       content = []};
   in (0, entry) end);
 
-fun ins_graph_entry (i, entry as {ID, ...}) (gr: (int * Graph_Display.node) list) =
-  (i, entry) :: filter_out (fn (_, entry') => #ID entry' = ID) gr;
+fun ins_graph_entry (i, entry as {ident, ...}) (gr: (int * Graph_Display.node) list) =
+  (i, entry) :: filter_out (fn (_, entry') => #ident entry' = ident) gr;
 
 
 
@@ -383,8 +383,8 @@ fun begin_theory update_time mk_text thy =
 
       val graph_entry =
        {name = name,
-        ID = ID_of [chapter, session_name] name,
-        dir = session_name,
+        ident = ID_of [chapter, session_name] name,
+        directory = session_name,
         unfold = true,
         path = Path.implode (html_path name),
         parents = map ID_of_thy parents,

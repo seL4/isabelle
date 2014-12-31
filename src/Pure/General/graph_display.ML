@@ -7,7 +7,7 @@ Generic graph display, with browser and graphview backends.
 signature GRAPH_DISPLAY =
 sig
   type node =
-   {name: string, ID: string, dir: string, unfold: bool,
+   {name: string, ident: string, directory: string, unfold: bool,
     path: string, parents: string list, content: Pretty.T list}
   type graph = node list
   val write_graph_browser: Path.T -> graph -> unit
@@ -23,7 +23,7 @@ struct
 (* external graph representation *)
 
 type node =
- {name: string, ID: string, dir: string, unfold: bool,
+ {name: string, ident: string, directory: string, unfold: bool,
   path: string, parents: string list, content: Pretty.T list};
 
 type graph = node list;
@@ -44,8 +44,8 @@ fun is_browser () =
 (* encode graph *)
 
 fun encode_browser (graph: graph) =
-  cat_lines (map (fn {name, ID, dir, unfold, path, parents, ...} =>
-    "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
+  cat_lines (map (fn {name, ident, directory, unfold, path, parents, ...} =>
+    "\"" ^ name ^ "\" \"" ^ ident ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
     path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") graph);
 
 fun write_graph_browser path graph = File.write path (encode_browser graph);
@@ -55,8 +55,8 @@ val encode_content = YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks
 
 fun encode_graphview (graph: graph) =
   Graph.empty
-  |> fold (fn {ID, name, content, ...} => Graph.new_node (ID, (name, content))) graph
-  |> fold (fn {ID = a, parents = bs, ...} => fold (fn b => Graph.add_edge (b, a)) bs) graph
+  |> fold (fn {ident, name, content, ...} => Graph.new_node (ident, (name, content))) graph
+  |> fold (fn {ident = a, parents = bs, ...} => fold (fn b => Graph.add_edge (b, a)) bs) graph
   |> let open XML.Encode in Graph.encode string (pair string encode_content) end;
 
 
