@@ -8,14 +8,11 @@ commands code_pred and values.
 signature PREDICATE_COMPILE =
 sig
   val preprocess : Predicate_Compile_Aux.options -> term -> theory -> theory
-  val present_graph : bool Unsynchronized.ref
   val intro_hook : (theory -> thm -> unit) option Unsynchronized.ref
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
 struct
-
-val present_graph = Unsynchronized.ref false
 
 val intro_hook = Unsynchronized.ref NONE : (theory -> thm -> unit) option Unsynchronized.ref
 
@@ -142,7 +139,6 @@ fun preprocess options t thy =
         (fn () =>
           Predicate_Compile_Data.obtain_specification_graph options thy t
           |> (fn gr => Term_Graph.restrict (member (op =) (Term_Graph.all_succs gr [t])) gr))
-    val _ = if !present_graph then Predicate_Compile_Data.present_graph gr else ()
   in
     cond_timeit (Config.get_global thy Quickcheck.timing) "preprocess-process"
       (fn () =>
