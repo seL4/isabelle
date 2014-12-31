@@ -159,6 +159,9 @@ done
 declare [[names_short]]
 (*>*)
 datatype 'a list = Nil | Cons 'a "'a list"
+(*<*)
+for map: map
+(*>*)
 
 text{*
 \begin{itemize}
@@ -395,8 +398,8 @@ The most important ones are the length function
 and the \indexed{@{const map}}{map} function that applies a function to all elements of a list:
 \begin{isabelle}
 \isacom{fun} @{const map} @{text"::"} @{typ[source] "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"}\\
-@{text"\""}@{thm list.map(1)}@{text"\" |"}\\
-@{text"\""}@{thm list.map(2)}@{text"\""}
+@{text"\""}@{thm list.map(1) [of f]}@{text"\" |"}\\
+@{text"\""}@{thm list.map(2) [of f x xs]}@{text"\""}
 \end{isabelle}
 
 \ifsem
