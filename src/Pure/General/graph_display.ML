@@ -16,7 +16,6 @@ sig
   val write_graph_browser: Path.T -> graph -> unit
   val browserN: string
   val graphviewN: string
-  val active_graphN: string
   val display_graph: graph -> unit
 end;
 
@@ -67,7 +66,6 @@ fun sort_graph (graph: graph) =
 
 val browserN = "browser";
 val graphviewN = "graphview";
-val active_graphN = "active_graph";
 
 fun is_browser () =
   (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
@@ -100,20 +98,12 @@ val encode_graph =
 
 val display_graph =
   sort_graph #> (fn graph =>
-    if print_mode_active active_graphN then
-      let
-        val (markup, body) =
-          if is_browser () then (Markup.browserN, encode_browser graph)
-          else (Markup.graphviewN, YXML.string_of_body (encode_graph graph));
-        val ((bg1, bg2), en) =
-          YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
-      in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end
-    else
-      let
-        val _ = writeln "Displaying graph ...";
-        val path = Isabelle_System.create_tmp_path "graph" "";
-        val _ = write_graph_browser path graph;
-        val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
-      in () end);
+    let
+      val (markup, body) =
+        if is_browser () then (Markup.browserN, encode_browser graph)
+        else (Markup.graphviewN, YXML.string_of_body (encode_graph graph));
+      val ((bg1, bg2), en) =
+        YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
+    in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end);
 
 end;

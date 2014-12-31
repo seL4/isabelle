@@ -186,8 +186,7 @@ end;
 
 (* init *)
 
-val default_modes1 =
-  [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN, Graph_Display.active_graphN];
+val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
 val init = uninterruptible (fn _ => fn rendezvous =>
