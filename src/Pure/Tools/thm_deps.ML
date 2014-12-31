@@ -31,18 +31,15 @@ fun thm_deps thy thms =
                       | session => [session])
                   | NONE => [])
                | _ => ["global"]);
+            val directory = space_implode "/" (session @ prefix);
             val parents = filter_out (fn s => s = "") (map (#1 o #2) thms');
-            val entry =
-              {name = Long_Name.base_name name,
-               ident = name,
-               directory = space_implode "/" (session @ prefix),
-               unfold = false,
-               path = "",
-               parents = parents,
-               content = []};
-          in cons entry end;
-    val deps = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) [];
-  in Graph_Display.display_graph (sort_wrt #ident deps) end;
+          in
+            cons ((name, Graph_Display.session_node
+              {name = Long_Name.base_name name, directory = directory,
+                unfold = false, path = ""}), parents)
+          end;
+    val gr = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) [];
+  in Graph_Display.display_graph (sort_wrt I (map (fst o fst) gr), Graph.make gr) end;
 
 val _ =
   Outer_Syntax.command @{command_spec "thm_deps"} "visualize theorem dependencies"

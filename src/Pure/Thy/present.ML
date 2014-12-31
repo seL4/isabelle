@@ -76,6 +76,9 @@ fun theory_link (curr_chapter, curr_session) thy =
   end;
 
 (*retrieve graph data from initial collection of theories*)
+type browser_node = {name: string, ident: string, parents: string list,
+  unfold: bool, directory: string, path: string}
+
 fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
   let
     val {chapter, name = session_name} = Browser_Info.get thy;
@@ -84,18 +87,17 @@ fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
       (case theory_link (curr_chapter, curr_session) thy of
         NONE => ""
       | SOME p => Path.implode p);
-    val entry =
+    val graph_entry =
      {name = thy_name,
       ident = ID_of [chapter, session_name] thy_name,
       directory = session_name,
       path = path,
       unfold = false,
-      parents = map ID_of_thy (Theory.parents_of thy),
-      content = []};
-  in (0, entry) end);
+      parents = map ID_of_thy (Theory.parents_of thy)};
+  in (0, graph_entry) end);
 
-fun ins_graph_entry (i, entry as {ident, ...}) (gr: (int * Graph_Display.node) list) =
-  (i, entry) :: filter_out (fn (_, entry') => #ident entry' = ident) gr;
+fun ins_graph_entry (i, entry as {ident, ...}) (graph: (int * browser_node) list) =
+  (i, entry) :: filter_out (fn (_, entry') => #ident entry' = ident) graph;
 
 
 
@@ -118,7 +120,7 @@ type browser_info =
  {theories: theory_info Symtab.table,
   tex_index: (int * string) list,
   html_index: (int * string) list,
-  graph: (int * Graph_Display.node) list};
+  graph: (int * browser_node) list};
 
 fun make_browser_info (theories, tex_index, html_index, graph) : browser_info =
   {theories = theories, tex_index = tex_index, html_index = html_index, graph = graph};
@@ -276,6 +278,14 @@ fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
 
 (* finish session -- output all generated text *)
 
+fun finalize_graph (nodes : (int * browser_node) list) =
+  nodes
+  |> map (fn (_, {ident, parents, name, unfold, directory, path}) =>
+      ((ident, Graph_Display.session_node
+        {name = name, unfold = unfold, directory = directory, path = path}), parents))
+  |> Graph.make
+  |> pair (map (#ident o snd) (sort (int_ord o apply2 fst) (rev nodes)));
+
 fun sorted_index index = map snd (sort (int_ord o apply2 fst) (rev index));
 fun index_buffer index = Buffer.add (implode (sorted_index index)) Buffer.empty;
 
@@ -298,10 +308,10 @@ fun finish () =
     fun finish_html (a, {html_source, ...}: theory_info) =
       File.write (Path.append session_prefix (html_path a)) html_source;
 
-    val sorted_graph = sorted_index graph;
+    val graph' = finalize_graph graph;
     val opt_graphs =
       if doc_graph andalso not (null documents) then
-        SOME (isabelle_browser sorted_graph)
+        SOME (isabelle_browser graph')
       else NONE;
 
     val _ =
@@ -310,7 +320,7 @@ fun finish () =
         File.write_buffer (Path.append session_prefix index_path)
           (index_buffer html_index |> Buffer.add HTML.end_document);
         (case readme of NONE => () | SOME path => Isabelle_System.copy_file path session_prefix);
-        Graph_Display.write_graph_browser (Path.append session_prefix graph_path) sorted_graph;
+        Graph_Display.write_graph_browser (Path.append session_prefix graph_path) graph';
         Isabelle_System.isabelle_tool "browser" "-b";
         Isabelle_System.copy_file (Path.explode "~~/lib/browser/GraphBrowser.jar") session_prefix;
         List.app (fn (a, txt) => File.write (Path.append session_prefix (Path.basic a)) txt)
@@ -387,8 +397,7 @@ fun begin_theory update_time mk_text thy =
         directory = session_name,
         unfold = true,
         path = Path.implode (html_path name),
-        parents = map ID_of_thy parents,
-        content = []};
+        parents = map ID_of_thy parents};
     in
       init_theory_info name (make_theory_info ("", html_source));
       add_graph_entry (update_time, graph_entry);

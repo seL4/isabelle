@@ -24,14 +24,11 @@ fun gen_visualize prep_sort ctxt raw_super raw_sub =
       SOME sub => fn class => Sorts.sort_le original_algebra (sub, [class]);
     val (_, algebra) = Sorts.subalgebra (Context.pretty ctxt)
       (le_super andf sub_le) (K NONE) original_algebra;
-    val classes = Sorts.classes_of algebra;
-    fun entry (c, (i, (_, cs))) =
-      (i, {name = Name_Space.extern ctxt space c, ident = c, parents = Graph.Keys.dest cs,
-            directory = "", unfold = true, path = "", content = []});
-    val graph =
-      Graph.fold (cons o entry) classes []
-      |> sort (int_ord o apply2 #1) |> map #2;
-  in Graph_Display.display_graph graph end;
+    val gr =
+      Sorts.classes_of algebra
+      |> Graph.map (fn c => fn _ =>
+        Graph_Display.content_node (Name_Space.extern ctxt space c) [])
+  in Graph_Display.display_graph ([], gr) end;
 
 val visualize = gen_visualize (Type.cert_sort o Proof_Context.tsig_of);
 val visualize_cmd = gen_visualize Syntax.read_sort;

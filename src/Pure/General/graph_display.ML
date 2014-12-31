@@ -6,10 +6,10 @@ Generic graph display, with browser and graphview backends.
 
 signature GRAPH_DISPLAY =
 sig
-  type node =
-   {name: string, ident: string, directory: string, unfold: bool,
-    path: string, parents: string list, content: Pretty.T list}
-  type graph = node list
+  type node
+  val content_node: string -> Pretty.T list -> node
+  val session_node: {name: string, unfold: bool, directory: string, path: string} -> node
+  type graph = string list * node Graph.T
   val write_graph_browser: Path.T -> graph -> unit
   val browserN: string
   val graphviewN: string
@@ -20,13 +20,19 @@ end;
 structure Graph_Display: GRAPH_DISPLAY =
 struct
 
-(* external graph representation *)
+(* abstract graph representation *)
 
-type node =
- {name: string, ident: string, directory: string, unfold: bool,
-  path: string, parents: string list, content: Pretty.T list};
+type node = {name: string, content: Pretty.T list,
+  unfold: bool, directory: string, path: string};
 
-type graph = node list;
+type graph = string list * node Graph.T;
+  (*partial explicit order in left argument*)
+
+fun content_node name content =
+  {name = name, content = content, unfold = true, directory = "", path = ""};
+
+fun session_node {name: string, unfold: bool, directory: string, path: string} =
+  {name = name, content = [], unfold = unfold, directory = directory, path = path};
 
 
 (* print modes *)
@@ -43,20 +49,21 @@ fun is_browser () =
 
 (* encode graph *)
 
-fun encode_browser (graph: graph) =
-  cat_lines (map (fn {name, ident, directory, unfold, path, parents, ...} =>
-    "\"" ^ name ^ "\" \"" ^ ident ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") graph);
+fun encode_browser ((keys, gr) : graph) =
+  fold_rev (update (op =)) (Graph.keys gr) keys
+  |> map (fn key => case Graph.get_node gr key of {name, unfold, content, directory, path} =>
+    "\"" ^ name ^ "\" \"" ^ key ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
+    path ^ "\" > " ^ space_implode " " (map quote (Graph.immediate_succs gr key)) ^ " ;")
+  |> cat_lines;
 
 fun write_graph_browser path graph = File.write path (encode_browser graph);
 
 
 val encode_content = YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks;
 
-fun encode_graphview (graph: graph) =
-  Graph.empty
-  |> fold (fn {ident, name, content, ...} => Graph.new_node (ident, (name, content))) graph
-  |> fold (fn {ident = a, parents = bs, ...} => fold (fn b => Graph.add_edge (b, a)) bs) graph
+fun encode_graphview ((_, gr): graph) =
+  gr
+  |> Graph.map (fn _ => fn {name, content, ...} => (name, content))
   |> let open XML.Encode in Graph.encode string (pair string encode_content) end;
 
 
@@ -80,4 +87,3 @@ fun display_graph graph =
     in () end;
 
 end;
-
