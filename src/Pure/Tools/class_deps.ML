@@ -28,10 +28,10 @@ fun gen_visualize prep_sort ctxt raw_super raw_sub =
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern ctxt space c, ID = c, parents = Graph.Keys.dest cs,
             dir = "", unfold = true, path = "", content = []});
-    val gr =
+    val graph =
       Graph.fold (cons o entry) classes []
       |> sort (int_ord o apply2 #1) |> map #2;
-  in Graph_Display.display_graph gr end;
+  in Graph_Display.display_graph graph end;
 
 val visualize = gen_visualize (Type.cert_sort o Proof_Context.tsig_of);
 val visualize_cmd = gen_visualize Syntax.read_sort;

@@ -275,7 +275,7 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val thy = Toplevel.theory_of state;
     val thy_session = Present.session_name thy;
 
-    val gr = rev (Theory.nodes_of thy) |> map (fn node =>
+    val graph = rev (Theory.nodes_of thy) |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
@@ -285,15 +285,15 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
        {name = name, ID = name, parents = parents, dir = session,
         unfold = unfold, path = "", content = []}
       end);
-  in Graph_Display.display_graph gr end);
+  in Graph_Display.display_graph graph end);
 
 val locale_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val gr = Locale.pretty_locale_deps thy |> map (fn {name, parents, body} =>
+    val graph = Locale.pretty_locale_deps thy |> map (fn {name, parents, body} =>
      {name = Locale.extern thy name, ID = name, parents = parents,
       dir = "", unfold = true, path = "", content = [body]});
-  in Graph_Display.display_graph gr end);
+  in Graph_Display.display_graph graph end);
 
 
 (* print theorems, terms, types etc. *)

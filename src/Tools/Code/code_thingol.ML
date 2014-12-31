@@ -926,10 +926,10 @@ fun code_deps ctxt consts =
     val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
     fun namify consts = map (Code.string_of_const thy) consts
       |> commas;
-    val prgr = map (fn (consts, constss) =>
+    val graph = map (fn (consts, constss) =>
       { name = namify consts, ID = namify consts, dir = "", unfold = true,
         path = "", parents = map namify constss, content = [] }) conn;
-  in Graph_Display.display_graph prgr end;
+  in Graph_Display.display_graph graph end;
 
 local
 
