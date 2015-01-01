@@ -8,7 +8,6 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.graphview.Mutators._
 
 import javax.swing.JPopupMenu
 import scala.swing.{Action, Menu, MenuItem, Separator}
@@ -28,25 +27,25 @@ object Popups
         contents +=
           new MenuItem(new Action("This") {
             def apply =
-              add_mutator(Mutators.create(visualizer, Node_List(ls, reverse, false, false)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, false, false)))
           })
 
         contents +=
           new MenuItem(new Action("Family") {
             def apply =
-              add_mutator(Mutators.create(visualizer, Node_List(ls, reverse, true, true)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, true, true)))
           })
 
         contents +=
           new MenuItem(new Action("Parents") {
             def apply =
-              add_mutator(Mutators.create(visualizer, Node_List(ls, reverse, false, true)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, false, true)))
           })
 
         contents +=
           new MenuItem(new Action("Children") {
             def apply =
-              add_mutator(Mutators.create(visualizer, Node_List(ls, reverse, true, false)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, true, false)))
           })
 
         if (edges) {
@@ -70,15 +69,14 @@ object Popups
                     contents +=
                       new Menu(from) {
                         contents += new MenuItem("To...") { enabled = false }
-  
+
                         tos.toList.sorted.distinct.map(to => {
                           contents +=
                             new MenuItem(
                               new Action(to) {
                                 def apply =
                                   add_mutator(
-                                    Mutators.create(visualizer, Edge_Endpoints(from, to))
-                                  )
+                                    Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
                               })
                         })
                       }
@@ -93,13 +91,14 @@ object Popups
                     contents +=
                       new Menu(to) {
                         contents += new MenuItem("From...") { enabled = false }
-  
+
                         froms.toList.sorted.distinct.map(from => {
                           contents +=
                             new MenuItem(
                               new Action(from) {
                                 def apply =
-                                  add_mutator(Mutators.create(visualizer, Edge_Endpoints(from, to)))
+                                  add_mutator(
+                                    Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
                               })
                         })
                       }

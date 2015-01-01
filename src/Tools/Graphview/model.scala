@@ -8,26 +8,23 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.graphview.Mutators._
 
 import java.awt.Color
 
 
 class Mutator_Container(val available: List[Mutator])
 {
-  type Mutator_Markup = (Boolean, Color, Mutator)
-
   val events = new Mutator_Event.Bus
 
-  private var _mutators : List[Mutator_Markup] = Nil
+  private var _mutators : List[Mutator.Info] = Nil
   def apply() = _mutators
-  def apply(mutators: List[Mutator_Markup])
+  def apply(mutators: List[Mutator.Info])
   {
     _mutators = mutators
-    events.event(Mutator_Event.NewList(mutators))
+    events.event(Mutator_Event.New_List(mutators))
   }
 
-  def add(mutator: Mutator_Markup)
+  def add(mutator: Mutator.Info)
   {
     _mutators = _mutators ::: List(mutator)
     events.event(Mutator_Event.Add(mutator))
@@ -62,20 +59,20 @@ object Model
 
 class Model(private val graph: Model.Graph)
 {
-  val Mutators = new Mutator_Container(
-    List(
-      Node_Expression(".*", false, false, false),
-      Node_List(Nil, false, false, false),
-      Edge_Endpoints("", ""),
-      Add_Node_Expression(""),
-      Add_Transitive_Closure(true, true)
-    ))
+  val Mutators =
+    new Mutator_Container(
+      List(
+        Mutator.Node_Expression(".*", false, false, false),
+        Mutator.Node_List(Nil, false, false, false),
+        Mutator.Edge_Endpoints("", ""),
+        Mutator.Add_Node_Expression(""),
+        Mutator.Add_Transitive_Closure(true, true)))
 
-  val Colors = new Mutator_Container(
-    List(
-      Node_Expression(".*", false, false, false),
-      Node_List(Nil, false, false, false)
-    ))
+  val Colors =
+    new Mutator_Container(
+      List(
+        Mutator.Node_Expression(".*", false, false, false),
+        Mutator.Node_List(Nil, false, false, false)))
 
   def visible_nodes_iterator: Iterator[String] = current.keys_iterator
 
@@ -85,10 +82,7 @@ class Model(private val graph: Model.Graph)
   def complete = graph
   def current: Model.Graph =
     (graph /: Mutators()) {
-      case (g, (enabled, _, mutator)) => {
-        if (!enabled) g
-        else mutator.mutate(graph, g)
-      }
+      case (g, m) => if (!m.enabled) g else m.mutator.mutate(graph, g)
     }
 
   private var _colors = Map.empty[String, Color]
@@ -98,9 +92,9 @@ class Model(private val graph: Model.Graph)
   {
     _colors =
       (Map.empty[String, Color] /: Colors()) {
-        case (colors, (enabled, color, mutator)) =>
-          (colors /: mutator.mutate(graph, graph).keys_iterator) {
-            case (colors, k) => colors + (k -> color)
+        case (colors, m) =>
+          (colors /: m.mutator.mutate(graph, graph).keys_iterator) {
+            case (colors, k) => colors + (k -> m.color)
           }
       }
   }

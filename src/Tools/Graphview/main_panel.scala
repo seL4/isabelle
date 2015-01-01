@@ -8,7 +8,6 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.graphview.Mutators._
 
 import scala.collection.JavaConversions._
 import scala.swing.{BorderPanel, Button, BoxPanel,

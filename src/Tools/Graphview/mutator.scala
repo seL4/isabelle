@@ -13,30 +13,12 @@ import java.awt.Color
 import scala.collection.immutable.SortedSet
 
 
-trait Mutator
+object Mutator
 {
-  val name: String
-  val description: String
-  def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph
+  sealed case class Info(enabled: Boolean, color: Color, mutator: Mutator)
 
-  override def toString: String = name
-}
-
-trait Filter extends Mutator
-{
-  def mutate(complete: Model.Graph, sub: Model.Graph) = filter(sub)
-  def filter(sub: Model.Graph) : Model.Graph
-}
-
-object Mutators
-{
-  type Mutator_Markup = (Boolean, Color, Mutator)
-
-  val Enabled = true
-  val Disabled = false
-
-  def create(visualizer: Visualizer, m: Mutator): Mutator_Markup =
-    (Mutators.Enabled, visualizer.Colors.next, m)
+  def make(visualizer: Visualizer, m: Mutator): Info =
+    Info(true, visualizer.Colors.next, m)
 
   class Graph_Filter(
     val name: String,
@@ -174,4 +156,19 @@ object Mutators
         if (children) add_node_group(complete, withparents, complete.all_succs(sub.keys))
         else withparents
       })
+}
+
+trait Mutator
+{
+  val name: String
+  val description: String
+  def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph
+
+  override def toString: String = name
+}
+
+trait Filter extends Mutator
+{
+  def mutate(complete: Model.Graph, sub: Model.Graph) = filter(sub)
+  def filter(sub: Model.Graph) : Model.Graph
 }

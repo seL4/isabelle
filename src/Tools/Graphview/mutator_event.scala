@@ -16,11 +16,9 @@ import java.awt.Color
 
 object Mutator_Event
 {
-  type Mutator_Markup = (Boolean, Color, Mutator)
-
   sealed abstract class Message
-  case class Add(m: Mutator_Markup) extends Message
-  case class NewList(m: List[Mutator_Markup]) extends Message
+  case class Add(m: Mutator.Info) extends Message
+  case class New_List(m: List[Mutator.Info]) extends Message
 
   type Receiver = PartialFunction[Message, Unit]
 
