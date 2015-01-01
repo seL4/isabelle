@@ -243,27 +243,16 @@ class Mutator_Dialog(
 
     focusList = focusList.reverse
 
-    private def isRegex(regex: String): Boolean =
-    {
-      try { regex.r; true }
-      catch { case _: java.util.regex.PatternSyntaxException =>  false }
-    }
-
     def get_mutator: Mutator.Info =
     {
-      def regexOrElse(regex: String, orElse: String): String =
-      {
-        if (isRegex(regex)) regex
-        else orElse
-      }
-
       val m =
         initials.mutator match {
           case Mutator.Identity() =>
             Mutator.Identity()
           case Mutator.Node_Expression(r, _, _, _) =>
+            val r1 = inputs(2)._2.get_string
             Mutator.Node_Expression(
-              regexOrElse(inputs(2)._2.get_string, r),
+              if (Library.make_regex(r1).isDefined) r1 else r,
               inputs(3)._2.get_bool,
               // "Parents" means "Show parents" or "Matching Children"
               inputs(1)._2.get_bool,
@@ -280,7 +269,8 @@ class Mutator_Dialog(
               inputs(0)._2.get_string,
               inputs(1)._2.get_string)
           case Mutator.Add_Node_Expression(r) =>
-            Mutator.Add_Node_Expression(regexOrElse(inputs(0)._2.get_string, r))
+            val r1 = inputs(0)._2.get_string
+            Mutator.Add_Node_Expression(if (Library.make_regex(r1).isDefined) r1 else r)
           case Mutator.Add_Transitive_Closure(_, _) =>
             Mutator.Add_Transitive_Closure(
               inputs(0)._2.get_bool,
@@ -298,7 +288,7 @@ class Mutator_Dialog(
           List(
             ("", new iCheckBox("Parents", check_children)),
             ("", new iCheckBox("Children", check_parents)),
-            ("Regex", new iTextField(regex, x => !isRegex(x))),
+            ("Regex", new iTextField(regex, x => Library.make_regex(x).isEmpty)),
             ("", new iCheckBox(reverse_caption, reverse)))
         case Mutator.Node_List(list, reverse, check_parents, check_children) =>
           List(
@@ -311,7 +301,7 @@ class Mutator_Dialog(
             ("Source", new iTextField(source)),
             ("Destination", new iTextField(dest)))
         case Mutator.Add_Node_Expression(regex) =>
-          List(("Regex", new iTextField(regex, x => !isRegex(x))))
+          List(("Regex", new iTextField(regex, x => Library.make_regex(x).isEmpty)))
         case Mutator.Add_Transitive_Closure(parents, children) =>
           List(
             ("", new iCheckBox("Parents", parents)),

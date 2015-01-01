@@ -212,8 +212,8 @@ class Pretty_Text_Area(
       text_field.getText match {
         case null | "" => (None, true)
         case s =>
-          try { (Some(new Regex(s)), true) }
-          catch { case ERROR(_) => (None, false) }
+          val re = Library.make_regex(s)
+          (re, re.isDefined)
       }
     if (current_search_pattern != pattern) {
       current_search_pattern = pattern

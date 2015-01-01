@@ -9,6 +9,7 @@ package isabelle
 
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 
 object Library
@@ -184,6 +185,12 @@ object Library
       else text.subSequence(i, j)
     override def toString: String = text.toString + "\n"
   }
+
+
+  /* regular expressions */
+
+  def make_regex(s: String): Option[Regex] =
+    try { Some(new Regex(s)) } catch { case ERROR(_) => None }
 
 
   /* canonical list operations */
