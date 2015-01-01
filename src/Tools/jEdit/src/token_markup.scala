@@ -90,8 +90,8 @@ object Token_Markup
         def shift(y: Float): Font =
           GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
 
-        val m0 = GUI.font_metrics(font0)
-        val m1 = GUI.font_metrics(font1)
+        val m0 = GUI.line_metrics(font0)
+        val m1 = GUI.line_metrics(font1)
         val a = m1.getAscent - m0.getAscent
         val b = (m1.getDescent + m1.getLeading) - (m0.getDescent + m0.getLeading)
         if (a > 0.0f) shift(a)

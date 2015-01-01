@@ -8,11 +8,8 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.graphview.Mutators._
 
-import scala.collection.JavaConversions._
-import scala.swing.{BorderPanel, Button, BoxPanel,
-  Orientation, Swing, CheckBox, Action, FileChooser}
+import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser}
 
 import java.io.{File => JFile}
 import java.awt.{Color, Dimension, Graphics2D}
@@ -23,16 +20,12 @@ import javax.swing.border.EmptyBorder
 import javax.swing.JComponent
 
 
-class Main_Panel(graph: Model.Graph) extends BorderPanel
+class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 {
   focusable = true
   requestFocus()
 
-  val model = new Model(graph)
-  val visualizer = new Visualizer(model)
-
-  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
-  val graph_panel = new Graph_Panel(visualizer, make_tooltip)
+  val graph_panel = new Graph_Panel(visualizer)
 
   listenTo(keys)
   reactions += graph_panel.reactions
@@ -45,54 +38,44 @@ class Main_Panel(graph: Model.Graph) extends BorderPanel
   chooser.fileSelectionMode = FileChooser.SelectionMode.FilesOnly
   chooser.title = "Save Image (.png or .pdf)"
 
-  val options_panel = new BoxPanel(Orientation.Horizontal) {
-    border = new EmptyBorder(0, 0, 10, 0)
-
-    contents += Swing.HGlue
-    contents += new CheckBox(){
-      selected = visualizer.arrow_heads
-      action = Action("Arrow Heads"){
-        visualizer.arrow_heads = selected
-        graph_panel.repaint()
-      }
-    }
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Button{
-      action = Action("Save Image"){
-        chooser.showSaveDialog(this) match {
-          case FileChooser.Result.Approve => export(chooser.selectedFile)
-          case _ =>
+  val options_panel =
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+      new CheckBox() {
+        selected = visualizer.arrow_heads
+        action = Action("Arrow Heads") {
+          visualizer.arrow_heads = selected
+          graph_panel.repaint()
         }
-      }
-    }
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += graph_panel.zoom
-
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Button{
-      action = Action("Apply Layout"){
-        graph_panel.apply_layout()
-      }
-    }
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Button{
-      action = Action("Fit to Window"){
-        graph_panel.fit_to_window()
-      }
-    }
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Button{
-      action = Action("Colorations"){
-        color_dialog.open
-      }
-    }
-    contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Button{
-      action = Action("Filters"){
-        mutator_dialog.open
-      }
-    }
-  }
+      },
+      new Button {
+        action = Action("Save Image") {
+          chooser.showSaveDialog(this) match {
+            case FileChooser.Result.Approve => export(chooser.selectedFile)
+            case _ =>
+          }
+        }
+      },
+      graph_panel.zoom,
+      new Button {
+        action = Action("Apply Layout") {
+          graph_panel.apply_layout()
+        }
+      },
+      new Button {
+        action = Action("Fit to Window") {
+          graph_panel.fit_to_window()
+        }
+      },
+      new Button {
+        action = Action("Colorations") {
+          color_dialog.open
+        }
+      },
+      new Button {
+        action = Action("Filters") {
+          mutator_dialog.open
+        }
+      })
 
   add(graph_panel, BorderPanel.Position.Center)
   add(options_panel, BorderPanel.Position.North)

@@ -9,7 +9,8 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Color => JColor, Shape, RenderingHints, Graphics2D}
+import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
+import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import javax.swing.JComponent
 
@@ -19,48 +20,73 @@ class Visualizer(val model: Model)
   visualizer =>
 
 
+  /* tooltips */
+
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
+
+
+  /* main colors */
+
+  def foreground_color: Color = Color.BLACK
+  def foreground1_color: Color = Color.GRAY
+  def background_color: Color = Color.WHITE
+  def selection_color: Color = Color.GREEN
+  def error_color: Color = Color.RED
+
+
   /* font rendering information */
 
-  val font_family: String = "IsabelleText"
-  val font_size: Int = 14
-  val font = new Font(font_family, Font.BOLD, font_size)
+  def font_size: Int = 14
+  def font(): Font = new Font("IsabelleText", Font.BOLD, font_size)
 
   val rendering_hints =
     new RenderingHints(
       RenderingHints.KEY_ANTIALIASING,
       RenderingHints.VALUE_ANTIALIAS_ON)
 
-  val gfx = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics
-  gfx.setFont(font)
-  gfx.setRenderingHints(rendering_hints)
+  val font_render_context = new FontRenderContext(null, true, false)
 
-  val font_metrics: FontMetrics = gfx.getFontMetrics(font)
+  def graphics_context(): Graphics2D =
+  {
+    val gfx = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics
+    gfx.setFont(font())
+    gfx.setRenderingHints(rendering_hints)
+    gfx
+  }
 
-  val tooltip_font_size: Int = 10
+  class Metrics private[Visualizer]
+  {
+    private val f = font()
+    def string_bounds(s: String) = f.getStringBounds(s, font_render_context)
+    private val specimen = string_bounds("mix")
+
+    def char_width: Double = specimen.getWidth / 3
+    def line_height: Double = specimen.getHeight
+    def gap_x: Double = char_width * 2.5
+    def pad_x: Double = char_width * 0.5
+    def pad_y: Double = line_height * 0.25
+  }
+  def metrics(): Metrics = new Metrics
 
 
   /* rendering parameters */
-
-  val gap_x = 20
-  val pad_x = 8
-  val pad_y = 5
 
   var arrow_heads = false
 
   object Colors
   {
     private val filter_colors = List(
-      new JColor(0xD9, 0xF2, 0xE2), // blue
-      new JColor(0xFF, 0xE7, 0xD8), // orange
-      new JColor(0xFF, 0xFF, 0xE5), // yellow
-      new JColor(0xDE, 0xCE, 0xFF), // lilac
-      new JColor(0xCC, 0xEB, 0xFF), // turquoise
-      new JColor(0xFF, 0xE5, 0xE5), // red
-      new JColor(0xE5, 0xE5, 0xD9)  // green
+      new Color(0xD9, 0xF2, 0xE2), // blue
+      new Color(0xFF, 0xE7, 0xD8), // orange
+      new Color(0xFF, 0xFF, 0xE5), // yellow
+      new Color(0xDE, 0xCE, 0xFF), // lilac
+      new Color(0xCC, 0xEB, 0xFF), // turquoise
+      new Color(0xFF, 0xE5, 0xE5), // red
+      new Color(0xE5, 0xE5, 0xD9)  // green
     )
 
     private var curr : Int = -1
-    def next(): JColor =
+    def next(): Color =
     {
       curr = (curr + 1) % filter_colors.length
       filter_colors(curr)
@@ -70,7 +96,7 @@ class Visualizer(val model: Model)
 
   object Coordinates
   {
-    private var layout = Layout_Pendulum.empty_layout
+    private var layout = Layout.empty
 
     def apply(k: String): (Double, Double) =
       layout.nodes.get(k) match {
@@ -119,15 +145,17 @@ class Visualizer(val model: Model)
     def update_layout()
     {
       layout =
-        if (model.current.is_empty) Layout_Pendulum.empty_layout
+        if (model.current_graph.is_empty) Layout.empty
         else {
+          val m = metrics()
+
           val max_width =
-            model.current.iterator.map({ case (_, (info, _)) =>
-              font_metrics.stringWidth(info.name).toDouble }).max
-          val box_distance = max_width + pad_x + gap_x
-          def box_height(n: Int): Double =
-            ((font_metrics.getAscent + font_metrics.getDescent + pad_y) * (5 max n)).toDouble
-          Layout_Pendulum(model.current, box_distance, box_height)
+            model.current_graph.iterator.map({ case (_, (info, _)) =>
+              m.string_bounds(info.name).getWidth }).max
+          val box_distance = max_width + m.pad_x + m.gap_x
+          def box_height(n: Int): Double = (m.line_height + m.pad_y) * (5 max n)
+
+          Layout.make(model.current_graph, box_distance, box_height _)
         }
     }
 
@@ -192,24 +220,22 @@ class Visualizer(val model: Model)
     def clear() { selected = Nil }
   }
 
-  object Color
-  {
-    def apply(l: Option[String]): (JColor, JColor, JColor) =
-      l match {
-        case None => (JColor.GRAY, JColor.WHITE, JColor.BLACK)
-        case Some(c) => {
-            if (Selection(c))
-              (JColor.BLUE, JColor.GREEN, JColor.BLACK)
-            else
-              (JColor.BLACK, model.colors.getOrElse(c, JColor.WHITE), JColor.BLACK)
-        }
-      }
+  sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
-    def apply(e: (String, String)): JColor = JColor.BLACK
-  }
+  def node_color(l: Option[String]): Node_Color =
+    l match {
+      case None =>
+        Node_Color(foreground1_color, background_color, foreground_color)
+      case Some(c) if Selection(c) =>
+        Node_Color(foreground_color, selection_color, foreground_color)
+      case Some(c) =>
+        Node_Color(foreground_color, model.colors.getOrElse(c, background_color), foreground_color)
+    }
+
+  def edge_color(e: (String, String)): Color = foreground_color
 
   object Caption
   {
-    def apply(key: String) = model.complete.get_node(key).name
+    def apply(key: String) = model.complete_graph.get_node(key).name
   }
 }

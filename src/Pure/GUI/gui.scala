@@ -215,20 +215,20 @@ object GUI
 
   /* font operations */
 
-  def font_metrics(font: Font): LineMetrics =
+  def line_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
   def imitate_font(family: String, font: Font, scale: Double = 1.0): Font =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
-    val size = font_metrics(font).getHeight.toDouble / font_metrics(font1).getHeight * font.getSize
+    val size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight * font.getSize
     font1.deriveFont((scale * size).toInt)
   }
 
   def imitate_font_css(family: String, font: Font, scale: Double = 1.0): String =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
-    val rel_size = font_metrics(font).getHeight.toDouble / font_metrics(font1).getHeight
+    val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
   }
 
