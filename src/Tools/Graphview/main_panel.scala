@@ -9,7 +9,6 @@ package isabelle.graphview
 
 import isabelle._
 
-import scala.collection.JavaConversions._
 import scala.swing.{BorderPanel, Button, BoxPanel,
   Orientation, Swing, CheckBox, Action, FileChooser}
 

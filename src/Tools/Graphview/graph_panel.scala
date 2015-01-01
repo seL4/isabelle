@@ -12,10 +12,11 @@ import isabelle._
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
 import java.awt.image.BufferedImage
-import javax.swing.{JScrollPane, JComponent}
+import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
 import scala.swing.{Panel, ScrollPane}
-import scala.swing.event._
+import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged,
+  MouseMoved, MouseClicked, MouseWheelMoved, MouseEvent}
 
 
 class Graph_Panel(
@@ -170,14 +171,12 @@ class Graph_Panel(
   {
     object Keyboard
     {
-      import scala.swing.event.Key._
-
       val react: PartialFunction[Event, Unit] =
       {
         case KeyTyped(_, c, m, _) => typed(c, m)
       }
 
-      def typed(c: Char, m: Modifiers) =
+      def typed(c: Char, m: Key.Modifiers) =
         (c, m) match {
           case ('+', _) => rescale(Transform.scale * 5.0/4)
           case ('-', _) => rescale(Transform.scale * 4.0/5)
@@ -190,8 +189,6 @@ class Graph_Panel(
 
     object Mouse
     {
-      import scala.swing.event.Key.Modifier._
-      type Modifiers = Int
       type Dummy = ((String, String), Int)
 
       private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
@@ -237,21 +234,19 @@ class Graph_Panel(
         draginfo = (at, l, d)
       }
 
-      def click(at: Point, m: Modifiers, clicks: Int, e: MouseEvent)
+      def click(at: Point, m: Key.Modifiers, clicks: Int, e: MouseEvent)
       {
-        import javax.swing.SwingUtilities
-
         val c = Transform.pane_to_graph_coordinates(at)
         val p = node(c)
 
         def left_click()
         {
           (p, m) match {
-            case (Some(l), Control) => visualizer.Selection.add(l)
-            case (None, Control) =>
+            case (Some(l), Key.Modifier.Control) => visualizer.Selection.add(l)
+            case (None, Key.Modifier.Control) =>
 
-            case (Some(l), Shift) => visualizer.Selection.add(l)
-            case (None, Shift) =>
+            case (Some(l), Key.Modifier.Shift) => visualizer.Selection.add(l)
+            case (None, Key.Modifier.Shift) =>
 
             case (Some(l), _) => visualizer.Selection.set(List(l))
             case (None, _) => visualizer.Selection.clear
