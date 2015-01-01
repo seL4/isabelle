@@ -20,7 +20,7 @@ object Popups
     val visualizer = panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
-    val curr = visualizer.model.current
+    val curr = visualizer.model.current_graph
 
     def filter_context(ls: List[String], reverse: Boolean, caption: String, edges: Boolean) =
       new Menu(caption) {

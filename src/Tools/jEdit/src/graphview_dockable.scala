@@ -49,18 +49,26 @@ object Graphview_Dockable
 class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   private val snapshot = Graphview_Dockable.implicit_snapshot
-  private val graph = Graphview_Dockable.implicit_graph
+  private val graph_result = Graphview_Dockable.implicit_graph
 
   private val window_focus_listener =
     new WindowFocusListener {
-      def windowGainedFocus(e: WindowEvent) { Graphview_Dockable.set_implicit(snapshot, graph) }
+      def windowGainedFocus(e: WindowEvent) {
+        Graphview_Dockable.set_implicit(snapshot, graph_result) }
       def windowLostFocus(e: WindowEvent) { Graphview_Dockable.reset_implicit() }
     }
 
   val graphview =
-    graph match {
-      case Exn.Res(proper_graph) =>
-        new isabelle.graphview.Main_Panel(proper_graph) {
+    graph_result match {
+      case Exn.Res(graph) =>
+        val model = new isabelle.graphview.Model(graph)
+        val visualizer = new isabelle.graphview.Visualizer(model) {
+          override def foreground_color = view.getTextArea.getPainter.getForeground
+          override def background_color = view.getTextArea.getPainter.getBackground
+          override def selection_color = view.getTextArea.getPainter.getSelectionColor
+          override def error_color = PIDE.options.color_value("error_color")
+        }
+        new isabelle.graphview.Main_Panel(model, visualizer) {
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
           {
             Pretty_Tooltip.invoke(() =>

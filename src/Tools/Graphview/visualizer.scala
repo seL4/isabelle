@@ -19,6 +19,15 @@ class Visualizer(val model: Model)
   visualizer =>
 
 
+  /* main colors */
+
+  def foreground_color: Color = Color.BLACK
+  def foreground1_color: Color = Color.GRAY
+  def background_color: Color = Color.WHITE
+  def selection_color: Color = Color.GREEN
+  def error_color: Color = Color.RED
+
+
   /* font rendering information */
 
   val font_family: String = "IsabelleText"
@@ -119,15 +128,15 @@ class Visualizer(val model: Model)
     def update_layout()
     {
       layout =
-        if (model.current.is_empty) Layout_Pendulum.empty_layout
+        if (model.current_graph.is_empty) Layout_Pendulum.empty_layout
         else {
           val max_width =
-            model.current.iterator.map({ case (_, (info, _)) =>
+            model.current_graph.iterator.map({ case (_, (info, _)) =>
               font_metrics.stringWidth(info.name).toDouble }).max
           val box_distance = max_width + pad_x + gap_x
           def box_height(n: Int): Double =
             ((font_metrics.getAscent + font_metrics.getDescent + pad_y) * (5 max n)).toDouble
-          Layout_Pendulum(model.current, box_distance, box_height)
+          Layout_Pendulum(model.current_graph, box_distance, box_height)
         }
     }
 
@@ -196,16 +205,18 @@ class Visualizer(val model: Model)
 
   def node_color(l: Option[String]): Node_Color =
     l match {
-      case None => Node_Color(Color.GRAY, Color.WHITE, Color.BLACK)
+      case None =>
+        Node_Color(foreground1_color, background_color, foreground_color)
+      case Some(c) if Selection(c) =>
+        Node_Color(foreground_color, selection_color, foreground_color)
       case Some(c) =>
-        if (Selection(c)) Node_Color(Color.BLUE, Color.GREEN, Color.BLACK)
-        else Node_Color(Color.BLACK, model.colors.getOrElse(c, Color.WHITE), Color.BLACK)
+        Node_Color(foreground_color, model.colors.getOrElse(c, background_color), foreground_color)
     }
 
-  def edge_color(e: (String, String)): Color = Color.BLACK
+  def edge_color(e: (String, String)): Color = foreground_color
 
   object Caption
   {
-    def apply(key: String) = model.complete.get_node(key).name
+    def apply(key: String) = model.complete_graph.get_node(key).name
   }
 }

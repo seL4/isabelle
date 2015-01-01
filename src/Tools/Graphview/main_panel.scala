@@ -20,13 +20,10 @@ import javax.swing.border.EmptyBorder
 import javax.swing.JComponent
 
 
-class Main_Panel(graph: Model.Graph) extends BorderPanel
+class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 {
   focusable = true
   requestFocus()
-
-  val model = new Model(graph)
-  val visualizer = new Visualizer(model)
 
   def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
   val graph_panel = new Graph_Panel(visualizer, make_tooltip)

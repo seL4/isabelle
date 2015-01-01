@@ -57,7 +57,7 @@ object Model
     isabelle.Graph.decode(XML.Decode.string, decode_info, converse = true)
 }
 
-class Model(private val graph: Model.Graph)
+class Model(val complete_graph: Model.Graph)
 {
   val Mutators =
     new Mutator_Container(
@@ -74,15 +74,14 @@ class Model(private val graph: Model.Graph)
         Mutator.Node_Expression(".*", false, false, false),
         Mutator.Node_List(Nil, false, false, false)))
 
-  def visible_nodes_iterator: Iterator[String] = current.keys_iterator
+  def visible_nodes_iterator: Iterator[String] = current_graph.keys_iterator
 
   def visible_edges_iterator: Iterator[(String, String)] =
-    current.keys_iterator.flatMap(k => current.imm_succs(k).iterator.map((k, _)))
+    current_graph.keys_iterator.flatMap(k => current_graph.imm_succs(k).iterator.map((k, _)))
 
-  def complete = graph
-  def current: Model.Graph =
-    (graph /: Mutators()) {
-      case (g, m) => if (!m.enabled) g else m.mutator.mutate(graph, g)
+  def current_graph: Model.Graph =
+    (complete_graph /: Mutators()) {
+      case (g, m) => if (!m.enabled) g else m.mutator.mutate(complete_graph, g)
     }
 
   private var _colors = Map.empty[String, Color]
@@ -93,7 +92,7 @@ class Model(private val graph: Model.Graph)
     _colors =
       (Map.empty[String, Color] /: Colors()) {
         case (colors, m) =>
-          (colors /: m.mutator.mutate(graph, graph).keys_iterator) {
+          (colors /: m.mutator.mutate(complete_graph, complete_graph).keys_iterator) {
             case (colors, k) => colors + (k -> m.color)
           }
       }

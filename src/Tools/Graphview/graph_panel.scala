@@ -30,7 +30,7 @@ class Graph_Panel(
     override def getToolTipText(event: java.awt.event.MouseEvent): String =
       node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
         case Some(name) =>
-          visualizer.model.complete.get_node(name).content match {
+          visualizer.model.complete_graph.get_node(name).content match {
             case Nil => null
             case content => make_tooltip(panel.peer, event.getX, event.getY, content)
           }

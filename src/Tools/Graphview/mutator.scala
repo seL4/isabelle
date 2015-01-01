@@ -25,7 +25,7 @@ object Mutator
     val description: String,
     pred: Model.Graph => Model.Graph) extends Filter
   {
-    def filter(sub: Model.Graph) : Model.Graph = pred(sub)
+    def filter(graph: Model.Graph) : Model.Graph = pred(graph)
   }
 
   class Graph_Mutator(
@@ -33,7 +33,8 @@ object Mutator
     val description: String,
     pred: (Model.Graph, Model.Graph) => Model.Graph) extends Mutator
   {
-    def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph = pred(complete, sub)
+    def mutate(complete_graph: Model.Graph, graph: Model.Graph): Model.Graph =
+      pred(complete_graph, graph)
   }
 
   class Node_Filter(
@@ -141,19 +142,20 @@ object Mutator
       "Add by name",
       "Adds every node whose name matches the regex. " +
       "Adds all relevant edges.",
-      (complete, sub) =>
-        add_node_group(complete, sub,
-          complete.keys.filter(k => (regex.r findFirstIn k).isDefined).toList))
+      (complete_graph, graph) =>
+        add_node_group(complete_graph, graph,
+          complete_graph.keys.filter(k => (regex.r findFirstIn k).isDefined).toList))
 
   case class Add_Transitive_Closure(parents: Boolean, children: Boolean)
     extends Graph_Mutator(
       "Add transitive closure",
       "Adds all family members of all current nodes.",
-      (complete, sub) => {
+      (complete_graph, graph) => {
         val withparents =
-          if (parents) add_node_group(complete, sub, complete.all_preds(sub.keys))
-          else sub
-        if (children) add_node_group(complete, withparents, complete.all_succs(sub.keys))
+          if (parents) add_node_group(complete_graph, graph, complete_graph.all_preds(graph.keys))
+          else graph
+        if (children)
+          add_node_group(complete_graph, withparents, complete_graph.all_succs(graph.keys))
         else withparents
       })
 }
@@ -162,13 +164,13 @@ trait Mutator
 {
   val name: String
   val description: String
-  def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph
+  def mutate(complete_graph: Model.Graph, graph: Model.Graph): Model.Graph
 
   override def toString: String = name
 }
 
 trait Filter extends Mutator
 {
-  def mutate(complete: Model.Graph, sub: Model.Graph) = filter(sub)
-  def filter(sub: Model.Graph) : Model.Graph
+  def mutate(complete_graph: Model.Graph, graph: Model.Graph) = filter(graph)
+  def filter(graph: Model.Graph) : Model.Graph
 }

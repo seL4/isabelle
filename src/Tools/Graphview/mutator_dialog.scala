@@ -288,7 +288,7 @@ class Mutator_Dialog(
           List(
             ("", new iCheckBox("Parents", check_children)),
             ("", new iCheckBox("Children", check_parents)),
-            ("Regex", new iTextField(regex, x => Library.make_regex(x).isEmpty)),
+            ("Regex", new iTextField(regex, x => Library.make_regex(x).isDefined)),
             ("", new iCheckBox(reverse_caption, reverse)))
         case Mutator.Node_List(list, reverse, check_parents, check_children) =>
           List(
@@ -301,7 +301,7 @@ class Mutator_Dialog(
             ("Source", new iTextField(source)),
             ("Destination", new iTextField(dest)))
         case Mutator.Add_Node_Expression(regex) =>
-          List(("Regex", new iTextField(regex, x => Library.make_regex(x).isEmpty)))
+          List(("Regex", new iTextField(regex, x => Library.make_regex(x).isDefined)))
         case Mutator.Add_Transitive_Closure(parents, children) =>
           List(
             ("", new iCheckBox("Parents", parents)),
@@ -316,18 +316,16 @@ class Mutator_Dialog(
     def get_bool: Boolean
   }
 
-  private class iTextField(t: String, colorator: String => Boolean)
-  extends TextField(t) with Mutator_Input_Value
+  private class iTextField(t: String, check: String => Boolean = (_: String) => true)
+    extends TextField(t) with Mutator_Input_Value
   {
-    def this(t: String) = this(t, x => false)
-
     preferredSize = new Dimension(125, 18)
 
+    private val default_foreground = foreground
     reactions +=
     {
       case ValueChanged(_) =>
-        if (colorator(text)) background = Color.RED
-        else background = Color.WHITE
+        foreground = if (check(text)) default_foreground else visualizer.error_color
     }
 
     def get_string = text
