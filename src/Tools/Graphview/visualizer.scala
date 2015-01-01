@@ -91,7 +91,7 @@ class Visualizer(val model: Model)
 
   object Coordinates
   {
-    private var layout = Layout_Pendulum.empty_layout
+    private var layout = Layout.empty
 
     def apply(k: String): (Double, Double) =
       layout.nodes.get(k) match {
@@ -140,7 +140,7 @@ class Visualizer(val model: Model)
     def update_layout()
     {
       layout =
-        if (model.current_graph.is_empty) Layout_Pendulum.empty_layout
+        if (model.current_graph.is_empty) Layout.empty
         else {
           val m = metrics()
 
@@ -150,7 +150,7 @@ class Visualizer(val model: Model)
           val box_distance = max_width + m.pad_x + m.gap_x
           def box_height(n: Int): Double = (m.line_height + m.pad_y) * (5 max n)
 
-          Layout_Pendulum(model.current_graph, box_distance, box_height _)
+          Layout.make(model.current_graph, box_distance, box_height _)
         }
     }
 

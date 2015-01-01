@@ -103,7 +103,7 @@ declare -a SOURCES=(
   term.scala
   term_xml.scala
   "../Tools/Graphview/graph_panel.scala"
-  "../Tools/Graphview/layout_pendulum.scala"
+  "../Tools/Graphview/layout.scala"
   "../Tools/Graphview/main_panel.scala"
   "../Tools/Graphview/model.scala"
   "../Tools/Graphview/mutator_dialog.scala"

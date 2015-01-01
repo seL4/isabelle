@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/layout_pendulum.scala
+/*  Title:      Tools/Graphview/layout.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Pendulum DAG layout algorithm.
@@ -10,7 +10,11 @@ package isabelle.graphview
 import isabelle._
 
 
-object Layout_Pendulum
+final case class Layout(
+  nodes: Layout.Coordinates,
+  dummies: Map[(Layout.Key, Layout.Key), List[Layout.Point]])
+
+object Layout
 {
   type Key = String
   type Point = (Double, Double)
@@ -19,15 +23,14 @@ object Layout_Pendulum
   type Levels = List[Level]
   type Dummies = (Model.Graph, List[Key], Map[Key, Int])
 
-  case class Layout(nodes: Coordinates, dummies: Map[(Key, Key), List[Point]])
-  val empty_layout = Layout(Map.empty, Map.empty)
+  val empty = Layout(Map.empty, Map.empty)
 
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def apply(graph: Model.Graph, box_distance: Double, box_height: Int => Double): Layout =
+  def make(graph: Model.Graph, box_distance: Double, box_height: Int => Double): Layout =
   {
-    if (graph.is_empty) empty_layout
+    if (graph.is_empty) empty
     else {
       val initial_levels = level_map(graph)
 
