@@ -13,7 +13,6 @@ import java.awt.Color
 import java.awt.FocusTraversalPolicy
 import javax.swing.JColorChooser
 import javax.swing.border.EmptyBorder
-import scala.collection.JavaConversions._
 import scala.swing.{Dialog, Button, BoxPanel, Swing, Orientation, ComboBox, Action,
   Dimension, BorderPanel, ScrollPane, Label, CheckBox, Alignment, Component, TextField}
 import scala.swing.event.ValueChanged
