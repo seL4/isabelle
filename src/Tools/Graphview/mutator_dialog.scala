@@ -28,25 +28,26 @@ class Mutator_Dialog(
   extends Dialog
 {
   type Mutator_Markup = (Boolean, Color, Mutator)
-  
+
   title = caption
-  
+
   private var _panels: List[Mutator_Panel] = Nil
   private def panels = _panels
-  private def panels_= (panels: List[Mutator_Panel]) {
+  private def panels_=(panels: List[Mutator_Panel])
+  {
     _panels = panels
     paintPanels
   }
 
-  container.events += {
+  container.events +=
+  {
     case Mutator_Event.Add(m) => addPanel(new Mutator_Panel(m))
     case Mutator_Event.NewList(ms) => panels = getPanels(ms)
   }
 
-  override def open() {
-    if (!visible)
-      panels = getPanels(container())
-
+  override def open()
+  {
+    if (!visible) panels = getPanels(container())
     super.open
   }
 
@@ -55,39 +56,46 @@ class Mutator_Dialog(
   peer.setFocusTraversalPolicy(focusTraversal)
 
   private def getPanels(m: List[Mutator_Markup]): List[Mutator_Panel] =
-    m.filter(_ match {case (_, _, Identity()) => false; case _ => true})
+    m.filter(_ match { case (_, _, Identity()) => false; case _ => true })
     .map(m => new Mutator_Panel(m))
 
-  private def getMutators(panels: List[Mutator_Panel]): List[Mutator_Markup] = 
+  private def getMutators(panels: List[Mutator_Panel]): List[Mutator_Markup] =
     panels.map(panel => panel.get_Mutator_Markup)
 
-  private def movePanelUp(m: Mutator_Panel) = {
-    def moveUp(l: List[Mutator_Panel]): List[Mutator_Panel] = l match {
-      case x :: y :: xs => if (y == m) y :: x :: xs else x :: moveUp(y :: xs)
-      case _ => l
-    }
+  private def movePanelUp(m: Mutator_Panel) =
+  {
+    def moveUp(l: List[Mutator_Panel]): List[Mutator_Panel] =
+      l match {
+        case x :: y :: xs => if (y == m) y :: x :: xs else x :: moveUp(y :: xs)
+        case _ => l
+      }
 
     panels = moveUp(panels)
   }
 
-  private def movePanelDown(m: Mutator_Panel) = {
-    def moveDown(l: List[Mutator_Panel]): List[Mutator_Panel] = l match {
-      case x :: y :: xs => if (x == m) y :: x :: xs else x :: moveDown(y :: xs)
-      case _ => l
-    }
+  private def movePanelDown(m: Mutator_Panel) =
+  {
+    def moveDown(l: List[Mutator_Panel]): List[Mutator_Panel] =
+      l match {
+        case x :: y :: xs => if (x == m) y :: x :: xs else x :: moveDown(y :: xs)
+        case _ => l
+      }
 
     panels = moveDown(panels)
   }
 
-  private def removePanel(m: Mutator_Panel) = {
+  private def removePanel(m: Mutator_Panel)
+  {
     panels = panels.filter(_ != m).toList
   }
 
-  private def addPanel(m: Mutator_Panel) = {
+  private def addPanel(m: Mutator_Panel)
+  {
     panels = panels ::: List(m)
   }
 
-  def paintPanels = {
+  def paintPanels
+  {
     focusTraversal.clear
     filterPanel.contents.clear
     panels.map(x => {
@@ -108,16 +116,13 @@ class Mutator_Dialog(
 
   private val mutatorBox = new ComboBox[Mutator](container.available)
 
-  private val addButton: Button = new Button{
+  private val addButton: Button = new Button {
     action = Action("Add") {
-      addPanel(
-        new Mutator_Panel((true, visualizer.Colors.next,
-                           mutatorBox.selection.item))
-      )
+      addPanel(new Mutator_Panel((true, visualizer.Colors.next, mutatorBox.selection.item)))
     }
   }
 
-  private val applyButton = new Button{
+  private val applyButton = new Button {
     action = Action("Apply") {
       container(getMutators(panels))
     }
@@ -129,11 +134,11 @@ class Mutator_Dialog(
     }
   }
 
-  private val cancelButton = new Button{
-      action = Action("Close") {
-        close
-      }
+  private val cancelButton = new Button {
+    action = Action("Close") {
+      close
     }
+  }
   defaultButton = cancelButton
 
   private val botPanel = new BoxPanel(Orientation.Horizontal) {
@@ -153,7 +158,7 @@ class Mutator_Dialog(
     contents += Swing.RigidBox(new Dimension(5, 0))
     contents += cancelButton
   }
-  
+
   contents = new BorderPanel {
     border = new EmptyBorder(5, 5, 5, 5)
 
@@ -165,7 +170,7 @@ class Mutator_Dialog(
     extends BoxPanel(Orientation.Horizontal)
   {
     private val (_enabled, _color, _mutator) = initials
-    
+
     private val inputs: List[(String, Mutator_Input_Value)] = get_Inputs()
     var focusList = List.empty[java.awt.Component]
     private val enabledBox = new iCheckBox("Enabled", _enabled)
@@ -183,17 +188,16 @@ class Mutator_Dialog(
     contents += enabledBox
     contents += Swing.RigidBox(new Dimension(5, 0))
     focusList = enabledBox.peer :: focusList
-    inputs.map( _ match {
-      case (n, c) => {
-          contents += Swing.RigidBox(new Dimension(10, 0))
+    inputs.map(_ match {
+      case (n, c) =>
+        contents += Swing.RigidBox(new Dimension(10, 0))
         if (n != "") {
           contents += new Label(n)
           contents += Swing.RigidBox(new Dimension(5, 0))
         }
         contents += c.asInstanceOf[Component]
-        
+
         focusList = c.asInstanceOf[Component].peer :: focusList
-      }
       case _ =>
     })
 
@@ -249,23 +253,22 @@ class Mutator_Dialog(
 
     focusList = focusList.reverse
 
-    private def isRegex(regex: String): Boolean = {
-      try {
-        regex.r
-
-        true
-      } catch {
-        case _: java.util.regex.PatternSyntaxException =>  false
-      }
+    private def isRegex(regex: String): Boolean =
+    {
+      try { regex.r; true }
+      catch { case _: java.util.regex.PatternSyntaxException =>  false }
     }
-   
-    def get_Mutator_Markup: Mutator_Markup = {
-      def regexOrElse(regex: String, orElse: String): String = {
+
+    def get_Mutator_Markup: Mutator_Markup =
+    {
+      def regexOrElse(regex: String, orElse: String): String =
+      {
         if (isRegex(regex)) regex
         else orElse
       }
-      
-      val m = _mutator match {
+
+      val m = _mutator match
+      {
         case Identity() =>
           Identity()
         case Node_Expression(r, _, _, _) =>
@@ -274,68 +277,57 @@ class Mutator_Dialog(
             inputs(3)._2.getBool,
             // "Parents" means "Show parents" or "Matching Children"
             inputs(1)._2.getBool,
-            inputs(0)._2.getBool
-          )
+            inputs(0)._2.getBool)
         case Node_List(_, _, _, _) =>
           Node_List(
             inputs(2)._2.getString.split(',').filter(_ != "").toList,
             inputs(3)._2.getBool,
             // "Parents" means "Show parents" or "Matching Children"
             inputs(1)._2.getBool,
-            inputs(0)._2.getBool
-          )
+            inputs(0)._2.getBool)
         case Edge_Endpoints(_, _) =>
           Edge_Endpoints(
             inputs(0)._2.getString,
-            inputs(1)._2.getString
-          )
+            inputs(1)._2.getString)
         case Add_Node_Expression(r) =>
-          Add_Node_Expression(
-            regexOrElse(inputs(0)._2.getString, r)
-          )
+          Add_Node_Expression(regexOrElse(inputs(0)._2.getString, r))
         case Add_Transitive_Closure(_, _) =>
           Add_Transitive_Closure(
             inputs(0)._2.getBool,
-            inputs(1)._2.getBool
-          )
+            inputs(1)._2.getBool)
         case _ =>
           Identity()
       }
-      
+
       (enabledBox.selected, background, m)
     }
-    
-    private def get_Inputs(): List[(String, Mutator_Input_Value)] = _mutator match {
-      case Node_Expression(regex, reverse, check_parents, check_children) =>
-        List(
-          ("", new iCheckBox("Parents", check_children)),
-          ("", new iCheckBox("Children", check_parents)),
-          ("Regex", new iTextField(regex, x => !isRegex(x))),
-          ("", new iCheckBox(reverse_caption, reverse))
-        )
-      case Node_List(list, reverse, check_parents, check_children) =>
-        List(
-          ("", new iCheckBox("Parents", check_children)),
-          ("", new iCheckBox("Children", check_parents)),
-          ("Names", new iTextField(list.mkString(","))),
-          ("", new iCheckBox(reverse_caption, reverse))
-        )
-      case Edge_Endpoints(source, dest) =>
-        List(
-          ("Source", new iTextField(source)),
-          ("Destination", new iTextField(dest))
-        )
-      case Add_Node_Expression(regex) =>
-        List(
-          ("Regex", new iTextField(regex, x => !isRegex(x)))
-        )
-      case Add_Transitive_Closure(parents, children) =>
-        List(
-          ("", new iCheckBox("Parents", parents)),
-          ("", new iCheckBox("Children", children))
-        )
-      case _ => Nil
-    }
+
+    private def get_Inputs(): List[(String, Mutator_Input_Value)] =
+      _mutator match {
+        case Node_Expression(regex, reverse, check_parents, check_children) =>
+          List(
+            ("", new iCheckBox("Parents", check_children)),
+            ("", new iCheckBox("Children", check_parents)),
+            ("Regex", new iTextField(regex, x => !isRegex(x))),
+            ("", new iCheckBox(reverse_caption, reverse)))
+        case Node_List(list, reverse, check_parents, check_children) =>
+          List(
+            ("", new iCheckBox("Parents", check_children)),
+            ("", new iCheckBox("Children", check_parents)),
+            ("Names", new iTextField(list.mkString(","))),
+            ("", new iCheckBox(reverse_caption, reverse)))
+        case Edge_Endpoints(source, dest) =>
+          List(
+            ("Source", new iTextField(source)),
+            ("Destination", new iTextField(dest)))
+        case Add_Node_Expression(regex) =>
+          List(("Regex", new iTextField(regex, x => !isRegex(x))))
+        case Add_Transitive_Closure(parents, children) =>
+          List(
+            ("", new iCheckBox("Parents", parents)),
+            ("", new iCheckBox("Children", children)))
+        case _ => Nil
+      }
   }
 
   private trait Mutator_Input_Value
@@ -351,12 +343,11 @@ class Mutator_Dialog(
 
     preferredSize = new Dimension(125, 18)
 
-    reactions += {
+    reactions +=
+    {
       case ValueChanged(_) =>
-          if (colorator(text))
-            background = Color.RED
-          else
-            background = Color.WHITE
+        if (colorator(text)) background = Color.RED
+        else background = Color.WHITE
     }
 
     def getString = text
@@ -372,56 +363,35 @@ class Mutator_Dialog(
     def getBool = selected
   }
 
-  private object focusTraversal
-    extends FocusTraversalPolicy
+  private object focusTraversal extends FocusTraversalPolicy
   {
     private var items = Vector[java.awt.Component]()
 
-    def add(c: java.awt.Component) {
-      items = items :+ c
-    }
-    def addAll(cs: TraversableOnce[java.awt.Component]) {
-      items = items ++ cs
-    }
-    def clear() {
-      items = Vector[java.awt.Component]()
-    }
+    def add(c: java.awt.Component) { items = items :+ c }
+    def addAll(cs: TraversableOnce[java.awt.Component]) { items = items ++ cs }
+    def clear() { items = Vector[java.awt.Component]() }
 
-    def getComponentAfter(root: java.awt.Container,
-                          c: java.awt.Component): java.awt.Component = {
+    def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
+    {
       val i = items.indexOf(c)
-      if (i < 0) {
-        getDefaultComponent(root)
-      } else {
-        items((i + 1) % items.length)
-      }
+      if (i < 0) getDefaultComponent(root)
+      else items((i + 1) % items.length)
     }
 
-    def getComponentBefore(root: java.awt.Container,
-                           c: java.awt.Component): java.awt.Component = {
+    def getComponentBefore(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
+    {
       val i = items.indexOf(c)
-      if (i < 0) {
-        getDefaultComponent(root)
-      } else {
-        items((i - 1) % items.length)
-      }
+      if (i < 0) getDefaultComponent(root)
+      else items((i - 1) % items.length)
     }
 
-    def getFirstComponent(root: java.awt.Container): java.awt.Component = {
-      if (items.length > 0)
-        items(0)
-      else
-        null
-    }
+    def getFirstComponent(root: java.awt.Container): java.awt.Component =
+      if (items.length > 0) items(0) else null
 
-    def getDefaultComponent(root: java.awt.Container)
-      : java.awt.Component = getFirstComponent(root)
+    def getDefaultComponent(root: java.awt.Container): java.awt.Component =
+      getFirstComponent(root)
 
-    def getLastComponent(root: java.awt.Container): java.awt.Component = {
-      if (items.length > 0)
-        items.last
-      else
-        null
-    }
+    def getLastComponent(root: java.awt.Container): java.awt.Component =
+      if (items.length > 0) items.last else null
   }
 }
