@@ -14,7 +14,8 @@ import java.awt.FocusTraversalPolicy
 import javax.swing.JColorChooser
 import javax.swing.border.EmptyBorder
 import scala.collection.JavaConversions._
-import scala.swing._
+import scala.swing.{Dialog, Button, BoxPanel, Swing, Orientation, ComboBox, Action,
+  Dimension, BorderPanel, ScrollPane, Label, CheckBox, Alignment, Component, TextField}
 import scala.swing.event.ValueChanged
 
 
@@ -33,12 +34,12 @@ class Mutator_Dialog(
   private def panels_=(panels: List[Mutator_Panel])
   {
     _panels = panels
-    paintPanels
+    paint_panels()
   }
 
   container.events +=
   {
-    case Mutator_Event.Add(m) => addPanel(new Mutator_Panel(m))
+    case Mutator_Event.Add(m) => add_panel(new Mutator_Panel(m))
     case Mutator_Event.New_List(ms) => panels = get_panels(ms)
   }
 
@@ -50,7 +51,7 @@ class Mutator_Dialog(
 
   minimumSize = new Dimension(700, 200)
   preferredSize = new Dimension(1000, 300)
-  peer.setFocusTraversalPolicy(Focus_Traversal)
+  peer.setFocusTraversalPolicy(Focus_Traveral_Policy)
 
   private def get_panels(m: List[Mutator.Info]): List[Mutator_Panel] =
     m.filter({ case Mutator.Info(_, _, Mutator.Identity()) => false case _ => true })
@@ -86,36 +87,36 @@ class Mutator_Dialog(
     panels = panels.filter(_ != m).toList
   }
 
-  private def addPanel(m: Mutator_Panel)
+  private def add_panel(m: Mutator_Panel)
   {
     panels = panels ::: List(m)
   }
 
-  def paintPanels
+  def paint_panels()
   {
-    Focus_Traversal.clear
-    filterPanel.contents.clear
+    Focus_Traveral_Policy.clear
+    filter_panel.contents.clear
     panels.map(x => {
-        filterPanel.contents += x
-        Focus_Traversal.addAll(x.focusList)
+        filter_panel.contents += x
+        Focus_Traveral_Policy.addAll(x.focusList)
       })
-    filterPanel.contents += Swing.VGlue
+    filter_panel.contents += Swing.VGlue
 
-    Focus_Traversal.add(mutator_box.peer.asInstanceOf[java.awt.Component])
-    Focus_Traversal.add(add_button.peer)
-    Focus_Traversal.add(apply_button.peer)
-    Focus_Traversal.add(cancel_button.peer)
-    filterPanel.revalidate
-    filterPanel.repaint
+    Focus_Traveral_Policy.add(mutator_box.peer.asInstanceOf[java.awt.Component])
+    Focus_Traveral_Policy.add(add_button.peer)
+    Focus_Traveral_Policy.add(apply_button.peer)
+    Focus_Traveral_Policy.add(cancel_button.peer)
+    filter_panel.revalidate
+    filter_panel.repaint
   }
 
-  val filterPanel = new BoxPanel(Orientation.Vertical) {}
+  val filter_panel = new BoxPanel(Orientation.Vertical) {}
 
   private val mutator_box = new ComboBox[Mutator](container.available)
 
-  private val add_button: Button = new Button {
+  private val add_button = new Button {
     action = Action("Add") {
-      addPanel(
+      add_panel(
         new Mutator_Panel(Mutator.Info(true, visualizer.Colors.next, mutator_box.selection.item)))
     }
   }
@@ -154,7 +155,7 @@ class Mutator_Dialog(
   contents = new BorderPanel {
     border = new EmptyBorder(5, 5, 5, 5)
 
-    add(new ScrollPane(filterPanel), BorderPanel.Position.Center)
+    add(new ScrollPane(filter_panel), BorderPanel.Position.Center)
     add(botPanel, BorderPanel.Position.South)
   }
 
@@ -263,28 +264,28 @@ class Mutator_Dialog(
             Mutator.Identity()
           case Mutator.Node_Expression(r, _, _, _) =>
             Mutator.Node_Expression(
-              regexOrElse(inputs(2)._2.getString, r),
-              inputs(3)._2.getBool,
+              regexOrElse(inputs(2)._2.get_string, r),
+              inputs(3)._2.get_bool,
               // "Parents" means "Show parents" or "Matching Children"
-              inputs(1)._2.getBool,
-              inputs(0)._2.getBool)
+              inputs(1)._2.get_bool,
+              inputs(0)._2.get_bool)
           case Mutator.Node_List(_, _, _, _) =>
             Mutator.Node_List(
-              inputs(2)._2.getString.split(',').filter(_ != "").toList,
-              inputs(3)._2.getBool,
+              inputs(2)._2.get_string.split(',').filter(_ != "").toList,
+              inputs(3)._2.get_bool,
               // "Parents" means "Show parents" or "Matching Children"
-              inputs(1)._2.getBool,
-              inputs(0)._2.getBool)
+              inputs(1)._2.get_bool,
+              inputs(0)._2.get_bool)
           case Mutator.Edge_Endpoints(_, _) =>
             Mutator.Edge_Endpoints(
-              inputs(0)._2.getString,
-              inputs(1)._2.getString)
+              inputs(0)._2.get_string,
+              inputs(1)._2.get_string)
           case Mutator.Add_Node_Expression(r) =>
-            Mutator.Add_Node_Expression(regexOrElse(inputs(0)._2.getString, r))
+            Mutator.Add_Node_Expression(regexOrElse(inputs(0)._2.get_string, r))
           case Mutator.Add_Transitive_Closure(_, _) =>
             Mutator.Add_Transitive_Closure(
-              inputs(0)._2.getBool,
-              inputs(1)._2.getBool)
+              inputs(0)._2.get_bool,
+              inputs(1)._2.get_bool)
           case _ =>
             Mutator.Identity()
         }
@@ -322,8 +323,8 @@ class Mutator_Dialog(
 
   private trait Mutator_Input_Value
   {
-    def getString: String
-    def getBool: Boolean
+    def get_string: String
+    def get_bool: Boolean
   }
 
   private class iTextField(t: String, colorator: String => Boolean)
@@ -340,8 +341,8 @@ class Mutator_Dialog(
         else background = Color.WHITE
     }
 
-    def getString = text
-    def getBool = true
+    def get_string = text
+    def get_bool = true
   }
 
   private class iCheckBox(t: String, s: Boolean)
@@ -349,17 +350,17 @@ class Mutator_Dialog(
   {
     selected = s
 
-    def getString = ""
-    def getBool = selected
+    def get_string = ""
+    def get_bool = selected
   }
 
-  private object Focus_Traversal extends FocusTraversalPolicy
+  private object Focus_Traveral_Policy extends FocusTraversalPolicy
   {
-    private var items = Vector[java.awt.Component]()
+    private var items = Vector.empty[java.awt.Component]
 
     def add(c: java.awt.Component) { items = items :+ c }
     def addAll(cs: TraversableOnce[java.awt.Component]) { items = items ++ cs }
-    def clear() { items = Vector[java.awt.Component]() }
+    def clear() { items = Vector.empty }
 
     def getComponentAfter(root: java.awt.Container, c: java.awt.Component): java.awt.Component =
     {
