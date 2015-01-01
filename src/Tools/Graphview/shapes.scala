@@ -28,8 +28,9 @@ object Shapes
     {
       val (x, y) = visualizer.Coordinates(peer.get)
       val bounds = g.getFontMetrics.getStringBounds(visualizer.Caption(peer.get), g)
-      val w = bounds.getWidth + visualizer.pad_x
-      val h = bounds.getHeight + visualizer.pad_y
+      val m = visualizer.metrics()
+      val w = bounds.getWidth + m.pad_x
+      val h = bounds.getHeight + m.pad_y
       new Rectangle2D.Double(x - (w / 2), y - (h / 2), w, h)
     }
 

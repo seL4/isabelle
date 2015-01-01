@@ -46,8 +46,11 @@ class Graph_Panel(
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
   def node(at: Point2D): Option[String] =
+  {
+    val gfx = visualizer.graphics_context()
     visualizer.model.visible_nodes_iterator
-      .find(name => visualizer.Drawer.shape(visualizer.gfx, Some(name)).contains(at))
+      .find(name => visualizer.Drawer.shape(gfx, Some(name)).contains(at))
+  }
 
   def refresh()
   {
@@ -205,14 +208,17 @@ class Graph_Panel(
       }
 
       def dummy(at: Point2D): Option[Dummy] =
+      {
+        val gfx = visualizer.graphics_context()
         visualizer.model.visible_edges_iterator.map(
           i => visualizer.Coordinates(i).zipWithIndex.map((i, _))).flatten.find({
             case (_, ((x, y), _)) =>
-              visualizer.Drawer.shape(visualizer.gfx, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(gfx, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
           }
+      }
 
       def pressed(at: Point)
       {

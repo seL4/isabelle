@@ -10,6 +10,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
+import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
 import javax.swing.JComponent
 
@@ -30,29 +31,40 @@ class Visualizer(val model: Model)
 
   /* font rendering information */
 
-  val font_family: String = "IsabelleText"
-  val font_size: Int = 14
-  val font = new Font(font_family, Font.BOLD, font_size)
+  def font_size: Int = 14
+  def font(): Font = new Font("IsabelleText", Font.BOLD, font_size)
 
   val rendering_hints =
     new RenderingHints(
       RenderingHints.KEY_ANTIALIASING,
       RenderingHints.VALUE_ANTIALIAS_ON)
 
-  val gfx = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics
-  gfx.setFont(font)
-  gfx.setRenderingHints(rendering_hints)
+  val font_render_context = new FontRenderContext(null, true, false)
 
-  val font_metrics: FontMetrics = gfx.getFontMetrics(font)
+  def graphics_context(): Graphics2D =
+  {
+    val gfx = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics
+    gfx.setFont(font())
+    gfx.setRenderingHints(rendering_hints)
+    gfx
+  }
 
-  val tooltip_font_size: Int = 10
+  class Metrics private[Visualizer]
+  {
+    private val f = font()
+    def string_bounds(s: String) = f.getStringBounds(s, font_render_context)
+    private val specimen = string_bounds("mix")
+
+    def char_width: Double = specimen.getWidth / 3
+    def line_height: Double = specimen.getHeight
+    def gap_x: Double = char_width * 2.5
+    def pad_x: Double = char_width * 0.5
+    def pad_y: Double = line_height * 0.25
+  }
+  def metrics(): Metrics = new Metrics
 
 
   /* rendering parameters */
-
-  val gap_x = 20
-  val pad_x = 8
-  val pad_y = 5
 
   var arrow_heads = false
 
@@ -130,13 +142,15 @@ class Visualizer(val model: Model)
       layout =
         if (model.current_graph.is_empty) Layout_Pendulum.empty_layout
         else {
+          val m = metrics()
+
           val max_width =
             model.current_graph.iterator.map({ case (_, (info, _)) =>
-              font_metrics.stringWidth(info.name).toDouble }).max
-          val box_distance = max_width + pad_x + gap_x
-          def box_height(n: Int): Double =
-            ((font_metrics.getAscent + font_metrics.getDescent + pad_y) * (5 max n)).toDouble
-          Layout_Pendulum(model.current_graph, box_distance, box_height)
+              m.string_bounds(info.name).getWidth }).max
+          val box_distance = max_width + m.pad_x + m.gap_x
+          def box_height(n: Int): Double = (m.line_height + m.pad_y) * (5 max n)
+
+          Layout_Pendulum(model.current_graph, box_distance, box_height _)
         }
     }
 
