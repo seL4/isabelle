@@ -160,7 +160,7 @@ Minor INCOMPATIBILITY.
 
 * Old and new SMT modules:
   - The old 'smt' method has been renamed 'old_smt' and moved to
-    'src/HOL/Library/Old_SMT.thy'. It provided for compatibility, until
+    'src/HOL/Library/Old_SMT.thy'. It is provided for compatibility, until
     applications have been ported to use the new 'smt' method. For the
     method to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
     installed, and the environment variable "OLD_Z3_SOLVER" must point to
@@ -168,6 +168,10 @@ Minor INCOMPATIBILITY.
     INCOMPATIBILITY.
   - The 'smt2' method has been renamed 'smt'.
     INCOMPATIBILITY.
+  - New option 'smt_reconstruction_step_timeout' to limit the reconstruction
+    time of Z3 proof steps in the new 'smt' method.
+  - New option 'smt_statistics' to display statistics of the new 'smt'
+    method, especially runtime statistics of Z3 proof reconstruction.
 
 * List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc
 
