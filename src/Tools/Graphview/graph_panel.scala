@@ -177,12 +177,12 @@ class Graph_Panel(
       }
 
       def typed(c: Char, m: Key.Modifiers) =
-        (c, m) match {
-          case ('+', _) => rescale(Transform.scale * 5.0/4)
-          case ('-', _) => rescale(Transform.scale * 4.0/5)
-          case ('0', _) => Transform.fit_to_window()
-          case ('1', _) => visualizer.Coordinates.update_layout()
-          case ('2', _) => Transform.fit_to_window()
+        c match {
+          case '+' => rescale(Transform.scale * 5.0/4)
+          case '-' => rescale(Transform.scale * 4.0/5)
+          case '0' => Transform.fit_to_window()
+          case '1' => visualizer.Coordinates.update_layout()
+          case '2' => Transform.fit_to_window()
           case _ =>
         }
     }
