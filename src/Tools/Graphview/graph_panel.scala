@@ -25,8 +25,6 @@ class Graph_Panel(
 {
   panel =>
 
-  tooltip = ""
-
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
     override def getToolTipText(event: java.awt.event.MouseEvent): String =
       node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
