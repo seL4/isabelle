@@ -20,6 +20,11 @@ class Visualizer(val model: Model)
   visualizer =>
 
 
+  /* tooltips */
+
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
+
+
   /* main colors */
 
   def foreground_color: Color = Color.BLACK

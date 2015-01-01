@@ -19,10 +19,7 @@ import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged,
   MouseMoved, MouseClicked, MouseWheelMoved, MouseEvent}
 
 
-class Graph_Panel(
-    val visualizer: Visualizer,
-    make_tooltip: (JComponent, Int, Int, XML.Body) => String)
-  extends ScrollPane
+class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 {
   panel =>
 
@@ -32,7 +29,7 @@ class Graph_Panel(
         case Some(name) =>
           visualizer.model.complete_graph.get_node(name).content match {
             case Nil => null
-            case content => make_tooltip(panel.peer, event.getX, event.getY, content)
+            case content => visualizer.make_tooltip(panel.peer, event.getX, event.getY, content)
           }
         case None => null
       }

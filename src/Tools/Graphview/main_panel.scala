@@ -25,8 +25,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
   focusable = true
   requestFocus()
 
-  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
-  val graph_panel = new Graph_Panel(visualizer, make_tooltip)
+  val graph_panel = new Graph_Panel(visualizer)
 
   listenTo(keys)
   reactions += graph_panel.reactions
