@@ -39,13 +39,13 @@ object Shapes
       val bounds = g.getFontMetrics.getStringBounds(caption, g)
       val s = shape(g, visualizer, peer)
 
-      val (border, background, foreground) = visualizer.Color(peer)
+      val c = visualizer.node_color(peer)
       g.setStroke(stroke)
-      g.setColor(border)
+      g.setColor(c.border)
       g.draw(s)
-      g.setColor(background)
+      g.setColor(c.background)
       g.fill(s)
-      g.setColor(foreground)
+      g.setColor(c.foreground)
       g.drawString(caption,
         (s.getCenterX + (- bounds.getWidth / 2)).toFloat,
         (s.getCenterY + 5).toFloat)
@@ -67,9 +67,9 @@ object Shapes
     def paint_transformed(g: Graphics2D, visualizer: Visualizer,
       peer: Option[String], at: AffineTransform)
     {
-      val (border, background, foreground) = visualizer.Color(peer)
+      val c = visualizer.node_color(peer)
       g.setStroke(stroke)
-      g.setColor(border)
+      g.setColor(c.border)
       g.draw(at.createTransformedShape(shape))
     }
   }
@@ -111,7 +111,7 @@ object Shapes
       }
 
       g.setStroke(stroke)
-      g.setColor(visualizer.Color(peer))
+      g.setColor(visualizer.edge_color(peer))
       g.draw(path)
 
       if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))
@@ -171,7 +171,7 @@ object Shapes
         }
 
         g.setStroke(stroke)
-        g.setColor(visualizer.Color(peer))
+        g.setColor(visualizer.edge_color(peer))
         g.draw(path)
 
         if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))

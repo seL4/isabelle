@@ -9,7 +9,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Color => JColor, Shape, RenderingHints, Graphics2D}
+import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
 import java.awt.image.BufferedImage
 import javax.swing.JComponent
 
@@ -50,17 +50,17 @@ class Visualizer(val model: Model)
   object Colors
   {
     private val filter_colors = List(
-      new JColor(0xD9, 0xF2, 0xE2), // blue
-      new JColor(0xFF, 0xE7, 0xD8), // orange
-      new JColor(0xFF, 0xFF, 0xE5), // yellow
-      new JColor(0xDE, 0xCE, 0xFF), // lilac
-      new JColor(0xCC, 0xEB, 0xFF), // turquoise
-      new JColor(0xFF, 0xE5, 0xE5), // red
-      new JColor(0xE5, 0xE5, 0xD9)  // green
+      new Color(0xD9, 0xF2, 0xE2), // blue
+      new Color(0xFF, 0xE7, 0xD8), // orange
+      new Color(0xFF, 0xFF, 0xE5), // yellow
+      new Color(0xDE, 0xCE, 0xFF), // lilac
+      new Color(0xCC, 0xEB, 0xFF), // turquoise
+      new Color(0xFF, 0xE5, 0xE5), // red
+      new Color(0xE5, 0xE5, 0xD9)  // green
     )
 
     private var curr : Int = -1
-    def next(): JColor =
+    def next(): Color =
     {
       curr = (curr + 1) % filter_colors.length
       filter_colors(curr)
@@ -192,21 +192,17 @@ class Visualizer(val model: Model)
     def clear() { selected = Nil }
   }
 
-  object Color
-  {
-    def apply(l: Option[String]): (JColor, JColor, JColor) =
-      l match {
-        case None => (JColor.GRAY, JColor.WHITE, JColor.BLACK)
-        case Some(c) => {
-            if (Selection(c))
-              (JColor.BLUE, JColor.GREEN, JColor.BLACK)
-            else
-              (JColor.BLACK, model.colors.getOrElse(c, JColor.WHITE), JColor.BLACK)
-        }
-      }
+  sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
-    def apply(e: (String, String)): JColor = JColor.BLACK
-  }
+  def node_color(l: Option[String]): Node_Color =
+    l match {
+      case None => Node_Color(Color.GRAY, Color.WHITE, Color.BLACK)
+      case Some(c) =>
+        if (Selection(c)) Node_Color(Color.BLUE, Color.GREEN, Color.BLACK)
+        else Node_Color(Color.BLACK, model.colors.getOrElse(c, Color.WHITE), Color.BLACK)
+    }
+
+  def edge_color(e: (String, String)): Color = Color.BLACK
 
   object Caption
   {
