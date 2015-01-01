@@ -911,25 +911,30 @@ fun code_depgr ctxt consts =
 
 fun code_thms ctxt = Pretty.writeln o Code_Preproc.pretty ctxt o code_depgr ctxt;
 
+fun join_strong_conn gr =
+  let
+    val xss = Graph.strong_conn gr;
+    val xss_zs = map (fn xs => (xs, commas xs)) xss;
+    val z_for = the o AList.lookup (op =) (maps (fn (xs, z) => map (fn x => (x, z)) xs) xss_zs);
+    val succs = map (fn (xs, z) => (z, (map z_for o maps (Graph.immediate_succs gr)) xs)) xss_zs;
+  in
+    Graph.empty
+    |> fold (fn (xs, z) => Graph.new_node (z, map (Graph.get_node gr) xs)) xss_zs
+    |> fold (fn (z, succs) => fold (fn w => Graph.add_edge (z, w)) succs) succs
+  end;
+
 fun code_deps ctxt consts =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val eqngr = code_depgr ctxt consts;
-    val constss = Graph.strong_conn eqngr;
-    val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
-      Symtab.update (const, consts)) consts) constss;
-    fun succs consts = consts
-      |> maps (Graph.immediate_succs eqngr)
-      |> subtract (op =) consts
-      |> map (the o Symtab.lookup mapping)
-      |> distinct (op =);
-    val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
-    fun namify consts = map (Code.string_of_const thy) consts
-      |> commas;
-    val prgr = map (fn (consts, constss) =>
-      { name = namify consts, ID = namify consts, dir = "", unfold = true,
-        path = "", parents = map namify constss, content = [] }) conn;
-  in Graph_Display.display_graph prgr end;
+    val namify = commas o map (Code.string_of_const thy);
+  in
+    code_depgr ctxt consts
+    |> Graph.map (fn c => fn _ => c)
+    |> join_strong_conn
+    |> Graph.dest
+    |> map (fn ((c, cs), ds) => ((c, Graph_Display.content_node (namify cs) []), ds))
+    |> Graph_Display.display_graph
+  end;
 
 local
 
@@ -950,7 +955,7 @@ val _ =
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_context o
-      Toplevel.keep (fn state => code_deps_cmd (Toplevel.context_of state) cs)));
+      Toplevel.keep (fn st => code_deps_cmd (Toplevel.context_of st) cs)));
 
 end;
 

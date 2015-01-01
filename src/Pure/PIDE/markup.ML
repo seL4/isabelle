@@ -160,10 +160,10 @@ sig
   val informationN: string
   val tracingN: string
   val warningN: string
+  val legacyN: string
   val errorN: string
   val systemN: string
   val protocolN: string
-  val legacyN: string val legacy: T
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
@@ -547,11 +547,10 @@ val stateN = "state"
 val informationN = "information";
 val tracingN = "tracing";
 val warningN = "warning";
+val legacyN = "legacy";
 val errorN = "error";
 val systemN = "system";
 val protocolN = "protocol";
-
-val (legacyN, legacy) = markup_elem "legacy";
 
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";

@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/mutator.scala
+/*  Title:      Tools/Graphview/mutator.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Filters and add-operations on graphs.

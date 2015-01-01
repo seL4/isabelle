@@ -16,7 +16,6 @@ sig
   val obtain_specification_graph :
     Predicate_Compile_Aux.options -> theory -> term -> thm list Term_Graph.T
 
-  val present_graph : thm list Term_Graph.T -> unit
   val normalize_equation : theory -> thm -> thm
 end;
 
@@ -297,28 +296,5 @@ fun obtain_specification_graph options thy t =
   in
     extend t Term_Graph.empty
   end;
-
-
-fun present_graph gr =
-  let
-    fun eq_cname (Const (c1, _), Const (c2, _)) = (c1 = c2)
-    fun string_of_const (Const (c, _)) = c
-      | string_of_const _ = error "string_of_const: unexpected term"
-    val constss = Term_Graph.strong_conn gr;
-    val mapping = Termtab.empty |> fold (fn consts => fold (fn const =>
-      Termtab.update (const, consts)) consts) constss;
-    fun succs consts = consts
-      |> maps (Term_Graph.immediate_succs gr)
-      |> subtract eq_cname consts
-      |> map (the o Termtab.lookup mapping)
-      |> distinct (eq_list eq_cname);
-    val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
-
-    fun namify consts = map string_of_const consts
-      |> commas;
-    val prgr = map (fn (consts, constss) =>
-      {name = namify consts, ID = namify consts, dir = "", unfold = true,
-       path = "", parents = map namify constss, content = [] }) conn
-  in Graph_Display.display_graph prgr end
 
 end

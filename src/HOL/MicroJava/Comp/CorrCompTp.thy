@@ -89,7 +89,7 @@ by (rule map_of_append [of _ "[]", simplified])
 lemma map_of_rev: "unique xs \<Longrightarrow> map_of (rev xs) = map_of xs"
 apply (induct xs)
 apply simp
-apply (simp add: unique_def map_of_append map_of_as_map_upds [THEN sym]
+apply (simp add: unique_def map_of_append map_of_as_map_upds [symmetric]
                  Map.map_of_append[symmetric] del:Map.map_of_append)
 done
 
@@ -101,7 +101,7 @@ apply (intro strip)
 apply (subgoal_tac "\<exists> x xr. xs = x # xr")
 apply clarify
 apply (drule_tac x=xr in spec)
-apply (simp add: map_upds_append [THEN sym])
+apply (simp add: map_upds_append [symmetric])
   (* subgoal *)
 apply (case_tac xs)
 apply auto
@@ -119,7 +119,7 @@ apply (subgoal_tac "\<exists> k' kr. ks = k' # kr")
  apply (simp only: rev.simps)
  apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
   apply (simp split:split_if_asm)
- apply (simp add: map_upds_append [THEN sym])
+ apply (simp add: map_upds_append [symmetric])
 apply (case_tac ks)
  apply auto
 done
@@ -144,7 +144,7 @@ apply (simp add: map_upds_append)
 apply (frule map_upds_SomeD)
 apply (rule map_upds_takeWhile)
 apply (simp (no_asm_simp))
-apply (simp add: map_upds_append [THEN sym])
+apply (simp add: map_upds_append [symmetric])
 apply (simp add: map_upds_rev)
 
   (* show length (pns @ map fst lvars) = length (pTs @ map snd lvars) *)
@@ -432,7 +432,7 @@ lemma compTpInitLvars_LT_ST:
 \<Longrightarrow>(sttp_of (compTpInitLvars jmb lvars (ST, start_LT C pTs (length lvars))))
   = (ST, inited_LT C pTs lvars)"
 apply (simp add: start_LT_def inited_LT_def)
-apply (simp only: append_Cons [THEN sym])
+apply (simp only: append_Cons [symmetric])
 apply (rule compTpInitLvars_LT_ST_aux)
 apply (auto dest: wf_java_mdecl_length_pTs_pns wf_java_mdecl_disjoint_varnames)
 done
@@ -1288,7 +1288,7 @@ lemma bc_mt_corresp_Invoke: "\<lbrakk> wf_prog wf_mb G;
   -- {* @{text "<=s"} *}
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (simp add: wf_prog_ws_prog [THEN comp_method])
-  apply (simp add: max_spec_preserves_length [THEN sym])
+  apply (simp add: max_spec_preserves_length [symmetric])
 
   -- "@{text check_type}"
 apply (simp add: max_ssize_def ssize_sto_def)
@@ -2493,10 +2493,10 @@ apply (simp add: compMethod_def compTpMethod_def split_beta)
 apply (rule_tac T=T and LT="inited_LT C pTs lvars" and ST=start_ST in wt_method_comp_aux)
 
   (* bc *)
-apply (simp only: append_assoc [THEN sym])
+apply (simp only: append_assoc [symmetric])
 
   (* comb *)
-apply (simp only: comb_assoc [THEN sym])
+apply (simp only: comb_assoc [symmetric])
 
   (* bc_corresp *)
 apply (rule wt_method_comp_wo_return)

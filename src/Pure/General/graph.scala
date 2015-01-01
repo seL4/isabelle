@@ -21,13 +21,15 @@ object Graph
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
 
-  def make[Key, A](entries: List[((Key, A), List[Key])])(implicit ord: Ordering[Key])
-    : Graph[Key, A] =
+  def make[Key, A](entries: List[((Key, A), List[Key])], converse: Boolean = false)(
+    implicit ord: Ordering[Key]): Graph[Key, A] =
   {
     val graph1 =
       (empty[Key, A](ord) /: entries) { case (graph, ((x, info), _)) => graph.new_node(x, info) }
     val graph2 =
-      (graph1 /: entries) { case (graph, ((x, _), ys)) => (graph /: ys)(_.add_edge(x, _)) }
+      (graph1 /: entries) { case (graph, ((x, _), ys)) =>
+        if (converse) (graph /: ys)(_.add_edge(_, x)) else (graph /: ys)(_.add_edge(x, _))
+      }
     graph2
   }
 
@@ -44,11 +46,11 @@ object Graph
       list(pair(pair(key, info), list(key)))(graph.dest)
     })
 
-  def decode[Key, A](key: XML.Decode.T[Key], info: XML.Decode.T[A])(implicit ord: Ordering[Key])
-      : XML.Decode.T[Graph[Key, A]] =
+  def decode[Key, A](key: XML.Decode.T[Key], info: XML.Decode.T[A], converse: Boolean = false)(
+    implicit ord: Ordering[Key]): XML.Decode.T[Graph[Key, A]] =
     ((body: XML.Body) => {
       import XML.Decode._
-      make(list(pair(pair(key, info), list(key)))(body))(ord)
+      make(list(pair(pair(key, info), list(key)))(body), converse)(ord)
     })
 }
 

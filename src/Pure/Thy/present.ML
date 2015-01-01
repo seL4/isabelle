@@ -60,8 +60,8 @@ val session_chapter_name = (fn {chapter, name} => [chapter, name]) o Browser_Inf
 
 (** graphs **)
 
-fun ID_of sess s = space_implode "/" (sess @ [s]);
-fun ID_of_thy thy = ID_of (session_chapter_name thy) (Context.theory_name thy);
+fun ident_of sess s = space_implode "/" (sess @ [s]);
+fun ident_of_thy thy = ident_of (session_chapter_name thy) (Context.theory_name thy);
 
 fun theory_link (curr_chapter, curr_session) thy =
   let
@@ -75,27 +75,20 @@ fun theory_link (curr_chapter, curr_session) thy =
     else SOME (Path.appends [Path.parent, Path.parent, Path.basic chapter, Path.basic session, link])
   end;
 
-(*retrieve graph data from initial collection of theories*)
-fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
+fun init_graph_entry session thy =
   let
-    val {chapter, name = session_name} = Browser_Info.get thy;
-    val thy_name = Context.theory_name thy;
-    val path =
-      (case theory_link (curr_chapter, curr_session) thy of
-        NONE => ""
-      | SOME p => Path.implode p);
-    val entry =
-     {name = thy_name,
-      ID = ID_of [chapter, session_name] thy_name,
-      dir = session_name,
-      path = path,
-      unfold = false,
-      parents = map ID_of_thy (Theory.parents_of thy),
-      content = []};
-  in (0, entry) end);
-
-fun ins_graph_entry (i, entry as {ID, ...}) (gr: (int * Graph_Display.node) list) =
-  (i, entry) :: filter_out (fn (_, entry') => #ID entry' = ID) gr;
+    val ident = ident_of_thy thy;
+    val parents = map ident_of_thy (Theory.parents_of thy);
+    val node =
+      Graph_Display.session_node
+       {name = Context.theory_name thy,
+        unfold = false,
+        directory = session_name thy,
+        path =
+          (case theory_link session thy of
+            NONE => ""
+          | SOME p => Path.implode p)};
+  in ((ident, node), parents) end;
 
 
 
@@ -118,7 +111,7 @@ type browser_info =
  {theories: theory_info Symtab.table,
   tex_index: (int * string) list,
   html_index: (int * string) list,
-  graph: (int * Graph_Display.node) list};
+  graph: Graph_Display.graph};
 
 fun make_browser_info (theories, tex_index, html_index, graph) : browser_info =
   {theories = theories, tex_index = tex_index, html_index = html_index, graph = graph};
@@ -126,7 +119,7 @@ fun make_browser_info (theories, tex_index, html_index, graph) : browser_info =
 val empty_browser_info = make_browser_info (Symtab.empty, [], [], []);
 
 fun init_browser_info session thys =
-  make_browser_info (Symtab.empty, [], [], init_graph session thys);
+  make_browser_info (Symtab.empty, [], [], map (init_graph_entry session) thys);
 
 fun map_browser_info f {theories, tex_index, html_index, graph} =
   make_browser_info (f (theories, tex_index, html_index, graph));
@@ -159,7 +152,7 @@ fun add_html_index txt =
 
 fun add_graph_entry entry =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
-    (theories, tex_index, html_index, ins_graph_entry entry graph));
+    (theories, tex_index, html_index, update Graph_Display.eq_entry entry graph));
 
 
 
@@ -298,7 +291,7 @@ fun finish () =
     fun finish_html (a, {html_source, ...}: theory_info) =
       File.write (Path.append session_prefix (html_path a)) html_source;
 
-    val sorted_graph = sorted_index graph;
+    val sorted_graph = Graph_Display.sort_graph graph;
     val opt_graphs =
       if doc_graph andalso not (null documents) then
         SOME (isabelle_browser sorted_graph)
@@ -382,16 +375,16 @@ fun begin_theory update_time mk_text thy =
       val html_source = HTML.theory name parent_specs (mk_text ());
 
       val graph_entry =
-       {name = name,
-        ID = ID_of [chapter, session_name] name,
-        dir = session_name,
-        unfold = true,
-        path = Path.implode (html_path name),
-        parents = map ID_of_thy parents,
-        content = []};
+        ((ident_of [chapter, session_name] name,
+          Graph_Display.session_node
+           {name = name,
+            directory = session_name,
+            unfold = true,
+            path = Path.implode (html_path name)}),
+          map ident_of_thy parents);
     in
       init_theory_info name (make_theory_info ("", html_source));
-      add_graph_entry (update_time, graph_entry);
+      add_graph_entry graph_entry;
       add_html_index (update_time, HTML.theory_entry (Url.File (html_path name), name));
       add_tex_index (update_time, Latex.theory_entry name);
       Browser_Info.put {chapter = chapter, name = session_name} thy

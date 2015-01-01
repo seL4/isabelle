@@ -27,7 +27,6 @@ use "Concurrent/random.ML";
 use "General/properties.ML";
 use "General/output.ML";
 use "PIDE/markup.ML";
-fun legacy_feature s = warning (Markup.markup Markup.legacy ("Legacy feature! " ^ s));
 use "General/scan.ML";
 use "General/source.ML";
 use "General/symbol.ML";
@@ -346,6 +345,7 @@ structure Output: OUTPUT = Output;  (*seal system channels!*)
 (* ML toplevel pretty printing *)
 
 toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
+toplevel_pp ["Scan", "lexicon"] "Lexicon.pp_lexicon";
 toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
 toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
 toplevel_pp ["Position", "T"] "Pretty.position";

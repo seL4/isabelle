@@ -95,7 +95,7 @@ lemma comp_class_None:
 "(class G C = None) = (class (comp G) C = None)"
 apply (simp add: class_def comp_def compClass_def)
 apply (simp add: map_of_in_set)
-apply (simp add: image_comp [THEN sym] o_def split_beta)
+apply (simp add: image_comp [symmetric] o_def split_beta)
 done
 
 lemma comp_is_class: "is_class (comp G) C = is_class G C"
@@ -186,7 +186,7 @@ lemma comp_ws_prog: "ws_prog (comp G) = ws_prog G"
 apply (rule sym)
 apply (simp add: ws_prog_def comp_ws_cdecl comp_unique)
 apply (simp add: comp_wf_syscls)
-apply (auto simp add: comp_ws_cdecl [THEN sym] TranslComp.comp_def)
+apply (auto simp add: comp_ws_cdecl [symmetric] TranslComp.comp_def)
 done
 
 

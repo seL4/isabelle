@@ -102,16 +102,16 @@ declare -a SOURCES=(
   library.scala
   term.scala
   term_xml.scala
-  "../Tools/Graphview/src/graph_panel.scala"
-  "../Tools/Graphview/src/layout_pendulum.scala"
-  "../Tools/Graphview/src/main_panel.scala"
-  "../Tools/Graphview/src/model.scala"
-  "../Tools/Graphview/src/mutator_dialog.scala"
-  "../Tools/Graphview/src/mutator_event.scala"
-  "../Tools/Graphview/src/mutator.scala"
-  "../Tools/Graphview/src/popups.scala"
-  "../Tools/Graphview/src/shapes.scala"
-  "../Tools/Graphview/src/visualizer.scala"
+  "../Tools/Graphview/graph_panel.scala"
+  "../Tools/Graphview/layout_pendulum.scala"
+  "../Tools/Graphview/main_panel.scala"
+  "../Tools/Graphview/model.scala"
+  "../Tools/Graphview/mutator_dialog.scala"
+  "../Tools/Graphview/mutator_event.scala"
+  "../Tools/Graphview/mutator.scala"
+  "../Tools/Graphview/popups.scala"
+  "../Tools/Graphview/shapes.scala"
+  "../Tools/Graphview/visualizer.scala"
 )
 
 

@@ -175,7 +175,7 @@ subsection {* approx-stk *}
 lemma approx_stk_rev_lem:
   "approx_stk G hp (rev s) (rev t) = approx_stk G hp s t"
   apply (unfold approx_stk_def approx_loc_def)
-  apply (simp add: rev_map [THEN sym])
+  apply (simp add: rev_map [symmetric])
   done
 
 lemma approx_stk_rev:

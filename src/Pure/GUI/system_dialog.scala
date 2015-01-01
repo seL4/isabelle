@@ -78,7 +78,6 @@ class System_Dialog extends Build.Progress
     /* text */
 
     val text = new TextArea {
-      font = new Font("SansSerif", Font.PLAIN, GUI.resolution_scale(10) max 14)
       editable = false
       columns = 50
       rows = 20

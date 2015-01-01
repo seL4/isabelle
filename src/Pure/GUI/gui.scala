@@ -25,14 +25,19 @@ object GUI
 {
   /* Swing look-and-feel */
 
+  def find_laf(name: String): Option[String] =
+    UIManager.getInstalledLookAndFeels().
+      find(c => c.getName == name || c.getClassName == name).
+      map(_.getClassName)
+
   def get_laf(): String =
-  {
-    if (Platform.is_windows || Platform.is_macos)
-      UIManager.getSystemLookAndFeelClassName()
-    else
-      UIManager.getInstalledLookAndFeels().find(_.getName == "Nimbus").map(_.getClassName)
-        .getOrElse(UIManager.getCrossPlatformLookAndFeelClassName())
-  }
+    find_laf(System.getProperty("isabelle.laf")) getOrElse {
+      if (Platform.is_windows || Platform.is_macos)
+        UIManager.getSystemLookAndFeelClassName()
+      else
+        find_laf("Nimbus") getOrElse
+          UIManager.getCrossPlatformLookAndFeelClassName()
+    }
 
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
 
@@ -159,12 +164,6 @@ object GUI
   def tooltip_lines(text: String): String =
     if (text == null || text == "") null
     else "<html>" + HTML.encode(text) + "</html>"
-
-
-  /* screen resolution */
-
-  def resolution_scale(): Double = Toolkit.getDefaultToolkit.getScreenResolution.toDouble / 72
-  def resolution_scale(i: Int): Int = (i.toDouble * resolution_scale()).round.toInt
 
 
   /* icon */

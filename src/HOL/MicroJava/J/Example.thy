@@ -434,7 +434,7 @@ apply      (simp (no_asm))
 apply     (simp (no_asm))
 apply     (tactic e) -- "XcptE"
 apply    (simp (no_asm))
-apply   (rule surjective_pairing [THEN sym, THEN[2]trans], subst Pair_eq, force)
+apply   (rule surjective_pairing [symmetric, THEN[2]trans], subst Pair_eq, force)
 apply  (simp (no_asm))
 apply (simp (no_asm))
 apply (tactic e) -- "XcptE"

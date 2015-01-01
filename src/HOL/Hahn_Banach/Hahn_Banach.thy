@@ -297,7 +297,7 @@ proof -
 qed
 
 
-subsection  \<open>Alternative formulation\<close>
+subsection \<open>Alternative formulation\<close>
 
 text \<open>
   The following alternative formulation of the Hahn-Banach

@@ -128,7 +128,7 @@ object Command
     lazy val protocol_status: Protocol.Status =
     {
       val warnings =
-        if (results.iterator.exists(p => Protocol.is_warning(p._2)))
+        if (results.iterator.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2)))
           List(Markup(Markup.WARNING, Nil))
         else Nil
       val errors =

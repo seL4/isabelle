@@ -328,7 +328,7 @@ fun dest path (Lexicon tab) = Symtab.fold (fn (d, (tip, lex)) =>
     val content = dest path' lex;
   in append (if tip then rev path' :: content else content) end) tab [];
 
-val dest_lexicon = map implode o dest [];
+val dest_lexicon = sort_strings o map implode o dest [];
 
 fun merge_lexicons (lex1, lex2) =
   if pointer_eq (lex1, lex2) then lex1

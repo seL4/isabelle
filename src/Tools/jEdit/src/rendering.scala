@@ -46,6 +46,8 @@ object Rendering
     Markup.TRACING_MESSAGE -> tracing_pri,
     Markup.WARNING -> warning_pri,
     Markup.WARNING_MESSAGE -> warning_pri,
+    Markup.LEGACY -> legacy_pri,
+    Markup.LEGACY_MESSAGE -> legacy_pri,
     Markup.ERROR -> error_pri,
     Markup.ERROR_MESSAGE -> error_pri)
 
@@ -161,8 +163,8 @@ object Rendering
       Markup.SENDBACK, Markup.SIMP_TRACE_PANEL)
 
   private val tooltip_message_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING,
-      Markup.ERROR, Markup.BAD)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
+      Markup.BAD)
 
   private val tooltip_descriptions =
     Map(
@@ -182,14 +184,15 @@ object Rendering
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
   private val squiggly_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
   private val line_background_elements =
     Markup.Elements(Markup.WRITELN_MESSAGE, Markup.STATE_MESSAGE, Markup.INFORMATION_MESSAGE,
-      Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE)
+      Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.LEGACY_MESSAGE,
+      Markup.ERROR_MESSAGE)
 
   private val separator_elements =
     Markup.Elements(Markup.SEPARATOR)
@@ -198,8 +201,8 @@ object Rendering
     Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
-      Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
-      active_elements
+      Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
+      Markup.BAD + Markup.INTENSIFY ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
@@ -232,12 +235,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val writeln_color = color_value("writeln_color")
   val information_color = color_value("information_color")
   val warning_color = color_value("warning_color")
+  val legacy_color = color_value("legacy_color")
   val error_color = color_value("error_color")
   val writeln_message_color = color_value("writeln_message_color")
   val state_message_color = color_value("state_message_color")
   val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
+  val legacy_message_color = color_value("legacy_message_color")
   val error_message_color = color_value("error_message_color")
   val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
@@ -591,6 +596,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.writeln_pri -> writeln_color,
     Rendering.information_pri -> information_color,
     Rendering.warning_pri -> warning_color,
+    Rendering.legacy_pri -> legacy_color,
     Rendering.error_pri -> error_color)
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
@@ -615,6 +621,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.information_pri -> information_message_color,
     Rendering.tracing_pri -> tracing_message_color,
     Rendering.warning_pri -> warning_message_color,
+    Rendering.legacy_pri -> legacy_message_color,
     Rendering.error_pri -> error_message_color)
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =

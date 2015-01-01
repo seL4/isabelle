@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/graph_panel.scala
+/*  Title:      Tools/Graphview/graph_panel.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Graphview Java2D drawing panel.

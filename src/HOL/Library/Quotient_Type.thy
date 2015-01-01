@@ -2,63 +2,65 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Quotient types *}
+section \<open>Quotient types\<close>
 
 theory Quotient_Type
 imports Main
 begin
 
-text {*
- We introduce the notion of quotient types over equivalence relations
- via type classes.
-*}
+text \<open>We introduce the notion of quotient types over equivalence relations
+  via type classes.\<close>
 
-subsection {* Equivalence relations and quotient types *}
 
-text {*
- \medskip Type class @{text equiv} models equivalence relations @{text
- "\<sim> :: 'a => 'a => bool"}.
-*}
+subsection \<open>Equivalence relations and quotient types\<close>
+
+text \<open>Type class @{text equiv} models equivalence relations
+  @{text "\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow> bool"}.\<close>
 
 class eqv =
-  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<sim>" 50)
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sim>" 50)
 
 class equiv = eqv +
   assumes equiv_refl [intro]: "x \<sim> x"
-  assumes equiv_trans [trans]: "x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> x \<sim> z"
-  assumes equiv_sym [sym]: "x \<sim> y \<Longrightarrow> y \<sim> x"
+    and equiv_trans [trans]: "x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> x \<sim> z"
+    and equiv_sym [sym]: "x \<sim> y \<Longrightarrow> y \<sim> x"
+begin
 
-lemma equiv_not_sym [sym]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
+lemma equiv_not_sym [sym]: "\<not> x \<sim> y \<Longrightarrow> \<not> y \<sim> x"
 proof -
-  assume "\<not> (x \<sim> y)" then show "\<not> (y \<sim> x)"
-    by (rule contrapos_nn) (rule equiv_sym)
+  assume "\<not> x \<sim> y"
+  then show "\<not> y \<sim> x" by (rule contrapos_nn) (rule equiv_sym)
 qed
 
-lemma not_equiv_trans1 [trans]: "\<not> (x \<sim> y) ==> y \<sim> z ==> \<not> (x \<sim> (z::'a::equiv))"
+lemma not_equiv_trans1 [trans]: "\<not> x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> \<not> x \<sim> z"
 proof -
-  assume "\<not> (x \<sim> y)" and "y \<sim> z"
-  show "\<not> (x \<sim> z)"
+  assume "\<not> x \<sim> y" and "y \<sim> z"
+  show "\<not> x \<sim> z"
   proof
     assume "x \<sim> z"
-    also from `y \<sim> z` have "z \<sim> y" ..
+    also from \<open>y \<sim> z\<close> have "z \<sim> y" ..
     finally have "x \<sim> y" .
-    with `\<not> (x \<sim> y)` show False by contradiction
+    with \<open>\<not> x \<sim> y\<close> show False by contradiction
   qed
 qed
 
-lemma not_equiv_trans2 [trans]: "x \<sim> y ==> \<not> (y \<sim> z) ==> \<not> (x \<sim> (z::'a::equiv))"
+lemma not_equiv_trans2 [trans]: "x \<sim> y \<Longrightarrow> \<not> y \<sim> z \<Longrightarrow> \<not> x \<sim> z"
 proof -
-  assume "\<not> (y \<sim> z)" then have "\<not> (z \<sim> y)" ..
-  also assume "x \<sim> y" then have "y \<sim> x" ..
-  finally have "\<not> (z \<sim> x)" . then show "(\<not> x \<sim> z)" ..
+  assume "\<not> y \<sim> z"
+  then have "\<not> z \<sim> y" ..
+  also
+  assume "x \<sim> y"
+  then have "y \<sim> x" ..
+  finally have "\<not> z \<sim> x" .
+  then show "\<not> x \<sim> z" ..
 qed
 
-text {*
- \medskip The quotient type @{text "'a quot"} consists of all
- \emph{equivalence classes} over elements of the base type @{typ 'a}.
-*}
+end
 
-definition "quot = {{x. a \<sim> x} | a::'a::eqv. True}"
+text \<open>The quotient type @{text "'a quot"} consists of all \emph{equivalence
+  classes} over elements of the base type @{typ 'a}.\<close>
+
+definition (in eqv) "quot = {{x. a \<sim> x} | a. True}"
 
 typedef 'a quot = "quot :: 'a::eqv set set"
   unfolding quot_def by blast
@@ -66,38 +68,38 @@ typedef 'a quot = "quot :: 'a::eqv set set"
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
   unfolding quot_def by blast
 
-lemma quotE [elim]: "R \<in> quot ==> (!!a. R = {x. a \<sim> x} ==> C) ==> C"
-  unfolding quot_def by blast
+lemma quotE [elim]:
+  assumes "R \<in> quot"
+  obtains a where "R = {x. a \<sim> x}"
+  using assms unfolding quot_def by blast
 
-text {*
- \medskip Abstracted equivalence classes are the canonical
- representation of elements of a quotient type.
-*}
+text \<open>Abstracted equivalence classes are the canonical representation of
+  elements of a quotient type.\<close>
 
-definition
-  "class" :: "'a::equiv => 'a quot"  ("\<lfloor>_\<rfloor>") where
-  "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
+definition "class" :: "'a::equiv \<Rightarrow> 'a quot"  ("\<lfloor>_\<rfloor>")
+  where "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
-  fix R assume R: "A = Abs_quot R"
-  assume "R \<in> quot" then have "\<exists>a. R = {x. a \<sim> x}" by blast
+  fix R
+  assume R: "A = Abs_quot R"
+  assume "R \<in> quot"
+  then have "\<exists>a. R = {x. a \<sim> x}" by blast
   with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
   then show ?thesis unfolding class_def .
 qed
 
-lemma quot_cases [cases type: quot]: "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
+lemma quot_cases [cases type: quot]:
+  obtains a where "A = \<lfloor>a\<rfloor>"
   using quot_exhaust by blast
 
 
-subsection {* Equality on quotients *}
+subsection \<open>Equality on quotients\<close>
 
-text {*
- Equality of canonical quotient elements coincides with the original
- relation.
-*}
+text \<open>Equality of canonical quotient elements coincides with the original
+  relation.\<close>
 
-theorem quot_equality [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
+theorem quot_equality [iff?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> \<longleftrightarrow> a \<sim> b"
 proof
   assume eq: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
   show "a \<sim> b"
@@ -131,11 +133,10 @@ next
 qed
 
 
-subsection {* Picking representing elements *}
+subsection \<open>Picking representing elements\<close>
 
-definition
-  pick :: "'a::equiv quot => 'a" where
-  "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
+definition pick :: "'a::equiv quot \<Rightarrow> 'a"
+  where "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
 theorem pick_equiv [intro]: "pick \<lfloor>a\<rfloor> \<sim> a"
 proof (unfold pick_def)
@@ -143,7 +144,8 @@ proof (unfold pick_def)
   proof (rule someI2)
     show "\<lfloor>a\<rfloor> = \<lfloor>a\<rfloor>" ..
     fix x assume "\<lfloor>a\<rfloor> = \<lfloor>x\<rfloor>"
-    then have "a \<sim> x" .. then show "x \<sim> a" ..
+    then have "a \<sim> x" ..
+    then show "x \<sim> a" ..
   qed
 qed
 
@@ -155,17 +157,14 @@ proof (cases A)
   with a show ?thesis by simp
 qed
 
-text {*
- \medskip The following rules support canonical function definitions
- on quotient types (with up to two arguments).  Note that the
- stripped-down version without additional conditions is sufficient
- most of the time.
-*}
+text \<open>The following rules support canonical function definitions on quotient
+  types (with up to two arguments). Note that the stripped-down version
+  without additional conditions is sufficient most of the time.\<close>
 
 theorem quot_cond_function:
-  assumes eq: "!!X Y. P X Y ==> f X Y == g (pick X) (pick Y)"
-    and cong: "!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor>
-      ==> P \<lfloor>x\<rfloor> \<lfloor>y\<rfloor> ==> P \<lfloor>x'\<rfloor> \<lfloor>y'\<rfloor> ==> g x y = g x' y'"
+  assumes eq: "\<And>X Y. P X Y \<Longrightarrow> f X Y \<equiv> g (pick X) (pick Y)"
+    and cong: "\<And>x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> \<Longrightarrow> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor>
+      \<Longrightarrow> P \<lfloor>x\<rfloor> \<lfloor>y\<rfloor> \<Longrightarrow> P \<lfloor>x'\<rfloor> \<lfloor>y'\<rfloor> \<Longrightarrow> g x y = g x' y'"
     and P: "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>"
   shows "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
 proof -
@@ -183,15 +182,15 @@ proof -
 qed
 
 theorem quot_function:
-  assumes "!!X Y. f X Y == g (pick X) (pick Y)"
-    and "!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y'"
+  assumes "\<And>X Y. f X Y \<equiv> g (pick X) (pick Y)"
+    and "\<And>x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> \<Longrightarrow> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> \<Longrightarrow> g x y = g x' y'"
   shows "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
   using assms and TrueI
   by (rule quot_cond_function)
 
 theorem quot_function':
-  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
-    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y') ==>
+  "(\<And>X Y. f X Y \<equiv> g (pick X) (pick Y)) \<Longrightarrow>
+    (\<And>x x' y y'. x \<sim> x' \<Longrightarrow> y \<sim> y' \<Longrightarrow> g x y = g x' y') \<Longrightarrow>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
   by (rule quot_function) (simp_all only: quot_equality)
 

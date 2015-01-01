@@ -37,9 +37,6 @@ fun timeit msg e = cond_timeit (! timing) msg e;
 
 
 
-
-
-
 (** document structure **)
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
@@ -166,6 +163,16 @@ fun pending_result node =
     SOME eval => not (Command.eval_finished eval)
   | NONE => false);
 
+fun finished_result node =
+  (case get_result node of
+    SOME eval => Command.eval_finished eval
+  | NONE => false);
+
+fun loaded_theory name =
+  (case try (unsuffix ".thy") name of
+    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
+  | NONE => NONE);
+
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
 fun default_node name = String_Graph.default_node (name, empty_node);
@@ -285,16 +292,17 @@ type blob_digest = (string * string option) Exn.result;  (*file node name, raw d
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
   execution_id: Document_ID.execution,  (*dynamic execution id*)
-  delay_request: unit future,  (*pending event timer request*)
-  frontier: Future.task Symtab.table};  (*node name -> running execution task*)
+  delay_request: unit future};  (*pending event timer request*)
 
 val no_execution: execution =
-  {version_id = Document_ID.none, execution_id = Document_ID.none,
-   delay_request = Future.value (), frontier = Symtab.empty};
+  {version_id = Document_ID.none,
+   execution_id = Document_ID.none,
+   delay_request = Future.value ()};
 
-fun new_execution version_id delay_request frontier : execution =
-  {version_id = version_id, execution_id = Execution.start (),
-   delay_request = delay_request, frontier = frontier};
+fun new_execution version_id delay_request : execution =
+  {version_id = version_id,
+   execution_id = Execution.start (),
+   delay_request = delay_request};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -318,11 +326,11 @@ val init_state =
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, blobs, commands, {delay_request, frontier, ...}) =>
+  map_state (fn (versions, blobs, commands, {delay_request, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = new_execution version_id delay_request frontier;
+      val execution' = new_execution version_id delay_request;
     in (versions', blobs, commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -408,40 +416,40 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
 fun start_execution state = state |> map_state (fn (versions, blobs, commands, execution) =>
   timeit "Document.start_execution" (fn () =>
     let
-      val {version_id, execution_id, delay_request, frontier} = execution;
+      val {version_id, execution_id, delay_request} = execution;
 
       val delay = seconds (Options.default_real "editor_execution_delay");
 
       val _ = Future.cancel delay_request;
       val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
 
-      val new_tasks =
+      fun finished_import (name, (node, _)) =
+        finished_result node orelse is_some (loaded_theory name);
+      val _ =
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
               let
-                val more_deps =
-                  Future.task_of delay_request' :: the_list (Symtab.lookup frontier name);
                 fun body () =
-                  iterate_entries (fn (_, opt_exec) => fn () =>
-                    (case opt_exec of
-                      SOME exec =>
-                        if Execution.is_running execution_id
-                        then SOME (Command.exec execution_id exec)
-                        else NONE
-                    | NONE => NONE)) node ()
-                  handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn;
+                  if forall finished_import deps then
+                    iterate_entries (fn (_, opt_exec) => fn () =>
+                      (case opt_exec of
+                        SOME exec =>
+                          if Execution.is_running execution_id
+                          then SOME (Command.exec execution_id exec)
+                          else NONE
+                      | NONE => NONE)) node ()
+                  else ();
                 val future =
                   (singleton o Future.forks)
-                    {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                      deps = more_deps @ map #2 (maps #2 deps),
-                      pri = 0, interrupts = false} body;
-              in [(name, Future.task_of future)] end
-            else []);
-      val frontier' = (fold o fold) Symtab.update new_tasks frontier;
+                   {name = "theory:" ^ name,
+                    group = SOME (Future.new_group NONE),
+                    deps = Future.task_of delay_request' :: maps (the_list o #2 o #2) deps,
+                    pri = 0, interrupts = false} body;
+              in (node, SOME (Future.task_of future)) end
+            else (node, NONE));
       val execution' =
-        {version_id = version_id, execution_id = execution_id,
-         delay_request = delay_request', frontier = frontier'};
+        {version_id = version_id, execution_id = execution_id, delay_request = delay_request'};
     in (versions, blobs, commands, execution') end));
 
 
@@ -482,11 +490,6 @@ fun make_required nodes =
       exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
         Symtab.update (a, ())) all_visible all_required
   end;
-
-fun loaded_theory name =
-  (case try (unsuffix ".thy") name of
-    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
-  | NONE => NONE);
 
 fun init_theory deps node span =
   let

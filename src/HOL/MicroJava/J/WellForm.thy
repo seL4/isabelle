@@ -140,7 +140,7 @@ apply( drule subcls1D)
 apply(clarify)
 apply( drule (1) class_wf_struct)
 apply( unfold ws_cdecl_def)
-apply(force simp add: reflcl_trancl [THEN sym] simp del: reflcl_trancl)
+apply(force simp add: reflcl_trancl [symmetric] simp del: reflcl_trancl)
 done
 
 lemma wf_cdecl_supD: 
@@ -600,7 +600,7 @@ apply (simp (no_asm_use) only: map_add_Some_iff)
 apply (erule disjE)
 apply (simp (no_asm_use) add: map_of_map) apply blast
 apply blast
-apply (rule trans [THEN sym], rule sym, assumption)
+apply (rule trans [symmetric], rule sym, assumption)
 apply (rule_tac x=vn in fun_cong)
 apply (rule trans, rule field_rec, assumption+)
 apply (simp (no_asm_simp) add: wf_prog_ws_prog) 

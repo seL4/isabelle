@@ -3836,7 +3836,7 @@ by (induct n) auto
 text{* Courtesy of Matthias Daum: *}
 lemma append_replicate_commute:
   "replicate n x @ replicate k x = replicate k x @ replicate n x"
-apply (simp add: replicate_add [THEN sym])
+apply (simp add: replicate_add [symmetric])
 apply (simp add: add.commute)
 done
 

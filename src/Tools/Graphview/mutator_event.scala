@@ -1,4 +1,4 @@
-/*  Title:      Tools/Graphview/src/mutator_event.scala
+/*  Title:      Tools/Graphview/mutator_event.scala
     Author:     Markus Kaiser, TU Muenchen
 
 Events for dialog synchronization.

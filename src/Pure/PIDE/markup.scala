@@ -353,6 +353,7 @@ object Markup
   val INFORMATION = "information"
   val TRACING = "tracing"
   val WARNING = "warning"
+  val LEGACY = "legacy"
   val ERROR = "error"
   val PROTOCOL = "protocol"
   val SYSTEM = "system"
@@ -365,6 +366,7 @@ object Markup
   val INFORMATION_MESSAGE = "information_message"
   val TRACING_MESSAGE = "tracing_message"
   val WARNING_MESSAGE = "warning_message"
+  val LEGACY_MESSAGE = "legacy_message"
   val ERROR_MESSAGE = "error_message"
 
   val messages = Map(
@@ -373,13 +375,12 @@ object Markup
     INFORMATION -> INFORMATION_MESSAGE,
     TRACING -> TRACING_MESSAGE,
     WARNING -> WARNING_MESSAGE,
+    LEGACY -> LEGACY_MESSAGE,
     ERROR -> ERROR_MESSAGE)
 
   val message: String => String = messages.withDefault((s: String) => s)
 
   val Return_Code = new Properties.Int("return_code")
-
-  val LEGACY = "legacy"
 
   val NO_REPORT = "no_report"
 
