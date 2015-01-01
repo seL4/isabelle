@@ -161,9 +161,9 @@ class Mutator_Dialog(
   private class Mutator_Panel(initials: Mutator.Info)
     extends BoxPanel(Orientation.Horizontal)
   {
-    private val inputs: List[(String, Mutator_Input_Value)] = get_Inputs()
+    private val inputs: List[(String, Input)] = get_inputs()
     var focusList = List.empty[java.awt.Component]
-    private val enabledBox = new iCheckBox("Enabled", initials.enabled)
+    private val enabledBox = new Check_Box_Input("Enabled", initials.enabled)
 
     border = new EmptyBorder(5, 5, 5, 5)
     maximumSize = new Dimension(Integer.MAX_VALUE, 30)
@@ -250,31 +250,31 @@ class Mutator_Dialog(
           case Mutator.Identity() =>
             Mutator.Identity()
           case Mutator.Node_Expression(r, _, _, _) =>
-            val r1 = inputs(2)._2.get_string
+            val r1 = inputs(2)._2.string
             Mutator.Node_Expression(
               if (Library.make_regex(r1).isDefined) r1 else r,
-              inputs(3)._2.get_bool,
+              inputs(3)._2.bool,
               // "Parents" means "Show parents" or "Matching Children"
-              inputs(1)._2.get_bool,
-              inputs(0)._2.get_bool)
+              inputs(1)._2.bool,
+              inputs(0)._2.bool)
           case Mutator.Node_List(_, _, _, _) =>
             Mutator.Node_List(
-              inputs(2)._2.get_string.split(',').filter(_ != "").toList,
-              inputs(3)._2.get_bool,
+              inputs(2)._2.string.split(',').filter(_ != "").toList,
+              inputs(3)._2.bool,
               // "Parents" means "Show parents" or "Matching Children"
-              inputs(1)._2.get_bool,
-              inputs(0)._2.get_bool)
+              inputs(1)._2.bool,
+              inputs(0)._2.bool)
           case Mutator.Edge_Endpoints(_, _) =>
             Mutator.Edge_Endpoints(
-              inputs(0)._2.get_string,
-              inputs(1)._2.get_string)
+              inputs(0)._2.string,
+              inputs(1)._2.string)
           case Mutator.Add_Node_Expression(r) =>
-            val r1 = inputs(0)._2.get_string
+            val r1 = inputs(0)._2.string
             Mutator.Add_Node_Expression(if (Library.make_regex(r1).isDefined) r1 else r)
           case Mutator.Add_Transitive_Closure(_, _) =>
             Mutator.Add_Transitive_Closure(
-              inputs(0)._2.get_bool,
-              inputs(1)._2.get_bool)
+              inputs(0)._2.bool,
+              inputs(1)._2.bool)
           case _ =>
             Mutator.Identity()
         }
@@ -282,42 +282,42 @@ class Mutator_Dialog(
       Mutator.Info(enabledBox.selected, background, m)
     }
 
-    private def get_Inputs(): List[(String, Mutator_Input_Value)] =
+    private def get_inputs(): List[(String, Input)] =
       initials.mutator match {
         case Mutator.Node_Expression(regex, reverse, check_parents, check_children) =>
           List(
-            ("", new iCheckBox("Parents", check_children)),
-            ("", new iCheckBox("Children", check_parents)),
-            ("Regex", new iTextField(regex, x => Library.make_regex(x).isDefined)),
-            ("", new iCheckBox(reverse_caption, reverse)))
+            ("", new Check_Box_Input("Parents", check_children)),
+            ("", new Check_Box_Input("Children", check_parents)),
+            ("Regex", new Text_Field_Input(regex, x => Library.make_regex(x).isDefined)),
+            ("", new Check_Box_Input(reverse_caption, reverse)))
         case Mutator.Node_List(list, reverse, check_parents, check_children) =>
           List(
-            ("", new iCheckBox("Parents", check_children)),
-            ("", new iCheckBox("Children", check_parents)),
-            ("Names", new iTextField(list.mkString(","))),
-            ("", new iCheckBox(reverse_caption, reverse)))
+            ("", new Check_Box_Input("Parents", check_children)),
+            ("", new Check_Box_Input("Children", check_parents)),
+            ("Names", new Text_Field_Input(list.mkString(","))),
+            ("", new Check_Box_Input(reverse_caption, reverse)))
         case Mutator.Edge_Endpoints(source, dest) =>
           List(
-            ("Source", new iTextField(source)),
-            ("Destination", new iTextField(dest)))
+            ("Source", new Text_Field_Input(source)),
+            ("Destination", new Text_Field_Input(dest)))
         case Mutator.Add_Node_Expression(regex) =>
-          List(("Regex", new iTextField(regex, x => Library.make_regex(x).isDefined)))
+          List(("Regex", new Text_Field_Input(regex, x => Library.make_regex(x).isDefined)))
         case Mutator.Add_Transitive_Closure(parents, children) =>
           List(
-            ("", new iCheckBox("Parents", parents)),
-            ("", new iCheckBox("Children", children)))
+            ("", new Check_Box_Input("Parents", parents)),
+            ("", new Check_Box_Input("Children", children)))
         case _ => Nil
       }
   }
 
-  private trait Mutator_Input_Value
+  private trait Input
   {
-    def get_string: String
-    def get_bool: Boolean
+    def string: String
+    def bool: Boolean
   }
 
-  private class iTextField(t: String, check: String => Boolean = (_: String) => true)
-    extends TextField(t) with Mutator_Input_Value
+  private class Text_Field_Input(txt: String, check: String => Boolean = (_: String) => true)
+    extends TextField(txt) with Input
   {
     preferredSize = new Dimension(125, 18)
 
@@ -328,17 +328,16 @@ class Mutator_Dialog(
         foreground = if (check(text)) default_foreground else visualizer.error_color
     }
 
-    def get_string = text
-    def get_bool = true
+    def string = text
+    def bool = true
   }
 
-  private class iCheckBox(t: String, s: Boolean)
-  extends CheckBox(t) with Mutator_Input_Value
+  private class Check_Box_Input(txt: String, s: Boolean) extends CheckBox(txt) with Input
   {
     selected = s
 
-    def get_string = ""
-    def get_bool = selected
+    def string = ""
+    def bool = selected
   }
 
   private object Focus_Traveral_Policy extends FocusTraversalPolicy
