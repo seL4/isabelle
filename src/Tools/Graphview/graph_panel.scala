@@ -92,6 +92,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     override def paint(g: Graphics2D)
     {
       super.paintComponent(g)
+      g.setColor(visualizer.background_color)
+      g.fillRect(0, 0, peer.getWidth, peer.getHeight)
       g.transform(Transform())
 
       visualizer.Drawer.paint_all_visible(g, true)
