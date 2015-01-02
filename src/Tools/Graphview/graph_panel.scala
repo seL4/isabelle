@@ -182,8 +182,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
           case '+' => rescale(Transform.scale * 5.0/4)
           case '-' => rescale(Transform.scale * 4.0/5)
           case '0' => Transform.fit_to_window()
-          case '1' => visualizer.Coordinates.update_layout()
-          case '2' => Transform.fit_to_window()
+          case '1' => apply_layout()
           case _ =>
         }
     }
