@@ -54,19 +54,19 @@ class Visualizer(val model: Model)
     gfx
   }
 
-  class Metrics private[Visualizer]
+  class Metrics private[Visualizer](f: Font, frc: FontRenderContext)
   {
-    private val f = font()
-    def string_bounds(s: String) = f.getStringBounds(s, font_render_context)
+    def string_bounds(s: String) = f.getStringBounds(s, frc)
     private val specimen = string_bounds("mix")
 
     def char_width: Double = specimen.getWidth / 3
-    def line_height: Double = specimen.getHeight
-    def gap_x: Double = char_width * 2.5
-    def pad_x: Double = char_width * 0.5
-    def pad_y: Double = line_height * 0.25
+    def height: Double = specimen.getHeight
+    def ascent: Double = font.getLineMetrics("", frc).getAscent
+    def gap: Double = specimen.getWidth
+    def pad: Double = char_width
   }
-  def metrics(): Metrics = new Metrics
+  def metrics(): Metrics = new Metrics(font(), font_render_context)
+  def metrics(gfx: Graphics2D): Metrics = new Metrics(gfx.getFont, gfx.getFontRenderContext)
 
 
   /* rendering parameters */
@@ -152,8 +152,8 @@ class Visualizer(val model: Model)
           val max_width =
             model.current_graph.iterator.map({ case (_, (info, _)) =>
               m.string_bounds(info.name).getWidth }).max
-          val box_distance = max_width + m.pad_x + m.gap_x
-          def box_height(n: Int): Double = (m.line_height + m.pad_y) * (5 max n)
+          val box_distance = max_width + m.pad + m.gap
+          def box_height(n: Int): Double = m.char_width * 1.5 * (5 max n)
 
           Layout.make(model.current_graph, box_distance, box_height _)
         }

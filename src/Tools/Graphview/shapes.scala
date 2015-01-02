@@ -27,17 +27,19 @@ object Shapes
     def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Rectangle2D.Double =
     {
       val (x, y) = visualizer.Coordinates(peer.get)
-      val bounds = g.getFontMetrics.getStringBounds(visualizer.Caption(peer.get), g)
-      val m = visualizer.metrics()
-      val w = bounds.getWidth + m.pad_x
-      val h = bounds.getHeight + m.pad_y
+      val m = visualizer.metrics(g)
+      val bounds = m.string_bounds(visualizer.Caption(peer.get))
+      val w = bounds.getWidth + m.pad
+      val h = bounds.getHeight + m.pad
       new Rectangle2D.Double(x - (w / 2), y - (h / 2), w, h)
     }
 
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String])
     {
       val caption = visualizer.Caption(peer.get)
-      val bounds = g.getFontMetrics.getStringBounds(caption, g)
+      val m = visualizer.metrics(g)
+      val bounds = m.string_bounds(caption)
+
       val s = shape(g, visualizer, peer)
 
       val c = visualizer.node_color(peer)
@@ -49,7 +51,7 @@ object Shapes
       g.setColor(c.foreground)
       g.drawString(caption,
         (s.getCenterX + (- bounds.getWidth / 2)).toFloat,
-        (s.getCenterY + 5).toFloat)
+        (s.getY + m.pad / 2 + m.ascent).toFloat)
     }
   }
 
