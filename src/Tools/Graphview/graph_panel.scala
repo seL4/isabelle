@@ -16,7 +16,7 @@ import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
 import scala.swing.{Panel, ScrollPane}
 import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged,
-  MouseMoved, MouseClicked, MouseWheelMoved, MouseEvent}
+  MouseMoved, MouseClicked, MouseEvent}
 
 
 class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
@@ -35,12 +35,13 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
   }
 
-  peer.setWheelScrollingEnabled(false)
   focusable = true
   requestFocus()
 
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+
+  peer.getVerticalScrollBar.setUnitIncrement(10)
 
   def node(at: Point2D): Option[String] =
   {
@@ -105,7 +106,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   listenTo(keys)
   listenTo(mouse.moves)
   listenTo(mouse.clicks)
-  listenTo(mouse.wheel)
   reactions += Interaction.Mouse.react
   reactions += Interaction.Keyboard.react
   reactions +=
@@ -113,7 +113,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     case KeyTyped(_, _, _, _) => repaint(); requestFocus()
     case MousePressed(_, _, _, _, _) => repaint(); requestFocus()
     case MouseDragged(_, _, _) => repaint(); requestFocus()
-    case MouseWheelMoved(_, _, _, _) => repaint(); requestFocus()
     case MouseClicked(_, _, _, _, _) => repaint(); requestFocus()
     case MouseMoved(_, _, _) => repaint()
   }
@@ -202,7 +201,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
           drag(draginfo, to)
           val (_, p, d) = draginfo
           draginfo = (to, p, d)
-        case MouseWheelMoved(_, p, _, r) => wheel(r, p)
         case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
       }
 
@@ -289,24 +287,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
           case (ls, _) =>
             ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
         }
-      }
-
-      def wheel(rotation: Int, at: Point)
-      {
-        val at2 = Transform.pane_to_graph_coordinates(at)
-        // > 0 -> up
-        rescale(Transform.scale * (if (rotation > 0) 4.0/5 else 5.0/4))
-
-        // move mouseposition to center
-        Transform().transform(at2, at2)
-        val r = panel.peer.getViewport.getViewRect
-        val (width, height) = (r.getWidth, r.getHeight)
-        paint_panel.peer.scrollRectToVisible(
-          new Rectangle(
-            (at2.getX() - width / 2).toInt,
-            (at2.getY() - height / 2).toInt,
-            width.toInt,
-            height.toInt))
       }
     }
   }
