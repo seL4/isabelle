@@ -15,8 +15,7 @@ import java.awt.image.BufferedImage
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
 import scala.swing.{Panel, ScrollPane}
-import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged,
-  MouseMoved, MouseClicked, MouseEvent}
+import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged, MouseClicked, MouseEvent}
 
 
 class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
@@ -114,7 +113,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     case MousePressed(_, _, _, _, _) => repaint(); requestFocus()
     case MouseDragged(_, _, _) => repaint(); requestFocus()
     case MouseClicked(_, _, _, _, _) => repaint(); requestFocus()
-    case MouseMoved(_, _, _) => repaint()
   }
 
   visualizer.model.Colors.events += { case _ => repaint() }
