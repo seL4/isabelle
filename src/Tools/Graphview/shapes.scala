@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/shapes.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Drawable shapes.
 */

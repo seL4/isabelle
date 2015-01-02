@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/mutator.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Filters and add-operations on graphs.
 */

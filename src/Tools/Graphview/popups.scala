@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/popups.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 PopupMenu generation for graph components.
 */

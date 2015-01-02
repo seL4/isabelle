@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/mutator_dialog.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Mutator selection and configuration dialog.
 */

@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/graph_panel.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Graphview Java2D drawing panel.
 */

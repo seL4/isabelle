@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/model.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Internal graph representation.
 */

@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/mutator_event.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Events for dialog synchronization.
 */

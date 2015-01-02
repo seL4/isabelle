@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/main_panel.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Graph Panel wrapper.
 */

@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/layout.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Pendulum DAG layout algorithm.
 */

@@ -1,5 +1,6 @@
 /*  Title:      Tools/Graphview/visualizer.scala
     Author:     Markus Kaiser, TU Muenchen
+    Author:     Makarius
 
 Graph visualization parameters and interface state.
 */
