@@ -47,14 +47,14 @@ object Mutator
   class Edge_Filter(
     name: String,
     description: String,
-    pred: (Graph_Display.Graph, Graph_Display.Node, Graph_Display.Node) => Boolean)
+    pred: (Graph_Display.Graph, Graph_Display.Edge) => Boolean)
     extends Graph_Filter(
       name,
       description,
       g => (g /: g.dest) {
         case (graph, ((from, _), tos)) =>
           (graph /: tos)((gr, to) =>
-            if (pred(gr, from, to)) gr else gr.del_edge(from, to))
+            if (pred(gr, (from, to))) gr else gr.del_edge(from, to))
       })
 
   class Node_Family_Filter(
@@ -105,11 +105,11 @@ object Mutator
       children,
       (g, node) => list.contains(node))
 
-  case class Edge_Endpoints(source: Graph_Display.Node, dest: Graph_Display.Node)
+  case class Edge_Endpoints(edge: Graph_Display.Edge)
     extends Edge_Filter(
       "Hide edge",
-      "Hides the edge whose endpoints match strings.",
-      (g, s, d) => !(s == source && d == dest))
+      "Hides specified edge.",
+      (g, e) => e != edge)
 
   private def add_node_group(from: Graph_Display.Graph, to: Graph_Display.Graph,
     keys: List[Graph_Display.Node]) =

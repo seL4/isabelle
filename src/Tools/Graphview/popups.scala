@@ -81,7 +81,7 @@ object Popups
                               new Action(to.toString) {
                                 def apply =
                                   add_mutator(
-                                    Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
+                                    Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
                               })
                         })
                       }
@@ -103,7 +103,7 @@ object Popups
                               new Action(from.toString) {
                                 def apply =
                                   add_mutator(
-                                    Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
+                                    Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
                               })
                         })
                       }

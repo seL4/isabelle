@@ -269,10 +269,10 @@ class Mutator_Dialog(
               // "Parents" means "Show parents" or "Matching Children"
               inputs(1)._2.bool,
               inputs(0)._2.bool)
-          case Mutator.Edge_Endpoints(_, _) =>
+          case Mutator.Edge_Endpoints(_) =>
             (model.find_node(inputs(0)._2.string), model.find_node(inputs(1)._2.string)) match {
               case (Some(node1), Some(node2)) =>
-                Mutator.Edge_Endpoints(node1, node2)
+                Mutator.Edge_Endpoints((node1, node2))
               case _ =>
                 Mutator.Identity()
             }
@@ -304,7 +304,7 @@ class Mutator_Dialog(
             ("", new Check_Box_Input("Children", check_parents)),
             ("Names", new Text_Field_Input(list.map(_.ident).mkString(","))),
             ("", new Check_Box_Input(reverse_caption, reverse)))
-        case Mutator.Edge_Endpoints(source, dest) =>
+        case Mutator.Edge_Endpoints((source, dest)) =>
           List(
             ("Source", new Text_Field_Input(source.ident)),
             ("Destination", new Text_Field_Input(dest.ident)))

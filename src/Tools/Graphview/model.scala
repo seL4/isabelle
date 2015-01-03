@@ -40,7 +40,7 @@ class Model(val complete_graph: Graph_Display.Graph)
       List(
         Mutator.Node_Expression(".*", false, false, false),
         Mutator.Node_List(Nil, false, false, false),
-        Mutator.Edge_Endpoints(Graph_Display.Node.dummy, Graph_Display.Node.dummy),
+        Mutator.Edge_Endpoints((Graph_Display.Node.dummy, Graph_Display.Node.dummy)),
         Mutator.Add_Node_Expression(""),
         Mutator.Add_Transitive_Closure(true, true)))
 
