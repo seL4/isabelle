@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
 import scala.swing.{Panel, ScrollPane}
-import scala.swing.event.{Event, Key, KeyTyped, MousePressed, MouseDragged, MouseClicked, MouseEvent}
+import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked, MouseEvent}
 
 
 class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
@@ -74,7 +74,11 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     refresh()
   }
 
-  def apply_layout() = visualizer.Coordinates.update_layout()
+  def apply_layout()
+  {
+    visualizer.Coordinates.update_layout()
+    repaint()
+  }
 
   private class Paint_Panel extends Panel
   {
@@ -102,17 +106,14 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   private val paint_panel = new Paint_Panel
   contents = paint_panel
 
-  listenTo(keys)
   listenTo(mouse.moves)
   listenTo(mouse.clicks)
-  reactions += Interaction.Mouse.react
-  reactions += Interaction.Keyboard.react
+  reactions += Mouse_Interaction.react
   reactions +=
   {
-    case KeyTyped(_, _, _, _) => repaint(); requestFocus()
-    case MousePressed(_, _, _, _, _) => repaint(); requestFocus()
-    case MouseDragged(_, _, _) => repaint(); requestFocus()
-    case MouseClicked(_, _, _, _, _) => repaint(); requestFocus()
+    case MousePressed(_, _, _, _, _) => repaint()
+    case MouseDragged(_, _, _) => repaint()
+    case MouseClicked(_, _, _, _, _) => repaint()
   }
 
   visualizer.model.Colors.events += { case _ => repaint() }
@@ -160,130 +161,110 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
   }
 
-  object Interaction
+  object Mouse_Interaction
   {
-    object Keyboard
-    {
-      val react: PartialFunction[Event, Unit] =
-      {
-        case KeyTyped(_, c, m, _) => typed(c, m)
-      }
+    type Dummy = (Graph_Display.Edge, Int)
 
-      def typed(c: Char, m: Key.Modifiers) =
-        c match {
-          case '+' => rescale(Transform.scale * 5.0/4)
-          case '-' => rescale(Transform.scale * 4.0/5)
-          case '0' => Transform.fit_to_window()
-          case '1' => apply_layout()
-          case _ =>
-        }
+    private var draginfo: (Point, List[Graph_Display.Node], List[Dummy]) = null
+
+    val react: PartialFunction[Event, Unit] =
+    {
+      case MousePressed(_, p, _, _, _) => pressed(p)
+      case MouseDragged(_, to, _) =>
+        drag(draginfo, to)
+        val (_, p, d) = draginfo
+        draginfo = (to, p, d)
+      case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
     }
 
-    object Mouse
+    def dummy(at: Point2D): Option[Dummy] =
     {
-      type Dummy = (Graph_Display.Edge, Int)
+      val m = visualizer.metrics()
+      visualizer.model.visible_edges_iterator.map(
+        edge => visualizer.Coordinates(edge).zipWithIndex.map((edge, _))).flatten.find(
+          {
+            case (_, ((x, y), _)) =>
+              visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
+                contains(at.getX() - x, at.getY() - y)
+          }) match {
+            case None => None
+            case Some((edge, (_, index))) => Some((edge, index))
+          }
+    }
 
-      private var draginfo: (Point, List[Graph_Display.Node], List[Dummy]) = null
-
-      val react: PartialFunction[Event, Unit] =
-      {
-        case MousePressed(_, p, _, _, _) => pressed(p)
-        case MouseDragged(_, to, _) =>
-          drag(draginfo, to)
-          val (_, p, d) = draginfo
-          draginfo = (to, p, d)
-        case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
-      }
-
-      def dummy(at: Point2D): Option[Dummy] =
-      {
-        val m = visualizer.metrics()
-        visualizer.model.visible_edges_iterator.map(
-          edge => visualizer.Coordinates(edge).zipWithIndex.map((edge, _))).flatten.find(
-            {
-              case (_, ((x, y), _)) =>
-                visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
-                  contains(at.getX() - x, at.getY() - y)
-            }) match {
-              case None => None
-              case Some((edge, (_, index))) => Some((edge, index))
+    def pressed(at: Point)
+    {
+      val c = Transform.pane_to_graph_coordinates(at)
+      val l =
+        find_node(c) match {
+          case Some(node) =>
+            if (visualizer.Selection.contains(node)) visualizer.Selection.get()
+            else List(node)
+          case None => Nil
+        }
+      val d =
+        l match {
+          case Nil =>
+            dummy(c) match {
+              case Some(d) => List(d)
+              case None => Nil
             }
-      }
-
-      def pressed(at: Point)
-      {
-        val c = Transform.pane_to_graph_coordinates(at)
-        val l =
-          find_node(c) match {
-            case Some(node) =>
-              if (visualizer.Selection.contains(node)) visualizer.Selection.get()
-              else List(node)
-            case None => Nil
-          }
-        val d =
-          l match {
-            case Nil =>
-              dummy(c) match {
-                case Some(d) => List(d)
-                case None => Nil
-              }
-            case _ => Nil
-          }
-        draginfo = (at, l, d)
-      }
-
-      def click(at: Point, m: Key.Modifiers, clicks: Int, e: MouseEvent)
-      {
-        val c = Transform.pane_to_graph_coordinates(at)
-
-        def left_click()
-        {
-          (find_node(c), m) match {
-            case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
-            case (None, Key.Modifier.Control) =>
-
-            case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
-            case (None, Key.Modifier.Shift) =>
-
-            case (Some(node), _) =>
-              visualizer.Selection.clear()
-              visualizer.Selection.add(node)
-            case (None, _) =>
-              visualizer.Selection.clear()
-          }
+          case _ => Nil
         }
+      draginfo = (at, l, d)
+    }
 
-        def right_click()
-        {
-          val menu = Popups(panel, find_node(c), visualizer.Selection.get())
-          menu.show(panel.peer, at.x, at.y)
-        }
+    def click(at: Point, m: Key.Modifiers, clicks: Int, e: MouseEvent)
+    {
+      val c = Transform.pane_to_graph_coordinates(at)
 
-        if (clicks < 2) {
-          if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
-          else left_click()
+      def left_click()
+      {
+        (find_node(c), m) match {
+          case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
+          case (None, Key.Modifier.Control) =>
+
+          case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
+          case (None, Key.Modifier.Shift) =>
+
+          case (Some(node), _) =>
+            visualizer.Selection.clear()
+            visualizer.Selection.add(node)
+          case (None, _) =>
+            visualizer.Selection.clear()
         }
       }
 
-      def drag(draginfo: (Point, List[Graph_Display.Node], List[Dummy]), to: Point)
+      def right_click()
       {
-        val (from, p, d) = draginfo
+        val menu = Popups(panel, find_node(c), visualizer.Selection.get())
+        menu.show(panel.peer, at.x, at.y)
+      }
 
-        val s = Transform.scale_discrete
-        val (dx, dy) = (to.x - from.x, to.y - from.y)
-        (p, d) match {
-          case (Nil, Nil) =>
-            val r = panel.peer.getViewport.getViewRect
-            r.translate(-dx, -dy)
+      if (clicks < 2) {
+        if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
+        else left_click()
+      }
+    }
 
-            paint_panel.peer.scrollRectToVisible(r)
+    def drag(draginfo: (Point, List[Graph_Display.Node], List[Dummy]), to: Point)
+    {
+      val (from, p, d) = draginfo
 
-          case (Nil, ds) =>
-            ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
+      val s = Transform.scale_discrete
+      val (dx, dy) = (to.x - from.x, to.y - from.y)
+      (p, d) match {
+        case (Nil, Nil) =>
+          val r = panel.peer.getViewport.getViewRect
+          r.translate(-dx, -dy)
 
-          case (ls, _) =>
-            ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
-        }
+          paint_panel.peer.scrollRectToVisible(r)
+
+        case (Nil, ds) =>
+          ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
+
+        case (ls, _) =>
+          ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
       }
     }
   }
