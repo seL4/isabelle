@@ -89,14 +89,14 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       revalidate()
     }
 
-    override def paint(g: Graphics2D)
+    override def paint(gfx: Graphics2D)
     {
-      super.paintComponent(g)
-      g.setColor(visualizer.background_color)
-      g.fillRect(0, 0, peer.getWidth, peer.getHeight)
-      g.transform(Transform())
+      super.paintComponent(gfx)
+      gfx.setColor(visualizer.background_color)
+      gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
+      gfx.transform(Transform())
 
-      visualizer.Drawer.paint_all_visible(g, true)
+      visualizer.Drawer.paint_all_visible(gfx, true)
     }
   }
   private val paint_panel = new Paint_Panel

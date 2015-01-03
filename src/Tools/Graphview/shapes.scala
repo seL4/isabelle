@@ -31,22 +31,22 @@ object Shapes
       new Rectangle2D.Double((x - (w / 2)).floor, (y - (h / 2)).floor, w.ceil, h.ceil)
     }
 
-    def paint(g: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
+    def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
     {
-      val m = Visualizer.Metrics(g)
+      val m = Visualizer.Metrics(gfx)
       val s = shape(m, visualizer, node)
       val c = visualizer.node_color(node)
       val bounds = m.string_bounds(node.toString)
 
-      g.setColor(c.background)
-      g.fill(s)
+      gfx.setColor(c.background)
+      gfx.fill(s)
 
-      g.setColor(c.border)
-      g.setStroke(default_stroke)
-      g.draw(s)
+      gfx.setColor(c.border)
+      gfx.setStroke(default_stroke)
+      gfx.draw(s)
 
-      g.setColor(c.foreground)
-      g.drawString(node.toString,
+      gfx.setColor(c.foreground)
+      gfx.drawString(node.toString,
         (s.getCenterX - bounds.getWidth / 2).round.toInt,
         (s.getCenterY - bounds.getHeight / 2 + m.ascent).round.toInt)
     }
@@ -62,25 +62,25 @@ object Shapes
       new Rectangle2D.Double(- w, - w, 2 * w, 2 * w)
     }
 
-    def paint(g: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node): Unit =
-      paint_transformed(g, visualizer, node, identity)
+    def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node): Unit =
+      paint_transformed(gfx, visualizer, node, identity)
 
-    def paint_transformed(g: Graphics2D, visualizer: Visualizer,
+    def paint_transformed(gfx: Graphics2D, visualizer: Visualizer,
       node: Graph_Display.Node, at: AffineTransform)
     {
-      val m = Visualizer.Metrics(g)
+      val m = Visualizer.Metrics(gfx)
       val s = shape(m, visualizer, node)
       val c = visualizer.node_color(node)
 
-      g.setStroke(default_stroke)
-      g.setColor(c.border)
-      g.draw(at.createTransformedShape(s))
+      gfx.setStroke(default_stroke)
+      gfx.setColor(c.border)
+      gfx.draw(at.createTransformedShape(s))
     }
   }
 
   object Straight_Edge
   {
-    def paint(g: Graphics2D, visualizer: Visualizer,
+    def paint(gfx: Graphics2D, visualizer: Visualizer,
       edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
     {
       val (fx, fy) = visualizer.Coordinates(edge._1)
@@ -101,17 +101,18 @@ object Shapes
         ds.foreach({
             case (x, y) => {
               val at = AffineTransform.getTranslateInstance(x, y)
-              Dummy.paint_transformed(g, visualizer, Graph_Display.Node.dummy, at)
+              Dummy.paint_transformed(gfx, visualizer, Graph_Display.Node.dummy, at)
             }
           })
       }
 
-      g.setStroke(default_stroke)
-      g.setColor(visualizer.edge_color(edge))
-      g.draw(path)
+      gfx.setStroke(default_stroke)
+      gfx.setColor(visualizer.edge_color(edge))
+      gfx.draw(path)
 
       if (head)
-        Arrow_Head.paint(g, path, visualizer.Drawer.shape(Visualizer.Metrics(g), edge._2))
+        Arrow_Head.paint(gfx, path,
+          visualizer.Drawer.shape(Visualizer.Metrics(gfx), edge._2))
     }
   }
 
@@ -119,7 +120,7 @@ object Shapes
   {
     private val slack = 0.1
 
-    def paint(g: Graphics2D, visualizer: Visualizer,
+    def paint(gfx: Graphics2D, visualizer: Visualizer,
       edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
     {
       val (fx, fy) = visualizer.Coordinates(edge._1)
@@ -131,7 +132,7 @@ object Shapes
         visualizer.Coordinates(edge).filter({ case (_, y) => min < y && y < max })
       }
 
-      if (ds.isEmpty) Straight_Edge.paint(g, visualizer, edge, head, dummies)
+      if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge, head, dummies)
       else {
         val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
         path.moveTo(fx, fy)
@@ -160,17 +161,18 @@ object Shapes
           ds.foreach({
               case (x, y) => {
                 val at = AffineTransform.getTranslateInstance(x, y)
-                Dummy.paint_transformed(g, visualizer, Graph_Display.Node.dummy, at)
+                Dummy.paint_transformed(gfx, visualizer, Graph_Display.Node.dummy, at)
               }
             })
         }
 
-        g.setStroke(default_stroke)
-        g.setColor(visualizer.edge_color(edge))
-        g.draw(path)
+        gfx.setStroke(default_stroke)
+        gfx.setColor(visualizer.edge_color(edge))
+        gfx.draw(path)
 
         if (head)
-          Arrow_Head.paint(g, path, visualizer.Drawer.shape(Visualizer.Metrics(g), edge._2))
+          Arrow_Head.paint(gfx, path,
+            visualizer.Drawer.shape(Visualizer.Metrics(gfx), edge._2))
       }
     }
   }
@@ -231,7 +233,7 @@ object Shapes
       }
     }
 
-    def paint(g: Graphics2D, path: GeneralPath, shape: Shape)
+    def paint(gfx: Graphics2D, path: GeneralPath, shape: Shape)
     {
       position(path, shape) match {
         case None =>
@@ -243,8 +245,7 @@ object Shapes
           arrow.lineTo(-10, -4)
           arrow.lineTo(0, 0)
           arrow.transform(at)
-
-          g.fill(arrow)
+          gfx.fill(arrow)
       }
     }
   }

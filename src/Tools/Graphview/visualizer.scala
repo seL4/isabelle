@@ -184,18 +184,18 @@ class Visualizer(val model: Model)
 
   object Drawer
   {
-    def apply(g: Graphics2D, node: Graph_Display.Node): Unit =
-      if (!node.is_dummy) Shapes.Growing_Node.paint(g, visualizer, node)
+    def apply(gfx: Graphics2D, node: Graph_Display.Node): Unit =
+      if (!node.is_dummy) Shapes.Growing_Node.paint(gfx, visualizer, node)
 
-    def apply(g: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
-      Shapes.Cardinal_Spline_Edge.paint(g, visualizer, edge, head, dummies)
+    def apply(gfx: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
+      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge, head, dummies)
 
-    def paint_all_visible(g: Graphics2D, dummies: Boolean)
+    def paint_all_visible(gfx: Graphics2D, dummies: Boolean)
     {
-      g.setFont(font)
-      g.setRenderingHints(rendering_hints)
-      model.visible_edges_iterator.foreach(apply(g, _, arrow_heads, dummies))
-      model.visible_nodes_iterator.foreach(apply(g, _))
+      gfx.setFont(font)
+      gfx.setRenderingHints(rendering_hints)
+      model.visible_edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
+      model.visible_nodes_iterator.foreach(apply(gfx, _))
     }
 
     def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
