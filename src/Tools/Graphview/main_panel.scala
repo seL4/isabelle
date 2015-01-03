@@ -37,19 +37,16 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 
   private val chooser = new FileChooser()
   chooser.fileSelectionMode = FileChooser.SelectionMode.FilesOnly
-  chooser.title = "Save Image (.png or .pdf)"
+  chooser.title = "Save image (.png or .pdf)"
 
   val options_panel =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       new CheckBox() {
         selected = visualizer.arrow_heads
-        action = Action("Arrow Heads") {
-          visualizer.arrow_heads = selected
-          graph_panel.repaint()
-        }
+        action = Action("Arrow heads") { visualizer.arrow_heads = selected; graph_panel.repaint() }
       },
       new Button {
-        action = Action("Save Image") {
+        action = Action("Save image") {
           chooser.showSaveDialog(this) match {
             case FileChooser.Result.Approve => export(chooser.selectedFile)
             case _ =>
@@ -57,26 +54,10 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
         }
       },
       graph_panel.zoom,
-      new Button {
-        action = Action("Apply Layout") {
-          graph_panel.apply_layout()
-        }
-      },
-      new Button {
-        action = Action("Fit to Window") {
-          graph_panel.fit_to_window()
-        }
-      },
-      new Button {
-        action = Action("Colorations") {
-          color_dialog.open
-        }
-      },
-      new Button {
-        action = Action("Filters") {
-          mutator_dialog.open
-        }
-      })
+      new Button { action = Action("Apply layout") { graph_panel.apply_layout() } },
+      new Button { action = Action("Fit to window") { graph_panel.fit_to_window() } },
+      new Button { action = Action("Colorations") { color_dialog.open } },
+      new Button { action = Action("Filters") { mutator_dialog.open } })
 
   add(graph_panel, BorderPanel.Position.Center)
   add(options_panel, BorderPanel.Position.North)
