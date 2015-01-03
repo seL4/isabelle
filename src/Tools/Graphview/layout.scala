@@ -256,19 +256,19 @@ object Layout
   {
     var nodes: List[Key] = List(node)
 
-    def left(coords: Coordinates): Double = nodes.map(coords(_)._1).min
-    def right(coords: Coordinates): Double = nodes.map(coords(_)._1).max
+    def left(coords: Coordinates): Double = nodes.iterator.map(coords(_)._1).min
+    def right(coords: Coordinates): Double = nodes.iterator.map(coords(_)._1).max
 
     def distance(coords: Coordinates, to: Region): Double =
       math.abs(left(coords) - to.left(coords)) min
       math.abs(right(coords) - to.right(coords))
 
-    def deflection(coords: Coordinates, use_preds: Boolean) =
-      nodes.map(k => (coords(k)._1,
-                      if (use_preds) graph.imm_preds(k).toList  // FIXME iterator
-                      else graph.imm_succs(k).toList))
-      .map({ case (x, as) => as.map(coords(_)._1 - x).sum / (as.length max 1) })
-      .sum / nodes.length
+    def deflection(coords: Coordinates, top_down: Boolean): Double =
+      (for {
+        k <- nodes.iterator
+        x = coords(k)._1
+        as = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
+      } yield as.iterator.map(coords(_)._1 - x).sum / (as.size max 1)).sum / nodes.length
 
     def move(coords: Coordinates, by: Double): Coordinates =
       (coords /: nodes) {
