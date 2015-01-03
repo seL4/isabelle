@@ -16,11 +16,11 @@ import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D, PathIte
 
 object Shapes
 {
+  private val default_stroke =
+    new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+
   object Growing_Node
   {
-    private val stroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-
     def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node)
       : Rectangle2D.Double =
     {
@@ -42,7 +42,7 @@ object Shapes
       g.fill(s)
 
       g.setColor(c.border)
-      g.setStroke(stroke)
+      g.setStroke(default_stroke)
       g.draw(s)
 
       g.setColor(c.foreground)
@@ -54,8 +54,6 @@ object Shapes
 
   object Dummy
   {
-    private val stroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
     private val identity = new AffineTransform()
 
     def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node): Shape =
@@ -74,7 +72,7 @@ object Shapes
       val s = shape(m, visualizer, node)
       val c = visualizer.node_color(node)
 
-      g.setStroke(stroke)
+      g.setStroke(default_stroke)
       g.setColor(c.border)
       g.draw(at.createTransformedShape(s))
     }
@@ -82,9 +80,6 @@ object Shapes
 
   object Straight_Edge
   {
-    private val stroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-
     def paint(g: Graphics2D, visualizer: Visualizer,
       edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
     {
@@ -111,7 +106,7 @@ object Shapes
           })
       }
 
-      g.setStroke(stroke)
+      g.setStroke(default_stroke)
       g.setColor(visualizer.edge_color(edge))
       g.draw(path)
 
@@ -122,8 +117,6 @@ object Shapes
 
   object Cardinal_Spline_Edge
   {
-    private val stroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
     private val slack = 0.1
 
     def paint(g: Graphics2D, visualizer: Visualizer,
@@ -172,7 +165,7 @@ object Shapes
             })
         }
 
-        g.setStroke(stroke)
+        g.setStroke(default_stroke)
         g.setColor(visualizer.edge_color(edge))
         g.draw(path)
 
