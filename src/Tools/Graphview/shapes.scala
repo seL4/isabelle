@@ -23,7 +23,7 @@ object Shapes
   object Growing_Node extends Node
   {
     private val stroke =
-      new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
     def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String])
       : Rectangle2D.Double =
@@ -32,27 +32,29 @@ object Shapes
       val bounds = m.string_bounds(visualizer.Caption(peer.get))
       val w = bounds.getWidth + m.pad
       val h = bounds.getHeight + m.pad
-      new Rectangle2D.Double(x - (w / 2), y - (h / 2), w, h)
+      new Rectangle2D.Double((x - (w / 2)).floor, (y - (h / 2)).floor, w.ceil, h.ceil)
     }
 
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String])
     {
-      val caption = visualizer.Caption(peer.get)
       val m = Visualizer.Metrics(g)
+      val s = shape(m, visualizer, peer)
+      val c = visualizer.node_color(peer)
+
+      val caption = visualizer.Caption(peer.get)
       val bounds = m.string_bounds(caption)
 
-      val s = shape(m, visualizer, peer)
-
-      val c = visualizer.node_color(peer)
-      g.setStroke(stroke)
-      g.setColor(c.border)
-      g.draw(s)
       g.setColor(c.background)
       g.fill(s)
+
+      g.setColor(c.border)
+      g.setStroke(stroke)
+      g.draw(s)
+
       g.setColor(c.foreground)
       g.drawString(caption,
-        (s.getCenterX + (- bounds.getWidth / 2)).toFloat,
-        (s.getY + m.pad / 2 + m.ascent).toFloat)
+        (s.getCenterX - bounds.getWidth / 2).round.toInt,
+        (s.getCenterY - bounds.getHeight / 2 + m.ascent).round.toInt)
     }
   }
 
@@ -60,10 +62,13 @@ object Shapes
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-    private val shape = new Rectangle2D.Double(-5, -5, 10, 10)  // FIXME
     private val identity = new AffineTransform()
 
-    def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String]): Shape = shape
+    def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String]): Shape =
+    {
+      val w = (m.space_width / 2).ceil
+      new Rectangle2D.Double(- w, - w, 2 * w, 2 * w)
+    }
 
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Unit =
       paint_transformed(g, visualizer, peer, identity)
@@ -71,10 +76,13 @@ object Shapes
     def paint_transformed(g: Graphics2D, visualizer: Visualizer,
       peer: Option[String], at: AffineTransform)
     {
+      val m = Visualizer.Metrics(g)
+      val s = shape(m, visualizer, peer)
+
       val c = visualizer.node_color(peer)
       g.setStroke(stroke)
       g.setColor(c.border)
-      g.draw(at.createTransformedShape(shape))
+      g.draw(at.createTransformedShape(s))
     }
   }
 

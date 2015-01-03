@@ -31,12 +31,12 @@ object Visualizer
   class Metrics private(font: Font, font_render_context: FontRenderContext)
   {
     def string_bounds(s: String) = font.getStringBounds(s, font_render_context)
-    private val specimen = string_bounds("mix")
-
-    def char_width: Double = specimen.getWidth / 3
-    def height: Double = specimen.getHeight
+    private val mix = string_bounds("mix")
+    val space_width = string_bounds(" ").getWidth
+    def char_width: Double = mix.getWidth / 3
+    def height: Double = mix.getHeight
     def ascent: Double = font.getLineMetrics("", font_render_context).getAscent
-    def gap: Double = specimen.getWidth
+    def gap: Double = mix.getWidth
     def pad: Double = char_width
   }
 }
@@ -156,8 +156,8 @@ class Visualizer(val model: Model)
           val max_width =
             model.current_graph.iterator.map({ case (_, (info, _)) =>
               m.string_bounds(info.name).getWidth }).max
-          val box_distance = max_width + m.pad + m.gap
-          def box_height(n: Int): Double = m.char_width * 1.5 * (5 max n)
+          val box_distance = (max_width + m.pad + m.gap).ceil
+          def box_height(n: Int): Double = (m.char_width * 1.5 * (5 max n)).ceil
 
           Layout.make(model.current_graph, box_distance, box_height _)
         }
@@ -177,10 +177,10 @@ class Visualizer(val model: Model)
         x1 = x1 max shape.getMaxX
         y1 = y1 max shape.getMaxY
       }
-      x0 = x0 - m.gap
-      y0 = y0 - m.gap
-      x1 = x1 + m.gap
-      y1 = y1 + m.gap
+      x0 = (x0 - m.gap).floor
+      y0 = (y0 - m.gap).floor
+      x1 = (x1 + m.gap).ceil
+      y1 = (y1 + m.gap).ceil
       new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
     }
   }
