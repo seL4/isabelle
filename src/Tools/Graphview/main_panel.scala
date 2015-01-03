@@ -54,8 +54,8 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
         }
       },
       graph_panel.zoom,
-      new Button { action = Action("Apply layout") { graph_panel.apply_layout() } },
       new Button { action = Action("Fit to window") { graph_panel.fit_to_window() } },
+      new Button { action = Action("Apply layout") { graph_panel.apply_layout() } },
       new Button { action = Action("Colorations") { color_dialog.open } },
       new Button { action = Action("Filters") { mutator_dialog.open } })
 

@@ -70,7 +70,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   def rescale(s: Double)
   {
     Transform.scale = s
-    if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).round.toInt)
+    if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
     refresh()
   }
 
@@ -130,8 +130,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     {
       _scale = (s min 10.0) max 0.1
     }
+
     def scale_discrete: Double =
-      (_scale * visualizer.font_size).round.toDouble / visualizer.font_size
+      (scale * visualizer.font_size).floor / visualizer.font_size
 
     def apply() =
     {

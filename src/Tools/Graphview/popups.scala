@@ -142,8 +142,7 @@ object Popups
       popup.add(new JPopupMenu.Separator)
     }
 
-    popup.add(
-      new MenuItem(new Action("Fit to window") { def apply = panel.fit_to_window() }).peer)
+    popup.add(new MenuItem(new Action("Fit to window") { def apply = panel.fit_to_window() }).peer)
 
     popup
   }
