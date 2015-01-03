@@ -13,8 +13,33 @@ import isabelle._
 import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
 import java.awt.font.FontRenderContext
 import java.awt.image.BufferedImage
+import java.awt.geom.Rectangle2D
 import javax.swing.JComponent
 
+
+object Visualizer
+{
+  object Metrics
+  {
+    def apply(font: Font, font_render_context: FontRenderContext) =
+      new Metrics(font, font_render_context)
+
+    def apply(gfx: Graphics2D): Metrics =
+      new Metrics(gfx.getFont, gfx.getFontRenderContext)
+  }
+
+  class Metrics private(font: Font, font_render_context: FontRenderContext)
+  {
+    def string_bounds(s: String) = font.getStringBounds(s, font_render_context)
+    private val specimen = string_bounds("mix")
+
+    def char_width: Double = specimen.getWidth / 3
+    def height: Double = specimen.getHeight
+    def ascent: Double = font.getLineMetrics("", font_render_context).getAscent
+    def gap: Double = specimen.getWidth
+    def pad: Double = char_width
+  }
+}
 
 class Visualizer(val model: Model)
 {
@@ -37,8 +62,8 @@ class Visualizer(val model: Model)
 
   /* font rendering information */
 
-  def font_size: Int = 14
-  def font(): Font = new Font("IsabelleText", Font.BOLD, font_size)
+  def font_size: Int = 12
+  def font(): Font = new Font("Helvetica", Font.PLAIN, font_size)
 
   val rendering_hints =
     new RenderingHints(
@@ -47,27 +72,8 @@ class Visualizer(val model: Model)
 
   val font_render_context = new FontRenderContext(null, true, false)
 
-  def graphics_context(): Graphics2D =
-  {
-    val gfx = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics
-    gfx.setFont(font())
-    gfx.setRenderingHints(rendering_hints)
-    gfx
-  }
-
-  class Metrics private[Visualizer](f: Font, frc: FontRenderContext)
-  {
-    def string_bounds(s: String) = f.getStringBounds(s, frc)
-    private val specimen = string_bounds("mix")
-
-    def char_width: Double = specimen.getWidth / 3
-    def height: Double = specimen.getHeight
-    def ascent: Double = font.getLineMetrics("", frc).getAscent
-    def gap: Double = specimen.getWidth
-    def pad: Double = char_width
-  }
-  def metrics(): Metrics = new Metrics(font(), font_render_context)
-  def metrics(gfx: Graphics2D): Metrics = new Metrics(gfx.getFont, gfx.getFontRenderContext)
+  def metrics(): Visualizer.Metrics =
+    Visualizer.Metrics(font(), font_render_context)
 
 
   /* rendering parameters */
@@ -100,10 +106,7 @@ class Visualizer(val model: Model)
     private var layout = Layout.empty
 
     def apply(k: String): (Double, Double) =
-      layout.nodes.get(k) match {
-        case Some(c) => c
-        case None => (0, 0)
-      }
+      layout.nodes.getOrElse(k, (0.0, 0.0))
 
     def apply(e: (String, String)): List[(Double, Double)] =
       layout.dummies.get(e) match {
@@ -160,16 +163,26 @@ class Visualizer(val model: Model)
         }
     }
 
-    def bounds(): (Double, Double, Double, Double) =
-      model.visible_nodes_iterator.toList match {
-        case Nil => (0, 0, 0, 0)
-        case nodes =>
-          val X: (String => Double) = (n => apply(n)._1)
-          val Y: (String => Double) = (n => apply(n)._2)
-
-          (X(nodes.minBy(X)), Y(nodes.minBy(Y)),
-           X(nodes.maxBy(X)), Y(nodes.maxBy(Y)))
+    def bounding_box(): Rectangle2D.Double =
+    {
+      val m = metrics()
+      var x0 = 0.0
+      var y0 = 0.0
+      var x1 = 0.0
+      var y1 = 0.0
+      for (node_name <- model.visible_nodes_iterator) {
+        val shape = Shapes.Growing_Node.shape(m, visualizer, Some(node_name))
+        x0 = x0 min shape.getMinX
+        y0 = y0 min shape.getMinY
+        x1 = x1 max shape.getMaxX
+        y1 = y1 max shape.getMaxY
       }
+      x0 = x0 - m.gap
+      y0 = y0 - m.gap
+      x1 = x1 + m.gap
+      y1 = y1 + m.gap
+      new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
+    }
   }
 
   object Drawer
@@ -202,11 +215,9 @@ class Visualizer(val model: Model)
         })
     }
 
-    def shape(g: Graphics2D, n: Option[String]): Shape =
-      n match {
-        case None => Shapes.Dummy.shape(g, visualizer, None)
-        case Some(_) => Shapes.Growing_Node.shape(g, visualizer, n)
-      }
+    def shape(m: Visualizer.Metrics, n: Option[String]): Shape =
+      if (n.isEmpty) Shapes.Dummy.shape(m, visualizer, n)
+      else Shapes.Growing_Node.shape(m, visualizer, n)
   }
 
   object Selection

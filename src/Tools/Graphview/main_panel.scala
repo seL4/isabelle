@@ -83,16 +83,16 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 
   private def export(file: JFile)
   {
-    val (x0, y0, x1, y1) = visualizer.Coordinates.bounds
-    val w = (math.abs(x1 - x0) + 400).toInt
-    val h = (math.abs(y1 - y0) + 200).toInt
+    val box = visualizer.Coordinates.bounding_box()
+    val w = box.width.ceil.toInt
+    val h = box.height.ceil.toInt
 
     def paint(gfx: Graphics2D)
     {
       gfx.setColor(Color.WHITE)
-      gfx.fill(new Rectangle2D.Double(0, 0, w, h))
+      gfx.fillRect(0, 0, w, h)
 
-      gfx.translate(- x0 + 200, - y0 + 100)
+      gfx.translate(- box.x, - box.y)
       visualizer.Drawer.paint_all_visible(gfx, false)
     }
 

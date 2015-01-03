@@ -16,7 +16,7 @@ object Shapes
 {
   trait Node
   {
-    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Shape
+    def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String]): Shape
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Unit
   }
 
@@ -25,10 +25,10 @@ object Shapes
     private val stroke =
       new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Rectangle2D.Double =
+    def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String])
+      : Rectangle2D.Double =
     {
       val (x, y) = visualizer.Coordinates(peer.get)
-      val m = visualizer.metrics(g)
       val bounds = m.string_bounds(visualizer.Caption(peer.get))
       val w = bounds.getWidth + m.pad
       val h = bounds.getHeight + m.pad
@@ -38,10 +38,10 @@ object Shapes
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String])
     {
       val caption = visualizer.Caption(peer.get)
-      val m = visualizer.metrics(g)
+      val m = Visualizer.Metrics(g)
       val bounds = m.string_bounds(caption)
 
-      val s = shape(g, visualizer, peer)
+      val s = shape(m, visualizer, peer)
 
       val c = visualizer.node_color(peer)
       g.setStroke(stroke)
@@ -60,10 +60,10 @@ object Shapes
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-    private val shape = new Rectangle2D.Double(-5, -5, 10, 10)
+    private val shape = new Rectangle2D.Double(-5, -5, 10, 10)  // FIXME
     private val identity = new AffineTransform()
 
-    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Shape = shape
+    def shape(m: Visualizer.Metrics, visualizer: Visualizer, peer: Option[String]): Shape = shape
 
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Unit =
       paint_transformed(g, visualizer, peer, identity)
@@ -118,7 +118,8 @@ object Shapes
       g.setColor(visualizer.edge_color(peer))
       g.draw(path)
 
-      if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))
+      if (head)
+        Arrow_Head.paint(g, path, visualizer.Drawer.shape(Visualizer.Metrics(g), Some(peer._2)))
     }
   }
 
@@ -178,7 +179,8 @@ object Shapes
         g.setColor(visualizer.edge_color(peer))
         g.draw(path)
 
-        if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))
+        if (head)
+          Arrow_Head.paint(g, path, visualizer.Drawer.shape(Visualizer.Metrics(g), Some(peer._2)))
       }
     }
   }

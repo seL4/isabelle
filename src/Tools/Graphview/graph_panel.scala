@@ -10,7 +10,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Dimension, Graphics2D, Point, Rectangle}
+import java.awt.{Dimension, Graphics2D, Point}
 import java.awt.geom.{AffineTransform, Point2D}
 import java.awt.image.BufferedImage
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
@@ -45,9 +45,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   def node(at: Point2D): Option[String] =
   {
-    val gfx = visualizer.graphics_context()
+    val m = visualizer.metrics()
     visualizer.model.visible_nodes_iterator
-      .find(name => visualizer.Drawer.shape(gfx, Some(name)).contains(at))
+      .find(name => visualizer.Drawer.shape(m, Some(name)).contains(at))
   }
 
   def refresh()
@@ -78,14 +78,11 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   {
     def set_preferred_size()
     {
-      val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
+      val box = visualizer.Coordinates.bounding_box()
       val s = Transform.scale_discrete
-      val (px, py) = Transform.padding
 
       preferredSize =
-        new Dimension(
-          (math.abs(maxX - minX + px) * s).toInt,
-          (math.abs(maxY - minY + py) * s).toInt)
+        new Dimension((box.width * s).ceil.toInt, (box.height * s).ceil.toInt)
 
       revalidate()
     }
@@ -124,23 +121,20 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   private object Transform
   {
-    val padding = (100, 40)
-
     private var _scale: Double = 1.0
     def scale: Double = _scale
     def scale_=(s: Double)
     {
-      _scale = (s min 10) max 0.1
+      _scale = (s min 10.0) max 0.1
     }
     def scale_discrete: Double =
       (_scale * visualizer.font_size).round.toDouble / visualizer.font_size
 
     def apply() =
     {
-      val (minX, minY, _, _) = visualizer.Coordinates.bounds()
-
+      val box = visualizer.Coordinates.bounding_box()
       val at = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
-      at.translate(-minX + padding._1 / 2, -minY + padding._2 / 2)
+      at.translate(- box.x, - box.y)
       at
     }
 
@@ -149,11 +143,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       if (visualizer.model.visible_nodes_iterator.isEmpty)
         rescale(1.0)
       else {
-        val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
-
-        val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
-        val (sx, sy) = (1.0 * size.width / dx, 1.0 * size.height / dy)
-        rescale(sx min sy)
+        val box = visualizer.Coordinates.bounding_box()
+        rescale((size.width / box.width) min (size.height / box.height))
       }
     }
 
@@ -204,11 +195,11 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
       def dummy(at: Point2D): Option[Dummy] =
       {
-        val gfx = visualizer.graphics_context()
+        val m = visualizer.metrics()
         visualizer.model.visible_edges_iterator.map(
           i => visualizer.Coordinates(i).zipWithIndex.map((i, _))).flatten.find({
             case (_, ((x, y), _)) =>
-              visualizer.Drawer.shape(gfx, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(m, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
