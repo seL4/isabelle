@@ -67,18 +67,18 @@ object Popups
             contents +=
               new Menu("Edge") {
                 if (outs.nonEmpty) {
-                  contents += new MenuItem("From...") { enabled = false }
+                  contents += new MenuItem("From ...") { enabled = false }
 
                   outs.map(e => {
                     val (from, tos) = e
                     contents +=
-                      new Menu(from.toString) {
-                        contents += new MenuItem("To...") { enabled = false }
+                      new Menu(quote(from.toString)) {
+                        contents += new MenuItem("To ...") { enabled = false }
 
                         tos.toList.sorted(Graph_Display.Node.Ordering).distinct.map(to => {
                           contents +=
                             new MenuItem(
-                              new Action(to.toString) {
+                              new Action(quote(to.toString)) {
                                 def apply =
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
@@ -89,18 +89,18 @@ object Popups
                 }
                 if (outs.nonEmpty && ins.nonEmpty) { contents += new Separator() }
                 if (ins.nonEmpty) {
-                  contents += new MenuItem("To...") { enabled = false }
+                  contents += new MenuItem("To ...") { enabled = false }
 
                   ins.map(e => {
                     val (to, froms) = e
                     contents +=
-                      new Menu(to.toString) {
-                        contents += new MenuItem("From...") { enabled = false }
+                      new Menu(quote(to.toString)) {
+                        contents += new MenuItem("From ...") { enabled = false }
 
                         froms.toList.sorted(Graph_Display.Node.Ordering).distinct.map(from => {
                           contents +=
                             new MenuItem(
-                              new Action(from.toString) {
+                              new Action(quote(from.toString)) {
                                 def apply =
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
@@ -123,7 +123,7 @@ object Popups
 
     if (mouse_node.isDefined) {
       val node = mouse_node.get
-      popup.add(new MenuItem("Mouseover: " + node) { enabled = false }.peer)
+      popup.add(new MenuItem("Mouse over: " + quote(node.toString)) { enabled = false }.peer)
 
       popup.add(filter_context(List(node), true, "Hide", true).peer)
       popup.add(filter_context(List(node), false, "Show only", false).peer)
@@ -132,8 +132,8 @@ object Popups
     }
     if (!selected_nodes.isEmpty) {
       val text =
-        if (selected_nodes.length > 1) "Multiple"
-        else selected_nodes.head.toString
+        if (selected_nodes.length > 1) "multiple"
+        else quote(selected_nodes.head.toString)
 
       popup.add(new MenuItem("Selected: " + text) { enabled = false }.peer)
 
@@ -143,7 +143,7 @@ object Popups
     }
 
     popup.add(
-      new MenuItem(new Action("Fit to Window") { def apply = panel.fit_to_window() }).peer)
+      new MenuItem(new Action("Fit to window") { def apply = panel.fit_to_window() }).peer)
 
     popup
   }
