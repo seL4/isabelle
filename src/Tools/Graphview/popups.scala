@@ -24,7 +24,7 @@ object Popups
     val visualizer = panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
-    val curr = visualizer.model.current_graph
+    val current_graph = visualizer.model.current_graph
 
     def filter_context(
         nodes: List[Graph_Display.Node], reverse: Boolean, caption: String, edges: Boolean) =
@@ -54,28 +54,27 @@ object Popups
           })
 
         if (edges) {
-          val outs =
-            nodes.map(l => (l, curr.imm_succs(l)))  // FIXME iterator
-              .filter(_._2.size > 0).sortBy(_._1)(Graph_Display.Node.Ordering)
-          val ins =
-            nodes.map(l => (l, curr.imm_preds(l)))  // FIXME iterator
-              .filter(_._2.size > 0).sortBy(_._1)(Graph_Display.Node.Ordering)
+          def degree_nodes(succs: Boolean) =
+            (for {
+              from <- nodes.iterator
+              tos = if (succs) current_graph.imm_succs(from) else current_graph.imm_preds(from)
+              if tos.nonEmpty
+            } yield (from, tos)).toList.sortBy(_._1)(Graph_Display.Node.Ordering)
+
+          val outs = degree_nodes(true)
+          val ins = degree_nodes(false)
 
           if (outs.nonEmpty || ins.nonEmpty) {
             contents += new Separator()
-
             contents +=
               new Menu("Edge") {
                 if (outs.nonEmpty) {
                   contents += new MenuItem("From ...") { enabled = false }
-
-                  outs.map(e => {
-                    val (from, tos) = e
+                  for ((from, tos) <- outs) {
                     contents +=
                       new Menu(quote(from.toString)) {
                         contents += new MenuItem("To ...") { enabled = false }
-
-                        tos.toList.sorted(Graph_Display.Node.Ordering).distinct.map(to => {
+                        for (to <- tos) {
                           contents +=
                             new MenuItem(
                               new Action(quote(to.toString)) {
@@ -83,21 +82,18 @@ object Popups
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
                               })
-                        })
+                        }
                       }
-                  })
+                  }
                 }
                 if (outs.nonEmpty && ins.nonEmpty) { contents += new Separator() }
                 if (ins.nonEmpty) {
                   contents += new MenuItem("To ...") { enabled = false }
-
-                  ins.map(e => {
-                    val (to, froms) = e
+                  for ((to, froms) <- ins) {
                     contents +=
                       new Menu(quote(to.toString)) {
                         contents += new MenuItem("From ...") { enabled = false }
-
-                        froms.toList.sorted(Graph_Display.Node.Ordering).distinct.map(from => {
+                        for (from <- froms) {
                           contents +=
                             new MenuItem(
                               new Action(quote(from.toString)) {
@@ -105,9 +101,9 @@ object Popups
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
                               })
-                        })
+                        }
                       }
-                  })
+                  }
                 }
               }
           }
