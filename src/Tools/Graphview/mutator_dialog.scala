@@ -246,6 +246,7 @@ class Mutator_Dialog(
 
     def get_mutator: Mutator.Info =
     {
+      val model = visualizer.model
       val m =
         initials.mutator match {
           case Mutator.Identity() =>
@@ -260,15 +261,21 @@ class Mutator_Dialog(
               inputs(0)._2.bool)
           case Mutator.Node_List(_, _, _, _) =>
             Mutator.Node_List(
-              inputs(2)._2.string.split(',').filter(_ != "").toList,
+              for {
+                ident <- space_explode(',', inputs(2)._2.string)
+                node <- model.find_node(ident)
+              } yield node,
               inputs(3)._2.bool,
               // "Parents" means "Show parents" or "Matching Children"
               inputs(1)._2.bool,
               inputs(0)._2.bool)
           case Mutator.Edge_Endpoints(_, _) =>
-            Mutator.Edge_Endpoints(
-              inputs(0)._2.string,
-              inputs(1)._2.string)
+            (model.find_node(inputs(0)._2.string), model.find_node(inputs(1)._2.string)) match {
+              case (Some(node1), Some(node2)) =>
+                Mutator.Edge_Endpoints(node1, node2)
+              case _ =>
+                Mutator.Identity()
+            }
           case Mutator.Add_Node_Expression(r) =>
             val r1 = inputs(0)._2.string
             Mutator.Add_Node_Expression(if (Library.make_regex(r1).isDefined) r1 else r)
@@ -295,12 +302,12 @@ class Mutator_Dialog(
           List(
             ("", new Check_Box_Input("Parents", check_children)),
             ("", new Check_Box_Input("Children", check_parents)),
-            ("Names", new Text_Field_Input(list.mkString(","))),
+            ("Names", new Text_Field_Input(list.map(_.ident).mkString(","))),
             ("", new Check_Box_Input(reverse_caption, reverse)))
         case Mutator.Edge_Endpoints(source, dest) =>
           List(
-            ("Source", new Text_Field_Input(source)),
-            ("Destination", new Text_Field_Input(dest)))
+            ("Source", new Text_Field_Input(source.ident)),
+            ("Destination", new Text_Field_Input(dest.ident)))
         case Mutator.Add_Node_Expression(regex) =>
           List(("Regex", new Text_Field_Input(regex, x => Library.make_regex(x).isDefined)))
         case Mutator.Add_Transitive_Closure(parents, children) =>

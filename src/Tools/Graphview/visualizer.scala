@@ -105,21 +105,18 @@ class Visualizer(val model: Model)
   {
     private var layout = Layout.empty
 
-    def apply(k: String): (Double, Double) =
-      layout.nodes.getOrElse(k, (0.0, 0.0))
+    def apply(node: Graph_Display.Node): (Double, Double) =
+      layout.nodes.getOrElse(node, (0.0, 0.0))
 
-    def apply(e: (String, String)): List[(Double, Double)] =
-      layout.dummies.get(e) match {
-        case Some(ds) => ds
-        case None => Nil
-      }
+    def apply(edge: Graph_Display.Edge): List[(Double, Double)] =
+      layout.dummies.getOrElse(edge, Nil)
 
-    def reposition(k: String, to: (Double, Double))
+    def reposition(node: Graph_Display.Node, to: (Double, Double))
     {
-      layout = layout.copy(nodes = layout.nodes + (k -> to))
+      layout = layout.copy(nodes = layout.nodes + (node -> to))
     }
 
-    def reposition(d: ((String, String), Int), to: (Double, Double))
+    def reposition(d: (Graph_Display.Edge, Int), to: (Double, Double))
     {
       val (e, index) = d
       layout.dummies.get(e) match {
@@ -133,15 +130,15 @@ class Visualizer(val model: Model)
       }
     }
 
-    def translate(k: String, by: (Double, Double))
+    def translate(node: Graph_Display.Node, by: (Double, Double))
     {
-      val ((x, y), (dx, dy)) = (Coordinates(k), by)
-      reposition(k, (x + dx, y + dy))
+      val ((x, y), (dx, dy)) = (Coordinates(node), by)
+      reposition(node, (x + dx, y + dy))
     }
 
-    def translate(d: ((String, String), Int), by: (Double, Double))
+    def translate(d: (Graph_Display.Edge, Int), by: (Double, Double))
     {
-      val ((e, i),(dx, dy)) = (d, by)
+      val ((e, i), (dx, dy)) = (d, by)
       val (x, y) = apply(e)(i)
       reposition(d, (x + dx, y + dy))
     }
@@ -154,8 +151,8 @@ class Visualizer(val model: Model)
           val m = metrics()
 
           val max_width =
-            model.current_graph.iterator.map({ case (_, (info, _)) =>
-              m.string_bounds(info.name).getWidth }).max
+            model.current_graph.keys_iterator.map(
+              node => m.string_bounds(node.toString).getWidth).max
           val box_distance = (max_width + m.pad + m.gap).ceil
           def box_height(n: Int): Double = (m.char_width * 1.5 * (5 max n)).ceil
 
@@ -170,8 +167,8 @@ class Visualizer(val model: Model)
       var y0 = 0.0
       var x1 = 0.0
       var y1 = 0.0
-      for (node_name <- model.visible_nodes_iterator) {
-        val shape = Shapes.Growing_Node.shape(m, visualizer, Some(node_name))
+      for (node <- model.visible_nodes_iterator) {
+        val shape = Shapes.Growing_Node.shape(m, visualizer, node)
         x0 = x0 min shape.getMinX
         y0 = y0 min shape.getMinY
         x1 = x1 max shape.getMaxX
@@ -187,67 +184,46 @@ class Visualizer(val model: Model)
 
   object Drawer
   {
-    def apply(g: Graphics2D, n: Option[String])
-    {
-      n match {
-        case None =>
-        case Some(_) => Shapes.Growing_Node.paint(g, visualizer, n)
-      }
-    }
+    def apply(g: Graphics2D, node: Graph_Display.Node): Unit =
+      if (!node.is_dummy) Shapes.Growing_Node.paint(g, visualizer, node)
 
-    def apply(g: Graphics2D, e: (String, String), head: Boolean, dummies: Boolean)
-    {
-      Shapes.Cardinal_Spline_Edge.paint(g, visualizer, e, head, dummies)
-    }
+    def apply(g: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
+      Shapes.Cardinal_Spline_Edge.paint(g, visualizer, edge, head, dummies)
 
     def paint_all_visible(g: Graphics2D, dummies: Boolean)
     {
       g.setFont(font)
-
       g.setRenderingHints(rendering_hints)
-
-      model.visible_edges_iterator.foreach(e => {
-          apply(g, e, arrow_heads, dummies)
-        })
-
-      model.visible_nodes_iterator.foreach(l => {
-          apply(g, Some(l))
-        })
+      model.visible_edges_iterator.foreach(apply(g, _, arrow_heads, dummies))
+      model.visible_nodes_iterator.foreach(apply(g, _))
     }
 
-    def shape(m: Visualizer.Metrics, n: Option[String]): Shape =
-      if (n.isEmpty) Shapes.Dummy.shape(m, visualizer, n)
-      else Shapes.Growing_Node.shape(m, visualizer, n)
+    def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
+      if (node.is_dummy) Shapes.Dummy.shape(m, visualizer, node)
+      else Shapes.Growing_Node.shape(m, visualizer, node)
   }
 
   object Selection
   {
-    private var selected: List[String] = Nil
+    // owned by GUI thread
+    private var state: List[Graph_Display.Node] = Nil
 
-    def apply() = selected
-    def apply(s: String) = selected.contains(s)
+    def get(): List[Graph_Display.Node] = GUI_Thread.require { state }
+    def contains(node: Graph_Display.Node): Boolean = get().contains(node)
 
-    def add(s: String) { selected = s :: selected }
-    def set(ss: List[String]) { selected = ss }
-    def clear() { selected = Nil }
+    def add(node: Graph_Display.Node): Unit = GUI_Thread.require { state = node :: state }
+    def clear(): Unit = GUI_Thread.require { state = Nil }
   }
 
   sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
-  def node_color(l: Option[String]): Node_Color =
-    l match {
-      case None =>
-        Node_Color(foreground1_color, background_color, foreground_color)
-      case Some(c) if Selection(c) =>
-        Node_Color(foreground_color, selection_color, foreground_color)
-      case Some(c) =>
-        Node_Color(foreground_color, model.colors.getOrElse(c, background_color), foreground_color)
-    }
+  def node_color(node: Graph_Display.Node): Node_Color =
+    if (node.is_dummy)
+      Node_Color(foreground1_color, background_color, foreground_color)
+    else if (Selection.contains(node))
+      Node_Color(foreground_color, selection_color, foreground_color)
+    else
+      Node_Color(foreground_color, model.colors.getOrElse(node, background_color), foreground_color)
 
-  def edge_color(e: (String, String)): Color = foreground_color
-
-  object Caption
-  {
-    def apply(key: String) = model.complete_graph.get_node(key).name
-  }
+  def edge_color(edge: Graph_Display.Edge): Color = foreground_color
 }

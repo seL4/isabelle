@@ -41,10 +41,7 @@ object Active
               case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
                 Future.fork {
                   val graph =
-                    Exn.capture {
-                      isabelle.graphview.Model.decode_graph(body)
-                        .transitive_reduction_acyclic
-                    }
+                    Exn.capture { Graph_Display.decode_graph(body).transitive_reduction_acyclic }
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                 }
 

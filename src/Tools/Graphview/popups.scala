@@ -16,46 +16,50 @@ import scala.swing.{Action, Menu, MenuItem, Separator}
 
 object Popups
 {
-  def apply(panel: Graph_Panel, under_mouse: Option[String], selected: List[String]): JPopupMenu =
+  def apply(
+    panel: Graph_Panel,
+    mouse_node: Option[Graph_Display.Node],
+    selected_nodes: List[Graph_Display.Node]): JPopupMenu =
   {
     val visualizer = panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
     val curr = visualizer.model.current_graph
 
-    def filter_context(ls: List[String], reverse: Boolean, caption: String, edges: Boolean) =
+    def filter_context(
+        nodes: List[Graph_Display.Node], reverse: Boolean, caption: String, edges: Boolean) =
       new Menu(caption) {
         contents +=
           new MenuItem(new Action("This") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, false, false)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, false, false)))
           })
 
         contents +=
           new MenuItem(new Action("Family") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, true, true)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, true, true)))
           })
 
         contents +=
           new MenuItem(new Action("Parents") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, false, true)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, false, true)))
           })
 
         contents +=
           new MenuItem(new Action("Children") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(ls, reverse, true, false)))
+              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, true, false)))
           })
 
         if (edges) {
           val outs =
-            ls.map(l => (l, curr.imm_succs(l)))  // FIXME iterator
-              .filter(_._2.size > 0).sortBy(_._1)
+            nodes.map(l => (l, curr.imm_succs(l)))  // FIXME iterator
+              .filter(_._2.size > 0).sortBy(_._1)(Graph_Display.Node.Ordering)
           val ins =
-            ls.map(l => (l, curr.imm_preds(l)))  // FIXME iterator
-              .filter(_._2.size > 0).sortBy(_._1)
+            nodes.map(l => (l, curr.imm_preds(l)))  // FIXME iterator
+              .filter(_._2.size > 0).sortBy(_._1)(Graph_Display.Node.Ordering)
 
           if (outs.nonEmpty || ins.nonEmpty) {
             contents += new Separator()
@@ -68,13 +72,13 @@ object Popups
                   outs.map(e => {
                     val (from, tos) = e
                     contents +=
-                      new Menu(from) {
+                      new Menu(from.toString) {
                         contents += new MenuItem("To...") { enabled = false }
 
-                        tos.toList.sorted.distinct.map(to => {
+                        tos.toList.sorted(Graph_Display.Node.Ordering).distinct.map(to => {
                           contents +=
                             new MenuItem(
-                              new Action(to) {
+                              new Action(to.toString) {
                                 def apply =
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
@@ -90,13 +94,13 @@ object Popups
                   ins.map(e => {
                     val (to, froms) = e
                     contents +=
-                      new Menu(to) {
+                      new Menu(to.toString) {
                         contents += new MenuItem("From...") { enabled = false }
 
-                        froms.toList.sorted.distinct.map(from => {
+                        froms.toList.sorted(Graph_Display.Node.Ordering).distinct.map(from => {
                           contents +=
                             new MenuItem(
-                              new Action(from) {
+                              new Action(from.toString) {
                                 def apply =
                                   add_mutator(
                                     Mutator.make(visualizer, Mutator.Edge_Endpoints(from, to)))
@@ -114,30 +118,27 @@ object Popups
 
     popup.add(
       new MenuItem(
-        new Action("Remove all filters") {
-          def apply = visualizer.model.Mutators(Nil)
-        }).peer)
+        new Action("Remove all filters") { def apply = visualizer.model.Mutators(Nil) }).peer)
     popup.add(new JPopupMenu.Separator)
 
-    if (under_mouse.isDefined) {
-      val v = under_mouse.get
-      popup.add(
-        new MenuItem("Mouseover: %s".format(visualizer.Caption(v))) { enabled = false }.peer)
+    if (mouse_node.isDefined) {
+      val node = mouse_node.get
+      popup.add(new MenuItem("Mouseover: " + node) { enabled = false }.peer)
 
-      popup.add(filter_context(List(v), true, "Hide", true).peer)
-      popup.add(filter_context(List(v), false, "Show only", false).peer)
+      popup.add(filter_context(List(node), true, "Hide", true).peer)
+      popup.add(filter_context(List(node), false, "Show only", false).peer)
 
       popup.add(new JPopupMenu.Separator)
     }
-    if (!selected.isEmpty) {
+    if (!selected_nodes.isEmpty) {
       val text =
-        if (selected.length > 1) "Multiple"
-        else visualizer.Caption(selected.head)
+        if (selected_nodes.length > 1) "Multiple"
+        else selected_nodes.head.toString
 
-      popup.add(new MenuItem("Selected: %s".format(text)) { enabled = false }.peer)
+      popup.add(new MenuItem("Selected: " + text) { enabled = false }.peer)
 
-      popup.add(filter_context(selected, true, "Hide", true).peer)
-      popup.add(filter_context(selected, false, "Show only", false).peer)
+      popup.add(filter_context(selected_nodes, true, "Hide", true).peer)
+      popup.add(filter_context(selected_nodes, false, "Show only", false).peer)
       popup.add(new JPopupMenu.Separator)
     }
 

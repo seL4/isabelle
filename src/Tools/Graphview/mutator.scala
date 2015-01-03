@@ -24,30 +24,30 @@ object Mutator
   class Graph_Filter(
     val name: String,
     val description: String,
-    pred: Model.Graph => Model.Graph) extends Filter
+    pred: Graph_Display.Graph => Graph_Display.Graph) extends Filter
   {
-    def filter(graph: Model.Graph) : Model.Graph = pred(graph)
+    def filter(graph: Graph_Display.Graph): Graph_Display.Graph = pred(graph)
   }
 
   class Graph_Mutator(
     val name: String,
     val description: String,
-    pred: (Model.Graph, Model.Graph) => Model.Graph) extends Mutator
+    pred: (Graph_Display.Graph, Graph_Display.Graph) => Graph_Display.Graph) extends Mutator
   {
-    def mutate(complete_graph: Model.Graph, graph: Model.Graph): Model.Graph =
+    def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph =
       pred(complete_graph, graph)
   }
 
   class Node_Filter(
     name: String,
     description: String,
-    pred: (Model.Graph, String) => Boolean)
+    pred: (Graph_Display.Graph, Graph_Display.Node) => Boolean)
     extends Graph_Filter(name, description, g => g.restrict(pred(g, _)))
 
   class Edge_Filter(
     name: String,
     description: String,
-    pred: (Model.Graph, String, String) => Boolean)
+    pred: (Graph_Display.Graph, Graph_Display.Node, Graph_Display.Node) => Boolean)
     extends Graph_Filter(
       name,
       description,
@@ -63,7 +63,7 @@ object Mutator
     reverse: Boolean,
     parents: Boolean,
     children: Boolean,
-    pred: (Model.Graph, String) => Boolean)
+    pred: (Graph_Display.Graph, Graph_Display.Node) => Boolean)
     extends Node_Filter(
       name,
       description,
@@ -90,10 +90,10 @@ object Mutator
       reverse,
       parents,
       children,
-      (g, k) => (regex.r findFirstIn k).isDefined)
+      (g, node) => (regex.r findFirstIn node.toString).isDefined)
 
   case class Node_List(
-    list: List[String],
+    list: List[Graph_Display.Node],
     reverse: Boolean,
     parents: Boolean,
     children: Boolean)
@@ -103,15 +103,16 @@ object Mutator
       reverse,
       parents,
       children,
-      (g, k) => list.exists(_ == k))
+      (g, node) => list.contains(node))
 
-  case class Edge_Endpoints(source: String, dest: String)
+  case class Edge_Endpoints(source: Graph_Display.Node, dest: Graph_Display.Node)
     extends Edge_Filter(
       "Hide edge",
       "Hides the edge whose endpoints match strings.",
       (g, s, d) => !(s == source && d == dest))
 
-  private def add_node_group(from: Model.Graph, to: Model.Graph, keys: List[String]) =
+  private def add_node_group(from: Graph_Display.Graph, to: Graph_Display.Graph,
+    keys: List[Graph_Display.Node]) =
   {
     // Add Nodes
     val with_nodes =
@@ -120,7 +121,7 @@ object Mutator
     // Add Edges
     (with_nodes /: keys) {
       (gv, key) => {
-        def add_edges(g: Model.Graph, keys: SortedSet[String], succs: Boolean) =
+        def add_edges(g: Graph_Display.Graph, keys: from.Keys, succs: Boolean) =
           (g /: keys) {
             (graph, end) => {
               if (!graph.keys_iterator.contains(end)) graph
@@ -145,7 +146,7 @@ object Mutator
       "Adds all relevant edges.",
       (complete_graph, graph) =>
         add_node_group(complete_graph, graph,
-          complete_graph.keys.filter(k => (regex.r findFirstIn k).isDefined).toList))
+          complete_graph.keys.filter(node => (regex.r findFirstIn node.toString).isDefined).toList))
 
   case class Add_Transitive_Closure(parents: Boolean, children: Boolean)
     extends Graph_Mutator(
@@ -165,13 +166,13 @@ trait Mutator
 {
   val name: String
   val description: String
-  def mutate(complete_graph: Model.Graph, graph: Model.Graph): Model.Graph
+  def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph
 
   override def toString: String = name
 }
 
 trait Filter extends Mutator
 {
-  def mutate(complete_graph: Model.Graph, graph: Model.Graph) = filter(graph)
-  def filter(graph: Model.Graph) : Model.Graph
+  def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph) = filter(graph)
+  def filter(graph: Graph_Display.Graph): Graph_Display.Graph
 }

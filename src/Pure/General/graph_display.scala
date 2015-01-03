@@ -13,56 +13,52 @@ object Graph_Display
   type Entry = ((String, (String, XML.Body)), List[String])
 
 
-  /* node names */
+  /* graph structure */
 
-  object Name
+  object Node
   {
-    val dummy: Name = Name("", "")
+    val dummy: Node = Node("", "")
 
-    object Ordering extends scala.math.Ordering[Name]
+    object Ordering extends scala.math.Ordering[Node]
     {
-      def compare(name1: Name, name2: Name): Int =
-        name1.name compare name2.name match {
-          case 0 => name1.ident compare name2.ident
+      def compare(node1: Node, node2: Node): Int =
+        node1.name compare node2.name match {
+          case 0 => node1.ident compare node2.ident
           case ord => ord
         }
     }
   }
-
-  sealed case class Name(name: String, ident: String)
+  sealed case class Node(name: String, ident: String)
   {
+    def is_dummy: Boolean = this == Node.dummy
     override def toString: String = name
   }
 
+  type Edge = (Node, Node)
 
-  /* graph structure */
+  type Graph = isabelle.Graph[Node, XML.Body]
 
-  type Graph = isabelle.Graph[Name, XML.Body]
-
-  val empty_graph: Graph = isabelle.Graph.empty(Name.Ordering)
+  val empty_graph: Graph = isabelle.Graph.empty(Node.Ordering)
 
   def build_graph(entries: List[Entry]): Graph =
   {
-    val the_key =
-      (Map.empty[String, Name] /: entries) {
-        case (m, ((ident, (name, _)), _)) => m + (ident -> Name(name, ident))
+    val node =
+      (Map.empty[String, Node] /: entries) {
+        case (m, ((ident, (name, _)), _)) => m + (ident -> Node(name, ident))
       }
     (((empty_graph /: entries) {
-        case (g, ((ident, (_, content)), _)) => g.new_node(the_key(ident), content)
+        case (g, ((ident, (_, content)), _)) => g.new_node(node(ident), content)
       }) /: entries) {
         case (g1, ((ident, _), parents)) =>
-          (g1 /: parents) { case (g2, parent) => g2.add_edge(the_key(parent), the_key(ident)) }
+          (g1 /: parents) { case (g2, parent) => g2.add_edge(node(parent), node(ident)) }
       }
   }
 
   def decode_graph(body: XML.Body): Graph =
-  {
-    val entries =
-    {
-      import XML.Decode._
-      list(pair(pair(string, pair(string, x => x)), list(string)))(body)
-    }
-    build_graph(entries)
-  }
+    build_graph(
+      {
+        import XML.Decode._
+        list(pair(pair(string, pair(string, x => x)), list(string)))(body)
+      })
 }
 

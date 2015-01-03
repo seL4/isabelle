@@ -24,10 +24,10 @@ object Graphview_Dockable
 
   private var implicit_snapshot = Document.Snapshot.init
 
-  private val no_graph: Exn.Result[graphview.Model.Graph] = Exn.Exn(ERROR("No graph"))
+  private val no_graph: Exn.Result[Graph_Display.Graph] = Exn.Exn(ERROR("No graph"))
   private var implicit_graph = no_graph
 
-  private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
+  private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph])
   {
     GUI_Thread.require {}
 
@@ -38,7 +38,7 @@ object Graphview_Dockable
   private def reset_implicit(): Unit =
     set_implicit(Document.Snapshot.init, no_graph)
 
-  def apply(view: View, snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
+  def apply(view: View, snapshot: Document.Snapshot, graph: Exn.Result[Graph_Display.Graph])
   {
     set_implicit(snapshot, graph)
     view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")

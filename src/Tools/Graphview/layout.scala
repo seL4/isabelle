@@ -13,23 +13,22 @@ import isabelle._
 
 final case class Layout(
   nodes: Layout.Coordinates,
-  dummies: Map[(Layout.Key, Layout.Key), List[Layout.Point]])
+  dummies: Map[Graph_Display.Edge, List[Layout.Point]])
 
 object Layout
 {
-  type Key = String
+  type Key = Graph_Display.Node
   type Point = (Double, Double)
   type Coordinates = Map[Key, Point]
   type Level = List[Key]
   type Levels = List[Level]
-  type Dummies = (Model.Graph, List[Key], Map[Key, Int])
 
   val empty = Layout(Map.empty, Map.empty)
 
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def make(graph: Model.Graph, box_distance: Double, box_height: Int => Double): Layout =
+  def make(graph: Graph_Display.Graph, box_distance: Double, box_height: Int => Double): Layout =
   {
     if (graph.is_empty) empty
     else {
@@ -54,9 +53,7 @@ object Layout
         (((Map.empty[Key, Point], 0.0) /: levels) {
           case ((coords1, y), level) =>
             ((((coords1, 0.0) /: level) {
-              case ((coords2, x), key) =>
-                val s = if (graph.defined(key)) graph.get_node(key).name else "X"
-                (coords2 + (key -> (x, y)), x + box_distance)
+              case ((coords2, x), key) => (coords2 + (key -> (x, y)), x + box_distance)
             })._1, y + box_height(level.length))
         })._1
 
@@ -72,18 +69,22 @@ object Layout
   }
 
 
-  def add_dummies(graph: Model.Graph, from: Key, to: Key, levels: Map[Key, Int]): Dummies =
+  def add_dummies(graph: Graph_Display.Graph, from: Key, to: Key, levels: Map[Key, Int])
+    : (Graph_Display.Graph, List[Key], Map[Key, Int]) =
   {
     val ds =
-      ((levels(from) + 1) until levels(to))
-      .map("%s$%s$%d" format (from, to, _)).toList
+      ((levels(from) + 1) until levels(to)).map(l => {
+          // FIXME !?
+          val ident = "%s$%s$%d".format(from.ident, to.ident, l)
+          Graph_Display.Node(ident, ident)
+        }).toList
 
     val ls =
       (levels /: ((levels(from) + 1) until levels(to)).zip(ds)) {
         case (ls, (l, d)) => ls + (d -> l)
       }
 
-    val graph1 = (graph /: ds)(_.new_node(_, Model.empty_info))
+    val graph1 = (graph /: ds)(_.new_node(_, Nil))
     val graph2 =
       (graph1.del_edge(from, to) /: (from :: ds ::: List(to)).sliding(2)) {
         case (g, List(x, y)) => g.add_edge(x, y)
@@ -91,7 +92,7 @@ object Layout
     (graph2, ds, ls)
   }
 
-  def level_map(graph: Model.Graph): Map[Key, Int] =
+  def level_map(graph: Graph_Display.Graph): Map[Key, Int] =
     (Map.empty[Key, Int] /: graph.topological_order) {
       (levels, key) => {
         val lev = 1 + (-1 /: graph.imm_preds(key)) { case (m, key) => m max levels(key) }
@@ -105,10 +106,10 @@ object Layout
     val buckets = new Array[Level](max_lev + 1)
     for (l <- 0 to max_lev) { buckets(l) = Nil }
     for ((key, l) <- map) { buckets(l) = key :: buckets(l) }
-    buckets.iterator.map(_.sorted).toList
+    buckets.iterator.map(_.sorted(Graph_Display.Node.Ordering)).toList
   }
 
-  def count_crossings(graph: Model.Graph, levels: Levels): Int =
+  def count_crossings(graph: Graph_Display.Graph, levels: Levels): Int =
   {
     def in_level(ls: Levels): Int = ls match {
       case List(top, bot) =>
@@ -131,7 +132,7 @@ object Layout
     levels.iterator.sliding(2).map(ls => in_level(ls.toList)).sum
   }
 
-  def minimize_crossings(graph: Model.Graph, levels: Levels): Levels =
+  def minimize_crossings(graph: Graph_Display.Graph, levels: Levels): Levels =
   {
     def resort_level(parent: Level, child: Level, top_down: Boolean): Level =
       child.map(k => {
@@ -165,7 +166,7 @@ object Layout
     }._1
   }
 
-  def pendulum(graph: Model.Graph, box_distance: Double,
+  def pendulum(graph: Graph_Display.Graph, box_distance: Double,
     levels: Levels, coords: Map[Key, Point]): Coordinates =
   {
     type Regions = List[List[Region]]
@@ -251,7 +252,7 @@ object Layout
     }._2
   }
 
-  private class Region(val graph: Model.Graph, node: Key)
+  private class Region(val graph: Graph_Display.Graph, node: Key)
   {
     var nodes: List[Key] = List(node)
 

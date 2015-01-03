@@ -27,9 +27,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
     override def getToolTipText(event: java.awt.event.MouseEvent): String =
-      node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
-        case Some(name) =>
-          visualizer.model.complete_graph.get_node(name).content match {
+      find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+        case Some(node) =>
+          visualizer.model.complete_graph.get_node(node) match {
             case Nil => null
             case content => visualizer.make_tooltip(panel.peer, event.getX, event.getY, content)
           }
@@ -45,11 +45,11 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   peer.getVerticalScrollBar.setUnitIncrement(10)
 
-  def node(at: Point2D): Option[String] =
+  def find_node(at: Point2D): Option[Graph_Display.Node] =
   {
     val m = visualizer.metrics()
     visualizer.model.visible_nodes_iterator
-      .find(name => visualizer.Drawer.shape(m, Some(name)).contains(at))
+      .find(node => visualizer.Drawer.shape(m, node).contains(at))
   }
 
   def refresh()
@@ -181,9 +181,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
     object Mouse
     {
-      type Dummy = ((String, String), Int)
+      type Dummy = (Graph_Display.Edge, Int)
 
-      private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
+      private var draginfo: (Point, List[Graph_Display.Node], List[Dummy]) = null
 
       val react: PartialFunction[Event, Unit] =
       {
@@ -199,23 +199,27 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       {
         val m = visualizer.metrics()
         visualizer.model.visible_edges_iterator.map(
-          i => visualizer.Coordinates(i).zipWithIndex.map((i, _))).flatten.find({
-            case (_, ((x, y), _)) =>
-              visualizer.Drawer.shape(m, None).contains(at.getX() - x, at.getY() - y)
-          }) match {
-            case None => None
-            case Some((name, (_, index))) => Some((name, index))
-          }
+          edge => visualizer.Coordinates(edge).zipWithIndex.map((edge, _))).flatten.find(
+            {
+              case (_, ((x, y), _)) =>
+                visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
+                  contains(at.getX() - x, at.getY() - y)
+            }) match {
+              case None => None
+              case Some((edge, (_, index))) => Some((edge, index))
+            }
       }
 
       def pressed(at: Point)
       {
         val c = Transform.pane_to_graph_coordinates(at)
-        val l = node(c) match {
-          case Some(l) =>
-            if (visualizer.Selection(l)) visualizer.Selection() else List(l)
-          case None => Nil
-        }
+        val l =
+          find_node(c) match {
+            case Some(node) =>
+              if (visualizer.Selection.contains(node)) visualizer.Selection.get()
+              else List(node)
+            case None => Nil
+          }
         val d =
           l match {
             case Nil =>
@@ -231,25 +235,27 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       def click(at: Point, m: Key.Modifiers, clicks: Int, e: MouseEvent)
       {
         val c = Transform.pane_to_graph_coordinates(at)
-        val p = node(c)
 
         def left_click()
         {
-          (p, m) match {
-            case (Some(l), Key.Modifier.Control) => visualizer.Selection.add(l)
+          (find_node(c), m) match {
+            case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
             case (None, Key.Modifier.Control) =>
 
-            case (Some(l), Key.Modifier.Shift) => visualizer.Selection.add(l)
+            case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
             case (None, Key.Modifier.Shift) =>
 
-            case (Some(l), _) => visualizer.Selection.set(List(l))
-            case (None, _) => visualizer.Selection.clear
+            case (Some(node), _) =>
+              visualizer.Selection.clear()
+              visualizer.Selection.add(node)
+            case (None, _) =>
+              visualizer.Selection.clear()
           }
         }
 
         def right_click()
         {
-          val menu = Popups(panel, p, visualizer.Selection())
+          val menu = Popups(panel, find_node(c), visualizer.Selection.get())
           menu.show(panel.peer, at.x, at.y)
         }
 
@@ -259,7 +265,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
         }
       }
 
-      def drag(draginfo: (Point, Iterable[String], Iterable[Dummy]), to: Point)
+      def drag(draginfo: (Point, List[Graph_Display.Node], List[Dummy]), to: Point)
       {
         val (from, p, d) = draginfo
 
