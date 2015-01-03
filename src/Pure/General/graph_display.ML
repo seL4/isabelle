@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/graph_display.ML
     Author:     Makarius
 
-Generic graph display, with browser and graphview backends.
+Support for graph display.
 *)
 
 signature GRAPH_DISPLAY =
@@ -11,18 +11,17 @@ sig
   val session_node: {name: string, unfold: bool, directory: string, path: string} -> node
   type entry = (string * node) * string list
   val eq_entry: entry * entry -> bool
-  type graph = entry list
-  val sort_graph: graph -> graph
-  val write_graph_browser: Path.T -> graph -> unit
+  val sort_graph: entry list -> entry list
+  val write_graph_browser: Path.T -> entry list -> unit
   val browserN: string
   val graphviewN: string
-  val display_graph: graph -> unit
+  val display_graph: entry list -> unit
 end;
 
 structure Graph_Display: GRAPH_DISPLAY =
 struct
 
-(* type node *)
+(* graph entries *)
 
 datatype node =
   Node of {name: string, content: Pretty.T list, unfold: bool, directory: string, path: string};
@@ -33,33 +32,32 @@ fun content_node name content =
 fun session_node {name, unfold, directory, path} =
   Node {name = name, content = [], unfold = unfold, directory = directory, path = path};
 
-
-(* type graph *)
-
 type entry = (string * node) * string list;
 val eq_entry: entry * entry -> bool = op = o apply2 (#1 o #1);
 
-type graph = entry list;
 
-structure Aux_Graph =
+(* graph structure *)
+
+structure Graph =
   Graph(type key = string * string val ord = prod_ord string_ord string_ord);
 
-fun sort_graph (graph: graph) =
+fun build_graph entries =
   let
     val ident_names =
       fold (fn ((ident, Node {name, ...}), _) => Symtab.update_new (ident, (name, ident)))
-        graph Symtab.empty;
+        entries Symtab.empty;
     val the_key = the o Symtab.lookup ident_names;
-    val G =
-      Aux_Graph.empty
-      |> fold (fn ((ident, node), _) => Aux_Graph.new_node (the_key ident, node)) graph
-      |> fold (fn ((ident, _), parents) =>
-          fold (fn parent => Aux_Graph.add_edge (the_key parent, the_key ident)) parents) graph
   in
-    Aux_Graph.topological_order G |> map (fn key =>
-      let val (_, (node, (preds, _))) = Aux_Graph.get_entry G key
-      in ((#2 key, node), map #2 (Aux_Graph.Keys.dest preds)) end)
+    Graph.empty
+    |> fold (fn ((ident, node), _) => Graph.new_node (the_key ident, node)) entries
+    |> fold (fn ((ident, _), parents) =>
+        fold (fn parent => Graph.add_edge (the_key parent, the_key ident)) parents) entries
   end;
+
+val sort_graph = build_graph #> (fn graph =>
+  Graph.topological_order graph |> map (fn key =>
+    let val (_, (node, (preds, _))) = Graph.get_entry graph key
+    in ((#2 key, node), map #2 (Graph.Keys.dest preds)) end));
 
 
 (* print modes *)
@@ -76,13 +74,13 @@ fun is_browser () =
 (* encode graph *)
 
 val encode_browser =
-  map (fn ((key, Node {name, unfold, content, directory, path}), parents) =>
+  map (fn ((key, Node {name, unfold, content = _, directory, path}), parents) =>
     "\"" ^ name ^ "\" \"" ^ key ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
     path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;")
   #> cat_lines;
 
-fun write_graph_browser path graph =
-  File.write path (encode_browser graph);
+fun write_graph_browser path entries =
+  File.write path (encode_browser entries);
 
 
 fun encode_node (Node {name, content, ...}) =
@@ -97,11 +95,11 @@ val encode_graph =
 (* display graph *)
 
 val display_graph =
-  sort_graph #> (fn graph =>
+  sort_graph #> (fn entries =>
     let
       val (markup, body) =
-        if is_browser () then (Markup.browserN, encode_browser graph)
-        else (Markup.graphviewN, YXML.string_of_body (encode_graph graph));
+        if is_browser () then (Markup.browserN, encode_browser entries)
+        else (Markup.graphviewN, YXML.string_of_body (encode_graph entries));
       val ((bg1, bg2), en) =
         YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
     in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end);

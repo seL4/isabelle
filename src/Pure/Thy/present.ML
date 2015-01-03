@@ -111,7 +111,7 @@ type browser_info =
  {theories: theory_info Symtab.table,
   tex_index: (int * string) list,
   html_index: (int * string) list,
-  graph: Graph_Display.graph};
+  graph: Graph_Display.entry list};
 
 fun make_browser_info (theories, tex_index, html_index, graph) : browser_info =
   {theories = theories, tex_index = tex_index, html_index = html_index, graph = graph};

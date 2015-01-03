@@ -31,6 +31,7 @@ declare -a SOURCES=(
   General/exn.scala
   General/file.scala
   General/graph.scala
+  General/graph_display.scala
   General/graphics_file.scala
   General/linear_set.scala
   General/long_name.scala
