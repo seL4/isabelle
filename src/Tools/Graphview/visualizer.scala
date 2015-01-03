@@ -54,10 +54,10 @@ class Visualizer(val model: Model)
   /* main colors */
 
   def foreground_color: Color = Color.BLACK
-  def foreground1_color: Color = Color.GRAY
   def background_color: Color = Color.WHITE
   def selection_color: Color = Color.GREEN
   def error_color: Color = Color.RED
+  def dummy_color: Color = Color.GRAY
 
 
   /* font rendering information */
@@ -199,7 +199,7 @@ class Visualizer(val model: Model)
     }
 
     def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
-      if (node.is_dummy) Shapes.Dummy.shape(m, visualizer, node)
+      if (node.is_dummy) Shapes.Dummy.shape(m, visualizer)
       else Shapes.Growing_Node.shape(m, visualizer, node)
   }
 
@@ -218,9 +218,7 @@ class Visualizer(val model: Model)
   sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
   def node_color(node: Graph_Display.Node): Node_Color =
-    if (node.is_dummy)
-      Node_Color(foreground1_color, background_color, foreground_color)
-    else if (Selection.contains(node))
+    if (Selection.contains(node))
       Node_Color(foreground_color, selection_color, foreground_color)
     else
       Node_Color(foreground_color, model.colors.getOrElse(node, background_color), foreground_color)

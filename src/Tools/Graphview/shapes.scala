@@ -56,24 +56,22 @@ object Shapes
   {
     private val identity = new AffineTransform()
 
-    def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node): Shape =
+    def shape(m: Visualizer.Metrics, visualizer: Visualizer): Shape =
     {
       val w = (m.space_width / 2).ceil
       new Rectangle2D.Double(- w, - w, 2 * w, 2 * w)
     }
 
-    def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node): Unit =
-      paint_transformed(gfx, visualizer, node, identity)
+    def paint(gfx: Graphics2D, visualizer: Visualizer): Unit =
+      paint_transformed(gfx, visualizer, identity)
 
-    def paint_transformed(gfx: Graphics2D, visualizer: Visualizer,
-      node: Graph_Display.Node, at: AffineTransform)
+    def paint_transformed(gfx: Graphics2D, visualizer: Visualizer, at: AffineTransform)
     {
       val m = Visualizer.Metrics(gfx)
-      val s = shape(m, visualizer, node)
-      val c = visualizer.node_color(node)
+      val s = shape(m, visualizer)
 
       gfx.setStroke(default_stroke)
-      gfx.setColor(c.border)
+      gfx.setColor(visualizer.dummy_color)
       gfx.draw(at.createTransformedShape(s))
     }
   }
@@ -101,7 +99,7 @@ object Shapes
         ds.foreach({
             case (x, y) => {
               val at = AffineTransform.getTranslateInstance(x, y)
-              Dummy.paint_transformed(gfx, visualizer, Graph_Display.Node.dummy, at)
+              Dummy.paint_transformed(gfx, visualizer, at)
             }
           })
       }
@@ -161,7 +159,7 @@ object Shapes
           ds.foreach({
               case (x, y) => {
                 val at = AffineTransform.getTranslateInstance(x, y)
-                Dummy.paint_transformed(gfx, visualizer, Graph_Display.Node.dummy, at)
+                Dummy.paint_transformed(gfx, visualizer, at)
               }
             })
         }
