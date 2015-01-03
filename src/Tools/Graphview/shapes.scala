@@ -16,13 +16,7 @@ import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D, PathIte
 
 object Shapes
 {
-  trait Node
-  {
-    def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node): Shape
-    def paint(g: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node): Unit
-  }
-
-  object Growing_Node extends Node
+  object Growing_Node
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
@@ -58,7 +52,7 @@ object Shapes
     }
   }
 
-  object Dummy extends Node
+  object Dummy
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
@@ -86,13 +80,7 @@ object Shapes
     }
   }
 
-  trait Edge
-  {
-    def paint(g: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge,
-      head: Boolean, dummies: Boolean)
-  }
-
-  object Straight_Edge extends Edge
+  object Straight_Edge
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
@@ -132,7 +120,7 @@ object Shapes
     }
   }
 
-  object Cardinal_Spline_Edge extends Edge
+  object Cardinal_Spline_Edge
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
