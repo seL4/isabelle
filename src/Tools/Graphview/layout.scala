@@ -32,33 +32,31 @@ object Layout
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def make(metrics: Visualizer.Metrics, graph: Graph_Display.Graph): Layout =
+  def make(metrics: Visualizer.Metrics, visible_graph: Graph_Display.Graph): Layout =
   {
-    if (graph.is_empty) empty
+    if (visible_graph.is_empty) empty
     else {
       def box_width(key: Key): Double =
         (metrics.string_bounds(key.toString).getWidth + metrics.pad).ceil
 
-      val box_distance = (graph.keys_iterator.map(box_width(_)).max + metrics.gap).ceil
+      val box_distance = (visible_graph.keys_iterator.map(box_width(_)).max + metrics.gap).ceil
 
       def box_height(level: Level): Double =
         (metrics.char_width * 1.5 * (5 max level.length)).ceil
 
 
-      val initial_levels = level_map(graph)
+      val initial_levels = level_map(visible_graph)
 
       val (dummy_graph, dummies, dummy_levels) =
-        ((graph, Map.empty[(Key, Key), List[Key]], initial_levels) /: graph.keys_iterator) {
-          case ((graph, dummies, levels), from) =>
-            ((graph, dummies, levels) /: graph.imm_succs(from)) {
-              case ((graph, dummies, levels), to) =>
-                if (levels(to) - levels(from) <= 1) (graph, dummies, levels)
-                else {
-                  val (next, ds, ls) = add_dummies(graph, from, to, levels)
-                  (next, dummies + ((from, to) -> ds), ls)
-                }
-            }
-        }
+        ((visible_graph, Map.empty[(Key, Key), List[Key]], initial_levels) /:
+          visible_graph.edges_iterator) {
+            case ((graph, dummies, levels), (from, to)) =>
+              if (levels(to) - levels(from) <= 1) (graph, dummies, levels)
+              else {
+                val (graph1, ds, levels1) = add_dummies(graph, from, to, levels)
+                (graph1, dummies + ((from, to) -> ds), levels1)
+              }
+          }
 
       val levels = minimize_crossings(dummy_graph, level_list(dummy_levels))
 
@@ -155,16 +153,14 @@ object Layout
           (k, weight)
       }).sortBy(_._2).map(_._1)
 
-    def resort(levels: Levels, top_down: Boolean) = top_down match {
-      case true =>
-        (List[Level](levels.head) /: levels.tail) {
-          (tops, bot) => resort_level(tops.head, bot, top_down) :: tops
-        }.reverse
-
-      case false =>
-        (List[Level](levels.reverse.head) /: levels.reverse.tail) {
-          (bots, top) => resort_level(bots.head, top, top_down) :: bots
-        }
+    def resort(levels: Levels, top_down: Boolean) =
+      if (top_down)
+        (List(levels.head) /: levels.tail)((tops, bot) =>
+          resort_level(tops.head, bot, top_down) :: tops).reverse
+      else {
+        val rev_levels = levels.reverse
+        (List(rev_levels.head) /: rev_levels.tail)((bots, top) =>
+          resort_level(bots.head, top, top_down) :: bots)
       }
 
     ((levels, count_crossings(graph, levels), true) /: (1 to minimize_crossings_iterations)) {
@@ -184,20 +180,17 @@ object Layout
   {
     type Regions = List[List[Region]]
 
-    def iteration(regions: Regions, coords: Coordinates, top_down: Boolean)
-      : (Regions, Coordinates, Boolean) =
+    def iteration(
+      coords: Coordinates, regions: Regions, top_down: Boolean): (Coordinates, Regions, Boolean) =
     {
-      val (nextr, nextc, moved) =
-      ((List.empty[List[Region]], coords, false) /:
-       (if (top_down) regions else regions.reverse)) {
-        case ((tops, coords, prev_moved), bot) => {
-            val nextb = collapse(coords, bot, top_down)
-            val (nextc, this_moved) = deflect(coords, nextb, top_down)
-            (nextb :: tops, nextc, prev_moved || this_moved)
-        }
+      val (coords1, regions1, moved) =
+      ((coords, List.empty[List[Region]], false) /: (if (top_down) regions else regions.reverse)) {
+        case ((coords, tops, moved), bot) =>
+          val bot1 = collapse(coords, bot, top_down)
+          val (coords1, moved1) = deflect(coords, bot1, top_down)
+          (coords1, bot1 :: tops, moved || moved1)
       }
-
-      (nextr.reverse, nextc, moved)
+      (coords1, regions1.reverse, moved)
     }
 
     def collapse(coords: Coordinates, level: List[Region], top_down: Boolean): List[Region] =
@@ -228,41 +221,40 @@ object Layout
       }
     }
 
-    def deflect(coords: Coordinates, level: List[Region], top_down: Boolean)
-        : (Coordinates, Boolean) =
+    def deflect(
+      coords: Coordinates, level: List[Region], top_down: Boolean): (Coordinates, Boolean) =
     {
       ((coords, false) /: (0 until level.length)) {
-        case ((coords, moved), i) => {
-            val r = level(i)
-            val d = r.deflection(coords, top_down)
-            val offset = {
-              if (i == 0 && d <= 0) d
-              else if (i == level.length - 1 && d >= 0) d
-              else if (d < 0) {
-                val prev = level(i-1)
-                (-(r.distance(coords, prev) - box_distance)) max d
-              }
-              else {
-                val next = level(i+1)
-                (r.distance(coords, next) - box_distance) min d
-              }
+        case ((coords, moved), i) =>
+          val r = level(i)
+          val d = r.deflection(coords, top_down)
+          val offset =
+          {
+            if (i == 0 && d <= 0) d
+            else if (i == level.length - 1 && d >= 0) d
+            else if (d < 0) {
+              val prev = level(i - 1)
+              (- (r.distance(coords, prev) - box_distance)) max d
             }
-
-            (r.move(coords, offset), moved || (d != 0))
-        }
+            else {
+              val next = level(i + 1)
+              (r.distance(coords, next) - box_distance) min d
+            }
+          }
+          (r.move(coords, offset), moved || d != 0)
       }
     }
 
     val regions = levels.map(level => level.map(new Region(graph, _)))
 
-    ((regions, coords, true, true) /: (1 to pendulum_iterations)) {
-      case ((regions, coords, top_down, moved), _) =>
+    ((coords, regions, true, true) /: (1 to pendulum_iterations)) {
+      case ((coords, regions, top_down, moved), _) =>
         if (moved) {
-          val (nextr, nextc, m) = iteration(regions, coords, top_down)
-          (nextr, nextc, !top_down, m)
+          val (coords1, regions1, m) = iteration(coords, regions, top_down)
+          (coords1, regions1, !top_down, m)
         }
-        else (regions, coords, !top_down, moved)
-    }._2
+        else (coords, regions, !top_down, moved)
+    }._1
   }
 
   /*This is an auxiliary class which is used by the layout algorithm when
