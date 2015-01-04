@@ -164,9 +164,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   object Mouse_Interaction
   {
-    type Dummy = (Graph_Display.Edge, Int)
-
-    private var draginfo: (Point, List[Graph_Display.Node], List[Dummy]) = null
+    private var draginfo: (Point, List[Graph_Display.Node], List[(Graph_Display.Edge, Int)]) = null
 
     val react: PartialFunction[Event, Unit] =
     {
@@ -178,19 +176,20 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
     }
 
-    def dummy(at: Point2D): Option[Dummy] =
+    def dummy(at: Point2D): Option[(Graph_Display.Edge, Int)] =
     {
       val m = visualizer.metrics()
       visualizer.model.make_visible_graph().edges_iterator.map(
-        edge => visualizer.Coordinates(edge).zipWithIndex.map((edge, _))).flatten.find(
-          {
-            case (_, ((x, y), _)) =>
-              visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
-                contains(at.getX() - x, at.getY() - y)
-          }) match {
-            case None => None
-            case Some((edge, (_, index))) => Some((edge, index))
-          }
+        edge =>
+          visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.find(
+            {
+              case (_, (p, _)) =>
+                visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
+                  contains(at.getX() - p.x, at.getY() - p.y)
+            }) match {
+              case None => None
+              case Some((edge, (_, index))) => Some((edge, index))
+            }
     }
 
     def pressed(at: Point)
@@ -248,9 +247,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
     }
 
-    def drag(draginfo: (Point, List[Graph_Display.Node], List[Dummy]), to: Point)
+    def drag(info: (Point, List[Graph_Display.Node], List[(Graph_Display.Edge, Int)]), to: Point)
     {
-      val (from, p, d) = draginfo
+      val (from, p, d) = info
 
       val s = Transform.scale_discrete
       val (dx, dy) = (to.x - from.x, to.y - from.y)
@@ -262,10 +261,10 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
           paint_panel.peer.scrollRectToVisible(r)
 
         case (Nil, ds) =>
-          ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
+          ds.foreach(d => visualizer.Coordinates.translate_dummy(d, dx / s, dy / s))
 
         case (ls, _) =>
-          ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
+          ls.foreach(l => visualizer.Coordinates.translate_node(l, dx / s, dy / s))
       }
     }
   }

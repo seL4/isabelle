@@ -17,19 +17,17 @@ package isabelle.graphview
 import isabelle._
 
 
-final case class Layout(
-  nodes: Layout.Coordinates,
-  dummies: Map[Graph_Display.Edge, List[Layout.Point]])
-
 object Layout
 {
-  type Key = Graph_Display.Node
-  type Point = (Double, Double)
-  type Coordinates = Map[Key, Point]
-  type Level = List[Key]
-  type Levels = List[Level]
+  object Point { val zero: Point = Point(0.0, 0.0) }
+  case class Point(x: Double, y: Double)
 
-  val empty = Layout(Map.empty, Map.empty)
+  private type Key = Graph_Display.Node
+  private type Coordinates = Map[Key, Point]
+  private type Level = List[Key]
+  private type Levels = List[Level]
+
+  val empty = new Layout(Map.empty, Map.empty)
 
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
@@ -68,7 +66,7 @@ object Layout
         (((Map.empty[Key, Point], 0.0) /: levels) {
           case ((coords1, y), level) =>
             ((((coords1, 0.0) /: level) {
-              case ((coords2, x), key) => (coords2 + (key -> (x, y)), x + box_distance)
+              case ((coords2, x), key) => (coords2 + (key -> Point(x, y)), x + box_distance)
             })._1, y + box_height(level))
         })._1
 
@@ -79,7 +77,7 @@ object Layout
           case (map, key) => map + (key -> dummies(key).map(coords(_)))
         }
 
-      Layout(coords, dummy_coords)
+      new Layout(coords, dummy_coords)
     }
   }
 
@@ -274,8 +272,8 @@ object Layout
   {
     var nodes: List[Key] = List(node)
 
-    def left(coords: Coordinates): Double = nodes.iterator.map(coords(_)._1).min
-    def right(coords: Coordinates): Double = nodes.iterator.map(coords(_)._1).max
+    def left(coords: Coordinates): Double = nodes.iterator.map(coords(_).x).min
+    def right(coords: Coordinates): Double = nodes.iterator.map(coords(_).x).max
 
     def distance(coords: Coordinates, to: Region): Double =
       math.abs(left(coords) - to.left(coords)) min
@@ -284,15 +282,40 @@ object Layout
     def deflection(coords: Coordinates, top_down: Boolean): Double =
       (for {
         k <- nodes.iterator
-        x = coords(k)._1
+        x = coords(k).x
         as = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
-      } yield as.iterator.map(coords(_)._1 - x).sum / (as.size max 1)).sum / nodes.length
+      } yield as.iterator.map(coords(_).x - x).sum / (as.size max 1)).sum / nodes.length
 
-    def move(coords: Coordinates, by: Double): Coordinates =
+    def move(coords: Coordinates, dx: Double): Coordinates =
       (coords /: nodes) {
         case (cs, node) =>
-          val (x, y) = cs(node)
-          cs + (node -> (x + by, y))
+          val p = cs(node)
+          cs + (node -> Point(p.x + dx, p.y))
       }
   }
 }
+
+final class Layout private(
+  nodes: Map[Graph_Display.Node, Layout.Point],
+  dummies: Map[Graph_Display.Edge, List[Layout.Point]])
+{
+  def get_node(node: Graph_Display.Node): Layout.Point =
+    nodes.getOrElse(node, Layout.Point.zero)
+
+  def map_node(node: Graph_Display.Node, f: Layout.Point => Layout.Point): Layout =
+    nodes.get(node) match {
+      case None => this
+      case Some(p) => new Layout(nodes + (node -> f(p)), dummies)
+    }
+
+
+  def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] =
+    dummies.getOrElse(edge, Nil)
+
+  def map_dummies(edge: Graph_Display.Edge, f: List[Layout.Point] => List[Layout.Point]): Layout =
+    dummies.get(edge) match {
+      case None => this
+      case Some(ds) => new Layout(nodes, dummies + (edge -> f(ds)))
+    }
+}
+

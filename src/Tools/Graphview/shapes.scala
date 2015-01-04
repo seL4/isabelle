@@ -24,11 +24,11 @@ object Shapes
     def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node)
       : Rectangle2D.Double =
     {
-      val (x, y) = visualizer.Coordinates(node)
+      val p = visualizer.Coordinates.get_node(node)
       val bounds = m.string_bounds(node.toString)
       val w = bounds.getWidth + m.pad
       val h = bounds.getHeight + m.pad
-      new Rectangle2D.Double((x - (w / 2)).floor, (y - (h / 2)).floor, w.ceil, h.ceil)
+      new Rectangle2D.Double((p.x - (w / 2)).floor, (p.y - (h / 2)).floor, w.ceil, h.ceil)
     }
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
@@ -81,28 +81,23 @@ object Shapes
     def paint(gfx: Graphics2D, visualizer: Visualizer,
       edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
     {
-      val (fx, fy) = visualizer.Coordinates(edge._1)
-      val (tx, ty) = visualizer.Coordinates(edge._2)
+      val p = visualizer.Coordinates.get_node(edge._1)
+      val q = visualizer.Coordinates.get_node(edge._2)
       val ds =
       {
-        val min = fy min ty
-        val max = fy max ty
-        visualizer.Coordinates(edge).filter({ case (_, y) => min < y && y < max })
+        val a = p.y min q.y
+        val b = p.y max q.y
+        visualizer.Coordinates.get_dummies(edge).filter(d => a < d.y && d.y < b)
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
 
-      path.moveTo(fx, fy)
-      ds.foreach({ case (x, y) => path.lineTo(x, y) })
-      path.lineTo(tx, ty)
+      path.moveTo(p.x, p.y)
+      ds.foreach(d => path.lineTo(d.x, d.y))
+      path.lineTo(q.x, q.y)
 
-      if (dummies) {
-        ds.foreach({
-            case (x, y) => {
-              val at = AffineTransform.getTranslateInstance(x, y)
-              Dummy.paint_transformed(gfx, visualizer, at)
-            }
-          })
-      }
+      if (dummies)
+        ds.foreach(d =>
+          Dummy.paint_transformed(gfx, visualizer, AffineTransform.getTranslateInstance(d.x, d.y)))
 
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.edge_color(edge))
@@ -121,48 +116,45 @@ object Shapes
     def paint(gfx: Graphics2D, visualizer: Visualizer,
       edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
     {
-      val (fx, fy) = visualizer.Coordinates(edge._1)
-      val (tx, ty) = visualizer.Coordinates(edge._2)
+      val p = visualizer.Coordinates.get_node(edge._1)
+      val q = visualizer.Coordinates.get_node(edge._2)
       val ds =
       {
-        val min = fy min ty
-        val max = fy max ty
-        visualizer.Coordinates(edge).filter({ case (_, y) => min < y && y < max })
+        val a = p.y min q.y
+        val b = p.y max q.y
+        visualizer.Coordinates.get_dummies(edge).filter(d => a < d.y && d.y < b)
       }
 
       if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge, head, dummies)
       else {
         val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
-        path.moveTo(fx, fy)
+        path.moveTo(p.x, p.y)
 
-        val coords = ((fx, fy) :: ds ::: List((tx, ty)))
-        val (dx, dy) = (coords(2)._1 - coords(0)._1, coords(2)._2 - coords(0)._2)
+        val coords = p :: ds ::: List(q)
+        val dx = coords(2).x - coords(0).x
+        val dy = coords(2).y - coords(0).y
 
         val (dx2, dy2) =
-          ((dx, dy) /: coords.sliding(3))({
-            case ((dx, dy), List((lx, ly), (mx, my), (rx, ry))) => {
-              val (dx2, dy2) = (rx - lx, ry - ly)
-
-              path.curveTo(lx + slack * dx , ly + slack * dy,
-                           mx - slack * dx2, my - slack * dy2,
-                           mx              , my)
+          ((dx, dy) /: coords.sliding(3)) {
+            case ((dx, dy), List(l, m, r)) =>
+              val dx2 = r.x - l.x
+              val dy2 = r.y - l.y
+              path.curveTo(
+                l.x + slack * dx, l.y + slack * dy,
+                m.x - slack * dx2, m.y - slack * dy2,
+                m.x, m.y)
               (dx2, dy2)
-            }
-          })
+          }
 
-        val (lx, ly) = ds.last
-        path.curveTo(lx + slack * dx2, ly + slack * dy2,
-                     tx - slack * dx2, ty - slack * dy2,
-                     tx              , ty)
+        val l = ds.last
+        path.curveTo(
+          l.x + slack * dx2, l.y + slack * dy2,
+          q.x - slack * dx2, q.y - slack * dy2,
+          q.x, q.y)
 
-        if (dummies) {
-          ds.foreach({
-              case (x, y) => {
-                val at = AffineTransform.getTranslateInstance(x, y)
-                Dummy.paint_transformed(gfx, visualizer, at)
-              }
-            })
-        }
+        if (dummies)
+          ds.foreach(d =>
+            Dummy.paint_transformed(gfx, visualizer, AffineTransform.getTranslateInstance(d.x, d.y)))
 
         gfx.setStroke(default_stroke)
         gfx.setColor(visualizer.edge_color(edge))

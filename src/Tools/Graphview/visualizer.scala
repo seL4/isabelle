@@ -103,44 +103,27 @@ class Visualizer(val model: Model)
 
   object Coordinates
   {
+    // owned by GUI thread
     private var layout = Layout.empty
 
-    def apply(node: Graph_Display.Node): (Double, Double) =
-      layout.nodes.getOrElse(node, (0.0, 0.0))
+    def get_node(node: Graph_Display.Node): Layout.Point = layout.get_node(node)
+    def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] = layout.get_dummies(edge)
 
-    def apply(edge: Graph_Display.Edge): List[(Double, Double)] =
-      layout.dummies.getOrElse(edge, Nil)
-
-    def reposition(node: Graph_Display.Node, to: (Double, Double))
+    def translate_node(node: Graph_Display.Node, dx: Double, dy: Double)
     {
-      layout = layout.copy(nodes = layout.nodes + (node -> to))
+      layout = layout.map_node(node, p => Layout.Point(p.x + dx, p.y + dy))
     }
 
-    def reposition(d: (Graph_Display.Edge, Int), to: (Double, Double))
+    def translate_dummy(d: (Graph_Display.Edge, Int), dx: Double, dy: Double)
     {
-      val (e, index) = d
-      layout.dummies.get(e) match {
-        case None =>
-        case Some(ds) =>
-          layout = layout.copy(dummies =
-            layout.dummies + (e ->
-              (ds.zipWithIndex :\ List.empty[(Double, Double)]) {
-                case ((t, i), n) => if (index == i) to :: n else t :: n
-              }))
-      }
-    }
-
-    def translate(node: Graph_Display.Node, by: (Double, Double))
-    {
-      val ((x, y), (dx, dy)) = (Coordinates(node), by)
-      reposition(node, (x + dx, y + dy))
-    }
-
-    def translate(d: (Graph_Display.Edge, Int), by: (Double, Double))
-    {
-      val ((e, i), (dx, dy)) = (d, by)
-      val (x, y) = apply(e)(i)
-      reposition(d, (x + dx, y + dy))
+      val (edge, index) = d
+      layout = layout.map_dummies(edge,
+        ds => {
+          val p = ds(index)
+          (ds.zipWithIndex :\ List.empty[Layout.Point]) {
+            case ((t, i), n) => if (index == i) Layout.Point(p.x + dx, p.y + dy) :: n else t :: n
+          }
+        })
     }
 
     def update_layout()
