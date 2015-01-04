@@ -19,7 +19,7 @@ object Shapes
   private val default_stroke =
     new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-  object Growing_Node
+  object Node
   {
     def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node)
       : Rectangle2D.Double =

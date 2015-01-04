@@ -165,7 +165,7 @@ class Visualizer(val model: Model)
       var x1 = 0.0
       var y1 = 0.0
       for (node <- model.visible_nodes_iterator) {
-        val shape = Shapes.Growing_Node.shape(m, visualizer, node)
+        val shape = Shapes.Node.shape(m, visualizer, node)
         x0 = x0 min shape.getMinX
         y0 = y0 min shape.getMinY
         x1 = x1 max shape.getMaxX
@@ -182,7 +182,7 @@ class Visualizer(val model: Model)
   object Drawer
   {
     def apply(gfx: Graphics2D, node: Graph_Display.Node): Unit =
-      if (!node.is_dummy) Shapes.Growing_Node.paint(gfx, visualizer, node)
+      if (!node.is_dummy) Shapes.Node.paint(gfx, visualizer, node)
 
     def apply(gfx: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
       Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge, head, dummies)
@@ -197,7 +197,7 @@ class Visualizer(val model: Model)
 
     def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
       if (node.is_dummy) Shapes.Dummy.shape(m, visualizer)
-      else Shapes.Growing_Node.shape(m, visualizer, node)
+      else Shapes.Node.shape(m, visualizer, node)
   }
 
   object Selection
