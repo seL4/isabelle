@@ -24,7 +24,7 @@ object Popups
     val visualizer = panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
-    val current_graph = visualizer.model.current_graph
+    val visible_graph = visualizer.model.make_visible_graph()
 
     def filter_context(
         nodes: List[Graph_Display.Node], reverse: Boolean, caption: String, edges: Boolean) =
@@ -57,7 +57,7 @@ object Popups
           def degree_nodes(succs: Boolean) =
             (for {
               from <- nodes.iterator
-              tos = if (succs) current_graph.imm_succs(from) else current_graph.imm_preds(from)
+              tos = if (succs) visible_graph.imm_succs(from) else visible_graph.imm_preds(from)
               if tos.nonEmpty
             } yield (from, tos)).toList.sortBy(_._1)(Graph_Display.Node.Ordering)
 

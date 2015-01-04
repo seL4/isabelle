@@ -181,6 +181,9 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   /* edge operations */
 
+  def edges_iterator: Iterator[(Key, Key)] =
+    for { x <- keys_iterator; y <- imm_succs(x).iterator } yield (x, y)
+
   def is_edge(x: Key, y: Key): Boolean =
     defined(x) && defined(y) && imm_succs(x)(y)
 

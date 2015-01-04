@@ -34,8 +34,8 @@ object Mutator
     val description: String,
     pred: (Graph_Display.Graph, Graph_Display.Graph) => Graph_Display.Graph) extends Mutator
   {
-    def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph =
-      pred(complete_graph, graph)
+    def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph =
+      pred(full_graph, graph)
   }
 
   class Node_Filter(
@@ -144,20 +144,20 @@ object Mutator
       "Add by name",
       "Adds every node whose name matches the regex. " +
       "Adds all relevant edges.",
-      (complete_graph, graph) =>
-        add_node_group(complete_graph, graph,
-          complete_graph.keys.filter(node => (regex.r findFirstIn node.toString).isDefined).toList))
+      (full_graph, graph) =>
+        add_node_group(full_graph, graph,
+          full_graph.keys.filter(node => (regex.r findFirstIn node.toString).isDefined).toList))
 
   case class Add_Transitive_Closure(parents: Boolean, children: Boolean)
     extends Graph_Mutator(
       "Add transitive closure",
       "Adds all family members of all current nodes.",
-      (complete_graph, graph) => {
+      (full_graph, graph) => {
         val withparents =
-          if (parents) add_node_group(complete_graph, graph, complete_graph.all_preds(graph.keys))
+          if (parents) add_node_group(full_graph, graph, full_graph.all_preds(graph.keys))
           else graph
         if (children)
-          add_node_group(complete_graph, withparents, complete_graph.all_succs(graph.keys))
+          add_node_group(full_graph, withparents, full_graph.all_succs(graph.keys))
         else withparents
       })
 }
@@ -166,13 +166,13 @@ trait Mutator
 {
   val name: String
   val description: String
-  def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph
+  def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph): Graph_Display.Graph
 
   override def toString: String = name
 }
 
 trait Filter extends Mutator
 {
-  def mutate(complete_graph: Graph_Display.Graph, graph: Graph_Display.Graph) = filter(graph)
+  def mutate(full_graph: Graph_Display.Graph, graph: Graph_Display.Graph) = filter(graph)
   def filter(graph: Graph_Display.Graph): Graph_Display.Graph
 }

@@ -33,7 +33,7 @@ class Mutator_Container(val available: List[Mutator])
 }
 
 
-class Model(val complete_graph: Graph_Display.Graph)
+class Model(val full_graph: Graph_Display.Graph)
 {
   val Mutators =
     new Mutator_Container(
@@ -51,16 +51,11 @@ class Model(val complete_graph: Graph_Display.Graph)
         Mutator.Node_List(Nil, false, false, false)))
 
   def find_node(ident: String): Option[Graph_Display.Node] =
-    complete_graph.keys_iterator.find(node => node.ident == ident)
+    full_graph.keys_iterator.find(node => node.ident == ident)
 
-  def visible_nodes_iterator: Iterator[Graph_Display.Node] = current_graph.keys_iterator
-
-  def visible_edges_iterator: Iterator[Graph_Display.Edge] =
-    current_graph.keys_iterator.flatMap(k => current_graph.imm_succs(k).iterator.map((k, _)))
-
-  def current_graph: Graph_Display.Graph =
-    (complete_graph /: Mutators()) {
-      case (g, m) => if (!m.enabled) g else m.mutator.mutate(complete_graph, g)
+  def make_visible_graph(): Graph_Display.Graph =
+    (full_graph /: Mutators()) {
+      case (g, m) => if (!m.enabled) g else m.mutator.mutate(full_graph, g)
     }
 
   private var _colors = Map.empty[Graph_Display.Node, Color]
@@ -71,7 +66,7 @@ class Model(val complete_graph: Graph_Display.Graph)
     _colors =
       (Map.empty[Graph_Display.Node, Color] /: Colors()) {
         case (colors, m) =>
-          (colors /: m.mutator.mutate(complete_graph, complete_graph).keys_iterator) {
+          (colors /: m.mutator.mutate(full_graph, full_graph).keys_iterator) {
             case (colors, node) => colors + (node -> m.color)
           }
       }

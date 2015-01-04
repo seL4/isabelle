@@ -146,15 +146,15 @@ class Visualizer(val model: Model)
     def update_layout()
     {
       val m = metrics()
+      val visible_graph = model.make_visible_graph()
 
       val max_width =
-        model.current_graph.keys_iterator.map(
-          node => m.string_bounds(node.toString).getWidth).max
+        visible_graph.keys_iterator.map(node => m.string_bounds(node.toString).getWidth).max
       val box_distance = (max_width + m.pad + m.gap).ceil
       def box_height(n: Int): Double = (m.char_width * 1.5 * (5 max n)).ceil
 
       // FIXME avoid expensive operation on GUI thread
-      layout = Layout.make(model.current_graph, box_distance, box_height _)
+      layout = Layout.make(visible_graph, box_distance, box_height _)
     }
 
     def bounding_box(): Rectangle2D.Double =
@@ -164,7 +164,7 @@ class Visualizer(val model: Model)
       var y0 = 0.0
       var x1 = 0.0
       var y1 = 0.0
-      for (node <- model.visible_nodes_iterator) {
+      for (node <- model.make_visible_graph().keys_iterator) {
         val shape = Shapes.Node.shape(m, visualizer, node)
         x0 = x0 min shape.getMinX
         y0 = y0 min shape.getMinY
@@ -189,10 +189,11 @@ class Visualizer(val model: Model)
 
     def paint_all_visible(gfx: Graphics2D, dummies: Boolean)
     {
-      gfx.setFont(font)
+      gfx.setFont(font())
       gfx.setRenderingHints(rendering_hints)
-      model.visible_edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
-      model.visible_nodes_iterator.foreach(apply(gfx, _))
+      val visible_graph = model.make_visible_graph()
+      visible_graph.edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
+      visible_graph.keys_iterator.foreach(apply(gfx, _))
     }
 
     def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =

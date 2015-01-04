@@ -27,9 +27,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
     override def getToolTipText(event: java.awt.event.MouseEvent): String =
-      find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+      find_visible_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
         case Some(node) =>
-          visualizer.model.complete_graph.get_node(node) match {
+          visualizer.model.full_graph.get_node(node) match {
             case Nil => null
             case content => visualizer.make_tooltip(panel.peer, event.getX, event.getY, content)
           }
@@ -45,10 +45,10 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   peer.getVerticalScrollBar.setUnitIncrement(10)
 
-  def find_node(at: Point2D): Option[Graph_Display.Node] =
+  def find_visible_node(at: Point2D): Option[Graph_Display.Node] =
   {
     val m = visualizer.metrics()
-    visualizer.model.visible_nodes_iterator
+    visualizer.model.make_visible_graph().keys_iterator
       .find(node => visualizer.Drawer.shape(m, node).contains(at))
   }
 
@@ -144,7 +144,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
     def fit_to_window()
     {
-      if (visualizer.model.visible_nodes_iterator.isEmpty)
+      if (visualizer.model.make_visible_graph().is_empty)
         rescale(1.0)
       else {
         val box = visualizer.Coordinates.bounding_box()
@@ -181,7 +181,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     def dummy(at: Point2D): Option[Dummy] =
     {
       val m = visualizer.metrics()
-      visualizer.model.visible_edges_iterator.map(
+      visualizer.model.make_visible_graph().edges_iterator.map(
         edge => visualizer.Coordinates(edge).zipWithIndex.map((edge, _))).flatten.find(
           {
             case (_, ((x, y), _)) =>
@@ -197,7 +197,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     {
       val c = Transform.pane_to_graph_coordinates(at)
       val l =
-        find_node(c) match {
+        find_visible_node(c) match {
           case Some(node) =>
             if (visualizer.Selection.contains(node)) visualizer.Selection.get()
             else List(node)
@@ -221,7 +221,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
       def left_click()
       {
-        (find_node(c), m) match {
+        (find_visible_node(c), m) match {
           case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
           case (None, Key.Modifier.Control) =>
 
@@ -238,7 +238,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
       def right_click()
       {
-        val menu = Popups(panel, find_node(c), visualizer.Selection.get())
+        val menu = Popups(panel, find_visible_node(c), visualizer.Selection.get())
         menu.show(panel.peer, at.x, at.y)
       }
 
