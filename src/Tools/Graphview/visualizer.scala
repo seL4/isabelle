@@ -38,6 +38,11 @@ object Visualizer
     def ascent: Double = font.getLineMetrics("", font_render_context).getAscent
     def gap: Double = mix.getWidth
     def pad: Double = char_width
+
+    def box_width2(node: Graph_Display.Node): Double =
+      ((string_bounds(node.toString).getWidth + pad) / 2).ceil
+    def box_gap: Double = gap.ceil
+    def box_height(n: Int): Double = (char_width * 1.5 * (5 max n)).ceil
   }
 }
 
