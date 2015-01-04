@@ -28,10 +28,19 @@ object Layout
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def make(graph: Graph_Display.Graph, box_distance: Double, box_height: Int => Double): Layout =
+  def make(metrics: Visualizer.Metrics, graph: Graph_Display.Graph): Layout =
   {
     if (graph.is_empty) empty
     else {
+      def box_width(key: Key): Double =
+        (metrics.string_bounds(key.toString).getWidth + metrics.pad).ceil
+
+      val box_distance = (graph.keys_iterator.map(box_width(_)).max + metrics.gap).ceil
+
+      def box_height(level: Level): Double =
+        (metrics.char_width * 1.5 * (5 max level.length)).ceil
+
+
       val initial_levels = level_map(graph)
 
       val (dummy_graph, dummies, dummy_levels) =
@@ -54,7 +63,7 @@ object Layout
           case ((coords1, y), level) =>
             ((((coords1, 0.0) /: level) {
               case ((coords2, x), key) => (coords2 + (key -> (x, y)), x + box_distance)
-            })._1, y + box_height(level.length))
+            })._1, y + box_height(level))
         })._1
 
       val coords = pendulum(dummy_graph, box_distance, levels, initial_coordinates)

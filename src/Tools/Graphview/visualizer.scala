@@ -145,16 +145,8 @@ class Visualizer(val model: Model)
 
     def update_layout()
     {
-      val m = metrics()
-      val visible_graph = model.make_visible_graph()
-
-      val max_width =
-        visible_graph.keys_iterator.map(node => m.string_bounds(node.toString).getWidth).max
-      val box_distance = (max_width + m.pad + m.gap).ceil
-      def box_height(n: Int): Double = (m.char_width * 1.5 * (5 max n)).ceil
-
       // FIXME avoid expensive operation on GUI thread
-      layout = Layout.make(visible_graph, box_distance, box_height _)
+      layout = Layout.make(metrics(), model.make_visible_graph())
     }
 
     def bounding_box(): Rectangle2D.Double =
