@@ -2,7 +2,13 @@
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-Pendulum DAG layout algorithm.
+DAG layout algorithm, according to:
+
+  Georg Sander, "Graph Layout through the VCG Tool", in: Graph Drawing,
+  DIMACS International Workshop (GD'94), Springer LNCS 894, 1995.
+
+  http://dx.doi.org/10.1007/3-540-58950-3_371
+  ftp://ftp.cs.uni-sb.de/pub/graphics/vcg/doc/tr-A03-94.ps.gz
 */
 
 package isabelle.graphview
@@ -261,6 +267,9 @@ object Layout
     }._2
   }
 
+  /*This is an auxiliary class which is used by the layout algorithm when
+    calculating coordinates with the "pendulum method". A "region" is a
+    group of nodes which "stick together".*/
   private class Region(val graph: Graph_Display.Graph, node: Key)
   {
     var nodes: List[Key] = List(node)
