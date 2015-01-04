@@ -272,11 +272,11 @@ object Layout
       math.abs(right(coords) - to.right(coords))
 
     def deflection(coords: Coordinates, top_down: Boolean): Double =
-      (for {
-        k <- nodes.iterator
-        x = coords(k).x
-        as = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
-      } yield as.iterator.map(coords(_).x - x).sum / (as.size max 1)).sum / nodes.length
+      (for (a <- nodes.iterator) yield {
+        val x = coords(a).x
+        val bs = if (top_down) graph.imm_preds(a) else graph.imm_succs(a)
+        bs.iterator.map(coords(_).x - x).sum / (bs.size max 1)
+      }).sum / nodes.length
 
     def move(coords: Coordinates, dx: Double): Coordinates =
       (coords /: nodes) {
