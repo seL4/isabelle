@@ -1489,10 +1489,10 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command primrec} target? @{syntax pr_option}? fixes \<newline>
+  @@{command primrec} target? @{syntax pr_options}? fixes \<newline>
   @'where' (@{syntax pr_equation} + '|')
   ;
-  @{syntax_def pr_option}: '(' 'nonexhaustive' ')'
+  @{syntax_def pr_options}: '(' (('nonexhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pr_equation}: thmdecl? prop
 \<close>}
@@ -1508,7 +1508,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
 \synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
 
-The optional target is optionally followed by the following option:
+The optional target is optionally followed by the following options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1517,6 +1517,10 @@ The optional target is optionally followed by the following option:
 The @{text "nonexhaustive"} option indicates that the functions are not
 necessarily specified for all constructors. It can be used to suppress the
 warning that is normally emitted when some constructors are missing.
+
+\item
+The @{text "transfer"} option indicates that a transfer rule should be
+generated and registered as such for use by the Transfer tool.
 \end{itemize}
 
 %%% TODO: elaborate on format of the equations
@@ -2430,9 +2434,9 @@ text {*
 
 @{rail \<open>
   (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
-    @{syntax pcr_option}? fixes @'where' (@{syntax pcr_formula} + '|')
+    @{syntax pcr_options}? fixes @'where' (@{syntax pcr_formula} + '|')
   ;
-  @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
+  @{syntax_def pcr_options}: '(' (('sequential' | 'exhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 \<close>}
@@ -2462,6 +2466,10 @@ sequentially.
 \item
 The @{text "exhaustive"} option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
+
+\item
+The @{text "transfer"} option indicates that a transfer rule should be
+generated and registered as such for use by the Transfer tool.
 \end{itemize}
 
 The @{command primcorec} command is an abbreviation for @{command
