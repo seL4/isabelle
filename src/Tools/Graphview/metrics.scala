@@ -35,10 +35,11 @@ class Metrics private(val font: Font)
   def height: Double = mix.getHeight
   def ascent: Double = font.getLineMetrics("", Metrics.font_render_context).getAscent
   def gap: Double = mix.getWidth
-  def pad: Double = char_width
+  def pad_x: Double = char_width * 1.5
+  def pad_y: Double = char_width
 
   def box_width2(node: Graph_Display.Node): Double =
-    ((string_bounds(node.toString).getWidth + pad) / 2).ceil
+    ((string_bounds(node.toString).getWidth + pad_x) / 2).ceil
   def box_gap: Double = gap.ceil
   def box_height(n: Int): Double = (char_width * 1.5 * (5 max n)).ceil
 }

@@ -26,8 +26,8 @@ object Shapes
       val metrics = visualizer.metrics
       val p = visualizer.Coordinates.get_node(node)
       val bounds = metrics.string_bounds(node.toString)
-      val w = bounds.getWidth + metrics.pad
-      val h = bounds.getHeight + metrics.pad
+      val w = bounds.getWidth + metrics.pad_x
+      val h = bounds.getHeight + metrics.pad_y
       new Rectangle2D.Double((p.x - (w / 2)).floor, (p.y - (h / 2)).floor, w.ceil, h.ceil)
     }
 
@@ -58,7 +58,7 @@ object Shapes
     def shape(visualizer: Visualizer, d: Layout.Point): Rectangle2D.Double =
     {
       val metrics = visualizer.metrics
-      val w = metrics.space_width
+      val w = metrics.pad_x
       new Rectangle2D.Double((d.x - (w / 2)).floor, (d.y - (w / 2)).floor, w.ceil, w.ceil)
     }
 
