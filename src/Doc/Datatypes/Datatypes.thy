@@ -124,9 +124,9 @@ and theorems for freely generated types, as performed internally by
 %\item Section \ref{sec:using-the-standard-ml-interface}, ``Using the Standard
 ML Interface,'' %describes the package's programmatic interface.
 
-\item Section \ref{sec:controlling-plugins}, ``Controlling Plugins,''
-is concerned with the package's interoperability with other Isabelle packages
-and tools, such as the code generator, Transfer, Lifting, and Quickcheck.
+\item Section \ref{sec:selecting-plugins}, ``Selecting Plugins,'' is concerned
+with the package's interoperability with other Isabelle packages and tools, such
+as the code generator, Transfer, Lifting, and Quickcheck.
 
 \item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 Limitations,'' concludes with known open issues at the time of writing.
@@ -184,7 +184,7 @@ All their constructors are nullary:
 
 text {*
 \noindent
-Here, @{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
+@{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
 
 Polymorphic types are possible, such as the following option type, modeled after
 its homologue from the @{theory Option} theory:
@@ -198,8 +198,8 @@ its homologue from the @{theory Option} theory:
 
 text {*
 \noindent
-The constructors are @{text "None :: 'a option"} and
-@{text "Some :: 'a \<Rightarrow> 'a option"}.
+The constructors are @{text "None \<Colon> 'a option"} and
+@{text "Some \<Colon> 'a \<Rightarrow> 'a option"}.
 
 The next example has three type parameters:
 *}
@@ -209,7 +209,7 @@ The next example has three type parameters:
 text {*
 \noindent
 The constructor is
-@{text "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
+@{text "Triple \<Colon> 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
 Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
 *}
@@ -417,8 +417,8 @@ The discriminator associated with @{const Cons} is simply
 
 The \keyw{where} clause at the end of the command specifies a default value for
 selectors applied to constructors on which they are not a priori specified.
-Here, it is used to ensure that the tail of the empty list is itself (instead of
-being left unspecified).
+In the example, it is used to ensure that the tail of the empty list is itself
+(instead of being left unspecified).
 
 Because @{const Nil} is nullary, it is also possible to use
 @{term "\<lambda>xs. xs = Nil"} as a discriminator. This is the default behavior
@@ -471,13 +471,14 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command datatype} target? @{syntax dt_options}? \<newline>
-    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
-     @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
+  @@{command datatype} target? @{syntax dt_options}? @{syntax dt_spec}
   ;
   @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels') + ',') ')'
   ;
   @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
+  ;
+  @{syntax_def dt_spec}: (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
+     @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
   ;
   @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
 \<close>}
@@ -653,7 +654,7 @@ Recursor: &
 
 \noindent
 In addition, some of the plugins introduce their own constants
-(Section~\ref{sec:controlling-plugins}). The case combinator, discriminators,
+(Section~\ref{sec:selecting-plugins}). The case combinator, discriminators,
 and selectors are collectively called \emph{destructors}. The prefix
 ``@{text "t."}'' is an optional component of the names and is normally hidden.
 *}
@@ -686,7 +687,7 @@ are properties of datatypes related to their inductive nature.
 The full list of named theorems can be obtained as usual by entering the
 command \keyw{print_theorems} immediately after the datatype definition.
 This list includes theorems produced by plugins
-(Section~\ref{sec:controlling-plugins}), but normally excludes low-level
+(Section~\ref{sec:selecting-plugins}), but normally excludes low-level
 theorems that reveal internal constructions. To make these accessible, add
 the line
 *}
@@ -1104,7 +1105,7 @@ constructors. This departure from the old behavior made it possible to implement
 @{const size} in terms of the generic function @{text "t.size_t"}.
 Moreover, the new function considers nested occurrences of a value, in the nested
 recursive case. The old behavior can be obtained by disabling the @{text size}
-plugin (Section~\ref{sec:controlling-plugins}) and instantiating the
+plugin (Section~\ref{sec:selecting-plugins}) and instantiating the
 @{text size} type class manually.
 
 \item \emph{The internal constructions are completely different.} Proof texts
@@ -1149,7 +1150,7 @@ section {* Defining Recursive Functions
 text {*
 Recursive functions over datatypes can be specified using the @{command primrec}
 command, which supports primitive recursion, or using the more general
-\keyw{fun} and \keyw{function} commands. Here, the focus is on
+\keyw{fun} and \keyw{function} commands. In this tutorial, the focus is on
 @{command primrec}; the other two commands are described in a separate
 tutorial @{cite "isabelle-function"}.
 
@@ -1489,7 +1490,7 @@ text {*
   @@{command primrec} target? @{syntax pr_options}? fixes \<newline>
   @'where' (@{syntax pr_equation} + '|')
   ;
-  @{syntax_def pr_options}: '(' (('nonexhaustive' | 'transfer') + ',') ')'
+  @{syntax_def pr_options}: '(' ((@{syntax plugins} | 'nonexhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pr_equation}: thmdecl? prop
 \<close>}
@@ -1512,12 +1513,16 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text "nonexhaustive"} option indicates that the functions are not
+The @{text plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+
+\item
+The @{text nonexhaustive} option indicates that the functions are not
 necessarily specified for all constructors. It can be used to suppress the
 warning that is normally emitted when some constructors are missing.
 
 \item
-The @{text "transfer"} option indicates that an unconditional transfer rule
+The @{text transfer} option indicates that an unconditional transfer rule
 should be generated and proved @{text "by transfer_prover"}. The
 @{text "[transfer_rule]"} attribute is set on the generated theorem.
 \end{itemize}
@@ -1754,8 +1759,7 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command codatatype} target? \<newline>
-    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and')
+  @@{command codatatype} target? @{syntax dt_options}? @{syntax dt_spec}
 \<close>}
 
 \medskip
@@ -1912,9 +1916,9 @@ section {* Defining Corecursive Functions
 text {*
 Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
-using the more general \keyw{partial_function} command. Here, the focus is on
-the first two. More examples can be found in the directory
-\verb|~~/src/HOL/Datatype_Examples|.
+using the more general \keyw{partial_function} command. In this tutorial, the
+focus is on the first two. More examples can be found in the directory
+\verb|~~/src/HOL/Datatype_|\allowbreak\verb|Examples|.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -2435,7 +2439,7 @@ text {*
   (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
     @{syntax pcr_options}? fixes @'where' (@{syntax pcr_formula} + '|')
   ;
-  @{syntax_def pcr_options}: '(' (('sequential' | 'exhaustive' | 'transfer') + ',') ')'
+  @{syntax_def pcr_options}: '(' ((@{syntax plugins} | 'sequential' | 'exhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 \<close>}
@@ -2458,16 +2462,20 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text "sequential"} option indicates that the conditions in specifications
+The @{text plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+
+\item
+The @{text sequential} option indicates that the conditions in specifications
 expressed using the constructor or destructor view are to be interpreted
 sequentially.
 
 \item
-The @{text "exhaustive"} option indicates that the conditions in specifications
+The @{text exhaustive} option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
 
 \item
-The @{text "transfer"} option indicates that an unconditional transfer rule
+The @{text transfer} option indicates that an unconditional transfer rule
 should be generated and proved @{text "by transfer_prover"}. The
 @{text "[transfer_rule]"} attribute is set on the generated theorem.
 \end{itemize}
@@ -2832,8 +2840,8 @@ The package's programmatic interface.
 *)
 
 
-section {* Controlling Plugins
-  \label{sec:controlling-plugins} *}
+section {* Selecting Plugins
+  \label{sec:selecting-plugins} *}
 
 text {*
 Plugins extend the (co)datatype package to interoperate with other Isabelle
@@ -2964,6 +2972,10 @@ The plugin derives the following properties:
 
 \end{description}
 \end{indentblock}
+
+For @{command primrec}, @{command primcorec}, and @{command primcorecursive},
+the \hthm{transfer} plugin implements the generation of the @{text "f.transfer"}
+property, conditioned by the @{text transfer} option.
 *}
 
 
@@ -2998,7 +3010,7 @@ subsection {* Quickcheck
 
 text {*
 The integration of datatypes with Quickcheck is accomplished by the
-\hthm{quickcheck} plugin. It combines a number of subplugins that instantiate
+\hthm{quick\-check} plugin. It combines a number of subplugins that instantiate
 specific type classes. The subplugins can be enabled or disabled individually.
 They are listed below:
 
