@@ -658,9 +658,9 @@ fun add_primrec_overloaded ops fixes specs =
   #> add_primrec fixes specs
   ##> Local_Theory.exit_global;
 
-val primrec_option_parser = Parse.group (fn () => "option")
+val primrec_option_parser = Parse.group (K "option")
   (Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option
-  || Parse.reserved "transfer" >> K Transfer_Option)
+   || Parse.reserved "transfer" >> K Transfer_Option);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   "define primitive recursive functions"

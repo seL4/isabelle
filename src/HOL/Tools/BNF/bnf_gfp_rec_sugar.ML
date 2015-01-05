@@ -1484,10 +1484,10 @@ val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
       | _ => error "\"auto\" failed -- use \"primcorecursive\" instead of \"primcorec\"")
     goalss)) ooo add_primcorec_ursive_cmd true;
 
-val primcorec_option_parser = Parse.group (fn () => "option")
+val primcorec_option_parser = Parse.group (K "option")
   (Parse.reserved "sequential" >> K Sequential_Option
-  || Parse.reserved "exhaustive" >> K Exhaustive_Option
-  || Parse.reserved "transfer" >> K Transfer_Option)
+   || Parse.reserved "exhaustive" >> K Exhaustive_Option
+   || Parse.reserved "transfer" >> K Transfer_Option);
 
 (* FIXME: should use "Parse_Spec.spec" instead of "Parse.prop" and honor binding *)
 val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
