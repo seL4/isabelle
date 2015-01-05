@@ -142,10 +142,6 @@ class Visualizer(options: => Options, val model: Model)
       visible_graph.edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
       visible_graph.keys_iterator.foreach(apply(gfx, _))
     }
-
-    def shape(node: Graph_Display.Node): Shape =
-      if (node.is_dummy) Shapes.Dummy.shape(visualizer)
-      else Shapes.Node.shape(visualizer, node)
   }
 
   object Selection

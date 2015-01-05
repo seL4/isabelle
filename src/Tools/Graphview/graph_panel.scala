@@ -46,7 +46,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   def find_visible_node(at: Point2D): Option[Graph_Display.Node] =
     visualizer.visible_graph.keys_iterator.find(node =>
-      visualizer.Drawer.shape(node).contains(at))
+      Shapes.Node.shape(visualizer, node).contains(at))
 
   def refresh()
   {
@@ -176,18 +176,12 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
 
     def dummy(at: Point2D): Option[(Graph_Display.Edge, Int)] =
-    {
       visualizer.visible_graph.edges_iterator.map(edge =>
-        visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.find(
-          {
-            case (_, (p, _)) =>
-              visualizer.Drawer.shape(Graph_Display.Node.dummy).
-                contains(at.getX() - p.x, at.getY() - p.y)
-          }) match {
-            case None => None
-            case Some((edge, (_, index))) => Some((edge, index))
-          }
-    }
+        visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.
+          collectFirst({
+            case (edge, (d, index))
+            if Shapes.Dummy.shape(visualizer, d).contains(at) => (edge, index)
+          })
 
     def pressed(at: Point)
     {

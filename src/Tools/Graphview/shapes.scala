@@ -55,23 +55,18 @@ object Shapes
 
   object Dummy
   {
-    private val identity = new AffineTransform()
-
-    def shape(visualizer: Visualizer): Shape =
+    def shape(visualizer: Visualizer, d: Layout.Point): Shape =
     {
-      val m = visualizer.metrics
-      val w = (m.space_width / 2).ceil
-      new Rectangle2D.Double(- w, - w, 2 * w, 2 * w)
+      val metrics = visualizer.metrics
+      val w = metrics.space_width
+      new Rectangle2D.Double((d.x - (w / 2)).floor, (d.y - (w / 2)).floor, w.ceil, w.ceil)
     }
 
-    def paint(gfx: Graphics2D, visualizer: Visualizer): Unit =
-      paint_transformed(gfx, visualizer, identity)
-
-    def paint_transformed(gfx: Graphics2D, visualizer: Visualizer, at: AffineTransform)
+    def paint(gfx: Graphics2D, visualizer: Visualizer, d: Layout.Point)
     {
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.dummy_color)
-      gfx.draw(at.createTransformedShape(shape(visualizer)))
+      gfx.draw(shape(visualizer, d))
     }
   }
 
@@ -94,15 +89,13 @@ object Shapes
       ds.foreach(d => path.lineTo(d.x, d.y))
       path.lineTo(q.x, q.y)
 
-      if (dummies)
-        ds.foreach(d =>
-          Dummy.paint_transformed(gfx, visualizer, AffineTransform.getTranslateInstance(d.x, d.y)))
+      if (dummies) ds.foreach(Dummy.paint(gfx, visualizer, _))
 
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.edge_color(edge))
       gfx.draw(path)
 
-      if (head) Arrow_Head.paint(gfx, path, visualizer.Drawer.shape(edge._2))
+      if (head) Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
     }
   }
 
@@ -149,15 +142,13 @@ object Shapes
           q.x - slack * dx2, q.y - slack * dy2,
           q.x, q.y)
 
-        if (dummies)
-          ds.foreach(d =>
-            Dummy.paint_transformed(gfx, visualizer, AffineTransform.getTranslateInstance(d.x, d.y)))
+        if (dummies) ds.foreach(Dummy.paint(gfx, visualizer, _))
 
         gfx.setStroke(default_stroke)
         gfx.setColor(visualizer.edge_color(edge))
         gfx.draw(path)
 
-        if (head) Arrow_Head.paint(gfx, path, visualizer.Drawer.shape(edge._2))
+        if (head) Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
       }
     }
   }
