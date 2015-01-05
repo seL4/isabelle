@@ -1519,8 +1519,9 @@ necessarily specified for all constructors. It can be used to suppress the
 warning that is normally emitted when some constructors are missing.
 
 \item
-The @{text "transfer"} option indicates that a transfer rule should be
-generated and registered as such for use by the Transfer tool.
+The @{text "transfer"} option indicates that an unconditional transfer rule
+should be generated and proved @{text "by transfer_prover"}. The
+@{text "[transfer_rule]"} attribute is set on the generated theorem.
 \end{itemize}
 
 %%% TODO: elaborate on format of the equations
@@ -2468,8 +2469,9 @@ The @{text "exhaustive"} option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
 
 \item
-The @{text "transfer"} option indicates that a transfer rule should be
-generated and registered as such for use by the Transfer tool.
+The @{text "transfer"} option indicates that an unconditional transfer rule
+should be generated and proved @{text "by transfer_prover"}. The
+@{text "[transfer_rule]"} attribute is set on the generated theorem.
 \end{itemize}
 
 The @{command primcorec} command is an abbreviation for @{command
