@@ -467,10 +467,9 @@ fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_dis
   HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
     rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  unfold_thms_tac ctxt (sels @ rel_injects @ rel_eqs @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
-    ((discs @ distincts) RL [eqTrueI, eqFalseI]) @
-    (rel_injects RL [eqTrueI]) @
-    (rel_distincts RL [eqFalseI])) THEN
+  unfold_thms_tac ctxt (sels @ rel_injects @ rel_eqs @
+    @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @ ((discs @ distincts) RL [eqTrueI, eqFalseI]) @
+    (rel_injects RL [eqTrueI]) @ (rel_distincts RL [eqFalseI])) THEN
   TRYALL (resolve_tac [TrueI, refl]);
 
 fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
