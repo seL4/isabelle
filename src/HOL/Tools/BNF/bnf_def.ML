@@ -829,7 +829,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
 
     val bnf_T = Morphism.typ phi T_rhs;
     val bad_args = Term.add_tfreesT bnf_T [];
-    val _ = if null bad_args then () else error ("Locally fixed type arguments " ^
+    val _ = null bad_args orelse error ("Locally fixed type arguments " ^
       commas_quote (map (Syntax.string_of_typ no_defs_lthy o TFree) bad_args));
 
     val bnf_sets =

@@ -8,7 +8,11 @@ Corecursor sugar ("primcorec" and "primcorecursive").
 
 signature BNF_GFP_REC_SUGAR =
 sig
-  datatype primcorec_option = Sequential_Option | Exhaustive_Option | Transfer_Option
+  datatype corec_option =
+    Plugins_Option of Proof.context -> Plugin_Name.filter |
+    Sequential_Option |
+    Exhaustive_Option |
+    Transfer_Option
 
   datatype corec_call =
     Dummy_No_Corec of int |
@@ -45,14 +49,13 @@ sig
     corec_spec list * typ list * thm * thm * thm list * thm list * (Token.src list * Token.src list)
     * bool * local_theory
 
-  val primcorec_interpretation:
-    string -> (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) ->
-    theory -> theory
+  val gfp_rec_sugar_interpretation: string ->
+    (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val add_primcorecursive_cmd: primcorec_option list ->
+  val add_primcorecursive_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
-  val add_primcorec_cmd: primcorec_option list ->
+  val add_primcorec_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     local_theory -> local_theory
 end;
@@ -88,7 +91,11 @@ fun primcorec_error str = raise PRIMCOREC (str, []);
 fun primcorec_error_eqn str eqn = raise PRIMCOREC (str, [eqn]);
 fun primcorec_error_eqns str eqns = raise PRIMCOREC (str, eqns);
 
-datatype primcorec_option = Sequential_Option | Exhaustive_Option | Transfer_Option;
+datatype corec_option =
+  Plugins_Option of Proof.context -> Plugin_Name.filter |
+  Sequential_Option |
+  Exhaustive_Option |
+  Transfer_Option;
 
 datatype corec_call =
   Dummy_No_Corec of int |
@@ -411,15 +418,13 @@ fun map_thms_of_typ ctxt (Type (s, _)) =
     (case fp_sugar_of ctxt s of SOME {fp_bnf_sugar = {map_thms, ...}, ...} => map_thms | NONE => [])
   | map_thms_of_typ _ _ = [];
 
-val transfer_primcorec = morph_fp_rec_sugar o Morphism.transfer_morphism;
+structure GFP_Rec_Sugar_Plugin = Plugin(type T = fp_rec_sugar);
 
-structure Primcorec_Plugin = Plugin(type T = fp_rec_sugar);
+fun gfp_rec_sugar_interpretation name f =
+  GFP_Rec_Sugar_Plugin.interpretation name (fn fp_rec_sugar => fn lthy =>
+    f (transfer_fp_rec_sugar (Proof_Context.theory_of lthy) fp_rec_sugar) lthy);
 
-fun primcorec_interpretation name f =
-  Primcorec_Plugin.interpretation name (fn fp_rec_sugar => fn lthy =>
-    f (transfer_primcorec (Proof_Context.theory_of lthy) fp_rec_sugar) lthy);
-
-val interpret_primcorec = Primcorec_Plugin.data_default;
+val interpret_gfp_rec_sugar = GFP_Rec_Sugar_Plugin.data;
 
 fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
@@ -992,9 +997,11 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val actual_nn = length bs;
 
-    val sequentials = replicate actual_nn (member (op =) opts Sequential_Option);
-    val exhaustives = replicate actual_nn (member (op =) opts Exhaustive_Option);
-    val transfers = replicate actual_nn (member (op =) opts Transfer_Option);
+    val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
+      |> the_default Plugin_Name.default_filter;
+    val sequentials = replicate actual_nn (exists (can (fn Sequential_Option => ())) opts);
+    val exhaustives = replicate actual_nn (exists (can (fn Exhaustive_Option => ())) opts);
+    val transfers = replicate actual_nn (exists (can (fn Transfer_Option => ())) opts);
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
@@ -1445,12 +1452,14 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
           let
             val phi = Local_Theory.target_morphism lthy;
             val Ts = take actual_nn (map #T corec_specs);
+            val fp_rec_sugar =
+              {transfers = transfers, fun_names = fun_names, funs = map (Morphism.term phi) ts,
+               fun_defs = Morphism.fact phi def_thms, fpTs = Ts};
           in
-            interpret_primcorec {transfers = transfers, fun_names = fun_names,
-              funs = map (Morphism.term phi) ts, fun_defs = Morphism.fact phi def_thms, fpTs = Ts}
-              lthy
+            interpret_gfp_rec_sugar plugins fp_rec_sugar lthy
           end)
       end;
+
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
   in
     (goalss, after_qed, lthy')
@@ -1484,8 +1493,9 @@ val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
       | _ => error "\"auto\" failed -- use \"primcorecursive\" instead of \"primcorec\"")
     goalss)) ooo add_primcorec_ursive_cmd true;
 
-val primcorec_option_parser = Parse.group (K "option")
-  (Parse.reserved "sequential" >> K Sequential_Option
+val corec_option_parser = Parse.group (K "option")
+  (Plugin_Name.parse_filter >> Plugins_Option
+   || Parse.reserved "sequential" >> K Sequential_Option
    || Parse.reserved "exhaustive" >> K Exhaustive_Option
    || Parse.reserved "transfer" >> K Transfer_Option);
 
@@ -1496,16 +1506,16 @@ val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
-      Parse.!!! (Parse.list1 primcorec_option_parser) --| @{keyword ")"}) []) --
+      Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
   "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |--
-      Parse.!!! (Parse.list1 primcorec_option_parser) --| @{keyword ")"}) []) --
+  ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
+      --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
 
-val _ = Theory.setup (primcorec_interpretation Transfer_BNF.transfer_plugin
-  primcorec_transfer_interpretation);
+val _ = Theory.setup (gfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
+  gfp_rec_sugar_transfer_interpretation);
 
 end;

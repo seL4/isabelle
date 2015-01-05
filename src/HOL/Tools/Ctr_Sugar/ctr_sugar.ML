@@ -378,11 +378,9 @@ fun args_of_ctr_spec (_, args) = args;
 val code_plugin = Plugin_Name.declare_setup @{binding code};
 
 fun prepare_free_constructors kind prep_plugins prep_term
-    ((((raw_plugins, discs_sels), raw_case_binding), ctr_specs),
-      sel_default_eqs) no_defs_lthy =
+    ((((raw_plugins, discs_sels), raw_case_binding), ctr_specs), sel_default_eqs) no_defs_lthy =
   let
     val plugins = prep_plugins no_defs_lthy raw_plugins;
-
 
     (* TODO: sanity checks on arguments *)
 
@@ -393,7 +391,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
     val n = length raw_ctrs;
     val ks = 1 upto n;
 
-    val _ = if n > 0 then () else error "No constructors specified";
+    val _ = n > 0 orelse error "No constructors specified";
 
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
 
@@ -1127,8 +1125,8 @@ val default_ctr_options_cmd : ctr_options_cmd = (K Plugin_Name.default_filter, f
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (Plugin_Name.parse_filter >> (apfst o K) ||
-         Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
+        (Plugin_Name.parse_filter >> (apfst o K)
+         || Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
       @{keyword ")"}
       >> (fn fs => fold I fs default_ctr_options_cmd))
     default_ctr_options_cmd;

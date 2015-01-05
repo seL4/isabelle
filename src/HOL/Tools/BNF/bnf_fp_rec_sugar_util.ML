@@ -21,6 +21,7 @@ sig
      fpTs: typ list}
 
   val morph_fp_rec_sugar: morphism -> fp_rec_sugar -> fp_rec_sugar
+  val transfer_fp_rec_sugar: theory -> fp_rec_sugar -> fp_rec_sugar
 
   val flat_rec_arg_args: 'a list list -> 'a list
 
@@ -66,7 +67,7 @@ type fp_rec_sugar =
    fun_names: string list,
    funs: term list,
    fun_defs: thm list,
-   fpTs: typ list}
+   fpTs: typ list};
 
 fun morph_fp_rec_sugar phi {transfers, fun_names, funs, fun_defs, fpTs} =
   {transfers = transfers,
@@ -75,9 +76,11 @@ fun morph_fp_rec_sugar phi {transfers, fun_names, funs, fun_defs, fpTs} =
    fun_defs = map (Morphism.thm phi) fun_defs,
    fpTs = map (Morphism.typ phi) fpTs};
 
+val transfer_fp_rec_sugar = morph_fp_rec_sugar o Morphism.transfer_morphism;
+
 fun flat_rec_arg_args xss =
-  (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
-     order. The second line is for compatibility with the old datatype package. *)
+  (* FIXME (once the old datatype package is completely phased out): The first line below gives the
+     preferred order. The second line is for compatibility with the old datatype package. *)
   (* flat xss *)
   map hd xss @ maps tl xss;
 
