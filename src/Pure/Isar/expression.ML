@@ -762,6 +762,10 @@ fun defines_to_notes ctxt (Defines defs) =
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;
 
+fun is_hyp (elem as Assumes asms) = true
+  | is_hyp (elem as Defines defs) = true
+  | is_hyp _ = false;
+
 fun gen_add_locale prep_decl
     binding raw_predicate_binding raw_import raw_body thy =
   let
@@ -798,6 +802,8 @@ fun gen_add_locale prep_decl
         map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fixes | _ => []) body_elems;
     val asm = if is_some b_statement then b_statement else a_statement;
 
+    val hyp_spec = filter is_hyp body_elems;
+
     val notes =
       if is_some asm then
         [("", [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
@@ -820,7 +826,7 @@ fun gen_add_locale prep_decl
 
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
-          (asm, rev defs) (a_intro, b_intro) axioms [] (rev notes) (rev deps')
+          (asm, rev defs) (a_intro, b_intro) axioms hyp_spec [] (rev notes) (rev deps')
       |> Named_Target.init name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 

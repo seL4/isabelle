@@ -33,6 +33,7 @@ sig
     (string * sort) list * ((string * typ) * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
+    Element.context_i list ->
     declaration list ->
     (string * (Attrib.binding * (thm list * Token.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
@@ -82,6 +83,7 @@ sig
     morphism -> theory -> theory
 
   (* Diagnostic *)
+  val hyp_spec_of: theory -> string -> Element.context_i list
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
@@ -124,6 +126,8 @@ datatype locale = Loc of {
     (* assumptions (as a single predicate expression) and defines *)
   intros: thm option * thm option,
   axioms: thm list,
+  hyp_spec: Element.context_i list,
+    (* diagnostic device: theorem part of hypothetical body as specified by the user *)
   (** dynamic part **)
   syntax_decls: (declaration * serial) list,
     (* syntax declarations *)
@@ -135,22 +139,22 @@ datatype locale = Loc of {
     (* mixin part of dependencies *)
 };
 
-fun mk_locale ((parameters, spec, intros, axioms),
+fun mk_locale ((parameters, spec, intros, axioms, hyp_spec),
     ((syntax_decls, notes), (dependencies, mixins))) =
-  Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
+  Loc {parameters = parameters, spec = spec, intros = intros, axioms = axioms, hyp_spec = hyp_spec,
     syntax_decls = syntax_decls, notes = notes, dependencies = dependencies, mixins = mixins};
 
-fun map_locale f (Loc {parameters, spec, intros, axioms,
+fun map_locale f (Loc {parameters, spec, intros, axioms, hyp_spec,
     syntax_decls, notes, dependencies, mixins}) =
-  mk_locale (f ((parameters, spec, intros, axioms),
+  mk_locale (f ((parameters, spec, intros, axioms, hyp_spec),
     ((syntax_decls, notes), (dependencies, mixins))));
 
 fun merge_locale
- (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies, mixins},
+ (Loc {parameters, spec, intros, axioms, hyp_spec, syntax_decls, notes, dependencies, mixins},
   Loc {syntax_decls = syntax_decls', notes = notes',
       dependencies = dependencies', mixins = mixins', ...}) =
     mk_locale
-      ((parameters, spec, intros, axioms),
+      ((parameters, spec, intros, axioms, hyp_spec),
         ((merge (eq_snd op =) (syntax_decls, syntax_decls'),
           merge (eq_snd op =) (notes, notes')),
             (merge (eq_snd op =) (dependencies, dependencies'),
@@ -184,10 +188,10 @@ fun the_locale thy name =
     SOME (Loc loc) => loc
   | NONE => error ("Unknown locale " ^ quote name));
 
-fun register_locale binding parameters spec intros axioms syntax_decls notes dependencies thy =
+fun register_locale binding parameters spec intros axioms hyp_spec syntax_decls notes dependencies thy =
   thy |> Locales.map (Name_Space.define (Context.Theory thy) true
     (binding,
-      mk_locale ((parameters, spec, intros, axioms),
+      mk_locale ((parameters, spec, intros, axioms, hyp_spec),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
           (map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies,
             Inttab.empty)))) #> snd);
@@ -646,6 +650,8 @@ val _ = Theory.setup
 
 
 (*** diagnostic commands and interfaces ***)
+
+fun hyp_spec_of thy = #hyp_spec o the_locale thy;
 
 fun print_locales thy =
   Pretty.block

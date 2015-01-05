@@ -49,6 +49,9 @@ sig
   (*tactics*)
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
+
+  (*diagnostics*)
+  val pretty_body: theory -> class -> Pretty.T list
 end;
 
 structure Class: CLASS =
@@ -724,6 +727,16 @@ val _ = Theory.setup
     "back-chain introduction rules of classes" #>
   Method.setup @{binding default} (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule");
+
+
+(** diagnostics **)
+
+fun pretty_body thy c =
+  let
+    val cs = (#params o Axclass.get_info thy) c;
+    val fix_args = map (fn (c, T) => ((Binding.name o Long_Name.base_name) c, SOME T, NoSyn)) cs; 
+    val fixes = if null fix_args then [] else [Element.Fixes fix_args];
+  in maps (Element.pretty_ctxt (init c thy)) (fixes @ Locale.hyp_spec_of thy c) end;
 
 end;
 
