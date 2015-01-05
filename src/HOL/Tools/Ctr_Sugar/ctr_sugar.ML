@@ -75,6 +75,8 @@ sig
   val ctr_of_ctr_spec: ('c, 'a) ctr_spec -> 'c
   val args_of_ctr_spec: ('c, 'a) ctr_spec -> 'a list
 
+  val code_plugin: string
+
   type ctr_options = (string -> bool) * bool
   type ctr_options_cmd = (Proof.context -> string -> bool) * bool
 

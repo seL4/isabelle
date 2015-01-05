@@ -89,7 +89,7 @@ val simpsN = "simps";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
+val nitpicksimp_simp_attrs = nitpicksimp_attrs @ simp_attrs;
 
 exception OLD_PRIMREC of unit;
 exception PRIMREC of string * term list;
@@ -438,7 +438,7 @@ fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
       else warning ("no equation for constructor " ^ Syntax.string_of_term ctxt ctr));
 
     val ctr_spec_eqn_data_list =
-      map (fn ((x, y), z) => (x, z)) ctr_spec_eqn_data_list' @
+      map (apfst fst) ctr_spec_eqn_data_list' @
         (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
 
     val recs = take n_funs rec_specs |> map #recx;
@@ -548,13 +548,12 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
         val simp_thms = finds (fn (x, y) => #ctr x = #ctr y) fun_data ctr_specs
           |> fst
           |> map_filter (try (fn (x, [y]) =>
-            (#fun_name x, #user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
-          |> map2 (fn j => fn (fun_name, user_eqn, num_extra_args, rec_thm) =>
+            (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
+          |> map (fn (user_eqn, num_extra_args, rec_thm) =>
               mk_primrec_tac lthy' num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
                 def_thms rec_thm
               |> K |> Goal.prove_sorry lthy' [] [] user_eqn
-              |> Thm.close_derivation)
-            js;
+              |> Thm.close_derivation);
       in
         ((js, simp_thms), lthy')
       end;
@@ -591,14 +590,12 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
-fun add_primrec_simple' opts fixes ts lthy =
+fun add_primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
   let
     val actual_nn = length fixes;
 
-    val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
-      |> the_default Plugin_Name.default_filter;
-    val nonexhaustives = replicate actual_nn (exists (can (fn Nonexhaustive_Option => ())) opts);
-    val transfers = replicate actual_nn (exists (can (fn Transfer_Option => ())) opts);
+    val nonexhaustives = replicate actual_nn nonexhaustive;
+    val transfers = replicate actual_nn transfer;
 
     val (((names, defs), prove), lthy') =
       prepare_primrec plugins nonexhaustives transfers fixes ts lthy
@@ -618,7 +615,7 @@ fun add_primrec_simple' opts fixes ts lthy =
              space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
 fun add_primrec_simple fixes ts lthy =
-  add_primrec_simple' [] fixes ts lthy
+  add_primrec_simple0 Plugin_Name.default_filter false false fixes ts lthy
   handle OLD_PRIMREC () =>
     Old_Primrec.add_primrec_simple fixes ts lthy
     |>> apsnd (apsnd (pair [] o single)) o apfst single;
@@ -626,8 +623,15 @@ fun add_primrec_simple fixes ts lthy =
 fun gen_primrec old_primrec prep_spec opts
     (raw_fixes : (binding * 'a option * mixfix) list) raw_specs lthy =
   let
-    val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
+    val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes);
     val _ = null d orelse raise PRIMREC ("duplicate function name(s): " ^ commas d, []);
+
+    val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
+      |> the_default Plugin_Name.default_filter;
+    val nonexhaustive = exists (can (fn Nonexhaustive_Option => ())) opts;
+    val transfer = exists (can (fn Transfer_Option => ())) opts;
+
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
 
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 
@@ -637,7 +641,7 @@ fun gen_primrec old_primrec prep_spec opts
           val (bs, attrss) = map_split (fst o nth specs) js;
           val notes =
             @{map 3} (fn b => fn attrs => fn thm =>
-                ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs),
+                ((Binding.qualify false prefix b, code_attrs @ nitpicksimp_simp_attrs @ attrs),
                  [([thm], [])]))
               bs attrss thms;
         in
@@ -645,7 +649,7 @@ fun gen_primrec old_primrec prep_spec opts
         end);
   in
     lthy
-    |> add_primrec_simple' opts fixes (map snd specs)
+    |> add_primrec_simple0 plugins nonexhaustive transfer fixes (map snd specs)
     |-> (fn (names, (ts, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names simpss)

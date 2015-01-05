@@ -83,7 +83,6 @@ val selN = "sel";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 
 exception PRIMCOREC of string * term list;
 
@@ -1413,6 +1412,8 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
         val common_name = mk_common_name fun_names;
 
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+
         val anonymous_notes =
           [(flat disc_iff_or_disc_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
@@ -1428,7 +1429,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, coinduct_attrs),
            (coinduct_strongN, map (if n2m then single else K []) coinduct_strong_thms,
             coinduct_attrs),
-           (codeN, code_thmss, code_nitpicksimp_attrs),
+           (codeN, code_thmss, code_attrs @ nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, []),
            (disc_iffN, disc_iff_thmss, []),
