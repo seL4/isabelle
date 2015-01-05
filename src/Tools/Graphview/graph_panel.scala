@@ -12,7 +12,6 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point}
 import java.awt.geom.{AffineTransform, Point2D}
-import java.awt.image.BufferedImage
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
 import scala.swing.{Panel, ScrollPane}
@@ -46,11 +45,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   peer.getVerticalScrollBar.setUnitIncrement(10)
 
   def find_visible_node(at: Point2D): Option[Graph_Display.Node] =
-  {
-    val m = visualizer.metrics()
-    visualizer.model.make_visible_graph().keys_iterator
-      .find(node => visualizer.Drawer.shape(m, node).contains(at))
-  }
+    visualizer.visible_graph.keys_iterator.find(node =>
+      Shapes.Node.shape(visualizer, node).contains(at))
 
   def refresh()
   {
@@ -100,7 +96,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
       gfx.transform(Transform())
 
-      visualizer.Drawer.paint_all_visible(gfx, true)
+      visualizer.paint_all_visible(gfx)
     }
   }
   private val paint_panel = new Paint_Panel
@@ -132,7 +128,10 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
 
     def scale_discrete: Double =
-      (scale * visualizer.font_size).floor / visualizer.font_size
+    {
+      val font_height = GUI.line_metrics(visualizer.metrics.font).getHeight.toInt
+      (scale * font_height).floor / font_height
+    }
 
     def apply() =
     {
@@ -144,7 +143,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
     def fit_to_window()
     {
-      if (visualizer.model.make_visible_graph().is_empty)
+      if (visualizer.visible_graph.is_empty)
         rescale(1.0)
       else {
         val box = visualizer.Coordinates.bounding_box()
@@ -177,20 +176,12 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
 
     def dummy(at: Point2D): Option[(Graph_Display.Edge, Int)] =
-    {
-      val m = visualizer.metrics()
-      visualizer.model.make_visible_graph().edges_iterator.map(
-        edge =>
-          visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.find(
-            {
-              case (_, (p, _)) =>
-                visualizer.Drawer.shape(m, Graph_Display.Node.dummy).
-                  contains(at.getX() - p.x, at.getY() - p.y)
-            }) match {
-              case None => None
-              case Some((edge, (_, index))) => Some((edge, index))
-            }
-    }
+      visualizer.visible_graph.edges_iterator.map(edge =>
+        visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.
+          collectFirst({
+            case (edge, (d, index))
+            if Shapes.Dummy.shape(visualizer, d).contains(at) => (edge, index)
+          })
 
     def pressed(at: Point)
     {

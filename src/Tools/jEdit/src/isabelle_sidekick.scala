@@ -32,7 +32,7 @@ object Isabelle_Sidekick
 
   class Keyword_Asset(keyword: String, text: String, range: Text.Range) extends IAsset
   {
-    private val css = GUI.imitate_font_css(Font_Info.main_family(), (new JLabel).getFont)
+    private val css = GUI.imitate_font_css((new JLabel).getFont, Font_Info.main_family())
 
     protected var _name = text
     protected var _start = int_to_pos(range.start)

@@ -10,45 +10,20 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
-import java.awt.font.FontRenderContext
-import java.awt.image.BufferedImage
+import java.awt.{Font, Color, Shape, Graphics2D}
 import java.awt.geom.Rectangle2D
 import javax.swing.JComponent
 
 
-object Visualizer
-{
-  object Metrics
-  {
-    def apply(font: Font, font_render_context: FontRenderContext) =
-      new Metrics(font, font_render_context)
-
-    def apply(gfx: Graphics2D): Metrics =
-      new Metrics(gfx.getFont, gfx.getFontRenderContext)
-  }
-
-  class Metrics private(font: Font, font_render_context: FontRenderContext)
-  {
-    def string_bounds(s: String) = font.getStringBounds(s, font_render_context)
-    private val mix = string_bounds("mix")
-    val space_width = string_bounds(" ").getWidth
-    def char_width: Double = mix.getWidth / 3
-    def height: Double = mix.getHeight
-    def ascent: Double = font.getLineMetrics("", font_render_context).getAscent
-    def gap: Double = mix.getWidth
-    def pad: Double = char_width
-
-    def box_width2(node: Graph_Display.Node): Double =
-      ((string_bounds(node.toString).getWidth + pad) / 2).ceil
-    def box_gap: Double = gap.ceil
-    def box_height(n: Int): Double = (char_width * 1.5 * (5 max n)).ceil
-  }
-}
-
-class Visualizer(val model: Model)
+class Visualizer(options: => Options, val model: Model)
 {
   visualizer =>
+
+  // owned by GUI thread
+  private var layout: Layout = Layout.empty
+
+  def metrics: Metrics = layout.metrics
+  def visible_graph: Graph_Display.Graph = layout.visible_graph
 
 
   /* tooltips */
@@ -67,23 +42,19 @@ class Visualizer(val model: Model)
 
   /* font rendering information */
 
-  def font_size: Int = 12
-  def font(): Font = new Font("Helvetica", Font.PLAIN, font_size)
-
-  val rendering_hints =
-    new RenderingHints(
-      RenderingHints.KEY_ANTIALIASING,
-      RenderingHints.VALUE_ANTIALIAS_ON)
-
-  val font_render_context = new FontRenderContext(null, true, false)
-
-  def metrics(): Visualizer.Metrics =
-    Visualizer.Metrics(font(), font_render_context)
+  def make_font(): Font =
+  {
+    val family = options.string("graphview_font_family")
+    val size = options.int("graphview_font_size")
+    new Font(family, Font.PLAIN, size)
+  }
 
 
   /* rendering parameters */
 
+  // owned by GUI thread
   var arrow_heads = false
+  var show_dummies = false
 
   object Colors
   {
@@ -105,12 +76,17 @@ class Visualizer(val model: Model)
     }
   }
 
+  def paint_all_visible(gfx: Graphics2D)
+  {
+    gfx.setRenderingHints(Metrics.rendering_hints)
+    for (edge <- visible_graph.edges_iterator)
+      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
+    for (node <- visible_graph.keys_iterator)
+      Shapes.Node.paint(gfx, visualizer, node)
+  }
 
   object Coordinates
   {
-    // owned by GUI thread
-    private var layout = Layout.empty
-
     def get_node(node: Graph_Display.Node): Layout.Point = layout.get_node(node)
     def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] = layout.get_dummies(edge)
 
@@ -133,52 +109,34 @@ class Visualizer(val model: Model)
 
     def update_layout()
     {
+      val metrics = Metrics(make_font())
+      val visible_graph = model.make_visible_graph()
+
       // FIXME avoid expensive operation on GUI thread
-      layout = Layout.make(metrics(), model.make_visible_graph())
+      layout = Layout.make(metrics, visible_graph)
     }
 
     def bounding_box(): Rectangle2D.Double =
     {
-      val m = metrics()
       var x0 = 0.0
       var y0 = 0.0
       var x1 = 0.0
       var y1 = 0.0
-      for (node <- model.make_visible_graph().keys_iterator) {
-        val shape = Shapes.Node.shape(m, visualizer, node)
-        x0 = x0 min shape.getMinX
-        y0 = y0 min shape.getMinY
-        x1 = x1 max shape.getMaxX
-        y1 = y1 max shape.getMaxY
-      }
-      x0 = (x0 - m.gap).floor
-      y0 = (y0 - m.gap).floor
-      x1 = (x1 + m.gap).ceil
-      y1 = (y1 + m.gap).ceil
+      ((for (node <- visible_graph.keys_iterator) yield Shapes.Node.shape(visualizer, node)) ++
+       (for (d <- layout.dummies_iterator) yield Shapes.Dummy.shape(visualizer, d))).
+         foreach(rect => {
+            x0 = x0 min rect.getMinX
+            y0 = y0 min rect.getMinY
+            x1 = x1 max rect.getMaxX
+            y1 = y1 max rect.getMaxY
+          })
+      val gap = metrics.gap
+      x0 = (x0 - gap).floor
+      y0 = (y0 - gap).floor
+      x1 = (x1 + gap).ceil
+      y1 = (y1 + gap).ceil
       new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
     }
-  }
-
-  object Drawer
-  {
-    def apply(gfx: Graphics2D, node: Graph_Display.Node): Unit =
-      if (!node.is_dummy) Shapes.Node.paint(gfx, visualizer, node)
-
-    def apply(gfx: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
-      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge, head, dummies)
-
-    def paint_all_visible(gfx: Graphics2D, dummies: Boolean)
-    {
-      gfx.setFont(font())
-      gfx.setRenderingHints(rendering_hints)
-      val visible_graph = model.make_visible_graph()
-      visible_graph.edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
-      visible_graph.keys_iterator.foreach(apply(gfx, _))
-    }
-
-    def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
-      if (node.is_dummy) Shapes.Dummy.shape(m, visualizer)
-      else Shapes.Node.shape(m, visualizer, node)
   }
 
   object Selection

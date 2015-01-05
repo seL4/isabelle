@@ -201,7 +201,7 @@ class Pretty_Text_Area(
         })
         setColumns(20)
         setToolTipText(search_label.tooltip)
-        setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
+        setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
       })
 
   private val search_field_foreground = search_field.foreground

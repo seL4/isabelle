@@ -13,8 +13,6 @@ sig
   val eq_entry: entry * entry -> bool
   val sort_graph: entry list -> entry list
   val write_graph_browser: Path.T -> entry list -> unit
-  val browserN: string
-  val graphviewN: string
   val display_graph: entry list -> unit
 end;
 
@@ -60,17 +58,6 @@ val sort_graph = build_graph #> (fn graph =>
     in ((#2 key, node), map #2 (Graph.Keys.dest preds)) end));
 
 
-(* print modes *)
-
-val browserN = "browser";
-val graphviewN = "graphview";
-
-fun is_browser () =
-  (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
-    SOME m => m = browserN
-  | NONE => true);
-
-
 (* encode graph *)
 
 val encode_browser =
@@ -97,11 +84,18 @@ val encode_graph =
 val display_graph =
   sort_graph #> (fn entries =>
     let
-      val (markup, body) =
-        if is_browser () then (Markup.browserN, encode_browser entries)
-        else (Markup.graphviewN, YXML.string_of_body (encode_graph entries));
       val ((bg1, bg2), en) =
-        YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
-    in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end);
+        YXML.output_markup_elem
+          (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
+      val _ =
+        writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "new graph" ^ en);
+
+      val ((bg1, bg2), en) =
+        YXML.output_markup_elem
+          (Active.make_markup Markup.browserN {implicit = false, properties = []});
+      val _ =
+        writeln ("See " ^ bg1 ^ encode_browser entries ^ bg2 ^ "old graph" ^ en);
+  in () end);
+
 
 end;

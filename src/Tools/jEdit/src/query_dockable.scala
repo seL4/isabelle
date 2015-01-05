@@ -48,7 +48,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
       setColumns(40)
       setToolTipText(tooltip)
-      setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
+      setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
     }
 
 

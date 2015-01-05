@@ -1,0 +1,12 @@
+(* :mode=isabelle-options: *)
+
+section "Graphview"
+
+option graphview_font_family : string = "Helvetica"
+  -- "base font family (notably for PDF)"
+
+option graphview_font_size : int = 12
+  -- "base font size (notably for PDF)"
+
+public option graphview_font_scale : real = 0.85
+  -- "scale factor of graph view wrt. main text font"
