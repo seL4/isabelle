@@ -13,9 +13,7 @@ import isabelle._
 import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser}
 
 import java.io.{File => JFile}
-import java.awt.{Color, Dimension, Graphics2D}
-import java.awt.geom.Rectangle2D
-import java.awt.image.BufferedImage
+import java.awt.{Color, Graphics2D}
 import javax.imageio.ImageIO
 import javax.swing.border.EmptyBorder
 import javax.swing.JComponent
@@ -72,7 +70,6 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
     {
       gfx.setColor(Color.WHITE)
       gfx.fillRect(0, 0, w, h)
-
       gfx.translate(- box.x, - box.y)
       visualizer.Drawer.paint_all_visible(gfx, false)
     }
