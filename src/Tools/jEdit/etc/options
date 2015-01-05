@@ -10,13 +10,13 @@ public option jedit_auto_load : bool = false
   -- "load all required files automatically to resolve theory imports"
 
 public option jedit_reset_font_size : int = 18
-  -- "reset font size for main text area"
+  -- "reset main text font size"
 
 public option jedit_font_scale : real = 1.0
-  -- "scale factor of add-on panels wrt. main text area"
+  -- "scale factor of add-on panels wrt. main text font"
 
 public option jedit_popup_font_scale : real = 0.85
-  -- "scale factor of popups wrt. main text area"
+  -- "scale factor of popups wrt. main text font"
 
 public option jedit_popup_bounds : real = 0.5
   -- "relative bounds of popup window wrt. logical screen size"

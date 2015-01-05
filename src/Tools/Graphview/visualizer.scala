@@ -46,7 +46,7 @@ object Visualizer
   }
 }
 
-class Visualizer(val model: Model)
+class Visualizer(options: => Options, val model: Model)
 {
   visualizer =>
 
@@ -67,8 +67,12 @@ class Visualizer(val model: Model)
 
   /* font rendering information */
 
-  def font_size: Int = 12
-  def font(): Font = new Font("Helvetica", Font.PLAIN, font_size)
+  def font(): Font =
+  {
+    val family = options.string("graphview_font_family")
+    val size = options.int("graphview_font_size")
+    new Font(family, Font.PLAIN, size)
+  }
 
   val rendering_hints =
     new RenderingHints(

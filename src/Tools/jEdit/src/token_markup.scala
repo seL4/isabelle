@@ -124,7 +124,7 @@ object Token_Markup
         for (idx <- 0 until max_user_fonts)
           new_styles(user_font(idx, i.toByte)) = style
         for ((family, idx) <- Symbol.font_index)
-          new_styles(user_font(idx, i.toByte)) = font_style(style, GUI.imitate_font(family, _))
+          new_styles(user_font(idx, i.toByte)) = font_style(style, GUI.imitate_font(_, family))
       }
       new_styles(hidden) =
         new SyntaxStyle(hidden_color, null,
