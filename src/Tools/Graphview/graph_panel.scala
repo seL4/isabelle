@@ -96,7 +96,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
       gfx.transform(Transform())
 
-      visualizer.Drawer.paint_all_visible(gfx, true)
+      visualizer.paint_all_visible(gfx)
     }
   }
   private val paint_panel = new Paint_Panel

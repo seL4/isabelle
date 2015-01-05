@@ -52,7 +52,9 @@ class Visualizer(options: => Options, val model: Model)
 
   /* rendering parameters */
 
+  // owned by GUI thread
   var arrow_heads = false
+  var show_dummies = false
 
   object Colors
   {
@@ -74,6 +76,14 @@ class Visualizer(options: => Options, val model: Model)
     }
   }
 
+  def paint_all_visible(gfx: Graphics2D)
+  {
+    gfx.setRenderingHints(Metrics.rendering_hints)
+    for (edge <- visible_graph.edges_iterator)
+      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
+    for (node <- visible_graph.keys_iterator)
+      Shapes.Node.paint(gfx, visualizer, node)
+  }
 
   object Coordinates
   {
@@ -126,22 +136,6 @@ class Visualizer(options: => Options, val model: Model)
       x1 = (x1 + gap).ceil
       y1 = (y1 + gap).ceil
       new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
-    }
-  }
-
-  object Drawer
-  {
-    def apply(gfx: Graphics2D, node: Graph_Display.Node): Unit =
-      if (!node.is_dummy) Shapes.Node.paint(gfx, visualizer, node)
-
-    def apply(gfx: Graphics2D, edge: Graph_Display.Edge, head: Boolean, dummies: Boolean): Unit =
-      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge, head, dummies)
-
-    def paint_all_visible(gfx: Graphics2D, dummies: Boolean)
-    {
-      gfx.setRenderingHints(Metrics.rendering_hints)
-      visible_graph.edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
-      visible_graph.keys_iterator.foreach(apply(gfx, _))
     }
   }
 

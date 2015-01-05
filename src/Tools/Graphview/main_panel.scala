@@ -43,6 +43,10 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
         selected = visualizer.arrow_heads
         action = Action("Arrow heads") { visualizer.arrow_heads = selected; graph_panel.repaint() }
       },
+      new CheckBox() {
+        selected = visualizer.show_dummies
+        action = Action("Show dummies") { visualizer.show_dummies = selected; graph_panel.repaint() }
+      },
       new Button {
         action = Action("Save image") {
           chooser.showSaveDialog(this) match {
@@ -71,7 +75,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
       gfx.setColor(Color.WHITE)
       gfx.fillRect(0, 0, w, h)
       gfx.translate(- box.x, - box.y)
-      visualizer.Drawer.paint_all_visible(gfx, false)
+      visualizer.paint_all_visible(gfx)
     }
 
     try {

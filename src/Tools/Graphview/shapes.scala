@@ -72,8 +72,7 @@ object Shapes
 
   object Straight_Edge
   {
-    def paint(gfx: Graphics2D, visualizer: Visualizer,
-      edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
+    def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
       val p = visualizer.Coordinates.get_node(edge._1)
       val q = visualizer.Coordinates.get_node(edge._2)
@@ -89,13 +88,15 @@ object Shapes
       ds.foreach(d => path.lineTo(d.x, d.y))
       path.lineTo(q.x, q.y)
 
-      if (dummies) ds.foreach(Dummy.paint(gfx, visualizer, _))
+      if (visualizer.show_dummies)
+        ds.foreach(Dummy.paint(gfx, visualizer, _))
 
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.edge_color(edge))
       gfx.draw(path)
 
-      if (head) Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
+      if (visualizer.arrow_heads)
+        Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
     }
   }
 
@@ -103,8 +104,7 @@ object Shapes
   {
     private val slack = 0.1
 
-    def paint(gfx: Graphics2D, visualizer: Visualizer,
-      edge: Graph_Display.Edge, head: Boolean, dummies: Boolean)
+    def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
       val p = visualizer.Coordinates.get_node(edge._1)
       val q = visualizer.Coordinates.get_node(edge._2)
@@ -115,7 +115,7 @@ object Shapes
         visualizer.Coordinates.get_dummies(edge).filter(d => a < d.y && d.y < b)
       }
 
-      if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge, head, dummies)
+      if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge)
       else {
         val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
         path.moveTo(p.x, p.y)
@@ -142,13 +142,15 @@ object Shapes
           q.x - slack * dx2, q.y - slack * dy2,
           q.x, q.y)
 
-        if (dummies) ds.foreach(Dummy.paint(gfx, visualizer, _))
+        if (visualizer.show_dummies)
+          ds.foreach(Dummy.paint(gfx, visualizer, _))
 
         gfx.setStroke(default_stroke)
         gfx.setColor(visualizer.edge_color(edge))
         gfx.draw(path)
 
-        if (head) Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
+        if (visualizer.arrow_heads)
+          Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
       }
     }
   }
