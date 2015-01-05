@@ -450,7 +450,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((([exh_y], (xss, xss')), yss), fs), gs), [h]), [u', v']), [w]), (p, p')), names_lthy) =
+    val ((((((((([exh_y], (xss, xss')), yss), fs), gs), [h]), [u', v']), [w]), (p, p')),
+        names_lthy) =
       no_defs_lthy
       |> mk_Frees "y" [fcT] (* for compatibility with "datatype_realizer.ML" *)
       ||>> mk_Freess' "x" ctr_Tss
@@ -669,9 +670,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss;
 
-    fun after_qed thmss0 lthy =
+    fun after_qed (thmss0 as [exhaust_thm] :: thmss) lthy =
       let
-        val [exhaust_thm] :: thmss = thmss0
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
         val rho_As = map (apply2 (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
@@ -1071,9 +1071,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
           {kind = kind, T = fcT, ctrs = ctrs, casex = casex, discs = discs, selss = selss,
            exhaust = exhaust_thm, nchotomy = nchotomy_thm, injects = inject_thms,
            distincts = distinct_thms, case_thms = case_thms, case_cong = case_cong_thm,
-           case_cong_weak = case_cong_weak_thm, case_distribs = [case_distrib_thm], split = split_thm,
-           split_asm = split_asm_thm, disc_defs = disc_defs, disc_thmss = disc_thmss,
-           discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
+           case_cong_weak = case_cong_weak_thm, case_distribs = [case_distrib_thm],
+           split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
+           disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
            distinct_discsss = distinct_disc_thmsss, exhaust_discs = exhaust_disc_thms,
            exhaust_sels = exhaust_sel_thms, collapses = all_collapse_thms, expands = expand_thms,
            split_sels = split_sel_thms, split_sel_asms = split_sel_asm_thms,
