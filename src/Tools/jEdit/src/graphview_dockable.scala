@@ -88,13 +88,30 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
     }
   set_content(graphview)
 
+
+  /* main */
+
+  private val main =
+    Session.Consumer[Session.Global_Options](getClass.getName) {
+      case _: Session.Global_Options =>
+        GUI_Thread.later {
+          graphview match {
+            case main_panel: isabelle.graphview.Main_Panel =>
+              main_panel.graph_panel.apply_layout()
+            case _ =>
+          }
+        }
+    }
+
   override def init()
   {
     GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
+    PIDE.session.global_options += main
   }
 
   override def exit()
   {
     GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
+    PIDE.session.global_options -= main
   }
 }
