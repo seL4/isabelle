@@ -342,15 +342,15 @@ another type constructor.
 *}
 
 
-subsubsection {* Auxiliary Constants and Properties
-  \label{sssec:datatype-auxiliary-constants-and-properties} *}
+subsubsection {* Auxiliary Constants
+  \label{sssec:datatype-auxiliary-constants} *}
 
 text {*
 The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
 function, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
-@{text tl}, @{text set}, @{text map}, and @{text list_all2}, override the
+@{text tl}, @{text set}, @{text map}, and @{text list_all2} override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 @{text set_list}, @{text map_list}, and @{text rel_list}:
 *}
@@ -367,7 +367,8 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
     hide_type list
     hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list pred_list
 
-    context early begin
+    context early
+    begin
 (*>*)
     datatype (set: 'a) list =
       null: Nil
@@ -624,10 +625,9 @@ subsection {* Generated Constants
   \label{ssec:datatype-generated-constants} *}
 
 text {*
-Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
-with $m > 0$ live type variables and $n$ constructors
-@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the
-following auxiliary constants are introduced:
+Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m > 0$ live type variables
+and $n$ constructors @{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the following
+auxiliary constants are introduced:
 
 \medskip
 
@@ -756,8 +756,8 @@ The next subgroup is concerned with the case combinator:
 \item[@{text "t."}\hthm{case} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{case_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
@@ -796,19 +796,19 @@ The third subgroup revolves around discriminators and selectors:
 \item[@{text "t."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.sel(1)[no_vars]} \\
 @{thm list.sel(2)[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]} \\
-(The @{text "[simp]"} attribute is exceptionally omitted for datatypes equipped
+The @{text "[simp]"} attribute is exceptionally omitted for datatypes equipped
 with a single nullary constructor, because a property of the form
-@{prop "x = C"} is not suitable as a simplification rule.)
+@{prop "x = C"} is not suitable as a simplification rule.
 
 \item[@{text "t."}\hthm{distinct_disc} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
-proper discriminator. Had the datatype been introduced with a second
+proper discriminator. If the datatype had been introduced with a second
 discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
 @{prop "nonnull list \<Longrightarrow> \<not> null list"}
@@ -842,8 +842,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 
 \noindent
 In addition, equational versions of @{text t.disc} are registered with the
-@{text "[code]"} attribute. (The @{text "[code]"} attribute is set by the
-@{text code} plugin, Section~\ref{ssec:code-generator}.)
+@{text "[code]"} attribute. The @{text "[code]"} attribute is set by the
+@{text code} plugin (Section~\ref{ssec:code-generator}).
 *}
 
 
@@ -860,32 +860,32 @@ a set function, the map function, or the relator:
 
 \item[@{text "t."}\hthm{case_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.case_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{sel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 This property is missing for @{typ "'a list"} because there is no common
 selector to all constructors. \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{ctr_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{disc_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.disc_transfer(1)[no_vars]} \\
 @{thm list.disc_transfer(2)[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
 @{thm list.set_cases[no_vars]}
@@ -900,8 +900,8 @@ Section~\ref{ssec:code-generator}.)
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{map_disc_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm list.map_disc_iff[no_vars]}
@@ -932,9 +932,9 @@ Section~\ref{ssec:code-generator}.)
 
 \noindent
 In addition, equational versions of @{text t.rel_inject} and @{text
-rel_distinct} are registered with the @{text "[code]"} attribute. (The
-@{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+rel_distinct} are registered with the @{text "[code]"} attribute. The
+@{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 The second subgroup consists of more abstract properties of the set functions,
 the map function, and the relator:
@@ -953,8 +953,8 @@ the map function, and the relator:
 
 \item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.set_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
@@ -976,13 +976,13 @@ Section~\ref{ssec:transfer}.)
 
 \item[@{text "t."}\hthm{map_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.map_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]} \\
-(The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin,
-Section~\ref{ssec:lifting}.)
+The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
+(Section~\ref{ssec:lifting}).
 
 \item[@{text "t."}\hthm{rel_conversep}\rm:] ~ \\
 @{thm list.rel_conversep[no_vars]}
@@ -999,13 +999,13 @@ Section~\ref{ssec:lifting}.)
 
 \item[@{text "t."}\hthm{rel_mono} @{text "[mono, relator_mono]"}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]} \\
-(The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin,
-Section~\ref{ssec:lifting}.)
+The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
+(Section~\ref{ssec:lifting}).
 
 \item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rel_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \end{description}
 \end{indentblock}
@@ -1037,16 +1037,16 @@ prove $m$ properties simultaneously.
 \item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
 @{thm list.rec_o_map[no_vars]}
 
 \item[@{text "t."}\hthm{rec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rec_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \end{description}
 \end{indentblock}
@@ -1057,7 +1057,7 @@ For convenience, @{command datatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.map} @{text t.rel_inject}] ~ \\
+\item[@{text "t."}\hthm{simps}] = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.map} @{text t.rel_inject} \\
 @{text t.rel_distinct} @{text t.set}
 
 \end{description}
@@ -1228,7 +1228,7 @@ text {* \blankline *}
 
 text {* \blankline *}
 
-    primrec (*<*)(in early) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
+    primrec (*<*)(in early) (transfer) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil y) = y" |
       "tfold f (TCons x xs) = f x (tfold f xs)"
 
@@ -1398,7 +1398,8 @@ subsubsection {* Nested-as-Mutual Recursion
   \label{sssec:primrec-nested-as-mutual-recursion} *}
 
 (*<*)
-    locale n2m begin
+    locale n2m
+    begin
 (*>*)
 
 text {*
@@ -1532,21 +1533,50 @@ should be generated and proved @{text "by transfer_prover"}. The
 *}
 
 
-(*
 subsection {* Generated Theorems
   \label{ssec:primrec-generated-theorems} *}
 
+(*<*)
+    context early
+    begin
+(*>*)
+
 text {*
-%  * synthesized nonrecursive definition
-%  * user specification is rederived from it, exactly as entered
-%
-%  * induct
-%    * mutualized
-%    * without some needless induction hypotheses if not used
-%  * rec
-%    * mutualized
+The @{command primrec} command generates the following properties (listed
+for @{const tfold}):
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "f."}\hthm{simps} @{text "[simp, code]"}\rm:] ~ \\
+@{thm tfold.simps(1)[no_vars]} \\
+@{thm tfold.simps(2)[no_vars]} \\
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
+
+\item[@{text "f."}\hthm{transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm tfold.transfer[no_vars]} \\
+This theorem is generated by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}) for functions declared with the @{text transfer}
+option enabled.
+
+\item[@{text "f."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+This induction rule is generated for nested-as-mutual recursive functions
+(Section~\ref{sssec:primrec-nested-as-mutual-recursion}).
+
+\item[@{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+This induction rule is generated for nested-as-mutual recursive functions
+(Section~\ref{sssec:primrec-nested-as-mutual-recursion}). Given $m > 1$ mutually
+recursive functions, this rule can be used to prove $m$ properties
+simultaneously.
+
+\end{description}
+\end{indentblock}
 *}
-*)
+
+(*<*)
+    end
+(*>*)
 
 
 subsection {* Recursive Default Values for Selectors
@@ -1870,8 +1900,8 @@ If $m = 1$, the attribute @{text "[consumes 1]"} is generated as well.
 
 \item[@{text "t."}\hthm{corec_code} @{text "[code]"}\rm:] ~ \\
 @{thm llist.corec_code[no_vars]} \\
-(The @{text "[code]"} attribute is set by the @{text code} plugin,
-Section~\ref{ssec:code-generator}.)
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
 
 \item[@{text "t."}\hthm{corec_disc}\rm:] ~ \\
 @{thm llist.corec_disc(1)[no_vars]} \\
@@ -1890,8 +1920,8 @@ Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{corec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm llist.corec_transfer[no_vars]} \\
-(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
-Section~\ref{ssec:transfer}.)
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}).
 
 \end{description}
 \end{indentblock}
@@ -1902,7 +1932,7 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec_disc_iff}] @{text t.corec_sel} ~ \\
+\item[@{text "t."}\hthm{simps}] = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec_disc_iff} @{text t.corec_sel} \\
 @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
@@ -1978,7 +2008,7 @@ long as they occur under a constructor, which itself appears either directly to
 the right of the equal sign or in a conditional expression:
 *}
 
-    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+    primcorec (*<*)(transfer) (*>*)literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate g x = LCons x (literate g (g x))"
 
 text {* \blankline *}
@@ -2296,7 +2326,7 @@ Since there is no sequentiality, we can apply the equation for @{const Choice}
 without having first to discharge @{term "n mod (4\<Colon>int) \<noteq> 0"},
 @{term "n mod (4\<Colon>int) \<noteq> 1"}, and
 @{term "n mod (4\<Colon>int) \<noteq> 2"}.
-The price to pay for this elegance is that we must discharge exclusivity proof
+The price to pay for this elegance is that we must discharge exclusiveness proof
 obligations, one for each pair of conditions
 @{term "(n mod (4\<Colon>int) = i, n mod (4\<Colon>int) = j)"}
 with @{term "i < j"}. If we prefer not to discharge any obligations, we can
@@ -2473,6 +2503,7 @@ sequentially.
 \item
 The @{text exhaustive} option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
+This generally gives rise to an additional proof obligation.
 
 \item
 The @{text transfer} option indicates that an unconditional transfer rule
@@ -2489,10 +2520,101 @@ obligations.
 *}
 
 
-(*
 subsection {* Generated Theorems
   \label{ssec:primcorec-generated-theorems} *}
-*)
+
+text {*
+The @{command primcorec} and @{command primcorecursive} commands generate the
+following properties (listed for @{const literate}):
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "f."}\hthm{code} @{text "[code]"}\rm:] ~ \\
+@{thm literate.code[no_vars]} \\
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
+
+\item[@{text "f."}\hthm{ctr}\rm:] ~ \\
+@{thm literate.ctr[no_vars]}
+
+\item[@{text "f."}\hthm{disc} @{text "[simp, code]"}\rm:] ~ \\
+@{thm literate.disc[no_vars]} \\
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}). The @{text "[simp]"} attribute is set only
+for functions for which @{text f.disc_iff} is not available.
+
+\item[@{text "f."}\hthm{disc_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm literate.disc_iff[no_vars]} \\
+This property is generated only for functions declared with the
+@{text exhaustive} option or whose conditions are trivially exhaustive.
+
+\item[@{text "f."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
+@{thm literate.disc[no_vars]} \\
+The @{text "[code]"} attribute is set by the @{text code} plugin
+(Section~\ref{ssec:code-generator}).
+
+\item[@{text "f."}\hthm{exclude}\rm:] ~ \\
+These properties are missing for @{const literate} because no exclusiveness
+proof obligations arose. In general, the properties correspond to the
+discharged proof obligations.
+
+\item[@{text "f."}\hthm{exhaust}\rm:] ~ \\
+This property is missing for @{const literate} because no exhaustiveness
+proof obligation arose. In general, the property correspond to the discharged
+proof obligation.
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "f."}\hthm{coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "f."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+This coinduction rule is generated for nested-as-mutual corecursive functions
+(Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}).
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "f."}\hthm{coinduct_strong} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "f."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+This coinduction rule is generated for nested-as-mutual corecursive functions
+(Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}).
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "f."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+This coinduction rule is generated for nested-as-mutual corecursive functions
+(Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}). Given $m > 1$
+mutually corecursive functions, this rule can be used to prove $m$ properties
+simultaneously.
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{coinduct_strong} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "f."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+This coinduction rule is generated for nested-as-mutual corecursive functions
+(Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}). Given $m > 1$
+mutually corecursive functions, this rule can be used to prove $m$ properties
+simultaneously.
+
+\end{description}
+\end{indentblock}
+
+\noindent
+For convenience, @{command primcorec} and @{command primcorecursive} also
+provide the following collection:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "f."}\hthm{simps}] = @{text f.disc_iff} (or @{text f.disc}) @{text t.sel}
+
+\end{description}
+\end{indentblock}
+*}
 
 
 (*
@@ -2652,10 +2774,9 @@ The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
 command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
 a map function, a relator, and a nonemptiness witness that depends only on
-@{typ 'a}. (The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of
-the witness can be read as an implication: If we have a witness for @{typ 'a},
-we can construct a witness for @{text "('a, 'b, 'c) F"}.) The BNF
-properties are postulated as axioms.
+@{typ 'a}. The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of the witness can be read
+as an implication: Given a witness for @{typ 'a}, we can construct a witness for
+@{text "('a, 'b, 'c) F"}. The BNF properties are postulated as axioms.
 *}
 
     bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F
