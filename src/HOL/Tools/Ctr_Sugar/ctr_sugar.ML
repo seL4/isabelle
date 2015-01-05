@@ -234,8 +234,8 @@ val case_congN = "case_cong";
 val case_eq_ifN = "case_eq_if";
 val collapseN = "collapse";
 val discN = "disc";
-val discIN = "discI";
 val disc_eq_caseN = "disc_eq_case";
+val discIN = "discI";
 val distinctN = "distinct";
 val distinct_discN = "distinct_disc";
 val exhaustN = "exhaust";
@@ -990,9 +990,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
               val disc_eq_case_thms =
                 let
-                  fun term_of_bool b = if b then @{term True} else @{term False};
+                  fun const_of_bool b = if b then @{const True} else @{const False};
                   fun mk_case_args n = map_index (fn (k, argTs) =>
-                    fold_rev Term.absdummy argTs (term_of_bool (n = k))) ctr_Tss;
+                    fold_rev Term.absdummy argTs (const_of_bool (n = k))) ctr_Tss;
                   val goals = map_index (fn (n, udisc) =>
                     mk_Trueprop_eq (udisc, list_comb (casexBool, mk_case_args n) $ u)) udiscs;
                 in
@@ -1047,8 +1047,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
            (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, if ms = [0] then [] else simp_attrs),
            (discN, flat nontriv_disc_thmss, simp_attrs),
-           (discIN, nontriv_discI_thms, []),
            (disc_eq_caseN, disc_eq_case_thms, []),
+           (discIN, nontriv_discI_thms, []),
            (distinctN, distinct_thms, simp_attrs @ inductsimp_attrs),
            (distinct_discN, distinct_disc_thms, dest_attrs),
            (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
