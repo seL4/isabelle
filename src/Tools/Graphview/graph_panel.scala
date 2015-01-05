@@ -133,7 +133,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
     def scale_discrete: Double =
     {
-      val font_height = GUI.line_metrics(visualizer.font()).getHeight.toDouble
+      val font_height = GUI.line_metrics(visualizer.font()).getHeight.toInt
       (scale * font_height).floor / font_height
     }
 
