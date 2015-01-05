@@ -10,45 +10,20 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Color, Shape, RenderingHints, Graphics2D}
-import java.awt.font.FontRenderContext
-import java.awt.image.BufferedImage
+import java.awt.{Font, Color, Shape, Graphics2D}
 import java.awt.geom.Rectangle2D
 import javax.swing.JComponent
 
 
-object Visualizer
-{
-  object Metrics
-  {
-    def apply(font: Font, font_render_context: FontRenderContext) =
-      new Metrics(font, font_render_context)
-
-    def apply(gfx: Graphics2D): Metrics =
-      new Metrics(gfx.getFont, gfx.getFontRenderContext)
-  }
-
-  class Metrics private(font: Font, font_render_context: FontRenderContext)
-  {
-    def string_bounds(s: String) = font.getStringBounds(s, font_render_context)
-    private val mix = string_bounds("mix")
-    val space_width = string_bounds(" ").getWidth
-    def char_width: Double = mix.getWidth / 3
-    def height: Double = mix.getHeight
-    def ascent: Double = font.getLineMetrics("", font_render_context).getAscent
-    def gap: Double = mix.getWidth
-    def pad: Double = char_width
-
-    def box_width2(node: Graph_Display.Node): Double =
-      ((string_bounds(node.toString).getWidth + pad) / 2).ceil
-    def box_gap: Double = gap.ceil
-    def box_height(n: Int): Double = (char_width * 1.5 * (5 max n)).ceil
-  }
-}
-
 class Visualizer(options: => Options, val model: Model)
 {
   visualizer =>
+
+  // owned by GUI thread
+  private var layout: Layout = Layout.empty
+
+  def metrics: Metrics = layout.metrics
+  def visible_graph: Graph_Display.Graph = layout.visible_graph
 
 
   /* tooltips */
@@ -67,22 +42,12 @@ class Visualizer(options: => Options, val model: Model)
 
   /* font rendering information */
 
-  def font(): Font =
+  def make_font(): Font =
   {
     val family = options.string("graphview_font_family")
     val size = options.int("graphview_font_size")
     new Font(family, Font.PLAIN, size)
   }
-
-  val rendering_hints =
-    new RenderingHints(
-      RenderingHints.KEY_ANTIALIASING,
-      RenderingHints.VALUE_ANTIALIAS_ON)
-
-  val font_render_context = new FontRenderContext(null, true, false)
-
-  def metrics(): Visualizer.Metrics =
-    Visualizer.Metrics(font(), font_render_context)
 
 
   /* rendering parameters */
@@ -112,9 +77,6 @@ class Visualizer(options: => Options, val model: Model)
 
   object Coordinates
   {
-    // owned by GUI thread
-    private var layout = Layout.empty
-
     def get_node(node: Graph_Display.Node): Layout.Point = layout.get_node(node)
     def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] = layout.get_dummies(edge)
 
@@ -137,28 +99,31 @@ class Visualizer(options: => Options, val model: Model)
 
     def update_layout()
     {
+      val metrics = Metrics(make_font())
+      val visible_graph = model.make_visible_graph()
+
       // FIXME avoid expensive operation on GUI thread
-      layout = Layout.make(metrics(), model.make_visible_graph())
+      layout = Layout.make(metrics, visible_graph)
     }
 
     def bounding_box(): Rectangle2D.Double =
     {
-      val m = metrics()
       var x0 = 0.0
       var y0 = 0.0
       var x1 = 0.0
       var y1 = 0.0
-      for (node <- model.make_visible_graph().keys_iterator) {
-        val shape = Shapes.Node.shape(m, visualizer, node)
+      for (node <- visible_graph.keys_iterator) {
+        val shape = Shapes.Node.shape(visualizer, node)
         x0 = x0 min shape.getMinX
         y0 = y0 min shape.getMinY
         x1 = x1 max shape.getMaxX
         y1 = y1 max shape.getMaxY
       }
-      x0 = (x0 - m.gap).floor
-      y0 = (y0 - m.gap).floor
-      x1 = (x1 + m.gap).ceil
-      y1 = (y1 + m.gap).ceil
+      val gap = metrics.gap
+      x0 = (x0 - gap).floor
+      y0 = (y0 - gap).floor
+      x1 = (x1 + gap).ceil
+      y1 = (y1 + gap).ceil
       new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
     }
   }
@@ -173,16 +138,14 @@ class Visualizer(options: => Options, val model: Model)
 
     def paint_all_visible(gfx: Graphics2D, dummies: Boolean)
     {
-      gfx.setFont(font())
-      gfx.setRenderingHints(rendering_hints)
-      val visible_graph = model.make_visible_graph()
+      gfx.setRenderingHints(Metrics.rendering_hints)
       visible_graph.edges_iterator.foreach(apply(gfx, _, arrow_heads, dummies))
       visible_graph.keys_iterator.foreach(apply(gfx, _))
     }
 
-    def shape(m: Visualizer.Metrics, node: Graph_Display.Node): Shape =
-      if (node.is_dummy) Shapes.Dummy.shape(m, visualizer)
-      else Shapes.Node.shape(m, visualizer, node)
+    def shape(node: Graph_Display.Node): Shape =
+      if (node.is_dummy) Shapes.Dummy.shape(visualizer)
+      else Shapes.Node.shape(visualizer, node)
   }
 
   object Selection

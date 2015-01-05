@@ -27,12 +27,13 @@ object Layout
   private type Level = List[Key]
   private type Levels = List[Level]
 
-  val empty = new Layout(Map.empty, Map.empty)
+  val empty: Layout =
+    new Layout(Metrics.default, Graph_Display.empty_graph, Map.empty, Map.empty)
 
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def make(metrics: Visualizer.Metrics, visible_graph: Graph_Display.Graph): Layout =
+  def make(metrics: Metrics, visible_graph: Graph_Display.Graph): Layout =
   {
     if (visible_graph.is_empty) empty
     else {
@@ -69,7 +70,7 @@ object Layout
           case (map, key) => map + (key -> dummies(key).map(coords(_)))
         }
 
-      new Layout(coords, dummy_coords)
+      new Layout(metrics, visible_graph, coords, dummy_coords)
     }
   }
 
@@ -170,7 +171,7 @@ object Layout
   }
 
   def pendulum(
-    metrics: Visualizer.Metrics, graph: Graph_Display.Graph,
+    metrics: Metrics, graph: Graph_Display.Graph,
     levels: Levels, coords: Map[Key, Point]): Coordinates =
   {
     type Regions = List[List[Region]]
@@ -252,7 +253,7 @@ object Layout
   {
     var nodes: List[Key] = List(node)
 
-    def distance(metrics: Visualizer.Metrics, coords: Coordinates, that: Region): Double =
+    def distance(metrics: Metrics, coords: Coordinates, that: Region): Double =
     {
       val n1 = this.nodes.last; val x1 = coords(n1).x + metrics.box_width2(n1)
       val n2 = that.nodes.head; val x2 = coords(n2).x - metrics.box_width2(n2)
@@ -278,18 +279,26 @@ object Layout
 }
 
 final class Layout private(
+  val metrics: Metrics,
+  val visible_graph: Graph_Display.Graph,
   nodes: Map[Graph_Display.Node, Layout.Point],
   dummies: Map[Graph_Display.Edge, List[Layout.Point]])
 {
+  /* nodes */
+
   def get_node(node: Graph_Display.Node): Layout.Point =
     nodes.getOrElse(node, Layout.Point.zero)
 
   def map_node(node: Graph_Display.Node, f: Layout.Point => Layout.Point): Layout =
     nodes.get(node) match {
       case None => this
-      case Some(p) => new Layout(nodes + (node -> f(p)), dummies)
+      case Some(p) =>
+        val nodes1 = nodes + (node -> f(p))
+        new Layout(metrics, visible_graph, nodes1, dummies)
     }
 
+
+  /* dummies */
 
   def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] =
     dummies.getOrElse(edge, Nil)
@@ -297,7 +306,9 @@ final class Layout private(
   def map_dummies(edge: Graph_Display.Edge, f: List[Layout.Point] => List[Layout.Point]): Layout =
     dummies.get(edge) match {
       case None => this
-      case Some(ds) => new Layout(nodes, dummies + (edge -> f(ds)))
+      case Some(ds) =>
+        val dummies1 = dummies + (edge -> f(ds))
+        new Layout(metrics, visible_graph, nodes, dummies1)
     }
 }
 

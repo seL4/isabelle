@@ -24,7 +24,7 @@ object Popups
     val visualizer = panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
-    val visible_graph = visualizer.model.make_visible_graph()
+    val visible_graph = visualizer.visible_graph
 
     def filter_context(
         nodes: List[Graph_Display.Node], reverse: Boolean, caption: String, edges: Boolean) =

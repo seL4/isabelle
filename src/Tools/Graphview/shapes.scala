@@ -21,22 +21,22 @@ object Shapes
 
   object Node
   {
-    def shape(m: Visualizer.Metrics, visualizer: Visualizer, node: Graph_Display.Node)
-      : Rectangle2D.Double =
+    def shape(visualizer: Visualizer, node: Graph_Display.Node): Rectangle2D.Double =
     {
+      val metrics = visualizer.metrics
       val p = visualizer.Coordinates.get_node(node)
-      val bounds = m.string_bounds(node.toString)
-      val w = bounds.getWidth + m.pad
-      val h = bounds.getHeight + m.pad
+      val bounds = metrics.string_bounds(node.toString)
+      val w = bounds.getWidth + metrics.pad
+      val h = bounds.getHeight + metrics.pad
       new Rectangle2D.Double((p.x - (w / 2)).floor, (p.y - (h / 2)).floor, w.ceil, h.ceil)
     }
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
     {
-      val m = Visualizer.Metrics(gfx)
-      val s = shape(m, visualizer, node)
+      val metrics = visualizer.metrics
+      val s = shape(visualizer, node)
       val c = visualizer.node_color(node)
-      val bounds = m.string_bounds(node.toString)
+      val bounds = metrics.string_bounds(node.toString)
 
       gfx.setColor(c.background)
       gfx.fill(s)
@@ -46,9 +46,10 @@ object Shapes
       gfx.draw(s)
 
       gfx.setColor(c.foreground)
+      gfx.setFont(metrics.font)
       gfx.drawString(node.toString,
         (s.getCenterX - bounds.getWidth / 2).round.toInt,
-        (s.getCenterY - bounds.getHeight / 2 + m.ascent).round.toInt)
+        (s.getCenterY - bounds.getHeight / 2 + metrics.ascent).round.toInt)
     }
   }
 
@@ -56,8 +57,9 @@ object Shapes
   {
     private val identity = new AffineTransform()
 
-    def shape(m: Visualizer.Metrics, visualizer: Visualizer): Shape =
+    def shape(visualizer: Visualizer): Shape =
     {
+      val m = visualizer.metrics
       val w = (m.space_width / 2).ceil
       new Rectangle2D.Double(- w, - w, 2 * w, 2 * w)
     }
@@ -67,12 +69,9 @@ object Shapes
 
     def paint_transformed(gfx: Graphics2D, visualizer: Visualizer, at: AffineTransform)
     {
-      val m = Visualizer.Metrics(gfx)
-      val s = shape(m, visualizer)
-
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.dummy_color)
-      gfx.draw(at.createTransformedShape(s))
+      gfx.draw(at.createTransformedShape(shape(visualizer)))
     }
   }
 
@@ -103,9 +102,7 @@ object Shapes
       gfx.setColor(visualizer.edge_color(edge))
       gfx.draw(path)
 
-      if (head)
-        Arrow_Head.paint(gfx, path,
-          visualizer.Drawer.shape(Visualizer.Metrics(gfx), edge._2))
+      if (head) Arrow_Head.paint(gfx, path, visualizer.Drawer.shape(edge._2))
     }
   }
 
@@ -160,9 +157,7 @@ object Shapes
         gfx.setColor(visualizer.edge_color(edge))
         gfx.draw(path)
 
-        if (head)
-          Arrow_Head.paint(gfx, path,
-            visualizer.Drawer.shape(Visualizer.Metrics(gfx), edge._2))
+        if (head) Arrow_Head.paint(gfx, path, visualizer.Drawer.shape(edge._2))
       }
     }
   }

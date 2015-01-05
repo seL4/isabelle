@@ -78,7 +78,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
           override def selection_color = view.getTextArea.getPainter.getSelectionColor
           override def error_color = PIDE.options.color_value("error_color")
 
-          override def font() =
+          override def make_font(): Font =
             GUI.imitate_font(Font_Info.main().font,
               PIDE.options.string("graphview_font_family"),
               PIDE.options.real("graphview_font_scale"))
