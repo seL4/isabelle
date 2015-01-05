@@ -475,9 +475,9 @@ text {*
     (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
      @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
   ;
-  @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
-  ;
   @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels') + ',') ')'
+  ;
+  @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
   ;
   @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
 \<close>}
@@ -499,11 +499,8 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text "plugins"} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). Some plugin names are defined
-as indirection to a group of sub-plugins (notably @{text "quickcheck"}
-based on @{text quickcheck_random}, @{text quickcheck_exhaustive}, \dots).
-By default, all plugins are enabled.
+The @{text plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
 
 \item
 The @{text "discs_sels"} option indicates that discriminators and selectors
@@ -1508,7 +1505,8 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
 \synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
 
-The optional target is optionally followed by the following options:
+The optional target is optionally followed by a combination of the following
+options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -2453,7 +2451,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
 \synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
 
-The optional target is optionally followed by one or both of the following
+The optional target is optionally followed by a combination of the following
 options:
 
 \begin{itemize}
@@ -2691,6 +2689,9 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{type} denotes a HOL type, and \synt{term} denotes a HOL term
 @{cite "isabelle-isar-ref"}.
 
+The @{syntax plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+
 %%% TODO: elaborate on proof obligations
 *}
 
@@ -2704,7 +2705,7 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_axiomatization} target? @{syntax plugins}? \<newline>
+  @@{command bnf_axiomatization} target? ('(' @{syntax plugins} ')')? \<newline>
     @{syntax tyargs}? name @{syntax wit_types}? \<newline>
     mixfix? @{syntax map_rel}?
   ;
@@ -2722,6 +2723,9 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
 (@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix} denotes the usual
 parenthesized mixfix notation @{cite "isabelle-isar-ref"}.
+
+The @{syntax plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
 
 Type arguments are live by default; they can be marked as dead by entering
 @{text dead} in front of the type variable (e.g., @{text "(dead 'a)"})
@@ -2993,8 +2997,10 @@ subsection {* Quickcheck
   \label{ssec:quickcheck} *}
 
 text {*
-The integration of datatypes with Quickcheck is accomplished by a number of
-plugins that instantiate specific type classes. The plugins are listed below:
+The integration of datatypes with Quickcheck is accomplished by the
+\hthm{quickcheck} plugin. It combines a number of subplugins that instantiate
+specific type classes. The subplugins can be enabled or disabled individually.
+They are listed below:
 
 \begin{indentblock}
 \hthm{quickcheck_random} \\
