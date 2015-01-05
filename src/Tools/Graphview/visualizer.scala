@@ -112,13 +112,14 @@ class Visualizer(options: => Options, val model: Model)
       var y0 = 0.0
       var x1 = 0.0
       var y1 = 0.0
-      for (node <- visible_graph.keys_iterator) {
-        val shape = Shapes.Node.shape(visualizer, node)
-        x0 = x0 min shape.getMinX
-        y0 = y0 min shape.getMinY
-        x1 = x1 max shape.getMaxX
-        y1 = y1 max shape.getMaxY
-      }
+      ((for (node <- visible_graph.keys_iterator) yield Shapes.Node.shape(visualizer, node)) ++
+       (for (d <- layout.dummies_iterator) yield Shapes.Dummy.shape(visualizer, d))).
+         foreach(rect => {
+            x0 = x0 min rect.getMinX
+            y0 = y0 min rect.getMinY
+            x1 = x1 max rect.getMaxX
+            y1 = y1 max rect.getMaxY
+          })
       val gap = metrics.gap
       x0 = (x0 - gap).floor
       y0 = (y0 - gap).floor

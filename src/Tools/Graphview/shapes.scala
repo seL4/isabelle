@@ -55,7 +55,7 @@ object Shapes
 
   object Dummy
   {
-    def shape(visualizer: Visualizer, d: Layout.Point): Shape =
+    def shape(visualizer: Visualizer, d: Layout.Point): Rectangle2D.Double =
     {
       val metrics = visualizer.metrics
       val w = metrics.space_width

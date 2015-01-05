@@ -310,5 +310,8 @@ final class Layout private(
         val dummies1 = dummies + (edge -> f(ds))
         new Layout(metrics, visible_graph, nodes, dummies1)
     }
+
+  def dummies_iterator: Iterator[Layout.Point] =
+    for { (_, ds) <- dummies.iterator; d <- ds.iterator } yield d
 }
 
