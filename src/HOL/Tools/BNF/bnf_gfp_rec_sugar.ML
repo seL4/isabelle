@@ -68,6 +68,7 @@ open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 open BNF_FP_Rec_Sugar_Util
+open BNF_FP_Rec_Sugar_Transfer
 open BNF_GFP_Rec_Sugar_Tactics
 
 val codeN = "code";
@@ -951,7 +952,7 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
         val prems = maps (s_not_conj o #prems) disc_eqns;
         val ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE;
         val code_rhs_opt = Option.map #code_rhs_opt sel_eqn_opt |> the_default NONE;
-        val eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000 (* FIXME *);
+        val eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000; (* FIXME *)
 
         val extra_disc_eqn =
           {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = n,
@@ -1504,8 +1505,7 @@ val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
       Parse.!!! (Parse.list1 primcorec_option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
 
-val _ = Theory.setup (primcorec_interpretation
-  BNF_FP_Rec_Sugar_Transfer.primcorec_transfer_pluginN
-  BNF_FP_Rec_Sugar_Transfer.primcorec_transfer_interpretation)
+val _ = Theory.setup (primcorec_interpretation Transfer_BNF.transfer_plugin
+  primcorec_transfer_interpretation);
 
 end;

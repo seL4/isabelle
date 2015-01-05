@@ -64,6 +64,9 @@ sig
      fp_bnf_sugar: fp_bnf_sugar,
      fp_co_induct_sugar: fp_co_induct_sugar};
 
+  val co_induct_of: 'a list -> 'a
+  val strong_co_induct_of: 'a list -> 'a
+
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: theory -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
@@ -76,8 +79,7 @@ sig
   val register_fp_sugars_raw: fp_sugar list -> local_theory -> local_theory
   val register_fp_sugars: (string -> bool) -> fp_sugar list -> local_theory -> local_theory
 
-  val co_induct_of: 'a list -> 'a
-  val strong_co_induct_of: 'a list -> 'a
+  val mk_parametricity_goal: Proof.context -> term list -> term -> term -> term
 
   val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
     'a list
@@ -154,8 +156,6 @@ sig
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
-
-  val mk_parametricity_goal: Proof.context -> term list -> term -> term -> term
 end;
 
 structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =
@@ -243,6 +243,9 @@ type fp_sugar =
    fp_bnf_sugar: fp_bnf_sugar,
    fp_co_induct_sugar: fp_co_induct_sugar};
 
+fun co_induct_of (i :: _) = i;
+fun strong_co_induct_of [_, s] = s;
+
 fun morph_fp_bnf_sugar phi ({map_thms, map_disc_iffs, map_selss, rel_injects, rel_distincts,
     rel_sels, rel_intros, rel_cases, set_thms, set_selssss, set_introssss,
     set_cases} : fp_bnf_sugar) =
@@ -327,9 +330,6 @@ val fp_sugar_of_global = fp_sugar_of_generic o Context.Theory;
 
 val fp_sugars_of = fp_sugars_of_generic o Context.Proof;
 val fp_sugars_of_global = fp_sugars_of_generic o Context.Theory;
-
-fun co_induct_of (i :: _) = i;
-fun strong_co_induct_of [_, s] = s;
 
 structure FP_Sugar_Plugin = Plugin(type T = fp_sugar list);
 

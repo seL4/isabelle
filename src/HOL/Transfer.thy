@@ -371,12 +371,6 @@ by auto
 ML_file "Tools/Transfer/transfer_bnf.ML"
 ML_file "Tools/BNF/bnf_fp_rec_sugar_transfer.ML"
 
-ML {*
-val _ = Theory.setup (BNF_LFP_Rec_Sugar.primrec_interpretation
-  BNF_FP_Rec_Sugar_Transfer.primrec_transfer_pluginN
-  BNF_FP_Rec_Sugar_Transfer.primrec_transfer_interpretation)
-*}
-
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]
 

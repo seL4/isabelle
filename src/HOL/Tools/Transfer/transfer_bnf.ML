@@ -6,6 +6,7 @@ Setup for Transfer for types that are BNF.
 
 signature TRANSFER_BNF =
 sig
+  val transfer_plugin: string
   val base_name_of_bnf: BNF_Def.bnf -> binding
   val type_name_of_bnf: BNF_Def.bnf -> string
   val lookup_defined_pred_data: Proof.context -> string -> Transfer.pred_data
@@ -19,6 +20,8 @@ open BNF_Util
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
+
+val transfer_plugin = Plugin_Name.declare_setup @{binding transfer}
 
 (* util functions *)
 
@@ -292,8 +295,6 @@ fun predicator bnf lthy =
   end
 
 (* BNF interpretation *)
-
-val transfer_plugin = Plugin_Name.declare_setup @{binding transfer}
 
 fun transfer_bnf_interpretation bnf lthy =
   let
