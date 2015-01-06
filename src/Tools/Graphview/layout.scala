@@ -27,8 +27,6 @@ object Layout
     {
       def compare(v1: Vertex, v2: Vertex): Int =
         (v1, v2) match {
-          case (_: Node, _: Dummy) => -1
-          case (_: Dummy, _: Node) => 1
           case (Node(a), Node(b)) => Graph_Display.Node.Ordering.compare(a, b)
           case (Dummy(a1, a2, i), Dummy(b1, b2, j)) =>
             Graph_Display.Node.Ordering.compare(a1, b1) match {
@@ -37,6 +35,16 @@ object Layout
                   case 0 => i compare j
                   case ord => ord
                 }
+              case ord => ord
+            }
+          case (Node(a), Dummy(b, _, _)) =>
+            Graph_Display.Node.Ordering.compare(a, b) match {
+              case 0 => -1
+              case ord => ord
+            }
+          case (Dummy(a, _, _), Node(b)) =>
+            Graph_Display.Node.Ordering.compare(a, b) match {
+              case 0 => 1
               case ord => ord
             }
         }
