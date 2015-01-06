@@ -196,27 +196,16 @@ object Layout
   }
 
   private def count_crossings(graph: Graph, levels: List[Level]): Int =
-  {
-    def in_level(ls: List[Level]): Int = ls match {
+    levels.iterator.sliding(2).map {
       case List(top, bot) =>
         top.iterator.zipWithIndex.map {
           case (outer_parent, outer_parent_index) =>
-            graph.imm_succs(outer_parent).iterator.map(bot.indexOf(_))
-            .map(outer_child =>
-              (0 until outer_parent_index)
-              .map(inner_parent =>
-                graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_))
-                .filter(inner_child => outer_child < inner_child)
-                .size
-              ).sum
-            ).sum
+            graph.imm_succs(outer_parent).iterator.map(bot.indexOf(_)).map(outer_child =>
+              (0 until outer_parent_index).iterator.map(inner_parent =>
+                graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_)).
+                  filter(inner_child => outer_child < inner_child).size).sum).sum
         }.sum
-
-      case _ => 0
-    }
-
-    levels.iterator.sliding(2).map(ls => in_level(ls.toList)).sum
-  }
+    }.sum
 
 
 
