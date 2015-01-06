@@ -2969,9 +2969,9 @@ Plugins extend the (co)datatype package to interoperate with other Isabelle
 packages and tools, such as the code generator, Transfer, Lifting, and
 Quickcheck. They can be enabled or disabled individually using the
 @{syntax plugins} option to the commands @{command datatype},
-@{command codatatype}, @{command free_constructors}, @{command bnf}, and
-@{command bnf_axiomatization}.
-For example:
+@{command primrec}, @{command codatatype}, @{command primcorec},
+@{command primcorecursive}, @{command bnf}, @{command bnf_axiomatization}, and
+@{command free_constructors}. For example:
 *}
 
     datatype (plugins del: code "quickcheck") color = Red | Black

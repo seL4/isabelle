@@ -58,7 +58,7 @@
 \isadroptag{theory}
 
 \title{%\includegraphics[scale=0.5]{isabelle_hol} \\[4ex]
-Defining (Co)datatypes in Isabelle/HOL}
+Defining (Co)datatypes and Primitively (Co)recursive Functions in Isabelle/HOL}
 \author{Jasmin Christian Blanchette,
 Martin Desharnais, \\
 Lorenz Panny,
@@ -71,12 +71,17 @@ Dmitriy Traytel}
 
 \maketitle
 
+\begin{sloppy}
 \begin{abstract}
 \noindent
-This tutorial describes the definitional package for datatypes and codatatypes
-in Isabelle/HOL. The package provides four main commands: \keyw{datatype},
-\keyw{codatatype}, \keyw{primrec}, and \keyw{primcorec}.
+This tutorial describes the definitional package for datatypes and codatatypes,
+and for primitively recursive and corecursive functions, in Isabelle/HOL. The
+package provides these commands:
+\keyw{datatype}, \keyw{datatype_compat}, \keyw{primrec}, \keyw{codatatype},
+\keyw{primcorec}, \keyw{prim\-co\-recursive}, \keyw{bnf}, \keyw{bnf_axiomatization},
+\keyw{print_bnfs}, and \keyw{free_\allowbreak constructors}.
 \end{abstract}
+\end{sloppy}
 
 \tableofcontents
 
