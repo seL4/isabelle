@@ -70,7 +70,7 @@ class Visualizer(options: => Options, val model: Model)
     val visible_graph = model.make_visible_graph()
 
     // FIXME avoid expensive operation on GUI thread
-    _layout = Layout.make(metrics, visible_graph)
+    _layout = Layout.make(options, metrics, visible_graph)
   }
 
 

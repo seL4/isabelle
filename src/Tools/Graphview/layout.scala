@@ -82,15 +82,11 @@ object Layout
 
   val empty: Layout = new Layout(Metrics.default, Graph_Display.empty_graph, empty_graph)
 
-  val minimize_crossings_iterations = 40
-  val pendulum_iterations = 10
-  val rubberband_iterations = 10
-
 
   private type Levels = Map[Vertex, Int]
   private val empty_levels: Levels = Map.empty
 
-  def make(metrics: Metrics, input_graph: Graph_Display.Graph): Layout =
+  def make(options: Options, metrics: Metrics, input_graph: Graph_Display.Graph): Layout =
   {
     if (input_graph.is_empty) empty
     else {
@@ -136,7 +132,7 @@ object Layout
 
       /* minimize edge crossings and initial coordinates */
 
-      val levels = minimize_crossings(dummy_graph, level_list(dummy_levels))
+      val levels = minimize_crossings(options, dummy_graph, level_list(dummy_levels))
 
       val levels_graph: Graph =
         (((dummy_graph, 0.0) /: levels) {
@@ -153,8 +149,8 @@ object Layout
       /* pendulum/rubberband layout */
 
       val output_graph =
-        rubberband(metrics, levels,
-          pendulum(metrics, levels, levels_graph))
+        rubberband(options, metrics, levels,
+          pendulum(options, metrics, levels, levels_graph))
 
       new Layout(metrics, input_graph, output_graph)
     }
@@ -166,7 +162,8 @@ object Layout
 
   private type Level = List[Vertex]
 
-  private def minimize_crossings(graph: Graph, levels: List[Level]): List[Level] =
+  private def minimize_crossings(
+    options: Options, graph: Graph, levels: List[Level]): List[Level] =
   {
     def resort(parent: Level, child: Level, top_down: Boolean): Level =
       child.map(v => {
@@ -176,7 +173,8 @@ object Layout
           (v, weight)
       }).sortBy(_._2).map(_._1)
 
-    ((levels, count_crossings(graph, levels), true) /: (1 to minimize_crossings_iterations)) {
+    ((levels, count_crossings(graph, levels), true) /:
+      (1 to options.int("graphview_iterations_minimize_crossings"))) {
       case ((old_levels, old_crossings, top_down), _) =>
         val new_levels =
           if (top_down)
@@ -245,7 +243,8 @@ object Layout
 
   private type Regions = List[List[Region]]
 
-  private def pendulum(metrics: Metrics, levels: List[Level], levels_graph: Graph): Graph =
+  private def pendulum(
+    options: Options, metrics: Metrics, levels: List[Level], levels_graph: Graph): Graph =
   {
     def iteration(graph: Graph, regions: Regions, top_down: Boolean): (Graph, Regions, Boolean) =
     {
@@ -305,7 +304,8 @@ object Layout
 
     val initial_regions = levels.map(level => level.map(new Region(_)))
 
-    ((levels_graph, initial_regions, true, true) /: (1 to pendulum_iterations)) {
+    ((levels_graph, initial_regions, true, true) /:
+      (1 to options.int("graphview_iterations_pendulum"))) {
       case ((graph, regions, top_down, moved), _) =>
         if (moved) {
           val (graph1, regions1, moved1) = iteration(graph, regions, top_down)
@@ -331,13 +331,14 @@ object Layout
     }
   }
 
-  private def rubberband(metrics: Metrics, levels: List[Level], graph: Graph): Graph =
+  private def rubberband(
+    options: Options, metrics: Metrics, levels: List[Level], graph: Graph): Graph =
   {
     val gap = metrics.box_gap
     def left(g: Graph, v: Vertex) = vertex_left(metrics, g, v)
     def right(g: Graph, v: Vertex) = vertex_right(metrics, g, v)
 
-    (graph /: (1 to rubberband_iterations)) { case (graph, _) =>
+    (graph /: (1 to options.int("graphview_iterations_rubberband"))) { case (graph, _) =>
       (graph /: levels) { case (graph, level) =>
         val m = level.length - 1
         (graph /: level.iterator.zipWithIndex) {
