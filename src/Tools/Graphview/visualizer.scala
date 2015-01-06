@@ -11,7 +11,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{Font, Color, Shape, Graphics2D}
-import java.awt.geom.Rectangle2D
+import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
@@ -31,6 +31,16 @@ class Visualizer(options: => Options, val model: Model)
 
   def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Unit =
     _layout = _layout.translate_vertex(v, dx, dy)
+
+  def find_node(at: Point2D): Option[Graph_Display.Node] =
+    layout.output_graph.iterator.collectFirst({
+      case (Layout.Node(node), _) if Shapes.Node.shape(visualizer, node).contains(at) => node
+    })
+
+  def find_dummy(at: Point2D): Option[Layout.Dummy] =
+    layout.output_graph.iterator.collectFirst({
+      case (dummy: Layout.Dummy, (d, _)) if Shapes.Dummy.shape(visualizer, d).contains(at) => dummy
+    })
 
   def bounding_box(): Rectangle2D.Double =
   {

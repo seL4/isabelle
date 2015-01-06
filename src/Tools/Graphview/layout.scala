@@ -332,9 +332,6 @@ final class Layout private(
 
   /* dummies */
 
-  def find_dummy(pred: Layout.Point => Boolean): Option[Layout.Dummy] =
-    output_graph.iterator.collectFirst({ case (d: Layout.Dummy, (p, _)) if pred(p) => d })
-
   def dummies_iterator: Iterator[Layout.Point] =
     for ((_: Layout.Dummy, (p, _)) <- output_graph.iterator) yield p
 
