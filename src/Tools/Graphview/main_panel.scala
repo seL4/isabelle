@@ -66,7 +66,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 
   private def export(file: JFile)
   {
-    val box = visualizer.Coordinates.bounding_box()
+    val box = visualizer.bounding_box()
     val w = box.width.ceil.toInt
     val h = box.height.ceil.toInt
 

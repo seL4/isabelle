@@ -72,7 +72,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   def apply_layout()
   {
-    visualizer.Coordinates.update_layout()
+    visualizer.update_layout()
     repaint()
   }
 
@@ -80,7 +80,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   {
     def set_preferred_size()
     {
-      val box = visualizer.Coordinates.bounding_box()
+      val box = visualizer.bounding_box()
       val s = Transform.scale_discrete
 
       preferredSize =
@@ -135,7 +135,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
     def apply() =
     {
-      val box = visualizer.Coordinates.bounding_box()
+      val box = visualizer.bounding_box()
       val at = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
       at.translate(- box.x, - box.y)
       at
@@ -146,7 +146,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       if (visualizer.visible_graph.is_empty)
         rescale(1.0)
       else {
-        val box = visualizer.Coordinates.bounding_box()
+        val box = visualizer.bounding_box()
         rescale((size.width / box.width) min (size.height / box.height))
       }
     }
@@ -163,7 +163,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   object Mouse_Interaction
   {
-    private var draginfo: (Point, List[Graph_Display.Node], List[(Graph_Display.Edge, Int)]) = null
+    private var draginfo: (Point, List[Graph_Display.Node], List[Layout.Dummy]) = null
 
     val react: PartialFunction[Event, Unit] =
     {
@@ -175,13 +175,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
     }
 
-    def dummy(at: Point2D): Option[(Graph_Display.Edge, Int)] =
-      visualizer.visible_graph.edges_iterator.map(edge =>
-        visualizer.Coordinates.get_dummies(edge).zipWithIndex.map((edge, _))).flatten.
-          collectFirst({
-            case (edge, (d, index))
-            if Shapes.Dummy.shape(visualizer, d).contains(at) => (edge, index)
-          })
+    def dummy(at: Point2D): Option[Layout.Dummy] =
+      visualizer.find_dummy(d => Shapes.Dummy.shape(visualizer, d).contains(at))
 
     def pressed(at: Point)
     {
@@ -238,7 +233,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
     }
 
-    def drag(info: (Point, List[Graph_Display.Node], List[(Graph_Display.Edge, Int)]), to: Point)
+    def drag(info: (Point, List[Graph_Display.Node], List[Layout.Dummy]), to: Point)
     {
       val (from, p, d) = info
 
@@ -247,15 +242,14 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       (p, d) match {
         case (Nil, Nil) =>
           val r = panel.peer.getViewport.getViewRect
-          r.translate(-dx, -dy)
-
+          r.translate(- dx, - dy)
           paint_panel.peer.scrollRectToVisible(r)
 
         case (Nil, ds) =>
-          ds.foreach(d => visualizer.Coordinates.translate_dummy(d, dx / s, dy / s))
+          ds.foreach(d => visualizer.translate_vertex(d, dx / s, dy / s))
 
         case (ls, _) =>
-          ls.foreach(l => visualizer.Coordinates.translate_node(l, dx / s, dy / s))
+          ls.foreach(l => visualizer.translate_vertex(Layout.Node(l), dx / s, dy / s))
       }
     }
   }
