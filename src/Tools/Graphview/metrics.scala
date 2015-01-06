@@ -38,8 +38,16 @@ class Metrics private(val font: Font)
   def pad_x: Double = char_width * 1.5
   def pad_y: Double = char_width
 
+  def dummy_width2: Double = (pad_x / 2).ceil
+
   def box_width2(node: Graph_Display.Node): Double =
     ((string_bounds(node.toString).getWidth + pad_x) / 2).ceil
+
+  def box_width2(vertex: Layout.Vertex): Double =
+    vertex match {
+      case Layout.Node(node) => box_width2(node)
+      case _: Layout.Dummy => dummy_width2
+    }
   def box_gap: Double = gap.ceil
   def box_height(n: Int): Double = (char_width * 1.5 * (5 max n)).ceil
 }

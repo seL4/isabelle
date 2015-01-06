@@ -24,11 +24,11 @@ object Shapes
     def shape(visualizer: Visualizer, node: Graph_Display.Node): Rectangle2D.Double =
     {
       val metrics = visualizer.metrics
-      val p = visualizer.Coordinates.get_node(node)
+      val p = visualizer.layout.get_vertex(Layout.Node(node))
       val bounds = metrics.string_bounds(node.toString)
-      val w = bounds.getWidth + metrics.pad_x
-      val h = bounds.getHeight + metrics.pad_y
-      new Rectangle2D.Double((p.x - (w / 2)).floor, (p.y - (h / 2)).floor, w.ceil, h.ceil)
+      val w2 = ((bounds.getWidth + metrics.pad_x) / 2).ceil
+      val h2 = ((bounds.getHeight + metrics.pad_y) / 2).ceil
+      new Rectangle2D.Double(p.x - w2, p.y - h2, 2 * w2, 2 * h2)
     }
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
@@ -58,8 +58,8 @@ object Shapes
     def shape(visualizer: Visualizer, d: Layout.Point): Rectangle2D.Double =
     {
       val metrics = visualizer.metrics
-      val w = metrics.pad_x
-      new Rectangle2D.Double((d.x - (w / 2)).floor, (d.y - (w / 2)).floor, w.ceil, w.ceil)
+      val w = metrics.dummy_width2
+      new Rectangle2D.Double(d.x - w / 2, d.y - w / 2, w, w)
     }
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, d: Layout.Point)
@@ -74,13 +74,13 @@ object Shapes
   {
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.Coordinates.get_node(edge._1)
-      val q = visualizer.Coordinates.get_node(edge._2)
+      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
+      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.Coordinates.get_dummies(edge).filter(d => a < d.y && d.y < b)
+        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
 
@@ -106,13 +106,13 @@ object Shapes
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.Coordinates.get_node(edge._1)
-      val q = visualizer.Coordinates.get_node(edge._2)
+      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
+      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.Coordinates.get_dummies(edge).filter(d => a < d.y && d.y < b)
+        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
 
       if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge)

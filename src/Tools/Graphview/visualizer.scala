@@ -11,7 +11,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{Font, Color, Shape, Graphics2D}
-import java.awt.geom.Rectangle2D
+import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
@@ -19,11 +19,59 @@ class Visualizer(options: => Options, val model: Model)
 {
   visualizer =>
 
+
+  /* layout state */
+
   // owned by GUI thread
-  private var layout: Layout = Layout.empty
+  private var _layout: Layout = Layout.empty
+  def layout: Layout = _layout
 
   def metrics: Metrics = layout.metrics
-  def visible_graph: Graph_Display.Graph = layout.visible_graph
+  def visible_graph: Graph_Display.Graph = layout.input_graph
+
+  def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Unit =
+    _layout = _layout.translate_vertex(v, dx, dy)
+
+  def find_node(at: Point2D): Option[Graph_Display.Node] =
+    layout.output_graph.iterator.collectFirst({
+      case (Layout.Node(node), _) if Shapes.Node.shape(visualizer, node).contains(at) => node
+    })
+
+  def find_dummy(at: Point2D): Option[Layout.Dummy] =
+    layout.output_graph.iterator.collectFirst({
+      case (dummy: Layout.Dummy, (d, _)) if Shapes.Dummy.shape(visualizer, d).contains(at) => dummy
+    })
+
+  def bounding_box(): Rectangle2D.Double =
+  {
+    var x0 = 0.0
+    var y0 = 0.0
+    var x1 = 0.0
+    var y1 = 0.0
+    ((for (node <- visible_graph.keys_iterator) yield Shapes.Node.shape(visualizer, node)) ++
+     (for (d <- layout.dummies_iterator) yield Shapes.Dummy.shape(visualizer, d))).
+       foreach(rect => {
+          x0 = x0 min rect.getMinX
+          y0 = y0 min rect.getMinY
+          x1 = x1 max rect.getMaxX
+          y1 = y1 max rect.getMaxY
+        })
+    val gap = metrics.gap
+    x0 = (x0 - gap).floor
+    y0 = (y0 - gap).floor
+    x1 = (x1 + gap).ceil
+    y1 = (y1 + gap).ceil
+    new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
+  }
+
+  def update_layout()
+  {
+    val metrics = Metrics(make_font())
+    val visible_graph = model.make_visible_graph()
+
+    // FIXME avoid expensive operation on GUI thread
+    _layout = Layout.make(metrics, visible_graph)
+  }
 
 
   /* tooltips */
@@ -83,60 +131,6 @@ class Visualizer(options: => Options, val model: Model)
       Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
     for (node <- visible_graph.keys_iterator)
       Shapes.Node.paint(gfx, visualizer, node)
-  }
-
-  object Coordinates
-  {
-    def get_node(node: Graph_Display.Node): Layout.Point = layout.get_node(node)
-    def get_dummies(edge: Graph_Display.Edge): List[Layout.Point] = layout.get_dummies(edge)
-
-    def translate_node(node: Graph_Display.Node, dx: Double, dy: Double)
-    {
-      layout = layout.map_node(node, p => Layout.Point(p.x + dx, p.y + dy))
-    }
-
-    def translate_dummy(d: (Graph_Display.Edge, Int), dx: Double, dy: Double)
-    {
-      val (edge, index) = d
-      layout = layout.map_dummies(edge,
-        ds => {
-          val p = ds(index)
-          (ds.zipWithIndex :\ List.empty[Layout.Point]) {
-            case ((t, i), n) => if (index == i) Layout.Point(p.x + dx, p.y + dy) :: n else t :: n
-          }
-        })
-    }
-
-    def update_layout()
-    {
-      val metrics = Metrics(make_font())
-      val visible_graph = model.make_visible_graph()
-
-      // FIXME avoid expensive operation on GUI thread
-      layout = Layout.make(metrics, visible_graph)
-    }
-
-    def bounding_box(): Rectangle2D.Double =
-    {
-      var x0 = 0.0
-      var y0 = 0.0
-      var x1 = 0.0
-      var y1 = 0.0
-      ((for (node <- visible_graph.keys_iterator) yield Shapes.Node.shape(visualizer, node)) ++
-       (for (d <- layout.dummies_iterator) yield Shapes.Dummy.shape(visualizer, d))).
-         foreach(rect => {
-            x0 = x0 min rect.getMinX
-            y0 = y0 min rect.getMinY
-            x1 = x1 max rect.getMaxX
-            y1 = y1 max rect.getMaxY
-          })
-      val gap = metrics.gap
-      x0 = (x0 - gap).floor
-      y0 = (y0 - gap).floor
-      x1 = (x1 + gap).ceil
-      y1 = (y1 + gap).ceil
-      new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
-    }
   }
 
   object Selection

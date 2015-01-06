@@ -13,7 +13,7 @@ end;
 structure Class_Deps: CLASS_DEPS =
 struct
 
-fun gen_visualize prep_sort ctxt raw_super raw_sub =
+fun gen_class_deps prep_sort ctxt raw_super raw_sub =
   let
     val thy = Proof_Context.theory_of ctxt;
     val super = prep_sort ctxt raw_super;
@@ -36,8 +36,8 @@ fun gen_visualize prep_sort ctxt raw_super raw_sub =
     |> Graph_Display.display_graph
   end;
 
-val class_deps = gen_visualize (Type.cert_sort o Proof_Context.tsig_of);
-val class_deps_cmd = gen_visualize Syntax.read_sort;
+val class_deps = gen_class_deps (Type.cert_sort o Proof_Context.tsig_of);
+val class_deps_cmd = gen_class_deps Syntax.read_sort;
 
 val _ =
   Outer_Syntax.command @{command_spec "class_deps"} "visualize class dependencies"
