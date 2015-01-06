@@ -141,11 +141,12 @@ object Layout
       val levels_graph: Graph =
         (((dummy_graph, 0.0) /: levels) {
           case ((graph, y), level) =>
+            val num_edges = (0 /: level) { case (n, v) => n + graph.imm_succs(v).size }
             ((((graph, 0.0) /: level) {
               case ((g, x), v) =>
                 val w2 = metrics.box_width2(v)
                 (g.map_node(v, _ => Point(x + w2, y)), x + 2 * w2 + metrics.box_gap)
-            })._1, y + metrics.box_height(level.length))
+            })._1, y + metrics.box_height(num_edges))
         })._1
 
 
