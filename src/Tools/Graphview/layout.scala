@@ -2,7 +2,7 @@
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-DAG layout algorithm, according to:
+DAG layout according to:
 
   Georg Sander, "Graph Layout through the VCG Tool", in: Graph Drawing,
   DIMACS International Workshop (GD'94), Springer LNCS 894, 1995.
@@ -58,12 +58,25 @@ object Layout
   val empty_graph: Graph = make_graph(Nil)
 
 
+  /* vertex x coordinate */
+
+  private def vertex_left(metrics: Metrics, graph: Graph, v: Vertex): Double =
+    graph.get_node(v).x - metrics.box_width2(v)
+
+  private def vertex_right(metrics: Metrics, graph: Graph, v: Vertex): Double =
+    graph.get_node(v).x + metrics.box_width2(v)
+
+  private def move_vertex(graph: Graph, v: Vertex, dx: Double): Graph =
+    if (dx == 0.0) graph else graph.map_node(v, p => Point(p.x + dx, p.y))
+
+
   /* layout */
 
   val empty: Layout = new Layout(Metrics.default, Graph_Display.empty_graph, empty_graph)
 
-  val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
+  val pendulum_iterations = 10
+  val rubberband_iterations = 10
 
 
   private type Levels = Map[Vertex, Int]
@@ -128,9 +141,11 @@ object Layout
         })._1
 
 
-      /* pendulum layout */
+      /* pendulum/rubberband layout */
 
-      val output_graph = pendulum(metrics, levels_graph, levels)
+      val output_graph =
+        rubberband(metrics, levels,
+          pendulum(metrics, levels, levels_graph))
 
       new Layout(metrics, input_graph, output_graph)
     }
@@ -142,7 +157,7 @@ object Layout
 
   private type Level = List[Vertex]
 
-  def minimize_crossings(graph: Graph, levels: List[Level]): List[Level] =
+  private def minimize_crossings(graph: Graph, levels: List[Level]): List[Level] =
   {
     def resort(parent: Level, child: Level, top_down: Boolean): Level =
       child.map(v => {
@@ -171,7 +186,7 @@ object Layout
     }._1
   }
 
-  def level_list(levels: Levels): List[Level] =
+  private def level_list(levels: Levels): List[Level] =
   {
     val max_lev = (-1 /: levels) { case (m, (_, l)) => m max l }
     val buckets = new Array[Level](max_lev + 1)
@@ -180,7 +195,7 @@ object Layout
     buckets.iterator.map(_.sorted(Vertex.Ordering)).toList
   }
 
-  def count_crossings(graph: Graph, levels: List[Level]): Int =
+  private def count_crossings(graph: Graph, levels: List[Level]): Int =
   {
     def in_level(ls: List[Level]): Int = ls match {
       case List(top, bot) =>
@@ -215,11 +230,9 @@ object Layout
     var content: List[Vertex] = List(init)
 
     def distance(metrics: Metrics, graph: Graph, that: Region): Double =
-    {
-      val v1 = this.content.last; val x1 = graph.get_node(v1).x + metrics.box_width2(v1)
-      val v2 = that.content.head; val x2 = graph.get_node(v2).x - metrics.box_width2(v2)
-      x2 - x1 - metrics.box_gap
-    }
+      vertex_left(metrics, graph, that.content.head) -
+      vertex_right(metrics, graph, this.content.last) -
+      metrics.box_gap
 
     def deflection(graph: Graph, top_down: Boolean): Double =
       ((for (a <- content.iterator) yield {
@@ -229,13 +242,12 @@ object Layout
       }).sum / content.length).round.toDouble
 
     def move(graph: Graph, dx: Double): Graph =
-      if (dx == 0.0) graph
-      else (graph /: content) { case (g, v) => g.map_node(v, p => Point(p.x + dx, p.y)) }
+      if (dx == 0.0) graph else (graph /: content)(move_vertex(_, _, dx))
   }
 
   private type Regions = List[List[Region]]
 
-  def pendulum(metrics: Metrics, levels_graph: Graph, levels: List[Level]): Graph =
+  private def pendulum(metrics: Metrics, levels: List[Level], levels_graph: Graph): Graph =
   {
     def iteration(graph: Graph, regions: Regions, top_down: Boolean): (Graph, Regions, Boolean) =
     {
@@ -303,6 +315,43 @@ object Layout
         }
         else (graph, regions, !top_down, moved)
     }._1
+  }
+
+
+
+  /** rubberband method **/
+
+  private def force_weight(graph: Graph, v: Vertex): Double =
+  {
+    val preds = graph.imm_preds(v)
+    val succs = graph.imm_succs(v)
+    val n = preds.size + succs.size
+    if (n == 0) 0.0
+    else {
+      val x = graph.get_node(v).x
+      ((preds.iterator ++ succs.iterator).map(w => graph.get_node(w).x - x)).sum / n
+    }
+  }
+
+  private def rubberband(metrics: Metrics, levels: List[Level], graph: Graph): Graph =
+  {
+    val gap = metrics.box_gap
+    def left(g: Graph, v: Vertex) = vertex_left(metrics, g, v)
+    def right(g: Graph, v: Vertex) = vertex_right(metrics, g, v)
+
+    (graph /: (1 to rubberband_iterations)) { case (graph, _) =>
+      (graph /: levels) { case (graph, level) =>
+        val m = level.length - 1
+        (graph /: level.iterator.zipWithIndex) {
+          case (g, (v, i)) =>
+            val d = force_weight(g, v)
+            if (d < 0.0 && (i == 0 || right(g, level(i - 1)) + gap < left(g, v) + d) ||
+                d > 0.0 && (i == m || left(g, level(i + 1)) - gap > right(g, v) + d))
+              move_vertex(g, v, d.round.toDouble)
+            else g
+        }
+      }
+    }
   }
 }
 
