@@ -23,22 +23,14 @@ class Visualizer(options: => Options, val model: Model)
   /* layout state */
 
   // owned by GUI thread
-  private var layout: Layout = Layout.empty
+  private var _layout: Layout = Layout.empty
+  def layout: Layout = _layout
 
   def metrics: Metrics = layout.metrics
   def visible_graph: Graph_Display.Graph = layout.input_graph
 
-  def get_vertex(v: Layout.Vertex): Layout.Point = layout.get_vertex(v)
-  def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double)
-  {
-    layout = layout.translate_vertex(v, dx, dy)
-  }
-
-  def dummies_iterator(edge: Graph_Display.Edge): Iterator[Layout.Point] =
-    layout.dummies_iterator(edge)
-
-  def find_dummy(pred: Layout.Point => Boolean): Option[Layout.Dummy] =
-    layout.find_dummy(pred)
+  def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Unit =
+    _layout = _layout.translate_vertex(v, dx, dy)
 
   def bounding_box(): Rectangle2D.Double =
   {
@@ -68,7 +60,7 @@ class Visualizer(options: => Options, val model: Model)
     val visible_graph = model.make_visible_graph()
 
     // FIXME avoid expensive operation on GUI thread
-    layout = Layout.make(metrics, visible_graph)
+    _layout = Layout.make(metrics, visible_graph)
   }
 
 

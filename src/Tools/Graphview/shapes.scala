@@ -24,7 +24,7 @@ object Shapes
     def shape(visualizer: Visualizer, node: Graph_Display.Node): Rectangle2D.Double =
     {
       val metrics = visualizer.metrics
-      val p = visualizer.get_vertex(Layout.Node(node))
+      val p = visualizer.layout.get_vertex(Layout.Node(node))
       val bounds = metrics.string_bounds(node.toString)
       val w2 = ((bounds.getWidth + metrics.pad_x) / 2).ceil
       val h2 = ((bounds.getHeight + metrics.pad_y) / 2).ceil
@@ -74,13 +74,13 @@ object Shapes
   {
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.get_vertex(Layout.Node(edge._1))
-      val q = visualizer.get_vertex(Layout.Node(edge._2))
+      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
+      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
+        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
 
@@ -106,13 +106,13 @@ object Shapes
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.get_vertex(Layout.Node(edge._1))
-      val q = visualizer.get_vertex(Layout.Node(edge._2))
+      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
+      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
+        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
 
       if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge)

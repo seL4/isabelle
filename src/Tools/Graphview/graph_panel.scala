@@ -176,7 +176,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
 
     def dummy(at: Point2D): Option[Layout.Dummy] =
-      visualizer.find_dummy(d => Shapes.Dummy.shape(visualizer, d).contains(at))
+      visualizer.layout.find_dummy(d => Shapes.Dummy.shape(visualizer, d).contains(at))
 
     def pressed(at: Point)
     {
