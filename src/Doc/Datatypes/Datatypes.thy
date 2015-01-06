@@ -2981,13 +2981,13 @@ subsection {* Code Generator
   \label{ssec:code-generator} *}
 
 text {*
-The \hthm{code} plugin registers (co)datatypes and other freely generated types
-for code generation. No distinction is made between datatypes and codatatypes.
-This means that for target languages with a strict evaluation strategy (e.g.,
-Standard ML), programs that attempt to produce infinite codatatype values will
-not terminate.
+The \hthm{code} plugin registers freely generated types, including
+(co)datatypes, and (co)recursive functions for code generation. No distinction
+is made between datatypes and codatatypes. This means that for target languages
+with a strict evaluation strategy (e.g., Standard ML), programs that attempt to
+produce infinite codatatype values will not terminate.
 
-The plugin derives the following properties:
+For types, the plugin derives the following properties:
 
 \begin{indentblock}
 \begin{description}
@@ -3007,9 +3007,10 @@ The plugin derives the following properties:
 \end{indentblock}
 
 In addition, the plugin sets the @{text "[code]"} attribute on a number of
-properties of (co)datatypes and other freely generated types, as documented in
-Sections \ref{ssec:datatype-generated-theorems} and
-\ref{ssec:codatatype-generated-theorems}.
+properties of freely generated types and of (co)recursive functions, as
+documented in Sections \ref{ssec:datatype-generated-theorems},
+\ref{ssec:primrec-generated-theorems}, \ref{ssec:codatatype-generated-theorems},
+and~\ref{ssec:primcorec-generated-theorems}.
 *}
 
 
