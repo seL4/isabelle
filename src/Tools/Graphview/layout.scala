@@ -324,7 +324,7 @@ final class Layout private(
   {
     if ((dx == 0.0 && dy == 0.0) || !output_graph.defined(v)) this
     else {
-      val output_graph1 = output_graph.map_node(v, p => Layout.Point(p.x + dy, p.y + dy))
+      val output_graph1 = output_graph.map_node(v, p => Layout.Point(p.x + dx, p.y + dy))
       new Layout(metrics, input_graph, output_graph1)
     }
   }
