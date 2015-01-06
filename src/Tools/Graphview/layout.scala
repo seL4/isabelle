@@ -144,7 +144,7 @@ object Layout
 
   def minimize_crossings(graph: Graph, levels: List[Level]): List[Level] =
   {
-    def resort_level(parent: Level, child: Level, top_down: Boolean): Level =
+    def resort(parent: Level, child: Level, top_down: Boolean): Level =
       child.map(v => {
           val ps = if (top_down) graph.imm_preds(v) else graph.imm_succs(v)
           val weight =
@@ -152,25 +152,22 @@ object Layout
           (v, weight)
       }).sortBy(_._2).map(_._1)
 
-    def resort(levels: List[Level], top_down: Boolean) =
-      if (top_down)
-        (List(levels.head) /: levels.tail)((tops, bot) =>
-          resort_level(tops.head, bot, top_down) :: tops).reverse
-      else {
-        val rev_levels = levels.reverse
-        (List(rev_levels.head) /: rev_levels.tail)((bots, top) =>
-          resort_level(bots.head, top, top_down) :: bots)
-      }
-
     ((levels, count_crossings(graph, levels), true) /: (1 to minimize_crossings_iterations)) {
-      case ((old_levels, old_crossings, top_down), _) => {
-          val new_levels = resort(old_levels, top_down)
-          val new_crossings = count_crossings(graph, new_levels)
-          if (new_crossings < old_crossings)
-            (new_levels, new_crossings, !top_down)
-          else
-            (old_levels, old_crossings, !top_down)
-      }
+      case ((old_levels, old_crossings, top_down), _) =>
+        val new_levels =
+          if (top_down)
+            (List(old_levels.head) /: old_levels.tail)((tops, bot) =>
+              resort(tops.head, bot, top_down) :: tops).reverse
+          else {
+            val rev_old_levels = old_levels.reverse
+            (List(rev_old_levels.head) /: rev_old_levels.tail)((bots, top) =>
+              resort(bots.head, top, top_down) :: bots)
+          }
+        val new_crossings = count_crossings(graph, new_levels)
+        if (new_crossings < old_crossings)
+          (new_levels, new_crossings, !top_down)
+        else
+          (old_levels, old_crossings, !top_down)
     }._1
   }
 
