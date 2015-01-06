@@ -30,6 +30,9 @@ INCOMPATIBILITY.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Old graph browser (Java/AWT 1.0) is superseded by improved graphview
+panel, which also includes PDF output.
+
 * Improved folding mode "isabelle" based on Isar syntax.
 Alternatively, the "sidekick" mode may be used for document structure.
 
