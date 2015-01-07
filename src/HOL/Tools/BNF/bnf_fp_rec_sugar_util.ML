@@ -69,7 +69,7 @@ type fp_rec_sugar =
    fun_defs: thm list,
    fpTs: typ list};
 
-fun morph_fp_rec_sugar phi {transfers, fun_names, funs, fun_defs, fpTs} =
+fun morph_fp_rec_sugar phi ({transfers, fun_names, funs, fun_defs, fpTs} : fp_rec_sugar) =
   {transfers = transfers,
    fun_names = fun_names,
    funs = map (Morphism.term phi) funs,
