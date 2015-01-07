@@ -221,10 +221,8 @@ object Layout
   /*This is an auxiliary class which is used by the layout algorithm when
     calculating coordinates with the "pendulum method". A "region" is a
     group of vertices which "stick together".*/
-  private class Region(init: Vertex)
+  private class Region(val content: List[Vertex])
   {
-    var content: List[Vertex] = List(init)
-
     def distance(metrics: Metrics, graph: Graph, that: Region): Double =
       vertex_left(metrics, graph, that.content.head) -
       vertex_right(metrics, graph, this.content.last) -
@@ -239,54 +237,33 @@ object Layout
 
     def move(graph: Graph, dx: Double): Graph =
       if (dx == 0.0) graph else (graph /: content)(move_vertex(_, _, dx))
-  }
 
-  private type Regions = List[List[Region]]
+    def combine(that: Region): Region = new Region(content ::: that.content)
+  }
 
   private def pendulum(
     options: Options, metrics: Metrics, levels: List[Level], levels_graph: Graph): Graph =
   {
-    def iteration(graph: Graph, regions: Regions, top_down: Boolean): (Graph, Regions, Boolean) =
-    {
-      val (graph1, regions1, moved) =
-      ((graph, List.empty[List[Region]], false) /: (if (top_down) regions else regions.reverse)) {
-        case ((graph, tops, moved), bot) =>
-          val bot1 = collapse(graph, bot, top_down)
-          val (graph1, moved1) = deflect(graph, bot1, top_down)
-          (graph1, bot1 :: tops, moved || moved1)
-      }
-      (graph1, regions1.reverse, moved)
-    }
-
-    def collapse(graph: Graph, level: List[Region], top_down: Boolean): List[Region] =
-    {
-      if (level.size <= 1) level
-      else {
-        var next = level
-        var regions_changed = true
-        while (regions_changed) {
-          regions_changed = false
-          for (i <- Range(next.length - 1, 0, -1)) {
-            val (r1, r2) = (next(i - 1), next(i))
-            val d1 = r1.deflection(graph, top_down)
-            val d2 = r2.deflection(graph, top_down)
-
-            if (// Do regions touch?
-                r1.distance(metrics, graph, r2) <= 0.0 &&
-                // Do they influence each other?
-                (d1 <= 0.0 && d2 < d1 || d2 > 0.0 && d1 > d2 || d1 > 0.0 && d2 < 0.0))
-            {
-              regions_changed = true
-              r1.content = r1.content ::: r2.content
-              next = next.filter(next.indexOf(_) != i)
-            }
+    def combine_regions(graph: Graph, top_down: Boolean, level: List[Region]): List[Region] =
+      level match {
+        case r1 :: rest =>
+          val rest1 = combine_regions(graph, top_down, rest)
+          rest1 match {
+            case r2 :: rest2 =>
+              val d1 = r1.deflection(graph, top_down)
+              val d2 = r2.deflection(graph, top_down)
+              if (// Do regions touch?
+                  r1.distance(metrics, graph, r2) <= 0.0 &&
+                  // Do they influence each other?
+                  (d1 <= 0.0 && d2 < d1 || d2 > 0.0 && d1 > d2 || d1 > 0.0 && d2 < 0.0))
+                r1.combine(r2) :: rest2
+              else r1 :: rest1
+            case _ => r1 :: rest1
           }
-        }
-        next
+        case _ => level
       }
-    }
 
-    def deflect(graph: Graph, level: List[Region], top_down: Boolean): (Graph, Boolean) =
+    def deflect(level: List[Region], top_down: Boolean, graph: Graph): (Graph, Boolean) =
     {
       ((graph, false) /: (0 until level.length)) {
         case ((graph, moved), i) =>
@@ -302,14 +279,20 @@ object Layout
       }
     }
 
-    val initial_regions = levels.map(level => level.map(new Region(_)))
+    val initial_regions = levels.map(level => level.map(l => new Region(List(l))))
 
     ((levels_graph, initial_regions, true, true) /:
       (1 to options.int("graphview_iterations_pendulum"))) {
       case ((graph, regions, top_down, moved), _) =>
         if (moved) {
-          val (graph1, regions1, moved1) = iteration(graph, regions, top_down)
-          (graph1, regions1, !top_down, moved1)
+          val (graph1, regions1, moved1) =
+            ((graph, List.empty[List[Region]], false) /:
+              (if (top_down) regions else regions.reverse)) { case ((graph, tops, moved), bot) =>
+                val bot1 = combine_regions(graph, top_down, bot)
+                val (graph1, moved1) = deflect(bot1, top_down, graph)
+                (graph1, bot1 :: tops, moved || moved1)
+            }
+          (graph1, regions1.reverse, !top_down, moved1)
         }
         else (graph, regions, !top_down, moved)
     }._1
