@@ -269,13 +269,13 @@ object Layout
         case ((graph, moved), i) =>
           val r = level(i)
           val d = r.deflection(graph, top_down)
-          val offset =
-            if (d < 0 && i > 0)
+          val dx =
+            if (d < 0.0 && i > 0)
               - (level(i - 1).distance(metrics, graph, r) min (- d))
-            else if (d >= 0 && i < level.length - 1)
+            else if (d >= 0.0 && i < level.length - 1)
               r.distance(metrics, graph, level(i + 1)) min d
             else d
-          (r.move(graph, offset), moved || d != 0)
+          (r.move(graph, dx), moved || d != 0.0)
       }
     }
 
