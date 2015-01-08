@@ -79,7 +79,7 @@ object Thy_Syntax
       case (name, Document.Node.Deps(header)) =>
         val node = nodes(name)
         val update_header =
-          !node.header.errors.isEmpty || !header.errors.isEmpty || node.header != header
+          node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
           if (node.header.imports != node1.header.imports ||
@@ -334,7 +334,7 @@ object Thy_Syntax
             val commands = node.commands
 
             val node1 =
-              if (reparse_set(name) && !commands.isEmpty)
+              if (reparse_set(name) && commands.nonEmpty)
                 node.update_commands(
                   reparse_spans(resources, syntax, get_blob,
                     name, commands, commands.head, commands.last))
@@ -352,6 +352,6 @@ object Thy_Syntax
         (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(nodes))
       }
 
-    Session.Change(previous, syntax_changed, !syntax_changed.isEmpty, doc_edits, version)
+    Session.Change(previous, syntax_changed, syntax_changed.nonEmpty, doc_edits, version)
   }
 }

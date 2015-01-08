@@ -408,7 +408,7 @@ class Rich_Text_Area(
               val s2 = str.substring(i, j)
               val s3 = str.substring(j)
 
-              if (!s1.isEmpty) gfx.drawString(s1, x1, y)
+              if (s1.nonEmpty) gfx.drawString(s1, x1, y)
 
               val astr = new AttributedString(s2)
               astr.addAttribute(TextAttribute.FONT, chunk_font)
@@ -416,7 +416,7 @@ class Rich_Text_Area(
               astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
               gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
 
-              if (!s3.isEmpty)
+              if (s3.nonEmpty)
                 gfx.drawString(s3, x1 + string_width(str.substring(0, j)), y)
 
             case _ =>

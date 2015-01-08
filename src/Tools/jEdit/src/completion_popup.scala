@@ -228,7 +228,7 @@ object Completion_Popup
         r2 = Text.Range(r1.start + 1, r1.stop - 1)
         if Path.is_valid(s2)
         paths = complete(s2)
-        if !paths.isEmpty
+        if paths.nonEmpty
         items = paths.map(p => Completion.Item(r2, s2, "", p._2, p._1, 0, false))
       } yield Completion.Result(r2, s2, false, items)
     }
@@ -630,7 +630,7 @@ class Completion_Popup private(
 
   GUI_Thread.require {}
 
-  require(!items.isEmpty)
+  require(items.nonEmpty)
   val multi = items.length > 1
 
 

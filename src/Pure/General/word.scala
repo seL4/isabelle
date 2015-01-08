@@ -61,7 +61,7 @@ object Word
         case Capitalized => capitalize(str)
       }
     def unapply(str: String): Option[Case] =
-      if (!str.isEmpty) {
+      if (str.nonEmpty) {
         if (codepoint_iterator(str).forall(Character.isLowerCase(_))) Some(Lowercase)
         else if (codepoint_iterator(str).forall(Character.isUpperCase(_))) Some(Uppercase)
         else {

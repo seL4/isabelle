@@ -161,7 +161,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val timing = nodes_timing.getOrElse(name, Protocol.empty_node_timing)
 
     val theories =
-      (for ((node_name, node_timing) <- nodes_timing.toList if !node_timing.commands.isEmpty)
+      (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.commands.nonEmpty)
         yield Theory_Entry(node_name, node_timing.total, false)).sorted(Entry.Ordering)
     val commands =
       (for ((command, command_timing) <- timing.commands.toList)

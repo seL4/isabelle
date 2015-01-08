@@ -113,7 +113,7 @@ object Document
           case _ => false
         }
 
-      def is_theory: Boolean = !theory.isEmpty
+      def is_theory: Boolean = theory.nonEmpty
       override def toString: String = if (is_theory) theory else node
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
@@ -208,7 +208,7 @@ object Document
     final class Commands private(val commands: Linear_Set[Command])
     {
       lazy val load_commands: List[Command] =
-        commands.iterator.filter(cmd => !cmd.blobs.isEmpty).toList
+        commands.iterator.filter(cmd => cmd.blobs.nonEmpty).toList
 
       private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
       {
@@ -229,7 +229,7 @@ object Document
 
       def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       {
-        if (!commands.isEmpty && full_range.contains(i)) {
+        if (commands.nonEmpty && full_range.contains(i)) {
           val (cmd0, start0) = full_index._1(i / Commands.block_size)
           Node.Commands.starts(commands.iterator(cmd0), start0) dropWhile {
             case (cmd, start) => start + cmd.length <= i }
@@ -628,7 +628,7 @@ object Document
       history.prune(is_stable, retain) match {
         case Some((dropped, history1)) =>
           val old_versions = dropped.map(change => change.version.get_finished)
-          val removing = !old_versions.isEmpty
+          val removing = old_versions.nonEmpty
           val state1 = copy(history = history1, removing_versions = removing)
           (old_versions, state1)
         case None => fail
@@ -750,7 +750,7 @@ object Document
 
         val state = State.this
         val version = stable.version.get_finished
-        val is_outdated = !(pending_edits.isEmpty && latest == stable)
+        val is_outdated = pending_edits.nonEmpty || latest != stable
 
 
         /* local node content */
@@ -770,7 +770,7 @@ object Document
           if (node_name.is_theory) Nil
           else version.nodes.load_commands(node_name)
 
-        val is_loaded: Boolean = node_name.is_theory || !load_commands.isEmpty
+        val is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
 
         def eq_content(other: Snapshot): Boolean =
         {

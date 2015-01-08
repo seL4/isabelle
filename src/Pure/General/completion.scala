@@ -416,7 +416,7 @@ final class Completion private(
       }
 
     (abbrevs_result orElse words_result) match {
-      case Some((original, completions)) if !completions.isEmpty =>
+      case Some((original, completions)) if completions.nonEmpty =>
         val range = Text.Range(- original.length, 0) + caret + start
         val immediate =
           explicit ||

@@ -41,7 +41,7 @@ class JEdit_Editor extends Editor[View]
         name => (name, Document.Node.no_perspective_text))
 
     val edits = models.flatMap(_.flushed_edits(doc_blobs)) ::: removed_perspective
-    if (!edits.isEmpty) session.update(doc_blobs, edits)
+    if (edits.nonEmpty) session.update(doc_blobs, edits)
   }
 
   private val delay_flush =

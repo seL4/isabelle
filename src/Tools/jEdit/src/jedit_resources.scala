@@ -114,7 +114,7 @@ class JEdit_Resources(
 
   override def commit(change: Session.Change)
   {
-    if (!change.syntax_changed.isEmpty)
+    if (change.syntax_changed.nonEmpty)
       GUI_Thread.later {
         val changed = change.syntax_changed.toSet
         for {

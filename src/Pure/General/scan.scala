@@ -330,7 +330,7 @@ object Scan
       {
         if (i < len) {
           tree.branches.get(str.charAt(i)) match {
-            case Some((s, tr)) => look(tr, !s.isEmpty, i + 1)
+            case Some((s, tr)) => look(tr, s.nonEmpty, i + 1)
             case None => None
           }
         }

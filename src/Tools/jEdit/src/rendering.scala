@@ -465,7 +465,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         range, Nil, Rendering.tooltip_message_elements, _ =>
         {
           case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
-          if !body.isEmpty =>
+          if body.nonEmpty =>
             val entry: Command.Results.Entry = (Document_ID.make(), msg)
             Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
 
@@ -665,7 +665,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             command_states =>
               {
                 case (((status, color), Text.Info(_, XML.Elem(markup, _))))
-                if !status.isEmpty && Protocol.proper_status_elements(markup.name) =>
+                if status.nonEmpty && Protocol.proper_status_elements(markup.name) =>
                   Some((markup :: status, color))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                   Some((Nil, Some(bad_color)))
@@ -686,7 +686,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
               })
         color <-
           (result match {
-            case (markups, opt_color) if !markups.isEmpty =>
+            case (markups, opt_color) if markups.nonEmpty =>
               val status = Protocol.Status.make(markups.iterator)
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)

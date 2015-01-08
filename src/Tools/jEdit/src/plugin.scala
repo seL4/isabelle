@@ -220,7 +220,7 @@ class Plugin extends EBPlugin
             val files = thy_info.dependencies("", thys).deps.map(_.name.node).
               filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
 
-            if (!files.isEmpty) {
+            if (files.nonEmpty) {
               if (PIDE.options.bool("jedit_auto_load")) {
                 files.foreach(file => jEdit.openFile(null: View, file))
               }
