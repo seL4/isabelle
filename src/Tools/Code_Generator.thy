@@ -16,15 +16,6 @@ begin
 
 ML_file "~~/src/Tools/cache_io.ML"
 ML_file "~~/src/Tools/Code/code_preproc.ML"
-
-attribute_setup code_preproc_trace = {*
-  (Scan.lift (Args.$$$ "off" >> K Code_Preproc.trace_none)
-  || (Scan.lift (Args.$$$ "only" |-- Args.colon |-- Scan.repeat1 Parse.term))
-       >> Code_Preproc.trace_only_ext
-  || Scan.succeed Code_Preproc.trace_all)
-  >> (Thm.declaration_attribute o K)
-*} "tracing of the code generator preprocessor"
-
 ML_file "~~/src/Tools/Code/code_symbol.ML"
 ML_file "~~/src/Tools/Code/code_thingol.ML"
 ML_file "~~/src/Tools/Code/code_simp.ML"
@@ -34,14 +25,6 @@ ML_file "~~/src/Tools/Code/code_namespace.ML"
 ML_file "~~/src/Tools/Code/code_ml.ML"
 ML_file "~~/src/Tools/Code/code_haskell.ML"
 ML_file "~~/src/Tools/Code/code_scala.ML"
-
-setup {*
-  Code_Simp.setup
-  #> Code_Target.setup
-  #> Code_ML.setup
-  #> Code_Haskell.setup
-  #> Code_Scala.setup
-*}
 
 code_datatype "TYPE('a\<Colon>{})"
 

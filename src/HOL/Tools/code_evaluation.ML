@@ -134,11 +134,11 @@ fun ensure_abs_term_of_code (tyco, (raw_vs, ((abs, (_, ty)), (proj, _)))) thy =
 
 (* setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Code.datatype_interpretation ensure_term_of
   #> Code.abstype_interpretation ensure_term_of
   #> Code.datatype_interpretation ensure_term_of_code
-  #> Code.abstype_interpretation ensure_abs_term_of_code));
+  #> Code.abstype_interpretation ensure_abs_term_of_code);
 
 
 (** termifying syntax **)

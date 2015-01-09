@@ -55,8 +55,6 @@ sig
   val add_reserved: string -> string -> theory -> theory
 
   val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
-
-  val setup: theory -> theory
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -492,15 +490,15 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 
 in
 
-val antiq_setup =
-  Thy_Output.antiquotation @{binding code_stmts}
+val _ = Theory.setup
+  (Thy_Output.antiquotation @{binding code_stmts}
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
     (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target_name, some_width)) =>
         present_code ctxt (mk_cs ctxt)
           (maps (fn f => f ctxt) mk_stmtss)
-          target_name some_width "Example" []);
+          target_name some_width "Example" []));
 
 end;
 
@@ -672,10 +670,5 @@ fun codegen_tool thyname cmd_expr =
    of SOME f => (writeln "Now generating code..."; f ctxt)
     | NONE => error ("Bad directive " ^ quote cmd_expr)
   end;
-
-
-(** theory setup **)
-
-val setup = antiq_setup;
 
 end; (*struct*)
