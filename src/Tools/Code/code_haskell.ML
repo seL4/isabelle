@@ -9,7 +9,6 @@ sig
   val language_params: string
   val target: string
   val print_numeral: string -> int -> string
-  val setup: theory -> theory
 end;
 
 structure Code_Haskell : CODE_HASKELL =
@@ -493,13 +492,8 @@ fun add_monad target' raw_c_bind thy =
 
 (** Isar setup **)
 
-val _ =
-  Outer_Syntax.command @{command_spec "code_monad"} "define code syntax for monads"
-    (Parse.term -- Parse.name >> (fn (raw_bind, target) =>
-      Toplevel.theory (add_monad target raw_bind)));
-
-val setup =
-  Code_Target.add_language
+val _ = Theory.setup
+  (Code_Target.add_language
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>
@@ -519,6 +513,11 @@ val setup =
     ]
   #> fold (Code_Target.add_reserved target) prelude_import_unqualified
   #> fold (Code_Target.add_reserved target o fst) prelude_import_unqualified_constr
-  #> fold (fold (Code_Target.add_reserved target) o snd) prelude_import_unqualified_constr;
+  #> fold (fold (Code_Target.add_reserved target) o snd) prelude_import_unqualified_constr);
+
+val _ =
+  Outer_Syntax.command @{command_spec "code_monad"} "define code syntax for monads"
+    (Parse.term -- Parse.name >> (fn (raw_bind, target) =>
+      Toplevel.theory (add_monad target raw_bind)));
 
 end; (*struct*)

@@ -84,7 +84,7 @@ object Spell_Checker
       range = JEdit_Lib.before_caret_range(text_area, rendering)
       word <- current_word(text_area, rendering, range)
       words = spell_checker.complete(word.info)
-      if !words.isEmpty
+      if words.nonEmpty
       descr = "(from dictionary " + quote(spell_checker.toString) + ")"
       items =
         words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
@@ -274,7 +274,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
         if upd.permanent
       } yield Spell_Checker.Decl(word, upd.include)).toList
 
-    if (!permanent_decls.isEmpty || dictionary.user_path.is_file) {
+    if (permanent_decls.nonEmpty || dictionary.user_path.is_file) {
       val header = """# User updates for spell-checker dictionary
 #
 #   * each line contains at most one word
@@ -358,7 +358,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       result.getOrElse(Nil).map(recover_case)
     }
 
-  def complete_enabled(word: String): Boolean = !complete(word).isEmpty
+  def complete_enabled(word: String): Boolean = complete(word).nonEmpty
 }
 
 

@@ -5,9 +5,7 @@ begin
 ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
 
-setup {*
-  Code_Target.set_default_code_width 74
-*}
+declare [[default_code_width = 74]]
 
 syntax
   "_alpha" :: "type"  ("\<alpha>")

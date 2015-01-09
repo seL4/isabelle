@@ -8,7 +8,6 @@ signature CODE_SCALA =
 sig
   val target: string
   val case_insensitive: bool Config.T;
-  val setup: theory -> theory
 end;
 
 structure Code_Scala : CODE_SCALA =
@@ -423,8 +422,8 @@ in Literals {
 
 (** Isar setup **)
 
-val setup =
-  Code_Target.add_language
+val _ = Theory.setup
+  (Code_Target.add_language
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "SCALA_HOME",
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
@@ -446,6 +445,6 @@ val setup =
     ]
   #> fold (Code_Target.add_reserved target) [
       "apply", "sys", "scala", "BigInt", "Nil", "List"
-    ];
+    ]);
 
 end; (*struct*)

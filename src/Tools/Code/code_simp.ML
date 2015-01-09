@@ -14,7 +14,6 @@ sig
     -> Proof.context -> conv
   val static_tac: { ctxt: Proof.context, simpset: simpset option, consts: string list }
     -> Proof.context -> int -> tactic
-  val setup: theory -> theory
   val trace: bool Config.T
 end;
 
@@ -86,10 +85,10 @@ fun dynamic_tac ctxt = CONVERSION (dynamic_conv ctxt)
 fun dynamic_value ctxt =
   snd o Logic.dest_equals o Thm.prop_of o dynamic_conv ctxt o Thm.cterm_of (Proof_Context.theory_of ctxt);
 
-val setup =
-  Method.setup @{binding code_simp}
+val _ = Theory.setup 
+  (Method.setup @{binding code_simp}
     (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac)))
-    "simplification with code equations";
+    "simplification with code equations");
 
 
 (* evaluation with static code context *)

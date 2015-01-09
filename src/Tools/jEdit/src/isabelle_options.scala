@@ -58,7 +58,7 @@ class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering")
       if (name.endsWith("_color") && opt.section == JEdit_Options.RENDERING_SECTION)
     } yield PIDE.options.make_color_component(opt))
 
-  assert(!predefined.isEmpty)
+  assert(predefined.nonEmpty)
 
   protected val components = PIDE.options.make_components(predefined, _ => false)
 }

@@ -166,7 +166,7 @@ object Build
       session_groups: List[String], sessions: List[String]): (List[String], Session_Tree) =
     {
       val bad_sessions = sessions.filterNot(isDefinedAt(_))
-      if (!bad_sessions.isEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
+      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
 
       val pre_selected =
       {
@@ -805,7 +805,7 @@ object Build
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
           List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
-        if (!files.isEmpty) progress.echo("Cleaning " + name + " ...")
+        if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
       }
     }
@@ -944,7 +944,7 @@ object Build
       for ((chapter, entries) <- browser_chapters)
         Present.update_chapter_index(browser_info, chapter, entries)
 
-      if (!browser_chapters.isEmpty && !(browser_info + Path.explode("index.html")).is_file)
+      if (browser_chapters.nonEmpty && !(browser_info + Path.explode("index.html")).is_file)
       {
         Isabelle_System.mkdirs(browser_info)
         File.copy(Path.explode("~~/lib/logo/isabelle.gif"),

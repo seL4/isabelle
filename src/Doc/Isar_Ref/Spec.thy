@@ -805,7 +805,7 @@ text \<open>
   and provides
   \begin{enumerate}
     \item a unified view on arbitrary suitable local theories as interpretation target; 
-    \item rewrite morphisms by means of \emph{mixin definitions}. 
+    \item rewrite morphisms by means of \emph{rewrite definitions}. 
   \end{enumerate}
   
   \begin{matharray}{rcl}
@@ -841,30 +841,37 @@ text \<open>
   corresponding to @{command "interpretation"}) and locales
   (where @{command "permanent_interpretation"} is technically
   corresponding to @{command "sublocale"}).  Unnamed contexts
-  \secref{sec:target} are not admissible since they are
+  (see \secref{sec:target}) are not admissible since they are
   non-permanent due to their very nature.  
 
   In additions to \emph{rewrite morphisms} specified by @{text eqns},
-  also \emph{mixin definitions} may be specified.  Semantically, a
-  mixin definition results in a corresponding definition in
-  the local theory's underlying target \emph{and} a mixin equation
-  in the resulting rewrite morphisms which is symmetric to the
-  original definition equation.
+  also \emph{rewrite definitions} may be specified.  Semantically, a
+  rewrite definition
   
-  The technical difference to a conventional definition plus
-  an explicit mixin equation is that
+  \begin{itemize}
   
-  \begin{enumerate}
+    \item produces a corresponding definition in
+      the local theory's underlying target \emph{and}
+    
+    \item augments the rewrite morphism with the equation
+      stemming from the symmetric of the corresponding definition.
   
-    \item definitions are parsed in the syntactic interpretation
-      context, just like equations;
+  \end{itemize}
   
-    \item the proof needs not consider the equations stemming from
+  This is technically different to to a naive combination
+  of a conventional definition and an explicit rewrite equation:
+  
+  \begin{itemize}
+  
+    \item Definitions are parsed in the syntactic interpretation
+      context, just like equations.
+  
+    \item The proof needs not consider the equations stemming from
       definitions -- they are proved implicitly by construction.
       
-  \end{enumerate}
+  \end{itemize}
   
-  Mixin definitions yield a pattern for introducing new explicit
+  Rewrite definitions yield a pattern for introducing new explicit
   operations for existing terms after interpretation.
   
   \end{description}

@@ -45,7 +45,7 @@ sig
   val serialization: (int -> Path.T option -> 'a -> unit)
     -> (Code_Symbol.T list -> int -> 'a -> (string * string) list * (Code_Symbol.T -> string option))
     -> 'a -> serialization
-  val set_default_code_width: int -> theory -> theory
+  val default_code_width: int Config.T
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
@@ -55,8 +55,6 @@ sig
   val add_reserved: string -> string -> theory -> theory
 
   val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
-
-  val setup: theory -> theory
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -190,21 +188,21 @@ type target = { serial: serial, language: language, ancestry: ancestry };
 
 structure Targets = Theory_Data
 (
-  type T = (target * Code_Printer.data) Symtab.table * int;
-  val empty = (Symtab.empty, 80);
+  type T = (target * Code_Printer.data) Symtab.table;
+  val empty = Symtab.empty;
   val extend = I;
-  fun merge ((targets1, width1), (targets2, width2)) : T =
-    (Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
+  fun merge (targets1, targets2) : T =
+    Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
       if #serial target1 = #serial target2 then
       ({ serial = #serial target1, language = #language target1,
         ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
         Code_Printer.merge_data (data1, data2))
       else error ("Incompatible targets: " ^ quote target_name) 
-    ) (targets1, targets2), Int.max (width1, width2))
+    ) (targets1, targets2)
 );
 
-fun exists_target thy = Symtab.defined (fst (Targets.get thy));
-fun lookup_target_data thy = Symtab.lookup (fst (Targets.get thy));
+fun exists_target thy = Symtab.defined (Targets.get thy);
+fun lookup_target_data thy = Symtab.lookup (Targets.get thy);
 
 fun fold1 f xs = fold f (tl xs) (hd xs);
 
@@ -231,7 +229,7 @@ fun allocate_target target_name target thy =
       else ();
   in
     thy
-    |> (Targets.map o apfst o Symtab.update) (target_name, (target, Code_Printer.empty_data))  
+    |> (Targets.map o Symtab.update) (target_name, (target, Code_Printer.empty_data))  
   end;
 
 fun add_language (target_name, language) =
@@ -261,7 +259,7 @@ fun map_data target_name f thy =
     val _ = assert_target (Proof_Context.init_global thy) target_name;
   in
     thy
-    |> (Targets.map o apfst o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
+    |> (Targets.map o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
   end;
 
 fun map_reserved target_name =
@@ -271,10 +269,13 @@ fun map_identifiers target_name =
 fun map_printings target_name =
   map_data target_name o @{apply 3 (3)};
 
-fun set_default_code_width k = (Targets.map o apsnd) (K k);
-
 
 (** serializer usage **)
+
+(* technical aside: pretty printing width *)
+
+val default_code_width = Attrib.setup_config_int @{binding "default_code_width"} (K 80);
+
 
 (* montage *)
 
@@ -287,10 +288,9 @@ local
 
 fun activate_target ctxt target_name =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val (_, default_width) = Targets.get thy;
+    val thy = Proof_Context.theory_of ctxt;
     val (modify, target_data) = join_ancestry thy target_name;
-  in (default_width, target_data, modify) end;
+  in (target_data, modify) end;
 
 fun project_program ctxt syms_hidden syms1 program2 =
   let
@@ -328,7 +328,8 @@ fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
 
 fun mount_serializer ctxt target_name some_width module_name args program syms =
   let
-    val (default_width, (target, data), modify) = activate_target ctxt target_name;
+    val default_width = Config.get ctxt default_code_width;
+    val ((target, data), modify) = activate_target ctxt target_name;
     val serializer = (#serializer o #language) target;
     val (prepared_serializer, (prepared_syms, prepared_program)) =
       prepare_serializer ctxt serializer
@@ -492,15 +493,15 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 
 in
 
-val antiq_setup =
-  Thy_Output.antiquotation @{binding code_stmts}
+val _ = Theory.setup
+  (Thy_Output.antiquotation @{binding code_stmts}
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
     (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target_name, some_width)) =>
         present_code ctxt (mk_cs ctxt)
           (maps (fn f => f ctxt) mk_stmtss)
-          target_name some_width "Example" []);
+          target_name some_width "Example" []));
 
 end;
 
@@ -672,10 +673,5 @@ fun codegen_tool thyname cmd_expr =
    of SOME f => (writeln "Now generating code..."; f ctxt)
     | NONE => error ("Bad directive " ^ quote cmd_expr)
   end;
-
-
-(** theory setup **)
-
-val setup = antiq_setup;
 
 end; (*struct*)

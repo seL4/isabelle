@@ -194,7 +194,7 @@ final class Outer_Syntax private(
     def ship(span: List[Token])
     {
       val kind =
-        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error)) {
+        if (span.nonEmpty && span.head.is_command && !span.exists(_.is_error)) {
           val name = span.head.source
           val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length) + 1)
           Command_Span.Command_Span(name, pos)
@@ -206,8 +206,8 @@ final class Outer_Syntax private(
 
     def flush()
     {
-      if (!content.isEmpty) { ship(content.toList); content.clear }
-      if (!improper.isEmpty) { ship(improper.toList); improper.clear }
+      if (content.nonEmpty) { ship(content.toList); content.clear }
+      if (improper.nonEmpty) { ship(improper.toList); improper.clear }
     }
 
     for (tok <- toks) {

@@ -123,7 +123,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           cmd <- snapshot.node.load_commands
           blob_name <- cmd.blobs_names
           blob_buffer <- JEdit_Lib.jedit_buffer(blob_name)
-          if !JEdit_Lib.jedit_text_areas(blob_buffer).isEmpty
+          if JEdit_Lib.jedit_text_areas(blob_buffer).nonEmpty
           start <- snapshot.node.command_start(cmd)
           range = snapshot.convert(cmd.proper_range + start)
         } yield range
@@ -221,7 +221,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = Document.Node.no_perspective_text
 
-    def is_pending(): Boolean = pending_clear || !pending.isEmpty
+    def is_pending(): Boolean = pending_clear || pending.nonEmpty
     def snapshot(): List[Text.Edit] = pending.toList
 
     def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
@@ -229,7 +229,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       val clear = pending_clear
       val edits = snapshot()
       val (reparse, perspective) = node_perspective(doc_blobs)
-      if (clear || reparse || !edits.isEmpty || last_perspective != perspective) {
+      if (clear || reparse || edits.nonEmpty || last_perspective != perspective) {
         pending_clear = false
         pending.clear
         last_perspective = perspective

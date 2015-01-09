@@ -126,7 +126,7 @@ object Popups
 
       popup.add(new JPopupMenu.Separator)
     }
-    if (!selected_nodes.isEmpty) {
+    if (selected_nodes.nonEmpty) {
       val text =
         if (selected_nodes.length > 1) "multiple"
         else quote(selected_nodes.head.toString)

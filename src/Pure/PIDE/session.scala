@@ -131,7 +131,7 @@ object Session
               (a, (msg: Prover.Protocol_Output) => f(prover, msg))
 
           val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
-          if (!dups.isEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
+          if (dups.nonEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
 
           (handlers1 + (name -> new_handler), functions1 ++ new_functions)
         }
@@ -287,7 +287,7 @@ class Session(val resources: Resources)
     private var commands: Set[Command] = Set.empty
 
     def flush(): Unit = synchronized {
-      if (assignment || !nodes.isEmpty || !commands.isEmpty)
+      if (assignment || nodes.nonEmpty || commands.nonEmpty)
         commands_changed.post(Session.Commands_Changed(assignment, nodes, commands))
       assignment = false
       nodes = Set.empty
@@ -533,7 +533,7 @@ class Session(val resources: Resources)
           case Prune_History =>
             if (prover.defined) {
               val old_versions = global_state.change_result(_.remove_versions(prune_size))
-              if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
+              if (old_versions.nonEmpty) prover.get.remove_versions(old_versions)
             }
 
           case Update_Options(options) =>
@@ -603,7 +603,7 @@ class Session(val resources: Resources)
   { manager.send(Cancel_Exec(exec_id)) }
 
   def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
-  { if (!edits.isEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits)) }
+  { if (edits.nonEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits)) }
 
   def update_options(options: Options)
   { manager.send_wait(Update_Options(options)) }

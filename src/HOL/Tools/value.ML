@@ -74,7 +74,7 @@ val _ =
     (opt_evaluator -- opt_modes -- Parse.term
       >> (fn ((some_name, modes), t) => Toplevel.keep (value_cmd some_name modes t)));
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Thy_Output.antiquotation @{binding value}
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
     (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
@@ -82,7 +82,6 @@ val _ = Context.>> (Context.map_theory
         [style (value_maybe_select some_name context t)]))
   #> add_evaluator ("simp", Code_Simp.dynamic_value)
   #> add_evaluator ("nbe", Nbe.dynamic_value)
-  #> add_evaluator ("code", Code_Evaluation.dynamic_value_strict))
-);
+  #> add_evaluator ("code", Code_Evaluation.dynamic_value_strict));
 
 end;

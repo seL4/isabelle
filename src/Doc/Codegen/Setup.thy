@@ -28,9 +28,8 @@ in
 end
 *}
 
-setup {* Code_Target.set_default_code_width 74 *}
+declare [[default_code_width = 74]]
 
 declare [[names_unique = false]]
 
 end
-

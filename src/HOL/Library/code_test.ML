@@ -571,16 +571,15 @@ val _ =
     "compile test cases to target languages, execute them and report results"
       (test_codeP >> (fn (raw_ts, targets) => Toplevel.keep (test_code_cmd raw_ts targets)))
 
-val _ = Context.>> (Context.map_theory (
-  fold add_driver
-    [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
-     (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
-     (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
-     (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
-     (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
-     (scalaN, (evaluate_in_scala, Code_Scala.target))]
-    #> fold (fn target => Value.add_evaluator (target, eval_term target))
-      [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN]
-    ))
+val _ = Theory.setup (fold add_driver
+  [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
+   (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
+   (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
+   (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
+   (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
+   (scalaN, (evaluate_in_scala, Code_Scala.target))]
+  #> fold (fn target => Value.add_evaluator (target, eval_term target))
+    [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN]);
+
 end
 

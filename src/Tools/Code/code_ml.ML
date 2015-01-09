@@ -8,7 +8,6 @@ signature CODE_ML =
 sig
   val target_SML: string
   val target_OCaml: string
-  val setup: theory -> theory
 end;
 
 structure Code_ML : CODE_ML =
@@ -860,8 +859,8 @@ fun fun_syntax print_typ fxy [ty1, ty2] =
     print_typ (INFX (1, R)) ty2
   );
 
-val setup =
-  Code_Target.add_language
+val _ = Theory.setup
+  (Code_Target.add_language
     (target_SML, { serializer = serializer_sml, literals = literals_sml,
       check = { env_var = "ISABELLE_PROCESS",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
@@ -887,6 +886,6 @@ val setup =
       "sig", "struct", "then", "to", "true", "try", "type", "val",
       "virtual", "when", "while", "with"
     ]
-  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod", "Big_int"];
+  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod", "Big_int"]);
 
 end; (*struct*)

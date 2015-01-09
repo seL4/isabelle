@@ -280,8 +280,8 @@ structure Trace_Switch = Generic_Data
   type T = string list option;
   val empty = SOME [];
   val extend = I;
-  fun merge (NONE, d2) = NONE
-    | merge (d1, NONE) = NONE
+  fun merge (NONE, _) = NONE
+    | merge (_, NONE) = NONE
     | merge (SOME cs1, SOME cs2) = SOME (Library.merge (op =) (cs1, cs2));
 );
 
@@ -567,21 +567,26 @@ fun static_value { ctxt, lift_postproc, consts } evaluator =
 
 (** setup **)
 
-val _ =
+val _ = Theory.setup (
   let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     fun add_del_attribute_parser process =
       Attrib.add_del (mk_attribute (process Simplifier.add_simp))
         (mk_attribute (process Simplifier.del_simp));
   in
-    Context.>> (Context.map_theory
-      (Attrib.setup @{binding code_unfold} (add_del_attribute_parser process_unfold)
-        "preprocessing equations for code generator"
-      #> Attrib.setup @{binding code_post} (add_del_attribute_parser process_post)
-        "postprocessing equations for code generator"
-      #> Attrib.setup @{binding code_abbrev} (add_del_attribute_parser process_abbrev)
-        "post- and preprocessing equations for code generator"))
-  end;
+    Attrib.setup @{binding code_unfold} (add_del_attribute_parser process_unfold)
+      "preprocessing equations for code generator"
+    #> Attrib.setup @{binding code_post} (add_del_attribute_parser process_post)
+      "postprocessing equations for code generator"
+    #> Attrib.setup @{binding code_abbrev} (add_del_attribute_parser process_abbrev)
+      "post- and preprocessing equations for code generator"
+    #> Attrib.setup @{binding code_preproc_trace}
+      ((Scan.lift (Args.$$$ "off" >> K trace_none)
+      || (Scan.lift (Args.$$$ "only" |-- Args.colon |-- Scan.repeat1 Parse.term))
+         >> trace_only_ext
+      || Scan.succeed trace_all)
+      >> (Thm.declaration_attribute o K)) "tracing of the code generator preprocessor"
+  end);
 
 val _ =
   Outer_Syntax.command @{command_spec "print_codeproc"} "print code preprocessor setup"

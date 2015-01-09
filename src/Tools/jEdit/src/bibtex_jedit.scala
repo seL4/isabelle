@@ -82,7 +82,7 @@ object Bibtex_JEdit
       original <- JEdit_Lib.try_get_text(text_area.getBuffer, r)
       orig = Library.perhaps_unquote(original)
       entries = complete(name).filter(_ != orig)
-      if !entries.isEmpty
+      if entries.nonEmpty
       items =
         entries.map({
           case entry =>

@@ -75,7 +75,7 @@ fun match ctxt tm =
     fun match_inst
         ({vars, semiring = (sr_ops, sr_rules), 
           ring = (r_ops, r_rules), field = (f_ops, f_rules), idom, ideal},
-         fns as {is_const, dest_const, mk_const, conv}) pat =
+         fns) pat =
        let
         fun h instT =
           let
@@ -287,7 +287,7 @@ val [pthm_02, pthm_03, pthm_04, pthm_05, pthm_07, pthm_08,
      pthm_09, pthm_10, pthm_11, pthm_12, pthm_13, pthm_14, pthm_15, pthm_16,
      pthm_17, pthm_18, pthm_19, pthm_21, pthm_22, pthm_23, pthm_24,
      pthm_25, pthm_26, pthm_27, pthm_28, pthm_29, pthm_30, pthm_31, pthm_32,
-     pthm_33, pthm_34, pthm_35, pthm_36, pthm_37, pthm_38,pthm_39,pthm_40] = sr_rules;
+     pthm_33, pthm_34, pthm_35, pthm_36, pthm_37, pthm_38, _, _] = sr_rules;
 
 val [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry] = vars;
 val [add_pat, mul_pat, pow_pat, zero_tm, one_tm] = sr_ops;
@@ -301,29 +301,27 @@ fun dest_pow tm =
  end;
 val is_add = is_binop add_tm
 val is_mul = is_binop mul_tm
-fun is_pow tm = is_binop pow_tm tm andalso is_numeral(Thm.dest_arg tm);
 
-val (neg_mul,sub_add,sub_tm,neg_tm,dest_sub,is_sub,cx',cy') =
+val (neg_mul, sub_add, sub_tm, neg_tm, dest_sub, cx', cy') =
   (case (r_ops, r_rules) of
     ([sub_pat, neg_pat], [neg_mul, sub_add]) =>
       let
         val sub_tm = Thm.dest_fun (Thm.dest_fun sub_pat)
         val neg_tm = Thm.dest_fun neg_pat
         val dest_sub = dest_binop sub_tm
-        val is_sub = is_binop sub_tm
-      in (neg_mul,sub_add,sub_tm,neg_tm,dest_sub,is_sub, neg_mul |> concl |> Thm.dest_arg,
+      in (neg_mul,sub_add,sub_tm,neg_tm,dest_sub, neg_mul |> concl |> Thm.dest_arg,
           sub_add |> concl |> Thm.dest_arg |> Thm.dest_arg)
       end
-    | _ => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), K false, true_tm, true_tm));
+    | _ => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), true_tm, true_tm));
 
-val (divide_inverse, inverse_divide, divide_tm, inverse_tm, is_divide) = 
+val (divide_inverse, divide_tm, inverse_tm) = 
   (case (f_ops, f_rules) of 
-   ([divide_pat, inverse_pat], [div_inv, inv_div]) => 
+   ([divide_pat, inverse_pat], [div_inv, _]) => 
      let val div_tm = funpow 2 Thm.dest_fun divide_pat
          val inv_tm = Thm.dest_fun inverse_pat
-     in (div_inv, inv_div, div_tm, inv_tm, is_binop div_tm)
+     in (div_inv, div_tm, inv_tm)
      end
-   | _ => (TrueI, TrueI, true_tm, true_tm, K false));
+   | _ => (TrueI, true_tm, true_tm));
 
 in fn variable_order =>
  let
@@ -341,7 +339,7 @@ in fn variable_order =>
       ((let
          val (lx,ln) = dest_pow l
         in
-         ((let val (rx,rn) = dest_pow r
+         ((let val (_, rn) = dest_pow r
                val th1 = inst_thm [(cx,lx),(cp,ln),(cq,rn)] pthm_29
                 val (tm1,tm2) = Thm.dest_comb(concl th1) in
                Thm.transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv ctxt tm2)) end)
@@ -589,8 +587,8 @@ val morder =
  let fun lexorder l1 l2 =
   case (l1,l2) of
     ([],[]) => 0
-  | (vps,[]) => ~1
-  | ([],vps) => 1
+  | (_ ,[]) => ~1
+  | ([], _) => 1
   | (((x1,n1)::vs1),((x2,n2)::vs2)) =>
      if variable_order x1 x2 then 1
      else if variable_order x2 x1 then ~1
@@ -885,16 +883,11 @@ fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm
 
 local
 
-fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 fun keyword2 k1 k2 = Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.colon) >> K ();
-fun keyword3 k1 k2 k3 =
-  Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.$$$ k3 -- Args.colon) >> K ();
 
 val opsN = "ops";
 val rulesN = "rules";
 
-val normN = "norm";
-val constN = "const";
 val delN = "del";
 
 val any_keyword =

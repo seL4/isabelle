@@ -155,7 +155,7 @@ object Bibtex
 
     private val content: Option[List[Token]] =
       tokens match {
-        case Token(Token.Kind.KEYWORD, "@") :: body if !body.isEmpty =>
+        case Token(Token.Kind.KEYWORD, "@") :: body if body.nonEmpty =>
           (body.init.filterNot(_.is_ignored), body.last) match {
             case (tok :: Token(Token.Kind.KEYWORD, "{") :: toks, Token(Token.Kind.KEYWORD, "}"))
             if tok.is_kind => Some(toks)
