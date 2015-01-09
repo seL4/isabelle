@@ -225,13 +225,13 @@ fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
 
 (* job status *)
 
-fun ready_job task (Job list, (deps, _)) =
+fun ready_job (task, (Job list, (deps, _))) =
       if Task_Graph.Keys.is_empty deps then SOME (task, rev list) else NONE
-  | ready_job task (Passive abort, (deps, _)) =
+  | ready_job (task, (Passive abort, (deps, _))) =
       if Task_Graph.Keys.is_empty deps andalso is_canceled (group_of_task task)
       then SOME (task, [fn _ => abort ()])
       else NONE
-  | ready_job _ _ = NONE;
+  | ready_job _ = NONE;
 
 fun active_job (_, (Job _, _)) = SOME ()
   | active_job (_, (Running _, _)) = SOME ()
@@ -340,7 +340,7 @@ fun dequeue_passive thread task (queue as Queue {groups, jobs}) =
   | NONE => (NONE, queue));
 
 fun dequeue thread (queue as Queue {groups, jobs}) =
-  (case Task_Graph.get_first (uncurry ready_job) jobs of
+  (case Task_Graph.get_first ready_job jobs of
     SOME (result as (task, _)) =>
       let val jobs' = set_job task (Running thread) jobs
       in (SOME result, make_queue groups jobs') end
@@ -356,7 +356,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
           (case try (Task_Graph.get_entry jobs) task of
             NONE => ready tasks rest
           | SOME (_, entry) =>
-              (case ready_job task entry of
+              (case ready_job (task, entry) of
                 NONE => ready tasks (task :: rest)
               | some => (some, fold cons rest tasks)));
 
@@ -365,7 +365,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs}) =
           if Tasks.defined seen task then ready_dep seen tasks
           else
             let val entry as (_, (ds, _)) = #2 (Task_Graph.get_entry jobs task) in
-              (case ready_job task entry of
+              (case ready_job (task, entry) of
                 NONE => ready_dep (Tasks.update (task, ()) seen) (Task_Graph.Keys.dest ds @ tasks)
               | some => some)
             end;
