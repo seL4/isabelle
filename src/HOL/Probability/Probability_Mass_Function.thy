@@ -993,6 +993,11 @@ where
      map_pmf fst pq = p; map_pmf snd pq = q \<rbrakk>
   \<Longrightarrow> rel_pmf R p q"
 
+lemma nn_integral_count_space_eq:
+  "(\<And>x. x \<in> A - B \<Longrightarrow> f x = 0) \<Longrightarrow> (\<And>x. x \<in> B - A \<Longrightarrow> f x = 0) \<Longrightarrow>
+    (\<integral>\<^sup>+x. f x \<partial>count_space A) = (\<integral>\<^sup>+x. f x \<partial>count_space B)"
+  by (auto simp: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
+
 bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
 proof -
   show "map_pmf id = id" by (rule map_pmf_id)
@@ -1031,138 +1036,93 @@ proof -
       and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
 
     note pmf_nonneg[intro, simp]
+    let ?pq = "\<lambda>y x. pmf pq (x, y)"
+    let ?qr = "\<lambda>y z. pmf qr (y, z)"
 
-    def A \<equiv> "\<lambda>y. {x. (x, y) \<in> set_pmf pq}"
-    then have "\<And>y. A y \<subseteq> set_pmf p" by (auto simp add: p set_map_pmf intro: rev_image_eqI)
-    then have [simp]: "\<And>y. countable (A y)" by (rule countable_subset) simp
-    have A: "\<And>x y. (x, y) \<in> set_pmf pq \<longleftrightarrow> x \<in> A y"
-      by (simp add: A_def)
-
-    let ?P = "\<lambda>y. to_nat_on (A y)"
-    def pp \<equiv> "map_pmf (\<lambda>(x, y). (y, ?P y x)) pq"
-    let ?pp = "\<lambda>y x. pmf pp (y, x)"
-    { fix x y have "x \<in> A y \<Longrightarrow> ?pp y (?P y x) = pmf pq (x, y)"
-        unfolding pp_def
-        by (intro pmf_map_inj[of "\<lambda>(x, y). (y, ?P y x)" pq "(x, y)", simplified])
-           (auto simp: inj_on_def A) }
-    note pmf_pp = this
-    have pp_0: "\<And>y x. pmf q y = 0 \<Longrightarrow> ?pp y x = 0"
-    proof(erule contrapos_pp)
-      fix y x
-      assume "?pp y x \<noteq> 0"
-      hence "(y, x) \<in> set_pmf pp" by(simp add: set_pmf_iff)
-      hence "y \<in> set_pmf q" by(auto simp add: pp_def q set_map_pmf intro: rev_image_eqI)
-      thus "pmf q y \<noteq> 0" by(simp add: set_pmf_iff)
-    qed
-
-    def B \<equiv> "\<lambda>y. {z. (y, z) \<in> set_pmf qr}"
-    then have "\<And>y. B y \<subseteq> set_pmf r" by (auto simp add: r set_map_pmf intro: rev_image_eqI)
-    then have [simp]: "\<And>y. countable (B y)" by (rule countable_subset) simp
-    have B: "\<And>y z. (y, z) \<in> set_pmf qr \<longleftrightarrow> z \<in> B y"
-      by (simp add: B_def)
-
-    let ?R = "\<lambda>y. to_nat_on (B y)"
-    def rr \<equiv> "map_pmf (\<lambda>(y, z). (y, ?R y z)) qr"
-    let ?rr = "\<lambda>y z. pmf rr (y, z)"
-    { fix y z have "z \<in> B y \<Longrightarrow> ?rr y (?R y z) = pmf qr (y, z)"
-        unfolding rr_def
-        by (intro pmf_map_inj[of "\<lambda>(y, z). (y, ?R y z)" qr "(y, z)", simplified])
-           (auto simp: inj_on_def B) }
-    note pmf_rr = this
-    have rr_0: "\<And>y z. pmf q y = 0 \<Longrightarrow> ?rr y z = 0"
-    proof(erule contrapos_pp)
-      fix y z
-      assume "?rr y z \<noteq> 0"
-      hence "(y, z) \<in> set_pmf rr" by(simp add: set_pmf_iff)
-      hence "y \<in> set_pmf q" by(auto simp add: rr_def q' set_map_pmf intro: rev_image_eqI)
-      thus "pmf q y \<noteq> 0" by(simp add: set_pmf_iff)
-    qed
-
-    have nn_integral_pp2: "\<And>y. (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = pmf q y"
-      by (simp add: nn_integral_pmf' inj_on_def pp_def q)
+    have nn_integral_pp2: "\<And>y. (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) = pmf q y"
+      by (simp add: nn_integral_pmf' inj_on_def q)
          (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-    have nn_integral_rr1: "\<And>y. (\<integral>\<^sup>+ x. ?rr y x \<partial>count_space UNIV) = pmf q y"
-      by (simp add: nn_integral_pmf' inj_on_def rr_def q')
+    have nn_integral_rr1: "\<And>y. (\<integral>\<^sup>+ x. ?qr y x \<partial>count_space UNIV) = pmf q y"
+      by (simp add: nn_integral_pmf' inj_on_def q')
          (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-    have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV)"
+    have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV)"
       by(simp add: nn_integral_pp2 nn_integral_rr1)
 
-    def assign \<equiv> "\<lambda>y x z. ?pp y x * ?rr y z / pmf q y"
+    def assign \<equiv> "\<lambda>y x z. ?pq y x * ?qr y z / pmf q y"
     have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z" by(simp add: assign_def)
-    have assign_eq_0_outside: "\<And>y x z. \<lbrakk> ?pp y x = 0 \<or> ?rr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
+    have assign_eq_0_outside: "\<And>y x z. \<lbrakk> ?pq y x = 0 \<or> ?qr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
       by(auto simp add: assign_def)
-    have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = ?rr y z"
+    have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = ?qr y z"
     proof -
       fix y z
       have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = 
-            (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) * (?rr y z / pmf q y)"
+            (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) * (?qr y z / pmf q y)"
         by(simp add: assign_def nn_integral_multc times_ereal.simps(1)[symmetric] divide_real_def mult.assoc del: times_ereal.simps(1))
-      also have "\<dots> = ?rr y z" by(simp add: rr_0 nn_integral_pp2)
+      also have "\<dots> = ?qr y z" by(auto simp add: image_iff q' pmf_eq_0_set_pmf set_map_pmf nn_integral_pp2)
       finally show "?thesis y z" .
     qed
-    have nn_integral_assign2: "\<And>y x. (\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pp y x"
+    have nn_integral_assign2: "\<And>y x. (\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pq y x"
     proof -
       fix x y
-      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV) * (?pp y x / pmf q y)"
-        by(simp add: assign_def divide_real_def mult.commute[where a="?pp y x"] mult.assoc nn_integral_multc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
-      also have "\<dots> = ?pp y x" by(simp add: nn_integral_rr1 pp_0)
+      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV) * (?pq y x / pmf q y)"
+        by(simp add: assign_def divide_real_def mult.commute[where a="?pq y x"] mult.assoc nn_integral_multc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
+      also have "\<dots> = ?pq y x" by(auto simp add: image_iff pmf_eq_0_set_pmf set_map_pmf q nn_integral_rr1)
       finally show "?thesis y x" .
     qed
 
-    def a \<equiv> "embed_pmf (\<lambda>(y, x, z). assign y x z)"
+    def pqr \<equiv> "embed_pmf (\<lambda>(y, x, z). assign y x z)"
     { fix y x z
-      have "assign y x z = pmf a (y, x, z)"
-        unfolding a_def
+      have "assign y x z = pmf pqr (y, x, z)"
+        unfolding pqr_def
       proof (subst pmf_embed_pmf)
         have "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) =
-          (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>(count_space ((\<lambda>((y, x), z). (y, x, z)) ` (pp \<times> UNIV))))"
-          by (force simp add: nn_integral_count_space_indicator pmf_eq_0_set_pmf split: split_indicator
-                    intro!: nn_integral_cong assign_eq_0_outside)
-        also have "\<dots> = (\<integral>\<^sup>+ x. ereal ((\<lambda>((y, x), z). assign y x z) x) \<partial>(count_space (pp \<times> UNIV)))"
+          (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>(count_space ((\<lambda>((x, y), z). (y, x, z)) ` (pq \<times> r))))"
+          by (force simp add: pmf_eq_0_set_pmf r set_map_pmf split: split_indicator
+                    intro!: nn_integral_count_space_eq assign_eq_0_outside)
+        also have "\<dots> = (\<integral>\<^sup>+ x. ereal ((\<lambda>((x, y), z). assign y x z) x) \<partial>(count_space (pq \<times> r)))"
           by (subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
              (auto simp: inj_on_def intro!: nn_integral_cong)
-        also have "\<dots> = (\<integral>\<^sup>+ y. \<integral>\<^sup>+z. ereal ((\<lambda>((y, x), z). assign y x z) (y, z)) \<partial>count_space UNIV \<partial>count_space pp)"
+        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space r \<partial>count_space pq)"
           by (subst sigma_finite_measure.nn_integral_fst)
              (auto simp: pair_measure_countable sigma_finite_measure_count_space_countable)
-        also have "\<dots> = (\<integral>\<^sup>+ z. ?pp (fst z) (snd z) \<partial>count_space pp)"
+        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space UNIV \<partial>count_space pq)"
+          by (intro nn_integral_cong nn_integral_count_space_eq)
+             (force simp: r set_map_pmf pmf_eq_0_set_pmf intro!: assign_eq_0_outside)+
+        also have "\<dots> = (\<integral>\<^sup>+ z. ?pq (snd z) (fst z) \<partial>count_space pq)"
           by (subst nn_integral_assign2[symmetric]) (auto intro!: nn_integral_cong)
         finally show "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) = 1"
           by (simp add: nn_integral_pmf emeasure_pmf)
       qed auto }
     note a = this
 
-    def pr \<equiv> "map_pmf (\<lambda>(y, x, z). (from_nat_into (A y) x, from_nat_into (B y) z)) a"
+    def pr \<equiv> "map_pmf (\<lambda>(y, x, z). (x, z)) pqr"
 
     have "rel_pmf (R OO S) p r"
     proof
-      have pp_eq: "pp = map_pmf (\<lambda>(y, x, z). (y, x)) a"
+      have pq_eq: "pq = map_pmf (\<lambda>(y, x, z). (x, y)) pqr"
       proof (rule pmf_eqI)
         fix i
-        show "pmf pp i = pmf (map_pmf (\<lambda>(y, x, z). (y, x)) a) i"
-          using nn_integral_assign2[of "fst i" "snd i", symmetric]
+        show "pmf pq i = pmf (map_pmf (\<lambda>(y, x, z). (x, y)) pqr) i"
+          using nn_integral_assign2[of "snd i" "fst i", symmetric]
           by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
                    simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
       qed
-      moreover have pq_eq: "pq = map_pmf (\<lambda>(y, x). (from_nat_into (A y) x, y)) pp"
-        by (simp add: pp_def map_pmf_comp split_beta A[symmetric] cong: map_pmf_cong)
-      ultimately show "map_pmf fst pr = p"
+      then show "map_pmf fst pr = p"
         unfolding p pr_def by (simp add: map_pmf_comp split_beta)
 
-      have rr_eq: "rr = map_pmf (\<lambda>(y, x, z). (y, z)) a"
+      have qr_eq: "qr = map_pmf (\<lambda>(y, x, z). (y, z)) pqr"
       proof (rule pmf_eqI)
-        fix i show "pmf rr i = pmf (map_pmf (\<lambda>(y, x, z). (y, z)) a) i"
+        fix i show "pmf qr i = pmf (map_pmf (\<lambda>(y, x, z). (y, z)) pqr) i"
           using nn_integral_assign1[of "fst i" "snd i", symmetric]
           by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
                    simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
       qed
-      moreover have qr_eq: "qr = map_pmf (\<lambda>(y, z). (y, from_nat_into (B y) z)) rr"
-        by (simp add: rr_def map_pmf_comp split_beta B[symmetric] cong: map_pmf_cong)
-      ultimately show "map_pmf snd pr = r"
+      then show "map_pmf snd pr = r"
         unfolding r pr_def by (simp add: map_pmf_comp split_beta)
 
       fix x z assume "(x, z) \<in> set_pmf pr"
       then have "\<exists>y. (x, y) \<in> set_pmf pq \<and> (y, z) \<in> set_pmf qr"
-        by (force simp add: pp_eq pq_eq rr_eq qr_eq set_map_pmf pr_def image_image)
+        unfolding pr_def pq_eq qr_eq by (force simp: set_map_pmf)
       with pq qr show "(R OO S) x z"
         by blast
     qed }
