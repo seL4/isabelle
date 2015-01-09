@@ -1041,11 +1041,19 @@ proof -
     let ?P = "\<lambda>y. to_nat_on (A y)"
     def pp \<equiv> "map_pmf (\<lambda>(x, y). (y, ?P y x)) pq"
     let ?pp = "\<lambda>y x. pmf pp (y, x)"
-    { fix x y have "x \<in> A y \<Longrightarrow> pmf pp (y, ?P y x) = pmf pq (x, y)"
+    { fix x y have "x \<in> A y \<Longrightarrow> ?pp y (?P y x) = pmf pq (x, y)"
         unfolding pp_def
         by (intro pmf_map_inj[of "\<lambda>(x, y). (y, ?P y x)" pq "(x, y)", simplified])
            (auto simp: inj_on_def A) }
     note pmf_pp = this
+    have pp_0: "\<And>y x. pmf q y = 0 \<Longrightarrow> ?pp y x = 0"
+    proof(erule contrapos_pp)
+      fix y x
+      assume "?pp y x \<noteq> 0"
+      hence "(y, x) \<in> set_pmf pp" by(simp add: set_pmf_iff)
+      hence "y \<in> set_pmf q" by(auto simp add: pp_def q set_map_pmf intro: rev_image_eqI)
+      thus "pmf q y \<noteq> 0" by(simp add: set_pmf_iff)
+    qed
 
     def B \<equiv> "\<lambda>y. {z. (y, z) \<in> set_pmf qr}"
     then have "\<And>y. B y \<subseteq> set_pmf r" by (auto simp add: r set_map_pmf intro: rev_image_eqI)
@@ -1056,318 +1064,50 @@ proof -
     let ?R = "\<lambda>y. to_nat_on (B y)"
     def rr \<equiv> "map_pmf (\<lambda>(y, z). (y, ?R y z)) qr"
     let ?rr = "\<lambda>y z. pmf rr (y, z)"
-    { fix y z have "z \<in> B y \<Longrightarrow> pmf rr (y, ?R y z) = pmf qr (y, z)"
+    { fix y z have "z \<in> B y \<Longrightarrow> ?rr y (?R y z) = pmf qr (y, z)"
         unfolding rr_def
         by (intro pmf_map_inj[of "\<lambda>(y, z). (y, ?R y z)" qr "(y, z)", simplified])
            (auto simp: inj_on_def B) }
     note pmf_rr = this
-
-    have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV)"
-    proof -
-      fix y
-      have "(\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = pmf q y"
-        by (simp add: nn_integral_pmf' inj_on_def pp_def q)
-           (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-      also have "\<dots> = (\<integral>\<^sup>+ x. ?rr y x \<partial>count_space UNIV)"
-        by (simp add: nn_integral_pmf' inj_on_def rr_def q')
-           (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-      finally show "?thesis y" .
+    have rr_0: "\<And>y z. pmf q y = 0 \<Longrightarrow> ?rr y z = 0"
+    proof(erule contrapos_pp)
+      fix y z
+      assume "?rr y z \<noteq> 0"
+      hence "(y, z) \<in> set_pmf rr" by(simp add: set_pmf_iff)
+      hence "y \<in> set_pmf q" by(auto simp add: rr_def q' set_map_pmf intro: rev_image_eqI)
+      thus "pmf q y \<noteq> 0" by(simp add: set_pmf_iff)
     qed
 
-    def assign_aux \<equiv> "\<lambda>y remainder start weight z.
-       if z < start then 0
-       else if z = start then min weight remainder
-       else if remainder + setsum (?rr y) {Suc start ..<z} < weight then min (weight - remainder - setsum (?rr y) {Suc start..<z}) (?rr y z) else 0"
-    hence assign_aux_alt_def: "\<And>y remainder start weight z. assign_aux y remainder start weight z = 
-       (if z < start then 0
-        else if z = start then min weight remainder
-        else if remainder + setsum (?rr y) {Suc start ..<z} < weight then min (weight - remainder - setsum (?rr y) {Suc start..<z}) (?rr y z) else 0)"
-       by simp
-    { fix y and remainder :: real and start and weight :: real
-      assume weight_nonneg: "0 \<le> weight"
-      let ?assign_aux = "assign_aux y remainder start weight"
-      { fix z
-        have "setsum ?assign_aux {..<z} =
-           (if z \<le> start then 0 else if remainder + setsum (?rr y) {Suc start..<z} < weight then remainder + setsum (?rr y) {Suc start..<z} else weight)"
-        proof(induction z)
-          case (Suc z) show ?case
-            by (auto simp add: Suc.IH assign_aux_alt_def[where z=z] not_less)
-               (metis add.commute add.left_commute add_increasing pmf_nonneg)
-        qed(auto simp add: assign_aux_def) }
-      note setsum_start_assign_aux = this
-      moreover {
-        assume remainder_nonneg: "0 \<le> remainder"
-        have [simp]: "\<And>z. 0 \<le> ?assign_aux z"
-          by(simp add: assign_aux_def weight_nonneg remainder_nonneg)
-        moreover have "\<And>z. \<lbrakk> ?rr y z = 0; remainder \<le> ?rr y start \<rbrakk> \<Longrightarrow> ?assign_aux z = 0"
-          using remainder_nonneg weight_nonneg
-          by(auto simp add: assign_aux_def min_def)
-        moreover have "(\<integral>\<^sup>+ z. ?assign_aux z \<partial>count_space UNIV) = 
-          min weight (\<integral>\<^sup>+ z. (if z < start then 0 else if z = start then remainder else ?rr y z) \<partial>count_space UNIV)"
-          (is "?lhs = ?rhs" is "_ = min _ (\<integral>\<^sup>+ y. ?f y \<partial>_)")
-        proof -
-          have "?lhs = (SUP n. \<Sum>z<n. ereal (?assign_aux z))"
-            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
-          also have "\<dots> = (SUP n. min weight (\<Sum>z<n. ?f z))"
-          proof(rule arg_cong2[where f=SUPREMUM] ext refl)+
-            fix n
-            have "(\<Sum>z<n. ereal (?assign_aux z)) = min weight ((if n > start then remainder else 0) + setsum ?f {Suc start..<n})"
-              using weight_nonneg remainder_nonneg by(simp add: setsum_start_assign_aux min_def)
-            also have "\<dots> = min weight (setsum ?f {start..<n})"
-              by(simp add: setsum_head_upt_Suc)
-            also have "\<dots> = min weight (setsum ?f {..<n})"
-              by(intro arg_cong2[where f=min] setsum.mono_neutral_left) auto
-            finally show "(\<Sum>z<n. ereal (?assign_aux z)) = \<dots>" .
-          qed
-          also have "\<dots> = min weight (SUP n. setsum ?f {..<n})"
-            unfolding inf_min[symmetric] by(subst inf_SUP) simp
-          also have "\<dots> = ?rhs"
-            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP remainder_nonneg)
-          finally show ?thesis .
-        qed
-        moreover note calculation }
-      moreover note calculation }
-    note setsum_start_assign_aux = this(1)
-      and assign_aux_nonneg [simp] = this(2)
-      and assign_aux_eq_0_outside = this(3)
-      and nn_integral_assign_aux = this(4)
-    { fix y and remainder :: real and start target
-      have "setsum (?rr y) {Suc start..<target} \<ge> 0" by (simp add: setsum_nonneg)
-      moreover assume "0 \<le> remainder"
-      ultimately have "assign_aux y remainder start 0 target = 0"
-        by(auto simp add: assign_aux_def min_def) }
-    note assign_aux_weight_0 [simp] = this
+    have nn_integral_pp2: "\<And>y. (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = pmf q y"
+      by (simp add: nn_integral_pmf' inj_on_def pp_def q)
+         (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
+    have nn_integral_rr1: "\<And>y. (\<integral>\<^sup>+ x. ?rr y x \<partial>count_space UNIV) = pmf q y"
+      by (simp add: nn_integral_pmf' inj_on_def rr_def q')
+         (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
+    have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV)"
+      by(simp add: nn_integral_pp2 nn_integral_rr1)
 
-    def find_start \<equiv> "\<lambda>y weight. if \<exists>n. weight \<le> setsum (?rr y)  {..n} then Some (LEAST n. weight \<le> setsum (?rr y) {..n}) else None"
-    have find_start_eq_Some_above:
-      "\<And>y weight n. find_start y weight = Some n \<Longrightarrow> weight \<le> setsum (?rr y) {..n}"
-      by(drule sym)(auto simp add: find_start_def split: split_if_asm intro: LeastI)
-    { fix y weight n
-      assume find_start: "find_start y weight = Some n"
-      and weight: "0 \<le> weight"
-      have "setsum (?rr y) {..n} \<le> ?rr y n + weight"
-      proof(rule ccontr)
-        assume "\<not> ?thesis"
-        hence "?rr y n + weight < setsum (?rr y) {..n}" by simp
-        moreover with weight obtain n' where "n = Suc n'" by(cases n) auto
-        ultimately have "weight \<le> setsum (?rr y) {..n'}" by simp
-        hence "(LEAST n. weight \<le> setsum (?rr y) {..n}) \<le> n'" by(rule Least_le)
-        moreover from find_start have "n = (LEAST n. weight \<le> setsum (?rr y) {..n})"
-          by(auto simp add: find_start_def split: split_if_asm)
-        ultimately show False using \<open>n = Suc n'\<close> by auto
-      qed }
-    note find_start_eq_Some_least = this
-    have find_start_0 [simp]: "\<And>y. find_start y 0 = Some 0"
-      by(auto simp add: find_start_def intro!: exI[where x=0])
-    { fix y and weight :: real
-      assume "weight < \<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV"
-      also have "(\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV) = (SUP n. \<Sum>z<n. ereal (?rr y z))"
-        by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
-      finally obtain n where "weight < (\<Sum>z<n. ?rr y z)" by(auto simp add: less_SUP_iff)
-      hence "weight \<in> dom (find_start y)"
-        by(auto simp add: find_start_def)(meson atMost_iff finite_atMost lessThan_iff less_imp_le order_trans pmf_nonneg setsum_mono3 subsetI) }
-    note in_dom_find_startI = this
-    { fix y and w w' :: real and m
-      let ?m' = "LEAST m. w' \<le> setsum (?rr y) {..m}"
-      assume "w' \<le> w"
-      also  assume "find_start y w = Some m"
-      hence "w \<le> setsum (?rr y) {..m}" by(rule find_start_eq_Some_above)
-      finally have "find_start y w' = Some ?m'" by(auto simp add: find_start_def)
-      moreover from \<open>w' \<le> setsum (?rr y) {..m}\<close> have "?m' \<le> m" by(rule Least_le)
-      ultimately have "\<exists>m'. find_start y w' = Some m' \<and> m' \<le> m" by blast }
-    note find_start_mono = this[rotated]
-
-    def assign \<equiv> "\<lambda>y x z. let used = setsum (?pp y) {..<x}
-      in case find_start y used of None \<Rightarrow> 0
-         | Some start \<Rightarrow> assign_aux y (setsum (?rr y) {..start} - used) start (?pp y x) z"
-    hence assign_alt_def: "\<And>y x z. assign y x z = 
-      (let used = setsum (?pp y) {..<x}
-       in case find_start y used of None \<Rightarrow> 0
-          | Some start \<Rightarrow> assign_aux y (setsum (?rr y) {..start} - used) start (?pp y x) z)"
-      by simp
-    have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z"
-      by(simp add: assign_def diff_le_iff find_start_eq_Some_above Let_def split: option.split)
+    def assign \<equiv> "\<lambda>y x z. ?pp y x * ?rr y z / pmf q y"
+    have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z" by(simp add: assign_def)
     have assign_eq_0_outside: "\<And>y x z. \<lbrakk> ?pp y x = 0 \<or> ?rr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
-      by(auto simp add: assign_def assign_aux_eq_0_outside diff_le_iff find_start_eq_Some_above find_start_eq_Some_least setsum_nonneg Let_def split: option.split)
-
-    { fix y x z
-      have "(\<Sum>n<Suc x. assign y n z) =
-            (case find_start y (setsum (?pp y) {..<x}) of None \<Rightarrow> ?rr y z
-             | Some m \<Rightarrow> if z < m then ?rr y z 
-                         else min (?rr y z) (max 0 (setsum (?pp y) {..<x} + ?pp y x - setsum (?rr y) {..<z})))"
-        (is "?lhs x = ?rhs x")
-      proof(induction x)
-        case 0 thus ?case 
-          by(auto simp add: assign_def assign_aux_def setsum_head_upt_Suc atLeast0LessThan[symmetric] not_less field_simps max_def)
-      next
-        case (Suc x)
-        have "?lhs (Suc x) = ?lhs x + assign y (Suc x) z" by simp
-        also have "?lhs x = ?rhs x" by(rule Suc.IH)
-        also have "?rhs x + assign y (Suc x) z = ?rhs (Suc x)"
-        proof(cases "find_start y (setsum (?pp y) {..<Suc x})")
-          case None
-          thus ?thesis
-            by(auto split: option.split simp add: assign_def min_def max_def diff_le_iff setsum_nonneg not_le field_simps)
-              (metis add.commute add_increasing find_start_def lessThan_Suc_atMost less_imp_le option.distinct(1) setsum_lessThan_Suc)+
-        next 
-          case (Some m)
-          have [simp]: "setsum (?rr y) {..m} = ?rr y m + setsum (?rr y) {..<m}"
-            by(simp add: ivl_disj_un(2)[symmetric])
-          from Some obtain m' where m': "find_start y (setsum (?pp y) {..<x}) = Some m'" "m' \<le> m"
-            by(auto dest: find_start_mono[where w'2="setsum (?pp y) {..<x}"])
-          moreover {
-            assume "z < m"
-            then have "setsum (?rr y) {..z} \<le> setsum (?rr y) {..<m}"
-              by(auto intro: setsum_mono3)
-            also have "\<dots> \<le> setsum (?pp y) {..<Suc x}" using find_start_eq_Some_least[OF Some]
-              by(simp add: ivl_disj_un(2)[symmetric] setsum_nonneg)
-            finally have "?rr y z \<le> max 0 (setsum (?pp y) {..<x} + ?pp y x - setsum (?rr y) {..<z})"
-              by(auto simp add: ivl_disj_un(2)[symmetric] max_def diff_le_iff simp del: pmf_le_0_iff)
-          } moreover {
-            assume "m \<le> z"
-            have "setsum (?pp y) {..<Suc x} \<le> setsum (?rr y) {..m}"
-              using Some by(rule find_start_eq_Some_above)
-            also have "\<dots> \<le> setsum (?rr y) {..<Suc z}" using \<open>m \<le> z\<close> by(intro setsum_mono3) auto
-            finally have "max 0 (setsum (?pp y) {..<x} + ?pp y x - setsum (?rr y) {..<z}) \<le> ?rr y z" by simp
-            moreover have "z \<noteq> m \<Longrightarrow> setsum (?rr y) {..m} + setsum (?rr y) {Suc m..<z} = setsum (?rr y) {..<z}"
-              using \<open>m \<le> z\<close>
-              by(subst ivl_disj_un(8)[where l="Suc m", symmetric])
-                (simp_all add: setsum_Un ivl_disj_un(2)[symmetric] setsum.neutral)
-            moreover note calculation
-          } moreover {
-            assume "m < z"
-            have "setsum (?pp y) {..<Suc x} \<le> setsum (?rr y) {..m}"
-              using Some by(rule find_start_eq_Some_above)
-            also have "\<dots> \<le> setsum (?rr y) {..<z}" using \<open>m < z\<close> by(intro setsum_mono3) auto
-            finally have "max 0 (setsum (?pp y) {..<Suc x} - setsum (?rr y) {..<z}) = 0" by simp }
-          moreover have "setsum (?pp y) {..<Suc x} \<ge> setsum (?rr y) {..<m}"
-            using find_start_eq_Some_least[OF Some]
-            by(simp add: setsum_nonneg ivl_disj_un(2)[symmetric])
-          moreover hence "setsum (?pp y) {..<Suc (Suc x)} \<ge> setsum (?rr y) {..<m}"
-            by(fastforce intro: order_trans)
-          ultimately show ?thesis using Some
-            by(auto simp add: assign_def assign_aux_def Let_def field_simps max_def)
-        qed
-        finally show ?case .
-      qed }
-    note setsum_assign = this
-
+      by(auto simp add: assign_def)
     have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = ?rr y z"
     proof -
       fix y z
-      have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = (SUP n. ereal (\<Sum>x<n. assign y x z))"
-        by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
-      also have "\<dots> = ?rr y z"
-      proof(rule antisym)
-        show "(SUP n. ereal (\<Sum>x<n. assign y x z)) \<le> ?rr y z"
-        proof(rule SUP_least)
-          fix n
-          show "ereal (\<Sum>x<n. (assign y x z)) \<le> ?rr y z"
-            using setsum_assign[of y z "n - 1"]
-            by(cases n)(simp_all split: option.split)
-        qed
-        show "?rr y z \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))"
-        proof(cases "setsum (?rr y) {..z} < \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV")
-          case True
-          then obtain n where "setsum (?rr y) {..z} < setsum (?pp y) {..<n}"
-            by(auto simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP less_SUP_iff)
-          moreover have "\<And>k. k < z \<Longrightarrow> setsum (?rr y) {..k} \<le> setsum (?rr y) {..<z}"
-            by(auto intro: setsum_mono3)
-          ultimately have "?rr y z \<le> (\<Sum>x<Suc n. assign y x z)"
-            by(subst setsum_assign)(auto split: option.split dest!: find_start_eq_Some_above simp add: ivl_disj_un(2)[symmetric] add.commute add_increasing le_diff_eq le_max_iff_disj)
-          also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))" 
-            by(rule SUP_upper) simp
-          finally show ?thesis by simp
-        next
-          case False
-          have "setsum (?rr y) {..z} = \<integral>\<^sup>+ z. ?rr y z \<partial>count_space {..z}"
-            by(simp add: nn_integral_count_space_finite max_def)
-          also have "\<dots> \<le> \<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV"
-            by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
-          also have "\<dots> = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV" by(simp add: eq)
-          finally have *: "setsum (?rr y) {..z} = \<dots>" using False by simp
-          also have "\<dots> = (SUP n. ereal (\<Sum>x<n. ?pp y x))"
-            by(simp add: nn_integral_count_space_nat suminf_ereal_eq_SUP)
-          also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z)) + setsum (?rr y) {..<z}"
-          proof(rule SUP_least)
-            fix n
-            have "setsum (?pp y) {..<n} = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space {..<n}"
-              by(simp add: nn_integral_count_space_finite max_def)
-            also have "\<dots> \<le> \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV"
-              by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
-            also have "\<dots> = setsum (?rr y) {..z}" using * by simp
-            finally obtain k where k: "find_start y (setsum (?pp y) {..<n}) = Some k"
-              by(fastforce simp add: find_start_def)
-            with \<open>ereal (setsum (?pp y) {..<n}) \<le> setsum (?rr y) {..z}\<close>
-            have "k \<le> z" by(auto simp add: find_start_def split: split_if_asm intro: Least_le)
-            then have "setsum (?pp y) {..<n} - setsum (?rr y) {..<z} \<le> ereal (\<Sum>x<Suc n. assign y x z)"
-              using \<open>ereal (setsum (?pp y) {..<n}) \<le> setsum (?rr y) {..z}\<close>
-              apply (subst setsum_assign)
-              apply (auto simp add: field_simps max_def k ivl_disj_un(2)[symmetric])
-              apply (meson add_increasing le_cases pmf_nonneg)
-              done
-            also have "\<dots> \<le> (SUP n. ereal (\<Sum>x<n. assign y x z))"
-              by(rule SUP_upper) simp
-            finally show "ereal (\<Sum>x<n. ?pp y x) \<le> \<dots> + setsum (?rr y) {..<z}" 
-              by(simp add: ereal_minus(1)[symmetric] ereal_minus_le del: ereal_minus(1))
-          qed
-          finally show ?thesis
-            by(simp add: ivl_disj_un(2)[symmetric] plus_ereal.simps(1)[symmetric] ereal_add_le_add_iff2 del: plus_ereal.simps(1))
-        qed
-      qed
+      have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = 
+            (\<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV) * (?rr y z / pmf q y)"
+        by(simp add: assign_def nn_integral_multc times_ereal.simps(1)[symmetric] divide_real_def mult.assoc del: times_ereal.simps(1))
+      also have "\<dots> = ?rr y z" by(simp add: rr_0 nn_integral_pp2)
       finally show "?thesis y z" .
     qed
-
-    { fix y x
-      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pp y x"
-      proof(cases "setsum (?pp y) {..<x} = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV")
-        case False
-        let ?used = "setsum (?pp y) {..<x}"
-        have "?used = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space {..<x}"
-          by(simp add: nn_integral_count_space_finite max_def)
-        also have "\<dots> \<le> \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV"
-          by(auto simp add: nn_integral_count_space_indicator indicator_def intro!: nn_integral_mono)
-        finally have "?used < \<dots>" using False by auto
-        also note eq finally have "?used \<in> dom (find_start y)" by(rule in_dom_find_startI)
-        then obtain k where k: "find_start y ?used = Some k" by auto
-        let ?f = "\<lambda>z. if z < k then 0 else if z = k then setsum (?rr y) {..k} - ?used else ?rr y z"
-        let ?g = "\<lambda>x'. if x' < x then 0 else ?pp y x'"
-        have "?pp y x = ?g x" by simp
-        also have "?g x \<le> \<integral>\<^sup>+ x'. ?g x' \<partial>count_space UNIV" by(rule nn_integral_ge_point) simp
-        also {
-          have "?used = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space {..<x}"
-            by(simp add: nn_integral_count_space_finite max_def)
-          also have "\<dots> = \<integral>\<^sup>+ x'. (if x' < x then ?pp y x' else 0) \<partial>count_space UNIV"
-            by(simp add: nn_integral_count_space_indicator indicator_def if_distrib zero_ereal_def cong del: if_cong)
-          also have "(\<integral>\<^sup>+ x'. ?g x' \<partial>count_space UNIV) + \<dots> = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV"
-            by(subst nn_integral_add[symmetric])(auto intro: nn_integral_cong)
-          also note calculation }
-        ultimately have "ereal (?pp y x) + ?used \<le> \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV"
-          by (metis (no_types, lifting) ereal_add_mono order_refl)
-        also note eq
-        also have "(\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV) + (\<integral>\<^sup>+ z. (if z < k then ?rr y z else if z = k then ?used - setsum (?rr y) {..<k} else 0) \<partial>count_space UNIV)"
-          using k by(subst nn_integral_add[symmetric])(auto intro!: nn_integral_cong simp add: ivl_disj_un(2)[symmetric] setsum_nonneg dest: find_start_eq_Some_least find_start_eq_Some_above)
-        also have "(\<integral>\<^sup>+ z. (if z < k then ?rr y z else if z = k then ?used - setsum (?rr y) {..<k} else 0) \<partial>count_space UNIV) =
-          (\<integral>\<^sup>+ z. (if z < k then ?rr y z else if z = k then ?used - setsum (?rr y) {..<k} else 0) \<partial>count_space {..k})"
-          by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_cong)
-        also have "\<dots> = ?used" 
-          using k by(auto simp add: nn_integral_count_space_finite max_def ivl_disj_un(2)[symmetric] diff_le_iff setsum_nonneg dest: find_start_eq_Some_least)
-        finally have "?pp y x \<le> (\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV)"
-          by(cases "\<integral>\<^sup>+ z. ?f z \<partial>count_space UNIV") simp_all
-        then show ?thesis using k
-          by(simp add: assign_def nn_integral_assign_aux diff_le_iff find_start_eq_Some_above min_def)
-      next
-        case True
-        have "setsum (?pp y) {..x} = \<integral>\<^sup>+ x. ?pp y x \<partial>count_space {..x}"
-          by(simp add: nn_integral_count_space_finite max_def)
-        also have "\<dots> \<le> \<integral>\<^sup>+ x. ?pp y x \<partial>count_space UNIV"
-          by(auto simp add: nn_integral_count_space_indicator indicator_def intro: nn_integral_mono)
-        also have "\<dots> = setsum (?pp y) {..<x}" by(simp add: True)
-        finally have "?pp y x = 0" by(simp add: ivl_disj_un(2)[symmetric] eq_iff del: pmf_le_0_iff)
-        thus ?thesis
-          by(cases "find_start y (setsum (?pp y) {..<x})")(simp_all add: assign_def diff_le_iff find_start_eq_Some_above)
-      qed }
-    note nn_integral_assign2 = this
+    have nn_integral_assign2: "\<And>y x. (\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pp y x"
+    proof -
+      fix x y
+      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?rr y z \<partial>count_space UNIV) * (?pp y x / pmf q y)"
+        by(simp add: assign_def divide_real_def mult.commute[where a="?pp y x"] mult.assoc nn_integral_multc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
+      also have "\<dots> = ?pp y x" by(simp add: nn_integral_rr1 pp_0)
+      finally show "?thesis y x" .
+    qed
 
     def a \<equiv> "embed_pmf (\<lambda>(y, x, z). assign y x z)"
     { fix y x z
