@@ -264,7 +264,9 @@ fun worker_loop name =
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   Unsynchronized.change workers (cons (Simple_Thread.fork false (fn () => worker_loop name),
-    Unsynchronized.ref Working));
+    Unsynchronized.ref Working))
+  handle Fail msg => Multithreading.tracing 0 (fn () => msg);
+
 
 
 (* scheduler *)
