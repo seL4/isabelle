@@ -354,7 +354,7 @@ val _ =
   print_function "print_state"
     (fn {keywords, command_name, ...} =>
       if Keyword.is_printed keywords command_name then
-        SOME {delay = NONE, pri = 1, persistent = false, strict = true,
+        SOME {delay = NONE, pri = 1, persistent = false, strict = false,
           print_fn = fn _ => fn st => if Toplevel.is_proof st then Toplevel.print_state st else ()}
       else NONE);
 
