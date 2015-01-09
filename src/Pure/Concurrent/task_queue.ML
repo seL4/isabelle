@@ -233,10 +233,8 @@ fun ready_job (task, (Job list, (deps, _))) =
       else NONE
   | ready_job _ = NONE;
 
-fun active_job (_, (Job _, _)) = SOME ()
-  | active_job (_, (Running _, _)) = SOME ()
-  | active_job (task, (Passive _, _)) =
-      if is_canceled (group_of_task task) then SOME () else NONE;
+fun active_job (task, (Running _, _)) = SOME (task, [])
+  | active_job arg = ready_job arg;
 
 fun all_passive (Queue {jobs, ...}) = is_none (Task_Graph.get_first active_job jobs);
 
