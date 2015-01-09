@@ -64,34 +64,38 @@ fun next_request_event t0 (requests: requests) =
 
 (* global state *)
 
-type state = requests * Thread.thread option;
-val init_state: state = (Requests.empty, NONE);
+datatype status = Normal | Shutdown_Req | Shutdown_Ack;
 
-val state = Synchronized.var "Event_Timer.state" init_state;
+datatype state =
+  State of {requests: requests, status: status, manager: Thread.thread option};
+
+fun make_state (requests, status, manager) =
+  State {requests = requests, status = status, manager = manager};
+
+val normal_state = make_state (Requests.empty, Normal, NONE);
+val shutdown_ack_state = make_state (Requests.empty, Shutdown_Ack, NONE);
+
+fun is_shutdown s (State {requests, status, manager}) =
+  Requests.is_empty requests andalso status = s andalso is_none manager;
+
+fun is_shutdown_req (State {requests, status, ...}) =
+  Requests.is_empty requests andalso status = Shutdown_Req;
+
+val state = Synchronized.var "Event_Timer.state" normal_state;
 
 
 (* manager thread *)
 
-val manager_timeout = seconds 0.3;
-
 fun manager_loop () =
-  let
-    val success =
-      Synchronized.timed_access state
-        (fn (requests, _) =>
-          (case next_request_time requests of
-            NONE => SOME (Time.+ (Time.now (), manager_timeout))
-          | some => some))
-        (fn (requests, manager) =>
-          (case next_request_event (Time.now ()) requests of
-            NONE => NONE
-          | SOME (event, requests') => (Exn.capture event (); SOME ((), (requests', manager)))));
-    val finished =
-      is_none success andalso
-        Synchronized.change_result state (fn (requests, manager) =>
-          if Requests.is_empty requests then (true, init_state)
-          else (false, (requests, manager)));
-  in if finished then () else manager_loop () end;
+  if Synchronized.timed_access state
+    (fn State {requests, ...} => next_request_time requests)
+    (fn st as State {requests, status, manager} =>
+      (case next_request_event (Time.now ()) requests of
+        SOME (event, requests') =>
+          (Exn.capture event (); SOME (true, make_state (requests', status, manager)))
+      | NONE =>
+          if is_shutdown_req st then SOME (false, shutdown_ack_state) else NONE)) = SOME false
+  then () else manager_loop ();
 
 fun manager_check manager =
   if is_some manager andalso Thread.isActive (the manager) then manager
@@ -101,24 +105,35 @@ fun manager_check manager =
 (* main operations *)
 
 fun request time event =
-  Synchronized.change_result state (fn (requests, manager) =>
+  Synchronized.change_result state (fn State {requests, status, manager} =>
     let
       val req = new_request ();
       val requests' = add_request time (req, event) requests;
-    in (req, (requests', manager_check manager)) end);
+    in (req, make_state (requests', status, manager_check manager)) end);
 
 fun cancel req =
-  Synchronized.change_result state (fn (requests, manager) =>
+  Synchronized.change_result state (fn State {requests, status, manager} =>
     let
       val (canceled, requests') = del_request req requests;
-    in (canceled, (requests', manager)) end);
+    in (canceled, make_state (requests', status, manager_check manager)) end);
 
 fun shutdown () =
-  Synchronized.guarded_access state (fn (requests, manager) =>
-    if not (Requests.is_empty requests)
-    then raise Fail "Cannot shutdown event timer: pending requests"
-    else if is_none manager then SOME ((), init_state)
-    else NONE);
+  uninterruptible (fn restore_attributes => fn () =>
+    if Synchronized.change_result state (fn st as State {requests, status, manager} =>
+      if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
+        raise Fail "Concurrent attempt to shutdown event timer"
+      else if is_shutdown Normal st then (false, st)
+      else (true, make_state (requests, Shutdown_Req, manager_check manager)))
+    then
+      restore_attributes (fn () =>
+        Synchronized.guarded_access state
+          (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE)) ()
+      handle exn =>
+        if Exn.is_interrupt exn then
+          Synchronized.change state (fn State {requests, manager, ...} =>
+            make_state (requests, Normal, manager))
+        else ()
+    else ()) ();
 
 
 (* future *)
