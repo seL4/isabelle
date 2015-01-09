@@ -377,12 +377,15 @@ fun run_process execution_id exec_id process =
     else ()
   end;
 
+fun ignore_process process =
+  Lazy.is_running process orelse Lazy.is_finished process;
+
 fun run_eval execution_id (Eval {exec_id, eval_process}) =
   if Lazy.is_finished eval_process then ()
   else run_process execution_id exec_id eval_process;
 
 fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...}) =
-  if Lazy.is_running print_process orelse Lazy.is_finished print_process then ()
+  if ignore_process print_process then ()
   else if pri <= 0 orelse (Multithreading.enabled () andalso Options.default_bool "parallel_print")
   then
     let
@@ -390,7 +393,9 @@ fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...
       fun fork () =
         ignore ((singleton o Future.forks)
           {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
-          (fn () => run_process execution_id exec_id print_process));
+          (fn () =>
+            if ignore_process print_process then ()
+            else run_process execution_id exec_id print_process));
     in
       (case delay of
         NONE => fork ()
