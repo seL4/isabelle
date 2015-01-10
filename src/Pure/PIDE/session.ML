@@ -72,7 +72,6 @@ fun finish () =
 
 fun save heap =
  (Execution.shutdown ();
-  Future.shutdown ();
   Event_Timer.shutdown ();
   Future.shutdown ();
   ML_System.share_common_data ();
