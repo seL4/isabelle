@@ -234,7 +234,7 @@ by (tactic {* ALLGOALS (rtac thm) *})
 text {*
   By virtue of @{fact interp.simps}, @{ML "Reification.conv"} provides a conversion
   which, for this concrete example, yields @{thm thm [no_vars]}.  Note that the argument
-  to @{const interp} does not contain any free variables and can this be evaluated
+  to @{const interp} does not contain any free variables and can thus be evaluated
   using evaluation.
 
   A less meager example can be found in the AFP, session @{text "Regular-Sets"},
