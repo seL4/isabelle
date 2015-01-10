@@ -1322,6 +1322,14 @@ lemma card_Un_disjoint:
   shows "card (A \<union> B) = card A + card B"
 using assms card_Un_Int [of A B] by simp
 
+lemma card_Un_le: "card (A \<union> B) \<le> card A + card B"
+apply(cases "finite A")
+ apply(cases "finite B")
+  using le_iff_add card_Un_Int apply blast
+ apply simp
+apply simp
+done
+
 lemma card_Diff_subset:
   assumes "finite B" and "B \<subseteq> A"
   shows "card (A - B) = card A - card B"
