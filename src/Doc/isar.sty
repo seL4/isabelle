@@ -4,6 +4,8 @@
 {\ifthenelse{\equal{}{#1}}{\index{#3 (#2)|bold}}{\index{#3 (#1\ #2)|bold}}}
 \newcommand{\indexref}[3]{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)}}{\index{#3 (#1\ #2)}}}
 
+\newcommand{\isadigitreset}{\def\isadigit##1{##1}}
+
 \newcommand{\isasystem}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\isadigitreset\tt #1}}
 \newcommand{\isatool}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\isadigitreset\tt isabelle #1}}
 
