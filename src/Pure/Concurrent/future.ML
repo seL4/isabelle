@@ -140,7 +140,6 @@ val canceled = Unsynchronized.ref ([]: group list);
 val do_shutdown = Unsynchronized.ref false;
 val max_workers = Unsynchronized.ref 0;
 val max_active = Unsynchronized.ref 0;
-val worker_trend = Unsynchronized.ref 0;
 
 val status_ticks = Unsynchronized.ref 0;
 val last_round = Unsynchronized.ref Time.zeroTime;
@@ -265,7 +264,7 @@ fun worker_loop name =
 fun worker_start name = (*requires SYNCHRONIZED*)
   Unsynchronized.change workers (cons (Simple_Thread.fork false (fn () => worker_loop name),
     Unsynchronized.ref Working))
-  handle Fail msg => Multithreading.tracing 0 (fn () => msg);
+  handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
 
 
 
@@ -287,7 +286,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       then report_status () else ();
 
     val _ =
-      if forall (Thread.isActive o #1) (! workers) then ()
+      if not tick orelse forall (Thread.isActive o #1) (! workers) then ()
       else
         let
           val (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
@@ -305,22 +304,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
     val _ = max_active := m;
-
-    val mm =
-      if ! do_shutdown then 0
-      else Int.min (Int.max (count_workers Working + 2 * count_workers Waiting, m), 4 * m);
-    val _ =
-      if tick andalso mm > ! max_workers then
-        Unsynchronized.change worker_trend (fn w => if w < 0 then 0 else w + 1)
-      else if tick andalso mm < ! max_workers then
-        Unsynchronized.change worker_trend (fn w => if w > 0 then 0 else w - 1)
-      else ();
-    val _ =
-      if mm = 0 orelse ! worker_trend > 50 orelse ! worker_trend < ~50 then
-        max_workers := mm
-      else if ! worker_trend > 5 andalso ! max_workers < 2 * m orelse ! max_workers = 0 then
-        max_workers := Int.min (mm, 2 * m)
-      else ();
+    val _ = max_workers := 2 * m;
 
     val missing = ! max_workers - length (! workers);
     val _ =
