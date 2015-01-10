@@ -12,8 +12,8 @@ sig
   eqtype request
   val request: Time.time -> (unit -> unit) -> request
   val cancel: request -> bool
-  val shutdown: unit -> unit
   val future: Time.time -> unit future
+  val shutdown: unit -> unit
 end;
 
 structure Event_Timer: EVENT_TIMER =
@@ -99,30 +99,12 @@ fun manager_loop () =
       | NONE =>
           if is_shutdown_req st
           then SOME (false, shutdown_ack_state)
-          else NONE)) = SOME false
-  then () else manager_loop ();
+          else NONE)) <> SOME false
+  then manager_loop () else ();
 
 fun manager_check manager =
   if is_some manager andalso Thread.isActive (the manager) then manager
   else SOME (Simple_Thread.fork false manager_loop);
-
-
-(* main operations *)
-
-fun request time event =
-  Synchronized.change_result state (fn State {requests, status, manager} =>
-    let
-      val req = new_request ();
-      val requests' = add_request time (req, event) requests;
-      val manager' = manager_check manager;
-    in (req, make_state (requests', status, manager')) end);
-
-fun cancel req =
-  Synchronized.change_result state (fn State {requests, status, manager} =>
-    let
-      val (canceled, requests') = del_request req requests;
-      val manager' = manager_check manager;
-    in (canceled, make_state (requests', status, manager')) end);
 
 fun shutdown () =
   uninterruptible (fn restore_attributes => fn () =>
@@ -143,7 +125,22 @@ fun shutdown () =
     else ()) ();
 
 
-(* future *)
+(* main operations *)
+
+fun request time event =
+  Synchronized.change_result state (fn State {requests, status, manager} =>
+    let
+      val req = new_request ();
+      val requests' = add_request time (req, event) requests;
+      val manager' = manager_check manager;
+    in (req, make_state (requests', status, manager')) end);
+
+fun cancel req =
+  Synchronized.change_result state (fn State {requests, status, manager} =>
+    let
+      val (canceled, requests') = del_request req requests;
+      val manager' = manager_check manager;
+    in (canceled, make_state (requests', status, manager')) end);
 
 val future = uninterruptible (fn _ => fn time =>
   let
