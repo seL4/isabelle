@@ -7,10 +7,9 @@ imports
   "~~/src/HOL/Library/IArray"
 begin
 
-(* FIXME avoid writing into source directory *)
-ML {*
-  Isabelle_System.mkdirs (Path.append (Resources.master_directory @{theory}) (Path.basic "examples"))
-*}
+ML \<open>
+  Isabelle_System.mkdirs (File.tmp_path (Path.basic "examples"))
+\<close>
 
 ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
