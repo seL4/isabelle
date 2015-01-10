@@ -92,9 +92,14 @@ fun manager_loop () =
     (fn st as State {requests, status, manager} =>
       (case next_request_event (Time.now ()) requests of
         SOME (event, requests') =>
-          (Exn.capture event (); SOME (true, make_state (requests', status, manager)))
+          let
+            val _ = Exn.capture event ();
+            val state' = make_state (requests', status, manager);
+          in SOME (true, state') end
       | NONE =>
-          if is_shutdown_req st then SOME (false, shutdown_ack_state) else NONE)) = SOME false
+          if is_shutdown_req st
+          then SOME (false, shutdown_ack_state)
+          else NONE)) = SOME false
   then () else manager_loop ();
 
 fun manager_check manager =
@@ -109,20 +114,22 @@ fun request time event =
     let
       val req = new_request ();
       val requests' = add_request time (req, event) requests;
-    in (req, make_state (requests', status, manager_check manager)) end);
+      val manager' = manager_check manager;
+    in (req, make_state (requests', status, manager')) end);
 
 fun cancel req =
   Synchronized.change_result state (fn State {requests, status, manager} =>
     let
       val (canceled, requests') = del_request req requests;
-    in (canceled, make_state (requests', status, manager_check manager)) end);
+      val manager' = manager_check manager;
+    in (canceled, make_state (requests', status, manager')) end);
 
 fun shutdown () =
   uninterruptible (fn restore_attributes => fn () =>
     if Synchronized.change_result state (fn st as State {requests, status, manager} =>
-      if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
+      if is_shutdown Normal st then (false, st)
+      else if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
         raise Fail "Concurrent attempt to shutdown event timer"
-      else if is_shutdown Normal st then (false, st)
       else (true, make_state (requests, Shutdown_Req, manager_check manager)))
     then
       restore_attributes (fn () =>
