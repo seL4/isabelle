@@ -302,7 +302,9 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val max_active0 = ! max_active;
     val max_workers0 = ! max_workers;
 
-    val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
+    val m =
+      if ! do_shutdown andalso Task_Queue.all_passive (! queue) then 0
+      else Multithreading.max_threads_value ();
     val _ = max_active := m;
     val _ = max_workers := 2 * m;
 
@@ -336,7 +338,6 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     (* shutdown *)
 
-    val _ = if Task_Queue.all_passive (! queue) then do_shutdown := true else ();
     val continue = not (! do_shutdown andalso null (! workers));
     val _ = if continue then () else (report_status (); scheduler := NONE);
 
@@ -657,7 +658,8 @@ fun shutdown () =
   else
     SYNCHRONIZED "shutdown" (fn () =>
       while scheduler_active () do
-       (Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
+       (do_shutdown := true;
+        Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
         wait scheduler_event));
 
 
