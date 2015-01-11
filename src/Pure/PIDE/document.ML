@@ -431,7 +431,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
             if visible_node node orelse pending_result node then
               let
                 fun body () =
-                  if forall finished_import deps then
+                  (if forall finished_import deps then
                     iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
                         SOME exec =>
@@ -439,7 +439,8 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
                           then SOME (Command.exec execution_id exec)
                           else NONE
                       | NONE => NONE)) node ()
-                  else ();
+                   else ())
+                   handle exn => (Output.system_message (Runtime.exn_message exn); reraise exn);
                 val future =
                   (singleton o Future.forks)
                    {name = "theory:" ^ name,
