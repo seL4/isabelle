@@ -1025,11 +1025,9 @@ fun find_model ctxt
               | NONE => false)
           | _ => false) types
         val _ =
-          if maybe_spurious then
-            warning ("Term contains a recursive datatype; "
-              ^ "countermodel(s) may be spurious!")
-          else
-            ()
+          if maybe_spurious andalso Context_Position.is_visible ctxt then
+            warning "Term contains a recursive datatype; countermodel(s) may be spurious!"
+          else ()
         fun find_model_loop universe =
           let
             val msecs_spent = Time.toMilliseconds (Timer.checkRealTimer timer)
@@ -1056,7 +1054,7 @@ fun find_model ctxt
             val fm_ax = Prop_Logic.all (map toTrue (tl intrs))
             val fm = Prop_Logic.all [#wellformed args, fm_ax, fm_u]
             val _ =
-              (if member (op =) ["cdclite"] satsolver then
+              (if member (op =) ["cdclite"] satsolver andalso Context_Position.is_visible ctxt then
                 warning ("Using SAT solver " ^ quote satsolver ^
                          "; for better performance, consider installing an \
                          \external solver.")

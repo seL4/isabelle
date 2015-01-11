@@ -434,7 +434,7 @@ fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
 
     val (_ : unit list) = ctr_spec_eqn_data_list' |> map (fn (({ctr, ...}, nonexhaustive), x) =>
       if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
-      else if length x = 1 orelse nonexhaustive then ()
+      else if length x = 1 orelse nonexhaustive orelse not (Context_Position.is_visible ctxt) then ()
       else warning ("no equation for constructor " ^ Syntax.string_of_term ctxt ctr));
 
     val ctr_spec_eqn_data_list =

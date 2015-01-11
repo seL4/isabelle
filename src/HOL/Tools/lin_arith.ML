@@ -301,11 +301,13 @@ fun is_split_thm ctxt thm =
           "Divides.div_class.mod" (*DYNAMIC BINDING!*),
           "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
     | _ =>
-      (warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm);
-        false))
+      (if Context_Position.is_visible ctxt then
+        warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
+       else (); false))
   | _ =>
-    (warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm);
-      false));
+    (if Context_Position.is_visible ctxt then
+      warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
+     else (); false));
 
 (* substitute new for occurrences of old in a term, incrementing bound       *)
 (* variables as needed when substituting inside an abstraction               *)
@@ -637,12 +639,12 @@ in
     (* code exists above -- in which case either the split theorem should be *)
     (* implemented above, or 'is_split_thm' should be modified to filter it  *)
     (* out                                                                   *)
-    | (t, ts) => (
-      warning ("Lin. Arith.: split rule for " ^ Syntax.string_of_term ctxt t ^
-        " (with " ^ string_of_int (length ts) ^
-        " argument(s)) not implemented; proof reconstruction is likely to fail");
-      NONE
-    ))
+    | (t, ts) =>
+      (if Context_Position.is_visible ctxt then
+        warning ("Lin. Arith.: split rule for " ^ Syntax.string_of_term ctxt t ^
+          " (with " ^ string_of_int (length ts) ^
+          " argument(s)) not implemented; proof reconstruction is likely to fail")
+       else (); NONE))
 end;  (* split_once_items *)
 
 (* remove terms that do not satisfy 'p'; change the order of the remaining   *)

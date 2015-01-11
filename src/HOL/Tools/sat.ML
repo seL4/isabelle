@@ -291,9 +291,10 @@ fun rawsat_thm ctxt clauses =
     val clauses'' = filter (fn clause =>
       ((CNF.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
         handle TERM ("dest_Trueprop", _) => false)
-      orelse (
-        warning ("Ignoring non-clausal premise " ^ Syntax.string_of_term ctxt (Thm.term_of clause));
-        false)) clauses'
+      orelse
+       (if Context_Position.is_visible ctxt then
+          warning ("Ignoring non-clausal premise " ^ Syntax.string_of_term ctxt (Thm.term_of clause))
+        else (); false)) clauses'
     (* remove trivial clauses -- this is necessary because zChaff removes *)
     (* trivial clauses during preprocessing, and otherwise our clause     *)
     (* numbering would be off                                             *)
@@ -372,7 +373,9 @@ fun rawsat_thm ctxt clauses =
           end)
     | SAT_Solver.UNSATISFIABLE NONE =>
         if Config.get ctxt quick_and_dirty then
-         (warning "SAT solver claims the formula to be unsatisfiable, but did not provide a proof";
+         (if Context_Position.is_visible ctxt then
+            warning "SAT solver claims the formula to be unsatisfiable, but did not provide a proof"
+          else ();
           make_quick_and_dirty_thm ())
         else
           raise THM ("SAT solver claims the formula to be unsatisfiable, but did not provide a proof", 0, [])
