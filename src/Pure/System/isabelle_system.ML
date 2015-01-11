@@ -15,7 +15,6 @@ sig
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val with_tmp_fifo: (Path.T -> 'a) -> 'a
   val bash_output: string -> string * int
   val bash: string -> int
 end;
@@ -113,16 +112,6 @@ fun with_tmp_dir name f =
     val path = create_tmp_path name "";
     val _ = mkdirs path;
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
-
-
-(* fifo *)
-
-fun with_tmp_fifo f =
-  with_tmp_file "isabelle-fifo-" ""
-    (fn path =>
-      (case bash_output ("mkfifo -m 600 " ^ File.shell_path path) of
-        (_, 0) => f path
-      | (out, _) => error (trim_line out)));
 
 end;
 
