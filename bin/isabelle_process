@@ -27,9 +27,8 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -O           system options from given YXML file"
+  echo "    -P SOCKET    startup process wrapper via TCP socket"
   echo "    -S           secure mode -- disallow critical operations"
-  echo "    -T ADDR      startup process wrapper, with socket address"
-  echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
@@ -57,9 +56,8 @@ function fail()
 # options
 
 OPTIONS_FILE=""
+PROCESS_SOCKET=""
 SECURE=""
-WRAPPER_SOCKET=""
-WRAPPER_FIFOS=""
 MLTEXT=""
 MODES=""
 declare -a SYSTEM_OPTIONS=()
@@ -67,20 +65,17 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "O:ST:W:e:m:o:qrw" OPT
+while getopts "O:P:Se:m:o:qrw" OPT
 do
   case "$OPT" in
     O)
       OPTIONS_FILE="$OPTARG"
       ;;
+    P)
+      PROCESS_SOCKET="$OPTARG"
+      ;;
     S)
       SECURE=true
-      ;;
-    T)
-      WRAPPER_SOCKET="$OPTARG"
-      ;;
-    W)
-      WRAPPER_FIFOS="$OPTARG"
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
@@ -203,14 +198,8 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT; Secure.set_secure ();"
 
-if [ -n "$WRAPPER_SOCKET" ]; then
-  MLTEXT="$MLTEXT; Isabelle_Process.init_socket \"$WRAPPER_SOCKET\";"
-elif [ -n "$WRAPPER_FIFOS" ]; then
-  splitarray ":" "$WRAPPER_FIFOS"; FIFOS=("${SPLITARRAY[@]}")
-  [ "${#FIFOS[@]}" -eq 2 ] || fail "Expected IN:OUT fifo specification"
-  [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
-  [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
-  MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
+if [ -n "$PROCESS_SOCKET" ]; then
+  MLTEXT="$MLTEXT; Isabelle_Process.init \"$PROCESS_SOCKET\";"
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
   if [ -n "$OPTIONS_FILE" ]; then

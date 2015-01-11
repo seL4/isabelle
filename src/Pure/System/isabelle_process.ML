@@ -10,8 +10,7 @@ sig
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
-  val init_fifos: string -> string -> unit
-  val init_socket: string -> unit
+  val init: string -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -189,7 +188,7 @@ end;
 val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
-val init = uninterruptible (fn _ => fn rendezvous =>
+val init = uninterruptible (fn _ => fn socket =>
   let
     val _ = SHA1_Samples.test ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); reraise exn);
@@ -201,14 +200,11 @@ val init = uninterruptible (fn _ => fn rendezvous =>
       Unsynchronized.change print_mode
         (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
 
-    val channel = rendezvous ();
+    val channel = System_Channel.rendezvous socket;
     val msg_channel = init_channels channel;
     val _ = Session.init_protocol_handlers ();
     val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
-
-fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
-fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
 
 end;
 

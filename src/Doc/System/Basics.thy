@@ -362,9 +362,8 @@ Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -O           system options from given YXML file
+    -P SOCKET    startup process wrapper via TCP socket
     -S           secure mode -- disallow critical operations
-    -T ADDR      startup process wrapper, with socket address
-    -W IN:OUT    startup process wrapper, with input/output fifos
     -e MLTEXT    pass MLTEXT to the ML session
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -433,11 +432,11 @@ text \<open>
   system options as a file in YXML format (according to the Isabelle/Scala
   function @{verbatim isabelle.Options.encode}).
 
-  \medskip The @{verbatim "-T"} or @{verbatim "-W"} option makes
-  Isabelle enter a special process wrapper for interaction via
-  Isabelle/Scala, see also @{file
-  "~~/src/Pure/System/isabelle_process.scala"}.  The protocol between
-  the ML and JVM process is private to the implementation.
+  \medskip The @{verbatim "-P"} option starts the Isabelle process wrapper
+  for Isabelle/Scala, with a private protocol running over the specified TCP
+  socket. Isabelle/ML and Isabelle/Scala provide various programming
+  interfaces to invoke protocol functions over untyped strings and XML
+  trees.
 
   \medskip The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime
