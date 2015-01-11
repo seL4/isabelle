@@ -143,11 +143,7 @@ val eval_eq = op = o apply2 eval_exec_id;
 val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 
-fun eval_result (Eval {exec_id, eval_process}) =
-  (case Lazy.finished_result eval_process of
-    SOME result => Exn.release result
-  | NONE => error ("Unfinished execution result: " ^ Document_ID.print exec_id));
-
+fun eval_result (Eval {eval_process, ...}) = Lazy.force eval_process;
 val eval_result_state = #state o eval_result;
 
 local

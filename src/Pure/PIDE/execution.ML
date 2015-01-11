@@ -66,14 +66,9 @@ fun is_running_exec exec_id =
 fun running execution_id exec_id groups =
   change_state_result (fn (execution_id', execs) =>
     let
-      val continue = execution_id = execution_id';
-      val execs' =
-        if continue then
-          Inttab.update_new (exec_id, (groups, [])) execs
-            handle Inttab.DUP dup =>
-              raise Fail ("Execution already registered: " ^ Document_ID.print dup)
-        else execs;
-    in (continue, (execution_id', execs')) end);
+      val ok = execution_id = execution_id' andalso not (Inttab.defined execs exec_id);
+      val execs' = execs |> ok ? Inttab.update (exec_id, (groups, []));
+    in (ok, (execution_id', execs')) end);
 
 fun peek exec_id =
   (case Inttab.lookup (#2 (get_state ())) exec_id of
