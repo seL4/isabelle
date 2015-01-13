@@ -534,9 +534,13 @@ lemma has_bochner_integral_cong_AE:
             nn_integral_cong_AE)
      auto
 
-lemma borel_measurable_has_bochner_integral[measurable_dest]:
+lemma borel_measurable_has_bochner_integral:
   "has_bochner_integral M f x \<Longrightarrow> f \<in> borel_measurable M"
-  by (auto elim: has_bochner_integral.cases)
+  by (rule has_bochner_integral.cases)
+
+lemma borel_measurable_has_bochner_integral'[measurable_dest]:
+  "has_bochner_integral M f x \<Longrightarrow> g \<in> measurable N M \<Longrightarrow> (\<lambda>x. f (g x)) \<in> borel_measurable N"
+  using borel_measurable_has_bochner_integral[measurable] by measurable
 
 lemma has_bochner_integral_simple_bochner_integrable:
   "simple_bochner_integrable M f \<Longrightarrow> has_bochner_integral M f (simple_bochner_integral M f)"
@@ -921,6 +925,10 @@ lemma integral_eq_cases:
 
 lemma borel_measurable_integrable[measurable_dest]: "integrable M f \<Longrightarrow> f \<in> borel_measurable M"
   by (auto elim: integrable.cases has_bochner_integral.cases)
+
+lemma borel_measurable_integrable'[measurable_dest]:
+  "integrable M f \<Longrightarrow> g \<in> measurable N M \<Longrightarrow> (\<lambda>x. f (g x)) \<in> borel_measurable N"
+  using borel_measurable_integrable[measurable] by measurable
 
 lemma integrable_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integrable M f \<longleftrightarrow> integrable N g"
@@ -2765,6 +2773,7 @@ lemma (in product_sigma_finite) product_integrable_setprod:
   shows "integrable (Pi\<^sub>M I M) (\<lambda>x. (\<Prod>i\<in>I. f i (x i)))" (is "integrable _ ?f")
 proof (unfold integrable_iff_bounded, intro conjI)
   interpret finite_product_sigma_finite M I by default fact
+
   show "?f \<in> borel_measurable (Pi\<^sub>M I M)"
     using assms by simp
   have "(\<integral>\<^sup>+ x. ereal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) = 
@@ -2854,3 +2863,4 @@ hide_const simple_bochner_integral
 hide_const simple_bochner_integrable
 
 end
+

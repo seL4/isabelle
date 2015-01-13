@@ -10,7 +10,6 @@ sig
 
   datatype level = Concrete | Generic
 
-  val app_thm_attr : attribute context_parser
   val dest_thm_attr : attribute context_parser
   val cong_thm_attr : attribute context_parser
   val measurable_thm_attr : bool * (bool * level) -> attribute
@@ -28,6 +27,8 @@ sig
   val add_preprocessor : string -> preprocessor -> Context.generic -> Context.generic
   val del_preprocessor : string -> Context.generic -> Context.generic
   val add_local_cong : thm -> Proof.context -> Proof.context
+
+  val prepare_facts : Proof.context -> thm list -> (thm list * Proof.context)
 end ;
 
 structure Measurable : MEASURABLE =
@@ -48,21 +49,18 @@ structure Data = Generic_Data
   type T = {
     measurable_thms : (thm * (bool * level)) Item_Net.T,
     dest_thms : thm Item_Net.T,
-    app_thms : thm Item_Net.T,
     cong_thms : thm Item_Net.T,
     preprocessors : (string * preprocessor) list }
   val empty = {
     measurable_thms = Item_Net.init eq_measurable_thms (single o Thm.prop_of o fst),
     dest_thms = Thm.full_rules,
-    app_thms = Thm.full_rules,
     cong_thms = Thm.full_rules,
     preprocessors = [] };
   val extend = I;
-  fun merge ({measurable_thms = t1, dest_thms = dt1, app_thms = at1, cong_thms = ct1, preprocessors = i1 },
-      {measurable_thms = t2, dest_thms = dt2, app_thms = at2, cong_thms = ct2, preprocessors = i2 }) = {
+  fun merge ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1 },
+      {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2 }) = {
     measurable_thms = Item_Net.merge (t1, t2),
     dest_thms = Item_Net.merge (dt1, dt2),
-    app_thms = Item_Net.merge (at1, at2),
     cong_thms = Item_Net.merge (ct1, ct2),
     preprocessors = merge_dups i1 i2 
     };
@@ -74,22 +72,19 @@ val debug =
 val split =
   Attrib.setup_config_bool @{binding measurable_split} (K true)
 
-fun map_data f1 f2 f3 f4 f5
-  {measurable_thms = t1,    dest_thms = t2,    app_thms = t3,    cong_thms = t4,    preprocessors = t5 } =
-  {measurable_thms = f1 t1, dest_thms = f2 t2, app_thms = f3 t3, cong_thms = f4 t4, preprocessors = f5 t5}
+fun map_data f1 f2 f3 f4
+  {measurable_thms = t1,    dest_thms = t2,    cong_thms = t3,    preprocessors = t4 } =
+  {measurable_thms = f1 t1, dest_thms = f2 t2, cong_thms = f3 t3, preprocessors = f4 t4}
 
-fun map_measurable_thms f = map_data f I I I I
-fun map_dest_thms f = map_data I f I I I
-fun map_app_thms f = map_data I I f I I
-fun map_cong_thms f = map_data I I I f I
-fun map_preprocessors f = map_data I I I I f
+fun map_measurable_thms f = map_data f I I I
+fun map_dest_thms f = map_data I f I I
+fun map_cong_thms f = map_data I I f I
+fun map_preprocessors f = map_data I I I f
 
 fun generic_add_del map = 
   Scan.lift
     (Args.add >> K Item_Net.update || Args.del >> K Item_Net.remove || Scan.succeed Item_Net.update) >>
     (fn f => Thm.declaration_attribute (Data.map o map o f))
-
-val app_thm_attr = generic_add_del map_app_thms
 
 val dest_thm_attr = generic_add_del map_dest_thms
 
@@ -104,7 +99,6 @@ fun measurable_thm_attr (do_add, d) = Thm.declaration_attribute
   (Data.map o map_measurable_thms o (if do_add then Item_Net.update o rpair d else del_thm))
 
 val get_dest = Item_Net.content o #dest_thms o Data.get;
-val get_app = Item_Net.content o #app_thms o Data.get;
 
 val get_cong = Item_Net.content o #cong_thms o Data.get;
 val add_cong = Data.map o map_cong_thms o Item_Net.update;
@@ -175,6 +169,35 @@ fun cnt_prefixes ctxt (Abs (n, T, t)) = let
     end
   | cnt_prefixes _ _ = []
 
+fun apply_dests thm dests =
+  let
+    fun apply thm th' =
+      let
+        val th'' = thm RS th'
+      in [th''] @ loop th'' end
+      handle (THM _) => []
+    and loop thm =
+      flat (map (apply thm) dests)
+  in
+    [thm] @ ([thm RS @{thm measurable_compose_rev}] handle (THM _) => []) @ loop thm
+  end
+
+fun prepare_facts ctxt facts = 
+  let
+    val dests = get_dest (Context.Proof ctxt)
+    fun prep_dest thm =
+      (if is_too_generic thm then [] else apply_dests thm dests) ;
+    val preprocessors = (("std", prep_dest #> pair) :: get_preprocessors ctxt) ;
+    fun preprocess_thm (thm, raw) =
+      if raw then pair [thm] else fold_map (fn (_, proc) => proc thm) preprocessors #>> flat
+    
+    fun sel lv (th, (raw, lv')) = if lv = lv' then SOME (th, raw) else NONE ;
+    fun get lv = ctxt |> Context.Proof |> get_thms |> rev |> map_filter (sel lv) ;
+    val pre_thms = map (Simplifier.norm_hhf ctxt #> rpair false) facts @ get Concrete @ get Generic
+
+    val (thms, ctxt) = fold_map preprocess_thm pre_thms ctxt |>> flat
+  in (thms, ctxt) end
+
 fun measurable_tac ctxt facts =
   let
     fun debug_fact msg thm () =
@@ -186,23 +209,12 @@ fun measurable_tac ctxt facts =
       if Config.get ctxt debug
       then FIRST' o
         map (fn thm => resolve_tac [thm]
-          THEN' K (debug_tac ctxt (debug_fact (msg ^ "resolved using") thm) all_tac))
+          THEN' K (debug_tac ctxt (debug_fact (msg ^ " resolved using") thm) all_tac))
       else resolve_tac
 
     val elem_congI = @{lemma "A = B \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A" by simp}
 
-    val dests = get_dest (Context.Proof ctxt)
-    fun prep_dest thm =
-      (if is_too_generic thm then [] else [thm] @ map_filter (try (fn th' => thm RS th')) dests) ;
-    val preprocessors = (("std", prep_dest #> pair) :: get_preprocessors ctxt) ;
-    fun preprocess_thm (thm, raw) =
-      if raw then pair [thm] else fold_map (fn (_, proc) => proc thm) preprocessors #>> flat
-    
-    fun sel lv (th, (raw, lv')) = if lv = lv' then SOME (th, raw) else NONE ;
-    fun get lv = ctxt |> Context.Proof |> get_thms |> rev |> map_filter (sel lv) ;
-    val pre_thms = map (Simplifier.norm_hhf ctxt #> rpair false) facts @ get Concrete @ get Generic
-
-    val (thms, ctxt) = fold_map preprocess_thm pre_thms ctxt |>> flat
+    val (thms, ctxt) = prepare_facts ctxt facts
 
     fun is_sets_eq (Const (@{const_name "HOL.eq"}, _) $
           (Const (@{const_name "sets"}, _) $ _) $
@@ -243,45 +255,9 @@ fun measurable_tac ctxt facts =
 
     val splitter = if Config.get ctxt split then split_countable_tac ctxt else K no_tac
 
-    val split_app_tac =
-      Subgoal.FOCUS (fn {context = ctxt, ...} => SUBGOAL (fn (t, i) =>
-        let
-          fun app_prefixes (Abs (n, T, (f $ g))) = let
-                val ps = (if not (loose_bvar1 (g, 0)) then [(f, g)] else [])
-              in map (fn (f, c) => (Abs (n, T, f), c, T, type_of c, type_of1 ([T], f $ c))) ps end
-            | app_prefixes _ = []
-    
-          fun dest_app (Abs (_, T, t as ((f $ Bound 0) $ c))) = (f, c, T, type_of c, type_of1 ([T], t))
-            | dest_app t = raise (TERM ("not a measurability predicate of an application", [t]))
-          val thy = Proof_Context.theory_of ctxt
-          val tunify = Sign.typ_unify thy
-          val thms = map
-              (fn thm => (thm, dest_app (dest_measurable_fun (HOLogic.dest_Trueprop (concl_of thm)))))
-              (get_app (Context.Proof ctxt))
-          fun cert f = map (fn (t, t') => (f thy t, f thy t'))
-          fun inst (f, c, T, Tc, Tf) (thm, (thmf, thmc, thmT, thmTc, thmTf)) =
-            let
-              val inst =
-                (Vartab.empty, ~1)
-                |> tunify (T, thmT)
-                |> tunify (Tf, thmTf)
-                |> tunify (Tc, thmTc)
-                |> Vartab.dest o fst
-              val subst = subst_TVars (map (apsnd snd) inst)
-            in
-              Thm.instantiate (cert ctyp_of (map (fn (n, (s, T)) => (TVar (n, s), T)) inst),
-                cert cterm_of [(subst thmf, f), (subst thmc, c)]) thm
-            end
-          val cps = map_product inst (app_prefixes (dest_measurable_fun (HOLogic.dest_Trueprop t))) thms
-        in if null cps then no_tac
-            else r_tac "split app" cps i ORELSE debug_tac ctxt (fn () => "split app fun FAILED") no_tac end
-        handle TERM t => debug_tac ctxt (fn () => "TERM " ^ fst t ^ Pretty.str_of (Pretty.list "[" "]" (map (Syntax.pretty_term ctxt) (snd t)))) no_tac
-        handle Type.TUNIFY => debug_tac ctxt (fn () => "TUNIFY") no_tac) 1)
-
     val single_step_tac =
       simp_solver_tac
       ORELSE' r_tac "step" thms
-      ORELSE' (split_app_tac ctxt)
       ORELSE' splitter
       ORELSE' (CHANGED o sets_cong_tac)
       ORELSE' (K (debug_tac ctxt (K "backtrack") no_tac))

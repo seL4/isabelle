@@ -1211,6 +1211,10 @@ proof
   show "f \<in> borel_measurable M" by auto
 qed auto
 
+lemma borel_measurable_erealD[measurable_dest]:
+  "(\<lambda>x. ereal (f x)) \<in> borel_measurable M \<Longrightarrow> g \<in> measurable N M \<Longrightarrow> (\<lambda>x. f (g x)) \<in> borel_measurable N"
+  unfolding borel_measurable_ereal_iff by simp
+
 lemma borel_measurable_ereal_iff_real:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "f \<in> borel_measurable M \<longleftrightarrow>

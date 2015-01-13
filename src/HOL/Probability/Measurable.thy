@@ -63,9 +63,6 @@ attribute_setup measurable = {*
 attribute_setup measurable_dest = Measurable.dest_thm_attr
   "add dest rule to measurability prover"
 
-attribute_setup measurable_app = Measurable.app_thm_attr
-  "add application rule to measurability prover"
-
 attribute_setup measurable_cong = Measurable.cong_thm_attr
   "add congurence rules to measurability prover"
 
@@ -77,9 +74,8 @@ simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Me
 setup {*
   Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
 *}
-
+  
 declare
-  measurable_compose_rev[measurable_dest]
   pred_sets1[measurable_dest]
   pred_sets2[measurable_dest]
   sets.sets_into_space[measurable_dest]

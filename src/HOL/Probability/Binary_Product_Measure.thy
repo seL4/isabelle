@@ -79,17 +79,6 @@ proof (rule measurable_pair_measureI)
   finally show "(\<lambda>x. (f x, g x)) -` (A \<times> B) \<inter> space M \<in> sets M" .
 qed
 
-lemma measurable_Pair_compose_split[measurable_dest]:
-  assumes f: "split f \<in> measurable (M1 \<Otimes>\<^sub>M M2) N"
-  assumes g: "g \<in> measurable M M1" and h: "h \<in> measurable M M2"
-  shows "(\<lambda>x. f (g x) (h x)) \<in> measurable M N"
-  using measurable_compose[OF measurable_Pair f, OF g h] by simp
-
-lemma measurable_pair:
-  assumes "(fst \<circ> f) \<in> measurable M M1" "(snd \<circ> f) \<in> measurable M M2"
-  shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
-  using measurable_Pair[OF assms] by simp
-
 lemma measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otimes>\<^sub>M M2) M1"
   by (auto simp: fst_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
     measurable_def)
@@ -97,6 +86,29 @@ lemma measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otim
 lemma measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otimes>\<^sub>M M2) M2"
   by (auto simp: snd_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
     measurable_def)
+
+lemma measurable_Pair_compose_split[measurable_dest]:
+  assumes f: "split f \<in> measurable (M1 \<Otimes>\<^sub>M M2) N"
+  assumes g: "g \<in> measurable M M1" and h: "h \<in> measurable M M2"
+  shows "(\<lambda>x. f (g x) (h x)) \<in> measurable M N"
+  using measurable_compose[OF measurable_Pair f, OF g h] by simp
+
+lemma measurable_Pair1_compose[measurable_dest]:
+  assumes f: "(\<lambda>x. (f x, g x)) \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
+  assumes [measurable]: "h \<in> measurable N M"
+  shows "(\<lambda>x. f (h x)) \<in> measurable N M1"
+  using measurable_compose[OF f measurable_fst] by simp
+
+lemma measurable_Pair2_compose[measurable_dest]:
+  assumes f: "(\<lambda>x. (f x, g x)) \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
+  assumes [measurable]: "h \<in> measurable N M"
+  shows "(\<lambda>x. g (h x)) \<in> measurable N M2"
+  using measurable_compose[OF f measurable_snd] by simp
+
+lemma measurable_pair:
+  assumes "(fst \<circ> f) \<in> measurable M M1" "(snd \<circ> f) \<in> measurable M M2"
+  shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
+  using measurable_Pair[OF assms] by simp
 
 lemma 
   assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^sub>M P)" 
@@ -276,15 +288,13 @@ proof (rule emeasure_measure_of[OF pair_measure_def])
   show "countably_additive (sets (N \<Otimes>\<^sub>M M)) ?\<mu>"
   proof (rule countably_additiveI)
     fix F :: "nat \<Rightarrow> ('b \<times> 'a) set" assume F: "range F \<subseteq> sets (N \<Otimes>\<^sub>M M)" "disjoint_family F"
-    from F have *: "\<And>i. F i \<in> sets (N \<Otimes>\<^sub>M M)" "(\<Union>i. F i) \<in> sets (N \<Otimes>\<^sub>M M)" by auto
-    moreover from F have "\<And>i. (\<lambda>x. emeasure M (Pair x -` F i)) \<in> borel_measurable N"
-      by (intro measurable_emeasure_Pair) auto
+    from F have *: "\<And>i. F i \<in> sets (N \<Otimes>\<^sub>M M)" by auto
     moreover have "\<And>x. disjoint_family (\<lambda>i. Pair x -` F i)"
       by (intro disjoint_family_on_bisimulation[OF F(2)]) auto
     moreover have "\<And>x. range (\<lambda>i. Pair x -` F i) \<subseteq> sets M"
       using F by (auto simp: sets_Pair1)
     ultimately show "(\<Sum>n. ?\<mu> (F n)) = ?\<mu> (\<Union>i. F i)"
-      by (auto simp add: vimage_UN nn_integral_suminf[symmetric] suminf_emeasure subset_eq emeasure_nonneg sets_Pair1
+      by (auto simp add: nn_integral_suminf[symmetric] vimage_UN suminf_emeasure emeasure_nonneg
                intro!: nn_integral_cong nn_integral_indicator[symmetric])
   qed
   show "{a \<times> b |a b. a \<in> sets N \<and> b \<in> sets M} \<subseteq> Pow (space N \<times> space M)"

@@ -540,7 +540,7 @@ lemma sets_PiM_I_finite[measurable]:
   shows "(PIE j:I. E j) \<in> sets (PIM i:I. M i)"
   using sets_PiM_I[of I I E M] sets.sets_into_space[OF sets] `finite I` sets by auto
 
-lemma measurable_component_singleton:
+lemma measurable_component_singleton[measurable (raw)]:
   assumes "i \<in> I" shows "(\<lambda>x. x i) \<in> measurable (Pi\<^sub>M I M) (M i)"
 proof (unfold measurable_def, intro CollectI conjI ballI)
   fix A assume "A \<in> sets (M i)"
@@ -551,13 +551,14 @@ proof (unfold measurable_def, intro CollectI conjI ballI)
     using `A \<in> sets (M i)` `i \<in> I` by (auto intro!: sets_PiM_I)
 qed (insert `i \<in> I`, auto simp: space_PiM)
 
-lemma measurable_component_singleton'[measurable_app]:
+lemma measurable_component_singleton'[measurable_dest]:
   assumes f: "f \<in> measurable N (Pi\<^sub>M I M)"
+  assumes g: "g \<in> measurable L N"
   assumes i: "i \<in> I"
-  shows "(\<lambda>x. (f x) i) \<in> measurable N (M i)"
-  using measurable_compose[OF f measurable_component_singleton, OF i] .
+  shows "(\<lambda>x. (f (g x)) i) \<in> measurable L (M i)"
+  using measurable_compose[OF measurable_compose[OF g f] measurable_component_singleton, OF i] .
 
-lemma measurable_PiM_component_rev[measurable (raw)]:
+lemma measurable_PiM_component_rev:
   "i \<in> I \<Longrightarrow> f \<in> measurable (M i) N \<Longrightarrow> (\<lambda>x. f (x i)) \<in> measurable (PiM I M) N"
   by simp
 

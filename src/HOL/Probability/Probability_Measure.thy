@@ -514,22 +514,17 @@ lemma
     and distributed_real_AE: "distributed M N X (\<lambda>x. ereal (f x)) \<Longrightarrow> (AE x in N. 0 \<le> f x)"
   by (simp_all add: distributed_def borel_measurable_ereal_iff)
 
-lemma
-  assumes D: "distributed M N X (\<lambda>x. ereal (f x))"
-  shows distributed_real_measurable'[measurable_dest]:
-      "h \<in> measurable L N \<Longrightarrow> (\<lambda>x. f (h x)) \<in> borel_measurable L"
-  using distributed_real_measurable[OF D]
-  by simp_all
+lemma distributed_real_measurable':
+  "distributed M N X (\<lambda>x. ereal (f x)) \<Longrightarrow> h \<in> measurable L N \<Longrightarrow> (\<lambda>x. f (h x)) \<in> borel_measurable L"
+  by simp
 
-lemma
-  assumes D: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) f"
-  shows joint_distributed_measurable1[measurable_dest]:
-      "h1 \<in> measurable N M \<Longrightarrow> (\<lambda>x. X (h1 x)) \<in> measurable N S"
-    and joint_distributed_measurable2[measurable_dest]:
-      "h2 \<in> measurable N M \<Longrightarrow> (\<lambda>x. Y (h2 x)) \<in> measurable N T"
-  using measurable_compose[OF distributed_measurable[OF D] measurable_fst]
-  using measurable_compose[OF distributed_measurable[OF D] measurable_snd]
-  by auto
+lemma joint_distributed_measurable1:
+  "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) f \<Longrightarrow> h1 \<in> measurable N M \<Longrightarrow> (\<lambda>x. X (h1 x)) \<in> measurable N S"
+  by simp
+
+lemma joint_distributed_measurable2:
+  "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) f \<Longrightarrow> h2 \<in> measurable N M \<Longrightarrow> (\<lambda>x. Y (h2 x)) \<in> measurable N T"
+  by simp
 
 lemma distributed_count_space:
   assumes X: "distributed M (count_space A) X P" and a: "a \<in> A" and A: "finite A"
