@@ -97,32 +97,16 @@ fun protocol_message props output =
 
 (* build *)
 
-local
-
-fun use_theories last_timing options =
-  Thy_Info.use_theories {
-      document = Present.document_enabled (Options.string options "document"),
-      last_timing = last_timing,
-      master_dir = Path.current}
-    |> Unsynchronized.setmp print_mode
-        (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
-    |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-    |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-    |> Multithreading.max_threads_setmp (Options.int options "threads")
-    |> Unsynchronized.setmp Future.ML_statistics true;
-
-fun use_theories_condition last_timing (options, thys) =
+fun use_theories last_timing master_dir (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
     (case filter_out (can getenv_strict) condition of
       [] =>
-        (Options.set_default options;
-         use_theories last_timing options (map (rpair Position.none) thys))
+        Thy_Info.use_thys_options last_timing master_dir options
+          (map (rpair Position.none) thys)
     | conds =>
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
   end;
-
-in
 
 fun build args_file = Command_Line.tool0 (fn () =>
     let
@@ -156,7 +140,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
 
       val res1 =
         theories |>
-          (List.app (use_theories_condition last_timing)
+          (List.app (use_theories last_timing Path.current)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
             |> Multithreading.max_threads_setmp (Options.int options "threads")
@@ -167,7 +151,5 @@ fun build args_file = Command_Line.tool0 (fn () =>
       val _ = Options.reset_default ();
       val _ = if do_output then () else exit 0;
     in () end);
-
-end;
 
 end;

@@ -63,6 +63,7 @@ object Session
   case object Caret_Focus
   case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   case class Dialog_Result(id: Document_ID.Generic, serial: Long, result: String)
+  case class Use_Theories(options: Options, id: String, master_dir: Path, thys: List[Path])
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -553,6 +554,9 @@ class Session(val resources: Resources)
             prover.get.dialog_result(serial, result)
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
+          case Session.Use_Theories(options, id, master_dir, thys) if prover.defined =>
+            prover.get.use_theories(options, id, master_dir, thys)
+
           case Protocol_Command(name, args) if prover.defined =>
             prover.get.protocol_command(name, args:_*)
 
@@ -615,4 +619,7 @@ class Session(val resources: Resources)
 
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
   { manager.send(Session.Dialog_Result(id, serial, result)) }
+
+  def use_theories(options: Options, id: String, master_dir: Path, thys: List[Path])
+  { manager.send(Session.Use_Theories(options, id, master_dir, thys)) }
 }

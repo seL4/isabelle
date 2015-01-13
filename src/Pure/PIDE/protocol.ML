@@ -112,12 +112,12 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "use_theories"
-    (fn id :: master_dir :: thys =>
+    (fn options_yxml :: id :: master_dir :: thys =>
       let
+        val options = Options.decode (YXML.parse_body options_yxml);
         val result =
           Exn.capture (fn () =>
-            Thy_Info.use_theories
-              {document = false, last_timing = K NONE, master_dir = Path.explode master_dir}
+            Thy_Info.use_thys_options (K NONE) (Path.explode master_dir) options
               (map (rpair Position.none) thys)) ();
         val ok =
           (case result of

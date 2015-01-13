@@ -470,6 +470,8 @@ trait Protocol
 
   /* use_theories */
 
-  def use_theories(id: String, master_dir: Path, thys: List[Path]): Unit =
-    protocol_command("use_theories", (id :: master_dir.implode :: thys.map(_.implode)): _*)
+  def use_theories(options: Options, id: String, master_dir: Path, thys: List[Path]): Unit =
+    protocol_command("use_theories",
+      (YXML.string_of_body(Options.encode(options)) ::
+        id :: master_dir.implode :: thys.map(_.implode)): _*)
 }
