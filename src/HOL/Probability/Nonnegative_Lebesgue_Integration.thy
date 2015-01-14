@@ -740,7 +740,7 @@ definition nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<R
   "integral\<^sup>N M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f}. integral\<^sup>S M g)"
 
 syntax
-  "_nn_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^sup>+ _. _ \<partial>_" [60,61] 110)
+  "_nn_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^sup>+((2 _./ _)/ \<partial>_)" [60,61] 110)
 
 translations
   "\<integral>\<^sup>+x. f \<partial>M" == "CONST nn_integral M (\<lambda>x. f)"

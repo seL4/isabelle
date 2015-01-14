@@ -893,7 +893,7 @@ definition lebesgue_integral ("integral\<^sup>L") where
   "integral\<^sup>L M f = (if \<exists>x. has_bochner_integral M f x then THE x. has_bochner_integral M f x else 0)"
 
 syntax
-  "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" ("\<integral> _. _ \<partial>_" [60,61] 110)
+  "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" ("\<integral>((2 _./ _)/ \<partial>_)" [60,61] 110)
 
 translations
   "\<integral> x. f \<partial>M" == "CONST lebesgue_integral M (\<lambda>x. f)"

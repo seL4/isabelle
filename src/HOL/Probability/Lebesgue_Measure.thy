@@ -5,7 +5,7 @@
     Author:     Luke Serafin
 *)
 
-section {* Lebsegue measure *}
+section {* Lebesgue measure *}
 
 theory Lebesgue_Measure
   imports Finite_Product_Measure Bochner_Integration Caratheodory
