@@ -97,17 +97,6 @@ fun protocol_message props output =
 
 (* build *)
 
-fun use_theories last_timing master_dir (options, thys) =
-  let val condition = space_explode "," (Options.string options "condition") in
-    (case filter_out (can getenv_strict) condition of
-      [] =>
-        Thy_Info.use_thys_options last_timing master_dir options
-          (map (rpair Position.none) thys)
-    | conds =>
-        Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
-          " (undefined " ^ commas conds ^ ")\n"))
-  end;
-
 fun build args_file = Command_Line.tool0 (fn () =>
     let
       val _ = SHA1_Samples.test ();
@@ -118,7 +107,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
           let open XML.Decode in
             pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
               (pair (list (pair string string)) (pair string (pair string (pair string
-                ((list (pair Options.decode (list string))))))))))))
+                ((list (pair Options.decode (list (string #> rpair Position.none)))))))))))))
           end;
 
       val _ = Options.set_default options;
@@ -140,7 +129,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
 
       val res1 =
         theories |>
-          (List.app (use_theories last_timing Path.current)
+          (List.app (Thy_Info.build_theories last_timing Path.current)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
             |> Multithreading.max_threads_setmp (Options.int options "threads")

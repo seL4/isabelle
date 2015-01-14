@@ -111,19 +111,21 @@ val _ =
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn);
 
 val _ =
-  Isabelle_Process.protocol_command "use_theories"
-    (fn options_yxml :: id :: master_dir :: thys =>
+  Isabelle_Process.protocol_command "build_theories"
+    (fn [id, master_dir, theories_yxml] =>
       let
-        val options = Options.decode (YXML.parse_body options_yxml);
+        val theories =
+          YXML.parse_body theories_yxml |>
+            let open XML.Decode
+            in list (pair Options.decode (list (string #> rpair Position.none))) end;
         val result =
           Exn.capture (fn () =>
-            Thy_Info.use_thys_options (K NONE) (Path.explode master_dir) options
-              (map (rpair Position.none) thys)) ();
+            theories |> List.app (Thy_Info.build_theories (K NONE) (Path.explode master_dir))) ();
         val ok =
           (case result of
             Exn.Res _ => true
           | Exn.Exn exn => (Runtime.exn_error_message exn; false));
-    in Output.protocol_message (Markup.use_theories_result id ok) [] end);
+    in Output.protocol_message (Markup.build_theories_result id ok) [] end);
 
 val _ =
   Isabelle_Process.protocol_command "ML_System.share_common_data"

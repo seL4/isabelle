@@ -44,11 +44,11 @@ object Batch_Session
     prover_session.phase_changed +=
       Session.Consumer[Session.Phase](getClass.getName) {
         case Session.Ready =>
+          val id = Document_ID.make().toString
           val master_dir = session_info.dir
-          for ((_, thy_options, thy_files) <- session_info.theories) {
-            val id = Document_ID.make().toString
-            prover_session.use_theories(options, id, master_dir, thy_files) // FIXME proper check of result!?
-          }
+          val theories = session_info.theories.map({ case (_, opts, thys) => (opts, thys) })
+          prover_session.build_theories(id, master_dir, theories)
+          // FIXME proper check of result!?
         case Session.Inactive | Session.Failed =>
           result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
         case Session.Shutdown =>
