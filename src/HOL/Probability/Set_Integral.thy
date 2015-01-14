@@ -16,7 +16,7 @@ begin
 
 syntax
 "_ascii_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-("(3LINT _|_. _)" [0,110,60] 60)
+("(3LINT (1_)/|(_)./ _)" [0,110,60] 60)
 
 translations
 "LINT x|M. f" == "CONST lebesgue_integral M (\<lambda>x. f)"
@@ -29,7 +29,7 @@ abbreviation "set_lebesgue_integral M A f \<equiv> lebesgue_integral M (\<lambda
 
 syntax
 "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-("(4LINT _:_|_. _)" [0,60,110,61] 60)
+("(4LINT (_):(_)/|(_)./ _)" [0,60,110,61] 60)
 
 translations
 "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
@@ -39,7 +39,7 @@ abbreviation
 
 syntax
   "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
-("AE _\<in>_ in _. _" [0,0,0,10] 10)
+("AE _\<in>_ in _./ _" [0,0,0,10] 10)
 
 translations
   "AE x\<in>A in M. P" == "CONST set_almost_everywhere A M (\<lambda>x. P)"
@@ -55,14 +55,14 @@ translations
 
 syntax
 "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
-("(2LBINT _. _)" [0,60] 60)
+("(2LBINT _./ _)" [0,60] 60)
 
 translations
 "LBINT x. f" == "CONST lebesgue_integral CONST lborel (\<lambda>x. f)"
 
 syntax
 "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
-("(3LBINT _:_. _)" [0,60,61] 60)
+("(3LBINT _:_./ _)" [0,60,61] 60)
 
 translations
 "LBINT x:A. f" == "CONST set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
