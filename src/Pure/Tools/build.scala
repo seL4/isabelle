@@ -1025,5 +1025,48 @@ object Build
       }
     }
   }
+
+
+  /* PIDE protocol */
+
+  val handler_name = "isabelle.Build$Handler"
+
+  def build_theories(
+    session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[Boolean] =
+      session.get_protocol_handler(handler_name) match {
+        case Some(handler: Handler) => handler.build_theories(session, master_dir, theories)
+        case _ => error("Cannot invoke build_theories: bad protocol handler")
+      }
+
+  class Handler extends Session.Protocol_Handler
+  {
+    private val pending = Synchronized(Map.empty[String, Promise[Boolean]])
+
+    def build_theories(
+      session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[Boolean] =
+    {
+      val promise = Future.promise[Boolean]
+      val id = Document_ID.make().toString
+      pending.change(promises => promises + (id -> promise))
+      session.build_theories(id, master_dir, theories)
+      promise
+    }
+
+    private def build_theories_result(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+      msg.properties match {
+        case Markup.Build_Theories_Result(id, ok) =>
+          pending.change_result(promises =>
+            promises.get(id) match {
+              case Some(promise) => promise.fulfill(ok); (true, promises - id)
+              case None => (false, promises)
+            })
+        case _ => false
+      }
+
+    override def stop(prover: Prover): Unit =
+      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
+
+    val functions = Map(Markup.BUILD_THEORIES_RESULT -> build_theories_result _)
+  }
 }
 

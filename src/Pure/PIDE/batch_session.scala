@@ -16,7 +16,7 @@ object Batch_Session
     options: Options,
     verbose: Boolean = false,
     dirs: List[Path] = Nil,
-    session: String)
+    session: String): Boolean =
   {
     val (_, session_tree) =
       Build.find_sessions(options, dirs).selection(false, false, Nil, List(session))
@@ -37,22 +37,24 @@ object Batch_Session
     }
 
     val progress = new Build.Console_Progress(verbose)
-    val result = Future.promise[Unit]
+
+    val session_result = Future.promise[Unit]
+    @volatile var build_theories_result: Option[Promise[Boolean]] = None
 
     val prover_session = new Session(resources)
 
     prover_session.phase_changed +=
       Session.Consumer[Session.Phase](getClass.getName) {
         case Session.Ready =>
-          val id = Document_ID.make().toString
+          prover_session.add_protocol_handler(Build.handler_name)
           val master_dir = session_info.dir
           val theories = session_info.theories.map({ case (_, opts, thys) => (opts, thys) })
-          prover_session.build_theories(id, master_dir, theories)
-          // FIXME proper check of result!?
+          build_theories_result =
+            Some(Build.build_theories(prover_session, master_dir, theories))
         case Session.Inactive | Session.Failed =>
-          result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
+          session_result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
         case Session.Shutdown =>
-          result.fulfill(())
+          session_result.fulfill(())
         case _ =>
       }
 
@@ -68,7 +70,11 @@ object Batch_Session
 
     prover_session.start("Isabelle", List("-r", "-q", parent_session))
 
-    result.join
+    session_result.join
+    build_theories_result match {
+      case None => false
+      case Some(promise) => promise.join
+    }
   }
 }
 

@@ -12,10 +12,11 @@ sig
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
+  val use_theories:
+    {document: bool, last_timing: Toplevel.transition -> Time.time option, master_dir: Path.T} ->
+    (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
-  val build_theories: (Toplevel.transition -> Time.time option) -> Path.T ->
-    Options.T * (string * Position.T) list -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
@@ -341,31 +342,6 @@ fun use_theories {document, last_timing, master_dir} imports =
 
 val use_thys = use_theories {document = false, last_timing = K NONE, master_dir = Path.current};
 val use_thy = use_thys o single;
-
-
-(* theories in batch build *)
-
-fun build_theories last_timing master_dir (options, thys) =
-  let
-    val condition = space_explode "," (Options.string options "condition");
-    val conds = filter_out (can getenv_strict) condition;
-  in
-    if null conds then
-      (Options.set_default options;
-        (use_theories {
-          document = Present.document_enabled (Options.string options "document"),
-          last_timing = last_timing,
-          master_dir = master_dir}
-        |> Unsynchronized.setmp print_mode
-            (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
-        |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-        |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-        |> Multithreading.max_threads_setmp (Options.int options "threads")
-        |> Unsynchronized.setmp Future.ML_statistics true) thys)
-    else
-      Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
-        " (undefined " ^ commas conds ^ ")\n")
-  end;
 
 
 (* toplevel scripting -- without maintaining database *)

@@ -105,7 +105,7 @@ object Session
     val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
 
-  class Protocol_Handlers(
+  private class Protocol_Handlers(
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
     functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
   {
@@ -237,14 +237,6 @@ class Session(val resources: Resources)
     resources.base_syntax
 
 
-  /* protocol handlers */
-
-  @volatile private var _protocol_handlers = new Session.Protocol_Handlers()
-
-  def protocol_handler(name: String): Option[Session.Protocol_Handler] =
-    _protocol_handlers.get(name)
-
-
   /* theory files */
 
   def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
@@ -343,6 +335,17 @@ class Session(val resources: Resources)
   }
 
 
+  /* protocol handlers */
+
+  private val _protocol_handlers = Synchronized(new Session.Protocol_Handlers)
+
+  def get_protocol_handler(name: String): Option[Session.Protocol_Handler] =
+    _protocol_handlers.value.get(name)
+
+  def add_protocol_handler(name: String): Unit =
+    _protocol_handlers.change(_.add(prover.get, name))
+
+
   /* manager thread */
 
   private val delay_prune = Simple_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
@@ -432,11 +435,11 @@ class Session(val resources: Resources)
 
       output match {
         case msg: Prover.Protocol_Output =>
-          val handled = _protocol_handlers.invoke(msg)
+          val handled = _protocol_handlers.value.invoke(msg)
           if (!handled) {
             msg.properties match {
               case Markup.Protocol_Handler(name) if prover.defined =>
-                _protocol_handlers = _protocol_handlers.add(prover.get, name)
+                add_protocol_handler(name)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
@@ -525,7 +528,7 @@ class Session(val resources: Resources)
 
           case Stop =>
             if (prover.defined && is_ready) {
-              _protocol_handlers = _protocol_handlers.stop(prover.get)
+              _protocol_handlers.change(_.stop(prover.get))
               global_state.change(_ => Document.State.init)
               phase = Session.Shutdown
               prover.get.terminate
