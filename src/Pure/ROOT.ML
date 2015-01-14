@@ -65,6 +65,7 @@ use "General/balanced_tree.ML";
 use "General/linear_set.ML";
 use "General/buffer.ML";
 use "General/pretty.ML";
+use "PIDE/xml.ML";
 use "General/path.ML";
 use "General/url.ML";
 use "General/file.ML";
@@ -78,7 +79,6 @@ use "General/sha1.ML";
 if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 use "General/sha1_samples.ML";
 
-use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
 use "PIDE/document_id.ML";
 
