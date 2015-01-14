@@ -225,7 +225,7 @@ qed
 subsection  {* Introduce binder for probability *}
 
 syntax
-  "_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("('\<P>'(_ in _. _'))")
+  "_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("('\<P>'((/_ in _./ _)'))")
 
 translations
   "\<P>(x in M. P)" => "CONST measure M {x \<in> CONST space M. P}"
