@@ -397,7 +397,7 @@ The most important ones are the length function
 @{text"length :: 'a list \<Rightarrow> nat"}\index{length@@{const length}} (with the obvious definition),
 and the \indexed{@{const map}}{map} function that applies a function to all elements of a list:
 \begin{isabelle}
-\isacom{fun} @{const map} @{text"::"} @{typ[source] "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"}\\
+\isacom{fun} @{const map} @{text"::"} @{typ[source] "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"} \isacom{where}\\
 @{text"\""}@{thm list.map(1) [of f]}@{text"\" |"}\\
 @{text"\""}@{thm list.map(2) [of f x xs]}@{text"\""}
 \end{isabelle}
