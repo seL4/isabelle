@@ -43,10 +43,12 @@ object Batch_Session
 
     val prover_session = new Session(resources)
 
+    val handler = new Build.Handler(progress, session)
+
     prover_session.phase_changed +=
       Session.Consumer[Session.Phase](getClass.getName) {
         case Session.Ready =>
-          prover_session.add_protocol_handler(Build.handler_name)
+          prover_session.add_protocol_handler(handler)
           val master_dir = session_info.dir
           val theories = session_info.theories.map({ case (_, opts, thys) => (opts, thys) })
           build_theories_result =
@@ -55,16 +57,6 @@ object Batch_Session
           session_result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
         case Session.Shutdown =>
           session_result.fulfill(())
-        case _ =>
-      }
-
-    prover_session.all_messages +=
-      Session.Consumer[Prover.Message](getClass.getName) {
-        case msg: Prover.Output =>
-          msg.properties match {
-            case Markup.Loading_Theory(name) => progress.theory(session, name)
-            case _ =>
-          }
         case _ =>
       }
 

@@ -458,11 +458,12 @@ object Markup
       }
   }
 
+  val LOADING_THEORY = "loading_theory"
   object Loading_Theory
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, "loading_theory"), (NAME, name)) => Some(name)
+        case List((FUNCTION, LOADING_THEORY), (NAME, name)) => Some(name)
         case _ => None
       }
   }
