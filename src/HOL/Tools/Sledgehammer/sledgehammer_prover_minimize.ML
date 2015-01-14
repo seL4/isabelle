@@ -201,29 +201,30 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
-    fun test timeout = test_facts params silent prover timeout i n state goal
     val (chained, non_chained) = List.partition is_fact_chained facts
-    (* Push chained facts to the back, so that they are less likely to be kicked out by the linear
-       minimization algorithm. *)
-    val facts = non_chained @ chained
+
+    fun test timeout non_chained =
+      test_facts params silent prover timeout i n state goal (chained @ non_chained)
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name ^ ".");
-     (case test timeout facts of
+     (case test timeout non_chained of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
-         val facts = filter_used_facts true used_facts facts
+         val non_chained = filter_used_facts true used_facts non_chained
          val min =
-           if length facts >= Config.get ctxt binary_min_facts then binary_minimize
+           if length non_chained >= Config.get ctxt binary_min_facts then binary_minimize
            else linear_minimize
-         val (min_facts, {message, ...}) = min test (new_timeout timeout run_time) result facts
+         val (min_facts, {message, ...}) =
+           min test (new_timeout timeout run_time) result non_chained
+         val min_facts_and_chained = chained @ min_facts
        in
          print silent (fn () => cat_lines
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
-            (case min_facts |> filter is_fact_chained |> length of
+            (case length chained of
               0 => ""
-            | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
-         (if learn then do_learn (maps snd min_facts) else ());
-         (SOME min_facts, message)
+            | n => " (plus " ^ string_of_int n ^ " chained)") ^ ".");
+         (if learn then do_learn (maps snd min_facts_and_chained) else ());
+         (SOME min_facts_and_chained, message)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, fn _ =>
