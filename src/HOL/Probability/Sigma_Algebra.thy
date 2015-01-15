@@ -2440,6 +2440,9 @@ proof (subst sets_measure_of)
     by simp
 qed
 
+lemma sets_restrict_UNIV[simp]: "sets (restrict_space M UNIV) = sets M"
+  by (auto simp add: sets_restrict_space)
+
 lemma sets_restrict_space_iff:
   "\<Omega> \<inter> space M \<in> sets M \<Longrightarrow> A \<in> sets (restrict_space M \<Omega>) \<longleftrightarrow> (A \<subseteq> \<Omega> \<and> A \<in> sets M)"
 proof (subst sets_restrict_space, safe)
@@ -2523,6 +2526,41 @@ next
     using *[OF X] by auto
   finally show "f -` X \<inter> space ?R \<in> sets ?R"
     by (auto simp add: sets_restrict_space_iff space_restrict_space)
+qed
+
+lemma measurableI:
+  "(\<And>x. x \<in> space M \<Longrightarrow> f x \<in> space N) \<Longrightarrow>
+    (\<And>A. A \<in> sets N \<Longrightarrow> f -` A \<inter> space M \<in> sets M) \<Longrightarrow>
+    f \<in> measurable M N"
+  by (auto simp: measurable_def)
+
+lemma measurable_piecewise_restrict:
+  assumes I: "countable I" and X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" "(\<Union>i\<in>I. X i) = space M"
+    and meas: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> measurable (restrict_space M (X i)) N"
+    and eq: "\<And>i x. i \<in> I \<Longrightarrow> x \<in> X i \<Longrightarrow> f i x = f' x"
+  shows "f' \<in> measurable M N"
+proof (rule measurableI)
+  fix x assume "x \<in> space M"
+  then obtain i where "i \<in> I" "x \<in> X i"
+    using X by auto
+  then show "f' x \<in> space N"
+    using eq[of i x] meas[THEN measurable_space, of i x] `x \<in> space M`
+    by (auto simp: space_restrict_space)
+next
+  fix A assume A: "A \<in> sets N"
+  have "f' -` A \<inter> space M = {x \<in> space M. \<forall>i\<in>I. x \<in> X i \<longrightarrow> f i x \<in> A}"
+    by (auto simp: eq X(2)[symmetric])
+  also have "\<dots> \<in> sets M"
+  proof (intro sets.sets_Collect_countable_All'[OF _ I])
+    fix i assume "i \<in> I"
+    then have "(f i -` A \<inter> X i) \<union> (space M - X i) \<in> sets M"
+      using meas[THEN measurable_sets, OF `i \<in> I` A] X(1)
+      by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
+    also have "(f i -` A \<inter> X i) \<union> (space M - X i) = {x \<in> space M. x \<in> X i \<longrightarrow> f i x \<in> A}"
+      using `i \<in> I` by (auto simp: X(2)[symmetric])
+    finally show "{x \<in> space M. x \<in> X i \<longrightarrow> f i x \<in> A} \<in> sets M" .
+  qed
+  finally show "f' -` A \<inter> space M \<in> sets M" .
 qed
 
 end
