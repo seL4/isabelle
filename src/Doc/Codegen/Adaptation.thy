@@ -370,7 +370,8 @@ text \<open>
 \<close>
 
 code_printing %quotett
-  code_module "Errno" \<rightharpoonup> (Haskell) \<open>errno i = error ("Error number: " ++ show i)\<close>
+  code_module "Errno" \<rightharpoonup> (Haskell)
+    \<open>errno i = error ("Error number: " ++ show i)\<close>
 
 code_reserved %quotett Haskell Errno
 
