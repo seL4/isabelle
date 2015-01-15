@@ -186,7 +186,7 @@ sig
   val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
-  val build_theories_result: string -> bool -> Properties.T
+  val build_theories_result: string -> Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
   val simp_trace_panelN: string
@@ -597,8 +597,7 @@ fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
   | dest_loading_theory _ = NONE;
 
-fun build_theories_result id ok =
-  [("function", "build_theories_result"), ("id", id), ("ok", print_bool ok)];
+fun build_theories_result id = [("function", "build_theories_result"), ("id", id)];
 
 val print_operationsN = "print_operations";
 val print_operations = [(functionN, print_operationsN)];

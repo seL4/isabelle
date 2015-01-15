@@ -174,13 +174,14 @@ val _ =
           YXML.parse_body theories_yxml |>
             let open XML.Decode
             in list (pair Options.decode (list (string #> rpair Position.none))) end;
-        val result =
+        val res1 =
           Exn.capture (fn () =>
             theories |> List.app (build_theories (K NONE) (Path.explode master_dir))) ();
-        val ok =
-          (case result of
-            Exn.Res _ => true
-          | Exn.Exn exn => (Runtime.exn_error_message exn; false));
-    in Output.protocol_message (Markup.build_theories_result id ok) [] end);
+        val res2 = Exn.capture Session.shutdown ();
+        val result =
+          (Par_Exn.release_all [res1, res2]; "") handle exn =>
+            (Runtime.exn_message exn handle _ (*sic!*) =>
+              "Exception raised, but failed to print details!");
+    in Output.protocol_message (Markup.build_theories_result id) [result] end);
 
 end;

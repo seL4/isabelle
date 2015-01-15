@@ -471,10 +471,9 @@ object Markup
   val BUILD_THEORIES_RESULT = "build_theories_result"
   object Build_Theories_Result
   {
-    def unapply(props: Properties.T): Option[(String, Boolean)] =
+    def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, BUILD_THEORIES_RESULT),
-          ("id", id), ("ok", Properties.Value.Boolean(ok))) => Some((id, ok))
+        case List((FUNCTION, BUILD_THEORIES_RESULT), ("id", id)) => Some(id)
         case _ => None
       }
   }
