@@ -111,8 +111,8 @@ fun build_theories last_timing master_dir (options, thys) =
         |> Unsynchronized.setmp print_mode
             (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
         |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-        |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
         |> Multithreading.max_threads_setmp (Options.int options "threads")
+        |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
         |> Unsynchronized.setmp Future.ML_statistics true) thys)
     else
       Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
