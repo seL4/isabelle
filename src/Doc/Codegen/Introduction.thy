@@ -1,6 +1,10 @@
 theory Introduction
 imports Setup
-begin
+begin (*<*)
+
+ML \<open>
+  Isabelle_System.mkdirs (File.tmp_path (Path.basic "examples"))
+\<close> (*>*)
 
 section \<open>Introduction\<close>
 

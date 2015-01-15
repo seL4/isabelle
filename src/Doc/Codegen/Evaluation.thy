@@ -1,6 +1,10 @@
 theory Evaluation
 imports Setup
-begin
+begin (*<*)
+
+ML \<open>
+  Isabelle_System.mkdirs (File.tmp_path (Path.basic "examples"))
+\<close> (*>*)
 
 section \<open>Evaluation \label{sec:evaluation}\<close>
 

@@ -1,5 +1,5 @@
 theory Further
-imports Setup "~~/src/Tools/Permanent_Interpretation"
+imports Setup
 begin
 
 section \<open>Further issues \label{sec:further}\<close>

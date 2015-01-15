@@ -1,15 +1,12 @@
 theory Setup
 imports
   Complex_Main
+  "~~/src/Tools/Permanent_Interpretation"
   "~~/src/HOL/Library/Dlist"
   "~~/src/HOL/Library/RBT"
   "~~/src/HOL/Library/Mapping"
   "~~/src/HOL/Library/IArray"
 begin
-
-ML \<open>
-  Isabelle_System.mkdirs (File.tmp_path (Path.basic "examples"))
-\<close>
 
 ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"

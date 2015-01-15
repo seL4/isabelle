@@ -16,9 +16,12 @@ session Classes (doc) in "Classes" = HOL +
     "root.tex"
     "style.sty"
 
-session Codegen (doc) in "Codegen" = "HOL-Library" +
+session Codegen_Basics in "Codegen" = "HOL" +
+  theories [document = false]
+    Setup
+
+session Codegen (doc) in "Codegen" = "Codegen_Basics" +
   options [document_variants = "codegen", print_mode = "no_brackets,iff"]
-  theories [document = false] Setup
   theories
     Introduction
     Foundations
