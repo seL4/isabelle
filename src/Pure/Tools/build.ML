@@ -97,32 +97,27 @@ fun protocol_message props output =
 
 (* build *)
 
-local
-
-fun use_theories last_timing options =
-  Thy_Info.use_theories {
-      document = Present.document_enabled (Options.string options "document"),
-      last_timing = last_timing,
-      master_dir = Path.current}
-    |> Unsynchronized.setmp print_mode
-        (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
-    |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-    |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-    |> Multithreading.max_threads_setmp (Options.int options "threads")
-    |> Unsynchronized.setmp Future.ML_statistics true;
-
-fun use_theories_condition last_timing (options, thys) =
-  let val condition = space_explode "," (Options.string options "condition") in
-    (case filter_out (can getenv_strict) condition of
-      [] =>
-        (Options.set_default options;
-         use_theories last_timing options (map (rpair Position.none) thys))
-    | conds =>
-        Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
-          " (undefined " ^ commas conds ^ ")\n"))
+fun build_theories last_timing master_dir (options, thys) =
+  let
+    val condition = space_explode "," (Options.string options "condition");
+    val conds = filter_out (can getenv_strict) condition;
+  in
+    if null conds then
+      (Options.set_default options;
+        (Thy_Info.use_theories {
+          document = Present.document_enabled (Options.string options "document"),
+          last_timing = last_timing,
+          master_dir = master_dir}
+        |> Unsynchronized.setmp print_mode
+            (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
+        |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
+        |> Multithreading.max_threads_setmp (Options.int options "threads")
+        |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
+        |> Unsynchronized.setmp Future.ML_statistics true) thys)
+    else
+      Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
+        " (undefined " ^ commas conds ^ ")\n")
   end;
-
-in
 
 fun build args_file = Command_Line.tool0 (fn () =>
     let
@@ -134,7 +129,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
           let open XML.Decode in
             pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
               (pair (list (pair string string)) (pair string (pair string (pair string
-                ((list (pair Options.decode (list string))))))))))))
+                ((list (pair Options.decode (list (string #> rpair Position.none)))))))))))))
           end;
 
       val _ = Options.set_default options;
@@ -156,7 +151,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
 
       val res1 =
         theories |>
-          (List.app (use_theories_condition last_timing)
+          (List.app (build_theories last_timing Path.current)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
             |> Multithreading.max_threads_setmp (Options.int options "threads")
@@ -168,6 +163,25 @@ fun build args_file = Command_Line.tool0 (fn () =>
       val _ = if do_output then () else exit 0;
     in () end);
 
-end;
+
+(* PIDE protocol *)
+
+val _ =
+  Isabelle_Process.protocol_command "build_theories"
+    (fn [id, master_dir, theories_yxml] =>
+      let
+        val theories =
+          YXML.parse_body theories_yxml |>
+            let open XML.Decode
+            in list (pair Options.decode (list (string #> rpair Position.none))) end;
+        val res1 =
+          Exn.capture (fn () =>
+            theories |> List.app (build_theories (K NONE) (Path.explode master_dir))) ();
+        val res2 = Exn.capture Session.shutdown ();
+        val result =
+          (Par_Exn.release_all [res1, res2]; "") handle exn =>
+            (Runtime.exn_message exn handle _ (*sic!*) =>
+              "Exception raised, but failed to print details!");
+    in Output.protocol_message (Markup.build_theories_result id) [result] end);
 
 end;

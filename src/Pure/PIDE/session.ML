@@ -11,6 +11,7 @@ sig
   val get_keywords: unit -> Keyword.keywords
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     (Path.T * Path.T) list -> string -> string * string -> bool -> unit
+  val shutdown: unit -> unit
   val finish: unit -> unit
   val save: string -> unit
   val protocol_handler: string -> unit
@@ -58,22 +59,23 @@ fun init build info info_path doc doc_graph doc_output doc_variants doc_files
 
 (* finish *)
 
-fun finish () =
+fun shutdown () =
  (Execution.shutdown ();
+  Event_Timer.shutdown ();
+  Future.shutdown ());
+
+fun finish () =
+ (shutdown ();
   Thy_Info.finish ();
   Present.finish ();
-  Future.shutdown ();
-  Event_Timer.shutdown ();
-  Future.shutdown ();
+  shutdown ();
   keywords :=
     fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
       (Thy_Info.get_names ()) Keyword.empty_keywords;
   session_finished := true);
 
 fun save heap =
- (Execution.shutdown ();
-  Event_Timer.shutdown ();
-  Future.shutdown ();
+ (shutdown ();
   ML_System.share_common_data ();
   ML_System.save_state heap);
 

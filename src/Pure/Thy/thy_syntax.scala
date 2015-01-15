@@ -288,11 +288,12 @@ object Thy_Syntax
         val (visible, visible_overlay) = command_perspective(node, text_perspective, overlays)
         val perspective: Document.Node.Perspective_Command =
           Document.Node.Perspective(required, visible_overlay, overlays)
-        if (node.same_perspective(perspective)) node
+        if (node.same_perspective(text_perspective, perspective)) node
         else
-          node.update_perspective(perspective).update_commands(
-            consolidate_spans(resources, syntax, get_blob, reparse_limit,
-              name, visible, node.commands))
+          node.update_perspective(text_perspective, perspective).
+            update_commands(
+              consolidate_spans(resources, syntax, get_blob, reparse_limit,
+                name, visible, node.commands))
     }
   }
 
@@ -341,13 +342,18 @@ object Thy_Syntax
               else node
             val node2 =
               (node1 /: edits)(text_edit(resources, syntax, get_blob, reparse_limit, _, _))
+            val node3 =
+              if (reparse_set.contains(name))
+                text_edit(resources, syntax, get_blob, reparse_limit,
+                  node2, (name, node2.edit_perspective))
+              else node2
 
-            if (!(node.same_perspective(node2.perspective)))
-              doc_edits += (name -> node2.perspective)
+            if (!(node.same_perspective(node3.text_perspective, node3.perspective)))
+              doc_edits += (name -> node3.perspective)
 
-            doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
+            doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))
 
-            nodes += (name -> node2)
+            nodes += (name -> node3)
         }
         (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(nodes))
       }

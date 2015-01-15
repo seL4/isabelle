@@ -47,6 +47,7 @@ trait Future[A]
 
 trait Promise[A] extends Future[A]
 {
+  def cancel: Unit
   def fulfill_result(res: Exn.Result[A]): Unit
   def fulfill(x: A): Unit
 }
@@ -77,6 +78,10 @@ private class Promise_Future[A](promise: Scala_Promise[A])
   extends Pending_Future(promise.future) with Promise[A]
 {
   override def is_finished: Boolean = promise.isCompleted
+
+  def cancel: Unit =
+    try { fulfill_result(Exn.Exn(Exn.Interrupt())) }
+    catch { case _: IllegalStateException => }
 
   def fulfill_result(res: Exn.Result[A]): Unit =
     res match {

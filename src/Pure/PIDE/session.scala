@@ -63,6 +63,7 @@ object Session
   case object Caret_Focus
   case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   case class Dialog_Result(id: Document_ID.Generic, serial: Long, result: String)
+  case class Build_Theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -104,14 +105,20 @@ object Session
     val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
 
-  class Protocol_Handlers(
+  def bad_protocol_handler(exn: Throwable, name: String): Unit =
+    Output.error_message(
+      "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
+
+  private class Protocol_Handlers(
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
     functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
   {
     def get(name: String): Option[Protocol_Handler] = handlers.get(name)
 
-    def add(prover: Prover, name: String): Protocol_Handlers =
+    def add(prover: Prover, handler: Protocol_Handler): Protocol_Handlers =
     {
+      val name = handler.getClass.getName
+
       val (handlers1, functions1) =
         handlers.get(name) match {
           case Some(old_handler) =>
@@ -123,22 +130,20 @@ object Session
 
       val (handlers2, functions2) =
         try {
-          val new_handler = Class.forName(name).newInstance.asInstanceOf[Protocol_Handler]
-          new_handler.start(prover)
+          handler.start(prover)
 
           val new_functions =
-            for ((a, f) <- new_handler.functions.toList) yield
+            for ((a, f) <- handler.functions.toList) yield
               (a, (msg: Prover.Protocol_Output) => f(prover, msg))
 
           val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
           if (dups.nonEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
 
-          (handlers1 + (name -> new_handler), functions1 ++ new_functions)
+          (handlers1 + (name -> handler), functions1 ++ new_functions)
         }
         catch {
           case exn: Throwable =>
-            Output.error_message(
-              "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
+            Session.bad_protocol_handler(exn, name)
             (handlers1, functions1)
         }
 
@@ -234,14 +239,6 @@ class Session(val resources: Resources)
   def recent_syntax(name: Document.Node.Name): Prover.Syntax =
     current_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.base_syntax
-
-
-  /* protocol handlers */
-
-  @volatile private var _protocol_handlers = new Session.Protocol_Handlers()
-
-  def protocol_handler(name: String): Option[Session.Protocol_Handler] =
-    _protocol_handlers.get(name)
 
 
   /* theory files */
@@ -342,6 +339,17 @@ class Session(val resources: Resources)
   }
 
 
+  /* protocol handlers */
+
+  private val _protocol_handlers = Synchronized(new Session.Protocol_Handlers)
+
+  def get_protocol_handler(name: String): Option[Session.Protocol_Handler] =
+    _protocol_handlers.value.get(name)
+
+  def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
+    _protocol_handlers.change(_.add(prover.get, handler))
+
+
   /* manager thread */
 
   private val delay_prune = Simple_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
@@ -431,11 +439,16 @@ class Session(val resources: Resources)
 
       output match {
         case msg: Prover.Protocol_Output =>
-          val handled = _protocol_handlers.invoke(msg)
+          val handled = _protocol_handlers.value.invoke(msg)
           if (!handled) {
             msg.properties match {
               case Markup.Protocol_Handler(name) if prover.defined =>
-                _protocol_handlers = _protocol_handlers.add(prover.get, name)
+                try {
+                  val handler =
+                    Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]
+                  add_protocol_handler(handler)
+                }
+                catch { case exn: Throwable => Session.bad_protocol_handler(exn, name) }
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
@@ -524,7 +537,7 @@ class Session(val resources: Resources)
 
           case Stop =>
             if (prover.defined && is_ready) {
-              _protocol_handlers = _protocol_handlers.stop(prover.get)
+              _protocol_handlers.change(_.stop(prover.get))
               global_state.change(_ => Document.State.init)
               phase = Session.Shutdown
               prover.get.terminate
@@ -552,6 +565,9 @@ class Session(val resources: Resources)
           case Session.Dialog_Result(id, serial, result) if prover.defined =>
             prover.get.dialog_result(serial, result)
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
+
+          case Session.Build_Theories(id, master_dir, theories) if prover.defined =>
+            prover.get.build_theories(id, master_dir, theories)
 
           case Protocol_Command(name, args) if prover.defined =>
             prover.get.protocol_command(name, args:_*)
@@ -615,4 +631,7 @@ class Session(val resources: Resources)
 
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
   { manager.send(Session.Dialog_Result(id, serial, result)) }
+
+  def build_theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
+  { manager.send(Session.Build_Theories(id, master_dir, theories)) }
 }

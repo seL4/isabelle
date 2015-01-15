@@ -10,7 +10,7 @@ package isabelle
 object Print_Operation
 {
   def print_operations(session: Session): List[(String, String)] =
-    session.protocol_handler("isabelle.Print_Operation$Handler") match {
+    session.get_protocol_handler("isabelle.Print_Operation$Handler") match {
       case Some(handler: Handler) => handler.get
       case _ => Nil
     }

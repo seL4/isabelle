@@ -245,12 +245,14 @@ object Document
     val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.no_header,
     val syntax: Option[Prover.Syntax] = None,
+    val text_perspective: Text.Perspective = Text.Perspective.empty,
     val perspective: Node.Perspective_Command = Node.no_perspective_command,
     _commands: Node.Commands = Node.Commands.empty)
   {
     def is_empty: Boolean =
       get_blob.isEmpty &&
       header == Node.no_header &&
+      text_perspective.is_empty &&
       Node.is_no_perspective_command(perspective) &&
       commands.isEmpty
 
@@ -262,22 +264,32 @@ object Document
     def init_blob(blob: Document.Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
-      new Node(get_blob, new_header, syntax, perspective, _commands)
+      new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
 
     def update_syntax(new_syntax: Option[Prover.Syntax]): Node =
-      new Node(get_blob, header, new_syntax, perspective, _commands)
+      new Node(get_blob, header, new_syntax, text_perspective, perspective, _commands)
 
-    def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(get_blob, header, syntax, new_perspective, _commands)
+    def update_perspective(
+        new_text_perspective: Text.Perspective,
+        new_perspective: Node.Perspective_Command): Node =
+      new Node(get_blob, header, syntax, new_text_perspective, new_perspective, _commands)
 
-    def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
+    def edit_perspective: Node.Edit[Text.Edit, Text.Perspective] =
+      Node.Perspective(perspective.required, text_perspective, perspective.overlays)
+
+    def same_perspective(
+        other_text_perspective: Text.Perspective,
+        other_perspective: Node.Perspective_Command): Boolean =
+      text_perspective == other_text_perspective &&
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
       perspective.overlays == other_perspective.overlays
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(get_blob, header, syntax, perspective, Node.Commands(new_commands))
+      else
+        new Node(get_blob, header, syntax, text_perspective, perspective,
+          Node.Commands(new_commands))
 
     def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.iterator(i)
