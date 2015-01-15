@@ -6,8 +6,7 @@ FORMAT="$1"
 VARIANT="$2"
 
 # ad-hoc patching of temporary path from sources
-perl -i -pe 's/\\isakeyword\{module\{\\isacharunderscore\}name\}\\ Example\\ \\isakeyword\{file\}\\ \{\\isachardoublequoteopen\}.*\{\\isacharslash\}/\\isakeyword{module{\\isacharunderscore}name}\\ Example\\ \\isakeyword{file}\\ {\\isachardoublequoteopen}examples{\\isacharslash}/g' \
-  Introduction.tex
+perl -i -pe 's/\{\\isachardollar\}ISABELLE\{\\isacharunderscore\}TMP\{\\isacharslash\}examples/examples/g' *.tex
 
 "$ISABELLE_TOOL" logo Isar
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
