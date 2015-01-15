@@ -2,9 +2,9 @@ theory Introduction
 imports Setup
 begin
 
-section {* Introduction *}
+section \<open>Introduction\<close>
 
-text {*
+text \<open>
   This tutorial introduces the code generator facilities of @{text
   "Isabelle/HOL"}.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
@@ -14,12 +14,12 @@ text {*
 
   To profit from this tutorial, some familiarity and experience with
   @{theory HOL} @{cite "isa-tutorial"} and its basic theories is assumed.
-*}
+\<close>
 
 
-subsection {* Code generation principle: shallow embedding \label{sec:principle} *}
+subsection \<open>Code generation principle: shallow embedding \label{sec:principle}\<close>
 
-text {*
+text \<open>
   The key concept for understanding Isabelle's code generation is
   \emph{shallow embedding}: logical entities like constants, types and
   classes are identified with corresponding entities in the target
@@ -29,12 +29,12 @@ text {*
   system, then every rewrite step performed by the program can be
   simulated in the logic, which guarantees partial correctness
   @{cite "Haftmann-Nipkow:2010:code"}.
-*}
+\<close>
 
 
-subsection {* A quick start with the Isabelle/HOL toolbox \label{sec:queue_example} *}
+subsection \<open>A quick start with the Isabelle/HOL toolbox \label{sec:queue_example}\<close>
 
-text {*
+text \<open>
   In a HOL theory, the @{command_def datatype} and @{command_def
   definition}/@{command_def primrec}/@{command_def fun} declarations
   form the core of a functional programming language.  By default
@@ -43,7 +43,7 @@ text {*
   ado.
 
   For example, here a simple \qt{implementation} of amortised queues:
-*}
+\<close>
 
 datatype %quote 'a queue = AQueue "'a list" "'a list"
 
@@ -63,18 +63,18 @@ lemma %invisible dequeue_nonempty_Nil [simp]:
   "xs \<noteq> [] \<Longrightarrow> dequeue (AQueue xs []) = (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))"
   by (cases xs) (simp_all split: list.splits) (*>*)
 
-text {* \noindent Then we can generate code e.g.~for @{text SML} as follows: *}
+text \<open>\noindent Then we can generate code e.g.~for @{text SML} as follows:\<close>
 
 export_code %quote empty dequeue enqueue in SML
   module_name Example file "$ISABELLE_TMP/examples/example.ML"
 
-text {* \noindent resulting in the following code: *}
+text \<open>\noindent resulting in the following code:\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts empty enqueue dequeue (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent The @{command_def export_code} command takes a
   space-separated list of constants for which code shall be generated;
   anything else needed for those is added implicitly.  Then follows a
@@ -84,31 +84,31 @@ text {*
   @{text SML}, @{text OCaml} and @{text Scala} it denotes a \emph{file},
   for @{text Haskell} it denotes a \emph{directory} where a file named as the
   module name (with extension @{text ".hs"}) is written:
-*}
+\<close>
 
 export_code %quote empty dequeue enqueue in Haskell
   module_name Example file "$ISABELLE_TMP/examples/"
 
-text {*
+text \<open>
   \noindent This is the corresponding code:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts empty enqueue dequeue (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent For more details about @{command export_code} see
   \secref{sec:further}.
-*}
+\<close>
 
 
-subsection {* Type classes *}
+subsection \<open>Type classes\<close>
 
-text {*
+text \<open>
   Code can also be generated from type classes in a Haskell-like
   manner.  For illustration here an example from abstract algebra:
-*}
+\<close>
 
 class %quote semigroup =
   fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
@@ -146,51 +146,51 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent We define the natural operation of the natural numbers
   on monoids:
-*}
+\<close>
 
 primrec %quote (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
     "pow 0 a = \<one>"
   | "pow (Suc n) a = a \<otimes> pow n a"
 
-text {*
+text \<open>
   \noindent This we use to define the discrete exponentiation
   function:
-*}
+\<close>
 
 definition %quote bexp :: "nat \<Rightarrow> nat" where
   "bexp n = pow n (Suc (Suc 0))"
 
-text {*
+text \<open>
   \noindent The corresponding code in Haskell uses that language's
   native classes:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts bexp (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent This is a convenient place to show how explicit dictionary
   construction manifests in generated code -- the same example in
   @{text SML}:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts bexp (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent Note the parameters with trailing underscore (@{verbatim
   "A_"}), which are the dictionary parameters.
-*}
+\<close>
 
 
-subsection {* How to continue from here *}
+subsection \<open>How to continue from here\<close>
 
-text {*
+text \<open>
   What you have seen so far should be already enough in a lot of
   cases.  If you are content with this, you can quit reading here.
 
@@ -236,7 +236,7 @@ text {*
     \begin{center}\textit{Happy proving, happy hacking!}\end{center}
 
   \end{minipage}}}\end{center}
-*}
+\<close>
 
 end
 

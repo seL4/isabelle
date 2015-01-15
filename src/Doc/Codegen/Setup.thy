@@ -14,7 +14,7 @@ ML \<open>
 ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
 
-setup {*
+setup \<open>
 let
   val typ = Simple_Syntax.read_typ;
 in
@@ -25,7 +25,7 @@ in
    [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
     ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
 end
-*}
+\<close>
 
 declare [[default_code_width = 74]]
 

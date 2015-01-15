@@ -2,11 +2,11 @@ theory Further
 imports Setup "~~/src/Tools/Permanent_Interpretation"
 begin
 
-section {* Further issues \label{sec:further} *}
+section \<open>Further issues \label{sec:further}\<close>
 
-subsection {* Specialities of the @{text Scala} target language \label{sec:scala} *}
+subsection \<open>Specialities of the @{text Scala} target language \label{sec:scala}\<close>
 
-text {*
+text \<open>
   @{text Scala} deviates from languages of the ML family in a couple
   of aspects; those which affect code generation mainly have to do with
   @{text Scala}'s type system:
@@ -43,7 +43,7 @@ text {*
   Isabelle's type classes are mapped onto @{text Scala} implicits; in
   cases with diamonds in the subclass hierarchy this can lead to
   ambiguities in the generated code:
-*}
+\<close>
 
 class %quote class1 =
   fixes foo :: "'a \<Rightarrow> 'a"
@@ -52,62 +52,62 @@ class %quote class2 = class1
 
 class %quote class3 = class1
 
-text {*
+text \<open>
   \noindent Here both @{class class2} and @{class class3} inherit from @{class class1},
   forming the upper part of a diamond.
-*}
+\<close>
 
 definition %quote bar :: "'a :: {class2, class3} \<Rightarrow> 'a" where
   "bar = foo"
 
-text {*
+text \<open>
   \noindent This yields the following code:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts bar (Scala)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent This code is rejected by the @{text Scala} compiler: in
   the definition of @{text bar}, it is not clear from where to derive
   the implicit argument for @{text foo}.
 
   The solution to the problem is to close the diamond by a further
   class with inherits from both @{class class2} and @{class class3}:
-*}
+\<close>
 
 class %quote class4 = class2 + class3
 
-text {*
+text \<open>
   \noindent Then the offending code equation can be restricted to
   @{class class4}:
-*}
+\<close>
 
 lemma %quote [code]:
   "(bar :: 'a::class4 \<Rightarrow> 'a) = foo"
   by (simp only: bar_def)
 
-text {*
+text \<open>
   \noindent with the following code:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts bar (Scala)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent which exposes no ambiguity.
 
   Since the preprocessor (cf.~\secref{sec:preproc}) propagates sort
   constraints through a system of code equations, it is usually not
   very difficult to identify the set of code equations which actually
   needs more restricted sort constraints.
-*}
+\<close>
 
-subsection {* Modules namespace *}
+subsection \<open>Modules namespace\<close>
 
-text {*
+text \<open>
   When invoking the @{command export_code} command it is possible to
   leave out the @{keyword "module_name"} part; then code is
   distributed over different modules, where the module name space
@@ -122,38 +122,38 @@ text {*
   A solution is to declare module names explicitly.  Let use assume
   the three cyclically dependent modules are named \emph{A}, \emph{B}
   and \emph{C}.  Then, by stating
-*}
+\<close>
 
 code_identifier %quote
   code_module A \<rightharpoonup> (SML) ABC
 | code_module B \<rightharpoonup> (SML) ABC
 | code_module C \<rightharpoonup> (SML) ABC
 
-text {*
+text \<open>
   \noindent we explicitly map all those modules on \emph{ABC},
   resulting in an ad-hoc merge of this three modules at serialisation
   time.
-*}
+\<close>
 
-subsection {* Locales and interpretation *}
+subsection \<open>Locales and interpretation\<close>
 
-text {*
+text \<open>
   A technical issue comes to surface when generating code from
   specifications stemming from locale interpretation.
 
   Let us assume a locale specifying a power operation on arbitrary
   types:
-*}
+\<close>
 
 locale %quote power =
   fixes power :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
   assumes power_commute: "power x \<circ> power y = power y \<circ> power x"
 begin
 
-text {*
+text \<open>
   \noindent Inside that locale we can lift @{text power} to exponent
   lists by means of specification relative to that locale:
-*}
+\<close>
 
 primrec %quote powers :: "'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
   "powers [] = id"
@@ -175,7 +175,7 @@ lemma %quote powers_rev:
 
 end %quote
 
-text {*
+text \<open>
   After an interpretation of this locale (say, @{command_def
   interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
   :: 'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
@@ -189,43 +189,43 @@ text {*
   achieved.  First, a dedicated definition of the constant on which
   the local @{text "powers"} after interpretation is supposed to be
   mapped on:
-*}
+\<close>
 
 definition %quote funpows :: "nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code del]: "funpows = power.powers (\<lambda>n f. f ^^ n)"
 
-text {*
+text \<open>
   \noindent In general, the pattern is @{text "c = t"} where @{text c}
   is the name of the future constant and @{text t} the foundational
   term corresponding to the local constant after interpretation.
 
   The interpretation itself is enriched with an equation @{text "t = c"}:
-*}
+\<close>
 
 interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)" where
   "power.powers (\<lambda>n f. f ^^ n) = funpows"
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute funpows_def)
 
-text {*
+text \<open>
   \noindent This additional equation is trivially proved by the
   definition itself.
 
   After this setup procedure, code generation can continue as usual:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
-*} (*<*)
+\<close> (*<*)
 
-(*>*) text {*
+(*>*) text \<open>
   Fortunately, an even more succint approach is available using command
   @{command permanent_interpretation}.  This is available
   by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}.
   Then the pattern above collapses to
-*} (*<*)
+\<close> (*<*)
 
-setup {* Sign.add_path "funpows" *}
+setup \<open>Sign.add_path "funpows"\<close>
 hide_const (open) funpows
 
 (*>*)
@@ -234,43 +234,43 @@ permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightar
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute) (*<*)
 
-setup {* Sign.parent_path *}
+setup \<open>Sign.parent_path\<close>
 
 (*>*)
 
 
-subsection {* Parallel computation *}
+subsection \<open>Parallel computation\<close>
 
-text {*
+text \<open>
   Theory @{text Parallel} in @{file "~~/src/HOL/Library"} contains
   operations to exploit parallelism inside the Isabelle/ML
   runtime engine.
-*}
+\<close>
 
-subsection {* Imperative data structures *}
+subsection \<open>Imperative data structures\<close>
 
-text {*
+text \<open>
   If you consider imperative data structures as inevitable for a
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   @{cite "bulwahn-et-al:2008:imperative"}; the framework described there
   is available in session @{text Imperative_HOL}, together with a
   short primer document.
-*}
+\<close>
 
 
-subsection {* ML system interfaces \label{sec:ml} *}
+subsection \<open>ML system interfaces \label{sec:ml}\<close>
 
-text {*
+text \<open>
   Since the code generator framework not only aims to provide a nice
   Isar interface but also to form a base for code-generation-based
   applications, here a short description of the most fundamental ML
   interfaces.
-*}
+\<close>
 
-subsubsection {* Managing executable content *}
+subsubsection \<open>Managing executable content\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Code.read_const: "theory -> string -> string"} \\
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
@@ -322,12 +322,12 @@ text %mlref {*
      if @{text const} is no constructor.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Data depending on the theory's executable content *}
+subsubsection \<open>Data depending on the theory's executable content\<close>
 
-text {*
+text \<open>
   Implementing code generator applications on top of the framework set
   out so far usually not only involves using those primitive
   interfaces but also storing code-dependent data and various other
@@ -373,7 +373,7 @@ text {*
   \item @{text change_yield} update with side result.
 
   \end{description}
-*}
+\<close>
 
 end
 

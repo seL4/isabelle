@@ -2,9 +2,9 @@ theory Evaluation
 imports Setup
 begin
 
-section {* Evaluation \label{sec:evaluation} *}
+section \<open>Evaluation \label{sec:evaluation}\<close>
 
-text {*
+text \<open>
   Recalling \secref{sec:principle}, code generation turns a system of
   equations into a program with the \emph{same} equational semantics.
   As a consequence, this program can be used as a \emph{rewrite
@@ -12,12 +12,12 @@ text {*
   term @{term "t'"} yields the theorems @{prop "t \<equiv> t'"}.  This
   application of code generation in the following is referred to as
   \emph{evaluation}.
-*}
+\<close>
 
 
-subsection {* Evaluation techniques *}
+subsection \<open>Evaluation techniques\<close>
 
-text {*
+text \<open>
   The existing infrastructure provides a rich palette of evaluation
   techniques, each comprising different aspects:
 
@@ -35,34 +35,34 @@ text {*
       trustable.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* The simplifier (@{text simp}) *}
+subsubsection \<open>The simplifier (@{text simp})\<close>
 
-text {*
+text \<open>
   The simplest way for evaluation is just using the simplifier with
   the original code equations of the underlying program.  This gives
   fully symbolic evaluation and highest trustablity, with the usual
   performance of the simplifier.  Note that for operations on abstract
   datatypes (cf.~\secref{sec:invariant}), the original theorems as
   given by the users are used, not the modified ones.
-*}
+\<close>
 
 
-subsubsection {* Normalization by evaluation (@{text nbe}) *}
+subsubsection \<open>Normalization by evaluation (@{text nbe})\<close>
 
-text {*
+text \<open>
   Normalization by evaluation @{cite "Aehlig-Haftmann-Nipkow:2008:nbe"}
   provides a comparably fast partially symbolic evaluation which
   permits also normalization of functions and uninterpreted symbols;
   the stack of code to be trusted is considerable.
-*}
+\<close>
 
 
-subsubsection {* Evaluation in ML (@{text code}) *}
+subsubsection \<open>Evaluation in ML (@{text code})\<close>
 
-text {*
+text \<open>
   Highest performance can be achieved by evaluation in ML, at the cost
   of being restricted to ground results and a layered stack of code to
   be trusted, including code generator configurations by the user.
@@ -73,32 +73,32 @@ text {*
   out there depends crucially on the correctness of the code
   generator setup; this is one of the reasons why you should not use
   adaptation (see \secref{sec:adaptation}) frivolously.
-*}
+\<close>
 
 
-subsection {* Aspects of evaluation *}
+subsection \<open>Aspects of evaluation\<close>
 
-text {*
+text \<open>
   Each of the techniques can be combined with different aspects.  The
   most important distinction is between dynamic and static evaluation.
   Dynamic evaluation takes the code generator configuration \qt{as it
   is} at the point where evaluation is issued.  Best example is the
   @{command_def value} command which allows ad-hoc evaluation of
   terms:
-*}
+\<close>
 
 value %quote "42 / (12 :: rat)"
 
-text {*
+text \<open>
   \noindent @{command value} tries first to evaluate using ML, falling
   back to normalization by evaluation if this fails.
 
   A particular technique may be specified in square brackets, e.g.
-*}
+\<close>
 
 value %quote [nbe] "42 / (12 :: rat)"
 
-text {*
+text \<open>
   To employ dynamic evaluation in the document generation, there is also
   a @{text value} antiquotation with the same evaluation techniques 
   as @{command value}.
@@ -162,12 +162,12 @@ text {*
   For property conversion (which coincides with conversion except for
   evaluation in ML), methods are provided which solve a given goal by
   evaluation.
-*}
+\<close>
 
 
-subsection {* Schematic overview *}
+subsection \<open>Schematic overview\<close>
 
-text {*
+text \<open>
   \newcommand{\ttsize}{\fontsize{5.8pt}{8pt}\selectfont}
   \fontsize{9pt}{12pt}\selectfont
   \begin{tabular}{ll||c|c|c}
@@ -189,12 +189,12 @@ text {*
       & \ttsize@{ML "Nbe.static_conv"}
       & \ttsize@{ML "Code_Evaluation.static_conv"}
   \end{tabular}
-*}
+\<close>
 
 
-subsection {* Preprocessing HOL terms into evaluable shape *}
+subsection \<open>Preprocessing HOL terms into evaluable shape\<close>
 
-text {*
+text \<open>
   When integration decision procedures developed inside HOL into HOL itself,
   it is necessary to somehow get from the Isabelle/ML representation to
   the representation used by the decision procedure itself (``reification'').
@@ -203,7 +203,7 @@ text {*
   @{ML "Reification.conv"} and @{ML "Reification.tac"}
 
   An simplistic example:
-*}
+\<close>
 
 datatype %quote form_ord = T | F | Less nat nat
   | And form_ord form_ord | Or form_ord form_ord | Neg form_ord
@@ -217,21 +217,21 @@ where
 | "interp (Or f1 f2) vs \<longleftrightarrow> interp f1 vs \<or> interp f2 vs"
 | "interp (Neg f) vs \<longleftrightarrow> \<not> interp f vs"
 
-text {*
+text \<open>
   The datatype @{type form_ord} represents formulae whose semantics is given by
   @{const interp}.  Note that values are represented by variable indices (@{typ nat})
   whose concrete values are given in list @{term vs}.
-*}
+\<close>
 
-ML (*<*) {* *}
+ML (*<*) \<open>\<close>
 schematic_lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> ?P"
 ML_prf 
-(*>*) {* val thm =
-  Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"} *} (*<*)
-by (tactic {* ALLGOALS (rtac thm) *})
+(*>*) \<open>val thm =
+  Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"}\<close> (*<*)
+by (tactic \<open>ALLGOALS (rtac thm)\<close>)
 (*>*) 
 
-text {*
+text \<open>
   By virtue of @{fact interp.simps}, @{ML "Reification.conv"} provides a conversion
   which, for this concrete example, yields @{thm thm [no_vars]}.  Note that the argument
   to @{const interp} does not contain any free variables and can thus be evaluated
@@ -239,38 +239,38 @@ text {*
 
   A less meager example can be found in the AFP, session @{text "Regular-Sets"},
   theory @{text Regexp_Method}.
-*}
+\<close>
 
 
-subsection {* Intimate connection between logic and system runtime *}
+subsection \<open>Intimate connection between logic and system runtime\<close>
 
-text {*
+text \<open>
   The toolbox of static evaluation conversions forms a reasonable base
   to interweave generated code and system tools.  However in some
   situations more direct interaction is desirable.
-*}
+\<close>
 
 
-subsubsection {* Static embedding of generated code into system runtime -- the @{text code} antiquotation \label{sec:code_antiq} *}
+subsubsection \<open>Static embedding of generated code into system runtime -- the @{text code} antiquotation \label{sec:code_antiq}\<close>
 
-text {*
+text \<open>
   The @{text code} antiquotation allows to include constants from
   generated code directly into ML system code, as in the following toy
   example:
-*}
+\<close>
 
 datatype %quote form = T | F | And form form | Or form form (*<*)
 
-(*>*) ML %quotett {*
+(*>*) ML %quotett \<open>
   fun eval_form @{code T} = true
     | eval_form @{code F} = false
     | eval_form (@{code And} (p, q)) =
         eval_form p andalso eval_form q
     | eval_form (@{code Or} (p, q)) =
         eval_form p orelse eval_form q;
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent @{text code} takes as argument the name of a constant;
   after the whole ML is read, the necessary code is generated
   transparently and the corresponding constant names are inserted.
@@ -281,24 +281,24 @@ text {*
 
   For a less simplistic example, theory @{text Approximation} in
   the @{text Decision_Procs} session is a good reference.
-*}
+\<close>
 
 
-subsubsection {* Static embedding of generated code into system runtime -- @{text code_reflect} *}
+subsubsection \<open>Static embedding of generated code into system runtime -- @{text code_reflect}\<close>
 
-text {*
+text \<open>
   The @{text code} antiquoation is lightweight, but the generated code
   is only accessible while the ML section is processed.  Sometimes this
   is not appropriate, especially if the generated code contains datatype
   declarations which are shared with other parts of the system.  In these
   cases, @{command_def code_reflect} can be used:
-*}
+\<close>
 
 code_reflect %quote Sum_Type
   datatypes sum = Inl | Inr
   functions "Sum_Type.sum.projl" "Sum_Type.sum.projr"
 
-text {*
+text \<open>
   \noindent @{command_def code_reflect} takes a structure name and
   references to datatypes and functions; for these code is compiled
   into the named ML structure and the \emph{Eval} target is modified
@@ -309,17 +309,17 @@ text {*
 
   A typical example for @{command code_reflect} can be found in the
   @{theory Predicate} theory.
-*}
+\<close>
 
 
-subsubsection {* Separate compilation -- @{text code_reflect} *}
+subsubsection \<open>Separate compilation -- @{text code_reflect}\<close>
 
-text {*
+text \<open>
   For technical reasons it is sometimes necessary to separate
   generation and compilation of code which is supposed to be used in
   the system runtime.  For this @{command code_reflect} with an
   optional @{text "file"} argument can be used:
-*}
+\<close>
 
 code_reflect %quote Rat
   datatypes rat = Frct
@@ -328,10 +328,10 @@ code_reflect %quote Rat
     "(times :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(divide :: rat \<Rightarrow> rat \<Rightarrow> rat)"
   file "$ISABELLE_TMP/examples/rat.ML"
 
-text {*
+text \<open>
   \noindent This merely generates the referenced code to the given
   file which can be included into the system runtime later on.
-*}
+\<close>
 
 end
 

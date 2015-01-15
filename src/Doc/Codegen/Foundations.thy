@@ -2,11 +2,11 @@ theory Foundations
 imports Introduction
 begin
 
-section {* Code generation foundations \label{sec:foundations} *}
+section \<open>Code generation foundations \label{sec:foundations}\<close>
 
-subsection {* Code generator architecture \label{sec:architecture} *}
+subsection \<open>Code generator architecture \label{sec:architecture}\<close>
 
-text {*
+text \<open>
   The code generator is actually a framework consisting of different
   components which can be customised individually.
 
@@ -90,12 +90,12 @@ text {*
   \noindent From these steps, only the last two are carried out
   outside the logic; by keeping this layer as thin as possible, the
   amount of code to trust is kept to a minimum.
-*}
+\<close>
 
 
-subsection {* The pre- and postprocessor \label{sec:preproc} *}
+subsection \<open>The pre- and postprocessor \label{sec:preproc}\<close>
 
-text {*
+text \<open>
   Before selected function theorems are turned into abstract code, a
   chain of definitional transformation steps is carried out:
   \emph{preprocessing}.  The preprocessor consists of two
@@ -122,13 +122,13 @@ text {*
   is is just expressed as @{term "x \<in> set xs"}.  But for execution
   the intermediate set is not desirable.  Hence the following
   specification:
-*}
+\<close>
 
 definition %quote member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
 where
   [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
-text {*
+text \<open>
   \noindent The \emph{@{attribute code_abbrev} attribute} declares
   its theorem a rewrite rule for the postprocessor and the symmetric
   of its theorem as rewrite rule for the preprocessor.  Together,
@@ -153,12 +153,12 @@ text {*
   code_thms} (see \secref{sec:equations}) provides a convenient
   mechanism to inspect the impact of a preprocessor setup on code
   equations.
-*}
+\<close>
 
 
-subsection {* Understanding code equations \label{sec:equations} *}
+subsection \<open>Understanding code equations \label{sec:equations}\<close>
 
-text {*
+text \<open>
   As told in \secref{sec:principle}, the notion of code equations is
   vital to code generation.  Indeed most problems which occur in
   practice can be resolved by an inspection of the underlying code
@@ -166,7 +166,7 @@ text {*
 
   It is possible to exchange the default code equations for constants
   by explicitly proving alternative ones:
-*}
+\<close>
 
 lemma %quote [code]:
   "dequeue (AQueue xs []) =
@@ -176,18 +176,18 @@ lemma %quote [code]:
      (Some y, AQueue xs ys)"
   by (cases xs, simp_all) (cases "rev xs", simp_all)
 
-text {*
+text \<open>
   \noindent The annotation @{text "[code]"} is an @{text attribute}
   which states that the given theorems should be considered as code
   equations for a @{text fun} statement -- the corresponding constant
   is determined syntactically.  The resulting code:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts dequeue (consts) dequeue (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent You may note that the equality test @{term "xs = []"} has
   been replaced by the predicate @{term "List.null xs"}.  This is due
   to the default setup of the \qn{preprocessor}.
@@ -206,24 +206,24 @@ text {*
   The code equations after preprocessing are already are blueprint of
   the generated program and can be inspected using the @{command
   code_thms} command:
-*}
+\<close>
 
 code_thms %quote dequeue
 
-text {*
+text \<open>
   \noindent This prints a table with the code equations for @{const
   dequeue}, including \emph{all} code equations those equations depend
   on recursively.  These dependencies themselves can be visualized using
   the @{command_def code_deps} command.
-*}
+\<close>
 
 
-subsection {* Equality *}
+subsection \<open>Equality\<close>
 
-text {*
+text \<open>
   Implementation of equality deserves some attention.  Here an example
   function involving polymorphic equality:
-*}
+\<close>
 
 primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "collect_duplicates xs ys [] = xs"
@@ -233,17 +233,17 @@ primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow
       else collect_duplicates xs (z#ys) zs
     else collect_duplicates (z#xs) (z#ys) zs)"
 
-text {*
+text \<open>
   \noindent During preprocessing, the membership test is rewritten,
   resulting in @{const List.member}, which itself performs an explicit
   equality check, as can be seen in the corresponding @{text SML} code:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts collect_duplicates (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces an
   explicit class @{class equal} with a corresponding operation @{const
@@ -252,15 +252,15 @@ text {*
   through all dependent code equations.  For datatypes, instances of
   @{class equal} are implicitly derived when possible.  For other types,
   you may instantiate @{text equal} manually like any other type class.
-*}
+\<close>
 
 
-subsection {* Explicit partiality \label{sec:partiality} *}
+subsection \<open>Explicit partiality \label{sec:partiality}\<close>
 
-text {*
+text \<open>
   Partiality usually enters the game by partial patterns, as
   in the following example, again for amortised queues:
-*}
+\<close>
 
 definition %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
   "strict_dequeue q = (case dequeue q
@@ -272,19 +272,19 @@ lemma %quote strict_dequeue_AQueue [code]:
     (case rev xs of y # ys \<Rightarrow> (y, AQueue [] ys))"
   by (simp_all add: strict_dequeue_def) (cases xs, simp_all split: list.split)
 
-text {*
+text \<open>
   \noindent In the corresponding code, there is no equation
   for the pattern @{term "AQueue [] []"}:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent In some cases it is desirable to have this
   pseudo-\qt{partiality} more explicitly, e.g.~as follows:
-*}
+\<close>
 
 axiomatization %quote empty_queue :: 'a
 
@@ -298,7 +298,7 @@ lemma %quote strict_dequeue'_AQueue [code]:
      (y, AQueue xs ys)"
   by (simp_all add: strict_dequeue'_def split: list.splits)
 
-text {*
+text \<open>
   Observe that on the right hand side of the definition of @{const
   "strict_dequeue'"}, the unspecified constant @{const empty_queue} occurs.
 
@@ -310,30 +310,30 @@ text {*
   side.  In order to categorise a constant into that category
   explicitly, use the @{attribute code} attribute with
   @{text abort}:
-*}
+\<close>
 
 declare %quote [[code abort: empty_queue]]
 
-text {*
+text \<open>
   \noindent Then the code generator will just insert an error or
   exception at the appropriate position:
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent This feature however is rarely needed in practice.  Note
   also that the HOL default setup already declares @{const undefined},
   which is most likely to be used in such situations, as
   @{text "code abort"}.
-*}
+\<close>
 
 
-subsection {* If something goes utterly wrong \label{sec:utterly_wrong} *}
+subsection \<open>If something goes utterly wrong \label{sec:utterly_wrong}\<close>
 
-text {*
+text \<open>
   Under certain circumstances, the code generator fails to produce
   code entirely.  To debug these, the following hints may prove
   helpful:
@@ -371,6 +371,6 @@ text {*
       class signatures (\qt{wellsortedness error}).
 
   \end{description}
-*}
+\<close>
 
 end

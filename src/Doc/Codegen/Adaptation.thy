@@ -2,14 +2,14 @@ theory Adaptation
 imports Setup
 begin
 
-setup %invisible {* Code_Target.add_derived_target ("\<SML>", [("SML", I)])
-  #> Code_Target.add_derived_target ("\<SMLdummy>", [("Haskell", I)]) *}
+setup %invisible \<open>Code_Target.add_derived_target ("\<SML>", [("SML", I)])
+  #> Code_Target.add_derived_target ("\<SMLdummy>", [("Haskell", I)])\<close>
 
-section {* Adaptation to target languages \label{sec:adaptation} *}
+section \<open>Adaptation to target languages \label{sec:adaptation}\<close>
 
-subsection {* Adapting code generation *}
+subsection \<open>Adapting code generation\<close>
 
-text {*
+text \<open>
   The aspects of code generation introduced so far have two aspects
   in common:
 
@@ -61,12 +61,12 @@ text {*
   setup by importing particular library theories.  In order to
   understand these, we provide some clues here; these however are not
   supposed to replace a careful study of the sources.
-*}
+\<close>
 
 
-subsection {* The adaptation principle *}
+subsection \<open>The adaptation principle\<close>
 
-text {*
+text \<open>
   Figure \ref{fig:adaptation} illustrates what \qt{adaptation} is
   conceptually supposed to be:
 
@@ -146,11 +146,11 @@ text {*
   \noindent As figure \ref{fig:adaptation} illustrates, all these
   adaptation mechanisms have to act consistently; it is at the
   discretion of the user to take care for this.
-*}
+\<close>
 
-subsection {* Common adaptation patterns *}
+subsection \<open>Common adaptation patterns\<close>
 
-text {*
+text \<open>
   The @{theory HOL} @{theory Main} theory already provides a code
   generator setup which should be suitable for most applications.
   Common extensions and modifications are available by certain
@@ -200,14 +200,14 @@ text {*
        arrays \emph{in SML only}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Parametrising serialisation \label{sec:adaptation_mechanisms} *}
+subsection \<open>Parametrising serialisation \label{sec:adaptation_mechanisms}\<close>
 
-text {*
+text \<open>
   Consider the following function and its corresponding SML code:
-*}
+\<close>
 
 primrec %quote in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
@@ -219,11 +219,11 @@ code_printing %invisible
 | constant HOL.conj \<rightharpoonup> (SML)
 | constant Not \<rightharpoonup> (SML)
 (*>*)
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts in_interval (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent Though this is correct code, it is a little bit
   unsatisfactory: boolean values and operators are materialised as
   distinguished entities with have nothing to do with the SML-built-in
@@ -232,7 +232,7 @@ text {*
   which would perfectly terminate when the existing SML @{verbatim
   "bool"} would be used.  To map the HOL @{typ bool} on SML @{verbatim
   "bool"}, we may use \qn{custom serialisations}:
-*}
+\<close>
 
 code_printing %quotett
   type_constructor bool \<rightharpoonup> (SML) "bool"
@@ -240,7 +240,7 @@ code_printing %quotett
 | constant False \<rightharpoonup> (SML) "false"
 | constant HOL.conj \<rightharpoonup> (SML) "_ andalso _"
 
-text {*
+text \<open>
   \noindent The @{command_def code_printing} command takes a series
   of symbols (contants, type constructor, \ldots)
   together with target-specific custom serialisations.  Each
@@ -249,28 +249,28 @@ text {*
   inserted whenever the type constructor would occur.  Each
   ``@{verbatim "_"}'' in a serialisation expression is treated as a
   placeholder for the constant's or the type constructor's arguments.
-*}
+\<close>
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts in_interval (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent This still is not perfect: the parentheses around the
   \qt{andalso} expression are superfluous.  Though the serialiser by
   no means attempts to imitate the rich Isabelle syntax framework, it
   provides some common idioms, notably associative infixes with
   precedences which may be used here:
-*}
+\<close>
 
 code_printing %quotett
   constant HOL.conj \<rightharpoonup> (SML) infixl 1 "andalso"
 
-text %quotetypewriter {*
+text %quotetypewriter \<open>
   @{code_stmts in_interval (SML)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent The attentive reader may ask how we assert that no
   generated code will accidentally overwrite.  For this reason the
   serialiser has an internal table of identifiers which have to be
@@ -278,14 +278,14 @@ text {*
   typically contains the keywords of the target language.  It can be
   extended manually, thus avoiding accidental overwrites, using the
   @{command_def "code_reserved"} command:
-*}
+\<close>
 
 code_reserved %quote "\<SMLdummy>" bool true false andalso
 
-text {*
+text \<open>
   \noindent Next, we try to map HOL pairs to SML pairs, using the
   infix ``@{verbatim "*"}'' type constructor and parentheses:
-*}
+\<close>
 (*<*)
 code_printing %invisible
   type_constructor prod \<rightharpoonup> (SML)
@@ -295,7 +295,7 @@ code_printing %quotett
   type_constructor prod \<rightharpoonup> (SML) infix 2 "*"
 | constant Pair \<rightharpoonup> (SML) "!((_),/ (_))"
 
-text {*
+text \<open>
   \noindent The initial bang ``@{verbatim "!"}'' tells the serialiser
   never to put parentheses around the whole expression (they are
   already present), while the parentheses around argument place
@@ -314,28 +314,28 @@ text {*
   in ``@{verbatim "fn '_ => _"}'' the first ``@{verbatim "_"}'' is a
   proper underscore while the second ``@{verbatim "_"}'' is a
   placeholder.
-*}
+\<close>
 
 
-subsection {* @{text Haskell} serialisation *}
+subsection \<open>@{text Haskell} serialisation\<close>
 
-text {*
+text \<open>
   For convenience, the default @{text HOL} setup for @{text Haskell}
   maps the @{class equal} class to its counterpart in @{text Haskell},
   giving custom serialisations for the class @{class equal}
   and its operation @{const [source] HOL.equal}.
-*}
+\<close>
 
 code_printing %quotett
   type_class equal \<rightharpoonup> (Haskell) "Eq"
 | constant HOL.equal \<rightharpoonup> (Haskell) infixl 4 "=="
 
-text {*
+text \<open>
   \noindent A problem now occurs whenever a type which is an instance
   of @{class equal} in @{text HOL} is mapped on a @{text
   Haskell}-built-in type which is also an instance of @{text Haskell}
   @{text Eq}:
-*}
+\<close>
 
 typedecl %quote bar
 
@@ -351,35 +351,35 @@ end %quote (*<*)
 (*>*) code_printing %quotett
   type_constructor bar \<rightharpoonup> (Haskell) "Integer"
 
-text {*
+text \<open>
   \noindent The code generator would produce an additional instance,
   which of course is rejected by the @{text Haskell} compiler.  To
   suppress this additional instance:
-*}
+\<close>
 
 code_printing %quotett
   class_instance bar :: "HOL.equal" \<rightharpoonup> (Haskell) -
 
 
-subsection {* Enhancing the target language context \label{sec:include} *}
+subsection \<open>Enhancing the target language context \label{sec:include}\<close>
 
-text {*
+text \<open>
   In rare cases it is necessary to \emph{enrich} the context of a
   target language; this can also be accomplished using the @{command
   "code_printing"} command:
-*}
+\<close>
 
 code_printing %quotett
-  code_module "Errno" \<rightharpoonup> (Haskell) {*errno i = error ("Error number: " ++ show i)*}
+  code_module "Errno" \<rightharpoonup> (Haskell) \<open>errno i = error ("Error number: " ++ show i)\<close>
 
 code_reserved %quotett Haskell Errno
 
-text {*
+text \<open>
   \noindent Such named modules are then prepended to every
   generated code.  Inspect such code in order to find out how
   this behaves with respect to a particular
   target language.
-*}
+\<close>
 
 end
 
