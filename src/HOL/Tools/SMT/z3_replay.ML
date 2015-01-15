@@ -208,6 +208,11 @@ fun parse_proof outer_ctxt
        fact_helper_ts prem_ids conjecture_id fact_helper_ids' steps}
   end
 
+fun intermediate_statistics ctxt start total =
+  SMT_Config.statistics_msg ctxt (fn current =>
+    "Reconstructed " ^ string_of_int current ^ " of " ^ string_of_int total ^ " steps in " ^
+    string_of_int (Time.toMilliseconds (#elapsed (Timing.result start))) ^ " ms")
+
 fun pretty_statistics total stats =
   let
     fun mean_of is =
@@ -236,10 +241,16 @@ fun replay outer_ctxt
       ctxt3
       |> put_simpset (Z3_Replay_Util.make_simpset ctxt3 [])
       |> Config.put SAT.solver (Config.get ctxt3 SMT_Config.sat_solver)
-    val ({elapsed, ...}, (proofs, stats)) =
-      Timing.timing (fold (replay_step ctxt4 assumed) steps) (assumed, Symtab.empty)
+    val len = length steps
+    val start = Timing.start ()
+    val print_runtime_statistics = intermediate_statistics ctxt4 start len
+    fun blockwise f (i, x) y =
+      (if i > 0 andalso i mod 100 = 0 then print_runtime_statistics i else (); f x y)
+    val (proofs, stats) =
+      fold_index (blockwise (replay_step ctxt4 assumed)) steps (assumed, Symtab.empty)
+    val _ = print_runtime_statistics len
+    val total = Time.toMilliseconds (#elapsed (Timing.result start))
     val (_, Z3_Proof.Z3_Step {id, ...}) = split_last steps
-    val total = Time.toMilliseconds elapsed
     val _ = SMT_Config.statistics_msg ctxt4 (Pretty.string_of o pretty_statistics total) stats
   in
     Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
