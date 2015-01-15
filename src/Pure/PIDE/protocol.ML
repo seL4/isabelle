@@ -53,45 +53,46 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
-    (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
-      let
-        val _ = Execution.discontinue ();
+    (Future.task_context "Document.update" (Future.new_group NONE)
+      (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
+        let
+          val _ = Execution.discontinue ();
 
-        val old_id = Document_ID.parse old_id_string;
-        val new_id = Document_ID.parse new_id_string;
-        val edits =
-          YXML.parse_body edits_yxml |>
-            let open XML.Decode in
-              list (pair string
-                (variant
-                 [fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
-                  fn ([], a) =>
-                    let
-                      val (master, (name, (imports, (keywords, errors)))) =
-                        pair string (pair string (pair (list string)
-                          (pair (list (pair string
-                            (option (pair (pair string (list string)) (list string)))))
-                            (list string)))) a;
-                      val imports' = map (rpair Position.none) imports;
-                      val header = Thy_Header.make (name, Position.none) imports' keywords;
-                    in Document.Deps (master, header, errors) end,
-                  fn (a :: b, c) =>
-                    Document.Perspective (bool_atom a, map int_atom b,
-                      list (pair int (pair string (list string))) c)]))
-            end;
+          val old_id = Document_ID.parse old_id_string;
+          val new_id = Document_ID.parse new_id_string;
+          val edits =
+            YXML.parse_body edits_yxml |>
+              let open XML.Decode in
+                list (pair string
+                  (variant
+                   [fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
+                    fn ([], a) =>
+                      let
+                        val (master, (name, (imports, (keywords, errors)))) =
+                          pair string (pair string (pair (list string)
+                            (pair (list (pair string
+                              (option (pair (pair string (list string)) (list string)))))
+                              (list string)))) a;
+                        val imports' = map (rpair Position.none) imports;
+                        val header = Thy_Header.make (name, Position.none) imports' keywords;
+                      in Document.Deps (master, header, errors) end,
+                    fn (a :: b, c) =>
+                      Document.Perspective (bool_atom a, map int_atom b,
+                        list (pair int (pair string (list string))) c)]))
+              end;
 
-        val (removed, assign_update, state') = Document.update old_id new_id edits state;
-        val _ = List.app Execution.terminate removed;
-        val _ = Execution.purge removed;
-        val _ = List.app Isabelle_Process.reset_tracing removed;
+          val (removed, assign_update, state') = Document.update old_id new_id edits state;
+          val _ = List.app Execution.terminate removed;
+          val _ = Execution.purge removed;
+          val _ = List.app Isabelle_Process.reset_tracing removed;
 
-        val _ =
-          Output.protocol_message Markup.assign_update
-            [(new_id, assign_update) |>
-              let open XML.Encode
-              in pair int (list (pair int (list int))) end
-              |> YXML.string_of_body];
-      in Document.start_execution state' end));
+          val _ =
+            Output.protocol_message Markup.assign_update
+              [(new_id, assign_update) |>
+                let open XML.Encode
+                in pair int (list (pair int (list int))) end
+                |> YXML.string_of_body];
+        in Document.start_execution state' end)));
 
 val _ =
   Isabelle_Process.protocol_command "Document.remove_versions"
