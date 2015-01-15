@@ -1025,5 +1025,61 @@ object Build
       }
     }
   }
+
+
+  /* PIDE protocol */
+
+  def build_theories(
+    session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
+      session.get_protocol_handler(classOf[Handler].getName) match {
+        case Some(handler: Handler) => handler.build_theories(session, master_dir, theories)
+        case _ => error("Cannot invoke build_theories: bad protocol handler")
+      }
+
+  class Handler(progress: Progress, session_name: String) extends Session.Protocol_Handler
+  {
+    private val pending = Synchronized(Map.empty[String, Promise[XML.Body]])
+
+    def build_theories(
+      session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
+    {
+      val promise = Future.promise[XML.Body]
+      val id = Document_ID.make().toString
+      pending.change(promises => promises + (id -> promise))
+      session.build_theories(id, master_dir, theories)
+      promise
+    }
+
+    private def loading_theory(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+      msg.properties match {
+        case Markup.Loading_Theory(name) => progress.theory(session_name, name); true
+        case _ => false
+      }
+
+    private def build_theories_result(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+      msg.properties match {
+        case Markup.Build_Theories_Result(id) =>
+          pending.change_result(promises =>
+            promises.get(id) match {
+              case Some(promise) =>
+                val error_message =
+                  try { YXML.parse_body(Symbol.decode(msg.text)) }
+                  catch { case exn: Throwable => List(XML.Text(Exn.message(exn))) }
+                promise.fulfill(error_message)
+                (true, promises - id)
+              case None =>
+                (false, promises)
+            })
+        case _ => false
+      }
+
+    override def stop(prover: Prover): Unit =
+      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
+
+    val functions =
+      Map(
+        Markup.BUILD_THEORIES_RESULT -> build_theories_result _,
+        Markup.LOADING_THEORY -> loading_theory _)
+  }
 }
 

@@ -97,6 +97,7 @@ declare
 
 declare measurable_cong_sets[measurable_cong]
 declare sets_restrict_space_cong[measurable_cong]
+declare sets_restrict_UNIV[measurable_cong]
 
 lemma predE[measurable (raw)]: 
   "pred M P \<Longrightarrow> {x\<in>space M. P x} \<in> sets M"

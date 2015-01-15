@@ -456,8 +456,8 @@ trait Protocol
   def remove_versions(versions: List[Document.Version])
   {
     val versions_yxml =
-      { import XML.Encode._
-        YXML.string_of_body(list(long)(versions.map(_.id))) }
+    { import XML.Encode._
+      YXML.string_of_body(list(long)(versions.map(_.id))) }
     protocol_command("Document.remove_versions", versions_yxml)
   }
 
@@ -468,8 +468,13 @@ trait Protocol
     protocol_command("Document.dialog_result", Properties.Value.Long(serial), result)
 
 
-  /* use_theories */
+  /* build_theories */
 
-  def use_theories(id: String, master_dir: Path, thys: List[Path]): Unit =
-    protocol_command("use_theories", (id :: master_dir.implode :: thys.map(_.implode)): _*)
+  def build_theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
+  {
+    val theories_yxml =
+    { import XML.Encode._
+      YXML.string_of_body(list(pair(Options.encode, list(Path.encode)))(theories)) }
+    protocol_command("build_theories", id, master_dir.implode, theories_yxml)
+  }
 }

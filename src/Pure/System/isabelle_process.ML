@@ -162,9 +162,6 @@ fun read_command channel =
   System_Channel.input_line channel
   |> Option.map (fn line => map (read_chunk channel) (space_explode "," line));
 
-fun task_context e =
-  Future.task_context "Isabelle_Process.loop" (Future.new_group NONE) e ();
-
 in
 
 fun loop channel =
@@ -173,7 +170,7 @@ fun loop channel =
       (case read_command channel of
         NONE => false
       | SOME [] => (Output.system_message "Isabelle process: no input"; true)
-      | SOME (name :: args) => (task_context (fn () => run_command name args); true))
+      | SOME (name :: args) => (run_command name args; true))
       handle exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
   in
     if continue then loop channel

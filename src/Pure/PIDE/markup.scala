@@ -458,21 +458,22 @@ object Markup
       }
   }
 
+  val LOADING_THEORY = "loading_theory"
   object Loading_Theory
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, "loading_theory"), (NAME, name)) => Some(name)
+        case List((FUNCTION, LOADING_THEORY), (NAME, name)) => Some(name)
         case _ => None
       }
   }
 
-  object Use_Theories_Result
+  val BUILD_THEORIES_RESULT = "build_theories_result"
+  object Build_Theories_Result
   {
-    def unapply(props: Properties.T): Option[(String, Boolean)] =
+    def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, "use_theories_result"),
-          ("id", id), ("ok", Properties.Value.Boolean(ok))) => Some((id, ok))
+        case List((FUNCTION, BUILD_THEORIES_RESULT), ("id", id)) => Some(id)
         case _ => None
       }
   }
