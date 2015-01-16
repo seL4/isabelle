@@ -511,6 +511,11 @@ apply (subgoal_tac "y * k = -y * -k")
 apply simp
 done
 
+lemma div_minus[simp]:
+  "\<lbrakk> z dvd x; z dvd y\<rbrakk> \<Longrightarrow> (x - y) div z = x div z - y div z"
+using div_add[where y = "- z" for z]
+by (simp add: dvd_neg_div)
+
 lemma div_minus_minus [simp]: "(-a) div (-b) = a div b"
   using div_mult_mult1 [of "- 1" a b]
   unfolding neg_equal_0_iff_equal by simp
