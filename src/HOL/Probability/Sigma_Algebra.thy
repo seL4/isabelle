@@ -1858,6 +1858,11 @@ subsubsection {* Measurable functions *}
 definition measurable :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) set" where
   "measurable A B = {f \<in> space A -> space B. \<forall>y \<in> sets B. f -` y \<inter> space A \<in> sets A}"
 
+lemma measurableI:
+  "(\<And>x. x \<in> space M \<Longrightarrow> f x \<in> space N) \<Longrightarrow> (\<And>A. A \<in> sets N \<Longrightarrow> f -` A \<inter> space M \<in> sets M) \<Longrightarrow>
+    f \<in> measurable M N"
+  by (auto simp: measurable_def)
+
 lemma measurable_space:
   "f \<in> measurable M A \<Longrightarrow> x \<in> space M \<Longrightarrow> f x \<in> space A"
    unfolding measurable_def by auto
@@ -1926,10 +1931,16 @@ lemma measurable_cong_sets:
   using sets[THEN sets_eq_imp_space_eq] sets by (simp add: measurable_def)
 
 lemma measurable_cong:
-  assumes "\<And> w. w \<in> space M \<Longrightarrow> f w = g w"
+  assumes "\<And>w. w \<in> space M \<Longrightarrow> f w = g w"
   shows "f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable M M'"
   unfolding measurable_def using assms
   by (simp cong: vimage_inter_cong Pi_cong)
+
+lemma measurable_cong':
+  assumes "\<And>w. w \<in> space M =simp=> f w = g w"
+  shows "f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable M M'"
+  unfolding measurable_def using assms
+  by (simp cong: vimage_inter_cong Pi_cong add: simp_implies_def)
 
 lemma measurable_cong_strong:
   "M = N \<Longrightarrow> M' = N' \<Longrightarrow> (\<And>w. w \<in> space M \<Longrightarrow> f w = g w) \<Longrightarrow>
@@ -1954,35 +1965,6 @@ lemma measurable_comp:
 lemma measurable_const:
   "c \<in> space M' \<Longrightarrow> (\<lambda>x. c) \<in> measurable M M'"
   by (auto simp add: measurable_def)
-
-lemma measurable_If:
-  assumes measure: "f \<in> measurable M M'" "g \<in> measurable M M'"
-  assumes P: "{x\<in>space M. P x} \<in> sets M"
-  shows "(\<lambda>x. if P x then f x else g x) \<in> measurable M M'"
-  unfolding measurable_def
-proof safe
-  fix x assume "x \<in> space M"
-  thus "(if P x then f x else g x) \<in> space M'"
-    using measure unfolding measurable_def by auto
-next
-  fix A assume "A \<in> sets M'"
-  hence *: "(\<lambda>x. if P x then f x else g x) -` A \<inter> space M =
-    ((f -` A \<inter> space M) \<inter> {x\<in>space M. P x}) \<union>
-    ((g -` A \<inter> space M) \<inter> (space M - {x\<in>space M. P x}))"
-    using measure unfolding measurable_def by (auto split: split_if_asm)
-  show "(\<lambda>x. if P x then f x else g x) -` A \<inter> space M \<in> sets M"
-    using `A \<in> sets M'` measure P unfolding * measurable_def
-    by (auto intro!: sets.Un)
-qed
-
-lemma measurable_If_set:
-  assumes measure: "f \<in> measurable M M'" "g \<in> measurable M M'"
-  assumes P: "A \<inter> space M \<in> sets M"
-  shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> measurable M M'"
-proof (rule measurable_If[OF measure])
-  have "{x \<in> space M. x \<in> A} = A \<inter> space M" by auto
-  thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<inter> space M \<in> sets M` by auto
-qed
 
 lemma measurable_ident: "id \<in> measurable M M"
   by (auto simp add: measurable_def)
@@ -2028,46 +2010,6 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma measurable_strong:
-  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'c"
-  assumes f: "f \<in> measurable a b" and g: "g \<in> space b \<rightarrow> space c"
-      and t: "f ` (space a) \<subseteq> t"
-      and cb: "\<And>s. s \<in> sets c \<Longrightarrow> (g -` s) \<inter> t \<in> sets b"
-  shows "(g o f) \<in> measurable a c"
-proof -
-  have fab: "f \<in> (space a -> space b)"
-   and ba: "\<And>y. y \<in> sets b \<Longrightarrow> (f -` y) \<inter> (space a) \<in> sets a" using f
-     by (auto simp add: measurable_def)
-  have eq: "\<And>y. (g \<circ> f) -` y \<inter> space a = f -` (g -` y \<inter> t) \<inter> space a" using t
-    by force
-  show ?thesis
-    apply (auto simp add: measurable_def vimage_comp)
-    apply (metis funcset_mem fab g)
-    apply (subst eq)
-    apply (metis ba cb)
-    done
-qed
-
-lemma measurable_discrete_difference:
-  assumes f: "f \<in> measurable M N"
-  assumes X: "countable X"
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  assumes space: "\<And>x. x \<in> X \<Longrightarrow> g x \<in> space N"
-  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
-  shows "g \<in> measurable M N"
-  unfolding measurable_def
-proof safe
-  fix x assume "x \<in> space M" then show "g x \<in> space N"
-    using measurable_space[OF f, of x] eq[of x] space[of x] by (cases "x \<in> X") auto
-next
-  fix S assume S: "S \<in> sets N"
-  have "g -` S \<inter> space M = (f -` S \<inter> space M) - (\<Union>x\<in>X. {x}) \<union> (\<Union>x\<in>{x\<in>X. g x \<in> S}. {x})"
-    using sets.sets_into_space[OF sets] eq by auto
-  also have "\<dots> \<in> sets M"
-    by (safe intro!: sets.Diff sets.Un measurable_sets[OF f] S sets.countable_UN' X countable_Collect sets)
-  finally show "g -` S \<inter> space M \<in> sets M" .
-qed
-
 lemma measurable_mono1:
   "M' \<subseteq> Pow \<Omega> \<Longrightarrow> M \<subseteq> M' \<Longrightarrow>
     measurable (measure_of \<Omega> M \<mu>) N \<subseteq> measurable (measure_of \<Omega> M' \<mu>') N"
@@ -2088,35 +2030,6 @@ lemma measurable_count_space_eq1[simp]:
   "f \<in> measurable (count_space A) M \<longleftrightarrow> f \<in> A \<rightarrow> space M"
  unfolding measurable_def by simp
 
-lemma measurable_count_space_eq2:
-  assumes "finite A"
-  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
-proof -
-  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
-    with `finite A` have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)" "finite X"
-      by (auto dest: finite_subset)
-    moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
-    ultimately have "f -` X \<inter> space M \<in> sets M"
-      using `X \<subseteq> A` by (auto intro!: sets.finite_UN simp del: UN_simps) }
-  then show ?thesis
-    unfolding measurable_def by auto
-qed
-
-lemma measurable_count_space_eq2_countable:
-  fixes f :: "'a => 'c::countable"
-  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
-proof -
-  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
-    assume *: "\<And>a. a\<in>A \<Longrightarrow> f -` {a} \<inter> space M \<in> sets M"
-    have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)"
-      by auto
-    also have "\<dots> \<in> sets M"
-      using * `X \<subseteq> A` by (intro sets.countable_UN) auto
-    finally have "f -` X \<inter> space M \<in> sets M" . }
-  then show ?thesis
-    unfolding measurable_def by auto
-qed
-
 lemma measurable_compose_countable':
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. f i x) \<in> measurable M N"
   and g: "g \<in> measurable M (count_space I)" and I: "countable I"
@@ -2129,30 +2042,11 @@ next
   fix A assume A: "A \<in> sets N"
   have "(\<lambda>x. f (g x) x) -` A \<inter> space M = (\<Union>i\<in>I. (g -` {i} \<inter> space M) \<inter> (f i -` A \<inter> space M))"
     using measurable_space[OF g] by auto
-  also have "\<dots> \<in> sets M" using f[THEN measurable_sets, OF _ A] g[THEN measurable_sets]
-    apply (auto intro!: sets.countable_UN' measurable_sets I)
-    apply (rule sets.Int)
-    apply auto
-    done
+  also have "\<dots> \<in> sets M"
+    using f[THEN measurable_sets, OF _ A] g[THEN measurable_sets]
+    by (auto intro!: sets.countable_UN' I intro: sets.Int[OF measurable_sets measurable_sets])
   finally show "(\<lambda>x. f (g x) x) -` A \<inter> space M \<in> sets M" .
 qed
-
-lemma measurable_compose_countable:
-  assumes f: "\<And>i::'i::countable. (\<lambda>x. f i x) \<in> measurable M N" and g: "g \<in> measurable M (count_space UNIV)"
-  shows "(\<lambda>x. f (g x) x) \<in> measurable M N"
-  by (rule measurable_compose_countable'[OF assms]) auto
-lemma measurable_count_space_const:
-  "(\<lambda>x. c) \<in> measurable M (count_space UNIV)"
-  by (simp add: measurable_const)
-
-lemma measurable_count_space:
-  "f \<in> measurable (count_space A) (count_space UNIV)"
-  by simp
-
-lemma measurable_compose_rev:
-  assumes f: "f \<in> measurable L N" and g: "g \<in> measurable M L"
-  shows "(\<lambda>x. f (g x)) \<in> measurable M N"
-  using measurable_compose[OF g f] .
 
 lemma measurable_count_space_eq_countable:
   assumes "countable A"
@@ -2167,6 +2061,33 @@ proof -
   then show ?thesis
     unfolding measurable_def by auto
 qed
+
+lemma measurable_count_space_eq2:
+  "finite A \<Longrightarrow> f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
+  by (intro measurable_count_space_eq_countable countable_finite)
+
+lemma measurable_count_space_eq2_countable:
+  fixes f :: "'a => 'c::countable"
+  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
+  by (intro measurable_count_space_eq_countable countableI_type)
+
+lemma measurable_compose_countable:
+  assumes f: "\<And>i::'i::countable. (\<lambda>x. f i x) \<in> measurable M N" and g: "g \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. f (g x) x) \<in> measurable M N"
+  by (rule measurable_compose_countable'[OF assms]) auto
+
+lemma measurable_count_space_const:
+  "(\<lambda>x. c) \<in> measurable M (count_space UNIV)"
+  by (simp add: measurable_const)
+
+lemma measurable_count_space:
+  "f \<in> measurable (count_space A) (count_space UNIV)"
+  by simp
+
+lemma measurable_compose_rev:
+  assumes f: "f \<in> measurable L N" and g: "g \<in> measurable M L"
+  shows "(\<lambda>x. f (g x)) \<in> measurable M N"
+  using measurable_compose[OF g f] .
 
 lemma measurable_empty_iff: 
   "space N = {} \<Longrightarrow> f \<in> measurable M N \<longleftrightarrow> space M = {}"
@@ -2443,6 +2364,10 @@ qed
 lemma sets_restrict_UNIV[simp]: "sets (restrict_space M UNIV) = sets M"
   by (auto simp add: sets_restrict_space)
 
+lemma sets_restrict_restrict_space:
+  "sets (restrict_space (restrict_space M A) B) = sets (restrict_space M (A \<inter> B))"
+  unfolding sets_restrict_space image_comp by (intro image_cong) auto
+
 lemma sets_restrict_space_iff:
   "\<Omega> \<inter> space M \<in> sets M \<Longrightarrow> A \<in> sets (restrict_space M \<Omega>) \<longleftrightarrow> (A \<subseteq> \<Omega> \<and> A \<in> sets M)"
 proof (subst sets_restrict_space, safe)
@@ -2477,91 +2402,110 @@ proof -
 qed
 
 lemma measurable_restrict_space1:
-  assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M" and f: "f \<in> measurable M N"
+  assumes f: "f \<in> measurable M N"
   shows "f \<in> measurable (restrict_space M \<Omega>) N"
   unfolding measurable_def
 proof (intro CollectI conjI ballI)
   show sp: "f \<in> space (restrict_space M \<Omega>) \<rightarrow> space N"
-    using measurable_space[OF f] sets.sets_into_space[OF \<Omega>] by (auto simp: space_restrict_space)
+    using measurable_space[OF f] by (auto simp: space_restrict_space)
 
   fix A assume "A \<in> sets N"
   have "f -` A \<inter> space (restrict_space M \<Omega>) = (f -` A \<inter> space M) \<inter> (\<Omega> \<inter> space M)"
-    using sets.sets_into_space[OF \<Omega>] by (auto simp: space_restrict_space)
+    by (auto simp: space_restrict_space)
   also have "\<dots> \<in> sets (restrict_space M \<Omega>)"
-    unfolding sets_restrict_space_iff[OF \<Omega>]
-    using measurable_sets[OF f `A \<in> sets N`] \<Omega> by blast
+    unfolding sets_restrict_space
+    using measurable_sets[OF f `A \<in> sets N`] by blast
   finally show "f -` A \<inter> space (restrict_space M \<Omega>) \<in> sets (restrict_space M \<Omega>)" .
 qed
 
-lemma measurable_restrict_space2:
-  "\<Omega> \<inter> space N \<in> sets N \<Longrightarrow> f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f \<in> measurable M N \<Longrightarrow>
-    f \<in> measurable M (restrict_space N \<Omega>)"
-  by (simp add: measurable_def space_restrict_space sets_restrict_space_iff Pi_Int[symmetric])
-
-lemma measurable_restrict_space_iff:
-  assumes \<Omega>[simp, intro]: "\<Omega> \<inter> space M \<in> sets M" "c \<in> space N"
-  shows "f \<in> measurable (restrict_space M \<Omega>) N \<longleftrightarrow>
-    (\<lambda>x. if x \<in> \<Omega> then f x else c) \<in> measurable M N" (is "f \<in> measurable ?R N \<longleftrightarrow> ?f \<in> measurable M N")
-  unfolding measurable_def
-proof safe
-  fix x assume "f \<in> space ?R \<rightarrow> space N" "x \<in> space M" then show "?f x \<in> space N"
-    using `c\<in>space N` by (auto simp: space_restrict_space)
-next
-  fix x assume "?f \<in> space M \<rightarrow> space N" "x \<in> space ?R" then show "f x \<in> space N"
-    using `c\<in>space N` by (auto simp: space_restrict_space Pi_iff)
-next
-  fix X assume X: "X \<in> sets N"
-  assume *[THEN bspec]: "\<forall>y\<in>sets N. f -` y \<inter> space ?R \<in> sets ?R"
-  have "?f -` X \<inter> space M = (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (if c \<in> X then (space M - (\<Omega> \<inter> space M)) else {})"
-    by (auto split: split_if_asm)
-  also have "\<dots> \<in> sets M"
-    using *[OF X] by (auto simp add: space_restrict_space sets_restrict_space_iff)
-  finally show "?f -` X \<inter> space M \<in> sets M" .
-next
-  assume *[THEN bspec]: "\<forall>y\<in>sets N. ?f -` y \<inter> space M \<in> sets M"
-  fix X :: "'b set" assume X: "X \<in> sets N"
-  have "f -` X \<inter> (\<Omega> \<inter> space M) = (?f -` X \<inter> space M) \<inter> (\<Omega> \<inter> space M)"
-    by (auto simp: space_restrict_space)
-  also have "\<dots> \<in> sets M"
-    using *[OF X] by auto
-  finally show "f -` X \<inter> space ?R \<in> sets ?R"
-    by (auto simp add: sets_restrict_space_iff space_restrict_space)
+lemma measurable_restrict_space2_iff:
+  "f \<in> measurable M (restrict_space N \<Omega>) \<longleftrightarrow> (f \<in> measurable M N \<and> f \<in> space M \<rightarrow> \<Omega>)"
+proof -
+  have "\<And>A. f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f -` \<Omega> \<inter> f -` A \<inter> space M = f -` A \<inter> space M"
+    by auto
+  then show ?thesis
+    by (auto simp: measurable_def space_restrict_space Pi_Int[symmetric] sets_restrict_space)
 qed
 
-lemma measurableI:
-  "(\<And>x. x \<in> space M \<Longrightarrow> f x \<in> space N) \<Longrightarrow>
-    (\<And>A. A \<in> sets N \<Longrightarrow> f -` A \<inter> space M \<in> sets M) \<Longrightarrow>
-    f \<in> measurable M N"
-  by (auto simp: measurable_def)
+lemma measurable_restrict_space2:
+  "f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> f \<in> measurable M (restrict_space N \<Omega>)"
+  by (simp add: measurable_restrict_space2_iff)
 
 lemma measurable_piecewise_restrict:
-  assumes I: "countable I" and X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" "(\<Union>i\<in>I. X i) = space M"
-    and meas: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> measurable (restrict_space M (X i)) N"
-    and eq: "\<And>i x. i \<in> I \<Longrightarrow> x \<in> X i \<Longrightarrow> f i x = f' x"
-  shows "f' \<in> measurable M N"
+  assumes I: "countable C"
+    and X: "\<And>\<Omega>. \<Omega> \<in> C \<Longrightarrow> \<Omega> \<inter> space M \<in> sets M" "space M \<subseteq> \<Union>C"
+    and f: "\<And>\<Omega>. \<Omega> \<in> C \<Longrightarrow> f \<in> measurable (restrict_space M \<Omega>) N"
+  shows "f \<in> measurable M N"
 proof (rule measurableI)
   fix x assume "x \<in> space M"
-  then obtain i where "i \<in> I" "x \<in> X i"
-    using X by auto
-  then show "f' x \<in> space N"
-    using eq[of i x] meas[THEN measurable_space, of i x] `x \<in> space M`
-    by (auto simp: space_restrict_space)
+  with X obtain \<Omega> where "\<Omega> \<in> C" "x \<in> \<Omega>" "x \<in> space M" by auto
+  then show "f x \<in> space N"
+    by (auto simp: space_restrict_space intro: f measurable_space)
 next
   fix A assume A: "A \<in> sets N"
-  have "f' -` A \<inter> space M = {x \<in> space M. \<forall>i\<in>I. x \<in> X i \<longrightarrow> f i x \<in> A}"
-    by (auto simp: eq X(2)[symmetric])
+  have "f -` A \<inter> space M = (\<Union>\<Omega>\<in>C. (f -` A \<inter> (\<Omega> \<inter> space M)))"
+    using X by (auto simp: subset_eq)
   also have "\<dots> \<in> sets M"
-  proof (intro sets.sets_Collect_countable_All'[OF _ I])
-    fix i assume "i \<in> I"
-    then have "(f i -` A \<inter> X i) \<union> (space M - X i) \<in> sets M"
-      using meas[THEN measurable_sets, OF `i \<in> I` A] X(1)
-      by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
-    also have "(f i -` A \<inter> X i) \<union> (space M - X i) = {x \<in> space M. x \<in> X i \<longrightarrow> f i x \<in> A}"
-      using `i \<in> I` by (auto simp: X(2)[symmetric])
-    finally show "{x \<in> space M. x \<in> X i \<longrightarrow> f i x \<in> A} \<in> sets M" .
-  qed
-  finally show "f' -` A \<inter> space M \<in> sets M" .
+    using measurable_sets[OF f A] X I
+    by (intro sets.countable_UN') (auto simp: sets_restrict_space_iff space_restrict_space)
+  finally show "f -` A \<inter> space M \<in> sets M" .
 qed
+
+lemma measurable_piecewise_restrict_iff:
+  "countable C \<Longrightarrow> (\<And>\<Omega>. \<Omega> \<in> C \<Longrightarrow> \<Omega> \<inter> space M \<in> sets M) \<Longrightarrow> space M \<subseteq> (\<Union>C) \<Longrightarrow>
+    f \<in> measurable M N \<longleftrightarrow> (\<forall>\<Omega>\<in>C. f \<in> measurable (restrict_space M \<Omega>) N)"
+  by (auto intro: measurable_piecewise_restrict measurable_restrict_space1)
+
+lemma measurable_If_restrict_space_iff:
+  "{x\<in>space M. P x} \<in> sets M \<Longrightarrow>
+    (\<lambda>x. if P x then f x else g x) \<in> measurable M N \<longleftrightarrow>
+    (f \<in> measurable (restrict_space M {x. P x}) N \<and> g \<in> measurable (restrict_space M {x. \<not> P x}) N)"
+  by (subst measurable_piecewise_restrict_iff[where C="{{x. P x}, {x. \<not> P x}}"])
+     (auto simp: Int_def sets.sets_Collect_neg space_restrict_space conj_commute[of _ "x \<in> space M" for x]
+           cong: measurable_cong')
+
+lemma measurable_If:
+  "f \<in> measurable M M' \<Longrightarrow> g \<in> measurable M M' \<Longrightarrow> {x\<in>space M. P x} \<in> sets M \<Longrightarrow>
+    (\<lambda>x. if P x then f x else g x) \<in> measurable M M'"
+  unfolding measurable_If_restrict_space_iff by (auto intro: measurable_restrict_space1)
+
+lemma measurable_If_set:
+  assumes measure: "f \<in> measurable M M'" "g \<in> measurable M M'"
+  assumes P: "A \<inter> space M \<in> sets M"
+  shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> measurable M M'"
+proof (rule measurable_If[OF measure])
+  have "{x \<in> space M. x \<in> A} = A \<inter> space M" by auto
+  thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<inter> space M \<in> sets M` by auto
+qed
+
+lemma measurable_restrict_space_iff:
+  "\<Omega> \<inter> space M \<in> sets M \<Longrightarrow> c \<in> space N \<Longrightarrow>
+    f \<in> measurable (restrict_space M \<Omega>) N \<longleftrightarrow> (\<lambda>x. if x \<in> \<Omega> then f x else c) \<in> measurable M N"
+  by (subst measurable_If_restrict_space_iff)
+     (simp_all add: Int_def conj_commute measurable_const)
+
+lemma restrict_space_singleton: "{x} \<in> sets M \<Longrightarrow> sets (restrict_space M {x}) = sets (count_space {x})"
+  using sets_restrict_space_iff[of "{x}" M]
+  by (auto simp add: sets_restrict_space_iff dest!: subset_singletonD)
+
+lemma measurable_restrict_countable:
+  assumes X[intro]: "countable X"
+  assumes sets[simp]: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes space[simp]: "\<And>x. x \<in> X \<Longrightarrow> f x \<in> space N"
+  assumes f: "f \<in> measurable (restrict_space M (- X)) N"
+  shows "f \<in> measurable M N"
+  using f sets.countable[OF sets X]
+  by (intro measurable_piecewise_restrict[where M=M and C="{- X} \<union> ((\<lambda>x. {x}) ` X)"])
+     (auto simp: Diff_Int_distrib2 Compl_eq_Diff_UNIV Int_insert_left sets.Diff restrict_space_singleton
+           simp del: sets_count_space  cong: measurable_cong_sets)
+
+lemma measurable_discrete_difference:
+  assumes f: "f \<in> measurable M N"
+  assumes X: "countable X" "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M" "\<And>x. x \<in> X \<Longrightarrow> g x \<in> space N"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "g \<in> measurable M N"
+  by (rule measurable_restrict_countable[OF X])
+     (auto simp: eq[symmetric] space_restrict_space cong: measurable_cong' intro: f measurable_restrict_space1)
 
 end
 

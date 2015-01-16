@@ -218,11 +218,10 @@ lemma borel_measurable_continuous_on1: "continuous_on UNIV f \<Longrightarrow> f
   by (drule borel_measurable_continuous_on_restrict) simp
 
 lemma borel_measurable_continuous_on_if:
-  assumes [measurable]: "A \<in> sets borel" and f: "continuous_on A f" and g: "continuous_on (- A) g"
-  shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> borel_measurable borel"
-  by (rule measurable_piecewise_restrict[where
-       X="\<lambda>b. if b then A else - A" and I=UNIV and f="\<lambda>b x. if b then f x else g x"])
-     (auto intro: f g borel_measurable_continuous_on_restrict)
+  "A \<in> sets borel \<Longrightarrow> continuous_on A f \<Longrightarrow> continuous_on (- A) g \<Longrightarrow>
+    (\<lambda>x. if x \<in> A then f x else g x) \<in> borel_measurable borel"
+  by (auto simp add: measurable_If_restrict_space_iff Collect_neg_eq
+           intro!: borel_measurable_continuous_on_restrict)
 
 lemma borel_measurable_continuous_countable_exceptions:
   fixes f :: "'a::t1_space \<Rightarrow> 'b::topological_space"
@@ -241,26 +240,11 @@ lemma borel_measurable_continuous_on:
   shows "(\<lambda>x. f (g x)) \<in> borel_measurable M"
   using measurable_comp[OF g borel_measurable_continuous_on1[OF f]] by (simp add: comp_def)
 
-lemma borel_measurable_continuous_on_open':
-  "continuous_on A f \<Longrightarrow> open A \<Longrightarrow>
-    (\<lambda>x. if x \<in> A then f x else c) \<in> borel_measurable borel"
-  using borel_measurable_continuous_on_if[of A f "\<lambda>_. c"] by (auto intro: continuous_on_const)
-
-lemma borel_measurable_continuous_on_open:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
-  assumes cont: "continuous_on A f" "open A"
-  assumes g: "g \<in> borel_measurable M"
-  shows "(\<lambda>x. if g x \<in> A then f (g x) else c) \<in> borel_measurable M"
-  using measurable_comp[OF g borel_measurable_continuous_on_open'[OF cont], of c]
-  by (simp add: comp_def)
-
 lemma borel_measurable_continuous_on_indicator:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  assumes A: "A \<in> sets borel" and f: "continuous_on A f"
-  shows "(\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable borel"
-  using borel_measurable_continuous_on_if[OF assms, of "\<lambda>_. 0"]
-  by (simp add: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] continuous_on_const
-           cong del: if_cong)
+  shows "A \<in> sets borel \<Longrightarrow> continuous_on A f \<Longrightarrow> (\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable borel"
+  by (subst borel_measurable_restrict_space_iff[symmetric])
+     (auto intro: borel_measurable_continuous_on_restrict)
 
 lemma borel_eq_countable_basis:
   fixes B::"'a::topological_space set set"
@@ -1046,21 +1030,11 @@ lemma borel_measurable_nth[measurable (raw)]:
   by (simp add: cart_eq_inner_axis)
 
 lemma convex_measurable:
-  fixes A :: "'a :: ordered_euclidean_space set"
-  assumes X: "X \<in> borel_measurable M" "X ` space M \<subseteq> A" "open A"
-  assumes q: "convex_on A q"
-  shows "(\<lambda>x. q (X x)) \<in> borel_measurable M"
-proof -
-  have "(\<lambda>x. if X x \<in> A then q (X x) else 0) \<in> borel_measurable M" (is "?qX")
-  proof (rule borel_measurable_continuous_on_open[OF _ _ X(1)])
-    show "open A" by fact
-    from this q show "continuous_on A q"
-      by (rule convex_on_continuous)
-  qed
-  also have "?qX \<longleftrightarrow> (\<lambda>x. q (X x)) \<in> borel_measurable M"
-    using X by (intro measurable_cong) auto
-  finally show ?thesis .
-qed
+  fixes A :: "'a :: euclidean_space set"
+  shows "X \<in> borel_measurable M \<Longrightarrow> X ` space M \<subseteq> A \<Longrightarrow> open A \<Longrightarrow> convex_on A q \<Longrightarrow> 
+    (\<lambda>x. q (X x)) \<in> borel_measurable M"
+  by (rule measurable_compose[where f=X and N="restrict_space borel A"])
+     (auto intro!: borel_measurable_continuous_on_restrict convex_on_continuous measurable_restrict_space2)
 
 lemma borel_measurable_ln[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
@@ -1102,17 +1076,17 @@ lemma borel_measurable_real_natfloor:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
   by simp
 
-lemma borel_measurable_root [measurable]: "(root n) \<in> borel_measurable borel"
+lemma borel_measurable_root [measurable]: "root n \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
 lemma borel_measurable_sqrt [measurable]: "sqrt \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
 lemma borel_measurable_power [measurable (raw)]:
-   fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
-   assumes f: "f \<in> borel_measurable M"
-   shows "(\<lambda>x. (f x) ^ n) \<in> borel_measurable M"
-   by (intro borel_measurable_continuous_on [OF _ f] continuous_intros)
+  fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
+  assumes f: "f \<in> borel_measurable M"
+  shows "(\<lambda>x. (f x) ^ n) \<in> borel_measurable M"
+  by (intro borel_measurable_continuous_on [OF _ f] continuous_intros)
 
 lemma borel_measurable_Re [measurable]: "Re \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
@@ -1490,7 +1464,7 @@ proof -
   have **: "\<And>e y. open {x. dist x y < e}"
     using open_ball by (simp_all add: ball_def dist_commute)
 
-  have "{x\<in>space borel. isCont f x } \<in> sets borel"
+  have "{x\<in>space borel. isCont f x} \<in> sets borel"
     unfolding *
     apply (intro sets.sets_Collect_countable_All sets.sets_Collect_countable_Ex)
     apply (simp add: Collect_all_eq)
