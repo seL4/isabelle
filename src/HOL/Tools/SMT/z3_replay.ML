@@ -83,7 +83,8 @@ local
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
 
-  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, Z3_Replay_Literals.rewrite_true]
+  val rewrite_true_rule = @{lemma "True == ~ False" by simp}
+  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, rewrite_true_rule]
 
   fun rewrite _ [] = I
     | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
@@ -95,7 +96,7 @@ in
 
 fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
   let
-    val eqs = map (rewrite ctxt [Z3_Replay_Literals.rewrite_true]) rewrite_rules
+    val eqs = map (rewrite ctxt [rewrite_true_rule]) rewrite_rules
     val eqs' = union Thm.eq_thm eqs prep_rules
 
     val assms_net =
@@ -154,8 +155,8 @@ fun discharge_sk_tac i st =
 
 end
 
-fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl}, @{thm reflexive},
-  Z3_Replay_Literals.true_thm]
+val true_thm = @{lemma "~False" by simp}
+fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl}, @{thm reflexive}, true_thm]
 
 val intro_def_rules = @{lemma
   "(~ P | P) & (P | ~ P)"

@@ -447,8 +447,11 @@ fun lift_ite_rewrite ctxt t =
     CONVERSION (HOLogic.Trueprop_conv (Conv.binop_conv (if_context_conv ctxt)))
     THEN' rtac @{thm refl})
 
+fun prove_conj_disj_perm ctxt t = prove ctxt t (fn _ => Conj_Disj_Perm.conj_disj_perm_tac)
+
 fun rewrite ctxt _ = try_provers ctxt Z3_Proof.Rewrite [
   ("rules", apply_rule ctxt),
+  ("conj_disj_perm", prove_conj_disj_perm ctxt),
   ("prop_rewrite", prove_prop_rewrite ctxt),
   ("arith_rewrite", focus_eq prove_arith_rewrite ctxt),
   ("if_rewrite", lift_ite_rewrite ctxt)] []
