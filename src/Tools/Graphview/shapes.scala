@@ -19,63 +19,48 @@ object Shapes
   private val default_stroke =
     new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-  object Node
+  def shape(info: Layout.Info): Rectangle2D.Double =
+    new Rectangle2D.Double(info.x - info.width2, info.y - info.height2, info.width, info.height)
+
+  def paint_node(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
   {
-    def shape(visualizer: Visualizer, node: Graph_Display.Node): Rectangle2D.Double =
-    {
-      val metrics = visualizer.metrics
-      val p = visualizer.layout.get_vertex(Layout.Node(node))
-      val bounds = metrics.string_bounds(node.toString)
-      val w2 = ((bounds.getWidth + metrics.pad_x) / 2).ceil
-      val h2 = ((bounds.getHeight + metrics.pad_y) / 2).ceil
-      new Rectangle2D.Double(p.x - w2, p.y - h2, 2 * w2, 2 * h2)
-    }
+    val metrics = visualizer.metrics
+    val info = visualizer.layout.get_node(node)
+    val c = visualizer.node_color(node)
+    val s = shape(info)
 
-    def paint(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
-    {
-      val metrics = visualizer.metrics
-      val s = shape(visualizer, node)
-      val c = visualizer.node_color(node)
-      val bounds = metrics.string_bounds(node.toString)
+    gfx.setColor(c.background)
+    gfx.fill(s)
 
-      gfx.setColor(c.background)
-      gfx.fill(s)
+    gfx.setColor(c.border)
+    gfx.setStroke(default_stroke)
+    gfx.draw(s)
 
-      gfx.setColor(c.border)
-      gfx.setStroke(default_stroke)
-      gfx.draw(s)
+    gfx.setColor(c.foreground)
+    gfx.setFont(metrics.font)
 
-      gfx.setColor(c.foreground)
-      gfx.setFont(metrics.font)
-      gfx.drawString(node.toString,
-        (s.getCenterX - bounds.getWidth / 2).round.toInt,
-        (s.getCenterY - bounds.getHeight / 2 + metrics.ascent).round.toInt)
-    }
+    val text_width =
+      (0.0 /: info.lines) { case (w, line) => w max metrics.string_bounds(line).getWidth }
+    val text_height =
+      (info.lines.length max 1) * metrics.height.ceil
+    val x = (s.getCenterX - text_width / 2).round.toInt
+    var y = (s.getCenterY - text_height / 2 + metrics.ascent).round.toInt
+    for (line <- info.lines) { gfx.drawString(line, x, y); y += metrics.height.ceil.toInt }
   }
 
-  object Dummy
+  def paint_dummy(gfx: Graphics2D, visualizer: Visualizer, info: Layout.Info)
   {
-    def shape(visualizer: Visualizer, d: Layout.Point): Rectangle2D.Double =
-    {
-      val metrics = visualizer.metrics
-      val w = metrics.dummy_width2
-      new Rectangle2D.Double(d.x - w / 2, d.y - w / 2, w, w)
-    }
-
-    def paint(gfx: Graphics2D, visualizer: Visualizer, d: Layout.Point)
-    {
-      gfx.setStroke(default_stroke)
-      gfx.setColor(visualizer.dummy_color)
-      gfx.draw(shape(visualizer, d))
-    }
+    gfx.setStroke(default_stroke)
+    gfx.setColor(visualizer.dummy_color)
+    gfx.draw(shape(info))
   }
 
   object Straight_Edge
   {
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
-      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
+      val p = visualizer.layout.get_node(edge._1)
+      val q = visualizer.layout.get_node(edge._2)
       val ds =
       {
         val a = p.y min q.y
@@ -88,15 +73,13 @@ object Shapes
       ds.foreach(d => path.lineTo(d.x, d.y))
       path.lineTo(q.x, q.y)
 
-      if (visualizer.show_dummies)
-        ds.foreach(Dummy.paint(gfx, visualizer, _))
+      if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
 
       gfx.setStroke(default_stroke)
       gfx.setColor(visualizer.edge_color(edge))
       gfx.draw(path)
 
-      if (visualizer.arrow_heads)
-        Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
+      if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
     }
   }
 
@@ -106,8 +89,8 @@ object Shapes
 
     def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
     {
-      val p = visualizer.layout.get_vertex(Layout.Node(edge._1))
-      val q = visualizer.layout.get_vertex(Layout.Node(edge._2))
+      val p = visualizer.layout.get_node(edge._1)
+      val q = visualizer.layout.get_node(edge._2)
       val ds =
       {
         val a = p.y min q.y
@@ -142,15 +125,13 @@ object Shapes
           q.x - slack * dx2, q.y - slack * dy2,
           q.x, q.y)
 
-        if (visualizer.show_dummies)
-          ds.foreach(Dummy.paint(gfx, visualizer, _))
+        if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
 
         gfx.setStroke(default_stroke)
         gfx.setColor(visualizer.edge_color(edge))
         gfx.draw(path)
 
-        if (visualizer.arrow_heads)
-          Arrow_Head.paint(gfx, path, Shapes.Node.shape(visualizer, edge._2))
+        if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
       }
     }
   }

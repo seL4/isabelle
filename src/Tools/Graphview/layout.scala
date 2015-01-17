@@ -55,12 +55,18 @@ object Layout
   case class Node(node: Graph_Display.Node) extends Vertex
   case class Dummy(node1: Graph_Display.Node, node2: Graph_Display.Node, index: Int) extends Vertex
 
-  object Point { val zero: Point = Point(0.0, 0.0) }
-  case class Point(x: Double, y: Double)
+  sealed case class Info(
+    x: Double, y: Double, width2: Double, height2: Double, lines: List[String])
+  {
+    def left: Double = x - width2
+    def right: Double = x + width2
+    def width: Double = 2 * width2
+    def height: Double = 2 * height2
+  }
 
-  type Graph = isabelle.Graph[Vertex, Point]
+  type Graph = isabelle.Graph[Vertex, Info]
 
-  def make_graph(entries: List[((Vertex, Point), List[Vertex])]): Graph =
+  def make_graph(entries: List[((Vertex, Info), List[Vertex])]): Graph =
     isabelle.Graph.make(entries)(Vertex.Ordering)
 
   val empty_graph: Graph = make_graph(Nil)
@@ -68,14 +74,11 @@ object Layout
 
   /* vertex x coordinate */
 
-  private def vertex_left(metrics: Metrics, graph: Graph, v: Vertex): Double =
-    graph.get_node(v).x - metrics.box_width2(v)
-
-  private def vertex_right(metrics: Metrics, graph: Graph, v: Vertex): Double =
-    graph.get_node(v).x + metrics.box_width2(v)
+  private def vertex_left(graph: Graph, v: Vertex) = graph.get_node(v).left
+  private def vertex_right(graph: Graph, v: Vertex) = graph.get_node(v).right
 
   private def move_vertex(graph: Graph, v: Vertex, dx: Double): Graph =
-    if (dx == 0.0) graph else graph.map_node(v, p => Point(p.x + dx, p.y))
+    if (dx == 0.0) graph else graph.map_node(v, info => info.copy(x = info.x + dx))
 
 
   /* layout */
@@ -86,7 +89,9 @@ object Layout
   private type Levels = Map[Vertex, Int]
   private val empty_levels: Levels = Map.empty
 
-  def make(options: Options, metrics: Metrics, input_graph: Graph_Display.Graph): Layout =
+  def make(options: Options, metrics: Metrics,
+    node_text: (Graph_Display.Node, XML.Body) => String,
+    input_graph: Graph_Display.Graph): Layout =
   {
     if (input_graph.is_empty) empty
     else {
@@ -95,7 +100,12 @@ object Layout
       val initial_graph =
         make_graph(
           input_graph.iterator.map(
-            { case (a, (_, (_, bs))) => ((Node(a), Point.zero), bs.toList.map(Node(_))) }).toList)
+            { case (a, (content, (_, bs))) =>
+                val lines = split_lines(node_text(a, content))
+                val w2 = metrics.node_width2(lines)
+                val h2 = metrics.node_height2(lines.length)
+                ((Node(a), Info(0.0, 0.0, w2, h2, lines)), bs.toList.map(Node(_)))
+            }).toList)
 
       val initial_levels: Levels =
         (empty_levels /: initial_graph.topological_order) {
@@ -107,6 +117,8 @@ object Layout
 
 
       /* graph with dummies */
+
+      val dummy_info = Info(0.0, 0.0, metrics.dummy_size2, metrics.dummy_size2, Nil)
 
       val (dummy_graph, dummy_levels) =
         ((initial_graph, initial_levels) /: input_graph.edges_iterator) {
@@ -122,7 +134,7 @@ object Layout
 
                 val levels1 = (levels /: dummies_levels)(_ + _)
                 val graph1 =
-                  ((graph /: dummies)(_.new_node(_, Point.zero)).del_edge(v1, v2) /:
+                  ((graph /: dummies)(_.new_node(_, dummy_info)).del_edge(v1, v2) /:
                     (v1 :: dummies ::: List(v2)).sliding(2)) {
                       case (g, List(a, b)) => g.add_edge(a, b) }
                 (graph1, levels1)
@@ -137,12 +149,22 @@ object Layout
       val levels_graph: Graph =
         (((dummy_graph, 0.0) /: levels) {
           case ((graph, y), level) =>
+            val num_lines = (0 /: level) { case (n, v) => n max graph.get_node(v).lines.length }
             val num_edges = (0 /: level) { case (n, v) => n + graph.imm_succs(v).size }
-            ((((graph, 0.0) /: level) {
-              case ((g, x), v) =>
-                val w2 = metrics.box_width2(v)
-                (g.map_node(v, _ => Point(x + w2, y)), x + 2 * w2 + metrics.box_gap)
-            })._1, y + metrics.box_height(num_edges))
+
+            val y1 = y + metrics.node_height2(num_lines)
+
+            val graph1 =
+              (((graph, 0.0) /: level) { case ((g, x), v) =>
+                val info = g.get_node(v)
+                val g1 = g.map_node(v, _ => info.copy(x = x + info.width2, y = y1))
+                val x1 = x + info.width + metrics.gap
+                (g1, x1)
+              })._1
+
+            val y2 = y1 + metrics.level_height2(num_lines, num_edges)
+
+            (graph1, y2)
         })._1
 
 
@@ -224,9 +246,9 @@ object Layout
   private class Region(val content: List[Vertex])
   {
     def distance(metrics: Metrics, graph: Graph, that: Region): Double =
-      vertex_left(metrics, graph, that.content.head) -
-      vertex_right(metrics, graph, this.content.last) -
-      metrics.box_gap
+      vertex_left(graph, that.content.head) -
+      vertex_right(graph, this.content.last) -
+      metrics.gap
 
     def deflection(graph: Graph, top_down: Boolean): Double =
       ((for (a <- content.iterator) yield {
@@ -317,9 +339,7 @@ object Layout
   private def rubberband(
     options: Options, metrics: Metrics, levels: List[Level], graph: Graph): Graph =
   {
-    val gap = metrics.box_gap
-    def left(g: Graph, v: Vertex) = vertex_left(metrics, g, v)
-    def right(g: Graph, v: Vertex) = vertex_right(metrics, g, v)
+    val gap = metrics.gap
 
     (graph /: (1 to options.int("graphview_iterations_rubberband"))) { case (graph, _) =>
       (graph /: levels) { case (graph, level) =>
@@ -327,8 +347,8 @@ object Layout
         (graph /: level.iterator.zipWithIndex) {
           case (g, (v, i)) =>
             val d = force_weight(g, v)
-            if (d < 0.0 && (i == 0 || right(g, level(i - 1)) + gap < left(g, v) + d) ||
-                d > 0.0 && (i == m || left(g, level(i + 1)) - gap > right(g, v) + d))
+            if (d < 0.0 && (i == 0 || vertex_right(g, level(i - 1)) + gap < vertex_left(g, v) + d) ||
+                d > 0.0 && (i == m || vertex_left(g, level(i + 1)) - gap > vertex_right(g, v) + d))
               move_vertex(g, v, d.round.toDouble)
             else g
         }
@@ -344,34 +364,40 @@ final class Layout private(
 {
   /* vertex coordinates */
 
-  def get_vertex(v: Layout.Vertex): Layout.Point =
-    if (output_graph.defined(v)) output_graph.get_node(v)
-    else Layout.Point.zero
-
   def translate_vertex(v: Layout.Vertex, dx: Double, dy: Double): Layout =
   {
     if ((dx == 0.0 && dy == 0.0) || !output_graph.defined(v)) this
     else {
-      val output_graph1 = output_graph.map_node(v, p => Layout.Point(p.x + dx, p.y + dy))
+      val output_graph1 =
+        output_graph.map_node(v, info => info.copy(x = info.x + dx, y = info.y + dy))
       new Layout(metrics, input_graph, output_graph1)
     }
   }
 
 
+  /* regular nodes */
+
+  def get_node(node: Graph_Display.Node): Layout.Info =
+    output_graph.get_node(Layout.Node(node))
+
+  def nodes_iterator: Iterator[Layout.Info] =
+    for ((_: Layout.Node, (info, _)) <- output_graph.iterator) yield info
+
+
   /* dummies */
 
-  def dummies_iterator: Iterator[Layout.Point] =
-    for ((_: Layout.Dummy, (p, _)) <- output_graph.iterator) yield p
+  def dummies_iterator: Iterator[Layout.Info] =
+    for ((_: Layout.Dummy, (info, _)) <- output_graph.iterator) yield info
 
-  def dummies_iterator(edge: Graph_Display.Edge): Iterator[Layout.Point] =
-    new Iterator[Layout.Point] {
+  def dummies_iterator(edge: Graph_Display.Edge): Iterator[Layout.Info] =
+    new Iterator[Layout.Info] {
       private var index = 0
       def hasNext: Boolean = output_graph.defined(Layout.Dummy(edge._1, edge._2, index))
-      def next: Layout.Point =
+      def next: Layout.Info =
       {
-        val p = output_graph.get_node(Layout.Dummy(edge._1, edge._2, index))
+        val info = output_graph.get_node(Layout.Dummy(edge._1, edge._2, index))
         index += 1
-        p
+        info
       }
     }
 }

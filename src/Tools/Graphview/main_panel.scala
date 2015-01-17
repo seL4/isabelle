@@ -40,12 +40,25 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
   val options_panel =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       new CheckBox() {
-        selected = visualizer.arrow_heads
-        action = Action("Arrow heads") { visualizer.arrow_heads = selected; graph_panel.repaint() }
+        selected = visualizer.show_content
+        action = Action("Show content") {
+          visualizer.show_content = selected
+          graph_panel.apply_layout()
+        }
+      },
+      new CheckBox() {
+        selected = visualizer.show_arrow_heads
+        action = Action("Show arrow heads") {
+          visualizer.show_arrow_heads = selected
+          graph_panel.repaint()
+        }
       },
       new CheckBox() {
         selected = visualizer.show_dummies
-        action = Action("Show dummies") { visualizer.show_dummies = selected; graph_panel.repaint() }
+        action = Action("Show dummies") {
+          visualizer.show_dummies = selected
+          graph_panel.repaint()
+        }
       },
       new Button {
         action = Action("Save image") {

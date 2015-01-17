@@ -34,12 +34,12 @@ class Visualizer(options: => Options, val model: Model)
 
   def find_node(at: Point2D): Option[Graph_Display.Node] =
     layout.output_graph.iterator.collectFirst({
-      case (Layout.Node(node), _) if Shapes.Node.shape(visualizer, node).contains(at) => node
+      case (Layout.Node(node), (info, _)) if Shapes.shape(info).contains(at) => node
     })
 
   def find_dummy(at: Point2D): Option[Layout.Dummy] =
     layout.output_graph.iterator.collectFirst({
-      case (dummy: Layout.Dummy, (d, _)) if Shapes.Dummy.shape(visualizer, d).contains(at) => dummy
+      case (dummy: Layout.Dummy, (info, _)) if Shapes.shape(info).contains(at) => dummy
     })
 
   def bounding_box(): Rectangle2D.Double =
@@ -48,19 +48,17 @@ class Visualizer(options: => Options, val model: Model)
     var y0 = 0.0
     var x1 = 0.0
     var y1 = 0.0
-    ((for (node <- visible_graph.keys_iterator) yield Shapes.Node.shape(visualizer, node)) ++
-     (for (d <- layout.dummies_iterator) yield Shapes.Dummy.shape(visualizer, d))).
-       foreach(rect => {
-          x0 = x0 min rect.getMinX
-          y0 = y0 min rect.getMinY
-          x1 = x1 max rect.getMaxX
-          y1 = y1 max rect.getMaxY
-        })
-    val gap = metrics.gap
-    x0 = (x0 - gap).floor
-    y0 = (y0 - gap).floor
-    x1 = (x1 + gap).ceil
-    y1 = (y1 + gap).ceil
+    for ((_, (info, _)) <- layout.output_graph.iterator) {
+      val rect = Shapes.shape(info)
+      x0 = x0 min rect.getMinX
+      y0 = y0 min rect.getMinY
+      x1 = x1 max rect.getMaxX
+      y1 = y1 max rect.getMaxY
+    }
+    x0 = (x0 - metrics.gap).floor
+    y0 = (y0 - metrics.gap).floor
+    x1 = (x1 + metrics.gap).ceil
+    y1 = (y1 + metrics.gap).ceil
     new Rectangle2D.Double(x0, y0, x1 - x0, y1 - y0)
   }
 
@@ -69,8 +67,17 @@ class Visualizer(options: => Options, val model: Model)
     val metrics = Metrics(make_font())
     val visible_graph = model.make_visible_graph()
 
+    def node_text(node: Graph_Display.Node, content: XML.Body): String =
+      if (show_content) {
+        val s =
+          XML.content(Pretty.formatted(
+            content, options.int("graphview_content_margin").toDouble, metrics.Pretty_Metric))
+        if (s.nonEmpty) s else node.toString
+      }
+      else node.toString
+
     // FIXME avoid expensive operation on GUI thread
-    _layout = Layout.make(options, metrics, visible_graph)
+    _layout = Layout.make(options, metrics, node_text _, visible_graph)
   }
 
 
@@ -101,7 +108,8 @@ class Visualizer(options: => Options, val model: Model)
   /* rendering parameters */
 
   // owned by GUI thread
-  var arrow_heads = false
+  var show_content = false
+  var show_arrow_heads = false
   var show_dummies = false
 
   object Colors
@@ -130,7 +138,7 @@ class Visualizer(options: => Options, val model: Model)
     for (edge <- visible_graph.edges_iterator)
       Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
     for (node <- visible_graph.keys_iterator)
-      Shapes.Node.paint(gfx, visualizer, node)
+      Shapes.paint_node(gfx, visualizer, node)
   }
 
   object Selection

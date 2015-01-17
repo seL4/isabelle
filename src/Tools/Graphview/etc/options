@@ -20,3 +20,6 @@ public option graphview_iterations_pendulum : int = 10
 public option graphview_iterations_rubberband : int = 10
   -- "number of iterations for rubberband method"
 
+public option graphview_content_margin : int = 60
+  -- "margin for node content pretty-printing"
+
