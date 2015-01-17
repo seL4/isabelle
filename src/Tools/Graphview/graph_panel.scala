@@ -52,7 +52,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
   }
 
-  def fit_to_window() = {
+  def fit_to_window()
+  {
     Transform.fit_to_window()
     refresh()
   }
@@ -69,7 +70,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   def apply_layout()
   {
     visualizer.update_layout()
-    repaint()
+    refresh()
   }
 
   private class Paint_Panel extends Panel
