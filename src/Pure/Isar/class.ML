@@ -51,7 +51,7 @@ sig
   val default_intro_tac: Proof.context -> thm list -> tactic
 
   (*diagnostics*)
-  val pretty_body: theory -> class -> Pretty.T list
+  val pretty_specification: theory -> class -> Pretty.T list
 end;
 
 structure Class: CLASS =
@@ -731,12 +731,25 @@ val _ = Theory.setup
 
 (** diagnostics **)
 
-fun pretty_body thy c =
-  let
-    val cs = (#params o Axclass.get_info thy) c;
-    val fix_args = map (fn (c, T) => ((Binding.name o Long_Name.base_name) c, SOME T, NoSyn)) cs; 
-    val fixes = if null fix_args then [] else [Element.Fixes fix_args];
-  in maps (Element.pretty_ctxt (init c thy)) (fixes @ Locale.hyp_spec_of thy c) end;
+fun pretty_specification thy c =
+  if is_class thy c then
+    let
+      val class_ctxt = init c thy;
+      val class_space = Proof_Context.class_space class_ctxt;
+
+      val fix_args =
+        #params (Axclass.get_info thy c)
+        |> map (fn (c, T) => (Binding.name (Long_Name.base_name c), SOME T, NoSyn));
+      val fixes = if null fix_args then [] else [Element.Fixes fix_args];
+      val assumes = Locale.hyp_spec_of thy c;
+
+      val header =
+        [Pretty.keyword1 "class", Pretty.brk 1, Name_Space.pretty class_ctxt class_space c];
+      val body =
+        maps (Element.pretty_ctxt class_ctxt) (fixes @ assumes)
+        |> maps (fn prt => [Pretty.fbrk, prt]);
+    in [Pretty.block (header @ body)] end
+  else [];
 
 end;
 

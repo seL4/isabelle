@@ -27,12 +27,13 @@ fun gen_class_deps prep_sort ctxt raw_super raw_sub =
     val (_, algebra) =
       Sorts.subalgebra (Context.pretty ctxt)
         (le_super andf sub_le) (K NONE) original_algebra;
-    fun pretty_body_of c = if Class.is_class thy c then Class.pretty_body thy c else [];
+    fun node c =
+      Graph_Display.content_node (Name_Space.extern ctxt space c)
+        (Class.pretty_specification thy c);
   in
     Sorts.classes_of algebra
     |> Graph.dest
-    |> map (fn ((c, _), ds) =>
-        ((c, Graph_Display.content_node (Name_Space.extern ctxt space c) (pretty_body_of c)), ds))
+    |> map (fn ((c, _), ds) => ((c, node c), ds))
     |> Graph_Display.display_graph
   end;
 
