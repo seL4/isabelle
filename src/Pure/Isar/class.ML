@@ -746,9 +746,11 @@ fun pretty_specification thy c =
       val header =
         [Pretty.keyword1 "class", Pretty.brk 1, Name_Space.pretty class_ctxt class_space c];
       val body =
-        maps (Element.pretty_ctxt class_ctxt) (fixes @ assumes)
-        |> maps (fn prt => [Pretty.fbrk, prt]);
-    in [Pretty.block (header @ body)] end
+        if null fixes andalso null assumes then []
+        else
+          maps (Element.pretty_ctxt_no_attribs class_ctxt) (fixes @ assumes)
+          |> maps (fn prt => [Pretty.fbrk, prt]);
+    in if null body then [] else [Pretty.block (header @ body)] end
   else [];
 
 end;

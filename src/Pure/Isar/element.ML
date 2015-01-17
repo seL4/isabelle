@@ -28,6 +28,7 @@ sig
   val transform_ctxt: morphism -> context_i -> context_i
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
+  val pretty_ctxt_no_attribs: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
   type witness
   val prove_witness: Proof.context -> term -> tactic -> witness
@@ -146,12 +147,22 @@ fun pretty_stmt ctxt =
 
 (* pretty_ctxt *)
 
-fun pretty_ctxt ctxt =
+fun gen_pretty_ctxt show_attribs ctxt =
   let
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
-    val prt_name_atts = pretty_name_atts ctxt;
+
+    fun prt_name_atts (b, atts) sep =
+      if not show_attribs orelse null atts then
+        [Pretty.block [Binding.pretty b, Pretty.str sep]]
+      else pretty_name_atts ctxt (b, atts) sep;
+
+    fun prt_fact (ths, atts) =
+      if not show_attribs orelse null atts then map prt_thm ths
+      else
+        Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths)) ::
+          Attrib.pretty_attribs ctxt atts;
 
     fun prt_mixfix NoSyn = []
       | prt_mixfix mx = [Pretty.brk 2, Mixfix.pretty_mixfix mx];
@@ -167,9 +178,6 @@ fun pretty_ctxt ctxt =
     fun prt_def (a, (t, _)) =
       Pretty.block (Pretty.breaks (prt_name_atts a ":" @ [prt_term t]));
 
-    fun prt_fact (ths, []) = map prt_thm ths
-      | prt_fact (ths, atts) = Pretty.enclose "(" ")"
-          (Pretty.breaks (map prt_thm ths)) :: Attrib.pretty_attribs ctxt atts;
     fun prt_note (a, ths) =
       Pretty.block (Pretty.breaks (flat (prt_name_atts a "=" :: map prt_fact ths)));
   in
@@ -180,6 +188,9 @@ fun pretty_ctxt ctxt =
      | Notes ("", facts) => pretty_items "notes" "and" (map prt_note facts)
      | Notes (kind, facts) => pretty_items ("notes " ^ kind) "and" (map prt_note facts)
   end;
+
+val pretty_ctxt = gen_pretty_ctxt true;
+val pretty_ctxt_no_attribs = gen_pretty_ctxt false;
 
 
 (* pretty_statement *)
