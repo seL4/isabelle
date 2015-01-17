@@ -79,8 +79,8 @@ class System_Dialog extends Build.Progress
 
     val text = new TextArea {
       editable = false
-      columns = 50
-      rows = 20
+      columns = 65
+      rows = 24
     }
 
     val scroll_text = new ScrollPane(text)
