@@ -149,7 +149,8 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
   }
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    alphabetic, selection_label, selection_field, selection_apply)
+    // FIXME alphabetic,
+    selection_label, selection_field, selection_apply)
 
 
   /* main layout */

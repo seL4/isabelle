@@ -83,9 +83,11 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
       },
       graph_panel.zoom,
       new Button { action = Action("Fit to window") { graph_panel.fit_to_window() } },
-      new Button { action = Action("Update layout") { update_layout() } },
+      new Button { action = Action("Update layout") { update_layout() } })
+    /* FIXME
       new Button { action = Action("Colorations") { color_dialog.open } },
-      new Button { action = Action("Filters") { mutator_dialog.open } })
+      new Button { action = Action("Filters") { mutator_dialog.open } }
+    */
 
   layout(split_pane) = BorderPanel.Position.Center
   layout(controls) = BorderPanel.Position.North
