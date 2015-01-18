@@ -20,6 +20,9 @@ class Visualizer(options: => Options, val model: Model)
   visualizer =>
 
 
+  def get_options: Options = options
+
+
   /* layout state */
 
   // owned by GUI thread
@@ -91,6 +94,7 @@ class Visualizer(options: => Options, val model: Model)
   def foreground_color: Color = Color.BLACK
   def background_color: Color = Color.WHITE
   def selection_color: Color = Color.GREEN
+  def current_color: Color = Color.YELLOW
   def error_color: Color = Color.RED
   def dummy_color: Color = Color.GRAY
 
@@ -141,6 +145,9 @@ class Visualizer(options: => Options, val model: Model)
       Shapes.paint_node(gfx, visualizer, node)
   }
 
+  var alphabetic_order: Boolean = false
+  var current_node: Option[Graph_Display.Node] = None
+
   object Selection
   {
     // owned by GUI thread
@@ -156,7 +163,9 @@ class Visualizer(options: => Options, val model: Model)
   sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
   def node_color(node: Graph_Display.Node): Node_Color =
-    if (Selection.contains(node))
+    if (current_node == Some(node))
+      Node_Color(foreground_color, current_color, foreground_color)
+    else if (Selection.contains(node))
       Node_Color(foreground_color, selection_color, foreground_color)
     else
       Node_Color(foreground_color, model.colors.getOrElse(node, background_color), foreground_color)

@@ -109,11 +109,12 @@ declare -a SOURCES=(
   "../Tools/Graphview/main_panel.scala"
   "../Tools/Graphview/metrics.scala"
   "../Tools/Graphview/model.scala"
+  "../Tools/Graphview/mutator.scala"
   "../Tools/Graphview/mutator_dialog.scala"
   "../Tools/Graphview/mutator_event.scala"
-  "../Tools/Graphview/mutator.scala"
   "../Tools/Graphview/popups.scala"
   "../Tools/Graphview/shapes.scala"
+  "../Tools/Graphview/tree_panel.scala"
   "../Tools/Graphview/visualizer.scala"
 )
 

@@ -36,9 +36,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
   }
 
-  focusable = true
-  requestFocus()
-
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
@@ -64,12 +61,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   {
     Transform.scale = s
     if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
-    refresh()
-  }
-
-  def apply_layout()
-  {
-    visualizer.update_layout()
     refresh()
   }
 
@@ -112,7 +103,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   visualizer.model.Colors.events += { case _ => repaint() }
   visualizer.model.Mutators.events += { case _ => repaint() }
 
-  apply_layout()
   rescale(1.0)
 
   private object Transform
