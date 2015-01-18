@@ -126,8 +126,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val page =
       new TabbedPane.Page("Find Theorems", new BorderPanel {
-        add(control_panel, BorderPanel.Position.North)
-        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+        layout(control_panel) = BorderPanel.Position.North
+        layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
       }, apply_button.tooltip)
   }
 
@@ -174,8 +174,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val page =
       new TabbedPane.Page("Find Constants", new BorderPanel {
-        add(control_panel, BorderPanel.Position.North)
-        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+        layout(control_panel) = BorderPanel.Position.North
+        layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
       }, apply_button.tooltip)
   }
 
@@ -266,8 +266,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val page =
       new TabbedPane.Page("Print Context", new BorderPanel {
-        add(control_panel, BorderPanel.Position.North)
-        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+        layout(control_panel) = BorderPanel.Position.North
+        layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
       }, "Print information from context")
   }
 

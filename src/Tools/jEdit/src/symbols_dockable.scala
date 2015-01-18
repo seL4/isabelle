@@ -64,8 +64,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     val search_page =
       new TabbedPane.Page("search", new BorderPanel {
         val results_panel = new Wrap_Panel
-        add(search_field, BorderPanel.Position.North)
-        add(new ScrollPane(results_panel), BorderPanel.Position.Center)
+        layout(search_field) = BorderPanel.Position.North
+        layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
   
         val search_space =
           (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList

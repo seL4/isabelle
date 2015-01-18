@@ -155,8 +155,8 @@ class Mutator_Dialog(
   contents = new BorderPanel {
     border = new EmptyBorder(5, 5, 5, 5)
 
-    add(new ScrollPane(filter_panel), BorderPanel.Position.Center)
-    add(botPanel, BorderPanel.Position.South)
+    layout(new ScrollPane(filter_panel)) = BorderPanel.Position.Center
+    layout(botPanel) = BorderPanel.Position.South
   }
 
   private class Mutator_Panel(initials: Mutator.Info)
