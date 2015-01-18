@@ -84,7 +84,7 @@ class Tree_Panel(val visualizer: Visualizer, repaint_graph: () => Unit) extends 
   private val selection_field_foreground = selection_field.foreground
 
   private val selection_delay =
-    GUI_Thread.delay_last(visualizer.get_options.seconds("editor_input_delay")) {
+    GUI_Thread.delay_last(visualizer.options.seconds("editor_input_delay")) {
       val (pattern, ok) =
         selection_field.text match {
           case null | "" => (None, true)

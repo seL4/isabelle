@@ -62,26 +62,29 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
     graph_result match {
       case Exn.Res(graph) =>
         val model = new isabelle.graphview.Model(graph)
-        val visualizer = new isabelle.graphview.Visualizer(PIDE.options.value, model) {
+        val visualizer = new isabelle.graphview.Visualizer(model) {
+          def options: Options = PIDE.options.value
+
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
           {
             Pretty_Tooltip.invoke(() =>
               {
-                val rendering = Rendering(snapshot, PIDE.options.value)
+                val rendering = Rendering(snapshot, options)
                 val info = Text.Info(Text.Range(~1), body)
                 Pretty_Tooltip(view, parent, new Point(x, y), rendering, Command.Results.empty, info)
               })
             null
           }
+
+          override def make_font(): Font =
+            GUI.imitate_font(Font_Info.main().font,
+              options.string("graphview_font_family"),
+              options.real("graphview_font_scale"))
+
           override def foreground_color = view.getTextArea.getPainter.getForeground
           override def selection_color = view.getTextArea.getPainter.getSelectionColor
           override def current_color = view.getTextArea.getPainter.getLineHighlightColor
           override def error_color = PIDE.options.color_value("error_color")
-
-          override def make_font(): Font =
-            GUI.imitate_font(Font_Info.main().font,
-              PIDE.options.string("graphview_font_family"),
-              PIDE.options.real("graphview_font_scale"))
         }
         new isabelle.graphview.Main_Panel(model, visualizer)
       case Exn.Exn(exn) => new TextArea(Exn.message(exn))

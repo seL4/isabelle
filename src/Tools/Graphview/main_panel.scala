@@ -34,7 +34,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
   }
 
   val split_pane =
-    if (visualizer.get_options.bool("graphview_swap_panels"))
+    if (visualizer.options.bool("graphview_swap_panels"))
       new SplitPane(Orientation.Vertical, tree_panel, graph_panel)
     else
       new SplitPane(Orientation.Vertical, graph_panel, tree_panel)

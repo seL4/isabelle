@@ -2,7 +2,7 @@
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-Graph visualization parameters and interface state.
+Graph visualization parameters and GUI state.
 */
 
 package isabelle.graphview
@@ -15,12 +15,12 @@ import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
-class Visualizer(options: => Options, val model: Model)
+abstract class Visualizer(val model: Model)
 {
   visualizer =>
 
 
-  def get_options: Options = options
+  def options: Options
 
 
   /* layout state */
