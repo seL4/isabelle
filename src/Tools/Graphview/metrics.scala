@@ -35,18 +35,16 @@ class Metrics private(val font: Font)
   def char_width: Double = mix.getWidth / 3
   def height: Double = mix.getHeight
   def ascent: Double = font.getLineMetrics("", Metrics.font_render_context).getAscent
-  def pad_x: Double = char_width * 1.5
-  def pad_y: Double = char_width
 
   def gap: Double = mix.getWidth.ceil
 
-  def dummy_size2: Double = (pad_x / 2).ceil
+  def dummy_size2: Double = (char_width / 2).ceil
 
   def node_width2(lines: List[String]): Double =
-    (((0.0 /: lines)({ case (w, s) => w max string_bounds(s).getWidth }) + pad_x) / 2).ceil
+    (((0.0 /: lines)({ case (w, s) => w max string_bounds(s).getWidth }) + 2 * char_width) / 2).ceil
 
   def node_height2(num_lines: Int): Double =
-    ((height.ceil * (num_lines max 1) + pad_y) / 2).ceil
+    ((height.ceil * (num_lines max 1) + char_width) / 2).ceil
 
   def level_height2(num_lines: Int, num_edges: Int): Double =
     (node_height2(num_lines) + gap) max (node_height2(1) * (num_edges max 5))
