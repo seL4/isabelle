@@ -22,6 +22,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 {
   panel =>
 
+
+  /* tooltips */
+
   tooltip = ""
 
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
@@ -36,33 +39,32 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
   }
 
+
+  /* scrolling */
+
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
   peer.getVerticalScrollBar.setUnitIncrement(10)
 
-  def refresh()
+  def scroll_to_node(node: Graph_Display.Node)
   {
-    if (paint_panel != null) {
-      paint_panel.set_preferred_size()
-      paint_panel.repaint()
-    }
+    val gap = visualizer.metrics.gap
+    val info = visualizer.layout.get_node(node)
+
+    val t = Transform()
+    val p =
+      t.transform(new Point2D.Double(info.x - info.width2 - gap, info.y - info.height2 - gap), null)
+    val q =
+      t.transform(new Point2D.Double(info.x + info.width2 + gap, info.y + info.height2 + gap), null)
+
+    paint_panel.peer.scrollRectToVisible(
+      new Rectangle(p.getX.toInt, p.getY.toInt,
+        (q.getX - p.getX).ceil.toInt, (q.getY - p.getY).ceil.toInt))
   }
 
-  def fit_to_window()
-  {
-    Transform.fit_to_window()
-    refresh()
-  }
 
-  val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
-
-  def rescale(s: Double)
-  {
-    Transform.scale = s
-    if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
-    refresh()
-  }
+  /* painting */
 
   private class Paint_Panel extends Panel
   {
@@ -90,38 +92,33 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
   private val paint_panel = new Paint_Panel
   contents = paint_panel
 
-  listenTo(mouse.moves)
-  listenTo(mouse.clicks)
-  reactions += Mouse_Interaction.react
-  reactions +=
+  def refresh()
   {
-    case MousePressed(_, _, _, _, _) => repaint()
-    case MouseDragged(_, _, _) => repaint()
-    case MouseClicked(_, _, _, _, _) => repaint()
+    if (paint_panel != null) {
+      paint_panel.set_preferred_size()
+      paint_panel.repaint()
+    }
   }
 
-  visualizer.model.Colors.events += { case _ => repaint() }
-  visualizer.model.Mutators.events += { case _ => repaint() }
+  def fit_to_window()
+  {
+    Transform.fit_to_window()
+    refresh()
+  }
+
+  val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
+
+  def rescale(s: Double)
+  {
+    Transform.scale = s
+    if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
+    refresh()
+  }
 
   rescale(1.0)
 
 
-  def scroll_to_node(node: Graph_Display.Node)
-  {
-    val gap = visualizer.metrics.gap
-    val info = visualizer.layout.get_node(node)
-
-    val t = Transform()
-    val p =
-      t.transform(new Point2D.Double(info.x - info.width2 - gap, info.y - info.height2 - gap), null)
-    val q =
-      t.transform(new Point2D.Double(info.x + info.width2 + gap, info.y + info.height2 + gap), null)
-
-    paint_panel.peer.scrollRectToVisible(
-      new Rectangle(p.getX.toInt, p.getY.toInt,
-        (q.getX - p.getX).ceil.toInt, (q.getY - p.getY).ceil.toInt))
-  }
-
+  /* transform */
 
   private object Transform
   {
@@ -166,19 +163,31 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
   }
 
-  object Mouse_Interaction
-  {
-    private var draginfo: (Point, List[Graph_Display.Node], List[Layout.Dummy]) = null
 
-    val react: PartialFunction[Event, Unit] =
-    {
-      case MousePressed(_, p, _, _, _) => pressed(p)
-      case MouseDragged(_, to, _) =>
-        drag(draginfo, to)
-        val (_, p, d) = draginfo
-        draginfo = (to, p, d)
-      case e @ MouseClicked(_, p, m, n, _) => click(p, m, n, e)
-    }
+  /* interaction */
+
+  listenTo(mouse.moves)
+  listenTo(mouse.clicks)
+  reactions +=
+  {
+    case MousePressed(_, p, _, _, _) =>
+      Mouse_Interaction.pressed(p)
+      repaint()
+    case MouseDragged(_, to, _) =>
+      Mouse_Interaction.dragged(to)
+      repaint()
+    case e @ MouseClicked(_, p, m, n, _) =>
+      Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
+      repaint()
+  }
+
+  visualizer.model.Colors.events += { case _ => repaint() }
+  visualizer.model.Mutators.events += { case _ => repaint() }
+
+  private object Mouse_Interaction
+  {
+    private var draginfo: (Point, List[Graph_Display.Node], List[Layout.Dummy]) =
+      (new Point(0, 0), Nil, Nil)
 
     def pressed(at: Point)
     {
@@ -198,45 +207,14 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       draginfo = (at, l, d)
     }
 
-    def click(at: Point, m: Key.Modifiers, clicks: Int, e: MouseEvent)
+    def dragged(to: Point)
     {
-      val c = Transform.pane_to_graph_coordinates(at)
-
-      def left_click()
-      {
-        (visualizer.find_node(c), m) match {
-          case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
-          case (None, Key.Modifier.Control) =>
-
-          case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
-          case (None, Key.Modifier.Shift) =>
-
-          case (Some(node), _) =>
-            visualizer.Selection.clear()
-            visualizer.Selection.add(node)
-          case (None, _) =>
-            visualizer.Selection.clear()
-        }
-      }
-
-      def right_click()
-      {
-        val menu = Popups(panel, visualizer.find_node(c), visualizer.Selection.get())
-        menu.show(panel.peer, at.x, at.y)
-      }
-
-      if (clicks < 2) {
-        if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
-        else left_click()
-      }
-    }
-
-    def drag(info: (Point, List[Graph_Display.Node], List[Layout.Dummy]), to: Point)
-    {
-      val (from, p, d) = info
+      val (from, p, d) = draginfo
 
       val s = Transform.scale_discrete
-      val (dx, dy) = (to.x - from.x, to.y - from.y)
+      val dx = to.x - from.x
+      val dy = to.y - from.y
+
       (p, d) match {
         case (Nil, Nil) =>
           val r = panel.peer.getViewport.getViewRect
@@ -248,6 +226,35 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
         case (ls, _) =>
           ls.foreach(l => visualizer.translate_vertex(Layout.Node(l), dx / s, dy / s))
+      }
+
+      draginfo = (to, p, d)
+    }
+
+    def clicked(at: Point, m: Key.Modifiers, clicks: Int, right_click: Boolean)
+    {
+      val c = Transform.pane_to_graph_coordinates(at)
+
+      if (clicks < 2) {
+        if (right_click) {
+          val menu = Popups(panel, visualizer.find_node(c), visualizer.Selection.get())
+          menu.show(panel.peer, at.x, at.y)
+        }
+        else {
+          (visualizer.find_node(c), m) match {
+            case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
+            case (None, Key.Modifier.Control) =>
+
+            case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
+            case (None, Key.Modifier.Shift) =>
+
+            case (Some(node), _) =>
+              visualizer.Selection.clear()
+              visualizer.Selection.add(node)
+            case (None, _) =>
+              visualizer.Selection.clear()
+          }
+        }
       }
     }
   }
