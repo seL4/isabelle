@@ -237,8 +237,11 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
       if (clicks < 2) {
         if (right_click) {
-          val menu = Popups(panel, visualizer.find_node(c), visualizer.Selection.get())
-          menu.show(panel.peer, at.x, at.y)
+          // FIXME
+          if (false) {
+            val menu = Popups(panel, visualizer.find_node(c), visualizer.Selection.get())
+            menu.show(panel.peer, at.x, at.y)
+          }
         }
         else {
           (visualizer.find_node(c), m) match {
