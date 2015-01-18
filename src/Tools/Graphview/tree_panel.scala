@@ -106,7 +106,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
 
   private def selection_filter(node: Graph_Display.Node): Boolean =
     selection_pattern match {
-      case None => true
+      case None => false
       case Some(re) => re.pattern.matcher(node.toString).find
     }
 
@@ -130,8 +130,10 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
         }
       if (selection_pattern != pattern) {
         selection_pattern = pattern
-        // FIXME
-        System.console.writer.println(pattern)
+        tree.setSelectionRows(
+          (for { (node, i) <- nodes.iterator.zipWithIndex if selection_filter(node) }
+            yield i + 1).toArray)
+        tree.repaint()
       }
       selection_field.foreground =
         if (ok) selection_field_foreground else visualizer.error_color
