@@ -33,7 +33,11 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
     graph_panel.refresh()
   }
 
-  val split_pane = new SplitPane(Orientation.Vertical, tree_panel, graph_panel)
+  val split_pane =
+    if (visualizer.get_options.bool("graphview_swap_panels"))
+      new SplitPane(Orientation.Vertical, tree_panel, graph_panel)
+    else
+      new SplitPane(Orientation.Vertical, graph_panel, tree_panel)
   split_pane.oneTouchExpandable = true
 
   val mutator_dialog = new Mutator_Dialog(visualizer, model.Mutators, "Filters", "Hide", false)
