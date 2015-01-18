@@ -144,7 +144,6 @@ abstract class Visualizer(val model: Model)
       Shapes.paint_node(gfx, visualizer, node)
   }
 
-  var alphabetic_order: Boolean = false
   var current_node: Option[Graph_Display.Node] = None
 
   object Selection

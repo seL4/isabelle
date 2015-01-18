@@ -93,15 +93,6 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
 
   /* controls */
 
-  private val alphabetic = new CheckBox {
-    tooltip = "Alphabetic order instead of topological order"
-    selected = visualizer.alphabetic_order
-    action = Action("Alphabetic order") {
-      visualizer.alphabetic_order = selected
-      refresh()
-    }
-  }
-
   private var selection_pattern: Option[Regex] = None
 
   private def selection_filter(node: Graph_Display.Node): Boolean =
@@ -151,7 +142,6 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
   }
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    // FIXME alphabetic,
     selection_label, selection_field, selection_apply)
 
 
@@ -159,12 +149,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
 
   def refresh()
   {
-    val new_nodes =
-      if (visualizer.alphabetic_order)
-        visualizer.visible_graph.keys_iterator.toList
-      else
-        visualizer.visible_graph.topological_order
-
+    val new_nodes = visualizer.visible_graph.topological_order
     if (new_nodes != nodes) {
       nodes = new_nodes
 
