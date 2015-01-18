@@ -10,7 +10,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Dimension, Graphics2D, Point}
+import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
 
@@ -105,6 +105,24 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   rescale(1.0)
 
+
+  def scroll_to_node(node: Graph_Display.Node)
+  {
+    val gap = visualizer.metrics.gap
+    val info = visualizer.layout.get_node(node)
+
+    val t = Transform()
+    val p =
+      t.transform(new Point2D.Double(info.x - info.width2 - gap, info.y - info.height2 - gap), null)
+    val q =
+      t.transform(new Point2D.Double(info.x + info.width2 + gap, info.y + info.height2 + gap), null)
+
+    paint_panel.peer.scrollRectToVisible(
+      new Rectangle(p.getX.toInt, p.getY.toInt,
+        (q.getX - p.getX).ceil.toInt, (q.getY - p.getY).ceil.toInt))
+  }
+
+
   private object Transform
   {
     private var _scale: Double = 1.0
@@ -123,9 +141,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     def apply() =
     {
       val box = visualizer.bounding_box()
-      val at = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
-      at.translate(- box.x, - box.y)
-      at
+      val t = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
+      t.translate(- box.x, - box.y)
+      t
     }
 
     def fit_to_window()

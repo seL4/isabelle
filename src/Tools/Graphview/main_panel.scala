@@ -21,14 +21,8 @@ import javax.swing.JComponent
 
 class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 {
-  private def repaint_all()
-  {
-    revalidate()
-    repaint()
-  }
-
   val graph_panel = new Graph_Panel(visualizer)
-  val tree_panel = new Tree_Panel(visualizer, repaint_all _)
+  val tree_panel = new Tree_Panel(visualizer, graph_panel)
 
   def update_layout()
   {

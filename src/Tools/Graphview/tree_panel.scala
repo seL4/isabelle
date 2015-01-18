@@ -19,7 +19,7 @@ import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, CheckBox, Action}
 
 
-class Tree_Panel(val visualizer: Visualizer, repaint_all: () => Unit) extends BorderPanel
+class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends BorderPanel
 {
   /* main actions */
 
@@ -41,7 +41,7 @@ class Tree_Panel(val visualizer: Visualizer, repaint_all: () => Unit) extends Bo
           }
         }
       }
-      repaint_all()
+      graph_panel.repaint()
     }
   }
 
@@ -57,17 +57,9 @@ class Tree_Panel(val visualizer: Visualizer, repaint_all: () => Unit) extends Bo
             }
           case _ => None
         }
-      action_node match {
-        case Some(node) =>
-          val info = visualizer.layout.get_node(node)
-          tree_pane.peer.scrollRectToVisible(
-            new Rectangle(
-              (info.x - info.width2).toInt, (info.y - info.height2).toInt,
-              info.width.toInt, info.height.toInt))
-        case None =>
-      }
+      action_node.foreach(graph_panel.scroll_to_node(_))
       visualizer.current_node = action_node
-      repaint_all()
+      graph_panel.repaint()
     }
   }
 
