@@ -79,7 +79,6 @@ abstract class Visualizer(val model: Model)
       }
       else node.toString
 
-    // FIXME avoid expensive operation on GUI thread
     _layout = Layout.make(options, metrics, node_text _, visible_graph)
   }
 
