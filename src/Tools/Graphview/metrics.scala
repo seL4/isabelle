@@ -17,10 +17,15 @@ import java.awt.geom.Rectangle2D
 object Metrics
 {
   val rendering_hints: RenderingHints =
-    new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+  {
+    val hints = new java.util.HashMap[RenderingHints.Key, AnyRef]
+    hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    hints.put(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
+    new RenderingHints(hints)
+  }
 
   val font_render_context: FontRenderContext =
-    new FontRenderContext(null, true, false)
+    new FontRenderContext(null, true, true)
 
   def apply(font: Font): Metrics = new Metrics(font)
 
