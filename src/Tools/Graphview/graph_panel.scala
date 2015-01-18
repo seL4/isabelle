@@ -100,12 +100,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     }
   }
 
-  def fit_to_window()
-  {
-    Transform.fit_to_window()
-    refresh()
-  }
-
   val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
 
   def rescale(s: Double)
@@ -119,6 +113,12 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
 
   /* transform */
+
+  def fit_to_window()
+  {
+    Transform.fit_to_window()
+    refresh()
+  }
 
   private object Transform
   {
@@ -166,6 +166,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   /* interaction */
 
+  visualizer.model.Colors.events += { case _ => repaint() }
+  visualizer.model.Mutators.events += { case _ => repaint() }
+
   listenTo(mouse.moves)
   listenTo(mouse.clicks)
   reactions +=
@@ -180,9 +183,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
       repaint()
   }
-
-  visualizer.model.Colors.events += { case _ => repaint() }
-  visualizer.model.Mutators.events += { case _ => repaint() }
 
   private object Mouse_Interaction
   {
