@@ -21,10 +21,14 @@ import javax.swing.JComponent
 
 class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
 {
-  private def repaint_graph() { if (graph_panel != null) graph_panel.repaint }
+  private def repaint_all()
+  {
+    revalidate()
+    repaint()
+  }
 
   val graph_panel = new Graph_Panel(visualizer)
-  val tree_panel = new Tree_Panel(visualizer, repaint_graph _)
+  val tree_panel = new Tree_Panel(visualizer, repaint_all _)
 
   def update_layout()
   {
@@ -63,7 +67,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
         selected = visualizer.show_arrow_heads
         action = Action("Show arrow heads") {
           visualizer.show_arrow_heads = selected
-          repaint_graph()
+          graph_panel.repaint()
         }
       },
       new CheckBox() {
@@ -71,7 +75,7 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
         selected = visualizer.show_dummies
         action = Action("Show dummies") {
           visualizer.show_dummies = selected
-          repaint_graph()
+          graph_panel.repaint()
         }
       },
       new Button {

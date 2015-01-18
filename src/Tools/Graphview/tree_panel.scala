@@ -9,43 +9,87 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.Dimension
-import java.awt.event.{MouseEvent, MouseAdapter}
+import java.awt.{Dimension, Rectangle}
+import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JTree
-import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
-import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener,
-  DocumentListener, DocumentEvent}
+import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel, TreePath}
+import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
 
 import scala.util.matching.Regex
-import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button,
-  CheckBox, Action}
+import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, CheckBox, Action}
 
 
-class Tree_Panel(val visualizer: Visualizer, repaint_graph: () => Unit) extends BorderPanel
+class Tree_Panel(val visualizer: Visualizer, repaint_all: () => Unit) extends BorderPanel
 {
+  /* main actions */
+
+  private def selection_action()
+  {
+    if (tree != null) {
+      visualizer.current_node = None
+      visualizer.Selection.clear()
+      val paths = tree.getSelectionPaths
+      if (paths != null) {
+        for (path <- paths if path != null) {
+          path.getLastPathComponent match {
+            case tree_node: DefaultMutableTreeNode =>
+              tree_node.getUserObject match {
+                case node: Graph_Display.Node => visualizer.Selection.add(node)
+                case _ =>
+              }
+            case _ =>
+          }
+        }
+      }
+      repaint_all()
+    }
+  }
+
+  private def point_action(path: TreePath)
+  {
+    if (tree_pane != null && path != null) {
+      val action_node =
+        path.getLastPathComponent match {
+          case tree_node: DefaultMutableTreeNode =>
+            tree_node.getUserObject match {
+              case node: Graph_Display.Node => Some(node)
+              case _ => None
+            }
+          case _ => None
+        }
+      action_node match {
+        case Some(node) =>
+          val info = visualizer.layout.get_node(node)
+          tree_pane.peer.scrollRectToVisible(
+            new Rectangle(
+              (info.x - info.width2).toInt, (info.y - info.height2).toInt,
+              info.width.toInt, info.height.toInt))
+        case None =>
+      }
+      visualizer.current_node = action_node
+      repaint_all()
+    }
+  }
+
+
   /* tree */
 
   private var nodes = List.empty[Graph_Display.Node]
   private val root = new DefaultMutableTreeNode("Nodes")
 
-  private val tree = new JTree(root)
-  tree.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent)
-    {
-      val click = tree.getPathForLocation(e.getX, e.getY)
-      if (click != null && e.getClickCount == 1) {
-        (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
-          case (tree_node: DefaultMutableTreeNode, tree_node1: DefaultMutableTreeNode)
-          if tree_node == tree_node1 =>
-            tree_node.getUserObject match {
-              case node: Graph_Display.Node => visualizer.current_node = Some(node)
-              case _ => visualizer.current_node = None
-            }
-          case _ => visualizer.current_node = None
-        }
-        repaint_graph()
+  val tree = new JTree(root)
+
+  tree.addKeyListener(new KeyAdapter {
+    override def keyPressed(e: KeyEvent): Unit =
+      if (e.getKeyCode == KeyEvent.VK_ENTER) {
+        e.consume
+        selection_action()
       }
-    }
+  })
+  tree.addMouseListener(new MouseAdapter {
+    override def mousePressed(e: MouseEvent): Unit =
+      if (e.getClickCount == 2)
+        point_action(tree.getPathForLocation(e.getX, e.getY))
   })
 
   private val tree_pane = new ScrollPane(Component.wrap(tree))
@@ -109,24 +153,7 @@ class Tree_Panel(val visualizer: Visualizer, repaint_graph: () => Unit) extends 
 
   private val selection_apply = new Button {
     tooltip = "Apply tree selection to graph"
-    action = Action("<html><b>Apply</b></html>") {
-      visualizer.current_node = None
-      visualizer.Selection.clear()
-      val paths = tree.getSelectionPaths
-      if (paths != null) {
-        for (path <- paths) {
-          path.getLastPathComponent match {
-            case tree_node: DefaultMutableTreeNode =>
-              tree_node.getUserObject match {
-                case node: Graph_Display.Node => visualizer.Selection.add(node)
-                case _ =>
-              }
-            case _ =>
-          }
-        }
-      }
-      repaint_graph()
-    }
+    action = Action("<html><b>Apply</b></html>") { selection_action () }
   }
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
