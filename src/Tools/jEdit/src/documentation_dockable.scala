@@ -49,8 +49,6 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   override def focusOnDefaultComponent { tree.requestFocusInWindow }
 
-  if (!OperatingSystem.isMacOSLF)
-    tree.putClientProperty("JTree.lineStyle", "Angled")
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
   private def action(node: DefaultMutableTreeNode)
