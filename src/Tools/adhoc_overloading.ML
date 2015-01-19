@@ -239,7 +239,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "no_adhoc_overloading"}
-    "add adhoc overloading for constants / fixed variables"
+    "delete adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
 
 end;
