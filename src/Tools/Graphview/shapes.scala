@@ -76,7 +76,7 @@ object Shapes
       if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
 
       gfx.setStroke(default_stroke)
-      gfx.setColor(visualizer.edge_color(edge))
+      gfx.setColor(visualizer.edge_color(edge, p.y < q.y))
       gfx.draw(path)
 
       if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
@@ -128,7 +128,7 @@ object Shapes
         if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
 
         gfx.setStroke(default_stroke)
-        gfx.setColor(visualizer.edge_color(edge))
+        gfx.setColor(visualizer.edge_color(edge, p.y < q.y))
         gfx.draw(path)
 
         if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))

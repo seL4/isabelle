@@ -168,5 +168,7 @@ abstract class Visualizer(val model: Model)
     else
       Node_Color(foreground_color, model.colors.getOrElse(node, background_color), foreground_color)
 
-  def edge_color(edge: Graph_Display.Edge): Color = foreground_color
+  def edge_color(edge: Graph_Display.Edge, downwards: Boolean): Color =
+    if (downwards || show_arrow_heads) foreground_color
+    else error_color
 }
