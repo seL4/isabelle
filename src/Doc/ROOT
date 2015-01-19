@@ -17,7 +17,8 @@ session Classes (doc) in "Classes" = HOL +
     "style.sty"
 
 session Codegen_Basics in "Codegen" = "HOL" +
-  theories [document = false]
+  options [document = false]
+  theories
     Setup
 
 session Codegen (doc) in "Codegen" = "Codegen_Basics" +
