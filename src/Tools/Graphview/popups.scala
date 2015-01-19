@@ -17,11 +17,11 @@ import scala.swing.{Action, Menu, MenuItem, Separator}
 object Popups
 {
   def apply(
-    panel: Graph_Panel,
+    graph_panel: Graph_Panel,
     mouse_node: Option[Graph_Display.Node],
     selected_nodes: List[Graph_Display.Node]): JPopupMenu =
   {
-    val visualizer = panel.visualizer
+    val visualizer = graph_panel.visualizer
 
     val add_mutator = visualizer.model.Mutators.add _
     val visible_graph = visualizer.visible_graph
@@ -138,7 +138,9 @@ object Popups
       popup.add(new JPopupMenu.Separator)
     }
 
-    popup.add(new MenuItem(new Action("Fit to window") { def apply = panel.fit_to_window() }).peer)
+    popup.add(new MenuItem(new Action("Fit to window") {
+      def apply = graph_panel.fit_to_window() }).peer
+    )
 
     popup
   }

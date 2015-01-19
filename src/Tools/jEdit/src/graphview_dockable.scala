@@ -86,7 +86,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
           override def current_color = view.getTextArea.getPainter.getLineHighlightColor
           override def error_color = PIDE.options.color_value("error_color")
         }
-        new isabelle.graphview.Main_Panel(model, visualizer)
+        new isabelle.graphview.Main_Panel(visualizer)
       case Exn.Exn(exn) => new TextArea(Exn.message(exn))
     }
   set_content(graphview)

@@ -10,42 +10,56 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Dimension, Graphics2D, Point, Rectangle}
+import java.io.{File => JFile}
+import java.awt.{Color, Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
+import javax.imageio.ImageIO
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
+import javax.swing.border.EmptyBorder
 
-import scala.swing.{Panel, ScrollPane}
+import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser, Panel, ScrollPane}
 import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked, MouseEvent}
 
 
-class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
+class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 {
-  panel =>
+  graph_panel =>
 
 
-  /* tooltips */
 
-  tooltip = ""
+  /** graph **/
 
-  override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
-    override def getToolTipText(event: java.awt.event.MouseEvent): String =
-      visualizer.find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
-        case Some(node) =>
-          visualizer.model.full_graph.get_node(node) match {
-            case Nil => null
-            case content => visualizer.make_tooltip(panel.peer, event.getX, event.getY, content)
-          }
-        case None => null
-      }
+  /* painter */
+
+  private val painter = new Panel
+  {
+    override def paint(gfx: Graphics2D)
+    {
+      super.paintComponent(gfx)
+
+      gfx.setColor(visualizer.background_color)
+      gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
+
+      gfx.transform(Transform())
+      visualizer.paint_all_visible(gfx)
+    }
   }
 
+  def set_preferred_size()
+  {
+    val box = visualizer.bounding_box()
+    val s = Transform.scale_discrete
+    painter.preferredSize = new Dimension((box.width * s).ceil.toInt, (box.height * s).ceil.toInt)
+    painter.revalidate()
+  }
 
-  /* scrolling */
-
-  horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-
-  peer.getVerticalScrollBar.setUnitIncrement(10)
+  def refresh()
+  {
+    if (painter != null) {
+      set_preferred_size()
+      painter.repaint()
+    }
+  }
 
   def scroll_to_node(node: Graph_Display.Node)
   {
@@ -58,47 +72,54 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     val q =
       t.transform(new Point2D.Double(info.x + info.width2 + gap, info.y + info.height2 + gap), null)
 
-    paint_panel.peer.scrollRectToVisible(
+    painter.peer.scrollRectToVisible(
       new Rectangle(p.getX.toInt, p.getY.toInt,
         (q.getX - p.getX).ceil.toInt, (q.getY - p.getY).ceil.toInt))
   }
 
 
-  /* painting */
+  /* scrollable graph pane */
 
-  private class Paint_Panel extends Panel
-  {
-    def set_preferred_size()
+  private val graph_pane: ScrollPane = new ScrollPane(painter) {
+    tooltip = ""
+
+    override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
+      override def getToolTipText(event: java.awt.event.MouseEvent): String =
+        visualizer.find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+          case Some(node) =>
+            visualizer.model.full_graph.get_node(node) match {
+              case Nil => null
+              case content =>
+                visualizer.make_tooltip(graph_pane.peer, event.getX, event.getY, content)
+            }
+          case None => null
+        }
+    }
+
+    horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+    verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+
+    listenTo(mouse.moves)
+    listenTo(mouse.clicks)
+    reactions +=
     {
-      val box = visualizer.bounding_box()
-      val s = Transform.scale_discrete
-
-      preferredSize =
-        new Dimension((box.width * s).ceil.toInt, (box.height * s).ceil.toInt)
-
-      revalidate()
+      case MousePressed(_, p, _, _, _) =>
+        Mouse_Interaction.pressed(p)
+        painter.repaint()
+      case MouseDragged(_, to, _) =>
+        Mouse_Interaction.dragged(to)
+        painter.repaint()
+      case e @ MouseClicked(_, p, m, n, _) =>
+        Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
+        painter.repaint()
     }
 
-    override def paint(gfx: Graphics2D)
-    {
-      super.paintComponent(gfx)
-      gfx.setColor(visualizer.background_color)
-      gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
-      gfx.transform(Transform())
-
-      visualizer.paint_all_visible(gfx)
-    }
+    contents = painter
   }
-  private val paint_panel = new Paint_Panel
-  contents = paint_panel
+  graph_pane.peer.getVerticalScrollBar.setUnitIncrement(10)
 
-  def refresh()
-  {
-    if (paint_panel != null) {
-      paint_panel.set_preferred_size()
-      paint_panel.repaint()
-    }
-  }
+
+  /* transform */
 
   val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
 
@@ -108,11 +129,6 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).floor.toInt)
     refresh()
   }
-
-  rescale(1.0)
-
-
-  /* transform */
 
   def fit_to_window()
   {
@@ -156,7 +172,7 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
     def pane_to_graph_coordinates(at: Point2D): Point2D =
     {
       val s = Transform.scale_discrete
-      val p = Transform().inverseTransform(peer.getViewport.getViewPosition, null)
+      val p = Transform().inverseTransform(graph_pane.peer.getViewport.getViewPosition, null)
 
       p.setLocation(p.getX + at.getX / s, p.getY + at.getY / s)
       p
@@ -166,23 +182,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
   /* interaction */
 
-  visualizer.model.Colors.events += { case _ => repaint() }
-  visualizer.model.Mutators.events += { case _ => repaint() }
-
-  listenTo(mouse.moves)
-  listenTo(mouse.clicks)
-  reactions +=
-  {
-    case MousePressed(_, p, _, _, _) =>
-      Mouse_Interaction.pressed(p)
-      repaint()
-    case MouseDragged(_, to, _) =>
-      Mouse_Interaction.dragged(to)
-      repaint()
-    case e @ MouseClicked(_, p, m, n, _) =>
-      Mouse_Interaction.clicked(p, m, n, SwingUtilities.isRightMouseButton(e.peer))
-      repaint()
-  }
+  visualizer.model.Colors.events += { case _ => painter.repaint() }
+  visualizer.model.Mutators.events += { case _ => painter.repaint() }
 
   private object Mouse_Interaction
   {
@@ -217,9 +218,9 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
 
       (p, d) match {
         case (Nil, Nil) =>
-          val r = panel.peer.getViewport.getViewRect
+          val r = graph_pane.peer.getViewport.getViewRect
           r.translate(- dx, - dy)
-          paint_panel.peer.scrollRectToVisible(r)
+          painter.peer.scrollRectToVisible(r)
 
         case (Nil, ds) =>
           ds.foreach(d => visualizer.translate_vertex(d, dx / s, dy / s))
@@ -239,8 +240,8 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
         if (right_click) {
           // FIXME
           if (false) {
-            val menu = Popups(panel, visualizer.find_node(c), visualizer.Selection.get())
-            menu.show(panel.peer, at.x, at.y)
+            val menu = Popups(graph_panel, visualizer.find_node(c), visualizer.Selection.get())
+            menu.show(graph_pane.peer, at.x, at.y)
           }
         }
         else {
@@ -261,4 +262,108 @@ class Graph_Panel(val visualizer: Visualizer) extends ScrollPane
       }
     }
   }
+
+
+
+  /** controls **/
+
+  private val mutator_dialog =
+    new Mutator_Dialog(visualizer, visualizer.model.Mutators, "Filters", "Hide", false)
+  private val color_dialog =
+    new Mutator_Dialog(visualizer, visualizer.model.Colors, "Colorations")
+
+  private val chooser = new FileChooser {
+    fileSelectionMode = FileChooser.SelectionMode.FilesOnly
+    title = "Save image (.png or .pdf)"
+  }
+
+  private val controls =
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+      new CheckBox() {
+        selected = visualizer.show_content
+        action = Action("Show content") {
+          visualizer.show_content = selected
+          visualizer.update_layout()
+          refresh()
+        }
+        tooltip = "Show full node content within graph layout"
+      },
+      new CheckBox() {
+        selected = visualizer.show_arrow_heads
+        action = Action("Show arrow heads") {
+          visualizer.show_arrow_heads = selected
+          painter.repaint()
+        }
+        tooltip = "Draw edges with explicit arrow heads"
+      },
+      new CheckBox() {
+        selected = visualizer.show_dummies
+        action = Action("Show dummies") {
+          visualizer.show_dummies = selected
+          painter.repaint()
+        }
+        tooltip = "Draw dummy nodes within graph layout, for easier mouse dragging"
+      },
+      new Button {
+        action = Action("Save image") {
+          chooser.showSaveDialog(this) match {
+            case FileChooser.Result.Approve => save_file(chooser.selectedFile)
+            case _ =>
+          }
+        }
+        tooltip = "Save current graph layout as PNG or PDF"
+      },
+      zoom,
+      new Button {
+        action = Action("Fit to window") { fit_to_window() }
+        tooltip = "Zoom to fit window width and height"
+      },
+      new Button {
+        action = Action("Update layout") {
+          visualizer.update_layout()
+          refresh()
+        }
+        tooltip = "Regenerate graph layout according to built-in algorithm"
+      })
+    /* FIXME
+      new Button { action = Action("Colorations") { color_dialog.open } },
+      new Button { action = Action("Filters") { mutator_dialog.open } }
+    */
+
+
+  /* save file */
+
+  private def save_file(file: JFile)
+  {
+    val box = visualizer.bounding_box()
+    val w = box.width.ceil.toInt
+    val h = box.height.ceil.toInt
+
+    def paint(gfx: Graphics2D)
+    {
+      gfx.setColor(Color.WHITE)
+      gfx.fillRect(0, 0, w, h)
+      gfx.translate(- box.x, - box.y)
+      visualizer.paint_all_visible(gfx)
+    }
+
+    try {
+      val name = file.getName
+      if (name.endsWith(".png")) Graphics_File.write_png(file, paint _, w, h)
+      else if (name.endsWith(".pdf")) Graphics_File.write_pdf(file, paint _, w, h)
+      else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
+    }
+    catch {
+      case ERROR(msg) => GUI.error_dialog(this.peer, "Error", GUI.scrollable_text(msg))
+    }
+  }
+
+
+
+  /** main layout **/
+
+  layout(graph_pane) = BorderPanel.Position.Center
+  layout(controls) = BorderPanel.Position.North
+
+  rescale(1.0)
 }
