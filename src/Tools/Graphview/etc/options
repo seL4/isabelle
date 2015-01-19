@@ -23,6 +23,3 @@ public option graphview_iterations_rubberband : int = 10
 public option graphview_content_margin : int = 60
   -- "margin for node content pretty-printing"
 
-public option graphview_swap_panels : bool = false
-  -- "swap panels for tree view versus graph layout"
-

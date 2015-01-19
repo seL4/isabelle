@@ -87,7 +87,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
   private val tree_pane = new ScrollPane(Component.wrap(tree))
   tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   tree_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  tree_pane.minimumSize = new Dimension(100, 50)
+  tree_pane.minimumSize = new Dimension(100, 100)
   tree_pane.peer.getVerticalScrollBar.setUnitIncrement(10)
 
 

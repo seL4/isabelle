@@ -20,14 +20,8 @@ class Main_Panel(visualizer: Visualizer) extends SplitPane(Orientation.Vertical)
   val graph_panel = new Graph_Panel(visualizer)
   val tree_panel = new Tree_Panel(visualizer, graph_panel)
 
-  if (visualizer.options.bool("graphview_swap_panels")) {
-    leftComponent = tree_panel
-    rightComponent = graph_panel
-  }
-  else {
-    leftComponent = graph_panel
-    rightComponent = tree_panel
-  }
+  leftComponent = tree_panel
+  rightComponent = graph_panel
 
   def update_layout()
   {
