@@ -137,8 +137,8 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
   })
 
   private val selection_apply = new Button {
-    tooltip = "Apply tree selection to graph"
     action = Action("<html><b>Apply</b></html>") { selection_action () }
+    tooltip = "Apply tree selection to graph"
   }
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(

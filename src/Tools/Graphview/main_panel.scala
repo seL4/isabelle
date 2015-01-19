@@ -49,41 +49,47 @@ class Main_Panel(model: Model, visualizer: Visualizer) extends BorderPanel
   val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       new CheckBox() {
-        tooltip = "Show full node content"
         selected = visualizer.show_content
         action = Action("Show content") {
           visualizer.show_content = selected
           update_layout()
         }
+        tooltip = "Show full node content within graph layout"
       },
       new CheckBox() {
-        tooltip = "Draw edges with explicit arrow heads"
         selected = visualizer.show_arrow_heads
         action = Action("Show arrow heads") {
           visualizer.show_arrow_heads = selected
           graph_panel.repaint()
         }
+        tooltip = "Draw edges with explicit arrow heads"
       },
       new CheckBox() {
-        tooltip = "Show dummy nodes -- easier mouse dragging"
         selected = visualizer.show_dummies
         action = Action("Show dummies") {
           visualizer.show_dummies = selected
           graph_panel.repaint()
         }
+        tooltip = "Draw dummy nodes within graph layout, for easier mouse dragging"
       },
       new Button {
         action = Action("Save image") {
-          tooltip = "Save current image as PNG or PDF"
           chooser.showSaveDialog(this) match {
             case FileChooser.Result.Approve => export(chooser.selectedFile)
             case _ =>
           }
         }
+        tooltip = "Save current graph layout as PNG or PDF"
       },
       graph_panel.zoom,
-      new Button { action = Action("Fit to window") { graph_panel.fit_to_window() } },
-      new Button { action = Action("Update layout") { update_layout() } })
+      new Button {
+        action = Action("Fit to window") { graph_panel.fit_to_window() }
+        tooltip = "Zoom to fit window width and height"
+      },
+      new Button {
+        action = Action("Update layout") { update_layout() }
+        tooltip = "Regenerate graph layout according to built-in algorithm"
+      })
     /* FIXME
       new Button { action = Action("Colorations") { color_dialog.open } },
       new Button { action = Action("Filters") { mutator_dialog.open } }
