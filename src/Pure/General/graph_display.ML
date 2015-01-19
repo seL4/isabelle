@@ -88,7 +88,7 @@ val display_graph =
         YXML.output_markup_elem
           (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
       val _ =
-        writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "new graph" ^ en);
+        writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "graph" ^ en);
 
       val ((bg1, bg2), en) =
         YXML.output_markup_elem
