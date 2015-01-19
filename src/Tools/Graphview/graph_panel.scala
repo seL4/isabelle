@@ -121,8 +121,6 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
   /* transform */
 
-  val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
-
   def rescale(s: Double)
   {
     Transform.scale = s
@@ -277,58 +275,65 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
     title = "Save image (.png or .pdf)"
   }
 
+  private val show_content = new CheckBox() {
+    selected = visualizer.show_content
+    action = Action("Show content") {
+      visualizer.show_content = selected
+      visualizer.update_layout()
+      refresh()
+    }
+    tooltip = "Show full node content within graph layout"
+  }
+
+  private val show_arrow_heads = new CheckBox() {
+    selected = visualizer.show_arrow_heads
+    action = Action("Show arrow heads") {
+      visualizer.show_arrow_heads = selected
+      painter.repaint()
+    }
+    tooltip = "Draw edges with explicit arrow heads"
+  }
+
+  private val show_dummies = new CheckBox() {
+    selected = visualizer.show_dummies
+    action = Action("Show dummies") {
+      visualizer.show_dummies = selected
+      painter.repaint()
+    }
+    tooltip = "Draw dummy nodes within graph layout, for easier mouse dragging"
+  }
+
+  private val save_image = new Button {
+    action = Action("Save image") {
+      chooser.showSaveDialog(this) match {
+        case FileChooser.Result.Approve => save_file(chooser.selectedFile)
+        case _ =>
+      }
+    }
+    tooltip = "Save current graph layout as PNG or PDF"
+  }
+
+  private val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
+
+  private val fit_window = new Button {
+    action = Action("Fit to window") { fit_to_window() }
+    tooltip = "Zoom to fit window width and height"
+  }
+
+  private val update_layout = new Button {
+    action = Action("Update layout") {
+      visualizer.update_layout()
+      refresh()
+    }
+    tooltip = "Regenerate graph layout according to built-in algorithm"
+  }
+
+  private val colorations = new Button { action = Action("Colorations") { color_dialog.open } }
+  private val filters = new Button { action = Action("Filters") { mutator_dialog.open } }
+
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      new CheckBox() {
-        selected = visualizer.show_content
-        action = Action("Show content") {
-          visualizer.show_content = selected
-          visualizer.update_layout()
-          refresh()
-        }
-        tooltip = "Show full node content within graph layout"
-      },
-      new CheckBox() {
-        selected = visualizer.show_arrow_heads
-        action = Action("Show arrow heads") {
-          visualizer.show_arrow_heads = selected
-          painter.repaint()
-        }
-        tooltip = "Draw edges with explicit arrow heads"
-      },
-      new CheckBox() {
-        selected = visualizer.show_dummies
-        action = Action("Show dummies") {
-          visualizer.show_dummies = selected
-          painter.repaint()
-        }
-        tooltip = "Draw dummy nodes within graph layout, for easier mouse dragging"
-      },
-      new Button {
-        action = Action("Save image") {
-          chooser.showSaveDialog(this) match {
-            case FileChooser.Result.Approve => save_file(chooser.selectedFile)
-            case _ =>
-          }
-        }
-        tooltip = "Save current graph layout as PNG or PDF"
-      },
-      zoom,
-      new Button {
-        action = Action("Fit to window") { fit_to_window() }
-        tooltip = "Zoom to fit window width and height"
-      },
-      new Button {
-        action = Action("Update layout") {
-          visualizer.update_layout()
-          refresh()
-        }
-        tooltip = "Regenerate graph layout according to built-in algorithm"
-      })
-    /* FIXME
-      new Button { action = Action("Colorations") { color_dialog.open } },
-      new Button { action = Action("Filters") { mutator_dialog.open } }
-    */
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(show_content, show_arrow_heads, show_dummies,
+      save_image, zoom, fit_window, update_layout, colorations, filters)
 
 
   /* save file */
