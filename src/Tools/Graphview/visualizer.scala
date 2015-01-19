@@ -93,7 +93,7 @@ abstract class Visualizer(val model: Model)
   def foreground_color: Color = Color.BLACK
   def background_color: Color = Color.WHITE
   def selection_color: Color = Color.GREEN
-  def current_color: Color = Color.YELLOW
+  def highlight_color: Color = Color.YELLOW
   def error_color: Color = Color.RED
   def dummy_color: Color = Color.GRAY
 
@@ -138,8 +138,13 @@ abstract class Visualizer(val model: Model)
   def paint_all_visible(gfx: Graphics2D)
   {
     gfx.setRenderingHints(Metrics.rendering_hints)
+
+    for (node <- visualizer.current_node)
+      Shapes.highlight_node(gfx, visualizer, node)
+
     for (edge <- visible_graph.edges_iterator)
       Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
+
     for (node <- visible_graph.keys_iterator)
       Shapes.paint_node(gfx, visualizer, node)
   }
@@ -161,10 +166,10 @@ abstract class Visualizer(val model: Model)
   sealed case class Node_Color(border: Color, background: Color, foreground: Color)
 
   def node_color(node: Graph_Display.Node): Node_Color =
-    if (current_node == Some(node))
-      Node_Color(foreground_color, current_color, foreground_color)
-    else if (Selection.contains(node))
+    if (Selection.contains(node))
       Node_Color(foreground_color, selection_color, foreground_color)
+    else if (current_node == Some(node))
+      Node_Color(foreground_color, highlight_color, foreground_color)
     else
       Node_Color(foreground_color, model.colors.getOrElse(node, background_color), foreground_color)
 

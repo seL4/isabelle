@@ -11,7 +11,8 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{BasicStroke, Graphics2D, Shape}
-import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D, PathIterator}
+import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D,
+  RoundRectangle2D, PathIterator}
 
 
 object Shapes
@@ -21,6 +22,20 @@ object Shapes
 
   def shape(info: Layout.Info): Rectangle2D.Double =
     new Rectangle2D.Double(info.x - info.width2, info.y - info.height2, info.width, info.height)
+
+  def highlight_node(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
+  {
+    val metrics = visualizer.metrics
+    val extra = metrics.char_width
+    val info = visualizer.layout.get_node(node)
+
+    gfx.setColor(visualizer.highlight_color)
+    gfx.fill(new Rectangle2D.Double(
+      info.x - info.width2 - extra,
+      info.y - info.height2 - extra,
+      info.width + 2 * extra,
+      info.height + 2 * extra))
+  }
 
   def paint_node(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
   {
