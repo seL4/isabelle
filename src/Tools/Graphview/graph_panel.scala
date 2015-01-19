@@ -333,7 +333,7 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(show_content, show_arrow_heads, show_dummies,
-      save_image, zoom, fit_window, update_layout, colorations, filters)
+      save_image, zoom, fit_window, update_layout) // FIXME colorations, filters
 
 
   /* save file */
