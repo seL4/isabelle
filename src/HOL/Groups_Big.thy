@@ -630,18 +630,19 @@ proof-
   finally show ?thesis by (auto simp add: add_right_mono add_strict_left_mono)
 qed
 
-lemma setsum_negf:
-  "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
+lemma setsum_negf: "(\<Sum>x\<in>A. - f x::'a::ab_group_add) = - (\<Sum>x\<in>A. f x)"
 proof (cases "finite A")
   case True thus ?thesis by (induct set: finite) auto
 next
   case False thus ?thesis by simp
 qed
 
-lemma setsum_subtractf:
-  "setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
-    setsum f A - setsum g A"
+lemma setsum_subtractf: "(\<Sum>x\<in>A. f x - g x::'a::ab_group_add) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
   using setsum.distrib [of f "- g" A] by (simp add: setsum_negf)
+
+lemma setsum_subtractf_nat:
+  "(\<And>x. x \<in> A \<Longrightarrow> g x \<le> f x) \<Longrightarrow> (\<Sum>x\<in>A. f x - g x::nat) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
+  by (induction A rule: infinite_finite_induct) (auto simp: setsum_mono)
 
 lemma setsum_nonneg:
   assumes nn: "\<forall>x\<in>A. (0::'a::{ordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"

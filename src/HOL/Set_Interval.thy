@@ -1647,31 +1647,8 @@ lemma arith_series_int:
   "2 * (\<Sum>i\<in>{..<n}. a + int i * d) = int n * (a + (a + int(n - 1)*d))"
   by (fact arith_series_general) (* FIXME: duplicate *)
 
-lemma sum_diff_distrib:
-  fixes P::"nat\<Rightarrow>nat"
-  shows
-  "\<forall>x. Q x \<le> P x  \<Longrightarrow>
-  (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x)"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n)
-
-  let ?lhs = "(\<Sum>x<n. P x) - (\<Sum>x<n. Q x)"
-  let ?rhs = "\<Sum>x<n. P x - Q x"
-
-  from Suc have "?lhs = ?rhs" by simp
-  moreover
-  from Suc have "?lhs + P n - Q n = ?rhs + (P n - Q n)" by simp
-  moreover
-  from Suc have
-    "(\<Sum>x<n. P x) + P n - ((\<Sum>x<n. Q x) + Q n) = ?rhs + (P n - Q n)"
-    by (subst diff_diff_left[symmetric],
-        subst diff_add_assoc2)
-       (auto simp: diff_add_assoc2 intro: setsum_mono)
-  ultimately
-  show ?case by simp
-qed
+lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
+  by (subst setsum_subtractf_nat) auto
 
 lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
   by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
