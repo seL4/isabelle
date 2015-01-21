@@ -7,8 +7,8 @@ Visualization of class dependencies.
 signature CLASS_DEPS =
 sig
   val inlined_class_specs: bool Config.T
-  val class_deps: Proof.context -> sort -> sort option -> unit
-  val class_deps_cmd: Proof.context -> string -> string option -> unit
+  val class_deps: Proof.context -> sort list option -> sort list option -> unit
+  val class_deps_cmd: Proof.context -> string list option -> string list option -> unit
 end;
 
 structure Class_Deps: CLASS_DEPS =
@@ -18,20 +18,22 @@ val inlined_class_specs = Attrib.setup_config_bool @{binding "inlined_class_spec
 
 val stringify = XML.content_of o YXML.parse_body o Pretty.string_of;
 
-fun gen_class_deps prep_sort ctxt raw_super raw_sub =
+fun gen_class_deps prep_sort ctxt raw_subs raw_supers =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val super = prep_sort ctxt raw_super;
-    val sub = Option.map (prep_sort ctxt) raw_sub;
+    val some_subs = (Option.map o map) (prep_sort ctxt) raw_subs;
+    val some_supers = (Option.map o map) (prep_sort ctxt) raw_supers;
     val {classes = (space, original_algebra), ...} = Type.rep_tsig (Proof_Context.tsig_of ctxt);
-    fun le_super class = Sorts.sort_le original_algebra ([class], super);
-    val sub_le =
-      (case sub of
-        NONE => K true
-      | SOME sub => fn class => Sorts.sort_le original_algebra (sub, [class]));
+    val sort_le = curry (Sorts.sort_le original_algebra);
+    val le_sub = case some_subs of
+      SOME subs => (fn class => exists (sort_le [class]) subs)
+    | NONE => K true;
+    val super_le = case some_supers of
+      SOME supers => (fn class => exists (fn super => sort_le super [class]) supers)
+    | NONE => K true
     val (_, algebra) =
       Sorts.subalgebra (Context.pretty ctxt)
-        (le_super andf sub_le) (K NONE) original_algebra;
+        (le_sub andf super_le) (K NONE) original_algebra;
     val inlined = Config.get ctxt inlined_class_specs;
     fun label_for c =
       if inlined
@@ -59,9 +61,12 @@ fun gen_class_deps prep_sort ctxt raw_super raw_sub =
 val class_deps = gen_class_deps (Type.cert_sort o Proof_Context.tsig_of);
 val class_deps_cmd = gen_class_deps Syntax.read_sort;
 
+val parse_sort_list = (Parse.sort >> single)
+  || (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
+
 val _ =
   Outer_Syntax.command @{command_spec "class_deps"} "visualize class dependencies"
-    ((Scan.optional Parse.sort "{}" -- Scan.option Parse.sort) >> (fn (super, sub) =>
+    ((Scan.option parse_sort_list -- Scan.option parse_sort_list) >> (fn (super, sub) =>
       (Toplevel.unknown_theory o
        Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) super sub))));
 
