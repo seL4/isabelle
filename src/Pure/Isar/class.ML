@@ -51,7 +51,7 @@ sig
   val default_intro_tac: Proof.context -> thm list -> tactic
 
   (*diagnostics*)
-  val pretty_specification: theory -> class -> Pretty.T list
+  val pretty_specification: theory -> class -> Pretty.T list * Pretty.T list
 end;
 
 structure Class: CLASS =
@@ -750,8 +750,8 @@ fun pretty_specification thy c =
         else
           maps (Element.pretty_ctxt_no_attribs class_ctxt) (fixes @ assumes)
           |> maps (fn prt => [Pretty.fbrk, prt]);
-    in if null body then [] else [Pretty.block (header @ body)] end
-  else [];
+    in (header, body) end
+  else ([], []);
 
 end;
 

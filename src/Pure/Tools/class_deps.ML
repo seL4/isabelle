@@ -6,12 +6,17 @@ Visualization of class dependencies.
 
 signature CLASS_DEPS =
 sig
+  val inlined_class_specs: bool Config.T
   val class_deps: Proof.context -> sort -> sort option -> unit
   val class_deps_cmd: Proof.context -> string -> string option -> unit
 end;
 
 structure Class_Deps: CLASS_DEPS =
 struct
+
+val inlined_class_specs = Attrib.setup_config_bool @{binding "inlined_class_specs"} (K false);
+
+val stringify = XML.content_of o YXML.parse_body o Pretty.string_of;
 
 fun gen_class_deps prep_sort ctxt raw_super raw_sub =
   let
@@ -27,9 +32,23 @@ fun gen_class_deps prep_sort ctxt raw_super raw_sub =
     val (_, algebra) =
       Sorts.subalgebra (Context.pretty ctxt)
         (le_super andf sub_le) (K NONE) original_algebra;
-    fun node c =
-      Graph_Display.content_node (Name_Space.extern ctxt space c)
-        (Class.pretty_specification thy c);
+    val inlined = Config.get ctxt inlined_class_specs;
+    fun label_for c =
+      if inlined
+      then (stringify o Pretty.block o op @) (Class.pretty_specification thy c)
+      else Name_Space.extern ctxt space c;
+    fun tooltip_for c =
+      if inlined
+      then []
+      else
+        let
+          val pretty_spec = Class.pretty_specification thy c
+        in
+          if (null o snd) pretty_spec
+          then []
+          else [(Pretty.block o op @) pretty_spec]
+        end;
+    fun node c = Graph_Display.content_node (label_for c) (tooltip_for c);
   in
     Sorts.classes_of algebra
     |> Graph.dest
