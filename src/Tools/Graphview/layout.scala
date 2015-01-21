@@ -195,9 +195,10 @@ object Layout
           (v, weight)
       }).sortBy(_._2).map(_._1)
 
-    ((levels, count_crossings(graph, levels), true) /:
-      (1 to options.int("graphview_iterations_minimize_crossings"))) {
-      case ((old_levels, old_crossings, top_down), _) =>
+    ((levels, count_crossings(graph, levels)) /:
+      (1 to (2 * options.int("graphview_iterations_minimize_crossings")))) {
+      case ((old_levels, old_crossings), iteration) =>
+        val top_down = (iteration % 2 == 1)
         val new_levels =
           if (top_down)
             (List(old_levels.head) /: old_levels.tail)((tops, bot) =>
@@ -209,9 +210,9 @@ object Layout
           }
         val new_crossings = count_crossings(graph, new_levels)
         if (new_crossings < old_crossings)
-          (new_levels, new_crossings, !top_down)
+          (new_levels, new_crossings)
         else
-          (old_levels, old_crossings, !top_down)
+          (old_levels, old_crossings)
     }._1
   }
 
@@ -303,9 +304,10 @@ object Layout
 
     val initial_regions = levels.map(level => level.map(l => new Region(List(l))))
 
-    ((levels_graph, initial_regions, true, true) /:
-      (1 to options.int("graphview_iterations_pendulum"))) {
-      case ((graph, regions, top_down, moved), _) =>
+    ((levels_graph, initial_regions, true) /:
+      (1 to (2 * options.int("graphview_iterations_pendulum")))) {
+      case ((graph, regions, moved), iteration) =>
+        val top_down = (iteration % 2 == 1)
         if (moved) {
           val (graph1, regions1, moved1) =
             ((graph, List.empty[List[Region]], false) /:
@@ -314,9 +316,9 @@ object Layout
                 val (graph1, moved1) = deflect(bot1, top_down, graph)
                 (graph1, bot1 :: tops, moved || moved1)
             }
-          (graph1, regions1.reverse, !top_down, moved1)
+          (graph1, regions1.reverse, moved1)
         }
-        else (graph, regions, !top_down, moved)
+        else (graph, regions, moved)
     }._1
   }
 
@@ -341,7 +343,7 @@ object Layout
   {
     val gap = metrics.gap
 
-    (graph /: (1 to options.int("graphview_iterations_rubberband"))) { case (graph, _) =>
+    (graph /: (1 to (2 * options.int("graphview_iterations_rubberband")))) { case (graph, _) =>
       (graph /: levels) { case (graph, level) =>
         val m = level.length - 1
         (graph /: level.iterator.zipWithIndex) {
