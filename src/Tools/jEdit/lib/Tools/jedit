@@ -53,6 +53,18 @@ declare -a SOURCES=(
   "src/theories_dockable.scala"
   "src/timing_dockable.scala"
   "src/token_markup.scala"
+  "../Graphview/graph_panel.scala"
+  "../Graphview/layout.scala"
+  "../Graphview/main_panel.scala"
+  "../Graphview/metrics.scala"
+  "../Graphview/model.scala"
+  "../Graphview/mutator.scala"
+  "../Graphview/mutator_dialog.scala"
+  "../Graphview/mutator_event.scala"
+  "../Graphview/popups.scala"
+  "../Graphview/shapes.scala"
+  "../Graphview/tree_panel.scala"
+  "../Graphview/visualizer.scala"
 )
 
 declare -a RESOURCES=(
