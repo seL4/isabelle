@@ -1606,6 +1606,42 @@ proof
     using zero_neq_one by blast
 qed
 
+lemma ereal_Sup:
+  assumes *: "\<bar>SUP a:A. ereal a\<bar> \<noteq> \<infinity>"
+  shows "ereal (Sup A) = (SUP a:A. ereal a)"
+proof (rule antisym)
+  obtain r where r: "ereal r = (SUP a:A. ereal a)" "A \<noteq> {}"
+    using * by (force simp: bot_ereal_def)
+  then have upper: "\<And>a. a \<in> A \<Longrightarrow> a \<le> r"
+    by (auto intro!: SUP_upper simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
+
+  show "ereal (Sup A) \<le> (SUP a:A. ereal a)"
+    using upper by (simp add: r[symmetric] cSup_least[OF `A \<noteq> {}`])
+  show "(SUP a:A. ereal a) \<le> ereal (Sup A)"
+    using upper `A \<noteq> {}` by (intro SUP_least) (auto intro!: cSup_upper bdd_aboveI)
+qed
+
+lemma ereal_SUP: "\<bar>SUP a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a:A. f a) = (SUP a:A. ereal (f a))"
+  using ereal_Sup[of "f`A"] by auto
+  
+lemma ereal_Inf:
+  assumes *: "\<bar>INF a:A. ereal a\<bar> \<noteq> \<infinity>"
+  shows "ereal (Inf A) = (INF a:A. ereal a)"
+proof (rule antisym)
+  obtain r where r: "ereal r = (INF a:A. ereal a)" "A \<noteq> {}"
+    using * by (force simp: top_ereal_def)
+  then have lower: "\<And>a. a \<in> A \<Longrightarrow> r \<le> a"
+    by (auto intro!: INF_lower simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
+
+  show "(INF a:A. ereal a) \<le> ereal (Inf A)"
+    using lower by (simp add: r[symmetric] cInf_greatest[OF `A \<noteq> {}`])
+  show "ereal (Inf A) \<le> (INF a:A. ereal a)"
+    using lower `A \<noteq> {}` by (intro INF_greatest) (auto intro!: cInf_lower bdd_belowI)
+qed
+
+lemma ereal_INF: "\<bar>INF a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a:A. f a) = (INF a:A. ereal (f a))"
+  using ereal_Inf[of "f`A"] by auto
+
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
   by (auto intro!: SUP_eqI
            simp: Ball_def[symmetric] ereal_uminus_le_reorder le_Inf_iff
@@ -1705,28 +1741,37 @@ proof (rule Inf_less_iff[THEN iffD1])
     using assms by (cases e) auto
 qed
 
-lemma SUP_nat_Infty: "(SUP i::nat. ereal (real i)) = \<infinity>"
-proof -
-  {
-    fix x :: ereal
-    assume "x \<noteq> \<infinity>"
-    then have "\<exists>k::nat. x < ereal (real k)"
-    proof (cases x)
-      case MInf
-      then show ?thesis
-        by (intro exI[of _ 0]) auto
-    next
-      case (real r)
-      moreover obtain k :: nat where "r < real k"
-        using ex_less_of_nat by (auto simp: real_eq_of_nat)
-      ultimately show ?thesis
-        by auto
-    qed simp
-  }
-  then show ?thesis
-    using SUP_eq_top_iff[of UNIV "\<lambda>n::nat. ereal (real n)"]
-    by (auto simp: top_ereal_def)
+lemma SUP_PInfty:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "\<And>n::nat. \<exists>i\<in>A. ereal (real n) \<le> f i"
+  shows "(SUP i:A. f i) = \<infinity>"
+  unfolding SUP_def Sup_eq_top_iff[where 'a=ereal, unfolded top_ereal_def]
+  apply simp
+proof safe
+  fix x :: ereal
+  assume "x \<noteq> \<infinity>"
+  show "\<exists>i\<in>A. x < f i"
+  proof (cases x)
+    case PInf
+    with `x \<noteq> \<infinity>` show ?thesis
+      by simp
+  next
+    case MInf
+    with assms[of "0"] show ?thesis
+      by force
+  next
+    case (real r)
+    with less_PInf_Ex_of_nat[of x] obtain n :: nat where "x < ereal (real n)"
+      by auto
+    moreover obtain i where "i \<in> A" "ereal (real n) \<le> f i"
+      using assms ..
+    ultimately show ?thesis
+      by (auto intro!: bexI[of _ i])
+  qed
 qed
+
+lemma SUP_nat_Infty: "(SUP i::nat. ereal (real i)) = \<infinity>"
+  by (rule SUP_PInfty) auto
 
 lemma Inf_less:
   fixes x :: ereal
@@ -1929,35 +1974,6 @@ lemma SUP_ereal_add_right:
   fixes c :: ereal
   shows "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> 0 \<le> c \<Longrightarrow> (SUP i:I. c + f i) = c + SUPREMUM I f"
   using SUP_ereal_add_left[of I f c] by (simp add: add_ac)
-
-lemma SUP_PInfty:
-  fixes f :: "'a \<Rightarrow> ereal"
-  assumes "\<And>n::nat. \<exists>i\<in>A. ereal (real n) \<le> f i"
-  shows "(SUP i:A. f i) = \<infinity>"
-  unfolding SUP_def Sup_eq_top_iff[where 'a=ereal, unfolded top_ereal_def]
-  apply simp
-proof safe
-  fix x :: ereal
-  assume "x \<noteq> \<infinity>"
-  show "\<exists>i\<in>A. x < f i"
-  proof (cases x)
-    case PInf
-    with `x \<noteq> \<infinity>` show ?thesis
-      by simp
-  next
-    case MInf
-    with assms[of "0"] show ?thesis
-      by force
-  next
-    case (real r)
-    with less_PInf_Ex_of_nat[of x] obtain n :: nat where "x < ereal (real n)"
-      by auto
-    moreover obtain i where "i \<in> A" "ereal (real n) \<le> f i"
-      using assms ..
-    ultimately show ?thesis
-      by (auto intro!: bexI[of _ i])
-  qed
-qed
 
 lemma Sup_countable_SUP:
   assumes "A \<noteq> {}"
@@ -2663,13 +2679,6 @@ lemma ereal_pos_distrib:
   using assms
   by (cases rule: ereal3_cases[of a b c])
     (auto simp add: field_simps not_le mult_le_0_iff mult_less_0_iff)
-
-lemma ereal_pos_le_distrib:
-  fixes a b c :: ereal
-  assumes "c \<ge> 0"
-  shows "c * (a + b) \<le> c * a + c * b"
-  using assms
-  by (cases rule: ereal3_cases[of a b c]) (auto simp add: field_simps)
 
 lemma ereal_max_mono: "(a::ereal) \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> max a c \<le> max b d"
   by (metis sup_ereal_def sup_mono)

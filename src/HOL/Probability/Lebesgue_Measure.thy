@@ -529,6 +529,23 @@ proof -
   thus ?thesis by (auto simp add: emeasure_le_0_iff)
 qed
 
+lemma countable_imp_null_set_lborel: "countable A \<Longrightarrow> A \<in> null_sets lborel"
+  by (simp add: null_sets_def emeasure_lborel_countable sets.countable)
+
+lemma finite_imp_null_set_lborel: "finite A \<Longrightarrow> A \<in> null_sets lborel"
+  by (intro countable_imp_null_set_lborel countable_finite)
+
+lemma lborel_neq_count_space[simp]: "lborel \<noteq> count_space (A::('a::ordered_euclidean_space) set)"
+proof
+  assume asm: "lborel = count_space A"
+  have "space lborel = UNIV" by simp
+  hence [simp]: "A = UNIV" by (subst (asm) asm) (simp only: space_count_space)
+  have "emeasure lborel {undefined::'a} = 1" 
+      by (subst asm, subst emeasure_count_space_finite) auto
+  moreover have "emeasure lborel {undefined} \<noteq> 1" by simp
+  ultimately show False by contradiction
+qed
+
 subsection {* Affine transformation on the Lebesgue-Borel *}
 
 lemma lborel_eqI:
@@ -651,10 +668,58 @@ lemma lborel_has_bochner_integral_real_affine_iff:
   unfolding has_bochner_integral_iff lborel_integrable_real_affine_iff
   by (simp_all add: lborel_integral_real_affine[symmetric] divideR_right cong: conj_cong)
 
+lemma lborel_distr_uminus: "distr lborel borel uminus = (lborel :: real measure)"
+  by (subst lborel_real_affine[of "-1" 0]) 
+     (auto simp: density_1 one_ereal_def[symmetric])
+
+lemma lborel_distr_mult: 
+  assumes "(c::real) \<noteq> 0"
+  shows "distr lborel borel (op * c) = density lborel (\<lambda>_. inverse \<bar>c\<bar>)"
+proof-
+  have "distr lborel borel (op * c) = distr lborel lborel (op * c)" by (simp cong: distr_cong)
+  also from assms have "... = density lborel (\<lambda>_. inverse \<bar>c\<bar>)"
+    by (subst lborel_real_affine[of "inverse c" 0]) (auto simp: o_def distr_density_distr)
+  finally show ?thesis .
+qed
+
+lemma lborel_distr_mult': 
+  assumes "(c::real) \<noteq> 0"
+  shows "lborel = density (distr lborel borel (op * c)) (\<lambda>_. abs c)"
+proof-
+  have "lborel = density lborel (\<lambda>_. 1)" by (rule density_1[symmetric])
+  also from assms have "(\<lambda>_. 1 :: ereal) = (\<lambda>_. inverse (abs c) * abs c)" by (intro ext) simp
+  also have "density lborel ... = density (density lborel (\<lambda>_. inverse (abs c))) (\<lambda>_. abs c)"
+    by (subst density_density_eq) auto
+  also from assms have "density lborel (\<lambda>_. inverse (abs c)) = distr lborel borel (op * c)"
+    by (rule lborel_distr_mult[symmetric])
+  finally show ?thesis .
+qed
+
+lemma lborel_distr_plus: "distr lborel borel (op + c) = (lborel :: real measure)"
+  by (subst lborel_real_affine[of 1 c]) (auto simp: density_1 one_ereal_def[symmetric])
+
 interpretation lborel!: sigma_finite_measure lborel
   by (rule sigma_finite_lborel)
 
 interpretation lborel_pair: pair_sigma_finite lborel lborel ..
+
+lemma lborel_prod:
+  "lborel \<Otimes>\<^sub>M lborel = (lborel :: ('a::euclidean_space \<times> 'b::euclidean_space) measure)"
+proof (rule lborel_eqI[symmetric], clarify)
+  fix la ua :: 'a and lb ub :: 'b
+  assume lu: "\<And>a b. (a, b) \<in> Basis \<Longrightarrow> (la, lb) \<bullet> (a, b) \<le> (ua, ub) \<bullet> (a, b)"
+  have [simp]:
+    "\<And>b. b \<in> Basis \<Longrightarrow> la \<bullet> b \<le> ua \<bullet> b"
+    "\<And>b. b \<in> Basis \<Longrightarrow> lb \<bullet> b \<le> ub \<bullet> b"
+    "inj_on (\<lambda>u. (u, 0)) Basis" "inj_on (\<lambda>u. (0, u)) Basis"
+    "(\<lambda>u. (u, 0)) ` Basis \<inter> (\<lambda>u. (0, u)) ` Basis = {}"
+    "box (la, lb) (ua, ub) = box la ua \<times> box lb ub"
+    using lu[of _ 0] lu[of 0] by (auto intro!: inj_onI simp add: Basis_prod_def ball_Un box_def)
+  show "emeasure (lborel \<Otimes>\<^sub>M lborel) (box (la, lb) (ua, ub)) =
+      ereal (setprod (op \<bullet> ((ua, ub) - (la, lb))) Basis)"
+    by (simp add: lborel.emeasure_pair_measure_Times Basis_prod_def setprod.union_disjoint
+                  setprod.reindex)
+qed (simp add: borel_prod[symmetric])
 
 (* FIXME: conversion in measurable prover *)
 lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp

@@ -2059,6 +2059,41 @@ lemma lebesgue_integral_count_space_finite: "finite A \<Longrightarrow> (\<integ
   by (subst lebesgue_integral_count_space_finite_support)
      (auto intro!: setsum.mono_neutral_cong_left)
 
+lemma integrable_count_space_nat_iff:
+  fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
+  shows "integrable (count_space UNIV) f \<longleftrightarrow> summable (\<lambda>x. norm (f x))"
+  by (auto simp add: integrable_iff_bounded nn_integral_count_space_nat summable_ereal suminf_ereal_finite)
+
+lemma sums_integral_count_space_nat:
+  fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
+  assumes *: "integrable (count_space UNIV) f"
+  shows "f sums (integral\<^sup>L (count_space UNIV) f)"
+proof -
+  let ?f = "\<lambda>n i. indicator {n} i *\<^sub>R f i"
+  have f': "\<And>n i. ?f n i = indicator {n} i *\<^sub>R f n"
+    by (auto simp: fun_eq_iff split: split_indicator)
+
+  have "(\<lambda>i. \<integral>n. ?f i n \<partial>count_space UNIV) sums \<integral> n. (\<Sum>i. ?f i n) \<partial>count_space UNIV"
+  proof (rule sums_integral)
+    show "\<And>i. integrable (count_space UNIV) (?f i)"
+      using * by (intro integrable_mult_indicator) auto
+    show "AE n in count_space UNIV. summable (\<lambda>i. norm (?f i n))"
+      using summable_finite[of "{n}" "\<lambda>i. norm (?f i n)" for n] by simp
+    show "summable (\<lambda>i. \<integral> n. norm (?f i n) \<partial>count_space UNIV)"
+      using * by (subst f') (simp add: integrable_count_space_nat_iff)
+  qed
+  also have "(\<integral> n. (\<Sum>i. ?f i n) \<partial>count_space UNIV) = (\<integral>n. f n \<partial>count_space UNIV)"
+    using suminf_finite[of "{n}" "\<lambda>i. ?f i n" for n] by (auto intro!: integral_cong)
+  also have "(\<lambda>i. \<integral>n. ?f i n \<partial>count_space UNIV) = f"
+    by (subst f') simp
+  finally show ?thesis .
+qed
+
+lemma integral_count_space_nat:
+  fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
+  shows "integrable (count_space UNIV) f \<Longrightarrow> integral\<^sup>L (count_space UNIV) f = (\<Sum>x. f x)"
+  using sums_integral_count_space_nat by (rule sums_unique)
+
 subsection {* Point measure *}
 
 lemma lebesgue_integral_point_measure_finite:
@@ -2075,6 +2110,20 @@ lemma integrable_point_measure_finite:
   apply (subst integrable_density)
   apply (auto simp: AE_count_space integrable_count_space)
   done
+
+subsection {* Lebesgue integration on @{const null_measure} *}
+
+lemma has_bochner_integral_null_measure_iff[iff]:
+  "has_bochner_integral (null_measure M) f 0 \<longleftrightarrow> f \<in> borel_measurable M"
+  by (auto simp add: has_bochner_integral.simps simple_bochner_integral_def[abs_def]
+           intro!: exI[of _ "\<lambda>n x. 0"] simple_bochner_integrable.intros)
+
+lemma integrable_null_measure_iff[iff]: "integrable (null_measure M) f \<longleftrightarrow> f \<in> borel_measurable M"
+  by (auto simp add: integrable.simps)
+
+lemma integral_null_measure[simp]: "integral\<^sup>L (null_measure M) f = 0"
+  by (cases "integrable (null_measure M) f")
+     (auto simp add: not_integrable_integral_eq has_bochner_integral_integral_eq)
 
 subsection {* Legacy lemmas for the real-valued Lebesgue integral *}
 

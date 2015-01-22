@@ -1951,6 +1951,11 @@ lemma nn_integral_count_space_indicator:
   shows "(\<integral>\<^sup>+x. f x \<partial>count_space X) = (\<integral>\<^sup>+x. f x * indicator X x \<partial>count_space UNIV)"
   by (simp add: nn_integral_restrict_space[symmetric] restrict_count_space)
 
+lemma nn_integral_count_space_eq:
+  "(\<And>x. x \<in> A - B \<Longrightarrow> f x = 0) \<Longrightarrow> (\<And>x. x \<in> B - A \<Longrightarrow> f x = 0) \<Longrightarrow>
+    (\<integral>\<^sup>+x. f x \<partial>count_space A) = (\<integral>\<^sup>+x. f x \<partial>count_space B)"
+  by (auto simp: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
+
 lemma nn_integral_ge_point:
   assumes "x \<in> A"
   shows "p x \<le> \<integral>\<^sup>+ x. p x \<partial>count_space A"
@@ -2194,6 +2199,23 @@ proof -
     using f g by (subst density_density_eq) auto
 qed
 
+lemma density_1: "density M (\<lambda>_. 1) = M"
+  by (intro measure_eqI) (auto simp: emeasure_density)
+
+lemma emeasure_density_add:
+  assumes X: "X \<in> sets M" 
+  assumes Mf[measurable]: "f \<in> borel_measurable M"
+  assumes Mg[measurable]: "g \<in> borel_measurable M"
+  assumes nonnegf: "\<And>x. x \<in> space M \<Longrightarrow> f x \<ge> 0"
+  assumes nonnegg: "\<And>x. x \<in> space M \<Longrightarrow> g x \<ge> 0"
+  shows "emeasure (density M f) X + emeasure (density M g) X = 
+           emeasure (density M (\<lambda>x. f x + g x)) X"
+  using assms
+  apply (subst (1 2 3) emeasure_density, simp_all) []
+  apply (subst nn_integral_add[symmetric], simp_all) []
+  apply (intro nn_integral_cong, simp split: split_indicator)
+  done
+
 subsubsection {* Point measure *}
 
 definition point_measure :: "'a set \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
@@ -2350,6 +2372,21 @@ proof -
   ultimately show ?thesis
     unfolding uniform_measure_def by (simp add: AE_density)
 qed
+
+subsubsection {* Null measure *}
+
+lemma null_measure_eq_density: "null_measure M = density M (\<lambda>_. 0)"
+  by (intro measure_eqI) (simp_all add: emeasure_density)
+
+lemma nn_integral_null_measure[simp]: "(\<integral>\<^sup>+x. f x \<partial>null_measure M) = 0"
+  by (auto simp add: nn_integral_def simple_integral_def SUP_constant bot_ereal_def le_fun_def
+           intro!: exI[of _ "\<lambda>x. 0"])
+
+lemma density_null_measure[simp]: "density (null_measure M) f = null_measure M"
+proof (intro measure_eqI)
+  fix A show "emeasure (density (null_measure M) f) A = emeasure (null_measure M) A"
+    by (simp add: density_def) (simp only: null_measure_def[symmetric] emeasure_null_measure)
+qed simp
 
 subsubsection {* Uniform count measure *}
 

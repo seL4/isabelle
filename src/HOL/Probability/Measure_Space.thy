@@ -1928,5 +1928,23 @@ proof (rule measure_eqI)
   finally show "emeasure M X = emeasure N X" .
 qed fact
 
+subsection {* Null measure *}
+
+definition "null_measure M = sigma (space M) (sets M)"
+
+lemma space_null_measure[simp]: "space (null_measure M) = space M"
+  by (simp add: null_measure_def)
+
+lemma sets_null_measure[simp, measurable_cong]: "sets (null_measure M) = sets M" 
+  by (simp add: null_measure_def)
+
+lemma emeasure_null_measure[simp]: "emeasure (null_measure M) X = 0"
+  by (cases "X \<in> sets M", rule emeasure_measure_of)
+     (auto simp: positive_def countably_additive_def emeasure_notin_sets null_measure_def
+           dest: sets.sets_into_space)
+
+lemma measure_null_measure[simp]: "measure (null_measure M) X = 0"
+  by (simp add: measure_def)
+
 end
 

@@ -538,4 +538,8 @@ qed
 
 end
 
+lemma inner_Pair_0: "inner x (0, b) = inner (snd x) b" "inner x (a, 0) = inner (fst x) a"
+    by (cases x, simp)+
+
+
 end

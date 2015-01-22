@@ -405,16 +405,20 @@ lemma PiE_fun_upd: "y \<in> T x \<Longrightarrow> f \<in> PiE S T \<Longrightarr
 lemma fun_upd_in_PiE: "x \<notin> S \<Longrightarrow> f \<in> PiE (insert x S) T \<Longrightarrow> f(x := undefined) \<in> PiE S T"
   unfolding PiE_def extensional_def by auto
 
-lemma PiE_insert_eq:
-  assumes "x \<notin> S"
-  shows "PiE (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+lemma PiE_insert_eq: "PiE (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
 proof -
   {
-    fix f assume "f \<in> PiE (insert x S) T"
+    fix f assume "f \<in> PiE (insert x S) T" "x \<notin> S"
     with assms have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
       by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
   }
-  then show ?thesis
+  moreover
+  {
+    fix f assume "f \<in> PiE (insert x S) T" "x \<in> S"
+    with assms have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+      by (auto intro!: image_eqI[where x="(f x, f)"] intro: fun_upd_in_PiE PiE_mem simp: insert_absorb)
+  }
+  ultimately show ?thesis
     using assms by (auto intro: PiE_fun_upd)
 qed
 

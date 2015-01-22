@@ -32,6 +32,9 @@ lemma prob_space_imp_subprob_space:
   "prob_space M \<Longrightarrow> subprob_space M"
   by (rule subprob_spaceI) (simp_all add: prob_space.emeasure_space_1 prob_space.not_empty)
 
+lemma subprob_space_imp_sigma_finite: "subprob_space M \<Longrightarrow> sigma_finite_measure M"
+  unfolding subprob_space_def finite_measure_def by simp
+
 sublocale prob_space \<subseteq> subprob_space
   by (rule subprob_spaceI) (simp_all add: emeasure_space_1 not_empty)
 
@@ -122,6 +125,10 @@ proof
   from M1.subprob_not_empty and M2.subprob_not_empty show "space (M1 \<Otimes>\<^sub>M M2) \<noteq> {}"
     by (simp add: space_pair_measure)
 qed
+
+lemma subprob_space_null_measure_iff:
+    "subprob_space (null_measure M) \<longleftrightarrow> space M \<noteq> {}"
+  by (auto intro!: subprob_spaceI dest: subprob_space.subprob_not_empty)
 
 definition subprob_algebra :: "'a measure \<Rightarrow> 'a measure measure" where
   "subprob_algebra K =
@@ -1249,5 +1256,19 @@ next
   with sets_SUP_measure[of M, OF const] show ?thesis
     by (simp add: emeasure_notin_sets)
 qed
+
+lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<guillemotright>= return N = M"
+   by (cases "space M = {}")
+      (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return'
+                cong: subprob_algebra_cong)
+
+lemma (in prob_space) distr_const[simp]:
+  "c \<in> space N \<Longrightarrow> distr M N (\<lambda>x. c) = return N c"
+  by (rule measure_eqI) (auto simp: emeasure_distr emeasure_space_1)
+
+lemma return_count_space_eq_density:
+    "return (count_space M) x = density (count_space M) (indicator {x})"
+  by (rule measure_eqI) 
+     (auto simp: indicator_inter_arith_ereal emeasure_density split: split_indicator)
 
 end

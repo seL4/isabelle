@@ -1175,6 +1175,16 @@ lemma suminf_ereal': "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) = erea
 lemma suminf_ereal_finite: "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
   by (auto simp: sums_ereal[symmetric] summable_def sums_unique[symmetric])
 
+lemma suminf_ereal_finite_neg:
+  assumes "summable f"
+  shows "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>"
+proof-
+  from assms obtain x where "f sums x" by blast
+  hence "(\<lambda>x. ereal (f x)) sums ereal x" by (simp add: sums_ereal)
+  from sums_unique[OF this] have "(\<Sum>x. ereal (f x)) = ereal x" ..
+  thus "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>" by simp_all
+qed
+
 subsection {* monoset *}
 
 definition (in order) mono_set:
@@ -1363,5 +1373,9 @@ lemma ereal_indicator_mult: "ereal (indicator A y * x) = indicator A y * ereal x
 
 lemma ereal_indicator_nonneg[simp, intro]: "0 \<le> (indicator A x ::ereal)"
   unfolding indicator_def by auto
+
+lemma indicator_inter_arith_ereal: "indicator A x * indicator B x = (indicator (A \<inter> B) x :: ereal)"
+  by (simp split: split_indicator)
+
 
 end

@@ -23,6 +23,9 @@ proof -
   show "prob_space M" by default fact
 qed
 
+lemma prob_space_imp_sigma_finite: "prob_space M \<Longrightarrow> sigma_finite_measure M"
+  unfolding prob_space_def finite_measure_def by simp
+
 abbreviation (in prob_space) "events \<equiv> sets M"
 abbreviation (in prob_space) "prob \<equiv> measure M"
 abbreviation (in prob_space) "random_variable M' X \<equiv> X \<in> measurable M M'"

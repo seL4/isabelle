@@ -180,6 +180,37 @@ syntax (HTML output)
 translations
   "PIM x:I. M" == "CONST PiM I (%x. M)"
 
+lemma extend_measure_cong:
+  assumes "\<Omega> = \<Omega>'" "I = I'" "G = G'" "\<And>i. i \<in> I' \<Longrightarrow> \<mu> i = \<mu>' i"
+  shows "extend_measure \<Omega> I G \<mu> = extend_measure \<Omega>' I' G' \<mu>'"
+  unfolding extend_measure_def by (auto simp add: assms)
+
+lemma Pi_cong_sets:
+    "\<lbrakk>I = J; \<And>x. x \<in> I \<Longrightarrow> M x = N x\<rbrakk> \<Longrightarrow> Pi I M = Pi J N"
+  unfolding Pi_def by auto 
+
+lemma PiM_cong:
+  assumes "I = J" "\<And>x. x \<in> I \<Longrightarrow> M x = N x"
+  shows "PiM I M = PiM J N"
+unfolding PiM_def
+proof (rule extend_measure_cong)
+  case goal1 show ?case using assms
+    by (subst assms(1), intro PiE_cong[of J "\<lambda>i. space (M i)" "\<lambda>i. space (N i)"]) simp_all
+next
+  case goal2
+  have "\<And>K. K \<subseteq> J \<Longrightarrow> (\<Pi> j\<in>K. sets (M j)) = (\<Pi> j\<in>K. sets (N j))"
+    using assms by (intro Pi_cong_sets) auto
+  thus ?case by (auto simp: assms)
+next
+  case goal3 show ?case using assms 
+    by (intro ext) (auto simp: prod_emb_def dest: PiE_mem)
+next
+  case (goal4 x)
+  thus ?case using assms 
+    by (auto intro!: setprod.cong split: split_if_asm)
+qed
+
+
 lemma prod_algebra_sets_into_space:
   "prod_algebra I M \<subseteq> Pow (\<Pi>\<^sub>E i\<in>I. space (M i))"
   by (auto simp: prod_emb_def prod_algebra_def)
@@ -624,6 +655,17 @@ lemma measurable_abs_UNIV:
 lemma measurable_restrict_subset: "J \<subseteq> L \<Longrightarrow> (\<lambda>f. restrict f J) \<in> measurable (Pi\<^sub>M L M) (Pi\<^sub>M J M)"
   by (intro measurable_restrict measurable_component_singleton) auto
 
+lemma measurable_restrict_subset':
+  assumes "J \<subseteq> L" "\<And>x. x \<in> J \<Longrightarrow> sets (M x) = sets (N x)"
+  shows "(\<lambda>f. restrict f J) \<in> measurable (Pi\<^sub>M L M) (Pi\<^sub>M J N)"
+proof-
+  from assms(1) have "(\<lambda>f. restrict f J) \<in> measurable (Pi\<^sub>M L M) (Pi\<^sub>M J M)"
+    by (rule measurable_restrict_subset)
+  also from assms(2) have "measurable (Pi\<^sub>M L M) (Pi\<^sub>M J M) = measurable (Pi\<^sub>M L M) (Pi\<^sub>M J N)"
+    by (intro sets_PiM_cong measurable_cong_sets) simp_all
+  finally show ?thesis .
+qed
+
 lemma measurable_prod_emb[intro, simp]:
   "J \<subseteq> L \<Longrightarrow> X \<in> sets (Pi\<^sub>M J M) \<Longrightarrow> prod_emb L M J X \<in> sets (Pi\<^sub>M L M)"
   unfolding prod_emb_def space_PiM[symmetric]
@@ -945,6 +987,17 @@ proof -
   qed
 qed
 
+lemma (in product_sigma_finite) product_nn_integral_insert_rev:
+  assumes I[simp]: "finite I" "i \<notin> I"
+    and [measurable]: "f \<in> borel_measurable (Pi\<^sub>M (insert i I) M)"
+  shows "integral\<^sup>N (Pi\<^sub>M (insert i I) M) f = (\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x(i := y)) \<partial>(Pi\<^sub>M I M)) \<partial>(M i))"
+  apply (subst product_nn_integral_insert[OF assms])
+  apply (rule pair_sigma_finite.Fubini')
+  apply intro_locales []
+  apply (rule sigma_finite[OF I(1)])
+  apply measurable
+  done
+
 lemma (in product_sigma_finite) product_nn_integral_setprod:
   fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "finite I" and borel: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
@@ -968,6 +1021,23 @@ using assms proof induct
     apply (auto simp add: pos borel insert(2-) setprod_ereal_pos nn_integral_nonneg)
     done
 qed (simp add: space_PiM)
+
+lemma (in product_sigma_finite) product_nn_integral_pair:
+  assumes [measurable]: "split f \<in> borel_measurable (M x \<Otimes>\<^sub>M M y)"
+  assumes xy: "x \<noteq> y"
+  shows "(\<integral>\<^sup>+\<sigma>. f (\<sigma> x) (\<sigma> y) \<partial>PiM {x, y} M) = (\<integral>\<^sup>+z. f (fst z) (snd z) \<partial>(M x \<Otimes>\<^sub>M M y))"
+proof-
+  interpret psm: pair_sigma_finite "M x" "M y"
+    unfolding pair_sigma_finite_def using sigma_finite_measures by simp_all
+  have "{x, y} = {y, x}" by auto
+  also have "(\<integral>\<^sup>+\<sigma>. f (\<sigma> x) (\<sigma> y) \<partial>PiM {y, x} M) = (\<integral>\<^sup>+y. \<integral>\<^sup>+\<sigma>. f (\<sigma> x) y \<partial>PiM {x} M \<partial>M y)"
+    using xy by (subst product_nn_integral_insert_rev) simp_all
+  also have "... = (\<integral>\<^sup>+y. \<integral>\<^sup>+x. f x y \<partial>M x \<partial>M y)"
+    by (intro nn_integral_cong, subst product_nn_integral_singleton) simp_all
+  also have "... = (\<integral>\<^sup>+z. f (fst z) (snd z) \<partial>(M x \<Otimes>\<^sub>M M y))"
+    by (subst psm.nn_integral_snd[symmetric]) simp_all
+  finally show ?thesis .
+qed
 
 lemma (in product_sigma_finite) distr_component:
   "distr (M i) (Pi\<^sub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^sub>M {i} M" (is "?D = ?P")

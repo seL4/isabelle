@@ -12,16 +12,6 @@ imports
   "~~/src/HOL/Library/Multiset"
 begin
 
-lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<guillemotright>= return N = M"
-   by (cases "space M = {}")
-      (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return'
-                cong: subprob_algebra_cong)
-
-
-lemma (in prob_space) distr_const[simp]:
-  "c \<in> space N \<Longrightarrow> distr M N (\<lambda>x. c) = return N c"
-  by (rule measure_eqI) (auto simp: emeasure_distr emeasure_space_1)
-
 lemma (in finite_measure) countable_support:
   "countable {x. measure M {x} \<noteq> 0}"
 proof cases
@@ -214,8 +204,7 @@ lemma emeasure_measure_pmf_finite: "finite S \<Longrightarrow> emeasure (measure
   by (subst emeasure_eq_setsum_singleton) (auto simp: emeasure_pmf_single)
 
 lemma measure_measure_pmf_finite: "finite S \<Longrightarrow> measure (measure_pmf M) S = setsum (pmf M) S"
-using emeasure_measure_pmf_finite[of S M]
-by(simp add: measure_pmf.emeasure_eq_measure)
+  using emeasure_measure_pmf_finite[of S M] by(simp add: measure_pmf.emeasure_eq_measure)
 
 lemma nn_integral_measure_pmf_support:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -759,33 +748,34 @@ lemma set_bind_pmf: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf 
               intro!: measure_pmf.integrable_const_bound[where B=1])
   done
 
+
 lemma measurable_pair_restrict_pmf2:
   assumes "countable A"
-  assumes "\<And>y. y \<in> A \<Longrightarrow> (\<lambda>x. f (x, y)) \<in> measurable M L"
-  shows "f \<in> measurable (M \<Otimes>\<^sub>M restrict_space (measure_pmf N) A) L"
-  apply (subst measurable_cong_sets)
-  apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
-  apply (simp_all add: restrict_count_space)
-  apply (subst split_eta[symmetric])
-  unfolding measurable_split_conv
-  apply (rule measurable_compose_countable'[OF _ measurable_snd `countable A`])
-  apply (rule measurable_compose[OF measurable_fst])
-  apply fact
-  done
+  assumes [measurable]: "\<And>y. y \<in> A \<Longrightarrow> (\<lambda>x. f (x, y)) \<in> measurable M L"
+  shows "f \<in> measurable (M \<Otimes>\<^sub>M restrict_space (measure_pmf N) A) L" (is "f \<in> measurable ?M _")
+proof -
+  have [measurable_cong]: "sets (restrict_space (count_space UNIV) A) = sets (count_space A)"
+    by (simp add: restrict_count_space)
+
+  show ?thesis
+    by (intro measurable_compose_countable'[where f="\<lambda>a b. f (fst b, a)" and g=snd and I=A,
+                                            unfolded pair_collapse] assms)
+        measurable
+qed
 
 lemma measurable_pair_restrict_pmf1:
   assumes "countable A"
-  assumes "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) \<in> measurable N L"
+  assumes [measurable]: "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) \<in> measurable N L"
   shows "f \<in> measurable (restrict_space (measure_pmf M) A \<Otimes>\<^sub>M N) L"
-  apply (subst measurable_cong_sets)
-  apply (rule sets_pair_measure_cong sets_restrict_space_cong sets_measure_pmf_count_space refl)+
-  apply (simp_all add: restrict_count_space)
-  apply (subst split_eta[symmetric])
-  unfolding measurable_split_conv
-  apply (rule measurable_compose_countable'[OF _ measurable_fst `countable A`])
-  apply (rule measurable_compose[OF measurable_snd])
-  apply fact
-  done
+proof -
+  have [measurable_cong]: "sets (restrict_space (count_space UNIV) A) = sets (count_space A)"
+    by (simp add: restrict_count_space)
+
+  show ?thesis
+    by (intro measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g=fst and I=A,
+                                            unfolded pair_collapse] assms)
+        measurable
+qed
                                 
 lemma bind_commute_pmf: "bind_pmf A (\<lambda>x. bind_pmf B (C x)) = bind_pmf B (\<lambda>y. bind_pmf A (\<lambda>x. C x y))"
   unfolding pmf_eq_iff pmf_bind
@@ -992,11 +982,6 @@ where
   "\<lbrakk> \<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y; 
      map_pmf fst pq = p; map_pmf snd pq = q \<rbrakk>
   \<Longrightarrow> rel_pmf R p q"
-
-lemma nn_integral_count_space_eq:
-  "(\<And>x. x \<in> A - B \<Longrightarrow> f x = 0) \<Longrightarrow> (\<And>x. x \<in> B - A \<Longrightarrow> f x = 0) \<Longrightarrow>
-    (\<integral>\<^sup>+x. f x \<partial>count_space A) = (\<integral>\<^sup>+x. f x \<partial>count_space B)"
-  by (auto simp: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
 
 bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
 proof -

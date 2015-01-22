@@ -481,6 +481,35 @@ lemma interval_bounds'[simp]:
     and "interval_lowerbound (cbox a b) = a"
   using assms unfolding box_ne_empty by auto
 
+
+lemma interval_upperbound_Times: 
+  assumes "A \<noteq> {}" and "B \<noteq> {}"
+  shows "interval_upperbound (A \<times> B) = (interval_upperbound A, interval_upperbound B)"
+proof-
+  from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
+  have "(\<Sum>i\<in>Basis. (SUP x:A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x:A. x \<bullet> i) *\<^sub>R i)"
+      by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
+  moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
+  have "(\<Sum>i\<in>Basis. (SUP x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x:B. x \<bullet> i) *\<^sub>R i)"
+      by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
+  ultimately show ?thesis unfolding interval_upperbound_def
+      by (subst setsum_Basis_prod_eq) (auto simp add: setsum_prod)
+qed
+
+lemma interval_lowerbound_Times: 
+  assumes "A \<noteq> {}" and "B \<noteq> {}"
+  shows "interval_lowerbound (A \<times> B) = (interval_lowerbound A, interval_lowerbound B)"
+proof-
+  from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
+  have "(\<Sum>i\<in>Basis. (INF x:A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x:A. x \<bullet> i) *\<^sub>R i)"
+      by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
+  moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
+  have "(\<Sum>i\<in>Basis. (INF x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x:B. x \<bullet> i) *\<^sub>R i)"
+      by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
+  ultimately show ?thesis unfolding interval_lowerbound_def
+      by (subst setsum_Basis_prod_eq) (auto simp add: setsum_prod)
+qed
+
 subsection {* Content (length, area, volume...) of an interval. *}
 
 definition "content (s::('a::euclidean_space) set) =
@@ -618,6 +647,20 @@ qed
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
   unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
+
+lemma content_times[simp]: "content (A \<times> B) = content A * content B"
+proof (cases "A \<times> B = {}")
+  let ?ub1 = "interval_upperbound" and ?lb1 = "interval_lowerbound"
+  let ?ub2 = "interval_upperbound" and ?lb2 = "interval_lowerbound"
+  assume nonempty: "A \<times> B \<noteq> {}"
+  hence "content (A \<times> B) = (\<Prod>i\<in>Basis. (?ub1 A, ?ub2 B) \<bullet> i - (?lb1 A, ?lb2 B) \<bullet> i)" 
+      unfolding content_def by (simp add: interval_upperbound_Times interval_lowerbound_Times)
+  also have "... = content A * content B" unfolding content_def using nonempty
+    apply (subst Basis_prod_def, subst setprod.union_disjoint, force, force, force, simp)
+    apply (subst (1 2) setprod.reindex, auto intro: inj_onI)
+    done
+  finally show ?thesis .
+qed (auto simp: content_def)
 
 
 subsection {* The notion of a gauge --- simply an open set containing the point. *}
