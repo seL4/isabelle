@@ -53,6 +53,18 @@ lemma (in subprob_space) subprob_emeasure_le_1: "emeasure M X \<le> 1"
 lemma (in subprob_space) subprob_measure_le_1: "measure M X \<le> 1"
   using subprob_emeasure_le_1[of X] by (simp add: emeasure_eq_measure)
 
+lemma (in subprob_space) nn_integral_le_const:
+  assumes "0 \<le> c" "AE x in M. f x \<le> c"
+  shows "(\<integral>\<^sup>+x. f x \<partial>M) \<le> c"
+proof -
+  have "(\<integral>\<^sup>+ x. f x \<partial>M) \<le> (\<integral>\<^sup>+ x. c \<partial>M)"
+    by(rule nn_integral_mono_AE) fact
+  also have "\<dots> \<le> c * emeasure M (space M)"
+    using \<open>0 \<le> c\<close> by(simp add: nn_integral_const_If)
+  also have "\<dots> \<le> c * 1" using emeasure_space_le_1 \<open>0 \<le> c\<close> by(rule ereal_mult_left_mono)
+  finally show ?thesis by simp
+qed
+
 lemma emeasure_density_distr_interval:
   fixes h :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real" and g' :: "real \<Rightarrow> real"
   assumes [simp]: "a \<le> b"
