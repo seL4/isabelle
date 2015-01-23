@@ -730,6 +730,112 @@ proof (rule measure_eqI)
     done
 qed
 
+
+lemma emeasure_prod_count_space:
+  assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M M)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
+  shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator A (x, y) \<partial>?B \<partial>?A)"
+  by (rule emeasure_measure_of[OF pair_measure_def])
+     (auto simp: countably_additive_def positive_def suminf_indicator nn_integral_nonneg A
+                 nn_integral_suminf[symmetric] dest: sets.sets_into_space)
+
+lemma emeasure_prod_count_space_single[simp]: "emeasure (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) {x} = 1"
+proof -
+  have [simp]: "\<And>a b x y. indicator {(a, b)} (x, y) = (indicator {a} x * indicator {b} y::ereal)"
+    by (auto split: split_indicator)
+  show ?thesis
+    by (cases x)
+       (auto simp: emeasure_prod_count_space nn_integral_cmult sets_Pair nn_integral_max_0 one_ereal_def[symmetric])
+qed
+
+lemma emeasure_count_space_prod_eq:
+  fixes A :: "('a \<times> 'b) set"
+  assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M count_space UNIV)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
+  shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
+proof -
+  { fix A :: "('a \<times> 'b) set" assume "countable A"
+    then have "emeasure (?A \<Otimes>\<^sub>M ?B) (\<Union>a\<in>A. {a}) = (\<integral>\<^sup>+a. emeasure (?A \<Otimes>\<^sub>M ?B) {a} \<partial>count_space A)"
+      by (intro emeasure_UN_countable) (auto simp: sets_Pair disjoint_family_on_def)
+    also have "\<dots> = (\<integral>\<^sup>+a. indicator A a \<partial>count_space UNIV)"
+      by (subst nn_integral_count_space_indicator) auto
+    finally have "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
+      by simp }
+  note * = this
+
+  show ?thesis
+  proof cases
+    assume "finite A" then show ?thesis
+      by (intro * countable_finite)
+  next
+    assume "infinite A"
+    then obtain C where "countable C" and "infinite C" and "C \<subseteq> A"
+      by (auto dest: infinite_countable_subset')
+    with A have "emeasure (?A \<Otimes>\<^sub>M ?B) C \<le> emeasure (?A \<Otimes>\<^sub>M ?B) A"
+      by (intro emeasure_mono) auto
+    also have "emeasure (?A \<Otimes>\<^sub>M ?B) C = emeasure (count_space UNIV) C"
+      using `countable C` by (rule *)
+    finally show ?thesis
+      using `infinite C` `infinite A` by simp
+  qed
+qed
+
+lemma nn_intergal_count_space_prod_eq':
+  assumes [simp]: "\<And>x. 0 \<le> f x"
+  shows "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
+    (is "nn_integral ?P f = _")
+proof cases
+  assume cntbl: "countable {x. f x \<noteq> 0}"
+  have [simp]: "\<And>x. ereal (real (card ({x} \<inter> {x. f x \<noteq> 0}))) = indicator {x. f x \<noteq> 0} x"
+    by (auto split: split_indicator)
+  have [measurable]: "\<And>y. (\<lambda>x. indicator {y} x) \<in> borel_measurable ?P"
+    by (rule measurable_discrete_difference[of "\<lambda>x. 0" _ borel "{y}" "\<lambda>x. indicator {y} x" for y])
+       (auto intro: sets_Pair)
+
+  have "(\<integral>\<^sup>+x. f x \<partial>?P) = (\<integral>\<^sup>+x. \<integral>\<^sup>+x'. f x * indicator {x} x' \<partial>count_space {x. f x \<noteq> 0} \<partial>?P)"
+    by (auto simp add: nn_integral_cmult nn_integral_indicator' intro!: nn_integral_cong split: split_indicator)
+  also have "\<dots> = (\<integral>\<^sup>+x. \<integral>\<^sup>+x'. f x' * indicator {x'} x \<partial>count_space {x. f x \<noteq> 0} \<partial>?P)"
+    by (auto intro!: nn_integral_cong split: split_indicator)
+  also have "\<dots> = (\<integral>\<^sup>+x'. \<integral>\<^sup>+x. f x' * indicator {x'} x \<partial>?P \<partial>count_space {x. f x \<noteq> 0})"
+    by (intro nn_integral_count_space_nn_integral cntbl) auto
+  also have "\<dots> = (\<integral>\<^sup>+x'. f x' \<partial>count_space {x. f x \<noteq> 0})"
+    by (intro nn_integral_cong) (auto simp: nn_integral_cmult sets_Pair)
+  finally show ?thesis
+    by (auto simp add: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
+next
+  { fix x assume "f x \<noteq> 0"
+    with `0 \<le> f x` have "(\<exists>r. 0 < r \<and> f x = ereal r) \<or> f x = \<infinity>"
+      by (cases "f x") (auto simp: less_le)
+    then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f x"
+      by (auto elim!: nat_approx_posE intro!: less_imp_le) }
+  note * = this
+
+  assume cntbl: "uncountable {x. f x \<noteq> 0}"
+  also have "{x. f x \<noteq> 0} = (\<Union>n. {x. 1/Suc n \<le> f x})"
+    using * by auto
+  finally obtain n where "infinite {x. 1/Suc n \<le> f x}"
+    by (meson countableI_type countable_UN uncountable_infinite)
+  then obtain C where C: "C \<subseteq> {x. 1/Suc n \<le> f x}" and "countable C" "infinite C"
+    by (metis infinite_countable_subset')
+
+  have [measurable]: "C \<in> sets ?P"
+    using sets.countable[OF _ `countable C`, of ?P] by (auto simp: sets_Pair)
+
+  have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) \<le> nn_integral ?P f"
+    using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
+  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) = \<infinity>"
+    using `infinite C` by (simp add: nn_integral_cmult emeasure_count_space_prod_eq)
+  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) \<le> nn_integral (count_space UNIV) f"
+    using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
+  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) = \<infinity>"
+    using `infinite C` by (simp add: nn_integral_cmult)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma nn_intergal_count_space_prod_eq:
+  "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
+  by (subst (1 2) nn_integral_max_0[symmetric]) (auto intro!: nn_intergal_count_space_prod_eq')
+
+
 lemma pair_measure_density:
   assumes f: "f \<in> borel_measurable M1" "AE x in M1. 0 \<le> f x"
   assumes g: "g \<in> borel_measurable M2" "AE x in M2. 0 \<le> g x"

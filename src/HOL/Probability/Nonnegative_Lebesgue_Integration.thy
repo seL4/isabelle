@@ -9,6 +9,14 @@ theory Nonnegative_Lebesgue_Integration
   imports Measure_Space Borel_Space
 begin
 
+lemma infinite_countable_subset':
+  assumes X: "infinite X" shows "\<exists>C\<subseteq>X. countable C \<and> infinite C"
+proof -
+  from infinite_countable_subset[OF X] guess f ..
+  then show ?thesis
+    by (intro exI[of _ "range f"]) (auto simp: range_inj_infinite)
+qed
+
 lemma indicator_less_ereal[simp]:
   "indicator A x \<le> (indicator B x::ereal) \<longleftrightarrow> (x \<in> A \<longrightarrow> x \<in> B)"
   by (simp add: indicator_def not_le)
@@ -835,6 +843,10 @@ lemma nn_integral_cong_AE:
 lemma nn_integral_cong:
   "(\<And>x. x \<in> space M \<Longrightarrow> u x = v x) \<Longrightarrow> integral\<^sup>N M u = integral\<^sup>N M v"
   by (auto intro: nn_integral_cong_AE)
+
+lemma nn_integral_cong_simp:
+  "(\<And>x. x \<in> space M =simp=> u x = v x) \<Longrightarrow> integral\<^sup>N M u = integral\<^sup>N M v"
+  by (auto intro: nn_integral_cong simp: simp_implies_def)
 
 lemma nn_integral_cong_strong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> u x = v x) \<Longrightarrow> integral\<^sup>N M u = integral\<^sup>N N v"
@@ -1724,58 +1736,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma emeasure_UN_countable:
-  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I: "countable I" 
-  assumes disj: "disjoint_family_on X I"
-  shows "emeasure M (UNION I X) = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
-proof cases
-  assume "finite I" with sets disj show ?thesis
-    by (subst setsum_emeasure[symmetric])
-       (auto intro!: setsum.cong simp add: max_def subset_eq nn_integral_count_space_finite emeasure_nonneg)
-next
-  assume f: "\<not> finite I"
-  then have [intro]: "I \<noteq> {}" by auto
-  from from_nat_into_inj_infinite[OF I f] from_nat_into[OF this] disj
-  have disj2: "disjoint_family (\<lambda>i. X (from_nat_into I i))"
-    unfolding disjoint_family_on_def by metis
-
-  from f have "bij_betw (from_nat_into I) UNIV I"
-    using bij_betw_from_nat_into[OF I] by simp
-  then have "(\<Union>i\<in>I. X i) = (\<Union>i. (X \<circ> from_nat_into I) i)"
-    unfolding SUP_def image_comp [symmetric] by (simp add: bij_betw_def)
-  then have "emeasure M (UNION I X) = emeasure M (\<Union>i. X (from_nat_into I i))"
-    by simp
-  also have "\<dots> = (\<Sum>i. emeasure M (X (from_nat_into I i)))"
-    by (intro suminf_emeasure[symmetric] disj disj2) (auto intro!: sets from_nat_into[OF `I \<noteq> {}`])
-  also have "\<dots> = (\<Sum>n. \<integral>\<^sup>+i. emeasure M (X i) * indicator {from_nat_into I n} i \<partial>count_space I)"
-  proof (intro arg_cong[where f=suminf] ext)
-    fix i
-    have eq: "{a \<in> I. 0 < emeasure M (X a) * indicator {from_nat_into I i} a}
-     = (if 0 < emeasure M (X (from_nat_into I i)) then {from_nat_into I i} else {})"
-     using ereal_0_less_1
-     by (auto simp: ereal_zero_less_0_iff indicator_def from_nat_into `I \<noteq> {}` simp del: ereal_0_less_1)
-    have "(\<integral>\<^sup>+ ia. emeasure M (X ia) * indicator {from_nat_into I i} ia \<partial>count_space I) =
-      (if 0 < emeasure M (X (from_nat_into I i)) then emeasure M (X (from_nat_into I i)) else 0)"
-      by (subst nn_integral_count_space) (simp_all add: eq)
-    also have "\<dots> = emeasure M (X (from_nat_into I i))"
-      by (simp add: less_le emeasure_nonneg)
-    finally show "emeasure M (X (from_nat_into I i)) =
-         \<integral>\<^sup>+ ia. emeasure M (X ia) * indicator {from_nat_into I i} ia \<partial>count_space I" ..
-  qed
-  also have "\<dots> = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
-    apply (subst nn_integral_suminf[symmetric])
-    apply (auto simp: emeasure_nonneg intro!: nn_integral_cong)
-  proof -
-    fix x assume "x \<in> I"
-    then have "(\<Sum>i. emeasure M (X x) * indicator {from_nat_into I i} x) = (\<Sum>i\<in>{to_nat_on I x}. emeasure M (X x) * indicator {from_nat_into I i} x)"
-      by (intro suminf_finite) (auto simp: indicator_def I f)
-    also have "\<dots> = emeasure M (X x)"
-      by (simp add: I f `x\<in>I`)
-    finally show "(\<Sum>i. emeasure M (X x) * indicator {from_nat_into I i} x) = emeasure M (X x)" .
-  qed
-  finally show ?thesis .
-qed
-
 lemma nn_integral_count_space_nat:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes nonneg: "\<And>i. 0 \<le> f i"
@@ -1796,6 +1756,53 @@ proof -
   also have "\<dots> = (\<Sum>j. f j)"
     by (simp add: nonneg nn_integral_cmult_indicator one_ereal_def[symmetric])
   finally show ?thesis .
+qed
+
+lemma nn_integral_count_space_nn_integral:
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> ereal"
+  assumes "countable I" and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<integral>\<^sup>+x. \<integral>\<^sup>+i. f i x \<partial>count_space I \<partial>M) = (\<integral>\<^sup>+i. \<integral>\<^sup>+x. f i x \<partial>M \<partial>count_space I)"
+proof cases
+  assume "finite I" then show ?thesis
+    by (simp add: nn_integral_count_space_finite nn_integral_nonneg max.absorb2 nn_integral_setsum
+                  nn_integral_max_0)
+next
+  assume "infinite I"
+  then have [simp]: "I \<noteq> {}"
+    by auto
+  note * = bij_betw_from_nat_into[OF `countable I` `infinite I`]
+  have **: "\<And>f. (\<And>i. 0 \<le> f i) \<Longrightarrow> (\<integral>\<^sup>+i. f i \<partial>count_space I) = (\<Sum>n. f (from_nat_into I n))"
+    by (simp add: nn_integral_bij_count_space[symmetric, OF *] nn_integral_count_space_nat)
+  show ?thesis
+    apply (subst (2) nn_integral_max_0[symmetric])
+    apply (simp add: ** nn_integral_nonneg nn_integral_suminf from_nat_into)
+    apply (simp add: nn_integral_max_0)
+    done
+qed
+
+lemma emeasure_UN_countable:
+  assumes sets[measurable]: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I[simp]: "countable I" 
+  assumes disj: "disjoint_family_on X I"
+  shows "emeasure M (UNION I X) = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
+proof -
+  have eq: "\<And>x. indicator (UNION I X) x = \<integral>\<^sup>+ i. indicator (X i) x \<partial>count_space I"
+  proof cases 
+    fix x assume x: "x \<in> UNION I X"
+    then obtain j where j: "x \<in> X j" "j \<in> I"
+      by auto
+    with disj have "\<And>i. i \<in> I \<Longrightarrow> indicator (X i) x = (indicator {j} i::ereal)"
+      by (auto simp: disjoint_family_on_def split: split_indicator)
+    with x j show "?thesis x"
+      by (simp cong: nn_integral_cong_simp)
+  qed (auto simp: nn_integral_0_iff_AE)
+
+  note sets.countable_UN'[unfolded subset_eq, measurable]
+  have "emeasure M (UNION I X) = (\<integral>\<^sup>+x. indicator (UNION I X) x \<partial>M)"
+    by simp
+  also have "\<dots> = (\<integral>\<^sup>+i. \<integral>\<^sup>+x. indicator (X i) x \<partial>M \<partial>count_space I)"
+    by (simp add: eq nn_integral_count_space_nn_integral)
+  finally show ?thesis
+    by (simp cong: nn_integral_cong_simp)
 qed
 
 lemma emeasure_countable_singleton:
