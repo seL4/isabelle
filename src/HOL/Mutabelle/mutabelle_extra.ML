@@ -409,9 +409,6 @@ fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
     create_entry thy thm exec mutants mtds
   end
 
-(* string -> string *)
-val unyxml = XML.content_of o YXML.parse_body
-
 fun string_of_mutant_subentry' thy thm_name (t, results) =
   let
    (* fun string_of_report (Quickcheck.Report {iterations = i, raised_match_errors = e,
@@ -426,8 +423,9 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
       ^ "(" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"
       (*^ "\n" ^ string_of_reports reports*)
   in
-    "mutant of " ^ thm_name ^ ":\n"
-    ^ unyxml (Syntax.string_of_term_global thy t) ^ "\n" ^ space_implode "; " (map string_of_mtd_result results)
+    "mutant of " ^ thm_name ^ ":\n" ^
+      YXML.content_of (Syntax.string_of_term_global thy t) ^ "\n" ^
+      space_implode "; " (map string_of_mtd_result results)
   end
 
 fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) = 

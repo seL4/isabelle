@@ -320,7 +320,7 @@ val iter_var_prefix = "i"
 fun sel_prefix_for j = sel_prefix ^ string_of_int j ^ name_sep
 
 fun quot_normal_name_for_type ctxt T =
-  quot_normal_prefix ^ unyxml (Syntax.string_of_typ ctxt T)
+  quot_normal_prefix ^ YXML.content_of (Syntax.string_of_typ ctxt T)
 
 val strip_first_name_sep =
   Substring.full #> Substring.position name_sep ##> Substring.triml 1

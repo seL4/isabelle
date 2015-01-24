@@ -26,6 +26,7 @@ sig
   val output_markup_elem: Markup.T -> (string * string) * string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
+  val content_of: string -> string
 end;
 
 structure YXML: YXML =
@@ -147,6 +148,8 @@ fun parse source =
   | _ => err "multiple results");
 
 end;
+
+val content_of = parse_body #> XML.content_of;
 
 end;
 
