@@ -150,7 +150,7 @@ fun serialization output _ content width (Export some_path) =
       string [] width content |> SOME
   | serialization _ string content width (Present syms) =
      string syms width content
-     |> (apfst o map o apsnd) (Pretty.output (SOME width) o Pretty.str)
+     |> (apfst o map o apsnd) Output.output
      |> SOME;
 
 fun export some_path f = (f (Export some_path); ());
@@ -571,7 +571,8 @@ fun arrange_printings prep_const ctxt =
       (arrange check_const_syntax) (arrange check_tyco_syntax)
         (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
         (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_cs) =>
-          (Code_Printer.str raw_content, map (prep_const ctxt) raw_cs)))
+          (Pretty.blk (0, Pretty.fbreaks (map Code_Printer.str (split_lines raw_content))),
+            map (prep_const ctxt) raw_cs)))
   end;
 
 fun cert_printings ctxt = cert_syms ctxt #> arrange_printings cert_const ctxt;
