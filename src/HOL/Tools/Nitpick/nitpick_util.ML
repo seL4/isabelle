@@ -70,7 +70,6 @@ sig
   val eta_expand : typ list -> term -> int -> term
   val DETERM_TIMEOUT : Time.time -> tactic -> tactic
   val indent_size : int
-  val pstrs : string -> Pretty.T list
   val unyxml : string -> string
   val pretty_maybe_quote : Keyword.keywords -> Pretty.T -> Pretty.T
   val hash_term : term -> int
@@ -280,8 +279,6 @@ fun DETERM_TIMEOUT delay tac st =
   Seq.of_list (the_list (TimeLimit.timeLimit delay (fn () => SINGLE tac st) ()))
 
 val indent_size = 2
-
-val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 
 val unyxml = ATP_Util.unyxml
 

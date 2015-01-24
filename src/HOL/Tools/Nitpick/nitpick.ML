@@ -212,7 +212,7 @@ fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
   | has_tfree_syntactic_sort _ = false
 val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 
-fun plazy f = Pretty.blk (0, pstrs (f ()))
+fun plazy f = Pretty.para (f ())
 
 fun pick_them_nits_in_term deadline state (params : params) mode i n step
                            subst def_assm_ts nondef_assm_ts orig_t =
@@ -245,7 +245,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun pprint_nt f = () |> is_mode_nt mode ? pprint writeln o f
     fun pprint_v f = () |> verbose ? pprint writeln o f
     fun pprint_d f = () |> debug ? pprint tracing o f
-    val print = pprint writeln o curry Pretty.blk 0 o pstrs
+    val print = pprint writeln o Pretty.para
     fun print_t f = () |> mode = TPTP ? print o f
 (*
     val print_g = pprint tracing o Pretty.str
@@ -330,9 +330,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 
     fun print_wf (x, (gfp, wf)) =
       pprint_nt (fn () => Pretty.blk (0,
-          pstrs ("The " ^ (if gfp then "co" else "") ^ "inductive predicate \"")
+          Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate \"")
           @ Syntax.pretty_term ctxt (Const x) ::
-          pstrs (if wf then
+          Pretty.text (if wf then
                    "\" was proved well-founded. Nitpick can compute it \
                    \efficiently."
                  else
@@ -367,9 +367,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun monotonicity_message Ts extra =
       let val pretties = map (pretty_maybe_quote keywords o pretty_for_type ctxt) Ts in
         Pretty.blk (0,
-          pstrs ("The type" ^ plural_s_for_list pretties ^ " ") @
+          Pretty.text ("The type" ^ plural_s_for_list pretties ^ " ") @
           pretty_serial_commas "and" pretties @
-          pstrs (" " ^
+          Pretty.text (" " ^
                  (if none_true monos then
                     "passed the monotonicity test"
                   else
@@ -657,14 +657,14 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       in
         (pprint_a (Pretty.chunks
              [Pretty.blk (0,
-                  (pstrs ((if mode = Auto_Try then "Auto " else "") ^
+                  (Pretty.text ((if mode = Auto_Try then "Auto " else "") ^
                           "Nitpick found a" ^
                           (if not genuine then " potentially spurious "
                            else if genuine_means_genuine then " "
                            else " quasi genuine ") ^ das_wort_model) @
                    (case pretties_for_scope scope verbose of
                       [] => []
-                    | pretties => pstrs " for " @ pretties) @
+                    | pretties => Pretty.text " for " @ pretties) @
                    [Pretty.str ":", Pretty.fbrk])),
               Pretty.indent indent_size reconstructed_model]);
          print_t (K "% SZS output end FiniteModel");
@@ -863,7 +863,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           else if verbose then
             pprint_nt (fn () => Pretty.chunks
                 [Pretty.blk (0,
-                     pstrs ((if n > 1 then
+                     Pretty.text ((if n > 1 then
                                "Batch " ^ string_of_int (j + 1) ^ " of " ^
                                signed_string_of_int n ^ ": "
                              else
