@@ -70,7 +70,7 @@ val has_junk =
 fun parse_time name s =
   let val secs = if has_junk s then NONE else Real.fromString s in
     if is_none secs orelse Real.< (the secs, 0.0) then
-      error ("Parameter " ^ quote name ^ " must be assigned a nonnegative \number of seconds \
+      error ("Parameter " ^ quote name ^ " must be assigned a nonnegative number of seconds \
         \(e.g., \"60\", \"0.5\") or \"none\".")
     else
       seconds (the secs)
