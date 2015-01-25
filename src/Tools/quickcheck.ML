@@ -425,12 +425,12 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s);
 
-fun valid_tester_name genctxt name =
-  AList.defined (op =) (#1 (Data.get genctxt)) name;
+fun valid_tester_name context name =
+  AList.defined (op =) (#1 (Data.get context)) name;
 
-fun parse_tester name (testers, genctxt) =
-  if valid_tester_name genctxt name then
-    (insert (op =) name testers, genctxt)
+fun parse_tester name (testers, context) =
+  if valid_tester_name context name then
+    (insert (op =) name testers, context)
   else error ("Unknown tester: " ^ name);
 
 fun parse_test_param ("tester", args) = fold parse_tester args
@@ -462,9 +462,9 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("finite_type_size", [arg]) =
       apsnd (Config.put_generic finite_type_size (read_nat arg))
   | parse_test_param (name, _) =
-      (fn (testers, genctxt) =>
-        if valid_tester_name genctxt name then
-          (insert (op =) name testers, genctxt)
+      (fn (testers, context) =>
+        if valid_tester_name context name then
+          (insert (op =) name testers, context)
         else error ("Unknown tester or test parameter: " ^ name));
 
 fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
