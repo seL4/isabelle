@@ -388,13 +388,13 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
 
 (* pretty printing *)
 
-fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck";
+fun tool_name auto = if auto then "Auto Quickcheck" else "Quickcheck";
 
 fun pretty_counterex ctxt auto NONE =
-      Pretty.str (tool_name auto ^ " found no counterexample." ^ Config.get ctxt tag)
+      Pretty.para (tool_name auto ^ " found no counterexample." ^ Config.get ctxt tag)
   | pretty_counterex ctxt auto (SOME ((genuine, cex), eval_terms)) =
       (Pretty.text_fold o Pretty.fbreaks)
-       (Pretty.str (tool_name auto ^ " found a " ^
+       (Pretty.para (tool_name auto ^ " found a " ^
          (if genuine then "counterexample:"
           else "potentially spurious counterexample due to underspecified functions:") ^
         Config.get ctxt tag) ::
