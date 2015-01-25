@@ -416,7 +416,8 @@ object Build
     known_theories: Map[String, Document.Node.Name],
     keywords: Thy_Header.Keywords,
     syntax: Outer_Syntax,
-    sources: List[(Path, SHA1.Digest)])
+    sources: List[(Path, SHA1.Digest)],
+    session_graph: Graph_Display.Graph)
 
   sealed case class Deps(deps: Map[String, Session_Content])
   {
@@ -494,8 +495,11 @@ object Build
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
+            val session_graph = thy_deps.deps_graph(info.parent getOrElse "", loaded_theories0)
+
             val content =
-              Session_Content(loaded_theories, known_theories, keywords, syntax, sources)
+              Session_Content(loaded_theories, known_theories, keywords, syntax,
+                sources, session_graph)
             deps + (name -> content)
           }
           catch {

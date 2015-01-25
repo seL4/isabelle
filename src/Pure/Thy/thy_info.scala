@@ -91,6 +91,26 @@ class Thy_Info(resources: Resources)
           rev_deps)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
+
+    def deps_graph(parent_session: String, parent_loaded: String => Boolean): Graph_Display.Graph =
+    {
+      val parent_session_node =
+        Graph_Display.Node("[" + parent_session + "]", "session." + parent_session)
+
+      def node(name: Document.Node.Name): Graph_Display.Node =
+        if (parent_loaded(name.theory)) parent_session_node
+        else Graph_Display.Node(name.theory, "theory." + name.theory)
+
+      (Graph_Display.empty_graph /: rev_deps) {
+        case (g, dep) =>
+          if (parent_loaded(dep.name.theory)) g
+          else {
+            val a = node(dep.name)
+            val bs = dep.header.imports.map(node _)
+            ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a))
+          }
+      }
+    }
   }
 
   private def require_thys(session: String, initiators: List[Document.Node.Name],
