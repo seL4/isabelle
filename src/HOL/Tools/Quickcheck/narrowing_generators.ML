@@ -289,12 +289,10 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
                     (counterexample, !current_result)
                   else
                     let
-                      val cex = Option.map (rpair []) (counterexample_of counterexample)
-                    in
-                      (message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
-                      message "Quickcheck continues to find a genuine counterexample...";
-                      with_size true (k + 1))
-                    end
+                      val cex = Option.map (rpair []) (counterexample_of counterexample);
+                      val _ = message (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
+                      val _ = message "Quickcheck continues to find a genuine counterexample...";
+                    in with_size true (k + 1) end
                end
             end
       in with_size genuine_only 0 end
@@ -471,7 +469,7 @@ fun test_term ctxt catch_code_errors (t, _) =
             evaluation_terms = Option.map (K []) counterexample,
             timings = #timings (dest_result result), reports = #reports (dest_result result)}
         | NONE =>
-          (Quickcheck.message ctxt ("Conjecture is not executable with Quickcheck-narrowing");
+          (Quickcheck.message ctxt "Conjecture is not executable with Quickcheck-narrowing";
            Quickcheck.empty_result)
       end
     else
@@ -501,7 +499,7 @@ fun test_term ctxt catch_code_errors (t, _) =
               timings = #timings (dest_result result),
               reports = #reports (dest_result result)}
         | NONE =>
-          (Quickcheck.message ctxt ("Conjecture is not executable with Quickcheck-narrowing");
+          (Quickcheck.message ctxt "Conjecture is not executable with Quickcheck-narrowing";
            Quickcheck.empty_result)
       end
   end;
@@ -509,7 +507,7 @@ fun test_term ctxt catch_code_errors (t, _) =
 fun test_goals ctxt catch_code_errors insts goals =
   if (not (getenv "ISABELLE_GHC" = "")) then
     let
-      val _ = Quickcheck.message ctxt ("Testing conjecture with Quickcheck-narrowing...")
+      val _ = Quickcheck.message ctxt "Testing conjecture with Quickcheck-narrowing...";
       val correct_inst_goals = Quickcheck_Common.instantiate_goals ctxt insts goals
     in
       Quickcheck_Common.collect_results (test_term ctxt catch_code_errors)
