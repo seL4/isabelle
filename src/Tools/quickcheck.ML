@@ -393,11 +393,10 @@ fun pretty_counterex ctxt auto NONE =
               (if genuine then "counterexample:"
                else "potentially spurious counterexample due to underspecified functions:") ^
               Config.get ctxt tag);
-        val body =
-          map (fn (s, t) =>
-            Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex);
+        fun pretty_cex (x, t) =
+          Pretty.block [Pretty.str (x ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t];
       in
-        Pretty.chunks (Pretty.block (Pretty.fbreaks (header :: body)) ::
+        Pretty.chunks (Pretty.block (Pretty.fbreaks (header :: map pretty_cex (rev cex))) ::
           (if null eval_terms then []
            else
             [Pretty.big_list "Evaluated terms:"
