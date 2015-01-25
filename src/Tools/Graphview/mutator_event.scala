@@ -10,10 +10,6 @@ package isabelle.graphview
 
 import isabelle._
 
-import scala.collection.mutable
-
-import java.awt.Color
-
 
 object Mutator_Event
 {
@@ -25,10 +21,10 @@ object Mutator_Event
 
   class Bus
   {
-    private val receivers = new mutable.ListBuffer[Receiver]
+    private val receivers = Synchronized(List.empty[Receiver])
 
-    def += (r: Receiver) { GUI_Thread.require {}; receivers += r }
-    def -= (r: Receiver) { GUI_Thread.require {}; receivers -= r }
-    def event(x: Message) { GUI_Thread.require {}; receivers.foreach(r => r(x)) }
+    def += (r: Receiver) { receivers.change(Library.insert(r)) }
+    def -= (r: Receiver) { receivers.change(Library.remove(r)) }
+    def event(x: Message) { receivers.value.reverse.foreach(r => r(x)) }
   }
 }
