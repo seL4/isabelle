@@ -42,7 +42,6 @@ session ZF (main) = Pure +
     Kenneth Kunen, Set Theory: An Introduction to Independence Proofs,
     (North-Holland, 1980)
   *}
-  options [document_graph]
   theories
     Main
     Main_ZFC
@@ -63,7 +62,6 @@ session "ZF-AC" in AC = ZF +
     "Mechanizing Set Theory", by Paulson and Grabczewski, describes both this
     development and ZF's theories of cardinals.
   *}
-  options [document_graph]
   theories
     WO6_WO1
     WO1_WO7
@@ -123,8 +121,10 @@ session "ZF-Constructible" in Constructible = ZF +
     A paper describing this development is
     http://www.cl.cam.ac.uk/TechReports/UCAM-CL-TR-551.pdf
   *}
-  options [document_graph]
-  theories DPow_absolute AC_in_L Rank_Separation
+  theories
+    DPow_absolute
+    AC_in_L
+    Rank_Separation
   document_files "root.tex" "root.bib"
 
 session "ZF-IMP" in IMP = ZF +

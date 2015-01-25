@@ -11,8 +11,6 @@ option document_output : string = ""
   -- "document output directory (default within $ISABELLE_BROWSER_INFO tree)"
 option document_variants : string = "document"
   -- "option alternative document variants (separated by colons)"
-option document_graph : bool = false
-  -- "generate session graph image for document"
 
 option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"

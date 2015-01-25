@@ -203,15 +203,6 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   different document root entries, see also
   \secref{sec:tool-document}.
 
-  \item @{system_option_def "document_graph"} tells whether the
-  generated document files should include a theory graph (cf.\
-  \secref{sec:browse} and \secref{sec:info}).  The resulting EPS or
-  PDF file can be included as graphics in {\LaTeX}.
-
-  Note that this option is usually determined as static parameter of
-  some session (e.g.\ within its @{verbatim ROOT} file) and \emph{not}
-  given globally or on the command line of @{tool build}.
-
   \item @{system_option_def "threads"} determines the number of worker
   threads for parallel checking of theories and proofs.  The default
   @{text "0"} means that a sensible maximum value is determined by the

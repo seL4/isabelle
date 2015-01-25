@@ -9,7 +9,7 @@ sig
   val session_name: theory -> string
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
-  val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
+  val init: bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> theory list -> unit
   val finish: unit -> unit
   val theory_output: string -> string -> unit
@@ -160,18 +160,16 @@ fun add_graph_entry entry =
 (* session_info *)
 
 type session_info =
-  {name: string, chapter: string, info_path: Path.T, info: bool,
-    doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    doc_files: (Path.T * Path.T) list, graph_file: Path.T, documents: (string * string) list,
-    verbose: bool, readme: Path.T option};
+  {name: string, chapter: string, info_path: Path.T, info: bool, doc_format: string,
+    doc_output: Path.T option, doc_files: (Path.T * Path.T) list, graph_file: Path.T,
+    documents: (string * string) list, verbose: bool, readme: Path.T option};
 
 fun make_session_info
-  (name, chapter, info_path, info, doc_format, doc_graph, doc_output,
-    doc_files, graph_file, documents, verbose, readme) =
-  {name = name, chapter = chapter, info_path = info_path, info = info,
-    doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
-    doc_files = doc_files, graph_file = graph_file, documents = documents,
-    verbose = verbose, readme = readme}: session_info;
+  (name, chapter, info_path, info, doc_format, doc_output, doc_files,
+    graph_file, documents, verbose, readme) =
+  {name = name, chapter = chapter, info_path = info_path, info = info, doc_format = doc_format,
+    doc_output = doc_output, doc_files = doc_files, graph_file = graph_file,
+    documents = documents, verbose = verbose, readme = readme}: session_info;
 
 
 (* state *)
@@ -205,7 +203,7 @@ fun document_variants str =
 
 (* init session *)
 
-fun init build info info_path doc doc_graph document_output doc_variants doc_files graph_file
+fun init build info info_path doc document_output doc_variants doc_files graph_file
     (chapter, name) verbose thys =
   if not build andalso not info andalso doc = "" then
     (Synchronized.change browser_info (K empty_browser_info); session_info := NONE)
@@ -229,7 +227,7 @@ fun init build info info_path doc doc_graph document_output doc_variants doc_fil
     in
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
-          doc_graph, doc_output, doc_files, graph_file, documents, verbose, readme));
+          doc_output, doc_files, graph_file, documents, verbose, readme));
       Synchronized.change browser_info (K (init_browser_info (chapter, name) thys));
       add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
@@ -264,7 +262,7 @@ fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index |> Buffer.add Latex.tex_trailer) doc_indexN path;
 
 fun finish () =
-  with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph,
+  with_session_info () (fn {name, chapter, info, info_path, doc_format,
     doc_output, doc_files, graph_file, documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index, graph} = Synchronized.value browser_info;

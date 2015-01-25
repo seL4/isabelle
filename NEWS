@@ -203,6 +203,9 @@ argument. Minor INCOMPATIBILITY.
 
 *** Document preparation ***
 
+* Discontinued obsolete option "document_graph": session_graph.pdf is
+produced unconditionally.
+
 * Document markup commands 'chapter', 'section', 'subsection',
 'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
 context, even before the initial 'theory' command. Obsolete proof

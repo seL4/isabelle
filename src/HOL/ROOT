@@ -4,7 +4,6 @@ session HOL (main) = Pure +
   description {*
     Classical Higher-order Logic.
   *}
-  options [document_graph]
   global_theories
     Main
     Complex_Main
@@ -74,7 +73,6 @@ session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
     subspaces (not only one-dimensional subspaces), can be extended to a
     continous linearform on the whole vectorspace.
   *}
-  options [document_graph]
   theories Hahn_Banach
   document_files "root.bib" "root.tex"
 
@@ -114,7 +112,7 @@ session "HOL-Induct" in Induct = HOL +
   document_files "root.tex"
 
 session "HOL-IMP" in IMP = HOL +
-  options [document_graph, document_variants=document]
+  options [document_variants = document]
   theories [document = false]
     "~~/src/Tools/Permanent_Interpretation"
     "~~/src/HOL/Library/While_Combinator"
@@ -171,7 +169,6 @@ session "HOL-IMPP" in IMPP = HOL +
   theories EvenOdd
 
 session "HOL-Import" in Import = HOL +
-  options [document_graph]
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
@@ -180,7 +177,6 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
   *}
-  options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/FuncSet"
     "~~/src/HOL/Library/Multiset"
@@ -199,7 +195,6 @@ session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, Quadratic Reciprocity.
   *}
-  options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Infinite_Set"
     "~~/src/HOL/Library/Permutation"
@@ -229,12 +224,11 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
     Verification of shared-variable imperative programs a la Owicki-Gries.
     (verification conditions are generated automatically).
   *}
-  options [document_graph]
   theories Hoare_Parallel
   document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
-  options [document = false, document_graph = false, browser_info = false]
+  options [document = false, browser_info = false]
   theories
     Generate
     Generate_Binary_Nat
@@ -287,7 +281,6 @@ session "HOL-Algebra" (main) in Algebra = HOL +
 
     The Isabelle Algebraic Library.
   *}
-  options [document_graph]
   theories [document = false]
     (* Preliminaries from set and number theory *)
     "~~/src/HOL/Library/FuncSet"
@@ -311,7 +304,6 @@ session "HOL-Auth" in Auth = HOL +
   description {*
     A new approach to verifying authentication protocols.
   *}
-  options [document_graph]
   theories
     Auth_Shared
     Auth_Public
@@ -327,7 +319,6 @@ session "HOL-UNITY" in UNITY = "HOL-Auth" +
 
     Verifying security protocols using Chandy and Misra's UNITY formalism.
   *}
-  options [document_graph]
   theories
     (*Basic meta-theory*)
     "UNITY_Main"
@@ -375,7 +366,7 @@ session "HOL-ZF" in ZF = HOL +
   document_files "root.tex"
 
 session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
-  options [document_graph, print_mode = "iff,no_brackets"]
+  options [print_mode = "iff,no_brackets"]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -425,8 +416,7 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
   *}
-  options [document_graph, print_mode = "no_brackets", parallel_proofs = 0,
-    quick_and_dirty = false]
+  options [print_mode = "no_brackets", parallel_proofs = 0, quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
   theories
@@ -455,9 +445,10 @@ session "HOL-MicroJava" in MicroJava = HOL +
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   *}
-  options [document_graph]
-  theories [document = false] "~~/src/HOL/Library/While_Combinator"
-  theories MicroJava
+  theories [document = false]
+    "~~/src/HOL/Library/While_Combinator"
+  theories
+    MicroJava
   document_files
     "introduction.tex"
     "root.bib"
@@ -467,12 +458,10 @@ session "HOL-NanoJava" in NanoJava = HOL +
   description {*
     Hoare Logic for a tiny fragment of Java.
   *}
-  options [document_graph]
   theories Example
   document_files "root.bib" "root.tex"
 
 session "HOL-Bali" in Bali = HOL +
-  options [document_graph]
   theories
     AxExample
     AxSound
@@ -646,7 +635,6 @@ session "HOL-SET_Protocol" in SET_Protocol = HOL +
   description {*
     Verification of the SET Protocol.
   *}
-  options [document_graph]
   theories [document = false] "~~/src/HOL/Library/Nat_Bijection"
   theories SET_Protocol
   document_files "root.tex"
@@ -655,7 +643,6 @@ session "HOL-Matrix_LP" in Matrix_LP = HOL +
   description {*
     Two-dimensional matrices and linear programming.
   *}
-  options [document_graph]
   theories Cplex
   document_files "root.tex"
 
@@ -697,7 +684,6 @@ session "HOL-TPTP" in TPTP = HOL +
     ATP_Problem_Import
 
 session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
-  options [document_graph]
   theories
     Multivariate_Analysis
     Determinants
@@ -707,7 +693,6 @@ session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
     "root.tex"
 
 session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
-  options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Permutation"
@@ -786,7 +771,6 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_N2M
 
 session "HOL-Word" (main) in Word = HOL +
-  options [document_graph]
   theories Word
   document_files "root.bib" "root.tex"
 
@@ -803,7 +787,6 @@ session "HOL-NSA" in NSA = HOL +
   description {*
     Nonstandard analysis.
   *}
-  options [document_graph]
   theories Hypercomplex
   document_files "root.tex"
 
@@ -994,7 +977,6 @@ session HOLCF (main) in HOLCF = HOL +
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
-  options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Nat_Bijection"
     "~~/src/HOL/Library/Countable"
