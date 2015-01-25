@@ -15,7 +15,7 @@ import java.awt.{Color, Graphics2D}
 
 object Graph_File
 {
-  def write(visualizer: Visualizer, file: JFile)
+  def write(file: JFile, visualizer: Visualizer)
   {
     val box = visualizer.bounding_box()
     val w = box.width.ceil.toInt
@@ -33,5 +33,16 @@ object Graph_File
     if (name.endsWith(".png")) Graphics_File.write_png(file, paint _, w, h)
     else if (name.endsWith(".pdf")) Graphics_File.write_pdf(file, paint _, w, h)
     else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
+  }
+
+  def write(options: Options, file: JFile, graph: Graph_Display.Graph)
+  {
+    val model = new Model(graph.transitive_reduction_acyclic)
+
+    val the_options = options
+    val visualizer = new Visualizer(model) { def options = the_options }
+    visualizer.update_layout()
+
+    write(file, visualizer)
   }
 }

@@ -306,7 +306,7 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
     action = Action("Save image") {
       chooser.showSaveDialog(this) match {
         case FileChooser.Result.Approve =>
-          try { Graph_File.write(visualizer, chooser.selectedFile) }
+          try { Graph_File.write(chooser.selectedFile, visualizer) }
           catch {
             case ERROR(msg) => GUI.error_dialog(this.peer, "Error", GUI.scrollable_text(msg))
           }

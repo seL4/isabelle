@@ -153,14 +153,13 @@ abstract class Visualizer(val model: Model)
 
   object Selection
   {
-    // owned by GUI thread
-    private var state: List[Graph_Display.Node] = Nil
+    private val state = Synchronized(List.empty[Graph_Display.Node])
 
-    def get(): List[Graph_Display.Node] = GUI_Thread.require { state }
+    def get(): List[Graph_Display.Node] = state.value
     def contains(node: Graph_Display.Node): Boolean = get().contains(node)
 
-    def add(node: Graph_Display.Node): Unit = GUI_Thread.require { state = node :: state }
-    def clear(): Unit = GUI_Thread.require { state = Nil }
+    def add(node: Graph_Display.Node): Unit = state.change(node :: _)
+    def clear(): Unit = state.change(_ => Nil)
   }
 
   sealed case class Node_Color(border: Color, background: Color, foreground: Color)
