@@ -10,7 +10,7 @@ object Graph_Display
 {
   /* graph entries */
 
-  type Entry = ((String, (String, XML.Body)), List[String])
+  type Entry = ((String, (String, XML.Body)), List[String])  // ident, name, content, parents
 
 
   /* graph structure */
