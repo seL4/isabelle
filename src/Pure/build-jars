@@ -104,6 +104,7 @@ declare -a SOURCES=(
   library.scala
   term.scala
   term_xml.scala
+  "../Tools/Graphview/graph_file.scala"
   "../Tools/Graphview/graph_panel.scala"
   "../Tools/Graphview/layout.scala"
   "../Tools/Graphview/main_panel.scala"

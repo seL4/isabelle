@@ -10,8 +10,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.io.{File => JFile}
-import java.awt.{Color, Dimension, Graphics2D, Point, Rectangle}
+import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
 import javax.imageio.ImageIO
 import javax.swing.{JScrollPane, JComponent, SwingUtilities}
@@ -306,7 +305,11 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
   private val save_image = new Button {
     action = Action("Save image") {
       chooser.showSaveDialog(this) match {
-        case FileChooser.Result.Approve => save_file(chooser.selectedFile)
+        case FileChooser.Result.Approve =>
+          try { Graph_File.write(visualizer, chooser.selectedFile) }
+          catch {
+            case ERROR(msg) => GUI.error_dialog(this.peer, "Error", GUI.scrollable_text(msg))
+          }
         case _ =>
       }
     }
@@ -334,34 +337,6 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(show_content, show_arrow_heads, show_dummies,
       save_image, zoom, fit_window, update_layout) // FIXME colorations, filters
-
-
-  /* save file */
-
-  private def save_file(file: JFile)
-  {
-    val box = visualizer.bounding_box()
-    val w = box.width.ceil.toInt
-    val h = box.height.ceil.toInt
-
-    def paint(gfx: Graphics2D)
-    {
-      gfx.setColor(Color.WHITE)
-      gfx.fillRect(0, 0, w, h)
-      gfx.translate(- box.x, - box.y)
-      visualizer.paint_all_visible(gfx)
-    }
-
-    try {
-      val name = file.getName
-      if (name.endsWith(".png")) Graphics_File.write_png(file, paint _, w, h)
-      else if (name.endsWith(".pdf")) Graphics_File.write_pdf(file, paint _, w, h)
-      else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
-    }
-    catch {
-      case ERROR(msg) => GUI.error_dialog(this.peer, "Error", GUI.scrollable_text(msg))
-    }
-  }
 
 
 
