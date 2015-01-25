@@ -10,8 +10,8 @@ sig
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
-    (Path.T * Path.T) list -> string * string -> bool -> theory list -> unit  (*not thread-safe!*)
-  val finish: unit -> unit  (*not thread-safe!*)
+    (Path.T * Path.T) list -> Path.T -> string * string -> bool -> theory list -> unit
+  val finish: unit -> unit
   val theory_output: string -> string -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
   val display_drafts: Path.T list -> int
@@ -34,7 +34,6 @@ val document_path = Path.basic documentN;
 val doc_indexN = "session";
 val graph_path = Path.basic "session.graph";
 val graph_pdf_path = Path.basic "session_graph.pdf";
-val graph_eps_path = Path.basic "session_graph.eps";
 
 fun show_path path = Path.implode (Path.expand (Path.append (File.pwd ()) path));
 
@@ -163,16 +162,16 @@ fun add_graph_entry entry =
 type session_info =
   {name: string, chapter: string, info_path: Path.T, info: bool,
     doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    doc_files: (Path.T * Path.T) list, documents: (string * string) list,
+    doc_files: (Path.T * Path.T) list, graph_file: Path.T, documents: (string * string) list,
     verbose: bool, readme: Path.T option};
 
 fun make_session_info
   (name, chapter, info_path, info, doc_format, doc_graph, doc_output,
-    doc_files, documents, verbose, readme) =
+    doc_files, graph_file, documents, verbose, readme) =
   {name = name, chapter = chapter, info_path = info_path, info = info,
     doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
-    doc_files = doc_files, documents = documents, verbose = verbose,
-    readme = readme}: session_info;
+    doc_files = doc_files, graph_file = graph_file, documents = documents,
+    verbose = verbose, readme = readme}: session_info;
 
 
 (* state *)
@@ -206,7 +205,7 @@ fun document_variants str =
 
 (* init session *)
 
-fun init build info info_path doc doc_graph document_output doc_variants doc_files
+fun init build info info_path doc doc_graph document_output doc_variants doc_files graph_file
     (chapter, name) verbose thys =
   if not build andalso not info andalso doc = "" then
     (Synchronized.change browser_info (K empty_browser_info); session_info := NONE)
@@ -230,7 +229,7 @@ fun init build info info_path doc doc_graph document_output doc_variants doc_fil
     in
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
-          doc_graph, doc_output, doc_files, documents, verbose, readme));
+          doc_graph, doc_output, doc_files, graph_file, documents, verbose, readme));
       Synchronized.change browser_info (K (init_browser_info (chapter, name) thys));
       add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
@@ -252,20 +251,6 @@ fun isabelle_document {verbose, purge} format name tags dir =
       else ();
   in doc_path end;
 
-fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
-  let
-    val pdf_path = Path.append dir graph_pdf_path;
-    val eps_path = Path.append dir graph_eps_path;
-    val graph_path = Path.append dir graph_path;
-    val _ = Graph_Display.write_graph_browser graph_path graph;
-    val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path graph_path;
-  in
-    if Isabelle_System.isabelle_tool "browser" args = 0 andalso
-      File.exists pdf_path andalso File.exists eps_path
-    then (File.read pdf_path, File.read eps_path)
-    else error "Failed to prepare dependency graph"
-  end);
-
 
 (* finish session -- output all generated text *)
 
@@ -280,22 +265,17 @@ fun write_tex_index tex_index path =
 
 fun finish () =
   with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph,
-    doc_output, doc_files, documents, verbose, readme, ...} =>
+    doc_output, doc_files, graph_file, documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index, graph} = Synchronized.value browser_info;
     val thys = Symtab.dest theories;
+    val sorted_graph = Graph_Display.sort_graph graph;
 
     val chapter_prefix = Path.append info_path (Path.basic chapter);
     val session_prefix = Path.append chapter_prefix (Path.basic name);
 
     fun finish_html (a, {html_source, ...}: theory_info) =
       File.write (Path.append session_prefix (html_path a)) html_source;
-
-    val sorted_graph = Graph_Display.sort_graph graph;
-    val opt_graphs =
-      if doc_graph andalso not (null documents) then
-        SOME (isabelle_browser sorted_graph)
-      else NONE;
 
     val _ =
       if info then
@@ -323,12 +303,7 @@ fun finish () =
           Isabelle_System.isabelle_tool "latex"
             ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
         val _ = List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
-        val _ =
-          (case opt_graphs of
-            NONE => ()
-          | SOME (pdf, eps) =>
-              (File.write (Path.append doc_dir graph_pdf_path) pdf;
-                File.write (Path.append doc_dir graph_eps_path) eps));
+        val _ = Isabelle_System.copy_file graph_file (Path.append doc_dir graph_pdf_path);
         val _ = write_tex_index tex_index doc_dir;
         val _ =
           List.app (fn (a, {tex_source, ...}) =>

@@ -535,12 +535,16 @@ object Build
   /* jobs */
 
   private class Job(progress: Progress,
-    name: String, val info: Session_Info, output: Path, do_output: Boolean,
-    verbose: Boolean, browser_info: Path, command_timings: List[Properties.T])
+    name: String, val info: Session_Info, output: Path, do_output: Boolean, verbose: Boolean,
+    browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
     def output_path: Option[Path] = if (do_output) Some(output) else None
 
     private val parent = info.parent.getOrElse("")
+
+    private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
+    try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
+    catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
     private val args_file = Isabelle_System.tmp_file("args")
     File.write(args_file, YXML.string_of_body(
@@ -550,10 +554,11 @@ object Build
           val theories = info.theories.map(x => (x._2, x._3))
           import XML.Encode._
               pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
-                pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string, pair(string,
-                  list(pair(Options.encode, list(Path.encode))))))))))))(
+                pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string,
+                pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))))(
               (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (info.document_files, (parent, (info.chapter, (name, theories))))))))))
+                (info.document_files, (Isabelle_System.posix_path(graph_file), (parent,
+                (info.chapter, (name, theories)))))))))))
         }))
 
     private val env =
@@ -623,6 +628,7 @@ object Build
     {
       val res = result.join
 
+      graph_file.delete
       args_file.delete
       timeout_request.foreach(_.cancel)
 
@@ -907,7 +913,7 @@ object Build
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
                     new Job(progress, name, info, output, do_output, verbose, browser_info,
-                      queue.command_timings(name))
+                      deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (parent_result.heap, job)), results)
                 }
                 else {
