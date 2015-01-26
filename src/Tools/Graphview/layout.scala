@@ -235,6 +235,7 @@ object Layout
                 graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_)).
                   filter(inner_child => outer_child < inner_child).size).sum).sum
         }.sum
+      case _ => 0
     }.sum
 
 
