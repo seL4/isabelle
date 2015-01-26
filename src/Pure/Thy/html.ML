@@ -20,8 +20,7 @@ sig
   val verbatim: string -> text
   val begin_document: string -> text
   val end_document: text
-  val begin_session_index: string -> (Url.T * string) list -> Url.T -> text
-  val applet_pages: string -> Url.T * string -> (string * string) list
+  val begin_session_index: string -> Url.T -> (Url.T * string) list -> text
   val theory_entry: Url.T * string -> text
   val theory: string -> (Url.T option * string) list -> text -> text
 end;
@@ -280,41 +279,11 @@ val end_document = "\n</div>\n</body>\n</html>\n";
 
 (* session index *)
 
-fun begin_session_index session docs graph =
+fun begin_session_index session graph docs =
   begin_document ("Session " ^ plain session) ^
   para ("View " ^ href_path graph "theory dependencies" ^
     implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
   "\n</div>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
-
-fun choice chs s = space_implode " " (map (fn (s', lnk) =>
-  enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
-
-fun back_link (path, name) = para (href_path path "Back" ^ " to index of " ^ plain name);
-
-fun applet_pages session back =
-  let
-    val sizes =
-     [("small", "small.html", ("500", "400")),
-      ("medium", "medium.html", ("650", "520")),
-      ("large", "large.html", ("800", "640"))];
-
-    fun applet_page (size, name, (width, height)) =
-      let
-        val browser_size = "Set browser size: " ^
-          choice (map (fn (y, z, _) => (y, z)) sizes) size;
-      in
-        (name, begin_document ("Theory dependencies of " ^ session) ^
-          back_link back ^
-          para browser_size ^
-          "\n</div>\n<div class=\"graphbrowser\">\n\
-          \<applet code=\"GraphBrowser/GraphBrowser.class\" \
-          \archive=\"GraphBrowser.jar\" \
-          \width=" ^ quote width ^ " height=" ^ quote height ^ ">\n\
-          \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\"/>\n\
-          \</applet>" ^ end_document)
-      end;
-  in map applet_page sizes end;
-
 
 fun theory_entry (p, s) = "<li>" ^ href_path p (plain s) ^ "</li>\n";
 

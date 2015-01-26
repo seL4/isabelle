@@ -52,8 +52,7 @@ fun init build info info_path doc doc_output doc_variants doc_files graph_file
       val _ = session_finished := false;
     in
       Present.init build info info_path (if doc = "false" then "" else doc)
-        doc_output doc_variants doc_files graph_file (chapter, name)
-        verbose (map Thy_Info.get_theory (Thy_Info.get_names ()))
+        doc_output doc_variants doc_files graph_file (chapter, name) verbose
     end;
 
 
