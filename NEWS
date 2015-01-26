@@ -204,7 +204,7 @@ argument. Minor INCOMPATIBILITY.
 *** Document preparation ***
 
 * Discontinued obsolete option "document_graph": session_graph.pdf is
-produced unconditionally.
+produced unconditionally for HTML browser_info and PDF-LaTeX document.
 
 * Document markup commands 'chapter', 'section', 'subsection',
 'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
