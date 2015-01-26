@@ -10,9 +10,6 @@ sig
   val content_node: string -> Pretty.T list -> node
   val session_node: {name: string, unfold: bool, directory: string, path: string} -> node
   type entry = (string * node) * string list
-  val eq_entry: entry * entry -> bool
-  val sort_graph: entry list -> entry list
-  val write_graph_browser: Path.T -> entry list -> unit
   val display_graph: entry list -> unit
 end;
 
@@ -31,10 +28,20 @@ fun session_node {name, unfold, directory, path} =
   Node {name = name, content = [], unfold = unfold, directory = directory, path = path};
 
 type entry = (string * node) * string list;
-val eq_entry: entry * entry -> bool = op = o apply2 (#1 o #1);
 
 
-(* graph structure *)
+(* encode graph *)
+
+fun encode_node (Node {name, content, ...}) =
+  (name, content) |>
+    let open XML.Encode
+    in pair string (YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks) end;
+
+val encode_graph =
+  let open XML.Encode in list (pair (pair string encode_node) (list string)) end;
+
+
+(* support for old browser *)
 
 structure Graph =
   Graph(type key = string * string val ord = prod_ord string_ord string_ord);
@@ -57,45 +64,30 @@ val sort_graph = build_graph #> (fn graph =>
     let val (_, (node, (preds, _))) = Graph.get_entry graph key
     in ((#2 key, node), map #2 (Graph.Keys.dest preds)) end));
 
-
-(* encode graph *)
-
 val encode_browser =
-  map (fn ((key, Node {name, unfold, content = _, directory, path}), parents) =>
+  sort_graph
+  #> map (fn ((key, Node {name, unfold, content = _, directory, path}), parents) =>
     "\"" ^ name ^ "\" \"" ^ key ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
     path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;")
   #> cat_lines;
 
-fun write_graph_browser path entries =
-  File.write path (encode_browser entries);
-
-
-fun encode_node (Node {name, content, ...}) =
-  (name, content) |>
-    let open XML.Encode
-    in pair string (YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks) end;
-
-val encode_graph =
-  let open XML.Encode in list (pair (pair string encode_node) (list string)) end;
-
 
 (* display graph *)
 
-val display_graph =
-  sort_graph #> (fn entries =>
-    let
-      val ((bg1, bg2), en) =
-        YXML.output_markup_elem
-          (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
-      val _ =
-        writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "graph" ^ en);
+fun display_graph entries =
+  let
+    val ((bg1, bg2), en) =
+      YXML.output_markup_elem
+        (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
+    val _ =
+      writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "graph" ^ en);
 
-      val ((bg1, bg2), en) =
-        YXML.output_markup_elem
-          (Active.make_markup Markup.browserN {implicit = false, properties = []});
-      val _ =
-        writeln ("See " ^ bg1 ^ encode_browser entries ^ bg2 ^ "old graph" ^ en);
-  in () end);
-
+    (*old browser*)
+    val ((bg1, bg2), en) =
+      YXML.output_markup_elem
+        (Active.make_markup Markup.browserN {implicit = false, properties = []});
+    val _ =
+      writeln ("See " ^ bg1 ^ encode_browser entries ^ bg2 ^ "old graph" ^ en);
+  in () end;
 
 end;
