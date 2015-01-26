@@ -6,7 +6,7 @@ subsection "Big-Step Semantics of Commands"
 
 text {*
 The big-step semantics is a straight-forward inductive definition
-with concrete syntax. Note that the first paramenter is a tuple,
+with concrete syntax. Note that the first parameter is a tuple,
 so the syntax becomes @{text "(c,s) \<Rightarrow> s'"}.
 *}
 
