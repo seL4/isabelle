@@ -102,15 +102,25 @@ lemma (in order_top) bdd_above_top[simp, intro!]: "bdd_above A"
 lemma (in order_bot) bdd_above_bot[simp, intro!]: "bdd_below A"
   by (rule bdd_belowI[of _ bot]) simp
 
-lemma bdd_above_uminus[simp]:
-  fixes X :: "'a::ordered_ab_group_add set"
-  shows "bdd_above (uminus ` X) \<longleftrightarrow> bdd_below X"
-  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
+lemma bdd_above_image_mono: "mono f \<Longrightarrow> bdd_above A \<Longrightarrow> bdd_above (f`A)"
+  by (auto simp: bdd_above_def mono_def)
 
-lemma bdd_below_uminus[simp]:
+lemma bdd_below_image_mono: "mono f \<Longrightarrow> bdd_below A \<Longrightarrow> bdd_below (f`A)"
+  by (auto simp: bdd_below_def mono_def)
+  
+lemma bdd_above_image_antimono: "antimono f \<Longrightarrow> bdd_below A \<Longrightarrow> bdd_above (f`A)"
+  by (auto simp: bdd_above_def bdd_below_def antimono_def)
+
+lemma bdd_below_image_antimono: "antimono f \<Longrightarrow> bdd_above A \<Longrightarrow> bdd_below (f`A)"
+  by (auto simp: bdd_above_def bdd_below_def antimono_def)
+
+lemma
   fixes X :: "'a::ordered_ab_group_add set"
-  shows"bdd_below (uminus ` X) \<longleftrightarrow> bdd_above X"
-  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
+  shows bdd_above_uminus[simp]: "bdd_above (uminus ` X) \<longleftrightarrow> bdd_below X"
+    and bdd_below_uminus[simp]: "bdd_below (uminus ` X) \<longleftrightarrow> bdd_above X"
+  using bdd_above_image_antimono[of uminus X] bdd_below_image_antimono[of uminus "uminus`X"]
+  using bdd_below_image_antimono[of uminus X] bdd_above_image_antimono[of uminus "uminus`X"]
+  by (auto simp: antimono_def image_image)
 
 context lattice
 begin

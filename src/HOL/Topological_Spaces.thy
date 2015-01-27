@@ -2789,6 +2789,154 @@ proof -
     using I[of a x] I[of x b] x less_trans[OF x] by (auto simp add: le_less less_imp_neq neq_iff)
 qed
 
+lemma continuous_at_Sup_mono:
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
+  assumes "mono f"
+  assumes cont: "continuous (at_left (Sup S)) f"
+  assumes S: "S \<noteq> {}" "bdd_above S"
+  shows "f (Sup S) = (SUP s:S. f s)"
+proof (rule antisym)
+  have f: "(f ---> f (Sup S)) (at_left (Sup S))"
+    using cont unfolding continuous_within .
+
+  show "f (Sup S) \<le> (SUP s:S. f s)"
+  proof cases
+    assume "Sup S \<in> S" then show ?thesis
+      by (rule cSUP_upper) (auto intro: bdd_above_image_mono S `mono f`)
+  next
+    assume "Sup S \<notin> S"
+    from `S \<noteq> {}` obtain s where "s \<in> S"
+      by auto
+    with `Sup S \<notin> S` S have "s < Sup S"
+      unfolding less_le by (blast intro: cSup_upper)
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> ?thesis"
+      with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "b < Sup S"
+        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> (SUP s:S. f s) < f y"
+        by (auto simp: not_le eventually_at_left[OF `s < Sup S`])
+      with `S \<noteq> {}` obtain c where "c \<in> S" "b < c"
+        using less_cSupD[of S b] by auto
+      with `Sup S \<notin> S` S have "c < Sup S"
+        unfolding less_le by (blast intro: cSup_upper)
+      from *[OF `b < c` `c < Sup S`] cSUP_upper[OF `c \<in> S` bdd_above_image_mono[of f]]
+      show False
+        by (auto simp: assms)
+    qed
+  qed
+qed (intro cSUP_least `mono f`[THEN monoD] cSup_upper S)
+
+lemma continuous_at_Sup_antimono:
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
+  assumes "antimono f"
+  assumes cont: "continuous (at_left (Sup S)) f"
+  assumes S: "S \<noteq> {}" "bdd_above S"
+  shows "f (Sup S) = (INF s:S. f s)"
+proof (rule antisym)
+  have f: "(f ---> f (Sup S)) (at_left (Sup S))"
+    using cont unfolding continuous_within .
+
+  show "(INF s:S. f s) \<le> f (Sup S)"
+  proof cases
+    assume "Sup S \<in> S" then show ?thesis
+      by (intro cINF_lower) (auto intro: bdd_below_image_antimono S `antimono f`)
+  next
+    assume "Sup S \<notin> S"
+    from `S \<noteq> {}` obtain s where "s \<in> S"
+      by auto
+    with `Sup S \<notin> S` S have "s < Sup S"
+      unfolding less_le by (blast intro: cSup_upper)
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> ?thesis"
+      with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "b < Sup S"
+        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> f y < (INF s:S. f s)"
+        by (auto simp: not_le eventually_at_left[OF `s < Sup S`])
+      with `S \<noteq> {}` obtain c where "c \<in> S" "b < c"
+        using less_cSupD[of S b] by auto
+      with `Sup S \<notin> S` S have "c < Sup S"
+        unfolding less_le by (blast intro: cSup_upper)
+      from *[OF `b < c` `c < Sup S`] cINF_lower[OF bdd_below_image_antimono, of f S c] `c \<in> S`
+      show False
+        by (auto simp: assms)
+    qed
+  qed
+qed (intro cINF_greatest `antimono f`[THEN antimonoD] cSup_upper S)
+
+lemma continuous_at_Inf_mono:
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
+  assumes "mono f"
+  assumes cont: "continuous (at_right (Inf S)) f"
+  assumes S: "S \<noteq> {}" "bdd_below S"
+  shows "f (Inf S) = (INF s:S. f s)"
+proof (rule antisym)
+  have f: "(f ---> f (Inf S)) (at_right (Inf S))"
+    using cont unfolding continuous_within .
+
+  show "(INF s:S. f s) \<le> f (Inf S)"
+  proof cases
+    assume "Inf S \<in> S" then show ?thesis
+      by (rule cINF_lower[rotated]) (auto intro: bdd_below_image_mono S `mono f`)
+  next
+    assume "Inf S \<notin> S"
+    from `S \<noteq> {}` obtain s where "s \<in> S"
+      by auto
+    with `Inf S \<notin> S` S have "Inf S < s"
+      unfolding less_le by (blast intro: cInf_lower)
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> ?thesis"
+      with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "Inf S < b"
+        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> f y < (INF s:S. f s)"
+        by (auto simp: not_le eventually_at_right[OF `Inf S < s`])
+      with `S \<noteq> {}` obtain c where "c \<in> S" "c < b"
+        using cInf_lessD[of S b] by auto
+      with `Inf S \<notin> S` S have "Inf S < c"
+        unfolding less_le by (blast intro: cInf_lower)
+      from *[OF `Inf S < c` `c < b`] cINF_lower[OF bdd_below_image_mono[of f] `c \<in> S`]
+      show False
+        by (auto simp: assms)
+    qed
+  qed
+qed (intro cINF_greatest `mono f`[THEN monoD] cInf_lower `bdd_below S` `S \<noteq> {}`)
+
+lemma continuous_at_Inf_antimono:
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
+  assumes "antimono f"
+  assumes cont: "continuous (at_right (Inf S)) f"
+  assumes S: "S \<noteq> {}" "bdd_below S"
+  shows "f (Inf S) = (SUP s:S. f s)"
+proof (rule antisym)
+  have f: "(f ---> f (Inf S)) (at_right (Inf S))"
+    using cont unfolding continuous_within .
+
+  show "f (Inf S) \<le> (SUP s:S. f s)"
+  proof cases
+    assume "Inf S \<in> S" then show ?thesis
+      by (rule cSUP_upper) (auto intro: bdd_above_image_antimono S `antimono f`)
+  next
+    assume "Inf S \<notin> S"
+    from `S \<noteq> {}` obtain s where "s \<in> S"
+      by auto
+    with `Inf S \<notin> S` S have "Inf S < s"
+      unfolding less_le by (blast intro: cInf_lower)
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> ?thesis"
+      with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "Inf S < b"
+        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> (SUP s:S. f s) < f y"
+        by (auto simp: not_le eventually_at_right[OF `Inf S < s`])
+      with `S \<noteq> {}` obtain c where "c \<in> S" "c < b"
+        using cInf_lessD[of S b] by auto
+      with `Inf S \<notin> S` S have "Inf S < c"
+        unfolding less_le by (blast intro: cInf_lower)
+      from *[OF `Inf S < c` `c < b`] cSUP_upper[OF `c \<in> S` bdd_above_image_antimono[of f]]
+      show False
+        by (auto simp: assms)
+    qed
+  qed
+qed (intro cSUP_least `antimono f`[THEN antimonoD] cInf_lower S)
+
 subsection {* Setup @{typ "'a filter"} for lifting and transfer *}
 
 context begin interpretation lifting_syntax .

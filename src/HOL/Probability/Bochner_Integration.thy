@@ -641,7 +641,7 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
       finally show "?f i \<le> ?g i" .
     qed
     show "?g ----> 0"
-      using ereal_lim_mult[OF f_s, of "ereal K"] by simp
+      using tendsto_cmult_ereal[OF _ f_s, of "ereal K"] by simp
   qed
 
   assume "(\<lambda>i. simple_bochner_integral M (s i)) ----> x"

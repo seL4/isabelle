@@ -566,7 +566,7 @@ next
          (auto simp: incseq_def le_fun_def derivg_nonneg Mf' split: split_indicator
                intro!: ereal_mult_right_mono)
     also from sup have "... = \<integral>\<^sup>+x. (SUP i. F i (g x)) * ereal (g' x) * indicator {a..b} x \<partial>lborel"
-      by (subst mult.assoc, subst mult.commute, subst SUP_ereal_cmult)
+      by (subst mult.assoc, subst mult.commute, subst SUP_ereal_mult_left)
          (auto split: split_indicator simp: derivg_nonneg mult_ac)
     finally show ?case by simp
   qed

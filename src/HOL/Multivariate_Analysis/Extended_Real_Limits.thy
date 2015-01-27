@@ -250,71 +250,22 @@ lemma ereal_open_affinity_pos:
     and t: "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "open ((\<lambda>x. m * x + t) ` S)"
 proof -
-  obtain r where r[simp]: "m = ereal r"
-    using m by (cases m) auto
-  obtain p where p[simp]: "t = ereal p"
-    using t by auto
-  have "r \<noteq> 0" "0 < r" and m': "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0"
-    using m by auto
-  from `open S` [THEN ereal_openE]
-  obtain l u where T:
-      "open (ereal -` S)"
-      "\<infinity> \<in> S \<Longrightarrow> {ereal l<..} \<subseteq> S"
-      "- \<infinity> \<in> S \<Longrightarrow> {..<ereal u} \<subseteq> S"
-    by blast
-  let ?f = "(\<lambda>x. m * x + t)"
-  show ?thesis
-    unfolding open_ereal_def
-  proof (intro conjI impI exI subsetI)
-    have "ereal -` ?f ` S = (\<lambda>x. r * x + p) ` (ereal -` S)"
-    proof safe
-      fix x y
-      assume "ereal y = m * x + t" "x \<in> S"
-      then show "y \<in> (\<lambda>x. r * x + p) ` ereal -` S"
-        using `r \<noteq> 0` by (cases x) (auto intro!: image_eqI[of _ _ "real x"] split: split_if_asm)
-    qed force
-    then show "open (ereal -` ?f ` S)"
-      using open_affinity[OF T(1) `r \<noteq> 0`]
-      by (auto simp: ac_simps)
-  next
-    assume "\<infinity> \<in> ?f`S"
-    with `0 < r` have "\<infinity> \<in> S"
-      by auto
-    fix x
-    assume "x \<in> {ereal (r * l + p)<..}"
-    then have [simp]: "ereal (r * l + p) < x"
-      by auto
-    show "x \<in> ?f`S"
-    proof (rule image_eqI)
-      show "x = m * ((x - t) / m) + t"
-        using m t
-        by (cases rule: ereal3_cases[of m x t]) auto
-      have "ereal l < (x - t) / m"
-        using m t
-        by (simp add: ereal_less_divide_pos ereal_less_minus)
-      then show "(x - t) / m \<in> S"
-        using T(2)[OF `\<infinity> \<in> S`] by auto
-    qed
-  next
-    assume "-\<infinity> \<in> ?f ` S"
-    with `0 < r` have "-\<infinity> \<in> S"
-      by auto
-    fix x assume "x \<in> {..<ereal (r * u + p)}"
-    then have [simp]: "x < ereal (r * u + p)"
-      by auto
-    show "x \<in> ?f`S"
-    proof (rule image_eqI)
-      show "x = m * ((x - t) / m) + t"
-        using m t
-        by (cases rule: ereal3_cases[of m x t]) auto
-      have "(x - t)/m < ereal u"
-        using m t
-        by (simp add: ereal_divide_less_pos ereal_minus_less)
-      then show "(x - t)/m \<in> S"
-        using T(3)[OF `-\<infinity> \<in> S`]
-        by auto
-    qed
-  qed
+  have "open ((\<lambda>x. inverse m * (x + -t)) -` S)"
+    using m t
+    apply (intro open_vimage `open S`)
+    apply (intro continuous_at_imp_continuous_on ballI tendsto_cmult_ereal continuous_at[THEN iffD2]
+                 tendsto_ident_at tendsto_add_left_ereal)
+    apply auto
+    done
+  also have "(\<lambda>x. inverse m * (x + -t)) -` S = (\<lambda>x. (x - t) / m) -` S"
+    using m t by (auto simp: divide_ereal_def mult.commute uminus_ereal.simps[symmetric] minus_ereal_def
+                       simp del: uminus_ereal.simps)
+  also have "(\<lambda>x. (x - t) / m) -` S = (\<lambda>x. m * x + t) ` S"
+    using m t
+    by (simp add: set_eq_iff image_iff)
+       (metis abs_ereal_less0 abs_ereal_uminus ereal_divide_eq ereal_eq_minus ereal_minus(7,8)
+              ereal_minus_less_minus ereal_mult_eq_PInfty ereal_uminus_uminus ereal_zero_mult)
+  finally show ?thesis .
 qed
 
 lemma ereal_open_affinity:
@@ -339,45 +290,6 @@ next
   from ereal_open_affinity_pos[OF ereal_open_uminus[OF `open S`] m t] show ?thesis
     unfolding image_image by simp
 qed
-
-lemma ereal_lim_mult:
-  fixes X :: "'a \<Rightarrow> ereal"
-  assumes lim: "(X ---> L) net"
-    and a: "\<bar>a\<bar> \<noteq> \<infinity>"
-  shows "((\<lambda>i. a * X i) ---> a * L) net"
-proof cases
-  assume "a \<noteq> 0"
-  show ?thesis
-  proof (rule topological_tendstoI)
-    fix S
-    assume "open S" and "a * L \<in> S"
-    have "a * L / a = L"
-      using `a \<noteq> 0` a
-      by (cases rule: ereal2_cases[of a L]) auto
-    then have L: "L \<in> ((\<lambda>x. x / a) ` S)"
-      using `a * L \<in> S`
-      by (force simp: image_iff)
-    moreover have "open ((\<lambda>x. x / a) ` S)"
-      using ereal_open_affinity[OF `open S`, of "inverse a" 0] `a \<noteq> 0` a
-      by (auto simp: ereal_divide_eq ereal_inverse_eq_0 divide_ereal_def ac_simps)
-    note * = lim[THEN topological_tendstoD, OF this L]
-    {
-      fix x
-      from a `a \<noteq> 0` have "a * (x / a) = x"
-        by (cases rule: ereal2_cases[of a x]) auto
-    }
-    note this[simp]
-    show "eventually (\<lambda>x. a * X x \<in> S) net"
-      by (rule eventually_mono[OF _ *]) auto
-  qed
-qed auto
-
-lemma ereal_lim_uminus:
-  fixes X :: "'a \<Rightarrow> ereal"
-  shows "((\<lambda>i. - X i) ---> - L) net \<longleftrightarrow> (X ---> L) net"
-  using ereal_lim_mult[of X L net "ereal (-1)"]
-    ereal_lim_mult[of "(\<lambda>i. - X i)" "-L" net "ereal (-1)"]
-  by (auto simp add: algebra_simps)
 
 lemma ereal_open_atLeast:
   fixes x :: ereal
@@ -408,14 +320,6 @@ lemma ereal_Liminf_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "Liminf net (\<lambda>x. - (f x)) = - Limsup net f"
   using ereal_Limsup_uminus[of _ "(\<lambda>x. - (f x))"] by auto
-
-lemma ereal_Lim_uminus:
-  fixes f :: "'a \<Rightarrow> ereal"
-  shows "(f ---> f0) net \<longleftrightarrow> ((\<lambda>x. - f x) ---> - f0) net"
-  using
-    ereal_lim_mult[of f f0 net "- 1"]
-    ereal_lim_mult[of "\<lambda>x. - (f x)" "-f0" net "- 1"]
-  by (auto simp: ereal_uminus_reorder)
 
 lemma Liminf_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -559,9 +463,9 @@ next
   case (real r)
   then show ?thesis
     unfolding liminf_SUP_INF limsup_INF_SUP
-    apply (subst INF_ereal_cminus)
+    apply (subst INF_ereal_minus_right)
     apply auto
-    apply (subst SUP_ereal_cminus)
+    apply (subst SUP_ereal_minus_right)
     apply auto
     done
 qed (insert `c \<noteq> -\<infinity>`, simp)
@@ -889,7 +793,7 @@ lemma suminf_cmult_ereal:
   shows "(\<Sum>i. a * f i) = a * suminf f"
   by (auto simp: setsum_ereal_right_distrib[symmetric] assms
        ereal_zero_le_0_iff setsum_nonneg suminf_ereal_eq_SUP
-       intro!: SUP_ereal_cmult)
+       intro!: SUP_ereal_mult_left)
 
 lemma suminf_PInfty:
   fixes f :: "nat \<Rightarrow> ereal"

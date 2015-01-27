@@ -944,11 +944,11 @@ proof (rule ereal_le_mult_one_interval)
   next
     show "integral\<^sup>S M u = (\<Sum>i\<in>u ` space M. SUP n. i * (emeasure M) (?B' i n))"
       using measure_conv u_range B_u unfolding simple_integral_def
-      by (auto intro!: setsum.cong SUP_ereal_cmult [symmetric])
+      by (auto intro!: setsum.cong SUP_ereal_mult_left [symmetric])
   qed
   moreover
   have "a * (SUP i. integral\<^sup>S M (?uB i)) \<le> ?S"
-    apply (subst SUP_ereal_cmult [symmetric])
+    apply (subst SUP_ereal_mult_left [symmetric])
   proof (safe intro!: SUP_mono bexI)
     fix i
     have "a * integral\<^sup>S M (?uB i) = (\<integral>\<^sup>Sx. a * ?uB i x \<partial>M)"
@@ -1115,7 +1115,7 @@ proof -
           by auto }
       then have "(SUP i. a * u i x + v i x) = a * (SUP i. u i x) + (SUP i. v i x)"
         using `0 \<le> a` u(3) v(3) u(6)[of _ x] v(6)[of _ x]
-        by (subst SUP_ereal_cmult [symmetric, OF u(6) `0 \<le> a`])
+        by (subst SUP_ereal_mult_left [symmetric, OF _ u(6) `0 \<le> a`])
            (auto intro!: SUP_ereal_add
                  simp: incseq_Suc_iff le_fun_def add_mono ereal_mult_left_mono) }
     then show "AE x in M. (SUP i. l i x) = (SUP i. ?L' i x)"
@@ -1127,8 +1127,10 @@ proof -
   finally have "(\<integral>\<^sup>+ x. max 0 (a * f x + g x) \<partial>M) = a * (\<integral>\<^sup>+x. max 0 (f x) \<partial>M) + (\<integral>\<^sup>+x. max 0 (g x) \<partial>M)"
     unfolding l(5)[symmetric] u(5)[symmetric] v(5)[symmetric]
     unfolding l(1)[symmetric] u(1)[symmetric] v(1)[symmetric]
-    apply (subst SUP_ereal_cmult [symmetric, OF pos(1) `0 \<le> a`])
-    apply (subst SUP_ereal_add [symmetric, OF inc not_MInf]) .
+    apply (subst SUP_ereal_mult_left [symmetric, OF _ pos(1) `0 \<le> a`])
+    apply simp
+    apply (subst SUP_ereal_add [symmetric, OF inc not_MInf])
+    .
   then show ?thesis by (simp add: nn_integral_max_0)
 qed
 
@@ -2120,7 +2122,7 @@ next
 next
   case (seq U)
   from f(2) have eq: "AE x in M. f x * (SUP i. U i x) = (SUP i. f x * U i x)"
-    by eventually_elim (simp add: SUP_ereal_cmult seq)
+    by eventually_elim (simp add: SUP_ereal_mult_left seq)
   from seq f show ?case
     apply (simp add: nn_integral_monotone_convergence_SUP)
     apply (subst nn_integral_cong_AE[OF eq])
