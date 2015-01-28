@@ -137,7 +137,7 @@ if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo
 fi
 
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
+declare -a JAVA_ARGS; eval "JAVA_ARGS=(-Djava.awt.headless=true $ISABELLE_BUILD_JAVA_OPTIONS)"
 
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
