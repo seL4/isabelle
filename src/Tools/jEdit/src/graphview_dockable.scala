@@ -61,8 +61,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   val graphview =
     graph_result match {
       case Exn.Res(graph) =>
-        val model = new isabelle.graphview.Model(graph)
-        val graphview = new isabelle.graphview.Graphview(model) {
+        val graphview = new isabelle.graphview.Graphview(graph) {
           def options: Options = PIDE.options.value
 
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =

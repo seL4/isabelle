@@ -15,12 +15,14 @@ import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
-abstract class Graphview(val model: Model)
+abstract class Graphview(full_graph: Graph_Display.Graph)
 {
   graphview =>
 
 
   def options: Options
+
+  val model = new Model(full_graph)
 
 
   /* layout state */
