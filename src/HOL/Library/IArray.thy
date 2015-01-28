@@ -127,6 +127,16 @@ lemma [code]:
   "IArray.length as = nat_of_integer (IArray.length' as)"
   by simp
 
+context term_syntax
+begin
+
+lemma [code]:
+  "Code_Evaluation.term_of (as :: 'a::typerep iarray) =
+    Code_Evaluation.Const (STR ''IArray.iarray.IArray'') (TYPEREP('a list \<Rightarrow> 'a iarray)) <\<cdot>> (Code_Evaluation.term_of (IArray.list_of as))"
+  by (subst term_of_anything) rule
+
+end
+
 code_printing
   constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
 
