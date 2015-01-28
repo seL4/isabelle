@@ -135,7 +135,7 @@ abstract class Graphview(val model: Model)
     }
   }
 
-  def paint_all_visible(gfx: Graphics2D)
+  def paint(gfx: Graphics2D)
   {
     gfx.setRenderingHints(Metrics.rendering_hints)
 

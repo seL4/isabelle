@@ -26,7 +26,7 @@ object Graph_File
       gfx.setColor(Color.WHITE)
       gfx.fillRect(0, 0, w, h)
       gfx.translate(- box.x, - box.y)
-      graphview.paint_all_visible(gfx)
+      graphview.paint(gfx)
     }
 
     val name = file.getName

@@ -40,7 +40,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
 
       gfx.transform(Transform())
-      graphview.paint_all_visible(gfx)
+      graphview.paint(gfx)
     }
   }
 
