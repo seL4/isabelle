@@ -82,9 +82,12 @@ val _ =
               end;
 
           val (removed, assign_update, state') = Document.update old_id new_id edits state;
-          val _ = List.app Execution.terminate removed;
-          val _ = Execution.purge removed;
-          val _ = List.app Isabelle_Process.reset_tracing removed;
+          val _ =
+            (singleton o Future.forks)
+             {name = "Document.update/remove", group = NONE,
+              deps = maps Future.group_snapshot (maps Execution.peek removed),
+              pri = 1, interrupts = false}
+             (fn () => (Execution.purge removed; List.app Isabelle_Process.reset_tracing removed));
 
           val _ =
             Output.protocol_message Markup.assign_update
