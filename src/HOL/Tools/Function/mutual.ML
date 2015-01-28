@@ -254,6 +254,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
           (fn (i, T) => fn (acc, ctxt) =>
             case mk_var ("x" ^ string_of_int i) T ctxt of (x, ctxt) => (x :: acc, ctxt))
           cargTs ([], name_ctxt)
+    val arg_vars = rev arg_vars
 
     val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
     val (args, name_ctxt) = mk_var "x" argsT name_ctxt
