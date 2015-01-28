@@ -51,6 +51,11 @@ fun tuplify _ _ [] = NONE
 
 (** SML serializer **)
 
+fun print_char_any_ml s =
+  if Symbol.is_char s then ML_Syntax.print_char s else "\\092" ^ unprefix "\\" s;
+
+val print_string_any_ml = quote o implode o map print_char_any_ml o Symbol.explode;
+
 fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     val deresolve_const = deresolve o Constant;
@@ -250,7 +255,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             @ "="
             :: "raise"
             :: "Fail"
-            @@ ML_Syntax.print_string const
+            @@ print_string_any_ml const
           ))
       | print_stmt _ (ML_Val binding) =
           let
@@ -354,7 +359,7 @@ fun print_sml_module name decls body =
 
 val literals_sml = Literals {
   literal_char = prefix "#" o quote o ML_Syntax.print_char,
-  literal_string = quote o translate_string ML_Syntax.print_char,
+  literal_string = print_string_any_ml,
   literal_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
   literal_list = enum "," "[" "]",
   infix_cons = (7, "::")
