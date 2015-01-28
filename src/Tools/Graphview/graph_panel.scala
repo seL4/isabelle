@@ -2,7 +2,7 @@
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-Graphview Java2D drawing panel.
+GUI panel for graph layout.
 */
 
 package isabelle.graphview
