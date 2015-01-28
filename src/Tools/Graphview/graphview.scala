@@ -1,8 +1,8 @@
-/*  Title:      Tools/Graphview/visualizer.scala
+/*  Title:      Tools/Graphview/graphview.scala
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-Graph visualization parameters and GUI state.
+Graphview visualization parameters and GUI state.
 */
 
 package isabelle.graphview
@@ -15,9 +15,9 @@ import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 
 
-abstract class Visualizer(val model: Model)
+abstract class Graphview(val model: Model)
 {
-  visualizer =>
+  graphview =>
 
 
   def options: Options
@@ -139,14 +139,14 @@ abstract class Visualizer(val model: Model)
   {
     gfx.setRenderingHints(Metrics.rendering_hints)
 
-    for (node <- visualizer.current_node)
-      Shapes.highlight_node(gfx, visualizer, node)
+    for (node <- graphview.current_node)
+      Shapes.highlight_node(gfx, graphview, node)
 
     for (edge <- visible_graph.edges_iterator)
-      Shapes.Cardinal_Spline_Edge.paint(gfx, visualizer, edge)
+      Shapes.Cardinal_Spline_Edge.paint(gfx, graphview, edge)
 
     for (node <- visible_graph.keys_iterator)
-      Shapes.paint_node(gfx, visualizer, node)
+      Shapes.paint_node(gfx, graphview, node)
   }
 
   var current_node: Option[Graph_Display.Node] = None

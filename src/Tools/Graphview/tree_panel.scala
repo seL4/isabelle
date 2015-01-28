@@ -19,22 +19,22 @@ import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, CheckBox, Action}
 
 
-class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends BorderPanel
+class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends BorderPanel
 {
   /* main actions */
 
   private def selection_action()
   {
     if (tree != null) {
-      visualizer.current_node = None
-      visualizer.Selection.clear()
+      graphview.current_node = None
+      graphview.Selection.clear()
       val paths = tree.getSelectionPaths
       if (paths != null) {
         for (path <- paths if path != null) {
           path.getLastPathComponent match {
             case tree_node: DefaultMutableTreeNode =>
               tree_node.getUserObject match {
-                case node: Graph_Display.Node => visualizer.Selection.add(node)
+                case node: Graph_Display.Node => graphview.Selection.add(node)
                 case _ =>
               }
             case _ =>
@@ -58,7 +58,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
           case _ => None
         }
       action_node.foreach(graph_panel.scroll_to_node(_))
-      visualizer.current_node = action_node
+      graphview.current_node = action_node
       graph_panel.repaint()
     }
   }
@@ -111,7 +111,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
   private val selection_field_foreground = selection_field.foreground
 
   private val selection_delay =
-    GUI_Thread.delay_last(visualizer.options.seconds("editor_input_delay")) {
+    GUI_Thread.delay_last(graphview.options.seconds("editor_input_delay")) {
       val (pattern, ok) =
         selection_field.text match {
           case null | "" => (None, true)
@@ -127,7 +127,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
         tree.repaint()
       }
       selection_field.foreground =
-        if (ok) selection_field_foreground else visualizer.error_color
+        if (ok) selection_field_foreground else graphview.error_color
     }
 
   selection_field.peer.getDocument.addDocumentListener(new DocumentListener {
@@ -149,7 +149,7 @@ class Tree_Panel(val visualizer: Visualizer, graph_panel: Graph_Panel) extends B
 
   def refresh()
   {
-    val new_nodes = visualizer.visible_graph.topological_order
+    val new_nodes = graphview.visible_graph.topological_order
     if (new_nodes != nodes) {
       nodes = new_nodes
 

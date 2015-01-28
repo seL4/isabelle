@@ -15,9 +15,9 @@ import java.awt.{Color, Graphics2D}
 
 object Graph_File
 {
-  def write(file: JFile, visualizer: Visualizer)
+  def write(file: JFile, graphview: Graphview)
   {
-    val box = visualizer.bounding_box()
+    val box = graphview.bounding_box()
     val w = box.width.ceil.toInt
     val h = box.height.ceil.toInt
 
@@ -26,7 +26,7 @@ object Graph_File
       gfx.setColor(Color.WHITE)
       gfx.fillRect(0, 0, w, h)
       gfx.translate(- box.x, - box.y)
-      visualizer.paint_all_visible(gfx)
+      graphview.paint_all_visible(gfx)
     }
 
     val name = file.getName
@@ -40,9 +40,9 @@ object Graph_File
     val model = new Model(graph.transitive_reduction_acyclic)
 
     val the_options = options
-    val visualizer = new Visualizer(model) { def options = the_options }
-    visualizer.update_layout()
+    val graphview = new Graphview(model) { def options = the_options }
+    graphview.update_layout()
 
-    write(file, visualizer)
+    write(file, graphview)
   }
 }

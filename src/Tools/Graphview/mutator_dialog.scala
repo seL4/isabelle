@@ -20,7 +20,7 @@ import scala.swing.event.ValueChanged
 
 
 class Mutator_Dialog(
-    visualizer: Visualizer,
+    graphview: Graphview,
     container: Mutator_Container,
     caption: String,
     reverse_caption: String = "Inverse",
@@ -117,7 +117,7 @@ class Mutator_Dialog(
   private val add_button = new Button {
     action = Action("Add") {
       add_panel(
-        new Mutator_Panel(Mutator.Info(true, visualizer.Colors.next, mutator_box.selection.item)))
+        new Mutator_Panel(Mutator.Info(true, graphview.Colors.next, mutator_box.selection.item)))
     }
   }
 
@@ -246,7 +246,7 @@ class Mutator_Dialog(
 
     def get_mutator: Mutator.Info =
     {
-      val model = visualizer.model
+      val model = graphview.model
       val m =
         initials.mutator match {
           case Mutator.Identity() =>
@@ -333,7 +333,7 @@ class Mutator_Dialog(
     reactions +=
     {
       case ValueChanged(_) =>
-        foreground = if (check(text)) default_foreground else visualizer.error_color
+        foreground = if (check(text)) default_foreground else graphview.error_color
     }
 
     def string = text

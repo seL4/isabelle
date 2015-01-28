@@ -23,13 +23,13 @@ object Shapes
   def shape(info: Layout.Info): Rectangle2D.Double =
     new Rectangle2D.Double(info.x - info.width2, info.y - info.height2, info.width, info.height)
 
-  def highlight_node(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
+  def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node)
   {
-    val metrics = visualizer.metrics
+    val metrics = graphview.metrics
     val extra = metrics.char_width
-    val info = visualizer.layout.get_node(node)
+    val info = graphview.layout.get_node(node)
 
-    gfx.setColor(visualizer.highlight_color)
+    gfx.setColor(graphview.highlight_color)
     gfx.fill(new Rectangle2D.Double(
       info.x - info.width2 - extra,
       info.y - info.height2 - extra,
@@ -37,11 +37,11 @@ object Shapes
       info.height + 2 * extra))
   }
 
-  def paint_node(gfx: Graphics2D, visualizer: Visualizer, node: Graph_Display.Node)
+  def paint_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node)
   {
-    val metrics = visualizer.metrics
-    val info = visualizer.layout.get_node(node)
-    val c = visualizer.node_color(node)
+    val metrics = graphview.metrics
+    val info = graphview.layout.get_node(node)
+    val c = graphview.node_color(node)
     val s = shape(info)
 
     gfx.setColor(c.background)
@@ -63,24 +63,24 @@ object Shapes
     for (line <- info.lines) { gfx.drawString(line, x, y); y += metrics.height.ceil.toInt }
   }
 
-  def paint_dummy(gfx: Graphics2D, visualizer: Visualizer, info: Layout.Info)
+  def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info)
   {
     gfx.setStroke(default_stroke)
-    gfx.setColor(visualizer.dummy_color)
+    gfx.setColor(graphview.dummy_color)
     gfx.draw(shape(info))
   }
 
   object Straight_Edge
   {
-    def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge)
     {
-      val p = visualizer.layout.get_node(edge._1)
-      val q = visualizer.layout.get_node(edge._2)
+      val p = graphview.layout.get_node(edge._1)
+      val q = graphview.layout.get_node(edge._2)
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
+        graphview.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
 
@@ -88,13 +88,13 @@ object Shapes
       ds.foreach(d => path.lineTo(d.x, d.y))
       path.lineTo(q.x, q.y)
 
-      if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
+      if (graphview.show_dummies) ds.foreach(paint_dummy(gfx, graphview, _))
 
       gfx.setStroke(default_stroke)
-      gfx.setColor(visualizer.edge_color(edge, p.y < q.y))
+      gfx.setColor(graphview.edge_color(edge, p.y < q.y))
       gfx.draw(path)
 
-      if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
+      if (graphview.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
     }
   }
 
@@ -102,18 +102,18 @@ object Shapes
   {
     private val slack = 0.1
 
-    def paint(gfx: Graphics2D, visualizer: Visualizer, edge: Graph_Display.Edge)
+    def paint(gfx: Graphics2D, graphview: Graphview, edge: Graph_Display.Edge)
     {
-      val p = visualizer.layout.get_node(edge._1)
-      val q = visualizer.layout.get_node(edge._2)
+      val p = graphview.layout.get_node(edge._1)
+      val q = graphview.layout.get_node(edge._2)
       val ds =
       {
         val a = p.y min q.y
         val b = p.y max q.y
-        visualizer.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
+        graphview.layout.dummies_iterator(edge).filter(d => a < d.y && d.y < b).toList
       }
 
-      if (ds.isEmpty) Straight_Edge.paint(gfx, visualizer, edge)
+      if (ds.isEmpty) Straight_Edge.paint(gfx, graphview, edge)
       else {
         val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
         path.moveTo(p.x, p.y)
@@ -140,13 +140,13 @@ object Shapes
           q.x - slack * dx2, q.y - slack * dy2,
           q.x, q.y)
 
-        if (visualizer.show_dummies) ds.foreach(paint_dummy(gfx, visualizer, _))
+        if (graphview.show_dummies) ds.foreach(paint_dummy(gfx, graphview, _))
 
         gfx.setStroke(default_stroke)
-        gfx.setColor(visualizer.edge_color(edge, p.y < q.y))
+        gfx.setColor(graphview.edge_color(edge, p.y < q.y))
         gfx.draw(path)
 
-        if (visualizer.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
+        if (graphview.show_arrow_heads) Arrow_Head.paint(gfx, path, Shapes.shape(q))
       }
     }
   }

@@ -20,7 +20,7 @@ import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser, Panel, S
 import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked, MouseEvent}
 
 
-class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
+class Graph_Panel(val graphview: Graphview) extends BorderPanel
 {
   graph_panel =>
 
@@ -36,17 +36,17 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
     {
       super.paintComponent(gfx)
 
-      gfx.setColor(visualizer.background_color)
+      gfx.setColor(graphview.background_color)
       gfx.fillRect(0, 0, peer.getWidth, peer.getHeight)
 
       gfx.transform(Transform())
-      visualizer.paint_all_visible(gfx)
+      graphview.paint_all_visible(gfx)
     }
   }
 
   def set_preferred_size()
   {
-    val box = visualizer.bounding_box()
+    val box = graphview.bounding_box()
     val s = Transform.scale_discrete
     painter.preferredSize = new Dimension((box.width * s).ceil.toInt, (box.height * s).ceil.toInt)
     painter.revalidate()
@@ -62,8 +62,8 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
   def scroll_to_node(node: Graph_Display.Node)
   {
-    val gap = visualizer.metrics.gap
-    val info = visualizer.layout.get_node(node)
+    val gap = graphview.metrics.gap
+    val info = graphview.layout.get_node(node)
 
     val t = Transform()
     val p =
@@ -84,12 +84,12 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
     override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
       override def getToolTipText(event: java.awt.event.MouseEvent): String =
-        visualizer.find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+        graphview.find_node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
           case Some(node) =>
-            visualizer.model.full_graph.get_node(node) match {
+            graphview.model.full_graph.get_node(node) match {
               case Nil => null
               case content =>
-                visualizer.make_tooltip(graph_pane.peer, event.getX, event.getY, content)
+                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, content)
             }
           case None => null
         }
@@ -144,13 +144,13 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
     def scale_discrete: Double =
     {
-      val font_height = GUI.line_metrics(visualizer.metrics.font).getHeight.toInt
+      val font_height = GUI.line_metrics(graphview.metrics.font).getHeight.toInt
       (scale * font_height).floor / font_height
     }
 
     def apply() =
     {
-      val box = visualizer.bounding_box()
+      val box = graphview.bounding_box()
       val t = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
       t.translate(- box.x, - box.y)
       t
@@ -158,10 +158,10 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
     def fit_to_window()
     {
-      if (visualizer.visible_graph.is_empty)
+      if (graphview.visible_graph.is_empty)
         rescale(1.0)
       else {
-        val box = visualizer.bounding_box()
+        val box = graphview.bounding_box()
         rescale((size.width / box.width) min (size.height / box.height))
       }
     }
@@ -179,8 +179,8 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
   /* interaction */
 
-  visualizer.model.Colors.events += { case _ => painter.repaint() }
-  visualizer.model.Mutators.events += { case _ => painter.repaint() }
+  graphview.model.Colors.events += { case _ => painter.repaint() }
+  graphview.model.Mutators.events += { case _ => painter.repaint() }
 
   private object Mouse_Interaction
   {
@@ -191,15 +191,15 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
     {
       val c = Transform.pane_to_graph_coordinates(at)
       val l =
-        visualizer.find_node(c) match {
+        graphview.find_node(c) match {
           case Some(node) =>
-            if (visualizer.Selection.contains(node)) visualizer.Selection.get()
+            if (graphview.Selection.contains(node)) graphview.Selection.get()
             else List(node)
           case None => Nil
         }
       val d =
         l match {
-          case Nil => visualizer.find_dummy(c).toList
+          case Nil => graphview.find_dummy(c).toList
           case _ => Nil
         }
       draginfo = (at, l, d)
@@ -220,10 +220,10 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
           painter.peer.scrollRectToVisible(r)
 
         case (Nil, ds) =>
-          ds.foreach(d => visualizer.translate_vertex(d, dx / s, dy / s))
+          ds.foreach(d => graphview.translate_vertex(d, dx / s, dy / s))
 
         case (ls, _) =>
-          ls.foreach(l => visualizer.translate_vertex(Layout.Node(l), dx / s, dy / s))
+          ls.foreach(l => graphview.translate_vertex(Layout.Node(l), dx / s, dy / s))
       }
 
       draginfo = (to, p, d)
@@ -237,23 +237,23 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
         if (right_click) {
           // FIXME
           if (false) {
-            val menu = Popups(graph_panel, visualizer.find_node(c), visualizer.Selection.get())
+            val menu = Popups(graph_panel, graphview.find_node(c), graphview.Selection.get())
             menu.show(graph_pane.peer, at.x, at.y)
           }
         }
         else {
-          (visualizer.find_node(c), m) match {
-            case (Some(node), Key.Modifier.Control) => visualizer.Selection.add(node)
+          (graphview.find_node(c), m) match {
+            case (Some(node), Key.Modifier.Control) => graphview.Selection.add(node)
             case (None, Key.Modifier.Control) =>
 
-            case (Some(node), Key.Modifier.Shift) => visualizer.Selection.add(node)
+            case (Some(node), Key.Modifier.Shift) => graphview.Selection.add(node)
             case (None, Key.Modifier.Shift) =>
 
             case (Some(node), _) =>
-              visualizer.Selection.clear()
-              visualizer.Selection.add(node)
+              graphview.Selection.clear()
+              graphview.Selection.add(node)
             case (None, _) =>
-              visualizer.Selection.clear()
+              graphview.Selection.clear()
           }
         }
       }
@@ -265,9 +265,9 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
   /** controls **/
 
   private val mutator_dialog =
-    new Mutator_Dialog(visualizer, visualizer.model.Mutators, "Filters", "Hide", false)
+    new Mutator_Dialog(graphview, graphview.model.Mutators, "Filters", "Hide", false)
   private val color_dialog =
-    new Mutator_Dialog(visualizer, visualizer.model.Colors, "Colorations")
+    new Mutator_Dialog(graphview, graphview.model.Colors, "Colorations")
 
   private val chooser = new FileChooser {
     fileSelectionMode = FileChooser.SelectionMode.FilesOnly
@@ -275,28 +275,28 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
   }
 
   private val show_content = new CheckBox() {
-    selected = visualizer.show_content
+    selected = graphview.show_content
     action = Action("Show content") {
-      visualizer.show_content = selected
-      visualizer.update_layout()
+      graphview.show_content = selected
+      graphview.update_layout()
       refresh()
     }
     tooltip = "Show full node content within graph layout"
   }
 
   private val show_arrow_heads = new CheckBox() {
-    selected = visualizer.show_arrow_heads
+    selected = graphview.show_arrow_heads
     action = Action("Show arrow heads") {
-      visualizer.show_arrow_heads = selected
+      graphview.show_arrow_heads = selected
       painter.repaint()
     }
     tooltip = "Draw edges with explicit arrow heads"
   }
 
   private val show_dummies = new CheckBox() {
-    selected = visualizer.show_dummies
+    selected = graphview.show_dummies
     action = Action("Show dummies") {
-      visualizer.show_dummies = selected
+      graphview.show_dummies = selected
       painter.repaint()
     }
     tooltip = "Draw dummy nodes within graph layout, for easier mouse dragging"
@@ -306,7 +306,7 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
     action = Action("Save image") {
       chooser.showSaveDialog(this) match {
         case FileChooser.Result.Approve =>
-          try { Graph_File.write(chooser.selectedFile, visualizer) }
+          try { Graph_File.write(chooser.selectedFile, graphview) }
           catch {
             case ERROR(msg) => GUI.error_dialog(this.peer, "Error", GUI.scrollable_text(msg))
           }
@@ -325,7 +325,7 @@ class Graph_Panel(val visualizer: Visualizer) extends BorderPanel
 
   private val update_layout = new Button {
     action = Action("Update layout") {
-      visualizer.update_layout()
+      graphview.update_layout()
       refresh()
     }
     tooltip = "Regenerate graph layout according to built-in algorithm"

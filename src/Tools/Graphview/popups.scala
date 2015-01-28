@@ -21,10 +21,10 @@ object Popups
     mouse_node: Option[Graph_Display.Node],
     selected_nodes: List[Graph_Display.Node]): JPopupMenu =
   {
-    val visualizer = graph_panel.visualizer
+    val graphview = graph_panel.graphview
 
-    val add_mutator = visualizer.model.Mutators.add _
-    val visible_graph = visualizer.visible_graph
+    val add_mutator = graphview.model.Mutators.add _
+    val visible_graph = graphview.visible_graph
 
     def filter_context(
         nodes: List[Graph_Display.Node], reverse: Boolean, caption: String, edges: Boolean) =
@@ -32,25 +32,25 @@ object Popups
         contents +=
           new MenuItem(new Action("This") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, false, false)))
+              add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, false, false)))
           })
 
         contents +=
           new MenuItem(new Action("Family") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, true, true)))
+              add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, true, true)))
           })
 
         contents +=
           new MenuItem(new Action("Parents") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, false, true)))
+              add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, false, true)))
           })
 
         contents +=
           new MenuItem(new Action("Children") {
             def apply =
-              add_mutator(Mutator.make(visualizer, Mutator.Node_List(nodes, reverse, true, false)))
+              add_mutator(Mutator.make(graphview, Mutator.Node_List(nodes, reverse, true, false)))
           })
 
         if (edges) {
@@ -80,7 +80,7 @@ object Popups
                               new Action(quote(to.toString)) {
                                 def apply =
                                   add_mutator(
-                                    Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
+                                    Mutator.make(graphview, Mutator.Edge_Endpoints((from, to))))
                               })
                         }
                       }
@@ -99,7 +99,7 @@ object Popups
                               new Action(quote(from.toString)) {
                                 def apply =
                                   add_mutator(
-                                    Mutator.make(visualizer, Mutator.Edge_Endpoints((from, to))))
+                                    Mutator.make(graphview, Mutator.Edge_Endpoints((from, to))))
                               })
                         }
                       }
@@ -114,7 +114,7 @@ object Popups
 
     popup.add(
       new MenuItem(
-        new Action("Remove all filters") { def apply = visualizer.model.Mutators(Nil) }).peer)
+        new Action("Remove all filters") { def apply = graphview.model.Mutators(Nil) }).peer)
     popup.add(new JPopupMenu.Separator)
 
     if (mouse_node.isDefined) {

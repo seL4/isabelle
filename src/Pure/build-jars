@@ -106,6 +106,7 @@ declare -a SOURCES=(
   term_xml.scala
   "../Tools/Graphview/graph_file.scala"
   "../Tools/Graphview/graph_panel.scala"
+  "../Tools/Graphview/graphview.scala"
   "../Tools/Graphview/layout.scala"
   "../Tools/Graphview/main_panel.scala"
   "../Tools/Graphview/metrics.scala"
@@ -116,7 +117,6 @@ declare -a SOURCES=(
   "../Tools/Graphview/popups.scala"
   "../Tools/Graphview/shapes.scala"
   "../Tools/Graphview/tree_panel.scala"
-  "../Tools/Graphview/visualizer.scala"
 )
 
 

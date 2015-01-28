@@ -62,7 +62,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
     graph_result match {
       case Exn.Res(graph) =>
         val model = new isabelle.graphview.Model(graph)
-        val visualizer = new isabelle.graphview.Visualizer(model) {
+        val graphview = new isabelle.graphview.Graphview(model) {
           def options: Options = PIDE.options.value
 
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
@@ -86,7 +86,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
           override def highlight_color = view.getTextArea.getPainter.getLineHighlightColor
           override def error_color = PIDE.options.color_value("error_color")
         }
-        new isabelle.graphview.Main_Panel(visualizer)
+        new isabelle.graphview.Main_Panel(graphview)
       case Exn.Exn(exn) => new TextArea(Exn.message(exn))
     }
   set_content(graphview)
