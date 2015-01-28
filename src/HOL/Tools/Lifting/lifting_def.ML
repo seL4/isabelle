@@ -369,7 +369,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
         else
           if is_some opt_rep_eq_thm andalso is_valid_abs_eq (the opt_rep_eq_thm)
           then
-            Code.add_abs_eqn (the opt_rep_eq_thm) thy
+            Code.add_abs_default_eqn (the opt_rep_eq_thm) thy
           else
             thy
       end

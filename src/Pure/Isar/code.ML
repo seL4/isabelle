@@ -42,6 +42,7 @@ sig
     (string * ((string * sort) list * (string * ((string * sort) list * typ list)) list)
       -> theory -> theory) -> theory -> theory
   val add_abstype: thm -> theory -> theory
+  val add_abstype_default: thm -> theory -> theory
   val abstype_interpretation:
     (string * ((string * sort) list * ((string * ((string * sort) list * typ)) * (string * thm)))
       -> theory -> theory) -> theory -> theory
@@ -56,6 +57,9 @@ sig
   val add_nbe_default_eqn: thm -> theory -> theory
   val add_nbe_default_eqn_attribute: attribute
   val add_nbe_default_eqn_attrib: Token.src
+  val add_abs_default_eqn: thm -> theory -> theory
+  val add_abs_default_eqn_attribute: attribute
+  val add_abs_default_eqn_attrib: Token.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val del_exception: string -> theory -> theory
@@ -175,20 +179,22 @@ fun case_consts_of (Constructors (_, case_consts)) = case_consts
 
 (* functions *)
 
-datatype fun_spec = Default of (thm * bool) list * (thm * bool) list lazy
+datatype fun_spec = Eqns_Default of (thm * bool) list * (thm * bool) list lazy
       (* (cache for default equations, lazy computation of default equations)
          -- helps to restore natural order of default equations *)
   | Eqns of (thm * bool) list
   | None
-  | Proj of term * string
-  | Abstr of thm * string;
+  | Proj of (term * string) * bool
+  | Abstr of (thm * string) * bool;
 
-val initial_fun_spec = Default ([], Lazy.value []);
+val initial_fun_spec = Eqns_Default ([], Lazy.value []);
 
-fun is_default (Default _) = true
+fun is_default (Eqns_Default _) = true
+  | is_default (Proj (_, default)) = default
+  | is_default (Abstr (_, default)) = default
   | is_default _ = false;
 
-fun associated_abstype (Abstr (_, tyco)) = SOME tyco
+fun associated_abstype (Abstr ((_, tyco), _)) = SOME tyco
   | associated_abstype _ = NONE;
 
 
@@ -935,13 +941,13 @@ fun get_cert ctxt functrans c =
     val thy = Proof_Context.theory_of ctxt;
   in
     case retrieve_raw thy c of
-      Default (_, eqns_lazy) => Lazy.force eqns_lazy
+      Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
         |> cert_of_eqns_preprocess ctxt functrans c
     | Eqns eqns => eqns
         |> cert_of_eqns_preprocess ctxt functrans c
     | None => nothing_cert ctxt c
-    | Proj (_, tyco) => cert_of_proj thy c tyco
-    | Abstr (abs_thm, tyco) => abs_thm
+    | Proj ((_, tyco), _) => cert_of_proj thy c tyco
+    | Abstr ((abs_thm, tyco), _) => abs_thm
        |> preprocess Conv.arg_conv ctxt
        |> cert_of_abs thy tyco c
   end;
@@ -1004,13 +1010,13 @@ fun print_codesetup thy =
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Display.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Default (_, eqns_lazy)) =
+    fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
       | pretty_function (const, None) = pretty_equations const []
-      | pretty_function (const, Proj (proj, _)) = Pretty.block
+      | pretty_function (const, Proj ((proj, _), _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
-      | pretty_function (const, Abstr (thm, _)) = pretty_equations const [thm];
+      | pretty_function (const, Abstr ((thm, _), _)) = pretty_equations const [thm];
     fun pretty_typ (tyco, vs) = Pretty.str
       (string_of_typ thy (Type (tyco, map TFree vs)));
     fun pretty_typspec (typ, (cos, abstract)) = if null cos
@@ -1094,19 +1100,19 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       in (thm, proper) :: filter_out drop eqns end;
     fun natural_order eqns =
       (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
-    fun add_eqn' true (Default (eqns, _)) = Default (natural_order ((thm, proper) :: eqns))
+    fun add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
-      | add_eqn' true None = Default (natural_order [(thm, proper)])
+      | add_eqn' true None = Eqns_Default (natural_order [(thm, proper)])
       | add_eqn' true fun_spec = fun_spec
       | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec c (add_eqn' default) thy end;
 
-fun gen_add_abs_eqn raw_thm thy =
+fun gen_add_abs_eqn default raw_thm thy =
   let
     val (abs_thm, tyco) = apfst Thm.close_derivation raw_thm;
     val c = const_abs_eqn thy abs_thm;
-  in change_fun_spec c (K (Abstr (abs_thm, tyco))) thy end;
+  in change_fun_spec c (K (Abstr ((abs_thm, tyco), default))) thy end;
 
 fun add_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, true)) thy;
@@ -1130,22 +1136,27 @@ val add_nbe_default_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_nbe_default_eqn thm) I);
 val add_nbe_default_eqn_attrib = Attrib.internal (K add_nbe_default_eqn_attribute);
 
-fun add_abs_eqn raw_thm thy = gen_add_abs_eqn (mk_abs_eqn thy raw_thm) thy;
+fun add_abs_eqn raw_thm thy = gen_add_abs_eqn false (mk_abs_eqn thy raw_thm) thy;
+fun add_abs_default_eqn raw_thm thy = gen_add_abs_eqn true (mk_abs_eqn thy raw_thm) thy;
 
 val add_abs_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_abs_eqn thm) I);
+val add_abs_default_eqn_attribute = Thm.declaration_attribute
+  (fn thm => Context.mapping (add_abs_default_eqn thm) I);
+
 val add_abs_eqn_attrib = Attrib.internal (K add_abs_eqn_attribute);
+val add_abs_default_eqn_attrib = Attrib.internal (K add_abs_default_eqn_attribute);
 
 fun add_eqn_maybe_abs thm thy =
   case mk_eqn_maybe_abs thy thm
    of SOME (eqn, NONE) => gen_add_eqn false eqn thy
-    | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn (thm, tyco) thy
+    | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn false (thm, tyco) thy
     | NONE => thy;
 
 fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) =>
       let
-        fun del_eqn' (Default _) = initial_fun_spec
+        fun del_eqn' (Eqns_Default _) = initial_fun_spec
           | del_eqn' (Eqns eqns) =
               let
                 val eqns' = filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns
@@ -1272,7 +1283,7 @@ fun abstype_interpretation f =
     (fn tyco =>
       Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
 
-fun add_abstype proto_thm thy =
+fun gen_add_abstype default proto_thm thy =
   let
     val (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =
       error_abs_thm (check_abstype_cert thy) thy proto_thm;
@@ -1280,9 +1291,12 @@ fun add_abstype proto_thm thy =
     thy
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
     |> change_fun_spec rep
-      (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
+      (K (Proj ((Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco), default)))
     |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
   end;
+
+val add_abstype = gen_add_abstype false;
+val add_abstype_default = gen_add_abstype true;
 
 
 (* setup *)

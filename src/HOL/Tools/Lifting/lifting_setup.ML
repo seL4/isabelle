@@ -157,7 +157,7 @@ fun define_abs_type gen_code quot_thm lthy =
     let
       val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
       val add_abstype_attribute = 
-          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype thm) I)
+          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype_default thm) I)
         val add_abstype_attrib = Attrib.internal (K add_abstype_attribute)
     in
       lthy
