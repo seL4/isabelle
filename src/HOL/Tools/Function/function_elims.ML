@@ -87,13 +87,14 @@ fun mk_partial_elim_rules ctxt result =
 
     fun mk_partial_elim_rule (idx, f) =
       let
-        fun mk_funeq 0 T (acc_vars, acc_lhs) =
-              let val y = Free("y", T)
-              in (y :: acc_vars, (HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))), T) end
-          | mk_funeq n (Type (@{type_name "fun"}, [S, T])) (acc_vars, acc_lhs) =
-              let val xn = Free ("x" ^ Int.toString n, S)
-              in mk_funeq (n - 1) T (xn :: acc_vars, acc_lhs $ xn) end
-          | mk_funeq _ _ _ = raise TERM ("Not a function.", [f]);
+        fun mk_var x T ctxt = case Name.variant x ctxt of (x, ctxt) => (Free (x, T), ctxt)
+        fun mk_funeq 0 T ctxt (acc_vars, acc_lhs) =
+              let val (y, ctxt) = mk_var "y" T ctxt
+              in  (y :: acc_vars, (HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))), T, ctxt) end
+          | mk_funeq n (Type (@{type_name "fun"}, [S, T])) ctxt (acc_vars, acc_lhs) =
+              let val (xn, ctxt) = mk_var "x" S ctxt
+              in  mk_funeq (n - 1) T ctxt (xn :: acc_vars, acc_lhs $ xn) end
+          | mk_funeq _ _ _ _ = raise TERM ("Not a function.", [f]);
 
         val f_simps =
           filter (fn r =>
@@ -109,11 +110,13 @@ fun mk_partial_elim_rules ctxt result =
           |> HOLogic.dest_Trueprop
           |> snd o fst o dest_funprop
           |> length;
-        val (free_vars, prop, ranT) = mk_funeq arity (fastype_of f) ([], f);
+        val name_ctxt = Variable.names_of ctxt
+        val (free_vars, prop, ranT, name_ctxt) = mk_funeq arity (fastype_of f) name_ctxt ([], f);
         val (rhs_var, arg_vars) = (case free_vars of x :: xs => (x, rev xs));
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
 
+        val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> cert
         val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx+1) args;
 
         val cprop = cert prop;
@@ -128,26 +131,26 @@ fun mk_partial_elim_rules ctxt result =
           THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN assume_tac ctxt i)
           THEN bool_subst_tac ctxt i;
 
-      val elim_stripped =
-        nth cases idx
-        |> Thm.forall_elim @{cterm "P::bool"}
-        |> Thm.forall_elim (cert args)
-        |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
-        |> fold_rev Thm.implies_intr asms
-        |> Thm.forall_intr (cert rhs_var);
+        val elim_stripped =
+          nth cases idx
+          |> Thm.forall_elim P
+          |> Thm.forall_elim (cert args)
+          |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
+          |> fold_rev Thm.implies_intr asms
+          |> Thm.forall_intr (cert rhs_var);
 
-      val bool_elims =
-        (case ranT of
-          Type (@{type_name bool}, []) => mk_bool_elims ctxt elim_stripped
-        | _ => []);
+        val bool_elims =
+          (case ranT of
+            Type (@{type_name bool}, []) => mk_bool_elims ctxt elim_stripped
+          | _ => []);
 
-      fun unstrip rl =
-        rl
-        |> fold_rev (Thm.forall_intr o cert) arg_vars
-        |> Thm.forall_intr @{cterm "P::bool"};
-    in
-      map unstrip (elim_stripped :: bool_elims)
-    end;
+        fun unstrip rl =
+          rl
+          |> fold_rev (Thm.forall_intr o cert) arg_vars
+          |> Thm.forall_intr P
+      in
+        map unstrip (elim_stripped :: bool_elims)
+      end;
   in
     map_index mk_partial_elim_rule fs
   end;

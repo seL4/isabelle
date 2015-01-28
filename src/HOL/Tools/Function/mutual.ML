@@ -248,15 +248,18 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
 
 fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
   let
-    val arg_vars = 
-      cargTs
-      |> map_index (fn (i, T) => Free ("x" ^ string_of_int i, T)) (* FIXME: proper context *)
+    val name_ctxt = Variable.names_of ctxt
+    fun mk_var x T ctxt = case Name.variant x ctxt of (x, ctxt) => (Free (x, T), ctxt)
+    val (arg_vars, name_ctxt) = fold_index 
+          (fn (i, T) => fn (acc, ctxt) =>
+            case mk_var ("x" ^ string_of_int i) T ctxt of (x, ctxt) => (x :: acc, ctxt))
+          cargTs ([], name_ctxt)
 
     val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
-    val args = Free ("x", argsT) (* FIXME: proper context *)
-
+    val (args, name_ctxt) = mk_var "x" argsT name_ctxt
+    
     val cert = cterm_of (Proof_Context.theory_of ctxt)
-
+    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> cert
     val sumtree_inj = Sum_Tree.mk_inj ST n i args
 
     val sum_elims =
@@ -267,11 +270,11 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
       THEN REPEAT (Tactic.eresolve_tac sum_elims i)
   in
     cases_rule
-    |> Thm.forall_elim @{cterm "P::bool"}
+    |> Thm.forall_elim P
     |> Thm.forall_elim (cert sumtree_inj)
     |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal)
     |> Thm.forall_intr (cert args)
-    |> Thm.forall_intr @{cterm "P::bool"}
+    |> Thm.forall_intr P
   end
 
 
