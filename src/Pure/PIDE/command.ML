@@ -38,6 +38,12 @@ struct
 
 (** main phases of execution **)
 
+fun task_context group f =
+  f
+  |> Future.interruptible_task
+  |> Future.task_context "Command.run_process" group;
+
+
 (* read *)
 
 type blob =
@@ -143,7 +149,9 @@ val eval_eq = op = o apply2 eval_exec_id;
 val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 
-fun eval_result (Eval {eval_process, ...}) = Lazy.force eval_process;
+fun eval_result (Eval {eval_process, ...}) =
+  task_context (Future.worker_subgroup ()) Lazy.force eval_process;
+
 val eval_result_state = #state o eval_result;
 
 local
@@ -369,7 +377,7 @@ local
 fun run_process execution_id exec_id process =
   let val group = Future.worker_subgroup () in
     if Execution.running execution_id exec_id [group] then
-      ignore (Future.task_context "Command.run_process" group Lazy.force_result process)
+      ignore (task_context group Lazy.force_result process)
     else ()
   end;
 
