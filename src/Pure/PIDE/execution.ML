@@ -14,7 +14,6 @@ sig
   val running: Document_ID.execution -> Document_ID.exec -> Future.group list -> bool
   val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
-  val terminate: Document_ID.exec -> unit
   type params = {name: string, pos: Position.T, pri: int}
   val fork: params -> (unit -> 'a) -> 'a future
   val print: params -> (unit -> unit) -> unit
@@ -76,7 +75,6 @@ fun peek exec_id =
   | NONE => []);
 
 fun cancel exec_id = List.app Future.cancel_group (peek exec_id);
-fun terminate exec_id = List.app Future.terminate (peek exec_id);
 
 
 (* fork *)

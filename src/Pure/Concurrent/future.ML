@@ -42,7 +42,6 @@ sig
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
   val group_snapshot: group -> task list
-  val terminate: group -> unit
   val shutdown: unit -> unit
 end;
 
@@ -638,15 +637,6 @@ fun fulfill x res = fulfill_result x (Exn.Res res);
 fun group_snapshot group =
   SYNCHRONIZED "group_snapshot" (fn () =>
     Task_Queue.group_tasks (! queue) group);
-
-
-(* terminate *)
-
-fun terminate group =
-  SYNCHRONIZED "terminate" (fn () =>
-    let val _ = cancel_group_unsynchronized group;
-    in Task_Queue.group_tasks (! queue) group end)
-  |> join_tasks;
 
 
 (* shutdown *)
