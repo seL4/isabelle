@@ -136,10 +136,8 @@ end;
 
 (* eval *)
 
-type eval_state =
-  {failed: bool, malformed: bool, command: Toplevel.transition, state: Toplevel.state};
-val init_eval_state =
-  {failed = false, malformed = false, command = Toplevel.empty, state = Toplevel.toplevel};
+type eval_state = {failed: bool, command: Toplevel.transition, state: Toplevel.state};
+val init_eval_state = {failed = false, command = Toplevel.empty, state = Toplevel.toplevel};
 
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state lazy};
 
@@ -195,35 +193,31 @@ fun proof_status tr st =
     SOME prf => status tr (Proof.status_markup prf)
   | NONE => ());
 
-fun eval_state keywords span tr ({malformed, state, ...}: eval_state) =
-  if malformed then
-    {failed = true, malformed = malformed, command = tr, state = Toplevel.toplevel}
-  else
-    let
-      val _ = Multithreading.interrupted ();
+fun eval_state keywords span tr ({state, ...}: eval_state) =
+  let
+    val _ = Multithreading.interrupted ();
 
-      val malformed' = Toplevel.is_malformed tr;
-      val st = reset_state keywords tr state;
+    val st = reset_state keywords tr state;
 
-      val _ = status tr Markup.running;
-      val (errs1, result) = run keywords true tr st;
-      val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
-      val errs = errs1 @ errs2;
-      val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
-    in
-      (case result of
-        NONE =>
-          let
-            val _ = status tr Markup.failed;
-            val _ = status tr Markup.finished;
-            val _ = if null errs then (report tr Markup.bad; Exn.interrupt ()) else ();
-          in {failed = true, malformed = malformed', command = tr, state = st} end
-      | SOME st' =>
-          let
-            val _ = proof_status tr st';
-            val _ = status tr Markup.finished;
-          in {failed = false, malformed = malformed', command = tr, state = st'} end)
-    end;
+    val _ = status tr Markup.running;
+    val (errs1, result) = run keywords true tr st;
+    val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
+    val errs = errs1 @ errs2;
+    val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
+  in
+    (case result of
+      NONE =>
+        let
+          val _ = status tr Markup.failed;
+          val _ = status tr Markup.finished;
+          val _ = if null errs then (report tr Markup.bad; Exn.interrupt ()) else ();
+        in {failed = true, command = tr, state = st} end
+    | SOME st' =>
+        let
+          val _ = proof_status tr st';
+          val _ = status tr Markup.finished;
+        in {failed = false, command = tr, state = st'} end)
+  end;
 
 in
 

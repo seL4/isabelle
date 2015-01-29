@@ -44,7 +44,6 @@ sig
   val ignored: Position.T -> transition
   val is_ignored: transition -> bool
   val malformed: Position.T -> string -> transition
-  val is_malformed: transition -> bool
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
@@ -353,10 +352,8 @@ fun imperative f = keep (fn _ => f ());
 fun ignored pos = empty |> name "<ignored>" |> position pos |> imperative I;
 fun is_ignored tr = name_of tr = "<ignored>";
 
-val malformed_name = "<malformed>";
 fun malformed pos msg =
-  empty |> name malformed_name |> position pos |> imperative (fn () => error msg);
-fun is_malformed tr = name_of tr = malformed_name;
+  empty |> name "<malformed>" |> position pos |> imperative (fn () => error msg);
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
 val unknown_proof = imperative (fn () => warning "Unknown proof context");
