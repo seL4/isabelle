@@ -7,8 +7,9 @@ Simplified thread operations.
 signature SIMPLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
-  val attributes: bool -> Thread.threadAttribute list
-  val fork: bool -> (unit -> unit) -> Thread.thread
+  type params = {stack_limit: int option, interrupts: bool}
+  val attributes: params -> Thread.threadAttribute list
+  val fork: params -> (unit -> unit) -> Thread.thread
   val join: Thread.thread -> unit
   val interrupt_unsynchronized: Thread.thread -> unit
 end;
@@ -18,14 +19,17 @@ struct
 
 fun is_self thread = Thread.equal (Thread.self (), thread);
 
-fun attributes interrupts =
-  if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts;
+type params = {stack_limit: int option, interrupts: bool};
 
-fun fork interrupts body =
+fun attributes {stack_limit, interrupts} =
+  maximum_ml_stack stack_limit @
+  (if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts);
+
+fun fork params body =
   Thread.fork (fn () =>
     print_exception_trace General.exnMessage tracing (fn () =>
       body () handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
-    attributes interrupts);
+    attributes params);
 
 fun join thread =
   while Thread.isActive thread

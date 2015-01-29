@@ -28,7 +28,7 @@ fun make_thread interrupts body =
       Runtime.debugging NONE body () handle exn =>
         if Exn.is_interrupt exn then ()
         else writeln ("## INTERNAL ERROR ##\n" ^ Runtime.exn_message exn),
-      Simple_Thread.attributes interrupts);
+      Simple_Thread.attributes {stack_limit = NONE, interrupts = interrupts});
 
 val message_store_limit = 20
 val message_display_limit = 10

@@ -31,7 +31,7 @@ val process = uninterruptible (fn restore_attributes => fn script =>
     val _ = cleanup_files ();
 
     val system_thread =
-      Simple_Thread.fork false (fn () =>
+      Simple_Thread.fork {stack_limit = NONE, interrupts = false} (fn () =>
         Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;

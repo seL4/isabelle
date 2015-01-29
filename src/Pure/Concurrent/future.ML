@@ -258,10 +258,15 @@ fun worker_loop name =
   | SOME work => (worker_exec work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
-  Unsynchronized.change workers (cons (Simple_Thread.fork false (fn () => worker_loop name),
-    Unsynchronized.ref Working))
+  let
+    val threads_stack_limit =
+      Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
+    val stack_limit = if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit;
+    val worker =
+      Simple_Thread.fork {stack_limit = stack_limit, interrupts = false}
+        (fn () => worker_loop name);
+  in Unsynchronized.change workers (cons (worker, Unsynchronized.ref Working)) end
   handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
-
 
 
 (* scheduler *)
@@ -359,7 +364,8 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 fun scheduler_check () = (*requires SYNCHRONIZED*)
  (do_shutdown := false;
   if scheduler_active () then ()
-  else scheduler := SOME (Simple_Thread.fork false scheduler_loop));
+  else
+    scheduler := SOME (Simple_Thread.fork {stack_limit = NONE, interrupts = false} scheduler_loop));
 
 
 

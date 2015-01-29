@@ -66,6 +66,8 @@ public option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
 option threads_trace : int = 0
   -- "level of tracing information for multithreading"
+option threads_stack_limit : real = 0.25
+  -- "maximum stack size for worker threads (in giga words, 0 = unlimited)"
 public option parallel_print : bool = true
   -- "parallel and asynchronous printing of results"
 public option parallel_proofs : int = 2

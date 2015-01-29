@@ -66,6 +66,10 @@ open Thread;
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/multithreading_polyml.ML";
 
+if ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/maximum_ml_stack_polyml-5.5.3.ML"
+else use "ML-Systems/maximum_ml_stack_dummy.ML";
+
 use "ML-Systems/unsynchronized.ML";
 val _ = PolyML.Compiler.forgetValue "ref";
 val _ = PolyML.Compiler.forgetType "ref";

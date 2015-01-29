@@ -104,7 +104,7 @@ fun manager_loop () =
 
 fun manager_check manager =
   if is_some manager andalso Thread.isActive (the manager) then manager
-  else SOME (Simple_Thread.fork false manager_loop);
+  else SOME (Simple_Thread.fork {stack_limit = NONE, interrupts = false} manager_loop);
 
 fun shutdown () =
   uninterruptible (fn restore_attributes => fn () =>
