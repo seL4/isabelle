@@ -708,7 +708,7 @@ val quote = enclose "\"" "\"";
 
 val cartouche = enclose "\\<open>" "\\<close>";
 
-fun space_implode a bs = implode (separate a bs);
+val space_implode = String.concatWith;
 
 val commas = space_implode ", ";
 val commas_quote = commas o map quote;
