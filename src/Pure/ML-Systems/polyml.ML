@@ -53,6 +53,14 @@ exception Interrupt = SML90.Interrupt;
 
 use "General/exn.ML";
 
+fun print_exception_trace (_: exn -> string) (_: string -> unit) = PolyML.exception_trace;
+
+if ML_System.name = "polyml-5.5.1"
+  orelse ML_System.name = "polyml-5.5.2"
+  orelse ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/exn_trace_polyml-5.5.1.ML"
+else ();
+
 
 (* multithreading *)
 
@@ -98,7 +106,6 @@ fun quit () = exit 0;
 
 (* ML runtime system *)
 
-fun print_exception_trace (_: exn -> string) (_: string -> unit) = PolyML.exception_trace;
 val timing = PolyML.timing;
 val profiling = PolyML.profiling;
 

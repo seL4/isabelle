@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/exn_trace_polyml-5.5.1.ML
+(*  Title:      Pure/ML-Systems/exn_trace_polyml-5.5.1.ML
     Author:     Makarius
 
-Exception trace for Poly/ML 5.5.1, using regular Isabelle output.
+Exception trace for Poly/ML 5.5.1 via ML output.
 *)
 
 fun print_exception_trace exn_message output e =
@@ -9,7 +9,7 @@ fun print_exception_trace exn_message output e =
     (e, fn (trace, exn) =>
       let
         val title = "Exception trace - " ^ exn_message exn;
-        val _ = output (cat_lines (title :: trace));
+        val _ = output (String.concatWith "\n" (title :: trace));
       in reraise exn end);
 
 PolyML.Compiler.reportExhaustiveHandlers := true;

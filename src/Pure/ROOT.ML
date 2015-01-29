@@ -94,12 +94,6 @@ if ML_System.is_polyml
 then use "ML/exn_properties_polyml.ML"
 else use "ML/exn_properties_dummy.ML";
 
-if ML_System.name = "polyml-5.5.1"
-  orelse ML_System.name = "polyml-5.5.2"
-  orelse ML_System.name = "polyml-5.5.3"
-then use "ML/exn_trace_polyml-5.5.1.ML"
-else ();
-
 if ML_System.name = "polyml-5.5.0"
   orelse ML_System.name = "polyml-5.5.1"
   orelse ML_System.name = "polyml-5.5.2"

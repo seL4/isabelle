@@ -5,6 +5,7 @@ session RAW =
   files
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"
+    "ML-Systems/exn_trace_polyml-5.5.1.ML"
     "ML-Systems/ml_name_space.ML"
     "ML-Systems/ml_positions.ML"
     "ML-Systems/ml_pretty.ML"
@@ -31,6 +32,7 @@ session Pure =
   files
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"
+    "ML-Systems/exn_trace_polyml-5.5.1.ML"
     "ML-Systems/ml_name_space.ML"
     "ML-Systems/ml_positions.ML"
     "ML-Systems/ml_pretty.ML"
@@ -149,7 +151,6 @@ session Pure =
     "ML/exn_output_polyml.ML"
     "ML/exn_properties_dummy.ML"
     "ML/exn_properties_polyml.ML"
-    "ML/exn_trace_polyml-5.5.1.ML"
     "ML/install_pp_polyml.ML"
     "ML/ml_antiquotation.ML"
     "ML/ml_compiler.ML"
