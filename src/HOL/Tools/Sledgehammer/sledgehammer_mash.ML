@@ -1256,7 +1256,7 @@ fun launch_thread timeout task =
     val death_time = Time.+ (birth_time, hard_timeout)
     val desc = ("Machine learner for Sledgehammer", "")
   in
-    Async_Manager.thread MaShN birth_time death_time desc task
+    Async_Manager_Legacy.thread MaShN birth_time death_time desc task
   end
 
 fun learned_proof_name () =
@@ -1519,7 +1519,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
       val thy = Proof_Context.theory_of ctxt
 
       fun maybe_launch_thread exact min_num_facts_to_learn =
-        if not (Async_Manager.has_running_threads MaShN) andalso
+        if not (Async_Manager_Legacy.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
             (if verbose then
@@ -1598,7 +1598,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
       | _ => [(effective_fact_filter, mesh)])
     end
 
-fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
-fun running_learners () = Async_Manager.running_threads MaShN "learner"
+fun kill_learners () = Async_Manager_Legacy.kill_threads MaShN "learner"
+fun running_learners () = Async_Manager_Legacy.running_threads MaShN "learner"
 
 end;

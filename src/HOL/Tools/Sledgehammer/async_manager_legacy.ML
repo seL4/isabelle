@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/async_manager.ML
+(*  Title:      HOL/Tools/Sledgehammer/async_manager_legacy.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -8,7 +8,7 @@ Central manager for asynchronous diagnosis tool threads.
 Proof General legacy!
 *)
 
-signature ASYNC_MANAGER =
+signature ASYNC_MANAGER_LEGACY =
 sig
   val break_into_chunks : string -> string list
   val thread : string -> Time.time -> Time.time -> string * string -> (unit -> bool * string) ->
@@ -19,7 +19,7 @@ sig
   val thread_messages : string -> string -> int option -> unit
 end;
 
-structure Async_Manager : ASYNC_MANAGER =
+structure Async_Manager_Legacy : ASYNC_MANAGER_LEGACY =
 struct
 
 fun make_thread interrupts body =

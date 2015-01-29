@@ -225,11 +225,11 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
             the output_result outcome
           else
             outcome
-            |> Async_Manager.break_into_chunks
+            |> Async_Manager_Legacy.break_into_chunks
             |> List.app writeln
       in (outcome_code, []) end
     else
-      (Async_Manager.thread SledgehammerN birth_time death_time
+      (Async_Manager_Legacy.thread SledgehammerN birth_time death_time
          (prover_description verbose name num_facts)
          ((fn (outcome_code, message) => (verbose orelse outcome_code = someN, message ())) o go);
        (unknownN, []))

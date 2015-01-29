@@ -201,8 +201,8 @@ fun supported_provers ctxt =
     writeln ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")
   end
 
-fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"
-fun running_provers () = Async_Manager.running_threads SledgehammerN "prover"
-val messages = Async_Manager.thread_messages SledgehammerN "prover"
+fun kill_provers () = Async_Manager_Legacy.kill_threads SledgehammerN "prover"
+fun running_provers () = Async_Manager_Legacy.running_threads SledgehammerN "prover"
+val messages = Async_Manager_Legacy.thread_messages SledgehammerN "prover"
 
 end;
