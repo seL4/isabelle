@@ -44,6 +44,13 @@ lemma permutes_inj: "p permutes S \<Longrightarrow> inj p"
 lemma permutes_surj: "p permutes s \<Longrightarrow> surj p"
   unfolding permutes_def surj_def by metis
 
+lemma permutes_imp_bij: "p permutes S \<Longrightarrow> bij_betw p S S"
+  by (metis UNIV_I bij_betw_def permutes_image permutes_inj subsetI subset_inj_on)
+   
+lemma bij_imp_permutes: "bij_betw p S S \<Longrightarrow> (\<And>x. x \<notin> S \<Longrightarrow> p x = x) \<Longrightarrow> p permutes S"
+  unfolding permutes_def bij_betw_def inj_on_def
+  by auto (metis image_iff)+
+
 lemma permutes_inv_o:
   assumes pS: "p permutes S"
   shows "p \<circ> inv p = id"
