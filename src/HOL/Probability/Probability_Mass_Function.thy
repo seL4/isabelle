@@ -717,6 +717,9 @@ lemma emeasure_return_pmf[simp]: "emeasure (return_pmf x) X = indicator X x"
 
 end
 
+lemma return_pmf_inj[simp]: "return_pmf x = return_pmf y \<longleftrightarrow> x = y"
+  by (metis insertI1 set_return_pmf singletonD)
+
 definition "bind_pmf M f = join_pmf (map_pmf f M)"
 
 lemma (in pmf_as_measure) bind_transfer[transfer_rule]:
@@ -1132,6 +1135,12 @@ qed (auto intro!: rel_pmf.intros[where pq="pair_pmf (return_pmf x) M"]
 
 lemma rel_pmf_return_pmf2: "rel_pmf R M (return_pmf x) \<longleftrightarrow> (\<forall>a\<in>M. R a x)"
   by (subst pmf.rel_flip[symmetric]) (simp add: rel_pmf_return_pmf1)
+
+lemma rel_return_pmf[simp]: "rel_pmf R (return_pmf x1) (return_pmf x2) = R x1 x2"
+  unfolding rel_pmf_return_pmf2 set_return_pmf by simp
+
+lemma rel_pmf_False[simp]: "rel_pmf (\<lambda>x y. False) x y = False"
+  unfolding pmf.in_rel fun_eq_iff using set_pmf_not_empty by fastforce
 
 lemma rel_pmf_rel_prod:
   "rel_pmf (rel_prod R S) (pair_pmf A A') (pair_pmf B B') \<longleftrightarrow> rel_pmf R A B \<and> rel_pmf S A' B'"
