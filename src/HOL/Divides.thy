@@ -511,7 +511,7 @@ apply (subgoal_tac "y * k = -y * -k")
 apply simp
 done
 
-lemma div_minus[simp]:
+lemma div_diff[simp]:
   "\<lbrakk> z dvd x; z dvd y\<rbrakk> \<Longrightarrow> (x - y) div z = x div z - y div z"
 using div_add[where y = "- z" for z]
 by (simp add: dvd_neg_div)
