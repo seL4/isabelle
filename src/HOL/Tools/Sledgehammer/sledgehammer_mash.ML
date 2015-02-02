@@ -350,7 +350,7 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
         val (res, sfh) = fold add_feat goal_feats (init_val * Math.ln tfreq, Vector.sub (sfreq, i))
 
         fun fold_sfh (f, sf) sow =
-          sow + tfidf f * Math.ln (1.0 + (1.0 - Real.fromInt sf) / tfreq)
+          sow + tfidf f * Math.ln (1.0 - Real.fromInt (sf - 1) / tfreq)
 
         val sum_of_weights = Inttab.fold fold_sfh sfh 0.0
       in
@@ -385,7 +385,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
     fun do_feat (s, sw0) =
       let
         val sw = sw0 * tfidf s
-        val w6 = Math.pow (sw, 6.0)
+        val w6 = Math.pow (sw, 6.0 (* FUDGE *))
 
         fun inc_overlap j =
           let val (_, ov) = Array.sub (overlaps_sqr, j) in
@@ -405,7 +405,8 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
       let val (_, ov) = Array.sub (recommends, j) in
         if ov <= 0.0 then
           (no_recommends := !no_recommends + 1; Array.update (recommends, j, (j, !age + ov)))
-        else Array.update (recommends, j, (j, v + ov))
+        else
+          Array.update (recommends, j, (j, v + ov))
       end
 
     val k = Unsynchronized.ref 0
