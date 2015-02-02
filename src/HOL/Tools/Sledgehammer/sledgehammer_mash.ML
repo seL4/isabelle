@@ -367,7 +367,7 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
     ret (Integer.max 0 (num_facts - max_suggs)) []
   end
 
-val initial_number_of_nearest_neighbors = 1
+val initial_k = 0
 
 fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visible_facts goal_feats =
   let
@@ -425,7 +425,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
         end
 
     fun while1 () =
-      if !k = initial_number_of_nearest_neighbors then () else (do_k (!k); k := !k + 1; while1 ())
+      if !k = initial_k + 1 then () else (do_k (!k); k := !k + 1; while1 ())
       handle EXIT () => ()
 
     fun while2 () =
@@ -479,7 +479,7 @@ fun external_tool tool max_suggs learns goal_feats =
   end
 
 fun k_nearest_neighbors_ext max_suggs =
-  external_tool ("newknn/knn" ^ " " ^ string_of_int initial_number_of_nearest_neighbors) max_suggs
+  external_tool ("newknn/knn" ^ " " ^ string_of_int initial_k) max_suggs
 fun naive_bayes_ext max_suggs = external_tool "predict/nbayes" max_suggs
 
 fun query_external ctxt algorithm max_suggs learns goal_feats =
