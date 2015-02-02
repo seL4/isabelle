@@ -62,7 +62,7 @@ theorem msgrel_imp_eq_freenonces:
 subsubsection{*The Left Projection*}
 
 text{*A function to return the left part of the top pair in a message.  It will
-be lifted to the initial algrebra, to serve as an example of that process.*}
+be lifted to the initial algebra, to serve as an example of that process.*}
 primrec
   freeleft :: "freemsg \<Rightarrow> freemsg"
 where

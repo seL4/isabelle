@@ -72,7 +72,7 @@ subsection{*Some Functions on the Free Algebra*}
 subsubsection{*The Set of Variables*}
 
 text{*A function to return the set of variables present in a message.  It will
-be lifted to the initial algrebra, to serve as an example of that process.
+be lifted to the initial algebra, to serve as an example of that process.
 Note that the "free" refers to the free datatype rather than to the concept
 of a free variable.*}
 primrec freevars :: "freeExp \<Rightarrow> nat set" 

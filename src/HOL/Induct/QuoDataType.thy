@@ -57,7 +57,7 @@ subsection{*Some Functions on the Free Algebra*}
 subsubsection{*The Set of Nonces*}
 
 text{*A function to return the set of nonces present in a message.  It will
-be lifted to the initial algrebra, to serve as an example of that process.*}
+be lifted to the initial algebra, to serve as an example of that process.*}
 primrec freenonces :: "freemsg \<Rightarrow> nat set" where
   "freenonces (NONCE N) = {N}"
 | "freenonces (MPAIR X Y) = freenonces X \<union> freenonces Y"
@@ -74,7 +74,7 @@ theorem msgrel_imp_eq_freenonces: "U \<sim> V \<Longrightarrow> freenonces U = f
 subsubsection{*The Left Projection*}
 
 text{*A function to return the left part of the top pair in a message.  It will
-be lifted to the initial algrebra, to serve as an example of that process.*}
+be lifted to the initial algebra, to serve as an example of that process.*}
 primrec freeleft :: "freemsg \<Rightarrow> freemsg" where
   "freeleft (NONCE N) = NONCE N"
 | "freeleft (MPAIR X Y) = X"
