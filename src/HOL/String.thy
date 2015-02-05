@@ -319,6 +319,10 @@ proof -
     by (cases "char_of_nat n") (auto simp add: nat_of_char_def char_of_nat_Char_nibbles)
 qed
 
+lemma char_of_nat_nibble_pair [simp]:
+  "char_of_nat (nat_of_nibble a * 16 + nat_of_nibble b) = Char a b"
+  by (simp add: nat_of_char_Char [symmetric])
+
 lemma inj_nat_of_char:
   "inj nat_of_char"
   by (rule inj_on_inverseI) (rule char_of_nat_of_char)
@@ -355,12 +359,16 @@ subsection {* Strings as dedicated type *}
 typedef literal = "UNIV :: string set"
   morphisms explode STR ..
 
-setup_lifting (no_code) type_definition_literal
+setup_lifting type_definition_literal
+
+lemma STR_inject' [simp]:
+  "STR s = STR t \<longleftrightarrow> s = t"
+  by transfer rule
 
 definition implode :: "string \<Rightarrow> String.literal"
 where
-  "implode = STR"
-
+  [code del]: "implode = STR"
+  
 instantiation literal :: size
 begin
 
@@ -387,10 +395,6 @@ lemma [code nbe]:
   fixes s :: "String.literal"
   shows "HOL.equal s s \<longleftrightarrow> True"
   by (simp add: equal)
-
-lemma STR_inject' [simp]:
-  "STR xs = STR ys \<longleftrightarrow> xs = ys"
-  by (simp add: STR_inject)
 
 lifting_update literal.lifting
 lifting_forget literal.lifting

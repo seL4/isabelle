@@ -166,6 +166,8 @@ end
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
 struct
 
+val no_constr = [@{const_name STR}];
+
 (* general functions *)
 
 fun comb_option f (SOME x1, SOME x2) = SOME (f (x1, x2))
@@ -504,7 +506,8 @@ fun is_constrt thy =
       | _ => false)
   in check end
 
-val is_constr = Code.is_constr o Proof_Context.theory_of
+fun is_constr ctxt c =
+  not (member (op =) no_constr c) andalso Code.is_constr (Proof_Context.theory_of ctxt) c;
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 

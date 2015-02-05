@@ -12,6 +12,14 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+setup \<open>
+let
+  val tycos = (#log_types o Type.rep_tsig o Sign.tsig_of) @{theory};
+  val consts = map_filter (try (curry (Axclass.param_of_inst @{theory})
+    @{const_name "Quickcheck_Narrowing.partial_term_of"})) tycos;
+in fold Code.del_eqns consts end
+\<close> -- \<open>drop technical stuff from @{text Quickcheck_Narrowing} which is tailored towards Haskell\<close>
+
 inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where
   empty: "sublist [] xs"

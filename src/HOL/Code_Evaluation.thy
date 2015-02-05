@@ -101,18 +101,6 @@ instance ..
 
 end
 
-instantiation String.literal :: term_of
-begin
-
-definition
-  "term_of s = App (Const (STR ''STR'')
-    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
-      Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
-
-instance ..
-
-end
-
 declare [[code drop: rec_term case_term "HOL.equal :: term \<Rightarrow> _"
   "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
   "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
@@ -124,6 +112,12 @@ lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def
       (Code_Evaluation.term_of x)) (Code_Evaluation.term_of y))"
   by (subst term_of_anything) rule 
 
+lemma term_of_string [code]:
+   "term_of s = App (Const (STR ''STR'')
+     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
+       Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
+  by (subst term_of_anything) rule 
+  
 code_printing
   constant "term_of \<Colon> integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
 | constant "term_of \<Colon> String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"

@@ -624,6 +624,25 @@ subsection {* Defining generators for abstract types *}
 
 ML_file "Tools/Quickcheck/abstract_generators.ML"
 
+lemma check_all_char [code]:
+  "check_all f = check_all (\<lambda>(x, t1). check_all (\<lambda>(y, t2).
+     f (char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y), \<lambda>_. Code_Evaluation.App (Code_Evaluation.App
+       (Code_Evaluation.term_of (\<lambda>x y. char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y))) (t1 ())) (t2 ()))))"
+  by (simp add: check_all_char_def)
+
+lemma full_exhaustive_char_code [code]:
+  "full_exhaustive_class.full_exhaustive f i =
+     (if 0 < i then full_exhaustive_class.full_exhaustive
+       (\<lambda>(a, b). full_exhaustive_class.full_exhaustive
+          (\<lambda>(c, d).
+            f (char_of_nat (nat_of_nibble a * 16 + nat_of_nibble c),
+              \<lambda>_. Code_Evaluation.App (Code_Evaluation.App
+                 (Code_Evaluation.Const (STR ''String.char.Char'')
+                   (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+                      (b ())) (d ()))) (i - 1)) (i - 1)
+    else None)"
+  by (simp add: typerep_fun_def typerep_char_def typerep_nibble_def String.char.full_exhaustive_char.simps)
+
 hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)
 
