@@ -230,7 +230,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
     fun PEEK f dependent_tactic st = dependent_tactic (f st) st
     fun meta_eq_of th = th RS @{thm eq_reflection}
     val tuple_rew_rules = map meta_eq_of [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}]
-    fun instantiate i n {context, params, prems, asms, concl, schematics} =
+    fun instantiate i n {prems, ...} =
       let
         fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
         fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)

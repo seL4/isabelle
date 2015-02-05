@@ -198,13 +198,6 @@ fun collect_non_invertible_subterms ctxt (f as Free _) (names, eqs) = (f, (names
         in
           (v, (s :: names, HOLogic.mk_eq (v, t) :: eqs))
         end
-(*
-  if is_constrt thy t then (t, (names, eqs)) else
-    let
-      val s = singleton (Name.variant_list names) "x"
-      val v = Free (s, fastype_of t)
-    in (v, (s::names, HOLogic.mk_eq (v, t)::eqs)) end;
-*)
 
 fun is_possible_output ctxt vs t =
   forall
@@ -250,21 +243,6 @@ fun derivations_of (ctxt : Proof.context) modes vs (Const (@{const_name Pair}, _
       (fn (m1, mvars1) => fn (m2, mvars2) => (Mode_Pair (m1, m2), union (op =) mvars1 mvars2))
         (derivations_of ctxt modes vs t1 m1) (derivations_of ctxt modes vs t2 m2)
   | derivations_of ctxt modes vs t (m as Fun _) =
-    (*let
-      val (p, args) = strip_comb t
-    in
-      (case lookup_mode modes p of
-        SOME ms => map_filter (fn (Context m, []) => let
-          val ms = strip_fun_mode m
-          val (argms, restms) = chop (length args) ms
-          val m' = fold_rev (curry Fun) restms Bool
-        in
-          if forall (fn m => eq_mode (Input, m)) argms andalso eq_mode (m', mode) then
-            SOME (fold (curry Mode_App) (map Term argms) (Context m), missing_vars vs t)
-          else NONE
-        end) ms
-      | NONE => (if is_all_input mode then [(Context mode, [])] else []))
-    end*)
     (case try (all_derivations_of ctxt modes vs) t  of
       SOME derivs =>
         filter (fn (d, _) => eq_mode (mode_of d, m) andalso null (output_terms (t, d))) derivs
@@ -361,7 +339,7 @@ fun deriv_ord' ctxt _ pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
     (* prefer recursive calls *)
     fun is_rec_premise t =
       case fst (strip_comb t) of Const (c, _) => c = pred | _ => false
-    fun recursive_ord ((t1, _, _), (t2, deriv2, _)) =
+    fun recursive_ord ((t1, _, _), (t2, _, _)) =
       int_ord (if is_rec_premise t1 then 0 else 1,
         if is_rec_premise t2 then 0 else 1)
     val ord = lexl_ord [mvars_ord, fun_ord, random_mode_ord, output_mode_ord, recursive_ord]
@@ -397,7 +375,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
     val vTs = distinct (op =) (fold Term.add_frees (map dest_indprem ps) (fold Term.add_frees ts []))
     val modes' = modes @ (param_vs ~~ map (fn x => [((true, x), false), ((false, x), false)]) (ho_arg_modes_of mode))
     fun retrieve_modes_of_pol pol = map (fn (s, ms) =>
-      (s, map_filter (fn ((p, m), _) => if p = pol then SOME m else NONE | _ => NONE) ms))
+      (s, map_filter (fn ((p, m), _) => if p = pol then SOME m else NONE) ms))
     val (pos_modes', neg_modes') =
       if #infer_pos_and_neg_modes mode_analysis_options then
         (retrieve_modes_of_pol pol modes', retrieve_modes_of_pol (not pol) modes')
@@ -512,9 +490,8 @@ fun print_extra_modes options modes =
 fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, needs_random) ctxt
   preds all_modes param_vs clauses =
   let
-    fun add_needs_random s (false, m) = ((false, m), false)
-      | add_needs_random s (true, m) = ((true, m), needs_random s m)
-    fun add_polarity_and_random_bit s b ms = map (fn m => add_needs_random s (b, m)) ms
+    fun add_polarity_and_random_bit s b =
+      map (fn m => ((b, m), b andalso needs_random s m))
     val prednames = map fst preds
     (* extramodes contains all modes of all constants, should we only use the necessary ones
        - what is the impact on performance? *)
