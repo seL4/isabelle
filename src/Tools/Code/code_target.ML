@@ -36,9 +36,9 @@ sig
   type literals = Code_Printer.literals
   type language
   type ancestry
+  val assert_target: theory -> string -> string
   val add_language: string * language -> theory -> theory
   val add_derived_target: string * ancestry -> theory -> theory
-  val assert_target: Proof.context -> string -> string
   val the_literals: Proof.context -> string -> literals
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
@@ -203,11 +203,16 @@ structure Targets = Theory_Data
 
 fun exists_target thy = Symtab.defined (Targets.get thy);
 fun lookup_target_data thy = Symtab.lookup (Targets.get thy);
+fun assert_target thy target_name =
+  if exists_target thy target_name
+  then target_name
+  else error ("Unknown code target language: " ^ quote target_name);
 
 fun fold1 f xs = fold f (tl xs) (hd xs);
 
 fun join_ancestry thy target_name =
   let
+    val _ = assert_target thy target_name; 
     val the_target_data = the o lookup_target_data thy;
     val (target, this_data) = the_target_data target_name;
     val ancestry = #ancestry target;
@@ -217,12 +222,7 @@ fun join_ancestry thy target_name =
     val data = fold1 (fn data' => fn data => Code_Printer.merge_data (data, data')) datas;
   in (modify, (target, data)) end;
 
-fun assert_target ctxt target_name =
-  if exists_target (Proof_Context.theory_of ctxt) target_name
-  then target_name
-  else error ("Unknown code target language: " ^ quote target_name);
-
-fun allocate_target target_name target thy =
+  fun allocate_target target_name target thy =
   let
     val _ = if exists_target thy target_name
       then error ("Attempt to overwrite existing target " ^ quote target_name)
@@ -256,7 +256,7 @@ fun add_derived_target (target_name, initial_ancestry) thy =
   
 fun map_data target_name f thy =
   let
-    val _ = assert_target (Proof_Context.init_global thy) target_name;
+    val _ = assert_target thy target_name;
   in
     thy
     |> (Targets.map o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
