@@ -148,7 +148,7 @@ text \<open>
   discretion of the user to take care for this.
 \<close>
 
-subsection \<open>Common adaptation patterns\<close>
+subsection \<open>Common adaptation applications\<close>
 
 text \<open>
   The @{theory HOL} @{theory Main} theory already provides a code
@@ -186,14 +186,16 @@ text \<open>
        containing both @{text "Code_Target_Nat"} and
        @{text "Code_Target_Int"}.
 
-    \item[@{text "Code_Char"}] represents @{text HOL} characters by
-       character literals in target languages.
-
     \item[@{theory "String"}] provides an additional datatype @{typ
        String.literal} which is isomorphic to strings; @{typ
        String.literal}s are mapped to target-language strings.  Useful
        for code setups which involve e.g.~printing (error) messages.
        Part of @{text "HOL-Main"}.
+
+    \item[@{text "Code_Char"}] represents @{text HOL} characters by
+       character literals in target languages.  \emph{Warning:} This
+       modifies adaptation in a non-conservative manner and thus
+       should always be imported \emph{last} in a theory header.
 
     \item[@{theory "IArray"}] provides a type @{typ "'a iarray"}
        isomorphic to lists but implemented by (effectively immutable)
