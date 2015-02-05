@@ -1,4 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
-

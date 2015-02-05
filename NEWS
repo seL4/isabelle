@@ -68,6 +68,11 @@ token category instead.
 
 *** HOL ***
 
+* Discontinued old-fashioned "codegen" tool.  Code generation can always
+be externally triggered using an appropriate ROOT file plus a corresponding
+theory.  Parametrization is possible using environment variables, or
+ML snippets in the most extreme cases.  Minor INCOMPATIBILITY.
+
 * Add NO_MATCH-simproc, allows to check for syntactic non-equality
 
 * Generalized and consolidated some theorems concerning divsibility:

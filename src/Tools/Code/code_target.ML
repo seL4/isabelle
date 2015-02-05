@@ -53,8 +53,6 @@ sig
   val set_printings: (Code_Printer.raw_const_syntax, Code_Printer.tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
     -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
-
-  val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -660,19 +658,5 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"
     (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
-
-
-(** external entrance point -- for codegen tool **)
-
-fun codegen_tool thyname cmd_expr =
-  let
-    val thy = Thy_Info.get_theory thyname;
-    val ctxt = Proof_Context.init_global thy;
-    val parse = Scan.read Token.stopper (Parse.!!! code_exprP) o
-      (filter Token.is_proper o Token.explode (Thy_Header.get_keywords thy) Position.none);
-  in case parse cmd_expr
-   of SOME f => (writeln "Now generating code..."; f ctxt)
-    | NONE => error ("Bad directive " ^ quote cmd_expr)
-  end;
 
 end; (*struct*)

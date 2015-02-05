@@ -1,5 +1,4 @@
 #hard-wired components
-src/Tools/Code
 src/Tools/jEdit
 src/Tools/Graphview
 src/HOL/Mirabelle
