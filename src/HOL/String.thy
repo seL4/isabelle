@@ -438,7 +438,7 @@ setup {* Code_Simp.map_ss (Simplifier.add_cong @{thm Code.abort_cong}) *}
 code_printing constant Code.abort \<rightharpoonup>
     (SML) "!(raise/ Fail/ _)"
     and (OCaml) "failwith"
-    and (Haskell) "error"
+    and (Haskell) "!(error/ ::/ forall a./ String -> (() -> a) -> a)"
     and (Scala) "!{/ sys.error((_));/  ((_)).apply(())/ }"
 
 hide_type (open) literal
