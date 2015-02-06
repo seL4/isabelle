@@ -1592,7 +1592,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) setup_lifting} ('(' 'no_code' ')')? \<newline>
+    @@{command (HOL) setup_lifting} \<newline>
       @{syntax thmref} @{syntax thmref}? (@'parametric' @{syntax thmref})?;
   \<close>}
 
@@ -1645,9 +1645,6 @@ text \<open>
     The command @{command (HOL) "setup_lifting"} also sets up the code generator
     for the new type. Later on, when a new constant is defined by @{command (HOL) "lift_definition"},
     the Lifting package proves and registers a code equation (if there is one) for the new constant.
-    If the option @{text "no_code"} is specified, the Lifting package does not set up the code
-    generator and as a consequence no code equations involving an abstract type are registered
-    by @{command (HOL) "lift_definition"}.
 
   \item @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL) "is"} @{text t}
     Defines a new function @{text f} with an abstract type @{text \<tau>}

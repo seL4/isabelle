@@ -7,12 +7,12 @@ Definition of a quotient type.
 signature QUOTIENT_TYPE =
 sig
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
-    ((binding * binding) option * bool * thm option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
+    ((binding * binding) option * thm option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
   val quotient_type: (string list * binding * mixfix) * (typ * term * bool) * 
-    ((binding * binding) option * bool * thm option) -> Proof.context -> Proof.state
+    ((binding * binding) option * thm option) -> Proof.context -> Proof.state
 
-  val quotient_type_cmd: ((((((bool * string list) * binding) * mixfix) * string) * (bool * string)) *
+  val quotient_type_cmd: (((((string list * binding) * mixfix) * string) * (bool * string)) *
     (binding * binding) option) * (Facts.ref * Token.src list) option -> Proof.context -> Proof.state
 end;
 
@@ -110,7 +110,7 @@ fun define_cr_rel equiv_thm abs_fun lthy =
     (def_thm, lthy'')
   end;
 
-fun setup_lifting_package gen_code quot3_thm equiv_thm opt_par_thm lthy =
+fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
   let
     val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o prop_of) quot3_thm
     val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
@@ -128,11 +128,11 @@ fun setup_lifting_package gen_code quot3_thm equiv_thm opt_par_thm lthy =
       )
   in
     lthy'
-      |> Lifting_Setup.setup_by_quotient gen_code quot_thm reflp_thm opt_par_thm
+      |> Lifting_Setup.setup_by_quotient quot_thm reflp_thm opt_par_thm
       |> (snd oo Local_Theory.note) ((quotient_thm_name, []), [quot_thm])
   end
 
-fun init_quotient_infr gen_code quot_thm equiv_thm opt_par_thm lthy =
+fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
   let
     val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o prop_of) quot_thm
     val (qtyp, rtyp) = (dest_funT o fastype_of) rep
@@ -147,11 +147,11 @@ fun init_quotient_infr gen_code quot_thm equiv_thm opt_par_thm lthy =
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Quotient_Info.update_quotients (qty_full_name, quot_info phi)
           #> Quotient_Info.update_abs_rep (qty_full_name, abs_rep_info phi))
-      |> setup_lifting_package gen_code quot_thm equiv_thm opt_par_thm
+      |> setup_lifting_package quot_thm equiv_thm opt_par_thm
   end
 
 (* main function for constructing a quotient type *)
-fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, gen_code, opt_par_thm)), equiv_thm) lthy =
+fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, opt_par_thm)), equiv_thm) lthy =
   let
     val part_equiv =
       if partial
@@ -203,7 +203,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, ge
       quot_thm = quotient_thm}
 
     val lthy4 = lthy3
-      |> init_quotient_infr gen_code quotient_thm equiv_thm opt_par_thm
+      |> init_quotient_infr quotient_thm equiv_thm opt_par_thm
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
           if partial then [] else @{attributes [quot_equiv]}),
@@ -313,7 +313,7 @@ fun quotient_type quot lthy =
 
 fun quotient_type_cmd spec lthy =
   let
-    fun parse_spec (((((((gen_code, vs), qty_name), mx), rty_str), (partial, rel_str)), opt_morphs), opt_par_xthm) lthy =
+    fun parse_spec ((((((vs, qty_name), mx), rty_str), (partial, rel_str)), opt_morphs), opt_par_xthm) lthy =
       let
         val rty = Syntax.read_typ lthy rty_str
         val tmp_lthy1 = Variable.declare_typ rty lthy
@@ -324,7 +324,7 @@ fun quotient_type_cmd spec lthy =
         val tmp_lthy2 = Variable.declare_term rel tmp_lthy1
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
       in
-        (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, gen_code, opt_par_thm)), tmp_lthy2)
+        (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, opt_par_thm)), tmp_lthy2)
       end
 
     val (spec', _) = parse_spec spec lthy
@@ -332,13 +332,10 @@ fun quotient_type_cmd spec lthy =
     quotient_type spec' lthy
   end
 
-val opt_gen_code =
-  Scan.optional (@{keyword "("} |-- (Parse.reserved "no_code" >> K false) --| Parse.!!! @{keyword ")"}) true
-
 val partial = Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false
 
 val quotspec_parser =
-     (opt_gen_code -- Parse.type_args -- Parse.binding) --
+     (Parse.type_args -- Parse.binding) --
       (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
       Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
         (@{keyword "/"} |-- (partial -- Parse.term))  --

@@ -13,7 +13,7 @@ subsection {* Type of target language integers *}
 typedef integer = "UNIV \<Colon> int set"
   morphisms int_of_integer integer_of_int ..
 
-setup_lifting (no_code) type_definition_integer
+setup_lifting type_definition_integer
 
 lemma integer_eq_iff:
   "k = l \<longleftrightarrow> int_of_integer k = int_of_integer l"
@@ -620,7 +620,7 @@ subsection {* Type of target language naturals *}
 typedef natural = "UNIV \<Colon> nat set"
   morphisms nat_of_natural natural_of_nat ..
 
-setup_lifting (no_code) type_definition_natural
+setup_lifting type_definition_natural
 
 lemma natural_eq_iff [termination_simp]:
   "m = n \<longleftrightarrow> nat_of_natural m = nat_of_natural n"

@@ -66,5 +66,6 @@ qed
 lemma [code nbe]:
   "HOL.equal (x :: ('a, 'b) mapping) x \<longleftrightarrow> True"
   by (fact equal_refl)
-  
+
 end
+

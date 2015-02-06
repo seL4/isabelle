@@ -93,7 +93,7 @@ typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. almost_everywhere_zero f}"
   morphisms coeff Abs_poly
   unfolding almost_everywhere_zero_def by auto
 
-setup_lifting (no_code) type_definition_poly
+setup_lifting type_definition_poly
 
 lemma poly_eq_iff: "p = q \<longleftrightarrow> (\<forall>n. coeff p n = coeff q n)"
   by (simp add: coeff_inject [symmetric] fun_eq_iff)
