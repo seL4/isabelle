@@ -98,13 +98,16 @@ typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
   morphisms rep Mapping
   ..
 
-setup_lifting (no_code) type_definition_mapping
+setup_lifting type_definition_mapping
 
 lift_definition empty :: "('a, 'b) mapping"
   is Map.empty parametric empty_parametric .
 
 lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b option"
   is "\<lambda>m k. m k" parametric lookup_parametric .
+
+declare [[code drop: Mapping.lookup]]
+setup \<open>Code.add_default_eqn @{thm Mapping.lookup.abs_eq}\<close> -- \<open>FIXME lifting\<close>
 
 lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping"
   is "\<lambda>k v m. m(k \<mapsto> v)" parametric update_parametric .
@@ -123,6 +126,8 @@ lift_definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping"
 
 lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping"
   is "\<lambda>f g m. (map_option g \<circ> m \<circ> f)" parametric map_parametric .
+
+declare [[code drop: map]]
 
 
 subsection {* Functorial structure *}
@@ -405,9 +410,8 @@ qed
 
 subsection {* Code generator setup *}
 
-code_datatype empty update
-
 hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
   replace default map_entry map_default tabulate bulkload map of_alist
 
 end
+
