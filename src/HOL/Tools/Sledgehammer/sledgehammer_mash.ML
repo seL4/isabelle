@@ -1116,10 +1116,12 @@ fun maximal_wrt_graph G keys =
     find_maxes Symtab.empty ([], Graph.maximals G)
   end
 
+fun strict_subthy thyp = Theory.subthy thyp andalso not (Theory.subthy (swap thyp))
+
 fun maximal_wrt_access_graph _ [] = []
   | maximal_wrt_access_graph access_G ((fact as (_, th)) :: facts) =
     let val thy = theory_of_thm th in
-      fact :: filter_out (fn (_, th') => Theory.subthy (theory_of_thm th', thy)) facts
+      fact :: filter_out (fn (_, th') => strict_subthy (theory_of_thm th', thy)) facts
       |> map (nickname_of_thm o snd)
       |> maximal_wrt_graph access_G
     end
