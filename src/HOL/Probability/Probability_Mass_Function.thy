@@ -1058,6 +1058,32 @@ proof -
     by (intro pmf_eqI) simp
 qed
 
+lemma bind_cond_pmf_cancel:
+  assumes in_S: "\<And>x. x \<in> set_pmf p \<Longrightarrow> x \<in> S x"
+  assumes S_eq: "\<And>x y. x \<in> S y \<Longrightarrow> S x = S y"
+  shows "bind_pmf p (\<lambda>x. cond_pmf p (S x)) = p"
+proof (rule pmf_eqI)
+  have [simp]: "\<And>x. x \<in> p \<Longrightarrow> p \<inter> (S x) \<noteq> {}"
+    using in_S by auto
+  fix z
+  have pmf_le: "pmf p z \<le> measure p (S z)"
+  proof cases
+    assume "z \<in> p" from in_S[OF this] show ?thesis
+      by (auto intro!: measure_pmf.finite_measure_mono simp: pmf.rep_eq)
+  qed (simp add: set_pmf_iff measure_nonneg)
+
+  have "ereal (pmf (bind_pmf p (\<lambda>x. cond_pmf p (S x))) z) =
+    (\<integral>\<^sup>+ x. ereal (pmf p z / measure p (S z)) * indicator (S z) x \<partial>p)"
+    by (subst ereal_pmf_bind)
+       (auto intro!: nn_integral_cong_AE dest!: S_eq split: split_indicator
+             simp: AE_measure_pmf_iff pmf_cond pmf_eq_0_set_pmf in_S)
+  also have "\<dots> = pmf p z"
+    using pmf_le pmf_nonneg[of p z]
+    by (subst nn_integral_cmult) (simp_all add: measure_nonneg measure_pmf.emeasure_eq_measure)
+  finally show "pmf (bind_pmf p (\<lambda>x. cond_pmf p (S x))) z = pmf p z"
+    by simp
+qed
+
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
 for R p q
 where
@@ -1114,28 +1140,10 @@ proof -
       with pq qr show "(R OO S) x z"
         by blast
     next
-      { fix z
-        have "ereal (pmf (map_pmf snd pr) z) =
-            (\<integral>\<^sup>+y. \<integral>\<^sup>+x. indicator (snd -` {z}) x \<partial>cond_pmf qr {(y', z). y' = y} \<partial>q)"
-          by (simp add: q pr_def map_bind_pmf split_beta map_return_pmf bind_return_pmf'' bind_map_pmf
-                   ereal_pmf_bind ereal_pmf_map)
-        also have "\<dots> = (\<integral>\<^sup>+y. \<integral>\<^sup>+x. indicator (snd -` {z}) x \<partial>uniform_measure qr {(y', z). y' = y} \<partial>q)"
-          by (auto intro!: nn_integral_cong_AE simp: AE_measure_pmf_iff cond_pmf.rep_eq pr_welldefined
-                   simp del: emeasure_uniform_measure)
-        also have "\<dots> = (\<integral>\<^sup>+y. (\<integral>\<^sup>+x. indicator {(y, z)} x \<partial>qr) / emeasure q {y} \<partial>q)"
-          by (auto simp: nn_integral_uniform_measure q' simp del: nn_integral_indicator split: split_indicator
-                   intro!: nn_integral_cong arg_cong2[where f="op /"] arg_cong2[where f=emeasure])
-        also have "\<dots> = (\<integral>\<^sup>+y. pmf qr (y, z) \<partial>count_space UNIV)"
-          by (subst measure_pmf_eq_density)
-             (force simp: q' emeasure_pmf_single nn_integral_density pmf_nonneg pmf_eq_0_set_pmf set_map_pmf
-                    intro!: nn_integral_cong split: split_indicator)
-        also have "\<dots> = ereal (pmf r z)"
-          by (subst nn_integral_pmf')
-             (auto simp add: inj_on_def r ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-        finally have "pmf (map_pmf snd pr) z = pmf r z"
-          by simp }
+      have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {(y', z). y' = y}))"
+        by (simp add: pr_def q split_beta bind_map_pmf bind_return_pmf'' map_bind_pmf map_return_pmf)
       then show "map_pmf snd pr = r"
-        by (rule pmf_eqI)
+        unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) auto
     qed (simp add: pr_def map_bind_pmf split_beta map_return_pmf bind_return_pmf'' p) }
   then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     by(auto simp add: le_fun_def)
