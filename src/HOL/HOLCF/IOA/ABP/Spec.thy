@@ -32,6 +32,6 @@ definition
 
 definition
   spec_ioa :: "('m action, 'm list)ioa" where
-  ioa_def: "spec_ioa = (spec_sig, {[]}, spec_trans)"
+  ioa_def: "spec_ioa = (spec_sig, {[]}, spec_trans, {}, {})"
 
 end
