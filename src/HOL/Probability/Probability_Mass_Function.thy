@@ -279,6 +279,9 @@ proof -
     using measure_pmf.emeasure_space_1 by simp
 qed
 
+lemma emeasure_pmf_UNIV [simp]: "emeasure (measure_pmf M) UNIV = 1"
+using measure_pmf.emeasure_space_1[of M] by simp
+
 lemma in_null_sets_measure_pmfI:
   "A \<inter> set_pmf p = {} \<Longrightarrow> A \<in> null_sets (measure_pmf p)"
 using emeasure_eq_0_AE[where ?P="\<lambda>x. x \<in> A" and M="measure_pmf p"]
@@ -1064,19 +1067,14 @@ proof -
         unfolding pqr_def
       proof (subst pmf_embed_pmf)
         have "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) =
-          (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>(count_space ((\<lambda>((x, y), z). (y, x, z)) ` (pq \<times> r))))"
-          by (force simp add: pmf_eq_0_set_pmf r set_map_pmf split: split_indicator
-                    intro!: nn_integral_count_space_eq assign_eq_0_outside)
-        also have "\<dots> = (\<integral>\<^sup>+ x. ereal ((\<lambda>((x, y), z). assign y x z) x) \<partial>(count_space (pq \<times> r)))"
-          by (subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
-             (auto simp: inj_on_def intro!: nn_integral_cong)
-        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space r \<partial>count_space pq)"
-          by (subst sigma_finite_measure.nn_integral_fst)
-             (auto simp: pair_measure_countable sigma_finite_measure_count_space_countable)
-        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space UNIV \<partial>count_space pq)"
-          by (intro nn_integral_cong nn_integral_count_space_eq)
-             (force simp: r set_map_pmf pmf_eq_0_set_pmf intro!: assign_eq_0_outside)+
-        also have "\<dots> = (\<integral>\<^sup>+ z. ?pq (snd z) (fst z) \<partial>count_space pq)"
+              (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space ((\<lambda>((x, y), z). (y, x, z)) ` UNIV))"
+          by(rule nn_integral_count_space_eq)(auto simp add: image_def)
+        also have "\<dots> = \<integral>\<^sup>+ x. ereal ((\<lambda>((x, y), z). assign y x z) x) \<partial>count_space UNIV"
+          by(subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
+            (auto simp add: inj_on_def split_beta)
+        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+ z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space UNIV \<partial>count_space UNIV)"
+          by(subst nn_integral_fst_count_space) simp
+        also have "\<dots> = (\<integral>\<^sup>+ z. ?pq (snd z) (fst z) \<partial>count_space UNIV)"
           by (subst nn_integral_assign2[symmetric]) (auto intro!: nn_integral_cong)
         finally show "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) = 1"
           by (simp add: nn_integral_pmf emeasure_pmf)
