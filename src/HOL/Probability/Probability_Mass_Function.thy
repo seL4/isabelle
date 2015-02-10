@@ -685,6 +685,11 @@ proof (transfer fixing: N i)
     by (intro subprob_space.measure_bind[where N="count_space UNIV", OF N]) auto
 qed (auto simp: Transfer.Rel_def rel_fun_def cr_pmf_def)
 
+lemma ereal_pmf_join: "ereal (pmf (join_pmf N) i) = (\<integral>\<^sup>+M. pmf M i \<partial>measure_pmf N)"
+  unfolding pmf_join
+  by (intro nn_integral_eq_integral[symmetric] measure_pmf.integrable_const_bound[where B=1])
+     (auto simp: pmf_le_1 pmf_nonneg)
+
 lemma set_pmf_join_pmf: "set_pmf (join_pmf f) = (\<Union>p\<in>set_pmf f. set_pmf p)"
 apply(simp add: set_eq_iff set_pmf_iff pmf_join)
 apply(subst integral_nonneg_eq_0_iff_AE)
@@ -731,6 +736,9 @@ proof (auto simp: pmf_as_measure.cr_pmf_def rel_fun_def bind_pmf_def join_pmf.re
   show "measure_pmf M \<guillemotright>= f = distr (measure_pmf M) (count_space UNIV) g \<guillemotright>= measure_pmf"
     unfolding f by (subst bind_distr[OF _ measurable_measure_pmf]) auto
 qed
+
+lemma ereal_pmf_bind: "pmf (bind_pmf N f) i = (\<integral>\<^sup>+x. pmf (f x) i \<partial>measure_pmf N)"
+  by (auto intro!: nn_integral_distr simp: bind_pmf_def ereal_pmf_join map_pmf.rep_eq)
 
 lemma pmf_bind: "pmf (bind_pmf N f) i = (\<integral>x. pmf (f x) i \<partial>measure_pmf N)"
   by (auto intro!: integral_distr simp: bind_pmf_def pmf_join map_pmf.rep_eq)
@@ -853,6 +861,12 @@ lemma bind_assoc_pmf: "bind_pmf (bind_pmf A B) C = bind_pmf A (\<lambda>x. bind_
            simp: measurable_def space_subprob_algebra prob_space_imp_subprob_space)
 
 end
+
+lemma map_bind_pmf: "map_pmf f (bind_pmf M g) = bind_pmf M (\<lambda>x. map_pmf f (g x))"
+  unfolding bind_return_pmf''[symmetric] bind_assoc_pmf[of M] ..
+
+lemma bind_map_pmf: "bind_pmf (map_pmf f M) g = bind_pmf M (\<lambda>x. g (f x))"
+  unfolding bind_return_pmf''[symmetric] bind_assoc_pmf bind_return_pmf ..
 
 lemma map_join_pmf: "map_pmf f (join_pmf AA) = join_pmf (map_pmf (map_pmf f) AA)"
   unfolding bind_pmf_def[symmetric]
@@ -979,6 +993,45 @@ lemma pmf_map_inj: "inj_on f (set_pmf M) \<Longrightarrow> x \<in> set_pmf M \<L
   by (auto simp: pmf.rep_eq map_pmf.rep_eq measure_distr AE_measure_pmf_iff inj_onD
            intro!: measure_pmf.finite_measure_eq_AE)
 
+subsection \<open> Conditional Probabilities \<close>
+
+context
+  fixes p :: "'a pmf" and s :: "'a set"
+  assumes not_empty: "set_pmf p \<inter> s \<noteq> {}"
+begin
+
+interpretation pmf_as_measure .
+
+lemma emeasure_measure_pmf_not_zero: "emeasure (measure_pmf p) s \<noteq> 0"
+proof
+  assume "emeasure (measure_pmf p) s = 0"
+  then have "AE x in measure_pmf p. x \<notin> s"
+    by (rule AE_I[rotated]) auto
+  with not_empty show False
+    by (auto simp: AE_measure_pmf_iff)
+qed
+
+lemma measure_measure_pmf_not_zero: "measure (measure_pmf p) s \<noteq> 0"
+  using emeasure_measure_pmf_not_zero unfolding measure_pmf.emeasure_eq_measure by simp
+
+lift_definition cond_pmf :: "'a pmf" is
+  "uniform_measure (measure_pmf p) s"
+proof (intro conjI)
+  show "prob_space (uniform_measure (measure_pmf p) s)"
+    by (intro prob_space_uniform_measure) (auto simp: emeasure_measure_pmf_not_zero)
+  show "AE x in uniform_measure (measure_pmf p) s. measure (uniform_measure (measure_pmf p) s) {x} \<noteq> 0"
+    by (simp add: emeasure_measure_pmf_not_zero measure_measure_pmf_not_zero AE_uniform_measure
+                  AE_measure_pmf_iff set_pmf.rep_eq)
+qed simp
+
+lemma pmf_cond: "pmf cond_pmf x = (if x \<in> s then pmf p x / measure p s else 0)"
+  by transfer (simp add: emeasure_measure_pmf_not_zero pmf.rep_eq)
+
+lemma set_cond_pmf: "set_pmf cond_pmf = set_pmf p \<inter> s"
+  by (auto simp add: set_pmf_iff pmf_cond measure_measure_pmf_not_zero split: split_if_asm)
+
+end
+
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
 for R p q
 where
@@ -1023,97 +1076,41 @@ proof -
     from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
       and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
 
-    note pmf_nonneg[intro, simp]
-    let ?pq = "\<lambda>y x. pmf pq (x, y)"
-    let ?qr = "\<lambda>y z. pmf qr (y, z)"
-
-    have nn_integral_pp2: "\<And>y. (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) = pmf q y"
-      by (simp add: nn_integral_pmf' inj_on_def q)
-         (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-    have nn_integral_rr1: "\<And>y. (\<integral>\<^sup>+ x. ?qr y x \<partial>count_space UNIV) = pmf q y"
-      by (simp add: nn_integral_pmf' inj_on_def q')
-         (auto simp add: ereal_pmf_map intro!: arg_cong2[where f=emeasure])
-    have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV)"
-      by(simp add: nn_integral_pp2 nn_integral_rr1)
-
-    def assign \<equiv> "\<lambda>y x z. ?pq y x * ?qr y z / pmf q y"
-    have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z" by(simp add: assign_def)
-    have assign_eq_0_outside: "\<And>y x z. \<lbrakk> ?pq y x = 0 \<or> ?qr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
-      by(auto simp add: assign_def)
-    have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = ?qr y z"
-    proof -
-      fix y z
-      have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = 
-            (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) * (?qr y z / pmf q y)"
-        by(simp add: assign_def nn_integral_multc times_ereal.simps(1)[symmetric] divide_real_def mult.assoc del: times_ereal.simps(1))
-      also have "\<dots> = ?qr y z" by(auto simp add: image_iff q' pmf_eq_0_set_pmf set_map_pmf nn_integral_pp2)
-      finally show "?thesis y z" .
-    qed
-    have nn_integral_assign2: "\<And>y x. (\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pq y x"
-    proof -
-      fix x y
-      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV) * (?pq y x / pmf q y)"
-        by(simp add: assign_def divide_real_def mult.commute[where a="?pq y x"] mult.assoc nn_integral_multc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
-      also have "\<dots> = ?pq y x" by(auto simp add: image_iff pmf_eq_0_set_pmf set_map_pmf q nn_integral_rr1)
-      finally show "?thesis y x" .
-    qed
-
-    def pqr \<equiv> "embed_pmf (\<lambda>(y, x, z). assign y x z)"
-    { fix y x z
-      have "assign y x z = pmf pqr (y, x, z)"
-        unfolding pqr_def
-      proof (subst pmf_embed_pmf)
-        have "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) =
-          (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>(count_space ((\<lambda>((x, y), z). (y, x, z)) ` (pq \<times> r))))"
-          by (force simp add: pmf_eq_0_set_pmf r set_map_pmf split: split_indicator
-                    intro!: nn_integral_count_space_eq assign_eq_0_outside)
-        also have "\<dots> = (\<integral>\<^sup>+ x. ereal ((\<lambda>((x, y), z). assign y x z) x) \<partial>(count_space (pq \<times> r)))"
-          by (subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
-             (auto simp: inj_on_def intro!: nn_integral_cong)
-        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space r \<partial>count_space pq)"
-          by (subst sigma_finite_measure.nn_integral_fst)
-             (auto simp: pair_measure_countable sigma_finite_measure_count_space_countable)
-        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space UNIV \<partial>count_space pq)"
-          by (intro nn_integral_cong nn_integral_count_space_eq)
-             (force simp: r set_map_pmf pmf_eq_0_set_pmf intro!: assign_eq_0_outside)+
-        also have "\<dots> = (\<integral>\<^sup>+ z. ?pq (snd z) (fst z) \<partial>count_space pq)"
-          by (subst nn_integral_assign2[symmetric]) (auto intro!: nn_integral_cong)
-        finally show "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) = 1"
-          by (simp add: nn_integral_pmf emeasure_pmf)
-      qed auto }
-    note a = this
-
-    def pr \<equiv> "map_pmf (\<lambda>(y, x, z). (x, z)) pqr"
+    def pr \<equiv> "bind_pmf pq (\<lambda>(x, y). bind_pmf (cond_pmf qr {(y', z). y' = y}) (\<lambda>(y', z). return_pmf (x, z)))"
+    have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {(y', z). y' = y} \<noteq> {}"
+      by (force simp: q' set_map_pmf)
 
     have "rel_pmf (R OO S) p r"
-    proof
-      have pq_eq: "pq = map_pmf (\<lambda>(y, x, z). (x, y)) pqr"
-      proof (rule pmf_eqI)
-        fix i
-        show "pmf pq i = pmf (map_pmf (\<lambda>(y, x, z). (x, y)) pqr) i"
-          using nn_integral_assign2[of "snd i" "fst i", symmetric]
-          by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
-                   simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
-      qed
-      then show "map_pmf fst pr = p"
-        unfolding p pr_def by (simp add: map_pmf_comp split_beta)
-
-      have qr_eq: "qr = map_pmf (\<lambda>(y, x, z). (y, z)) pqr"
-      proof (rule pmf_eqI)
-        fix i show "pmf qr i = pmf (map_pmf (\<lambda>(y, x, z). (y, z)) pqr) i"
-          using nn_integral_assign1[of "fst i" "snd i", symmetric]
-          by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
-                   simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
-      qed
-      then show "map_pmf snd pr = r"
-        unfolding r pr_def by (simp add: map_pmf_comp split_beta)
-
-      fix x z assume "(x, z) \<in> set_pmf pr"
-      then have "\<exists>y. (x, y) \<in> set_pmf pq \<and> (y, z) \<in> set_pmf qr"
-        unfolding pr_def pq_eq qr_eq by (force simp: set_map_pmf)
+    proof (rule rel_pmf.intros)
+      fix x z assume "(x, z) \<in> pr"
+      then have "\<exists>y. (x, y) \<in> pq \<and> (y, z) \<in> qr"
+        by (auto simp: q pr_welldefined pr_def set_bind_pmf split_beta set_return_pmf set_cond_pmf set_map_pmf)
       with pq qr show "(R OO S) x z"
         by blast
-    qed }
+    next
+      { fix z
+        have "ereal (pmf (map_pmf snd pr) z) =
+            (\<integral>\<^sup>+y. \<integral>\<^sup>+x. indicator (snd -` {z}) x \<partial>cond_pmf qr {(y', z). y' = y} \<partial>q)"
+          by (simp add: q pr_def map_bind_pmf split_beta map_return_pmf bind_return_pmf'' bind_map_pmf
+                   ereal_pmf_bind ereal_pmf_map)
+        also have "\<dots> = (\<integral>\<^sup>+y. \<integral>\<^sup>+x. indicator (snd -` {z}) x \<partial>uniform_measure qr {(y', z). y' = y} \<partial>q)"
+          by (auto intro!: nn_integral_cong_AE simp: AE_measure_pmf_iff cond_pmf.rep_eq pr_welldefined
+                   simp del: emeasure_uniform_measure)
+        also have "\<dots> = (\<integral>\<^sup>+y. (\<integral>\<^sup>+x. indicator {(y, z)} x \<partial>qr) / emeasure q {y} \<partial>q)"
+          by (auto simp: nn_integral_uniform_measure q' simp del: nn_integral_indicator split: split_indicator
+                   intro!: nn_integral_cong arg_cong2[where f="op /"] arg_cong2[where f=emeasure])
+        also have "\<dots> = (\<integral>\<^sup>+y. pmf qr (y, z) \<partial>count_space UNIV)"
+          by (subst measure_pmf_eq_density)
+             (force simp: q' emeasure_pmf_single nn_integral_density pmf_nonneg pmf_eq_0_set_pmf set_map_pmf
+                    intro!: nn_integral_cong split: split_indicator)
+        also have "\<dots> = ereal (pmf r z)"
+          by (subst nn_integral_pmf')
+             (auto simp add: inj_on_def r ereal_pmf_map intro!: arg_cong2[where f=emeasure])
+        finally have "pmf (map_pmf snd pr) z = pmf r z"
+          by simp }
+      then show "map_pmf snd pr = r"
+        by (rule pmf_eqI)
+    qed (simp add: pr_def map_bind_pmf split_beta map_return_pmf bind_return_pmf'' p) }
   then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
