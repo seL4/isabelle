@@ -262,6 +262,10 @@ lemma finite_image_set [simp]:
   "finite {x. P x} \<Longrightarrow> finite { f x | x. P x }"
   by (simp add: image_Collect [symmetric])
 
+lemma finite_image_set2:
+  "finite {x. P x} \<Longrightarrow> finite {y. Q y} \<Longrightarrow> finite {f x y | x y. P x \<and> Q y}"
+  by (rule finite_subset [where B = "\<Union>x \<in> {x. P x}. \<Union>y \<in> {y. Q y}. {f x y}"]) auto
+
 lemma finite_imageD:
   assumes "finite (f ` A)" and "inj_on f A"
   shows "finite A"
@@ -1617,6 +1621,9 @@ proof -
   then show ?thesis using assms 
    by (force intro: card_mono simp: card_image [symmetric])
 qed
+
+lemma surj_card_le: "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> card B \<le> card A"
+  by (blast intro: card_image_le card_mono le_trans)
 
 lemma card_bij_eq:
   "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;

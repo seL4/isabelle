@@ -550,63 +550,6 @@ apply assumption
 done
 
 
-subsubsection {*THE: definite description operator*}
-
-lemma the_equality:
-  assumes prema: "P a"
-      and premx: "!!x. P x ==> x=a"
-  shows "(THE x. P x) = a"
-apply (rule trans [OF _ the_eq_trivial])
-apply (rule_tac f = "The" in arg_cong)
-apply (rule ext)
-apply (rule iffI)
- apply (erule premx)
-apply (erule ssubst, rule prema)
-done
-
-lemma theI:
-  assumes "P a" and "!!x. P x ==> x=a"
-  shows "P (THE x. P x)"
-by (iprover intro: assms the_equality [THEN ssubst])
-
-lemma theI': "EX! x. P x ==> P (THE x. P x)"
-apply (erule ex1E)
-apply (erule theI)
-apply (erule allE)
-apply (erule mp)
-apply assumption
-done
-
-(*Easier to apply than theI: only one occurrence of P*)
-lemma theI2:
-  assumes "P a" "!!x. P x ==> x=a" "!!x. P x ==> Q x"
-  shows "Q (THE x. P x)"
-by (iprover intro: assms theI)
-
-lemma the1I2: assumes "EX! x. P x" "\<And>x. P x \<Longrightarrow> Q x" shows "Q (THE x. P x)"
-by(iprover intro:assms(2) theI2[where P=P and Q=Q] ex1E[OF assms(1)]
-           elim:allE impE)
-
-lemma the1_equality [elim?]: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
-apply (rule the_equality)
-apply  assumption
-apply (erule ex1E)
-apply (erule all_dupE)
-apply (drule mp)
-apply  assumption
-apply (erule ssubst)
-apply (erule allE)
-apply (erule mp)
-apply assumption
-done
-
-lemma the_sym_eq_trivial: "(THE y. x=y) = x"
-apply (rule the_equality)
-apply (rule refl)
-apply (erule sym)
-done
-
-
 subsubsection {*Classical intro rules for disjunction and existential quantifiers*}
 
 lemma disjCI:
@@ -876,7 +819,6 @@ declare iffCE [elim!]
 
 declare ex_ex1I [intro!]
   and allI [intro!]
-  and the_equality [intro]
   and exI [intro]
 
 declare exE [elim!]
@@ -922,6 +864,39 @@ ML {*
   );
   val blast_tac = Blast.blast_tac;
 *}
+
+
+subsubsection {*THE: definite description operator*}
+
+lemma the_equality [intro]:
+  assumes "P a"
+      and "!!x. P x ==> x=a"
+  shows "(THE x. P x) = a"
+  by (blast intro: assms trans [OF arg_cong [where f=The] the_eq_trivial])
+
+lemma theI:
+  assumes "P a" and "!!x. P x ==> x=a"
+  shows "P (THE x. P x)"
+by (iprover intro: assms the_equality [THEN ssubst])
+
+lemma theI': "EX! x. P x ==> P (THE x. P x)"
+  by (blast intro: theI)
+
+(*Easier to apply than theI: only one occurrence of P*)
+lemma theI2:
+  assumes "P a" "!!x. P x ==> x=a" "!!x. P x ==> Q x"
+  shows "Q (THE x. P x)"
+by (iprover intro: assms theI)
+
+lemma the1I2: assumes "EX! x. P x" "\<And>x. P x \<Longrightarrow> Q x" shows "Q (THE x. P x)"
+by(iprover intro:assms(2) theI2[where P=P and Q=Q] ex1E[OF assms(1)]
+           elim:allE impE)
+
+lemma the1_equality [elim?]: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
+  by blast
+
+lemma the_sym_eq_trivial: "(THE y. x=y) = x"
+  by blast
 
 
 subsubsection {* Simplifier *}
@@ -1099,8 +1074,7 @@ lemma if_bool_eq_conj:
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
   -- {* And this form is useful for expanding @{text "if"}s on the LEFT. *}
-  apply (simplesubst split_if, blast)
-  done
+  by (simplesubst split_if) blast
 
 lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) iprover
 lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) iprover

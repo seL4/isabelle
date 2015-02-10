@@ -15,6 +15,12 @@ lemma apply_inverse:
   "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
   by auto
 
+text{*Uniqueness, so NOT the axiom of choice.*}
+lemma uniq_choice: "\<forall>x. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)"
+  by (force intro: theI')
+
+lemma b_uniq_choice: "\<forall>x\<in>S. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x\<in>S. Q x (f x)"
+  by (force intro: theI')
 
 subsection {* The Identity Function @{text id} *}
 
@@ -78,6 +84,9 @@ lemma image_comp:
 lemma vimage_comp:
   "f -` (g -` x) = (g \<circ> f) -` x"
   by auto
+
+lemma image_eq_imp_comp: "f ` A = g ` B \<Longrightarrow> (h o f) ` A = (h o g) ` B"
+  by (auto simp: comp_def elim!: equalityE)
 
 code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
@@ -477,14 +486,17 @@ by (simp add: inj_on_def, blast)
 lemma image_set_diff: "inj f ==> f`(A-B) = f`A - f`B"
 by (simp add: inj_on_def, blast)
 
-lemma inj_image_mem_iff: "inj f ==> (f a : f`A) = (a : A)"
-by (blast dest: injD)
+lemma inj_on_image_mem_iff: "\<lbrakk>inj_on f B; a \<in> B; A \<subseteq> B\<rbrakk> \<Longrightarrow> f a \<in> f`A \<longleftrightarrow> a \<in> A"
+  by (auto simp: inj_on_def)
+
+lemma inj_image_mem_iff: "inj f \<Longrightarrow> f a \<in> f`A \<longleftrightarrow> a \<in> A"
+  by (blast dest: injD)
 
 lemma inj_image_subset_iff: "inj f ==> (f`A <= f`B) = (A<=B)"
-by (simp add: inj_on_def, blast)
+  by (blast dest: injD)
 
 lemma inj_image_eq_iff: "inj f ==> (f`A = f`B) = (A = B)"
-by (blast dest: injD)
+  by (blast dest: injD)
 
 lemma surj_Compl_image_subset: "surj f ==> -(f`A) <= f`(-A)"
 by auto

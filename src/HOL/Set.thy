@@ -1020,6 +1020,9 @@ lemma image_diff_subset:
   "f ` A - f ` B \<subseteq> f ` (A - B)"
   by blast
 
+lemma Setcompr_eq_image: "{f x | x. x \<in> A} = f ` A"
+  by blast
+
 lemma ball_imageD:
   assumes "\<forall>x\<in>f ` A. P x"
   shows "\<forall>x\<in>A. P (f x)"
@@ -1239,6 +1242,9 @@ lemma Collect_imp_eq: "{x. P x --> Q x} = -{x. P x} \<union> {x. Q x}"
   by blast
 
 lemma Collect_conj_eq: "{x. P x & Q x} = {x. P x} \<inter> {x. Q x}"
+  by blast
+
+lemma Collect_mono_iff [simp]: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q x)"
   by blast
 
 
