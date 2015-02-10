@@ -837,13 +837,13 @@ val pushes = @{thms pushes};
 *)
 fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
 
-val Fake_insert_tac = 
-    dresolve_tac [impOfSubs Fake_analz_insert,
+fun Fake_insert_tac ctxt =
+    dresolve_tac ctxt [impOfSubs Fake_analz_insert,
                   impOfSubs Fake_parts_insert] THEN'
-    eresolve_tac [asm_rl, @{thm synth.Inj}];
+    eresolve_tac ctxt [asm_rl, @{thm synth.Inj}];
 
 fun Fake_insert_simp_tac ctxt i = 
-  REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ctxt i;
+  REPEAT (Fake_insert_tac ctxt i) THEN asm_full_simp_tac ctxt i;
 
 fun atomic_spy_analz_tac ctxt =
   SELECT_GOAL
@@ -859,7 +859,7 @@ fun spy_analz_tac ctxt i =
            (res_inst_tac ctxt [(("x", 1), "X")] (insert_commute RS ssubst) 1),
        (*...allowing further simplifications*)
        simp_tac ctxt 1,
-       REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
+       REPEAT (FIRSTGOAL (resolve_tac ctxt [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i);
 *}
 

@@ -92,12 +92,12 @@ fun proc ctxt t =
     Option.map (export o Data.simplify_meta_eq ctxt)
       (if n2 <= n1 then
          Data.prove_conv
-           [Data.trans_tac reshape, resolve_tac [Data.bal_add1] 1,
+           [Data.trans_tac reshape, resolve_tac ctxt [Data.bal_add1] 1,
             Data.numeral_simp_tac ctxt] ctxt prems
            (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
        else
          Data.prove_conv
-           [Data.trans_tac reshape, resolve_tac [Data.bal_add2] 1,
+           [Data.trans_tac reshape, resolve_tac ctxt [Data.bal_add2] 1,
             Data.numeral_simp_tac ctxt] ctxt prems
            (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
   end

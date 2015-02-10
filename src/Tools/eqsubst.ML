@@ -250,7 +250,7 @@ fun apply_subst_in_concl ctxt i st (cfvs, conclthm) rule m =
   RW_Inst.rw ctxt m rule conclthm
   |> unfix_frees cfvs
   |> Conv.fconv_rule Drule.beta_eta_conversion
-  |> (fn r => resolve_tac [r] i st);
+  |> (fn r => resolve_tac ctxt [r] i st);
 
 (* substitute within the conclusion of goal i of gth, using a meta
 equation rule. Note that we assume rule has var indicies zero'd *)
@@ -332,7 +332,8 @@ fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
       |> Conv.fconv_rule Drule.beta_eta_conversion; (* normal form *)
   in
     (* ~j because new asm starts at back, thus we subtract 1 *)
-    Seq.map (Thm.rotate_rule (~ j) (Thm.nprems_of rule + i)) (dresolve_tac [preelimrule] i st2)
+    Seq.map (Thm.rotate_rule (~ j) (Thm.nprems_of rule + i))
+      (dresolve_tac ctxt [preelimrule] i st2)
   end;
 
 

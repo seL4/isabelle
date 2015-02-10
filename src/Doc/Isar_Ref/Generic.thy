@@ -1054,7 +1054,7 @@ text \<open>
 ML \<open>
   fun subgoaler_tac ctxt =
     assume_tac ctxt ORELSE'
-    resolve_tac (Simplifier.prems_of ctxt) ORELSE'
+    resolve_tac ctxt (Simplifier.prems_of ctxt) ORELSE'
     asm_simp_tac ctxt
 \<close>
 

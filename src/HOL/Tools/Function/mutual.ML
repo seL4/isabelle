@@ -267,8 +267,8 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
       @{thms HOL.notE[OF Sum_Type.sum.distinct(1)] HOL.notE[OF Sum_Type.sum.distinct(2)]}
 
     fun prep_subgoal i =
-      REPEAT (eresolve_tac @{thms Pair_inject Inl_inject[elim_format] Inr_inject[elim_format]} i)
-      THEN REPEAT (Tactic.eresolve_tac sum_elims i)
+      REPEAT (eresolve_tac ctxt @{thms Pair_inject Inl_inject[elim_format] Inr_inject[elim_format]} i)
+      THEN REPEAT (eresolve_tac ctxt sum_elims i)
   in
     cases_rule
     |> Thm.forall_elim P

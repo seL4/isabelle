@@ -248,7 +248,7 @@ fun distill ctxt fixes eqs =
       in
         map (fn eq => Goal.prove ctxt frees [] eq
           (fn {context = ctxt', ...} =>
-            EVERY [rewrite_goals_tac ctxt' rewrites, resolve_tac [refl] 1])) eqs
+            EVERY [rewrite_goals_tac ctxt' rewrites, resolve_tac ctxt' [refl] 1])) eqs
       end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>

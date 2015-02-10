@@ -282,7 +282,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
          THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
          THEN unfold_tac ctxt @{thms rp_inv_image_def}
          THEN Local_Defs.unfold_tac ctxt @{thms split_conv fst_conv snd_conv}
-         THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
+         THEN REPEAT (SOMEGOAL (resolve_tac ctxt [@{thm Un_least}, @{thm empty_subsetI}]))
          THEN EVERY (map (prove_lev true) sl)
          THEN EVERY (map (prove_lev false) (subtract (op =) sl (0 upto length cs - 1))))
     end

@@ -665,7 +665,7 @@ apply (tactic {* ALLGOALS (fn i =>
     thin_tac @{context} "?E,dt\<Turnstile>e2\<Colon>-?T2"] i
   else thin_tac @{context} "All ?P" i) *})
 (*apply (safe del: disjE elim!: wt_elim_cases)*)
-apply (tactic {*ALLGOALS (eresolve_tac @{thms wt_elim_cases})*})
+apply (tactic {*ALLGOALS (eresolve_tac @{context} @{thms wt_elim_cases})*})
 apply (simp_all (no_asm_use) split del: split_if_asm)
 apply (erule_tac [12] V = "All ?P" in thin_rl) (* Call *)
 apply (blast del: equalityCE dest: sym [THEN trans])+

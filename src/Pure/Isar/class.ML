@@ -47,7 +47,7 @@ sig
     -> morphism -> local_theory -> local_theory
 
   (*tactics*)
-  val intro_classes_tac: thm list -> tactic
+  val intro_classes_tac: Proof.context -> thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
 
   (*diagnostics*)
@@ -437,7 +437,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
         (fst o rules thy) sub];
     val classrel =
       Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
-        (K (EVERY (map (TRYALL o resolve_tac o single) intros)));
+        (fn {context = ctxt, ...} => EVERY (map (TRYALL o resolve_tac ctxt o single) intros));
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
@@ -702,7 +702,7 @@ fun instance_arity_cmd raw_arities thy =
 
 (** tactics and methods **)
 
-fun intro_classes_tac facts st =
+fun intro_classes_tac ctxt facts st =
   let
     val thy = Thm.theory_of_thm st;
     val classes = Sign.all_classes thy;
@@ -710,12 +710,12 @@ fun intro_classes_tac facts st =
     val class_intros = map_filter (try (#intro o Axclass.get_info thy)) classes;
     val assm_intros = all_assm_intros thy;
   in
-    Method.intros_tac (class_trivs @ class_intros @ assm_intros) facts st
+    Method.intros_tac ctxt (class_trivs @ class_intros @ assm_intros) facts st
   end;
 
 fun default_intro_tac ctxt [] =
       COND Thm.no_prems no_tac
-        (intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt [])
+        (intro_classes_tac ctxt [] ORELSE Locale.intro_locales_tac true ctxt [])
   | default_intro_tac _ _ = no_tac;
 
 fun default_tac rules ctxt facts =
@@ -723,7 +723,7 @@ fun default_tac rules ctxt facts =
     default_intro_tac ctxt facts;
 
 val _ = Theory.setup
- (Method.setup @{binding intro_classes} (Scan.succeed (K (METHOD intro_classes_tac)))
+ (Method.setup @{binding intro_classes} (Scan.succeed (METHOD o intro_classes_tac))
     "back-chain introduction rules of classes" #>
   Method.setup @{binding default} (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule");

@@ -60,8 +60,8 @@ val eq_bool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True
 
 fun bool_subst_tac ctxt i =
   REPEAT (EqSubst.eqsubst_asm_tac ctxt [1] eq_bool i)
-  THEN REPEAT (dresolve_tac boolD i)
-  THEN REPEAT (eresolve_tac boolE i)
+  THEN REPEAT (dresolve_tac ctxt boolD i)
+  THEN REPEAT (eresolve_tac ctxt boolE i)
 
 fun mk_bool_elims ctxt elim =
   let
@@ -69,7 +69,7 @@ fun mk_bool_elims ctxt elim =
     fun mk_bool_elim b =
       elim
       |> Thm.forall_elim b
-      |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac eq_boolI 1))
+      |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac ctxt eq_boolI 1))
       |> Tactic.rule_by_tactic ctxt tac;
   in
     map mk_bool_elim [@{cterm True}, @{cterm False}]
@@ -125,7 +125,7 @@ fun mk_partial_elim_rules ctxt result =
         val asms_thms = map Thm.assume asms;
 
         fun prep_subgoal_tac i =
-          REPEAT (eresolve_tac @{thms Pair_inject} i)
+          REPEAT (eresolve_tac ctxt @{thms Pair_inject} i)
           THEN Method.insert_tac (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
           THEN propagate_tac ctxt i
           THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN assume_tac ctxt i)

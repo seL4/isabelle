@@ -85,7 +85,7 @@ val mk_exhaust_disc_tac = mk_exhaust_disc_or_sel_tac;
 
 fun mk_exhaust_sel_tac n exhaust_disc collapses =
   mk_exhaust_disc_or_sel_tac n exhaust_disc collapses ORELSE
-  HEADGOAL (etac meta_mp THEN' resolve_tac collapses);
+  HEADGOAL (etac meta_mp THEN' resolve0_tac collapses);
 
 fun mk_collapse_tac ctxt m discD sels =
   HEADGOAL (dtac discD THEN'
@@ -101,7 +101,7 @@ fun mk_disc_eq_case_tac ctxt ct exhaust discs distincts cases =
     (hyp_subst_tac ctxt THEN'
      SELECT_GOAL (unfold_thms_tac ctxt (@{thms not_True_eq_False not_False_eq_True} @ cases @
        ((refl :: discs @ distincts) RL [eqTrueI, eqFalseI]))) THEN'
-     resolve_tac @{thms TrueI True_not_False False_not_True}));
+     resolve_tac ctxt @{thms TrueI True_not_False False_not_True}));
 
 fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_discsss
     distinct_discsss' =

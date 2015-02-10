@@ -68,12 +68,12 @@ fun print_tcset ctxt =
 (* tactics *)
 
 (*resolution using a net rather than rules*)
-fun net_res_tac maxr net =
+fun net_res_tac ctxt maxr net =
   SUBGOAL
-    (fn (prem,i) =>
+    (fn (prem, i) =>
       let val rls = Net.unify_term net (Logic.strip_assums_concl prem)
       in
-         if length rls <= maxr then resolve_tac rls i else no_tac
+         if length rls <= maxr then resolve_tac ctxt rls i else no_tac
       end);
 
 fun is_rigid_elem (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) =
@@ -89,7 +89,7 @@ fun test_assume_tac ctxt = SUBGOAL(fn (prem,i) =>
   match_tac is too strict; would refuse to instantiate ?A*)
 fun typecheck_step_tac ctxt =
   let val TC {net, ...} = tcset_of ctxt
-  in FIRSTGOAL (test_assume_tac ctxt ORELSE' net_res_tac 3 net) end;
+  in FIRSTGOAL (test_assume_tac ctxt ORELSE' net_res_tac ctxt 3 net) end;
 
 fun typecheck_tac ctxt = REPEAT (typecheck_step_tac ctxt);
 
@@ -100,7 +100,7 @@ val basic_net =
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)
 fun type_solver_tac ctxt hyps = SELECT_GOAL
-    (DEPTH_SOLVE (eresolve_tac @{thms FalseE} 1
+    (DEPTH_SOLVE (eresolve_tac ctxt @{thms FalseE} 1
                   ORELSE resolve_from_net_tac ctxt basic_net 1
                   ORELSE (ares_tac hyps 1
                           APPEND typecheck_step_tac ctxt)));

@@ -427,7 +427,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
       in
         fold (fn (s, tvs) => fn thy => Axclass.prove_arity
             (s, map (inter_sort thy sort o snd) tvs, [cp_class])
-            (fn _ => Class.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
+            (fn ctxt' =>
+              Class.intro_classes_tac ctxt' [] THEN ALLGOALS (resolve_tac ctxt' thms)) thy)
           (full_new_type_names' ~~ tyvars) thy
       end;
 
@@ -439,10 +440,10 @@ fun gen_nominal_datatype prep_specs config dts thy =
           fold (fn (s, tvs) => fn thy => Axclass.prove_arity
               (s, map (inter_sort thy [pt_name] o snd) tvs, [pt_name])
               (fn ctxt => EVERY
-                [Class.intro_classes_tac [],
-                 resolve_tac perm_empty_thms 1,
-                 resolve_tac perm_append_thms 1,
-                 resolve_tac perm_eq_thms 1, assume_tac ctxt 1]) thy)
+                [Class.intro_classes_tac ctxt [],
+                 resolve_tac ctxt perm_empty_thms 1,
+                 resolve_tac ctxt perm_append_thms 1,
+                 resolve_tac ctxt perm_eq_thms 1, assume_tac ctxt 1]) thy)
             (full_new_type_names' ~~ tyvars) thy
         end) atoms |>
       Global_Theory.add_thmss
@@ -562,7 +563,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
            [Old_Datatype_Aux.ind_tac rep_induct [] 1,
             ALLGOALS (simp_tac (ctxt addsimps
               (Thm.symmetric perm_fun_def :: abs_perm))),
-            ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac ctxt)])),
+            ALLGOALS (resolve_tac ctxt rep_intrs THEN_ALL_NEW assume_tac ctxt)])),
         length new_type_names));
 
     val perm_closed_thmss = map mk_perm_closed atoms;
@@ -578,9 +579,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const (@{const_name Collect}, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
-            (fn _ => rtac exI 1 THEN rtac CollectI 1 THEN
+            (fn ctxt => rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1)) thy |> (fn ((_, r), thy) =>
+              (resolve_tac ctxt rep_intrs 1)) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT
             (TFree (singleton (Name.variant_list (map fst tvs)) "'a", @{sort type}));
@@ -619,7 +620,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           in Axclass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [pt_class])
-            (fn ctxt => EVERY [Class.intro_classes_tac [],
+            (fn ctxt => EVERY [Class.intro_classes_tac ctxt [],
               rewrite_goals_tac ctxt [perm_def],
               asm_full_simp_tac (ctxt addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (ctxt addsimps
@@ -648,7 +649,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           Axclass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [cp_class])
-            (fn ctxt => EVERY [Class.intro_classes_tac [],
+            (fn ctxt => EVERY [Class.intro_classes_tac ctxt [],
               rewrite_goals_tac ctxt [perm_def],
               asm_full_simp_tac (ctxt addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
@@ -801,11 +802,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val inj_thms = map (fn r => r RS iffD1) abs_inject_thms;
         val rewrites = constr_defs @ map mk_meta_eq Rep_inverse_thms
       in Goal.prove_global_future thy8 [] [] eqn (fn {context = ctxt, ...} => EVERY
-        [resolve_tac inj_thms 1,
+        [resolve_tac ctxt inj_thms 1,
          rewrite_goals_tac ctxt rewrites,
          rtac refl 3,
-         resolve_tac rep_intrs 2,
-         REPEAT (resolve_tac Rep_thms 1)])
+         resolve_tac ctxt rep_intrs 2,
+         REPEAT (resolve_tac ctxt Rep_thms 1)])
       end;
 
     val constr_rep_thmss = map (map prove_constr_rep_thm) constr_rep_eqns;
@@ -1041,7 +1042,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             REPEAT (EVERY
               [TRY (rtac conjI 1),
                full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps Rep_inverse_thms) 1,
-               etac mp 1, resolve_tac Rep_thms 1])]);
+               etac mp 1, resolve_tac ctxt Rep_thms 1])]);
 
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
@@ -1058,7 +1059,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         [rtac indrule_lemma' 1,
          (Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
          EVERY (map (fn (prem, r) => (EVERY
-           [REPEAT (eresolve_tac Abs_inverse_thms' 1),
+           [REPEAT (eresolve_tac ctxt Abs_inverse_thms' 1),
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
@@ -1116,7 +1117,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           val sort = Sign.minimize_sort thy (Sign.certify_sort thy (class :: pt_cp_sort));
         in fold (fn Type (s, Ts) => Axclass.prove_arity
           (s, map (inter_sort thy sort o snd o dest_TFree) Ts, [class])
-          (fn _ => Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+          (fn ctxt => Class.intro_classes_tac ctxt [] THEN resolve_tac ctxt ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms);
 
     (**** strong induction theorem ****)
@@ -1243,7 +1244,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
               fresh_const T (fastype_of p) $
                 Bound 0 $ p)))
           (fn _ => EVERY
-            [resolve_tac exists_fresh' 1,
+            [resolve_tac ctxt exists_fresh' 1,
              simp_tac (put_simpset HOL_ss ctxt addsimps (supp_prod :: finite_Un :: fs_atoms @
                fin_set_supp @ ths)) 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
@@ -1354,22 +1355,22 @@ fun gen_nominal_datatype prep_specs config dts thy =
                        val th = Goal.prove context3 [] [] concl' (fn _ => EVERY
                          [simp_tac (ind_ss6 addsimps rename_eq) 1,
                           cut_facts_tac iprems 1,
-                          (resolve_tac prems THEN_ALL_NEW
+                          (resolve_tac context2 prems THEN_ALL_NEW
                             SUBGOAL (fn (t, i) => case Logic.strip_assums_concl t of
                                 _ $ (Const (@{const_name Nominal.fresh}, _) $ _ $ _) =>
                                   simp_tac ind_ss1' i
                               | _ $ (Const (@{const_name Not}, _) $ _) =>
-                                  resolve_tac freshs2' i
+                                  resolve_tac context2 freshs2' i
                               | _ => asm_simp_tac (put_simpset HOL_basic_ss context3 addsimps
                                   pt2_atoms addsimprocs [perm_simproc]) i)) 1])
                        val final = Proof_Context.export context3 context2 [th]
                      in
-                       resolve_tac final 1
+                       resolve_tac context2 final 1
                      end) context1 1) (constrs ~~ constrs')) (descr'' ~~ ndescr)))
       in
         EVERY
           [cut_facts_tac [th] 1,
-           REPEAT (eresolve_tac [conjE, @{thm allE_Nil}] 1),
+           REPEAT (eresolve_tac context [conjE, @{thm allE_Nil}] 1),
            REPEAT (etac allE 1),
            REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac ind_ss5 1)]
       end);
@@ -1390,8 +1391,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (augment_sort thy9 fs_cp_sort ind_concl)
       (fn {prems, context = ctxt} => EVERY
          [rtac induct_aux' 1,
-          REPEAT (resolve_tac fs_atoms 1),
-          REPEAT ((resolve_tac prems THEN_ALL_NEW
+          REPEAT (resolve_tac ctxt fs_atoms 1),
+          REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW
             (etac @{thm meta_spec} ORELSE'
               full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [fresh_def]))) 1)])
 
@@ -1538,7 +1539,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                  (simp_tac (put_simpset HOL_basic_ss ctxt
                     addsimps flat perm_simps'
                     addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
-                  (resolve_tac rec_intrs THEN_ALL_NEW
+                  (resolve_tac ctxt rec_intrs THEN_ALL_NEW
                    asm_simp_tac (put_simpset HOL_ss ctxt addsimps (fresh_bij @ perm_bij))) 1))))
         val ths' = map (fn ((P, Q), th) =>
           Goal.prove_global_future thy11 [] []
@@ -1630,7 +1631,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       supports_fresh) 1,
                     simp_tac (put_simpset HOL_basic_ss context addsimps
                       [supports_def, Thm.symmetric fresh_def, fresh_prod]) 1,
-                    REPEAT_DETERM (resolve_tac [allI, impI] 1),
+                    REPEAT_DETERM (resolve_tac context [allI, impI] 1),
                     REPEAT_DETERM (etac conjE 1),
                     rtac unique 1,
                     SUBPROOF (fn {prems = prems', params = [(_, a), (_, b)], ...} => EVERY
@@ -1683,8 +1684,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
               fresh_const T (fastype_of p) $ Bound 0 $ p)))
           (fn _ => EVERY
             [cut_facts_tac ths 1,
-             REPEAT_DETERM (dresolve_tac (the (AList.lookup op = rec_fin_supp T)) 1),
-             resolve_tac exists_fresh' 1,
+             REPEAT_DETERM (dresolve_tac ctxt (the (AList.lookup op = rec_fin_supp T)) 1),
+             resolve_tac ctxt exists_fresh' 1,
              asm_simp_tac (put_simpset HOL_ss ctxt addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn _ => EVERY
@@ -1723,7 +1724,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                            rec_sets ~~ rec_preds)))))
                (fn {context = ctxt, ...} =>
                   rtac rec_induct 1 THEN
-                  REPEAT ((resolve_tac P_ind_ths THEN_ALL_NEW assume_tac ctxt) 1))));
+                  REPEAT ((resolve_tac ctxt P_ind_ths THEN_ALL_NEW assume_tac ctxt) 1))));
            val rec_fin_supp_thms' = map
              (fn (ths, (T, fin_ths)) => (T, map (curry op MRS fin_ths) ths))
              (rec_fin_supp_thms ~~ finite_thss);
@@ -1735,9 +1736,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 (finite_thss ~~ finite_ctxt_ths) @
             maps (fn ((_, idxss), elim) => maps (fn idxs =>
               [full_simp_tac (put_simpset HOL_ss context addsimps [Thm.symmetric fresh_def, supp_prod, Un_iff]) 1,
-               REPEAT_DETERM (eresolve_tac @{thms conjE ex1E} 1),
+               REPEAT_DETERM (eresolve_tac context @{thms conjE ex1E} 1),
                rtac @{thm ex1I} 1,
-               (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,
+               (resolve_tac context rec_intrs THEN_ALL_NEW atac) 1,
                rotate_tac ~1 1,
                ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac
                   (put_simpset HOL_ss context addsimps flat distinct_thms)) 1] @
@@ -1907,7 +1908,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                                     map (fn th => rtac th 1)
                                       (snd (nth finite_thss l)) @
                                     [rtac rec_prem 1, rtac ih 1,
-                                     REPEAT_DETERM (resolve_tac fresh_prems 1)]))
+                                     REPEAT_DETERM (resolve_tac context fresh_prems 1)]))
                             end) atoms
                         end) (rec_prems1 ~~ ihs);
 
@@ -1917,13 +1918,13 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (fresh_const aT rT $ a $ rhs'))
                         (fn _ => EVERY
-                           [resolve_tac fcbs 1,
-                            REPEAT_DETERM (resolve_tac
+                           [resolve_tac context'' fcbs 1,
+                            REPEAT_DETERM (resolve_tac context''
                               (fresh_prems @ rec_freshs) 1),
-                            REPEAT_DETERM (resolve_tac (maps snd rec_fin_supp_thms') 1
-                              THEN resolve_tac rec_prems 1),
-                            resolve_tac P_ind_ths 1,
-                            REPEAT_DETERM (resolve_tac (P_ths @ rec_prems) 1)]);
+                            REPEAT_DETERM (resolve_tac context'' (maps snd rec_fin_supp_thms') 1
+                              THEN resolve_tac context'' rec_prems 1),
+                            resolve_tac context'' P_ind_ths 1,
+                            REPEAT_DETERM (resolve_tac context'' (P_ths @ rec_prems) 1)]);
 
                     val fresh_results'' = map prove_fresh_result boundsl;
 
@@ -1956,7 +1957,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                         (HOLogic.mk_Trueprop (fresh_const aT rT $ a $ t))
                         (fn _ => EVERY
                           [cut_facts_tac recs 1,
-                           REPEAT_DETERM (dresolve_tac
+                           REPEAT_DETERM (dresolve_tac context''
                              (the (AList.lookup op = rec_fin_supp_thms' aT)) 1),
                            NominalPermeq.fresh_guess_tac
                              (put_simpset HOL_ss context'' addsimps (freshs2 @
@@ -1986,7 +1987,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     val final' = Proof_Context.export context'' context' [final];
                     val _ = warning "finished!"
                   in
-                    resolve_tac final' 1
+                    resolve_tac context' final' 1
                   end) context 1])) idxss) (ndescr ~~ rec_elims))
          end));
 
@@ -2025,8 +2026,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val concl' = subst_atomic_types (rec_result_Ts' ~~ rec_result_Ts) concl;
         val prems' = flat finite_premss @ finite_ctxt_prems @
           rec_prems @ rec_prems' @ map (subst_atomic ps) prems;
-        fun solve rules prems = resolve_tac rules THEN_ALL_NEW
-          (resolve_tac prems THEN_ALL_NEW atac)
+        fun solve ctxt rules prems = resolve_tac ctxt rules THEN_ALL_NEW
+          (resolve_tac ctxt prems THEN_ALL_NEW atac)
       in
         Goal.prove_global_future thy12 []
           (map (augment_sort thy12 fs_cp_sort) prems')
@@ -2034,9 +2035,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (fn {context = ctxt, prems} => EVERY
             [rewrite_goals_tac ctxt reccomb_defs,
              rtac @{thm the1_equality} 1,
-             solve rec_unique_thms prems 1,
-             resolve_tac rec_intrs 1,
-             REPEAT (solve (prems @ rec_total_thms) prems 1)])
+             solve ctxt rec_unique_thms prems 1,
+             resolve_tac ctxt rec_intrs 1,
+             REPEAT (solve ctxt (prems @ rec_total_thms) prems 1)])
       end) (rec_eq_prems ~~
         Old_Datatype_Prop.make_primrecs reccomb_names descr' thy12);
 

@@ -322,7 +322,7 @@ method_setup induct = {*
   Scan.lift Args.name_inner_syntax >> (fn v => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
-      REPEAT (resolve_tac @{thms adm_lemmas} i)))
+      REPEAT (resolve_tac ctxt @{thms adm_lemmas} i)))
 *}
 
 lemma least_FIX: "f(p) = p \<Longrightarrow> FIX(f) << p"
@@ -381,7 +381,7 @@ lemma induct2:
 ML {*
 fun induct2_tac ctxt (f, g) i =
   res_inst_tac ctxt [(("f", 0), f), (("g", 0), g)] @{thm induct2} i THEN
-  REPEAT(resolve_tac @{thms adm_lemmas} i)
+  REPEAT(resolve_tac ctxt @{thms adm_lemmas} i)
 *}
 
 end

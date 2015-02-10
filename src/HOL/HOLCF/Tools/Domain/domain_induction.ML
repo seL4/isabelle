@@ -180,7 +180,7 @@ let
             TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 
             asm_simp_tac (put_simpset take_ss ctxt) 1 THEN
-            (resolve_tac prems' THEN_ALL_NEW etac spec) 1
+            (resolve_tac ctxt prems' THEN_ALL_NEW etac spec) 1
           fun cases_tacs (cons, exhaust) =
             res_inst_tac ctxt [(("y", 0), "x")] exhaust 1 ::
             asm_simp_tac (put_simpset take_ss ctxt addsimps prems) 1 ::
@@ -201,8 +201,8 @@ let
         let
           fun finite_tac (take_induct, fin_ind) =
               rtac take_induct 1 THEN
-              (if is_finite then all_tac else resolve_tac prems 1) THEN
-              (rtac fin_ind THEN_ALL_NEW solve_tac prems) 1
+              (if is_finite then all_tac else resolve_tac ctxt prems 1) THEN
+              (rtac fin_ind THEN_ALL_NEW solve_tac ctxt prems) 1
           val fin_inds = Project_Rule.projections ctxt finite_ind
         in
           TRY (safe_tac (put_claset HOL_cs ctxt)) THEN

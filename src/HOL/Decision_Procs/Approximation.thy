@@ -3699,7 +3699,7 @@ method_setup approximation = {*
                       etac @{thm meta_eqE},
                       rtac @{thm impI}] i)
       THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
-      THEN DETERM (TRY (filter_prems_tac (K false) i))
+      THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
       THEN DETERM (Reification.tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
       THEN gen_eval_tac (approximation_conv ctxt) ctxt i))

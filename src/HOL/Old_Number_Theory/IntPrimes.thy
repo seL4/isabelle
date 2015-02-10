@@ -399,7 +399,7 @@ lemma zcong_lineq_unique:
     zgcd a n = 1 ==> \<exists>!x. 0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
   apply auto
    apply (rule_tac [2] zcong_zless_imp_eq)
-       apply (tactic {* stac (@{thm zcong_cancel2} RS sym) 6 *})
+       apply (tactic {* stac @{context} (@{thm zcong_cancel2} RS sym) 6 *})
          apply (rule_tac [8] zcong_trans)
           apply (simp_all (no_asm_simp))
    prefer 2

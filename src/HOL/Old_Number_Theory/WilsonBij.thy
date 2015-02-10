@@ -139,9 +139,9 @@ lemma inv_inj: "zprime p ==> inj_on (inv p) (d22set (p - 2))"
   apply (unfold inj_on_def)
   apply auto
   apply (rule zcong_zless_imp_eq)
-      apply (tactic {* stac (@{thm zcong_cancel} RS sym) 5 *})
+      apply (tactic {* stac @{context} (@{thm zcong_cancel} RS sym) 5 *})
         apply (rule_tac [7] zcong_trans)
-         apply (tactic {* stac @{thm zcong_sym} 8 *})
+         apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
          apply (erule_tac [7] inv_is_inv)
           apply (tactic "asm_simp_tac @{context} 9")
           apply (erule_tac [9] inv_is_inv)
@@ -192,15 +192,15 @@ lemma reciP_uniq: "zprime p ==> uniqP (reciR p)"
   apply (unfold reciR_def uniqP_def)
   apply auto
    apply (rule zcong_zless_imp_eq)
-       apply (tactic {* stac (@{thm zcong_cancel2} RS sym) 5 *})
+       apply (tactic {* stac @{context} (@{thm zcong_cancel2} RS sym) 5 *})
          apply (rule_tac [7] zcong_trans)
-          apply (tactic {* stac @{thm zcong_sym} 8 *})
+          apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
           apply (rule_tac [6] zless_zprime_imp_zrelprime)
             apply auto
   apply (rule zcong_zless_imp_eq)
-      apply (tactic {* stac (@{thm zcong_cancel} RS sym) 5 *})
+      apply (tactic {* stac @{context} (@{thm zcong_cancel} RS sym) 5 *})
         apply (rule_tac [7] zcong_trans)
-         apply (tactic {* stac @{thm zcong_sym} 8 *})
+         apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
          apply (rule_tac [6] zless_zprime_imp_zrelprime)
            apply auto
   done

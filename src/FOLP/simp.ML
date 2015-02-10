@@ -75,12 +75,12 @@ fun lhs_insert_thm th net =
   rewrite rules are not ordered.*)
 fun net_tac net =
   SUBGOAL(fn (prem,i) =>
-          resolve_tac (Net.unify_term net (Logic.strip_assums_concl prem)) i);
+          resolve0_tac (Net.unify_term net (Logic.strip_assums_concl prem)) i);
 
 (*match subgoal i against possible theorems indexed by lhs in the net*)
 fun lhs_net_tac net =
   SUBGOAL(fn (prem,i) =>
-          biresolve_tac (Net.unify_term net
+          biresolve0_tac (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
 fun nth_subgoal i thm = nth (prems_of thm) (i - 1);
@@ -119,7 +119,7 @@ val norms =
 fun lhs_is_NORM(thm,i) = case lhs_of_eq i thm of
         Const(s,_)$_ => member (op =) norms s | _ => false;
 
-val refl_tac = resolve_tac refl_thms;
+val refl_tac = resolve0_tac refl_thms;
 
 fun find_res thms thm =
     let fun find [] = error "Check Simp_Data"
@@ -138,7 +138,7 @@ fun one_result(tac,thm) = case Seq.pull(tac thm) of
         SOME(thm',_) => thm'
       | NONE => raise THM("Simplifier: could not continue", 0, [thm]);
 
-fun res1(thm,thms,i) = one_result(resolve_tac thms i,thm);
+fun res1(thm,thms,i) = one_result(resolve0_tac thms i,thm);
 
 
 (**** Adding "NORM" tags ****)
@@ -204,10 +204,10 @@ let val thm' = mk_trans2 thm;
     fun norm_step_tac st = st |>
          (case head_of(rhs_of_eq 1 st) of
             Var(ixn,_) => if member (op =) hvs ixn then refl1_tac
-                          else resolve_tac normI_thms 1 ORELSE refl1_tac
-          | Const _ => resolve_tac normI_thms 1 ORELSE
-                       resolve_tac congs 1 ORELSE refl1_tac
-          | Free _ => resolve_tac congs 1 ORELSE refl1_tac
+                          else resolve0_tac normI_thms 1 ORELSE refl1_tac
+          | Const _ => resolve0_tac normI_thms 1 ORELSE
+                       resolve0_tac congs 1 ORELSE refl1_tac
+          | Free _ => resolve0_tac congs 1 ORELSE refl1_tac
           | _ => refl1_tac)
     val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
     val SOME(thm'',_) = Seq.pull(add_norm_tac thm')

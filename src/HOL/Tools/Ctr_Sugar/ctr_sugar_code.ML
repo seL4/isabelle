@@ -93,7 +93,8 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
         (def, lthy')
       end;
 
-    fun tac ctxt thms = Class.intro_classes_tac [] THEN ALLGOALS (Proof_Context.fact_tac ctxt thms);
+    fun tac ctxt thms =
+      Class.intro_classes_tac ctxt [] THEN ALLGOALS (Proof_Context.fact_tac ctxt thms);
 
     val qualify =
       Binding.qualify true (Long_Name.base_name fcT_name) o Binding.qualify true eqN o Binding.name;

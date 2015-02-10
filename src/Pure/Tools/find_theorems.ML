@@ -188,9 +188,9 @@ fun filter_solves ctxt goal =
 
     fun limited_etac thm i =
       Seq.take (Options.default_int @{system_option find_theorems_tactic_limit}) o
-        eresolve_tac [thm] i;
+        eresolve_tac ctxt' [thm] i;
     fun try_thm thm =
-      if Thm.no_prems thm then resolve_tac [thm] 1 goal'
+      if Thm.no_prems thm then resolve_tac ctxt' [thm] 1 goal'
       else
         (limited_etac thm THEN_ALL_NEW (Goal.norm_hhf_tac ctxt' THEN' Method.assm_tac ctxt'))
           1 goal';

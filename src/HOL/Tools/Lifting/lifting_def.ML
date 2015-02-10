@@ -33,8 +33,8 @@ fun mono_eq_prover ctxt prop =
     val refl_rules = Lifting_Info.get_reflexivity_rules ctxt
     val transfer_rules = Transfer.get_transfer_raw ctxt
     
-    fun main_tac i = (REPEAT_ALL_NEW (DETERM o resolve_tac refl_rules) THEN_ALL_NEW 
-      (REPEAT_ALL_NEW (DETERM o resolve_tac transfer_rules))) i
+    fun main_tac i = (REPEAT_ALL_NEW (DETERM o resolve_tac ctxt refl_rules) THEN_ALL_NEW 
+      (REPEAT_ALL_NEW (DETERM o resolve_tac ctxt transfer_rules))) i
   in
     SOME (Goal.prove ctxt [] [] prop (K (main_tac 1)))
       handle ERROR _ => NONE
@@ -545,7 +545,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
         val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
             eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
-        val eq_onp_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac eq_onp_assms_tac_rules) 
+        val eq_onp_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
           THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
         val relator_eq_onp_conv = Conv.bottom_conv
           (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac

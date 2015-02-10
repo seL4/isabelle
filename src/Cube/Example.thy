@@ -18,9 +18,9 @@ method_setup depth_solve1 =
     (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms)))))))\<close>
 
 method_setup strip_asms =
-  \<open>Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-    REPEAT (resolve_tac [@{thm strip_b}, @{thm strip_s}] 1 THEN
-    DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1)))))\<close>
+  \<open>Attrib.thms >> (fn thms => fn ctxt => METHOD (fn facts =>
+    REPEAT (resolve_tac ctxt [@{thm strip_b}, @{thm strip_s}] 1 THEN
+    DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1))))\<close>
 
 
 subsection \<open>Simple types\<close>

@@ -372,34 +372,34 @@ apply (unfold max_spec_def)
 apply (auto simp add: appl_methds_foo_Base)
 done
 
-ML {* val t = resolve_tac @{thms ty_expr_ty_exprs_wt_stmt.intros} 1 *}
+lemmas t = ty_expr_ty_exprs_wt_stmt.intros
 schematic_lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
-apply (tactic t) -- ";;"
-apply  (tactic t) -- "Expr"
-apply  (tactic t) -- "LAss"
+apply (rule ty_expr_ty_exprs_wt_stmt.intros) -- ";;"
+apply  (rule t) -- "Expr"
+apply  (rule t) -- "LAss"
 apply    simp -- {* @{text "e \<noteq> This"} *}
-apply    (tactic t) -- "LAcc"
+apply    (rule t) -- "LAcc"
 apply     (simp (no_asm))
 apply    (simp (no_asm))
-apply   (tactic t) -- "NewC"
+apply   (rule t) -- "NewC"
 apply   (simp (no_asm))
 apply  (simp (no_asm))
-apply (tactic t) -- "Expr"
-apply (tactic t) -- "Call"
-apply   (tactic t) -- "LAcc"
+apply (rule t) -- "Expr"
+apply (rule t) -- "Call"
+apply   (rule t) -- "LAcc"
 apply    (simp (no_asm))
 apply   (simp (no_asm))
-apply  (tactic t) -- "Cons"
-apply   (tactic t) -- "Lit"
+apply  (rule t) -- "Cons"
+apply   (rule t) -- "Lit"
 apply   (simp (no_asm))
-apply  (tactic t) -- "Nil"
+apply  (rule t) -- "Nil"
 apply (simp (no_asm))
 apply (rule max_spec_foo_Base)
 done
 
-ML {* val e = resolve_tac (@{thm NewCI} :: @{thms eval_evals_exec.intros}) 1 *}
 
+lemmas e = NewCI eval_evals_exec.intros
 declare split_if [split del]
 declare init_vars_def [simp] c_hupd_def [simp] cast_ok_def [simp]
 schematic_lemma exec_test: 
@@ -407,37 +407,37 @@ schematic_lemma exec_test:
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)
 -- "?s = s3 "
-apply (tactic e) -- ";;"
-apply  (tactic e) -- "Expr"
-apply  (tactic e) -- "LAss"
-apply   (tactic e) -- "NewC"
+apply (rule e) -- ";;"
+apply  (rule e) -- "Expr"
+apply  (rule e) -- "LAss"
+apply   (rule e) -- "NewC"
 apply    force
 apply   force
 apply  (simp (no_asm))
 apply (erule thin_rl)
-apply (tactic e) -- "Expr"
-apply (tactic e) -- "Call"
-apply       (tactic e) -- "LAcc"
+apply (rule e) -- "Expr"
+apply (rule e) -- "Call"
+apply       (rule e) -- "LAcc"
 apply      force
-apply     (tactic e) -- "Cons"
-apply      (tactic e) -- "Lit"
-apply     (tactic e) -- "Nil"
+apply     (rule e) -- "Cons"
+apply      (rule e) -- "Lit"
+apply     (rule e) -- "Nil"
 apply    (simp (no_asm))
 apply   (force simp add: foo_Ext_def)
 apply  (simp (no_asm))
-apply  (tactic e) -- "Expr"
-apply  (tactic e) -- "FAss"
-apply       (tactic e) -- "Cast"
-apply        (tactic e) -- "LAcc"
+apply  (rule e) -- "Expr"
+apply  (rule e) -- "FAss"
+apply       (rule e) -- "Cast"
+apply        (rule e) -- "LAcc"
 apply       (simp (no_asm))
 apply      (simp (no_asm))
 apply     (simp (no_asm))
-apply     (tactic e) -- "XcptE"
+apply     (rule e) -- "XcptE"
 apply    (simp (no_asm))
 apply   (rule surjective_pairing [symmetric, THEN[2]trans], subst Pair_eq, force)
 apply  (simp (no_asm))
 apply (simp (no_asm))
-apply (tactic e) -- "XcptE"
+apply (rule e) -- "XcptE"
 done
 
 end

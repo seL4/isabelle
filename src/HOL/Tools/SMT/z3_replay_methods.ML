@@ -309,7 +309,7 @@ fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
 (* congruence *)
 
 fun ctac ctxt prems i st = st |> (
-  resolve_tac (@{thm refl} :: prems) i
+  resolve_tac ctxt (@{thm refl} :: prems) i
   ORELSE (cong_tac ctxt i THEN ctac ctxt prems (i + 1) THEN ctac ctxt prems i))
 
 fun cong_basic ctxt thms t =
@@ -328,7 +328,7 @@ val cong_dest_rules = @{lemma
 fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
   Method.insert_tac thms
   THEN' (Classical.fast_tac ctxt'
-    ORELSE' dresolve_tac cong_dest_rules
+    ORELSE' dresolve_tac ctxt cong_dest_rules
     THEN' Classical.fast_tac ctxt'))
 
 fun cong ctxt thms = try_provers ctxt Z3_Proof.Monotonicity [
@@ -346,7 +346,7 @@ val quant_intro_rules = @{lemma
   by fast+}
 
 fun quant_intro ctxt [thm] t =
-    prove ctxt t (K (REPEAT_ALL_NEW (resolve_tac (thm :: quant_intro_rules))))
+    prove ctxt t (K (REPEAT_ALL_NEW (resolve_tac ctxt (thm :: quant_intro_rules))))
   | quant_intro ctxt thms t = replay_rule_error ctxt Z3_Proof.Quant_Intro thms t
 
 

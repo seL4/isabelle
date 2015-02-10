@@ -72,7 +72,7 @@ fun prove_inj_prop ctxt def lhs =
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
     |> apply (rtac @{thm injI})
-    |> apply (Tactic.solve_tac [rule, rule RS @{thm sym}])
+    |> apply (Tactic.solve_tac ctxt' [rule, rule RS @{thm sym}])
     |> Goal.norm_result ctxt' o Goal.finish ctxt'
     |> singleton (Variable.export ctxt' ctxt)
   end

@@ -21,7 +21,7 @@ fun constrains_tac ctxt i =
       (*reduce the fancy safety properties to "constrains"*)
       REPEAT (etac @{thm Always_ConstrainsI} 1
               ORELSE
-              resolve_tac [@{thm StableI}, @{thm stableI},
+              resolve_tac ctxt [@{thm StableI}, @{thm stableI},
                            @{thm constrains_imp_Constrains}] 1),
       (*for safety, the totalize operator can be ignored*)
       simp_tac (put_simpset HOL_ss ctxt

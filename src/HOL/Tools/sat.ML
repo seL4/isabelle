@@ -226,7 +226,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
           (* convert the original clause *)
           let
             val _ = cond_tracing ctxt (fn () => "Using original clause #" ^ string_of_int id)
-            val raw = CNF.clause2raw_thm thm
+            val raw = CNF.clause2raw_thm ctxt thm
             val hyps = sort (lit_ord o apply2 fst) (map_filter (fn chyp =>
               Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
             val clause = (raw, hyps)
@@ -409,7 +409,7 @@ fun rawsat_thm ctxt clauses =
 
 fun rawsat_tac ctxt i =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
-    resolve_tac [rawsat_thm ctxt' (map cprop_of prems)] 1) ctxt i;
+    resolve_tac ctxt' [rawsat_thm ctxt' (map cprop_of prems)] 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)
@@ -424,7 +424,7 @@ fun rawsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun pre_cnf_tac ctxt =
-  resolve_tac @{thms ccontr} THEN'
+  resolve_tac ctxt @{thms ccontr} THEN'
   Object_Logic.atomize_prems_tac ctxt THEN'
   CONVERSION Drule.beta_eta_conversion;
 
@@ -436,7 +436,8 @@ fun pre_cnf_tac ctxt =
 (* ------------------------------------------------------------------------- *)
 
 fun cnfsat_tac ctxt i =
-  (eresolve_tac [FalseE] i) ORELSE (REPEAT_DETERM (eresolve_tac [conjE] i) THEN rawsat_tac ctxt i);
+  (eresolve_tac  ctxt [FalseE] i) ORELSE
+  (REPEAT_DETERM (eresolve_tac ctxt [conjE] i) THEN rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* cnfxsat_tac: checks if the empty clause "False" occurs among the          *)
@@ -446,8 +447,9 @@ fun cnfsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun cnfxsat_tac ctxt i =
-  (eresolve_tac [FalseE] i) ORELSE
-    (REPEAT_DETERM (eresolve_tac [conjE] i ORELSE eresolve_tac [exE] i) THEN rawsat_tac ctxt i);
+  (eresolve_tac ctxt [FalseE] i) ORELSE
+    (REPEAT_DETERM (eresolve_tac ctxt [conjE] i ORELSE eresolve_tac ctxt [exE] i) THEN
+      rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* sat_tac: tactic for calling an external SAT solver, taking as input an    *)

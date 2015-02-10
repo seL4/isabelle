@@ -1309,7 +1309,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
   in bottomc (mode, Option.map (Drule.flexflex_unique (SOME ctxt)) oo prover, maxidx) ctxt ct end;
 
 val simple_prover =
-  SINGLE o (fn ctxt => ALLGOALS (resolve_tac (prems_of ctxt)));
+  SINGLE o (fn ctxt => ALLGOALS (resolve_tac ctxt (prems_of ctxt)));
 
 fun rewrite _ _ [] = Thm.reflexive
   | rewrite ctxt full thms =

@@ -76,12 +76,14 @@ fun safe_tac ctxt = REPEAT_DETERM_FIRST (safe_step_tac ctxt);
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac ctxt =
   assume_tac ctxt APPEND' mp_tac APPEND' 
-  biresolve_tac (safe0_brls @ safep_brls);
+  biresolve_tac ctxt (safe0_brls @ safep_brls);
 
 (*One safe or unsafe step. *)
-fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_brls i];
+fun step_tac ctxt i =
+  FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac ctxt haz_brls i];
 
-fun step_dup_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_dup_brls i];
+fun step_dup_tac ctxt i =
+  FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac ctxt haz_dup_brls i];
 
 (*Dumb but fast*)
 fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));

@@ -368,7 +368,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (mk_mor Bs ss Bs_copy ss active_ids);
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_mor_incl_tac mor_def map_ids))
+          (fn {context = ctxt, ...} => mk_mor_incl_tac ctxt mor_def map_ids)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -860,7 +860,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       lthy
       |> @{fold_map 3} (fn b => fn mx => fn car_init =>
         typedef (b, params, mx) car_init NONE
-          (fn _ => EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
+          (fn ctxt =>
+            EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac ctxt alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
 
@@ -1024,7 +1025,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       in
         Goal.prove_sorry lthy [] []
           (HOLogic.mk_Trueprop (mk_mor UNIVs ctors active_UNIVs ss (map (mk_fold Ts ss) ks)))
-          (K (mk_mor_fold_tac cT ct fold_defs init_ex_mor_thm mor_cong))
+          (fn {context = ctxt, ...} =>
+            mk_mor_fold_tac ctxt cT ct fold_defs init_ex_mor_thm mor_cong)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;

@@ -70,11 +70,11 @@ to the front (and similarly for @{text "t=x"}):
 
 simproc_setup defined_Collect ("{x. P x & Q x}") = {*
   fn _ => Quantifier1.rearrange_Collect
-    (fn _ =>
-      resolve_tac @{thms Collect_cong} 1 THEN
-      resolve_tac @{thms iffI} 1 THEN
+    (fn ctxt =>
+      resolve_tac ctxt @{thms Collect_cong} 1 THEN
+      resolve_tac ctxt @{thms iffI} 1 THEN
       ALLGOALS
-        (EVERY' [REPEAT_DETERM o eresolve_tac @{thms conjE},
+        (EVERY' [REPEAT_DETERM o eresolve_tac ctxt @{thms conjE},
           DEPTH_SOLVE_1 o ares_tac @{thms conjI}]))
 *}
 
@@ -359,14 +359,14 @@ simproc_setup defined_Bex ("EX x:A. P x & Q x") = {*
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms Bex_def} THEN
-      Quantifier1.prove_one_point_ex_tac)
+      Quantifier1.prove_one_point_ex_tac ctxt)
 *}
 
 simproc_setup defined_All ("ALL x:A. P x --> Q x") = {*
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms Ball_def} THEN
-      Quantifier1.prove_one_point_all_tac)
+      Quantifier1.prove_one_point_all_tac ctxt)
 *}
 
 lemma ballI [intro!]: "(!!x. x:A ==> P x) ==> ALL x:A. P x"
@@ -383,7 +383,7 @@ text {*
 
 setup {*
   map_theory_claset (fn ctxt =>
-    ctxt addbefore ("bspec", fn ctxt' => dresolve_tac @{thms bspec} THEN' assume_tac ctxt'))
+    ctxt addbefore ("bspec", fn ctxt' => dresolve_tac ctxt' @{thms bspec} THEN' assume_tac ctxt'))
 *}
 
 ML {*

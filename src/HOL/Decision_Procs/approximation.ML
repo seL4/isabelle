@@ -100,7 +100,7 @@ fun apply_tactic ctxt term tactic =
 fun prepare_form ctxt term = apply_tactic ctxt term (
     REPEAT (FIRST' [etac @{thm intervalE}, etac @{thm meta_eqE}, rtac @{thm impI}] 1)
     THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems 1) ctxt 1
-    THEN DETERM (TRY (filter_prems_tac (K false) 1)))
+    THEN DETERM (TRY (filter_prems_tac ctxt (K false) 1)))
 
 fun reify_form ctxt term = apply_tactic ctxt term
    (Reification.tac ctxt form_equations NONE 1)

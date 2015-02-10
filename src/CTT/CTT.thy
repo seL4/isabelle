@@ -453,13 +453,13 @@ val (safe0_brls, safep_brls) =
 
 fun safestep_tac ctxt thms i =
     form_tac ctxt ORELSE
-    resolve_tac thms i  ORELSE
-    biresolve_tac safe0_brls i  ORELSE  mp_tac ctxt i  ORELSE
-    DETERM (biresolve_tac safep_brls i)
+    resolve_tac ctxt thms i  ORELSE
+    biresolve_tac ctxt safe0_brls i  ORELSE  mp_tac ctxt i  ORELSE
+    DETERM (biresolve_tac ctxt safep_brls i)
 
 fun safe_tac ctxt thms i = DEPTH_SOLVE_1 (safestep_tac ctxt thms i)
 
-fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac unsafe_brls
+fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac ctxt unsafe_brls
 
 (*Fails unless it solves the goal!*)
 fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)

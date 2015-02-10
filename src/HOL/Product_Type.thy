@@ -1327,10 +1327,10 @@ simproc_setup Collect_mem ("Collect t") = {*
                       SOME (Goal.prove ctxt [] []
                         (Const (@{const_name Pure.eq}, T --> T --> propT) $ S $ S')
                         (K (EVERY
-                          [resolve_tac [eq_reflection] 1,
-                           resolve_tac @{thms subset_antisym} 1,
-                           resolve_tac [subsetI] 1, dresolve_tac [CollectD] 1, simp,
-                           resolve_tac [subsetI] 1, resolve_tac [CollectI] 1, simp])))
+                          [resolve_tac ctxt [eq_reflection] 1,
+                           resolve_tac ctxt @{thms subset_antisym} 1,
+                           resolve_tac ctxt [subsetI] 1, dresolve_tac ctxt [CollectD] 1, simp,
+                           resolve_tac ctxt [subsetI] 1, resolve_tac ctxt [CollectI] 1, simp])))
                     end
                   else NONE)
           | _ => NONE)

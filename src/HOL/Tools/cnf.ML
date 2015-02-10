@@ -39,7 +39,7 @@ sig
   val is_clause: term -> bool
   val clause_is_trivial: term -> bool
 
-  val clause2raw_thm: thm -> thm
+  val clause2raw_thm: Proof.context -> thm -> thm
   val make_nnf_thm: theory -> term -> thm
 
   val weakening_tac: Proof.context -> int -> tactic  (* removes the first hypothesis of a subgoal *)
@@ -132,7 +132,7 @@ fun clause_is_trivial c =
 (*      where each xi' is the negation normal form of ~xi                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun clause2raw_thm clause =
+fun clause2raw_thm ctxt clause =
   let
     (* eliminates negated disjunctions from the i-th premise, possibly *)
     (* adding new premises, then continues with the (i+1)-th premise   *)
@@ -141,7 +141,8 @@ fun clause2raw_thm clause =
       if i > nprems_of thm then
         thm
       else
-        not_disj_to_prem (i+1) (Seq.hd (REPEAT_DETERM (resolve_tac [clause2raw_not_disj] i) thm))
+        not_disj_to_prem (i+1)
+          (Seq.hd (REPEAT_DETERM (resolve_tac ctxt [clause2raw_not_disj] i) thm))
     (* moves all premises to hyps, i.e. "[...] |- A1 ==> ... ==> An ==> B" *)
     (* becomes "[..., A1, ..., An] |- B"                                   *)
     (* Thm.thm -> Thm.thm *)
@@ -154,7 +155,7 @@ fun clause2raw_thm clause =
     (* [...] |- ~x1 ==> ... ==> ~xn ==> False *)
     |> not_disj_to_prem 1
     (* [...] |- x1' ==> ... ==> xn' ==> False *)
-    |> Seq.hd o TRYALL (resolve_tac [clause2raw_not_not])
+    |> Seq.hd o TRYALL (resolve_tac ctxt [clause2raw_not_not])
     (* [..., x1', ..., xn'] |- False *)
     |> prems_to_hyps
   end;
@@ -529,7 +530,7 @@ fun make_cnfx_thm ctxt t =
 (* ------------------------------------------------------------------------- *)
 
 fun weakening_tac ctxt i =
-  dresolve_tac [weakening_thm] i THEN assume_tac ctxt (i+1);
+  dresolve_tac ctxt [weakening_thm] i THEN assume_tac ctxt (i+1);
 
 (* ------------------------------------------------------------------------- *)
 (* cnf_rewrite_tac: converts all premises of the 'i'-th subgoal to CNF       *)

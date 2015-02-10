@@ -171,11 +171,11 @@ fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
   unfold_thms_tac ctxt [collect_set_map] THEN
   unfold_thms_tac ctxt comp_wit_thms THEN
   REPEAT_DETERM ((atac ORELSE'
-    REPEAT_DETERM o eresolve_tac @{thms UnionE UnE} THEN'
-    etac imageE THEN' TRY o dresolve_tac Gwit_thms THEN'
+    REPEAT_DETERM o eresolve_tac ctxt @{thms UnionE UnE} THEN'
+    etac imageE THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
     (etac FalseE ORELSE'
     hyp_subst_tac ctxt THEN'
-    dresolve_tac Fwit_thms THEN'
+    dresolve_tac ctxt Fwit_thms THEN'
     (etac FalseE ORELSE' atac))) 1);
 
 
@@ -231,7 +231,7 @@ fun mk_le_rel_OO_tac outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
 fun mk_simple_rel_OO_Grp_tac rel_OO_Grp in_alt_thm =
   rtac (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
 
-fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
+fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve0_tac (@{thm emptyE} :: wit_thms));
 
 val csum_thms =
   @{thms csum_cong1 csum_cong2 csum_cong  csum_dup[OF natLeq_cinfinite natLeq_Card_order]};
@@ -247,7 +247,7 @@ fun mk_simplified_set_tac ctxt collect_set_map =
   unfold_thms_tac ctxt simplified_set_simps THEN rtac refl 1;
 
 val bd_ordIso_natLeq_tac =
-  HEADGOAL (REPEAT_DETERM o resolve_tac
+  HEADGOAL (REPEAT_DETERM o resolve0_tac
     (@{thm ordIso_refl[OF natLeq_Card_order]} :: csum_thms @ cprod_thms));
 
 end;

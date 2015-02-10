@@ -244,9 +244,9 @@ fun add_constructors
       let
         val rules = @{thms compact_sinl compact_sinr compact_spair
                            compact_up compact_ONE}
-        val tacs =
+        fun tacs ctxt =
           [rtac (iso_locale RS @{thm iso.compact_abs}) 1,
-           REPEAT (resolve_tac rules 1 ORELSE atac 1)]
+           REPEAT (resolve_tac ctxt rules 1 ORELSE atac 1)]
         fun con_compact (con, args) =
           let
             val vs = vars_of args
@@ -255,7 +255,7 @@ fun add_constructors
             val assms = map (mk_trp o mk_compact) vs
             val goal = Logic.list_implies (assms, concl)
           in
-            prove thy con_betas goal (K tacs)
+            prove thy con_betas goal (tacs o #context)
           end
       in
         map con_compact spec'
@@ -500,8 +500,8 @@ fun add_case_combinator
         val defs = case_beta :: map mk_meta_eq [rep_strict, @{thm cfcomp2}]
         val goal = mk_trp (mk_strict case_app)
         val rules = @{thms sscase1 ssplit1 strictify1 one_case1}
-        val tacs = [resolve_tac rules 1]
-      in prove thy defs goal (K tacs) end
+        fun tacs ctxt = [resolve_tac ctxt rules 1]
+      in prove thy defs goal (tacs o #context) end
 
     (* prove rewrites for case combinator *)
     local

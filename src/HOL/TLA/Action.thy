@@ -263,9 +263,9 @@ ML {*
 *)
 fun action_simp_tac ctxt intros elims =
     asm_full_simp_tac
-         (ctxt setloop (fn _ => (resolve_tac ((map (action_use ctxt) intros)
+         (ctxt setloop (fn _ => (resolve_tac ctxt ((map (action_use ctxt) intros)
                                     @ [refl,impI,conjI,@{thm actionI},@{thm intI},allI]))
-                      ORELSE' (eresolve_tac ((map (action_use ctxt) elims)
+                      ORELSE' (eresolve_tac ctxt ((map (action_use ctxt) elims)
                                              @ [conjE,disjE,exE]))));
 *}
 

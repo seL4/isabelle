@@ -347,7 +347,7 @@ fun possibility_tac ctxt =
     (ALLGOALS (simp_tac (ctxt delsimps [@{thm used_Says}, @{thm used_Notes}]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, @{thm Nonce_supply}]))
+                   resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}]))
 
 (*For harder protocols (such as SET_CR!), where we have to set up some
   nonces and keys initially*)
@@ -355,7 +355,7 @@ fun basic_possibility_tac ctxt =
     REPEAT 
     (ALLGOALS (asm_simp_tac (ctxt setSolver safe_solver))
      THEN
-     REPEAT_FIRST (resolve_tac [refl, conjI]))
+     REPEAT_FIRST (resolve_tac ctxt [refl, conjI]))
 *}
 
 method_setup possibility = {*

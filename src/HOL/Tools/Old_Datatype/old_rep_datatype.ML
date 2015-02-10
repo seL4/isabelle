@@ -55,12 +55,12 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
         Goal.prove_sorry_global thy []
           (Logic.strip_imp_prems t)
           (Logic.strip_imp_concl t)
-          (fn {prems, ...} =>
+          (fn {context = ctxt, prems, ...} =>
             EVERY
-              [resolve_tac [induct'] 1,
-               REPEAT (resolve_tac [TrueI] 1),
-               REPEAT ((resolve_tac [impI] 1) THEN (eresolve_tac prems 1)),
-               REPEAT (resolve_tac [TrueI] 1)])
+              [resolve_tac ctxt [induct'] 1,
+               REPEAT (resolve_tac ctxt [TrueI] 1),
+               REPEAT ((resolve_tac ctxt [impI] 1) THEN (eresolve_tac ctxt prems 1)),
+               REPEAT (resolve_tac ctxt [TrueI] 1)])
       end;
 
     val casedist_thms =
@@ -176,16 +176,17 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
           in
             (EVERY
               [DETERM tac,
-                REPEAT (eresolve_tac @{thms ex1E} 1), resolve_tac @{thms ex1I} 1,
+                REPEAT (eresolve_tac ctxt @{thms ex1E} 1), resolve_tac ctxt @{thms ex1I} 1,
                 DEPTH_SOLVE_1 (ares_tac [intr] 1),
-                REPEAT_DETERM_N k (eresolve_tac [thin_rl] 1 THEN rotate_tac 1 1),
-                eresolve_tac [elim] 1,
+                REPEAT_DETERM_N k (eresolve_tac ctxt [thin_rl] 1 THEN rotate_tac 1 1),
+                eresolve_tac ctxt [elim] 1,
                 REPEAT_DETERM_N j distinct_tac,
-                TRY (dresolve_tac inject 1),
-                REPEAT (eresolve_tac [conjE] 1), hyp_subst_tac ctxt 1,
-                REPEAT (EVERY [eresolve_tac [allE] 1, dresolve_tac [mp] 1, assume_tac ctxt 1]),
+                TRY (dresolve_tac ctxt inject 1),
+                REPEAT (eresolve_tac ctxt [conjE] 1), hyp_subst_tac ctxt 1,
+                REPEAT
+                  (EVERY [eresolve_tac ctxt [allE] 1, dresolve_tac ctxt [mp] 1, assume_tac ctxt 1]),
                 TRY (hyp_subst_tac ctxt 1),
-                resolve_tac [refl] 1,
+                resolve_tac ctxt [refl] 1,
                 REPEAT_DETERM_N (n - j - 1) distinct_tac],
               intrs, j + 1)
           end;
@@ -211,7 +212,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
           (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj rec_unique_ts))
           (fn {context = ctxt, ...} =>
             #1 (fold (mk_unique_tac ctxt) (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
-              (((resolve_tac [induct'] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1 THEN
+              (((resolve_tac ctxt [induct'] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1 THEN
                   rewrite_goals_tac ctxt [mk_meta_eq @{thm choice_eq}], rec_intrs)))))
       end;
 
@@ -254,10 +255,10 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
         Goal.prove_sorry_global thy2 [] [] t
           (fn {context = ctxt, ...} => EVERY
             [rewrite_goals_tac ctxt reccomb_defs,
-             resolve_tac @{thms the1_equality} 1,
-             resolve_tac rec_unique_thms 1,
-             resolve_tac rec_intrs 1,
-             REPEAT (resolve_tac [allI] 1 ORELSE resolve_tac rec_total_thms 1)]))
+             resolve_tac ctxt @{thms the1_equality} 1,
+             resolve_tac ctxt rec_unique_thms 1,
+             resolve_tac ctxt rec_intrs 1,
+             REPEAT (resolve_tac ctxt [allI] 1 ORELSE resolve_tac ctxt rec_total_thms 1)]))
        (Old_Datatype_Prop.make_primrecs reccomb_names descr thy2);
   in
     thy2
@@ -339,7 +340,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
     fun prove_case t =
       Goal.prove_sorry_global thy2 [] [] t (fn {context = ctxt, ...} =>
         EVERY [rewrite_goals_tac ctxt (case_defs @ map mk_meta_eq primrec_thms),
-          resolve_tac [refl] 1]);
+          resolve_tac ctxt [refl] 1]);
 
     fun prove_cases (Type (Tcon, _)) ts =
       (case Ctr_Sugar.ctr_sugar_of ctxt Tcon of
@@ -380,7 +381,7 @@ fun prove_split_thms (config : Old_Datatype_Aux.config)
         val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (prems_of exhaustion)));
         val exhaustion' = cterm_instantiate [(cert lhs, cert (Free ("x", T)))] exhaustion;
         fun tac ctxt =
-          EVERY [resolve_tac [exhaustion'] 1,
+          EVERY [resolve_tac ctxt [exhaustion'] 1,
             ALLGOALS (asm_simp_tac
               (put_simpset HOL_ss ctxt addsimps (dist_rewrites' @ inject @ case_thms')))];
       in
@@ -406,7 +407,8 @@ fun prove_case_cong_weaks new_type_names case_names descr thy =
   let
     fun prove_case_cong_weak t =
      Goal.prove_sorry_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-       (fn {prems, ...} => EVERY [resolve_tac [hd prems RS arg_cong] 1]);
+       (fn {context = ctxt, prems, ...} =>
+         EVERY [resolve_tac ctxt [hd prems RS arg_cong] 1]);
 
     val case_cong_weaks =
       map prove_case_cong_weak (Old_Datatype_Prop.make_case_cong_weaks case_names descr thy);
@@ -424,13 +426,13 @@ fun prove_nchotomys (config : Old_Datatype_Aux.config) new_type_names descr case
       let
         (* For goal i, select the correct disjunct to attack, then prove it *)
         fun tac ctxt i 0 =
-              EVERY [TRY (resolve_tac [disjI1] i), hyp_subst_tac ctxt i,
-                REPEAT (resolve_tac [exI] i), resolve_tac [refl] i]
-          | tac ctxt i n = resolve_tac [disjI2] i THEN tac ctxt i (n - 1);
+              EVERY [TRY (resolve_tac ctxt [disjI1] i), hyp_subst_tac ctxt i,
+                REPEAT (resolve_tac ctxt [exI] i), resolve_tac ctxt [refl] i]
+          | tac ctxt i n = resolve_tac ctxt [disjI2] i THEN tac ctxt i (n - 1);
       in
         Goal.prove_sorry_global thy [] [] t
           (fn {context = ctxt, ...} =>
-            EVERY [resolve_tac [allI] 1,
+            EVERY [resolve_tac ctxt [allI] 1,
              Old_Datatype_Aux.exh_tac ctxt (K exhaustion) 1,
              ALLGOALS (fn i => tac ctxt i (i - 1))])
       end;
@@ -459,8 +461,9 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
               EVERY [
                 simp_tac (put_simpset HOL_ss ctxt addsimps [hd prems]) 1,
                 cut_tac nchotomy'' 1,
-                REPEAT (eresolve_tac [disjE] 1 THEN REPEAT (eresolve_tac [exE] 1) THEN simplify 1),
-                REPEAT (eresolve_tac [exE] 1) THEN simplify 1 (* Get last disjunct *)]
+                REPEAT (eresolve_tac ctxt [disjE] 1 THEN
+                  REPEAT (eresolve_tac ctxt [exE] 1) THEN simplify 1),
+                REPEAT (eresolve_tac ctxt [exE] 1) THEN simplify 1 (* Get last disjunct *)]
             end)
       end;
 

@@ -126,8 +126,8 @@ lemma lem: "\<lbrakk>a:B(u); u = v\<rbrakk> \<Longrightarrow> a : B(v)"
 ML {*
 fun mk_ncanT_tac top_crls crls =
   SUBPROOF (fn {context = ctxt, prems = major :: prems, ...} =>
-    resolve_tac ([major] RL top_crls) 1 THEN
-    REPEAT_SOME (eresolve_tac (crls @ [@{thm exE}, @{thm bexE}, @{thm conjE}, @{thm disjE}])) THEN
+    resolve_tac ctxt ([major] RL top_crls) 1 THEN
+    REPEAT_SOME (eresolve_tac ctxt (crls @ [@{thm exE}, @{thm bexE}, @{thm conjE}, @{thm disjE}])) THEN
     ALLGOALS (asm_simp_tac ctxt) THEN
     ALLGOALS (ares_tac (prems RL [@{thm lem}]) ORELSE' etac @{thm bspec}) THEN
     safe_tac (ctxt addSIs prems))
@@ -436,7 +436,7 @@ ML {*
 fun POgen_tac ctxt (rla, rlb) i =
   SELECT_GOAL (safe_tac ctxt) i THEN
   rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
-  (REPEAT (resolve_tac
+  (REPEAT (resolve_tac ctxt
       (@{thms POgenIs} @ [@{thm PO_refl} RS (@{thm POgen_mono} RS @{thm ci3_AI})] @
         (@{thms POgenIs} RL [@{thm POgen_mono} RS @{thm ci3_AgenI}]) @
         [@{thm POgen_mono} RS @{thm ci3_RI}]) i))
@@ -467,8 +467,8 @@ lemma EQgenIs:
   unfolding data_defs by (genIs EQgenXH EQgen_mono)+
 
 ML {*
-fun EQgen_raw_tac i =
-  (REPEAT (resolve_tac (@{thms EQgenIs} @
+fun EQgen_raw_tac ctxt i =
+  (REPEAT (resolve_tac ctxt (@{thms EQgenIs} @
         [@{thm EQ_refl} RS (@{thm EQgen_mono} RS @{thm ci3_AI})] @
         (@{thms EQgenIs} RL [@{thm EQgen_mono} RS @{thm ci3_AgenI}]) @
         [@{thm EQgen_mono} RS @{thm ci3_RI}]) i))
@@ -480,9 +480,9 @@ fun EQgen_raw_tac i =
 fun EQgen_tac ctxt rews i =
  SELECT_GOAL
    (TRY (safe_tac ctxt) THEN
-    resolve_tac ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
+    resolve_tac ctxt ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
     ALLGOALS (simp_tac ctxt) THEN
-    ALLGOALS EQgen_raw_tac) i
+    ALLGOALS (EQgen_raw_tac ctxt)) i
 *}
 
 method_setup EQgen = {*

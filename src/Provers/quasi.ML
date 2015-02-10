@@ -563,12 +563,14 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
 
   val (subgoal, prf) = mkconcl_trans thy C;
  in
-  Subgoal.FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
     let val thms = map (prove prems) prfs
-    in resolve_tac [prove thms prf] 1 end) ctxt n st
+    in resolve_tac ctxt' [prove thms prf] 1 end) ctxt n st
  end
- handle Contr p => Subgoal.FOCUS (fn {prems, ...} => resolve_tac [prove prems p] 1) ctxt n st
-  | Cannot  => Seq.empty);
+ handle Contr p =>
+    Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
+      resolve_tac ctxt' [prove prems p] 1) ctxt n st
+  | Cannot => Seq.empty);
 
 
 (* quasi_tac - solves quasi orders *)
@@ -583,13 +585,13 @@ fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prfs = solveQuasiOrder thy (lesss, C);
   val (subgoals, prf) = mkconcl_quasi thy C;
  in
-  Subgoal.FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
     let val thms = map (prove prems) prfs
-    in resolve_tac [prove thms prf] 1 end) ctxt n st
+    in resolve_tac ctxt' [prove thms prf] 1 end) ctxt n st
  end
  handle Contr p =>
-    (Subgoal.FOCUS (fn {prems, ...} => resolve_tac [prove prems p] 1) ctxt n st
-      handle General.Subscript => Seq.empty)
+    (Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
+      resolve_tac ctxt' [prove prems p] 1) ctxt n st handle General.Subscript => Seq.empty)
   | Cannot => Seq.empty
   | General.Subscript => Seq.empty);
 

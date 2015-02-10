@@ -182,7 +182,7 @@ schematic_lemma
     and "\<And>z. z:A*B \<Longrightarrow> C(z) type"
   shows "?a : (SUM z:A*B. C(z)) --> (SUM u:A. SUM v:B. C(<u,v>))"
 apply (rule intr_rls)
-apply (tactic {* biresolve_tac safe_brls 2 *})
+apply (tactic {* biresolve_tac @{context} safe_brls 2 *})
 (*Now must convert assumption C(z) into antecedent C(<kd,ke>) *)
 apply (rule_tac [2] a = "y" in ProdE)
 apply (typechk assms)

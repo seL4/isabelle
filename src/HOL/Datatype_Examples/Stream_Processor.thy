@@ -136,7 +136,7 @@ by (tactic {*
       BNF_Util.CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks, rtac @{thm relcomppI}, atac,
       rtac @{thm conversepI}, rtac @{thm GrpI}, rtac refl, rtac CollectI,
       BNF_Util.CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks,
-      REPEAT_DETERM o eresolve_tac @{thms relcomppE conversepE GrpE},
+      REPEAT_DETERM o eresolve_tac @{context} @{thms relcomppE conversepE GrpE},
       hyp_subst_tac @{context}, atac])
   end
 *})

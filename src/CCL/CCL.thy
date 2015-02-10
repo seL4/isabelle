@@ -205,7 +205,7 @@ ML {*
       val inj_lemmas = maps mk_inj_lemmas rews
     in
       CHANGED (REPEAT (ares_tac [@{thm iffI}, @{thm allI}, @{thm conjI}] i ORELSE
-        eresolve_tac inj_lemmas i ORELSE
+        eresolve_tac ctxt inj_lemmas i ORELSE
         asm_simp_tac (ctxt addsimps rews) i))
     end;
 *}
@@ -267,7 +267,7 @@ val ccl_dstncts =
   let
     fun mk_raw_dstnct_thm rls s =
       Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
-        (fn _ => rtac @{thm notI} 1 THEN eresolve_tac rls 1)
+        (fn {context = ctxt, ...} => rtac @{thm notI} 1 THEN eresolve_tac ctxt rls 1)
   in map (mk_raw_dstnct_thm caseB_lemmas)
     (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 

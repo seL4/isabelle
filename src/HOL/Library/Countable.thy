@@ -190,7 +190,7 @@ ML {*
           [rtac @{thm countable_datatype} i,
            rtac typedef_thm i,
            etac induct_thm' i,
-           REPEAT (resolve_tac rules i ORELSE atac i)]) 1
+           REPEAT (resolve_tac ctxt rules i ORELSE atac i)]) 1
       end)
 *}
 

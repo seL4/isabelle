@@ -208,9 +208,9 @@ fun measurable_tac ctxt facts =
     fun r_tac msg =
       if Config.get ctxt debug
       then FIRST' o
-        map (fn thm => resolve_tac [thm]
+        map (fn thm => resolve_tac ctxt [thm]
           THEN' K (debug_tac ctxt (debug_fact (msg ^ " resolved using") thm) all_tac))
-      else resolve_tac
+      else resolve_tac ctxt
 
     val elem_congI = @{lemma "A = B \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A" by simp}
 
@@ -249,7 +249,8 @@ fun measurable_tac ctxt facts =
           val f = dest_measurable_fun (HOLogic.dest_Trueprop t)
           fun cert f = map (Option.map (f (Proof_Context.theory_of ctxt)))
           fun inst (ts, Ts) =
-            Drule.instantiate' (cert ctyp_of Ts) (cert cterm_of ts) @{thm measurable_compose_countable}
+            Drule.instantiate' (cert ctyp_of Ts) (cert cterm_of ts)
+              @{thm measurable_compose_countable}
         in r_tac "split countable" (cnt_prefixes ctxt f |> map inst) i end
         handle TERM _ => no_tac) 1)
 

@@ -324,7 +324,7 @@ fun define_take_functions
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
            asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps take_Suc_thms) 1,
            REPEAT (etac @{thm conjE} 1
-                   ORELSE resolve_tac deflation_rules 1
+                   ORELSE resolve_tac ctxt deflation_rules 1
                    ORELSE atac 1)])
       end
     fun conjuncts [] _ = []
@@ -462,9 +462,9 @@ fun prove_finite_take_induct
             EVERY [
             rewrite_goals_tac ctxt finite_defs,
             rtac @{thm lub_ID_finite} 1,
-            resolve_tac chain_take_thms 1,
-            resolve_tac lub_take_thms 1,
-            resolve_tac decisive_thms 1]
+            resolve_tac ctxt chain_take_thms 1,
+            resolve_tac ctxt lub_take_thms 1,
+            resolve_tac ctxt decisive_thms 1]
       in
         Goal.prove_global thy [] [] goal (tac o #context)
       end

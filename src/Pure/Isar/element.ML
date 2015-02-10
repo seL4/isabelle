@@ -270,14 +270,14 @@ fun prove_witness ctxt t tac =
   Witness (t,
     Thm.close_derivation
       (Goal.prove ctxt [] [] (mark_witness t)
-        (fn _ => resolve_tac [Drule.protectI] 1 THEN tac)));
+        (fn _ => resolve_tac ctxt [Drule.protectI] 1 THEN tac)));
 
 
 local
 
 val refine_witness =
-  Proof.refine (Method.Basic (K (NO_CASES o
-    K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (resolve_tac [Drule.protectI])))))))));
+  Proof.refine (Method.Basic (fn ctxt => NO_CASES o
+    K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (resolve_tac ctxt [Drule.protectI]))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
   let

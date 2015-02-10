@@ -23,7 +23,7 @@ sig
   val unfold: thm list -> Proof.context -> method
   val fold: thm list -> Proof.context -> method
   val atomize: bool -> Proof.context -> method
-  val this: method
+  val this: Proof.context -> method
   val fact: thm list -> Proof.context -> method
   val assm_tac: Proof.context -> int -> tactic
   val all_assm_tac: Proof.context -> tactic
@@ -32,8 +32,8 @@ sig
   val trace: Proof.context -> thm list -> unit
   val rule_tac: Proof.context -> thm list -> thm list -> int -> tactic
   val some_rule_tac: Proof.context -> thm list -> thm list -> int -> tactic
-  val intros_tac: thm list -> thm list -> tactic
-  val try_intros_tac: thm list -> thm list -> tactic
+  val intros_tac: Proof.context -> thm list -> thm list -> tactic
+  val try_intros_tac: Proof.context -> thm list -> thm list -> tactic
   val rule: Proof.context -> thm list -> method
   val erule: Proof.context -> int -> thm list -> method
   val drule: Proof.context -> int -> thm list -> method
@@ -99,7 +99,7 @@ val succeed = METHOD (K all_tac);
 local
 
 fun cut_rule_tac rule =
-  resolve_tac [Drule.forall_intr_vars rule COMP_INCR revcut_rl];
+  resolve0_tac [Drule.forall_intr_vars rule COMP_INCR revcut_rl];
 
 in
 
@@ -120,7 +120,7 @@ end;
 
 fun cheating ctxt int = METHOD (fn _ => fn st =>
   if int orelse Config.get ctxt quick_and_dirty then
-    ALLGOALS Skip_Proof.cheat_tac st
+    ALLGOALS (Skip_Proof.cheat_tac ctxt) st
   else error "Cheating requires quick_and_dirty mode!");
 
 
@@ -146,7 +146,7 @@ fun atomize false ctxt =
 
 (* this -- resolve facts directly *)
 
-val this = METHOD (EVERY o map (HEADGOAL o resolve_tac o single));
+fun this ctxt = METHOD (EVERY o map (HEADGOAL o resolve_tac ctxt o single));
 
 
 (* fact -- composition by facts from context *)
@@ -159,17 +159,17 @@ fun fact [] ctxt = SIMPLE_METHOD' (Proof_Context.some_fact_tac ctxt)
 
 local
 
-fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
+fun cond_rtac ctxt cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
-  then resolve_tac [rule] i else no_tac);
+  then resolve_tac ctxt [rule] i else no_tac);
 
 in
 
 fun assm_tac ctxt =
   assume_tac ctxt APPEND'
   Goal.assume_rule_tac ctxt APPEND'
-  cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
-  cond_rtac (can Logic.dest_term) Drule.termI;
+  cond_rtac ctxt (can Logic.dest_equals) Drule.reflexive_thm APPEND'
+  cond_rtac ctxt (can Logic.dest_term) Drule.termI;
 
 fun all_assm_tac ctxt =
   let
@@ -180,7 +180,7 @@ fun all_assm_tac ctxt =
 
 fun assumption ctxt = METHOD (HEADGOAL o
   (fn [] => assm_tac ctxt
-    | [fact] => solve_tac [fact]
+    | [fact] => solve_tac ctxt [fact]
     | _ => K no_tac));
 
 fun finish immed ctxt =
@@ -203,9 +203,9 @@ local
 
 fun gen_rule_tac tac ctxt rules facts =
   (fn i => fn st =>
-    if null facts then tac rules i st
+    if null facts then tac ctxt rules i st
     else
-      Seq.maps (fn rule => (tac o single) rule i st)
+      Seq.maps (fn rule => (tac ctxt o single) rule i st)
         (Drule.multi_resolves (SOME ctxt) facts rules))
   THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
@@ -238,9 +238,9 @@ end;
 
 (* intros_tac -- pervasive search spanned by intro rules *)
 
-fun gen_intros_tac goals intros facts =
+fun gen_intros_tac goals ctxt intros facts =
   goals (insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac intros))
+      REPEAT_ALL_NEW (resolve_tac ctxt intros))
     THEN Tactic.distinct_subgoals_tac;
 
 val intros_tac = gen_intros_tac ALLGOALS;
@@ -313,7 +313,7 @@ fun map_source f (Source src) = Source (f src)
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
 val default_text = Source (Token.src ("default", Position.none) []);
-val this_text = Basic (K this);
+val this_text = Basic this;
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
 
@@ -603,7 +603,7 @@ val _ = Theory.setup
   setup @{binding erule} (xrule_meth erule) "apply rule in elimination manner (improper)" #>
   setup @{binding drule} (xrule_meth drule) "apply rule in destruct manner (improper)" #>
   setup @{binding frule} (xrule_meth frule) "apply rule in forward manner (improper)" #>
-  setup @{binding this} (Scan.succeed (K this)) "apply current facts as rules" #>
+  setup @{binding this} (Scan.succeed this) "apply current facts as rules" #>
   setup @{binding fact} (Attrib.thms >> fact) "composition by facts from context" #>
   setup @{binding assumption} (Scan.succeed assumption)
     "proof by assumption, preferring facts" #>

@@ -170,14 +170,14 @@ fun tryres (th, rls) =
    property of the form "... c ... c ... c ..." will lead to a huge unification
    problem, due to the (spurious) choices between projection and imitation. The
    workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
-fun quant_resolve_tac th i st =
+fun quant_resolve_tac ctxt th i st =
   case (concl_of st, prop_of th) of
     (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
     let
       val cc = cterm_of (theory_of_thm th) c
       val ct = Thm.dest_arg (cprop_of th)
-    in resolve_tac [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
-  | _ => resolve_tac [th] i st
+    in resolve_tac ctxt [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
+  | _ => resolve_tac ctxt [th] i st
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
   e.g. from conj_forward, should have the form
@@ -185,7 +185,7 @@ fun quant_resolve_tac th i st =
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res ctxt nf st =
   let
-    fun tacf [prem] = quant_resolve_tac (nf prem) 1
+    fun tacf [prem] = quant_resolve_tac ctxt (nf prem) 1
       | tacf prems =
         error (cat_lines
           ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
@@ -287,7 +287,7 @@ fun forward_res2 ctxt nf hyps st =
   case Seq.pull
         (REPEAT
          (Misc_Legacy.METAHYPS ctxt
-           (fn major::minors => resolve_tac [nf (minors @ hyps) major] 1) 1)
+           (fn major::minors => resolve_tac ctxt [nf (minors @ hyps) major] 1) 1)
          st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
@@ -390,7 +390,7 @@ fun cnf old_skolem_ths ctxt (th, ths) =
                 cnf_nil. The normal form is given to resolve_tac, instantiate a Boolean
                 variable created by resolution with disj_forward. Since (cnf_nil prem)
                 returns a LIST of theorems, we can backtrack to get all combinations.*)
-              let val tac = Misc_Legacy.METAHYPS ctxt (fn [prem] => resolve_tac (cnf_nil prem) 1) 1
+              let val tac = Misc_Legacy.METAHYPS ctxt (fn [prem] => resolve_tac ctxt (cnf_nil prem) 1) 1
               in  Seq.list_of ((tac THEN tac) (th RS disj_forward)) @ ths  end
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th, [])
@@ -500,7 +500,7 @@ fun check_tac st =
 
 (* resolve_from_net_tac actually made it slower... *)
 fun prolog_step_tac ctxt horns i =
-    (assume_tac ctxt i APPEND resolve_tac horns i) THEN check_tac THEN
+    (assume_tac ctxt i APPEND resolve_tac ctxt horns i) THEN check_tac THEN
     TRYALL_eq_assume_tac;
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
@@ -698,14 +698,14 @@ fun depth_prolog_tac ctxt horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o eresolve_tac [exE]
+  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o eresolve_tac ctxt [exE]
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
 fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [Object_Logic.atomize_prems_tac ctxt 1,
-            resolve_tac @{thms ccontr} 1,
+            resolve_tac ctxt @{thms ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,
@@ -719,7 +719,7 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
 fun best_meson_tac sizef ctxt =
   MESON all_tac (make_clauses ctxt)
     (fn cls =>
-         THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
+         THEN_BEST_FIRST (resolve_tac ctxt (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
                          (prolog_step_tac ctxt (make_horns cls) 1))
     ctxt
@@ -732,7 +732,7 @@ fun safe_best_meson_tac ctxt =
 
 fun depth_meson_tac ctxt =
   MESON all_tac (make_clauses ctxt)
-    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac ctxt (make_horns cls)])
+    (fn cls => EVERY [resolve_tac ctxt (gocls cls) 1, depth_prolog_tac ctxt (make_horns cls)])
     ctxt
 
 (** Iterative deepening version **)
@@ -764,7 +764,7 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
               ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
         in
           THEN_ITER_DEEPEN iter_deepen_limit
-            (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' ctxt horns)
+            (resolve_tac ctxt goes 1) (has_fewer_prems 1) (prolog_step_tac' ctxt horns)
         end));
 
 fun meson_tac ctxt ths =

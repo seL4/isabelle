@@ -623,7 +623,7 @@ val break_hypotheses =
 
 (*Prove subgoals of form A ==> B1 | ... | A | ... | Bn*)
 val clause_breaker =
-  (REPEAT o (resolve_tac [@{thm "disjI1"}, @{thm "disjI2"}, @{thm "conjI"}]))
+  (REPEAT o (resolve0_tac [@{thm "disjI1"}, @{thm "disjI2"}, @{thm "conjI"}]))
   THEN'  atac
 
 (*

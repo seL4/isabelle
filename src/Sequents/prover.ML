@@ -146,13 +146,13 @@ fun could_resolve_seq (prem,conc) =
 (*Like filt_resolve_tac, using could_resolve_seq
   Much faster than resolve_tac when there are many rules.
   Resolve subgoal i using the rules, unless more than maxr are compatible. *)
-fun filseq_resolve_tac rules maxr = SUBGOAL(fn (prem,i) =>
+fun filseq_resolve_tac ctxt rules maxr = SUBGOAL(fn (prem,i) =>
   let val rls = filter_thms could_resolve_seq (maxr+1, prem, rules)
   in  if length rls > maxr  then  no_tac
           else (*((rtac derelict 1 THEN rtac impl 1
                  THEN (rtac identity 2 ORELSE rtac ll_mp 2)
                  THEN rtac context1 1)
-                 ORELSE *) resolve_tac rls i
+                 ORELSE *) resolve_tac ctxt rls i
   end);
 
 
@@ -170,23 +170,23 @@ fun has_prems n rule =  (nprems_of rule = n);
   The abstraction over state prevents needless divergence in recursion.
   The 9999 should be a parameter, to delay treatment of flexible goals. *)
 
-fun RESOLVE_THEN rules =
+fun RESOLVE_THEN ctxt rules =
   let val [rls0,rls1,rls2] = partition_list has_prems 0 2 rules;
       fun tac nextac i state = state |>
-             (filseq_resolve_tac rls0 9999 i
+             (filseq_resolve_tac ctxt rls0 9999 i
               ORELSE
-              (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
+              (DETERM(filseq_resolve_tac ctxt rls1 9999 i) THEN  TRY(nextac i))
               ORELSE
-              (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
+              (DETERM(filseq_resolve_tac ctxt rls2 9999 i) THEN  TRY(nextac(i+1))
                                             THEN  TRY(nextac i)))
   in  tac  end;
 
 
 
 (*repeated resolution applied to the designated goal*)
-fun reresolve_tac rules =
+fun reresolve_tac ctxt rules =
   let
-    val restac = RESOLVE_THEN rules;  (*preprocessing done now*)
+    val restac = RESOLVE_THEN ctxt rules;  (*preprocessing done now*)
     fun gtac i = restac gtac i;
   in gtac end;
 
@@ -194,8 +194,8 @@ fun reresolve_tac rules =
 fun repeat_goal_tac ctxt =
   let
     val (safes, unsafes) = get_rules ctxt;
-    val restac = RESOLVE_THEN safes;
-    val lastrestac = RESOLVE_THEN unsafes;
+    val restac = RESOLVE_THEN ctxt safes;
+    val lastrestac = RESOLVE_THEN ctxt unsafes;
     fun gtac i =
       restac gtac i ORELSE
        (if Config.get ctxt trace then print_tac ctxt "" THEN lastrestac gtac i
@@ -204,11 +204,11 @@ fun repeat_goal_tac ctxt =
 
 
 (*Tries safe rules only*)
-fun safe_tac ctxt = reresolve_tac (#1 (get_rules ctxt));
+fun safe_tac ctxt = reresolve_tac ctxt (#1 (get_rules ctxt));
 
 (*Tries a safe rule or else a unsafe rule.  Single-step for tracing. *)
 fun step_tac ctxt =
-  safe_tac ctxt ORELSE' filseq_resolve_tac (#2 (get_rules ctxt)) 9999;
+  safe_tac ctxt ORELSE' filseq_resolve_tac ctxt (#2 (get_rules ctxt)) 9999;
 
 
 (* Tactic for reducing a goal, using Predicate Calculus rules.

@@ -440,7 +440,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_mor Bs ss B''s s''s (map2 (curry HOLogic.mk_comp) gs fs));
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_mor_comp_tac mor_def mor_image'_thms morE_thms map_comp_id_thms))
+          (K (mk_mor_comp_tac lthy mor_def mor_image'_thms morE_thms map_comp_id_thms))
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;

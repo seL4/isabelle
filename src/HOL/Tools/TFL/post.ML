@@ -125,7 +125,7 @@ fun curry_rule ctxt rl =
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 fun meta_outer ctxt =
   curry_rule ctxt o Drule.export_without_context o
-  rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
+  rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac ctxt [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
 val spec'= Rule_Insts.read_instantiate @{context} [(("x", 0), "P::'b=>bool")] [] spec;
