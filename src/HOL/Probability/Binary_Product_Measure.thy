@@ -835,7 +835,6 @@ lemma nn_intergal_count_space_prod_eq:
   "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
   by (subst (1 2) nn_integral_max_0[symmetric]) (auto intro!: nn_intergal_count_space_prod_eq')
 
-
 lemma pair_measure_density:
   assumes f: "f \<in> borel_measurable M1" "AE x in M1. 0 \<le> f x"
   assumes g: "g \<in> borel_measurable M2" "AE x in M2. 0 \<le> g x"
@@ -956,6 +955,91 @@ next
     emeasure (count_space (S1 \<times> S2)) (A \<times> B)"
     by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff)
 qed
+
+lemma nn_integral_fst_count_space':
+  assumes nonneg: "\<And>xy. 0 \<le> f xy"
+  shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
+  (is "?lhs = ?rhs")
+proof(cases)
+  assume *: "countable {xy. f xy \<noteq> 0}"
+  let ?A = "fst ` {xy. f xy \<noteq> 0}"
+  let ?B = "snd ` {xy. f xy \<noteq> 0}"
+  from * have [simp]: "countable ?A" "countable ?B" by(rule countable_image)+
+  from nonneg have f_neq_0: "\<And>xy. f xy \<noteq> 0 \<longleftrightarrow> f xy > 0"
+    by(auto simp add: order.order_iff_strict)
+  have "?lhs = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space ?A)"
+    by(rule nn_integral_count_space_eq)
+      (auto simp add: f_neq_0 nn_integral_0_iff_AE AE_count_space not_le intro: rev_image_eqI)
+  also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space ?B \<partial>count_space ?A)"
+    by(intro nn_integral_count_space_eq nn_integral_cong)(auto intro: rev_image_eqI)
+  also have "\<dots> = (\<integral>\<^sup>+ xy. f xy \<partial>count_space (?A \<times> ?B))"
+    by(subst sigma_finite_measure.nn_integral_fst)
+      (simp_all add: sigma_finite_measure_count_space_countable pair_measure_countable)
+  also have "\<dots> = ?rhs"
+    by(rule nn_integral_count_space_eq)(auto intro: rev_image_eqI)
+  finally show ?thesis .
+next
+  { fix xy assume "f xy \<noteq> 0"
+    with `0 \<le> f xy` have "(\<exists>r. 0 < r \<and> f xy = ereal r) \<or> f xy = \<infinity>"
+      by (cases "f xy") (auto simp: less_le)
+    then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f xy"
+      by (auto elim!: nat_approx_posE intro!: less_imp_le) }
+  note * = this
+
+  assume cntbl: "uncountable {xy. f xy \<noteq> 0}"
+  also have "{xy. f xy \<noteq> 0} = (\<Union>n. {xy. 1/Suc n \<le> f xy})"
+    using * by auto
+  finally obtain n where "infinite {xy. 1/Suc n \<le> f xy}"
+    by (meson countableI_type countable_UN uncountable_infinite)
+  then obtain C where C: "C \<subseteq> {xy. 1/Suc n \<le> f xy}" and "countable C" "infinite C"
+    by (metis infinite_countable_subset')
+
+  have "\<infinity> = (\<integral>\<^sup>+ xy. ereal (1 / Suc n) * indicator C xy \<partial>count_space UNIV)"
+    using \<open>infinite C\<close> by(simp add: nn_integral_cmult)
+  also have "\<dots> \<le> ?rhs" using C
+    by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
+  finally have "?rhs = \<infinity>" by simp
+  moreover have "?lhs = \<infinity>"
+  proof(cases "finite (fst ` C)")
+    case True
+    then obtain x C' where x: "x \<in> fst ` C" 
+      and C': "C' = fst -` {x} \<inter> C"
+      and "infinite C'"
+      using \<open>infinite C\<close> by(auto elim!: inf_img_fin_domE')
+    from x C C' have **: "C' \<subseteq> {xy. 1 / Suc n \<le> f xy}" by auto
+
+    from C' \<open>infinite C'\<close> have "infinite (snd ` C')"
+      by(auto dest!: finite_imageD simp add: inj_on_def)
+    then have "\<infinity> = (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator (snd ` C') y \<partial>count_space UNIV)"
+      by(simp add: nn_integral_cmult)
+    also have "\<dots> = (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV)"
+      by(rule nn_integral_cong)(force split: split_indicator intro: rev_image_eqI simp add: C')
+    also have "\<dots> = (\<integral>\<^sup>+ x'. (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV) * indicator {x} x' \<partial>count_space UNIV)"
+      by(simp add: one_ereal_def[symmetric] nn_integral_nonneg nn_integral_cmult_indicator)
+    also have "\<dots> \<le> (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV \<partial>count_space UNIV)"
+      by(rule nn_integral_mono)(simp split: split_indicator add: nn_integral_nonneg)
+    also have "\<dots> \<le> ?lhs" using **
+      by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
+    finally show ?thesis by simp
+  next
+    case False
+    def C' \<equiv> "fst ` C"
+    have "\<infinity> = \<integral>\<^sup>+ x. ereal (1 / Suc n) * indicator C' x \<partial>count_space UNIV"
+      using C'_def False by(simp add: nn_integral_cmult)
+    also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' x * indicator {SOME y. (x, y) \<in> C} y \<partial>count_space UNIV \<partial>count_space UNIV"
+      by(auto simp add: one_ereal_def[symmetric] nn_integral_cmult_indicator intro: nn_integral_cong)
+    also have "\<dots> \<le> \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C (x, y) \<partial>count_space UNIV \<partial>count_space UNIV"
+      by(intro nn_integral_mono)(auto simp add: C'_def split: split_indicator intro: someI)
+    also have "\<dots> \<le> ?lhs" using C
+      by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
+    finally show ?thesis by simp
+  qed
+  ultimately show ?thesis by simp
+qed
+
+lemma nn_integral_fst_count_space:
+  "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
+by(subst (2 3) nn_integral_max_0[symmetric])(rule nn_integral_fst_count_space', simp)
 
 subsection {* Product of Borel spaces *}
 
