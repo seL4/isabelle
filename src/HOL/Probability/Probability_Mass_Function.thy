@@ -12,6 +12,9 @@ imports
   "~~/src/HOL/Library/Multiset"
 begin
 
+lemma ereal_divide': "b \<noteq> 0 \<Longrightarrow> ereal (a / b) = ereal a / ereal b"
+  using ereal_divide[of a b] by simp
+
 lemma (in finite_measure) countable_support:
   "countable {x. measure M {x} \<noteq> 0}"
 proof cases
@@ -1031,6 +1034,29 @@ lemma set_cond_pmf: "set_pmf cond_pmf = set_pmf p \<inter> s"
   by (auto simp add: set_pmf_iff pmf_cond measure_measure_pmf_not_zero split: split_if_asm)
 
 end
+
+lemma cond_map_pmf:
+  assumes "set_pmf p \<inter> f -` s \<noteq> {}"
+  shows "cond_pmf (map_pmf f p) s = map_pmf f (cond_pmf p (f -` s))"
+proof -
+  have *: "set_pmf (map_pmf f p) \<inter> s \<noteq> {}"
+    using assms by (simp add: set_map_pmf) auto
+  { fix x
+    have "ereal (pmf (map_pmf f (cond_pmf p (f -` s))) x) =
+      emeasure p (f -` s \<inter> f -` {x}) / emeasure p (f -` s)"
+      unfolding ereal_pmf_map cond_pmf.rep_eq[OF assms] by (simp add: nn_integral_uniform_measure)
+    also have "f -` s \<inter> f -` {x} = (if x \<in> s then f -` {x} else {})"
+      by auto
+    also have "emeasure p (if x \<in> s then f -` {x} else {}) / emeasure p (f -` s) =
+      ereal (pmf (cond_pmf (map_pmf f p) s) x)"
+      using measure_measure_pmf_not_zero[OF *]
+      by (simp add: pmf_cond[OF *] ereal_divide' ereal_pmf_map measure_pmf.emeasure_eq_measure[symmetric]
+               del: ereal_divide)
+    finally have "ereal (pmf (cond_pmf (map_pmf f p) s) x) = ereal (pmf (map_pmf f (cond_pmf p (f -` s))) x)"
+      by simp }
+  then show ?thesis
+    by (intro pmf_eqI) simp
+qed
 
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
 for R p q
