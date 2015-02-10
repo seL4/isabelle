@@ -452,7 +452,8 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
              REPEAT (FIRSTGOAL (eresolve_tac ctxt4 rules1)),
              REPEAT (FIRSTGOAL (eresolve_tac ctxt4 rules2)),
              EVERY (map (fn prem =>
-               DEPTH_SOLVE_1 (ares_tac [rewrite_rule ctxt4 rec_preds_defs prem, conjI] 1))
+               DEPTH_SOLVE_1 (assume_tac ctxt4 1 ORELSE
+                resolve_tac ctxt [rewrite_rule ctxt4 rec_preds_defs prem, conjI] 1))
                 (tl prems))])
           |> singleton (Proof_Context.export ctxt'' ctxt'''),
          map #2 c_intrs, length Ts)
@@ -746,9 +747,11 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL
            (resolve_tac ctxt3 [conjI, impI] ORELSE'
            (eresolve_tac ctxt3 [notE] THEN' assume_tac ctxt3))),
-         EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule ctxt3
-             (inductive_conj_def :: rec_preds_defs @ simp_thms2) prem,
-           conjI, refl] 1)) prems)]);
+         EVERY (map (fn prem =>
+            DEPTH_SOLVE_1 (assume_tac ctxt3 1 ORELSE
+              resolve_tac ctxt3
+                [rewrite_rule ctxt3 (inductive_conj_def :: rec_preds_defs @ simp_thms2) prem,
+                  conjI, refl] 1)) prems)]);
 
     val lemma = Goal.prove_sorry ctxt'' [] []
       (Logic.mk_implies (ind_concl, mutual_ind_concl)) (fn {context = ctxt3, ...} => EVERY

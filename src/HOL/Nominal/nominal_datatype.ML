@@ -1061,7 +1061,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac ctxt Abs_inverse_thms' 1),
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
-            DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
+            DEPTH_SOLVE_1
+              (assume_tac ctxt 1 ORELSE resolve_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
                 (prems ~~ constr_defs))]);
 
     val case_names_induct = Old_Datatype_Data.mk_case_names_induct descr'';

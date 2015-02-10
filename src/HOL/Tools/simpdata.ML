@@ -73,8 +73,10 @@ fun lift_meta_eq_to_obj_eq i st =
           (mk_simp_implies @{prop "(x::'a) = y"})
           (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt @{thms simp_implies_def},
-            REPEAT (ares_tac (@{thm meta_eq_to_obj_eq} ::
-              map (rewrite_rule ctxt @{thms simp_implies_def}) prems) 1)])
+            REPEAT (assume_tac ctxt 1 ORELSE
+              resolve_tac ctxt
+                (@{thm meta_eq_to_obj_eq} ::
+                  map (rewrite_rule ctxt @{thms simp_implies_def}) prems) 1)])
       end
   end;
 

@@ -204,7 +204,8 @@ ML {*
       fun mk_inj_lemmas r = [@{thm arg_cong}] RL [r RS (r RS @{thm eq_lemma})]
       val inj_lemmas = maps mk_inj_lemmas rews
     in
-      CHANGED (REPEAT (ares_tac [@{thm iffI}, @{thm allI}, @{thm conjI}] i ORELSE
+      CHANGED (REPEAT (assume_tac ctxt i ORELSE
+        resolve_tac ctxt @{thms iffI allI conjI} i ORELSE
         eresolve_tac ctxt inj_lemmas i ORELSE
         asm_simp_tac (ctxt addsimps rews) i))
     end;

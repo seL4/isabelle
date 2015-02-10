@@ -94,7 +94,7 @@ fun mk_alg_set_tac alg_def =
    REPEAT_DETERM o (rtac (subset_UNIV RS conjI) ORELSE' etac conjI), atac] 1;
 
 fun mk_alg_not_empty_tac ctxt alg_set alg_sets wits =
-  (EVERY' [rtac notI, hyp_subst_tac ctxt, ftac alg_set] THEN'
+  (EVERY' [rtac notI, hyp_subst_tac ctxt, forward_tac ctxt [alg_set]] THEN'
   REPEAT_DETERM o FIRST'
     [EVERY' [rtac @{thm subset_emptyI}, eresolve_tac ctxt wits],
     EVERY' [rtac subsetI, rtac FalseE, eresolve_tac ctxt wits],

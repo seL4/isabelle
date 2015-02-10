@@ -75,7 +75,7 @@ simproc_setup defined_Collect ("{x. P x & Q x}") = {*
       resolve_tac ctxt @{thms iffI} 1 THEN
       ALLGOALS
         (EVERY' [REPEAT_DETERM o eresolve_tac ctxt @{thms conjE},
-          DEPTH_SOLVE_1 o ares_tac @{thms conjI}]))
+          DEPTH_SOLVE_1 o (assume_tac ctxt ORELSE' resolve_tac ctxt @{thms conjI})]))
 *}
 
 lemmas CollectE = CollectD [elim_format]

@@ -127,9 +127,10 @@ ML {*
 fun mk_ncanT_tac top_crls crls =
   SUBPROOF (fn {context = ctxt, prems = major :: prems, ...} =>
     resolve_tac ctxt ([major] RL top_crls) 1 THEN
-    REPEAT_SOME (eresolve_tac ctxt (crls @ [@{thm exE}, @{thm bexE}, @{thm conjE}, @{thm disjE}])) THEN
+    REPEAT_SOME (eresolve_tac ctxt (crls @ @{thms exE bexE conjE disjE})) THEN
     ALLGOALS (asm_simp_tac ctxt) THEN
-    ALLGOALS (ares_tac (prems RL [@{thm lem}]) ORELSE' etac @{thm bspec}) THEN
+    ALLGOALS (assume_tac ctxt ORELSE' resolve_tac ctxt (prems RL [@{thm lem}])
+      ORELSE' eresolve_tac ctxt @{thms bspec}) THEN
     safe_tac (ctxt addSIs prems))
 *}
 

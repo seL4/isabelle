@@ -904,7 +904,8 @@ lemma alt_ex1E [elim!]:
   shows R
 apply (rule ex1E [OF major])
 apply (rule prem)
-apply (tactic {* ares_tac @{thms allI} 1 *})+
+apply assumption
+apply (rule allI)+
 apply (tactic {* eresolve_tac @{context} [Classical.dup_elim NONE @{thm allE}] 1 *})
 apply iprover
 done
