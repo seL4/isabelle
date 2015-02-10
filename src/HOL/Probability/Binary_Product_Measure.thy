@@ -1041,6 +1041,21 @@ lemma nn_integral_fst_count_space:
   "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
 by(subst (2 3) nn_integral_max_0[symmetric])(rule nn_integral_fst_count_space', simp)
 
+lemma nn_integral_snd_count_space:
+  "(\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. (\<lambda>(y, x). f (x, y)) (y, x) \<partial>count_space UNIV \<partial>count_space UNIV)"
+    by(simp)
+  also have "\<dots> = \<integral>\<^sup>+ yx. (\<lambda>(y, x). f (x, y)) yx \<partial>count_space UNIV"
+    by(rule nn_integral_fst_count_space)
+  also have "\<dots> = \<integral>\<^sup>+ xy. f xy \<partial>count_space ((\<lambda>(x, y). (y, x)) ` UNIV)"
+    by(subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
+      (simp_all add: inj_on_def split_def)
+  also have "\<dots> = ?rhs" by(rule nn_integral_count_space_eq) auto
+  finally show ?thesis .
+qed
+
 subsection {* Product of Borel spaces *}
 
 lemma borel_Times:
