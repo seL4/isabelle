@@ -1058,7 +1058,7 @@ lemma full_SetCompr_eq:
   "{u. \<exists>x. u = f x} = range f"
   by auto
 
-lemma range_composition: 
+lemma range_composition:
   "range (\<lambda>x. f (g x)) = f ` range g"
   by auto
 
@@ -1244,7 +1244,7 @@ lemma Collect_imp_eq: "{x. P x --> Q x} = -{x. P x} \<union> {x. Q x}"
 lemma Collect_conj_eq: "{x. P x & Q x} = {x. P x} \<inter> {x. Q x}"
   by blast
 
-lemma Collect_mono_iff [simp]: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q x)"
+lemma Collect_mono_iff: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q x)"
   by blast
 
 
@@ -1809,7 +1809,7 @@ lemma image_vimage_eq [simp]: "f ` (f -` A) = A Int range f"
 by blast
 
 lemma image_subset_iff_subset_vimage: "f ` A \<subseteq> B \<longleftrightarrow> A \<subseteq> f -` B"
-  by blast 
+  by blast
 
 lemma vimage_const [simp]: "((\<lambda>x. c) -` A) = (if c \<in> A then UNIV else {})"
   by auto

@@ -293,6 +293,9 @@ where
 lemma set_encode_empty [simp]: "set_encode {} = 0"
 by (simp add: set_encode_def)
 
+lemma set_encode_inf: "~ finite A \<Longrightarrow> set_encode A = 0"
+  by (simp add: set_encode_def)
+
 lemma set_encode_insert [simp]:
   "\<lbrakk>finite A; n \<notin> A\<rbrakk> \<Longrightarrow> set_encode (insert n A) = 2^n + set_encode A"
 by (simp add: set_encode_def)

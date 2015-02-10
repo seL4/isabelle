@@ -238,7 +238,7 @@ proof -
   from inf have "infinite {x. P x}" unfolding Inf_many_def .
   moreover from q have "{x. P x} \<subseteq> {x. Q x}" by auto
   ultimately show ?thesis
-    by (simp add: Inf_many_def infinite_super)
+    using Inf_many_def infinite_super by blast
 qed
 
 lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x"
