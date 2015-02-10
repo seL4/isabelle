@@ -9,7 +9,7 @@ sig
   type mode = Predicate_Compile_Aux.mode
   type compilation = Predicate_Compile_Aux.compilation
   type compilation_funs = Predicate_Compile_Aux.compilation_funs
-  
+
   datatype predfun_data = PredfunData of {
     definition : thm,
     intro : thm,
@@ -28,21 +28,21 @@ sig
   };
 
   structure PredData : THEORY_DATA  (* FIXME keep data private *)
-  
+
   (* queries *)
   val defined_functions : compilation -> Proof.context -> string -> bool
   val is_registered : Proof.context -> string -> bool
   val function_name_of : compilation -> Proof.context -> string -> mode -> string
   val the_elim_of : Proof.context -> string -> thm
   val has_elim : Proof.context -> string -> bool
-  
+
   val needs_random : Proof.context -> string -> mode -> bool
-  
+
   val predfun_intro_of : Proof.context -> string -> mode -> thm
   val predfun_neg_intro_of : Proof.context -> string -> mode -> thm option
   val predfun_elim_of : Proof.context -> string -> mode -> thm
   val predfun_definition_of : Proof.context -> string -> mode -> thm
-  
+
   val all_preds_of : Proof.context -> string list
   val modes_of: compilation -> Proof.context -> string -> mode list
   val all_modes_of : compilation -> Proof.context -> (string * mode list) list
@@ -51,9 +51,9 @@ sig
   val names_of : Proof.context -> string -> string option list
 
   val intros_graph_of : Proof.context -> thm list Graph.T
-  
+
   (* updaters *)
-  
+
   val register_predicate : (string * thm list * thm) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
 
@@ -67,7 +67,7 @@ sig
   (* sophisticated updaters *)
   val extend_intro_graph : string list -> theory -> theory
   val preprocess_intros : string -> theory -> theory
-  
+
   (* alternative function definitions *)
   val register_alternative_function : string -> mode -> string -> theory -> theory
   val alternative_compilation_of_global : theory -> string -> mode ->
@@ -127,7 +127,7 @@ fun eq_option eq (NONE, NONE) = true
   | eq_option eq (SOME x, SOME y) = eq (x, y)
   | eq_option eq _ = false
 
-fun eq_pred_data (PredData d1, PredData d2) = 
+fun eq_pred_data (PredData d1, PredData d2) =
   eq_list (eq_pair (op =) Thm.eq_thm) (#intros d1, #intros d2) andalso
   eq_option Thm.eq_thm (#elim d1, #elim d2)
 
@@ -153,7 +153,7 @@ fun lookup_pred_data ctxt name =
 
 fun the_pred_data ctxt name =
   (case lookup_pred_data ctxt name of
-    NONE => error ("No such predicate: " ^ quote name)  
+    NONE => error ("No such predicate: " ^ quote name)
   | SOME data => data)
 
 val is_registered = is_some oo lookup_pred_data
@@ -168,7 +168,7 @@ fun the_elim_of ctxt name =
   (case #elim (the_pred_data ctxt name) of
     NONE => error ("No elimination rule for predicate " ^ quote name)
   | SOME thm => thm)
-  
+
 val has_elim = is_some o #elim oo the_pred_data
 
 fun function_names_of compilation ctxt name =
@@ -227,38 +227,38 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
   let
     val thy = Proof_Context.theory_of ctxt
     val nargs = length (binder_types (fastype_of pred))
-    fun PEEK f dependent_tactic st = dependent_tactic (f st) st
     fun meta_eq_of th = th RS @{thm eq_reflection}
     val tuple_rew_rules = map meta_eq_of [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}]
-    fun instantiate i n {prems, ...} =
+
+    fun instantiate i n ({context = ctxt2, prems, ...}: Subgoal.focus) =
       let
-        fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
-        fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
+        fun term_pair_of (ix, (ty, t)) = (Var (ix, ty), t)
+        fun inst_of_matches tts =
+          fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
           |> snd |> Vartab.dest |> map (apply2 (cterm_of thy) o term_pair_of)
-        val (cases, (eqs, prems)) = apsnd (chop (nargs - nparams)) (chop n prems)
+        val (cases, (eqs, prems1)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
-          rewrite_rule ctxt (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
-        val prems' = maps (dest_conjunct_prem o rewrite_rule ctxt tuple_rew_rules) prems
+          rewrite_rule ctxt2 (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
+        val prems2 = maps (dest_conjunct_prem o rewrite_rule ctxt2 tuple_rew_rules) prems1
         val pats =
-          map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
-        val case_th' = Thm.instantiate ([], inst_of_matches pats) case_th
-          OF (replicate nargs @{thm refl})
+          map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop)
+            (take nargs (Thm.prems_of case_th))
+        val case_th' =
+          Thm.instantiate ([], inst_of_matches pats) case_th
+            OF replicate nargs @{thm refl}
         val thesis =
-          Thm.instantiate ([], inst_of_matches (prems_of case_th' ~~ map prop_of prems')) case_th'
-            OF prems'
-      in
-        (rtac thesis 1)
-      end
-    val tac =
-      etac pre_cases_rule 1
-      THEN
-      (PEEK nprems_of
-        (fn n =>
-          ALLGOALS (fn i =>
-            rewrite_goal_tac ctxt [@{thm split_paired_all}] i
-            THEN (SUBPROOF (instantiate i n) ctxt i))))
+          Thm.instantiate ([], inst_of_matches (prems_of case_th' ~~ map prop_of prems2)) case_th'
+            OF prems2
+      in rtac thesis 1 end
   in
-    Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule (fn _ => tac)
+    Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule
+      (fn {context = ctxt1, ...} =>
+        eresolve_tac ctxt1 [pre_cases_rule] 1 THEN (fn st =>
+          let val n = Thm.nprems_of st in
+            st |> ALLGOALS (fn i =>
+              rewrite_goal_tac ctxt1 @{thms split_paired_all} i THEN
+              SUBPROOF (instantiate i n) ctxt1 i)
+          end))
   end
 
 
@@ -270,7 +270,7 @@ val no_compilation = ([], ([], []))
 
 fun fetch_pred_data ctxt name =
   (case try (Inductive.the_inductive ctxt) name of
-    SOME (info as (_, result)) => 
+    SOME (info as (_, result)) =>
       let
         val thy = Proof_Context.theory_of ctxt
 
@@ -357,7 +357,7 @@ fun register_intros (constname, pre_intros) thy =
           commas (map constname_of_intro pre_intros))
       else ()
     val pred = Const (constname, T)
-    val pre_elim = 
+    val pre_elim =
       (Drule.export_without_context o Skip_Proof.make_thm thy)
       (mk_casesrule (Proof_Context.init_global thy) pred pre_intros)
   in register_predicate (constname, pre_intros, pre_elim) thy end
@@ -382,7 +382,7 @@ fun set_needs_random name modes =
     val set = (apsnd o apsnd o apsnd o apsnd) (K modes)
   in
     PredData.map (Graph.map_node name (map_pred_data set))
-  end  
+  end
 
 fun extend' value_of edges_of key (G, visited) =
   let
@@ -398,7 +398,7 @@ fun extend' value_of edges_of key (G, visited) =
     (fold (Graph.add_edge o (pair key)) (edges_of (key, v)) G'', visited')
   end;
 
-fun extend value_of edges_of key G = fst (extend' value_of edges_of key (G, [])) 
+fun extend value_of edges_of key G = fst (extend' value_of edges_of key (G, []))
 
 fun extend_intro_graph names thy =
   let
@@ -421,7 +421,7 @@ fun preprocess_intros name thy =
       in
         ((named_intros', SOME elim'), true)
       end)))))
-    thy  
+    thy
 
 
 (* registration of alternative function names *)
