@@ -1039,69 +1039,66 @@ proof -
     have eq: "\<And>y. (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV)"
       by(simp add: nn_integral_pp2 nn_integral_rr1)
 
-    def assign \<equiv> "\<lambda>y x z. ?pq y x * ?qr y z / pmf q y"
-    have assign_nonneg [simp]: "\<And>y x z. 0 \<le> assign y x z" by(simp add: assign_def)
-    have assign_eq_0_outside: "\<And>y x z. \<lbrakk> ?pq y x = 0 \<or> ?qr y z = 0 \<rbrakk> \<Longrightarrow> assign y x z = 0"
+    def assign \<equiv> "\<lambda>(z, x, y). ?pq y x * ?qr y z / pmf q y"
+    have assign_nonneg [simp]: "\<And>z x y. 0 \<le> assign (z, x, y)" by(simp add: assign_def)
+    have assign_eq_0_outside: "\<And>z x y. \<lbrakk> ?pq y x = 0 \<or> ?qr y z = 0 \<rbrakk> \<Longrightarrow> assign (z, x, y) = 0"
       by(auto simp add: assign_def)
-    have nn_integral_assign1: "\<And>y z. (\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = ?qr y z"
+    have nn_integral_assign1: "\<And>z y. (\<integral>\<^sup>+ x. assign (z, x, y) \<partial>count_space UNIV) = ?qr y z"
     proof -
       fix y z
-      have "(\<integral>\<^sup>+ x. assign y x z \<partial>count_space UNIV) = 
+      have "(\<integral>\<^sup>+ x. assign (z, x, y) \<partial>count_space UNIV) = 
             (\<integral>\<^sup>+ x. ?pq y x \<partial>count_space UNIV) * (?qr y z / pmf q y)"
         by(simp add: assign_def nn_integral_multc times_ereal.simps(1)[symmetric] divide_real_def mult.assoc del: times_ereal.simps(1))
       also have "\<dots> = ?qr y z" by(auto simp add: image_iff q' pmf_eq_0_set_pmf set_map_pmf nn_integral_pp2)
-      finally show "?thesis y z" .
+      finally show "?thesis z y" .
     qed
-    have nn_integral_assign2: "\<And>y x. (\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = ?pq y x"
+    have nn_integral_assign2: "\<And>x y. (\<integral>\<^sup>+ z. assign (z, x, y) \<partial>count_space UNIV) = ?pq y x"
     proof -
       fix x y
-      have "(\<integral>\<^sup>+ z. assign y x z \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV) * (?pq y x / pmf q y)"
+      have "(\<integral>\<^sup>+ z. assign (z, x, y) \<partial>count_space UNIV) = (\<integral>\<^sup>+ z. ?qr y z \<partial>count_space UNIV) * (?pq y x / pmf q y)"
         by(simp add: assign_def divide_real_def mult.commute[where a="?pq y x"] mult.assoc nn_integral_multc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
       also have "\<dots> = ?pq y x" by(auto simp add: image_iff pmf_eq_0_set_pmf set_map_pmf q nn_integral_rr1)
-      finally show "?thesis y x" .
+      finally show "?thesis x y" .
     qed
 
-    def pqr \<equiv> "embed_pmf (\<lambda>(y, x, z). assign y x z)"
-    { fix y x z
-      have "assign y x z = pmf pqr (y, x, z)"
+    def pqr \<equiv> "embed_pmf assign"
+    { fix z x y
+      have "assign (z, x, y) = pmf pqr (z, x, y)"
         unfolding pqr_def
       proof (subst pmf_embed_pmf)
-        have "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) =
-              (\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space ((\<lambda>((x, y), z). (y, x, z)) ` UNIV))"
-          by(rule nn_integral_count_space_eq)(auto simp add: image_def)
-        also have "\<dots> = \<integral>\<^sup>+ x. ereal ((\<lambda>((x, y), z). assign y x z) x) \<partial>count_space UNIV"
-          by(subst nn_integral_bij_count_space[OF inj_on_imp_bij_betw, symmetric])
-            (auto simp add: inj_on_def split_beta)
-        also have "\<dots> = (\<integral>\<^sup>+ xy. \<integral>\<^sup>+ z. ereal ((\<lambda>((x, y), z). assign y x z) (xy, z)) \<partial>count_space UNIV \<partial>count_space UNIV)"
-          by(subst nn_integral_fst_count_space) simp
+        have "(\<integral>\<^sup>+ zxy. ereal (assign zxy) \<partial>count_space UNIV) = 
+              (\<integral>\<^sup>+ xy. \<integral>\<^sup>+ z. ereal (assign (z, xy)) \<partial>count_space UNIV \<partial>count_space UNIV)"
+          by(subst nn_integral_snd_count_space) simp
         also have "\<dots> = (\<integral>\<^sup>+ z. ?pq (snd z) (fst z) \<partial>count_space UNIV)"
           by (subst nn_integral_assign2[symmetric]) (auto intro!: nn_integral_cong)
-        finally show "(\<integral>\<^sup>+ x. ereal ((\<lambda>(y, x, z). assign y x z) x) \<partial>count_space UNIV) = 1"
+        finally show "(\<integral>\<^sup>+ zxy. ereal (assign zxy) \<partial>count_space UNIV) = 1"
           by (simp add: nn_integral_pmf emeasure_pmf)
       qed auto }
     note a = this
 
-    def pr \<equiv> "map_pmf (\<lambda>(y, x, z). (x, z)) pqr"
+    def pr \<equiv> "map_pmf (\<lambda>(z, x, y). (x, z)) pqr"
 
     have "rel_pmf (R OO S) p r"
     proof
-      have pq_eq: "pq = map_pmf (\<lambda>(y, x, z). (x, y)) pqr"
+      have pq_eq: "pq = map_pmf (\<lambda>(z, x, y). (x, y)) pqr"
       proof (rule pmf_eqI)
         fix i
-        show "pmf pq i = pmf (map_pmf (\<lambda>(y, x, z). (x, y)) pqr) i"
-          using nn_integral_assign2[of "snd i" "fst i", symmetric]
-          by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
-                   simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
+        show "pmf pq i = pmf (map_pmf (\<lambda>(z, x, y). (x, y)) pqr) i"
+          using nn_integral_assign2[of "fst i" "snd i", symmetric]
+          by(cases i)
+            (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
+                  simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
       qed
       then show "map_pmf fst pr = p"
         unfolding p pr_def by (simp add: map_pmf_comp split_beta)
 
-      have qr_eq: "qr = map_pmf (\<lambda>(y, x, z). (y, z)) pqr"
+      have qr_eq: "qr = map_pmf (\<lambda>(z, x, y). (y, z)) pqr"
       proof (rule pmf_eqI)
-        fix i show "pmf qr i = pmf (map_pmf (\<lambda>(y, x, z). (y, z)) pqr) i"
-          using nn_integral_assign1[of "fst i" "snd i", symmetric]
-          by (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
-                   simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
+        fix i show "pmf qr i = pmf (map_pmf (\<lambda>(z, x, y). (y, z)) pqr) i"
+          using nn_integral_assign1[of "snd i" "fst i", symmetric]
+          by(cases i)
+            (auto simp add: a nn_integral_pmf' inj_on_def ereal.inject[symmetric] ereal_pmf_map 
+                  simp del: ereal.inject intro!: arg_cong2[where f=emeasure])
       qed
       then show "map_pmf snd pr = r"
         unfolding r pr_def by (simp add: map_pmf_comp split_beta)
