@@ -10,17 +10,17 @@ text \<open>Examples taken from:
   J. Functional Programming.\<close>
 
 method_setup depth_solve =
-  \<open>Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-    (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms)))))))\<close>
+  \<open>Attrib.thms >> (fn thms => fn ctxt => METHOD (fn facts =>
+    (DEPTH_SOLVE (HEADGOAL (assume_tac ctxt ORELSE' resolve_tac ctxt (facts @ thms))))))\<close>
 
 method_setup depth_solve1 =
-  \<open>Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-    (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms)))))))\<close>
+  \<open>Attrib.thms >> (fn thms => fn ctxt => METHOD (fn facts =>
+    (DEPTH_SOLVE_1 (HEADGOAL (assume_tac ctxt ORELSE' resolve_tac ctxt (facts @ thms))))))\<close>
 
 method_setup strip_asms =
-  \<open>Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-    REPEAT (resolve_tac [@{thm strip_b}, @{thm strip_s}] 1 THEN
-    DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1)))))\<close>
+  \<open>Attrib.thms >> (fn thms => fn ctxt => METHOD (fn facts =>
+    REPEAT (resolve_tac ctxt [@{thm strip_b}, @{thm strip_s}] 1 THEN
+    DEPTH_SOLVE_1 (assume_tac ctxt 1 ORELSE resolve_tac ctxt (facts @ thms) 1))))\<close>
 
 
 subsection \<open>Simple types\<close>

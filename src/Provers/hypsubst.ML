@@ -51,7 +51,7 @@ sig
   val hyp_subst_thin         : bool Config.T
   val hyp_subst_tac          : Proof.context -> int -> tactic
   val blast_hyp_subst_tac    : Proof.context -> bool -> int -> tactic
-  val stac                   : thm -> int -> tactic
+  val stac                   : Proof.context -> thm -> int -> tactic
 end;
 
 functor Hypsubst(Data: HYPSUBST_DATA): HYPSUBST =
@@ -122,13 +122,14 @@ fun eq_var bnd novars check_frees t =
 
   in  eq_var_aux 0 t [] end;
 
-val thin_free_eq_tac = SUBGOAL (fn (t, i) => let
-     val (k, _) = eq_var false false false t
-     val ok = (eq_var false false true t |> fst) > k
-        handle EQ_VAR => true
-   in if ok then EVERY [rotate_tac k i, eresolve_tac [thin_rl] i, rotate_tac (~k) i]
+fun thin_free_eq_tac ctxt = SUBGOAL (fn (t, i) =>
+  let
+    val (k, _) = eq_var false false false t
+    val ok = (eq_var false false true t |> fst) > k handle EQ_VAR => true
+  in
+    if ok then EVERY [rotate_tac k i, eresolve_tac ctxt [thin_rl] i, rotate_tac (~k) i]
     else no_tac
-   end handle EQ_VAR => no_tac)
+  end handle EQ_VAR => no_tac)
 
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
   No vars are allowed here, as simpsets are built from meta-assumptions*)
@@ -151,11 +152,11 @@ in
         val (k, (orient, is_free)) = eq_var bnd true true Bi
         val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
-        if not is_free then eresolve_tac [thin_rl] i
-          else if orient then eresolve_tac [Data.rev_mp] i
-          else eresolve_tac [Data.sym RS Data.rev_mp] i,
+        if not is_free then eresolve_tac ctxt [thin_rl] i
+          else if orient then eresolve_tac ctxt [Data.rev_mp] i
+          else eresolve_tac ctxt [Data.sym RS Data.rev_mp] i,
         rotate_tac (~k) i,
-        if is_free then resolve_tac [Data.imp_intr] i else all_tac]
+        if is_free then resolve_tac ctxt [Data.imp_intr] i else all_tac]
       end handle THM _ => no_tac | EQ_VAR => no_tac)
 
 end;
@@ -194,7 +195,7 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
       end
   | NONE => no_tac);
 
-val imp_intr_tac = resolve_tac [Data.imp_intr];
+fun imp_intr_tac ctxt = resolve_tac ctxt [Data.imp_intr];
 
 fun rev_dup_elim ctxt th = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
 fun dup_subst ctxt = rev_dup_elim ctxt ssubst
@@ -211,11 +212,11 @@ fun vars_gen_hyp_subst_tac ctxt bnd = SUBGOAL(fn (Bi,i) =>
           val rl = if orient then rl else Data.sym RS rl
       in
          DETERM
-           (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
+           (EVERY [REPEAT_DETERM_N k (eresolve_tac ctxt [Data.rev_mp] i),
                    rotate_tac 1 i,
-                   REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
+                   REPEAT_DETERM_N (n-k) (eresolve_tac ctxt [Data.rev_mp] i),
                    inst_subst_tac ctxt orient rl i,
-                   REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i)])
+                   REPEAT_DETERM_N n (imp_intr_tac ctxt i THEN rotate_tac ~1 i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
 
@@ -225,7 +226,7 @@ fun vars_gen_hyp_subst_tac ctxt bnd = SUBGOAL(fn (Bi,i) =>
 fun hyp_subst_tac_thin thin ctxt =
   REPEAT_DETERM1 o FIRST' [ematch_tac ctxt [Data.thin_refl],
     gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac ctxt false,
-    if thin then thin_free_eq_tac else K no_tac];
+    if thin then thin_free_eq_tac ctxt else K no_tac];
 
 val hyp_subst_thin = Attrib.setup_config_bool @{binding hypsubst_thin} (K false);
 
@@ -242,16 +243,16 @@ fun bound_hyp_subst_tac ctxt =
     substitutions in the arguments of a function Var. **)
 
 (*final re-reversal of the changed assumptions*)
-fun reverse_n_tac 0 i = all_tac
-  | reverse_n_tac 1 i = rotate_tac ~1 i
-  | reverse_n_tac n i =
-      REPEAT_DETERM_N n (rotate_tac ~1 i THEN eresolve_tac [Data.rev_mp] i) THEN
-      REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i);
+fun reverse_n_tac _ 0 i = all_tac
+  | reverse_n_tac _ 1 i = rotate_tac ~1 i
+  | reverse_n_tac ctxt n i =
+      REPEAT_DETERM_N n (rotate_tac ~1 i THEN eresolve_tac ctxt [Data.rev_mp] i) THEN
+      REPEAT_DETERM_N n (imp_intr_tac ctxt i THEN rotate_tac ~1 i);
 
 (*Use imp_intr, comparing the old hyps with the new ones as they come out.*)
-fun all_imp_intr_tac hyps i =
+fun all_imp_intr_tac ctxt hyps i =
   let
-    fun imptac (r, []) st = reverse_n_tac r i st
+    fun imptac (r, []) st = reverse_n_tac ctxt r i st
       | imptac (r, hyp::hyps) st =
           let
             val (hyp', _) =
@@ -260,8 +261,8 @@ fun all_imp_intr_tac hyps i =
               |> Data.dest_Trueprop |> Data.dest_imp;
             val (r', tac) =
               if Envir.aeconv (hyp, hyp')
-              then (r, imp_intr_tac i THEN rotate_tac ~1 i)
-              else (*leave affected hyps at end*) (r + 1, imp_intr_tac i);
+              then (r, imp_intr_tac ctxt i THEN rotate_tac ~1 i)
+              else (*leave affected hyps at end*) (r + 1, imp_intr_tac ctxt i);
           in
             (case Seq.pull (tac st) of
               NONE => Seq.single st
@@ -270,28 +271,29 @@ fun all_imp_intr_tac hyps i =
   in imptac (0, rev hyps) end;
 
 
-fun blast_hyp_subst_tac ctxt trace = SUBGOAL(fn (Bi,i) =>
-      let val (k, (symopt, _)) = eq_var false false false Bi
-          val hyps0 = map Data.dest_Trueprop (Logic.strip_assums_hyp Bi)
-          (*omit selected equality, returning other hyps*)
-          val hyps = List.take(hyps0, k) @ List.drop(hyps0, k+1)
-          val n = length hyps
-      in
-         if trace then tracing "Substituting an equality" else ();
-         DETERM
-           (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
-                   rotate_tac 1 i,
-                   REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
-                   inst_subst_tac ctxt symopt (if symopt then ssubst else Data.subst) i,
-                   all_imp_intr_tac hyps i])
-      end
-      handle THM _ => no_tac | EQ_VAR => no_tac);
+fun blast_hyp_subst_tac ctxt trace = SUBGOAL(fn (Bi, i) =>
+  let
+    val (k, (symopt, _)) = eq_var false false false Bi
+    val hyps0 = map Data.dest_Trueprop (Logic.strip_assums_hyp Bi)
+    (*omit selected equality, returning other hyps*)
+    val hyps = List.take(hyps0, k) @ List.drop(hyps0, k+1)
+    val n = length hyps
+  in
+    if trace then tracing "Substituting an equality" else ();
+    DETERM
+      (EVERY [REPEAT_DETERM_N k (eresolve_tac ctxt [Data.rev_mp] i),
+              rotate_tac 1 i,
+              REPEAT_DETERM_N (n-k) (eresolve_tac ctxt [Data.rev_mp] i),
+              inst_subst_tac ctxt symopt (if symopt then ssubst else Data.subst) i,
+              all_imp_intr_tac ctxt hyps i])
+  end
+  handle THM _ => no_tac | EQ_VAR => no_tac);
 
 (*apply an equality or definition ONCE;
   fails unless the substitution has an effect*)
-fun stac th =
+fun stac ctxt th =
   let val th' = th RS Data.rev_eq_reflection handle THM _ => th
-  in CHANGED_GOAL (resolve_tac [th' RS ssubst]) end;
+  in CHANGED_GOAL (resolve_tac ctxt [th' RS ssubst]) end;
 
 
 (* method setup *)
@@ -305,7 +307,8 @@ val _ =
       (Scan.succeed (fn ctxt => SIMPLE_METHOD'
           (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
       "substitution using an assumption, eliminating assumptions" #>
-    Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
+    Method.setup @{binding simplesubst}
+      (Attrib.thm >> (fn th => fn ctxt => SIMPLE_METHOD' (stac ctxt th)))
       "simple substitution");
 
 end;

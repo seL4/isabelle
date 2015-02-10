@@ -145,7 +145,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
   apply force
   apply (simp (no_asm) add: conj_disj_distribR cong add: conj_cong split add: split_if)
   apply (tactic {*
-    REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
+    REPEAT((resolve_tac @{context} [conjI, impI] 1 ORELSE etac conjE 1) THEN
       asm_full_simp_tac(@{context} addsimps [@{thm comp1_reachable}, @{thm comp2_reachable}]) 1) *})
   done
 

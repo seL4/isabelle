@@ -51,7 +51,7 @@ fun dest_sum (Const(@{const_name zero},_)) = []
 
 (*Apply the given rewrite (if present) just once*)
 fun gen_trans_tac th2 NONE      = all_tac
-  | gen_trans_tac th2 (SOME th) = ALLGOALS (resolve_tac [th RS th2]);
+  | gen_trans_tac th2 (SOME th) = ALLGOALS (resolve0_tac [th RS th2]);
 
 (*Use <-> or = depending on the type of t*)
 fun mk_eq_iff(t,u) =

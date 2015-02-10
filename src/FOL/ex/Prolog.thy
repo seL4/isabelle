@@ -63,26 +63,29 @@ done
 
 (*backtracking version*)
 ML {*
-val prolog_tac = DEPTH_FIRST (has_fewer_prems 1) (resolve_tac (@{thms rules}) 1)
+fun prolog_tac ctxt =
+  DEPTH_FIRST (has_fewer_prems 1) (resolve_tac ctxt @{thms rules} 1)
 *}
 
 schematic_lemma "rev(?x, a:b:c:Nil)"
-apply (tactic prolog_tac)
+apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
 schematic_lemma "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
-apply (tactic prolog_tac)
+apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
 (*rev([a..p], ?w) requires 153 inferences *)
 schematic_lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
-apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
+apply (tactic {*
+  DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
 schematic_lemma "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
-apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
+apply (tactic {*
+  DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 
 end

@@ -277,11 +277,11 @@ text \<open>\emph{Resolution} is the most basic mechanism for refining a
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML resolve_tac: "thm list -> int -> tactic"} \\
-  @{index_ML eresolve_tac: "thm list -> int -> tactic"} \\
-  @{index_ML dresolve_tac: "thm list -> int -> tactic"} \\
-  @{index_ML forward_tac: "thm list -> int -> tactic"} \\
-  @{index_ML biresolve_tac: "(bool * thm) list -> int -> tactic"} \\[1ex]
+  @{index_ML resolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML eresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML dresolve_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML forward_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML biresolve_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\[1ex]
   @{index_ML assume_tac: "Proof.context -> int -> tactic"} \\
   @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
   @{index_ML match_tac: "Proof.context -> thm list -> int -> tactic"} \\
@@ -292,20 +292,20 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML resolve_tac}~@{text "thms i"} refines the goal state
+  \item @{ML resolve_tac}~@{text "ctxt thms i"} refines the goal state
   using the given theorems, which should normally be introduction
   rules.  The tactic resolves a rule's conclusion with subgoal @{text
   i}, replacing it by the corresponding versions of the rule's
   premises.
 
-  \item @{ML eresolve_tac}~@{text "thms i"} performs elim-resolution
+  \item @{ML eresolve_tac}~@{text "ctxt thms i"} performs elim-resolution
   with the given theorems, which are normally be elimination rules.
 
-  Note that @{ML "eresolve_tac [asm_rl]"} is equivalent to @{ML
-  assume_tac}, which facilitates mixing of assumption steps with
+  Note that @{ML_text "eresolve_tac ctxt [asm_rl]"} is equivalent to @{ML_text
+  "assume_tac ctxt"}, which facilitates mixing of assumption steps with
   genuine eliminations.
 
-  \item @{ML dresolve_tac}~@{text "thms i"} performs
+  \item @{ML dresolve_tac}~@{text "ctxt thms i"} performs
   destruct-resolution with the given theorems, which should normally
   be destruction rules.  This replaces an assumption by the result of
   applying one of the rules.
@@ -314,7 +314,7 @@ text %mlref \<open>
   selected assumption is not deleted.  It applies a rule to an
   assumption, adding the result as a new assumption.
 
-  \item @{ML biresolve_tac}~@{text "brls i"} refines the proof state
+  \item @{ML biresolve_tac}~@{text "ctxt brls i"} refines the proof state
   by resolution or elim-resolution on each rule, as indicated by its
   flag.  It affects subgoal @{text "i"} of the proof state.
 

@@ -311,11 +311,11 @@ fun define_map_functions
          EVERY
           [rewrite_goals_tac ctxt map_apply_thms,
            rtac (map_cont_thm RS @{thm cont_fix_ind}) 1,
-           REPEAT (resolve_tac adm_rules 1),
+           REPEAT (resolve_tac ctxt adm_rules 1),
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
            REPEAT (etac @{thm conjE} 1),
-           REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
+           REPEAT (resolve_tac ctxt (deflation_rules @ prems) 1 ORELSE atac 1)])
       end
     fun conjuncts [] _ = []
       | conjuncts (n::[]) thm = [(n, thm)]
@@ -516,7 +516,7 @@ fun gen_domain_isomorphism
           Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
         fun tac ctxt =
           rewrite_goals_tac ctxt (map mk_meta_eq (rev DEFL_simps))
-          THEN TRY (resolve_tac defl_unfold_thms 1)
+          THEN TRY (resolve_tac ctxt defl_unfold_thms 1)
       in
         Goal.prove_global thy [] [] goal (tac o #context)
       end
@@ -625,12 +625,12 @@ fun gen_domain_isomorphism
           [rewrite_goals_tac ctxt (defl_apply_thms @ map_apply_thms),
            rtac (@{thm cont_parallel_fix_ind}
              OF [defl_cont_thm, map_cont_thm]) 1,
-           REPEAT (resolve_tac adm_rules 1),
+           REPEAT (resolve_tac ctxt adm_rules 1),
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps map_ID_simps) 1,
            REPEAT (etac @{thm conjE} 1),
-           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
+           REPEAT (resolve_tac ctxt (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end
     val isodefl_binds = map (Binding.prefix_name "isodefl_") dbinds
     fun conjuncts [] _ = []
@@ -654,13 +654,13 @@ fun gen_domain_isomorphism
         fun is_cpo T = Sign.of_sort thy (T, @{sort cpo})
         val lhs = list_ccomb (map_const, map mk_ID (filter is_cpo Ts))
         val goal = mk_eqs (lhs, mk_ID lhsT)
-        val tac = EVERY
+        fun tac ctxt = EVERY
           [rtac @{thm isodefl_DEFL_imp_ID} 1,
-           stac DEFL_thm 1,
+           stac ctxt DEFL_thm 1,
            rtac isodefl_thm 1,
-           REPEAT (resolve_tac @{thms isodefl_ID_DEFL isodefl_LIFTDEFL} 1)]
+           REPEAT (resolve_tac ctxt @{thms isodefl_ID_DEFL isodefl_LIFTDEFL} 1)]
       in
-        Goal.prove_global thy [] [] goal (K tac)
+        Goal.prove_global thy [] [] goal (tac o #context)
       end
     val map_ID_binds = map (Binding.suffix_name "_map_ID") dbinds
     val map_ID_thms =

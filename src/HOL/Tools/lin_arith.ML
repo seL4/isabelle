@@ -732,11 +732,12 @@ fun split_once_tac ctxt split_thms =
       end)
   in
     EVERY' [
-      REPEAT_DETERM o eresolve_tac [rev_mp],
+      REPEAT_DETERM o eresolve_tac ctxt [rev_mp],
       cond_split_tac,
-      resolve_tac @{thms ccontr},
+      resolve_tac ctxt @{thms ccontr},
       prem_nnf_tac ctxt,
-      TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' eresolve_tac [disjE]))
+      TRY o REPEAT_ALL_NEW
+        (DETERM o (eresolve_tac ctxt [conjE, exE] ORELSE' eresolve_tac ctxt [disjE]))
     ]
   end;
 
@@ -753,13 +754,13 @@ fun pre_tac ctxt i =
     fun is_relevant t = is_some (decomp ctxt t)
   in
     DETERM (
-      TRY (filter_prems_tac is_relevant i)
+      TRY (filter_prems_tac ctxt is_relevant i)
         THEN (
           (TRY o REPEAT_ALL_NEW (split_once_tac ctxt split_thms))
             THEN_ALL_NEW
               (CONVERSION Drule.beta_eta_conversion
                 THEN'
-              (TRY o (eresolve_tac [notE] THEN' eq_assume_tac)))
+              (TRY o (eresolve_tac ctxt [notE] THEN' eq_assume_tac)))
         ) i
     )
   end;
@@ -834,14 +835,14 @@ in
 fun refute_tac ctxt test prep_tac ref_tac =
   let val refute_prems_tac =
         REPEAT_DETERM
-              (eresolve_tac [@{thm conjE}, @{thm exE}] 1 ORELSE
-               filter_prems_tac test 1 ORELSE
-               eresolve_tac @{thms disjE} 1) THEN
-        (DETERM (eresolve_tac @{thms notE} 1 THEN eq_assume_tac 1) ORELSE
+              (eresolve_tac ctxt [@{thm conjE}, @{thm exE}] 1 ORELSE
+               filter_prems_tac ctxt test 1 ORELSE
+               eresolve_tac ctxt @{thms disjE} 1) THEN
+        (DETERM (eresolve_tac ctxt @{thms notE} 1 THEN eq_assume_tac 1) ORELSE
          ref_tac 1);
-  in EVERY'[TRY o filter_prems_tac test,
-            REPEAT_DETERM o eresolve_tac @{thms rev_mp}, prep_tac,
-              resolve_tac @{thms ccontr}, prem_nnf_tac ctxt,
+  in EVERY'[TRY o filter_prems_tac ctxt test,
+            REPEAT_DETERM o eresolve_tac ctxt @{thms rev_mp}, prep_tac,
+              resolve_tac ctxt @{thms ccontr}, prem_nnf_tac ctxt,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
 
@@ -875,7 +876,7 @@ in
 fun gen_tac ex ctxt =
   FIRST' [simple_tac ctxt,
     Object_Logic.full_atomize_tac ctxt THEN'
-    (REPEAT_DETERM o resolve_tac [impI]) THEN' raw_tac ctxt ex];
+    (REPEAT_DETERM o resolve_tac ctxt [impI]) THEN' raw_tac ctxt ex];
 
 val tac = gen_tac true;
 

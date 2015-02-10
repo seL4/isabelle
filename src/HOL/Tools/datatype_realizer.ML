@@ -117,7 +117,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             rtac (cterm_instantiate inst induct) 1,
             ALLGOALS (Object_Logic.atomize_prems_tac ctxt),
             rewrite_goals_tac ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
-            REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
+            REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW (fn i =>
               REPEAT (etac allE i) THEN assume_tac ctxt i)) 1)])
       |> Drule.export_without_context;
 
@@ -194,7 +194,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
             rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
             ALLGOALS (EVERY'
               [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
-               resolve_tac prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])
+               resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])
       |> Drule.export_without_context;
 
     val exh_name = Thm.derivation_name exhaust;

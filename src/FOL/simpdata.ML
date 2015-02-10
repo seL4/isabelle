@@ -23,7 +23,7 @@ fun mk_eq th = case concl_of th of
 (*Replace premises x=y, X<->Y by X==Y*)
 fun mk_meta_prems ctxt =
     rule_by_tactic ctxt
-      (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
+      (REPEAT_FIRST (resolve_tac ctxt [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong ctxt rl =
@@ -107,9 +107,9 @@ val split_asm_tac = Splitter.split_asm_tac;
 val triv_rls = [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl}, @{thm notFalseI}];
 
 fun unsafe_solver ctxt =
-  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt),
+  FIRST' [resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt),
     assume_tac ctxt,
-    eresolve_tac @{thms FalseE}];
+    eresolve_tac ctxt @{thms FalseE}];
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver ctxt =

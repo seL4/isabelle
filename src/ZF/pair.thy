@@ -22,14 +22,14 @@ simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = {*
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms Bex_def} THEN
-      Quantifier1.prove_one_point_ex_tac)
+      Quantifier1.prove_one_point_ex_tac ctxt)
 *}
 
 simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {*
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms Ball_def} THEN
-      Quantifier1.prove_one_point_all_tac)
+      Quantifier1.prove_one_point_all_tac ctxt)
 *}
 
 

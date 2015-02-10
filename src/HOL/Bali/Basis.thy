@@ -9,7 +9,7 @@ begin
 
 subsubsection "misc"
 
-ML {* fun strip_tac i = REPEAT (resolve_tac [impI, allI] i) *}
+ML {* fun strip_tac ctxt i = REPEAT (resolve_tac ctxt [impI, allI] i) *}
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
 setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}

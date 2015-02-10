@@ -502,7 +502,7 @@ fun prove_pred options thy clauses preds pred (_, mode) (moded_clauses, compiled
         THEN trace_tac ctxt options "proved one direction"
         THEN prove_other_direction options ctxt pred mode moded_clauses
         THEN trace_tac ctxt options "proved other direction")
-      else (fn _ => ALLGOALS Skip_Proof.cheat_tac))
+      else (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt)))
   end
 
 end

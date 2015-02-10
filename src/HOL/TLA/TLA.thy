@@ -697,7 +697,8 @@ lemma SFImplWF: "|- SF(A)_v --> WF(A)_v"
 
 (* A tactic that "boxes" all fairness conditions. Apply more_temp_simps to "unbox". *)
 ML {*
-val box_fair_tac = SELECT_GOAL (REPEAT (dresolve_tac [@{thm BoxWFI}, @{thm BoxSFI}] 1))
+fun box_fair_tac ctxt =
+  SELECT_GOAL (REPEAT (dresolve_tac ctxt [@{thm BoxWFI}, @{thm BoxSFI}] 1))
 *}
 
 

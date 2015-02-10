@@ -55,14 +55,14 @@ fun atomize_thm ctxt thm =
 (** solvers for equivp and quotient assumptions **)
 
 fun equiv_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv})))
+  REPEAT_ALL_NEW (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv})))
 
 val equiv_solver = mk_solver "Equivalence goal solver" equiv_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [rtac @{thm identity_quotient3},
-     resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_thm}))]))
+     resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_thm}))]))
 
 val quotient_solver = mk_solver "Quotient goal solver" quotient_tac
 
@@ -167,10 +167,10 @@ fun regularize_tac ctxt =
   in
     simp_tac simpset THEN'
     TRY o REPEAT_ALL_NEW (CHANGED o FIRST'
-      [resolve_tac @{thms ball_reg_right bex_reg_left bex1_bexeq_reg},
-       resolve_tac (Inductive.get_monos ctxt),
-       resolve_tac @{thms ball_all_comm bex_ex_comm},
-       resolve_tac eq_eqvs,
+      [resolve_tac ctxt @{thms ball_reg_right bex_reg_left bex1_bexeq_reg},
+       resolve_tac ctxt (Inductive.get_monos ctxt),
+       resolve_tac ctxt @{thms ball_all_comm bex_ex_comm},
+       resolve_tac ctxt eq_eqvs,
        simp_tac simpset])
   end
 
@@ -371,7 +371,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 
      (* respectfulness of constants; in particular of a simple relation *)
   | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
-      => resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_respect}))
+      => resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_respect}))
           THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
@@ -403,7 +403,7 @@ fun injection_step_tac ctxt rel_refl =
 
     (* reflexivity of the basic relations *)
     (* R ... ... *)
-    resolve_tac rel_refl]
+    resolve_tac ctxt rel_refl]
 
 fun injection_tac ctxt =
   let

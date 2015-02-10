@@ -208,8 +208,8 @@ lemma contrapos:
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
-  fun mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  atac i
-  fun eq_mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  eq_assume_tac i
+  fun mp_tac i = eresolve0_tac [@{thm notE}, @{thm impE}] i  THEN  atac i
+  fun eq_mp_tac i = eresolve0_tac [@{thm notE}, @{thm impE}] i  THEN  eq_assume_tac i
 *}
 
 
@@ -305,8 +305,8 @@ lemma ex1E:
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
 ML {*
   fun iff_tac prems i =
-    resolve_tac (prems RL @{thms iffE}) i THEN
-    REPEAT1 (eresolve_tac [@{thm asm_rl}, @{thm mp}] i)
+    resolve0_tac (prems RL @{thms iffE}) i THEN
+    REPEAT1 (eresolve0_tac [@{thm asm_rl}, @{thm mp}] i)
 *}
 
 lemma conj_cong:

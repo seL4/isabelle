@@ -904,8 +904,9 @@ lemma alt_ex1E [elim!]:
   shows R
 apply (rule ex1E [OF major])
 apply (rule prem)
-apply (tactic {* ares_tac @{thms allI} 1 *})+
-apply (tactic {* eresolve_tac [Classical.dup_elim NONE @{thm allE}] 1 *})
+apply assumption
+apply (rule allI)+
+apply (tactic {* eresolve_tac @{context} [Classical.dup_elim NONE @{thm allE}] 1 *})
 apply iprover
 done
 
@@ -1822,7 +1823,7 @@ lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Righta
 proof
   assume "PROP ?ofclass"
   show "PROP ?equal"
-    by (tactic {* ALLGOALS (resolve_tac [Thm.unconstrainT @{thm eq_equal}]) *})
+    by (tactic {* ALLGOALS (resolve_tac @{context} [Thm.unconstrainT @{thm eq_equal}]) *})
       (fact `PROP ?ofclass`)
 next
   assume "PROP ?equal"
@@ -1923,7 +1924,7 @@ method_setup eval = {*
       let val conv = Code_Runtime.dynamic_holds_conv ctxt
       in
         CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 conv)) ctxt) THEN'
-        resolve_tac [TrueI]
+        resolve_tac ctxt [TrueI]
       end
   in
     Scan.succeed (SIMPLE_METHOD' o eval_tac)
@@ -1935,7 +1936,7 @@ method_setup normalization = {*
     SIMPLE_METHOD'
       (CHANGED_PROP o
         (CONVERSION (Nbe.dynamic_conv ctxt)
-          THEN_ALL_NEW (TRY o resolve_tac [TrueI]))))
+          THEN_ALL_NEW (TRY o resolve_tac ctxt [TrueI]))))
 *} "solve goal by normalization"
 
 
@@ -1975,7 +1976,7 @@ ML {*
     val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
   in
     fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
-    fun smp_tac ctxt j = EVERY'[dresolve_tac (smp j), assume_tac ctxt];
+    fun smp_tac ctxt j = EVERY' [dresolve_tac ctxt (smp j), assume_tac ctxt];
   end;
 
   local

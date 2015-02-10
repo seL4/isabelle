@@ -61,7 +61,7 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
 fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
     val thy = Proof_Context.theory_of ctxt
-    val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac [refl] 1
+    val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause end
@@ -102,7 +102,7 @@ fun introduce_lam_wrappers ctxt th =
          so that "Thm.equal_elim" works below. *)
       val t0 $ _ $ t2 = prop_of eq_th
       val eq_ct = t0 $ prop_of th $ t2 |> cterm_of thy
-      val eq_th' = Goal.prove_internal ctxt [] eq_ct (K (resolve_tac [eq_th] 1))
+      val eq_th' = Goal.prove_internal ctxt [] eq_ct (K (resolve_tac ctxt [eq_th] 1))
     in Thm.equal_elim eq_th' th end
 
 fun clause_params ordering =
@@ -257,7 +257,7 @@ fun metis_tac_unused type_encs0 lam_trans ctxt ths i st0 =
       "Metis called with theorems\n" ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     val type_encs = type_encs |> maps unalias_type_enc
     val combs = (lam_trans = combsN)
-    fun tac clause = resolve_tac (FOL_SOLVE unused type_encs lam_trans ctxt clause ths) 1
+    fun tac clause = resolve_tac ctxt (FOL_SOLVE unused type_encs lam_trans ctxt clause ths) 1
     val seq = Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt combs)) tac ctxt i st0
   in
     (!unused, seq)

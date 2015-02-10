@@ -105,7 +105,7 @@ fun ns_constrains_tac ctxt i =
   SELECT_GOAL
     (EVERY
      [REPEAT (etac @{thm Always_ConstrainsI} 1),
-      REPEAT (resolve_tac [@{thm StableI}, @{thm stableI}, @{thm constrains_imp_Constrains}] 1),
+      REPEAT (resolve_tac ctxt [@{thm StableI}, @{thm stableI}, @{thm constrains_imp_Constrains}] 1),
       rtac @{thm ns_constrainsI} 1,
       full_simp_tac ctxt 1,
       REPEAT (FIRSTGOAL (etac disjE)),

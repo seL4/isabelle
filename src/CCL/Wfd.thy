@@ -448,13 +448,14 @@ in
 fun rcall_tac ctxt i =
   let fun tac ps rl i = res_inst_tac ctxt ps rl i THEN atac i
   in IHinst tac @{thms rcallTs} i end
-  THEN eresolve_tac @{thms rcall_lemmas} i
+  THEN eresolve_tac ctxt @{thms rcall_lemmas} i
 
 fun raw_step_tac ctxt prems i =
-  ares_tac (prems@type_rls) i ORELSE
+  assume_tac ctxt i ORELSE
+  resolve_tac ctxt (prems @ type_rls) i ORELSE
   rcall_tac ctxt i ORELSE
-  ematch_tac ctxt [@{thm SubtypeE}] i ORELSE
-  match_tac ctxt [@{thm SubtypeI}] i
+  ematch_tac ctxt @{thms SubtypeE} i ORELSE
+  match_tac ctxt @{thms SubtypeI} i
 
 fun tc_step_tac ctxt prems = SUBGOAL (fn (Bi,i) =>
     if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
@@ -467,7 +468,7 @@ fun typechk_tac ctxt rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls)) i
 fun clean_ccs_tac ctxt =
   let fun tac ps rl i = eres_inst_tac ctxt ps rl i THEN atac i in
     TRY (REPEAT_FIRST (IHinst tac @{thms hyprcallTs} ORELSE'
-      eresolve_tac ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
+      eresolve_tac ctxt ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
       hyp_subst_tac ctxt))
   end
 
@@ -498,7 +499,7 @@ ML {*
 fun eval_tac ths =
   Subgoal.FOCUS_PREMS (fn {context = ctxt, prems, ...} =>
     let val eval_rules = Named_Theorems.get ctxt @{named_theorems eval}
-    in DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ rev eval_rules) 1) end)
+    in DEPTH_SOLVE_1 (resolve_tac ctxt (ths @ prems @ rev eval_rules) 1) end)
 *}
 
 method_setup eval = {*
@@ -521,7 +522,7 @@ lemma letV:
   apply (unfold let_def)
   apply (rule 1 [THEN canonical])
   apply (tactic {*
-    REPEAT (DEPTH_SOLVE_1 (resolve_tac (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
+    REPEAT (DEPTH_SOLVE_1 (resolve_tac @{context} (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
       etac @{thm substitute} 1)) *})
   done
 

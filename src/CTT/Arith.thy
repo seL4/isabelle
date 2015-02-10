@@ -177,7 +177,7 @@ fun arith_rew_tac ctxt prems = make_rew_tac ctxt
   (Arith_simp.norm_tac ctxt (congr_rls, prems))
 
 fun hyp_arith_rew_tac ctxt prems = make_rew_tac ctxt
-  (Arith_simp.cond_norm_tac ctxt (prove_cond_tac, congr_rls, prems))
+  (Arith_simp.cond_norm_tac ctxt (prove_cond_tac ctxt, congr_rls, prems))
 
 end
 *}

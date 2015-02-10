@@ -180,7 +180,7 @@ lemma imp_cong:
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
        DEPTH_SOLVE_1
-         (resolve_tac [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
+         (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
            Cla.safe_tac @{context} 1) *})
   done
 
@@ -193,7 +193,7 @@ lemma conj_cong:
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
        DEPTH_SOLVE_1
-         (resolve_tac [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
+         (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
            Cla.safe_tac @{context} 1) *})
   done
 

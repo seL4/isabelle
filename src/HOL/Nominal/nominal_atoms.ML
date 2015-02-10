@@ -503,20 +503,20 @@ fun create_nom_typedecls ak_names thy =
            val cls_name = Sign.full_bname thy' ("pt_"^ak_name);
            val at_inst  = Global_Theory.get_thm thy' ("at_" ^ ak_name' ^ "_inst");
 
-           val proof1 = EVERY [Class.intro_classes_tac [],
+           fun proof1 ctxt = EVERY [Class.intro_classes_tac ctxt [],
                                  rtac ((at_inst RS at_pt_inst) RS pt1) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt2) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt3) 1,
                                  atac 1];
            fun proof2 ctxt =
-             Class.intro_classes_tac [] THEN
+             Class.intro_classes_tac ctxt [] THEN
              REPEAT (asm_simp_tac
               (put_simpset HOL_basic_ss ctxt addsimps
                 maps (Global_Theory.get_thms thy') [ak_name ^ "_prm_" ^ ak_name' ^ "_def"]) 1);
          in
            thy'
            |> Axclass.prove_arity (qu_name,[],[cls_name])
-              (fn ctxt => if ak_name = ak_name' then proof1 else proof2 ctxt)
+              (fn ctxt => if ak_name = ak_name' then proof1 ctxt else proof2 ctxt)
          end) ak_names thy) ak_names thy12d;
 
      (* show that                       *)
@@ -536,7 +536,7 @@ fun create_nom_typedecls ak_names thy =
           val pt_inst  = Global_Theory.get_thm thy ("pt_"^ak_name^"_inst");
 
           fun pt_proof thm ctxt =
-              EVERY [Class.intro_classes_tac [],
+              EVERY [Class.intro_classes_tac ctxt [],
                      rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
@@ -582,13 +582,13 @@ fun create_nom_typedecls ak_names thy =
                (if ak_name = ak_name'
                 then
                   let val at_thm = Global_Theory.get_thm thy' ("at_"^ak_name^"_inst");
-                  in  EVERY [Class.intro_classes_tac [],
+                  in  EVERY [Class.intro_classes_tac ctxt [],
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
                   let val dj_inst = Global_Theory.get_thm thy' ("dj_"^ak_name'^"_"^ak_name);
                       val simp_s =
                         put_simpset HOL_basic_ss ctxt addsimps [dj_inst RS dj_supp, finite_emptyI];
-                  in EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1] end)
+                  in EVERY [Class.intro_classes_tac ctxt [], asm_simp_tac simp_s 1] end)
         in
          Axclass.prove_arity (qu_name,[],[qu_class]) proof thy'
         end) ak_names thy) ak_names thy18;
@@ -605,7 +605,7 @@ fun create_nom_typedecls ak_names thy =
         let
           val cls_name = Sign.full_bname thy ("fs_"^ak_name);
           val fs_inst  = Global_Theory.get_thm thy ("fs_"^ak_name^"_inst");
-          fun fs_proof thm ctxt = EVERY [Class.intro_classes_tac [], rtac (thm RS fs1) 1];
+          fun fs_proof thm ctxt = EVERY [Class.intro_classes_tac ctxt [], rtac (thm RS fs1) 1];
 
           val fs_thm_unit  = fs_unit_inst;
           val fs_thm_prod  = fs_inst RS (fs_inst RS fs_prod_inst);
@@ -651,7 +651,7 @@ fun create_nom_typedecls ak_names thy =
                     val pt_inst  = Global_Theory.get_thm thy'' ("pt_"^ak_name''^"_inst");
                     val at_inst  = Global_Theory.get_thm thy'' ("at_"^ak_name''^"_inst");
                   in
-                   EVERY [Class.intro_classes_tac [],
+                   EVERY [Class.intro_classes_tac ctxt [],
                           rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
                   end)
                 else
@@ -663,7 +663,7 @@ fun create_nom_typedecls ak_names thy =
                                            [ak_name' ^"_prm_"^ak_name^"_def",
                                             ak_name''^"_prm_"^ak_name^"_def"]));
                   in
-                    EVERY [Class.intro_classes_tac [], simp_tac simp_s 1]
+                    EVERY [Class.intro_classes_tac ctxt [], simp_tac simp_s 1]
                   end))
               in
                 Axclass.prove_arity (name,[],[cls_name]) proof thy''
@@ -686,7 +686,7 @@ fun create_nom_typedecls ak_names thy =
             val pt_inst  = Global_Theory.get_thm thy' ("pt_"^ak_name^"_inst");
             val at_inst  = Global_Theory.get_thm thy' ("at_"^ak_name^"_inst");
 
-            fun cp_proof thm ctxt = EVERY [Class.intro_classes_tac [],rtac (thm RS cp1) 1];
+            fun cp_proof thm ctxt = EVERY [Class.intro_classes_tac ctxt [], rtac (thm RS cp1) 1];
           
             val cp_thm_unit = cp_unit_inst;
             val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);
@@ -717,7 +717,7 @@ fun create_nom_typedecls ak_names thy =
              let
                val qu_class = Sign.full_bname thy ("pt_"^ak_name);
                fun proof ctxt =
-                Class.intro_classes_tac [] THEN
+                Class.intro_classes_tac ctxt [] THEN
                 REPEAT (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Simpdata.mk_eq defn]) 1);
              in 
                Axclass.prove_arity (discrete_ty, [], [qu_class]) proof thy
@@ -729,7 +729,7 @@ fun create_nom_typedecls ak_names thy =
                val qu_class = Sign.full_bname thy ("fs_"^ak_name);
                val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
                fun proof ctxt =
-                Class.intro_classes_tac [] THEN
+                Class.intro_classes_tac ctxt [] THEN
                 asm_simp_tac (put_simpset HOL_ss ctxt
                   addsimps [supp_def, Collect_const, finite_emptyI, Simpdata.mk_eq defn]) 1;
              in 
@@ -742,7 +742,7 @@ fun create_nom_typedecls ak_names thy =
                val qu_class = Sign.full_bname thy ("cp_"^ak_name^"_"^ak_name');
                val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
                fun proof ctxt =
-                Class.intro_classes_tac [] THEN
+                Class.intro_classes_tac ctxt [] THEN
                 asm_simp_tac (put_simpset HOL_ss ctxt addsimps [Simpdata.mk_eq defn]) 1;
              in
                Axclass.prove_arity (discrete_ty, [], [qu_class]) proof thy

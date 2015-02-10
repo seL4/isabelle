@@ -162,7 +162,7 @@ fun possibility_tac ctxt =
     (ALLGOALS (simp_tac (ctxt delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, @{thm Nonce_supply}]));
+                   resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}]));
 *}
 
 method_setup possibility = {* Scan.succeed (SIMPLE_METHOD o possibility_tac) *}

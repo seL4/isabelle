@@ -54,7 +54,7 @@ fun add_partial_term_of tyco raw_vs thy =
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
     |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
 
 fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
@@ -187,7 +187,7 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
       |> Quickcheck_Common.define_functions
         (fn narrowings => mk_equations descr vs narrowings, NONE)
         prfx [] narrowingsN (map narrowingT (Ts @ Us))
-      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+      |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
     else
       thy
   end;

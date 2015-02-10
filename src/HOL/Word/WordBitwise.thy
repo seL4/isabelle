@@ -518,7 +518,7 @@ fun upt_conv ctxt ct =
       in
         try (fn () =>
           Goal.prove_internal ctxt [] prop 
-            (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
+            (K (REPEAT_DETERM (resolve_tac ctxt @{thms upt_eq_list_intros} 1
                 ORELSE simp_tac (put_simpset word_ss ctxt) 1))) |> mk_meta_eq) ()
       end
   | _ => NONE;

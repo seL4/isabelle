@@ -636,7 +636,7 @@ val unfold_add =
 (* Tactics *)
 
 fun gen_intro_locales_tac intros_tac eager ctxt =
-  intros_tac
+  intros_tac ctxt
     (get_witnesses ctxt @ get_intros ctxt @ (if eager then get_unfolds ctxt else []));
 
 val intro_locales_tac = gen_intro_locales_tac Method.intros_tac;

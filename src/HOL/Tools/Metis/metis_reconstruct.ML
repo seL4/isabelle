@@ -530,17 +530,19 @@ fun unify_first_prem_with_concl thy i th =
 
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
 
-fun copy_prems_tac [] ns i =
-    if forall (curry (op =) 1) ns then all_tac else copy_prems_tac (rev ns) [] i
-  | copy_prems_tac (1 :: ms) ns i = rotate_tac 1 i THEN copy_prems_tac ms (1 :: ns) i
-  | copy_prems_tac (m :: ms) ns i =
-    eresolve_tac [copy_prem] i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
+fun copy_prems_tac ctxt [] ns i =
+    if forall (curry (op =) 1) ns then all_tac else copy_prems_tac ctxt (rev ns) [] i
+  | copy_prems_tac ctxt (1 :: ms) ns i = rotate_tac 1 i THEN copy_prems_tac ctxt ms (1 :: ns) i
+  | copy_prems_tac ctxt (m :: ms) ns i =
+    eresolve_tac ctxt [copy_prem] i THEN copy_prems_tac ctxt ms (m div 2 :: (m + 1) div 2 :: ns) i
 
 (* Metis generates variables of the form _nnn. *)
 val is_metis_fresh_variable = String.isPrefix "_"
 
-fun instantiate_forall_tac thy t i st =
+fun instantiate_forall_tac ctxt t i st =
   let
+    val thy = Proof_Context.theory_of ctxt
+
     val params = Logic.strip_params (Logic.get_goal (prop_of st) i) |> rev
 
     fun repair (t as (Var ((s, _), _))) =
@@ -581,16 +583,16 @@ fun instantiate_forall_tac thy t i st =
         end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var")
   in
-    (DETERM (eresolve_tac @{thms allE} i THEN rotate_tac ~1 i) THEN PRIMITIVE do_instantiate) st
+    (DETERM (eresolve_tac ctxt @{thms allE} i THEN rotate_tac ~1 i) THEN PRIMITIVE do_instantiate) st
   end
 
-fun fix_exists_tac t = eresolve_tac [exE] THEN' rename_tac [t |> dest_Var |> fst |> fst]
+fun fix_exists_tac ctxt t = eresolve_tac ctxt [exE] THEN' rename_tac [t |> dest_Var |> fst |> fst]
 
-fun release_quantifier_tac thy (skolem, t) =
-  (if skolem then fix_exists_tac else instantiate_forall_tac thy) t
+fun release_quantifier_tac ctxt (skolem, t) =
+  (if skolem then fix_exists_tac ctxt else instantiate_forall_tac ctxt) t
 
 fun release_clusters_tac _ _ _ [] = K all_tac
-  | release_clusters_tac thy ax_counts substs ((ax_no, cluster_no) :: clusters) =
+  | release_clusters_tac ctxt ax_counts substs ((ax_no, cluster_no) :: clusters) =
     let
       val cluster_of_var = Meson_Clausify.cluster_of_zapped_var_name o fst o fst o dest_Var
       fun in_right_cluster ((_, (cluster_no', _)), _) = cluster_no' = cluster_no
@@ -605,13 +607,13 @@ fun release_clusters_tac _ _ _ [] = K all_tac
                           else
                             NONE)
       fun do_cluster_subst cluster_subst =
-        map (release_quantifier_tac thy) cluster_subst @ [rotate_tac 1]
+        map (release_quantifier_tac ctxt) cluster_subst @ [rotate_tac 1]
       val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
     in
       rotate_tac first_prem
       THEN' (EVERY' (maps do_cluster_subst cluster_substs))
       THEN' rotate_tac (~ first_prem - length cluster_substs)
-      THEN' release_clusters_tac thy ax_counts substs clusters
+      THEN' release_clusters_tac ctxt ax_counts substs clusters
     end
 
 fun cluster_key ((ax_no, (cluster_no, index_no)), skolem) =
@@ -731,21 +733,20 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_of_subst_info substs))
 *)
+      val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm prems_imp_false)) ctxt
 
       fun cut_and_ex_tac axiom =
-        cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (eresolve_tac @{thms exE}) 1)
+        cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (eresolve_tac ctxt' @{thms exE}) 1)
       fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
-
-      val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm prems_imp_false)) ctxt
     in
       Goal.prove ctxt' [] [] @{prop False}
         (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst o fst) ax_counts)
               THEN rename_tac outer_param_names 1
-              THEN copy_prems_tac (map snd ax_counts) [] 1)
-            THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
+              THEN copy_prems_tac ctxt' (map snd ax_counts) [] 1)
+            THEN release_clusters_tac ctxt' ax_counts substs ordered_clusters 1
             THEN match_tac ctxt' [prems_imp_false] 1
-            THEN ALLGOALS (fn i => resolve_tac @{thms Meson.skolem_COMBK_I} i
+            THEN ALLGOALS (fn i => resolve_tac ctxt' @{thms Meson.skolem_COMBK_I} i
               THEN rotate_tac (rotation_of_subgoal i) i
               THEN PRIMITIVE (unify_first_prem_with_concl thy i)
               THEN assume_tac ctxt' i

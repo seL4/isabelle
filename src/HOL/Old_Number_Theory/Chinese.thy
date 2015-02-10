@@ -166,11 +166,11 @@ lemma unique_xi_sol:
   "0 < n ==> i \<le> n ==> m_cond n mf ==> km_cond n kf mf
     ==> \<exists>!x. 0 \<le> x \<and> x < mf i \<and> [kf i * mhf mf n i * x = bf i] (mod mf i)"
   apply (rule zcong_lineq_unique)
-   apply (tactic {* stac @{thm zgcd_zmult_cancel} 2 *})
+   apply (tactic {* stac @{context} @{thm zgcd_zmult_cancel} 2 *})
     apply (unfold m_cond_def km_cond_def mhf_def)
     apply (simp_all (no_asm_simp))
   apply safe
-    apply (tactic {* stac @{thm zgcd_zmult_cancel} 3 *})
+    apply (tactic {* stac @{context} @{thm zgcd_zmult_cancel} 3 *})
      apply (rule_tac [!] funprod_zgcd)
      apply safe
      apply simp_all
@@ -228,12 +228,12 @@ lemma chinese_remainder:
   apply (rule_tac x = "x_sol n kf bf mf mod funprod mf 0 n" in exI)
   apply (unfold lincong_sol_def)
   apply safe
-    apply (tactic {* stac @{thm zcong_zmod} 3 *})
-    apply (tactic {* stac @{thm mod_mult_eq} 3 *})
-    apply (tactic {* stac @{thm mod_mod_cancel} 3 *})
-      apply (tactic {* stac @{thm x_sol_lin} 4 *})
-        apply (tactic {* stac (@{thm mod_mult_eq} RS sym) 6 *})
-        apply (tactic {* stac (@{thm zcong_zmod} RS sym) 6 *})
+    apply (tactic {* stac @{context} @{thm zcong_zmod} 3 *})
+    apply (tactic {* stac @{context} @{thm mod_mult_eq} 3 *})
+    apply (tactic {* stac @{context} @{thm mod_mod_cancel} 3 *})
+      apply (tactic {* stac @{context} @{thm x_sol_lin} 4 *})
+        apply (tactic {* stac @{context} (@{thm mod_mult_eq} RS sym) 6 *})
+        apply (tactic {* stac @{context} (@{thm zcong_zmod} RS sym) 6 *})
         apply (subgoal_tac [6]
           "0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
           \<and> [kf i * mhf mf n i * xilin_sol i n kf bf mf = bf i] (mod mf i)")

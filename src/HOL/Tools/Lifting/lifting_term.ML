@@ -473,7 +473,7 @@ in
       fun prove_extra_assms ctxt ctm distr_rule =
         let
           fun prove_assm assm = try (Goal.prove ctxt [] [] (term_of assm))
-            (fn _ => SOLVED' (REPEAT_ALL_NEW (resolve_tac (Transfer.get_transfer_raw ctxt))) 1)
+            (fn _ => SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt (Transfer.get_transfer_raw ctxt))) 1)
   
           fun is_POS_or_NEG ctm =
             case (head_of o term_of o Thm.dest_arg) ctm of

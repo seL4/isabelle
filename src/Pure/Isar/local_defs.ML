@@ -225,7 +225,7 @@ fun derived_def ctxt conditional prop =
           ALLGOALS
             (CONVERSION (meta_rewrite_conv ctxt'') THEN'
               rewrite_goal_tac ctxt'' [def] THEN'
-              resolve_tac [Drule.reflexive_thm]))
+              resolve_tac ctxt'' [Drule.reflexive_thm]))
       handle ERROR msg => cat_error msg "Failed to prove definitional specification";
   in (((c, T), rhs), prove) end;
 

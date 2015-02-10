@@ -73,7 +73,7 @@ val imp_elim = make_elim mp;
 fun contr_tac ctxt = etac not_elim THEN'  assume_tac ctxt;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac ctxt i = eresolve_tac ([not_elim,imp_elim]) i  THEN  assume_tac ctxt i;
+fun mp_tac ctxt i = eresolve_tac ctxt ([not_elim,imp_elim]) i  THEN  assume_tac ctxt i;
 
 (*Like mp_tac but instantiates no variables*)
 fun uniq_mp_tac ctxt i = ematch_tac ctxt ([not_elim,imp_elim]) i  THEN  uniq_assume_tac ctxt i;
@@ -151,9 +151,9 @@ fun cs addDs ths = cs addEs (map make_elim ths);
 fun safe_step_tac ctxt (CS{safe0_brls,safep_brls,...}) = 
   FIRST' [uniq_assume_tac ctxt,
           uniq_mp_tac ctxt,
-          biresolve_tac safe0_brls,
+          biresolve_tac ctxt safe0_brls,
           FIRST' hyp_subst_tacs,
-          biresolve_tac safep_brls] ;
+          biresolve_tac ctxt safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)
 fun safe_tac ctxt cs = DETERM (REPEAT_FIRST (safe_step_tac ctxt cs));
@@ -165,7 +165,7 @@ fun inst_step_tac ctxt = assume_tac ctxt APPEND' contr_tac ctxt;
 fun step_tac ctxt (cs as (CS{haz_brls,...})) i = 
   FIRST [safe_tac ctxt cs,
          inst_step_tac ctxt i,
-         biresolve_tac haz_brls i];
+         biresolve_tac ctxt haz_brls i];
 
 (*** The following tactics all fail unless they solve one goal ***)
 
@@ -179,7 +179,7 @@ fun best_tac ctxt cs =
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
 fun slow_step_tac ctxt (cs as (CS{haz_brls,...})) i = 
-    safe_tac ctxt cs ORELSE (assume_tac ctxt i APPEND biresolve_tac haz_brls i);
+    safe_tac ctxt cs ORELSE (assume_tac ctxt i APPEND biresolve_tac ctxt haz_brls i);
 
 end; 
 end;

@@ -541,11 +541,11 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (map_index (mkasm_trancl rel o swap) Hs);
   val prfs = solveTrancl (prems, C);
  in
-  Subgoal.FOCUS (fn {prems, concl, ...} =>
+  Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
       val SOME (_, _, rel', _) = decomp (term_of concl);
       val thms = map (prove thy rel' prems) prfs
-    in resolve_tac [prove thy rel' thms prf] 1 end) ctxt n st
+    in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty);
 
@@ -560,11 +560,11 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (map_index (mkasm_rtrancl rel o swap) Hs);
   val prfs = solveRtrancl (prems, C);
  in
-  Subgoal.FOCUS (fn {prems, concl, ...} =>
+  Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
       val SOME (_, _, rel', _) = decomp (term_of concl);
       val thms = map (prove thy rel' prems) prfs
-    in resolve_tac [prove thy rel' thms prf] 1 end) ctxt n st
+    in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty | General.Subscript => Seq.empty);
 

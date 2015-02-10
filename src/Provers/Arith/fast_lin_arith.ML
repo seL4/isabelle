@@ -810,15 +810,15 @@ fun refute_tac ctxt (i, split_neq, justs) =
       fun just1 j =
         (* eliminate inequalities *)
         (if split_neq then
-          REPEAT_DETERM (eresolve_tac neqE i)
+          REPEAT_DETERM (eresolve_tac ctxt neqE i)
         else
           all_tac) THEN
           PRIMITIVE (trace_thm ctxt ["State after neqE:"]) THEN
           (* use theorems generated from the actual justifications *)
-          Subgoal.FOCUS (fn {prems, ...} => resolve_tac [mkthm ctxt prems j] 1) ctxt i
+          Subgoal.FOCUS (fn {prems, ...} => resolve_tac ctxt [mkthm ctxt prems j] 1) ctxt i
     in
       (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
-      DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
+      DETERM (resolve_tac ctxt [LA_Logic.notI, LA_Logic.ccontr] i) THEN
       (* user-defined preprocessing of the subgoal *)
       DETERM (LA_Data.pre_tac ctxt i) THEN
       PRIMITIVE (trace_thm ctxt ["State after pre_tac:"]) THEN

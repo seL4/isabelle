@@ -119,8 +119,8 @@ fun ptac ctxt prog = let
                   asm_full_simp_tac (put_simpset atomize_ss ctxt) THEN'    (* atomize the asms *)
                   (REPEAT_DETERM o (etac conjE))        (* split the asms *)
                 ])
-        ORELSE' resolve_tac [disjI1,disjI2]     (* "P ==> P | Q","Q ==> P | Q"*)
-        ORELSE' ((resolve_tac proga APPEND' hyp_resolve_tac)
+        ORELSE' resolve_tac ctxt [disjI1,disjI2]     (* "P ==> P | Q","Q ==> P | Q"*)
+        ORELSE' ((resolve_tac ctxt proga APPEND' hyp_resolve_tac)
                  THEN' (fn _ => check_HOHH_tac2))
 end;
 

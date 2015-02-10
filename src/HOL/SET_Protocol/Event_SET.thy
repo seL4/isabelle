@@ -184,7 +184,7 @@ ML
 {*
 fun analz_mono_contra_tac ctxt = 
   rtac @{thm analz_impI} THEN' 
-  REPEAT1 o (dresolve_tac @{thms analz_mono_contra})
+  REPEAT1 o (dresolve_tac ctxt @{thms analz_mono_contra})
   THEN' mp_tac ctxt
 *}
 

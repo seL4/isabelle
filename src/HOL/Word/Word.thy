@@ -1561,7 +1561,7 @@ fun uint_arith_tacs ctxt =
           |> fold Splitter.add_split @{thms uint_splits}
           |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac ctxt @{thms word_size}, 
-      ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
+      ALLGOALS  (fn n => REPEAT (resolve_tac ctxt [allI, impI] n) THEN
                          REPEAT (etac conjE n) THEN
                          REPEAT (dtac @{thm word_of_int_inverse} n 
                                  THEN assume_tac ctxt n 
@@ -2063,7 +2063,7 @@ fun unat_arith_tacs ctxt =
           |> fold Splitter.add_split @{thms unat_splits}
           |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac ctxt @{thms word_size}, 
-      ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
+      ALLGOALS  (fn n => REPEAT (resolve_tac ctxt [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
                          REPEAT (dtac @{thm of_nat_inverse} n THEN atac n)),
       TRYALL arith_tac' ] 

@@ -310,7 +310,8 @@ in
           val init_goal = Goal.init (cterm_of thy fixed_goal)
           val rules = Transfer.get_transfer_raw ctxt
           val rules = constraint :: OO_rules @ rules
-          val tac = K (Local_Defs.unfold_tac ctxt [pcr_def]) THEN' REPEAT_ALL_NEW (resolve_tac rules)
+          val tac =
+            K (Local_Defs.unfold_tac ctxt [pcr_def]) THEN' REPEAT_ALL_NEW (resolve_tac ctxt rules)
         in
           (singleton (Variable.export ctxt orig_ctxt) o Goal.conclude) (the (SINGLE (tac 1) init_goal))
         end
@@ -414,7 +415,8 @@ local
     let
       val goal = thm |> prems_of |> hd
       val var = goal |> HOLogic.dest_Trueprop |> dest_comb |> snd |> dest_Var 
-      val reduced_assm = reduce_goal [var] goal (TRY (REPEAT_ALL_NEW (resolve_tac rules) 1)) ctxt
+      val reduced_assm =
+        reduce_goal [var] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
     in
       reduced_assm RS thm
     end
@@ -424,7 +426,8 @@ in
       fun reduce_first_assm ctxt rules thm =
         let
           val goal = thm |> prems_of |> hd
-          val reduced_assm = reduce_goal [] goal (TRY (REPEAT_ALL_NEW (resolve_tac rules) 1)) ctxt
+          val reduced_assm =
+            reduce_goal [] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
         in
           reduced_assm RS thm
         end

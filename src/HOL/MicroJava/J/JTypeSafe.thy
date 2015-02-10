@@ -199,8 +199,8 @@ apply( unfold c_hupd_def)
 
 -- "several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??"
 apply( simp_all)
-apply( tactic "ALLGOALS (REPEAT o resolve_tac [impI, allI])")
-apply( tactic {* ALLGOALS (eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
+apply( tactic "ALLGOALS (REPEAT o resolve_tac @{context} [impI, allI])")
+apply( tactic {* ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
   THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context}))) *})
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac @{context}])")
 
@@ -240,7 +240,7 @@ apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
-apply( tactic {* EVERY'[eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
+apply( tactic {* EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
        THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (etac conjE), hyp_subst_tac @{context}] 3*})
 
 -- "for if"
@@ -276,7 +276,7 @@ apply (rule conjI)
 
 -- "7 LAss"
 apply (fold fun_upd_def)
-apply( tactic {* (eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
+apply( tactic {* (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
                  THEN_ALL_NEW (full_simp_tac @{context})) 1 *})
 apply (intro strip)
 apply (case_tac E)

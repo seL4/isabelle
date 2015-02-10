@@ -11,7 +11,7 @@ fun peEs 0 = []
   | peEs n = @{thm EqE} :: map (curry (op RS) @{thm ProdE}) (peEs (n-1));
 
 (*Tactic used for proving conditions for the cond_rls*)
-val prove_cond_tac = eresolve_tac (peEs 5);
+fun prove_cond_tac ctxt = eresolve_tac ctxt (peEs 5);
 
 
 structure TSimp_data: TSIMP_DATA =
@@ -32,11 +32,11 @@ val standard_congr_rls = @{thms intrL2_rls} @ @{thms elimL_rls};
 
 (*Make a rewriting tactic from a normalization tactic*)
 fun make_rew_tac ctxt ntac =
-    TRY (eqintr_tac ctxt)  THEN  TRYALL (resolve_tac [TSimp.split_eqn])  THEN  
+    TRY (eqintr_tac ctxt)  THEN  TRYALL (resolve_tac ctxt [TSimp.split_eqn])  THEN  
     ntac;
 
 fun rew_tac ctxt thms = make_rew_tac ctxt
     (TSimp.norm_tac ctxt (standard_congr_rls, thms));
 
 fun hyp_rew_tac ctxt thms = make_rew_tac ctxt
-    (TSimp.cond_norm_tac ctxt (prove_cond_tac, standard_congr_rls, thms));
+    (TSimp.cond_norm_tac ctxt (prove_cond_tac ctxt, standard_congr_rls, thms));

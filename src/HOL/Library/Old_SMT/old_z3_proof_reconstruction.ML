@@ -636,10 +636,10 @@ in
 fun skolemize vars =
   apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
 
-fun discharge_sk_tac i st = (
+fun discharge_sk_tac ctxt i st = (
   rtac @{thm trans} i
-  THEN resolve_tac sk_rules i
-  THEN (rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
+  THEN resolve_tac ctxt sk_rules i
+  THEN (rtac @{thm refl} ORELSE' discharge_sk_tac ctxt) (i+1)
   THEN rtac @{thm refl} i) st
 
 end
@@ -847,13 +847,13 @@ local
   fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl},
     @{thm reflexive}, Old_Z3_Proof_Literals.true_thm]
 
-  fun discharge_assms_tac rules =
-    REPEAT (HEADGOAL (resolve_tac rules ORELSE' SOLVED' discharge_sk_tac))
+  fun discharge_assms_tac ctxt rules =
+    REPEAT (HEADGOAL (resolve_tac ctxt rules ORELSE' SOLVED' (discharge_sk_tac ctxt)))
     
   fun discharge_assms ctxt rules thm =
     if Thm.nprems_of thm = 0 then Goal.norm_result ctxt thm
     else
-      (case Seq.pull (discharge_assms_tac rules thm) of
+      (case Seq.pull (discharge_assms_tac ctxt rules thm) of
         SOME (thm', _) => Goal.norm_result ctxt thm'
       | NONE => raise THM ("failed to discharge premise", 1, [thm]))
 

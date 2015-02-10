@@ -63,8 +63,8 @@ fun transfer_thm_of ctxt ths t =
       rewrite_goals_tac ctxt (ths' @ refolds' @ unfolds') THEN
       ALLGOALS (Object_Logic.full_atomize_tac ctxt) THEN
       match_tac ctxt [transitive_thm] 1 THEN
-      resolve_tac [@{thm transfer_start}] 1 THEN
-      REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
+      resolve_tac ctxt [@{thm transfer_start}] 1 THEN
+      REPEAT_ALL_NEW (resolve_tac ctxt intros) 1 THEN
       match_tac ctxt [reflexive_thm] 1
   in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
 

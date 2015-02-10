@@ -736,32 +736,32 @@ ML
 structure ShoupRubin =
 struct
 
-val prepare_tac = 
- (*SR8*)   forward_tac [@{thm Outpts_B_Card_form_7}] 14 THEN
-           eresolve_tac [exE] 15 THEN eresolve_tac [exE] 15 THEN 
- (*SR9*)   forward_tac [@{thm Outpts_A_Card_form_4}] 16 THEN 
- (*SR11*)  forward_tac [@{thm Outpts_A_Card_form_10}] 21 THEN
-           eresolve_tac [exE] 22 THEN eresolve_tac [exE] 22
+fun prepare_tac ctxt = 
+ (*SR8*)   forward_tac ctxt [@{thm Outpts_B_Card_form_7}] 14 THEN
+           eresolve_tac ctxt [exE] 15 THEN eresolve_tac ctxt [exE] 15 THEN 
+ (*SR9*)   forward_tac ctxt [@{thm Outpts_A_Card_form_4}] 16 THEN 
+ (*SR11*)  forward_tac ctxt [@{thm Outpts_A_Card_form_10}] 21 THEN
+           eresolve_tac ctxt [exE] 22 THEN eresolve_tac ctxt [exE] 22
 
 fun parts_prepare_tac ctxt = 
-           prepare_tac THEN
- (*SR9*)   dresolve_tac [@{thm Gets_imp_knows_Spy_parts_Snd}] 18 THEN 
- (*SR9*)   dresolve_tac [@{thm Gets_imp_knows_Spy_parts_Snd}] 19 THEN 
- (*Oops1*) dresolve_tac [@{thm Outpts_B_Card_form_7}] 25    THEN               
- (*Oops2*) dresolve_tac [@{thm Outpts_A_Card_form_10}] 27 THEN                
+           prepare_tac ctxt THEN
+ (*SR9*)   dresolve_tac ctxt [@{thm Gets_imp_knows_Spy_parts_Snd}] 18 THEN 
+ (*SR9*)   dresolve_tac ctxt [@{thm Gets_imp_knows_Spy_parts_Snd}] 19 THEN 
+ (*Oops1*) dresolve_tac ctxt [@{thm Outpts_B_Card_form_7}] 25    THEN               
+ (*Oops2*) dresolve_tac ctxt [@{thm Outpts_A_Card_form_10}] 27 THEN                
  (*Base*)  (force_tac ctxt) 1
 
 fun analz_prepare_tac ctxt =
-         prepare_tac THEN
+         prepare_tac ctxt THEN
          dtac @{thm Gets_imp_knows_Spy_analz_Snd} 18 THEN 
  (*SR9*) dtac @{thm Gets_imp_knows_Spy_analz_Snd} 19 THEN 
-         REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
+         REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
 *}
 
 method_setup prepare = {*
-    Scan.succeed (K (SIMPLE_METHOD ShoupRubin.prepare_tac)) *}
+    Scan.succeed (SIMPLE_METHOD o ShoupRubin.prepare_tac) *}
   "to launch a few simple facts that will help the simplifier"
 
 method_setup parts_prepare = {*
@@ -817,7 +817,7 @@ method_setup sc_analz_freshK = {*
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST
-       (resolve_tac [allI, ballI, impI]),
+       (resolve_tac ctxt [allI, ballI, impI]),
         REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
         ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt
           addsimps [@{thm knows_Spy_Inputs_secureM_sr_Spy},

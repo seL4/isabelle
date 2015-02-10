@@ -273,13 +273,13 @@ end;
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
   fun mp_tac ctxt i =
-    eresolve_tac [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac ctxt i
+    eresolve_tac ctxt [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac ctxt i
 *}
 
 (*Like mp_tac but instantiates no variables*)
 ML {*
   fun int_uniq_mp_tac ctxt i =
-    eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  uniq_assume_tac ctxt i
+    eresolve_tac ctxt [@{thm notE}, @{thm impE}] i  THEN  uniq_assume_tac ctxt i
 *}
 
 
@@ -361,8 +361,8 @@ schematic_lemma ex1E:
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
 ML {*
 fun iff_tac prems i =
-    resolve_tac (prems RL [@{thm iffE}]) i THEN
-    REPEAT1 (eresolve_tac [asm_rl, @{thm mp}] i)
+    resolve0_tac (prems RL [@{thm iffE}]) i THEN
+    REPEAT1 (eresolve0_tac [asm_rl, @{thm mp}] i)
 *}
 
 schematic_lemma conj_cong:
@@ -503,17 +503,20 @@ schematic_lemma simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
 
 schematic_lemma pred1_cong: "p:a=a' ==> ?p:P(a) <-> P(a')"
   apply (rule iffI)
-   apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE eresolve_tac [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic {*
+     DEPTH_SOLVE (atac 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
   done
 
 schematic_lemma pred2_cong: "[| p:a=a';  q:b=b' |] ==> ?p:P(a,b) <-> P(a',b')"
   apply (rule iffI)
-   apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE eresolve_tac [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic {*
+     DEPTH_SOLVE (atac 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
   done
 
 schematic_lemma pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c')"
   apply (rule iffI)
-   apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE eresolve_tac [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic {*
+     DEPTH_SOLVE (atac 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
   done
 
 lemmas pred_congs = pred1_cong pred2_cong pred3_cong
@@ -541,7 +544,7 @@ schematic_lemma disj_impE:
     and minor: "!!x y.[| x:P-->S; y:Q-->S |] ==> q(x,y):R"
   shows "?p:R"
   apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE
-      resolve_tac [@{thm disjI1}, @{thm disjI2}, @{thm impI},
+      resolve_tac @{context} [@{thm disjI1}, @{thm disjI2}, @{thm impI},
         @{thm major} RS @{thm mp}, @{thm minor}] 1) *})
   done
 

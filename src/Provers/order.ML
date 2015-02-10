@@ -1241,12 +1241,13 @@ in
    val prfs = gen_solve mkconcl thy (lesss, C);
    val (subgoals, prf) = mkconcl decomp less_thms thy C;
   in
-   Subgoal.FOCUS (fn {prems = asms, ...} =>
+   Subgoal.FOCUS (fn {context = ctxt', prems = asms, ...} =>
      let val thms = map (prove (prems @ asms)) prfs
-     in resolve_tac [prove thms prf] 1 end) ctxt n st
+     in resolve_tac ctxt' [prove thms prf] 1 end) ctxt n st
   end
   handle Contr p =>
-      (Subgoal.FOCUS (fn {prems = asms, ...} => resolve_tac [prove asms p] 1) ctxt n st
+      (Subgoal.FOCUS (fn {context = ctxt', prems = asms, ...} =>
+          resolve_tac ctxt' [prove asms p] 1) ctxt n st
         handle General.Subscript => Seq.empty)
    | Cannot => Seq.empty
    | General.Subscript => Seq.empty)
