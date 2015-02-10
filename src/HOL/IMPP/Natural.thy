@@ -106,8 +106,7 @@ declare evaln_elim_cases [elim!]
 lemma com_det [rule_format (no_asm)]: "<c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)"
 apply (erule evalc.induct)
 apply (erule_tac [8] V = "<?c,s1> -c-> s2" in thin_rl)
-(*blast needs unify_search_bound = 40*)
-apply (best elim: evalc_WHILE_case)+
+apply (blast elim: evalc_WHILE_case)+
 done
 
 lemma evaln_evalc: "<c,s> -n-> t ==> <c,s> -c-> t"
