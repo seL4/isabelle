@@ -282,6 +282,9 @@ proof -
     using measure_pmf.emeasure_space_1 by simp
 qed
 
+lemma emeasure_pmf_UNIV [simp]: "emeasure (measure_pmf M) UNIV = 1"
+using measure_pmf.emeasure_space_1[of M] by simp
+
 lemma in_null_sets_measure_pmfI:
   "A \<inter> set_pmf p = {} \<Longrightarrow> A \<in> null_sets (measure_pmf p)"
 using emeasure_eq_0_AE[where ?P="\<lambda>x. x \<in> A" and M="measure_pmf p"]

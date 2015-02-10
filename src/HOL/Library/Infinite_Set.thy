@@ -143,22 +143,32 @@ text {*
   contains some element that occurs infinitely often.
 *}
 
+lemma inf_img_fin_dom':
+  assumes img: "finite (f ` A)" and dom: "infinite A"
+  shows "\<exists>y \<in> f ` A. infinite (f -` {y} \<inter> A)"
+proof (rule ccontr)
+  have "A \<subseteq> (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by auto
+  moreover
+  assume "\<not> ?thesis"
+  with img have "finite (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by blast
+  ultimately have "finite A" by(rule finite_subset)
+  with dom show False by contradiction
+qed
+
+lemma inf_img_fin_domE':
+  assumes "finite (f ` A)" and "infinite A"
+  obtains y where "y \<in> f`A" and "infinite (f -` {y} \<inter> A)"
+  using assms by (blast dest: inf_img_fin_dom')
+
 lemma inf_img_fin_dom:
   assumes img: "finite (f`A)" and dom: "infinite A"
   shows "\<exists>y \<in> f`A. infinite (f -` {y})"
-proof (rule ccontr)
-  assume "\<not> ?thesis"
-  with img have "finite (UN y:f`A. f -` {y})" by blast
-  moreover have "A \<subseteq> (UN y:f`A. f -` {y})" by auto
-  moreover note dom
-  ultimately show False by (simp add: infinite_super)
-qed
+using inf_img_fin_dom'[OF assms] by auto
 
 lemma inf_img_fin_domE:
   assumes "finite (f`A)" and "infinite A"
   obtains y where "y \<in> f`A" and "infinite (f -` {y})"
   using assms by (blast dest: inf_img_fin_dom)
-
 
 subsection "Infinitely Many and Almost All"
 
