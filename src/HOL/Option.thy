@@ -77,6 +77,7 @@ lemma rel_option_reflI:
   "(\<And>x. x \<in> set_option y \<Longrightarrow> P x x) \<Longrightarrow> rel_option P y y"
 by(cases y) auto
 
+
 subsubsection {* Operations *}
 
 lemma ospec [dest]: "(ALL x:set_option A. P x) ==> A = Some x ==> P x"
@@ -260,6 +261,10 @@ lemma option_bind_transfer [transfer_rule]:
   "(rel_option A ===> (A ===> rel_option B) ===> rel_option B)
     Option.bind Option.bind"
   unfolding rel_fun_def split_option_all by simp
+
+lemma pred_option_parametric [transfer_rule]:
+  "((A ===> op =) ===> rel_option A ===> op =) pred_option pred_option"
+by(rule rel_funI)+(auto simp add: rel_option_unfold is_none_def dest: rel_funD)
 
 end
 

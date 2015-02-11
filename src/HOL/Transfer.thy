@@ -533,12 +533,34 @@ using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_tota
 by fast+
 
 lemma right_unique_transfer [transfer_rule]:
-  assumes [transfer_rule]: "right_total A"
-  assumes [transfer_rule]: "right_total B"
-  assumes [transfer_rule]: "bi_unique B"
-  shows "((A ===> B ===> op=) ===> implies) right_unique right_unique"
-using assms unfolding right_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
+  "\<lbrakk> right_total A; right_total B; bi_unique B \<rbrakk>
+  \<Longrightarrow> ((A ===> B ===> op=) ===> implies) right_unique right_unique"
+unfolding right_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
 by metis
+
+lemma left_total_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A" "bi_total B"
+  shows "((A ===> B ===> op =) ===> op =) left_total left_total"
+unfolding left_total_def[abs_def] by transfer_prover
+
+lemma right_total_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A" "bi_total B"
+  shows "((A ===> B ===> op =) ===> op =) right_total right_total"
+unfolding right_total_def[abs_def] by transfer_prover
+
+lemma left_unique_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A" "bi_total A" "bi_total B"
+  shows "((A ===> B ===> op =) ===> op =) left_unique left_unique"
+unfolding left_unique_def[abs_def] by transfer_prover
+
+lemma prod_pred_parametric [transfer_rule]:
+  "((A ===> op =) ===> (B ===> op =) ===> rel_prod A B ===> op =) pred_prod pred_prod"
+unfolding pred_prod_def[abs_def] Basic_BNFs.fsts_def Basic_BNFs.snds_def fstsp.simps sndsp.simps 
+by simp transfer_prover
+
+lemma apfst_parametric [transfer_rule]:
+  "((A ===> B) ===> rel_prod A C ===> rel_prod B C) apfst apfst"
+unfolding apfst_def[abs_def] by transfer_prover
 
 lemma rel_fun_eq_eq_onp: "(op= ===> eq_onp P) = eq_onp (\<lambda>f. \<forall>x. P(f x))"
 unfolding eq_onp_def rel_fun_def by auto
@@ -590,6 +612,11 @@ proof(rule rel_funI iffI)+
     qed
   }
 qed
+
+lemma right_unique_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A" "bi_unique B" "bi_total B"
+  shows "((A ===> B ===> op =) ===> op =) right_unique right_unique"
+unfolding right_unique_def[abs_def] by transfer_prover
 
 end
 
