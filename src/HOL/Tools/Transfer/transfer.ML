@@ -611,12 +611,12 @@ fun transfer_rule_of_lhs ctxt t : thm =
       |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
-fun eq_rules_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules)
+fun eq_rules_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve0_tac eq_rules)
   THEN_ALL_NEW rtac @{thm is_equality_eq}
 
 fun eq_tac ctxt = eq_rules_tac (get_relator_eq_raw ctxt)
 
-fun transfer_step_tac ctxt = (REPEAT_ALL_NEW (resolve_tac (get_transfer_raw ctxt))
+fun transfer_step_tac ctxt = (REPEAT_ALL_NEW (resolve_tac ctxt (get_transfer_raw ctxt))
   THEN_ALL_NEW (DETERM o eq_rules_tac (get_relator_eq_raw ctxt)))
 
 fun transfer_tac equiv ctxt i =
@@ -633,7 +633,9 @@ fun transfer_tac equiv ctxt i =
       rtac start_rule i THEN
       (rtac (transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t))
         THEN_ALL_NEW
-          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules))
+          (SOLVED'
+            (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
+              (DETERM o eq_rules_tac eq_rules))
             ORELSE' end_tac)) (i + 1)
         handle TERM (_, ts) => raise TERM (err_msg, ts)
   in
@@ -658,7 +660,8 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
        rtac @{thm transfer_prover_start} i,
        ((rtac rule1 ORELSE' (CONVERSION expand_eq_in_rel THEN' rtac rule1))
         THEN_ALL_NEW
-         (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules))) (i+1),
+         (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
+           (DETERM o eq_rules_tac eq_rules))) (i + 1),
        rtac @{thm refl} i]
   end)
 
@@ -682,10 +685,10 @@ fun transferred ctxt extra_rules thm =
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
     val rule = transfer_rule_of_lhs ctxt' t
     val tac =
-      resolve_tac [thm2 RS start_rule', thm2 RS start_rule] 1 THEN
+      resolve_tac ctxt' [thm2 RS start_rule', thm2 RS start_rule] 1 THEN
       (rtac rule
         THEN_ALL_NEW
-          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
@@ -721,7 +724,7 @@ fun untransferred ctxt extra_rules thm =
       rtac (thm2 RS start_rule) 1 THEN
       (rtac rule
         THEN_ALL_NEW
-          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)

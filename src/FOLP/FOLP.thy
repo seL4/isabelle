@@ -57,7 +57,7 @@ schematic_lemma impCE:
   shows "?p : R"
   apply (rule excluded_middle [THEN disjE])
    apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE
-       resolve_tac [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1) *})
+       resolve_tac @{context} [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1) *})
   done
 
 (*Double negation law*)
@@ -81,8 +81,8 @@ schematic_lemma iffCE:
   apply (unfold iff_def)
   apply (rule conjE)
   apply (tactic {* DEPTH_SOLVE_1 (etac @{thm impCE} 1 ORELSE
-      eresolve_tac [@{thm notE}, @{thm impE}] 1 THEN atac 1 ORELSE atac 1 ORELSE
-      resolve_tac [@{thm r1}, @{thm r2}] 1) *})+
+      eresolve_tac @{context} [@{thm notE}, @{thm impE}] 1 THEN atac 1 ORELSE atac 1 ORELSE
+      resolve_tac @{context} [@{thm r1}, @{thm r2}] 1) *})+
   done
 
 

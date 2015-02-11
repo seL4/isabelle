@@ -70,7 +70,7 @@ fun sledgehammer_as_oracle_tac ctxt override_params fact_override chained i th =
        ("minimize", "false")]
     val xs = run_prover override_params fact_override chained i i ctxt th
   in
-    if is_some xs then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty
+    if is_some xs then ALLGOALS (Skip_Proof.cheat_tac ctxt) th else Seq.empty
   end
 
 end;

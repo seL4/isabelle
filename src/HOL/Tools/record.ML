@@ -1128,7 +1128,7 @@ fun get_upd_acc_cong_thm upd acc thy ss =
       (fn {context = ctxt, ...} =>
         simp_tac (put_simpset ss ctxt) 1 THEN
         REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
-        TRY (resolve_tac [updacc_cong_idI] 1))
+        TRY (resolve_tac ctxt [updacc_cong_idI] 1))
   end;
 
 
@@ -1634,7 +1634,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         Goal.prove_sorry_global defs_thy [] [assm] concl
           (fn {context = ctxt, prems, ...} =>
             cut_tac (split_meta RS Drule.equal_elim_rule2) 1 THEN
-            resolve_tac prems 2 THEN
+            resolve_tac ctxt prems 2 THEN
             asm_simp_tac (put_simpset HOL_ss ctxt) 1)
       end);
 
@@ -1724,7 +1724,7 @@ fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
 
 fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
@@ -1749,7 +1749,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
           (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
            Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
       fun tac ctxt eq_def =
-        Class.intro_classes_tac []
+        Class.intro_classes_tac ctxt []
         THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
         THEN ALLGOALS (rtac @{thm refl});
       fun mk_eq thy eq_def =
@@ -2128,7 +2128,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         (fn {context = ctxt, prems, ...} =>
           try_param_tac ctxt rN induct_scheme 1
           THEN try_param_tac ctxt "more" @{thm unit.induct} 1
-          THEN resolve_tac prems 1));
+          THEN resolve_tac ctxt prems 1));
 
     val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] surjective_prop
@@ -2144,8 +2144,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
-        (fn {prems, ...} =>
-          resolve_tac prems 1 THEN
+        (fn {context = ctxt, prems, ...} =>
+          resolve_tac ctxt prems 1 THEN
           rtac surjective 1));
 
     val cases = timeit_msg ctxt "record cases proof:" (fn () =>

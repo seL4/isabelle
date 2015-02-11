@@ -1216,7 +1216,7 @@ fun define_quickcheck_predicate t thy =
           HOLogic.mk_Trueprop (list_comb (const, map Free vs')))
     val intro =
       Goal.prove (Proof_Context.init_global thy1) (map fst vs') [] t
-        (fn _ => ALLGOALS Skip_Proof.cheat_tac)
+        (fn {context = ctxt, ...} => ALLGOALS (Skip_Proof.cheat_tac ctxt))
   in
     ((((full_constname, constT), vs'), intro), thy1)
   end

@@ -1067,7 +1067,9 @@ session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
     The Alternating Bit Protocol performed in I/O-Automata.
   *}
   options [document = false]
-  theories Correctness
+  theories
+    Correctness
+    Spec
 
 session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
   description {*

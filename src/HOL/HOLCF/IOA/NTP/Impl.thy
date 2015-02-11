@@ -208,19 +208,19 @@ lemma raw_inv2: "invariant impl_ioa inv2"
   txt {* 10 - 7 *}
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
   txt {* 6 *}
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1 *})
 
   txt {* 6 - 5 *}
   apply (tactic "EVERY1 [tac2,tac2]")
 
   txt {* 4 *}
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
                                 (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1 *})
   apply (tactic "tac2 1")
 
   txt {* 3 *}
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
     (@{thm raw_inv1} RS @{thm invariantE})] 1 *})
 
   apply (tactic "tac2 1")
@@ -230,7 +230,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt {* 2 *}
   apply (tactic "tac2 1")
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1 *})
   apply (intro strip)
   apply (erule conjE)+
@@ -238,7 +238,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt {* 1 *}
   apply (tactic "tac2 1")
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct2] 1 *})
   apply (intro strip)
   apply (erule conjE)+
@@ -287,13 +287,13 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (intro strip, (erule conjE)+)
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
     (@{thm raw_inv2} RS @{thm invariantE})] 1 *})
   apply simp
   apply (erule conjE)+
   apply (rule_tac j = "count (ssent (sen s)) (~sbit (sen s))" and
     k = "count (rsent (rec s)) (sbit (sen s))" in le_trans)
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm inv1_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm inv1_def}]
                                 (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct2] 1 *})
   apply (simp add: hdr_sum_def Multiset.count_def)
   apply (rule add_le_mono)
@@ -308,7 +308,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (intro strip, (erule conjE)+)
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
     (@{thm raw_inv2} RS @{thm invariantE})] 1 *})
   apply simp
   done
@@ -334,7 +334,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   txt {* 2 b *}
 
   apply (intro strip, (erule conjE)+)
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
                                (@{thm raw_inv2} RS @{thm invariantE})] 1 *})
   apply simp
 
@@ -342,9 +342,9 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (tactic "tac4 1")
   apply (intro strip, (erule conjE)+)
   apply (rule ccontr)
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
                                (@{thm raw_inv2} RS @{thm invariantE})] 1 *})
-  apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv3_def}]
+  apply (tactic {* forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv3_def}]
                                (@{thm raw_inv3} RS @{thm invariantE})] 1 *})
   apply simp
   apply (rename_tac m, erule_tac x = "m" in allE)

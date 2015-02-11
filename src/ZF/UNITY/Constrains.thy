@@ -472,7 +472,7 @@ fun constrains_tac ctxt =
       (EVERY [REPEAT (Always_Int_tac ctxt 1),
               REPEAT (etac @{thm Always_ConstrainsI} 1
                       ORELSE
-                      resolve_tac [@{thm StableI}, @{thm stableI},
+                      resolve_tac ctxt [@{thm StableI}, @{thm stableI},
                                    @{thm constrains_imp_Constrains}] 1),
               rtac @{thm constrainsI} 1,
               (* Three subgoals *)

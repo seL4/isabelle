@@ -135,7 +135,7 @@ fun flatten_intros constname intros thy =
       (flatten constname) (map prop_of intros) ([], thy)
     val ctxt'' = Proof_Context.transfer thy' ctxt'
     val intros'' =
-      map (fn t => Goal.prove ctxt'' [] [] t (fn _ => ALLGOALS Skip_Proof.cheat_tac)) intros'
+      map (fn t => Goal.prove ctxt'' [] [] t (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt''))) intros'
       |> Variable.export ctxt'' ctxt
   in
     (intros'', (local_defs, thy'))

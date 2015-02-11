@@ -25,7 +25,7 @@ val countableS = @{sort countable};
 
 fun nchotomy_tac nchotomy =
   HEADGOAL (rtac (nchotomy RS @{thm all_reg[rotated]}) THEN'
-    REPEAT_ALL_NEW (resolve_tac [allI, impI] ORELSE' eresolve_tac [exE, disjE]));
+    REPEAT_ALL_NEW (resolve0_tac [allI, impI] ORELSE' eresolve0_tac [exE, disjE]));
 
 fun meta_spec_mp_tac 0 = K all_tac
   | meta_spec_mp_tac depth =
@@ -43,7 +43,7 @@ fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
   HEADGOAL (asm_full_simp_tac
       (ss_only (injects @ recs @ map_congs' @ same_ctr_simps) ctxt) THEN_MAYBE'
     TRY o REPEAT_ALL_NEW (rtac conjI) THEN_ALL_NEW
-    REPEAT_ALL_NEW (eresolve_tac (conjE :: inj_map_strongs')) THEN_ALL_NEW
+    REPEAT_ALL_NEW (eresolve_tac ctxt (conjE :: inj_map_strongs')) THEN_ALL_NEW
     (atac ORELSE' use_induction_hypothesis_tac));
 
 fun distinct_ctrs_tac ctxt recs =
@@ -64,7 +64,7 @@ fun mk_encode_injectives_tac ctxt ns induct nchotomys injectss recss map_comps' 
 
 fun endgame_tac ctxt encode_injectives =
   unfold_thms_tac ctxt @{thms inj_on_def ball_UNIV} THEN
-  ALLGOALS (rtac exI THEN' rtac allI THEN' resolve_tac encode_injectives);
+  ALLGOALS (rtac exI THEN' rtac allI THEN' resolve_tac ctxt encode_injectives);
 
 fun encode_sumN n k t =
   Balanced_Tree.access {init = t,
@@ -188,6 +188,6 @@ fun core_countable_datatype_tac ctxt st =
   end;
 
 fun countable_datatype_tac ctxt =
-  TRY (Class.intro_classes_tac []) THEN core_countable_datatype_tac ctxt;
+  TRY (Class.intro_classes_tac ctxt []) THEN core_countable_datatype_tac ctxt;
 
 end;

@@ -50,22 +50,22 @@ fun could_resolve_seq (prem,conc) =
 (*Like filt_resolve_tac, using could_resolve_seq
   Much faster than resolve_tac when there are many rules.
   Resolve subgoal i using the rules, unless more than maxr are compatible. *)
-fun filseq_resolve_tac rules maxr = SUBGOAL(fn (prem,i) =>
+fun filseq_resolve_tac ctxt rules maxr = SUBGOAL(fn (prem,i) =>
   let val rls = filter_thms could_resolve_seq (maxr+1, prem, rules)
-  in  if length rls > maxr  then  no_tac  else resolve_tac rls i
+  in  if length rls > maxr  then  no_tac  else resolve_tac ctxt rls i
   end);
 
-fun fresolve_tac rls n = filseq_resolve_tac rls 999 n;
+fun fresolve_tac ctxt rls n = filseq_resolve_tac ctxt rls 999 n;
 
 (* NB No back tracking possible with aside rules *)
 
 val aside_net = Tactic.build_net Modal_Rule.aside_rls;
 fun aside_tac ctxt n = DETERM (REPEAT (filt_resolve_from_net_tac ctxt 999 aside_net n));
-fun rule_tac ctxt rls n = fresolve_tac rls n THEN aside_tac ctxt n;
+fun rule_tac ctxt rls n = fresolve_tac ctxt rls n THEN aside_tac ctxt n;
 
-val fres_safe_tac = fresolve_tac Modal_Rule.safe_rls;
-fun fres_unsafe_tac ctxt = fresolve_tac Modal_Rule.unsafe_rls THEN' aside_tac ctxt;
-val fres_bound_tac = fresolve_tac Modal_Rule.bound_rls;
+fun fres_safe_tac ctxt = fresolve_tac ctxt Modal_Rule.safe_rls;
+fun fres_unsafe_tac ctxt = fresolve_tac ctxt Modal_Rule.unsafe_rls THEN' aside_tac ctxt;
+fun fres_bound_tac ctxt = fresolve_tac ctxt Modal_Rule.bound_rls;
 
 fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
                                     else tf(i) THEN tac(i-1)
@@ -75,16 +75,16 @@ fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
 fun solven_tac ctxt d n st = st |>
  (if d < 0 then no_tac
   else if nprems_of st = 0 then all_tac
-  else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac ctxt d)) ORELSE
+  else (DETERM(fres_safe_tac ctxt n) THEN UPTOGOAL n (solven_tac ctxt d)) ORELSE
            ((fres_unsafe_tac ctxt n  THEN UPTOGOAL n (solven_tac ctxt d)) APPEND
-             (fres_bound_tac n  THEN UPTOGOAL n (solven_tac ctxt (d - 1)))));
+             (fres_bound_tac ctxt n  THEN UPTOGOAL n (solven_tac ctxt (d - 1)))));
 
 fun solve_tac ctxt d =
   rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac ctxt d 1;
 
 fun step_tac ctxt n =
   COND (has_fewer_prems 1) all_tac
-       (DETERM(fres_safe_tac n) ORELSE
-        (fres_unsafe_tac ctxt n APPEND fres_bound_tac n));
+       (DETERM(fres_safe_tac ctxt n) ORELSE
+        (fres_unsafe_tac ctxt n APPEND fres_bound_tac ctxt n));
 
 end;

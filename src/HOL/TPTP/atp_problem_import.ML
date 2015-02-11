@@ -178,7 +178,7 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
         val (outcome, _) =
           Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst [] [] conj
       in
-        if outcome = "none" then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty
+        if outcome = "none" then ALLGOALS (Skip_Proof.cheat_tac ctxt) th else Seq.empty
       end
   end
 

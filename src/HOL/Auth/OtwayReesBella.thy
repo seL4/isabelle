@@ -126,14 +126,14 @@ lemmas OR2_parts_knows_Spy =
 
 ML
 {*
-fun parts_explicit_tac i = 
-    forward_tac [@{thm Oops_parts_knows_Spy}] (i+7) THEN
-    forward_tac [@{thm OR4_parts_knows_Spy}]  (i+6) THEN
-    forward_tac [@{thm OR2_parts_knows_Spy}]  (i+4)
+fun parts_explicit_tac ctxt i =
+    forward_tac ctxt [@{thm Oops_parts_knows_Spy}] (i+7) THEN
+    forward_tac ctxt [@{thm OR4_parts_knows_Spy}]  (i+6) THEN
+    forward_tac ctxt [@{thm OR2_parts_knows_Spy}]  (i+4)
 *}
  
 method_setup parts_explicit = {*
-    Scan.succeed (K (SIMPLE_METHOD' parts_explicit_tac)) *}
+    Scan.succeed (SIMPLE_METHOD' o parts_explicit_tac) *}
   "to explicitly state that some message components belong to parts knows Spy"
 
 
@@ -249,7 +249,7 @@ end
 method_setup analz_freshCryptK = {*
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
-      (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
+      (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshCryptK_lemma}),
           ALLGOALS (asm_simp_tac
             (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))]))) *}
@@ -259,7 +259,7 @@ method_setup analz_freshCryptK = {*
 method_setup disentangle = {*
     Scan.succeed
      (fn ctxt => SIMPLE_METHOD
-      (REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE] 
+      (REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE, disjE] 
                    ORELSE' hyp_subst_tac ctxt))) *}
   "for eliminating conjunctions, disjunctions and the like"
 

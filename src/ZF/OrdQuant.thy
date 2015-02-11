@@ -370,14 +370,14 @@ simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = {*
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms rex_def} THEN
-      Quantifier1.prove_one_point_ex_tac)
+      Quantifier1.prove_one_point_ex_tac ctxt)
 *}
 
 simproc_setup defined_rall ("\<forall>x[M]. P(x) \<longrightarrow> Q(x)") = {*
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms rall_def} THEN
-      Quantifier1.prove_one_point_all_tac)
+      Quantifier1.prove_one_point_all_tac ctxt)
 *}
 
 end

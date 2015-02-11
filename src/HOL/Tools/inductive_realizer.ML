@@ -395,7 +395,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
           (fn {context = ctxt, prems} => EVERY
           [rtac (#raw_induct ind_info) 1,
            rewrite_goals_tac ctxt rews,
-           REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
+           REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW EVERY'
              [K (rewrite_goals_tac ctxt rews), Object_Logic.atomize_prems_tac ctxt,
               DEPTH_SOLVE_1 o FIRST' [assume_tac ctxt, etac allE, etac impE]]) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
@@ -459,7 +459,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
              etac elimR 1,
              ALLGOALS (asm_simp_tac (put_simpset HOL_basic_ss ctxt)),
              rewrite_goals_tac ctxt rews,
-             REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac ctxt THEN'
+             REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac ctxt THEN'
                DEPTH_SOLVE_1 o FIRST' [assume_tac ctxt, etac allE, etac impE])) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy

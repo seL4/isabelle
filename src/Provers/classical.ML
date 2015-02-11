@@ -157,7 +157,7 @@ fun classical_rule rule =
       val rule'' =
         rule' |> ALLGOALS (SUBGOAL (fn (goal, i) =>
           if i = 1 orelse redundant_hyp goal
-          then eresolve_tac [thin_rl] i
+          then eresolve0_tac [thin_rl] i
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
@@ -180,11 +180,12 @@ fun flat_rule opt_context th =
   No backtracking if it finds an equal assumption.  Perhaps should call
   ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
 fun contr_tac ctxt =
-  eresolve_tac [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac ctxt);
+  eresolve_tac ctxt [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac ctxt);
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q.
   Could do the same thing for P<->Q and P... *)
-fun mp_tac ctxt i = eresolve_tac [Data.not_elim, Data.imp_elim] i THEN assume_tac ctxt i;
+fun mp_tac ctxt i =
+  eresolve_tac ctxt [Data.not_elim, Data.imp_elim] i THEN assume_tac ctxt i;
 
 (*Like mp_tac but instantiates no variables*)
 fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
@@ -199,7 +200,7 @@ fun swap_res_tac ctxt rls =
   let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls in
     assume_tac ctxt ORELSE'
     contr_tac ctxt ORELSE'
-    biresolve_tac (fold_rev addrl rls [])
+    biresolve_tac ctxt (fold_rev addrl rls [])
   end;
 
 (*Duplication of hazardous rules, for complete provers*)
@@ -212,7 +213,7 @@ fun dup_elim context th =
         SOME c => Context.proof_of c
       | NONE => Proof_Context.init_global (Thm.theory_of_thm th));
     val rl = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
-  in rule_by_tactic ctxt (TRYALL (eresolve_tac [revcut_rl])) rl end;
+  in rule_by_tactic ctxt (TRYALL (eresolve_tac ctxt [revcut_rl])) rl end;
 
 
 (**** Classical rule sets ****)
@@ -679,9 +680,9 @@ fun ctxt addafter (name, tac2) =
   ctxt addWrapper (name, fn ctxt => fn tac1 => tac1 APPEND' tac2 ctxt);
 
 fun ctxt addD2 (name, thm) =
-  ctxt addafter (name, fn ctxt' => dresolve_tac [thm] THEN' assume_tac ctxt');
+  ctxt addafter (name, fn ctxt' => dresolve_tac ctxt' [thm] THEN' assume_tac ctxt');
 fun ctxt addE2 (name, thm) =
-  ctxt addafter (name, fn ctxt' => eresolve_tac [thm] THEN' assume_tac ctxt');
+  ctxt addafter (name, fn ctxt' => eresolve_tac ctxt' [thm] THEN' assume_tac ctxt');
 fun ctxt addSD2 (name, thm) =
   ctxt addSafter (name, fn ctxt' => dmatch_tac ctxt' [thm] THEN' eq_assume_tac);
 fun ctxt addSE2 (name, thm) =
@@ -902,7 +903,7 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
     val ruleq = Drule.multi_resolves (SOME ctxt) facts rules;
     val _ = Method.trace ctxt rules;
   in
-    fn st => Seq.maps (fn rule => resolve_tac [rule] i st) ruleq
+    fn st => Seq.maps (fn rule => resolve_tac ctxt [rule] i st) ruleq
   end)
   THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 

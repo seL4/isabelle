@@ -221,7 +221,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
           (Class.instantiation (T_names, map dest_TFree As, [HOLogic.class_size])
            #> @{fold_map 3} define_overloaded_size overloaded_size_def_bs overloaded_size_consts
              overloaded_size_rhss
-           ##> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+           ##> Class.prove_instantiation_instance (fn ctxt => Class.intro_classes_tac ctxt [])
            ##> Local_Theory.exit_global);
 
       val size_defs' =

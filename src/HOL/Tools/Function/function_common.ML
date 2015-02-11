@@ -279,7 +279,8 @@ structure Data = Generic_Data
     preproc1)
 )
 
-val termination_rule_tac = resolve_tac o #1 o Data.get o Context.Proof
+fun termination_rule_tac ctxt = resolve_tac ctxt (#1 (Data.get (Context.Proof ctxt)))
+
 val store_termination_rule = Data.map o @{apply 4(1)} o cons
 
 val get_functions = #2 o Data.get o Context.Proof

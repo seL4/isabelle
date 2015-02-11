@@ -205,7 +205,7 @@ fun prove_common immediate pri ctxt xs asms props tac =
     val stmt = Thm.weaken_sorts sorts (Conjunction.mk_conjunction_balanced cprops);
 
     fun tac' args st =
-      if skip then ALLGOALS Skip_Proof.cheat_tac st before Skip_Proof.report ctxt
+      if skip then ALLGOALS (Skip_Proof.cheat_tac ctxt) st before Skip_Proof.report ctxt
       else tac args st;
     fun result () =
       (case SINGLE (tac' {prems = prems, context = ctxt'}) (init stmt) of
@@ -255,7 +255,7 @@ fun prove_global thy xs asms prop tac =
 
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
-    prove ctxt xs asms prop (fn _ => ALLGOALS Skip_Proof.cheat_tac)
+    prove ctxt xs asms prop (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt))
   else (if future_enabled 1 then prove_future_pri ~2 else prove) ctxt xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =
@@ -294,7 +294,7 @@ fun precise_conjunction_tac 0 i = eq_assume_tac i
 
 val adhoc_conjunction_tac = REPEAT_ALL_NEW
   (SUBGOAL (fn (goal, i) =>
-    if can Logic.dest_conjunction goal then resolve_tac [Conjunction.conjunctionI] i
+    if can Logic.dest_conjunction goal then resolve0_tac [Conjunction.conjunctionI] i
     else no_tac));
 
 val conjunction_tac = SUBGOAL (fn (goal, i) =>
@@ -318,7 +318,7 @@ fun CONJUNCTS tac =
 (* hhf normal form *)
 
 fun norm_hhf_tac ctxt =
-  resolve_tac [Drule.asm_rl]  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
+  resolve_tac ctxt [Drule.asm_rl]  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
     else rewrite_goal_tac ctxt Drule.norm_hhf_eqs i);
@@ -336,7 +336,7 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
-      eresolve_tac [Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)] THEN_ALL_NEW assume_tac ctxt);
+      eresolve_tac ctxt [Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)] THEN_ALL_NEW assume_tac ctxt);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 end;

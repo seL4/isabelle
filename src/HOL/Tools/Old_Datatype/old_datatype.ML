@@ -188,9 +188,9 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
         (fn (((name, mx), tvs), c) =>
           Typedef.add_typedef_global false (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
-            (fn _ => rtac exI 1 THEN rtac CollectI 1 THEN
+            (fn ctxt => rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1)))
+              (resolve_tac ctxt rep_intrs 1)))
         (types_syntax ~~ tyvars ~~ take (length newTs) rep_set_names)
       ||> Sign.add_path big_name;
 
@@ -425,15 +425,15 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                   REPEAT (EVERY
                     [hyp_subst_tac ctxt 1,
                      rewrite_goals_tac ctxt rewrites,
-                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
-                     (eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
+                     REPEAT (dresolve_tac ctxt [In0_inject, In1_inject] 1),
+                     (eresolve_tac ctxt [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
                      ORELSE (EVERY
-                       [REPEAT (eresolve_tac (Scons_inject ::
+                       [REPEAT (eresolve_tac ctxt (Scons_inject ::
                           map make_elim [Leaf_inject, Inl_inject, Inr_inject]) 1),
                         REPEAT (cong_tac ctxt 1), rtac refl 1,
                         REPEAT (assume_tac ctxt 1 ORELSE (EVERY
                           [REPEAT (rtac @{thm ext} 1),
-                           REPEAT (eresolve_tac (mp :: allE ::
+                           REPEAT (eresolve_tac ctxt (mp :: allE ::
                              map make_elim (Suml_inject :: Sumr_inject ::
                                Lim_inject :: inj_thms') @ fun_congs) 1),
                            assume_tac ctxt 1]))])])])]);
@@ -447,7 +447,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
               EVERY [
                 (Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
                 rewrite_goals_tac ctxt rewrites,
-                REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
+                REPEAT ((resolve_tac ctxt rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
       in (inj_thms'' @ inj_thms, elem_thms @ Old_Datatype_Aux.split_conj_thm elem_thm) end;
@@ -488,11 +488,11 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                 Thm.symmetric (mk_meta_eq @{thm fun_eq_iff}) :: range_eqs),
               rewrite_goals_tac ctxt (map Thm.symmetric range_eqs),
               REPEAT (EVERY
-                [REPEAT (eresolve_tac ([rangeE, @{thm ex1_implies_ex} RS exE] @
+                [REPEAT (eresolve_tac ctxt ([rangeE, @{thm ex1_implies_ex} RS exE] @
                    maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
                  TRY (hyp_subst_tac ctxt 1),
                  rtac (sym RS range_eqI) 1,
-                 resolve_tac iso_char_thms 1])])));
+                 resolve_tac ctxt iso_char_thms 1])])));
 
     val Abs_inverse_thms' =
       map #1 newT_iso_axms @
@@ -514,11 +514,11 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       in
         Goal.prove_sorry_global thy5 [] [] eqn
         (fn {context = ctxt, ...} => EVERY
-          [resolve_tac inj_thms 1,
+          [resolve_tac ctxt inj_thms 1,
            rewrite_goals_tac ctxt rewrites,
            rtac refl 3,
-           resolve_tac rep_intrs 2,
-           REPEAT (resolve_tac iso_elem_thms 1)])
+           resolve_tac ctxt rep_intrs 2,
+           REPEAT (resolve_tac ctxt iso_elem_thms 1)])
       end;
 
     (*--------------------------------------------------------------*)
@@ -560,11 +560,11 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
           (fn {context = ctxt, ...} => EVERY
             [rtac iffI 1,
              REPEAT (etac conjE 2), hyp_subst_tac ctxt 2, rtac refl 2,
-             dresolve_tac rep_congs 1, dtac @{thm box_equals} 1,
-             REPEAT (resolve_tac rep_thms 1),
-             REPEAT (eresolve_tac inj_thms 1),
+             dresolve_tac ctxt rep_congs 1, dtac @{thm box_equals} 1,
+             REPEAT (resolve_tac ctxt rep_thms 1),
+             REPEAT (eresolve_tac ctxt inj_thms 1),
              REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac @{thm ext} 1),
-               REPEAT (eresolve_tac (make_elim fun_cong :: inj_thms) 1),
+               REPEAT (eresolve_tac ctxt (make_elim fun_cong :: inj_thms) 1),
                assume_tac ctxt 1]))])
       end;
 
@@ -616,12 +616,12 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
         (Logic.mk_implies
           (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_prems),
            HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_concls)))
-        (fn _ =>
+        (fn {context = ctxt, ...} =>
           EVERY
            [REPEAT (etac conjE 1),
             REPEAT (EVERY
-              [TRY (rtac conjI 1), resolve_tac Rep_inverse_thms 1,
-               etac mp 1, resolve_tac iso_elem_thms 1])]);
+              [TRY (rtac conjI 1), resolve_tac ctxt Rep_inverse_thms 1,
+               etac mp 1, resolve_tac ctxt iso_elem_thms 1])]);
 
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
     val frees =
@@ -640,7 +640,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
            (Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW
               Object_Logic.atomize_prems_tac ctxt) 1,
            EVERY (map (fn (prem, r) => (EVERY
-             [REPEAT (eresolve_tac Abs_inverse_thms 1),
+             [REPEAT (eresolve_tac ctxt Abs_inverse_thms 1),
               simp_tac (put_simpset HOL_basic_ss ctxt
                 addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
               DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))

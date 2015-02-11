@@ -46,9 +46,9 @@ fun inst1_tac ctxt s t xs st =
     SOME i => Rule_Insts.instantiate_tac ctxt [((s, i), t)] xs st
   | NONE => Seq.empty);
 
-val ax_tac =
+fun ax_tac ctxt =
   REPEAT o rtac allI THEN'
-  resolve_tac (@{thm ax_Skip} :: @{thm ax_StatRef} :: @{thm ax_MethdN} :: @{thm ax_Alloc} ::
+  resolve_tac ctxt (@{thm ax_Skip} :: @{thm ax_StatRef} :: @{thm ax_MethdN} :: @{thm ax_Alloc} ::
     @{thm ax_Alloc_Arr} :: @{thm ax_SXAlloc_Normal} :: @{thms ax_derivs.intros(8-)});
 *}
 
@@ -58,11 +58,11 @@ theorem ax_test: "tprg,({}::'a triple set)\<turnstile>
   .test [Class Base]. 
   {\<lambda>Y s Z. abrupt s = Some (Xcpt (Std IndOutBound))}"
 apply (unfold test_def arr_viewed_from_def)
-apply (tactic "ax_tac 1" (*;;*))
+apply (tactic "ax_tac @{context} 1" (*;;*))
 defer (* We begin with the last assertion, to synthesise the intermediate
          assertions, like in the fashion of the weakest
          precondition. *)
-apply  (tactic "ax_tac 1" (* Try *))
+apply  (tactic "ax_tac @{context} 1" (* Try *))
 defer
 apply    (tactic {* inst1_tac @{context} "Q" 
                  "\<lambda>Y s Z. arr_inv (snd s) \<and> tprg,s\<turnstile>catch SXcpt NullPointer" [] *})
@@ -74,26 +74,26 @@ apply    clarsimp
 apply   (rule_tac Q' = "(\<lambda>Y s Z. ?Q Y s Z)\<leftarrow>=False\<down>=\<diamondsuit>" in conseq2)
 prefer 2
 apply    simp
-apply   (tactic "ax_tac 1" (* While *))
+apply   (tactic "ax_tac @{context} 1" (* While *))
 prefer 2
 apply    (rule ax_impossible [THEN conseq1], clarsimp)
 apply   (rule_tac P' = "Normal ?P" in conseq1)
 prefer 2
 apply    clarsimp
-apply   (tactic "ax_tac 1")
-apply   (tactic "ax_tac 1" (* AVar *))
+apply   (tactic "ax_tac @{context} 1")
+apply   (tactic "ax_tac @{context} 1" (* AVar *))
 prefer 2
 apply    (rule ax_subst_Val_allI)
 apply    (tactic {* inst1_tac @{context} "P'" "\<lambda>a. Normal (PP a\<leftarrow>x)" ["PP", "x"] *})
 apply    (simp del: avar_def2 peek_and_def2)
-apply    (tactic "ax_tac 1")
-apply   (tactic "ax_tac 1")
+apply    (tactic "ax_tac @{context} 1")
+apply   (tactic "ax_tac @{context} 1")
       (* just for clarification: *)
 apply   (rule_tac Q' = "Normal (\<lambda>Var:(v, f) u ua. fst (snd (avar tprg (Intg 2) v u)) = Some (Xcpt (Std IndOutBound)))" in conseq2)
 prefer 2
 apply    (clarsimp simp add: split_beta)
-apply   (tactic "ax_tac 1" (* FVar *))
-apply    (tactic "ax_tac 2" (* StatRef *))
+apply   (tactic "ax_tac @{context} 1" (* FVar *))
+apply    (tactic "ax_tac @{context} 2" (* StatRef *))
 apply   (rule ax_derivs.Done [THEN conseq1])
 apply   (clarsimp simp add: arr_inv_def inited_def in_bounds_def)
 defer
@@ -101,20 +101,20 @@ apply  (rule ax_SXAlloc_catch_SXcpt)
 apply  (rule_tac Q' = "(\<lambda>Y (x, s) Z. x = Some (Xcpt (Std NullPointer)) \<and> arr_inv s) \<and>. heap_free two" in conseq2)
 prefer 2
 apply   (simp add: arr_inv_new_obj)
-apply  (tactic "ax_tac 1") 
+apply  (tactic "ax_tac @{context} 1") 
 apply  (rule_tac C = "Ext" in ax_Call_known_DynT)
 apply     (unfold DynT_prop_def)
 apply     (simp (no_asm))
 apply    (intro strip)
 apply    (rule_tac P' = "Normal ?P" in conseq1)
-apply     (tactic "ax_tac 1" (* Methd *))
+apply     (tactic "ax_tac @{context} 1" (* Methd *))
 apply     (rule ax_thin [OF _ empty_subsetI])
 apply     (simp (no_asm) add: body_def2)
-apply     (tactic "ax_tac 1" (* Body *))
+apply     (tactic "ax_tac @{context} 1" (* Body *))
 (* apply       (rule_tac [2] ax_derivs.Abrupt) *)
 defer
 apply      (simp (no_asm))
-apply      (tactic "ax_tac 1") (* Comp *)
+apply      (tactic "ax_tac @{context} 1") (* Comp *)
             (* The first statement in the  composition 
                  ((Ext)z).vee = 1; Return Null 
                 will throw an exception (since z is null). So we can handle
@@ -122,7 +122,7 @@ apply      (tactic "ax_tac 1") (* Comp *)
 apply       (rule_tac [2] ax_derivs.Abrupt)
              
 apply      (rule ax_derivs.Expr) (* Expr *)
-apply      (tactic "ax_tac 1") (* Ass *)
+apply      (tactic "ax_tac @{context} 1") (* Ass *)
 prefer 2
 apply       (rule ax_subst_Var_allI)
 apply       (tactic {* inst1_tac @{context} "P'" "\<lambda>a vs l vf. PP a vs l vf\<leftarrow>x \<and>. p" ["PP", "x", "p"] *})
@@ -130,9 +130,9 @@ apply       (rule allI)
 apply       (tactic {* simp_tac (@{context} delloop "split_all_tac" delsimps [@{thm peek_and_def2}, @{thm heap_def2}, @{thm subst_res_def2}, @{thm normal_def2}]) 1 *})
 apply       (rule ax_derivs.Abrupt)
 apply      (simp (no_asm))
-apply      (tactic "ax_tac 1" (* FVar *))
-apply       (tactic "ax_tac 2", tactic "ax_tac 2", tactic "ax_tac 2")
-apply      (tactic "ax_tac 1")
+apply      (tactic "ax_tac @{context} 1" (* FVar *))
+apply       (tactic "ax_tac @{context} 2", tactic "ax_tac @{context} 2", tactic "ax_tac @{context} 2")
+apply      (tactic "ax_tac @{context} 1")
 apply     (tactic {* inst1_tac @{context} "R" "\<lambda>a'. Normal ((\<lambda>Vals:vs (x, s) Z. arr_inv s \<and> inited Ext (globs s) \<and> a' \<noteq> Null \<and> vs = [Null]) \<and>. heap_free two)" [] *})
 apply     fastforce
 prefer 4
@@ -140,15 +140,15 @@ apply    (rule ax_derivs.Done [THEN conseq1],force)
 apply   (rule ax_subst_Val_allI)
 apply   (tactic {* inst1_tac @{context} "P'" "\<lambda>a. Normal (PP a\<leftarrow>x)" ["PP", "x"] *})
 apply   (simp (no_asm) del: peek_and_def2 heap_free_def2 normal_def2 o_apply)
-apply   (tactic "ax_tac 1")
+apply   (tactic "ax_tac @{context} 1")
 prefer 2
 apply   (rule ax_subst_Val_allI)
 apply    (tactic {* inst1_tac @{context} "P'" "\<lambda>aa v. Normal (QQ aa v\<leftarrow>y)" ["QQ", "y"] *})
 apply    (simp del: peek_and_def2 heap_free_def2 normal_def2)
-apply    (tactic "ax_tac 1")
-apply   (tactic "ax_tac 1")
-apply  (tactic "ax_tac 1")
-apply  (tactic "ax_tac 1")
+apply    (tactic "ax_tac @{context} 1")
+apply   (tactic "ax_tac @{context} 1")
+apply  (tactic "ax_tac @{context} 1")
+apply  (tactic "ax_tac @{context} 1")
 (* end method call *)
 apply (simp (no_asm))
     (* just for clarification: *)
@@ -158,14 +158,14 @@ apply (rule_tac Q' = "Normal ((\<lambda>Y (x, s) Z. arr_inv s \<and> (\<exists>a
   in conseq2)
 prefer 2
 apply  clarsimp
-apply (tactic "ax_tac 1")
-apply (tactic "ax_tac 1")
+apply (tactic "ax_tac @{context} 1")
+apply (tactic "ax_tac @{context} 1")
 defer
 apply  (rule ax_subst_Var_allI)
 apply  (tactic {* inst1_tac @{context} "P'" "\<lambda>vf. Normal (PP vf \<and>. p)" ["PP", "p"] *})
 apply  (simp (no_asm) del: split_paired_All peek_and_def2 initd_def2 heap_free_def2 normal_def2)
-apply  (tactic "ax_tac 1" (* NewC *))
-apply  (tactic "ax_tac 1" (* ax_Alloc *))
+apply  (tactic "ax_tac @{context} 1" (* NewC *))
+apply  (tactic "ax_tac @{context} 1" (* ax_Alloc *))
      (* just for clarification: *)
 apply  (rule_tac Q' = "Normal ((\<lambda>Y s Z. arr_inv (store s) \<and> vf=lvar (VName e) (store s)) \<and>. heap_free three \<and>. initd Ext)" in conseq2)
 prefer 2
@@ -187,19 +187,19 @@ apply    (unfold arr_viewed_from_def)
 apply    (rule allI)
 apply    (rule_tac P' = "Normal ?P" in conseq1)
 apply     (tactic {* simp_tac (@{context} delloop "split_all_tac") 1 *})
-apply     (tactic "ax_tac 1")
-apply     (tactic "ax_tac 1")
+apply     (tactic "ax_tac @{context} 1")
+apply     (tactic "ax_tac @{context} 1")
 apply     (rule_tac [2] ax_subst_Var_allI)
 apply      (tactic {* inst1_tac @{context} "P'" "\<lambda>vf l vfa. Normal (P vf l vfa)" ["P"] *})
 apply     (tactic {* simp_tac (@{context} delloop "split_all_tac" delsimps [@{thm split_paired_All}, @{thm peek_and_def2}, @{thm heap_free_def2}, @{thm initd_def2}, @{thm normal_def2}, @{thm supd_lupd}]) 2 *})
-apply      (tactic "ax_tac 2" (* NewA *))
-apply       (tactic "ax_tac 3" (* ax_Alloc_Arr *))
-apply       (tactic "ax_tac 3")
+apply      (tactic "ax_tac @{context} 2" (* NewA *))
+apply       (tactic "ax_tac @{context} 3" (* ax_Alloc_Arr *))
+apply       (tactic "ax_tac @{context} 3")
 apply      (tactic {* inst1_tac @{context} "P" "\<lambda>vf l vfa. Normal (P vf l vfa\<leftarrow>\<diamondsuit>)" ["P"] *})
 apply      (tactic {* simp_tac (@{context} delloop "split_all_tac") 2 *})
-apply      (tactic "ax_tac 2")
-apply     (tactic "ax_tac 1" (* FVar *))
-apply      (tactic "ax_tac 2" (* StatRef *))
+apply      (tactic "ax_tac @{context} 2")
+apply     (tactic "ax_tac @{context} 1" (* FVar *))
+apply      (tactic "ax_tac @{context} 2" (* StatRef *))
 apply     (rule ax_derivs.Done [THEN conseq1])
 apply     (tactic {* inst1_tac @{context} "Q" "\<lambda>vf. Normal ((\<lambda>Y s Z. vf=lvar (VName e) (snd s)) \<and>. heap_free four \<and>. initd Base \<and>. initd Ext)" [] *})
 apply     (clarsimp split del: split_if)
@@ -217,7 +217,7 @@ apply  (tactic {* inst1_tac @{context} "PP" "\<lambda>vf. Normal ((\<lambda>Y s 
 apply  clarsimp
      (* end init *)
 apply (rule conseq1)
-apply (tactic "ax_tac 1")
+apply (tactic "ax_tac @{context} 1")
 apply clarsimp
 done
 
@@ -234,36 +234,36 @@ lemma Loop_Xcpt_benchmark:
         (Expr (Ass (LVar i) (Acc (LVar j))))). {Q}"
 apply (rule_tac P' = "Q" and Q' = "Q\<leftarrow>=False\<down>=\<diamondsuit>" in conseq12)
 apply  safe
-apply  (tactic "ax_tac 1" (* Loop *))
+apply  (tactic "ax_tac @{context} 1" (* Loop *))
 apply   (rule ax_Normal_cases)
 prefer 2
 apply    (rule ax_derivs.Abrupt [THEN conseq1], clarsimp simp add: Let_def)
 apply   (rule conseq1)
-apply    (tactic "ax_tac 1")
+apply    (tactic "ax_tac @{context} 1")
 apply   clarsimp
 prefer 2
 apply  clarsimp
-apply (tactic "ax_tac 1" (* If *))
+apply (tactic "ax_tac @{context} 1" (* If *))
 apply  (tactic 
   {* inst1_tac @{context} "P'" "Normal (\<lambda>s.. (\<lambda>Y s Z. True)\<down>=Val (the (locals s i)))" [] *})
-apply  (tactic "ax_tac 1")
+apply  (tactic "ax_tac @{context} 1")
 apply  (rule conseq1)
-apply   (tactic "ax_tac 1")
+apply   (tactic "ax_tac @{context} 1")
 apply  clarsimp
 apply (rule allI)
 apply (rule ax_escape)
 apply auto
 apply  (rule conseq1)
-apply   (tactic "ax_tac 1" (* Throw *))
-apply   (tactic "ax_tac 1")
-apply   (tactic "ax_tac 1")
+apply   (tactic "ax_tac @{context} 1" (* Throw *))
+apply   (tactic "ax_tac @{context} 1")
+apply   (tactic "ax_tac @{context} 1")
 apply  clarsimp
 apply (rule_tac Q' = "Normal (\<lambda>Y s Z. True)" in conseq2)
 prefer 2
 apply  clarsimp
 apply (rule conseq1)
-apply  (tactic "ax_tac 1")
-apply  (tactic "ax_tac 1")
+apply  (tactic "ax_tac @{context} 1")
+apply  (tactic "ax_tac @{context} 1")
 prefer 2
 apply   (rule ax_subst_Var_allI)
 apply   (tactic {* inst1_tac @{context} "P'" "\<lambda>b Y ba Z vf. \<lambda>Y (x,s) Z. x=None \<and> snd vf = snd (lvar i s)" [] *})
@@ -271,11 +271,11 @@ apply   (rule allI)
 apply   (rule_tac P' = "Normal ?P" in conseq1)
 prefer 2
 apply    clarsimp
-apply   (tactic "ax_tac 1")
+apply   (tactic "ax_tac @{context} 1")
 apply   (rule conseq1)
-apply    (tactic "ax_tac 1")
+apply    (tactic "ax_tac @{context} 1")
 apply   clarsimp
-apply  (tactic "ax_tac 1")
+apply  (tactic "ax_tac @{context} 1")
 apply clarsimp
 done
 

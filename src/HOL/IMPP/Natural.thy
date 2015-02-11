@@ -106,13 +106,12 @@ declare evaln_elim_cases [elim!]
 lemma com_det [rule_format (no_asm)]: "<c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)"
 apply (erule evalc.induct)
 apply (erule_tac [8] V = "<?c,s1> -c-> s2" in thin_rl)
-(*blast needs unify_search_bound = 40*)
-apply (best elim: evalc_WHILE_case)+
+apply (blast elim: evalc_WHILE_case)+
 done
 
 lemma evaln_evalc: "<c,s> -n-> t ==> <c,s> -c-> t"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (resolve_tac @{thms evalc.intros} THEN_ALL_NEW atac) *})
+apply (tactic {* ALLGOALS (resolve_tac @{context} @{thms evalc.intros} THEN_ALL_NEW atac) *})
 done
 
 lemma Suc_le_D_lemma: "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'"
@@ -140,8 +139,9 @@ lemma evalc_evaln: "<c,s> -c-> t ==> ? n. <c,s> -n-> t"
 apply (erule evalc.induct)
 apply (tactic {* ALLGOALS (REPEAT o etac exE) *})
 apply (tactic {* TRYALL (EVERY' [dtac @{thm evaln_max2}, assume_tac @{context},
-  REPEAT o eresolve_tac [exE, conjE]]) *})
-apply (tactic {* ALLGOALS (rtac exI THEN' resolve_tac @{thms evaln.intros} THEN_ALL_NEW atac) *})
+  REPEAT o eresolve_tac @{context} [exE, conjE]]) *})
+apply (tactic
+  {* ALLGOALS (rtac exI THEN' resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW atac) *})
 done
 
 lemma eval_eq: "<c,s> -c-> t = (? n. <c,s> -n-> t)"

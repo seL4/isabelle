@@ -338,13 +338,13 @@ fun method inst_tac tac =
 (*warning: rule_tac etc. refer to dynamic subgoal context!*)
 
 val _ = Theory.setup
- (Method.setup @{binding rule_tac} (method res_inst_tac (K resolve_tac))
+ (Method.setup @{binding rule_tac} (method res_inst_tac resolve_tac)
     "apply rule (dynamic instantiation)" #>
-  Method.setup @{binding erule_tac} (method eres_inst_tac (K eresolve_tac))
+  Method.setup @{binding erule_tac} (method eres_inst_tac eresolve_tac)
     "apply rule in elimination manner (dynamic instantiation)" #>
-  Method.setup @{binding drule_tac} (method dres_inst_tac (K dresolve_tac))
+  Method.setup @{binding drule_tac} (method dres_inst_tac dresolve_tac)
     "apply rule in destruct manner (dynamic instantiation)" #>
-  Method.setup @{binding frule_tac} (method forw_inst_tac (K forward_tac))
+  Method.setup @{binding frule_tac} (method forw_inst_tac forward_tac)
     "apply rule in forward manner (dynamic instantiation)" #>
   Method.setup @{binding cut_tac} (method cut_inst_tac (K cut_rules_tac))
     "cut rule (dynamic instantiation)" #>

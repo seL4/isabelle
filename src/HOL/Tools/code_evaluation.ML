@@ -45,7 +45,7 @@ fun add_term_of tyco raw_vs thy =
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
     |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
 
 fun ensure_term_of (tyco, (raw_vs, _)) thy =

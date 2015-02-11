@@ -12,18 +12,23 @@ sig
   val eq_assume_tac: int -> tactic
   val compose_tac: Proof.context -> (bool * thm * int) -> int -> tactic
   val make_elim: thm -> thm
-  val biresolve_tac: (bool * thm) list -> int -> tactic
-  val resolve_tac: thm list -> int -> tactic
-  val eresolve_tac: thm list -> int -> tactic
-  val forward_tac: thm list -> int -> tactic
-  val dresolve_tac: thm list -> int -> tactic
+  val biresolve0_tac: (bool * thm) list -> int -> tactic
+  val biresolve_tac: Proof.context -> (bool * thm) list -> int -> tactic
+  val resolve0_tac: thm list -> int -> tactic
+  val resolve_tac: Proof.context -> thm list -> int -> tactic
+  val eresolve0_tac: thm list -> int -> tactic
+  val eresolve_tac: Proof.context -> thm list -> int -> tactic
+  val forward0_tac: thm list -> int -> tactic
+  val forward_tac: Proof.context -> thm list -> int -> tactic
+  val dresolve0_tac: thm list -> int -> tactic
+  val dresolve_tac: Proof.context -> thm list -> int -> tactic
   val atac: int -> tactic
   val rtac: thm -> int -> tactic
   val dtac: thm -> int -> tactic
   val etac: thm -> int -> tactic
   val ftac: thm -> int -> tactic
   val ares_tac: thm list -> int -> tactic
-  val solve_tac: thm list -> int -> tactic
+  val solve_tac: Proof.context -> thm list -> int -> tactic
   val bimatch_tac: Proof.context -> (bool * thm) list -> int -> tactic
   val match_tac: Proof.context -> thm list -> int -> tactic
   val ematch_tac: Proof.context -> thm list -> int -> tactic
@@ -50,7 +55,7 @@ sig
   val rotate_tac: int -> int -> tactic
   val defer_tac: int -> tactic
   val prefer_tac: int -> tactic
-  val filter_prems_tac: (term -> bool) -> int -> tactic
+  val filter_prems_tac: Proof.context -> (term -> bool) -> int -> tactic
 end;
 
 signature TACTIC =
@@ -114,30 +119,35 @@ fun compose_tac ctxt arg i =
 fun make_elim rl = zero_var_indexes (rl RS revcut_rl);
 
 (*Attack subgoal i by resolution, using flags to indicate elimination rules*)
-fun biresolve_tac brules i = PRIMSEQ (Thm.biresolution NONE false brules i);
+fun biresolve0_tac brules i = PRIMSEQ (Thm.biresolution NONE false brules i);
+fun biresolve_tac ctxt brules i = PRIMSEQ (Thm.biresolution (SOME ctxt) false brules i);
 
 (*Resolution: the simple case, works for introduction rules*)
-fun resolve_tac rules = biresolve_tac (map (pair false) rules);
+fun resolve0_tac rules = biresolve0_tac (map (pair false) rules);
+fun resolve_tac ctxt rules = biresolve_tac ctxt (map (pair false) rules);
 
 (*Resolution with elimination rules only*)
-fun eresolve_tac rules = biresolve_tac (map (pair true) rules);
+fun eresolve0_tac rules = biresolve0_tac (map (pair true) rules);
+fun eresolve_tac ctxt rules = biresolve_tac ctxt (map (pair true) rules);
 
 (*Forward reasoning using destruction rules.*)
-fun forward_tac rls = resolve_tac (map make_elim rls) THEN' atac;
+fun forward0_tac rls = resolve0_tac (map make_elim rls) THEN' atac;
+fun forward_tac ctxt rls = resolve_tac ctxt (map make_elim rls) THEN' atac;
 
 (*Like forward_tac, but deletes the assumption after use.*)
-fun dresolve_tac rls = eresolve_tac (map make_elim rls);
+fun dresolve0_tac rls = eresolve0_tac (map make_elim rls);
+fun dresolve_tac ctxt rls = eresolve_tac ctxt (map make_elim rls);
 
 (*Shorthand versions: for resolution with a single theorem*)
-fun rtac rl =  resolve_tac [rl];
-fun dtac rl = dresolve_tac [rl];
-fun etac rl = eresolve_tac [rl];
-fun ftac rl =  forward_tac [rl];
+fun rtac rl =  resolve0_tac [rl];
+fun dtac rl = dresolve0_tac [rl];
+fun etac rl = eresolve0_tac [rl];
+fun ftac rl =  forward0_tac [rl];
 
 (*Use an assumption or some rules ... A popular combination!*)
-fun ares_tac rules = atac  ORELSE'  resolve_tac rules;
+fun ares_tac rules = atac  ORELSE'  resolve0_tac rules;
 
-fun solve_tac rules = resolve_tac rules THEN_ALL_NEW atac;
+fun solve_tac ctxt rules = resolve_tac ctxt rules THEN_ALL_NEW assume_tac ctxt;
 
 (*Matching tactics -- as above, but forbid updating of state*)
 fun bimatch_tac ctxt brules i = PRIMSEQ (Thm.biresolution (SOME ctxt) true brules i);
@@ -175,7 +185,7 @@ fun distinct_subgoals_tac state =
 
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
-fun cut_tac rule i = resolve_tac [cut_rl] i THEN resolve_tac [rule] (i + 1);
+fun cut_tac rule i = resolve0_tac [cut_rl] i THEN resolve0_tac [rule] (i + 1);
 
 (*"Cut" a list of rules into the goal.  Their premises will become new
   subgoals.*)
@@ -300,12 +310,12 @@ fun defer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1);
 fun prefer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1 #> Thm.permute_prems 0 ~1);
 
 (* remove premises that do not satisfy p; fails if all prems satisfy p *)
-fun filter_prems_tac p =
+fun filter_prems_tac ctxt p =
   let fun Then NONE tac = SOME tac
         | Then (SOME tac) tac' = SOME(tac THEN' tac');
       fun thins H (tac,n) =
         if p H then (tac,n+1)
-        else (Then tac (rotate_tac n THEN' eresolve_tac [thin_rl]),0);
+        else (Then tac (rotate_tac n THEN' eresolve_tac ctxt [thin_rl]),0);
   in SUBGOAL(fn (subg,n) =>
        let val Hs = Logic.strip_assums_hyp subg
        in case fst(fold thins Hs (NONE,0)) of

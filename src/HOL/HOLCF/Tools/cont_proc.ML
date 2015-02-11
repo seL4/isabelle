@@ -7,7 +7,7 @@ sig
   val is_lcf_term: term -> bool
   val cont_thms: term -> thm list
   val all_cont_thms: term -> thm list
-  val cont_tac: int -> tactic
+  val cont_tac: Proof.context -> int -> tactic
   val cont_proc: theory -> simproc
   val setup: theory -> theory
 end
@@ -95,7 +95,7 @@ end
   conditional rewrite rule with the unsolved subgoals as premises.
 *)
 
-val cont_tac =
+fun cont_tac ctxt =
   let
     val rules = [cont_K, cont_I, cont_R, cont_A, cont_L]
   
@@ -110,7 +110,7 @@ val cont_tac =
       in
         if is_lcf_term f'
         then new_cont_tac f'
-        else REPEAT_ALL_NEW (resolve_tac rules)
+        else REPEAT_ALL_NEW (resolve_tac ctxt rules)
       end
       | cont_tac_of_term _ = K no_tac
   in
@@ -123,7 +123,7 @@ local
     let
       val thy = Proof_Context.theory_of ctxt
       val tr = instantiate' [] [SOME (cterm_of thy t)] @{thm Eq_TrueI}
-    in Option.map fst (Seq.pull (cont_tac 1 tr)) end
+    in Option.map fst (Seq.pull (cont_tac ctxt 1 tr)) end
 in
   fun cont_proc thy =
     Simplifier.simproc_global thy "cont_proc" ["cont f"] solve_cont

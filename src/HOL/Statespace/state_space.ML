@@ -354,7 +354,7 @@ fun statespace_definition state_type args name parents parent_comps components t
         val expr = ([(suffix valuetypesN name,
                      (prefix, Expression.Positional (map SOME pars)))],[]);
       in
-        prove_interpretation_in (ALLGOALS o solve_tac o Assumption.all_prems_of)
+        prove_interpretation_in (fn ctxt => ALLGOALS (solve_tac ctxt (Assumption.all_prems_of ctxt)))
           (suffix valuetypesN name, expr) thy
       end;
 

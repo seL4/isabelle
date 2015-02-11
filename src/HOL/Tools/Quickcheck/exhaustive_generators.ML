@@ -211,7 +211,7 @@ fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
       |> Quickcheck_Common.define_functions
           (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), NONE)
           prfx argnames fullnames (map mk_T (Ts @ Us))
-      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+      |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
     end
   else
     (Old_Datatype_Aux.message config

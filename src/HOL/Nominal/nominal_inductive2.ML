@@ -135,7 +135,7 @@ fun map_thm ctxt f tac monos opt th =
     fun prove t =
       Goal.prove ctxt [] [] t (fn _ =>
         EVERY [cut_facts_tac [th] 1, etac rev_mp 1,
-          REPEAT_DETERM (FIRSTGOAL (resolve_tac monos)),
+          REPEAT_DETERM (FIRSTGOAL (resolve_tac ctxt monos)),
           REPEAT_DETERM (rtac impI 1 THEN (atac 1 ORELSE tac))])
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
@@ -424,17 +424,17 @@ fun prove_strong_ind s alt_name avoids ctxt =
                        (simp_tac (put_simpset HOL_basic_ss ctxt''
                           addsimps [inductive_forall_def']
                           addsimprocs [NominalDatatype.perm_simproc]) 1 THEN
-                        resolve_tac gprems2 1)]));
+                        resolve_tac ctxt'' gprems2 1)]));
                  val final = Goal.prove ctxt'' [] [] (term_of concl)
                    (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (put_simpset HOL_ss ctxt''
                      addsimps vc_compat_ths1' @ fresh_ths1 @
                        perm_freshs_freshs') 1);
                  val final' = Proof_Context.export ctxt'' ctxt' [final];
-               in resolve_tac final' 1 end) context 1])
+               in resolve_tac ctxt' final' 1 end) context 1])
                  (prems ~~ thss ~~ vc_compat' ~~ ihyps ~~ prems'')))
         in
           cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
-          REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
+          REPEAT (REPEAT (resolve_tac ctxt' [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
             asm_full_simp_tac ctxt 1)
         end) |>

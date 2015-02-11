@@ -366,8 +366,8 @@ begin
 
   have "A \<and> B"
     apply (tactic \<open>rtac @{thm conjI} 1\<close>)
-    using a apply (tactic \<open>resolve_tac facts 1\<close>)
-    using b apply (tactic \<open>resolve_tac facts 1\<close>)
+    using a apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
+    using b apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
     done
 
   have "A \<and> B"

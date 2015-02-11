@@ -64,8 +64,8 @@ end;
 
 signature QUANTIFIER1 =
 sig
-  val prove_one_point_all_tac: tactic
-  val prove_one_point_ex_tac: tactic
+  val prove_one_point_all_tac: Proof.context -> tactic
+  val prove_one_point_ex_tac: Proof.context -> tactic
   val rearrange_all: Proof.context -> cterm -> thm option
   val rearrange_ex: Proof.context -> cterm -> thm option
   val rearrange_ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
@@ -126,10 +126,12 @@ fun prove_conv ctxt tu tac =
       yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
     val thm =
       Goal.prove ctxt' [] [] goal
-        (fn {context = ctxt'', ...} => resolve_tac [Data.iff_reflection] 1 THEN tac ctxt'');
+        (fn {context = ctxt'', ...} =>
+          resolve_tac ctxt'' [Data.iff_reflection] 1 THEN tac ctxt'');
   in singleton (Variable.export ctxt' ctxt) thm end;
 
-fun qcomm_tac qcomm qI i = REPEAT_DETERM (resolve_tac [qcomm] i THEN resolve_tac [qI] i);
+fun qcomm_tac ctxt qcomm qI i =
+  REPEAT_DETERM (resolve_tac ctxt [qcomm] i THEN resolve_tac ctxt [qI] i);
 
 (* Proves (? x0..xn. ... & x0 = t & ...) = (? x1..xn x0. x0 = t & ... & ...)
    Better: instantiate exI
@@ -137,11 +139,11 @@ fun qcomm_tac qcomm qI i = REPEAT_DETERM (resolve_tac [qcomm] i THEN resolve_tac
 local
   val excomm = Data.ex_comm RS Data.iff_trans;
 in
-  val prove_one_point_ex_tac =
-    qcomm_tac excomm Data.iff_exI 1 THEN resolve_tac [Data.iffI] 1 THEN
+  fun prove_one_point_ex_tac ctxt =
+    qcomm_tac ctxt excomm Data.iff_exI 1 THEN resolve_tac ctxt [Data.iffI] 1 THEN
     ALLGOALS
-      (EVERY' [eresolve_tac [Data.exE], REPEAT_DETERM o eresolve_tac [Data.conjE],
-        resolve_tac [Data.exI],
+      (EVERY' [eresolve_tac ctxt [Data.exE], REPEAT_DETERM o eresolve_tac ctxt [Data.conjE],
+        resolve_tac ctxt [Data.exI],
         DEPTH_SOLVE_1 o ares_tac [Data.conjI]])
 end;
 
@@ -149,19 +151,19 @@ end;
           (! x1..xn x0. x0 = t --> (... & ...) --> P x0)
 *)
 local
-  val tac =
+  fun tac ctxt =
     SELECT_GOAL
-      (EVERY1 [REPEAT o dresolve_tac [Data.uncurry],
-        REPEAT o resolve_tac [Data.impI],
-        eresolve_tac [Data.mp],
-        REPEAT o eresolve_tac [Data.conjE],
+      (EVERY1 [REPEAT o dresolve_tac ctxt [Data.uncurry],
+        REPEAT o resolve_tac ctxt [Data.impI],
+        eresolve_tac ctxt [Data.mp],
+        REPEAT o eresolve_tac ctxt [Data.conjE],
         REPEAT o ares_tac [Data.conjI]]);
   val allcomm = Data.all_comm RS Data.iff_trans;
 in
-  val prove_one_point_all_tac =
-    EVERY1 [qcomm_tac allcomm Data.iff_allI,
-      resolve_tac [Data.iff_allI],
-      resolve_tac [Data.iffI], tac, tac];
+  fun prove_one_point_all_tac ctxt =
+    EVERY1 [qcomm_tac ctxt allcomm Data.iff_allI,
+      resolve_tac ctxt [Data.iff_allI],
+      resolve_tac ctxt [Data.iffI], tac ctxt, tac ctxt];
 end
 
 fun renumber l u (Bound i) =
@@ -185,7 +187,7 @@ fun rearrange_all ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) (K prove_one_point_all_tac)) end)
+          in SOME (prove_conv ctxt (F, R) prove_one_point_all_tac) end)
   | _ => NONE);
 
 fun rearrange_ball tac ctxt ct =
@@ -207,7 +209,7 @@ fun rearrange_ex ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) (K prove_one_point_ex_tac)) end)
+          in SOME (prove_conv ctxt (F, R) prove_one_point_ex_tac) end)
   | _ => NONE);
 
 fun rearrange_bex tac ctxt ct =

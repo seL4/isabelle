@@ -73,19 +73,23 @@ fun lift_meta_eq_to_obj_eq i st =
           (mk_simp_implies @{prop "(x::'a) = y"})
           (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt @{thms simp_implies_def},
-            REPEAT (ares_tac (@{thm meta_eq_to_obj_eq} ::
-              map (rewrite_rule ctxt @{thms simp_implies_def}) prems) 1)])
+            REPEAT (assume_tac ctxt 1 ORELSE
+              resolve_tac ctxt
+                (@{thm meta_eq_to_obj_eq} ::
+                  map (rewrite_rule ctxt @{thms simp_implies_def}) prems) 1)])
       end
   end;
 
 (*Congruence rules for = (instead of ==)*)
-fun mk_meta_cong (_: Proof.context) rl = zero_var_indexes
-  (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
-     resolve_tac [lift_meta_eq_to_obj_eq i st] i st) rl)
-   in mk_meta_eq rl' handle THM _ =>
-     if can Logic.dest_equals (concl_of rl') then rl'
-     else error "Conclusion of congruence rules must be =-equality"
-   end);
+fun mk_meta_cong ctxt rl =
+  let
+    val rl' = Seq.hd (TRYALL (fn i => fn st =>
+      resolve_tac ctxt [lift_meta_eq_to_obj_eq i st] i st) rl)
+  in
+    mk_meta_eq rl' handle THM _ =>
+      if can Logic.dest_equals (concl_of rl') then rl'
+      else error "Conclusion of congruence rules must be =-equality"
+  end |> zero_var_indexes;
 
 fun mk_atomize ctxt pairs =
   let
@@ -120,7 +124,10 @@ fun unsafe_solver_tac ctxt =
     val sol_thms =
       reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
     fun sol_tac i =
-      FIRST [resolve_tac sol_thms i, assume_tac ctxt i , eresolve_tac @{thms FalseE} i] ORELSE
+      FIRST
+       [resolve_tac ctxt sol_thms i,
+        assume_tac ctxt i,
+        eresolve_tac ctxt @{thms FalseE} i] ORELSE
       (match_tac ctxt intros THEN_ALL_NEW sol_tac) i
   in
     (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN' sol_tac

@@ -474,7 +474,7 @@ fun flip_conclusion_tac ctxt =
       THEN' (REPEAT_DETERM o etac @{thm conjE})
       THEN' (TRY o (expander_animal ctxt))
   in
-    default_tac ORELSE' resolve_tac @{thms flip}
+    default_tac ORELSE' resolve_tac ctxt @{thms flip}
   end
 *}
 
@@ -1154,7 +1154,7 @@ fun extuni_dec_tac ctxt i = fn st =>
       ASAP
         (rtac @{thm disjI1} APPEND' rtac @{thm disjI2})
         (FIRST' (map closure
-                  [dresolve_tac @{thms dec_commut_eq},
+                  [dresolve_tac ctxt @{thms dec_commut_eq},
                    dtac @{thm dec_commut_disj},
                    elim_tac]))
   in
@@ -1527,7 +1527,7 @@ fun exists_tac ctxt feats consts_diff =
 
     val ex_free =
       if loop_can_feature [Existential_Free] feats andalso consts_diff = [] then
-        eresolve_tac @{thms polar_exE}
+        eresolve_tac ctxt @{thms polar_exE}
       else K no_tac
   in
     ex_var APPEND' ex_free
@@ -1613,8 +1613,8 @@ FIXME Building this into the loop instead.. maybe not the ideal choice
             | Not_neg => trace_tac' "mark: not_neg" (dtac @{thm leo2_rules(10)})
             | Or_pos => trace_tac' "mark: or_pos" (dtac @{thm leo2_rules(5)}) (*could add (6) for negated conjunction*)
             | Or_neg => trace_tac' "mark: or_neg" (dtac @{thm leo2_rules(7)})
-            | Equal_pos => trace_tac' "mark: equal_pos" (dresolve_tac (@{thms eq_pos_bool} @ [@{thm leo2_rules(3)}, @{thm eq_pos_func}]))
-            | Equal_neg => trace_tac' "mark: equal_neg" (dresolve_tac [@{thm eq_neg_bool}, @{thm leo2_rules(4)}])
+            | Equal_pos => trace_tac' "mark: equal_pos" (dresolve_tac ctxt (@{thms eq_pos_bool} @ [@{thm leo2_rules(3)}, @{thm eq_pos_func}]))
+            | Equal_neg => trace_tac' "mark: equal_neg" (dresolve_tac ctxt [@{thm eq_neg_bool}, @{thm leo2_rules(4)}])
             | Donkey_Cong => trace_tac' "mark: donkey_cong" (simper_animal ctxt THEN' ex_expander_tac ctxt)
 
             | Extuni_Bool2 => trace_tac' "mark: extuni_bool2" (dtac @{thm extuni_bool2})
@@ -1624,7 +1624,7 @@ FIXME Building this into the loop instead.. maybe not the ideal choice
             | Extuni_Dec => trace_tac' "mark: extuni_dec_tac" (extuni_dec_tac ctxt)
             | Extuni_FlexRigid => trace_tac' "mark: extuni_flex_rigid" (atac ORELSE' asm_full_simp_tac ctxt)
             | Extuni_Func => trace_tac' "mark: extuni_func" (dtac @{thm extuni_func})
-            | Polarity_switch => trace_tac' "mark: polarity_switch" (eresolve_tac @{thms polarity_switch})
+            | Polarity_switch => trace_tac' "mark: polarity_switch" (eresolve_tac ctxt @{thms polarity_switch})
             | Forall_special_pos => trace_tac' "mark: dorall_special_pos" extcnf_forall_special_pos_tac
 
         val core_tac =
@@ -1804,7 +1804,7 @@ fun remove_redundant_quantification_in_lit ctxt i = fn st =>
                   member (op =)  (Term.add_frees hyp_lit_body []) (hd hyp_lit_prefix) then
                   no_tac st
                 else
-                  dresolve_tac @{thms drop_redundant_literal_qtfr} i st
+                  dresolve_tac ctxt @{thms drop_redundant_literal_qtfr} i st
               end
           end
      end

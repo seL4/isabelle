@@ -56,7 +56,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val loc_intro_tac =
           (case Locale.intros_of thy class of
             (_, NONE) => all_tac
-          | (_, SOME intro) => ALLGOALS (resolve_tac [intro]));
+          | (_, SOME intro) => ALLGOALS (resolve_tac empty_ctxt [intro]));
         val tac = loc_intro_tac
           THEN ALLGOALS (Proof_Context.fact_tac empty_ctxt (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness empty_ctxt prop tac end) some_prop;

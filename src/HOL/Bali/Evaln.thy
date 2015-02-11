@@ -448,9 +448,9 @@ done
 lemma evaln_nonstrict [rule_format (no_asm), elim]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w, s') \<Longrightarrow> \<forall>m. n\<le>m \<longrightarrow> G\<turnstile>s \<midarrow>t\<succ>\<midarrow>m\<rightarrow> (w, s')"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (EVERY'[strip_tac, TRY o etac @{thm Suc_le_D_lemma},
+apply (tactic {* ALLGOALS (EVERY' [strip_tac @{context}, TRY o etac @{thm Suc_le_D_lemma},
   REPEAT o smp_tac @{context} 1, 
-  resolve_tac @{thms evaln.intros} THEN_ALL_NEW TRY o atac]) *})
+  resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW TRY o atac]) *})
 (* 3 subgoals *)
 apply (auto split del: split_if)
 done

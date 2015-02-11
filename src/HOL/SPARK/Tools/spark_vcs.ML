@@ -242,12 +242,12 @@ fun add_enum_type tyname tyname' thy =
            delsimps @{thms atLeastLessThan_iff}) 1);
 
     val lthy' =
-      Class.prove_instantiation_instance (fn _ =>
-        Class.intro_classes_tac [] THEN
+      Class.prove_instantiation_instance (fn ctxt =>
+        Class.intro_classes_tac ctxt [] THEN
         rtac finite_UNIV 1 THEN
         rtac range_pos 1 THEN
-        simp_tac (put_simpset HOL_basic_ss lthy addsimps [def3]) 1 THEN
-        simp_tac (put_simpset HOL_basic_ss lthy addsimps [def2]) 1) lthy;
+        simp_tac (put_simpset HOL_basic_ss ctxt addsimps [def3]) 1 THEN
+        simp_tac (put_simpset HOL_basic_ss ctxt addsimps [def2]) 1) lthy;
 
     val (pos_eqs, val_eqs) = split_list (map_index (fn (i, c) =>
       let

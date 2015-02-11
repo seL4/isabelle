@@ -177,7 +177,7 @@ fun add_primrec_i args thy =
       eqn_terms |> map (fn t =>
         Goal.prove_global thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
           (fn {context = ctxt, ...} =>
-            EVERY [rewrite_goals_tac ctxt rewrites, resolve_tac @{thms refl} 1]));
+            EVERY [rewrite_goals_tac ctxt rewrites, resolve_tac ctxt @{thms refl} 1]));
 
     val (eqn_thms', thy2) =
       thy1

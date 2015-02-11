@@ -109,16 +109,16 @@ fun step_tac ctxt (congr_rls, asms) =
 (*Single step for conditional rewriting: prove_cond_tac handles new subgoals.*)
 fun cond_step_tac ctxt (prove_cond_tac, congr_rls, asms) =
     asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac ctxt  ORELSE'
-    (resolve_tac [trans, red_trans]  THEN'  prove_cond_tac)  ORELSE'
+    (resolve_tac ctxt [trans, red_trans]  THEN'  prove_cond_tac)  ORELSE'
     subconv_res_tac ctxt congr_rls;
 
 (*Unconditional normalization tactic*)
 fun norm_tac ctxt arg = REPEAT_FIRST (step_tac ctxt arg)  THEN
-    TRYALL (resolve_tac [red_if_equal]);
+    TRYALL (resolve_tac ctxt [red_if_equal]);
 
 (*Conditional normalization tactic*)
 fun cond_norm_tac ctxt arg = REPEAT_FIRST (cond_step_tac ctxt arg)  THEN
-    TRYALL (resolve_tac [red_if_equal]);
+    TRYALL (resolve_tac ctxt [red_if_equal]);
 
 end;
 end;

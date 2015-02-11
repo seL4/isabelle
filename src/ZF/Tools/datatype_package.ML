@@ -286,9 +286,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       (*Proves a single case equation.  Could use simp_tac, but it's slower!*)
       (fn {context = ctxt, ...} => EVERY
         [rewrite_goals_tac ctxt [con_def],
-         resolve_tac [case_trans] 1,
+         resolve_tac ctxt [case_trans] 1,
          REPEAT
-           (resolve_tac [@{thm refl}, split_trans,
+           (resolve_tac ctxt [@{thm refl}, split_trans,
              Su.case_inl RS @{thm trans}, Su.case_inr RS @{thm trans}] 1)]);
 
   val free_iffs = map Drule.export_without_context (con_defs RL [@{thm def_swap_iff}]);
@@ -327,7 +327,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
             (Ind_Syntax.traceIt "next recursor equation = " thy1 (mk_recursor_eqn arg))
             (*Proves a single recursor equation.*)
             (fn {context = ctxt, ...} => EVERY
-              [resolve_tac [recursor_trans] 1,
+              [resolve_tac ctxt [recursor_trans] 1,
                simp_tac (put_simpset rank_ss ctxt addsimps case_eqns) 1,
                IF_UNSOLVED (simp_tac (put_simpset rank_ss ctxt addsimps tl con_defs) 1)]);
       in

@@ -1163,7 +1163,7 @@ lemma unique_eval [rule_format (no_asm)]:
   "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w, s') \<Longrightarrow> (\<forall>w' s''. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w', s'') \<longrightarrow> w' = w \<and> s'' = s')"
 apply (erule eval_induct)
 apply (tactic {* ALLGOALS (EVERY'
-      [strip_tac, rotate_tac ~1, eresolve_tac @{thms eval_elim_cases}]) *})
+      [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}]) *})
 (* 31 subgoals *)
 prefer 28 (* Try *) 
 apply (simp (no_asm_use) only: split add: split_if_asm)

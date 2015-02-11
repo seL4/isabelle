@@ -62,11 +62,11 @@ text \<open>
   \medskip
   \begin{tabular}{lll}
     @{ML rtac}~@{text "a 1"} & & @{text "rule a"} \\
-    @{ML resolve_tac}~@{text "[a\<^sub>1, \<dots>] 1"} & & @{text "rule a\<^sub>1 \<dots>"} \\
+    @{ML resolve_tac}~@{text "ctxt [a\<^sub>1, \<dots>] 1"} & & @{text "rule a\<^sub>1 \<dots>"} \\
     @{ML res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a 1"} & &
     @{text "rule_tac x\<^sub>1 = t\<^sub>1 \<AND> \<dots> \<IN> a"} \\[0.5ex]
     @{ML rtac}~@{text "a i"} & & @{text "rule_tac [i] a"} \\
-    @{ML resolve_tac}~@{text "[a\<^sub>1, \<dots>] i"} & & @{text "rule_tac [i] a\<^sub>1 \<dots>"} \\
+    @{ML resolve_tac}~@{text "ctxt [a\<^sub>1, \<dots>] i"} & & @{text "rule_tac [i] a\<^sub>1 \<dots>"} \\
     @{ML res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a i"} & &
     @{text "rule_tac [i] x\<^sub>1 = t\<^sub>1 \<AND> \<dots> \<IN> a"} \\
   \end{tabular}

@@ -75,14 +75,15 @@ fun strong_ind_simproc tab =
               SOME (close (Goal.prove ctxt [] [])
                 (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
                 (K (EVERY
-                  [resolve_tac [eq_reflection] 1, REPEAT (resolve_tac @{thms ext} 1),
-                   resolve_tac [iffI] 1,
-                   EVERY [eresolve_tac [conjE] 1, resolve_tac [IntI] 1, simp, simp,
-                     eresolve_tac [IntE] 1, resolve_tac [conjI] 1, simp, simp] ORELSE
-                   EVERY [eresolve_tac [disjE] 1, resolve_tac [UnI1] 1, simp,
-                     resolve_tac [UnI2] 1, simp,
-                     eresolve_tac [UnE] 1, resolve_tac [disjI1] 1, simp,
-                     resolve_tac [disjI2] 1, simp]])))
+                  [resolve_tac ctxt [eq_reflection] 1,
+                   REPEAT (resolve_tac ctxt @{thms ext} 1),
+                   resolve_tac ctxt [iffI] 1,
+                   EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [IntI] 1, simp, simp,
+                     eresolve_tac ctxt [IntE] 1, resolve_tac ctxt [conjI] 1, simp, simp] ORELSE
+                   EVERY [eresolve_tac ctxt [disjE] 1, resolve_tac ctxt [UnI1] 1, simp,
+                     resolve_tac ctxt [UnI2] 1, simp,
+                     eresolve_tac ctxt [UnE] 1, resolve_tac ctxt [disjI1] 1, simp,
+                     resolve_tac ctxt [disjI2] 1, simp]])))
                 handle ERROR _ => NONE))
     in
       case strip_comb t of
@@ -505,7 +506,7 @@ fun add_ind_set_def
                fold_rev (Term.abs o pair "x") Ts
                 (HOLogic.mk_mem (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
-            (K (REPEAT (resolve_tac @{thms ext} 1) THEN
+            (K (REPEAT (resolve_tac lthy @{thms ext} 1) THEN
               simp_tac (put_simpset HOL_basic_ss lthy addsimps
                 [def, mem_Collect_eq, @{thm split_conv}]) 1))
         in

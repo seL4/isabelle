@@ -54,9 +54,9 @@ val (safe0_brls, safep_brls) =
 (*Attack subgoals using safe inferences*)
 fun safe_step_tac ctxt = FIRST' [uniq_assume_tac ctxt,
                             int_uniq_mp_tac ctxt,
-                            biresolve_tac safe0_brls,
+                            biresolve_tac ctxt safe0_brls,
                             hyp_subst_tac,
-                            biresolve_tac safep_brls] ;
+                            biresolve_tac ctxt safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)
 fun safe_tac ctxt = DETERM (REPEAT_FIRST (safe_step_tac ctxt));
@@ -65,7 +65,7 @@ fun safe_tac ctxt = DETERM (REPEAT_FIRST (safe_step_tac ctxt));
 fun inst_step_tac ctxt = assume_tac ctxt APPEND' mp_tac ctxt;
 
 (*One safe or unsafe step. *)
-fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_brls i];
+fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac ctxt haz_brls i];
 
 (*Dumb but fast*)
 fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
