@@ -88,6 +88,12 @@ lemma vimage_comp:
 lemma image_eq_imp_comp: "f ` A = g ` B \<Longrightarrow> (h o f) ` A = (h o g) ` B"
   by (auto simp: comp_def elim!: equalityE)
 
+lemma image_bind: "f ` (Set.bind A g) = Set.bind A (op ` f \<circ> g)"
+by(auto simp add: Set.bind_def)
+
+lemma bind_image: "Set.bind (f ` A) g = Set.bind A (g \<circ> f)"
+by(auto simp add: Set.bind_def)
+
 code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
 
