@@ -315,14 +315,11 @@ lemma finite_vimageI:
   "finite F \<Longrightarrow> inj h \<Longrightarrow> finite (h -` F)"
   using finite_vimage_IntI[of F h UNIV] by auto
 
-lemma finite_vimageD:
-  assumes fin: "finite (h -` F)" and surj: "surj h"
-  shows "finite F"
-proof -
-  have "finite (h ` (h -` F))" using fin by (rule finite_imageI)
-  also have "h ` (h -` F) = F" using surj by (rule surj_image_vimage_eq)
-  finally show "finite F" .
-qed
+lemma finite_vimageD': "\<lbrakk> finite (f -` A); A \<subseteq> range f \<rbrakk> \<Longrightarrow> finite A"
+by(auto simp add: subset_image_iff intro: finite_subset[rotated])
+
+lemma finite_vimageD: "\<lbrakk> finite (h -` F); surj h \<rbrakk> \<Longrightarrow> finite F"
+by(auto dest: finite_vimageD')
 
 lemma finite_vimage_iff: "bij h \<Longrightarrow> finite (h -` F) \<longleftrightarrow> finite F"
   unfolding bij_def by (auto elim: finite_vimageD finite_vimageI)
