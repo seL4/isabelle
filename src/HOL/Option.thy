@@ -62,6 +62,21 @@ using split_option_all[of "\<lambda>x. \<not>P x"] by blast
 lemma UNIV_option_conv: "UNIV = insert None (range Some)"
 by(auto intro: classical)
 
+lemma rel_option_None1 [simp]: "rel_option P None x \<longleftrightarrow> x = None"
+by(cases x) simp_all
+
+lemma rel_option_None2 [simp]: "rel_option P x None \<longleftrightarrow> x = None"
+by(cases x) simp_all
+
+lemma rel_option_inf: "inf (rel_option A) (rel_option B) = rel_option (inf A B)" (is "?lhs = ?rhs")
+proof(rule antisym)
+  show "?lhs \<le> ?rhs" by(auto elim!: option.rel_cases)
+qed(auto elim: option.rel_mono_strong)
+
+lemma rel_option_reflI:
+  "(\<And>x. x \<in> set_option y \<Longrightarrow> P x x) \<Longrightarrow> rel_option P y y"
+by(cases y) auto
+
 subsubsection {* Operations *}
 
 lemma ospec [dest]: "(ALL x:set_option A. P x) ==> A = Some x ==> P x"
@@ -106,9 +121,42 @@ lemma rel_option_iff:
     | _ \<Rightarrow> False)"
 by (auto split: prod.split option.split)
 
+definition is_none :: "'a option \<Rightarrow> bool"
+where [code_post]: "is_none x \<longleftrightarrow> x = None"
+
+lemma is_none_simps [simp]:
+  "is_none None"
+  "\<not> is_none (Some x)"
+by(simp_all add: is_none_def)
+
+lemma is_none_code [code]:
+  "is_none None = True"
+  "is_none (Some x) = False"
+by simp_all
+
+lemma rel_option_unfold:
+  "rel_option R x y \<longleftrightarrow>
+   (is_none x \<longleftrightarrow> is_none y) \<and> (\<not> is_none x \<longrightarrow> \<not> is_none y \<longrightarrow> R (the x) (the y))"
+by(simp add: rel_option_iff split: option.split)
+
+lemma rel_optionI:
+  "\<lbrakk> is_none x \<longleftrightarrow> is_none y; \<lbrakk> \<not> is_none x; \<not> is_none y \<rbrakk> \<Longrightarrow> P (the x) (the y) \<rbrakk>
+  \<Longrightarrow> rel_option P x y"
+by(simp add: rel_option_unfold)
+
+lemma is_none_map_option [simp]: "is_none (map_option f x) \<longleftrightarrow> is_none x"
+by(simp add: is_none_def)
+
+lemma the_map_option: "\<not> is_none x \<Longrightarrow> the (map_option f x) = f (the x)"
+by(clarsimp simp add: is_none_def)
+
+
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
 bind_lzero: "bind None f = None" |
 bind_lunit: "bind (Some x) f = f x"
+
+lemma is_none_bind: "is_none (bind f g) \<longleftrightarrow> is_none f \<or> is_none (g (the f))"
+by(cases f) simp_all
 
 lemma bind_runit[simp]: "bind x Some = x"
 by (cases x) auto
@@ -132,6 +180,24 @@ lemma bind_split_asm: "P (bind m f) = (\<not>(
   by (cases m) auto
 
 lemmas bind_splits = bind_split bind_split_asm
+
+lemma bind_eq_Some_conv: "bind f g = Some x \<longleftrightarrow> (\<exists>y. f = Some y \<and> g y = Some x)"
+by(cases f) simp_all
+
+lemma map_option_bind: "map_option f (bind x g) = bind x (map_option f \<circ> g)"
+by(cases x) simp_all
+
+lemma bind_option_cong:
+  "\<lbrakk> x = y; \<And>z. z \<in> set_option y \<Longrightarrow> f z = g z \<rbrakk> \<Longrightarrow> bind x f = bind y g"
+by(cases y) simp_all
+
+lemma bind_option_cong_simp:
+  "\<lbrakk> x = y; \<And>z. z \<in> set_option y =simp=> f z = g z \<rbrakk> \<Longrightarrow> bind x f = bind y g"
+unfolding simp_implies_def by(rule bind_option_cong)
+
+lemma bind_option_cong_code: "x = y \<Longrightarrow> bind x f = bind y f" by simp
+setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm bind_option_cong_code})\<close>
+
 
 definition these :: "'a option set \<Rightarrow> 'a set"
 where
@@ -210,15 +276,7 @@ instance option :: (finite) finite
 
 subsubsection {* Code generator setup *}
 
-definition is_none :: "'a option \<Rightarrow> bool" where
-  [code_post]: "is_none x \<longleftrightarrow> x = None"
-
-lemma is_none_code [code]:
-  shows "is_none None \<longleftrightarrow> True"
-    and "is_none (Some x) \<longleftrightarrow> False"
-  unfolding is_none_def by simp_all
-
-lemma [code_unfold]:
+lemma equal_None_code_unfold [code_unfold]:
   "HOL.equal x None \<longleftrightarrow> is_none x"
   "HOL.equal None = is_none"
   by (auto simp add: equal is_none_def)
