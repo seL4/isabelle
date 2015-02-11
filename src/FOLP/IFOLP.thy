@@ -275,6 +275,7 @@ ML {*
   fun mp_tac ctxt i =
     eresolve_tac ctxt [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac ctxt i
 *}
+method_setup mp = \<open>Scan.succeed (SIMPLE_METHOD' o mp_tac)\<close>
 
 (*Like mp_tac but instantiates no variables*)
 ML {*
@@ -360,23 +361,25 @@ schematic_lemma ex1E:
 
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
 ML {*
-fun iff_tac prems i =
-    resolve0_tac (prems RL [@{thm iffE}]) i THEN
-    REPEAT1 (eresolve0_tac [asm_rl, @{thm mp}] i)
+fun iff_tac ctxt prems i =
+    resolve_tac ctxt (prems RL [@{thm iffE}]) i THEN
+    REPEAT1 (eresolve_tac ctxt [asm_rl, @{thm mp}] i)
 *}
+
+method_setup iff =
+  \<open>Attrib.thms >> (fn prems => fn ctxt => SIMPLE_METHOD' (iff_tac ctxt prems))\<close>
 
 schematic_lemma conj_cong:
   assumes "p:P <-> P'"
     and "!!x. x:P' ==> q(x):Q <-> Q'"
   shows "?p:(P&Q) <-> (P'&Q')"
   apply (insert assms(1))
-  apply (assumption | rule iffI conjI |
-    erule iffE conjE mp | tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI conjI | erule iffE conjE mp | iff assms)+
   done
 
 schematic_lemma disj_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P|Q) <-> (P'|Q')"
-  apply (erule iffE disjE disjI1 disjI2 | assumption | rule iffI | tactic {* mp_tac @{context} 1 *})+
+  apply (erule iffE disjE disjI1 disjI2 | assumption | rule iffI | mp)+
   done
 
 schematic_lemma imp_cong:
@@ -384,32 +387,29 @@ schematic_lemma imp_cong:
     and "!!x. x:P' ==> q(x):Q <-> Q'"
   shows "?p:(P-->Q) <-> (P'-->Q')"
   apply (insert assms(1))
-  apply (assumption | rule iffI impI | erule iffE | tactic {* mp_tac @{context} 1 *} |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI impI | erule iffE | mp | iff assms)+
   done
 
 schematic_lemma iff_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P<->Q) <-> (P'<->Q')"
-  apply (erule iffE | assumption | rule iffI | tactic {* mp_tac @{context} 1 *})+
+  apply (erule iffE | assumption | rule iffI | mp)+
   done
 
 schematic_lemma not_cong:
   "p:P <-> P' ==> ?p:~P <-> ~P'"
-  apply (assumption | rule iffI notI | tactic {* mp_tac @{context} 1 *} | erule iffE notE)+
+  apply (assumption | rule iffI notI | mp | erule iffE notE)+
   done
 
 schematic_lemma all_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(ALL x. P(x)) <-> (ALL x. Q(x))"
-  apply (assumption | rule iffI allI | tactic {* mp_tac @{context} 1 *} | erule allE |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI allI | mp | erule allE | iff assms)+
   done
 
 schematic_lemma ex_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(EX x. P(x)) <-> (EX x. Q(x))"
-  apply (erule exE | assumption | rule iffI exI | tactic {* mp_tac @{context} 1 *} |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (erule exE | assumption | rule iffI exI | mp | iff assms)+
   done
 
 (*NOT PROVED
