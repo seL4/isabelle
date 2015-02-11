@@ -1078,29 +1078,32 @@ proof -
 qed
 
 lemma bind_cond_pmf_cancel:
-  assumes in_S: "\<And>x. x \<in> set_pmf p \<Longrightarrow> x \<in> S x"
+  assumes in_S: "\<And>x. x \<in> set_pmf p \<Longrightarrow> x \<in> S x" "\<And>x. x \<in> set_pmf q \<Longrightarrow> x \<in> S x"
   assumes S_eq: "\<And>x y. x \<in> S y \<Longrightarrow> S x = S y"
-  shows "bind_pmf p (\<lambda>x. cond_pmf p (S x)) = p"
+  and same: "\<And>x. measure (measure_pmf p) (S x) = measure (measure_pmf q) (S x)"
+  shows "bind_pmf p (\<lambda>x. cond_pmf q (S x)) = q" (is "?lhs = _")
 proof (rule pmf_eqI)
-  have [simp]: "\<And>x. x \<in> p \<Longrightarrow> p \<inter> (S x) \<noteq> {}"
-    using in_S by auto
-  fix z
-  have pmf_le: "pmf p z \<le> measure p (S z)"
-  proof cases
-    assume "z \<in> p" from in_S[OF this] show ?thesis
-      by (auto intro!: measure_pmf.finite_measure_mono simp: pmf.rep_eq)
-  qed (simp add: set_pmf_iff measure_nonneg)
+  { fix x
+    assume "x \<in> set_pmf p"
+    hence "set_pmf p \<inter> (S x) \<noteq> {}" using in_S by auto
+    hence "measure (measure_pmf p) (S x) \<noteq> 0"
+      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
+    with same have "measure (measure_pmf q) (S x) \<noteq> 0" by simp
+    hence "set_pmf q \<inter> S x \<noteq> {}"
+      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
+  note [simp] = this
 
-  have "ereal (pmf (bind_pmf p (\<lambda>x. cond_pmf p (S x))) z) =
-    (\<integral>\<^sup>+ x. ereal (pmf p z / measure p (S z)) * indicator (S z) x \<partial>p)"
-    by (subst ereal_pmf_bind)
-       (auto intro!: nn_integral_cong_AE dest!: S_eq split: split_indicator
-             simp: AE_measure_pmf_iff pmf_cond pmf_eq_0_set_pmf in_S)
-  also have "\<dots> = pmf p z"
-    using pmf_le pmf_nonneg[of p z]
-    by (subst nn_integral_cmult) (simp_all add: measure_nonneg measure_pmf.emeasure_eq_measure)
-  finally show "pmf (bind_pmf p (\<lambda>x. cond_pmf p (S x))) z = pmf p z"
-    by simp
+  fix z
+  have pmf_q_z: "z \<notin> S z \<Longrightarrow> pmf q z = 0"
+    by(erule contrapos_np)(simp add: pmf_eq_0_set_pmf in_S)
+
+  have "ereal (pmf ?lhs z) = \<integral>\<^sup>+ x. ereal (pmf (cond_pmf q (S x)) z) \<partial>measure_pmf p"
+    by(simp add: ereal_pmf_bind)
+  also have "\<dots> = \<integral>\<^sup>+ x. ereal (pmf q z / measure p (S z)) * indicator (S z) x \<partial>measure_pmf p"
+    by(rule nn_integral_cong_AE)(auto simp add: AE_measure_pmf_iff pmf_cond same pmf_q_z in_S dest!: S_eq split: split_indicator)
+  also have "\<dots> = pmf q z" using pmf_nonneg[of q z]
+    by (subst nn_integral_cmult)(auto simp add: measure_nonneg measure_pmf.emeasure_eq_measure same measure_pmf.prob_eq_0 AE_measure_pmf_iff pmf_eq_0_set_pmf in_S)
+  finally show "pmf ?lhs z = pmf q z" by simp
 qed
 
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
