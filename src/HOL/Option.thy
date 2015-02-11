@@ -93,22 +93,8 @@ lemma map_option_o_case_sum [simp]:
 lemma map_option_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map_option f x = map_option g y"
 by (cases x) auto
 
-functor map_option: map_option proof -
-  fix f g
-  show "map_option f \<circ> map_option g = map_option (f \<circ> g)"
-  proof
-    fix x
-    show "(map_option f \<circ> map_option g) x= map_option (f \<circ> g) x"
-      by (cases x) simp_all
-  qed
-next
-  show "map_option id = id"
-  proof
-    fix x
-    show "map_option id x = id x"
-      by (cases x) simp_all
-  qed
-qed
+functor map_option: map_option
+by(simp_all add: option.map_comp fun_eq_iff option.map_id)
 
 lemma case_map_option [simp]:
   "case_option g h (map_option f x) = case_option g (h \<circ> f) x"
