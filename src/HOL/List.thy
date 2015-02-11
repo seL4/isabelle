@@ -6795,6 +6795,21 @@ lemma rtrancl_parametric [transfer_rule]:
   shows "(rel_set (rel_prod A A) ===> rel_set (rel_prod A A)) rtrancl rtrancl"
 unfolding rtrancl_def by transfer_prover
 
+lemma monotone_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A"
+  shows "((A ===> A ===> op =) ===> (B ===> B ===> op =) ===> (A ===> B) ===> op =) monotone monotone"
+unfolding monotone_def[abs_def] by transfer_prover
+
+lemma fun_ord_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total C"
+  shows "((A ===> B ===> op =) ===> (C ===> A) ===> (C ===> B) ===> op =) fun_ord fun_ord"
+unfolding fun_ord_def[abs_def] by transfer_prover
+
+lemma fun_lub_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A"  "bi_unique A"
+  shows "((rel_set A ===> B) ===> rel_set (C ===> A) ===> C ===> B) fun_lub fun_lub"
+unfolding fun_lub_def[abs_def] by transfer_prover
+
 end
 
 end
