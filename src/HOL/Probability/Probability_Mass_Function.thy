@@ -502,6 +502,12 @@ lemma integral_bernoulli_pmf[simp]:
   shows "(\<integral>x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
   by (subst integral_measure_pmf[of UNIV]) (auto simp: UNIV_bool)
 
+lemma pmf_bernoulli_half [simp]: "pmf (bernoulli_pmf (1 / 2)) x = 1 / 2"
+by(cases x) simp_all
+
+lemma measure_pmf_bernoulli_half: "measure_pmf (bernoulli_pmf (1 / 2)) = uniform_count_measure UNIV"
+by(rule measure_eqI)(simp_all add: nn_integral_pmf[symmetric] emeasure_uniform_count_measure nn_integral_count_space_finite sets_uniform_count_measure)
+
 subsubsection \<open> Geometric Distribution \<close>
 
 lift_definition geometric_pmf :: "nat pmf" is "\<lambda>n. 1 / 2^Suc n"
@@ -639,7 +645,7 @@ lemma measurable_measure_pmf[measurable]:
   "(\<lambda>x. measure_pmf (M x)) \<in> measurable (count_space UNIV) (subprob_algebra (count_space UNIV))"
   by (auto simp: space_subprob_algebra intro!: prob_space_imp_subprob_space) unfold_locales
 
-lemma bind_pmf_cong:
+lemma bind_measure_pmf_cong:
   assumes "\<And>x. A x \<in> space (subprob_algebra N)" "\<And>x. B x \<in> space (subprob_algebra N)"
   assumes "\<And>i. i \<in> set_pmf x \<Longrightarrow> A i = B i"
   shows "bind (measure_pmf x) A = bind (measure_pmf x) B"
@@ -878,6 +884,16 @@ lemma map_join_pmf: "map_pmf f (join_pmf AA) = join_pmf (map_pmf (map_pmf f) AA)
   unfolding bind_pmf_def[symmetric]
   unfolding bind_return_pmf''[symmetric] join_eq_bind_pmf bind_assoc_pmf
   by (simp add: bind_return_pmf'')
+
+lemma bind_pmf_cong:
+  "\<lbrakk> p = q; \<And>x. x \<in> set_pmf q \<Longrightarrow> f x = g x \<rbrakk>
+  \<Longrightarrow> bind_pmf p f = bind_pmf q g"
+by(simp add: bind_pmf_def cong: map_pmf_cong)
+
+lemma bind_pmf_cong_simp:
+  "\<lbrakk> p = q; \<And>x. x \<in> set_pmf q =simp=> f x = g x \<rbrakk>
+  \<Longrightarrow> bind_pmf p f = bind_pmf q g"
+by(simp add: simp_implies_def cong: bind_pmf_cong)
 
 definition "pair_pmf A B = bind_pmf A (\<lambda>x. bind_pmf B (\<lambda>y. return_pmf (x, y)))"
 
@@ -1234,6 +1250,39 @@ next
        (auto simp: map_snd_pair_pmf map_fst_pair_pmf set_pair_pmf set_map_pmf map_pmf_comp Rpq Spq
                    map_pair)
 qed
+
+lemma rel_pmf_reflI: 
+  assumes "\<And>x. x \<in> set_pmf p \<Longrightarrow> P x x"
+  shows "rel_pmf P p p"
+by(rule rel_pmf.intros[where pq="map_pmf (\<lambda>x. (x, x)) p"])(auto simp add: pmf.map_comp o_def set_map_pmf assms)
+
+lemma rel_pmf_joinI:
+  assumes "rel_pmf (rel_pmf P) p q"
+  shows "rel_pmf P (join_pmf p) (join_pmf q)"
+proof -
+  from assms obtain pq where p: "p = map_pmf fst pq"
+    and q: "q = map_pmf snd pq"
+    and P: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> rel_pmf P x y"
+    by cases auto
+  from P obtain PQ 
+    where PQ: "\<And>x y a b. \<lbrakk> (x, y) \<in> set_pmf pq; (a, b) \<in> set_pmf (PQ x y) \<rbrakk> \<Longrightarrow> P a b"
+    and x: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> map_pmf fst (PQ x y) = x"
+    and y: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> map_pmf snd (PQ x y) = y"
+    by(metis rel_pmf.simps)
+
+  let ?r = "bind_pmf pq (\<lambda>(x, y). PQ x y)"
+  have "\<And>a b. (a, b) \<in> set_pmf ?r \<Longrightarrow> P a b" by(auto simp add: set_bind_pmf intro: PQ)
+  moreover have "map_pmf fst ?r = join_pmf p" "map_pmf snd ?r = join_pmf q"
+    by(simp_all add: bind_pmf_def map_join_pmf pmf.map_comp o_def split_def p q x y cong: pmf.map_cong)
+  ultimately show ?thesis ..
+qed
+
+lemma rel_pmf_bindI:
+  assumes pq: "rel_pmf R p q"
+  and fg: "\<And>x y. R x y \<Longrightarrow> rel_pmf P (f x) (g y)"
+  shows "rel_pmf P (bind_pmf p f) (bind_pmf q g)"
+unfolding bind_pmf_def
+by(rule rel_pmf_joinI)(auto simp add: pmf.rel_map intro: pmf.rel_mono[THEN le_funD, THEN le_funD, THEN le_boolD, THEN mp, OF _ pq] fg)
 
 end
 

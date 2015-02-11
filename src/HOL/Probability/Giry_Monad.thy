@@ -142,6 +142,20 @@ lemma subprob_space_null_measure_iff:
     "subprob_space (null_measure M) \<longleftrightarrow> space M \<noteq> {}"
   by (auto intro!: subprob_spaceI dest: subprob_space.subprob_not_empty)
 
+lemma subprob_space_restrict_space:
+  assumes M: "subprob_space M"
+  and A: "A \<inter> space M \<in> sets M" "A \<inter> space M \<noteq> {}"
+  shows "subprob_space (restrict_space M A)"
+proof(rule subprob_spaceI)
+  have "emeasure (restrict_space M A) (space (restrict_space M A)) = emeasure M (A \<inter> space M)"
+    using A by(simp add: emeasure_restrict_space space_restrict_space)
+  also have "\<dots> \<le> 1" by(rule subprob_space.subprob_emeasure_le_1)(rule M)
+  finally show "emeasure (restrict_space M A) (space (restrict_space M A)) \<le> 1" .
+next
+  show "space (restrict_space M A) \<noteq> {}"
+    using A by(simp add: space_restrict_space)
+qed
+
 definition subprob_algebra :: "'a measure \<Rightarrow> 'a measure measure" where
   "subprob_algebra K =
     (\<Squnion>\<^sub>\<sigma> A\<in>sets K. vimage_algebra {M. subprob_space M \<and> sets M = sets K} (\<lambda>M. emeasure M A) borel)"
