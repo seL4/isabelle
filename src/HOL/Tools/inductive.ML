@@ -69,6 +69,7 @@ end;
 signature INDUCTIVE =
 sig
   include BASIC_INDUCTIVE
+  val select_disj_tac: Proof.context -> int -> int -> int -> tactic
   type add_ind_def =
     inductive_flags ->
     term list -> (Attrib.binding * term) list -> thm list ->
@@ -168,9 +169,12 @@ fun mk_names a 0 = []
   | mk_names a 1 = [a]
   | mk_names a n = map (fn i => a ^ string_of_int i) (1 upto n);
 
-fun select_disj 1 1 = []
-  | select_disj _ 1 = [resolve0_tac [disjI1]]
-  | select_disj n i = resolve0_tac [disjI2] :: select_disj (n - 1) (i - 1);
+fun select_disj_tac ctxt =
+  let
+    fun tacs 1 1 = []
+      | tacs _ 1 = [resolve_tac ctxt @{thms disjI1}]
+      | tacs n i = resolve_tac ctxt @{thms disjI2} :: tacs (n - 1) (i - 1);
+  in fn n => fn i => EVERY' (tacs n i) end;
 
 
 
@@ -403,7 +407,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
       Goal.prove_sorry ctxt [] [] intr (fn _ => EVERY
        [rewrite_goals_tac ctxt rec_preds_defs,
         resolve_tac ctxt [unfold RS iffD2] 1,
-        EVERY1 (select_disj (length intr_ts) (i + 1)),
+        select_disj_tac ctxt (length intr_ts) (i + 1) 1,
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
         DEPTH_SOLVE_1 (resolve_tac ctxt rules 1 APPEND assume_tac ctxt 1)])
@@ -495,7 +499,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
           else foldr1 HOLogic.mk_disj (map mk_intr_conj c_intrs);
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
         fun prove_intr1 (i, _) = Subgoal.FOCUS_PREMS (fn {context = ctxt'', params, prems, ...} =>
-            EVERY1 (select_disj (length c_intrs) (i + 1)) THEN
+            select_disj_tac ctxt'' (length c_intrs) (i + 1) 1 THEN
             EVERY (replicate (length params) (resolve_tac ctxt'' @{thms exI} 1)) THEN
             (if null prems then resolve_tac ctxt'' @{thms TrueI} 1
              else

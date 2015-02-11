@@ -141,11 +141,6 @@ fun flatten_intros constname intros thy =
     (intros'', (local_defs, thy'))
   end
 
-(* TODO: same function occurs in inductive package *)
-fun select_disj 1 1 = []
-  | select_disj _ 1 = [rtac @{thm disjI1}]
-  | select_disj n i = (rtac @{thm disjI2})::(select_disj (n - 1) (i - 1))
-
 fun introrulify thy ths = 
   let
     val ctxt = Proof_Context.init_global thy
@@ -168,7 +163,7 @@ fun introrulify thy ths =
         fun prove_introrule (index, (ps, introrule)) =
           let
             val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
-              THEN EVERY1 (select_disj (length disjuncts) (index + 1)) 
+              THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
                 rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
               THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN assume_tac ctxt' 1)
