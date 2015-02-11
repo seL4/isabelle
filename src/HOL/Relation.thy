@@ -426,6 +426,8 @@ lemma transp_trans:
   "transp r \<longleftrightarrow> trans {(x, y). r x y}"
   by (simp add: trans_def transp_def)
 
+lemma transp_equality [simp]: "transp op ="
+by(auto intro: transpI)
 
 subsubsection {* Totality *}
 
