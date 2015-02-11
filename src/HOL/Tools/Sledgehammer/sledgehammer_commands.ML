@@ -27,7 +27,8 @@ open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer
 
-(* val cvc3N = "cvc3" *)
+val cvc4N = "cvc4"
+val veritN = "verit"
 val z3N = "z3"
 
 val runN = "run"
@@ -180,7 +181,7 @@ fun remotify_prover_if_not_installed ctxt name =
 
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value mode ctxt =
-  [eN, spassN, z3N, vampireN, e_sineN]
+  [spassN, cvc4N, vampireN, eN, z3N, veritN, e_sineN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
