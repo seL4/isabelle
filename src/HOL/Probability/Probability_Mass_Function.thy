@@ -1287,5 +1287,107 @@ lemma rel_pmf_bindI:
 unfolding bind_pmf_def
 by(rule rel_pmf_joinI)(auto simp add: pmf.rel_map intro: pmf.rel_mono[THEN le_funD, THEN le_funD, THEN le_boolD, THEN mp, OF _ pq] fg)
 
+text {*
+  Proof that @{const rel_pmf} preserves orders.
+  Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism, 
+  Theoretical Computer Science 12(1):19--37, 1980, 
+  @{url "http://dx.doi.org/10.1016/0304-3975(80)90003-1"}
+*}
+
+lemma 
+  assumes *: "rel_pmf R p q"
+  and refl: "reflp R" and trans: "transp R"
+  shows measure_Ici: "measure p {y. R x y} \<le> measure q {y. R x y}" (is ?thesis1)
+  and measure_Ioi: "measure p {y. R x y \<and> \<not> R y x} \<le> measure q {y. R x y \<and> \<not> R y x}" (is ?thesis2)
+proof -
+  from * obtain pq
+    where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y"
+    and p: "p = map_pmf fst pq"
+    and q: "q = map_pmf snd pq"
+    by cases auto
+  show ?thesis1 ?thesis2 unfolding p q map_pmf.rep_eq using refl trans
+    by(auto 4 3 simp add: measure_distr reflpD AE_measure_pmf_iff intro!: measure_pmf.finite_measure_mono_AE dest!: pq elim: transpE)
+qed
+
+lemma rel_pmf_inf:
+  fixes p q :: "'a pmf"
+  assumes 1: "rel_pmf R p q"
+  assumes 2: "rel_pmf R q p"
+  and refl: "reflp R" and trans: "transp R"
+  shows "rel_pmf (inf R R\<inverse>\<inverse>) p q"
+proof
+  let ?E = "\<lambda>x. {y. R x y \<and> R y x}"
+  let ?\<mu>E = "\<lambda>x. measure q (?E x)"
+  { fix x
+    have "measure p (?E x) = measure p ({y. R x y} - {y. R x y \<and> \<not> R y x})"
+      by(auto intro!: arg_cong[where f="measure p"])
+    also have "\<dots> = measure p {y. R x y} - measure p {y. R x y \<and> \<not> R y x}"
+      by (rule measure_pmf.finite_measure_Diff) auto
+    also have "measure p {y. R x y \<and> \<not> R y x} = measure q {y. R x y \<and> \<not> R y x}"
+      using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ioi)
+    also have "measure p {y. R x y} = measure q {y. R x y}"
+      using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ici)
+    also have "measure q {y. R x y} - measure q {y. R x y \<and> ~ R y x} =
+      measure q ({y. R x y} - {y. R x y \<and> \<not> R y x})"
+      by(rule measure_pmf.finite_measure_Diff[symmetric]) auto
+    also have "\<dots> = ?\<mu>E x"
+      by(auto intro!: arg_cong[where f="measure q"])
+    also note calculation }
+  note eq = this
+
+  def pq \<equiv> "bind_pmf p (\<lambda>x. bind_pmf (cond_pmf q (?E x)) (\<lambda>y. return_pmf (x, y)))"
+
+  show "map_pmf fst pq = p"
+    by(simp add: pq_def map_bind_pmf map_return_pmf bind_return_pmf')
+
+  show "map_pmf snd pq = q"
+    unfolding pq_def map_bind_pmf map_return_pmf bind_return_pmf' snd_conv
+    by(subst bind_cond_pmf_cancel)(auto simp add: reflpD[OF \<open>reflp R\<close>] eq  intro: transpD[OF \<open>transp R\<close>])
+
+  fix x y
+  assume "(x, y) \<in> set_pmf pq"
+  moreover
+  { assume "x \<in> set_pmf p"
+    hence "measure (measure_pmf p) (?E x) \<noteq> 0"
+      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff intro: reflpD[OF \<open>reflp R\<close>])
+    hence "measure (measure_pmf q) (?E x) \<noteq> 0" using eq by simp
+    hence "set_pmf q \<inter> {y. R x y \<and> R y x} \<noteq> {}" 
+      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
+  ultimately show "inf R R\<inverse>\<inverse> x y"
+    by(auto simp add: pq_def set_bind_pmf set_return_pmf set_cond_pmf)
+qed
+
+lemma rel_pmf_antisym:
+  fixes p q :: "'a pmf"
+  assumes 1: "rel_pmf R p q"
+  assumes 2: "rel_pmf R q p"
+  and refl: "reflp R" and trans: "transp R" and antisym: "antisymP R"
+  shows "p = q"
+proof -
+  from 1 2 refl trans have "rel_pmf (inf R R\<inverse>\<inverse>) p q" by(rule rel_pmf_inf)
+  also have "inf R R\<inverse>\<inverse> = op ="
+    using refl antisym by(auto intro!: ext simp add: reflpD dest: antisymD)
+  finally show ?thesis unfolding pmf.rel_eq .
+qed
+
+lemma reflp_rel_pmf: "reflp R \<Longrightarrow> reflp (rel_pmf R)"
+by(blast intro: reflpI rel_pmf_reflI reflpD)
+
+lemma antisymP_rel_pmf:
+  "\<lbrakk> reflp R; transp R; antisymP R \<rbrakk>
+  \<Longrightarrow> antisymP (rel_pmf R)"
+by(rule antisymI)(blast intro: rel_pmf_antisym)
+
+lemma transp_rel_pmf:
+  assumes "transp R"
+  shows "transp (rel_pmf R)"
+proof (rule transpI)
+  fix x y z
+  assume "rel_pmf R x y" and "rel_pmf R y z"
+  hence "rel_pmf (R OO R) x z" by (simp add: pmf.rel_compp relcompp.relcompI)
+  thus "rel_pmf R x z"
+    using assms by (metis (no_types) pmf.rel_mono rev_predicate2D transp_relcompp_less_eq)
+qed
+
 end
 
