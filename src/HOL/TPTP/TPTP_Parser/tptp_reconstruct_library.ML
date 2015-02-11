@@ -35,24 +35,22 @@ sig
        ('a * 'b) list -> ('a * 'b) list * ('a list * 'b list)
 
   val consts_in : term -> term list
-  val head_quantified_variable :
-     int -> thm -> (string * typ) option
+  val head_quantified_variable : Proof.context -> int -> thm -> (string * typ) option
   val push_allvar_in : string -> term -> term
   val strip_top_All_var : term -> (string * typ) * term
   val strip_top_All_vars : term -> (string * typ) list * term
   val strip_top_all_vars :
      (string * typ) list -> term -> (string * typ) list * term
-  val trace_tac' :
-     string ->
+  val trace_tac' : Proof.context -> string ->
      ('a -> thm -> 'b Seq.seq) -> 'a -> thm -> 'b Seq.seq
   val try_dest_Trueprop : term -> term
 
   val type_devar : ((indexname * sort) * typ) list -> term -> term
   val diff_and_instantiate : Proof.context -> thm -> term -> term -> thm
 
-  val batter : int -> tactic
-  val break_hypotheses : int -> tactic
-  val clause_breaker : int -> tactic
+  val batter_tac : Proof.context -> int -> tactic
+  val break_hypotheses_tac : Proof.context -> int -> tactic
+  val clause_breaker_tac : Proof.context -> int -> tactic
   (* val dist_all_and_tac : Proof.context -> int -> tactic *)(*FIXME unused*)
   val reassociate_conjs_tac : Proof.context -> int -> tactic
 
@@ -616,15 +614,15 @@ fun ASAP wittler (tac : int -> tactic) (i : int) = fn st =>
 
 (** Some tactics **)
 
-val break_hypotheses =
- ((REPEAT_DETERM o etac @{thm conjE})
-  THEN' (REPEAT_DETERM o etac @{thm disjE})
- ) #> CHANGED
+fun break_hypotheses_tac ctxt =
+  CHANGED o
+   ((REPEAT_DETERM o eresolve_tac ctxt @{thms conjE}) THEN'
+    (REPEAT_DETERM o eresolve_tac ctxt @{thms disjE}))
 
 (*Prove subgoals of form A ==> B1 | ... | A | ... | Bn*)
-val clause_breaker =
-  (REPEAT o (resolve0_tac [@{thm "disjI1"}, @{thm "disjI2"}, @{thm "conjI"}]))
-  THEN'  atac
+fun clause_breaker_tac ctxt =
+  (REPEAT o resolve_tac ctxt @{thms disjI1 disjI2 conjI}) THEN'
+  assume_tac ctxt
 
 (*
   Refines a subgoal have the form:
@@ -636,9 +634,9 @@ val clause_breaker =
   where {A'1 .. A'm} is disjoint from {B1, ..., Aj, ..., Bi, ..., Ak, ...}
   (and solves the subgoal completely if the first set is empty)
 *)
-val batter =
-  break_hypotheses
-  THEN' K (ALLGOALS (TRY o clause_breaker))
+fun batter_tac ctxt i =
+  break_hypotheses_tac ctxt i THEN
+  ALLGOALS (TRY o clause_breaker_tac ctxt)
 
 (*Same idiom as ex_expander_tac*)
 fun dist_all_and_tac ctxt i =
@@ -669,11 +667,8 @@ fun reassociate_conjs_tac ctxt =
         D
   This function returns "SOME X" if C = "! X. C'".
   If C has no quantification prefix, then returns NONE.*)
-fun head_quantified_variable i = fn st =>
+fun head_quantified_variable ctxt i = fn st =>
   let
-    val thy = Thm.theory_of_thm st
-    val ctxt = Proof_Context.init_global thy
-
     val gls =
       prop_of st
       |> Logic.strip_horn
@@ -779,10 +774,8 @@ fun TERMPRED
 
 (** Tracing **)
 (*If "tac i st" succeeds then msg is printed to "trace" channel*)
-fun trace_tac' msg tac i st =
+fun trace_tac' ctxt msg tac i st =
   let
-    val thy = Thm.theory_of_thm st
-    val ctxt = Proof_Context.init_global thy
     val result = tac i st
   in
     if Config.get ctxt tptp_trace_reconstruction andalso
