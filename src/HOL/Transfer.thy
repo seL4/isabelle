@@ -154,6 +154,14 @@ unfolding right_unique_def by fast
 lemma right_uniqueD: "\<lbrakk> right_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
 unfolding right_unique_def by fast
 
+lemma right_totalI: "(\<And>y. \<exists>x. A x y) \<Longrightarrow> right_total A"
+by(simp add: right_total_def)
+
+lemma right_totalE:
+  assumes "right_total A"
+  obtains x where "A x y"
+using assms by(auto simp add: right_total_def)
+
 lemma right_total_alt_def2:
   "right_total R \<longleftrightarrow> ((R ===> op \<longrightarrow>) ===> op \<longrightarrow>) All All"
   unfolding right_total_def rel_fun_def
