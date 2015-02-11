@@ -164,7 +164,7 @@ There are three main ways to install automatic provers on your machine:
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
-already include properly setup executables for CVC3, E, SPASS, and Z3, ready to use.%
+already include properly setup executables for CVC4, E, SPASS, and Z3, ready to use.%
 \footnote{Vampire's license prevents us from doing the same for
 this otherwise remarkable tool.}
 For Z3, you must additionally set the variable
@@ -174,13 +174,14 @@ launched, in your \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or
 via the ``Z3 Non Commercial'' option under ``Plugins > Plugin Options
 > Isabelle > General'' in Isabelle/jEdit.
 
-\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3, E,
-SPASS, and Z3 binary packages from \download. Extract the archives, then add a
-line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
+CVC4, E, SPASS, and Z3 binary packages from \download. Extract the archives,
+then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash
+components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
+file with the absolute path to CVC3, CVC4, E, SPASS, or Z3. For example, if the
 \texttt{components} file does not exist yet and you extracted SPASS to
 \texttt{/usr/local/spass-3.8ds}, create it with the single line
 
@@ -942,13 +943,10 @@ corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
 runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs a selection of CVC3, E, E-SInE, SPASS, Vampire,
-and Z3 in parallel---either locally or remotely, depending on the number of
-processor cores available.
-
-It is generally a good idea to run several provers in parallel. Running E,
-SPASS, and Vampire for 5~seconds yields a similar success rate to running the
-most effective of these for 120~seconds \cite{boehme-nipkow-2010}.
+By default, Sledgehammer runs a subset of CVC4, E, E-SInE, SPASS, Vampire,
+veriT, and Z3 in parallel---either locally or remotely, depending on the number
+of processor cores available and on which provers are actually installed.
+It is generally a good idea to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
