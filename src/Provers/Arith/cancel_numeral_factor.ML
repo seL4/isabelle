@@ -29,7 +29,7 @@ sig
                              as with < and <= but not = and div*)
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
-  val trans_tac: thm option -> tactic                (*applies the initial lemma*)
+  val trans_tac: Proof.context -> thm option -> tactic  (*applies the initial lemma*)
   val norm_tac: Proof.context -> tactic              (*proves the initial lemma*)
   val numeral_simp_tac: Proof.context -> tactic      (*proves the final theorem*)
   val simplify_meta_eq: Proof.context -> thm -> thm  (*simplifies the final theorem*)
@@ -72,7 +72,7 @@ fun proc ctxt t =
   in
     Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
-         [Data.trans_tac reshape, rtac Data.cancel 1,
+         [Data.trans_tac ctxt reshape, rtac Data.cancel 1,
           Data.numeral_simp_tac ctxt] ctxt prems (t', rhs))
   end
   (* FIXME avoid handling of generic exceptions *)

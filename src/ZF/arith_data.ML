@@ -9,7 +9,7 @@ sig
   (*the main outcome*)
   val nat_cancel: simproc list
   (*tools for use in similar applications*)
-  val gen_trans_tac: thm -> thm option -> tactic
+  val gen_trans_tac: Proof.context -> thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Proof.context -> thm list -> term * term -> thm option
   val simplify_meta_eq: thm list -> Proof.context -> thm -> thm
   (*debugging*)
@@ -50,8 +50,8 @@ fun dest_sum (Const(@{const_name zero},_)) = []
   | dest_sum tm = [tm];
 
 (*Apply the given rewrite (if present) just once*)
-fun gen_trans_tac th2 NONE      = all_tac
-  | gen_trans_tac th2 (SOME th) = ALLGOALS (resolve0_tac [th RS th2]);
+fun gen_trans_tac _ _ NONE = all_tac
+  | gen_trans_tac ctxt th2 (SOME th) = ALLGOALS (resolve_tac ctxt [th RS th2]);
 
 (*Use <-> or = depending on the type of t*)
 fun mk_eq_iff(t,u) =
@@ -169,7 +169,7 @@ structure EqCancelNumeralsData =
   val dest_bal = FOLogic.dest_eq
   val bal_add1 = @{thm eq_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm eq_add_iff} RS @{thm iff_trans}
-  val trans_tac = gen_trans_tac @{thm iff_trans}
+  fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
   end;
 
 structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
@@ -182,7 +182,7 @@ structure LessCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin @{const_name Ordinal.lt} iT
   val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
-  val trans_tac = gen_trans_tac @{thm iff_trans}
+  fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
   end;
 
 structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
@@ -195,7 +195,7 @@ structure DiffCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin @{const_name Arith.diff} iT
   val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
   val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
-  val trans_tac = gen_trans_tac @{thm trans}
+  fun trans_tac ctxt = gen_trans_tac ctxt @{thm trans}
   end;
 
 structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);

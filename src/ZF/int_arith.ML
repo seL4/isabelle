@@ -151,12 +151,12 @@ fun prep_simproc thy (name, pats, proc) =
 
 structure CancelNumeralsCommon =
   struct
-  val mk_sum            = (fn _ : typ => mk_sum)
-  val dest_sum          = dest_sum
-  val mk_coeff          = mk_coeff
-  val dest_coeff        = dest_coeff 1
-  val find_first_coeff  = find_first_coeff []
-  val trans_tac         = ArithData.gen_trans_tac @{thm iff_trans}
+  val mk_sum = (fn _ : typ => mk_sum)
+  val dest_sum = dest_sum
+  val mk_coeff = mk_coeff
+  val dest_coeff = dest_coeff 1
+  val find_first_coeff = find_first_coeff []
+  fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm iff_trans}
 
   val norm_ss1 =
     simpset_of (put_simpset ZF_ss @{context}
@@ -233,16 +233,16 @@ fun prove_conv_nohyps name tacs sg = ArithData.prove_conv name tacs sg [];
 
 structure CombineNumeralsData =
   struct
-  type coeff            = int
-  val iszero            = (fn x => x = 0)
-  val add               = op + 
-  val mk_sum            = (fn _ : typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
-  val dest_sum          = dest_sum
-  val mk_coeff          = mk_coeff
-  val dest_coeff        = dest_coeff 1
-  val left_distrib      = @{thm left_zadd_zmult_distrib} RS @{thm trans}
-  val prove_conv        = prove_conv_nohyps "int_combine_numerals"
-  val trans_tac         = ArithData.gen_trans_tac @{thm trans}
+  type coeff = int
+  val iszero = (fn x => x = 0)
+  val add = op + 
+  val mk_sum = (fn _ : typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
+  val dest_sum = dest_sum
+  val mk_coeff = mk_coeff
+  val dest_coeff = dest_coeff 1
+  val left_distrib = @{thm left_zadd_zmult_distrib} RS @{thm trans}
+  val prove_conv = prove_conv_nohyps "int_combine_numerals"
+  fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm trans}
 
   val norm_ss1 =
     simpset_of (put_simpset ZF_ss @{context}
@@ -281,34 +281,33 @@ val combine_numerals =
 
 structure CombineNumeralsProdData =
 struct
-  type coeff            = int
-  val iszero            = (fn x => x = 0)
-  val add               = op *
-  val mk_sum            = (fn _ : typ => mk_prod)
-  val dest_sum          = dest_prod
-  fun mk_coeff(k,t) = if t=one then mk_numeral k
-                      else raise TERM("mk_coeff", [])
+  type coeff = int
+  val iszero = (fn x => x = 0)
+  val add = op *
+  val mk_sum = (fn _ : typ => mk_prod)
+  val dest_sum = dest_prod
+  fun mk_coeff(k,t) =
+    if t = one then mk_numeral k
+    else raise TERM("mk_coeff", [])
   fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
-  val left_distrib      = @{thm zmult_assoc} RS @{thm sym} RS @{thm trans}
-  val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
-  val trans_tac         = ArithData.gen_trans_tac @{thm trans}
+  val left_distrib = @{thm zmult_assoc} RS @{thm sym} RS @{thm trans}
+  val prove_conv = prove_conv_nohyps "int_combine_numerals_prod"
+  fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm trans}
 
+  val norm_ss1 =
+    simpset_of (put_simpset ZF_ss @{context} addsimps mult_1s @ diff_simps @ zminus_simps)
+  val norm_ss2 =
+    simpset_of (put_simpset ZF_ss @{context} addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
+    bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys)
+  fun norm_tac ctxt =
+    ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
 
-
-val norm_ss1 =
-  simpset_of (put_simpset ZF_ss @{context} addsimps mult_1s @ diff_simps @ zminus_simps)
-val norm_ss2 =
-  simpset_of (put_simpset ZF_ss @{context} addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
-  bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys)
-fun norm_tac ctxt =
-  ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
-  THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
-
-val numeral_simp_ss =
-  simpset_of (put_simpset ZF_ss @{context} addsimps bin_simps @ tc_rules @ intifys)
-fun numeral_simp_tac ctxt =
-  ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
-val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
+  val numeral_simp_ss =
+    simpset_of (put_simpset ZF_ss @{context} addsimps bin_simps @ tc_rules @ intifys)
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
+  val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
 end;
 
 
