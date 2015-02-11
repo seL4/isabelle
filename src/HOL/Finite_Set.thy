@@ -1638,6 +1638,8 @@ assumes "inj_on f A" "f ` A \<le> B" "finite B"
 shows "finite A"
 using assms finite_imageD finite_subset by blast
 
+lemma card_vimage_inj: "\<lbrakk> inj f; A \<subseteq> range f \<rbrakk> \<Longrightarrow> card (f -` A) = card A"
+by(auto 4 3 simp add: subset_image_iff inj_vimage_image_eq intro: card_image[symmetric, OF subset_inj_on])
 
 subsubsection {* Pigeonhole Principles *}
 
