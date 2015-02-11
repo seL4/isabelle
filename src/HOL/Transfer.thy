@@ -460,6 +460,11 @@ lemma Ex_transfer [transfer_rule]:
   shows "((A ===> op =) ===> op =) Ex Ex"
   using assms unfolding bi_total_def rel_fun_def by fast
 
+lemma Ex1_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A" "bi_total A"
+  shows "((A ===> op =) ===> op =) Ex1 Ex1"
+unfolding Ex1_def[abs_def] by transfer_prover
+
 declare If_transfer [transfer_rule]
 
 lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
