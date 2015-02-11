@@ -159,6 +159,8 @@ Minor INCOMPATIBILITY.
     operations.
 
 * Sledgehammer:
+  - CVC4 is now included with Isabelle instead of CVC3 and run by
+    default.
   - Minimization is now always enabled by default.
     Removed subcommand:
       min
