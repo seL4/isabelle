@@ -41,6 +41,14 @@ lemma rel_funD:
   shows "B (f x) (g y)"
   using assms by (simp add: rel_fun_def)
 
+lemma rel_fun_mono:
+  "\<lbrakk> rel_fun X A f g; \<And>x y. Y x y \<longrightarrow> X x y; \<And>x y. A x y \<Longrightarrow> B x y \<rbrakk> \<Longrightarrow> rel_fun Y B f g"
+by(simp add: rel_fun_def)
+
+lemma rel_fun_mono' [mono]:
+  "\<lbrakk> \<And>x y. Y x y \<longrightarrow> X x y; \<And>x y. A x y \<longrightarrow> B x y \<rbrakk> \<Longrightarrow> rel_fun X A f g \<longrightarrow> rel_fun Y B f g"
+by(simp add: rel_fun_def)
+
 definition rel_set :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"
   where "rel_set R = (\<lambda>A B. (\<forall>x\<in>A. \<exists>y\<in>B. R x y) \<and> (\<forall>y\<in>B. \<exists>x\<in>A. R x y))"
 
