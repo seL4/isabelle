@@ -160,6 +160,32 @@ apply(simp add:quotient_def inj_on_def)
 apply blast
 done
 
+subsection {* Refinement of one equivalence relation WRT another *}
+
+lemma refines_equiv_class_eq:
+   "\<lbrakk>R \<subseteq> S; equiv A R; equiv A S\<rbrakk> \<Longrightarrow> R``(S``{a}) = S``{a}"
+  by (auto simp: equiv_class_eq_iff)
+
+lemma refines_equiv_class_eq2:
+   "\<lbrakk>R \<subseteq> S; equiv A R; equiv A S\<rbrakk> \<Longrightarrow> S``(R``{a}) = S``{a}"
+  by (auto simp: equiv_class_eq_iff)
+
+lemma refines_equiv_image_eq:
+   "\<lbrakk>R \<subseteq> S; equiv A R; equiv A S\<rbrakk> \<Longrightarrow> (\<lambda>X. S``X) ` (A//R) = A//S"
+   by (auto simp: quotient_def image_UN refines_equiv_class_eq2)
+
+lemma finite_refines_finite:
+   "\<lbrakk>finite (A//R); R \<subseteq> S; equiv A R; equiv A S\<rbrakk> \<Longrightarrow> finite (A//S)"
+    apply (erule finite_surj [where f = "\<lambda>X. S``X"])
+    apply (simp add: refines_equiv_image_eq)
+    done
+
+lemma finite_refines_card_le:
+   "\<lbrakk>finite (A//R); R \<subseteq> S; equiv A R; equiv A S\<rbrakk> \<Longrightarrow> card (A//S) \<le> card (A//R)"
+  apply (subst refines_equiv_image_eq [of R S A, symmetric])
+  apply (auto simp: card_image_le [where f = "\<lambda>X. S``X"])
+  done
+
 
 subsection {* Defining unary operations upon equivalence classes *}
 
