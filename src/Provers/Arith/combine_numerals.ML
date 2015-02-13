@@ -29,7 +29,7 @@ sig
   val left_distrib: thm
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> term * term -> thm option
-  val trans_tac: thm option -> tactic            (*applies the initial lemma*)
+  val trans_tac: Proof.context -> thm option -> tactic            (*applies the initial lemma*)
   val norm_tac: Proof.context -> tactic          (*proves the initial lemma*)
   val numeral_simp_tac: Proof.context -> tactic  (*proves the final theorem*)
   val simplify_meta_eq: Proof.context -> thm -> thm  (*simplifies the final theorem*)
@@ -83,7 +83,7 @@ fun proc ctxt t =
   in
     Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
-         [Data.trans_tac reshape, resolve_tac ctxt [Data.left_distrib] 1,
+         [Data.trans_tac ctxt reshape, resolve_tac ctxt [Data.left_distrib] 1,
           Data.numeral_simp_tac ctxt] ctxt
          (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end

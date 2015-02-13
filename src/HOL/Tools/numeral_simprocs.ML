@@ -18,7 +18,7 @@ signature NUMERAL_SIMPROCS =
 sig
   val prep_simproc: theory -> string * string list * (Proof.context -> term -> thm option)
     -> simproc
-  val trans_tac: thm option -> tactic
+  val trans_tac: Proof.context -> thm option -> tactic
   val assoc_fold: Proof.context -> cterm -> thm option
   val combine_numerals: Proof.context -> cterm -> thm option
   val eq_cancel_numerals: Proof.context -> cterm -> thm option
@@ -48,8 +48,8 @@ struct
 fun prep_simproc thy (name, pats, proc) =
   Simplifier.simproc_global thy name pats proc;
 
-fun trans_tac NONE  = all_tac
-  | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
+fun trans_tac _ NONE  = all_tac
+  | trans_tac ctxt (SOME th) = ALLGOALS (resolve_tac ctxt [th RS trans]);
 
 val mk_number = Arith_Data.mk_number;
 val mk_sum = Arith_Data.mk_sum;

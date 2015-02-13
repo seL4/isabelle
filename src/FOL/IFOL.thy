@@ -208,8 +208,8 @@ lemma contrapos:
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
-  fun mp_tac i = eresolve0_tac [@{thm notE}, @{thm impE}] i  THEN  atac i
-  fun eq_mp_tac i = eresolve0_tac [@{thm notE}, @{thm impE}] i  THEN  eq_assume_tac i
+  fun mp_tac ctxt i = eresolve_tac ctxt @{thms notE impE} i THEN assume_tac ctxt i
+  fun eq_mp_tac ctxt i = eresolve_tac ctxt @{thms notE impE} i THEN eq_assume_tac i
 *}
 
 
@@ -304,18 +304,20 @@ lemma ex1E:
 
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
 ML {*
-  fun iff_tac prems i =
-    resolve0_tac (prems RL @{thms iffE}) i THEN
-    REPEAT1 (eresolve0_tac [@{thm asm_rl}, @{thm mp}] i)
+  fun iff_tac ctxt prems i =
+    resolve_tac ctxt (prems RL @{thms iffE}) i THEN
+    REPEAT1 (eresolve_tac ctxt @{thms asm_rl mp} i)
 *}
+
+method_setup iff =
+  \<open>Attrib.thms >> (fn prems => fn ctxt => SIMPLE_METHOD' (iff_tac ctxt prems))\<close>
 
 lemma conj_cong:
   assumes "P <-> P'"
     and "P' ==> Q <-> Q'"
   shows "(P&Q) <-> (P'&Q')"
   apply (insert assms)
-  apply (assumption | rule iffI conjI | erule iffE conjE mp |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI conjI | erule iffE conjE mp | iff assms)+
   done
 
 (*Reversed congruence rule!   Used in ZF/Order*)
@@ -324,8 +326,7 @@ lemma conj_cong2:
     and "P' ==> Q <-> Q'"
   shows "(Q&P) <-> (Q'&P')"
   apply (insert assms)
-  apply (assumption | rule iffI conjI | erule iffE conjE mp |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI conjI | erule iffE conjE mp | iff assms)+
   done
 
 lemma disj_cong:
@@ -340,8 +341,7 @@ lemma imp_cong:
     and "P' ==> Q <-> Q'"
   shows "(P-->Q) <-> (P'-->Q')"
   apply (insert assms)
-  apply (assumption | rule iffI impI | erule iffE | erule (1) notE impE |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI impI | erule iffE | erule (1) notE impE | iff assms)+
   done
 
 lemma iff_cong: "[| P <-> P'; Q <-> Q' |] ==> (P<->Q) <-> (P'<->Q')"
@@ -355,22 +355,19 @@ lemma not_cong: "P <-> P' ==> ~P <-> ~P'"
 lemma all_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(ALL x. P(x)) <-> (ALL x. Q(x))"
-  apply (assumption | rule iffI allI | erule (1) notE impE | erule allE |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (assumption | rule iffI allI | erule (1) notE impE | erule allE | iff assms)+
   done
 
 lemma ex_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(EX x. P(x)) <-> (EX x. Q(x))"
-  apply (erule exE | assumption | rule iffI exI | erule (1) notE impE |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (erule exE | assumption | rule iffI exI | erule (1) notE impE | iff assms)+
   done
 
 lemma ex1_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(EX! x. P(x)) <-> (EX! x. Q(x))"
-  apply (erule ex1E spec [THEN mp] | assumption | rule iffI ex1I | erule (1) notE impE |
-    tactic {* iff_tac @{thms assms} 1 *})+
+  apply (erule ex1E spec [THEN mp] | assumption | rule iffI ex1I | erule (1) notE impE | iff assms)+
   done
 
 (*** Equality rules ***)

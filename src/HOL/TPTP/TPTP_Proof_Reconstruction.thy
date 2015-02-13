@@ -223,7 +223,7 @@ fun nominal_inst_parametermatch_tac ctxt thm i = fn st =>
         fun instantiates param =
            eres_inst_tac ctxt [(("x", 0), param)] thm
 
-        val quantified_var = head_quantified_variable i st
+        val quantified_var = head_quantified_variable ctxt i st
       in
         if is_none quantified_var then no_tac st
         else
@@ -1149,7 +1149,7 @@ fun extuni_dec_tac ctxt i = fn st =>
     fun closure tac =
      (*batter fails if there's no toplevel disjunction in the
        hypothesis, so we also try atac*)
-      SOLVE o (tac THEN' (batter ORELSE' atac))
+      SOLVE o (tac THEN' (batter_tac ctxt ORELSE' assume_tac ctxt))
     val search_tac =
       ASAP
         (rtac @{thm disjI1} APPEND' rtac @{thm disjI2})
@@ -1592,40 +1592,40 @@ fun extcnf_combined_main ctxt feats consts_diff =
 
         fun feat_to_tac feat =
           case feat of
-              Close_Branch => trace_tac' "mark: closer" efq_tac
-            | ConjI => trace_tac' "mark: conjI" (rtac @{thm conjI})
-            | King_Cong => trace_tac' "mark: expander_animal" (expander_animal ctxt)
-            | Break_Hypotheses => trace_tac' "mark: break_hypotheses" break_hypotheses
+              Close_Branch => trace_tac' ctxt "mark: closer" efq_tac
+            | ConjI => trace_tac' ctxt "mark: conjI" (rtac @{thm conjI})
+            | King_Cong => trace_tac' ctxt "mark: expander_animal" (expander_animal ctxt)
+            | Break_Hypotheses => trace_tac' ctxt "mark: break_hypotheses" (break_hypotheses_tac ctxt)
             | RemoveRedundantQuantifications => K all_tac
 (*
 FIXME Building this into the loop instead.. maybe not the ideal choice
             | RemoveRedundantQuantifications =>
-                trace_tac' "mark: strip_unused_variable_hyp"
+                trace_tac' ctxt "mark: strip_unused_variable_hyp"
                  (REPEAT_DETERM o remove_redundant_quantification_in_lit)
 *)
 
             | Assumption => atac
 (*FIXME both Existential_Free and Existential_Var run same code*)
-            | Existential_Free => trace_tac' "mark: forall_neg" (exists_tac ctxt feats consts_diff')
-            | Existential_Var => trace_tac' "mark: forall_neg" (exists_tac ctxt feats consts_diff')
-            | Universal => trace_tac' "mark: forall_pos" (forall_tac ctxt feats)
-            | Not_pos => trace_tac' "mark: not_pos" (dtac @{thm leo2_rules(9)})
-            | Not_neg => trace_tac' "mark: not_neg" (dtac @{thm leo2_rules(10)})
-            | Or_pos => trace_tac' "mark: or_pos" (dtac @{thm leo2_rules(5)}) (*could add (6) for negated conjunction*)
-            | Or_neg => trace_tac' "mark: or_neg" (dtac @{thm leo2_rules(7)})
-            | Equal_pos => trace_tac' "mark: equal_pos" (dresolve_tac ctxt (@{thms eq_pos_bool} @ [@{thm leo2_rules(3)}, @{thm eq_pos_func}]))
-            | Equal_neg => trace_tac' "mark: equal_neg" (dresolve_tac ctxt [@{thm eq_neg_bool}, @{thm leo2_rules(4)}])
-            | Donkey_Cong => trace_tac' "mark: donkey_cong" (simper_animal ctxt THEN' ex_expander_tac ctxt)
+            | Existential_Free => trace_tac' ctxt "mark: forall_neg" (exists_tac ctxt feats consts_diff')
+            | Existential_Var => trace_tac' ctxt "mark: forall_neg" (exists_tac ctxt feats consts_diff')
+            | Universal => trace_tac' ctxt "mark: forall_pos" (forall_tac ctxt feats)
+            | Not_pos => trace_tac' ctxt "mark: not_pos" (dtac @{thm leo2_rules(9)})
+            | Not_neg => trace_tac' ctxt "mark: not_neg" (dtac @{thm leo2_rules(10)})
+            | Or_pos => trace_tac' ctxt "mark: or_pos" (dtac @{thm leo2_rules(5)}) (*could add (6) for negated conjunction*)
+            | Or_neg => trace_tac' ctxt "mark: or_neg" (dtac @{thm leo2_rules(7)})
+            | Equal_pos => trace_tac' ctxt "mark: equal_pos" (dresolve_tac ctxt (@{thms eq_pos_bool} @ [@{thm leo2_rules(3)}, @{thm eq_pos_func}]))
+            | Equal_neg => trace_tac' ctxt "mark: equal_neg" (dresolve_tac ctxt [@{thm eq_neg_bool}, @{thm leo2_rules(4)}])
+            | Donkey_Cong => trace_tac' ctxt "mark: donkey_cong" (simper_animal ctxt THEN' ex_expander_tac ctxt)
 
-            | Extuni_Bool2 => trace_tac' "mark: extuni_bool2" (dtac @{thm extuni_bool2})
-            | Extuni_Bool1 => trace_tac' "mark: extuni_bool1" (dtac @{thm extuni_bool1})
-            | Extuni_Bind => trace_tac' "mark: extuni_triv" (etac @{thm extuni_triv})
-            | Extuni_Triv => trace_tac' "mark: extuni_triv" (etac @{thm extuni_triv})
-            | Extuni_Dec => trace_tac' "mark: extuni_dec_tac" (extuni_dec_tac ctxt)
-            | Extuni_FlexRigid => trace_tac' "mark: extuni_flex_rigid" (atac ORELSE' asm_full_simp_tac ctxt)
-            | Extuni_Func => trace_tac' "mark: extuni_func" (dtac @{thm extuni_func})
-            | Polarity_switch => trace_tac' "mark: polarity_switch" (eresolve_tac ctxt @{thms polarity_switch})
-            | Forall_special_pos => trace_tac' "mark: dorall_special_pos" extcnf_forall_special_pos_tac
+            | Extuni_Bool2 => trace_tac' ctxt "mark: extuni_bool2" (dtac @{thm extuni_bool2})
+            | Extuni_Bool1 => trace_tac' ctxt "mark: extuni_bool1" (dtac @{thm extuni_bool1})
+            | Extuni_Bind => trace_tac' ctxt "mark: extuni_triv" (etac @{thm extuni_triv})
+            | Extuni_Triv => trace_tac' ctxt "mark: extuni_triv" (etac @{thm extuni_triv})
+            | Extuni_Dec => trace_tac' ctxt "mark: extuni_dec_tac" (extuni_dec_tac ctxt)
+            | Extuni_FlexRigid => trace_tac' ctxt "mark: extuni_flex_rigid" (atac ORELSE' asm_full_simp_tac ctxt)
+            | Extuni_Func => trace_tac' ctxt "mark: extuni_func" (dtac @{thm extuni_func})
+            | Polarity_switch => trace_tac' ctxt "mark: polarity_switch" (eresolve_tac ctxt @{thms polarity_switch})
+            | Forall_special_pos => trace_tac' ctxt "mark: dorall_special_pos" extcnf_forall_special_pos_tac
 
         val core_tac =
           get_loop_feats feats
@@ -1874,7 +1874,7 @@ fun extcnf_combined_tac ctxt prob_name_opt feats skolem_consts = fn st =>
 
       THEN (if have_loop_feats then
               REPEAT (CHANGED
-              ((ALLGOALS (TRY o clause_breaker)) (*brush away literals which don't change*)
+              ((ALLGOALS (TRY o clause_breaker_tac ctxt)) (*brush away literals which don't change*)
                THEN
                 (*FIXME move this to a different level?*)
                 (if loop_can_feature [Polarity_switch] feats then

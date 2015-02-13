@@ -6,7 +6,7 @@ A naive prover for intuitionistic logic
 
 BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use IntPr.fast_tac ...
 
-Completeness (for propositional logic) is proved in 
+Completeness (for propositional logic) is proved in
 
 Roy Dyckhoff.
 Contraction-Free Sequent Calculi for Intuitionistic Logic.
@@ -15,7 +15,7 @@ J. Symbolic Logic  57(3), 1992, pages 795-807.
 The approach was developed independently by Roy Dyckhoff and L C Paulson.
 *)
 
-signature INT_PROVER = 
+signature INT_PROVER =
 sig
   val best_tac: Proof.context -> int -> tactic
   val best_dup_tac: Proof.context -> int -> tactic
@@ -31,7 +31,7 @@ sig
 end;
 
 
-structure IntPr : INT_PROVER   = 
+structure IntPr : INT_PROVER   =
 struct
 
 (*Negation is treated as a primitive symbol, with rules notI (introduction),
@@ -44,11 +44,11 @@ val safe_brls = sort (make_ord lessb)
       (false, @{thm impI}), (false, @{thm notI}), (false, @{thm allI}),
       (true, @{thm conjE}), (true, @{thm exE}),
       (false, @{thm conjI}), (true, @{thm conj_impE}),
-      (true, @{thm disj_impE}), (true, @{thm disjE}), 
+      (true, @{thm disj_impE}), (true, @{thm disjE}),
       (false, @{thm iffI}), (true, @{thm iffE}), (true, @{thm not_to_imp}) ];
 
 val haz_brls =
-    [ (false, @{thm disjI1}), (false, @{thm disjI2}), (false, @{thm exI}), 
+    [ (false, @{thm disjI1}), (false, @{thm disjI2}), (false, @{thm exI}),
       (true, @{thm allE}), (true, @{thm not_impE}), (true, @{thm imp_impE}), (true, @{thm iff_impE}),
       (true, @{thm all_impE}), (true, @{thm ex_impE}), (true, @{thm impE}) ];
 
@@ -65,7 +65,7 @@ val (safe0_brls, safep_brls) =
 fun safe_step_tac ctxt =
   FIRST' [
     eq_assume_tac,
-    eq_mp_tac,
+    eq_mp_tac ctxt,
     bimatch_tac ctxt safe0_brls,
     hyp_subst_tac ctxt,
     bimatch_tac ctxt safep_brls];
@@ -75,7 +75,7 @@ fun safe_tac ctxt = REPEAT_DETERM_FIRST (safe_step_tac ctxt);
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac ctxt =
-  assume_tac ctxt APPEND' mp_tac APPEND' 
+  assume_tac ctxt APPEND' mp_tac ctxt APPEND'
   biresolve_tac ctxt (safe0_brls @ safep_brls);
 
 (*One safe or unsafe step. *)
