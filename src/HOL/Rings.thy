@@ -719,24 +719,14 @@ lemma mult_le_less_imp_less:
   done
 
 lemma mult_less_imp_less_left:
-  assumes less: "c * a < c * b" and nonneg: "0 \<le> c"
+  assumes "c * a < c * b" and "0 \<le> c"
   shows "a < b"
-proof (rule ccontr)
-  assume "\<not>  a < b"
-  hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "c * b \<le> c * a" using nonneg by (rule mult_left_mono)
-  with this and less show False by (simp add: not_less [symmetric])
-qed
+  using assms by (fact mult_left_less_imp_less)
 
 lemma mult_less_imp_less_right:
   assumes less: "a * c < b * c" and nonneg: "0 \<le> c"
   shows "a < b"
-proof (rule ccontr)
-  assume "\<not> a < b"
-  hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "b * c \<le> a * c" using nonneg by (rule mult_right_mono)
-  with this and less show False by (simp add: not_less [symmetric])
-qed  
+  using assms by (fact mult_right_less_imp_less)
 
 end
 
