@@ -244,8 +244,8 @@ fun dest_binop ct ct' =
 
 fun inst_thm inst = Thm.instantiate ([], inst);
 
-val dest_numeral = term_of #> HOLogic.dest_number #> snd;
-val is_numeral = can dest_numeral;
+val dest_number = term_of #> HOLogic.dest_number #> snd;
+val is_number = can dest_number;
 
 fun numeral01_conv ctxt =
   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_1_eq_1}]);
@@ -297,7 +297,7 @@ val dest_add = dest_binop add_tm
 val dest_mul = dest_binop mul_tm
 fun dest_pow tm =
  let val (l,r) = dest_binop pow_tm tm
- in if is_numeral r then (l,r) else raise CTERM ("dest_pow",[tm])
+ in if is_number r then (l,r) else raise CTERM ("dest_pow",[tm])
  end;
 val is_add = is_binop add_tm
 val is_mul = is_binop mul_tm
@@ -384,7 +384,7 @@ in fn variable_order =>
           let
           val (opr,l) = Thm.dest_comb lopr
          in
-           if opr aconvc pow_tm andalso is_numeral r
+           if opr aconvc pow_tm andalso is_number r
           then
             let val th1 = inst_thm [(cx,l),(cp,r),(cq,ntm)] pthm_34
                 val (l,r) = Thm.dest_comb(concl th1)
@@ -408,7 +408,7 @@ in fn variable_order =>
    let
     val (lopr,r) = Thm.dest_comb tm
     val (opr,l) = Thm.dest_comb lopr
-   in if not (opr aconvc pow_tm) orelse not(is_numeral r)
+   in if not (opr aconvc pow_tm) orelse not(is_number r)
       then raise CTERM ("monomial_pow_conv", [tm])
       else if r aconvc zeron_tm
       then inst_thm [(cx,l)] pthm_35
@@ -426,7 +426,7 @@ in fn variable_order =>
     else
      ((let val (lopr,r) = Thm.dest_comb tm
            val (opr,l) = Thm.dest_comb lopr
-       in if opr aconvc pow_tm andalso is_numeral r then l 
+       in if opr aconvc pow_tm andalso is_number r then l 
           else raise CTERM ("monomial_mul_conv",[tm]) end)
      handle CTERM _ => tm)   (* FIXME !? *)
    fun  vorder x y =
@@ -579,7 +579,7 @@ fun powervars tm =
 val num_0 = 0;
 val num_1 = 1;
 fun dest_varpow tm =
- ((let val (x,n) = dest_pow tm in (x,dest_numeral n) end)
+ ((let val (x,n) = dest_pow tm in (x,dest_number n) end)
    handle CTERM _ =>
    (tm,(if is_semiring_constant tm then num_0 else num_1)));
 
@@ -740,7 +740,7 @@ fun polynomial_mul_conv ctxt =
 (* Power of polynomial (optimized for the monomial and trivial cases).       *)
 
 fun num_conv ctxt n =
-  nat_add_conv ctxt (Thm.apply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_numeral n - 1)))
+  nat_add_conv ctxt (Thm.apply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_number n - 1)))
   |> Thm.symmetric;
 
 
@@ -804,7 +804,7 @@ fun polynomial_conv ctxt tm =
        if not(is_comb lopr) then Thm.reflexive tm
        else
          let val (opr,l) = Thm.dest_comb lopr
-         in if opr aconvc pow_tm andalso is_numeral r
+         in if opr aconvc pow_tm andalso is_number r
             then
               let val th1 = Drule.fun_cong_rule (Drule.arg_cong_rule opr (polynomial_conv ctxt l)) r
               in Thm.transitive th1 (polynomial_pow_conv ctxt (concl th1))
