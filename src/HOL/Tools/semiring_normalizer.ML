@@ -115,16 +115,16 @@ val semiring_norm_ss =
   simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
 
 fun semiring_funs raw_key = funs raw_key
-   {is_const = fn phi => can HOLogic.dest_number o Thm.term_of,
-    dest_const = fn phi => fn ct =>
+   {is_const = K (can HOLogic.dest_number o Thm.term_of),
+    dest_const = K (fn ct =>
       Rat.rat_of_int (snd
         (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT
-      (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int"),
-    conv = fn phi => fn ctxt =>
+          handle TERM _ => error "ring_dest_const"))),
+    mk_const = K (fn cT => fn x => Numeral.mk_cnumber cT
+      (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int")),
+    conv = K (fn ctxt =>
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
-      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1})};
+      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1}))};
 
 fun field_funs raw_key =
   let
@@ -141,7 +141,7 @@ fun field_funs raw_key =
                    Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
      | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
        handle TERM _ => error "ring_dest_const")
-    fun mk_const phi cT x =
+    fun mk_const cT x =
       let val (a, b) = Rat.quotient_of_rat x
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
@@ -152,7 +152,7 @@ fun field_funs raw_key =
   in funs raw_key
      {is_const = K numeral_is_const,
       dest_const = K dest_const,
-      mk_const = mk_const,
+      mk_const = K mk_const,
       conv = K Numeral_Simprocs.field_comp_conv}
   end;
 
