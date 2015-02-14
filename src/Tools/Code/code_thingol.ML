@@ -674,6 +674,10 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
     fun casify constrs ty t_app ts =
       let
+        fun disjunctive_varnames ts =
+          let
+            val vs = (fold o fold_varnames) (insert (op =)) ts [];
+          in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
         fun collapse_clause vs_map ts body =
           case body
            of IConst { sym = Constant c, ... } => if member (op =) undefineds c
@@ -682,6 +686,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
             | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
                 if forall (fn (pat', body') => exists_var pat' v
                   orelse not (exists_var body' v)) clauses
+                  andalso forall (disjunctive_varnames ts o fst) clauses
                 then case AList.lookup (op =) vs_map v
                  of SOME i => maps (fn (pat', body') =>
                       collapse_clause (AList.delete (op =) v vs_map)
