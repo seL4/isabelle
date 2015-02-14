@@ -209,7 +209,7 @@ val add_tyconames = fold_constexprs (fn { typargs = tys, ... } => fold add_tycos
 
 fun fold_varnames f =
   let
-    fun fold_aux add f =
+    fun fold_aux add_vars f =
       let
         fun fold_term _ (IConst _) = I
           | fold_term vs (IVar (SOME v)) = if member (op =) vs v then I else f v
@@ -217,11 +217,12 @@ fun fold_varnames f =
           | fold_term vs (t1 `$ t2) = fold_term vs t1 #> fold_term vs t2
           | fold_term vs ((SOME v, _) `|=> t) = fold_term (insert (op =) v vs) t
           | fold_term vs ((NONE, _) `|=> t) = fold_term vs t
-          | fold_term vs (ICase { term = t, clauses = clauses, ... }) = fold_term vs t #> fold (fold_case vs) clauses
-        and fold_case vs (p, t) = fold_term (add p vs) t;
-      in fold_term [] end;
-    fun add t = fold_aux add (insert (op =)) t;
-  in fold_aux add f end;
+          | fold_term vs (ICase { term = t, clauses = clauses, ... }) =
+              fold_term vs t #> fold (fold_clause vs) clauses
+        and fold_clause vs (p, t) = fold_term (add_vars p vs) t;
+      in fold_term [] end
+    fun add_vars t = fold_aux add_vars (insert (op =)) t;
+  in fold_aux add_vars f end;
 
 fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
