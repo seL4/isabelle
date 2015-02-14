@@ -12,10 +12,6 @@ sig
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
     field: cterm list * thm list, idom: thm list, ideal: thm list} -> attribute
-  val funs: thm -> {is_const: morphism -> cterm -> bool,
-    dest_const: morphism -> cterm -> Rat.rat,
-    mk_const: morphism -> ctyp -> Rat.rat -> cterm,
-    conv: morphism -> Proof.context -> cterm -> thm} -> declaration
   val semiring_funs: thm -> declaration
   val field_funs: thm -> declaration
 
@@ -102,6 +98,64 @@ fun match ctxt tm =
       get_first (match_inst entry) (sr_ops @ r_ops @ f_ops);
   in get_first match_struct (get ctxt) end;
 
+  
+  (* extra-logical functions *)
+
+fun funs raw_key {is_const, dest_const, mk_const, conv} phi = 
+ Data.map (fn data =>
+  let
+    val key = Morphism.thm phi raw_key;
+    val _ = AList.defined Thm.eq_thm data key orelse
+      raise THM ("No data entry for structure key", 0, [key]);
+    val fns = {is_const = is_const phi, dest_const = dest_const phi,
+      mk_const = mk_const phi, conv = conv phi};
+  in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
+
+val semiring_norm_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
+
+fun semiring_funs raw_key = funs raw_key
+   {is_const = fn phi => can HOLogic.dest_number o Thm.term_of,
+    dest_const = fn phi => fn ct =>
+      Rat.rat_of_int (snd
+        (HOLogic.dest_number (Thm.term_of ct)
+          handle TERM _ => error "ring_dest_const")),
+    mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT
+      (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int"),
+    conv = fn phi => fn ctxt =>
+      Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
+      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1})};
+
+fun field_funs raw_key =
+  let
+    fun numeral_is_const ct =
+      case term_of ct of
+       Const (@{const_name Fields.divide},_) $ a $ b =>
+         can HOLogic.dest_number a andalso can HOLogic.dest_number b
+     | Const (@{const_name Fields.inverse},_)$t => can HOLogic.dest_number t
+     | t => can HOLogic.dest_number t
+    fun dest_const ct = ((case term_of ct of
+       Const (@{const_name Fields.divide},_) $ a $ b=>
+        Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
+     | Const (@{const_name Fields.inverse},_)$t => 
+                   Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
+     | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
+       handle TERM _ => error "ring_dest_const")
+    fun mk_const phi cT x =
+      let val (a, b) = Rat.quotient_of_rat x
+      in if b = 1 then Numeral.mk_cnumber cT a
+        else Thm.apply
+             (Thm.apply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
+                         (Numeral.mk_cnumber cT a))
+             (Numeral.mk_cnumber cT b)
+      end
+  in funs raw_key
+     {is_const = K numeral_is_const,
+      dest_const = K dest_const,
+      mk_const = mk_const,
+      conv = K Numeral_Simprocs.field_comp_conv}
+  end;
+
 
 (* logical content *)
 
@@ -157,71 +211,11 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val field = (f_ops, f_rules');
       val ideal' = map (Thm.symmetric o mk_meta) ideal
     in
-      AList.delete Thm.eq_thm key #>
-      cons (key, ({vars = vars, semiring = semiring, 
-                          ring = ring, field = field, idom = idom, ideal = ideal'},
-             {is_const = undefined, dest_const = undefined, mk_const = undefined,
-             conv = undefined}))
-    end);
-
-
-(* extra-logical functions *)
-
-fun funs raw_key {is_const, dest_const, mk_const, conv} phi = 
- Data.map (fn data =>
-  let
-    val key = Morphism.thm phi raw_key;
-    val _ = AList.defined Thm.eq_thm data key orelse
-      raise THM ("No data entry for structure key", 0, [key]);
-    val fns = {is_const = is_const phi, dest_const = dest_const phi,
-      mk_const = mk_const phi, conv = conv phi};
-  in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
-
-val semiring_norm_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
-
-fun semiring_funs key = funs key
-   {is_const = fn phi => can HOLogic.dest_number o Thm.term_of,
-    dest_const = fn phi => fn ct =>
-      Rat.rat_of_int (snd
-        (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT
-      (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int"),
-    conv = fn phi => fn ctxt =>
-      Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
-      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1})};
-
-fun field_funs key =
-  let
-    fun numeral_is_const ct =
-      case term_of ct of
-       Const (@{const_name Fields.divide},_) $ a $ b =>
-         can HOLogic.dest_number a andalso can HOLogic.dest_number b
-     | Const (@{const_name Fields.inverse},_)$t => can HOLogic.dest_number t
-     | t => can HOLogic.dest_number t
-    fun dest_const ct = ((case term_of ct of
-       Const (@{const_name Fields.divide},_) $ a $ b=>
-        Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-     | Const (@{const_name Fields.inverse},_)$t => 
-                   Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
-     | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
-       handle TERM _ => error "ring_dest_const")
-    fun mk_const phi cT x =
-      let val (a, b) = Rat.quotient_of_rat x
-      in if b = 1 then Numeral.mk_cnumber cT a
-        else Thm.apply
-             (Thm.apply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
-                         (Numeral.mk_cnumber cT a))
-             (Numeral.mk_cnumber cT b)
-      end
-  in funs key
-     {is_const = K numeral_is_const,
-      dest_const = K dest_const,
-      mk_const = mk_const,
-      conv = K Numeral_Simprocs.field_comp_conv}
-  end;
-
+      AList.update Thm.eq_thm (key,
+        ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
+          {is_const = undefined, dest_const = undefined, mk_const = undefined,
+          conv = undefined}))
+    end)
 
 
 (** auxiliary **)
