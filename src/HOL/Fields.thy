@@ -204,7 +204,7 @@ proof -
 qed
 
 lemma nonzero_neg_divide_eq_eq [field_simps]: "b \<noteq> 0 \<Longrightarrow> - (a / b) = c \<longleftrightarrow> - a = c * b"
-  using nonzero_divide_eq_eq[of b "-a" c] by (simp add: divide_minus_left)
+  using nonzero_divide_eq_eq[of b "-a" c] by simp
 
 lemma nonzero_neg_divide_eq_eq2 [field_simps]: "b \<noteq> 0 \<Longrightarrow> c = - (a / b) \<longleftrightarrow> c * b = - a"
   using nonzero_neg_divide_eq_eq[of b a c] by auto
@@ -229,7 +229,7 @@ lemma diff_divide_eq_iff [field_simps]:
 
 lemma minus_divide_add_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> - (x / z) + y = (- x + y * z) / z"
-  by (simp add: add_divide_distrib diff_divide_eq_iff divide_minus_left)
+  by (simp add: add_divide_distrib diff_divide_eq_iff)
 
 lemma divide_diff_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> x / z - y = (x - y * z) / z"
@@ -237,7 +237,7 @@ lemma divide_diff_eq_iff [field_simps]:
 
 lemma minus_divide_diff_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> - (x / z) - y = (- x - y * z) / z"
-  by (simp add: divide_diff_eq_iff[symmetric] divide_minus_left)
+  by (simp add: divide_diff_eq_iff[symmetric])
 
 end
 
