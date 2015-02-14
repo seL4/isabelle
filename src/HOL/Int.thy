@@ -542,16 +542,6 @@ subsubsection {* Binary comparisons *}
 
 text {* Preliminaries *}
 
-lemma even_less_0_iff:
-  "a + a < 0 \<longleftrightarrow> a < (0::'a::linordered_idom)"
-proof -
-  have "a + a < 0 \<longleftrightarrow> (1+1)*a < 0" by (simp add: distrib_right del: one_add_one)
-  also have "(1+1)*a < 0 \<longleftrightarrow> a < 0"
-    by (simp add: mult_less_0_iff zero_less_two 
-                  order_less_not_sym [OF zero_less_two])
-  finally show ?thesis .
-qed
-
 lemma le_imp_0_less: 
   assumes le: "0 \<le> z"
   shows "(0::int) < 1 + z"

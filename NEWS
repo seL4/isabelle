@@ -68,6 +68,9 @@ token category instead.
 
 *** HOL ***
 
+* Fact consolidation: even_less_0_iff is subsumed by
+double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
+
 * Discontinued old-fashioned "codegen" tool.  Code generation can always
 be externally triggered using an appropriate ROOT file plus a corresponding
 theory.  Parametrization is possible using environment variables, or
