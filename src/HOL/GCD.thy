@@ -334,8 +334,7 @@ interpretation gcd_nat: abel_semigroup "gcd :: nat \<Rightarrow> nat \<Rightarro
   + gcd_nat: semilattice_neutr_order "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat" 0 "op dvd" "(\<lambda>m n. m dvd n \<and> \<not> n dvd m)"
 apply default
 apply (auto intro: dvd_antisym dvd_trans)[4]
-apply (metis dvd.dual_order.refl gcd_unique_nat)
-apply (auto intro: dvdI elim: dvdE)
+apply (metis dvd.dual_order.refl gcd_unique_nat)+
 done
 
 interpretation gcd_int: abel_semigroup "gcd :: int \<Rightarrow> int \<Rightarrow> int"

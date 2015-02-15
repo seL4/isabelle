@@ -161,8 +161,7 @@ lemma inj_on_pminusx_E: "inj_on (\<lambda>x. p - x) E"
 
 lemma nonzero_mod_p:
   fixes x::int shows "\<lbrakk>0 < x; x < int p\<rbrakk> \<Longrightarrow> [x \<noteq> 0](mod p)"
-by (metis Nat_Transfer.transfer_nat_int_function_closures(9) cong_less_imp_eq_int 
-     inf.semilattice_strict_iff_order int_less_0_conv le_numeral_extra(3) zero_less_imp_eq_int)
+  by (simp add: cong_int_def)
 
 lemma A_ncong_p: "x \<in> A \<Longrightarrow> [x \<noteq> 0](mod p)"
   by (rule nonzero_mod_p) (auto simp add: A_def)

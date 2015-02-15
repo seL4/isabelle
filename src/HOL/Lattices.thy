@@ -37,7 +37,7 @@ locale semilattice_order = semilattice +
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
     and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
   assumes order_iff: "a \<preceq> b \<longleftrightarrow> a = a * b"
-    and semilattice_strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
+    and strict_order_iff: "a \<prec> b \<longleftrightarrow> a = a * b \<and> a \<noteq> b"
 begin
 
 lemma orderI:
@@ -53,7 +53,7 @@ sublocale ordering less_eq less
 proof
   fix a b
   show "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
-    by (fact semilattice_strict_iff_order)
+    by (simp add: order_iff strict_order_iff)
 next
   fix a
   show "a \<preceq> a"
