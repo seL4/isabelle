@@ -678,6 +678,13 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
           let
             val vs = (fold o fold_varnames) (insert (op =)) ts [];
           in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
+        fun purge_unused_vars_in t =
+          let
+            val vs = fold_varnames (insert (op =)) t [];
+          in
+            map_terms_bottom_up (fn IVar (SOME v) =>
+              IVar (if member (op =) vs v then SOME v else NONE) | t => t)
+          end;
         fun collapse_clause vs_map ts body =
           case body
            of IConst { sym = Constant c, ... } => if member (op =) undefineds c
@@ -690,7 +697,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
                 then case AList.lookup (op =) vs_map v
                  of SOME i => maps (fn (pat', body') =>
                       collapse_clause (AList.delete (op =) v vs_map)
-                        (nth_map i (K pat') ts) body') clauses
+                        (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
                   | NONE => [(ts, body)]
                 else [(ts, body)]
             | _ => [(ts, body)];
