@@ -145,9 +145,6 @@ end
 context comm_semiring_1_cancel_crossproduct
 begin
 
-declare
-  normalizing_comm_semiring_1_axioms [normalizer del]
-
 lemmas
   normalizing_comm_semiring_1_cancel_crossproduct_axioms =
   comm_semiring_1_cancel_crossproduct_axioms [normalizer
@@ -159,8 +156,6 @@ end
 
 context idom
 begin
-
-declare normalizing_comm_ring_1_axioms [normalizer del]
 
 lemmas normalizing_idom_axioms = idom_axioms [normalizer
   semiring ops: normalizing_semiring_ops

@@ -8,7 +8,6 @@ signature SEMIRING_NORMALIZER =
 sig
   type entry
   val match: Proof.context -> cterm -> entry option
-  val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
     field: cterm list * thm list, idom: thm list, ideal: thm list} -> attribute
 
@@ -149,8 +148,6 @@ val ringN = "ring";
 val idomN = "idom";
 val idealN = "ideal";
 val fieldN = "field";
-
-val del = Thm.declaration_attribute (Data.map o AList.delete Thm.eq_thm);
 
 fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
          field = (f_ops, f_rules), idom, ideal} =
@@ -880,8 +877,7 @@ in
 val _ =
   Theory.setup
     (Attrib.setup @{binding normalizer}
-      (Scan.lift (Args.$$$ delN >> K del) ||
-        ((keyword2 semiringN opsN |-- terms) --
+      (((keyword2 semiringN opsN |-- terms) --
          (keyword2 semiringN rulesN |-- thms)) --
         (optional (keyword2 ringN opsN |-- terms) --
          optional (keyword2 ringN rulesN |-- thms)) --
