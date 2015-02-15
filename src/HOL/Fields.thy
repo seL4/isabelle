@@ -346,13 +346,6 @@ by (simp add: mult.commute [of _ c])
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse ac_simps)
 
-text{*It's not obvious whether @{text times_divide_eq} should be
-  simprules or not. Their effect is to gather terms into one big
-  fraction, like a*b*c / x*y*z. The rationale for that is unclear, but
-  many proofs seem to need them.*}
-
-lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
-
 lemma add_frac_eq:
   assumes "y \<noteq> 0" and "z \<noteq> 0"
   shows "x / y + w / z = (x * z + w * y) / (y * z)"
@@ -682,83 +675,91 @@ lemma one_le_inverse:
   "0 < a \<Longrightarrow> a \<le> 1 \<Longrightarrow> 1 \<le> inverse a"
   using le_imp_inverse_le [of a 1, unfolded inverse_1] .
 
-lemma pos_le_divide_eq [field_simps]: "0 < c \<Longrightarrow> a \<le> b / c \<longleftrightarrow> a * c \<le> b"
+lemma pos_le_divide_eq [field_simps]:
+  assumes "0 < c"
+  shows "a \<le> b / c \<longleftrightarrow> a * c \<le> b"
 proof -
-  assume less: "0<c"
-  hence "(a \<le> b/c) = (a*c \<le> (b/c)*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (a*c \<le> b)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
+  from assms have "a \<le> b / c \<longleftrightarrow> a * c \<le> (b / c) * c"
+    using mult_le_cancel_right [of a c "b * inverse c"] by (auto simp add: field_simps)
+  also have "... \<longleftrightarrow> a * c \<le> b"
+    by (simp add: less_imp_not_eq2 [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma neg_le_divide_eq [field_simps]: "c < 0 \<Longrightarrow> a \<le> b / c \<longleftrightarrow> b \<le> a * c"
+lemma pos_less_divide_eq [field_simps]:
+  assumes "0 < c"
+  shows "a < b / c \<longleftrightarrow> a * c < b"
 proof -
-  assume less: "c<0"
-  hence "(a \<le> b/c) = ((b/c)*c \<le> a*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (b \<le> a*c)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
-  finally show ?thesis .
-qed
-
-lemma pos_less_divide_eq [field_simps]: "0 < c \<Longrightarrow> a < b / c \<longleftrightarrow> a * c < b"
-proof -
-  assume less: "0<c"
-  hence "(a < b/c) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
+  from assms have "a < b / c \<longleftrightarrow> a * c < (b / c) * c"
+    using mult_less_cancel_right [of a c "b / c"] by auto
   also have "... = (a*c < b)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
+    by (simp add: less_imp_not_eq2 [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma neg_less_divide_eq [field_simps]: "c < 0 \<Longrightarrow> a < b / c \<longleftrightarrow> b < a * c"
+lemma neg_less_divide_eq [field_simps]:
+  assumes "c < 0"
+  shows "a < b / c \<longleftrightarrow> b < a * c"
 proof -
-  assume less: "c<0"
-  hence "(a < b/c) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (b < a*c)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
+  from assms have "a < b / c \<longleftrightarrow> (b / c) * c < a * c"
+    using mult_less_cancel_right [of "b / c" c a] by auto
+  also have "... \<longleftrightarrow> b < a * c"
+    by (simp add: less_imp_not_eq [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma pos_divide_less_eq [field_simps]: "0 < c \<Longrightarrow> b / c < a \<longleftrightarrow> b < a * c"
+lemma neg_le_divide_eq [field_simps]:
+  assumes "c < 0"
+  shows "a \<le> b / c \<longleftrightarrow> b \<le> a * c"
 proof -
-  assume less: "0<c"
-  hence "(b/c < a) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (b < a*c)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
+  from assms have "a \<le> b / c \<longleftrightarrow> (b / c) * c \<le> a * c"
+    using mult_le_cancel_right [of "b * inverse c" c a] by (auto simp add: field_simps)
+  also have "... \<longleftrightarrow> b \<le> a * c"
+    by (simp add: less_imp_not_eq [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma neg_divide_less_eq [field_simps]: "c < 0 \<Longrightarrow> b / c < a \<longleftrightarrow> a * c < b"
+lemma pos_divide_le_eq [field_simps]:
+  assumes "0 < c"
+  shows "b / c \<le> a \<longleftrightarrow> b \<le> a * c"
 proof -
-  assume less: "c<0"
-  hence "(b/c < a) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (a*c < b)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
+  from assms have "b / c \<le> a \<longleftrightarrow> (b / c) * c \<le> a * c"
+    using mult_le_cancel_right [of "b / c" c a] by auto
+  also have "... \<longleftrightarrow> b \<le> a * c"
+    by (simp add: less_imp_not_eq2 [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma pos_divide_le_eq [field_simps]: "0 < c \<Longrightarrow> b / c \<le> a \<longleftrightarrow> b \<le> a * c"
+lemma pos_divide_less_eq [field_simps]:
+  assumes "0 < c"
+  shows "b / c < a \<longleftrightarrow> b < a * c"
 proof -
-  assume less: "0<c"
-  hence "(b/c \<le> a) = ((b/c)*c \<le> a*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (b \<le> a*c)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
+  from assms have "b / c < a \<longleftrightarrow> (b / c) * c < a * c"
+    using mult_less_cancel_right [of "b / c" c a] by auto
+  also have "... \<longleftrightarrow> b < a * c"
+    by (simp add: less_imp_not_eq2 [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
-lemma neg_divide_le_eq [field_simps]: "c < 0 \<Longrightarrow> b / c \<le> a \<longleftrightarrow> a * c \<le> b"
+lemma neg_divide_le_eq [field_simps]:
+  assumes "c < 0"
+  shows "b / c \<le> a \<longleftrightarrow> a * c \<le> b"
 proof -
-  assume less: "c<0"
-  hence "(b/c \<le> a) = (a*c \<le> (b/c)*c)"
-    by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
-  also have "... = (a*c \<le> b)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
+  from assms have "b / c \<le> a \<longleftrightarrow> a * c \<le> (b / c) * c"
+    using mult_le_cancel_right [of a c "b / c"] by auto 
+  also have "... \<longleftrightarrow> a * c \<le> b"
+    by (simp add: less_imp_not_eq [OF assms] divide_inverse mult.assoc) 
+  finally show ?thesis .
+qed
+
+lemma neg_divide_less_eq [field_simps]:
+  assumes "c < 0"
+  shows "b / c < a \<longleftrightarrow> a * c < b"
+proof -
+  from assms have "b / c < a \<longleftrightarrow> a * c < b / c * c"
+    using mult_less_cancel_right [of a c "b / c"] by auto
+  also have "... \<longleftrightarrow> a * c < b"
+    by (simp add: less_imp_not_eq [OF assms] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
