@@ -7,7 +7,6 @@ Normalization of expressions in semirings.
 signature SEMIRING_NORMALIZER = 
 sig
   type entry
-  val get: Proof.context -> (thm * entry) list
   val match: Proof.context -> cterm -> entry option
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
@@ -62,8 +61,6 @@ structure Data = Generic_Data
   fun merge data = AList.merge Thm.eq_thm (K true) data;
 );
 
-val get = Data.get o Context.Proof;
-
 fun match ctxt tm =
   let
     fun match_inst
@@ -94,24 +91,15 @@ fun match ctxt tm =
     fun match_struct (_,
         entry as ({semiring = (sr_ops, _), ring = (r_ops, _), field = (f_ops, _), ...}, _): entry) =
       get_first (match_inst entry) (sr_ops @ r_ops @ f_ops);
-  in get_first match_struct (get ctxt) end;
+  in get_first match_struct (Data.get (Context.Proof ctxt)) end;
 
   
   (* extra-logical functions *)
 
-fun funs key {is_const, dest_const, mk_const, conv} = 
- Data.map (fn data =>
-  let
-    val _ = AList.defined Thm.eq_thm data key orelse
-      raise THM ("No data entry for structure key", 0, [key]);
-    val fns = {is_const = is_const, dest_const = dest_const,
-      mk_const = mk_const, conv = conv};
-  in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
-
 val semiring_norm_ss =
   simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
 
-fun semiring_funs key = funs key
+val semiring_funs =
    {is_const = can HOLogic.dest_number o Thm.term_of,
     dest_const = (fn ct =>
       Rat.rat_of_int (snd
@@ -123,7 +111,7 @@ fun semiring_funs key = funs key
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1}))};
 
-fun field_funs key =
+val field_funs =
   let
     fun numeral_is_const ct =
       case term_of ct of
@@ -146,7 +134,7 @@ fun field_funs key =
                          (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end
-  in funs key
+  in
      {is_const = numeral_is_const,
       dest_const = dest_const,
       mk_const = mk_const,
@@ -207,13 +195,12 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val ring = (r_ops, r_rules');
       val field = (f_ops, f_rules');
       val ideal' = map (Thm.symmetric o mk_meta) ideal
+      
     in
       AList.update Thm.eq_thm (key,
         ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
-          {is_const = undefined, dest_const = undefined, mk_const = undefined,
-          conv = undefined}))
-    end
-    |> (if null f_ops then semiring_funs else field_funs) key)
+          (if null f_ops then semiring_funs else field_funs)))
+    end)
 
 
 (** auxiliary **)
