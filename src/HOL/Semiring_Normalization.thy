@@ -113,7 +113,6 @@ lemma normalizing_semiring_rules:
   "x * (y + z) = (x * y) + (x * z)"
   "x ^ (Suc q) = x * (x ^ q)"
   "x ^ (2*n) = (x ^ n) * (x ^ n)"
-  "x ^ (Suc (2*n)) = x * ((x ^ n) * (x ^ n))"
   by (simp_all add: algebra_simps power_add power2_eq_square
     power_mult_distrib power_mult del: one_add_one)
 

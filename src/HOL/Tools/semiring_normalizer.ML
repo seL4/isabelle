@@ -166,7 +166,7 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
 
       val _ =
         check_ops semiringN sr_ops 5 andalso
-        check_rules semiringN sr_rules 37 andalso
+        check_rules semiringN sr_rules 36 andalso
         check_ops ringN r_ops 2 andalso
         check_rules ringN r_rules 2 andalso
         check_ops fieldN f_ops 2 andalso
@@ -261,7 +261,7 @@ val [pthm_02, pthm_03, pthm_04, pthm_05, pthm_07, pthm_08,
      pthm_09, pthm_10, pthm_11, pthm_12, pthm_13, pthm_14, pthm_15, pthm_16,
      pthm_17, pthm_18, pthm_19, pthm_21, pthm_22, pthm_23, pthm_24,
      pthm_25, pthm_26, pthm_27, pthm_28, pthm_29, pthm_30, pthm_31, pthm_32,
-     pthm_33, pthm_34, pthm_35, pthm_36, pthm_37, pthm_38, _, _] = sr_rules;
+     pthm_33, pthm_34, pthm_35, pthm_36, pthm_37, pthm_38, _] = sr_rules;
 
 val [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry] = vars;
 val [add_pat, mul_pat, pow_pat, zero_tm, one_tm] = sr_ops;
