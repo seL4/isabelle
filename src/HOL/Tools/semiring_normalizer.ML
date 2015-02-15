@@ -12,8 +12,6 @@ sig
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
     field: cterm list * thm list, idom: thm list, ideal: thm list} -> attribute
-  val semiring_funs: thm -> declaration
-  val field_funs: thm -> declaration
 
   val semiring_normalize_conv: Proof.context -> conv
   val semiring_normalize_ord_conv: Proof.context -> (cterm -> cterm -> bool) -> conv
@@ -101,32 +99,31 @@ fun match ctxt tm =
   
   (* extra-logical functions *)
 
-fun funs raw_key {is_const, dest_const, mk_const, conv} phi = 
+fun funs key {is_const, dest_const, mk_const, conv} = 
  Data.map (fn data =>
   let
-    val key = Morphism.thm phi raw_key;
     val _ = AList.defined Thm.eq_thm data key orelse
       raise THM ("No data entry for structure key", 0, [key]);
-    val fns = {is_const = is_const phi, dest_const = dest_const phi,
-      mk_const = mk_const phi, conv = conv phi};
+    val fns = {is_const = is_const, dest_const = dest_const,
+      mk_const = mk_const, conv = conv};
   in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
 val semiring_norm_ss =
   simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
 
-fun semiring_funs raw_key = funs raw_key
-   {is_const = K (can HOLogic.dest_number o Thm.term_of),
-    dest_const = K (fn ct =>
+fun semiring_funs key = funs key
+   {is_const = can HOLogic.dest_number o Thm.term_of,
+    dest_const = (fn ct =>
       Rat.rat_of_int (snd
         (HOLogic.dest_number (Thm.term_of ct)
           handle TERM _ => error "ring_dest_const"))),
-    mk_const = K (fn cT => fn x => Numeral.mk_cnumber cT
+    mk_const = (fn cT => fn x => Numeral.mk_cnumber cT
       (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int")),
-    conv = K (fn ctxt =>
+    conv = (fn ctxt =>
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1}))};
 
-fun field_funs raw_key =
+fun field_funs key =
   let
     fun numeral_is_const ct =
       case term_of ct of
@@ -149,11 +146,11 @@ fun field_funs raw_key =
                          (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end
-  in funs raw_key
-     {is_const = K numeral_is_const,
-      dest_const = K dest_const,
-      mk_const = K mk_const,
-      conv = K Numeral_Simprocs.field_comp_conv}
+  in funs key
+     {is_const = numeral_is_const,
+      dest_const = dest_const,
+      mk_const = mk_const,
+      conv = Numeral_Simprocs.field_comp_conv}
   end;
 
 
@@ -215,7 +212,8 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
         ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
           {is_const = undefined, dest_const = undefined, mk_const = undefined,
           conv = undefined}))
-    end)
+    end
+    |> (if null f_ops then semiring_funs else field_funs) key)
 
 
 (** auxiliary **)

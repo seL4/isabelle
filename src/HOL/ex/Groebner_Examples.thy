@@ -5,7 +5,7 @@
 section {* Groebner Basis Examples *}
 
 theory Groebner_Examples
-imports Groebner_Basis
+imports "~~/src/HOL/Groebner_Basis"
 begin
 
 subsection {* Basic examples *}

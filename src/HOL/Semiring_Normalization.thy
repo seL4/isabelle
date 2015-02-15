@@ -122,9 +122,6 @@ lemmas normalizing_comm_semiring_1_axioms =
     semiring ops: normalizing_semiring_ops
     semiring rules: normalizing_semiring_rules]
 
-declaration
-  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_semiring_1_axioms} *}
-
 end
 
 context comm_ring_1
@@ -144,9 +141,6 @@ lemmas normalizing_comm_ring_1_axioms =
     ring ops: normalizing_ring_ops
     ring rules: normalizing_ring_rules]
 
-declaration
-  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_ring_1_axioms} *}
-
 end
 
 context comm_semiring_1_cancel_crossproduct
@@ -162,9 +156,6 @@ lemmas
     semiring rules: normalizing_semiring_rules
     idom rules: crossproduct_noteq add_scale_eq_noteq]
 
-declaration
-  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_semiring_1_cancel_crossproduct_axioms} *}
-
 end
 
 context idom
@@ -179,9 +170,6 @@ lemmas normalizing_idom_axioms = idom_axioms [normalizer
   ring rules: normalizing_ring_rules
   idom rules: crossproduct_noteq add_scale_eq_noteq
   ideal rules: right_minus_eq add_0_iff]
-
-declaration
-  {* Semiring_Normalizer.semiring_funs @{thm normalizing_idom_axioms} *}
 
 end
 
@@ -203,9 +191,6 @@ lemmas normalizing_field_axioms =
     field rules: normalizing_field_rules
     idom rules: crossproduct_noteq add_scale_eq_noteq
     ideal rules: right_minus_eq add_0_iff]
-
-declaration
-  {* Semiring_Normalizer.field_funs @{thm normalizing_field_axioms} *}
 
 end
 
