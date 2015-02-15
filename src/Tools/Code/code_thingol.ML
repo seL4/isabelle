@@ -672,41 +672,41 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
     val constrs =
       if null case_pats then []
       else map_filter I (map2 mk_constr case_pats (nth_drop t_pos ts));
+    fun disjunctive_varnames ts =
+      let
+        val vs = (fold o fold_varnames) (insert (op =)) ts [];
+      in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
+    fun purge_unused_vars_in t =
+      let
+        val vs = fold_varnames (insert (op =)) t [];
+      in
+        map_terms_bottom_up (fn IVar (SOME v) =>
+          IVar (if member (op =) vs v then SOME v else NONE) | t => t)
+      end;
+    fun collapse_clause vs_map ts body =
+      case body
+       of IConst { sym = Constant c, ... } => if member (op =) undefineds c
+            then []
+            else [(ts, body)]
+        | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
+            if forall (fn (pat', body') => exists_var pat' v
+              orelse not (exists_var body' v)) clauses
+              andalso forall (disjunctive_varnames ts o fst) clauses
+            then case AList.lookup (op =) vs_map v
+             of SOME i => maps (fn (pat', body') =>
+                  collapse_clause (AList.delete (op =) v vs_map)
+                    (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
+              | NONE => [(ts, body)]
+            else [(ts, body)]
+        | _ => [(ts, body)];
+    fun mk_clause mk tys t =
+      let
+        val (vs, body) = unfold_abs_eta tys t;
+        val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
+        val ts = map (IVar o fst) vs;
+      in map mk (collapse_clause vs_map ts body) end;
     fun casify constrs ty t_app ts =
       let
-        fun disjunctive_varnames ts =
-          let
-            val vs = (fold o fold_varnames) (insert (op =)) ts [];
-          in fn pat => null (inter (op =) vs (fold_varnames (insert (op =)) pat [])) end;
-        fun purge_unused_vars_in t =
-          let
-            val vs = fold_varnames (insert (op =)) t [];
-          in
-            map_terms_bottom_up (fn IVar (SOME v) =>
-              IVar (if member (op =) vs v then SOME v else NONE) | t => t)
-          end;
-        fun collapse_clause vs_map ts body =
-          case body
-           of IConst { sym = Constant c, ... } => if member (op =) undefineds c
-                then []
-                else [(ts, body)]
-            | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
-                if forall (fn (pat', body') => exists_var pat' v
-                  orelse not (exists_var body' v)) clauses
-                  andalso forall (disjunctive_varnames ts o fst) clauses
-                then case AList.lookup (op =) vs_map v
-                 of SOME i => maps (fn (pat', body') =>
-                      collapse_clause (AList.delete (op =) v vs_map)
-                        (nth_map i (K pat') ts |> map (purge_unused_vars_in body')) body') clauses
-                  | NONE => [(ts, body)]
-                else [(ts, body)]
-            | _ => [(ts, body)];
-        fun mk_clause mk tys t =
-          let
-            val (vs, body) = unfold_abs_eta tys t;
-            val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
-            val ts = map (IVar o fst) vs;
-          in map mk (collapse_clause vs_map ts body) end;
         val t = nth ts t_pos;
         val ts_clause = nth_drop t_pos ts;
         val clauses = if null case_pats
