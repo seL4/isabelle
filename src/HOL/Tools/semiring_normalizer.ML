@@ -8,8 +8,13 @@ signature SEMIRING_NORMALIZER =
 sig
   type entry
   val match: Proof.context -> cterm -> entry option
-  val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
-    field: cterm list * thm list, idom: thm list, ideal: thm list} -> attribute
+  val the_semiring: Proof.context -> thm -> cterm list * thm list
+  val the_ring: Proof.context -> thm -> cterm list * thm list
+  val the_field: Proof.context -> thm -> cterm list * thm list
+  val the_idom: Proof.context -> thm -> thm list
+  val the_ideal: Proof.context -> thm -> thm list
+  val declare: thm -> {semiring: cterm list * thm list, ring: cterm list * thm list,
+    field: cterm list * thm list, idom: thm list, ideal: thm list} -> declaration
 
   val semiring_normalize_conv: Proof.context -> conv
   val semiring_normalize_ord_conv: Proof.context -> (cterm -> cterm -> bool) -> conv
@@ -60,6 +65,14 @@ structure Data = Generic_Data
   fun merge data = AList.merge Thm.eq_thm (K true) data;
 );
 
+fun the_rules ctxt = fst o the o AList.lookup Thm.eq_thm (Data.get (Context.Proof ctxt))
+
+val the_semiring = #semiring oo the_rules
+val the_ring = #ring oo the_rules
+val the_field = #field oo the_rules
+val the_idom = #idom oo the_rules
+val the_ideal = #ideal oo the_rules
+
 fun match ctxt tm =
   let
     fun match_inst
@@ -93,7 +106,7 @@ fun match ctxt tm =
   in get_first match_struct (Data.get (Context.Proof ctxt)) end;
 
   
-  (* extra-logical functions *)
+(* extra-logical functions *)
 
 val semiring_norm_ss =
   simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
@@ -145,59 +158,64 @@ val field_funs =
 
 val semiringN = "semiring";
 val ringN = "ring";
-val idomN = "idom";
-val idealN = "ideal";
 val fieldN = "field";
+val idomN = "idom";
 
-fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
-         field = (f_ops, f_rules), idom, ideal} =
-  Thm.declaration_attribute (fn key => fn context => context |> Data.map
-    let
-      val ctxt = Context.proof_of context;
+fun declare raw_key raw_entry = fn phi => fn context => 
+  let
+    val ctxt = Context.proof_of context;
+    val key = Morphism.thm phi raw_key;
+    fun morphism_ops_rules (ops, rules) = (map (Morphism.cterm phi) ops, Morphism.fact phi rules);
+    val (sr_ops, sr_rules) = morphism_ops_rules (#semiring raw_entry);
+    val (r_ops, r_rules) = morphism_ops_rules (#ring raw_entry);
+    val (f_ops, f_rules) = morphism_ops_rules (#field raw_entry);
+    val idom = Morphism.fact phi (#idom raw_entry);
+    val ideal = Morphism.fact phi (#ideal raw_entry);
 
-      fun check kind name xs n =
-        null xs orelse length xs = n orelse
-        error ("Expected " ^ string_of_int n ^ " " ^ kind ^ " for " ^ name);
-      val check_ops = check "operations";
-      val check_rules = check "rules";
+    fun check kind name xs n =
+      null xs orelse length xs = n orelse
+      error ("Expected " ^ string_of_int n ^ " " ^ kind ^ " for " ^ name);
+    val check_ops = check "operations";
+    val check_rules = check "rules";
+    val _ =
+      check_ops semiringN sr_ops 5 andalso
+      check_rules semiringN sr_rules 36 andalso
+      check_ops ringN r_ops 2 andalso
+      check_rules ringN r_rules 2 andalso
+      check_ops fieldN f_ops 2 andalso
+      check_rules fieldN f_rules 2 andalso
+      check_rules idomN idom 2;
 
-      val _ =
-        check_ops semiringN sr_ops 5 andalso
-        check_rules semiringN sr_rules 36 andalso
-        check_ops ringN r_ops 2 andalso
-        check_rules ringN r_rules 2 andalso
-        check_ops fieldN f_ops 2 andalso
-        check_rules fieldN f_rules 2 andalso
-        check_rules idomN idom 2;
+    val mk_meta = Local_Defs.meta_rewrite_rule ctxt;
+    val sr_rules' = map mk_meta sr_rules;
+    val r_rules' = map mk_meta r_rules;
+    val f_rules' = map mk_meta f_rules;
 
-      val mk_meta = Local_Defs.meta_rewrite_rule ctxt;
-      val sr_rules' = map mk_meta sr_rules;
-      val r_rules' = map mk_meta r_rules;
-      val f_rules' = map mk_meta f_rules;
+    fun rule i = nth sr_rules' (i - 1);
+    
+    val (cx, cy) = Thm.dest_binop (hd sr_ops);
+    val cz = rule 34 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
+    val cn = rule 36 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
+    val ((clx, crx), (cly, cry)) =
+      rule 13 |> Thm.rhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
+    val ((ca, cb), (cc, cd)) =
+      rule 20 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
+    val cm = rule 1 |> Thm.rhs_of |> Thm.dest_arg;
+    val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_arg;
 
-      fun rule i = nth sr_rules' (i - 1);
+    val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
 
-      val (cx, cy) = Thm.dest_binop (hd sr_ops);
-      val cz = rule 34 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
-      val cn = rule 36 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
-      val ((clx, crx), (cly, cry)) =
-        rule 13 |> Thm.rhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
-      val ((ca, cb), (cc, cd)) =
-        rule 20 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
-      val cm = rule 1 |> Thm.rhs_of |> Thm.dest_arg;
-      val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_arg;
+    val semiring = (sr_ops, sr_rules');
+    val ring = (r_ops, r_rules');
+    val field = (f_ops, f_rules');
+    val ideal' = map (Thm.symmetric o mk_meta) ideal
 
-      val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
-      val semiring = (sr_ops, sr_rules');
-      val ring = (r_ops, r_rules');
-      val field = (f_ops, f_rules');
-      val ideal' = map (Thm.symmetric o mk_meta) ideal
-      
-    in
-      AList.update Thm.eq_thm (key,
+  in
+    context
+    |> Data.map (AList.update Thm.eq_thm (key,
         ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
-          (if null f_ops then semiring_funs else field_funs)))
-    end)
+          (if null f_ops then semiring_funs else field_funs))))
+  end
 
 
 (** auxiliary **)
@@ -848,47 +866,5 @@ fun semiring_normalize_ord_conv ctxt ord tm =
   | SOME res => semiring_normalize_ord_wrapper ctxt res ord tm);
  
 fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;
-
-
-(** Isar setup **)
-
-local
-
-fun keyword2 k1 k2 = Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.colon) >> K ();
-
-val opsN = "ops";
-val rulesN = "rules";
-
-val delN = "del";
-
-val any_keyword =
-  keyword2 semiringN opsN || keyword2 semiringN rulesN ||
-  keyword2 ringN opsN || keyword2 ringN rulesN ||
-  keyword2 fieldN opsN || keyword2 fieldN rulesN ||
-  keyword2 idomN rulesN || keyword2 idealN rulesN;
-
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-val terms = thms >> map Drule.dest_term;
-
-fun optional scan = Scan.optional scan [];
-
-in
-
-val _ =
-  Theory.setup
-    (Attrib.setup @{binding normalizer}
-      (((keyword2 semiringN opsN |-- terms) --
-         (keyword2 semiringN rulesN |-- thms)) --
-        (optional (keyword2 ringN opsN |-- terms) --
-         optional (keyword2 ringN rulesN |-- thms)) --
-        (optional (keyword2 fieldN opsN |-- terms) --
-         optional (keyword2 fieldN rulesN |-- thms)) --
-        optional (keyword2 idomN rulesN |-- thms) --
-        optional (keyword2 idealN rulesN |-- thms)
-        >> (fn ((((sr, r), f), id), idl) => 
-               add {semiring = sr, ring = r, field = f, idom = id, ideal = idl}))
-      "semiring normalizer data");
-
-end;
 
 end;

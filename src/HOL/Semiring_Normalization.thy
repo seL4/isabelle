@@ -72,10 +72,6 @@ ML_file "Tools/semiring_normalizer.ML"
 context comm_semiring_1
 begin
 
-lemma normalizing_semiring_ops:
-  shows "TERM (x + y)" and "TERM (x * y)" and "TERM (x ^ n)"
-    and "TERM 0" and "TERM 1" .
-
 lemma normalizing_semiring_rules:
   "(a * m) + (b * m) = (a + b) * m"
   "(a * m) + m = (a + 1) * m"
@@ -116,85 +112,65 @@ lemma normalizing_semiring_rules:
   by (simp_all add: algebra_simps power_add power2_eq_square
     power_mult_distrib power_mult del: one_add_one)
 
-lemmas normalizing_comm_semiring_1_axioms =
-  comm_semiring_1_axioms [normalizer
-    semiring ops: normalizing_semiring_ops
-    semiring rules: normalizing_semiring_rules]
+declaration \<open>Semiring_Normalizer.declare @{thm comm_semiring_1_axioms}
+  {semiring = ([@{cpat "?x + ?y"}, @{cpat "?x * ?y"}, @{cpat "?x ^ ?n"}, @{cpat 0}, @{cpat 1}],
+    @{thms normalizing_semiring_rules}), ring = ([], []), field = ([], []), idom = [], ideal = []}\<close>
 
 end
 
 context comm_ring_1
 begin
 
-lemma normalizing_ring_ops: shows "TERM (x- y)" and "TERM (- x)" .
-
 lemma normalizing_ring_rules:
   "- x = (- 1) * x"
   "x - y = x + (- y)"
   by simp_all
 
-lemmas normalizing_comm_ring_1_axioms =
-  comm_ring_1_axioms [normalizer
-    semiring ops: normalizing_semiring_ops
-    semiring rules: normalizing_semiring_rules
-    ring ops: normalizing_ring_ops
-    ring rules: normalizing_ring_rules]
+declaration \<open>Semiring_Normalizer.declare @{thm comm_ring_1_axioms}
+  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_semiring_1_axioms},
+    ring = ([@{cpat "?x - ?y"}, @{cpat "- ?x"}], @{thms normalizing_ring_rules}), field = ([], []), idom = [], ideal = []}\<close>
 
 end
 
 context comm_semiring_1_cancel_crossproduct
 begin
 
-lemmas
-  normalizing_comm_semiring_1_cancel_crossproduct_axioms =
-  comm_semiring_1_cancel_crossproduct_axioms [normalizer
-    semiring ops: normalizing_semiring_ops
-    semiring rules: normalizing_semiring_rules
-    idom rules: crossproduct_noteq add_scale_eq_noteq]
+declaration \<open>Semiring_Normalizer.declare @{thm comm_semiring_1_cancel_crossproduct_axioms}
+  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_semiring_1_axioms},
+    ring = ([], []), field = ([], []), idom = @{thms crossproduct_noteq add_scale_eq_noteq}, ideal = []}\<close>
 
 end
 
 context idom
 begin
 
-lemmas normalizing_idom_axioms = idom_axioms [normalizer
-  semiring ops: normalizing_semiring_ops
-  semiring rules: normalizing_semiring_rules
-  ring ops: normalizing_ring_ops
-  ring rules: normalizing_ring_rules
-  idom rules: crossproduct_noteq add_scale_eq_noteq
-  ideal rules: right_minus_eq add_0_iff]
+declaration \<open>Semiring_Normalizer.declare @{thm idom_axioms}
+  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_ring_1_axioms},
+    ring = Semiring_Normalizer.the_ring @{context} @{thm comm_ring_1_axioms},
+    field = ([], []), idom = @{thms crossproduct_noteq add_scale_eq_noteq},
+    ideal = @{thms right_minus_eq add_0_iff}}\<close>
 
 end
 
 context field
 begin
 
-lemma normalizing_field_ops:
-  shows "TERM (x / y)" and "TERM (inverse x)" .
-
 lemmas normalizing_field_rules = divide_inverse inverse_eq_divide
 
-lemmas normalizing_field_axioms =
-  field_axioms [normalizer
-    semiring ops: normalizing_semiring_ops
-    semiring rules: normalizing_semiring_rules
-    ring ops: normalizing_ring_ops
-    ring rules: normalizing_ring_rules
-    field ops: normalizing_field_ops
-    field rules: normalizing_field_rules
-    idom rules: crossproduct_noteq add_scale_eq_noteq
-    ideal rules: right_minus_eq add_0_iff]
+declaration \<open>Semiring_Normalizer.declare @{thm field_axioms}
+  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm idom_axioms},
+    ring = Semiring_Normalizer.the_ring @{context} @{thm idom_axioms},
+    field = ([@{cpat "?x / ?y"}, @{cpat "inverse ?x"}], @{thms normalizing_field_rules}),
+    idom = Semiring_Normalizer.the_idom @{context} @{thm idom_axioms},
+    ideal = Semiring_Normalizer.the_ideal @{context} @{thm idom_axioms}}\<close>
 
 end
 
-hide_fact (open) normalizing_comm_semiring_1_axioms
-  normalizing_comm_semiring_1_cancel_crossproduct_axioms normalizing_semiring_ops normalizing_semiring_rules
+hide_fact (open) normalizing_semiring_rules
 
-hide_fact (open) normalizing_comm_ring_1_axioms
-  normalizing_idom_axioms normalizing_ring_ops normalizing_ring_rules
+hide_fact (open) normalizing_ring_rules
 
-hide_fact (open) normalizing_field_axioms normalizing_field_ops normalizing_field_rules
+hide_fact (open) normalizing_field_rules
 
 code_identifier
   code_module Semiring_Normalization \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
