@@ -747,9 +747,6 @@ subsection {* Setting up simplification procedures *}
 lemmas of_int_simps =
   of_int_0 of_int_1 of_int_add of_int_mult
 
-lemmas int_arith_rules =
-  numeral_One more_arith_simps of_nat_simps of_int_simps
-
 ML_file "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
 

@@ -1914,9 +1914,6 @@ lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
 
 text {* Tool setup *}
 
-(* FIXME: Theorem list add_0s doesn't exist, because Numeral0 has gone. *)
-lemmas add_0s = add_0_left add_0_right
-
 ML {*
 structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 (
@@ -1929,7 +1926,7 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
-    (@{thm diff_conv_add_uminus} :: @{thms add_0s} @ @{thms ac_simps}))
+    (@{thm diff_conv_add_uminus} :: @{thms add_0_left add_0_right} @ @{thms ac_simps}))
 )
 *}
 

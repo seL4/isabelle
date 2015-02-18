@@ -177,7 +177,7 @@ val num_ss =
 val numeral_syms = [@{thm numeral_1_eq_1} RS sym];
 
 (*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
-val add_0s =  @{thms add_0s};
+val add_0s =  @{thms add_0_left add_0_right};
 val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minus1 mult_minus1_right divide_1};
 
 (* For post-simplification of the rhs of simproc-generated rules *)
