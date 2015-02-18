@@ -718,16 +718,6 @@ lemma mult_le_less_imp_less:
   apply simp
   done
 
-lemma mult_less_imp_less_left:
-  assumes "c * a < c * b" and "0 \<le> c"
-  shows "a < b"
-  using assms by (fact mult_left_less_imp_less)
-
-lemma mult_less_imp_less_right:
-  assumes less: "a * c < b * c" and nonneg: "0 \<le> c"
-  shows "a < b"
-  using assms by (fact mult_right_less_imp_less)
-
 end
 
 class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1

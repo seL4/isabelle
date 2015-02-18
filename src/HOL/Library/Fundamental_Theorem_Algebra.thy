@@ -217,7 +217,7 @@ proof (induct n rule: nat_less_induct)
       using b v
       apply (simp add: th2)
       done
-    from mult_less_imp_less_left[OF th4 th3]
+    from mult_left_less_imp_less[OF th4 th3]
     have "?P ?w n" unfolding th1 .
     then have "\<exists>z. ?P z n" ..
   }

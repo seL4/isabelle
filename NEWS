@@ -68,6 +68,11 @@ token category instead.
 
 *** HOL ***
 
+* Eliminated fact duplicates:
+  mult_less_imp_less_right ~> mult_right_less_imp_less
+  mult_less_imp_less_left ~> mult_left_less_imp_less
+Minor INCOMPATIBILITY.
+
 * Fact consolidation: even_less_0_iff is subsumed by
 double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
 

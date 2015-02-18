@@ -590,7 +590,7 @@ proof -
       then have "(1 - u) * b > (1 - u) * a"
         by (auto simp add:field_simps)
       then have "b \<ge> a"
-        apply (drule_tac mult_less_imp_less_left)
+        apply (drule_tac mult_left_less_imp_less)
         using u
         apply auto
         done
@@ -607,7 +607,7 @@ proof -
       then have "(1 - u) * a \<le> (1 - u) * b"
         apply -
         apply (rule mult_left_mono)
-        apply (drule mult_less_imp_less_left)
+        apply (drule mult_left_less_imp_less)
         using u
         apply auto
         done
@@ -671,7 +671,7 @@ proof -
       then have "(1 - u) * b > (1 - u) * a"
         by (auto simp add: field_simps)
       then have "b \<ge> a"
-        apply (drule_tac mult_less_imp_less_left)
+        apply (drule_tac mult_left_less_imp_less)
         using u
         apply auto
         done
@@ -688,7 +688,7 @@ proof -
       then have "(1 - u) * a \<le> (1 - u) * b"
         apply -
         apply (rule mult_left_mono)
-        apply (drule mult_less_imp_less_left)
+        apply (drule mult_left_less_imp_less)
         using u
         apply auto
         done
