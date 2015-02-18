@@ -549,7 +549,8 @@ lemma complex_derivative_compose_linear:
   "f complex_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
 apply (rule DERIV_imp_deriv)
 apply (simp add: DERIV_deriv_iff_complex_differentiable [symmetric])
-apply (metis DERIV_chain' DERIV_cmult_Id comm_semiring_1_class.normalizing_semiring_rules(7))  
+apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_cmult_Id])
+apply (simp add: algebra_simps)
 done
 
 subsection{*analyticity on a set*}

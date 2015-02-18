@@ -288,9 +288,8 @@ proof -
   thus ?thesis
   proof (intro bcontfunI)
     fix x assume "\<And>x. dist (f x) 0 \<le> y"
-    thus "dist (a *\<^sub>R f x) 0 \<le> abs a * y"
-      by (metis abs_ge_zero comm_semiring_1_class.normalizing_semiring_rules(7) mult_right_mono
-        norm_conv_dist norm_scaleR)
+    then show "dist (a *\<^sub>R f x) 0 \<le> abs a * y"
+      by (metis norm_cmul_rule_thm norm_conv_dist)
   qed (simp add: continuous_intros)
 qed
 

@@ -23,8 +23,8 @@ lemma bigo_pos_const:
   "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
-by (metis (no_types) abs_ge_zero
-      comm_semiring_1_class.normalizing_semiring_rules(7) mult.comm_neutral
+  by (metis (no_types) abs_ge_zero
+      algebra_simps mult.comm_neutral
       mult_nonpos_nonneg not_leE order_trans zero_less_one)
 
 (*** Now various verions with an increasing shrink factor ***)
@@ -131,8 +131,8 @@ by (auto simp add: bigo_def bigo_pos_const)
 lemma bigo_elt_subset [intro]: "f : O(g) \<Longrightarrow> O(f) \<le> O(g)"
 apply (auto simp add: bigo_alt_def)
 apply (rule_tac x = "ca * c" in exI)
-by (metis comm_semiring_1_class.normalizing_semiring_rules(7,19)
-          mult_le_cancel_left_pos order_trans mult_pos_pos)
+apply (metis algebra_simps mult_le_cancel_left_pos order_trans mult_pos_pos)
+done
 
 lemma bigo_refl [intro]: "f : O(f)"
 unfolding bigo_def mem_Collect_eq
@@ -232,9 +232,9 @@ lemma bigo_bounded2: "\<forall>x. lb x <= f x \<Longrightarrow> \<forall>x. f x 
 apply (rule set_minus_imp_plus)
 apply (rule bigo_bounded)
  apply (metis add_le_cancel_left diff_add_cancel diff_self minus_apply
-              comm_semiring_1_class.normalizing_semiring_rules(24))
+              algebra_simps)
 by (metis add_le_cancel_left diff_add_cancel func_plus le_fun_def
-          comm_semiring_1_class.normalizing_semiring_rules(24))
+          algebra_simps)
 
 lemma bigo_abs: "(\<lambda>x. abs(f x)) =o O(f)"
 apply (unfold bigo_def)
@@ -339,9 +339,7 @@ proof -
     then have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) : f *o O(g)"
       by auto
     also have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) = h"
-      apply (simp add: func_times)
-      by (metis (lifting, no_types) a eq_divide_imp ext
-                comm_semiring_1_class.normalizing_semiring_rules(7))
+      by (simp add: func_times fun_eq_iff a)
     finally show "h : f *o O(g)".
   qed
 qed
@@ -368,9 +366,8 @@ lemma bigo_minus [intro]: "f : O(g) \<Longrightarrow> - f : O(g)"
 by (auto simp add: bigo_def fun_Compl_def)
 
 lemma bigo_minus2: "f : g +o O(h) \<Longrightarrow> -f : -g +o O(h)"
-by (metis (no_types) bigo_elt_subset bigo_minus bigo_mult4 bigo_refl
-          comm_semiring_1_class.normalizing_semiring_rules(11) minus_mult_left
-          set_plus_mono_b)
+by (metis (no_types, lifting) bigo_minus diff_minus_eq_add minus_add_distrib
+    minus_minus set_minus_imp_plus set_plus_imp_minus)
 
 lemma bigo_minus3: "O(-f) = O(f)"
 by (metis bigo_elt_subset bigo_minus bigo_refl equalityI minus_minus)

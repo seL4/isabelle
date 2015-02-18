@@ -1263,8 +1263,7 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       case False
       hence "length (snd (rbtreeify_f n kvs)) = 
         length (snd (rbtreeify_f (Suc (2 * (n div 2))) kvs))"
-        by(metis Suc_eq_plus1_left comm_semiring_1_class.normalizing_semiring_rules(7)
-             mod_2_not_eq_zero_eq_one_nat semiring_div_class.mod_div_equality')
+        by (simp add: mod_eq_0_iff_dvd)
       also from "1.prems" `\<not> n \<le> 1` obtain k v kvs' 
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
       also have "0 < n div 2" using `\<not> n \<le> 1` by(simp) 
@@ -1328,8 +1327,7 @@ next
       case False
       hence "length (snd (rbtreeify_g n kvs)) = 
         length (snd (rbtreeify_g (Suc (2 * (n div 2))) kvs))"
-        by(metis Suc_eq_plus1_left comm_semiring_1_class.normalizing_semiring_rules(7) 
-            mod_2_not_eq_zero_eq_one_nat semiring_div_class.mod_div_equality')
+        by (simp add: mod_eq_0_iff_dvd)
       also from "2.prems" `1 < n` obtain k v kvs'
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
       also have "0 < n div 2" using `1 < n` by(simp)

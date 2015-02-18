@@ -191,9 +191,7 @@ next
       apply (subst (asm) continuous_at_right_real_increasing)
       using mono_F apply force
       apply (drule_tac x = "epsilon / 2" in spec)
-      using egt0 apply (auto simp add: field_simps)
-      by (metis add_less_cancel_left comm_monoid_add_class.add.right_neutral 
-        comm_semiring_1_class.normalizing_semiring_rules(24) mult_2 mult_2_right)
+      using egt0 unfolding mult.commute [of 2] by force
     then obtain a' where a'lea [arith]: "a' > a" and 
       a_prop: "F a' - F a < epsilon / 2"
       by auto

@@ -316,12 +316,10 @@ proof (induct n rule: int_induct_abs)
   case (less n)
   { fix m assume n: "n \<noteq> 0" "n = m * r"
     then have "\<bar>m \<bar> < \<bar>n\<bar>"
-      by (metis abs_dvd_iff abs_ge_self assms comm_semiring_1_class.normalizing_semiring_rules(7)
-                dvd_imp_le_int dvd_refl dvd_triv_right linorder_neq_iff linorder_not_le
-                mult_eq_0_iff zdvd_mult_cancel1)
+      using `1 < r` by (simp add: abs_mult)
     from less[OF this] n have "\<exists>k i. n = k * r ^ Suc i \<and> \<not> r dvd k" by auto }
   then show ?case
-    by (metis comm_semiring_1_class.normalizing_semiring_rules(12,7) dvdE power_0)
+    by (metis dvd_def monoid_mult_class.mult.right_neutral mult.commute power_0)
 qed
 
 lemma mult_powr_eq_mult_powr_iff_asym:
