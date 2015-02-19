@@ -682,8 +682,8 @@ proof -
     "x \<in> {a <..< b}"
     "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
   then show ?thesis
-    by (metis (erased, hide_lams) assms(1) diff_less_iff(1) eq_iff_diff_eq_0
-      linordered_field_class.sign_simps(41) nonzero_mult_divide_cancel_right not_real_square_gt_zero
+    by (metis (hide_lams) assms(1) diff_less_iff(1) eq_iff_diff_eq_0
+      zero_less_mult_iff nonzero_mult_divide_cancel_right not_real_square_gt_zero
       times_divide_eq_left)
 qed
 
