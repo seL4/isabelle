@@ -200,11 +200,11 @@ class comm_monoid_add = zero + ab_semigroup_add +
   assumes add_0: "0 + a = a"
 begin
 
-sublocale add!: comm_monoid plus 0
-  by default (insert add_0, simp add: ac_simps)
-
 subclass monoid_add
-  by default (fact add.left_neutral add.right_neutral)+
+  by default (simp_all add: add_0 add.commute [of _ 0])
+
+sublocale add!: comm_monoid plus 0
+  by default (simp add: ac_simps)
 
 end
 
@@ -225,11 +225,11 @@ class comm_monoid_mult = one + ab_semigroup_mult +
   assumes mult_1: "1 * a = a"
 begin
 
-sublocale mult!: comm_monoid times 1
-  by default (insert mult_1, simp add: ac_simps)
-
 subclass monoid_mult
-  by default (fact mult.left_neutral mult.right_neutral)+
+  by default (simp_all add: mult_1 mult.commute [of _ 1])
+
+sublocale mult!: comm_monoid times 1
+  by default (simp add: ac_simps)
 
 end
 

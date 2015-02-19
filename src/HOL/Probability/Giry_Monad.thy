@@ -130,7 +130,7 @@ locale pair_subprob_space =
 sublocale pair_subprob_space \<subseteq> P: subprob_space "M1 \<Otimes>\<^sub>M M2"
 proof
   have "\<And>a b. \<lbrakk>a \<ge> 0; b \<ge> 0; a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a * b \<le> (1::ereal)"
-    by (metis comm_monoid_mult_class.mult.left_neutral dual_order.trans ereal_mult_right_mono)
+    by (metis monoid_mult_class.mult.left_neutral dual_order.trans ereal_mult_right_mono)
   from this[OF _ _ M1.emeasure_space_le_1 M2.emeasure_space_le_1]
     show "emeasure (M1 \<Otimes>\<^sub>M M2) (space (M1 \<Otimes>\<^sub>M M2)) \<le> 1"
     by (simp add: M2.emeasure_pair_measure_Times space_pair_measure emeasure_nonneg)

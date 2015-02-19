@@ -111,7 +111,7 @@ proof -
     assume e: "y \<le> (int p - 1) div 2"
     from a p_a_relprime p_prime a_nonzero cong_mult_rcancel_int [of _ a x y]
     have "[x = y](mod p)"
-      by (metis comm_monoid_mult_class.mult.left_neutral cong_dvd_modulus_int cong_mult_rcancel_int 
+      by (metis monoid_mult_class.mult.left_neutral cong_dvd_modulus_int cong_mult_rcancel_int 
                 cong_mult_self_int gcd_int.commute prime_imp_coprime_int)
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
         order_le_less_trans [of x "(int p - 1) div 2" p]
