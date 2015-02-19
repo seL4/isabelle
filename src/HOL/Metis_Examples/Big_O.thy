@@ -457,9 +457,9 @@ proof -
   hence F4: "\<exists>(u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0\<Colon>'a) \<le> \<bar>inverse c\<bar>"
     using F3 by metis
   hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
-    by (metis comm_mult_left_mono)
+    by (metis mult_left_mono)
   thus "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. \<bar>inverse c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
-    using A2 F4 by (metis mult.assoc comm_mult_left_mono)
+    using A2 F4 by (metis mult.assoc mult_left_mono)
 qed
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"

@@ -976,8 +976,7 @@ next
     apply (auto split: split_if_asm)
     done
   have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)"
-    unfolding field_divide_inverse
-    by (simp add: continuous_intros)
+    by (auto intro!: continuous_intros)
   then show ?thesis
     unfolding * **
     using path_connected_punctured_universe[OF assms]

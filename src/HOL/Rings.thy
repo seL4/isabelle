@@ -1259,6 +1259,8 @@ lemma abs_diff_less_iff:
 
 end
 
+hide_fact (open) comm_mult_left_mono comm_mult_strict_left_mono distrib
+
 code_identifier
   code_module Rings \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 

@@ -710,7 +710,7 @@ lemma coeffs_uminus [code abstract]:
 lemma [code]:
   fixes p q :: "'a::ab_group_add poly"
   shows "p - q = p + - q"
-  by (fact ab_add_uminus_conv_diff)
+  by (fact diff_conv_add_uminus)
 
 lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
   apply (induct p arbitrary: q, simp)
@@ -1518,7 +1518,7 @@ lemma pdivmod_rel_add_left:
   assumes "pdivmod_rel x' y q' r'"
   shows "pdivmod_rel (x + x') y (q + q') (r + r')"
   using assms unfolding pdivmod_rel_def
-  by (auto simp add: distrib degree_add_less)
+  by (auto simp add: algebra_simps degree_add_less)
 
 lemma poly_div_add_left:
   fixes x y z :: "'a::field poly"

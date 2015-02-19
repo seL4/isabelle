@@ -68,6 +68,14 @@ token category instead.
 
 *** HOL ***
 
+* Qualified some duplicated fact names required for boostrapping
+the type class hierarchy:
+  ab_add_uminus_conv_diff ~> diff_conv_add_uminus
+  field_inverse_zero ~> inverse_zero
+  field_divide_inverse ~> divide_inverse
+  field_inverse ~> left_inverse
+Minor INCOMPATIBILITY.
+
 * Eliminated fact duplicates:
   mult_less_imp_less_right ~> mult_right_less_imp_less
   mult_less_imp_less_left ~> mult_left_less_imp_less

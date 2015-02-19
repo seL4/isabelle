@@ -518,11 +518,11 @@ end
 
 class ab_group_add = minus + uminus + comm_monoid_add +
   assumes ab_left_minus: "- a + a = 0"
-  assumes ab_add_uminus_conv_diff: "a - b = a + (- b)"
+  assumes ab_diff_conv_add_uminus: "a - b = a + (- b)"
 begin
 
 subclass group_add
-  proof qed (simp_all add: ab_left_minus ab_add_uminus_conv_diff)
+  proof qed (simp_all add: ab_left_minus ab_diff_conv_add_uminus)
 
 subclass cancel_comm_monoid_add
 proof
@@ -1375,6 +1375,7 @@ qed
 
 end
 
+hide_fact (open) ab_diff_conv_add_uminus add_imp_eq
 
 subsection {* Tools setup *}
 

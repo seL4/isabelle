@@ -239,7 +239,7 @@ proof
       by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
       assume "a * b * d * d \<le> b * b * c * d"
       then show "a * b * d * d * e * e * e * e \<le> b * b * c * d * e * e * e * e"
-        using e2 by (metis comm_mult_left_mono mult.commute linorder_le_cases
+        using e2 by (metis mult_left_mono mult.commute linorder_le_cases
           mult_left_mono_neg)
     qed
   show "q < r ==> 0 < s ==> s * q < s * r" unfolding less_rat_def
@@ -249,7 +249,7 @@ proof
     have "a * b * d * d * (e * f) \<le> b * b * c * d * (e * f)" using a
       by (simp add: mult_right_mono)
     then show "a * b * d * d * e * f * f * f \<le> b * b * c * d * e * f * f * f"
-      by (simp add: mult.assoc[symmetric]) (metis a(3) comm_mult_left_mono
+      by (simp add: mult.assoc[symmetric]) (metis a(3) mult_left_mono
         mult.commute mult_left_mono_neg zero_le_mult_iff)
   qed
   show "\<exists>z. r \<le> of_int z"

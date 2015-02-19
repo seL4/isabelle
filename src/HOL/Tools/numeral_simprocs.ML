@@ -718,9 +718,9 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_divide_eq_right"},
            @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
            @{thm "add_divide_distrib"} RS sym,
-           @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
+           @{thm Fields.field_divide_inverse} RS sym, @{thm inverse_divide}, 
            Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult.commute}))))   
-           (@{thm field_divide_inverse} RS sym)]
+           (@{thm Fields.field_divide_inverse} RS sym)]
 
 val field_comp_ss =
   simpset_of

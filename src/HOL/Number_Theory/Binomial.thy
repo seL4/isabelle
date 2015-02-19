@@ -161,7 +161,7 @@ next
     using Suc.hyps by simp
   also have "\<dots> = a*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
                    b*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
-    by (rule distrib)
+    by (rule distrib_right)
   also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
                   (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
     by (auto simp add: setsum_right_distrib ac_simps)

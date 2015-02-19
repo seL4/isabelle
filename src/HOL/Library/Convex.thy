@@ -329,7 +329,7 @@ proof -
   have "u * f x + v * f y \<le> u * max (f x) (f y) + v * max (f x) (f y)"
     using assms(4,5) by (auto simp add: mult_left_mono add_mono)
   also have "\<dots> = max (f x) (f y)"
-    using assms(6) unfolding distrib[symmetric] by auto
+    using assms(6) by (simp add: distrib_right [symmetric]) 
   finally show ?thesis
     using assms unfolding convex_on_def by fastforce
 qed

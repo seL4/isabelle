@@ -1204,7 +1204,9 @@ qed
 
 end
 
+hide_fact (open) field_inverse field_divide_inverse field_inverse_zero
+
 code_identifier
   code_module Fields \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
-
+ 
 end

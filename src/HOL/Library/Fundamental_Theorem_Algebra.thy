@@ -810,7 +810,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       from t inv0 have "t * (cmod w ^ (k + 1) * m) < 1"
         by (simp add: field_simps)
       with zero_less_power[OF t(1), of k] have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1"
-        by (metis comm_mult_strict_left_mono)
+        by simp
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k + 1) * cmod (poly s ?w)))"
         using w0 t(1)
         by (simp add: algebra_simps power_mult_distrib norm_power norm_mult)

@@ -1963,7 +1963,7 @@ lemma union_left_cancel: "K + M = K + N \<longleftrightarrow> M = (N::'a multise
   by (fact add_left_cancel)
 
 lemma multi_union_self_other_eq: "(A::'a multiset) + X = A + Y \<Longrightarrow> X = Y"
-  by (fact add_imp_eq)
+  by (fact add_left_imp_eq)
 
 lemma mset_less_trans: "(M::'a multiset) < K \<Longrightarrow> K < N \<Longrightarrow> M < N"
   by (fact order_less_trans)

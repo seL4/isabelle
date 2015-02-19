@@ -24,13 +24,13 @@ proof (rule notI)
   assume nz: "r\<noteq> 0" and cnd: "a = b \<and> c\<noteq>d"
     and eq: "a + (r * c) = b + (r * d)"
   have "(0 * d) + (r * c) = (0 * c) + (r * d)"
-    using add_imp_eq eq mult_zero_left by (simp add: cnd)
+    using add_left_imp_eq eq mult_zero_left by (simp add: cnd)
   then show False using crossproduct_eq [of 0 d] nz cnd by simp
 qed
 
 lemma add_0_iff:
   "b = b + a \<longleftrightarrow> a = 0"
-  using add_imp_eq [of b a 0] by auto
+  using add_left_imp_eq [of b a 0] by auto
 
 end
 

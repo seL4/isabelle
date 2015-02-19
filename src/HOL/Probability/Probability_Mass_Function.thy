@@ -582,14 +582,14 @@ proof
   (* Proof by Manuel Eberl *)
 
   have summable: "summable (\<lambda>x::nat. rate ^ x / fact x)" using summable_exp
-    by (simp add: field_simps field_divide_inverse[symmetric])
+    by (simp add: field_simps divide_inverse [symmetric])
   have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x * exp (-rate) \<partial>count_space UNIV) =
           exp (-rate) * (\<integral>\<^sup>+(x::nat). rate ^ x / fact x \<partial>count_space UNIV)"
     by (simp add: field_simps nn_integral_cmult[symmetric])
   also from rate_pos have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x \<partial>count_space UNIV) = (\<Sum>x. rate ^ x / fact x)"
     by (simp_all add: nn_integral_count_space_nat suminf_ereal summable suminf_ereal_finite)
   also have "... = exp rate" unfolding exp_def
-    by (simp add: field_simps field_divide_inverse[symmetric] transfer_int_nat_factorial)
+    by (simp add: field_simps divide_inverse [symmetric] transfer_int_nat_factorial)
   also have "ereal (exp (-rate)) * ereal (exp rate) = 1"
     by (simp add: mult_exp_exp)
   finally show "(\<integral>\<^sup>+ x. ereal (rate ^ x / real (fact x) * exp (- rate)) \<partial>count_space UNIV) = 1" .
