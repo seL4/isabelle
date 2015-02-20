@@ -566,53 +566,67 @@ proof-
   then show ?thesis using kn by simp
 qed
 
-(* Contributed by Manuel Eberl *)
-(* Alternative definition of the binomial coefficient as \<Prod>i<k. (n - i) / (k - i) *)
-lemma binomial_altdef_of_nat:
-  fixes n k :: nat
+text{*Contributed by Manuel Eberl, generalised by LCP.
+  Alternative definition of the binomial coefficient as @{term "\<Prod>i<k. (n - i) / (k - i)"} *}
+lemma gbinomial_altdef_of_nat:
+  fixes k :: nat
     and x :: "'a :: {field_char_0,field_inverse_zero}"
-  assumes "k \<le> n"
-  shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
-proof (cases "0 < k")
-  case True
-  then have "(of_nat (n choose k) :: 'a) = (\<Prod>i<k. of_nat n - of_nat i) / of_nat (fact k)"
-    unfolding binomial_gbinomial gbinomial_def
+  shows "x gchoose k = (\<Prod>i<k. (x - of_nat i) / of_nat (k - i) :: 'a)"
+proof -
+  have "(x gchoose k) = (\<Prod>i<k. x - of_nat i) / of_nat (fact k)"
+    unfolding gbinomial_def
     by (auto simp: gr0_conv_Suc lessThan_Suc_atMost atLeast0AtMost)
-  also have "\<dots> = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
-    using `k \<le> n` unfolding fact_eq_rev_setprod_nat of_nat_setprod
+  also have "\<dots> = (\<Prod>i<k. (x - of_nat i) / of_nat (k - i) :: 'a)"
+    unfolding fact_eq_rev_setprod_nat of_nat_setprod
     by (auto simp add: setprod_dividef intro!: setprod.cong of_nat_diff[symmetric])
   finally show ?thesis .
-next
-  case False
-  then show ?thesis by simp
 qed
+
+lemma gbinomial_ge_n_over_k_pow_k:
+  fixes k :: nat
+    and x :: "'a :: linordered_field_inverse_zero"
+  assumes "of_nat k \<le> x"
+  shows "(x / of_nat k :: 'a) ^ k \<le> x gchoose k"
+proof -
+  have x: "0 \<le> x"
+    using assms of_nat_0_le_iff order_trans by blast
+  have "(x / of_nat k :: 'a) ^ k = (\<Prod>i<k. x / of_nat k :: 'a)"
+    by (simp add: setprod_constant)
+  also have "\<dots> \<le> x gchoose k"
+    unfolding gbinomial_altdef_of_nat
+  proof (safe intro!: setprod_mono)
+    fix i :: nat
+    assume ik: "i < k"
+    from assms have "x * of_nat i \<ge> of_nat (i * k)"
+      by (metis mult.commute mult_le_cancel_right of_nat_less_0_iff of_nat_mult)
+    then have "x * of_nat k - x * of_nat i \<le> x * of_nat k - of_nat (i * k)" by arith
+    then have "x * of_nat (k - i) \<le> (x - of_nat i) * of_nat k"
+      using ik 
+      by (simp add: algebra_simps zero_less_mult_iff of_nat_diff of_nat_mult)
+    then have "x * of_nat (k - i) \<le> (x - of_nat i) * (of_nat k :: 'a)"
+      unfolding of_nat_mult[symmetric] of_nat_le_iff .
+    with assms show "x / of_nat k \<le> (x - of_nat i) / (of_nat (k - i) :: 'a)"
+      using `i < k` by (simp add: field_simps)
+  qed (simp add: x zero_le_divide_iff)
+  finally show ?thesis .
+qed
+
+text{*Versions of the theorems above for the natural-number version of "choose"*}
+lemma binomial_altdef_of_nat:
+  fixes n k :: nat
+    and x :: "'a :: {field_char_0,field_inverse_zero}"  --{*the point is to constrain @{typ 'a}}*}
+  assumes "k \<le> n"
+  shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
+using assms
+by (simp add: gbinomial_altdef_of_nat binomial_gbinomial of_nat_diff)
 
 lemma binomial_ge_n_over_k_pow_k:
   fixes k n :: nat
     and x :: "'a :: linordered_field_inverse_zero"
-  assumes "0 < k"
-    and "k \<le> n"
+  assumes "k \<le> n"
   shows "(of_nat n / of_nat k :: 'a) ^ k \<le> of_nat (n choose k)"
-proof -
-  have "(of_nat n / of_nat k :: 'a) ^ k = (\<Prod>i<k. of_nat n / of_nat k :: 'a)"
-    by (simp add: setprod_constant)
-  also have "\<dots> \<le> of_nat (n choose k)"
-    unfolding binomial_altdef_of_nat[OF `k\<le>n`]
-  proof (safe intro!: setprod_mono)
-    fix i :: nat
-    assume  "i < k"
-    from assms have "n * i \<ge> i * k" by simp
-    then have "n * k - n * i \<le> n * k - i * k" by arith
-    then have "n * (k - i) \<le> (n - i) * k"
-      by (simp add: diff_mult_distrib2 mult.commute)
-    then have "of_nat n * of_nat (k - i) \<le> of_nat (n - i) * (of_nat k :: 'a)"
-      unfolding of_nat_mult[symmetric] of_nat_le_iff .
-    with assms show "of_nat n / of_nat k \<le> of_nat (n - i) / (of_nat (k - i) :: 'a)"
-      using `i < k` by (simp add: field_simps)
-  qed (simp add: zero_le_divide_iff)
-  finally show ?thesis .
-qed
-
+by (simp add: assms gbinomial_ge_n_over_k_pow_k binomial_gbinomial of_nat_diff)  
+  
 lemma binomial_le_pow:
   assumes "r \<le> n"
   shows "n choose r \<le> n ^ r"
