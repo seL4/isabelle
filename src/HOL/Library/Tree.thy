@@ -66,6 +66,36 @@ fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
 lemma (in linorder) bst_imp_sorted: "bst t \<Longrightarrow> sorted (inorder t)"
 by (induction t) (auto simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
 
+text{* In case there are duplicates: *}
+
+fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
+"bst_eq \<langle>\<rangle> \<longleftrightarrow> True" |
+"bst_eq \<langle>l,a,r\<rangle> \<longleftrightarrow>
+ bst_eq l \<and> bst_eq r \<and> (\<forall>x\<in>set_tree l. x \<le> a) \<and> (\<forall>x\<in>set_tree r. a \<le> x)"
+
+lemma (in linorder) bst_eq_imp_sorted: "bst_eq t \<Longrightarrow> sorted (inorder t)"
+apply (induction t)
+ apply(simp)
+by (fastforce simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
+
+subsection "Function @{text mirror}"
+
+fun mirror :: "'a tree \<Rightarrow> 'a tree" where
+"mirror \<langle>\<rangle> = Leaf" |
+"mirror \<langle>l,x,r\<rangle> = \<langle>mirror r, x, mirror l\<rangle>"
+
+lemma mirror_Leaf[simp]: "mirror t = \<langle>\<rangle> \<longleftrightarrow> t = \<langle>\<rangle>"
+by (induction t) simp_all
+
+lemma size_mirror[simp]: "size(mirror t) = size t"
+by (induction t) simp_all
+
+lemma size1_mirror[simp]: "size1(mirror t) = size1 t"
+by (simp add: size1_def)
+
+lemma mirror_mirror[simp]: "mirror(mirror t) = t"
+by (induction t) simp_all
+
 
 subsection "Deletion of the rightmost entry"
 
