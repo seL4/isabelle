@@ -161,16 +161,18 @@ val ringN = "ring";
 val fieldN = "field";
 val idomN = "idom";
 
-fun declare raw_key raw_entry = fn phi => fn context => 
+fun declare raw_key
+    {semiring = raw_semiring, ring = raw_ring, field = raw_field, idom = raw_idom, ideal = raw_ideal}
+    phi context =
   let
     val ctxt = Context.proof_of context;
     val key = Morphism.thm phi raw_key;
     fun morphism_ops_rules (ops, rules) = (map (Morphism.cterm phi) ops, Morphism.fact phi rules);
-    val (sr_ops, sr_rules) = morphism_ops_rules (#semiring raw_entry);
-    val (r_ops, r_rules) = morphism_ops_rules (#ring raw_entry);
-    val (f_ops, f_rules) = morphism_ops_rules (#field raw_entry);
-    val idom = Morphism.fact phi (#idom raw_entry);
-    val ideal = Morphism.fact phi (#ideal raw_entry);
+    val (sr_ops, sr_rules) = morphism_ops_rules raw_semiring;
+    val (r_ops, r_rules) = morphism_ops_rules raw_ring;
+    val (f_ops, f_rules) = morphism_ops_rules raw_field;
+    val idom = Morphism.fact phi raw_idom;
+    val ideal = Morphism.fact phi raw_ideal;
 
     fun check kind name xs n =
       null xs orelse length xs = n orelse
