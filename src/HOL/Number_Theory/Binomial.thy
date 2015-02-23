@@ -614,7 +614,7 @@ qed
 text{*Versions of the theorems above for the natural-number version of "choose"*}
 lemma binomial_altdef_of_nat:
   fixes n k :: nat
-    and x :: "'a :: {field_char_0,field_inverse_zero}"  --{*the point is to constrain @{typ 'a}}*}
+    and x :: "'a :: {field_char_0,field_inverse_zero}"  --{*the point is to constrain @{typ 'a}*}
   assumes "k \<le> n"
   shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
 using assms
