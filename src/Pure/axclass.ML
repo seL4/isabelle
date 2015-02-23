@@ -457,7 +457,7 @@ fun prove_arity raw_arity tac thy =
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths =
-      Goal.prove_multi ctxt [] [] props
+      Goal.prove_common ctxt NONE [] [] props
       (fn {context, ...} => Goal.precise_conjunction_tac (length props) 1 THEN tac context)
         handle ERROR msg =>
           cat_error msg ("The error(s) above occurred while trying to prove type arity " ^

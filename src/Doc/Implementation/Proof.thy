@@ -402,7 +402,8 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
-  @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
+  @{index_ML Goal.prove_common: "Proof.context -> int option ->
+  string list -> term list -> term list ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   \end{mldecls}
   \begin{mldecls}
@@ -436,10 +437,22 @@ text %mlref \<open>
   it.  The latter may depend on the local assumptions being presented
   as facts.  The result is in HHF normal form.
 
-  \item @{ML Goal.prove_multi} is similar to @{ML Goal.prove}, but
-  states several conclusions simultaneously.  The goal is encoded by
-  means of Pure conjunction; @{ML Goal.conjunction_tac} will turn this
-  into a collection of individual subgoals.
+  \item @{ML Goal.prove_common}~@{text "ctxt fork_pri"} is the general form
+  to state and prove a simultaneous goal statement, where @{ML Goal.prove}
+  is a convenient shorthand for the most common application.
+
+  The given list of simultaneous conclusions is encoded in the goal state by
+  means of Pure conjunction: @{ML Goal.conjunction_tac} will turn this into
+  a collection of individual subgoals, but note that the original multi-goal
+  state is usually required for advanced induction.
+
+  It is possible to provide an optional priority for a forked proof,
+  typically @{ML "SOME ~1"}, while @{ML NONE} means the proof is immediate
+  (sequential) as for @{ML Goal.prove}. Note that a forked proof does not
+  exhibit any failures in the usual way via exceptions in ML, but
+  accumulates error situations under the execution id of the running
+  transaction. Thus the system is able to expose error messages ultimately
+  to the end-user, even though the subsequent ML code misses them.
 
   \item @{ML Obtain.result}~@{text "tac thms ctxt"} eliminates the
   given facts using a tactic, which results in additional fixed

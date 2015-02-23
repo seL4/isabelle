@@ -282,6 +282,9 @@ INCOMPATIBILITY.
 * Synchronized.value (ML) is actually synchronized (as in Scala):
 subtle change of semantics with minimal potential for INCOMPATIBILITY.
 
+* Goal.prove_multi is superseded by the fully general Goal.prove_common,
+which also allows to specify a fork priority.
+
 
 *** System ***
 

@@ -28,7 +28,7 @@ sig
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
   val is_schematic: term -> bool
-  val prove_multi: Proof.context -> string list -> term list -> term list ->
+  val prove_common: Proof.context -> int option -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
   val prove_future: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
@@ -176,11 +176,12 @@ fun is_schematic t =
   Term.exists_subterm Term.is_Var t orelse
   Term.exists_type (Term.exists_subtype Term.is_TVar) t;
 
-fun prove_common immediate pri ctxt xs asms props tac =
+fun prove_common ctxt fork_pri xs asms props tac =
   let
     val thy = Proof_Context.theory_of ctxt;
 
     val schematic = exists is_schematic props;
+    val immediate = is_none fork_pri;
     val future = future_enabled 1;
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
@@ -229,7 +230,8 @@ fun prove_common immediate pri ctxt xs asms props tac =
       if immediate orelse schematic orelse not future orelse skip then result ()
       else
         future_result ctxt'
-          (Execution.fork {name = "Goal.prove", pos = Position.thread_data (), pri = pri} result)
+          (Execution.fork {name = "Goal.prove", pos = Position.thread_data (), pri = the fork_pri}
+            result)
           (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
@@ -238,14 +240,12 @@ fun prove_common immediate pri ctxt xs asms props tac =
     |> map Drule.zero_var_indexes
   end;
 
-val prove_multi = prove_common true 0;
+fun prove_future_pri ctxt pri xs asms prop tac =
+  hd (prove_common ctxt (SOME pri) xs asms [prop] tac);
 
-fun prove_future_pri pri ctxt xs asms prop tac =
-  hd (prove_common false pri ctxt xs asms [prop] tac);
+fun prove_future ctxt = prove_future_pri ctxt ~1;
 
-val prove_future = prove_future_pri ~1;
-
-fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
+fun prove ctxt xs asms prop tac = hd (prove_common ctxt NONE xs asms [prop] tac);
 
 fun prove_global_future thy xs asms prop tac =
   Drule.export_without_context (prove_future (Proof_Context.init_global thy) xs asms prop tac);
@@ -256,7 +256,7 @@ fun prove_global thy xs asms prop tac =
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
     prove ctxt xs asms prop (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt))
-  else (if future_enabled 1 then prove_future_pri ~2 else prove) ctxt xs asms prop tac;
+  else (if future_enabled 1 then prove_future_pri ctxt ~2 else prove ctxt) xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =
   Drule.export_without_context
