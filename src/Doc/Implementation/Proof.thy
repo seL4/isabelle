@@ -437,9 +437,9 @@ text %mlref \<open>
   it.  The latter may depend on the local assumptions being presented
   as facts.  The result is in HHF normal form.
 
-  \item @{ML Goal.prove_common}~@{text "ctxt fork_pri"} is the general form
+  \item @{ML Goal.prove_common}~@{text "ctxt fork_pri"} is the common form
   to state and prove a simultaneous goal statement, where @{ML Goal.prove}
-  is a convenient shorthand for the most common application.
+  is a convenient shorthand that is most frequently used in applications.
 
   The given list of simultaneous conclusions is encoded in the goal state by
   means of Pure conjunction: @{ML Goal.conjunction_tac} will turn this into
