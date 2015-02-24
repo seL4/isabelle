@@ -1,6 +1,6 @@
 #main components for everyday use, without big impact on overall build time
 csdp-6.x
-cvc4-1.5pre
+cvc4-1.5pre-1
 e-1.8
 exec_process-1.0.3
 Haskabelle-2014
