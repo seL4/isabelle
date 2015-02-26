@@ -188,7 +188,7 @@ is short for
 \end{quote}
 The key characteristics of both @{text simp} and @{text auto} are
 \begin{itemize}
-\item They show you were they got stuck, giving you an idea how to continue.
+\item They show you where they got stuck, giving you an idea how to continue.
 \item They perform the obvious steps but are highly incomplete.
 \end{itemize}
 A proof method is \conceptnoidx{complete} if it can prove all true formulas.
