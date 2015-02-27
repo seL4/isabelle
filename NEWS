@@ -6,25 +6,25 @@ New in this Isabelle version
 
 *** General ***
 
-* Commands 'method_setup' and 'attribute_setup' now work within a
-local theory context.
+* Commands 'method_setup' and 'attribute_setup' now work within a local
+theory context.
 
 * Command 'named_theorems' declares a dynamic fact within the context,
-together with an attribute to maintain the content incrementally.
-This supersedes functor Named_Thms, but with a subtle change of
-semantics due to external visual order vs. internal reverse order.
+together with an attribute to maintain the content incrementally. This
+supersedes functor Named_Thms, but with a subtle change of semantics due
+to external visual order vs. internal reverse order.
 
 * Command 'notepad' requires proper nesting of begin/end and its proof
 structure in the body: 'oops' is no longer supported here. Minor
 INCOMPATIBILITY, use 'sorry' instead.
 
 * Outer syntax commands are managed authentically within the theory
-context, without implicit global state.  Potential for accidental
+context, without implicit global state. Potential for accidental
 INCOMPATIBILITY, make sure that required theories are really imported.
 
 * 'find_theorems': search patterns which are abstractions are
-schematcially expanded before search.  Search results match the
-naive expectation more closely, particularly wrt. abbreviations.
+schematcially expanded before search. Search results match the naive
+expectation more closely, particularly wrt. abbreviations.
 INCOMPATIBILITY.
 
 
@@ -33,12 +33,12 @@ INCOMPATIBILITY.
 * Old graph browser (Java/AWT 1.0) is superseded by improved graphview
 panel, which also includes PDF output.
 
-* Improved folding mode "isabelle" based on Isar syntax.
-Alternatively, the "sidekick" mode may be used for document structure.
+* Improved folding mode "isabelle" based on Isar syntax. Alternatively,
+the "sidekick" mode may be used for document structure.
 
-* Extended bracket matching based on Isar language structure.  System
-option jedit_structure_limit determines maximum number of lines to
-scan in the buffer.
+* Extended bracket matching based on Isar language structure. System
+option jedit_structure_limit determines maximum number of lines to scan
+in the buffer.
 
 * Support for BibTeX files: context menu, context-sensitive token
 marker, SideKick parser.
@@ -84,10 +84,11 @@ Minor INCOMPATIBILITY.
 * Fact consolidation: even_less_0_iff is subsumed by
 double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
 
-* Discontinued old-fashioned "codegen" tool.  Code generation can always
-be externally triggered using an appropriate ROOT file plus a corresponding
-theory.  Parametrization is possible using environment variables, or
-ML snippets in the most extreme cases.  Minor INCOMPATIBILITY.
+* Discontinued old-fashioned "codegen" tool. Code generation can always
+be externally triggered using an appropriate ROOT file plus a
+corresponding theory. Parametrization is possible using environment
+variables, or ML snippets in the most extreme cases. Minor
+INCOMPATIBILITY.
 
 * Add NO_MATCH-simproc, allows to check for syntactic non-equality
 
@@ -116,8 +117,8 @@ Fact rename:
     listsum_def ~> listsum.eq_foldr
 INCOMPATIBILITY.
 
-* Command and antiquotation "value" provide different evaluation slots (again),
-where the previous strategy (nbe after ML) serves as default.
+* Command and antiquotation "value" provide different evaluation slots
+(again), where the previous strategy (nbe after ML) serves as default.
 Minor INCOMPATIBILITY.
 
 * New (co)datatype package:
@@ -186,24 +187,24 @@ Minor INCOMPATIBILITY.
 
 * Old and new SMT modules:
   - The old 'smt' method has been renamed 'old_smt' and moved to
-    'src/HOL/Library/Old_SMT.thy'. It is provided for compatibility, until
-    applications have been ported to use the new 'smt' method. For the
-    method to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
-    installed, and the environment variable "OLD_Z3_SOLVER" must point to
-    it.
+    'src/HOL/Library/Old_SMT.thy'. It is provided for compatibility,
+    until applications have been ported to use the new 'smt' method. For
+    the method to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must
+    be installed, and the environment variable "OLD_Z3_SOLVER" must
+    point to it.
     INCOMPATIBILITY.
   - The 'smt2' method has been renamed 'smt'.
     INCOMPATIBILITY.
-  - New option 'smt_reconstruction_step_timeout' to limit the reconstruction
-    time of Z3 proof steps in the new 'smt' method.
+  - New option 'smt_reconstruction_step_timeout' to limit the
+    reconstruction time of Z3 proof steps in the new 'smt' method.
   - New option 'smt_statistics' to display statistics of the new 'smt'
     method, especially runtime statistics of Z3 proof reconstruction.
 
 * List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc
 
 * New infrastructure for compiling, running, evaluating and testing
-  generated code in target languages in HOL/Library/Code_Test. See
-  HOL/Codegenerator_Test/Code_Test* for examples.
+generated code in target languages in HOL/Library/Code_Test. See
+HOL/Codegenerator_Test/Code_Test* for examples.
 
 * Library/Sum_of_Squares: simplified and improved "sos" method. Always
 use local CSDP executable, which is much faster than the NEOS server.
@@ -222,7 +223,9 @@ argument. Minor INCOMPATIBILITY.
 * HOL-Probability: Reworked measurability prover
   - applies destructor rules repeatetly
   - removed application splitting (replaced by destructor rule)
-  - added congruence rules to rewrite measure spaces under the sets projection
+  - added congruence rules to rewrite measure spaces under the sets
+    projection
+
 
 *** Document preparation ***
 
