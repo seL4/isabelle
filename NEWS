@@ -23,7 +23,7 @@ context, without implicit global state. Potential for accidental
 INCOMPATIBILITY, make sure that required theories are really imported.
 
 * 'find_theorems': search patterns which are abstractions are
-schematcially expanded before search. Search results match the naive
+schematically expanded before search. Search results match the naive
 expectation more closely, particularly wrt. abbreviations.
 INCOMPATIBILITY.
 
