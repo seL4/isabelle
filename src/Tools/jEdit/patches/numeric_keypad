@@ -1,5 +1,6 @@
---- 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2013-07-28 19:03:38.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2013-09-10 21:55:21.220043663 +0200
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2015-02-02 02:14:28.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2015-02-28 20:56:06.676244609 +0100
 @@ -129,7 +129,7 @@
  		case KeyEvent.VK_OPEN_BRACKET :
  		case KeyEvent.VK_BACK_SLASH   :
@@ -18,7 +19,7 @@
  		case KeyEvent.VK_BACK_QUOTE:
  		case KeyEvent.VK_QUOTE:
  		case KeyEvent.VK_DEAD_GRAVE:
-@@ -202,28 +202,7 @@
+@@ -191,28 +191,7 @@
  	//{{{ isNumericKeypad() method
  	public static boolean isNumericKeypad(int keyCode)
  	{

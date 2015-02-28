@@ -1,18 +1,6 @@
-diff -ru jEdit/org/gjt/sp/jedit/gui/DockableWindowContainer.java jEdit-patched/org/gjt/sp/jedit/gui/DockableWindowContainer.java
---- jEdit/org/gjt/sp/jedit/gui/DockableWindowContainer.java	2013-07-28 19:03:36.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/gui/DockableWindowContainer.java	2014-05-11 19:41:50.786012120 +0200
-@@ -26,7 +26,7 @@
-  * @version $Id: DockableWindowContainer.java 21502 2012-03-29 17:19:44Z ezust $
-  * @since jEdit 2.6pre3
-  */
--interface DockableWindowContainer
-+public interface DockableWindowContainer
- {
- 	void register(DockableWindowManagerImpl.Entry entry);
- 	void remove(DockableWindowManagerImpl.Entry entry);
-diff -ru jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
---- jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2013-07-28 19:03:38.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2014-05-11 19:32:49.710039809 +0200
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2015-02-02 02:14:28.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2015-02-28 20:55:01.800035337 +0100
 @@ -35,7 +35,7 @@
  import javax.swing.Box;
  import javax.swing.BoxLayout;

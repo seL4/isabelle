@@ -1,6 +1,6 @@
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2013-07-28 19:03:38.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2013-09-05 10:51:29.192192327 +0200
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2015-02-02 02:14:28.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2015-02-28 20:55:21.136097582 +0100
 @@ -79,7 +79,7 @@
  			start = next;
  			token = token.next;
@@ -10,10 +10,10 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.1.0/jEdit-patched/o
  		{
  			JOptionPane.showMessageDialog(textArea.getView(),
  				jEdit.getProperty("syntax-style-no-token.message"),
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2013-07-28 19:03:51.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2013-09-05 10:51:29.192192327 +0200
-@@ -256,9 +256,9 @@
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2015-02-02 02:14:29.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2015-02-28 20:55:21.136097582 +0100
+@@ -259,9 +259,9 @@
  	//{{{ Package private members
  
  	//{{{ Instance variables
@@ -25,7 +25,7 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.1.0/jEdit-patched/org/
  	//}}}
  
  	//{{{ Chunk constructor
-@@ -506,7 +506,7 @@
+@@ -509,7 +509,7 @@
  	// this is either style.getBackgroundColor() or
  	// styles[defaultID].getBackgroundColor()
  	private Color background;
@@ -34,9 +34,9 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.1.0/jEdit-patched/org/
  	private GlyphVector[] glyphs;
  	//}}}
  
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2013-07-28 19:03:51.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2013-09-05 10:51:29.192192327 +0200
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2015-02-02 02:14:29.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2015-02-28 20:55:21.140097595 +0100
 @@ -57,7 +57,7 @@
  	 */
  	public static String tokenToString(byte token)
@@ -46,9 +46,9 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.1.0/jEdit-patched/org/
  	} //}}}
  
  	//{{{ Token types
-diff -ru 5.1.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
---- 5.1.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2013-07-28 19:03:53.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2013-09-05 10:51:29.192192327 +0200
+diff -ru 5.2.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.2.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 5.2.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2015-02-02 02:14:30.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2015-02-28 20:55:21.140097595 +0100
 @@ -194,7 +194,24 @@
  	{
  		return loadStyles(family,size,true);
@@ -88,10 +88,10 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.1.0/jEdit-patched/or
 +
  	private SyntaxUtilities(){}
  }
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2013-07-28 19:03:32.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2013-09-05 10:51:29.196192309 +0200
-@@ -907,6 +907,11 @@
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2015-02-02 02:14:27.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2015-02-28 20:55:21.140097595 +0100
+@@ -910,6 +910,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
  

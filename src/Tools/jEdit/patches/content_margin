@@ -1,6 +1,6 @@
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2013-07-28 19:03:36.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2014-11-04 17:51:00.000000000 +0100
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2015-02-02 02:14:27.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2015-02-28 20:54:24.803916543 +0100
 @@ -95,6 +95,7 @@
  			closeBox.putClientProperty("JButton.buttonType","toolbar");
  
@@ -25,9 +25,9 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java 5.1.0/jEdit-
  		button.setRequestFocusEnabled(false);
  		button.setIcon(new RotatedTextIcon(rotation,button.getFont(),
  			entry.shortTitle()));
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2013-07-28 19:03:53.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2014-11-04 17:52:52.000000000 +0100
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2015-02-02 02:14:29.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2015-02-28 20:54:24.803916543 +0100
 @@ -38,6 +38,7 @@
  import org.gjt.sp.jedit.textarea.TextAreaMouseHandler;
  import org.gjt.sp.util.Log;
@@ -36,7 +36,7 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.1.0/jEdit-patched/org/
  
  
  import java.net.URL;
-@@ -1833,6 +1834,21 @@
+@@ -1834,6 +1835,21 @@
  		return (View)getComponentParent(comp,View.class);
  	} //}}}
  
@@ -58,4 +58,3 @@ diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.1.0/jEdit-patched/org/
  	//{{{ addSizeSaver() method
  	/**
  	* Adds a SizeSaver to the specified Frame. For non-Frame's use {@link #saveGeometry(Window,String)}
-

@@ -327,12 +327,12 @@ then
   cd ../..
   rm -rf dist/classes
 
-  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.1.0manual-a4.pdf" dist/doc/jedit-manual.pdf
+  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.2.0manual-a4.pdf" dist/doc/jedit-manual.pdf
   cp dist/doc/CHANGES.txt dist/doc/jedit-changes
   cat > dist/doc/Contents <<EOF
 Original jEdit Documentation
-  jedit-manual    jEdit 5.1 User's Guide
-  jedit-changes   jEdit 5.1 Version History
+  jedit-manual    jEdit 5.2 User's Guide
+  jedit-changes   jEdit 5.2 Version History
 
 EOF
 

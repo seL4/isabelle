@@ -1,6 +1,6 @@
-diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java
---- 5.1.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java	2013-07-28 19:03:31.000000000 +0200
-+++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java	2014-10-26 15:23:15.176502388 +0100
+diff -ru 5.2.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java 5.2.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java
+--- 5.2.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java	2015-02-02 02:14:27.000000000 +0100
++++ 5.2.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java	2015-02-28 20:56:32.644328711 +0100
 @@ -201,8 +201,9 @@
  			int matchEndLine = textArea.getScreenLineOfOffset(
  				match.end);
