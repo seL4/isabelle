@@ -214,7 +214,7 @@ val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
 fun derived_def ctxt conditional prop =
   let
     val ((c, T), rhs) = prop
-      |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+      |> Proof_Context.cterm_of ctxt
       |> meta_rewrite_conv ctxt
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> conditional ? Logic.strip_imp_concl

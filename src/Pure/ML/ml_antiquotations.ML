@@ -62,22 +62,18 @@ val _ = Theory.setup
   ML_Antiquotation.inline @{binding prop} (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
 
   ML_Antiquotation.value @{binding ctyp} (Args.typ >> (fn T =>
-    "Thm.ctyp_of (Proof_Context.theory_of ML_context) " ^
-      ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
+    "Proof_Context.ctyp_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
 
   ML_Antiquotation.value @{binding cterm} (Args.term >> (fn t =>
-    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Proof_Context.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.value @{binding cprop} (Args.prop >> (fn t =>
-    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+    "Proof_Context.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.value @{binding cpat}
     (Args.context --
       Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_pattern >> (fn t =>
-        "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-          ML_Syntax.atomic (ML_Syntax.print_term t))));
+        "Proof_Context.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
 (* type classes *)

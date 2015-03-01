@@ -187,8 +187,7 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Proof_Context.cterm_of ctxt;
 
     val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
     val rule =
@@ -270,9 +269,8 @@ fun polymorphic ctxt vars =
 fun gen_guess prep_vars raw_vars int state =
   let
     val _ = Proof.assert_forward_or_chain state;
-    val thy = Proof.theory_of state;
-    val cert = Thm.cterm_of thy;
     val ctxt = Proof.context_of state;
+    val cert = Proof_Context.cterm_of ctxt;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);

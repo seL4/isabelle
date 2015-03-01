@@ -206,8 +206,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     (*result*)
     val def =
       Thm.transitive local_def global_def
-      |> Local_Defs.contract lthy3 defs
-          (Thm.cterm_of (Proof_Context.theory_of lthy3) (Logic.mk_equals (lhs, rhs)));
+      |> Local_Defs.contract lthy3 defs (Proof_Context.cterm_of lthy3 (Logic.mk_equals (lhs, rhs)));
     val ([(res_name, [res])], lthy4) = lthy3
       |> Local_Theory.notes [((if internal then Binding.empty else b_def, atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;

@@ -67,7 +67,7 @@ val focus = gen_focus (true, true);
 *)
 fun lift_import idx params th ctxt =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Proof_Context.cterm_of ctxt;
     val ((_, [th']), ctxt') = Variable.importT [th] ctxt;
 
     val Ts = map (#T o Thm.rep_cterm) params;

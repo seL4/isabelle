@@ -758,7 +758,7 @@ fun assumes_to_notes (Assumes asms) axms =
 
 fun defines_to_notes ctxt (Defines defs) =
       Notes ("", map (fn (a, (def, _)) =>
-        (a, [([Assumption.assume ctxt (cterm_of (Proof_Context.theory_of ctxt) def)],
+        (a, [([Assumption.assume ctxt (Proof_Context.cterm_of ctxt def)],
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;
 

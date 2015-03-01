@@ -11,6 +11,8 @@ sig
   val theory_of: Proof.context -> theory
   val init_global: theory -> Proof.context
   val get_global: theory -> string -> Proof.context
+  val cterm_of: Proof.context -> term -> cterm
+  val ctyp_of: Proof.context -> typ -> ctyp
   type mode
   val mode_default: mode
   val mode_stmt: mode
@@ -179,6 +181,9 @@ struct
 val theory_of = Proof_Context.theory_of;
 val init_global = Proof_Context.init_global;
 val get_global = Proof_Context.get_global;
+
+val cterm_of = Thm.cterm_of o theory_of;
+val ctyp_of = Thm.ctyp_of o theory_of;
 
 
 
@@ -1161,7 +1166,7 @@ local
 
 fun gen_assms prepp exp args ctxt =
   let
-    val cert = Thm.cterm_of (theory_of ctxt);
+    val cert = cterm_of ctxt;
     val ((propss, _), ctxt1) = prepp (map snd args) ctxt;
     val _ = Variable.warn_extra_tfrees ctxt ctxt1;
     val (premss, ctxt2) = fold_burrow (Assumption.add_assms exp o map cert) propss ctxt1;

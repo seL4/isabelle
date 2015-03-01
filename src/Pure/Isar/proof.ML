@@ -892,8 +892,8 @@ in
 
 fun generic_goal prepp kind before_qed after_qed raw_propp state =
   let
-    val thy = theory_of state;
-    val cert = Thm.cterm_of thy;
+    val ctxt = context_of state;
+    val cert = Proof_Context.cterm_of ctxt;
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
