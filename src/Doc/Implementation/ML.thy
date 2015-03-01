@@ -1116,7 +1116,7 @@ text \<open>The Standard ML semantics of strict functional evaluation
 
   It is considered bad style to refer to internal function names or
   values in ML source notation in user error messages.  Do not use
-  @{text "@{make_string}"} here!
+  @{text "@{make_string}"} nor @{text "@{here}"}!
 
   Grammatical correctness of error messages can be improved by
   \emph{omitting} final punctuation: messages are often concatenated
