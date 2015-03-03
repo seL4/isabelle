@@ -168,7 +168,7 @@ val curry_K_ss =
   curry induction predicate *)
 fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rule =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
+    val cert = Proof_Context.cterm_of ctxt
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
   in 
@@ -187,7 +187,7 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
 
 fun mk_curried_induct args ctxt inst_rule =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
+    val cert = Proof_Context.cterm_of ctxt
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
 
     val split_paired_all_conv =
@@ -234,7 +234,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((f_binding, fT), mixfix) = the_single fixes;
     val fname = Binding.name_of f_binding;
 
-    val cert = cterm_of (Proof_Context.theory_of lthy);
+    val cert = Proof_Context.cterm_of lthy;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
     val argnames = map (fst o dest_Free) args;

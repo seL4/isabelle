@@ -3641,16 +3641,16 @@ ML {*
                |> HOLogic.dest_list
       val p = prec
               |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+              |> Proof_Context.cterm_of ctxt
     in case taylor
     of NONE => let
          val n = vs |> length
                  |> HOLogic.mk_number @{typ nat}
-                 |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+                 |> Proof_Context.cterm_of ctxt
          val s = vs
                  |> map lookup_splitting
                  |> HOLogic.mk_list @{typ nat}
-                 |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+                 |> Proof_Context.cterm_of ctxt
        in
          (rtac (Thm.instantiate ([], [(@{cpat "?n::nat"}, n),
                                      (@{cpat "?prec::nat"}, p),
@@ -3663,9 +3663,9 @@ ML {*
        else let
          val t = t
               |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+              |> Proof_Context.cterm_of ctxt
          val s = vs |> map lookup_splitting |> hd
-              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
+              |> Proof_Context.cterm_of ctxt
        in
          rtac (Thm.instantiate ([], [(@{cpat "?s::nat"}, s),
                                      (@{cpat "?t::nat"}, t),

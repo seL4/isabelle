@@ -204,7 +204,7 @@ val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
 
 fun certify_eval ctxt value conv ct =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Proof_Context.cterm_of ctxt;
     val t = Thm.term_of ct;
     val T = fastype_of t;
     val mk_eq = Thm.mk_binop (cert (Const (@{const_name Pure.eq}, T --> T --> propT)));

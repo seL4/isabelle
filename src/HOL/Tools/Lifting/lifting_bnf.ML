@@ -23,7 +23,7 @@ fun Quotient_tac bnf ctxt i =
     fun get_lhs thm = thm |> concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst
     val vars = get_lhs rel_Grp |> strip_comb |> snd |> map_filter (try (strip_comb #> snd #> hd))
     val UNIVs = map (fn var => HOLogic.mk_UNIV (var |> dest_Var |> snd |> dest_Type |> snd |> hd)) vars
-    val inst = map2 (curry (apply2 (certify ctxt))) vars UNIVs
+    val inst = map2 (curry (apply2 (Proof_Context.cterm_of ctxt))) vars UNIVs
     val rel_Grp_UNIV_sym = rel_Grp |> Drule.instantiate_normalize ([], inst) 
       |> Local_Defs.unfold ctxt @{thms subset_UNIV[THEN eqTrueI] UNIV_def[symmetric] simp_thms(21)}
       |> (fn thm => thm RS sym)

@@ -97,7 +97,7 @@ fun import [] ctxt = ([], ctxt)
   | import (thm :: thms) ctxt =
     let
       val fun_ct = strip_eq #> fst #> strip_comb #> fst #> Logic.mk_term
-        #> Thm.cterm_of (Proof_Context.theory_of ctxt)
+        #> Proof_Context.cterm_of ctxt
       val ct = fun_ct thm
       val cts = map fun_ct thms
       val pairs = map (fn s => (s,ct)) cts

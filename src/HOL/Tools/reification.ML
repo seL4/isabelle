@@ -27,7 +27,7 @@ fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { concl, ... } =>
   let
     val ct = case some_t
      of NONE => Thm.dest_arg concl
-      | SOME t => Thm.cterm_of (Proof_Context.theory_of ctxt) t
+      | SOME t => Proof_Context.cterm_of ctxt t
     val thm = conv ct;
   in
     if Thm.is_reflexive thm then no_tac
@@ -48,7 +48,7 @@ fun mk_congeq ctxt fs th =
   let
     val Const (fN, _) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
       |> fst |> strip_comb |> fst;
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Proof_Context.cterm_of ctxt;
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'));
     fun add_fterms (t as t1 $ t2) =
@@ -261,7 +261,7 @@ fun mk_congs ctxt eqs =
       |> fst)) eqs [];
     val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl)) fs [];
     val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt;
-    val cert = cterm_of (Proof_Context.theory_of ctxt');
+    val cert = Proof_Context.cterm_of ctxt';
     val subst =
       the o AList.lookup (op =) (map2 (fn T => fn v => (T, cert (Free (v, T)))) tys vs);
     fun prep_eq eq =
@@ -285,7 +285,7 @@ fun conv ctxt eqs ct =
       | is_list_var _ = false;
     val vars = th |> prop_of |> Logic.dest_equals |> snd
       |> strip_comb |> snd |> filter is_list_var;
-    val cert = cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Proof_Context.cterm_of ctxt;
     val vs = map (fn v as Var (_, T) =>
       (v, the (AList.lookup Type.could_unify bds' T) |> snd |> HOLogic.mk_list (dest_listT T))) vars;
     val th' = Drule.instantiate_normalize ([], (map o apply2) cert vs) th;

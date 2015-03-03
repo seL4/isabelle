@@ -354,7 +354,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     val ([Rn,xn], ctxt'') = Variable.variant_fixes ["R","x"] ctxt'
     val R = Free (Rn, mk_relT ST)
     val x = Free (xn, ST)
-    val cert = cterm_of (Proof_Context.theory_of ctxt)
+    val cert = Proof_Context.cterm_of ctxt
 
     val ineqss = mk_ineqs R scheme |> map (map (apply2 (Thm.assume o cert)))
     val complete =

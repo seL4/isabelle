@@ -578,7 +578,7 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
     val n = Thm.nprems_of coind;
     val m = Thm.nprems_of (hd rel_monos) - n;
     fun mk_inst phi = (phi, mk_union (phi, HOLogic.eq_const (fst (dest_pred2T (fastype_of phi)))))
-      |> apply2 (certify ctxt);
+      |> apply2 (Proof_Context.cterm_of ctxt);
     val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map (mk_inst o Var);
     fun mk_unfold rel_eq rel_mono =
       let

@@ -88,8 +88,8 @@ and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
   then o_alg ctxt P idx vs
          (map (fn (pv :: pats, thm) =>
            (pats, refl RS
-            (inst_free (cterm_of (Proof_Context.theory_of ctxt) pv)
-              (cterm_of (Proof_Context.theory_of ctxt) v) thm))) pts)
+            (inst_free (Proof_Context.cterm_of ctxt pv)
+              (Proof_Context.cterm_of ctxt v) thm))) pts)
   else (* Cons case *)
     let
       val thy = Proof_Context.theory_of ctxt

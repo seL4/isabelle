@@ -281,7 +281,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
-    val cert = cterm_of (Proof_Context.theory_of lthy');
+    val cert = Proof_Context.cterm_of lthy';
 
     fun mk_idx eq =
       let

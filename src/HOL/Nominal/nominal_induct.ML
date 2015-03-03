@@ -54,7 +54,7 @@ fun inst_mutual_rule ctxt insts avoiding rules =
       end;
      val substs =
        map2 subst insts concls |> flat |> distinct (op =)
-       |> map (apply2 (Thm.cterm_of (Proof_Context.theory_of ctxt)));
+       |> map (apply2 (Proof_Context.cterm_of ctxt));
   in 
     (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
   end;

@@ -149,7 +149,7 @@ fun mk_tree fvar h ctxt t =
             val (r, dep, branches) = find_cong_rule ctxt fvar h congs_deps t
             fun subtree (ctxt', fixes, assumes, st) =
               ((fixes,
-                map (Thm.assume o cterm_of (Proof_Context.theory_of ctxt)) assumes),
+                map (Thm.assume o Proof_Context.cterm_of ctxt) assumes),
                mk_tree' ctxt' st)
           in
             Cong (r, dep, map subtree branches)

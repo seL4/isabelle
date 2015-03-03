@@ -209,7 +209,7 @@ fun mk_applied_form ctxt caTs thm =
 
 fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
   let
-    val cert = cterm_of (Proof_Context.theory_of ctxt)
+    val cert = Proof_Context.cterm_of ctxt
     val newPs =
       map2 (fn Pname => fn MutualPart {cargTs, ...} =>
           Free (Pname, cargTs ---> HOLogic.boolT))
@@ -259,7 +259,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
     val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
     val (args, name_ctxt) = mk_var "x" argsT name_ctxt
     
-    val cert = cterm_of (Proof_Context.theory_of ctxt)
+    val cert = Proof_Context.cterm_of ctxt
     val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> cert
     val sumtree_inj = Sum_Tree.mk_inj ST n i args
 

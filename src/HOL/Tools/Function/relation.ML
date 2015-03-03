@@ -33,7 +33,7 @@ fun inst_state_infer_tac ctxt rel st =
   case Term.add_vars (prop_of st) [] of
     [v as (_, T)] =>
       let
-        val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+        val cert = Proof_Context.cterm_of ctxt;
         val rel' = singleton (Variable.polymorphic ctxt) rel
           |> map_types Type_Infer.paramify_vars
           |> Type.constraint T

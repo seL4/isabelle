@@ -468,7 +468,7 @@ val post_thms =
 fun conv ctxt t =
   let
     val ([t'], ctxt') = Variable.import_terms true [t] (Variable.declare_term t ctxt)
-    val ct = cterm_of (Proof_Context.theory_of ctxt') t'
+    val ct = Proof_Context.cterm_of ctxt' t'
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
         (empty_simpset ctxt' addsimps thms)
@@ -495,11 +495,10 @@ fun base_simproc ctxt redex =
 
 fun instantiate_arg_cong ctxt pred =
   let
-    val certify = cterm_of (Proof_Context.theory_of ctxt)
     val arg_cong = Thm.incr_indexes (maxidx_of_term pred + 1) @{thm arg_cong}
     val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of arg_cong)))
   in
-    cterm_instantiate [(certify f, certify pred)] arg_cong
+    cterm_instantiate [(Proof_Context.cterm_of ctxt f, Proof_Context.cterm_of ctxt pred)] arg_cong
   end;
 
 fun simproc ctxt redex =

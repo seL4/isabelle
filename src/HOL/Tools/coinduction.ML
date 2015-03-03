@@ -79,7 +79,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
             |> Ctr_Sugar_Util.list_exists_free vars
             |> Term.map_abs_vars (Variable.revert_fixed ctxt)
             |> fold_rev Term.absfree (names ~~ Ts)
-            |> Ctr_Sugar_Util.certify ctxt;
+            |> Proof_Context.cterm_of ctxt;
           val thm = Ctr_Sugar_Util.cterm_instantiate_pos [SOME phi] raw_thm;
           val e = length eqs;
           val p = length prems;
@@ -88,7 +88,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
             EVERY' (map (fn var =>
               resolve_tac ctxt
                 [Ctr_Sugar_Util.cterm_instantiate_pos
-                  [NONE, SOME (Ctr_Sugar_Util.certify ctxt var)] exI]) vars),
+                  [NONE, SOME (Proof_Context.cterm_of ctxt var)] exI]) vars),
             if p = 0 then Ctr_Sugar_Util.CONJ_WRAP' (K (resolve_tac ctxt [refl])) eqs
             else
               REPEAT_DETERM_N e o (resolve_tac ctxt [conjI] THEN' resolve_tac ctxt [refl]) THEN'

@@ -849,7 +849,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       ||> is_auxiliary ? Local_Theory.restore_naming lthy;
     val fp_def' =
       Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
-        (cterm_of (Proof_Context.theory_of lthy') (list_comb (rec_const, params)));
+        (Proof_Context.cterm_of lthy' (list_comb (rec_const, params)));
     val specs =
       if length cs < 2 then []
       else

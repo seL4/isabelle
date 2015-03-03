@@ -273,7 +273,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
               HOLogic.mk_Trueprop (BNF_LFP_Util.mk_not_eq (list_comb (size, xs)) HOLogic.zero);
             val thm =
               Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
-                mk_size_neq ctxt (map (certify lthy2) xs)
+                mk_size_neq ctxt (map (Proof_Context.cterm_of lthy2) xs)
                 (#exhaust (#ctr_sugar (#fp_ctr_sugar fp_sugar))) size_thms)
               |> single
               |> Proof_Context.export names_lthy2 lthy2

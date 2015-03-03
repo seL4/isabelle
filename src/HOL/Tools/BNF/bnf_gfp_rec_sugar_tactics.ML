@@ -43,7 +43,7 @@ fun exhaust_inst_as_projs ctxt frees thm =
     val fs = Term.add_vars (prop_of thm) [] |> filter (can dest_funT o snd);
     fun find s = find_index (curry (op =) s) frees;
     fun mk_cfp (f as ((s, _), T)) =
-      (certify ctxt (Var f), certify ctxt (mk_proj T num_frees (find s)));
+      (Proof_Context.cterm_of ctxt (Var f), Proof_Context.cterm_of ctxt (mk_proj T num_frees (find s)));
     val cfps = map mk_cfp fs;
   in
     Drule.cterm_instantiate cfps thm
@@ -154,7 +154,7 @@ fun inst_split_eq ctxt split =
     let
       val s = Name.uu;
       val eq = Abs (Name.uu, T, HOLogic.mk_eq (Free (s, T), Bound 0));
-      val split' = Drule.instantiate' [] [SOME (certify ctxt eq)] split;
+      val split' = Drule.instantiate' [] [SOME (Proof_Context.cterm_of ctxt eq)] split;
     in
       Thm.generalize ([], [s]) (Thm.maxidx_of split' + 1) split'
     end

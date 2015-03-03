@@ -679,10 +679,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
       let
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
-        val rho_As = map (apply2 (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
+        val rho_As = map (apply2 (Proof_Context.ctyp_of lthy)) (map Logic.varifyT_global As ~~ As);
 
         fun inst_thm t thm =
-          Drule.instantiate' [] [SOME (certify lthy t)]
+          Drule.instantiate' [] [SOME (Proof_Context.cterm_of lthy t)]
             (Thm.instantiate (rho_As, []) (Drule.zero_var_indexes thm));
 
         val uexhaust_thm = inst_thm u exhaust_thm;
@@ -997,7 +997,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                     mk_Trueprop_eq (udisc, list_comb (casexBool, mk_case_args n) $ u)) udiscs;
                 in
                   Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                    (fn {context = ctxt, ...} => mk_disc_eq_case_tac ctxt (certify ctxt u)
+                    (fn {context = ctxt, ...} => mk_disc_eq_case_tac ctxt (Proof_Context.cterm_of ctxt u)
                        exhaust_thm (flat nontriv_disc_thmss) distinct_thms case_thms)
                   |> Conjunction.elim_balanced (length goals)
                   |> Proof_Context.export names_lthy lthy
@@ -1020,7 +1020,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
             val goal = mk_Trueprop_eq (h $ ufcase, list_comb (casexC, args) $ u);
           in
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-              mk_case_distrib_tac ctxt (certify ctxt u) exhaust_thm case_thms)
+              mk_case_distrib_tac ctxt (Proof_Context.cterm_of ctxt u) exhaust_thm case_thms)
             |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
           end;

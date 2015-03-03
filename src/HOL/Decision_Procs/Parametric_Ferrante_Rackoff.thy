@@ -4155,7 +4155,7 @@ fun frpar_procedure alternative T ps fm =
 in
 
   fn (ctxt, alternative, ty, ps, ct) =>
-    cterm_of (Proof_Context.theory_of ctxt)
+    Proof_Context.cterm_of ctxt
       (frpar_procedure alternative ty ps (term_of ct))
 
 end

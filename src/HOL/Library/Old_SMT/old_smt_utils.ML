@@ -161,7 +161,7 @@ fun instT' ct = instT (Thm.ctyp_of_term ct)
 
 (* certified terms *)
 
-fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt)
+fun certify ctxt = Proof_Context.cterm_of ctxt
 
 fun typ_of ct = #T (Thm.rep_cterm ct) 
 

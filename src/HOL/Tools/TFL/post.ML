@@ -174,7 +174,7 @@ local
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
 fun derive_init_eqs ctxt rules eqs =
-  map (Thm.trivial o Thm.cterm_of (Proof_Context.theory_of ctxt) o HOLogic.mk_Trueprop) eqs
+  map (Thm.trivial o Proof_Context.cterm_of ctxt o HOLogic.mk_Trueprop) eqs
   |> map_index (fn (i, e) => solve_eq ctxt (e, (get_related_thms i rules), i))
   |> flat;
 end;

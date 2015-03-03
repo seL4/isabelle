@@ -495,7 +495,7 @@ local
 in
 fun mk_readable_rsp_thm_eq tm lthy =
   let
-    val ctm = cterm_of (Proof_Context.theory_of lthy) tm
+    val ctm = Proof_Context.cterm_of lthy tm
     
     fun assms_rewr_conv tactic rule ct =
       let
@@ -620,7 +620,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val cr_to_pcr_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
       (Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)))
     val (prsp_tm, rsp_prsp_eq) = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
-      |> cterm_of (Proof_Context.theory_of lthy)
+      |> Proof_Context.cterm_of lthy
       |> cr_to_pcr_conv
       |> ` concl_of
       |>> Logic.dest_equals

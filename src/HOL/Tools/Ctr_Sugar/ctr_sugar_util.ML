@@ -62,9 +62,6 @@ sig
   val cterm_instantiate_pos: cterm option list -> thm -> thm
   val unfold_thms: Proof.context -> thm list -> thm -> thm
 
-  val certifyT: Proof.context -> typ -> ctyp
-  val certify: Proof.context -> term -> cterm
-
   val name_noted_thms: string -> string -> (string * thm list) list -> (string * thm list) list
   val substitute_noted_thm: (string * thm list) list -> morphism
 
@@ -225,10 +222,6 @@ fun cterm_instantiate_pos cts thm =
   end;
 
 fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
-
-(*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
-val certifyT = Thm.ctyp_of o Proof_Context.theory_of;
-val certify = Thm.cterm_of o Proof_Context.theory_of;
 
 fun name_noted_thms _ _ [] = []
   | name_noted_thms qualifier base ((local_name, thms) :: noted) =
