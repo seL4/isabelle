@@ -65,7 +65,7 @@ fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
     asm_simp_tac (ss_only (inj_maps @ size_maps @ size_gen_o_map_simps) ctxt)) THEN
-  IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
+  IF_UNSOLVED (unfold_thms_tac ctxt @{thms id_def o_def} THEN HEADGOAL (rtac refl));
 
 fun mk_size_neq ctxt cts exhaust sizes =
   HEADGOAL (rtac (Ctr_Sugar_Util.cterm_instantiate_pos (map SOME cts) exhaust)) THEN
