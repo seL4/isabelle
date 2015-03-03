@@ -3,7 +3,7 @@
 *)
 
 theory Mirabelle
-imports Sledgehammer
+imports Main
 begin
 
 ML_file "Tools/mirabelle.ML"
