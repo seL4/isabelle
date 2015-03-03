@@ -59,7 +59,7 @@ fun mk_pointfull ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
-val size_gen_o_map_simps = @{thms prod.inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
+val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
 fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
@@ -236,7 +236,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
          |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
       val nested_size_maps = map (mk_pointfull lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
-      val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
+      val all_inj_maps =
+        @{thm prod.inj_map} :: map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
         |> distinct Thm.eq_thm_prop;
 
       fun derive_size_simp size_def' simp0 =
