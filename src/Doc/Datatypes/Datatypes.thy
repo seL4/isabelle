@@ -3069,7 +3069,8 @@ The plugin derives the following properties:
 
 \item[@{text "t."}\hthm{pred_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.pred_inject(1)[no_vars]} \\
-@{thm list.pred_inject(2)[no_vars]}
+@{thm list.pred_inject(2)[no_vars]} \\
+This property is generated only for (co)datatypes.
 
 \item[@{text "t."}\hthm{rel_eq_onp}\rm:] ~ \\
 @{thm list.rel_eq_onp[no_vars]}
@@ -3095,9 +3096,18 @@ The plugin derives the following properties:
 \end{description}
 \end{indentblock}
 
+\begin{sloppy}
+In addition, the plugin sets the @{text "[transfer_rule]"} attribute on the
+following (co)datatypes properties:
+@{text "t.case_transfer"}, @{text "t.sel_transfer"}, @{text "t.ctr_transfer"},
+@{text "t.disc_transfer"}, @{text "t.set_transfer"}, @{text "t.map_transfer"},
+@{text "t.rel_transfer"}, @{text "t.rec_transfer"}, and @{text "t.corec_transfer"}.
+\end{sloppy}
+
 For @{command primrec}, @{command primcorec}, and @{command primcorecursive},
-the \hthm{transfer} plugin implements the generation of the @{text "f.transfer"}
-property, conditioned by the @{text transfer} option.
+the plugin implements the generation of the @{text "f.transfer"} property,
+conditioned by the @{text transfer} option, and sets the
+@{text "[transfer_rule]"} attribute on these.
 *}
 
 
