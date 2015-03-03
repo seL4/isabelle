@@ -1195,7 +1195,7 @@ apply(simp add: div2_plus_div2)
 done
 
 lemma rbtreeify_f_simps:
-  "rbtreeify_f 0 kvs = (RBT_Impl.Empty, kvs)"
+  "rbtreeify_f 0 kvs = (Empty, kvs)"
   "rbtreeify_f (Suc 0) ((k, v) # kvs) = 
   (Branch R Empty k v Empty, kvs)"
   "0 < n \<Longrightarrow> rbtreeify_f (2 * n) kvs =
