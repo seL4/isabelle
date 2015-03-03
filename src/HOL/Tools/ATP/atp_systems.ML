@@ -614,18 +614,18 @@ val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 val dummy_thf_ml_config = dummy_config Hypothesis dummy_thf_format "ml_poly_native_higher" false
 val dummy_thf_ml = (dummy_thf_mlN, fn () => dummy_thf_ml_config)
 
-val spass_pirate_format = DFG Polymorphic
-val remote_spass_pirate_config : atp_config =
-  {exec = K (["ISABELLE_ATP"], ["scripts/remote_spass_pirate"]),
+val pirate_format = DFG Polymorphic
+val remote_pirate_config : atp_config =
+  {exec = K (["ISABELLE_ATP"], ["scripts/remote_pirate"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims = [("Involved clauses:", "Involved clauses:")],
    known_failures = known_szs_status_failures,
    prem_role = #prem_role spass_config,
-   best_slices = K [(1.0, (((200, ""), spass_pirate_format, "tc_native", combsN, true), ""))],
+   best_slices = K [(1.0, (((200, ""), pirate_format, "tc_native", combsN, true), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
-val remote_spass_pirate = (remote_prefix ^ spass_pirateN, fn () => remote_spass_pirate_config)
+val remote_pirate = (remote_prefix ^ pirateN, fn () => remote_pirate_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -764,7 +764,7 @@ fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
       {is_lpo = false, gen_weights = (atp = spassN), gen_prec = (atp = spassN),
-       gen_simp = String.isSuffix spass_pirateN atp}
+       gen_simp = String.isSuffix pirateN atp}
     else
       let val is_lpo = String.isSubstring lpoN ord in
         {is_lpo = is_lpo, gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
@@ -776,7 +776,7 @@ val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
    z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e, remote_e_sine,
    remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
-   remote_snark, remote_spass_pirate, remote_waldmeister, remote_waldmeister_new]
+   remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 

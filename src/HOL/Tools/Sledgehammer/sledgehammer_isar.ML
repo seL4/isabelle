@@ -50,8 +50,8 @@ val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false
 val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
 val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
+val pirate_datatype_rule = "DT"
 val satallax_skolemize_rule = "tab_ex"
-val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
@@ -73,7 +73,7 @@ val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
   String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
   rule = veriT_la_generic_rule
-val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
+val is_datatype_rule = String.isPrefix pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
 

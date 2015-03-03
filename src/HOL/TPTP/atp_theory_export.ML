@@ -36,7 +36,7 @@ val fact_name_of = prefix fact_prefix o ascii_of
 
 fun atp_of_format (THF (Polymorphic, _)) = dummy_thfN
   | atp_of_format (THF (Monomorphic, _)) = satallaxN
-  | atp_of_format (DFG Polymorphic) = spass_pirateN
+  | atp_of_format (DFG Polymorphic) = pirateN
   | atp_of_format (DFG Monomorphic) = spassN
   | atp_of_format (TFF Polymorphic) = alt_ergoN
   | atp_of_format (TFF Monomorphic) = vampireN

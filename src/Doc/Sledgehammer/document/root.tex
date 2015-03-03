@@ -920,6 +920,10 @@ remote version of iProver-Eq runs on Geoff Sutcliffe's Miami servers
 \item[\labelitemi] \textbf{\textit{remote\_leo2}:} The remote version of LEO-II
 runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
+\item[\labelitemi] \textbf{\textit{remote\_pirate}:} Pirate is a
+highly experimental first-order resolution prover developed by Daniel Wand.
+The remote version of Pirate run on a private server he generously set up.
+
 \item[\labelitemi] \textbf{\textit{remote\_satallax}:} The remote version of
 Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
@@ -927,11 +931,6 @@ Satallax runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
 TPTP typed first-order format (TFF0). The remote version of SNARK runs on
 Geoff Sutcliffe's Miami servers.
-
-\item[\labelitemi] \textbf{\textit{remote\_spass\_pirate}:} SPASS-Pirate is a
-highly experimental first-order resolution prover developed by Daniel Wand.
-The remote version of SPASS-Pirate run on a private server set up by Daniel
-Wand.
 
 \item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers.
@@ -944,9 +943,9 @@ runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, Sledgehammer runs a subset of CVC4, E, E-SInE, SPASS, Vampire,
-veriT, and Z3 in parallel---either locally or remotely, depending on the number
-of processor cores available and on which provers are actually installed.
-It is generally a good idea to run several provers in parallel.
+veriT, and Z3 in parallel, either locally or remotely---depending on the number
+of processor cores available and on which provers are actually installed. It is
+generally a good idea to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.

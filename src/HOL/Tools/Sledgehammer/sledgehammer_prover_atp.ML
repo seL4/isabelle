@@ -144,7 +144,7 @@ fun run_atp mode name
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
     val waldmeister_new = (local_name = waldmeister_newN)
-    val spass = (local_name = spassN orelse local_name = spass_pirateN)
+    val spassy = (local_name = pirateN orelse local_name = spassN)
 
     val atp_mode = if Config.get ctxt atp_completish then Sledgehammer_Completish else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -381,7 +381,7 @@ fun run_atp mode name
                       atp_proof
                       |> (if waldmeister_new then termify_waldmeister_proof ctxt pool
                           else termify_atp_proof ctxt name format type_enc pool lifted sym_tab)
-                      |> spass ? introduce_spass_skolems
+                      |> spassy ? introduce_spassy_skolems
                       |> (if waldmeister_new then introduce_waldmeister_skolems (the wm_info) else I)
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in

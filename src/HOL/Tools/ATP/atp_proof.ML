@@ -57,10 +57,10 @@ sig
   val iproverN : string
   val iprover_eqN : string
   val leo2N : string
+  val pirateN : string
   val satallaxN : string
   val snarkN : string
   val spassN : string
-  val spass_pirateN : string
   val vampireN : string
   val waldmeisterN : string
   val waldmeister_newN : string
@@ -126,10 +126,10 @@ val e_tofofN = "e_tofof"
 val iproverN = "iprover"
 val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"
+val pirateN = "pirate"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
-val spass_pirateN = "spass_pirate"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val waldmeister_newN = "waldmeister_new"
@@ -654,22 +654,22 @@ fun parse_spass_line x =
    >> (fn ((((num, rule), deps), u), names) =>
           [((num, these names), Unknown, u, rule, map (rpair []) deps)])) x
 
-fun parse_spass_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
-fun parse_spass_pirate_dependencies x =
-  Scan.repeat (parse_spass_pirate_dependency --| Scan.option ($$ "," || $$ " ")) x
-fun parse_spass_pirate_file_source x =
+fun parse_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
+fun parse_pirate_dependencies x =
+  Scan.repeat (parse_pirate_dependency --| Scan.option ($$ "," || $$ " ")) x
+fun parse_pirate_file_source x =
   ((Scan.this_string "Input" || Scan.this_string "Conj") |-- $$ "(" |-- scan_general_id
      --| $$ ")") x
-fun parse_spass_pirate_inference_source x =
-  (scan_general_id -- ($$ "(" |-- parse_spass_pirate_dependencies --| $$ ")")) x
-fun parse_spass_pirate_source x =
-  (parse_spass_pirate_file_source >> (fn s => File_Source ("", SOME s))
-   || parse_spass_pirate_inference_source >> Inference_Source) x
+fun parse_pirate_inference_source x =
+  (scan_general_id -- ($$ "(" |-- parse_pirate_dependencies --| $$ ")")) x
+fun parse_pirate_source x =
+  (parse_pirate_file_source >> (fn s => File_Source ("", SOME s))
+   || parse_pirate_inference_source >> Inference_Source) x
 
 (* Syntax: <num> <stuff> || <atoms> -> <atoms> . origin\(<origin>\) *)
-fun parse_spass_pirate_line x =
+fun parse_pirate_line x =
   (scan_general_id --| Scan.repeat (~$$ "|") -- parse_horn_clause --| $$ "."
-     --| Scan.this_string "origin" --| $$ "(" -- parse_spass_pirate_source --| $$ ")"
+     --| Scan.this_string "origin" --| $$ "(" -- parse_pirate_source --| $$ ")"
    >> (fn ((((num, u), source))) =>
      let
        val (names, rule, deps) =
@@ -690,7 +690,7 @@ fun parse_z3_tptp_core_line x =
 fun parse_line local_name problem =
   if local_name = leo2N then parse_tstp_thf0_line problem
   else if local_name = spassN then parse_spass_line
-  else if local_name = spass_pirateN then parse_spass_pirate_line
+  else if local_name = pirateN then parse_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
 
