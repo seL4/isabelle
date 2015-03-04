@@ -40,7 +40,6 @@ sig
 
   (*certified terms*)
   val certify: Proof.context -> term -> cterm
-  val typ_of: cterm -> typ
   val dest_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_all_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_cbinder: cterm -> Proof.context -> cterm * Proof.context
@@ -149,21 +148,19 @@ val is_number =
 
 fun mk_const_pat thy name destT =
   let val cpat = Thm.cterm_of thy (Const (name, Sign.the_const_type thy name))
-  in (destT (Thm.ctyp_of_term cpat), cpat) end
+  in (destT (Thm.ctyp_of_cterm cpat), cpat) end
 
 val destT1 = hd o Thm.dest_ctyp
 val destT2 = hd o tl o Thm.dest_ctyp
 
 fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (cTs ~~ cUs, []) ct
 fun instT cU (cT, ct) = instTs [cU] ([cT], ct)
-fun instT' ct = instT (Thm.ctyp_of_term ct)
+fun instT' ct = instT (Thm.ctyp_of_cterm ct)
 
 
 (* certified terms *)
 
 fun certify ctxt = Proof_Context.cterm_of ctxt
-
-fun typ_of ct = #T (Thm.rep_cterm ct) 
 
 fun dest_cabs ct ctxt =
   (case Thm.term_of ct of

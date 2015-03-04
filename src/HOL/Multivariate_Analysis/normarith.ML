@@ -258,7 +258,7 @@ fun int_flip v eq =
 
 local
  val pth_zero = @{thm norm_zero}
- val tv_n = (Thm.ctyp_of_term o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
+ val tv_n = (Thm.ctyp_of_cterm o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
              pth_zero
  val concl = Thm.dest_arg o Thm.cprop_of
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) =
@@ -319,7 +319,7 @@ local
         (fn t => null (FuncUtil.Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in fst (RealArith.real_linear_prover translator
-        (map (fn t => Drule.instantiate_normalize ([(tv_n, Thm.ctyp_of_term t)],[]) pth_zero)
+        (map (fn t => Drule.instantiate_normalize ([(tv_n, Thm.ctyp_of_cterm t)],[]) pth_zero)
             zerodests,
         map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
@@ -342,8 +342,8 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
-  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
+  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_cterm t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
+  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_cterm l)] [] @{cpat "op == :: ?'a =>_"}) l) r
   val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Proof_Context.cterm_of ctxt' (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))

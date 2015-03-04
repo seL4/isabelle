@@ -104,14 +104,12 @@ val (var_prefix, decl_prefix) = ("v", "sk")
   use fast inference kernel rules during proof reconstruction.
 *)
 
-val maxidx_of = #maxidx o Thm.rep_cterm
-
 fun mk_inst ctxt vars =
   let
     val max = fold (Integer.max o fst) vars 0
     val ns = fst (Variable.variant_fixes (replicate (max + 1) var_prefix) ctxt)
     fun mk (i, v) =
-      (v, Old_SMT_Utils.certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
+      (v, Old_SMT_Utils.certify ctxt (Free (nth ns i, Thm.typ_of_cterm v)))
   in map mk vars end
 
 fun close ctxt (ct, vars) =
@@ -131,7 +129,7 @@ local
       val cv =
         (case AList.lookup (op =) vars 0 of
           SOME cv => cv
-        | _ => Old_SMT_Utils.certify ctxt (Var ((Name.uu, maxidx_of ct + 1), T)))
+        | _ => Old_SMT_Utils.certify ctxt (Var ((Name.uu, Thm.maxidx_of_cterm ct + 1), T)))
       fun dec (i, v) = if i = 0 then NONE else SOME (i-1, v)
       val vars' = map_filter dec vars
     in (Thm.apply (Old_SMT_Utils.instT' cv q) (Thm.lambda cv ct), vars') end
@@ -150,7 +148,7 @@ end
 local
   fun prep (ct, vars) (maxidx, all_vars) =
     let
-      val maxidx' = maxidx + maxidx_of ct + 1
+      val maxidx' = maxidx + Thm.maxidx_of_cterm ct + 1
 
       fun part (i, cv) =
         (case AList.lookup (op =) all_vars i of

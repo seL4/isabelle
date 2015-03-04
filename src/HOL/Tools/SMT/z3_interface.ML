@@ -136,7 +136,7 @@ fun mk_access array = Thm.apply (SMT_Util.instT' array access) array
 val update =
   SMT_Util.mk_const_pat @{theory} @{const_name fun_upd} (Thm.dest_ctyp o SMT_Util.destT1)
 fun mk_update array index value =
-  let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
+  let val cTs = Thm.dest_ctyp (Thm.ctyp_of_cterm array)
   in Thm.apply (Thm.mk_binop (SMT_Util.instTs cTs update) array index) value end
 
 val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
@@ -166,7 +166,7 @@ fun mk_builtin_fun ctxt sym cts =
   | (Sym ("select", _), [ca, ck]) => SOME (Thm.apply (mk_access ca) ck)
   | (Sym ("store", _), [ca, ck, cv]) => SOME (mk_update ca ck cv)
   | _ =>
-    (case (sym, try (#T o Thm.rep_cterm o hd) cts, cts) of
+    (case (sym, try (Thm.typ_of_cterm o hd) cts, cts) of
       (Sym ("+", _), SOME @{typ int}, _) => SOME (mk_nary add int0 cts)
     | (Sym ("-", _), SOME @{typ int}, [ct]) => SOME (mk_uminus ct)
     | (Sym ("-", _), SOME @{typ int}, [ct, cu]) => SOME (mk_sub ct cu)

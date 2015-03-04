@@ -89,7 +89,7 @@ fun get_by_prop context t =
     val tys = map snd (Term.add_vars t []);
     val _ = if null tys then error "Transfer: unable to guess instance" else ();
     val tyss = splits (curry Type.could_unify) tys;
-    val get_ty = Thm.typ_of o Thm.ctyp_of_term o fst o direction_of;
+    val get_ty = Thm.typ_of_cterm o fst o direction_of;
     val insts = map_filter (fn tys => get_first (fn (k, e) =>
       if Type.could_unify (hd tys, range_type (get_ty k))
       then SOME (direction_of k, transfer_rules_of e)
@@ -108,7 +108,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
       |> Variable.import true (map Drule.mk_term [raw_a, raw_D])
       |>> map Drule.dest_term o snd;
     val transform = Thm.apply @{cterm "Trueprop"} o Thm.apply D;
-    val T = Thm.typ_of (Thm.ctyp_of_term a);
+    val T = Thm.typ_of_cterm a;
     val (aT, bT) = (Term.range_type T, Term.domain_type T);
 
     (* determine variables to transfer *)

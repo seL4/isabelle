@@ -347,7 +347,7 @@ fun has_too_many_clauses ctxt t =
   assumptions may not contain scheme variables.  Later, generalize using Variable.export. *)
 local  
   val spec_var = Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))));
-  val spec_varT = #T (Thm.rep_cterm spec_var);
+  val spec_varT = Thm.typ_of_cterm spec_var;
   fun name_of (Const (@{const_name All}, _) $ Abs(x,_,_)) = x | name_of _ = Name.uu;
 in  
   fun freeze_spec th ctxt =

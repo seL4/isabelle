@@ -760,7 +760,7 @@ local
  | _ => is_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t = 
-  if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of (Thm.ctyp_of_term t)))
+  if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
   then false 
   else case Thm.term_of t of 
     c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
@@ -800,7 +800,7 @@ end;
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
-   fun gen x t = Thm.apply (all (Thm.ctyp_of_term x)) (Thm.lambda x t)
+   fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
    val p' = fold_rev gen ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));

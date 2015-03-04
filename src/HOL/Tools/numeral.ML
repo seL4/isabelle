@@ -38,16 +38,16 @@ fun mk_cnumeral i =
 local
 
 val zero = @{cpat "0"};
-val zeroT = Thm.ctyp_of_term zero;
+val zeroT = Thm.ctyp_of_cterm zero;
 
 val one = @{cpat "1"};
-val oneT = Thm.ctyp_of_term one;
+val oneT = Thm.ctyp_of_cterm one;
 
 val numeral = @{cpat "numeral"};
-val numeralT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term numeral)));
+val numeralT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of_cterm numeral));
 
 val uminus = @{cpat "uminus"};
-val uminusT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term uminus)));
+val uminusT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of_cterm uminus));
 
 fun instT T V = Thm.instantiate_cterm ([(V, T)], []);
 

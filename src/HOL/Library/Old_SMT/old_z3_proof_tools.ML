@@ -157,7 +157,7 @@ fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
           val cv = Old_SMT_Utils.certify ctxt'
-            (Free (n, map Old_SMT_Utils.typ_of cvs' ---> Old_SMT_Utils.typ_of ct))
+            (Free (n, map Thm.typ_of_cterm cvs' ---> Thm.typ_of_cterm ct))
           val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.lambda cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')

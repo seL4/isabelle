@@ -54,7 +54,7 @@ fun meta_mp th1 th2 =
 fun meta_eq_to_obj_eq th =
   let
     val (tml, tmr) = Thm.dest_binop (strip_imp_concl (Thm.cprop_of th))
-    val cty = Thm.ctyp_of_term tml
+    val cty = Thm.ctyp_of_cterm tml
     val i = Drule.instantiate' [SOME cty] [SOME tml, SOME tmr]
       @{thm meta_eq_to_obj_eq}
   in
@@ -78,7 +78,7 @@ fun comb th1 th2 =
     val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
     val (cf, cg) = Thm.dest_binop t1c
     val (cx, cy) = Thm.dest_binop t2c
-    val [fd, fr] = Thm.dest_ctyp (Thm.ctyp_of_term cf)
+    val [fd, fr] = Thm.dest_ctyp (Thm.ctyp_of_cterm cf)
     val i1 = Drule.instantiate' [SOME fd, SOME fr]
       [SOME cf, SOME cg, SOME cx, SOME cy] @{thm cong}
     val i2 = meta_mp i1 th1
@@ -92,7 +92,7 @@ fun trans th1 th2 =
     val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
     val (r, s) = Thm.dest_binop t1c
     val (_, t) = Thm.dest_binop t2c
-    val ty = Thm.ctyp_of_term r
+    val ty = Thm.ctyp_of_cterm r
     val i1 = Drule.instantiate' [SOME ty] [SOME r, SOME s, SOME t] @{thm trans}
     val i2 = meta_mp i1 th1
   in
@@ -135,7 +135,7 @@ fun conj2 th =
 
 fun refl ctm =
   let
-    val cty = Thm.ctyp_of_term ctm
+    val cty = Thm.ctyp_of_cterm ctm
   in
     Drule.instantiate' [SOME cty] [SOME ctm] @{thm refl}
   end
@@ -151,7 +151,7 @@ fun abs cv th =
     val th2 = trans (trans bl th1) br
     val th3 = implies_elim_all th2
     val th4 = Thm.forall_intr cv th3
-    val i = Drule.instantiate' [SOME (Thm.ctyp_of_term cv), SOME (Thm.ctyp_of_term tl)]
+    val i = Drule.instantiate' [SOME (Thm.ctyp_of_cterm cv), SOME (Thm.ctyp_of_cterm tl)]
       [SOME ll, SOME lr] @{thm ext2}
   in
     meta_mp i th4
@@ -203,7 +203,7 @@ fun typedef_hollight th thy =
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
     val P = Thm.dest_arg cn
-    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_term rept)
+    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
   in
     Drule.instantiate' [SOME nty, SOME oty] [SOME rept, SOME abst, SOME P,
       SOME (Thm.cterm_of thy (Free ("a", Thm.typ_of nty))),
@@ -212,7 +212,7 @@ fun typedef_hollight th thy =
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
   let
-    val ctT = Thm.ctyp_of_term ct
+    val ctT = Thm.ctyp_of_cterm ct
     val nonempty = Drule.instantiate' [SOME ctT] [SOME cP, SOME ct] @{thm light_ex_imp_nonempty}
     val th2 = meta_mp nonempty td_th
     val c =
@@ -229,7 +229,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
-    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_term rept)
+    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
     val typedef_th =
        Drule.instantiate'
           [SOME nty, SOME oty]

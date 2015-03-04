@@ -103,7 +103,7 @@ fun abstract ct =
   let
       val thy = Thm.theory_of_cterm ct
       val Abs(x,_,body) = Thm.term_of ct
-      val Type(@{type_name fun}, [xT,bodyT]) = Thm.typ_of (Thm.ctyp_of_term ct)
+      val Type (@{type_name fun}, [xT,bodyT]) = Thm.typ_of_cterm ct
       val cxT = Thm.ctyp_of thy xT
       val cbodyT = Thm.ctyp_of thy bodyT
       fun makeK () =

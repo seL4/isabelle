@@ -46,7 +46,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
         fun proveneF S =
           let
             val (a, A) = Thm.dest_comb S |>> Thm.dest_arg
-            val cT = Thm.ctyp_of_term a
+            val cT = Thm.ctyp_of_cterm a
             val ne = instantiate' [SOME cT] [SOME a, SOME A] @{thm insert_not_empty}
             val f = prove_finite cT (dest_set S)
          in (ne, f) end
@@ -231,7 +231,7 @@ fun dlo_conv ctxt tm =
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
   let
     fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
-    fun gen x t = Thm.apply (all (Thm.ctyp_of_term x)) (Thm.lambda x t)
+    fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
     val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
     val p' = fold_rev gen ts p
   in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));

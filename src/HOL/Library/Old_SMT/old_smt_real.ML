@@ -97,7 +97,7 @@ val z3_mk_builtins = {
   mk_builtin_typ = z3_mk_builtin_typ,
   mk_builtin_num = z3_mk_builtin_num,
   mk_builtin_fun = (fn _ => fn sym => fn cts =>
-    (case try (#T o Thm.rep_cterm o hd) cts of
+    (case try (Thm.typ_of_cterm o hd) cts of
       SOME @{typ real} => z3_mk_builtin_fun sym cts
     | _ => NONE)) }
 

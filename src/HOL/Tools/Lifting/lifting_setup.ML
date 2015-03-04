@@ -408,7 +408,7 @@ local
       val ct =
         thm |> Thm.cprop_of |> Drule.strip_imp_concl
         |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_arg
-      val pcrel_def = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) pcrel_def
+      val pcrel_def = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) pcrel_def
       val thm = Thm.instantiate (Thm.match (ct, Thm.rhs_of pcrel_def)) thm
         handle Pattern.MATCH => raise CTERM ("fold_Domainp_pcrel", [ct, Thm.rhs_of pcrel_def])
     in

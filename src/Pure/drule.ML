@@ -649,7 +649,7 @@ fun mk_term ct =
     val thy = Thm.theory_of_cterm ct;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
-    val T = Thm.typ_of (Thm.ctyp_of_term ct);
+    val T = Thm.typ_of_cterm ct;
     val a = certT (TVar (("'a", 0), []));
     val x = cert (Var (("x", 0), T));
   in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;

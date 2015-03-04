@@ -33,7 +33,9 @@ sig
   val crep_cterm: cterm -> {thy: theory, t: term, T: ctyp, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
-  val ctyp_of_term: cterm -> ctyp
+  val typ_of_cterm: cterm -> typ
+  val ctyp_of_cterm: cterm -> ctyp
+  val maxidx_of_cterm: cterm -> int
   val cterm_of: theory -> term -> cterm
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
@@ -186,8 +188,12 @@ fun crep_cterm (Cterm {thy, t, T, maxidx, sorts}) =
 fun theory_of_cterm (Cterm {thy, ...}) = thy;
 fun term_of (Cterm {t, ...}) = t;
 
-fun ctyp_of_term (Cterm {thy, T, maxidx, sorts, ...}) =
+fun typ_of_cterm (Cterm {T, ...}) = T;
+
+fun ctyp_of_cterm (Cterm {thy, T, maxidx, sorts, ...}) =
   Ctyp {thy = thy, T = T, maxidx = maxidx, sorts = sorts};
+
+fun maxidx_of_cterm (Cterm {maxidx, ...}) = maxidx;
 
 fun cterm_of thy tm =
   let

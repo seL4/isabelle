@@ -713,8 +713,7 @@ fun TERMFUN
  (i_opt : int option) : thm -> 'a list = fn st =>
   let
     val t_raws =
-        Thm.rep_thm st
-        |> #prop
+        Thm.prop_of st
         |> strip_top_all_vars []
         |> snd
         |> Logic.strip_horn

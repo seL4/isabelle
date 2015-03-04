@@ -433,11 +433,11 @@ fun dummyf _ = error "dummy";
 
 val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
 val (dB1, _) = @{code type_NF} (typing_of_term [] dummyf (Thm.term_of ct1));
-val ct1' = Thm.cterm_of @{theory} (term_of_dB [] (#T (Thm.rep_cterm ct1)) dB1);
+val ct1' = Thm.cterm_of @{theory} (term_of_dB [] (Thm.typ_of_cterm ct1) dB1);
 
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (Thm.term_of ct2));
-val ct2' = Thm.cterm_of @{theory} (term_of_dB [] (#T (Thm.rep_cterm ct2)) dB2);
+val ct2' = Thm.cterm_of @{theory} (term_of_dB [] (Thm.typ_of_cterm ct2) dB2);
 *}
 
 end

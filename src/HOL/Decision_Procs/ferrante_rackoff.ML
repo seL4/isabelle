@@ -80,7 +80,7 @@ let
                    Const(@{const_name Ex},_)$Abs(xn,xT,_) =>
                         Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
-   val cT = Thm.ctyp_of_term x
+   val cT = Thm.ctyp_of_cterm x
    val (u,nth) = uset (x::vs) fm |>> distinct (op aconvc)
    val nthx = Thm.abstract_rule xn x nth
    val q = Thm.rhs_of nth

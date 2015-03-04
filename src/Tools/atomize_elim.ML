@@ -117,7 +117,7 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
           if is_Bound thesis then all_tac
           else let
               val cthesis = Thm.cterm_of thy thesis
-              val rule = instantiate' [SOME (Thm.ctyp_of_term cthesis)] [NONE, SOME cthesis]
+              val rule = instantiate' [SOME (Thm.ctyp_of_cterm cthesis)] [NONE, SOME cthesis]
                          @{thm meta_spec}
             in
               compose_tac ctxt (false, rule, 1) i

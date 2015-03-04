@@ -435,7 +435,7 @@ val eq_commute = mk_meta_eq @{thm eq_commute};
 
 fun sym_conv eq =
  let val (l,r) = Thm.dest_binop eq
- in instantiate' [SOME (Thm.ctyp_of_term l)] [SOME l, SOME r] eq_commute
+ in instantiate' [SOME (Thm.ctyp_of_cterm l)] [SOME l, SOME r] eq_commute
  end;
 
   (* FIXME : copied from cqe.ML -- complex QE*)
@@ -479,13 +479,13 @@ fun conj_ac_rule eq =
    (* Conversion for the equivalence of existential statements where
       EX quantifiers are rearranged differently *)
  fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
- fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_term v)) (Thm.lambda v t)
+ fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_cterm v)) (Thm.lambda v t)
 
 fun choose v th th' = case Thm.concl_of th of
   @{term Trueprop} $ (Const(@{const_name Ex},_)$_) =>
    let
     val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
-    val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_term) p
+    val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_cterm) p
     val th0 = Conv.fconv_rule (Thm.beta_conversion true)
         (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
     val pv = (Thm.rhs_of o Thm.beta_conversion true)
@@ -504,7 +504,7 @@ fun simple_choose v th =
    val p = Thm.lambda v (Thm.dest_arg (Thm.cprop_of th))
   in Thm.implies_elim
     (Conv.fconv_rule (Thm.beta_conversion true)
-      (instantiate' [SOME (Thm.ctyp_of_term v)] [SOME p, SOME v] @{thm exI}))
+      (instantiate' [SOME (Thm.ctyp_of_cterm v)] [SOME p, SOME v] @{thm exI}))
       th
   end
  fun ex_eq_conv t =
@@ -527,7 +527,7 @@ fun simple_choose v th =
  | Var ((s,_),_) => s
  | _ => "x"
  fun mk_eq s t = Thm.apply (Thm.apply @{cterm "op == :: bool => _"} s) t
-  fun mk_exists v th = Drule.arg_cong_rule (ext (Thm.ctyp_of_term v))
+  fun mk_exists v th = Drule.arg_cong_rule (ext (Thm.ctyp_of_cterm v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
@@ -739,7 +739,7 @@ fun ring ctxt tm =
  let
   fun mk_forall x p =
     Thm.apply
-      (Drule.cterm_rule (instantiate' [SOME (Thm.ctyp_of_term x)] [])
+      (Drule.cterm_rule (instantiate' [SOME (Thm.ctyp_of_cterm x)] [])
         @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
   val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
@@ -919,7 +919,7 @@ fun get_ring_ideal_convs ctxt form =
   | SOME (res as (theory, {is_const = _, dest_const,
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
-          dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
+          dest_const (mk_const (Thm.ctyp_of_cterm tm)) (ring_eq_conv ctxt)
           (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)))
 
 fun presimplify ctxt add_thms del_thms =
@@ -945,7 +945,7 @@ local
   Const(@{const_name HOL.eq},_)$_$_ => Thm.dest_arg1 t
  | _=> raise CTERM ("ideal_tac - lhs",[t])
  fun exitac NONE = no_tac
-   | exitac (SOME y) = rtac (instantiate' [SOME (Thm.ctyp_of_term y)] [NONE,SOME y] exI) 1
+   | exitac (SOME y) = rtac (instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI) 1
 
  val claset = claset_of @{context}
 in

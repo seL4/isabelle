@@ -137,7 +137,7 @@ fun process_spec cos alt_props thy =
         fun inst_all thy v thm =
           let
             val cv = Thm.cterm_of thy v
-            val cT = Thm.ctyp_of_term cv
+            val cT = Thm.ctyp_of_cterm cv
             val spec' = instantiate' [SOME cT] [NONE, SOME cv] spec
           in thm RS spec' end
         fun remove_alls frees thm = fold (inst_all (Thm.theory_of_thm thm)) frees thm

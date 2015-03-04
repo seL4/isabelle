@@ -126,7 +126,7 @@ fun add_cterm_frees ct =
 fun all_name (x, t) A =
   let
     val cert = Thm.cterm_of (Thm.theory_of_cterm t);
-    val T = #T (Thm.rep_cterm t);
+    val T = Thm.typ_of_cterm t;
   in Thm.apply (cert (Const ("Pure.all", (T --> propT) --> propT))) (Thm.lambda_name (x, t) A) end;
 
 fun all t A = all_name ("", t) A;

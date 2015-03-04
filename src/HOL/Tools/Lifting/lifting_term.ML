@@ -440,7 +440,7 @@ local
   
   fun rewr_imp rule ct = 
     let
-      val rule1 = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) rule;
+      val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule;
       val lhs_rule = get_lhs rule1;
       val rule2 = Thm.rename_boundvars (Thm.term_of lhs_rule) (Thm.term_of ct) rule1;
       val lhs_ct = Thm.dest_fun ct

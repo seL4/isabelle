@@ -25,7 +25,7 @@ val zeroth = (Thm.symmetric o mk_meta_eq) @{thm of_int_0};
 val lhss0 = [@{cpat "0::?'a::ring"}];
 
 fun proc0 phi ctxt ct =
-  let val T = Thm.ctyp_of_term ct
+  let val T = Thm.ctyp_of_cterm ct
   in if Thm.typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] zeroth)
   end;
@@ -39,7 +39,7 @@ val oneth = (Thm.symmetric o mk_meta_eq) @{thm of_int_1};
 val lhss1 = [@{cpat "1::?'a::ring_1"}];
 
 fun proc1 phi ctxt ct =
-  let val T = Thm.ctyp_of_term ct
+  let val T = Thm.ctyp_of_cterm ct
   in if Thm.typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] oneth)
   end;

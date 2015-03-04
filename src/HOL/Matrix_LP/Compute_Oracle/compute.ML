@@ -378,7 +378,8 @@ fun export_thm thy hyps shyps prop =
 fun rewrite computer ct =
     let
         val thy = Thm.theory_of_cterm ct
-        val {t=t',T=ty,...} = Thm.rep_cterm ct
+        val t' = Thm.term_of ct
+        val ty = Thm.typ_of_cterm ct
         val _ = super_theory (theory_of computer) thy
         val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
@@ -507,7 +508,7 @@ let
     fun compute_inst (s, ct) vs =
         let
             val _ = super_theory (Thm.theory_of_cterm ct) thy
-            val ty = Thm.typ_of (Thm.ctyp_of_term ct) 
+            val ty = Thm.typ_of_cterm ct
         in          
             (case Symtab.lookup vartab s of 
                  NONE => raise Compute ("instantiate: variable '"^s^"' not found in theorem")

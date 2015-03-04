@@ -50,14 +50,14 @@ fun mk_inv_into T U =
 
 fun mk_inv_of ctxt ct =
   let
-    val (dT, rT) = Term.dest_funT (Old_SMT_Utils.typ_of ct)
+    val (dT, rT) = Term.dest_funT (Thm.typ_of_cterm ct)
     val inv = Old_SMT_Utils.certify ctxt (mk_inv_into dT rT)
     val univ = Old_SMT_Utils.certify ctxt (mk_univ dT)
   in Thm.mk_binop inv univ ct end
 
 fun mk_inj_prop ctxt ct =
   let
-    val (dT, rT) = Term.dest_funT (Old_SMT_Utils.typ_of ct)
+    val (dT, rT) = Term.dest_funT (Thm.typ_of_cterm ct)
     val inj = Old_SMT_Utils.certify ctxt (mk_inj_on dT rT)
     val univ = Old_SMT_Utils.certify ctxt (mk_univ dT)
   in Old_SMT_Utils.mk_cprop (Thm.mk_binop inj ct univ) end

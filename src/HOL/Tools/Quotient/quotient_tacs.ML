@@ -541,7 +541,7 @@ fun clean_tac ctxt =
 (* Tactic for Generalising Free Variables in a Goal *)
 
 fun inst_spec ctrm =
-  Drule.instantiate' [SOME (Thm.ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
+  Drule.instantiate' [SOME (Thm.ctyp_of_cterm ctrm)] [NONE, SOME ctrm] @{thm spec}
 
 fun inst_spec_tac ctrms =
   EVERY' (map (dtac o inst_spec) ctrms)

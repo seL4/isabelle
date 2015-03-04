@@ -195,7 +195,7 @@ fun dest_funcT cT =
     | _ => raise TYPE ("dest_funcT", [Thm.typ_of cT], []))
 
 fun Rel_conv ct =
-  let val (cT, cT') = dest_funcT (Thm.ctyp_of_term ct)
+  let val (cT, cT') = dest_funcT (Thm.ctyp_of_cterm ct)
       val (cU, _) = dest_funcT cT'
   in Drule.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
 
@@ -441,8 +441,8 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
           val (thm1, hyps) = zip ctxt' (thm0 :: thms) t u
           val ((r1, x), y) = apfst Thm.dest_comb (Thm.dest_comb (Thm.dest_arg cprop))
           val r2 = Thm.dest_fun2 (Thm.dest_arg (Thm.cprop_of thm1))
-          val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_term r1))
-          val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_term r2))
+          val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r1))
+          val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r2))
           val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
           val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
           val rule = Drule.instantiate' tinsts insts @{thm Rel_abs}

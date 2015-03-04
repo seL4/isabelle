@@ -1223,7 +1223,7 @@ in fn _ => fn ctxt => fn ct => if is_trivial_let (Thm.term_of ct)
         let
           val n = case f of (Abs (x, _, _)) => x | _ => "x";
           val cx = Thm.cterm_of thy x;
-          val {T = xT, ...} = Thm.rep_cterm cx;
+          val xT = Thm.typ_of_cterm cx;
           val cf = Thm.cterm_of thy f;
           val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
           val (_ $ _ $ g) = Thm.prop_of fx_g;

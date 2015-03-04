@@ -398,9 +398,9 @@ fun prep_inst ctxt align tune (tm, ts) =
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
-            val xT = #T (Thm.rep_cterm cx);
+            val xT = Thm.typ_of_cterm cx;
             val ct = cert (tune t);
-            val tT = #T (Thm.rep_cterm ct);
+            val tT = Thm.typ_of_cterm ct;
           in
             if Type.could_unify (tT, xT) then SOME (cx, ct)
             else error (Pretty.string_of (Pretty.block
@@ -576,7 +576,7 @@ fun dest_env thy env =
     val pairs = Vartab.dest (Envir.term_env env);
     val types = Vartab.dest (Envir.type_env env);
     val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
-    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map (#T o Thm.rep_cterm) ts);
+    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map Thm.typ_of_cterm ts);
   in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) types, xs ~~ ts) end;
 
 in

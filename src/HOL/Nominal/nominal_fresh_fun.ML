@@ -14,7 +14,7 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
   let
     val thy = Thm.theory_of_thm st;
     val cgoal = nth (cprems_of st) (i - 1);
-    val {maxidx, ...} = Thm.rep_cterm cgoal;
+    val maxidx = Thm.maxidx_of_cterm cgoal;
     val j = maxidx + 1;
     val tyinst' = map (apfst (Logic.incr_tvar j)) tyinst;
     val ps = Logic.strip_params (Thm.term_of cgoal);

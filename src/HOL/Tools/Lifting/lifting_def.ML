@@ -128,9 +128,9 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         val thy = Proof_Context.theory_of ctxt
         fun mk_POS ty = Const (@{const_name POS}, ty --> ty --> HOLogic.boolT)
         val rel = (Thm.dest_fun2 o Thm.dest_arg o Thm.cprop_of) thm
-        val typ = (Thm.typ_of o Thm.ctyp_of_term) rel
+        val typ = Thm.typ_of_cterm rel
         val POS_const = Thm.cterm_of thy (mk_POS typ)
-        val var = Thm.cterm_of thy (Var (("X", #maxidx (Thm.rep_cterm (rel)) + 1), typ))
+        val var = Thm.cterm_of thy (Var (("X", Thm.maxidx_of_cterm rel + 1), typ))
         val goal =
           Thm.apply (Thm.cterm_of thy HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
       in
@@ -513,7 +513,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun cconl_of thm = Drule.strip_imp_concl (Thm.cprop_of thm)
         fun lhs_of thm = fst (Thm.dest_equals (cconl_of thm))
         fun rhs_of thm = snd (Thm.dest_equals (cconl_of thm))
-        val rule1 = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) rule;
+        val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule;
         val lhs = lhs_of rule1;
         val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
         val rule3 =

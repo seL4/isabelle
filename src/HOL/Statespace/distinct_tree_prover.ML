@@ -133,8 +133,7 @@ fun naive_cterm_first_order_match (t, ct) env =
     fun mtch (env as (tyinsts, insts)) =
       fn (Var (ixn, T), ct) =>
           (case AList.lookup (op =) insts ixn of
-            NONE =>
-              (naive_typ_match (T, Thm.typ_of (Thm.ctyp_of_term ct)) tyinsts, (ixn, ct) :: insts)
+            NONE => (naive_typ_match (T, Thm.typ_of_cterm ct) tyinsts, (ixn, ct) :: insts)
           | SOME _ => env)
        | (f $ t, ct) =>
           let val (cf, ct') = Thm.dest_comb ct;
@@ -154,7 +153,7 @@ fun discharge prems rule =
         (Thm.ctyp_of thy (TVar (v, S)), Thm.ctyp_of thy U)) tyinsts;
     val insts' =
       map (fn (idxn, ct) =>
-        (Thm.cterm_of thy (Var (idxn, Thm.typ_of (Thm.ctyp_of_term ct))), ct)) insts;
+        (Thm.cterm_of thy (Var (idxn, Thm.typ_of_cterm ct)), ct)) insts;
     val rule' = Thm.instantiate (tyinsts', insts') rule;
   in fold Thm.elim_implies prems rule' end;
 
@@ -216,19 +215,19 @@ fun distinctTreeProver dist_thm x_path y_path =
     fun in_set ps tree =
       let
         val (_, [l, x, _, r]) = Drule.strip_comb tree;
-        val xT = Thm.ctyp_of_term x;
+        val xT = Thm.ctyp_of_cterm x;
       in
         (case ps of
           [] =>
             instantiate
-              [(Thm.ctyp_of_term x_in_set_root, xT)]
+              [(Thm.ctyp_of_cterm x_in_set_root, xT)]
               [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] @{thm in_set_root}
         | Left :: ps' =>
             let
               val in_set_l = in_set ps' l;
               val in_set_left' =
                 instantiate
-                  [(Thm.ctyp_of_term x_in_set_left, xT)]
+                  [(Thm.ctyp_of_cterm x_in_set_left, xT)]
                   [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
             in discharge [in_set_l] in_set_left' end
         | Right :: ps' =>
@@ -236,7 +235,7 @@ fun distinctTreeProver dist_thm x_path y_path =
               val in_set_r = in_set ps' r;
               val in_set_right' =
                 instantiate
-                  [(Thm.ctyp_of_term x_in_set_right, xT)]
+                  [(Thm.ctyp_of_cterm x_in_set_right, xT)]
                   [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
             in discharge [in_set_r] in_set_right' end)
       end;
@@ -288,7 +287,7 @@ local
       val ct =
         @{thm subtract_Tip} |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
         |> Thm.dest_comb |> #2;
-      val [alpha] = ct |> Thm.ctyp_of_term |> Thm.dest_ctyp;
+      val [alpha] = ct |> Thm.ctyp_of_cterm |> Thm.dest_ctyp;
     in (alpha, #1 (dest_Var (Thm.term_of ct))) end;
 in
 

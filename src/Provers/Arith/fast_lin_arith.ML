@@ -522,7 +522,7 @@ fun mkthm ctxt asms (just: injust) =
           let
             val cv = mth |> Thm.cprop_of |> Drule.strip_imp_concl
               |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_arg1
-            val T = #T (Thm.rep_cterm cv)
+            val T = Thm.typ_of_cterm cv
           in
             mth
             |> Thm.instantiate ([], [(cv, number_of T n)])

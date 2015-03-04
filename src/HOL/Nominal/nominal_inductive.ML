@@ -485,7 +485,7 @@ fun prove_strong_ind s avoids ctxt =
                            val (cf, ct) =
                              Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th));
                            val arg_cong' = Drule.instantiate'
-                             [SOME (Thm.ctyp_of_term ct)]
+                             [SOME (Thm.ctyp_of_cterm ct)]
                              [NONE, SOME ct, SOME cf] (arg_cong RS iffD2);
                            val inst = Thm.first_order_match (ct,
                              Thm.dest_arg (Thm.dest_arg (Thm.cprop_of th')))

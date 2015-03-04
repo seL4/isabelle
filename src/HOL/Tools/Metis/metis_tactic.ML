@@ -49,7 +49,7 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
         val ct = Thm.cterm_of thy t
-        val cT = Thm.ctyp_of_term ct
+        val cT = Thm.ctyp_of_cterm ct
       in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
       (if can HOLogic.dest_not t1 then t2 else t1)

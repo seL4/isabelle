@@ -70,7 +70,7 @@ fun lift_import idx params th ctxt =
     val cert = Proof_Context.cterm_of ctxt;
     val ((_, [th']), ctxt') = Variable.importT [th] ctxt;
 
-    val Ts = map (#T o Thm.rep_cterm) params;
+    val Ts = map Thm.typ_of_cterm params;
     val ts = map Thm.term_of params;
 
     val prop = Thm.full_prop_of th';

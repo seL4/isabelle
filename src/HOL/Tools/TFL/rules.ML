@@ -121,7 +121,7 @@ fun DISCH_ALL thm = fold_rev DISCH (#hyps (Thm.crep_thm thm)) thm;
 
 
 fun FILTER_DISCH_ALL P thm =
- let fun check tm = P (#t (Thm.rep_cterm tm))
+ let fun check tm = P (Thm.term_of tm)
  in  fold_rev (fn tm => fn th => if check tm then DISCH tm th else th) (chyps thm) thm
  end;
 
@@ -269,7 +269,7 @@ local (* this is fragile *)
       val gspec = Thm.forall_intr (Thm.cterm_of thy x) spec
 in
 fun SPEC tm thm =
-   let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_term tm)], []) gspec
+   let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_cterm tm)], []) gspec
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
@@ -285,7 +285,7 @@ local val thy = Thm.theory_of_thm allI
       fun cty_theta s = map (fn (i, (S, ty)) => (Thm.ctyp_of s (TVar (i, S)), Thm.ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
                              let val ctm2 = Thm.cterm_of s tm2
-                             in (Thm.cterm_of s (Var(i,#T(Thm.rep_cterm ctm2))), ctm2)
+                             in (Thm.cterm_of s (Var(i, Thm.typ_of_cterm ctm2)), ctm2)
                              end)
       fun certify s (ty_theta,tm_theta) =
         (cty_theta s (Vartab.dest ty_theta),
