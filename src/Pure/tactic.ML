@@ -206,7 +206,7 @@ fun filter_thms could (limit, prem, ths) =
       fun filtr (limit, []) = []
         | filtr (limit, th::ths) =
             if limit=0 then  []
-            else if could(pb, concl_of th)  then th :: filtr(limit-1, ths)
+            else if could(pb, Thm.concl_of th)  then th :: filtr(limit-1, ths)
             else filtr(limit,ths)
   in  filtr(limit,ths)  end;
 
@@ -221,7 +221,7 @@ fun insert_tagged_brl (kbrl as (k, (eres, th))) (inet, enet) =
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.insert_term (K false) (prem, kbrl) enet)
     | NONE => error "insert_tagged_brl: elimination rule with no premises")
-  else (Net.insert_term (K false) (concl_of th, kbrl) inet, enet);
+  else (Net.insert_term (K false) (Thm.concl_of th, kbrl) inet, enet);
 
 (*delete one kbrl from the pair of nets*)
 fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
@@ -256,7 +256,7 @@ fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt order_list true
 
 (*insert one tagged rl into the net*)
 fun insert_krl (krl as (k,th)) =
-  Net.insert_term (K false) (concl_of th, krl);
+  Net.insert_term (K false) (Thm.concl_of th, krl);
 
 (*build a net of rules for resolution*)
 fun build_net rls =
@@ -285,8 +285,8 @@ fun match_from_net_tac ctxt = filt_resolution_from_net_tac ctxt true (K true);
 (*** For Natural Deduction using (bires_flg, rule) pairs ***)
 
 (*The number of new subgoals produced by the brule*)
-fun subgoals_of_brl (true,rule)  = nprems_of rule - 1
-  | subgoals_of_brl (false,rule) = nprems_of rule;
+fun subgoals_of_brl (true, rule) = Thm.nprems_of rule - 1
+  | subgoals_of_brl (false, rule) = Thm.nprems_of rule;
 
 (*Less-than test: for sorting to minimize number of new subgoals*)
 fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;

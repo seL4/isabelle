@@ -30,7 +30,7 @@ fun mk_fun_cases ctxt prop =
     val info = Function.get_info ctxt f handle List.Empty => err ();
     val {elims, pelims, is_partial, ...} = info;
     val elims = if is_partial then pelims else the elims;
-    val cprop = cterm_of thy prop;
+    val cprop = Thm.cterm_of thy prop;
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (Inductive.mk_cases_tac ctxt) (Thm.assume cprop RS rl))

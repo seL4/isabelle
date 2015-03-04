@@ -351,7 +351,7 @@ fun addSE w context th
     let
       val th' = classical_rule (flat_rule context th);
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-        List.partition (fn rl => nprems_of rl=1) [th'];
+        List.partition (fn rl => Thm.nprems_of rl=1) [th'];
       val nI = Item_Net.length safeIs;
       val nE = Item_Net.length safeEs + 1;
       val _ = warn_claset context th cs;
@@ -467,7 +467,7 @@ fun delSE context th
   if Item_Net.member safeEs th then
     let
       val th' = classical_rule (flat_rule context th);
-      val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl = 1) [th'];
+      val (safe0_rls, safep_rls) = List.partition (fn rl => Thm.nprems_of rl = 1) [th'];
     in
       CS
        {safe0_netpair = delete ([], safe0_rls) safe0_netpair,

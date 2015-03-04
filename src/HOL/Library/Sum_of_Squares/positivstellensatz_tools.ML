@@ -31,7 +31,7 @@ fun string_of_rat r =
 
 fun string_of_varpow x k =
   let
-    val term = term_of x
+    val term = Thm.term_of x
     val name =
       (case term of
         Free (n, _) => n

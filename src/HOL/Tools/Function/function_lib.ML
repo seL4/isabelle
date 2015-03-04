@@ -62,7 +62,7 @@ fun mk_forall_rename (n, v) =
 fun forall_intr_rename (n, cv) thm =
   let
     val allthm = Thm.forall_intr cv thm
-    val (_ $ abs) = prop_of allthm
+    val (_ $ abs) = Thm.prop_of allthm
   in Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy)) allthm end
 
 
@@ -95,17 +95,17 @@ fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) =
 
 fun regroup_conv neu cn ac is ct =
  let
-   val thy = theory_of_cterm ct
+   val thy = Thm.theory_of_cterm ct
    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
 
    val mk = HOLogic.mk_binop cn
-   val t = term_of ct
+   val t = Thm.term_of ct
    val xs = dest_binop_list cn t
    val js = subtract (op =) is (0 upto (length xs) - 1)
    val ty = fastype_of t
  in
    Goal.prove_internal ctxt []
-     (cterm_of thy
+     (Thm.cterm_of thy
        (Logic.mk_equals (t,
           if null is
           then mk (Const (neu, ty), foldr1 mk (map (nth xs) js))

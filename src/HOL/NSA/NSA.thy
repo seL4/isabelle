@@ -656,7 +656,8 @@ simproc_setup approx_reorient_simproc
   ("0 @= x" | "1 @= y" | "numeral w @= z" | "- 1 @= y" | "- numeral w @= r") =
 {*
   let val rule = @{thm approx_reorient} RS eq_reflection
-      fun proc phi ss ct = case term_of ct of
+      fun proc phi ss ct =
+        case Thm.term_of ct of
           _ $ t $ u => if can HOLogic.dest_number u then NONE
             else if can HOLogic.dest_number t then SOME rule else NONE
         | _ => NONE

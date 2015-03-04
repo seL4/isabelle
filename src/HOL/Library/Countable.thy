@@ -171,7 +171,7 @@ ML {*
         val typedef_info = hd (Typedef.get_info ctxt ty_name)
         val typedef_thm = #type_definition (snd typedef_info)
         val pred_name =
-          (case HOLogic.dest_Trueprop (concl_of typedef_thm) of
+          (case HOLogic.dest_Trueprop (Thm.concl_of typedef_thm) of
             (_ $ _ $ _ $ (_ $ Const (n, _))) => n
           | _ => raise Match)
         val induct_info = Inductive.the_inductive ctxt pred_name

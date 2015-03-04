@@ -84,7 +84,7 @@ fun make_dt_info descr induct reccomb_names rec_thms
 
 (*******************************)
 
-val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of Old_Datatype.distinct_lemma);
+val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (Thm.prems_of Old_Datatype.distinct_lemma);
 
 
 (** simplification procedure for sorting permutations **)
@@ -108,9 +108,9 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
             val cp = cp_inst_of thy a b;
             val dj = dj_thm_of thy b a;
             val dj_cp' = [cp, dj] MRS dj_cp;
-            val cert = SOME o cterm_of thy
+            val cert = SOME o Thm.cterm_of thy
           in
-            SOME (mk_meta_eq (Drule.instantiate' [SOME (ctyp_of thy S)]
+            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.ctyp_of thy S)]
               [cert t, cert r, cert s] dj_cp'))
           end
         else NONE
@@ -152,9 +152,11 @@ fun perm_of_pair (x, y) =
     HOLogic.mk_prod (x, y) $ Const (@{const_name Nil}, pT)
   end;
 
-fun mk_not_sym ths = maps (fn th => case prop_of th of
-    _ $ (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) => [th, th RS not_sym]
-  | _ => [th]) ths;
+fun mk_not_sym ths = maps (fn th =>
+  (case Thm.prop_of th of
+    _ $ (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) =>
+    [th, th RS not_sym]
+  | _ => [th])) ths;
 
 fun fresh_const T U = Const (@{const_name Nominal.fresh}, T --> U --> HOLogic.boolT);
 fun fresh_star_const T U =
@@ -775,11 +777,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
     fun dt_constr_defs ((((((_, (_, _, constrs)),
         (_, (_, _, constrs'))), tname), T), T'), constr_syntax) (thy, defs, eqns, dist_lemmas) =
       let
-        val rep_const = cterm_of thy
+        val rep_const = Thm.cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
         val dist =
           Drule.export_without_context
-            (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] Old_Datatype.distinct_lemma);
+            (cterm_instantiate
+              [(Thm.cterm_of thy distinct_f, rep_const)] Old_Datatype.distinct_lemma);
         val (thy', defs', eqns') = fold (make_constr_def tname T T')
           (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in
@@ -815,7 +818,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     fun prove_perm_rep_perm (atom, perm_closed_thms) = map (fn th =>
       let
-        val _ $ (_ $ (Rep $ x)) = Logic.unvarify_global (prop_of th);
+        val _ $ (_ $ (Rep $ x)) = Logic.unvarify_global (Thm.prop_of th);
         val Type ("fun", [T, U]) = fastype_of Rep;
         val permT = mk_permT (Type (atom, []));
         val pi = Free ("pi", permT);
@@ -1044,11 +1047,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
                full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps Rep_inverse_thms) 1,
                etac mp 1, resolve_tac ctxt Rep_thms 1])]);
 
-    val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
+    val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate
-      (map (cterm_of thy8) Ps ~~ map (cterm_of thy8) frees) indrule_lemma;
+      (map (Thm.cterm_of thy8) Ps ~~ map (Thm.cterm_of thy8) frees) indrule_lemma;
 
     val Abs_inverse_thms' = map (fn r => r RS subst) Abs_inverse_thms;
 
@@ -1254,17 +1257,18 @@ fun gen_nominal_datatype prep_specs config dts thy =
              full_simp_tac (put_simpset HOL_ss ctxt' addsimps (fresh_prod :: fresh_atm)) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
-      in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
+      in (freshs1 @ [Thm.term_of cx], freshs2 @ ths, ctxt') end;
 
     fun fresh_fresh_inst thy a b =
       let
         val T = fastype_of a;
-        val SOME th = find_first (fn th => case prop_of th of
+        val SOME th = find_first (fn th =>
+          (case Thm.prop_of th of
             _ $ (_ $ (Const (_, Type (_, [U, _])) $ _ $ _)) $ _ => U = T
-          | _ => false) perm_fresh_fresh
+          | _ => false)) perm_fresh_fresh
       in
         Drule.instantiate' []
-          [SOME (cterm_of thy a), NONE, SOME (cterm_of thy b)] th
+          [SOME (Thm.cterm_of thy a), NONE, SOME (Thm.cterm_of thy b)] th
       end;
 
     val fs_cp_sort =
@@ -1311,11 +1315,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
                    SUBPROOF (fn {prems = iprems, params, concl,
                        context = context2, ...} =>
                      let
-                       val concl' = term_of concl;
+                       val concl' = Thm.term_of concl;
                        val _ $ (_ $ _ $ u) = concl';
                        val U = fastype_of u;
                        val (xs, params') =
-                         chop (length cargs) (map (term_of o #2) params);
+                         chop (length cargs) (map (Thm.term_of o #2) params);
                        val Ts = map fastype_of xs;
                        val cnstr = Const (cname, Ts ---> U);
                        val (pis, z) = split_last params';
@@ -1378,13 +1382,13 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val induct_aux' = Thm.instantiate ([],
       map (fn (s, v as Var (_, T)) =>
-        (cterm_of thy9 v, cterm_of thy9 (Free (s, T))))
+        (Thm.cterm_of thy9 v, Thm.cterm_of thy9 (Free (s, T))))
           (pnames ~~ map head_of (HOLogic.dest_conj
-             (HOLogic.dest_Trueprop (concl_of induct_aux)))) @
+             (HOLogic.dest_Trueprop (Thm.concl_of induct_aux)))) @
       map (fn (_, f) =>
         let val f' = Logic.varify_global f
-        in (cterm_of thy9 f',
-          cterm_of thy9 (Const (@{const_name Nominal.supp}, fastype_of f')))
+        in (Thm.cterm_of thy9 f',
+          Thm.cterm_of thy9 (Const (@{const_name Nominal.supp}, fastype_of f')))
         end) fresh_fs) induct_aux;
 
     val induct = Goal.prove_global_future thy9 []
@@ -1547,8 +1551,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (augment_sort thy1 pt_cp_sort
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
             (fn {context = ctxt, ...} => dtac (Thm.instantiate ([],
-                 [(cterm_of thy11 (Var (("pi", 0), permT)),
-                   cterm_of thy11 (Const (@{const_name rev}, permT --> permT) $ pi))]) th) 1 THEN
+                 [(Thm.cterm_of thy11 (Var (("pi", 0), permT)),
+                   Thm.cterm_of thy11 (Const (@{const_name rev}, permT --> permT) $ pi))]) th) 1 THEN
                NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
 
@@ -1622,12 +1626,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
                      fresh_prems) = chop (length finite_prems) prems;
                    val unique_prem' = unique_prem RS spec RS mp;
                    val unique = [unique_prem', unique_prem' RS sym] MRS trans;
-                   val _ $ (_ $ (_ $ S $ _)) $ _ = prop_of supports_fresh;
+                   val _ $ (_ $ (_ $ S $ _)) $ _ = Thm.prop_of supports_fresh;
                    val tuple = foldr1 HOLogic.mk_prod (x :: rec_fns')
                  in EVERY
                    [rtac (Drule.cterm_instantiate
-                      [(cterm_of thy11 S,
-                        cterm_of thy11 (Const (@{const_name Nominal.supp},
+                      [(Thm.cterm_of thy11 S,
+                        Thm.cterm_of thy11 (Const (@{const_name Nominal.supp},
                           fastype_of tuple --> HOLogic.mk_setT aT) $ tuple))]
                       supports_fresh) 1,
                     simp_tac (put_simpset HOL_basic_ss context addsimps
@@ -1638,8 +1642,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     SUBPROOF (fn {prems = prems', params = [(_, a), (_, b)], ...} => EVERY
                       [cut_facts_tac [rec_prem] 1,
                        rtac (Thm.instantiate ([],
-                         [(cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
-                           cterm_of thy11 (perm_of_pair (term_of a, term_of b)))]) eqvt_th) 1,
+                         [(Thm.cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
+                           Thm.cterm_of thy11
+                            (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th) 1,
                        asm_simp_tac (put_simpset HOL_ss context addsimps
                          (prems' @ perm_swap @ perm_fresh_fresh)) 1]) context 1,
                     rtac rec_prem 1,
@@ -1666,7 +1671,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
 
     val induct_aux_rec = Drule.cterm_instantiate
-      (map (apply2 (cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
+      (map (apply2 (Thm.cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
          (map (fn (aT, f) => (Logic.varify_global f, Abs ("z", HOLogic.unitT,
             Const (@{const_name Nominal.supp}, fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @
@@ -1694,7 +1699,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
              full_simp_tac (put_simpset HOL_ss ctxt addsimps (fresh_prod :: fresh_atm)) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
-      in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
+      in (freshs1 @ [Thm.term_of cx], freshs2 @ ths, ctxt') end;
 
     val finite_ctxt_prems = map (fn aT =>
       HOLogic.mk_Trueprop
@@ -1747,9 +1752,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 SUBPROOF (fn {asms, concl, prems = prems', params, context = context', ...} =>
                   let
                     val SOME prem = find_first (can (HOLogic.dest_eq o
-                      HOLogic.dest_Trueprop o prop_of)) prems';
-                    val _ $ (_ $ lhs $ rhs) = prop_of prem;
-                    val _ $ (_ $ lhs' $ rhs') = term_of concl;
+                      HOLogic.dest_Trueprop o Thm.prop_of)) prems';
+                    val _ $ (_ $ lhs $ rhs) = Thm.prop_of prem;
+                    val _ $ (_ $ lhs' $ rhs') = Thm.term_of concl;
                     val rT = fastype_of lhs';
                     val (c, cargsl) = strip_comb lhs;
                     val cargsl' = partition_cargs idxs cargsl;
@@ -1758,17 +1763,20 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     val cargsr' = partition_cargs idxs cargsr;
                     val boundsr = maps fst cargsr';
                     val (params1, _ :: params2) =
-                      chop (length params div 2) (map (term_of o #2) params);
+                      chop (length params div 2) (map (Thm.term_of o #2) params);
                     val params' = params1 @ params2;
-                    val rec_prems = filter (fn th => case prop_of th of
-                        _ $ p => (case head_of p of
-                          Const (s, _) => member (op =) rec_set_names s
-                        | _ => false)
-                      | _ => false) prems';
-                    val fresh_prems = filter (fn th => case prop_of th of
+                    val rec_prems = filter (fn th =>
+                        (case Thm.prop_of th of
+                          _ $ p =>
+                            (case head_of p of
+                              Const (s, _) => member (op =) rec_set_names s
+                            | _ => false)
+                        | _ => false)) prems';
+                    val fresh_prems = filter (fn th =>
+                      (case Thm.prop_of th of
                         _ $ (Const (@{const_name Nominal.fresh}, _) $ _ $ _) => true
                       | _ $ (Const (@{const_name Not}, _) $ _) => true
-                      | _ => false) prems';
+                      | _ => false)) prems';
                     val Ts = map fastype_of boundsl;
 
                     val _ = warning "step 1: obtaining fresh names";
@@ -1842,7 +1850,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     val _ = warning "step 6: (ts, pi1^-1 o pi2 o vs) in rec_set";
                     val rec_prems' = map (fn th =>
                       let
-                        val _ $ (S $ x $ y) = prop_of th;
+                        val _ $ (S $ x $ y) = Thm.prop_of th;
                         val Const (s, _) = head_of S;
                         val k = find_index (equal s) rec_set_names;
                         val pi = rpi1 @ pi2;
@@ -1853,8 +1861,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                             val l = find_index (equal T) dt_atomTs;
                             val th = nth (nth rec_equiv_thms' l) k;
                             val th' = Thm.instantiate ([],
-                              [(cterm_of thy11 (Var (("pi", 0), U)),
-                                cterm_of thy11 p)]) th;
+                              [(Thm.cterm_of thy11 (Var (("pi", 0), U)),
+                                Thm.cterm_of thy11 p)]) th;
                           in rtac th' 1 end;
                         val th' = Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))
@@ -1868,15 +1876,17 @@ fun gen_nominal_datatype prep_specs config dts thy =
                           (put_simpset HOL_basic_ss context'' addsimps rpi1_pi2_eqs) th'
                       end) rec_prems2;
 
-                    val ihs = filter (fn th => case prop_of th of
-                      _ $ (Const (@{const_name All}, _) $ _) => true | _ => false) prems';
+                    val ihs = filter (fn th =>
+                      (case Thm.prop_of th of
+                        _ $ (Const (@{const_name All}, _) $ _) => true
+                      | _ => false)) prems';
 
                     (** pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs **)
                     val _ = warning "step 7: pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs";
                     val rec_eqns = map (fn (th, ih) =>
                       let
                         val th' = th RS (ih RS spec RS mp) RS sym;
-                        val _ $ (_ $ lhs $ rhs) = prop_of th';
+                        val _ $ (_ $ lhs $ rhs) = Thm.prop_of th';
                         fun strip_perm (_ $ _ $ t) = strip_perm t
                           | strip_perm t = t;
                       in
@@ -1894,7 +1904,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       maps (fn (rec_prem, ih) =>
                         let
                           val _ $ (S $ x $ (y as Free (_, T))) =
-                            prop_of rec_prem;
+                            Thm.prop_of rec_prem;
                           val k = find_index (equal S) rec_sets;
                           val atoms = flat (map_filter (fn (bs, z) =>
                             if z = x then NONE else SOME bs) cargsl')
@@ -1981,7 +1991,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                            (fresh_prems' @ freshs2' @ calc_atm @ perm_fresh_fresh)) 1));
 
                     val _ = warning "final result";
-                    val final = Goal.prove context'' [] [] (term_of concl)
+                    val final = Goal.prove context'' [] [] (Thm.term_of concl)
                       (fn _ => cut_facts_tac [pi1_pi2_result RS sym] 1 THEN
                         full_simp_tac (put_simpset HOL_basic_ss context'' addsimps perm_fresh_fresh @
                           fresh_results @ fresh_results') 1);

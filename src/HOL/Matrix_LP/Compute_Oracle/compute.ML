@@ -368,7 +368,7 @@ val (_, export_oracle) = Context.>>> (Context.map_theory_result
 fun export_thm thy hyps shyps prop =
     let
         val th = export_oracle (thy, hyps, shyps, prop)
-        val hyps = map (fn h => Thm.assume (cterm_of thy h)) hyps
+        val hyps = map (fn h => Thm.assume (Thm.cterm_of thy h)) hyps
     in
         fold (fn h => fn p => Thm.implies_elim p h) hyps th 
     end
@@ -378,7 +378,7 @@ fun export_thm thy hyps shyps prop =
 fun rewrite computer ct =
     let
         val thy = Thm.theory_of_cterm ct
-        val {t=t',T=ty,...} = rep_cterm ct
+        val {t=t',T=ty,...} = Thm.rep_cterm ct
         val _ = super_theory (theory_of computer) thy
         val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
@@ -401,7 +401,7 @@ exception ParamSimplify of computer * theorem
 
 fun make_theorem computer th vars =
 let
-    val _ = super_theory (theory_of computer) (theory_of_thm th)
+    val _ = super_theory (theory_of computer) (Thm.theory_of_thm th)
 
     val (ComputeThm (hyps, shyps, prop)) = thm2cthm th 
 
@@ -452,7 +452,7 @@ let
     val (encoding, concl) = remove_types encoding (Logic.strip_imp_concl prop)
     val _ = set_encoding computer encoding
 in
-    Theorem (theory_of_thm th, stamp_of computer, vartab, varsubst, 
+    Theorem (Thm.theory_of_thm th, stamp_of computer, vartab, varsubst, 
              prems, concl, hyps, shyps)
 end
     
@@ -506,8 +506,8 @@ let
 
     fun compute_inst (s, ct) vs =
         let
-            val _ = super_theory (theory_of_cterm ct) thy
-            val ty = typ_of (ctyp_of_term ct) 
+            val _ = super_theory (Thm.theory_of_cterm ct) thy
+            val ty = Thm.typ_of (Thm.ctyp_of_term ct) 
         in          
             (case Symtab.lookup vartab s of 
                  NONE => raise Compute ("instantiate: variable '"^s^"' not found in theorem")
@@ -519,7 +519,7 @@ let
                           raise Compute ("instantiate: wrong type for variable '"^s^"'")
                       else
                           let
-                              val t = rewrite computer (term_of ct)
+                              val t = rewrite computer (Thm.term_of ct)
                               val _ = assert_varfree vs t 
                               val _ = assert_closed t
                           in
@@ -611,7 +611,7 @@ let
     val thy = 
         let
             val thy1 = theory_of_theorem th
-            val thy2 = theory_of_thm th'
+            val thy2 = Thm.theory_of_thm th'
         in
             if Theory.subthy (thy1, thy2) then thy2 
             else if Theory.subthy (thy2, thy1) then thy1 else

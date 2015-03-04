@@ -65,7 +65,7 @@ local
 fun add_iff safe unsafe =
   Thm.declaration_attribute (fn th =>
     let
-      val n = nprems_of th;
+      val n = Thm.nprems_of th;
       val (elim, intro) = if n = 0 then safe else unsafe;
       val zero_rotate = zero_var_indexes o rotate_prems n;
     in
@@ -77,7 +77,7 @@ fun add_iff safe unsafe =
     end);
 
 fun del_iff del = Thm.declaration_attribute (fn th =>
-  let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
+  let val zero_rotate = zero_var_indexes o rotate_prems (Thm.nprems_of th) in
     Thm.attribute_declaration del (zero_rotate (th RS Data.iffD2)) #>
     Thm.attribute_declaration del (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
     handle THM _ =>

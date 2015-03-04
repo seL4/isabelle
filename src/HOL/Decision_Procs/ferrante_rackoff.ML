@@ -25,14 +25,14 @@ type entry = {minf: thm list, pinf: thm list, nmi: thm list, npi: thm list,
 
 fun get_p1 th =
   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
-    (funpow 2 Thm.dest_arg (cprop_of th)) |> Thm.dest_arg
+    (funpow 2 Thm.dest_arg (Thm.cprop_of th)) |> Thm.dest_arg
 
 fun ferrack_conv ctxt
    (entr as ({minf = minf, pinf = pinf, nmi = nmi, npi = npi,
               ld = ld, qe = qe, atoms = atoms},
              {isolate_conv = icv, whatis = wi, simpset = simpset}):entry) =
 let
- fun uset (vars as (x::vs)) p = case term_of p of
+ fun uset (vars as (x::vs)) p = case Thm.term_of p of
    Const(@{const_name HOL.conj}, _)$ _ $ _ =>
      let
        val ((b,l),r) = Thm.dest_comb p |>> Thm.dest_comb
@@ -56,7 +56,7 @@ let
 
  val ((p1_v,p2_v),(mp1_v,mp2_v)) =
    funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
-     (funpow 4 Thm.dest_arg (cprop_of (hd minf)))
+     (funpow 4 Thm.dest_arg (Thm.cprop_of (hd minf)))
    |> Thm.dest_binop |> apply2 Thm.dest_binop |> apfst (apply2 Thm.dest_fun)
 
  fun myfwd (th1, th2, th3, th4, th5) p1 p2
@@ -73,14 +73,14 @@ let
   in (fw true th1 th_1 th_1', fw false th2 th_2 th_2',
       fw true th3 th_3 th_3', fw false th4 th_4 th_4', fw true th5 th_5 th_5')
   end
- val U_v = (Thm.dest_arg o Thm.dest_arg o Thm.dest_arg1) (cprop_of qe)
+ val U_v = (Thm.dest_arg o Thm.dest_arg o Thm.dest_arg1) (Thm.cprop_of qe)
  fun main vs p =
   let
-   val ((xn,ce),(x,fm)) = (case term_of p of
+   val ((xn,ce),(x,fm)) = (case Thm.term_of p of
                    Const(@{const_name Ex},_)$Abs(xn,xT,_) =>
                         Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
-   val cT = ctyp_of_term x
+   val cT = Thm.ctyp_of_term x
    val (u,nth) = uset (x::vs) fm |>> distinct (op aconvc)
    val nthx = Thm.abstract_rule xn x nth
    val q = Thm.rhs_of nth
@@ -97,18 +97,18 @@ let
      val insI2 = instantiate' [SOME cT] [] @{thm "insertI2"}
    in
     fun provein x S =
-     case term_of S of
+     case Thm.term_of S of
         Const(@{const_name Orderings.bot}, _) => raise CTERM ("provein : not a member!", [S])
       | Const(@{const_name insert}, _) $ y $_ =>
          let val (cy,S') = Thm.dest_binop S
-         in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
+         in if Thm.term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
          else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
-   val tabU = fold (fn t => fn tab => Termtab.update (term_of t, provein t cU) tab)
+   val tabU = fold (fn t => fn tab => Termtab.update (Thm.term_of t, provein t cU) tab)
                    u Termtab.empty
-   val U = the o Termtab.lookup tabU o term_of
+   val U = the o Termtab.lookup tabU o Thm.term_of
    val [minf_conj, minf_disj, minf_eq, minf_neq, minf_lt,
         minf_le, minf_gt, minf_ge, minf_P] = minf
    val [pinf_conj, pinf_disj, pinf_eq, pinf_neq, pinf_lt,
@@ -121,7 +121,7 @@ let
         ld_le, ld_gt, ld_ge, ld_P] = map (Drule.instantiate_normalize ([],[(U_v,cU)])) ld
 
    fun decomp_mpinf fm =
-     case term_of fm of
+     case Thm.term_of fm of
        Const(@{const_name HOL.conj},_)$_$_ =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q], myfwd (minf_conj,pinf_conj, nmi_conj, npi_conj,ld_conj)
@@ -174,7 +174,7 @@ end;
 val grab_atom_bop =
  let
   fun h bounds tm =
-   (case term_of tm of
+   (case Thm.term_of tm of
      Const (@{const_name HOL.eq}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm

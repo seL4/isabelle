@@ -100,7 +100,7 @@ fun name_of (Const (n, _)) = n
   | name_of t = raise TERM ("Fixrec.add_unfold: lhs not a constant", [t])
 
 val lhs_name =
-  name_of o head_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of
+  name_of o head_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
 
 in
 

@@ -73,7 +73,7 @@ fun add_const_def s th name_opt thy =
     val th = Thm.legacy_freezeT th
     val name = case name_opt of
          NONE => (fst o dest_Const o fst o HOLogic.dest_eq o
-           HOLogic.dest_Trueprop o prop_of) th
+           HOLogic.dest_Trueprop o Thm.prop_of) th
        | SOME n => n
     val thy' = add_const_map s name thy
   in
@@ -85,7 +85,7 @@ fun add_const_def s th name_opt thy =
 fun add_typ_def tyname absname repname th thy =
   let
     val th = Thm.legacy_freezeT th
-    val (l, _) = dest_comb (HOLogic.dest_Trueprop (prop_of th))
+    val (l, _) = dest_comb (HOLogic.dest_Trueprop (Thm.prop_of th))
     val (l, abst) = dest_comb l
     val (_, rept) = dest_comb l
     val (absn, _) = dest_Const abst

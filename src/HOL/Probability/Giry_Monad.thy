@@ -184,7 +184,7 @@ ML {*
 fun subprob_cong thm ctxt = (
   let
     val thm' = Thm.transfer (Proof_Context.theory_of ctxt) thm
-    val free = thm' |> concl_of |> HOLogic.dest_Trueprop |> dest_comb |> fst |>
+    val free = thm' |> Thm.concl_of |> HOLogic.dest_Trueprop |> dest_comb |> fst |>
       dest_comb |> snd |> strip_abs_body |> head_of |> is_Free
   in
     if free then ([], Measurable.add_local_cong (thm' RS @{thm subprob_measurableD(2)}) ctxt)

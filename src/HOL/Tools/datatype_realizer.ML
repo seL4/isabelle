@@ -27,7 +27,7 @@ fun tname_of (Type (s, _)) = s
 fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.info) is thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val cert = cterm_of thy;
+    val cert = Thm.cterm_of thy;
 
     val recTs = Old_Datatype_Aux.get_rec_types descr;
     val pnames =
@@ -107,7 +107,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
     val inst = map (apply2 cert) (map head_of (HOLogic.dest_conj
-      (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
+      (HOLogic.dest_Trueprop (Thm.concl_of induct))) ~~ ps);
 
     val thm =
       Goal.prove_internal ctxt (map cert prems) (cert concl)
@@ -144,7 +144,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
                     (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
                 end
             | _ => AbsP ("H", SOME p, prf)))
-          (rec_fns ~~ prems_of thm)
+          (rec_fns ~~ Thm.prems_of thm)
           (Proofterm.proof_combP
             (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
 
@@ -160,7 +160,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info) thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val cert = cterm_of thy;
+    val cert = Thm.cterm_of thy;
     val rT = TFree ("'P", @{sort type});
     val rT' = TVar (("'P", 0), @{sort type});
 
@@ -214,7 +214,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
             (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
     val prf' =
       Extraction.abs_corr_shyps thy' exhaust []
-        (map Var (Term.add_vars (prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
+        (map Var (Term.add_vars (Thm.prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
     val r' =
       Logic.varify_global (Abs ("y", T,
         (fold_rev (Term.abs o dest_Free) rs

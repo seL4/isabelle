@@ -706,7 +706,7 @@ in
 fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val defs' = map (cterm_of thy #> Assumption.assume ctxt #> Drule.abs_def) defs;
+    val defs' = map (Thm.cterm_of thy #> Assumption.assume ctxt #> Drule.abs_def) defs;
 
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
@@ -807,7 +807,7 @@ fun gen_add_locale prep_decl
     val notes =
       if is_some asm then
         [("", [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
-          [([Assumption.assume pred_ctxt (cterm_of thy' (the asm))],
+          [([Assumption.assume pred_ctxt (Thm.cterm_of thy' (the asm))],
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 

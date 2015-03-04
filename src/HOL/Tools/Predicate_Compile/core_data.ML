@@ -235,7 +235,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         fun term_pair_of (ix, (ty, t)) = (Var (ix, ty), t)
         fun inst_of_matches tts =
           fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
-          |> snd |> Vartab.dest |> map (apply2 (cterm_of thy) o term_pair_of)
+          |> snd |> Vartab.dest |> map (apply2 (Thm.cterm_of thy) o term_pair_of)
         val (cases, (eqs, prems1)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
           rewrite_rule ctxt2 (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
@@ -247,8 +247,8 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
           Thm.instantiate ([], inst_of_matches pats) case_th
             OF replicate nargs @{thm refl}
         val thesis =
-          Thm.instantiate ([], inst_of_matches (prems_of case_th' ~~ map prop_of prems2)) case_th'
-            OF prems2
+          Thm.instantiate ([], inst_of_matches (Thm.prems_of case_th' ~~ map Thm.prop_of prems2))
+            case_th' OF prems2
       in rtac thesis 1 end
   in
     Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule
@@ -277,7 +277,7 @@ fun fetch_pred_data ctxt name =
         val pos = Position.thread_data ()
         fun is_intro_of intro =
           let
-            val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
+            val (const, _) = strip_comb (HOLogic.dest_Trueprop (Thm.concl_of intro))
           in (fst (dest_Const const) = name) end;
         val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result))
         val index = find_index (fn s => s = name) (#names (fst info))
@@ -330,7 +330,7 @@ fun add_intro (opt_case_name, thm) thy =
 fun set_elim thm =
   let
     val (name, _) =
-      dest_Const (fst (strip_comb (HOLogic.dest_Trueprop (hd (prems_of thm)))))
+      dest_Const (fst (strip_comb (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))))
   in
     PredData.map (Graph.map_node name (map_pred_data (apsnd (apfst (apfst (apsnd (K (SOME thm))))))))
   end

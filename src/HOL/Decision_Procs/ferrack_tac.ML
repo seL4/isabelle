@@ -55,7 +55,7 @@ fun linr_tac ctxt q =
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val simpset0 = put_simpset HOL_basic_ss ctxt addsimps comp_arith
-    val ct = cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
@@ -63,7 +63,7 @@ fun linr_tac ctxt q =
       (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac ctxt i)
     (* The result of the quantifier elimination *)
-    val (th, tac) = case prop_of pre_thm of
+    val (th, tac) = case Thm.prop_of pre_thm of
         Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
     let val pth = linr_oracle (ctxt, Envir.eta_long [] t1)
     in 

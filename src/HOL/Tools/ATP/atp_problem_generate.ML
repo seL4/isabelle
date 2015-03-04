@@ -760,9 +760,9 @@ fun reveal_bounds Ts =
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
     t |> conceal_bounds Ts
-      |> cterm_of thy
+      |> Thm.cterm_of thy
       |> Meson_Clausify.introduce_combinators_in_cterm
-      |> prop_of |> Logic.dest_equals |> snd
+      |> Thm.prop_of |> Logic.dest_equals |> snd
       |> reveal_bounds Ts
   end
   (* A type variable of sort "{}" will make abstraction fail. *)
@@ -1211,7 +1211,7 @@ fun presimplify_term ctxt t =
   if exists_Const (member (op =) Meson.presimplified_consts o fst) t then
     t |> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
       |> Meson.presimplify ctxt
-      |> prop_of
+      |> Thm.prop_of
   else
     t
 
@@ -1750,7 +1750,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
                  I
                else
                  ths ~~ (1 upto length ths)
-                 |> maps (dub_and_inst needs_sound o apfst (apsnd prop_of))
+                 |> maps (dub_and_inst needs_sound o apfst (apsnd Thm.prop_of))
                  |> make_facts
                  |> union (op = o apply2 #iformula))
            (if completish then completish_helper_table else helper_table)

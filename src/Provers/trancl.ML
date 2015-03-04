@@ -93,8 +93,8 @@ fun decomp t = Option.map (fn (x, y, rel, r) =>
 fun prove thy r asms =
   let
     fun inst thm =
-      let val SOME (_, _, r', _) = decomp (concl_of thm)
-      in Drule.cterm_instantiate [(cterm_of thy r', cterm_of thy r)] thm end;
+      let val SOME (_, _, r', _) = decomp (Thm.concl_of thm)
+      in Drule.cterm_instantiate [(Thm.cterm_of thy r', Thm.cterm_of thy r)] thm end;
     fun pr (Asm i) = nth asms i
       | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm;
   in pr end;
@@ -543,7 +543,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  in
   Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
-      val SOME (_, _, rel', _) = decomp (term_of concl);
+      val SOME (_, _, rel', _) = decomp (Thm.term_of concl);
       val thms = map (prove thy rel' prems) prfs
     in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
  end
@@ -562,7 +562,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  in
   Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
-      val SOME (_, _, rel', _) = decomp (term_of concl);
+      val SOME (_, _, rel', _) = decomp (Thm.term_of concl);
       val thms = map (prove thy rel' prems) prfs
     in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
  end

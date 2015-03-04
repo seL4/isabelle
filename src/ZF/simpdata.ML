@@ -18,7 +18,7 @@ fun atomize (conn_pairs, mem_pairs) th =
                      SOME rls => maps (atomize (conn_pairs, mem_pairs)) ([th] RL rls)
                    | NONE => [th])
             | _ => [th]
-  in case concl_of th of
+  in case Thm.concl_of th of
          Const(@{const_name Trueprop},_) $ P =>
             (case P of
                  Const(@{const_name mem},_) $ a $ b => tryrules mem_pairs b

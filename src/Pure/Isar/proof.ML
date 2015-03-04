@@ -474,7 +474,8 @@ fun conclude_goal ctxt goal propss =
     val thy = Proof_Context.theory_of ctxt;
 
     val _ =
-      Theory.subthy (theory_of_thm goal, thy) orelse error "Bad background theory of goal state";
+      Theory.subthy (Thm.theory_of_thm goal, thy) orelse
+        error "Bad background theory of goal state";
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
     fun lost_structure () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);

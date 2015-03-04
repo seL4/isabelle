@@ -608,7 +608,7 @@ local
 in
 
 fun antisym_le_simproc ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     (le as Const (_, T)) $ r $ s =>
      (let
         val prems = Simplifier.prems_of ctxt;
@@ -627,7 +627,7 @@ fun antisym_le_simproc ctxt ct =
   | _ => NONE);
 
 fun antisym_less_simproc ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     NotC $ ((less as Const(_,T)) $ r $ s) =>
      (let
        val prems = Simplifier.prems_of ctxt;

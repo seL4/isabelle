@@ -469,7 +469,7 @@ fun mk_tupled_allIN_balanced 0 = @{thm unit_all_impI}
       val T = mk_tupleT_balanced tfrees;
     in
       @{thm asm_rl[of "ALL x. P x --> Q x" for P Q]}
-      |> Drule.instantiate' [SOME (ctyp_of @{theory} T)] []
+      |> Drule.instantiate' [SOME (Thm.ctyp_of @{theory} T)] []
       |> Raw_Simplifier.rewrite_goals_rule @{context} @{thms split_paired_All[THEN eq_reflection]}
       |> (fn thm => impI RS funpow n (fn th => allI RS th) thm)
       |> Thm.varifyT_global

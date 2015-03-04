@@ -57,19 +57,19 @@ fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
 *)
 
 fun quot_thm_rel quot_thm =
-  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+  case (dest_Quotient o HOLogic.dest_Trueprop o Thm.prop_of) quot_thm of
     (rel, _, _, _) => rel
 
 fun quot_thm_abs quot_thm =
-  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+  case (dest_Quotient o HOLogic.dest_Trueprop o Thm.prop_of) quot_thm of
     (_, abs, _, _) => abs
 
 fun quot_thm_rep quot_thm =
-  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+  case (dest_Quotient o HOLogic.dest_Trueprop o Thm.prop_of) quot_thm of
     (_, _, rep, _) => rep
 
 fun quot_thm_crel quot_thm =
-  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+  case (dest_Quotient o HOLogic.dest_Trueprop o Thm.prop_of) quot_thm of
     (_, _, _, crel) => crel
 
 fun quot_thm_rty_qty quot_thm =
@@ -87,7 +87,7 @@ fun undisch thm =
     Thm.implies_elim thm (Thm.assume assm)
   end
 
-fun undisch_all thm = funpow (nprems_of thm) undisch thm
+fun undisch_all thm = funpow (Thm.nprems_of thm) undisch thm
 
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false

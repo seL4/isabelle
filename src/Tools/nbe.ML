@@ -589,7 +589,7 @@ fun mk_equals ctxt lhs raw_rhs =
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
     fn (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct) =>
-      mk_equals ctxt ct (eval_term nbe_program_idx_tab ctxt (term_of ct) vs_ty_t deps))));
+      mk_equals ctxt ct (eval_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
 
 fun oracle nbe_program_idx_tab ctxt vs_ty_t deps ct =
   raw_oracle (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct);

@@ -73,7 +73,7 @@ val counter = Unsynchronized.ref 0;
 val resolution_thm =
   @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
 
-val cP = cterm_of @{theory} (Var (("P", 0), HOLogic.boolT));
+val cP = Thm.cterm_of @{theory} (Var (("P", 0), HOLogic.boolT));
 
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)
@@ -354,7 +354,7 @@ fun rawsat_thm ctxt clauses =
             (* [c_1, ..., c_n] |- c_1 && ... && c_n *)
             val clauses_thm = Conjunction.intr_balanced (map Thm.assume sorted_clauses)
             (* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
-            val cnf_cterm = cprop_of clauses_thm
+            val cnf_cterm = Thm.cprop_of clauses_thm
             val cnf_thm = Thm.assume cnf_cterm
             (* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
             val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
@@ -409,7 +409,7 @@ fun rawsat_thm ctxt clauses =
 
 fun rawsat_tac ctxt i =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
-    resolve_tac ctxt' [rawsat_thm ctxt' (map cprop_of prems)] 1) ctxt i;
+    resolve_tac ctxt' [rawsat_thm ctxt' (map Thm.cprop_of prems)] 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)

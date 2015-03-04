@@ -1025,7 +1025,7 @@ fun axioms_for_term
       let
         val supers = Sign.complete_sort thy S
         val class_axioms =
-          maps (fn class => map prop_of (Axclass.get_info thy class |> #axioms
+          maps (fn class => map Thm.prop_of (Axclass.get_info thy class |> #axioms
                                          handle ERROR _ => [])) supers
         val monomorphic_class_axioms =
           map (fn t => case Term.add_tvars t [] of

@@ -33,7 +33,7 @@ val advisory_simp = Attrib.setup_config_bool @{binding metis_advisory_simp} (K t
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
-  exists (member (Term.aconv_untyped o apply2 prop_of) ths1) (map Meson.make_meta_clause ths2)
+  exists (member (Term.aconv_untyped o apply2 Thm.prop_of) ths1) (map Meson.make_meta_clause ths2)
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
@@ -48,12 +48,12 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
     (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
-        val ct = cterm_of thy t
-        val cT = ctyp_of_term ct
+        val ct = Thm.cterm_of thy t
+        val cT = Thm.ctyp_of_term ct
       in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
       (if can HOLogic.dest_not t1 then t2 else t1)
-      |> HOLogic.mk_Trueprop |> cterm_of thy |> Thm.trivial
+      |> HOLogic.mk_Trueprop |> Thm.cterm_of thy |> Thm.trivial
     | _ => raise Fail "expected reflexive or trivial clause")
   end
   |> Meson.make_meta_clause
@@ -63,7 +63,7 @@ fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
     val thy = Proof_Context.theory_of ctxt
     val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
-    val ct = cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause end
 
 fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
@@ -73,16 +73,16 @@ fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
   | add_vars_and_frees _ = I
 
 fun introduce_lam_wrappers ctxt th =
-  if Meson_Clausify.is_quasi_lambda_free (prop_of th) then
+  if Meson_Clausify.is_quasi_lambda_free (Thm.prop_of th) then
     th
   else
     let
       val thy = Proof_Context.theory_of ctxt
       fun conv first ctxt ct =
-        if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
+        if Meson_Clausify.is_quasi_lambda_free (Thm.term_of ct) then
           Thm.reflexive ct
         else
-          (case term_of ct of
+          (case Thm.term_of ct of
             Abs (_, _, u) =>
             if first then
               (case add_vars_and_frees u [] of
@@ -90,18 +90,18 @@ fun introduce_lam_wrappers ctxt th =
                 Conv.abs_conv (conv false o snd) ctxt ct
                 |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
               | v :: _ =>
-                Abs (Name.uu, fastype_of v, abstract_over (v, term_of ct)) $ v
-                |> cterm_of thy
+                Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
+                |> Thm.cterm_of thy
                 |> Conv.comb_conv (conv true ctxt))
             else
               Conv.abs_conv (conv false o snd) ctxt ct
           | Const (@{const_name Meson.skolem}, _) $ _ => Thm.reflexive ct
           | _ => Conv.comb_conv (conv true ctxt) ct)
-      val eq_th = conv true ctxt (cprop_of th)
+      val eq_th = conv true ctxt (Thm.cprop_of th)
       (* We replace the equation's left-hand side with a beta-equivalent term
          so that "Thm.equal_elim" works below. *)
-      val t0 $ _ $ t2 = prop_of eq_th
-      val eq_ct = t0 $ prop_of th $ t2 |> cterm_of thy
+      val t0 $ _ $ t2 = Thm.prop_of eq_th
+      val eq_ct = t0 $ Thm.prop_of th $ t2 |> Thm.cterm_of thy
       val eq_th' = Goal.prove_internal ctxt [] eq_ct (K (resolve_tac ctxt [eq_th] 1))
     in Thm.equal_elim eq_th' th end
 
@@ -189,7 +189,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
            ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
        FOL_SOLVE unused fallback_type_encs lam_trans ctxt cls ths0)
   in
-    (case filter (fn t => prop_of t aconv @{prop False}) cls of
+    (case filter (fn t => Thm.prop_of t aconv @{prop False}) cls of
        false_th :: _ => [false_th RS @{thm FalseE}]
      | [] =>
      (case Metis_Resolution.loop (Metis_Resolution.new (resolution_params ordering)
@@ -197,7 +197,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
        Metis_Resolution.Contradiction mth =>
        let
          val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^ Metis_Thm.toString mth)
-         val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
+         val ctxt' = fold Variable.declare_constraints (map Thm.prop_of cls) ctxt
                       (*add constraints arising from converting goal to clause form*)
          val proof = Metis_Proof.proof mth
          val result = fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof axioms
@@ -243,7 +243,7 @@ fun neg_clausify ctxt combinators =
 
 fun preskolem_tac ctxt st0 =
   (if exists (Meson.has_too_many_clauses ctxt)
-             (Logic.prems_of_goal (prop_of st0) 1) then
+             (Logic.prems_of_goal (Thm.prop_of st0) 1) then
      Simplifier.full_simp_tac (Meson_Clausify.ss_only @{thms not_all not_ex} ctxt) 1
      THEN CNF.cnfx_rewrite_tac ctxt 1
    else
@@ -269,7 +269,7 @@ fun metis_tac type_encs lam_trans ctxt ths i = snd o metis_tac_unused type_encs 
    prevent "Subgoal.FOCUS" from freezing the type variables. We don't do it for nonschematic facts
    "X" because this breaks a few proofs (in the rare and subtle case where a proof relied on
    extensionality not being applied) and brings few benefits. *)
-val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
+val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o Thm.prop_of
 
 fun metis_method ((override_type_encs, lam_trans), ths) ctxt facts =
   let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in

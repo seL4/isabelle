@@ -253,7 +253,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
 fun elim_defs thy r defs prf =
   let
     val defs' = map (Logic.dest_equals o
-      map_types Type.strip_sorts o prop_of o Drule.abs_def) defs;
+      map_types Type.strip_sorts o Thm.prop_of o Drule.abs_def) defs;
     val defnames = map Thm.derivation_name defs;
     val f = if not r then I else
       let

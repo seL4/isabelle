@@ -1226,7 +1226,7 @@ fun dest_prem ctxt params t =
 fun prepare_intrs options ctxt prednames intros =
   let
     val thy = Proof_Context.theory_of ctxt
-    val intrs = map prop_of intros
+    val intrs = map Thm.prop_of intros
     val preds = map (fn c => Const (c, Sign.the_const_type thy c)) prednames
     val (preds, intrs) = unify_consts thy preds intrs
     val ([preds, intrs], _) = fold_burrow (Variable.import_terms false) [preds, intrs] ctxt

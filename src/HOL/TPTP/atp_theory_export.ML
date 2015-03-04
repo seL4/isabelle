@@ -170,7 +170,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val problem =
       facts
       |> map (fn ((_, loc), th) =>
-        ((Thm.get_name_hint th, loc), th |> prop_of |> mono ? monomorphize_term ctxt))
+        ((Thm.get_name_hint th, loc), th |> Thm.prop_of |> mono ? monomorphize_term ctxt))
       |> generate_atp_problem ctxt format Axiom type_enc Exporter combsN false false true []
         @{prop False}
       |> #1 |> sort_wrt (heading_sort_key o fst)

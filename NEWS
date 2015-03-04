@@ -258,6 +258,10 @@ style.
 
 *** ML ***
 
+* Elementary operations in module Thm are no longer pervasive.
+INCOMPATIBILITY, need to use qualified Thm.prop_of, Thm.cterm_of,
+Thm.term_of etc.
+
 * Former combinators NAMED_CRITICAL and CRITICAL for central critical
 sections have been discontinued, in favour of the more elementary
 Multithreading.synchronized and its high-level derivative

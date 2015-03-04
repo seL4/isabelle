@@ -271,18 +271,18 @@ fun flatten t =
     fun matchsome tha thb =
       let fun hmatch 0 = raise THM("matchsome: no match", 0, [tha,thb])
             | hmatch n = matchres tha n thb handle THM _ => hmatch (n-1)
-      in hmatch (nprems_of thb) end
+      in hmatch (Thm.nprems_of thb) end
 
     fun hflatten t =
-        case (concl_of t) of
-          Const _ $ (Const (@{const_name HOL.implies}, _) $ _ $ _) => hflatten (t RS mp)
-        | _ => (hflatten (matchsome conjI t)) handle THM _ => zero_var_indexes t
+      case Thm.concl_of t of
+        Const _ $ (Const (@{const_name HOL.implies}, _) $ _ $ _) => hflatten (t RS mp)
+      | _ => (hflatten (matchsome conjI t)) handle THM _ => zero_var_indexes t
   in
     hflatten t
   end
 
 fun int_use ctxt th =
-    case (concl_of th) of
+    case Thm.concl_of th of
       Const _ $ (Const (@{const_name Valid}, _) $ _) =>
               (flatten (int_unlift ctxt th) handle THM _ => th)
     | _ => th

@@ -126,7 +126,7 @@ fun temp_unlift ctxt th =
 val temp_rewrite = int_rewrite
 
 fun temp_use ctxt th =
-  case (concl_of th) of
+  case Thm.concl_of th of
     Const _ $ (Const (@{const_name Intensional.Valid}, _) $ _) =>
             ((flatten (temp_unlift ctxt th)) handle THM _ => th)
   | _ => th;

@@ -201,8 +201,8 @@ fun parse_proof outer_ctxt
     val helper_ids' = map_filter (try (fn (~1, idth) => idth)) iidths
 
     val fact_helper_ts =
-      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids' @
-      map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids'
+      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, Thm.prop_of th)) helper_ids' @
+      map (fn (_, ((s, _), th)) => (s, Thm.prop_of th)) fact_ids'
     val fact_helper_ids' =
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids' @ map (apsnd (fst o fst)) fact_ids'
   in

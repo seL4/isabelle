@@ -126,12 +126,12 @@ val semiring_funs =
 val field_funs =
   let
     fun numeral_is_const ct =
-      case term_of ct of
+      case Thm.term_of ct of
        Const (@{const_name Fields.divide},_) $ a $ b =>
          can HOLogic.dest_number a andalso can HOLogic.dest_number b
      | Const (@{const_name Fields.inverse},_)$t => can HOLogic.dest_number t
      | t => can HOLogic.dest_number t
-    fun dest_const ct = ((case term_of ct of
+    fun dest_const ct = ((case Thm.term_of ct of
        Const (@{const_name Fields.divide},_) $ a $ b=>
         Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
      | Const (@{const_name Fields.inverse},_)$t => 
@@ -231,7 +231,7 @@ val concl = Thm.cprop_of #> Thm.dest_arg;
 
 fun is_binop ct ct' =
   (case Thm.term_of ct' of
-    c $ _ $ _ => term_of ct aconv c
+    c $ _ $ _ => Thm.term_of ct aconv c
   | _ => false);
 
 fun dest_binop ct ct' =
@@ -240,7 +240,7 @@ fun dest_binop ct ct' =
 
 fun inst_thm inst = Thm.instantiate ([], inst);
 
-val dest_number = term_of #> HOLogic.dest_number #> snd;
+val dest_number = Thm.term_of #> HOLogic.dest_number #> snd;
 val is_number = can dest_number;
 
 fun numeral01_conv ctxt =
@@ -838,7 +838,7 @@ val nat_exp_ss =
     addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 
-fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
+fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS;
 
 
 (* various normalizing conversions *)

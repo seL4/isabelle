@@ -1202,13 +1202,13 @@ fun refute_term ctxt params assm_ts t =
 
 fun refute_goal ctxt params th i =
   let
-    val t = th |> prop_of
+    val t = th |> Thm.prop_of
   in
     if Logic.count_prems t = 0 then
       (writeln "No subgoal!"; "none")
     else
       let
-        val assms = map term_of (Assumption.all_assms_of ctxt)
+        val assms = map Thm.term_of (Assumption.all_assms_of ctxt)
         val (t, frees) = Logic.goal_params t i
       in
         refute_term ctxt params assms (subst_bounds (frees, t))

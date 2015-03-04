@@ -193,7 +193,7 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
             and concl_vars = Term.add_vars (Logic.strip_imp_concl prop) []
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
             val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
-            val emBs = map (cterm o embed) (prems_of st')
+            val emBs = map (cterm o embed) (Thm.prems_of st')
             val Cth  = implies_elim_list st' (map (elim o Thm.assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
             free_instantiate (map swap_ctpair insts @
@@ -205,7 +205,7 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
       (*function to replace the current subgoal*)
       fun next st =
         Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}
-          (false, relift st, nprems_of st) gno state
+          (false, relift st, Thm.nprems_of st) gno state
   in Seq.maps next (tacf subprems (Thm.trivial (cterm concl))) end;
 
 fun print_vars_terms ctxt n thm =
@@ -265,8 +265,8 @@ fun freeze_thaw_robust th =
          let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))
              val alist = map newName vars
              fun mk_inst (v,T) =
-                 (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                 (Thm.cterm_of thy (Var(v,T)),
+                  Thm.cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -289,8 +289,8 @@ fun freeze_thaw th =
              val (alist, _) =
                  fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
              fun mk_inst (v, T) =
-                 (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                 (Thm.cterm_of thy (Var(v,T)),
+                  Thm.cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)

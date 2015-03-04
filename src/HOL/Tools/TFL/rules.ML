@@ -245,7 +245,8 @@ fun organize eq =    (* a bit slow - analogous to insertion sort *)
 
 fun DISJ_CASESL disjth thl =
    let val c = cconcl disjth
-       fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t aconv term_of atm) (Thm.hyps_of th)
+       fun eq th atm =
+        exists (fn t => HOLogic.dest_Trueprop t aconv Thm.term_of atm) (Thm.hyps_of th)
        val tml = Dcterm.strip_disj c
        fun DL th [] = raise RULES_ERR "DISJ_CASESL" "no cases"
          | DL th [th1] = PROVE_HYP th th1
@@ -264,8 +265,8 @@ local (* this is fragile *)
       val thy = Thm.theory_of_thm spec
       val prop = Thm.prop_of spec
       val x = hd (tl (Misc_Legacy.term_vars prop))
-      val cTV = ctyp_of thy (type_of x)
-      val gspec = Thm.forall_intr (cterm_of thy x) spec
+      val cTV = Thm.ctyp_of thy (type_of x)
+      val gspec = Thm.forall_intr (Thm.cterm_of thy x) spec
 in
 fun SPEC tm thm =
    let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_term tm)], []) gspec
@@ -281,10 +282,10 @@ val ISPECL = fold ISPEC;
 local val thy = Thm.theory_of_thm allI
       val prop = Thm.prop_of allI
       val [P] = Misc_Legacy.add_term_vars (prop, [])
-      fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
+      fun cty_theta s = map (fn (i, (S, ty)) => (Thm.ctyp_of s (TVar (i, S)), Thm.ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
-                             let val ctm2 = cterm_of s tm2
-                             in (cterm_of s (Var(i,#T(rep_cterm ctm2))), ctm2)
+                             let val ctm2 = Thm.cterm_of s tm2
+                             in (Thm.cterm_of s (Var(i,#T(Thm.rep_cterm ctm2))), ctm2)
                              end)
       fun certify s (ty_theta,tm_theta) =
         (cty_theta s (Vartab.dest ty_theta),
@@ -300,7 +301,7 @@ fun GEN v th =
        val thm = Thm.implies_elim allI2 gth
        val tp $ (A $ Abs(_,_,M)) = Thm.prop_of thm
        val prop' = tp $ (A $ Abs(x,ty,M))
-   in ALPHA thm (cterm_of thy prop')
+   in ALPHA thm (Thm.cterm_of thy prop')
    end
 end;
 
@@ -309,7 +310,7 @@ val GENL = fold_rev GEN;
 fun GEN_ALL thm =
    let val thy = Thm.theory_of_thm thm
        val prop = Thm.prop_of thm
-       val tycheck = cterm_of thy
+       val tycheck = Thm.cterm_of thy
        val vlist = map tycheck (Misc_Legacy.add_term_vars (prop, []))
   in GENL vlist thm
   end;
@@ -355,8 +356,8 @@ in
 fun EXISTS (template,witness) thm =
    let val thy = Thm.theory_of_thm thm
        val prop = Thm.prop_of thm
-       val P' = cterm_of thy P
-       val x' = cterm_of thy x
+       val P' = Thm.cterm_of thy P
+       val x' = Thm.cterm_of thy x
        val abstr = #2 (Dcterm.dest_comb template)
    in
    thm RS (cterm_instantiate[(P',abstr), (x',witness)] exI)
@@ -388,9 +389,9 @@ fun EXISTL vlist th =
 
 fun IT_EXISTS blist th =
    let val thy = Thm.theory_of_thm th
-       val tych = cterm_of thy
+       val tych = Thm.cterm_of thy
        val blist' = map (apply2 Thm.term_of) blist
-       fun ex v M  = cterm_of thy (USyntax.mk_exists{Bvar=v,Body = M})
+       fun ex v M  = Thm.cterm_of thy (USyntax.mk_exists{Bvar=v,Body = M})
 
   in
   fold_rev (fn (b as (r1,r2)) => fn thm =>
@@ -510,7 +511,7 @@ fun get ([],_,L) = rev L
 (* Note: Thm.rename_params_rule counts from 1, not 0 *)
 fun rename thm =
   let val thy = Thm.theory_of_thm thm
-      val tych = cterm_of thy
+      val tych = Thm.cterm_of thy
       val ants = Logic.strip_imp_prems (Thm.prop_of thm)
       val news = get (ants,1,[])
   in
@@ -662,7 +663,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              val dummy = say (Display.string_of_thm ctxt thm)
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,thy) =
-                 let val tych = cterm_of thy
+                 let val tych = Thm.cterm_of thy
                      val dummy = print_cterm ctxt "To eliminate:" (tych imp)
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
@@ -682,7 +683,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                     orelse error "assertion failed in CONTEXT_REWRITE_RULE"
                   val imp_body1 = subst_free (ListPair.zip (args, vstrl))
                                              imp_body
-                  val tych = cterm_of thy
+                  val tych = Thm.cterm_of thy
                   val ants1 = map tych (Logic.strip_imp_prems imp_body1)
                   val eq1 = Logic.strip_imp_concl imp_body1
                   val Q = get_lhs eq1
@@ -711,7 +712,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               in if (pbeta_redex Q) (length vlist)
                  then pq_eliminate (thm,thy,vlist,imp_body,Q)
                  else
-                 let val tych = cterm_of thy
+                 let val tych = Thm.cterm_of thy
                      val ants1 = map tych ants
                      val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
                      val Q_eeq_Q1 = Raw_Simplifier.rewrite_cterm
@@ -762,13 +763,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [USyntax.list_mk_conj(map cncl rcontext)]
               val TC = genl(USyntax.list_mk_imp(antl, A))
-              val dummy = print_cterm ctxt "func:" (cterm_of thy func)
-              val dummy = print_cterm ctxt "TC:" (cterm_of thy (HOLogic.mk_Trueprop TC))
+              val dummy = print_cterm ctxt "func:" (Thm.cterm_of thy func)
+              val dummy = print_cterm ctxt "TC:" (Thm.cterm_of thy (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = is_some (USyntax.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
-                        else let val cTC = cterm_of thy
+                        else let val cTC = Thm.cterm_of thy
                                               (HOLogic.mk_Trueprop TC)
                              in case rcontext of
                                 [] => SPEC_ALL(ASSUME cTC)
@@ -781,8 +782,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     in
     (if (is_cong thm) then cong_prover else restrict_prover) ctxt thm
     end
-    val ctm = cprop_of th
-    val names = Misc_Legacy.add_term_names (term_of ctm, [])
+    val ctm = Thm.cprop_of th
+    val names = Misc_Legacy.add_term_names (Thm.term_of ctm, [])
     val th1 =
       Raw_Simplifier.rewrite_cterm (false, true, false)
         (prover names) (ctxt0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm

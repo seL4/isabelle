@@ -41,12 +41,13 @@ struct
 fun mk_meta_eq r = r RS @{thm eq_reflection};
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
-fun mk_eq th = case concl_of th
+fun mk_eq th =
+  (case Thm.concl_of th of
   (*expects Trueprop if not == *)
-  of Const (@{const_name Pure.eq},_) $ _ $ _ => th
-   | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => mk_meta_eq th
-   | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
-   | _ => th RS @{thm Eq_TrueI}
+    Const (@{const_name Pure.eq},_) $ _ $ _ => th
+  | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => mk_meta_eq th
+  | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
+  | _ => th RS @{thm Eq_TrueI})
 
 fun mk_eq_True (_: Proof.context) r =
   SOME (r RS @{thm meta_eq_to_obj_eq} RS @{thm Eq_TrueI}) handle Thm.THM _ => NONE;
@@ -87,7 +88,7 @@ fun mk_meta_cong ctxt rl =
       resolve_tac ctxt [lift_meta_eq_to_obj_eq i st] i st) rl)
   in
     mk_meta_eq rl' handle THM _ =>
-      if can Logic.dest_equals (concl_of rl') then rl'
+      if can Logic.dest_equals (Thm.concl_of rl') then rl'
       else error "Conclusion of congruence rules must be =-equality"
   end |> zero_var_indexes;
 
@@ -101,7 +102,7 @@ fun mk_atomize ctxt pairs =
           if Thm.maxidx_of (Thm.adjust_maxidx_thm ~1 thm) = ~1 then res thm rls
           else Variable.trade (K (fn [thm'] => res thm' rls)) thm_ctxt [thm];
       in
-        case concl_of thm
+        case Thm.concl_of thm
           of Const (@{const_name Trueprop}, _) $ p => (case head_of p
             of Const (a, _) => (case AList.lookup (op =) pairs a
               of SOME rls => (maps atoms (res_fixed rls) handle THM _ => [thm])

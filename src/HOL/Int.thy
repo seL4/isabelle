@@ -753,7 +753,7 @@ declaration {* K Int_Arith.setup *}
 simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
   "(m::'a::linordered_idom) <= n" |
   "(m::'a::linordered_idom) = n") =
-  {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (term_of ct) *}
+  {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct) *}
 
 
 subsection{*More Inequality Reasoning*}

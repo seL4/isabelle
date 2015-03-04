@@ -55,17 +55,19 @@ val const_Trueprop = Object_Logic.judgment_name Data.thy;
 
 fun split_format_err () = error "Wrong format for split rule";
 
-fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
-     Const(@{const_name Pure.eq}, _) $ (Var _ $ t) $ c => (case strip_comb t of
-       (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
-     | _ => split_format_err ())
-   | _ => split_format_err ();
+fun split_thm_info thm =
+  (case Thm.concl_of (Data.mk_eq thm) of
+    Const(@{const_name Pure.eq}, _) $ (Var _ $ t) $ c =>
+      (case strip_comb t of
+        (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
+      | _ => split_format_err ())
+  | _ => split_format_err ());
 
 fun cmap_of_split_thms thms =
 let
   val splits = map Data.mk_eq thms
   fun add_thm thm cmap =
-    (case concl_of thm of _ $ (t as _ $ lhs) $ _ =>
+    (case Thm.concl_of thm of _ $ (t as _ $ lhs) $ _ =>
        (case strip_comb lhs of (Const(a,aT),args) =>
           let val info = (aT,lhs,thm,fastype_of t,length args)
           in case AList.lookup (op =) cmap a of
@@ -102,7 +104,7 @@ val lift = Goal.prove_global Pure.thy ["P", "Q", "R"]
   (fn {context = ctxt, prems} =>
     rewrite_goals_tac ctxt prems THEN resolve_tac ctxt [reflexive_thm] 1)
 
-val _ $ _ $ (_ $ (_ $ abs_lift) $ _) = prop_of lift;
+val _ $ _ $ (_ $ (_ $ abs_lift) $ _) = Thm.prop_of lift;
 
 val trlift = lift RS transitive_thm;
 
@@ -286,7 +288,7 @@ fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
 fun select cmap state i =
   let
     val thy = Thm.theory_of_thm state
-    val goal = term_of (Thm.cprem_of state i);
+    val goal = Thm.term_of (Thm.cprem_of state i);
     val Ts = rev (map #2 (Logic.strip_params goal));
     val _ $ t $ _ = Logic.strip_assums_concl goal;
   in (Ts, t, sort shorter (split_posns cmap thy Ts t)) end;
@@ -313,7 +315,7 @@ fun exported_split_posns cmap thy Ts t =
 
 fun inst_lift Ts t (T, U, pos) state i =
   let
-    val cert = cterm_of (Thm.theory_of_thm state);
+    val cert = Thm.cterm_of (Thm.theory_of_thm state);
     val (cntxt, u) = mk_cntxt t pos (T --> U);
     val trlift' = Thm.lift_rule (Thm.cprem_of state i)
       (Thm.rename_boundvars abs_lift u trlift);
@@ -341,7 +343,7 @@ fun inst_split Ts t tt thm TB state i =
     val thm' = Thm.lift_rule (Thm.cprem_of state i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (Thm.prop_of thm'))));
-    val cert = cterm_of (Thm.theory_of_thm state);
+    val cert = Thm.cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
   in cterm_instantiate [(cert P, cert (abss Ts cntxt))] thm'
   end;

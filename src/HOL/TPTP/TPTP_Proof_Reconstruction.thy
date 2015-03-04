@@ -168,7 +168,7 @@ ML {*
 fun inst_parametermatch_tac ctxt thms i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -204,7 +204,7 @@ ML {*
 fun nominal_inst_parametermatch_tac ctxt thm i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -247,7 +247,7 @@ exception NO_GOALS
 fun canonicalise_qtfr_order ctxt i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
   in
@@ -649,7 +649,7 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
     val thy = Proof_Context.theory_of ctxt
 
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -689,7 +689,7 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
     val thy = Proof_Context.theory_of ctxt
 
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -764,7 +764,7 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
     val _ = @{assert} (arity > 0)
 
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -809,7 +809,7 @@ fun instantiate_skols ctxt consts_candidates i = fn st =>
     val thy = Proof_Context.theory_of ctxt
 
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -917,7 +917,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
     (* val contextualise = fold absdummy (map snd params) *)
     val contextualise = fold absfree params
 
-    val skolem_cts = map (contextualise #> cterm_of thy) skolem_terms
+    val skolem_cts = map (contextualise #> Thm.cterm_of thy) skolem_terms
 
 
 (*now the instantiation code*)
@@ -937,7 +937,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
         fun make_var pre_var =
           the_single pre_var
           |> Var
-          |> cterm_of thy
+          |> Thm.cterm_of thy
           |> SOME
       in
         if null pre_var then NONE
@@ -1049,7 +1049,7 @@ ML {*
 fun find_dec_arity i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
   in
@@ -1093,7 +1093,7 @@ fun find_dec_arity i = fn st =>
 fun breakdown_inference i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
   in
@@ -1110,7 +1110,7 @@ fun extuni_dec_elim_rule ctxt arity i = fn st =>
     val rule = extuni_dec_n ctxt arity
 
     val rule_hyp =
-      prop_of rule
+      Thm.prop_of rule
       |> Logic.dest_implies
       |> fst (*assuming that rule has single hypothesis*)
 
@@ -1208,7 +1208,7 @@ ML {*
 fun standard_cnf_type ctxt i : thm -> (TPTP_Reconstruct.formula_kind * int * bool) option = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 
@@ -1681,7 +1681,7 @@ fun strip_qtfrs_tac ctxt =
 fun clause_consts_diff thm =
   let
     val t =
-      prop_of thm
+      Thm.prop_of thm
       |> Logic.dest_implies
       |> fst
 
@@ -1707,7 +1707,7 @@ ML {*
 fun remove_redundant_quantification ctxt i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
   in
@@ -1763,7 +1763,7 @@ ML {*
 fun remove_redundant_quantification_in_lit ctxt i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
   in
@@ -2003,7 +2003,7 @@ fun oracle_based_reconstruction_tac ctxt prob_name n =
      thy
      prob_name (#meta pannot) n
       |> the
-      |> (fn {inference_fmla, ...} => cterm_of thy inference_fmla)
+      |> (fn {inference_fmla, ...} => Thm.cterm_of thy inference_fmla)
       |> oracle_iinterp
   end
 *}

@@ -191,7 +191,7 @@ fun complete_classrels thy =
               thy2
               |> update_classrel ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
-                |> Drule.instantiate' [SOME (ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
+                |> Drule.instantiate' [SOME (Thm.ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
                 |> Thm.close_derivation));
 
         val proven = is_classrel thy1;
@@ -228,7 +228,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
             c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
 
     val names = Name.invent Name.context Name.aT (length Ss);
-    val std_vars = map (fn a => SOME (ctyp_of thy (TVar ((a, 0), [])))) names;
+    val std_vars = map (fn a => SOME (Thm.ctyp_of thy (TVar ((a, 0), [])))) names;
 
     val completions = super_class_completions |> map (fn c1 =>
       let
@@ -396,7 +396,7 @@ fun add_classrel raw_th thy =
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
     val th'' = th'
       |> Thm.unconstrainT
-      |> Drule.instantiate' [SOME (ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
+      |> Drule.instantiate' [SOME (Thm.ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
   in
     thy'
     |> Sign.primitive_classrel (c1, c2)
@@ -418,7 +418,7 @@ fun add_arity raw_th thy =
 
     val args = Name.invent_names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, S) => SOME (ctyp_of thy' (TVar ((a, 0), [])))) args;
+    val std_vars = map (fn (a, S) => SOME (Thm.ctyp_of thy' (TVar ((a, 0), [])))) args;
 
     val missing_params = Sign.complete_sort thy' [c]
       |> maps (these o Option.map #params o try (get_info thy'))

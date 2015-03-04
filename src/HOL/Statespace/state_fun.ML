@@ -56,14 +56,14 @@ val lazy_conj_simproc =
       let val thy = Proof_Context.theory_of ctxt in
         (case t of (Const (@{const_name HOL.conj},_) $ P $ Q) =>
           let
-            val P_P' = Simplifier.rewrite ctxt (cterm_of thy P);
-            val P' = P_P' |> prop_of |> Logic.dest_equals |> #2;
+            val P_P' = Simplifier.rewrite ctxt (Thm.cterm_of thy P);
+            val P' = P_P' |> Thm.prop_of |> Logic.dest_equals |> #2;
           in
             if isFalse P' then SOME (conj1_False OF [P_P'])
             else
               let
-                val Q_Q' = Simplifier.rewrite ctxt (cterm_of thy Q);
-                val Q' = Q_Q' |> prop_of |> Logic.dest_equals |> #2;
+                val Q_Q' = Simplifier.rewrite ctxt (Thm.cterm_of thy Q);
+                val Q' = Q_Q' |> Thm.prop_of |> Logic.dest_equals |> #2;
               in
                 if isFalse Q' then SOME (conj2_False OF [Q_Q'])
                 else if isTrue P' andalso isTrue Q' then SOME (conj_True OF [P_P', Q_Q'])
@@ -141,12 +141,12 @@ val lookup_simproc =
             | mk_upds s = (Var (("s", mi + 1), sT), mi + 2);
 
           val ct =
-            cterm_of thy (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $ fst (mk_upds s));
+            Thm.cterm_of thy (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $ fst (mk_upds s));
           val basic_ss = #1 (Data.get (Context.Proof ctxt));
           val ctxt' = ctxt |> Config.put simp_depth_limit 100 |> put_simpset basic_ss;
           val thm = Simplifier.rewrite ctxt' ct;
         in
-          if (op aconv) (Logic.dest_equals (prop_of thm))
+          if (op aconv) (Logic.dest_equals (Thm.prop_of thm))
           then NONE
           else SOME thm
         end
@@ -251,7 +251,7 @@ val update_simproc =
                     Goal.prove ctxt0 [] []
                       (Logic.list_all (vars, Logic.mk_equals (trm, trm')))
                       (fn _ => rtac meta_ext 1 THEN simp_tac ctxt1 1);
-                  val eq2 = Simplifier.asm_full_rewrite ctxt2 (Thm.dest_equals_rhs (cprop_of eq1));
+                  val eq2 = Simplifier.asm_full_rewrite ctxt2 (Thm.dest_equals_rhs (Thm.cprop_of eq1));
                 in SOME (Thm.transitive eq1 eq2) end
             | _ => NONE)
           end
@@ -375,7 +375,7 @@ val _ =
           val ctxt = Context.proof_of context;
           val (lookup_ss, ex_lookup_ss, simprocs_active) = Data.get context;
           val (lookup_ss', ex_lookup_ss') =
-            (case concl_of thm of
+            (case Thm.concl_of thm of
               (_ $ ((Const (@{const_name Ex}, _) $ _))) =>
                 (lookup_ss, simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
             | _ =>

@@ -69,7 +69,7 @@ fun dest_case ctxt t =
          NONE => NONE
        | SOME {case_thms, ...} =>
            let
-             val lhs = prop_of (hd case_thms)
+             val lhs = Thm.prop_of (hd case_thms)
                |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst;
              val arity = length (snd (strip_comb lhs));
              val conv = funpow (length args - arity) Conv.fun_conv
@@ -112,7 +112,7 @@ fun mono_tac ctxt =
 fun cterm_instantiate' cts thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val vs = rev (Term.add_vars (prop_of thm) [])
+    val vs = rev (Term.add_vars (Thm.prop_of thm) [])
       |> map (Thm.cterm_of thy o Var);
   in
     cterm_instantiate (zip_options vs cts) thm

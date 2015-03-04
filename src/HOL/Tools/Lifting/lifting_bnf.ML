@@ -20,7 +20,7 @@ open Transfer_BNF
 fun Quotient_tac bnf ctxt i =
   let
     val rel_Grp = rel_Grp_of_bnf bnf
-    fun get_lhs thm = thm |> concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst
+    fun get_lhs thm = thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst
     val vars = get_lhs rel_Grp |> strip_comb |> snd |> map_filter (try (strip_comb #> snd #> hd))
     val UNIVs = map (fn var => HOLogic.mk_UNIV (var |> dest_Var |> snd |> dest_Type |> snd |> hd)) vars
     val inst = map2 (curry (apply2 (Proof_Context.cterm_of ctxt))) vars UNIVs

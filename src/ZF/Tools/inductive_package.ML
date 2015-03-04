@@ -494,13 +494,13 @@ let
        The name "x.1" comes from the "RS spec" !*)
      val inst =
          case elem_frees of [_] => I
-            | _ => Drule.instantiate_normalize ([], [(cterm_of thy (Var(("x",1), Ind_Syntax.iT)),
-                                      cterm_of thy elem_tuple)]);
+            | _ => Drule.instantiate_normalize ([], [(Thm.cterm_of thy (Var(("x",1), Ind_Syntax.iT)),
+                                      Thm.cterm_of thy elem_tuple)]);
 
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
 
-     val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = concl_of induct0
+     val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = Thm.concl_of induct0
 
      val induct =
        CP.split_rule_var (Proof_Context.init_global thy)

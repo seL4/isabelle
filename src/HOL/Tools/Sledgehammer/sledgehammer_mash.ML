@@ -783,7 +783,7 @@ fun crude_theory_ord p =
     | order => order)
 
 fun crude_thm_ord p =
-  (case crude_theory_ord (apply2 theory_of_thm p) of
+  (case crude_theory_ord (apply2 Thm.theory_of_thm p) of
     EQUAL =>
     (* The hack below is necessary because of odd dependencies that are not reflected in the theory
        comparison. *)
@@ -795,7 +795,7 @@ fun crude_thm_ord p =
     end
   | ord => ord)
 
-val thm_less_eq = Theory.subthy o apply2 theory_of_thm
+val thm_less_eq = Theory.subthy o apply2 Thm.theory_of_thm
 fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
@@ -807,7 +807,7 @@ fun freeze (t $ u) = freeze t $ freeze u
   | freeze (Free (s, T)) = Free (s, freezeT T)
   | freeze t = t
 
-fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
+fun goal_of_thm thy = Thm.prop_of #> freeze #> Thm.cterm_of thy #> Goal.init
 
 fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let
@@ -1120,8 +1120,8 @@ fun strict_subthy thyp = Theory.subthy thyp andalso not (Theory.subthy (swap thy
 
 fun maximal_wrt_access_graph _ [] = []
   | maximal_wrt_access_graph access_G ((fact as (_, th)) :: facts) =
-    let val thy = theory_of_thm th in
-      fact :: filter_out (fn (_, th') => strict_subthy (theory_of_thm th', thy)) facts
+    let val thy = Thm.theory_of_thm th in
+      fact :: filter_out (fn (_, th') => strict_subthy (Thm.theory_of_thm th', thy)) facts
       |> map (nickname_of_thm o snd)
       |> maximal_wrt_graph access_G
     end
@@ -1163,11 +1163,11 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
 
     fun fact_has_right_theory (_, th) =
-      thy_name = Context.theory_name (theory_of_thm th)
+      thy_name = Context.theory_name (Thm.theory_of_thm th)
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
-      [prop_of th]
-      |> features_of ctxt (theory_of_thm th) stature
+      [Thm.prop_of th]
+      |> features_of ctxt (Thm.theory_of_thm th) stature
       |> map (rpair (weight * factor))
 
     val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
@@ -1380,7 +1380,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               (learns, (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
+              val feats = features_of ctxt (Thm.theory_of_thm th) stature [Thm.prop_of th]
               val deps = these (deps_of status th)
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns

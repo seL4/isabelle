@@ -197,7 +197,7 @@ fun cterm_of_proof thy prf =
       |> add_proof_atom_consts
         (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names);
   in
-    (cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
+    (Thm.cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
   end;
 
 fun read_term thy topsort =

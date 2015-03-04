@@ -44,7 +44,7 @@ fun implies_elim_all th = implies_elim_list th (map Thm.assume (cprems_of th))
 fun meta_mp th1 th2 =
   let
     val th1a = implies_elim_all th1
-    val th1b = Thm.implies_intr (strip_imp_concl (cprop_of th2)) th1a
+    val th1b = Thm.implies_intr (strip_imp_concl (Thm.cprop_of th2)) th1a
     val th2a = implies_elim_all th2
     val th3 = Thm.implies_elim th1b th2a
   in
@@ -53,8 +53,8 @@ fun meta_mp th1 th2 =
 
 fun meta_eq_to_obj_eq th =
   let
-    val (tml, tmr) = Thm.dest_binop (strip_imp_concl (cprop_of th))
-    val cty = ctyp_of_term tml
+    val (tml, tmr) = Thm.dest_binop (strip_imp_concl (Thm.cprop_of th))
+    val cty = Thm.ctyp_of_term tml
     val i = Drule.instantiate' [SOME cty] [SOME tml, SOME tmr]
       @{thm meta_eq_to_obj_eq}
   in
@@ -65,7 +65,7 @@ fun beta ct = meta_eq_to_obj_eq (Thm.beta_conversion false ct)
 
 fun eq_mp th1 th2 =
   let
-    val (tm1l, tm1r) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (cprop_of th1)))
+    val (tm1l, tm1r) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1)))
     val i1 = Drule.instantiate' [] [SOME tm1l, SOME tm1r] @{thm iffD1}
     val i2 = meta_mp i1 th1
   in
@@ -74,11 +74,11 @@ fun eq_mp th1 th2 =
 
 fun comb th1 th2 =
   let
-    val t1c = Thm.dest_arg (strip_imp_concl (cprop_of th1))
-    val t2c = Thm.dest_arg (strip_imp_concl (cprop_of th2))
+    val t1c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1))
+    val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
     val (cf, cg) = Thm.dest_binop t1c
     val (cx, cy) = Thm.dest_binop t2c
-    val [fd, fr] = Thm.dest_ctyp (ctyp_of_term cf)
+    val [fd, fr] = Thm.dest_ctyp (Thm.ctyp_of_term cf)
     val i1 = Drule.instantiate' [SOME fd, SOME fr]
       [SOME cf, SOME cg, SOME cx, SOME cy] @{thm cong}
     val i2 = meta_mp i1 th1
@@ -88,11 +88,11 @@ fun comb th1 th2 =
 
 fun trans th1 th2 =
   let
-    val t1c = Thm.dest_arg (strip_imp_concl (cprop_of th1))
-    val t2c = Thm.dest_arg (strip_imp_concl (cprop_of th2))
+    val t1c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1))
+    val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
     val (r, s) = Thm.dest_binop t1c
     val (_, t) = Thm.dest_binop t2c
-    val ty = ctyp_of_term r
+    val ty = Thm.ctyp_of_term r
     val i1 = Drule.instantiate' [SOME ty] [SOME r, SOME s, SOME t] @{thm trans}
     val i2 = meta_mp i1 th1
   in
@@ -101,17 +101,17 @@ fun trans th1 th2 =
 
 fun deduct th1 th2 =
   let
-    val th1c = strip_imp_concl (cprop_of th1)
-    val th2c = strip_imp_concl (cprop_of th2)
+    val th1c = strip_imp_concl (Thm.cprop_of th1)
+    val th2c = strip_imp_concl (Thm.cprop_of th2)
     val th1a = implies_elim_all th1
     val th2a = implies_elim_all th2
     val th1b = Thm.implies_intr th2c th1a
     val th2b = Thm.implies_intr th1c th2a
     val i = Drule.instantiate' []
       [SOME (Thm.dest_arg th1c), SOME (Thm.dest_arg th2c)] @{thm iffI}
-    val i1 = Thm.implies_elim i (Thm.assume (cprop_of th2b))
+    val i1 = Thm.implies_elim i (Thm.assume (Thm.cprop_of th2b))
     val i2 = Thm.implies_elim i1 th1b
-    val i3 = Thm.implies_intr (cprop_of th2b) i2
+    val i3 = Thm.implies_intr (Thm.cprop_of th2b) i2
     val i4 = Thm.implies_elim i3 th2b
   in
     implies_intr_hyps i4
@@ -119,7 +119,7 @@ fun deduct th1 th2 =
 
 fun conj1 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (cprop_of th)))
+    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th)))
     val i = Drule.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct1}
   in
     meta_mp i th
@@ -127,7 +127,7 @@ fun conj1 th =
 
 fun conj2 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (cprop_of th)))
+    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th)))
     val i = Drule.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct2}
   in
     meta_mp i th
@@ -143,7 +143,7 @@ fun refl ctm =
 fun abs cv th =
   let
     val th1 = implies_elim_all th
-    val (tl, tr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (cprop_of th1)))
+    val (tl, tr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1)))
     val (ll, lr) = (Thm.lambda cv tl, Thm.lambda cv tr)
     val (al, ar) = (Thm.apply ll cv, Thm.apply lr cv)
     val bl = beta al
@@ -151,7 +151,7 @@ fun abs cv th =
     val th2 = trans (trans bl th1) br
     val th3 = implies_elim_all th2
     val th4 = Thm.forall_intr cv th3
-    val i = Drule.instantiate' [SOME (ctyp_of_term cv), SOME (ctyp_of_term tl)]
+    val i = Drule.instantiate' [SOME (Thm.ctyp_of_term cv), SOME (Thm.ctyp_of_term tl)]
       [SOME ll, SOME lr] @{thm ext2}
   in
     meta_mp i th4
@@ -159,18 +159,18 @@ fun abs cv th =
 
 fun freezeT thm =
   let
-    val tvars = Term.add_tvars (prop_of thm) []
+    val tvars = Term.add_tvars (Thm.prop_of thm) []
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
     val tvars = map TVar tvars
     val thy = Thm.theory_of_thm thm
-    fun inst ty = ctyp_of thy ty
+    fun inst ty = Thm.ctyp_of thy ty
   in
     Thm.instantiate ((map inst tvars ~~ map inst tfrees), []) thm
   end
 
 fun def' constname rhs thy =
   let
-    val rhs = term_of rhs
+    val rhs = Thm.term_of rhs
     val typ = type_of rhs
     val constbinding = Binding.name constname
     val thy1 = Sign.add_consts [(constbinding, typ, NoSyn)] thy
@@ -199,23 +199,24 @@ fun def constname rhs thy =
 
 fun typedef_hollight th thy =
   let
-    val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (cprop_of th))
+    val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
     val P = Thm.dest_arg cn
-    val [nty, oty] = Thm.dest_ctyp (ctyp_of_term rept)
+    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_term rept)
   in
     Drule.instantiate' [SOME nty, SOME oty] [SOME rept, SOME abst, SOME P,
-      SOME (cterm_of thy (Free ("a", typ_of nty))),
-      SOME (cterm_of thy (Free ("r", typ_of oty)))] @{thm typedef_hol2hollight}
+      SOME (Thm.cterm_of thy (Free ("a", Thm.typ_of nty))),
+      SOME (Thm.cterm_of thy (Free ("r", Thm.typ_of oty)))] @{thm typedef_hol2hollight}
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
   let
-    val ctT = ctyp_of_term ct
+    val ctT = Thm.ctyp_of_term ct
     val nonempty = Drule.instantiate' [SOME ctT] [SOME cP, SOME ct] @{thm light_ex_imp_nonempty}
     val th2 = meta_mp nonempty td_th
-    val c = case concl_of th2 of
+    val c =
+      case Thm.concl_of th2 of
         _ $ (Const(@{const_name Ex},_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
       | _ => error "type_introduction: bad type definition theorem"
     val tfrees = Term.add_tfrees c []
@@ -225,15 +226,15 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
        (SOME (Binding.name rep_name, Binding.name abs_name)) (fn _ => rtac th2 1) thy
     val aty = #abs_type (#1 typedef_info)
     val th = freezeT (#type_definition (#2 typedef_info))
-    val (th_s, _) = Thm.dest_comb (Thm.dest_arg (cprop_of th))
+    val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
-    val [nty, oty] = Thm.dest_ctyp (ctyp_of_term rept)
+    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_term rept)
     val typedef_th =
        Drule.instantiate'
           [SOME nty, SOME oty]
-          [SOME rept, SOME abst, SOME cP, SOME (cterm_of thy' (Free ("a", aty))),
-             SOME (cterm_of thy' (Free ("r", typ_of ctT)))]
+          [SOME rept, SOME abst, SOME cP, SOME (Thm.cterm_of thy' (Free ("a", aty))),
+             SOME (Thm.cterm_of thy' (Free ("r", Thm.typ_of ctT)))]
           @{thm typedef_hol2hollight}
     val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
   in
@@ -259,14 +260,14 @@ fun inst_type lambda th thy =
   let
     fun assoc _ [] = error "assoc"
       | assoc x ((x',y)::rest) = if x = x' then y else assoc x rest
-    val lambda = map (fn (a, b) => (typ_of a, b)) lambda
-    val tys_before = Term.add_tfrees (prop_of th) []
+    val lambda = map (fn (a, b) => (Thm.typ_of a, b)) lambda
+    val tys_before = Term.add_tfrees (Thm.prop_of th) []
     val th1 = Thm.varifyT_global th
-    val tys_after = Term.add_tvars (prop_of th1) []
+    val tys_after = Term.add_tvars (Thm.prop_of th1) []
     val tyinst = map2 (fn bef => fn iS =>
        (case try (assoc (TFree bef)) lambda of
-              SOME cty => (ctyp_of thy (TVar iS), cty)
-            | NONE => (ctyp_of thy (TVar iS), ctyp_of thy (TFree bef))
+              SOME cty => (Thm.ctyp_of thy (TVar iS), cty)
+            | NONE => (Thm.ctyp_of thy (TVar iS), Thm.ctyp_of thy (TFree bef))
        )) tys_before tys_after
   in
     Thm.instantiate (tyinst,[]) th1
@@ -328,12 +329,12 @@ fun pairList (h1 :: (h2 :: t)) = ((h1, h2) :: pairList t)
 fun store_thm binding thm thy =
   let
     val thm = Drule.export_without_context_open thm
-    val tvs = Term.add_tvars (prop_of thm) []
+    val tvs = Term.add_tvars (Thm.prop_of thm) []
     val tns = map (fn (_, _) => "'") tvs
     val nms = fst (fold_map Name.variant tns (Variable.names_of (Proof_Context.init_global thy)))
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val cvs = map (ctyp_of thy) vs
-    val ctvs = map (ctyp_of thy) (map TVar tvs)
+    val cvs = map (Thm.ctyp_of thy) vs
+    val ctvs = map (Thm.ctyp_of thy) (map TVar tvs)
     val thm' = Thm.instantiate ((ctvs ~~ cvs), []) thm
   in
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
@@ -410,14 +411,14 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
+          setty (Thm.ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
-            (fn tys => ctyp_of thy (Type (gettyname n thy, map typ_of tys))) |-> setty
+            (fn tys => Thm.ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
       | process (thy, state) (#"v", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => cterm_of thy (Free (transl_dot n, typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.cterm_of thy (Free (transl_dot n, Thm.typ_of ty))) |-> settm
       | process (thy, state) (#"c", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => cterm_of thy (Const (getconstname n thy, typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.cterm_of thy (Const (getconstname n thy, Thm.typ_of ty))) |-> settm
       | process tstate (#"f", [t1, t2]) =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.apply t1 t2) |-> settm
       | process tstate (#"l", [t1, t2]) =

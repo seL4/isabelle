@@ -114,7 +114,7 @@ val get_preprocessors = Context.Proof #> Data.get #> #preprocessors ;
 
 fun is_too_generic thm =
   let 
-    val concl = concl_of thm
+    val concl = Thm.concl_of thm
     val concl' = HOLogic.dest_Trueprop concl handle TERM _ => concl
   in is_Var (head_of concl') end
 
@@ -126,19 +126,21 @@ fun debug_tac ctxt msg f =
   if Config.get ctxt debug then print_tac ctxt (msg ()) THEN f else f
 
 fun nth_hol_goal thm i =
-  HOLogic.dest_Trueprop (Logic.strip_imp_concl (strip_all_body (nth (prems_of thm) (i - 1))))
+  HOLogic.dest_Trueprop (Logic.strip_imp_concl (strip_all_body (nth (Thm.prems_of thm) (i - 1))))
 
 fun dest_measurable_fun t =
   (case t of
     (Const (@{const_name "Set.member"}, _) $ f $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => f
   | _ => raise (TERM ("not a measurability predicate", [t])))
 
-fun not_measurable_prop n thm = if length (prems_of thm) < n then false else
-  (case nth_hol_goal thm n of
-    (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "sets"}, _) $ _)) => false
-  | (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => false
-  | _ => true)
-  handle TERM _ => true;
+fun not_measurable_prop n thm =
+  if length (Thm.prems_of thm) < n then false
+  else
+    (case nth_hol_goal thm n of
+      (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "sets"}, _) $ _)) => false
+    | (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => false
+    | _ => true)
+    handle TERM _ => true;
 
 fun indep (Bound i) t b = i < b orelse t <= i
   | indep (f $ t) top bot = indep f top bot andalso indep t top bot
@@ -201,7 +203,7 @@ fun prepare_facts ctxt facts =
 fun measurable_tac ctxt facts =
   let
     fun debug_fact msg thm () =
-      msg ^ " " ^ Pretty.str_of (Syntax.pretty_term ctxt (prop_of thm))
+      msg ^ " " ^ Pretty.str_of (Syntax.pretty_term ctxt (Thm.prop_of thm))
 
     fun IF' c t i = COND (c i) (t i) no_tac
 
@@ -225,7 +227,7 @@ fun measurable_tac ctxt facts =
       | is_sets_eq _ = false
 
     val cong_thms = get_cong (Context.Proof ctxt) @
-      filter (fn thm => concl_of thm |> HOLogic.dest_Trueprop |> is_sets_eq handle TERM _ => false) facts
+      filter (fn thm => Thm.concl_of thm |> HOLogic.dest_Trueprop |> is_sets_eq handle TERM _ => false) facts
 
     fun sets_cong_tac i =
       Subgoal.FOCUS (fn {context = ctxt', prems = prems, ...} => (
@@ -235,7 +237,7 @@ fun measurable_tac ctxt facts =
           r_tac "cong intro" [elem_congI]
           THEN' SOLVED' (fn i => REPEAT_DETERM (
               ((r_tac "cong solve" (cong_thms @ [@{thm refl}])
-                ORELSE' IF' (fn i => fn thm => nprems_of thm > i)
+                ORELSE' IF' (fn i => fn thm => Thm.nprems_of thm > i)
                   (SOLVED' (asm_full_simp_tac ctxt''))) i)))
         end) 1) ctxt i
         THEN flexflex_tac ctxt
@@ -249,7 +251,7 @@ fun measurable_tac ctxt facts =
           val f = dest_measurable_fun (HOLogic.dest_Trueprop t)
           fun cert f = map (Option.map (f (Proof_Context.theory_of ctxt)))
           fun inst (ts, Ts) =
-            Drule.instantiate' (cert ctyp_of Ts) (cert cterm_of ts)
+            Drule.instantiate' (cert Thm.ctyp_of Ts) (cert Thm.cterm_of ts)
               @{thm measurable_compose_countable}
         in r_tac "split countable" (cnt_prefixes ctxt f |> map inst) i end
         handle TERM _ => no_tac) 1)
@@ -267,7 +269,7 @@ fun measurable_tac ctxt facts =
 
 fun simproc ctxt redex =
   let
-    val t = HOLogic.mk_Trueprop (term_of redex);
+    val t = HOLogic.mk_Trueprop (Thm.term_of redex);
     fun tac {context = ctxt, prems = _ } =
       SOLVE (measurable_tac ctxt (Simplifier.prems_of ctxt));
   in try (fn () => Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}) () end;

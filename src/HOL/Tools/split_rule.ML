@@ -89,7 +89,7 @@ fun split_rule_var ctxt =
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule ctxt rl =
-  fold_rev split_rule_var' (Misc_Legacy.term_vars (concl_of rl)) rl
+  fold_rev split_rule_var' (Misc_Legacy.term_vars (Thm.concl_of rl)) rl
   |> remove_internal_split ctxt
   |> Drule.export_without_context;
 

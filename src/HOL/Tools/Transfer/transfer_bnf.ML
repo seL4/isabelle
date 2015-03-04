@@ -38,7 +38,7 @@ fun mk_Domainp P =
 
 fun mk_pred pred_def args T =
   let
-    val pred_name = pred_def |> prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
+    val pred_name = pred_def |> Thm.prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
       |> head_of |> fst o dest_Const
     val argsT = map fastype_of args
   in
@@ -91,7 +91,8 @@ fun bi_constraint_tac constr_iff sided_constr_intros ctxt i =
 
 fun generate_relation_constraint_goal ctxt bnf constraint_def =
   let
-    val constr_name = constraint_def |> prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
+    val constr_name =
+      constraint_def |> Thm.prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
       |> head_of |> fst o dest_Const
     val live = live_of_bnf bnf
     val (((As, Bs), Ds), ctxt) = ctxt
@@ -345,7 +346,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     val args = map mk_eq_onp preds
     val cTs = map (SOME o Proof_Context.ctyp_of lthy) (maps (replicate 2) As)
     val cts = map (SOME o Proof_Context.cterm_of lthy) args
-    fun get_rhs thm = thm |> concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
+    fun get_rhs thm = thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
     fun is_eqn thm = can get_rhs thm
     fun rel2pred_massage thm =
       let

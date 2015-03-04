@@ -1065,14 +1065,14 @@ fun extract_fixed_frees ctxt (assms, t) =
 fun pick_nits_in_subgoal state params mode i step =
   let
     val ctxt = Proof.context_of state
-    val t = state |> Proof.raw_goal |> #goal |> prop_of
+    val t = state |> Proof.raw_goal |> #goal |> Thm.prop_of
   in
     case Logic.count_prems t of
       0 => (writeln "No subgoal!"; (noneN, []))
     | n =>
       let
         val t = Logic.goal_params t i |> fst
-        val assms = map term_of (Assumption.all_assms_of ctxt)
+        val assms = map Thm.term_of (Assumption.all_assms_of ctxt)
         val (subst, assms, t) = extract_fixed_frees ctxt (assms, t)
       in pick_nits_in_term state params mode i n step subst [] assms t end
   end

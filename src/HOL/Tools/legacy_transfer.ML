@@ -21,7 +21,7 @@ struct
 
 (* data administration *)
 
-val direction_of = Thm.dest_binop o Thm.dest_arg o cprop_of;
+val direction_of = Thm.dest_binop o Thm.dest_arg o Thm.cprop_of;
 
 val transfer_morphism_key = Drule.strip_imp_concl (Thm.cprop_of @{thm transfer_morphismI});
 
@@ -89,7 +89,7 @@ fun get_by_prop context t =
     val tys = map snd (Term.add_vars t []);
     val _ = if null tys then error "Transfer: unable to guess instance" else ();
     val tyss = splits (curry Type.could_unify) tys;
-    val get_ty = typ_of o ctyp_of_term o fst o direction_of;
+    val get_ty = Thm.typ_of o Thm.ctyp_of_term o fst o direction_of;
     val insts = map_filter (fn tys => get_first (fn (k, e) =>
       if Type.could_unify (hd tys, range_type (get_ty k))
       then SOME (direction_of k, transfer_rules_of e)
@@ -114,8 +114,8 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
     (* determine variables to transfer *)
     val ctxt3 = ctxt2
       |> Variable.declare_thm thm
-      |> Variable.declare_term (term_of a)
-      |> Variable.declare_term (term_of D);
+      |> Variable.declare_term (Thm.term_of a)
+      |> Variable.declare_term (Thm.term_of D);
     val vars = filter (fn ((v, _), T) => Type.could_unify (T, aT) andalso
       not (member (op =) leave v)) (Term.add_vars (Thm.prop_of thm) []);
     val c_vars = map (Proof_Context.cterm_of ctxt3 o Var) vars;
@@ -131,7 +131,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
       |> fold Simplifier.add_cong cong;
     val thm' = thm
       |> Drule.cterm_instantiate (c_vars ~~ c_exprs')
-      |> fold_rev Thm.implies_intr (map cprop_of hyps)
+      |> fold_rev Thm.implies_intr (map Thm.cprop_of hyps)
       |> Simplifier.asm_full_simplify simpset
   in singleton (Variable.export ctxt5 ctxt1) thm' end;
 

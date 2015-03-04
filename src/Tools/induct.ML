@@ -156,13 +156,13 @@ fun find_eq ctxt t =
   end;
 
 fun mk_swap_rrule ctxt ct =
-  (case find_eq ctxt (term_of ct) of
+  (case find_eq ctxt (Thm.term_of ct) of
     NONE => NONE
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
   Simplifier.simproc_global Pure.thy "rearrange_eqs" ["Pure.all t"]
-    (fn ctxt => fn t => mk_swap_rrule ctxt (cterm_of (Proof_Context.theory_of ctxt) t));
+    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.cterm_of (Proof_Context.theory_of ctxt) t));
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)
@@ -180,8 +180,8 @@ fun rotate_tac j 0 = K all_tac
 (* rulify operators around definition *)
 
 fun rulify_defs_conv ctxt ct =
-  if exists_subterm (is_some o Induct_Args.dest_def) (term_of ct) andalso
-    not (is_some (Induct_Args.dest_def (drop_judgment ctxt (term_of ct))))
+  if exists_subterm (is_some o Induct_Args.dest_def) (Thm.term_of ct) andalso
+    not (is_some (Induct_Args.dest_def (drop_judgment ctxt (Thm.term_of ct))))
   then
     (Conv.forall_conv (rulify_defs_conv o snd) ctxt else_conv
      Conv.implies_conv (Conv.try_conv (rulify_defs_conv ctxt))
@@ -440,7 +440,7 @@ fun simplify_conv' ctxt =
   Simplifier.full_rewrite (put_simpset (#4 (get_local ctxt)) ctxt);
 
 fun simplify_conv ctxt ct =
-  if exists_subterm (is_some o Induct_Args.dest_def) (term_of ct) then
+  if exists_subterm (is_some o Induct_Args.dest_def) (Thm.term_of ct) then
     (Conv.try_conv (rulify_defs_conv ctxt) then_conv simplify_conv' ctxt) ct
   else Conv.all_conv ct;
 

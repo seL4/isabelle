@@ -125,7 +125,7 @@ fun print_quotmaps ctxt =
           Pretty.str "relation map:",
           Pretty.str relmap,
           Pretty.str "quot. theorem:",
-          Syntax.pretty_term ctxt (prop_of quot_thm)])
+          Syntax.pretty_term ctxt (Thm.prop_of quot_thm)])
   in
     map prt_map (Symtab.dest (get_quotmaps (Context.Proof ctxt)))
     |> Pretty.big_list "maps for type constructors:"
@@ -178,9 +178,9 @@ fun print_quotients ctxt =
         Pretty.str "relation:",
         Syntax.pretty_term ctxt equiv_rel,
         Pretty.str "equiv. thm:",
-        Syntax.pretty_term ctxt (prop_of equiv_thm),
+        Syntax.pretty_term ctxt (Thm.prop_of equiv_thm),
         Pretty.str "quot. thm:",
-        Syntax.pretty_term ctxt (prop_of quot_thm)])
+        Syntax.pretty_term ctxt (Thm.prop_of quot_thm)])
   in
     map (prt_quot o snd) (Symtab.dest (get_quotients (Context.Proof ctxt)))
     |> Pretty.big_list "quotients:"
@@ -218,7 +218,7 @@ fun print_quotconsts ctxt =
         Pretty.str ":=",
         Syntax.pretty_term ctxt rconst,
         Pretty.str "as",
-        Syntax.pretty_term ctxt (prop_of def)])
+        Syntax.pretty_term ctxt (Thm.prop_of def)])
   in
     map prt_qconst (maps snd (Symtab.dest (get_quotconsts (Context.Proof ctxt))))
     |> Pretty.big_list "quotient constants:"

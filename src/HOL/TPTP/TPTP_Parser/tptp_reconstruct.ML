@@ -737,7 +737,7 @@ fun simulate_split ctxt split_fmla minor_prem_assumptions conclusion =
   in
     (*Instantiate the abstract rule based on the contents of the
       required instance*)
-    diff_and_instantiate ctxt abs_rule_thm (prop_of abs_rule_thm) rule_t
+    diff_and_instantiate ctxt abs_rule_thm (Thm.prop_of abs_rule_thm) rule_t
   end
 
 
@@ -1089,7 +1089,7 @@ local
           raise SKELETON
         (*FIXME or classify it as follows:
           [(Caboose,
-            prop_of @{thm asm_rl}
+            Thm.prop_of @{thm asm_rl}
             |> SOME,
             SOME (@{thm asm_rl}, TRY (HEADGOAL atac)))]
          *)
@@ -1097,17 +1097,17 @@ local
           case hd skel of
               Assumed =>
                 (hd skel,
-                 prop_of @{thm asm_rl}
+                 Thm.prop_of @{thm asm_rl}
                  |> SOME,
                  SOME (@{thm asm_rl}, TRY (HEADGOAL atac))) :: rest memo ctxt
             | Caboose =>
                 [(Caboose,
-                  prop_of @{thm asm_rl}
+                  Thm.prop_of @{thm asm_rl}
                   |> SOME,
                   SOME (@{thm asm_rl}, TRY (HEADGOAL atac)))]
             | Unconjoin =>
                 (hd skel,
-                 prop_of @{thm conjI}
+                 Thm.prop_of @{thm conjI}
                  |> SOME,
                  SOME (@{thm conjI}, rtac @{thm conjI} 1)) :: rest memo ctxt
             | Split (split_node, solved_node, antes) =>
@@ -1126,7 +1126,7 @@ local
                       simulate_split ctxt split_fmla minor_prems_assumps conclusion
                 in
                   (hd skel,
-                   prop_of split_thm
+                   Thm.prop_of split_thm
                    |> SOME,
                    SOME (split_thm, rtac split_thm 1)) :: rest memo ctxt
                 end
@@ -1190,7 +1190,7 @@ local
                           |> Global_Theory.get_thm thy
                 in
                   (hd skel,
-                   prop_of (def_thm thy)
+                   Thm.prop_of (def_thm thy)
                    |> SOME,
                    SOME (def_thm thy,
                          HEADGOAL (rtac_wrap def_thm))) :: rest memo ctxt
@@ -1206,7 +1206,7 @@ local
                           |> Global_Theory.get_thm thy
                 in
                   (hd skel,
-                   prop_of ax_thm
+                   Thm.prop_of ax_thm
                    |> SOME,
                    SOME (ax_thm, rtac ax_thm 1)) :: rest memo ctxt
                 end
@@ -1256,11 +1256,11 @@ in
     let
       val thy = Proof_Context.theory_of ctxt
     in
-      (Synth_step "ccontr", prop_of @{thm ccontr} |> SOME,
+      (Synth_step "ccontr", Thm.prop_of @{thm ccontr} |> SOME,
        SOME (@{thm ccontr}, rtac @{thm ccontr} 1)) ::
-      (Synth_step "neg_eq_false", prop_of neg_eq_false |> SOME,
+      (Synth_step "neg_eq_false", Thm.prop_of neg_eq_false |> SOME,
        SOME (neg_eq_false, dtac neg_eq_false 1)) ::
-      (Synth_step "sas_if_needed_tac", prop_of @{thm asm_rl}(*FIXME *) |> SOME,
+      (Synth_step "sas_if_needed_tac", Thm.prop_of @{thm asm_rl} (*FIXME *) |> SOME,
        SOME (sas_if_needed_tac ctxt prob_name)) ::
       skel_to_naive_tactic_dbg prover_tac ctxt prob_name
        (make_skeleton ctxt

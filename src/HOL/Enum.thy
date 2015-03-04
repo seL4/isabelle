@@ -563,12 +563,14 @@ lemma finite_1_eq: "x = a\<^sub>1"
 by(cases x) simp
 
 simproc_setup finite_1_eq ("x::finite_1") = {*
-  fn _ => fn _ => fn ct => case term_of ct of
-    Const (@{const_name a\<^sub>1}, _) => NONE
-  | _ => SOME (mk_meta_eq @{thm finite_1_eq})
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      Const (@{const_name a\<^sub>1}, _) => NONE
+    | _ => SOME (mk_meta_eq @{thm finite_1_eq}))
 *}
 
-instantiation finite_1 :: complete_boolean_algebra begin
+instantiation finite_1 :: complete_boolean_algebra
+begin
 definition [simp]: "op - = (\<lambda>_ _. a\<^sub>1)"
 definition [simp]: "uminus = (\<lambda>_. a\<^sub>1)"
 instance by intro_classes simp_all

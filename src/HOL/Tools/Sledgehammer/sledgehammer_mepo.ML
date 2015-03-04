@@ -220,7 +220,7 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...} :
     t
 
 fun theory_const_prop_of fudge th =
-  theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
+  theory_constify fudge (Context.theory_name (Thm.theory_of_thm th)) (Thm.prop_of th)
 
 fun pair_consts_fact thy fudge fact =
   (case fact |> snd |> theory_const_prop_of fudge |> pconsts_in_fact thy of
@@ -379,7 +379,7 @@ fun if_empty_replace_with_scope thy facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
     |> fold (add_pconsts_in_term thy) (map_filter (fn ((_, (sc', _)), th) =>
-      if sc' = sc then SOME (prop_of th) else NONE) facts)
+      if sc' = sc then SOME (Thm.prop_of th) else NONE) facts)
   else
     tab
 
@@ -398,7 +398,7 @@ fun consider_arities th =
              | SOME n => if n = length args then SOME tab else NONE))
         | _ => SOME tab)
   in
-    aux (prop_of th) []
+    aux (Thm.prop_of th) []
   end
 
 (* FIXME: This is currently only useful for polymorphic type encodings. *)
@@ -421,7 +421,7 @@ fun relevance_filter ctxt thres0 decay max_facts
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val add_pconsts = add_pconsts_in_term thy
     val chained_ts =
-      facts |> map_filter (try (fn ((_, (Chained, _)), th) => prop_of th))
+      facts |> map_filter (try (fn ((_, (Chained, _)), th) => Thm.prop_of th))
     val chained_const_tab = Symtab.empty |> fold add_pconsts chained_ts
     val goal_const_tab =
       Symtab.empty
@@ -502,7 +502,7 @@ fun relevance_filter ctxt thres0 decay max_facts
       fold_aterms (curry (fn (Const (s', _), false) => s' = s | (_, b) => b)) t
                   false
     fun uses_const_anywhere accepts s =
-      exists (uses_const s o prop_of o snd) accepts orelse
+      exists (uses_const s o Thm.prop_of o snd) accepts orelse
       exists (uses_const s) (concl_t :: hyp_ts)
     fun add_set_const_thms accepts =
       exists (uses_const_anywhere accepts) set_consts ? append set_thms

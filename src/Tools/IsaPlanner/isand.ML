@@ -142,7 +142,7 @@ fun subgoal_thms th =
   let
     val cert = Thm.cterm_of (Thm.theory_of_thm th);
 
-    val t = prop_of th;
+    val t = Thm.prop_of th;
 
     val prems = Logic.strip_imp_prems t;
     val aprems = map (Thm.trivial o cert) prems;

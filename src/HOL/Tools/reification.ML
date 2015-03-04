@@ -46,7 +46,7 @@ fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { concl, ... } =>
 
 fun mk_congeq ctxt fs th =
   let
-    val Const (fN, _) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
+    val Const (fN, _) = th |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
       |> fst |> strip_comb |> fst;
     val cert = Proof_Context.cterm_of ctxt;
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
@@ -95,7 +95,7 @@ fun mk_congeq ctxt fs th =
 fun rearrange congs =
   let
     fun P (_, th) =
-      let val @{term "Trueprop"} $ (Const (@{const_name HOL.eq}, _) $ l $ _) = concl_of th
+      let val @{term "Trueprop"} $ (Const (@{const_name HOL.eq}, _) $ l $ _) = Thm.concl_of th
       in can dest_Var l end;
     val (yes, no) = List.partition P congs;
   in no @ yes end;
@@ -134,8 +134,8 @@ fun index_of t bds =
 fun decomp_reify da cgns (ct, ctxt) bds =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = cterm_of thy;
-    val certT = ctyp_of thy;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
     fun tryabsdecomp (ct, ctxt) bds =
       (case Thm.term_of ct of
         Abs (_, xT, ta) =>
@@ -167,7 +167,7 @@ fun decomp_reify da cgns (ct, ctxt) bds =
         (let
           val (tyenv, tmenv) =
             Pattern.match thy
-              ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), Thm.term_of ct)
+              ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (Thm.concl_of cong), Thm.term_of ct)
               (Vartab.empty, Vartab.empty);
           val (fnvs, invs) = List.partition (fn ((vn, _),_) => member (op =) vns vn) (Vartab.dest tmenv);
           val (fts, its) =
@@ -189,15 +189,15 @@ fun get_nths (t as (Const (@{const_name "List.nth"}, _) $ vs $ n)) =
 fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
   | tryeqs (eq :: eqs) (ct, ctxt) bds = ((
       let
-        val rhs = eq |> prop_of |> HOLogic.dest_Trueprop  |> HOLogic.dest_eq |> snd;
+        val rhs = eq |> Thm.prop_of |> HOLogic.dest_Trueprop  |> HOLogic.dest_eq |> snd;
         val nths = get_nths rhs [];
         val (vss, _) = fold_rev (fn (_, (vs, n)) => fn (vss, ns) =>
           (insert (op aconv) vs vss, insert (op aconv) n ns)) nths ([], []);
         val (vsns, ctxt') = Variable.variant_fixes (replicate (length vss) "vs") ctxt;
         val (xns, ctxt'') = Variable.variant_fixes (replicate (length nths) "x") ctxt';
         val thy = Proof_Context.theory_of ctxt'';
-        val cert = cterm_of thy;
-        val certT = ctyp_of thy;
+        val cert = Thm.cterm_of thy;
+        val certT = Thm.ctyp_of thy;
         val vsns_map = vss ~~ vsns;
         val xns_map = fst (split_list nths) ~~ xns;
         val subst = map (fn (nt, xn) => (nt, Var ((xn, 0), fastype_of nt))) xns_map;
@@ -243,7 +243,7 @@ fun mk_decompatom eqs (ct, ctxt) bds = (([], fn (_, bds) =>
     val tT = fastype_of (Thm.term_of ct);
     fun isat eq =
       let
-        val rhs = eq |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd;
+        val rhs = eq |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd;
       in exists_Const
         (fn (n, ty) => n = @{const_name "List.nth"}
           andalso AList.defined Type.could_unify bds (domain_type ty)) rhs
@@ -256,7 +256,7 @@ fun mk_decompatom eqs (ct, ctxt) bds = (([], fn (_, bds) =>
 
 fun mk_congs ctxt eqs =
   let
-    val fs = fold_rev (fn eq => insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop
+    val fs = fold_rev (fn eq => insert (op =) (eq |> Thm.prop_of |> HOLogic.dest_Trueprop
       |> HOLogic.dest_eq |> fst |> strip_comb
       |> fst)) eqs [];
     val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl)) fs [];
@@ -266,7 +266,7 @@ fun mk_congs ctxt eqs =
       the o AList.lookup (op =) (map2 (fn T => fn v => (T, cert (Free (v, T)))) tys vs);
     fun prep_eq eq =
       let
-        val (_, _ :: vs) = eq |> prop_of |> HOLogic.dest_Trueprop
+        val (_, _ :: vs) = eq |> Thm.prop_of |> HOLogic.dest_Trueprop
           |> HOLogic.dest_eq |> fst |> strip_comb;
         val subst = map_filter (fn (v as Var (_, T)) => SOME (cert v, subst T)
           | _ => NONE) vs;
@@ -283,7 +283,7 @@ fun conv ctxt eqs ct =
       apfst mk_eq (divide_and_conquer' (decomp_reify (mk_decompatom eqs) congs) (ct, ctxt) bds);
     fun is_list_var (Var (_, t)) = can dest_listT t
       | is_list_var _ = false;
-    val vars = th |> prop_of |> Logic.dest_equals |> snd
+    val vars = th |> Thm.prop_of |> Logic.dest_equals |> snd
       |> strip_comb |> snd |> filter is_list_var;
     val cert = Proof_Context.cterm_of ctxt;
     val vs = map (fn v as Var (_, T) =>

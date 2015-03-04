@@ -95,7 +95,7 @@ fun apply_tactic ctxt term tactic =
   Proof_Context.cterm_of ctxt term
   |> Goal.init
   |> SINGLE tactic
-  |> the |> prems_of |> hd
+  |> the |> Thm.prems_of |> hd
 
 fun prepare_form ctxt term = apply_tactic ctxt term (
     REPEAT (FIRST' [etac @{thm intervalE}, etac @{thm meta_eqE}, rtac @{thm impI}] 1)
@@ -122,7 +122,7 @@ fun approx_form prec ctxt t =
 fun approx_arith prec ctxt t = realify t
      |> Proof_Context.cterm_of ctxt
      |> Reification.conv ctxt form_equations
-     |> prop_of
+     |> Thm.prop_of
      |> Logic.dest_equals |> snd
      |> dest_interpret |> fst
      |> mk_approx' prec

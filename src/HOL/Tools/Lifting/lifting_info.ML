@@ -160,7 +160,7 @@ fun quot_map_thm_sanity_check rel_quot_thm ctxt =
       end
 
     val ((_, [rel_quot_thm_fixed]), ctxt') = Variable.importT [rel_quot_thm] ctxt
-    val rel_quot_thm_prop = prop_of rel_quot_thm_fixed
+    val rel_quot_thm_prop = Thm.prop_of rel_quot_thm_fixed
     val rel_quot_thm_concl = Logic.strip_imp_concl rel_quot_thm_prop
     val rel_quot_thm_prems = Logic.strip_imp_prems rel_quot_thm_prop;
     val concl_absT = quot_term_absT ctxt' rel_quot_thm_concl
@@ -184,7 +184,7 @@ fun quot_map_thm_sanity_check rel_quot_thm ctxt =
 fun add_quot_map rel_quot_thm ctxt = 
   let
     val _ = Context.cases (K ()) (quot_map_thm_sanity_check rel_quot_thm) ctxt
-    val rel_quot_thm_concl = (Logic.strip_imp_concl o prop_of) rel_quot_thm
+    val rel_quot_thm_concl = (Logic.strip_imp_concl o Thm.prop_of) rel_quot_thm
     val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) rel_quot_thm_concl
     val relatorT_name = (fst o dest_Type o fst o dest_funT o fastype_of) abs
     val minfo = {rel_quot_thm = rel_quot_thm}
@@ -204,7 +204,7 @@ fun print_quot_maps ctxt =
          [Pretty.str "type:", 
           Pretty.str ty_name,
           Pretty.str "quot. theorem:", 
-          Syntax.pretty_term ctxt (prop_of rel_quot_thm)])
+          Syntax.pretty_term ctxt (Thm.prop_of rel_quot_thm)])
   in
     map prt_map (Symtab.dest (get_quot_maps ctxt))
     |> Pretty.big_list "maps for type constructors:"
@@ -243,11 +243,11 @@ fun print_quotients ctxt =
        [Pretty.str "type:", 
         Pretty.str qty_name,
         Pretty.str "quot. thm:",
-        Syntax.pretty_term ctxt (prop_of quot_thm),
+        Syntax.pretty_term ctxt (Thm.prop_of quot_thm),
         Pretty.str "pcrel_def thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcrel_def) pcr_info,
+        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o Thm.prop_of o #pcrel_def) pcr_info,
         Pretty.str "pcr_cr_eq thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcr_cr_eq) pcr_info])
+        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o Thm.prop_of o #pcr_cr_eq) pcr_info])
   in
     map prt_quot (Symtab.dest (get_quotients ctxt))
     |> Pretty.big_list "quotients:"
@@ -304,13 +304,13 @@ fun map_neg_distr_rules f = map_relator_distr_data' I I I f
 fun introduce_polarities rule =
   let
     val dest_less_eq = HOLogic.dest_bin @{const_name "less_eq"} dummyT
-    val prems_pairs = map (dest_less_eq o HOLogic.dest_Trueprop) (prems_of rule)
+    val prems_pairs = map (dest_less_eq o HOLogic.dest_Trueprop) (Thm.prems_of rule)
     val equal_prems = filter op= prems_pairs
     val _ =
       if null equal_prems then () 
       else error "The rule contains reflexive assumptions."
     val concl_pairs = rule 
-      |> concl_of
+      |> Thm.concl_of
       |> HOLogic.dest_Trueprop
       |> dest_less_eq
       |> apply2 (snd o strip_comb)
@@ -351,7 +351,7 @@ fun add_reflexivity_rules mono_rule ctxt =
   let
     fun find_eq_rule thm ctxt =
       let
-        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o concl_of) thm;
+        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm;
         val rules = Item_Net.retrieve (Transfer.get_relator_eq_item_net ctxt) concl_rhs;
       in
         find_first (fn thm => Pattern.matches (Proof_Context.theory_of ctxt) (concl_rhs, 
@@ -372,7 +372,7 @@ fun add_mono_rule mono_rule ctxt =
   let
     val pol_mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o 
-      dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) pol_mono_rule
+      dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) pol_mono_rule
     val _ = if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name 
       then error ("Monotocity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
       else ()
@@ -389,7 +389,7 @@ local
   fun add_distr_rule update_entry distr_rule ctxt =
     let
       val distr_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o 
-        dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) distr_rule
+        dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) distr_rule
     in
       if Symtab.defined (get_relator_distr_data' ctxt) distr_ruleT_name then 
         Data.map (map_relator_distr_data (Symtab.map_entry distr_ruleT_name (update_entry distr_rule))) 
@@ -441,8 +441,8 @@ end;
 local
   fun sanity_check rule =
     let
-      val assms = map (perhaps (try HOLogic.dest_Trueprop)) (prems_of rule)
-      val concl = (perhaps (try HOLogic.dest_Trueprop)) (concl_of rule);
+      val assms = map (perhaps (try HOLogic.dest_Trueprop)) (Thm.prems_of rule)
+      val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of rule);
       val (lhs, rhs) =
         (case concl of
           Const (@{const_name less_eq}, _) $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) $ rhs =>
@@ -477,7 +477,7 @@ in
   fun add_distr_rule distr_rule ctxt = 
     let
       val _ = sanity_check distr_rule
-      val concl = (perhaps (try HOLogic.dest_Trueprop)) (concl_of distr_rule)
+      val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of distr_rule)
     in
       (case concl of
         Const (@{const_name less_eq}, _) $ (Const (@{const_name relcompp},_) $ _ $ _) $ _ =>

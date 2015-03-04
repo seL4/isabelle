@@ -25,8 +25,8 @@ val zeroth = (Thm.symmetric o mk_meta_eq) @{thm of_int_0};
 val lhss0 = [@{cpat "0::?'a::ring"}];
 
 fun proc0 phi ctxt ct =
-  let val T = ctyp_of_term ct
-  in if typ_of T = @{typ int} then NONE else
+  let val T = Thm.ctyp_of_term ct
+  in if Thm.typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] zeroth)
   end;
 
@@ -39,8 +39,8 @@ val oneth = (Thm.symmetric o mk_meta_eq) @{thm of_int_1};
 val lhss1 = [@{cpat "1::?'a::ring_1"}];
 
 fun proc1 phi ctxt ct =
-  let val T = ctyp_of_term ct
-  in if typ_of T = @{typ int} then NONE else
+  let val T = Thm.ctyp_of_term ct
+  in if Thm.typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] oneth)
   end;
 
@@ -67,7 +67,7 @@ val conv_ss =
      addsimprocs [zero_to_of_int_zero_simproc,one_to_of_int_one_simproc]);
 
 fun sproc phi ctxt ct =
-  if check (term_of ct) then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
+  if check (Thm.term_of ct) then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
   else NONE;
 
 val lhss' =

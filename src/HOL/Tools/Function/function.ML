@@ -166,7 +166,7 @@ fun gen_function do_print prep default_constraint fixspec eqns config lthy =
       prepare_function do_print prep default_constraint fixspec eqns config lthy
   in
     lthy'
-    |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (concl_of goal_state), [])]]
+    |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (Thm.concl_of goal_state), [])]]
     |> Proof.refine (Method.primitive_text (K (K goal_state))) |> Seq.hd
   end
 

@@ -92,12 +92,12 @@ fun exhaust_induct_tac exh ctxt var i state = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
     val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
-    val tn = find_tname ctxt' var (map term_of asms)
+    val tn = find_tname ctxt' var (map Thm.term_of asms)
     val rule =
         if exh then #exhaustion (datatype_info thy tn)
                else #induct  (datatype_info thy tn)
     val (Const(@{const_name mem},_) $ Var(ixn,_) $ _) =
-        (case prems_of rule of
+        (case Thm.prems_of rule of
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
   in
@@ -125,7 +125,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
         map (head_of o const_of o FOLogic.dest_Trueprop o Thm.prop_of) case_eqns;
 
     val Const (@{const_name mem}, _) $ _ $ data =
-        FOLogic.dest_Trueprop (hd (prems_of elim));
+        FOLogic.dest_Trueprop (hd (Thm.prems_of elim));
 
     val Const(big_rec_name, _) = head_of data;
 

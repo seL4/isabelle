@@ -214,7 +214,8 @@ fun prove_common ctxt fork_pri xs asms props tac =
       | SOME st =>
           let
             val _ =
-              Theory.subthy (theory_of_thm st, thy) orelse err "Bad background theory of goal state";
+              Theory.subthy (Thm.theory_of_thm st, thy) orelse
+                err "Bad background theory of goal state";
             val res =
               (finish ctxt' st
                 |> Drule.flexflex_unique (SOME ctxt')

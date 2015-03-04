@@ -319,8 +319,8 @@ fun prep_realizer thy =
     let
       val name = Thm.derivation_name thm;
       val _ = name <> "" orelse error "add_realizers: unnamed theorem";
-      val prop = Thm.unconstrainT thm |> prop_of |>
-        Pattern.rewrite_term thy' (map (Logic.dest_equals o prop_of) defs) [];
+      val prop = Thm.unconstrainT thm |> Thm.prop_of |>
+        Pattern.rewrite_term thy' (map (Logic.dest_equals o Thm.prop_of) defs) [];
       val vars = vars_of prop;
       val vars' = filter_out (fn v =>
         member (op =) rtypes (tname_of (body_type (fastype_of v)))) vars;
@@ -354,7 +354,7 @@ fun realizes_of thy vs t prop =
     val procs = maps (rev o fst o snd) types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val prop' = Pattern.rewrite_term thy'
-      (map (Logic.dest_equals o prop_of) defs) [] prop;
+      (map (Logic.dest_equals o Thm.prop_of) defs) [] prop;
   in freeze_thaw (condrew thy' eqns
     (procs @ [typeof_proc [] vs, rlz_proc]))
       (Const ("realizes", fastype_of t --> propT --> propT) $ t $ prop')
@@ -364,8 +364,8 @@ fun abs_corr_shyps thy thm vs xs prf =
   let
     val S = Sign.defaultS thy;
     val ((atyp_map, constraints, _), prop') =
-      Logic.unconstrainT (#shyps (rep_thm thm)) (prop_of thm);
-    val atyps = fold_types (fold_atyps (insert (op =))) (prop_of thm) [];
+      Logic.unconstrainT (#shyps (Thm.rep_thm thm)) (Thm.prop_of thm);
+    val atyps = fold_types (fold_atyps (insert (op =))) (Thm.prop_of thm) [];
     val Ts = map_filter (fn ((v, i), _) => if member (op =) vs v then
         SOME (TVar (("'" ^ v, i), [])) else NONE)
       (rev (Term.add_vars prop' []));
@@ -397,7 +397,7 @@ fun add_expand_thm is_def thm thy =
       (if is_def then
         {realizes_eqns = realizes_eqns,
          typeof_eqns = add_rule ([], Logic.dest_equals (map_types
-           Type.strip_sorts (prop_of (Drule.abs_def thm)))) typeof_eqns,
+           Type.strip_sorts (Thm.prop_of (Drule.abs_def thm)))) typeof_eqns,
          types = types,
          realizers = realizers, defs = insert Thm.eq_thm thm defs,
          expand = expand, prep = prep}

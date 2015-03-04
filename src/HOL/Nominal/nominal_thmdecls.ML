@@ -132,7 +132,8 @@ fun get_pi t thy =
 fun eqvt_add_del_aux flag orig_thm context = 
   let
     val thy = Context.theory_of context
-    val thms_to_be_added = (case (prop_of orig_thm) of
+    val thms_to_be_added =
+      (case Thm.prop_of orig_thm of
         (* case: eqvt-lemma is of the implicational form *)
         (Const(@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop},_) $ hyp) $ (Const (@{const_name Trueprop},_) $ concl)) =>
           let

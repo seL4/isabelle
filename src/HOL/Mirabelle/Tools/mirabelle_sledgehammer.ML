@@ -310,7 +310,7 @@ fun get_prover_name thy args =
 
 fun get_prover ctxt name params goal all_facts =
   let
-    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (prop_of goal) all_facts
+    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
   in
     Sledgehammer_Prover_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal learn name
   end

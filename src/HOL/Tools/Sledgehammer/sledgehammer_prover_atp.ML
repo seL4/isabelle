@@ -261,10 +261,10 @@ fun run_atp mode name
                 cache_value
               else
                 facts
-                |> not sound ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
+                |> not sound ? filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
                 |> take num_facts
                 |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
-                |> map (apsnd prop_of)
+                |> map (apsnd Thm.prop_of)
                 |> (if waldmeister_new then
                       generate_waldmeister_problem ctxt hyp_ts concl_t
                         #> (fn (a,b,c,d,e) => (a,b,c,d,SOME e))

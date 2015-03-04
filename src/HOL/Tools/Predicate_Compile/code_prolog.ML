@@ -319,7 +319,7 @@ fun preprocess_intro thy rule =
 fun translate_intros ensure_groundness ctxt gr const constant_table =
   let
     val intros = map (preprocess_intro (Proof_Context.theory_of ctxt)) (Graph.get_node gr const)
-    val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
+    val (intros', ctxt') = Variable.import_terms true (map Thm.prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
     fun translate_intro intro =
       let

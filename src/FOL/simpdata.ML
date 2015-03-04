@@ -7,18 +7,19 @@ Simplification data for FOL.
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
-fun mk_meta_eq th = case concl_of th of
+fun mk_meta_eq th =
+  (case Thm.concl_of th of
     _ $ (Const(@{const_name eq},_)$_$_)   => th RS @{thm eq_reflection}
   | _ $ (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
-  | _                           =>
-  error("conclusion must be a =-equality or <->");;
+  | _ => error "conclusion must be a =-equality or <->");
 
-fun mk_eq th = case concl_of th of
+fun mk_eq th =
+  (case Thm.concl_of th of
     Const(@{const_name Pure.eq},_)$_$_ => th
   | _ $ (Const(@{const_name eq},_)$_$_)   => mk_meta_eq th
   | _ $ (Const(@{const_name iff},_)$_$_) => mk_meta_eq th
   | _ $ (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
-  | _                           => th RS @{thm iff_reflection_T};
+  | _  => th RS @{thm iff_reflection_T});
 
 (*Replace premises x=y, X<->Y by X==Y*)
 fun mk_meta_prems ctxt =
@@ -36,16 +37,17 @@ val mksimps_pairs =
    (@{const_name All}, [@{thm spec}]), (@{const_name True}, []), (@{const_name False}, [])];
 
 fun mk_atomize pairs =
-  let fun atoms th =
-        (case concl_of th of
-           Const(@{const_name Trueprop},_) $ p =>
-             (case head_of p of
-                Const(a,_) =>
-                  (case AList.lookup (op =) pairs a of
-                     SOME(rls) => maps atoms ([th] RL rls)
-                   | NONE => [th])
-              | _ => [th])
-         | _ => [th])
+  let
+    fun atoms th =
+      (case Thm.concl_of th of
+         Const(@{const_name Trueprop},_) $ p =>
+           (case head_of p of
+              Const(a,_) =>
+                (case AList.lookup (op =) pairs a of
+                   SOME(rls) => maps atoms ([th] RL rls)
+                 | NONE => [th])
+            | _ => [th])
+       | _ => [th])
   in atoms end;
 
 fun mksimps pairs (_: Proof.context) = map mk_eq o mk_atomize pairs o gen_all;

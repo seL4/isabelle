@@ -258,7 +258,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val size_thmss = map2 append size_simpss overloaded_size_simpss;
       val size_gen_thmss = size_simpss
       fun rhs_is_zero thm =
-        let val Const (trueprop, _) $ (Const (eq, _) $ _ $ rhs) = prop_of thm in
+        let val Const (trueprop, _) $ (Const (eq, _) $ _ $ rhs) = Thm.prop_of thm in
           trueprop = @{const_name Trueprop} andalso
           eq = @{const_name HOL.eq} andalso
           rhs = HOLogic.zero

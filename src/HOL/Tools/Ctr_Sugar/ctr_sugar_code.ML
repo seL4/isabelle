@@ -53,7 +53,7 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
     fun true_eq tu = HOLogic.mk_eq (mk_fcT_eq tu, @{term True});
     fun false_eq tu = HOLogic.mk_eq (mk_fcT_eq tu, @{term False});
 
-    val monomorphic_prop_of = prop_of o Thm.unvarify_global o Drule.zero_var_indexes;
+    val monomorphic_prop_of = Thm.prop_of o Thm.unvarify_global o Drule.zero_var_indexes;
 
     fun massage_inject (tp $ (eqv $ (_ $ t $ u) $ rhs)) = tp $ (eqv $ mk_fcT_eq (t, u) $ rhs);
     fun massage_distinct (tp $ (_ $ (_ $ t $ u))) = [tp $ false_eq (t, u), tp $ false_eq (u, t)];

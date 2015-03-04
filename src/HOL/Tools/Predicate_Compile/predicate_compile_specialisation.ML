@@ -31,7 +31,7 @@ fun import (_, intros) args ctxt =
   let
     val ((_, intros'), ctxt') = Variable.importT intros ctxt
     val pred' =
-      fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of (hd intros')))))
+      fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (Thm.prop_of (hd intros')))))
     val Ts = binder_types (fastype_of pred')
     val argTs = map fastype_of args
     val Tsubst = Type.raw_matches (argTs, Ts) Vartab.empty
@@ -61,8 +61,8 @@ fun is_nontrivial_constrt thy t =
 fun specialise_intros black_list (pred, intros) pats thy =
   let
     val ctxt = Proof_Context.init_global thy
-    val maxidx = fold (Term.maxidx_term o prop_of) intros ~1
-    val pats = map (Logic.incr_indexes ([],  maxidx + 1)) pats
+    val maxidx = fold (Term.maxidx_term o Thm.prop_of) intros ~1
+    val pats = map (Logic.incr_indexes ([], maxidx + 1)) pats
     val (((pred, intros), pats), ctxt') = import (pred, intros) pats ctxt
     val result_pats = map Var (fold_rev Term.add_vars pats [])
     fun mk_fresh_name names =
@@ -82,7 +82,7 @@ fun specialise_intros black_list (pred, intros) pats thy =
     val specialised_const = Const (constname, constT)
     fun specialise_intro intro =
       (let
-        val (prems, concl) = Logic.strip_horn (prop_of intro)
+        val (prems, concl) = Logic.strip_horn (Thm.prop_of intro)
         val env = Pattern.unify (Context.Theory thy)
           (HOLogic.mk_Trueprop (list_comb (pred, pats)), concl) (Envir.empty 0)
         val prems = map (Envir.norm_term env) prems
@@ -201,7 +201,7 @@ and find_specialisations black_list specs thy =
       let
         (* FIXME: only necessary because of sloppy Logic.unvarify in restrict_pattern *)
         val intros = Drule.zero_var_indexes_list intros
-        val (intros_t', thy') = (fold_map o fold_map_atoms) detect' (map prop_of intros) thy
+        val (intros_t', thy') = (fold_map o fold_map_atoms) detect' (map Thm.prop_of intros) thy
       in
         ((constname, map (Skip_Proof.make_thm thy') intros_t'), thy')
       end

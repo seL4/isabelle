@@ -20,7 +20,7 @@ fun name_hyps (arg as ((cases, consumes), th)) =
   if not(forall (null o #2 o #1) cases) then arg
   else
     let
-      val (prems, concl) = Logic.strip_horn (prop_of th);
+      val (prems, concl) = Logic.strip_horn (Thm.prop_of th);
       val prems' = drop consumes prems;
       val ps = preds_of concl;
 

@@ -160,13 +160,13 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     val args = map inst pre_args
     val rhs = inst pre_rhs
 
-    val cqs = map (cterm_of thy) qs
-    val ags = map (Thm.assume o cterm_of thy) gs
+    val cqs = map (Thm.cterm_of thy) qs
+    val ags = map (Thm.assume o Thm.cterm_of thy) gs
 
     val import = fold Thm.forall_elim cqs
       #> fold Thm.elim_implies ags
 
-    val export = fold_rev (Thm.implies_intr o cprop_of) ags
+    val export = fold_rev (Thm.implies_intr o Thm.cprop_of) ags
       #> fold_rev forall_intr_rename (oqnames ~~ cqs)
   in
     F ctxt (f, qs, gs, args, rhs) import export
@@ -199,7 +199,9 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
 fun mk_applied_form ctxt caTs thm =
   let
     val thy = Proof_Context.theory_of ctxt
-    val xs = map_index (fn (i,T) => cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
+    val xs =
+      map_index (fn (i, T) =>
+        Thm.cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
   in
     fold (fn x => fn thm => Thm.combination thm (Thm.reflexive x)) xs thm
     |> Conv.fconv_rule (Thm.beta_conversion true)

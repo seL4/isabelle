@@ -70,7 +70,7 @@ fun cabs a t = Thm.lambda a t
 val mk_hol_const = Thm.cterm_of @{theory HOL} o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
-  let val ty = #T(rep_cterm Bvar)
+  let val ty = #T(Thm.rep_cterm Bvar)
       val c = mk_hol_const(@{const_name Ex}, (ty --> HOLogic.boolT) --> HOLogic.boolT)
   in capply c (uncurry cabs r) end;
 
@@ -88,12 +88,12 @@ end;
  * The primitives.
  *---------------------------------------------------------------------------*)
 fun dest_const ctm =
-   (case #t(rep_cterm ctm)
+   (case #t(Thm.rep_cterm ctm)
       of Const(s,ty) => {Name = s, Ty = ty}
        | _ => raise ERR "dest_const" "not a constant");
 
 fun dest_var ctm =
-   (case #t(rep_cterm ctm)
+   (case #t(Thm.rep_cterm ctm)
       of Var((s,i),ty) => {Name=s, Ty=ty}
        | Free(s,ty)    => {Name=s, Ty=ty}
        |             _ => raise ERR "dest_var" "not a variable");

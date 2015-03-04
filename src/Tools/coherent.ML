@@ -39,8 +39,8 @@ datatype cl_prf =
 val is_atomic = not o exists_Const (member (op =) Data.operator_names o #1);
 
 fun rulify_elim_conv ctxt ct =
-  if is_atomic (Logic.strip_imp_concl (term_of ct)) then Conv.all_conv ct
-  else Conv.concl_conv (length (Logic.strip_imp_prems (term_of ct)))
+  if is_atomic (Logic.strip_imp_concl (Thm.term_of ct)) then Conv.all_conv ct
+  else Conv.concl_conv (length (Logic.strip_imp_prems (Thm.term_of ct)))
     (Conv.rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
      Raw_Simplifier.rewrite ctxt true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
@@ -66,7 +66,7 @@ fun dest_elim prop =
 fun mk_rule ctxt th =
   let
     val th' = rulify_elim ctxt th;
-    val (prems, cases) = dest_elim (prop_of th')
+    val (prems, cases) = dest_elim (Thm.prop_of th')
   in (th', prems, cases) end;
 
 fun mk_dom ts = fold (fn t =>
@@ -187,7 +187,7 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
               (cert (Var (ixn, Envir.subst_type tye T)), cert t)) (Vartab.dest env) @
             map (fn (ixnT, t) => (cert (Var ixnT), cert t)) insts) th)
         (map (nth asms) is);
-    val (_, cases) = dest_elim (prop_of th');
+    val (_, cases) = dest_elim (Thm.prop_of th');
   in
     (case (cases, prfs) of
       ([([], [_])], []) => th'
@@ -195,7 +195,7 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
     | _ =>
         Drule.implies_elim_list
           (Thm.instantiate (Thm.match
-             (Drule.strip_imp_concl (cprop_of th'), goal)) th')
+             (Drule.strip_imp_concl (Thm.cprop_of th'), goal)) th')
           (map (thm_of_case_prf ctxt goal asms) (prfs ~~ cases)))
   end
 
@@ -219,12 +219,12 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt
   SUBPROOF (fn {prems = prems', concl, context = ctxt'', ...} =>
     let
       val xs =
-        map (term_of o #2) params @
+        map (Thm.term_of o #2) params @
         map (fn (_, s) => Free (s, the (Variable.default_type ctxt'' s)))
           (rev (Variable.dest_fixes ctxt''))  (* FIXME !? *)
     in
       (case
-        valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
+        valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (Thm.term_of concl)
           (mk_dom xs) Net.empty 0 0 of
         NONE => no_tac
       | SOME prf => resolve_tac ctxt'' [thm_of_cl_prf ctxt'' concl [] prf] 1)

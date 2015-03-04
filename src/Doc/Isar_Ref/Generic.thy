@@ -999,7 +999,7 @@ text \<open>The following simplification procedure for @{thm
 
 simproc_setup unit ("x::unit") = \<open>
   fn _ => fn _ => fn ct =>
-    if HOLogic.is_unit (term_of ct) then NONE
+    if HOLogic.is_unit (Thm.term_of ct) then NONE
     else SOME (mk_meta_eq @{thm unit_eq})
 \<close>
 

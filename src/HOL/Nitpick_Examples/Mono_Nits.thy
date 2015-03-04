@@ -153,7 +153,7 @@ fun is_forbidden_theorem name =
 fun theorems_of thy =
   filter (fn (name, th) =>
              not (is_forbidden_theorem name) andalso
-             (theory_of_thm th, thy) |> apply2 Context.theory_name |> op =)
+             (Thm.theory_of_thm th, thy) |> apply2 Context.theory_name |> op =)
          (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
@@ -179,7 +179,7 @@ fun check_theory thy =
     val _ = File.write path ""
     fun check_theorem (name, th) =
       let
-        val t = th |> prop_of |> Type.legacy_freeze |> close_form
+        val t = th |> Thm.prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
         val (nondef_ts, def_ts, _, _, _, _) =
           TimeLimit.timeLimit preproc_timeout (preprocess_formulas hol_ctxt [])

@@ -59,10 +59,10 @@ fun remove_suc ctxt thms =
     val thy = Proof_Context.theory_of ctxt;
     val vname = singleton (Name.variant_list (map fst
       (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "n";
-    val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
-    val lhs_of = snd o Thm.dest_comb o fst o Thm.dest_comb o cprop_of;
-    val rhs_of = snd o Thm.dest_comb o cprop_of;
-    fun find_vars ct = (case term_of ct of
+    val cv = Thm.cterm_of thy (Var ((vname, 0), HOLogic.natT));
+    val lhs_of = snd o Thm.dest_comb o fst o Thm.dest_comb o Thm.cprop_of;
+    val rhs_of = snd o Thm.dest_comb o Thm.cprop_of;
+    fun find_vars ct = (case Thm.term_of ct of
         (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
@@ -79,7 +79,7 @@ fun remove_suc ctxt thms =
           Thm.implies_elim
            (Conv.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
-               [SOME (ctyp_of_term ct)] [SOME (Thm.lambda cv ct),
+               [SOME (Thm.ctyp_of_term ct)] [SOME (Thm.lambda cv ct),
                  SOME (Thm.lambda cv' (rhs_of thm)), NONE, SOME cv']
                Suc_if_eq)) (Thm.forall_intr cv' thm)
       in
@@ -97,7 +97,7 @@ fun remove_suc ctxt thms =
 
 fun eqn_suc_base_preproc ctxt thms =
   let
-    val dest = fst o Logic.dest_equals o prop_of;
+    val dest = fst o Logic.dest_equals o Thm.prop_of;
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) thms andalso exists (contains_suc o dest) thms

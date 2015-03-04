@@ -708,7 +708,7 @@ fun simproc ctxt redex =
                 val inner_t =
                   fold (fn (_, T) => fn t => HOLogic.exists_const T $ absdummy T t)
                     (rev bound_vs) (fold (curry HOLogic.mk_conj) eqs' pat_eq')
-                val lhs = term_of redex
+                val lhs = Thm.term_of redex
                 val rhs = HOLogic.mk_Collect ("x", rT, inner_t)
                 val rewrite_rule_t = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
               in
@@ -717,7 +717,7 @@ fun simproc ctxt redex =
                     (fn {context, ...} => tac context (rev Tis))) RS @{thm eq_reflection})
               end))
   in
-    make_inner_eqs [] [] [] (dest_set (term_of redex))
+    make_inner_eqs [] [] [] (dest_set (Thm.term_of redex))
   end
 
 end
@@ -1043,7 +1043,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = {*
         else if lastl aconv lastr then rearr @{thm append_same_eq}
         else NONE
       end;
-  in fn _ => fn ctxt => fn ct => list_eq ctxt (term_of ct) end;
+  in fn _ => fn ctxt => fn ct => list_eq ctxt (Thm.term_of ct) end;
 *}
 
 

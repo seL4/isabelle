@@ -216,10 +216,10 @@ structure DiffCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm nat_diff_add_eq2} RS trans
 );
 
-fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (term_of ct)
-fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (term_of ct)
-fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (term_of ct)
-fun diff_cancel_numerals ctxt ct = DiffCancelNumerals.proc ctxt (term_of ct)
+fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (Thm.term_of ct)
+fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (Thm.term_of ct)
+fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (Thm.term_of ct)
+fun diff_cancel_numerals ctxt ct = DiffCancelNumerals.proc ctxt (Thm.term_of ct)
 
 
 (*** Applying CombineNumeralsFun ***)
@@ -257,7 +257,7 @@ end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
-fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (term_of ct)
+fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (Thm.term_of ct)
 
 
 (*** Applying CancelNumeralFactorFun ***)
@@ -326,11 +326,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (term_of ct)
-fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (term_of ct)
-fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (term_of ct)
-fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (term_of ct)
-fun dvd_cancel_numeral_factor ctxt ct = DvdCancelNumeralFactor.proc ctxt (term_of ct)
+fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun dvd_cancel_numeral_factor ctxt ct = DvdCancelNumeralFactor.proc ctxt (Thm.term_of ct)
 
 
 (*** Applying ExtractCommonTermFun ***)
@@ -405,10 +405,10 @@ structure DvdCancelFactor = ExtractCommonTermFun
   fun simp_conv _ _ = SOME @{thm nat_mult_dvd_cancel_disj}
 );
 
-fun eq_cancel_factor ctxt ct = EqCancelFactor.proc ctxt (term_of ct)
-fun less_cancel_factor ctxt ct = LessCancelFactor.proc ctxt (term_of ct)
-fun le_cancel_factor ctxt ct = LeCancelFactor.proc ctxt (term_of ct)
-fun div_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (term_of ct)
-fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (term_of ct)
+fun eq_cancel_factor ctxt ct = EqCancelFactor.proc ctxt (Thm.term_of ct)
+fun less_cancel_factor ctxt ct = LessCancelFactor.proc ctxt (Thm.term_of ct)
+fun le_cancel_factor ctxt ct = LeCancelFactor.proc ctxt (Thm.term_of ct)
+fun div_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (Thm.term_of ct)
+fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (Thm.term_of ct)
 
 end;

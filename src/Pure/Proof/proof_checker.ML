@@ -38,7 +38,7 @@ fun is_equal t t' =
 
 fun pretty_prf thy vs Hs prf =
   let val prf' = prf |> Proofterm.prf_subst_bounds (map Free vs) |>
-    Proofterm.prf_subst_pbounds (map (Hyp o prop_of) Hs)
+    Proofterm.prf_subst_pbounds (map (Hyp o Thm.prop_of) Hs)
   in
     (Proof_Syntax.pretty_proof (Syntax.init_pretty_global thy) prf',
      Syntax.pretty_term_global thy (Reconstruct.prop_of prf'))

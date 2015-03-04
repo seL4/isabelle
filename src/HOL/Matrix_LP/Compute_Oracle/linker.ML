@@ -246,7 +246,7 @@ fun computer_of (PComputer (_,computer,_,_)) = computer
 
 fun collect_consts_of_thm th = 
     let
-        val th = prop_of th
+        val th = Thm.prop_of th
         val (prems, th) = (Logic.strip_imp_prems th, Logic.strip_imp_concl th)
         val (left, right) = Logic.dest_equals th
     in
@@ -315,7 +315,8 @@ fun update_computer computer pats ths =
     end
 
 fun conv_subst thy (subst : Type.tyenv) =
-    map (fn (iname, (sort, ty)) => (ctyp_of thy (TVar (iname, sort)), ctyp_of thy ty)) (Vartab.dest subst)
+    map (fn (iname, (sort, ty)) => (Thm.ctyp_of thy (TVar (iname, sort)), Thm.ctyp_of thy ty))
+      (Vartab.dest subst)
 
 fun add_monos thy monocs pats ths =
     let
@@ -433,7 +434,7 @@ fun add_instances' pc ts = add_instances pc (Linker.collect_consts ts)
 
 fun rewrite pc cts =
     let
-        val _ = add_instances' pc (map term_of cts)
+        val _ = add_instances' pc (map Thm.term_of cts)
         val computer = (computer_of pc)
     in
         map (fn ct => Compute.rewrite computer ct) cts
@@ -443,7 +444,7 @@ fun simplify pc th = Compute.simplify (computer_of pc) th
 
 fun make_theorem pc th vars = 
     let
-        val _ = add_instances' pc [prop_of th]
+        val _ = add_instances' pc [Thm.prop_of th]
 
     in
         Compute.make_theorem (computer_of pc) th vars
@@ -451,7 +452,7 @@ fun make_theorem pc th vars =
 
 fun instantiate pc insts th = 
     let
-        val _ = add_instances' pc (map (term_of o snd) insts)
+        val _ = add_instances' pc (map (Thm.term_of o snd) insts)
     in
         Compute.instantiate (computer_of pc) insts th
     end
@@ -460,7 +461,7 @@ fun evaluate_prem pc prem_no th = Compute.evaluate_prem (computer_of pc) prem_no
 
 fun modus_ponens pc prem_no th' th =
     let
-        val _ = add_instances' pc [prop_of th']
+        val _ = add_instances' pc [Thm.prop_of th']
     in
         Compute.modus_ponens (computer_of pc) prem_no th' th
     end    

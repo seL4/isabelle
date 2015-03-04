@@ -14,7 +14,7 @@ struct
 val dest_set =
   let
     fun h acc ct =
-      (case term_of ct of
+      (case Thm.term_of ct of
         Const (@{const_name Orderings.bot}, _) => acc
       | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct));
   in h [] end;
@@ -33,7 +33,7 @@ fun simp_rule ctxt =
       (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms ball_simps simp_thms})));
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
-  (case term_of ep of
+  (case Thm.term_of ep of
     Const (@{const_name Ex}, _) $ _ =>
       let
         val p = Thm.dest_arg ep
@@ -46,13 +46,13 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
         fun proveneF S =
           let
             val (a, A) = Thm.dest_comb S |>> Thm.dest_arg
-            val cT = ctyp_of_term a
+            val cT = Thm.ctyp_of_term a
             val ne = instantiate' [SOME cT] [SOME a, SOME A] @{thm insert_not_empty}
             val f = prove_finite cT (dest_set S)
          in (ne, f) end
 
         val qe =
-          (case (term_of L, term_of U) of
+          (case (Thm.term_of L, Thm.term_of U) of
             (Const (@{const_name Orderings.bot}, _),_) =>
               let val (neU, fU) = proveneF U
               in simp_rule ctxt (Thm.transitive ths (dlo_qeth_nolb OF [neU, fU])) end
@@ -70,13 +70,13 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
 val all_conjuncts =
   let
     fun h acc ct =
-      (case term_of ct of
+      (case Thm.term_of ct of
         @{term HOL.conj} $ _ $ _ => h (h acc (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
       | _ => ct :: acc)
   in h [] end;
 
 fun conjuncts ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     @{term HOL.conj} $ _ $ _ => Thm.dest_arg1 ct :: conjuncts (Thm.dest_arg ct)
   | _ => [ct]);
 
@@ -88,7 +88,7 @@ val list_conj =
 fun mk_conj_tab th =
   let
     fun h acc th =
-      (case prop_of th of
+      (case Thm.prop_of th of
         @{term "Trueprop"} $ (@{term HOL.conj} $ p $ q) =>
           h (h acc (th RS conjunct2)) (th RS conjunct1)
       | @{term "Trueprop"} $ p => (p, th) :: acc)
@@ -100,7 +100,7 @@ fun is_conj (@{term HOL.conj}$_$_) = true
 fun prove_conj tab cjs =
   (case cjs of
     [c] =>
-      if is_conj (term_of c)
+      if is_conj (Thm.term_of c)
       then prove_conj tab (conjuncts c)
       else tab c
   | c :: cs => conjI OF [prove_conj tab [c], prove_conj tab cs]);
@@ -108,8 +108,8 @@ fun prove_conj tab cjs =
 fun conj_aci_rule eq =
   let
     val (l, r) = Thm.dest_equals eq
-    fun tabl c = the (Termtab.lookup (mk_conj_tab (Thm.assume l)) (term_of c))
-    fun tabr c = the (Termtab.lookup (mk_conj_tab (Thm.assume r)) (term_of c))
+    fun tabl c = the (Termtab.lookup (mk_conj_tab (Thm.assume l)) (Thm.term_of c))
+    fun tabr c = the (Termtab.lookup (mk_conj_tab (Thm.assume r)) (Thm.term_of c))
     val ll = Thm.dest_arg l
     val rr = Thm.dest_arg r
     val thl  = prove_conj tabl (conjuncts rr) |> Drule.implies_intr_hyps
@@ -118,18 +118,18 @@ fun conj_aci_rule eq =
   in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
 fun contains x ct =
-  member (op aconv) (Misc_Legacy.term_frees (term_of ct)) (term_of x);
+  member (op aconv) (Misc_Legacy.term_frees (Thm.term_of ct)) (Thm.term_of x);
 
 fun is_eqx x eq =
-  (case term_of eq of
+  (case Thm.term_of eq of
     Const (@{const_name HOL.eq}, _) $ l $ r =>
-      l aconv term_of x orelse r aconv term_of x
+      l aconv Thm.term_of x orelse r aconv Thm.term_of x
   | _ => false);
 
 local
 
 fun proc ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     Const (@{const_name Ex}, _) $ Abs (xn, _, _) =>
       let
         val e = Thm.dest_fun ct
@@ -198,7 +198,7 @@ fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langfor
 val grab_atom_bop =
   let
     fun h bounds tm =
-      (case term_of tm of
+      (case Thm.term_of tm of
         Const (@{const_name HOL.eq}, T) $ _ $ _ =>
           if domain_type T = HOLogic.boolT then find_args bounds tm
           else Thm.dest_fun2 tm
@@ -231,8 +231,8 @@ fun dlo_conv ctxt tm =
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
   let
     fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
-    fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
-    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
+    fun gen x t = Thm.apply (all (Thm.ctyp_of_term x)) (Thm.lambda x t)
+    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
     val p' = fold_rev gen ts p
   in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
@@ -240,7 +240,7 @@ fun cfrees ats ct =
   let
     val ins = insert (op aconvc)
     fun h acc t =
-      (case (term_of t) of
+      (case Thm.term_of t of
         _ $ _ $ _ =>
           if member (op aconvc) ats (Thm.dest_fun2 t)
           then ins (Thm.dest_arg t) (ins (Thm.dest_arg1 t) acc)

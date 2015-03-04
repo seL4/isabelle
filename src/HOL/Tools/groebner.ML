@@ -25,7 +25,7 @@ val concl = Thm.cprop_of #> Thm.dest_arg;
 
 fun is_binop ct ct' =
   (case Thm.term_of ct' of
-    c $ _ $ _ => term_of ct aconv c
+    c $ _ $ _ => Thm.term_of ct aconv c
   | _ => false);
 
 fun dest_binary ct ct' =
@@ -351,7 +351,7 @@ fun grobner_strong vars pols pol =
 (* We return an ideal_conv and the actual ring prover.                       *)
 
 fun refute_disj rfn tm =
- case term_of tm of
+ case Thm.term_of tm of
   Const(@{const_name HOL.disj},_)$_$_ =>
    Drule.compose
     (refute_disj rfn (Thm.dest_arg tm), 2,
@@ -362,11 +362,11 @@ val notnotD = @{thm notnotD};
 fun mk_binop ct x y = Thm.apply (Thm.apply ct x) y
 
 fun is_neg t =
-    case term_of t of
+    case Thm.term_of t of
       (Const(@{const_name Not},_)$_) => true
     | _  => false;
 fun is_eq t =
- case term_of t of
+ case Thm.term_of t of
  (Const(@{const_name HOL.eq},_)$_$_) => true
 | _  => false;
 
@@ -387,7 +387,7 @@ val list_dest_binop = fn b =>
 
 val strip_exists =
  let fun h (acc, t) =
-      case term_of t of
+      case Thm.term_of t of
        Const (@{const_name Ex}, _) $ Abs _ =>
         h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
@@ -395,7 +395,7 @@ val strip_exists =
  end;
 
 fun is_forall t =
- case term_of t of
+ case Thm.term_of t of
   (Const(@{const_name All},_)$Abs(_,_,_)) => true
 | _ => false;
 
@@ -435,12 +435,12 @@ val eq_commute = mk_meta_eq @{thm eq_commute};
 
 fun sym_conv eq =
  let val (l,r) = Thm.dest_binop eq
- in instantiate' [SOME (ctyp_of_term l)] [SOME l, SOME r] eq_commute
+ in instantiate' [SOME (Thm.ctyp_of_term l)] [SOME l, SOME r] eq_commute
  end;
 
   (* FIXME : copied from cqe.ML -- complex QE*)
 fun conjuncts ct =
- case term_of ct of
+ case Thm.term_of ct of
   @{term HOL.conj}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
 | _ => [ct];
 
@@ -448,7 +448,7 @@ fun fold1 f = foldr1 (uncurry f);
 
 fun mk_conj_tab th =
  let fun h acc th =
-   case prop_of th of
+   case Thm.prop_of th of
    @{term "Trueprop"}$(@{term HOL.conj}$_$_) =>
      h (h acc (th RS conjunct2)) (th RS conjunct1)
   | @{term "Trueprop"}$p => (p,th)::acc
@@ -459,7 +459,7 @@ fun is_conj (@{term HOL.conj}$_$_) = true
 
 fun prove_conj tab cjs =
  case cjs of
-   [c] => if is_conj (term_of c) then prove_conj tab (conjuncts c) else tab c
+   [c] => if is_conj (Thm.term_of c) then prove_conj tab (conjuncts c) else tab c
  | c::cs => conjI OF [prove_conj tab [c], prove_conj tab cs];
 
 fun conj_ac_rule eq =
@@ -467,8 +467,8 @@ fun conj_ac_rule eq =
   val (l,r) = Thm.dest_equals eq
   val ctabl = mk_conj_tab (Thm.assume (Thm.apply @{cterm Trueprop} l))
   val ctabr = mk_conj_tab (Thm.assume (Thm.apply @{cterm Trueprop} r))
-  fun tabl c = the (Termtab.lookup ctabl (term_of c))
-  fun tabr c = the (Termtab.lookup ctabr (term_of c))
+  fun tabl c = the (Termtab.lookup ctabl (Thm.term_of c))
+  fun tabr c = the (Termtab.lookup ctabr (Thm.term_of c))
   val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
   val thr  = prove_conj tabr (conjuncts l) |> implies_intr_hyps
   val eqI = instantiate' [] [SOME l, SOME r] @{thm iffI}
@@ -479,15 +479,15 @@ fun conj_ac_rule eq =
    (* Conversion for the equivalence of existential statements where
       EX quantifiers are rearranged differently *)
  fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
- fun mk_ex v t = Thm.apply (ext (ctyp_of_term v)) (Thm.lambda v t)
+ fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_term v)) (Thm.lambda v t)
 
-fun choose v th th' = case concl_of th of
+fun choose v th th' = case Thm.concl_of th of
   @{term Trueprop} $ (Const(@{const_name Ex},_)$_) =>
    let
-    val p = (funpow 2 Thm.dest_arg o cprop_of) th
-    val T = (hd o Thm.dest_ctyp o ctyp_of_term) p
+    val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
+    val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_term) p
     val th0 = Conv.fconv_rule (Thm.beta_conversion true)
-        (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
+        (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
     val pv = (Thm.rhs_of o Thm.beta_conversion true)
           (Thm.apply @{cterm Trueprop} (Thm.apply p v))
     val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
@@ -504,7 +504,7 @@ fun simple_choose v th =
    val p = Thm.lambda v (Thm.dest_arg (Thm.cprop_of th))
   in Thm.implies_elim
     (Conv.fconv_rule (Thm.beta_conversion true)
-      (instantiate' [SOME (ctyp_of_term v)] [SOME p, SOME v] @{thm exI}))
+      (instantiate' [SOME (Thm.ctyp_of_term v)] [SOME p, SOME v] @{thm exI}))
       th
   end
  fun ex_eq_conv t =
@@ -515,19 +515,19 @@ fun simple_choose v th =
    val th = Thm.assume (Thm.apply @{cterm Trueprop} P)
    val th1 = implies_intr_hyps (fold simple_choose vs' (fold mkexi vs th))
    val th2 = implies_intr_hyps (fold simple_choose vs (fold mkexi vs' th))
-   val p = (Thm.dest_arg o Thm.dest_arg1 o cprop_of) th1
-   val q = (Thm.dest_arg o Thm.dest_arg o cprop_of) th1
+   val p = (Thm.dest_arg o Thm.dest_arg1 o Thm.cprop_of) th1
+   val q = (Thm.dest_arg o Thm.dest_arg o Thm.cprop_of) th1
   in Thm.implies_elim (Thm.implies_elim (instantiate' [] [SOME p, SOME q] iffI) th1) th2
      |> mk_meta_eq
   end;
 
 
- fun getname v = case term_of v of
+ fun getname v = case Thm.term_of v of
   Free(s,_) => s
  | Var ((s,_),_) => s
  | _ => "x"
  fun mk_eq s t = Thm.apply (Thm.apply @{cterm "op == :: bool => _"} s) t
-  fun mk_exists v th = Drule.arg_cong_rule (ext (ctyp_of_term v))
+  fun mk_exists v th = Drule.arg_cong_rule (ext (Thm.ctyp_of_term v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
@@ -567,13 +567,13 @@ let
      if length ideal = 2 then ideal else [eq_commute, eq_commute]
   fun ring_dest_neg t =
     let val (l,r) = Thm.dest_comb t
-    in if Term.could_unify(term_of l,term_of ring_neg_tm) then r
+    in if Term.could_unify(Thm.term_of l, Thm.term_of ring_neg_tm) then r
        else raise CTERM ("ring_dest_neg", [t])
     end
 
  fun field_dest_inv t =
     let val (l,r) = Thm.dest_comb t in
-        if Term.could_unify(term_of l, term_of field_inv_tm) then r
+        if Term.could_unify (Thm.term_of l, Thm.term_of field_inv_tm) then r
         else raise CTERM ("field_dest_inv", [t])
     end
  val ring_dest_add = dest_binary ring_add_tm;
@@ -633,7 +633,7 @@ handle  CTERM _ =>
           end)
          handle CTERM _ =>
           ((let val (l,r) = ring_dest_pow tm
-          in grob_pow vars (grobify_term vars l) ((term_of #> HOLogic.dest_number #> snd) r)
+          in grob_pow vars (grobify_term vars l) ((Thm.term_of #> HOLogic.dest_number #> snd) r)
           end)
            handle CTERM _ => error "grobify_term: unknown or invalid term")))))))));
 val eq_tm = idom_thm |> concl |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_fun2;
@@ -649,7 +649,7 @@ fun grobify_equations tm =
   val cjs = conjs tm
   val  rawvars =
     fold_rev (fn eq => fn a => grobvars (Thm.dest_arg1 eq) (grobvars (Thm.dest_arg eq) a)) cjs []
-  val vars = sort (fn (x, y) => Term_Ord.term_ord (term_of x, term_of y))
+  val vars = sort (fn (x, y) => Term_Ord.term_ord (Thm.term_of x, Thm.term_of y))
                   (distinct (op aconvc) rawvars)
  in (vars,map (grobify_equation vars) cjs)
  end;
@@ -739,7 +739,7 @@ fun ring ctxt tm =
  let
   fun mk_forall x p =
     Thm.apply
-      (Drule.cterm_rule (instantiate' [SOME (ctyp_of_term x)] [])
+      (Drule.cterm_rule (instantiate' [SOME (Thm.ctyp_of_term x)] [])
         @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
   val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
@@ -756,7 +756,7 @@ fun ring ctxt tm =
     val th3 =
       Thm.equal_elim
         (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [not_ex RS sym])
-          (th2 |> cprop_of)) th2
+          (th2 |> Thm.cprop_of)) th2
     in specl avs
              ([[[mk_object_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS notnotD)
    end
@@ -764,7 +764,7 @@ fun ring ctxt tm =
 fun ideal tms tm ord =
  let
   val rawvars = fold_rev grobvars (tm::tms) []
-  val vars = sort ord (distinct (fn (x,y) => (term_of x) aconv (term_of y)) rawvars)
+  val vars = sort ord (distinct (fn (x,y) => (Thm.term_of x) aconv (Thm.term_of y)) rawvars)
   val pols = map (grobify_term vars) tms
   val pol = grobify_term vars tm
   val cert = grobner_ideal vars pols pol
@@ -866,7 +866,7 @@ fun isolate_variables evs ps eq =
   val vars = filter (fn v => free_in v eq) evs
   val (qs,p) = isolate_monomials vars eq
   val rs = ideal (qs @ ps) p
-              (fn (s,t) => Term_Ord.term_ord (term_of s, term_of t))
+              (fn (s,t) => Term_Ord.term_ord (Thm.term_of s, Thm.term_of t))
  in (eq, take (length qs) rs ~~ vars)
  end;
  fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));
@@ -888,7 +888,7 @@ end;
 
 
 fun find_term bounds tm =
-  (case term_of tm of
+  (case Thm.term_of tm of
     Const (@{const_name HOL.eq}, T) $ _ $ _ =>
       if domain_type T = HOLogic.boolT then find_args bounds tm
       else Thm.dest_arg tm
@@ -919,7 +919,7 @@ fun get_ring_ideal_convs ctxt form =
   | SOME (res as (theory, {is_const = _, dest_const,
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
-          dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
+          dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
           (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)))
 
 fun presimplify ctxt add_thms del_thms =
@@ -941,11 +941,11 @@ fun ring_tac add_ths del_ths ctxt =
         | THM _ => no_tac);
 
 local
- fun lhs t = case term_of t of
+ fun lhs t = case Thm.term_of t of
   Const(@{const_name HOL.eq},_)$_$_ => Thm.dest_arg1 t
  | _=> raise CTERM ("ideal_tac - lhs",[t])
  fun exitac NONE = no_tac
-   | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
+   | exitac (SOME y) = rtac (instantiate' [SOME (Thm.ctyp_of_term y)] [NONE,SOME y] exI) 1
 
  val claset = claset_of @{context}
 in

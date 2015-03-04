@@ -37,7 +37,7 @@ fun parse_proof
 
     fun step_of_assume j (_, th) =
       VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
-        rule = veriT_input_rule, prems = [], concl = prop_of th, fixes = []}
+        rule = veriT_input_rule, prems = [], concl = Thm.prop_of th, fixes = []}
 
     val (actual_steps, _) = VeriT_Proof.parse typs terms output ctxt
     val used_assert_ids = fold add_used_asserts_in_step actual_steps []
@@ -65,8 +65,8 @@ fun parse_proof
     val helper_ids' = filter (fn (i, _) => i >= helpers_i) used_assms
 
     val fact_helper_ts =
-      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids' @
-      map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids'
+      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, Thm.prop_of th)) helper_ids' @
+      map (fn (_, ((s, _), th)) => (s, Thm.prop_of th)) fact_ids'
     val fact_helper_ids' =
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids' @ map (apsnd (fst o fst)) fact_ids'
   in

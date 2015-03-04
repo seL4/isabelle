@@ -122,22 +122,22 @@ datatype fm = And of cterm*cterm| Or of cterm*cterm| Eq of cterm | NEq of cterm
             | Dvd of cterm*cterm | NDvd of cterm*cterm | Nox
 
 fun whatis x ct =
-( case (term_of ct) of
+( case Thm.term_of ct of
   Const(@{const_name HOL.conj},_)$_$_ => And (Thm.dest_binop ct)
 | Const (@{const_name HOL.disj},_)$_$_ => Or (Thm.dest_binop ct)
-| Const (@{const_name HOL.eq},_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
+| Const (@{const_name HOL.eq},_)$y$_ => if Thm.term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
 | Const (@{const_name Not},_) $ (Const (@{const_name HOL.eq},_)$y$_) =>
-  if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
+  if Thm.term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
 | Const (@{const_name Orderings.less}, _) $ y$ z =>
-   if term_of x aconv y then Lt (Thm.dest_arg ct)
-   else if term_of x aconv z then Gt (Thm.dest_arg1 ct) else Nox
+   if Thm.term_of x aconv y then Lt (Thm.dest_arg ct)
+   else if Thm.term_of x aconv z then Gt (Thm.dest_arg1 ct) else Nox
 | Const (@{const_name Orderings.less_eq}, _) $ y $ z =>
-   if term_of x aconv y then Le (Thm.dest_arg ct)
-   else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
+   if Thm.term_of x aconv y then Le (Thm.dest_arg ct)
+   else if Thm.term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
 | Const (@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$y$_) =>
-   if term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox
+   if Thm.term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox
 | Const (@{const_name Not},_) $ (Const (@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$y$_)) =>
-   if term_of x aconv y then
+   if Thm.term_of x aconv y then
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox
 | _ => Nox)
   handle CTERM _ => Nox;
@@ -148,7 +148,7 @@ fun get_pmi_term t =
         (Thm.dest_arg t)
 in (Thm.lambda x o Thm.dest_arg o Thm.dest_arg) eq end;
 
-val get_pmi = get_pmi_term o cprop_of;
+val get_pmi = get_pmi_term o Thm.cprop_of;
 
 val p_v' = @{cpat "?P' :: int => bool"};
 val q_v' = @{cpat "?Q' :: int => bool"};
@@ -174,7 +174,7 @@ val cadd =  @{cterm "op + :: int => _"}
 val cmulC =  @{cterm "op * :: int => _"}
 val cminus =  @{cterm "op - :: int => _"}
 val cone =  @{cterm "1 :: int"}
-val [addC, mulC, subC] = map term_of [cadd, cmulC, cminus]
+val [addC, mulC, subC] = map Thm.term_of [cadd, cmulC, cminus]
 val [zero, one] = [@{term "0 :: int"}, @{term "1 :: int"}];
 
 fun numeral1 f n = HOLogic.mk_number iT (f (dest_number n));
@@ -294,7 +294,7 @@ fun lin (vs as _::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderi
   | lin vs fm = fm;
 
 fun lint_conv ctxt vs ct =
-let val t = term_of ct
+let val t = Thm.term_of ct
 in (provelin ctxt ((HOLogic.eq_const iT)$t$(lint vs t) |> HOLogic.mk_Trueprop))
              RS eq_reflection
 end;
@@ -305,18 +305,18 @@ fun is_intrel (b$_$_) = is_intrel_type (fastype_of b)
   | is_intrel (@{term "Not"}$(b$_$_)) = is_intrel_type (fastype_of b)
   | is_intrel _ = false;
 
-fun linearize_conv ctxt vs ct = case term_of ct of
+fun linearize_conv ctxt vs ct = case Thm.term_of ct of
   Const(@{const_name Rings.dvd},_)$_$_ =>
   let
     val th = Conv.binop_conv (lint_conv ctxt vs) ct
     val (d',t') = Thm.dest_binop (Thm.rhs_of th)
-    val (dt',tt') = (term_of d', term_of t')
+    val (dt',tt') = (Thm.term_of d', Thm.term_of t')
   in if is_number dt' andalso is_number tt'
      then Conv.fconv_rule (Conv.arg_conv (Simplifier.rewrite (put_simpset presburger_ss ctxt))) th
      else
      let
        val dth =
-         case perhaps_number (term_of d') of
+         case perhaps_number (Thm.term_of d') of
            SOME d => if d < 0 then
              (Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (lint_conv ctxt vs)))
                               (Thm.transitive th (inst' [d',t'] dvd_uminus))
@@ -345,10 +345,10 @@ val dvdc = @{cterm "op dvd :: int => _"};
 fun unify ctxt q =
  let
   val (e,(cx,p)) = q |> Thm.dest_comb ||> Thm.dest_abs NONE
-  val x = term_of cx
+  val x = Thm.term_of cx
   val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t =
-   case (term_of t) of
+   case Thm.term_of t of
     Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x aconv y andalso member (op =)
       [@{const_name HOL.eq}, @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
@@ -366,7 +366,7 @@ fun unify ctxt q =
   val (cs,ds) = h ([],[]) p
   val l = Integer.lcms (union (op =) cs ds)
   fun cv k ct =
-    let val (tm as b$s$t) = term_of ct
+    let val (tm as b$s$t) = Thm.term_of ct
     in ((HOLogic.eq_const bT)$tm$(b$(linear_cmul k s)$(linear_cmul k t))
          |> HOLogic.mk_Trueprop |> provelin ctxt) RS eq_reflection end
   fun nzprop x =
@@ -381,13 +381,13 @@ fun unify ctxt q =
     let val tab = fold Inttab.update
           (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty
     in
-      fn ct => the (Inttab.lookup tab (ct |> term_of |> dest_number))
+      fn ct => the (Inttab.lookup tab (ct |> Thm.term_of |> dest_number))
         handle Option.Option =>
           (writeln ("noz: Theorems-Table contains no entry for " ^
               Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option.Option)
     end
   fun unit_conv t =
-   case (term_of t) of
+   case Thm.term_of t of
    Const(@{const_name HOL.conj},_)$_$_ => Conv.binop_conv unit_conv t
   | Const(@{const_name HOL.disj},_)$_$_ => Conv.binop_conv unit_conv t
   | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
@@ -420,8 +420,8 @@ fun unify ctxt q =
   val th = Drule.arg_cong_rule e (Thm.abstract_rule (fst (dest_Free x )) cx uth)
   val th' = inst' [Thm.lambda ltx (Thm.rhs_of uth), clt] unity_coeff_ex
   val thf = Thm.transitive th
-      (Thm.transitive (Thm.symmetric (Thm.beta_conversion true (cprop_of th' |> Thm.dest_arg1))) th')
-  val (lth,rth) = Thm.dest_comb (cprop_of thf) |>> Thm.dest_arg |>> Thm.beta_conversion true
+      (Thm.transitive (Thm.symmetric (Thm.beta_conversion true (Thm.cprop_of th' |> Thm.dest_arg1))) th')
+  val (lth,rth) = Thm.dest_comb (Thm.cprop_of thf) |>> Thm.dest_arg |>> Thm.beta_conversion true
                   ||> Thm.beta_conversion true |>> Thm.symmetric
  in Thm.transitive (Thm.transitive lth thf) rth end;
 
@@ -430,7 +430,7 @@ val emptyIS = @{cterm "{}::int set"};
 val insert_tm = @{cterm "insert :: int => _"};
 fun mkISet cts = fold_rev (Thm.apply insert_tm #> Thm.apply) cts emptyIS;
 val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
-val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
+val [A_tm,B_tm] = map (fn th => Thm.cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
                                       |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg)
                       [asetP,bsetP];
 
@@ -454,8 +454,8 @@ let
   | Le t => (bacc, ins (plus1 t) aacc,dacc)
   | Gt t => (ins t bacc, aacc,dacc)
   | Ge t => (ins (minus1 t) bacc, aacc,dacc)
-  | Dvd (d,_) => (bacc,aacc,insert (op =) (term_of d |> dest_number) dacc)
-  | NDvd (d,_) => (bacc,aacc,insert (op =) (term_of d|> dest_number) dacc)
+  | Dvd (d,_) => (bacc,aacc,insert (op =) (Thm.term_of d |> dest_number) dacc)
+  | NDvd (d,_) => (bacc,aacc,insert (op =) (Thm.term_of d|> dest_number) dacc)
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
  val d = Integer.lcms ds
@@ -469,7 +469,7 @@ let
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
-     fn ct => the (Inttab.lookup tab (term_of ct |> dest_number))
+     fn ct => the (Inttab.lookup tab (Thm.term_of ct |> dest_number))
        handle Option.Option =>
         (writeln ("dvd: Theorems-Table contains no entry for" ^
             Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option.Option)
@@ -485,18 +485,18 @@ let
      val insI2 = instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI2"}
    in
     fun provein x S =
-     case term_of S of
+     case Thm.term_of S of
         Const(@{const_name Orderings.bot}, _) => error "Unexpected error in Cooper, please email Amine Chaieb"
       | Const(@{const_name insert}, _) $ y $ _ =>
          let val (cy,S') = Thm.dest_binop S
-         in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
+         in if Thm.term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
          else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
 
- val al = map (lint vs o term_of) a0
- val bl = map (lint vs o term_of) b0
+ val al = map (lint vs o Thm.term_of) a0
+ val bl = map (lint vs o Thm.term_of) b0
  val (sl,s0,f,abths,cpth) =
    if length (distinct (op aconv) bl) <= length (distinct (op aconv) al)
    then
@@ -516,29 +516,29 @@ let
  val cpth =
   let
    val sths = map (fn (tl,t0) =>
-                      if tl = term_of t0
+                      if tl = Thm.term_of t0
                       then instantiate' [SOME @{ctyp "int"}] [SOME t0] refl
-                      else provelin ctxt ((HOLogic.eq_const iT)$tl$(term_of t0)
+                      else provelin ctxt ((HOLogic.eq_const iT)$tl$(Thm.term_of t0)
                                  |> HOLogic.mk_Trueprop))
                    (sl ~~ s0)
-   val csl = distinct (op aconvc) (map (cprop_of #> Thm.dest_arg #> Thm.dest_arg1) sths)
+   val csl = distinct (op aconvc) (map (Thm.cprop_of #> Thm.dest_arg #> Thm.dest_arg1) sths)
    val S = mkISet csl
-   val inStab = fold (fn ct => fn tab => Termtab.update (term_of ct, provein ct S) tab)
+   val inStab = fold (fn ct => fn tab => Termtab.update (Thm.term_of ct, provein ct S) tab)
                     csl Termtab.empty
    val eqelem_th = instantiate' [SOME @{ctyp "int"}] [NONE,NONE, SOME S] eqelem_imp_imp
    val inS =
      let
       val tab = fold Termtab.update
         (map (fn eq =>
-                let val (s,t) = cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
-                    val th = if term_of s = term_of t
-                             then the (Termtab.lookup inStab (term_of s))
+                let val (s,t) = Thm.cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
+                    val th = if Thm.term_of s = Thm.term_of t  (* FIXME equality? *)
+                             then the (Termtab.lookup inStab (Thm.term_of s))
                              else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
-                                [eq, the (Termtab.lookup inStab (term_of s))]
-                 in (term_of t, th) end)
+                                [eq, the (Termtab.lookup inStab (Thm.term_of s))]
+                 in (Thm.term_of t, th) end)
                   sths) Termtab.empty
         in
-          fn ct => the (Termtab.lookup tab (term_of ct))
+          fn ct => the (Termtab.lookup tab (Thm.term_of ct))
             handle Option.Option =>
               (writeln ("inS: No theorem for " ^ Syntax.string_of_term ctxt (Thm.term_of ct));
                 raise Option.Option)
@@ -552,7 +552,7 @@ end;
 
 fun literals_conv bops uops env cv =
  let fun h t =
-  case (term_of t) of
+  case Thm.term_of t of
    b$_$_ => if member (op aconv) bops b then Conv.binop_conv h t else cv env t
  | u$_ => if member (op aconv) uops u then Conv.arg_conv h t else cv env t
  | _ => cv env t
@@ -571,7 +571,7 @@ fun conv ctxt p =
     (Simplifier.rewrite (put_simpset conv_ss ctxt))
     (Simplifier.rewrite (put_simpset presburger_ss ctxt))
     (Simplifier.rewrite (put_simpset conv_ss ctxt))
-    (cons o term_of) (Misc_Legacy.term_frees (term_of p))
+    (cons o Thm.term_of) (Misc_Legacy.term_frees (Thm.term_of p))
     (linearize_conv ctxt) (integer_nnf_conv ctxt)
     (cooperex_conv ctxt) p
   handle CTERM _ => raise COOPER "bad cterm"
@@ -708,7 +708,7 @@ fun strip_objimp ct =
   | _ => [ct]);
 
 fun strip_objall ct = 
- case term_of ct of 
+ case Thm.term_of ct of 
   Const (@{const_name All}, _) $ Abs (xn,_,_) => 
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
@@ -760,13 +760,14 @@ local
  | _ => is_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t = 
- if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (typ_of (ctyp_of_term t))) then false 
-    else case term_of t of 
-      c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
-               then not (isnum l orelse isnum r)
-               else not (member (op aconv) cts c)
-    | c$_ => not (member (op aconv) cts c)
-    | c => not (member (op aconv) cts c)
+  if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of (Thm.ctyp_of_term t)))
+  then false 
+  else case Thm.term_of t of 
+    c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
+             then not (isnum l orelse isnum r)
+             else not (member (op aconv) cts c)
+  | c$_ => not (member (op aconv) cts c)
+  | c => not (member (op aconv) cts c)
 
  val term_constants =
   let fun h acc t = case t of
@@ -777,15 +778,19 @@ local
  in h [] end;
 in 
 fun is_relevant ctxt ct = 
- subset (op aconv) (term_constants (term_of ct) , snd (get ctxt))
- andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (Misc_Legacy.term_frees (term_of ct))
- andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (Misc_Legacy.term_vars (term_of ct));
+ subset (op aconv) (term_constants (Thm.term_of ct), snd (get ctxt))
+ andalso
+  forall (fn Free (_, T) => member (op =) [@{typ int}, @{typ nat}] T)
+    (Misc_Legacy.term_frees (Thm.term_of ct))
+ andalso
+  forall (fn Var (_, T) => member (op =) [@{typ int}, @{typ nat}] T)
+    (Misc_Legacy.term_vars (Thm.term_of ct));
 
 fun int_nat_terms ctxt ct =
  let 
   val cts = snd (get ctxt)
   fun h acc t = if ty cts t then insert (op aconvc) t acc else
-   case (term_of t) of
+   case Thm.term_of t of
     _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
   | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
   | _ => acc
@@ -795,8 +800,8 @@ end;
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
-   fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
-   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
+   fun gen x t = Thm.apply (all (Thm.ctyp_of_term x)) (Thm.lambda x t)
+   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
    val p' = fold_rev gen ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
@@ -849,7 +854,7 @@ fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
    let
      val cpth = 
        if Config.get ctxt quick_and_dirty
-       then oracle (ctxt, Envir.beta_norm (Envir.eta_long [] (term_of (Thm.dest_arg p))))
+       then oracle (ctxt, Envir.beta_norm (Envir.eta_long [] (Thm.term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p
      val p' = Thm.rhs_of cpth
      val th = Thm.implies_intr p' (Thm.equal_elim (Thm.symmetric cpth) (Thm.assume p'))
@@ -891,7 +896,7 @@ fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 val constsN = "consts";
 val any_keyword = keyword constsN
 val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-val terms = thms >> map (term_of o Drule.dest_term);
+val terms = thms >> map (Thm.term_of o Drule.dest_term);
 
 fun optional scan = Scan.optional scan [];
 

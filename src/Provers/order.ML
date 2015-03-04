@@ -1235,7 +1235,9 @@ in
   let
    val thy = Proof_Context.theory_of ctxt;
    val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
-   val Hs = map prop_of prems @ map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
+   val Hs =
+    map Thm.prop_of prems @
+    map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
    val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
    val lesss = flat (map_index (mkasm decomp less_thms thy) Hs)
    val prfs = gen_solve mkconcl thy (lesss, C);

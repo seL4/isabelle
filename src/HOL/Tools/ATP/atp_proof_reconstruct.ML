@@ -580,7 +580,7 @@ fun uncombine_term thy =
       | uncomb (Abs (s, T, t)) = Abs (s, T, uncomb t)
       | uncomb (t as Const (x as (s, _))) =
         (case AList.lookup (op =) combinator_table s of
-          SOME thm => thm |> prop_of |> specialize_type thy x |> Logic.dest_equals |> snd
+          SOME thm => thm |> Thm.prop_of |> specialize_type thy x |> Logic.dest_equals |> snd
         | NONE => t)
       | uncomb t = t
   in uncomb end

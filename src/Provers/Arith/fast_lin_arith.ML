@@ -882,7 +882,7 @@ let val {neqE, ...} = get_data ctxt
       | elim_neq (neqs as (neq :: _)) (asms', asm::asms) =
       (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) [neq] of
         SOME spl =>
-          let val (ct1, ct2) = extract (cprop_of spl)
+          let val (ct1, ct2) = extract (Thm.cprop_of spl)
               val thm1 = Thm.assume ct1
               val thm2 = Thm.assume ct2
           in Spl (spl, ct1, elim_neq neqs (asms', asms@[thm1]),
@@ -905,7 +905,7 @@ fun prover ctxt thms Tconcl (js : injust list) split_neq pos : thm option =
   let
     val thy = Proof_Context.theory_of ctxt
     val nTconcl = LA_Logic.neg_prop Tconcl
-    val cnTconcl = cterm_of thy nTconcl
+    val cnTconcl = Thm.cterm_of thy nTconcl
     val nTconclthm = Thm.assume cnTconcl
     val tree = (if split_neq then splitasms ctxt else Tip) (thms @ [nTconclthm])
     val (Falsethm, _) = fwdproof ctxt tree js

@@ -35,7 +35,8 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
     val newTs = take (length (hd descr)) recTs;
 
     val maxidx = Thm.maxidx_of induct;
-    val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+    val induct_Ps =
+      map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct)));
 
     fun prove_casedist_thm (i, (T, t)) =
       let
@@ -45,7 +46,7 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
           Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx + 1), T), Bound 0) $
             Var (("P", 0), HOLogic.boolT));
         val insts = take i dummyPs @ (P :: drop (i + 1) dummyPs);
-        val cert = cterm_of thy;
+        val cert = Thm.cterm_of thy;
         val insts' = map cert induct_Ps ~~ map cert insts;
         val induct' =
           refl RS
@@ -87,7 +88,8 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
     val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
 
-    val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+    val induct_Ps =
+      map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct)));
 
     val big_rec_name' = "rec_set_" ^ big_name;
     val rec_set_names' =
@@ -202,7 +204,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
               absfree ("y", T2) (set_t $ Old_Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
                 (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
-        val cert = cterm_of thy1;
+        val cert = Thm.cterm_of thy1;
         val insts =
           map (fn ((i, T), t) => absfree ("x" ^ string_of_int i, T) t)
             ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
@@ -351,7 +353,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
       map2 prove_cases newTs (Old_Datatype_Prop.make_cases case_names0 descr thy2);
 
     fun case_name_of (th :: _) =
-      fst (dest_Const (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))));
+      fst (dest_Const (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th))))));
 
     val case_names = map case_name_of case_thms;
   in
@@ -377,8 +379,8 @@ fun prove_split_thms (config : Old_Datatype_Aux.config)
 
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'), exhaustion), case_thms'), T) =
       let
-        val cert = cterm_of thy;
-        val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (prems_of exhaustion)));
+        val cert = Thm.cterm_of thy;
+        val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (Thm.prems_of exhaustion)));
         val exhaustion' = cterm_instantiate [(cert lhs, cert (Free ("x", T)))] exhaustion;
         fun tac ctxt =
           EVERY [resolve_tac ctxt [exhaustion'] 1,
@@ -448,9 +450,9 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
       let
         val Const (@{const_name Pure.imp}, _) $ tm $ _ = t;
         val Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ Ma) = tm;
-        val cert = cterm_of thy;
+        val cert = Thm.cterm_of thy;
         val nchotomy' = nchotomy RS spec;
-        val [v] = Term.add_vars (concl_of nchotomy') [];
+        val [v] = Term.add_vars (Thm.concl_of nchotomy') [];
         val nchotomy'' = cterm_instantiate [(cert (Var v), cert Ma)] nchotomy';
       in
         Goal.prove_sorry_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)

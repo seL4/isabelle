@@ -598,7 +598,7 @@ fun typedef_info ctxt s =
      {Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
     SOME {abs_type = Logic.varifyT_global abs_type,
           rep_type = Logic.varifyT_global rep_type, Abs_name = Abs_name,
-          Rep_name = Rep_name, prop_of_Rep = prop_of Rep,
+          Rep_name = Rep_name, prop_of_Rep = Thm.prop_of Rep,
           Abs_inverse = SOME Abs_inverse, Rep_inverse = SOME Rep_inverse}
   | _ => NONE
 
@@ -805,7 +805,7 @@ fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
       val {qtyp, equiv_rel, equiv_thm, ...} =
         the (Quotient_Info.lookup_quotients thy s)
       val partial =
-        case prop_of equiv_thm of
+        case Thm.prop_of equiv_thm of
           @{const Trueprop} $ (Const (@{const_name equivp}, _) $ _) => false
         | @{const Trueprop} $ (Const (@{const_name part_equivp}, _) $ _) => true
         | _ => raise NOT_SUPPORTED "Ill-formed quotient type equivalence \
@@ -1349,7 +1349,7 @@ fun all_defs_of thy subst =
   in
     Theory.nodes_of thy
     |> maps Thm.axioms_of
-    |> map (apsnd (subst_atomic subst o prop_of))
+    |> map (apsnd (subst_atomic subst o Thm.prop_of))
     |> sort (fast_string_ord o apply2 fst)
     |> Ord_List.inter (fast_string_ord o apsnd fst) def_names
     |> map snd
@@ -1364,8 +1364,8 @@ fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get
        |> filter (curry (op =) Spec_Rules.Unknown o fst)
        |> maps (snd o snd)
-       |> filter_out (is_built_in_theory o theory_of_thm)
-       |> map (subst_atomic subst o prop_of)
+       |> filter_out (is_built_in_theory o Thm.theory_of_thm)
+       |> map (subst_atomic subst o Thm.prop_of)
 
 fun arity_of_built_in_const (s, T) =
   if s = @{const_name If} then
@@ -1928,7 +1928,7 @@ fun def_table_for ts subst =
 
 fun const_def_tables ctxt subst ts =
   (def_table_for
-    (map prop_of (rev (Named_Theorems.get ctxt @{named_theorems nitpick_unfold}))) subst,
+    (map Thm.prop_of (rev (Named_Theorems.get ctxt @{named_theorems nitpick_unfold}))) subst,
    fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
         (map pair_for_prop ts) Symtab.empty)
 
@@ -1938,22 +1938,22 @@ fun const_nondef_table ts =
   fold (append o paired_with_consts) ts [] |> AList.group (op =) |> Symtab.make
 
 fun const_simp_table ctxt =
-  def_table_for (map_filter (equationalize_term ctxt "nitpick_simp" o prop_of)
+  def_table_for (map_filter (equationalize_term ctxt "nitpick_simp" o Thm.prop_of)
     (rev (Named_Theorems.get ctxt @{named_theorems nitpick_simp})))
 
 fun const_psimp_table ctxt =
-  def_table_for (map_filter (equationalize_term ctxt "nitpick_psimp" o prop_of)
+  def_table_for (map_filter (equationalize_term ctxt "nitpick_psimp" o Thm.prop_of)
     (rev (Named_Theorems.get ctxt @{named_theorems nitpick_psimp})))
 
 fun const_choice_spec_table ctxt subst =
-  map (subst_atomic subst o prop_of)
+  map (subst_atomic subst o Thm.prop_of)
     (rev (Named_Theorems.get ctxt @{named_theorems nitpick_choice_spec}))
   |> const_nondef_table
 
 fun inductive_intro_table ctxt subst def_tables =
   let val thy = Proof_Context.theory_of ctxt in
     def_table_for
-        (maps (map (unfold_mutually_inductive_preds thy def_tables o prop_of)
+        (maps (map (unfold_mutually_inductive_preds thy def_tables o Thm.prop_of)
                o snd o snd)
          (filter (fn (cat, _) => cat = Spec_Rules.Inductive orelse
                                  cat = Spec_Rules.Co_Inductive) (Spec_Rules.get ctxt))) subst
@@ -1962,7 +1962,7 @@ fun inductive_intro_table ctxt subst def_tables =
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
-          | _ => I) o prop_of o snd) (Global_Theory.all_thms_of thy true) Inttab.empty
+          | _ => I) o Thm.prop_of o snd) (Global_Theory.all_thms_of thy true) Inttab.empty
 
 fun ersatz_table ctxt =
  #ersatz_table (Data.get (Context.Proof ctxt))
@@ -1979,7 +1979,7 @@ fun inverse_axioms_for_rep_fun ctxt (x as (_, T)) =
   in
     typedef_info ctxt (fst (dest_Type abs_T)) |> the
     |> pairf #Abs_inverse #Rep_inverse
-    |> apply2 (specialize_type thy x o prop_of o the)
+    |> apply2 (specialize_type thy x o Thm.prop_of o the)
     ||> single |> op ::
   end
 
@@ -2149,7 +2149,7 @@ fun uncached_is_well_founded_inductive_pred
            SOME wf => wf
          | NONE =>
            let
-             val goal = prop |> cterm_of thy |> Goal.init
+             val goal = prop |> Thm.cterm_of thy |> Goal.init
              val wf = exists (terminates_by ctxt tac_timeout goal)
                              termination_tacs
            in Synchronized.change cached_wf_props (cons (prop, wf)); wf end

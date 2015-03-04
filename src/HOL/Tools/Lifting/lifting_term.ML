@@ -128,7 +128,7 @@ fun get_rel_distr_rules ctxt s tm =
        Pretty.str "found."]))
   end
 
-fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
+fun is_id_quot thm = (Thm.prop_of thm = Thm.prop_of @{thm identity_quotient})  (* FIXME equality!? *)
 
 fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
   case try (get_rel_quot_thm ctxt) type_name of
@@ -167,7 +167,7 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
 
         val rty = Type (type_name, rty_Tvars)
         val qty = Type (type_name, qty_Tvars)
-        val rel_quot_thm_concl = (Logic.strip_imp_concl o prop_of) rel_quot_thm
+        val rel_quot_thm_concl = (Logic.strip_imp_concl o Thm.prop_of) rel_quot_thm
         val schematic_rel_absT = quot_term_absT rel_quot_thm_concl;
         val thy = Proof_Context.theory_of ctxt
         val absT = rty --> qty
@@ -180,7 +180,7 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
         val _ = Sign.typ_unify thy (schematic_rel_absT, schematic_absT) (Vartab.empty,maxidx)
           handle Type.TUNIFY => equiv_univ_err ctxt schematic_rel_absT schematic_absT
         val subs = raw_match (schematic_rel_absT, absT) Vartab.empty
-        val rel_quot_thm_prems = (Logic.strip_imp_prems o prop_of) rel_quot_thm
+        val rel_quot_thm_prems = (Logic.strip_imp_prems o Thm.prop_of) rel_quot_thm
       in
         map (dest_funT o 
              Envir.subst_type subs o
@@ -278,7 +278,7 @@ fun force_qty_type thy qty quot_thm =
     val (_, qty_schematic) = quot_thm_rty_qty quot_thm
     val match_env = Sign.typ_match thy (qty_schematic, qty) Vartab.empty
     fun prep_ty thy (x, (S, ty)) =
-      (ctyp_of thy (TVar (x, S)), ctyp_of thy ty)
+      (Thm.ctyp_of thy (TVar (x, S)), Thm.ctyp_of thy ty)
     val ty_inst = Vartab.fold (cons o (prep_ty thy)) match_env []
   in
     Thm.instantiate (ty_inst, []) quot_thm
@@ -372,7 +372,8 @@ fun prove_param_quot_thm ctxt ty =
       then 
         let 
           val thy = Proof_Context.theory_of ctxt
-          val instantiated_id_quot_thm = instantiate' [SOME (ctyp_of thy ty)] [] @{thm identity_quotient}
+          val instantiated_id_quot_thm =
+            instantiate' [SOME (Thm.ctyp_of thy ty)] [] @{thm identity_quotient}
         in
           (instantiated_id_quot_thm, (table, ctxt)) 
         end
@@ -389,7 +390,7 @@ fun prove_param_quot_thm ctxt ty =
           let
             val thy = Proof_Context.theory_of ctxt
             val (Q_t, ctxt') = get_fresh_Q_t ctxt
-            val Q_thm = Thm.assume (cterm_of thy Q_t)
+            val Q_thm = Thm.assume (Thm.cterm_of thy Q_t)
             val table' = (ty, Q_thm)::table
           in
             (Q_thm, (table', ctxt'))
@@ -422,7 +423,7 @@ fun generate_parametrized_relator ctxt ty =
 (* Parametrization *)
 
 local
-  fun get_lhs rule = (Thm.dest_fun o Thm.dest_arg o strip_imp_concl o cprop_of) rule;
+  fun get_lhs rule = (Thm.dest_fun o Thm.dest_arg o strip_imp_concl o Thm.cprop_of) rule;
   
   fun no_imp _ = raise CTERM ("no implication", []);
   
@@ -464,7 +465,7 @@ in
   fun merge_transfer_relations ctxt ctm =
     let
       val ctm = Thm.dest_arg ctm
-      val tm = term_of ctm
+      val tm = Thm.term_of ctm
       val rel = (hd o get_args 2) tm
   
       fun same_constants (Const (n1,_)) (Const (n2,_)) = n1 = n2
@@ -472,11 +473,11 @@ in
       
       fun prove_extra_assms ctxt ctm distr_rule =
         let
-          fun prove_assm assm = try (Goal.prove ctxt [] [] (term_of assm))
+          fun prove_assm assm = try (Goal.prove ctxt [] [] (Thm.term_of assm))
             (fn _ => SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt (Transfer.get_transfer_raw ctxt))) 1)
   
           fun is_POS_or_NEG ctm =
-            case (head_of o term_of o Thm.dest_arg) ctm of
+            case (head_of o Thm.term_of o Thm.dest_arg) ctm of
               Const (@{const_name POS}, _) => true
               | Const (@{const_name NEG}, _) => true
               | _ => false
@@ -515,7 +516,7 @@ in
               else
                 let 
                   val pcrel_def = get_pcrel_def ctxt ((fst o dest_Type) qty)
-                  val pcrel_const = (head_of o fst o Logic.dest_equals o prop_of) pcrel_def
+                  val pcrel_const = (head_of o fst o Logic.dest_equals o Thm.prop_of) pcrel_def
                 in
                   if same_constants pcrel_const (head_of trans_rel) then
                     let
@@ -547,7 +548,7 @@ fun parametrize_transfer_rule ctxt thm =
   let
     fun parametrize_relation_conv ctm =
       let
-        val (rty, qty) = (relation_types o fastype_of) (term_of ctm)
+        val (rty, qty) = (relation_types o fastype_of) (Thm.term_of ctm)
       in
         if same_type_constrs (rty, qty) then
           if forall op= (Targs rty ~~ Targs qty) then

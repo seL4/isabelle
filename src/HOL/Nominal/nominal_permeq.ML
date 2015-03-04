@@ -71,8 +71,8 @@ val perm_aux_fold       = @{thm "perm_aux_fold"};
 val supports_fresh_rule = @{thm "supports_fresh"};
 
 (* pulls out dynamically a thm via the proof state *)
-fun dynamic_thms st name = Global_Theory.get_thms (theory_of_thm st) name;
-fun dynamic_thm  st name = Global_Theory.get_thm  (theory_of_thm st) name;
+fun dynamic_thms st name = Global_Theory.get_thms (Thm.theory_of_thm st) name;
+fun dynamic_thm  st name = Global_Theory.get_thm  (Thm.theory_of_thm st) name;
 
 
 (* needed in the process of fully simplifying permutations *)
@@ -203,14 +203,14 @@ fun perm_compose_simproc' ctxt redex =
       if pi1 <> pi2 then  (* only apply the composition rule in this case *)
         if T = U then    
           SOME (Drule.instantiate'
-            [SOME (ctyp_of thy (fastype_of t))]
-            [SOME (cterm_of thy pi1), SOME (cterm_of thy pi2), SOME (cterm_of thy t)]
+            [SOME (Thm.ctyp_of thy (fastype_of t))]
+            [SOME (Thm.cterm_of thy pi1), SOME (Thm.cterm_of thy pi2), SOME (Thm.cterm_of thy t)]
             (mk_meta_eq ([Global_Theory.get_thm thy ("pt_"^tname'^"_inst"),
              Global_Theory.get_thm thy ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
         else
           SOME (Drule.instantiate'
-            [SOME (ctyp_of thy (fastype_of t))]
-            [SOME (cterm_of thy pi1), SOME (cterm_of thy pi2), SOME (cterm_of thy t)]
+            [SOME (Thm.ctyp_of thy (fastype_of t))]
+            [SOME (Thm.cterm_of thy pi1), SOME (Thm.cterm_of thy pi2), SOME (Thm.cterm_of thy t)]
             (mk_meta_eq (Global_Theory.get_thm thy ("cp_"^tname'^"_"^uname'^"_inst") RS 
              cp1_aux)))
       else NONE
@@ -293,11 +293,11 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
 fun finite_guess_tac_i tactical ctxt i st =
     let val goal = nth (cprems_of st) (i - 1)
     in
-      case Envir.eta_contract (Logic.strip_assums_concl (term_of goal)) of
+      case Envir.eta_contract (Logic.strip_assums_concl (Thm.term_of goal)) of
           _ $ (Const (@{const_name finite}, _) $ (Const (@{const_name Nominal.supp}, T) $ x)) =>
           let
             val cert = Thm.cterm_of (Thm.theory_of_thm st);
-            val ps = Logic.strip_params (term_of goal);
+            val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 x [];
             val s = fold_rev (fn v => fn s =>
@@ -308,7 +308,7 @@ fun finite_guess_tac_i tactical ctxt i st =
                 Term.range_type T) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
-              Logic.strip_assums_concl (hd (prems_of supports_rule'));
+              Logic.strip_assums_concl (hd (Thm.prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_rule'
             val fin_supp = dynamic_thms st ("fin_supp")
@@ -337,11 +337,11 @@ fun fresh_guess_tac_i tactical ctxt i st =
         val ctxt1 = ctxt addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
         val ctxt2 = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
-      case Logic.strip_assums_concl (term_of goal) of
+      case Logic.strip_assums_concl (Thm.term_of goal) of
           _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) => 
           let
             val cert = Thm.cterm_of (Thm.theory_of_thm st);
-            val ps = Logic.strip_params (term_of goal);
+            val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 t [];
             val s = fold_rev (fn v => fn s =>
@@ -352,7 +352,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
                 (Const (@{const_name Nominal.supp}, fastype_of1 (Ts, s) --> HOLogic.mk_setT T) $ s);
             val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;
             val _ $ (_ $ S $ _) =
-              Logic.strip_assums_concl (hd (prems_of supports_fresh_rule'));
+              Logic.strip_assums_concl (hd (Thm.prems_of supports_fresh_rule'));
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
           in

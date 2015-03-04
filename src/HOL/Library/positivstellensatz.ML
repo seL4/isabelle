@@ -64,7 +64,7 @@ structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord in
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = Term_Ord.fast_term_ord);
 
-val cterm_ord = Term_Ord.fast_term_ord o apply2 term_of
+val cterm_ord = Term_Ord.fast_term_ord o apply2 Thm.term_of
 
 structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
@@ -170,11 +170,11 @@ type cert_conv = cterm -> thm * pss_tree
 
     (* Some useful derived rules *)
 fun deduct_antisym_rule tha thb =
-    Thm.equal_intr (Thm.implies_intr (cprop_of thb) tha)
-     (Thm.implies_intr (cprop_of tha) thb);
+    Thm.equal_intr (Thm.implies_intr (Thm.cprop_of thb) tha)
+     (Thm.implies_intr (Thm.cprop_of tha) thb);
 
 fun prove_hyp tha thb =
-  if exists (curry op aconv (concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
+  if exists (curry op aconv (Thm.concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
   then Thm.equal_elim (Thm.symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
 val pth = @{lemma "(((x::real) < y) == (y - x > 0))" and "((x <= y) == (y - x >= 0))" and
@@ -279,10 +279,10 @@ val min_split = @{lemma "P (min x y) == ((x::'a::linorder) <= y & P x | x > y & 
 fun literals_conv bops uops cv =
   let
     fun h t =
-      case (term_of t) of
+      (case Thm.term_of t of
         b$_$_ => if member (op aconv) bops b then binop_conv h t else cv t
       | u$_ => if member (op aconv) uops u then arg_conv h t else cv t
-      | _ => cv t
+      | _ => cv t)
   in h end;
 
 fun cterm_of_rat x =
@@ -296,9 +296,9 @@ fun cterm_of_rat x =
   end;
 
 fun dest_ratconst t =
-  case term_of t of
+  case Thm.term_of t of
     Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
-  | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
+  | _ => Rat.rat_of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
 fun is_ratconst t = can dest_ratconst t
 
 (*
@@ -311,14 +311,14 @@ fun find_term p t = if p t then t else
 
 fun find_cterm p t =
   if p t then t else
-  case term_of t of
+  case Thm.term_of t of
     _$_ => (find_cterm p (Thm.dest_fun t) handle CTERM _ => find_cterm p (Thm.dest_arg t))
   | Abs (_,_,_) => find_cterm p (Thm.dest_abs NONE t |> snd)
   | _ => raise CTERM ("find_cterm",[t]);
 
     (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
 fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-fun is_comb t = case (term_of t) of _$_ => true | _ => false;
+fun is_comb t = (case Thm.term_of t of _ $ _ => true | _ => false);
 
 fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
   handle CTERM _ => false;
@@ -428,7 +428,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         nnf_conv ctxt then_conv skolemize_conv then_conv prenex_conv then_conv
         weak_dnf_conv
 
-    val concl = Thm.dest_arg o cprop_of
+    val concl = Thm.dest_arg o Thm.cprop_of
     fun is_binop opr ct = (Thm.dest_fun2 ct aconvc opr handle CTERM _ => false)
     val is_req = is_binop @{cterm "op =:: real => _"}
     val is_ge = is_binop @{cterm "op <=:: real => _"}
@@ -501,36 +501,36 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     val strip_exists =
       let
         fun h (acc, t) =
-          case (term_of t) of
+          case Thm.term_of t of
             Const(@{const_name Ex},_)$Abs(_,_,_) =>
               h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
       end
     fun name_of x =
-      case term_of x of
+      case Thm.term_of x of
         Free(s,_) => s
       | Var ((s,_),_) => s
       | _ => "x"
 
     fun mk_forall x th =
       Drule.arg_cong_rule
-        (instantiate_cterm' [SOME (ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" })
+        (instantiate_cterm' [SOME (Thm.ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" })
         (Thm.abstract_rule (name_of x) x th)
 
     val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
     fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
-    fun mk_ex v t = Thm.apply (ext (ctyp_of_term v)) (Thm.lambda v t)
+    fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_term v)) (Thm.lambda v t)
 
     fun choose v th th' =
-      case concl_of th of
+      case Thm.concl_of th of
         @{term Trueprop} $ (Const(@{const_name Ex},_)$_) =>
         let
-          val p = (funpow 2 Thm.dest_arg o cprop_of) th
-          val T = (hd o Thm.dest_ctyp o ctyp_of_term) p
+          val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
+          val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_term) p
           val th0 = fconv_rule (Thm.beta_conversion true)
-            (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
+            (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
           val pv = (Thm.rhs_of o Thm.beta_conversion true)
             (Thm.apply @{cterm Trueprop} (Thm.apply p v))
           val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
@@ -545,7 +545,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     val strip_forall =
       let
         fun h (acc, t) =
-          case (term_of t) of
+          case Thm.term_of t of
             Const(@{const_name All},_)$Abs(_,_,_) =>
               h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
@@ -693,15 +693,15 @@ local
       end
 
   fun is_alien ct =
-      case term_of ct of
-        Const(@{const_name "real"}, _)$ n =>
-        if can HOLogic.dest_number n then false else true
-      | _ => false
+    case Thm.term_of ct of
+      Const(@{const_name "real"}, _)$ n =>
+      if can HOLogic.dest_number n then false else true
+    | _ => false
 in
 fun real_linear_prover translator (eq,le,lt) =
   let
-    val lhs = lin_of_hol o Thm.dest_arg1 o Thm.dest_arg o cprop_of
-    val rhs = lin_of_hol o Thm.dest_arg o Thm.dest_arg o cprop_of
+    val lhs = lin_of_hol o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of
+    val rhs = lin_of_hol o Thm.dest_arg o Thm.dest_arg o Thm.cprop_of
     val eq_pols = map lhs eq
     val le_pols = map rhs le
     val lt_pols = map rhs lt
@@ -770,7 +770,7 @@ end;
 
 fun gen_prover_real_arith ctxt prover =
   let
-    fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS
+    fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS
     val {add, mul, neg, pow = _, sub = _, main} =
         Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))

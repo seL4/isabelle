@@ -15,15 +15,15 @@ struct
 
  open Conv;
  val bool_eq = op = : bool *bool -> bool
-  fun dest_ratconst t = case term_of t of
+  fun dest_ratconst t = case Thm.term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
- | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
+ | _ => Rat.rat_of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
- fun augment_norm b t acc = case term_of t of
+ fun augment_norm b t acc = case Thm.term_of t of
      Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
    | _ => acc
- fun find_normedterms t acc = case term_of t of
+ fun find_normedterms t acc = case Thm.term_of t of
     @{term "op + :: real => _"}$_$_ =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
       | @{term "op * :: real => _"}$_$_ =>
@@ -50,7 +50,7 @@ struct
  fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
 *)
 
-fun vector_lincomb t = case term_of t of
+fun vector_lincomb t = case Thm.term_of t of
    Const(@{const_name plus}, _) $ _ $ _ =>
     cterm_lincomb_add (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
  | Const(@{const_name minus}, _) $ _ $ _ =>
@@ -81,7 +81,7 @@ fun vector_lincomb t = case term_of t of
        end
    | SOME _ => fns) ts []
 
-fun replacenegnorms cv t = case term_of t of
+fun replacenegnorms cv t = case Thm.term_of t of
   @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
 | @{term "op * :: real => _"}$_$_ =>
     if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else Thm.reflexive t
@@ -203,7 +203,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
  handle CTERM _ =>
   (apply_pth8 ctxt ct
    handle CTERM _ =>
-    (case term_of ct of
+    (case Thm.term_of ct of
      Const(@{const_name plus},_)$lt$rt =>
       let
        val l = headvector lt
@@ -219,7 +219,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
       end
      | _ => Thm.reflexive ct))
 
-fun vector_canon_conv ctxt ct = case term_of ct of
+fun vector_canon_conv ctxt ct = case Thm.term_of ct of
  Const(@{const_name plus},_)$_$_ =>
   let
    val ((p,l),r) = Thm.dest_comb ct |>> Thm.dest_comb
@@ -248,7 +248,7 @@ fun vector_canon_conv ctxt ct = case term_of ct of
 *)
 | _ => apply_pth1 ct
 
-fun norm_canon_conv ctxt ct = case term_of ct of
+fun norm_canon_conv ctxt ct = case Thm.term_of ct of
   Const(@{const_name norm},_)$_ => arg_conv (vector_canon_conv ctxt) ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
 
@@ -258,9 +258,9 @@ fun int_flip v eq =
 
 local
  val pth_zero = @{thm norm_zero}
- val tv_n = (ctyp_of_term o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o cprop_of)
+ val tv_n = (Thm.ctyp_of_term o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
              pth_zero
- val concl = Thm.dest_arg o cprop_of
+ val concl = Thm.dest_arg o Thm.cprop_of
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) =
   let
    (* FIXME: Should be computed statically!!*)
@@ -319,7 +319,7 @@ local
         (fn t => null (FuncUtil.Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in fst (RealArith.real_linear_prover translator
-        (map (fn t => Drule.instantiate_normalize ([(tv_n, ctyp_of_term t)],[]) pth_zero)
+        (map (fn t => Drule.instantiate_normalize ([(tv_n, Thm.ctyp_of_term t)],[]) pth_zero)
             zerodests,
         map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
@@ -332,7 +332,7 @@ end;
 local
  val pth = @{thm norm_imp_pos_and_ge}
  val norm_mp = match_mp pth
- val concl = Thm.dest_arg o cprop_of
+ val concl = Thm.dest_arg o Thm.cprop_of
  fun conjunct1 th = th RS @{thm conjunct1}
  fun conjunct2 th = th RS @{thm conjunct2}
 fun real_vector_ineq_prover ctxt translator (ges,gts) =
@@ -342,8 +342,8 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
-  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
+  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
+  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
   val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Proof_Context.cterm_of ctxt' (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))
@@ -353,7 +353,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val gts' = map replace_rule gts
   val nubs = map (conjunct2 o norm_mp) asl
   val th1 = real_vector_combo_prover ctxt' translator (nubs,ges',gts')
-  val shs = filter (member (fn (t,th) => t aconvc cprop_of th) asl) (#hyps (crep_thm th1))
+  val shs = filter (member (fn (t,th) => t aconvc Thm.cprop_of th) asl) (#hyps (Thm.crep_thm th1))
   val th11 = hd (Variable.export ctxt' ctxt [fold Thm.implies_intr shs th1])
   val cps = map (swap o Thm.dest_equals) (cprems_of th11)
   val th12 = Drule.instantiate_normalize ([], cps) th11
@@ -366,7 +366,7 @@ end;
 local
  val rawrule = fconv_rule (arg_conv (rewr_conv @{thm real_eq_0_iff_le_ge_0}))
  fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
- fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
+ fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS;
   (* FIXME: Lookup in the context every time!!! Fix this !!!*)
  fun splitequation ctxt th acc =
   let
@@ -391,7 +391,7 @@ end;
  fun pure ctxt = fst o RealArith.gen_prover_real_arith ctxt (real_vector_prover ctxt);
  fun norm_arith ctxt ct =
   let
-   val ctxt' = Variable.declare_term (term_of ct) ctxt
+   val ctxt' = Variable.declare_term (Thm.term_of ct) ctxt
    val th = init_conv ctxt' ct
   in Thm.equal_elim (Drule.arg_cong_rule @{cterm Trueprop} (Thm.symmetric th))
                 (pure ctxt' (Thm.rhs_of th))

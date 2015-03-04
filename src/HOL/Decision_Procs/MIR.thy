@@ -5655,7 +5655,7 @@ in
     val vs = map_index swap fs;
     val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
     val t' = (term_of_fm vs o qe o fm_of_term vs) t;
-  in (cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+  in (Thm.cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
 *}
 

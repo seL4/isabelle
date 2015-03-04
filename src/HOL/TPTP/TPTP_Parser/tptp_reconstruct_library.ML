@@ -563,7 +563,7 @@ fun type_devar (tyenv : ((indexname * sort) * typ) list) (t : term) : term =
   In addition to the abstract thm ("scheme_thm"), this function is
   also supplied with the (sub)term of the abstract thm ("scheme_t")
   we want to use in the diff, in case only part of "scheme_t"
-  might be needed (not the whole "prop_of scheme_thm")*)
+  might be needed (not the whole "Thm.prop_of scheme_thm")*)
 fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -572,14 +572,14 @@ fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
       diff thy (scheme_t, instance_t)
 
     (*valuation of type variables*)
-    val typeval = map (apply2 (ctyp_of thy)) type_pairing
+    val typeval = map (apply2 (Thm.ctyp_of thy)) type_pairing
 
     val typeval_env =
       map (apfst dest_TVar) type_pairing
     (*valuation of term variables*)
     val termval =
       map (apfst (type_devar typeval_env)) term_pairing
-      |> map (apply2 (cterm_of thy))
+      |> map (apply2 (Thm.cterm_of thy))
   in
     Thm.instantiate (typeval, termval) scheme_thm
   end
@@ -670,7 +670,7 @@ fun reassociate_conjs_tac ctxt =
 fun head_quantified_variable ctxt i = fn st =>
   let
     val gls =
-      prop_of st
+      Thm.prop_of st
       |> Logic.strip_horn
       |> fst
 

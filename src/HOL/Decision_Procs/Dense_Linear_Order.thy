@@ -558,20 +558,20 @@ let
     let
       val [lt, le] = map (Morphism.term phi) [@{term "op \<sqsubset>"}, @{term "op \<sqsubseteq>"}]
       fun h x t =
-        case term_of t of
+        case Thm.term_of t of
           Const(@{const_name HOL.eq}, _)$y$z =>
-            if term_of x aconv y then Ferrante_Rackoff_Data.Eq
+            if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Eq
             else Ferrante_Rackoff_Data.Nox
        | @{term "Not"}$(Const(@{const_name HOL.eq}, _)$y$z) =>
-            if term_of x aconv y then Ferrante_Rackoff_Data.NEq
+            if Thm.term_of x aconv y then Ferrante_Rackoff_Data.NEq
             else Ferrante_Rackoff_Data.Nox
        | b$y$z => if Term.could_unify (b, lt) then
-                     if term_of x aconv y then Ferrante_Rackoff_Data.Lt
-                     else if term_of x aconv z then Ferrante_Rackoff_Data.Gt
+                     if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Lt
+                     else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Gt
                      else Ferrante_Rackoff_Data.Nox
                  else if Term.could_unify (b, le) then
-                     if term_of x aconv y then Ferrante_Rackoff_Data.Le
-                     else if term_of x aconv z then Ferrante_Rackoff_Data.Ge
+                     if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Le
+                     else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Ge
                      else Ferrante_Rackoff_Data.Nox
                  else Ferrante_Rackoff_Data.Nox
        | _ => Ferrante_Rackoff_Data.Nox
@@ -709,7 +709,7 @@ let
         if h aconvc y then false else if h aconvc x then true else earlier t x y;
 
 fun dest_frac ct =
-  case term_of ct of
+  case Thm.term_of ct of
     Const (@{const_name Fields.divide},_) $ a $ b=>
       Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
   | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
@@ -724,21 +724,21 @@ fun mk_frac phi cT x =
          (Numeral.mk_cnumber cT b)
  end
 
-fun whatis x ct = case term_of ct of
+fun whatis x ct = case Thm.term_of ct of
   Const(@{const_name Groups.plus}, _)$(Const(@{const_name Groups.times},_)$_$y)$_ =>
-     if y aconv term_of x then ("c*x+t",[(funpow 2 Thm.dest_arg1) ct, Thm.dest_arg ct])
+     if y aconv Thm.term_of x then ("c*x+t",[(funpow 2 Thm.dest_arg1) ct, Thm.dest_arg ct])
      else ("Nox",[])
 | Const(@{const_name Groups.plus}, _)$y$_ =>
-     if y aconv term_of x then ("x+t",[Thm.dest_arg ct])
+     if y aconv Thm.term_of x then ("x+t",[Thm.dest_arg ct])
      else ("Nox",[])
 | Const(@{const_name Groups.times}, _)$_$y =>
-     if y aconv term_of x then ("c*x",[Thm.dest_arg1 ct])
+     if y aconv Thm.term_of x then ("c*x",[Thm.dest_arg1 ct])
      else ("Nox",[])
-| t => if t aconv term_of x then ("x",[]) else ("Nox",[]);
+| t => if t aconv Thm.term_of x then ("x",[]) else ("Nox",[]);
 
 fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
-   case term_of ct of
+   case Thm.term_of ct of
    Const(@{const_name Orderings.less},_)$_$Const(@{const_name Groups.zero},_) =>
     (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
@@ -752,14 +752,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
-        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x,t])
+        val th = Thm.implies_elim (instantiate' [SOME (Thm.ctyp_of_term x)] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_lt} else @{thm pos_prod_sum_lt})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val th = instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_lt"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
@@ -775,7 +775,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
-        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
+        val th = Thm.implies_elim (instantiate' [SOME (Thm.ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_lt} else @{thm pos_prod_lt})) cth
         val rth = th
       in rth end
@@ -786,7 +786,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val cr = dest_frac c
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
@@ -803,14 +803,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
       in rth end
     | ("x+t",[t]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val th = instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_le"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
        in  rth end
     | ("c*x",[c]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val cr = dest_frac c
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
@@ -820,7 +820,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
-        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
+        val th = Thm.implies_elim (instantiate' [SOME (Thm.ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_le} else @{thm pos_prod_le})) cth
         val rth = th
       in rth end
@@ -830,7 +830,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
@@ -845,14 +845,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
       in rth end
     | ("x+t",[t]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val th = instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_eq"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
        in  rth end
     | ("c*x",[c]) =>
        let
-        val T = ctyp_of_term x
+        val T = Thm.ctyp_of_term x
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
@@ -871,10 +871,10 @@ local
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
   val ss = simpset_of @{context}
 in
-fun field_isolate_conv phi ctxt vs ct = case term_of ct of
+fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
   Const(@{const_name Orderings.less},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
-       val T = ctyp_of_term ca
+       val T = Thm.ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
@@ -883,7 +883,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
    in rth end
 | Const(@{const_name Orderings.less_eq},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
-       val T = ctyp_of_term ca
+       val T = Thm.ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
@@ -893,7 +893,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
 
 | Const(@{const_name HOL.eq},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
-       val T = ctyp_of_term ca
+       val T = Thm.ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] eq_iff_diff_eq_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
@@ -907,19 +907,21 @@ end;
 fun classfield_whatis phi =
  let
   fun h x t =
-   case term_of t of
-     Const(@{const_name HOL.eq}, _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
-                            else Ferrante_Rackoff_Data.Nox
-   | @{term "Not"}$(Const(@{const_name HOL.eq}, _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
-                            else Ferrante_Rackoff_Data.Nox
+   case Thm.term_of t of
+     Const(@{const_name HOL.eq}, _)$y$z =>
+      if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Eq
+      else Ferrante_Rackoff_Data.Nox
+   | @{term "Not"}$(Const(@{const_name HOL.eq}, _)$y$z) =>
+      if Thm.term_of x aconv y then Ferrante_Rackoff_Data.NEq
+      else Ferrante_Rackoff_Data.Nox
    | Const(@{const_name Orderings.less},_)$y$z =>
-       if term_of x aconv y then Ferrante_Rackoff_Data.Lt
-        else if term_of x aconv z then Ferrante_Rackoff_Data.Gt
-        else Ferrante_Rackoff_Data.Nox
+       if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Lt
+       else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Gt
+       else Ferrante_Rackoff_Data.Nox
    | Const (@{const_name Orderings.less_eq},_)$y$z =>
-         if term_of x aconv y then Ferrante_Rackoff_Data.Le
-         else if term_of x aconv z then Ferrante_Rackoff_Data.Ge
-         else Ferrante_Rackoff_Data.Nox
+       if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Le
+       else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Ge
+       else Ferrante_Rackoff_Data.Nox
    | _ => Ferrante_Rackoff_Data.Nox
  in h end;
 fun class_field_ss phi =

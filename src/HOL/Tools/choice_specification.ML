@@ -17,8 +17,8 @@ local
 
 fun mk_definitional [] arg = arg
   | mk_definitional ((thname, cname, covld) :: cos) (thy, thm) =
-      (case HOLogic.dest_Trueprop (concl_of thm) of
-        Const (@{const_name Ex},_) $ P =>
+      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+        Const (@{const_name Ex}, _) $ P =>
           let
             val ctype = domain_type (type_of P)
             val cname_full = Sign.intern_const thy cname
@@ -85,7 +85,7 @@ fun process_spec cos alt_props thy =
     val rew_imps = alt_props |>
       map (Object_Logic.atomize ctxt o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
     val props' = rew_imps |>
-      map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
+      map (HOLogic.dest_Trueprop o Thm.term_of o snd o Thm.dest_equals o Thm.cprop_of)
 
     fun proc_single prop =
       let
@@ -136,8 +136,8 @@ fun process_spec cos alt_props thy =
       let
         fun inst_all thy v thm =
           let
-            val cv = cterm_of thy v
-            val cT = ctyp_of_term cv
+            val cv = Thm.cterm_of thy v
+            val cT = Thm.ctyp_of_term cv
             val spec' = instantiate' [SOME cT] [NONE, SOME cv] spec
           in thm RS spec' end
         fun remove_alls frees thm = fold (inst_all (Thm.theory_of_thm thm)) frees thm

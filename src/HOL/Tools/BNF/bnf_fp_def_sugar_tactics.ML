@@ -94,7 +94,7 @@ fun hhf_concl_conv cv ctxt ct =
 
 fun co_induct_inst_as_projs ctxt k thm =
   let
-    val fs = Term.add_vars (prop_of thm) []
+    val fs = Term.add_vars (Thm.prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
     fun mk_cfp (f as (_, T)) =
       (Proof_Context.cterm_of ctxt (Var f), Proof_Context.cterm_of ctxt (mk_proj T (num_binder_types T) k));
@@ -107,7 +107,7 @@ val co_induct_inst_as_projs_tac = PRIMITIVE oo co_induct_inst_as_projs;
 
 fun mk_case_transfer_tac ctxt rel_cases cases =
   let
-    val n = length (tl (prems_of rel_cases));
+    val n = length (tl (Thm.prems_of rel_cases));
   in
     REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
     HEADGOAL (etac rel_cases) THEN
@@ -512,7 +512,7 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     val assms_tac =
       let val assms' = map (unfold_thms ctxt (@{thm id_bnf_def} :: ctor_defs)) assms in
         fold (curry (op ORELSE')) (map (fn thm =>
-            funpow (length (prems_of thm)) (fn tac => tac THEN' atac) (rtac thm)) assms')
+            funpow (length (Thm.prems_of thm)) (fn tac => tac THEN' atac) (rtac thm)) assms')
           (etac FalseE)
       end;
     val exhausts' = map (fn thm => thm RS @{thm asm_rl[of "P x y" for P x y]}) exhausts

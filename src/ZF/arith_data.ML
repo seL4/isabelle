@@ -63,7 +63,7 @@ fun mk_eq_iff(t,u) =
 fun is_eq_thm th =
     can FOLogic.dest_eq (FOLogic.dest_Trueprop (Thm.prop_of th));
 
-fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
+fun add_chyps chyps ct = Drule.list_implies (map Thm.cprop_of chyps, ct);
 
 fun prove_conv name tacs ctxt prems (t,u) =
   if t aconv u then NONE

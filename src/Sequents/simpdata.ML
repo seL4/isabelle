@@ -12,7 +12,7 @@ Borrows from the DC simplifier of Soren Heilmann.
 
 (*Make atomic rewrite rules*)
 fun atomize r =
- case concl_of r of
+ case Thm.concl_of r of
    Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
      (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
         ([], [p]) =>
@@ -28,7 +28,7 @@ fun atomize r =
  | _ => [r];
 
 (*Make meta-equalities.*)
-fun mk_meta_eq ctxt th = case concl_of th of
+fun mk_meta_eq ctxt th = case Thm.concl_of th of
     Const(@{const_name Pure.eq},_)$_$_ => th
   | Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
         (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of

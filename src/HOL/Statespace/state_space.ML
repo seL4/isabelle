@@ -190,8 +190,8 @@ fun get_comp ctxt name =
 fun neq_x_y ctxt x y =
   (let
     val dist_thm = the (get_dist_thm (Context.Proof ctxt) (#1 (dest_Free x)));
-    val ctree = cprop_of dist_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
-    val tree = term_of ctree;
+    val ctree = Thm.cprop_of dist_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
+    val tree = Thm.term_of ctree;
     val x_path = the (DistinctTreeProver.find_tree x tree);
     val y_path = the (DistinctTreeProver.find_tree y tree);
     val thm = DistinctTreeProver.distinctTreeProver dist_thm x_path y_path;
@@ -238,7 +238,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
     val dist_thm_name = distinct_compsN;
 
     val dist_thm_full_name = dist_thm_name;
-    fun comps_of_thm thm = prop_of thm
+    fun comps_of_thm thm = Thm.prop_of thm
              |> (fn (_$(_$t)) => DistinctTreeProver.dest_tree t) |> map (fst o dest_Free);
 
     fun type_attr phi = Thm.declaration_attribute (fn thm => fn context =>

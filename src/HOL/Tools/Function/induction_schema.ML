@@ -46,8 +46,8 @@ fun sum_prod_conv ctxt = Raw_Simplifier.rewrite ctxt true
   (map meta (@{thm split_conv} :: @{thms sum.case}))
 
 fun term_conv thy cv t =
-  cv (cterm_of thy t)
-  |> prop_of |> Logic.dest_equals |> snd
+  cv (Thm.cterm_of thy t)
+  |> Thm.prop_of |> Logic.dest_equals |> snd
 
 fun mk_relT T = HOLogic.mk_setT (HOLogic.mk_prodT (T, T))
 
@@ -205,7 +205,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
   (IndScheme {T, cases=scases, branches}) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val cert = cterm_of thy
+    val cert = Thm.cterm_of thy
 
     val n = length branches
     val scases_idx = map_index I scases
@@ -274,14 +274,14 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
                 |> Conv.fconv_rule (sum_prod_conv ctxt)
                 |> Conv.fconv_rule (ind_rulify ctxt)
                 |> (fn th => th COMP ipres) (* P rs *)
-                |> fold_rev (Thm.implies_intr o cprop_of) cGas
+                |> fold_rev (Thm.implies_intr o Thm.cprop_of) cGas
                 |> fold_rev Thm.forall_intr cGvs
               end
 
             val P_recs = map2 mk_Prec rs ineq_press   (*  [P rec1, P rec2, ... ]  *)
 
             val step = HOLogic.mk_Trueprop (list_comb (P, lhs))
-              |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
+              |> fold_rev (curry Logic.mk_implies o Thm.prop_of) P_recs
               |> fold_rev (curry Logic.mk_implies) gs
               |> fold_rev (Logic.all o Free) qs
               |> cert
@@ -295,7 +295,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
               |> fold Thm.elim_implies ags
               |> fold Thm.elim_implies P_recs (* P lhs *)
               |> Conv.fconv_rule (Conv.arg_conv Plhs_to_Pxs_conv) (* P xs *)
-              |> fold_rev (Thm.implies_intr o cprop_of) (ags @ case_hyps)
+              |> fold_rev (Thm.implies_intr o Thm.cprop_of) (ags @ case_hyps)
               |> fold_rev Thm.forall_intr cqs (* !!qs. Gas ==> xs = lhss ==> P xs *)
           in
             (res, (cidx, step))
@@ -308,7 +308,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
           |> fold (Thm.forall_elim o cert) (fxs @ map Free ws)
           |> fold Thm.elim_implies C_hyps
           |> fold Thm.elim_implies cases (* P xs *)
-          |> fold_rev (Thm.implies_intr o cprop_of) C_hyps
+          |> fold_rev (Thm.implies_intr o Thm.cprop_of) C_hyps
           |> fold_rev (Thm.forall_intr o cert o Free) ws
 
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
@@ -319,7 +319,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
           |> Goal.finish ctxt
-          |> Thm.implies_intr (cprop_of branch_hyp)
+          |> Thm.implies_intr (Thm.cprop_of branch_hyp)
           |> fold_rev (Thm.forall_intr o cert) fxs
       in
         (Pxs, steps)
@@ -380,7 +380,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
       end
 
     val res = Conjunction.intr_balanced (map_index project branches)
-      |> fold_rev Thm.implies_intr (map cprop_of newgoals @ steps)
+      |> fold_rev Thm.implies_intr (map Thm.cprop_of newgoals @ steps)
       |> Drule.generalize ([], [Rn])
 
     val nbranches = length branches

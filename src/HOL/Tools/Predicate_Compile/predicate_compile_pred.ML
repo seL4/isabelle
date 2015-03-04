@@ -36,7 +36,7 @@ fun try_destruct_case thy names atom =
       (* TODO: contextify things - this line is to unvarify the split_thm *)
       (*val ((_, [isplit_thm]), _) =
         Variable.import true [split_thm] (Proof_Context.init_global thy)*)
-      val (assms, concl) = Logic.strip_horn (prop_of split_thm)
+      val (assms, concl) = Logic.strip_horn (Thm.prop_of split_thm)
       val (_, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
       val atom' = case_betapply thy atom
       val subst = Pattern.match thy (split_t, atom') (Vartab.empty, Vartab.empty)
@@ -132,7 +132,7 @@ fun flatten_intros constname intros thy =
     val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, intros), ctxt') = Variable.import true intros ctxt
     val (intros', (local_defs, thy')) = (fold_map o fold_map_atoms)
-      (flatten constname) (map prop_of intros) ([], thy)
+      (flatten constname) (map Thm.prop_of intros) ([], thy)
     val ctxt'' = Proof_Context.transfer thy' ctxt'
     val intros'' =
       map (fn t => Goal.prove ctxt'' [] [] t (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt''))) intros'
@@ -147,7 +147,7 @@ fun introrulify thy ths =
     val ((_, ths'), ctxt') = Variable.import true ths ctxt
     fun introrulify' th =
       let
-        val (lhs, rhs) = Logic.dest_equals (prop_of th)
+        val (lhs, rhs) = Logic.dest_equals (Thm.prop_of th)
         val frees = Term.add_free_names rhs []
         val disjuncts = HOLogic.dest_disj rhs
         val nctxt = Name.make_context frees
@@ -158,14 +158,14 @@ fun introrulify thy ths =
           in
             (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
           end
-        val x = ((cterm_of thy) o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
-          Logic.dest_implies o prop_of) @{thm exI}
+        val x = (Thm.cterm_of thy o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
+          Logic.dest_implies o Thm.prop_of) @{thm exI}
         fun prove_introrule (index, (ps, introrule)) =
           let
             val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
               THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
-                rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
+                rtac (Drule.cterm_instantiate [(x, Thm.cterm_of thy (Free y))] @{thm exI}) 1) ps))
               THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN assume_tac ctxt' 1)
               THEN TRY (assume_tac ctxt' 1)
           in
@@ -270,9 +270,9 @@ fun flat_higher_order_arguments (intross, thy) =
     fun flat_intro intro (new_defs, thy) =
       let
         val constname = fst (dest_Const (fst (strip_comb
-          (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of intro))))))
+          (HOLogic.dest_Trueprop (Logic.strip_imp_concl (Thm.prop_of intro))))))
         val (intro_ts, (new_defs, thy)) =
-          fold_map_atoms (process constname) (prop_of intro) (new_defs, thy)
+          fold_map_atoms (process constname) (Thm.prop_of intro) (new_defs, thy)
         val th = Skip_Proof.make_thm thy intro_ts
       in
         (th, (new_defs, thy))

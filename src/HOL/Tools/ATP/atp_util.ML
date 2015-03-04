@@ -342,7 +342,7 @@ fun cong_extensionalize_term thy t =
   if exists_Const (fn (s, _) => s = @{const_name Not}) t then
     t |> Skip_Proof.make_thm thy
       |> Meson.cong_extensionalize_thm thy
-      |> prop_of
+      |> Thm.prop_of
   else
     t
 
@@ -353,8 +353,8 @@ fun is_fun_equality (@{const_name HOL.eq},
 fun abs_extensionalize_term ctxt t =
   if exists_Const is_fun_equality t then
     let val thy = Proof_Context.theory_of ctxt in
-      t |> cterm_of thy |> Meson.abs_extensionalize_conv ctxt
-        |> prop_of |> Logic.dest_equals |> snd
+      t |> Thm.cterm_of thy |> Meson.abs_extensionalize_conv ctxt
+        |> Thm.prop_of |> Logic.dest_equals |> snd
     end
   else
     t
@@ -405,7 +405,7 @@ fun specialize_type thy (s, T) t =
 fun strip_subgoal goal i ctxt =
   let
     val (t, (frees, params)) =
-      Logic.goal_params (prop_of goal) i
+      Logic.goal_params (Thm.prop_of goal) i
       ||> (map dest_Free #> Variable.variant_frees ctxt [] #> `(map Free))
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees

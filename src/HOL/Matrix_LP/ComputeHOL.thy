@@ -148,7 +148,7 @@ structure ComputeHOL : ComputeHOL =
 struct
 
 local
-fun lhs_of eq = fst (Thm.dest_equals (cprop_of eq));
+fun lhs_of eq = fst (Thm.dest_equals (Thm.cprop_of eq));
 in
 fun rewrite_conv [] ct = raise CTERM ("rewrite_conv", [ct])
   | rewrite_conv (eq :: eqs) ct =

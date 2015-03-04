@@ -157,7 +157,7 @@ fun filseq_resolve_tac ctxt rules maxr = SUBGOAL(fn (prem,i) =>
 
 
 (*Predicate: does the rule have n premises? *)
-fun has_prems n rule =  (nprems_of rule = n);
+fun has_prems n rule = (Thm.nprems_of rule = n);
 
 (*Continuation-style tactical for resolution.
   The list of rules is partitioned into 0, 1, 2 premises.

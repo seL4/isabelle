@@ -195,7 +195,7 @@ fun SUBGOAL_CASES tac i st =
 
 fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
   st |> tac1 i |> Seq.maps (fn (cases, st') =>
-    CASES cases (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st)) st');
+    CASES cases (Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st');
 
 
 

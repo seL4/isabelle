@@ -62,8 +62,8 @@ fun is_nat t = (fastype_of1 t = HOLogic.natT);
 
 fun mk_nat_thm thy t =
   let
-    val cn = cterm_of thy (Var (("n", 0), HOLogic.natT))
-    and ct = cterm_of thy t
+    val cn = Thm.cterm_of thy (Var (("n", 0), HOLogic.natT))
+    and ct = Thm.cterm_of thy t
   in Drule.instantiate_normalize ([], [(cn, ct)]) @{thm le0} end;
 
 end;
@@ -288,7 +288,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _)) = nT T
 (* checks if splitting with 'thm' is implemented                             *)
 
 fun is_split_thm ctxt thm =
-  (case concl_of thm of _ $ (_ $ (_ $ lhs) $ _) =>
+  (case Thm.concl_of thm of _ $ (_ $ (_ $ lhs) $ _) =>
     (* Trueprop $ ((op =) $ (?P $ lhs) $ rhs) *)
     (case head_of lhs of
       Const (a, _) =>

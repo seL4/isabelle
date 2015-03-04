@@ -144,7 +144,7 @@ fun prove_chain thy chain_tac (c1, c2) =
         Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
-    case Function_Lib.try_proof (cterm_of thy goal) chain_tac of
+    case Function_Lib.try_proof (Thm.cterm_of thy goal) chain_tac of
       Function_Lib.Solved thm => SOME thm
     | _ => NONE
   end
@@ -169,7 +169,7 @@ fun dest_call (sk, _, _, _, _) = dest_call' sk
 fun mk_desc thy tac vs Gam l r m1 m2 =
   let
     fun try rel =
-      try_proof (cterm_of thy
+      try_proof (Thm.cterm_of thy
         (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
              HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
@@ -181,7 +181,7 @@ fun mk_desc thy tac vs Gam l r m1 m2 =
        (case try @{const_name Orderings.less_eq} of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-          if prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
+          if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
           then False thm2 else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
      | _ => raise Match
@@ -275,8 +275,8 @@ in
 fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
-    val cert = cterm_of thy
-    val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
+    val cert = Thm.cterm_of thy
+    val ((_ $ (_ $ rel)) :: ineqs) = Thm.prems_of st
 
     fun mk_compr ineq =
       let

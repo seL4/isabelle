@@ -39,7 +39,7 @@ fun rearrange_prems_conv pi ct =
       val pi' = 0 :: map (Integer.add 1) pi
       val fwd  = Thm.trivial ct
                   |> Drule.rearrange_prems pi'
-      val back = Thm.trivial (snd (Thm.dest_implies (cprop_of fwd)))
+      val back = Thm.trivial (snd (Thm.dest_implies (Thm.cprop_of fwd)))
                   |> Drule.rearrange_prems (invert_perm pi')
     in Thm.equal_intr fwd back end
 
@@ -73,7 +73,7 @@ fun thesis_miniscope_conv inner_cv ctxt =
       (* move unrelated assumptions out of the quantification *)
       fun movea_conv ctxt ct =
           let
-            val _ $ Abs (_, _, b) = term_of ct
+            val _ $ Abs (_, _, b) = Thm.term_of ct
             val idxs = fold_index (fn (i, t) => not (Term.is_dependent t) ? cons i)
                        (Logic.strip_imp_prems b) []
                        |> rev
@@ -92,7 +92,7 @@ fun thesis_miniscope_conv inner_cv ctxt =
           else_conv (movea_conv ctxt)
 
       fun ms_conv ctxt ct =
-          if is_forall_thesis (term_of ct)
+          if is_forall_thesis (Thm.term_of ct)
           then moveq_conv ctxt ct
           else (implies_concl_conv (ms_conv ctxt)
             else_conv
@@ -116,8 +116,8 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
       val quantify_thesis =
           if is_Bound thesis then all_tac
           else let
-              val cthesis = cterm_of thy thesis
-              val rule = instantiate' [SOME (ctyp_of_term cthesis)] [NONE, SOME cthesis]
+              val cthesis = Thm.cterm_of thy thesis
+              val rule = instantiate' [SOME (Thm.ctyp_of_term cthesis)] [NONE, SOME cthesis]
                          @{thm meta_spec}
             in
               compose_tac ctxt (false, rule, 1) i

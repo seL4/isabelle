@@ -27,7 +27,7 @@ struct
 (** auxiliary **)
 
 val distinct_lemma = @{lemma "f x \<noteq> f y ==> x \<noteq> y" by iprover};
-val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
+val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (Thm.prems_of distinct_lemma);
 
 fun exh_thm_of (dt_info : Old_Datatype_Aux.info Symtab.table) tname =
   #exhaust (the (Symtab.lookup dt_info tname));
@@ -246,10 +246,10 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     fun dt_constr_defs (((((_, (_, _, constrs)), tname), typedef: Typedef.info), T), constr_syntax)
         (thy, defs, eqns, rep_congs, dist_lemmas) =
       let
-        val _ $ (_ $ (cong_f $ _) $ _) = concl_of arg_cong;
-        val rep_const = cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
-        val cong' = cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong;
-        val dist = cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma;
+        val _ $ (_ $ (cong_f $ _) $ _) = Thm.concl_of arg_cong;
+        val rep_const = Thm.cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
+        val cong' = cterm_instantiate [(Thm.cterm_of thy cong_f, rep_const)] arg_cong;
+        val dist = cterm_instantiate [(Thm.cterm_of thy distinct_f, rep_const)] distinct_lemma;
         val (thy', defs', eqns', _) =
           fold (make_constr_def typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
@@ -390,7 +390,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     (* prove  inj Rep_dt_i  and  Rep_dt_i x : rep_set_dt_i *)
 
     val fun_congs =
-      map (fn T => make_elim (Drule.instantiate' [SOME (ctyp_of thy5 T)] [] fun_cong)) branchTs;
+      map (fn T => make_elim (Drule.instantiate' [SOME (Thm.ctyp_of thy5 T)] [] fun_cong)) branchTs;
 
     fun prove_iso_thms ds (inj_thms, elem_thms) =
       let
@@ -609,7 +609,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     val (indrule_lemma_prems, indrule_lemma_concls) =
       split_list (map2 mk_indrule_lemma descr' recTs);
 
-    val cert = cterm_of thy6;
+    val cert = Thm.cterm_of thy6;
 
     val indrule_lemma =
       Goal.prove_sorry_global thy6 [] []
@@ -623,7 +623,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
               [TRY (rtac conjI 1), resolve_tac ctxt Rep_inverse_thms 1,
                etac mp 1, resolve_tac ctxt iso_elem_thms 1])]);
 
-    val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
+    val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of indrule_lemma)));
     val frees =
       if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))]
       else map (Free o apfst fst o dest_Var) Ps;

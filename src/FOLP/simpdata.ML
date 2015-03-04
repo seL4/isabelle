@@ -16,7 +16,7 @@ val norm_thms = [(@{thm norm_eq} RS @{thm sym}, @{thm norm_eq}),
 
 (* Conversion into rewrite rules *)
 
-fun mk_eq th = case concl_of th of
+fun mk_eq th = case Thm.concl_of th of
       _ $ (Const (@{const_name iff}, _) $ _ $ _) $ _ => th
     | _ $ (Const (@{const_name eq}, _) $ _ $ _) $ _ => th
     | _ $ (Const (@{const_name Not}, _) $ _) $ _ => th RS @{thm not_P_imp_P_iff_F}
@@ -32,7 +32,7 @@ val mksimps_pairs =
 
 fun mk_atomize pairs =
   let fun atoms th =
-        (case concl_of th of
+        (case Thm.concl_of th of
            Const ("Trueprop", _) $ p =>
              (case head_of p of
                 Const(a,_) =>

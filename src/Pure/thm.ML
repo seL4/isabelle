@@ -9,26 +9,47 @@ resolution), oracles.
 
 signature BASIC_THM =
   sig
-  (*certified types*)
   type ctyp
+  type cterm
+  exception CTERM of string * cterm list
+  type thm
+  type conv = cterm -> thm
+  exception THM of string * int * thm list
+end;
+
+signature THM =
+sig
+  include BASIC_THM
+
+  (*certified types*)
   val rep_ctyp: ctyp -> {thy: theory, T: typ, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
   val ctyp_of: theory -> typ -> ctyp
+  val dest_ctyp: ctyp -> ctyp list
 
   (*certified terms*)
-  type cterm
-  exception CTERM of string * cterm list
   val rep_cterm: cterm -> {thy: theory, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T}
   val crep_cterm: cterm -> {thy: theory, t: term, T: ctyp, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
-  val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
+  val cterm_of: theory -> term -> cterm
+  val dest_comb: cterm -> cterm * cterm
+  val dest_fun: cterm -> cterm
+  val dest_arg: cterm -> cterm
+  val dest_fun2: cterm -> cterm
+  val dest_arg1: cterm -> cterm
+  val dest_abs: string option -> cterm -> cterm * cterm
+  val apply: cterm -> cterm -> cterm
+  val lambda_name: string * cterm -> cterm -> cterm
+  val lambda: cterm -> cterm -> cterm
+  val adjust_maxidx_cterm: int -> cterm -> cterm
+  val incr_indexes_cterm: int -> cterm -> cterm
+  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
 
   (*theorems*)
-  type thm
-  type conv = cterm -> thm
   val rep_thm: thm ->
    {thy: theory,
     tags: Properties.T,
@@ -45,42 +66,22 @@ signature BASIC_THM =
     hyps: cterm Ord_List.T,
     tpairs: (cterm * cterm) list,
     prop: cterm}
-  exception THM of string * int * thm list
-  val theory_of_thm: thm -> theory
-  val prop_of: thm -> term
-  val concl_of: thm -> term
-  val prems_of: thm -> term list
-  val nprems_of: thm -> int
-  val cprop_of: thm -> cterm
-  val cprem_of: thm -> int -> cterm
-end;
-
-signature THM =
-sig
-  include BASIC_THM
-  val dest_ctyp: ctyp -> ctyp list
-  val dest_comb: cterm -> cterm * cterm
-  val dest_fun: cterm -> cterm
-  val dest_arg: cterm -> cterm
-  val dest_fun2: cterm -> cterm
-  val dest_arg1: cterm -> cterm
-  val dest_abs: string option -> cterm -> cterm * cterm
-  val apply: cterm -> cterm -> cterm
-  val lambda_name: string * cterm -> cterm -> cterm
-  val lambda: cterm -> cterm -> cterm
-  val adjust_maxidx_cterm: int -> cterm -> cterm
-  val incr_indexes_cterm: int -> cterm -> cterm
-  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
+  val theory_of_thm: thm -> theory
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
+  val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
+  val concl_of: thm -> term
+  val prems_of: thm -> term list
+  val nprems_of: thm -> int
   val no_prems: thm -> bool
   val major_prem_of: thm -> term
+  val cprop_of: thm -> cterm
+  val cprem_of: thm -> int -> cterm
   val transfer: theory -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm

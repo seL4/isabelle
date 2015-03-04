@@ -12,22 +12,22 @@ a tactic to analyse instances of the fresh_fun.
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
   let
-    val thy = theory_of_thm st;
+    val thy = Thm.theory_of_thm st;
     val cgoal = nth (cprems_of st) (i - 1);
-    val {maxidx, ...} = rep_cterm cgoal;
+    val {maxidx, ...} = Thm.rep_cterm cgoal;
     val j = maxidx + 1;
     val tyinst' = map (apfst (Logic.incr_tvar j)) tyinst;
-    val ps = Logic.strip_params (term_of cgoal);
+    val ps = Logic.strip_params (Thm.term_of cgoal);
     val Ts = map snd ps;
     val tinst' = map (fn (t, u) =>
       (head_of (Logic.incr_indexes (Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
-      (map (apply2 (ctyp_of thy)) tyinst')
-      (map (apply2 (cterm_of thy)) tinst')
+      (map (apply2 (Thm.ctyp_of thy)) tyinst')
+      (map (apply2 (Thm.cterm_of thy)) tinst')
       (Thm.lift_rule cgoal th)
   in
-    compose_tac ctxt (elim, th', nprems_of th) i st
+    compose_tac ctxt (elim, th', Thm.nprems_of th) i st
   end handle General.Subscript => Seq.empty;
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
@@ -73,7 +73,7 @@ fun generate_fresh_tac ctxt atom_name = SUBGOAL (fn (goal, _) =>
    val at_name_inst_thm = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
    val exists_fresh' = at_name_inst_thm RS at_exists_fresh';
 (* find the variable we want to instantiate *)
-   val x = hd (Misc_Legacy.term_vars (prop_of exists_fresh'));
+   val x = hd (Misc_Legacy.term_vars (Thm.prop_of exists_fresh'));
  in
    fn st =>
    (cut_inst_tac_term' ctxt [(x,s)] exists_fresh' 1 THEN
@@ -131,7 +131,7 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
     val simp_ctxt =
       ctxt addsimps (fresh_prod :: abs_fresh)
       addsimps fresh_perm_app;
-    val x = hd (tl (Misc_Legacy.term_vars (prop_of exI)));
+    val x = hd (tl (Misc_Legacy.term_vars (Thm.prop_of exI)));
     val atom_name_opt = get_inner_fresh_fun goal;
     val n = length (Logic.strip_params goal);
     (* Here we rely on the fact that the variable introduced by generate_fresh_tac *)
@@ -145,18 +145,18 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
     val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
     fun inst_fresh vars params i st =
-   let val vars' = Misc_Legacy.term_vars (prop_of st);
-       val thy = theory_of_thm st;
+   let val vars' = Misc_Legacy.term_vars (Thm.prop_of st);
+       val thy = Thm.theory_of_thm st;
    in case subtract (op =) vars vars' of
      [x] =>
-      Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
+      Seq.single (Thm.instantiate ([], [(Thm.cterm_of thy x, Thm.cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in
   ((fn st =>
   let
-    val vars = Misc_Legacy.term_vars (prop_of st);
-    val params = Logic.strip_params (nth (prems_of st) (i-1))
+    val vars = Misc_Legacy.term_vars (Thm.prop_of st);
+    val params = Logic.strip_params (nth (Thm.prems_of st) (i-1))
     (* The tactics which solve the subgoals generated
        by the conditionnal rewrite rule. *)
     val post_rewrite_tacs =

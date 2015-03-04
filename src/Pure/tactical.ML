@@ -290,19 +290,19 @@ fun CHANGED_PROP tac st =
 fun ALLGOALS tac st =
   let fun doall 0 = all_tac
         | doall n = tac(n) THEN doall(n-1)
-  in  doall(nprems_of st)st  end;
+  in  doall (Thm.nprems_of st) st  end;
 
 (*For n subgoals, performs tac(n) ORELSE ... ORELSE tac(1)  *)
 fun SOMEGOAL tac st =
   let fun find 0 = no_tac
         | find n = tac(n) ORELSE find(n-1)
-  in  find(nprems_of st)st  end;
+  in  find (Thm.nprems_of st) st  end;
 
 (*For n subgoals, performs tac(1) ORELSE ... ORELSE tac(n).
   More appropriate than SOMEGOAL in some cases.*)
 fun FIRSTGOAL tac st =
   let fun find (i,n) = if i>n then no_tac else  tac(i) ORELSE find (i+1,n)
-  in  find(1, nprems_of st)st  end;
+  in  find (1, Thm.nprems_of st) st  end;
 
 (*First subgoal only.*)
 fun HEADGOAL tac = tac 1;
@@ -346,12 +346,12 @@ fun CHANGED_GOAL tac i st =
   subgoal-based tactics this means subgoal i has been solved
   altogether -- no new subgoals have emerged.*)
 fun SOLVED' tac i st =
-  tac i st |> Seq.filter (fn st' => nprems_of st' < nprems_of st);
+  tac i st |> Seq.filter (fn st' => Thm.nprems_of st' < Thm.nprems_of st);
 
 (*Apply second tactic to all subgoals emerging from the first --
   following usual convention for subgoal-based tactics.*)
 fun (tac1 THEN_ALL_NEW tac2) i st =
-  st |> (tac1 i THEN (fn st' => Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'));
+  st |> (tac1 i THEN (fn st' => Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
 
 (*Repeatedly dig into any emerging subgoals.*)
 fun REPEAT_ALL_NEW tac =

@@ -101,13 +101,13 @@ fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
 fun first_order_resolve thA thB =
   (case
     try (fn () =>
-      let val thy = theory_of_thm thA
-          val tmA = concl_of thA
-          val Const(@{const_name Pure.imp},_) $ tmB $ _ = prop_of thB
+      let val thy = Thm.theory_of_thm thA
+          val tmA = Thm.concl_of thA
+          val Const(@{const_name Pure.imp},_) $ tmB $ _ = Thm.prop_of thB
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
-          val ct_pairs = map (apply2 (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+          val ct_pairs = map (apply2 (Thm.cterm_of thy) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
@@ -152,10 +152,10 @@ fun fix_bound_var_names old_t new_t =
 (* Forward proof while preserving bound variables names *)
 fun rename_bound_vars_RS th rl =
   let
-    val t = concl_of th
-    val r = concl_of rl
+    val t = Thm.concl_of th
+    val r = Thm.concl_of rl
     val th' = th RS Thm.rename_boundvars r (protect_bound_var_names r) rl
-    val t' = concl_of th'
+    val t' = Thm.concl_of th'
   in Thm.rename_boundvars t' (fix_bound_var_names t t') th' end
 
 (*raises exception if no rules apply*)
@@ -171,11 +171,11 @@ fun tryres (th, rls) =
    problem, due to the (spurious) choices between projection and imitation. The
    workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
 fun quant_resolve_tac ctxt th i st =
-  case (concl_of st, prop_of th) of
+  case (Thm.concl_of st, Thm.prop_of th) of
     (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
     let
-      val cc = cterm_of (theory_of_thm th) c
-      val ct = Thm.dest_arg (cprop_of th)
+      val cc = Thm.cterm_of (Thm.theory_of_thm th) c
+      val ct = Thm.dest_arg (Thm.cprop_of th)
     in resolve_tac ctxt [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
   | _ => resolve_tac ctxt [th] i st
 
@@ -228,7 +228,7 @@ fun signed_lits_aux (Const (@{const_name HOL.disj}, _) $ P $ Q) (poslits, neglit
   | signed_lits_aux (Const(@{const_name Not},_) $ P) (poslits, neglits) = (poslits, P::neglits)
   | signed_lits_aux P (poslits, neglits) = (P::poslits, neglits);
 
-fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (concl_of th)) ([],[]);
+fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (Thm.concl_of th)) ([],[]);
 
 (*Literals like X=X are tautologous*)
 fun taut_poslit (Const(@{const_name HOL.eq},_) $ t $ u) = t aconv u
@@ -258,7 +258,7 @@ fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
 
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
-       case HOLogic.dest_Trueprop (concl_of th) of
+       case HOLogic.dest_Trueprop (Thm.concl_of th) of
           (Const (@{const_name HOL.disj}, _) $ (Const (@{const_name HOL.disj}, _) $ _ $ _) $ _) =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
         | (Const (@{const_name HOL.disj}, _) $ (Const(@{const_name Not},_) $ (Const(@{const_name HOL.eq},_) $ t $ u)) $ _) =>
@@ -275,7 +275,7 @@ fun notequal_lits_count (Const (@{const_name HOL.disj}, _) $ P $ Q) =
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
 fun refl_clause th =
-  let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (concl_of th))
+  let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (Thm.concl_of th))
   in  zero_var_indexes (refl_clause_aux neqs th)  end
   handle TERM _ => th;  (*probably dest_Trueprop on a weird theorem*)
 
@@ -302,7 +302,7 @@ fun nodups_aux ctxt rls th = nodups_aux ctxt rls (th RS disj_assoc)
 
 (*Remove duplicate literals, if there are any*)
 fun nodups ctxt th =
-  if has_duplicates (op =) (literals (prop_of th))
+  if has_duplicates (op =) (literals (Thm.prop_of th))
     then nodups_aux ctxt [] th
     else th;
 
@@ -353,7 +353,8 @@ in
   fun freeze_spec th ctxt =
     let
       val cert = Proof_Context.cterm_of ctxt;
-      val ([x], ctxt') = Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (concl_of th))] ctxt;
+      val ([x], ctxt') =
+        Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (Thm.concl_of th))] ctxt;
       val spec' = Thm.instantiate ([], [(spec_var, cert (Free (x, spec_varT)))]) spec;
     in (th RS spec', ctxt') end
 end;
@@ -371,10 +372,10 @@ fun apply_skolem_theorem (th, rls) =
 fun cnf old_skolem_ths ctxt (th, ths) =
   let val ctxt_ref = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
-        if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
-        else if not (has_conns [@{const_name All}, @{const_name Ex}, @{const_name HOL.conj}] (prop_of th))
+        if not (can HOLogic.dest_Trueprop (Thm.prop_of th)) then ths (*meta-level: ignore*)
+        else if not (has_conns [@{const_name All}, @{const_name Ex}, @{const_name HOL.conj}] (Thm.prop_of th))
         then nodups ctxt th :: ths (*no work to do, terminate*)
-        else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
+        else case head_of (HOLogic.dest_Trueprop (Thm.concl_of th)) of
             Const (@{const_name HOL.conj}, _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
           | Const (@{const_name All}, _) => (*universal quantifier*)
@@ -395,7 +396,7 @@ fun cnf old_skolem_ths ctxt (th, ths) =
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th, [])
       val cls =
-        if has_too_many_clauses ctxt (concl_of th) then
+        if has_too_many_clauses ctxt (Thm.concl_of th) then
           (trace_msg ctxt (fn () =>
                "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
         else
@@ -417,7 +418,7 @@ fun is_left (Const (@{const_name Trueprop}, _) $
 
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
 fun assoc_right th =
-  if is_left (prop_of th) then assoc_right (th RS disj_assoc)
+  if is_left (Thm.prop_of th) then assoc_right (th RS disj_assoc)
   else th;
 
 (*Must check for negative literal first!*)
@@ -439,7 +440,7 @@ fun ok4horn (Const (@{const_name Trueprop},_) $ (Const (@{const_name HOL.disj}, 
 
 (*Create a meta-level Horn clause*)
 fun make_horn crules th =
-  if ok4horn (concl_of th)
+  if ok4horn (Thm.concl_of th)
   then make_horn crules (tryres(th,crules)) handle THM _ => th
   else th;
 
@@ -449,7 +450,7 @@ fun add_contras crules th hcs =
   let fun rots (0,_) = hcs
         | rots (k,th) = zero_var_indexes (make_horn crules th) ::
                         rots(k-1, assoc_right (th RS disj_comm))
-  in case nliterals(prop_of th) of
+  in case nliterals(Thm.prop_of th) of
         1 => th::hcs
       | n => rots(n, assoc_right th)
   end;
@@ -461,7 +462,7 @@ fun name_thms label =
     in  fn ths => #2 (fold_rev name1 ths (length ths, []))  end;
 
 (*Is the given disjunction an all-negative support clause?*)
-fun is_negative th = forall (not o #1) (literals (prop_of th));
+fun is_negative th = forall (not o #1) (literals (Thm.prop_of th));
 
 val neg_clauses = filter is_negative;
 
@@ -489,12 +490,12 @@ fun TRYING_eq_assume_tac 0 st = Seq.single st
        TRYING_eq_assume_tac (i-1) (Thm.eq_assumption i st)
        handle THM _ => TRYING_eq_assume_tac (i-1) st;
 
-fun TRYALL_eq_assume_tac st = TRYING_eq_assume_tac (nprems_of st) st;
+fun TRYALL_eq_assume_tac st = TRYING_eq_assume_tac (Thm.nprems_of st) st;
 
 (*Loop checking: FAIL if trying to prove the same thing twice
   -- if *ANY* subgoal has repeated literals*)
 fun check_tac st =
-  if exists (fn prem => has_reps (rhyps(prem,[]))) (prems_of st)
+  if exists (fn prem => has_reps (rhyps(prem,[]))) (Thm.prems_of st)
   then  Seq.empty  else  Seq.single st;
 
 
@@ -506,7 +507,7 @@ fun prolog_step_tac ctxt horns i =
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
 fun addconcl prem sz = size_of_term (Logic.strip_assums_concl prem) + sz;
 
-fun size_of_subgoals st = fold_rev addconcl (prems_of st) 0;
+fun size_of_subgoals st = fold_rev addconcl (Thm.prems_of st) 0;
 
 
 (*Negation Normal Form*)
@@ -518,7 +519,7 @@ fun ok4nnf (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ t
   | ok4nnf _ = false;
 
 fun make_nnf1 ctxt th =
-  if ok4nnf (concl_of th)
+  if ok4nnf (Thm.concl_of th)
   then make_nnf1 ctxt (tryres(th, nnf_rls))
     handle THM ("tryres", _, _) =>
         forward_res ctxt (make_nnf1 ctxt)
@@ -552,9 +553,10 @@ fun presimplify ctxt =
   #> simplify (put_simpset nnf_ss ctxt)
   #> rewrite_rule ctxt @{thms Let_def [abs_def]}
 
-fun make_nnf ctxt th = case prems_of th of
+fun make_nnf ctxt th =
+  (case Thm.prems_of th of
     [] => th |> presimplify ctxt |> make_nnf1 ctxt
-  | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
+  | _ => raise THM ("make_nnf: premises in argument", 0, [th]));
 
 fun choice_theorems thy =
   try (Global_Theory.get_thm thy) "Hilbert_Choice.choice" |> the_list
@@ -564,7 +566,7 @@ fun choice_theorems thy =
 fun skolemize_with_choice_theorems ctxt choice_ths =
   let
     fun aux th =
-      if not (has_conns [@{const_name Ex}] (prop_of th)) then
+      if not (has_conns [@{const_name Ex}] (Thm.prop_of th)) then
         th
       else
         tryres (th, choice_ths @
@@ -615,35 +617,35 @@ fun get_F_pattern T t u =
 
 val ext_cong_neq = @{thm ext_cong_neq}
 val F_ext_cong_neq =
-  Term.add_vars (prop_of @{thm ext_cong_neq}) []
+  Term.add_vars (Thm.prop_of @{thm ext_cong_neq}) []
   |> filter (fn ((s, _), _) => s = "F")
   |> the_single |> Var
 
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
 fun cong_extensionalize_thm thy th =
-  case concl_of th of
+  (case Thm.concl_of th of
     @{const Trueprop} $ (@{const Not}
         $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
        SOME p =>
-       let val inst = [apply2 (cterm_of thy) (F_ext_cong_neq, p)] in
+       let val inst = [apply2 (Thm.cterm_of thy) (F_ext_cong_neq, p)] in
          th RS cterm_instantiate inst ext_cong_neq
        end
      | NONE => th)
-  | _ => th
+  | _ => th)
 
 (* Removes the lambdas from an equation of the form "t = (%x1 ... xn. u)". It
    would be desirable to do this symmetrically but there's at least one existing
    proof in "Tarski" that relies on the current behavior. *)
 fun abs_extensionalize_conv ctxt ct =
-  case term_of ct of
+  (case Thm.term_of ct of
     Const (@{const_name HOL.eq}, _) $ _ $ Abs _ =>
     ct |> (Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
            then_conv abs_extensionalize_conv ctxt)
   | _ $ _ => Conv.comb_conv (abs_extensionalize_conv ctxt) ct
   | Abs _ => Conv.abs_conv (abs_extensionalize_conv o snd) ctxt ct
-  | _ => Conv.all_conv ct
+  | _ => Conv.all_conv ct)
 
 val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
 
@@ -673,7 +675,7 @@ fun add_clauses ctxt th cls =
   in Variable.export ctxt' ctxt cnfs @ cls end;
 
 (*Sort clauses by number of literals*)
-fun fewerlits (th1, th2) = nliterals (prop_of th1) < nliterals (prop_of th2)
+fun fewerlits (th1, th2) = nliterals (Thm.prop_of th1) < nliterals (Thm.prop_of th2)
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)

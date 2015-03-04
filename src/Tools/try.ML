@@ -35,7 +35,7 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
-val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
+val subgoal_count = Logic.count_prems o Thm.prop_of o #goal o Proof.goal
 
 
 (* configuration *)

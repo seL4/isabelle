@@ -16,11 +16,11 @@ struct
 (* tactic version *)
 
 fun inst_state_tac inst st =
-  case Term.add_vars (prop_of st) [] of
+  (case Term.add_vars (Thm.prop_of st) [] of
     [v as (_, T)] =>
       let val cert = Thm.cterm_of (Thm.theory_of_thm st);
       in PRIMITIVE (Thm.instantiate ([], [(cert (Var v), cert (inst T))])) st end
-  | _ => Seq.empty;
+  | _ => Seq.empty);
 
 fun relation_tac ctxt rel i =
   TRY (Function_Common.termination_rule_tac ctxt i)
@@ -30,7 +30,7 @@ fun relation_tac ctxt rel i =
 (* version with type inference *)
 
 fun inst_state_infer_tac ctxt rel st =
-  case Term.add_vars (prop_of st) [] of
+  (case Term.add_vars (Thm.prop_of st) [] of
     [v as (_, T)] =>
       let
         val cert = Proof_Context.cterm_of ctxt;
@@ -42,7 +42,7 @@ fun inst_state_infer_tac ctxt rel st =
       in
         PRIMITIVE (Thm.instantiate ([], [(cert (Var v), rel')])) st
       end
-  | _ => Seq.empty;
+  | _ => Seq.empty);
 
 fun relation_infer_tac ctxt rel i =
   TRY (Function_Common.termination_rule_tac ctxt i)

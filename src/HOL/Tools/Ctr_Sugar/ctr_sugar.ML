@@ -795,7 +795,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
               val sel_thmss = @{map 3} (map oo make_sel_thm) xss' case_thms sel_defss;
 
               fun has_undefined_rhs thm =
-                (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))) of
+                (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm))) of
                   Const (@{const_name undefined}, _) => true
                 | _ => false);
 

@@ -21,7 +21,7 @@ val all_not_ex = mk_meta_eq @{thm "all_not_ex"};
 fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
  let
   fun conv env p =
-   case (term_of p) of
+   case Thm.term_of p of
     Const(s,T)$_$_ =>
        if domain_type T = HOLogic.boolT
           andalso member (op =) [@{const_name HOL.conj}, @{const_name HOL.disj},
@@ -37,7 +37,7 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
      val th = Thm.abstract_rule s x ((conv env' then_conv ncv env') p')
                    |> Drule.arg_cong_rule e
      val th' = simpex_conv (Thm.rhs_of th)
-     val (_, r) = Thm.dest_equals (cprop_of th')
+     val (_, r) = Thm.dest_equals (Thm.cprop_of th')
     in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
   | Const(@{const_name Ex},_)$ _ => (Thm.eta_long_conversion then_conv conv env) p

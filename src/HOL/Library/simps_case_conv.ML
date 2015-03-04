@@ -27,7 +27,7 @@ fun get_split_ths ctxt = collect_Tcons
     #> map_filter (Ctr_Sugar.ctr_sugar_of ctxt)
     #> map #split
 
-val strip_eq = prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq
+val strip_eq = Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq
 
 
 local
@@ -161,7 +161,7 @@ fun was_split t =
 
 fun apply_split ctxt split thm = Seq.of_list
   let val ((_,thm'), ctxt') = Variable.import false [thm] ctxt in
-    (Variable.export ctxt' ctxt) (filter (was_split o prop_of) (thm' RL [split]))
+    (Variable.export ctxt' ctxt) (filter (was_split o Thm.prop_of) (thm' RL [split]))
   end
 
 fun forward_tac rules t = Seq.of_list ([t] RL rules)
@@ -176,7 +176,7 @@ val get_rules_once_split =
 fun do_split ctxt split =
   let
     val split' = split RS iffD1;
-    val split_rhs = concl_of (hd (snd (fst (Variable.import false [split'] ctxt))))
+    val split_rhs = Thm.concl_of (hd (snd (fst (Variable.import false [split'] ctxt))))
   in if was_split split_rhs
      then DETERM (apply_split ctxt split') THEN get_rules_once_split
      else raise TERM ("malformed split rule", [split_rhs])

@@ -77,8 +77,8 @@ fun named_cterm_instantiate values thm =  (* FIXME eliminate *)
   let
     fun match name ((name', _), _) = name = name';
     fun getvar name =
-      (case find_first (match name) (Term.add_vars (prop_of thm) []) of
-        SOME var => cterm_of (theory_of_thm thm) (Var var)
+      (case find_first (match name) (Term.add_vars (Thm.prop_of thm) []) of
+        SOME var => Thm.cterm_of (Thm.theory_of_thm thm) (Var var)
       | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm]));
   in
     cterm_instantiate (map (apfst getvar) values) thm
@@ -97,7 +97,7 @@ fun get_typedef_info tyco vs
   let
     val exists_thm =
       UNIV_I
-      |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global rep_type))] [];
+      |> Drule.instantiate' [SOME (Thm.ctyp_of thy (Logic.varifyT_global rep_type))] [];
     val proj_constr = Abs_inverse OF [exists_thm];
     val absT = Type (tyco, map TFree vs);
   in
@@ -141,8 +141,8 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
     (*construct a type and body for the isomorphism constant by
       instantiating the theorem to which the definition will be applied*)
     val intro_inst =
-      rep_inject RS named_cterm_instantiate [("abst", cterm_of typ_thy absC)] iso_tuple_intro;
-    val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
+      rep_inject RS named_cterm_instantiate [("abst", Thm.cterm_of typ_thy absC)] iso_tuple_intro;
+    val (_, body) = Logic.dest_equals (List.last (Thm.prems_of intro_inst));
     val isomT = fastype_of body;
     val isom_binding = Binding.suffix_name isoN b;
     val isom_name = Sign.full_name typ_thy isom_binding;
@@ -1121,7 +1121,7 @@ val simproc =
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
-    val insts = [("upd", cterm_of thy upd), ("ac", cterm_of thy acc)];
+    val insts = [("upd", Thm.cterm_of thy upd), ("ac", Thm.cterm_of thy acc)];
     val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
     Goal.prove (Proof_Context.init_global thy) [] [] prop
@@ -1364,7 +1364,7 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val goal = term_of cgoal;
+    val goal = Thm.term_of cgoal;
     val frees = filter (is_recT o #2) (Term.add_frees goal []);
 
     val has_rec = exists_Const
@@ -1375,9 +1375,9 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     fun mk_split_free_tac free induct_thm i =
       let
-        val cfree = cterm_of thy free;
-        val _$ (_ $ r) = concl_of induct_thm;
-        val crec = cterm_of thy r;
+        val cfree = Thm.cterm_of thy free;
+        val _$ (_ $ r) = Thm.concl_of induct_thm;
+        val crec = Thm.cterm_of thy r;
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
@@ -1415,7 +1415,7 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 (*Split all records in the goal, which are quantified by !! or ALL.*)
 fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
   let
-    val goal = term_of cgoal;
+    val goal = Thm.term_of cgoal;
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
@@ -1466,12 +1466,12 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
     val rule' = Thm.lift_rule cgoal rule;
-    val (P, ys) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_assums_concl (prop_of rule')));
+    val (P, ys) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_assums_concl (Thm.prop_of rule')));
     (*ca indicates if rule is a case analysis or induction rule*)
     val (x, ca) =
       (case rev (drop (length params) ys) of
         [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
-          (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
+          (hd (rev (Logic.strip_assums_hyp (hd (Thm.prems_of rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' =
       cterm_instantiate
@@ -1484,7 +1484,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
           | (_, T) :: _ =>
               [(P, fold_rev Term.abs params (if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
                 (x, fold_rev Term.abs params (Bound 0))])) rule';
-  in compose_tac ctxt (false, rule'', nprems_of rule) i end);
+  in compose_tac ctxt (false, rule'', Thm.nprems_of rule) i end);
 
 
 fun extension_definition name fields alphas zeta moreT more vars thy =
@@ -1608,7 +1608,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (roughly) the definition of the accessor.*)
     val surject = timeit_msg ctxt "record extension surjective proof:" (fn () =>
       let
-        val cterm_ext = cterm_of defs_thy ext;
+        val cterm_ext = Thm.cterm_of defs_thy ext;
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
@@ -1758,7 +1758,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([apply2 (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+          ([apply2 (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
         |> Axclass.unoverload thy;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =
@@ -1945,8 +1945,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               fun to_Var (Free (c, T)) = Var ((c, 1), T);
             in mk_rec (map to_Var all_vars_more) 0 end;
 
-          val cterm_rec = cterm_of ext_thy r_rec0;
-          val cterm_vrs = cterm_of ext_thy r_rec0_Vars;
+          val cterm_rec = Thm.cterm_of ext_thy r_rec0;
+          val cterm_vrs = Thm.cterm_of ext_thy r_rec0_Vars;
           val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
           val init_thm = named_cterm_instantiate insts updacc_eq_triv;
           val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
@@ -2223,7 +2223,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         sel_convs' upd_convs' sel_defs' upd_defs' fold_congs' unfold_congs' splits' derived_defs'
         surjective' equality' induct_scheme' induct' cases_scheme' cases' simps' iffs';
 
-    val sels = map (fst o Logic.dest_equals o prop_of) sel_defs;
+    val sels = map (fst o Logic.dest_equals o Thm.prop_of) sel_defs;
 
     val final_thy =
       thms_thy'

@@ -23,7 +23,7 @@ fun matrix_compute c = hd (PCompute.rewrite computer [c])
 
 fun matrix_simplify th =
   let
-    val simp_th = matrix_compute (cprop_of th)
+    val simp_th = matrix_compute (Thm.cprop_of th)
     val th = Thm.strip_shyps (Thm.equal_elim simp_th th)
     fun removeTrue th = removeTrue (Thm.implies_elim th TrueI) handle THM _ => th
   in

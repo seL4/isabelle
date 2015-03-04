@@ -69,12 +69,12 @@ fun fres_bound_tac ctxt = fresolve_tac ctxt Modal_Rule.bound_rls;
 
 fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
                                     else tf(i) THEN tac(i-1)
-                    in fn st => tac (nprems_of st) st end;
+                    in fn st => tac (Thm.nprems_of st) st end;
 
 (* Depth first search bounded by d *)
 fun solven_tac ctxt d n st = st |>
  (if d < 0 then no_tac
-  else if nprems_of st = 0 then all_tac
+  else if Thm.nprems_of st = 0 then all_tac
   else (DETERM(fres_safe_tac ctxt n) THEN UPTOGOAL n (solven_tac ctxt d)) ORELSE
            ((fres_unsafe_tac ctxt n  THEN UPTOGOAL n (solven_tac ctxt d)) APPEND
              (fres_bound_tac ctxt n  THEN UPTOGOAL n (solven_tac ctxt (d - 1)))));

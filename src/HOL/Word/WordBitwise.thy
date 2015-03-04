@@ -507,7 +507,7 @@ fun mk_nat_clist ns = List.foldr
   @{cterm "[] :: nat list"} ns;
 
 fun upt_conv ctxt ct =
-  case term_of ct of
+  case Thm.term_of ct of
     (@{const upt} $ n $ m) =>
       let
         val (i, j) = apply2 (snd o HOLogic.dest_number) (n, m);
@@ -529,7 +529,7 @@ val expand_upt_simproc = Simplifier.make_simproc
    proc = K upt_conv};
 
 fun word_len_simproc_fn ctxt ct =
-  case term_of ct of
+  case Thm.term_of ct of
     Const (@{const_name len_of}, _) $ t => (let
         val T = fastype_of t |> dest_Type |> snd |> the_single
         val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
@@ -551,7 +551,7 @@ val word_len_simproc = Simplifier.make_simproc
 fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (f $ arg) = (term_of ct);
+    val (f $ arg) = Thm.term_of ct;
     val n = (case arg of @{term nat} $ n => n | n => n)
       |> HOLogic.dest_number |> snd;
     val (i, j) = if n > n_sucs then (n_sucs, n - n_sucs)
@@ -560,7 +560,7 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
         (replicate i @{term Suc});
     val _ = if arg = arg' then raise TERM ("", []) else ();
     fun propfn g = HOLogic.mk_eq (g arg, g arg')
-      |> HOLogic.mk_Trueprop |> cterm_of thy;
+      |> HOLogic.mk_Trueprop |> Thm.cterm_of thy;
     val eq1 = Goal.prove_internal ctxt [] (propfn I)
       (K (simp_tac (put_simpset word_ss ctxt) 1));
   in Goal.prove_internal ctxt [] (propfn (curry (op $) f))

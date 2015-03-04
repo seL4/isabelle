@@ -94,7 +94,7 @@ fun define_cr_rel equiv_thm abs_fun lthy =
   
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
     val abs_fun_graph = HOLogic.mk_eq(abs_fun $ Bound 1, Bound 0)
-    val Abs_body = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
+    val Abs_body = (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
       Const (@{const_name equivp}, _) $ _ => abs_fun_graph
       | Const (@{const_name part_equivp}, _) $ rel => 
         HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
@@ -112,20 +112,19 @@ fun define_cr_rel equiv_thm abs_fun lthy =
 
 fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
   let
-    val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o prop_of) quot3_thm
+    val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o Thm.prop_of) quot3_thm
     val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
-    val (reflp_thm, quot_thm) = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
-      Const (@{const_name equivp}, _) $ _ =>
-        (SOME (equiv_thm RS @{thm equivp_reflp2}),
-         [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp})
+    val (reflp_thm, quot_thm) =
+      (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
+        Const (@{const_name equivp}, _) $ _ =>
+          (SOME (equiv_thm RS @{thm equivp_reflp2}),
+            [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp})
       | Const (@{const_name part_equivp}, _) $ _ =>
-        (NONE,
-        [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient})
-      | _ => error "unsupported equivalence theorem"
-      )
+          (NONE, [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient})
+      | _ => error "unsupported equivalence theorem")
   in
     lthy'
       |> Lifting_Setup.setup_by_quotient quot_thm reflp_thm opt_par_thm
@@ -134,7 +133,7 @@ fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
 
 fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
   let
-    val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o prop_of) quot_thm
+    val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o Thm.prop_of) quot_thm
     val (qtyp, rtyp) = (dest_funT o fastype_of) rep
     val qty_full_name = (fst o dest_Type) qtyp
     val quotients = {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm, 

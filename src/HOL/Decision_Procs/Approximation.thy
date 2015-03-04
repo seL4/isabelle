@@ -3597,11 +3597,11 @@ ML {*
         | variable_of_bound t = raise TERM ("variable_of_bound", [t])
 
       val variable_bounds
-        = map (` (variable_of_bound o prop_of)) prems
+        = map (`(variable_of_bound o Thm.prop_of)) prems
 
       fun add_deps (name, bnds)
         = Graph.add_deps_acyclic (name,
-            remove (op =) name (Term.add_free_names (prop_of bnds) []))
+            remove (op =) name (Term.add_free_names (Thm.prop_of bnds) []))
 
       val order = Graph.empty
                   |> fold Graph.new_node variable_bounds
@@ -3634,7 +3634,7 @@ ML {*
         = case AList.lookup (op =) splitting name
           of SOME s => HOLogic.mk_number @{typ nat} s
            | NONE => @{term "0 :: nat"}
-      val vs = nth (prems_of st) (i - 1)
+      val vs = nth (Thm.prems_of st) (i - 1)
                |> Logic.strip_imp_concl
                |> HOLogic.dest_Trueprop
                |> Term.strip_comb |> snd |> List.last
@@ -3659,7 +3659,9 @@ ML {*
           THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
        end
 
-     | SOME t => if length vs <> 1 then raise (TERM ("More than one variable used for taylor series expansion", [prop_of st]))
+     | SOME t =>
+       if length vs <> 1
+       then raise (TERM ("More than one variable used for taylor series expansion", [Thm.prop_of st]))
        else let
          val t = t
               |> HOLogic.mk_number @{typ nat}

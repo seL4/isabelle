@@ -1343,7 +1343,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                   NONE => []
                 | SOME (exhaustive_code, rhs, raw_rhs, ctr_thms) =>
                   let
-                    val ms = map (Logic.count_prems o prop_of) ctr_thms;
+                    val ms = map (Logic.count_prems o Thm.prop_of) ctr_thms;
                     val (raw_goal, goal) = (raw_rhs, rhs)
                       |> apply2 (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                         #> curry Logic.list_all (map dest_Free fun_args));

@@ -91,7 +91,7 @@ fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
   | is_rec_def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) = is_rec_eq t1 t2
   | is_rec_def _ = false
 
-fun is_assum assms th = exists (fn ct => prop_of th aconv term_of ct) assms
+fun is_assum assms th = exists (fn ct => Thm.prop_of th aconv Thm.term_of ct) assms
 fun is_chained chained = member Thm.eq_thm_prop chained
 
 fun scope_of_thm global assms chained th =
@@ -131,7 +131,7 @@ fun status_of_thm css name th =
   if Termtab.is_empty css then
     General
   else
-    let val t = prop_of th in
+    let val t = Thm.prop_of th in
       (* FIXME: use structured name *)
       if String.isSubstring ".induct" name andalso may_be_induction t then
         Induction
@@ -224,7 +224,7 @@ val sep_that = Long_Name.separator ^ Obtain.thatN
 val skolem_thesis = Name.skolem Auto_Bind.thesisN
 
 fun is_that_fact th =
-  exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (prop_of th)
+  exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (Thm.prop_of th)
   andalso String.isSuffix sep_that (Thm.get_name_hint th)
 
 datatype interest = Deal_Breaker | Interesting | Boring
@@ -266,7 +266,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
         combine_interests (interest_of_bool t) (interest_of_bool u)
       | interest_of_prop _ _ = Deal_Breaker
 
-    val t = prop_of th
+    val t = Thm.prop_of th
   in
     (interest_of_prop [] t <> Interesting andalso not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
     is_that_fact th
@@ -298,7 +298,7 @@ fun close_form t =
   |> fst
 
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
-fun backquote_thm ctxt = backquote_term ctxt o prop_of
+fun backquote_thm ctxt = backquote_term ctxt o Thm.prop_of
 
 (* TODO: rewrite to use nets and/or to reuse existing data structures *)
 fun clasimpset_rule_table_of ctxt =
@@ -307,7 +307,7 @@ fun clasimpset_rule_table_of ctxt =
       Termtab.empty
     else
       let
-        fun add stature th = Termtab.update (normalize_vars (prop_of th), stature)
+        fun add stature th = Termtab.update (normalize_vars (Thm.prop_of th), stature)
 
         val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} = ctxt |> claset_of |> Classical.rep_cs
         val intros = Item_Net.content safeIs @ Item_Net.content hazIs
@@ -320,7 +320,7 @@ fun clasimpset_rule_table_of ctxt =
           |> filter (curry (op =) Spec_Rules.Equational o fst)
           |> maps (snd o snd)
           |> filter_out (member Thm.eq_thm_prop risky_defs)
-          |> List.partition (is_rec_def o prop_of)
+          |> List.partition (is_rec_def o Thm.prop_of)
         val spec_intros = specs
           |> filter (member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive] o fst)
           |> maps (snd o snd)
@@ -359,7 +359,7 @@ fun un_class_ify s =
 
 fun build_name_tables name_of facts =
   let
-    fun cons_thm (_, th) = Termtab.cons_list (normalize_vars (normalize_eq (prop_of th)), th)
+    fun cons_thm (_, th) = Termtab.cons_list (normalize_vars (normalize_eq (Thm.prop_of th)), th)
     fun add_plain canon alias =
       Symtab.update (Thm.get_name_hint alias, name_of (if_thm_before canon alias))
     fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
@@ -373,13 +373,13 @@ fun build_name_tables name_of facts =
 
 fun fact_distinct eq facts =
   fold (fn fact as (_, th) =>
-      Net.insert_term_safe (eq o apply2 (normalize_eq o prop_of o snd))
-        (normalize_eq (prop_of th), fact))
+      Net.insert_term_safe (eq o apply2 (normalize_eq o Thm.prop_of o snd))
+        (normalize_eq (Thm.prop_of th), fact))
     facts Net.empty
   |> Net.entries
 
 fun struct_induct_rule_on th =
-  (case Logic.strip_horn (prop_of th) of
+  (case Logic.strip_horn (Thm.prop_of th) of
     (prems, @{const Trueprop} $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
     if not (is_TVar ind_T) andalso length prems > 1 andalso
        exists (exists_subterm (curry (op aconv) p)) prems andalso
@@ -495,7 +495,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
               (j - 1,
                if not (member Thm.eq_thm_prop add_ths th) andalso
                   (is_likely_tautology_too_meta_or_too_technical th orelse
-                   is_too_complex (prop_of th)) then
+                   is_too_complex (Thm.prop_of th)) then
                  accum
                else
                  let

@@ -29,7 +29,7 @@ fun can_apply timeout_opt pre post tac st =
     (case (case timeout_opt of
             SOME timeout => TimeLimit.timeLimit timeout
           | NONE => fn f => fn x => f x) (Seq.pull o tac) (pre st) of
-      SOME (x, _) => nprems_of (post x) < nprems_of goal
+      SOME (x, _) => Thm.nprems_of (post x) < Thm.nprems_of goal
     | NONE => false)
   end;
 
@@ -68,7 +68,7 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
     let val attrs = attrs_text attrs quad in
       apply_generic timeout_opt name
         ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
-         (if all_goals andalso nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
+         (if all_goals andalso Thm.nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
         I (#goal o Proof.goal)
         (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)) st
     end
@@ -141,7 +141,7 @@ fun generic_try0 mode timeout_opt quad st =
            | Try => "Try0 found a proof"
            | Normal => "Try this") ^ ": " ^
           Active.sendback_markup [Markup.padding_command]
-              ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
+              ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ command) ^
           (case xs of
             [(_, ms)] => " (" ^ time_string ms ^ ")."

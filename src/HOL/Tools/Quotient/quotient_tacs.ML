@@ -43,7 +43,7 @@ fun OF1 thm1 thm2 = thm2 RS thm1
 fun atomize_thm ctxt thm =
   let
     val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
-    val thm'' = Object_Logic.atomize ctxt (cprop_of thm')
+    val thm'' = Object_Logic.atomize ctxt (Thm.cprop_of thm')
   in
     @{thm equal_elim_rule1} OF [thm'', thm']
   end
@@ -73,10 +73,10 @@ fun solve_quotient_assm ctxt thm =
 
 
 fun prep_trm thy (x, (T, t)) =
-  (cterm_of thy (Var (x, T)), cterm_of thy t)
+  (Thm.cterm_of thy (Var (x, T)), Thm.cterm_of thy t)
 
 fun prep_ty thy (x, (S, ty)) =
-  (ctyp_of thy (TVar (x, S)), ctyp_of thy ty)
+  (Thm.ctyp_of thy (TVar (x, S)), Thm.ctyp_of thy ty)
 
 fun get_match_inst thy pat trm =
   let
@@ -100,8 +100,8 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
   let
     val thy = Proof_Context.theory_of ctxt
     fun get_lhs thm = fst (Logic.dest_equals (Thm.concl_of thm))
-    val ty_inst = map (SOME o ctyp_of thy) [domain_type (fastype_of R2)]
-    val trm_inst = map (SOME o cterm_of thy) [R2, R1]
+    val ty_inst = map (SOME o Thm.ctyp_of thy) [domain_type (fastype_of R2)]
+    val trm_inst = map (SOME o Thm.cterm_of thy) [R2, R1]
   in
     (case try (Drule.instantiate' ty_inst trm_inst) ball_bex_thm of
       NONE => NONE
@@ -143,7 +143,7 @@ fun ball_bex_range_simproc ctxt redex =
 *)
 
 fun reflp_get ctxt =
-  map_filter (fn th => if prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
+  map_filter (fn th => if Thm.prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
     handle THM _ => NONE) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
 
 val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
@@ -194,22 +194,22 @@ fun find_qt_asm asms =
   end
 
 fun quot_true_simple_conv ctxt fnctn ctrm =
-  case term_of ctrm of
+  (case Thm.term_of ctrm of
     (Const (@{const_name Quot_True}, _) $ x) =>
       let
         val fx = fnctn x;
         val thy = Proof_Context.theory_of ctxt;
-        val cx = cterm_of thy x;
-        val cfx = cterm_of thy fx;
-        val cxt = ctyp_of thy (fastype_of x);
-        val cfxt = ctyp_of thy (fastype_of fx);
+        val cx = Thm.cterm_of thy x;
+        val cfx = Thm.cterm_of thy fx;
+        val cxt = Thm.ctyp_of thy (fastype_of x);
+        val cfxt = Thm.ctyp_of thy (fastype_of fx);
         val thm = Drule.instantiate' [SOME cxt, SOME cfxt] [SOME cx, SOME cfx] @{thm QT_imp}
       in
         Conv.rewr_conv thm ctrm
-      end
+      end)
 
 fun quot_true_conv ctxt fnctn ctrm =
-  (case term_of ctrm of
+  (case Thm.term_of ctrm of
     (Const (@{const_name Quot_True}, _) $ _) =>
       quot_true_simple_conv ctxt fnctn ctrm
   | _ $ _ => Conv.comb_conv (quot_true_conv ctxt fnctn) ctrm
@@ -238,8 +238,8 @@ val bare_concl = HOLogic.dest_Trueprop o Logic.strip_assums_concl
 val apply_rsp_tac =
   Subgoal.FOCUS (fn {concl, asms, context,...} =>
     let
-      val bare_concl = HOLogic.dest_Trueprop (term_of concl)
-      val qt_asm = find_qt_asm (map term_of asms)
+      val bare_concl = HOLogic.dest_Trueprop (Thm.term_of concl)
+      val qt_asm = find_qt_asm (map Thm.term_of asms)
     in
       case (bare_concl, qt_asm) of
         (R2 $ (f $ x) $ (g $ y), SOME (qt_fun, qt_arg)) =>
@@ -251,8 +251,8 @@ val apply_rsp_tac =
               val ty_b = fastype_of qt_arg
               val ty_f = range_type (fastype_of f)
               val thy = Proof_Context.theory_of context
-              val ty_inst = map (SOME o (ctyp_of thy)) [ty_x, ty_b, ty_f]
-              val t_inst = map (SOME o (cterm_of thy)) [R2, f, g, x, y];
+              val ty_inst = map (SOME o Thm.ctyp_of thy) [ty_x, ty_b, ty_f]
+              val t_inst = map (SOME o Thm.cterm_of thy) [R2, f, g, x, y];
               val inst_thm = Drule.instantiate' ty_inst
                 ([NONE, NONE, NONE] @ t_inst) @{thm apply_rspQ3}
             in
@@ -268,13 +268,13 @@ fun equals_rsp_tac R ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
   in
-    case try (cterm_of thy) R of (* There can be loose bounds in R *)
+    case try (Thm.cterm_of thy) R of (* There can be loose bounds in R *)
       SOME ctm =>
         let
           val ty = domain_type (fastype_of R)
         in
-          case try (Drule.instantiate' [SOME (ctyp_of thy ty)]
-              [SOME (cterm_of thy R)]) @{thm equals_rsp} of
+          case try (Drule.instantiate' [SOME (Thm.ctyp_of thy ty)]
+              [SOME (Thm.cterm_of thy R)]) @{thm equals_rsp} of
             SOME thm => rtac thm THEN' quotient_tac ctxt
           | NONE => K no_tac
         end
@@ -288,9 +288,9 @@ fun rep_abs_rsp_tac ctxt =
         (let
           val thy = Proof_Context.theory_of ctxt;
           val (ty_a, ty_b) = dest_funT (fastype_of abs);
-          val ty_inst = map (SOME o (ctyp_of thy)) [ty_a, ty_b];
+          val ty_inst = map (SOME o Thm.ctyp_of thy) [ty_a, ty_b];
         in
-          case try (map (SOME o (cterm_of thy))) [rel, abs, rep] of
+          case try (map (SOME o Thm.cterm_of thy)) [rel, abs, rep] of
             SOME t_inst =>
               (case try (Drule.instantiate' ty_inst t_inst) @{thm rep_abs_rsp} of
                 SOME inst_thm => (rtac inst_thm THEN' quotient_tac ctxt) i
@@ -421,7 +421,7 @@ fun all_injection_tac ctxt =
 
 (* expands all map_funs, except in front of the (bound) variables listed in xs *)
 fun map_fun_simple_conv xs ctrm =
-  (case term_of ctrm of
+  (case Thm.term_of ctrm of
     ((Const (@{const_name "map_fun"}, _) $ _ $ _) $ h $ _) =>
         if member (op=) xs h
         then Conv.all_conv ctrm
@@ -429,11 +429,11 @@ fun map_fun_simple_conv xs ctrm =
   | _ => Conv.all_conv ctrm)
 
 fun map_fun_conv xs ctxt ctrm =
-  (case term_of ctrm of
+  (case Thm.term_of ctrm of
     _ $ _ =>
       (Conv.comb_conv (map_fun_conv xs ctxt) then_conv
         map_fun_simple_conv xs) ctrm
-  | Abs _ => Conv.abs_conv (fn (x, ctxt) => map_fun_conv ((term_of x)::xs) ctxt) ctxt ctrm
+  | Abs _ => Conv.abs_conv (fn (x, ctxt) => map_fun_conv (Thm.term_of x :: xs) ctxt) ctxt ctrm
   | _ => Conv.all_conv ctrm)
 
 fun map_fun_tac ctxt = CONVERSION (map_fun_conv [] ctxt)
@@ -472,22 +472,23 @@ fun make_inst_id lhs t =
    make_inst_id is used
 *)
 fun lambda_prs_simple_conv ctxt ctrm =
-  (case term_of ctrm of
+  (case Thm.term_of ctrm of
     (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
       let
         val thy = Proof_Context.theory_of ctxt
         val (ty_b, ty_a) = dest_funT (fastype_of r1)
         val (ty_c, ty_d) = dest_funT (fastype_of a2)
-        val tyinst = map (SOME o (ctyp_of thy)) [ty_a, ty_b, ty_c, ty_d]
-        val tinst = [NONE, NONE, SOME (cterm_of thy r1), NONE, SOME (cterm_of thy a2)]
+        val tyinst = map (SOME o Thm.ctyp_of thy) [ty_a, ty_b, ty_c, ty_d]
+        val tinst = [NONE, NONE, SOME (Thm.cterm_of thy r1), NONE, SOME (Thm.cterm_of thy a2)]
         val thm1 = Drule.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}
         val thm2 = solve_quotient_assm ctxt (solve_quotient_assm ctxt thm1)
         val thm3 = rewrite_rule ctxt @{thms id_apply[THEN eq_reflection]} thm2
         val (insp, inst) =
           if ty_c = ty_d
-          then make_inst_id (term_of (Thm.lhs_of thm3)) (term_of ctrm)
-          else make_inst (term_of (Thm.lhs_of thm3)) (term_of ctrm)
-        val thm4 = Drule.instantiate_normalize ([], [(cterm_of thy insp, cterm_of thy inst)]) thm3
+          then make_inst_id (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
+          else make_inst (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
+        val thm4 =
+          Drule.instantiate_normalize ([], [(Thm.cterm_of thy insp, Thm.cterm_of thy inst)]) thm3
       in
         Conv.rewr_conv thm4 ctrm
       end
@@ -540,7 +541,7 @@ fun clean_tac ctxt =
 (* Tactic for Generalising Free Variables in a Goal *)
 
 fun inst_spec ctrm =
-  Drule.instantiate' [SOME (ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
+  Drule.instantiate' [SOME (Thm.ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
 
 fun inst_spec_tac ctrms =
   EVERY' (map (dtac o inst_spec) ctrms)
@@ -556,7 +557,7 @@ fun gen_frees_tac ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
       val vrs = Term.add_frees concl []
-      val cvrs = map (cterm_of thy o Free) vrs
+      val cvrs = map (Thm.cterm_of thy o Free) vrs
       val concl' = apply_under_Trueprop (all_list vrs) concl
       val goal = Logic.mk_implies (concl', concl)
       val rule = Goal.prove ctxt [] [] goal
@@ -616,10 +617,10 @@ fun procedure_inst ctxt rtrm qtrm =
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
     Drule.instantiate' []
-      [SOME (cterm_of thy rtrm'),
-       SOME (cterm_of thy reg_goal),
+      [SOME (Thm.cterm_of thy rtrm'),
+       SOME (Thm.cterm_of thy reg_goal),
        NONE,
-       SOME (cterm_of thy inj_goal)] procedure_thm
+       SOME (Thm.cterm_of thy inj_goal)] procedure_thm
   end
 
 
@@ -676,9 +677,9 @@ fun partiality_procedure_inst ctxt rtrm qtrm =
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
     Drule.instantiate' []
-      [SOME (cterm_of thy reg_goal),
+      [SOME (Thm.cterm_of thy reg_goal),
        NONE,
-       SOME (cterm_of thy inj_goal)] partiality_procedure_thm
+       SOME (Thm.cterm_of thy inj_goal)] partiality_procedure_thm
   end
 
 
@@ -734,7 +735,7 @@ fun lift_procedure_tac ctxt simps rthm =
                |> Thm.forall_intr_frees
                |> atomize_thm ctxt
 
-        val rule = procedure_inst ctxt (prop_of rthm') goal
+        val rule = procedure_inst ctxt (Thm.prop_of rthm') goal
       in
         (rtac rule THEN' rtac rthm') i
       end)
@@ -757,7 +758,7 @@ fun lift_tac ctxt simps rthms =
 fun lifted ctxt qtys simps rthm =
   let
     val ((_, [rthm']), ctxt') = Variable.import true [rthm] ctxt
-    val goal = Quotient_Term.derive_qtrm ctxt' qtys (prop_of rthm')
+    val goal = Quotient_Term.derive_qtrm ctxt' qtys (Thm.prop_of rthm')
   in
     Goal.prove ctxt' [] [] goal
       (K (HEADGOAL (lift_single_tac ctxt' simps rthm')))

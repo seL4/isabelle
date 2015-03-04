@@ -87,12 +87,12 @@ fun info_of_constr_permissive thy (c, T) =
 val info_of_case = Symtab.lookup o #cases o Data.get;
 
 fun ctrs_of_exhaust exhaust =
-  Logic.strip_imp_prems (prop_of exhaust) |>
+  Logic.strip_imp_prems (Thm.prop_of exhaust) |>
   map (head_of o snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o the_single
     o Logic.strip_assums_hyp);
 
 fun case_of_case_rewrite case_rewrite =
-  head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of case_rewrite))));
+  head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of case_rewrite))));
 
 fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
     case_cong_weak, split, split_asm, ...} : Old_Datatype_Aux.info) =

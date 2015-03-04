@@ -75,7 +75,7 @@ text {*
 
 simproc_setup unit_eq ("x::unit") = {*
   fn _ => fn _ => fn ct =>
-    if HOLogic.is_unit (term_of ct) then NONE
+    if HOLogic.is_unit (Thm.term_of ct) then NONE
     else SOME (mk_meta_eq @{thm unit_eq})
 *}
 
@@ -579,8 +579,10 @@ in
     | eta_proc _ _ = NONE;
 end;
 *}
-simproc_setup split_beta ("split f z") = {* fn _ => fn ctxt => fn ct => beta_proc ctxt (term_of ct) *}
-simproc_setup split_eta ("split f") = {* fn _ => fn ctxt => fn ct => eta_proc ctxt (term_of ct) *}
+simproc_setup split_beta ("split f z") =
+  {* fn _ => fn ctxt => fn ct => beta_proc ctxt (Thm.term_of ct) *}
+simproc_setup split_eta ("split f") =
+  {* fn _ => fn ctxt => fn ct => eta_proc ctxt (Thm.term_of ct) *}
 
 lemmas split_beta [mono] = prod.case_eq_if
 
@@ -1309,7 +1311,7 @@ subsection {* Inductively defined sets *}
 (* simplify {(x1, ..., xn). (x1, ..., xn) : S} to S *)
 simproc_setup Collect_mem ("Collect t") = {*
   fn _ => fn ctxt => fn ct =>
-    (case term_of ct of
+    (case Thm.term_of ct of
       S as Const (@{const_name Collect}, Type (@{type_name fun}, [_, T])) $ t =>
         let val (u, _, ps) = HOLogic.strip_psplits t in
           (case u of

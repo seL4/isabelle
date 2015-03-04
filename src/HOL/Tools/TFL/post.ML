@@ -26,7 +26,7 @@ struct
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.legacy_freeze o HOLogic.dest_Trueprop)
-      (fold_rev (union (op aconv) o prems_of) rules []);
+      (fold_rev (union (op aconv) o Thm.prems_of) rules []);
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It
@@ -62,17 +62,18 @@ fun id_thm th =
    handle Utils.ERR _ => false;
    
 val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
-fun mk_meta_eq r = case concl_of r of
+fun mk_meta_eq r =
+  (case Thm.concl_of r of
      Const(@{const_name Pure.eq},_)$_$_ => r
   |   _ $(Const(@{const_name HOL.eq},_)$_$_) => r RS eq_reflection
-  |   _ => r RS P_imp_P_eq_True
+  |   _ => r RS P_imp_P_eq_True)
 
 (*Is this the best way to invoke the simplifier??*)
 fun rewrite ctxt L = rewrite_rule ctxt (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums ctxt th =
   let val thy = Thm.theory_of_thm th
-      val tych = cterm_of thy
+      val tych = Thm.cterm_of thy
       val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
       val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o USyntax.strip_imp) rhs  (* but union is solider *)
@@ -120,7 +121,7 @@ fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
 
 (*lcp: curry the predicate of the induction rule*)
 fun curry_rule ctxt rl =
-  Split_Rule.split_rule_var ctxt (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
+  Split_Rule.split_rule_var ctxt (Term.head_of (HOLogic.dest_Trueprop (Thm.concl_of rl))) rl;
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 fun meta_outer ctxt =
@@ -187,7 +188,7 @@ fun define_i strict ctxt congs wfs fid R eqs thy =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy fid R functional
       val ctxt = Proof_Context.transfer thy ctxt
-      val (lhs, _) = Logic.dest_equals (prop_of def)
+      val (lhs, _) = Logic.dest_equals (Thm.prop_of def)
       val {induct, rules, tcs} = simplify_defn strict thy ctxt congs wfs fid pats def
       val rules' = 
           if strict then derive_init_eqs ctxt rules eqs

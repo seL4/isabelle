@@ -57,12 +57,12 @@ fun try_prove_refl_rel ctxt rel =
 fun try_prove_reflexivity ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt
-    val cprop = cterm_of thy prop
+    val cprop = Thm.cterm_of thy prop
     val rule = @{thm ge_eq_refl}
-    val concl_pat = Drule.strip_imp_concl (cprop_of rule)
+    val concl_pat = Drule.strip_imp_concl (Thm.cprop_of rule)
     val insts = Thm.first_order_match (concl_pat, cprop)
     val rule = Drule.instantiate_normalize insts rule
-    val prop = hd (prems_of rule)
+    val prop = hd (Thm.prems_of rule)
   in
     case mono_eq_prover ctxt prop of
       SOME thm => SOME (thm RS rule)
@@ -83,7 +83,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
   let
     fun preprocess ctxt thm =
       let
-        val tm = (strip_args 2 o HOLogic.dest_Trueprop o concl_of) thm;
+        val tm = (strip_args 2 o HOLogic.dest_Trueprop o Thm.concl_of) thm;
         val param_rel = (snd o dest_comb o fst o dest_comb) tm;
         val thy = Proof_Context.theory_of ctxt;
         val free_vars = Term.add_vars param_rel [];
@@ -99,25 +99,26 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
           end;
         
         val subst = fold make_subst free_vars [];
-        val csubst = map (apply2 (cterm_of thy)) subst;
+        val csubst = map (apply2 (Thm.cterm_of thy)) subst;
         val inst_thm = Drule.cterm_instantiate csubst thm;
       in
         Conv.fconv_rule 
-          ((Conv.concl_conv (nprems_of inst_thm) o HOLogic.Trueprop_conv o Conv.fun2_conv o Conv.arg1_conv)
+          ((Conv.concl_conv (Thm.nprems_of inst_thm) o
+            HOLogic.Trueprop_conv o Conv.fun2_conv o Conv.arg1_conv)
             (Raw_Simplifier.rewrite ctxt false (Transfer.get_sym_relator_eq ctxt))) inst_thm
       end
 
     fun inst_relcomppI thy ant1 ant2 =
       let
-        val t1 = (HOLogic.dest_Trueprop o concl_of) ant1
-        val t2 = (HOLogic.dest_Trueprop o prop_of) ant2
-        val fun1 = cterm_of thy (strip_args 2 t1)
-        val args1 = map (cterm_of thy) (get_args 2 t1)
-        val fun2 = cterm_of thy (strip_args 2 t2)
-        val args2 = map (cterm_of thy) (get_args 1 t2)
+        val t1 = (HOLogic.dest_Trueprop o Thm.concl_of) ant1
+        val t2 = (HOLogic.dest_Trueprop o Thm.prop_of) ant2
+        val fun1 = Thm.cterm_of thy (strip_args 2 t1)
+        val args1 = map (Thm.cterm_of thy) (get_args 2 t1)
+        val fun2 = Thm.cterm_of thy (strip_args 2 t2)
+        val args2 = map (Thm.cterm_of thy) (get_args 1 t2)
         val relcomppI = Drule.incr_indexes2 ant1 ant2 @{thm relcomppI}
-        val vars = (rev (Term.add_vars (prop_of relcomppI) []))
-        val subst = map (apfst ((cterm_of thy) o Var)) (vars ~~ ([fun1] @ args1 @ [fun2] @ args2))
+        val vars = (rev (Term.add_vars (Thm.prop_of relcomppI) []))
+        val subst = map (apfst (Thm.cterm_of thy o Var)) (vars ~~ ([fun1] @ args1 @ [fun2] @ args2))
       in
         Drule.cterm_instantiate subst relcomppI
       end
@@ -126,11 +127,12 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
       let
         val thy = Proof_Context.theory_of ctxt
         fun mk_POS ty = Const (@{const_name POS}, ty --> ty --> HOLogic.boolT)
-        val rel = (Thm.dest_fun2 o Thm.dest_arg o cprop_of) thm
-        val typ = (typ_of o ctyp_of_term) rel
-        val POS_const = cterm_of thy (mk_POS typ)
-        val var = cterm_of thy (Var (("X", #maxidx (rep_cterm (rel)) + 1), typ))
-        val goal = Thm.apply (cterm_of thy HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
+        val rel = (Thm.dest_fun2 o Thm.dest_arg o Thm.cprop_of) thm
+        val typ = (Thm.typ_of o Thm.ctyp_of_term) rel
+        val POS_const = Thm.cterm_of thy (mk_POS typ)
+        val var = Thm.cterm_of thy (Var (("X", #maxidx (Thm.rep_cterm (rel)) + 1), typ))
+        val goal =
+          Thm.apply (Thm.cterm_of thy HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
       in
         [Lifting_Term.merge_transfer_relations ctxt goal, thm] MRSL @{thm POS_apply}
       end
@@ -208,13 +210,13 @@ fun force_rty_type ctxt rty rhs =
 
 fun unabs_def ctxt def = 
   let
-    val (_, rhs) = Thm.dest_equals (cprop_of def)
+    val (_, rhs) = Thm.dest_equals (Thm.cprop_of def)
     fun dest_abs (Abs (var_name, T, _)) = (var_name, T)
       | dest_abs tm = raise TERM("get_abs_var",[tm])
-    val (var_name, T) = dest_abs (term_of rhs)
+    val (var_name, T) = dest_abs (Thm.term_of rhs)
     val (new_var_names, ctxt') = Variable.variant_fixes [var_name] ctxt
     val thy = Proof_Context.theory_of ctxt'
-    val refl_thm = Thm.reflexive (cterm_of thy (Free (hd new_var_names, T)))
+    val refl_thm = Thm.reflexive (Thm.cterm_of thy (Free (hd new_var_names, T)))
   in
     Thm.combination def refl_thm |>
     singleton (Proof_Context.export ctxt' ctxt)
@@ -222,8 +224,8 @@ fun unabs_def ctxt def =
 
 fun unabs_all_def ctxt def = 
   let
-    val (_, rhs) = Thm.dest_equals (cprop_of def)
-    val xs = strip_abs_vars (term_of rhs)
+    val (_, rhs) = Thm.dest_equals (Thm.cprop_of def)
+    val xs = strip_abs_vars (Thm.term_of rhs)
   in  
     fold (K (unabs_def ctxt)) xs def
   end
@@ -295,11 +297,11 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
         val rel_fun = prove_rel ctxt rsp_thm (rty, qty)
         val rep_abs_thm = [quot_thm, rel_fun] MRSL @{thm Quotient_rep_abs_eq}
       in
-        case mono_eq_prover ctxt (hd(prems_of rep_abs_thm)) of
+        case mono_eq_prover ctxt (hd (Thm.prems_of rep_abs_thm)) of
           SOME mono_eq_thm =>
             let
               val rep_abs_eq = mono_eq_thm RS rep_abs_thm
-              val rep = (cterm_of thy o quot_thm_rep) quot_thm
+              val rep = (Thm.cterm_of thy o quot_thm_rep) quot_thm
               val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
               val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
               val code_cert = [repped_eq, rep_abs_eq] MRSL trans
@@ -323,11 +325,11 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
         val rep_abs_folded_unmapped_thm = 
           let
             val rep_id = [quot_thm, def_thm] MRSL @{thm Quotient_Rep_eq}
-            val ctm = Thm.dest_equals_lhs (cprop_of rep_id)
+            val ctm = Thm.dest_equals_lhs (Thm.cprop_of rep_id)
             val unfolded_maps_eq = unfold_fun_maps ctm
             val t1 = [quot_thm, def_thm, rsp_thm] MRSL @{thm Quotient_rep_abs_fold_unmap}
             val prems_pat = (hd o Drule.cprems_of) t1
-            val insts = Thm.first_order_match (prems_pat, cprop_of unfolded_maps_eq)
+            val insts = Thm.first_order_match (prems_pat, Thm.cprop_of unfolded_maps_eq)
           in
             unfolded_maps_eq RS (Drule.instantiate_normalize insts t1)
           end
@@ -354,7 +356,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
       | no_abstr (Const (name, _)) = not (Code.is_abstr thy name)
       | no_abstr _ = true
     fun is_valid_eq eqn = can (Code.assert_eqn thy) (mk_meta_eq eqn, true) 
-      andalso no_abstr (prop_of eqn)
+      andalso no_abstr (Thm.prop_of eqn)
     fun is_valid_abs_eq abs_eq = can (Code.assert_abs_eqn thy NONE) (mk_meta_eq abs_eq)
 
   in
@@ -378,7 +380,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 local
   fun encode_code_eq thy abs_eq opt_rep_eq (rty, qty) = 
     let
-      fun mk_type typ = typ |> Logic.mk_type |> cterm_of thy |> Drule.mk_term
+      fun mk_type typ = typ |> Logic.mk_type |> Thm.cterm_of thy |> Drule.mk_term
     in
       Conjunction.intr_balanced [abs_eq, (the_default TrueI opt_rep_eq), mk_type rty, mk_type qty]
     end
@@ -386,12 +388,12 @@ local
   exception DECODE
     
   fun decode_code_eq thm =
-    if nprems_of thm > 0 then raise DECODE 
+    if Thm.nprems_of thm > 0 then raise DECODE 
     else
       let
         val [abs_eq, rep_eq, rty, qty] = Conjunction.elim_balanced 4 thm
         val opt_rep_eq = if Thm.eq_thm_prop (rep_eq, TrueI) then NONE else SOME rep_eq
-        fun dest_type typ = typ |> Drule.dest_term |> term_of |> Logic.dest_type
+        fun dest_type typ = typ |> Drule.dest_term |> Thm.term_of |> Logic.dest_type
       in
         (abs_eq, opt_rep_eq, (dest_type rty, dest_type qty)) 
       end
@@ -508,7 +510,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
             map_interrupt prove assms
           end
     
-        fun cconl_of thm = Drule.strip_imp_concl (cprop_of thm)
+        fun cconl_of thm = Drule.strip_imp_concl (Thm.cprop_of thm)
         fun lhs_of thm = fst (Thm.dest_equals (cconl_of thm))
         fun rhs_of thm = snd (Thm.dest_equals (cconl_of thm))
         val rule1 = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) rule;
@@ -622,7 +624,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val (prsp_tm, rsp_prsp_eq) = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
       |> Proof_Context.cterm_of lthy
       |> cr_to_pcr_conv
-      |> ` concl_of
+      |> `Thm.concl_of
       |>> Logic.dest_equals
       |>> snd
     val to_rsp = rsp_prsp_eq RS Drule.equal_elim_rule2
@@ -637,7 +639,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
       | NONE =>  
         let
           val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
-          val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
+          val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
           val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
       
           fun after_qed' thm_list lthy = 

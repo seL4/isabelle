@@ -260,7 +260,7 @@ fun mk_mono ctxt thm =
     fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
       handle THM _ => thm RS @{thm le_boolD}
   in
-    (case concl_of thm of
+    (case Thm.concl_of thm of
       Const (@{const_name Pure.eq}, _) $ _ $ _ => eq_to_mono (thm RS meta_eq_to_obj_eq)
     | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => eq_to_mono thm
     | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
@@ -636,7 +636,7 @@ fun mk_simp_eq ctxt prop =
       | _ => error
         ("equations matching pattern " ^ Syntax.string_of_term ctxt prop ^ " is not unique"));
     val inst =
-      map (fn v => (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v))))
+      map (fn v => (Thm.cterm_of thy (Var v), Thm.cterm_of thy (Envir.subst_term subst (Var v))))
         (Term.add_vars (lhs_of eq) []);
   in
     Drule.cterm_instantiate inst eq
@@ -1101,12 +1101,12 @@ fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
 fun arities_of induct =
   map (fn (_ $ t $ u) =>
       (fst (dest_Const (head_of t)), length (snd (strip_comb u))))
-    (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+    (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct)));
 
 (* read off parameters of inductive predicate from raw induction rule *)
 fun params_of induct =
   let
-    val (_ $ t $ u :: _) = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct));
+    val (_ $ t $ u :: _) = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct));
     val (_, ts) = strip_comb t;
     val (_, us) = strip_comb u;
   in
@@ -1114,7 +1114,7 @@ fun params_of induct =
   end;
 
 val pname_of_intr =
-  concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const #> fst;
+  Thm.concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const #> fst;
 
 (* partition introduction rules according to predicate name *)
 fun gen_partition_rules f induct intros =
@@ -1131,9 +1131,9 @@ fun unpartition_rules intros xs =
 (* infer order of variables in intro rules from order of quantifiers in elim rule *)
 fun infer_intro_vars elim arity intros =
   let
-    val thy = theory_of_thm elim;
-    val _ :: cases = prems_of elim;
-    val used = map (fst o fst) (Term.add_vars (prop_of elim) []);
+    val thy = Thm.theory_of_thm elim;
+    val _ :: cases = Thm.prems_of elim;
+    val used = map (fst o fst) (Term.add_vars (Thm.prop_of elim) []);
     fun mtch (t, u) =
       let
         val params = Logic.strip_params t;
@@ -1150,7 +1150,7 @@ fun infer_intro_vars elim arity intros =
         map (Envir.subst_term tab) vars
       end
   in
-    map (mtch o apsnd prop_of) (cases ~~ intros)
+    map (mtch o apsnd Thm.prop_of) (cases ~~ intros)
   end;
 
 

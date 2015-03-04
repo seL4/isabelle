@@ -158,7 +158,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
       (case Termination.get_descent D (nth cs cidx) m1 m2 of
         SOME (Termination.Less thm) =>
           if bStrict then thm
-          else (thm COMP (Thm.lift_rule (cprop_of thm) @{thm less_imp_le}))
+          else (thm COMP (Thm.lift_rule (Thm.cprop_of thm) @{thm less_imp_le}))
       | SOME (Termination.LessEq (thm, _))  =>
           if not bStrict then thm
           else raise Fail "get_desc_thm"
@@ -272,7 +272,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
     val level_mapping =
       map_index pt_lev lev
         |> Termination.mk_sumcases D (setT nat_pairT)
-        |> cterm_of thy
+        |> Thm.cterm_of thy
     in
       PROFILE "Proof Reconstruction"
         (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1

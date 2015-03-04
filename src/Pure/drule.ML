@@ -130,7 +130,7 @@ fun strip_imp_concl ct =
   | _ => ct);
 
 (*The premises of a theorem, as a cterm list*)
-val cprems_of = strip_imp_prems o cprop_of;
+val cprems_of = strip_imp_prems o Thm.cprop_of;
 
 fun cterm_fun f ct = Thm.cterm_of (Thm.theory_of_cterm ct) (f (Thm.term_of ct));
 fun ctyp_fun f cT = Thm.ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
@@ -168,7 +168,7 @@ fun strip_type cT = (case Thm.typ_of cT of
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
 fun beta_conv x y =
-  Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.apply x y)));
+  Thm.dest_arg (Thm.cprop_of (Thm.beta_conversion false (Thm.apply x y)));
 
 
 
@@ -406,8 +406,8 @@ val transitive_thm =
 
 fun extensional eq =
   let val eq' =
-    Thm.abstract_rule "x" (Thm.dest_arg (fst (Thm.dest_equals (cprop_of eq)))) eq
-  in Thm.equal_elim (Thm.eta_conversion (cprop_of eq')) eq' end;
+    Thm.abstract_rule "x" (Thm.dest_arg (fst (Thm.dest_equals (Thm.cprop_of eq)))) eq
+  in Thm.equal_elim (Thm.eta_conversion (Thm.cprop_of eq')) eq' end;
 
 val equals_cong =
   store_standard_thm_open (Binding.make ("equals_cong", @{here}))
@@ -452,7 +452,7 @@ fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM in 
 fun binop_cong_rule ct th1 th2 = Thm.combination (arg_cong_rule ct th1) th2;
 
 local
-  val dest_eq = Thm.dest_equals o cprop_of
+  val dest_eq = Thm.dest_equals o Thm.cprop_of
   val rhs_of = snd o dest_eq
 in
 fun beta_eta_conversion t =
@@ -467,7 +467,7 @@ fun eta_long_conversion ct =
 
 (*Contract all eta-redexes in the theorem, lest they give rise to needless abstractions*)
 fun eta_contraction_rule th =
-  Thm.equal_elim (Thm.eta_conversion (cprop_of th)) th;
+  Thm.equal_elim (Thm.eta_conversion (Thm.cprop_of th)) th;
 
 
 (* abs_def *)
@@ -482,7 +482,7 @@ local
 
 fun contract_lhs th =
   Thm.transitive (Thm.symmetric (beta_eta_conversion
-    (fst (Thm.dest_equals (cprop_of th))))) th;
+    (fst (Thm.dest_equals (Thm.cprop_of th))))) th;
 
 fun var_args ct =
   (case try Thm.dest_comb ct of
@@ -793,7 +793,7 @@ fun cterm_instantiate [] th = th
   | cterm_instantiate ctpairs th =
       let
         val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
-        val certT = ctyp_of thy;
+        val certT = Thm.ctyp_of thy;
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
             cons (certT (TVar (xi, S)), certT (Envir.norm_type tye T))) tye [];

@@ -103,7 +103,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
       | use_fabs t       = t
 
     val cnames         = map (#1 o dest_Const) constructors
-    and recursor_pairs = map (dest_eqn o concl_of) rec_rewrites
+    and recursor_pairs = map (dest_eqn o Thm.concl_of) rec_rewrites
 
     fun absterm (Free x, body) = absfree x body
       | absterm (t, body) = Abs("rec", Ind_Syntax.iT, abstract_over (t, body))

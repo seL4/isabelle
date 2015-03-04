@@ -73,7 +73,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
       |> fold Simplifier.add_cong @{thms conj_le_cong imp_le_cong}
     (* simp rules for elimination of abs *)
     val simpset3 = put_simpset HOL_basic_ss ctxt |> Splitter.add_split @{thm abs_split}
-    val ct = cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
@@ -83,10 +83,10 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac ctxt i)
     (* The result of the quantifier elimination *)
     val (th, tac) =
-      (case (prop_of pre_thm) of
+      (case Thm.prop_of pre_thm of
         Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
           let
-            val pth = linzqe_oracle (cterm_of thy (Envir.eta_long [] t1))
+            val pth = linzqe_oracle (Thm.cterm_of thy (Envir.eta_long [] t1))
           in
             ((pth RS iffD2) RS pre_thm,
               assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))

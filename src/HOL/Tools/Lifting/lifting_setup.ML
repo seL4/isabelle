@@ -98,7 +98,7 @@ local
 in
   fun define_pcr_cr_eq lthy pcr_rel_def =
     let
-      val lhs = (term_of o Thm.lhs_of) pcr_rel_def
+      val lhs = (Thm.term_of o Thm.lhs_of) pcr_rel_def
       val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type o List.last o binder_types o fastype_of) lhs
       val args = (snd o strip_comb) lhs
       
@@ -109,7 +109,7 @@ in
           val (fresh_var, ctxt) = yield_singleton Variable.invent_types sort ctxt
           val thy = Proof_Context.theory_of ctxt
         in
-          ((cterm_of thy var, cterm_of thy (HOLogic.eq_const (TFree fresh_var))), ctxt)
+          ((Thm.cterm_of thy var, Thm.cterm_of thy (HOLogic.eq_const (TFree fresh_var))), ctxt)
         end
       
       val orig_lthy = lthy
@@ -120,7 +120,7 @@ in
         |> Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv 
           (Transfer.bottom_rewr_conv (Transfer.get_relator_eq lthy))))
   in
-    case (term_of o Thm.rhs_of) pcr_cr_eq of
+    case (Thm.term_of o Thm.rhs_of) pcr_cr_eq of
       Const (@{const_name "relcompp"}, _) $ Const (@{const_name HOL.eq}, _) $ _ =>
         let
           val thm = 
@@ -172,13 +172,13 @@ in
 fun quot_thm_sanity_check ctxt quot_thm =
   let
     val _ = 
-      if (nprems_of quot_thm > 0) then   
+      if (Thm.nprems_of quot_thm > 0) then   
           raise QUOT_ERROR [Pretty.block
             [Pretty.str "The Quotient theorem has extra assumptions:",
              Pretty.brk 1,
              Display.pretty_thm ctxt quot_thm]]
       else ()
-    val _ = quot_thm |> concl_of |> HOLogic.dest_Trueprop |> dest_Quotient
+    val _ = quot_thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> dest_Quotient
     handle TERM _ => raise QUOT_ERROR
           [Pretty.block
             [Pretty.str "The Quotient theorem is not of the right form:",
@@ -290,7 +290,7 @@ in
       val thy = Proof_Context.theory_of ctxt
       val orig_ctxt = ctxt
       val (fixed_goal, ctxt) = yield_singleton (import_terms_exclude not_fix) goal ctxt
-      val init_goal = Goal.init (cterm_of thy fixed_goal)
+      val init_goal = Goal.init (Thm.cterm_of thy fixed_goal)
     in
       (singleton (Variable.export ctxt orig_ctxt) o Goal.conclude) (the (SINGLE tac init_goal))
     end
@@ -307,7 +307,7 @@ in
           val thy = Proof_Context.theory_of ctxt
           val orig_ctxt = ctxt
           val (fixed_goal, ctxt) = yield_singleton (Variable.import_terms true) goal ctxt
-          val init_goal = Goal.init (cterm_of thy fixed_goal)
+          val init_goal = Goal.init (Thm.cterm_of thy fixed_goal)
           val rules = Transfer.get_transfer_raw ctxt
           val rules = constraint :: OO_rules @ rules
           val tac =
@@ -318,8 +318,9 @@ in
       
       fun make_goal pcr_def constr =
         let 
-          val pred_name = (fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o prop_of) constr
-          val arg = (fst o Logic.dest_equals o prop_of) pcr_def
+          val pred_name =
+            (fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o Thm.prop_of) constr
+          val arg = (fst o Logic.dest_equals o Thm.prop_of) pcr_def
         in
           HOLogic.mk_Trueprop ((Const (pred_name, (fastype_of arg) --> HOLogic.boolT)) $ arg)
         end
@@ -337,8 +338,9 @@ in
         in
           fn thm => 
             let
-              val prems = map HOLogic.dest_Trueprop (prems_of thm)
-              val thm_name = (Long_Name.base_name o fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o concl_of) thm
+              val prems = map HOLogic.dest_Trueprop (Thm.prems_of thm)
+              val thm_name =
+                (Long_Name.base_name o fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm
               val non_trivial_assms = filter_out is_trivial_assm prems
             in
               if null non_trivial_assms then ()
@@ -378,9 +380,9 @@ in
          @{thm id_transfer}
         |> Thm.incr_indexes (Term.maxidx_of_term parametrized_relator + 1)
         |> Conv.fconv_rule(HOLogic.Trueprop_conv (Conv.arg_conv id_unfold then_conv Conv.arg1_conv id_unfold))
-      val var = Var (hd (Term.add_vars (prop_of id_transfer) []))
+      val var = Var (hd (Term.add_vars (Thm.prop_of id_transfer) []))
       val thy = Proof_Context.theory_of lthy
-      val inst = [(cterm_of thy var, cterm_of thy parametrized_relator)]
+      val inst = [(Thm.cterm_of thy var, Thm.cterm_of thy parametrized_relator)]
       val id_par_thm = Drule.cterm_instantiate inst id_transfer
     in
       Lifting_Def.generate_parametric_transfer_rule lthy id_transfer_rule id_par_thm
@@ -403,7 +405,9 @@ local
   
   fun fold_Domainp_pcrel pcrel_def thm =
     let
-      val ct = thm |> cprop_of |> Drule.strip_imp_concl |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_arg
+      val ct =
+        thm |> Thm.cprop_of |> Drule.strip_imp_concl
+        |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_arg
       val pcrel_def = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) pcrel_def
       val thm = Thm.instantiate (Thm.match (ct, Thm.rhs_of pcrel_def)) thm
         handle Pattern.MATCH => raise CTERM ("fold_Domainp_pcrel", [ct, Thm.rhs_of pcrel_def])
@@ -413,7 +417,7 @@ local
 
   fun reduce_Domainp ctxt rules thm =
     let
-      val goal = thm |> prems_of |> hd
+      val goal = thm |> Thm.prems_of |> hd
       val var = goal |> HOLogic.dest_Trueprop |> dest_comb |> snd |> dest_Var 
       val reduced_assm =
         reduce_goal [var] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
@@ -425,7 +429,7 @@ in
     let
       fun reduce_first_assm ctxt rules thm =
         let
-          val goal = thm |> prems_of |> hd
+          val goal = thm |> Thm.prems_of |> hd
           val reduced_assm =
             reduce_goal [] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
         in
@@ -626,7 +630,7 @@ fun setup_by_typedef_thm typedef_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val transfer_domain_attr = Attrib.internal (K Transfer.transfer_domain_add)
-    val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
+    val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o Thm.prop_of) typedef_thm
     val (T_def, lthy) = define_crel rep_fun lthy
     (**)
     val T_def = Morphism.thm (Local_Theory.target_morphism lthy) T_def
@@ -742,12 +746,12 @@ fun setup_by_typedef_thm typedef_thm lthy =
 fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
   let 
     val input_thm = singleton (Attrib.eval_thms lthy) xthm
-    val input_term = (HOLogic.dest_Trueprop o prop_of) input_thm
+    val input_term = (HOLogic.dest_Trueprop o Thm.prop_of) input_thm
       handle TERM _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
 
     fun sanity_check_reflp_thm reflp_thm = 
       let
-        val reflp_tm = (HOLogic.dest_Trueprop o prop_of) reflp_thm
+        val reflp_tm = (HOLogic.dest_Trueprop o Thm.prop_of) reflp_thm
           handle TERM _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       in
         case reflp_tm of
@@ -813,13 +817,13 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
           let
             val pcrel_def = #pcrel_def pcr
             val pcr_cr_eq = #pcr_cr_eq pcr
-            val (def_lhs, _) = Logic.dest_equals (prop_of pcrel_def)
+            val (def_lhs, _) = Logic.dest_equals (Thm.prop_of pcrel_def)
               handle TERM _ => raise PCR_ERROR [Pretty.block 
                     [Pretty.str "The pcr definiton theorem is not a plain meta equation:",
                     Pretty.brk 1,
                     Display.pretty_thm ctxt pcrel_def]]
             val pcr_const_def = head_of def_lhs
-            val (eq_lhs, eq_rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of pcr_cr_eq))
+            val (eq_lhs, eq_rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of pcr_cr_eq))
               handle TERM _ => raise PCR_ERROR [Pretty.block 
                     [Pretty.str "The pcr_cr equation theorem is not a plain equation:",
                     Pretty.brk 1,
@@ -939,7 +943,7 @@ fun filter_transfer_rules_by_rel transfer_rel transfer_rules =
     val transfer_rel_name = transfer_rel |> dest_Const |> fst;
     fun has_transfer_rel thm = 
       let
-        val concl = thm |> concl_of |> HOLogic.dest_Trueprop
+        val concl = thm |> Thm.concl_of |> HOLogic.dest_Trueprop
       in
         member op= (fold_transfer_rel (fn tm => Term.add_const_names tm []) concl) transfer_rel_name
       end
@@ -952,7 +956,7 @@ type restore_data = {quotient : Lifting_Info.quotient, transfer_rules: thm Item_
 
 fun get_transfer_rel (qinfo : Lifting_Info.quotient) =
   let
-    fun get_pcrel pcr_def = pcr_def |> concl_of |> Logic.dest_equals |> fst |> head_of
+    fun get_pcrel pcr_def = pcr_def |> Thm.concl_of |> Logic.dest_equals |> fst |> head_of
   in
     if is_some (#pcr_info qinfo) 
       then get_pcrel (#pcrel_def (the (#pcr_info qinfo)))

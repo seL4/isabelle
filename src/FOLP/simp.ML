@@ -67,7 +67,7 @@ fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Thm.eq_thm_prop (th1,
 
 (*insert a thm in a discrimination net by its lhs*)
 fun lhs_insert_thm th net =
-    Net.insert_term eq_brl (lhs_of (concl_of th), (false,th)) net
+    Net.insert_term eq_brl (lhs_of (Thm.concl_of th), (false,th)) net
     handle  Net.INSERT => net;
 
 (*match subgoal i against possible theorems in the net.
@@ -83,7 +83,7 @@ fun lhs_net_tac net =
           biresolve0_tac (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
-fun nth_subgoal i thm = nth (prems_of thm) (i - 1);
+fun nth_subgoal i thm = nth (Thm.prems_of thm) (i - 1);
 
 fun goal_concl i thm = Logic.strip_assums_concl (nth_subgoal i thm);
 
@@ -111,7 +111,7 @@ val (normI_thms,normE_thms) = split_list norm_thms;
 (*Get the norm constants from norm_thms*)
 val norms =
   let fun norm thm =
-      case lhs_of(concl_of thm) of
+      case lhs_of (Thm.concl_of thm) of
           Const(n,_)$_ => n
         | _ => error "No constant in lhs of a norm_thm"
   in map norm normE_thms end;
@@ -145,7 +145,7 @@ fun res1(thm,thms,i) = one_result(resolve0_tac thms i,thm);
 
 (*get name of the constant from conclusion of a congruence rule*)
 fun cong_const cong =
-    case head_of (lhs_of (concl_of cong)) of
+    case head_of (lhs_of (Thm.concl_of cong)) of
         Const(c,_) => c
       | _ => ""                 (*a placeholder distinct from const names*);
 
@@ -189,10 +189,10 @@ fun add_new_asm_vars new_asms =
 fun add_norms(congs,ccs,new_asms) thm =
 let val thm' = mk_trans2 thm;
 (* thm': [?z -> l; Prems; r -> ?t] ==> ?z -> ?t *)
-    val nops = nprems_of thm'
+    val nops = Thm.nprems_of thm'
     val lhs = rhs_of_eq 1 thm'
     val rhs = lhs_of_eq nops thm'
-    val asms = tl(rev(tl(prems_of thm')))
+    val asms = tl(rev(tl(Thm.prems_of thm')))
     val hvars = fold_rev (add_hidden_vars ccs) (lhs::rhs::asms) []
     val hvars = add_new_asm_vars new_asms (rhs,hvars)
     fun it_asms asm hvars =
@@ -216,7 +216,7 @@ in thm'' end;
 fun add_norm_tags congs =
     let val ccs = map cong_const congs
         val new_asms = filter (exists not o #2)
-                (ccs ~~ (map (map atomic o prems_of) congs));
+                (ccs ~~ (map (map atomic o Thm.prems_of) congs));
     in add_norms(congs,ccs,new_asms) end;
 
 fun normed_rews congs =
@@ -252,7 +252,7 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 
 (*insert a thm in a thm net*)
 fun insert_thm_warn th net =
-  Net.insert_term Thm.eq_thm_prop (concl_of th, th) net
+  Net.insert_term Thm.eq_thm_prop (Thm.concl_of th, th) net
   handle Net.INSERT =>
     (writeln ("Duplicate rewrite or congruence rule:\n" ^
         Display.string_of_thm_without_context th); net);
@@ -278,7 +278,7 @@ end;
 
 (*delete a thm from a thm net*)
 fun delete_thm_warn th net =
-  Net.delete_term Thm.eq_thm_prop (concl_of th, th) net
+  Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net
   handle Net.DELETE =>
     (writeln ("No such rewrite or congruence rule:\n" ^
         Display.string_of_thm_without_context th); net);
@@ -348,7 +348,7 @@ fun IF1_TAC cong_tac i =
               | seq_try([],_) thm = no_tac thm
         and try_rew thm = (seq_try(case_rews,case_consts) ORELSE one_subt) thm
         and one_subt thm =
-                let val test = has_fewer_prems (nprems_of thm + 1)
+                let val test = has_fewer_prems (Thm.nprems_of thm + 1)
                     fun loop thm =
                         COND test no_tac
                           ((try_rew THEN DEPTH_FIRST test (refl_tac i))
@@ -424,8 +424,8 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
     else case Seq.pull(cong_tac i thm) of
             SOME(thm',_) =>
-                    let val ps = prems_of thm
-                        and ps' = prems_of thm';
+                    let val ps = Thm.prems_of thm
+                        and ps' = Thm.prems_of thm';
                         val n = length(ps')-length(ps);
                         val a = length(Logic.strip_assums_hyp(nth ps (i - 1)))
                         val l = map (length o Logic.strip_assums_hyp) (take n (drop (i-1) ps'));
@@ -436,7 +436,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-        val thms = map (Thm.trivial o cterm_of(Thm.theory_of_thm thm)) As;
+        val thms = map (Thm.trivial o Thm.cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = fold_rev lhs_insert_thm rwrls anet;
@@ -449,7 +449,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
 
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
       SOME(thm',seq') =>
-            let val n = (nprems_of thm') - (nprems_of thm)
+            let val n = (Thm.nprems_of thm') - (Thm.nprems_of thm)
             in pr_rew(i,n,thm,thm',more);
                if n=0 then (SIMP_LHS::ss, thm', anet, ats, cs)
                else ((replicate n PROVE) @ (POP_CS::SIMP_LHS::ss),
@@ -499,7 +499,7 @@ fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn i =>
     (fn thm =>
-     if i <= 0 orelse nprems_of thm < i then Seq.empty
+     if i <= 0 orelse Thm.nprems_of thm < i then Seq.empty
      else Seq.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
     THEN TRY(auto_tac i)
 end;
@@ -547,8 +547,8 @@ in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 
 fun find_subst sg T =
 let fun find (thm::thms) =
-        let val (Const(_,cT), va, vb) = dest_red(hd(prems_of thm));
-            val [P] = subtract (op =) [va, vb] (Misc_Legacy.add_term_vars (concl_of thm, []));
+        let val (Const(_,cT), va, vb) = dest_red(hd(Thm.prems_of thm));
+            val [P] = subtract (op =) [va, vb] (Misc_Legacy.add_term_vars (Thm.concl_of thm, []));
             val eqT::_ = binder_types cT
         in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
            else find thms
@@ -559,12 +559,12 @@ in find subst_thms end;
 fun mk_cong sg (f,aTs,rT) (refl,eq) =
 let val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
-        let val ca = cterm_of sg va
-            and cx = cterm_of sg (eta_Var(("X"^si,0),T))
-            val cb = cterm_of sg vb
-            and cy = cterm_of sg (eta_Var(("Y"^si,0),T))
-            val cP = cterm_of sg P
-            and cp = cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
+        let val ca = Thm.cterm_of sg va
+            and cx = Thm.cterm_of sg (eta_Var(("X"^si,0),T))
+            val cb = Thm.cterm_of sg vb
+            and cy = Thm.cterm_of sg (eta_Var(("Y"^si,0),T))
+            val cP = Thm.cterm_of sg P
+            and cp = Thm.cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
         in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
         let val si = radixstring(26,"a",i)
@@ -579,7 +579,7 @@ in mk(refl,rev aTs,k-1,[]) end;
 fun mk_cong_type sg (f,T) =
 let val (aTs,rT) = strip_type T;
     fun find_refl(r::rs) =
-        let val (Const(eq,eqT),_,_) = dest_red(concl_of r)
+        let val (Const(eq,eqT),_,_) = dest_red(Thm.concl_of r)
         in if Sign.typ_instance sg (rT, hd(binder_types eqT))
            then SOME(r,(eq,body_type eqT)) else find_refl rs
         end

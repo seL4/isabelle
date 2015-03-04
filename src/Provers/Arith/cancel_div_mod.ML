@@ -72,7 +72,7 @@ fun cancel ctxt t pq =
 
 fun proc ctxt ct =
   let
-    val t = term_of ct;
+    val t = Thm.term_of ct;
     val (divs, mods) = coll_div_mod t ([], []);
   in
     if null divs orelse null mods then NONE

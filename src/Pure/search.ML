@@ -56,7 +56,7 @@ fun DEPTH_FIRST satp tac =
 
 
 (*Predicate: Does the rule have fewer than n premises?*)
-fun has_fewer_prems n rule = (nprems_of rule < n);
+fun has_fewer_prems n rule = Thm.nprems_of rule < n;
 
 (*Apply a tactic if subgoals remain, else do nothing.*)
 val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
@@ -67,16 +67,16 @@ fun SOLVE tac = tac THEN COND (has_fewer_prems 1) all_tac no_tac;
 (*Execute tac1, but only execute tac2 if there are at least as many subgoals
   as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
 fun (tac1 THEN_MAYBE tac2) st =
-  (tac1  THEN  COND (has_fewer_prems (nprems_of st)) all_tac tac2)  st;
+  (tac1 THEN COND (has_fewer_prems (Thm.nprems_of st)) all_tac tac2) st;
 
 fun (tac1 THEN_MAYBE' tac2) x = tac1 x THEN_MAYBE tac2 x;
 
 (*Tactical to reduce the number of premises by 1.
   If no subgoals then it must fail! *)
 fun DEPTH_SOLVE_1 tac st = st |>
-    (case nprems_of st of
-        0 => no_tac
-      | n => DEPTH_FIRST (has_fewer_prems n) tac);
+  (case Thm.nprems_of st of
+    0 => no_tac
+  | n => DEPTH_FIRST (has_fewer_prems n) tac);
 
 (*Uses depth-first search to solve ALL subgoals*)
 val DEPTH_SOLVE = DEPTH_FIRST (has_fewer_prems 1);
@@ -153,9 +153,9 @@ fun THEN_ITER_DEEPEN lim tac0 satp tac1 = traced_tac (fn st =>
                          (fn()=> depth (bnd,inc) ((k,np,rgd,stq)::qs)))
 
                else
-               let val np' = nprems_of st
+               let val np' = Thm.nprems_of st
                      (*rgd' calculation assumes tactic operates on subgoal 1*)
-                   val rgd' = not (has_vars (hd (prems_of st)))
+                   val rgd' = not (has_vars (hd (Thm.prems_of st)))
                    val k' = k+np'-np+1  (*difference in # of subgoals, +1*)
                in  if k'+np' >= bnd
                    then depth (bnd, Int.min(inc, k'+np'+1-bnd)) qs

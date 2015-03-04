@@ -234,7 +234,7 @@ local
   val div_tm = @{cterm "op / :: real => _"}
   val pow_tm = @{cterm "op ^ :: real => _"}
   val zero_tm = @{cterm "0:: real"}
-  val is_numeral = can (HOLogic.dest_number o term_of)
+  val is_numeral = can (HOLogic.dest_number o Thm.term_of)
   fun poly_of_term tm =
     if tm aconvc zero_tm then poly_0
     else
@@ -256,7 +256,7 @@ local
               val (opr,l) = Thm.dest_comb lop
             in
               if opr aconvc pow_tm andalso is_numeral r
-              then poly_pow (poly_of_term l) ((snd o HOLogic.dest_number o term_of) r)
+              then poly_pow (poly_of_term l) ((snd o HOLogic.dest_number o Thm.term_of) r)
               else if opr aconvc add_tm
               then poly_add (poly_of_term l) (poly_of_term r)
               else if opr aconvc sub_tm
@@ -278,7 +278,7 @@ local
         end handle CTERM ("dest_comb",_) => poly_var tm)
 in
   val poly_of_term = fn tm =>
-    if type_of (term_of tm) = @{typ real}
+    if type_of (Thm.term_of tm) = @{typ real}
     then poly_of_term tm
     else error "poly_of_term: term does not have real type"
 end;
@@ -779,8 +779,8 @@ fun cterm_of_sos (pr,sqs) =
 (* Interface to HOL.                                                         *)
 local
   open Conv
-  val concl = Thm.dest_arg o cprop_of
-  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (term_of t, term_of u) = LESS
+  val concl = Thm.dest_arg o Thm.cprop_of
+  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (Thm.term_of t, Thm.term_of u) = LESS
 in
 (* FIXME: Replace tryfind by get_first !! *)
 fun real_nonlinear_prover proof_method ctxt =
@@ -881,8 +881,8 @@ fun subst_conv eqs t =
 
 local
   open Conv
-  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (term_of t, term_of u) = LESS
-  val concl = Thm.dest_arg o cprop_of
+  fun simple_cterm_ord t u = Term_Ord.fast_term_ord (Thm.term_of t, Thm.term_of u) = LESS
+  val concl = Thm.dest_arg o Thm.cprop_of
   val shuffle1 =
     fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))"
       by (atomize (full)) (simp add: field_simps)})
@@ -890,7 +890,7 @@ local
     fconv_rule (rewr_conv @{lemma "(x + a == y) ==  (x == y - (a::real))"
       by (atomize (full)) (simp add: field_simps)})
   fun substitutable_monomial fvs tm =
-    (case term_of tm of
+    (case Thm.term_of tm of
       Free (_, @{typ real}) =>
         if not (member (op aconvc) fvs tm) then (Rat.one, tm)
         else raise Failure "substitutable_monomial"
@@ -907,11 +907,11 @@ local
 
   fun isolate_variable v th =
     let
-      val w = Thm.dest_arg1 (cprop_of th)
+      val w = Thm.dest_arg1 (Thm.cprop_of th)
     in
       if v aconvc w then th
       else
-        (case term_of w of
+        (case Thm.term_of w of
           @{term "op + :: real => _"} $ _ $ _ =>
             if Thm.dest_arg1 w aconvc v then shuffle2 th
             else isolate_variable v (shuffle1 th)
@@ -951,7 +951,7 @@ fun real_nonlinear_subst_prover prover ctxt =
             in
               substfirst
                 (filter_out
-                  (fn t => (Thm.dest_arg1 o Thm.dest_arg o cprop_of) t aconvc @{cterm "0::real"})
+                  (fn t => (Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of) t aconvc @{cterm "0::real"})
                   (map modify eqs),
                   map modify les,
                   map modify lts)
@@ -986,7 +986,7 @@ val known_sos_constants =
 
 fun check_sos kcts ct =
   let
-    val t = term_of ct
+    val t = Thm.term_of ct
     val _ =
       if not (null (Term.add_tfrees t []) andalso null (Term.add_tvars t []))
       then error "SOS: not sos. Additional type varables"
@@ -1022,10 +1022,10 @@ fun lift_SOME f NONE a = f a
 
 
 local
-  val is_numeral = can (HOLogic.dest_number o term_of)
+  val is_numeral = can (HOLogic.dest_number o Thm.term_of)
 in
   fun get_denom b ct =
-    (case term_of ct of
+    (case Thm.term_of ct of
       @{term "op / :: real => _"} $ _ $ _ =>
         if is_numeral (Thm.dest_arg ct)
         then get_denom b (Thm.dest_arg1 ct)

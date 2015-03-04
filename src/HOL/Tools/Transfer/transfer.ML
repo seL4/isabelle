@@ -376,7 +376,7 @@ fun detect_transfer_rules thm =
       | _ $ _ $ _ => true
       | _ => false
     fun safe_transfer_rule_conv ctm =
-      if is_transfer_rule (term_of ctm) then safe_Rel_conv ctm else Conv.all_conv ctm
+      if is_transfer_rule (Thm.term_of ctm) then safe_Rel_conv ctm else Conv.all_conv ctm
   in
     Conv.fconv_rule (Conv.prems_conv ~1 safe_transfer_rule_conv) thm
   end
@@ -440,9 +440,9 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
           val thm0 = Thm.assume cprop
           val (thm1, hyps) = zip ctxt' (thm0 :: thms) t u
           val ((r1, x), y) = apfst Thm.dest_comb (Thm.dest_comb (Thm.dest_arg cprop))
-          val r2 = Thm.dest_fun2 (Thm.dest_arg (cprop_of thm1))
-          val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (ctyp_of_term r1))
-          val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (ctyp_of_term r2))
+          val r2 = Thm.dest_fun2 (Thm.dest_arg (Thm.cprop_of thm1))
+          val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_term r1))
+          val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_term r2))
           val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
           val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
           val rule = Drule.instantiate' tinsts insts @{thm Rel_abs}
@@ -468,7 +468,7 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
         end
     val r = mk_Rel (rel (fastype_of t) (fastype_of u))
     val goal = HOLogic.mk_Trueprop (r $ t $ u)
-    val rename = Thm.trivial (cterm_of thy goal)
+    val rename = Thm.trivial (Thm.cterm_of thy goal)
     val (thm, hyps) = zip ctxt [] t u
   in
     Drule.implies_intr_list hyps (thm RS rename)
@@ -578,8 +578,9 @@ fun transfer_rule_of_term ctxt equiv t : thm =
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
     val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
+    fun tinst (a, _) = (Thm.ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
+    fun inst (a, t) =
+      (Thm.cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), Thm.cterm_of thy t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx
@@ -603,8 +604,9 @@ fun transfer_rule_of_lhs ctxt t : thm =
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
     val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
+    fun tinst (a, _) = (Thm.ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
+    fun inst (a, t) =
+      (Thm.cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), Thm.cterm_of thy t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx

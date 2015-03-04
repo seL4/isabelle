@@ -108,10 +108,10 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
       THEN Subgoal.FOCUS_PREMS (fn {context = ctxt', prems, concl, ...} =>
           let
             val param_prem = nth prems premposition
-            val (param, _) = strip_comb (HOLogic.dest_Trueprop (prop_of param_prem))
+            val (param, _) = strip_comb (HOLogic.dest_Trueprop (Thm.prop_of param_prem))
             val prems' = maps dest_conjunct_prem (take nargs prems)
             fun param_rewrite prem =
-              param = snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of prem)))
+              param = snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of prem)))
             val SOME rew_eq = find_first param_rewrite prems'
             val param_prem' = rewrite_rule ctxt'
               (map (fn th => th RS @{thm eq_reflection})
@@ -122,7 +122,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
           end) ctxt 1
       THEN trace_tac ctxt options "after prove parameter call")
 
-fun SOLVED tac st = FILTER (fn st' => nprems_of st' = nprems_of st - 1) tac st
+fun SOLVED tac st = FILTER (fn st' => Thm.nprems_of st' = Thm.nprems_of st - 1) tac st
 
 fun prove_match options ctxt nargs out_ts =
   let

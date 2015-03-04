@@ -14,7 +14,7 @@ structure Find_Unused_Assms : FIND_UNUSED_ASSMS =
 struct
 
 fun thms_of thy thy_name = Global_Theory.all_thms_of thy false
-  |> filter (fn (_, th) => Context.theory_name (theory_of_thm th) = thy_name)
+  |> filter (fn (_, th) => Context.theory_name (Thm.theory_of_thm th) = thy_name)
 
 fun do_while P f s list =
   if P s then
@@ -52,7 +52,7 @@ fun find_unused_assms ctxt thy_name =
             if member (op =) S x then I
             else insert (eq_set (op =)) (insert (op =) x S)) X) Ss []
     fun check (s, th) =
-      (case Logic.strip_horn (prop_of (Thm.unvarify_global th)) of
+      (case Logic.strip_horn (Thm.prop_of (Thm.unvarify_global th)) of
         ([], _) => (s, NONE)
       | (ts, t) =>
           let

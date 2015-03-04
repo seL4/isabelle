@@ -75,7 +75,7 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
 
       val {context = ctxt, facts = chained, goal} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
-      val goal_t = Logic.list_implies (map prop_of chained @ hyp_ts, concl_t)
+      val goal_t = Logic.list_implies (map Thm.prop_of chained @ hyp_ts, concl_t)
 
       fun try_methss [] [] = (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
         | try_methss ress [] =
@@ -305,7 +305,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss}
-            val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
+            val learn = mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
             val launch = launch_prover params mode output_result only learn
           in
             if mode = Auto_Try then

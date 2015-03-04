@@ -38,13 +38,13 @@ fun preds_of ps t = inter (op = o apsnd dest_Free) ps (Term.add_frees t []);
 val perm_bool = mk_meta_eq @{thm perm_bool_def};
 val perm_boolI = @{thm perm_boolI};
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
-  (Drule.strip_imp_concl (cprop_of perm_boolI))));
+  (Drule.strip_imp_concl (Thm.cprop_of perm_boolI))));
 
 fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
   [(perm_boolI_pi, pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
-  (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
+  (Thm.theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
     fn Const (@{const_name Nominal.perm}, _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE
@@ -131,7 +131,7 @@ and map_term' f (t $ u) (t' $ u') = (case (map_term f t t', map_term f u u') of
 
 fun map_thm ctxt f tac monos opt th =
   let
-    val prop = prop_of th;
+    val prop = Thm.prop_of th;
     fun prove t =
       Goal.prove ctxt [] [] t (fn _ =>
         EVERY [cut_facts_tac [th] 1, etac rev_mp 1,
@@ -144,10 +144,10 @@ fun abs_params params t =
   in (Logic.list_all (params, t), (rev vs, subst_bounds (vs, t))) end;
 
 fun inst_params thy (vs, p) th cts =
-  let val env = Pattern.first_order_match thy (p, prop_of th)
+  let val env = Pattern.first_order_match thy (p, Thm.prop_of th)
     (Vartab.empty, Vartab.empty)
   in Thm.instantiate ([],
-    map (Envir.subst_term env #> cterm_of thy) vs ~~ cts) th
+    map (Envir.subst_term env #> Thm.cterm_of thy) vs ~~ cts) th
   end;
 
 fun prove_strong_ind s alt_name avoids ctxt =
@@ -168,7 +168,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       (Induct.lookup_inductP ctxt (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;
-    val ([raw_induct'], ctxt') = Variable.import_terms false [prop_of raw_induct] ctxt;
+    val ([raw_induct'], ctxt') = Variable.import_terms false [Thm.prop_of raw_induct] ctxt;
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
     val ps = map (fst o snd) concls;
@@ -230,7 +230,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
-      [SOME (ctyp_of thy fsT)] [] inductive_forall_def;
+      [SOME (Thm.ctyp_of thy fsT)] [] inductive_forall_def;
 
     fun lift_pred' t (Free (s, T)) ts =
       list_comb (Free (s, fsT --> T), t :: ts);
@@ -319,7 +319,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val fs_atom = Global_Theory.get_thm thy
           ("fs_" ^ Long_Name.base_name atom ^ "1");
         val avoid_th = Drule.instantiate'
-          [SOME (ctyp_of thy (fastype_of p))] [SOME (cterm_of thy p)]
+          [SOME (Thm.ctyp_of thy (fastype_of p))] [SOME (Thm.cterm_of thy p)]
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
         val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result
           (fn ctxt' => EVERY
@@ -333,7 +333,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val pTs = map NominalAtoms.mk_permT (Ts1 @ Ts2);
         val (pis1, pis2) = chop (length Ts1)
           (map Bound (length pTs - 1 downto 0));
-        val _ $ (f $ (_ $ pi $ l) $ r) = prop_of th2
+        val _ $ (f $ (_ $ pi $ l) $ r) = Thm.prop_of th2
         val th2' =
           Goal.prove ctxt' [] []
             (Logic.list_all (map (pair "pi") pTs, HOLogic.mk_Trueprop
@@ -343,7 +343,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps perm_set_forget) 1) |>
           Simplifier.simplify (put_simpset eqvt_ss ctxt')
       in
-        (freshs @ [term_of cx],
+        (freshs @ [Thm.term_of cx],
          ths1 @ ths, ths2 @ [th1], ths3 @ [th2'], ctxt')
       end;
 
@@ -358,12 +358,12 @@ fun prove_strong_ind s alt_name avoids ctxt =
                let
                  val (cparams', (pis, z)) =
                    chop (length params - length atomTs - 1) (map #2 params) ||>
-                   (map term_of #> split_last);
-                 val params' = map term_of cparams'
+                   (map Thm.term_of #> split_last);
+                 val params' = map Thm.term_of cparams'
                  val sets' = map (apfst (curry subst_bounds (rev params'))) sets;
                  val pi_sets = map (fn (t, _) =>
                    fold_rev (NominalDatatype.mk_perm []) pis t) sets';
-                 val (P, ts) = strip_comb (HOLogic.dest_Trueprop (term_of concl));
+                 val (P, ts) = strip_comb (HOLogic.dest_Trueprop (Thm.term_of concl));
                  val gprems1 = map_filter (fn (th, t) =>
                    if null (preds_of ps t) then SOME th
                    else
@@ -374,7 +374,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                    let
                      val th' = gprems1 MRS inst_params thy p th cparams';
                      val (h, ts) =
-                       strip_comb (HOLogic.dest_Trueprop (concl_of th'))
+                       strip_comb (HOLogic.dest_Trueprop (Thm.concl_of th'))
                    in
                      Goal.prove ctxt' [] []
                        (HOLogic.mk_Trueprop (list_comb (h,
@@ -399,12 +399,12 @@ fun prove_strong_ind s alt_name avoids ctxt =
                  val pis'' = fold_rev (concat_perm #> map) pis' pis;
                  val ihyp' = inst_params thy vs_ihypt ihyp
                    (map (fold_rev (NominalDatatype.mk_perm [])
-                      (pis' @ pis) #> cterm_of thy) params' @ [cterm_of thy z]);
+                      (pis' @ pis) #> Thm.cterm_of thy) params' @ [Thm.cterm_of thy z]);
                  fun mk_pi th =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
                      (Simplifier.simplify (put_simpset eqvt_ss ctxt')
-                       (fold_rev (mk_perm_bool o cterm_of thy)
+                       (fold_rev (mk_perm_bool o Thm.cterm_of thy)
                          (pis' @ pis) th));
                  val gprems2 = map (fn (th, t) =>
                    if null (preds_of ps t) then mk_pi th
@@ -425,7 +425,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                           addsimps [inductive_forall_def']
                           addsimprocs [NominalDatatype.perm_simproc]) 1 THEN
                         resolve_tac ctxt'' gprems2 1)]));
-                 val final = Goal.prove ctxt'' [] [] (term_of concl)
+                 val final = Goal.prove ctxt'' [] [] (Thm.term_of concl)
                    (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (put_simpset HOL_ss ctxt''
                      addsimps vc_compat_ths1' @ fresh_ths1 @
                        perm_freshs_freshs') 1);

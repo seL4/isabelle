@@ -36,7 +36,7 @@ open BNF_Util
 (*stolen from Christian Urban's Cookbook (and adapted slightly)*)
 fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
   let
-    val concl_pat = Drule.strip_imp_concl (cprop_of thm)
+    val concl_pat = Drule.strip_imp_concl (Thm.cprop_of thm)
     val insts = Thm.first_order_match (concl_pat, concl)
   in
     rtac (Drule.instantiate_normalize insts thm) 1

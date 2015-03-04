@@ -43,7 +43,7 @@ fun propagate_tac ctxt i =
           if Logic.occs (Free x, t) then raise Match else false
       | _ => raise Match);
     fun mk_eq thm =
-      (if inspect (prop_of thm) then [thm RS eq_reflection]
+      (if inspect (Thm.prop_of thm) then [thm RS eq_reflection]
        else [Thm.symmetric (thm RS eq_reflection)])
       handle Match => [];
     val simpset =
@@ -80,7 +80,7 @@ in
 fun mk_partial_elim_rules ctxt result =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = cterm_of thy;
+    val cert = Thm.cterm_of thy;
 
     val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
@@ -98,14 +98,14 @@ fun mk_partial_elim_rules ctxt result =
 
         val f_simps =
           filter (fn r =>
-            (prop_of r |> Logic.strip_assums_concl
+            (Thm.prop_of r |> Logic.strip_assums_concl
               |> HOLogic.dest_Trueprop
               |> dest_funprop |> fst |> fst) = f)
             psimps;
 
         val arity =
           hd f_simps
-          |> prop_of
+          |> Thm.prop_of
           |> Logic.strip_assums_concl
           |> HOLogic.dest_Trueprop
           |> snd o fst o dest_funprop

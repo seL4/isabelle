@@ -296,14 +296,14 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
 
     val rec_rewritess =
       unflat (map (fn (_, (_, _, constrs)) => constrs) descr) rec_rewrites;
-    val fvars = rec_rewrites |> hd |> concl_of |> HOLogic.dest_Trueprop |>
+    val fvars = rec_rewrites |> hd |> Thm.concl_of |> HOLogic.dest_Trueprop |>
       HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var |> fst;
     val (pvars, ctxtvars) = List.partition
       (equal HOLogic.boolT o body_type o snd)
       (subtract (op =)
-        (Term.add_vars (concl_of (hd rec_rewrites)) [])
+        (Term.add_vars (Thm.concl_of (hd rec_rewrites)) [])
         (fold_rev (Term.add_vars o Logic.strip_assums_concl)
-           (prems_of (hd rec_rewrites)) []));
+           (Thm.prems_of (hd rec_rewrites)) []));
     val cfs = defs' |> hd |> snd |> strip_comb |> snd |>
       curry (List.take o swap) (length fvars) |> map cert;
     val invs' = (case invs of
@@ -320,7 +320,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
       let
         val (i, j, cargs) = mk_idx eq
         val th = nth (nth rec_rewritess i) j;
-        val cargs' = th |> concl_of |> HOLogic.dest_Trueprop |>
+        val cargs' = th |> Thm.concl_of |> HOLogic.dest_Trueprop |>
           HOLogic.dest_eq |> fst |> strip_comb |> snd |> List.last |>
           strip_comb |> snd
       in (cargs, Logic.strip_imp_prems eq,
@@ -328,12 +328,12 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
           (map cert cargs' ~~ map (cert o Free) cargs)) th)
       end) eqns';
 
-    val prems = foldr1 (common_prefix op aconv) (map (prems_of o #3) rec_rewrites');
+    val prems = foldr1 (common_prefix op aconv) (map (Thm.prems_of o #3) rec_rewrites');
     val cprems = map cert prems;
     val asms = map Thm.assume cprems;
     val premss = map (fn (cargs, eprems, eqn) =>
       map (fn t => fold_rev (Logic.all o Free) cargs (Logic.list_implies (eprems, t)))
-        (List.drop (prems_of eqn, length prems))) rec_rewrites';
+        (List.drop (Thm.prems_of eqn, length prems))) rec_rewrites';
     val cpremss = map (map cert) premss;
     val asmss = map (map Thm.assume) cpremss;
 

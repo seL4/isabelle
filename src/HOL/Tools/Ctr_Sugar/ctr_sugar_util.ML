@@ -178,7 +178,8 @@ fun typ_subst_nonatomic [] = I
 fun subst_nonatomic_types [] = I
   | subst_nonatomic_types inst = map_types (typ_subst_nonatomic inst);
 
-fun lhs_head_of thm = Term.head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))));
+fun lhs_head_of thm =
+  Term.head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm))));
 
 fun mk_predT Ts = Ts ---> HOLogic.boolT;
 fun mk_pred1T T = mk_predT [T];
@@ -213,7 +214,7 @@ fun fo_match ctxt t pat =
 fun cterm_instantiate_pos cts thm =
   let
     val cert = Thm.cterm_of (Thm.theory_of_thm thm);
-    val vars = Term.add_vars (prop_of thm) [];
+    val vars = Term.add_vars (Thm.prop_of thm) [];
     val vars' = rev (drop (length vars - length cts) vars);
     val ps = map_filter (fn (_, NONE) => NONE
       | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);

@@ -213,7 +213,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     (* Tactic *)
     fun tac i st = CSUBGOAL (fn (cgoal, _) =>
       let
-        val goal = term_of cgoal;
+        val goal = Thm.term_of cgoal;
         val params = Logic.strip_params goal;  (*params of subgoal i as string typ pairs*)
         val params = rev (Term.rename_wrt_term goal params)
           (*as they are printed: bound variables with*)
@@ -265,12 +265,12 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         fun liftterm t =
           fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
         fun liftpair (cv, ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct);
-        val lifttvar = apply2 (ctyp_of thy o Logic.incr_tvar inc);
+        val lifttvar = apply2 (Thm.ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate_normalize
               (map lifttvar envT', map liftpair cenv)
               (Thm.lift_rule cgoal thm)
       in
-        compose_tac ctxt' (bires_flag, rule, nprems_of thm) i
+        compose_tac ctxt' (bires_flag, rule, Thm.nprems_of thm) i
       end) i st;
   in tac end;
 

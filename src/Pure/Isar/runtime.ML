@@ -112,7 +112,7 @@ fun exn_messages_ids e =
                 raised exn "TERM" (msg :: robust_context context Syntax.string_of_term ts)
             | CTERM (msg, cts) =>
                 raised exn "CTERM"
-                  (msg :: robust_context context Syntax.string_of_term (map term_of cts))
+                  (msg :: robust_context context Syntax.string_of_term (map Thm.term_of cts))
             | THM (msg, i, thms) =>
                 raised exn ("THM " ^ string_of_int i)
                   (msg :: robust_context context Display.string_of_thm thms)

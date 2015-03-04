@@ -149,16 +149,16 @@ fun lift conv_sandwhich ctxt ct =
 fun conversion sandwich conv ctxt ct =
   let
     val (postproc, ct') = sandwich ctxt ct;
-  in postproc (conv ctxt (term_of ct') ct') end;
+  in postproc (conv ctxt (Thm.term_of ct') ct') end;
 
 fun evaluation sandwich lift_postproc eval ctxt t =
   let
     val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
     val (postproc, ct') = sandwich ctxt (cert t);
   in
-    term_of ct'
+    Thm.term_of ct'
     |> eval ctxt
-    |> lift_postproc (term_of o Thm.rhs_of o postproc o Thm.reflexive o cert)
+    |> lift_postproc (Thm.term_of o Thm.rhs_of o postproc o Thm.reflexive o cert)
   end;
 
 end;
@@ -168,8 +168,8 @@ end;
 
 fun normalized_tfrees_sandwich ctxt ct =
   let
-    val cert = cterm_of (Proof_Context.theory_of ctxt);
-    val t = term_of ct;
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val t = Thm.term_of ct;
     val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
     val vs_normalized = Name.invent_names Name.context Name.aT (map snd vs_original);

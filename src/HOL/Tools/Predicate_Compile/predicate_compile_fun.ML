@@ -169,7 +169,7 @@ fun flatten thy lookup_pred t (names, prems) =
           SOME raw_split_thm =>
           let
             val split_thm = prepare_split_thm (Proof_Context.init_global thy) raw_split_thm
-            val (assms, concl) = Logic.strip_horn (prop_of split_thm)
+            val (assms, concl) = Logic.strip_horn (Thm.prop_of split_thm)
             val (_, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl)
             val t' = case_betapply thy t
             val subst = Pattern.match thy (split_t, t') (Vartab.empty, Vartab.empty)
@@ -311,7 +311,7 @@ fun rewrite_intro thy intro =
   let
     fun lookup_pred t = lookup thy (Fun_Pred.get thy) t
     (*val _ = tracing ("Rewriting intro " ^ Display.string_of_thm_global thy intro)*)
-    val intro_t = Logic.unvarify_global (prop_of intro)
+    val intro_t = Logic.unvarify_global (Thm.prop_of intro)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])
     fun rewrite prem names =

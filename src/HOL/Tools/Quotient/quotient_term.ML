@@ -355,7 +355,7 @@ fun get_rel_quot_thm ctxt s =
     | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
   end
 
-fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient3})
+fun is_id_quot thm = (Thm.prop_of thm = Thm.prop_of @{thm identity_quotient3})  (* FIXME equality *)
 
 open Lifting_Util
 
@@ -365,7 +365,7 @@ exception NOT_IMPL of string
 
 fun get_rel_from_quot_thm quot_thm = 
   let
-    val (_ $ rel $ _ $ _) = (HOLogic.dest_Trueprop o prop_of) quot_thm
+    val (_ $ rel $ _ $ _) = (HOLogic.dest_Trueprop o Thm.prop_of) quot_thm
   in
     rel
   end

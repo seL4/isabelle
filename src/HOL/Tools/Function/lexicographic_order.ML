@@ -68,7 +68,7 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
 
 fun mk_cell thy solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
-    val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
+    val goals = Thm.cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
     case try_proof (goals @{const_name Orderings.less}) solve_tac of
       Solved thm => Less thm
@@ -76,7 +76,7 @@ fun mk_cell thy solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
       (case try_proof (goals @{const_name Orderings.less_eq}) solve_tac of
          Solved thm2 => LessEq (thm2, thm)
        | Stuck thm2 =>
-         if prems_of thm2 = [HOLogic.Trueprop $ @{term False}] then False thm2
+         if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}] then False thm2
          else None (thm2, thm)
        | _ => raise Match) (* FIXME *)
     | _ => raise Match
@@ -176,7 +176,7 @@ fun no_order_msg ctxt ltable tl measure_funs =
 fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
-    val ((_ $ (_ $ rel)) :: tl) = prems_of st
+    val ((_ $ (_ $ rel)) :: tl) = Thm.prems_of st
 
     val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
 
@@ -201,7 +201,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
             else ()
   
         in (* 4: proof reconstruction *)
-          st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
+          st |> (PRIMITIVE (cterm_instantiate [(Thm.cterm_of thy rel, Thm.cterm_of thy relation)])
           THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
           THEN (rtac @{thm "wf_empty"} 1)
           THEN EVERY (map prove_row clean_table))

@@ -43,15 +43,15 @@ and
   | _ (* atom *)              => true;
 
 val check_HOHH_tac1 = PRIMITIVE (fn thm =>
-        if isG (concl_of thm) then thm else raise not_HOHH);
+        if isG (Thm.concl_of thm) then thm else raise not_HOHH);
 val check_HOHH_tac2 = PRIMITIVE (fn thm =>
-        if forall isG (prems_of thm) then thm else raise not_HOHH);
-fun check_HOHH thm  = (if isD (concl_of thm) andalso forall isG (prems_of thm)
+        if forall isG (Thm.prems_of thm) then thm else raise not_HOHH);
+fun check_HOHH thm  = (if isD (Thm.concl_of thm) andalso forall isG (Thm.prems_of thm)
                         then thm else raise not_HOHH);
 
 fun atomizeD ctxt thm =
   let
-    fun at  thm = case concl_of thm of
+    fun at  thm = case Thm.concl_of thm of
       _$(Const(@{const_name All} ,_)$Abs(s,_,_))=>
         let val s' = if s="P" then "PP" else s
         in at(thm RS (Rule_Insts.read_instantiate ctxt [(("x", 0), s')] [s'] spec)) end

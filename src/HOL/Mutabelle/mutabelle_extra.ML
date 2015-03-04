@@ -236,7 +236,7 @@ val forbidden_thms =
 val forbidden_consts = [@{const_name Pure.type}]
 
 fun is_forbidden_theorem (s, th) =
-  let val consts = Term.add_const_names (prop_of th) [] in
+  let val consts = Term.add_const_names (Thm.prop_of th) [] in
     exists (member (op =) (Long_Name.explode s)) forbidden_thms orelse
     exists (member (op =) forbidden_consts) consts orelse
     length (Long_Name.explode s) <> 2 orelse
@@ -325,7 +325,7 @@ fun is_executable_term thy t =
         (fst (Variable.import_terms true [t] ctxt)))
   end
 
-fun is_executable_thm thy th = is_executable_term thy (prop_of th)
+fun is_executable_thm thy th = is_executable_term thy (Thm.prop_of th)
 
 val freezeT =
   map_types (map_type_tvar (fn ((a, i), S) =>
@@ -333,7 +333,7 @@ val freezeT =
 
 fun thms_of all thy =
   filter
-    (fn th => (all orelse Context.theory_name (theory_of_thm th) = Context.theory_name thy)
+    (fn th => (all orelse Context.theory_name (Thm.theory_of_thm th) = Context.theory_name thy)
       (* andalso is_executable_thm thy th *))
     (map snd (filter_out is_forbidden_theorem (Global_Theory.all_thms_of thy false)))
 
@@ -368,7 +368,7 @@ fun create_detailed_entry thy thm exec mutants mtds =
       map (fn (mtd_name, invoke_mtd) =>
         (mtd_name, safe_invoke_mtd thy (mtd_name, invoke_mtd) mutant)) mtds)
   in
-    (Thm.get_name_hint thm, exec, prop_of thm, map create_mutant_subentry mutants)
+    (Thm.get_name_hint thm, exec, Thm.prop_of thm, map create_mutant_subentry mutants)
   end
 
 (* (theory -> thm -> bool -> term list -> mtd list -> 'a) -> theory -> mtd list -> thm -> 'a *)

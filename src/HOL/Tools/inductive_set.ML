@@ -44,7 +44,7 @@ fun strong_ind_simproc tab =
       val thy = Proof_Context.theory_of ctxt;
       fun close p t f =
         let val vs = Term.add_vars t []
-        in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
+        in Drule.instantiate' [] (rev (map (SOME o Thm.cterm_of thy o Var) vs))
           (p (fold (Logic.all o Var) vs t) f)
         end;
       fun mkop @{const_name HOL.conj} T x =
@@ -93,8 +93,8 @@ fun strong_ind_simproc tab =
             in
               if forall is_none rews then NONE
               else SOME (fold (fn th1 => fn th2 => Thm.combination th2 th1)
-                (map2 (fn SOME r => K r | NONE => Thm.reflexive o cterm_of thy)
-                   rews ts) (Thm.reflexive (cterm_of thy h)))
+                (map2 (fn SOME r => K r | NONE => Thm.reflexive o Thm.cterm_of thy)
+                   rews ts) (Thm.reflexive (Thm.cterm_of thy h)))
             end
         | NONE => NONE)
       | _ => NONE
@@ -117,7 +117,7 @@ fun eta_contract_thm p =
   Conv.fconv_rule (Conv.then_conv (Thm.beta_conversion true, fn ct =>
     Thm.transitive (Thm.eta_conversion ct)
       (Thm.symmetric (Thm.eta_conversion
-        (cterm_of (theory_of_cterm ct) (eta_contract p (term_of ct)))))));
+        (Thm.cterm_of (Thm.theory_of_cterm ct) (eta_contract p (Thm.term_of ct)))))));
 
 
 (***********************************************************)
@@ -208,8 +208,8 @@ fun mk_to_pred_inst thy fs =
       val x' = map_type
         (K (Ts @ HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
     in
-      (cterm_of thy x,
-       cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+      (Thm.cterm_of thy x,
+       Thm.cterm_of thy (fold_rev (Term.abs o pair "x") Ts
          (HOLogic.Collect_const U $
             HOLogic.mk_psplits ps U HOLogic.boolT
               (list_comb (x', map Bound (length Ts - 1 downto 0))))))
@@ -217,7 +217,7 @@ fun mk_to_pred_inst thy fs =
 
 fun mk_to_pred_eq ctxt p fs optfs' T thm =
   let
-    val thy = theory_of_thm thm;
+    val thy = Thm.theory_of_thm thm;
     val insts = mk_to_pred_inst thy fs;
     val thm' = Thm.instantiate ([], insts) thm;
     val thm'' =
@@ -229,11 +229,11 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
             val Ts = HOLogic.strip_ptupleT fs' U;
             (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;
-            val (arg_cong_f, _) = arg_cong' |> cprop_of |> Drule.strip_imp_concl |>
+            val (arg_cong_f, _) = arg_cong' |> Thm.cprop_of |> Drule.strip_imp_concl |>
               Thm.dest_comb |> snd |> Drule.strip_comb |> snd |> hd |> Thm.dest_comb
           in
             thm' RS (Drule.cterm_instantiate [(arg_cong_f,
-              cterm_of thy (Abs ("P", Ts ---> HOLogic.boolT,
+              Thm.cterm_of thy (Abs ("P", Ts ---> HOLogic.boolT,
                 HOLogic.Collect_const U $ HOLogic.mk_psplits fs' U
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
@@ -249,7 +249,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
 exception Malformed of string;
 
 fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
-  (case prop_of thm of
+  (case Thm.prop_of thm of
     Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ lhs $ rhs) =>
       (case body_type T of
          @{typ bool} =>
@@ -318,7 +318,8 @@ fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
     Simplifier.simproc_global_i @{theory HOL} "to_pred" [anyt]
-      (fn ctxt => (lookup_rule (Proof_Context.theory_of ctxt) (prop_of #> Logic.dest_equals) rules'))
+      (fn ctxt =>
+        lookup_rule (Proof_Context.theory_of ctxt) (Thm.prop_of #> Logic.dest_equals) rules')
   end;
 
 fun to_pred_proc thy rules t = case lookup_rule thy I rules t of
@@ -334,7 +335,7 @@ fun to_pred thms context thm =
     val {to_pred_simps, set_arities, pred_arities, ...} =
       fold (add context) thms (Data.get context);
     val fs = filter (is_Var o fst)
-      (infer_arities thy set_arities (NONE, prop_of thm) []);
+      (infer_arities thy set_arities (NONE, Thm.prop_of thm) []);
     (* instantiate each set parameter with {(x, y). p x y} *)
     val insts = mk_to_pred_inst thy fs
   in
@@ -358,7 +359,7 @@ fun to_set thms context thm =
     val {to_set_simps, pred_arities, ...} =
       fold (add context) thms (Data.get context);
     val fs = filter (is_Var o fst)
-      (infer_arities thy pred_arities (NONE, prop_of thm) []);
+      (infer_arities thy pred_arities (NONE, Thm.prop_of thm) []);
     (* instantiate each predicate parameter with %x y. (x, y) : s *)
     val insts = map (fn (x, ps) =>
       let
@@ -369,8 +370,8 @@ fun to_set thms context thm =
         val T = HOLogic.mk_ptupleT ps Us;
         val x' = map_type (K (Rs ---> HOLogic.mk_setT T)) x
       in
-        (cterm_of thy x,
-         cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+        (Thm.cterm_of thy x,
+         Thm.cterm_of thy (fold_rev (Term.abs o pair "x") Ts
           (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (k downto 0)),
              list_comb (x', map Bound (l - 1 downto k + 1))))))
       end) fs;
@@ -397,7 +398,7 @@ fun codegen_preproc thy =  (* FIXME proper context!? *)
       if exists_Const (fn (s, _) => case Symtab.lookup set_arities s of
           NONE => false
         | SOME arities => exists (fn (_, (xs, _)) =>
-            forall is_none xs) arities) (prop_of thm)
+            forall is_none xs) arities) (Thm.prop_of thm)
       then
         thm |>
         Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
@@ -465,7 +466,7 @@ fun add_ind_set_def
             (list_comb (c', params1))))
       end) |> split_list |>> split_list;
     val eqns' = eqns @
-      map (prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
+      map (Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
         (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps);
 
     (* predicate version of the introduction rules *)

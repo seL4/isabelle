@@ -1193,14 +1193,14 @@ in proc end;
 simproc_setup let_simp ("Let x f") = {*
 let
   val (f_Let_unfold, x_Let_unfold) =
-    let val [(_ $ (f $ x) $ _)] = prems_of @{thm Let_unfold}
-    in (cterm_of @{theory} f, cterm_of @{theory} x) end
+    let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_unfold}
+    in (Thm.cterm_of @{theory} f, Thm.cterm_of @{theory} x) end
   val (f_Let_folded, x_Let_folded) =
-    let val [(_ $ (f $ x) $ _)] = prems_of @{thm Let_folded}
-    in (cterm_of @{theory} f, cterm_of @{theory} x) end;
+    let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_folded}
+    in (Thm.cterm_of @{theory} f, Thm.cterm_of @{theory} x) end;
   val g_Let_folded =
-    let val [(_ $ _ $ (g $ _))] = prems_of @{thm Let_folded}
-    in cterm_of @{theory} g end;
+    let val [(_ $ _ $ (g $ _))] = Thm.prems_of @{thm Let_folded}
+    in Thm.cterm_of @{theory} g end;
   fun count_loose (Bound i) k = if i >= k then 1 else 0
     | count_loose (s $ t) k = count_loose s k + count_loose t k
     | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
@@ -1222,11 +1222,11 @@ in fn _ => fn ctxt => fn ct => if is_trivial_let (Thm.term_of ct)
       else
         let
           val n = case f of (Abs (x, _, _)) => x | _ => "x";
-          val cx = cterm_of thy x;
-          val {T = xT, ...} = rep_cterm cx;
-          val cf = cterm_of thy f;
+          val cx = Thm.cterm_of thy x;
+          val {T = xT, ...} = Thm.rep_cterm cx;
+          val cf = Thm.cterm_of thy f;
           val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
-          val (_ $ _ $ g) = prop_of fx_g;
+          val (_ $ _ $ g) = Thm.prop_of fx_g;
           val g' = abstract_over (x,g);
           val abs_g'= Abs (n,xT,g');
         in (if (g aconv g')
@@ -1238,10 +1238,10 @@ in fn _ => fn ctxt => fn ct => if is_trivial_let (Thm.term_of ct)
              else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g') then NONE (*avoid identity conversion*)
              else let
                    val g'x = abs_g'$x;
-                   val g_g'x = Thm.symmetric (Thm.beta_conversion false (cterm_of thy g'x));
+                   val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.cterm_of thy g'x));
                    val rl = cterm_instantiate
-                             [(f_Let_folded, cterm_of thy f), (x_Let_folded, cx),
-                              (g_Let_folded, cterm_of thy abs_g')]
+                             [(f_Let_folded, Thm.cterm_of thy f), (x_Let_folded, cx),
+                              (g_Let_folded, Thm.cterm_of thy abs_g')]
                              @{thm Let_folded};
                  in SOME (rl OF [Thm.transitive fx_g g_g'x])
                  end)

@@ -156,7 +156,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
       let
         val lhs_eq =
           thm
-          |> prop_of
+          |> Thm.prop_of
           |> Logic.dest_implies
           |> fst
           |> strip_all_body
@@ -178,7 +178,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     val internal_rsp_tm = HOLogic.mk_Trueprop (Syntax.check_term lthy (rsp_rel $ rhs $ rhs))
     val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
-    val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
+    val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
   
     fun after_qed thm_list lthy = 
       let

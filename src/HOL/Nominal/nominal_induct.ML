@@ -107,7 +107,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
           (CONJUNCTS (ALLGOALS
             let
               val adefs = nth_list atomized_defs (j - 1);
-              val frees = fold (Term.add_frees o prop_of) adefs [];
+              val frees = fold (Term.add_frees o Thm.prop_of) adefs [];
               val xs = nth_list fixings (j - 1);
               val k = nth concls (j - 1) + more_consumes
             in

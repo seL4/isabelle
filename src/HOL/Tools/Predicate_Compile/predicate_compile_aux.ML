@@ -459,13 +459,13 @@ fun is_equationlike_term (Const (@{const_name Pure.eq}, _) $ _ $ _) = true
       (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
 
-val is_equationlike = is_equationlike_term o prop_of
+val is_equationlike = is_equationlike_term o Thm.prop_of
 
 fun is_pred_equation_term (Const (@{const_name Pure.eq}, _) $ u $ v) =
       (fastype_of u = @{typ bool}) andalso (fastype_of v = @{typ bool})
   | is_pred_equation_term _ = false
 
-val is_pred_equation = is_pred_equation_term o prop_of
+val is_pred_equation = is_pred_equation_term o Thm.prop_of
 
 fun is_intro_term constname t =
   the_default false (try (fn t =>
@@ -473,7 +473,7 @@ fun is_intro_term constname t =
       Const (c, _) => c = constname
     | _ => false) t)
 
-fun is_intro constname t = is_intro_term constname (prop_of t)
+fun is_intro constname t = is_intro_term constname (Thm.prop_of t)
 
 fun is_predT (T as Type("fun", [_, _])) = (body_type T = @{typ bool})
   | is_predT _ = false
@@ -528,7 +528,8 @@ fun focus_ex t nctxt =
     val t'' = Term.subst_bounds (rev vs, t');
   in ((ps', t''), nctxt') end
 
-val strip_intro_concl = strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o prop_of
+val strip_intro_concl =
+  strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o Thm.prop_of
 
 
 (* introduction rule combinators *)
@@ -610,7 +611,7 @@ fun find_split_thm thy (Const (name, _)) =
 (* lifting term operations to theorems *)
 
 fun map_term thy f th =
-  Skip_Proof.make_thm thy (f (prop_of th))
+  Skip_Proof.make_thm thy (f (Thm.prop_of th))
 
 (*
 fun equals_conv lhs_cv rhs_cv ct =
@@ -860,23 +861,23 @@ fun split_conjuncts_in_assms ctxt th =
   end
 
 fun dest_conjunct_prem th =
-  (case HOLogic.dest_Trueprop (prop_of th) of
+  (case HOLogic.dest_Trueprop (Thm.prop_of th) of
     (Const (@{const_name HOL.conj}, _) $ _ $ _) =>
-      dest_conjunct_prem (th RS @{thm conjunct1})
-        @ dest_conjunct_prem (th RS @{thm conjunct2})
-   | _ => [th])
+      dest_conjunct_prem (th RS @{thm conjunct1}) @
+      dest_conjunct_prem (th RS @{thm conjunct2})
+  | _ => [th])
 
 fun expand_tuples thy intro =
   let
     val ctxt = Proof_Context.init_global thy
     val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
-    val intro_t = prop_of intro'
+    val intro_t = Thm.prop_of intro'
     val concl = Logic.strip_imp_concl intro_t
     val (_, args) = strip_comb (HOLogic.dest_Trueprop concl)
     val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
     val (pats', _, ctxt3) = fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
     fun rewrite_pat (ct1, ct2) =
-      (ct1, cterm_of thy (Pattern.rewrite_term thy pats' [] (term_of ct2)))
+      (ct1, Thm.cterm_of thy (Pattern.rewrite_term thy pats' [] (Thm.term_of ct2)))
     val t_insts' = map rewrite_pat t_insts
     val intro'' = Thm.instantiate (T_insts, t_insts') intro
     val [intro'''] = Variable.export ctxt3 ctxt [intro'']
@@ -939,7 +940,7 @@ fun instantiated_case_rewrite thy Tcon =
   let
     val th = case_rewrite thy Tcon
     val ctxt = Proof_Context.init_global thy
-    val f = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th)))))
+    val f = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th)))))
     val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
     val ([yname], ctxt') = Variable.add_fixes ["y"] ctxt
     val T' = TFree ("'t'", @{sort type})
@@ -1026,7 +1027,7 @@ fun remove_equalities thy intro =
 (* Some last processing *)
 
 fun remove_pointless_clauses intro =
-  if Logic.strip_imp_prems (prop_of intro) = [@{prop "False"}] then
+  if Logic.strip_imp_prems (Thm.prop_of intro) = [@{prop "False"}] then
     []
   else [intro]
 
@@ -1045,7 +1046,7 @@ fun peephole_optimisation thy intro =
       map_filter_premises (fn p => if p = @{prop True} then NONE else SOME p) intro_t
   in
     Option.map (Skip_Proof.make_thm thy)
-      (process_False (process_True (prop_of (process intro))))
+      (process_False (process_True (Thm.prop_of (process intro))))
   end
 
 
@@ -1089,7 +1090,7 @@ fun import_intros inp_pred [] ctxt =
         fun instantiate_ho_args th =
           let
             val (_, args') =
-              (strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o prop_of) th
+              (strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o Thm.prop_of) th
             val ho_args' = map dest_Var (ho_args_of_typ T args')
           in Thm.certify_instantiate ([], ho_args' ~~ ho_args) th end
         val outp_pred =
@@ -1136,7 +1137,7 @@ fun mk_casesrule ctxt pred introrules =
     val (((pred, params), intros_th), ctxt1) = import_intros pred introrules ctxt
     (* TODO: distinct required ? -- test case with more than one parameter! *)
     val params = distinct (op aconv) params
-    val intros = map prop_of intros_th
+    val intros = map Thm.prop_of intros_th
     val ([propname], ctxt2) = Variable.variant_fixes ["thesis"] ctxt1
     val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
     val argsT = binder_types (fastype_of pred)

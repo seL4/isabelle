@@ -40,7 +40,7 @@ val unfold_lets = @{thms Let_def[abs_def] split_beta}
 fun exhaust_inst_as_projs ctxt frees thm =
   let
     val num_frees = length frees;
-    val fs = Term.add_vars (prop_of thm) [] |> filter (can dest_funT o snd);
+    val fs = Term.add_vars (Thm.prop_of thm) [] |> filter (can dest_funT o snd);
     fun find s = find_index (curry (op =) s) frees;
     fun mk_cfp (f as ((s, _), T)) =
       (Proof_Context.cterm_of ctxt (Var f), Proof_Context.cterm_of ctxt (mk_proj T num_frees (find s)));
@@ -149,7 +149,7 @@ fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   unfold_thms_tac ctxt (@{thm split_def} :: unfold_lets @ sel_funs) THEN HEADGOAL (rtac refl);
 
 fun inst_split_eq ctxt split =
-  (case prop_of split of
+  (case Thm.prop_of split of
     @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ (Var (_, Type (_, [T, _])) $ _) $ _) =>
     let
       val s = Name.uu;

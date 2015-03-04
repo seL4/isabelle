@@ -516,7 +516,7 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
       if helper_lemmas_needed then
         [(helpersN,
           @{thms waldmeister_fol}
-          |> map (fn th => (("", (Global, General)), preproc (prop_of th)))
+          |> map (fn th => (("", (Global, General)), preproc (Thm.prop_of th)))
           |> map (fn ((s, _) ,t) => mk_formula helper_prefix s Axiom (eq_trm_to_atp thy t)))]
       else
         []

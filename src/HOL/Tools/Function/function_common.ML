@@ -339,11 +339,11 @@ fun lift_morphism thy f =
 fun import_function_data t ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
-    val ct = cterm_of thy t
+    val ct = Thm.cterm_of thy t
     val inst_morph = lift_morphism thy o Thm.instantiate
 
     fun match (trm, data) =
-      SOME (transform_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
+      SOME (transform_function_data data (inst_morph (Thm.match (Thm.cterm_of thy trm, ct))))
       handle Pattern.MATCH => NONE
   in
     get_first match (Item_Net.retrieve (get_functions ctxt) t)

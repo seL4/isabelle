@@ -72,17 +72,17 @@ fun defining_term_of_introrule_term t =
     | _ => raise TERM ("defining_const_of_introrule_term failed: Not a constant", [t])
   end
 *)
-val defining_term_of_introrule = defining_term_of_introrule_term o prop_of
+val defining_term_of_introrule = defining_term_of_introrule_term o Thm.prop_of
 
 fun defining_const_of_introrule th =
   (case defining_term_of_introrule th of
     Const (c, _) => c
-  | _ => raise TERM ("defining_const_of_introrule failed: Not a constant", [prop_of th]))
+  | _ => raise TERM ("defining_const_of_introrule failed: Not a constant", [Thm.prop_of th]))
 
 (*TODO*)
 fun is_introlike_term _ = true
 
-val is_introlike = is_introlike_term o prop_of
+val is_introlike = is_introlike_term o Thm.prop_of
 
 fun check_equation_format_term (t as (Const (@{const_name Pure.eq}, _) $ u $ _)) =
       (case strip_comb u of
@@ -95,19 +95,19 @@ fun check_equation_format_term (t as (Const (@{const_name Pure.eq}, _) $ u $ _))
   | check_equation_format_term t =
       raise TERM ("check_equation_format_term failed: Not an equation", [t])
 
-val check_equation_format = check_equation_format_term o prop_of
+val check_equation_format = check_equation_format_term o Thm.prop_of
 
 
 fun defining_term_of_equation_term (Const (@{const_name Pure.eq}, _) $ u $ _) = fst (strip_comb u)
   | defining_term_of_equation_term t =
       raise TERM ("defining_const_of_equation_term failed: Not an equation", [t])
 
-val defining_term_of_equation = defining_term_of_equation_term o prop_of
+val defining_term_of_equation = defining_term_of_equation_term o Thm.prop_of
 
 fun defining_const_of_equation th =
   (case defining_term_of_equation th of
     Const (c, _) => c
-  | _ => raise TERM ("defining_const_of_equation failed: Not a constant", [prop_of th]))
+  | _ => raise TERM ("defining_const_of_equation failed: Not a constant", [Thm.prop_of th]))
 
 
 
@@ -115,7 +115,7 @@ fun defining_const_of_equation th =
 (* Normalizing equations *)
 
 fun mk_meta_equation th =
-  (case prop_of th of
+  (case Thm.prop_of th of
     Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _) =>
       th RS @{thm eq_reflection}
   | _ => th)
@@ -124,7 +124,7 @@ val meta_fun_cong = @{lemma "f == g ==> f x == g x" by simp}
 
 fun full_fun_cong_expand th =
   let
-    val (f, args) = strip_comb (fst (Logic.dest_equals (prop_of th)))
+    val (f, args) = strip_comb (fst (Logic.dest_equals (Thm.prop_of th)))
     val i = length (binder_types (fastype_of f)) - length args
   in funpow i (fn th => th RS meta_fun_cong) th end;
 
@@ -137,7 +137,7 @@ fun split_all_pairs thy th =
   let
     val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, [th']), _) = Variable.import true [th] ctxt
-    val t = prop_of th'
+    val t = Thm.prop_of th'
     val frees = Term.add_frees t []
     val freenames = Term.add_free_names t []
     val nctxt = Name.make_context freenames
@@ -269,7 +269,7 @@ fun obtain_specification_graph options thy t =
         Type (Tcon, _) => can (Ctr_Sugar.dest_ctr ctxt Tcon) (Const x)
       | _ => false)
     fun defiants_of specs =
-      fold (Term.add_consts o prop_of) specs []
+      fold (Term.add_consts o Thm.prop_of) specs []
       |> filter_out is_datatype_constructor
       |> filter_out is_nondefining_const
       |> filter_out has_code_pred_intros

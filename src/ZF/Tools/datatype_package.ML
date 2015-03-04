@@ -345,7 +345,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
     let
-      val thy = theory_of_thm elim;
+      val thy = Thm.theory_of_thm elim;
       val ctxt = Proof_Context.init_global thy;
     in
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)

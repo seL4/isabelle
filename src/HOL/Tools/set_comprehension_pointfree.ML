@@ -430,7 +430,7 @@ fun comprehension_conv ctxt ct =
       in
         HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
       end;
-    fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
+    fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (Thm.prop_of th))
     val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.case}
     fun tac ctxt = 
       resolve_tac ctxt @{thms set_eqI}
@@ -446,10 +446,10 @@ fun comprehension_conv ctxt ct =
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps (filter is_eq prems)) 1) ctxt
       THEN' TRY o assume_tac ctxt
   in
-    case try mk_term (term_of ct) of
+    case try mk_term (Thm.term_of ct) of
       NONE => Thm.reflexive ct
     | SOME t' =>
-      Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t')))
+      Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (Thm.term_of ct, t')))
           (fn {context, ...} => tac context 1)
         RS @{thm eq_reflection}
   end
@@ -473,7 +473,7 @@ fun conv ctxt t =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
         (empty_simpset ctxt' addsimps thms)
     val prep_eq = (comprehension_conv ctxt' then_conv unfold_conv prep_thms) ct
-    val t'' = term_of (Thm.rhs_of prep_eq)
+    val t'' = Thm.term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
@@ -487,7 +487,7 @@ fun conv ctxt t =
 
 fun base_simproc ctxt redex =
   let
-    val set_compr = term_of redex
+    val set_compr = Thm.term_of redex
   in
     conv ctxt set_compr
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
@@ -496,14 +496,14 @@ fun base_simproc ctxt redex =
 fun instantiate_arg_cong ctxt pred =
   let
     val arg_cong = Thm.incr_indexes (maxidx_of_term pred + 1) @{thm arg_cong}
-    val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of arg_cong)))
+    val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.concl_of arg_cong)))
   in
     cterm_instantiate [(Proof_Context.cterm_of ctxt f, Proof_Context.cterm_of ctxt pred)] arg_cong
   end;
 
 fun simproc ctxt redex =
   let
-    val pred $ set_compr = term_of redex
+    val pred $ set_compr = Thm.term_of redex
     val arg_cong' = instantiate_arg_cong ctxt pred
   in
     conv ctxt set_compr

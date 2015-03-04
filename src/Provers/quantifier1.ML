@@ -181,7 +181,7 @@ fun quantify qC x T xs P =
   in quant xs (qC $ Abs (x, T, Q)) end;
 
 fun rearrange_all ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     F as (all as Const (q, _)) $ Abs (x, T, P) =>
       (case extract_quant extract_imp q P of
         NONE => NONE
@@ -191,7 +191,7 @@ fun rearrange_all ctxt ct =
   | _ => NONE);
 
 fun rearrange_ball tac ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     F as Ball $ A $ Abs (x, T, P) =>
       (case extract_imp true [] P of
         NONE => NONE
@@ -203,7 +203,7 @@ fun rearrange_ball tac ctxt ct =
   | _ => NONE);
 
 fun rearrange_ex ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     F as (ex as Const (q, _)) $ Abs (x, T, P) =>
       (case extract_quant extract_conj q P of
         NONE => NONE
@@ -213,7 +213,7 @@ fun rearrange_ex ctxt ct =
   | _ => NONE);
 
 fun rearrange_bex tac ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     F as Bex $ A $ Abs (x, T, P) =>
       (case extract_conj true [] P of
         NONE => NONE
@@ -223,7 +223,7 @@ fun rearrange_bex tac ctxt ct =
   | _ => NONE);
 
 fun rearrange_Collect tac ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     F as Collect $ Abs (x, T, P) =>
       (case extract_conj true [] P of
         NONE => NONE

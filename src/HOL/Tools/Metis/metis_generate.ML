@@ -216,7 +216,7 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
         (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
-           th |> prop_of |> Logic.strip_imp_concl
+           th |> Thm.prop_of |> Logic.strip_imp_concl
               |> conceal_old_skolem_terms (length clauses) old_skolems
               ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN) ? eliminate_lam_wrappers
               ||> (fn prop => (name, prop) :: props))

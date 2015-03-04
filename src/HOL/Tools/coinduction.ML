@@ -24,15 +24,15 @@ fun filter_in_out _ [] = ([], [])
 
 fun ALLGOALS_SKIP skip tac st =
   let fun doall n = if n = skip then all_tac else tac n THEN doall (n - 1)
-  in doall (nprems_of st) st  end;
+  in doall (Thm.nprems_of st) st  end;
 
 fun THEN_ALL_NEW_SKIP skip tac1 tac2 i st =
   st |> (tac1 i THEN (fn st' =>
-    Seq.INTERVAL tac2 (i + skip) (i + nprems_of st' - nprems_of st) st'));
+    Seq.INTERVAL tac2 (i + skip) (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
 
 fun DELETE_PREMS_AFTER skip tac i st =
   let
-    val n = nth (prems_of st) (i - 1) |> Logic.strip_assums_hyp |> length;
+    val n = nth (Thm.prems_of st) (i - 1) |> Logic.strip_assums_hyp |> length;
   in
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
@@ -56,14 +56,14 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
       Object_Logic.atomize_prems_tac ctxt THEN'
       DELETE_PREMS_AFTER skip (Subgoal.FOCUS (fn {concl, context = ctxt, params, prems, ...} =>
         let
-          val vars = raw_vars @ map (term_of o snd) params;
+          val vars = raw_vars @ map (Thm.term_of o snd) params;
           val names_ctxt = ctxt
             |> fold Variable.declare_names vars
             |> fold Variable.declare_thm (raw_thm :: prems);
           val thm_concl = Thm.cprop_of raw_thm |> strip_imp_concl;
           val (rhoTs, rhots) = Thm.match (thm_concl, concl)
-            |>> map (apply2 typ_of)
-            ||> map (apply2 term_of);
+            |>> map (apply2 Thm.typ_of)
+            ||> map (apply2 Thm.term_of);
           val xs = hd (Thm.prems_of raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
             |> map (subst_atomic_types rhoTs);
           val raw_eqs = map (fn x => (x, AList.lookup op aconv rhots x |> the)) xs;
@@ -73,7 +73,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
             @{map 3} (fn name => fn T => fn (_, rhs) =>
               HOLogic.mk_eq (Free (name, T), rhs))
             names Ts raw_eqs;
-          val phi = eqs @ map (HOLogic.dest_Trueprop o prop_of) prems
+          val phi = eqs @ map (HOLogic.dest_Trueprop o Thm.prop_of) prems
             |> try (Library.foldr1 HOLogic.mk_conj)
             |> the_default @{term True}
             |> Ctr_Sugar_Util.list_exists_free vars
@@ -104,8 +104,9 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
                        val inv_thms = init @ [last];
                        val eqs = take e inv_thms;
                        fun is_local_var t =
-                         member (fn (t, (_, t')) => t aconv (term_of t')) params t;
-                        val (eqs, assms') = filter_in_out (is_local_var o lhs_of_eq o prop_of) eqs;
+                         member (fn (t, (_, t')) => t aconv (Thm.term_of t')) params t;
+                        val (eqs, assms') =
+                          filter_in_out (is_local_var o lhs_of_eq o Thm.prop_of) eqs;
                         val assms = assms' @ drop e inv_thms
                       in
                         HEADGOAL (Method.insert_tac (assms @ case_prems)) THEN
@@ -114,7 +115,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
         end) ctxt) THEN'
       K (prune_params_tac ctxt))
     #> Seq.maps (fn st =>
-      CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, prop_of st) cases) all_tac st)
+      CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, Thm.prop_of st) cases) all_tac st)
   end));
 
 local

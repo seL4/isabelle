@@ -474,7 +474,7 @@ fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
 
 fun flip_rels lthy n thm =
   let
-    val Rs = Term.add_vars (prop_of thm) [];
+    val Rs = Term.add_vars (Thm.prop_of thm) [];
     val Rs' = rev (drop (length Rs - n) Rs);
     val cRs = map (fn f => (Proof_Context.cterm_of lthy (Var f), Proof_Context.cterm_of lthy (mk_flip f))) Rs';
   in

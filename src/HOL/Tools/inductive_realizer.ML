@@ -58,16 +58,16 @@ val attach_typeS = map_types (map_atyps
 
 fun dt_of_intrs thy vs nparms intrs =
   let
-    val iTs = rev (Term.add_tvars (prop_of (hd intrs)) []);
+    val iTs = rev (Term.add_tvars (Thm.prop_of (hd intrs)) []);
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (prop_of (hd intrs))));
+      (Logic.strip_imp_concl (Thm.prop_of (hd intrs))));
     val params = map dest_Var (take nparms ts);
     val tname = Binding.name (space_implode "_" (Long_Name.base_name s ^ "T" :: vs));
     fun constr_of_intr intr = (Binding.name (Long_Name.base_name (name_of_thm intr)),
-      map (Logic.unvarifyT_global o snd) (subtract (op =) params (rev (Term.add_vars (prop_of intr) []))) @
-        filter_out (equal Extraction.nullT) (map
-          (Logic.unvarifyT_global o Extraction.etype_of thy vs []) (prems_of intr)),
-            NoSyn);
+      map (Logic.unvarifyT_global o snd)
+        (subtract (op =) params (rev (Term.add_vars (Thm.prop_of intr) []))) @
+      filter_out (equal Extraction.nullT)
+        (map (Logic.unvarifyT_global o Extraction.etype_of thy vs []) (Thm.prems_of intr)), NoSyn);
   in
     ((tname, map (rpair dummyS) (map (fn a => "'" ^ a) vs @ map (fst o fst) iTs), NoSyn),
       map constr_of_intr intrs)
@@ -95,7 +95,7 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
 
 fun mk_realizes_eqn n vs nparms intrs =
   let
-    val intr = map_types Type.strip_sorts (prop_of (hd intrs));
+    val intr = map_types Type.strip_sorts (Thm.prop_of (hd intrs));
     val concl = HOLogic.dest_Trueprop (Logic.strip_imp_concl intr);
     val iTs = rev (Term.add_tvars intr []);
     val Tvs = map TVar iTs;
@@ -138,7 +138,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
     val ctxt = Proof_Context.init_global thy
     val args = map (Free o apfst fst o dest_Var) ivs;
     val args' = map (Free o apfst fst)
-      (subtract (op =) params (Term.add_vars (prop_of intr) []));
+      (subtract (op =) params (Term.add_vars (Thm.prop_of intr) []));
     val rule' = strip_all rule;
     val conclT = Extraction.etype_of thy vs [] (Logic.strip_imp_concl rule');
     val used = map (fst o dest_Free) args;
@@ -203,10 +203,10 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
 
 fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs dummies =
   let
-    val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct));
+    val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of raw_induct));
     val premss = map_filter (fn (s, rs) => if member (op =) rsets s then
-      SOME (rs, map (fn (_, r) => nth (prems_of raw_induct)
-        (find_index (fn prp => prp = prop_of r) (map prop_of intrs))) rs) else NONE) rss;
+      SOME (rs, map (fn (_, r) => nth (Thm.prems_of raw_induct)
+        (find_index (fn prp => prp = Thm.prop_of r) (map Thm.prop_of intrs))) rs) else NONE) rss;
     val fs = maps (fn ((intrs, prems), dummy) =>
       let
         val fs = map (fn (rule, (ivs, intr)) =>
@@ -257,13 +257,13 @@ fun add_dummies f [] _ thy =
 
 fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
   let
-    val rvs = map fst (relevant_vars (prop_of rule));
-    val xs = rev (Term.add_vars (prop_of rule) []);
+    val rvs = map fst (relevant_vars (Thm.prop_of rule));
+    val xs = rev (Term.add_vars (Thm.prop_of rule) []);
     val vs1 = map Var (filter_out (fn ((a, _), _) => member (op =) rvs a) xs);
-    val rlzvs = rev (Term.add_vars (prop_of rrule) []);
+    val rlzvs = rev (Term.add_vars (Thm.prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
     val rs = map Var (subtract (op = o apply2 fst) xs rlzvs);
-    val rlz' = fold_rev Logic.all rs (prop_of rrule)
+    val rlz' = fold_rev Logic.all rs (Thm.prop_of rrule)
   in (name, (vs,
     if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
     Extraction.abs_corr_shyps thy rule vs vs2
@@ -277,7 +277,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
   let
     val qualifier = Long_Name.qualifier (name_of_thm induct);
     val inducts = Global_Theory.get_thms thy (Long_Name.qualify qualifier "inducts");
-    val iTs = rev (Term.add_tvars (prop_of (hd intrs)) []);
+    val iTs = rev (Term.add_tvars (Thm.prop_of (hd intrs)) []);
     val ar = length vs + length iTs;
     val params = Inductive.params_of raw_induct;
     val arities = Inductive.arities_of raw_induct;
@@ -317,21 +317,21 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       if null dt_names then []
       else #rec_rewrites (Old_Datatype_Data.the_info thy2 (hd dt_names));
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
-      HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) rec_thms);
+      HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
       if member (op =) rsets s then
         let
           val (d :: dummies') = dummies;
           val (recs1, recs2) = chop (length rs) (if d then tl recs else recs)
         in (map (head_of o hd o rev o snd o strip_comb o fst o
-          HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) recs1, (recs2, dummies'))
+          HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) recs1, (recs2, dummies'))
         end
       else (replicate (length rs) Extraction.nullt, (recs, dummies)))
         rss (rec_thms, dummies);
     val rintrs = map (fn (intr, c) => attach_typeS (Envir.eta_contract
       (Extraction.realizes_of thy2 vs
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
-          (subtract (op =) params' (Term.add_vars (prop_of intr) []))))) (prop_of intr))))
+          (subtract (op =) params' (Term.add_vars (Thm.prop_of intr) []))))) (Thm.prop_of intr))))
             (maps snd rss ~~ flat constrss);
     val (rlzpreds, rlzpreds') =
       rintrs |> map (fn rintr =>
@@ -365,17 +365,17 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     val Ps = map_filter (fn _ $ M $ P => if member (op =) rsets (pred_of M) then
       SOME (fst (fst (dest_Var (head_of P)))) else NONE)
-        (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct)));
+        (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of raw_induct)));
 
     fun add_ind_realizer Ps thy =
       let
         val vs' = rename (map (apply2 (fst o fst o dest_Var))
           (params ~~ List.take (snd (strip_comb (HOLogic.dest_Trueprop
-            (hd (prems_of (hd inducts))))), nparms))) vs;
+            (hd (Thm.prems_of (hd inducts))))), nparms))) vs;
         val rs = indrule_realizer thy induct raw_induct rsets params'
           (vs' @ Ps) rec_names rss' intrs dummies;
         val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs' @ Ps) r
-          (prop_of ind)) (rs ~~ inducts);
+          (Thm.prop_of ind)) (rs ~~ inducts);
         val used = fold Term.add_free_names rlzs [];
         val rnames = Name.variant_list used (replicate (length inducts) "r");
         val rnames' = Name.variant_list
@@ -421,24 +421,24 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     (** realizer for elimination rules **)
 
     val case_names = map (fst o dest_Const o head_of o fst o HOLogic.dest_eq o
-      HOLogic.dest_Trueprop o prop_of o hd) case_thms;
+      HOLogic.dest_Trueprop o Thm.prop_of o hd) case_thms;
 
     fun add_elim_realizer Ps
       (((((elim, elimR), intrs), case_thms), case_name), dummy) thy =
       let
-        val (prem :: prems) = prems_of elim;
+        val (prem :: prems) = Thm.prems_of elim;
         fun reorder1 (p, (_, intr)) =
           fold (fn ((s, _), T) => Logic.all (Free (s, T)))
-            (subtract (op =) params' (Term.add_vars (prop_of intr) []))
+            (subtract (op =) params' (Term.add_vars (Thm.prop_of intr) []))
             (strip_all p);
         fun reorder2 ((ivs, intr), i) =
-          let val fs = subtract (op =) params' (Term.add_vars (prop_of intr) [])
+          let val fs = subtract (op =) params' (Term.add_vars (Thm.prop_of intr) [])
           in fold (lambda o Var) fs (list_comb (Bound (i + length ivs), ivs)) end;
         val p = Logic.list_implies
-          (map reorder1 (prems ~~ intrs) @ [prem], concl_of elim);
+          (map reorder1 (prems ~~ intrs) @ [prem], Thm.concl_of elim);
         val T' = Extraction.etype_of thy (vs @ Ps) [] p;
         val T = if dummy then (HOLogic.unitT --> body_type T') --> T' else T';
-        val Ts = map (Extraction.etype_of thy (vs @ Ps) []) (prems_of elim);
+        val Ts = map (Extraction.etype_of thy (vs @ Ps) []) (Thm.prems_of elim);
         val r =
           if null Ps then Extraction.nullt
           else
@@ -449,7 +449,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
                  else []) @
                 map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
                 [Bound (length prems)]));
-        val rlz = Extraction.realizes_of thy (vs @ Ps) r (prop_of elim);
+        val rlz = Extraction.realizes_of thy (vs @ Ps) r (Thm.prop_of elim);
         val rlz' = attach_typeS (strip_all (Logic.unvarify_global rlz));
         val rews = map mk_meta_eq case_thms;
         val thm = Goal.prove_global thy []
@@ -474,7 +474,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val thy5 = Extraction.add_realizers_i
       (map (mk_realizer thy4 vs) (map (fn (((rule, rrule), rlz), c) =>
          (name_of_thm rule, rule, rrule, rlz,
-            list_comb (c, map Var (subtract (op =) params' (rev (Term.add_vars (prop_of rule) []))))))
+            list_comb (c, map Var (subtract (op =) params' (rev (Term.add_vars (Thm.prop_of rule) []))))))
               (maps snd rss ~~ #intrs ind_info ~~ rintrs ~~ flat constrss))) thy4;
     val elimps = map_filter (fn ((s, intrs), p) =>
       if member (op =) rsets s then SOME (p, intrs) else NONE)
@@ -482,7 +482,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val thy6 =
       fold (fn p as (((((elim, _), _), _), _), _) =>
         add_elim_realizer [] p #>
-        add_elim_realizer [fst (fst (dest_Var (HOLogic.dest_Trueprop (concl_of elim))))] p)
+        add_elim_realizer [fst (fst (dest_Var (HOLogic.dest_Trueprop (Thm.concl_of elim))))] p)
       (elimps ~~ case_thms ~~ case_names ~~ dummies) thy5;
 
   in Sign.restore_naming thy thy6 end;
@@ -492,7 +492,7 @@ fun add_ind_realizers name rsets thy =
     val (_, {intrs, induct, raw_induct, elims, ...}) =
       Inductive.the_inductive (Proof_Context.init_global thy) name;
     val vss = sort (int_ord o apply2 length)
-      (subsets (map fst (relevant_vars (concl_of (hd intrs)))))
+      (subsets (map fst (relevant_vars (Thm.concl_of (hd intrs)))))
   in
     fold_rev (add_ind_realizer rsets intrs induct raw_induct elims) vss thy
   end
@@ -501,8 +501,8 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
   let
     fun err () = error "ind_realizer: bad rule";
     val sets =
-      (case HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of thm)) of
-           [_] => [pred_of (HOLogic.dest_Trueprop (hd (prems_of thm)))]
+      (case HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of thm)) of
+           [_] => [pred_of (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))]
          | xs => map (pred_of o fst o HOLogic.dest_imp) xs)
          handle TERM _ => err () | List.Empty => err ();
   in 

@@ -288,9 +288,9 @@ structure LeCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm le_add_iff2} RS trans
 );
 
-fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (term_of ct)
-fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (term_of ct)
-fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (term_of ct)
+fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (Thm.term_of ct)
+fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (Thm.term_of ct)
+fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (Thm.term_of ct)
 
 structure CombineNumeralsData =
 struct
@@ -350,9 +350,9 @@ end;
 
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
 
-fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (term_of ct)
+fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (Thm.term_of ct)
 
-fun field_combine_numerals ctxt ct = FieldCombineNumerals.proc ctxt (term_of ct)
+fun field_combine_numerals ctxt ct = FieldCombineNumerals.proc ctxt (Thm.term_of ct)
 
 
 (** Constant folding for multiplication in semirings **)
@@ -368,7 +368,7 @@ end;
 
 structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
 
-fun assoc_fold ctxt ct = Semiring_Times_Assoc.proc ctxt (term_of ct)
+fun assoc_fold ctxt ct = Semiring_Times_Assoc.proc ctxt (Thm.term_of ct)
 
 structure CancelNumeralFactorCommon =
 struct
@@ -440,11 +440,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (term_of ct)
-fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (term_of ct)
-fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (term_of ct)
-fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (term_of ct)
-fun divide_cancel_numeral_factor ctxt ct = DivideCancelNumeralFactor.proc ctxt (term_of ct)
+fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+fun divide_cancel_numeral_factor ctxt ct = DivideCancelNumeralFactor.proc ctxt (Thm.term_of ct)
 
 val field_divide_cancel_numeral_factor =
   [prep_simproc @{theory}
@@ -577,19 +577,19 @@ structure DivideCancelFactor = ExtractCommonTermFun
   fun simp_conv _ _ = SOME @{thm mult_divide_mult_cancel_left_if}
 );
 
-fun eq_cancel_factor ctxt ct = EqCancelFactor.proc ctxt (term_of ct)
-fun le_cancel_factor ctxt ct = LeCancelFactor.proc ctxt (term_of ct)
-fun less_cancel_factor ctxt ct = LessCancelFactor.proc ctxt (term_of ct)
-fun div_cancel_factor ctxt ct = DivCancelFactor.proc ctxt (term_of ct)
-fun mod_cancel_factor ctxt ct = ModCancelFactor.proc ctxt (term_of ct)
-fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (term_of ct)
-fun divide_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (term_of ct)
+fun eq_cancel_factor ctxt ct = EqCancelFactor.proc ctxt (Thm.term_of ct)
+fun le_cancel_factor ctxt ct = LeCancelFactor.proc ctxt (Thm.term_of ct)
+fun less_cancel_factor ctxt ct = LessCancelFactor.proc ctxt (Thm.term_of ct)
+fun div_cancel_factor ctxt ct = DivCancelFactor.proc ctxt (Thm.term_of ct)
+fun mod_cancel_factor ctxt ct = ModCancelFactor.proc ctxt (Thm.term_of ct)
+fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (Thm.term_of ct)
+fun divide_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (Thm.term_of ct)
 
 local
  val zr = @{cpat "0"}
- val zT = ctyp_of_term zr
+ val zT = Thm.ctyp_of_term zr
  val geq = @{cpat HOL.eq}
- val eqT = Thm.dest_ctyp (ctyp_of_term geq) |> hd
+ val eqT = Thm.dest_ctyp (Thm.ctyp_of_term geq) |> hd
  val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
  val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
  val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
@@ -608,8 +608,8 @@ local
   let
     val ((x,y),(w,z)) =
          (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
-    val _ = map (HOLogic.dest_number o term_of) [x,y,z,w]
-    val T = ctyp_of_term x
+    val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z,w]
+    val T = Thm.ctyp_of_term x
     val [y_nz, z_nz] = map (prove_nz ctxt T) [y, z]
     val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
   in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz)
@@ -619,17 +619,17 @@ local
  fun proc2 phi ctxt ct =
   let
     val (l,r) = Thm.dest_binop ct
-    val T = ctyp_of_term l
-  in (case (term_of l, term_of r) of
+    val T = Thm.ctyp_of_term l
+  in (case (Thm.term_of l, Thm.term_of r) of
       (Const(@{const_name Fields.divide},_)$_$_, _) =>
         let val (x,y) = Thm.dest_binop l val z = r
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
+            val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
         in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
      | (_, Const (@{const_name Fields.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
+            val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
         in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
         end
@@ -640,50 +640,50 @@ local
  fun is_number (Const(@{const_name Fields.divide},_)$a$b) = is_number a andalso is_number b
    | is_number t = can HOLogic.dest_number t
 
- val is_number = is_number o term_of
+ val is_number = is_number o Thm.term_of
 
  fun proc3 phi ctxt ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     Const(@{const_name Orderings.less},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name HOL.eq},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name HOL.eq},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
+        val T = Thm.ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
       in SOME (mk_meta_eq th) end
   | _ => NONE)

@@ -4156,7 +4156,7 @@ in
 
   fn (ctxt, alternative, ty, ps, ct) =>
     Proof_Context.cterm_of ctxt
-      (frpar_procedure alternative ty ps (term_of ct))
+      (frpar_procedure alternative ty ps (Thm.term_of ct))
 
 end
 *}
