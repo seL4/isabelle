@@ -68,6 +68,11 @@ token category instead.
 
 *** HOL ***
 
+* removed functions "natfloor" and "natceiling",
+  use "nat o floor" and "nat o ceiling" instead.
+  A few of the lemmas have been retained and adapted: in their names
+  "natfloor"/"natceiling" has been replaced by "nat_floor"/"nat_ceiling".
+
 * Qualified some duplicated fact names required for boostrapping
 the type class hierarchy:
   ab_add_uminus_conv_diff ~> diff_conv_add_uminus

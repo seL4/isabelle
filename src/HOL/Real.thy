@@ -1680,6 +1680,10 @@ lemma numeral_less_real_of_nat_iff [simp]:
   "numeral w < real (n::nat) \<longleftrightarrow> numeral w < n"
   using real_of_nat_less_iff[of "numeral w" n] by simp
 
+lemma numeral_le_real_of_nat_iff[simp]:
+  "(numeral n \<le> real(m::nat)) = (numeral n \<le> m)"
+by (metis not_le real_of_nat_less_numeral_iff)
+
 lemma numeral_le_real_of_int_iff [simp]:
      "((numeral n) \<le> real (m::int)) = (numeral n \<le> m)"
 by (simp add: linorder_not_less [symmetric])
@@ -1866,170 +1870,29 @@ lemma ceiling_minus_divide_eq_div_numeral [simp]:
   "\<lceil>- (numeral a / numeral b :: real)\<rceil> = - (numeral a div numeral b)"
   using ceiling_divide_eq_div[of "- numeral a" "numeral b"] by simp
 
-subsubsection {* Versions for the natural numbers *}
+text{* The following lemmas are remnants of the erstwhile functions natfloor
+and natceiling. *}
 
-definition
-  natfloor :: "real => nat" where
-  "natfloor x = nat(floor x)"
-
-definition
-  natceiling :: "real => nat" where
-  "natceiling x = nat(ceiling x)"
-
-lemma natfloor_split[arith_split]: "P (natfloor t) \<longleftrightarrow> (t < 0 \<longrightarrow> P 0) \<and> (\<forall>n. of_nat n \<le> t \<and> t < of_nat n + 1 \<longrightarrow> P n)"
-proof -
-  have [dest]: "\<And>n m::nat. real n \<le> t \<Longrightarrow> t < real n + 1 \<Longrightarrow> real m \<le> t \<Longrightarrow> t < real m + 1 \<Longrightarrow> n = m"
-    by simp
-  show ?thesis
-    by (auto simp: natfloor_def real_of_nat_def[symmetric] split: split_nat floor_split)
-qed
-
-lemma natceiling_split[arith_split]:
-  "P (natceiling t) \<longleftrightarrow> (t \<le> - 1 \<longrightarrow> P 0) \<and> (\<forall>n. of_nat n - 1 < t \<and> t \<le> of_nat n \<longrightarrow> P n)"
-proof -
-  have [dest]: "\<And>n m::nat. real n - 1 < t \<Longrightarrow> t \<le> real n \<Longrightarrow> real m - 1 < t \<Longrightarrow> t \<le> real m \<Longrightarrow> n = m"
-    by simp
-  show ?thesis
-    by (auto simp: natceiling_def real_of_nat_def[symmetric] split: split_nat ceiling_split)
-qed
-
-lemma natfloor_zero [simp]: "natfloor 0 = 0"
+lemma nat_floor_neg: "(x::real) <= 0 ==> nat(floor x) = 0"
   by linarith
 
-lemma natfloor_one [simp]: "natfloor 1 = 1"
+lemma le_nat_floor: "real x <= a ==> x <= nat(floor a)"
   by linarith
 
-lemma natfloor_numeral_eq [simp]: "natfloor (numeral n) = numeral n"
-  by (unfold natfloor_def, simp)
-
-lemma natfloor_real_of_nat [simp]: "natfloor(real n) = n"
-  by linarith
-
-lemma real_natfloor_le: "0 <= x ==> real(natfloor x) <= x"
-  by linarith
-
-lemma natfloor_neg: "x <= 0 ==> natfloor x = 0"
-  by linarith
-
-lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
-  by linarith
-
-lemma le_natfloor: "real x <= a ==> x <= natfloor a"
-  by linarith
-
-lemma natfloor_less_iff: "0 \<le> x \<Longrightarrow> natfloor x < n \<longleftrightarrow> x < real n"
-  by linarith
-
-lemma less_natfloor: "0 \<le> x \<Longrightarrow> x < real (n :: nat) \<Longrightarrow> natfloor x < n"
-  by linarith
-
-lemma le_natfloor_eq: "0 <= x ==> (a <= natfloor x) = (real a <= x)"
-  by linarith
-
-lemma le_natfloor_eq_numeral [simp]:
-    "0 \<le> x \<Longrightarrow> (numeral n \<le> natfloor x) = (numeral n \<le> x)"
-  by (subst le_natfloor_eq, assumption) simp
-
-lemma le_natfloor_eq_one [simp]: "(1 \<le> natfloor x) = (1 \<le> x)"
-  by linarith
-
-lemma natfloor_eq: "real n \<le> x \<Longrightarrow> x < real n + 1 \<Longrightarrow> natfloor x = n"
-  by linarith
-
-lemma real_natfloor_add_one_gt: "x < real (natfloor x) + 1"
-  by linarith
-
-lemma real_natfloor_gt_diff_one: "x - 1 < real(natfloor x)"
-  by linarith
-
-lemma ge_natfloor_plus_one_imp_gt: "natfloor z + 1 <= n ==> z < real n"
-  by linarith
-
-lemma natfloor_add [simp]: "0 <= x ==> natfloor (x + real a) = natfloor x + a"
-  by linarith
-
-lemma natfloor_add_numeral [simp]:
-    "0 <= x \<Longrightarrow> natfloor (x + numeral n) = natfloor x + numeral n"
-  by (simp add: natfloor_add [symmetric])
-
-lemma natfloor_add_one: "0 <= x ==> natfloor(x + 1) = natfloor x + 1"
-  by linarith
-
-lemma natfloor_subtract [simp]:
-    "natfloor(x - real a) = natfloor x - a"
-  by linarith
-
-lemma natfloor_div_nat: "natfloor (x / real y) = natfloor x div y"
-proof cases
-  assume "0 \<le> x" then show ?thesis
-    unfolding natfloor_def real_of_int_of_nat_eq[symmetric]
-    by (subst floor_divide_real_eq_div) (simp_all add: nat_div_distrib)
-qed (simp add: divide_nonpos_nonneg natfloor_neg)
-
-lemma natfloor_div_numeral[simp]:
-  "natfloor (numeral x / numeral y) = numeral x div numeral y"
-  using natfloor_div_nat[of "numeral x" "numeral y"] by simp
-
-lemma le_mult_natfloor:
-  shows "natfloor a * natfloor b \<le> natfloor (a * b)"
+lemma le_mult_nat_floor:
+  shows "nat(floor a) * nat(floor b) \<le> nat(floor (a * b))"
   by (cases "0 <= a & 0 <= b")
-    (auto simp add: le_natfloor_eq mult_mono' real_natfloor_le natfloor_neg)
+     (auto simp add: nat_mult_distrib[symmetric] nat_mono le_mult_floor)
 
-lemma natceiling_zero [simp]: "natceiling 0 = 0"
+lemma nat_ceiling_le_eq: "(nat(ceiling x) <= a) = (x <= real a)"
   by linarith
 
-lemma natceiling_one [simp]: "natceiling 1 = 1"
+lemma real_nat_ceiling_ge: "x <= real(nat(ceiling x))"
   by linarith
 
-lemma zero_le_natceiling [simp]: "0 <= natceiling x"
-  by linarith
-
-lemma natceiling_numeral_eq [simp]: "natceiling (numeral n) = numeral n"
-  by (simp add: natceiling_def)
-
-lemma natceiling_real_of_nat [simp]: "natceiling(real n) = n"
-  by linarith
-
-lemma real_natceiling_ge: "x <= real(natceiling x)"
-  by linarith
-
-lemma natceiling_neg: "x <= 0 ==> natceiling x = 0"
-  by linarith
-
-lemma natceiling_mono: "x <= y ==> natceiling x <= natceiling y"
-  by linarith
-
-lemma natceiling_le: "x <= real a ==> natceiling x <= a"
-  by linarith
-
-lemma natceiling_le_eq: "(natceiling x <= a) = (x <= real a)"
-  by linarith
-
-lemma natceiling_le_eq_numeral [simp]:
-    "(natceiling x <= numeral n) = (x <= numeral n)"
-  by (simp add: natceiling_le_eq)
-
-lemma natceiling_le_eq_one: "(natceiling x <= 1) = (x <= 1)"
-  by linarith
-
-lemma natceiling_eq: "real n < x ==> x <= real n + 1 ==> natceiling x = n + 1"
-  by linarith
-
-lemma natceiling_add [simp]: "0 <= x ==> natceiling (x + real a) = natceiling x + a"
-  by linarith
-
-lemma natceiling_add_numeral [simp]:
-    "0 <= x ==> natceiling (x + numeral n) = natceiling x + numeral n"
-  by (simp add: natceiling_add [symmetric])
-
-lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"
-  by linarith
-
-lemma natceiling_subtract [simp]: "natceiling(x - real a) = natceiling x - a"
-  by linarith
 
 lemma Rats_no_top_le: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
-  by (auto intro!: bexI[of _ "of_nat (natceiling x)"]) (metis real_natceiling_ge real_of_nat_def)
+  by (auto intro!: bexI[of _ "of_nat (nat(ceiling x))"]) linarith
 
 lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
   apply (auto intro!: bexI[of _ "of_int (floor x - 1)"])
@@ -2048,7 +1911,7 @@ proof -
   show ?thesis unfolding real_of_int_inject[symmetric]
     unfolding * floor_real_of_int ..
 qed
-
+(*
 lemma natfloor_power:
   assumes "x = real (natfloor x)"
   shows "natfloor (x ^ n) = natfloor x ^ n"
@@ -2059,7 +1922,7 @@ proof -
   show ?thesis unfolding natfloor_def nat_power_eq[OF `0 \<le> floor x`, symmetric]
     by simp
 qed
-
+*)
 lemma floor_numeral_power[simp]:
   "\<lfloor>numeral x ^ n\<rfloor> = numeral x ^ n"
   by (metis floor_of_int of_int_numeral of_int_power)

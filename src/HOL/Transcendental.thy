@@ -2054,9 +2054,9 @@ lemma compute_powr[code]:
   fixes i::real
   shows "b powr i =
     (if b \<le> 0 then Code.abort (STR ''op powr with nonpositive base'') (\<lambda>_. b powr i)
-    else if floor i = i then (if 0 \<le> i then b ^ natfloor i else 1 / b ^ natfloor (- i))
+    else if floor i = i then (if 0 \<le> i then b ^ nat(floor i) else 1 / b ^ nat(floor (- i)))
     else Code.abort (STR ''op powr with non-integer exponent'') (\<lambda>_. b powr i))"
-  by (auto simp: natfloor_def powr_int)
+  by (auto simp: powr_int)
 
 lemma powr_one: "0 < x \<Longrightarrow> x powr 1 = x"
   using powr_realpow [of x 1] by simp

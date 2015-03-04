@@ -2423,8 +2423,8 @@ proof -
   from nonneg have "AE x in M. mono (\<lambda>n::nat. f x * indicator {..real n} x)"
     by (auto split: split_indicator intro!: monoI)
   { fix x have "eventually (\<lambda>n. f x * indicator {..real n} x = f x) sequentially"
-      by (rule eventually_sequentiallyI[of "natceiling x"])
-         (auto split: split_indicator simp: natceiling_le_eq) }
+      by (rule eventually_sequentiallyI[of "nat(ceiling x)"])
+         (auto split: split_indicator simp: nat_le_iff ceiling_le_iff) }
   from filterlim_cong[OF refl refl this]
   have "AE x in M. (\<lambda>i. f x * indicator {..real i} x) ----> f x"
     by simp
