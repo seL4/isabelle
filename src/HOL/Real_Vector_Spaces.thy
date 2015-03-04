@@ -1521,9 +1521,8 @@ qed
 lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
   unfolding filterlim_at_top
   apply (intro allI)
-  apply (rule_tac c="natceiling (Z + 1)" in eventually_sequentiallyI)
-  apply (auto simp: natceiling_le_eq)
-  done
+  apply (rule_tac c="nat(ceiling (Z + 1))" in eventually_sequentiallyI)
+  by linarith
 
 subsubsection {* Limits of Sequences *}
 

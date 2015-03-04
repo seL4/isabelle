@@ -1061,19 +1061,11 @@ proof -
     by (auto simp: vimage_def measurable_count_space_eq2_countable)
 qed
 
-lemma measurable_real_natfloor[measurable]:
-  "(natfloor :: real \<Rightarrow> nat) \<in> measurable borel (count_space UNIV)"
-  by (simp add: natfloor_def[abs_def])
-
 lemma measurable_real_ceiling[measurable]:
   "(ceiling :: real \<Rightarrow> int) \<in> measurable borel (count_space UNIV)"
   unfolding ceiling_def[abs_def] by simp
 
 lemma borel_measurable_real_floor: "(\<lambda>x::real. real \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
-  by simp
-
-lemma borel_measurable_real_natfloor:
-  "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
   by simp
 
 lemma borel_measurable_root [measurable]: "root n \<in> borel_measurable borel"

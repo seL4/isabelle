@@ -68,11 +68,11 @@ proof (cases b)
   with `a < b` have "a = -\<infinity> \<or> (\<exists>r. a = ereal r)"
     by (cases a) auto
   moreover have " (\<lambda>x. ereal (real (Suc x))) ----> \<infinity>"
-    using natceiling_le_eq by (subst LIMSEQ_Suc_iff) (auto simp: Lim_PInfty)
+    using nat_ceiling_le_eq by (subst LIMSEQ_Suc_iff) (auto simp: Lim_PInfty)
   moreover have "\<And>r. (\<lambda>x. ereal (r + real (Suc x))) ----> \<infinity>"
     apply (subst LIMSEQ_Suc_iff)
     apply (subst Lim_PInfty)
-    apply (metis add.commute diff_le_eq natceiling_le_eq ereal_less_eq(3))
+    apply (metis add.commute diff_le_eq nat_ceiling_le_eq ereal_less_eq(3))
     done
   ultimately show thesis
     by (intro that[of "\<lambda>i. real a + Suc i"])

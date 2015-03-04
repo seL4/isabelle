@@ -119,7 +119,7 @@ proof (rule LIMSEQ_unique)
     apply (intro nn_integral_LIMSEQ)
     apply (auto simp: incseq_def le_fun_def eventually_sequentially
                 split: split_indicator intro!: Lim_eventually)
-    apply (metis natceiling_le_eq)
+    apply (metis nat_ceiling_le_eq)
     done
 
   have "((\<lambda>x. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / real (fact n))) * fact k) ---> (1 - (\<Sum>n\<le>k. 0 / real (fact n))) * fact k) at_top"

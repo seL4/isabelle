@@ -2064,7 +2064,7 @@ lemma ereal_of_enat_less_iff[simp]: "ereal_of_enat m < ereal_of_enat n \<longlef
   by (cases m n rule: enat2_cases) auto
 
 lemma numeral_le_ereal_of_enat_iff[simp]: "numeral m \<le> ereal_of_enat n \<longleftrightarrow> numeral m \<le> n"
-  by (cases n) (auto dest: natceiling_le intro: natceiling_le_eq[THEN iffD1])
+by (cases n) (auto)
 
 lemma numeral_less_ereal_of_enat_iff[simp]: "numeral m < ereal_of_enat n \<longleftrightarrow> numeral m < n"
   by (cases n) auto

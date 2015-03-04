@@ -1156,15 +1156,15 @@ proof -
   {
     fix x b :: 'a
     assume [simp]: "b \<in> Basis"
-    have "\<bar>x \<bullet> b\<bar> \<le> real (natceiling \<bar>x \<bullet> b\<bar>)"
-      by (rule real_natceiling_ge)
-    also have "\<dots> \<le> real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
-      by (auto intro!: natceiling_mono)
-    also have "\<dots> < real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+    have "\<bar>x \<bullet> b\<bar> \<le> real (ceiling \<bar>x \<bullet> b\<bar>)"
+      by (rule real_of_int_ceiling_ge)
+    also have "\<dots> \<le> real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
+      by (auto intro!: ceiling_mono)
+    also have "\<dots> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
       by simp
-    finally have "\<bar>x \<bullet> b\<bar> < real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)" . }
+    finally have "\<bar>x \<bullet> b\<bar> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)" . }
   then have "\<And>x::'a. \<exists>n::nat. \<forall>b\<in>Basis. \<bar>x \<bullet> b\<bar> < real n"
-    by auto
+    by (metis order.strict_trans reals_Archimedean2)
   moreover have "\<And>x b::'a. \<And>n::nat.  \<bar>x \<bullet> b\<bar> < real n \<longleftrightarrow> - real n < x \<bullet> b \<and> x \<bullet> b < real n"
     by auto
   ultimately show ?thesis
