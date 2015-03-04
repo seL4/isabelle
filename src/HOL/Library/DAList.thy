@@ -195,9 +195,61 @@ instance ..
 
 end
 
+
+section \<open>alist is a BNF\<close>
+
+lift_definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('k, 'a) alist \<Rightarrow> ('k, 'b) alist"
+  is "\<lambda>f xs. List.map (map_prod id f) xs" by simp
+
+lift_definition set :: "('k, 'v) alist => 'v set"
+  is "\<lambda>xs. snd ` List.set xs" .
+
+lift_definition rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('k, 'a) alist \<Rightarrow> ('k, 'b) alist \<Rightarrow> bool"
+  is "\<lambda>R xs ys. list_all2 (rel_prod op = R) xs ys" .
+
+bnf "('k, 'v) alist"
+  map: map
+  sets: set
+  bd: natLeq
+  wits: empty
+  rel: rel
+proof (unfold OO_Grp_alt)
+  show "map id = id" by (rule ext, transfer) (simp add: prod.map_id0)
+next
+  fix f g
+  show "map (g \<circ> f) = map g \<circ> map f"
+    by (rule ext, transfer) (simp add: prod.map_comp)
+next
+  fix x f g
+  assume "(\<And>z. z \<in> set x \<Longrightarrow> f z = g z)"
+  then show "map f x = map g x" by transfer force
+next
+  fix f
+  show "set \<circ> map f = op ` f \<circ> set"
+    by (rule ext, transfer) (simp add: image_image)
+next
+  fix x
+  show "ordLeq3 (card_of (set x)) natLeq"
+    by transfer (auto simp: finite_iff_ordLess_natLeq[symmetric] intro: ordLess_imp_ordLeq)
+next
+  fix R S
+  show "rel R OO rel S \<le> rel (R OO S)"
+    by (rule predicate2I, transfer)
+      (auto simp: list.rel_compp prod.rel_compp[of "op =", unfolded eq_OO])
+next
+  fix R
+  show "rel R = (\<lambda>x y. \<exists>z. z \<in> {x. set x \<subseteq> {(x, y). R x y}} \<and> map fst z = x \<and> map snd z = y)"
+   unfolding fun_eq_iff by transfer (fastforce simp: list.in_rel o_def intro:
+     exI[of _ "List.map (\<lambda>p. ((fst p, fst (snd p)), (fst p, snd (snd p)))) z" for z]
+     exI[of _ "List.map (\<lambda>p. (fst (fst p), snd (fst p), snd (snd p))) z" for z])
+next
+  fix z assume "z \<in> set empty"
+  then show False by transfer simp
+qed (simp_all add: natLeq_cinfinite natLeq_card_order)
+
 hide_const valterm_empty valterm_update random_aux_alist
 
 hide_fact (open) lookup_def empty_def update_def delete_def map_entry_def filter_def map_default_def
-hide_const (open) impl_of lookup empty update delete map_entry filter map_default
+hide_const (open) impl_of lookup empty update delete map_entry filter map_default map set rel
 
 end
