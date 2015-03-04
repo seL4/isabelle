@@ -617,7 +617,7 @@ local
   fun get_vars f mk pred ctxt t =
     Term.fold_aterms f t []
     |> map_filter (fn v =>
-         if pred v then SOME (Old_SMT_Utils.certify ctxt (mk v)) else NONE)
+         if pred v then SOME (Proof_Context.cterm_of ctxt (mk v)) else NONE)
 
   fun close vars f ct ctxt =
     let

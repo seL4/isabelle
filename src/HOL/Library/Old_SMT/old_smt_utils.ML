@@ -39,7 +39,6 @@ sig
   val instT': cterm -> ctyp * cterm -> cterm
 
   (*certified terms*)
-  val certify: Proof.context -> term -> cterm
   val dest_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_all_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_cbinder: cterm -> Proof.context -> cterm * Proof.context
@@ -159,8 +158,6 @@ fun instT' ct = instT (Thm.ctyp_of_cterm ct)
 
 
 (* certified terms *)
-
-fun certify ctxt = Proof_Context.cterm_of ctxt
 
 fun dest_cabs ct ctxt =
   (case Thm.term_of ct of

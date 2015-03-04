@@ -3,12 +3,12 @@
     Author:     Makarius
 
 The very core of Isabelle's Meta Logic: certified types and terms,
-derivations, theorems, framework rules (including lifting and
+derivations, theorems, inference rules (including lifting and
 resolution), oracles.
 *)
 
 signature BASIC_THM =
-  sig
+sig
   type ctyp
   type cterm
   exception CTERM of string * cterm list
@@ -20,17 +20,12 @@ end;
 signature THM =
 sig
   include BASIC_THM
-
   (*certified types*)
-  val rep_ctyp: ctyp -> {thy: theory, T: typ, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
   val ctyp_of: theory -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
-
   (*certified terms*)
-  val rep_cterm: cterm -> {thy: theory, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T}
-  val crep_cterm: cterm -> {thy: theory, t: term, T: ctyp, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -50,7 +45,6 @@ sig
   val incr_indexes_cterm: int -> cterm -> cterm
   val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-
   (*theorems*)
   val rep_thm: thm ->
    {thy: theory,
@@ -102,7 +96,7 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
-  (*meta rules*)
+  (*inference rules*)
   val assume: cterm -> thm
   val implies_intr: cterm -> thm -> thm
   val implies_elim: thm -> thm -> thm
@@ -140,6 +134,7 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  (*oracles*)
   val extern_oracles: Proof.context -> (Markup.T * xstring) list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -154,7 +149,6 @@ struct
 abstype ctyp = Ctyp of {thy: theory, T: typ, maxidx: int, sorts: sort Ord_List.T}
 with
 
-fun rep_ctyp (Ctyp args) = args;
 fun theory_of_ctyp (Ctyp {thy, ...}) = thy;
 fun typ_of (Ctyp {T, ...}) = T;
 
@@ -178,12 +172,6 @@ abstype cterm = Cterm of {thy: theory, t: term, T: typ, maxidx: int, sorts: sort
 with
 
 exception CTERM of string * cterm list;
-
-fun rep_cterm (Cterm args) = args;
-
-fun crep_cterm (Cterm {thy, t, T, maxidx, sorts}) =
-  {thy = thy, t = t, maxidx = maxidx, sorts = sorts,
-    T = Ctyp {thy = thy, T = T, maxidx = maxidx, sorts = sorts}};
 
 fun theory_of_cterm (Cterm {thy, ...}) = thy;
 fun term_of (Cterm {t, ...}) = t;

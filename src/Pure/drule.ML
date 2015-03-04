@@ -773,10 +773,10 @@ fun instantiate_normalize instpair th =
 local
   fun add_types (ct, cu) (thy, tye, maxidx) =
     let
-      val {t, T, maxidx = maxt, ...} = Thm.rep_cterm ct;
-      val {t = u, T = U, maxidx = maxu, ...} = Thm.rep_cterm cu;
-      val maxi = Int.max (maxidx, Int.max (maxt, maxu));
-      val thy' = Theory.merge (thy, Theory.merge (Thm.theory_of_cterm ct, Thm.theory_of_cterm cu));
+      val t = Thm.term_of ct and T = Thm.typ_of_cterm ct;
+      val u = Thm.term_of cu and U = Thm.typ_of_cterm cu;
+      val maxi = Int.max (maxidx, Int.max (apply2 Thm.maxidx_of_cterm (ct, cu)));
+      val thy' = Theory.merge (thy, Theory.merge (apply2 Thm.theory_of_cterm (ct, cu)));
       val (tye', maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
         handle Type.TUNIFY => raise TYPE ("Ill-typed instantiation:\nType\n" ^
           Syntax.string_of_typ_global thy' (Envir.norm_type tye T) ^
