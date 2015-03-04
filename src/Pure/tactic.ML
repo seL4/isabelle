@@ -294,7 +294,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 (*Renaming of parameters in a subgoal*)
 fun rename_tac xs i =
-  case Library.find_first (not o Symbol_Pos.is_identifier) xs of
+  case find_first (not o Symbol_Pos.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
     | NONE => PRIMITIVE (Thm.rename_params_rule (xs, i));
 

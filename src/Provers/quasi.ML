@@ -482,7 +482,7 @@ fun findQuasiProof (leG, neqE) subgoal =
    end )
  | (NotEq (x,y,_)) =>
   (* First check if a single premiss is sufficient *)
-  (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
+  (case (find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
     (SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
       if  (x aconv x' andalso y aconv y') then p
       else Thm ([p], @{thm not_sym})

@@ -404,7 +404,7 @@ fun elim ctxt (ineqs, hist) =
   let val _ = print_ineqs ctxt ineqs
       val (triv, nontriv) = List.partition is_trivial ineqs in
   if not (null triv)
-  then case Library.find_first is_contradictory triv of
+  then case find_first is_contradictory triv of
          NONE => elim ctxt (nontriv, hist)
        | SOME(Lineq(_,_,_,j)) => Success j
   else

@@ -980,7 +980,7 @@ in
   if null neqE then raise Cannot
   (* if there aren't any edges that are candidate for <= then just search a edge in neqE that implies the subgoal *)
   else if null sccSubgraphs then (
-     (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
+     (case (find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
        ( SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
           if  (x aconv x' andalso y aconv y') then p
           else Thm ([p], #not_sym less_thms)

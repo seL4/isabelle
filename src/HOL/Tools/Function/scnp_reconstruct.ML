@@ -199,7 +199,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                   let
                     val (j, b) :: rest = lq
                     val (i, a) = the (covering g strict j)
-                    fun choose xs = set_member_tac (Library.find_index (curry op = (i, a)) xs) 1
+                    fun choose xs = set_member_tac (find_index (curry op = (i, a)) xs) 1
                     val solve_tac = choose lp THEN less_proof strict (j, b) (i, a)
                   in
                     rtac step 1 THEN solve_tac THEN steps_tac MAX strict rest lp
@@ -216,7 +216,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                   let
                     val (i, a) :: rest = lp
                     val (j, b) = the (covering g strict i)
-                    fun choose xs = set_member_tac (Library.find_index (curry op = (j, b)) xs) 1
+                    fun choose xs = set_member_tac (find_index (curry op = (j, b)) xs) 1
                     val solve_tac = choose lq THEN less_proof strict (j, b) (i, a)
                   in
                     rtac step 1 THEN solve_tac THEN steps_tac MIN strict lq rest
@@ -231,7 +231,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 val qs = subtract (op =) (map_filter get_str_cover lq) lq
                 val ps = map get_wk_cover qs
 
-                fun indices xs ys = map (fn y => Library.find_index (curry op = y) xs) ys
+                fun indices xs ys = map (fn y => find_index (curry op = y) xs) ys
                 val iqs = indices lq qs
                 val ips = indices lp ps
 
