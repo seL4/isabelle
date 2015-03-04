@@ -143,7 +143,7 @@ fun ball_bex_range_simproc ctxt redex =
 *)
 
 fun reflp_get ctxt =
-  map_filter (fn th => if Thm.prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
+  map_filter (fn th => if Thm.no_prems th then SOME (OF1 @{thm equivp_reflp} th) else NONE
     handle THM _ => NONE) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
 
 val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
