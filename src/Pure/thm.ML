@@ -26,7 +26,6 @@ sig
   val ctyp_of: theory -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
   (*certified terms*)
-  val rep_cterm: cterm -> {thy: theory, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -173,8 +172,6 @@ abstype cterm = Cterm of {thy: theory, t: term, T: typ, maxidx: int, sorts: sort
 with
 
 exception CTERM of string * cterm list;
-
-fun rep_cterm (Cterm args) = args;
 
 fun theory_of_cterm (Cterm {thy, ...}) = thy;
 fun term_of (Cterm {t, ...}) = t;
