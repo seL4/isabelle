@@ -774,7 +774,7 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
     (basic_ctr_specss : basic_corec_ctr_spec list list) (eqn_pos, eqn0) of_spec_opt matchedsss =
   let
     val eqn = drop_all eqn0
-      handle TERM _ => error_at ctxt [eqn0] "Ill-formed function equation";
+      handle TERM _ => error_at ctxt [eqn0] "Ill-formed formula";
     val (prems, concl) = Logic.strip_horn eqn
       |> map_prod (map HOLogic.dest_Trueprop) HOLogic.dest_Trueprop
         handle TERM _ => error_at ctxt [eqn] "Ill-formed function equation";
@@ -813,8 +813,10 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
         |>> flat
       else
         error_at ctxt [eqn] "Cannot mix constructor and code views"
+    else if is_some rhs_opt then
+      error_at ctxt [eqn] ("Unexpected equation head: " ^ quote (Syntax.string_of_term ctxt head))
     else
-      error_at ctxt [eqn] "Ill-formed function equation"
+      error_at ctxt [eqn] "Expected equation"
   end;
 
 fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
@@ -1053,15 +1055,10 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val _ = disc_eqnss' |> map (fn x =>
       let val d = duplicates (op = o apply2 #ctr_no) x in
         null d orelse
-        (if forall (is_some o #ctr_rhs_opt) x then
-           error_at lthy
-             (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
-              |> map (the o #ctr_rhs_opt))
-             "Multiple equations for same constructor"
-         else
-           error_at lthy
-             (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn)
-             "Extra discriminator formula in definition")
+        error_at lthy
+          (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
+           |> map (fn {ctr_rhs_opt = SOME t, ...} => t | {user_eqn, ...} => user_eqn))
+          "Overspecified constructor cases"
       end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
