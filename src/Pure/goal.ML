@@ -128,20 +128,20 @@ fun future_enabled_timing t =
 fun future_result ctxt result prop =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
 
     val assms = Assumption.all_assms_of ctxt;
     val As = map Thm.term_of assms;
 
     val xs = map Free (fold Term.add_frees (prop :: As) []);
-    val fixes = map cert xs;
+    val fixes = map (Thm.cterm_of thy) xs;
 
     val tfrees = fold Term.add_tfrees (prop :: As) [];
-    val instT = map (fn (a, S) => (certT (TVar ((a, 0), S)), certT (TFree (a, S)))) tfrees;
+    val instT =
+      map (fn (a, S) => (Thm.ctyp_of thy (TVar ((a, 0), S)), Thm.ctyp_of thy (TFree (a, S)))) tfrees;
 
     val global_prop =
-      cert (Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
+      Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop)))
+      |> Thm.cterm_of thy
       |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
       (Drule.flexflex_unique (SOME ctxt) #>

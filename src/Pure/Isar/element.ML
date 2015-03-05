@@ -201,9 +201,9 @@ fun standard_elim th =
   (case Object_Logic.elim_concl th of
     SOME C =>
       let
-        val cert = Thm.cterm_of (Thm.theory_of_thm th);
+        val thy = Thm.theory_of_thm th;
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val th' = Thm.instantiate ([], [(cert C, cert thesis)]) th;
+        val th' = Thm.instantiate ([], [(Thm.cterm_of thy C, Thm.cterm_of thy thesis)]) th;
       in (th', true) end
   | NONE => (th, false));
 
@@ -338,9 +338,8 @@ fun pretty_witness ctxt witn =
 
 fun instantiate_tfrees thy subst th =
   let
-    val certT = Thm.ctyp_of thy;
     val idx = Thm.maxidx_of th + 1;
-    fun cert_inst (a, (S, T)) = (certT (TVar ((a, idx), S)), certT T);
+    fun cert_inst (a, (S, T)) = (Thm.ctyp_of thy (TVar ((a, idx), S)), Thm.ctyp_of thy T);
 
     fun add_inst (a, S) insts =
       if AList.defined (op =) insts a then insts
@@ -355,10 +354,8 @@ fun instantiate_tfrees thy subst th =
   end;
 
 fun instantiate_frees thy subst =
-  let val cert = Thm.cterm_of thy in
-    Drule.forall_intr_list (map (cert o Free o fst) subst) #>
-    Drule.forall_elim_list (map (cert o snd) subst)
-  end;
+  Drule.forall_intr_list (map (Thm.cterm_of thy o Free o fst) subst) #>
+  Drule.forall_elim_list (map (Thm.cterm_of thy o snd) subst);
 
 fun hyps_rule rule th =
   let val {hyps, ...} = Thm.crep_thm th in

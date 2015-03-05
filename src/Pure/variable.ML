@@ -587,9 +587,9 @@ fun forall_elim_prop t prop =
 
 fun focus_cterm goal ctxt =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm goal);
+    val thy = Thm.theory_of_cterm goal;
     val ((xs, ps), ctxt') = focus_params (Thm.term_of goal) ctxt;
-    val ps' = map (cert o Free) ps;
+    val ps' = map (Thm.cterm_of thy o Free) ps;
     val goal' = fold forall_elim_prop ps' goal;
   in ((xs ~~ ps', goal'), ctxt') end;
 

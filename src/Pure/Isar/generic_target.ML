@@ -176,11 +176,10 @@ fun background_abbrev (b, global_rhs) params =
 
 fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
-    val thy_ctxt = Proof_Context.init_global thy;
+    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     (*term and type parameters*)
-    val ((defs, _), rhs') = Thm.cterm_of thy rhs
+    val ((defs, _), rhs') = Proof_Context.cterm_of lthy rhs
       |> Local_Defs.export_cterm lthy thy_ctxt ||> Thm.term_of;
 
     val xs = Variable.add_fixed lthy rhs' [];
@@ -218,10 +217,7 @@ local
 
 fun import_export_proof ctxt (name, raw_th) =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val thy_ctxt = Proof_Context.init_global thy;
-    val certT = Thm.ctyp_of thy;
-    val cert = Thm.cterm_of thy;
+    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of ctxt);
 
     (*export assumes/defines*)
     val th = Goal.norm_result ctxt raw_th;
@@ -232,7 +228,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
     val frees = map Free (Thm.fold_terms Term.add_frees th' []);
     val (th'' :: vs) =
-      (th' :: map (Drule.mk_term o cert) (map Logic.mk_type tfrees @ frees))
+      (th' :: map (Drule.mk_term o Proof_Context.cterm_of ctxt) (map Logic.mk_type tfrees @ frees))
       |> Variable.export ctxt thy_ctxt
       |> Drule.zero_var_indexes_list;
 
@@ -246,8 +242,10 @@ fun import_export_proof ctxt (name, raw_th) =
 
     val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
     val inst = filter (is_Var o fst) (vars ~~ frees);
-    val cinstT = map (apply2 certT o apfst TVar) instT;
-    val cinst = map (apply2 (cert o Term.map_types (Term_Subst.instantiateT instT))) inst;
+    val cinstT = instT
+      |> map (apply2 (Proof_Context.ctyp_of ctxt) o apfst TVar);
+    val cinst = inst
+      |> map (apply2 (Proof_Context.cterm_of ctxt o Term.map_types (Term_Subst.instantiateT instT)));
     val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)

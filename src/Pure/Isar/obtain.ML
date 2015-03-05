@@ -112,8 +112,6 @@ fun gen_obtain prep_att prep_vars prep_propp
     name raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
-    val thy = Proof.theory_of state;
-    val cert = Thm.cterm_of thy;
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
@@ -131,6 +129,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     (*obtain parms*)
     val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
     val parms = map Free (xs' ~~ Ts);
+    val cparms = map (Proof_Context.cterm_of ctxt) parms;
     val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
 
     (*obtain statements*)
@@ -149,7 +148,7 @@ fun gen_obtain prep_att prep_vars prep_propp
       Proof.local_qed (NONE, false)
       #> `Proof.the_fact #-> (fn rule =>
         Proof.fix vars
-        #> Proof.assm (obtain_export fix_ctxt rule (map cert parms)) asms);
+        #> Proof.assm (obtain_export fix_ctxt rule cparms) asms);
   in
     state
     |> Proof.enter_forward
@@ -187,18 +186,18 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val cert = Proof_Context.cterm_of ctxt;
-
     val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
+    val st = Goal.init (Proof_Context.cterm_of ctxt thesis);
     val rule =
-      (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) (Goal.init (cert thesis)) of
+      (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) st of
         NONE => raise THM ("Obtain.result: tactic failed", 0, facts)
       | SOME th =>
           check_result thesis_ctxt thesis (Raw_Simplifier.norm_hhf thesis_ctxt (Goal.conclude th)));
 
-    val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
+    val closed_rule = Thm.forall_intr (Proof_Context.cterm_of ctxt (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
-    val obtain_rule = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
+    val obtain_rule =
+      Thm.forall_elim (Proof_Context.cterm_of ctxt (Logic.varify_global (Free thesis_var))) rule';
     val ((params, stmt), fix_ctxt) = Variable.focus_cterm (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
       Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
@@ -214,8 +213,6 @@ local
 fun unify_params vars thesis_var raw_rule ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val certT = Thm.ctyp_of thy;
-    val cert = Thm.cterm_of thy;
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
 
     fun err msg th = error (msg ^ ":\n" ^ Display.string_of_thm ctxt th);
@@ -240,20 +237,20 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val xs = map (apsnd norm_type o fst) vars;
     val ys = map (apsnd norm_type) (drop m params);
     val ys' = map Name.internal (Name.variant_list (map fst xs) (map fst ys)) ~~ map #2 ys;
-    val terms = map (Drule.mk_term o cert o Free) (xs @ ys');
+    val terms = map (Drule.mk_term o Thm.cterm_of thy o Free) (xs @ ys');
 
     val instT =
       fold (Term.add_tvarsT o #2) params []
-      |> map (TVar #> (fn T => (certT T, certT (norm_type T))));
+      |> map (TVar #> (fn T => (Thm.ctyp_of thy T, Thm.ctyp_of thy (norm_type T))));
     val closed_rule = rule
-      |> Thm.forall_intr (cert (Free thesis_var))
+      |> Thm.forall_intr (Thm.cterm_of thy (Free thesis_var))
       |> Thm.instantiate (instT, []);
 
     val ((_, rule' :: terms'), ctxt') = Variable.import false (closed_rule :: terms) ctxt;
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);
-    val rule'' = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
+    val rule'' = Thm.forall_elim (Thm.cterm_of thy (Logic.varify_global (Free thesis_var))) rule';
   in ((vars', rule''), ctxt') end;
 
 fun inferred_type (binding, _, mx) ctxt =
@@ -270,7 +267,6 @@ fun gen_guess prep_vars raw_vars int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val cert = Proof_Context.cterm_of ctxt;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);
@@ -292,7 +288,8 @@ fun gen_guess prep_vars raw_vars int state =
         |> Proof.map_context (K ctxt')
         |> Proof.fix (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
-          (obtain_export fix_ctxt rule (map cert ts)) [(Thm.empty_binding, asms)])
+          (obtain_export fix_ctxt rule (map (Proof_Context.cterm_of ctxt) ts))
+            [(Thm.empty_binding, asms)])
         |> Proof.bind_terms Auto_Bind.no_facts
       end;
 
@@ -314,7 +311,8 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (pair o rpair I)
       "guess" (SOME before_qed) after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
-    |> Proof.refine (Method.primitive_text (fn _ => fn _ => Goal.init (cert thesis))) |> Seq.hd
+    |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
+        Goal.init (Proof_Context.cterm_of ctxt thesis))) |> Seq.hd
   end;
 
 in
