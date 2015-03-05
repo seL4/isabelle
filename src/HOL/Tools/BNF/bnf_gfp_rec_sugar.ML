@@ -578,6 +578,8 @@ type coeqn_data_sel =
    eqn_pos: int,
    user_eqn: term};
 
+fun ctr_sel_of ({ctr, sel, ...} : coeqn_data_sel) = (ctr, sel);
+
 datatype coeqn_data =
   Disc of coeqn_data_disc |
   Sel of coeqn_data_sel;
@@ -1055,18 +1057,27 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map (sort (op < o apply2 #ctr_no |> make_ord) o flat o snd);
 
     val _ = disc_eqnss' |> map (fn x =>
-      let val d = duplicates (op = o apply2 #ctr_no) x in
-        null d orelse
+      let val dups = duplicates (op = o apply2 #ctr_no) x in
+        null dups orelse
         error_at lthy
-          (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
+          (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) dups
            |> map (fn {ctr_rhs_opt = SOME t, ...} => t | {user_eqn, ...} => user_eqn))
-          "Overspecified constructor cases"
+          "Overspecified discriminator case(s)"
       end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
       |> partition_eq (op = o apply2 #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (flat o snd);
+
+    val _ = sel_eqnss |> map (fn x =>
+      let val dups = duplicates (op = o apply2 ctr_sel_of) x in
+        null dups orelse
+        error_at lthy
+          (maps (fn t => filter (curry (op =) (ctr_sel_of t) o ctr_sel_of) x) dups
+           |> map (fn {ctr_rhs_opt = SOME t, ...} => t | {user_eqn, ...} => user_eqn))
+          "Overspecified selector case(s)"
+      end);
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
     val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
