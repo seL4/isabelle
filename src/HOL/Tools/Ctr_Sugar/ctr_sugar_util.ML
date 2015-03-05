@@ -213,11 +213,13 @@ fun fo_match ctxt t pat =
 
 fun cterm_instantiate_pos cts thm =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+    val thy = Thm.theory_of_thm thm;
     val vars = Term.add_vars (Thm.prop_of thm) [];
     val vars' = rev (drop (length vars - length cts) vars);
-    val ps = map_filter (fn (_, NONE) => NONE
-      | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);
+    val ps =
+      map_filter
+        (fn (_, NONE) => NONE
+          | (var, SOME ct) => SOME (Thm.cterm_of thy (Var var), ct)) (vars' ~~ cts);
   in
     Drule.cterm_instantiate ps thm
   end;

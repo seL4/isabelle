@@ -1460,8 +1460,6 @@ fun cases_type_global name = [case_names_fields, Induct.cases_type name];
   avoid problems with higher order unification.*)
 fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm cgoal);
-
     val g = Thm.term_of cgoal;
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
@@ -1475,7 +1473,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
       | [x] => (head_of x, false));
     val rule'' =
       cterm_instantiate
-        (map (apply2 cert)
+        (map (apply2 (Proof_Context.cterm_of ctxt))
           (case rev params of
             [] =>
               (case AList.lookup (op =) (Term.add_frees g []) s of

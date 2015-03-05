@@ -108,15 +108,13 @@ fun gen_certify_inst sel mk cert ctxt thm t =
 
 fun match_instantiateT ctxt t thm =
   if Term.exists_type (Term.exists_subtype Term.is_TVar) (dest_thm thm) then
-    let val certT = Proof_Context.ctyp_of ctxt
-    in Thm.instantiate (gen_certify_inst fst TVar certT ctxt thm t, []) thm end
+    Thm.instantiate (gen_certify_inst fst TVar (Proof_Context.ctyp_of ctxt) ctxt thm t, []) thm
   else thm
 
 fun match_instantiate ctxt t thm =
-  let
-    val cert = Proof_Context.cterm_of ctxt
-    val thm' = match_instantiateT ctxt t thm
-  in Thm.instantiate ([], gen_certify_inst snd Var cert ctxt thm' t) thm' end
+  let val thm' = match_instantiateT ctxt t thm in
+    Thm.instantiate ([], gen_certify_inst snd Var (Proof_Context.cterm_of ctxt) ctxt thm' t) thm'
+  end
 
 fun apply_rule ctxt t =
   (case Z3_Replay_Rules.apply ctxt (certify_prop ctxt t) of

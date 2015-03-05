@@ -204,13 +204,13 @@ val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
 
 fun certify_eval ctxt value conv ct =
   let
-    val cert = Proof_Context.cterm_of ctxt;
     val t = Thm.term_of ct;
     val T = fastype_of t;
-    val mk_eq = Thm.mk_binop (cert (Const (@{const_name Pure.eq}, T --> T --> propT)));
+    val mk_eq =
+      Thm.mk_binop (Proof_Context.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT)));
   in case value ctxt t
    of NONE => Thm.reflexive ct
-    | SOME t' => conv ctxt (mk_eq ct (cert t')) RS @{thm eq_eq_TrueD}
+    | SOME t' => conv ctxt (mk_eq ct (Proof_Context.cterm_of ctxt t')) RS @{thm eq_eq_TrueD}
         handle THM _ =>
           error ("Failed to certify evaluation result of " ^ Syntax.string_of_term ctxt t)
   end;

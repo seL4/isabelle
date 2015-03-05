@@ -609,8 +609,6 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     val (indrule_lemma_prems, indrule_lemma_concls) =
       split_list (map2 mk_indrule_lemma descr' recTs);
 
-    val cert = Thm.cterm_of thy6;
-
     val indrule_lemma =
       Goal.prove_sorry_global thy6 [] []
         (Logic.mk_implies
@@ -627,7 +625,8 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     val frees =
       if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))]
       else map (Free o apfst fst o dest_Var) Ps;
-    val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
+    val indrule_lemma' =
+      cterm_instantiate (map (Thm.cterm_of thy6) Ps ~~ map (Thm.cterm_of thy6) frees) indrule_lemma;
 
     val dt_induct_prop = Old_Datatype_Prop.make_ind descr;
     val dt_induct =
