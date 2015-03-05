@@ -91,7 +91,7 @@ fun ill_formed_corec_call ctxt t =
 fun invalid_map ctxt t =
   error_at ctxt [t] "Invalid map function";
 fun unexpected_corec_call ctxt eqns t =
-  error_at ctxt eqns ("Unexpected corecursive call " ^ quote (Syntax.string_of_term ctxt t));
+  error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -217,11 +217,11 @@ fun case_of ctxt s =
     SOME {casex = Const (s', _), split_sels = _ :: _, ...} => SOME s'
   | _ => NONE);
 
-fun massage_let_if_case ctxt has_call massage_leaf =
+fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [] t else ();
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [t0] t else ();
 
     fun massage_abs bound_Ts 0 t = massage_rec bound_Ts t
       | massage_abs bound_Ts m (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) (m - 1) t)
@@ -271,14 +271,14 @@ fun massage_let_if_case ctxt has_call massage_leaf =
         | _ => massage_leaf bound_Ts t)
       end;
   in
-    massage_rec
+    massage_rec bound_Ts t0
   end;
 
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
-fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
+fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t0 =
   let
-    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [] t else ();
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [t0] t else ();
 
     val build_map_Inl = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd);
 
@@ -357,9 +357,9 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         else
           build_map_Inl (T, U) $ t) bound_Ts;
 
-    val T = fastype_of1 (bound_Ts, t);
+    val T = fastype_of1 (bound_Ts, t0);
   in
-    if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
+    if has_call t0 then massage_call bound_Ts U T t0 else build_map_Inl (T, U) $ t0
   end;
 
 fun expand_to_ctr_term ctxt s Ts t =
@@ -1073,7 +1073,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         tac_opt;
 
     val excludess'' = @{map 3} (fn tac_opt => fn sequential => map (fn (j, goal) =>
-        (j, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
+        (j, (Option.map (Goal.prove (*no sorry*) lthy [] [] goal #> Thm.close_derivation)
            (exclude_tac tac_opt sequential j), goal))))
       tac_opts sequentials excludess';
 
@@ -1106,7 +1106,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 val (_, _, arg_exhaust_discs, _, _) =
                   case_thms_of_term lthy (the_default Term.dummy code_rhs_opt);
               in
-                [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                [Goal.prove (*no sorry*) lthy [] [] goal (fn {context = ctxt, ...} =>
                    mk_primcorec_nchotomy_tac ctxt (res_exhaust_discs @ arg_exhaust_discs))
                  |> Thm.close_derivation]
               end
