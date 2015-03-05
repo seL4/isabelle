@@ -955,17 +955,21 @@ fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
 
 fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_spec)
     (sel_eqns : coeqn_data_sel list) (disc_eqns : coeqn_data_disc list) =
-  let val num_disc_eqns = length disc_eqns in
-    if (exhaustive andalso num_disc_eqns <> 0) orelse num_disc_eqns <> length ctr_specs - 1 then
-      disc_eqns
+  let
+    val fun_name = Binding.name_of fun_binding;
+    val num_disc_eqns = length disc_eqns;
+    val num_ctrs = length ctr_specs;
+  in
+    if (exhaustive andalso num_disc_eqns <> 0) orelse num_disc_eqns <> num_ctrs - 1 then
+      (num_disc_eqns > 0 orelse error ("Missing discriminator formula for " ^ quote fun_name);
+       disc_eqns)
     else
       let
-        val n = 0 upto length ctr_specs
+        val ctr_no = 0 upto length ctr_specs
           |> the o find_first (fn j => not (exists (curry (op =) j o #ctr_no) disc_eqns));
-        val {ctr, disc, ...} = nth ctr_specs n;
+        val {ctr, disc, ...} = nth ctr_specs ctr_no;
         val sel_eqn_opt = find_first (equal ctr o #ctr) sel_eqns;
 
-        val fun_name = Binding.name_of fun_binding;
         val fun_T = arg_Ts ---> body_type (fastype_of (#ctr (hd ctr_specs)));
         val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
           |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
@@ -975,11 +979,11 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
         val eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000; (* FIXME *)
 
         val extra_disc_eqn =
-          {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = n,
+          {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = ctr_no,
            disc = disc, prems = prems, auto_gen = true, ctr_rhs_opt = ctr_rhs_opt,
            code_rhs_opt = code_rhs_opt, eqn_pos = eqn_pos, user_eqn = undef_const};
       in
-        chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
+        chop ctr_no disc_eqns ||> cons extra_disc_eqn |> op @
       end
   end;
 
@@ -1045,18 +1049,18 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map2 (curry (op |>)) (map (map (fn {ctr, sels, ...} =>
         (ctr, map (K []) sels))) basic_ctr_specss);
 
-    val (corec_specs', _, coinduct_thm, coinduct_strong_thm, coinduct_thms, coinduct_strong_thms,
+    val (corec_specs0, _, coinduct_thm, coinduct_strong_thm, coinduct_thms, coinduct_strong_thms,
          (coinduct_attrs, common_coinduct_attrs), n2m, lthy') =
       corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
-    val corec_specs = take actual_nn corec_specs';
+    val corec_specs = take actual_nn corec_specs0;
     val ctr_specss = map #ctr_specs corec_specs;
 
-    val disc_eqnss' = map_filter (try (fn Disc x => x)) eqns_data
+    val disc_eqnss0 = map_filter (try (fn Disc x => x)) eqns_data
       |> partition_eq (op = o apply2 #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (sort (op < o apply2 #ctr_no |> make_ord) o flat o snd);
 
-    val _ = disc_eqnss' |> map (fn x =>
+    val _ = disc_eqnss0 |> map (fn x =>
       let val dups = duplicates (op = o apply2 #ctr_no) x in
         null dups orelse
         error_at lthy
@@ -1081,7 +1085,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
     val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
-      disc_eqnss';
+      disc_eqnss0;
     val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
