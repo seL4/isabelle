@@ -1082,7 +1082,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         error_at lthy
           (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) dups
            |> map (fn {ctr_rhs_opt = SOME t, ...} => t | {user_eqn, ...} => user_eqn))
-          "Overspecified discriminator case(s)"
+          "Overspecified case(s)"
       end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
@@ -1096,7 +1096,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         error_at lthy
           (maps (fn t => filter (curry (op =) (ctr_sel_of t) o ctr_sel_of) x) dups
            |> map (fn {ctr_rhs_opt = SOME t, ...} => t | {user_eqn, ...} => user_eqn))
-          "Overspecified selector case(s)"
+          "Overspecified case(s)"
       end);
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
