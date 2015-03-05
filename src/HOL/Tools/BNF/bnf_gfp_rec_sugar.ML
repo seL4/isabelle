@@ -809,13 +809,11 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
        (is_some rhs_opt andalso
         member (op =) (map SOME fun_names) (try (fst o dest_Free) head) andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt)) then
-      (check_num_args ();
-       dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
+      (dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
          matchedsss
        |>> single)
     else if member (op =) sels head then
       (null prems orelse error_at ctxt [eqn] "Unexpected condition in selector formula";
-       check_num_args ();
        ([dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt
            concl], matchedsss))
     else if is_some rhs_opt andalso is_Free head andalso is_free_in fun_names head then
