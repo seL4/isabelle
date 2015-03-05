@@ -119,7 +119,7 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
             REPEAT_DETERM o etac conjI THEN' (atac ORELSE' rtac TrueI)
           else
             rtac FalseE THEN'
-            (rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT_DETERM o atac ORELSE'
+            (rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT o atac ORELSE'
              cut_tac fun_disc') THEN'
             dresolve_tac ctxt distinct_discs THEN' etac notE THEN' atac)
       fun_discss) THEN'
