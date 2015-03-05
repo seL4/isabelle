@@ -141,7 +141,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s
          sum.case sum.sel sum.distinct[THEN eq_False[THEN iffD2]]} @
        mapsx @ map_ident0s @ map_comps))) ORELSE'
     fo_rtac @{thm cong} ctxt ORELSE'
-    rtac @{thm ext}));
+    rtac @{thm ext} ORELSE'
+    mk_primcorec_assumption_tac ctxt []));
 
 fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
