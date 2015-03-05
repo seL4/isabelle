@@ -8,6 +8,7 @@ Library for recursor and corecursor sugar.
 
 signature BNF_FP_REC_SUGAR_UTIL =
 sig
+  val error_at: Proof.context -> term list -> string -> 'a
 
   datatype fp_kind = Least_FP | Greatest_FP
 
@@ -56,6 +57,10 @@ end;
 
 structure BNF_FP_Rec_Sugar_Util : BNF_FP_REC_SUGAR_UTIL =
 struct
+
+fun error_at ctxt ts str =
+  error (str ^ (if null ts then ""
+    else " at\n  " ^ space_implode "\n  " (map (quote o Syntax.string_of_term ctxt) ts)));
 
 datatype fp_kind = Least_FP | Greatest_FP;
 

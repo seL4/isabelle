@@ -84,10 +84,6 @@ val selN = "sel";
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
-fun error_at ctxt ts str =
-  error (str ^ (if null ts then ""
-    else " at\n  " ^ space_implode "\n  " (map (quote o Syntax.string_of_term ctxt) ts)));
-
 fun not_codatatype ctxt T =
   error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
 fun ill_formed_corec_call ctxt t =
@@ -725,8 +721,8 @@ fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec
 
     val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg))
-        handle ListPair.UnequalLengths =>
-          error_at ctxt [rhs] "Partially applied constructor in right-hand side";
+      handle ListPair.UnequalLengths =>
+        error_at ctxt [rhs] "Partially applied constructor in right-hand side";
 
     val eqns_data_sel =
       map (dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos
