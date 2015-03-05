@@ -135,7 +135,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun rewrite_map_arg get_ctr_pos rec_type res_type =
+fun rewrite_map_arg ctxt get_ctr_pos rec_type res_type =
   let
     val pT = HOLogic.mk_prodT (rec_type, res_type);
 
@@ -154,7 +154,8 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
                 d = try (fn Bound n => n) (nth vs ctr_pos) then
               Term.list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
             else
-              raise PRIMREC ("recursive call not directly applied to constructor argument", [t])
+              error ("Recursive call not directly applied to constructor argument in " ^
+                quote (Syntax.string_of_term ctxt t))
           else
             Term.list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
         end
@@ -163,7 +164,7 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
   end;
 
 fun rewrite_nested_rec_call ctxt has_call get_ctr_pos =
-  massage_nested_rec_call ctxt has_call (rewrite_map_arg get_ctr_pos);
+  massage_nested_rec_call ctxt has_call (rewrite_map_arg ctxt get_ctr_pos);
 
 val _ = Theory.setup (register_lfp_rec_extension
   {nested_simps = nested_simps, is_new_datatype = is_new_datatype,
