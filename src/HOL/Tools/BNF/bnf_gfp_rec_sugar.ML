@@ -783,7 +783,9 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
       |> perhaps (try HOLogic.dest_not) |> perhaps (try (fst o HOLogic.dest_eq))
       |> head_of;
 
-    val rhs_opt = concl |> perhaps (try HOLogic.dest_not) |> try (snd o HOLogic.dest_eq);
+    val rhs_opt = concl |> perhaps (try HOLogic.dest_not) |> try (HOLogic.dest_eq #> snd);
+    val _ = is_none rhs_opt orelse not (can dest_funT (fastype_of (the rhs_opt))) orelse
+      error_at ctxt [eqn] "Expected more arguments to function on left-hand side";
 
     val discs = maps (map #disc) basic_ctr_specss;
     val sels = maps (maps #sels) basic_ctr_specss;
