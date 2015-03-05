@@ -604,13 +604,13 @@ fun check_fun_args ctxt eqn fun_args =
     val _ = null dups orelse error_at ctxt [eqn]
         ("Duplicate variable " ^ quote (Syntax.string_of_term ctxt (hd dups)));
 
+    val _ = forall is_Free fun_args orelse
+      error_at ctxt [eqn] ("Non-variable function argument on left-hand side " ^
+        quote (Syntax.string_of_term ctxt (the (find_first (not o is_Free) fun_args))));
+
     val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
     val _ = null fixeds orelse error_at ctxt [eqn] ("Function argument " ^
         quote (Syntax.string_of_term ctxt (hd fixeds)) ^ " is fixed in context");
-
-    val _ = forall is_Free fun_args orelse
-      error_at ctxt [eqn] ("Non-variable function argument \"" ^
-        Syntax.string_of_term ctxt (the (find_first (not o is_Free) fun_args)));
   in () end;
 
 fun dissect_coeqn_disc ctxt fun_names sequentials
@@ -789,7 +789,7 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
       handle TERM _ => error_at ctxt [eqn0] "Ill-formed formula";
     val (prems, concl) = Logic.strip_horn eqn
       |> map_prod (map HOLogic.dest_Trueprop) HOLogic.dest_Trueprop
-        handle TERM _ => error_at ctxt [eqn] "Ill-formed function equation";
+        handle TERM _ => error_at ctxt [eqn] "Ill-formed equation";
 
     val head = concl
       |> perhaps (try HOLogic.dest_not) |> perhaps (try (fst o HOLogic.dest_eq))
@@ -834,9 +834,9 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
       else
         error_at ctxt [eqn] "Cannot mix constructor and code views"
     else if is_some rhs_opt then
-      error_at ctxt [eqn] ("Unexpected equation head: " ^ quote (Syntax.string_of_term ctxt head))
+      error_at ctxt [eqn] ("Ill-formed equation head: " ^ quote (Syntax.string_of_term ctxt head))
     else
-      error_at ctxt [eqn] "Expected equation"
+      error_at ctxt [eqn] "Expected equation or discriminator formula"
   end;
 
 fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
@@ -1511,6 +1511,9 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
 fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
   let
+    val dups = duplicates (op =) (map (Binding.name_of o #1) raw_fixes);
+    val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
+
     val (raw_specs, of_specs_opt) =
       split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
     val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
