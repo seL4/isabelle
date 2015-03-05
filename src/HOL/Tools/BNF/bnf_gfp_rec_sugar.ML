@@ -657,7 +657,15 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
     val ctr_no = if not_disc then 1 - ctr_no' else ctr_no';
     val {ctr, disc, ...} = nth basic_ctr_specs ctr_no;
 
-    val catch_all = (try (fst o dest_Free o the_single) prems0 = SOME Name.uu_);
+    fun is_catch_all_prem (Free (s, _)) = s = Name.uu_
+      | is_catch_all_prem _ = false;
+
+    val catch_all =
+      (case prems0 of
+        [prem] => is_catch_all_prem prem
+      | _ =>
+        if exists is_catch_all_prem prems0 then error_at ctxt [concl] "Superfluous premises"
+        else false);
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
     val prems = map (abstract (List.rev fun_args)) prems0;
     val actual_prems =
@@ -788,8 +796,10 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
       |> head_of;
 
     val rhs_opt = concl |> perhaps (try HOLogic.dest_not) |> try (HOLogic.dest_eq #> snd);
-    val _ = is_none rhs_opt orelse not (can dest_funT (fastype_of (the rhs_opt))) orelse
-      error_at ctxt [eqn] "Expected more arguments to function on left-hand side";
+
+    fun check_num_args () =
+      is_none rhs_opt orelse not (can dest_funT (fastype_of (the rhs_opt))) orelse
+        error_at ctxt [eqn] "Expected more arguments to function on left-hand side";
 
     val discs = maps (map #disc) basic_ctr_specss;
     val sels = maps (maps #sels) basic_ctr_specss;
@@ -799,24 +809,28 @@ fun dissect_coeqn ctxt has_call fun_names sequentials
        (is_some rhs_opt andalso
         member (op =) (map SOME fun_names) (try (fst o dest_Free) head) andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt)) then
-      dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
-        matchedsss
-      |>> single
+      (check_num_args ();
+       dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
+         matchedsss
+       |>> single)
     else if member (op =) sels head then
       (null prems orelse error_at ctxt [eqn] "Unexpected condition in selector formula";
+       check_num_args ();
        ([dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt
            concl], matchedsss))
     else if is_some rhs_opt andalso is_Free head andalso is_free_in fun_names head then
       if member (op =) ctrs (head_of (unfold_lets_splits (the rhs_opt))) then
-        dissect_coeqn_ctr ctxt fun_names sequentials basic_ctr_specss eqn_pos eqn0
-          (if null prems then
-             SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_assums_concl eqn0))))
-           else
-             NONE)
-          prems concl matchedsss
+        (check_num_args ();
+         dissect_coeqn_ctr ctxt fun_names sequentials basic_ctr_specss eqn_pos eqn0
+           (if null prems then
+              SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_assums_concl eqn0))))
+            else
+              NONE)
+           prems concl matchedsss)
       else if null prems then
-        dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
-        |>> flat
+        (check_num_args ();
+         dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
+         |>> flat)
       else
         error_at ctxt [eqn] "Cannot mix constructor and code views"
     else if is_some rhs_opt then
