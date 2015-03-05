@@ -598,6 +598,21 @@ fun check_extra_frees ctxt frees names t =
     null bads orelse extra_variable ctxt [t] (hd bads)
   end;
 
+fun check_fun_args ctxt eqn fun_args =
+  let
+    val dups = duplicates (op =) fun_args;
+    val _ = null dups orelse error_at ctxt [eqn]
+        ("Duplicate variable " ^ quote (Syntax.string_of_term ctxt (hd dups)));
+
+    val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
+    val _ = null fixeds orelse error_at ctxt [eqn] ("Function argument " ^
+        quote (Syntax.string_of_term ctxt (hd fixeds)) ^ " is fixed in context");
+
+    val _ = forall is_Free fun_args orelse
+      error_at ctxt [eqn] ("Non-variable function argument \"" ^
+        Syntax.string_of_term ctxt (the (find_first (not o is_Free) fun_args)));
+  in () end;
+
 fun dissect_coeqn_disc ctxt fun_names sequentials
     (basic_ctr_specss : basic_corec_ctr_spec list list) eqn_pos ctr_rhs_opt code_rhs_opt prems0
     concl matchedsss =
@@ -614,22 +629,10 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
       handle Option.Option => error_at ctxt [concl] "Ill-formed discriminator formula";
     val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
 
-    val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
-    val _ = null fixeds orelse error_at ctxt fixeds "Function argument(s) are fixed in context";
+    val _ = check_fun_args ctxt concl fun_args;
 
     val bads = filter (Term.exists_subterm (is_free_in fun_names)) prems0;
     val _ = null bads orelse error_at ctxt bads "Corecursive call(s) in condition(s)";
-
-    val _ = forall is_Free fun_args orelse
-      error_at ctxt [applied_fun] ("Non-variable function argument \"" ^
-        Syntax.string_of_term ctxt (find_first (not o is_Free) fun_args |> the) ^
-          "\" (pattern matching is not supported by primcorec(ursive))")
-
-    val dups = duplicates (op =) fun_args;
-    val _ =
-      null dups orelse
-      error_at ctxt [applied_fun]
-        ("Duplicate variable " ^ quote (Syntax.string_of_term ctxt (hd dups)));
 
     val (sequential, basic_ctr_specs) =
       the (AList.lookup (op =) (fun_names ~~ (sequentials ~~ basic_ctr_specss)) fun_name);
@@ -682,14 +685,11 @@ fun dissect_coeqn_sel ctxt fun_names (basic_ctr_specss : basic_corec_ctr_spec li
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ => error_at ctxt [eqn] "Ill-formed equation (expected \"lhs = rhs\")";
+
     val sel = head_of lhs;
     val ((fun_name, fun_T), fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst dest_Free
       handle TERM _ => error_at ctxt [eqn] "Ill-formed selector argument in left-hand side";
-
-    val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
-    val _ =
-      null fixeds orelse error ("Function argument " ^
-        quote (Syntax.string_of_term ctxt (hd fixeds)) ^ " is fixed in context");
+    val _ = check_fun_args ctxt eqn fun_args;
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name)
       handle Option.Option => error_at ctxt [eqn] "Ill-formed selector argument in left-hand side";
@@ -713,6 +713,7 @@ fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
+    val _ = check_fun_args ctxt concl fun_args;
     val _ = check_extra_frees ctxt fun_args fun_names (drop_all eqn0);
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
@@ -745,6 +746,7 @@ fun dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 con
     val (lhs, (rhs', rhs)) = HOLogic.dest_eq concl ||> `(expand_corec_code_rhs ctxt has_call []);
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
+    val _ = check_fun_args ctxt concl fun_args;
     val _ = check_extra_frees ctxt fun_args fun_names concl;
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
