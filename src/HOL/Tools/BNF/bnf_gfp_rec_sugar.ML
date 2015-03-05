@@ -84,6 +84,8 @@ val selN = "sel";
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
+fun extra_variable ctxt ts var =
+  error_at ctxt ts ("Extra variable " ^ quote (Syntax.string_of_term ctxt var));
 fun not_codatatype ctxt T =
   error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
 fun ill_formed_corec_call ctxt t =
@@ -583,15 +585,15 @@ datatype coeqn_data =
 fun is_free_in frees (Free (v, _)) = member (op =) frees v
   | is_free_in _ _ = false;
 
-fun check_extra_variables ctxt vars names eqn =
-  let val b = fold_aterms (fn x as Free (v, _) =>
-    if (not (member (op =) vars x) andalso
-      not (member (op =) names v) andalso
-      v <> Name.uu_ andalso
-      not (Variable.is_fixed ctxt v)) then cons x else I | _ => I) eqn []
-  in
-    null b orelse error_at ctxt [eqn]
-      ("Extra variable " ^ quote (Syntax.string_of_term ctxt (hd b)))
+fun add_extra_frees ctxt frees names =
+  fold_aterms (fn x as Free (v, _) =>
+    (not (member (op =) frees x) andalso not (member (op =) names v) andalso
+     not (Variable.is_fixed ctxt v) andalso v <> Name.uu_)
+    ? cons x | _ => I);
+
+fun check_extra_frees ctxt frees names t =
+  let val bads = add_extra_frees ctxt frees names t [] in
+    null bads orelse extra_variable ctxt [t] (hd bads)
   end;
 
 fun dissect_coeqn_disc ctxt fun_names sequentials
@@ -665,7 +667,7 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
       |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop o abstract (List.rev fun_args)
       |> curry Logic.list_all (map dest_Free fun_args) o Logic.list_implies;
 
-    val _ = check_extra_variables ctxt fun_args fun_names user_eqn;
+    val _ = check_extra_frees ctxt fun_args fun_names user_eqn;
   in
     (Disc {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = ctr_no,
        disc = disc, prems = actual_prems, auto_gen = catch_all, ctr_rhs_opt = ctr_rhs_opt,
@@ -696,7 +698,7 @@ fun dissect_coeqn_sel ctxt fun_names (basic_ctr_specss : basic_corec_ctr_spec li
           handle List.Empty => error_at ctxt [eqn] "Ambiguous selector (without \"of\")");
     val user_eqn = drop_all eqn0;
 
-    val _ = check_extra_variables ctxt fun_args fun_names user_eqn;
+    val _ = check_extra_frees ctxt fun_args fun_names user_eqn;
   in
     Sel {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, sel = sel,
       rhs_term = rhs, ctr_rhs_opt = ctr_rhs_opt, code_rhs_opt = code_rhs_opt, eqn_pos = eqn_pos,
@@ -709,7 +711,7 @@ fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
-    val _ = check_extra_variables ctxt fun_args fun_names (drop_all eqn0);
+    val _ = check_extra_frees ctxt fun_args fun_names (drop_all eqn0);
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
     val (ctr, ctr_args) = strip_comb (unfold_lets_splits rhs);
@@ -741,7 +743,7 @@ fun dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 con
     val (lhs, (rhs', rhs)) = HOLogic.dest_eq concl ||> `(expand_corec_code_rhs ctxt has_call []);
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
-    val _ = check_extra_variables ctxt fun_args fun_names concl;
+    val _ = check_extra_frees ctxt fun_args fun_names concl;
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
 
@@ -915,6 +917,11 @@ fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel ctxt has_call) sel_eqnss ctr_specss;
 
+    val bad = fold (add_extra_frees ctxt [] []) corec_args [];
+    val _ = null bad orelse
+      (if exists has_call corec_args then nonprimitive_corec ctxt []
+       else extra_variable ctxt [] (hd bad));
+
     fun currys [] t = t
       | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
@@ -1054,7 +1061,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
          else
            error_at lthy
              (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn)
-             "Excess discriminator formula in definition")
+             "Extra discriminator formula in definition")
       end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
