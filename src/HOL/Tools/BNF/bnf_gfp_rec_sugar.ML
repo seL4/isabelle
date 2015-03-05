@@ -240,9 +240,11 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
         (case Term.strip_comb t of
           (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_lets_splits t)
         | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
-          let val branches' = map (massage_rec bound_Ts) branches in
-            Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
-          end
+          (case List.partition Term.is_dummy_pattern (map (massage_rec bound_Ts) branches) of
+            (dummy_branch' :: _, []) => dummy_branch'
+          | (_, [branch']) => branch'
+          | (_, branches') =>
+            Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches'))
         | (c as Const (@{const_name case_prod}, _), arg :: args) =>
           massage_rec bound_Ts
             (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
@@ -278,6 +280,8 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
       end;
   in
     massage_rec bound_Ts t0
+    |> Term.map_aterms (fn t =>
+      if Term.is_dummy_pattern t then Const (@{const_name undefined}, fastype_of t) else t)
   end;
 
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
@@ -771,7 +775,7 @@ fun dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 con
     val ctr_concls = cond_ctrs |> map (fn (ctr, _) =>
       binder_types (fastype_of ctr)
       |> map_index (fn (n, T) => massage_corec_code_rhs ctxt (fn _ => fn ctr' => fn args =>
-        if ctr' = ctr then nth args n else Const (@{const_name undefined}, T)) [] rhs')
+        if ctr' = ctr then nth args n else Term.dummy_pattern T) [] rhs')
       |> curry Term.list_comb ctr
       |> curry HOLogic.mk_eq lhs);
 
