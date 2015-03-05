@@ -90,6 +90,8 @@ fun ill_formed_corec_call ctxt t =
   error ("Ill-formed corecursive call " ^ quote (Syntax.string_of_term ctxt t));
 fun invalid_map ctxt t =
   error_at ctxt [t] "Invalid map function";
+fun nonprimitive_corec ctxt eqns =
+  error_at ctxt eqns "Nonprimitive corecursive specification";
 fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 fun use_primcorecursive () =
@@ -335,7 +337,8 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t0 =
                 val f'_T = typof f';
                 val arg_Ts = map typof args;
               in
-                Term.list_comb (f', @{map 3} (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
+                Term.list_comb (f',
+                  @{map 3} (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
               end
             | NONE =>
               (case t of
@@ -519,8 +522,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_spec ({T, fp_ctr_sugar = {ctr_sugar as {exhaust_discs, sel_defs, ...}, ...},
         fp_co_induct_sugar = {co_rec = corec, co_rec_thms = corec_thms, co_rec_discs = corec_discs,
         co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
-      {T = T, corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec, exhaust_discs = exhaust_discs,
-       sel_defs = sel_defs,
+      {T = T, corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec,
+       exhaust_discs = exhaust_discs, sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
        fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs,
        fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs,
@@ -634,8 +637,8 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
       error_at ctxt [concl] "Negated discriminator for a type with \<noteq> 2 constructors";
     val disc' = find_subterm (member (op =) discs o head_of) concl;
     val eq_ctr0 = concl |> perhaps (try HOLogic.dest_not) |> try (HOLogic.dest_eq #> snd)
-        |> (fn SOME t => let val n = find_index (curry (op =) t) ctrs in
-          if n >= 0 then SOME n else NONE end | _ => NONE);
+      |> (fn SOME t => let val n = find_index (curry (op =) t) ctrs in
+        if n >= 0 then SOME n else NONE end | _ => NONE);
 
     val _ = is_none disc' orelse perhaps (try HOLogic.dest_not) concl = the disc' orelse
       error_at ctxt [concl] "Ill-formed discriminator formula";
@@ -930,7 +933,8 @@ fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     map (Term.list_comb o rpair corec_args) corecs
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
-    |> Syntax.check_terms ctxt
+    |> (fn ts => Syntax.check_terms ctxt ts
+      handle ERROR _ => nonprimitive_corec ctxt [])
     |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
     |> rpair excludess'
