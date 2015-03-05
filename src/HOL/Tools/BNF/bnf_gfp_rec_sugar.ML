@@ -288,13 +288,16 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t0 =
 
     val build_map_Inl = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd);
 
-    fun massage_mutual_call bound_Ts U T t =
-      if has_call t then
-        (case try dest_sumT U of
-          SOME (U1, U2) => if U1 = T then raw_massage_call bound_Ts T U2 t else invalid_map ctxt t
-        | NONE => invalid_map ctxt t)
-      else
-        build_map_Inl (T, U) $ t;
+    fun massage_mutual_call bound_Ts (Type (@{type_name fun}, [_, U2]))
+        (Type (@{type_name fun}, [T1, T2])) t =
+        Abs (Name.uu, T1, massage_mutual_call bound_Ts U2 T2 (incr_boundvars 1 t $ Bound 0))
+      | massage_mutual_call bound_Ts U T t =
+        if has_call t then
+          (case try dest_sumT U of
+            SOME (U1, U2) => if U1 = T then raw_massage_call bound_Ts T U2 t else invalid_map ctxt t
+          | NONE => invalid_map ctxt t)
+        else
+          build_map_Inl (T, U) $ t;
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -321,8 +324,8 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t0 =
         mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
       | _ =>
         let
-          val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
-            domain_type (fastype_of1 (bound_Ts, t)));
+          val j = Term.maxidx_of_term t + 1;
+          val var = Var ((Name.uu, j), domain_type (fastype_of1 (bound_Ts, t)));
         in
           Term.lambda var (Term.incr_boundvars 1 (massage_call bound_Ts U T (betapply (t, var))))
         end)
