@@ -853,6 +853,12 @@ lemma norm_power:
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
 
+text{*Despite a superficial resemblance, @{text norm_eq_1} is not relevant.*}
+lemma square_norm_one:
+  fixes x :: "'a::real_normed_div_algebra"
+  assumes "x^2 = 1" shows "norm x = 1"
+  by (metis assms norm_minus_cancel norm_one power2_eq_1_iff)
+
 lemma setprod_norm:
   fixes f :: "'a \<Rightarrow> 'b::{comm_semiring_1,real_normed_div_algebra}"
   shows "setprod (\<lambda>x. norm(f x)) A = norm (setprod f A)"

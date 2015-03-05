@@ -73,7 +73,7 @@ primcorec inverse_complex where
 definition "x / (y\<Colon>complex) = x * inverse y"
 
 instance
-  by intro_classes 
+  by intro_classes
      (simp_all add: complex_eq_iff divide_complex_def
       distrib_left distrib_right right_diff_distrib left_diff_distrib
       power2_eq_square add_divide_distrib [symmetric])
@@ -161,6 +161,12 @@ lemma Re_complex_of_real [simp]: "Re (complex_of_real z) = z"
 lemma Im_complex_of_real [simp]: "Im (complex_of_real z) = 0"
   by (simp add: of_real_def)
 
+lemma Re_divide_numeral [simp]: "Re (z / numeral w) = Re z / numeral w"
+  by (simp add: Re_divide sqr_conv_mult)
+
+lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
+  by (simp add: Im_divide sqr_conv_mult)
+
 subsection {* The Complex Number $i$ *}
 
 primcorec "ii" :: complex  ("\<i>") where
@@ -205,6 +211,9 @@ lemma complex_i_not_neg_numeral [simp]: "ii \<noteq> - numeral w"
 
 lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> * sin a)"
   by (simp add: complex_eq_iff polar_Ex)
+
+lemma i_even_power [simp]: "\<i> ^ (n * 2) = (-1) ^ n"
+  by (metis mult.commute power2_i power_mult)
 
 subsection {* Vector Norm *}
 
@@ -501,11 +510,11 @@ by (cases z)
 
 lemma re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) = 0"
   by (auto simp add: Re_divide)
-  
+
 lemma im_complex_div_eq_0: "Im (a / b) = 0 \<longleftrightarrow> Im (a * cnj b) = 0"
   by (auto simp add: Im_divide)
 
-lemma complex_div_gt_0: 
+lemma complex_div_gt_0:
   "(Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) > 0) \<and> (Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0)"
 proof cases
   assume "b = 0" then show ?thesis by auto
@@ -547,7 +556,7 @@ lemma Im_setsum[simp]: "Im (setsum f s) = (\<Sum>x\<in>s. Im(f x))"
 
 lemma sums_complex_iff: "f sums x \<longleftrightarrow> ((\<lambda>x. Re (f x)) sums Re x) \<and> ((\<lambda>x. Im (f x)) sums Im x)"
   unfolding sums_def tendsto_complex_iff Im_setsum Re_setsum ..
-  
+
 lemma summable_complex_iff: "summable f \<longleftrightarrow> summable (\<lambda>x. Re (f x)) \<and>  summable (\<lambda>x. Im (f x))"
   unfolding summable_def sums_complex_iff[abs_def] by (metis complex.sel)
 
@@ -841,7 +850,7 @@ proof -
     by auto
 qed
 
-lemma csqrt_minus [simp]: 
+lemma csqrt_minus [simp]:
   assumes "Im x < 0 \<or> (Im x = 0 \<and> 0 \<le> Re x)"
   shows "csqrt (- x) = \<i> * csqrt x"
 proof -

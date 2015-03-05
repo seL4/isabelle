@@ -498,8 +498,16 @@ subsection {* Cases and induction *}
 text{*Now we replace the case analysis rule by a more conventional one:
 whether an integer is negative or not.*}
 
+text{*This version is symmetric in the two subgoals.*}
+theorem int_cases2 [case_names nonneg nonpos, cases type: int]:
+  "\<lbrakk>!! n. z = int n \<Longrightarrow> P;  !! n. z = - (int n) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+apply (cases "z < 0")
+apply (auto simp add: linorder_not_less dest!: negD nat_0_le [THEN sym])
+done
+
+text{*This is the default, with a negative case.*}
 theorem int_cases [case_names nonneg neg, cases type: int]:
-  "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
+  "[|!! n. z = int n ==> P;  !! n. z = - (int (Suc n)) ==> P |] ==> P"
 apply (cases "z < 0")
 apply (blast dest!: negD)
 apply (simp add: linorder_not_less del: of_nat_Suc)

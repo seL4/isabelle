@@ -42,6 +42,11 @@ lemma filterlim_at_top_imp_at_infinity:
   shows "filterlim f at_top F \<Longrightarrow> filterlim f at_infinity F"
   by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
 
+lemma lim_infinity_imp_sequentially:
+  "(f ---> l) at_infinity \<Longrightarrow> ((\<lambda>n. f(n)) ---> l) sequentially"
+by (simp add: filterlim_at_top_imp_at_infinity filterlim_compose filterlim_real_sequentially)
+
+
 subsubsection {* Boundedness *}
 
 definition Bfun :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a filter \<Rightarrow> bool" where
@@ -885,7 +890,6 @@ proof safe
   qed
 qed force
 
-
 subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
 
 text {*
@@ -1092,6 +1096,36 @@ qed
 
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) ---> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
+
+
+lemma at_to_infinity:
+  fixes x :: "'a \<Colon> {real_normed_field,field_inverse_zero}"
+  shows "(at (0::'a)) = filtermap inverse at_infinity"
+proof (rule antisym)
+  have "(inverse ---> (0::'a)) at_infinity"
+    by (fact tendsto_inverse_0)
+  then show "filtermap inverse at_infinity \<le> at (0::'a)"
+    apply (simp add: le_principal eventually_filtermap eventually_at_infinity filterlim_def at_within_def)
+    apply (rule_tac x="1" in exI, auto)
+    done
+next
+  have "filtermap inverse (filtermap inverse (at (0::'a))) \<le> filtermap inverse at_infinity"
+    using filterlim_inverse_at_infinity unfolding filterlim_def
+    by (rule filtermap_mono)
+  then show "at (0::'a) \<le> filtermap inverse at_infinity"
+    by (simp add: filtermap_ident filtermap_filtermap)
+qed
+
+lemma lim_at_infinity_0:
+  fixes l :: "'a :: {real_normed_field,field_inverse_zero}"
+  shows "(f ---> l) at_infinity \<longleftrightarrow> ((f o inverse) ---> l) (at (0::'a))"
+by (simp add: tendsto_compose_filtermap at_to_infinity filtermap_filtermap)
+
+lemma lim_zero_infinity:
+  fixes l :: "'a :: {real_normed_field,field_inverse_zero}"
+  shows "((\<lambda>x. f(1 / x)) ---> l) (at (0::'a)) \<Longrightarrow> (f ---> l) at_infinity"
+by (simp add: inverse_eq_divide lim_at_infinity_0 comp_def)
+
 
 text {*
 

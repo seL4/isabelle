@@ -1011,22 +1011,22 @@ lemma isCont_exp:
   by (rule DERIV_exp [THEN DERIV_isCont])
 
 lemma isCont_exp' [simp]:
-  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  fixes f:: "_ \<Rightarrow>'a::{real_normed_field,banach}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. exp (f x)) a"
   by (rule isCont_o2 [OF _ isCont_exp])
 
 lemma tendsto_exp [tendsto_intros]:
-  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  fixes f:: "_ \<Rightarrow>'a::{real_normed_field,banach}"
   shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
   by (rule isCont_tendsto_compose [OF isCont_exp])
 
 lemma continuous_exp [continuous_intros]:
-  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  fixes f:: "_ \<Rightarrow>'a::{real_normed_field,banach}"
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. exp (f x))"
   unfolding continuous_def by (rule tendsto_exp)
 
 lemma continuous_on_exp [continuous_intros]:
-  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  fixes f:: "_ \<Rightarrow>'a::{real_normed_field,banach}"
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. exp (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_exp)
 
@@ -1106,6 +1106,9 @@ lemma exp_add:
   shows "exp (x + y) = exp x * exp y"
   by (rule exp_add_commuting) (simp add: ac_simps)
 
+lemma exp_double: "exp(2 * z) = exp z ^ 2"
+  by (simp add: exp_add_commuting mult_2 power2_eq_square)
+
 lemmas mult_exp_exp = exp_add [symmetric]
 
 lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
@@ -1136,6 +1139,14 @@ lemma exp_diff:
   shows "exp (x - y) = exp x / exp y"
   using exp_add [of x "- y"] by (simp add: exp_minus divide_inverse)
 
+lemma exp_of_nat_mult:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "exp(of_nat n * x) = exp(x) ^ n"
+    by (induct n) (auto simp add: distrib_left exp_add mult.commute)
+
+lemma exp_setsum: "finite I \<Longrightarrow> exp(setsum f I) = setprod (\<lambda>x. exp(f x)) I"
+  by (induction I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
+
 
 subsubsection {* Properties of the Exponential Function on Reals *}
 
@@ -1160,9 +1171,10 @@ lemma not_exp_le_zero [simp]: "\<not> exp (x::real) \<le> 0"
 lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
   by simp
 
-lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
+(*FIXME: superseded by exp_of_nat_mult*) 
+lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n" 
   by (induct n) (auto simp add: real_of_nat_Suc distrib_left exp_add mult.commute)
-
+  
 text {* Strict monotonicity of exponential. *}
 
 lemma exp_ge_add_one_self_aux: 
@@ -1481,6 +1493,36 @@ proof -
   thus ?thesis unfolding exp_first_two_terms by auto
 qed
 
+corollary exp_half_le2: "exp(1/2) \<le> (2::real)"
+  using exp_bound [of "1/2"]
+  by (simp add: field_simps)
+
+lemma exp_bound_half: "norm(z) \<le> 1/2 \<Longrightarrow> norm(exp z) \<le> 2"
+  by (blast intro: order_trans intro!: exp_half_le2 norm_exp)
+
+lemma exp_bound_lemma:
+  assumes "norm(z) \<le> 1/2" shows "norm(exp z) \<le> 1 + 2 * norm(z)"
+proof -
+  have n: "(norm z)\<^sup>2 \<le> norm z * 1"
+    unfolding power2_eq_square
+    apply (rule mult_left_mono)
+    using assms
+    apply (auto simp: )
+    done
+  show ?thesis
+    apply (rule order_trans [OF norm_exp])
+    apply (rule order_trans [OF exp_bound])
+    using assms n
+    apply (auto simp: )
+    done
+qed
+
+lemma real_exp_bound_lemma:
+  fixes x :: real
+  shows "0 \<le> x \<Longrightarrow> x \<le> 1/2 \<Longrightarrow> exp(x) \<le> 1 + 2 * x"
+using exp_bound_lemma [of x]
+by simp
+
 lemma ln_one_minus_pos_upper_bound: "0 <= x \<Longrightarrow> x < 1 \<Longrightarrow> ln (1 - x) <= - x"
 proof -
   assume a: "0 <= (x::real)" and b: "x < 1"
@@ -1735,6 +1777,16 @@ qed
 lemma exp_at_top: "LIM x at_top. exp x :: real :> at_top"
   by (rule filterlim_at_top_at_top[where Q="\<lambda>x. True" and P="\<lambda>x. 0 < x" and g="ln"])
      (auto intro: eventually_gt_at_top)
+
+lemma lim_exp_minus_1:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "((\<lambda>z::'a. (exp(z) - 1) / z) ---> 1) (at 0)"
+proof -
+  have "((\<lambda>z::'a. exp(z) - 1) has_field_derivative 1) (at 0)"
+    by (intro derivative_eq_intros | simp)+
+  then show ?thesis
+    by (simp add: Deriv.DERIV_iff2)
+qed
 
 lemma ln_at_0: "LIM x at_right 0. ln x :> at_bot"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])

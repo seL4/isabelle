@@ -125,6 +125,11 @@ lemma sums_unique: "f sums s \<Longrightarrow> s = suminf f"
 lemma sums_iff: "f sums x \<longleftrightarrow> summable f \<and> (suminf f = x)"
   by (metis summable_sums sums_summable sums_unique)
 
+lemma sums_unique2:
+  fixes a b :: "'a::{comm_monoid_add,t2_space}"
+  shows "f sums a \<Longrightarrow> f sums b \<Longrightarrow> a = b"
+by (simp add: sums_iff)
+
 lemma suminf_finite:
   assumes N: "finite N" and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
   shows "suminf f = (\<Sum>n\<in>N. f n)"
@@ -315,6 +320,12 @@ lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
   done
 
 end
+
+lemma summable_minus_iff:
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
+  shows "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
+  by (auto dest: summable_minus) --{*used two ways, hence must be outside the context above*}
+
 
 context
   fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::real_normed_vector" and I :: "'i set"

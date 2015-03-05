@@ -150,6 +150,11 @@ notation (HTML output)
 lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> floor x = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
 
+lemma floor_unique_iff:
+  fixes x :: "'a::floor_ceiling"
+  shows  "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
+using floor_correct floor_unique by auto
+
 lemma of_int_floor_le: "of_int (floor x) \<le> x"
   using floor_correct ..
 
@@ -280,6 +285,9 @@ lemma floor_add_one [simp]: "floor (x + 1) = floor x + 1"
 
 lemma floor_diff_of_int [simp]: "floor (x - of_int z) = floor x - z"
   using floor_add_of_int [of x "- z"] by (simp add: algebra_simps)
+
+lemma floor_uminus_of_int [simp]: "floor (- (of_int z)) = - z"
+  by (metis floor_diff_of_int [of 0] diff_0 floor_zero)
 
 lemma floor_diff_numeral [simp]:
   "floor (x - numeral v) = floor x - numeral v"
@@ -463,5 +471,66 @@ lemma floor_minus: "floor (- x) = - ceiling x"
 
 lemma ceiling_minus: "ceiling (- x) = - floor x"
   unfolding ceiling_def by simp
+
+subsection {* Frac Function *}
+
+
+definition frac :: "'a \<Rightarrow> 'a::floor_ceiling" where
+  "frac x \<equiv> x - of_int \<lfloor>x\<rfloor>"
+
+lemma frac_lt_1: "frac x < 1"
+  by  (simp add: frac_def) linarith
+
+lemma frac_eq_0_iff [simp]: "frac x = 0 \<longleftrightarrow> x \<in> Ints"
+  by (simp add: frac_def) (metis Ints_cases Ints_of_int floor_of_int )
+
+lemma frac_ge_0 [simp]: "frac x \<ge> 0"
+  unfolding frac_def
+  by linarith
+
+lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> Ints"
+  by (metis frac_eq_0_iff frac_ge_0 le_less less_irrefl)
+
+lemma frac_of_int [simp]: "frac (of_int z) = 0"
+  by (simp add: frac_def)
+
+lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"  
+proof -
+  {assume "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
+   then have "\<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
+     by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
+   }
+  moreover
+  { assume "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
+    then have "\<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)"
+      apply (simp add: floor_unique_iff)
+      apply (auto simp add: algebra_simps)
+      by linarith    
+  }
+  ultimately show ?thesis
+    by (auto simp add: frac_def algebra_simps)
+qed
+
+lemma frac_add: "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y
+                                 else (frac x + frac y) - 1)"  
+  by (simp add: frac_def floor_add)
+
+lemma frac_unique_iff:
+  fixes x :: "'a::floor_ceiling"
+  shows  "(frac x) = a \<longleftrightarrow> x - a \<in> Ints \<and> 0 \<le> a \<and> a < 1"
+  apply (auto simp: Ints_def frac_def)
+  apply linarith
+  apply linarith
+  by (metis (no_types) add.commute add.left_neutral eq_diff_eq floor_add_of_int floor_unique of_int_0)
+
+lemma frac_eq: "(frac x) = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
+  by (simp add: frac_unique_iff)
+  
+lemma frac_neg:
+  fixes x :: "'a::floor_ceiling"
+  shows  "frac (-x) = (if x \<in> Ints then 0 else 1 - frac x)"
+  apply (auto simp add: frac_unique_iff)
+  apply (simp add: frac_def)
+  by (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
 
 end
