@@ -8,7 +8,7 @@ section {* Measure spaces and their properties *}
 
 theory Measure_Space
 imports
-  Measurable Multivariate_Analysis
+  Measurable "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
 subsection "Relate extended reals and the indicator function"
