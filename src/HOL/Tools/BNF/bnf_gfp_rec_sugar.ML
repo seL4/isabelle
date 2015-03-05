@@ -92,6 +92,8 @@ fun invalid_map ctxt t =
   error_at ctxt [t] "Invalid map function";
 fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
+fun use_primcorecursive () =
+  error "\"auto\" failed (try \"primcorecursive\" instead of \"primcorec\")";
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -1073,9 +1075,10 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         tac_opt;
 
     val excludess'' = @{map 3} (fn tac_opt => fn sequential => map (fn (j, goal) =>
-        (j, (Option.map (Goal.prove (*no sorry*) lthy [] [] goal #> Thm.close_derivation)
-           (exclude_tac tac_opt sequential j), goal))))
-      tac_opts sequentials excludess';
+          (j, (Option.map (Goal.prove (*no sorry*) lthy [] [] goal #> Thm.close_derivation)
+             (exclude_tac tac_opt sequential j), goal))))
+        tac_opts sequentials excludess'
+      handle ERROR _ => use_primcorecursive ();
 
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
     val (goal_idxss, exclude_goalss) = excludess''
@@ -1109,6 +1112,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 [Goal.prove (*no sorry*) lthy [] [] goal (fn {context = ctxt, ...} =>
                    mk_primcorec_nchotomy_tac ctxt (res_exhaust_discs @ arg_exhaust_discs))
                  |> Thm.close_derivation]
+                handle ERROR _ => use_primcorecursive ()
               end
             | false =>
               (case tac_opt of
@@ -1480,10 +1484,8 @@ val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   |> Seq.hd) ooo add_primcorec_ursive_cmd false;
 
 val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
-  lthy
-  |> after_qed (map (fn [] => []
-      | _ => error "\"auto\" failed -- use \"primcorecursive\" instead of \"primcorec\"")
-    goalss)) ooo add_primcorec_ursive_cmd true;
+    lthy |> after_qed (map (fn [] => [] | _ => use_primcorecursive ()) goalss)) ooo
+  add_primcorec_ursive_cmd true;
 
 val corec_option_parser = Parse.group (K "option")
   (Plugin_Name.parse_filter >> Plugins_Option
