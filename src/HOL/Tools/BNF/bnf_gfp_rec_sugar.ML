@@ -84,11 +84,18 @@ val selN = "sel";
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
-exception PRIMCOREC of string * term list;
+fun error_at ctxt ts str =
+  error (str ^ (if null ts then ""
+    else " at\n  " ^ space_implode "\n  " (map (quote o Syntax.string_of_term ctxt) ts)));
 
-fun primcorec_error str = raise PRIMCOREC (str, []);
-fun primcorec_error_eqn str eqn = raise PRIMCOREC (str, [eqn]);
-fun primcorec_error_eqns str eqns = raise PRIMCOREC (str, eqns);
+fun not_codatatype ctxt T =
+  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
+fun ill_formed_corec_call ctxt t =
+  error ("Ill-formed corecursive call " ^ quote (Syntax.string_of_term ctxt t));
+fun invalid_map ctxt t =
+  error_at ctxt [t] "Invalid map function";
+fun unexpected_corec_call ctxt eqns t =
+  error_at ctxt eqns ("Unexpected corecursive call " ^ quote (Syntax.string_of_term ctxt t));
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -132,15 +139,6 @@ type corec_spec =
    ctr_specs: corec_ctr_spec list};
 
 exception NO_MAP of term;
-
-fun not_codatatype ctxt T =
-  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
-fun ill_formed_corec_call ctxt t =
-  error ("Ill-formed corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
-fun invalid_map ctxt t =
-  error ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
-fun unexpected_corec_call ctxt t =
-  error ("Unexpected corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
 
 fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
 
@@ -227,7 +225,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [] t else ();
 
     fun massage_abs bound_Ts 0 t = massage_rec bound_Ts t
       | massage_abs bound_Ts m (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) (m - 1) t)
@@ -284,7 +282,7 @@ fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = 
 
 fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
-    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [] t else ();
 
     val build_map_Inl = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd);
 
@@ -581,20 +579,23 @@ datatype coeqn_data =
   Disc of coeqn_data_disc |
   Sel of coeqn_data_sel;
 
-fun check_extra_variables lthy vars names eqn =
+fun is_free_in frees (Free (v, _)) = member (op =) frees v
+  | is_free_in _ _ = false;
+
+fun check_extra_variables ctxt vars names eqn =
   let val b = fold_aterms (fn x as Free (v, _) =>
     if (not (member (op =) vars x) andalso
       not (member (op =) names v) andalso
       v <> Name.uu_ andalso
-      not (Variable.is_fixed lthy v)) then cons x else I | _ => I) eqn []
+      not (Variable.is_fixed ctxt v)) then cons x else I | _ => I) eqn []
   in
-    null b orelse
-    primcorec_error_eqn ("extra variable(s) in equation: " ^
-      commas (map (Syntax.string_of_term lthy) b)) eqn
+    null b orelse error_at ctxt [eqn]
+      ("Extra variable " ^ quote (Syntax.string_of_term ctxt (hd b)))
   end;
 
-fun dissect_coeqn_disc lthy fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
-    eqn_pos ctr_rhs_opt code_rhs_opt prems' concl matchedsss =
+fun dissect_coeqn_disc ctxt fun_names sequentials
+    (basic_ctr_specss : basic_corec_ctr_spec list list) eqn_pos ctr_rhs_opt code_rhs_opt prems0
+    concl matchedsss =
   let
     fun find_subterm p =
       let (* FIXME \<exists>? *)
@@ -605,25 +606,25 @@ fun dissect_coeqn_disc lthy fun_names sequentials (basic_ctr_specss : basic_core
     val applied_fun = concl
       |> find_subterm (member (op = o apsnd SOME) fun_names o try (fst o dest_Free o head_of))
       |> the
-      handle Option.Option => primcorec_error_eqn "malformed discriminator formula" concl;
+      handle Option.Option => error_at ctxt [concl] "Ill-formed discriminator formula";
     val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
 
-    val fixeds = filter (Variable.is_fixed lthy o fst o dest_Free) fun_args;
-    val _ = null fixeds orelse
-      primcorec_error_eqns "function argument(s) are fixed in context" fixeds;
+    val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
+    val _ = null fixeds orelse error_at ctxt fixeds "Function argument(s) are fixed in context";
 
-    val bad =
-      filter (exists_subterm (fn Free (v, _) => member (op =) fun_names v | _ => false)) prems';
-    val _ = null bad orelse primcorec_error_eqns "corecursive call(s) in condition(s)" bad;
+    val bads = filter (Term.exists_subterm (is_free_in fun_names)) prems0;
+    val _ = null bads orelse error_at ctxt bads "Corecursive call(s) in condition(s)";
 
     val _ = forall is_Free fun_args orelse
-      primcorec_error_eqn ("non-variable function argument \"" ^
-        Syntax.string_of_term lthy (find_first (not o is_Free) fun_args |> the) ^
-          "\" (pattern matching is not supported by primcorec(ursive))") applied_fun
+      error_at ctxt [applied_fun] ("Non-variable function argument \"" ^
+        Syntax.string_of_term ctxt (find_first (not o is_Free) fun_args |> the) ^
+          "\" (pattern matching is not supported by primcorec(ursive))")
 
-    val _ = let val d = duplicates (op =) fun_args in null d orelse
-      primcorec_error_eqn ("duplicate variable \"" ^ Syntax.string_of_term lthy (hd d) ^ "\"")
-        applied_fun end;
+    val dups = duplicates (op =) fun_args;
+    val _ =
+      null dups orelse
+      error_at ctxt [applied_fun]
+        ("Duplicate variable " ^ quote (Syntax.string_of_term ctxt (hd dups)));
 
     val (sequential, basic_ctr_specs) =
       the (AList.lookup (op =) (fun_names ~~ (sequentials ~~ basic_ctr_specss)) fun_name);
@@ -632,25 +633,25 @@ fun dissect_coeqn_disc lthy fun_names sequentials (basic_ctr_specss : basic_core
     val ctrs = map #ctr basic_ctr_specs;
     val not_disc = head_of concl = @{term Not};
     val _ = not_disc andalso length ctrs <> 2 andalso
-      primcorec_error_eqn "negated discriminator for a type with \<noteq> 2 constructors" concl;
+      error_at ctxt [concl] "Negated discriminator for a type with \<noteq> 2 constructors";
     val disc' = find_subterm (member (op =) discs o head_of) concl;
     val eq_ctr0 = concl |> perhaps (try HOLogic.dest_not) |> try (HOLogic.dest_eq #> snd)
         |> (fn SOME t => let val n = find_index (curry (op =) t) ctrs in
           if n >= 0 then SOME n else NONE end | _ => NONE);
 
-    val _ = if is_some disc' andalso perhaps (try HOLogic.dest_not) concl <> the disc'
-      then primcorec_error_eqn "malformed discriminator formula" concl else ();
-
+    val _ = is_none disc' orelse perhaps (try HOLogic.dest_not) concl = the disc' orelse
+      error_at ctxt [concl] "Ill-formed discriminator formula";
     val _ = is_some disc' orelse is_some eq_ctr0 orelse
-      primcorec_error_eqn "no discriminator in equation" concl;
+      error_at ctxt [concl] "No discriminator in equation";
+
     val ctr_no' =
       if is_none disc' then the eq_ctr0 else find_index (curry (op =) (head_of (the disc'))) discs;
     val ctr_no = if not_disc then 1 - ctr_no' else ctr_no';
     val {ctr, disc, ...} = nth basic_ctr_specs ctr_no;
 
-    val catch_all = try (fst o dest_Free o the_single) prems' = SOME Name.uu_;
+    val catch_all = (try (fst o dest_Free o the_single) prems0 = SOME Name.uu_);
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
-    val prems = map (abstract (List.rev fun_args)) prems';
+    val prems = map (abstract (List.rev fun_args)) prems0;
     val actual_prems =
       (if catch_all orelse sequential then maps s_not_conj matchedss else []) @
       (if catch_all then [] else prems);
@@ -663,7 +664,7 @@ fun dissect_coeqn_disc lthy fun_names sequentials (basic_ctr_specss : basic_core
       |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop o abstract (List.rev fun_args)
       |> curry Logic.list_all (map dest_Free fun_args) o Logic.list_implies;
 
-    val _ = check_extra_variables lthy fun_args fun_names user_eqn;
+    val _ = check_extra_variables ctxt fun_args fun_names user_eqn;
   in
     (Disc {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = ctr_no,
        disc = disc, prems = actual_prems, auto_gen = catch_all, ctr_rhs_opt = ctr_rhs_opt,
@@ -671,108 +672,109 @@ fun dissect_coeqn_disc lthy fun_names sequentials (basic_ctr_specss : basic_core
      matchedsss')
   end;
 
-fun dissect_coeqn_sel lthy fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn_pos
+fun dissect_coeqn_sel ctxt fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn_pos
     ctr_rhs_opt code_rhs_opt eqn0 of_spec_opt eqn =
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
-      handle TERM _ =>
-             primcorec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
+      handle TERM _ => error_at ctxt [eqn] "Ill-formed equation (expected \"lhs = rhs\")";
     val sel = head_of lhs;
     val ((fun_name, fun_T), fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst dest_Free
-      handle TERM _ =>
-             primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
+      handle TERM _ => error_at ctxt [eqn] "Ill-formed selector argument in left-hand side";
 
-    val _ = let val fixeds = filter (Variable.is_fixed lthy o fst o dest_Free) fun_args in
-        null fixeds orelse primcorec_error_eqns "function argument(s) are fixed in context" fixeds
-      end;
+    val fixeds = filter (Variable.is_fixed ctxt o fst o dest_Free) fun_args;
+    val _ =
+      null fixeds orelse error ("Function argument " ^
+        quote (Syntax.string_of_term ctxt (hd fixeds)) ^ " is fixed in context");
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name)
-      handle Option.Option =>
-             primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
+      handle Option.Option => error_at ctxt [eqn] "Ill-formed selector argument in left-hand side";
     val {ctr, ...} =
       (case of_spec_opt of
         SOME of_spec => the (find_first (curry (op =) of_spec o #ctr) basic_ctr_specs)
       | NONE => filter (exists (curry (op =) sel) o #sels) basic_ctr_specs |> the_single
-          handle List.Empty => primcorec_error_eqn "ambiguous selector - use \"of\"" eqn);
+          handle List.Empty => error_at ctxt [eqn] "Ambiguous selector (without \"of\")");
     val user_eqn = drop_all eqn0;
 
-    val _ = check_extra_variables lthy fun_args fun_names user_eqn;
+    val _ = check_extra_variables ctxt fun_args fun_names user_eqn;
   in
     Sel {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, sel = sel,
       rhs_term = rhs, ctr_rhs_opt = ctr_rhs_opt, code_rhs_opt = code_rhs_opt, eqn_pos = eqn_pos,
       user_eqn = user_eqn}
   end;
 
-fun dissect_coeqn_ctr lthy fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
+fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
     eqn_pos eqn0 code_rhs_opt prems concl matchedsss =
   let
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
-    val _ = check_extra_variables lthy fun_args fun_names (drop_all eqn0);
+    val _ = check_extra_variables ctxt fun_args fun_names (drop_all eqn0);
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
     val (ctr, ctr_args) = strip_comb (unfold_lets_splits rhs);
     val {disc, sels, ...} = the (find_first (curry (op =) ctr o #ctr) basic_ctr_specs)
-      handle Option.Option => primcorec_error_eqn "not a constructor" ctr;
+      handle Option.Option => error_at ctxt [ctr] "Not a constructor";
 
     val disc_concl = betapply (disc, lhs);
     val (eqn_data_disc_opt, matchedsss') =
       if null (tl basic_ctr_specs) andalso not (null sels) then
         (NONE, matchedsss)
       else
-        apfst SOME (dissect_coeqn_disc lthy fun_names sequentials basic_ctr_specss eqn_pos
+        apfst SOME (dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos
           (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg))
         handle ListPair.UnequalLengths =>
-          primcorec_error_eqn "partially applied constructor in right-hand side" rhs;
+          error_at ctxt [rhs] "Partially applied constructor in right-hand side";
 
     val eqns_data_sel =
-      map (dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos
+      map (dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos
         (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn0 (SOME ctr)) sel_concls;
   in
     (the_list eqn_data_disc_opt @ eqns_data_sel, matchedsss')
   end;
 
-fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss =
+fun dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss =
   let
-    val (lhs, (rhs', rhs)) = HOLogic.dest_eq concl ||> `(expand_corec_code_rhs lthy has_call []);
+    val (lhs, (rhs', rhs)) = HOLogic.dest_eq concl ||> `(expand_corec_code_rhs ctxt has_call []);
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
 
-    val _ = check_extra_variables lthy fun_args fun_names concl;
+    val _ = check_extra_variables ctxt fun_args fun_names concl;
 
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
 
-    val cond_ctrs = fold_rev_corec_code_rhs lthy (fn cs => fn ctr => fn _ =>
+    val cond_ctrs = fold_rev_corec_code_rhs ctxt (fn cs => fn ctr => fn _ =>
         if member (op = o apsnd #ctr) basic_ctr_specs ctr then cons (ctr, cs)
-        else primcorec_error_eqn "not a constructor" ctr) [] rhs' []
+        else error ("Not a constructor: " ^ quote (Syntax.string_of_term ctxt ctr))) [] rhs' []
       |> AList.group (op =);
 
     val ctr_premss = (case cond_ctrs of [_] => [[]] | _ => map (s_dnf o snd) cond_ctrs);
     val ctr_concls = cond_ctrs |> map (fn (ctr, _) =>
       binder_types (fastype_of ctr)
-      |> map_index (fn (n, T) => massage_corec_code_rhs lthy (fn _ => fn ctr' => fn args =>
+      |> map_index (fn (n, T) => massage_corec_code_rhs ctxt (fn _ => fn ctr' => fn args =>
         if ctr' = ctr then nth args n else Const (@{const_name undefined}, T)) [] rhs')
       |> curry Term.list_comb ctr
       |> curry HOLogic.mk_eq lhs);
 
+    val bads = maps (filter (Term.exists_subterm (is_free_in fun_names))) ctr_premss;
+    val _ = null bads orelse unexpected_corec_call ctxt [eqn0] rhs;
+
     val sequentials = replicate (length fun_names) false;
   in
-    @{fold_map 2} (dissect_coeqn_ctr lthy fun_names sequentials basic_ctr_specss eqn_pos eqn0
+    @{fold_map 2} (dissect_coeqn_ctr ctxt fun_names sequentials basic_ctr_specss eqn_pos eqn0
         (SOME (abstract (List.rev fun_args) rhs)))
       ctr_premss ctr_concls matchedsss
   end;
 
-fun dissect_coeqn lthy has_call fun_names sequentials
+fun dissect_coeqn ctxt has_call fun_names sequentials
     (basic_ctr_specss : basic_corec_ctr_spec list list) (eqn_pos, eqn0) of_spec_opt matchedsss =
   let
     val eqn = drop_all eqn0
-      handle TERM _ => primcorec_error_eqn "malformed function equation" eqn0;
+      handle TERM _ => error_at ctxt [eqn0] "Ill-formed function equation";
     val (prems, concl) = Logic.strip_horn eqn
       |> map_prod (map HOLogic.dest_Trueprop) HOLogic.dest_Trueprop
-        handle TERM _ => primcorec_error_eqn "malformed function equation" eqn;
+        handle TERM _ => error_at ctxt [eqn] "Ill-formed function equation";
 
     val head = concl
       |> perhaps (try HOLogic.dest_not) |> perhaps (try (fst o HOLogic.dest_eq))
@@ -788,29 +790,28 @@ fun dissect_coeqn lthy has_call fun_names sequentials
        (is_some rhs_opt andalso
         member (op =) (map SOME fun_names) (try (fst o dest_Free) head) andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt)) then
-      dissect_coeqn_disc lthy fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
+      dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
         matchedsss
       |>> single
     else if member (op =) sels head then
-      (null prems orelse primcorec_error_eqn "premise(s) in selector formula" eqn;
-       ([dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt
+      (null prems orelse error_at ctxt [eqn] "Unexpected condition in selector formula";
+       ([dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt
            concl], matchedsss))
-    else if is_some rhs_opt andalso
-        is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
+    else if is_some rhs_opt andalso is_Free head andalso is_free_in fun_names head then
       if member (op =) ctrs (head_of (unfold_lets_splits (the rhs_opt))) then
-        dissect_coeqn_ctr lthy fun_names sequentials basic_ctr_specss eqn_pos eqn0
+        dissect_coeqn_ctr ctxt fun_names sequentials basic_ctr_specss eqn_pos eqn0
           (if null prems then
              SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_assums_concl eqn0))))
            else
              NONE)
           prems concl matchedsss
       else if null prems then
-        dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
+        dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
         |>> flat
       else
-        primcorec_error_eqn "cannot mix constructor and code views (see manual for details)" eqn
+        error_at ctxt [eqn] "Cannot mix constructor and code views"
     else
-      primcorec_error_eqn "malformed function equation" eqn
+      error_at ctxt [eqn] "Ill-formed function equation"
   end;
 
 fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
@@ -829,7 +830,7 @@ fun build_corec_arg_no_call (sel_eqns : coeqn_data_sel list) sel =
   |> the_default undef_const
   |> K;
 
-fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) sel =
+fun build_corec_args_mutual_call ctxt has_call (sel_eqns : coeqn_data_sel list) sel =
   (case find_first (curry (op =) sel o #sel) sel_eqns of
     NONE => (I, I, I)
   | SOME {fun_args, rhs_term, ... } =>
@@ -839,13 +840,13 @@ fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) 
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
         if has_call t then mk_tuple1_balanced bound_Ts (snd (strip_comb t)) else undef_const;
-      fun massage f _ = massage_let_if_case lthy has_call f bound_Ts rhs_term
+      fun massage f _ = massage_let_if_case ctxt has_call f bound_Ts rhs_term
         |> abs_tuple_balanced fun_args;
     in
       (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
     end);
 
-fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) sel =
+fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) sel =
   (case find_first (curry (op =) sel o #sel) sel_eqns of
     NONE => I
   | SOME {fun_args, rhs_term, ...} =>
@@ -874,13 +875,13 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
 
       fun build t =
         rhs_term
-        |> massage_nested_corec_call lthy has_call massage bound_Ts (range_type (fastype_of t))
+        |> massage_nested_corec_call ctxt has_call massage bound_Ts (range_type (fastype_of t))
         |> abs_tuple_balanced fun_args;
     in
       build
     end);
 
-fun build_corec_args_sel lthy has_call (all_sel_eqns : coeqn_data_sel list)
+fun build_corec_args_sel ctxt has_call (all_sel_eqns : coeqn_data_sel list)
     (ctr_spec : corec_ctr_spec) =
   (case filter (curry (op =) (#ctr ctr_spec) o #ctr) all_sel_eqns of
     [] => I
@@ -894,13 +895,13 @@ fun build_corec_args_sel lthy has_call (all_sel_eqns : coeqn_data_sel list)
       I
       #> fold (fn (sel, n) => nth_map n (build_corec_arg_no_call sel_eqns sel)) no_calls'
       #> fold (fn (sel, (q, g, h)) =>
-        let val (fq, fg, fh) = build_corec_args_mutual_call lthy has_call sel_eqns sel in
+        let val (fq, fg, fh) = build_corec_args_mutual_call ctxt has_call sel_eqns sel in
           nth_map q fq o nth_map g fg o nth_map h fh end) mutual_calls'
       #> fold (fn (sel, n) => nth_map n
-        (build_corec_arg_nested_call lthy has_call sel_eqns sel)) nested_calls'
+        (build_corec_arg_nested_call ctxt has_call sel_eqns sel)) nested_calls'
     end);
 
-fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
+fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     (disc_eqnss : coeqn_data_disc list list) (sel_eqnss : coeqn_data_sel list list) =
   let
     val corecs = map #corec corec_specs;
@@ -911,7 +912,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
           if range_type T = HOLogic.boolT then Abs (Name.uu_, domain_type T, @{term False})
           else Const (@{const_name undefined}, T))
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
-      |> fold2 (fold o build_corec_args_sel lthy has_call) sel_eqnss ctr_specss;
+      |> fold2 (fold o build_corec_args_sel ctxt has_call) sel_eqnss ctr_specss;
 
     fun currys [] t = t
       | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
@@ -931,7 +932,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     map (Term.list_comb o rpair corec_args) corecs
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
-    |> Syntax.check_terms lthy
+    |> Syntax.check_terms ctxt
     |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
     |> rpair excludess'
@@ -992,7 +993,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, @{sort type})) (bs ~~ arg_Ts) of
         [] => ()
-      | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
+      | (b, _) :: _ => error ("Type of " ^ Binding.print b ^ " contains top sort"));
 
     val actual_nn = length bs;
 
@@ -1005,7 +1006,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
     val frees = map (fst #>> Binding.name_of #> Free) fixes;
-    val has_call = exists_subterm (member (op =) frees);
+    val has_call = Term.exists_subterm (member (op =) frees);
     val eqns_data =
       @{fold_map 2} (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss)
         (tag_list 0 (map snd specs)) of_specs_opt []
@@ -1017,8 +1018,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
           |> filter (map (fn Disc x => #fun_name x | Sel x => #fun_name x) eqns_data
             |> not oo member (op =));
       in
-        null missing
-          orelse primcorec_error_eqns ("missing equations for function(s): " ^ commas missing) []
+        null missing orelse error ("Missing equations for " ^ commas missing)
       end;
 
     val callssss =
@@ -1044,13 +1044,15 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val _ = disc_eqnss' |> map (fn x =>
       let val d = duplicates (op = o apply2 #ctr_no) x in
         null d orelse
-         (if forall (is_some o #ctr_rhs_opt) x then
-            primcorec_error_eqns "multiple equations for constructor(s)"
-              (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
-                |> map (the o #ctr_rhs_opt))
-          else
-            primcorec_error_eqns "excess discriminator formula in definition"
-              (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn))
+        (if forall (is_some o #ctr_rhs_opt) x then
+           error_at lthy
+             (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d
+              |> map (the o #ctr_rhs_opt))
+             "Multiple equations for same constructor"
+         else
+           error_at lthy
+             (maps (fn t => filter (curry (op =) (#ctr_no t) o #ctr_no) x) d |> map #user_eqn)
+             "Excess discriminator formula in definition")
       end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
@@ -1473,14 +1475,7 @@ fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
     val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
   in
     add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
-    handle ERROR str => primcorec_error str
-  end
-  handle PRIMCOREC (str, eqns) =>
-         if null eqns then
-           error ("primcorec error:\n  " ^ str)
-         else
-           error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
-             space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
+  end;
 
 val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
