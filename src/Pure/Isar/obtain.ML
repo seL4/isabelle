@@ -237,20 +237,20 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val xs = map (apsnd norm_type o fst) vars;
     val ys = map (apsnd norm_type) (drop m params);
     val ys' = map Name.internal (Name.variant_list (map fst xs) (map fst ys)) ~~ map #2 ys;
-    val terms = map (Drule.mk_term o Thm.global_cterm_of thy o Free) (xs @ ys');
+    val terms = map (Drule.mk_term o Thm.cterm_of ctxt o Free) (xs @ ys');
 
     val instT =
       fold (Term.add_tvarsT o #2) params []
-      |> map (TVar #> (fn T => (Thm.global_ctyp_of thy T, Thm.global_ctyp_of thy (norm_type T))));
+      |> map (TVar #> (fn T => apply2 (Thm.ctyp_of ctxt) (T, norm_type T)));
     val closed_rule = rule
-      |> Thm.forall_intr (Thm.global_cterm_of thy (Free thesis_var))
+      |> Thm.forall_intr (Thm.cterm_of ctxt (Free thesis_var))
       |> Thm.instantiate (instT, []);
 
     val ((_, rule' :: terms'), ctxt') = Variable.import false (closed_rule :: terms) ctxt;
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);
-    val rule'' = Thm.forall_elim (Thm.global_cterm_of thy (Logic.varify_global (Free thesis_var))) rule';
+    val rule'' = Thm.forall_elim (Thm.cterm_of ctxt' (Logic.varify_global (Free thesis_var))) rule';
   in ((vars', rule''), ctxt') end;
 
 fun inferred_type (binding, _, mx) ctxt =

@@ -118,7 +118,9 @@ fun add_cterm_frees ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.global_cterm_of thy v) | _ => I) t end;
+  in
+    Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.global_cterm_of thy v) | _ => I) t
+  end;
 
 
 (* cterm constructors and destructors *)
@@ -349,8 +351,8 @@ end;
 (* certify_instantiate *)
 
 fun certify_inst thy (instT, inst) =
-  (map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT,
-    map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst);
+ (map (fn (v, T) => apply2 (Thm.global_ctyp_of thy) (TVar v, T)) instT,
+  map (fn (v, t) => apply2 (Thm.global_cterm_of thy) (Var v, t)) inst);
 
 fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;

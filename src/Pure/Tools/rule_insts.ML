@@ -116,8 +116,8 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
   in
-    (map (apply2 (Thm.global_ctyp_of thy)) inst_tvars,
-     map (apply2 (Thm.global_cterm_of thy)) inst_vars)
+    (map (apply2 (Thm.ctyp_of ctxt)) inst_tvars,
+     map (apply2 (Thm.cterm_of ctxt)) inst_vars)
   end;
 
 fun where_rule ctxt mixed_insts fixes thm =
@@ -248,9 +248,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val envT' = map (fn (ixn, T) =>
           (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =
-          map
-            (fn (xi, t) =>
-              apply2 (Thm.global_cterm_of thy) (Var (xi, fastype_of t), t))
+          map (fn (xi, t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
             (distinct
               (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
               (xis ~~ ts));
@@ -264,7 +262,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         fun liftterm t =
           fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
         fun liftpair (cv, ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct);
-        val lifttvar = apply2 (Thm.global_ctyp_of thy o Logic.incr_tvar inc);
+        val lifttvar = apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc);
         val rule = Drule.instantiate_normalize
               (map lifttvar envT', map liftpair cenv)
               (Thm.lift_rule cgoal thm)
@@ -281,9 +279,8 @@ val eres_inst_tac = bires_inst_tac true;
 
 fun make_elim_preserve ctxt rl =
   let
-    val thy = Thm.theory_of_thm rl;
     val maxidx = Thm.maxidx_of rl;
-    fun cvar xi = Thm.global_cterm_of thy (Var (xi, propT));
+    fun cvar xi = Thm.cterm_of ctxt (Var (xi, propT));
     val revcut_rl' =
       Drule.instantiate_normalize ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
         (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;

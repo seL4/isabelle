@@ -339,7 +339,7 @@ fun pretty_witness ctxt witn =
 fun instantiate_tfrees thy subst th =
   let
     val idx = Thm.maxidx_of th + 1;
-    fun cert_inst (a, (S, T)) = (Thm.global_ctyp_of thy (TVar ((a, idx), S)), Thm.global_ctyp_of thy T);
+    fun cert_inst (a, (S, T)) = apply2 (Thm.global_ctyp_of thy) (TVar ((a, idx), S), T);
 
     fun add_inst (a, S) insts =
       if AList.defined (op =) insts a then insts
