@@ -684,7 +684,7 @@ fun mk_simproc name lhss proc =
     proc ctxt (Thm.term_of ct), identifier = []};
 
 (* FIXME avoid global thy and Logic.varify_global *)
-fun simproc_global_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);
+fun simproc_global_i thy name = mk_simproc name o map (Thm.global_cterm_of thy o Logic.varify_global);
 fun simproc_global thy name = simproc_global_i thy name o map (Syntax.read_term_global thy);
 
 

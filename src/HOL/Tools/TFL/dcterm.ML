@@ -67,7 +67,7 @@ fun cabs a t = Thm.lambda a t
  * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
-val mk_hol_const = Thm.cterm_of @{theory HOL} o Const;
+val mk_hol_const = Thm.global_cterm_of @{theory HOL} o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = Thm.typ_of_cterm Bvar
@@ -181,7 +181,7 @@ fun mk_prop ctm =
     val t = Thm.term_of ctm;
   in
     if can HOLogic.dest_Trueprop t then ctm
-    else Thm.cterm_of thy (HOLogic.mk_Trueprop t)
+    else Thm.global_cterm_of thy (HOLogic.mk_Trueprop t)
   end
   handle TYPE (msg, _, _) => raise ERR "mk_prop" msg
     | TERM (msg, _) => raise ERR "mk_prop" msg;

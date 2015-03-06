@@ -36,7 +36,7 @@ fun mk_case_certificate thy raw_thms =
       |> Thm.prop_of |> Logic.dest_equals |> fst |> Term.strip_comb
       ||> fst o split_last |> list_comb;
     val lhs = Free (singleton (Name.variant_list params) "case", Term.fastype_of rhs);
-    val assum = Thm.cterm_of thy (Logic.mk_equals (lhs, rhs));
+    val assum = Thm.global_cterm_of thy (Logic.mk_equals (lhs, rhs));
   in
     thms
     |> Conjunction.intr_balanced

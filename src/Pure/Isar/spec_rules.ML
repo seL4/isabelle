@@ -48,7 +48,7 @@ val retrieve_global = Item_Net.retrieve o Rules.get o Context.Theory;
 
 fun add class (ts, ths) lthy =
   let
-    val cts = map (Proof_Context.cterm_of lthy) ts;
+    val cts = map (Thm.cterm_of lthy) ts;
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi =>

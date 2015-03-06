@@ -153,7 +153,7 @@ fun add_fixdefs
     val P = Var (("P", 0), map Term.fastype_of lhss ---> HOLogic.boolT)
     val predicate = lambda_tuple lhss (list_comb (P, lhss))
     val tuple_induct_thm = (def_cont_fix_ind OF [tuple_fixdef_thm, cont_thm])
-      |> Drule.instantiate' [] [SOME (Thm.cterm_of thy predicate)]
+      |> Drule.instantiate' [] [SOME (Thm.global_cterm_of thy predicate)]
       |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict}
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
       |> Local_Defs.unfold lthy @{thms split_conv}

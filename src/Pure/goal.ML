@@ -133,15 +133,15 @@ fun future_result ctxt result prop =
     val As = map Thm.term_of assms;
 
     val xs = map Free (fold Term.add_frees (prop :: As) []);
-    val fixes = map (Thm.cterm_of thy) xs;
+    val fixes = map (Thm.global_cterm_of thy) xs;
 
     val tfrees = fold Term.add_tfrees (prop :: As) [];
     val instT =
-      map (fn (a, S) => (Thm.ctyp_of thy (TVar ((a, 0), S)), Thm.ctyp_of thy (TFree (a, S)))) tfrees;
+      map (fn (a, S) => (Thm.global_ctyp_of thy (TVar ((a, 0), S)), Thm.global_ctyp_of thy (TFree (a, S)))) tfrees;
 
     val global_prop =
       Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop)))
-      |> Thm.cterm_of thy
+      |> Thm.global_cterm_of thy
       |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
       (Drule.flexflex_unique (SOME ctxt) #>
@@ -191,7 +191,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
         ("The error(s) above occurred for the goal statement" ^ Position.here pos ^ ":\n" ^
           Syntax.string_of_term ctxt (Logic.list_implies (asms, Logic.mk_conjunction_list props)));
 
-    fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
+    fun cert_safe t = Thm.global_cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
     val casms = map cert_safe asms;
     val cprops = map cert_safe props;

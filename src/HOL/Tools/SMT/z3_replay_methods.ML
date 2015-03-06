@@ -88,7 +88,7 @@ fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
 
-fun certify_prop ctxt t = Proof_Context.cterm_of ctxt (as_prop t)
+fun certify_prop ctxt t = Thm.cterm_of ctxt (as_prop t)
 
 fun try_provers ctxt rule [] thms t = replay_rule_error ctxt rule thms t
   | try_provers ctxt rule ((name, prover) :: named_provers) thms t =
@@ -108,12 +108,12 @@ fun gen_certify_inst sel mk cert ctxt thm t =
 
 fun match_instantiateT ctxt t thm =
   if Term.exists_type (Term.exists_subtype Term.is_TVar) (dest_thm thm) then
-    Thm.instantiate (gen_certify_inst fst TVar (Proof_Context.ctyp_of ctxt) ctxt thm t, []) thm
+    Thm.instantiate (gen_certify_inst fst TVar (Thm.ctyp_of ctxt) ctxt thm t, []) thm
   else thm
 
 fun match_instantiate ctxt t thm =
   let val thm' = match_instantiateT ctxt t thm in
-    Thm.instantiate ([], gen_certify_inst snd Var (Proof_Context.cterm_of ctxt) ctxt thm' t) thm'
+    Thm.instantiate ([], gen_certify_inst snd Var (Thm.cterm_of ctxt) ctxt thm' t) thm'
   end
 
 fun apply_rule ctxt t =
@@ -400,7 +400,7 @@ fun dest_alls t =
   end
 
 fun forall_intr ctxt t thm =
-  let val ct = Proof_Context.cterm_of ctxt t
+  let val ct = Thm.cterm_of ctxt t
   in Thm.forall_intr ct thm COMP_INCR @{thm iff_allI} end
 
 in

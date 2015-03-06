@@ -62,11 +62,11 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
     val t = list_comb (Const (c, tys ---> ty),
       map Free (Name.invent_names Name.context "a" tys));
     val (arg, rhs) =
-      apply2 (Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
+      apply2 (Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         (t,
           map_aterms (fn t as Free (_, ty) => HOLogic.mk_term_of ty t | t => t)
             (HOLogic.reflect_term t));
-    val cty = Thm.ctyp_of thy ty;
+    val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm term_of_anything}
     |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
@@ -102,11 +102,11 @@ fun mk_abs_term_of_eq thy ty abs ty_rep proj =
     val arg = Var (("x", 0), ty);
     val rhs = Abs ("y", @{typ term}, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
       (HOLogic.mk_term_of ty_rep (Const (proj, ty --> ty_rep) $ arg))
-      |> Thm.cterm_of thy;
-    val cty = Thm.ctyp_of thy ty;
+      |> Thm.global_cterm_of thy;
+    val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm term_of_anything}
-    |> Drule.instantiate' [SOME cty] [SOME (Thm.cterm_of thy arg), SOME rhs]
+    |> Drule.instantiate' [SOME cty] [SOME (Thm.global_cterm_of thy arg), SOME rhs]
     |> Thm.varifyT_global
   end;
 
@@ -207,10 +207,10 @@ fun certify_eval ctxt value conv ct =
     val t = Thm.term_of ct;
     val T = fastype_of t;
     val mk_eq =
-      Thm.mk_binop (Proof_Context.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT)));
+      Thm.mk_binop (Thm.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT)));
   in case value ctxt t
    of NONE => Thm.reflexive ct
-    | SOME t' => conv ctxt (mk_eq ct (Proof_Context.cterm_of ctxt t')) RS @{thm eq_eq_TrueD}
+    | SOME t' => conv ctxt (mk_eq ct (Thm.cterm_of ctxt t')) RS @{thm eq_eq_TrueD}
         handle THM _ =>
           error ("Failed to certify evaluation result of " ^ Syntax.string_of_term ctxt t)
   end;

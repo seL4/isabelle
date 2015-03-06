@@ -191,7 +191,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           case_fp fp (snd o Term.dest_comb) (snd o Term.dest_comb o fst o Term.dest_comb);
         val raw_phis = map (extract o HOLogic.dest_Trueprop o Thm.concl_of) rel_xtor_co_inducts;
         val thetas = AList.group (op =)
-          (mutual_cliques ~~ map (apply2 (Proof_Context.cterm_of lthy)) (raw_phis ~~ pre_phis));
+          (mutual_cliques ~~ map (apply2 (Thm.cterm_of lthy)) (raw_phis ~~ pre_phis));
       in
         map2 (Drule.cterm_instantiate o the o AList.lookup (op =) thetas)
         mutual_cliques rel_xtor_co_inducts
@@ -214,7 +214,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
             fun mk_Grp_id P =
               let val T = domain_type (fastype_of P);
               in mk_Grp (HOLogic.Collect_const T $ P) (HOLogic.id_const T) end;
-            val cts = map (SOME o Proof_Context.cterm_of lthy) (map HOLogic.eq_const As @ map mk_Grp_id Ps);
+            val cts = map (SOME o Thm.cterm_of lthy) (map HOLogic.eq_const As @ map mk_Grp_id Ps);
             fun mk_fp_type_copy_thms thm = map (curry op RS thm)
               @{thms type_copy_Abs_o_Rep type_copy_vimage2p_Grp_Rep};
             fun mk_type_copy_thms thm = map (curry op RS thm)
@@ -235,7 +235,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           end
       | Greatest_FP =>
           let
-            val cts = NONE :: map (SOME o Proof_Context.cterm_of lthy) (map HOLogic.eq_const As);
+            val cts = NONE :: map (SOME o Thm.cterm_of lthy) (map HOLogic.eq_const As);
           in
             cterm_instantiate_pos cts xtor_rel_co_induct
             |> unfold_thms lthy (@{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} @

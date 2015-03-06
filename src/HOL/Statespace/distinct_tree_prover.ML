@@ -95,7 +95,7 @@ fun instantiate instTs insts =
     fun mapT_and_recertify ct =
       let
         val thy = Thm.theory_of_cterm ct;
-      in (Thm.cterm_of thy (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct))) end;
+      in (Thm.global_cterm_of thy (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct))) end;
     val insts' = map (apfst mapT_and_recertify) insts;
   in Thm.instantiate (instTs, insts') end;
 
@@ -150,10 +150,10 @@ fun discharge prems rule =
 
     val tyinsts' =
       map (fn (v, (S, U)) =>
-        (Thm.ctyp_of thy (TVar (v, S)), Thm.ctyp_of thy U)) tyinsts;
+        (Thm.global_ctyp_of thy (TVar (v, S)), Thm.global_ctyp_of thy U)) tyinsts;
     val insts' =
       map (fn (idxn, ct) =>
-        (Thm.cterm_of thy (Var (idxn, Thm.typ_of_cterm ct)), ct)) insts;
+        (Thm.global_cterm_of thy (Var (idxn, Thm.typ_of_cterm ct)), ct)) insts;
     val rule' = Thm.instantiate (tyinsts', insts') rule;
   in fold Thm.elim_implies prems rule' end;
 
@@ -298,8 +298,8 @@ fun subtractProver (Const (@{const_name Tip}, T)) ct dist_thm =
         val [alphaI] = #2 (dest_Type T);
       in
         Thm.instantiate
-          ([(alpha, Thm.ctyp_of thy alphaI)],
-           [(Thm.cterm_of thy (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
+          ([(alpha, Thm.global_ctyp_of thy alphaI)],
+           [(Thm.global_cterm_of thy (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
       end
   | subtractProver (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
       let

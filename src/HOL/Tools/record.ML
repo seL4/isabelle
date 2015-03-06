@@ -78,7 +78,7 @@ fun named_cterm_instantiate values thm =  (* FIXME eliminate *)
     fun match name ((name', _), _) = name = name';
     fun getvar name =
       (case find_first (match name) (Term.add_vars (Thm.prop_of thm) []) of
-        SOME var => Thm.cterm_of (Thm.theory_of_thm thm) (Var var)
+        SOME var => Thm.global_cterm_of (Thm.theory_of_thm thm) (Var var)
       | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm]));
   in
     cterm_instantiate (map (apfst getvar) values) thm
@@ -97,7 +97,7 @@ fun get_typedef_info tyco vs
   let
     val exists_thm =
       UNIV_I
-      |> Drule.instantiate' [SOME (Thm.ctyp_of thy (Logic.varifyT_global rep_type))] [];
+      |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy (Logic.varifyT_global rep_type))] [];
     val proj_constr = Abs_inverse OF [exists_thm];
     val absT = Type (tyco, map TFree vs);
   in
@@ -141,7 +141,7 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
     (*construct a type and body for the isomorphism constant by
       instantiating the theorem to which the definition will be applied*)
     val intro_inst =
-      rep_inject RS named_cterm_instantiate [("abst", Thm.cterm_of typ_thy absC)] iso_tuple_intro;
+      rep_inject RS named_cterm_instantiate [("abst", Thm.global_cterm_of typ_thy absC)] iso_tuple_intro;
     val (_, body) = Logic.dest_equals (List.last (Thm.prems_of intro_inst));
     val isomT = fastype_of body;
     val isom_binding = Binding.suffix_name isoN b;
@@ -1121,7 +1121,7 @@ val simproc =
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
-    val insts = [("upd", Thm.cterm_of thy upd), ("ac", Thm.cterm_of thy acc)];
+    val insts = [("upd", Thm.global_cterm_of thy upd), ("ac", Thm.global_cterm_of thy acc)];
     val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
     Goal.prove (Proof_Context.init_global thy) [] [] prop
@@ -1375,9 +1375,9 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     fun mk_split_free_tac free induct_thm i =
       let
-        val cfree = Thm.cterm_of thy free;
+        val cfree = Thm.global_cterm_of thy free;
         val _$ (_ $ r) = Thm.concl_of induct_thm;
-        val crec = Thm.cterm_of thy r;
+        val crec = Thm.global_cterm_of thy r;
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
@@ -1473,7 +1473,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
       | [x] => (head_of x, false));
     val rule'' =
       cterm_instantiate
-        (map (apply2 (Proof_Context.cterm_of ctxt))
+        (map (apply2 (Thm.cterm_of ctxt))
           (case rev params of
             [] =>
               (case AList.lookup (op =) (Term.add_frees g []) s of
@@ -1606,7 +1606,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (roughly) the definition of the accessor.*)
     val surject = timeit_msg ctxt "record extension surjective proof:" (fn () =>
       let
-        val cterm_ext = Thm.cterm_of defs_thy ext;
+        val cterm_ext = Thm.global_cterm_of defs_thy ext;
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
@@ -1756,7 +1756,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([apply2 (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+          ([apply2 (Thm.global_ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
         |> Axclass.unoverload thy;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =
@@ -1943,8 +1943,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               fun to_Var (Free (c, T)) = Var ((c, 1), T);
             in mk_rec (map to_Var all_vars_more) 0 end;
 
-          val cterm_rec = Thm.cterm_of ext_thy r_rec0;
-          val cterm_vrs = Thm.cterm_of ext_thy r_rec0_Vars;
+          val cterm_rec = Thm.global_cterm_of ext_thy r_rec0;
+          val cterm_vrs = Thm.global_cterm_of ext_thy r_rec0_Vars;
           val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
           val init_thm = named_cterm_instantiate insts updacc_eq_triv;
           val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;

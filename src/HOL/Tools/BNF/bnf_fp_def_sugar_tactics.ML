@@ -97,7 +97,7 @@ fun co_induct_inst_as_projs ctxt k thm =
     val fs = Term.add_vars (Thm.prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
     fun mk_cfp (f as (_, T)) =
-      (Proof_Context.cterm_of ctxt (Var f), Proof_Context.cterm_of ctxt (mk_proj T (num_binder_types T) k));
+      (Thm.cterm_of ctxt (Var f), Thm.cterm_of ctxt (mk_proj T (num_binder_types T) k));
     val cfps = map mk_cfp fs;
   in
     Drule.cterm_instantiate cfps thm

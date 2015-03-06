@@ -483,7 +483,7 @@ fun cancel_simplify_meta_eq ctxt cancel_th th =
     simplify_one ctxt (([th, cancel_th]) MRS trans);
 
 local
-  val Tp_Eq = Thm.reflexive (Thm.cterm_of @{theory HOL} HOLogic.Trueprop)
+  val Tp_Eq = Thm.reflexive (Thm.global_cterm_of @{theory HOL} HOLogic.Trueprop)
   fun Eq_True_elim Eq = 
     Thm.equal_elim (Thm.combination Tp_Eq (Thm.symmetric Eq)) @{thm TrueI}
 in
@@ -494,7 +494,7 @@ fun sign_conv pos_th neg_th ctxt t =
       val pos = less $ zero $ t and neg = less $ t $ zero
       val thy = Proof_Context.theory_of ctxt
       fun prove p =
-        SOME (Eq_True_elim (Simplifier.asm_rewrite ctxt (Thm.cterm_of thy p)))
+        SOME (Eq_True_elim (Simplifier.asm_rewrite ctxt (Thm.global_cterm_of thy p)))
         handle THM _ => NONE
     in case prove pos of
          SOME th => SOME(th RS pos_th)

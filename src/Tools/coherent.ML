@@ -174,8 +174,8 @@ and valid_cases _ _ _ _ _ _ _ [] = SOME []
 fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
+    val cert = Thm.global_cterm_of thy;
+    val certT = Thm.global_ctyp_of thy;
     val _ =
       cond_trace ctxt (fn () =>
         Pretty.string_of (Pretty.big_list "asms:" (map (Display.pretty_thm ctxt) asms)));
@@ -202,7 +202,7 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
 and thm_of_case_prf ctxt goal asms ((params, prf), (_, asms')) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
     val cparams = map cert params;
     val asms'' = map (cert o curry subst_bounds (rev params)) asms';
     val (prems'', ctxt') = fold_map Thm.assume_hyps asms'' ctxt;

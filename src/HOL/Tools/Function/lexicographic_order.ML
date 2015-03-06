@@ -68,7 +68,7 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
 
 fun mk_cell ctxt solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
-    val goals = Proof_Context.cterm_of ctxt o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
+    val goals = Thm.cterm_of ctxt o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
     case try_proof (goals @{const_name Orderings.less}) solve_tac of
       Solved thm => Less thm
@@ -201,7 +201,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   
         in (* 4: proof reconstruction *)
           st |>
-          (PRIMITIVE (cterm_instantiate [apply2 (Proof_Context.cterm_of ctxt) (rel, relation)])
+          (PRIMITIVE (cterm_instantiate [apply2 (Thm.cterm_of ctxt) (rel, relation)])
             THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
             THEN (rtac @{thm "wf_empty"} 1)
             THEN EVERY (map prove_row clean_table))

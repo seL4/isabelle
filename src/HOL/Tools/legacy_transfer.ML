@@ -59,8 +59,8 @@ fun transfer_rules_of ({ inj, embed, return, cong, ... } : entry) =
 fun get_by_direction context (a, D) =
   let
     val ctxt = Context.proof_of context;
-    val a0 = Proof_Context.cterm_of ctxt a;
-    val D0 = Proof_Context.cterm_of ctxt D;
+    val a0 = Thm.cterm_of ctxt a;
+    val D0 = Thm.cterm_of ctxt D;
     fun eq_direction ((a, D), thm') =
       let
         val (a', D') = direction_of thm';
@@ -118,9 +118,9 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
       |> Variable.declare_term (Thm.term_of D);
     val vars = filter (fn ((v, _), T) => Type.could_unify (T, aT) andalso
       not (member (op =) leave v)) (Term.add_vars (Thm.prop_of thm) []);
-    val c_vars = map (Proof_Context.cterm_of ctxt3 o Var) vars;
+    val c_vars = map (Thm.cterm_of ctxt3 o Var) vars;
     val (vs', ctxt4) = Variable.variant_fixes (map (fst o fst) vars) ctxt3;
-    val c_vars' = map (Proof_Context.cterm_of ctxt3 o (fn v => Free (v, bT))) vs';
+    val c_vars' = map (Thm.cterm_of ctxt3 o (fn v => Free (v, bT))) vs';
     val c_exprs' = map (Thm.apply a) c_vars';
 
     (* transfer *)

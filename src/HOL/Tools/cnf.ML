@@ -165,7 +165,7 @@ fun clause2raw_thm ctxt clause =
 (* ------------------------------------------------------------------------- *)
 
 fun inst_thm thy ts thm =
-  instantiate' [] (map (SOME o Thm.cterm_of thy) ts) thm;
+  instantiate' [] (map (SOME o Thm.global_cterm_of thy) ts) thm;
 
 (* ------------------------------------------------------------------------- *)
 (*                         Naive CNF transformation                          *)
@@ -266,7 +266,7 @@ fun make_under_quantifiers ctxt make t =
       | Abs _ => Conv.abs_conv (conv o snd) ctxt ct
       | Const _ => Conv.all_conv ct
       | t => make t RS eq_reflection)
-  in conv ctxt (Thm.cterm_of thy t) RS meta_eq_to_obj_eq end
+  in conv ctxt (Thm.global_cterm_of thy t) RS meta_eq_to_obj_eq end
 
 fun make_nnf_thm_under_quantifiers ctxt =
   make_under_quantifiers ctxt (make_nnf_thm (Proof_Context.theory_of ctxt))
@@ -451,7 +451,7 @@ fun make_cnfx_thm ctxt t =
                       val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_l   (* ((Ex x') | y') = (Ex (x' | y')) *)
                       val var = new_free ()
                       val thm2 = make_cnfx_disj_thm (betapply (x', var)) y'  (* (x' | y') = body' *)
-                      val thm3 = Thm.forall_intr (Thm.cterm_of thy var) thm2 (* !!v. (x' | y') = body' *)
+                      val thm3 = Thm.forall_intr (Thm.global_cterm_of thy var) thm2 (* !!v. (x' | y') = body' *)
                       val thm4 = Thm.strip_shyps (thm3 COMP allI)            (* ALL v. (x' | y') = body' *)
                       val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong) (* (EX v. (x' | y')) = (EX v. body') *)
                     in
@@ -462,7 +462,7 @@ fun make_cnfx_thm ctxt t =
                       val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_r   (* (x' | (Ex y')) = (Ex (x' | y')) *)
                       val var = new_free ()
                       val thm2 = make_cnfx_disj_thm x' (betapply (y', var))  (* (x' | y') = body' *)
-                      val thm3 = Thm.forall_intr (Thm.cterm_of thy var) thm2 (* !!v. (x' | y') = body' *)
+                      val thm3 = Thm.forall_intr (Thm.global_cterm_of thy var) thm2 (* !!v. (x' | y') = body' *)
                       val thm4 = Thm.strip_shyps (thm3 COMP allI)            (* ALL v. (x' | y') = body' *)
                       val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong) (* (EX v. (x' | y')) = (EX v. body') *)
                     in
@@ -484,7 +484,7 @@ fun make_cnfx_thm ctxt t =
               val var = new_free ()
               val body = HOLogic.mk_conj (HOLogic.mk_disj (x, var), HOLogic.mk_disj (y, HOLogic.Not $ var))
               val thm2 = make_cnfx_thm_from_nnf body              (* (x | v) & (y | ~v) = body' *)
-              val thm3 = Thm.forall_intr (Thm.cterm_of thy var) thm2 (* !!v. (x | v) & (y | ~v) = body' *)
+              val thm3 = Thm.forall_intr (Thm.global_cterm_of thy var) thm2 (* !!v. (x | v) & (y | ~v) = body' *)
               val thm4 = Thm.strip_shyps (thm3 COMP allI)         (* ALL v. (x | v) & (y | ~v) = body' *)
               val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong)  (* (EX v. (x | v) & (y | ~v)) = (EX v. body') *)
             in

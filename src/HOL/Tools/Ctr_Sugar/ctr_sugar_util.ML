@@ -219,7 +219,7 @@ fun cterm_instantiate_pos cts thm =
     val ps =
       map_filter
         (fn (_, NONE) => NONE
-          | (var, SOME ct) => SOME (Thm.cterm_of thy (Var var), ct)) (vars' ~~ cts);
+          | (var, SOME ct) => SOME (Thm.global_cterm_of thy (Var var), ct)) (vars' ~~ cts);
   in
     Drule.cterm_instantiate ps thm
   end;

@@ -573,7 +573,7 @@ fun mk_cases ctxt prop =
 
     val elims = Induct.find_casesP ctxt prop;
 
-    val cprop = Thm.cterm_of thy prop;
+    val cprop = Thm.global_cterm_of thy prop;
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
@@ -636,7 +636,7 @@ fun mk_simp_eq ctxt prop =
       | _ => error
         ("equations matching pattern " ^ Syntax.string_of_term ctxt prop ^ " is not unique"));
     val inst =
-      map (fn v => (Thm.cterm_of thy (Var v), Thm.cterm_of thy (Envir.subst_term subst (Var v))))
+      map (fn v => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy (Envir.subst_term subst (Var v))))
         (Term.add_vars (lhs_of eq) []);
   in
     Drule.cterm_instantiate inst eq
@@ -849,7 +849,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       ||> is_auxiliary ? Local_Theory.restore_naming lthy;
     val fp_def' =
       Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
-        (Proof_Context.cterm_of lthy' (list_comb (rec_const, params)));
+        (Thm.cterm_of lthy' (list_comb (rec_const, params)));
     val specs =
       if length cs < 2 then []
       else

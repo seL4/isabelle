@@ -108,9 +108,9 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
             val cp = cp_inst_of thy a b;
             val dj = dj_thm_of thy b a;
             val dj_cp' = [cp, dj] MRS dj_cp;
-            val cert = SOME o Thm.cterm_of thy
+            val cert = SOME o Thm.global_cterm_of thy
           in
-            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.ctyp_of thy S)]
+            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.global_ctyp_of thy S)]
               [cert t, cert r, cert s] dj_cp'))
           end
         else NONE
@@ -777,12 +777,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
     fun dt_constr_defs ((((((_, (_, _, constrs)),
         (_, (_, _, constrs'))), tname), T), T'), constr_syntax) (thy, defs, eqns, dist_lemmas) =
       let
-        val rep_const = Thm.cterm_of thy
+        val rep_const = Thm.global_cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
         val dist =
           Drule.export_without_context
             (cterm_instantiate
-              [(Thm.cterm_of thy distinct_f, rep_const)] Old_Datatype.distinct_lemma);
+              [(Thm.global_cterm_of thy distinct_f, rep_const)] Old_Datatype.distinct_lemma);
         val (thy', defs', eqns') = fold (make_constr_def tname T T')
           (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in
@@ -1051,7 +1051,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate
-      (map (Thm.cterm_of thy8) Ps ~~ map (Thm.cterm_of thy8) frees) indrule_lemma;
+      (map (Thm.global_cterm_of thy8) Ps ~~ map (Thm.global_cterm_of thy8) frees) indrule_lemma;
 
     val Abs_inverse_thms' = map (fn r => r RS subst) Abs_inverse_thms;
 
@@ -1268,7 +1268,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           | _ => false)) perm_fresh_fresh
       in
         Drule.instantiate' []
-          [SOME (Thm.cterm_of thy a), NONE, SOME (Thm.cterm_of thy b)] th
+          [SOME (Thm.global_cterm_of thy a), NONE, SOME (Thm.global_cterm_of thy b)] th
       end;
 
     val fs_cp_sort =
@@ -1382,13 +1382,13 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val induct_aux' = Thm.instantiate ([],
       map (fn (s, v as Var (_, T)) =>
-        (Thm.cterm_of thy9 v, Thm.cterm_of thy9 (Free (s, T))))
+        (Thm.global_cterm_of thy9 v, Thm.global_cterm_of thy9 (Free (s, T))))
           (pnames ~~ map head_of (HOLogic.dest_conj
              (HOLogic.dest_Trueprop (Thm.concl_of induct_aux)))) @
       map (fn (_, f) =>
         let val f' = Logic.varify_global f
-        in (Thm.cterm_of thy9 f',
-          Thm.cterm_of thy9 (Const (@{const_name Nominal.supp}, fastype_of f')))
+        in (Thm.global_cterm_of thy9 f',
+          Thm.global_cterm_of thy9 (Const (@{const_name Nominal.supp}, fastype_of f')))
         end) fresh_fs) induct_aux;
 
     val induct = Goal.prove_global_future thy9 []
@@ -1551,8 +1551,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (augment_sort thy1 pt_cp_sort
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
             (fn {context = ctxt, ...} => dtac (Thm.instantiate ([],
-                 [(Thm.cterm_of thy11 (Var (("pi", 0), permT)),
-                   Thm.cterm_of thy11 (Const (@{const_name rev}, permT --> permT) $ pi))]) th) 1 THEN
+                 [(Thm.global_cterm_of thy11 (Var (("pi", 0), permT)),
+                   Thm.global_cterm_of thy11 (Const (@{const_name rev}, permT --> permT) $ pi))]) th) 1 THEN
                NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
 
@@ -1630,8 +1630,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                    val tuple = foldr1 HOLogic.mk_prod (x :: rec_fns')
                  in EVERY
                    [rtac (Drule.cterm_instantiate
-                      [(Thm.cterm_of thy11 S,
-                        Thm.cterm_of thy11 (Const (@{const_name Nominal.supp},
+                      [(Thm.global_cterm_of thy11 S,
+                        Thm.global_cterm_of thy11 (Const (@{const_name Nominal.supp},
                           fastype_of tuple --> HOLogic.mk_setT aT) $ tuple))]
                       supports_fresh) 1,
                     simp_tac (put_simpset HOL_basic_ss context addsimps
@@ -1642,8 +1642,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     SUBPROOF (fn {prems = prems', params = [(_, a), (_, b)], ...} => EVERY
                       [cut_facts_tac [rec_prem] 1,
                        rtac (Thm.instantiate ([],
-                         [(Thm.cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
-                           Thm.cterm_of thy11
+                         [(Thm.global_cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
+                           Thm.global_cterm_of thy11
                             (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th) 1,
                        asm_simp_tac (put_simpset HOL_ss context addsimps
                          (prems' @ perm_swap @ perm_fresh_fresh)) 1]) context 1,
@@ -1671,7 +1671,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
 
     val induct_aux_rec = Drule.cterm_instantiate
-      (map (apply2 (Thm.cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
+      (map (apply2 (Thm.global_cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
          (map (fn (aT, f) => (Logic.varify_global f, Abs ("z", HOLogic.unitT,
             Const (@{const_name Nominal.supp}, fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @
@@ -1861,8 +1861,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                             val l = find_index (equal T) dt_atomTs;
                             val th = nth (nth rec_equiv_thms' l) k;
                             val th' = Thm.instantiate ([],
-                              [(Thm.cterm_of thy11 (Var (("pi", 0), U)),
-                                Thm.cterm_of thy11 p)]) th;
+                              [(Thm.global_cterm_of thy11 (Var (("pi", 0), U)),
+                                Thm.global_cterm_of thy11 p)]) th;
                           in rtac th' 1 end;
                         val th' = Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))

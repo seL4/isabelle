@@ -117,7 +117,7 @@ val postproc_form_eqs =
   }
 
 fun rewrite_with ctxt thms = Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps thms)
-fun conv_term thy conv r = Thm.cterm_of thy r |> conv |> Thm.prop_of |> Logic.dest_equals |> snd
+fun conv_term thy conv r = Thm.global_cterm_of thy r |> conv |> Thm.prop_of |> Logic.dest_equals |> snd
 
 fun approx_random ctxt prec eps frees e xs genuine_only size seed =
   let

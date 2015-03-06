@@ -109,7 +109,7 @@ in
           val (fresh_var, ctxt) = yield_singleton Variable.invent_types sort ctxt
           val thy = Proof_Context.theory_of ctxt
         in
-          ((Thm.cterm_of thy var, Thm.cterm_of thy (HOLogic.eq_const (TFree fresh_var))), ctxt)
+          ((Thm.global_cterm_of thy var, Thm.global_cterm_of thy (HOLogic.eq_const (TFree fresh_var))), ctxt)
         end
       
       val orig_lthy = lthy
@@ -290,7 +290,7 @@ in
       val thy = Proof_Context.theory_of ctxt
       val orig_ctxt = ctxt
       val (fixed_goal, ctxt) = yield_singleton (import_terms_exclude not_fix) goal ctxt
-      val init_goal = Goal.init (Thm.cterm_of thy fixed_goal)
+      val init_goal = Goal.init (Thm.global_cterm_of thy fixed_goal)
     in
       (singleton (Variable.export ctxt orig_ctxt) o Goal.conclude) (the (SINGLE tac init_goal))
     end
@@ -307,7 +307,7 @@ in
           val thy = Proof_Context.theory_of ctxt
           val orig_ctxt = ctxt
           val (fixed_goal, ctxt) = yield_singleton (Variable.import_terms true) goal ctxt
-          val init_goal = Goal.init (Thm.cterm_of thy fixed_goal)
+          val init_goal = Goal.init (Thm.global_cterm_of thy fixed_goal)
           val rules = Transfer.get_transfer_raw ctxt
           val rules = constraint :: OO_rules @ rules
           val tac =
@@ -382,7 +382,7 @@ in
         |> Conv.fconv_rule(HOLogic.Trueprop_conv (Conv.arg_conv id_unfold then_conv Conv.arg1_conv id_unfold))
       val var = Var (hd (Term.add_vars (Thm.prop_of id_transfer) []))
       val thy = Proof_Context.theory_of lthy
-      val inst = [(Thm.cterm_of thy var, Thm.cterm_of thy parametrized_relator)]
+      val inst = [(Thm.global_cterm_of thy var, Thm.global_cterm_of thy parametrized_relator)]
       val id_par_thm = Drule.cterm_instantiate inst id_transfer
     in
       Lifting_Def.generate_parametric_transfer_rule lthy id_transfer_rule id_par_thm

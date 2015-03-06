@@ -278,7 +278,7 @@ fun force_qty_type thy qty quot_thm =
     val (_, qty_schematic) = quot_thm_rty_qty quot_thm
     val match_env = Sign.typ_match thy (qty_schematic, qty) Vartab.empty
     fun prep_ty thy (x, (S, ty)) =
-      (Thm.ctyp_of thy (TVar (x, S)), Thm.ctyp_of thy ty)
+      (Thm.global_ctyp_of thy (TVar (x, S)), Thm.global_ctyp_of thy ty)
     val ty_inst = Vartab.fold (cons o (prep_ty thy)) match_env []
   in
     Thm.instantiate (ty_inst, []) quot_thm
@@ -373,7 +373,7 @@ fun prove_param_quot_thm ctxt ty =
         let 
           val thy = Proof_Context.theory_of ctxt
           val instantiated_id_quot_thm =
-            instantiate' [SOME (Thm.ctyp_of thy ty)] [] @{thm identity_quotient}
+            instantiate' [SOME (Thm.global_ctyp_of thy ty)] [] @{thm identity_quotient}
         in
           (instantiated_id_quot_thm, (table, ctxt)) 
         end
@@ -390,7 +390,7 @@ fun prove_param_quot_thm ctxt ty =
           let
             val thy = Proof_Context.theory_of ctxt
             val (Q_t, ctxt') = get_fresh_Q_t ctxt
-            val Q_thm = Thm.assume (Thm.cterm_of thy Q_t)
+            val Q_thm = Thm.assume (Thm.global_cterm_of thy Q_t)
             val table' = (ty, Q_thm)::table
           in
             (Q_thm, (table', ctxt'))

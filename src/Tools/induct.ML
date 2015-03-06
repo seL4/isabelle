@@ -162,7 +162,7 @@ fun mk_swap_rrule ctxt ct =
 
 val rearrange_eqs_simproc =
   Simplifier.simproc_global Pure.thy "rearrange_eqs" ["Pure.all t"]
-    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.cterm_of (Proof_Context.theory_of ctxt) t));
+    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.global_cterm_of (Proof_Context.theory_of ctxt) t));
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)
@@ -394,7 +394,7 @@ fun align_right msg xs ys =
 
 fun prep_inst ctxt align tune (tm, ts) =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
@@ -571,8 +571,8 @@ local
 
 fun dest_env thy env =
   let
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
+    val cert = Thm.global_cterm_of thy;
+    val certT = Thm.global_ctyp_of thy;
     val pairs = Vartab.dest (Envir.term_env env);
     val types = Vartab.dest (Envir.type_env env);
     val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
@@ -655,7 +655,7 @@ fun goal_params k (Const (@{const_name Pure.all}, _) $ Abs (_, _, B)) = goal_par
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
 
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =

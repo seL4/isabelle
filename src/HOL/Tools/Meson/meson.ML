@@ -107,7 +107,7 @@ fun first_order_resolve thA thB =
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
-          val ct_pairs = map (apply2 (Thm.cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+          val ct_pairs = map (apply2 (Thm.global_cterm_of thy) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
@@ -174,7 +174,7 @@ fun quant_resolve_tac ctxt th i st =
   case (Thm.concl_of st, Thm.prop_of th) of
     (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
     let
-      val cc = Thm.cterm_of (Thm.theory_of_thm th) c
+      val cc = Thm.global_cterm_of (Thm.theory_of_thm th) c
       val ct = Thm.dest_arg (Thm.cprop_of th)
     in resolve_tac ctxt [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
   | _ => resolve_tac ctxt [th] i st
@@ -355,7 +355,7 @@ in
       val ([x], ctxt') =
         Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (Thm.concl_of th))] ctxt;
       val spec' = spec
-        |> Thm.instantiate ([], [(spec_var, Proof_Context.cterm_of ctxt' (Free (x, spec_varT)))]);
+        |> Thm.instantiate ([], [(spec_var, Thm.cterm_of ctxt' (Free (x, spec_varT)))]);
     in (th RS spec', ctxt') end
 end;
 
@@ -629,7 +629,7 @@ fun cong_extensionalize_thm thy th =
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
        SOME p =>
-       let val inst = [apply2 (Thm.cterm_of thy) (F_ext_cong_neq, p)] in
+       let val inst = [apply2 (Thm.global_cterm_of thy) (F_ext_cong_neq, p)] in
          th RS cterm_instantiate inst ext_cong_neq
        end
      | NONE => th)

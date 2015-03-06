@@ -158,8 +158,8 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     val args = map inst pre_args
     val rhs = inst pre_rhs
 
-    val cqs = map (Proof_Context.cterm_of ctxt) qs
-    val ags = map (Thm.assume o Proof_Context.cterm_of ctxt) gs
+    val cqs = map (Thm.cterm_of ctxt) qs
+    val ags = map (Thm.assume o Thm.cterm_of ctxt) gs
 
     val import = fold Thm.forall_elim cqs
       #> fold Thm.elim_implies ags
@@ -198,7 +198,7 @@ fun mk_applied_form ctxt caTs thm =
   let
     val xs =
       map_index (fn (i, T) =>
-        Proof_Context.cterm_of ctxt
+        Thm.cterm_of ctxt
           (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
   in
     fold (fn x => fn thm => Thm.combination thm (Thm.reflexive x)) xs thm
@@ -226,7 +226,7 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
     val case_exp = Sum_Tree.mk_sumcases HOLogic.boolT Ps
 
     val induct_inst =
-      Thm.forall_elim (Proof_Context.cterm_of ctxt case_exp) induct
+      Thm.forall_elim (Thm.cterm_of ctxt case_exp) induct
       |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
       |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps all_f_defs)
 
@@ -236,9 +236,9 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
         val inj = Sum_Tree.mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
       in
         (rule
-         |> Thm.forall_elim (Proof_Context.cterm_of ctxt inj)
+         |> Thm.forall_elim (Thm.cterm_of ctxt inj)
          |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
-         |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) (afs @ newPs),
+         |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) (afs @ newPs),
          k + length cargTs)
       end
   in
@@ -258,7 +258,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
     val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
     val (args, name_ctxt) = mk_var "x" argsT name_ctxt
     
-    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Proof_Context.cterm_of ctxt
+    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Thm.cterm_of ctxt
     val sumtree_inj = Sum_Tree.mk_inj ST n i args
 
     val sum_elims =
@@ -270,9 +270,9 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
   in
     cases_rule
     |> Thm.forall_elim P
-    |> Thm.forall_elim (Proof_Context.cterm_of ctxt sumtree_inj)
+    |> Thm.forall_elim (Thm.cterm_of ctxt sumtree_inj)
     |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal)
-    |> Thm.forall_intr (Proof_Context.cterm_of ctxt args)
+    |> Thm.forall_intr (Thm.cterm_of ctxt args)
     |> Thm.forall_intr P
   end
 

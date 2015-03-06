@@ -694,7 +694,7 @@ end;
 val (_, oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding cooper},
     (fn (ctxt, t) =>
-      (Proof_Context.cterm_of ctxt o Logic.mk_equals o apply2 HOLogic.mk_Trueprop)
+      (Thm.cterm_of ctxt o Logic.mk_equals o apply2 HOLogic.mk_Trueprop)
         (t, procedure t)))));
 
 val comp_ss =

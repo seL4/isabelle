@@ -105,11 +105,11 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val inst = map (apply2 (Thm.cterm_of thy)) (map head_of (HOLogic.dest_conj
+    val inst = map (apply2 (Thm.global_cterm_of thy)) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (Thm.concl_of induct))) ~~ ps);
 
     val thm =
-      Goal.prove_internal ctxt (map (Thm.cterm_of thy) prems) (Thm.cterm_of thy concl)
+      Goal.prove_internal ctxt (map (Thm.global_cterm_of thy) prems) (Thm.global_cterm_of thy concl)
         (fn prems =>
            EVERY [
             rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
@@ -185,12 +185,12 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
     val y' = Free ("y", T);
 
     val thm =
-      Goal.prove_internal ctxt (map (Thm.cterm_of thy) prems)
-        (Thm.cterm_of thy
+      Goal.prove_internal ctxt (map (Thm.global_cterm_of thy) prems)
+        (Thm.global_cterm_of thy
           (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
         (fn prems =>
            EVERY [
-            rtac (cterm_instantiate [apply2 (Thm.cterm_of thy) (y, y')] exhaust) 1,
+            rtac (cterm_instantiate [apply2 (Thm.global_cterm_of thy) (y, y')] exhaust) 1,
             ALLGOALS (EVERY'
               [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
                resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])

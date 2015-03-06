@@ -82,7 +82,7 @@ fun exists_lit is_conj P =
       | NONE => false)
   in exists end
 
-val negate = Thm.apply (Thm.cterm_of @{theory} @{const Not})
+val negate = Thm.apply (Thm.global_cterm_of @{theory} @{const Not})
 
 
 

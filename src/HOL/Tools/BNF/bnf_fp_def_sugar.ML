@@ -476,7 +476,7 @@ fun flip_rels lthy n thm =
   let
     val Rs = Term.add_vars (Thm.prop_of thm) [];
     val Rs' = rev (drop (length Rs - n) Rs);
-    val cRs = map (fn f => (Proof_Context.cterm_of lthy (Var f), Proof_Context.cterm_of lthy (mk_flip f))) Rs';
+    val cRs = map (fn f => (Thm.cterm_of lthy (Var f), Thm.cterm_of lthy (mk_flip f))) Rs';
   in
     Drule.cterm_instantiate cRs thm
   end;
@@ -598,14 +598,14 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
           Drule.dummy_thm
         else
           let val ctor' = mk_ctor Bs ctor in
-            cterm_instantiate_pos [NONE, NONE, SOME (Proof_Context.cterm_of lthy ctor')] arg_cong
+            cterm_instantiate_pos [NONE, NONE, SOME (Thm.cterm_of lthy ctor')] arg_cong
           end;
 
       fun mk_cIn ctor k xs =
         let val absT = domain_type (fastype_of ctor) in
           mk_absumprod absT abs n k xs
           |> fp = Greatest_FP ? curry (op $) ctor
-          |> Proof_Context.cterm_of lthy
+          |> Thm.cterm_of lthy
         end;
 
       val cxIns = map2 (mk_cIn ctor) ks xss;
@@ -615,7 +615,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
         fold_thms lthy [ctr_def']
           (unfold_thms lthy (o_apply :: pre_map_def ::
                (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @ abs_inverses)
-             (cterm_instantiate_pos (map (SOME o Proof_Context.cterm_of lthy) fs @ [SOME cxIn])
+             (cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) fs @ [SOME cxIn])
                 (if fp = Least_FP then fp_map_thm
                  else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
         |> singleton (Proof_Context.export names_lthy lthy);
@@ -643,7 +643,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
           (unfold_thms lthy (pre_rel_def :: abs_inverses @
                (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
-             (cterm_instantiate_pos (map (SOME o Proof_Context.cterm_of lthy) Rs @ [SOME cxIn, SOME cyIn])
+             (cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) Rs @ [SOME cxIn, SOME cyIn])
                 fp_rel_thm))
         |> postproc
         |> singleton (Proof_Context.export names_lthy lthy);
@@ -734,7 +734,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
               val goal = Logic.mk_implies (mk_Trueprop_mem (elem, set $ ta), thesis);
               val thm =
                 Goal.prove_sorry lthy [] (flat premss) goal (fn {context = ctxt, prems} =>
-                  mk_set_cases_tac ctxt (Proof_Context.cterm_of ctxt ta) prems exhaust set_thms)
+                  mk_set_cases_tac ctxt (Thm.cterm_of ctxt ta) prems exhaust set_thms)
                 |> singleton (Proof_Context.export names_lthy lthy)
                 |> Thm.close_derivation
                 |> rotate_prems ~1;
@@ -812,7 +812,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
 
           fun prove goal =
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
-              mk_rel_sel_tac ctxt (Proof_Context.cterm_of ctxt ta) (Proof_Context.cterm_of ctxt tb) exhaust (flat disc_thmss)
+              mk_rel_sel_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust (flat disc_thmss)
                 (flat sel_thmss) rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
             |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation;
@@ -846,7 +846,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
           val goal = Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms, thesis);
           val thm =
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
-              mk_rel_cases_tac ctxt (Proof_Context.cterm_of ctxt ta) (Proof_Context.cterm_of ctxt tb) exhaust injects
+              mk_rel_cases_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust injects
                 rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
             |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation;
@@ -920,7 +920,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
           else
             Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
               (fn {context = ctxt, prems = _} =>
-                 mk_map_disc_iff_tac ctxt (Proof_Context.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms)
+                 mk_map_disc_iff_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms)
             |> Conjunction.elim_balanced (length goals)
             |> Proof_Context.export names_lthy lthy
             |> map Thm.close_derivation
@@ -954,7 +954,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
              else
                Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                  (fn {context = ctxt, prems = _} =>
-                    mk_map_sel_tac ctxt (Proof_Context.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms
+                    mk_map_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms
                       (flat sel_thmss) live_nesting_map_id0s)
                |> Conjunction.elim_balanced (length goals)
                |> Proof_Context.export names_lthy lthy
@@ -1013,7 +1013,7 @@ fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_ne
              else
                Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                  (fn {context = ctxt, prems = _} =>
-                    mk_set_sel_tac ctxt (Proof_Context.cterm_of ctxt ta) exhaust (flat disc_thmss)
+                    mk_set_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
                       (flat sel_thmss) set0_thms)
                |> Conjunction.elim_balanced (length goals)
                |> Proof_Context.export names_lthy lthy
@@ -1302,7 +1302,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
 
     val rel_induct0_thm =
       Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
-        mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (Proof_Context.cterm_of ctxt) IRs) exhausts ctor_defss
+        mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (Thm.cterm_of ctxt) IRs) exhausts ctor_defss
           ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
       |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
@@ -1560,7 +1560,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
 
     val rel_coinduct0_thm =
       Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
-        mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (Proof_Context.cterm_of ctxt) IRs) prems
+        mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (Thm.cterm_of ctxt) IRs) prems
           (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
           (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
           rel_pre_defs abs_inverses live_nesting_rel_eqs)
@@ -1644,7 +1644,7 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
         val thm =
           Goal.prove_sorry lthy [] prems (HOLogic.mk_Trueprop concl)
             (fn {context = ctxt, prems} =>
-               mk_set_induct0_tac ctxt (map (Proof_Context.cterm_of ctxt'') Ps) prems dtor_set_inducts exhausts
+               mk_set_induct0_tac ctxt (map (Thm.cterm_of ctxt'') Ps) prems dtor_set_inducts exhausts
                  set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
           |> singleton (Proof_Context.export ctxt'' ctxt)
           |> Thm.close_derivation;
@@ -1819,7 +1819,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
 
         val goalss = @{map 6} (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;
 
-        fun mk_case_split' cp = Drule.instantiate' [] [SOME (Proof_Context.cterm_of lthy cp)] @{thm case_split};
+        fun mk_case_split' cp = Drule.instantiate' [] [SOME (Thm.cterm_of lthy cp)] @{thm case_split};
 
         val case_splitss' = map (map mk_case_split') cpss;
 
@@ -1845,8 +1845,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
       let
         val (domT, ranT) = dest_funT (fastype_of sel);
         val arg_cong' =
-          Drule.instantiate' (map (SOME o Proof_Context.ctyp_of lthy) [domT, ranT])
-            [NONE, NONE, SOME (Proof_Context.cterm_of lthy sel)] arg_cong
+          Drule.instantiate' (map (SOME o Thm.ctyp_of lthy) [domT, ranT])
+            [NONE, NONE, SOME (Thm.cterm_of lthy sel)] arg_cong
           |> Thm.varifyT_global;
         val sel_thm' = sel_thm RSN (2, trans);
       in
@@ -2141,8 +2141,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                         (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
                   in
                     Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                      mk_ctor_iff_dtor_tac ctxt (map (SOME o Proof_Context.ctyp_of lthy) [ctr_absT, fpT])
-                        (Proof_Context.cterm_of lthy ctor) (Proof_Context.cterm_of lthy dtor) ctor_dtor dtor_ctor)
+                      mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
+                        (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
                     |> Morphism.thm phi
                     |> Thm.close_derivation
                   end;
@@ -2233,7 +2233,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       let val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy recs in
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
-             mk_rec_transfer_tac ctxt nn ns (map (Proof_Context.cterm_of ctxt) Ss) (map (Proof_Context.cterm_of ctxt) Rs) xsssss
+             mk_rec_transfer_tac ctxt nn ns (map (Thm.cterm_of ctxt) Ss) (map (Thm.cterm_of ctxt) Rs) xsssss
                rec_defs xtor_co_rec_transfers pre_rel_defs live_nesting_rel_eqs)
         |> Conjunction.elim_balanced nn
         |> Proof_Context.export names_lthy lthy
@@ -2385,7 +2385,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       in
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
-             mk_corec_transfer_tac ctxt (map (Proof_Context.cterm_of ctxt) Ss) (map (Proof_Context.cterm_of ctxt) Rs)
+             mk_corec_transfer_tac ctxt (map (Thm.cterm_of ctxt) Ss) (map (Thm.cterm_of ctxt) Rs)
                type_definitions corec_defs xtor_co_rec_transfers pre_rel_defs
                live_nesting_rel_eqs (flat pgss) pss qssss gssss)
         |> Conjunction.elim_balanced (length goals)

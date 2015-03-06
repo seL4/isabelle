@@ -115,12 +115,12 @@ fun mk_partial_elim_rules ctxt result =
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
 
-        val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Proof_Context.cterm_of ctxt
+        val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Thm.cterm_of ctxt
         val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx+1) args;
 
-        val cprop = Proof_Context.cterm_of ctxt prop;
+        val cprop = Thm.cterm_of ctxt prop;
 
-        val asms = [cprop, Proof_Context.cterm_of ctxt (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
+        val asms = [cprop, Thm.cterm_of ctxt (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
         val asms_thms = map Thm.assume asms;
 
         fun prep_subgoal_tac i =
@@ -133,10 +133,10 @@ fun mk_partial_elim_rules ctxt result =
         val elim_stripped =
           nth cases idx
           |> Thm.forall_elim P
-          |> Thm.forall_elim (Proof_Context.cterm_of ctxt args)
+          |> Thm.forall_elim (Thm.cterm_of ctxt args)
           |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
           |> fold_rev Thm.implies_intr asms
-          |> Thm.forall_intr (Proof_Context.cterm_of ctxt rhs_var);
+          |> Thm.forall_intr (Thm.cterm_of ctxt rhs_var);
 
         val bool_elims =
           (case ranT of
@@ -145,7 +145,7 @@ fun mk_partial_elim_rules ctxt result =
 
         fun unstrip rl =
           rl
-          |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) arg_vars
+          |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) arg_vars
           |> Thm.forall_intr P
       in
         map unstrip (elim_stripped :: bool_elims)

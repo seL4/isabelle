@@ -247,9 +247,9 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
         (thy, defs, eqns, rep_congs, dist_lemmas) =
       let
         val _ $ (_ $ (cong_f $ _) $ _) = Thm.concl_of arg_cong;
-        val rep_const = Thm.cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
-        val cong' = cterm_instantiate [(Thm.cterm_of thy cong_f, rep_const)] arg_cong;
-        val dist = cterm_instantiate [(Thm.cterm_of thy distinct_f, rep_const)] distinct_lemma;
+        val rep_const = Thm.global_cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
+        val cong' = cterm_instantiate [(Thm.global_cterm_of thy cong_f, rep_const)] arg_cong;
+        val dist = cterm_instantiate [(Thm.global_cterm_of thy distinct_f, rep_const)] distinct_lemma;
         val (thy', defs', eqns', _) =
           fold (make_constr_def typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
@@ -390,7 +390,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     (* prove  inj Rep_dt_i  and  Rep_dt_i x : rep_set_dt_i *)
 
     val fun_congs =
-      map (fn T => make_elim (Drule.instantiate' [SOME (Thm.ctyp_of thy5 T)] [] fun_cong)) branchTs;
+      map (fn T => make_elim (Drule.instantiate' [SOME (Thm.global_ctyp_of thy5 T)] [] fun_cong)) branchTs;
 
     fun prove_iso_thms ds (inj_thms, elem_thms) =
       let
@@ -626,7 +626,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))]
       else map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' =
-      cterm_instantiate (map (Thm.cterm_of thy6) Ps ~~ map (Thm.cterm_of thy6) frees) indrule_lemma;
+      cterm_instantiate (map (Thm.global_cterm_of thy6) Ps ~~ map (Thm.global_cterm_of thy6) frees) indrule_lemma;
 
     val dt_induct_prop = Old_Datatype_Prop.make_ind descr;
     val dt_induct =

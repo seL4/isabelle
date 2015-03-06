@@ -2649,7 +2649,7 @@ in
       val vs = map_index swap fs;
       val ps = map_index swap bs;
       val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
-    in Thm.cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
+    in Thm.global_cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
 *}
 

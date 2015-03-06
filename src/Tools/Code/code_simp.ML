@@ -83,7 +83,7 @@ fun dynamic_tac ctxt = CONVERSION (dynamic_conv ctxt)
   THEN' conclude_tac ctxt NONE ctxt;
 
 fun dynamic_value ctxt =
-  snd o Logic.dest_equals o Thm.prop_of o dynamic_conv ctxt o Thm.cterm_of (Proof_Context.theory_of ctxt);
+  snd o Logic.dest_equals o Thm.prop_of o dynamic_conv ctxt o Thm.global_cterm_of (Proof_Context.theory_of ctxt);
 
 val _ = Theory.setup 
   (Method.setup @{binding code_simp}

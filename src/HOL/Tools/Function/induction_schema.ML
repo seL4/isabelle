@@ -46,7 +46,7 @@ fun sum_prod_conv ctxt = Raw_Simplifier.rewrite ctxt true
   (map meta (@{thm split_conv} :: @{thms sum.case}))
 
 fun term_conv thy cv t =
-  cv (Thm.cterm_of thy t)
+  cv (Thm.global_cterm_of thy t)
   |> Thm.prop_of |> Logic.dest_equals |> snd
 
 fun mk_relT T = HOLogic.mk_setT (HOLogic.mk_prodT (T, T))
@@ -221,7 +221,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
           $ (HOLogic.pair_const T T $ Bound 0 $ x)
           $ R),
          HOLogic.mk_Trueprop (P_comp $ Bound 0)))
-      |> Proof_Context.cterm_of ctxt
+      |> Thm.cterm_of ctxt
 
     val aihyp = Thm.assume ihyp
 
@@ -235,9 +235,9 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
       let
         val fxs = map Free xs
         val branch_hyp =
-          Thm.assume (Proof_Context.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, pat))))
+          Thm.assume (Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, pat))))
 
-        val C_hyps = map (Proof_Context.cterm_of ctxt #> Thm.assume) Cs
+        val C_hyps = map (Thm.cterm_of ctxt #> Thm.assume) Cs
 
         val (relevant_cases, ineqss') =
           (scases_idx ~~ ineqss)
@@ -247,11 +247,11 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
         fun prove_case (cidx, SchemeCase {qs, gs, lhs, rs, ...}) ineq_press =
           let
             val case_hyps =
-              map (Thm.assume o Proof_Context.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq)
+              map (Thm.assume o Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq)
                 (fxs ~~ lhs)
 
-            val cqs = map (Proof_Context.cterm_of ctxt o Free) qs
-            val ags = map (Thm.assume o Proof_Context.cterm_of ctxt) gs
+            val cqs = map (Thm.cterm_of ctxt o Free) qs
+            val ags = map (Thm.assume o Thm.cterm_of ctxt) gs
 
             val replace_x_simpset =
               put_simpset HOL_basic_ss ctxt addsimps (branch_hyp :: case_hyps)
@@ -259,16 +259,16 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
             fun mk_Prec (idx, Gvs, Gas, rcargs) (ineq, pres) =
               let
-                val cGas = map (Thm.assume o Proof_Context.cterm_of ctxt) Gas
-                val cGvs = map (Proof_Context.cterm_of ctxt o Free) Gvs
+                val cGas = map (Thm.assume o Thm.cterm_of ctxt) Gas
+                val cGvs = map (Thm.cterm_of ctxt o Free) Gvs
                 val import = fold Thm.forall_elim (cqs @ cGvs)
                   #> fold Thm.elim_implies (ags @ cGas)
                 val ipres = pres
-                  |> Thm.forall_elim (Proof_Context.cterm_of ctxt (list_comb (P_of idx, rcargs)))
+                  |> Thm.forall_elim (Thm.cterm_of ctxt (list_comb (P_of idx, rcargs)))
                   |> import
               in
                 sih
-                |> Thm.forall_elim (Proof_Context.cterm_of ctxt (inject idx rcargs))
+                |> Thm.forall_elim (Thm.cterm_of ctxt (inject idx rcargs))
                 |> Thm.elim_implies (import ineq) (* Psum rcargs *)
                 |> Conv.fconv_rule (sum_prod_conv ctxt)
                 |> Conv.fconv_rule (ind_rulify ctxt)
@@ -283,7 +283,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
               |> fold_rev (curry Logic.mk_implies o Thm.prop_of) P_recs
               |> fold_rev (curry Logic.mk_implies) gs
               |> fold_rev (Logic.all o Free) qs
-              |> Proof_Context.cterm_of ctxt
+              |> Thm.cterm_of ctxt
 
             val Plhs_to_Pxs_conv =
               foldl1 (uncurry Conv.combination_conv)
@@ -303,15 +303,15 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
         val (cases, steps) = split_list (map2 prove_case relevant_cases ineqss')
 
         val bstep = complete_thm
-          |> Thm.forall_elim (Proof_Context.cterm_of ctxt (list_comb (P, fxs)))
-          |> fold (Thm.forall_elim o Proof_Context.cterm_of ctxt) (fxs @ map Free ws)
+          |> Thm.forall_elim (Thm.cterm_of ctxt (list_comb (P, fxs)))
+          |> fold (Thm.forall_elim o Thm.cterm_of ctxt) (fxs @ map Free ws)
           |> fold Thm.elim_implies C_hyps
           |> fold Thm.elim_implies cases (* P xs *)
           |> fold_rev (Thm.implies_intr o Thm.cprop_of) C_hyps
-          |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt o Free) ws
+          |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt o Free) ws
 
         val Pxs =
-          Proof_Context.cterm_of ctxt (HOLogic.mk_Trueprop (P_comp $ x))
+          Thm.cterm_of ctxt (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
           |> (Simplifier.rewrite_goals_tac ctxt
                 (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.case}))
@@ -320,7 +320,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
           |> Goal.finish ctxt
           |> Thm.implies_intr (Thm.cprop_of branch_hyp)
-          |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) fxs
+          |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) fxs
       in
         (Pxs, steps)
       end
@@ -332,7 +332,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val istep = sum_split_rule
       |> fold (fn b => fn th => Drule.compose (b, 1, th)) branches
       |> Thm.implies_intr ihyp
-      |> Thm.forall_intr (Proof_Context.cterm_of ctxt x) (* "!!x. (!!y<x. P y) ==> P x" *)
+      |> Thm.forall_intr (Thm.cterm_of ctxt x) (* "!!x. (!!y<x. P y) ==> P x" *)
 
     val induct_rule =
       @{thm "wf_induct_rule"}
@@ -357,11 +357,11 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
 
     val ineqss =
       mk_ineqs R scheme
-      |> map (map (apply2 (Thm.assume o Proof_Context.cterm_of ctxt'')))
+      |> map (map (apply2 (Thm.assume o Thm.cterm_of ctxt'')))
     val complete =
-      map_range (mk_completeness ctxt'' scheme #> Proof_Context.cterm_of ctxt'' #> Thm.assume)
+      map_range (mk_completeness ctxt'' scheme #> Thm.cterm_of ctxt'' #> Thm.assume)
         (length branches)
-    val wf_thm = mk_wf R scheme |> Proof_Context.cterm_of ctxt'' |> Thm.assume
+    val wf_thm = mk_wf R scheme |> Thm.cterm_of ctxt'' |> Thm.assume
 
     val (descent, pres) = split_list (flat ineqss)
     val newgoals = complete @ pres @ wf_thm :: descent
@@ -373,7 +373,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
       let
         val inst = (foldr1 HOLogic.mk_prod (map Free xs))
           |> Sum_Tree.mk_inj ST (length branches) (i + 1)
-          |> Proof_Context.cterm_of ctxt''
+          |> Thm.cterm_of ctxt''
       in
         indthm
         |> Drule.instantiate' [] [SOME inst]

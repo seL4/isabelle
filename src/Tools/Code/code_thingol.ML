@@ -574,7 +574,7 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
       let
         val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
         val dom_length = length (fst (strip_type ty))
-        val thm = Axclass.unoverload_conv thy (Thm.cterm_of thy raw_const);
+        val thm = Axclass.unoverload_conv thy (Thm.global_cterm_of thy raw_const);
         val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in

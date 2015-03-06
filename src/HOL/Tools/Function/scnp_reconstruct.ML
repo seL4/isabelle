@@ -272,7 +272,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
     val level_mapping =
       map_index pt_lev lev
         |> Termination.mk_sumcases D (setT nat_pairT)
-        |> Proof_Context.cterm_of ctxt
+        |> Thm.cterm_of ctxt
     in
       PROFILE "Proof Reconstruction"
         (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1

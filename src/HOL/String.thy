@@ -248,7 +248,7 @@ lemma nat_of_char_Char:
 
 setup {*
 let
-  val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
+  val nibbles = map_range (Thm.global_cterm_of @{theory} o HOLogic.mk_nibble) 16;
   val simpset =
     put_simpset HOL_ss @{context}
       addsimps @{thms nat_of_nibble.simps mult_0 mult_1 add_0 add_0_right arith_simps numeral_plus_one};

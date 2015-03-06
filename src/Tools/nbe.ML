@@ -78,7 +78,7 @@ val get_triv_classes = map fst o Triv_Class_Data.get;
 
 val (_, triv_of_class) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding triv_of_class}, fn (thy, T, class) =>
-    Thm.cterm_of thy (Logic.mk_of_class (T, class)))));
+    Thm.global_cterm_of thy (Logic.mk_of_class (T, class)))));
 
 in
 
@@ -86,7 +86,7 @@ fun lift_triv_classes_conv ctxt conv ct =
   let
     val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
-    val certT = Thm.ctyp_of thy;
+    val certT = Thm.global_ctyp_of thy;
     val triv_classes = get_triv_classes thy;
     fun additional_classes sort = filter_out (fn class => Sorts.sort_le algebra (sort, [class])) triv_classes;
     fun mk_entry (v, sort) =
@@ -582,8 +582,8 @@ fun mk_equals ctxt lhs raw_rhs =
   let
     val thy = Proof_Context.theory_of ctxt;
     val ty = Thm.typ_of_cterm lhs;
-    val eq = Thm.cterm_of thy (Term.Const (@{const_name Pure.eq}, ty --> ty --> propT));
-    val rhs = Thm.cterm_of thy raw_rhs;
+    val eq = Thm.global_cterm_of thy (Term.Const (@{const_name Pure.eq}, ty --> ty --> propT));
+    val rhs = Thm.global_cterm_of thy raw_rhs;
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result

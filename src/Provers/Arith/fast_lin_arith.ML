@@ -905,7 +905,7 @@ fun prover ctxt thms Tconcl (js : injust list) split_neq pos : thm option =
   let
     val thy = Proof_Context.theory_of ctxt
     val nTconcl = LA_Logic.neg_prop Tconcl
-    val cnTconcl = Thm.cterm_of thy nTconcl
+    val cnTconcl = Thm.global_cterm_of thy nTconcl
     val nTconclthm = Thm.assume cnTconcl
     val tree = (if split_neq then splitasms ctxt else Tip) (thms @ [nTconclthm])
     val (Falsethm, _) = fwdproof ctxt tree js

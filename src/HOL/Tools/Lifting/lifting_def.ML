@@ -57,7 +57,7 @@ fun try_prove_refl_rel ctxt rel =
 fun try_prove_reflexivity ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt
-    val cprop = Thm.cterm_of thy prop
+    val cprop = Thm.global_cterm_of thy prop
     val rule = @{thm ge_eq_refl}
     val concl_pat = Drule.strip_imp_concl (Thm.cprop_of rule)
     val insts = Thm.first_order_match (concl_pat, cprop)
@@ -99,7 +99,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
           end;
         
         val subst = fold make_subst free_vars [];
-        val csubst = map (apply2 (Thm.cterm_of thy)) subst;
+        val csubst = map (apply2 (Thm.global_cterm_of thy)) subst;
         val inst_thm = Drule.cterm_instantiate csubst thm;
       in
         Conv.fconv_rule 
@@ -112,13 +112,13 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
       let
         val t1 = (HOLogic.dest_Trueprop o Thm.concl_of) ant1
         val t2 = (HOLogic.dest_Trueprop o Thm.prop_of) ant2
-        val fun1 = Thm.cterm_of thy (strip_args 2 t1)
-        val args1 = map (Thm.cterm_of thy) (get_args 2 t1)
-        val fun2 = Thm.cterm_of thy (strip_args 2 t2)
-        val args2 = map (Thm.cterm_of thy) (get_args 1 t2)
+        val fun1 = Thm.global_cterm_of thy (strip_args 2 t1)
+        val args1 = map (Thm.global_cterm_of thy) (get_args 2 t1)
+        val fun2 = Thm.global_cterm_of thy (strip_args 2 t2)
+        val args2 = map (Thm.global_cterm_of thy) (get_args 1 t2)
         val relcomppI = Drule.incr_indexes2 ant1 ant2 @{thm relcomppI}
         val vars = (rev (Term.add_vars (Thm.prop_of relcomppI) []))
-        val subst = map (apfst (Thm.cterm_of thy o Var)) (vars ~~ ([fun1] @ args1 @ [fun2] @ args2))
+        val subst = map (apfst (Thm.global_cterm_of thy o Var)) (vars ~~ ([fun1] @ args1 @ [fun2] @ args2))
       in
         Drule.cterm_instantiate subst relcomppI
       end
@@ -129,10 +129,10 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         fun mk_POS ty = Const (@{const_name POS}, ty --> ty --> HOLogic.boolT)
         val rel = (Thm.dest_fun2 o Thm.dest_arg o Thm.cprop_of) thm
         val typ = Thm.typ_of_cterm rel
-        val POS_const = Thm.cterm_of thy (mk_POS typ)
-        val var = Thm.cterm_of thy (Var (("X", Thm.maxidx_of_cterm rel + 1), typ))
+        val POS_const = Thm.global_cterm_of thy (mk_POS typ)
+        val var = Thm.global_cterm_of thy (Var (("X", Thm.maxidx_of_cterm rel + 1), typ))
         val goal =
-          Thm.apply (Thm.cterm_of thy HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
+          Thm.apply (Thm.global_cterm_of thy HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
       in
         [Lifting_Term.merge_transfer_relations ctxt goal, thm] MRSL @{thm POS_apply}
       end
@@ -216,7 +216,7 @@ fun unabs_def ctxt def =
     val (var_name, T) = dest_abs (Thm.term_of rhs)
     val (new_var_names, ctxt') = Variable.variant_fixes [var_name] ctxt
     val thy = Proof_Context.theory_of ctxt'
-    val refl_thm = Thm.reflexive (Thm.cterm_of thy (Free (hd new_var_names, T)))
+    val refl_thm = Thm.reflexive (Thm.global_cterm_of thy (Free (hd new_var_names, T)))
   in
     Thm.combination def refl_thm |>
     singleton (Proof_Context.export ctxt' ctxt)
@@ -301,7 +301,7 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
           SOME mono_eq_thm =>
             let
               val rep_abs_eq = mono_eq_thm RS rep_abs_thm
-              val rep = (Thm.cterm_of thy o quot_thm_rep) quot_thm
+              val rep = (Thm.global_cterm_of thy o quot_thm_rep) quot_thm
               val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
               val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
               val code_cert = [repped_eq, rep_abs_eq] MRSL trans
@@ -380,7 +380,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 local
   fun encode_code_eq thy abs_eq opt_rep_eq (rty, qty) = 
     let
-      fun mk_type typ = typ |> Logic.mk_type |> Thm.cterm_of thy |> Drule.mk_term
+      fun mk_type typ = typ |> Logic.mk_type |> Thm.global_cterm_of thy |> Drule.mk_term
     in
       Conjunction.intr_balanced [abs_eq, (the_default TrueI opt_rep_eq), mk_type rty, mk_type qty]
     end
@@ -497,7 +497,7 @@ local
 in
 fun mk_readable_rsp_thm_eq tm lthy =
   let
-    val ctm = Proof_Context.cterm_of lthy tm
+    val ctm = Thm.cterm_of lthy tm
     
     fun assms_rewr_conv tactic rule ct =
       let
@@ -622,7 +622,7 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val cr_to_pcr_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
       (Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)))
     val (prsp_tm, rsp_prsp_eq) = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
-      |> Proof_Context.cterm_of lthy
+      |> Thm.cterm_of lthy
       |> cr_to_pcr_conv
       |> `Thm.concl_of
       |>> Logic.dest_equals

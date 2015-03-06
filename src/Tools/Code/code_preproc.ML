@@ -153,7 +153,7 @@ fun conversion sandwich conv ctxt ct =
 
 fun evaluation sandwich lift_postproc eval ctxt t =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
     val (postproc, ct') = sandwich ctxt (cert t);
   in
     Thm.term_of ct'
@@ -168,7 +168,7 @@ end;
 
 fun normalized_tfrees_sandwich ctxt ct =
   let
-    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
+    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
     val t = Thm.term_of ct;
     val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
@@ -185,7 +185,7 @@ fun normalized_tfrees_sandwich ctxt ct =
 fun no_variables_sandwich ctxt ct =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
     val all_vars = fold_aterms (fn t as Free _ => insert (op aconvc) (cert t)
       | t as Var _ => insert (op aconvc) (cert t)
       | _ => I) (Thm.term_of ct) [];

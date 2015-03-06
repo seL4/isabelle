@@ -251,7 +251,7 @@ fun measurable_tac ctxt facts =
           val f = dest_measurable_fun (HOLogic.dest_Trueprop t)
           fun cert f = map (Option.map (f (Proof_Context.theory_of ctxt)))
           fun inst (ts, Ts) =
-            Drule.instantiate' (cert Thm.ctyp_of Ts) (cert Thm.cterm_of ts)
+            Drule.instantiate' (cert Thm.global_ctyp_of Ts) (cert Thm.global_cterm_of ts)
               @{thm measurable_compose_countable}
         in r_tac "split countable" (cnt_prefixes ctxt f |> map inst) i end
         handle TERM _ => no_tac) 1)

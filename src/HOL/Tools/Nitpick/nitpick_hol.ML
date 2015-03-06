@@ -2149,7 +2149,7 @@ fun uncached_is_well_founded_inductive_pred
            SOME wf => wf
          | NONE =>
            let
-             val goal = prop |> Thm.cterm_of thy |> Goal.init
+             val goal = prop |> Thm.global_cterm_of thy |> Goal.init
              val wf = exists (terminates_by ctxt tac_timeout goal)
                              termination_tacs
            in Synchronized.change cached_wf_props (cons (prop, wf)); wf end

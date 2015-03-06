@@ -156,7 +156,7 @@ fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
     | NONE =>
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-          val cv = Proof_Context.cterm_of ctxt'
+          val cv = Thm.cterm_of ctxt'
             (Free (n, map Thm.typ_of_cterm cvs' ---> Thm.typ_of_cterm ct))
           val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.lambda cvs' ct))
@@ -229,7 +229,7 @@ fun abstract depth (ext_logic, with_theories) =
             | _ => fresh_abstraction dcvs ct cx)))
   in abstr (depth, []) end
 
-val cimp = Thm.cterm_of @{theory} @{const Pure.imp}
+val cimp = Thm.global_cterm_of @{theory} @{const Pure.imp}
 
 fun deepen depth f x =
   if depth = 0 then f depth x

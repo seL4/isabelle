@@ -88,7 +88,7 @@ fun random_aux_primrec eq lthy =
     val ((t_random_aux as Free (random_aux, T)) $ (t_k as Free (v, _)), proto_t_rhs) =
       (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
-    val icT = Thm.ctyp_of thy iT;
+    val icT = Thm.global_ctyp_of thy iT;
     val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
@@ -103,7 +103,7 @@ fun random_aux_primrec eq lthy =
     val rule = @{thm random_aux_rec}
       |> Drule.instantiate_normalize
         ([(aT, icT)],
-          [(cT_random_aux, Thm.cterm_of thy t_random_aux), (cT_rhs, Thm.cterm_of thy t_rhs)]);
+          [(cT_random_aux, Thm.global_cterm_of thy t_random_aux), (cT_rhs, Thm.global_cterm_of thy t_rhs)]);
     fun tac ctxt =
       ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac (put_simpset rew_ss ctxt))

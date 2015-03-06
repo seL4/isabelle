@@ -23,8 +23,8 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
       (head_of (Logic.incr_indexes (Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
-      (map (apply2 (Thm.ctyp_of thy)) tyinst')
-      (map (apply2 (Thm.cterm_of thy)) tinst')
+      (map (apply2 (Thm.global_ctyp_of thy)) tyinst')
+      (map (apply2 (Thm.global_cterm_of thy)) tinst')
       (Thm.lift_rule cgoal th)
   in
     compose_tac ctxt (elim, th', Thm.nprems_of th) i st
@@ -149,7 +149,7 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
        val thy = Thm.theory_of_thm st;
    in case subtract (op =) vars vars' of
      [x] =>
-      Seq.single (Thm.instantiate ([], [(Thm.cterm_of thy x, Thm.cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
+      Seq.single (Thm.instantiate ([], [(Thm.global_cterm_of thy x, Thm.global_cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in

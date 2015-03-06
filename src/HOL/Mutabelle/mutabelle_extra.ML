@@ -401,7 +401,7 @@ fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
           |> map_filter (try (Sign.cert_term thy))
-          |> filter (is_some o try (Thm.cterm_of thy))
+          |> filter (is_some o try (Thm.global_cterm_of thy))
           |> filter (is_some o try (Syntax.check_term (Proof_Context.init_global thy)))
           |> take_random max_mutants
     val _ = map (fn t => writeln ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants

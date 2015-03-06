@@ -91,7 +91,7 @@ fun fix_alls_term ctxt i t =
 
 fun fix_alls_cterm ctxt i th =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm th);
+    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
     val (fixedbody, fvs) = fix_alls_term ctxt i (Thm.prop_of th);
     val cfvs = rev (map cert fvs);
     val ct_body = cert fixedbody;
@@ -140,7 +140,7 @@ Result:
 *)
 fun subgoal_thms th =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm th);
+    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
 
     val t = Thm.prop_of th;
 

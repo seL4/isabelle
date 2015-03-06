@@ -119,7 +119,7 @@ fun find_cong_rule ctxt fvar h ((r,dep)::rs) t =
         val subst = Pattern.match thy (c, tt') (Vartab.empty, Vartab.empty)
         val branches = map (mk_branch ctxt o Envir.beta_norm o Envir.subst_term subst) subs
         val inst =
-          map (fn v => apply2 (Proof_Context.cterm_of ctxt) (Var v, Envir.subst_term subst (Var v)))
+          map (fn v => apply2 (Thm.cterm_of ctxt) (Var v, Envir.subst_term subst (Var v)))
             (Term.add_vars c [])
       in
         (cterm_instantiate inst r, dep, branches)
@@ -147,7 +147,7 @@ fun mk_tree fvar h ctxt t =
             val (r, dep, branches) = find_cong_rule ctxt fvar h congs_deps t
             fun subtree (ctxt', fixes, assumes, st) =
               ((fixes,
-                map (Thm.assume o Proof_Context.cterm_of ctxt) assumes),
+                map (Thm.assume o Thm.cterm_of ctxt) assumes),
                mk_tree' ctxt' st)
           in
             Cong (r, dep, map subtree branches)
@@ -158,8 +158,8 @@ fun mk_tree fvar h ctxt t =
 
 fun inst_tree ctxt fvar f tr =
   let
-    val cfvar = Proof_Context.cterm_of ctxt fvar
-    val cf = Proof_Context.cterm_of ctxt f
+    val cfvar = Thm.cterm_of ctxt fvar
+    val cf = Thm.cterm_of ctxt f
 
     fun inst_term t =
       subst_bound(f, abstract_over (fvar, t))
@@ -172,7 +172,7 @@ fun inst_tree ctxt fvar f tr =
       | inst_tree_aux (RCall (t, str)) =
         RCall (inst_term t, inst_tree_aux str)
     and inst_branch ((fxs, assms), str) =
-      ((fxs, map (Thm.assume o Proof_Context.cterm_of ctxt o inst_term o Thm.prop_of) assms),
+      ((fxs, map (Thm.assume o Thm.cterm_of ctxt o inst_term o Thm.prop_of) assms),
        inst_tree_aux str)
   in
     inst_tree_aux tr
@@ -188,10 +188,10 @@ fun export_term (fixes, assumes) =
 
 fun export_thm ctxt (fixes, assumes) =
  fold_rev (Thm.implies_intr o Thm.cprop_of) assumes
- #> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt o Free) fixes
+ #> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt o Free) fixes
 
 fun import_thm ctxt (fixes, athms) =
- fold (Thm.forall_elim o Proof_Context.cterm_of ctxt o Free) fixes
+ fold (Thm.forall_elim o Thm.cterm_of ctxt o Free) fixes
  #> fold Thm.elim_implies athms
 
 
@@ -240,7 +240,7 @@ fun traverse_tree rcOp tr =
 
 fun rewrite_by_tree ctxt h ih x tr =
   let
-    fun rewrite_help _ _ x (Leaf t) = (Thm.reflexive (Proof_Context.cterm_of ctxt t), x)
+    fun rewrite_help _ _ x (Leaf t) = (Thm.reflexive (Thm.cterm_of ctxt t), x)
       | rewrite_help fix h_as x (RCall (_ $ arg, st)) =
         let
           val (inner, (lRi,ha)::x') = rewrite_help fix h_as x st (* "a' = a" *)
@@ -248,10 +248,10 @@ fun rewrite_by_tree ctxt h ih x tr =
           val iha = import_thm ctxt (fix, h_as) ha (* (a', h a') : G *)
             |> Conv.fconv_rule (Conv.arg_conv (Conv.comb_conv (Conv.arg_conv (K inner))))
                                                     (* (a, h a) : G   *)
-          val inst_ih = instantiate' [] [SOME (Proof_Context.cterm_of ctxt arg)] ih
+          val inst_ih = instantiate' [] [SOME (Thm.cterm_of ctxt arg)] ih
           val eq = Thm.implies_elim (Thm.implies_elim inst_ih lRi) iha (* h a = f a *)
 
-          val h_a'_eq_h_a = Thm.combination (Thm.reflexive (Proof_Context.cterm_of ctxt h)) inner
+          val h_a'_eq_h_a = Thm.combination (Thm.reflexive (Thm.cterm_of ctxt h)) inner
           val h_a_eq_f_a = eq RS eq_reflection
           val result = Thm.transitive h_a'_eq_h_a h_a_eq_f_a
         in

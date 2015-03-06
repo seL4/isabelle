@@ -910,7 +910,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     val goal_propss = filter_out null propss';
     val goal =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
-      |> Proof_Context.cterm_of ctxt
+      |> Thm.cterm_of ctxt
       |> Thm.weaken_sorts (Variable.sorts_of (context_of goal_state));
     val statement = ((kind, pos), propss', Thm.term_of goal);
     val after_qed' = after_qed |>> (fn after_local =>

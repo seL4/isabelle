@@ -42,7 +42,7 @@ fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
 fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
       let val T' = HOLogic.flatten_tupleT T1 ---> T2;
           val newt = ap_split T1 T2 (Var (v, T'));
-          val cterm = Thm.cterm_of (Thm.theory_of_thm rl);
+          val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl);
       in Thm.instantiate ([], [(cterm t, cterm newt)]) rl end
   | split_rule_var' _ rl = rl;
 
@@ -56,7 +56,7 @@ fun ap_split' (T::Ts) U u = Abs ("v", T, ap_split' Ts U
 
 fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
       let
-        val cterm = Thm.cterm_of (Thm.theory_of_thm rl)
+        val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl)
         val (Us', U') = strip_type T;
         val Us = take (length ts) Us';
         val U = drop (length ts) Us' ---> U';
@@ -70,7 +70,7 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
               end
           | mk_tuple _ x = x;
         val newt = ap_split' Us U (Var (v, T'));
-        val cterm = Thm.cterm_of (Thm.theory_of_thm rl);
+        val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl);
         val (vs', insts) = fold mk_tuple ts (vs, []);
       in
         (Drule.instantiate_normalize ([], [(cterm t, cterm newt)] @ insts) rl, vs')

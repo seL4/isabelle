@@ -26,7 +26,7 @@ fun inst_free var inst = Thm.forall_elim inst o Thm.forall_intr var
 fun inst_case_thm thy x P thm =
   let val [Pv, xv] = Term.add_vars (Thm.prop_of thm) []
   in
-    thm |> cterm_instantiate (map (apply2 (Thm.cterm_of thy)) [(Var xv, x), (Var Pv, P)])
+    thm |> cterm_instantiate (map (apply2 (Thm.global_cterm_of thy)) [(Var xv, x), (Var Pv, P)])
   end
 
 fun invent_vars constr i =
@@ -45,7 +45,7 @@ fun filter_pats ctxt cons pvars [] = []
   | filter_pats ctxt cons pvars (((pat as Free _) :: pats, thm) :: pts) =
     let val inst = list_comb (cons, pvars) in
       (inst :: pats,
-        inst_free (Proof_Context.cterm_of ctxt pat) (Proof_Context.cterm_of ctxt inst) thm)
+        inst_free (Thm.cterm_of ctxt pat) (Thm.cterm_of ctxt inst) thm)
         :: (filter_pats ctxt cons pvars pts)
     end
   | filter_pats thy cons pvars ((pat :: pats, thm) :: pts) =
@@ -59,7 +59,7 @@ fun transform_pat _ avars c_assum ([] , thm) = raise Match
       let
         val (_, subps) = strip_comb pat
         val eqs =
-          map (Proof_Context.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
+          map (Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
         val c_eq_pat =
           simplify (put_simpset HOL_basic_ss ctxt addsimps (map Thm.assume eqs)) c_assum
       in
@@ -74,14 +74,14 @@ fun constr_case ctxt P idx (v :: vs) pats cons =
       let
         val (avars, pvars, newidx) = invent_vars cons idx
         val c_hyp =
-          Proof_Context.cterm_of ctxt
+          Thm.cterm_of ctxt
             (HOLogic.mk_Trueprop (HOLogic.mk_eq (v, list_comb (cons, avars))))
         val c_assum = Thm.assume c_hyp
         val newpats = map (transform_pat ctxt avars c_assum) (filter_pats ctxt cons pvars pats)
       in
         o_alg ctxt P newidx (avars @ vs) newpats
         |> Thm.implies_intr c_hyp
-        |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) avars
+        |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) avars
       end
   | constr_case _ _ _ _ _ _ = raise Match
 and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
@@ -91,8 +91,8 @@ and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
       then o_alg ctxt P idx vs
              (map (fn (pv :: pats, thm) =>
                (pats, refl RS
-                (inst_free (Proof_Context.cterm_of ctxt pv)
-                  (Proof_Context.cterm_of ctxt v) thm))) pts)
+                (inst_free (Thm.cterm_of ctxt pv)
+                  (Thm.cterm_of ctxt v) thm))) pts)
       else (* Cons case *)
         let
           val thy = Proof_Context.theory_of ctxt
@@ -112,10 +112,10 @@ fun prove_completeness ctxt xs P qss patss =
       HOLogic.mk_Trueprop P
       |> fold_rev (curry Logic.mk_implies o HOLogic.mk_Trueprop o HOLogic.mk_eq) (xs ~~ pats)
       |> fold_rev Logic.all qs
-      |> Proof_Context.cterm_of ctxt
+      |> Thm.cterm_of ctxt
 
     val hyps = map2 mk_assum qss patss
-    fun inst_hyps hyp qs = fold (Thm.forall_elim o Proof_Context.cterm_of ctxt) qs (Thm.assume hyp)
+    fun inst_hyps hyp qs = fold (Thm.forall_elim o Thm.cterm_of ctxt) qs (Thm.assume hyp)
     val assums = map2 inst_hyps hyps qss
     in
       o_alg ctxt P 2 xs (patss ~~ assums)
@@ -142,7 +142,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
 
     val patss = map (map snd) x_pats
     val complete_thm = prove_completeness ctxt xs thesis qss patss
-      |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) vs
+      |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) vs
     in
       PRIMITIVE (fn st => Drule.compose (complete_thm, i, st))
   end

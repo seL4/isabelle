@@ -607,8 +607,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         fun mk_card_conjunct min_alg = mk_ordLeq (mk_card_of min_alg) Asuc_bd;
         val card_conjunction = Library.foldr1 HOLogic.mk_conj (map mk_card_conjunct min_algss);
-        val card_cT = Proof_Context.ctyp_of lthy suc_bdT;
-        val card_ct = Proof_Context.cterm_of lthy (Term.absfree idx' card_conjunction);
+        val card_cT = Thm.ctyp_of lthy suc_bdT;
+        val card_ct = Thm.cterm_of lthy (Term.absfree idx' card_conjunction);
 
         val card_of =
           Goal.prove_sorry lthy [] []
@@ -622,8 +622,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val least_conjunction = Library.foldr1 HOLogic.mk_conj (map2 mk_leq min_algss Bs);
-        val least_cT = Proof_Context.ctyp_of lthy suc_bdT;
-        val least_ct = Proof_Context.cterm_of lthy (Term.absfree idx' least_conjunction);
+        val least_cT = Thm.ctyp_of lthy suc_bdT;
+        val least_ct = Thm.cterm_of lthy (Term.absfree idx' least_conjunction);
 
         val least =
           (Goal.prove_sorry lthy [] []
@@ -779,7 +779,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val car_inits = map (mk_min_alg str_inits) ks;
 
-    val alg_init_thm = cterm_instantiate_pos (map (SOME o Proof_Context.cterm_of lthy) str_inits) alg_min_alg_thm;
+    val alg_init_thm = cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) str_inits) alg_min_alg_thm;
 
     val alg_select_thm = Goal.prove_sorry lthy [] []
       (HOLogic.mk_Trueprop (mk_Ball II
@@ -812,7 +812,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_fun_eq f g x = HOLogic.mk_eq (f $ x, g $ x);
         val unique = HOLogic.mk_Trueprop
           (Library.foldr1 HOLogic.mk_conj (@{map 3} mk_fun_eq init_fs init_fs_copy init_xs));
-        val cts = map (Proof_Context.cterm_of lthy) ss;
+        val cts = map (Thm.cterm_of lthy) ss;
         val unique_mor =
           Goal.prove_sorry lthy [] [] (Logic.list_implies (prems @ mor_prems, unique))
             (K (mk_init_unique_mor_tac cts m alg_def alg_init_thm least_min_alg_thms
@@ -946,7 +946,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           |> Thm.close_derivation;
 
         fun mk_ct initFT str abs = Term.absdummy initFT (abs $ (str $ Bound 0))
-        val cts = @{map 3} (Proof_Context.cterm_of lthy ooo mk_ct) init_FTs str_inits Abs_Ts;
+        val cts = @{map 3} (Thm.cterm_of lthy ooo mk_ct) init_FTs str_inits Abs_Ts;
 
         val mor_Abs =
           Goal.prove_sorry lthy [] []
@@ -1020,8 +1020,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val mor_fold_thm =
       let
         val mor_cong = mor_cong_thm OF (map (mk_nth_conv n) ks);
-        val cT = Proof_Context.ctyp_of lthy foldT;
-        val ct = Proof_Context.cterm_of lthy fold_fun
+        val cT = Thm.ctyp_of lthy foldT;
+        val ct = Thm.cterm_of lthy fold_fun
       in
         Goal.prove_sorry lthy [] []
           (HOLogic.mk_Trueprop (mk_mor UNIVs ctors active_UNIVs ss (map (mk_fold Ts ss) ks)))
@@ -1244,7 +1244,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         rev (Term.add_tfrees goal []))
       end;
 
-    val cTs = map (SOME o Proof_Context.ctyp_of lthy o TFree) induct_params;
+    val cTs = map (SOME o Thm.ctyp_of lthy o TFree) induct_params;
 
     val weak_ctor_induct_thms =
       let fun insts i = (replicate (i - 1) TrueI) @ (asm_rl :: replicate (n - i) TrueI);
@@ -1276,7 +1276,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           (@{map 3} mk_concl phi2s Izs1 Izs2));
         fun mk_t phi (z1, z1') (z2, z2') =
           Term.absfree z1' (HOLogic.mk_all (fst z2', snd z2', phi $ z1 $ z2));
-        val cts = @{map 3} (SOME o Proof_Context.cterm_of lthy ooo mk_t) phi2s (Izs1 ~~ Izs1') (Izs2 ~~ Izs2');
+        val cts = @{map 3} (SOME o Thm.cterm_of lthy ooo mk_t) phi2s (Izs1 ~~ Izs1') (Izs2 ~~ Izs2');
         val goal = Logic.list_implies (prems, concl);
       in
         (Goal.prove_sorry lthy [] [] goal
@@ -1552,7 +1552,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val timer = time (timer "set functions for the new datatypes");
 
-        val cxs = map (SOME o Proof_Context.cterm_of lthy) Izs;
+        val cxs = map (SOME o Thm.cterm_of lthy) Izs;
         val Isetss_by_range' =
           map (map (Term.subst_atomic_types (passiveAs ~~ passiveBs))) Isetss_by_range;
 
@@ -1561,10 +1561,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             fun mk_set_map0 f map z set set' =
               HOLogic.mk_eq (mk_image f $ (set $ z), set' $ (map $ z));
 
-            fun mk_cphi f map z set set' = Proof_Context.cterm_of lthy
+            fun mk_cphi f map z set set' = Thm.cterm_of lthy
               (Term.absfree (dest_Free z) (mk_set_map0 f map z set set'));
 
-            val csetss = map (map (Proof_Context.cterm_of lthy)) Isetss_by_range';
+            val csetss = map (map (Thm.cterm_of lthy)) Isetss_by_range';
 
             val cphiss = @{map 3} (fn f => fn sets => fn sets' =>
               (@{map 4} (mk_cphi f) fs_Imaps Izs sets sets')) fs Isetss_by_range Isetss_by_range';
@@ -1594,7 +1594,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           let
             fun mk_set_bd z bd set = mk_ordLeq (mk_card_of (set $ z)) bd;
 
-            fun mk_cphi z set = Proof_Context.cterm_of lthy (Term.absfree (dest_Free z) (mk_set_bd z sbd0 set));
+            fun mk_cphi z set = Thm.cterm_of lthy (Term.absfree (dest_Free z) (mk_set_bd z sbd0 set));
 
             val cphiss = map (map2 mk_cphi Izs) Isetss_by_range;
 
@@ -1630,7 +1630,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
                 HOLogic.mk_eq (fmap $ z, gmap $ z));
 
             fun mk_cphi sets z fmap gmap =
-              Proof_Context.cterm_of lthy (Term.absfree (dest_Free z) (mk_map_cong0 sets z fmap gmap));
+              Thm.cterm_of lthy (Term.absfree (dest_Free z) (mk_map_cong0 sets z fmap gmap));
 
             val cphis = @{map 4} mk_cphi Isetss_by_bnf Izs fs_Imaps fs_copy_Imaps;
 
@@ -1691,9 +1691,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
                 Irelpsi12 $ Iz1 $ Iz2);
             val goals = @{map 5} mk_le_Irel_OO Irelpsi1s Irelpsi2s Irelpsi12s Izs1 Izs2;
 
-            val cTs = map (SOME o Proof_Context.ctyp_of lthy o TFree) induct2_params;
-            val cxs = map (SOME o Proof_Context.cterm_of lthy) (splice Izs1 Izs2);
-            fun mk_cphi z1 z2 goal = SOME (Proof_Context.cterm_of lthy (Term.absfree z1 (Term.absfree z2 goal)));
+            val cTs = map (SOME o Thm.ctyp_of lthy o TFree) induct2_params;
+            val cxs = map (SOME o Thm.cterm_of lthy) (splice Izs1 Izs2);
+            fun mk_cphi z1 z2 goal = SOME (Thm.cterm_of lthy (Term.absfree z1 (Term.absfree z2 goal)));
             val cphis = @{map 3} mk_cphi Izs1' Izs2' goals;
             val induct = Drule.instantiate' cTs (cphis @ cxs) ctor_induct2_thm;
 

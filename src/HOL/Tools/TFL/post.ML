@@ -73,7 +73,7 @@ fun rewrite ctxt L = rewrite_rule ctxt (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums ctxt th =
   let val thy = Thm.theory_of_thm th
-      val tych = Thm.cterm_of thy
+      val tych = Thm.global_cterm_of thy
       val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
       val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o USyntax.strip_imp) rhs  (* but union is solider *)
@@ -175,7 +175,7 @@ local
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
 fun derive_init_eqs ctxt rules eqs =
-  map (Thm.trivial o Proof_Context.cterm_of ctxt o HOLogic.mk_Trueprop) eqs
+  map (Thm.trivial o Thm.cterm_of ctxt o HOLogic.mk_Trueprop) eqs
   |> map_index (fn (i, e) => solve_eq ctxt (e, (get_related_thms i rules), i))
   |> flat;
 end;

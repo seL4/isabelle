@@ -1227,11 +1227,11 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 val funTs = map (fn T => bdT --> T) ranTs;
                 val ran_bnfT = mk_bnf_T ranTs Calpha;
                 val (revTs, Ts) = `rev (bd_bnfT :: funTs);
-                val cTs = map (SOME o Proof_Context.ctyp_of lthy) [ran_bnfT, Library.foldr1 HOLogic.mk_prodT Ts];
+                val cTs = map (SOME o Thm.ctyp_of lthy) [ran_bnfT, Library.foldr1 HOLogic.mk_prodT Ts];
                 val tinst = fold (fn T => fn t => HOLogic.mk_split (Term.absdummy T t)) (tl revTs)
                   (Term.absdummy (hd revTs) (Term.list_comb (mk_bnf_map bdTs ranTs,
                     map Bound (live - 1 downto 0)) $ Bound live));
-                val cts = [NONE, SOME (Proof_Context.cterm_of lthy tinst)];
+                val cts = [NONE, SOME (Thm.cterm_of lthy tinst)];
               in
                 Drule.instantiate' cTs cts @{thm surj_imp_ordLeq}
               end);
@@ -1346,7 +1346,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         fun mk_rel_flip () =
           let
             val rel_conversep_thm = Lazy.force rel_conversep;
-            val cts = map (SOME o Proof_Context.cterm_of lthy) Rs;
+            val cts = map (SOME o Thm.cterm_of lthy) Rs;
             val rel_conversep_thm' = cterm_instantiate_pos cts rel_conversep_thm;
           in
             unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_eqD})

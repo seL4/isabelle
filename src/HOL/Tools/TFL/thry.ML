@@ -48,7 +48,7 @@ end;
  *---------------------------------------------------------------------------*)
 
 fun typecheck thry t =
-  Thm.cterm_of thry t
+  Thm.global_cterm_of thry t
     handle TYPE (msg, _, _) => raise THRY_ERR "typecheck" msg
       | TERM (msg, _) => raise THRY_ERR "typecheck" msg;
 

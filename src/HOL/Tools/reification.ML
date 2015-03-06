@@ -27,7 +27,7 @@ fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { concl, ... } =>
   let
     val ct = case some_t
      of NONE => Thm.dest_arg concl
-      | SOME t => Proof_Context.cterm_of ctxt t
+      | SOME t => Thm.cterm_of ctxt t
     val thm = conv ct;
   in
     if Thm.is_reflexive thm then no_tac
@@ -83,7 +83,7 @@ fun mk_congeq ctxt fs th =
         (fn {context, prems, ...} =>
           Local_Defs.unfold_tac context (map tryext prems) THEN rtac th' 1)) RS sym;
     val (cong' :: vars') =
-      Variable.export ctxt'' ctxt (cong :: map (Drule.mk_term o Proof_Context.cterm_of ctxt'') vs);
+      Variable.export ctxt'' ctxt (cong :: map (Drule.mk_term o Thm.cterm_of ctxt'') vs);
     val vs' = map (fst o fst o Term.dest_Var o Thm.term_of o Drule.dest_term) vars';
 
   in (vs', cong') end;
@@ -140,8 +140,8 @@ fun decomp_reify da cgns (ct, ctxt) bds =
             val ([raw_xn], ctxt') = Variable.variant_fixes ["x"] ctxt;
             val (xn, ta) = Syntax_Trans.variant_abs (raw_xn, xT, ta);  (* FIXME !? *)
             val x = Free (xn, xT);
-            val cx = Proof_Context.cterm_of ctxt' x;
-            val cta = Proof_Context.cterm_of ctxt' ta;
+            val cx = Thm.cterm_of ctxt' x;
+            val cta = Thm.cterm_of ctxt' ta;
             val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT) of
                 NONE => error "tryabsdecomp: Type not found in the Environement"
               | SOME (bsT, atsT) => AList.update Type.could_unify (HOLogic.listT xT,
@@ -169,12 +169,12 @@ fun decomp_reify da cgns (ct, ctxt) bds =
           val (fnvs, invs) = List.partition (fn ((vn, _),_) => member (op =) vns vn) (Vartab.dest tmenv);
           val (fts, its) =
             (map (snd o snd) fnvs,
-             map (fn ((vn, vi), (tT, t)) => apply2 (Thm.cterm_of thy) (Var ((vn, vi), tT), t)) invs);
+             map (fn ((vn, vi), (tT, t)) => apply2 (Thm.global_cterm_of thy) (Var ((vn, vi), tT), t)) invs);
           val ctyenv =
-            map (fn ((vn, vi), (s, ty)) => apply2 (Thm.ctyp_of thy) (TVar ((vn, vi), s), ty))
+            map (fn ((vn, vi), (s, ty)) => apply2 (Thm.global_ctyp_of thy) (TVar ((vn, vi), s), ty))
               (Vartab.dest tyenv);
         in
-          ((map (Thm.cterm_of thy) fts ~~ replicate (length fts) ctxt,
+          ((map (Thm.global_cterm_of thy) fts ~~ replicate (length fts) ctxt,
              apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
         end handle Pattern.MATCH => decomp_reify da congs (ct, ctxt) bds))
   end;
@@ -203,14 +203,14 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
         val sbst = Envir.subst_term (tyenv, tmenv);
         val sbsT = Envir.subst_type tyenv;
         val subst_ty =
-          map (fn (n, (s, t)) => apply2 (Thm.ctyp_of thy) (TVar (n, s), t)) (Vartab.dest tyenv)
+          map (fn (n, (s, t)) => apply2 (Thm.global_ctyp_of thy) (TVar (n, s), t)) (Vartab.dest tyenv)
         val tml = Vartab.dest tmenv;
         val (subst_ns, bds) = fold_map
           (fn (Const _ $ _ $ n, Var (xn0, _)) => fn bds =>
             let
               val name = snd (the (AList.lookup (op =) tml xn0));
               val (idx, bds) = index_of name bds;
-            in (apply2 (Thm.cterm_of thy) (n, idx |> HOLogic.mk_nat), bds) end) subst bds;
+            in (apply2 (Thm.global_cterm_of thy) (n, idx |> HOLogic.mk_nat), bds) end) subst bds;
         val subst_vs =
           let
             fun h (Const _ $ (vs as Var (_, lT)) $ _, Var (_, T)) =
@@ -220,10 +220,10 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
                 val (bsT, _) = the (AList.lookup Type.could_unify bds lT);
                 val vsn = the (AList.lookup (op =) vsns_map vs);
                 val vs' = fold_rev (fn x => fn xs => cns $ x $xs) bsT (Free (vsn, lT'));
-              in apply2 (Thm.cterm_of thy) (vs, vs') end;
+              in apply2 (Thm.global_cterm_of thy) (vs, vs') end;
           in map h subst end;
         val cts =
-          map (fn ((vn, vi), (tT, t)) => apply2 (Thm.cterm_of thy) (Var ((vn, vi), tT), t))
+          map (fn ((vn, vi), (tT, t)) => apply2 (Thm.global_cterm_of thy) (Var ((vn, vi), tT), t))
             (fold (AList.delete (fn (((a : string), _), (b, _)) => a = b))
               (map (fn n => (n, 0)) xns) tml);
         val substt =
@@ -261,14 +261,14 @@ fun mk_congs ctxt eqs =
     val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt;
     val subst =
       the o AList.lookup (op =)
-        (map2 (fn T => fn v => (T, Proof_Context.cterm_of ctxt' (Free (v, T)))) tys vs);
+        (map2 (fn T => fn v => (T, Thm.cterm_of ctxt' (Free (v, T)))) tys vs);
     fun prep_eq eq =
       let
         val (_, _ :: vs) = eq |> Thm.prop_of |> HOLogic.dest_Trueprop
           |> HOLogic.dest_eq |> fst |> strip_comb;
         val subst =
           map_filter
-            (fn (v as Var (_, T)) => SOME (Proof_Context.cterm_of ctxt' v, subst T)
+            (fn (v as Var (_, T)) => SOME (Thm.cterm_of ctxt' v, subst T)
               | _ => NONE) vs;
       in Thm.instantiate ([], subst) eq end;
     val (ps, congs) = map_split (mk_congeq ctxt' fs o prep_eq) eqs;
@@ -287,7 +287,7 @@ fun conv ctxt eqs ct =
       |> strip_comb |> snd |> filter is_list_var;
     val vs = map (fn v as Var (_, T) =>
       (v, the (AList.lookup Type.could_unify bds' T) |> snd |> HOLogic.mk_list (dest_listT T))) vars;
-    val th' = Drule.instantiate_normalize ([], map (apply2 (Proof_Context.cterm_of ctxt)) vs) th;
+    val th' = Drule.instantiate_normalize ([], map (apply2 (Thm.cterm_of ctxt)) vs) th;
     val th'' = Thm.symmetric (dereify ctxt [] (Thm.lhs_of th'));
   in Thm.transitive th'' th' end;
 

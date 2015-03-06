@@ -109,7 +109,7 @@ fun mk_inst ctxt vars =
     val max = fold (Integer.max o fst) vars 0
     val ns = fst (Variable.variant_fixes (replicate (max + 1) var_prefix) ctxt)
     fun mk (i, v) =
-      (v, Proof_Context.cterm_of ctxt (Free (nth ns i, Thm.typ_of_cterm v)))
+      (v, Thm.cterm_of ctxt (Free (nth ns i, Thm.typ_of_cterm v)))
   in map mk vars end
 
 fun close ctxt (ct, vars) =
@@ -120,7 +120,7 @@ fun close ctxt (ct, vars) =
 
 
 fun mk_bound ctxt (i, T) =
-  let val ct = Proof_Context.cterm_of ctxt (Var ((Name.uu, 0), T))
+  let val ct = Thm.cterm_of ctxt (Var ((Name.uu, 0), T))
   in (ct, [(i, ct)]) end
 
 local
@@ -129,7 +129,7 @@ local
       val cv =
         (case AList.lookup (op =) vars 0 of
           SOME cv => cv
-        | _ => Proof_Context.cterm_of ctxt (Var ((Name.uu, Thm.maxidx_of_cterm ct + 1), T)))
+        | _ => Thm.cterm_of ctxt (Var ((Name.uu, Thm.maxidx_of_cterm ct + 1), T)))
       fun dec (i, v) = if i = 0 then NONE else SOME (i-1, v)
       val vars' = map_filter dec vars
     in (Thm.apply (Old_SMT_Utils.instT' cv q) (Thm.lambda cv ct), vars') end
@@ -181,7 +181,7 @@ datatype proof_step = Proof_Step of {
 
 (** parser context **)
 
-val not_false = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
+val not_false = Thm.global_cterm_of @{theory} (@{const Not} $ @{const False})
 
 fun make_context ctxt typs terms =
   let
@@ -191,7 +191,7 @@ fun make_context ctxt typs terms =
       |> Symtab.fold (Variable.declare_term o snd) terms
 
     fun cert @{const True} = not_false
-      | cert t = Proof_Context.cterm_of ctxt' t
+      | cert t = Thm.cterm_of ctxt' t
 
   in (typs, Symtab.map (K cert) terms, Inttab.empty, [], [], ctxt') end
 
@@ -207,7 +207,7 @@ fun add_decl (n, T) (cx as (_, terms, _, _, _, _)) =
   | NONE => cx |> fresh_name (decl_prefix ^ n)
       |> (fn (m, (typs, terms, exprs, steps, vars, ctxt)) =>
            let
-             val upd = Symtab.update (n, Proof_Context.cterm_of ctxt (Free (m, T)))
+             val upd = Symtab.update (n, Thm.cterm_of ctxt (Free (m, T)))
            in (typs, upd terms, exprs, steps, vars, ctxt) end))
 
 fun mk_typ (typs, _, _, _, _, ctxt) (s as Old_Z3_Interface.Sym (n, _)) = 
@@ -381,7 +381,7 @@ fun variables st = par (this "vars" |-- seps1 (par (name |-- sep sort))) st
 
 fun pats st = seps (par ((this ":pat" || this ":nopat") |-- seps1 id)) st
 
-val ctrue = Thm.cterm_of @{theory} @{const True}
+val ctrue = Thm.global_cterm_of @{theory} @{const True}
 
 fun pattern st = par (this "pattern" |-- Scan.repeat1 (sep arg) >>
   (the o mk_fun (K (SOME ctrue)))) st

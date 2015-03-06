@@ -211,7 +211,7 @@ fun add_constructors
             val (n1, t1) = args2typ n (snd con)
             val (n2, t2) = cons2typ n1 cons
           in (n2, mk_ssumT (t1, t2)) end
-      val ct = Thm.ctyp_of thy (snd (cons2typ 1 spec'))
+      val ct = Thm.global_ctyp_of thy (snd (cons2typ 1 spec'))
       val thm1 = instantiate' [SOME ct] [] @{thm exh_start}
       val thm2 = rewrite_rule (Proof_Context.init_global thy)
         (map mk_meta_eq @{thms ex_bottom_iffs}) thm1

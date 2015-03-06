@@ -362,13 +362,13 @@ val (_, export_oracle) = Context.>>> (Context.map_theory_result
               commas (map (Syntax.string_of_sort_global thy) shyps))
           else ()
     in
-        Thm.cterm_of thy (fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop)
+        Thm.global_cterm_of thy (fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop)
     end)));
 
 fun export_thm thy hyps shyps prop =
     let
         val th = export_oracle (thy, hyps, shyps, prop)
-        val hyps = map (fn h => Thm.assume (Thm.cterm_of thy h)) hyps
+        val hyps = map (fn h => Thm.assume (Thm.global_cterm_of thy h)) hyps
     in
         fold (fn h => fn p => Thm.implies_elim p h) hyps th 
     end

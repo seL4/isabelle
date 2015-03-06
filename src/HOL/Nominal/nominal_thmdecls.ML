@@ -53,9 +53,9 @@ fun tactic ctxt (msg, tac) =
 fun prove_eqvt_tac ctxt orig_thm pi pi' =
   let
     val thy = Proof_Context.theory_of ctxt
-    val mypi = Thm.cterm_of thy pi
+    val mypi = Thm.global_cterm_of thy pi
     val T = fastype_of pi'
-    val mypifree = Thm.cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
+    val mypifree = Thm.global_cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp"
   in
     EVERY1 [tactic ctxt ("iffI applied", rtac @{thm iffI}),

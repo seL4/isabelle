@@ -20,7 +20,7 @@ fun mk_is_measure t =
 fun find_measures ctxt T =
   DEPTH_SOLVE (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems measure_function})) 1)
     (HOLogic.mk_Trueprop (mk_is_measure (Var (("f",0), T --> HOLogic.natT)))
-     |> Proof_Context.cterm_of ctxt |> Goal.init)
+     |> Thm.cterm_of ctxt |> Goal.init)
   |> Seq.map (Thm.prop_of #> (fn _ $ (_ $ (_ $ f)) => f))
   |> Seq.list_of
 

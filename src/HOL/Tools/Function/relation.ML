@@ -19,7 +19,7 @@ fun inst_state_tac inst st =
   (case Term.add_vars (Thm.prop_of st) [] of  (* FIXME tactic should not inspect main conclusion *)
     [v as (_, T)] =>
       let val thy = Thm.theory_of_thm st in
-        PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of thy (Var v), Thm.cterm_of thy (inst T))])) st
+        PRIMITIVE (Thm.instantiate ([], [(Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy (inst T))])) st
       end
   | _ => Seq.empty);
 
@@ -38,9 +38,9 @@ fun inst_state_infer_tac ctxt rel st =
           |> map_types Type_Infer.paramify_vars
           |> Type.constraint T
           |> Syntax.check_term ctxt
-          |> Proof_Context.cterm_of ctxt;
+          |> Thm.cterm_of ctxt;
       in
-        PRIMITIVE (Thm.instantiate ([], [(Proof_Context.cterm_of ctxt (Var v), rel')])) st
+        PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of ctxt (Var v), rel')])) st
       end
   | _ => Seq.empty);
 

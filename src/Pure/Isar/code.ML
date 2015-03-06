@@ -363,7 +363,7 @@ fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of
 
 fun analyze_constructor thy (c, ty) =
   let
-    val _ = Thm.cterm_of thy (Const (c, ty));
+    val _ = Thm.global_cterm_of thy (Const (c, ty));
     val ty_decl = devarify (const_typ thy c);
     fun last_typ c_ty ty =
       let
@@ -611,7 +611,7 @@ fun expand_eta thy k thm =
     val vars = burrow_fst (Name.variant_list (map (fst o fst) (Term.add_vars lhs [])))
       raw_vars;
     fun expand (v, ty) thm = Drule.fun_cong_rule thm
-      (Thm.cterm_of thy (Var ((v, 0), ty)));
+      (Thm.global_cterm_of thy (Var ((v, 0), ty)));
   in
     thm
     |> fold expand vars
@@ -681,7 +681,7 @@ fun check_abstype_cert thy proto_thm =
 (* code equation certificates *)
 
 fun build_head thy (c, ty) =
-  Thm.cterm_of thy (Logic.mk_equals (Free ("HEAD", ty), Const (c, ty)));
+  Thm.global_cterm_of thy (Logic.mk_equals (Free ("HEAD", ty), Const (c, ty)));
 
 fun get_head thy cert_thm =
   let
@@ -716,7 +716,7 @@ fun concretify_abs thy tyco abs_thm =
     val lhs = (fst o Logic.dest_equals o Thm.prop_of) abs_thm
     val ty = fastype_of lhs;
     val ty_abs = (fastype_of o snd o dest_comb) lhs;
-    val abs = Thm.cterm_of thy (Const (c, ty --> ty_abs));
+    val abs = Thm.global_cterm_of thy (Const (c, ty --> ty_abs));
     val raw_concrete_thm = Drule.transitive_thm OF [Thm.symmetric cert, Thm.combination (Thm.reflexive abs) abs_thm];
   in (c, (Thm.varifyT_global o zero_var_indexes) raw_concrete_thm) end;
 
@@ -804,7 +804,7 @@ fun constrain_cert_thm thy sorts cert_thm =
       |> constrain_thm thy vs sorts;
     val head' = Thm.term_of head
       |> subst
-      |> Thm.cterm_of thy;
+      |> Thm.global_cterm_of thy;
     val cert_thm'' = cert_thm'
       |> Thm.elim_implies (Thm.assume head');
   in cert_thm'' end;

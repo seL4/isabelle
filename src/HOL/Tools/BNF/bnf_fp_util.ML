@@ -469,7 +469,7 @@ fun mk_tupled_allIN_balanced 0 = @{thm unit_all_impI}
       val T = mk_tupleT_balanced tfrees;
     in
       @{thm asm_rl[of "ALL x. P x --> Q x" for P Q]}
-      |> Drule.instantiate' [SOME (Thm.ctyp_of @{theory} T)] []
+      |> Drule.instantiate' [SOME (Thm.global_ctyp_of @{theory} T)] []
       |> Raw_Simplifier.rewrite_goals_rule @{context} @{thms split_paired_All[THEN eq_reflection]}
       |> (fn thm => impI RS funpow n (fn th => allI RS th) thm)
       |> Thm.varifyT_global
@@ -578,7 +578,7 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
     val n = Thm.nprems_of coind;
     val m = Thm.nprems_of (hd rel_monos) - n;
     fun mk_inst phi = (phi, mk_union (phi, HOLogic.eq_const (fst (dest_pred2T (fastype_of phi)))))
-      |> apply2 (Proof_Context.cterm_of ctxt);
+      |> apply2 (Thm.cterm_of ctxt);
     val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map (mk_inst o Var);
     fun mk_unfold rel_eq rel_mono =
       let

@@ -32,7 +32,7 @@ Results in: "B vs" [!!x. A x]
 *)
 fun allify_conditions Ts th =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm th);
+    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
 
     fun allify (x, T) t =
       Logic.all_const T $ Abs (x, T, Term.abstract_over (Free (x, T), t));
@@ -62,7 +62,7 @@ note: assumes rule is instantiated
 (* Note, we take abstraction in the order of last abstraction first *)
 fun mk_abstractedrule ctxt TsFake Ts rule =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm rule);
+    val cert = Thm.global_cterm_of (Thm.theory_of_thm rule);
 
     (* now we change the names of temporary free vars that represent
        bound vars with binders outside the redex *)
@@ -172,8 +172,8 @@ first abstraction first.  FakeTs has abstractions using the fake name
 fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm =
   let
     val thy = Thm.theory_of_thm target_thm;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
+    val cert = Thm.global_cterm_of thy;
+    val certT = Thm.global_ctyp_of thy;
 
     (* fix all non-instantiated tvars *)
     val (fixtyinsts, othertfrees) = (* FIXME proper context!? *)

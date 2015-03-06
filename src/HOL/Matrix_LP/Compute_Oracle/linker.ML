@@ -315,7 +315,7 @@ fun update_computer computer pats ths =
     end
 
 fun conv_subst thy (subst : Type.tyenv) =
-    map (fn (iname, (sort, ty)) => (Thm.ctyp_of thy (TVar (iname, sort)), Thm.ctyp_of thy ty))
+    map (fn (iname, (sort, ty)) => (Thm.global_ctyp_of thy (TVar (iname, sort)), Thm.global_ctyp_of thy ty))
       (Vartab.dest subst)
 
 fun add_monos thy monocs pats ths =

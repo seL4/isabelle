@@ -29,7 +29,7 @@ struct
 
 (** abstract syntax **)
 
-fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
+fun certify t = Thm.global_cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 val read_prop = certify o Simple_Syntax.read_prop;
 
 val true_prop = certify Logic.true_prop;
@@ -133,7 +133,7 @@ fun elim_balanced 0 _ = []
 local
 
 fun conjs thy n =
-  let val As = map (fn A => Thm.cterm_of thy (Free (A, propT))) (Name.invent Name.context "A" n)
+  let val As = map (fn A => Thm.global_cterm_of thy (Free (A, propT))) (Name.invent Name.context "A" n)
   in (As, mk_conjunction_balanced As) end;
 
 val B = read_prop "B";

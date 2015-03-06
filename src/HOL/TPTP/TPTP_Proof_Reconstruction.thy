@@ -917,7 +917,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
     (* val contextualise = fold absdummy (map snd params) *)
     val contextualise = fold absfree params
 
-    val skolem_cts = map (contextualise #> Thm.cterm_of thy) skolem_terms
+    val skolem_cts = map (contextualise #> Thm.global_cterm_of thy) skolem_terms
 
 
 (*now the instantiation code*)
@@ -937,7 +937,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
         fun make_var pre_var =
           the_single pre_var
           |> Var
-          |> Thm.cterm_of thy
+          |> Thm.global_cterm_of thy
           |> SOME
       in
         if null pre_var then NONE
@@ -2003,7 +2003,7 @@ fun oracle_based_reconstruction_tac ctxt prob_name n =
      thy
      prob_name (#meta pannot) n
       |> the
-      |> (fn {inference_fmla, ...} => Thm.cterm_of thy inference_fmla)
+      |> (fn {inference_fmla, ...} => Thm.global_cterm_of thy inference_fmla)
       |> oracle_iinterp
   end
 *}

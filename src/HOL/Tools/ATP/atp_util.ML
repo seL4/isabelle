@@ -353,7 +353,7 @@ fun is_fun_equality (@{const_name HOL.eq},
 fun abs_extensionalize_term ctxt t =
   if exists_Const is_fun_equality t then
     let val thy = Proof_Context.theory_of ctxt in
-      t |> Thm.cterm_of thy |> Meson.abs_extensionalize_conv ctxt
+      t |> Thm.global_cterm_of thy |> Meson.abs_extensionalize_conv ctxt
         |> Thm.prop_of |> Logic.dest_equals |> snd
     end
   else

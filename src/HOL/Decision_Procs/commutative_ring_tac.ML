@@ -78,10 +78,10 @@ fun reif_eq ctxt (eq as Const (@{const_name HOL.eq}, Type (@{type_name fun}, [T,
         let
           val thy = Proof_Context.theory_of ctxt;
           val fs = Misc_Legacy.term_frees eq;
-          val cvs = Thm.cterm_of thy (HOLogic.mk_list T fs);
-          val clhs = Thm.cterm_of thy (reif_polex T fs lhs);
-          val crhs = Thm.cterm_of thy (reif_polex T fs rhs);
-          val ca = Thm.ctyp_of thy T;
+          val cvs = Thm.global_cterm_of thy (HOLogic.mk_list T fs);
+          val clhs = Thm.global_cterm_of thy (reif_polex T fs lhs);
+          val crhs = Thm.global_cterm_of thy (reif_polex T fs rhs);
+          val ca = Thm.global_ctyp_of thy T;
         in (ca, cvs, clhs, crhs) end
       else error ("reif_eq: not an equation over " ^ Syntax.string_of_sort ctxt cr_sort)
   | reif_eq _ _ = error "reif_eq: not an equation";

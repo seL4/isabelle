@@ -78,7 +78,7 @@ fun thm_of_proof thy =
           let
             val tvars = Term.add_tvars (Thm.full_prop_of thm) [] |> rev;
             val (fmap, thm') = Thm.varifyT_global' [] thm;
-            val ctye = map (apply2 (Thm.ctyp_of thy))
+            val ctye = map (apply2 (Thm.global_ctyp_of thy))
               (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
           in
             Thm.instantiate (ctye, []) (forall_intr_vars (Thm.forall_intr_frees thm'))
@@ -106,13 +106,13 @@ fun thm_of_proof thy =
                 val (x, names') = Name.variant s names;
                 val thm = thm_of ((x, T) :: vs, names') Hs prf
               in
-                Thm.forall_intr (Thm.cterm_of thy (Free (x, T))) thm
+                Thm.forall_intr (Thm.global_cterm_of thy (Free (x, T))) thm
               end
 
           | thm_of (vs, names) Hs (prf % SOME t) =
               let
                 val thm = thm_of (vs, names) Hs prf;
-                val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
+                val ct = Thm.global_cterm_of thy (Term.subst_bounds (map Free vs, t));
               in
                 Thm.forall_elim ct thm
                 handle THM (s, _, _) => appl_error thy pretty_term vs Hs s prf t
@@ -120,7 +120,7 @@ fun thm_of_proof thy =
 
           | thm_of (vs, names) Hs (AbsP (s, SOME t, prf)) =
               let
-                val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
+                val ct = Thm.global_cterm_of thy (Term.subst_bounds (map Free vs, t));
                 val thm = thm_of (vs, names) (Thm.assume ct :: Hs) prf;
               in
                 Thm.implies_intr ct thm
@@ -135,7 +135,7 @@ fun thm_of_proof thy =
                 handle THM (s, _, _) => appl_error thy pretty_prf (fst vars) Hs s prf prf'
               end
 
-          | thm_of _ _ (Hyp t) = Thm.assume (Thm.cterm_of thy t)
+          | thm_of _ _ (Hyp t) = Thm.assume (Thm.global_cterm_of thy t)
 
           | thm_of _ _ _ = error "thm_of_proof: partial proof term";
 

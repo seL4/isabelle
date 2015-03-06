@@ -147,7 +147,7 @@ fun inst_params thy (vs, p) th cts =
   let val env = Pattern.first_order_match thy (p, Thm.prop_of th)
     (Vartab.empty, Vartab.empty)
   in Thm.instantiate ([],
-    map (Envir.subst_term env #> Thm.cterm_of thy) vs ~~ cts) th
+    map (Envir.subst_term env #> Thm.global_cterm_of thy) vs ~~ cts) th
   end;
 
 fun prove_strong_ind s alt_name avoids ctxt =
@@ -230,7 +230,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
-      [SOME (Thm.ctyp_of thy fsT)] [] inductive_forall_def;
+      [SOME (Thm.global_ctyp_of thy fsT)] [] inductive_forall_def;
 
     fun lift_pred' t (Free (s, T)) ts =
       list_comb (Free (s, fsT --> T), t :: ts);
@@ -319,7 +319,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val fs_atom = Global_Theory.get_thm thy
           ("fs_" ^ Long_Name.base_name atom ^ "1");
         val avoid_th = Drule.instantiate'
-          [SOME (Thm.ctyp_of thy (fastype_of p))] [SOME (Thm.cterm_of thy p)]
+          [SOME (Thm.global_ctyp_of thy (fastype_of p))] [SOME (Thm.global_cterm_of thy p)]
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
         val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result
           (fn ctxt' => EVERY
@@ -399,12 +399,12 @@ fun prove_strong_ind s alt_name avoids ctxt =
                  val pis'' = fold_rev (concat_perm #> map) pis' pis;
                  val ihyp' = inst_params thy vs_ihypt ihyp
                    (map (fold_rev (NominalDatatype.mk_perm [])
-                      (pis' @ pis) #> Thm.cterm_of thy) params' @ [Thm.cterm_of thy z]);
+                      (pis' @ pis) #> Thm.global_cterm_of thy) params' @ [Thm.global_cterm_of thy z]);
                  fun mk_pi th =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
                      (Simplifier.simplify (put_simpset eqvt_ss ctxt')
-                       (fold_rev (mk_perm_bool o Thm.cterm_of thy)
+                       (fold_rev (mk_perm_bool o Thm.global_cterm_of thy)
                          (pis' @ pis) th));
                  val gprems2 = map (fn (th, t) =>
                    if null (preds_of ps t) then mk_pi th

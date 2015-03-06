@@ -534,7 +534,7 @@ ML {*
         | and_to_list fm acc = rev (fm :: acc)
       val clauses = and_to_list prop_fm []
       val terms = map (HOLogic.mk_Trueprop o Prop_Logic.term_of_prop_formula) clauses
-      val cterms = map (Thm.cterm_of @{theory}) terms
+      val cterms = map (Thm.global_cterm_of @{theory}) terms
       val start = Timing.start ()
       val _ = SAT.rawsat_thm @{context} cterms
     in

@@ -24,7 +24,7 @@ oracle iff_oracle = \<open>
   in
     fn (thy, n) =>
       if n > 0 andalso n mod 2 = 0
-      then Thm.cterm_of thy (HOLogic.mk_Trueprop (mk_iff n))
+      then Thm.global_cterm_of thy (HOLogic.mk_Trueprop (mk_iff n))
       else raise Fail ("iff_oracle: " ^ string_of_int n)
   end
 \<close>

@@ -37,8 +37,8 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val x = Free(vstr,ty)
       val abst = Abs(vstr, ty, Term.abstract_over (x, gt));
 
-      val ctermify = Thm.cterm_of sgn;
-      val ctypify = Thm.ctyp_of sgn;
+      val ctermify = Thm.global_cterm_of sgn;
+      val ctypify = Thm.global_ctyp_of sgn;
       val case_thm = case_thm_of_ty sgn ty;
 
       val abs_ct = ctermify abst;

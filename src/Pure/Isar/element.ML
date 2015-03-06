@@ -203,7 +203,7 @@ fun standard_elim th =
       let
         val thy = Thm.theory_of_thm th;
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val th' = Thm.instantiate ([], [(Thm.cterm_of thy C, Thm.cterm_of thy thesis)]) th;
+        val th' = Thm.instantiate ([], [(Thm.global_cterm_of thy C, Thm.global_cterm_of thy thesis)]) th;
       in (th', true) end
   | NONE => (th, false));
 
@@ -339,7 +339,7 @@ fun pretty_witness ctxt witn =
 fun instantiate_tfrees thy subst th =
   let
     val idx = Thm.maxidx_of th + 1;
-    fun cert_inst (a, (S, T)) = (Thm.ctyp_of thy (TVar ((a, idx), S)), Thm.ctyp_of thy T);
+    fun cert_inst (a, (S, T)) = (Thm.global_ctyp_of thy (TVar ((a, idx), S)), Thm.global_ctyp_of thy T);
 
     fun add_inst (a, S) insts =
       if AList.defined (op =) insts a then insts
@@ -354,8 +354,8 @@ fun instantiate_tfrees thy subst th =
   end;
 
 fun instantiate_frees thy subst =
-  Drule.forall_intr_list (map (Thm.cterm_of thy o Free o fst) subst) #>
-  Drule.forall_elim_list (map (Thm.cterm_of thy o snd) subst);
+  Drule.forall_intr_list (map (Thm.global_cterm_of thy o Free o fst) subst) #>
+  Drule.forall_elim_list (map (Thm.global_cterm_of thy o snd) subst);
 
 fun hyps_rule rule th =
   let val {hyps, ...} = Thm.crep_thm th in

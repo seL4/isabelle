@@ -146,7 +146,7 @@ val is_number =
 (* patterns and instantiations *)
 
 fun mk_const_pat thy name destT =
-  let val cpat = Thm.cterm_of thy (Const (name, Sign.the_const_type thy name))
+  let val cpat = Thm.global_cterm_of thy (Const (name, Sign.the_const_type thy name))
   in (destT (Thm.ctyp_of_cterm cpat), cpat) end
 
 val destT1 = hd o Thm.dest_ctyp
@@ -175,7 +175,7 @@ fun dest_cbinder ct ctxt =
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
 
-val mk_cprop = Thm.apply (Thm.cterm_of @{theory} @{const Trueprop})
+val mk_cprop = Thm.apply (Thm.global_cterm_of @{theory} @{const Trueprop})
 
 fun dest_cprop ct =
   (case Thm.term_of ct of

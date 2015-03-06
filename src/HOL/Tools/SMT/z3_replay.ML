@@ -23,7 +23,7 @@ fun varify ctxt thm =
     val maxidx = Thm.maxidx_of thm + 1
     val vs = params_of (Thm.prop_of thm)
     val vars = map_index (fn (i, (n, T)) => Var ((n, i + maxidx), T)) vs
-  in Drule.forall_elim_list (map (Proof_Context.cterm_of ctxt) vars) thm end
+  in Drule.forall_elim_list (map (Thm.cterm_of ctxt) vars) thm end
 
 fun add_paramTs names t =
   fold2 (fn n => fn (_, T) => AList.update (op =) (n, T)) names (params_of t)
@@ -31,7 +31,7 @@ fun add_paramTs names t =
 fun new_fixes ctxt nTs =
   let
     val (ns, ctxt') = Variable.variant_fixes (replicate (length nTs) "") ctxt
-    fun mk (n, T) n' = (n, Proof_Context.cterm_of ctxt' (Free (n', T)))
+    fun mk (n, T) n' = (n, Thm.cterm_of ctxt' (Free (n', T)))
   in (ctxt', Symtab.make (map2 mk nTs ns)) end
 
 fun forall_elim_term ct (Const (@{const_name Pure.all}, _) $ (a as Abs _)) =
@@ -60,7 +60,7 @@ fun replay_thm ctxt assumed nthms (Z3_Proof.Z3_Step {id, rule, concl, fixes, is_
   if Z3_Proof.is_assumption rule then
     (case Inttab.lookup assumed id of
       SOME (_, thm) => thm
-    | NONE => Thm.assume (Proof_Context.cterm_of ctxt concl))
+    | NONE => Thm.assume (Thm.cterm_of ctxt concl))
   else
     under_fixes (Z3_Replay_Methods.method_for rule) ctxt
       (if is_fix_step then (map snd nthms, []) else ([], nthms)) fixes concl
@@ -123,7 +123,7 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
         (cx as ((iidths, thms), (ctxt, ptab))) =
       if Z3_Proof.is_assumption rule andalso rule <> Z3_Proof.Hypothesis then
         let
-          val ct = Proof_Context.cterm_of ctxt concl
+          val ct = Thm.cterm_of ctxt concl
           val thm1 = Thm.trivial ct |> Conv.fconv_rule (Conv.arg1_conv (revert_conv outer_ctxt))
           val thm2 = singleton (Variable.export ctxt outer_ctxt) thm1
         in

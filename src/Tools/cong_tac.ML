@@ -14,7 +14,7 @@ struct
 
 fun cong_tac ctxt cong = CSUBGOAL (fn (cgoal, i) =>
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm cgoal);
+    val cert = Thm.global_cterm_of (Thm.theory_of_cterm cgoal);
     val goal = Thm.term_of cgoal;
   in
     (case Logic.strip_assums_concl goal of

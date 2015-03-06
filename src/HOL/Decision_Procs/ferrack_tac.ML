@@ -55,7 +55,7 @@ fun linr_tac ctxt q =
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val simpset0 = put_simpset HOL_basic_ss ctxt addsimps comp_arith
-    val ct = Thm.cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.global_cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,

@@ -30,7 +30,7 @@ fun drop_fact_warning ctxt =
  
 local
   val (cpfalse, cfalse) =
-    `Old_SMT_Utils.mk_cprop (Thm.cterm_of @{theory} @{const False})
+    `Old_SMT_Utils.mk_cprop (Thm.global_cterm_of @{theory} @{const False})
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -203,7 +203,7 @@ local
     Old_SMT_Utils.mk_const_pat @{theory} @{const_name pat} Old_SMT_Utils.destT1
   fun mk_pat ct = Thm.apply (Old_SMT_Utils.instT' ct pat) ct
 
-  fun mk_clist T = apply2 (Thm.cterm_of @{theory})
+  fun mk_clist T = apply2 (Thm.global_cterm_of @{theory})
     (HOLogic.cons_const T, HOLogic.nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
   val mk_pat_list = mk_list (mk_clist @{typ pattern})

@@ -159,7 +159,7 @@ fun prepare schematic_consts_of rthms =
 
 fun instantiate thy subst =
   let
-    fun cert (ix, (S, T)) = apply2 (Thm.ctyp_of thy) (TVar (ix, S), T)
+    fun cert (ix, (S, T)) = apply2 (Thm.global_ctyp_of thy) (TVar (ix, S), T)
     fun cert' subst = Vartab.fold (cons o cert) subst []
   in Thm.instantiate (cert' subst, []) end
 

@@ -116,7 +116,7 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
       val quantify_thesis =
           if is_Bound thesis then all_tac
           else let
-              val cthesis = Thm.cterm_of thy thesis
+              val cthesis = Thm.global_cterm_of thy thesis
               val rule = instantiate' [SOME (Thm.ctyp_of_cterm cthesis)] [NONE, SOME cthesis]
                          @{thm meta_spec}
             in

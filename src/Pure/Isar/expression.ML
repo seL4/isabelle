@@ -629,8 +629,8 @@ fun atomize_spec thy ts =
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT
-    then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, Object_Logic.atomize (Proof_Context.init_global thy) (Thm.cterm_of thy t))
+    then (t, propT, Thm.reflexive (Thm.global_cterm_of thy t))
+    else (body, bodyT, Object_Logic.atomize (Proof_Context.init_global thy) (Thm.global_cterm_of thy t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
@@ -684,11 +684,11 @@ fun def_pred binding parms defs ts norm_ts thy =
         compose_tac defs_ctxt (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
         compose_tac defs_ctxt
           (false,
-            Conjunction.intr_balanced (map (Thm.assume o Thm.cterm_of defs_thy) norm_ts), 0) 1);
+            Conjunction.intr_balanced (map (Thm.assume o Thm.global_cterm_of defs_thy) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF
-        [body_eq, rewrite_rule defs_ctxt [pred_def] (Thm.assume (Thm.cterm_of defs_thy statement))])
+        [body_eq, rewrite_rule defs_ctxt [pred_def] (Thm.assume (Thm.global_cterm_of defs_thy statement))])
       |> Conjunction.elim_balanced (length ts);
 
     val (_, axioms_ctxt) = defs_ctxt
@@ -705,7 +705,7 @@ in
 fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val defs' = map (Thm.cterm_of thy #> Assumption.assume ctxt #> Drule.abs_def) defs;
+    val defs' = map (Thm.global_cterm_of thy #> Assumption.assume ctxt #> Drule.abs_def) defs;
 
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
@@ -757,7 +757,7 @@ fun assumes_to_notes (Assumes asms) axms =
 
 fun defines_to_notes ctxt (Defines defs) =
       Notes ("", map (fn (a, (def, _)) =>
-        (a, [([Assumption.assume ctxt (Proof_Context.cterm_of ctxt def)],
+        (a, [([Assumption.assume ctxt (Thm.cterm_of ctxt def)],
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;
 
@@ -806,7 +806,7 @@ fun gen_add_locale prep_decl
     val notes =
       if is_some asm then
         [("", [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
-          [([Assumption.assume pred_ctxt (Thm.cterm_of thy' (the asm))],
+          [([Assumption.assume pred_ctxt (Thm.global_cterm_of thy' (the asm))],
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 

@@ -436,7 +436,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-        val thms = map (Thm.trivial o Thm.cterm_of(Thm.theory_of_thm thm)) As;
+        val thms = map (Thm.trivial o Thm.global_cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = fold_rev lhs_insert_thm rwrls anet;
@@ -559,12 +559,12 @@ in find subst_thms end;
 fun mk_cong sg (f,aTs,rT) (refl,eq) =
 let val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
-        let val ca = Thm.cterm_of sg va
-            and cx = Thm.cterm_of sg (eta_Var(("X"^si,0),T))
-            val cb = Thm.cterm_of sg vb
-            and cy = Thm.cterm_of sg (eta_Var(("Y"^si,0),T))
-            val cP = Thm.cterm_of sg P
-            and cp = Thm.cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
+        let val ca = Thm.global_cterm_of sg va
+            and cx = Thm.global_cterm_of sg (eta_Var(("X"^si,0),T))
+            val cb = Thm.global_cterm_of sg vb
+            and cy = Thm.global_cterm_of sg (eta_Var(("Y"^si,0),T))
+            val cP = Thm.global_cterm_of sg P
+            and cp = Thm.global_cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
         in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
         let val si = radixstring(26,"a",i)

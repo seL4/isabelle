@@ -163,7 +163,7 @@ fun freezeT thm =
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
     val tvars = map TVar tvars
     val thy = Thm.theory_of_thm thm
-    fun inst ty = Thm.ctyp_of thy ty
+    fun inst ty = Thm.global_ctyp_of thy ty
   in
     Thm.instantiate ((map inst tvars ~~ map inst tfrees), []) thm
   end
@@ -206,8 +206,8 @@ fun typedef_hollight th thy =
     val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
   in
     Drule.instantiate' [SOME nty, SOME oty] [SOME rept, SOME abst, SOME P,
-      SOME (Thm.cterm_of thy (Free ("a", Thm.typ_of nty))),
-      SOME (Thm.cterm_of thy (Free ("r", Thm.typ_of oty)))] @{thm typedef_hol2hollight}
+      SOME (Thm.global_cterm_of thy (Free ("a", Thm.typ_of nty))),
+      SOME (Thm.global_cterm_of thy (Free ("r", Thm.typ_of oty)))] @{thm typedef_hol2hollight}
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
@@ -233,8 +233,8 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val typedef_th =
        Drule.instantiate'
           [SOME nty, SOME oty]
-          [SOME rept, SOME abst, SOME cP, SOME (Thm.cterm_of thy' (Free ("a", aty))),
-             SOME (Thm.cterm_of thy' (Free ("r", Thm.typ_of ctT)))]
+          [SOME rept, SOME abst, SOME cP, SOME (Thm.global_cterm_of thy' (Free ("a", aty))),
+             SOME (Thm.global_cterm_of thy' (Free ("r", Thm.typ_of ctT)))]
           @{thm typedef_hol2hollight}
     val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
   in
@@ -266,8 +266,8 @@ fun inst_type lambda th thy =
     val tys_after = Term.add_tvars (Thm.prop_of th1) []
     val tyinst = map2 (fn bef => fn iS =>
        (case try (assoc (TFree bef)) lambda of
-              SOME cty => (Thm.ctyp_of thy (TVar iS), cty)
-            | NONE => (Thm.ctyp_of thy (TVar iS), Thm.ctyp_of thy (TFree bef))
+              SOME cty => (Thm.global_ctyp_of thy (TVar iS), cty)
+            | NONE => (Thm.global_ctyp_of thy (TVar iS), Thm.global_ctyp_of thy (TFree bef))
        )) tys_before tys_after
   in
     Thm.instantiate (tyinst,[]) th1
@@ -333,8 +333,8 @@ fun store_thm binding thm thy =
     val tns = map (fn (_, _) => "'") tvs
     val nms = fst (fold_map Name.variant tns (Variable.names_of (Proof_Context.init_global thy)))
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val cvs = map (Thm.ctyp_of thy) vs
-    val ctvs = map (Thm.ctyp_of thy) (map TVar tvs)
+    val cvs = map (Thm.global_ctyp_of thy) vs
+    val ctvs = map (Thm.global_ctyp_of thy) (map TVar tvs)
     val thm' = Thm.instantiate ((ctvs ~~ cvs), []) thm
   in
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
@@ -411,14 +411,14 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (Thm.ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
+          setty (Thm.global_ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
-            (fn tys => Thm.ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
+            (fn tys => Thm.global_ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
       | process (thy, state) (#"v", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => Thm.cterm_of thy (Free (transl_dot n, Thm.typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (Free (transl_dot n, Thm.typ_of ty))) |-> settm
       | process (thy, state) (#"c", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => Thm.cterm_of thy (Const (getconstname n thy, Thm.typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (Const (getconstname n thy, Thm.typ_of ty))) |-> settm
       | process tstate (#"f", [t1, t2]) =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.apply t1 t2) |-> settm
       | process tstate (#"l", [t1, t2]) =

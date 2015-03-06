@@ -51,15 +51,15 @@ fun mk_inv_into T U =
 fun mk_inv_of ctxt ct =
   let
     val (dT, rT) = Term.dest_funT (Thm.typ_of_cterm ct)
-    val inv = Proof_Context.cterm_of ctxt (mk_inv_into dT rT)
-    val univ = Proof_Context.cterm_of ctxt (mk_univ dT)
+    val inv = Thm.cterm_of ctxt (mk_inv_into dT rT)
+    val univ = Thm.cterm_of ctxt (mk_univ dT)
   in Thm.mk_binop inv univ ct end
 
 fun mk_inj_prop ctxt ct =
   let
     val (dT, rT) = Term.dest_funT (Thm.typ_of_cterm ct)
-    val inj = Proof_Context.cterm_of ctxt (mk_inj_on dT rT)
-    val univ = Proof_Context.cterm_of ctxt (mk_univ dT)
+    val inj = Thm.cterm_of ctxt (mk_inj_on dT rT)
+    val univ = Thm.cterm_of ctxt (mk_univ dT)
   in Old_SMT_Utils.mk_cprop (Thm.mk_binop inj ct univ) end
 
 

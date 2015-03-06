@@ -560,7 +560,7 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
         (replicate i @{term Suc});
     val _ = if arg = arg' then raise TERM ("", []) else ();
     fun propfn g = HOLogic.mk_eq (g arg, g arg')
-      |> HOLogic.mk_Trueprop |> Thm.cterm_of thy;
+      |> HOLogic.mk_Trueprop |> Thm.global_cterm_of thy;
     val eq1 = Goal.prove_internal ctxt [] (propfn I)
       (K (simp_tac (put_simpset word_ss ctxt) 1));
   in Goal.prove_internal ctxt [] (propfn (curry (op $) f))

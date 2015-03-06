@@ -144,7 +144,7 @@ fun prove_chain ctxt chain_tac (c1, c2) =
         Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
-    case Function_Lib.try_proof (Proof_Context.cterm_of ctxt goal) chain_tac of
+    case Function_Lib.try_proof (Thm.cterm_of ctxt goal) chain_tac of
       Function_Lib.Solved thm => SOME thm
     | _ => NONE
   end
@@ -169,7 +169,7 @@ fun dest_call (sk, _, _, _, _) = dest_call' sk
 fun mk_desc ctxt tac vs Gam l r m1 m2 =
   let
     fun try rel =
-      try_proof (Proof_Context.cterm_of ctxt
+      try_proof (Thm.cterm_of ctxt
         (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
              HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
@@ -302,7 +302,7 @@ fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
           THEN' (blast_tac ctxt)))    (* Solve rest of context... not very elegant *)
       ) i
   in
-    (PRIMITIVE (Drule.cterm_instantiate [apply2 (Proof_Context.cterm_of ctxt) (rel, relation)])
+    (PRIMITIVE (Drule.cterm_instantiate [apply2 (Thm.cterm_of ctxt) (rel, relation)])
      THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
      THEN rewrite_goal_tac ctxt Un_aci_simps 1)  (* eliminate duplicates *)
   end) 1 st

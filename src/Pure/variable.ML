@@ -589,7 +589,7 @@ fun focus_cterm goal ctxt =
   let
     val thy = Thm.theory_of_cterm goal;
     val ((xs, ps), ctxt') = focus_params (Thm.term_of goal) ctxt;
-    val ps' = map (Thm.cterm_of thy o Free) ps;
+    val ps' = map (Thm.global_cterm_of thy o Free) ps;
     val goal' = fold forall_elim_prop ps' goal;
   in ((xs ~~ ps', goal'), ctxt') end;
 

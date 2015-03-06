@@ -35,8 +35,8 @@ fun is_zapped_var_name s =
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
-val cfalse = Thm.cterm_of @{theory HOL} @{term False};
-val ctp_false = Thm.cterm_of @{theory HOL} (HOLogic.mk_Trueprop @{term False});
+val cfalse = Thm.global_cterm_of @{theory HOL} @{term False};
+val ctp_false = Thm.global_cterm_of @{theory HOL} (HOLogic.mk_Trueprop @{term False});
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate
@@ -45,9 +45,9 @@ val ctp_false = Thm.cterm_of @{theory HOL} (HOLogic.mk_Trueprop @{term False});
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
     @{const Trueprop} $ (v as Var (_, @{typ bool})) =>
-      Thm.instantiate ([], [(Thm.cterm_of @{theory HOL} v, cfalse)]) th
+      Thm.instantiate ([], [(Thm.global_cterm_of @{theory HOL} v, cfalse)]) th
   | v as Var(_, @{typ prop}) =>
-      Thm.instantiate ([], [(Thm.cterm_of @{theory HOL} v, ctp_false)]) th
+      Thm.instantiate ([], [(Thm.global_cterm_of @{theory HOL} v, ctp_false)]) th
   | _ => th)
 
 
@@ -94,9 +94,9 @@ fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
   | is_quasi_lambda_free (Abs _) = false
   | is_quasi_lambda_free _ = true
 
-val [f_B,g_B] = map (Thm.cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_B}));
-val [g_C,f_C] = map (Thm.cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_C}));
-val [f_S,g_S] = map (Thm.cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_S}));
+val [f_B,g_B] = map (Thm.global_cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_B}));
+val [g_C,f_C] = map (Thm.global_cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_C}));
+val [f_S,g_S] = map (Thm.global_cterm_of @{theory}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_S}));
 
 (* FIXME: Requires more use of cterm constructors. *)
 fun abstract ct =
@@ -104,10 +104,10 @@ fun abstract ct =
       val thy = Thm.theory_of_cterm ct
       val Abs(x,_,body) = Thm.term_of ct
       val Type (@{type_name fun}, [xT,bodyT]) = Thm.typ_of_cterm ct
-      val cxT = Thm.ctyp_of thy xT
-      val cbodyT = Thm.ctyp_of thy bodyT
+      val cxT = Thm.global_ctyp_of thy xT
+      val cbodyT = Thm.global_ctyp_of thy bodyT
       fun makeK () =
-        instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.cterm_of thy body)]
+        instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.global_cterm_of thy body)]
                      @{thm abs_K}
   in
       case body of
@@ -118,17 +118,17 @@ fun abstract ct =
         | rator$rand =>
             if Term.is_dependent rator then (*C or S*)
                if Term.is_dependent rand then (*S*)
-                 let val crator = Thm.cterm_of thy (Abs(x,xT,rator))
-                     val crand = Thm.cterm_of thy (Abs(x,xT,rand))
+                 let val crator = Thm.global_cterm_of thy (Abs(x,xT,rator))
+                     val crand = Thm.global_cterm_of thy (Abs(x,xT,rand))
                      val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] @{thm abs_S}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_S')
                  in
                    Thm.transitive abs_S' (Conv.binop_conv abstract rhs)
                  end
                else (*C*)
-                 let val crator = Thm.cterm_of thy (Abs(x,xT,rator))
+                 let val crator = Thm.global_cterm_of thy (Abs(x,xT,rator))
                      val abs_C' =
-                      cterm_instantiate [(f_C,crator),(g_C,Thm.cterm_of thy rand)] @{thm abs_C}
+                      cterm_instantiate [(f_C,crator),(g_C,Thm.global_cterm_of thy rand)] @{thm abs_C}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_C')
                  in
                    Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
@@ -136,8 +136,8 @@ fun abstract ct =
             else if Term.is_dependent rand then (*B or eta*)
                if rand = Bound 0 then Thm.eta_conversion ct
                else (*B*)
-                 let val crand = Thm.cterm_of thy (Abs(x,xT,rand))
-                     val crator = Thm.cterm_of thy rator
+                 let val crand = Thm.global_cterm_of thy (Abs(x,xT,rand))
+                     val crator = Thm.global_cterm_of thy rator
                      val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] @{thm abs_B}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_B')
                  in Thm.transitive abs_B' (Conv.arg_conv abstract rhs) end
@@ -179,7 +179,7 @@ fun introduce_combinators_in_theorem ctxt th =
             TrueI)
 
 (*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of @{theory HOL} HOLogic.Trueprop;
+val cTrueprop = Thm.global_cterm_of @{theory HOL} HOLogic.Trueprop;
 
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
@@ -194,7 +194,7 @@ fun c_variant_abs_multi (ct0, vars) =
 fun old_skolem_theorem_of_def ctxt rhs0 =
   let
     val thy = Proof_Context.theory_of ctxt
-    val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of thy
+    val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.global_cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
     val (ch, frees) = c_variant_abs_multi (rhs', [])
     val (hilbert, cabs) = ch |> Thm.dest_comb |>> Thm.term_of
@@ -202,7 +202,7 @@ fun old_skolem_theorem_of_def ctxt rhs0 =
       case hilbert of
         Const (_, Type (@{type_name fun}, [_, T])) => T
       | _ => raise TERM ("old_skolem_theorem_of_def: expected \"Eps\"", [hilbert])
-    val cex = Thm.cterm_of thy (HOLogic.exists_const T)
+    val cex = Thm.global_cterm_of thy (HOLogic.exists_const T)
     val ex_tm = Thm.apply cTrueprop (Thm.apply cex cabs)
     val conc =
       Drule.list_comb (rhs, frees)
@@ -334,7 +334,7 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
           |> (if no_choice then
                 Skip_Proof.make_thm thy #> skolemize [cheat_choice] #> Thm.cprop_of
               else
-                Thm.cterm_of thy)
+                Thm.global_cterm_of thy)
           |> zap true
         val fixes =
           [] |> Term.add_free_names (Thm.prop_of zapped_th)
@@ -350,7 +350,7 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
           let
             val (fully_skolemized_ct, ctxt) =
               Variable.import_terms true [fully_skolemized_t] ctxt
-              |>> the_single |>> Thm.cterm_of thy
+              |>> the_single |>> Thm.global_cterm_of thy
           in
             (SOME (discharger_th, fully_skolemized_ct),
              (Thm.assume fully_skolemized_ct, ctxt))
@@ -377,7 +377,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
        th ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], map (apply2 (Thm.cterm_of thy))
+      Thm.instantiate ([], map (apply2 (Thm.global_cterm_of thy))
                                [(Var (("i", 0), @{typ nat}),
                                  HOLogic.mk_nat ax_no)])
                       (zero_var_indexes @{thm skolem_COMBK_D})

@@ -807,7 +807,7 @@ fun freeze (t $ u) = freeze t $ freeze u
   | freeze (Free (s, T)) = Free (s, freezeT T)
   | freeze t = t
 
-fun goal_of_thm thy = Thm.prop_of #> freeze #> Thm.cterm_of thy #> Goal.init
+fun goal_of_thm thy = Thm.prop_of #> freeze #> Thm.global_cterm_of thy #> Goal.init
 
 fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let

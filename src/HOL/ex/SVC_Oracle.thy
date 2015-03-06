@@ -113,7 +113,7 @@ fun svc_tac ctxt = CSUBGOAL (fn (ct, i) =>
   let
     val thy = Thm.theory_of_cterm ct;
     val (abs_goal, _) = svc_abstract (Thm.term_of ct);
-    val th = svc_oracle (Thm.cterm_of thy abs_goal);
+    val th = svc_oracle (Thm.global_cterm_of thy abs_goal);
    in compose_tac ctxt (false, th, 0) i end
    handle TERM _ => no_tac);
 *}

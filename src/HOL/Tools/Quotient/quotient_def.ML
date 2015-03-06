@@ -91,7 +91,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 
 fun mk_readable_rsp_thm_eq tm lthy =
   let
-    val ctm = Proof_Context.cterm_of lthy tm
+    val ctm = Thm.cterm_of lthy tm
     
     fun norm_fun_eq ctm = 
       let

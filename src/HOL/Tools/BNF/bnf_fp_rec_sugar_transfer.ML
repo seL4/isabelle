@@ -44,7 +44,7 @@ fun mk_gfp_rec_sugar_transfer_tac ctxt f_def corec_def type_definitions dtor_cor
         val else_branch = Var (("e", j), T);
         val lam = Term.lambda cond (mk_If cond then_branch else_branch);
       in
-        cterm_instantiate_pos [SOME (Proof_Context.cterm_of ctxt lam)] thm
+        cterm_instantiate_pos [SOME (Thm.cterm_of ctxt lam)] thm
       end;
 
     val transfer_rules =

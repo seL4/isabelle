@@ -260,7 +260,7 @@ fun prep_concl_subst ctxt i gth =
     val tgt_term = Thm.prop_of th;
 
     val thy = Thm.theory_of_thm th;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
 
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
     val cfvs = rev (map cert fvs);
@@ -349,7 +349,7 @@ fun prep_subst_in_asm ctxt i gth j =
     val tgt_term = Thm.prop_of th;
 
     val thy = Thm.theory_of_thm th;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
 
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
     val cfvs = rev (map cert fvs);

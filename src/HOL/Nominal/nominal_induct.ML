@@ -54,7 +54,7 @@ fun inst_mutual_rule ctxt insts avoiding rules =
       end;
      val substs =
        map2 subst insts concls |> flat |> distinct (op =)
-       |> map (apply2 (Proof_Context.cterm_of ctxt));
+       |> map (apply2 (Thm.cterm_of ctxt));
   in 
     (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
   end;
@@ -84,7 +84,7 @@ fun rename_params_rule internal xs rule =
 fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.global_cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map (Conv.fconv_rule (Induct.atomize_cterm ctxt))) defs;

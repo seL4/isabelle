@@ -37,7 +37,7 @@ fun smart_cases ctxt s =
   in
     (case Symtab.lookup (IndCasesData.get thy) c of
       NONE => error ("Unknown inductive cases rule for set " ^ quote c)
-    | SOME f => f ctxt (Thm.cterm_of thy A))
+    | SOME f => f ctxt (Thm.global_cterm_of thy A))
   end;
 
 

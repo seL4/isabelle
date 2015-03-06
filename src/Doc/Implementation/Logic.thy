@@ -639,8 +639,8 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type ctyp} \\
   @{index_ML_type cterm} \\
-  @{index_ML Thm.ctyp_of: "theory -> typ -> ctyp"} \\
-  @{index_ML Thm.cterm_of: "theory -> term -> cterm"} \\
+  @{index_ML Thm.ctyp_of: "Proof.context -> typ -> ctyp"} \\
+  @{index_ML Thm.cterm_of: "Proof.context -> term -> cterm"} \\
   @{index_ML Thm.apply: "cterm -> cterm -> cterm"} \\
   @{index_ML Thm.lambda: "cterm -> cterm -> cterm"} \\
   @{index_ML Thm.all: "cterm -> cterm -> cterm"} \\
@@ -699,10 +699,11 @@ text %mlref \<open>
   are located in the @{ML_structure Thm} module, even though theorems are
   not yet involved at that stage.
 
-  \item @{ML Thm.ctyp_of}~@{text "thy \<tau>"} and @{ML
-  Thm.cterm_of}~@{text "thy t"} explicitly checks types and terms,
+  \item @{ML Thm.ctyp_of}~@{text "ctxt \<tau>"} and @{ML
+  Thm.cterm_of}~@{text "ctxt t"} explicitly check types and terms,
   respectively.  This also involves some basic normalizations, such
-  expansion of type and term abbreviations from the theory context.
+  expansion of type and term abbreviations from the underlying
+  theory context.
   Full re-certification is relatively slow and should be avoided in
   tight reasoning loops.
 

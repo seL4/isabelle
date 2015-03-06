@@ -92,7 +92,7 @@ fun realify t =
   in t end
 
 fun apply_tactic ctxt term tactic =
-  Proof_Context.cterm_of ctxt term
+  Thm.cterm_of ctxt term
   |> Goal.init
   |> SINGLE tactic
   |> the |> Thm.prems_of |> hd
@@ -120,7 +120,7 @@ fun approx_form prec ctxt t =
          |> foldr1 HOLogic.mk_conj))
 
 fun approx_arith prec ctxt t = realify t
-     |> Proof_Context.cterm_of ctxt
+     |> Thm.cterm_of ctxt
      |> Reification.conv ctxt form_equations
      |> Thm.prop_of
      |> Logic.dest_equals |> snd

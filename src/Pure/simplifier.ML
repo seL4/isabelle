@@ -132,7 +132,7 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
         let
           val lhss' = prep lthy lhss;
           val ctxt' = fold Variable.auto_fixes lhss' lthy;
-        in Variable.export_terms ctxt' lthy lhss' end |> map (Proof_Context.cterm_of lthy),
+        in Variable.export_terms ctxt' lthy lhss' end |> map (Thm.cterm_of lthy),
        proc = proc,
        identifier = identifier};
   in

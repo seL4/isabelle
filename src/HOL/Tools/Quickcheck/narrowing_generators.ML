@@ -75,9 +75,9 @@ fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
         (map mk_partial_term_of (frees ~~ tys))
         (@{term "Code_Evaluation.Const"} $ HOLogic.mk_literal c $ HOLogic.mk_typerep (tys ---> ty))
     val insts =
-      map (SOME o Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
+      map (SOME o Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         [Free ("ty", Term.itselfT ty), narrowing_term, rhs]
-    val cty = Thm.ctyp_of thy ty;
+    val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm partial_term_of_anything}
     |> Drule.instantiate' [SOME cty] insts
@@ -94,12 +94,12 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
     val const = Axclass.param_of_inst thy (@{const_name partial_term_of}, tyco);
     val var_insts =
-      map (SOME o Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
+      map (SOME o Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Narrowing_variable p tt"},
           @{term "Code_Evaluation.Free (STR ''_'')"} $ HOLogic.mk_typerep ty];
     val var_eq =
       @{thm partial_term_of_anything}
-      |> Drule.instantiate' [SOME (Thm.ctyp_of thy ty)] var_insts
+      |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy ty)] var_insts
       |> Thm.varifyT_global
     val eqs = var_eq :: map_index (mk_partial_term_of_eq thy ty) cs;
  in

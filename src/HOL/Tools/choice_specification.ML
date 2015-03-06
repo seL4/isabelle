@@ -83,7 +83,7 @@ fun process_spec cos alt_props thy =
     val ctxt = Proof_Context.init_global thy
 
     val rew_imps = alt_props |>
-      map (Object_Logic.atomize ctxt o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
+      map (Object_Logic.atomize ctxt o Thm.global_cterm_of thy o Syntax.read_prop_global thy o snd)
     val props' = rew_imps |>
       map (HOLogic.dest_Trueprop o Thm.term_of o snd o Thm.dest_equals o Thm.cprop_of)
 
@@ -136,7 +136,7 @@ fun process_spec cos alt_props thy =
       let
         fun inst_all thy v thm =
           let
-            val cv = Thm.cterm_of thy v
+            val cv = Thm.global_cterm_of thy v
             val cT = Thm.ctyp_of_cterm cv
             val spec' = instantiate' [SOME cT] [NONE, SOME cv] spec
           in thm RS spec' end

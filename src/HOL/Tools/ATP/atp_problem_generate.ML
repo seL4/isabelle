@@ -760,7 +760,7 @@ fun reveal_bounds Ts =
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
     t |> conceal_bounds Ts
-      |> Thm.cterm_of thy
+      |> Thm.global_cterm_of thy
       |> Meson_Clausify.introduce_combinators_in_cterm
       |> Thm.prop_of |> Logic.dest_equals |> snd
       |> reveal_bounds Ts

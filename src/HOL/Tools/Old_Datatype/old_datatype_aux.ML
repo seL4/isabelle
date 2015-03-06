@@ -149,7 +149,7 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
         (case abstr (getP u) of
           NONE => NONE
         | SOME u' =>
-            SOME (apply2 (Thm.cterm_of thy) (t |> getP |> snd |> head_of, u')))) (ts ~~ ts');
+            SOME (apply2 (Thm.global_cterm_of thy) (t |> getP |> snd |> head_of, u')))) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule;
   in resolve0_tac [indrule'] i end);
 
@@ -166,7 +166,7 @@ fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' =
       cterm_instantiate
-        [apply2 (Proof_Context.cterm_of ctxt)
+        [apply2 (Thm.cterm_of ctxt)
           (head_of lhs, fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0))]
         exhaustion;
   in compose_tac ctxt (false, exhaustion', Thm.nprems_of exhaustion) i end);

@@ -44,7 +44,7 @@ fun strong_ind_simproc tab =
       val thy = Proof_Context.theory_of ctxt;
       fun close p t f =
         let val vs = Term.add_vars t []
-        in Drule.instantiate' [] (rev (map (SOME o Thm.cterm_of thy o Var) vs))
+        in Drule.instantiate' [] (rev (map (SOME o Thm.global_cterm_of thy o Var) vs))
           (p (fold (Logic.all o Var) vs t) f)
         end;
       fun mkop @{const_name HOL.conj} T x =
@@ -93,8 +93,8 @@ fun strong_ind_simproc tab =
             in
               if forall is_none rews then NONE
               else SOME (fold (fn th1 => fn th2 => Thm.combination th2 th1)
-                (map2 (fn SOME r => K r | NONE => Thm.reflexive o Thm.cterm_of thy)
-                   rews ts) (Thm.reflexive (Thm.cterm_of thy h)))
+                (map2 (fn SOME r => K r | NONE => Thm.reflexive o Thm.global_cterm_of thy)
+                   rews ts) (Thm.reflexive (Thm.global_cterm_of thy h)))
             end
         | NONE => NONE)
       | _ => NONE
@@ -117,7 +117,7 @@ fun eta_contract_thm p =
   Conv.fconv_rule (Conv.then_conv (Thm.beta_conversion true, fn ct =>
     Thm.transitive (Thm.eta_conversion ct)
       (Thm.symmetric (Thm.eta_conversion
-        (Thm.cterm_of (Thm.theory_of_cterm ct) (eta_contract p (Thm.term_of ct)))))));
+        (Thm.global_cterm_of (Thm.theory_of_cterm ct) (eta_contract p (Thm.term_of ct)))))));
 
 
 (***********************************************************)
@@ -208,8 +208,8 @@ fun mk_to_pred_inst thy fs =
       val x' = map_type
         (K (Ts @ HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
     in
-      (Thm.cterm_of thy x,
-       Thm.cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+      (Thm.global_cterm_of thy x,
+       Thm.global_cterm_of thy (fold_rev (Term.abs o pair "x") Ts
          (HOLogic.Collect_const U $
             HOLogic.mk_psplits ps U HOLogic.boolT
               (list_comb (x', map Bound (length Ts - 1 downto 0))))))
@@ -233,7 +233,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
               Thm.dest_comb |> snd |> Drule.strip_comb |> snd |> hd |> Thm.dest_comb
           in
             thm' RS (Drule.cterm_instantiate [(arg_cong_f,
-              Thm.cterm_of thy (Abs ("P", Ts ---> HOLogic.boolT,
+              Thm.global_cterm_of thy (Abs ("P", Ts ---> HOLogic.boolT,
                 HOLogic.Collect_const U $ HOLogic.mk_psplits fs' U
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
@@ -370,8 +370,8 @@ fun to_set thms context thm =
         val T = HOLogic.mk_ptupleT ps Us;
         val x' = map_type (K (Rs ---> HOLogic.mk_setT T)) x
       in
-        (Thm.cterm_of thy x,
-         Thm.cterm_of thy (fold_rev (Term.abs o pair "x") Ts
+        (Thm.global_cterm_of thy x,
+         Thm.global_cterm_of thy (fold_rev (Term.abs o pair "x") Ts
           (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (k downto 0)),
              list_comb (x', map Bound (l - 1 downto k + 1))))))
       end) fs;

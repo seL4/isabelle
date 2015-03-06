@@ -132,10 +132,10 @@ fun strip_imp_concl ct =
 (*The premises of a theorem, as a cterm list*)
 val cprems_of = strip_imp_prems o Thm.cprop_of;
 
-fun cterm_fun f ct = Thm.cterm_of (Thm.theory_of_cterm ct) (f (Thm.term_of ct));
-fun ctyp_fun f cT = Thm.ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
+fun cterm_fun f ct = Thm.global_cterm_of (Thm.theory_of_cterm ct) (f (Thm.term_of ct));
+fun ctyp_fun f cT = Thm.global_ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
 
-fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
+fun certify t = Thm.global_cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
 val implies = certify Logic.implies;
 fun mk_implies (A, B) = Thm.apply (Thm.apply implies A) B;
@@ -201,7 +201,7 @@ val forall_intr_list = fold_rev Thm.forall_intr;
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
   fold Thm.forall_intr
-    (map (Thm.cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
+    (map (Thm.global_cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
 
 fun outer_params t =
   let val vs = Term.strip_all_vars t
@@ -211,7 +211,7 @@ fun outer_params t =
 fun gen_all th =
   let
     val {thy, prop, maxidx, ...} = Thm.rep_thm th;
-    fun elim (x, T) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T)));
+    fun elim (x, T) = Thm.forall_elim (Thm.global_cterm_of thy (Var ((x, maxidx + 1), T)));
   in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters
@@ -224,10 +224,10 @@ fun lift_all goal th =
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
     val inst = Thm.fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
-      (Thm.cterm_of thy (Var (xi, T)), Thm.cterm_of thy (Term.list_comb (Var (xi, Ts ---> T), ps))));
+      (Thm.global_cterm_of thy (Var (xi, T)), Thm.global_cterm_of thy (Term.list_comb (Var (xi, Ts ---> T), ps))));
   in
     th |> Thm.instantiate ([], inst)
-    |> fold_rev (Thm.forall_intr o Thm.cterm_of thy) ps
+    |> fold_rev (Thm.forall_intr o Thm.global_cterm_of thy) ps
   end;
 
 (*direct generalization*)
@@ -248,8 +248,8 @@ fun zero_var_indexes_list [] = []
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
         val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-        val cinstT = map (fn (v, T) => (Thm.ctyp_of thy (TVar v), Thm.ctyp_of thy T)) instT;
-        val cinst = map (fn (v, t) => (Thm.cterm_of thy (Var v), Thm.cterm_of thy t)) inst;
+        val cinstT = map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT;
+        val cinst = map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst;
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
@@ -644,9 +644,9 @@ fun mk_term ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val T = Thm.typ_of_cterm ct;
-    val a = Thm.ctyp_of thy (TVar (("'a", 0), []));
-    val x = Thm.cterm_of thy (Var (("x", 0), T));
-  in Thm.instantiate ([(a, Thm.ctyp_of thy T)], [(x, ct)]) termI end;
+    val a = Thm.global_ctyp_of thy (TVar (("'a", 0), []));
+    val x = Thm.global_cterm_of thy (Var (("x", 0), T));
+  in Thm.instantiate ([(a, Thm.global_ctyp_of thy T)], [(x, ct)]) termI end;
 
 fun dest_term th =
   let val cprop = strip_imp_concl (Thm.cprop_of th) in
@@ -789,7 +789,7 @@ fun cterm_instantiate [] th = th
         val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
-            cons (Thm.ctyp_of thy (TVar (xi, S)), Thm.ctyp_of thy (Envir.norm_type tye T))) tye [];
+            cons (Thm.global_ctyp_of thy (TVar (xi, S)), Thm.global_ctyp_of thy (Envir.norm_type tye T))) tye [];
         val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
       in instantiate_normalize (instT, inst) th end
       handle TERM (msg, _) => raise THM (msg, 0, [th])
@@ -807,11 +807,11 @@ fun instantiate' cTs cts thm =
         map_filter (Option.map Thm.term_of) cts);
 
     fun inst_of (v, ct) =
-      (Thm.cterm_of (Thm.theory_of_cterm ct) (Var v), ct)
+      (Thm.global_cterm_of (Thm.theory_of_cterm ct) (Var v), ct)
         handle TYPE (msg, _, _) => err msg;
 
     fun tyinst_of (v, cT) =
-      (Thm.ctyp_of (Thm.theory_of_ctyp cT) (TVar v), cT)
+      (Thm.global_ctyp_of (Thm.theory_of_ctyp cT) (TVar v), cT)
         handle TYPE (msg, _, _) => err msg;
 
     fun zip_vars xs ys =
@@ -843,7 +843,7 @@ fun rename_bvars [] thm = thm
         fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
           | ren (t $ u) = ren t $ ren u
           | ren t = t;
-      in Thm.equal_elim (Thm.reflexive (Thm.cterm_of thy (ren (Thm.prop_of thm)))) thm end;
+      in Thm.equal_elim (Thm.reflexive (Thm.global_cterm_of thy (ren (Thm.prop_of thm)))) thm end;
 
 
 (* renaming in left-to-right order *)
@@ -864,7 +864,7 @@ fun rename_bvars' xs thm =
       | rename xs t = (xs, t);
   in
     (case rename xs prop of
-      ([], prop') => Thm.equal_elim (Thm.reflexive (Thm.cterm_of thy prop')) thm
+      ([], prop') => Thm.equal_elim (Thm.reflexive (Thm.global_cterm_of thy prop')) thm
     | _ => error "More names than abstractions in theorem")
   end;
 

@@ -204,7 +204,7 @@ fun prove_strong_ind s avoids ctxt =
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
-      [SOME (Thm.ctyp_of thy fsT)] [] inductive_forall_def;
+      [SOME (Thm.global_ctyp_of thy fsT)] [] inductive_forall_def;
 
     fun lift_pred' t (Free (s, T)) ts =
       list_comb (Free (s, fsT --> T), t :: ts);
@@ -338,7 +338,7 @@ fun prove_strong_ind s avoids ctxt =
                  val pis'' = fold (concat_perm #> map) pis' pis;
                  val env = Pattern.first_order_match thy (ihypt, Thm.prop_of ihyp)
                    (Vartab.empty, Vartab.empty);
-                 val ihyp' = Thm.instantiate ([], map (apply2 (Thm.cterm_of thy))
+                 val ihyp' = Thm.instantiate ([], map (apply2 (Thm.global_cterm_of thy))
                    (map (Envir.subst_term env) vs ~~
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;
@@ -346,7 +346,7 @@ fun prove_strong_ind s avoids ctxt =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
                      (Simplifier.simplify (put_simpset eqvt_ss ctxt')
-                       (fold_rev (mk_perm_bool o Thm.cterm_of thy)
+                       (fold_rev (mk_perm_bool o Thm.global_cterm_of thy)
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
@@ -505,8 +505,8 @@ fun prove_strong_ind s avoids ctxt =
                   val freshs2' = NominalDatatype.mk_not_sym freshs2;
                   val pis = map (NominalDatatype.perm_of_pair)
                     ((freshs1 ~~ map fst qs) @ (params' ~~ freshs1));
-                  val mk_pis = fold_rev mk_perm_bool (map (Thm.cterm_of thy) pis);
-                  val obj = Thm.cterm_of thy (foldr1 HOLogic.mk_conj (map (map_aterms
+                  val mk_pis = fold_rev mk_perm_bool (map (Thm.global_cterm_of thy) pis);
+                  val obj = Thm.global_cterm_of thy (foldr1 HOLogic.mk_conj (map (map_aterms
                      (fn x as Free _ =>
                            if member (op =) args x then x
                            else (case AList.lookup op = tab x of
@@ -630,9 +630,9 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
             val prems' = map (fn th => the_default th (map_thm ctxt''
               (split_conj (K I) names) (etac conjunct2 1) monos NONE th)) prems;
             val prems'' = map (fn th => Simplifier.simplify eqvt_simpset
-              (mk_perm_bool (Thm.cterm_of thy pi) th)) prems';
-            val intr' = Drule.cterm_instantiate (map (Thm.cterm_of thy) vs ~~
-               map (Thm.cterm_of thy o NominalDatatype.mk_perm [] pi o Thm.term_of o #2) params)
+              (mk_perm_bool (Thm.global_cterm_of thy pi) th)) prems';
+            val intr' = Drule.cterm_instantiate (map (Thm.global_cterm_of thy) vs ~~
+               map (Thm.global_cterm_of thy o NominalDatatype.mk_perm [] pi o Thm.term_of o #2) params)
                intr
           in (rtac intr' THEN_ALL_NEW (TRY o resolve_tac ctxt'' prems'')) 1
           end) ctxt' 1 st

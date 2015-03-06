@@ -118,7 +118,7 @@ fun add_cterm_frees ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.cterm_of thy v) | _ => I) t end;
+  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.global_cterm_of thy v) | _ => I) t end;
 
 
 (* cterm constructors and destructors *)
@@ -128,7 +128,7 @@ fun all_name (x, t) A =
     val thy = Thm.theory_of_cterm t;
     val T = Thm.typ_of_cterm t;
   in
-    Thm.apply (Thm.cterm_of thy (Const ("Pure.all", (T --> propT) --> propT)))
+    Thm.apply (Thm.global_cterm_of thy (Const ("Pure.all", (T --> propT) --> propT)))
       (Thm.lambda_name (x, t) A)
   end;
 
@@ -216,7 +216,7 @@ fun equiv_thm ths =
 (* type classes and sorts *)
 
 fun class_triv thy c =
-  Thm.of_class (Thm.ctyp_of thy (TVar ((Name.aT, 0), [c])), c);
+  Thm.of_class (Thm.global_ctyp_of thy (TVar ((Name.aT, 0), [c])), c);
 
 fun of_sort (T, S) = map (fn c => Thm.of_class (T, c)) S;
 
@@ -331,7 +331,7 @@ fun forall_elim_vars_aux strip_vars i th =
     val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);
     val vars = strip_vars prop;
     val cvars = (Name.variant_list used (map #1 vars), vars)
-      |> ListPair.map (fn (x, (_, T)) => Thm.cterm_of thy (Var ((x, i), T)));
+      |> ListPair.map (fn (x, (_, T)) => Thm.global_cterm_of thy (Var ((x, i), T)));
   in fold Thm.forall_elim cvars th end;
 
 in
@@ -349,8 +349,8 @@ end;
 (* certify_instantiate *)
 
 fun certify_inst thy (instT, inst) =
-  (map (fn (v, T) => (Thm.ctyp_of thy (TVar v), Thm.ctyp_of thy T)) instT,
-    map (fn (v, t) => (Thm.cterm_of thy (Var v), Thm.cterm_of thy t)) inst);
+  (map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT,
+    map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst);
 
 fun certify_instantiate insts th =
   Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
@@ -365,7 +365,7 @@ fun forall_intr_frees th =
     val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
     val frees = Term.fold_aterms (fn Free v =>
       if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
-  in fold (Thm.forall_intr o Thm.cterm_of thy o Free) frees th end;
+  in fold (Thm.forall_intr o Thm.global_cterm_of thy o Free) frees th end;
 
 
 (* unvarify_global: global schematic variables *)
@@ -400,7 +400,7 @@ fun stripped_sorts thy t =
     val tfrees = rev (map TFree (Term.add_tfrees t []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT (length tfrees));
     val strip = tfrees ~~ tfrees';
-    val recover = map (apply2 (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
+    val recover = map (apply2 (Thm.global_ctyp_of thy o Logic.varifyT_global) o swap) strip;
     val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
   in (strip, recover, t') end;
 
@@ -409,7 +409,7 @@ fun add_axiom ctxt (b, prop) thy =
     val _ = Sign.no_vars ctxt prop;
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
-    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
+    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.global_ctyp_of thy T, S)) strip;
 
     val thy' = thy
       |> Theory.add_axiom ctxt (b, Logic.list_implies (maps Logic.mk_of_sort constraints, prop'));
@@ -426,7 +426,7 @@ fun add_axiom_global arg thy = add_axiom (Syntax.init_pretty_global thy) arg thy
 fun add_def ctxt unchecked overloaded (b, prop) thy =
   let
     val _ = Sign.no_vars ctxt prop;
-    val prems = map (Thm.cterm_of thy) (Logic.strip_imp_prems prop);
+    val prems = map (Thm.global_cterm_of thy) (Logic.strip_imp_prems prop);
     val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
 
     val thy' = Theory.add_def ctxt unchecked overloaded (b, concl') thy;

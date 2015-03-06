@@ -1080,7 +1080,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val goal = list_all_free (kl :: zs)
           (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
 
-        val cts = map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' goal, nat];
+        val cts = map (SOME o Thm.cterm_of lthy) [Term.absfree nat' goal, nat];
 
         val length_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
@@ -1115,8 +1115,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             Library.foldr1 HOLogic.mk_conj
               (map2 (mk_conjunct i z) ks zs_copy)) ks zs));
 
-        val cTs = [SOME (Proof_Context.ctyp_of lthy sum_sbdT)];
-        val cts = map (SOME o Proof_Context.cterm_of lthy) [Term.absfree kl' goal, kl];
+        val cTs = [SOME (Thm.ctyp_of lthy sum_sbdT)];
+        val cts = map (SOME o Thm.cterm_of lthy) [Term.absfree kl' goal, kl];
 
         val rv_last =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
@@ -1153,7 +1153,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val goal = list_all_free (kl :: zs @ zs_copy @ zs_copy2)
           (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
 
-        val cts = map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' goal, nat];
+        val cts = map (SOME o Thm.cterm_of lthy) [Term.absfree nat' goal, nat];
 
         val set_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
@@ -1192,7 +1192,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val goal = list_all_free (kl :: k :: zs @ zs_copy)
           (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
 
-        val cts = map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' goal, nat];
+        val cts = map (SOME o Thm.cterm_of lthy) [Term.absfree nat' goal, nat];
 
         val set_image_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
@@ -1867,7 +1867,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
                   Logic.list_implies (prems, HOLogic.mk_Trueprop concl)) premss concls
 
                 val ctss =
-                  map (fn phi => map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' phi, nat]) concls;
+                  map (fn phi => map (SOME o Thm.cterm_of lthy) [Term.absfree nat' phi, nat]) concls;
               in
                 @{map 4} (fn goal => fn cts => fn col_0s => fn col_Sucs =>
                   Goal.prove_sorry lthy [] [] goal
@@ -1952,10 +1952,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               maps (map (fn thm => thm RS @{thm subset_Collect_iff})) dtor_Jset_incl_thmss @
                 @{thms subset_Collect_iff[OF subset_refl]};
 
-            val cTs = map (SOME o Proof_Context.ctyp_of lthy) params';
+            val cTs = map (SOME o Thm.ctyp_of lthy) params';
             fun mk_induct_tinst phis jsets y y' =
               @{map 4} (fn phi => fn jset => fn Jz => fn Jz' =>
-                SOME (Proof_Context.cterm_of lthy (Term.absfree Jz' (HOLogic.mk_Collect (fst y', snd y',
+                SOME (Thm.cterm_of lthy (Term.absfree Jz' (HOLogic.mk_Collect (fst y', snd y',
                   HOLogic.mk_conj (HOLogic.mk_mem (y, jset $ Jz), phi $ y $ Jz))))))
               phis jsets Jzs Jzs';
           in
@@ -2024,7 +2024,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val goals = @{map 3} mk_goal fs colss colss';
 
             val ctss =
-              map (fn phi => map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' phi, nat]) goals;
+              map (fn phi => map (SOME o Thm.cterm_of lthy) [Term.absfree nat' phi, nat]) goals;
 
             val thms =
               @{map 4} (fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
@@ -2047,7 +2047,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
             val goals = map (mk_goal Jbds) colss;
 
-            val ctss = map (fn phi => map (SOME o Proof_Context.cterm_of lthy) [Term.absfree nat' phi, nat])
+            val ctss = map (fn phi => map (SOME o Thm.cterm_of lthy) [Term.absfree nat' phi, nat])
               (map (mk_goal (replicate n sbd)) colss);
 
             val thms =
@@ -2064,7 +2064,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val map_cong0_thms =
           let
-            val cTs = map (SOME o Proof_Context.ctyp_of lthy o
+            val cTs = map (SOME o Thm.ctyp_of lthy o
               Term.typ_subst_atomic (passiveAs ~~ passiveBs) o TFree) coinduct_params;
 
             fun mk_prem z set f g y y' =
@@ -2086,7 +2086,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               HOLogic.mk_exists (x, T, mk_coind_body sets z' z fmap gmap y y_copy)
               |> Term.absfree y'_copy
               |> Term.absfree y'
-              |> Proof_Context.cterm_of lthy;
+              |> Thm.cterm_of lthy;
 
             val cphis = @{map 9} mk_cphi
               Jsetss_by_bnf Jzs' Jzs fs_Jmaps fs_copy_Jmaps Jys' Jys Jys'_copy Jys_copy;
@@ -2189,9 +2189,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               activeJphis Jzs Jz's_copy Jz's Jmap_snds zip_unfolds;
           fun mk_cts zs z's phis =
             @{map 3} (fn z => fn z' => fn phi =>
-              SOME (Proof_Context.cterm_of lthy (fold_rev (Term.absfree o Term.dest_Free) [z', z] phi)))
+              SOME (Thm.cterm_of lthy (fold_rev (Term.absfree o Term.dest_Free) [z', z] phi)))
             zs z's phis @
-            map (SOME o Proof_Context.cterm_of lthy) (splice z's zs);
+            map (SOME o Thm.cterm_of lthy) (splice z's zs);
           val cts1 = mk_cts Jzs Jzs_copy coind1_phis;
           val cts2 = mk_cts Jz's Jz's_copy coind2_phis;
 
@@ -2228,9 +2228,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             Jphis abs fstABs sndABs;
           val ctss = map2 (fn ab' => fn phis =>
               map2 (fn z' => fn phi =>
-                SOME (Proof_Context.cterm_of lthy (Term.absfree ab' (Term.absfree z' phi))))
+                SOME (Thm.cterm_of lthy (Term.absfree ab' (Term.absfree z' phi))))
               zip_zs' phis @
-              map (SOME o Proof_Context.cterm_of lthy) zip_zs)
+              map (SOME o Thm.cterm_of lthy) zip_zs)
             abs' helper_ind_phiss;
           fun mk_helper_ind_concl ab' z ind_phi set =
             mk_Ball (set $ z) (Term.absfree ab' ind_phi);

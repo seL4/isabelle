@@ -1198,7 +1198,7 @@ let
   fun number_of thy T n =
     if not (Sign.of_sort thy (T, @{sort numeral}))
     then raise CTERM ("number_of", [])
-    else Numeral.mk_cnumber (Thm.ctyp_of thy T) n;
+    else Numeral.mk_cnumber (Thm.global_ctyp_of thy T) n;
 in
   K (
     Lin_Arith.add_simps (@{thms arith_simps} @ @{thms more_arith_simps}

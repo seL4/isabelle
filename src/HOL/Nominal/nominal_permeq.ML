@@ -203,14 +203,14 @@ fun perm_compose_simproc' ctxt redex =
       if pi1 <> pi2 then  (* only apply the composition rule in this case *)
         if T = U then    
           SOME (Drule.instantiate'
-            [SOME (Thm.ctyp_of thy (fastype_of t))]
-            [SOME (Thm.cterm_of thy pi1), SOME (Thm.cterm_of thy pi2), SOME (Thm.cterm_of thy t)]
+            [SOME (Thm.global_ctyp_of thy (fastype_of t))]
+            [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
             (mk_meta_eq ([Global_Theory.get_thm thy ("pt_"^tname'^"_inst"),
              Global_Theory.get_thm thy ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
         else
           SOME (Drule.instantiate'
-            [SOME (Thm.ctyp_of thy (fastype_of t))]
-            [SOME (Thm.cterm_of thy pi1), SOME (Thm.cterm_of thy pi2), SOME (Thm.cterm_of thy t)]
+            [SOME (Thm.global_ctyp_of thy (fastype_of t))]
+            [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
             (mk_meta_eq (Global_Theory.get_thm thy ("cp_"^tname'^"_"^uname'^"_inst") RS 
              cp1_aux)))
       else NONE
@@ -296,7 +296,7 @@ fun finite_guess_tac_i tactical ctxt i st =
       case Envir.eta_contract (Logic.strip_assums_concl (Thm.term_of goal)) of
           _ $ (Const (@{const_name finite}, _) $ (Const (@{const_name Nominal.supp}, T) $ x)) =>
           let
-            val cert = Thm.cterm_of (Thm.theory_of_thm st);
+            val cert = Thm.global_cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 x [];
@@ -340,7 +340,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
       case Logic.strip_assums_concl (Thm.term_of goal) of
           _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) => 
           let
-            val cert = Thm.cterm_of (Thm.theory_of_thm st);
+            val cert = Thm.global_cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 t [];

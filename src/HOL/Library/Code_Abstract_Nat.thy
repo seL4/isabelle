@@ -59,7 +59,7 @@ fun remove_suc ctxt thms =
     val thy = Proof_Context.theory_of ctxt;
     val vname = singleton (Name.variant_list (map fst
       (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "n";
-    val cv = Thm.cterm_of thy (Var ((vname, 0), HOLogic.natT));
+    val cv = Thm.global_cterm_of thy (Var ((vname, 0), HOLogic.natT));
     val lhs_of = snd o Thm.dest_comb o fst o Thm.dest_comb o Thm.cprop_of;
     val rhs_of = snd o Thm.dest_comb o Thm.cprop_of;
     fun find_vars ct = (case Thm.term_of ct of

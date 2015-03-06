@@ -161,7 +161,7 @@ fun metahyps_split_prem prem =
 fun metahyps_aux_tac ctxt tacf (prem,gno) state =
   let val (insts,params,hyps,concl) = metahyps_split_prem prem
       val maxidx = Thm.maxidx_of state
-      val cterm = Thm.cterm_of (Thm.theory_of_thm state)
+      val cterm = Thm.global_cterm_of (Thm.theory_of_thm state)
       val chyps = map cterm hyps
       val hypths = map Thm.assume chyps
       val subprems = map (Thm.forall_elim_vars 0) hypths
@@ -265,8 +265,8 @@ fun freeze_thaw_robust th =
          let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))
              val alist = map newName vars
              fun mk_inst (v,T) =
-                 (Thm.cterm_of thy (Var(v,T)),
-                  Thm.cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                 (Thm.global_cterm_of thy (Var(v,T)),
+                  Thm.global_cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -289,8 +289,8 @@ fun freeze_thaw th =
              val (alist, _) =
                  fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
              fun mk_inst (v, T) =
-                 (Thm.cterm_of thy (Var(v,T)),
-                  Thm.cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                 (Thm.global_cterm_of thy (Var(v,T)),
+                  Thm.global_cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)

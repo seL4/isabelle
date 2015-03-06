@@ -177,7 +177,7 @@ fun check_holds ctxt evaluator vs_t ct =
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
-    val iff = Thm.cterm_of thy (Term.Const (@{const_name Pure.eq}, propT --> propT --> propT));
+    val iff = Thm.global_cterm_of thy (Term.Const (@{const_name Pure.eq}, propT --> propT --> propT));
     val result = case partiality_as_none (evaluation truth_cookie ctxt evaluator vs_t [])
      of SOME Holds => true
       | _ => false;

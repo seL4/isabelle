@@ -23,7 +23,8 @@ sig
   (*certified types*)
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
-  val ctyp_of: theory -> typ -> ctyp
+  val global_ctyp_of: theory -> typ -> ctyp
+  val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
   (*certified terms*)
   val theory_of_cterm: cterm -> theory
@@ -31,7 +32,8 @@ sig
   val typ_of_cterm: cterm -> typ
   val ctyp_of_cterm: cterm -> ctyp
   val maxidx_of_cterm: cterm -> int
-  val cterm_of: theory -> term -> cterm
+  val global_cterm_of: theory -> term -> cterm
+  val cterm_of: Proof.context -> term -> cterm
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
   val dest_arg: cterm -> cterm
@@ -152,12 +154,14 @@ with
 fun theory_of_ctyp (Ctyp {thy, ...}) = thy;
 fun typ_of (Ctyp {T, ...}) = T;
 
-fun ctyp_of thy raw_T =
+fun global_ctyp_of thy raw_T =
   let
     val T = Sign.certify_typ thy raw_T;
     val maxidx = Term.maxidx_of_typ T;
     val sorts = Sorts.insert_typ T [];
   in Ctyp {thy = thy, T = T, maxidx = maxidx, sorts = sorts} end;
+
+val ctyp_of = global_ctyp_of o Proof_Context.theory_of;
 
 fun dest_ctyp (Ctyp {thy, T = Type (_, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {thy = thy, T = T, maxidx = maxidx, sorts = sorts}) Ts
@@ -183,11 +187,13 @@ fun ctyp_of_cterm (Cterm {thy, T, maxidx, sorts, ...}) =
 
 fun maxidx_of_cterm (Cterm {maxidx, ...}) = maxidx;
 
-fun cterm_of thy tm =
+fun global_cterm_of thy tm =
   let
     val (t, T, maxidx) = Sign.certify_term thy tm;
     val sorts = Sorts.insert_term t [];
   in Cterm {thy = thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
+
+val cterm_of = global_cterm_of o Proof_Context.theory_of;
 
 fun merge_thys0 (Cterm {thy = thy1, ...}) (Cterm {thy = thy2, ...}) =
   Theory.merge (thy1, thy2);
@@ -1160,7 +1166,7 @@ fun of_class (cT, raw_c) =
   let
     val Ctyp {thy, T, ...} = cT;
     val c = Sign.certify_class thy raw_c;
-    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_of_class (T, c));
+    val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
   in
     if Sign.of_sort thy (T, [c]) then
       Thm (deriv_rule0 (Proofterm.OfClass (T, c)),
