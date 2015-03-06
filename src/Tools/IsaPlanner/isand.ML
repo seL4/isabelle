@@ -91,10 +91,9 @@ fun fix_alls_term ctxt i t =
 
 fun fix_alls_cterm ctxt i th =
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
     val (fixedbody, fvs) = fix_alls_term ctxt i (Thm.prop_of th);
-    val cfvs = rev (map cert fvs);
-    val ct_body = cert fixedbody;
+    val cfvs = rev (map (Thm.cterm_of ctxt) fvs);
+    val ct_body = Thm.cterm_of ctxt fixedbody;
   in (ct_body, cfvs) end;
 
 fun fix_alls' ctxt i = apfst Thm.trivial o fix_alls_cterm ctxt i;
@@ -140,12 +139,12 @@ Result:
 *)
 fun subgoal_thms th =
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
+    val thy = Thm.theory_of_thm th;
 
     val t = Thm.prop_of th;
 
     val prems = Logic.strip_imp_prems t;
-    val aprems = map (Thm.trivial o cert) prems;
+    val aprems = map (Thm.trivial o Thm.global_cterm_of thy) prems;
 
     fun explortf premths = Drule.implies_elim_list th premths;
   in (aprems, explortf) end;

@@ -32,13 +32,13 @@ Results in: "B vs" [!!x. A x]
 *)
 fun allify_conditions Ts th =
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm th);
+    val thy = Thm.theory_of_thm th;
 
     fun allify (x, T) t =
       Logic.all_const T $ Abs (x, T, Term.abstract_over (Free (x, T), t));
 
-    val cTs = map (cert o Free) Ts;
-    val cterm_asms = map (cert o fold_rev allify Ts) (Thm.prems_of th);
+    val cTs = map (Thm.global_cterm_of thy o Free) Ts;
+    val cterm_asms = map (Thm.global_cterm_of thy o fold_rev allify Ts) (Thm.prems_of th);
     val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms;
   in (fold (curry op COMP) allifyied_asm_thms th, cterm_asms) end;
 
@@ -62,8 +62,6 @@ note: assumes rule is instantiated
 (* Note, we take abstraction in the order of last abstraction first *)
 fun mk_abstractedrule ctxt TsFake Ts rule =
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm rule);
-
     (* now we change the names of temporary free vars that represent
        bound vars with binders outside the redex *)
 
@@ -72,8 +70,8 @@ fun mk_abstractedrule ctxt TsFake Ts rule =
 
     val (fromnames, tonames, Ts') =
       fold (fn (((faken, _), (n, ty)), n2) => fn (rnf, rnt, Ts'') =>
-              (cert (Free(faken,ty)) :: rnf,
-               cert (Free(n2,ty)) :: rnt,
+              (Thm.cterm_of ctxt (Free(faken,ty)) :: rnf,
+               Thm.cterm_of ctxt (Free(n2,ty)) :: rnt,
                (n2,ty) :: Ts''))
             (TsFake ~~ Ts ~~ ns) ([], [], []);
 
@@ -171,10 +169,6 @@ first abstraction first.  FakeTs has abstractions using the fake name
 
 fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm =
   let
-    val thy = Thm.theory_of_thm target_thm;
-    val cert = Thm.global_cterm_of thy;
-    val certT = Thm.global_ctyp_of thy;
-
     (* fix all non-instantiated tvars *)
     val (fixtyinsts, othertfrees) = (* FIXME proper context!? *)
       mk_fixtvar_tyinsts nonfixed_typinsts
@@ -182,7 +176,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     val typinsts = cross_inst_typs (nonfixed_typinsts @ fixtyinsts);
 
     (* certified instantiations for types *)
-    val ctyp_insts = map (fn (ix, (s, ty)) => (certT (TVar (ix, s)), certT ty)) typinsts;
+    val ctyp_insts = map (fn (ix, (s, ty)) => apply2 (Thm.ctyp_of ctxt) (TVar (ix, s), ty)) typinsts;
 
     (* type instantiated versions *)
     val tgt_th_tyinst = Thm.instantiate (ctyp_insts,[]) target_thm;
@@ -206,7 +200,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
 
     (* create certms of instantiations *)
     val cinsts_tyinst =
-      map (fn (ix, (ty, t)) => (cert (Var (ix, ty)), cert t)) insts_tyinst_inst;
+      map (fn (ix, (ty, t)) => apply2 (Thm.cterm_of ctxt) (Var (ix, ty), t)) insts_tyinst_inst;
 
     (* The instantiated rule *)
     val rule_inst = rule_tyinst |> Thm.instantiate ([], cinsts_tyinst);
@@ -215,14 +209,14 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
     other uninstantiated vars in the hyps the *instantiated* rule
     ie ?z in C ?z ?x ==> A ?x ?y = B ?x ?y *)
     val renamings = mk_renamings ctxt (Thm.prop_of tgt_th_tyinst) rule_inst;
-    val cterm_renamings = map (fn (x, y) => (cert (Var x), cert y)) renamings;
+    val cterm_renamings = map (fn (x, y) => apply2 (Thm.cterm_of ctxt) (Var x, y)) renamings;
 
     (* Create the specific version of the rule for this target application *)
     val outerterm_inst =
       outerterm_tyinst
       |> Term.subst_Vars (map (fn (ix, (ty, t)) => (ix, t)) insts_tyinst_inst)
       |> Term.subst_Vars (map (fn ((ix, ty), t) => (ix, t)) renamings);
-    val couter_inst = Thm.reflexive (cert outerterm_inst);
+    val couter_inst = Thm.reflexive (Thm.cterm_of ctxt outerterm_inst);
     val (cprems, abstract_rule_inst) =
       rule_inst
       |> Thm.instantiate ([], cterm_renamings)
