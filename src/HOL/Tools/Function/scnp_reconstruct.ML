@@ -272,7 +272,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
     val level_mapping =
       map_index pt_lev lev
         |> Termination.mk_sumcases D (setT nat_pairT)
-        |> Thm.cterm_of thy
+        |> Proof_Context.cterm_of ctxt
     in
       PROFILE "Proof Reconstruction"
         (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1
@@ -307,7 +307,7 @@ fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
 fun gen_decomp_scnp_tac orders autom_tac ctxt =
   Termination.TERMINATION ctxt autom_tac (fn D =>
     let
-      val decompose = Termination.decompose_tac D
+      val decompose = Termination.decompose_tac ctxt D
       val scnp_full = single_scnp_tac true orders ctxt D
     in
       REPEAT_ALL_NEW (scnp_full ORELSE' decompose)

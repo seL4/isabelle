@@ -210,10 +210,8 @@ fun outer_params t =
 (*generalize outermost parameters*)
 fun gen_all th =
   let
-    val thy = Thm.theory_of_thm th;
-    val {prop, maxidx, ...} = Thm.rep_thm th;
-    val cert = Thm.cterm_of thy;
-    fun elim (x, T) = Thm.forall_elim (cert (Var ((x, maxidx + 1), T)));
+    val {thy, prop, maxidx, ...} = Thm.rep_thm th;
+    fun elim (x, T) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T)));
   in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters
@@ -221,16 +219,15 @@ fun gen_all th =
 fun lift_all goal th =
   let
     val thy = Theory.merge (Thm.theory_of_cterm goal, Thm.theory_of_thm th);
-    val cert = Thm.cterm_of thy;
     val maxidx = Thm.maxidx_of th;
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
     val inst = Thm.fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
-      (cert (Var (xi, T)), cert (Term.list_comb (Var (xi, Ts ---> T), ps))));
+      (Thm.cterm_of thy (Var (xi, T)), Thm.cterm_of thy (Term.list_comb (Var (xi, Ts ---> T), ps))));
   in
     th |> Thm.instantiate ([], inst)
-    |> fold_rev (Thm.forall_intr o cert) ps
+    |> fold_rev (Thm.forall_intr o Thm.cterm_of thy) ps
   end;
 
 (*direct generalization*)
@@ -250,10 +247,9 @@ fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
-        val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
         val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-        val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
-        val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
+        val cinstT = map (fn (v, T) => (Thm.ctyp_of thy (TVar v), Thm.ctyp_of thy T)) instT;
+        val cinst = map (fn (v, t) => (Thm.cterm_of thy (Var v), Thm.cterm_of thy t)) inst;
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
@@ -647,12 +643,10 @@ val termI =
 fun mk_term ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
     val T = Thm.typ_of_cterm ct;
-    val a = certT (TVar (("'a", 0), []));
-    val x = cert (Var (("x", 0), T));
-  in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
+    val a = Thm.ctyp_of thy (TVar (("'a", 0), []));
+    val x = Thm.cterm_of thy (Var (("x", 0), T));
+  in Thm.instantiate ([(a, Thm.ctyp_of thy T)], [(x, ct)]) termI end;
 
 fun dest_term th =
   let val cprop = strip_imp_concl (Thm.cprop_of th) in
@@ -793,10 +787,9 @@ fun cterm_instantiate [] th = th
   | cterm_instantiate ctpairs th =
       let
         val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
-        val certT = Thm.ctyp_of thy;
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
-            cons (certT (TVar (xi, S)), certT (Envir.norm_type tye T))) tye [];
+            cons (Thm.ctyp_of thy (TVar (xi, S)), Thm.ctyp_of thy (Envir.norm_type tye T))) tye [];
         val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
       in instantiate_normalize (instT, inst) th end
       handle TERM (msg, _) => raise THM (msg, 0, [th])
@@ -846,18 +839,18 @@ fun instantiate' cTs cts thm =
 fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
       let
-        val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+        val thy = Thm.theory_of_thm thm;
         fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
           | ren (t $ u) = ren t $ ren u
           | ren t = t;
-      in Thm.equal_elim (Thm.reflexive (cert (ren (Thm.prop_of thm)))) thm end;
+      in Thm.equal_elim (Thm.reflexive (Thm.cterm_of thy (ren (Thm.prop_of thm)))) thm end;
 
 
 (* renaming in left-to-right order *)
 
 fun rename_bvars' xs thm =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+    val thy = Thm.theory_of_thm thm;
     val prop = Thm.prop_of thm;
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
@@ -869,9 +862,10 @@ fun rename_bvars' xs thm =
             val (xs'', u') = rename xs' u
           in (xs'', t' $ u') end
       | rename xs t = (xs, t);
-  in case rename xs prop of
-      ([], prop') => Thm.equal_elim (Thm.reflexive (cert prop')) thm
-    | _ => error "More names than abstractions in theorem"
+  in
+    (case rename xs prop of
+      ([], prop') => Thm.equal_elim (Thm.reflexive (Thm.cterm_of thy prop')) thm
+    | _ => error "More names than abstractions in theorem")
   end;
 
 end;

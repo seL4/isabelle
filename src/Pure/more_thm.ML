@@ -116,18 +116,21 @@ val op aconvc = op aconv o apply2 Thm.term_of;
 
 fun add_cterm_frees ct =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm ct);
+    val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (cert v) | _ => I) t end;
+  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.cterm_of thy v) | _ => I) t end;
 
 
 (* cterm constructors and destructors *)
 
 fun all_name (x, t) A =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm t);
+    val thy = Thm.theory_of_cterm t;
     val T = Thm.typ_of_cterm t;
-  in Thm.apply (cert (Const ("Pure.all", (T --> propT) --> propT))) (Thm.lambda_name (x, t) A) end;
+  in
+    Thm.apply (Thm.cterm_of thy (Const ("Pure.all", (T --> propT) --> propT)))
+      (Thm.lambda_name (x, t) A)
+  end;
 
 fun all t A = all_name ("", t) A;
 

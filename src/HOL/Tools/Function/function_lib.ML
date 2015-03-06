@@ -105,7 +105,7 @@ fun regroup_conv neu cn ac is ct =
    val ty = fastype_of t
  in
    Goal.prove_internal ctxt []
-     (Thm.cterm_of thy
+     (Proof_Context.cterm_of ctxt
        (Logic.mk_equals (t,
           if null is
           then mk (Const (neu, ty), foldr1 mk (map (nth xs) js))

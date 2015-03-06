@@ -398,21 +398,19 @@ fun flexflex_first_order th =
   (case Thm.tpairs_of th of
     [] => th
   | pairs =>
-    let
-      val thy = Thm.theory_of_thm th
-      val cert = Thm.cterm_of thy
-      val certT = Thm.ctyp_of thy
-      val (tyenv, tenv) = fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
-
-      fun mkT (v, (S, T)) = (certT (TVar (v, S)), certT T)
-      fun mk (v, (T, t)) = (cert (Var (v, Envir.subst_type tyenv T)), cert t)
-
-      val instsT = Vartab.fold (cons o mkT) tyenv []
-      val insts = Vartab.fold (cons o mk) tenv []
-    in
-      Thm.instantiate (instsT, insts) th
-    end
-    handle THM _ => th)
+      let
+        val thy = Thm.theory_of_thm th
+        val (tyenv, tenv) = fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
+  
+        fun mkT (v, (S, T)) = apply2 (Thm.ctyp_of thy) (TVar (v, S), T)
+        fun mk (v, (T, t)) = apply2 (Thm.cterm_of thy) (Var (v, Envir.subst_type tyenv T), t)
+  
+        val instsT = Vartab.fold (cons o mkT) tyenv []
+        val insts = Vartab.fold (cons o mk) tenv []
+      in
+        Thm.instantiate (instsT, insts) th
+      end
+      handle THM _ => th)
 
 fun is_metis_literal_genuine (_, (s, _)) =
   not (String.isPrefix class_prefix (Metis_Name.toString s))

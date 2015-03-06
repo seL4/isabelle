@@ -126,7 +126,7 @@ fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
 fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm cgoal);
+    val thy = Thm.theory_of_cterm cgoal;
     val goal = Thm.term_of cgoal;
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of indrule));
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop (Logic.strip_imp_concl goal));
@@ -148,7 +148,8 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
       map_filter (fn (t, u) =>
         (case abstr (getP u) of
           NONE => NONE
-        | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u'))) (ts ~~ ts');
+        | SOME u' =>
+            SOME (apply2 (Thm.cterm_of thy) (t |> getP |> snd |> head_of, u')))) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule;
   in resolve0_tac [indrule'] i end);
 
@@ -157,7 +158,6 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
 
 fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
   let
-    val thy = Thm.theory_of_cterm cgoal;
     val goal = Thm.term_of cgoal;
     val params = Logic.strip_params goal;
     val (_, Type (tname, _)) = hd (rev params);
@@ -166,8 +166,8 @@ fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' =
       cterm_instantiate
-        [(Thm.cterm_of thy (head_of lhs),
-          Thm.cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))]
+        [apply2 (Proof_Context.cterm_of ctxt)
+          (head_of lhs, fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0))]
         exhaustion;
   in compose_tac ctxt (false, exhaustion', Thm.nprems_of exhaustion) i end);
 

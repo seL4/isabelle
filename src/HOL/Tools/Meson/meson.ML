@@ -352,10 +352,10 @@ local
 in  
   fun freeze_spec th ctxt =
     let
-      val cert = Proof_Context.cterm_of ctxt;
       val ([x], ctxt') =
         Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (Thm.concl_of th))] ctxt;
-      val spec' = Thm.instantiate ([], [(spec_var, cert (Free (x, spec_varT)))]) spec;
+      val spec' = spec
+        |> Thm.instantiate ([], [(spec_var, Proof_Context.cterm_of ctxt' (Free (x, spec_varT)))]);
     in (th RS spec', ctxt') end
 end;
 

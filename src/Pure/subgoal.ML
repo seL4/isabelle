@@ -67,7 +67,6 @@ val focus = gen_focus (true, true);
 *)
 fun lift_import idx params th ctxt =
   let
-    val cert = Proof_Context.cterm_of ctxt;
     val ((_, [th']), ctxt') = Variable.importT [th] ctxt;
 
     val Ts = map Thm.typ_of_cterm params;
@@ -86,7 +85,8 @@ fun lift_import idx params th ctxt =
           else (Ts ---> T, ts);
         val u = Free (y, U);
         in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;
-    val (inst1, inst2) = split_list (map (apply2 (apply2 cert)) (map2 var_inst vars ys));
+    val (inst1, inst2) =
+      split_list (map (apply2 (apply2 (Proof_Context.cterm_of ctxt))) (map2 var_inst vars ys));
 
     val th'' = Thm.instantiate ([], inst1) th';
   in ((inst2, th''), ctxt'') end;

@@ -89,24 +89,25 @@ fun random_aux_primrec eq lthy =
       (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
     val icT = Thm.ctyp_of thy iT;
-    val cert = Thm.cterm_of thy;
     val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
     val eqs0 = [subst_v @{term "0::natural"} eq,
       subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
-    val ((_, (_, eqs2)), lthy') = BNF_LFP_Compat.add_primrec_simple
-      [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
+    val ((_, (_, eqs2)), lthy') = lthy
+      |> BNF_LFP_Compat.add_primrec_simple
+        [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
-      |> Drule.instantiate_normalize ([(aT, icT)],
-           [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
+      |> Drule.instantiate_normalize
+        ([(aT, icT)],
+          [(cT_random_aux, Thm.cterm_of thy t_random_aux), (cT_rhs, Thm.cterm_of thy t_rhs)]);
     fun tac ctxt =
       ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac (put_simpset rew_ss ctxt))
-      THEN (ALLGOALS (Proof_Context.fact_tac ctxt eqs2))
+      THEN (ALLGOALS (Proof_Context.fact_tac ctxt eqs2));
     val simp = Goal.prove_sorry lthy' [v] [] eq (tac o #context);
   in (simp, lthy') end;
 
