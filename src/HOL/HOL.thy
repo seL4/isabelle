@@ -1194,60 +1194,65 @@ simproc_setup let_simp ("Let x f") = {*
 let
   val (f_Let_unfold, x_Let_unfold) =
     let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_unfold}
-    in (Thm.global_cterm_of @{theory} f, Thm.global_cterm_of @{theory} x) end
+    in apply2 (Thm.cterm_of @{context}) (f, x) end
   val (f_Let_folded, x_Let_folded) =
     let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_folded}
-    in (Thm.global_cterm_of @{theory} f, Thm.global_cterm_of @{theory} x) end;
+    in apply2 (Thm.cterm_of @{context}) (f, x) end;
   val g_Let_folded =
     let val [(_ $ _ $ (g $ _))] = Thm.prems_of @{thm Let_folded}
-    in Thm.global_cterm_of @{theory} g end;
+    in Thm.cterm_of @{context} g end;
   fun count_loose (Bound i) k = if i >= k then 1 else 0
     | count_loose (s $ t) k = count_loose s k + count_loose t k
     | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
     | count_loose _ _ = 0;
   fun is_trivial_let (Const (@{const_name Let}, _) $ x $ t) =
-   case t
-    of Abs (_, _, t') => count_loose t' 0 <= 1
-     | _ => true;
-in fn _ => fn ctxt => fn ct => if is_trivial_let (Thm.term_of ct)
-  then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
-  else let (*Norbert Schirmer's case*)
-    val thy = Proof_Context.theory_of ctxt;
-    val t = Thm.term_of ct;
-    val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
-  in Option.map (hd o Variable.export ctxt' ctxt o single)
-    (case t' of Const (@{const_name Let},_) $ x $ f => (* x and f are already in normal form *)
-      if is_Free x orelse is_Bound x orelse is_Const x
-      then SOME @{thm Let_def}
-      else
-        let
-          val n = case f of (Abs (x, _, _)) => x | _ => "x";
-          val cx = Thm.global_cterm_of thy x;
-          val xT = Thm.typ_of_cterm cx;
-          val cf = Thm.global_cterm_of thy f;
-          val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
-          val (_ $ _ $ g) = Thm.prop_of fx_g;
-          val g' = abstract_over (x,g);
-          val abs_g'= Abs (n,xT,g');
-        in (if (g aconv g')
-             then
-                let
-                  val rl =
-                    cterm_instantiate [(f_Let_unfold, cf), (x_Let_unfold, cx)] @{thm Let_unfold};
-                in SOME (rl OF [fx_g]) end
-             else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g') then NONE (*avoid identity conversion*)
-             else let
-                   val g'x = abs_g'$x;
-                   val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.global_cterm_of thy g'x));
-                   val rl = cterm_instantiate
-                             [(f_Let_folded, Thm.global_cterm_of thy f), (x_Let_folded, cx),
-                              (g_Let_folded, Thm.global_cterm_of thy abs_g')]
-                             @{thm Let_folded};
-                 in SOME (rl OF [Thm.transitive fx_g g_g'x])
-                 end)
-        end
-    | _ => NONE)
-  end
+    (case t of
+      Abs (_, _, t') => count_loose t' 0 <= 1
+    | _ => true);
+in
+  fn _ => fn ctxt => fn ct =>
+    if is_trivial_let (Thm.term_of ct)
+    then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
+    else
+      let (*Norbert Schirmer's case*)
+        val t = Thm.term_of ct;
+        val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
+      in
+        Option.map (hd o Variable.export ctxt' ctxt o single)
+          (case t' of Const (@{const_name Let},_) $ x $ f => (* x and f are already in normal form *)
+            if is_Free x orelse is_Bound x orelse is_Const x
+            then SOME @{thm Let_def}
+            else
+              let
+                val n = case f of (Abs (x, _, _)) => x | _ => "x";
+                val cx = Thm.cterm_of ctxt x;
+                val xT = Thm.typ_of_cterm cx;
+                val cf = Thm.cterm_of ctxt f;
+                val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
+                val (_ $ _ $ g) = Thm.prop_of fx_g;
+                val g' = abstract_over (x, g);
+                val abs_g'= Abs (n, xT, g');
+              in
+                if g aconv g' then
+                  let
+                    val rl =
+                      cterm_instantiate [(f_Let_unfold, cf), (x_Let_unfold, cx)] @{thm Let_unfold};
+                  in SOME (rl OF [fx_g]) end
+                else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g')
+                then NONE (*avoid identity conversion*)
+                else
+                  let
+                    val g'x = abs_g' $ x;
+                    val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.cterm_of ctxt g'x));
+                    val rl =
+                      @{thm Let_folded} |> cterm_instantiate
+                        [(f_Let_folded, Thm.cterm_of ctxt f),
+                         (x_Let_folded, cx),
+                         (g_Let_folded, Thm.cterm_of ctxt abs_g')];
+                  in SOME (rl OF [Thm.transitive fx_g g_g'x]) end
+              end
+          | _ => NONE)
+      end
 end *}
 
 lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
