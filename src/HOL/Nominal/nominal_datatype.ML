@@ -108,9 +108,9 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
             val cp = cp_inst_of thy a b;
             val dj = dj_thm_of thy b a;
             val dj_cp' = [cp, dj] MRS dj_cp;
-            val cert = SOME o Thm.global_cterm_of thy
+            val cert = SOME o Thm.cterm_of ctxt
           in
-            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.global_ctyp_of thy S)]
+            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.ctyp_of ctxt S)]
               [cert t, cert r, cert s] dj_cp'))
           end
         else NONE

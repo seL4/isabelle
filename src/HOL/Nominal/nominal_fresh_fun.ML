@@ -12,7 +12,6 @@ a tactic to analyse instances of the fresh_fun.
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
   let
-    val thy = Thm.theory_of_thm st;
     val cgoal = nth (cprems_of st) (i - 1);
     val maxidx = Thm.maxidx_of_cterm cgoal;
     val j = maxidx + 1;
@@ -23,8 +22,8 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
       (head_of (Logic.incr_indexes (Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
-      (map (apply2 (Thm.global_ctyp_of thy)) tyinst')
-      (map (apply2 (Thm.global_cterm_of thy)) tinst')
+      (map (apply2 (Thm.ctyp_of ctxt)) tyinst')
+      (map (apply2 (Thm.cterm_of ctxt)) tinst')
       (Thm.lift_rule cgoal th)
   in
     compose_tac ctxt (elim, th', Thm.nprems_of th) i st
