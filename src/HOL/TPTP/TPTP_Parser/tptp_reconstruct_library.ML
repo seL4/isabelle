@@ -566,20 +566,18 @@ fun type_devar (tyenv : ((indexname * sort) * typ) list) (t : term) : term =
   might be needed (not the whole "Thm.prop_of scheme_thm")*)
 fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val (term_pairing, type_pairing) =
-      diff thy (scheme_t, instance_t)
+      diff (Proof_Context.theory_of ctxt) (scheme_t, instance_t)
 
     (*valuation of type variables*)
-    val typeval = map (apply2 (Thm.global_ctyp_of thy)) type_pairing
+    val typeval = map (apply2 (Thm.ctyp_of ctxt)) type_pairing
 
     val typeval_env =
       map (apfst dest_TVar) type_pairing
     (*valuation of term variables*)
     val termval =
       map (apfst (type_devar typeval_env)) term_pairing
-      |> map (apply2 (Thm.global_cterm_of thy))
+      |> map (apply2 (Thm.cterm_of ctxt))
   in
     Thm.instantiate (typeval, termval) scheme_thm
   end

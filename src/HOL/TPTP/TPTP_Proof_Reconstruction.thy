@@ -806,8 +806,6 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
 ML {*
 fun instantiate_skols ctxt consts_candidates i = fn st =>
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val gls =
       Thm.prop_of st
       |> Logic.strip_horn
@@ -917,7 +915,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
     (* val contextualise = fold absdummy (map snd params) *)
     val contextualise = fold absfree params
 
-    val skolem_cts = map (contextualise #> Thm.global_cterm_of thy) skolem_terms
+    val skolem_cts = map (contextualise #> Thm.cterm_of ctxt) skolem_terms
 
 
 (*now the instantiation code*)
@@ -937,7 +935,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
         fun make_var pre_var =
           the_single pre_var
           |> Var
-          |> Thm.global_cterm_of thy
+          |> Thm.cterm_of ctxt
           |> SOME
       in
         if null pre_var then NONE
@@ -2003,7 +2001,7 @@ fun oracle_based_reconstruction_tac ctxt prob_name n =
      thy
      prob_name (#meta pannot) n
       |> the
-      |> (fn {inference_fmla, ...} => Thm.global_cterm_of thy inference_fmla)
+      |> (fn {inference_fmla, ...} => Thm.cterm_of ctxt inference_fmla)
       |> oracle_iinterp
   end
 *}
