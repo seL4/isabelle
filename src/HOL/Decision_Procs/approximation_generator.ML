@@ -117,7 +117,7 @@ val postproc_form_eqs =
   }
 
 fun rewrite_with ctxt thms = Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps thms)
-fun conv_term thy conv r = Thm.global_cterm_of thy r |> conv |> Thm.prop_of |> Logic.dest_equals |> snd
+fun conv_term ctxt conv r = Thm.cterm_of ctxt r |> conv |> Thm.prop_of |> Logic.dest_equals |> snd
 
 fun approx_random ctxt prec eps frees e xs genuine_only size seed =
   let
@@ -138,7 +138,7 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
           (AList.lookup op = (map dest_Free xs ~~ ts)
             #> the_default Term.dummy
             #> curry op $ @{term "real::float\<Rightarrow>_"}
-            #> conv_term (Proof_Context.theory_of ctxt) (rewrite_with ctxt postproc_form_eqs))
+            #> conv_term ctxt (rewrite_with ctxt postproc_form_eqs))
           frees
       in
         if approximate ctxt (mk_approx_form e ts) |> is_True
@@ -159,13 +159,12 @@ val preproc_form_eqs =
     "\<not> (p \<and> q) \<longleftrightarrow> \<not> p \<or> \<not> q"
     "\<not> (p \<or> q) \<longleftrightarrow> \<not> p \<and> \<not> q"
     "\<not> \<not> q \<longleftrightarrow> q"
-    by auto
-  }
+    by auto}
 
 fun reify_goal ctxt t =
   HOLogic.mk_not t
-    |> conv_term (Proof_Context.theory_of ctxt) (rewrite_with ctxt preproc_form_eqs)
-    |> conv_term (Proof_Context.theory_of ctxt) (Reification.conv ctxt form_equations)
+    |> conv_term ctxt (rewrite_with ctxt preproc_form_eqs)
+    |> conv_term ctxt (Reification.conv ctxt form_equations)
     |> dest_interpret_form
     ||> HOLogic.dest_list
 

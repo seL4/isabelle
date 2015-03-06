@@ -50,12 +50,11 @@ fun linr_tac ctxt q =
         THEN' (REPEAT_DETERM o split_tac ctxt [@{thm split_min}, @{thm split_max}, @{thm abs_split}])
         THEN' SUBGOAL (fn (g, i) =>
   let
-    val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val simpset0 = put_simpset HOL_basic_ss ctxt addsimps comp_arith
-    val ct = Thm.global_cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
