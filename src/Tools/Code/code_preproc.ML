@@ -153,12 +153,11 @@ fun conversion sandwich conv ctxt ct =
 
 fun evaluation sandwich lift_postproc eval ctxt t =
   let
-    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
-    val (postproc, ct') = sandwich ctxt (cert t);
+    val (postproc, ct') = sandwich ctxt (Thm.cterm_of ctxt t);
   in
     Thm.term_of ct'
     |> eval ctxt
-    |> lift_postproc (Thm.term_of o Thm.rhs_of o postproc o Thm.reflexive o cert)
+    |> lift_postproc (Thm.term_of o Thm.rhs_of o postproc o Thm.reflexive o Thm.cterm_of ctxt)
   end;
 
 end;
@@ -168,7 +167,6 @@ end;
 
 fun normalized_tfrees_sandwich ctxt ct =
   let
-    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
     val t = Thm.term_of ct;
     val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
@@ -179,15 +177,15 @@ fun normalized_tfrees_sandwich ctxt ct =
   in
     if eq_list (eq_fst (op =)) (vs_normalized, vs_original)
     then (I, ct)
-    else (Thm.certify_instantiate (normalization, []) o Thm.varifyT_global, cert (map_types normalize t))
+    else
+     (Thm.certify_instantiate (normalization, []) o Thm.varifyT_global,
+      Thm.cterm_of ctxt (map_types normalize t))
   end;
 
 fun no_variables_sandwich ctxt ct =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.global_cterm_of thy;
-    val all_vars = fold_aterms (fn t as Free _ => insert (op aconvc) (cert t)
-      | t as Var _ => insert (op aconvc) (cert t)
+    val all_vars = fold_aterms (fn t as Free _ => insert (op aconvc) (Thm.cterm_of ctxt t)
+      | t as Var _ => insert (op aconvc) (Thm.cterm_of ctxt t)
       | _ => I) (Thm.term_of ct) [];
     fun apply_beta var thm = Thm.combination thm (Thm.reflexive var)
       |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
