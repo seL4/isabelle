@@ -953,8 +953,9 @@ apply (erule finite_induct)
 apply (auto simp add: algebra_simps)
 done
 
-lemma setsum_Suc: "setsum (%x. Suc(f x)) A = setsum f A + card A"
-using setsum.distrib[of f "%_. 1" A] by(simp)
+lemma setsum_Suc: "setsum (\<lambda>x. Suc(f x)) A = setsum f A + card A"
+  using setsum.distrib[of f "\<lambda>_. 1" A] 
+  by simp
 
 lemma setsum_bounded:
   assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_ab_semigroup_add})"

@@ -17,11 +17,15 @@ lemma setsum_gp_basic:
   by (simp only: one_diff_power_eq [of "Suc n" x] lessThan_Suc_atMost)
 
 lemma setsum_gp0:
- fixes x :: "'a::{comm_ring,division_ring_inverse_zero}"
- shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
-using setsum_gp_basic[of x n]
-apply (simp add: real_of_nat_def)
-by (metis eq_iff_diff_eq_0 mult.commute nonzero_eq_divide_eq)
+  fixes x :: "'a::{comm_ring,division_ring_inverse_zero}"
+  shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
+  using setsum_gp_basic[of x n]
+  by (simp add: real_of_nat_def mult.commute divide_simps)
+
+lemma setsum_power_add:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "(\<Sum>i\<in>I. x^(m+i)) = x^m * (\<Sum>i\<in>I. x^i)"
+  by (simp add: setsum_right_distrib power_add)
 
 lemma setsum_power_shift:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -67,6 +71,11 @@ lemma setsum_gp_offset:
   using setsum_gp [of x m "m+n"]
   by (auto simp: power_add algebra_simps)
 
+lemma setsum_gp_strict:
+  fixes x :: "'a::{comm_ring,division_ring_inverse_zero}"
+  shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
+  by (induct n) (auto simp: algebra_simps divide_simps)
+    
 subsection{*Basics about polynomial functions: extremal behaviour and root counts.*}
 
 lemma sub_polyfun:

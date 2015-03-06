@@ -842,10 +842,6 @@ next
      by (auto simp add: isCont_iff DERIV_def cong: LIM_cong)
 qed
 
-text {*
- Let's do the standard proof, though theorem
- @{text "LIM_mult2"} follows from a NS proof
-*}
 
 subsection {* Local extrema *}
 

@@ -201,6 +201,12 @@ lemma DERIV_transform_at:
     shows "DERIV g a :> f'"
   by (blast intro: assms DERIV_transform_within)
 
+(*generalising DERIV_isconst_all, which requires type real (using the ordering)*)
+lemma DERIV_zero_UNIV_unique:
+  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
+  shows "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a" 
+by (metis DERIV_zero_unique UNIV_I assms convex_UNIV)
+
 subsection {*Some limit theorems about real part of real series etc.*}
 
 (*MOVE? But not to Finite_Cartesian_Product*)
@@ -553,7 +559,7 @@ apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_c
 apply (simp add: algebra_simps)
 done
 
-subsection{*analyticity on a set*}
+subsection{*Analyticity on a set*}
 
 definition analytic_on (infixl "(analytic'_on)" 50)  
   where
