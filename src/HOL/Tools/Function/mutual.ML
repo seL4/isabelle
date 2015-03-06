@@ -149,8 +149,6 @@ fun define_projections fixes mutual fsum lthy =
 
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val oqnames = map fst pre_qs
     val (qs, _) = Variable.variant_fixes oqnames ctxt
       |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
@@ -160,8 +158,8 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     val args = map inst pre_args
     val rhs = inst pre_rhs
 
-    val cqs = map (Thm.cterm_of thy) qs
-    val ags = map (Thm.assume o Thm.cterm_of thy) gs
+    val cqs = map (Proof_Context.cterm_of ctxt) qs
+    val ags = map (Thm.assume o Proof_Context.cterm_of ctxt) gs
 
     val import = fold Thm.forall_elim cqs
       #> fold Thm.elim_implies ags
@@ -198,10 +196,10 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
 
 fun mk_applied_form ctxt caTs thm =
   let
-    val thy = Proof_Context.theory_of ctxt
     val xs =
       map_index (fn (i, T) =>
-        Thm.cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
+        Proof_Context.cterm_of ctxt
+          (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
   in
     fold (fn x => fn thm => Thm.combination thm (Thm.reflexive x)) xs thm
     |> Conv.fconv_rule (Thm.beta_conversion true)
@@ -211,7 +209,6 @@ fun mk_applied_form ctxt caTs thm =
 
 fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
   let
-    val cert = Proof_Context.cterm_of ctxt
     val newPs =
       map2 (fn Pname => fn MutualPart {cargTs, ...} =>
           Free (Pname, cargTs ---> HOLogic.boolT))
@@ -229,7 +226,7 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
     val case_exp = Sum_Tree.mk_sumcases HOLogic.boolT Ps
 
     val induct_inst =
-      Thm.forall_elim (cert case_exp) induct
+      Thm.forall_elim (Proof_Context.cterm_of ctxt case_exp) induct
       |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
       |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps all_f_defs)
 
@@ -239,9 +236,9 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
         val inj = Sum_Tree.mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
       in
         (rule
-         |> Thm.forall_elim (cert inj)
+         |> Thm.forall_elim (Proof_Context.cterm_of ctxt inj)
          |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
-         |> fold_rev (Thm.forall_intr o cert) (afs @ newPs),
+         |> fold_rev (Thm.forall_intr o Proof_Context.cterm_of ctxt) (afs @ newPs),
          k + length cargTs)
       end
   in
@@ -261,8 +258,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
     val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
     val (args, name_ctxt) = mk_var "x" argsT name_ctxt
     
-    val cert = Proof_Context.cterm_of ctxt
-    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> cert
+    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Proof_Context.cterm_of ctxt
     val sumtree_inj = Sum_Tree.mk_inj ST n i args
 
     val sum_elims =
@@ -274,9 +270,9 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
   in
     cases_rule
     |> Thm.forall_elim P
-    |> Thm.forall_elim (cert sumtree_inj)
+    |> Thm.forall_elim (Proof_Context.cterm_of ctxt sumtree_inj)
     |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal)
-    |> Thm.forall_intr (cert args)
+    |> Thm.forall_intr (Proof_Context.cterm_of ctxt args)
     |> Thm.forall_intr P
   end
 

@@ -66,9 +66,9 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
     fold_rev Logic.all vars (Logic.list_implies (prems, concl))
   end
 
-fun mk_cell thy solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
+fun mk_cell ctxt solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
-    val goals = Thm.cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
+    val goals = Proof_Context.cterm_of ctxt o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
     case try_proof (goals @{const_name Orderings.less}) solve_tac of
       Solved thm => Less thm
@@ -175,7 +175,6 @@ fun no_order_msg ctxt ltable tl measure_funs =
 
 fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   let
-    val thy = Proof_Context.theory_of ctxt
     val ((_ $ (_ $ rel)) :: tl) = Thm.prems_of st
 
     val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
@@ -184,7 +183,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
       Measure_Functions.get_measure_functions ctxt domT
 
     val table = (* 2: create table *)
-      map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
+      map (fn t => map (mk_cell ctxt solve_tac (dest_term t)) measure_funs) tl
   in
     fn st =>
       case search_table table of
@@ -201,10 +200,11 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
             else ()
   
         in (* 4: proof reconstruction *)
-          st |> (PRIMITIVE (cterm_instantiate [(Thm.cterm_of thy rel, Thm.cterm_of thy relation)])
-          THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
-          THEN (rtac @{thm "wf_empty"} 1)
-          THEN EVERY (map prove_row clean_table))
+          st |>
+          (PRIMITIVE (cterm_instantiate [apply2 (Proof_Context.cterm_of ctxt) (rel, relation)])
+            THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
+            THEN (rtac @{thm "wf_empty"} 1)
+            THEN EVERY (map prove_row clean_table))
         end
   end) 1 st;
 

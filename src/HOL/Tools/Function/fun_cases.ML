@@ -19,7 +19,6 @@ struct
 
 fun mk_fun_cases ctxt prop =
   let
-    val thy = Proof_Context.theory_of ctxt;
     fun err () =
       error (Pretty.string_of (Pretty.block
         [Pretty.str "Proposition is not a function equation:",
@@ -30,7 +29,7 @@ fun mk_fun_cases ctxt prop =
     val info = Function.get_info ctxt f handle List.Empty => err ();
     val {elims, pelims, is_partial, ...} = info;
     val elims = if is_partial then pelims else the elims;
-    val cprop = Thm.cterm_of thy prop;
+    val cprop = Proof_Context.cterm_of ctxt prop;
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (Inductive.mk_cases_tac ctxt) (Thm.assume cprop RS rl))
