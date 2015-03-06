@@ -207,7 +207,7 @@ local
         else oracle ()
     | (result, _) => raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat)))
 
-  val cfalse = Thm.global_cterm_of @{theory} @{prop False}
+  val cfalse = Thm.cterm_of @{context} @{prop False}
 in
 
 fun add_solver ({name, class, avail, command, options, smt_options, default_max_relevant, outcome,

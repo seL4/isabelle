@@ -22,7 +22,7 @@ sig
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
-  val cong_extensionalize_thm : theory -> thm -> thm
+  val cong_extensionalize_thm : Proof.context -> thm -> thm
   val abs_extensionalize_conv : Proof.context -> conv
   val abs_extensionalize_thm : Proof.context -> thm -> thm
   val make_clauses_unsorted: Proof.context -> thm list -> thm list
@@ -174,7 +174,7 @@ fun quant_resolve_tac ctxt th i st =
   case (Thm.concl_of st, Thm.prop_of th) of
     (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
     let
-      val cc = Thm.global_cterm_of (Thm.theory_of_thm th) c
+      val cc = Thm.cterm_of ctxt c
       val ct = Thm.dest_arg (Thm.cprop_of th)
     in resolve_tac ctxt [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
   | _ => resolve_tac ctxt [th] i st
@@ -622,14 +622,14 @@ val F_ext_cong_neq =
   |> the_single |> Var
 
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
-fun cong_extensionalize_thm thy th =
+fun cong_extensionalize_thm ctxt th =
   (case Thm.concl_of th of
     @{const Trueprop} $ (@{const Not}
         $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
        SOME p =>
-       let val inst = [apply2 (Thm.global_cterm_of thy) (F_ext_cong_neq, p)] in
+       let val inst = [apply2 (Thm.cterm_of ctxt) (F_ext_cong_neq, p)] in
          th RS cterm_instantiate inst ext_cong_neq
        end
      | NONE => th)
@@ -651,8 +651,7 @@ val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
 
 fun try_skolemize_etc ctxt th =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val th = th |> cong_extensionalize_thm thy
+    val th = th |> cong_extensionalize_thm ctxt
   in
     [th]
     (* Extensionalize lambdas in "th", because that makes sense and that's what

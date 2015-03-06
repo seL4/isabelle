@@ -41,7 +41,7 @@ sig
   val hol_open_form : (string -> string) -> term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
-  val cong_extensionalize_term : theory -> term -> term
+  val cong_extensionalize_term : Proof.context -> term -> term
   val abs_extensionalize_term : Proof.context -> term -> term
   val unextensionalize_def : term -> term
   val transform_elim_prop : term -> term
@@ -338,10 +338,10 @@ fun eta_expand _ t 0 = t
              (List.take (binder_types (fastype_of1 (Ts, t)), n))
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
 
-fun cong_extensionalize_term thy t =
+fun cong_extensionalize_term ctxt t =
   if exists_Const (fn (s, _) => s = @{const_name Not}) t then
-    t |> Skip_Proof.make_thm thy
-      |> Meson.cong_extensionalize_thm thy
+    t |> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+      |> Meson.cong_extensionalize_thm ctxt
       |> Thm.prop_of
   else
     t
@@ -352,10 +352,8 @@ fun is_fun_equality (@{const_name HOL.eq},
 
 fun abs_extensionalize_term ctxt t =
   if exists_Const is_fun_equality t then
-    let val thy = Proof_Context.theory_of ctxt in
-      t |> Thm.global_cterm_of thy |> Meson.abs_extensionalize_conv ctxt
-        |> Thm.prop_of |> Logic.dest_equals |> snd
-    end
+    t |> Thm.cterm_of ctxt |> Meson.abs_extensionalize_conv ctxt
+      |> Thm.prop_of |> Logic.dest_equals |> snd
   else
     t
 

@@ -88,7 +88,8 @@ fun lookth th_pairs fth =
   the (AList.lookup (uncurry Metis_Thm.equal) th_pairs fth)
   handle Option.Option => raise Fail ("Failed to find Metis theorem " ^ Metis_Thm.toString fth)
 
-fun cterm_incr_types thy idx = Thm.global_cterm_of thy o map_types (Logic.incr_tvar idx)
+fun cterm_incr_types ctxt idx =
+  Thm.cterm_of ctxt o map_types (Logic.incr_tvar idx)
 
 (* INFERENCE RULE: AXIOM *)
 
@@ -100,17 +101,17 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 val EXCLUDED_MIDDLE = @{lemma "P ==> ~ P ==> False" by (rule notE)}
 
-fun inst_excluded_middle thy i_atom =
+fun inst_excluded_middle ctxt i_atom =
   let
     val th = EXCLUDED_MIDDLE
     val [vx] = Term.add_vars (Thm.prop_of th) []
-    val substs = [(Thm.global_cterm_of thy (Var vx), Thm.global_cterm_of thy i_atom)]
+    val substs = [(Thm.cterm_of ctxt (Var vx), Thm.cterm_of ctxt i_atom)]
   in
     cterm_instantiate substs th
   end
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
-  inst_excluded_middle (Proof_Context.theory_of ctxt)
+  inst_excluded_middle ctxt
     (singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
@@ -120,7 +121,6 @@ fun assume_inference ctxt type_enc concealed sym_tab atom =
 
 fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
   let
-    val thy = Proof_Context.theory_of ctxt
     val i_th = lookth th_pairs th
     val i_th_vars = Term.add_vars (Thm.prop_of i_th) []
 
@@ -131,7 +131,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
         (* We call "polish_hol_terms" below. *)
         val t = hol_term_of_metis ctxt type_enc sym_tab y
       in
-        SOME (Thm.global_cterm_of thy (Var v), t)
+        SOME (Thm.cterm_of ctxt (Var v), t)
       end
       handle Option.Option =>
              (trace_msg ctxt (fn () =>
@@ -155,7 +155,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
     val (vars, tms) =
       ListPair.unzip (map_filter subst_translation substs)
       ||> polish_hol_terms ctxt concealed
-    val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
+    val ctm_of = cterm_incr_types ctxt (1 + Thm.maxidx_of i_th)
     val substs' = ListPair.zip (vars, map ctm_of tms)
     val _ = trace_msg ctxt (fn () =>
       cat_lines ("subst_translations:" ::
@@ -205,7 +205,6 @@ fun resolve_inc_tyvars ctxt tha i thb =
     res (tha, thb)
     handle TERM z =>
       let
-        val thy = Proof_Context.theory_of ctxt
         val ps = []
           |> fold (Term.add_vars o Thm.prop_of) [tha, thb]
           |> AList.group (op =)
@@ -213,7 +212,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           |> rpair (Envir.empty ~1)
           |-> fold (Pattern.unify (Context.Proof ctxt))
           |> Envir.type_env |> Vartab.dest
-          |> map (fn (x, (S, T)) => apply2 (Thm.global_ctyp_of thy) (TVar (x, S), T))
+          |> map (fn (x, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (x, S), T))
       in
         (* The unifier, which is invoked from "Thm.bicompose", will sometimes refuse to unify
            "?a::?'a" with "?a::?'b" or "?a::nat" and throw a "TERM" exception (with "add_ffpair" as
@@ -303,15 +302,14 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
 
-val refl_x = Thm.global_cterm_of @{theory} (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
+val refl_x = Thm.cterm_of @{context} (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
 fun refl_inference ctxt type_enc concealed sym_tab t =
   let
-    val thy = Proof_Context.theory_of ctxt
     val i_t = singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) t
     val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
-    val c_t = cterm_incr_types thy refl_idx i_t
+    val c_t = cterm_incr_types ctxt refl_idx i_t
   in cterm_instantiate [(refl_x, c_t)] REFL_THM end
 
 (* INFERENCE RULE: EQUALITY *)
@@ -374,8 +372,9 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill-typed but gives right max*)
       val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
-      val eq_terms = map (apply2 (Thm.global_cterm_of thy))
-        (ListPair.zip (Misc_Legacy.term_vars (Thm.prop_of subst'), [tm_abs, tm_subst, i_tm]))
+      val eq_terms =
+        map (apply2 (Thm.cterm_of ctxt))
+          (ListPair.zip (Misc_Legacy.term_vars (Thm.prop_of subst'), [tm_abs, tm_subst, i_tm]))
   in
     cterm_instantiate eq_terms subst'
   end
@@ -477,7 +476,7 @@ fun replay_one_inference ctxt type_enc concealed sym_tab (fol_th, inf)
    variables before applying "assume_tac". Typical constraints are of the form
      ?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x,
    where the nonvariables are goal parameters. *)
-fun unify_first_prem_with_concl thy i th =
+fun unify_first_prem_with_concl ctxt i th =
   let
     val goal = Logic.get_goal (Thm.prop_of th) i |> Envir.beta_eta_contract
     val prem = goal |> Logic.strip_assums_hyp |> hd
@@ -520,7 +519,7 @@ fun unify_first_prem_with_concl thy i th =
       | _ => I)
 
     val t_inst =
-      [] |> try (unify_terms (prem, concl) #> map (apply2 (Thm.global_cterm_of thy)))
+      [] |> try (unify_terms (prem, concl) #> map (apply2 (Thm.cterm_of ctxt)))
          |> the_default [] (* FIXME *)
   in
     cterm_instantiate t_inst th
@@ -539,8 +538,6 @@ val is_metis_fresh_variable = String.isPrefix "_"
 
 fun instantiate_forall_tac ctxt t i st =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val params = Logic.strip_params (Logic.get_goal (Thm.prop_of st) i) |> rev
 
     fun repair (t as (Var ((s, _), _))) =
@@ -574,9 +571,9 @@ fun instantiate_forall_tac ctxt t i st =
             Envir.Envir {maxidx = Vartab.fold (Integer.max o snd o fst) tyenv 0,
               tenv = Vartab.empty, tyenv = tyenv}
           val ty_inst =
-            Vartab.fold (fn (x, (S, T)) => cons (apply2 (Thm.global_ctyp_of thy) (TVar (x, S), T)))
+            Vartab.fold (fn (x, (S, T)) => cons (apply2 (Thm.ctyp_of ctxt) (TVar (x, S), T)))
               tyenv []
-          val t_inst = [apply2 (Thm.global_cterm_of thy o Envir.norm_term env) (Var var, t')]
+          val t_inst = [apply2 (Thm.cterm_of ctxt o Envir.norm_term env) (Var var, t')]
         in
           Drule.instantiate_normalize (ty_inst, t_inst) th
         end
@@ -747,7 +744,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             THEN match_tac ctxt' [prems_imp_false] 1
             THEN ALLGOALS (fn i => resolve_tac ctxt' @{thms Meson.skolem_COMBK_I} i
               THEN rotate_tac (rotation_of_subgoal i) i
-              THEN PRIMITIVE (unify_first_prem_with_concl thy i)
+              THEN PRIMITIVE (unify_first_prem_with_concl ctxt' i)
               THEN assume_tac ctxt' i
               THEN flexflex_tac ctxt')))
       handle ERROR msg =>

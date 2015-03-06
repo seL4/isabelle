@@ -31,7 +31,7 @@ fun drop_fact_warning ctxt =
 (** instantiate elimination rules **)
 
 local
-  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.global_cterm_of @{theory} @{const False})
+  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of @{context} @{const False})
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -189,7 +189,7 @@ local
   fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =
-    apply2 (Thm.global_cterm_of @{theory}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
+    apply2 (Thm.cterm_of @{context}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
   val mk_pat_list = mk_list (mk_clist @{typ pattern})
   val mk_mpat_list = mk_list (mk_clist @{typ "pattern symb_list"})

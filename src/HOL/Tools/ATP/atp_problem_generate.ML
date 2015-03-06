@@ -758,13 +758,11 @@ fun reveal_bounds Ts =
                     (0 upto length Ts - 1 ~~ Ts))
 
 fun do_introduce_combinators ctxt Ts t =
-  let val thy = Proof_Context.theory_of ctxt in
-    t |> conceal_bounds Ts
-      |> Thm.global_cterm_of thy
-      |> Meson_Clausify.introduce_combinators_in_cterm
-      |> Thm.prop_of |> Logic.dest_equals |> snd
-      |> reveal_bounds Ts
-  end
+  (t |> conceal_bounds Ts
+     |> Thm.cterm_of ctxt
+     |> Meson_Clausify.introduce_combinators_in_cterm
+     |> Thm.prop_of |> Logic.dest_equals |> snd
+     |> reveal_bounds Ts)
   (* A type variable of sort "{}" will make abstraction fail. *)
   handle THM _ => t |> do_cheaply_conceal_lambdas Ts
 val introduce_combinators = simple_translate_lambdas do_introduce_combinators
@@ -1255,7 +1253,7 @@ fun presimp_prop ctxt type_enc t =
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> (if is_ho then unextensionalize_def
-          else cong_extensionalize_term thy #> abs_extensionalize_term ctxt)
+          else cong_extensionalize_term ctxt #> abs_extensionalize_term ctxt)
       |> presimplify_term ctxt
       |> HOLogic.dest_Trueprop
   end

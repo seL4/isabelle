@@ -44,26 +44,23 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". Type tag idempotence is also handled this way. *)
 fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
-  let val thy = Proof_Context.theory_of ctxt in
-    (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
-      Const (@{const_name HOL.eq}, _) $ _ $ t =>
-      let
-        val ct = Thm.global_cterm_of thy t
-        val cT = Thm.ctyp_of_cterm ct
-      in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
-    | Const (@{const_name disj}, _) $ t1 $ t2 =>
-      (if can HOLogic.dest_not t1 then t2 else t1)
-      |> HOLogic.mk_Trueprop |> Thm.global_cterm_of thy |> Thm.trivial
-    | _ => raise Fail "expected reflexive or trivial clause")
-  end
+  (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
+    Const (@{const_name HOL.eq}, _) $ _ $ t =>
+    let
+      val ct = Thm.cterm_of ctxt t
+      val cT = Thm.ctyp_of_cterm ct
+    in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
+  | Const (@{const_name disj}, _) $ t1 $ t2 =>
+    (if can HOLogic.dest_not t1 then t2 else t1)
+    |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
+  | _ => raise Fail "expected reflexive or trivial clause")
   |> Meson.make_meta_clause
 
 fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
-    val thy = Proof_Context.theory_of ctxt
     val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
-    val ct = Thm.global_cterm_of thy (HOLogic.mk_Trueprop t)
+    val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
   in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause end
 
 fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
@@ -77,7 +74,6 @@ fun introduce_lam_wrappers ctxt th =
     th
   else
     let
-      val thy = Proof_Context.theory_of ctxt
       fun conv first ctxt ct =
         if Meson_Clausify.is_quasi_lambda_free (Thm.term_of ct) then
           Thm.reflexive ct
@@ -91,7 +87,7 @@ fun introduce_lam_wrappers ctxt th =
                 |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
               | v :: _ =>
                 Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
-                |> Thm.global_cterm_of thy
+                |> Thm.cterm_of ctxt
                 |> Conv.comb_conv (conv true ctxt))
             else
               Conv.abs_conv (conv false o snd) ctxt ct
@@ -101,7 +97,7 @@ fun introduce_lam_wrappers ctxt th =
       (* We replace the equation's left-hand side with a beta-equivalent term
          so that "Thm.equal_elim" works below. *)
       val t0 $ _ $ t2 = Thm.prop_of eq_th
-      val eq_ct = t0 $ Thm.prop_of th $ t2 |> Thm.global_cterm_of thy
+      val eq_ct = t0 $ Thm.prop_of th $ t2 |> Thm.cterm_of ctxt
       val eq_th' = Goal.prove_internal ctxt [] eq_ct (K (resolve_tac ctxt [eq_th] 1))
     in Thm.equal_elim eq_th' th end
 
