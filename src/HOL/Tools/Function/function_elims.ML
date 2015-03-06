@@ -79,8 +79,6 @@ in
 
 fun mk_partial_elim_rules ctxt result =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
 

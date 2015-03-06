@@ -15,17 +15,15 @@ struct
 
 (* tactic version *)
 
-fun inst_state_tac inst st =
+fun inst_state_tac ctxt inst st =
   (case Term.add_vars (Thm.prop_of st) [] of  (* FIXME tactic should not inspect main conclusion *)
     [v as (_, T)] =>
-      let val thy = Thm.theory_of_thm st in
-        PRIMITIVE (Thm.instantiate ([], [(Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy (inst T))])) st
-      end
+      PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of ctxt (Var v), Thm.cterm_of ctxt (inst T))])) st
   | _ => Seq.empty);
 
 fun relation_tac ctxt rel i =
   TRY (Function_Common.termination_rule_tac ctxt i)
-  THEN inst_state_tac rel;
+  THEN inst_state_tac ctxt rel;
 
 
 (* version with type inference *)

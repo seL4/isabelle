@@ -23,10 +23,10 @@ fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)
 
 fun inst_free var inst = Thm.forall_elim inst o Thm.forall_intr var
 
-fun inst_case_thm thy x P thm =
+fun inst_case_thm ctxt x P thm =
   let val [Pv, xv] = Term.add_vars (Thm.prop_of thm) []
   in
-    thm |> cterm_instantiate (map (apply2 (Thm.global_cterm_of thy)) [(Var xv, x), (Var Pv, P)])
+    thm |> cterm_instantiate (map (apply2 (Thm.cterm_of ctxt)) [(Var xv, x), (Var Pv, P)])
   end
 
 fun invent_vars constr i =
@@ -40,26 +40,24 @@ fun invent_vars constr i =
    (avs, pvs, j)
  end
 
-fun filter_pats ctxt cons pvars [] = []
-  | filter_pats ctxt cons pvars (([], thm) :: pts) = raise Match
+fun filter_pats _ _ _ [] = []
+  | filter_pats _ _ _ (([], _) :: _) = raise Match
   | filter_pats ctxt cons pvars (((pat as Free _) :: pats, thm) :: pts) =
-    let val inst = list_comb (cons, pvars) in
-      (inst :: pats,
-        inst_free (Thm.cterm_of ctxt pat) (Thm.cterm_of ctxt inst) thm)
-        :: (filter_pats ctxt cons pvars pts)
-    end
-  | filter_pats thy cons pvars ((pat :: pats, thm) :: pts) =
-    if fst (strip_comb pat) = cons
-    then (pat :: pats, thm) :: (filter_pats thy cons pvars pts)
-    else filter_pats thy cons pvars pts
+      let val inst = list_comb (cons, pvars) in
+        (inst :: pats, inst_free (Thm.cterm_of ctxt pat) (Thm.cterm_of ctxt inst) thm) ::
+          filter_pats ctxt cons pvars pts
+      end
+  | filter_pats ctxt cons pvars ((pat :: pats, thm) :: pts) =
+      if fst (strip_comb pat) = cons
+      then (pat :: pats, thm) :: filter_pats ctxt cons pvars pts
+      else filter_pats ctxt cons pvars pts
 
 
-fun transform_pat _ avars c_assum ([] , thm) = raise Match
+fun transform_pat _ _ _ ([] , _) = raise Match
   | transform_pat ctxt avars c_assum (pat :: pats, thm) =
       let
         val (_, subps) = strip_comb pat
-        val eqs =
-          map (Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
+        val eqs = map (Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
         val c_eq_pat =
           simplify (put_simpset HOL_basic_ss ctxt addsimps (map Thm.assume eqs)) c_assum
       in
@@ -95,13 +93,12 @@ and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
                   (Thm.cterm_of ctxt v) thm))) pts)
       else (* Cons case *)
         let
-          val thy = Proof_Context.theory_of ctxt
           val T as Type (tname, _) = fastype_of v
           val SOME {exhaust=case_thm, ...} = Ctr_Sugar.ctr_sugar_of ctxt tname
           val constrs = inst_constrs_of ctxt T
           val c_cases = map (constr_case ctxt P idx (v :: vs) pts) constrs
         in
-          inst_case_thm thy v P case_thm
+          inst_case_thm ctxt v P case_thm
           |> fold (curry op COMP) c_cases
         end
   | o_alg _ _ _ _ _ = raise Match

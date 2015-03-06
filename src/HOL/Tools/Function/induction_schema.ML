@@ -45,8 +45,8 @@ fun meta thm = thm RS eq_reflection
 fun sum_prod_conv ctxt = Raw_Simplifier.rewrite ctxt true
   (map meta (@{thm split_conv} :: @{thms sum.case}))
 
-fun term_conv thy cv t =
-  cv (Thm.global_cterm_of thy t)
+fun term_conv ctxt cv t =
+  cv (Thm.cterm_of ctxt t)
   |> Thm.prop_of |> Logic.dest_equals |> snd
 
 fun mk_relT T = HOLogic.mk_setT (HOLogic.mk_prodT (T, T))
@@ -194,7 +194,7 @@ fun mk_ind_goal ctxt branches =
       HOLogic.mk_Trueprop (list_comb (P, map Free xs))
       |> fold_rev (curry Logic.mk_implies) Cs
       |> fold_rev (Logic.all o Free) ws
-      |> term_conv thy (ind_atomize ctxt)
+      |> term_conv ctxt (ind_atomize ctxt)
       |> Object_Logic.drop_judgment thy
       |> HOLogic.tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
   in

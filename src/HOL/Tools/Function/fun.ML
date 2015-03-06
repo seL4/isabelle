@@ -28,7 +28,6 @@ fun check_pats ctxt geq =
     fun err str = error (cat_lines ["Malformed definition:",
       str ^ " not allowed in sequential mode.",
       Syntax.string_of_term ctxt geq])
-    val thy = Proof_Context.theory_of ctxt
 
     fun check_constr_pattern (Bound _) = ()
       | check_constr_pattern t =
