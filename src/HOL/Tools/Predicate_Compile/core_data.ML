@@ -235,7 +235,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         fun term_pair_of (ix, (ty, t)) = (Var (ix, ty), t)
         fun inst_of_matches tts =
           fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
-          |> snd |> Vartab.dest |> map (apply2 (Thm.global_cterm_of thy) o term_pair_of)
+          |> snd |> Vartab.dest |> map (apply2 (Thm.cterm_of ctxt2) o term_pair_of)
         val (cases, (eqs, prems1)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
           rewrite_rule ctxt2 (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))

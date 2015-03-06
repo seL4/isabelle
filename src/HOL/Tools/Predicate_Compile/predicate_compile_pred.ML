@@ -143,7 +143,7 @@ fun flatten_intros constname intros thy =
 
 fun introrulify thy ths = 
   let
-    val ctxt = Proof_Context.init_global thy
+    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, ths'), ctxt') = Variable.import true ths ctxt
     fun introrulify' th =
       let
@@ -158,14 +158,15 @@ fun introrulify thy ths =
           in
             (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
           end
-        val x = (Thm.global_cterm_of thy o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
-          Logic.dest_implies o Thm.prop_of) @{thm exI}
+        val x =
+          (Thm.cterm_of ctxt' o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
+            Logic.dest_implies o Thm.prop_of) @{thm exI}
         fun prove_introrule (index, (ps, introrule)) =
           let
             val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
               THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
-                rtac (Drule.cterm_instantiate [(x, Thm.global_cterm_of thy (Free y))] @{thm exI}) 1) ps))
+                rtac (Drule.cterm_instantiate [(x, Thm.cterm_of ctxt' (Free y))] @{thm exI}) 1) ps))
               THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN assume_tac ctxt' 1)
               THEN TRY (assume_tac ctxt' 1)
           in

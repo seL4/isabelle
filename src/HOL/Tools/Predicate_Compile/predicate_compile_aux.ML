@@ -869,7 +869,7 @@ fun dest_conjunct_prem th =
 
 fun expand_tuples thy intro =
   let
-    val ctxt = Proof_Context.init_global thy
+    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
     val intro_t = Thm.prop_of intro'
     val concl = Logic.strip_imp_concl intro_t
@@ -877,7 +877,7 @@ fun expand_tuples thy intro =
     val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
     val (pats', _, ctxt3) = fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
     fun rewrite_pat (ct1, ct2) =
-      (ct1, Thm.global_cterm_of thy (Pattern.rewrite_term thy pats' [] (Thm.term_of ct2)))
+      (ct1, Thm.cterm_of ctxt3 (Pattern.rewrite_term thy pats' [] (Thm.term_of ct2)))
     val t_insts' = map rewrite_pat t_insts
     val intro'' = Thm.instantiate (T_insts, t_insts') intro
     val [intro'''] = Variable.export ctxt3 ctxt [intro'']
