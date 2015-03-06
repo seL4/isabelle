@@ -137,13 +137,13 @@ fun mk_builtin_num _ i @{typ int} = SOME (Numeral.mk_cnumber @{ctyp int} i)
   | mk_builtin_num ctxt i T =
       chained_mk_builtin_num ctxt (get_mk_builtins ctxt) i T
 
-val mk_true = Thm.global_cterm_of @{theory} (@{const Not} $ @{const False})
-val mk_false = Thm.global_cterm_of @{theory} @{const False}
-val mk_not = Thm.apply (Thm.global_cterm_of @{theory} @{const Not})
-val mk_implies = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const HOL.implies})
-val mk_iff = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const HOL.eq (bool)})
-val conj = Thm.global_cterm_of @{theory} @{const HOL.conj}
-val disj = Thm.global_cterm_of @{theory} @{const HOL.disj}
+val mk_true = Thm.cterm_of @{context} (@{const Not} $ @{const False})
+val mk_false = Thm.cterm_of @{context} @{const False}
+val mk_not = Thm.apply (Thm.cterm_of @{context} @{const Not})
+val mk_implies = Thm.mk_binop (Thm.cterm_of @{context} @{const HOL.implies})
+val mk_iff = Thm.mk_binop (Thm.cterm_of @{context} @{const HOL.eq (bool)})
+val conj = Thm.cterm_of @{context} @{const HOL.conj}
+val disj = Thm.cterm_of @{context} @{const HOL.disj}
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
@@ -184,15 +184,15 @@ fun mk_update array index value =
     Thm.apply (Thm.mk_binop (Old_SMT_Utils.instTs cTs update) array index) value
   end
 
-val mk_uminus = Thm.apply (Thm.global_cterm_of @{theory} @{const uminus (int)})
-val add = Thm.global_cterm_of @{theory} @{const plus (int)}
+val mk_uminus = Thm.apply (Thm.cterm_of @{context} @{const uminus (int)})
+val add = Thm.cterm_of @{context} @{const plus (int)}
 val int0 = Numeral.mk_cnumber @{ctyp int} 0
-val mk_sub = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const minus (int)})
-val mk_mul = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const times (int)})
-val mk_div = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const z3div})
-val mk_mod = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const z3mod})
-val mk_lt = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const less (int)})
-val mk_le = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const less_eq (int)})
+val mk_sub = Thm.mk_binop (Thm.cterm_of @{context} @{const minus (int)})
+val mk_mul = Thm.mk_binop (Thm.cterm_of @{context} @{const times (int)})
+val mk_div = Thm.mk_binop (Thm.cterm_of @{context} @{const z3div})
+val mk_mod = Thm.mk_binop (Thm.cterm_of @{context} @{const z3mod})
+val mk_lt = Thm.mk_binop (Thm.cterm_of @{context} @{const less (int)})
+val mk_le = Thm.mk_binop (Thm.cterm_of @{context} @{const less_eq (int)})
 
 fun mk_builtin_fun ctxt sym cts =
   (case (sym, cts) of

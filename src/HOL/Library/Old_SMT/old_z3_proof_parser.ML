@@ -181,7 +181,7 @@ datatype proof_step = Proof_Step of {
 
 (** parser context **)
 
-val not_false = Thm.global_cterm_of @{theory} (@{const Not} $ @{const False})
+val not_false = Thm.cterm_of @{context} (@{const Not} $ @{const False})
 
 fun make_context ctxt typs terms =
   let
@@ -381,7 +381,7 @@ fun variables st = par (this "vars" |-- seps1 (par (name |-- sep sort))) st
 
 fun pats st = seps (par ((this ":pat" || this ":nopat") |-- seps1 id)) st
 
-val ctrue = Thm.global_cterm_of @{theory} @{const True}
+val ctrue = Thm.cterm_of @{context} @{const True}
 
 fun pattern st = par (this "pattern" |-- Scan.repeat1 (sep arg) >>
   (the o mk_fun (K (SOME ctrue)))) st

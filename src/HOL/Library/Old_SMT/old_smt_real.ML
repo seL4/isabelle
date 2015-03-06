@@ -64,14 +64,14 @@ local
   fun mk_nary _ cu [] = cu
     | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-  val mk_uminus = Thm.apply (Thm.global_cterm_of @{theory} @{const uminus (real)})
-  val add = Thm.global_cterm_of @{theory} @{const plus (real)}
+  val mk_uminus = Thm.apply (Thm.cterm_of @{context} @{const uminus (real)})
+  val add = Thm.cterm_of @{context} @{const plus (real)}
   val real0 = Numeral.mk_cnumber @{ctyp real} 0
-  val mk_sub = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const minus (real)})
-  val mk_mul = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const times (real)})
-  val mk_div = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const divide (real)})
-  val mk_lt = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const less (real)})
-  val mk_le = Thm.mk_binop (Thm.global_cterm_of @{theory} @{const less_eq (real)})
+  val mk_sub = Thm.mk_binop (Thm.cterm_of @{context} @{const minus (real)})
+  val mk_mul = Thm.mk_binop (Thm.cterm_of @{context} @{const times (real)})
+  val mk_div = Thm.mk_binop (Thm.cterm_of @{context} @{const divide (real)})
+  val mk_lt = Thm.mk_binop (Thm.cterm_of @{context} @{const less (real)})
+  val mk_le = Thm.mk_binop (Thm.cterm_of @{context} @{const less_eq (real)})
 
   fun z3_mk_builtin_fun (Old_Z3_Interface.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
     | z3_mk_builtin_fun (Old_Z3_Interface.Sym ("+", _)) cts =

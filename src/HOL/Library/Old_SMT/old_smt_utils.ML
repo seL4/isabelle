@@ -175,7 +175,7 @@ fun dest_cbinder ct ctxt =
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
 
-val mk_cprop = Thm.apply (Thm.global_cterm_of @{theory} @{const Trueprop})
+val mk_cprop = Thm.apply (Thm.cterm_of @{context} @{const Trueprop})
 
 fun dest_cprop ct =
   (case Thm.term_of ct of

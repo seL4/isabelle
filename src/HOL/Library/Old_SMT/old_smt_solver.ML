@@ -195,7 +195,7 @@ local
             const_defs = us})
         end)
 
-  val cfalse = Thm.global_cterm_of @{theory} (@{const Trueprop} $ @{const False})
+  val cfalse = Thm.cterm_of @{context} (@{const Trueprop} $ @{const False})
 in
 
 fun add_solver cfg =
@@ -268,7 +268,7 @@ fun check_topsorts ctxt iwthms = map (apsnd (apsnd (check_topsort ctxt))) iwthms
 
 (* filter *)
 
-val cnot = Thm.global_cterm_of @{theory} @{const Not}
+val cnot = Thm.cterm_of @{context} @{const Not}
 
 fun mk_result outcome xrules = { outcome = outcome, used_facts = xrules }
 

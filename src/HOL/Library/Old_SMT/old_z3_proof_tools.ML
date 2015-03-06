@@ -229,7 +229,7 @@ fun abstract depth (ext_logic, with_theories) =
             | _ => fresh_abstraction dcvs ct cx)))
   in abstr (depth, []) end
 
-val cimp = Thm.global_cterm_of @{theory} @{const Pure.imp}
+val cimp = Thm.cterm_of @{context} @{const Pure.imp}
 
 fun deepen depth f x =
   if depth = 0 then f depth x
