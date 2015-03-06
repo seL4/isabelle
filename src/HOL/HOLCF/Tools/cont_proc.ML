@@ -121,8 +121,7 @@ fun cont_tac ctxt =
 local
   fun solve_cont ctxt t =
     let
-      val thy = Proof_Context.theory_of ctxt
-      val tr = instantiate' [] [SOME (Thm.global_cterm_of thy t)] @{thm Eq_TrueI}
+      val tr = instantiate' [] [SOME (Thm.cterm_of ctxt t)] @{thm Eq_TrueI}
     in Option.map fst (Seq.pull (cont_tac ctxt 1 tr)) end
 in
   fun cont_proc thy =

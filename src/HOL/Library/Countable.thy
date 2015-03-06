@@ -180,8 +180,7 @@ ML {*
         val alist = pred_names ~~ induct_thms
         val induct_thm = the (AList.lookup (op =) alist pred_name)
         val vars = rev (Term.add_vars (Thm.prop_of induct_thm) [])
-        val thy = Proof_Context.theory_of ctxt
-        val insts = vars |> map (fn (_, T) => try (Thm.global_cterm_of thy)
+        val insts = vars |> map (fn (_, T) => try (Thm.cterm_of ctxt)
           (Const (@{const_name Countable.finite_item}, T)))
         val induct_thm' = Drule.instantiate' [] insts induct_thm
         val rules = @{thms finite_item.intros}

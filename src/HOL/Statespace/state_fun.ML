@@ -53,26 +53,24 @@ in
 val lazy_conj_simproc =
   Simplifier.simproc_global @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn ctxt => fn t =>
-      let val thy = Proof_Context.theory_of ctxt in
-        (case t of (Const (@{const_name HOL.conj},_) $ P $ Q) =>
-          let
-            val P_P' = Simplifier.rewrite ctxt (Thm.global_cterm_of thy P);
-            val P' = P_P' |> Thm.prop_of |> Logic.dest_equals |> #2;
-          in
-            if isFalse P' then SOME (conj1_False OF [P_P'])
-            else
-              let
-                val Q_Q' = Simplifier.rewrite ctxt (Thm.global_cterm_of thy Q);
-                val Q' = Q_Q' |> Thm.prop_of |> Logic.dest_equals |> #2;
-              in
-                if isFalse Q' then SOME (conj2_False OF [Q_Q'])
-                else if isTrue P' andalso isTrue Q' then SOME (conj_True OF [P_P', Q_Q'])
-                else if P aconv P' andalso Q aconv Q' then NONE
-                else SOME (conj_cong OF [P_P', Q_Q'])
-              end
-           end
-        | _ => NONE)
-      end);
+      (case t of (Const (@{const_name HOL.conj},_) $ P $ Q) =>
+        let
+          val P_P' = Simplifier.rewrite ctxt (Thm.cterm_of ctxt P);
+          val P' = P_P' |> Thm.prop_of |> Logic.dest_equals |> #2;
+        in
+          if isFalse P' then SOME (conj1_False OF [P_P'])
+          else
+            let
+              val Q_Q' = Simplifier.rewrite ctxt (Thm.cterm_of ctxt Q);
+              val Q' = Q_Q' |> Thm.prop_of |> Logic.dest_equals |> #2;
+            in
+              if isFalse Q' then SOME (conj2_False OF [Q_Q'])
+              else if isTrue P' andalso isTrue Q' then SOME (conj_True OF [P_P', Q_Q'])
+              else if P aconv P' andalso Q aconv Q' then NONE
+              else SOME (conj_cong OF [P_P', Q_Q'])
+            end
+         end
+      | _ => NONE));
 
 fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
@@ -113,7 +111,6 @@ val lookup_simproc =
       (case t of (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $
                    (s as Const (@{const_name StateFun.update}, uT) $ _ $ _ $ _ $ _ $ _)) =>
         (let
-          val thy = Proof_Context.theory_of ctxt;
           val (_::_::_::_::sT::_) = binder_types uT;
           val mi = maxidx_of_term t;
           fun mk_upds (Const (@{const_name StateFun.update}, uT) $ d' $ c $ m $ v $ s) =
@@ -141,7 +138,8 @@ val lookup_simproc =
             | mk_upds s = (Var (("s", mi + 1), sT), mi + 2);
 
           val ct =
-            Thm.global_cterm_of thy (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $ fst (mk_upds s));
+            Thm.cterm_of ctxt
+              (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $ fst (mk_upds s));
           val basic_ss = #1 (Data.get (Context.Proof ctxt));
           val ctxt' = ctxt |> Config.put simp_depth_limit 100 |> put_simpset basic_ss;
           val thm = Simplifier.rewrite ctxt' ct;
