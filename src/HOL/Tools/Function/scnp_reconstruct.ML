@@ -16,7 +16,7 @@ sig
     {
      msetT : typ -> typ,
      mk_mset : typ -> term list -> term,
-     mset_regroup_conv : int list -> conv,
+     mset_regroup_conv : Proof.context -> int list -> conv,
      mset_member_tac : int -> int -> tactic,
      mset_nonempty_tac : int -> tactic,
      mset_pwleq_tac : int -> tactic,
@@ -48,7 +48,7 @@ datatype multiset_setup =
   {
    msetT : typ -> typ,
    mk_mset : typ -> term list -> term,
-   mset_regroup_conv : int list -> conv,
+   mset_regroup_conv : Proof.context -> int list -> conv,
    mset_member_tac : int -> int -> tactic,
    mset_nonempty_tac : int -> tactic,
    mset_pwleq_tac : int -> tactic,
@@ -71,7 +71,7 @@ val multiset_setup = Multiset_Setup.put o SOME
 
 fun undef _ = error "undef"
 
-fun get_multiset_setup thy = Multiset_Setup.get thy
+fun get_multiset_setup ctxt = Multiset_Setup.get (Proof_Context.theory_of ctxt)
   |> the_default (Multiset
     { msetT = undef, mk_mset=undef,
       mset_regroup_conv=undef, mset_member_tac = undef,
@@ -145,12 +145,11 @@ fun set_finite_tac i =
 
 fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
   let
-    val thy = Proof_Context.theory_of ctxt
     val Multiset
           { msetT, mk_mset,
             mset_regroup_conv, mset_pwleq_tac, set_of_simps,
             smsI', wmsI2'', wmsI1, reduction_pair=ms_rp, ...}
-        = get_multiset_setup thy
+        = get_multiset_setup ctxt
 
     fun measure_fn p = nth (Termination.get_measures D p)
 
@@ -239,8 +238,8 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 fun t_conv a C =
                   params_conv ~1 (K ((concl_conv ~1 o arg_conv o arg1_conv o a) C)) ctxt
                 val goal_rewrite =
-                    t_conv arg1_conv (mset_regroup_conv iqs)
-                    then_conv t_conv arg_conv (mset_regroup_conv ips)
+                    t_conv arg1_conv (mset_regroup_conv ctxt iqs)
+                    then_conv t_conv arg_conv (mset_regroup_conv ctxt ips)
                 end
               in
                 CONVERSION goal_rewrite 1
@@ -275,7 +274,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
         |> Thm.cterm_of ctxt
     in
       PROFILE "Proof Reconstruction"
-        (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1
+        (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv ctxt sl))) 1
          THEN (rtac @{thm reduction_pair_lemma} 1)
          THEN (rtac @{thm rp_inv_image_rp} 1)
          THEN (rtac (order_rpair ms_rp label) 1)

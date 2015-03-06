@@ -21,8 +21,8 @@ sig
   val try_proof: cterm -> tactic -> proof_attempt
 
   val dest_binop_list: string -> term -> term list
-  val regroup_conv: string -> string -> thm list -> int list -> conv
-  val regroup_union_conv: int list -> conv
+  val regroup_conv: Proof.context -> string -> string -> thm list -> int list -> conv
+  val regroup_union_conv: Proof.context -> int list -> conv
 
   val inst_constrs_of: Proof.context -> typ -> term list
 end
@@ -93,11 +93,8 @@ fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) =
         (e.g. [0,1,3] in the above example)
 *)
 
-fun regroup_conv neu cn ac is ct =
+fun regroup_conv ctxt neu cn ac is ct =
  let
-   val thy = Thm.theory_of_cterm ct
-   val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
-
    val mk = HOLogic.mk_binop cn
    val t = Thm.term_of ct
    val xs = dest_binop_list cn t
@@ -117,8 +114,8 @@ fun regroup_conv neu cn ac is ct =
  end
 
 (* instance for unions *)
-val regroup_union_conv =
-  regroup_conv @{const_abbrev Set.empty} @{const_name Lattices.sup}
+fun regroup_union_conv ctxt =
+  regroup_conv ctxt @{const_abbrev Set.empty} @{const_name Lattices.sup}
     (map (fn t => t RS eq_reflection)
       (@{thms Un_ac} @ @{thms Un_empty_right} @ @{thms Un_empty_left}))
 

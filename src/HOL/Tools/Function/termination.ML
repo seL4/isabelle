@@ -331,7 +331,7 @@ fun regroup_calls_tac ctxt cs = CALLS (fn (cs', i) =>
    val is = map (fn c => find_index (curry op aconv c) cs') cs
  in
    CONVERSION (Conv.arg_conv (Conv.arg_conv
-     (Function_Lib.regroup_union_conv is))) i
+     (Function_Lib.regroup_union_conv ctxt is))) i
  end)
 
 

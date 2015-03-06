@@ -1917,9 +1917,9 @@ let
   val mset_nonempty_tac =
       rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
 
-  val regroup_munion_conv =
-      Function_Lib.regroup_conv @{const_abbrev Mempty} @{const_name plus}
-        (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
+  fun regroup_munion_conv ctxt =
+    Function_Lib.regroup_conv ctxt @{const_abbrev Mempty} @{const_name plus}
+      (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
   fun unfold_pwleq_tac i =
     (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
