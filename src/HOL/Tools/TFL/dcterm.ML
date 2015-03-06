@@ -67,7 +67,7 @@ fun cabs a t = Thm.lambda a t
  * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
-val mk_hol_const = Thm.global_cterm_of @{theory HOL} o Const;
+val mk_hol_const = Thm.cterm_of @{theory_context HOL} o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = Thm.typ_of_cterm Bvar

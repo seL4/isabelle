@@ -72,8 +72,7 @@ fun mk_meta_eq r =
 fun rewrite ctxt L = rewrite_rule ctxt (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums ctxt th =
-  let val thy = Thm.theory_of_thm th
-      val tych = Thm.global_cterm_of thy
+  let val tych = Thm.cterm_of ctxt
       val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
       val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o USyntax.strip_imp) rhs  (* but union is solider *)

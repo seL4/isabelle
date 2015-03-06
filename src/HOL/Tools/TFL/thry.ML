@@ -47,8 +47,8 @@ end;
  * Typing
  *---------------------------------------------------------------------------*)
 
-fun typecheck thry t =
-  Thm.global_cterm_of thry t
+fun typecheck thy t =
+  Thm.global_cterm_of thy t
     handle TYPE (msg, _, _) => raise THRY_ERR "typecheck" msg
       | TERM (msg, _) => raise THRY_ERR "typecheck" msg;
 
