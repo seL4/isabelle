@@ -106,10 +106,10 @@ fun remove_split ctxt = rewrite_rule ctxt [Pr.split_eq];
 fun split_rule_var ctxt (Var(v,_), Type("fun",[T1,T2]), rl) =
       let val T' = factors T1 ---> T2
           val newt = ap_split T1 T2 (Var(v,T'))
-          val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl)
       in
-          remove_split ctxt (Drule.instantiate_normalize ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
-                                           cterm newt)]) rl)
+        remove_split ctxt
+          (Drule.instantiate_normalize ([],
+            [apply2 (Thm.cterm_of ctxt) (Var(v, Ind_Syntax.iT-->T2), newt)]) rl)
       end
   | split_rule_var _ (t,T,rl) = rl;
 
