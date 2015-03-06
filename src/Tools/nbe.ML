@@ -580,10 +580,9 @@ fun compile ignore_cache ctxt program =
 
 fun mk_equals ctxt lhs raw_rhs =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val ty = Thm.typ_of_cterm lhs;
-    val eq = Thm.global_cterm_of thy (Term.Const (@{const_name Pure.eq}, ty --> ty --> propT));
-    val rhs = Thm.global_cterm_of thy raw_rhs;
+    val eq = Thm.cterm_of ctxt (Term.Const (@{const_name Pure.eq}, ty --> ty --> propT));
+    val rhs = Thm.cterm_of ctxt raw_rhs;
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result

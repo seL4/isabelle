@@ -14,7 +14,6 @@ struct
 
 fun cong_tac ctxt cong = CSUBGOAL (fn (cgoal, i) =>
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_cterm cgoal);
     val goal = Thm.term_of cgoal;
   in
     (case Logic.strip_assums_concl goal of
@@ -25,7 +24,7 @@ fun cong_tac ctxt cong = CSUBGOAL (fn (cgoal, i) =>
           val ps = Logic.strip_params (Thm.concl_of cong');
           val insts =
             [(f', f), (g', g), (x', x), (y', y)]
-            |> map (fn (t, u) => (cert (Term.head_of t), cert (fold_rev Term.abs ps u)));
+            |> map (fn (t, u) => apply2 (Thm.cterm_of ctxt) (Term.head_of t, fold_rev Term.abs ps u));
         in
           fn st =>
             compose_tac ctxt (false, Drule.cterm_instantiate insts cong', 2) i st

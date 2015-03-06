@@ -222,7 +222,6 @@ val is_equality_lemma =
 
 fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
   let
-    val thy = Thm.theory_of_thm thm
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     (* Only consider "op =" at non-base types *)
@@ -238,7 +237,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prems = map (HOLogic.mk_Trueprop o mk_is_equality) frees
     val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
     val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
-    val cprop = Thm.global_cterm_of thy prop2
+    val cprop = Thm.cterm_of ctxt prop2
     val equal_thm = Raw_Simplifier.rewrite ctxt false [is_equality_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
@@ -317,7 +316,6 @@ fun subst_terms tab t =
 
 fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
   let
-    val thy = Thm.theory_of_thm thm
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     val Domainp_tms = rev (fold_Domainp (fn t => insert op= t) t [])
@@ -331,7 +329,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val t' = subst_terms (fold Termtab.update (Domainp_tms ~~ frees) Termtab.empty) t
     val prop1 = fold Logic.all frees (Logic.list_implies (prems, mk_prop' t'))
     val prop2 = Logic.list_rename_params (rev names) prop1
-    val cprop = Thm.global_cterm_of thy prop2
+    val cprop = Thm.cterm_of ctxt prop2
     val equal_thm = Raw_Simplifier.rewrite ctxt false [Domainp_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm;
   in
@@ -415,60 +413,59 @@ fun mk_Rel t =
 
 fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
   let
-    val thy = Proof_Context.theory_of ctxt
     (* precondition: prj(T,U) must consist of only TFrees and type "fun" *)
     fun rel (T as Type ("fun", [T1, T2])) (U as Type ("fun", [U1, U2])) =
-        let
-          val r1 = rel T1 U1
-          val r2 = rel T2 U2
-          val rT = fastype_of r1 --> fastype_of r2 --> mk_relT (T, U)
-        in
-          Const (@{const_name rel_fun}, rT) $ r1 $ r2
-        end
+          let
+            val r1 = rel T1 U1
+            val r2 = rel T2 U2
+            val rT = fastype_of r1 --> fastype_of r2 --> mk_relT (T, U)
+          in
+            Const (@{const_name rel_fun}, rT) $ r1 $ r2
+          end
       | rel T U =
-        let
-          val (a, _) = dest_TFree (prj (T, U))
-        in
-          Free (the (AList.lookup (op =) tab a), mk_relT (T, U))
-        end
+          let
+            val (a, _) = dest_TFree (prj (T, U))
+          in
+            Free (the (AList.lookup (op =) tab a), mk_relT (T, U))
+          end
     fun zip _ thms (Bound i) (Bound _) = (nth thms i, [])
       | zip ctxt thms (Abs (x, T, t)) (Abs (y, U, u)) =
-        let
-          val ([x', y'], ctxt') = Variable.variant_fixes [x, y] ctxt
-          val prop = mk_Rel (rel T U) $ Free (x', T) $ Free (y', U)
-          val cprop = Thm.global_cterm_of thy (HOLogic.mk_Trueprop prop)
-          val thm0 = Thm.assume cprop
-          val (thm1, hyps) = zip ctxt' (thm0 :: thms) t u
-          val ((r1, x), y) = apfst Thm.dest_comb (Thm.dest_comb (Thm.dest_arg cprop))
-          val r2 = Thm.dest_fun2 (Thm.dest_arg (Thm.cprop_of thm1))
-          val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r1))
-          val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r2))
-          val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
-          val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
-          val rule = Drule.instantiate' tinsts insts @{thm Rel_abs}
-          val thm2 = Thm.forall_intr x (Thm.forall_intr y (Thm.implies_intr cprop thm1))
-        in
-          (thm2 COMP rule, hyps)
-        end
+          let
+            val ([x', y'], ctxt') = Variable.variant_fixes [x, y] ctxt
+            val prop = mk_Rel (rel T U) $ Free (x', T) $ Free (y', U)
+            val cprop = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop prop)
+            val thm0 = Thm.assume cprop
+            val (thm1, hyps) = zip ctxt' (thm0 :: thms) t u
+            val ((r1, x), y) = apfst Thm.dest_comb (Thm.dest_comb (Thm.dest_arg cprop))
+            val r2 = Thm.dest_fun2 (Thm.dest_arg (Thm.cprop_of thm1))
+            val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r1))
+            val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r2))
+            val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
+            val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
+            val rule = Drule.instantiate' tinsts insts @{thm Rel_abs}
+            val thm2 = Thm.forall_intr x (Thm.forall_intr y (Thm.implies_intr cprop thm1))
+          in
+            (thm2 COMP rule, hyps)
+          end
       | zip ctxt thms (f $ t) (g $ u) =
-        let
-          val (thm1, hyps1) = zip ctxt thms f g
-          val (thm2, hyps2) = zip ctxt thms t u
-        in
-          (thm2 RS (thm1 RS @{thm Rel_app}), hyps1 @ hyps2)
-        end
+          let
+            val (thm1, hyps1) = zip ctxt thms f g
+            val (thm2, hyps2) = zip ctxt thms t u
+          in
+            (thm2 RS (thm1 RS @{thm Rel_app}), hyps1 @ hyps2)
+          end
       | zip _ _ t u =
-        let
-          val T = fastype_of t
-          val U = fastype_of u
-          val prop = mk_Rel (rel T U) $ t $ u
-          val cprop = Thm.global_cterm_of thy (HOLogic.mk_Trueprop prop)
-        in
-          (Thm.assume cprop, [cprop])
-        end
+          let
+            val T = fastype_of t
+            val U = fastype_of u
+            val prop = mk_Rel (rel T U) $ t $ u
+            val cprop = Thm.cterm_of ctxt (HOLogic.mk_Trueprop prop)
+          in
+            (Thm.assume cprop, [cprop])
+          end
     val r = mk_Rel (rel (fastype_of t) (fastype_of u))
     val goal = HOLogic.mk_Trueprop (r $ t $ u)
-    val rename = Thm.trivial (Thm.global_cterm_of thy goal)
+    val rename = Thm.trivial (Thm.cterm_of ctxt goal)
     val (thm, hyps) = zip ctxt [] t u
   in
     Drule.implies_intr_list hyps (thm RS rename)
@@ -577,10 +574,8 @@ fun transfer_rule_of_term ctxt equiv t : thm =
     val cbool = @{ctyp bool}
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
-    val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (Thm.global_ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) =
-      (Thm.global_cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), Thm.global_cterm_of thy t)
+    fun tinst (a, _) = (Thm.ctyp_of ctxt' (TVar ((a, idx), @{sort type})), cbool)
+    fun inst (a, t) = apply2 (Thm.cterm_of ctxt') (Var (Name.clean_index (prep a, idx), relT), t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx
@@ -603,10 +598,8 @@ fun transfer_rule_of_lhs ctxt t : thm =
     val cbool = @{ctyp bool}
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
-    val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (Thm.global_ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) =
-      (Thm.global_cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), Thm.global_cterm_of thy t)
+    fun tinst (a, _) = (Thm.ctyp_of ctxt' (TVar ((a, idx), @{sort type})), cbool)
+    fun inst (a, t) = apply2 (Thm.cterm_of ctxt') (Var (Name.clean_index (prep a, idx), relT), t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx

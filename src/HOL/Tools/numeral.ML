@@ -44,10 +44,10 @@ val one = @{cpat "1"};
 val oneT = Thm.ctyp_of_cterm one;
 
 val numeral = @{cpat "numeral"};
-val numeralT = Thm.global_ctyp_of @{theory} (Term.range_type (Thm.typ_of_cterm numeral));
+val numeralT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm numeral));
 
 val uminus = @{cpat "uminus"};
-val uminusT = Thm.global_ctyp_of @{theory} (Term.range_type (Thm.typ_of_cterm uminus));
+val uminusT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm uminus));
 
 fun instT T V = Thm.instantiate_cterm ([(V, T)], []);
 

@@ -565,15 +565,13 @@ fun mk_cases_tac ctxt = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac ctxt
 
 fun mk_cases ctxt prop =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     fun err msg =
       error (Pretty.string_of (Pretty.block
         [Pretty.str msg, Pretty.fbrk, Syntax.pretty_term ctxt prop]));
 
     val elims = Induct.find_casesP ctxt prop;
 
-    val cprop = Thm.global_cterm_of thy prop;
+    val cprop = Thm.cterm_of ctxt prop;
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
@@ -636,7 +634,7 @@ fun mk_simp_eq ctxt prop =
       | _ => error
         ("equations matching pattern " ^ Syntax.string_of_term ctxt prop ^ " is not unique"));
     val inst =
-      map (fn v => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy (Envir.subst_term subst (Var v))))
+      map (fn v => apply2 (Thm.cterm_of ctxt') (Var v, Envir.subst_term subst (Var v)))
         (Term.add_vars (lhs_of eq) []);
   in
     Drule.cterm_instantiate inst eq

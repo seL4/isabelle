@@ -168,7 +168,6 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
       Data.dest_Trueprop #> Data.dest_eq #> apply2 contract) (Thm.term_of cBi) of
     SOME (t, t') =>
       let
-        val thy = Proof_Context.theory_of ctxt;
         val Bi = Thm.term_of cBi;
         val ps = Logic.strip_params Bi;
         val U = Term.fastype_of1 (rev (map snd ps), t);
@@ -184,10 +183,10 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
             (case (if b then t else t') of
               Bound j => subst_bounds (map Bound ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
             | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
-        val (instT, _) = Thm.match (apply2 (Thm.global_cterm_of thy o Logic.mk_type) (V, U));
+        val (instT, _) = Thm.match (apply2 (Thm.cterm_of ctxt o Logic.mk_type) (V, U));
       in
         compose_tac ctxt (true, Drule.instantiate_normalize (instT,
-          map (apply2 (Thm.global_cterm_of thy))
+          map (apply2 (Thm.cterm_of ctxt))
             [(Var (ixn, Ts ---> U --> body_type T), u),
              (Var (fst (dest_Var (head_of v1)), Ts ---> U), fold_rev Term.abs ps t),
              (Var (fst (dest_Var (head_of v2)), Ts ---> U), fold_rev Term.abs ps t')]) rl',

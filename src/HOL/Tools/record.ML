@@ -1375,9 +1375,9 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     fun mk_split_free_tac free induct_thm i =
       let
-        val cfree = Thm.global_cterm_of thy free;
+        val cfree = Thm.cterm_of ctxt free;
         val _$ (_ $ r) = Thm.concl_of induct_thm;
-        val crec = Thm.global_cterm_of thy r;
+        val crec = Thm.cterm_of ctxt r;
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
@@ -1606,7 +1606,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (roughly) the definition of the accessor.*)
     val surject = timeit_msg ctxt "record extension surjective proof:" (fn () =>
       let
-        val cterm_ext = Thm.global_cterm_of defs_thy ext;
+        val cterm_ext = Thm.cterm_of defs_ctxt ext;
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
@@ -1943,8 +1943,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               fun to_Var (Free (c, T)) = Var ((c, 1), T);
             in mk_rec (map to_Var all_vars_more) 0 end;
 
-          val cterm_rec = Thm.global_cterm_of ext_thy r_rec0;
-          val cterm_vrs = Thm.global_cterm_of ext_thy r_rec0_Vars;
+          val cterm_rec = Thm.cterm_of ext_ctxt r_rec0;
+          val cterm_vrs = Thm.cterm_of ext_ctxt r_rec0_Vars;
           val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
           val init_thm = named_cterm_instantiate insts updacc_eq_triv;
           val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;

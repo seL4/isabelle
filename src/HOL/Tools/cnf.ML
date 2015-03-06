@@ -259,14 +259,13 @@ val eq_reflection = @{thm eq_reflection}
 
 fun make_under_quantifiers ctxt make t =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun conv ctxt ct =
       (case Thm.term_of ct of
         Const _ $ Abs _ => Conv.comb_conv (conv ctxt) ct
       | Abs _ => Conv.abs_conv (conv o snd) ctxt ct
       | Const _ => Conv.all_conv ct
       | t => make t RS eq_reflection)
-  in conv ctxt (Thm.global_cterm_of thy t) RS meta_eq_to_obj_eq end
+  in conv ctxt (Thm.cterm_of ctxt t) RS meta_eq_to_obj_eq end
 
 fun make_nnf_thm_under_quantifiers ctxt =
   make_under_quantifiers ctxt (make_nnf_thm (Proof_Context.theory_of ctxt))

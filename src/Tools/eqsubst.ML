@@ -259,14 +259,11 @@ fun prep_concl_subst ctxt i gth =
     val th = Thm.incr_indexes 1 gth;
     val tgt_term = Thm.prop_of th;
 
-    val thy = Thm.theory_of_thm th;
-    val cert = Thm.global_cterm_of thy;
-
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
-    val cfvs = rev (map cert fvs);
+    val cfvs = rev (map (Thm.cterm_of ctxt) fvs);
 
     val conclterm = Logic.strip_imp_concl fixedbody;
-    val conclthm = Thm.trivial (cert conclterm);
+    val conclthm = Thm.trivial (Thm.cterm_of ctxt conclterm);
     val maxidx = Thm.maxidx_of th;
     val ft =
       (Zipper.move_down_right (* ==> *)
@@ -274,7 +271,7 @@ fun prep_concl_subst ctxt i gth =
        o Zipper.mktop
        o Thm.prop_of) conclthm
   in
-    ((cfvs, conclthm), (thy, maxidx, ft))
+    ((cfvs, conclthm), (Proof_Context.theory_of ctxt, maxidx, ft))
   end;
 
 (* substitute using an object or meta level equality *)

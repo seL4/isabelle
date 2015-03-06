@@ -157,9 +157,9 @@ fun prepare schematic_consts_of rthms =
 
 (* collecting instances *)
 
-fun instantiate thy subst =
+fun instantiate ctxt subst =
   let
-    fun cert (ix, (S, T)) = apply2 (Thm.global_ctyp_of thy) (TVar (ix, S), T)
+    fun cert (ix, (S, T)) = apply2 (Thm.ctyp_of ctxt) (TVar (ix, S), T)
     fun cert' subst = Vartab.fold (cons o cert) subst []
   in Thm.instantiate (cert' subst, []) end
 
@@ -186,7 +186,7 @@ fun add_insts max_instances max_thm_insts ctxt round used_grounds
         raise ENOUGH cx
       else
         let
-          val thm' = instantiate thy subst thm
+          val thm' = instantiate ctxt subst thm
           val rthm = ((round, subst), thm')
           val rthms = Inttab.lookup_list insts id;
           val n_insts' =

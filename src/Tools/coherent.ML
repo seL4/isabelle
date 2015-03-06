@@ -173,19 +173,16 @@ and valid_cases _ _ _ _ _ _ _ [] = SOME []
 
 fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.global_cterm_of thy;
-    val certT = Thm.global_ctyp_of thy;
     val _ =
       cond_trace ctxt (fn () =>
         Pretty.string_of (Pretty.big_list "asms:" (map (Display.pretty_thm ctxt) asms)));
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate
-           (map (fn (ixn, (S, T)) => (certT (TVar ((ixn, S))), certT T)) (Vartab.dest tye),
+           (map (fn (ixn, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (ixn, S), T)) (Vartab.dest tye),
             map (fn (ixn, (T, t)) =>
-              (cert (Var (ixn, Envir.subst_type tye T)), cert t)) (Vartab.dest env) @
-            map (fn (ixnT, t) => (cert (Var ixnT), cert t)) insts) th)
+              apply2 (Thm.cterm_of ctxt) (Var (ixn, Envir.subst_type tye T), t)) (Vartab.dest env) @
+            map (fn (ixnT, t) => apply2 (Thm.cterm_of ctxt) (Var ixnT, t)) insts) th)
         (map (nth asms) is);
     val (_, cases) = dest_elim (Thm.prop_of th');
   in
@@ -201,10 +198,8 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
 
 and thm_of_case_prf ctxt goal asms ((params, prf), (_, asms')) =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.global_cterm_of thy;
-    val cparams = map cert params;
-    val asms'' = map (cert o curry subst_bounds (rev params)) asms';
+    val cparams = map (Thm.cterm_of ctxt) params;
+    val asms'' = map (Thm.cterm_of ctxt o curry subst_bounds (rev params)) asms';
     val (prems'', ctxt') = fold_map Thm.assume_hyps asms'' ctxt;
   in
     Drule.forall_intr_list cparams

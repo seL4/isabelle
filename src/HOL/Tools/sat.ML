@@ -73,7 +73,7 @@ val counter = Unsynchronized.ref 0;
 val resolution_thm =
   @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
 
-val cP = Thm.global_cterm_of @{theory} (Var (("P", 0), HOLogic.boolT));
+val cP = Thm.cterm_of @{context} (Var (("P", 0), HOLogic.boolT));
 
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)

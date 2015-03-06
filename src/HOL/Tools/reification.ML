@@ -169,12 +169,12 @@ fun decomp_reify da cgns (ct, ctxt) bds =
           val (fnvs, invs) = List.partition (fn ((vn, _),_) => member (op =) vns vn) (Vartab.dest tmenv);
           val (fts, its) =
             (map (snd o snd) fnvs,
-             map (fn ((vn, vi), (tT, t)) => apply2 (Thm.global_cterm_of thy) (Var ((vn, vi), tT), t)) invs);
+             map (fn ((vn, vi), (tT, t)) => apply2 (Thm.cterm_of ctxt) (Var ((vn, vi), tT), t)) invs);
           val ctyenv =
-            map (fn ((vn, vi), (s, ty)) => apply2 (Thm.global_ctyp_of thy) (TVar ((vn, vi), s), ty))
+            map (fn ((vn, vi), (s, ty)) => apply2 (Thm.ctyp_of ctxt) (TVar ((vn, vi), s), ty))
               (Vartab.dest tyenv);
         in
-          ((map (Thm.global_cterm_of thy) fts ~~ replicate (length fts) ctxt,
+          ((map (Thm.cterm_of ctxt) fts ~~ replicate (length fts) ctxt,
              apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
         end handle Pattern.MATCH => decomp_reify da congs (ct, ctxt) bds))
   end;
@@ -203,14 +203,14 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
         val sbst = Envir.subst_term (tyenv, tmenv);
         val sbsT = Envir.subst_type tyenv;
         val subst_ty =
-          map (fn (n, (s, t)) => apply2 (Thm.global_ctyp_of thy) (TVar (n, s), t)) (Vartab.dest tyenv)
+          map (fn (n, (s, t)) => apply2 (Thm.ctyp_of ctxt'') (TVar (n, s), t)) (Vartab.dest tyenv)
         val tml = Vartab.dest tmenv;
         val (subst_ns, bds) = fold_map
           (fn (Const _ $ _ $ n, Var (xn0, _)) => fn bds =>
             let
               val name = snd (the (AList.lookup (op =) tml xn0));
               val (idx, bds) = index_of name bds;
-            in (apply2 (Thm.global_cterm_of thy) (n, idx |> HOLogic.mk_nat), bds) end) subst bds;
+            in (apply2 (Thm.cterm_of ctxt'') (n, idx |> HOLogic.mk_nat), bds) end) subst bds;
         val subst_vs =
           let
             fun h (Const _ $ (vs as Var (_, lT)) $ _, Var (_, T)) =
@@ -220,10 +220,10 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
                 val (bsT, _) = the (AList.lookup Type.could_unify bds lT);
                 val vsn = the (AList.lookup (op =) vsns_map vs);
                 val vs' = fold_rev (fn x => fn xs => cns $ x $xs) bsT (Free (vsn, lT'));
-              in apply2 (Thm.global_cterm_of thy) (vs, vs') end;
+              in apply2 (Thm.cterm_of ctxt'') (vs, vs') end;
           in map h subst end;
         val cts =
-          map (fn ((vn, vi), (tT, t)) => apply2 (Thm.global_cterm_of thy) (Var ((vn, vi), tT), t))
+          map (fn ((vn, vi), (tT, t)) => apply2 (Thm.cterm_of ctxt'') (Var ((vn, vi), tT), t))
             (fold (AList.delete (fn (((a : string), _), (b, _)) => a = b))
               (map (fn n => (n, 0)) xns) tml);
         val substt =
