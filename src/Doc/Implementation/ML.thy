@@ -92,7 +92,7 @@ text \<open>Isabelle source files have a certain standardized header
   \end{verbatim}
 
   As in regular typography, there is some extra space \emph{before}
-  section headings that are adjacent to plain text, bit not other headings
+  section headings that are adjacent to plain text, but not other headings
   as in the example above.
 
   \medskip The precise wording of the prose text given in these
@@ -585,10 +585,9 @@ text \<open>Here the ML environment is already managed by Isabelle, i.e.\
   graph.}
 
   \medskip The next example shows how to embed ML into Isar proofs, using
-  @{command_ref "ML_prf"} instead of Instead of @{command_ref "ML"}.
-  As illustrated below, the effect on the ML environment is local to
-  the whole proof body, but ignoring the block structure.
-\<close>
+  @{command_ref "ML_prf"} instead of @{command_ref "ML"}. As illustrated
+  below, the effect on the ML environment is local to the whole proof body,
+  but ignoring the block structure. \<close>
 
 notepad
 begin
