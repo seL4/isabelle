@@ -212,8 +212,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
           val (thm, lthy') = lthy
             |> Local_Theory.define ((Binding.name c, NoSyn), ((def_b, []), rhs))
             |-> (fn (t, (_, thm)) => Spec_Rules.add Spec_Rules.Equational ([t], [thm]) #> pair thm);
-          val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
-          val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm;
+          val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy');
+          val thm' = singleton (Proof_Context.export lthy' thy_ctxt) thm;
         in (thm', lthy') end;
 
       val (overloaded_size_defs, lthy2) = lthy1

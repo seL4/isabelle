@@ -346,12 +346,12 @@ fun infos_of_new_datatype_mutual_cluster lthy prefs fpT_name =
 
 fun get_all thy prefs =
   let
-    val lthy = Proof_Context.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val old_info_tab = Old_Datatype_Data.get_all thy;
     val new_T_names = BNF_FP_Def_Sugar.fp_sugars_of_global thy
       |> map_filter (try (fn {T = Type (s, _), fp_res_index = 0, ...} => s));
     val new_infos =
-      maps (infos_of_new_datatype_mutual_cluster lthy (insert (op =) Keep_Nesting prefs))
+      maps (infos_of_new_datatype_mutual_cluster ctxt (insert (op =) Keep_Nesting prefs))
         new_T_names;
   in
     fold (if member (op =) prefs Keep_Nesting then Symtab.update else Symtab.default) new_infos
@@ -366,8 +366,8 @@ fun get_one get_old get_new thy prefs x =
   end;
 
 fun get_info_of_new_datatype prefs thy T_name =
-  let val lthy = Proof_Context.init_global thy in
-    AList.lookup (op =) (infos_of_new_datatype_mutual_cluster lthy prefs T_name) T_name
+  let val ctxt = Proof_Context.init_global thy in
+    AList.lookup (op =) (infos_of_new_datatype_mutual_cluster ctxt prefs T_name) T_name
   end;
 
 fun get_info thy prefs =

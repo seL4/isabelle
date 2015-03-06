@@ -87,8 +87,8 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
           |> Syntax.check_term lthy;
         val ((_, (_, raw_def)), lthy') =
           Specification.definition (NONE, (Attrib.empty_binding, spec)) lthy;
-        val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy); (* FIXME? *)
-        val def = singleton (Proof_Context.export lthy' ctxt_thy) raw_def;
+        val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy); (* FIXME? *)
+        val def = singleton (Proof_Context.export lthy' thy_ctxt) raw_def;
       in
         (def, lthy')
       end;
