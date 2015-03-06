@@ -27,7 +27,6 @@ fun tname_of (Type (s, _)) = s
 fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.info) is thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val cert = Thm.cterm_of thy;
 
     val recTs = Old_Datatype_Aux.get_rec_types descr;
     val pnames =
@@ -106,11 +105,11 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val inst = map (apply2 cert) (map head_of (HOLogic.dest_conj
+    val inst = map (apply2 (Thm.cterm_of thy)) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (Thm.concl_of induct))) ~~ ps);
 
     val thm =
-      Goal.prove_internal ctxt (map cert prems) (cert concl)
+      Goal.prove_internal ctxt (map (Thm.cterm_of thy) prems) (Thm.cterm_of thy concl)
         (fn prems =>
            EVERY [
             rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
@@ -160,7 +159,6 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info) thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val cert = Thm.cterm_of thy;
     val rT = TFree ("'P", @{sort type});
     val rT' = TVar (("'P", 0), @{sort type});
 
@@ -187,11 +185,12 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
     val y' = Free ("y", T);
 
     val thm =
-      Goal.prove_internal ctxt (map cert prems)
-        (cert (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
+      Goal.prove_internal ctxt (map (Thm.cterm_of thy) prems)
+        (Thm.cterm_of thy
+          (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
         (fn prems =>
            EVERY [
-            rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
+            rtac (cterm_instantiate [apply2 (Thm.cterm_of thy) (y, y')] exhaust) 1,
             ALLGOALS (EVERY'
               [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
                resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])

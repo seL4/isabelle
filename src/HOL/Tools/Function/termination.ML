@@ -29,7 +29,7 @@ sig
 
   val wf_union_tac : Proof.context -> tactic
 
-  val decompose_tac : ttac
+  val decompose_tac : Proof.context -> ttac
 end
 
 
@@ -137,14 +137,14 @@ fun mk_sum_skel rel =
     mk_skel (fold collect_pats cs [])
   end
 
-fun prove_chain thy chain_tac (c1, c2) =
+fun prove_chain ctxt chain_tac (c1, c2) =
   let
     val goal =
       HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.relcomp} (c1, c2),
         Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
-    case Function_Lib.try_proof (Thm.cterm_of thy goal) chain_tac of
+    case Function_Lib.try_proof (Proof_Context.cterm_of ctxt goal) chain_tac of
       Function_Lib.Solved thm => SOME thm
     | _ => NONE
   end
@@ -166,10 +166,10 @@ fun dest_call' sk (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
 
 fun dest_call (sk, _, _, _, _) = dest_call' sk
 
-fun mk_desc thy tac vs Gam l r m1 m2 =
+fun mk_desc ctxt tac vs Gam l r m1 m2 =
   let
     fun try rel =
-      try_proof (Thm.cterm_of thy
+      try_proof (Proof_Context.cterm_of ctxt
         (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
              HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
@@ -187,23 +187,24 @@ fun mk_desc thy tac vs Gam l r m1 m2 =
      | _ => raise Match
 end
 
-fun prove_descent thy tac sk (c, (m1, m2)) =
+fun prove_descent ctxt tac sk (c, (m1, m2)) =
   let
     val (vs, _, l, _, r, Gam) = dest_call' sk c
   in 
-    mk_desc thy tac vs Gam l r m1 m2
+    mk_desc ctxt tac vs Gam l r m1 m2
   end
 
 fun create ctxt chain_tac descent_tac T rel =
   let
-    val thy = Proof_Context.theory_of ctxt
     val sk = mk_sum_skel rel
     val Ts = node_types sk T
     val M = Inttab.make (map_index (apsnd (Measure_Functions.get_measure_functions ctxt)) Ts)
-    val chain_cache = Cache.create Term2tab.empty Term2tab.lookup Term2tab.update
-      (prove_chain thy chain_tac)
-    val descent_cache = Cache.create Term3tab.empty Term3tab.lookup Term3tab.update
-      (prove_descent thy descent_tac sk)
+    val chain_cache =
+      Cache.create Term2tab.empty Term2tab.lookup Term2tab.update
+        (prove_chain ctxt chain_tac)
+    val descent_cache =
+      Cache.create Term3tab.empty Term3tab.lookup Term3tab.update
+        (prove_descent ctxt descent_tac sk)
   in
     (sk, nth Ts, M, chain_cache, descent_cache)
   end
@@ -275,7 +276,6 @@ in
 fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
-    val cert = Thm.cterm_of thy
     val ((_ $ (_ $ rel)) :: ineqs) = Thm.prems_of st
 
     fun mk_compr ineq =
@@ -302,7 +302,7 @@ fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
           THEN' (blast_tac ctxt)))    (* Solve rest of context... not very elegant *)
       ) i
   in
-    (PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
+    (PRIMITIVE (Drule.cterm_instantiate [apply2 (Proof_Context.cterm_of ctxt) (rel, relation)])
      THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
      THEN rewrite_goal_tac ctxt Un_aci_simps 1)  (* eliminate duplicates *)
   end) 1 st
@@ -326,7 +326,7 @@ fun ucomp_empty_tac T =
     ORELSE' rtac @{thm union_comp_emptyL}
     ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => rtac (T c1 c2) i))
 
-fun regroup_calls_tac cs = CALLS (fn (cs', i) =>
+fun regroup_calls_tac ctxt cs = CALLS (fn (cs', i) =>
  let
    val is = map (fn c => find_index (curry op aconv c) cs') cs
  in
@@ -342,14 +342,14 @@ fun solve_trivial_tac D = CALLS (fn ([c], i) =>
    | _ => no_tac)
   | _ => no_tac)
 
-fun decompose_tac D = CALLS (fn (cs, i) =>
+fun decompose_tac ctxt D = CALLS (fn (cs, i) =>
   let
     val G = mk_dgraph D cs
     val sccs = Term_Graph.strong_conn G
 
     fun split [SCC] i = TRY (solve_trivial_tac D i)
       | split (SCC::rest) i =
-        regroup_calls_tac SCC i
+        regroup_calls_tac ctxt SCC i
         THEN rtac @{thm wf_union_compatible} i
         THEN rtac @{thm less_by_empty} (i + 2)
         THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)

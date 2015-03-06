@@ -1166,10 +1166,10 @@ local
 
 fun gen_assms prepp exp args ctxt =
   let
-    val cert = cterm_of ctxt;
     val ((propss, _), ctxt1) = prepp (map snd args) ctxt;
     val _ = Variable.warn_extra_tfrees ctxt ctxt1;
-    val (premss, ctxt2) = fold_burrow (Assumption.add_assms exp o map cert) propss ctxt1;
+    val (premss, ctxt2) =
+      fold_burrow (Assumption.add_assms exp o map (cterm_of ctxt)) propss ctxt1;
   in
     ctxt2
     |> auto_bind_facts (flat propss)

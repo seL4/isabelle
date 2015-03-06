@@ -16,10 +16,11 @@ struct
 (* tactic version *)
 
 fun inst_state_tac inst st =
-  (case Term.add_vars (Thm.prop_of st) [] of
+  (case Term.add_vars (Thm.prop_of st) [] of  (* FIXME tactic should not inspect main conclusion *)
     [v as (_, T)] =>
-      let val cert = Thm.cterm_of (Thm.theory_of_thm st);
-      in PRIMITIVE (Thm.instantiate ([], [(cert (Var v), cert (inst T))])) st end
+      let val thy = Thm.theory_of_thm st in
+        PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of thy (Var v), Thm.cterm_of thy (inst T))])) st
+      end
   | _ => Seq.empty);
 
 fun relation_tac ctxt rel i =
@@ -30,17 +31,16 @@ fun relation_tac ctxt rel i =
 (* version with type inference *)
 
 fun inst_state_infer_tac ctxt rel st =
-  (case Term.add_vars (Thm.prop_of st) [] of
+  (case Term.add_vars (Thm.prop_of st) [] of  (* FIXME tactic should not inspect main conclusion *)
     [v as (_, T)] =>
       let
-        val cert = Proof_Context.cterm_of ctxt;
         val rel' = singleton (Variable.polymorphic ctxt) rel
           |> map_types Type_Infer.paramify_vars
           |> Type.constraint T
           |> Syntax.check_term ctxt
-          |> cert;
+          |> Proof_Context.cterm_of ctxt;
       in
-        PRIMITIVE (Thm.instantiate ([], [(cert (Var v), rel')])) st
+        PRIMITIVE (Thm.instantiate ([], [(Proof_Context.cterm_of ctxt (Var v), rel')])) st
       end
   | _ => Seq.empty);
 

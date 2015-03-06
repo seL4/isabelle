@@ -81,8 +81,6 @@ fun read_termTs ctxt ss Ts =
 fun read_insts ctxt mixed_insts (tvars, vars) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
 
     val (type_insts, term_insts) = List.partition (String.isPrefix "'" o fst o fst) mixed_insts;
 
@@ -118,7 +116,8 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
   in
-    (map (apply2 certT) inst_tvars, map (apply2 cert) inst_vars)
+    (map (apply2 (Thm.ctyp_of thy)) inst_tvars,
+     map (apply2 (Thm.cterm_of thy)) inst_vars)
   end;
 
 fun where_rule ctxt mixed_insts fixes thm =
@@ -282,9 +281,9 @@ val eres_inst_tac = bires_inst_tac true;
 
 fun make_elim_preserve ctxt rl =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm rl);
+    val thy = Thm.theory_of_thm rl;
     val maxidx = Thm.maxidx_of rl;
-    fun cvar xi = cert (Var (xi, propT));
+    fun cvar xi = Thm.cterm_of thy (Var (xi, propT));
     val revcut_rl' =
       Drule.instantiate_normalize ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
         (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;

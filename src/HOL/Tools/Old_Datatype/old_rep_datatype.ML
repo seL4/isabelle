@@ -46,8 +46,7 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
           Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx + 1), T), Bound 0) $
             Var (("P", 0), HOLogic.boolT));
         val insts = take i dummyPs @ (P :: drop (i + 1) dummyPs);
-        val cert = Thm.cterm_of thy;
-        val insts' = map cert induct_Ps ~~ map cert insts;
+        val insts' = map (Thm.cterm_of thy) induct_Ps ~~ map (Thm.cterm_of thy) insts;
         val induct' =
           refl RS
             (nth (Old_Datatype_Aux.split_conj_thm (cterm_instantiate insts' induct)) i
@@ -204,11 +203,12 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
               absfree ("y", T2) (set_t $ Old_Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
                 (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
-        val cert = Thm.cterm_of thy1;
         val insts =
           map (fn ((i, T), t) => absfree ("x" ^ string_of_int i, T) t)
             ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
-        val induct' = cterm_instantiate (map cert induct_Ps ~~ map cert insts) induct;
+        val induct' = induct
+          |> cterm_instantiate
+            (map (Thm.cterm_of thy1) induct_Ps ~~ map (Thm.cterm_of thy1) insts);
       in
         Old_Datatype_Aux.split_conj_thm (Goal.prove_sorry_global thy1 [] []
           (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj rec_unique_ts))
@@ -379,9 +379,9 @@ fun prove_split_thms (config : Old_Datatype_Aux.config)
 
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'), exhaustion), case_thms'), T) =
       let
-        val cert = Thm.cterm_of thy;
         val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (Thm.prems_of exhaustion)));
-        val exhaustion' = cterm_instantiate [(cert lhs, cert (Free ("x", T)))] exhaustion;
+        val exhaustion' = exhaustion
+          |> cterm_instantiate [apply2 (Thm.cterm_of thy) (lhs, Free ("x", T))];
         fun tac ctxt =
           EVERY [resolve_tac ctxt [exhaustion'] 1,
             ALLGOALS (asm_simp_tac
@@ -450,10 +450,10 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
       let
         val Const (@{const_name Pure.imp}, _) $ tm $ _ = t;
         val Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ Ma) = tm;
-        val cert = Thm.cterm_of thy;
         val nchotomy' = nchotomy RS spec;
         val [v] = Term.add_vars (Thm.concl_of nchotomy') [];
-        val nchotomy'' = cterm_instantiate [(cert (Var v), cert Ma)] nchotomy';
+        val nchotomy'' =
+          cterm_instantiate [apply2 (Thm.cterm_of thy) (Var v, Ma)] nchotomy';
       in
         Goal.prove_sorry_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn {context = ctxt, prems, ...} =>

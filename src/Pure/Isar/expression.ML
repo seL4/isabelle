@@ -678,18 +678,17 @@ fun def_pred binding parms defs ts norm_ts thy =
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = Proof_Context.init_global defs_thy |> Variable.declare_term head;
 
-    val cert = Thm.cterm_of defs_thy;
-
     val intro = Goal.prove_global defs_thy [] norm_ts statement
       (fn {context = ctxt, ...} =>
         rewrite_goals_tac ctxt [pred_def] THEN
         compose_tac defs_ctxt (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
         compose_tac defs_ctxt
-          (false, Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
+          (false,
+            Conjunction.intr_balanced (map (Thm.assume o Thm.cterm_of defs_thy) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF
-        [body_eq, rewrite_rule defs_ctxt [pred_def] (Thm.assume (cert statement))])
+        [body_eq, rewrite_rule defs_ctxt [pred_def] (Thm.assume (Thm.cterm_of defs_thy statement))])
       |> Conjunction.elim_balanced (length ts);
 
     val (_, axioms_ctxt) = defs_ctxt
