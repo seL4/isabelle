@@ -273,13 +273,13 @@ fun prove_schematic_quot_thm ctxt (rty, qty) =
   end
   handle QUOT_THM_INTERNAL pretty_msg => raise QUOT_THM (rty, qty, pretty_msg)
 
-fun force_qty_type thy qty quot_thm =
+fun force_qty_type ctxt qty quot_thm =
   let
+    val thy = Proof_Context.theory_of ctxt
     val (_, qty_schematic) = quot_thm_rty_qty quot_thm
     val match_env = Sign.typ_match thy (qty_schematic, qty) Vartab.empty
-    fun prep_ty thy (x, (S, ty)) =
-      (Thm.global_ctyp_of thy (TVar (x, S)), Thm.global_ctyp_of thy ty)
-    val ty_inst = Vartab.fold (cons o (prep_ty thy)) match_env []
+    fun prep_ty (x, (S, ty)) = apply2 (Thm.ctyp_of ctxt) (TVar (x, S), ty)
+    val ty_inst = Vartab.fold (cons o prep_ty) match_env []
   in
     Thm.instantiate (ty_inst, []) quot_thm
   end
@@ -304,9 +304,8 @@ fun check_rty_type ctxt rty quot_thm =
 
 fun prove_quot_thm ctxt (rty, qty) =
   let
-    val thy = Proof_Context.theory_of ctxt
     val schematic_quot_thm = prove_schematic_quot_thm ctxt (rty, qty)
-    val quot_thm = force_qty_type thy qty schematic_quot_thm
+    val quot_thm = force_qty_type ctxt qty schematic_quot_thm
     val _ = check_rty_type ctxt rty quot_thm
   in
     quot_thm
@@ -371,9 +370,8 @@ fun prove_param_quot_thm ctxt ty =
       if null tys 
       then 
         let 
-          val thy = Proof_Context.theory_of ctxt
           val instantiated_id_quot_thm =
-            instantiate' [SOME (Thm.global_ctyp_of thy ty)] [] @{thm identity_quotient}
+            instantiate' [SOME (Thm.ctyp_of ctxt ty)] [] @{thm identity_quotient}
         in
           (instantiated_id_quot_thm, (table, ctxt)) 
         end
@@ -388,10 +386,9 @@ fun prove_param_quot_thm ctxt ty =
         then (the (AList.lookup (op=) table ty), (table, ctxt))
         else 
           let
-            val thy = Proof_Context.theory_of ctxt
             val (Q_t, ctxt') = get_fresh_Q_t ctxt
-            val Q_thm = Thm.assume (Thm.global_cterm_of thy Q_t)
-            val table' = (ty, Q_thm)::table
+            val Q_thm = Thm.assume (Thm.cterm_of ctxt' Q_t)
+            val table' = (ty, Q_thm) :: table
           in
             (Q_thm, (table', ctxt'))
           end
