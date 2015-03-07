@@ -6,6 +6,11 @@ New in this Isabelle version
 
 *** General ***
 
+* Generated schematic variables in standard format of exported facts are
+incremented to avoid material in the proof context. Rare
+INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
+different index.
+
 * Commands 'method_setup' and 'attribute_setup' now work within a local
 theory context.
 
