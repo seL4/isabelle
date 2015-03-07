@@ -463,37 +463,44 @@ fun export_inst inner outer =
 fun exportT_inst inner outer = #1 (export_inst inner outer);
 
 fun exportT_terms inner outer =
-  let val mk_tfrees = exportT_inst inner outer in
+  let
+    val mk_tfrees = exportT_inst inner outer;
+    val maxidx = maxidx_of outer;
+  in
     fn ts => ts |> map
       (Term_Subst.generalize (mk_tfrees ts, [])
-        (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1))
+        (fold (Term.fold_types Term.maxidx_typ) ts maxidx + 1))
   end;
 
 fun export_terms inner outer =
-  let val (mk_tfrees, tfrees) = export_inst inner outer in
+  let
+    val (mk_tfrees, tfrees) = export_inst inner outer;
+    val maxidx = maxidx_of outer;
+  in
     fn ts => ts |> map
       (Term_Subst.generalize (mk_tfrees ts, tfrees)
-        (fold Term.maxidx_term ts ~1 + 1))
+        (fold Term.maxidx_term ts maxidx + 1))
   end;
 
 fun export_prf inner outer prf =
   let
     val (mk_tfrees, frees) = export_inst (declare_prf prf inner) outer;
     val tfrees = mk_tfrees [];
-    val idx = Proofterm.maxidx_proof prf ~1 + 1;
+    val maxidx = maxidx_of outer;
+    val idx = Proofterm.maxidx_proof prf maxidx + 1;
     val gen_term = Term_Subst.generalize_same (tfrees, frees) idx;
     val gen_typ = Term_Subst.generalizeT_same tfrees idx;
   in Same.commit (Proofterm.map_proof_terms_same gen_term gen_typ) prf end;
 
 
-fun gen_export (mk_tfrees, frees) ths =
+fun gen_export (mk_tfrees, frees) maxidx ths =
   let
     val tfrees = mk_tfrees (map Thm.full_prop_of ths);
-    val maxidx = fold Thm.maxidx_thm ths ~1;
-  in map (Thm.generalize (tfrees, frees) (maxidx + 1)) ths end;
+    val idx = fold Thm.maxidx_thm ths maxidx + 1;
+  in map (Thm.generalize (tfrees, frees) idx) ths end;
 
-fun exportT inner outer = gen_export (exportT_inst inner outer, []);
-fun export inner outer = gen_export (export_inst inner outer);
+fun exportT inner outer = gen_export (exportT_inst inner outer, []) (maxidx_of outer);
+fun export inner outer = gen_export (export_inst inner outer) (maxidx_of outer);
 
 fun export_morphism inner outer =
   let
