@@ -113,7 +113,7 @@ fun mk_atomize ctxt pairs =
   in atoms end;
 
 fun mksimps pairs ctxt =
-  map_filter (try mk_eq) o mk_atomize ctxt pairs o gen_all;
+  map_filter (try mk_eq) o mk_atomize ctxt pairs o Drule.gen_all (Variable.maxidx_of ctxt);
 
 val simp_legacy_precond =
   Attrib.setup_config_bool @{binding "simp_legacy_precond"} (K false)

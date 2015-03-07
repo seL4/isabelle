@@ -1382,7 +1382,7 @@ fun gen_norm_hhf ss ctxt th =
     Conv.fconv_rule
       (rewrite_cterm (true, false, false) (K (K NONE)) (put_simpset ss ctxt)) th)
   |> Thm.adjust_maxidx_thm ~1
-  |> Drule.gen_all;
+  |> Drule.gen_all (Variable.maxidx_of ctxt);
 
 val hhf_ss =
   simpset_of (empty_simpset (Context.proof_of (Context.the_thread_data ()))

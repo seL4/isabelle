@@ -327,7 +327,8 @@ let
        If the premises get simplified, then the proofs could fail.*)
      val min_ss =
            (empty_simpset (Proof_Context.init_global thy)
-             |> Simplifier.set_mksimps (K (map mk_eq o ZF_atomize o gen_all)))
+             |> Simplifier.set_mksimps (fn ctxt =>
+                 map mk_eq o ZF_atomize o Drule.gen_all (Variable.maxidx_of ctxt)))
            setSolver (mk_solver "minimal"
                       (fn ctxt => resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt)
                                    ORELSE' assume_tac ctxt

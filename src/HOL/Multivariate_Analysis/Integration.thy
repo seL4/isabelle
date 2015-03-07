@@ -8058,7 +8058,7 @@ proof -
           by auto
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
           (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
-          apply (rule *[where t="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
+          apply (rule *[where t1="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
           apply (rule setsum.mono_neutral_right[OF pA(2)])
           defer
           apply rule

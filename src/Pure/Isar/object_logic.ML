@@ -201,7 +201,9 @@ fun rulify_tac ctxt = rewrite_goal_tac ctxt (get_rulify (Proof_Context.theory_of
 
 fun gen_rulify full ctxt =
   Conv.fconv_rule (Raw_Simplifier.rewrite ctxt full (get_rulify (Proof_Context.theory_of ctxt)))
-  #> Drule.gen_all #> Thm.strip_shyps #> Drule.zero_var_indexes;
+  #> Drule.gen_all (Variable.maxidx_of ctxt)
+  #> Thm.strip_shyps
+  #> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;

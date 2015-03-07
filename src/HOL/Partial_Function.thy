@@ -168,21 +168,23 @@ qed
 text {* Fixpoint induction rule *}
 
 lemma fixp_induct_uc:
-  fixes F :: "'c \<Rightarrow> 'c" and
-    U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a" and
-    C :: "('b \<Rightarrow> 'a) \<Rightarrow> 'c" and
-    P :: "('b \<Rightarrow> 'a) \<Rightarrow> bool"
+  fixes F :: "'c \<Rightarrow> 'c"
+    and U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a"
+    and C :: "('b \<Rightarrow> 'a) \<Rightarrow> 'c"
+    and P :: "('b \<Rightarrow> 'a) \<Rightarrow> bool"
   assumes mono: "\<And>x. mono_body (\<lambda>f. U (F (C f)) x)"
-  assumes eq: "f \<equiv> C (fixp_fun (\<lambda>f. U (F (C f))))"
-  assumes inverse: "\<And>f. U (C f) = f"
-  assumes adm: "ccpo.admissible lub_fun le_fun P"
-  and bot: "P (\<lambda>_. lub {})"
-  assumes step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
+    and eq: "f \<equiv> C (fixp_fun (\<lambda>f. U (F (C f))))"
+    and inverse: "\<And>f. U (C f) = f"
+    and adm: "ccpo.admissible lub_fun le_fun P"
+    and bot: "P (\<lambda>_. lub {})"
+    and step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
   shows "P (U f)"
 unfolding eq inverse
 apply (rule ccpo.fixp_induct[OF ccpo adm])
 apply (insert mono, auto simp: monotone_def fun_ord_def bot fun_lub_def)[2]
-by (rule_tac f="C x" in step, simp add: inverse)
+apply (rule_tac f5="C x" in step)
+apply (simp add: inverse)
+done
 
 
 text {* Rules for @{term mono_body}: *}

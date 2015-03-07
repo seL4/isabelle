@@ -18,7 +18,7 @@ sig
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
-  val gen_all: thm -> thm
+  val gen_all: int -> thm -> thm
   val lift_all: cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
@@ -208,10 +208,13 @@ fun outer_params t =
   in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
 
 (*generalize outermost parameters*)
-fun gen_all th =
+fun gen_all maxidx0 th =
   let
-    val {thy, prop, maxidx, ...} = Thm.rep_thm th;
-    fun elim (x, T) = Thm.forall_elim (Thm.global_cterm_of thy (Var ((x, maxidx + 1), T)));
+    val thy = Thm.theory_of_thm th;
+    val maxidx = Thm.maxidx_thm th maxidx0;
+    val prop = Thm.prop_of th;
+    fun elim (x, T) =
+      Thm.forall_elim (Thm.global_cterm_of thy (Var ((x, maxidx + 1), T)));
   in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters

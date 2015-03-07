@@ -71,7 +71,8 @@ val LK_basic_ss =
   setSSolver (mk_solver "safe" safe_solver)
   setSolver (mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
-  |> Simplifier.set_mksimps (fn ctxt => map (mk_meta_eq ctxt) o atomize o gen_all)
+  |> Simplifier.set_mksimps (fn ctxt =>
+      map (mk_meta_eq ctxt) o atomize o Drule.gen_all (Variable.maxidx_of ctxt))
   |> Simplifier.set_mkcong mk_meta_cong
   |> simpset_of;
 

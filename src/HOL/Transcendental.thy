@@ -4028,11 +4028,12 @@ proof -
         case False
         hence "0 < \<bar>x\<bar>" and "- \<bar>x\<bar> < \<bar>x\<bar>" by auto
         have "suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>) = suminf (?c 0) - arctan 0"
-          by (rule suminf_eq_arctan_bounded[where x="0" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>", symmetric])
+        thm suminf_eq_arctan_bounded
+          by (rule suminf_eq_arctan_bounded[where x1="0" and a1="-\<bar>x\<bar>" and b1="\<bar>x\<bar>", symmetric])
             (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
         moreover
         have "suminf (?c x) - arctan x = suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>)"
-          by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"])
+          by (rule suminf_eq_arctan_bounded[where x1="x" and a1="-\<bar>x\<bar>" and b1="\<bar>x\<bar>"])
              (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
         ultimately
         show ?thesis using suminf_arctan_zero by auto

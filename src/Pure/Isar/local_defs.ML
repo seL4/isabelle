@@ -147,7 +147,7 @@ fun export inner outer =    (*beware of closure sizes*)
                   NONE => (asm, false)
                 | SOME u =>
                     if t aconv u then (asm, false)
-                    else (Drule.abs_def (Drule.gen_all asm), true))
+                    else (Drule.abs_def (Drule.gen_all (Variable.maxidx_of outer) asm), true))
               end)));
       in (apply2 (map #1) (List.partition #2 defs_asms), th') end
   end;

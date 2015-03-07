@@ -50,7 +50,8 @@ fun mk_atomize pairs =
        | _ => [th])
   in atoms end;
 
-fun mksimps pairs (_: Proof.context) = map mk_eq o mk_atomize pairs o gen_all;
+fun mksimps pairs ctxt =
+  map mk_eq o mk_atomize pairs o Drule.gen_all (Variable.maxidx_of ctxt);
 
 
 (** make simplification procedures for quantifier elimination **)
