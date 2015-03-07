@@ -72,6 +72,8 @@ sig
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val reports_of_value: T -> Position.report list
+  val declare_maxidx: T -> Proof.context -> Proof.context
+  val declare_maxidx_src: src -> Proof.context -> Proof.context
   val transform: morphism -> T -> T
   val transform_src: morphism -> src -> src
   val init_assignable: T -> T
@@ -402,6 +404,23 @@ fun reports_of_value tok =
         else []
       end
   | _ => []);
+
+
+(* maxidx *)
+
+fun declare_maxidx tok =
+  (case get_value tok of
+    SOME (Source src) => declare_maxidx_src src
+  | SOME (Typ T) => Variable.declare_maxidx (Term.maxidx_of_typ T)
+  | SOME (Term t) => Variable.declare_maxidx (Term.maxidx_of_term t)
+  | SOME (Fact (_, ths)) => fold (Variable.declare_maxidx o Thm.maxidx_of) ths
+  | SOME (Attribute _) => I  (* FIXME !? *)
+  | SOME (Declaration decl) =>
+      (fn ctxt =>
+        let val ctxt' = Context.proof_map (Morphism.form decl) ctxt
+        in Variable.declare_maxidx (Variable.maxidx_of ctxt') ctxt end)
+  | _ => I)
+and declare_maxidx_src src = fold declare_maxidx (args_of_src src);
 
 
 (* transform *)

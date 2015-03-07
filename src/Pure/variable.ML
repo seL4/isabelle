@@ -19,6 +19,7 @@ sig
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
+  val declare_maxidx: int -> Proof.context -> Proof.context
   val declare_names: term -> Proof.context -> Proof.context
   val declare_constraints: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
@@ -205,6 +206,11 @@ fun def_type ctxt pattern xi =
   end;
 
 val def_sort = Vartab.lookup o #2 o constraints_of;
+
+
+(* maxidx *)
+
+val declare_maxidx = map_maxidx o Integer.max;
 
 
 (* names *)
