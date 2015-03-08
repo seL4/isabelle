@@ -61,7 +61,7 @@ val eq_bool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True
 fun bool_subst_tac ctxt i =
   REPEAT (EqSubst.eqsubst_asm_tac ctxt [1] eq_bool i)
   THEN REPEAT (dresolve_tac ctxt boolD i)
-  THEN REPEAT (eresolve_tac ctxt boolE i)
+  THEN REPEAT (eresolve_tac ctxt boolE i);
 
 fun mk_bool_elims ctxt elim =
   let
@@ -81,16 +81,18 @@ fun mk_partial_elim_rules ctxt result =
     val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
 
+    fun variant_free used_term v =
+      Free (singleton (Variable.variant_frees ctxt [used_term]) v);
+
     fun mk_partial_elim_rule (idx, f) =
       let
-        fun mk_var x T ctxt = case Name.variant x ctxt of (x, ctxt) => (Free (x, T), ctxt)
-        fun mk_funeq 0 T ctxt (acc_vars, acc_lhs) =
-              let val (y, ctxt) = mk_var "y" T ctxt
-              in  (y :: acc_vars, (HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))), T, ctxt) end
-          | mk_funeq n (Type (@{type_name "fun"}, [S, T])) ctxt (acc_vars, acc_lhs) =
-              let val (xn, ctxt) = mk_var "x" S ctxt
-              in  mk_funeq (n - 1) T ctxt (xn :: acc_vars, acc_lhs $ xn) end
-          | mk_funeq _ _ _ _ = raise TERM ("Not a function", [f]);
+        fun mk_funeq 0 T (acc_args, acc_lhs) =
+              let val y = variant_free acc_lhs ("y", T)
+              in (y, rev acc_args, HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))) end
+          | mk_funeq n (Type (@{type_name fun}, [S, T])) (acc_args, acc_lhs) =
+              let val x = variant_free acc_lhs ("x", S)
+              in mk_funeq (n - 1) T (x :: acc_args, acc_lhs $ x) end
+          | mk_funeq _ _ _ = raise TERM ("Not a function", [f]);
 
         val f_simps =
           filter (fn r =>
@@ -108,14 +110,12 @@ fun mk_partial_elim_rules ctxt result =
           |> snd o fst o dest_funprop
           |> length;
 
-        val name_ctxt = Variable.names_of ctxt
-        val (free_vars, prop, ranT, name_ctxt) = mk_funeq arity (fastype_of f) name_ctxt ([], f);
-        val (rhs_var, arg_vars) = (case free_vars of x :: xs => (x, rev xs));
+        val (rhs_var, arg_vars, prop) = mk_funeq arity (fastype_of f) ([], f);
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
 
-        val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Thm.cterm_of ctxt
-        val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx+1) args;
+        val P = Thm.cterm_of ctxt (variant_free prop ("P", @{typ bool}));
+        val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx + 1) args;
 
         val cprop = Thm.cterm_of ctxt prop;
 
@@ -138,7 +138,7 @@ fun mk_partial_elim_rules ctxt result =
           |> Thm.forall_intr (Thm.cterm_of ctxt rhs_var);
 
         val bool_elims =
-          (case ranT of
+          (case fastype_of rhs_var of
             Type (@{type_name bool}, []) => mk_bool_elims ctxt elim_stripped
           | _ => []);
 
