@@ -47,6 +47,7 @@ sig
   val named_attribute: (string * Position.T -> morphism -> attribute) ->
     (morphism -> attribute) parser
   val text_declaration: (Input.source -> declaration) -> declaration parser
+  val cartouche_declaration: (Input.source -> declaration) -> declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
@@ -158,6 +159,10 @@ fun named_attribute att =
 fun text_declaration read =
   internal_declaration ||
   text_token >> evaluate Token.Declaration (read o Token.source_position_of);
+
+fun cartouche_declaration read =
+  internal_declaration ||
+  cartouche >> evaluate Token.Declaration (read o Token.source_position_of);
 
 
 (* terms and types *)
