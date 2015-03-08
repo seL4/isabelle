@@ -28,8 +28,8 @@ open Function_Common
    either of the form "f x y z = ..." or, in case of function that
    returns a boolean, "f x y z" *)
 fun dest_funprop (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (strip_comb lhs, rhs)
-  | dest_funprop (Const (@{const_name Not}, _) $ trm) = (strip_comb trm, @{term "False"})
-  | dest_funprop trm = (strip_comb trm, @{term "True"});
+  | dest_funprop (Const (@{const_name Not}, _) $ t) = (strip_comb t, @{term False})
+  | dest_funprop t = (strip_comb t, @{term True});
 
 local
 
@@ -53,9 +53,9 @@ fun propagate_tac ctxt i =
     asm_lr_simp_tac simpset i
   end;
 
-val eq_boolI = @{lemma "!!P. P ==> P = True" "!!P. ~P ==> P = False" by iprover+};
+val eq_boolI = @{lemma "\<And>P. P \<Longrightarrow> P = True" "\<And>P. \<not> P \<Longrightarrow> P = False" by iprover+};
 val boolE = @{thms HOL.TrueE HOL.FalseE};
-val boolD = @{lemma "!!P. True = P ==> P" "!!P. False = P ==> ~P" by iprover+};
+val boolD = @{lemma "\<And>P. True = P \<Longrightarrow> P" "\<And>P. False = P \<Longrightarrow> \<not> P" by iprover+};
 val eq_bool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True_eq_False};
 
 fun bool_subst_tac ctxt i =
@@ -65,12 +65,11 @@ fun bool_subst_tac ctxt i =
 
 fun mk_bool_elims ctxt elim =
   let
-    val tac = ALLGOALS (bool_subst_tac ctxt);
     fun mk_bool_elim b =
       elim
       |> Thm.forall_elim b
       |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac ctxt eq_boolI 1))
-      |> Tactic.rule_by_tactic ctxt tac;
+      |> Tactic.rule_by_tactic ctxt (ALLGOALS (bool_subst_tac ctxt));
   in
     map mk_bool_elim [@{cterm True}, @{cterm False}]
   end;
@@ -91,11 +90,12 @@ fun mk_partial_elim_rules ctxt result =
           | mk_funeq n (Type (@{type_name "fun"}, [S, T])) ctxt (acc_vars, acc_lhs) =
               let val (xn, ctxt) = mk_var "x" S ctxt
               in  mk_funeq (n - 1) T ctxt (xn :: acc_vars, acc_lhs $ xn) end
-          | mk_funeq _ _ _ _ = raise TERM ("Not a function.", [f]);
+          | mk_funeq _ _ _ _ = raise TERM ("Not a function", [f]);
 
         val f_simps =
           filter (fn r =>
-            (Thm.prop_of r |> Logic.strip_assums_concl
+            (Thm.prop_of r
+              |> Logic.strip_assums_concl
               |> HOLogic.dest_Trueprop
               |> dest_funprop |> fst |> fst) = f)
             psimps;
@@ -107,6 +107,7 @@ fun mk_partial_elim_rules ctxt result =
           |> HOLogic.dest_Trueprop
           |> snd o fst o dest_funprop
           |> length;
+
         val name_ctxt = Variable.names_of ctxt
         val (free_vars, prop, ranT, name_ctxt) = mk_funeq arity (fastype_of f) name_ctxt ([], f);
         val (rhs_var, arg_vars) = (case free_vars of x :: xs => (x, rev xs));
