@@ -143,7 +143,8 @@ fun ensure_prefix pre s = s |> not (String.isPrefix pre s) ? prefix pre;
 fun variant_types ss Ss ctxt =
   let
     val (tfrees, _) =
-      @{fold_map 2} (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
+      @{fold_map 2} (fn s => fn S => Name.variant s #> apfst (rpair S))
+        ss Ss (Variable.names_of ctxt);
     val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

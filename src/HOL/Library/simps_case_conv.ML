@@ -125,16 +125,16 @@ fun to_case ctxt ths =
     val fun_t = hd iths |> strip_eq |> fst |> head_of
     val eqs = map (strip_eq #> apfst (snd o strip_comb)) iths
 
-    fun hide_rhs ((pat, rhs), name) lthy = let
+    fun hide_rhs ((pat, rhs), name) lthy =
+      let
         val frees = fold Term.add_frees pat []
         val abs_rhs = fold absfree frees rhs
         val ((f,def), lthy') = Local_Defs.add_def
           ((Binding.name name, Mixfix.NoSyn), abs_rhs) lthy
       in ((list_comb (f, map Free (rev frees)), def), lthy') end
 
-    val ((def_ts, def_thms), ctxt2) = let
-        val nctxt = Variable.names_of ctxt'
-        val names = Name.invent nctxt "rhs" (length eqs)
+    val ((def_ts, def_thms), ctxt2) =
+      let val names = Name.invent (Variable.names_of ctxt') "rhs" (length eqs)
       in fold_map hide_rhs (eqs ~~ names) ctxt' |> apfst split_list end
 
     val ((t, split_thms), ctxt3) = build_case_t fun_t (map fst eqs) def_ts ctxt2
