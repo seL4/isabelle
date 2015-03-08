@@ -245,34 +245,24 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
     fst (fold_map (project induct_inst) parts 0)
   end
 
-fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
+fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs = Ts, ...}) =
   let
-    val name_ctxt = Variable.names_of ctxt
-    fun mk_var x T ctxt = case Name.variant x ctxt of (x, ctxt) => (Free (x, T), ctxt)
-    val (arg_vars, name_ctxt) = fold_index 
-          (fn (i, T) => fn (acc, ctxt) =>
-            case mk_var ("x" ^ string_of_int i) T ctxt of (x, ctxt) => (x :: acc, ctxt))
-          cargTs ([], name_ctxt)
-    val arg_vars = rev arg_vars
+    val [P, x] =
+      Variable.variant_frees ctxt [] [("P", @{typ bool}), ("x", HOLogic.mk_tupleT Ts)]
+      |> map (Thm.cterm_of ctxt o Free);
+    val sumtree_inj = Drule.cterm_fun (Sum_Tree.mk_inj ST n i) x;
 
-    val argsT = fastype_of (HOLogic.mk_tuple arg_vars)
-    val (args, name_ctxt) = mk_var "x" argsT name_ctxt
-    
-    val P = mk_var "P" @{typ "bool"} name_ctxt |> fst |> Thm.cterm_of ctxt
-    val sumtree_inj = Sum_Tree.mk_inj ST n i args
-
-    val sum_elims =
-      @{thms HOL.notE[OF Sum_Type.sum.distinct(1)] HOL.notE[OF Sum_Type.sum.distinct(2)]}
-
-    fun prep_subgoal i =
-      REPEAT (eresolve_tac ctxt @{thms Pair_inject Inl_inject[elim_format] Inr_inject[elim_format]} i)
-      THEN REPEAT (eresolve_tac ctxt sum_elims i)
+    fun prep_subgoal_tac i =
+      REPEAT (eresolve_tac ctxt
+        @{thms Pair_inject Inl_inject [elim_format] Inr_inject [elim_format]} i)
+      THEN REPEAT (eresolve_tac ctxt
+        @{thms HOL.notE [OF Sum_Type.sum.distinct(1)] HOL.notE [OF Sum_Type.sum.distinct(2)]} i);
   in
     cases_rule
     |> Thm.forall_elim P
-    |> Thm.forall_elim (Thm.cterm_of ctxt sumtree_inj)
-    |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal)
-    |> Thm.forall_intr (Thm.cterm_of ctxt args)
+    |> Thm.forall_elim sumtree_inj
+    |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
+    |> Thm.forall_intr x
     |> Thm.forall_intr P
   end
 
