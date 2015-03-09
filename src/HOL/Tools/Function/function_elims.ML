@@ -21,9 +21,6 @@ end;
 structure Function_Elims : FUNCTION_ELIMS =
 struct
 
-open Function_Lib
-open Function_Common
-
 (* Extract a function and its arguments from a proposition that is
    either of the form "f x y z = ..." or, in case of function that
    returns a boolean, "f x y z" *)
@@ -78,7 +75,7 @@ in
 
 fun mk_partial_elim_rules ctxt result =
   let
-    val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
+    val Function_Common.FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
 
     fun variant_free used_term v =
@@ -138,9 +135,9 @@ fun mk_partial_elim_rules ctxt result =
           |> Thm.forall_intr (Thm.cterm_of ctxt rhs_var);
 
         val bool_elims =
-          (case fastype_of rhs_var of
-            Type (@{type_name bool}, []) => mk_bool_elims ctxt elim_stripped
-          | _ => []);
+          if fastype_of rhs_var = @{typ bool}
+          then mk_bool_elims ctxt elim_stripped
+          else [];
 
         fun unstrip rl =
           rl
