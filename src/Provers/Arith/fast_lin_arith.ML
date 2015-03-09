@@ -59,7 +59,6 @@ sig
     into two cases, this can lead to an explosion*)
   val neq_limit: int Config.T
 
-  val verbose: bool Config.T
   val trace: bool Config.T
 end;
 (*
@@ -87,7 +86,7 @@ Simpset must reduce contradictory <= to False.
 signature FAST_LIN_ARITH =
 sig
   val prems_lin_arith_tac: Proof.context -> int -> tactic
-  val lin_arith_tac: Proof.context -> bool -> int -> tactic
+  val lin_arith_tac: Proof.context -> int -> tactic
   val lin_arith_simproc: Proof.context -> term -> thm option
   val map_data:
     ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
@@ -735,10 +734,7 @@ end;
 fun add_datoms ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _) (dats : (bool * term) list) =
   union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
-fun discr (initems : (LA_Data.decomp * int) list) : bool list =
-  map fst (fold add_datoms initems []);
-
-fun refutes ctxt params show_ex :
+fun refutes ctxt :
     (typ list * (LA_Data.decomp * int) list) list -> injust list -> injust list option =
   let
     fun refute ((Ts, initems : (LA_Data.decomp * int) list) :: initemss) (js: injust list) =
@@ -750,32 +746,22 @@ fun refutes ctxt params show_ex :
             val iatoms = atoms ~~ ixs
             val natlineqs = map_filter (mknat Ts ixs) iatoms
             val ineqs = map mkleq initems @ natlineqs
-          in case elim ctxt (ineqs, []) of
+          in
+            (case elim ctxt (ineqs, []) of
                Success j =>
                  (trace_msg ctxt ("Contradiction! (" ^ string_of_int (length js + 1) ^ ")");
                   refute initemss (js @ [j]))
-             | Failure hist =>
-                 (if not show_ex orelse not (Config.get ctxt LA_Data.verbose) then ()
-                  else
-                    let
-                      val (param_names, ctxt') = ctxt |> Variable.variant_fixes (map fst params)
-                      val (more_names, ctxt'') = ctxt' |> Variable.variant_fixes
-                        (Name.invent (Variable.names_of ctxt') Name.uu (length Ts - length params))
-                      val params' = (more_names @ param_names) ~~ Ts
-                    in
-                      () (*trace_ex ctxt'' params' atoms (discr initems) n hist*)
-                    end; NONE)
+             | Failure _ => NONE)
           end
       | refute [] js = SOME js
   in refute end;
 
-fun refute ctxt params show_ex do_pre split_neq terms : injust list option =
-  refutes ctxt params show_ex (split_items ctxt do_pre split_neq
-    (map snd params, terms)) [];
+fun refute ctxt params do_pre split_neq terms : injust list option =
+  refutes ctxt (split_items ctxt do_pre split_neq (map snd params, terms)) [];
 
 fun count P xs = length (filter P xs);
 
-fun prove ctxt params show_ex do_pre Hs concl : bool * injust list option =
+fun prove ctxt params do_pre Hs concl : bool * injust list option =
   let
     val _ = trace_msg ctxt "prove:"
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
@@ -791,7 +777,7 @@ fun prove ctxt params show_ex do_pre Hs concl : bool * injust list option =
     else
       trace_msg ctxt ("neq_limit exceeded (current value is " ^
         string_of_int neq_limit ^ "), ignoring all inequalities");
-    (split_neq, refute ctxt params show_ex do_pre split_neq Hs')
+    (split_neq, refute ctxt params do_pre split_neq Hs')
   end handle TERM ("neg_prop", _) =>
     (* since no meta-logic negation is available, we can only fail if   *)
     (* the conclusion is not of the form 'Trueprop $ _' (simply         *)
@@ -830,14 +816,14 @@ fun refute_tac ctxt (i, split_neq, justs) =
 Fast but very incomplete decider. Only premises and conclusions
 that are already (negated) (in)equations are taken into account.
 *)
-fun simpset_lin_arith_tac ctxt show_ex = SUBGOAL (fn (A, i) =>
+fun simpset_lin_arith_tac ctxt = SUBGOAL (fn (A, i) =>
   let
     val params = rev (Logic.strip_params A)
     val Hs = Logic.strip_assums_hyp A
     val concl = Logic.strip_assums_concl A
     val _ = trace_term ctxt ["Trying to refute subgoal " ^ string_of_int i] A
   in
-    case prove ctxt params show_ex true Hs concl of
+    case prove ctxt params true Hs concl of
       (_, NONE) => (trace_msg ctxt "Refutation failed."; no_tac)
     | (split_neq, SOME js) => (trace_msg ctxt "Refutation succeeded.";
                                refute_tac ctxt (i, split_neq, js))
@@ -845,7 +831,7 @@ fun simpset_lin_arith_tac ctxt show_ex = SUBGOAL (fn (A, i) =>
 
 fun prems_lin_arith_tac ctxt =
   Method.insert_tac (Simplifier.prems_of ctxt) THEN'
-  simpset_lin_arith_tac ctxt false;
+  simpset_lin_arith_tac ctxt;
 
 fun lin_arith_tac ctxt =
   simpset_lin_arith_tac (empty_simpset ctxt);
@@ -926,11 +912,11 @@ fun lin_arith_simproc ctxt concl =
     val Hs = map Thm.prop_of thms
     val Tconcl = LA_Logic.mk_Trueprop concl
   in
-    case prove ctxt [] false false Hs Tconcl of (* concl provable? *)
+    case prove ctxt [] false Hs Tconcl of (* concl provable? *)
       (split_neq, SOME js) => prover ctxt thms Tconcl js split_neq true
     | (_, NONE) =>
         let val nTconcl = LA_Logic.neg_prop Tconcl in
-          case prove ctxt [] false false Hs nTconcl of (* ~concl provable? *)
+          case prove ctxt [] false Hs nTconcl of (* ~concl provable? *)
             (split_neq, SOME js) => prover ctxt thms nTconcl js split_neq false
           | (_, NONE) => NONE
         end

@@ -778,8 +778,7 @@ val add_simps = Fast_Arith.add_simps;
 val add_simprocs = Fast_Arith.add_simprocs;
 val set_number_of = Fast_Arith.set_number_of;
 
-fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
-val lin_arith_tac = Fast_Arith.lin_arith_tac;
+val simple_tac = Fast_Arith.lin_arith_tac;
 
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics. *)
@@ -853,7 +852,7 @@ end;
 
 local
 
-fun raw_tac ctxt ex =
+fun raw_tac ctxt =
   (* FIXME: K true should be replaced by a sensible test (perhaps "is_some o
      decomp sg"? -- but note that the test is applied to terms already before
      they are split/normalized) to speed things up in case there are lots of
@@ -869,16 +868,14 @@ fun raw_tac ctxt ex =
     (* Therefore splitting outside of simple_tac may allow us to prove    *)
     (* some goals that simple_tac alone would fail on.                    *)
     (REPEAT_DETERM o split_tac ctxt (#splits (get_arith_data ctxt)))
-    (lin_arith_tac ctxt ex);
+    (Fast_Arith.lin_arith_tac ctxt);
 
 in
 
-fun gen_tac ex ctxt =
+fun tac ctxt =
   FIRST' [simple_tac ctxt,
     Object_Logic.full_atomize_tac ctxt THEN'
-    (REPEAT_DETERM o resolve_tac ctxt [impI]) THEN' raw_tac ctxt ex];
-
-val tac = gen_tac true;
+    (REPEAT_DETERM o resolve_tac ctxt [impI]) THEN' raw_tac ctxt];
 
 end;
 
@@ -895,7 +892,7 @@ val global_setup =
       METHOD (fn facts =>
         HEADGOAL (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
-  Arith_Data.add_tactic "linear arithmetic" gen_tac;
+  Arith_Data.add_tactic "linear arithmetic" (K tac);
 
 val setup =
   init_arith_data
