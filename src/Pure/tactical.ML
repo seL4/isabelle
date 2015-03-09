@@ -351,7 +351,8 @@ fun SOLVED' tac i st =
 (*Apply second tactic to all subgoals emerging from the first --
   following usual convention for subgoal-based tactics.*)
 fun (tac1 THEN_ALL_NEW tac2) i st =
-  st |> (tac1 i THEN (fn st' => Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
+  st |> (tac1 i THEN (fn st' =>
+    Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
 
 (*Repeatedly dig into any emerging subgoals.*)
 fun REPEAT_ALL_NEW tac =

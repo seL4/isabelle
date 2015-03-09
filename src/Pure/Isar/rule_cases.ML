@@ -9,7 +9,8 @@ infix 1 THEN_ALL_NEW_CASES;
 signature BASIC_RULE_CASES =
 sig
   type cases
-  type cases_tactic
+  type cases_state = cases * thm
+  type cases_tactic = thm -> cases_state Seq.seq
   val CASES: cases -> tactic -> cases_tactic
   val NO_CASES: tactic -> cases_tactic
   val SUBGOAL_CASES: ((term * int * thm) -> cases_tactic) -> int -> cases_tactic
@@ -183,7 +184,8 @@ end;
 
 (** tactics with cases **)
 
-type cases_tactic = thm -> (cases * thm) Seq.seq;
+type cases_state = cases * thm;
+type cases_tactic = thm -> cases_state Seq.seq;
 
 fun CASES cases tac st = Seq.map (pair cases) (tac st);
 fun NO_CASES tac = CASES [] tac;
