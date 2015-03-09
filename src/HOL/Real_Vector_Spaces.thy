@@ -859,6 +859,16 @@ lemma square_norm_one:
   assumes "x^2 = 1" shows "norm x = 1"
   by (metis assms norm_minus_cancel norm_one power2_eq_1_iff)
 
+lemma norm_less_p1:
+  fixes x :: "'a::real_normed_algebra_1"
+  shows "norm x < norm (of_real (norm x) + 1 :: 'a)"
+proof -
+  have "norm x < norm (of_real (norm x + 1) :: 'a)"
+    by (simp add: of_real_def)
+  then show ?thesis
+    by simp
+qed
+
 lemma setprod_norm:
   fixes f :: "'a \<Rightarrow> 'b::{comm_semiring_1,real_normed_div_algebra}"
   shows "setprod (\<lambda>x. norm(f x)) A = norm (setprod f A)"

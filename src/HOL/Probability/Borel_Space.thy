@@ -1089,10 +1089,10 @@ lemma borel_measurable_Im [measurable]: "Im \<in> borel_measurable borel"
 lemma borel_measurable_of_real [measurable]: "(of_real :: _ \<Rightarrow> (_::real_normed_algebra)) \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
-lemma borel_measurable_sin [measurable]: "sin \<in> borel_measurable borel"
+lemma borel_measurable_sin [measurable]: "(sin :: _ \<Rightarrow> (_::{real_normed_field,banach})) \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
-lemma borel_measurable_cos [measurable]: "cos \<in> borel_measurable borel"
+lemma borel_measurable_cos [measurable]: "(cos :: _ \<Rightarrow> (_::{real_normed_field,banach})) \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
 lemma borel_measurable_arctan [measurable]: "arctan \<in> borel_measurable borel"

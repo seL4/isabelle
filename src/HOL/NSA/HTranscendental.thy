@@ -413,13 +413,16 @@ apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
 apply (rule summable_iff_convergent [THEN iffD1])
-apply (rule summable_sin)
+using summable_norm_sin [of x]
+apply (simp add: summable_rabs_cancel)
 done
 
 lemma STAR_sin_zero [simp]: "( *f* sin) 0 = 0"
 by transfer (rule sin_zero)
 
-lemma STAR_sin_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* sin) x @= x"
+lemma STAR_sin_Infinitesimal [simp]:
+  fixes x :: "'a::{real_normed_field,banach} star"
+  shows "x \<in> Infinitesimal ==> ( *f* sin) x @= x"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_sin)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -436,13 +439,16 @@ apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
 apply (rule summable_iff_convergent [THEN iffD1])
-apply (rule summable_cos)
+using summable_norm_cos [of x]
+apply (simp add: summable_rabs_cancel)
 done
 
 lemma STAR_cos_zero [simp]: "( *f* cos) 0 = 1"
 by transfer (rule cos_zero)
 
-lemma STAR_cos_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* cos) x @= 1"
+lemma STAR_cos_Infinitesimal [simp]:
+  fixes x :: "'a::{real_normed_field,banach} star"
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_cos)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -469,10 +475,10 @@ apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
 done
 
 lemma STAR_sin_cos_Infinitesimal_mult:
-     "x \<in> Infinitesimal ==> ( *f* sin) x * ( *f* cos) x @= x"
-apply (insert approx_mult_HFinite [of "( *f* sin) x" _ "( *f* cos) x" 1]) 
-apply (simp add: Infinitesimal_subset_HFinite [THEN subsetD])
-done
+  fixes x :: "'a::{real_normed_field,banach} star"
+  shows "x \<in> Infinitesimal ==> ( *f* sin) x * ( *f* cos) x @= x"
+using approx_mult_HFinite [of "( *f* sin) x" _ "( *f* cos) x" 1] 
+by (simp add: Infinitesimal_subset_HFinite [THEN subsetD])
 
 lemma HFinite_pi: "hypreal_of_real pi \<in> HFinite"
 by simp
@@ -486,10 +492,10 @@ lemma lemma_split_hypreal_of_real:
 by (simp add: mult.assoc [symmetric] zero_less_HNatInfinite)
 
 lemma STAR_sin_Infinitesimal_divide:
-     "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
-apply (cut_tac x = 0 in DERIV_sin)
-apply (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
-done
+  fixes x :: "'a::{real_normed_field,banach} star"
+  shows "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
+using DERIV_sin [of "0::'a"]
+by (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 
 (*------------------------------------------------------------------------*) 
 (* sin* (1/n) * 1/(1/n) @= 1 for n = oo                                   *)
@@ -586,16 +592,18 @@ by (insert NSLIMSEQ_mult [OF NSLIMSEQ_sin_pi NSLIMSEQ_cos_one], simp)
 text{*A familiar approximation to @{term "cos x"} when @{term x} is small*}
 
 lemma STAR_cos_Infinitesimal_approx:
-     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x\<^sup>2"
+  fixes x :: "'a::{real_normed_field,banach} star"
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x\<^sup>2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto simp add: Infinitesimal_approx_minus [symmetric] 
             add.assoc [symmetric] numeral_2_eq_2)
 done
 
 lemma STAR_cos_Infinitesimal_approx2:
-     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x\<^sup>2)/2"
+  fixes x :: hypreal  --{*perhaps could be generalised, like many other hypreal results*}
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x\<^sup>2)/2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
-apply (auto intro: Infinitesimal_SReal_divide 
+apply (auto intro: Infinitesimal_SReal_divide Infinitesimal_mult
             simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)
 done
 

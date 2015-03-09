@@ -2347,11 +2347,11 @@ definition sin_coeff :: "nat \<Rightarrow> real" where
 definition cos_coeff :: "nat \<Rightarrow> real" where
   "cos_coeff = (\<lambda>n. if even n then ((- 1) ^ (n div 2)) / real (fact n) else 0)"
 
-definition sin :: "real \<Rightarrow> real"
-  where "sin = (\<lambda>x. \<Sum>n. sin_coeff n * x ^ n)"
+definition sin :: "'a \<Rightarrow> 'a::{real_normed_algebra_1,banach}"
+  where "sin = (\<lambda>x. \<Sum>n. sin_coeff n *\<^sub>R x^n)"
 
-definition cos :: "real \<Rightarrow> real"
-  where "cos = (\<lambda>x. \<Sum>n. cos_coeff n * x ^ n)"
+definition cos :: "'a \<Rightarrow> 'a::{real_normed_algebra_1,banach}"
+  where "cos = (\<lambda>x. \<Sum>n. cos_coeff n *\<^sub>R x^n)"
 
 lemma sin_coeff_0 [simp]: "sin_coeff 0 = 0"
   unfolding sin_coeff_def by simp
@@ -2367,23 +2367,65 @@ lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
   unfolding cos_coeff_def sin_coeff_def
   by (simp del: mult_Suc) (auto elim: oddE)
 
-lemma summable_sin: "summable (\<lambda>n. sin_coeff n * x ^ n)"
-  unfolding sin_coeff_def
-  apply (rule summable_comparison_test [OF _ summable_exp [where x="\<bar>x\<bar>"]])
-  apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+lemma summable_norm_sin: 
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "summable (\<lambda>n. norm (sin_coeff n *\<^sub>R x^n))"
+  unfolding sin_coeff_def 
+  apply (rule summable_comparison_test [OF _ summable_norm_exp [where x=x]])
+  apply (auto simp: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
   done
 
-lemma summable_cos: "summable (\<lambda>n. cos_coeff n * x ^ n)"
+lemma summable_norm_cos: 
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "summable (\<lambda>n. norm (cos_coeff n *\<^sub>R x ^ n))"
   unfolding cos_coeff_def
-  apply (rule summable_comparison_test [OF _ summable_exp [where x="\<bar>x\<bar>"]])
-  apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+  apply (rule summable_comparison_test [OF _ summable_norm_exp [where x=x]])
+  apply (auto simp: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
   done
 
-lemma sin_converges: "(\<lambda>n. sin_coeff n * x ^ n) sums sin(x)"
-  unfolding sin_def by (rule summable_sin [THEN summable_sums])
+lemma sin_converges: "(\<lambda>n. sin_coeff n *\<^sub>R x^n) sums sin(x)"
+unfolding sin_def
+  by (metis (full_types) summable_norm_cancel summable_norm_sin summable_sums)
 
-lemma cos_converges: "(\<lambda>n. cos_coeff n * x ^ n) sums cos(x)"
-  unfolding cos_def by (rule summable_cos [THEN summable_sums])
+lemma cos_converges: "(\<lambda>n. cos_coeff n *\<^sub>R x^n) sums cos(x)"
+unfolding cos_def
+  by (metis (full_types) summable_norm_cancel summable_norm_cos summable_sums)
+
+lemma sin_of_real:
+  fixes x::real
+  shows "sin (of_real x) = of_real (sin x)"
+proof -
+  have "(\<lambda>n. of_real (sin_coeff n *\<^sub>R  x^n)) = (\<lambda>n. sin_coeff n *\<^sub>R  (of_real x)^n)"
+  proof
+    fix n
+    show "of_real (sin_coeff n *\<^sub>R  x ^ n) = sin_coeff n *\<^sub>R of_real x ^ n"
+      by (simp add: scaleR_conv_of_real)
+  qed
+  also have "... sums (sin (of_real x))"
+    by (rule sin_converges)
+  finally have "(\<lambda>n. of_real (sin_coeff n *\<^sub>R x^n)) sums (sin (of_real x))" .
+  then show ?thesis
+    using sums_unique2 sums_of_real [OF sin_converges] 
+    by blast
+qed
+
+lemma cos_of_real:
+  fixes x::real
+  shows "cos (of_real x) = of_real (cos x)"
+proof -
+  have "(\<lambda>n. of_real (cos_coeff n *\<^sub>R  x^n)) = (\<lambda>n. cos_coeff n *\<^sub>R  (of_real x)^n)"
+  proof
+    fix n
+    show "of_real (cos_coeff n *\<^sub>R  x ^ n) = cos_coeff n *\<^sub>R of_real x ^ n"
+      by (simp add: scaleR_conv_of_real)
+  qed
+  also have "... sums (cos (of_real x))"
+    by (rule cos_converges)
+  finally have "(\<lambda>n. of_real (cos_coeff n *\<^sub>R x^n)) sums (cos (of_real x))" .
+  then show ?thesis
+    using sums_unique2 sums_of_real [OF cos_converges]  
+    by blast
+qed
 
 lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
   by (simp add: diffs_def sin_coeff_Suc real_of_nat_def del: of_nat_Suc)
@@ -2393,106 +2435,339 @@ lemma diffs_cos_coeff: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
-lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
-  unfolding sin_def cos_def
-  apply (rule DERIV_cong, rule termdiffs [where K="1 + \<bar>x\<bar>"])
-  apply (simp_all add: diffs_sin_coeff diffs_cos_coeff
-    summable_minus summable_sin summable_cos)
+lemma DERIV_sin [simp]:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "DERIV sin x :> cos(x)"
+  unfolding sin_def cos_def scaleR_conv_of_real
+  apply (rule DERIV_cong)
+  apply (rule termdiffs [where K="of_real (norm x) + 1 :: 'a"])
+  apply (simp_all add: norm_less_p1 diffs_of_real diffs_sin_coeff diffs_cos_coeff 
+              summable_minus_iff scaleR_conv_of_real [symmetric]
+              summable_norm_sin [THEN summable_norm_cancel]
+              summable_norm_cos [THEN summable_norm_cancel])
   done
-
+  
 declare DERIV_sin[THEN DERIV_chain2, derivative_intros]
 
-lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
-  unfolding cos_def sin_def
-  apply (rule DERIV_cong, rule termdiffs [where K="1 + \<bar>x\<bar>"])
-  apply (simp_all add: diffs_sin_coeff diffs_cos_coeff diffs_minus
-    summable_minus summable_sin summable_cos suminf_minus)
+lemma DERIV_cos [simp]: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "DERIV cos x :> -sin(x)"
+  unfolding sin_def cos_def scaleR_conv_of_real
+  apply (rule DERIV_cong)
+  apply (rule termdiffs [where K="of_real (norm x) + 1 :: 'a"])
+  apply (simp_all add: norm_less_p1 diffs_of_real diffs_minus suminf_minus 
+              diffs_sin_coeff diffs_cos_coeff 
+              summable_minus_iff scaleR_conv_of_real [symmetric]
+              summable_norm_sin [THEN summable_norm_cancel]
+              summable_norm_cos [THEN summable_norm_cancel])
   done
 
 declare DERIV_cos[THEN DERIV_chain2, derivative_intros]
 
-lemma isCont_sin: "isCont sin x"
+lemma isCont_sin:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "isCont sin x"
   by (rule DERIV_sin [THEN DERIV_isCont])
 
-lemma isCont_cos: "isCont cos x"
+lemma isCont_cos: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "isCont cos x"
   by (rule DERIV_cos [THEN DERIV_isCont])
 
-lemma isCont_sin' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. sin (f x)) a"
+lemma isCont_sin' [simp]:
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. sin (f x)) a"
   by (rule isCont_o2 [OF _ isCont_sin])
 
-lemma isCont_cos' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. cos (f x)) a"
+(*FIXME A CONTEXT FOR F WOULD BE BETTER*)
+
+lemma isCont_cos' [simp]: 
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. cos (f x)) a"
   by (rule isCont_o2 [OF _ isCont_cos])
 
 lemma tendsto_sin [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. sin (f x)) ---> sin a) F"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. sin (f x)) ---> sin a) F"
   by (rule isCont_tendsto_compose [OF isCont_sin])
 
 lemma tendsto_cos [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) ---> cos a) F"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) ---> cos a) F"
   by (rule isCont_tendsto_compose [OF isCont_cos])
 
 lemma continuous_sin [continuous_intros]:
-  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sin (f x))"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sin (f x))"
   unfolding continuous_def by (rule tendsto_sin)
 
 lemma continuous_on_sin [continuous_intros]:
-  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sin (f x))"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sin (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_sin)
 
+lemma continuous_within_sin:
+  fixes z :: "'a::{real_normed_field,banach}"
+  shows "continuous (at z within s) sin"
+  by (simp add: continuous_within tendsto_sin)
+
 lemma continuous_cos [continuous_intros]:
-  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. cos (f x))"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. cos (f x))"
   unfolding continuous_def by (rule tendsto_cos)
 
 lemma continuous_on_cos [continuous_intros]:
-  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. cos (f x))"
+  fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. cos (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_cos)
+
+lemma continuous_within_cos:
+  fixes z :: "'a::{real_normed_field,banach}"
+  shows "continuous (at z within s) cos"
+  by (simp add: continuous_within tendsto_cos)
 
 subsection {* Properties of Sine and Cosine *}
 
 lemma sin_zero [simp]: "sin 0 = 0"
-  unfolding sin_def sin_coeff_def by (simp add: powser_zero)
+  unfolding sin_def sin_coeff_def by (simp add: scaleR_conv_of_real powser_zero)
 
 lemma cos_zero [simp]: "cos 0 = 1"
-  unfolding cos_def cos_coeff_def by (simp add: powser_zero)
+  unfolding cos_def cos_coeff_def by (simp add: scaleR_conv_of_real powser_zero)
 
-lemma sin_cos_squared_add [simp]: "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
+lemma DERIV_fun_sin:
+     "DERIV g x :> m \<Longrightarrow> DERIV (\<lambda>x. sin(g x)) x :> cos(g x) * m"
+  by (auto intro!: derivative_intros)
+
+lemma DERIV_fun_cos:
+     "DERIV g x :> m \<Longrightarrow> DERIV (\<lambda>x. cos(g x)) x :> -sin(g x) * m"
+  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
+
+subsection {*Deriving the Addition Formulas*}
+
+text{*The the product of two cosine series*}
+lemma cos_x_cos_y: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(\<lambda>p. \<Sum>n\<le>p. 
+          if even p \<and> even n 
+          then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) 
+         sums (cos x * cos y)"
 proof -
-  have "\<forall>x. DERIV (\<lambda>x. (sin x)\<^sup>2 + (cos x)\<^sup>2) x :> 0"
-    by (auto intro!: derivative_eq_intros)
-  hence "(sin x)\<^sup>2 + (cos x)\<^sup>2 = (sin 0)\<^sup>2 + (cos 0)\<^sup>2"
-    by (rule DERIV_isconst_all)
-  thus "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1" by simp
+  { fix n p::nat
+    assume "n\<le>p"
+    then have *: "even n \<Longrightarrow> even p \<Longrightarrow> (-1) ^ (n div 2) * (-1) ^ ((p - n) div 2) = (-1 :: real) ^ (p div 2)"
+      by (metis div_add power_add le_add_diff_inverse odd_add)
+    have "(cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) = 
+          (if even p \<and> even n then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+    using `n\<le>p`
+      by (auto simp: * algebra_simps cos_coeff_def binomial_fact real_of_nat_def)
+  } 
+  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> even n 
+                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
+             (\<lambda>p. \<Sum>n\<le>p. (cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
+    by simp
+  also have "... = (\<lambda>p. \<Sum>n\<le>p. (cos_coeff n *\<^sub>R x^n) * (cos_coeff (p - n) *\<^sub>R y^(p-n)))"
+    by (simp add: algebra_simps)
+  also have "... sums (cos x * cos y)"
+    using summable_norm_cos
+    by (auto simp: cos_def scaleR_conv_of_real intro!: Cauchy_product_sums)
+  finally show ?thesis .
 qed
 
-lemma sin_cos_squared_add2 [simp]: "(cos x)\<^sup>2 + (sin x)\<^sup>2 = 1"
+text{*The product of two sine series*}
+lemma sin_x_sin_y: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(\<lambda>p. \<Sum>n\<le>p. 
+          if even p \<and> odd n 
+               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) 
+         sums (sin x * sin y)"
+proof -
+  { fix n p::nat
+    assume "n\<le>p"
+    { assume np: "odd n" "even p"
+        with `n\<le>p` have "n - Suc 0 + (p - Suc n) = p - Suc (Suc 0)" "Suc (Suc 0) \<le> p"
+        by arith+
+      moreover have "(p - Suc (Suc 0)) div 2 = p div 2 - Suc 0"
+        by simp
+      ultimately have *: "(-1) ^ ((n - Suc 0) div 2) * (-1) ^ ((p - Suc n) div 2) = - ((-1 :: real) ^ (p div 2))"
+        using np `n\<le>p`
+        apply (simp add: power_add [symmetric] div_add [symmetric] del: div_add)
+        apply (metis (no_types) One_nat_def Suc_1 le_div_geq minus_minus mult.left_neutral mult_minus_left power.simps(2) zero_less_Suc)
+        done
+    } then
+    have "(sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) = 
+          (if even p \<and> odd n 
+          then -((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+    using `n\<le>p`
+      by (auto simp:  algebra_simps sin_coeff_def binomial_fact real_of_nat_def)
+  } 
+  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> odd n 
+               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
+             (\<lambda>p. \<Sum>n\<le>p. (sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
+    by simp
+  also have "... = (\<lambda>p. \<Sum>n\<le>p. (sin_coeff n *\<^sub>R x^n) * (sin_coeff (p - n) *\<^sub>R y^(p-n)))"
+    by (simp add: algebra_simps)
+  also have "... sums (sin x * sin y)"
+    using summable_norm_sin
+    by (auto simp: sin_def scaleR_conv_of_real intro!: Cauchy_product_sums)
+  finally show ?thesis .
+qed
+
+lemma sums_cos_x_plus_y: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows
+  "(\<lambda>p. \<Sum>n\<le>p. if even p 
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) 
+               else 0) 
+        sums cos (x + y)"
+proof -
+  { fix p::nat
+    have "(\<Sum>n\<le>p. if even p
+                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  else 0) = 
+          (if even p
+                  then \<Sum>n\<le>p. ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  else 0)"
+      by simp
+    also have "... = (if even p
+                  then of_real ((-1) ^ (p div 2) / of_nat (fact p)) * (\<Sum>n\<le>p. (p choose n) *\<^sub>R (x^n) * y^(p-n))
+                  else 0)"
+      by (auto simp: setsum_right_distrib field_simps scaleR_conv_of_real nonzero_of_real_divide)
+    also have "... = cos_coeff p *\<^sub>R ((x + y) ^ p)"
+      by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real real_of_nat_def atLeast0AtMost)
+    finally have "(\<Sum>n\<le>p. if even p
+                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  else 0) = cos_coeff p *\<^sub>R ((x + y) ^ p)" .
+  }  
+  then have "(\<lambda>p. \<Sum>n\<le>p. 
+               if even p 
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) 
+               else 0) 
+        = (\<lambda>p. cos_coeff p *\<^sub>R ((x+y)^p))"
+        by simp
+   also have "... sums cos (x + y)"
+    by (rule cos_converges)
+   finally show ?thesis .
+qed
+
+theorem cos_add: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos (x + y) = cos x * cos y - sin x * sin y"
+proof -
+  { fix n p::nat
+    assume "n\<le>p"
+    then have "(if even p \<and> even n 
+               then ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) -
+          (if even p \<and> odd n 
+               then - ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
+          = (if even p 
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+      by simp
+  }   
+  then have "(\<lambda>p. \<Sum>n\<le>p. (if even p 
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)) 
+        sums (cos x * cos y - sin x * sin y)"
+    using sums_diff [OF cos_x_cos_y [of x y] sin_x_sin_y [of x y]]
+    by (simp add: setsum_subtractf [symmetric])
+  then show ?thesis
+    by (blast intro: sums_cos_x_plus_y sums_unique2)
+qed
+
+lemma sin_minus_converges: "(\<lambda>n. - (sin_coeff n *\<^sub>R (-x)^n)) sums sin(x)"
+proof -
+  have [simp]: "\<And>n. - (sin_coeff n *\<^sub>R (-x)^n) = (sin_coeff n *\<^sub>R x^n)"
+    by (auto simp: sin_coeff_def elim!: oddE)
+  show ?thesis
+    by (simp add: sin_def summable_norm_sin [THEN summable_norm_cancel, THEN summable_sums])
+qed
+
+lemma sin_minus [simp]:
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "sin (-x) = -sin(x)"
+using sin_minus_converges [of x] 
+by (auto simp: sin_def summable_norm_sin [THEN summable_norm_cancel] suminf_minus sums_iff equation_minus_iff)
+
+lemma cos_minus_converges: "(\<lambda>n. (cos_coeff n *\<^sub>R (-x)^n)) sums cos(x)"
+proof -
+  have [simp]: "\<And>n. (cos_coeff n *\<^sub>R (-x)^n) = (cos_coeff n *\<^sub>R x^n)"
+    by (auto simp: Transcendental.cos_coeff_def elim!: evenE)
+  show ?thesis
+    by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel, THEN summable_sums])
+qed
+
+lemma cos_minus [simp]:
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "cos (-x) = cos(x)"
+using cos_minus_converges [of x]
+by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel] 
+              suminf_minus sums_iff equation_minus_iff)
+
+    
+lemma sin_cos_squared_add [simp]: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
+using cos_add [of x "-x"]
+by (simp add: power2_eq_square algebra_simps)
+
+lemma sin_cos_squared_add2 [simp]:  
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(cos x)\<^sup>2 + (sin x)\<^sup>2 = 1"
   by (subst add.commute, rule sin_cos_squared_add)
 
-lemma sin_cos_squared_add3 [simp]: "cos x * cos x + sin x * sin x = 1"
+lemma sin_cos_squared_add3 [simp]:  
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos x * cos x + sin x * sin x = 1"
   using sin_cos_squared_add2 [unfolded power2_eq_square] .
 
-lemma sin_squared_eq: "(sin x)\<^sup>2 = 1 - (cos x)\<^sup>2"
+lemma sin_squared_eq:  
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(sin x)\<^sup>2 = 1 - (cos x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add)
 
-lemma cos_squared_eq: "(cos x)\<^sup>2 = 1 - (sin x)\<^sup>2"
+lemma cos_squared_eq:  
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "(cos x)\<^sup>2 = 1 - (sin x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add2)
 
-lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
+lemma abs_sin_le_one [simp]:  
+  fixes x :: real
+  shows "\<bar>sin x\<bar> \<le> 1"
   by (rule power2_le_imp_le, simp_all add: sin_squared_eq)
 
-lemma sin_ge_minus_one [simp]: "-1 \<le> sin x"
+lemma sin_ge_minus_one [simp]: 
+  fixes x :: real
+  shows "-1 \<le> sin x"
   using abs_sin_le_one [of x] unfolding abs_le_iff by simp
 
-lemma sin_le_one [simp]: "sin x \<le> 1"
+lemma sin_le_one [simp]: 
+  fixes x :: real
+  shows "sin x \<le> 1"
   using abs_sin_le_one [of x] unfolding abs_le_iff by simp
 
-lemma abs_cos_le_one [simp]: "\<bar>cos x\<bar> \<le> 1"
+lemma abs_cos_le_one [simp]: 
+  fixes x :: real
+  shows "\<bar>cos x\<bar> \<le> 1"
   by (rule power2_le_imp_le, simp_all add: cos_squared_eq)
 
-lemma cos_ge_minus_one [simp]: "-1 \<le> cos x"
+lemma cos_ge_minus_one [simp]: 
+  fixes x :: real
+  shows "-1 \<le> cos x"
   using abs_cos_le_one [of x] unfolding abs_le_iff by simp
 
-lemma cos_le_one [simp]: "cos x \<le> 1"
+lemma cos_le_one [simp]: 
+  fixes x :: real
+  shows "cos x \<le> 1"
   using abs_cos_le_one [of x] unfolding abs_le_iff by simp
+
+lemma cos_diff: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos (x - y) = cos x * cos y + sin x * sin y"
+  using cos_add [of x "- y"] by simp
+
+lemma cos_double: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos(2*x) = (cos x)\<^sup>2 - (sin x)\<^sup>2"
+  using cos_add [where x=x and y=x]
+  by (simp add: power2_eq_square)
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>
       DERIV (\<lambda>x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"
@@ -2501,93 +2776,6 @@ lemma DERIV_fun_pow: "DERIV g x :> m ==>
 lemma DERIV_fun_exp:
      "DERIV g x :> m ==> DERIV (\<lambda>x. exp(g x)) x :> exp(g x) * m"
   by (auto intro!: derivative_intros)
-
-lemma DERIV_fun_sin:
-     "DERIV g x :> m ==> DERIV (\<lambda>x. sin(g x)) x :> cos(g x) * m"
-  by (auto intro!: derivative_intros)
-
-lemma DERIV_fun_cos:
-     "DERIV g x :> m ==> DERIV (\<lambda>x. cos(g x)) x :> -sin(g x) * m"
-  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
-
-lemma sin_cos_add_lemma:
-  "(sin (x + y) - (sin x * cos y + cos x * sin y))\<^sup>2 +
-    (cos (x + y) - (cos x * cos y - sin x * sin y))\<^sup>2 = 0"
-  (is "?f x = 0")
-proof -
-  have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
-    by (auto intro!: derivative_eq_intros simp add: algebra_simps)
-  hence "?f x = ?f 0"
-    by (rule DERIV_isconst_all)
-  thus ?thesis by simp
-qed
-
-lemma sin_add: "sin (x + y) = sin x * cos y + cos x * sin y"
-  using sin_cos_add_lemma unfolding realpow_two_sum_zero_iff by simp
-
-lemma cos_add: "cos (x + y) = cos x * cos y - sin x * sin y"
-  using sin_cos_add_lemma unfolding realpow_two_sum_zero_iff by simp
-
-lemma sin_cos_minus_lemma:
-  "(sin(-x) + sin(x))\<^sup>2 + (cos(-x) - cos(x))\<^sup>2 = 0" (is "?f x = 0")
-proof -
-  have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
-    by (auto intro!: derivative_eq_intros simp add: algebra_simps)
-  hence "?f x = ?f 0"
-    by (rule DERIV_isconst_all)
-  thus ?thesis by simp
-qed
-
-lemma sin_minus [simp]: "sin (-x) = -sin(x)"
-  using sin_cos_minus_lemma [where x=x] by simp
-
-lemma cos_minus [simp]: "cos (-x) = cos(x)"
-  using sin_cos_minus_lemma [where x=x] by simp
-
-lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
-  using sin_add [of x "- y"] by simp
-
-lemma sin_diff2: "sin (x - y) = cos y * sin x - sin y * cos x"
-  by (simp add: sin_diff mult.commute)
-
-lemma cos_diff: "cos (x - y) = cos x * cos y + sin x * sin y"
-  using cos_add [of x "- y"] by simp
-
-lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
-  by (simp add: cos_diff mult.commute)
-
-lemma sin_double [simp]: "sin(2 * x) = 2* sin x * cos x"
-  using sin_add [where x=x and y=x] by simp
-
-lemma cos_double: "cos(2* x) = ((cos x)\<^sup>2) - ((sin x)\<^sup>2)"
-  using cos_add [where x=x and y=x]
-  by (simp add: power2_eq_square)
-
-lemma sin_x_le_x: assumes x: "x \<ge> 0" shows "sin x \<le> x"
-proof -
-  let ?f = "\<lambda>x. x - sin x"
-  from x have "?f x \<ge> ?f 0"
-    apply (rule DERIV_nonneg_imp_nondecreasing)
-    apply (intro allI impI exI[of _ "1 - cos x" for x])
-    apply (auto intro!: derivative_eq_intros simp: field_simps)
-    done
-  thus "sin x \<le> x" by simp
-qed
-
-lemma sin_x_ge_neg_x: assumes x: "x \<ge> 0" shows "sin x \<ge> - x"
-proof -
-  let ?f = "\<lambda>x. x + sin x"
-  from x have "?f x \<ge> ?f 0"
-    apply (rule DERIV_nonneg_imp_nondecreasing)
-    apply (intro allI impI exI[of _ "1 + cos x" for x])
-    apply (auto intro!: derivative_eq_intros simp: field_simps real_0_le_add_iff)
-    done
-  thus "sin x \<ge> -x" by simp
-qed
-
-lemma abs_sin_x_le_abs_x: "\<bar>sin x\<bar> \<le> \<bar>x\<bar>"
-  using sin_x_ge_neg_x [of x] sin_x_le_x [of x] sin_x_ge_neg_x [of "-x"] sin_x_le_x [of "-x"]
-  by (auto simp: abs_real_def)
 
 subsection {* The Constant Pi *}
 
@@ -2598,14 +2786,18 @@ text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"};
    hence define pi.*}
 
 lemma sin_paired:
-  "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
+  fixes x :: real 
+  shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
 proof -
-  have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
-    by (rule sin_converges [THEN sums_group], simp)
+  have "(\<lambda>n. \<Sum>k = n*2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
+    apply (rule sums_group)
+    using sin_converges [of x, unfolded scaleR_conv_of_real]
+    by auto
   thus ?thesis unfolding One_nat_def sin_coeff_def by (simp add: ac_simps)
 qed
 
-lemma sin_gt_zero:
+lemma sin_gt_zero_02:
+  fixes x :: real 
   assumes "0 < x" and "x < 2"
   shows "0 < sin x"
 proof -
@@ -2631,39 +2823,42 @@ proof -
     by (rule suminf_pos)
 qed
 
-lemma cos_double_less_one: "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
-  using sin_gt_zero [where x = x] by (auto simp add: cos_squared_eq cos_double)
+lemma cos_double_less_one:
+  fixes x :: real 
+  shows "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
+  using sin_gt_zero_02 [where x = x] by (auto simp: cos_squared_eq cos_double)
 
-lemma cos_paired: "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
+lemma cos_paired:
+  fixes x :: real 
+  shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
-    by (rule cos_converges [THEN sums_group], simp)
+    apply (rule sums_group)
+    using cos_converges [of x, unfolded scaleR_conv_of_real]
+    by auto
   thus ?thesis unfolding cos_coeff_def by (simp add: ac_simps)
 qed
 
 lemmas realpow_num_eq_if = power_eq_if
 
-lemma sumr_pos_lt_pair:
+lemma sumr_pos_lt_pair:  (*FIXME A MESS, BUT THE REAL MESS IS THE NEXT THEOREM*)
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>summable f;
         \<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
       \<Longrightarrow> setsum f {..<k} < suminf f"
 unfolding One_nat_def
-apply (subst suminf_split_initial_segment [where k="k"])
-apply assumption
-apply simp
-apply (drule_tac k="k" in summable_ignore_initial_segment)
+apply (subst suminf_split_initial_segment [where k=k], assumption, simp)
+apply (drule_tac k=k in summable_ignore_initial_segment)
 apply (drule_tac k="Suc (Suc 0)" in sums_group [OF summable_sums], simp)
 apply simp
 apply (frule sums_unique)
-apply (drule sums_summable)
-apply simp
+apply (drule sums_summable, simp)
 apply (erule suminf_pos)
 apply (simp add: ac_simps)
 done
 
 lemma cos_two_less_zero [simp]:
-  "cos 2 < 0"
+  "cos 2 < (0::real)"
 proof -
   note fact_Suc [simp del]
   from cos_paired
@@ -2699,30 +2894,30 @@ proof -
     by (rule order_less_trans)
   moreover from * have "- cos 2 = (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule sums_unique)
-  ultimately have "0 < - cos 2" by simp
+  ultimately have "(0::real) < - cos 2" by simp
   then show ?thesis by simp
 qed
 
 lemmas cos_two_neq_zero [simp] = cos_two_less_zero [THEN less_imp_neq]
 lemmas cos_two_le_zero [simp] = cos_two_less_zero [THEN order_less_imp_le]
 
-lemma cos_is_zero: "EX! x. 0 \<le> x & x \<le> 2 \<and> cos x = 0"
+lemma cos_is_zero: "EX! x::real. 0 \<le> x & x \<le> 2 \<and> cos x = 0"
 proof (rule ex_ex1I)
-  show "\<exists>x. 0 \<le> x & x \<le> 2 & cos x = 0"
+  show "\<exists>x::real. 0 \<le> x & x \<le> 2 & cos x = 0"
     by (rule IVT2, simp_all)
 next
-  fix x y
+  fix x::real and y::real
   assume x: "0 \<le> x \<and> x \<le> 2 \<and> cos x = 0"
   assume y: "0 \<le> y \<and> y \<le> 2 \<and> cos y = 0"
-  have [simp]: "\<forall>x. cos differentiable (at x)"
+  have [simp]: "\<forall>x::real. cos differentiable (at x)"
     unfolding real_differentiable_def by (auto intro: DERIV_cos)
   from x y show "x = y"
     apply (cut_tac less_linear [of x y], auto)
     apply (drule_tac f = cos in Rolle)
     apply (drule_tac [5] f = cos in Rolle)
     apply (auto dest!: DERIV_cos [THEN DERIV_unique])
-    apply (metis order_less_le_trans less_le sin_gt_zero)
-    apply (metis order_less_le_trans less_le sin_gt_zero)
+    apply (metis order_less_le_trans less_le sin_gt_zero_02)
+    apply (metis order_less_le_trans less_le sin_gt_zero_02)
     done
 qed
 
@@ -2731,6 +2926,11 @@ lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
 
 lemma cos_pi_half [simp]: "cos (pi / 2) = 0"
   by (simp add: pi_half cos_is_zero [THEN theI'])
+
+lemma cos_of_real_pi_half [simp]: 
+  fixes x :: "'a :: {real_field,banach,real_normed_algebra_1}"
+  shows "cos ((of_real pi / 2) :: 'a) = 0"
+by (metis cos_pi_half cos_of_real eq_numeral_simps(4) nonzero_of_real_divide of_real_0 of_real_numeral)
 
 lemma pi_half_gt_zero [simp]: "0 < pi / 2"
   apply (rule order_le_neq_trans)
@@ -2765,28 +2965,66 @@ lemma pi_not_less_zero [simp]: "\<not> pi < 0"
 lemma minus_pi_half_less_zero: "-(pi/2) < 0"
   by simp
 
-lemma m2pi_less_pi: "- (2 * pi) < pi"
+lemma m2pi_less_pi: "- (2*pi) < pi"
   by simp
 
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
   using sin_cos_squared_add2 [where x = "pi/2"]
-  using sin_gt_zero [OF pi_half_gt_zero pi_half_less_two]
+  using sin_gt_zero_02 [OF pi_half_gt_zero pi_half_less_two]
   by (simp add: power2_eq_1_iff)
 
+lemma sin_of_real_pi_half [simp]:
+  fixes x :: "'a :: {real_field,banach,real_normed_algebra_1}"
+  shows "sin ((of_real pi / 2) :: 'a) = 1"
+  using sin_pi_half 
+by (metis sin_pi_half eq_numeral_simps(4) nonzero_of_real_divide of_real_1 of_real_numeral sin_of_real)
+
+lemma sin_cos_eq:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin x = cos (of_real pi / 2 - x)"
+  by (simp add: cos_diff)
+
+lemma minus_sin_cos_eq:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "-sin x = cos (x + of_real pi / 2)"
+  by (simp add: cos_add nonzero_of_real_divide)
+
+lemma cos_sin_eq:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos x = sin (of_real pi / 2 - x)"
+  using sin_cos_eq [of "of_real pi / 2 - x"]
+  by simp
+
+lemma sin_add: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin (x + y) = sin x * cos y + cos x * sin y"
+  using cos_add [of "of_real pi / 2 - x" "-y"]
+  by (simp add: cos_sin_eq) (simp add: sin_cos_eq)
+
+lemma sin_diff:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin (x - y) = sin x * cos y - cos x * sin y"
+  using sin_add [of x "- y"] by simp
+
+lemma sin_double: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin(2 * x) = 2 * sin x * cos x"
+  using sin_add [where x=x and y=x] by simp
+
+
+lemma cos_of_real_pi [simp]: "cos (of_real pi) = -1"
+  using cos_add [where x = "pi/2" and y = "pi/2"]
+  by (simp add: cos_of_real)
+
+lemma sin_of_real_pi [simp]: "sin (of_real pi) = 0"
+  using sin_add [where x = "pi/2" and y = "pi/2"] 
+  by (simp add: sin_of_real)
+  
 lemma cos_pi [simp]: "cos pi = -1"
   using cos_add [where x = "pi/2" and y = "pi/2"] by simp
 
 lemma sin_pi [simp]: "sin pi = 0"
   using sin_add [where x = "pi/2" and y = "pi/2"] by simp
-
-lemma sin_cos_eq: "sin x = cos (pi/2 - x)"
-  by (simp add: cos_diff)
-
-lemma minus_sin_cos_eq: "-sin x = cos (x + pi/2)"
-  by (simp add: cos_add)
-
-lemma cos_sin_eq: "cos x = sin (pi/2 - x)"
-  by (simp add: sin_diff)
 
 lemma sin_periodic_pi [simp]: "sin (x + pi) = - sin x"
   by (simp add: sin_add)
@@ -2798,31 +3036,31 @@ lemma cos_periodic_pi [simp]: "cos (x + pi) = - cos x"
   by (simp add: cos_add)
 
 lemma sin_periodic [simp]: "sin (x + 2*pi) = sin x"
-  by (simp add: sin_add cos_double)
+  by (simp add: sin_add sin_double cos_double)
 
 lemma cos_periodic [simp]: "cos (x + 2*pi) = cos x"
-  by (simp add: cos_add cos_double)
+  by (simp add: cos_add sin_double cos_double)
 
 lemma cos_npi [simp]: "cos (real n * pi) = (- 1) ^ n"
-  by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
+  by (induct n) (auto simp: real_of_nat_Suc distrib_right)
 
 lemma cos_npi2 [simp]: "cos (pi * real n) = (- 1) ^ n"
   by (metis cos_npi mult.commute)
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
-  by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
+  by (induct n) (auto simp: real_of_nat_Suc distrib_right)
 
 lemma sin_npi2 [simp]: "sin (pi * real (n::nat)) = 0"
   by (simp add: mult.commute [of pi])
 
-lemma cos_two_pi [simp]: "cos (2 * pi) = 1"
+lemma cos_two_pi [simp]: "cos (2*pi) = 1"
   by (simp add: cos_double)
 
-lemma sin_two_pi [simp]: "sin (2 * pi) = 0"
-  by simp
+lemma sin_two_pi [simp]: "sin (2*pi) = 0"
+  by (simp add: sin_double)
 
-lemma sin_gt_zero2: "[| 0 < x; x < pi/2 |] ==> 0 < sin x"
-  by (metis sin_gt_zero order_less_trans pi_half_less_two)
+lemma sin_gt_zero2: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < sin x"
+  by (metis sin_gt_zero_02 order_less_trans pi_half_less_two)
 
 lemma sin_less_zero:
   assumes "- pi/2 < x" and "x < 0"
@@ -2835,53 +3073,52 @@ qed
 lemma pi_less_4: "pi < 4"
   using pi_half_less_two by auto
 
-lemma cos_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < cos x"
-  apply (cut_tac pi_less_4)
-  apply (cut_tac f = cos and a = 0 and b = x and y = 0 in IVT2_objl, safe, simp_all)
-  apply (cut_tac cos_is_zero, safe)
-  apply (rename_tac y z)
-  apply (drule_tac x = y in spec)
-  apply (drule_tac x = "pi/2" in spec, simp)
-  done
+lemma cos_gt_zero: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < cos x"
+  by (simp add: cos_sin_eq sin_gt_zero2)
 
-lemma cos_gt_zero_pi: "[| -(pi/2) < x; x < pi/2 |] ==> 0 < cos x"
-  apply (rule_tac x = x and y = 0 in linorder_cases)
-  apply (metis cos_gt_zero cos_minus minus_less_iff neg_0_less_iff_less)
-  apply (auto intro: cos_gt_zero)
-  done
+lemma cos_gt_zero_pi: "\<lbrakk>-(pi/2) < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < cos x"
+  using cos_gt_zero [of x] cos_gt_zero [of "-x"]
+  by (cases rule: linorder_cases [of x 0]) auto
 
-lemma cos_ge_zero: "[| -(pi/2) \<le> x; x \<le> pi/2 |] ==> 0 \<le> cos x"
-  apply (auto simp add: order_le_less cos_gt_zero_pi)
-  apply (subgoal_tac "x = pi/2", auto)
-  done
+lemma cos_ge_zero: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2\<rbrakk> \<Longrightarrow> 0 \<le> cos x"
+  apply (auto simp: order_le_less cos_gt_zero_pi)
+  by (metis cos_pi_half eq_divide_eq eq_numeral_simps(4))
 
-lemma sin_gt_zero_pi: "[| 0 < x; x < pi  |] ==> 0 < sin x"
+lemma sin_gt_zero: "\<lbrakk>0 < x; x < pi \<rbrakk> \<Longrightarrow> 0 < sin x"
   by (simp add: sin_cos_eq cos_gt_zero_pi)
+
+lemma sin_lt_zero: "pi < x \<Longrightarrow> x < 2*pi \<Longrightarrow> sin x < 0"
+  using sin_gt_zero [of "x-pi"]
+  by (simp add: sin_diff)
 
 lemma pi_ge_two: "2 \<le> pi"
 proof (rule ccontr)
   assume "\<not> 2 \<le> pi" hence "pi < 2" by auto
-  have "\<exists>y > pi. y < 2 \<and> y < 2 * pi"
-  proof (cases "2 < 2 * pi")
+  have "\<exists>y > pi. y < 2 \<and> y < 2*pi"
+  proof (cases "2 < 2*pi")
     case True with dense[OF `pi < 2`] show ?thesis by auto
   next
-    case False have "pi < 2 * pi" by auto
+    case False have "pi < 2*pi" by auto
     from dense[OF this] and False show ?thesis by auto
   qed
-  then obtain y where "pi < y" and "y < 2" and "y < 2 * pi" by blast
-  hence "0 < sin y" using sin_gt_zero by auto
+  then obtain y where "pi < y" and "y < 2" and "y < 2*pi" by blast
+  hence "0 < sin y" using sin_gt_zero_02 by auto
   moreover
-  have "sin y < 0" using sin_gt_zero_pi[of "y - pi"] `pi < y` and `y < 2 * pi` sin_periodic_pi[of "y - pi"] by auto
+  have "sin y < 0" using sin_gt_zero[of "y - pi"] `pi < y` and `y < 2*pi` sin_periodic_pi[of "y - pi"] by auto
   ultimately show False by auto
 qed
 
-lemma sin_ge_zero: "[| 0 \<le> x; x \<le> pi |] ==> 0 \<le> sin x"
-  by (auto simp add: order_le_less sin_gt_zero_pi)
+lemma sin_ge_zero: "\<lbrakk>0 \<le> x; x \<le> pi\<rbrakk> \<Longrightarrow> 0 \<le> sin x"
+  by (auto simp: order_le_less sin_gt_zero)
+
+lemma sin_le_zero: "pi \<le> x \<Longrightarrow> x < 2*pi \<Longrightarrow> sin x \<le> 0"
+  using sin_ge_zero [of "x-pi"]
+  by (simp add: sin_diff)
 
 text {* FIXME: This proof is almost identical to lemma @{text cos_is_zero}.
   It should be possible to factor out some of the common parts. *}
 
-lemma cos_total: "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. 0 \<le> x & x \<le> pi & (cos x = y)"
+lemma cos_total: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> EX! x. 0 \<le> x & x \<le> pi & (cos x = y)"
 proof (rule ex_ex1I)
   assume y: "-1 \<le> y" "y \<le> 1"
   show "\<exists>x. 0 \<le> x & x \<le> pi & cos x = y"
@@ -2890,34 +3127,37 @@ next
   fix a b
   assume a: "0 \<le> a \<and> a \<le> pi \<and> cos a = y"
   assume b: "0 \<le> b \<and> b \<le> pi \<and> cos b = y"
-  have [simp]: "\<forall>x. cos differentiable (at x)"
+  have [simp]: "\<forall>x::real. cos differentiable (at x)"
     unfolding real_differentiable_def by (auto intro: DERIV_cos)
   from a b show "a = b"
     apply (cut_tac less_linear [of a b], auto)
     apply (drule_tac f = cos in Rolle)
     apply (drule_tac [5] f = cos in Rolle)
     apply (auto dest!: DERIV_cos [THEN DERIV_unique])
-    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
-    apply (metis order_less_le_trans less_le sin_gt_zero_pi)
+    apply (metis order_less_le_trans less_le sin_gt_zero)
+    apply (metis order_less_le_trans less_le sin_gt_zero)
     done
 qed
 
 lemma sin_total:
-     "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. -(pi/2) \<le> x & x \<le> pi/2 & (sin x = y)"
-apply (rule ccontr)
-apply (subgoal_tac "\<forall>x. (- (pi/2) \<le> x & x \<le> pi/2 & (sin x = y)) = (0 \<le> (x + pi/2) & (x + pi/2) \<le> pi & (cos (x + pi/2) = -y))")
-apply (erule contrapos_np)
-apply simp
-apply (cut_tac y="-y" in cos_total, simp) apply simp
-apply (erule ex1E)
-apply (rule_tac a = "x - (pi/2)" in ex1I)
-apply (simp (no_asm) add: add.assoc)
-apply (rotate_tac 3)
-apply (drule_tac x = "xa + pi/2" in spec, safe, simp_all add: cos_add)
-done
+  assumes y: "-1 \<le> y" "y \<le> 1"
+    shows "\<exists>! x. -(pi/2) \<le> x & x \<le> pi/2 & (sin x = y)"
+proof -
+  from cos_total [OF y]
+  obtain x where x: "0 \<le> x" "x \<le> pi" "cos x = y"
+           and uniq: "\<And>x'. 0 \<le> x' \<Longrightarrow> x' \<le> pi \<Longrightarrow> cos x' = y \<Longrightarrow> x' = x "
+    by blast
+  show ?thesis
+    apply (simp add: sin_cos_eq)
+    apply (rule ex1I [where a="pi/2 - x"])
+    apply (cut_tac [2] x'="pi/2 - xa" in uniq)
+    using x
+    apply auto
+    done
+qed
 
 lemma reals_Archimedean4:
-     "[| 0 < y; 0 \<le> x |] ==> \<exists>n. real n * y \<le> x & x < real (Suc n) * y"
+     "\<lbrakk>0 < y; 0 \<le> x\<rbrakk> \<Longrightarrow> \<exists>n. real n * y \<le> x & x < real (Suc n) * y"
 apply (auto dest!: reals_Archimedean3)
 apply (drule_tac x = x in spec, clarify)
 apply (subgoal_tac "x < real(LEAST m::nat. x < real m * y) * y")
@@ -2928,15 +3168,13 @@ apply (subgoal_tac "~ x < real m * y")
  prefer 2 apply (rule not_less_Least, simp, force)
 done
 
-(* Pre Isabelle99-2 proof was simpler- numerals arithmetic
-   now causes some unwanted re-arrangements of literals!   *)
 lemma cos_zero_lemma:
-     "[| 0 \<le> x; cos x = 0 |] ==>
-      \<exists>n::nat. ~even n & x = real n * (pi/2)"
+     "\<lbrakk>0 \<le> x; cos x = 0\<rbrakk> \<Longrightarrow>
+      \<exists>n::nat. odd n & x = real n * (pi/2)"
 apply (drule pi_gt_zero [THEN reals_Archimedean4], safe)
 apply (subgoal_tac "0 \<le> x - real n * pi &
                     (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
-apply (auto simp add: algebra_simps real_of_nat_Suc)
+apply (auto simp: algebra_simps real_of_nat_Suc)
  prefer 2 apply (simp add: cos_diff)
 apply (simp add: cos_diff)
 apply (subgoal_tac "EX! x. 0 \<le> x & x \<le> pi & cos x = 0")
@@ -2949,19 +3187,19 @@ apply (simp add: real_of_nat_Suc algebra_simps, auto)
 done
 
 lemma sin_zero_lemma:
-     "[| 0 \<le> x; sin x = 0 |] ==>
+     "\<lbrakk>0 \<le> x; sin x = 0\<rbrakk> \<Longrightarrow>
       \<exists>n::nat. even n & x = real n * (pi/2)"
 apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
  apply (auto elim!: oddE simp add: real_of_nat_Suc field_simps)[1]
  apply (rule cos_zero_lemma)
- apply (auto simp add: cos_add)
+ apply (auto simp: cos_add)
 done
 
 lemma cos_zero_iff:
      "(cos x = 0) =
-      ((\<exists>n::nat. ~even n & (x = real n * (pi/2))) |
-       (\<exists>n::nat. ~even n & (x = -(real n * (pi/2)))))"
+      ((\<exists>n::nat. odd n & (x = real n * (pi/2))) |
+       (\<exists>n::nat. odd n & (x = -(real n * (pi/2)))))"
 proof -
   { fix n :: nat
     assume "odd n"
@@ -2991,6 +3229,53 @@ apply (force simp add: minus_equation_iff [of x])
 apply (auto elim: evenE)
 done
 
+
+lemma cos_zero_iff_int:
+     "cos x = 0 \<longleftrightarrow> (\<exists>n::int. odd n & x = real n * (pi/2))"
+proof safe
+  assume "cos x = 0"
+  then show "\<exists>n::int. odd n & x = real n * (pi/2)"
+    apply (simp add: cos_zero_iff, safe)
+    apply (metis even_int_iff real_of_int_of_nat_eq)
+    apply (rule_tac x="- (int n)" in exI, simp)
+    done
+next
+  fix n::int
+  assume "odd n" 
+  then show "cos (real n * (pi / 2)) = 0"
+    apply (simp add: cos_zero_iff)
+    apply (case_tac n rule: int_cases2, simp)
+    apply (rule disjI2)
+    apply (rule_tac x="nat (-n)" in exI, simp)
+    done
+qed
+
+lemma sin_zero_iff_int:  
+     "sin x = 0 \<longleftrightarrow> (\<exists>n::int. even n & (x = real n * (pi/2)))"
+proof safe
+  assume "sin x = 0"
+  then show "\<exists>n::int. even n \<and> x = real n * (pi / 2)"
+    apply (simp add: sin_zero_iff, safe)
+    apply (metis even_int_iff real_of_int_of_nat_eq)
+    apply (rule_tac x="- (int n)" in exI, simp)
+    done
+next
+  fix n::int
+  assume "even n" 
+  then show "sin (real n * (pi / 2)) = 0"
+    apply (simp add: sin_zero_iff)
+    apply (case_tac n rule: int_cases2, simp)
+    apply (rule disjI2)
+    apply (rule_tac x="nat (-n)" in exI, simp)
+    done
+qed
+
+lemma sin_zero_iff_int2: "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = real n * pi)"
+  apply (simp only: sin_zero_iff_int)     
+  apply (safe elim!: evenE)     
+  apply (simp_all add: field_simps)
+  using dvd_triv_left by fastforce
+
 lemma cos_monotone_0_pi:
   assumes "0 \<le> y" and "y < x" and "x \<le> pi"
   shows "cos x < cos y"
@@ -3001,7 +3286,7 @@ proof -
   obtain z where "y < z" and "z < x" and cos_diff: "cos x - cos y = (x - y) * - sin z"
     by auto
   hence "0 < z" and "z < pi" using assms by auto
-  hence "0 < sin z" using sin_gt_zero_pi by auto
+  hence "0 < sin z" using sin_gt_zero by auto
   hence "cos x - cos y < 0"
     unfolding cos_diff minus_mult_commute[symmetric]
     using `- (x - y) < 0` by (rule mult_pos_neg2)
@@ -3051,13 +3336,43 @@ proof -
   have "0 \<le> y + pi / 2" and "y + pi / 2 \<le> x + pi / 2" and "x + pi /2 \<le> pi"
     using pi_ge_two and assms by auto
   from cos_monotone_0_pi'[OF this] show ?thesis
-    unfolding minus_sin_cos_eq[symmetric] by auto
+    unfolding minus_sin_cos_eq[symmetric]
+    by (metis minus_sin_cos_eq mult.right_neutral neg_le_iff_le of_real_def real_scaleR_def) 
 qed
+
+lemma sin_x_le_x:
+  fixes x::real assumes x: "x \<ge> 0" shows "sin x \<le> x"
+proof -
+  let ?f = "\<lambda>x. x - sin x"
+  from x have "?f x \<ge> ?f 0"
+    apply (rule DERIV_nonneg_imp_nondecreasing)
+    apply (intro allI impI exI[of _ "1 - cos x" for x])
+    apply (auto intro!: derivative_eq_intros simp: field_simps)
+    done
+  thus "sin x \<le> x" by simp
+qed
+
+lemma sin_x_ge_neg_x:
+  fixes x::real assumes x: "x \<ge> 0" shows "sin x \<ge> - x"
+proof -
+  let ?f = "\<lambda>x. x + sin x"
+  from x have "?f x \<ge> ?f 0"
+    apply (rule DERIV_nonneg_imp_nondecreasing)
+    apply (intro allI impI exI[of _ "1 + cos x" for x])
+    apply (auto intro!: derivative_eq_intros simp: field_simps real_0_le_add_iff)
+    done
+  thus "sin x \<ge> -x" by simp
+qed
+
+lemma abs_sin_x_le_abs_x:
+  fixes x::real shows "\<bar>sin x\<bar> \<le> \<bar>x\<bar>"
+  using sin_x_ge_neg_x [of x] sin_x_le_x [of x] sin_x_ge_neg_x [of "-x"] sin_x_le_x [of "-x"]
+  by (auto simp: abs_real_def)
 
 
 subsection {* Tangent *}
 
-definition tan :: "real \<Rightarrow> real"
+definition tan :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
   where "tan = (\<lambda>x. sin x / cos x)"
 
 lemma tan_zero [simp]: "tan 0 = 0"
@@ -3080,20 +3395,25 @@ lemma lemma_tan_add1:
   by (simp add: tan_def cos_add field_simps)
 
 lemma add_tan_eq:
-  "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0\<rbrakk> \<Longrightarrow> tan x + tan y = sin(x + y)/(cos x * cos y)"
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0\<rbrakk> \<Longrightarrow> tan x + tan y = sin(x + y)/(cos x * cos y)"
   by (simp add: tan_def sin_add field_simps)
 
 lemma tan_add:
-     "[| cos x \<noteq> 0; cos y \<noteq> 0; cos (x + y) \<noteq> 0 |]
-      ==> tan(x + y) = (tan(x) + tan(y))/(1 - tan(x) * tan(y))"
-  by (simp add: add_tan_eq lemma_tan_add1, simp add: tan_def)
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows 
+     "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0; cos (x + y) \<noteq> 0\<rbrakk>
+      \<Longrightarrow> tan(x + y) = (tan(x) + tan(y))/(1 - tan(x) * tan(y))"
+      by (simp add: add_tan_eq lemma_tan_add1 field_simps) (simp add: tan_def)
 
 lemma tan_double:
-     "[| cos x \<noteq> 0; cos (2 * x) \<noteq> 0 |]
-      ==> tan (2 * x) = (2 * tan x) / (1 - (tan x)\<^sup>2)"
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows 
+     "\<lbrakk>cos x \<noteq> 0; cos (2 * x) \<noteq> 0\<rbrakk>
+      \<Longrightarrow> tan (2 * x) = (2 * tan x) / (1 - (tan x)\<^sup>2)"
   using tan_add [of x x] by (simp add: power2_eq_square)
 
-lemma tan_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < tan x"
+lemma tan_gt_zero: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < tan x"
   by (simp add: tan_def zero_less_divide_iff sin_gt_zero2 cos_gt_zero_pi)
 
 lemma tan_less_zero:
@@ -3104,40 +3424,48 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma tan_half: "tan x = sin (2 * x) / (cos (2 * x) + 1)"
+lemma tan_half:
+  fixes x :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows  "tan x = sin (2 * x) / (cos (2 * x) + 1)"
   unfolding tan_def sin_double cos_double sin_squared_eq
   by (simp add: power2_eq_square)
 
-lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<^sup>2)"
+lemma DERIV_tan [simp]:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<^sup>2)"
   unfolding tan_def
   by (auto intro!: derivative_eq_intros, simp add: divide_inverse power2_eq_square)
 
-lemma isCont_tan: "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
+lemma isCont_tan:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
   by (rule DERIV_tan [THEN DERIV_isCont])
 
-lemma isCont_tan' [simp]:
-  "\<lbrakk>isCont f a; cos (f a) \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. tan (f x)) a"
+lemma isCont_tan' [simp,continuous_intros]:
+  fixes a :: "'a::{real_normed_field,banach}" and f :: "'a \<Rightarrow> 'a"
+  shows "\<lbrakk>isCont f a; cos (f a) \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. tan (f x)) a"
   by (rule isCont_o2 [OF _ isCont_tan])
 
 lemma tendsto_tan [tendsto_intros]:
-  "\<lbrakk>(f ---> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) ---> tan a) F"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "\<lbrakk>(f ---> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) ---> tan a) F"
   by (rule isCont_tendsto_compose [OF isCont_tan])
 
 lemma continuous_tan:
-  "continuous F f \<Longrightarrow> cos (f (Lim F (\<lambda>x. x))) \<noteq> 0 \<Longrightarrow> continuous F (\<lambda>x. tan (f x))"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous F f \<Longrightarrow> cos (f (Lim F (\<lambda>x. x))) \<noteq> 0 \<Longrightarrow> continuous F (\<lambda>x. tan (f x))"
   unfolding continuous_def by (rule tendsto_tan)
 
-lemma isCont_tan'' [continuous_intros]:
-  "continuous (at x) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x) (\<lambda>x. tan (f x))"
-  unfolding continuous_at by (rule tendsto_tan)
+lemma continuous_on_tan [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. cos (f x) \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. tan (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_tan)
 
 lemma continuous_within_tan [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows 
   "continuous (at x within s) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. tan (f x))"
   unfolding continuous_within by (rule tendsto_tan)
-
-lemma continuous_on_tan [continuous_intros]:
-  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. cos (f x) \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. tan (f x))"
-  unfolding continuous_on_def by (auto intro: tendsto_tan)
 
 lemma LIM_cos_div_sin: "(\<lambda>x. cos(x)/sin(x)) -- pi/2 --> 0"
   by (rule LIM_cong_limit, (rule tendsto_intros)+, simp_all)
@@ -3279,7 +3607,9 @@ qed
 lemma tan_periodic_n[simp]: "tan (x + numeral n * pi) = tan x"
   using tan_periodic_int[of _ "numeral n" ] unfolding real_numeral .
 
+
 subsection {* Inverse Trigonometric Functions *}
+text{*STILL DEFINED FOR THE REALS ONLY*}
 
 definition arcsin :: "real => real"
   where "arcsin y = (THE x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
@@ -3314,7 +3644,7 @@ lemma arcsin_ubound: "-1 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> a
   by (blast dest: arcsin)
 
 lemma arcsin_lt_bounded:
-     "[| -1 < y; y < 1 |] ==> -(pi/2) < arcsin y & arcsin y < pi/2"
+     "\<lbrakk>-1 < y; y < 1\<rbrakk> \<Longrightarrow> -(pi/2) < arcsin y & arcsin y < pi/2"
   apply (frule order_less_imp_le)
   apply (frule_tac y = y in order_less_imp_le)
   apply (frule arcsin_bounded)
@@ -3324,32 +3654,32 @@ lemma arcsin_lt_bounded:
   apply (drule_tac [!] f = sin in arg_cong, auto)
   done
 
-lemma arcsin_sin: "[|-(pi/2) \<le> x; x \<le> pi/2 |] ==> arcsin(sin x) = x"
+lemma arcsin_sin: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2\<rbrakk> \<Longrightarrow> arcsin(sin x) = x"
   apply (unfold arcsin_def)
   apply (rule the1_equality)
   apply (rule sin_total, auto)
   done
 
 lemma arccos:
-     "[| -1 \<le> y; y \<le> 1 |]
-      ==> 0 \<le> arccos y & arccos y \<le> pi & cos(arccos y) = y"
+     "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk>
+      \<Longrightarrow> 0 \<le> arccos y & arccos y \<le> pi & cos(arccos y) = y"
   unfolding arccos_def by (rule theI' [OF cos_total])
 
-lemma cos_arccos [simp]: "[| -1 \<le> y; y \<le> 1 |] ==> cos(arccos y) = y"
+lemma cos_arccos [simp]: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> cos(arccos y) = y"
   by (blast dest: arccos)
 
-lemma arccos_bounded: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arccos y & arccos y \<le> pi"
+lemma arccos_bounded: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> arccos y & arccos y \<le> pi"
   by (blast dest: arccos)
 
-lemma arccos_lbound: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arccos y"
+lemma arccos_lbound: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> arccos y"
   by (blast dest: arccos)
 
-lemma arccos_ubound: "[| -1 \<le> y; y \<le> 1 |] ==> arccos y \<le> pi"
+lemma arccos_ubound: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> arccos y \<le> pi"
   by (blast dest: arccos)
 
 lemma arccos_lt_bounded:
-     "[| -1 < y; y < 1 |]
-      ==> 0 < arccos y & arccos y < pi"
+     "\<lbrakk>-1 < y; y < 1\<rbrakk>
+      \<Longrightarrow> 0 < arccos y & arccos y < pi"
   apply (frule order_less_imp_le)
   apply (frule_tac y = y in order_less_imp_le)
   apply (frule arccos_bounded, auto)
@@ -3358,12 +3688,12 @@ lemma arccos_lt_bounded:
   apply (drule_tac [!] f = cos in arg_cong, auto)
   done
 
-lemma arccos_cos: "[|0 \<le> x; x \<le> pi |] ==> arccos(cos x) = x"
+lemma arccos_cos: "\<lbrakk>0 \<le> x; x \<le> pi\<rbrakk> \<Longrightarrow> arccos(cos x) = x"
   apply (simp add: arccos_def)
   apply (auto intro!: the1_equality cos_total)
   done
 
-lemma arccos_cos2: "[|x \<le> 0; -pi \<le> x |] ==> arccos(cos x) = -x"
+lemma arccos_cos2: "\<lbrakk>x \<le> 0; -pi \<le> x\<rbrakk> \<Longrightarrow> arccos(cos x) = -x"
   apply (simp add: arccos_def)
   apply (auto intro!: the1_equality cos_total)
   done
@@ -3423,8 +3753,7 @@ lemma arctan_zero_zero [simp]: "arctan 0 = 0"
 lemma arctan_minus: "arctan (- x) = - arctan x"
   apply (rule arctan_unique)
   apply (simp only: neg_less_iff_less arctan_ubound)
-  apply (metis minus_less_iff arctan_lbound)
-  apply simp
+  apply (metis minus_less_iff arctan_lbound, simp)
   done
 
 lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
@@ -3448,7 +3777,9 @@ lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
   using tan_arctan [of x] unfolding tan_def cos_arctan
   by (simp add: eq_divide_eq)
 
-lemma tan_sec: "cos x \<noteq> 0 ==> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
+lemma tan_sec:
+  fixes x :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "cos x \<noteq> 0 \<Longrightarrow> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
   apply (rule power_inverse [THEN subst])
   apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])
   apply (auto dest: field_power_not_zero
@@ -3548,26 +3879,22 @@ lemma continuous_on_arctan [continuous_intros]: "continuous_on s f \<Longrightar
 
 lemma DERIV_arcsin:
   "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<^sup>2))"
-  apply (rule DERIV_inverse_function [where f=sin and a="-1" and b="1"])
+  apply (rule DERIV_inverse_function [where f=sin and a="-1" and b=1])
   apply (rule DERIV_cong [OF DERIV_sin])
   apply (simp add: cos_arcsin)
   apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
-  apply (rule power_strict_mono, simp, simp, simp)
-  apply assumption
-  apply assumption
+  apply (rule power_strict_mono, simp, simp, simp, assumption, assumption)
   apply simp
   apply (erule (1) isCont_arcsin)
   done
 
 lemma DERIV_arccos:
   "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arccos x :> inverse (- sqrt (1 - x\<^sup>2))"
-  apply (rule DERIV_inverse_function [where f=cos and a="-1" and b="1"])
+  apply (rule DERIV_inverse_function [where f=cos and a="-1" and b=1])
   apply (rule DERIV_cong [OF DERIV_cos])
   apply (simp add: sin_arccos)
   apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
-  apply (rule power_strict_mono, simp, simp, simp)
-  apply assumption
-  apply assumption
+  apply (rule power_strict_mono, simp, simp, simp, assumption, assumption)
   apply simp
   apply (erule (1) isCont_arccos)
   done
@@ -3643,7 +3970,7 @@ proof -
     using nonneg by (rule power2_eq_imp_eq) simp
 qed
 
-lemma cos_30: "cos (pi / 6) = sqrt 3 / 2"
+lemma cos_30: "cos (pi / 6) = sqrt 3/2"
 proof -
   let ?c = "cos (pi / 6)" and ?s = "sin (pi / 6)"
   have pos_c: "0 < ?c"
@@ -3654,7 +3981,7 @@ proof -
     by (simp only: cos_add sin_add)
   also have "\<dots> = ?c * (?c\<^sup>2 - 3 * ?s\<^sup>2)"
     by (simp add: algebra_simps power2_eq_square)
-  finally have "?c\<^sup>2 = (sqrt 3 / 2)\<^sup>2"
+  finally have "?c\<^sup>2 = (sqrt 3/2)\<^sup>2"
     using pos_c by (simp add: sin_squared_eq power_divide)
   thus ?thesis
     using pos_c [THEN order_less_imp_le]
@@ -3664,7 +3991,7 @@ qed
 lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
   by (simp add: sin_cos_eq cos_45)
 
-lemma sin_60: "sin (pi / 3) = sqrt 3 / 2"
+lemma sin_60: "sin (pi / 3) = sqrt 3/2"
   by (simp add: sin_cos_eq cos_30)
 
 lemma cos_60: "cos (pi / 3) = 1 / 2"
@@ -3688,7 +4015,7 @@ lemma tan_60: "tan (pi / 3) = sqrt 3"
 lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
 proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
-    by (auto simp add: algebra_simps sin_add)
+    by (auto simp: algebra_simps sin_add)
   thus ?thesis
     by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
                   mult.commute [of pi])
@@ -3697,32 +4024,39 @@ qed
 lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
   by (cases "even n") (simp_all add: cos_double mult.assoc)
 
-lemma cos_3over2_pi [simp]: "cos (3 / 2 * pi) = 0"
+lemma cos_3over2_pi [simp]: "cos (3/2*pi) = 0"
   apply (subgoal_tac "cos (pi + pi/2) = 0", simp)
   apply (subst cos_add, simp)
   done
 
 lemma sin_2npi [simp]: "sin (2 * real (n::nat) * pi) = 0"
-  by (auto simp add: mult.assoc)
+  by (auto simp: mult.assoc sin_double)
 
-lemma sin_3over2_pi [simp]: "sin (3 / 2 * pi) = - 1"
+lemma sin_3over2_pi [simp]: "sin (3/2*pi) = - 1"
   apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
   apply (subst sin_add, simp)
   done
 
 lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
-  apply (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib)
-  apply auto
-  done
+by (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
 
 lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
   by (auto intro!: derivative_eq_intros)
 
-lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
-  by (auto simp add: sin_zero_iff elim: evenE)
+lemma sin_zero_norm_cos_one:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes "sin x = 0" shows "norm (cos x) = 1"
+  using sin_cos_squared_add [of x, unfolded assms]
+  by (simp add: square_norm_one)
 
-lemma cos_one_sin_zero: "cos x = 1 ==> sin x = 0"
-  using sin_cos_squared_add3 [where x = x] by auto
+lemma sin_zero_abs_cos_one: "sin x = 0 \<Longrightarrow> \<bar>cos x\<bar> = (1::real)"
+  using sin_zero_norm_cos_one by fastforce
+
+lemma cos_one_sin_zero:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes "cos x = 1" shows "sin x = 0"
+  using sin_cos_squared_add [of x, unfolded assms]
+  by simp
 
 
 subsection {* Machins formula *}
@@ -3775,7 +4109,7 @@ proof -
 qed
 
 
-subsection {* Introducing the arcus tangens power series *}
+subsection {* Introducing the inverse tangent power series *}
 
 lemma monoseq_arctan_series:
   fixes x :: real
@@ -3852,6 +4186,7 @@ next
   qed
 qed
 
+text{*FIXME: generalise from the reals via type classes?*}
 lemma summable_arctan_series:
   fixes x :: real and n :: nat
   assumes "\<bar>x\<bar> \<le> 1"
@@ -4249,7 +4584,7 @@ lemmas cos_arccos_lemma1 = cos_arccos_abs [OF cos_x_y_le_one]
 
 lemmas sin_arccos_lemma1 = sin_arccos_abs [OF cos_x_y_le_one]
 
-lemma polar_Ex: "\<exists>r a. x = r * cos a & y = r * sin a"
+lemma polar_Ex: "\<exists>r::real. \<exists>a. x = r * cos a & y = r * sin a"
 proof -
   have polar_ex1: "\<And>y. 0 < y \<Longrightarrow> \<exists>r a. x = r * cos a & y = r * sin a"
     apply (rule_tac x = "sqrt (x\<^sup>2 + y\<^sup>2)" in exI)

@@ -681,8 +681,8 @@ lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
 
 subsubsection {* Complex exponential *}
 
-abbreviation expi :: "complex \<Rightarrow> complex"
-  where "expi \<equiv> exp"
+abbreviation Exp :: "complex \<Rightarrow> complex"
+  where "Exp \<equiv> exp"
 
 lemma cis_conv_exp: "cis b = exp (\<i> * b)"
 proof -
@@ -695,28 +695,28 @@ proof -
     then have "(\<i> * complex_of_real b) ^ n /\<^sub>R fact n =
         of_real (cos_coeff n * b^n) + \<i> * of_real (sin_coeff n * b^n)"
       by (simp add: field_simps) }
-  then show ?thesis
+  then show ?thesis using sin_converges [of b] cos_converges [of b]
     by (auto simp add: cis.ctr exp_def simp del: of_real_mult
-             intro!: sums_unique sums_add sums_mult sums_of_real sin_converges cos_converges)
+             intro!: sums_unique sums_add sums_mult sums_of_real)
 qed
 
-lemma expi_def: "expi z = exp (Re z) * cis (Im z)"
+lemma Exp_eq_polar: "Exp z = exp (Re z) * cis (Im z)"
   unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by (cases z) simp
 
 lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
-  unfolding expi_def by simp
+  unfolding Exp_eq_polar by simp
 
 lemma Im_exp: "Im (exp z) = exp (Re z) * sin (Im z)"
-  unfolding expi_def by simp
+  unfolding Exp_eq_polar by simp
 
-lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
+lemma complex_Exp_Ex: "\<exists>a r. z = complex_of_real r * Exp a"
 apply (insert rcis_Ex [of z])
-apply (auto simp add: expi_def rcis_def mult.assoc [symmetric])
+apply (auto simp add: Exp_eq_polar rcis_def mult.assoc [symmetric])
 apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
 done
 
-lemma expi_two_pi_i [simp]: "expi((2::complex) * complex_of_real pi * ii) = 1"
-  by (simp add: expi_def complex_eq_iff)
+lemma Exp_two_pi_i [simp]: "Exp((2::complex) * complex_of_real pi * ii) = 1"
+  by (simp add: Exp_eq_polar complex_eq_iff)
 
 subsubsection {* Complex argument *}
 

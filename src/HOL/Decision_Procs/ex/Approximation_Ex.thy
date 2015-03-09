@@ -47,7 +47,7 @@ lemma "\<bar> sqrt 2 - 1.4142135623730951 \<bar> < inverse 10 ^ 16"
 lemma "\<bar> pi - 3.1415926535897932385 \<bar> < inverse 10 ^ 18"
   by (approximation 70)
 
-lemma "\<bar> sin 100 + 0.50636564110975879 \<bar> < inverse 10 ^ 17"
+lemma "\<bar> sin 100 + 0.50636564110975879 \<bar> < (inverse 10 ^ 17 :: real)"
   by (approximation 70)
 
 section "Use variable ranges"
@@ -64,7 +64,7 @@ lemma "0.49 \<le> x \<and> x \<le> 4.49 \<Longrightarrow> \<bar> arctan x - 0.91
 lemma "1 / 2^1 \<le> x \<and> x \<le> 9 / 2^1 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
   by (approximation 10)
 
-lemma "3.2 \<le> x \<and> x \<le> 6.2 \<Longrightarrow> sin x \<le> 0"
+lemma "3.2 \<le> (x::real) \<and> x \<le> 6.2 \<Longrightarrow> sin x \<le> 0"
   by (approximation 10)
 
 lemma

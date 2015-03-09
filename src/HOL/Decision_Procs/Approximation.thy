@@ -959,7 +959,7 @@ proof (cases "real x = 0")
       unfolding cos_coeff_def atLeast0LessThan by auto
 
     have "cos t * (- 1) ^ n = cos t * cos (n * pi) + sin t * sin (n * pi)" by auto
-    also have "\<dots> = cos (t + n * pi)"  using cos_add by auto
+    also have "\<dots> = cos (t + n * pi)" by (simp add: cos_add)  
     also have "\<dots> = ?rest" by auto
     finally have "cos t * (- 1) ^ n = ?rest" .
     moreover

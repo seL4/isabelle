@@ -319,4 +319,222 @@ lemma fact_numeral:  --{*Evaluation for specific numerals*}
   "fact (numeral k) = (numeral k) * (fact (pred_numeral k))"
   by (simp add: numeral_eq_Suc)
 
+
+text {* This development is based on the work of Andy Gordon and
+  Florian Kammueller. *}
+
+subsection {* Basic definitions and lemmas *}
+
+primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
+where
+  "0 choose k = (if k = 0 then 1 else 0)"
+| "Suc n choose k = (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
+
+lemma binomial_n_0 [simp]: "(n choose 0) = 1"
+  by (cases n) simp_all
+
+lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
+  by simp
+
+lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
+  by simp
+
+lemma choose_reduce_nat: 
+  "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
+    (n choose k) = ((n - 1) choose (k - 1)) + ((n - 1) choose k)"
+  by (metis Suc_diff_1 binomial.simps(2) neq0_conv)
+
+lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
+  by (induct n arbitrary: k) auto
+
+declare binomial.simps [simp del]
+
+lemma binomial_n_n [simp]: "n choose n = 1"
+  by (induct n) (simp_all add: binomial_eq_0)
+
+lemma binomial_Suc_n [simp]: "Suc n choose n = Suc n"
+  by (induct n) simp_all
+
+lemma binomial_1 [simp]: "n choose Suc 0 = n"
+  by (induct n) simp_all
+
+lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
+  by (induct n k rule: diff_induct) simp_all
+
+lemma binomial_eq_0_iff [simp]: "n choose k = 0 \<longleftrightarrow> n < k"
+  by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
+
+lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<le> n"
+  by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
+
+lemma Suc_times_binomial_eq:
+  "Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
+  apply (induct n arbitrary: k, simp add: binomial.simps)
+  apply (case_tac k)
+   apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
+  done
+
+text{*The absorption property*}
+lemma Suc_times_binomial:
+  "Suc k * (Suc n choose Suc k) = Suc n * (n choose k)"
+  using Suc_times_binomial_eq by auto
+
+text{*This is the well-known version of absorption, but it's harder to use because of the
+  need to reason about division.*}
+lemma binomial_Suc_Suc_eq_times:
+    "(Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
+  by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
+
+text{*Another version of absorption, with -1 instead of Suc.*}
+lemma times_binomial_minus1_eq:
+  "0 < k \<Longrightarrow> k * (n choose k) = n * ((n - 1) choose (k - 1))"
+  using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
+  by (auto split add: nat_diff_split)
+
+
+subsection {* Combinatorial theorems involving @{text "choose"} *}
+
+text {*By Florian Kamm\"uller, tidied by LCP.*}
+
+lemma card_s_0_eq_empty: "finite A \<Longrightarrow> card {B. B \<subseteq> A & card B = 0} = 1"
+  by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
+
+lemma choose_deconstruct: "finite M \<Longrightarrow> x \<notin> M \<Longrightarrow>
+    {s. s \<subseteq> insert x M \<and> card s = Suc k} =
+    {s. s \<subseteq> M \<and> card s = Suc k} \<union> {s. \<exists>t. t \<subseteq> M \<and> card t = k \<and> s = insert x t}"
+  apply safe
+     apply (auto intro: finite_subset [THEN card_insert_disjoint])
+  by (metis (full_types) Diff_insert_absorb Set.set_insert Zero_neq_Suc card_Diff_singleton_if 
+     card_eq_0_iff diff_Suc_1 in_mono subset_insert_iff)
+
+lemma finite_bex_subset [simp]:
+  assumes "finite B"
+    and "\<And>A. A \<subseteq> B \<Longrightarrow> finite {x. P x A}"
+  shows "finite {x. \<exists>A \<subseteq> B. P x A}"
+  by (metis (no_types) assms finite_Collect_bounded_ex finite_Collect_subsets)
+
+text{*There are as many subsets of @{term A} having cardinality @{term k}
+ as there are sets obtained from the former by inserting a fixed element
+ @{term x} into each.*}
+lemma constr_bij:
+   "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow>
+    card {B. \<exists>C. C \<subseteq> A \<and> card C = k \<and> B = insert x C} =
+    card {B. B \<subseteq> A & card(B) = k}"
+  apply (rule card_bij_eq [where f = "\<lambda>s. s - {x}" and g = "insert x"])
+  apply (auto elim!: equalityE simp add: inj_on_def)
+  apply (metis card_Diff_singleton_if finite_subset in_mono)
+  done
+
+text {*
+  Main theorem: combinatorial statement about number of subsets of a set.
+*}
+
+theorem n_subsets: "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
+proof (induct k arbitrary: A)
+  case 0 then show ?case by (simp add: card_s_0_eq_empty)
+next
+  case (Suc k)
+  show ?case using `finite A`
+  proof (induct A)
+    case empty show ?case by (simp add: card_s_0_eq_empty)
+  next
+    case (insert x A)
+    then show ?case using Suc.hyps
+      apply (simp add: card_s_0_eq_empty choose_deconstruct)
+      apply (subst card_Un_disjoint)
+         prefer 4 apply (force simp add: constr_bij)
+        prefer 3 apply force
+       prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
+         finite_subset [of _ "Pow (insert x F)" for F])
+      apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
+      done
+  qed
+qed
+
+
+subsection {* The binomial theorem (courtesy of Tobias Nipkow): *}
+
+text{* Avigad's version, generalized to any commutative ring *}
+theorem binomial_ring: "(a+b::'a::{comm_ring_1,power})^n = 
+  (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
+proof (induct n)
+  case 0 then show "?P 0" by simp
+next
+  case (Suc n)
+  have decomp: "{0..n+1} = {0} Un {n+1} Un {1..n}"
+    by auto
+  have decomp2: "{0..n} = {0} Un {1..n}"
+    by auto
+  have "(a+b)^(n+1) = 
+      (a+b) * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    using Suc.hyps by simp
+  also have "\<dots> = a*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
+                   b*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    by (rule distrib_right)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
+                  (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
+    by (auto simp add: setsum_right_distrib ac_simps)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
+    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps  
+        del:setsum_cl_ivl_Suc)
+  also have "\<dots> = a^(n+1) + b^(n+1) +
+                  (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
+    by (simp add: decomp2)
+  also have
+      "\<dots> = a^(n+1) + b^(n+1) + 
+            (\<Sum>k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
+    by (auto simp add: field_simps setsum.distrib [symmetric] choose_reduce_nat)
+  also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
+    using decomp by (simp add: field_simps)
+  finally show "?P (Suc n)" by simp
+qed
+
+text{* Original version for the naturals *}
+corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))"
+    using binomial_ring [of "int a" "int b" n]
+  by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
+           of_nat_setsum [symmetric]
+           of_nat_eq_iff of_nat_id)
+
+lemma binomial_fact_lemma: "k \<le> n \<Longrightarrow> fact k * fact (n - k) * (n choose k) = fact n"
+proof (induct n arbitrary: k rule: nat_less_induct)
+  fix n k assume H: "\<forall>m<n. \<forall>x\<le>m. fact x * fact (m - x) * (m choose x) =
+                      fact m" and kn: "k \<le> n"
+  let ?ths = "fact k * fact (n - k) * (n choose k) = fact n"
+  { assume "n=0" then have ?ths using kn by simp }
+  moreover
+  { assume "k=0" then have ?ths using kn by simp }
+  moreover
+  { assume nk: "n=k" then have ?ths by simp }
+  moreover
+  { fix m h assume n: "n = Suc m" and h: "k = Suc h" and hm: "h < m"
+    from n have mn: "m < n" by arith
+    from hm have hm': "h \<le> m" by arith
+    from hm h n kn have km: "k \<le> m" by arith
+    have "m - h = Suc (m - Suc h)" using  h km hm by arith
+    with km h have th0: "fact (m - h) = (m - h) * fact (m - k)"
+      by simp
+    from n h th0
+    have "fact k * fact (n - k) * (n choose k) =
+        k * (fact h * fact (m - h) * (m choose h)) + 
+        (m - h) * (fact k * fact (m - k) * (m choose k))"
+      by (simp add: field_simps)
+    also have "\<dots> = (k + (m - h)) * fact m"
+      using H[rule_format, OF mn hm'] H[rule_format, OF mn km]
+      by (simp add: field_simps)
+    finally have ?ths using h n km by simp }
+  moreover have "n=0 \<or> k = 0 \<or> k = n \<or> (\<exists>m h. n = Suc m \<and> k = Suc h \<and> h < m)"
+    using kn by presburger
+  ultimately show ?ths by blast
+qed
+
+lemma binomial_fact:
+  assumes kn: "k \<le> n"
+  shows "(of_nat (n choose k) :: 'a::{field,ring_char_0}) =
+    of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
+  using binomial_fact_lemma[OF kn]
+  by (simp add: field_simps of_nat_mult [symmetric])
+
 end

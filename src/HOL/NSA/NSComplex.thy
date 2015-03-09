@@ -71,8 +71,8 @@ definition
 
   (*------------ e ^ (x + iy) ------------*)
 definition
-  hexpi :: "hcomplex => hcomplex" where
-  "hexpi = *f* expi"
+  hExp :: "hcomplex => hcomplex" where
+  "hExp = *f* Exp"
 
 definition
   HComplex :: "[hypreal,hypreal] => hcomplex" where
@@ -80,7 +80,7 @@ definition
 
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def
-  hrcis_def hexpi_def HComplex_def
+  hrcis_def hExp_def HComplex_def
 
 lemma Standard_hRe [simp]: "x \<in> Standard \<Longrightarrow> hRe x \<in> Standard"
 by (simp add: hcomplex_defs)
@@ -103,7 +103,7 @@ by (simp add: hcomplex_defs)
 lemma Standard_hcis [simp]: "r \<in> Standard \<Longrightarrow> hcis r \<in> Standard"
 by (simp add: hcomplex_defs)
 
-lemma Standard_hexpi [simp]: "x \<in> Standard \<Longrightarrow> hexpi x \<in> Standard"
+lemma Standard_hExp [simp]: "x \<in> Standard \<Longrightarrow> hExp x \<in> Standard"
 by (simp add: hcomplex_defs)
 
 lemma Standard_hrcis [simp]:
@@ -596,16 +596,12 @@ by (simp add: NSDeMoivre_ext)
 lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a pow n)"
 by (simp add: NSDeMoivre_ext)
 
-lemma hexpi_add: "!!a b. hexpi(a + b) = hexpi(a) * hexpi(b)"
+lemma hExp_add: "!!a b. hExp(a + b) = hExp(a) * hExp(b)"
 by transfer (rule exp_add)
 
 
 subsection{*@{term hcomplex_of_complex}: the Injection from
   type @{typ complex} to to @{typ hcomplex}*}
-
-lemma inj_hcomplex_of_complex: "inj(hcomplex_of_complex)"
-(* TODO: delete *)
-by (rule inj_star_of)
 
 lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex ii"
 by (rule iii_def)

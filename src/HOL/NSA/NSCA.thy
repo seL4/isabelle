@@ -54,9 +54,7 @@ lemma hcomplex_of_complex_image:
 by (simp add: Standard_def)
 
 lemma inv_hcomplex_of_complex_image: "inv hcomplex_of_complex `SComplex = UNIV"
-apply (auto simp add: Standard_def image_def)
-apply (rule inj_hcomplex_of_complex [THEN inv_f_f, THEN subst], blast)
-done
+by (auto simp add: Standard_def image_def) (metis inj_star_of inv_f_f)
 
 lemma SComplex_hcomplex_of_complex_image: 
       "[| \<exists>x. x: P; P \<le> SComplex |] ==> \<exists>Q. P = hcomplex_of_complex ` Q"
@@ -68,10 +66,6 @@ lemma SComplex_SReal_dense:
       |] ==> \<exists>r \<in> Reals. hcmod x< r & r < hcmod y"
 apply (auto intro: SReal_dense simp add: SReal_hcmod_SComplex)
 done
-
-lemma SComplex_hcmod_SReal: 
-      "z \<in> SComplex ==> hcmod z \<in> Reals"
-by (simp add: Reals_eq_Standard)
 
 
 subsection{*The Finite Elements form a Subring*}
@@ -193,7 +187,7 @@ subsection{*Zero is the Only Infinitesimal Complex Number*}
 
 lemma Infinitesimal_less_SComplex:
    "[| x \<in> SComplex; y \<in> Infinitesimal; 0 < hcmod x |] ==> hcmod y < hcmod x"
-by (auto intro: Infinitesimal_less_SReal SComplex_hcmod_SReal simp add: Infinitesimal_hcmod_iff)
+by (auto intro: Infinitesimal_less_SReal SReal_hcmod_SComplex simp add: Infinitesimal_hcmod_iff)
 
 lemma SComplex_Int_Infinitesimal_zero: "SComplex Int Infinitesimal = {0}"
 by (auto simp add: Standard_def Infinitesimal_hcmod_iff)
