@@ -73,6 +73,10 @@ token category instead.
 
 *** HOL ***
 
+* the functions "sin" and "cos" are now defined for any "'{real_normed_algebra_1,banach}"
+  type, so in particular on "real" and "complex" uniformly.
+  Minor INCOMPATIBILITY: type constraints may be needed.
+
 * removed functions "natfloor" and "natceiling",
   use "nat o floor" and "nat o ceiling" instead.
   A few of the lemmas have been retained and adapted: in their names
