@@ -531,38 +531,54 @@ section \<open>Refinement steps\<close>
 
 subsection \<open>Proof method expressions \label{sec:proof-meth}\<close>
 
-text \<open>Proof methods are either basic ones, or expressions composed
-  of methods via ``@{verbatim ","}'' (sequential composition),
-  ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}''
-  (try), ``@{verbatim "+"}'' (repeat at least once), ``@{verbatim
-  "["}@{text n}@{verbatim "]"}'' (restriction to first @{text n}
-  sub-goals, with default @{text "n = 1"}).  In practice, proof
-  methods are usually just a comma separated list of @{syntax
-  nameref}~@{syntax args} specifications.  Note that parentheses may
-  be dropped for single method specifications (with no arguments).
+text \<open>Proof methods are either basic ones, or expressions composed of
+  methods via ``@{verbatim ","}'' (sequential composition), ``@{verbatim
+  ";"}'' (structural composition), ``@{verbatim "|"}'' (alternative
+  choices), ``@{verbatim "?"}'' (try), ``@{verbatim "+"}'' (repeat at least
+  once), ``@{verbatim "["}@{text n}@{verbatim "]"}'' (restriction to first
+  @{text n} subgoals). In practice, proof methods are usually just a comma
+  separated list of @{syntax nameref}~@{syntax args} specifications. Note
+  that parentheses may be dropped for single method specifications (with no
+  arguments). The syntactic precedence of method combinators is @{verbatim
+  "|"} @{verbatim ";"} @{verbatim ","} @{verbatim "[]"} @{verbatim "+"}
+  @{verbatim "?"} (from low to high).
 
   @{rail \<open>
     @{syntax_def method}:
       (@{syntax nameref} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
     ;
-    methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | '|')
+    methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | ';' | '|')
   \<close>}
 
-  Proper Isar proof methods do \emph{not} admit arbitrary goal
-  addressing, but refer either to the first sub-goal or all sub-goals
-  uniformly.  The goal restriction operator ``@{text "[n]"}''
-  evaluates a method expression within a sandbox consisting of the
-  first @{text n} sub-goals (which need to exist).  For example, the
-  method ``@{text "simp_all[3]"}'' simplifies the first three
-  sub-goals, while ``@{text "(rule foo, simp_all)[]"}'' simplifies all
-  new goals that emerge from applying rule @{text "foo"} to the
-  originally first one.
+  Regular Isar proof methods do \emph{not} admit direct goal addressing, but
+  refer to the first subgoal or to all subgoals uniformly. Nonetheless,
+  the subsequent mechanisms allow to imitate the effect of subgoal
+  addressing that is known from ML tactics.
 
-  Improper methods, notably tactic emulations, offer a separate
-  low-level goal addressing scheme as explicit argument to the
-  individual tactic being involved.  Here ``@{text "[!]"}'' refers to
-  all goals, and ``@{text "[n-]"}'' to all goals starting from @{text
-  "n"}.
+  \medskip Goal \emph{restriction} means the proof state is wrapped-up in a
+  way that certain subgoals are exposed, and other subgoals are ``parked''
+  elsewhere. Thus a proof method has no other chance than to operate on the
+  subgoals that are presently exposed.
+
+  Structural composition ``@{text m\<^sub>1}@{verbatim ";"}~@{text m\<^sub>2}'' means
+  that method @{text m\<^sub>1} is applied with restriction to the first subgoal,
+  then @{text m\<^sub>2} is applied consecutively with restriction to each subgoal
+  that has newly emerged due to @{text m\<^sub>1}. This is analogous to the tactic
+  combinator @{ML THEN_ALL_NEW} in Isabelle/ML, see also @{cite
+  "isabelle-implementation"}. For example, @{text "(rule r; blast)"} applies
+  rule @{text "r"} and then solves all new subgoals by @{text blast}.
+
+  Moreover, the explicit goal restriction operator ``@{text "[n]"}'' exposes
+  only the first @{text n} subgoals (which need to exist), with default
+  @{text "n = 1"}. For example, the method expression ``@{text
+  "simp_all[3]"}'' simplifies the first three subgoals, while ``@{text
+  "(rule r, simp_all)[]"}'' simplifies all new goals that emerge from
+  applying rule @{text "r"} to the originally first one.
+
+  \medskip Improper methods, notably tactic emulations, offer low-level goal
+  addressing as explicit argument to the individual tactic being involved.
+  Here ``@{text "[!]"}'' refers to all goals, and ``@{text "[n-]"}'' to all
+  goals starting from @{text "n"}.
 
   @{rail \<open>
     @{syntax_def goal_spec}:

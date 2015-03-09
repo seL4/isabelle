@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
+* Structural composition of proof methods (meth1; meth2) in Isar
+corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
+
 * Generated schematic variables in standard format of exported facts are
 incremented to avoid material in the proof context. Rare
 INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
