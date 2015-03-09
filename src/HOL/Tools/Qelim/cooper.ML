@@ -907,7 +907,7 @@ val _ =
     (Attrib.setup @{binding presburger}
       ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
         optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
-    #> Arith_Data.add_tactic "Presburger arithmetic" (K (tac true [] [])));
+    #> Arith_Data.add_tactic "Presburger arithmetic" (tac true [] []));
 
 end;
 

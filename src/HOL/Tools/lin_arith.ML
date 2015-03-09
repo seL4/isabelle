@@ -892,7 +892,7 @@ val global_setup =
       METHOD (fn facts =>
         HEADGOAL (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
-  Arith_Data.add_tactic "linear arithmetic" (K tac);
+  Arith_Data.add_tactic "linear arithmetic" tac;
 
 val setup =
   init_arith_data

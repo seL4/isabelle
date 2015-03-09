@@ -7,8 +7,7 @@ Common arithmetic proof auxiliary and legacy.
 signature ARITH_DATA =
 sig
   val arith_tac: Proof.context -> int -> tactic
-  val verbose_arith_tac: Proof.context -> int -> tactic
-  val add_tactic: string -> (bool -> Proof.context -> int -> tactic) -> theory -> theory
+  val add_tactic: string -> (Proof.context -> int -> tactic) -> theory -> theory
 
   val mk_number: typ -> int -> term
   val mk_sum: typ -> term list -> term
@@ -29,7 +28,7 @@ struct
 
 structure Arith_Tactics = Theory_Data
 (
-  type T = (serial * (string * (bool -> Proof.context -> int -> tactic))) list;
+  type T = (serial * (string * (Proof.context -> int -> tactic))) list;
   val empty = [];
   val extend = I;
   fun merge data : T = AList.merge (op =) (K true) data;
@@ -37,14 +36,11 @@ structure Arith_Tactics = Theory_Data
 
 fun add_tactic name tac = Arith_Tactics.map (cons (serial (), (name, tac)));
 
-fun gen_arith_tac verbose ctxt =
+fun arith_tac ctxt =
   let
     val tactics = Arith_Tactics.get (Proof_Context.theory_of ctxt);
-    fun invoke (_, (_, tac)) k st = tac verbose ctxt k st;
+    fun invoke (_, (_, tac)) k st = tac ctxt k st;
   in FIRST' (map invoke (rev tactics)) end;
-
-val arith_tac = gen_arith_tac false;
-val verbose_arith_tac = gen_arith_tac true;
 
 val _ =
   Theory.setup
@@ -53,7 +49,7 @@ val _ =
         METHOD (fn facts =>
           HEADGOAL
           (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
-            THEN' verbose_arith_tac ctxt))))
+            THEN' arith_tac ctxt))))
       "various arithmetic decision procedures");
 
 

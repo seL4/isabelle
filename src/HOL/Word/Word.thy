@@ -1551,7 +1551,7 @@ fun uint_arith_simpset ctxt =
 fun uint_arith_tacs ctxt = 
   let
     fun arith_tac' n t =
-      Arith_Data.verbose_arith_tac ctxt n t
+      Arith_Data.arith_tac ctxt n t
         handle Cooper.COOPER _ => Seq.empty;
   in 
     [ clarify_tac ctxt 1,
@@ -2053,7 +2053,7 @@ fun unat_arith_simpset ctxt =
 fun unat_arith_tacs ctxt =   
   let
     fun arith_tac' n t =
-      Arith_Data.verbose_arith_tac ctxt n t
+      Arith_Data.arith_tac ctxt n t
         handle Cooper.COOPER _ => Seq.empty;
   in 
     [ clarify_tac ctxt 1,
