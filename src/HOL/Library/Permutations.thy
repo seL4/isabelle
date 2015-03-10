@@ -5,7 +5,7 @@
 section {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Fact
+imports Binomial
 begin
 
 subsection {* Transpositions *}
@@ -46,7 +46,7 @@ lemma permutes_surj: "p permutes s \<Longrightarrow> surj p"
 
 lemma permutes_imp_bij: "p permutes S \<Longrightarrow> bij_betw p S S"
   by (metis UNIV_I bij_betw_def permutes_image permutes_inj subsetI subset_inj_on)
-   
+
 lemma bij_imp_permutes: "bij_betw p S S \<Longrightarrow> (\<And>x. x \<notin> S \<Longrightarrow> p x = x) \<Longrightarrow> p permutes S"
   unfolding permutes_def bij_betw_def inj_on_def
   by auto (metis image_iff)+

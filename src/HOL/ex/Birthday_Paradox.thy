@@ -5,14 +5,14 @@
 section {* A Formulation of the Birthday Paradox *}
 
 theory Birthday_Paradox
-imports Main "~~/src/HOL/Fact" "~~/src/HOL/Library/FuncSet"
+imports Main "~~/src/HOL/Binomial" "~~/src/HOL/Library/FuncSet"
 begin
 
 section {* Cardinality *}
 
 lemma card_product_dependent:
   assumes "finite S"
-  assumes "\<forall>x \<in> S. finite (T x)" 
+  assumes "\<forall>x \<in> S. finite (T x)"
   shows "card {(x, y). x \<in> S \<and> y \<in> T x} = (\<Sum>x \<in> S. card (T x))"
   using card_SigmaI[OF assms, symmetric] by (auto intro!: arg_cong[where f=card] simp add: Sigma_def)
 
@@ -30,7 +30,7 @@ next
     from `finite S` this have "finite (extensional_funcset S (T - {x}))"
       by (rule finite_PiE)
     moreover
-    have "{f : extensional_funcset S (T - {x}). inj_on f S} \<subseteq> (extensional_funcset S (T - {x}))" by auto    
+    have "{f : extensional_funcset S (T - {x}). inj_on f S} \<subseteq> (extensional_funcset S (T - {x}))" by auto
     ultimately have "finite {f : extensional_funcset S (T - {x}). inj_on f S}"
       by (auto intro: finite_subset)
   } note finite_delete = this
@@ -62,7 +62,7 @@ proof -
   have subset: "{f : extensional_funcset S T. inj_on f S} <= extensional_funcset S T" by auto
   from finite_subset[OF subset] assms have finite: "finite {f : extensional_funcset S T. inj_on f S}"
     by (auto intro!: finite_PiE)
-  have "{f \<in> extensional_funcset S T. \<not> inj_on f S} = extensional_funcset S T - {f \<in> extensional_funcset S T. inj_on f S}" by auto 
+  have "{f \<in> extensional_funcset S T. \<not> inj_on f S} = extensional_funcset S T - {f \<in> extensional_funcset S T. inj_on f S}" by auto
   from assms this finite subset show ?thesis
     by (simp add: card_Diff_subset card_PiE card_extensional_funcset_inj_on setprod_constant)
 qed

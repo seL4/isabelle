@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 section {* Primes *}
 
 theory Primes
-imports "~~/src/HOL/GCD" "~~/src/HOL/Fact"
+imports "~~/src/HOL/GCD" "~~/src/HOL/Binomial"
 begin
 
 declare [[coercion int]]
@@ -72,7 +72,7 @@ lemma prime_imp_coprime_nat: "prime p \<Longrightarrow> \<not> p dvd n \<Longrig
   apply (metis gcd_dvd1_nat gcd_dvd2_nat)
   done
 
-lemma prime_int_altdef: 
+lemma prime_int_altdef:
   "prime p = (1 < p \<and> (\<forall>m::int. m \<ge> 0 \<longrightarrow> m dvd p \<longrightarrow>
     m = 1 \<or> m = p))"
   apply (simp add: prime_def)
@@ -90,7 +90,7 @@ lemma prime_imp_coprime_int:
 lemma prime_dvd_mult_nat: "prime p \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
   by (blast intro: coprime_dvd_mult_nat prime_imp_coprime_nat)
 
-lemma prime_dvd_mult_int: 
+lemma prime_dvd_mult_int:
   fixes n::int shows "prime p \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
   by (blast intro: coprime_dvd_mult_int prime_imp_coprime_int)
 
@@ -99,7 +99,7 @@ lemma prime_dvd_mult_eq_nat [simp]: "prime p \<Longrightarrow>
   by (rule iffI, rule prime_dvd_mult_nat, auto)
 
 lemma prime_dvd_mult_eq_int [simp]:
-  fixes n::int 
+  fixes n::int
   shows "prime p \<Longrightarrow> p dvd m * n = (p dvd m \<or> p dvd n)"
   by (rule iffI, rule prime_dvd_mult_int, auto)
 
@@ -121,7 +121,7 @@ lemma prime_dvd_power_nat_iff: "prime p \<Longrightarrow> n > 0 \<Longrightarrow
   by (cases n) (auto elim: prime_dvd_power_nat)
 
 lemma prime_dvd_power_int_iff:
-  fixes x::int 
+  fixes x::int
   shows "prime p \<Longrightarrow> n > 0 \<Longrightarrow> p dvd x^n \<longleftrightarrow> p dvd x"
   by (cases n) (auto elim: prime_dvd_power_int)
 
@@ -226,14 +226,14 @@ subsection {* Infinitely many primes *}
 
 lemma next_prime_bound: "\<exists>p. prime p \<and> n < p \<and> p <= fact n + 1"
 proof-
-  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith 
+  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith
   from prime_factor_nat [OF f1]
   obtain p where "prime p" and "p dvd fact n + 1" by auto
   then have "p \<le> fact n + 1" apply (intro dvd_imp_le) apply auto done
   { assume "p \<le> n"
-    from `prime p` have "p \<ge> 1" 
+    from `prime p` have "p \<ge> 1"
       by (cases p, simp_all)
-    with `p <= n` have "p dvd fact n" 
+    with `p <= n` have "p dvd fact n"
       by (intro dvd_fact_nat)
     with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
       by (rule dvd_diff_nat)
@@ -245,7 +245,7 @@ proof-
   with `prime p` and `p <= fact n + 1` show ?thesis by auto
 qed
 
-lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)" 
+lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)"
   using next_prime_bound by auto
 
 lemma primes_infinite: "\<not> (finite {(p::nat). prime p})"
@@ -263,12 +263,12 @@ subsection{*Powers of Primes*}
 
 text{*Versions for type nat only*}
 
-lemma prime_product: 
+lemma prime_product:
   fixes p::nat
   assumes "prime (p * q)"
   shows "p = 1 \<or> q = 1"
 proof -
-  from assms have 
+  from assms have
     "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
     unfolding prime_nat_def by auto
   from `1 < p * q` have "p \<noteq> 0" by (cases p) auto
@@ -278,7 +278,7 @@ proof -
   then show ?thesis by (simp add: Q)
 qed
 
-lemma prime_exp: 
+lemma prime_exp:
   fixes p::nat
   shows "prime (p^n) \<longleftrightarrow> prime p \<and> n = 1"
 proof(induct n)
@@ -301,7 +301,7 @@ next
   ultimately show ?case by blast
 qed
 
-lemma prime_power_mult: 
+lemma prime_power_mult:
   fixes p::nat
   assumes p: "prime p" and xy: "x * y = p ^ k"
   shows "\<exists>i j. x = p ^i \<and> y = p^ j"
@@ -312,28 +312,28 @@ next
   case (Suc k x y)
   from Suc.prems have pxy: "p dvd x*y" by auto
   from Primes.prime_dvd_mult_nat [OF p pxy] have pxyc: "p dvd x \<or> p dvd y" .
-  from p have p0: "p \<noteq> 0" by - (rule ccontr, simp) 
+  from p have p0: "p \<noteq> 0" by - (rule ccontr, simp)
   {assume px: "p dvd x"
     then obtain d where d: "x = p*d" unfolding dvd_def by blast
     from Suc.prems d  have "p*d*y = p^Suc k" by simp
     hence th: "d*y = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "y = p^j" by blast
-    with d have "x = p^Suc i" by simp 
+    with d have "x = p^Suc i" by simp
     with ij(2) have ?case by blast}
-  moreover 
+  moreover
   {assume px: "p dvd y"
     then obtain d where d: "y = p*d" unfolding dvd_def by blast
     from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult.commute)
     hence th: "d*x = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "x = p^j" by blast
-    with d have "y = p^Suc i" by simp 
+    with d have "y = p^Suc i" by simp
     with ij(2) have ?case by blast}
   ultimately show ?case  using pxyc by blast
 qed
 
-lemma prime_power_exp: 
+lemma prime_power_exp:
   fixes p::nat
-  assumes p: "prime p" and n: "n \<noteq> 0" 
+  assumes p: "prime p" and n: "n \<noteq> 0"
     and xn: "x^n = p^k" shows "\<exists>i. x = p^i"
   using n xn
 proof(induct n arbitrary: k)
@@ -343,7 +343,7 @@ next
   {assume "n = 0" with Suc have ?case by simp (rule exI[where x="k"], simp)}
   moreover
   {assume n: "n \<noteq> 0"
-    from prime_power_mult[OF p th] 
+    from prime_power_mult[OF p th]
     obtain i j where ij: "x = p^i" "x^n = p^j"by blast
     from Suc.hyps[OF n ij(2)] have ?case .}
   ultimately show ?case by blast
@@ -351,14 +351,14 @@ qed
 
 lemma divides_primepow:
   fixes p::nat
-  assumes p: "prime p" 
+  assumes p: "prime p"
   shows "d dvd p^k \<longleftrightarrow> (\<exists> i. i \<le> k \<and> d = p ^i)"
 proof
-  assume H: "d dvd p^k" then obtain e where e: "d*e = p^k" 
+  assume H: "d dvd p^k" then obtain e where e: "d*e = p^k"
     unfolding dvd_def  apply (auto simp add: mult.commute) by blast
   from prime_power_mult[OF p e] obtain i j where ij: "d = p^i" "e=p^j" by blast
   from e ij have "p^(i + j) = p^k" by (simp add: power_add)
-  hence "i + j = k" using p prime_gt_1_nat power_inject_exp[of p "i+j" k] by simp 
+  hence "i + j = k" using p prime_gt_1_nat power_inject_exp[of p "i+j" k] by simp
   hence "i \<le> k" by arith
   with ij(1) show "\<exists>i\<le>k. d = p ^ i" by blast
 next
@@ -375,16 +375,16 @@ subsection {*Chinese Remainder Theorem Variants*}
 lemma bezout_gcd_nat:
   fixes a::nat shows "\<exists>x y. a * x - b * y = gcd a b \<or> b * x - a * y = gcd a b"
   using bezout_nat[of a b]
-by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd_nat.commute 
-  gcd_nat.right_neutral mult_0) 
+by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd_nat.commute
+  gcd_nat.right_neutral mult_0)
 
 lemma gcd_bezout_sum_nat:
-  fixes a::nat 
-  assumes "a * x + b * y = d" 
+  fixes a::nat
+  assumes "a * x + b * y = d"
   shows "gcd a b dvd d"
 proof-
   let ?g = "gcd a b"
-    have dv: "?g dvd a*x" "?g dvd b * y" 
+    have dv: "?g dvd a*x" "?g dvd b * y"
       by simp_all
     from dvd_add[OF dv] assms
     show ?thesis by auto
@@ -393,19 +393,19 @@ qed
 
 text {* A binary form of the Chinese Remainder Theorem. *}
 
-lemma chinese_remainder: 
+lemma chinese_remainder:
   fixes a::nat  assumes ab: "coprime a b" and a: "a \<noteq> 0" and b: "b \<noteq> 0"
   shows "\<exists>x q1 q2. x = u + q1 * a \<and> x = v + q2 * b"
 proof-
   from bezout_add_strong_nat[OF a, of b] bezout_add_strong_nat[OF b, of a]
-  obtain d1 x1 y1 d2 x2 y2 where dxy1: "d1 dvd a" "d1 dvd b" "a * x1 = b * y1 + d1" 
+  obtain d1 x1 y1 d2 x2 y2 where dxy1: "d1 dvd a" "d1 dvd b" "a * x1 = b * y1 + d1"
     and dxy2: "d2 dvd b" "d2 dvd a" "b * x2 = a * y2 + d2" by blast
   then have d12: "d1 = 1" "d2 =1"
     by (metis ab coprime_nat)+
   let ?x = "v * a * x1 + u * b * x2"
   let ?q1 = "v * x1 + u * y2"
   let ?q2 = "v * y1 + u * x2"
-  from dxy2(3)[simplified d12] dxy1(3)[simplified d12] 
+  from dxy2(3)[simplified d12] dxy1(3)[simplified d12]
   have "?x = u + ?q1 * a" "?x = v + ?q2 * b"
     by algebra+
   thus ?thesis by blast
@@ -418,14 +418,14 @@ lemma coprime_bezout_strong:
   shows "\<exists>x y. a * x = b * y + 1"
 by (metis assms bezout_nat gcd_nat.left_neutral)
 
-lemma bezout_prime: 
+lemma bezout_prime:
   assumes p: "prime p" and pa: "\<not> p dvd a"
   shows "\<exists>x y. a*x = Suc (p*y)"
 proof-
   have ap: "coprime a p"
-    by (metis gcd_nat.commute p pa prime_imp_coprime_nat) 
+    by (metis gcd_nat.commute p pa prime_imp_coprime_nat)
   from coprime_bezout_strong[OF ap] show ?thesis
-    by (metis Suc_eq_plus1 gcd_lcm_complete_lattice_nat.bot.extremum pa) 
+    by (metis Suc_eq_plus1 gcd_lcm_complete_lattice_nat.bot.extremum pa)
 qed
 
 end

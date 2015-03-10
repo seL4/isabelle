@@ -6,7 +6,7 @@
 section {* Importer machinery and required theorems *}
 
 theory Import_Setup
-imports Main "~~/src/HOL/Fact"
+imports Main "~~/src/HOL/Binomial"
 keywords "import_type_map" "import_const_map" "import_file" :: thy_decl
 begin
 

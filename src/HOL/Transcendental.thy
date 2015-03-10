@@ -7,7 +7,7 @@
 section{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental
-imports Fact Series Deriv NthRoot
+imports Binomial Series Deriv NthRoot
 begin
 
 lemma root_test_convergence:
@@ -81,13 +81,13 @@ lemma lemma_realpow_rev_sumr:
 lemma power_diff_1_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
-using lemma_realpow_diff_sumr2 [of x _ 1] 
+using lemma_realpow_diff_sumr2 [of x _ 1]
   by (cases n) auto
 
 lemma one_diff_power_eq':
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
-using lemma_realpow_diff_sumr2 [of 1 _ x] 
+using lemma_realpow_diff_sumr2 [of 1 _ x]
   by (cases n) auto
 
 lemma one_diff_power_eq:
@@ -419,7 +419,7 @@ proof -
       by auto
     ultimately show ?thesis by auto
   qed
-  then show ?summable and ?pos and ?neg and ?f and ?g 
+  then show ?summable and ?pos and ?neg and ?f and ?g
     by safe
 qed
 
@@ -1171,16 +1171,16 @@ lemma not_exp_le_zero [simp]: "\<not> exp (x::real) \<le> 0"
 lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
   by simp
 
-(*FIXME: superseded by exp_of_nat_mult*) 
-lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n" 
+(*FIXME: superseded by exp_of_nat_mult*)
+lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_left exp_add mult.commute)
-  
+
 text {* Strict monotonicity of exponential. *}
 
-lemma exp_ge_add_one_self_aux: 
+lemma exp_ge_add_one_self_aux:
   assumes "0 \<le> (x::real)" shows "1+x \<le> exp(x)"
 using order_le_imp_less_or_eq [OF assms]
-proof 
+proof
   assume "0 < x"
   have "1+x \<le> (\<Sum>n<2. inverse (real (fact n)) * x ^ n)"
     by (auto simp add: numeral_2_eq_2)
@@ -1189,7 +1189,7 @@ proof
     using `0 < x`
     apply (auto  simp add:  zero_le_mult_iff)
     done
-  finally show "1+x \<le> exp x" 
+  finally show "1+x \<le> exp x"
     by (simp add: exp_def)
 next
   assume "0 = x"
@@ -1443,7 +1443,7 @@ lemma exp_first_two_terms: "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) * (x 
 proof -
   have "exp x = suminf (\<lambda>n. inverse(fact n) * (x ^ n))"
     by (simp add: exp_def)
-  also from summable_exp have "... = (\<Sum> n. inverse(fact(n+2)) * (x ^ (n+2))) + 
+  also from summable_exp have "... = (\<Sum> n. inverse(fact(n+2)) * (x ^ (n+2))) +
     (\<Sum> n::nat<2. inverse(fact n) * (x ^ n))" (is "_ = _ + ?a")
     by (rule suminf_split_initial_segment)
   also have "?a = 1 + x"
@@ -1536,7 +1536,7 @@ proof -
   ultimately have "1 - x <= 1 / (1 + x + x\<^sup>2)"
     by (elim mult_imp_le_div_pos)
   also have "... <= 1 / exp x"
-    by (metis a abs_one b exp_bound exp_gt_zero frac_le less_eq_real_def real_sqrt_abs 
+    by (metis a abs_one b exp_bound exp_gt_zero frac_le less_eq_real_def real_sqrt_abs
               real_sqrt_pow2_iff real_sqrt_power)
   also have "... = exp (-x)"
     by (auto simp add: exp_minus divide_inverse)
@@ -1584,7 +1584,7 @@ proof -
   qed
   finally have "exp (x - x\<^sup>2) <= exp (ln (1 + x))" .
   thus ?thesis
-    by (metis exp_le_cancel_iff) 
+    by (metis exp_le_cancel_iff)
 qed
 
 lemma ln_one_minus_pos_lower_bound:
@@ -1690,7 +1690,7 @@ proof -
   also have "... = 1 + (y - x) / x"
     using x a by (simp add: field_simps)
   also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
-    using x a 
+    using x a
     by (intro mult_left_mono ln_add_one_self_le_self) simp_all
   also have "... = y - x" using a by simp
   also have "... = (y - x) * ln (exp 1)" by simp
@@ -2204,7 +2204,7 @@ lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x
   unfolding powr_def exp_inj_iff by simp
 
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
-  by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult.commute 
+  by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult.commute
             order.strict_trans2 powr_gt_zero zero_less_one)
 
 lemma ln_powr_bound2:
@@ -2302,7 +2302,7 @@ proof cases
   have "((\<lambda>y. ln (1 + x * y)::real) has_real_derivative 1 * x) (at 0)"
     by (auto intro!: derivative_eq_intros)
   then have "((\<lambda>y. ln (1 + x * y) / y) ---> x) (at 0)"
-    by (auto simp add: has_field_derivative_def field_has_derivative_at) 
+    by (auto simp add: has_field_derivative_def field_has_derivative_at)
   then have *: "((\<lambda>y. exp (ln (1 + x * y) / y)) ---> exp x) (at 0)"
     by (rule tendsto_intros)
   then show ?thesis
@@ -2367,15 +2367,15 @@ lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
   unfolding cos_coeff_def sin_coeff_def
   by (simp del: mult_Suc) (auto elim: oddE)
 
-lemma summable_norm_sin: 
+lemma summable_norm_sin:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "summable (\<lambda>n. norm (sin_coeff n *\<^sub>R x^n))"
-  unfolding sin_coeff_def 
+  unfolding sin_coeff_def
   apply (rule summable_comparison_test [OF _ summable_norm_exp [where x=x]])
   apply (auto simp: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
   done
 
-lemma summable_norm_cos: 
+lemma summable_norm_cos:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "summable (\<lambda>n. norm (cos_coeff n *\<^sub>R x ^ n))"
   unfolding cos_coeff_def
@@ -2405,7 +2405,7 @@ proof -
     by (rule sin_converges)
   finally have "(\<lambda>n. of_real (sin_coeff n *\<^sub>R x^n)) sums (sin (of_real x))" .
   then show ?thesis
-    using sums_unique2 sums_of_real [OF sin_converges] 
+    using sums_unique2 sums_of_real [OF sin_converges]
     by blast
 qed
 
@@ -2423,7 +2423,7 @@ proof -
     by (rule cos_converges)
   finally have "(\<lambda>n. of_real (cos_coeff n *\<^sub>R x^n)) sums (cos (of_real x))" .
   then show ?thesis
-    using sums_unique2 sums_of_real [OF cos_converges]  
+    using sums_unique2 sums_of_real [OF cos_converges]
     by blast
 qed
 
@@ -2441,22 +2441,22 @@ lemma DERIV_sin [simp]:
   unfolding sin_def cos_def scaleR_conv_of_real
   apply (rule DERIV_cong)
   apply (rule termdiffs [where K="of_real (norm x) + 1 :: 'a"])
-  apply (simp_all add: norm_less_p1 diffs_of_real diffs_sin_coeff diffs_cos_coeff 
+  apply (simp_all add: norm_less_p1 diffs_of_real diffs_sin_coeff diffs_cos_coeff
               summable_minus_iff scaleR_conv_of_real [symmetric]
               summable_norm_sin [THEN summable_norm_cancel]
               summable_norm_cos [THEN summable_norm_cancel])
   done
-  
+
 declare DERIV_sin[THEN DERIV_chain2, derivative_intros]
 
-lemma DERIV_cos [simp]: 
+lemma DERIV_cos [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "DERIV cos x :> -sin(x)"
   unfolding sin_def cos_def scaleR_conv_of_real
   apply (rule DERIV_cong)
   apply (rule termdiffs [where K="of_real (norm x) + 1 :: 'a"])
-  apply (simp_all add: norm_less_p1 diffs_of_real diffs_minus suminf_minus 
-              diffs_sin_coeff diffs_cos_coeff 
+  apply (simp_all add: norm_less_p1 diffs_of_real diffs_minus suminf_minus
+              diffs_sin_coeff diffs_cos_coeff
               summable_minus_iff scaleR_conv_of_real [symmetric]
               summable_norm_sin [THEN summable_norm_cancel]
               summable_norm_cos [THEN summable_norm_cancel])
@@ -2469,7 +2469,7 @@ lemma isCont_sin:
   shows "isCont sin x"
   by (rule DERIV_sin [THEN DERIV_isCont])
 
-lemma isCont_cos: 
+lemma isCont_cos:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "isCont cos x"
   by (rule DERIV_cos [THEN DERIV_isCont])
@@ -2481,7 +2481,7 @@ lemma isCont_sin' [simp]:
 
 (*FIXME A CONTEXT FOR F WOULD BE BETTER*)
 
-lemma isCont_cos' [simp]: 
+lemma isCont_cos' [simp]:
   fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. cos (f x)) a"
   by (rule isCont_o2 [OF _ isCont_cos])
@@ -2545,23 +2545,23 @@ lemma DERIV_fun_cos:
 subsection {*Deriving the Addition Formulas*}
 
 text{*The the product of two cosine series*}
-lemma cos_x_cos_y: 
+lemma cos_x_cos_y:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows "(\<lambda>p. \<Sum>n\<le>p. 
-          if even p \<and> even n 
-          then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) 
+  shows "(\<lambda>p. \<Sum>n\<le>p.
+          if even p \<and> even n
+          then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
          sums (cos x * cos y)"
 proof -
   { fix n p::nat
     assume "n\<le>p"
     then have *: "even n \<Longrightarrow> even p \<Longrightarrow> (-1) ^ (n div 2) * (-1) ^ ((p - n) div 2) = (-1 :: real) ^ (p div 2)"
       by (metis div_add power_add le_add_diff_inverse odd_add)
-    have "(cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) = 
+    have "(cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) =
           (if even p \<and> even n then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using `n\<le>p`
       by (auto simp: * algebra_simps cos_coeff_def binomial_fact real_of_nat_def)
-  } 
-  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> even n 
+  }
+  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> even n
                   then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
              (\<lambda>p. \<Sum>n\<le>p. (cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
     by simp
@@ -2574,11 +2574,11 @@ proof -
 qed
 
 text{*The product of two sine series*}
-lemma sin_x_sin_y: 
+lemma sin_x_sin_y:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows "(\<lambda>p. \<Sum>n\<le>p. 
-          if even p \<and> odd n 
-               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) 
+  shows "(\<lambda>p. \<Sum>n\<le>p.
+          if even p \<and> odd n
+               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
          sums (sin x * sin y)"
 proof -
   { fix n p::nat
@@ -2594,13 +2594,13 @@ proof -
         apply (metis (no_types) One_nat_def Suc_1 le_div_geq minus_minus mult.left_neutral mult_minus_left power.simps(2) zero_less_Suc)
         done
     } then
-    have "(sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) = 
-          (if even p \<and> odd n 
+    have "(sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) =
+          (if even p \<and> odd n
           then -((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using `n\<le>p`
       by (auto simp:  algebra_simps sin_coeff_def binomial_fact real_of_nat_def)
-  } 
-  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> odd n 
+  }
+  then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> odd n
                then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
              (\<lambda>p. \<Sum>n\<le>p. (sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
     by simp
@@ -2612,18 +2612,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma sums_cos_x_plus_y: 
+lemma sums_cos_x_plus_y:
   fixes x :: "'a::{real_normed_field,banach}"
   shows
-  "(\<lambda>p. \<Sum>n\<le>p. if even p 
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) 
-               else 0) 
+  "(\<lambda>p. \<Sum>n\<le>p. if even p
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+               else 0)
         sums cos (x + y)"
 proof -
   { fix p::nat
     have "(\<Sum>n\<le>p. if even p
                   then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
-                  else 0) = 
+                  else 0) =
           (if even p
                   then \<Sum>n\<le>p. ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0)"
@@ -2637,11 +2637,11 @@ proof -
     finally have "(\<Sum>n\<le>p. if even p
                   then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0) = cos_coeff p *\<^sub>R ((x + y) ^ p)" .
-  }  
-  then have "(\<lambda>p. \<Sum>n\<le>p. 
-               if even p 
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) 
-               else 0) 
+  }
+  then have "(\<lambda>p. \<Sum>n\<le>p.
+               if even p
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+               else 0)
         = (\<lambda>p. cos_coeff p *\<^sub>R ((x+y)^p))"
         by simp
    also have "... sums cos (x + y)"
@@ -2649,22 +2649,22 @@ proof -
    finally show ?thesis .
 qed
 
-theorem cos_add: 
+theorem cos_add:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "cos (x + y) = cos x * cos y - sin x * sin y"
 proof -
   { fix n p::nat
     assume "n\<le>p"
-    then have "(if even p \<and> even n 
+    then have "(if even p \<and> even n
                then ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) -
-          (if even p \<and> odd n 
+          (if even p \<and> odd n
                then - ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
-          = (if even p 
+          = (if even p
                then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
       by simp
-  }   
-  then have "(\<lambda>p. \<Sum>n\<le>p. (if even p 
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)) 
+  }
+  then have "(\<lambda>p. \<Sum>n\<le>p. (if even p
+               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0))
         sums (cos x * cos y - sin x * sin y)"
     using sums_diff [OF cos_x_cos_y [of x y] sin_x_sin_y [of x y]]
     by (simp add: setsum_subtractf [symmetric])
@@ -2683,7 +2683,7 @@ qed
 lemma sin_minus [simp]:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "sin (-x) = -sin(x)"
-using sin_minus_converges [of x] 
+using sin_minus_converges [of x]
 by (auto simp: sin_def summable_norm_sin [THEN summable_norm_cancel] suminf_minus sums_iff equation_minus_iff)
 
 lemma cos_minus_converges: "(\<lambda>n. (cos_coeff n *\<^sub>R (-x)^n)) sums cos(x)"
@@ -2698,72 +2698,72 @@ lemma cos_minus [simp]:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "cos (-x) = cos(x)"
 using cos_minus_converges [of x]
-by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel] 
+by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel]
               suminf_minus sums_iff equation_minus_iff)
 
-    
-lemma sin_cos_squared_add [simp]: 
+
+lemma sin_cos_squared_add [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
 using cos_add [of x "-x"]
 by (simp add: power2_eq_square algebra_simps)
 
-lemma sin_cos_squared_add2 [simp]:  
+lemma sin_cos_squared_add2 [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(cos x)\<^sup>2 + (sin x)\<^sup>2 = 1"
   by (subst add.commute, rule sin_cos_squared_add)
 
-lemma sin_cos_squared_add3 [simp]:  
+lemma sin_cos_squared_add3 [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "cos x * cos x + sin x * sin x = 1"
   using sin_cos_squared_add2 [unfolded power2_eq_square] .
 
-lemma sin_squared_eq:  
+lemma sin_squared_eq:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(sin x)\<^sup>2 = 1 - (cos x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add)
 
-lemma cos_squared_eq:  
+lemma cos_squared_eq:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(cos x)\<^sup>2 = 1 - (sin x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add2)
 
-lemma abs_sin_le_one [simp]:  
+lemma abs_sin_le_one [simp]:
   fixes x :: real
   shows "\<bar>sin x\<bar> \<le> 1"
   by (rule power2_le_imp_le, simp_all add: sin_squared_eq)
 
-lemma sin_ge_minus_one [simp]: 
+lemma sin_ge_minus_one [simp]:
   fixes x :: real
   shows "-1 \<le> sin x"
   using abs_sin_le_one [of x] unfolding abs_le_iff by simp
 
-lemma sin_le_one [simp]: 
+lemma sin_le_one [simp]:
   fixes x :: real
   shows "sin x \<le> 1"
   using abs_sin_le_one [of x] unfolding abs_le_iff by simp
 
-lemma abs_cos_le_one [simp]: 
+lemma abs_cos_le_one [simp]:
   fixes x :: real
   shows "\<bar>cos x\<bar> \<le> 1"
   by (rule power2_le_imp_le, simp_all add: cos_squared_eq)
 
-lemma cos_ge_minus_one [simp]: 
+lemma cos_ge_minus_one [simp]:
   fixes x :: real
   shows "-1 \<le> cos x"
   using abs_cos_le_one [of x] unfolding abs_le_iff by simp
 
-lemma cos_le_one [simp]: 
+lemma cos_le_one [simp]:
   fixes x :: real
   shows "cos x \<le> 1"
   using abs_cos_le_one [of x] unfolding abs_le_iff by simp
 
-lemma cos_diff: 
+lemma cos_diff:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "cos (x - y) = cos x * cos y + sin x * sin y"
   using cos_add [of x "- y"] by simp
 
-lemma cos_double: 
+lemma cos_double:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "cos(2*x) = (cos x)\<^sup>2 - (sin x)\<^sup>2"
   using cos_add [where x=x and y=x]
@@ -2786,7 +2786,7 @@ text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"};
    hence define pi.*}
 
 lemma sin_paired:
-  fixes x :: real 
+  fixes x :: real
   shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
 proof -
   have "(\<lambda>n. \<Sum>k = n*2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
@@ -2797,7 +2797,7 @@ proof -
 qed
 
 lemma sin_gt_zero_02:
-  fixes x :: real 
+  fixes x :: real
   assumes "0 < x" and "x < 2"
   shows "0 < sin x"
 proof -
@@ -2824,12 +2824,12 @@ proof -
 qed
 
 lemma cos_double_less_one:
-  fixes x :: real 
+  fixes x :: real
   shows "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
   using sin_gt_zero_02 [where x = x] by (auto simp: cos_squared_eq cos_double)
 
 lemma cos_paired:
-  fixes x :: real 
+  fixes x :: real
   shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
@@ -2927,7 +2927,7 @@ lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
 lemma cos_pi_half [simp]: "cos (pi / 2) = 0"
   by (simp add: pi_half cos_is_zero [THEN theI'])
 
-lemma cos_of_real_pi_half [simp]: 
+lemma cos_of_real_pi_half [simp]:
   fixes x :: "'a :: {real_field,banach,real_normed_algebra_1}"
   shows "cos ((of_real pi / 2) :: 'a) = 0"
 by (metis cos_pi_half cos_of_real eq_numeral_simps(4) nonzero_of_real_divide of_real_0 of_real_numeral)
@@ -2976,7 +2976,7 @@ lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 lemma sin_of_real_pi_half [simp]:
   fixes x :: "'a :: {real_field,banach,real_normed_algebra_1}"
   shows "sin ((of_real pi / 2) :: 'a) = 1"
-  using sin_pi_half 
+  using sin_pi_half
 by (metis sin_pi_half eq_numeral_simps(4) nonzero_of_real_divide of_real_1 of_real_numeral sin_of_real)
 
 lemma sin_cos_eq:
@@ -2995,7 +2995,7 @@ lemma cos_sin_eq:
   using sin_cos_eq [of "of_real pi / 2 - x"]
   by simp
 
-lemma sin_add: 
+lemma sin_add:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "sin (x + y) = sin x * cos y + cos x * sin y"
   using cos_add [of "of_real pi / 2 - x" "-y"]
@@ -3006,7 +3006,7 @@ lemma sin_diff:
   shows "sin (x - y) = sin x * cos y - cos x * sin y"
   using sin_add [of x "- y"] by simp
 
-lemma sin_double: 
+lemma sin_double:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "sin(2 * x) = 2 * sin x * cos x"
   using sin_add [where x=x and y=x] by simp
@@ -3017,9 +3017,9 @@ lemma cos_of_real_pi [simp]: "cos (of_real pi) = -1"
   by (simp add: cos_of_real)
 
 lemma sin_of_real_pi [simp]: "sin (of_real pi) = 0"
-  using sin_add [where x = "pi/2" and y = "pi/2"] 
+  using sin_add [where x = "pi/2" and y = "pi/2"]
   by (simp add: sin_of_real)
-  
+
 lemma cos_pi [simp]: "cos pi = -1"
   using cos_add [where x = "pi/2" and y = "pi/2"] by simp
 
@@ -3241,7 +3241,7 @@ proof safe
     done
 next
   fix n::int
-  assume "odd n" 
+  assume "odd n"
   then show "cos (real n * (pi / 2)) = 0"
     apply (simp add: cos_zero_iff)
     apply (case_tac n rule: int_cases2, simp)
@@ -3250,7 +3250,7 @@ next
     done
 qed
 
-lemma sin_zero_iff_int:  
+lemma sin_zero_iff_int:
      "sin x = 0 \<longleftrightarrow> (\<exists>n::int. even n & (x = real n * (pi/2)))"
 proof safe
   assume "sin x = 0"
@@ -3261,7 +3261,7 @@ proof safe
     done
 next
   fix n::int
-  assume "even n" 
+  assume "even n"
   then show "sin (real n * (pi / 2)) = 0"
     apply (simp add: sin_zero_iff)
     apply (case_tac n rule: int_cases2, simp)
@@ -3271,8 +3271,8 @@ next
 qed
 
 lemma sin_zero_iff_int2: "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = real n * pi)"
-  apply (simp only: sin_zero_iff_int)     
-  apply (safe elim!: evenE)     
+  apply (simp only: sin_zero_iff_int)
+  apply (safe elim!: evenE)
   apply (simp_all add: field_simps)
   using dvd_triv_left by fastforce
 
@@ -3337,7 +3337,7 @@ proof -
     using pi_ge_two and assms by auto
   from cos_monotone_0_pi'[OF this] show ?thesis
     unfolding minus_sin_cos_eq[symmetric]
-    by (metis minus_sin_cos_eq mult.right_neutral neg_le_iff_le of_real_def real_scaleR_def) 
+    by (metis minus_sin_cos_eq mult.right_neutral neg_le_iff_le of_real_def real_scaleR_def)
 qed
 
 lemma sin_x_le_x:
@@ -3401,14 +3401,14 @@ lemma add_tan_eq:
 
 lemma tan_add:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows 
+  shows
      "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0; cos (x + y) \<noteq> 0\<rbrakk>
       \<Longrightarrow> tan(x + y) = (tan(x) + tan(y))/(1 - tan(x) * tan(y))"
       by (simp add: add_tan_eq lemma_tan_add1 field_simps) (simp add: tan_def)
 
 lemma tan_double:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows 
+  shows
      "\<lbrakk>cos x \<noteq> 0; cos (2 * x) \<noteq> 0\<rbrakk>
       \<Longrightarrow> tan (2 * x) = (2 * tan x) / (1 - (tan x)\<^sup>2)"
   using tan_add [of x x] by (simp add: power2_eq_square)
@@ -3463,7 +3463,7 @@ lemma continuous_on_tan [continuous_intros]:
 
 lemma continuous_within_tan [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
-  shows 
+  shows
   "continuous (at x within s) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. tan (f x))"
   unfolding continuous_within by (rule tendsto_tan)
 
@@ -4200,7 +4200,7 @@ lemma less_one_imp_sqr_less_one:
   shows "x\<^sup>2 < 1"
 proof -
   have "\<bar>x\<^sup>2\<bar> < 1"
-    by (metis abs_power2 assms pos2 power2_abs power_0 power_strict_decreasing zero_eq_power2 zero_less_abs_iff) 
+    by (metis abs_power2 assms pos2 power2_abs power_0 power_strict_decreasing zero_eq_power2 zero_less_abs_iff)
   thus ?thesis using zero_le_power2 by auto
 qed
 
@@ -4594,7 +4594,7 @@ proof -
     done
   show ?thesis
   proof (cases "0::real" y rule: linorder_cases)
-    case less 
+    case less
       then show ?thesis by (rule polar_ex1)
   next
     case equal
@@ -4602,7 +4602,7 @@ proof -
         by (force simp add: intro!: cos_zero sin_zero)
   next
     case greater
-      then show ?thesis 
+      then show ?thesis
      using polar_ex1 [where y="-y"]
     by auto (metis cos_minus minus_minus minus_mult_right sin_minus)
   qed

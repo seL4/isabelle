@@ -1,13 +1,13 @@
-(*  Title       : Fact.thy
+(*  Title       : Binomial.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
     The integer version of factorial and other additions by Jeremy Avigad.
 *)
 
-section{*Factorial Function*}
+section{*Factorial Function, Binomial Coefficients and Binomial Theorem*}
 
-theory Fact
+theory Binomial
 imports Main
 begin
 
