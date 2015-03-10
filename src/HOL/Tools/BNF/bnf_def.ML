@@ -1568,8 +1568,11 @@ fun bnf_cmd (raw_csts, raw_plugins) =
       | SOME tac => (mk_triv_wit_thms tac, []));
   in
     Proof.unfolding ([[(defs, [])]])
-      (Proof.theorem NONE (uncurry (register_bnf plugins key) oo after_qed mk_wit_thms)
-        (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
+      (lthy
+       |> Proof.theorem NONE (uncurry (register_bnf plugins key) oo after_qed mk_wit_thms)
+         (map (single o rpair []) goals @ nontriv_wit_goals)
+       |> Proof.refine (Method.primitive_text (K I))
+       |> Seq.hd)
   end) o prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
     NONE Binding.empty Binding.empty [] raw_csts;
 
@@ -1577,7 +1580,7 @@ fun print_bnfs ctxt =
   let
     fun pretty_set sets i = Pretty.block
       [Pretty.str (mk_setN (i + 1) ^ ":"), Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_term ctxt (nth sets i))];
+        Pretty.quote (Syntax.pretty_term ctxt (nth sets i))];
 
     fun pretty_bnf (key, BNF {T, map, sets, bd, live, lives, dead, deads, ...}) =
       Pretty.big_list
