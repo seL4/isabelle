@@ -382,7 +382,7 @@ trait Protocol
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
     protocol_command_bytes("Document.define_blob", Bytes(digest.toString), bytes)
 
-  def define_command(command: Command): Unit =
+  def define_command(command: Command)
   {
     val blobs_yxml =
     { import XML.Encode._

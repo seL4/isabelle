@@ -35,7 +35,7 @@ val _ =
             let open XML.Decode in
               list (variant
                [fn ([], a) => Exn.Res (pair string (option string) a),
-                fn ([], a) => Exn.Exn (ERROR (string a))])
+                fn ([], a) => Exn.Exn (ERROR (YXML.string_of_body a))])
             end;
         val toks =
           (YXML.parse_body toks_yxml |> let open XML.Decode in list (pair int int) end) ~~ sources;
@@ -72,7 +72,7 @@ val _ =
                           pair string (pair string (pair (list string)
                             (pair (list (pair string
                               (option (pair (pair string (list string)) (list string)))))
-                              (list string)))) a;
+                              (list YXML.string_of_body)))) a;
                         val imports' = map (rpair Position.none) imports;
                         val header = Thy_Header.make (name, Position.none) imports' keywords;
                       in Document.Deps (master, header, errors) end,

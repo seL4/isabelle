@@ -157,10 +157,14 @@ object Token
 
   object Pos
   {
-    val none: Pos = new Pos(0, "")
+    val none: Pos = new Pos()
   }
 
-  final class Pos private[Token](val line: Int, val file: String)
+  final class Pos private[Token](
+      val line: Int = 0,
+      val offset: Symbol.Offset = 0,
+      val file: String = "",
+      val id: Document_ID.Generic = Document_ID.none)
     extends scala.util.parsing.input.Position
   {
     def column = 0
@@ -168,13 +172,27 @@ object Token
 
     def advance(token: Token): Pos =
     {
-      var n = 0
-      for (c <- token.content if c == '\n') n += 1
-      if (n == 0) this else new Pos(line + n, file)
+      var line1 = line
+      var offset1 = offset
+      for (s <- Symbol.iterator(token.source)) {
+        if (line1 > 0 && Symbol.is_newline(s)) line1 += 1
+        if (offset1 > 0) offset1 += 1
+      }
+      if (line1 == line && offset1 == offset) this
+      else new Pos(line1, offset1, file, id)
     }
 
-    def position: Position.T = Position.Line_File(line, file)
-    override def toString: String = Position.here_undelimited(position)
+    def position(end_offset: Symbol.Offset): Position.T =
+      (if (line > 0) Position.Line(line) else Nil) :::
+      (if (offset > 0) Position.Offset(offset) else Nil) :::
+      (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
+      (if (file != "") Position.File(file) else Nil) :::
+      (if (id != Document_ID.none) Position.Id(id) else Nil)
+
+    def position(): Position.T = position(0)
+    def position(token: Token): Position.T = position(advance(token).offset)
+
+    override def toString: String = Position.here_undelimited(position())
   }
 
   abstract class Reader extends scala.util.parsing.input.Reader[Token]
@@ -186,8 +204,8 @@ object Token
     def atEnd = tokens.isEmpty
   }
 
-  def reader(tokens: List[Token], file: String = ""): Reader =
-    new Token_Reader(tokens, new Pos(1, file))
+  def reader(tokens: List[Token], file: String = "", id: Document_ID.Generic = Document_ID.none)
+    : Reader = new Token_Reader(tokens, new Pos(1, 1, file, id))
 }
 
 

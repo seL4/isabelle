@@ -80,9 +80,10 @@ object GUI
 
   /* simple dialogs */
 
-  def scrollable_text(txt: String, width: Int = 60, height: Int = 20, editable: Boolean = false)
+  def scrollable_text(raw_txt: String, width: Int = 60, height: Int = 20, editable: Boolean = false)
     : ScrollPane =
   {
+    val txt = Output.clean_yxml(raw_txt)
     val text = new TextArea(txt)
     if (width > 0) text.columns = width
     if (height > 0 && split_lines(txt).length > height) text.rows = height
