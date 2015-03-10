@@ -384,7 +384,7 @@ lemma pmf_bind: "pmf (bind_pmf N f) i = (\<integral>x. pmf (f x) i \<partial>mea
 lemma bind_pmf_const[simp]: "bind_pmf M (\<lambda>x. c) = c"
   by transfer (simp add: bind_const' prob_space_imp_subprob_space)
 
-lemma set_bind_pmf: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
+lemma set_bind_pmf[simp]: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
   unfolding set_pmf_eq ereal_eq_0(1)[symmetric] ereal_pmf_bind  
   by (auto simp add: nn_integral_0_iff_AE AE_measure_pmf_iff set_pmf_eq not_le less_le pmf_nonneg)
 
@@ -424,7 +424,7 @@ lemma bind_return_pmf: "bind_pmf (return_pmf x) f = f x"
      (auto intro!: prob_space_imp_subprob_space bind_return[where N="count_space UNIV"]
            simp: space_subprob_algebra)
 
-lemma set_return_pmf: "set_pmf (return_pmf x) = {x}"
+lemma set_return_pmf[simp]: "set_pmf (return_pmf x) = {x}"
   by transfer (auto simp add: measure_return split: split_indicator)
 
 lemma bind_return_pmf': "bind_pmf N return_pmf = N"
@@ -477,9 +477,9 @@ lemma map_pmf_cong: "p = q \<Longrightarrow> (\<And>x. x \<in> set_pmf q \<Longr
   unfolding map_pmf_def by (rule bind_pmf_cong) auto
 
 lemma pmf_set_map: "set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
-  by (auto simp add: comp_def fun_eq_iff map_pmf_def set_bind_pmf set_return_pmf)
+  by (auto simp add: comp_def fun_eq_iff map_pmf_def)
 
-lemma set_map_pmf: "set_pmf (map_pmf f M) = f`set_pmf M"
+lemma set_map_pmf[simp]: "set_pmf (map_pmf f M) = f`set_pmf M"
   using pmf_set_map[of f] by (auto simp: comp_def fun_eq_iff)
 
 lemma emeasure_map_pmf[simp]: "emeasure (map_pmf f M) X = emeasure M (f -` X)"
@@ -529,6 +529,18 @@ lemma emeasure_return_pmf[simp]: "emeasure (return_pmf x) X = indicator X x"
 lemma return_pmf_inj[simp]: "return_pmf x = return_pmf y \<longleftrightarrow> x = y"
   by (metis insertI1 set_return_pmf singletonD)
 
+lemma map_pmf_eq_return_pmf_iff:
+  "map_pmf f p = return_pmf x \<longleftrightarrow> (\<forall>y \<in> set_pmf p. f y = x)"
+proof
+  assume "map_pmf f p = return_pmf x"
+  then have "set_pmf (map_pmf f p) = set_pmf (return_pmf x)" by simp
+  then show "\<forall>y \<in> set_pmf p. f y = x" by auto
+next
+  assume "\<forall>y \<in> set_pmf p. f y = x"
+  then show "map_pmf f p = return_pmf x"
+    unfolding map_pmf_const[symmetric, of _ p] by (intro map_pmf_cong) auto
+qed
+
 definition "pair_pmf A B = bind_pmf A (\<lambda>x. bind_pmf B (\<lambda>y. return_pmf (x, y)))"
 
 lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
@@ -539,7 +551,7 @@ lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
   apply (auto simp: indicator_eq_0_iff setsum_nonneg_eq_0_iff pmf_nonneg)
   done
 
-lemma set_pair_pmf: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
+lemma set_pair_pmf[simp]: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
   unfolding pair_pmf_def set_bind_pmf set_return_pmf by auto
 
 lemma measure_pmf_in_subprob_space[measurable (raw)]:
@@ -550,7 +562,7 @@ lemma nn_integral_pair_pmf': "(\<integral>\<^sup>+x. f x \<partial>pair_pmf A B)
 proof -
   have "(\<integral>\<^sup>+x. f x \<partial>pair_pmf A B) = (\<integral>\<^sup>+x. max 0 (f x) * indicator (A \<times> B) x \<partial>pair_pmf A B)"
     by (subst nn_integral_max_0[symmetric])
-       (auto simp: AE_measure_pmf_iff set_pair_pmf intro!: nn_integral_cong_AE)
+       (auto simp: AE_measure_pmf_iff intro!: nn_integral_cong_AE)
   also have "\<dots> = (\<integral>\<^sup>+a. \<integral>\<^sup>+b. max 0 (f (a, b)) * indicator (A \<times> B) (a, b) \<partial>B \<partial>A)"
     by (simp add: pair_pmf_def)
   also have "\<dots> = (\<integral>\<^sup>+a. \<integral>\<^sup>+b. max 0 (f (a, b)) \<partial>B \<partial>A)"
@@ -581,7 +593,7 @@ proof (rule measure_eqI)
   then show "emeasure ?L X = emeasure ?R X"
     apply (simp add: emeasure_bind[OF _ M' X])
     apply (simp add: nn_integral_bind[where B="count_space UNIV"] pair_pmf_def measure_pmf_bind[of A]
-      nn_integral_measure_pmf_finite set_return_pmf emeasure_nonneg pmf_return one_ereal_def[symmetric])
+                     nn_integral_measure_pmf_finite emeasure_nonneg pmf_return one_ereal_def[symmetric])
     apply (subst emeasure_bind[OF _ _ X])
     apply measurable
     apply (subst emeasure_bind[OF _ _ X])
@@ -814,7 +826,7 @@ qed simp
 lemma pmf_cond: "pmf cond_pmf x = (if x \<in> s then pmf p x / measure p s else 0)"
   by transfer (simp add: emeasure_measure_pmf_not_zero pmf.rep_eq)
 
-lemma set_cond_pmf: "set_pmf cond_pmf = set_pmf p \<inter> s"
+lemma set_cond_pmf[simp]: "set_pmf cond_pmf = set_pmf p \<inter> s"
   by (auto simp add: set_pmf_iff pmf_cond measure_measure_pmf_not_zero split: split_if_asm)
 
 end
@@ -824,7 +836,7 @@ lemma cond_map_pmf:
   shows "cond_pmf (map_pmf f p) s = map_pmf f (cond_pmf p (f -` s))"
 proof -
   have *: "set_pmf (map_pmf f p) \<inter> s \<noteq> {}"
-    using assms by (simp add: set_map_pmf) auto
+    using assms by auto
   { fix x
     have "ereal (pmf (map_pmf f (cond_pmf p (f -` s))) x) =
       emeasure p (f -` s \<inter> f -` {x}) / emeasure p (f -` s)"
@@ -919,13 +931,13 @@ proof -
 
     def pr \<equiv> "bind_pmf pq (\<lambda>(x, y). bind_pmf (cond_pmf qr {(y', z). y' = y}) (\<lambda>(y', z). return_pmf (x, z)))"
     have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {(y', z). y' = y} \<noteq> {}"
-      by (force simp: q' set_map_pmf)
+      by (force simp: q')
 
     have "rel_pmf (R OO S) p r"
     proof (rule rel_pmf.intros)
       fix x z assume "(x, z) \<in> pr"
       then have "\<exists>y. (x, y) \<in> pq \<and> (y, z) \<in> qr"
-        by (auto simp: q pr_welldefined pr_def set_bind_pmf split_beta set_return_pmf set_cond_pmf set_map_pmf)
+        by (auto simp: q pr_welldefined pr_def split_beta)
       with pq qr show "(R OO S) x z"
         by blast
     next
@@ -938,6 +950,15 @@ proof -
     by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
 
+lemma rel_pmf_conj[simp]:
+  "rel_pmf (\<lambda>x y. P \<and> Q x y) x y \<longleftrightarrow> P \<and> rel_pmf Q x y"
+  "rel_pmf (\<lambda>x y. Q x y \<and> P) x y \<longleftrightarrow> P \<and> rel_pmf Q x y"
+  using set_pmf_not_empty by (fastforce simp: pmf.in_rel subset_eq)+
+
+lemma rel_pmf_top[simp]: "rel_pmf top = top"
+  by (auto simp: pmf.in_rel[abs_def] fun_eq_iff map_fst_pair_pmf map_snd_pair_pmf
+           intro: exI[of _ "pair_pmf x y" for x y])
+
 lemma rel_pmf_return_pmf1: "rel_pmf R (return_pmf x) M \<longleftrightarrow> (\<forall>a\<in>M. R x a)"
 proof safe
   fix a assume "a \<in> M" "rel_pmf R (return_pmf x) M"
@@ -945,13 +966,13 @@ proof safe
     and eq: "return_pmf x = map_pmf fst pq" "M = map_pmf snd pq"
     by (force elim: rel_pmf.cases)
   moreover have "set_pmf (return_pmf x) = {x}"
-    by (simp add: set_return_pmf)
+    by simp
   with `a \<in> M` have "(x, a) \<in> pq"
-    by (force simp: eq set_map_pmf)
+    by (force simp: eq)
   with * show "R x a"
     by auto
 qed (auto intro!: rel_pmf.intros[where pq="pair_pmf (return_pmf x) M"]
-          simp: map_fst_pair_pmf map_snd_pair_pmf set_pair_pmf set_return_pmf)
+          simp: map_fst_pair_pmf map_snd_pair_pmf)
 
 lemma rel_pmf_return_pmf2: "rel_pmf R M (return_pmf x) \<longleftrightarrow> (\<forall>a\<in>M. R a x)"
   by (subst pmf.rel_flip[symmetric]) (simp add: rel_pmf_return_pmf1)
@@ -982,7 +1003,7 @@ proof safe
 
     fix a b assume "(a, b) \<in> set_pmf (map_pmf ?f pq)"
     then obtain c d where "((a, c), (b, d)) \<in> set_pmf pq"
-      by (auto simp: set_map_pmf)
+      by auto
     from pq[OF this] show "R a b" ..
   qed
   show "rel_pmf S A' B'"
@@ -998,7 +1019,7 @@ proof safe
 
     fix c d assume "(c, d) \<in> set_pmf (map_pmf ?f pq)"
     then obtain a b where "((a, c), (b, d)) \<in> set_pmf pq"
-      by (auto simp: set_map_pmf)
+      by auto
     from pq[OF this] show "S c d" ..
   qed
 next
@@ -1017,14 +1038,15 @@ next
 
   show "rel_pmf (rel_prod R S) (pair_pmf A A') (pair_pmf B B')"
     by (rule rel_pmf.intros[where pq="?pq"])
-       (auto simp: map_snd_pair_pmf map_fst_pair_pmf set_pair_pmf set_map_pmf map_pmf_comp Rpq Spq
+       (auto simp: map_snd_pair_pmf map_fst_pair_pmf map_pmf_comp Rpq Spq
                    map_pair)
 qed
 
 lemma rel_pmf_reflI: 
   assumes "\<And>x. x \<in> set_pmf p \<Longrightarrow> P x x"
   shows "rel_pmf P p p"
-by(rule rel_pmf.intros[where pq="map_pmf (\<lambda>x. (x, x)) p"])(auto simp add: pmf.map_comp o_def set_map_pmf assms)
+  by (rule rel_pmf.intros[where pq="map_pmf (\<lambda>x. (x, x)) p"])
+     (auto simp add: pmf.map_comp o_def assms)
 
 context
 begin
@@ -1045,8 +1067,8 @@ lemma pmf_join: "pmf (join_pmf N) i = (\<integral>M. pmf M i \<partial>measure_p
 lemma ereal_pmf_join: "ereal (pmf (join_pmf N) i) = (\<integral>\<^sup>+M. pmf M i \<partial>measure_pmf N)"
   unfolding join_pmf_def ereal_pmf_bind ..
 
-lemma set_pmf_join_pmf: "set_pmf (join_pmf f) = (\<Union>p\<in>set_pmf f. set_pmf p)"
-  by (simp add: join_pmf_def set_bind_pmf)
+lemma set_pmf_join_pmf[simp]: "set_pmf (join_pmf f) = (\<Union>p\<in>set_pmf f. set_pmf p)"
+  by (simp add: join_pmf_def)
 
 lemma join_return_pmf: "join_pmf (return_pmf M) = M"
   by (simp add: integral_return pmf_eq_iff pmf_join return_pmf.rep_eq)
@@ -1074,7 +1096,7 @@ proof -
     by(metis rel_pmf.simps)
 
   let ?r = "bind_pmf pq (\<lambda>(x, y). PQ x y)"
-  have "\<And>a b. (a, b) \<in> set_pmf ?r \<Longrightarrow> P a b" by(auto simp add: set_bind_pmf intro: PQ)
+  have "\<And>a b. (a, b) \<in> set_pmf ?r \<Longrightarrow> P a b" by (auto intro: PQ)
   moreover have "map_pmf fst ?r = join_pmf p" "map_pmf snd ?r = join_pmf q"
     by (simp_all add: p q x y join_pmf_def map_bind_pmf bind_map_pmf split_def cong: bind_pmf_cong)
   ultimately show ?thesis ..
@@ -1150,12 +1172,12 @@ proof
   moreover
   { assume "x \<in> set_pmf p"
     hence "measure (measure_pmf p) (?E x) \<noteq> 0"
-      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff intro: reflpD[OF \<open>reflp R\<close>])
+      by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff intro: reflpD[OF \<open>reflp R\<close>])
     hence "measure (measure_pmf q) (?E x) \<noteq> 0" using eq by simp
     hence "set_pmf q \<inter> {y. R x y \<and> R y x} \<noteq> {}" 
-      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
+      by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
   ultimately show "inf R R\<inverse>\<inverse> x y"
-    by(auto simp add: pq_def set_bind_pmf set_return_pmf set_cond_pmf)
+    by (auto simp add: pq_def)
 qed
 
 lemma rel_pmf_antisym:
@@ -1167,7 +1189,7 @@ lemma rel_pmf_antisym:
 proof -
   from 1 2 refl trans have "rel_pmf (inf R R\<inverse>\<inverse>) p q" by(rule rel_pmf_inf)
   also have "inf R R\<inverse>\<inverse> = op ="
-    using refl antisym by(auto intro!: ext simp add: reflpD dest: antisymD)
+    using refl antisym by (auto intro!: ext simp add: reflpD dest: antisymD)
   finally show ?thesis unfolding pmf.rel_eq .
 qed
 
