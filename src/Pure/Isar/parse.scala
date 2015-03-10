@@ -49,7 +49,7 @@ object Parse
 
     def command(name: String): Parser[Position.T] =
       token("command " + quote(name), tok => tok.is_command && tok.source == name) ^^
-        { case (_, pos) => pos.position }
+        { case (tok, pos) => pos.position(tok) }
 
     def $$$(name: String): Parser[String] =
       atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
