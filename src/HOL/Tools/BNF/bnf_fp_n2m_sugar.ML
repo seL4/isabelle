@@ -34,7 +34,7 @@ open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M
 
-val n2mN = "n2m_"
+val n2mN = "n2m_";
 
 type n2m_sugar = fp_sugar list * (lfp_sugar_thms option * gfp_sugar_thms option);
 

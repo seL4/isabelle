@@ -1052,14 +1052,10 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         (tag_list 0 (map snd specs)) of_specs_opt []
       |> flat o fst;
 
-    val _ =
-      let
-        val missing = fun_names
-          |> filter (map (fn Disc x => #fun_name x | Sel x => #fun_name x) eqns_data
-            |> not oo member (op =));
-      in
-        null missing orelse error ("Missing equations for " ^ commas missing)
-      end;
+    val missing = fun_names
+      |> filter (map (fn Disc x => #fun_name x | Sel x => #fun_name x) eqns_data
+        |> not oo member (op =));
+    val _ = null missing orelse error ("Missing equations for " ^ commas missing);
 
     val callssss =
       map_filter (try (fn Sel x => x)) eqns_data
