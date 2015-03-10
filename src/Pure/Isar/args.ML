@@ -59,6 +59,7 @@ sig
   val goal_spec: ((int -> tactic) -> tactic) context_parser
   val attribs: (xstring * Position.T -> string) -> Token.src list parser
   val opt_attribs: (xstring * Position.T -> string) -> Token.src list parser
+  val checked_name: (xstring * Position.T -> string) -> string parser
 end;
 
 structure Args: ARGS =
@@ -208,5 +209,12 @@ fun attribs check =
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs check = Scan.optional (attribs check) [];
+
+
+(* checked name *)
+
+fun checked_name check =
+  let fun intern tok = check (Token.content_of tok, Token.pos_of tok);
+  in internal_name >> #1 || Parse.token Parse.xname >> evaluate Token.name0 intern end;
 
 end;

@@ -206,13 +206,15 @@ fun range_of_src (Src {name = (_, pos), args, ...}) =
   if null args then pos
   else Position.set_range (pos, #2 (range_of args));
 
-fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
-  let
-    val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
-    val space = Name_Space.space_of_table table;
-    val kind = Name_Space.kind_of space;
-    val markup = Name_Space.markup space name;
-  in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
+fun check_src _ table (src as Src {name = (name, _), output_info = SOME _, ...}) =
+      (src, Name_Space.get table name)
+  | check_src ctxt table (Src {name = (xname, pos), args, output_info = NONE}) =
+      let
+        val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
+        val space = Name_Space.space_of_table table;
+        val kind = Name_Space.kind_of space;
+        val markup = Name_Space.markup space name;
+      in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
 
 
 (* stopper *)
