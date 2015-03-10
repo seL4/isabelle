@@ -931,7 +931,7 @@ fun build_corec_args_sel ctxt has_call (all_sel_eqns : coeqn_data_sel list)
         (build_corec_arg_nested_call ctxt has_call sel_eqns sel)) nested_calls'
     end);
 
-fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
+fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     (disc_eqnss : coeqn_data_disc list list) (sel_eqnss : coeqn_data_sel list list) =
   let
     val corecs = map #corec corec_specs;
@@ -1104,7 +1104,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
       disc_eqnss0;
     val (defs, excludess') =
-      build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
+      build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     val tac_opts =
       map (fn {code_rhs_opt, ...} :: _ =>

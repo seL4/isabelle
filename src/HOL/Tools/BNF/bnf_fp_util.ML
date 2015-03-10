@@ -155,6 +155,7 @@ sig
 
   val mk_Inl: typ -> term -> term
   val mk_Inr: typ -> term -> term
+  val mk_sumprod_balanced: typ -> int -> int -> term list -> term
   val mk_absumprod: typ -> term -> int -> int -> term list -> term
 
   val dest_sumT: typ -> typ * typ
@@ -414,9 +415,11 @@ fun mk_tuple1_balanced _ [] = HOLogic.unit
 
 val mk_tuple_balanced = mk_tuple1_balanced [];
 
+fun mk_sumprod_balanced T n k ts = Sum_Tree.mk_inj T n k (mk_tuple_balanced ts);
+
 fun mk_absumprod absT abs0 n k ts =
   let val abs = mk_abs absT abs0;
-  in abs $ Sum_Tree.mk_inj (domain_type (fastype_of abs)) n k (mk_tuple_balanced ts) end;
+  in abs $ mk_sumprod_balanced (domain_type (fastype_of abs)) n k ts end;
 
 fun mk_case_sum (f, g) =
   let
