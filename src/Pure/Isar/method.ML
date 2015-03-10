@@ -75,8 +75,8 @@ sig
   val position: text_range option -> Position.T
   val reports_of: text_range -> Position.report list
   val report: text_range -> unit
-  val parse0: text_range parser
   val parse: text_range parser
+  val parse_internal: Proof.context -> text_range parser
 end;
 
 structure Method: METHOD =
@@ -554,45 +554,58 @@ val report = Position.reports o reports_of;
 end;
 
 
-(* outer parser *)
+(* parser *)
+
+local
 
 fun is_symid_meth s =
   s <> "|" andalso s <> "?" andalso s <> "+" andalso Token.ident_or_symbolic s;
 
-local
+fun parser check_ctxt low_pri =
+  let
+    val (meth_name, mk_src) =
+      (case check_ctxt of
+        NONE => (Parse.xname, Token.src)
+      | SOME ctxt =>
+         (Args.checked_name (fn (xname, _) => check_name ctxt (xname, Position.none)),
+          fn name => fn args => #1 (check_src ctxt (Token.src name args))));
 
-fun meth5 x =
- (Parse.position Parse.xname >> (fn name => Source (Token.src name [])) ||
-  Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
-    Source (Token.src ("cartouche", Token.pos_of tok) [tok])) ||
-  Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
-and meth4 x =
- (meth5 -- Parse.position (Parse.$$$ "?")
-    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Try, [m])) ||
-  meth5 -- Parse.position (Parse.$$$ "+")
-    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Repeat1, [m])) ||
-  meth5 --
-    (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
-    >> (fn (m, (((_, pos1), n), (_, pos2))) =>
-        Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
-  meth5) x
-and meth3 x =
- (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Token.src) ||
-  meth4) x
-and meth2 x =
-  (Parse.enum1_positions "," meth3
-    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then, ms))) x
-and meth1 x =
-  (Parse.enum1_positions ";" meth2
-    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then_All_New, ms))) x
-and meth0 x =
-  (Parse.enum1_positions "|" meth1
-    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Orelse, ms))) x;
+    fun meth5 x =
+     (Parse.position meth_name >> (fn name => Source (mk_src name [])) ||
+      Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
+        Source (mk_src ("cartouche", Token.pos_of tok) [tok])) ||
+      Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
+    and meth4 x =
+     (meth5 -- Parse.position (Parse.$$$ "?")
+        >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Try, [m])) ||
+      meth5 -- Parse.position (Parse.$$$ "+")
+        >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Repeat1, [m])) ||
+      meth5 --
+        (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
+        >> (fn (m, (((_, pos1), n), (_, pos2))) =>
+            Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
+      meth5) x
+    and meth3 x =
+     (Parse.position meth_name -- Parse.args1 is_symid_meth >> (Source o uncurry mk_src) ||
+      meth4) x
+    and meth2 x =
+      (Parse.enum1_positions "," meth3
+        >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then, ms))) x
+    and meth1 x =
+      (Parse.enum1_positions ";" meth2
+        >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then_All_New, ms))) x
+    and meth0 x =
+      (Parse.enum1_positions "|" meth1
+        >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Orelse, ms))) x;
+  in
+    Scan.trace (if low_pri then meth0 else meth4)
+      >> (fn (m, toks) => (m, Token.range_of toks))
+  end;
 
 in
 
-val parse0 = Scan.trace meth0 >> (fn (m, toks) => (m, Token.range_of toks));
-val parse = Scan.trace meth4 >> (fn (m, toks) => (m, Token.range_of toks));
+val parse = parser NONE false;
+fun parse_internal ctxt = parser (SOME ctxt) true;
 
 end;
 
