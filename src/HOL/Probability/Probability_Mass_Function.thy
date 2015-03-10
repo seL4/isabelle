@@ -1,5 +1,5 @@
 (*  Title:      HOL/Probability/Probability_Mass_Function.thy
-    Author:     Johannes Hölzl, TU München 
+    Author:     Johannes Hölzl, TU München
     Author:     Andreas Lochbihler, ETH Zurich
 *)
 
@@ -8,7 +8,6 @@ section \<open> Probability mass function \<close>
 theory Probability_Mass_Function
 imports
   Giry_Monad
-  "~~/src/HOL/Number_Theory/Binomial"
   "~~/src/HOL/Library/Multiset"
 begin
 
@@ -52,14 +51,14 @@ next
     fix n assume "infinite {x. ?M / Suc n < ?m x}" (is "infinite ?X")
     then obtain X where "finite X" "card X = Suc (Suc n)" "X \<subseteq> ?X"
       by (metis infinite_arbitrarily_large)
-    from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x" 
+    from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x"
       by auto
     { fix x assume "x \<in> X"
       from `?M \<noteq> 0` *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
       then have "{x} \<in> sets M" by (auto dest: measure_notin_sets) }
     note singleton_sets = this
     have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
-      using `?M \<noteq> 0` 
+      using `?M \<noteq> 0`
       by (simp add: `card X = Suc (Suc n)` real_eq_of_nat[symmetric] real_of_nat_Suc field_simps less_le measure_nonneg)
     also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
       by (rule setsum_mono) fact
@@ -82,7 +81,7 @@ proof
   assume "\<exists>S. countable S \<and> (AE x in M. x \<in> S)"
   then obtain S where S[intro]: "countable S" and ae: "AE x in M. x \<in> S"
     by auto
-  then have "emeasure M (\<Union>x\<in>{x\<in>S. emeasure M {x} \<noteq> 0}. {x}) = 
+  then have "emeasure M (\<Union>x\<in>{x\<in>S. emeasure M {x} \<noteq> 0}. {x}) =
     (\<integral>\<^sup>+ x. emeasure M {x} * indicator {x\<in>S. emeasure M {x} \<noteq> 0} x \<partial>count_space UNIV)"
     by (subst emeasure_UN_countable)
        (auto simp: disjoint_family_on_def nn_integral_restrict_space[symmetric] restrict_count_space)
@@ -136,7 +135,7 @@ begin
 interpretation pmf_as_measure .
 
 lemma sets_measure_pmf[simp]: "sets (measure_pmf p) = UNIV"
-  by transfer blast 
+  by transfer blast
 
 lemma sets_measure_pmf_count_space[measurable_cong]:
   "sets (measure_pmf M) = sets (count_space UNIV)"
@@ -353,10 +352,10 @@ proof (clarify, intro conjI)
 
   have [measurable]: "g \<in> measurable f (subprob_algebra (count_space UNIV))"
     by (auto simp: measurable_def space_subprob_algebra prob_space_imp_subprob_space g)
-    
+
   show "prob_space (f \<guillemotright>= g)"
     using g by (intro f.prob_space_bind[where S="count_space UNIV"]) auto
-  then interpret fg: prob_space "f \<guillemotright>= g" . 
+  then interpret fg: prob_space "f \<guillemotright>= g" .
   show [simp]: "sets (f \<guillemotright>= g) = UNIV"
     using sets_eq_imp_space_eq[OF s_f]
     by (subst sets_bind[where N="count_space UNIV"]) auto
@@ -385,7 +384,7 @@ lemma bind_pmf_const[simp]: "bind_pmf M (\<lambda>x. c) = c"
   by transfer (simp add: bind_const' prob_space_imp_subprob_space)
 
 lemma set_bind_pmf[simp]: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. set_pmf (N M))"
-  unfolding set_pmf_eq ereal_eq_0(1)[symmetric] ereal_pmf_bind  
+  unfolding set_pmf_eq ereal_eq_0(1)[symmetric] ereal_pmf_bind
   by (auto simp add: nn_integral_0_iff_AE AE_measure_pmf_iff set_pmf_eq not_le less_le pmf_nonneg)
 
 lemma bind_pmf_cong:
@@ -415,7 +414,7 @@ lemma emeasure_bind_pmf[simp]: "emeasure (bind_pmf M N) X = (\<integral>\<^sup>+
   using measurable_measure_pmf[of N]
   unfolding measure_pmf_bind
   by (subst emeasure_bind[where N="count_space UNIV"]) auto
-                                
+
 lift_definition return_pmf :: "'a \<Rightarrow> 'a pmf" is "return (count_space UNIV)"
   by (auto intro!: prob_space_return simp: AE_return measure_return)
 
@@ -451,7 +450,7 @@ lemma map_pmf_transfer[transfer_rule]:
 proof -
   have "rel_fun op = (rel_fun pmf_as_measure.cr_pmf pmf_as_measure.cr_pmf)
      (\<lambda>f M. M \<guillemotright>= (return (count_space UNIV) o f)) map_pmf"
-    unfolding map_pmf_def[abs_def] comp_def by transfer_prover 
+    unfolding map_pmf_def[abs_def] comp_def by transfer_prover
   then show ?thesis
     by (force simp: rel_fun_def cr_pmf_def bind_return_distr)
 qed
@@ -468,7 +467,7 @@ lemma map_pmf_ident[simp]: "map_pmf (\<lambda>x. x) = (\<lambda>x. x)"
   using map_pmf_id unfolding id_def .
 
 lemma map_pmf_compose: "map_pmf (f \<circ> g) = map_pmf f \<circ> map_pmf g"
-  by (rule, transfer) (simp add: distr_distr[symmetric, where N="count_space UNIV"] measurable_def) 
+  by (rule, transfer) (simp add: distr_distr[symmetric, where N="count_space UNIV"] measurable_def)
 
 lemma map_pmf_comp: "map_pmf f (map_pmf g M) = map_pmf (\<lambda>x. f (g x)) M"
   using map_pmf_compose[of f g] by (simp add: comp_def)
@@ -665,7 +664,7 @@ proof (transfer, elim conjE)
   show "M = density (count_space UNIV) (\<lambda>x. ereal (measure M {x}))"
   proof (rule measure_eqI)
     fix A :: "'a set"
-    have "(\<integral>\<^sup>+ x. ereal (measure M {x}) * indicator A x \<partial>count_space UNIV) = 
+    have "(\<integral>\<^sup>+ x. ereal (measure M {x}) * indicator A x \<partial>count_space UNIV) =
       (\<integral>\<^sup>+ x. emeasure M {x} * indicator (A \<inter> {x. measure M {x} \<noteq> 0}) x \<partial>count_space UNIV)"
       by (auto intro!: nn_integral_cong simp: emeasure_eq_measure split: split_indicator)
     also have "\<dots> = (\<integral>\<^sup>+ x. emeasure M {x} \<partial>count_space (A \<inter> {x. measure M {x} \<noteq> 0}))"
@@ -706,9 +705,9 @@ begin
 
 setup_lifting td_pmf_embed_pmf
 
-lemma set_pmf_transfer[transfer_rule]: 
+lemma set_pmf_transfer[transfer_rule]:
   assumes "bi_total A"
-  shows "rel_fun (pcr_pmf A) (rel_set A) (\<lambda>f. {x. f x \<noteq> 0}) set_pmf"  
+  shows "rel_fun (pcr_pmf A) (rel_set A) (\<lambda>f. {x. f x \<noteq> 0}) set_pmf"
   using `bi_total A`
   by (auto simp: pcr_pmf_def cr_pmf_def rel_fun_def rel_set_def bi_total_def Bex_def set_pmf_iff)
      metis+
@@ -888,14 +887,14 @@ subsection \<open> Relator \<close>
 inductive rel_pmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a pmf \<Rightarrow> 'b pmf \<Rightarrow> bool"
 for R p q
 where
-  "\<lbrakk> \<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y; 
+  "\<lbrakk> \<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y;
      map_pmf fst pq = p; map_pmf snd pq = q \<rbrakk>
   \<Longrightarrow> rel_pmf R p q"
 
 bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
 proof -
   show "map_pmf id = id" by (rule map_pmf_id)
-  show "\<And>f g. map_pmf (f \<circ> g) = map_pmf f \<circ> map_pmf g" by (rule map_pmf_compose) 
+  show "\<And>f g. map_pmf (f \<circ> g) = map_pmf f \<circ> map_pmf g" by (rule map_pmf_compose)
   show "\<And>f g::'a \<Rightarrow> 'b. \<And>p. (\<And>x. x \<in> set_pmf p \<Longrightarrow> f x = g x) \<Longrightarrow> map_pmf f p = map_pmf g p"
     by (intro map_pmf_cong refl)
 
@@ -1042,7 +1041,7 @@ next
                    map_pair)
 qed
 
-lemma rel_pmf_reflI: 
+lemma rel_pmf_reflI:
   assumes "\<And>x. x \<in> set_pmf p \<Longrightarrow> P x x"
   shows "rel_pmf P p p"
   by (rule rel_pmf.intros[where pq="map_pmf (\<lambda>x. (x, x)) p"])
@@ -1089,7 +1088,7 @@ proof -
     and q: "q = map_pmf snd pq"
     and P: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> rel_pmf P x y"
     by cases auto
-  from P obtain PQ 
+  from P obtain PQ
     where PQ: "\<And>x y a b. \<lbrakk> (x, y) \<in> set_pmf pq; (a, b) \<in> set_pmf (PQ x y) \<rbrakk> \<Longrightarrow> P a b"
     and x: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> map_pmf fst (PQ x y) = x"
     and y: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> map_pmf snd (PQ x y) = y"
@@ -1112,12 +1111,12 @@ lemma rel_pmf_bindI:
 
 text {*
   Proof that @{const rel_pmf} preserves orders.
-  Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism, 
-  Theoretical Computer Science 12(1):19--37, 1980, 
+  Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism,
+  Theoretical Computer Science 12(1):19--37, 1980,
   @{url "http://dx.doi.org/10.1016/0304-3975(80)90003-1"}
 *}
 
-lemma 
+lemma
   assumes *: "rel_pmf R p q"
   and refl: "reflp R" and trans: "transp R"
   shows measure_Ici: "measure p {y. R x y} \<le> measure q {y. R x y}" (is ?thesis1)
@@ -1174,7 +1173,7 @@ proof
     hence "measure (measure_pmf p) (?E x) \<noteq> 0"
       by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff intro: reflpD[OF \<open>reflp R\<close>])
     hence "measure (measure_pmf q) (?E x) \<noteq> 0" using eq by simp
-    hence "set_pmf q \<inter> {y. R x y \<and> R y x} \<noteq> {}" 
+    hence "set_pmf q \<inter> {y. R x y \<and> R y x} \<noteq> {}"
       by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
   ultimately show "inf R R\<inverse>\<inverse> x y"
     by (auto simp add: pq_def)
@@ -1235,13 +1234,13 @@ lemma pmf_bernoulli_False[simp]: "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longri
 lemma set_pmf_bernoulli: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (bernoulli_pmf p) = UNIV"
   by (auto simp add: set_pmf_iff UNIV_bool)
 
-lemma nn_integral_bernoulli_pmf[simp]: 
+lemma nn_integral_bernoulli_pmf[simp]:
   assumes [simp]: "0 \<le> p" "p \<le> 1" "\<And>x. 0 \<le> f x"
   shows "(\<integral>\<^sup>+x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
   by (subst nn_integral_measure_pmf_support[of UNIV])
      (auto simp: UNIV_bool field_simps)
 
-lemma integral_bernoulli_pmf[simp]: 
+lemma integral_bernoulli_pmf[simp]:
   assumes [simp]: "0 \<le> p" "p \<le> 1"
   shows "(\<integral>x. f x \<partial>bernoulli_pmf p) = f True * p + f False * (1 - p)"
   by (subst integral_measure_pmf[of UNIV]) (auto simp: UNIV_bool)
@@ -1277,7 +1276,7 @@ begin
 
 lift_definition pmf_of_multiset :: "'a pmf" is "\<lambda>x. count M x / size M"
 proof
-  show "(\<integral>\<^sup>+ x. ereal (real (count M x) / real (size M)) \<partial>count_space UNIV) = 1"  
+  show "(\<integral>\<^sup>+ x. ereal (real (count M x) / real (size M)) \<partial>count_space UNIV) = 1"
     using M_not_empty
     by (simp add: zero_less_divide_iff nn_integral_count_space nonempty_has_size
                   setsum_divide_distrib[symmetric])
@@ -1300,7 +1299,7 @@ begin
 
 lift_definition pmf_of_set :: "'a pmf" is "\<lambda>x. indicator S x / card S"
 proof
-  show "(\<integral>\<^sup>+ x. ereal (indicator S x / real (card S)) \<partial>count_space UNIV) = 1"  
+  show "(\<integral>\<^sup>+ x. ereal (indicator S x / real (card S)) \<partial>count_space UNIV) = 1"
     using S_not_empty S_finite by (subst nn_integral_count_space'[of S]) auto
 qed simp
 

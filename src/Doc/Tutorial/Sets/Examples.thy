@@ -1,4 +1,4 @@
-theory Examples imports "~~/src/HOL/Number_Theory/Binomial" begin
+theory Examples imports Complex_Main begin
 
 declare [[eta_contract = false]]
 

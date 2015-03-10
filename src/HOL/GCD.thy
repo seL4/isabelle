@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 section {* Greatest common divisor and least common multiple *}
 
 theory GCD
-imports Fact
+imports Main
 begin
 
 declare One_nat_def [simp del]
@@ -50,7 +50,7 @@ end
 class semiring_gcd = comm_semiring_1 + gcd +
   assumes gcd_dvd1 [iff]: "gcd a b dvd a"
 		and gcd_dvd2 [iff]: "gcd a b dvd b"
-		and gcd_greatest: "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b" 
+		and gcd_greatest: "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b"
 
 class ring_gcd = comm_ring_1 + semiring_gcd
 
@@ -266,10 +266,10 @@ next
   then show "k dvd gcd m n"
     by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat dvd_mod gcd_0_nat)
 qed
-  
+
 instance int :: ring_gcd
   by intro_classes (simp_all add: dvd_int_unfold_dvd_nat gcd_int_def gcd_greatest)
-  
+
 lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
   by (metis gcd_dvd1 dvd_trans)
 
@@ -1753,12 +1753,12 @@ lemma Gcd_set_int [code, code_unfold]:
 
 
 text \<open>Fact aliasses\<close>
-  
-lemmas gcd_dvd1_nat = gcd_dvd1 [where ?'a = nat] 
+
+lemmas gcd_dvd1_nat = gcd_dvd1 [where ?'a = nat]
   and gcd_dvd2_nat = gcd_dvd2 [where ?'a = nat]
   and gcd_greatest_nat = gcd_greatest [where ?'a = nat]
 
-lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int] 
+lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int]
   and gcd_dvd2_int = gcd_dvd2 [where ?'a = int]
   and gcd_greatest_int = gcd_greatest [where ?'a = int]
 

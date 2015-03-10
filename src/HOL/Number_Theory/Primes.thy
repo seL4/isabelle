@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 section {* Primes *}
 
 theory Primes
-imports "~~/src/HOL/GCD"
+imports "~~/src/HOL/GCD" "~~/src/HOL/Fact"
 begin
 
 declare [[coercion int]]

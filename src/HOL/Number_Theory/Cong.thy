@@ -461,15 +461,7 @@ lemma cong_0_1_int: "[(0::int) = 1] (mod n) = ((n = 1) | (n = -1))"
 
 lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
     a = 0 \<and> n = 1 \<or> (\<exists>m. a = 1 + m * n)"
-  apply (cases "n = 1")
-  apply auto [1]
-  apply (drule_tac x = "a - 1" in spec)
-  apply force
-  apply (cases "a = 0", simp add: cong_0_1_nat)
-  apply (rule iffI)
-  apply (metis cong_to_1_nat dvd_def monoid_mult_class.mult.right_neutral mult.commute mult_eq_if)
-  apply (metis cong_add_lcancel_0_nat cong_mult_self_nat)
-  done
+by (metis add.right_neutral cong_0_1_nat cong_iff_lin_nat cong_to_1_nat dvd_div_mult_self leI le_add_diff_inverse less_one mult_eq_if)
 
 lemma cong_le_nat: "(y::nat) <= x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
   by (metis cong_altdef_nat Nat.le_imp_diff_is_add dvd_def mult.commute)
@@ -579,7 +571,7 @@ lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
       [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis coprime_cong_mult_nat gcd_semilattice_nat.inf_commute setprod_coprime_nat)
+  apply (metis One_nat_def coprime_cong_mult_nat gcd_nat.commute setprod_coprime_nat)
   done
 
 lemma cong_cong_setprod_coprime_int [rule_format]: "finite A \<Longrightarrow>
@@ -835,7 +827,7 @@ lemma coprime_cong_prod_nat [rule_format]: "finite A \<Longrightarrow>
          [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis coprime_cong_mult_nat mult.commute setprod_coprime_nat)
+  apply (metis One_nat_def coprime_cong_mult_nat gcd_nat.commute setprod_coprime_nat)
   done
 
 lemma chinese_remainder_unique_nat:

@@ -638,10 +638,6 @@ declaration {*
 
 subsection {* Embedding from Rationals to other Fields *}
 
-class field_char_0 = field + ring_char_0
-
-subclass (in linordered_field) field_char_0 ..
-
 context field_char_0
 begin
 

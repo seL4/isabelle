@@ -1599,4 +1599,8 @@ text {* De-register @{text "int"} as a quotient type: *}
 lifting_update int.lifting
 lifting_forget int.lifting
 
+text{*Also the class for fields with characteristic zero.*}
+class field_char_0 = field + ring_char_0
+subclass (in linordered_field) field_char_0 ..
+
 end

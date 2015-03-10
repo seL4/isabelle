@@ -325,8 +325,6 @@ next
   qed
 qed
 
-no_notation binomial (infixl "choose" 65)
-
 definition
   choose :: "'a compact_basis set \<Rightarrow> 'a compact_basis"
 where

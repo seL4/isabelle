@@ -8,10 +8,7 @@ Euler's theorem and Wilson's theorem.
 section {* Residue rings *}
 
 theory Residues
-imports
-  UniqueFactorization
-  Binomial
-  MiscAlgebra
+imports UniqueFactorization MiscAlgebra
 begin
 
 (*
@@ -275,15 +272,15 @@ proof -
   then have cop: "\<And>x. x \<in> {1::nat..p - 1} \<Longrightarrow> coprime x p"
     by blast
   { fix x::nat assume *: "1 < x" "x < p" and "x dvd p"
-    have "coprime x p" 
+    have "coprime x p"
       apply (rule cop)
       using * apply auto
       done
     with `x dvd p` `1 < x` have "False" by auto }
-  then show ?thesis 
-    using `2 \<le> p` 
+  then show ?thesis
+    using `2 \<le> p`
     by (simp add: prime_def)
-       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 
+       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0
               not_numeral_le_zero one_dvd)
 qed
 
@@ -367,7 +364,7 @@ proof -
   also have "phi p = nat p - 1"
     by (rule phi_prime, rule assms)
   finally show ?thesis
-    by (metis nat_int) 
+    by (metis nat_int)
 qed
 
 lemma fermat_theorem_nat:
@@ -441,7 +438,7 @@ qed
 lemma wilson_theorem:
   assumes "prime p" shows "[fact (p - 1) = - 1] (mod p)"
 proof (cases "p = 2")
-  case True 
+  case True
   then show ?thesis
     by (simp add: cong_int_def fact_altdef_nat)
 next

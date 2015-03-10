@@ -285,7 +285,6 @@ session "HOL-Algebra" (main) in Algebra = HOL +
     (* Preliminaries from set and number theory *)
     "~~/src/HOL/Library/FuncSet"
     "~~/src/HOL/Number_Theory/Primes"
-    "~~/src/HOL/Number_Theory/Binomial"
     "~~/src/HOL/Library/Permutation"
   theories
     (*** New development, based on explicit structures ***)

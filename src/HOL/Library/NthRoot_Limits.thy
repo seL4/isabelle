@@ -1,12 +1,6 @@
 theory NthRoot_Limits
-  imports Complex_Main "~~/src/HOL/Number_Theory/Binomial"
+  imports Complex_Main
 begin
-
-text {*
-
-This does not fit into @{text Complex_Main}, as it depends on @{text Binomial}
-
-*}
 
 lemma LIMSEQ_root: "(\<lambda>n. root n n) ----> 1"
 proof -

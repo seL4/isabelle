@@ -11,7 +11,7 @@ Jeremy Avigad.
 section {* Fib *}
 
 theory Fib
-imports Binomial
+imports Main "../GCD"
 begin
 
 
