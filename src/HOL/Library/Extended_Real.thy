@@ -2602,6 +2602,50 @@ lemma liminf_bounded_iff:
   (is "?lhs \<longleftrightarrow> ?rhs")
   unfolding le_Liminf_iff eventually_sequentially ..
 
+lemma Liminf_add_le:
+  fixes f g :: "_ \<Rightarrow> ereal"
+  assumes F: "F \<noteq> bot"
+  assumes ev: "eventually (\<lambda>x. 0 \<le> f x) F" "eventually (\<lambda>x. 0 \<le> g x) F"
+  shows "Liminf F f + Liminf F g \<le> Liminf F (\<lambda>x. f x + g x)"
+  unfolding Liminf_def
+proof (subst SUP_ereal_add_left[symmetric])
+  let ?F = "{P. eventually P F}"
+  let ?INF = "\<lambda>P g. INFIMUM (Collect P) g"
+  show "?F \<noteq> {}"
+    by (auto intro: eventually_True)
+  show "(SUP P:?F. ?INF P g) \<noteq> - \<infinity>"
+    unfolding bot_ereal_def[symmetric] SUP_bot_conv INF_eq_bot_iff
+    by (auto intro!: exI[of _ 0] ev simp: bot_ereal_def)
+  have "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. (SUP P':?F. ?INF P f + ?INF P' g))"
+  proof (safe intro!: SUP_mono bexI[of _ "\<lambda>x. P x \<and> 0 \<le> f x" for P])
+    fix P let ?P' = "\<lambda>x. P x \<and> 0 \<le> f x"
+    assume "eventually P F"
+    with ev show "eventually ?P' F"
+      by eventually_elim auto
+    have "?INF P f + (SUP P:?F. ?INF P g) \<le> ?INF ?P' f + (SUP P:?F. ?INF P g)"
+      by (intro ereal_add_mono INF_mono) auto
+    also have "\<dots> = (SUP P':?F. ?INF ?P' f + ?INF P' g)"
+    proof (rule SUP_ereal_add_right[symmetric])
+      show "INFIMUM {x. P x \<and> 0 \<le> f x} f \<noteq> - \<infinity>"
+        unfolding bot_ereal_def[symmetric] INF_eq_bot_iff
+        by (auto intro!: exI[of _ 0] ev simp: bot_ereal_def)
+    qed fact
+    finally show "?INF P f + (SUP P:?F. ?INF P g) \<le> (SUP P':?F. ?INF ?P' f + ?INF P' g)" .
+  qed
+  also have "\<dots> \<le> (SUP P:?F. INF x:Collect P. f x + g x)"
+  proof (safe intro!: SUP_least)
+    fix P Q assume *: "eventually P F" "eventually Q F"
+    show "?INF P f + ?INF Q g \<le> (SUP P:?F. INF x:Collect P. f x + g x)"
+    proof (rule SUP_upper2)
+      show "(\<lambda>x. P x \<and> Q x) \<in> ?F"
+        using * by (auto simp: eventually_conj)
+      show "?INF P f + ?INF Q g \<le> (INF x:{x. P x \<and> Q x}. f x + g x)"
+        by (intro INF_greatest ereal_add_mono) (auto intro: INF_lower)
+    qed
+  qed
+  finally show "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. INF x:Collect P. f x + g x)" .
+qed
+
 
 subsubsection {* Tests for code generator *}
 
