@@ -99,14 +99,17 @@ object Command_Span
       node_name: Document.Node.Name,
       span: Span,
       get_blob: Document.Node.Name => Option[Document.Blob])
-    : List[Command.Blob] =
+    : (List[Command.Blob], Int) =
   {
-    span_files(syntax, span)._1.map(file_name =>
-      Exn.capture {
-        val name =
-          Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file_name)))
-        val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
-        (name, blob)
-      })
+    val (files, index) = span_files(syntax, span)
+    val blobs =
+      files.map(file =>
+        Exn.capture {
+          val name =
+            Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file)))
+          val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
+          (name, blob)
+        })
+    (blobs, index)
   }
 }
