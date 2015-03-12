@@ -28,22 +28,20 @@ fun content (Span (_, toks)) = toks;
 
 local
 
-fun clean ((i1, t1) :: (i2, t2) :: toks) =
-      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
-      else (i1, t1) :: clean ((i2, t2) :: toks)
+fun clean ((t1, i1) :: (t2, i2) :: rest) =
+      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean rest
+      else (t1, i1) :: clean ((t2, i2) :: rest)
   | clean toks = toks;
 
-fun clean_tokens toks =
-  ((0 upto length toks - 1) ~~ toks)
-  |> filter (fn (_, tok) => Token.is_proper tok)
-  |> clean;
+fun clean_tokens tokens =
+  clean (filter (fn (t, _) => Token.is_proper t) (tokens ~~ (0 upto length tokens - 1)));
 
-fun find_file ((_, tok) :: toks) =
+fun find_file ((tok, _) :: toks) =
       if Token.is_command tok then
-        toks |> get_first (fn (i, tok) =>
-          if Token.is_name tok then
-            SOME (i, (Path.explode (Token.content_of tok), Token.pos_of tok))
-              handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok))
+        toks |> get_first (fn (t, i) =>
+          if Token.is_name t then
+            SOME ((Path.explode (Token.content_of t), Token.pos_of t), i)
+              handle ERROR msg => error (msg ^ Position.here (Token.pos_of t))
           else NONE)
       else NONE
   | find_file [] = NONE;
@@ -56,7 +54,7 @@ fun resolve_files keywords read_files span =
       if Keyword.is_theory_load keywords cmd then
         (case find_file (clean_tokens toks) of
           NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
-        | SOME (i, path) =>
+        | SOME (path, i) =>
             let
               val toks' = toks |> map_index (fn (j, tok) =>
                 if i = j then Token.put_files (read_files cmd path) tok

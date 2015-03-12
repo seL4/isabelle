@@ -56,34 +56,41 @@ object Command_Span
 
   /* resolve inlined files */
 
-  private def find_file(tokens: List[Token]): Option[String] =
+  private def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
   {
-    def clean(toks: List[Token]): List[Token] =
+    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
       toks match {
-        case t :: _ :: ts if t.is_keyword && (t.source == "%" || t.source == "--") => clean(ts)
-        case t :: ts => t :: clean(ts)
-        case Nil => Nil
+        case (t1, i1) :: (t2, i2) :: rest =>
+          if (t1.is_keyword && (t1.source == "%" || t1.source == "--")) clean(rest)
+          else (t1, i1) :: clean((t2, i2) :: rest)
+        case _ => toks
       }
-    clean(tokens.filter(_.is_proper)) match {
-      case tok :: toks if tok.is_command => toks.find(_.is_name).map(_.content)
-      case _ => None
-    }
+    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
   }
 
-  def span_files(syntax: Prover.Syntax, span: Span): List[String] =
+  private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
+    tokens match {
+      case (tok, _) :: toks =>
+        if (tok.is_command)
+          toks.collectFirst({ case (t, i) if t.is_name => (t.content, i) })
+        else None
+      case Nil => None
+    }
+
+  def span_files(syntax: Prover.Syntax, span: Span): (List[String], Int) =
     span.kind match {
       case Command_Span(name, _) =>
         syntax.load_command(name) match {
           case Some(exts) =>
-            find_file(span.content) match {
-              case Some(file) =>
-                if (exts.isEmpty) List(file)
-                else exts.map(ext => file + "." + ext)
-              case None => Nil
+            find_file(clean_tokens(span.content)) match {
+              case Some((file, i)) =>
+                if (exts.isEmpty) (List(file), i)
+                else (exts.map(ext => file + "." + ext), i)
+              case None => (Nil, -1)
             }
-          case None => Nil
+          case None => (Nil, -1)
         }
-      case _ => Nil
+      case _ => (Nil, -1)
     }
 
   def resolve_files(
@@ -94,7 +101,7 @@ object Command_Span
       get_blob: Document.Node.Name => Option[Document.Blob])
     : List[Command.Blob] =
   {
-    span_files(syntax, span).map(file_name =>
+    span_files(syntax, span)._1.map(file_name =>
       Exn.capture {
         val name =
           Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file_name)))
@@ -103,4 +110,3 @@ object Command_Span
       })
   }
 }
-
