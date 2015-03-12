@@ -108,7 +108,7 @@ apply (subst cut_apply, auto intro: subcls1I)
 done
 
 --{* Methods of a class, with inheritance and hiding *}
-definition method :: "cname => (mname \<rightharpoonup> methd)" where
+definition "method" :: "cname => (mname \<rightharpoonup> methd)" where
   "method C \<equiv> class_rec C methods"
 
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>

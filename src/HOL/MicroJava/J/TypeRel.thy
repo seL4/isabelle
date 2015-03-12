@@ -177,7 +177,7 @@ next
 qed
 
 consts
-  method :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)
+  "method" :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)
   field  :: "'c prog \<times> cname => ( vname \<rightharpoonup> cname \<times> ty     )" (* ###curry *)
   fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
 
