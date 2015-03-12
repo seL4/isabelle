@@ -13,8 +13,6 @@ begin
 text{*These can be used to derive an alternative proof of the infinitude of
 primes by considering a property of nonstandard sets.*}
 
-declare dvd_def [transfer_refold]
-
 definition
   starprime :: "hypnat set" where
   [transfer_unfold]: "starprime = ( *s* {p. prime p})"

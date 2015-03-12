@@ -848,11 +848,7 @@ by (intro_classes, transfer, rule zero_neq_one)
 instance star :: (semiring_1) semiring_1 ..
 instance star :: (comm_semiring_1) comm_semiring_1 ..
 
-lemma star_dvd_def [transfer_unfold]: "op dvd = *p2* (op dvd)"
-apply (rule ext)+
-apply (unfold dvd_def[abs_def], transfer)
-apply (rule refl)
-done
+declare dvd_def [transfer_refold]
 
 instance star :: (semiring_dvd) semiring_dvd
 apply intro_classes
