@@ -253,15 +253,17 @@ object Command
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
-    blobs: List[Blob],
+    blobs: Option[(List[Blob], Int)],
     span: Command_Span.Span): Command =
   {
     val (source, span1) = span.compact_source
-    new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
+    val (blobs_list, blobs_index) = blobs.getOrElse((Nil, -1))
+    new Command(
+      id, node_name, blobs_list, blobs_index, span1, source, Results.empty, Markup_Tree.empty)
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, Nil, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, None, Command_Span.empty)
 
   def unparsed(
     id: Document_ID.Command,
@@ -270,7 +272,7 @@ object Command
     markup: Markup_Tree): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source).compact_source
-    new Command(id, Document.Node.Name.empty, Nil, span1, source1, results, markup)
+    new Command(id, Document.Node.Name.empty, Nil, -1, span1, source1, results, markup)
   }
 
   def unparsed(source: String): Command =
@@ -312,6 +314,7 @@ final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
     val blobs: List[Command.Blob],
+    val blobs_index: Int,
     val span: Command_Span.Span,
     val source: String,
     val init_results: Command.Results,

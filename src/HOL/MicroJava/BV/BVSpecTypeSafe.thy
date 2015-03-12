@@ -811,7 +811,7 @@ lemma Invoke_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>" 
 proof -
   assume wtprog: "wt_jvm_prog G phi"
-  assume method: "method (G,C) sig = Some (C,rT,maxs,maxl,ins,et)"
+  assume "method": "method (G,C) sig = Some (C,rT,maxs,maxl,ins,et)"
   assume ins:    "ins ! pc = Invoke C' mn pTs"
   assume wti:    "wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) et pc"
   assume state': "Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs)"
@@ -823,7 +823,7 @@ proof -
     wfprog: "wf_prog wfmb G" 
     by (simp add: wt_jvm_prog_def)
       
-  from ins method approx
+  from ins "method" approx
   obtain s where
     heap_ok: "G\<turnstile>h hp\<surd>" and
     prealloc:"preallocated hp" and
@@ -880,7 +880,7 @@ proof -
   from stk' l_o l
   have oX_pos: "last (take (Suc (length pTs)) stk) = oX" by simp
 
-  with state' method ins no_xcp oX_conf
+  with state' "method" ins no_xcp oX_conf
   obtain ref where oX_Addr: "oX = Addr ref"
     by (auto simp add: raise_system_xcpt_def dest: conf_RefTD)
 
@@ -922,7 +922,7 @@ proof -
       
   from loc obj_ty have "fst (the (hp ref)) = D" by (simp add: obj_ty_def)
 
-  with oX_Addr oX_pos state' method ins stk' l_o l loc obj_ty mD no_xcp
+  with oX_Addr oX_pos state' "method" ins stk' l_o l loc obj_ty mD no_xcp
   have state'_val:
     "state' =
      Norm (hp, ([], Addr ref # rev opTs @ replicate mxl' undefined, 
@@ -972,7 +972,7 @@ proof -
     show ?thesis by (simp add: correct_frame_def)
   qed
 
-  from state'_val heap_ok mD'' ins method phi_pc s X' l mX
+  from state'_val heap_ok mD'' ins "method" phi_pc s X' l mX
        frames s' LT0 c_f is_class_C stk' oX_Addr frame prealloc and l
   show ?thesis
     apply (simp add: correct_state_def)

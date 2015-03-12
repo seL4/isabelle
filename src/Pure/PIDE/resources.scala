@@ -57,7 +57,7 @@ class Resources(
   def loaded_files(syntax: Prover.Syntax, text: String): List[String] =
     if (syntax.load_commands_in(text)) {
       val spans = syntax.parse_spans(text)
-      spans.iterator.map(Command_Span.span_files(syntax, _)).flatten.toList
+      spans.iterator.map(Command_Span.span_files(syntax, _)._1).flatten.toList
     }
     else Nil
 

@@ -429,14 +429,14 @@ corollary no_type_errors_initial:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
   assumes is_class: "is_class \<Gamma> C"
-    and method: "method (\<Gamma>,C) (m,[]) = Some (C, b)"
+    and "method": "method (\<Gamma>,C) (m,[]) = Some (C, b)"
     and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
 
   assumes s: "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> t" 
   shows "t \<noteq> TypeError"
 proof -
-  from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+  from wt is_class "method" have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
     unfolding start by (rule BV_correct_initial)
   from wt this s show ?thesis by (rule no_type_errors)
 qed
@@ -461,12 +461,12 @@ corollary welltyped_initial_commutes:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
   assumes is_class: "is_class \<Gamma> C"
-    and method: "method (\<Gamma>,C) (m,[]) = Some (C, b)"
+    and "method": "method (\<Gamma>,C) (m,[]) = Some (C, b)"
     and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
   shows "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s \<midarrow>jvm\<rightarrow> t"
 proof -
-  from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+  from wt is_class "method" have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
     unfolding start by (rule BV_correct_initial)
   with wt show ?thesis by (rule welltyped_commutes)
 qed

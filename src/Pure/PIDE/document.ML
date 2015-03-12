@@ -19,7 +19,7 @@ sig
   val init_state: state
   val define_blob: string -> string -> state -> state
   type blob_digest = (string * string option) Exn.result
-  val define_command: Document_ID.command -> string -> blob_digest list ->
+  val define_command: Document_ID.command -> string -> blob_digest list -> int ->
     ((int * int) * string) list -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
@@ -359,23 +359,37 @@ fun resolve_blob state (blob_digest: blob_digest) =
   blob_digest |> Exn.map_result (fn (file_node, raw_digest) =>
     (file_node, Option.map (the_blob state) raw_digest));
 
+fun blob_reports pos (blob_digest: blob_digest) =
+  (case blob_digest of Exn.Res (file_node, _) => [(pos, Markup.path file_node)] | _ => []);
+
 
 (* commands *)
 
-fun define_command command_id name command_blobs toks =
+fun define_command command_id name command_blobs blobs_index toks =
   map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
       val span =
         Lazy.lazy (fn () =>
           Position.setmp_thread_data (Position.id_only id)
-            (fn () => #1 (fold_map Token.make toks (Position.id id))) ());
-      val _ =
-        Position.setmp_thread_data (Position.id_only id)
-          (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
+            (fn () =>
+              let
+                val (tokens, _) = fold_map Token.make toks (Position.id id);
+                val _ =
+                  (case try (Token.pos_of o nth tokens) blobs_index of
+                    SOME pos =>
+                      if Position.is_reported pos then
+                        Position.reports
+                          ((pos, Markup.language_path) :: maps (blob_reports pos) command_blobs)
+                      else ()
+                  | NONE => ());
+              in tokens end) ());
       val commands' =
         Inttab.update_new (command_id, (name, command_blobs, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
+      val _ =
+        Position.setmp_thread_data (Position.id_only id)
+          (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
     in (versions, blobs, commands', execution) end);
 
 fun the_command (State {commands, ...}) command_id =

@@ -51,21 +51,19 @@ type blob =
 
 fun read_file_node file_node master_dir pos src_path =
   let
-    val _ = Position.report pos Markup.language_path;
     val _ =
       (case try Url.explode file_node of
         NONE => ()
       | SOME (Url.File _) => ()
       | _ =>
-         (Position.report pos (Markup.path file_node);
           error ("Prover cannot load remote file " ^
-            Markup.markup (Markup.path file_node) (quote file_node) ^ Position.here pos)));
+            Markup.markup (Markup.path file_node) (quote file_node)));
     val full_path = File.check_file (File.full_path master_dir src_path);
-    val _ = Position.report pos (Markup.path (Path.implode full_path));
     val text = File.read full_path;
     val lines = split_lines text;
     val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end;
+  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end
+  handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";
 
@@ -89,8 +87,7 @@ fun resolve_files keywords master_dir blobs toks =
                 Exn.interruptible_capture (fn () =>
                   read_file_node file_node master_dir pos src_path) ()
             | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
-               (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_node)];
-                Exn.Res (blob_file src_path lines digest file_node))
+                Exn.Res (blob_file src_path lines digest file_node)
             | make_file _ (Exn.Exn e) = Exn.Exn e;
           val src_paths = Keyword.command_files keywords cmd path;
         in

@@ -284,7 +284,7 @@ final class Outer_Syntax private(
     /* result structure */
 
     val spans = parse_spans(text)
-    spans.foreach(span => add(Command(Document_ID.none, node_name, Nil, span)))
+    spans.foreach(span => add(Command(Document_ID.none, node_name, None, span)))
     result()
   }
 }

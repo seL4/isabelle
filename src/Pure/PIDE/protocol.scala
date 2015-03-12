@@ -392,7 +392,7 @@ trait Protocol
               (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 
-      YXML.string_of_body(list(encode_blob)(command.blobs))
+      YXML.string_of_body(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
 
     val toks = command.span.content

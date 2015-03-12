@@ -143,8 +143,8 @@ object Thy_Syntax
 
   @tailrec private def chop_common(
       cmds: List[Command],
-      blobs_spans: List[(List[Command.Blob], Command_Span.Span)])
-    : (List[Command], List[(List[Command.Blob], Command_Span.Span)]) =
+      blobs_spans: List[((List[Command.Blob], Int), Command_Span.Span)])
+    : (List[Command], List[((List[Command.Blob], Int), Command_Span.Span)]) =
   {
     (cmds, blobs_spans) match {
       case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>
@@ -179,7 +179,8 @@ object Thy_Syntax
       case cmd :: _ =>
         val hook = commands.prev(cmd)
         val inserted =
-          blobs_spans2.map({ case (blobs, span) => Command(Document_ID.make(), name, blobs, span) })
+          blobs_spans2.map({ case (blobs, span) =>
+            Command(Document_ID.make(), name, Some(blobs), span) })
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
     }
   }
