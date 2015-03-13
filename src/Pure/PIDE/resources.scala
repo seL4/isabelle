@@ -110,6 +110,13 @@ class Resources(
   def check_thy(qualifier: String, name: Document.Node.Name): Document.Node.Header =
     with_thy_reader(name, check_thy_reader(qualifier, name, _))
 
+  def check_file(file: String): Boolean =
+    try {
+      if (Url.is_wellformed(file)) Url.is_readable(file)
+      else (new JFile(file)).isFile
+    }
+    catch { case ERROR(_) => false }
+
 
   /* document changes */
 
