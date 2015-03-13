@@ -375,14 +375,14 @@ fun define_command command_id name command_blobs blobs_index toks =
             (fn () =>
               let
                 val (tokens, _) = fold_map Token.make toks (Position.id id);
+                val pos =
+                  Token.pos_of (nth tokens blobs_index)
+                    handle General.Subscript => Position.none;
                 val _ =
-                  (case try (Token.pos_of o nth tokens) blobs_index of
-                    SOME pos =>
-                      if Position.is_reported pos then
-                        Position.reports
-                          ((pos, Markup.language_path) :: maps (blob_reports pos) command_blobs)
-                      else ()
-                  | NONE => ());
+                  if Position.is_reported pos then
+                    Position.reports
+                      ((pos, Markup.language_path) :: maps (blob_reports pos) command_blobs)
+                  else ();
               in tokens end) ());
       val commands' =
         Inttab.update_new (command_id, (name, command_blobs, span)) commands
