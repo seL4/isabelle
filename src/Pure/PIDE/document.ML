@@ -307,8 +307,8 @@ fun new_execution version_id delay_request : execution =
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
   blobs: (SHA1.digest * string list) Symtab.table,  (*raw digest -> digest, lines*)
-  commands: (string * blob_digest list * Token.T list lazy) Inttab.table,
-    (*command id -> name, inlined files, command span*)
+  commands: (string * blob_digest list * int * Token.T list lazy) Inttab.table,
+    (*command id -> name, inlined files, token index of files, command span*)
   execution: execution}  (*current execution process*)
 with
 
@@ -385,7 +385,7 @@ fun define_command command_id name command_blobs blobs_index toks =
                   else ();
               in tokens end) ());
       val commands' =
-        Inttab.update_new (command_id, (name, command_blobs, span)) commands
+        Inttab.update_new (command_id, (name, command_blobs, blobs_index, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
       val _ =
         Position.setmp_thread_data (Position.id_only id)
@@ -419,7 +419,7 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
               SOME o Inttab.insert (K true) (command_id, the_command state command_id))));
     val blobs' =
       (commands', Symtab.empty) |->
-        Inttab.fold (fn (_, (_, blobs, _)) => blobs |>
+        Inttab.fold (fn (_, (_, blobs, _, _)) => blobs |>
           fold (fn Exn.Res (_, SOME b) => Symtab.update (b, the_blob state b) | _ => I));
 
   in (versions', blobs', commands', execution) end);
@@ -585,13 +585,13 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
 
       val command_visible = visible_command node command_id';
       val command_overlays = overlays node command_id';
-      val (command_name, blob_digests, span0) = the_command state command_id';
+      val (command_name, blob_digests, blobs_index, span0) = the_command state command_id';
       val blobs = map (resolve_blob state) blob_digests;
       val span = Lazy.force span0;
 
       val eval' =
         Command.eval keywords (master_directory node)
-          (fn () => the_default illegal_init init span) blobs span eval;
+          (fn () => the_default illegal_init init span) (blobs, blobs_index) span eval;
       val prints' =
         perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
       val exec' = (eval', prints');

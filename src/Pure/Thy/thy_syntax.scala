@@ -164,7 +164,7 @@ object Thy_Syntax
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       syntax.parse_spans(cmds0.iterator.map(_.source).mkString).
-        map(span => (Command_Span.resolve_files(resources, syntax, name, span, get_blob), span))
+        map(span => (Command.resolve_files(resources, syntax, name, span, get_blob), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
