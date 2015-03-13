@@ -4363,7 +4363,6 @@ proof -
         case False
         hence "0 < \<bar>x\<bar>" and "- \<bar>x\<bar> < \<bar>x\<bar>" by auto
         have "suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>) = suminf (?c 0) - arctan 0"
-        thm suminf_eq_arctan_bounded
           by (rule suminf_eq_arctan_bounded[where x1="0" and a1="-\<bar>x\<bar>" and b1="\<bar>x\<bar>", symmetric])
             (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
         moreover
