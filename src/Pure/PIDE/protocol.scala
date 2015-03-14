@@ -433,7 +433,7 @@ trait Protocol
           { case Document.Node.Deps(header) =>
               val master_dir = Isabelle_System.posix_path_url(name.master_dir)
               val theory = Long_Name.base_name(name.theory)
-              val imports = header.imports.map(_.node)
+              val imports = header.imports.map({ case (a, _) => a.node })
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
                 pair(Encode.string, pair(Encode.string, pair(list(Encode.string),

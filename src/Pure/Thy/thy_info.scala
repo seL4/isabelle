@@ -106,7 +106,7 @@ class Thy_Info(resources: Resources)
           if (parent_loaded(dep.name.theory)) g
           else {
             val a = node(dep.name)
-            val bs = dep.header.imports.map(node _)
+            val bs = dep.header.imports.map({ case (name, _) => node(name) })
             ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a))
           }
       }
@@ -136,8 +136,7 @@ class Thy_Info(resources: Resources)
         val header =
           try { resources.check_thy(session, name).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        val imports = header.imports.map((_, Position.File(name.node)))
-        Dep(name, header) :: require_thys(session, name :: initiators, required1, imports)
+        Dep(name, header) :: require_thys(session, name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>

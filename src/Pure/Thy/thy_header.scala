@@ -124,7 +124,7 @@ object Thy_Header extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(reader: Reader[Char]): Thy_Header =
+  def read(reader: Reader[Char], file: String): Thy_Header =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
     val toks = new mutable.ListBuffer[Token]
@@ -140,14 +140,14 @@ object Thy_Header extends Parse.Parser
     }
     scan_to_begin(reader)
 
-    parse(commit(header), Token.reader(toks.toList)) match {
+    parse(commit(header), Token.reader(toks.toList, file)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }
   }
 
-  def read(source: CharSequence): Thy_Header =
-    read(new CharSequenceReader(source))
+  def read(source: CharSequence, file: String): Thy_Header =
+    read(new CharSequenceReader(source), file)
 }
 
 

@@ -82,7 +82,7 @@ object Thy_Syntax
           node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
-          if (node.header.imports != node1.header.imports ||
+          if (node.header.imports.map(_._1) != node1.header.imports.map(_._1) ||
               node.header.keywords != node1.header.keywords) syntax_changed0 += name
           nodes += (name -> node1)
           doc_edits += (name -> Document.Node.Deps(header))
@@ -98,7 +98,7 @@ object Thy_Syntax
         if (node.is_empty) None
         else {
           val header = node.header
-          val imports_syntax = header.imports.flatMap(a => nodes(a).syntax)
+          val imports_syntax = header.imports.flatMap(a => nodes(a._1).syntax)
           Some((resources.base_syntax /: imports_syntax)(_ ++ _).add_keywords(header.keywords))
         }
       nodes += (name -> node.update_syntax(syntax))

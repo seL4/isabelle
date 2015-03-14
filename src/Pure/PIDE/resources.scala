@@ -91,7 +91,7 @@ class Resources(
   {
     if (reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader).decode_symbols
+        val header = Thy_Header.read(reader, node_name.node).decode_symbols
 
         val base_name = Long_Name.base_name(node_name.theory)
         val (name, pos) = header.name
@@ -100,7 +100,7 @@ class Resources(
             " for theory " + quote(name) + Position.here(pos))
 
         val imports =
-          header.imports.map({ case (s, _) => import_name(qualifier, node_name, s) })
+          header.imports.map({ case (s, pos) => (import_name(qualifier, node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, Nil)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }

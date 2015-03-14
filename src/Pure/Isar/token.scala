@@ -182,7 +182,7 @@ object Token
       else new Pos(line1, offset1, file, id)
     }
 
-    def position(end_offset: Symbol.Offset): Position.T =
+    private def position(end_offset: Symbol.Offset): Position.T =
       (if (line > 0) Position.Line(line) else Nil) :::
       (if (offset > 0) Position.Offset(offset) else Nil) :::
       (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
@@ -204,7 +204,7 @@ object Token
     def atEnd = tokens.isEmpty
   }
 
-  def reader(tokens: List[Token], file: String = "", id: Document_ID.Generic = Document_ID.none)
+  def reader(tokens: List[Token], file: String, id: Document_ID.Generic = Document_ID.none)
     : Reader = new Token_Reader(tokens, new Pos(1, 1, file, id))
 }
 
