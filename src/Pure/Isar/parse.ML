@@ -69,6 +69,8 @@ sig
   val xname: xstring parser
   val text: string parser
   val path: string parser
+  val theory_name: bstring parser
+  val theory_xname: xstring parser
   val liberal_name: xstring parser
   val parname: string parser
   val parbinding: binding parser
@@ -274,6 +276,9 @@ val text = group (fn () => "text")
   (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
 
 val path = group (fn () => "file name/path specification") name;
+
+val theory_name = group (fn () => "theory name") name;
+val theory_xname = group (fn () => "theory name reference") xname;
 
 val liberal_name = keyword_with Token.ident_or_symbolic || xname;
 
