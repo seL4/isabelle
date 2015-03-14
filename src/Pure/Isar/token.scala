@@ -157,14 +157,14 @@ object Token
 
   object Pos
   {
-    val none: Pos = new Pos()
+    val none: Pos = new Pos(0, 0, "")
+    def file(file: String): Pos = new Pos(0, 0, file)
   }
 
   final class Pos private[Token](
-      val line: Int = 0,
-      val offset: Symbol.Offset = 0,
-      val file: String = "",
-      val id: Document_ID.Generic = Document_ID.none)
+      val line: Int,
+      val offset: Symbol.Offset,
+      val file: String)
     extends scala.util.parsing.input.Position
   {
     def column = 0
@@ -179,15 +179,14 @@ object Token
         if (offset1 > 0) offset1 += 1
       }
       if (line1 == line && offset1 == offset) this
-      else new Pos(line1, offset1, file, id)
+      else new Pos(line1, offset1, file)
     }
 
     private def position(end_offset: Symbol.Offset): Position.T =
       (if (line > 0) Position.Line(line) else Nil) :::
       (if (offset > 0) Position.Offset(offset) else Nil) :::
       (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
-      (if (file != "") Position.File(file) else Nil) :::
-      (if (id != Document_ID.none) Position.Id(id) else Nil)
+      (if (file != "") Position.File(file) else Nil)
 
     def position(): Position.T = position(0)
     def position(token: Token): Position.T = position(advance(token).offset)
@@ -204,8 +203,8 @@ object Token
     def atEnd = tokens.isEmpty
   }
 
-  def reader(tokens: List[Token], file: String, id: Document_ID.Generic = Document_ID.none)
-    : Reader = new Token_Reader(tokens, new Pos(1, 1, file, id))
+  def reader(tokens: List[Token], file: String): Reader =
+    new Token_Reader(tokens, Pos.file(file))
 }
 
 
