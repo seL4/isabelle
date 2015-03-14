@@ -359,12 +359,12 @@ object Command
     val (files, index) = span_files(syntax, span)
     val blobs =
       files.map(file =>
-        Exn.capture {
+        (Exn.capture {
           val name =
             Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file)))
           val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
           (name, blob)
-        })
+        }).user_error)
     (blobs, index)
   }
 }

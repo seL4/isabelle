@@ -13,6 +13,13 @@ object Exn
   /* exceptions as values */
 
   sealed abstract class Result[A]
+  {
+    def user_error: Result[A] =
+      this match {
+        case Exn(ERROR(msg)) => Exn(ERROR(msg))
+        case _ => this
+      }
+  }
   case class Res[A](res: A) extends Result[A]
   case class Exn[A](exn: Throwable) extends Result[A]
 
