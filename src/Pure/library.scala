@@ -16,9 +16,21 @@ object Library
 {
   /* user errors */
 
+  class User_Error(message: String) extends RuntimeException(message)
+  {
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: User_Error => message == other.getMessage
+        case _ => false
+      }
+    override def hashCode: Int = message.hashCode
+
+    override def toString: String = "ERROR(" + message + ")"
+  }
+
   object ERROR
   {
-    def apply(message: String): Throwable = new RuntimeException(message)
+    def apply(message: String): User_Error = new User_Error(message)
     def unapply(exn: Throwable): Option[String] = Exn.user_message(exn)
   }
 

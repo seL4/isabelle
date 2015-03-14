@@ -79,16 +79,17 @@ object Exn
 
   /* message */
 
-  private val runtime_exception = Class.forName("java.lang.RuntimeException")
-
   def user_message(exn: Throwable): Option[String] =
-    if (exn.isInstanceOf[java.io.IOException]) {
-      val msg = exn.getMessage
-      Some(if (msg == null) "I/O error" else "I/O error: " + msg)
-    }
-    else if (exn.getClass == runtime_exception) {
+    if (exn.getClass == classOf[RuntimeException] ||
+        exn.getClass == classOf[Library.User_Error])
+    {
       val msg = exn.getMessage
       Some(if (msg == null || msg == "") "Error" else msg)
+    }
+    else if (exn.isInstanceOf[java.io.IOException])
+    {
+      val msg = exn.getMessage
+      Some(if (msg == null || msg == "") "I/O error" else "I/O error: " + msg)
     }
     else if (exn.isInstanceOf[RuntimeException]) Some(exn.toString)
     else None
