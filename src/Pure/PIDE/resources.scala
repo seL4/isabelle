@@ -86,20 +86,21 @@ class Resources(
     }
   }
 
-  def check_thy_reader(qualifier: String, name: Document.Node.Name, reader: Reader[Char])
+  def check_thy_reader(qualifier: String, node_name: Document.Node.Name, reader: Reader[Char])
     : Document.Node.Header =
   {
     if (reader.source.length > 0) {
       try {
         val header = Thy_Header.read(reader).decode_symbols
 
-        val base_name = Long_Name.base_name(name.theory)
-        val name1 = header.name
-        if (base_name != name1)
+        val base_name = Long_Name.base_name(node_name.theory)
+        val (name, pos) = header.name
+        if (base_name != name)
           error("Bad file name " + Resources.thy_path(Path.basic(base_name)) +
-            " for theory " + quote(name1))
+            " for theory " + quote(name) + Position.here(pos))
 
-        val imports = header.imports.map(import_name(qualifier, name, _))
+        val imports =
+          header.imports.map({ case (s, _) => import_name(qualifier, node_name, s) })
         Document.Node.Header(imports, header.keywords, Nil)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }

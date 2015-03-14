@@ -103,8 +103,9 @@ val get_keywords' = get_keywords o Proof_Context.theory_of;
 
 local
 
-val imports =
-  Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.theory_xname));
+fun imports name =
+  if name = Context.PureN then Scan.succeed []
+  else Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.theory_xname));
 
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
@@ -128,7 +129,7 @@ in
 
 val args =
   Parse.position Parse.theory_name :|-- (fn (name, pos) =>
-    (if name = Context.PureN then Scan.succeed [] else imports) --
+    imports name --
     Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
     Parse.$$$ beginN >> (fn (imports, keywords) => make (name, pos) imports keywords));
 
