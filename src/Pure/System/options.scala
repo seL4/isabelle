@@ -93,9 +93,9 @@ object Options
     {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
-      opt(command(PUBLIC)) ~ command(OPTION) ~! (option_name ~ $$$(":") ~ option_type ~
+      opt(command(PUBLIC)) ~ position(command(OPTION)) ~! (option_name ~ $$$(":") ~ option_type ~
       $$$("=") ~ option_value ~ ($$$("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case a ~ pos ~ (b ~ _ ~ c ~ _ ~ d ~ e) =>
+        { case a ~ ((_, pos)) ~ (b ~ _ ~ c ~ _ ~ d ~ e) =>
             (options: Options) => options.declare(a.isDefined, pos, b, c, d, e) }
     }
 
