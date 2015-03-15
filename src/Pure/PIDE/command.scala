@@ -349,12 +349,11 @@ object Command
     }
 
   def resolve_files(
-      resources: Resources,
-      syntax: Prover.Syntax,
-      node_name: Document.Node.Name,
-      span: Command_Span.Span,
-      get_blob: Document.Node.Name => Option[Document.Blob])
-    : (List[Command.Blob], Int) =
+    resources: Resources,
+    syntax: Prover.Syntax,
+    get_blob: Document.Node.Name => Option[Document.Blob],
+    node_name: Document.Node.Name,
+    span: Command_Span.Span): (List[Command.Blob], Int) =
   {
     val (files, index) = span_files(syntax, span)
     val blobs =

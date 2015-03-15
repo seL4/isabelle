@@ -63,7 +63,7 @@ object Thy_Syntax
 
 
 
-  /** header edits: structure and outer syntax **/
+  /** header edits: graph structure and outer syntax **/
 
   private def header_edits(
     resources: Resources,
@@ -157,14 +157,14 @@ object Thy_Syntax
     resources: Resources,
     syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
-    name: Document.Node.Name,
+    node_name: Document.Node.Name,
     commands: Linear_Set[Command],
     first: Command, last: Command): Linear_Set[Command] =
   {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       syntax.parse_spans(cmds0.iterator.map(_.source).mkString).
-        map(span => (Command.resolve_files(resources, syntax, name, span, get_blob), span))
+        map(span => (Command.resolve_files(resources, syntax, get_blob, node_name, span), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
@@ -180,7 +180,7 @@ object Thy_Syntax
         val hook = commands.prev(cmd)
         val inserted =
           blobs_spans2.map({ case (blobs, span) =>
-            Command(Document_ID.make(), name, Some(blobs), span) })
+            Command(Document_ID.make(), node_name, Some(blobs), span) })
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
     }
   }
