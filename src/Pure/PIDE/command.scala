@@ -364,8 +364,10 @@ object Command
           resources.check_thy_reader("", node_name,
             new CharSequenceReader(span.source), Token.Pos.id(Markup.COMMAND))
         val import_errors =
-          for ((imp, pos) <- header.imports if !can_import(imp))
-            yield "Bad theory import " + quote(imp.node) + Position.here(pos)
+          for ((imp, pos) <- header.imports if !can_import(imp)) yield {
+            val name = imp.node
+            "Bad theory import " + Markup.Path(name).markup(quote(name)) + Position.here(pos)
+          }
         ((header.errors ::: import_errors).map(msg => Exn.Exn(ERROR(msg)): Command.Blob), -1)
 
       // auxiliary files
