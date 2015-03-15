@@ -123,7 +123,9 @@ final class Outer_Syntax private(
     }
 
 
-  /* load commands */
+  /* command categories */
+
+  def is_theory_begin(name: String): Boolean = keywords.is_command_kind(name, Keyword.theory_begin)
 
   def load_command(name: String): Option[List[String]] = keywords.load_command(name)
   def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
@@ -284,7 +286,7 @@ final class Outer_Syntax private(
     /* result structure */
 
     val spans = parse_spans(text)
-    spans.foreach(span => add(Command(Document_ID.none, node_name, None, span)))
+    spans.foreach(span => add(Command(Document_ID.none, node_name, Command.no_blobs, span)))
     result()
   }
 }
