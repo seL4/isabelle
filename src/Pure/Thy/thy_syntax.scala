@@ -189,38 +189,6 @@ object Thy_Syntax
   }
 
 
-  /* recover command spans after edits */
-
-  // FIXME somewhat slow
-  private def recover_spans(
-    resources: Resources,
-    syntax: Prover.Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
-    can_import: Document.Node.Name => Boolean,
-    node_name: Document.Node.Name,
-    header: Document.Node.Header,
-    perspective: Command.Perspective,
-    commands: Linear_Set[Command]): Linear_Set[Command] =
-  {
-    val visible = perspective.commands.toSet
-
-    def next_invisible_command(cmds: Linear_Set[Command], from: Command): Command =
-      cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || visible(cmd))
-        .find(_.is_proper) getOrElse cmds.last
-
-    @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
-      cmds.find(_.is_unparsed) match {
-        case Some(first_unparsed) =>
-          val first = next_invisible_command(cmds.reverse, first_unparsed)
-          val last = next_invisible_command(cmds, first_unparsed)
-          recover(reparse_spans(
-            resources, syntax, get_blob, can_import, node_name, header, cmds, first, last))
-        case None => cmds
-      }
-    recover(commands)
-  }
-
-
   /* main */
 
   def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
@@ -241,6 +209,32 @@ object Thy_Syntax
     reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =
   {
+    /* recover command spans after edits */
+    // FIXME somewhat slow
+    def recover_spans(
+      name: Document.Node.Name,
+      header: Document.Node.Header,
+      perspective: Command.Perspective,
+      commands: Linear_Set[Command]): Linear_Set[Command] =
+    {
+      val is_visible = perspective.commands.toSet
+
+      def next_invisible(cmds: Linear_Set[Command], from: Command): Command =
+        cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || is_visible(cmd))
+          .find(_.is_proper) getOrElse cmds.last
+
+      @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
+        cmds.find(_.is_unparsed) match {
+          case Some(first_unparsed) =>
+            val first = next_invisible(cmds.reverse, first_unparsed)
+            val last = next_invisible(cmds, first_unparsed)
+            recover(
+              reparse_spans(resources, syntax, get_blob, can_import, name, header, cmds, first, last))
+          case None => cmds
+        }
+      recover(commands)
+    }
+
     edit match {
       case (_, Document.Node.Clear()) => node.clear
 
@@ -250,9 +244,7 @@ object Thy_Syntax
         if (name.is_theory) {
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
-          val commands2 =
-            recover_spans(resources, syntax, get_blob, can_import, name,
-              node.header, node.perspective.visible, commands1)
+          val commands2 = recover_spans(name, node.header, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
         else node
