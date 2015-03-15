@@ -102,11 +102,8 @@ object Position
 
   /* here: user output */
 
-  def yxml_markup(pos: T, str: String): String =
-    YXML.string_of_tree(XML.Elem(Markup(Markup.POSITION, pos), List(XML.Text(str))))
-
   def here(pos: T): String =
-    yxml_markup(pos,
+    Markup(Markup.POSITION, pos).markup(
       (Line.unapply(pos), File.unapply(pos)) match {
         case (Some(i), None) => " (line " + i.toString + ")"
         case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
@@ -115,7 +112,7 @@ object Position
       })
 
   def here_undelimited(pos: T): String =
-    yxml_markup(pos,
+    Markup(Markup.POSITION, pos).markup(
       (Line.unapply(pos), File.unapply(pos)) match {
         case (Some(i), None) => "line " + i.toString
         case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
