@@ -2424,7 +2424,7 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _) u
              forall is_some ctrs')
           end
       in
-        ctrss |> map datatype_of_ctrs |> filter_out (null o #2)
+        ctrss |> map datatype_of_ctrs |> filter #3
       end
     else
       []
