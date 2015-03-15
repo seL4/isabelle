@@ -221,43 +221,6 @@ object Thy_Syntax
   }
 
 
-  /* consolidate unfinished spans */
-
-  private def consolidate_spans(
-    resources: Resources,
-    syntax: Prover.Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
-    can_import: Document.Node.Name => Boolean,
-    reparse_limit: Int,
-    node_name: Document.Node.Name,
-    header: Document.Node.Header,
-    perspective: Command.Perspective,
-    commands: Linear_Set[Command]): Linear_Set[Command] =
-  {
-    if (perspective.commands.isEmpty) commands
-    else {
-      commands.find(_.is_unfinished) match {
-        case Some(first_unfinished) =>
-          val visible = perspective.commands.toSet
-          commands.reverse.find(visible) match {
-            case Some(last_visible) =>
-              val it = commands.iterator(last_visible)
-              var last = last_visible
-              var i = 0
-              while (i < reparse_limit && it.hasNext) {
-                last = it.next
-                i += last.length
-              }
-              reparse_spans(resources, syntax, get_blob, can_import, node_name,
-                header, commands, first_unfinished, last)
-            case None => commands
-          }
-        case None => commands
-      }
-    }
-  }
-
-
   /* main */
 
   def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
@@ -301,11 +264,33 @@ object Thy_Syntax
         val perspective: Document.Node.Perspective_Command =
           Document.Node.Perspective(required, visible_overlay, overlays)
         if (node.same_perspective(text_perspective, perspective)) node
-        else
-          node.update_perspective(text_perspective, perspective).
-            update_commands(
-              consolidate_spans(resources, syntax, get_blob, can_import, reparse_limit,
-                name, node.header, visible, node.commands))
+        else {
+          /* consolidate unfinished spans */
+          val is_visible = visible.commands.toSet
+          val commands = node.commands
+          val commands1 =
+            if (is_visible.isEmpty) commands
+            else {
+              commands.find(_.is_unfinished) match {
+                case Some(first_unfinished) =>
+                  commands.reverse.find(is_visible) match {
+                    case Some(last_visible) =>
+                      val it = commands.iterator(last_visible)
+                      var last = last_visible
+                      var i = 0
+                      while (i < reparse_limit && it.hasNext) {
+                        last = it.next
+                        i += last.length
+                      }
+                      reparse_spans(resources, syntax, get_blob, can_import, name,
+                        node.header, commands, first_unfinished, last)
+                    case None => commands
+                  }
+                case None => commands
+              }
+            }
+          node.update_perspective(text_perspective, perspective).update_commands(commands1)
+        }
     }
   }
 
