@@ -249,4 +249,3 @@ val is_improper = command_category [qed_script, prf_script, prf_asm_goal_script]
 fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;
 
 end;
-

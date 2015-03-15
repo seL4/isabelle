@@ -212,8 +212,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
 {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command_kind(keywords: Keyword.Keywords, pred: String => Boolean): Boolean =
-    is_command &&
-      (keywords.command_kind(source) match { case Some(k) => pred(k) case None => false })
+    is_command && keywords.is_command_kind(source, pred)
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD
   def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
   def is_ident: Boolean = kind == Token.Kind.IDENT
