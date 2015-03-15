@@ -157,16 +157,17 @@ object Token
 
   object Pos
   {
-    val none: Pos = new Pos(0, 0, "")
-    val start: Pos = new Pos(1, 1, "")
-    val offset: Pos = new Pos(0, 1, "")
-    def file(file: String): Pos = new Pos(1, 1, file)
+    val none: Pos = new Pos(0, 0, "", "")
+    val start: Pos = new Pos(1, 1, "", "")
+    def file(file: String): Pos = new Pos(1, 1, file, "")
+    def id(id: String): Pos = new Pos(0, 1, "", id)
   }
 
   final class Pos private[Token](
       val line: Int,
       val offset: Symbol.Offset,
-      val file: String)
+      val file: String,
+      val id: String)
     extends scala.util.parsing.input.Position
   {
     def column = 0
@@ -181,14 +182,15 @@ object Token
         if (offset1 > 0) offset1 += 1
       }
       if (line1 == line && offset1 == offset) this
-      else new Pos(line1, offset1, file)
+      else new Pos(line1, offset1, file, id)
     }
 
     private def position(end_offset: Symbol.Offset): Position.T =
       (if (line > 0) Position.Line(line) else Nil) :::
       (if (offset > 0) Position.Offset(offset) else Nil) :::
       (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
-      (if (file != "") Position.File(file) else Nil)
+      (if (file != "") Position.File(file) else Nil) :::
+      (if (id != "") Position.Id_String(id) else Nil)
 
     def position(): Position.T = position(0)
     def position(token: Token): Position.T = position(advance(token).offset)

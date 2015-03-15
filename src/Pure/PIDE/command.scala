@@ -362,7 +362,7 @@ object Command
       case Command_Span.Command_Span(name, _) if syntax.is_theory_begin(name) =>
         val header =
           resources.check_thy_reader("", node_name,
-            new CharSequenceReader(span.source), Token.Pos.offset)
+            new CharSequenceReader(span.source), Token.Pos.id(Markup.COMMAND))
         val import_errors =
           for ((imp, pos) <- header.imports if !can_import(imp))
             yield "Bad theory import " + quote(imp.node) + Position.here(pos)
