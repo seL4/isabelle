@@ -39,7 +39,7 @@ object Keyword
   val PRF_SCRIPT = "prf_script"
 
 
-  /* categories */
+  /* command categories */
 
   val vacous = Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
 
@@ -49,6 +49,11 @@ object Keyword
   val document_body = Set(DOCUMENT_BODY)
   val document_raw = Set(DOCUMENT_RAW)
   val document = Set(DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
+
+  val theory_begin = Set(THY_BEGIN)
+  val theory_end = Set(THY_END)
+
+  val theory_load = Set(THY_LOAD)
 
   val theory = Set(THY_BEGIN, THY_END, THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 
@@ -139,6 +144,12 @@ object Keyword
 
     def command_kind(name: String): Option[String] = commands.get(name).map(_._1)
 
+    def is_command_kind(name: String, pred: String => Boolean): Boolean =
+      command_kind(name) match {
+        case Some(kind) => pred(kind)
+        case None => false
+      }
+
 
     /* load commands */
 
@@ -155,4 +166,3 @@ object Keyword
       load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
   }
 }
-

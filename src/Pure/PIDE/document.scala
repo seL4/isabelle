@@ -256,6 +256,8 @@ object Document
       Node.is_no_perspective_command(perspective) &&
       commands.isEmpty
 
+    def has_header: Boolean = header != Node.no_header
+
     def commands: Linear_Set[Command] = _commands.commands
     def load_commands: List[Command] = _commands.load_commands
 

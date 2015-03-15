@@ -28,23 +28,24 @@ object Command_Span
   {
     def length: Int = (0 /: content)(_ + _.source.length)
 
+    def source: String =
+      content match {
+        case List(tok) => tok.source
+        case toks => toks.map(_.source).mkString
+      }
+
     def compact_source: (String, Span) =
     {
-      val source: String =
-        content match {
-          case List(tok) => tok.source
-          case toks => toks.map(_.source).mkString
-        }
-
+      val src = source
       val content1 = new mutable.ListBuffer[Token]
       var i = 0
       for (Token(kind, s) <- content) {
         val n = s.length
-        val s1 = source.substring(i, i + n)
+        val s1 = src.substring(i, i + n)
         content1 += Token(kind, s1)
         i += n
       }
-      (source, Span(kind, content1.toList))
+      (src, Span(kind, content1.toList))
     }
   }
 

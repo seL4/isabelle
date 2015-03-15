@@ -365,7 +365,7 @@ fun blob_reports pos (blob_digest: blob_digest) =
 
 (* commands *)
 
-fun define_command command_id name command_blobs blobs_index toks =
+fun define_command command_id name blobs_digests blobs_index toks =
   map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
@@ -375,17 +375,19 @@ fun define_command command_id name command_blobs blobs_index toks =
             (fn () =>
               let
                 val (tokens, _) = fold_map Token.make toks (Position.id id);
-                val pos =
-                  Token.pos_of (nth tokens blobs_index)
-                    handle General.Subscript => Position.none;
                 val _ =
-                  if Position.is_reported pos then
-                    Position.reports
-                      ((pos, Markup.language_path) :: maps (blob_reports pos) command_blobs)
-                  else ();
+                  if blobs_index < 0
+                  then (*inlined errors*)
+                    map_filter Exn.get_exn blobs_digests
+                    |> List.app (Output.error_message o Runtime.exn_message)
+                  else (*auxiliary files*)
+                    let val pos = Token.pos_of (nth tokens blobs_index) in
+                      Position.reports
+                        ((pos, Markup.language_path) :: maps (blob_reports pos) blobs_digests)
+                    end;
               in tokens end) ());
       val commands' =
-        Inttab.update_new (command_id, (name, command_blobs, blobs_index, span)) commands
+        Inttab.update_new (command_id, (name, blobs_digests, blobs_index, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
       val _ =
         Position.setmp_thread_data (Position.id_only id)
