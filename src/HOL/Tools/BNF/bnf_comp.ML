@@ -8,6 +8,8 @@ Composition of bounded natural functors.
 
 signature BNF_COMP =
 sig
+  val bnf_inline_threshold: int Config.T
+
   val ID_bnf: BNF_Def.bnf
   val DEADID_bnf: BNF_Def.bnf
 
@@ -53,6 +55,8 @@ open BNF_Def
 open BNF_Util
 open BNF_Tactics
 open BNF_Comp_Tactics
+
+val bnf_inline_threshold = Attrib.setup_config_int @{binding bnf_inline_threshold} (K 5);
 
 val ID_bnf = the (bnf_of @{context} "BNF_Composition.ID");
 val DEADID_bnf = the (bnf_of @{context} "BNF_Composition.DEADID");
@@ -730,12 +734,12 @@ fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf}, _)) =
 val mk_abs = mk_abs_or_rep range_type;
 val mk_rep = mk_abs_or_rep domain_type;
 
-val smart_max_inline_type_size = 5; (*FUDGE*)
-
-fun maybe_typedef force_out_of_line (b, As, mx) set opt_morphs tac =
+fun maybe_typedef ctxt force_out_of_line (b, As, mx) set opt_morphs tac =
   let
+    val threshold = Config.get ctxt bnf_inline_threshold;
     val repT = HOLogic.dest_setT (fastype_of set);
-    val out_of_line = force_out_of_line orelse Term.size_of_typ repT > smart_max_inline_type_size;
+    val out_of_line = force_out_of_line orelse
+      (threshold >= 0 andalso Term.size_of_typ repT > threshold);
   in
     if out_of_line then
       typedef (b, As, mx) set opt_morphs tac
@@ -769,7 +773,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val T_bind = qualify b;
     val TA_params = Term.add_tfreesT repTA (if has_live_phantoms then As' else []);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
-      maybe_typedef has_live_phantoms (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
+      maybe_typedef lthy has_live_phantoms (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
         (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val repTB = mk_T_of_bnf Ds Bs bnf;
@@ -799,7 +803,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val all_deads = map TFree (fold Term.add_tfreesT Ds []);
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
-      maybe_typedef false (bdT_bind, params, NoSyn)
+      maybe_typedef lthy false (bdT_bind, params, NoSyn)
         (HOLogic.mk_UNIV bd_repT) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
