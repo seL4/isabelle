@@ -39,7 +39,7 @@ object Keyword
   val PRF_SCRIPT = "prf_script"
 
 
-  /* categories */
+  /* command categories */
 
   val vacous = Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
 
@@ -49,6 +49,9 @@ object Keyword
   val document_body = Set(DOCUMENT_BODY)
   val document_raw = Set(DOCUMENT_RAW)
   val document = Set(DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
+
+  val theory_begin = Set(THY_BEGIN)
+  val theory_end = Set(THY_END)
 
   val theory = Set(THY_BEGIN, THY_END, THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 

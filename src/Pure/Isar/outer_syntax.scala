@@ -235,7 +235,7 @@ final class Outer_Syntax private(
       case "subsubsection" => Some(3)
       case _ =>
         keywords.command_kind(command.name) match {
-          case Some(kind) if Keyword.theory(kind) && kind != Keyword.THY_END => Some(4)
+          case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(4)
           case _ => None
         }
     }
