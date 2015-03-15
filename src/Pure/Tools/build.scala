@@ -260,8 +260,9 @@ object Build
     def parse_entries(root: Path): List[(String, Session_Entry)] =
     {
       val toks = Token.explode(root_syntax.keywords, File.read(root))
+      val start = Token.Pos.file(root.implode)
 
-      parse_all(rep(chapter | session_entry), Token.reader(toks, root.implode)) match {
+      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
         case Success(result, _) =>
           var chapter = chapter_default
           val entries = new mutable.ListBuffer[(String, Session_Entry)]

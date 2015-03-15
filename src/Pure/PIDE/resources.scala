@@ -86,12 +86,12 @@ class Resources(
     }
   }
 
-  def check_thy_reader(qualifier: String, node_name: Document.Node.Name, reader: Reader[Char])
-    : Document.Node.Header =
+  def check_thy_reader(qualifier: String, node_name: Document.Node.Name,
+    reader: Reader[Char], start: Token.Pos): Document.Node.Header =
   {
     if (reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, node_name.node).decode_symbols
+        val header = Thy_Header.read(reader, start).decode_symbols
 
         val base_name = Long_Name.base_name(node_name.theory)
         val (name, pos) = header.name
@@ -108,8 +108,9 @@ class Resources(
     else Document.Node.no_header
   }
 
-  def check_thy(qualifier: String, name: Document.Node.Name): Document.Node.Header =
-    with_thy_reader(name, check_thy_reader(qualifier, name, _))
+  def check_thy(qualifier: String, name: Document.Node.Name, start: Token.Pos)
+    : Document.Node.Header =
+    with_thy_reader(name, check_thy_reader(qualifier, name, _, start))
 
   def check_file(file: String): Boolean =
     try {

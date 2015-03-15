@@ -110,7 +110,7 @@ object Options
     {
       val toks = Token.explode(syntax.keywords, File.read(file))
       val ops =
-        parse_all(rep(parser), Token.reader(toks, file.implode)) match {
+        parse_all(rep(parser), Token.reader(toks, Token.Pos.file(file.implode))) match {
           case Success(result, _) => result
           case bad => error(bad.toString)
         }

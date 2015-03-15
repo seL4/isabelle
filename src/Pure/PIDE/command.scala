@@ -10,6 +10,7 @@ package isabelle
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
+import scala.util.parsing.input.CharSequenceReader
 
 
 object Command
@@ -354,12 +355,14 @@ object Command
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
-    header: Document.Node.Header,
     span: Command_Span.Span): Blobs_Info =
   {
     span.kind match {
       // inlined errors
       case Command_Span.Command_Span(name, _) if syntax.is_theory_begin(name) =>
+        val header =
+          resources.check_thy_reader("", node_name,
+            new CharSequenceReader(span.source), Token.Pos.offset)
         val import_errors =
           for ((imp, pos) <- header.imports if !can_import(imp))
             yield "Bad theory import " + quote(imp.node) + Position.here(pos)

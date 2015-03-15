@@ -159,15 +159,13 @@ object Thy_Syntax
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
-    header: Document.Node.Header,
     commands: Linear_Set[Command],
     first: Command, last: Command): Linear_Set[Command] =
   {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       syntax.parse_spans(cmds0.iterator.map(_.source).mkString).map(span =>
-        (Command.blobs_info(resources, syntax, get_blob, can_import, node_name, header, span),
-          span))
+        (Command.blobs_info(resources, syntax, get_blob, can_import, node_name, span), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
@@ -213,7 +211,6 @@ object Thy_Syntax
     // FIXME somewhat slow
     def recover_spans(
       name: Document.Node.Name,
-      header: Document.Node.Header,
       perspective: Command.Perspective,
       commands: Linear_Set[Command]): Linear_Set[Command] =
     {
@@ -229,7 +226,7 @@ object Thy_Syntax
             val first = next_invisible(cmds.reverse, first_unparsed)
             val last = next_invisible(cmds, first_unparsed)
             recover(
-              reparse_spans(resources, syntax, get_blob, can_import, name, header, cmds, first, last))
+              reparse_spans(resources, syntax, get_blob, can_import, name, cmds, first, last))
           case None => cmds
         }
       recover(commands)
@@ -244,7 +241,7 @@ object Thy_Syntax
         if (name.is_theory) {
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
-          val commands2 = recover_spans(name, node.header, node.perspective.visible, commands1)
+          val commands2 = recover_spans(name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
         else node
@@ -274,8 +271,8 @@ object Thy_Syntax
                         last = it.next
                         i += last.length
                       }
-                      reparse_spans(resources, syntax, get_blob, can_import, name,
-                        node.header, commands, first_unfinished, last)
+                      reparse_spans(resources, syntax, get_blob, can_import,
+                        name, commands, first_unfinished, last)
                     case None => commands
                   }
                 case None => commands
@@ -330,7 +327,7 @@ object Thy_Syntax
               if (reparse_set(name) && commands.nonEmpty)
                 node.update_commands(
                   reparse_spans(resources, syntax, get_blob, can_import, name,
-                    node.header, commands, commands.head, commands.last))
+                    commands, commands.head, commands.last))
               else node
             val node2 =
               (node1 /: edits)(

@@ -158,7 +158,9 @@ object Token
   object Pos
   {
     val none: Pos = new Pos(0, 0, "")
-    def file(file: String): Pos = new Pos(0, 0, file)
+    val start: Pos = new Pos(1, 1, "")
+    val offset: Pos = new Pos(0, 1, "")
+    def file(file: String): Pos = new Pos(1, 1, file)
   }
 
   final class Pos private[Token](
@@ -203,8 +205,8 @@ object Token
     def atEnd = tokens.isEmpty
   }
 
-  def reader(tokens: List[Token], file: String): Reader =
-    new Token_Reader(tokens, Pos.file(file))
+  def reader(tokens: List[Token], start: Token.Pos): Reader =
+    new Token_Reader(tokens, start)
 }
 
 
