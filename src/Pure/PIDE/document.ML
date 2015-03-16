@@ -520,16 +520,24 @@ fun init_theory deps node span =
     val master_dir = master_directory node;
     val header = read_header node span;
     val imports = #imports header;
-    val parents =
-      imports |> map (fn (import, _) =>
+
+    fun maybe_end_theory pos st =
+      SOME (Toplevel.end_theory pos st)
+        handle ERROR msg => (Output.error_message msg; NONE);
+    val parents_reports =
+      imports |> map_filter (fn (import, pos) =>
         (case loaded_theory import of
-          SOME thy => thy
-        | NONE =>
-            Toplevel.end_theory (Position.file_only import)
+          NONE =>
+            maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
                 NONE => Toplevel.toplevel
-              | SOME eval => Command.eval_result_state eval)));
-    val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
+              | SOME eval => Command.eval_result_state eval)
+        | some => some)
+        |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));
+
+    val parents =
+      if null parents_reports then [Thy_Info.get_theory "Pure"] else map #1 parents_reports;
+    val _ = Position.reports (map #2 parents_reports);
   in Resources.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
