@@ -744,7 +744,7 @@ object Build
   {
     /* session tree and dependencies */
 
-    val full_tree = find_sessions(options, dirs, select_dirs)
+    val full_tree = find_sessions(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
 
