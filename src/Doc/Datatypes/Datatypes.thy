@@ -1001,6 +1001,9 @@ The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
 @{thm list.rel_map(1)[no_vars]} \\
 @{thm list.rel_map(2)[no_vars]}
 
+\item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
+@{thm list.rel_refl[no_vars]}
+
 \item[@{text "t."}\hthm{rel_mono} @{text "[mono, relator_mono]"}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]} \\
 The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
