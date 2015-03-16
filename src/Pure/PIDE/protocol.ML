@@ -82,7 +82,7 @@ val _ =
                               (list YXML.string_of_body)))) a;
                         val imports' = map (rpair Position.none) imports;
                         val header = Thy_Header.make (name, Position.none) imports' keywords;
-                      in Document.Deps (master, header, errors) end,
+                      in Document.Deps {master = master, header = header, errors = errors} end,
                     fn (a :: b, c) =>
                       Document.Perspective (bool_atom a, map int_atom b,
                         list (pair int (pair string (list string))) c)]))
