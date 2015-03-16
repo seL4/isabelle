@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/batch_session.scala
+/*  Title:      Pure/PIDE/batch_session.scala
     Author:     Makarius
 
 PIDE session in batch mode.

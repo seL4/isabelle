@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/completion.ML
+(*  Title:      Pure/General/completion.ML
     Author:     Makarius
 
 Semantic completion within the formal context.

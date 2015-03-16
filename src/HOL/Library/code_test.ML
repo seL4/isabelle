@@ -1,4 +1,4 @@
-(*  Title:      Code_Test.ML
+(*  Title:      HOL/Library/code_test.ML
     Author:     Andreas Lochbihler, ETH Zurich
 
 Test infrastructure for the code generator

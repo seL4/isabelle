@@ -1,4 +1,4 @@
-/*  Title:      Pure/GUI/jfx_thread.scala
+/*  Title:      Pure/GUI/jfx_gui.scala
     Module:     PIDE-JFX
     Author:     Makarius
 

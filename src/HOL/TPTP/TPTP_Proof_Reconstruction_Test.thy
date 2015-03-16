@@ -1,4 +1,4 @@
-(*  Title:      HOL/TPTP/TPTP_Proof_Reconstruction.thy
+(*  Title:      HOL/TPTP/TPTP_Proof_Reconstruction_Test.thy
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
 Various tests for the proof reconstruction module.

@@ -1,4 +1,4 @@
-/*  Title:      Pure/ML/antiquote.scala
+/*  Title:      Pure/General/antiquote.scala
     Author:     Makarius
 
 Antiquotations within plain text.
