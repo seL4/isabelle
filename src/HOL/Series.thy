@@ -10,8 +10,8 @@ Additional contributions by Jeremy Avigad
 section {* Infinite Series *}
 
 theory Series
-imports Limits
-begin
+imports Limits Inequalities
+begin 
 
 subsection {* Definition of infinite summability *}
 
@@ -575,14 +575,6 @@ text {*
   Proof based on Analysis WebNotes: Chapter 07, Class 41
   @{url "http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm"}
 *}
-
-lemma setsum_triangle_reindex:
-  fixes n :: nat
-  shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-  apply (simp add: setsum.Sigma)
-  apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
-  apply auto
-  done
 
 lemma Cauchy_product_sums:
   fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
