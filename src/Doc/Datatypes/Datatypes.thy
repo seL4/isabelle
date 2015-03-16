@@ -552,7 +552,8 @@ mention exactly the same type variables in the same order.
 \noindent
 The main constituents of a constructor specification are the name of the
 constructor and the list of its argument types. An optional discriminator name
-can be supplied at the front to override the default, which is
+can be supplied at the front. If discriminators are enabled (cf.\ the
+@{text "discs_sels"} option) but no name is supplied, the default is
 @{text "\<lambda>x. x = C\<^sub>j"} for nullary constructors and
 @{text t.is_C\<^sub>j} otherwise.
 
@@ -566,9 +567,10 @@ can be supplied at the front to override the default, which is
 The syntactic entity \synt{type} denotes a HOL type @{cite "isabelle-isar-ref"}.
 
 In addition to the type of a constructor argument, it is possible to specify a
-name for the corresponding selector to override the default name
-(@{text un_C\<^sub>ji}). The same selector names can be reused for several
-constructors as long as they share the same type.
+name for the corresponding selector. The same selector name can be reused for
+arguments to several constructors as long as the arguments share the same type.
+If selectors are enabled (cf.\ the @{text "discs_sels"} option) but no name is
+supplied, the default name is @{text un_C\<^sub>ji}.
 *}
 
 
@@ -614,9 +616,7 @@ generated under their usual names but with ``@{text "compat_"}'' prefixed
 @{text compat_tree.rec}).
 
 \item All types through which recursion takes place must be new-style datatypes
-or the function type. In principle, it should be possible to support old-style
-datatypes as well, but this has not been implemented yet (and there is currently
-no way to register old-style datatypes as new-style datatypes).
+or the function type.
 \end{itemize}
 *}
 
@@ -625,7 +625,7 @@ subsection {* Generated Constants
   \label{ssec:datatype-generated-constants} *}
 
 text {*
-Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m > 0$ live type variables
+Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m$ live type variables
 and $n$ constructors @{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the following
 auxiliary constants are introduced:
 
@@ -653,6 +653,10 @@ Recursor: &
 \medskip
 
 \noindent
+The discriminators and selectors are generated only if the @{text "discs_sels"}
+option is enabled or if names are specified for discriminators or selectors.
+The set functions, map function, and relator are generated only if $m > 0$.
+
 In addition, some of the plugins introduce their own constants
 (Section~\ref{sec:selecting-plugins}). The case combinator, discriminators,
 and selectors are collectively called \emph{destructors}. The prefix
@@ -3226,8 +3230,8 @@ suggested major simplifications to the internal constructions. Ond\v{r}ej
 Kun\v{c}ar implemented the @{text transfer} and @{text lifting} plugins.
 Florian Haftmann and Christian Urban provided general advice on Isabelle and
 package writing. Stefan Milius and Lutz Schr\"oder found an elegant proof that
-eliminated one of the BNF proof obligations. Andreas Lochbihler and Christian
-Sternagel suggested many textual improvements to this tutorial.
+eliminated one of the BNF proof obligations. Andreas Lochbihler, Tobias Nipkow,
+and Christian Sternagel suggested many textual improvements to this tutorial.
 *}
 
 end
