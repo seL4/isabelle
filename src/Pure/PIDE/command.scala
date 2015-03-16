@@ -234,7 +234,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol.message_positions(
+                  range <- Protocol_Message.positions(
                     self_id, command.position, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }

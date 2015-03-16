@@ -186,34 +186,6 @@ object Protocol
 
   /* result messages */
 
-  private val clean_elements =
-    Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
-
-  def clean_message(body: XML.Body): XML.Body =
-    body filter {
-      case XML.Wrapped_Elem(Markup(name, _), _, _) => !clean_elements(name)
-      case XML.Elem(Markup(name, _), _) => !clean_elements(name)
-      case _ => true
-    } map {
-      case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_message(ts))
-      case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts))
-      case t => t
-    }
-
-  def message_reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
-    body flatMap {
-      case XML.Wrapped_Elem(Markup(Markup.REPORT, ps), body, ts) =>
-        List(XML.Wrapped_Elem(Markup(Markup.REPORT, props ::: ps), body, ts))
-      case XML.Elem(Markup(Markup.REPORT, ps), ts) =>
-        List(XML.Elem(Markup(Markup.REPORT, props ::: ps), ts))
-      case XML.Wrapped_Elem(_, _, ts) => message_reports(props, ts)
-      case XML.Elem(_, ts) => message_reports(props, ts)
-      case XML.Text(_) => Nil
-    }
-
-
-  /* specific messages */
-
   def is_result(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.RESULT, _), _) => true
@@ -301,53 +273,6 @@ object Protocol
         case XML.Elem(Markup(Markup.RESULT, _), List(XML.Text(result))) => Some(result)
         case _ => None
       }
-  }
-
-
-  /* reported positions */
-
-  private val position_elements =
-    Markup.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
-
-  def message_positions(
-    self_id: Document_ID.Generic => Boolean,
-    command_position: Position.T,
-    chunk_name: Symbol.Text_Chunk.Name,
-    chunk: Symbol.Text_Chunk,
-    message: XML.Elem): Set[Text.Range] =
-  {
-    def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
-      props match {
-        case Position.Identified(id, name) if self_id(id) && name == chunk_name =>
-          val opt_range =
-            Position.Range.unapply(props) orElse {
-              if (name == Symbol.Text_Chunk.Default)
-                Position.Range.unapply(command_position)
-              else None
-            }
-          opt_range match {
-            case Some(symbol_range) =>
-              chunk.incorporate(symbol_range) match {
-                case Some(range) => set + range
-                case _ => set
-              }
-            case None => set
-          }
-        case _ => set
-      }
-
-    def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
-      tree match {
-        case XML.Wrapped_Elem(Markup(name, props), _, body) =>
-          body.foldLeft(if (position_elements(name)) elem_positions(props, set) else set)(positions)
-        case XML.Elem(Markup(name, props), body) =>
-          body.foldLeft(if (position_elements(name)) elem_positions(props, set) else set)(positions)
-        case XML.Text(_) => set
-      }
-
-    val set = positions(Set.empty, message)
-    if (set.isEmpty) elem_positions(message.markup.properties, set)
-    else set
   }
 }
 

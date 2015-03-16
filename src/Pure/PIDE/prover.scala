@@ -108,8 +108,8 @@ abstract class Prover(
   {
     if (kind == Markup.INIT) system_channel.accepted()
 
-    val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
-    val reports = Protocol.message_reports(props, body)
+    val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
+    val reports = Protocol_Message.reports(props, body)
     for (msg <- main :: reports) receiver(new Prover.Output(xml_cache.elem(msg)))
   }
 

@@ -64,6 +64,7 @@ declare -a SOURCES=(
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
+  PIDE/protocol_message.scala
   PIDE/prover.scala
   PIDE/query_operation.scala
   PIDE/resources.scala
