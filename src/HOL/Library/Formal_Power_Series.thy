@@ -8,6 +8,7 @@ theory Formal_Power_Series
 imports Complex_Main
 begin
 
+lemmas fact_Suc = fact.simps(2)
 
 subsection {* The type of formal power series*}
 
@@ -2866,7 +2867,7 @@ proof -
     fix n
     have "?l$n = ?r $ n"
       apply (auto simp add: E_def field_simps power_Suc[symmetric]
-        simp del: fact_Suc of_nat_Suc power_Suc)
+        simp del: fact.simps of_nat_Suc power_Suc)
       apply (simp add: of_nat_mult field_simps)
       done
   }
@@ -2882,11 +2883,11 @@ proof
     by (simp add: fps_deriv_def fps_eq_iff field_simps del: of_nat_Suc)
   {
     fix n
-    have "a$n = a$0 * c ^ n/ (of_nat (fact n))"
+    have "a$n = a$0 * c ^ n/ (fact n)"
       apply (induct n)
       apply simp
       unfolding th
-      using fact_gt_zero_nat
+      using fact_gt_zero
       apply (simp add: field_simps del: of_nat_Suc fact_Suc)
       apply (drule sym)
       apply (simp add: field_simps of_nat_mult)
@@ -2984,33 +2985,6 @@ lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
   apply (auto simp add: fps_eq_iff E_def fps_compose_def power_mult_distrib)
   apply (simp add: cond_value_iff cond_application_beta setsum.delta' cong del: if_weak_cong)
   done
-
-text{* The generalized binomial theorem as a  consequence of @{thm E_add_mult} *}
-
-lemma gbinomial_theorem:
-  "((a::'a::{field_char_0,field_inverse_zero})+b) ^ n =
-    (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
-proof -
-  from E_add_mult[of a b]
-  have "(E (a + b)) $ n = (E a * E b)$n" by simp
-  then have "(a + b) ^ n =
-    (\<Sum>i::nat = 0::nat..n. a ^ i * b ^ (n - i)  * (of_nat (fact n) / of_nat (fact i * fact (n - i))))"
-    by (simp add: field_simps fps_mult_nth of_nat_mult[symmetric] setsum_right_distrib)
-  then show ?thesis
-    apply simp
-    apply (rule setsum.cong)
-    apply simp_all
-    apply (frule binomial_fact[where ?'a = 'a, symmetric])
-    apply (simp add: field_simps of_nat_mult)
-    done
-qed
-
-text{* And the nat-form -- also available from Binomial.thy *}
-lemma binomial_theorem: "(a+b) ^ n = (\<Sum>k=0..n. (n choose k) * a^k * b^(n-k))"
-  using gbinomial_theorem[of "of_nat a" "of_nat b" n]
-  unfolding of_nat_add[symmetric] of_nat_power[symmetric] of_nat_mult[symmetric]
-    of_nat_setsum[symmetric]
-  by simp
 
 
 subsubsection{* Logarithmic series *}
@@ -3290,7 +3264,7 @@ proof -
           unfolding m1nk
           unfolding m h pochhammer_Suc_setprod
           apply (simp add: field_simps del: fact_Suc)
-          unfolding fact_altdef_nat id_def
+          unfolding fact_altdef id_def
           unfolding of_nat_setprod
           unfolding setprod.distrib[symmetric]
           apply auto
@@ -3823,7 +3797,7 @@ proof
         THEN spec, of "\<lambda>x. x < e"]
       have "eventually (\<lambda>i. inverse (2 ^ i) < e) sequentially"
         apply safe
-        apply (auto simp: eventually_nhds)
+        apply (auto simp: eventually_nhds) --{*slow*}
         done
       then obtain i where "inverse (2 ^ i) < e" by (auto simp: eventually_sequentially)
       have "eventually (\<lambda>x. M i \<le> x) sequentially" by (auto simp: eventually_sequentially)

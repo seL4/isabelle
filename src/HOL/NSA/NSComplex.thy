@@ -654,5 +654,4 @@ lemma hcomplex_numeral_hIm [simp]:
       "hIm(numeral v :: hcomplex) = 0"
 by transfer (rule complex_Im_numeral)
 
-(* TODO: add neg_numeral rules above *)
 end

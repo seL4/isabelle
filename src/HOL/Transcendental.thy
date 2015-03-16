@@ -10,6 +10,12 @@ theory Transcendental
 imports Binomial Series Deriv NthRoot
 begin
 
+lemma of_real_fact [simp]: "of_real (fact n) = fact n"
+  by (metis of_nat_fact of_real_of_nat_eq)
+
+lemma real_fact_nat [simp]: "real (fact n :: nat) = fact n"
+  by (simp add: real_of_nat_def)
+
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" -- "could be weakened to lim sup"
@@ -54,13 +60,13 @@ lemma lemma_realpow_diff_sumr2:
       (x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))"
 proof (induct n)
   case (Suc n)
-  have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x ^ n) - y * (y * y ^ n)"
+  have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x^n) - y * (y * y ^ n)"
     by simp
-  also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x ^ n)"
+  also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x^n)"
     by (simp add: algebra_simps)
-  also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
+  also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: Suc)
-  also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
+  also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: mult.left_commute)
   also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
     by (simp add: field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
@@ -100,40 +106,40 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 
 lemma powser_insidea:
   fixes x z :: "'a::real_normed_div_algebra"
-  assumes 1: "summable (\<lambda>n. f n * x ^ n)"
+  assumes 1: "summable (\<lambda>n. f n * x^n)"
     and 2: "norm z < norm x"
   shows "summable (\<lambda>n. norm (f n * z ^ n))"
 proof -
   from 2 have x_neq_0: "x \<noteq> 0" by clarsimp
-  from 1 have "(\<lambda>n. f n * x ^ n) ----> 0"
+  from 1 have "(\<lambda>n. f n * x^n) ----> 0"
     by (rule summable_LIMSEQ_zero)
-  hence "convergent (\<lambda>n. f n * x ^ n)"
+  hence "convergent (\<lambda>n. f n * x^n)"
     by (rule convergentI)
-  hence "Cauchy (\<lambda>n. f n * x ^ n)"
+  hence "Cauchy (\<lambda>n. f n * x^n)"
     by (rule convergent_Cauchy)
-  hence "Bseq (\<lambda>n. f n * x ^ n)"
+  hence "Bseq (\<lambda>n. f n * x^n)"
     by (rule Cauchy_Bseq)
-  then obtain K where 3: "0 < K" and 4: "\<forall>n. norm (f n * x ^ n) \<le> K"
+  then obtain K where 3: "0 < K" and 4: "\<forall>n. norm (f n * x^n) \<le> K"
     by (simp add: Bseq_def, safe)
   have "\<exists>N. \<forall>n\<ge>N. norm (norm (f n * z ^ n)) \<le>
-                   K * norm (z ^ n) * inverse (norm (x ^ n))"
+                   K * norm (z ^ n) * inverse (norm (x^n))"
   proof (intro exI allI impI)
     fix n::nat
     assume "0 \<le> n"
-    have "norm (norm (f n * z ^ n)) * norm (x ^ n) =
-          norm (f n * x ^ n) * norm (z ^ n)"
+    have "norm (norm (f n * z ^ n)) * norm (x^n) =
+          norm (f n * x^n) * norm (z ^ n)"
       by (simp add: norm_mult abs_mult)
     also have "\<dots> \<le> K * norm (z ^ n)"
       by (simp only: mult_right_mono 4 norm_ge_zero)
-    also have "\<dots> = K * norm (z ^ n) * (inverse (norm (x ^ n)) * norm (x ^ n))"
+    also have "\<dots> = K * norm (z ^ n) * (inverse (norm (x^n)) * norm (x^n))"
       by (simp add: x_neq_0)
-    also have "\<dots> = K * norm (z ^ n) * inverse (norm (x ^ n)) * norm (x ^ n)"
+    also have "\<dots> = K * norm (z ^ n) * inverse (norm (x^n)) * norm (x^n)"
       by (simp only: mult.assoc)
     finally show "norm (norm (f n * z ^ n)) \<le>
-                  K * norm (z ^ n) * inverse (norm (x ^ n))"
+                  K * norm (z ^ n) * inverse (norm (x^n))"
       by (simp add: mult_le_cancel_right x_neq_0)
   qed
-  moreover have "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x ^ n)))"
+  moreover have "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x^n)))"
   proof -
     from 2 have "norm (norm (z * inverse x)) < 1"
       using x_neq_0
@@ -142,7 +148,7 @@ proof -
       by (rule summable_geometric)
     hence "summable (\<lambda>n. K * norm (z * inverse x) ^ n)"
       by (rule summable_mult)
-    thus "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x ^ n)))"
+    thus "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x^n)))"
       using x_neq_0
       by (simp add: norm_mult nonzero_norm_inverse power_mult_distrib
                     power_inverse norm_power mult.assoc)
@@ -154,7 +160,7 @@ qed
 lemma powser_inside:
   fixes f :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   shows
-    "summable (\<lambda>n. f n * (x ^ n)) \<Longrightarrow> norm z < norm x \<Longrightarrow>
+    "summable (\<lambda>n. f n * (x^n)) \<Longrightarrow> norm z < norm x \<Longrightarrow>
       summable (\<lambda>n. f n * (z ^ n))"
   by (rule powser_insidea [THEN summable_norm_cancel])
 
@@ -581,7 +587,7 @@ lemma termdiffs_aux:
   fixes x :: "'a::{real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
     and 2: "norm x < norm K"
-  shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h
+  shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x^n) / h
              - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
 proof -
   from dense [OF 2]
@@ -629,7 +635,7 @@ proof -
     hence "norm x + norm h < r" by simp
     with norm_triangle_ineq have xh: "norm (x + h) < r"
       by (rule order_le_less_trans)
-    show "norm (c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))
+    show "norm (c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0)))
           \<le> norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2) * norm h"
       apply (simp only: norm_mult mult.assoc)
       apply (rule mult_left_mono [OF _ norm_ge_zero])
@@ -645,11 +651,11 @@ lemma termdiffs:
       and 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
       and 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
       and 4: "norm x < norm K"
-  shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
+  shows "DERIV (\<lambda>x. \<Sum>n. c n * x^n) x :> (\<Sum>n. (diffs c) n * x^n)"
   unfolding DERIV_def
 proof (rule LIM_zero_cancel)
-  show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x ^ n)) / h
-            - suminf (\<lambda>n. diffs c n * x ^ n)) -- 0 --> 0"
+  show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x^n)) / h
+            - suminf (\<lambda>n. diffs c n * x^n)) -- 0 --> 0"
   proof (rule LIM_equal2)
     show "0 < norm K - norm x" using 4 by (simp add: less_diff_eq)
   next
@@ -658,18 +664,18 @@ proof (rule LIM_zero_cancel)
     hence "norm x + norm h < norm K" by simp
     hence 5: "norm (x + h) < norm K"
       by (rule norm_triangle_ineq [THEN order_le_less_trans])
-    have "summable (\<lambda>n. c n * x ^ n)"
+    have "summable (\<lambda>n. c n * x^n)"
       and "summable (\<lambda>n. c n * (x + h) ^ n)"
-      and "summable (\<lambda>n. diffs c n * x ^ n)"
+      and "summable (\<lambda>n. diffs c n * x^n)"
       using 1 2 4 5 by (auto elim: powser_inside)
-    then have "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
-          (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h - of_nat n * c n * x ^ (n - Suc 0))"
+    then have "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x^n)) / h - (\<Sum>n. diffs c n * x^n) =
+          (\<Sum>n. (c n * (x + h) ^ n - c n * x^n) / h - of_nat n * c n * x ^ (n - Suc 0))"
       by (intro sums_unique sums_diff sums_divide diffs_equiv summable_sums)
-    then show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
-          (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
+    then show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x^n)) / h - (\<Sum>n. diffs c n * x^n) =
+          (\<Sum>n. c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0)))"
       by (simp add: algebra_simps)
   next
-    show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
+    show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
       by (rule termdiffs_aux [OF 3 4])
   qed
 qed
@@ -889,7 +895,7 @@ proof -
           fix n
           have le: "\<bar>f n\<bar> * 1 \<le> \<bar>f n\<bar> * real (Suc n)"
             by (rule mult_left_mono) auto
-          show "norm (f n * x ^ n) \<le> norm (f n * real (Suc n) * x ^ n)"
+          show "norm (f n * x^n) \<le> norm (f n * real (Suc n) * x^n)"
             unfolding real_norm_def abs_mult
             by (rule mult_right_mono) (auto simp add: le[unfolded mult_1_right])
         qed (rule powser_insidea[OF converges[OF `R' \<in> {-R <..< R}`] `norm x < norm R'`])
@@ -925,14 +931,14 @@ qed
 subsection {* Exponential Function *}
 
 definition exp :: "'a \<Rightarrow> 'a::{real_normed_algebra_1,banach}"
-  where "exp = (\<lambda>x. \<Sum>n. x ^ n /\<^sub>R real (fact n))"
+  where "exp = (\<lambda>x. \<Sum>n. x^n /\<^sub>R fact n)"
 
 lemma summable_exp_generic:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
-  defines S_def: "S \<equiv> \<lambda>n. x ^ n /\<^sub>R real (fact n)"
+  defines S_def: "S \<equiv> \<lambda>n. x^n /\<^sub>R fact n"
   shows "summable S"
 proof -
-  have S_Suc: "\<And>n. S (Suc n) = (x * S n) /\<^sub>R real (Suc n)"
+  have S_Suc: "\<And>n. S (Suc n) = (x * S n) /\<^sub>R (Suc n)"
     unfolding S_def by (simp del: mult_Suc)
   obtain r :: real where r0: "0 < r" and r1: "r < 1"
     using dense [OF zero_less_one] by fast
@@ -959,26 +965,29 @@ qed
 
 lemma summable_norm_exp:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
-  shows "summable (\<lambda>n. norm (x ^ n /\<^sub>R real (fact n)))"
+  shows "summable (\<lambda>n. norm (x^n /\<^sub>R fact n))"
 proof (rule summable_norm_comparison_test [OF exI, rule_format])
-  show "summable (\<lambda>n. norm x ^ n /\<^sub>R real (fact n))"
+  show "summable (\<lambda>n. norm x^n /\<^sub>R fact n)"
     by (rule summable_exp_generic)
   fix n
-  show "norm (x ^ n /\<^sub>R real (fact n)) \<le> norm x ^ n /\<^sub>R real (fact n)"
+  show "norm (x^n /\<^sub>R fact n) \<le> norm x^n /\<^sub>R fact n"
     by (simp add: norm_power_ineq)
 qed
 
-lemma summable_exp: "summable (\<lambda>n. inverse (real (fact n)) * x ^ n)"
-  using summable_exp_generic [where x=x] by simp
+lemma summable_exp: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "summable (\<lambda>n. inverse (fact n) * x^n)"
+  using summable_exp_generic [where x=x]
+  by (simp add: scaleR_conv_of_real nonzero_of_real_inverse)
 
-lemma exp_converges: "(\<lambda>n. x ^ n /\<^sub>R real (fact n)) sums exp x"
+lemma exp_converges: "(\<lambda>n. x^n /\<^sub>R fact n) sums exp x"
   unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
-
 lemma exp_fdiffs:
-      "diffs (\<lambda>n. inverse(real (fact n))) = (\<lambda>n. inverse(real (fact n)))"
-  by (simp add: diffs_def mult.assoc [symmetric] real_of_nat_def of_nat_mult
-        del: mult_Suc of_nat_Suc)
+  fixes XXX :: "'a::{real_normed_field,banach}"
+  shows "diffs (\<lambda>n. inverse (fact n)) = (\<lambda>n. inverse (fact n :: 'a))"
+  by (simp add: diffs_def mult_ac nonzero_inverse_mult_distrib nonzero_of_real_inverse
+           del: mult_Suc of_nat_Suc)
 
 lemma diffs_of_real: "diffs (\<lambda>n. of_real (f n)) = (\<lambda>n. of_real (diffs f n))"
   by (simp add: diffs_def)
@@ -997,7 +1006,7 @@ declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
 lemma norm_exp: "norm (exp x) \<le> exp (norm x)"
 proof -
   from summable_norm[OF summable_norm_exp, of x]
-  have "norm (exp x) \<le> (\<Sum>n. inverse (real (fact n)) * norm (x ^ n))"
+  have "norm (exp x) \<le> (\<Sum>n. inverse (fact n) * norm (x^n))"
     by (simp add: exp_def)
   also have "\<dots> \<le> exp (norm x)"
     using summable_exp_generic[of "norm x"] summable_norm_exp[of x]
@@ -1047,7 +1056,7 @@ lemma exp_zero [simp]: "exp 0 = 1"
 
 lemma exp_series_add_commuting:
   fixes x y :: "'a::{real_normed_algebra_1, banach}"
-  defines S_def: "S \<equiv> \<lambda>x n. x ^ n /\<^sub>R real (fact n)"
+  defines S_def: "S \<equiv> \<lambda>x n. x^n /\<^sub>R fact n"
   assumes comm: "x * y = y * x"
   shows "S (x + y) n = (\<Sum>i\<le>n. S x i * S y (n - i))"
 proof (induct n)
@@ -1182,9 +1191,9 @@ lemma exp_ge_add_one_self_aux:
 using order_le_imp_less_or_eq [OF assms]
 proof
   assume "0 < x"
-  have "1+x \<le> (\<Sum>n<2. inverse (real (fact n)) * x ^ n)"
+  have "1+x \<le> (\<Sum>n<2. inverse (fact n) * x^n)"
     by (auto simp add: numeral_2_eq_2)
-  also have "... \<le> (\<Sum>n. inverse (real (fact n)) * x ^ n)"
+  also have "... \<le> (\<Sum>n. inverse (fact n) * x^n)"
     apply (rule setsum_le_suminf [OF summable_exp])
     using `0 < x`
     apply (auto  simp add:  zero_le_mult_iff)
@@ -1297,7 +1306,7 @@ lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
 lemma ln_div: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x / y) = ln x - ln y"
   by (rule ln_unique) (simp add: exp_diff)
 
-lemma ln_realpow: "0 < x \<Longrightarrow> ln (x ^ n) = real n * ln x"
+lemma ln_realpow: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
   by (rule ln_unique) (simp add: exp_real_of_nat_mult)
 
 lemma ln_less_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
@@ -1424,7 +1433,7 @@ proof -
       fix x :: real
       assume "x \<in> {- 1<..<1}"
       hence "norm (-x) < 1" by auto
-      show "summable (\<lambda>n. (- 1) ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
+      show "summable (\<lambda>n. (- 1) ^ n * (1 / real (n + 1)) * real (Suc n) * x^n)"
         unfolding One_nat_def
         by (auto simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
     qed
@@ -1439,12 +1448,14 @@ proof -
   thus ?thesis by auto
 qed
 
-lemma exp_first_two_terms: "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) * (x ^ (n+2)))"
+lemma exp_first_two_terms:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) * (x ^ (n+2)))"
 proof -
-  have "exp x = suminf (\<lambda>n. inverse(fact n) * (x ^ n))"
-    by (simp add: exp_def)
+  have "exp x = suminf (\<lambda>n. inverse(fact n) * (x^n))"
+    by (simp add: exp_def scaleR_conv_of_real nonzero_of_real_inverse)
   also from summable_exp have "... = (\<Sum> n. inverse(fact(n+2)) * (x ^ (n+2))) +
-    (\<Sum> n::nat<2. inverse(fact n) * (x ^ n))" (is "_ = _ + ?a")
+    (\<Sum> n::nat<2. inverse(fact n) * (x^n))" (is "_ = _ + ?a")
     by (rule suminf_split_initial_segment)
   also have "?a = 1 + x"
     by (simp add: numeral_2_eq_2)
@@ -1458,21 +1469,22 @@ proof -
   assume b: "x <= 1"
   {
     fix n :: nat
-    have "2 * 2 ^ n \<le> fact (n + 2)"
+    have "(2::nat) * 2 ^ n \<le> fact (n + 2)"
       by (induct n) simp_all
-    hence "real ((2::nat) * 2 ^ n) \<le> real (fact (n + 2))"
+    hence "real ((2::nat) * 2 ^ n) \<le> real_of_nat (fact (n + 2))"
       by (simp only: real_of_nat_le_iff)
-    hence "2 * 2 ^ n \<le> real (fact (n + 2))"
-      by simp
-    hence "inverse (fact (n + 2)) \<le> inverse (2 * 2 ^ n)"
+    hence "((2::real) * 2 ^ n) \<le> fact (n + 2)"
+      unfolding of_nat_fact real_of_nat_def
+      by (simp add: of_nat_mult of_nat_power)
+    hence "inverse (fact (n + 2)) \<le> inverse ((2::real) * 2 ^ n)"
       by (rule le_imp_inverse_le) simp
-    hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
+    hence "inverse (fact (n + 2)) \<le> 1/(2::real) * (1/2)^n"
       by (simp add: power_inverse)
     hence "inverse (fact (n + 2)) * (x^n * x\<^sup>2) \<le> 1/2 * (1/2)^n * (1 * x\<^sup>2)"
       by (rule mult_mono)
         (rule mult_mono, simp_all add: power_le_one a b)
     hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<^sup>2/2) * ((1/2)^n)"
-      unfolding power_add by (simp add: ac_simps del: fact_Suc) }
+      unfolding power_add by (simp add: ac_simps del: fact.simps) }
   note aux1 = this
   have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
     by (intro sums_mult geometric_sums, simp)
@@ -2140,7 +2152,7 @@ by(simp add: log_def ln_root)
 lemma log_powr: "log b (x powr y) = y * log b x"
   by (simp add: log_def ln_powr)
 
-lemma log_nat_power: "0 < x \<Longrightarrow> log b (x ^ n) = real n * log b x"
+lemma log_nat_power: "0 < x \<Longrightarrow> log b (x^n) = real n * log b x"
   by (simp add: log_powr powr_realpow [symmetric])
 
 lemma log_base_change: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log b x = log a x / log a b"
@@ -2342,10 +2354,10 @@ qed auto
 subsection {* Sine and Cosine *}
 
 definition sin_coeff :: "nat \<Rightarrow> real" where
-  "sin_coeff = (\<lambda>n. if even n then 0 else (- 1) ^ ((n - Suc 0) div 2) / real (fact n))"
+  "sin_coeff = (\<lambda>n. if even n then 0 else (- 1) ^ ((n - Suc 0) div 2) / (fact n))"
 
 definition cos_coeff :: "nat \<Rightarrow> real" where
-  "cos_coeff = (\<lambda>n. if even n then ((- 1) ^ (n div 2)) / real (fact n) else 0)"
+  "cos_coeff = (\<lambda>n. if even n then ((- 1) ^ (n div 2)) / (fact n) else 0)"
 
 definition sin :: "'a \<Rightarrow> 'a::{real_normed_algebra_1,banach}"
   where "sin = (\<lambda>x. \<Sum>n. sin_coeff n *\<^sub>R x^n)"
@@ -2377,7 +2389,7 @@ lemma summable_norm_sin:
 
 lemma summable_norm_cos:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
-  shows "summable (\<lambda>n. norm (cos_coeff n *\<^sub>R x ^ n))"
+  shows "summable (\<lambda>n. norm (cos_coeff n *\<^sub>R x^n))"
   unfolding cos_coeff_def
   apply (rule summable_comparison_test [OF _ summable_norm_exp [where x=x]])
   apply (auto simp: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
@@ -2398,7 +2410,7 @@ proof -
   have "(\<lambda>n. of_real (sin_coeff n *\<^sub>R  x^n)) = (\<lambda>n. sin_coeff n *\<^sub>R  (of_real x)^n)"
   proof
     fix n
-    show "of_real (sin_coeff n *\<^sub>R  x ^ n) = sin_coeff n *\<^sub>R of_real x ^ n"
+    show "of_real (sin_coeff n *\<^sub>R  x^n) = sin_coeff n *\<^sub>R of_real x^n"
       by (simp add: scaleR_conv_of_real)
   qed
   also have "... sums (sin (of_real x))"
@@ -2416,7 +2428,7 @@ proof -
   have "(\<lambda>n. of_real (cos_coeff n *\<^sub>R  x^n)) = (\<lambda>n. cos_coeff n *\<^sub>R  (of_real x)^n)"
   proof
     fix n
-    show "of_real (cos_coeff n *\<^sub>R  x ^ n) = cos_coeff n *\<^sub>R of_real x ^ n"
+    show "of_real (cos_coeff n *\<^sub>R  x^n) = cos_coeff n *\<^sub>R of_real x^n"
       by (simp add: scaleR_conv_of_real)
   qed
   also have "... sums (cos (of_real x))"
@@ -2549,7 +2561,7 @@ lemma cos_x_cos_y:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(\<lambda>p. \<Sum>n\<le>p.
           if even p \<and> even n
-          then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
+          then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
          sums (cos x * cos y)"
 proof -
   { fix n p::nat
@@ -2557,12 +2569,12 @@ proof -
     then have *: "even n \<Longrightarrow> even p \<Longrightarrow> (-1) ^ (n div 2) * (-1) ^ ((p - n) div 2) = (-1 :: real) ^ (p div 2)"
       by (metis div_add power_add le_add_diff_inverse odd_add)
     have "(cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) =
-          (if even p \<and> even n then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+          (if even p \<and> even n then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using `n\<le>p`
       by (auto simp: * algebra_simps cos_coeff_def binomial_fact real_of_nat_def)
   }
   then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> even n
-                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
+                  then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
              (\<lambda>p. \<Sum>n\<le>p. (cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
     by simp
   also have "... = (\<lambda>p. \<Sum>n\<le>p. (cos_coeff n *\<^sub>R x^n) * (cos_coeff (p - n) *\<^sub>R y^(p-n)))"
@@ -2578,7 +2590,7 @@ lemma sin_x_sin_y:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "(\<lambda>p. \<Sum>n\<le>p.
           if even p \<and> odd n
-               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
+               then - ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
          sums (sin x * sin y)"
 proof -
   { fix n p::nat
@@ -2596,12 +2608,12 @@ proof -
     } then
     have "(sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) =
           (if even p \<and> odd n
-          then -((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+          then -((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using `n\<le>p`
       by (auto simp:  algebra_simps sin_coeff_def binomial_fact real_of_nat_def)
   }
   then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> odd n
-               then - ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
+               then - ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
              (\<lambda>p. \<Sum>n\<le>p. (sin_coeff n * sin_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)))"
     by simp
   also have "... = (\<lambda>p. \<Sum>n\<le>p. (sin_coeff n *\<^sub>R x^n) * (sin_coeff (p - n) *\<^sub>R y^(p-n)))"
@@ -2616,31 +2628,31 @@ lemma sums_cos_x_plus_y:
   fixes x :: "'a::{real_normed_field,banach}"
   shows
   "(\<lambda>p. \<Sum>n\<le>p. if even p
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+               then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                else 0)
         sums cos (x + y)"
 proof -
   { fix p::nat
     have "(\<Sum>n\<le>p. if even p
-                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0) =
           (if even p
-                  then \<Sum>n\<le>p. ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  then \<Sum>n\<le>p. ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0)"
       by simp
     also have "... = (if even p
-                  then of_real ((-1) ^ (p div 2) / of_nat (fact p)) * (\<Sum>n\<le>p. (p choose n) *\<^sub>R (x^n) * y^(p-n))
+                  then of_real ((-1) ^ (p div 2) / (fact p)) * (\<Sum>n\<le>p. (p choose n) *\<^sub>R (x^n) * y^(p-n))
                   else 0)"
       by (auto simp: setsum_right_distrib field_simps scaleR_conv_of_real nonzero_of_real_divide)
     also have "... = cos_coeff p *\<^sub>R ((x + y) ^ p)"
       by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real real_of_nat_def atLeast0AtMost)
     finally have "(\<Sum>n\<le>p. if even p
-                  then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+                  then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0) = cos_coeff p *\<^sub>R ((x + y) ^ p)" .
   }
   then have "(\<lambda>p. \<Sum>n\<le>p.
                if even p
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n)
+               then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                else 0)
         = (\<lambda>p. cos_coeff p *\<^sub>R ((x+y)^p))"
         by simp
@@ -2656,15 +2668,15 @@ proof -
   { fix n p::nat
     assume "n\<le>p"
     then have "(if even p \<and> even n
-               then ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) -
+               then ((- 1) ^ (p div 2) * int (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) -
           (if even p \<and> odd n
-               then - ((- 1) ^ (p div 2) * int (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
+               then - ((- 1) ^ (p div 2) * int (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)
           = (if even p
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
+               then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
       by simp
   }
   then have "(\<lambda>p. \<Sum>n\<le>p. (if even p
-               then ((-1) ^ (p div 2) * (p choose n) / of_nat (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0))
+               then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0))
         sums (cos x * cos y - sin x * sin y)"
     using sums_diff [OF cos_x_cos_y [of x y] sin_x_sin_y [of x y]]
     by (simp add: setsum_subtractf [symmetric])
@@ -2700,7 +2712,6 @@ lemma cos_minus [simp]:
 using cos_minus_converges [of x]
 by (simp add: cos_def summable_norm_cos [THEN summable_norm_cancel]
               suminf_minus sums_iff equation_minus_iff)
-
 
 lemma sin_cos_squared_add [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
@@ -2787,7 +2798,7 @@ text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"};
 
 lemma sin_paired:
   fixes x :: real
-  shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
+  shows "(\<lambda>n. (- 1) ^ n / (fact (2 * n + 1)) * x ^ (2 * n + 1)) sums  sin x"
 proof -
   have "(\<lambda>n. \<Sum>k = n*2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
     apply (rule sums_group)
@@ -2801,7 +2812,7 @@ lemma sin_gt_zero_02:
   assumes "0 < x" and "x < 2"
   shows "0 < sin x"
 proof -
-  let ?f = "\<lambda>n. \<Sum>k = n*2..<n*2+2. (- 1) ^ k / real (fact (2*k+1)) * x^(2*k+1)"
+  let ?f = "\<lambda>n::nat. \<Sum>k = n*2..<n*2+2. (- 1) ^ k / (fact (2*k+1)) * x^(2*k+1)"
   have pos: "\<forall>n. 0 < ?f n"
   proof
     fix n :: nat
@@ -2812,9 +2823,8 @@ proof -
     hence "x * x * x * x ^ (n * 4) < ?k2 * ?k3 * x * x ^ (n * 4)"
       by (intro mult_strict_right_mono zero_less_power `0 < x`)
     thus "0 < ?f n"
-      by (simp del: mult_Suc,
-        simp add: less_divide_eq field_simps del: mult_Suc)
-  qed
+      by (simp add: real_of_nat_def divide_simps mult_ac del: mult_Suc)
+qed
   have sums: "?f sums sin x"
     by (rule sin_paired [THEN sums_group], simp)
   show "0 < sin x"
@@ -2830,7 +2840,7 @@ lemma cos_double_less_one:
 
 lemma cos_paired:
   fixes x :: real
-  shows "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
+  shows "(\<lambda>n. (- 1) ^ n / (fact (2 * n)) * x ^ (2 * n)) sums cos x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
     apply (rule sums_group)
@@ -2860,29 +2870,28 @@ done
 lemma cos_two_less_zero [simp]:
   "cos 2 < (0::real)"
 proof -
-  note fact_Suc [simp del]
-  from cos_paired
-  have "(\<lambda>n. - ((- 1) ^ n / real (fact (2 * n)) * 2 ^ (2 * n))) sums - cos 2"
-    by (rule sums_minus)
-  then have *: "(\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n)))) sums - cos 2"
+  note fact.simps(2) [simp del]
+  from sums_minus [OF cos_paired]
+  have *: "(\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / fact (2 * n))) sums - cos (2::real)"
     by simp
-  then have **: "summable (\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  then have **: "summable (\<lambda>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule sums_summable)
-  have "0 < (\<Sum>n<Suc (Suc (Suc 0)). - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
-    by (simp add: fact_num_eq_if_nat realpow_num_eq_if)
-  moreover have "(\<Sum>n<Suc (Suc (Suc 0)). - ((- 1) ^ n  * 2 ^ (2 * n) / real (fact (2 * n))))
-    < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  have "0 < (\<Sum>n<Suc (Suc (Suc 0)). - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
+    by (simp add: fact_num_eq_if realpow_num_eq_if)
+  moreover have "(\<Sum>n<Suc (Suc (Suc 0)). - ((- 1::real) ^ n  * 2 ^ (2 * n) / (fact (2 * n))))
+    < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
   proof -
     { fix d
-      have "4 * real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
-       < real (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))) *
-           fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
-        by (simp only: real_of_nat_mult) (auto intro!: mult_strict_mono fact_less_mono_nat)
-      then have "4 * real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
-        < real (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))"
-        by (simp only: fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
-      then have "4 * inverse (real (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))))
-        < inverse (real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
+      have "(4::real) * (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
+            < (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))) *
+              fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
+        unfolding real_of_nat_mult
+        by (rule mult_strict_mono) (simp_all add: fact_less_mono)
+      then have "(4::real) * (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
+        <  (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))"
+        by (simp only: fact.simps(2) [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"] real_of_nat_def of_nat_mult of_nat_fact)
+      then have "(4::real) * inverse (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))
+        < inverse (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))"
         by (simp add: inverse_eq_divide less_divide_eq)
     }
     note *** = this
@@ -2890,9 +2899,9 @@ proof -
     from ** show ?thesis by (rule sumr_pos_lt_pair)
       (simp add: divide_inverse mult.assoc [symmetric] ***)
   qed
-  ultimately have "0 < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  ultimately have "0 < (\<Sum>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule order_less_trans)
-  moreover from * have "- cos 2 = (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  moreover from * have "- cos 2 = (\<Sum>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule sums_unique)
   ultimately have "(0::real) < - cos 2" by simp
   then show ?thesis by simp

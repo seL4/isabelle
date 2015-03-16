@@ -1321,9 +1321,7 @@ context
 begin
 
 lift_definition poisson_pmf :: "nat pmf" is "\<lambda>k. rate ^ k / fact k * exp (-rate)"
-proof
-  (* Proof by Manuel Eberl *)
-
+proof  (* by Manuel Eberl *)
   have summable: "summable (\<lambda>x::nat. rate ^ x / fact x)" using summable_exp
     by (simp add: field_simps divide_inverse [symmetric])
   have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x * exp (-rate) \<partial>count_space UNIV) =
@@ -1332,10 +1330,10 @@ proof
   also from rate_pos have "(\<integral>\<^sup>+(x::nat). rate ^ x / fact x \<partial>count_space UNIV) = (\<Sum>x. rate ^ x / fact x)"
     by (simp_all add: nn_integral_count_space_nat suminf_ereal summable suminf_ereal_finite)
   also have "... = exp rate" unfolding exp_def
-    by (simp add: field_simps divide_inverse [symmetric] transfer_int_nat_factorial)
+    by (simp add: field_simps divide_inverse [symmetric])
   also have "ereal (exp (-rate)) * ereal (exp rate) = 1"
     by (simp add: mult_exp_exp)
-  finally show "(\<integral>\<^sup>+ x. ereal (rate ^ x / real (fact x) * exp (- rate)) \<partial>count_space UNIV) = 1" .
+  finally show "(\<integral>\<^sup>+ x. ereal (rate ^ x / (fact x) * exp (- rate)) \<partial>count_space UNIV) = 1" .
 qed (simp add: rate_pos[THEN less_imp_le])
 
 lemma pmf_poisson[simp]: "pmf poisson_pmf k = rate ^ k / fact k * exp (-rate)"

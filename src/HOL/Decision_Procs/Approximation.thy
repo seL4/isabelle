@@ -905,11 +905,11 @@ and lb_sin_cos_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat
       float_round_up prec (x * (ub_sin_cos_aux prec n (i + 2) (k * i * (i + 1)) x)))"
 
 lemma cos_aux:
-  shows "(lb_sin_cos_aux prec n 1 1 (x * x)) \<le> (\<Sum> i=0..<n. (- 1) ^ i * (1/real (fact (2 * i))) * x ^(2 * i))" (is "?lb")
-  and "(\<Sum> i=0..<n. (- 1) ^ i * (1/real (fact (2 * i))) * x^(2 * i)) \<le> (ub_sin_cos_aux prec n 1 1 (x * x))" (is "?ub")
+  shows "(lb_sin_cos_aux prec n 1 1 (x * x)) \<le> (\<Sum> i=0..<n. (- 1) ^ i * (1/(fact (2 * i))) * x ^(2 * i))" (is "?lb")
+  and "(\<Sum> i=0..<n. (- 1) ^ i * (1/(fact (2 * i))) * x^(2 * i)) \<le> (ub_sin_cos_aux prec n 1 1 (x * x))" (is "?ub")
 proof -
   have "0 \<le> real (x * x)" by auto
-  let "?f n" = "fact (2 * n)"
+  let "?f n" = "fact (2 * n) :: nat"
 
   { fix n
     have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n) auto
@@ -935,15 +935,15 @@ proof (cases "real x = 0")
   hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
   have "0 < x * x" using `0 < x` by simp
 
-  { fix x n have "(\<Sum> i=0..<n. (- 1) ^ i * (1/real (fact (2 * i))) * x ^ (2 * i))
-    = (\<Sum> i = 0 ..< 2 * n. (if even(i) then ((- 1) ^ (i div 2))/(real (fact i)) else 0) * x ^ i)" (is "?sum = ?ifsum")
+  { fix x n have "(\<Sum> i=0..<n. (-1::real) ^ i * (1/(fact (2 * i))) * x ^ (2 * i))
+    = (\<Sum> i = 0 ..< 2 * n. (if even(i) then ((- 1) ^ (i div 2))/((fact i)) else 0) * x ^ i)" (is "?sum = ?ifsum")
   proof -
     have "?sum = ?sum + (\<Sum> j = 0 ..< n. 0)" by auto
     also have "\<dots> =
-      (\<Sum> j = 0 ..< n. (- 1) ^ ((2 * j) div 2) / (real (fact (2 * j))) * x ^(2 * j)) + (\<Sum> j = 0 ..< n. 0)" by auto
-    also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then (- 1) ^ (i div 2) / (real (fact i)) * x ^ i else 0)"
+      (\<Sum> j = 0 ..< n. (- 1) ^ ((2 * j) div 2) / ((fact (2 * j))) * x ^(2 * j)) + (\<Sum> j = 0 ..< n. 0)" by auto
+    also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then (- 1) ^ (i div 2) / ((fact i)) * x ^ i else 0)"
       unfolding sum_split_even_odd atLeast0LessThan ..
-    also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then (- 1) ^ (i div 2) / (real (fact i)) else 0) * x ^ i)"
+    also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then (- 1) ^ (i div 2) / ((fact i)) else 0) * x ^ i)"
       by (rule setsum.cong) auto
     finally show ?thesis by assumption
   qed } note morph_to_if_power = this
@@ -952,8 +952,8 @@ proof (cases "real x = 0")
   { fix n :: nat assume "0 < n"
     hence "0 < 2 * n" by auto
     obtain t where "0 < t" and "t < real x" and
-      cos_eq: "cos x = (\<Sum> i = 0 ..< 2 * n. (if even(i) then ((- 1) ^ (i div 2))/(real (fact i)) else 0) * (real x) ^ i)
-      + (cos (t + 1/2 * (2 * n) * pi) / real (fact (2*n))) * (real x)^(2*n)"
+      cos_eq: "cos x = (\<Sum> i = 0 ..< 2 * n. (if even(i) then ((- 1) ^ (i div 2))/((fact i)) else 0) * (real x) ^ i)
+      + (cos (t + 1/2 * (2 * n) * pi) / (fact (2*n))) * (real x)^(2*n)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
       using Maclaurin_cos_expansion2[OF `0 < real x` `0 < 2 * n`]
       unfolding cos_coeff_def atLeast0LessThan by auto
@@ -1020,22 +1020,22 @@ next
 qed
 
 lemma sin_aux: assumes "0 \<le> real x"
-  shows "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le> (\<Sum> i=0..<n. (- 1) ^ i * (1/real (fact (2 * i + 1))) * x^(2 * i + 1))" (is "?lb")
-  and "(\<Sum> i=0..<n. (- 1) ^ i * (1/real (fact (2 * i + 1))) * x^(2 * i + 1)) \<le> (x * ub_sin_cos_aux prec n 2 1 (x * x))" (is "?ub")
+  shows "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le> (\<Sum> i=0..<n. (- 1) ^ i * (1/(fact (2 * i + 1))) * x^(2 * i + 1))" (is "?lb")
+  and "(\<Sum> i=0..<n. (- 1) ^ i * (1/(fact (2 * i + 1))) * x^(2 * i + 1)) \<le> (x * ub_sin_cos_aux prec n 2 1 (x * x))" (is "?ub")
 proof -
   have "0 \<le> real (x * x)" by auto
-  let "?f n" = "fact (2 * n + 1)"
+  let "?f n" = "fact (2 * n + 1) :: nat"
 
   { fix n
     have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n) auto
     have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 2 * (((\<lambda>i. i + 2) ^^ n) 2 + 1)"
-      unfolding F by auto } note f_eq = this
-
+      unfolding F by auto } 
+  note f_eq = this
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF `0 \<le> real (x * x)` f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
   show "?lb" and "?ub" using `0 \<le> real x`
     unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
-    unfolding mult.commute[where 'a=real]
+    unfolding mult.commute[where 'a=real] real_fact_nat
     by (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real x"])
 qed
 
@@ -1046,14 +1046,15 @@ proof (cases "real x = 0")
   hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
   have "0 < x * x" using `0 < x` by simp
 
-  { fix x n have "(\<Sum> j = 0 ..< n. (- 1) ^ (((2 * j + 1) - Suc 0) div 2) / (real (fact (2 * j + 1))) * x ^(2 * j + 1))
-    = (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/(real (fact i))) * x ^ i)" (is "?SUM = _")
+  { fix x::real and n 
+    have "(\<Sum>j = 0 ..< n. (- 1) ^ (((2 * j + 1) - Suc 0) div 2) / ((fact (2 * j + 1))) * x ^(2 * j + 1))
+    = (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * x ^ i)" (is "?SUM = _")
     proof -
       have pow: "!!i. x ^ (2 * i + 1) = x * x ^ (2 * i)" by auto
       have "?SUM = (\<Sum> j = 0 ..< n. 0) + ?SUM" by auto
-      also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / (real (fact i)) * x ^ i)"
+      also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / ((fact i)) * x ^ i)"
         unfolding sum_split_even_odd atLeast0LessThan ..
-      also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / (real (fact i))) * x ^ i)"
+      also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / ((fact i))) * x ^ i)"
         by (rule setsum.cong) auto
       finally show ?thesis by assumption
     qed } note setsum_morph = this
@@ -1061,8 +1062,8 @@ proof (cases "real x = 0")
   { fix n :: nat assume "0 < n"
     hence "0 < 2 * n + 1" by auto
     obtain t where "0 < t" and "t < real x" and
-      sin_eq: "sin x = (\<Sum> i = 0 ..< 2 * n + 1. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)
-      + (sin (t + 1/2 * (2 * n + 1) * pi) / real (fact (2*n + 1))) * (real x)^(2*n + 1)"
+      sin_eq: "sin x = (\<Sum> i = 0 ..< 2 * n + 1. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * (real x) ^ i)
+      + (sin (t + 1/2 * (2 * n + 1) * pi) / (fact (2*n + 1))) * (real x)^(2*n + 1)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
       using Maclaurin_sin_expansion3[OF `0 < 2 * n + 1` `0 < real x`]
       unfolding sin_coeff_def atLeast0LessThan by auto
@@ -1079,7 +1080,7 @@ proof (cases "real x = 0")
     {
       assume "even n"
       have "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le>
-            (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)"
+            (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * (real x) ^ i)"
         using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
       also have "\<dots> \<le> ?SUM" by auto
       also have "\<dots> \<le> sin x"
@@ -1100,7 +1101,7 @@ proof (cases "real x = 0")
           by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
         thus ?thesis unfolding sin_eq by auto
       qed
-      also have "\<dots> \<le> (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)"
+      also have "\<dots> \<le> (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * (real x) ^ i)"
          by auto
       also have "\<dots> \<le> (x * ub_sin_cos_aux prec n 2 1 (x * x))"
         using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
@@ -1534,18 +1535,19 @@ lemma bnds_exp_horner: assumes "real x \<le> 0"
 proof -
   { fix n
     have F: "\<And> m. ((\<lambda>i. i + 1) ^^ n) m = n + m" by (induct n, auto)
-    have "fact (Suc n) = fact n * ((\<lambda>i. i + 1) ^^ n) 1" unfolding F by auto } note f_eq = this
+    have "fact (Suc n) = fact n * ((\<lambda>i::nat. i + 1) ^^ n) 1" unfolding F by auto 
+  } note f_eq = this
 
   note bounds = horner_bounds_nonpos[where f="fact" and lb="lb_exp_horner prec" and ub="ub_exp_horner prec" and j'=0 and s=1,
     OF assms f_eq lb_exp_horner.simps ub_exp_horner.simps]
 
-  { have "lb_exp_horner prec (get_even n) 1 1 x \<le> (\<Sum>j = 0..<get_even n. 1 / real (fact j) * real x ^ j)"
+  { have "lb_exp_horner prec (get_even n) 1 1 x \<le> (\<Sum>j = 0..<get_even n. 1 / (fact j) * real x ^ j)"
       using bounds(1) by auto
     also have "\<dots> \<le> exp x"
     proof -
-      obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
+      obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / (fact m)) + exp t / (fact (get_even n)) * (real x) ^ (get_even n)"
         using Maclaurin_exp_le unfolding atLeast0LessThan by blast
-      moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
+      moreover have "0 \<le> exp t / (fact (get_even n)) * (real x) ^ (get_even n)"
         by (auto simp: zero_le_even_power)
       ultimately show ?thesis using get_odd exp_gt_zero by auto
     qed
@@ -1562,11 +1564,11 @@ proof -
       show ?thesis by (rule less_imp_le, auto simp add: power_less_zero_eq `real x < 0`)
     qed
 
-    obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_odd n. (real x) ^ m / real (fact m)) + exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n)"
+    obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_odd n. (real x) ^ m / (fact m)) + exp t / (fact (get_odd n)) * (real x) ^ (get_odd n)"
       using Maclaurin_exp_le unfolding atLeast0LessThan by blast
-    moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
+    moreover have "exp t / (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
       by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero)
-    ultimately have "exp x \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
+    ultimately have "exp x \<le> (\<Sum>j = 0..<get_odd n. 1 / (fact j) * real x ^ j)"
       using get_odd exp_gt_zero by auto
     also have "\<dots> \<le> ub_exp_horner prec (get_odd n) 1 1 x"
       using bounds(2) by auto
@@ -3229,16 +3231,9 @@ next
   qed
 qed
 
-lemma setprod_fact: "\<Prod> {1..<1 + k} = fact (k :: nat)"
-proof (induct k)
-  case 0
-  show ?case by simp
-next
-  case (Suc k)
-  have "{ 1 ..< Suc (Suc k) } = insert (Suc k) { 1 ..< Suc k }" by auto
-  hence "\<Prod> { 1 ..< Suc (Suc k) } = (Suc k) * \<Prod> { 1 ..< Suc k }" by auto
-  thus ?case using Suc by auto
-qed
+lemma setprod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
+  using fact_altdef_nat Suc_eq_plus1_left atLeastLessThanSuc_atLeastAtMost real_fact_nat 
+  by presburger
 
 lemma approx_tse:
   assumes "bounded_by xs vs"
@@ -3258,10 +3253,11 @@ proof -
   obtain n
     where DERIV: "\<forall> m z. m < n \<and> real lx \<le> z \<and> z \<le> real ux \<longrightarrow> DERIV (F m) z :> F (Suc m) z"
     and hyp: "\<And> (t::real). t \<in> {lx .. ux} \<Longrightarrow>
-           (\<Sum> j = 0..<n. inverse (real (fact j)) * F j c * (xs!x - c)^j) +
-             inverse (real (fact n)) * F n t * (xs!x - c)^n
+           (\<Sum> j = 0..<n. inverse(fact j) * F j c * (xs!x - c)^j) +
+             inverse ((fact n)) * F n t * (xs!x - c)^n
              \<in> {l .. u}" (is "\<And> t. _ \<Longrightarrow> ?taylor t \<in> _")
-    unfolding F_def atLeastAtMost_iff[symmetric] setprod_fact by blast
+    unfolding F_def atLeastAtMost_iff[symmetric] setprod_fact
+    by blast
 
   have bnd_xs: "xs ! x \<in> { lx .. ux }"
     using `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`] bnd_x by auto
@@ -3284,8 +3280,8 @@ proof -
       from Taylor.taylor[OF zero_less_Suc, of F, OF F0 DERIV[unfolded Suc] this False]
       obtain t::real where t_bnd: "if xs ! x < c then xs ! x < t \<and> t < c else c < t \<and> t < xs ! x"
         and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
-           (\<Sum>m = 0..<Suc n'. F m c / real (fact m) * (xs ! x - c) ^ m) +
-           F (Suc n') t / real (fact (Suc n')) * (xs ! x - c) ^ Suc n'"
+           (\<Sum>m = 0..<Suc n'. F m c / (fact m) * (xs ! x - c) ^ m) +
+           F (Suc n') t / (fact (Suc n')) * (xs ! x - c) ^ Suc n'"
         unfolding atLeast0LessThan by blast
 
       from t_bnd bnd_xs bnd_c have *: "t \<in> {lx .. ux}"

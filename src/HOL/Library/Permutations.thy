@@ -190,7 +190,7 @@ next
     from insert.hyps Fs have pFs: "card ?pF = fact (n - 1)"
       using `finite F` by auto
     then have "finite ?pF"
-      using fact_gt_zero_nat by (auto intro: card_ge_0_finite)
+      by (auto intro: card_ge_0_finite)
     then have pF'f: "finite ?pF'"
       using H0 `finite F`
       apply (simp only: Collect_split Collect_mem_eq)
@@ -258,7 +258,7 @@ qed
 lemma finite_permutations:
   assumes fS: "finite S"
   shows "finite {p. p permutes S}"
-  using card_permutations[OF refl fS] fact_gt_zero_nat
+  using card_permutations[OF refl fS] 
   by (auto intro: card_ge_0_finite)
 
 
@@ -279,26 +279,6 @@ proof -
   ultimately show ?thesis
     by simp
 qed
-
-lemma setsum_permute:
-  assumes "p permutes S"
-  shows "setsum f S = setsum (f \<circ> p) S"
-  using assms by (fact setsum.permute)
-
-lemma setsum_permute_natseg:
-  assumes pS: "p permutes {m .. n}"
-  shows "setsum f {m .. n} = setsum (f \<circ> p) {m .. n}"
-  using setsum_permute [OF pS, of f ] pS by blast
-
-lemma setprod_permute:
-  assumes "p permutes S"
-  shows "setprod f S = setprod (f \<circ> p) S"
-  using assms by (fact setprod.permute)
-
-lemma setprod_permute_natseg:
-  assumes pS: "p permutes {m .. n}"
-  shows "setprod f {m .. n} = setprod (f \<circ> p) {m .. n}"
-  using setprod_permute [OF pS, of f ] pS by blast
 
 
 subsection {* Various combinations of transpositions with 2, 1 and 0 common elements *}

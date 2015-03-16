@@ -83,7 +83,9 @@ proof -
       (\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 .. a} x * (inverse (fact k)) \<partial>lborel)"
     by (intro nn_integral_multc[symmetric]) auto
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (?f k x) * indicator {0 .. a} x \<partial>lborel)"
-    by (intro nn_integral_cong) (simp add: field_simps)
+    apply (intro nn_integral_cong)
+    apply (simp add: field_simps)
+    by (metis (no_types) divide_inverse mult.commute mult.left_commute mult.left_neutral times_ereal.simps(1))
   also have "\<dots> = ereal (?F k a - ?F k 0)"
   proof (rule nn_integral_FTC_Icc)
     fix x assume "x \<in> {0..a}"
@@ -93,13 +95,13 @@ proof -
     next
       case (Suc k)
       have "DERIV (\<lambda>x. ?F k x - (x^Suc k * exp (-x)) / fact (Suc k)) x :>
-        ?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / real (fact (Suc k))"
+        ?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / (fact (Suc k))"
         by (intro DERIV_diff Suc)
            (auto intro!: derivative_eq_intros simp del: fact_Suc power_Suc
                  simp add: field_simps power_Suc[symmetric] real_of_nat_def[symmetric])
       also have "(\<lambda>x. ?F k x - (x^Suc k * exp (-x)) / fact (Suc k)) = ?F (Suc k)"
         by simp
-      also have "?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / real (fact (Suc k)) = ?f (Suc k) x"
+      also have "?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / (fact (Suc k)) = ?f (Suc k) x"
         by (auto simp: field_simps simp del: fact_Suc)
            (simp_all add: real_of_nat_Suc field_simps)
       finally show ?case .
@@ -122,7 +124,8 @@ proof (rule LIMSEQ_unique)
     apply (metis nat_ceiling_le_eq)
     done
 
-  have "((\<lambda>x. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / real (fact n))) * fact k) ---> (1 - (\<Sum>n\<le>k. 0 / real (fact n))) * fact k) at_top"
+  have "((\<lambda>x::real. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / (fact n))) * fact k) --->
+        (1 - (\<Sum>n\<le>k. 0 / (fact n))) * fact k) at_top"
     by (intro tendsto_intros tendsto_power_div_exp_0) simp
   then show "?X ----> fact k"
     by (subst nn_intergal_power_times_exp_Icc)
@@ -514,7 +517,7 @@ proof
       by (auto dest!: prob_space.emeasure_space_1 simp: emeasure_density)
   
     let ?I = "(integral\<^sup>N lborel (\<lambda>y. ereal ((1 - y)^ k\<^sub>1 * y^k\<^sub>2 * indicator {0..1} y)))"
-    let ?C = "real (fact (Suc (k\<^sub>1 + k\<^sub>2))) / (real (fact k\<^sub>1) * real (fact k\<^sub>2))"
+    let ?C = "(fact (Suc (k\<^sub>1 + k\<^sub>2))) / ((fact k\<^sub>1) * (fact k\<^sub>2))"
     let ?s = "Suc k\<^sub>1 + Suc k\<^sub>2 - 1"
     let ?L = "(\<lambda>x. \<integral>\<^sup>+y. ereal (erlang_density k\<^sub>1 l (x- y) * erlang_density k\<^sub>2 l y * indicator {0..x} y) \<partial>lborel)"
 
@@ -919,10 +922,12 @@ qed
 lemma
   fixes k :: nat
   shows gaussian_moment_even_pos:
-    "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k)))
-       ((sqrt pi / 2) * (fact (2 * k) / (2 ^ (2 * k) * fact k)))" (is "?even")
+    "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k)))
+       ((sqrt pi / 2) * (fact (2 * k) / (2 ^ (2 * k) * fact k)))" 
+       (is "?even")
     and gaussian_moment_odd_pos:
-      "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k + 1))) (fact k / 2)" (is "?odd")
+      "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k + 1))) (fact k / 2)" 
+      (is "?odd")
 proof -
   let ?M = "\<lambda>k x. exp (- x\<^sup>2) * x^k :: real"
 
@@ -997,9 +1002,11 @@ proof -
   proof (induct k)
     case (Suc k)
     note step[OF this]
-    also have "(real (2 * k + 1) / 2 * (sqrt pi / 2 * (real (fact (2 * k)) / real (2 ^ (2 * k) * fact k)))) =
-      sqrt pi / 2 * (real (fact (2 * Suc k)) / real (2 ^ (2 * Suc k) * fact (Suc k)))"
-      by (simp add: field_simps real_of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
+    also have "(real (2 * k + 1) / 2 * (sqrt pi / 2 * ((fact (2 * k)) / ((2::real)^(2*k) * fact k)))) =
+      sqrt pi / 2 * ((fact (2 * Suc k)) / ((2::real)^(2 * Suc k) * fact (Suc k)))"
+      apply (simp add: field_simps del: fact_Suc)
+      apply (simp add: real_of_nat_def of_nat_mult field_simps)
+      done
     finally show ?case
       by simp
   qed (insert gaussian_moment_0, simp)
@@ -1008,7 +1015,7 @@ proof -
   proof (induct k)
     case (Suc k)
     note step[OF this]
-    also have "(real (2 * k + 1 + 1) / 2 * (real (fact k) / 2)) = real (fact (Suc k)) / 2"
+    also have "(real (2 * k + 1 + 1) / (2::real) * ((fact k) / 2)) = (fact (Suc k)) / 2"
       by (simp add: field_simps real_of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
     finally show ?case
       by simp
@@ -1036,7 +1043,7 @@ proof -
     by (auto simp: fun_eq_iff field_simps real_sqrt_power[symmetric] real_sqrt_mult
                    real_sqrt_divide power_mult eq)
   also have "((sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k))) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2))) = 
-    (inverse (sqrt 2 * \<sigma>) * (real (fact (2 * k))) / ((2/\<sigma>\<^sup>2) ^ k * real (fact k)))"
+    (inverse (sqrt 2 * \<sigma>) * ((fact (2 * k))) / ((2/\<sigma>\<^sup>2) ^ k * (fact k)))"
     by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_mult
                    power2_eq_square)
   finally show ?thesis
@@ -1047,10 +1054,10 @@ qed
 lemma normal_moment_abs_odd:
   "has_bochner_integral lborel (\<lambda>x. normal_density \<mu> \<sigma> x * \<bar>x - \<mu>\<bar>^(2 * k + 1)) (2^k * \<sigma>^(2 * k + 1) * fact k * sqrt (2 / pi))"
 proof -
-  have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1))) (fact k / 2)"
+  have "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1))) (fact k / 2)"
     by (rule has_bochner_integral_cong[THEN iffD1, OF _ _ _ gaussian_moment_odd_pos[of k]]) auto
   from has_bochner_integral_even_function[OF this]
-  have "has_bochner_integral lborel (\<lambda>x. exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) (fact k)"
+  have "has_bochner_integral lborel (\<lambda>x::real. exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) (fact k)"
     by simp
   then have "has_bochner_integral lborel (\<lambda>x. (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2)))
       (fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2)))"
@@ -1059,7 +1066,7 @@ proof -
     (\<lambda>x. exp (- (((sqrt 2 * \<sigma>) * x)\<^sup>2 / (2 * \<sigma>\<^sup>2))) * \<bar>sqrt 2 * \<sigma> * x\<bar> ^ (2 * k + 1) / sqrt (2 * pi * \<sigma>\<^sup>2))"
     by (simp add: field_simps abs_mult real_sqrt_power[symmetric] power_mult real_sqrt_mult)
   also have "(fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) = 
-    (inverse (sqrt 2) * inverse \<sigma> * (2 ^ k * (\<sigma> * \<sigma> ^ (2 * k)) * real (fact k) * sqrt (2 / pi)))"
+    (inverse (sqrt 2) * inverse \<sigma> * (2 ^ k * (\<sigma> * \<sigma> ^ (2 * k)) * (fact k) * sqrt (2 / pi)))"
     by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_divide
                    real_sqrt_mult)
   finally show ?thesis

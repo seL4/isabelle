@@ -14,7 +14,7 @@ begin
 definition
   exphr :: "real => hypreal" where
     --{*define exponential function using standard part *}
-  "exphr x =  st(sumhr (0, whn, %n. inverse(real (fact n)) * (x ^ n)))"
+  "exphr x =  st(sumhr (0, whn, %n. inverse (fact n) * (x ^ n)))"
 
 definition
   sinhr :: "real => hypreal" where
@@ -213,7 +213,7 @@ apply (auto)
 done
 
 lemma HFinite_exp [simp]:
-     "sumhr (0, whn, %n. inverse (real (fact n)) * x ^ n) \<in> HFinite"
+     "sumhr (0, whn, %n. inverse (fact n) * x ^ n) \<in> HFinite"
 unfolding sumhr_app
 apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
 apply (rule NSBseqD2)

@@ -11,182 +11,99 @@ theory Binomial
 imports Main
 begin
 
-class fact =
-  fixes fact :: "'a \<Rightarrow> 'a"
-
-instantiation nat :: fact
-begin
-
-fun
-  fact_nat :: "nat \<Rightarrow> nat"
-where
-  fact_0_nat: "fact_nat 0 = Suc 0"
-| fact_Suc: "fact_nat (Suc x) = Suc x * fact x"
-
-instance ..
-
-end
-
-(* definitions for the integers *)
-
-instantiation int :: fact
-
-begin
-
-definition
-  fact_int :: "int \<Rightarrow> int"
-where
-  "fact_int x = (if x >= 0 then int (fact (nat x)) else 0)"
-
-instance proof qed
-
-end
-
-
-subsection {* Set up Transfer *}
-
-lemma transfer_nat_int_factorial:
-  "(x::int) >= 0 \<Longrightarrow> fact (nat x) = nat (fact x)"
-  unfolding fact_int_def
-  by auto
-
-
-lemma transfer_nat_int_factorial_closure:
-  "x >= (0::int) \<Longrightarrow> fact x >= 0"
-  by (auto simp add: fact_int_def)
-
-declare transfer_morphism_nat_int[transfer add return:
-    transfer_nat_int_factorial transfer_nat_int_factorial_closure]
-
-lemma transfer_int_nat_factorial:
-  "fact (int x) = int (fact x)"
-  unfolding fact_int_def by auto
-
-lemma transfer_int_nat_factorial_closure:
-  "is_nat x \<Longrightarrow> fact x >= 0"
-  by (auto simp add: fact_int_def)
-
-declare transfer_morphism_int_nat[transfer add return:
-    transfer_int_nat_factorial transfer_int_nat_factorial_closure]
-
-
 subsection {* Factorial *}
 
-lemma fact_0_int [simp]: "fact (0::int) = 1"
-  by (simp add: fact_int_def)
+fun fact :: "nat \<Rightarrow> ('a::{semiring_char_0,semiring_no_zero_divisors})"
+  where "fact 0 = 1" | "fact (Suc n) = of_nat (Suc n) * fact n"
 
-lemma fact_1_nat [simp]: "fact (1::nat) = 1"
+lemmas fact_Suc = fact.simps(2)
+
+lemma fact_1 [simp]: "fact 1 = 1"
   by simp
 
-lemma fact_Suc_0_nat [simp]: "fact (Suc 0) = Suc 0"
+lemma fact_Suc_0 [simp]: "fact (Suc 0) = Suc 0"
   by simp
 
-lemma fact_1_int [simp]: "fact (1::int) = 1"
-  by (simp add: fact_int_def)
+lemma of_nat_fact [simp]: "of_nat (fact n) = fact n"
+  by (induct n) (auto simp add: algebra_simps of_nat_mult)
+ 
+lemma fact_reduce: "n > 0 \<Longrightarrow> fact n = of_nat n * fact (n - 1)"
+  by (cases n) auto
 
-lemma fact_plus_one_nat: "fact ((n::nat) + 1) = (n + 1) * fact n"
-  by simp
-
-lemma fact_plus_one_int:
-  assumes "n >= 0"
-  shows "fact ((n::int) + 1) = (n + 1) * fact n"
-  using assms unfolding fact_int_def
-  by (simp add: nat_add_distrib algebra_simps int_mult)
-
-lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
-  apply (subgoal_tac "n = Suc (n - 1)")
-  apply (erule ssubst)
-  apply (subst fact_Suc)
-  apply simp_all
-  done
-
-lemma fact_reduce_int: "(n::int) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
-  apply (subgoal_tac "n = (n - 1) + 1")
-  apply (erule ssubst)
-  apply (subst fact_plus_one_int)
-  apply simp_all
-  done
-
-lemma fact_nonzero_nat [simp]: "fact (n::nat) \<noteq> 0"
+lemma fact_nonzero [simp]: "fact n \<noteq> 0"
   apply (induct n)
-  apply (auto simp add: fact_plus_one_nat)
-  done
-
-lemma fact_nonzero_int [simp]: "n >= 0 \<Longrightarrow> fact (n::int) ~= 0"
-  by (simp add: fact_int_def)
-
-lemma fact_gt_zero_nat [simp]: "fact (n :: nat) > 0"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_gt_zero_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) > 0"
-  by (auto simp add: fact_int_def)
-
-lemma fact_ge_one_nat [simp]: "fact (n :: nat) >= 1"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_ge_Suc_0_nat [simp]: "fact (n :: nat) >= Suc 0"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_ge_one_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
-  apply (auto simp add: fact_int_def)
-  apply (subgoal_tac "1 = int 1")
-  apply (erule ssubst)
-  apply (subst zle_int)
   apply auto
-  done
+  using of_nat_eq_0_iff by fastforce
 
-lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
-  apply (induct n)
-  apply force
-  apply (auto simp only: fact_Suc)
-  apply (subgoal_tac "m = Suc n")
-  apply (erule ssubst)
-  apply (rule dvd_triv_left)
-  apply auto
-  done
+lemma fact_mono_nat: "m \<le> n \<Longrightarrow> fact m \<le> (fact n :: nat)"
+  by (induct n) (auto simp: le_Suc_eq)
 
-lemma dvd_fact_int [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::int)"
-  apply (case_tac "1 <= n")
-  apply (induct n rule: int_ge_induct)
-  apply (auto simp add: fact_plus_one_int)
-  apply (subgoal_tac "m = i + 1")
-  apply auto
-  done
+context
+  fixes XXX :: "'a :: {semiring_char_0,linordered_semidom,semiring_no_zero_divisors}"
+begin
+  
+  lemma fact_mono: "m \<le> n \<Longrightarrow> fact m \<le> (fact n :: 'a)"
+    by (metis of_nat_fact of_nat_le_iff fact_mono_nat)
+  
+  lemma fact_ge_1 [simp]: "fact n \<ge> (1 :: 'a)"
+    by (metis le0 fact.simps(1) fact_mono)
+  
+  lemma fact_gt_zero [simp]: "fact n > (0 :: 'a)"
+    using fact_ge_1 less_le_trans zero_less_one by blast
+  
+  lemma fact_ge_zero [simp]: "fact n \<ge> (0 :: 'a)"
+    by (simp add: less_imp_le)
 
-lemma interval_plus_one_nat: "(i::nat) <= j + 1 \<Longrightarrow>
-  {i..j+1} = {i..j} Un {j+1}"
-  by auto
+  lemma fact_not_neg [simp]: "~ (fact n < (0 :: 'a))"
+    by (simp add: not_less_iff_gr_or_eq)
+    
+  lemma fact_le_power:
+      "fact n \<le> (of_nat (n^n) ::'a)"
+  proof (induct n)
+    case (Suc n)
+    then have *: "fact n \<le> (of_nat (Suc n ^ n) ::'a)"
+      by (rule order_trans) (simp add: power_mono)
+    have "fact (Suc n) = (of_nat (Suc n) * fact n ::'a)"
+      by (simp add: algebra_simps)
+    also have "... \<le> (of_nat (Suc n) * of_nat (Suc n ^ n) ::'a)"
+      by (simp add: "*" ordered_comm_semiring_class.comm_mult_left_mono)
+    also have "... \<le> (of_nat (Suc n ^ Suc n) ::'a)"
+      by (metis of_nat_mult order_refl power_Suc)
+    finally show ?case .
+  qed simp
 
-lemma interval_Suc: "i <= Suc j \<Longrightarrow> {i..Suc j} = {i..j} Un {Suc j}"
-  by auto
+end
 
-lemma interval_plus_one_int: "(i::int) <= j + 1 \<Longrightarrow> {i..j+1} = {i..j} Un {j+1}"
-  by auto
+text{*Note that @{term "fact 0 = fact 1"}*}
+lemma fact_less_mono_nat: "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact m < (fact n :: nat)"
+  by (induct n) (auto simp: less_Suc_eq)
 
-lemma fact_altdef_nat: "fact (n::nat) = (PROD i:{1..n}. i)"
-  apply (induct n)
-  apply force
-  apply (subst fact_Suc)
-  apply (subst interval_Suc)
-  apply auto
-done
+lemma fact_less_mono:
+  fixes XXX :: "'a :: {semiring_char_0,linordered_semidom,semiring_no_zero_divisors}"
+  shows "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact m < (fact n :: 'a)"
+  by (metis of_nat_fact of_nat_less_iff fact_less_mono_nat)
 
-lemma fact_altdef_int: "n >= 0 \<Longrightarrow> fact (n::int) = (PROD i:{1..n}. i)"
-  apply (induct n rule: int_ge_induct)
-  apply force
-  apply (subst fact_plus_one_int, assumption)
-  apply (subst interval_plus_one_int)
-  apply auto
-done
+lemma fact_ge_Suc_0_nat [simp]: "fact n \<ge> Suc 0"
+  by (metis One_nat_def fact_ge_1)
 
-lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd fact (m::nat)"
-  by (auto simp add: fact_altdef_nat intro!: setprod_dvd_setprod_subset)
+lemma dvd_fact: 
+  shows "1 \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd fact n"
+  by (induct n) (auto simp: dvdI le_Suc_eq)
 
-lemma fact_mod: "m \<le> (n::nat) \<Longrightarrow> fact n mod fact m = 0"
-  by (auto simp add: dvd_imp_mod_0 fact_dvd)
+lemma fact_altdef_nat: "fact n = \<Prod>{1..n}"
+  by (induct n) (auto simp: atLeastAtMostSuc_conv)
+
+lemma fact_altdef: "fact n = setprod of_nat {1..n}"
+  by (induct n) (auto simp: atLeastAtMostSuc_conv)
+
+lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd (fact m :: 'a :: {semiring_div,linordered_semidom})"
+  by (induct m) (auto simp: le_Suc_eq)
+
+lemma fact_mod: "m \<le> n \<Longrightarrow> fact n mod (fact m :: 'a :: {semiring_div,linordered_semidom}) = 0"
+  by (auto simp add: fact_dvd)
 
 lemma fact_div_fact:
-  assumes "m \<ge> (n :: nat)"
+  assumes "m \<ge> n"
   shows "(fact m) div (fact n) = \<Prod>{n + 1..m}"
 proof -
   obtain d where "d = m - n" by auto
@@ -202,107 +119,17 @@ proof -
     also from Suc.hyps have "... = Suc (n + d') * \<Prod>{n + 1..n + d'}"
       unfolding div_mult1_eq[of _ "fact (n + d')"] by (simp add: fact_mod)
     also have "... = \<Prod>{n + 1..n + Suc d'}"
-      by (simp add: atLeastAtMostSuc_conv setprod.insert)
+      by (simp add: atLeastAtMostSuc_conv)
     finally show ?case .
   qed
   from this `m = n + d` show ?thesis by simp
 qed
 
-lemma fact_mono_nat: "(m::nat) \<le> n \<Longrightarrow> fact m \<le> fact n"
-apply (drule le_imp_less_or_eq)
-apply (auto dest!: less_imp_Suc_add)
-apply (induct_tac k, auto)
-done
-
-lemma fact_neg_int [simp]: "m < (0::int) \<Longrightarrow> fact m = 0"
-  unfolding fact_int_def by auto
-
-lemma fact_ge_zero_int [simp]: "fact m >= (0::int)"
-  apply (case_tac "m >= 0")
-  apply auto
-  apply (frule fact_gt_zero_int)
-  apply arith
-done
-
-lemma fact_mono_int_aux [rule_format]: "k >= (0::int) \<Longrightarrow>
-    fact (m + k) >= fact m"
-  apply (case_tac "m < 0")
-  apply auto
-  apply (induct k rule: int_ge_induct)
-  apply auto
-  apply (subst add.assoc [symmetric])
-  apply (subst fact_plus_one_int)
-  apply auto
-  apply (erule order_trans)
-  apply (subst mult_le_cancel_right1)
-  apply (subgoal_tac "fact (m + i) >= 0")
-  apply arith
-  apply auto
-done
-
-lemma fact_mono_int: "(m::int) <= n \<Longrightarrow> fact m <= fact n"
-  apply (insert fact_mono_int_aux [of "n - m" "m"])
-  apply auto
-done
-
-text{*Note that @{term "fact 0 = fact 1"}*}
-lemma fact_less_mono_nat: "[| (0::nat) < m; m < n |] ==> fact m < fact n"
-apply (drule_tac m = m in less_imp_Suc_add, auto)
-apply (induct_tac k, auto)
-done
-
-lemma fact_less_mono_int_aux: "k >= 0 \<Longrightarrow> (0::int) < m \<Longrightarrow>
-    fact m < fact ((m + 1) + k)"
-  apply (induct k rule: int_ge_induct)
-  apply (simp add: fact_plus_one_int)
-  apply (subst (2) fact_reduce_int)
-  apply (auto simp add: ac_simps)
-  apply (erule order_less_le_trans)
-  apply auto
-  done
-
-lemma fact_less_mono_int: "(0::int) < m \<Longrightarrow> m < n \<Longrightarrow> fact m < fact n"
-  apply (insert fact_less_mono_int_aux [of "n - (m + 1)" "m"])
-  apply auto
-done
-
-lemma fact_num_eq_if_nat: "fact (m::nat) =
-  (if m=0 then 1 else m * fact (m - 1))"
+lemma fact_num_eq_if: 
+    "fact m = (if m=0 then 1 else of_nat m * fact (m - 1))"
 by (cases m) auto
 
-lemma fact_add_num_eq_if_nat:
-  "fact ((m::nat) + n) = (if m + n = 0 then 1 else (m + n) * fact (m + n - 1))"
-by (cases "m + n") auto
-
-lemma fact_add_num_eq_if2_nat:
-  "fact ((m::nat) + n) =
-    (if m = 0 then fact n else (m + n) * fact ((m - 1) + n))"
-by (cases m) auto
-
-lemma fact_le_power: "fact n \<le> n^n"
-proof (induct n)
-  case (Suc n)
-  then have "fact n \<le> Suc n ^ n" by (rule le_trans) (simp add: power_mono)
-  then show ?case by (simp add: add_le_mono)
-qed simp
-
-subsection {* @{term fact} and @{term of_nat} *}
-
-lemma of_nat_fact_not_zero [simp]: "of_nat (fact n) \<noteq> (0::'a::semiring_char_0)"
-by auto
-
-lemma of_nat_fact_gt_zero [simp]: "(0::'a::{linordered_semidom}) < of_nat(fact n)" by auto
-
-lemma of_nat_fact_ge_zero [simp]: "(0::'a::linordered_semidom) \<le> of_nat(fact n)"
-by simp
-
-lemma inv_of_nat_fact_gt_zero [simp]: "(0::'a::linordered_field) < inverse (of_nat (fact n))"
-by (auto simp add: positive_imp_inverse_positive)
-
-lemma inv_of_nat_fact_ge_zero [simp]: "(0::'a::linordered_field) \<le> inverse (of_nat (fact n))"
-by (auto intro: order_less_imp_le)
-
-lemma fact_eq_rev_setprod_nat: "fact (k::nat) = (\<Prod>i<k. k - i)"
+lemma fact_eq_rev_setprod_nat: "fact k = (\<Prod>i<k. k - i)"
   unfolding fact_altdef_nat
   by (rule setprod.reindex_bij_witness[where i="\<lambda>i. k - i" and j="\<lambda>i. k - i"]) auto
 
@@ -317,7 +144,7 @@ qed
 
 lemma fact_numeral:  --{*Evaluation for specific numerals*}
   "fact (numeral k) = (numeral k) * (fact (pred_numeral k))"
-  by (simp add: numeral_eq_Suc)
+  by (metis fact.simps(2) numeral_eq_Suc of_nat_numeral)
 
 
 text {* This development is based on the work of Andy Gordon and
@@ -532,10 +359,11 @@ qed
 
 lemma binomial_fact:
   assumes kn: "k \<le> n"
-  shows "(of_nat (n choose k) :: 'a::{field,ring_char_0}) =
-    of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
+  shows "(of_nat (n choose k) :: 'a::field_char_0) =
+         (fact n) / (fact k * fact(n - k))"
   using binomial_fact_lemma[OF kn]
-  by (simp add: field_simps of_nat_mult [symmetric])
+  apply (simp add: field_simps)
+  by (metis mult.commute of_nat_fact of_nat_mult)
 
 lemma choose_row_sum: "(\<Sum>k=0..n. n choose k) = 2^n"
   using binomial [of 1 "1" n]
@@ -626,8 +454,8 @@ next
     done
 qed
 
-lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
-  unfolding fact_altdef_nat
+lemma pochhammer_fact: "fact n = pochhammer 1 n"
+  unfolding fact_altdef
   apply (cases n)
    apply (simp_all add: of_nat_setprod pochhammer_Suc_setprod)
   apply (rule setprod.reindex_cong [where l = Suc])
@@ -711,7 +539,7 @@ lemma pochhammer_minus':
   by simp
 
 lemma pochhammer_same: "pochhammer (- of_nat n) n =
-    ((- 1) ^ n :: 'a::comm_ring_1) * of_nat (fact n)"
+    ((- 1) ^ n :: 'a::{semiring_char_0,comm_ring_1,semiring_no_zero_divisors}) * (fact n)"
   unfolding pochhammer_minus[OF le_refl[of n]]
   by (simp add: of_nat_diff pochhammer_fact)
 
@@ -720,7 +548,7 @@ subsection{* Generalized binomial coefficients *}
 
 definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
   where "a gchoose n =
-    (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"
+    (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / (fact n))"
 
 lemma gbinomial_0 [simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
   apply (simp_all add: gbinomial_def)
@@ -729,7 +557,7 @@ lemma gbinomial_0 [simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
   apply simp
   done
 
-lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / of_nat (fact n)"
+lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / (fact n)"
 proof (cases "n = 0")
   case True
   then show ?thesis by simp
@@ -743,7 +571,8 @@ next
       eq setprod.distrib[symmetric])
 qed
 
-lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
+lemma binomial_gbinomial: 
+    "of_nat (n choose k) = (of_nat n gchoose k :: 'a::field_char_0)"
 proof -
   { assume kn: "k > n"
     then have ?thesis
@@ -769,10 +598,10 @@ proof -
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a]
         gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
-      apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h
+      apply (simp add: pochhammer_Suc_setprod fact_altdef h 
         of_nat_setprod setprod.distrib[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod.union_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
-      unfolding mult.assoc[symmetric]
+      unfolding mult.assoc
       unfolding setprod.distrib[symmetric]
       apply simp
       apply (intro setprod.reindex_bij_witness[where i="op - n" and j="op - n"])
@@ -791,40 +620,46 @@ lemma gbinomial_Suc0[simp]: "a gchoose (Suc 0) = a"
   by (simp add: gbinomial_def)
 
 lemma gbinomial_mult_1:
-  "a * (a gchoose n) =
+  fixes a :: "'a :: field_char_0"
+  shows "a * (a gchoose n) =
     of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"  (is "?l = ?r")
 proof -
-  have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
+  have "?r = ((- 1) ^n * pochhammer (- a) n / (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
-      pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
-    by (simp add:  field_simps del: of_nat_Suc)
+      pochhammer_Suc of_nat_mult right_diff_distrib power_Suc
+    apply (simp del: of_nat_Suc fact.simps)
+    apply (auto simp add: field_simps simp del: of_nat_Suc)
+    done
   also have "\<dots> = ?l" unfolding gbinomial_pochhammer
     by (simp add: field_simps)
   finally show ?thesis ..
 qed
 
 lemma gbinomial_mult_1':
-    "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
+  fixes a :: "'a :: field_char_0"
+  shows "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
   by (simp add: mult.commute gbinomial_mult_1)
 
 lemma gbinomial_Suc:
-    "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k}) / of_nat (fact (Suc k))"
+    "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k}) / (fact (Suc k))"
   by (simp add: gbinomial_def)
 
 lemma gbinomial_mult_fact:
-  "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::field_char_0) gchoose (Suc k)) =
+  fixes a :: "'a::field_char_0"
+  shows
+   "fact (Suc k) * (a gchoose (Suc k)) =
     (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
-  by (simp_all add: gbinomial_Suc field_simps del: fact_Suc)
+  by (simp_all add: gbinomial_Suc field_simps del: fact.simps)
 
 lemma gbinomial_mult_fact':
-  "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) =
-    (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  fixes a :: "'a::field_char_0"
+  shows "(a gchoose (Suc k)) * fact (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   using gbinomial_mult_fact[of k a]
   by (subst mult.commute)
 
-
 lemma gbinomial_Suc_Suc:
-  "((a::'a::field_char_0) + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
+  fixes a :: "'a :: field_char_0"
+  shows "(a + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
 proof (cases k)
   case 0
   then show ?thesis by simp
@@ -835,31 +670,42 @@ next
       using Suc
       apply auto
     done
-  have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) =
-    ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)"
-    apply (simp add: Suc field_simps del: fact_Suc)
+  have "fact (Suc k) * (a gchoose k + (a gchoose (Suc k))) =
+        (a gchoose Suc h) * (fact (Suc (Suc h))) +
+        (a gchoose Suc (Suc h)) * (fact (Suc (Suc h)))"
+    by (simp add: Suc field_simps del: fact.simps)
+  also have "... = (a gchoose Suc h) * of_nat (Suc (Suc h) * fact (Suc h)) + 
+                   (\<Prod>i = 0..Suc h. a - of_nat i)"
+    by (metis fact.simps(2) gbinomial_mult_fact' of_nat_fact of_nat_id)
+  also have "... = (fact (Suc h) * (a gchoose Suc h)) * of_nat (Suc (Suc h)) + 
+                   (\<Prod>i = 0..Suc h. a - of_nat i)"
+    by (simp only: fact.simps(2) mult.commute mult.left_commute of_nat_fact of_nat_id of_nat_mult)
+  also have "... =  of_nat (Suc (Suc h)) * (\<Prod>i = 0..h. a - of_nat i) + 
+                    (\<Prod>i = 0..Suc h. a - of_nat i)"
+    by (metis gbinomial_mult_fact mult.commute)
+  also have "... = (\<Prod>i = 0..Suc h. a - of_nat i) +
+                   (of_nat h * (\<Prod>i = 0..h. a - of_nat i) + 2 * (\<Prod>i = 0..h. a - of_nat i))"
+    by (simp add: field_simps)
+  also have "... = 
+    ((a gchoose Suc h) * (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)"
     unfolding gbinomial_mult_fact'
-    apply (subst fact_Suc)
-    unfolding of_nat_mult
-    apply (subst mult.commute)
-    unfolding mult.assoc
-    unfolding gbinomial_mult_fact
-    apply (simp add: field_simps)
-    done
+    by (simp add: comm_semiring_class.distrib field_simps Suc)
   also have "\<dots> = (\<Prod>i\<in>{0..h}. a - of_nat i) * (a + 1)"
     unfolding gbinomial_mult_fact' setprod_nat_ivl_Suc
     by (simp add: field_simps Suc)
   also have "\<dots> = (\<Prod>i\<in>{0..k}. (a + 1) - of_nat i)"
     using eq0
     by (simp add: Suc setprod_nat_ivl_1_Suc)
-  also have "\<dots> = of_nat (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
+  also have "\<dots> = (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
     unfolding gbinomial_mult_fact ..
-  finally show ?thesis by (simp del: fact_Suc)
+  finally show ?thesis
+    by (metis fact_nonzero mult_cancel_left) 
 qed
 
 lemma gbinomial_reduce_nat:
-  "0 < k \<Longrightarrow> (a::'a::field_char_0) gchoose k = (a - 1) gchoose (k - 1) + ((a - 1) gchoose k)"
-by (metis Suc_pred' diff_add_cancel gbinomial_Suc_Suc)
+  fixes a :: "'a :: field_char_0"
+  shows "0 < k \<Longrightarrow> a gchoose k = (a - 1) gchoose (k - 1) + ((a - 1) gchoose k)"
+  by (metis Suc_pred' diff_add_cancel gbinomial_Suc_Suc)
 
 
 lemma binomial_symmetric:
@@ -947,19 +793,16 @@ lemma binomial_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
     n choose k = fact n div (fact k * fact (n - k))"
  by (subst binomial_fact_lemma [symmetric]) auto
 
-lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
-by (metis binomial_fact_lemma dvd_def)
-
-lemma choose_dvd_int:
-  assumes "(0::int) <= k" and "k <= n"
-  shows "fact k * fact (n - k) dvd fact n"
-  apply (subst tsub_eq [symmetric], rule assms)
-  apply (rule choose_dvd_nat [transferred])
-  using assms apply auto
+lemma choose_dvd: "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd (fact n :: 'a :: {semiring_div,linordered_semidom})"
+  unfolding dvd_def
+  apply (rule exI [where x="of_nat (n choose k)"])
+  using binomial_fact_lemma [of k n, THEN arg_cong [where f = of_nat and 'b='a]]
+  apply (auto simp: of_nat_mult)
   done
 
-lemma fact_fact_dvd_fact: fixes k::nat shows "fact k * fact n dvd fact (n + k)"
-by (metis add.commute add_diff_cancel_left' choose_dvd_nat le_add2)
+lemma fact_fact_dvd_fact: 
+    "fact k * fact n dvd (fact (k+n) :: 'a :: {semiring_div,linordered_semidom})"
+by (metis add.commute add_diff_cancel_left' choose_dvd le_add2)
 
 lemma choose_mult_lemma:
      "((m+r+k) choose (m+k)) * ((m+k) choose k) = ((m+r+k) choose k) * ((m+r) choose m)"
@@ -969,18 +812,17 @@ proof -
     by (simp add: assms binomial_altdef_nat)
   also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
-    apply (auto simp: fact_fact_dvd_fact)
+    apply (auto simp: algebra_simps fact_fact_dvd_fact)
     apply (metis add.assoc add.commute fact_fact_dvd_fact)
     done
   also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
     apply (subst div_mult_div_if_dvd [symmetric])
-    apply (auto simp: fact_fact_dvd_fact)
-    apply (metis dvd_trans dvd.dual_order.refl fact_fact_dvd_fact mult_dvd_mono mult.left_commute)
+    apply (auto simp add: algebra_simps)
+    apply (metis fact_fact_dvd_fact dvd.order.trans nat_mult_dvd_cancel_disj)
     done
   also have "... = (fact (m+r+k) div (fact k * fact (m+r)) * (fact (m+r) div (fact r * fact m)))"
     apply (subst div_mult_div_if_dvd)
-    apply (auto simp: fact_fact_dvd_fact)
-    apply(metis mult.left_commute)
+    apply (auto simp: fact_fact_dvd_fact algebra_simps)
     done
   finally show ?thesis
     by (simp add: binomial_altdef_nat mult.commute)
@@ -1009,7 +851,7 @@ lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow>
   apply auto
   apply (case_tac "k = Suc n")
   apply auto
-  apply (metis Suc_le_eq fact_nat.cases le_Suc_eq le_eq_less_or_eq)
+  apply (metis Suc_le_eq fact.cases le_Suc_eq le_eq_less_or_eq)
   done
 
 lemma card_UNION:

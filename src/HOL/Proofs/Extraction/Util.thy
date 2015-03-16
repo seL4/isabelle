@@ -5,7 +5,7 @@
 section {* Auxiliary lemmas used in program extraction examples *}
 
 theory Util
-imports Old_Datatype
+imports "~~/src/HOL/Library/Old_Datatype"
 begin
 
 text {*

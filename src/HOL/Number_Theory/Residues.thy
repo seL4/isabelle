@@ -384,7 +384,7 @@ lemma (in field) inv_pair_lemma: "x : Units R \<Longrightarrow> y : Units R \<Lo
 
 lemma (in residues_prime) wilson_theorem1:
   assumes a: "p > 2"
-  shows "[fact (p - 1) = - 1] (mod p)"
+  shows "[fact (p - 1) = (-1::int)] (mod p)"
 proof -
   let ?InversePairs = "{ {x, inv x} | x. x : Units R - {\<one>, \<ominus> \<one>}}"
   have UR: "Units R = {\<one>, \<ominus> \<one>} Un (Union ?InversePairs)"
@@ -430,9 +430,9 @@ proof -
     apply (subst res_prime_units_eq)
     apply (simp add: int_setprod zmod_int setprod_int_eq)
     done
-  finally have "fact (p - 1) mod p = \<ominus> \<one>".
-  then show ?thesis
-    by (metis Divides.transfer_int_nat_functions(2) cong_int_def res_neg_eq res_one_eq)
+  finally have "fact (p - 1) mod p = (\<ominus> \<one> :: int)".
+  then show ?thesis  
+    by (metis of_nat_fact Divides.transfer_int_nat_functions(2) cong_int_def res_neg_eq res_one_eq)
 qed
 
 lemma wilson_theorem:

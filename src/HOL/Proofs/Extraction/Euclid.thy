@@ -210,8 +210,8 @@ Euclid's theorem: there are infinitely many primes.
 
 lemma Euclid: "\<exists>p::nat. prime p \<and> n < p"
 proof -
-  let ?k = "fact n + 1"
-  have "1 < fact n + 1" by simp
+  let ?k = "fact n + (1::nat)"
+  have "1 < ?k" by simp
   then obtain p where prime: "prime p" and dvd: "p dvd ?k" using prime_factor_exists by iprover
   have "n < p"
   proof -

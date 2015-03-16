@@ -51,7 +51,7 @@ next
     using insert unfolding div_mult1_eq[of "card T" "fact (card T - 1)"]
     by (simp add: fact_mod)
   also have "... = fact (card T) div fact (card T - card (insert x S))"
-    using insert by (simp add: fact_reduce_nat[of "card T"])
+    using insert by (simp add: fact_reduce[of "card T"])
   finally show ?case .
 qed
 

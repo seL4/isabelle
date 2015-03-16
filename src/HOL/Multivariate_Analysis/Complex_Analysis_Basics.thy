@@ -8,6 +8,10 @@ theory Complex_Analysis_Basics
 imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"
 begin
 
+
+lemma cmod_fact [simp]: "cmod (fact n) = fact n"
+  by (metis norm_of_nat of_nat_fact)
+
 subsection{*General lemmas*}
 
 lemma has_derivative_mult_right:
@@ -26,7 +30,7 @@ lemma has_vector_derivative_real_complex:
 
 lemma fact_cancel:
   fixes c :: "'a::real_field"
-  shows "of_nat (Suc n) * c / of_nat (fact (Suc n)) = c / of_nat (fact n)"
+  shows "of_nat (Suc n) * c / (fact (Suc n)) = c / (fact n)"
   by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
 
 lemma linear_times:
@@ -985,7 +989,7 @@ lemma complex_taylor:
       and B: "\<And>x. x \<in> s \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
       and w: "w \<in> s"
       and z: "z \<in> s"
-    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / of_nat (fact i)))
+    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
           \<le> B * cmod(z - w)^(Suc n) / fact n"
 proof -
   have wzs: "closed_segment w z \<subseteq> s" using assms
@@ -994,48 +998,46 @@ proof -
     assume "u \<in> closed_segment w z"
     then have "u \<in> s"
       by (metis wzs subsetD)
-    have "(\<Sum>i\<le>n. f i u * (- of_nat i * (z-u)^(i - 1)) / of_nat (fact i) +
-                      f (Suc i) u * (z-u)^i / of_nat (fact i)) = 
-              f (Suc n) u * (z-u) ^ n / of_nat (fact n)"
+    have "(\<Sum>i\<le>n. f i u * (- of_nat i * (z-u)^(i - 1)) / (fact i) +
+                      f (Suc i) u * (z-u)^i / (fact i)) = 
+              f (Suc n) u * (z-u) ^ n / (fact n)"
     proof (induction n)
       case 0 show ?case by simp
     next
       case (Suc n)
-      have "(\<Sum>i\<le>Suc n. f i u * (- of_nat i * (z-u) ^ (i - 1)) / of_nat (fact i) +
-                             f (Suc i) u * (z-u) ^ i / of_nat (fact i)) =  
-           f (Suc n) u * (z-u) ^ n / of_nat (fact n) +
-           f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n) / of_nat (fact (Suc n)) -
-           f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n) / of_nat (fact (Suc n))"
+      have "(\<Sum>i\<le>Suc n. f i u * (- of_nat i * (z-u) ^ (i - 1)) / (fact i) +
+                             f (Suc i) u * (z-u) ^ i / (fact i)) =  
+           f (Suc n) u * (z-u) ^ n / (fact n) +
+           f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n) / (fact (Suc n)) -
+           f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n) / (fact (Suc n))"
         using Suc by simp
-      also have "... = f (Suc (Suc n)) u * (z-u) ^ Suc n / of_nat (fact (Suc n))"
+      also have "... = f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n))"
       proof -
-        have "of_nat(fact(Suc n)) *
-             (f(Suc n) u *(z-u) ^ n / of_nat(fact n) +
-               f(Suc(Suc n)) u *((z-u) *(z-u) ^ n) / of_nat(fact(Suc n)) -
-               f(Suc n) u *((1 + of_nat n) *(z-u) ^ n) / of_nat(fact(Suc n))) =
-            (of_nat(fact(Suc n)) *(f(Suc n) u *(z-u) ^ n)) / of_nat(fact n) +
-            (of_nat(fact(Suc n)) *(f(Suc(Suc n)) u *((z-u) *(z-u) ^ n)) / of_nat(fact(Suc n))) -
-            (of_nat(fact(Suc n)) *(f(Suc n) u *(of_nat(Suc n) *(z-u) ^ n))) / of_nat(fact(Suc n))"
-          by (simp add: algebra_simps del: fact_Suc)
-        also have "... =
-                   (of_nat (fact (Suc n)) * (f (Suc n) u * (z-u) ^ n)) / of_nat (fact n) +
-                   (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
-                   (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
-          by (simp del: fact_Suc)
-        also have "... = 
-                   (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
-                   (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
-                   (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
-          by (simp only: fact_Suc of_nat_mult ac_simps) simp
+        have "(fact(Suc n)) *
+             (f(Suc n) u *(z-u) ^ n / (fact n) +
+               f(Suc(Suc n)) u *((z-u) *(z-u) ^ n) / (fact(Suc n)) -
+               f(Suc n) u *((1 + of_nat n) *(z-u) ^ n) / (fact(Suc n))) =
+            ((fact(Suc n)) *(f(Suc n) u *(z-u) ^ n)) / (fact n) +
+            ((fact(Suc n)) *(f(Suc(Suc n)) u *((z-u) *(z-u) ^ n)) / (fact(Suc n))) -
+            ((fact(Suc n)) *(f(Suc n) u *(of_nat(Suc n) *(z-u) ^ n))) / (fact(Suc n))"
+          by (simp add: algebra_simps del: fact.simps)
+        also have "... = ((fact (Suc n)) * (f (Suc n) u * (z-u) ^ n)) / (fact n) +
+                         (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
+                         (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
+          by (simp del: fact.simps)
+        also have "... = (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
+                         (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
+                         (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
+          by (simp only: fact.simps of_nat_mult ac_simps) simp
         also have "... = f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)"
           by (simp add: algebra_simps)
         finally show ?thesis
-        by (simp add: mult_left_cancel [where c = "of_nat (fact (Suc n))", THEN iffD1] del: fact_Suc)
+        by (simp add: mult_left_cancel [where c = "(fact (Suc n))", THEN iffD1] del: fact.simps)
       qed
       finally show ?case .
     qed
-    then have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / of_nat (fact i))) 
-                has_field_derivative f (Suc n) u * (z-u) ^ n / of_nat (fact n))
+    then have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / (fact i))) 
+                has_field_derivative f (Suc n) u * (z-u) ^ n / (fact n))
                (at u within s)"
       apply (intro derivative_eq_intros)
       apply (blast intro: assms `u \<in> s`)
@@ -1055,22 +1057,22 @@ proof -
       by (metis norm_ge_zero zero_le_power mult_right_mono  B [OF us])
     finally have "cmod (f (Suc n) u) * cmod (z - u) ^ n \<le> B * cmod (z - w) ^ n" .
   } note cmod_bound = this
-  have "(\<Sum>i\<le>n. f i z * (z - z) ^ i / of_nat (fact i)) = (\<Sum>i\<le>n. (f i z / of_nat (fact i)) * 0 ^ i)"
+  have "(\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)) = (\<Sum>i\<le>n. (f i z / (fact i)) * 0 ^ i)"
     by simp
-  also have "\<dots> = f 0 z / of_nat (fact 0)"
+  also have "\<dots> = f 0 z / (fact 0)"
     by (subst setsum_zero_power) simp
-  finally have "cmod (f 0 z - (\<Sum>i\<le>n. f i w * (z - w) ^ i / of_nat (fact i))) 
-            \<le> cmod ((\<Sum>i\<le>n. f i w * (z - w) ^ i / of_nat (fact i)) -
-                    (\<Sum>i\<le>n. f i z * (z - z) ^ i / of_nat (fact i)))"
+  finally have "cmod (f 0 z - (\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i))) 
+                \<le> cmod ((\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)) -
+                        (\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)))"
     by (simp add: norm_minus_commute)
-  also have "... \<le> B * cmod (z - w) ^ n / real_of_nat (fact n) * cmod (w - z)"
+  also have "... \<le> B * cmod (z - w) ^ n / (fact n) * cmod (w - z)"
     apply (rule complex_differentiable_bound 
-      [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / of_nat(fact n)"
+      [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
          and s = "closed_segment w z", OF convex_segment])
     apply (auto simp: ends_in_segment real_of_nat_def DERIV_subset [OF sum_deriv wzs]
                   norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
     done
-  also have "...  \<le> B * cmod (z - w) ^ Suc n / real (fact n)"
+  also have "...  \<le> B * cmod (z - w) ^ Suc n / (fact n)"
     by (simp add: algebra_simps norm_minus_commute real_of_nat_def)
   finally show ?thesis .
 qed
@@ -1102,40 +1104,40 @@ lemma complex_taylor_mvt:
   assumes "\<And>i x. \<lbrakk>x \<in> closed_segment w z; i \<le> n\<rbrakk> \<Longrightarrow> ((f i) has_field_derivative f (Suc i) x) (at x)"
     shows "\<exists>u. u \<in> closed_segment w z \<and>
             Re (f 0 z) =
-            Re ((\<Sum>i = 0..n. f i w * (z - w) ^ i / of_nat (fact i)) +
-                (f (Suc n) u * (z-u)^n / of_nat (fact n)) * (z - w))"
+            Re ((\<Sum>i = 0..n. f i w * (z - w) ^ i / (fact i)) +
+                (f (Suc n) u * (z-u)^n / (fact n)) * (z - w))"
 proof -
   { fix u
     assume u: "u \<in> closed_segment w z"
     have "(\<Sum>i = 0..n.
                (f (Suc i) u * (z-u) ^ i - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) /
-               of_nat (fact i)) =
+               (fact i)) =
           f (Suc 0) u -
              (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
-             of_nat (fact (Suc n)) +
+             (fact (Suc n)) +
              (\<Sum>i = 0..n.
                  (f (Suc (Suc i)) u * ((z-u) ^ Suc i) - of_nat (Suc i) * (f (Suc i) u * (z-u) ^ i)) /
-                 of_nat (fact (Suc i)))"
+                 (fact (Suc i)))"
        by (subst setsum_Suc_reindex) simp
     also have "... = f (Suc 0) u -
              (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
-             of_nat (fact (Suc n)) +
+             (fact (Suc n)) +
              (\<Sum>i = 0..n.
-                 f (Suc (Suc i)) u * ((z-u) ^ Suc i) / of_nat (fact (Suc i))  - 
-                 f (Suc i) u * (z-u) ^ i / of_nat (fact i))"
+                 f (Suc (Suc i)) u * ((z-u) ^ Suc i) / (fact (Suc i))  - 
+                 f (Suc i) u * (z-u) ^ i / (fact i))"
       by (simp only: diff_divide_distrib fact_cancel ac_simps)
     also have "... = f (Suc 0) u -
              (f (Suc (Suc n)) u * (z-u) ^ Suc n - of_nat (Suc n) * (z-u) ^ n * f (Suc n) u) /
-             of_nat (fact (Suc n)) +
-             f (Suc (Suc n)) u * (z-u) ^ Suc n / of_nat (fact (Suc n)) - f (Suc 0) u"
+             (fact (Suc n)) +
+             f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n)) - f (Suc 0) u"
       by (subst setsum_Suc_diff) auto
-    also have "... = f (Suc n) u * (z-u) ^ n / of_nat (fact n)"
+    also have "... = f (Suc n) u * (z-u) ^ n / (fact n)"
       by (simp only: algebra_simps diff_divide_distrib fact_cancel)
     finally have "(\<Sum>i = 0..n. (f (Suc i) u * (z - u) ^ i 
-                             - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) / of_nat (fact i)) =
-                  f (Suc n) u * (z - u) ^ n / of_nat (fact n)" .
-    then have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / of_nat (fact i)) has_field_derivative
-                f (Suc n) u * (z - u) ^ n / of_nat (fact n))  (at u)"
+                             - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) / (fact i)) =
+                  f (Suc n) u * (z - u) ^ n / (fact n)" .
+    then have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / (fact i)) has_field_derivative
+                f (Suc n) u * (z - u) ^ n / (fact n))  (at u)"
       apply (intro derivative_eq_intros)+
       apply (force intro: u assms)
       apply (rule refl)+
@@ -1143,8 +1145,8 @@ proof -
       done
   }
   then show ?thesis
-    apply (cut_tac complex_mvt_line [of w z "\<lambda>u. \<Sum>i = 0..n. f i u * (z-u) ^ i / of_nat (fact i)"
-               "\<lambda>u. (f (Suc n) u * (z-u)^n / of_nat (fact n))"])
+    apply (cut_tac complex_mvt_line [of w z "\<lambda>u. \<Sum>i = 0..n. f i u * (z-u) ^ i / (fact i)"
+               "\<lambda>u. (f (Suc n) u * (z-u)^n / (fact n))"])
     apply (auto simp add: intro: open_closed_segment)
     done
 qed

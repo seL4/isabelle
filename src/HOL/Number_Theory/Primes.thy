@@ -226,7 +226,7 @@ subsection {* Infinitely many primes *}
 
 lemma next_prime_bound: "\<exists>p. prime p \<and> n < p \<and> p <= fact n + 1"
 proof-
-  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith
+  have f1: "fact n + 1 \<noteq> (1::nat)" using fact_ge_1 [of n, where 'a=nat] by arith
   from prime_factor_nat [OF f1]
   obtain p where "prime p" and "p dvd fact n + 1" by auto
   then have "p \<le> fact n + 1" apply (intro dvd_imp_le) apply auto done
@@ -234,7 +234,7 @@ proof-
     from `prime p` have "p \<ge> 1"
       by (cases p, simp_all)
     with `p <= n` have "p dvd fact n"
-      by (intro dvd_fact_nat)
+      by (intro dvd_fact)
     with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
       by (rule dvd_diff_nat)
     then have "p dvd 1" by simp

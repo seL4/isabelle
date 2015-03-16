@@ -17,8 +17,8 @@ lemma taylor_up:
   assumes INIT: "n>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a \<le> c" "c < b" 
-  shows "\<exists> t. c < t & t < b & 
-    f b = (\<Sum>m<n. (diff m c / real (fact m)) * (b - c)^m) + (diff n t / real (fact n)) * (b - c)^n"
+  shows "\<exists>t::real. c < t & t < b & 
+    f b = (\<Sum>m<n. (diff m c / (fact m)) * (b - c)^m) + (diff n t / (fact n)) * (b - c)^n"
 proof -
   from INTERV have "0 < b-c" by arith
   moreover 
@@ -35,31 +35,24 @@ proof -
       by (rule DERIV_chain2)
     thus "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)" by simp
   qed
-  ultimately 
-  have EX:"EX t>0. t < b - c & 
-    f (b - c + c) = (SUM m<n. diff m (0 + c) / real (fact m) * (b - c) ^ m) +
-      diff n (t + c) / real (fact n) * (b - c) ^ n" 
-    by (rule Maclaurin)
-  show ?thesis
-  proof -
-    from EX obtain x where 
-      X: "0 < x & x < b - c & 
-        f (b - c + c) = (\<Sum>m<n. diff m (0 + c) / real (fact m) * (b - c) ^ m) +
-          diff n (x + c) / real (fact n) * (b - c) ^ n" ..
-    let ?H = "x + c"
-    from X have "c<?H & ?H<b \<and> f b = (\<Sum>m<n. diff m c / real (fact m) * (b - c) ^ m) +
-      diff n ?H / real (fact n) * (b - c) ^ n"
-      by fastforce
-    thus ?thesis by fastforce
-  qed
+  ultimately obtain x where 
+        "0 < x & x < b - c & 
+        f (b - c + c) = (\<Sum>m<n. diff m (0 + c) / (fact m) * (b - c) ^ m) +
+          diff n (x + c) / (fact n) * (b - c) ^ n"
+     by (rule Maclaurin [THEN exE])
+  then have "c<x+c & x+c<b \<and> f b = (\<Sum>m<n. diff m c / (fact m) * (b - c) ^ m) +
+    diff n (x+c) / (fact n) * (b - c) ^ n"
+    by fastforce
+  thus ?thesis by fastforce
 qed
 
 lemma taylor_down:
+  fixes a::real
   assumes INIT: "n>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a < c" "c \<le> b"
   shows "\<exists> t. a < t & t < c & 
-    f a = (\<Sum>m<n. (diff m c / real (fact m)) * (a - c)^m) + (diff n t / real (fact n)) * (a - c)^n" 
+    f a = (\<Sum>m<n. (diff m c / (fact m)) * (a - c)^m) + (diff n t / (fact n)) * (a - c)^n" 
 proof -
   from INTERV have "a-c < 0" by arith
   moreover 
@@ -75,30 +68,24 @@ proof -
     ultimately have "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c) * (1+0)" by (rule DERIV_chain2)
     thus "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)" by simp
   qed
-  ultimately 
-  have EX: "EX t>a - c. t < 0 &
-    f (a - c + c) = (SUM m<n. diff m (0 + c) / real (fact m) * (a - c) ^ m) +
-      diff n (t + c) / real (fact n) * (a - c) ^ n" 
-    by (rule Maclaurin_minus)
-  show ?thesis
-  proof -
-    from EX obtain x where X: "a - c < x & x < 0 &
-      f (a - c + c) = (SUM m<n. diff m (0 + c) / real (fact m) * (a - c) ^ m) +
-        diff n (x + c) / real (fact n) * (a - c) ^ n" ..
-    let ?H = "x + c"
-    from X have "a<?H & ?H<c \<and> f a = (\<Sum>m<n. diff m c / real (fact m) * (a - c) ^ m) +
-      diff n ?H / real (fact n) * (a - c) ^ n"
-      by fastforce
-    thus ?thesis by fastforce
-  qed
+  ultimately obtain x where 
+         "a - c < x & x < 0 &
+      f (a - c + c) = (SUM m<n. diff m (0 + c) / (fact m) * (a - c) ^ m) +
+        diff n (x + c) / (fact n) * (a - c) ^ n"
+     by (rule Maclaurin_minus [THEN exE])
+  then have "a<x+c & x+c<c \<and> f a = (\<Sum>m<n. diff m c / (fact m) * (a - c) ^ m) +
+      diff n (x+c) / (fact n) * (a - c) ^ n"
+    by fastforce
+  thus ?thesis by fastforce
 qed
 
 lemma taylor:
+  fixes a::real
   assumes INIT: "n>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a \<le> c " "c \<le> b" "a \<le> x" "x \<le> b" "x \<noteq> c" 
   shows "\<exists> t. (if x<c then (x < t & t < c) else (c < t & t < x)) &
-    f x = (\<Sum>m<n. (diff m c / real (fact m)) * (x - c)^m) + (diff n t / real (fact n)) * (x - c)^n" 
+    f x = (\<Sum>m<n. (diff m c / (fact m)) * (x - c)^m) + (diff n t / (fact n)) * (x - c)^n" 
 proof (cases "x<c")
   case True
   note INIT
@@ -107,8 +94,8 @@ proof (cases "x<c")
     by fastforce
   moreover note True
   moreover from INTERV have "c \<le> b" by simp
-  ultimately have EX: "\<exists>t>x. t < c \<and> f x =
-    (\<Sum>m<n. diff m c / real (fact m) * (x - c) ^ m) + diff n t / real (fact n) * (x - c) ^ n"
+  ultimately have "\<exists>t>x. t < c \<and> f x =
+    (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n"
     by (rule taylor_down)
   with True show ?thesis by simp
 next
@@ -119,8 +106,8 @@ next
     by fastforce
   moreover from INTERV have "a \<le> c" by arith
   moreover from False and INTERV have "c < x" by arith
-  ultimately have EX: "\<exists>t>c. t < x \<and> f x =
-    (\<Sum>m<n. diff m c / real (fact m) * (x - c) ^ m) + diff n t / real (fact n) * (x - c) ^ n" 
+  ultimately have "\<exists>t>c. t < x \<and> f x =
+    (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n" 
     by (rule taylor_up)
   with False show ?thesis by simp
 qed
