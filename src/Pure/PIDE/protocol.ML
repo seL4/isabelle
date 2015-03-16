@@ -32,11 +32,15 @@ val _ =
       let
         val (blobs, blobs_index) =
           YXML.parse_body blobs_yxml |>
-            let open XML.Decode in
+            let
+              val message =
+                YXML.string_of_body o Protocol_Message.command_positions id;
+              open XML.Decode;
+            in
               pair
                 (list (variant
                  [fn ([], a) => Exn.Res (pair string (option string) a),
-                  fn ([], a) => Exn.Exn (ERROR (YXML.string_of_body a))]))
+                  fn ([], a) => Exn.Exn (ERROR (message a))]))
                 int
             end;
         val toks =

@@ -172,6 +172,7 @@ session Pure =
     "PIDE/execution.ML"
     "PIDE/markup.ML"
     "PIDE/protocol.ML"
+    "PIDE/protocol_message.ML"
     "PIDE/query_operation.ML"
     "PIDE/resources.ML"
     "PIDE/session.ML"
