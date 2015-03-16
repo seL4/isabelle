@@ -68,7 +68,8 @@ fun check_thy dir thy_name =
     val {name = (name, pos), imports, keywords} =
       Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
-      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
+      error ("Bad theory name " ^ quote name ^
+        " for file " ^ Path.print path ^ Position.here pos);
   in
    {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
     imports = imports, keywords = keywords}

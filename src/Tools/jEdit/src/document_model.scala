@@ -80,7 +80,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       JEdit_Lib.buffer_lock(buffer) {
         Exn.capture {
           PIDE.resources.check_thy_reader("", node_name,
-            JEdit_Lib.buffer_reader(buffer), Token.Pos.file(node_name.node))
+            JEdit_Lib.buffer_reader(buffer), Token.Pos.command)
         } match {
           case Exn.Res(header) => header
           case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))

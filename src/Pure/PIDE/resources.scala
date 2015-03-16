@@ -96,8 +96,9 @@ class Resources(
         val base_name = Long_Name.base_name(node_name.theory)
         val (name, pos) = header.name
         if (base_name != name)
-          error("Bad file name " + Resources.thy_path(Path.basic(base_name)) +
-            " for theory " + quote(name) + Position.here(pos))
+          error("Bad theory name " + quote(name) +
+            " for file " + Resources.thy_path(Path.basic(base_name)) + Position.here(pos) +
+            Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
         val imports =
           header.imports.map({ case (s, pos) => (import_name(qualifier, node_name, s), pos) })
