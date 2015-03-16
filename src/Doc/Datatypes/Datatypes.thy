@@ -3115,9 +3115,9 @@ subsection {* Lifting
   \label{ssec:lifting} *}
 
 text {*
-For each (co)datatype with live type arguments and each manually registered BNF,
-the \hthm{lifting} plugin generates properties and attributes that guide the
-Lifting tool.
+For each (co)datatype and each manually registered BNF with at least one live
+type argument and no dead type arguments, the \hthm{lifting} plugin generates
+properties and attributes that guide the Lifting tool.
 
 The plugin derives the following property:
 
