@@ -79,17 +79,19 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     if (is_theory) {
       JEdit_Lib.buffer_lock(buffer) {
-        val toks1 =
-          Token_Markup.line_token_iterator(
-            Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).map(_.info).
-            takeWhile(tok => !tok.is_begin).toList
-        val toks =
-          toks1.dropWhile(tok => !(tok.is_command && tok.source == Thy_Header.THEORY)) :::
-            List(Token(Token.Kind.KEYWORD, "begin"))
-        if (toks.nonEmpty)
-          PIDE.resources.check_thy_reader("", node_name,
-            new CharSequenceReader(Token.implode(toks)), Token.Pos.command)
-        else Document.Node.no_header
+        Token_Markup.line_token_iterator(
+          Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
+            {
+              case Text.Info(range, tok)
+              if tok.is_command && tok.source == Thy_Header.THEORY => range.start
+            })
+          match {
+            case Some(offset) =>
+              val length = buffer.getLength - offset
+              PIDE.resources.check_thy_reader("", node_name,
+                new CharSequenceReader(buffer.getSegment(offset, length)), Token.Pos.command)
+            case None => Document.Node.no_header
+          }
       }
     }
     else Document.Node.no_header
