@@ -12,6 +12,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.collection.mutable
+import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.Buffer
@@ -78,13 +79,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     if (is_theory) {
       JEdit_Lib.buffer_lock(buffer) {
-        Exn.capture {
+        val toks1 =
+          Token_Markup.line_token_iterator(
+            Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).map(_.info).
+            takeWhile(tok => !tok.is_begin).toList
+        val toks =
+          toks1.dropWhile(tok => !(tok.is_command && tok.source == Thy_Header.THEORY)) :::
+            List(Token(Token.Kind.KEYWORD, "begin"))
+        if (toks.nonEmpty)
           PIDE.resources.check_thy_reader("", node_name,
-            JEdit_Lib.buffer_reader(buffer), Token.Pos.command)
-        } match {
-          case Exn.Res(header) => header
-          case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
-        }
+            new CharSequenceReader(Token.implode(toks)), Token.Pos.command)
+        else Document.Node.no_header
       }
     }
     else Document.Node.no_header
