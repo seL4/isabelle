@@ -237,6 +237,38 @@ lemma (in monoid_add) listsum_setsum_nth:
   "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
   using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
+lemma listsum_map_eq_setsum_count:
+  "listsum (map f xs) = setsum (\<lambda>x. List.count xs x * f x) (set xs)"
+proof(induction xs)
+  case (Cons x xs)
+  show ?case (is "?l = ?r")
+  proof cases
+    assume "x \<in> set xs"
+    have "?l = f x + (\<Sum>x\<in>set xs. List.count xs x * f x)" by (simp add: Cons.IH)
+    also have "set xs = insert x (set xs - {x})" using `x \<in> set xs`by blast
+    also have "f x + (\<Sum>x\<in>insert x (set xs - {x}). List.count xs x * f x) = ?r"
+      by (simp add: setsum.insert_remove eq_commute)
+    finally show ?thesis .
+  next
+    assume "x \<notin> set xs"
+    hence "\<And>xa. xa \<in> set xs \<Longrightarrow> x \<noteq> xa" by blast
+    thus ?thesis by (simp add: Cons.IH `x \<notin> set xs`)
+  qed
+qed simp
+
+lemma listsum_map_eq_setsum_count2:
+assumes "set xs \<subseteq> X" "finite X"
+shows "listsum (map f xs) = setsum (\<lambda>x. List.count xs x * f x) X"
+proof-
+  let ?F = "\<lambda>x. List.count xs x * f x"
+  have "setsum ?F X = setsum ?F (set xs \<union> (X - set xs))"
+    using Un_absorb1[OF assms(1)] by(simp)
+  also have "\<dots> = setsum ?F (set xs)"
+    using assms(2)
+    by(simp add: setsum.union_disjoint[OF _ _ Diff_disjoint] del: Un_Diff_cancel)
+  finally show ?thesis by(simp add:listsum_map_eq_setsum_count)
+qed
+
 
 subsection {* Further facts about @{const List.n_lists} *}
 
