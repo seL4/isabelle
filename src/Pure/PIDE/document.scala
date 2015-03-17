@@ -81,7 +81,7 @@ object Document
     /* header and name */
 
     sealed case class Header(
-      imports: List[Name],
+      imports: List[(Name, Position.T)],
       keywords: Thy_Header.Keywords,
       errors: List[String])
     {
@@ -256,6 +256,8 @@ object Document
       Node.is_no_perspective_command(perspective) &&
       commands.isEmpty
 
+    def has_header: Boolean = header != Node.no_header
+
     def commands: Linear_Set[Command] = _commands.commands
     def load_commands: List[Command] = _commands.load_commands
 
@@ -323,7 +325,7 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val imports = node.header.imports
+      val imports = node.header.imports.map(_._1)
       val graph1 =
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))

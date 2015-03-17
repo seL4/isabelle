@@ -44,6 +44,21 @@ sig
      fp_nesting_map_comps: thm list,
      ctr_specs: corec_ctr_spec list}
 
+  val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
+    term -> 'a -> 'a
+  val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
+    typ list -> term -> term
+  val massage_nested_corec_call: Proof.context -> (term -> bool) ->
+    (typ list -> typ -> typ -> term -> term) -> typ list -> typ -> term -> term
+  val expand_to_ctr_term: Proof.context -> string -> typ list -> term -> term
+  val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
+    typ list -> term -> term
+  val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
+    typ list -> term -> 'a -> 'a
+  val case_thms_of_term: Proof.context -> term ->
+    thm list * thm list * thm list * thm list * thm list
+  val map_thms_of_type: Proof.context -> typ -> thm list
+
   val corec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
     corec_spec list * typ list * thm * thm * thm list * thm list * (Token.src list * Token.src list)
@@ -160,7 +175,6 @@ fun s_not @{const True} = @{const False}
 val s_not_conj = conjuncts_s o s_not o mk_conjs;
 
 fun propagate_unit_pos u cs = if member (op aconv) cs u then [@{const False}] else cs;
-
 fun propagate_unit_neg not_u cs = remove (op aconv) not_u cs;
 
 fun propagate_units css =
@@ -421,9 +435,9 @@ fun basic_corec_specs_of ctxt res_T =
       end)
   | _ => not_codatatype ctxt res_T);
 
-fun map_thms_of_typ ctxt (Type (s, _)) =
+fun map_thms_of_type ctxt (Type (s, _)) =
     (case fp_sugar_of ctxt s of SOME {fp_bnf_sugar = {map_thms, ...}, ...} => map_thms | NONE => [])
-  | map_thms_of_typ _ _ = [];
+  | map_thms_of_type _ _ = [];
 
 structure GFP_Rec_Sugar_Plugin = Plugin(type T = fp_rec_sugar);
 
@@ -533,7 +547,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
         co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
       {T = T, corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec,
        exhaust_discs = exhaust_discs, sel_defs = sel_defs,
-       fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
+       fp_nesting_maps = maps (map_thms_of_type lthy o T_of_bnf) fp_nesting_bnfs,
        fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs,
        fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs,
        ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms corec_discs
@@ -931,7 +945,7 @@ fun build_corec_args_sel ctxt has_call (all_sel_eqns : coeqn_data_sel list)
         (build_corec_arg_nested_call ctxt has_call sel_eqns sel)) nested_calls'
     end);
 
-fun build_codefs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
+fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     (disc_eqnss : coeqn_data_disc list list) (sel_eqnss : coeqn_data_sel list list) =
   let
     val corecs = map #corec corec_specs;
@@ -1104,7 +1118,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
       disc_eqnss0;
     val (defs, excludess') =
-      build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
+      build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     val tac_opts =
       map (fn {code_rhs_opt, ...} :: _ =>

@@ -382,7 +382,30 @@ trait Protocol
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
     protocol_command_bytes("Document.define_blob", Bytes(digest.toString), bytes)
 
-  def define_command(command: Command): Unit =
+  private def resolve_id(id: String, body: XML.Body): XML.Body =
+  {
+    def resolve_property(p: (String, String)): (String, String) =
+      if (p._1 == Markup.ID && p._2 == Markup.COMMAND) (Markup.ID, id) else p
+
+    def resolve_markup(markup: Markup): Markup =
+      Markup(markup.name, markup.properties.map(resolve_property))
+
+    def resolve_tree(t: XML.Tree): XML.Tree =
+      t match {
+        case XML.Wrapped_Elem(markup, ts1, ts2) =>
+          XML.Wrapped_Elem(resolve_markup(markup), ts1.map(resolve_tree _), ts2.map(resolve_tree _))
+        case XML.Elem(markup, ts) =>
+          XML.Elem(resolve_markup(markup), ts.map(resolve_tree _))
+        case text => text
+      }
+    body.map(resolve_tree _)
+  }
+
+  private def resolve_id(id: String, s: String): XML.Body =
+    try { resolve_id(id, YXML.parse_body(s)) }
+    catch { case ERROR(_) => XML.Encode.string(s) }
+
+  def define_command(command: Command)
   {
     val blobs_yxml =
     { import XML.Encode._
@@ -390,9 +413,9 @@ trait Protocol
         variant(List(
           { case Exn.Res((a, b)) =>
               (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
-          { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
+          { case Exn.Exn(e) => (Nil, resolve_id(command.id.toString, Exn.message(e))) }))
 
-      YXML.string_of_body(list(encode_blob)(command.blobs))
+      YXML.string_of_body(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
 
     val toks = command.span.content
@@ -433,7 +456,7 @@ trait Protocol
           { case Document.Node.Deps(header) =>
               val master_dir = Isabelle_System.posix_path_url(name.master_dir)
               val theory = Long_Name.base_name(name.theory)
-              val imports = header.imports.map(_.node)
+              val imports = header.imports.map({ case (a, _) => a.node })
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
                 pair(Encode.string, pair(Encode.string, pair(list(Encode.string),

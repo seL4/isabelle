@@ -80,11 +80,10 @@ object Thy_Header extends Parse.Parser
 
   val header: Parser[Thy_Header] =
   {
-    val file_name = atom("file name", _.is_name)
-
     val opt_files =
       $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
       success(Nil)
+
     val keyword_spec =
       atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
       { case x ~ y ~ z => ((x, y), z) }
@@ -94,17 +93,14 @@ object Thy_Header extends Parse.Parser
       opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
       opt($$$("==") ~! name ^^ { case _ ~ x => x }) ^^
       { case xs ~ y ~ z => xs.map((_, y, z)) }
+
     val keyword_decls =
       keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
       { case xs ~ yss => (xs :: yss).flatten }
 
-    val file =
-      $$$("(") ~! (file_name ~ $$$(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
-      file_name ^^ (x => (x, true))
-
     val args =
-      theory_name ~
-      (opt($$$(IMPORTS) ~! (rep1(theory_xname))) ^^
+      position(theory_name) ~
+      (opt($$$(IMPORTS) ~! (rep1(position(theory_xname)))) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt($$$(KEYWORDS) ~! keyword_decls) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
@@ -128,7 +124,7 @@ object Thy_Header extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(reader: Reader[Char]): Thy_Header =
+  def read(reader: Reader[Char], start: Token.Pos): Thy_Header =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
     val toks = new mutable.ListBuffer[Token]
@@ -144,31 +140,27 @@ object Thy_Header extends Parse.Parser
     }
     scan_to_begin(reader)
 
-    parse(commit(header), Token.reader(toks.toList)) match {
+    parse(commit(header), Token.reader(toks.toList, start)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }
   }
 
-  def read(source: CharSequence): Thy_Header =
-    read(new CharSequenceReader(source))
+  def read(source: CharSequence, start: Token.Pos): Thy_Header =
+    read(new CharSequenceReader(source), start)
 }
 
 
 sealed case class Thy_Header(
-  name: String,
-  imports: List[String],
+  name: (String, Position.T),
+  imports: List[(String, Position.T)],
   keywords: Thy_Header.Keywords)
 {
-  def map(f: String => String): Thy_Header =
-    Thy_Header(f(name), imports.map(f), keywords)
-
   def decode_symbols: Thy_Header =
   {
     val f = Symbol.decode _
-    Thy_Header(f(name), imports.map(f),
+    Thy_Header((f(name._1), name._2), imports.map({ case (a, b) => (f(a), b) }),
       keywords.map({ case (a, b, c) =>
         (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f)) }), c.map(f)) }))
   }
 }
-

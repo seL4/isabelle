@@ -539,14 +539,13 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
 
     val defs = build_defs lthy nonexhaustives bs mxs funs_data rec_specs has_call;
 
-    fun prove def_thms' ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...}
-        : rec_spec) (fun_data : eqn_data list) lthy' =
+    fun prove def_thms ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...} : rec_spec)
+        (fun_data : eqn_data list) lthy' =
       let
         val js =
           find_indices (op = o apply2 (fn {fun_name, ctr, ...} => (fun_name, ctr)))
             fun_data eqns_data;
 
-        val def_thms = map (snd o snd) def_thms';
         val simp_thms = finds (fn (x, y) => #ctr x = #ctr y) fun_data ctr_specs
           |> fst
           |> map_filter (try (fn (x, [y]) =>
@@ -587,7 +586,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
              fun_defs = Morphism.fact phi def_thms, fpTs = take actual_nn Ts};
         in
           map_prod split_list (interpret_lfp_rec_sugar plugins fp_rec_sugar)
-            (@{fold_map 2} (prove defs) (take actual_nn rec_specs) funs_data lthy)
+            (@{fold_map 2} (prove (map (snd o snd) defs)) (take actual_nn rec_specs) funs_data lthy)
         end),
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;

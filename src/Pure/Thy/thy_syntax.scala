@@ -63,7 +63,7 @@ object Thy_Syntax
 
 
 
-  /** header edits: structure and outer syntax **/
+  /** header edits: graph structure and outer syntax **/
 
   private def header_edits(
     resources: Resources,
@@ -82,7 +82,7 @@ object Thy_Syntax
           node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
-          if (node.header.imports != node1.header.imports ||
+          if (node.header.imports.map(_._1) != node1.header.imports.map(_._1) ||
               node.header.keywords != node1.header.keywords) syntax_changed0 += name
           nodes += (name -> node1)
           doc_edits += (name -> Document.Node.Deps(header))
@@ -98,7 +98,7 @@ object Thy_Syntax
         if (node.is_empty) None
         else {
           val header = node.header
-          val imports_syntax = header.imports.flatMap(a => nodes(a).syntax)
+          val imports_syntax = header.imports.flatMap(a => nodes(a._1).syntax)
           Some((resources.base_syntax /: imports_syntax)(_ ++ _).add_keywords(header.keywords))
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -143,8 +143,8 @@ object Thy_Syntax
 
   @tailrec private def chop_common(
       cmds: List[Command],
-      blobs_spans: List[(List[Command.Blob], Command_Span.Span)])
-    : (List[Command], List[(List[Command.Blob], Command_Span.Span)]) =
+      blobs_spans: List[(Command.Blobs_Info, Command_Span.Span)])
+    : (List[Command], List[(Command.Blobs_Info, Command_Span.Span)]) =
   {
     (cmds, blobs_spans) match {
       case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>
@@ -157,14 +157,15 @@ object Thy_Syntax
     resources: Resources,
     syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
-    name: Document.Node.Name,
+    can_import: Document.Node.Name => Boolean,
+    node_name: Document.Node.Name,
     commands: Linear_Set[Command],
     first: Command, last: Command): Linear_Set[Command] =
   {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
-      syntax.parse_spans(cmds0.iterator.map(_.source).mkString).
-        map(span => (Command_Span.resolve_files(resources, syntax, name, span, get_blob), span))
+      syntax.parse_spans(cmds0.iterator.map(_.source).mkString).map(span =>
+        (Command.blobs_info(resources, syntax, get_blob, can_import, node_name, span), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
@@ -179,71 +180,9 @@ object Thy_Syntax
       case cmd :: _ =>
         val hook = commands.prev(cmd)
         val inserted =
-          blobs_spans2.map({ case (blobs, span) => Command(Document_ID.make(), name, blobs, span) })
+          blobs_spans2.map({ case (blobs, span) =>
+            Command(Document_ID.make(), node_name, blobs, span) })
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
-    }
-  }
-
-
-  /* recover command spans after edits */
-
-  // FIXME somewhat slow
-  private def recover_spans(
-    resources: Resources,
-    syntax: Prover.Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
-    name: Document.Node.Name,
-    perspective: Command.Perspective,
-    commands: Linear_Set[Command]): Linear_Set[Command] =
-  {
-    val visible = perspective.commands.toSet
-
-    def next_invisible_command(cmds: Linear_Set[Command], from: Command): Command =
-      cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || visible(cmd))
-        .find(_.is_proper) getOrElse cmds.last
-
-    @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
-      cmds.find(_.is_unparsed) match {
-        case Some(first_unparsed) =>
-          val first = next_invisible_command(cmds.reverse, first_unparsed)
-          val last = next_invisible_command(cmds, first_unparsed)
-          recover(reparse_spans(resources, syntax, get_blob, name, cmds, first, last))
-        case None => cmds
-      }
-    recover(commands)
-  }
-
-
-  /* consolidate unfinished spans */
-
-  private def consolidate_spans(
-    resources: Resources,
-    syntax: Prover.Syntax,
-    get_blob: Document.Node.Name => Option[Document.Blob],
-    reparse_limit: Int,
-    name: Document.Node.Name,
-    perspective: Command.Perspective,
-    commands: Linear_Set[Command]): Linear_Set[Command] =
-  {
-    if (perspective.commands.isEmpty) commands
-    else {
-      commands.find(_.is_unfinished) match {
-        case Some(first_unfinished) =>
-          val visible = perspective.commands.toSet
-          commands.reverse.find(visible) match {
-            case Some(last_visible) =>
-              val it = commands.iterator(last_visible)
-              var last = last_visible
-              var i = 0
-              while (i < reparse_limit && it.hasNext) {
-                last = it.next
-                i += last.length
-              }
-              reparse_spans(resources, syntax, get_blob, name, commands, first_unfinished, last)
-            case None => commands
-          }
-        case None => commands
-      }
     }
   }
 
@@ -264,9 +203,35 @@ object Thy_Syntax
     resources: Resources,
     syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
+    can_import: Document.Node.Name => Boolean,
     reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =
   {
+    /* recover command spans after edits */
+    // FIXME somewhat slow
+    def recover_spans(
+      name: Document.Node.Name,
+      perspective: Command.Perspective,
+      commands: Linear_Set[Command]): Linear_Set[Command] =
+    {
+      val is_visible = perspective.commands.toSet
+
+      def next_invisible(cmds: Linear_Set[Command], from: Command): Command =
+        cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || is_visible(cmd))
+          .find(_.is_proper) getOrElse cmds.last
+
+      @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
+        cmds.find(_.is_unparsed) match {
+          case Some(first_unparsed) =>
+            val first = next_invisible(cmds.reverse, first_unparsed)
+            val last = next_invisible(cmds, first_unparsed)
+            recover(
+              reparse_spans(resources, syntax, get_blob, can_import, name, cmds, first, last))
+          case None => cmds
+        }
+      recover(commands)
+    }
+
     edit match {
       case (_, Document.Node.Clear()) => node.clear
 
@@ -276,8 +241,7 @@ object Thy_Syntax
         if (name.is_theory) {
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
-          val commands2 =
-            recover_spans(resources, syntax, get_blob, name, node.perspective.visible, commands1)
+          val commands2 = recover_spans(name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
         else node
@@ -289,11 +253,33 @@ object Thy_Syntax
         val perspective: Document.Node.Perspective_Command =
           Document.Node.Perspective(required, visible_overlay, overlays)
         if (node.same_perspective(text_perspective, perspective)) node
-        else
-          node.update_perspective(text_perspective, perspective).
-            update_commands(
-              consolidate_spans(resources, syntax, get_blob, reparse_limit,
-                name, visible, node.commands))
+        else {
+          /* consolidate unfinished spans */
+          val is_visible = visible.commands.toSet
+          val commands = node.commands
+          val commands1 =
+            if (is_visible.isEmpty) commands
+            else {
+              commands.find(_.is_unfinished) match {
+                case Some(first_unfinished) =>
+                  commands.reverse.find(is_visible) match {
+                    case Some(last_visible) =>
+                      val it = commands.iterator(last_visible)
+                      var last = last_visible
+                      var i = 0
+                      while (i < reparse_limit && it.hasNext) {
+                        last = it.next
+                        i += last.length
+                      }
+                      reparse_spans(resources, syntax, get_blob, can_import,
+                        name, commands, first_unfinished, last)
+                    case None => commands
+                  }
+                case None => commands
+              }
+            }
+          node.update_perspective(text_perspective, perspective).update_commands(commands1)
+        }
     }
   }
 
@@ -304,10 +290,13 @@ object Thy_Syntax
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text]): Session.Change =
   {
+    val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
+
     def get_blob(name: Document.Node.Name) =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
-    val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
+    def can_import(name: Document.Node.Name): Boolean =
+      resources.loaded_theories(name.theory) || nodes0(name).has_header
 
     val (doc_edits, version) =
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
@@ -337,14 +326,15 @@ object Thy_Syntax
             val node1 =
               if (reparse_set(name) && commands.nonEmpty)
                 node.update_commands(
-                  reparse_spans(resources, syntax, get_blob,
-                    name, commands, commands.head, commands.last))
+                  reparse_spans(resources, syntax, get_blob, can_import, name,
+                    commands, commands.head, commands.last))
               else node
             val node2 =
-              (node1 /: edits)(text_edit(resources, syntax, get_blob, reparse_limit, _, _))
+              (node1 /: edits)(
+                text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
               if (reparse_set.contains(name))
-                text_edit(resources, syntax, get_blob, reparse_limit,
+                text_edit(resources, syntax, get_blob, can_import, reparse_limit,
                   node2, (name, node2.edit_perspective))
               else node2
 

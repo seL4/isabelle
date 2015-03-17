@@ -368,7 +368,7 @@ text {* Convert a qualified method (qualified with its declaring
 class) to a qualified member declaration:  @{text method}  *}
 
 definition
-  method :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> memberdecl)"
+  "method" :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> memberdecl)"
   where "method sig m = (declclass m, mdecl (sig, mthd m))"
 
 lemma method_simp[simp]: "method sig (C,m) = (C,mdecl (sig,m))"

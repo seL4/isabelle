@@ -21,6 +21,7 @@ object Position
   val End_Offset = new Properties.Int(Markup.END_OFFSET)
   val File = new Properties.String(Markup.FILE)
   val Id = new Properties.Long(Markup.ID)
+  val Id_String = new Properties.String(Markup.ID)
 
   val Def_Line = new Properties.Int(Markup.DEF_LINE)
   val Def_Offset = new Properties.Int(Markup.DEF_OFFSET)
@@ -102,18 +103,20 @@ object Position
   /* here: user output */
 
   def here(pos: T): String =
-    (Line.unapply(pos), File.unapply(pos)) match {
-      case (Some(i), None) => " (line " + i.toString + ")"
-      case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
-      case (None, Some(name)) => " (file " + quote(name) + ")"
-      case _ => ""
-    }
+    Markup(Markup.POSITION, pos).markup(
+      (Line.unapply(pos), File.unapply(pos)) match {
+        case (Some(i), None) => " (line " + i.toString + ")"
+        case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
+        case (None, Some(name)) => " (file " + quote(name) + ")"
+        case _ => ""
+      })
 
   def here_undelimited(pos: T): String =
-    (Line.unapply(pos), File.unapply(pos)) match {
-      case (Some(i), None) => "line " + i.toString
-      case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
-      case (None, Some(name)) => "file " + quote(name)
-      case _ => ""
-    }
+    Markup(Markup.POSITION, pos).markup(
+      (Line.unapply(pos), File.unapply(pos)) match {
+        case (Some(i), None) => "line " + i.toString
+        case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
+        case (None, Some(name)) => "file " + quote(name)
+        case _ => ""
+      })
 }

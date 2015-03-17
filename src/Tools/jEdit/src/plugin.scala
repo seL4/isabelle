@@ -216,9 +216,8 @@ class Plugin extends EBPlugin
               } yield (model.node_name, Position.none)
 
             val thy_info = new Thy_Info(PIDE.resources)
-            // FIXME avoid I/O on GUI thread!?!
             val files = thy_info.dependencies("", thys).deps.map(_.name.node).
-              filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
+              filter(file => !loaded_buffer(file) && PIDE.resources.check_file(file))
 
             if (files.nonEmpty) {
               if (PIDE.options.bool("jedit_auto_load")) {

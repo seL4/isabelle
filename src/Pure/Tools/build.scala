@@ -242,7 +242,7 @@ object Build
               { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
             rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
-      command(SESSION) ~!
+      position(command(SESSION)) ~!
         (session_name ~
           (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
           (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
@@ -253,15 +253,16 @@ object Build
               rep1(theories) ~
               (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case pos ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
+        { case (_, pos) ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
     def parse_entries(root: Path): List[(String, Session_Entry)] =
     {
       val toks = Token.explode(root_syntax.keywords, File.read(root))
+      val start = Token.Pos.file(root.implode)
 
-      parse_all(rep(chapter | session_entry), Token.reader(toks, root.implode)) match {
+      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
         case Success(result, _) =>
           var chapter = chapter_default
           val entries = new mutable.ListBuffer[(String, Session_Entry)]

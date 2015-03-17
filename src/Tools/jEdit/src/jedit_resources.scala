@@ -79,13 +79,6 @@ class JEdit_Resources(
     }
   }
 
-  def check_file(view: View, file: String): Boolean =
-    try {
-      if (Url.is_wellformed(file)) Url.is_readable(file)
-      else (new JFile(file)).isFile
-    }
-    catch { case ERROR(_) => false }
-
 
   /* file content */
 

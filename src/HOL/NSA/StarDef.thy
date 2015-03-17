@@ -848,6 +848,14 @@ by (intro_classes, transfer, rule zero_neq_one)
 instance star :: (semiring_1) semiring_1 ..
 instance star :: (comm_semiring_1) comm_semiring_1 ..
 
+declare dvd_def [transfer_refold]
+
+instance star :: (semiring_dvd) semiring_dvd
+apply intro_classes
+apply(transfer, rule dvd_add_times_triv_left_iff)
+apply(transfer, erule (1) dvd_addD)
+done
+
 instance star :: (no_zero_divisors) no_zero_divisors
 by (intro_classes, transfer, rule no_zero_divisors)
 
@@ -857,6 +865,16 @@ instance star :: (ring) ring ..
 instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
+instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors ..
+instance star :: (semiring_div) semiring_div
+apply intro_classes
+apply(transfer, rule mod_div_equality)
+apply(transfer, rule div_by_0)
+apply(transfer, rule div_0)
+apply(transfer, erule div_mult_self1)
+apply(transfer, erule div_mult_mult1)
+done
+
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 instance star :: (idom) idom .. 
@@ -923,7 +941,6 @@ by (intro_classes, transfer, rule zero_less_one)
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..
 instance star :: (linordered_field_inverse_zero) linordered_field_inverse_zero ..
-
 
 subsection {* Power *}
 
@@ -1006,6 +1023,36 @@ qed
 
 instance star :: (ring_char_0) ring_char_0 ..
 
+instance star :: (semiring_parity) semiring_parity
+apply intro_classes
+apply(transfer, rule odd_one)
+apply(transfer, erule (1) odd_even_add)
+apply(transfer, erule even_multD)
+apply(transfer, erule odd_ex_decrement)
+done
+
+instance star :: (semiring_div_parity) semiring_div_parity
+apply intro_classes
+apply(transfer, rule parity)
+apply(transfer, rule one_mod_two_eq_one)
+apply(transfer, rule zero_not_eq_two)
+done
+
+instance star :: (semiring_numeral_div) semiring_numeral_div
+apply intro_classes
+apply(transfer, erule semiring_numeral_div_class.diff_invert_add1)
+apply(transfer, erule semiring_numeral_div_class.le_add_diff_inverse2)
+apply(transfer, rule semiring_numeral_div_class.mult_div_cancel)
+apply(transfer, erule (1) semiring_numeral_div_class.div_less)
+apply(transfer, erule (1) semiring_numeral_div_class.mod_less)
+apply(transfer, erule (1) semiring_numeral_div_class.div_positive)
+apply(transfer, erule semiring_numeral_div_class.mod_less_eq_dividend)
+apply(transfer, erule semiring_numeral_div_class.pos_mod_bound)
+apply(transfer, erule semiring_numeral_div_class.pos_mod_sign)
+apply(transfer, erule semiring_numeral_div_class.mod_mult2_eq)
+apply(transfer, erule semiring_numeral_div_class.div_mult2_eq)
+apply(transfer, rule discrete)
+done
 
 subsection {* Finite class *}
 

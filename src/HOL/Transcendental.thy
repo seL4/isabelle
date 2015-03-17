@@ -16,6 +16,9 @@ lemma of_real_fact [simp]: "of_real (fact n) = fact n"
 lemma real_fact_nat [simp]: "real (fact n :: nat) = fact n"
   by (simp add: real_of_nat_def)
 
+lemma real_fact_int [simp]: "real (fact n :: int) = fact n"
+  by (metis of_int_of_nat_eq of_nat_fact real_of_int_def)
+
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" -- "could be weakened to lim sup"
@@ -4372,7 +4375,6 @@ proof -
         case False
         hence "0 < \<bar>x\<bar>" and "- \<bar>x\<bar> < \<bar>x\<bar>" by auto
         have "suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>) = suminf (?c 0) - arctan 0"
-        thm suminf_eq_arctan_bounded
           by (rule suminf_eq_arctan_bounded[where x1="0" and a1="-\<bar>x\<bar>" and b1="\<bar>x\<bar>", symmetric])
             (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
         moreover

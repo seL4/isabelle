@@ -10,13 +10,16 @@ package isabelle
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
+import scala.util.parsing.input.CharSequenceReader
 
 
 object Command
 {
   type Edit = (Option[Command], Option[Command])
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Symbol.Text_Chunk)])]
 
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Symbol.Text_Chunk)])]
+  type Blobs_Info = (List[Blob], Int)
+  val no_blobs: Blobs_Info = (Nil, -1)
 
 
   /** accumulated results from prover **/
@@ -253,15 +256,15 @@ object Command
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
-    blobs: List[Blob],
+    blobs_info: Blobs_Info,
     span: Command_Span.Span): Command =
   {
     val (source, span1) = span.compact_source
-    new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
+    new Command(id, node_name, blobs_info, span1, source, Results.empty, Markup_Tree.empty)
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, Nil, Command_Span.empty)
+    Command(Document_ID.none, Document.Node.Name.empty, no_blobs, Command_Span.empty)
 
   def unparsed(
     id: Document_ID.Command,
@@ -270,7 +273,7 @@ object Command
     markup: Markup_Tree): Command =
   {
     val (source1, span1) = Command_Span.unparsed(source).compact_source
-    new Command(id, Document.Node.Name.empty, Nil, span1, source1, results, markup)
+    new Command(id, Document.Node.Name.empty, no_blobs, span1, source1, results, markup)
   }
 
   def unparsed(source: String): Command =
@@ -305,13 +308,89 @@ object Command
         (cmds1.iterator zip cmds2.iterator).forall({ case (c1, c2) => c1.id == c2.id })
     }
   }
+
+
+  /* blobs: inlined errors and auxiliary files */
+
+  private def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
+  {
+    def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
+      toks match {
+        case (t1, i1) :: (t2, i2) :: rest =>
+          if (t1.is_keyword && (t1.source == "%" || t1.source == "--")) clean(rest)
+          else (t1, i1) :: clean((t2, i2) :: rest)
+        case _ => toks
+      }
+    clean(tokens.zipWithIndex.filter({ case (t, _) => t.is_proper }))
+  }
+
+  private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
+    tokens match {
+      case (tok, _) :: toks =>
+        if (tok.is_command)
+          toks.collectFirst({ case (t, i) if t.is_name => (t.content, i) })
+        else None
+      case Nil => None
+    }
+
+  def span_files(syntax: Prover.Syntax, span: Command_Span.Span): (List[String], Int) =
+    span.kind match {
+      case Command_Span.Command_Span(name, _) =>
+        syntax.load_command(name) match {
+          case Some(exts) =>
+            find_file(clean_tokens(span.content)) match {
+              case Some((file, i)) =>
+                if (exts.isEmpty) (List(file), i)
+                else (exts.map(ext => file + "." + ext), i)
+              case None => (Nil, -1)
+            }
+          case None => (Nil, -1)
+        }
+      case _ => (Nil, -1)
+    }
+
+  def blobs_info(
+    resources: Resources,
+    syntax: Prover.Syntax,
+    get_blob: Document.Node.Name => Option[Document.Blob],
+    can_import: Document.Node.Name => Boolean,
+    node_name: Document.Node.Name,
+    span: Command_Span.Span): Blobs_Info =
+  {
+    span.kind match {
+      // inlined errors
+      case Command_Span.Command_Span(name, _) if syntax.is_theory_begin(name) =>
+        val header =
+          resources.check_thy_reader("", node_name,
+            new CharSequenceReader(span.source), Token.Pos.id(Markup.COMMAND))
+        val import_errors =
+          for ((imp, pos) <- header.imports if !can_import(imp)) yield {
+            val name = imp.node
+            "Bad theory import " + Markup.Path(name).markup(quote(name)) + Position.here(pos)
+          }
+        ((header.errors ::: import_errors).map(msg => Exn.Exn(ERROR(msg)): Command.Blob), -1)
+
+      // auxiliary files
+      case _ =>
+        val (files, index) = span_files(syntax, span)
+        val blobs =
+          files.map(file =>
+            (Exn.capture {
+              val name =
+                Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file)))
+              val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
+              (name, blob)
+            }).user_error)
+        (blobs, index)
+    }
+  }
 }
 
 
 final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
-    val blobs: List[Command.Blob],
+    val blobs_info: Command.Blobs_Info,
     val span: Command_Span.Span,
     val source: String,
     val init_results: Command.Results,
@@ -339,6 +418,9 @@ final class Command private(
 
 
   /* blobs */
+
+  def blobs: List[Command.Blob] = blobs_info._1
+  def blobs_index: Int = blobs_info._2
 
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res((name, _)) <- blobs) yield name

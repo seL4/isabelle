@@ -178,6 +178,14 @@ Minor INCOMPATIBILITY.
     is invoked). The solution is to specify the case rule explicitly
     (e.g. "cases w rule: widget.exhaust").
     INCOMPATIBILITY.
+  - Renamed theories:
+      BNF_Comp ~> BNF_Composition
+      BNF_FP_Base ~> BNF_Fixpoint_Base
+      BNF_GFP ~> BNF_Greatest_Fixpoint
+      BNF_LFP ~> BNF_Least_Fixpoint
+      BNF_Constructions_on_Wellorders ~> BNF_Wellorder_Constructions
+      Cardinals/Constructions_on_Wellorders ~> Cardinals/Wellorder_Constructions
+    INCOMPATIBILITY.
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and

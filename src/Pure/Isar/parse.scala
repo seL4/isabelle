@@ -25,31 +25,42 @@ object Parse
       if (!filter_proper || in.atEnd || in.first.is_proper) in
       else proper(in.rest)
 
-    def token(s: String, pred: Elem => Boolean): Parser[(Elem, Token.Pos)] =
-      new Parser[(Elem, Token.Pos)] {
+    private def proper_position: Parser[Position.T] =
+      new Parser[Position.T] {
+        def apply(raw_input: Input) =
+        {
+          val in = proper(raw_input)
+          val pos =
+            in.pos match {
+              case pos: Token.Pos => pos
+              case _ => Token.Pos.none
+            }
+          Success(if (in.atEnd) pos.position() else pos.position(in.first), in)
+        }
+      }
+
+    def position[A](parser: Parser[A]): Parser[(A, Position.T)] =
+      proper_position ~ parser ^^ { case x ~ y => (y, x) }
+
+    def token(s: String, pred: Elem => Boolean): Parser[Elem] =
+      new Parser[Elem] {
         def apply(raw_input: Input) =
         {
           val in = proper(raw_input)
           if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
           else {
-            val pos =
-              in.pos match {
-                case pos: Token.Pos => pos
-                case _ => Token.Pos.none
-              }
             val token = in.first
-            if (pred(token)) Success((token, pos), proper(in.rest))
+            if (pred(token)) Success(token, proper(in.rest))
             else Failure(s + " expected,\nbut " + token.kind + " was found:\n" + token.source, in)
           }
         }
       }
 
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
-      token(s, pred) ^^ { case (tok, _) => tok.content }
+      token(s, pred) ^^ (_.content)
 
-    def command(name: String): Parser[Position.T] =
-      token("command " + quote(name), tok => tok.is_command && tok.source == name) ^^
-        { case (_, pos) => pos.position }
+    def command(name: String): Parser[String] =
+      atom("command " + quote(name), tok => tok.is_command && tok.source == name)
 
     def $$$(name: String): Parser[String] =
       atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
@@ -61,8 +72,10 @@ object Parse
     def text: Parser[String] = atom("text", _.is_text)
     def ML_source: Parser[String] = atom("ML source", _.is_text)
     def document_source: Parser[String] = atom("document source", _.is_text)
+
     def path: Parser[String] =
       atom("file name/path specification", tok => tok.is_name && Path.is_wellformed(tok.content))
+
     def theory_name: Parser[String] =
       atom("theory name", tok => tok.is_name && Path.is_wellformed(tok.content))
     def theory_xname: Parser[String] =

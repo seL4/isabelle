@@ -793,6 +793,9 @@ end
 
 subsection \<open> Conditional Probabilities \<close>
 
+lemma measure_pmf_zero_iff: "measure (measure_pmf p) s = 0 \<longleftrightarrow> set_pmf p \<inter> s = {}"
+  by (subst measure_pmf.prob_eq_0) (auto simp: AE_measure_pmf_iff)
+
 context
   fixes p :: "'a pmf" and s :: "'a set"
   assumes not_empty: "set_pmf p \<inter> s \<noteq> {}"
@@ -854,32 +857,22 @@ proof -
 qed
 
 lemma bind_cond_pmf_cancel:
-  assumes in_S: "\<And>x. x \<in> set_pmf p \<Longrightarrow> x \<in> S x" "\<And>x. x \<in> set_pmf q \<Longrightarrow> x \<in> S x"
-  assumes S_eq: "\<And>x y. x \<in> S y \<Longrightarrow> S x = S y"
-  and same: "\<And>x. measure (measure_pmf p) (S x) = measure (measure_pmf q) (S x)"
-  shows "bind_pmf p (\<lambda>x. cond_pmf q (S x)) = q" (is "?lhs = _")
+  assumes [simp]: "\<And>x. x \<in> set_pmf p \<Longrightarrow> set_pmf q \<inter> {y. R x y} \<noteq> {}"
+  assumes [simp]: "\<And>y. y \<in> set_pmf q \<Longrightarrow> set_pmf p \<inter> {x. R x y} \<noteq> {}"
+  assumes [simp]: "\<And>x y. x \<in> set_pmf p \<Longrightarrow> y \<in> set_pmf q \<Longrightarrow> R x y \<Longrightarrow> measure q {y. R x y} = measure p {x. R x y}"
+  shows "bind_pmf p (\<lambda>x. cond_pmf q {y. R x y}) = q"
 proof (rule pmf_eqI)
-  { fix x
-    assume "x \<in> set_pmf p"
-    hence "set_pmf p \<inter> (S x) \<noteq> {}" using in_S by auto
-    hence "measure (measure_pmf p) (S x) \<noteq> 0"
-      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
-    with same have "measure (measure_pmf q) (S x) \<noteq> 0" by simp
-    hence "set_pmf q \<inter> S x \<noteq> {}"
-      by(auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
-  note [simp] = this
-
-  fix z
-  have pmf_q_z: "z \<notin> S z \<Longrightarrow> pmf q z = 0"
-    by(erule contrapos_np)(simp add: pmf_eq_0_set_pmf in_S)
-
-  have "ereal (pmf ?lhs z) = \<integral>\<^sup>+ x. ereal (pmf (cond_pmf q (S x)) z) \<partial>measure_pmf p"
-    by(simp add: ereal_pmf_bind)
-  also have "\<dots> = \<integral>\<^sup>+ x. ereal (pmf q z / measure p (S z)) * indicator (S z) x \<partial>measure_pmf p"
-    by(rule nn_integral_cong_AE)(auto simp add: AE_measure_pmf_iff pmf_cond same pmf_q_z in_S dest!: S_eq split: split_indicator)
-  also have "\<dots> = pmf q z" using pmf_nonneg[of q z]
-    by (subst nn_integral_cmult)(auto simp add: measure_nonneg measure_pmf.emeasure_eq_measure same measure_pmf.prob_eq_0 AE_measure_pmf_iff pmf_eq_0_set_pmf in_S)
-  finally show "pmf ?lhs z = pmf q z" by simp
+  fix i
+  have "ereal (pmf (bind_pmf p (\<lambda>x. cond_pmf q {y. R x y})) i) =
+    (\<integral>\<^sup>+x. ereal (pmf q i / measure p {x. R x i}) * ereal (indicator {x. R x i} x) \<partial>p)"
+    by (auto simp add: ereal_pmf_bind AE_measure_pmf_iff pmf_cond pmf_eq_0_set_pmf intro!: nn_integral_cong_AE)
+  also have "\<dots> = (pmf q i * measure p {x. R x i}) / measure p {x. R x i}"
+    by (simp add: pmf_nonneg measure_nonneg zero_ereal_def[symmetric] ereal_indicator
+                  nn_integral_cmult measure_pmf.emeasure_eq_measure)
+  also have "\<dots> = pmf q i"
+    by (cases "pmf q i = 0") (simp_all add: pmf_eq_0_set_pmf measure_measure_pmf_not_zero)
+  finally show "pmf (bind_pmf p (\<lambda>x. cond_pmf q {y. R x y})) i = pmf q i"
+    by simp
 qed
 
 subsection \<open> Relator \<close>
@@ -890,6 +883,136 @@ where
   "\<lbrakk> \<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y;
      map_pmf fst pq = p; map_pmf snd pq = q \<rbrakk>
   \<Longrightarrow> rel_pmf R p q"
+
+lemma rel_pmfI:
+  assumes R: "rel_set R (set_pmf p) (set_pmf q)"
+  assumes eq: "\<And>x y. x \<in> set_pmf p \<Longrightarrow> y \<in> set_pmf q \<Longrightarrow> R x y \<Longrightarrow>
+    measure p {x. R x y} = measure q {y. R x y}"
+  shows "rel_pmf R p q"
+proof
+  let ?pq = "bind_pmf p (\<lambda>x. bind_pmf (cond_pmf q {y. R x y}) (\<lambda>y. return_pmf (x, y)))"
+  have "\<And>x. x \<in> set_pmf p \<Longrightarrow> set_pmf q \<inter> {y. R x y} \<noteq> {}"
+    using R by (auto simp: rel_set_def)
+  then show "\<And>x y. (x, y) \<in> set_pmf ?pq \<Longrightarrow> R x y"
+    by auto
+  show "map_pmf fst ?pq = p"
+    by (simp add: map_bind_pmf map_return_pmf bind_return_pmf')
+
+  show "map_pmf snd ?pq = q"
+    using R eq
+    apply (simp add: bind_cond_pmf_cancel map_bind_pmf map_return_pmf bind_return_pmf')
+    apply (rule bind_cond_pmf_cancel)
+    apply (auto simp: rel_set_def)
+    done
+qed
+
+lemma rel_pmf_imp_rel_set: "rel_pmf R p q \<Longrightarrow> rel_set R (set_pmf p) (set_pmf q)"
+  by (force simp add: rel_pmf.simps rel_set_def)
+
+lemma rel_pmfD_measure:
+  assumes rel_R: "rel_pmf R p q" and R: "\<And>a b. R a b \<Longrightarrow> R a y \<longleftrightarrow> R x b"
+  assumes "x \<in> set_pmf p" "y \<in> set_pmf q"
+  shows "measure p {x. R x y} = measure q {y. R x y}"
+proof -
+  from rel_R obtain pq where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y"
+    and eq: "p = map_pmf fst pq" "q = map_pmf snd pq"
+    by (auto elim: rel_pmf.cases)
+  have "measure p {x. R x y} = measure pq {x. R (fst x) y}"
+    by (simp add: eq map_pmf_rep_eq measure_distr)
+  also have "\<dots> = measure pq {y. R x (snd y)}"
+    by (intro measure_pmf.finite_measure_eq_AE)
+       (auto simp: AE_measure_pmf_iff R dest!: pq)
+  also have "\<dots> = measure q {y. R x y}"
+    by (simp add: eq map_pmf_rep_eq measure_distr)
+  finally show "measure p {x. R x y} = measure q {y. R x y}" .
+qed
+
+lemma rel_pmf_iff_measure:
+  assumes "symp R" "transp R"
+  shows "rel_pmf R p q \<longleftrightarrow>
+    rel_set R (set_pmf p) (set_pmf q) \<and>
+    (\<forall>x\<in>set_pmf p. \<forall>y\<in>set_pmf q. R x y \<longrightarrow> measure p {x. R x y} = measure q {y. R x y})"
+  by (safe intro!: rel_pmf_imp_rel_set rel_pmfI)
+     (auto intro!: rel_pmfD_measure dest: sympD[OF \<open>symp R\<close>] transpD[OF \<open>transp R\<close>])
+
+lemma quotient_rel_set_disjoint:
+  "equivp R \<Longrightarrow> C \<in> UNIV // {(x, y). R x y} \<Longrightarrow> rel_set R A B \<Longrightarrow> A \<inter> C = {} \<longleftrightarrow> B \<inter> C = {}"
+  using in_quotient_imp_closed[of UNIV "{(x, y). R x y}" C] 
+  by (auto 0 0 simp: equivp_equiv rel_set_def set_eq_iff elim: equivpE)
+     (blast dest: equivp_symp)+
+
+lemma quotientD: "equiv X R \<Longrightarrow> A \<in> X // R \<Longrightarrow> x \<in> A \<Longrightarrow> A = R `` {x}"
+  by (metis Image_singleton_iff equiv_class_eq_iff quotientE)
+
+lemma rel_pmf_iff_equivp:
+  assumes "equivp R"
+  shows "rel_pmf R p q \<longleftrightarrow> (\<forall>C\<in>UNIV // {(x, y). R x y}. measure p C = measure q C)"
+    (is "_ \<longleftrightarrow>   (\<forall>C\<in>_//?R. _)")
+proof (subst rel_pmf_iff_measure, safe)
+  show "symp R" "transp R"
+    using assms by (auto simp: equivp_reflp_symp_transp)
+next
+  fix C assume C: "C \<in> UNIV // ?R" and R: "rel_set R (set_pmf p) (set_pmf q)"
+  assume eq: "\<forall>x\<in>set_pmf p. \<forall>y\<in>set_pmf q. R x y \<longrightarrow> measure p {x. R x y} = measure q {y. R x y}"
+  
+  show "measure p C = measure q C"
+  proof cases
+    assume "p \<inter> C = {}"
+    moreover then have "q \<inter> C = {}"  
+      using quotient_rel_set_disjoint[OF assms C R] by simp
+    ultimately show ?thesis
+      unfolding measure_pmf_zero_iff[symmetric] by simp
+  next
+    assume "p \<inter> C \<noteq> {}"
+    moreover then have "q \<inter> C \<noteq> {}"  
+      using quotient_rel_set_disjoint[OF assms C R] by simp
+    ultimately obtain x y where in_set: "x \<in> set_pmf p" "y \<in> set_pmf q" and in_C: "x \<in> C" "y \<in> C"
+      by auto
+    then have "R x y"
+      using in_quotient_imp_in_rel[of UNIV ?R C x y] C assms
+      by (simp add: equivp_equiv)
+    with in_set eq have "measure p {x. R x y} = measure q {y. R x y}"
+      by auto
+    moreover have "{y. R x y} = C"
+      using assms `x \<in> C` C quotientD[of UNIV ?R C x] by (simp add: equivp_equiv)
+    moreover have "{x. R x y} = C"
+      using assms `y \<in> C` C quotientD[of UNIV "?R" C y] sympD[of R]
+      by (auto simp add: equivp_equiv elim: equivpE)
+    ultimately show ?thesis
+      by auto
+  qed
+next
+  assume eq: "\<forall>C\<in>UNIV // ?R. measure p C = measure q C"
+  show "rel_set R (set_pmf p) (set_pmf q)"
+    unfolding rel_set_def
+  proof safe
+    fix x assume x: "x \<in> set_pmf p"
+    have "{y. R x y} \<in> UNIV // ?R"
+      by (auto simp: quotient_def)
+    with eq have *: "measure q {y. R x y} = measure p {y. R x y}"
+      by auto
+    have "measure q {y. R x y} \<noteq> 0"
+      using x assms unfolding * by (auto simp: measure_pmf_zero_iff set_eq_iff dest: equivp_reflp)
+    then show "\<exists>y\<in>set_pmf q. R x y"
+      unfolding measure_pmf_zero_iff by auto
+  next
+    fix y assume y: "y \<in> set_pmf q"
+    have "{x. R x y} \<in> UNIV // ?R"
+      using assms by (auto simp: quotient_def dest: equivp_symp)
+    with eq have *: "measure p {x. R x y} = measure q {x. R x y}"
+      by auto
+    have "measure p {x. R x y} \<noteq> 0"
+      using y assms unfolding * by (auto simp: measure_pmf_zero_iff set_eq_iff dest: equivp_reflp)
+    then show "\<exists>x\<in>set_pmf p. R x y"
+      unfolding measure_pmf_zero_iff by auto
+  qed
+
+  fix x y assume "x \<in> set_pmf p" "y \<in> set_pmf q" "R x y"
+  have "{y. R x y} \<in> UNIV // ?R" "{x. R x y} = {y. R x y}"
+    using assms `R x y` by (auto simp: quotient_def dest: equivp_symp equivp_transp)
+  with eq show "measure p {x. R x y} = measure q {y. R x y}"
+    by auto
+qed
 
 bnf pmf: "'a pmf" map: map_pmf sets: set_pmf bd : "natLeq" rel: rel_pmf
 proof -
@@ -919,7 +1042,7 @@ proof -
       and x: "x \<in> set_pmf p"
     thus "f x = g x" by simp }
 
-  fix R :: "'a => 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
+  fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
   { fix p q r
     assume pq: "rel_pmf R p q"
       and qr:"rel_pmf S q r"
@@ -928,8 +1051,8 @@ proof -
     from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
       and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
 
-    def pr \<equiv> "bind_pmf pq (\<lambda>(x, y). bind_pmf (cond_pmf qr {(y', z). y' = y}) (\<lambda>(y', z). return_pmf (x, z)))"
-    have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {(y', z). y' = y} \<noteq> {}"
+    def pr \<equiv> "bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy}) (\<lambda>yz. return_pmf (fst xy, snd yz)))"
+    have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {yz. fst yz = y} \<noteq> {}"
       by (force simp: q')
 
     have "rel_pmf (R OO S) p r"
@@ -940,11 +1063,11 @@ proof -
       with pq qr show "(R OO S) x z"
         by blast
     next
-      have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {(y', z). y' = y}))"
-        by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_return_pmf)
+      have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {yz. fst yz = y}))"
+        by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_return_pmf map_pmf_comp)
       then show "map_pmf snd pr = r"
-        unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) auto
-    qed (simp add: pr_def map_bind_pmf split_beta map_return_pmf map_pmf_def[symmetric] p) }
+        unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) (auto simp: eq_commute)
+    qed (simp add: pr_def map_bind_pmf split_beta map_return_pmf map_pmf_def[symmetric] p map_pmf_comp) }
   then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
@@ -1137,46 +1260,31 @@ lemma rel_pmf_inf:
   assumes 2: "rel_pmf R q p"
   and refl: "reflp R" and trans: "transp R"
   shows "rel_pmf (inf R R\<inverse>\<inverse>) p q"
-proof
-  let ?E = "\<lambda>x. {y. R x y \<and> R y x}"
-  let ?\<mu>E = "\<lambda>x. measure q (?E x)"
-  { fix x
-    have "measure p (?E x) = measure p ({y. R x y} - {y. R x y \<and> \<not> R y x})"
-      by(auto intro!: arg_cong[where f="measure p"])
-    also have "\<dots> = measure p {y. R x y} - measure p {y. R x y \<and> \<not> R y x}"
-      by (rule measure_pmf.finite_measure_Diff) auto
-    also have "measure p {y. R x y \<and> \<not> R y x} = measure q {y. R x y \<and> \<not> R y x}"
-      using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ioi)
-    also have "measure p {y. R x y} = measure q {y. R x y}"
-      using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ici)
-    also have "measure q {y. R x y} - measure q {y. R x y \<and> ~ R y x} =
-      measure q ({y. R x y} - {y. R x y \<and> \<not> R y x})"
-      by(rule measure_pmf.finite_measure_Diff[symmetric]) auto
-    also have "\<dots> = ?\<mu>E x"
-      by(auto intro!: arg_cong[where f="measure q"])
-    also note calculation }
-  note eq = this
+proof (subst rel_pmf_iff_equivp, safe)
+  show "equivp (inf R R\<inverse>\<inverse>)"
+    using trans refl by (auto simp: equivp_reflp_symp_transp intro: sympI transpI reflpI dest: transpD reflpD)
+  
+  fix C assume "C \<in> UNIV // {(x, y). inf R R\<inverse>\<inverse> x y}"
+  then obtain x where C: "C = {y. R x y \<and> R y x}"
+    by (auto elim: quotientE)
 
-  def pq \<equiv> "bind_pmf p (\<lambda>x. bind_pmf (cond_pmf q (?E x)) (\<lambda>y. return_pmf (x, y)))"
-
-  show "map_pmf fst pq = p"
-    by(simp add: pq_def map_bind_pmf map_return_pmf bind_return_pmf')
-
-  show "map_pmf snd pq = q"
-    unfolding pq_def map_bind_pmf map_return_pmf bind_return_pmf' snd_conv
-    by(subst bind_cond_pmf_cancel)(auto simp add: reflpD[OF \<open>reflp R\<close>] eq  intro: transpD[OF \<open>transp R\<close>])
-
-  fix x y
-  assume "(x, y) \<in> set_pmf pq"
-  moreover
-  { assume "x \<in> set_pmf p"
-    hence "measure (measure_pmf p) (?E x) \<noteq> 0"
-      by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff intro: reflpD[OF \<open>reflp R\<close>])
-    hence "measure (measure_pmf q) (?E x) \<noteq> 0" using eq by simp
-    hence "set_pmf q \<inter> {y. R x y \<and> R y x} \<noteq> {}"
-      by (auto simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff) }
-  ultimately show "inf R R\<inverse>\<inverse> x y"
-    by (auto simp add: pq_def)
+  let ?R = "\<lambda>x y. R x y \<and> R y x"
+  let ?\<mu>R = "\<lambda>y. measure q {x. ?R x y}"
+  have "measure p {y. ?R x y} = measure p ({y. R x y} - {y. R x y \<and> \<not> R y x})"
+    by(auto intro!: arg_cong[where f="measure p"])
+  also have "\<dots> = measure p {y. R x y} - measure p {y. R x y \<and> \<not> R y x}"
+    by (rule measure_pmf.finite_measure_Diff) auto
+  also have "measure p {y. R x y \<and> \<not> R y x} = measure q {y. R x y \<and> \<not> R y x}"
+    using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ioi)
+  also have "measure p {y. R x y} = measure q {y. R x y}"
+    using 1 2 refl trans by(auto intro!: Orderings.antisym measure_Ici)
+  also have "measure q {y. R x y} - measure q {y. R x y \<and> \<not> R y x} =
+    measure q ({y. R x y} - {y. R x y \<and> \<not> R y x})"
+    by(rule measure_pmf.finite_measure_Diff[symmetric]) auto
+  also have "\<dots> = ?\<mu>R x"
+    by(auto intro!: arg_cong[where f="measure q"])
+  finally show "measure p C = measure q C"
+    by (simp add: C conj_commute)
 qed
 
 lemma rel_pmf_antisym:

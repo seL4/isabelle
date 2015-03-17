@@ -845,8 +845,15 @@ fun trace_apply args ctxt = #trace_apply (trace_ops ctxt) args ctxt;
 fun check_conv ctxt msg thm thm' =
   let
     val thm'' = Thm.transitive thm thm' handle THM _ =>
-     Thm.transitive thm (Thm.transitive
-       (Thm.symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
+      let
+        val nthm' =
+          Thm.transitive (Thm.symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm'
+      in Thm.transitive thm nthm' handle THM _ =>
+           let
+             val nthm =
+               Thm.transitive thm (Drule.beta_eta_conversion (Thm.rhs_of thm))
+           in Thm.transitive nthm nthm' end
+      end
     val _ =
       if msg then cond_tracing ctxt (fn () => print_thm ctxt "SUCCEEDED" ("", thm'))
       else ();

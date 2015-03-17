@@ -189,12 +189,6 @@ fun mk_rec_transfer_tac ctxt nn ns actives passives xssss rec_defs ctor_rec_tran
       map (cterm_instantiate_pos (map SOME (passives @ actives))) ctor_rec_transfers;
     val total_n = Integer.sum ns;
     val True = @{term True};
-    fun magic eq xs xs' = Subgoal.FOCUS (fn {prems, ...} =>
-      let
-        val thm = prems
-          |> Ctr_Sugar_Util.permute_like eq xs xs'
-          |> Library.foldl1 (fn (acc, elem) => elem RS (acc RS @{thm rel_funD}))
-      in HEADGOAL (rtac thm) end)
   in
     HEADGOAL Goal.conjunction_tac THEN
     EVERY (map (fn ctor_rec_transfer =>

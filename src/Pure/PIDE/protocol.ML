@@ -30,17 +30,20 @@ val _ =
   Isabelle_Process.protocol_command "Document.define_command"
     (fn id :: name :: blobs_yxml :: toks_yxml :: sources =>
       let
-        val blobs =
+        val (blobs, blobs_index) =
           YXML.parse_body blobs_yxml |>
             let open XML.Decode in
-              list (variant
-               [fn ([], a) => Exn.Res (pair string (option string) a),
-                fn ([], a) => Exn.Exn (ERROR (string a))])
+              pair
+                (list (variant
+                 [fn ([], a) => Exn.Res (pair string (option string) a),
+                  fn ([], a) => Exn.Exn (ERROR (YXML.string_of_body a))]))
+                int
             end;
         val toks =
           (YXML.parse_body toks_yxml |> let open XML.Decode in list (pair int int) end) ~~ sources;
       in
-        Document.change_state (Document.define_command (Document_ID.parse id) name blobs toks)
+        Document.change_state
+          (Document.define_command (Document_ID.parse id) name blobs blobs_index toks)
       end);
 
 val _ =
@@ -72,7 +75,7 @@ val _ =
                           pair string (pair string (pair (list string)
                             (pair (list (pair string
                               (option (pair (pair string (list string)) (list string)))))
-                              (list string)))) a;
+                              (list YXML.string_of_body)))) a;
                         val imports' = map (rpair Position.none) imports;
                         val header = Thy_Header.make (name, Position.none) imports' keywords;
                       in Document.Deps (master, header, errors) end,

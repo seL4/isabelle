@@ -10,14 +10,14 @@ sig
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
-    blob list -> Token.T list -> Toplevel.transition
+    blob list * int -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
   val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
-    blob list -> Token.T list -> eval -> eval
+    blob list * int -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
@@ -51,21 +51,19 @@ type blob =
 
 fun read_file_node file_node master_dir pos src_path =
   let
-    val _ = Position.report pos Markup.language_path;
     val _ =
       (case try Url.explode file_node of
         NONE => ()
       | SOME (Url.File _) => ()
       | _ =>
-         (Position.report pos (Markup.path file_node);
           error ("Prover cannot load remote file " ^
-            Markup.markup (Markup.path file_node) (quote file_node) ^ Position.here pos)));
+            Markup.markup (Markup.path file_node) (quote file_node)));
     val full_path = File.check_file (File.full_path master_dir src_path);
-    val _ = Position.report pos (Markup.path (Path.implode full_path));
     val text = File.read full_path;
     val lines = split_lines text;
     val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end;
+  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end
+  handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";
 
@@ -80,27 +78,33 @@ fun blob_file src_path lines digest file_node =
       | SOME exec_id => Position.put_id exec_id);
   in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
 
-fun resolve_files keywords master_dir blobs toks =
+fun resolve_files keywords master_dir (blobs, blobs_index) toks =
   (case Outer_Syntax.parse_spans toks of
-    [span] => span
-      |> Command_Span.resolve_files keywords (fn cmd => fn (path, pos) =>
-        let
-          fun make_file src_path (Exn.Res (file_node, NONE)) =
-                Exn.interruptible_capture (fn () =>
-                  read_file_node file_node master_dir pos src_path) ()
-            | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
-               (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_node)];
-                Exn.Res (blob_file src_path lines digest file_node))
-            | make_file _ (Exn.Exn e) = Exn.Exn e;
-          val src_paths = Keyword.command_files keywords cmd path;
-        in
-          if null blobs then
-            map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
-          else if length src_paths = length blobs then
-            map2 make_file src_paths blobs
-          else error ("Misalignment of inlined files" ^ Position.here pos)
-        end)
-      |> Command_Span.content
+    [Command_Span.Span (Command_Span.Command_Span (cmd, _), _)] =>
+      (case try (nth toks) blobs_index of
+        SOME tok =>
+          let
+            val pos = Token.pos_of tok;
+            val path = Path.explode (Token.content_of tok)
+              handle ERROR msg => error (msg ^ Position.here pos);
+            fun make_file src_path (Exn.Res (file_node, NONE)) =
+                  Exn.interruptible_capture (fn () =>
+                    read_file_node file_node master_dir pos src_path) ()
+              | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
+                  Exn.Res (blob_file src_path lines digest file_node)
+              | make_file _ (Exn.Exn e) = Exn.Exn e;
+            val src_paths = Keyword.command_files keywords cmd path;
+            val files =
+              if null blobs then
+                map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
+              else if length src_paths = length blobs then
+                map2 make_file src_paths blobs
+              else error ("Misalignment of inlined files" ^ Position.here pos);
+          in
+            toks |> map_index (fn (i, tok) =>
+              if i = blobs_index then Token.put_files files tok else tok)
+          end
+      | NONE => toks)
   | _ => toks);
 
 val bootstrap_thy = ML_Context.the_global_context ();
@@ -109,7 +113,7 @@ in
 
 fun read_thy st = Toplevel.theory_of st handle Toplevel.UNDEF => bootstrap_thy;
 
-fun read keywords thy master_dir init blobs span =
+fun read keywords thy master_dir init blobs_info span =
   let
     val command_reports = Outer_Syntax.command_reports thy;
 
@@ -124,7 +128,7 @@ fun read keywords thy master_dir init blobs span =
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
-      (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs span) of
+      (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs_info span) of
         [tr] => Toplevel.modify_init init tr
       | [] => Toplevel.ignored (#1 (Token.range_of span))
       | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
@@ -221,7 +225,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
 
 in
 
-fun eval keywords master_dir init blobs span eval0 =
+fun eval keywords master_dir init blobs_info span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
@@ -230,7 +234,8 @@ fun eval keywords master_dir init blobs span eval0 =
         val thy = read_thy (#state eval_state0);
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read keywords thy master_dir init blobs span |> Toplevel.exec_id exec_id) ();
+            (fn () =>
+              read keywords thy master_dir init blobs_info span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
   in Eval {exec_id = exec_id, eval_process = Lazy.lazy process} end;
 
