@@ -228,6 +228,12 @@ lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a
 lemma comp_apply_eq: "f (g x) = h (k x) \<Longrightarrow> (f \<circ> g) x = (h \<circ> k) x"
   unfolding comp_apply by assumption
 
+lemma refl_ge_eq: "(\<And>x. R x x) \<Longrightarrow> op = \<le> R"
+  by auto
+
+lemma ge_eq_refl: "op = \<le> R \<Longrightarrow> R x x"
+  by auto
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"

@@ -1,4 +1,4 @@
-(*  Title:     Inequalities
+(*  Title:     HOL/Inequalities.thy
     Author:    Tobias Nipkow
     Author:    Johannes Hölzl
 *)

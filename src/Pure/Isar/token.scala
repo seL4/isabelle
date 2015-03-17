@@ -161,6 +161,7 @@ object Token
     val start: Pos = new Pos(1, 1, "", "")
     def file(file: String): Pos = new Pos(1, 1, file, "")
     def id(id: String): Pos = new Pos(0, 1, "", id)
+    val command: Pos = id(Markup.COMMAND)
   }
 
   final class Pos private[Token](

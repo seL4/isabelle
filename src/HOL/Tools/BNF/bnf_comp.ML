@@ -26,10 +26,30 @@ sig
     (string * sort) list -> typ -> (comp_cache * unfold_set) * local_theory ->
     (BNF_Def.bnf * (typ list * typ list)) * ((comp_cache * unfold_set) * local_theory)
   val default_comp_sort: (string * sort) list list -> (string * sort) list
+  val clean_compose_bnf: BNF_Def.inline_policy -> (binding -> binding) -> binding -> BNF_Def.bnf ->
+    BNF_Def.bnf list -> unfold_set * local_theory -> BNF_Def.bnf * (unfold_set * local_theory)
+  val kill_bnf: (binding -> binding) -> int -> BNF_Def.bnf ->
+    (comp_cache * unfold_set) * local_theory ->
+    BNF_Def.bnf * ((comp_cache * unfold_set) * local_theory)
+  val lift_bnf: (binding -> binding) -> int -> BNF_Def.bnf ->
+    (comp_cache * unfold_set) * local_theory ->
+    BNF_Def.bnf * ((comp_cache * unfold_set) * local_theory)
+  val permute_bnf: (binding -> binding) -> int list -> int list -> BNF_Def.bnf ->
+    (comp_cache * unfold_set) * local_theory ->
+    BNF_Def.bnf * ((comp_cache * unfold_set) * local_theory)
+  val permute_and_kill_bnf: (binding -> binding) -> int -> int list -> int list -> BNF_Def.bnf ->
+    (comp_cache * unfold_set) * local_theory ->
+    BNF_Def.bnf * ((comp_cache * unfold_set) * local_theory)
+  val lift_and_permute_bnf: (binding -> binding) -> int -> int list -> int list -> BNF_Def.bnf ->
+    (comp_cache * unfold_set) * local_theory ->
+    BNF_Def.bnf * ((comp_cache * unfold_set) * local_theory)
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.bnf list -> (comp_cache * unfold_set) * local_theory ->
     (int list list * ''a list) * (BNF_Def.bnf list * ((comp_cache * unfold_set) * local_theory))
-
+  val compose_bnf: BNF_Def.inline_policy -> (int -> binding -> binding) ->
+    ((string * sort) list list -> (string * sort) list) -> BNF_Def.bnf -> BNF_Def.bnf list ->
+    typ list -> typ list list -> typ list list -> (comp_cache * unfold_set) * local_theory ->
+    (BNF_Def.bnf * (typ list * typ list)) * ((comp_cache * unfold_set) * local_theory)
   type absT_info =
     {absT: typ,
      repT: typ,
@@ -625,11 +645,11 @@ fun permute_bnf qualify src dest bnf (accum as ((cache, unfold_set), lthy)) =
 
 (* Composition pipeline *)
 
-fun permute_and_kill qualify n src dest bnf =
+fun permute_and_kill_bnf qualify n src dest bnf =
   permute_bnf qualify src dest bnf
   #> uncurry (kill_bnf qualify n);
 
-fun lift_and_permute qualify n src dest bnf =
+fun lift_and_permute_bnf qualify n src dest bnf =
   lift_bnf qualify n bnf
   #> uncurry (permute_bnf qualify src dest);
 
@@ -641,8 +661,8 @@ fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
     val before_kill_dest = map2 append kill_poss live_poss;
     val kill_ns = map length kill_poss;
     val (inners', accum') =
-      @{fold_map 5} (fn i => permute_and_kill (qualify i))
-        (if length bnfs = 1 then [0] else (1 upto length bnfs))
+      @{fold_map 5} (permute_and_kill_bnf o qualify)
+        (if length bnfs = 1 then [0] else 1 upto length bnfs)
         kill_ns before_kill_src before_kill_dest bnfs accum;
 
     val Ass' = map2 (map o nth) Ass live_poss;
@@ -653,7 +673,7 @@ fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
     val after_lift_src = map2 append new_poss old_poss;
     val lift_ns = map (fn xs => length As - length xs) Ass';
   in
-    ((kill_poss, As), @{fold_map 5} (fn i => lift_and_permute (qualify i))
+    ((kill_poss, As), @{fold_map 5} (lift_and_permute_bnf o qualify)
       (if length bnfs = 1 then [0] else 1 upto length bnfs)
       lift_ns after_lift_src after_lift_dest inners' accum')
   end;
@@ -881,7 +901,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val map_b = def_qualify (mk_prefix_binding mapN);
     val rel_b = def_qualify (mk_prefix_binding relN);
     val set_bs = if live = 1 then [def_qualify (mk_prefix_binding setN)]
-      else map (fn i => def_qualify (mk_prefix_binding (mk_setN i))) (1 upto live);
+      else map (def_qualify o mk_prefix_binding o mk_setN) (1 upto live);
 
     val notes = (map_b, map_def) :: (rel_b, rel_def) :: (set_bs ~~ set_defs)
       |> map (fn (b, def) => ((b, []), [([def], [])]))
@@ -938,7 +958,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val ((inners, (Dss, Ass)), (accum', lthy')) =
               apfst (apsnd split_list o split_list)
                 (@{fold_map 2} (fn i => bnf_of_typ Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
-                (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' accum);
+                (if length Ts' = 1 then [0] else 1 upto length Ts') Ts' accum);
           in
             compose_bnf const_policy qualify flatten_tyargs bnf inners oDs Dss Ass (accum', lthy')
           end)

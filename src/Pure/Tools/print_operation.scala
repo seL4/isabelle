@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/print_operation.scala
+/*  Title:      Pure/Tools/print_operation.scala
     Author:     Makarius
 
 Print operations as asynchronous query.

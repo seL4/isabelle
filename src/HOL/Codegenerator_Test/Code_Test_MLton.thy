@@ -1,4 +1,4 @@
-(*  Title:      Code_Test_MLtonL.thy
+(*  Title:      HOL/Codegenerator_Test/Code_Test_MLton.thy
     Author:     Andreas Lochbihler, ETH Zurich
 
 Test case for test_code on MLton

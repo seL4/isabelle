@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/ContNonDenum.thy
+(*  Title:      HOL/Library/ContNotDenum.thy
     Author:     Benjamin Porter, Monash University, NICTA, 2005
     Author:     Johannes Hölzl, TU München
 *)

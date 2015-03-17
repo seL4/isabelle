@@ -32,11 +32,15 @@ val _ =
       let
         val (blobs, blobs_index) =
           YXML.parse_body blobs_yxml |>
-            let open XML.Decode in
+            let
+              val message =
+                YXML.string_of_body o Protocol_Message.command_positions id;
+              open XML.Decode;
+            in
               pair
                 (list (variant
                  [fn ([], a) => Exn.Res (pair string (option string) a),
-                  fn ([], a) => Exn.Exn (ERROR (YXML.string_of_body a))]))
+                  fn ([], a) => Exn.Exn (ERROR (message a))]))
                 int
             end;
         val toks =
@@ -78,7 +82,7 @@ val _ =
                               (list YXML.string_of_body)))) a;
                         val imports' = map (rpair Position.none) imports;
                         val header = Thy_Header.make (name, Position.none) imports' keywords;
-                      in Document.Deps (master, header, errors) end,
+                      in Document.Deps {master = master, header = header, errors = errors} end,
                     fn (a :: b, c) =>
                       Document.Perspective (bool_atom a, map int_atom b,
                         list (pair int (pair string (list string))) c)]))

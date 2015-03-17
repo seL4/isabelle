@@ -135,10 +135,31 @@ object Completion
 
   /** semantic completion **/
 
+  def report_no_completion(pos: Position.T): String =
+    YXML.string_of_tree(Semantic.Info(pos, No_Completion))
+
+  def report_names(pos: Position.T, total: Int, names: List[(String, (String, String))]): String =
+    YXML.string_of_tree(Semantic.Info(pos, Names(total, names)))
+
   object Semantic
   {
     object Info
     {
+      def apply(pos: Position.T, semantic: Semantic): XML.Elem =
+      {
+        val elem =
+          semantic match {
+            case No_Completion => XML.Elem(Markup(Markup.NO_COMPLETION, pos), Nil)
+            case Names(total, names) =>
+              XML.Elem(Markup(Markup.COMPLETION, pos),
+                {
+                  import XML.Encode._
+                  pair(int, list(pair(string, pair(string, string))))(total, names)
+                })
+          }
+        XML.Elem(Markup(Markup.REPORT, pos), List(elem))
+      }
+
       def unapply(info: Text.Markup): Option[Text.Info[Semantic]] =
         info.info match {
           case XML.Elem(Markup(Markup.COMPLETION, _), body) =>

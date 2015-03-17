@@ -1,4 +1,4 @@
-(*  Title:      Code_Test_GHC.thy
+(*  Title:      HOL/Codegenerator_Test/Code_Test_GHC.thy
     Author:     Andreas Lochbihler, ETH Zurich
 
 Test case for test_code on GHC

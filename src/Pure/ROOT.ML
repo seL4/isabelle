@@ -310,6 +310,7 @@ use "PIDE/query_operation.ML";
 use "PIDE/resources.ML";
 use "Thy/thy_info.ML";
 use "PIDE/session.ML";
+use "PIDE/protocol_message.ML";
 use "PIDE/document.ML";
 
 (*theory and proof operations*)

@@ -1,4 +1,4 @@
-(*  Title:      Pure/Confurrent/random.ML
+(*  Title:      Pure/Concurrent/random.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Pseudo random numbers.

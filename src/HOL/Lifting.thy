@@ -376,9 +376,6 @@ lemma eq_onp_le_eq:
 lemma reflp_ge_eq:
   "reflp R \<Longrightarrow> R \<ge> op=" unfolding reflp_def by blast
 
-lemma ge_eq_refl:
-  "R \<ge> op= \<Longrightarrow> R x x" by blast
-
 text {* Proving a parametrized correspondence relation *}
 
 definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where

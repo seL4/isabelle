@@ -183,6 +183,12 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 
 hide_const (open) find
 
+primrec count :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
+"count [] y = 0" |
+"count (x#xs) y = (if x=y then count xs y + 1 else count xs y)"
+
+hide_const (open) count
+
 definition
    "extract" :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> ('a list * 'a * 'a list) option"
 where "extract P xs =
@@ -298,6 +304,7 @@ text{*
 @{lemma "List.union [2,3,4] [0::int,1,2] = [4,3,0,1,2]" by (simp add: List.insert_def List.union_def)}\\
 @{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
 @{lemma "List.find (%i::int. i>0) [0,1,0,2] = Some 1" by simp}\\
+@{lemma "List.count [0,1,0,2::int] 0 = 2" by (simp)}\\
 @{lemma "List.extract (%i::int. i>0) [0,0] = None" by(simp add: extract_def)}\\
 @{lemma "List.extract (%i::int. i>0) [0,1,0,2] = Some([0], 1, [0,2])" by(simp add: extract_def)}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
@@ -2151,6 +2158,12 @@ proof -
   ultimately show ?thesis by auto
 qed
   
+lemma take_update_cancel[simp]: "n \<le> m \<Longrightarrow> take n (xs[m := y]) = take n xs"
+by(simp add: list_eq_iff_nth_eq)
+
+lemma drop_update_cancel[simp]: "n < m \<Longrightarrow> drop m (xs[n := x]) = drop m xs"
+by(simp add: list_eq_iff_nth_eq)
+
 lemma upd_conv_take_nth_drop:
   "i < length xs \<Longrightarrow> xs[i:=a] = take i xs @ a # drop (Suc i) xs"
 proof -
@@ -2161,6 +2174,22 @@ proof -
     using i by (simp add: list_update_append)
   finally show ?thesis .
 qed
+
+lemma take_update_swap: "n < m \<Longrightarrow> take m (xs[n := x]) = (take m xs)[n := x]"
+apply(cases "n \<ge> length xs")
+ apply simp
+apply(simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc
+  split: nat.split)
+done
+
+lemma drop_update_swap: "m \<le> n \<Longrightarrow> drop m (xs[n := x]) = (drop m xs)[n-m := x]"
+apply(cases "n \<ge> length xs")
+ apply simp
+apply(simp add: upd_conv_take_nth_drop drop_take)
+done
+
+lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
+by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
 
 
 subsubsection {* @{const takeWhile} and @{const dropWhile} *}
@@ -3211,6 +3240,9 @@ lemma nth_eq_iff_index_eq:
   "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
 by(auto simp: distinct_conv_nth)
 
+lemma inj_on_nth: "distinct xs \<Longrightarrow> \<forall>i \<in> I. i < length xs \<Longrightarrow> inj_on (nth xs) I"
+by (rule inj_onI) (simp add: nth_eq_iff_index_eq)
+
 lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Longrightarrow>
   set(xs[n := x]) = insert x (set xs - {xs!n})"
 by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
@@ -3667,6 +3699,22 @@ lemma find_dropWhile:
    of [] \<Rightarrow> None
     | x # _ \<Rightarrow> Some x)"
 by (induct xs) simp_all
+
+
+subsubsection {* @{const List.count} *}
+
+lemma count_notin[simp]: "x \<notin> set xs \<Longrightarrow> List.count xs x = 0"
+by (induction xs) auto
+
+lemma count_le_length: "List.count xs x \<le> length xs"
+by (induction xs) auto
+
+lemma setsum_count_set:
+  "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> setsum (List.count xs) X = length xs"
+apply(induction xs arbitrary: X)
+ apply simp
+apply (simp add: setsum.If_cases)
+by (metis Diff_eq setsum.remove)
 
 
 subsubsection {* @{const List.extract} *}

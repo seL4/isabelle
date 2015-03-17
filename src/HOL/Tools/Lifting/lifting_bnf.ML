@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Transfer/transfer_bnf.ML
+(*  Title:      HOL/Tools/Lifting/lifting_bnf.ML
     Author:     Ondrej Kuncar, TU Muenchen
 
 Setup for Lifting for types that are BNF.

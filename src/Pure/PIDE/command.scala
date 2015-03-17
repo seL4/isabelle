@@ -234,7 +234,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol.message_positions(
+                  range <- Protocol_Message.positions(
                     self_id, command.position, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
@@ -362,13 +362,15 @@ object Command
       case Command_Span.Command_Span(name, _) if syntax.is_theory_begin(name) =>
         val header =
           resources.check_thy_reader("", node_name,
-            new CharSequenceReader(span.source), Token.Pos.id(Markup.COMMAND))
-        val import_errors =
+            new CharSequenceReader(span.source), Token.Pos.command)
+        val errors =
           for ((imp, pos) <- header.imports if !can_import(imp)) yield {
-            val name = imp.node
-            "Bad theory import " + Markup.Path(name).markup(quote(name)) + Position.here(pos)
+            val msg =
+              "Bad theory import " +
+                Markup.Path(imp.node).markup(quote(imp.toString)) + Position.here(pos)
+            Exn.Exn(ERROR(msg)): Command.Blob
           }
-        ((header.errors ::: import_errors).map(msg => Exn.Exn(ERROR(msg)): Command.Blob), -1)
+        (errors, -1)
 
       // auxiliary files
       case _ =>
