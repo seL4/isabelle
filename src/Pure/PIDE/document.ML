@@ -552,8 +552,7 @@ fun last_common keywords state node_required node0 node =
         val initial' = initial andalso
           (case prev of
             NONE => true
-          | SOME command_id =>
-              not (Keyword.is_theory_begin keywords (the_command_name state command_id)));
+          | SOME command_id => the_command_name state command_id <> Thy_Header.theoryN);
       in (visible', initial') end;
 
     fun get_common ((prev, command_id), opt_exec) (_, ok, flags, assign_update) =
@@ -614,7 +613,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
-      val init' = if Keyword.is_theory_begin keywords command_name then NONE else init;
+      val init' = if command_name = Thy_Header.theoryN then NONE else init;
     in SOME (assign_update', (command_id', (eval', prints')), init') end;
 
 fun removed_execs node0 (command_id, exec_ids) =

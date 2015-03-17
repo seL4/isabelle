@@ -235,7 +235,7 @@ object Command
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
                   range <- Protocol_Message.positions(
-                    self_id, command.position, chunk_name, chunk, message)
+                    self_id, command.span.position, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st
@@ -334,19 +334,15 @@ object Command
     }
 
   def span_files(syntax: Prover.Syntax, span: Command_Span.Span): (List[String], Int) =
-    span.kind match {
-      case Command_Span.Command_Span(name, _) =>
-        syntax.load_command(name) match {
-          case Some(exts) =>
-            find_file(clean_tokens(span.content)) match {
-              case Some((file, i)) =>
-                if (exts.isEmpty) (List(file), i)
-                else (exts.map(ext => file + "." + ext), i)
-              case None => (Nil, -1)
-            }
+    syntax.load_command(span.name) match {
+      case Some(exts) =>
+        find_file(clean_tokens(span.content)) match {
+          case Some((file, i)) =>
+            if (exts.isEmpty) (List(file), i)
+            else (exts.map(ext => file + "." + ext), i)
           case None => (Nil, -1)
         }
-      case _ => (Nil, -1)
+      case None => (Nil, -1)
     }
 
   def blobs_info(
@@ -357,12 +353,12 @@ object Command
     node_name: Document.Node.Name,
     span: Command_Span.Span): Blobs_Info =
   {
-    span.kind match {
+    span.name match {
       // inlined errors
-      case Command_Span.Command_Span(name, _) if syntax.is_theory_begin(name) =>
+      case Thy_Header.THEORY =>
         val header =
           resources.check_thy_reader("", node_name,
-            new CharSequenceReader(span.source), Token.Pos.command)
+            new CharSequenceReader(Token.implode(span.content)), Token.Pos.command)
         val errors =
           for ((imp, pos) <- header.imports if !can_import(imp)) yield {
             val msg =
@@ -398,14 +394,6 @@ final class Command private(
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
-  /* name */
-
-  def name: String =
-    span.kind match { case Command_Span.Command_Span(name, _) => name case _ => "" }
-
-  def position: Position.T =
-    span.kind match { case Command_Span.Command_Span(_, pos) => pos case _ => Position.none }
-
   override def toString: String = id + "/" + span.kind.toString
 
 

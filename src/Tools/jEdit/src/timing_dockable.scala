@@ -86,13 +86,15 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
     extends Entry
   {
-    def print: String = Time.print_seconds(timing) + "s theory " + quote(name.theory)
+    def print: String =
+      Time.print_seconds(timing) + "s theory " + quote(name.theory)
     def follow(snapshot: Document.Snapshot) { PIDE.editor.goto_file(view, name.node) }
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry
   {
-    def print: String = "  " + Time.print_seconds(timing) + "s command " + quote(command.name)
+    def print: String =
+      "  " + Time.print_seconds(timing) + "s command " + quote(command.span.name)
     def follow(snapshot: Document.Snapshot)
     { PIDE.editor.hyperlink_command(snapshot, command).foreach(_.follow(view)) }
   }

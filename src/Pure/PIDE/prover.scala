@@ -20,7 +20,6 @@ object Prover
     def ++ (other: Syntax): Syntax
     def add_keywords(keywords: Thy_Header.Keywords): Syntax
     def parse_spans(input: CharSequence): List[Command_Span.Span]
-    def is_theory_begin(name: String): Boolean
     def load_command(name: String): Option[List[String]]
     def load_commands_in(text: String): Boolean
   }
