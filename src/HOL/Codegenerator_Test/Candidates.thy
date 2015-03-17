@@ -28,13 +28,6 @@ where
 
 code_pred sublist .
 
-lemma [code]:  -- {* for the generic factorial function *}
-  fixes XXX :: "'a :: semiring_numeral_div"
-  shows
-   "fact 0       = (1 :: 'a)"
-   "fact (Suc n) = (of_nat (Suc n) * fact n :: 'a)"
- by simp_all
-
 code_reserved SML upto -- {* avoid popular infix *}
 
 end

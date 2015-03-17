@@ -13,7 +13,7 @@ begin
 
 subsection {* Factorial *}
 
-fun fact :: "nat \<Rightarrow> ('a::{semiring_char_0,semiring_no_zero_divisors})"
+fun fact :: "nat \<Rightarrow> ('a::semiring_char_0)"
   where "fact 0 = 1" | "fact (Suc n) = of_nat (Suc n) * fact n"
 
 lemmas fact_Suc = fact.simps(2)
@@ -30,7 +30,7 @@ lemma of_nat_fact [simp]: "of_nat (fact n) = fact n"
 lemma fact_reduce: "n > 0 \<Longrightarrow> fact n = of_nat n * fact (n - 1)"
   by (cases n) auto
 
-lemma fact_nonzero [simp]: "fact n \<noteq> 0"
+lemma fact_nonzero [simp]: "fact n \<noteq> (0::'a::{semiring_char_0,semiring_no_zero_divisors})"
   apply (induct n)
   apply auto
   using of_nat_eq_0_iff by fastforce
