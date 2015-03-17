@@ -78,9 +78,8 @@ lemma nn_intergal_power_times_exp_Icc:
 proof -
   let ?f = "\<lambda>k x. x^k * exp (-x) / fact k"
   let ?F = "\<lambda>k x. - (\<Sum>n\<le>k. (x^n * exp (-x)) / fact n)"
-
-  have "?I * (inverse (fact k)) = 
-      (\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 .. a} x * (inverse (fact k)) \<partial>lborel)"
+  have "?I * (inverse (real_of_nat (fact k))) = 
+      (\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 .. a} x * (inverse (real_of_nat (fact k))) \<partial>lborel)"
     by (intro nn_integral_multc[symmetric]) auto
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (?f k x) * indicator {0 .. a} x \<partial>lborel)"
     apply (intro nn_integral_cong)
@@ -114,7 +113,7 @@ proof -
 qed
 
 lemma nn_intergal_power_times_exp_Ici:
-  shows "(\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 ..} x \<partial>lborel) = fact k"
+  shows "(\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 ..} x \<partial>lborel) = real_of_nat (fact k)"
 proof (rule LIMSEQ_unique)
   let ?X = "\<lambda>n. \<integral>\<^sup>+ x. ereal (x^k * exp (-x)) * indicator {0 .. real n} x \<partial>lborel"
   show "?X ----> (\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 ..} x \<partial>lborel)"
@@ -127,7 +126,7 @@ proof (rule LIMSEQ_unique)
   have "((\<lambda>x::real. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / (fact n))) * fact k) --->
         (1 - (\<Sum>n\<le>k. 0 / (fact n))) * fact k) at_top"
     by (intro tendsto_intros tendsto_power_div_exp_0) simp
-  then show "?X ----> fact k"
+  then show "?X ----> real_of_nat (fact k)"
     by (subst nn_intergal_power_times_exp_Icc)
        (auto simp: exp_minus field_simps intro!: filterlim_compose[OF _ filterlim_real_sequentially])
 qed
