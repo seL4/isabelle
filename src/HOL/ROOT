@@ -741,7 +741,9 @@ session "HOL-Cardinals" in Cardinals = HOL +
     Ordinals and Cardinals, Full Theories.
   *}
   options [document = false]
-  theories Cardinals
+  theories
+    Cardinals
+    Bounded_Set
   document_files
     "intro.tex"
     "root.tex"
