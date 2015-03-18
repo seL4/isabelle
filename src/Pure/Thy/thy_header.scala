@@ -60,7 +60,7 @@ object Thy_Header extends Parse.Parser
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
 
-  def bootstrap_syntax(): Outer_Syntax =
+  lazy val bootstrap_syntax: Outer_Syntax =
     Outer_Syntax.init().add_keywords(bootstrap_header)
 
 

@@ -123,9 +123,7 @@ final class Outer_Syntax private(
     }
 
 
-  /* command categories */
-
-  def is_theory_begin(name: String): Boolean = keywords.is_command_kind(name, Keyword.theory_begin)
+  /* load commands */
 
   def load_command(name: String): Option[List[String]] = keywords.load_command(name)
   def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
@@ -230,13 +228,14 @@ final class Outer_Syntax private(
 
   def heading_level(command: Command): Option[Int] =
   {
-    command.name match {
-      case "chapter" => Some(0)
-      case "section" | "header" => Some(1)
-      case "subsection" => Some(2)
-      case "subsubsection" => Some(3)
+    val name = command.span.name
+    name match {
+      case Thy_Header.CHAPTER => Some(0)
+      case Thy_Header.SECTION | Thy_Header.HEADER => Some(1)
+      case Thy_Header.SUBSECTION => Some(2)
+      case Thy_Header.SUBSUBSECTION => Some(3)
       case _ =>
-        keywords.command_kind(command.name) match {
+        keywords.command_kind(name) match {
           case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(4)
           case _ => None
         }
@@ -258,7 +257,7 @@ final class Outer_Syntax private(
     {
       stack match {
         case (lev, command, body) :: (_, _, body2) :: rest if level(lev) =>
-          body2 += Outer_Syntax.Document_Block(command.name, command.source, body.toList)
+          body2 += Outer_Syntax.Document_Block(command.span.name, command.source, body.toList)
           stack = stack.tail
           close(level)
         case _ =>

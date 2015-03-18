@@ -438,7 +438,7 @@ object Build
               info.parent.map(deps(_)) match {
                 case None =>
                   (Set.empty[String], Map.empty[String, Document.Node.Name],
-                    Thy_Header.bootstrap_syntax())
+                    Thy_Header.bootstrap_syntax)
                 case Some(parent) =>
                   (parent.loaded_theories, parent.known_theories, parent.syntax)
               }
