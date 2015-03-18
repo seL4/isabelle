@@ -50,7 +50,6 @@ sig
   val is_document_body: keywords -> string -> bool
   val is_document_raw: keywords -> string -> bool
   val is_document: keywords -> string -> bool
-  val is_theory_begin: keywords -> string -> bool
   val is_theory_end: keywords -> string -> bool
   val is_theory_load: keywords -> string -> bool
   val is_theory: keywords -> string -> bool
@@ -219,7 +218,6 @@ val is_document_body = command_category [document_body];
 val is_document_raw = command_category [document_raw];
 val is_document = command_category [document_heading, document_body, document_raw];
 
-val is_theory_begin = command_category [thy_begin];
 val is_theory_end = command_category [thy_end];
 
 val is_theory_load = command_category [thy_load];

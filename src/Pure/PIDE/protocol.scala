@@ -329,7 +329,7 @@ trait Protocol
     }
 
     protocol_command("Document.define_command",
-      (Document_ID(command.id) :: encode(command.name) :: blobs_yxml :: toks_yxml ::
+      (Document_ID(command.id) :: encode(command.span.name) :: blobs_yxml :: toks_yxml ::
         toks.map(tok => encode(tok.source))): _*)
   }
 

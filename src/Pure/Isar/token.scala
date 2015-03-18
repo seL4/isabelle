@@ -153,6 +153,15 @@ object Token
   }
 
 
+  /* implode */
+
+  def implode(toks: List[Token]): String =
+    toks match {
+      case List(tok) => tok.source
+      case toks => toks.map(_.source).mkString
+    }
+
+
   /* token reader */
 
   object Pos
