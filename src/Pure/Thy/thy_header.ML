@@ -12,6 +12,7 @@ sig
     imports: (string * Position.T) list,
     keywords: keywords}
   val make: string * Position.T -> (string * Position.T) list -> keywords -> header
+  val theoryN: string
   val bootstrap_keywords: Keyword.keywords
   val add_keywords: keywords -> theory -> theory
   val get_keywords: theory -> Keyword.keywords

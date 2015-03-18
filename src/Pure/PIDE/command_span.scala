@@ -26,26 +26,26 @@ object Command_Span
 
   sealed case class Span(kind: Kind, content: List[Token])
   {
-    def length: Int = (0 /: content)(_ + _.source.length)
+    def name: String =
+      kind match { case Command_Span(name, _) => name case _ => "" }
 
-    def source: String =
-      content match {
-        case List(tok) => tok.source
-        case toks => toks.map(_.source).mkString
-      }
+    def position: Position.T =
+      kind match { case Command_Span(_, pos) => pos case _ => Position.none }
+
+    def length: Int = (0 /: content)(_ + _.source.length)
 
     def compact_source: (String, Span) =
     {
-      val src = source
+      val source = Token.implode(content)
       val content1 = new mutable.ListBuffer[Token]
       var i = 0
       for (Token(kind, s) <- content) {
         val n = s.length
-        val s1 = src.substring(i, i + n)
+        val s1 = source.substring(i, i + n)
         content1 += Token(kind, s1)
         i += n
       }
-      (src, Span(kind, content1.toList))
+      (source, Span(kind, content1.toList))
     }
   }
 
