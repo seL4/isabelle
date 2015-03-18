@@ -1303,6 +1303,10 @@ lemma ln_one [simp]: "ln 1 = 0"
 lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
   by (rule ln_unique) (simp add: exp_add)
 
+lemma ln_setprod:
+    "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i > 0\<rbrakk> \<Longrightarrow> ln(setprod f I) = setsum (\<lambda>x. ln(f x)) I"
+  by (induction I rule: finite_induct) (auto simp: ln_mult setprod_pos)
+
 lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
   by (rule ln_unique) (simp add: exp_minus)
 
@@ -4152,6 +4156,85 @@ lemma cos_one_sin_zero:
   using sin_cos_squared_add [of x, unfolded assms]
   by simp
 
+
+subsection{* Prove Totality of the Trigonometric Functions *}
+
+lemma arccos_0 [simp]: "arccos 0 = pi/2"
+by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero pi_half_ge_zero not_le not_zero_less_neg_numeral numeral_One)
+
+lemma arccos_1 [simp]: "arccos 1 = 0"
+  using arccos_cos by force
+
+lemma arccos_le_pi2: "\<lbrakk>0 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> arccos y \<le> pi/2"
+  by (metis (mono_tags) arccos_0 arccos cos_le_one cos_monotone_0_pi'
+      cos_pi cos_pi_half pi_half_ge_zero antisym_conv less_eq_neg_nonpos linear minus_minus order.trans order_refl)
+
+lemma sincos_total_pi_half:
+  assumes "0 \<le> x" "0 \<le> y" "x\<^sup>2 + y\<^sup>2 = 1"
+    shows "\<exists>t. 0 \<le> t \<and> t \<le> pi/2 \<and> x = cos t \<and> y = sin t"
+proof -
+  have x1: "x \<le> 1"
+    using assms
+    by (metis le_add_same_cancel1 power2_le_imp_le power_one zero_le_power2) 
+  moreover with assms have ax: "0 \<le> arccos x" "cos(arccos x) = x"
+    by (auto simp: arccos)
+  moreover have "y = sqrt (1 - x\<^sup>2)" using assms
+    by (metis abs_of_nonneg add.commute add_diff_cancel real_sqrt_abs)
+  ultimately show ?thesis using assms arccos_le_pi2 [of x] 
+    by (rule_tac x="arccos x" in exI) (auto simp: sin_arccos)
+qed    
+
+lemma sincos_total_pi:
+  assumes "0 \<le> y" and "x\<^sup>2 + y\<^sup>2 = 1"
+    shows "\<exists>t. 0 \<le> t \<and> t \<le> pi \<and> x = cos t \<and> y = sin t"
+proof (cases rule: le_cases [of 0 x])
+  case le from sincos_total_pi_half [OF le]  
+  show ?thesis
+    by (metis pi_ge_two pi_half_le_two add.commute add_le_cancel_left add_mono assms)
+next
+  case ge 
+  then have "0 \<le> -x"
+    by simp
+  then obtain t where "t\<ge>0" "t \<le> pi/2" "-x = cos t" "y = sin t"
+    using sincos_total_pi_half assms
+    apply auto
+    by (metis `0 \<le> - x` power2_minus)
+  then show ?thesis
+    by (rule_tac x="pi-t" in exI, auto)
+qed    
+    
+lemma sincos_total_2pi_le:
+  assumes "x\<^sup>2 + y\<^sup>2 = 1"
+    shows "\<exists>t. 0 \<le> t \<and> t \<le> 2*pi \<and> x = cos t \<and> y = sin t"
+proof (cases rule: le_cases [of 0 y])
+  case le from sincos_total_pi [OF le]  
+  show ?thesis
+    by (metis assms le_add_same_cancel1 mult.commute mult_2_right order.trans)
+next
+  case ge 
+  then have "0 \<le> -y"
+    by simp
+  then obtain t where "t\<ge>0" "t \<le> pi" "x = cos t" "-y = sin t"
+    using sincos_total_pi assms
+    apply auto
+    by (metis `0 \<le> - y` power2_minus)
+  then show ?thesis
+    by (rule_tac x="2*pi-t" in exI, auto)
+qed    
+
+lemma sincos_total_2pi:
+  assumes "x\<^sup>2 + y\<^sup>2 = 1"
+    obtains t where "0 \<le> t" "t < 2*pi" "x = cos t" "y = sin t"
+proof -
+  from sincos_total_2pi_le [OF assms]
+  obtain t where t: "0 \<le> t" "t \<le> 2*pi" "x = cos t" "y = sin t"
+    by blast
+  show ?thesis
+    apply (cases "t = 2*pi")
+    using t that
+    apply force+
+    done
+qed
 
 subsection {* Machins formula *}
 

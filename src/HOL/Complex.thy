@@ -612,7 +612,11 @@ proof -
     done
 qed
 
-subsection{*Finally! Polar Form for Complex Numbers*}
+subsection{*Polar Form for Complex Numbers*}
+
+lemma complex_unimodular_polar: "(norm z = 1) \<Longrightarrow> \<exists>x. z = Complex (cos x) (sin x)"
+  using sincos_total_2pi [of "Re z" "Im z"]
+  by auto (metis cmod_power2 complex_eq power_one)
 
 subsubsection {* $\cos \theta + i \sin \theta$ *}
 
@@ -724,11 +728,17 @@ lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
 lemma Im_exp: "Im (exp z) = exp (Re z) * sin (Im z)"
   unfolding Exp_eq_polar by simp
 
+lemma norm_cos_sin [simp]: "norm (Complex (cos t) (sin t)) = 1"
+  by (simp add: norm_complex_def)
+
+lemma norm_exp_eq_Re [simp]: "norm (exp z) = exp (Re z)"
+  by (simp add: cis.code cmod_complex_polar Exp_eq_polar)
+
 lemma complex_Exp_Ex: "\<exists>a r. z = complex_of_real r * Exp a"
-apply (insert rcis_Ex [of z])
-apply (auto simp add: Exp_eq_polar rcis_def mult.assoc [symmetric])
-apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
-done
+  apply (insert rcis_Ex [of z])
+  apply (auto simp add: Exp_eq_polar rcis_def mult.assoc [symmetric])
+  apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
+  done
 
 lemma Exp_two_pi_i [simp]: "Exp((2::complex) * complex_of_real pi * ii) = 1"
   by (simp add: Exp_eq_polar complex_eq_iff)
@@ -865,6 +875,10 @@ proof -
     by auto
 qed
 
+lemma csqrt_unique:
+    "w^2 = z \<Longrightarrow> (0 < Re w \<or> Re w = 0 \<and> 0 \<le> Im w) \<Longrightarrow> csqrt z = w"
+  by (auto simp: csqrt_square)
+
 lemma csqrt_minus [simp]:
   assumes "Im x < 0 \<or> (Im x = 0 \<and> 0 \<le> Re x)"
   shows "csqrt (- x) = \<i> * csqrt x"
@@ -877,7 +891,7 @@ proof -
       by (auto simp add: Re_csqrt simp del: csqrt.simps)
   qed
   also have "(\<i> * csqrt x)^2 = - x"
-    by (simp add: power2_csqrt power_mult_distrib)
+    by (simp add: power_mult_distrib)
   finally show ?thesis .
 qed
 
