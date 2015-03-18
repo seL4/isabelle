@@ -548,7 +548,7 @@ session "HOL-ex" in ex = HOL +
     NatSum
     ThreeDivides
     Cubic_Quartic
-	Pythagoras
+    Pythagoras
     Intuitionistic
     CTL
     Arith_Examples
@@ -591,6 +591,7 @@ session "HOL-ex" in ex = HOL +
     SVC_Oracle
     Simps_Case_Conv_Examples
     ML
+    Rewrite_Examples
     SAT_Examples
     SOS
     SOS_Cert
