@@ -215,6 +215,18 @@ lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> 
 lemma i_even_power [simp]: "\<i> ^ (n * 2) = (-1) ^ n"
   by (metis mult.commute power2_i power_mult)
 
+lemma Re_ii_times [simp]: "Re (ii*z) = - Im z"
+  by simp
+
+lemma Im_ii_times [simp]: "Im (ii*z) = Re z"
+  by simp
+
+lemma ii_times_eq_iff: "ii*w = z \<longleftrightarrow> w = -(ii*z)"
+  by auto
+
+lemma divide_numeral_i [simp]: "z / (numeral n * ii) = -(ii*z) / numeral n"
+  by (metis divide_divide_eq_left divide_i mult.commute mult_minus_right)
+
 subsection {* Vector Norm *}
 
 instantiation complex :: real_normed_field
@@ -308,6 +320,9 @@ lemma complex_abs_le_norm: "\<bar>Re z\<bar> + \<bar>Im z\<bar> \<le> sqrt 2 * n
   apply (rule power2_le_imp_le)
   apply (simp_all add: power2_sum add.commute sum_squares_bound real_sqrt_mult [symmetric])
   done
+
+lemma complex_unit_circle: "z \<noteq> 0 \<Longrightarrow> (Re z / cmod z)\<^sup>2 + (Im z / cmod z)\<^sup>2 = 1"
+  by (simp add: norm_complex_def divide_simps complex_eq_iff)
 
 
 text {* Properties of complex signum. *}
@@ -508,10 +523,10 @@ by (cases z)
    (auto simp: complex_eq_iff norm_complex_def power2_eq_square[symmetric] of_real_power[symmetric]
          simp del: of_real_power)
 
-lemma re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) = 0"
+lemma Re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) = 0"
   by (auto simp add: Re_divide)
 
-lemma im_complex_div_eq_0: "Im (a / b) = 0 \<longleftrightarrow> Im (a * cnj b) = 0"
+lemma Im_complex_div_eq_0: "Im (a / b) = 0 \<longleftrightarrow> Im (a * cnj b) = 0"
   by (auto simp add: Im_divide)
 
 lemma complex_div_gt_0:
@@ -526,27 +541,27 @@ next
     by (simp add: Re_divide Im_divide zero_less_divide_iff)
 qed
 
-lemma re_complex_div_gt_0: "Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) > 0"
-  and im_complex_div_gt_0: "Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0"
+lemma Re_complex_div_gt_0: "Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) > 0"
+  and Im_complex_div_gt_0: "Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0"
   using complex_div_gt_0 by auto
 
-lemma re_complex_div_ge_0: "Re(a / b) \<ge> 0 \<longleftrightarrow> Re(a * cnj b) \<ge> 0"
-  by (metis le_less re_complex_div_eq_0 re_complex_div_gt_0)
+lemma Re_complex_div_ge_0: "Re(a / b) \<ge> 0 \<longleftrightarrow> Re(a * cnj b) \<ge> 0"
+  by (metis le_less Re_complex_div_eq_0 Re_complex_div_gt_0)
 
-lemma im_complex_div_ge_0: "Im(a / b) \<ge> 0 \<longleftrightarrow> Im(a * cnj b) \<ge> 0"
-  by (metis im_complex_div_eq_0 im_complex_div_gt_0 le_less)
+lemma Im_complex_div_ge_0: "Im(a / b) \<ge> 0 \<longleftrightarrow> Im(a * cnj b) \<ge> 0"
+  by (metis Im_complex_div_eq_0 Im_complex_div_gt_0 le_less)
 
-lemma re_complex_div_lt_0: "Re(a / b) < 0 \<longleftrightarrow> Re(a * cnj b) < 0"
-  by (metis less_asym neq_iff re_complex_div_eq_0 re_complex_div_gt_0)
+lemma Re_complex_div_lt_0: "Re(a / b) < 0 \<longleftrightarrow> Re(a * cnj b) < 0"
+  by (metis less_asym neq_iff Re_complex_div_eq_0 Re_complex_div_gt_0)
 
-lemma im_complex_div_lt_0: "Im(a / b) < 0 \<longleftrightarrow> Im(a * cnj b) < 0"
-  by (metis im_complex_div_eq_0 im_complex_div_gt_0 less_asym neq_iff)
+lemma Im_complex_div_lt_0: "Im(a / b) < 0 \<longleftrightarrow> Im(a * cnj b) < 0"
+  by (metis Im_complex_div_eq_0 Im_complex_div_gt_0 less_asym neq_iff)
 
-lemma re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b) \<le> 0"
-  by (metis not_le re_complex_div_gt_0)
+lemma Re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b) \<le> 0"
+  by (metis not_le Re_complex_div_gt_0)
 
-lemma im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
-  by (metis im_complex_div_gt_0 not_le)
+lemma Im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
+  by (metis Im_complex_div_gt_0 not_le)
 
 lemma Re_setsum[simp]: "Re (setsum f s) = (\<Sum>x\<in>s. Re (f x))"
   by (induct s rule: infinite_finite_induct) auto
@@ -807,7 +822,7 @@ lemma csqrt_1 [simp]: "csqrt 1 = 1"
 lemma csqrt_ii [simp]: "csqrt \<i> = (1 + \<i>) / sqrt 2"
   by (simp add: complex_eq_iff Re_divide Im_divide real_sqrt_divide real_div_sqrt)
 
-lemma power2_csqrt[algebra]: "(csqrt z)\<^sup>2 = z"
+lemma power2_csqrt[simp,algebra]: "(csqrt z)\<^sup>2 = z"
 proof cases
   assume "Im z = 0" then show ?thesis
     using real_sqrt_pow2[of "Re z"] real_sqrt_pow2[of "- Re z"]

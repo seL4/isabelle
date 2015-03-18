@@ -502,13 +502,26 @@ qed
 end
 
 lemma emeasure_lborel_UNIV: "emeasure lborel (UNIV::'a::euclidean_space set) = \<infinity>"
-  unfolding UN_box_eq_UNIV[symmetric]
-  apply (subst SUP_emeasure_incseq[symmetric])
-  apply (auto simp: incseq_def subset_box inner_add_left setprod_constant intro!: SUP_PInfty)
-  apply (rule_tac x="Suc n" in exI)
-  apply (rule order_trans[OF _ self_le_power])
-  apply (auto simp: card_gt_0_iff real_of_nat_Suc)
-  done
+proof -
+  { fix n::nat
+    let ?Ba = "Basis :: 'a set"
+    have "real n \<le> (2::real) ^ card ?Ba * real n"
+      by (simp add: mult_le_cancel_right1)
+    also 
+    have "... \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba"
+      apply (rule mult_left_mono)
+      apply (metis DIM_positive One_nat_def less_eq_Suc_le less_imp_le real_of_nat_le_iff real_of_nat_power self_le_power zero_less_Suc)
+      apply (simp add: DIM_positive)
+      done
+    finally have "real n \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba" .
+  } note [intro!] = this
+  show ?thesis
+    unfolding UN_box_eq_UNIV[symmetric]
+    apply (subst SUP_emeasure_incseq[symmetric])
+    apply (auto simp: incseq_def subset_box inner_add_left setprod_constant 
+               intro!: SUP_PInfty)
+    done 
+qed
 
 lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis

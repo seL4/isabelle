@@ -51,6 +51,10 @@ lemma power_one_right [simp]:
   "a ^ 1 = a"
   by simp
 
+lemma power_Suc0_right [simp]:
+  "a ^ Suc 0 = a"
+  by simp
+
 lemma power_commutes:
   "a ^ n * a = a * a ^ n"
   by (induct n) (simp_all add: mult.assoc)
@@ -126,6 +130,9 @@ lemma power_mult_distrib [field_simps]:
   by (induct n) (simp_all add: ac_simps)
 
 end
+
+declare power_mult_distrib [where a = "numeral w" for w, simp]
+declare power_mult_distrib [where b = "numeral w" for w, simp]
 
 context semiring_numeral
 begin
@@ -300,6 +307,8 @@ begin
 lemma nonzero_power_divide:
   "b \<noteq> 0 \<Longrightarrow> (a / b) ^ n = a ^ n / b ^ n"
   by (simp add: divide_inverse power_mult_distrib nonzero_power_inverse)
+
+declare nonzero_power_divide [where b = "numeral w" for w, simp]
 
 end
 

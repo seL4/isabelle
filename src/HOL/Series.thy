@@ -434,7 +434,7 @@ proof -
   have 2: "(\<lambda>n. (1/2::real)^n) sums 2" using geometric_sums [of "1/2::real"]
     by auto
   have "(\<lambda>n. (1/2::real)^Suc n) = (\<lambda>n. (1 / 2) ^ n / 2)"
-    by simp
+    by (simp add: mult.commute)
   thus ?thesis using sums_divide [OF 2, of 2]
     by simp
 qed

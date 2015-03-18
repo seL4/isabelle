@@ -1512,6 +1512,10 @@ corollary exp_half_le2: "exp(1/2) \<le> (2::real)"
   using exp_bound [of "1/2"]
   by (simp add: field_simps)
 
+corollary exp_le: "exp 1 \<le> (3::real)"
+  using exp_bound [of 1]
+  by (simp add: field_simps)
+
 lemma exp_bound_half: "norm(z) \<le> 1/2 \<Longrightarrow> norm(exp z) \<le> 2"
   by (blast intro: order_trans intro!: exp_half_le2 norm_exp)
 
@@ -3070,6 +3074,84 @@ lemma cos_two_pi [simp]: "cos (2*pi) = 1"
 
 lemma sin_two_pi [simp]: "sin (2*pi) = 0"
   by (simp add: sin_double)
+
+
+lemma sin_times_sin:
+  fixes w :: "'a::{real_normed_field,banach}"
+  shows "sin(w) * sin(z) = (cos(w - z) - cos(w + z)) / 2"
+  by (simp add: cos_diff cos_add)
+
+lemma sin_times_cos:
+  fixes w :: "'a::{real_normed_field,banach}"
+  shows "sin(w) * cos(z) = (sin(w + z) + sin(w - z)) / 2"
+  by (simp add: sin_diff sin_add)
+
+lemma cos_times_sin:
+  fixes w :: "'a::{real_normed_field,banach}"
+  shows "cos(w) * sin(z) = (sin(w + z) - sin(w - z)) / 2"
+  by (simp add: sin_diff sin_add)
+
+lemma cos_times_cos:
+  fixes w :: "'a::{real_normed_field,banach}"
+  shows "cos(w) * cos(z) = (cos(w - z) + cos(w + z)) / 2"
+  by (simp add: cos_diff cos_add)
+
+lemma sin_plus_sin:  (*FIXME field_inverse_zero should not be necessary*)
+  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "sin(w) + sin(z) = 2 * sin((w + z) / 2) * cos((w - z) / 2)"
+  apply (simp add: mult.assoc sin_times_cos)
+  apply (simp add: field_simps)
+  done
+
+lemma sin_diff_sin: 
+  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "sin(w) - sin(z) = 2 * sin((w - z) / 2) * cos((w + z) / 2)"
+  apply (simp add: mult.assoc sin_times_cos)
+  apply (simp add: field_simps)
+  done
+
+lemma cos_plus_cos: 
+  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "cos(w) + cos(z) = 2 * cos((w + z) / 2) * cos((w - z) / 2)"
+  apply (simp add: mult.assoc cos_times_cos)
+  apply (simp add: field_simps)
+  done
+
+lemma cos_diff_cos: 
+  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "cos(w) - cos(z) = 2 * sin((w + z) / 2) * sin((z - w) / 2)"
+  apply (simp add: mult.assoc sin_times_sin)
+  apply (simp add: field_simps)
+  done
+
+lemma cos_double_cos: 
+  fixes z :: "'a::{real_normed_field,banach}"
+  shows "cos(2 * z) = 2 * cos z ^ 2 - 1"
+by (simp add: cos_double sin_squared_eq)
+
+lemma cos_double_sin: 
+  fixes z :: "'a::{real_normed_field,banach}"
+  shows "cos(2 * z) = 1 - 2 * sin z ^ 2"
+by (simp add: cos_double sin_squared_eq)
+
+lemma sin_pi_minus [simp]: "sin (pi - x) = sin x"
+  by (metis sin_minus sin_periodic_pi minus_minus uminus_add_conv_diff)
+
+lemma cos_pi_minus [simp]: "cos (pi - x) = -(cos x)"
+  by (metis cos_minus cos_periodic_pi uminus_add_conv_diff)
+
+lemma sin_minus_pi [simp]: "sin (x - pi) = - (sin x)"
+  by (simp add: sin_diff)
+
+lemma cos_minus_pi [simp]: "cos (x - pi) = -(cos x)"
+  by (simp add: cos_diff)
+
+lemma sin_2pi_minus [simp]: "sin (2*pi - x) = -(sin x)"
+  by (metis sin_periodic_pi2 add_diff_eq mult_2 sin_pi_minus)
+
+lemma cos_2pi_minus [simp]: "cos (2*pi - x) = cos x"
+  by (metis (no_types, hide_lams) cos_add cos_minus cos_two_pi sin_minus sin_two_pi 
+           diff_0_right minus_diff_eq mult_1 mult_zero_left uminus_add_conv_diff)
 
 lemma sin_gt_zero2: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < sin x"
   by (metis sin_gt_zero_02 order_less_trans pi_half_less_two)

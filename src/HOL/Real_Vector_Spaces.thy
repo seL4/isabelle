@@ -444,7 +444,8 @@ proof -
   then show thesis ..
 qed
 
-lemma setsum_in_Reals: assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setsum f s \<in> \<real>"
+lemma setsum_in_Reals [intro,simp]:
+  assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setsum f s \<in> \<real>"
 proof (cases "finite s")
   case True then show ?thesis using assms
     by (induct s rule: finite_induct) auto
@@ -453,7 +454,8 @@ next
     by (metis Reals_0 setsum.infinite)
 qed
 
-lemma setprod_in_Reals: assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setprod f s \<in> \<real>"
+lemma setprod_in_Reals [intro,simp]: 
+  assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setprod f s \<in> \<real>"
 proof (cases "finite s")
   case True then show ?thesis using assms
     by (induct s rule: finite_induct) auto

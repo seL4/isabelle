@@ -626,19 +626,24 @@ apply (drule order_le_less_trans [OF abs_ge_zero])
 apply (simp add: zero_less_divide_iff)
 done
 
+lemma sqrt2_less_2: "sqrt 2 < (2::real)"
+  by (metis not_less not_less_iff_gr_or_eq numeral_less_iff real_sqrt_four real_sqrt_le_iff semiring_norm(75) semiring_norm(78) semiring_norm(85))
+
+
 text{*Needed for the infinitely close relation over the nonstandard
     complex numbers*}
 lemma lemma_sqrt_hcomplex_capprox:
      "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<^sup>2 + y\<^sup>2) < u"
-apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
-apply (erule_tac [2] lemma_real_divide_sqrt_less)
-apply (rule power2_le_imp_le)
-apply (auto simp add: zero_le_divide_iff power_divide)
-apply (rule_tac t = "u\<^sup>2" in real_sum_of_halves [THEN subst])
-apply (rule add_mono)
-apply (auto simp add: four_x_squared intro: power_mono)
-done
-
+  apply (rule real_sqrt_sum_squares_less)
+  apply (auto simp add: abs_if field_simps)
+  apply (rule le_less_trans [where y = "x*2"])
+  using less_eq_real_def sqrt2_less_2 apply force
+  apply assumption
+  apply (rule le_less_trans [where y = "y*2"])
+  using less_eq_real_def sqrt2_less_2 mult_le_cancel_left 
+  apply auto 
+  done
+  
 text "Legacy theorem names:"
 lemmas real_root_pos2 = real_root_power_cancel
 lemmas real_root_pos_pos = real_root_gt_zero [THEN order_less_imp_le]

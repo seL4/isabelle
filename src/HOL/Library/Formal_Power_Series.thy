@@ -8,8 +8,6 @@ theory Formal_Power_Series
 imports Complex_Main
 begin
 
-lemmas fact_Suc = fact.simps(2)
-
 subsection {* The type of formal power series*}
 
 typedef 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
@@ -594,7 +592,7 @@ proof -
       fix n :: nat
       assume nn0: "n \<ge> n0"
       then have thnn0: "(1/2)^n \<le> (1/2 :: real)^n0"
-        by (auto intro: power_decreasing)
+        by (simp add: divide_simps)
       {
         assume "?s n = a"
         then have "dist (?s n) a < r"
@@ -612,9 +610,9 @@ proof -
           by (auto simp: fps_sum_rep_nth not_le k_def fps_eq_iff
               split: split_if_asm intro: LeastI2_ex)
         then have "dist (?s n) a < (1/2)^n"
-          unfolding dth by (auto intro: power_strict_decreasing)
+          unfolding dth by (simp add: divide_simps)
         also have "\<dots> \<le> (1/2)^n0"
-          using nn0 by (auto intro: power_decreasing)
+          using nn0 by (simp add: divide_simps)
         also have "\<dots> < r"
           using n0 by simp
         finally have "dist (?s n) a < r" .

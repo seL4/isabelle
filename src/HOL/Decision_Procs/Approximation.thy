@@ -1718,8 +1718,10 @@ proof -
           by (auto simp: real_power_down_fl intro!: power_down_le)
       next
         case True
-        have "power_down_fl prec (Float 1 (- 2))  ?num \<le> real (Float 1 (- 2)) ^ ?num"
-          by (auto simp: real_power_down_fl power_down)
+        have "power_down_fl prec (Float 1 (- 2))  ?num \<le> (Float 1 (- 2)) ^ ?num"
+          by (metis Float_le_zero_iff less_imp_le linorder_not_less not_numeral_le_zero numeral_One power_down_fl)
+        then have "power_down_fl prec (Float 1 (- 2))  ?num \<le> real (Float 1 (- 2)) ^ ?num"
+          by simp
         also
         have "real (floor_fl x) \<noteq> 0" and "real (floor_fl x) \<le> 0" using `real (floor_fl x) < 0` by auto
         from divide_right_mono_neg[OF floor_fl[of x] `real (floor_fl x) \<le> 0`, unfolded divide_self[OF `real (floor_fl x) \<noteq> 0`]]
@@ -1727,7 +1729,7 @@ proof -
         from order_trans[OF exp_m1_ge_quarter this[unfolded exp_le_cancel_iff[where x="- 1", symmetric]]]
         have "Float 1 (- 2) \<le> exp (x / (- floor_fl x))" unfolding Float_num .
         hence "real (Float 1 (- 2)) ^ ?num \<le> exp (x / (- floor_fl x)) ^ ?num"
-          by (auto intro!: power_mono)
+          by (metis Float_num(5) power_mono zero_le_divide_1_iff zero_le_numeral)
         also have "\<dots> = exp x" unfolding num_eq fl_eq exp_real_of_nat_mult[symmetric] using `real (floor_fl x) \<noteq> 0` by auto
         finally show ?thesis
           unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] int_floor_fl_def Let_def if_P[OF True] real_of_float_power
