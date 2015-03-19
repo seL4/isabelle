@@ -695,4 +695,62 @@ lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> (m $<= (j$-i
 
 ML_file "int_arith.ML"
 
+subsection {* examples: *}
+
+text {* @{text combine_numerals_prod} (products of separate literals) *}
+lemma "#5 $* x $* #3 = y" apply simp oops
+
+schematic_lemma "y2 $+ ?x42 = y $+ y2" apply simp oops
+
+lemma "oo : int ==> l $+ (l $+ #2) $+ oo = oo" apply simp oops
+
+lemma "#9$*x $+ y = x$*#23 $+ z" apply simp oops
+lemma "y $+ x = x $+ z" apply simp oops
+
+lemma "x : int ==> x $+ y $+ z = x $+ z" apply simp oops
+lemma "x : int ==> y $+ (z $+ x) = z $+ x" apply simp oops
+lemma "z : int ==> x $+ y $+ z = (z $+ y) $+ (x $+ w)" apply simp oops
+lemma "z : int ==> x$*y $+ z = (z $+ y) $+ (y$*x $+ w)" apply simp oops
+
+lemma "#-3 $* x $+ y $<= x $* #2 $+ z" apply simp oops
+lemma "y $+ x $<= x $+ z" apply simp oops
+lemma "x $+ y $+ z $<= x $+ z" apply simp oops
+
+lemma "y $+ (z $+ x) $< z $+ x" apply simp oops
+lemma "x $+ y $+ z $< (z $+ y) $+ (x $+ w)" apply simp oops
+lemma "x$*y $+ z $< (z $+ y) $+ (y$*x $+ w)" apply simp oops
+
+lemma "l $+ #2 $+ #2 $+ #2 $+ (l $+ #2) $+ (oo $+ #2) = uu" apply simp oops
+lemma "u : int ==> #2 $* u = u" apply simp oops
+lemma "(i $+ j $+ #12 $+ k) $- #15 = y" apply simp oops
+lemma "(i $+ j $+ #12 $+ k) $- #5 = y" apply simp oops
+
+lemma "y $- b $< b" apply simp oops
+lemma "y $- (#3 $* b $+ c) $< b $- #2 $* c" apply simp oops
+
+lemma "(#2 $* x $- (u $* v) $+ y) $- v $* #3 $* u = w" apply simp oops
+lemma "(#2 $* x $* u $* v $+ (u $* v) $* #4 $+ y) $- v $* u $* #4 = w" apply simp oops
+lemma "(#2 $* x $* u $* v $+ (u $* v) $* #4 $+ y) $- v $* u = w" apply simp oops
+lemma "u $* v $- (x $* u $* v $+ (u $* v) $* #4 $+ y) = w" apply simp oops
+
+lemma "(i $+ j $+ #12 $+ k) = u $+ #15 $+ y" apply simp oops
+lemma "(i $+ j $* #2 $+ #12 $+ k) = j $+ #5 $+ y" apply simp oops
+
+lemma "#2 $* y $+ #3 $* z $+ #6 $* w $+ #2 $* y $+ #3 $* z $+ #2 $* u = #2 $* y' $+ #3 $* z' $+ #6 $* w' $+ #2 $* y' $+ #3 $* z' $+ u $+ vv" apply simp oops
+
+lemma "a $+ $-(b$+c) $+ b = d" apply simp oops
+lemma "a $+ $-(b$+c) $- b = d" apply simp oops
+
+text {* negative numerals *}
+lemma "(i $+ j $+ #-2 $+ k) $- (u $+ #5 $+ y) = zz" apply simp oops
+lemma "(i $+ j $+ #-3 $+ k) $< u $+ #5 $+ y" apply simp oops
+lemma "(i $+ j $+ #3 $+ k) $< u $+ #-6 $+ y" apply simp oops
+lemma "(i $+ j $+ #-12 $+ k) $- #15 = y" apply simp oops
+lemma "(i $+ j $+ #12 $+ k) $- #-15 = y" apply simp oops
+lemma "(i $+ j $+ #-12 $+ k) $- #-15 = y" apply simp oops
+
+text {* Multiplying separated numerals *}
+lemma "#6 $* ($# x $* #2) =  uu" apply simp oops
+lemma "#4 $* ($# x $* $# x) $* (#2 $* $# x) =  uu" apply simp oops
+
 end
