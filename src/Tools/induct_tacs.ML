@@ -44,7 +44,7 @@ fun gen_case_tac ctxt0 s opt_rule i st =
       (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) of
         Var (xi, _) :: _ => xi
       | _ => raise THM ("Malformed cases rule", 0, [rule]));
-  in res_inst_tac ctxt [(xi, s)] rule i st end
+  in res_inst_tac ctxt [((xi, Position.none), s)] rule i st end
   handle THM _ => Seq.empty;
 
 fun case_tac ctxt s = gen_case_tac ctxt s NONE;
@@ -55,7 +55,7 @@ fun case_rule_tac ctxt s rule = gen_case_tac ctxt s (SOME rule);
 
 local
 
-fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
+fun prep_var (Var (xi, _), SOME x) = SOME ((xi, Position.none), x)
   | prep_var _ = NONE;
 
 fun prep_inst (concl, xs) =

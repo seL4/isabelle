@@ -180,7 +180,7 @@ ML {*
 fun sum3_instantiate ctxt thm =
   map (fn s =>
     simplify (ctxt delsimps @{thms not_None_eq})
-      (Rule_Insts.read_instantiate ctxt [(("t", 0), "In" ^ s ^ " x")] ["x"] thm))
+      (Rule_Insts.read_instantiate ctxt [((("t", 0), Position.none), "In" ^ s ^ " x")] ["x"] thm))
     ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
