@@ -959,7 +959,7 @@ proof (cases "real x = 0")
       unfolding cos_coeff_def atLeast0LessThan by auto
 
     have "cos t * (- 1) ^ n = cos t * cos (n * pi) + sin t * sin (n * pi)" by auto
-    also have "\<dots> = cos (t + n * pi)" by (simp add: cos_add)  
+    also have "\<dots> = cos (t + n * pi)" by (simp add: cos_add)
     also have "\<dots> = ?rest" by auto
     finally have "cos t * (- 1) ^ n = ?rest" .
     moreover
@@ -1029,7 +1029,7 @@ proof -
   { fix n
     have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n) auto
     have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 2 * (((\<lambda>i. i + 2) ^^ n) 2 + 1)"
-      unfolding F by auto } 
+      unfolding F by auto }
   note f_eq = this
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF `0 \<le> real (x * x)` f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
@@ -1046,7 +1046,7 @@ proof (cases "real x = 0")
   hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
   have "0 < x * x" using `0 < x` by simp
 
-  { fix x::real and n 
+  { fix x::real and n
     have "(\<Sum>j = 0 ..< n. (- 1) ^ (((2 * j + 1) - Suc 0) div 2) / ((fact (2 * j + 1))) * x ^(2 * j + 1))
     = (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * x ^ i)" (is "?SUM = _")
     proof -
@@ -1354,7 +1354,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       by auto
 
     have "cos (x + (-k) * (2 * pi)) \<le> cos ?lx"
-      using cos_monotone_0_pi'[OF lx_0 lx pi_x]
+      using cos_monotone_0_pi_le[OF lx_0 lx pi_x]
       by (simp only: real_of_int_minus
         cos_minus mult_minus_left) simp
     also have "\<dots> \<le> (ub_cos prec ?lx)"
@@ -1386,7 +1386,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "(lb_cos prec ?ux) \<le> cos ?ux"
       using lb_cos[OF ux_0 pi_ux] by simp
     also have "\<dots> \<le> cos (x + (-k) * (2 * pi))"
-      using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
+      using cos_monotone_0_pi_le[OF x_ge_0 ux pi_ux]
       by (simp only: real_of_int_minus
         cos_minus mult_minus_left) simp
     finally have "(lb_cos prec ?ux) \<le> cos x"
@@ -1505,7 +1505,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       have "cos x = cos (x + (-k) * (2 * pi) + (1 :: int) * (2 * pi))"
         unfolding cos_periodic_int ..
       also have "\<dots> \<le> cos ((?lx + 2 * ?lpi))"
-        using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
+        using cos_monotone_0_pi_le[OF lx_0 lx_le_x pi_x]
         by (simp only: minus_float.rep_eq real_of_int_minus real_of_one
           mult_minus_left mult_1_left) simp
       also have "\<dots> \<le> (ub_cos prec (?lx + 2 * ?lpi))"
@@ -1535,7 +1535,7 @@ lemma bnds_exp_horner: assumes "real x \<le> 0"
 proof -
   { fix n
     have F: "\<And> m. ((\<lambda>i. i + 1) ^^ n) m = n + m" by (induct n, auto)
-    have "fact (Suc n) = fact n * ((\<lambda>i::nat. i + 1) ^^ n) 1" unfolding F by auto 
+    have "fact (Suc n) = fact n * ((\<lambda>i::nat. i + 1) ^^ n) 1" unfolding F by auto
   } note f_eq = this
 
   note bounds = horner_bounds_nonpos[where f="fact" and lb="lb_exp_horner prec" and ub="ub_exp_horner prec" and j'=0 and s=1,
@@ -2022,7 +2022,7 @@ proof -
   hence "0 \<le> bl" by (simp add: bitlen_def bl_def)
   show ?thesis
   proof (cases "0 \<le> e")
-    case True 
+    case True
     thus ?thesis
       unfolding bl_def[symmetric] using `0 < real m` `0 \<le> bl`
       apply (simp add: ln_mult)
@@ -3234,7 +3234,7 @@ next
 qed
 
 lemma setprod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
-  using fact_altdef_nat Suc_eq_plus1_left atLeastLessThanSuc_atLeastAtMost real_fact_nat 
+  using fact_altdef_nat Suc_eq_plus1_left atLeastLessThanSuc_atLeastAtMost real_fact_nat
   by presburger
 
 lemma approx_tse:

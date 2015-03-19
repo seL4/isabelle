@@ -3391,7 +3391,7 @@ proof -
   thus ?thesis by auto
 qed
 
-lemma cos_monotone_0_pi':
+lemma cos_monotone_0_pi_le:
   assumes "0 \<le> y" and "y \<le> x" and "x \<le> pi"
   shows "cos x \<le> cos y"
 proof (cases "y < x")
@@ -3427,16 +3427,19 @@ next
   thus ?thesis by auto
 qed
 
-lemma sin_monotone_2pi':
+lemma sin_monotone_2pi:
+  assumes "- (pi/2) \<le> y" and "y < x" and "x \<le> pi/2"
+  shows "sin y < sin x"
+    apply (simp add: sin_cos_eq)
+    apply (rule cos_monotone_0_pi)
+    using assms
+    apply auto
+    done
+
+lemma sin_monotone_2pi_le:
   assumes "- (pi / 2) \<le> y" and "y \<le> x" and "x \<le> pi / 2"
   shows "sin y \<le> sin x"
-proof -
-  have "0 \<le> y + pi / 2" and "y + pi / 2 \<le> x + pi / 2" and "x + pi /2 \<le> pi"
-    using pi_ge_two and assms by auto
-  from cos_monotone_0_pi'[OF this] show ?thesis
-    unfolding minus_sin_cos_eq[symmetric]
-    by (metis minus_sin_cos_eq mult.right_neutral neg_le_iff_le of_real_def real_scaleR_def)
-qed
+  by (metis assms le_less sin_monotone_2pi)
 
 lemma sin_x_le_x:
   fixes x::real assumes x: "x \<ge> 0" shows "sin x \<le> x"
@@ -3466,6 +3469,191 @@ lemma abs_sin_x_le_abs_x:
   fixes x::real shows "\<bar>sin x\<bar> \<le> \<bar>x\<bar>"
   using sin_x_ge_neg_x [of x] sin_x_le_x [of x] sin_x_ge_neg_x [of "-x"] sin_x_le_x [of "-x"]
   by (auto simp: abs_real_def)
+
+
+subsection {* More Corollaries about Sine and Cosine *}
+
+lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
+proof -
+  have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
+    by (auto simp: algebra_simps sin_add)
+  thus ?thesis
+    by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
+                  mult.commute [of pi])
+qed
+
+lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
+  by (cases "even n") (simp_all add: cos_double mult.assoc)
+
+lemma cos_3over2_pi [simp]: "cos (3/2*pi) = 0"
+  apply (subgoal_tac "cos (pi + pi/2) = 0", simp)
+  apply (subst cos_add, simp)
+  done
+
+lemma sin_2npi [simp]: "sin (2 * real (n::nat) * pi) = 0"
+  by (auto simp: mult.assoc sin_double)
+
+lemma sin_3over2_pi [simp]: "sin (3/2*pi) = - 1"
+  apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
+  apply (subst sin_add, simp)
+  done
+
+lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
+by (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
+
+lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
+  by (auto intro!: derivative_eq_intros)
+
+lemma sin_zero_norm_cos_one:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes "sin x = 0" shows "norm (cos x) = 1"
+  using sin_cos_squared_add [of x, unfolded assms]
+  by (simp add: square_norm_one)
+
+lemma sin_zero_abs_cos_one: "sin x = 0 \<Longrightarrow> \<bar>cos x\<bar> = (1::real)"
+  using sin_zero_norm_cos_one by fastforce
+
+lemma cos_one_sin_zero:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes "cos x = 1" shows "sin x = 0"
+  using sin_cos_squared_add [of x, unfolded assms]
+  by simp
+
+lemma sin_times_pi_eq_0: "sin(x * pi) = 0 \<longleftrightarrow> x \<in> Ints"
+  by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_real_of_int real_of_int_def)
+
+lemma cos_one_2pi: 
+    "cos(x) = 1 \<longleftrightarrow> (\<exists>n::nat. x = n * 2*pi) | (\<exists>n::nat. x = -(n * 2*pi))"
+    (is "?lhs = ?rhs")
+proof
+  assume "cos(x) = 1"
+  then have "sin x = 0"
+    by (simp add: cos_one_sin_zero)
+  then show ?rhs
+  proof (simp only: sin_zero_iff, elim exE disjE conjE)
+    fix n::nat
+    assume n: "even n" "x = real n * (pi/2)"
+    then obtain m where m: "n = 2 * m"
+      using dvdE by blast
+    then have me: "even m" using `?lhs` n
+      by (auto simp: field_simps) (metis one_neq_neg_one  power_minus_odd power_one)
+    show ?rhs
+      using m me n
+      by (auto simp: field_simps elim!: evenE)
+  next    
+    fix n::nat
+    assume n: "even n" "x = - (real n * (pi/2))"
+    then obtain m where m: "n = 2 * m"
+      using dvdE by blast
+    then have me: "even m" using `?lhs` n
+      by (auto simp: field_simps) (metis one_neq_neg_one  power_minus_odd power_one)
+    show ?rhs
+      using m me n
+      by (auto simp: field_simps elim!: evenE)
+  qed
+next
+  assume "?rhs"
+  then show "cos x = 1"
+    by (metis cos_2npi cos_minus mult.assoc mult.left_commute)
+qed
+
+lemma cos_one_2pi_int: "cos(x) = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2*pi)"
+  apply auto  --{*FIXME simproc bug*}
+  apply (auto simp: cos_one_2pi)
+  apply (metis real_of_int_of_nat_eq)
+  apply (metis mult_minus_right real_of_int_minus real_of_int_of_nat_eq)
+  by (metis mult_minus_right of_int_of_nat real_of_int_def real_of_nat_def)
+
+lemma sin_cos_sqrt: "0 \<le> sin(x) \<Longrightarrow> (sin(x) = sqrt(1 - (cos(x) ^ 2)))"
+  using sin_squared_eq real_sqrt_unique by fastforce
+
+lemma sin_eq_0_pi: "-pi < x \<Longrightarrow> x < pi \<Longrightarrow> sin(x) = 0 \<Longrightarrow> x = 0"
+  by (metis sin_gt_zero sin_minus minus_less_iff neg_0_less_iff_less not_less_iff_gr_or_eq)
+
+lemma cos_treble_cos: 
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "cos(3 * x) = 4 * cos(x) ^ 3 - 3 * cos x"
+proof -
+  have *: "(sin x * (sin x * 3)) = 3 - (cos x * (cos x * 3))"
+    by (simp add: mult.assoc [symmetric] sin_squared_eq [unfolded power2_eq_square])
+  have "cos(3 * x) = cos(2*x + x)"
+    by simp
+  also have "... = 4 * cos(x) ^ 3 - 3 * cos x"
+    apply (simp only: cos_add cos_double sin_double)
+    apply (simp add: * field_simps power2_eq_square power3_eq_cube)
+    done
+  finally show ?thesis .
+qed
+
+lemma cos_45: "cos (pi / 4) = sqrt 2 / 2"
+proof -
+  let ?c = "cos (pi / 4)" and ?s = "sin (pi / 4)"
+  have nonneg: "0 \<le> ?c"
+    by (simp add: cos_ge_zero)
+  have "0 = cos (pi / 4 + pi / 4)"
+    by simp
+  also have "cos (pi / 4 + pi / 4) = ?c\<^sup>2 - ?s\<^sup>2"
+    by (simp only: cos_add power2_eq_square)
+  also have "\<dots> = 2 * ?c\<^sup>2 - 1"
+    by (simp add: sin_squared_eq)
+  finally have "?c\<^sup>2 = (sqrt 2 / 2)\<^sup>2"
+    by (simp add: power_divide)
+  thus ?thesis
+    using nonneg by (rule power2_eq_imp_eq) simp
+qed
+
+lemma cos_30: "cos (pi / 6) = sqrt 3/2"
+proof -
+  let ?c = "cos (pi / 6)" and ?s = "sin (pi / 6)"
+  have pos_c: "0 < ?c"
+    by (rule cos_gt_zero, simp, simp)
+  have "0 = cos (pi / 6 + pi / 6 + pi / 6)"
+    by simp
+  also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
+    by (simp only: cos_add sin_add)
+  also have "\<dots> = ?c * (?c\<^sup>2 - 3 * ?s\<^sup>2)"
+    by (simp add: algebra_simps power2_eq_square)
+  finally have "?c\<^sup>2 = (sqrt 3/2)\<^sup>2"
+    using pos_c by (simp add: sin_squared_eq power_divide)
+  thus ?thesis
+    using pos_c [THEN order_less_imp_le]
+    by (rule power2_eq_imp_eq) simp
+qed
+
+lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
+  by (simp add: sin_cos_eq cos_45)
+
+lemma sin_60: "sin (pi / 3) = sqrt 3/2"
+  by (simp add: sin_cos_eq cos_30)
+
+lemma cos_60: "cos (pi / 3) = 1 / 2"
+  apply (rule power2_eq_imp_eq)
+  apply (simp add: cos_squared_eq sin_60 power_divide)
+  apply (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
+  done
+
+lemma sin_30: "sin (pi / 6) = 1 / 2"
+  by (simp add: sin_cos_eq cos_60)
+
+lemma cos_integer_2pi: "n \<in> Ints \<Longrightarrow> cos(2*pi * n) = 1"
+  by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute real_of_int_def)
+
+lemma sin_integer_2pi: "n \<in> Ints \<Longrightarrow> sin(2*pi * n) = 0"
+  by (metis sin_two_pi Ints_mult mult.assoc mult.commute sin_times_pi_eq_0)
+
+lemma cos_int_2npi [simp]: "cos (2 * real (n::int) * pi) = 1"
+  by (simp add: cos_one_2pi_int)
+
+lemma sin_int_2npi [simp]: "sin (2 * real (n::int) * pi) = 0"
+  by (metis Ints_real_of_int mult.assoc mult.commute sin_integer_2pi)
+
+lemma sincos_principal_value: "\<exists>y. (-pi < y \<and> y \<le> pi) \<and> (sin(y) = sin(x) \<and> cos(y) = cos(x))"
+  apply (rule exI [where x="pi - (2*pi) * frac((pi - x) / (2*pi))"])
+  apply (auto simp: field_simps frac_lt_1)
+  apply (simp_all add: frac_def divide_simps)
+  apply (simp_all add: add_divide_distrib diff_divide_distrib)
+  apply (simp_all add: sin_diff cos_diff mult.assoc [symmetric] cos_integer_2pi sin_integer_2pi)
+  done
 
 
 subsection {* Tangent *}
@@ -3527,6 +3715,15 @@ lemma tan_half:
   shows  "tan x = sin (2 * x) / (cos (2 * x) + 1)"
   unfolding tan_def sin_double cos_double sin_squared_eq
   by (simp add: power2_eq_square)
+
+lemma tan_30: "tan (pi / 6) = 1 / sqrt 3"
+  unfolding tan_def by (simp add: sin_30 cos_30)
+
+lemma tan_45: "tan (pi / 4) = 1"
+  unfolding tan_def by (simp add: sin_45 cos_45)
+
+lemma tan_60: "tan (pi / 3) = sqrt 3"
+  unfolding tan_def by (simp add: sin_60 cos_60)
 
 lemma DERIV_tan [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
@@ -3705,9 +3902,48 @@ qed
 lemma tan_periodic_n[simp]: "tan (x + numeral n * pi) = tan x"
   using tan_periodic_int[of _ "numeral n" ] unfolding real_numeral .
 
+lemma tan_minus_45: "tan (-(pi/4)) = -1"
+  unfolding tan_def by (simp add: sin_45 cos_45)
+
+lemma tan_diff:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows
+     "\<lbrakk>cos x \<noteq> 0; cos y \<noteq> 0; cos (x - y) \<noteq> 0\<rbrakk>
+      \<Longrightarrow> tan(x - y) = (tan(x) - tan(y))/(1 + tan(x) * tan(y))"
+  using tan_add [of x "-y"]
+  by simp
+
+
+lemma tan_pos_pi2_le: "0 \<le> x ==> x < pi/2 \<Longrightarrow> 0 \<le> tan x"
+  using less_eq_real_def tan_gt_zero by auto
+
+lemma cos_tan: "abs(x) < pi/2 \<Longrightarrow> cos(x) = 1 / sqrt(1 + tan(x) ^ 2)"
+  using cos_gt_zero_pi [of x]
+  by (simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
+
+lemma sin_tan: "abs(x) < pi/2 \<Longrightarrow> sin(x) = tan(x) / sqrt(1 + tan(x) ^ 2)"
+  using cos_gt_zero [of "x"] cos_gt_zero [of "-x"]
+  by (force simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
+
+lemma tan_mono_le: "-(pi/2) < x ==> x \<le> y ==> y < pi/2 \<Longrightarrow> tan(x) \<le> tan(y)"
+  using less_eq_real_def tan_monotone by auto
+
+lemma tan_mono_lt_eq: "-(pi/2) < x ==> x < pi/2 ==> -(pi/2) < y ==> y < pi/2
+         \<Longrightarrow> (tan(x) < tan(y) \<longleftrightarrow> x < y)"
+  using tan_monotone' by blast
+
+lemma tan_mono_le_eq: "-(pi/2) < x ==> x < pi/2 ==> -(pi/2) < y ==> y < pi/2
+         \<Longrightarrow> (tan(x) \<le> tan(y) \<longleftrightarrow> x \<le> y)"
+  by (meson tan_mono_le not_le tan_monotone)
+
+lemma tan_bound_pi2: "abs(x) < pi/4 \<Longrightarrow> abs(tan x) < 1"
+  using tan_45 tan_monotone [of x "pi/4"] tan_monotone [of "-x" "pi/4"]
+  by (auto simp: abs_if split: split_if_asm)
+
+lemma tan_cot: "tan(pi/2 - x) = inverse(tan x)"
+  by (simp add: tan_def sin_diff cos_diff)
 
 subsection {* Inverse Trigonometric Functions *}
-text{*STILL DEFINED FOR THE REALS ONLY*}
 
 definition arcsin :: "real => real"
   where "arcsin y = (THE x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
@@ -3819,6 +4055,12 @@ lemma sin_arccos: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> sin
   apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 \<le> 1\<^sup>2", simp)
   apply (rule power_mono, simp, simp)
   done
+
+lemma arccos_0 [simp]: "arccos 0 = pi/2"
+by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero pi_half_ge_zero not_le not_zero_less_neg_numeral numeral_One)
+
+lemma arccos_1 [simp]: "arccos 1 = 0"
+  using arccos_cos by force
 
 lemma arctan [simp]: "- (pi/2) < arctan y  & arctan y < pi/2 & tan (arctan y) = y"
   unfolding arctan_def by (rule theI' [OF tan_total])
@@ -4049,124 +4291,34 @@ lemma tendsto_arctan_at_bot: "(arctan ---> - (pi/2)) at_bot"
   by (intro tendsto_minus tendsto_arctan_at_top)
 
 
-subsection {* More Theorems about Sin and Cos *}
-
-lemma cos_45: "cos (pi / 4) = sqrt 2 / 2"
-proof -
-  let ?c = "cos (pi / 4)" and ?s = "sin (pi / 4)"
-  have nonneg: "0 \<le> ?c"
-    by (simp add: cos_ge_zero)
-  have "0 = cos (pi / 4 + pi / 4)"
-    by simp
-  also have "cos (pi / 4 + pi / 4) = ?c\<^sup>2 - ?s\<^sup>2"
-    by (simp only: cos_add power2_eq_square)
-  also have "\<dots> = 2 * ?c\<^sup>2 - 1"
-    by (simp add: sin_squared_eq)
-  finally have "?c\<^sup>2 = (sqrt 2 / 2)\<^sup>2"
-    by (simp add: power_divide)
-  thus ?thesis
-    using nonneg by (rule power2_eq_imp_eq) simp
-qed
-
-lemma cos_30: "cos (pi / 6) = sqrt 3/2"
-proof -
-  let ?c = "cos (pi / 6)" and ?s = "sin (pi / 6)"
-  have pos_c: "0 < ?c"
-    by (rule cos_gt_zero, simp, simp)
-  have "0 = cos (pi / 6 + pi / 6 + pi / 6)"
-    by simp
-  also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
-    by (simp only: cos_add sin_add)
-  also have "\<dots> = ?c * (?c\<^sup>2 - 3 * ?s\<^sup>2)"
-    by (simp add: algebra_simps power2_eq_square)
-  finally have "?c\<^sup>2 = (sqrt 3/2)\<^sup>2"
-    using pos_c by (simp add: sin_squared_eq power_divide)
-  thus ?thesis
-    using pos_c [THEN order_less_imp_le]
-    by (rule power2_eq_imp_eq) simp
-qed
-
-lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
-  by (simp add: sin_cos_eq cos_45)
-
-lemma sin_60: "sin (pi / 3) = sqrt 3/2"
-  by (simp add: sin_cos_eq cos_30)
-
-lemma cos_60: "cos (pi / 3) = 1 / 2"
-  apply (rule power2_eq_imp_eq)
-  apply (simp add: cos_squared_eq sin_60 power_divide)
-  apply (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
-  done
-
-lemma sin_30: "sin (pi / 6) = 1 / 2"
-  by (simp add: sin_cos_eq cos_60)
-
-lemma tan_30: "tan (pi / 6) = 1 / sqrt 3"
-  unfolding tan_def by (simp add: sin_30 cos_30)
-
-lemma tan_45: "tan (pi / 4) = 1"
-  unfolding tan_def by (simp add: sin_45 cos_45)
-
-lemma tan_60: "tan (pi / 3) = sqrt 3"
-  unfolding tan_def by (simp add: sin_60 cos_60)
-
-lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
-proof -
-  have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
-    by (auto simp: algebra_simps sin_add)
-  thus ?thesis
-    by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
-                  mult.commute [of pi])
-qed
-
-lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
-  by (cases "even n") (simp_all add: cos_double mult.assoc)
-
-lemma cos_3over2_pi [simp]: "cos (3/2*pi) = 0"
-  apply (subgoal_tac "cos (pi + pi/2) = 0", simp)
-  apply (subst cos_add, simp)
-  done
-
-lemma sin_2npi [simp]: "sin (2 * real (n::nat) * pi) = 0"
-  by (auto simp: mult.assoc sin_double)
-
-lemma sin_3over2_pi [simp]: "sin (3/2*pi) = - 1"
-  apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
-  apply (subst sin_add, simp)
-  done
-
-lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
-by (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
-
-lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
-  by (auto intro!: derivative_eq_intros)
-
-lemma sin_zero_norm_cos_one:
-  fixes x :: "'a::{real_normed_field,banach}"
-  assumes "sin x = 0" shows "norm (cos x) = 1"
-  using sin_cos_squared_add [of x, unfolded assms]
-  by (simp add: square_norm_one)
-
-lemma sin_zero_abs_cos_one: "sin x = 0 \<Longrightarrow> \<bar>cos x\<bar> = (1::real)"
-  using sin_zero_norm_cos_one by fastforce
-
-lemma cos_one_sin_zero:
-  fixes x :: "'a::{real_normed_field,banach}"
-  assumes "cos x = 1" shows "sin x = 0"
-  using sin_cos_squared_add [of x, unfolded assms]
-  by simp
-
-
 subsection{* Prove Totality of the Trigonometric Functions *}
 
-lemma arccos_0 [simp]: "arccos 0 = pi/2"
-by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero pi_half_ge_zero not_le not_zero_less_neg_numeral numeral_One)
+lemma sin_mono_less_eq: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2; -(pi/2) \<le> y; y \<le> pi/2\<rbrakk>
+         \<Longrightarrow> (sin(x) < sin(y) \<longleftrightarrow> x < y)"
+by (metis not_less_iff_gr_or_eq sin_monotone_2pi)
 
-lemma arccos_1 [simp]: "arccos 1 = 0"
-  using arccos_cos by force
+lemma sin_mono_le_eq: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2; -(pi/2) \<le> y; y \<le> pi/2\<rbrakk>
+         \<Longrightarrow> (sin(x) \<le> sin(y) \<longleftrightarrow> x \<le> y)"
+by (meson leD le_less_linear sin_monotone_2pi sin_monotone_2pi_le)
+
+lemma sin_inj_pi: "-(pi/2) \<le> x ==> x \<le> pi/2 ==>
+         -(pi/2) \<le> y ==> y \<le> pi/2 ==> sin(x) = sin(y) \<Longrightarrow> x = y"
+by (metis arcsin_sin)
+
+lemma cos_mono_lt_eq: "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi
+         \<Longrightarrow> (cos(x) < cos(y) \<longleftrightarrow> y < x)"
+by (meson cos_monotone_0_pi cos_monotone_0_pi_le leD le_less_linear)
+
+lemma cos_mono_le_eq: "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi
+         \<Longrightarrow> (cos(x) \<le> cos(y) \<longleftrightarrow> y \<le> x)"
+  by (metis arccos_cos cos_monotone_0_pi_le eq_iff linear)
+
+lemma cos_inj_pi: "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi ==> cos(x) = cos(y)
+         \<Longrightarrow> x = y"
+by (metis arccos_cos)
 
 lemma arccos_le_pi2: "\<lbrakk>0 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> arccos y \<le> pi/2"
-  by (metis (mono_tags) arccos_0 arccos cos_le_one cos_monotone_0_pi'
+  by (metis (mono_tags) arccos_0 arccos cos_le_one cos_monotone_0_pi_le
       cos_pi cos_pi_half pi_half_ge_zero antisym_conv less_eq_neg_nonpos linear minus_minus order.trans order_refl)
 
 lemma sincos_total_pi_half:

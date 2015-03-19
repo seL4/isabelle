@@ -156,103 +156,11 @@ lemma Re_cos: "Re(cos z) = cos(Re z) * (exp(Im z) + exp(-(Im z))) / 2"
 
 lemma Im_cos: "Im(cos z) = sin(Re z) * (exp(-(Im z)) - exp(Im z)) / 2"
   by (simp add: cos_exp_eq field_simps Im_divide Im_exp)
-
-
-subsection {* More Corollaries about Sine and Cosine *}
-
-lemma sin_times_pi_eq_0: "sin(x * pi) = 0 \<longleftrightarrow> x \<in> Ints"
-  by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_real_of_int real_of_int_def)
-
-lemma cos_one_2pi: 
-    "cos(x) = 1 \<longleftrightarrow> (\<exists>n::nat. x = n * 2*pi) | (\<exists>n::nat. x = -(n * 2*pi))"
-    (is "?lhs = ?rhs")
-proof
-  assume "cos(x) = 1"
-  then have "sin x = 0"
-    by (simp add: cos_one_sin_zero)
-  then show ?rhs
-  proof (simp only: sin_zero_iff, elim exE disjE conjE)
-    fix n::nat
-    assume n: "even n" "x = real n * (pi/2)"
-    then obtain m where m: "n = 2 * m"
-      using dvdE by blast
-    then have me: "even m" using `?lhs` n
-      by (auto simp: field_simps) (metis one_neq_neg_one  power_minus_odd power_one)
-    show ?rhs
-      using m me n
-      by (auto simp: field_simps elim!: evenE)
-  next    
-    fix n::nat
-    assume n: "even n" "x = - (real n * (pi/2))"
-    then obtain m where m: "n = 2 * m"
-      using dvdE by blast
-    then have me: "even m" using `?lhs` n
-      by (auto simp: field_simps) (metis one_neq_neg_one  power_minus_odd power_one)
-    show ?rhs
-      using m me n
-      by (auto simp: field_simps elim!: evenE)
-  qed
-next
-  assume "?rhs"
-  then show "cos x = 1"
-    by (metis cos_2npi cos_minus mult.assoc mult.left_commute)
-qed
-
-lemma cos_one_2pi_int: "cos(x) = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2*pi)"
-  apply auto  --{*FIXME simproc bug*}
-  apply (auto simp: cos_one_2pi)
-  apply (metis real_of_int_of_nat_eq)
-  apply (metis mult_minus_right real_of_int_minus real_of_int_of_nat_eq)
-  by (metis mult_minus_right of_int_of_nat real_of_int_def real_of_nat_def)
-
-lemma sin_cos_sqrt: "0 \<le> sin(x) \<Longrightarrow> (sin(x) = sqrt(1 - (cos(x) ^ 2)))"
-  using sin_squared_eq real_sqrt_unique by fastforce
-
-lemma sin_eq_0_pi: "-pi < x \<Longrightarrow> x < pi \<Longrightarrow> sin(x) = 0 \<Longrightarrow> x = 0"
-  by (metis sin_gt_zero sin_minus minus_less_iff neg_0_less_iff_less not_less_iff_gr_or_eq)
-
-lemma cos_treble_cos: 
-  fixes x :: "'a::{real_normed_field,banach}"
-  shows "cos(3 * x) = 4 * cos(x) ^ 3 - 3 * cos x"
-proof -
-  have *: "(sin x * (sin x * 3)) = 3 - (cos x * (cos x * 3))"
-    by (simp add: mult.assoc [symmetric] sin_squared_eq [unfolded power2_eq_square])
-  have "cos(3 * x) = cos(2*x + x)"
-    by simp
-  also have "... = 4 * cos(x) ^ 3 - 3 * cos x"
-    apply (simp only: cos_add cos_double sin_double)
-    apply (simp add: * field_simps power2_eq_square power3_eq_cube)
-    done
-  finally show ?thesis .
-qed
-
   
 subsection{*More on the Polar Representation of Complex Numbers*}
 
-lemma cos_integer_2pi: "n \<in> Ints \<Longrightarrow> cos(2*pi * n) = 1"
-  by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute real_of_int_def)
-
-lemma sin_integer_2pi: "n \<in> Ints \<Longrightarrow> sin(2*pi * n) = 0"
-  by (metis sin_two_pi Ints_mult mult.assoc mult.commute sin_times_pi_eq_0)
-
-lemma cos_int_2npi [simp]: "cos (2 * real (n::int) * pi) = 1"
-  by (simp add: cos_one_2pi_int)
-
-lemma sin_int_2npi [simp]: "sin (2 * real (n::int) * pi) = 0"
-  by (metis Ints_real_of_int mult.assoc mult.commute sin_integer_2pi)
-
-lemma sincos_principal_value: "\<exists>y. (-pi < y \<and> y \<le> pi) \<and> (sin(y) = sin(x) \<and> cos(y) = cos(x))"
-  apply (rule exI [where x="pi - (2*pi) * frac((pi - x) / (2*pi))"])
-  apply (auto simp: field_simps frac_lt_1)
-  apply (simp_all add: frac_def divide_simps)
-  apply (simp_all add: add_divide_distrib diff_divide_distrib)
-  apply (simp_all add: sin_diff cos_diff mult.assoc [symmetric] cos_integer_2pi sin_integer_2pi)
-  done
-
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
   by (simp add: exp_add exp_Euler exp_of_real)
-
-
 
 lemma exp_eq_1: "exp z = 1 \<longleftrightarrow> Re(z) = 0 \<and> (\<exists>n::int. Im(z) = of_int (2 * n) * pi)"
 apply auto
@@ -667,6 +575,13 @@ qed
 
 end (* of context *)
 
+text{*32-bit Approximation to e*}
+lemma e_approx_32: "abs(exp(1) - 5837465777 / 2147483648) \<le> (inverse(2 ^ 32)::real)"
+  using Taylor_exp [of 1 14] exp_le
+  apply (simp add: setsum_left_distrib in_Reals_norm Re_exp atMost_nat_numeral fact_numeral)
+  apply (simp only: pos_le_divide_eq [symmetric], linarith)
+  done
+
 subsection{*The argument of a complex number*}
 
 definition Arg :: "complex \<Rightarrow> real" where
@@ -888,7 +803,6 @@ lemma Arg_diff:
   apply auto
   by (metis Arg_eq_0 less_irrefl minus_diff_eq right_minus_eq)
 
-
 lemma Arg_add:
   assumes "w \<noteq> 0" "z \<noteq> 0"
     shows "Arg w + Arg z = (if Arg w + Arg z < 2*pi then Arg(w * z) else Arg(w * z) + 2*pi)"
@@ -920,5 +834,471 @@ lemma Arg_real: "z \<in> \<real> \<Longrightarrow> Arg z = (if 0 \<le> Re z then
 
 lemma Arg_exp: "0 \<le> Im z \<Longrightarrow> Im z < 2*pi \<Longrightarrow> Arg(exp z) = Im z"
   by (rule Arg_unique [of  "exp(Re z)"]) (auto simp: Exp_eq_polar)
+
+
+subsection{*Analytic properties of tangent function*}
+
+lemma cnj_tan: "cnj(tan z) = tan(cnj z)"
+  by (simp add: cnj_cos cnj_sin tan_def)
+
+lemma complex_differentiable_at_tan: "~(cos z = 0) \<Longrightarrow> tan complex_differentiable at z"
+  unfolding complex_differentiable_def
+  using DERIV_tan by blast
+
+lemma complex_differentiable_within_tan: "~(cos z = 0)
+         \<Longrightarrow> tan complex_differentiable (at z within s)"
+  using complex_differentiable_at_tan complex_differentiable_at_within by blast
+
+lemma continuous_within_tan: "~(cos z = 0) \<Longrightarrow> continuous (at z within s) tan"
+  using continuous_at_imp_continuous_within isCont_tan by blast
+
+lemma continuous_on_tan [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> ~(cos z = 0)) \<Longrightarrow> continuous_on s tan"
+  by (simp add: continuous_at_imp_continuous_on)
+
+lemma holomorphic_on_tan: "(\<And>z. z \<in> s \<Longrightarrow> ~(cos z = 0)) \<Longrightarrow> tan holomorphic_on s"
+  by (simp add: complex_differentiable_within_tan holomorphic_on_def)
+
+
+subsection{*Complex logarithms (the conventional principal value)*}
+
+definition Ln where
+   "Ln \<equiv> \<lambda>z. THE w. exp w = z & -pi < Im(w) & Im(w) \<le> pi"
+
+lemma
+  assumes "z \<noteq> 0"
+    shows exp_Ln [simp]: "exp(Ln z) = z"
+      and mpi_less_Im_Ln: "-pi < Im(Ln z)"
+      and Im_Ln_le_pi:    "Im(Ln z) \<le> pi"
+proof -
+  obtain \<psi> where z: "z / (cmod z) = Complex (cos \<psi>) (sin \<psi>)"
+    using complex_unimodular_polar [of "z / (norm z)"] assms
+    by (auto simp: norm_divide divide_simps)
+  obtain \<phi> where \<phi>: "- pi < \<phi>" "\<phi> \<le> pi" "sin \<phi> = sin \<psi>" "cos \<phi> = cos \<psi>"
+    using sincos_principal_value [of "\<psi>"] assms
+    by (auto simp: norm_divide divide_simps)
+  have "exp(Ln z) = z & -pi < Im(Ln z) & Im(Ln z) \<le> pi" unfolding Ln_def
+    apply (rule theI [where a = "Complex (ln(norm z)) \<phi>"])
+    using z assms \<phi>
+    apply (auto simp: field_simps exp_complex_eqI Exp_eq_polar cis.code)
+    done
+  then show "exp(Ln z) = z" "-pi < Im(Ln z)" "Im(Ln z) \<le> pi"
+    by auto
+qed
+
+lemma Ln_exp [simp]:
+  assumes "-pi < Im(z)" "Im(z) \<le> pi"
+    shows "Ln(exp z) = z"
+  apply (rule exp_complex_eqI)
+  using assms mpi_less_Im_Ln  [of "exp z"] Im_Ln_le_pi [of "exp z"]
+  apply auto
+  done
+
+lemma Ln_eq_iff: "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> (Ln w = Ln z \<longleftrightarrow> w = z)"
+  by (metis exp_Ln)
+
+lemma Ln_unique: "exp(z) = w \<Longrightarrow> -pi < Im(z) \<Longrightarrow> Im(z) \<le> pi \<Longrightarrow> Ln w = z"
+  using Ln_exp by blast
+
+lemma Re_Ln [simp]: "z \<noteq> 0 \<Longrightarrow> Re(Ln z) = ln(norm z)"
+by (metis exp_Ln assms ln_exp norm_exp_eq_Re)
+
+lemma exists_complex_root:
+  fixes a :: complex
+  shows "n \<noteq> 0 \<Longrightarrow> \<exists>z. z ^ n = a"
+  apply (cases "a=0", simp)
+  apply (rule_tac x= "exp(Ln(a) / n)" in exI)
+  apply (auto simp: exp_of_nat_mult [symmetric])
+  done
+
+subsection{*Derivative of Ln away from the branch cut*}
+
+lemma
+  assumes "Im(z) = 0 \<Longrightarrow> 0 < Re(z)"
+    shows has_field_derivative_Ln: "(Ln has_field_derivative inverse(z)) (at z)"
+      and Im_Ln_less_pi:           "Im (Ln z) < pi"
+proof -
+  have znz: "z \<noteq> 0"
+    using assms by auto
+  then show *: "Im (Ln z) < pi" using assms
+    by (metis exp_Ln Im_Ln_le_pi Im_exp Re_exp abs_of_nonneg cmod_eq_Re cos_pi mult.right_neutral mult_minus_right mult_zero_right neg_less_0_iff_less norm_exp_eq_Re not_less not_less_iff_gr_or_eq sin_pi)
+  show "(Ln has_field_derivative inverse(z)) (at z)"
+    apply (rule has_complex_derivative_inverse_strong_x
+              [where f = exp and s = "{w. -pi < Im(w) & Im(w) < pi}"])
+    using znz *
+    apply (auto simp: continuous_on_exp open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt)
+    apply (metis DERIV_exp exp_Ln)
+    apply (metis mpi_less_Im_Ln)
+    done
+qed
+
+declare has_field_derivative_Ln [derivative_intros]
+declare has_field_derivative_Ln [THEN DERIV_chain2, derivative_intros]
+
+lemma complex_differentiable_at_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> Ln complex_differentiable at z"
+  using complex_differentiable_def has_field_derivative_Ln by blast
+
+lemma complex_differentiable_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z))
+         \<Longrightarrow> Ln complex_differentiable (at z within s)"
+  using complex_differentiable_at_Ln complex_differentiable_within_subset by blast
+
+lemma continuous_at_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) Ln"
+  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Ln)
+
+lemma continuous_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) Ln"
+  using continuous_at_Ln continuous_at_imp_continuous_within by blast
+
+lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous_on s Ln"
+  by (simp add: continuous_at_imp_continuous_on continuous_within_Ln)
+
+lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> Ln holomorphic_on s"
+  by (simp add: complex_differentiable_within_Ln holomorphic_on_def)
+
+
+subsection{*Relation to Real Logarithm*}
+
+lemma ln_of_real:
+  assumes "0 < z"
+    shows "Ln(of_real z) = of_real(ln z)"
+proof -
+  have "Ln(of_real (exp (ln z))) = Ln (exp (of_real (ln z)))"
+    by (simp add: exp_of_real)
+  also have "... = of_real(ln z)"
+    using assms
+    by (subst Ln_exp) auto
+  finally show ?thesis
+    using assms by simp
+qed
+
+
+subsection{*Quadrant-type results for Ln*}
+
+lemma cos_lt_zero_pi: "pi/2 < x \<Longrightarrow> x < 3*pi/2 \<Longrightarrow> cos x < 0"
+  using cos_minus_pi cos_gt_zero_pi [of "x-pi"]
+  by simp
+
+lemma Re_Ln_pos_lt:
+  assumes "z \<noteq> 0"
+    shows "abs(Im(Ln z)) < pi/2 \<longleftrightarrow> 0 < Re(z)"
+proof -
+  { fix w
+    assume "w = Ln z"
+    then have w: "Im w \<le> pi" "- pi < Im w"
+      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
+      by auto
+    then have "abs(Im w) < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
+      apply (auto simp: Re_exp zero_less_mult_iff cos_gt_zero_pi)
+      using cos_lt_zero_pi [of "-(Im w)"] cos_lt_zero_pi [of "(Im w)"]
+      apply (simp add: abs_if split: split_if_asm)
+      apply (metis (no_types) cos_minus cos_pi_half eq_divide_eq_numeral1(1) eq_numeral_simps(4)
+               less_numeral_extra(3) linorder_neqE_linordered_idom minus_mult_minus minus_mult_right
+               mult_numeral_1_right)
+      done
+  }
+  then show ?thesis using assms
+    by auto
+qed
+
+lemma Re_Ln_pos_le:
+  assumes "z \<noteq> 0"
+    shows "abs(Im(Ln z)) \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
+proof -
+  { fix w
+    assume "w = Ln z"
+    then have w: "Im w \<le> pi" "- pi < Im w"
+      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
+      by auto
+    then have "abs(Im w) \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)"
+      apply (auto simp: Re_exp zero_le_mult_iff cos_ge_zero)
+      using cos_lt_zero_pi [of "- (Im w)"] cos_lt_zero_pi [of "(Im w)"] not_le
+      apply (auto simp: abs_if split: split_if_asm)
+      done
+  }
+  then show ?thesis using assms
+    by auto
+qed
+
+lemma Im_Ln_pos_lt:
+  assumes "z \<noteq> 0"
+    shows "0 < Im(Ln z) \<and> Im(Ln z) < pi \<longleftrightarrow> 0 < Im(z)"
+proof -
+  { fix w
+    assume "w = Ln z"
+    then have w: "Im w \<le> pi" "- pi < Im w"
+      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
+      by auto
+    then have "0 < Im w \<and> Im w < pi \<longleftrightarrow> 0 < Im(exp w)"
+      using sin_gt_zero [of "- (Im w)"] sin_gt_zero [of "(Im w)"]
+      apply (auto simp: Im_exp zero_less_mult_iff)
+      using less_linear apply fastforce
+      using less_linear apply fastforce
+      done
+  }
+  then show ?thesis using assms
+    by auto
+qed
+
+lemma Im_Ln_pos_le:
+  assumes "z \<noteq> 0"
+    shows "0 \<le> Im(Ln z) \<and> Im(Ln z) \<le> pi \<longleftrightarrow> 0 \<le> Im(z)"
+proof -
+  { fix w
+    assume "w = Ln z"
+    then have w: "Im w \<le> pi" "- pi < Im w"
+      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
+      by auto
+    then have "0 \<le> Im w \<and> Im w \<le> pi \<longleftrightarrow> 0 \<le> Im(exp w)"
+      using sin_ge_zero [of "- (Im w)"] sin_ge_zero [of "(Im w)"]
+      apply (auto simp: Im_exp zero_le_mult_iff sin_ge_zero)
+      apply (metis not_le not_less_iff_gr_or_eq pi_not_less_zero sin_eq_0_pi)
+      done }
+  then show ?thesis using assms
+    by auto
+qed
+
+lemma Re_Ln_pos_lt_imp: "0 < Re(z) \<Longrightarrow> abs(Im(Ln z)) < pi/2"
+  by (metis Re_Ln_pos_lt less_irrefl zero_complex.simps(1))
+
+lemma Im_Ln_pos_lt_imp: "0 < Im(z) \<Longrightarrow> 0 < Im(Ln z) \<and> Im(Ln z) < pi"
+  by (metis Im_Ln_pos_lt not_le order_refl zero_complex.simps(2))
+
+lemma Im_Ln_eq_0: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = 0 \<longleftrightarrow> 0 < Re(z) \<and> Im(z) = 0)"
+  by (metis exp_Ln Im_Ln_less_pi Im_Ln_pos_le Im_Ln_pos_lt Re_complex_of_real add.commute add.left_neutral
+       complex_eq exp_of_real le_less mult_zero_right norm_exp_eq_Re norm_le_zero_iff not_le of_real_0)
+
+lemma Im_Ln_eq_pi: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi \<longleftrightarrow> Re(z) < 0 \<and> Im(z) = 0)"
+  by (metis Im_Ln_eq_0 Im_Ln_less_pi Im_Ln_pos_le Im_Ln_pos_lt add.right_neutral complex_eq mult_zero_right not_less not_less_iff_gr_or_eq of_real_0)
+
+
+subsection{*More Properties of Ln*}
+
+lemma cnj_Ln: "(Im z = 0 \<Longrightarrow> 0 < Re z) \<Longrightarrow> cnj(Ln z) = Ln(cnj z)"
+  apply (cases "z=0", auto)
+  apply (rule exp_complex_eqI)
+  apply (auto simp: abs_if split: split_if_asm)
+  apply (metis Im_Ln_less_pi add_mono_thms_linordered_field(5) cnj.simps(1) cnj.simps(2) mult_2 neg_equal_0_iff_equal)
+  apply (metis add_mono_thms_linordered_field(5) complex_cnj_zero_iff diff_0_right diff_minus_eq_add minus_diff_eq mpi_less_Im_Ln mult.commute mult_2_right neg_less_iff_less)
+  by (metis exp_Ln exp_cnj)
+
+lemma Ln_inverse: "(Im(z) = 0 \<Longrightarrow> 0 < Re z) \<Longrightarrow> Ln(inverse z) = -(Ln z)"
+  apply (cases "z=0", auto)
+  apply (rule exp_complex_eqI)
+  using mpi_less_Im_Ln [of z] mpi_less_Im_Ln [of "inverse z"]
+  apply (auto simp: abs_if exp_minus split: split_if_asm)
+  apply (metis Im_Ln_less_pi Im_Ln_pos_le add_less_cancel_left add_strict_mono
+               inverse_inverse_eq inverse_zero le_less mult.commute mult_2_right)
+  done
+
+lemma Ln_1 [simp]: "Ln(1) = 0"
+proof -
+  have "Ln (exp 0) = 0"
+    by (metis exp_zero ln_exp ln_of_real of_real_0 of_real_1 zero_less_one)
+  then show ?thesis
+    by simp
+qed
+
+lemma Ln_minus1 [simp]: "Ln(-1) = ii * pi"
+  apply (rule exp_complex_eqI)
+  using Im_Ln_le_pi [of "-1"] mpi_less_Im_Ln [of "-1"] cis_conv_exp cis_pi
+  apply (auto simp: abs_if)
+  done
+
+lemma Ln_ii [simp]: "Ln ii = ii * of_real pi/2"
+  using Ln_exp [of "ii * (of_real pi/2)"]
+  unfolding exp_Euler
+  by simp
+
+lemma Ln_minus_ii [simp]: "Ln(-ii) = - (ii * pi/2)"
+proof -
+  have  "Ln(-ii) = Ln(1/ii)"
+    by simp
+  also have "... = - (Ln ii)"
+    by (metis Ln_inverse ii.sel(2) inverse_eq_divide zero_neq_one)
+  also have "... = - (ii * pi/2)"
+    by (simp add: Ln_ii)
+  finally show ?thesis .
+qed
+
+lemma Ln_times:
+  assumes "w \<noteq> 0" "z \<noteq> 0"
+    shows "Ln(w * z) =
+                (if Im(Ln w + Ln z) \<le> -pi then
+                  (Ln(w) + Ln(z)) + ii * of_real(2*pi)
+                else if Im(Ln w + Ln z) > pi then
+                  (Ln(w) + Ln(z)) - ii * of_real(2*pi)
+                else Ln(w) + Ln(z))"
+  using pi_ge_zero Im_Ln_le_pi [of w] Im_Ln_le_pi [of z]
+  using assms mpi_less_Im_Ln [of w] mpi_less_Im_Ln [of z]
+  by (auto simp: of_real_numeral exp_add exp_diff sin_double cos_double exp_Euler intro!: Ln_unique)
+
+lemma Ln_times_simple:
+    "\<lbrakk>w \<noteq> 0; z \<noteq> 0; -pi < Im(Ln w) + Im(Ln z); Im(Ln w) + Im(Ln z) \<le> pi\<rbrakk>
+         \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z)"
+  by (simp add: Ln_times)
+
+lemma Ln_minus:
+  assumes "z \<noteq> 0"
+    shows "Ln(-z) = (if Im(z) \<le> 0 \<and> ~(Re(z) < 0 \<and> Im(z) = 0)
+                     then Ln(z) + ii * pi
+                     else Ln(z) - ii * pi)" (is "_ = ?rhs")
+  using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
+        Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z]
+    by (auto simp: of_real_numeral exp_add exp_diff exp_Euler intro!: Ln_unique)
+
+lemma Ln_inverse_if:
+  assumes "z \<noteq> 0"
+    shows "Ln (inverse z) =
+            (if (Im(z) = 0 \<longrightarrow> 0 < Re z)
+             then -(Ln z)
+             else -(Ln z) + \<i> * 2 * complex_of_real pi)"
+proof (cases "(Im(z) = 0 \<longrightarrow> 0 < Re z)")
+  case True then show ?thesis
+    by (simp add: Ln_inverse)
+next
+  case False
+  then have z: "Im z = 0" "Re z < 0"
+    using assms
+    apply auto
+    by (metis cnj.code complex_cnj_cnj not_less_iff_gr_or_eq zero_complex.simps(1) zero_complex.simps(2))
+  have "Ln(inverse z) = Ln(- (inverse (-z)))"
+    by simp
+  also have "... = Ln (inverse (-z)) + \<i> * complex_of_real pi"
+    using assms z
+    apply (simp add: Ln_minus)
+    apply (simp add: field_simps)
+    done
+  also have "... = - Ln (- z) + \<i> * complex_of_real pi"
+    apply (subst Ln_inverse)
+    using z assms by auto
+  also have "... = - (Ln z) + \<i> * 2 * complex_of_real pi"
+    apply (subst Ln_minus [OF assms])
+    using assms z
+    apply simp
+    done
+  finally show ?thesis
+    using assms z
+    by simp
+qed
+
+lemma Ln_times_ii:
+  assumes "z \<noteq> 0"
+    shows  "Ln(ii * z) = (if 0 \<le> Re(z) | Im(z) < 0
+                          then Ln(z) + ii * of_real pi/2
+                          else Ln(z) - ii * of_real(3 * pi/2))"
+  using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
+        Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
+  by (auto simp: of_real_numeral Ln_times)
+
+
+subsection{*Relation between Square Root and exp/ln, hence its derivative*}
+
+lemma csqrt_exp_Ln:
+  assumes "z \<noteq> 0"
+    shows "csqrt z = exp(Ln(z) / 2)"
+proof -
+  have "(exp (Ln z / 2))\<^sup>2 = (exp (Ln z))"
+    by (metis exp_double nonzero_mult_divide_cancel_left times_divide_eq_right zero_neq_numeral)
+  also have "... = z"
+    using assms exp_Ln by blast
+  finally have "csqrt z = csqrt ((exp (Ln z / 2))\<^sup>2)"
+    by simp
+  also have "... = exp (Ln z / 2)"
+    apply (subst csqrt_square)
+    using cos_gt_zero_pi [of "(Im (Ln z) / 2)"] Im_Ln_le_pi mpi_less_Im_Ln assms
+    apply (auto simp: Re_exp Im_exp zero_less_mult_iff zero_le_mult_iff, fastforce+)
+    done
+  finally show ?thesis using assms csqrt_square
+    by simp
+qed
+
+lemma csqrt_inverse:
+  assumes "Im(z) = 0 \<Longrightarrow> 0 < Re z"
+    shows "csqrt (inverse z) = inverse (csqrt z)"
+proof (cases "z=0", simp)
+  assume "z \<noteq> 0 "
+  then show ?thesis
+    using assms
+    by (simp add: csqrt_exp_Ln Ln_inverse exp_minus)
+qed
+
+lemma cnj_csqrt:
+  assumes "Im z = 0 \<Longrightarrow> 0 \<le> Re(z)"
+    shows "cnj(csqrt z) = csqrt(cnj z)"
+proof (cases "z=0", simp)
+  assume z: "z \<noteq> 0"
+  then have "Im z = 0 \<Longrightarrow> 0 < Re(z)"
+    using assms cnj.code complex_cnj_zero_iff by fastforce
+  then show ?thesis
+   using z by (simp add: csqrt_exp_Ln cnj_Ln exp_cnj)
+qed
+
+lemma has_field_derivative_csqrt:
+  assumes "Im z = 0 \<Longrightarrow> 0 < Re(z)"
+    shows "(csqrt has_field_derivative inverse(2 * csqrt z)) (at z)"
+proof -
+  have z: "z \<noteq> 0"
+    using assms by auto
+  then have *: "inverse z = inverse (2*z) * 2"
+    by (simp add: divide_simps)
+  show ?thesis
+    apply (rule DERIV_transform_at [where f = "\<lambda>z. exp(Ln(z) / 2)" and d = "norm z"])
+    apply (intro derivative_eq_intros | simp add: assms)+
+    apply (rule *)
+    using z
+    apply (auto simp: field_simps csqrt_exp_Ln [symmetric])
+    apply (metis power2_csqrt power2_eq_square)
+    apply (metis csqrt_exp_Ln dist_0_norm less_irrefl)
+    done
+qed
+
+lemma complex_differentiable_at_csqrt:
+    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt complex_differentiable at z"
+  using complex_differentiable_def has_field_derivative_csqrt by blast
+
+lemma complex_differentiable_within_csqrt:
+    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt complex_differentiable (at z within s)"
+  using complex_differentiable_at_csqrt complex_differentiable_within_subset by blast
+
+lemma continuous_at_csqrt:
+    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) csqrt"
+  by (simp add: complex_differentiable_within_csqrt complex_differentiable_imp_continuous_at)
+
+lemma continuous_within_csqrt:
+    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) csqrt"
+  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_csqrt)
+
+lemma continuous_on_csqrt [continuous_intros]:
+    "(\<And>z. z \<in> s \<and> Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous_on s csqrt"
+  by (simp add: continuous_at_imp_continuous_on continuous_within_csqrt)
+
+lemma holomorphic_on_csqrt:
+    "(\<And>z. z \<in> s \<and> Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt holomorphic_on s"
+  by (simp add: complex_differentiable_within_csqrt holomorphic_on_def)
+
+lemma continuous_within_closed_nontrivial:
+    "closed s \<Longrightarrow> a \<notin> s ==> continuous (at a within s) f"
+  using open_Compl
+  by (force simp add: continuous_def eventually_at_topological filterlim_iff open_Collect_neg)
+
+lemma closed_Real_halfspace_Re_ge: "closed (\<real> \<inter> {w. x \<le> Re(w)})"
+  using closed_halfspace_Re_ge
+  by (simp add: closed_Int closed_complex_Reals)
+
+lemma continuous_within_csqrt_posreal:
+    "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
+proof (cases "Im z = 0 --> 0 < Re(z)")
+  case True then show ?thesis
+    by (blast intro: continuous_within_csqrt)
+next
+  case False
+  then have "Im z = 0" "Re z < 0 \<or> z = 0"
+    using False cnj.code complex_cnj_zero_iff by auto force
+  then show ?thesis
+    apply (auto simp: continuous_within_closed_nontrivial [OF closed_Real_halfspace_Re_ge])
+    apply (auto simp: continuous_within_eps_delta norm_conv_dist [symmetric])
+    apply (rule_tac x="e^2" in exI)
+    apply (auto simp: Reals_def)
+by (metis linear not_less real_sqrt_less_iff real_sqrt_pow2_iff real_sqrt_power)
+qed
+
 
 end
