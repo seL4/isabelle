@@ -1,6 +1,6 @@
 (* :mode=isabelle-options: *)
 
-section {* Automatically tried tools *}
+section "Automatically tried tools"
 
 public option auto_time_start : real = 1.0
   -- "initial delay for automatically tried tools (seconds)"
