@@ -303,24 +303,27 @@ fun rename_tac xs i =
 fun rotate_tac 0 i = all_tac
   | rotate_tac k i = PRIMITIVE (Thm.rotate_rule k i);
 
-(*Rotates the given subgoal to be the last.*)
+(*Rotate the given subgoal to be the last.*)
 fun defer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1);
 
-(*Rotates the given subgoal to be the first.*)
+(*Rotate the given subgoal to be the first.*)
 fun prefer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1 #> Thm.permute_prems 0 ~1);
 
-(* remove premises that do not satisfy p; fails if all prems satisfy p *)
-fun filter_prems_tac ctxt p =
-  let fun Then NONE tac = SOME tac
-        | Then (SOME tac) tac' = SOME(tac THEN' tac');
-      fun thins H (tac,n) =
-        if p H then (tac,n+1)
-        else (Then tac (rotate_tac n THEN' eresolve_tac ctxt [thin_rl]),0);
-  in SUBGOAL(fn (subg,n) =>
-       let val Hs = Logic.strip_assums_hyp subg
-       in case fst(fold thins Hs (NONE,0)) of
-            NONE => no_tac | SOME tac => tac n
-       end)
+(*Remove premises that do not satisfy pred; fails if all prems satisfy pred.*)
+fun filter_prems_tac ctxt pred =
+  let
+    fun Then NONE tac = SOME tac
+      | Then (SOME tac) tac' = SOME (tac THEN' tac');
+    fun thins H (tac, n) =
+      if pred H then (tac, n + 1)
+      else (Then tac (rotate_tac n THEN' eresolve_tac ctxt [thin_rl]), 0);
+  in
+    SUBGOAL (fn (goal, i) =>
+      let val Hs = Logic.strip_assums_hyp goal in
+        (case fst (fold thins Hs (NONE, 0)) of
+          NONE => no_tac
+        | SOME tac => tac i)
+      end)
   end;
 
 end;
