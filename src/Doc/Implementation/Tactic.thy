@@ -394,10 +394,14 @@ text \<open>The main resolution tactics (\secref{sec:resolve-assume-tac})
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML res_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
-  @{index_ML eres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
-  @{index_ML dres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
-  @{index_ML forw_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
+  @{index_ML res_inst_tac: "Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+  @{index_ML eres_inst_tac: "Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+  @{index_ML dres_inst_tac: "Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+  @{index_ML forw_inst_tac: "Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
   @{index_ML subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
   @{index_ML thin_tac: "Proof.context -> string -> int -> tactic"} \\
   @{index_ML rename_tac: "string list -> int -> tactic"} \\

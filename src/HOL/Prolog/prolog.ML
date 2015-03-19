@@ -53,8 +53,9 @@ fun atomizeD ctxt thm =
   let
     fun at  thm = case Thm.concl_of thm of
       _$(Const(@{const_name All} ,_)$Abs(s,_,_))=>
-        let val s' = if s="P" then "PP" else s
-        in at(thm RS (Rule_Insts.read_instantiate ctxt [(("x", 0), s')] [s'] spec)) end
+        let val s' = if s="P" then "PP" else s in
+          at(thm RS (Rule_Insts.read_instantiate ctxt [((("x", 0), Position.none), s')] [s'] spec))
+        end
     | _$(Const(@{const_name HOL.conj},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
     | _$(Const(@{const_name HOL.implies},_)$_$_)     => at(thm RS mp)
     | _                             => [thm]

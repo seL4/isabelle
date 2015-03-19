@@ -141,4 +141,3 @@ option gutter_legacy_icon : string = "idea-icons/general/balloonWarning.png"
 option gutter_error_icon : string = "idea-icons/runConfigurations/testError.png"
 option process_passive_icon : string = "idea-icons/process/step_passive.png"
 option process_active_icons : string = "idea-icons/process/step_1.png:idea-icons/process/step_2.png:idea-icons/process/step_3.png:idea-icons/process/step_4.png:idea-icons/process/step_5.png:idea-icons/process/step_6.png:idea-icons/process/step_7.png:idea-icons/process/step_8.png:idea-icons/process/step_9.png:idea-icons/process/step_10.png:idea-icons/process/step_11.png:idea-icons/process/step_12.png"
-
