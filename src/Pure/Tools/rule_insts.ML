@@ -34,6 +34,8 @@ struct
 
 (** reading instantiations **)
 
+val partition_insts = List.partition (fn ((x, _), _) => String.isPrefix "'" x);
+
 local
 
 fun error_var msg xi = error (msg ^ quote (Term.string_of_vname xi));
@@ -82,7 +84,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val (type_insts, term_insts) = List.partition (String.isPrefix "'" o fst o fst) mixed_insts;
+    val (type_insts, term_insts) = partition_insts mixed_insts;
 
 
     (* type instantiations *)
@@ -196,80 +198,84 @@ end;
 
 (** tactics **)
 
-(* resolution after lifting and instantation; may refer to parameters of the subgoal *)
+(* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
 
-(* FIXME cleanup this mess!!! *)
-
-fun bires_inst_tac bires_flag ctxt insts thm =
+fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
     val thy = Proof_Context.theory_of ctxt;
-    (* Separate type and term insts *)
-    fun has_type_var ((x, _), _) =
-      (case Symbol.explode x of "'" :: _ => true | _ => false);
-    val Tinsts = filter has_type_var insts;
-    val tinsts = filter_out has_type_var insts;
 
-    (* Tactic *)
-    fun tac i st = CSUBGOAL (fn (cgoal, _) =>
+    val (Tinsts, tinsts) = partition_insts mixed_insts;
+    val goal = Thm.term_of cgoal;
+
+    val params =
+      Logic.strip_params goal
+      (*as they are printed: bound variables with the same name are renamed*)
+      |> Term.rename_wrt_term goal
+      |> rev;
+    val (param_names, ctxt') = ctxt
+      |> Variable.declare_thm thm
+      |> Thm.fold_terms Variable.declare_constraints st
+      |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
+
+
+    (* process type insts: Tinsts_env *)
+
+    fun absent xi =
+      error ("No such variable in theorem: " ^ Term.string_of_vname xi);
+
+    val (rtypes, rsorts) = Drule.types_sorts thm;
+    fun readT (xi, s) =
       let
-        val goal = Thm.term_of cgoal;
-        val params = Logic.strip_params goal;  (*params of subgoal i as string typ pairs*)
-        val params = rev (Term.rename_wrt_term goal params)
-          (*as they are printed: bound variables with*)
-          (*the same name are renamed during printing*)
-
-        val (param_names, ctxt') = ctxt
-          |> Variable.declare_thm thm
-          |> Thm.fold_terms Variable.declare_constraints st
-          |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
-
-        (* Process type insts: Tinsts_env *)
-        fun absent xi = error
-              ("No such variable in theorem: " ^ Term.string_of_vname xi);
-        val (rtypes, rsorts) = Drule.types_sorts thm;
-        fun readT (xi, s) =
-            let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-                val T = Syntax.read_typ ctxt' s;
-                val U = TVar (xi, S);
-            in if Sign.typ_instance thy (T, U) then (U, T)
-               else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
-            end;
-        val Tinsts_env = map readT Tinsts;
-        (* Preprocess rule: extract vars and their types, apply Tinsts *)
-        fun get_typ xi =
-          (case rtypes xi of
-               SOME T => typ_subst_atomic Tinsts_env T
-             | NONE => absent xi);
-        val (xis, ss) = Library.split_list tinsts;
-        val Ts = map get_typ xis;
-
-        val (ts, envT) =
-          read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
-        val envT' = map (fn (ixn, T) =>
-          (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
-        val cenv =
-          map (fn (xi, t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
-            (distinct
-              (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
-              (xis ~~ ts));
-        (* Lift and instantiate rule *)
-        val maxidx = Thm.maxidx_of st;
-        val paramTs = map #2 params
-        and inc = maxidx+1
-        fun liftvar (Var ((a,j), T)) =
-              Var((a, j+inc), paramTs ---> Logic.incr_tvar inc T)
-          | liftvar t = raise TERM("Variable expected", [t]);
-        fun liftterm t =
-          fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
-        fun liftpair (cv, ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct);
-        val lifttvar = apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc);
-        val rule = Drule.instantiate_normalize
-              (map lifttvar envT', map liftpair cenv)
-              (Thm.lift_rule cgoal thm)
+        val S = (case rsorts xi of SOME S => S | NONE => absent xi);
+        val T = Syntax.read_typ ctxt' s;
+        val U = TVar (xi, S);
       in
-        compose_tac ctxt' (bires_flag, rule, Thm.nprems_of thm) i
-      end) i st;
-  in tac end;
+        if Sign.typ_instance thy (T, U) then (U, T)
+        else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
+      end;
+    val Tinsts_env = map readT Tinsts;
+
+
+    (* preprocess rule: extract vars and their types, apply Tinsts *)
+
+    fun get_typ xi =
+      (case rtypes xi of
+        SOME T => typ_subst_atomic Tinsts_env T
+      | NONE => absent xi);
+    val (xis, ss) = Library.split_list tinsts;
+    val Ts = map get_typ xis;
+
+    val (ts, envT) =
+      read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
+    val envT' =
+      map (fn (xi, T) => (TVar (xi, the (rsorts xi)), T)) envT @ Tinsts_env;
+    val cenv =
+      map (fn (xi, t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
+        (distinct
+          (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
+          (xis ~~ ts));
+
+
+    (* lift and instantiate rule *)
+
+    val maxidx = Thm.maxidx_of st;
+    val paramTs = map #2 params;
+    val inc = maxidx + 1;
+
+    fun lift_var (Var ((a, j), T)) = Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T)
+      | lift_var t = raise TERM ("Variable expected", [t]);
+    fun lift_term t =
+      fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
+    fun lift_inst (cv, ct) = (cterm_fun lift_var cv, cterm_fun lift_term ct);
+    val lift_tvar = apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc);
+
+    val rule =
+      Drule.instantiate_normalize
+        (map lift_tvar envT', map lift_inst cenv)
+        (Thm.lift_rule cgoal thm);
+  in
+    compose_tac ctxt' (bires_flag, rule, Thm.nprems_of thm) i
+  end) i st;
 
 val res_inst_tac = bires_inst_tac false;
 val eres_inst_tac = bires_inst_tac true;
