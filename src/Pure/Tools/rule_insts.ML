@@ -4,8 +4,15 @@
 Rule instantiations -- operations within implicit rule / subgoal context.
 *)
 
-signature BASIC_RULE_INSTS =
+signature RULE_INSTS =
 sig
+  val where_rule: Proof.context ->
+    ((indexname * Position.T) * string) list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val of_rule: Proof.context -> string option list * string option list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val read_instantiate: Proof.context ->
+    ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context ->
@@ -18,18 +25,6 @@ sig
     ((indexname * Position.T) * string) list -> thm -> int -> tactic
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
-end;
-
-signature RULE_INSTS =
-sig
-  include BASIC_RULE_INSTS
-  val where_rule: Proof.context ->
-    ((indexname * Position.T) * string) list ->
-    (binding * string option * mixfix) list -> thm -> thm
-  val of_rule: Proof.context -> string option list * string option list ->
-    (binding * string option * mixfix) list -> thm -> thm
-  val read_instantiate: Proof.context ->
-    ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val make_elim_preserve: Proof.context -> thm -> thm
   val method:
     (Proof.context -> ((indexname * Position.T) * string) list -> thm -> int -> tactic) ->
@@ -346,6 +341,3 @@ val _ = Theory.setup
       "remove premise (dynamic instantiation)");
 
 end;
-
-structure Basic_Rule_Insts: BASIC_RULE_INSTS = Rule_Insts;
-open Basic_Rule_Insts;

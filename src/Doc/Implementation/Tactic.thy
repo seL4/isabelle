@@ -394,39 +394,39 @@ text \<open>The main resolution tactics (\secref{sec:resolve-assume-tac})
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML res_inst_tac: "Proof.context ->
+  @{index_ML Rule_Insts.res_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
-  @{index_ML eres_inst_tac: "Proof.context ->
+  @{index_ML Rule_Insts.eres_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
-  @{index_ML dres_inst_tac: "Proof.context ->
+  @{index_ML Rule_Insts.dres_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
-  @{index_ML forw_inst_tac: "Proof.context ->
+  @{index_ML Rule_Insts.forw_inst_tac: "Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
-  @{index_ML subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
-  @{index_ML thin_tac: "Proof.context -> string -> int -> tactic"} \\
+  @{index_ML Rule_Insts.subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
+  @{index_ML Rule_Insts.thin_tac: "Proof.context -> string -> int -> tactic"} \\
   @{index_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
+  \item @{ML Rule_Insts.res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
   rule @{text thm} with the instantiations @{text insts}, as described
   above, and then performs resolution on subgoal @{text i}.
   
-  \item @{ML eres_inst_tac} is like @{ML res_inst_tac}, but performs
-  elim-resolution.
+  \item @{ML Rule_Insts.eres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
+  but performs elim-resolution.
 
-  \item @{ML dres_inst_tac} is like @{ML res_inst_tac}, but performs
-  destruct-resolution.
+  \item @{ML Rule_Insts.dres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
+  but performs destruct-resolution.
 
-  \item @{ML forw_inst_tac} is like @{ML dres_inst_tac} except that
-  the selected assumption is not deleted.
+  \item @{ML Rule_Insts.forw_inst_tac} is like @{ML Rule_Insts.dres_inst_tac}
+  except that the selected assumption is not deleted.
 
-  \item @{ML subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
+  \item @{ML Rule_Insts.subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
   @{text "\<phi>"} as local premise to subgoal @{text "i"}, and poses the
   same as a new subgoal @{text "i + 1"} (in the original context).
 
-  \item @{ML thin_tac}~@{text "ctxt \<phi> i"} deletes the specified
+  \item @{ML Rule_Insts.thin_tac}~@{text "ctxt \<phi> i"} deletes the specified
   premise from subgoal @{text i}.  Note that @{text \<phi>} may contain
   schematic variables, to abbreviate the intended proposition; the
   first matching subgoal premise will be deleted.  Removing useless
@@ -476,9 +476,9 @@ text %mlref \<open>
   facts resulting from goals, and rarely needs to be invoked manually.
 
   Flex-flex constraints arise from difficult cases of higher-order
-  unification.  To prevent this, use @{ML res_inst_tac} to instantiate
-  some variables in a rule.  Normally flex-flex constraints can be
-  ignored; they often disappear as unknowns get instantiated.
+  unification.  To prevent this, use @{ML Rule_Insts.res_inst_tac} to
+  instantiate some variables in a rule.  Normally flex-flex constraints
+  can be ignored; they often disappear as unknowns get instantiated.
 
   \end{description}
 \<close>

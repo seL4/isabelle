@@ -39,7 +39,7 @@ text \<open>
   @{ML forward_tac}).
 
   \item Optional explicit instantiation (e.g.\ @{ML resolve_tac} vs.\
-  @{ML res_inst_tac}).
+  @{ML Rule_Insts.res_inst_tac}).
 
   \item Abbreviations for singleton arguments (e.g.\ @{ML resolve_tac}
   vs.\ @{ML rtac}).
@@ -63,11 +63,11 @@ text \<open>
   \begin{tabular}{lll}
     @{ML rtac}~@{text "a 1"} & & @{text "rule a"} \\
     @{ML resolve_tac}~@{text "ctxt [a\<^sub>1, \<dots>] 1"} & & @{text "rule a\<^sub>1 \<dots>"} \\
-    @{ML res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a 1"} & &
+    @{ML Rule_Insts.res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a 1"} & &
     @{text "rule_tac x\<^sub>1 = t\<^sub>1 \<AND> \<dots> \<IN> a"} \\[0.5ex]
     @{ML rtac}~@{text "a i"} & & @{text "rule_tac [i] a"} \\
     @{ML resolve_tac}~@{text "ctxt [a\<^sub>1, \<dots>] i"} & & @{text "rule_tac [i] a\<^sub>1 \<dots>"} \\
-    @{ML res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a i"} & &
+    @{ML Rule_Insts.res_inst_tac}~@{text "ctxt [(x\<^sub>1, t\<^sub>1), \<dots>] a i"} & &
     @{text "rule_tac [i] x\<^sub>1 = t\<^sub>1 \<AND> \<dots> \<IN> a"} \\
   \end{tabular}
   \medskip
