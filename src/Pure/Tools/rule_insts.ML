@@ -30,8 +30,6 @@ sig
     (binding * string option * mixfix) list -> thm -> thm
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
-  val instantiate_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> string list -> tactic
   val make_elim_preserve: Proof.context -> thm -> thm
   val method:
     (Proof.context -> ((indexname * Position.T) * string) list -> thm -> int -> tactic) ->
@@ -158,14 +156,8 @@ fun of_rule ctxt (args, concl_args) fixes thm =
 
 end;
 
-
-(* instantiation of rule or goal state *)
-
 fun read_instantiate ctxt insts xs =
   where_rule ctxt insts (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
-
-fun instantiate_tac ctxt insts fixes =
-  PRIMITIVE (read_instantiate ctxt insts fixes);
 
 
 
