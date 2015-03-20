@@ -58,7 +58,6 @@ sig
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
-  val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val flexflex_unique: Proof.context option -> thm -> thm
   val export_without_context: thm -> thm
   val export_without_context_open: thm -> thm
@@ -169,27 +168,6 @@ fun strip_type cT = (case Thm.typ_of cT of
   of the meta-equality returned by the beta_conversion rule.*)
 fun beta_conv x y =
   Thm.dest_arg (Thm.cprop_of (Thm.beta_conversion false (Thm.apply x y)));
-
-
-
-(*** Find the type (sort) associated with a (T)Var or (T)Free in a term
-     Used for establishing default types (of variables) and sorts (of
-     type variables) when reading another term.
-     Index -1 indicates that a (T)Free rather than a (T)Var is wanted.
-***)
-
-fun types_sorts thm =
-  let
-    val vars = Thm.fold_terms Term.add_vars thm [];
-    val frees = Thm.fold_terms Term.add_frees thm [];
-    val tvars = Thm.fold_terms Term.add_tvars thm [];
-    val tfrees = Thm.fold_terms Term.add_tfrees thm [];
-    fun types (a, i) =
-      if i < 0 then AList.lookup (op =) frees a else AList.lookup (op =) vars (a, i);
-    fun sorts (a, i) =
-      if i < 0 then AList.lookup (op =) tfrees a else AList.lookup (op =) tvars (a, i);
-  in (types, sorts) end;
-
 
 
 
