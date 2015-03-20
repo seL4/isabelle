@@ -78,7 +78,7 @@ fun readT ctxt tvars ((xi, pos), s) =
     val T = Syntax.read_typ ctxt s;
   in
     if Sign.of_sort (Proof_Context.theory_of ctxt) (T, S) then ((xi, S), T)
-    else error_var "Incompatible sort for typ instantiation of " (xi, pos)
+    else error_var "Bad sort for instantiation of type variable: " (xi, pos)
   end;
 
 fun read_termTs ctxt ss Ts =
@@ -94,8 +94,11 @@ fun read_termTs ctxt ss Ts =
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in (ts', tyenv') end;
 
-fun read_insts ctxt (tvars, vars) mixed_insts =
+fun read_insts ctxt in_thm mixed_insts =
   let
+    val tvars = Thm.fold_terms Term.add_tvars in_thm [];
+    val vars = Thm.fold_terms Term.add_vars in_thm [];
+
     val (type_insts, term_insts) = partition_insts mixed_insts;
 
 
@@ -130,9 +133,7 @@ fun where_rule ctxt mixed_insts fixes thm =
     val ctxt' = ctxt
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
       |> Variable.declare_thm thm;
-    val tvars = Thm.fold_terms Term.add_tvars thm [];
-    val vars = Thm.fold_terms Term.add_vars thm [];
-    val insts = read_insts ctxt' (tvars, vars) mixed_insts;
+    val insts = read_insts ctxt' thm mixed_insts;
   in
     Drule.instantiate_normalize insts thm
     |> singleton (Proof_Context.export ctxt' ctxt)
