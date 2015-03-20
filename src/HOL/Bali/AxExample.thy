@@ -43,13 +43,13 @@ declare lvar_def [simp]
 ML {*
 fun inst1_tac ctxt s t xs st =
   (case AList.lookup (op =) (rev (Term.add_var_names (Thm.prop_of st) [])) s of
-    SOME i => Rule_Insts.instantiate_tac ctxt [(((s, i), Position.none), t)] xs st
+    SOME i => PRIMITIVE (Rule_Insts.read_instantiate ctxt [(((s, i), Position.none), t)] xs) st
   | NONE => Seq.empty);
 
 fun ax_tac ctxt =
   REPEAT o rtac allI THEN'
-  resolve_tac ctxt (@{thm ax_Skip} :: @{thm ax_StatRef} :: @{thm ax_MethdN} :: @{thm ax_Alloc} ::
-    @{thm ax_Alloc_Arr} :: @{thm ax_SXAlloc_Normal} :: @{thms ax_derivs.intros(8-)});
+  resolve_tac ctxt
+    @{thms ax_Skip ax_StatRef ax_MethdN ax_Alloc ax_Alloc_Arr ax_SXAlloc_Normal ax_derivs.intros(8-)};
 *}
 
 

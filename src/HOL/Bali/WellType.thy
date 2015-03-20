@@ -660,10 +660,10 @@ apply (safe del: disjE)
 (* 17 subgoals *)
 apply (tactic {* ALLGOALS (fn i =>
   if i = 11 then EVERY'
-   [thin_tac @{context} "?E,dt\<Turnstile>e0\<Colon>-PrimT Boolean",
-    thin_tac @{context} "?E,dt\<Turnstile>e1\<Colon>-?T1",
-    thin_tac @{context} "?E,dt\<Turnstile>e2\<Colon>-?T2"] i
-  else thin_tac @{context} "All ?P" i) *})
+   [Rule_Insts.thin_tac @{context} "?E,dt\<Turnstile>e0\<Colon>-PrimT Boolean",
+    Rule_Insts.thin_tac @{context} "?E,dt\<Turnstile>e1\<Colon>-?T1",
+    Rule_Insts.thin_tac @{context} "?E,dt\<Turnstile>e2\<Colon>-?T2"] i
+  else Rule_Insts.thin_tac @{context} "All ?P" i) *})
 (*apply (safe del: disjE elim!: wt_elim_cases)*)
 apply (tactic {*ALLGOALS (eresolve_tac @{context} @{thms wt_elim_cases})*})
 apply (simp_all (no_asm_use) split del: split_if_asm)

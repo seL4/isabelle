@@ -185,7 +185,7 @@ fun inst_parametermatch_tac ctxt thms i = fn st =>
     else
       let
         fun instantiate param =
-           (map (eres_inst_tac ctxt [((("x", 0), Position.none), param)]) thms
+          (map (Rule_Insts.eres_inst_tac ctxt [((("x", 0), Position.none), param)]) thms
                    |> FIRST')
         val attempts = map instantiate parameters
       in
@@ -221,7 +221,7 @@ fun nominal_inst_parametermatch_tac ctxt thm i = fn st =>
     else
       let
         fun instantiates param =
-           eres_inst_tac ctxt [((("x", 0), Position.none), param)] thm
+          Rule_Insts.eres_inst_tac ctxt [((("x", 0), Position.none), param)] thm
 
         val quantified_var = head_quantified_variable ctxt i st
       in
@@ -673,7 +673,7 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
     else
       let
         fun instantiate const_name =
-          dres_inst_tac ctxt [((("sk", 0), Position.none), const_name ^ parameters)]
+          Rule_Insts.dres_inst_tac ctxt [((("sk", 0), Position.none), const_name ^ parameters)]
             @{thm leo2_skolemise}
         val attempts = map instantiate candidate_consts
       in
@@ -944,16 +944,15 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
      end
 
     fun instantiate_tac from to =
-      Thm.instantiate ([], [(from, to)])
-      |> PRIMITIVE
+      PRIMITIVE (Thm.instantiate ([], [(from, to)]))
 
-    val tectic =
+    val tactic =
       if is_none var_opt then no_tac
       else
         fold (curry (op APPEND)) (map (instantiate_tac (the var_opt)) skolem_cts) no_tac
 
   in
-    tectic st
+    tactic st
   end
 *}
 
@@ -1556,8 +1555,8 @@ val extcnf_forall_special_pos_tac =
       ["% _ . True", "% _ . False", "% x . x", "Not"]
 
     val tecs =
-      map (fn t_s =>
-       eres_inst_tac @{context} [((("x", 0), Position.none), t_s)] @{thm allE}
+      map (fn t_s =>  (* FIXME proper context!? *)
+       Rule_Insts.eres_inst_tac @{context} [((("x", 0), Position.none), t_s)] @{thm allE}
        THEN' atac)
   in
     (TRY o etac @{thm forall_pos_lift})
@@ -1736,7 +1735,7 @@ fun remove_redundant_quantification ctxt i = fn st =>
               member (op =)  (Term.add_frees hyp_body []) (hd hyp_prefix) then
               no_tac st
             else
-              eres_inst_tac ctxt [((("x", 0), Position.none), "(@X. False)")]
+              Rule_Insts.eres_inst_tac ctxt [((("x", 0), Position.none), "(@X. False)")]
                 @{thm allE} i st
           end
      end

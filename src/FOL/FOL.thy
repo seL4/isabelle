@@ -67,7 +67,7 @@ lemma case_split [case_names True False]:
 
 ML {*
   fun case_tac ctxt a =
-    res_inst_tac ctxt [((("P", 0), Position.none), a)] @{thm case_split}
+    Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), a)] @{thm case_split}
 *}
 
 method_setup case_tac = {*

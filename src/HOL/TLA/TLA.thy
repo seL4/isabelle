@@ -300,15 +300,15 @@ fun merge_box_tac i =
 
 fun merge_temp_box_tac ctxt i =
   REPEAT_DETERM (EVERY [etac @{thm box_conjE_temp} i, atac i,
-    eres_inst_tac ctxt [((("'a", 0), Position.none), "behavior")] @{thm box_thin} i])
+    Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "behavior")] @{thm box_thin} i])
 
 fun merge_stp_box_tac ctxt i =
   REPEAT_DETERM (EVERY [etac @{thm box_conjE_stp} i, atac i,
-    eres_inst_tac ctxt [((("'a", 0), Position.none), "state")] @{thm box_thin} i])
+    Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "state")] @{thm box_thin} i])
 
 fun merge_act_box_tac ctxt i =
   REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
-    eres_inst_tac ctxt [((("'a", 0), Position.none), "state * state")] @{thm box_thin} i])
+    Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "state * state")] @{thm box_thin} i])
 *}
 
 method_setup merge_box = {* Scan.succeed (K (SIMPLE_METHOD' merge_box_tac)) *}

@@ -319,7 +319,7 @@ text \<open>
 
   \item @{method rule_tac} etc. do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
-  res_inst_tac} etc.\ (see @{cite "isabelle-implementation"}).
+  Rule_Insts.res_inst_tac} etc.\ (see @{cite "isabelle-implementation"}).
 
   Multiple rules may be only given if there is no instantiation; then
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see

@@ -4,8 +4,15 @@
 Rule instantiations -- operations within implicit rule / subgoal context.
 *)
 
-signature BASIC_RULE_INSTS =
+signature RULE_INSTS =
 sig
+  val where_rule: Proof.context ->
+    ((indexname * Position.T) * string) list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val of_rule: Proof.context -> string option list * string option list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val read_instantiate: Proof.context ->
+    ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context ->
@@ -18,20 +25,6 @@ sig
     ((indexname * Position.T) * string) list -> thm -> int -> tactic
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
-end;
-
-signature RULE_INSTS =
-sig
-  include BASIC_RULE_INSTS
-  val where_rule: Proof.context ->
-    ((indexname * Position.T) * string) list ->
-    (binding * string option * mixfix) list -> thm -> thm
-  val of_rule: Proof.context -> string option list * string option list ->
-    (binding * string option * mixfix) list -> thm -> thm
-  val read_instantiate: Proof.context ->
-    ((indexname * Position.T) * string) list -> string list -> thm -> thm
-  val instantiate_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> string list -> tactic
   val make_elim_preserve: Proof.context -> thm -> thm
   val method:
     (Proof.context -> ((indexname * Position.T) * string) list -> thm -> int -> tactic) ->
@@ -48,8 +41,6 @@ val partition_insts = List.partition (fn (((x, _), _), _) => String.isPrefix "'"
 fun error_var msg (xi, pos) =
   error (msg ^ quote (Term.string_of_vname xi) ^ Position.here pos);
 
-local
-
 fun the_sort tvars (xi, pos) : sort =
   (case AList.lookup (op =) tvars xi of
     SOME S => S
@@ -59,6 +50,8 @@ fun the_type vars (xi, pos) : typ =
   (case AList.lookup (op =) vars xi of
     SOME T => T
   | NONE => error_var "No such variable in theorem: " (xi, pos));
+
+local
 
 fun instantiate inst =
   Term_Subst.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
@@ -78,6 +71,15 @@ fun make_inst f v =
 
 in
 
+fun readT ctxt tvars ((xi, pos), s) =
+  let
+    val S = the_sort tvars (xi, pos);
+    val T = Syntax.read_typ ctxt s;
+  in
+    if Sign.of_sort (Proof_Context.theory_of ctxt) (T, S) then ((xi, S), T)
+    else error_var "Incompatible sort for typ instantiation of " (xi, pos)
+  end;
+
 fun read_termTs ctxt ss Ts =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
@@ -88,27 +90,17 @@ fun read_termTs ctxt ss Ts =
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
-  in (ts', map (apsnd snd) (Vartab.dest tyenv)) end;
+    val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
+  in (ts', tyenv') end;
 
-fun read_insts ctxt mixed_insts (tvars, vars) =
+fun read_insts ctxt (tvars, vars) mixed_insts =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val (type_insts, term_insts) = partition_insts mixed_insts;
 
 
     (* type instantiations *)
 
-    fun readT ((xi, pos), s) =
-      let
-        val S = the_sort tvars (xi, pos);
-        val T = Syntax.read_typ ctxt s;
-      in
-        if Sign.of_sort thy (T, S) then ((xi, S), T)
-        else error_var "Incompatible sort for typ instantiation of " (xi, pos)
-      end;
-
-    val instT1 = Term_Subst.instantiateT (map readT type_insts);
+    val instT1 = Term_Subst.instantiateT (map (readT ctxt tvars) type_insts);
     val vars1 = map (apsnd instT1) vars;
 
 
@@ -118,7 +110,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     val Ts = map (the_type vars1) xs;
     val (ts, inferred) = read_termTs ctxt ss Ts;
 
-    val instT2 = Term.typ_subst_TVars inferred;
+    val instT2 = Term_Subst.instantiateT inferred;
     val vars2 = map (apsnd instT2) vars1;
     val inst2 = instantiate (map #1 xs ~~ ts);
 
@@ -139,7 +131,7 @@ fun where_rule ctxt mixed_insts fixes thm =
       |> Variable.declare_thm thm;
     val tvars = Thm.fold_terms Term.add_tvars thm [];
     val vars = Thm.fold_terms Term.add_vars thm [];
-    val insts = read_insts ctxt' mixed_insts (tvars, vars);
+    val insts = read_insts ctxt' (tvars, vars) mixed_insts;
   in
     Drule.instantiate_normalize insts thm
     |> singleton (Proof_Context.export ctxt' ctxt)
@@ -159,14 +151,8 @@ fun of_rule ctxt (args, concl_args) fixes thm =
 
 end;
 
-
-(* instantiation of rule or goal state *)
-
 fun read_instantiate ctxt insts xs =
   where_rule ctxt insts (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
-
-fun instantiate_tac ctxt insts fixes =
-  PRIMITIVE (read_instantiate ctxt insts fixes);
 
 
 
@@ -212,11 +198,12 @@ end;
 
 fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val (Tinsts, tinsts) = partition_insts mixed_insts;
-    val goal = Thm.term_of cgoal;
 
+
+    (* goal context *)
+
+    val goal = Thm.term_of cgoal;
     val params =
       Logic.strip_params goal
       (*as they are printed: bound variables with the same name are renamed*)
@@ -228,37 +215,18 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
       |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
 
 
-    (* process type insts: Tinsts_env *)
+    (* preprocess rule *)
 
-    val (rtypes, rsorts) = Drule.types_sorts thm;
-    fun readT ((xi, pos), s) =
-      let
-        val S =
-          (case rsorts xi of
-            SOME S => S
-          | NONE => error_var "No such type variable in theorem: " (xi, pos));
-        val T = Syntax.read_typ ctxt' s;
-        val U = TVar (xi, S);
-      in
-        if Sign.typ_instance thy (T, U) then (U, T)
-        else error_var "Cannot instantiate: " (xi, pos)
-      end;
-    val Tinsts_env = map readT Tinsts;
+    val tvars = Thm.fold_terms Term.add_tvars thm [];
+    val vars = Thm.fold_terms Term.add_vars thm [];
 
-
-    (* preprocess rule: extract vars and their types, apply Tinsts *)
-
-    fun get_typ (xi, pos) =
-      (case rtypes xi of
-        SOME T => typ_subst_atomic Tinsts_env T
-      | NONE => error_var "No such variable in theorem: " (xi, pos) xi);
+    val Tinsts_env = map (readT ctxt' tvars) Tinsts;
     val (xis, ss) = split_list tinsts;
-    val Ts = map get_typ xis;
+    val Ts = map (Term_Subst.instantiateT Tinsts_env o the_type vars) xis;
 
     val (ts, envT) =
       read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
-    val envT' =
-      map (fn (xi, T) => (TVar (xi, the (rsorts xi)), T)) envT @ Tinsts_env;
+    val envT' = map (fn (v, T) => (TVar v, T)) (envT @ Tinsts_env);
     val cenv =
       map (fn ((xi, _), t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
         (distinct
@@ -373,6 +341,3 @@ val _ = Theory.setup
       "remove premise (dynamic instantiation)");
 
 end;
-
-structure Basic_Rule_Insts: BASIC_RULE_INSTS = Rule_Insts;
-open Basic_Rule_Insts;
