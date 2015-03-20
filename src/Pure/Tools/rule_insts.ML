@@ -207,14 +207,13 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
     val (param_names, ctxt') = ctxt
       |> Variable.declare_thm thm
       |> Thm.fold_terms Variable.declare_constraints st
-      |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
+      |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
+      ||> Proof_Context.set_mode Proof_Context.mode_schematic;
 
 
     (* lift and instantiate rule *)
 
-    val (inst_tvars, inst_vars) =
-      read_insts (Proof_Context.set_mode Proof_Context.mode_schematic ctxt')
-        mixed_insts thm;
+    val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
 
     val maxidx = Thm.maxidx_of st;
     val paramTs = map #2 params;
