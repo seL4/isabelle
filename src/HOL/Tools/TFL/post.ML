@@ -128,7 +128,8 @@ fun meta_outer ctxt =
   rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac ctxt [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
-val spec'= Rule_Insts.read_instantiate @{context} [(("x", 0), "P::'b=>bool")] [] spec;
+val spec'=
+  Rule_Insts.read_instantiate @{context} [((("x", 0), Position.none), "P::'b=>bool")] [] spec;
 
 fun tracing true _ = ()
   | tracing false msg = writeln msg;

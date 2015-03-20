@@ -6,11 +6,16 @@ Rule instantiations -- operations within implicit rule / subgoal context.
 
 signature BASIC_RULE_INSTS =
 sig
-  val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
-  val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
-  val cut_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
-  val forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
-  val dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val res_inst_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+  val eres_inst_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+  val cut_inst_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+  val forw_inst_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+  val dres_inst_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> thm -> int -> tactic
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
 end;
@@ -18,14 +23,18 @@ end;
 signature RULE_INSTS =
 sig
   include BASIC_RULE_INSTS
-  val where_rule: Proof.context -> (indexname * string) list ->
+  val where_rule: Proof.context ->
+    ((indexname * Position.T) * string) list ->
     (binding * string option * mixfix) list -> thm -> thm
   val of_rule: Proof.context -> string option list * string option list ->
     (binding * string option * mixfix) list -> thm -> thm
-  val read_instantiate: Proof.context -> (indexname * string) list -> string list -> thm -> thm
-  val instantiate_tac: Proof.context -> (indexname * string) list -> string list -> tactic
+  val read_instantiate: Proof.context ->
+    ((indexname * Position.T) * string) list -> string list -> thm -> thm
+  val instantiate_tac: Proof.context ->
+    ((indexname * Position.T) * string) list -> string list -> tactic
   val make_elim_preserve: Proof.context -> thm -> thm
-  val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
+  val method:
+    (Proof.context -> ((indexname * Position.T) * string) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
@@ -34,19 +43,22 @@ struct
 
 (** reading instantiations **)
 
+val partition_insts = List.partition (fn (((x, _), _), _) => String.isPrefix "'" x);
+
+fun error_var msg (xi, pos) =
+  error (msg ^ quote (Term.string_of_vname xi) ^ Position.here pos);
+
 local
 
-fun error_var msg xi = error (msg ^ quote (Term.string_of_vname xi));
-
-fun the_sort tvars (xi: indexname) =
+fun the_sort tvars (xi, pos) : sort =
   (case AList.lookup (op =) tvars xi of
     SOME S => S
-  | NONE => error_var "No such type variable in theorem: " xi);
+  | NONE => error_var "No such type variable in theorem: " (xi, pos));
 
-fun the_type vars (xi: indexname) =
+fun the_type vars (xi, pos) : typ =
   (case AList.lookup (op =) vars xi of
     SOME T => T
-  | NONE => error_var "No such variable in theorem: " xi);
+  | NONE => error_var "No such variable in theorem: " (xi, pos));
 
 fun instantiate inst =
   Term_Subst.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
@@ -82,18 +94,18 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val (type_insts, term_insts) = List.partition (String.isPrefix "'" o fst o fst) mixed_insts;
+    val (type_insts, term_insts) = partition_insts mixed_insts;
 
 
     (* type instantiations *)
 
-    fun readT (xi, s) =
+    fun readT ((xi, pos), s) =
       let
-        val S = the_sort tvars xi;
+        val S = the_sort tvars (xi, pos);
         val T = Syntax.read_typ ctxt s;
       in
         if Sign.of_sort thy (T, S) then ((xi, S), T)
-        else error_var "Incompatible sort for typ instantiation of " xi
+        else error_var "Incompatible sort for typ instantiation of " (xi, pos)
       end;
 
     val instT1 = Term_Subst.instantiateT (map readT type_insts);
@@ -108,7 +120,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val instT2 = Term.typ_subst_TVars inferred;
     val vars2 = map (apsnd instT2) vars1;
-    val inst2 = instantiate (xs ~~ ts);
+    val inst2 = instantiate (map #1 xs ~~ ts);
 
 
     (* result *)
@@ -138,7 +150,7 @@ fun of_rule ctxt (args, concl_args) fixes thm =
   let
     fun zip_vars _ [] = []
       | zip_vars (_ :: xs) (NONE :: rest) = zip_vars xs rest
-      | zip_vars ((x, _) :: xs) (SOME t :: rest) = (x, t) :: zip_vars xs rest
+      | zip_vars ((x, _) :: xs) (SOME t :: rest) = ((x, Position.none), t) :: zip_vars xs rest
       | zip_vars [] _ = error "More instantiations than variables in theorem";
     val insts =
       zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
@@ -165,9 +177,9 @@ fun instantiate_tac ctxt insts fixes =
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
     (Scan.lift
-      (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax)) -- Parse.for_fixes) >>
-      (fn (insts, fixes) =>
-        Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
+      (Parse.and_list (Parse.position Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax))
+        -- Parse.for_fixes) >> (fn (insts, fixes) =>
+          Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
     "named instantiation of theorem");
 
 
@@ -196,80 +208,84 @@ end;
 
 (** tactics **)
 
-(* resolution after lifting and instantation; may refer to parameters of the subgoal *)
+(* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
 
-(* FIXME cleanup this mess!!! *)
-
-fun bires_inst_tac bires_flag ctxt insts thm =
+fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
     val thy = Proof_Context.theory_of ctxt;
-    (* Separate type and term insts *)
-    fun has_type_var ((x, _), _) =
-      (case Symbol.explode x of "'" :: _ => true | _ => false);
-    val Tinsts = filter has_type_var insts;
-    val tinsts = filter_out has_type_var insts;
 
-    (* Tactic *)
-    fun tac i st = CSUBGOAL (fn (cgoal, _) =>
+    val (Tinsts, tinsts) = partition_insts mixed_insts;
+    val goal = Thm.term_of cgoal;
+
+    val params =
+      Logic.strip_params goal
+      (*as they are printed: bound variables with the same name are renamed*)
+      |> Term.rename_wrt_term goal
+      |> rev;
+    val (param_names, ctxt') = ctxt
+      |> Variable.declare_thm thm
+      |> Thm.fold_terms Variable.declare_constraints st
+      |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
+
+
+    (* process type insts: Tinsts_env *)
+
+    val (rtypes, rsorts) = Drule.types_sorts thm;
+    fun readT ((xi, pos), s) =
       let
-        val goal = Thm.term_of cgoal;
-        val params = Logic.strip_params goal;  (*params of subgoal i as string typ pairs*)
-        val params = rev (Term.rename_wrt_term goal params)
-          (*as they are printed: bound variables with*)
-          (*the same name are renamed during printing*)
-
-        val (param_names, ctxt') = ctxt
-          |> Variable.declare_thm thm
-          |> Thm.fold_terms Variable.declare_constraints st
-          |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
-
-        (* Process type insts: Tinsts_env *)
-        fun absent xi = error
-              ("No such variable in theorem: " ^ Term.string_of_vname xi);
-        val (rtypes, rsorts) = Drule.types_sorts thm;
-        fun readT (xi, s) =
-            let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-                val T = Syntax.read_typ ctxt' s;
-                val U = TVar (xi, S);
-            in if Sign.typ_instance thy (T, U) then (U, T)
-               else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
-            end;
-        val Tinsts_env = map readT Tinsts;
-        (* Preprocess rule: extract vars and their types, apply Tinsts *)
-        fun get_typ xi =
-          (case rtypes xi of
-               SOME T => typ_subst_atomic Tinsts_env T
-             | NONE => absent xi);
-        val (xis, ss) = Library.split_list tinsts;
-        val Ts = map get_typ xis;
-
-        val (ts, envT) =
-          read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
-        val envT' = map (fn (ixn, T) =>
-          (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
-        val cenv =
-          map (fn (xi, t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
-            (distinct
-              (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
-              (xis ~~ ts));
-        (* Lift and instantiate rule *)
-        val maxidx = Thm.maxidx_of st;
-        val paramTs = map #2 params
-        and inc = maxidx+1
-        fun liftvar (Var ((a,j), T)) =
-              Var((a, j+inc), paramTs ---> Logic.incr_tvar inc T)
-          | liftvar t = raise TERM("Variable expected", [t]);
-        fun liftterm t =
-          fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
-        fun liftpair (cv, ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct);
-        val lifttvar = apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc);
-        val rule = Drule.instantiate_normalize
-              (map lifttvar envT', map liftpair cenv)
-              (Thm.lift_rule cgoal thm)
+        val S =
+          (case rsorts xi of
+            SOME S => S
+          | NONE => error_var "No such type variable in theorem: " (xi, pos));
+        val T = Syntax.read_typ ctxt' s;
+        val U = TVar (xi, S);
       in
-        compose_tac ctxt' (bires_flag, rule, Thm.nprems_of thm) i
-      end) i st;
-  in tac end;
+        if Sign.typ_instance thy (T, U) then (U, T)
+        else error_var "Cannot instantiate: " (xi, pos)
+      end;
+    val Tinsts_env = map readT Tinsts;
+
+
+    (* preprocess rule: extract vars and their types, apply Tinsts *)
+
+    fun get_typ (xi, pos) =
+      (case rtypes xi of
+        SOME T => typ_subst_atomic Tinsts_env T
+      | NONE => error_var "No such variable in theorem: " (xi, pos) xi);
+    val (xis, ss) = split_list tinsts;
+    val Ts = map get_typ xis;
+
+    val (ts, envT) =
+      read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
+    val envT' =
+      map (fn (xi, T) => (TVar (xi, the (rsorts xi)), T)) envT @ Tinsts_env;
+    val cenv =
+      map (fn ((xi, _), t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
+        (distinct
+          (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
+          (xis ~~ ts));
+
+
+    (* lift and instantiate rule *)
+
+    val maxidx = Thm.maxidx_of st;
+    val paramTs = map #2 params;
+    val inc = maxidx + 1;
+
+    fun lift_var (Var ((a, j), T)) = Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T)
+      | lift_var t = raise TERM ("Variable expected", [t]);
+    fun lift_term t =
+      fold_rev absfree (param_names ~~ paramTs) (Logic.incr_indexes (paramTs, inc) t);
+    fun lift_inst (cv, ct) = (cterm_fun lift_var cv, cterm_fun lift_term ct);
+    val lift_tvar = apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc);
+
+    val rule =
+      Drule.instantiate_normalize
+        (map lift_tvar envT', map lift_inst cenv)
+        (Thm.lift_rule cgoal thm);
+  in
+    compose_tac ctxt' (bires_flag, rule, Thm.nprems_of thm) i
+  end) i st;
 
 val res_inst_tac = bires_inst_tac false;
 val eres_inst_tac = bires_inst_tac true;
@@ -306,10 +322,12 @@ fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve
 (* derived tactics *)
 
 (*deletion of an assumption*)
-fun thin_tac ctxt s = eres_inst_tac ctxt [(("V", 0), s)] Drule.thin_rl;
+fun thin_tac ctxt s =
+  eres_inst_tac ctxt [((("V", 0), Position.none), s)] Drule.thin_rl;
 
 (*Introduce the given proposition as lemma and subgoal*)
-fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
+fun subgoal_tac ctxt A =
+  DETERM o res_inst_tac ctxt [((("psi", 0), Position.none), A)] cut_rl;
 
 
 
@@ -318,8 +336,8 @@ fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
 fun method inst_tac tac =
   Args.goal_spec --
   Scan.optional (Scan.lift
-    (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax)) --|
-      Args.$$$ "in")) [] --
+    (Parse.and_list1 (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax))
+      --| Args.$$$ "in")) [] --
   Attrib.thms >>
   (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
     if null insts then quant (Method.insert_tac facts THEN' tac ctxt thms)

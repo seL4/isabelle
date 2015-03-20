@@ -135,7 +135,7 @@ let
   val take_ss =
     simpset_of (put_simpset HOL_ss @{context} addsimps (@{thm Rep_cfun_strict1} :: take_rews))
   fun quant_tac ctxt i = EVERY
-    (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names)
+    (map (fn name => res_inst_tac ctxt [((("x", 0), Position.none), name)] spec i) x_names)
 
   (* FIXME: move this message to domain_take_proofs.ML *)
   val is_finite = #is_finite take_info
@@ -182,7 +182,7 @@ let
             asm_simp_tac (put_simpset take_ss ctxt) 1 THEN
             (resolve_tac ctxt prems' THEN_ALL_NEW etac spec) 1
           fun cases_tacs (cons, exhaust) =
-            res_inst_tac ctxt [(("y", 0), "x")] exhaust 1 ::
+            res_inst_tac ctxt [((("y", 0), Position.none), "x")] exhaust 1 ::
             asm_simp_tac (put_simpset take_ss ctxt addsimps prems) 1 ::
             map con_tac cons
           val tacs = tacs1 @ maps cases_tacs (conss ~~ exhausts)

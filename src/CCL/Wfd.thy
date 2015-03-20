@@ -49,7 +49,8 @@ lemma wfd_strengthen_lemma:
 method_setup wfd_strengthen = {*
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
-      res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)))
+      res_inst_tac ctxt [((("Q", 0), Position.none), s)] @{thm wfd_strengthen_lemma} i
+        THEN assume_tac ctxt (i + 1)))
 *}
 
 lemma wf_anti_sym: "\<lbrakk>Wfd(r); <a,x>:r; <x,a>:r\<rbrakk> \<Longrightarrow> P"
@@ -430,11 +431,12 @@ fun could_IH x = Term.could_unify(x,hd (Thm.prems_of @{thm rcallT})) orelse
 fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   let val bvs = bvars Bi []
       val ihs = filter could_IH (Logic.strip_assums_hyp Bi)
-      val rnames = map (fn x=>
+      val rnames = map (fn x =>
                     let val (a,b) = get_bno [] 0 x
                     in (nth bvs a, b) end) ihs
       fun try_IHs [] = no_tac
-        | try_IHs ((x,y)::xs) = tac [(("g", 0), x)] (nth rls (y - 1)) i ORELSE (try_IHs xs)
+        | try_IHs ((x,y)::xs) =
+            tac [((("g", 0), Position.none), x)] (nth rls (y - 1)) i ORELSE (try_IHs xs)
   in try_IHs rnames end)
 
 fun is_rigid_prog t =
