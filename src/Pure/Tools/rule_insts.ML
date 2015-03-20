@@ -231,9 +231,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
     val envT' = map (fn (v, T) => (TVar v, T)) (envT @ Tinsts_env);
     val cenv =
       map (fn ((xi, _), t) => apply2 (Thm.cterm_of ctxt') (Var (xi, fastype_of t), t))
-        (distinct
-          (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
-          (xis ~~ ts));
+        (xis ~~ ts);
 
 
     (* lift and instantiate rule *)
