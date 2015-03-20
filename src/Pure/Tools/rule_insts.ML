@@ -62,13 +62,13 @@ fun make_instT f v =
   let
     val T = TVar v;
     val T' = f T;
-  in if T = T' then NONE else SOME (T, T') end;
+  in if T = T' then NONE else SOME (v, T') end;
 
 fun make_inst f v =
   let
     val t = Var v;
     val t' = f t;
-  in if t aconv t' then NONE else SOME (t, t') end;
+  in if t aconv t' then NONE else SOME (v, t') end;
 
 in
 
@@ -94,12 +94,12 @@ fun read_termTs ctxt ss Ts =
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in (ts', tyenv') end;
 
-fun read_insts ctxt in_thm mixed_insts =
+fun read_insts ctxt mixed_insts thm =
   let
-    val tvars = Thm.fold_terms Term.add_tvars in_thm [];
-    val vars = Thm.fold_terms Term.add_vars in_thm [];
-
     val (type_insts, term_insts) = partition_insts mixed_insts;
+
+    val tvars = Thm.fold_terms Term.add_tvars thm [];
+    val vars = Thm.fold_terms Term.add_vars thm [];
 
 
     (* type instantiations *)
@@ -123,19 +123,19 @@ fun read_insts ctxt in_thm mixed_insts =
 
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
-  in
-    (map (apply2 (Thm.ctyp_of ctxt)) inst_tvars,
-     map (apply2 (Thm.cterm_of ctxt)) inst_vars)
-  end;
+  in (inst_tvars, inst_vars) end;
 
 fun where_rule ctxt mixed_insts fixes thm =
   let
     val ctxt' = ctxt
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
       |> Variable.declare_thm thm;
-    val insts = read_insts ctxt' thm mixed_insts;
+    val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
   in
-    Drule.instantiate_normalize insts thm
+    thm
+    |> Drule.instantiate_normalize
+      (map (apply2 (Thm.ctyp_of ctxt) o apfst TVar) inst_tvars,
+       map (apply2 (Thm.cterm_of ctxt) o apfst Var) inst_vars)
     |> singleton (Proof_Context.export ctxt' ctxt)
     |> Rule_Cases.save thm
   end;
