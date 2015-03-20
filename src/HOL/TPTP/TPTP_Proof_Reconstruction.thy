@@ -944,16 +944,15 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
      end
 
     fun instantiate_tac from to =
-      Thm.instantiate ([], [(from, to)])
-      |> PRIMITIVE
+      PRIMITIVE (Thm.instantiate ([], [(from, to)]))
 
-    val tectic =
+    val tactic =
       if is_none var_opt then no_tac
       else
         fold (curry (op APPEND)) (map (instantiate_tac (the var_opt)) skolem_cts) no_tac
 
   in
-    tectic st
+    tactic st
   end
 *}
 
