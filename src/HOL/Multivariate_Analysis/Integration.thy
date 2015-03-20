@@ -1466,7 +1466,7 @@ proof -
       using division_ofD[OF p] by auto
     show "\<exists>p. p division_of \<Union>insert x F"
       using elementary_union_interval[OF p[unfolded *], of a b]
-      unfolding Union_insert x * by auto
+      unfolding Union_insert x * by metis
   qed (insert assms, auto)
   then show ?thesis
     apply -
@@ -4662,7 +4662,7 @@ proof -
           apply auto
           done
         ultimately show "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
-          unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by auto
+          unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force
       qed
       have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
         unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)

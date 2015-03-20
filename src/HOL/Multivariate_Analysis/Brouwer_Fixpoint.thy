@@ -1913,14 +1913,8 @@ proof -
     using brouwer_cube by auto
   then show ?thesis
     unfolding homeomorphic_fixpoint_property[OF *]
-    apply (erule_tac x=f in allE)
-    apply (erule impE)
-    defer
-    apply (erule bexE)
-    apply (rule_tac x=y in that)
     using assms
-    apply auto
-    done
+    by (auto simp: intro: that)
 qed
 
 
@@ -1964,7 +1958,6 @@ proof -
     apply (rule continuous_on_closest_point[OF assms(2) compact_imp_closed[OF assms(1)] assms(3)])
     apply (rule continuous_on_subset[OF assms(4)])
     apply (insert closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3)])
-    defer
     using assms(5)[unfolded subset_eq]
     using e(2)[unfolded subset_eq mem_cball]
     apply (auto simp add: dist_norm)
@@ -2002,21 +1995,10 @@ proof
       "x \<in> {x. norm (a - x) = e}"
       "2 *\<^sub>R a - x = x"
     apply (rule retract_fixpoint_property[OF goal1, of "\<lambda>x. scaleR 2 a - x"])
-    apply rule
-    apply rule
-    apply (erule conjE)
-    apply (rule brouwer_ball[OF assms])
-    apply assumption+
-    apply (rule_tac x=x in bexI)
-    apply assumption+
-    apply (rule continuous_intros)+
-    unfolding frontier_cball subset_eq Ball_def image_iff
-    apply rule
-    apply rule
-    apply (erule bexE)
-    unfolding dist_norm
-    apply (simp add: * norm_minus_commute)
-    apply blast
+    apply (blast intro: brouwer_ball[OF assms])
+    apply (intro continuous_intros)
+    unfolding frontier_cball subset_eq Ball_def image_iff dist_norm
+    apply (auto simp add: * norm_minus_commute)
     done
   then have "scaleR 2 a = scaleR 1 x + scaleR 1 x"
     by (auto simp add: algebra_simps)

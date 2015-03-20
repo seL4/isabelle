@@ -1250,7 +1250,7 @@ lemma connected_local:
       e1 \<noteq> {} \<and>
       e2 \<noteq> {})"
   unfolding connected_def openin_open
-  by blast
+  by safe blast+
 
 lemma exists_diff:
   fixes P :: "'a set \<Rightarrow> bool"
