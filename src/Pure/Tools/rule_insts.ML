@@ -36,7 +36,8 @@ struct
 
 (** reading instantiations **)
 
-val partition_insts = List.partition (fn (((x, _), _), _) => String.isPrefix "'" x);
+fun partition_insts mixed_insts =
+  List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) mixed_insts;
 
 fun error_var msg (xi, pos) =
   error (msg ^ quote (Term.string_of_vname xi) ^ Position.here pos);
