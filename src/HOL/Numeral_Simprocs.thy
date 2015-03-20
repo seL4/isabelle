@@ -99,6 +99,10 @@ lemma nat_mult_div_cancel_disj [simp]:
   shows "(k * m) div (k * n) = (if k = 0 then 0 else m div n)"
   by (fact div_mult_mult1_if)
 
+lemma numeral_times_minus_swap:
+  fixes x:: "'a::comm_ring_1" shows  "numeral w * -x = x * - numeral w"
+  by (simp add: mult.commute)
+
 ML_file "Tools/numeral_simprocs.ML"
 
 simproc_setup semiring_assoc_fold

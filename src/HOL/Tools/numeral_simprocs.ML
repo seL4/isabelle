@@ -227,7 +227,7 @@ val minus_from_mult_simps =
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
-    [@{thm mult.assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}];
+    [@{thm mult.assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}, @{thm numeral_times_minus_swap}];
 
 val norm_ss1 =
   simpset_of (put_simpset num_ss @{context}
@@ -381,7 +381,7 @@ struct
   val norm_ss2 =
     simpset_of (put_simpset HOL_basic_ss @{context} addsimps simps @ mult_minus_simps)
   val norm_ss3 =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms ac_simps minus_mult_commute})
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms ac_simps minus_mult_commute numeral_times_minus_swap})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
