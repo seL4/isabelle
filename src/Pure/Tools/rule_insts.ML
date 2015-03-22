@@ -51,7 +51,7 @@ fun the_type vars (xi, pos) : typ =
     SOME T => T
   | NONE => error_var "No such variable in theorem: " (xi, pos));
 
-fun readT ctxt tvars ((xi, pos), s) =
+fun read_type ctxt tvars ((xi, pos), s) =
   let
     val S = the_sort tvars (xi, pos);
     val T = Syntax.read_typ ctxt s;
@@ -60,7 +60,7 @@ fun readT ctxt tvars ((xi, pos), s) =
     else error_var "Bad sort for instantiation of type variable: " (xi, pos)
   end;
 
-fun read_termTs ctxt ss Ts =
+fun read_terms ctxt ss Ts =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
     val ts = map2 parse Ts ss;
@@ -72,10 +72,6 @@ fun read_termTs ctxt ss Ts =
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in (ts', tyenv') end;
-
-fun instantiate inst =
-  Term_Subst.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
-  Envir.beta_norm;
 
 fun make_instT f v =
   let
@@ -100,18 +96,20 @@ fun read_insts ctxt mixed_insts thm =
     val vars = Thm.fold_terms Term.add_vars thm [];
 
     (*explicit type instantiations*)
-    val instT1 = Term_Subst.instantiateT (map (readT ctxt tvars) type_insts);
+    val instT1 = Term_Subst.instantiateT (map (read_type ctxt tvars) type_insts);
     val vars1 = map (apsnd instT1) vars;
 
     (*term instantiations*)
     val (xs, ss) = split_list term_insts;
     val Ts = map (the_type vars1) xs;
-    val (ts, inferred) = read_termTs ctxt ss Ts;
+    val (ts, inferred) = read_terms ctxt ss Ts;
 
     (*implicit type instantiations*)
     val instT2 = Term_Subst.instantiateT inferred;
     val vars2 = map (apsnd instT2) vars1;
-    val inst2 = instantiate (map #1 xs ~~ ts);
+    val inst2 =
+      Term_Subst.instantiate ([], map2 (fn (xi, _) => fn t => ((xi, Term.fastype_of t), t)) xs ts)
+      #> Envir.beta_norm;
 
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
@@ -215,14 +213,13 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
 
     val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
 
-    val maxidx = Thm.maxidx_of st;
+    val inc = Thm.maxidx_of st + 1;
     val paramTs = map #2 params;
-    val inc = maxidx + 1;
 
     fun lift_var ((a, j), T) =
       Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
     fun lift_term t =
-      fold_rev absfree (param_names ~~ paramTs)
+      fold_rev Term.absfree (param_names ~~ paramTs)
         (Logic.incr_indexes (paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
