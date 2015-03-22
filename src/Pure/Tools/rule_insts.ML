@@ -194,7 +194,7 @@ end;
 
 fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
-    (* goal context *)
+    (* goal parameters *)
 
     val goal = Thm.term_of cgoal;
     val params =
@@ -202,20 +202,19 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
       (*as they are printed: bound variables with the same name are renamed*)
       |> Term.rename_wrt_term goal
       |> rev;
-    val (param_names, ctxt') = ctxt
+    val (param_names, param_ctxt) = ctxt
       |> Variable.declare_thm thm
       |> Thm.fold_terms Variable.declare_constraints st
       |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
       ||> Proof_Context.set_mode Proof_Context.mode_schematic;
+    val paramTs = map #2 params;
 
 
     (* lift and instantiate rule *)
 
-    val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
+    val (inst_tvars, inst_vars) = read_insts param_ctxt mixed_insts thm;
 
     val inc = Thm.maxidx_of st + 1;
-    val paramTs = map #2 params;
-
     fun lift_var ((a, j), T) =
       Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
     fun lift_term t =
@@ -223,15 +222,15 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
         (Logic.incr_indexes (paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
-      |> map (apply2 (Thm.ctyp_of ctxt' o Logic.incr_tvar inc) o apfst TVar);
+      |> map (apply2 (Thm.ctyp_of param_ctxt o Logic.incr_tvar inc) o apfst TVar);
     val inst_vars' = inst_vars
-      |> map (fn (v, t) => apply2 (Thm.cterm_of ctxt') (lift_var v, lift_term t));
+      |> map (fn (v, t) => apply2 (Thm.cterm_of param_ctxt) (lift_var v, lift_term t));
 
     val thm' =
       Drule.instantiate_normalize (inst_tvars', inst_vars')
         (Thm.lift_rule cgoal thm);
   in
-    compose_tac ctxt' (bires_flag, thm', Thm.nprems_of thm) i
+    compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
   end) i st;
 
 val res_inst_tac = bires_inst_tac false;
