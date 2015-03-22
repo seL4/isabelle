@@ -229,8 +229,10 @@ fun zero_var_indexes_list [] = []
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
         val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-        val cinstT = map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT;
-        val cinst = map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst;
+        val cinstT =
+          map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT;
+        val cinst =
+          map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst;
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
@@ -246,11 +248,12 @@ fun implies_intr_hyps th =
 (*Squash a theorem's flexflex constraints provided it can be done uniquely.
   This step can lose information.*)
 fun flexflex_unique opt_ctxt th =
-  if null (Thm.tpairs_of th) then th else
-    case distinct Thm.eq_thm (Seq.list_of (Thm.flexflex_rule opt_ctxt th)) of
+  if null (Thm.tpairs_of th) then th
+  else
+    (case distinct Thm.eq_thm (Seq.list_of (Thm.flexflex_rule opt_ctxt th)) of
       [th] => th
-    | []   => raise THM("flexflex_unique: impossible constraints", 0, [th])
-    |  _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
+    | [] => raise THM ("flexflex_unique: impossible constraints", 0, [th])
+    | _ => raise THM ("flexflex_unique: multiple unifiers", 0, [th]));
 
 
 (* old-style export without context *)
@@ -316,8 +319,9 @@ fun tha RS thb = tha RSN (1,thb);
 
 (*For joining lists of rules*)
 fun thas RLN (i, thbs) =
-  let val resolve = Thm.biresolution NONE false (map (pair false) thas) i
-      fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
+  let
+    val resolve = Thm.biresolution NONE false (map (pair false) thas) i
+    fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
   in maps resb thbs end;
 
 fun thas RL thbs = thas RLN (1, thbs);
@@ -716,7 +720,8 @@ local
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun comp incremented th1 th2 =
-  Thm.bicompose NONE {flatten = true, match = false, incremented = incremented} (false, th1, 0) 1 th2
+  Thm.bicompose NONE {flatten = true, match = false, incremented = incremented}
+    (false, th1, 0) 1 th2
   |> Seq.list_of |> distinct Thm.eq_thm
   |> (fn [th] => th | _ => raise THM ("COMP", 1, [th1, th2]));
 
@@ -760,7 +765,7 @@ local
           "\ncannot be unified with type\n" ^
           Syntax.string_of_typ_global thy' (Envir.norm_type tye U) ^ "\nof term " ^
           Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) u),
-          [T, U], [t, u])
+          [T, U], [t, u]);
     in (thy', tye', maxi') end;
 in
 
@@ -770,7 +775,7 @@ fun cterm_instantiate [] th = th
         val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
-            cons (Thm.global_ctyp_of thy (TVar (xi, S)), Thm.global_ctyp_of thy (Envir.norm_type tye T))) tye [];
+            cons (apply2 (Thm.global_ctyp_of thy) (TVar (xi, S), Envir.norm_type tye T))) tye [];
         val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
       in instantiate_normalize (instT, inst) th end
       handle TERM (msg, _) => raise THM (msg, 0, [th])
