@@ -61,6 +61,11 @@ Options / Text Area).
 
 *** Pure ***
 
+* Proof methods with explicit instantiation ("rule_tac", "subgoal_tac"
+etc.) allow an optional context of local variables ('for' declaration):
+these variables become schematic in the instantiated theorem. This
+behaviour is analogous to 'for' in attributes "where" and "of".
+
 * Command "class_deps" takes optional sort arguments constraining
 the search space.
 
