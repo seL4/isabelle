@@ -220,8 +220,8 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     (* local fixes *)
 
-    val fixes_ctxt = param_ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+    val (fixed, fixes_ctxt) = param_ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes;
 
     val (inst_tvars, inst_vars) = read_insts fixes_ctxt mixed_insts thm;
 
@@ -233,7 +233,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
       Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
     fun lift_term t =
       fold_rev Term.absfree (param_names ~~ paramTs)
-        (Logic.incr_indexes (paramTs, inc) t);
+        (Logic.incr_indexes (fixed, paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
       |> map (apply2 (Thm.ctyp_of fixes_ctxt o Logic.incr_tvar inc) o apfst TVar);
