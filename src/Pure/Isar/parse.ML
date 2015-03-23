@@ -91,7 +91,6 @@ sig
   val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
   val params: (binding * string option) list parser
-  val simple_fixes: (binding * string option) list parser
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: Input.source parser
@@ -359,8 +358,6 @@ val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
 val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
   >> (fn (xs, T) => map (rpair T) xs);
-
-val simple_fixes = and_list1 params >> flat;
 
 val fixes =
   and_list1 (binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o triple1) ||
