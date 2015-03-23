@@ -521,10 +521,10 @@ text \<open>
   entities within the current context.
 
   @{rail \<open>
-    (@@{command type_notation} | @@{command no_type_notation}) @{syntax target}?
-      @{syntax mode}? \<newline> (@{syntax nameref} @{syntax mixfix} + @'and')
+    (@@{command type_notation} | @@{command no_type_notation}) @{syntax mode}? \<newline>
+      (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
-    (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \<newline>
+    (@@{command notation} | @@{command no_notation}) @{syntax mode}? \<newline>
       (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
     @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
@@ -1164,6 +1164,8 @@ text \<open>
     @{attribute_def syntax_ast_trace} & : & @{text attribute} & default @{text false} \\
     @{attribute_def syntax_ast_stats} & : & @{text attribute} & default @{text false} \\
   \end{tabular}
+
+  \medskip
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access

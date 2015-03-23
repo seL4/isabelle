@@ -57,7 +57,7 @@ apply (rule HH_eq [THEN trans])
 prefer 2 apply assumption+
 apply (rule leI [THEN le_imp_subset, THEN subset_imp_Diff_eq, THEN ssubst], 
        assumption)
-apply (rule_tac t = "%z. z-?X" in subst_context)
+apply (rule_tac t = "%z. z-X" for X in subst_context)
 apply (rule Diff_UN_eq_self)
 apply (drule Ord_DiffE, assumption) 
 apply (fast elim: ltE, auto) 
@@ -162,7 +162,7 @@ done
 lemma f_subsets_imp_UN_HH_eq_x:
      "\<forall>z \<in> Pow(x)-{0}. f`z \<in> Pow(z)-{0}
       ==> x - (\<Union>j \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0"
-apply (case_tac "?P \<in> {0}", fast)
+apply (case_tac "P \<in> {0}" for P, fast)
 apply (drule Diff_subset [THEN PowI, THEN DiffI])
 apply (drule bspec, assumption) 
 apply (drule f_subset_imp_HH_subset) 

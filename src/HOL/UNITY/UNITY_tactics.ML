@@ -44,9 +44,9 @@ fun ensures_tac ctxt sact =
       (*now there are two subgoals: co & transient*)
       simp_tac (ctxt addsimps [@{thm mk_total_program_def}]) 2,
       Rule_Insts.res_inst_tac ctxt
-        [((("act", 0), Position.none), sact)] @{thm totalize_transientI} 2
+        [((("act", 0), Position.none), sact)] [] @{thm totalize_transientI} 2
       ORELSE Rule_Insts.res_inst_tac ctxt
-        [((("act", 0), Position.none), sact)] @{thm transientI} 2,
+        [((("act", 0), Position.none), sact)] [] @{thm transientI} 2,
          (*simplify the command's domain*)
       simp_tac (ctxt addsimps @{thms Domain_unfold}) 3,
       constrains_tac ctxt 1,

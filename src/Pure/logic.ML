@@ -61,8 +61,8 @@ sig
   val rlist_abs: (string * typ) list * term -> term
   val incr_tvar_same: int -> typ Same.operation
   val incr_tvar: int -> typ -> typ
-  val incr_indexes_same: typ list * int -> term Same.operation
-  val incr_indexes: typ list * int -> term -> term
+  val incr_indexes_same: string list * typ list * int -> term Same.operation
+  val incr_indexes: string list * typ list * int -> term -> term
   val lift_abs: int -> term -> term -> term
   val lift_all: int -> term -> term -> term
   val strip_assums_hyp: term -> term list
@@ -367,14 +367,18 @@ fun incr_tvar k T = incr_tvar_same k T handle Same.SAME => T;
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
-fun incr_indexes_same ([], 0) = Same.same
-  | incr_indexes_same (Ts, k) =
+fun incr_indexes_same ([], [], 0) = Same.same
+  | incr_indexes_same (fixed, Ts, k) =
       let
         val n = length Ts;
         val incrT = incr_tvar_same k;
 
         fun incr lev (Var ((x, i), T)) =
               combound (Var ((x, i + k), Ts ---> Same.commit incrT T), lev, n)
+          | incr lev (Free (x, T)) =
+              if member (op =) fixed x then
+                combound (Free (x, Ts ---> Same.commit incrT T), lev, n)
+              else Free (x, incrT T)
           | incr lev (Abs (x, T, body)) =
               (Abs (x, incrT T, incr (lev + 1) body handle Same.SAME => body)
                 handle Same.SAME => Abs (x, T, incr (lev + 1) body))
@@ -382,7 +386,6 @@ fun incr_indexes_same ([], 0) = Same.same
               (incr lev t $ (incr lev u handle Same.SAME => u)
                 handle Same.SAME => t $ incr lev u)
           | incr _ (Const (c, T)) = Const (c, incrT T)
-          | incr _ (Free (x, T)) = Free (x, incrT T)
           | incr _ (Bound _) = raise Same.SAME;
       in incr 0 end;
 
@@ -397,14 +400,14 @@ fun lift_abs inc =
   let
     fun lift Ts (Const ("Pure.imp", _) $ _ $ B) t = lift Ts B t
       | lift Ts (Const ("Pure.all", _) $ Abs (a, T, B)) t = Abs (a, T, lift (T :: Ts) B t)
-      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
+      | lift Ts _ t = incr_indexes ([], rev Ts, inc) t;
   in lift [] end;
 
 fun lift_all inc =
   let
     fun lift Ts ((c as Const ("Pure.imp", _)) $ A $ B) t = c $ A $ lift Ts B t
       | lift Ts ((c as Const ("Pure.all", _)) $ Abs (a, T, B)) t = c $ Abs (a, T, lift (T :: Ts) B t)
-      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
+      | lift Ts _ t = incr_indexes ([], rev Ts, inc) t;
   in lift [] end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)

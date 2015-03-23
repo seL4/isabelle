@@ -166,7 +166,7 @@ apply (subgoal_tac "length (x ` iOut) \<in> nat")
 apply (subgoal_tac "xa \<in> nat")
 apply (simp_all add: Ord_mem_iff_lt)
 prefer 2 apply (blast intro: lt_trans)
-apply (drule_tac x = "nth (xa, x`iOut)" and P = "%elt. ?X (elt) \<longrightarrow> elt<Nclients" in bspec)
+apply (drule_tac x = "nth (xa, x`iOut)" and P = "%elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
 apply (simp add: ltI nat_into_Ord)
 apply (blast dest: ltD)
 done

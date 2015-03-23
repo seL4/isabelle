@@ -132,8 +132,9 @@ end;
 val statement = Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.propp);
 
 val obtain_case =
-  Parse.parbinding -- (Scan.optional (Parse.simple_fixes --| Parse.where_) [] --
-    (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat));
+  Parse.parbinding --
+    (Scan.optional (Parse.and_list1 Parse.params --| Parse.where_ >> flat) [] --
+      (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat));
 
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||

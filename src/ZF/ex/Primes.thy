@@ -93,7 +93,7 @@ by (simp add: gcd_def)
 lemma gcd_non_0_raw: 
     "[| 0<n;  n \<in> nat |] ==> gcd(m,n) = gcd(n, m mod n)"
 apply (simp add: gcd_def)
-apply (rule_tac P = "%z. ?left (z) = ?right" in transrec [THEN ssubst])
+apply (rule_tac P = "%z. left (z) = right" for left right in transrec [THEN ssubst])
 apply (simp add: ltD [THEN mem_imp_not_eq, THEN not_sym] 
                  mod_less_divisor [THEN ltD])
 done

@@ -300,19 +300,20 @@ text \<open>
 
   @{rail \<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
-      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \<newline>
+      @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
-    @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +)
+    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and') @{syntax for_fixes}
+    ;
+    @@{method thin_tac} @{syntax goal_spec}? @{syntax prop} @{syntax for_fixes}
+    ;
+    @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +) @{syntax for_fixes}
     ;
     @@{method rename_tac} @{syntax goal_spec}? (@{syntax name} +)
     ;
     @@{method rotate_tac} @{syntax goal_spec}? @{syntax int}?
     ;
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
-    ;
-
-    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and')
   \<close>}
 
 \begin{description}
@@ -480,7 +481,7 @@ text \<open>
 
   \begin{center}
   \small
-  \begin{supertabular}{|l|l|p{0.3\textwidth}|}
+  \begin{tabular}{|l|l|p{0.3\textwidth}|}
   \hline
   Isar method & ML tactic & behavior \\\hline
 
@@ -503,7 +504,7 @@ text \<open>
   mode: an assumption is only used for simplifying assumptions which
   are to the right of it \\\hline
 
-  \end{supertabular}
+  \end{tabular}
   \end{center}
 \<close>
 
@@ -997,11 +998,10 @@ text \<open>The following simplification procedure for @{thm
   the Simplifier loop!  Note that a version of this simplification
   procedure is already active in Isabelle/HOL.\<close>
 
-simproc_setup unit ("x::unit") = \<open>
-  fn _ => fn _ => fn ct =>
+simproc_setup unit ("x::unit") =
+  \<open>fn _ => fn _ => fn ct =>
     if HOLogic.is_unit (Thm.term_of ct) then NONE
-    else SOME (mk_meta_eq @{thm unit_eq})
-\<close>
+    else SOME (mk_meta_eq @{thm unit_eq})\<close>
 
 text \<open>Since the Simplifier applies simplification procedures
   frequently, it is important to make the failure check in ML

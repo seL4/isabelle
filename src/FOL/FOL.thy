@@ -66,13 +66,13 @@ lemma case_split [case_names True False]:
   done
 
 ML {*
-  fun case_tac ctxt a =
-    Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), a)] @{thm case_split}
+  fun case_tac ctxt a fixes =
+    Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), a)] fixes @{thm case_split}
 *}
 
 method_setup case_tac = {*
-  Args.goal_spec -- Scan.lift Args.name_inner_syntax >>
-    (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s))
+  Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) >>
+    (fn (quant, (s, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s fixes))
 *} "case_tac emulation (dynamic instantiation!)"
 
 

@@ -19,7 +19,7 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
     val ps = Logic.strip_params (Thm.term_of cgoal);
     val Ts = map snd ps;
     val tinst' = map (fn (t, u) =>
-      (head_of (Logic.incr_indexes (Ts, j) t),
+      (head_of (Logic.incr_indexes ([], Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
       (map (apply2 (Thm.ctyp_of ctxt)) tyinst')

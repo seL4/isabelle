@@ -321,7 +321,7 @@ lemmas adm_lemmas =
 method_setup induct = {*
   Scan.lift Args.name_inner_syntax >> (fn v => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
-      Rule_Insts.res_inst_tac ctxt [((("f", 0), Position.none), v)] @{thm induct} i THEN
+      Rule_Insts.res_inst_tac ctxt [((("f", 0), Position.none), v)] [] @{thm induct} i THEN
       REPEAT (resolve_tac ctxt @{thms adm_lemmas} i)))
 *}
 
@@ -381,7 +381,7 @@ lemma induct2:
 ML {*
 fun induct2_tac ctxt (f, g) i =
   Rule_Insts.res_inst_tac ctxt
-    [((("f", 0), Position.none), f), ((("g", 0), Position.none), g)] @{thm induct2} i THEN
+    [((("f", 0), Position.none), f), ((("g", 0), Position.none), g)] [] @{thm induct2} i THEN
   REPEAT(resolve_tac ctxt @{thms adm_lemmas} i)
 *}
 

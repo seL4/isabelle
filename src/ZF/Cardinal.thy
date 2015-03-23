@@ -59,7 +59,7 @@ lemma Banach_last_equation:
     "g \<in> Y->X
      ==> g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =
          X - lfp(X, %W. X - g``(Y - f``W))"
-apply (rule_tac P = "%u. ?v = X-u"
+apply (rule_tac P = "%u. v = X-u" for v
        in decomp_bnd_mono [THEN lfp_unfold, THEN ssubst])
 apply (simp add: double_complement  fun_is_rel [THEN image_subset])
 done
@@ -1079,7 +1079,7 @@ apply (subgoal_tac "\<exists>z\<in>A. x = f(z)")
  prefer 2 apply (blast del: allE elim: equalityE, clarify)
 apply (subgoal_tac "B = {f(u) . u \<in> A - {z}}")
  apply (blast intro: Diff_sing_Finite)
-apply (thin_tac "\<forall>A. ?P(A) \<longrightarrow> Finite(A)")
+apply (thin_tac "\<forall>A. P(A) \<longrightarrow> Finite(A)" for P)
 apply (rule equalityI)
  apply (blast intro: elim: equalityE)
 apply (blast intro: elim: equalityCE)

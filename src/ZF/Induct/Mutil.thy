@@ -147,7 +147,7 @@ theorem mutil_not_tiling: "[| m \<in> nat;  n \<in> nat;
       ==> t' \<notin> tiling(domino)"
   apply (rule notI)
   apply (drule tiling_domino_0_1)
-  apply (erule_tac x = "|?A|" in eq_lt_E)
+  apply (erule_tac x = "|A|" for A in eq_lt_E)
   apply (subgoal_tac "t \<in> tiling (domino)")
    prefer 2 (*Requires a small simpset that won't move the succ applications*)
    apply (simp only: nat_succI add_type dominoes_tile_matrix)

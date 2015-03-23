@@ -363,7 +363,7 @@ done
 
 lemma msize_eq_0_iff: "multiset(M) ==> msize(M)=#0 \<longleftrightarrow> M=0"
 apply (simp add: msize_def, auto)
-apply (rule_tac P = "setsum (?u,?v) \<noteq> #0" in swap)
+apply (rule_tac P = "setsum (u,v) \<noteq> #0" for u v in swap)
 apply blast
 apply (drule not_empty_multiset_imp_exist, assumption, clarify)
 apply (subgoal_tac "Finite (mset_of (M) - {a}) ")
@@ -571,7 +571,7 @@ apply (subgoal_tac "multiset (M) ")
  apply (simp add: multiset_def multiset_fun_iff)
  apply (rule_tac x = A in exI, force)
 apply (simp_all add: mset_of_def)
-apply (drule_tac psi = "\<forall>x \<in> A. ?u (x) " in asm_rl)
+apply (drule_tac psi = "\<forall>x \<in> A. u(x)" for u in asm_rl)
 apply (drule_tac x = a in bspec)
 apply (simp (no_asm_simp))
 apply (subgoal_tac "cons (a, A) = A")
@@ -596,7 +596,7 @@ apply (frule_tac A = A and M = M and a = a in setsum_decr3)
 apply (simp (no_asm_simp) add: multiset_def multiset_fun_iff)
 apply blast
 apply (simp (no_asm_simp) add: mset_of_def)
-apply (drule_tac b = "if ?u then ?v else ?w" in sym, simp_all)
+apply (drule_tac b = "if u then v else w" for u v w in sym, simp_all)
 apply (subgoal_tac "{x \<in> A - {a} . 0 < funrestrict (M, A - {x}) ` x} = A - {a}")
 apply (auto intro!: setsum_cong simp add: zdiff_eq_iff zadd_commute multiset_def multiset_fun_iff mset_of_def)
 done
@@ -815,7 +815,7 @@ apply (drule_tac x = aa in spec, simp)
 apply (subgoal_tac "aa \<in> A")
 prefer 2 apply blast
 apply (drule_tac x = "M0 +# M" and P =
-       "%x. x \<in> acc(multirel1(A, r)) \<longrightarrow> ?Q(x)" in spec)
+       "%x. x \<in> acc(multirel1(A, r)) \<longrightarrow> Q(x)" for Q in spec)
 apply (simp add: munion_assoc [symmetric])
 (* subgoal 3 \<in> additional conditions *)
 apply (auto intro!: multirel1_base [THEN fieldI2] simp add: Mult_iff_multiset)
@@ -942,7 +942,7 @@ apply (drule_tac t = "%M. M-#{#a#}" in subst_context)
 apply (simp add: mdiff_union_single_conv melem_diff_single, clarify)
 apply (erule disjE, simp)
 apply (erule disjE, simp)
-apply (drule_tac x = a and P = "%x. x :# Ka \<longrightarrow> ?Q(x)" in spec)
+apply (drule_tac x = a and P = "%x. x :# Ka \<longrightarrow> Q(x)" for Q in spec)
 apply clarify
 apply (rule_tac x = xa in exI)
 apply (simp (no_asm_simp))
@@ -1005,7 +1005,7 @@ apply (simp add: multirel1_iff Mult_iff_multiset, force)
 apply (drule sym, rotate_tac -1, simp)
 apply (erule_tac V = "$# x = msize (J') " in thin_rl)
 apply (frule_tac M = K and P = "%x. <x,a> \<in> r" in multiset_partition)
-apply (erule_tac P = "\<forall>k \<in> mset_of (K) . ?P (k) " in rev_mp)
+apply (erule_tac P = "\<forall>k \<in> mset_of (K) . P(k)" for P in rev_mp)
 apply (erule ssubst)
 apply (simp add: Ball_def, auto)
 apply (subgoal_tac "< (I +# {# x \<in> K. <x, a> \<in> r#}) +# {# x \<in> K. <x, a> \<notin> r#}, (I +# {# x \<in> K. <x, a> \<in> r#}) +# J'> \<in> multirel(A, r) ")
@@ -1119,7 +1119,7 @@ done
 lemma munion_multirel_mono1:
      "[|<M, N> \<in> multirel(A, r); K \<in> Mult(A)|] ==> <M +# K, N +# K> \<in> multirel(A, r)"
 apply (frule multirel_type [THEN subsetD])
-apply (rule_tac P = "%x. <x,?u> \<in> multirel(A, r) " in munion_commute [THEN subst])
+apply (rule_tac P = "%x. <x,u> \<in> multirel(A, r)" for u in munion_commute [THEN subst])
 apply (subst munion_commute [of N])
 apply (rule munion_multirel_mono2)
 apply (auto simp add: Mult_iff_multiset)

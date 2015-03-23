@@ -4,21 +4,18 @@ begin
 
 chapter \<open>Specifications\<close>
 
-text \<open>
-  The Isabelle/Isar theory format integrates specifications and
-  proofs, supporting interactive development with unlimited undo
-  operation.  There is an integrated document preparation system (see
-  \chref{ch:document-prep}), for typesetting formal developments
-  together with informal text.  The resulting hyper-linked PDF
-  documents can be used both for WWW presentation and printed copies.
+text \<open>The Isabelle/Isar theory format integrates specifications and proofs,
+  with support for interactive development by continuous document editing.
+  There is a separate document preparation system (see
+  \chref{ch:document-prep}), for typesetting formal developments together
+  with informal text. The resulting hyper-linked PDF documents can be used
+  both for WWW presentation and printed copies.
 
   The Isar proof language (see \chref{ch:proofs}) is embedded into the
   theory language as a proper sub-language.  Proof mode is entered by
   stating some @{command theorem} or @{command lemma} at the theory
   level, and left again with the final conclusion (e.g.\ via @{command
-  qed}).  Some theory specification mechanisms also require a proof,
-  such as @{command typedef} in HOL, which demands non-emptiness of
-  the representing sets.
+  qed}).
 \<close>
 
 
@@ -30,28 +27,36 @@ text \<open>
     @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
   \end{matharray}
 
-  Isabelle/Isar theories are defined via theory files, which may
-  contain both specifications and proofs; occasionally definitional
-  mechanisms also require some explicit proof.  The theory body may be
-  sub-structured by means of \emph{local theory targets}, such as
-  @{command "locale"} and @{command "class"}.
+  Isabelle/Isar theories are defined via theory files, which consist of an
+  outermost sequence of definition--statement--proof elements. Some
+  definitions are self-sufficient (e.g.\ @{command fun} in Isabelle/HOL),
+  with foundational proofs performed internally. Other definitions require
+  an explicit proof as justification (e.g.\ @{command function} and
+  @{command termination} in Isabelle/HOL). Plain statements like @{command
+  theorem} or @{command lemma} are merely a special case of that, defining a
+  theorem from a given proposition and its proof.
 
-  The first proper command of a theory is @{command "theory"}, which
-  indicates imports of previous theories and optional dependencies on
-  other source files (usually in ML).  Just preceding the initial
-  @{command "theory"} command there may be an optional @{command
-  "header"} declaration, which is only relevant to document
-  preparation: see also the other section markup commands in
-  \secref{sec:markup}.
+  The theory body may be sub-structured by means of \emph{local theory
+  targets}, such as @{command "locale"} and @{command "class"}. It is also
+  possible to use @{command context}~@{keyword "begin"}~\dots~@{command end}
+  blocks to delimited a local theory context: a \emph{named context} to
+  augment a locale or class specification, or an \emph{unnamed context} to
+  refer to local parameters and assumptions that are discharged later. See
+  \secref{sec:target} for more details.
 
-  A theory is concluded by a final @{command (global) "end"} command,
-  one that does not belong to a local theory target.  No further
-  commands may follow such a global @{command (global) "end"},
-  although some user-interfaces might pretend that trailing input is
-  admissible.
+  \medskip A theory is commenced by the @{command "theory"} command, which
+  indicates imports of previous theories, according to an acyclic
+  foundational order. Before the initial @{command "theory"} command, there
+  may be optional document header material (like @{command section} or
+  @{command text}, see \secref{sec:markup}). The document header is outside
+  of the formal theory context, though.
+
+  A theory is concluded by a final @{command (global) "end"} command, one
+  that does not belong to a local theory target. No further commands may
+  follow such a global @{command (global) "end"}.
 
   @{rail \<open>
-    @@{command theory} @{syntax name} imports keywords? \<newline> @'begin'
+    @@{command theory} @{syntax name} imports? keywords? \<newline> @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
     ;
@@ -72,6 +77,11 @@ text \<open>
   up-to-date: changed files are automatically rechecked whenever a
   theory header specification is processed.
 
+  Empty imports are only allowed in the bootstrap process of the special
+  theory @{theory Pure}, which is the start of any other formal development
+  based on Isabelle. Regular user theories usually refer to some more
+  complex entry point, such as theory @{theory Main} in Isabelle/HOL.
+
   The optional @{keyword_def "keywords"} specification declares outer
   syntax (\chref{ch:outer-syntax}) that is introduced in this theory
   later on (rare in end-user applications).  Both minor keywords and
@@ -85,8 +95,8 @@ text \<open>
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
 
-  It is possible to specify an alternative completion via @{text "==
-  text"}, while the default is the corresponding keyword name.
+  It is possible to specify an alternative completion via @{verbatim
+  "=="}~@{text "text"}, while the default is the corresponding keyword name.
   
   \item @{command (global) "end"} concludes the current theory
   definition.  Note that some other commands, e.g.\ local theory
@@ -106,9 +116,9 @@ text \<open>
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  A local theory target is a context managed separately within the
-  enclosing theory.  Contexts may introduce parameters (fixed
-  variables) and assumptions (hypotheses).  Definitions and theorems
+  A local theory target is a specification context that is managed
+  separately within the enclosing theory. Contexts may introduce parameters
+  (fixed variables) and assumptions (hypotheses). Definitions and theorems
   depending on the context may be added incrementally later on.
 
   \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
@@ -150,20 +160,24 @@ text \<open>
   (global) "end"} has a different meaning: it concludes the theory
   itself (\secref{sec:begin-thy}).
   
-  \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any
-  local theory command specifies an immediate target, e.g.\
-  ``@{command "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
-  "theorem"}~@{text "(\<IN> c) \<dots>"}''.  This works both in a local or
-  global theory context; the current target context will be suspended
-  for this command only.  Note that ``@{text "(\<IN> -)"}'' will
-  always produce a global result independently of the current target
-  context.
+  \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any local
+  theory command specifies an immediate target, e.g.\ ``@{command
+  "definition"}~@{text "(\<IN> c)"}'' or ``@{command "theorem"}~@{text
+  "(\<IN> c)"}''. This works both in a local or global theory context; the
+  current target context will be suspended for this command only. Note that
+  ``@{text "(\<IN> -)"}'' will always produce a global result independently
+  of the current target context.
 
   \end{description}
 
-  The exact meaning of results produced within a local theory context
-  depends on the underlying target infrastructure (locale, type class
-  etc.).  The general idea is as follows, considering a context named
+  Any specification element that operates on @{text local_theory} according
+  to this manual implicitly allows the above target syntax @{text
+  "("}@{keyword "in"}~@{text "c)"}, but individual syntax diagrams omit that
+  aspect for clarity.
+
+  \medskip The exact meaning of results produced within a local theory
+  context depends on the underlying target infrastructure (locale, type
+  class etc.). The general idea is as follows, considering a context named
   @{text c} with parameter @{text x} and assumption @{text "A[x]"}.
   
   Definitions are exported by introducing a global version with
@@ -178,11 +192,7 @@ text \<open>
   generalizing the parameters of the context.  For example, @{text "a:
   B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"}, again for arbitrary
   @{text "?x"}.
-
-  \medskip The Isabelle/HOL library contains numerous applications of
-  locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
-  example for an unnamed auxiliary contexts is given in @{file
-  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.\<close>
+\<close>
 
 
 section \<open>Bundled declarations \label{sec:bundle}\<close>
@@ -211,8 +221,7 @@ text \<open>
   locale interpretation (\secref{sec:locale}).
 
   @{rail \<open>
-    @@{command bundle} @{syntax target}? \<newline>
-    @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
+    @@{command bundle} @{syntax name} '=' @{syntax thmrefs} @{syntax for_fixes}
     ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
     ;
@@ -274,10 +283,9 @@ text \<open>
   ``abbreviation''.
 
   @{rail \<open>
-    @@{command definition} @{syntax target}? \<newline>
-      (decl @'where')? @{syntax thmdecl}? @{syntax prop}
+    @@{command definition} (decl @'where')? @{syntax thmdecl}? @{syntax prop}
     ;
-    @@{command abbreviation} @{syntax target}? @{syntax mode}? \<newline>
+    @@{command abbreviation} @{syntax mode}? \<newline>
       (decl @'where')? @{syntax prop}
     ;
 
@@ -337,10 +345,6 @@ text \<open>
   @{rail \<open>
     @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
     ;
-
-    @{syntax_def "fixes"}: ((@{syntax name} ('::' @{syntax type})?
-      @{syntax mixfix}? | @{syntax vars}) + @'and')
-    ;
     specs: (@{syntax thmdecl}? @{syntax props} + @'and')
   \<close>}
 
@@ -389,9 +393,9 @@ text \<open>
 
   @{rail \<open>
     (@@{command declaration} | @@{command syntax_declaration})
-      ('(' @'pervasive' ')')? \<newline> @{syntax target}? @{syntax text}
+      ('(' @'pervasive' ')')? \<newline> @{syntax text}
     ;
-    @@{command declare} @{syntax target}? (@{syntax thmrefs} + @'and')
+    @@{command declare} (@{syntax thmrefs} + @'and')
   \<close>}
 
   \begin{description}
@@ -455,7 +459,7 @@ text \<open>
   omitted according to roundup.
 
   @{rail \<open>
-    @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax "fixes"} + @'and'))?
+    @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
     instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
     ;
@@ -515,7 +519,7 @@ text \<open>
       @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
     @{syntax_def context_elem}:
-      @'fixes' (@{syntax "fixes"} + @'and') |
+      @'fixes' @{syntax "fixes"} |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
@@ -913,7 +917,7 @@ text \<open>
     @@{command instance} (() | (@{syntax nameref} + @'and') '::' @{syntax arity} |
       @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
     ;
-    @@{command subclass} @{syntax target}? @{syntax nameref}
+    @@{command subclass} @{syntax nameref}
     ;
     @@{command class_deps} ( ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) ) \<newline>
       ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) )? )?
@@ -1133,8 +1137,7 @@ text \<open>
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
     ;
-    @@{command attribute_setup} @{syntax target}?
-      @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}
@@ -1398,12 +1401,10 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
-      (@{syntax thmdef}? @{syntax thmrefs} + @'and')
-      (@'for' (@{syntax vars} + @'and'))?
+    (@@{command lemmas} | @@{command theorems}) (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+      @{syntax for_fixes}
     ;
-    @@{command named_theorems} @{syntax target}?
-      (@{syntax name} @{syntax text}? + @'and')
+    @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 
   \begin{description}

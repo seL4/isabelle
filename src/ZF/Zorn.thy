@@ -469,7 +469,7 @@ proof -
       apply (erule lamE) apply simp
       apply assumption
 
-      apply (thin_tac "C \<subseteq> ?X")
+      apply (thin_tac "C \<subseteq> X" for X)
       apply (fast elim: lamE)
       done
     have "?A \<in> Chain(r)"

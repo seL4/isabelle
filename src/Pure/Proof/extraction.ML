@@ -101,7 +101,7 @@ fun condrew thy rules procs =
         get_first (fn (_, (prems, (tm1, tm2))) =>
         let
           fun ren t = the_default t (Term.rename_abs tm1 tm t);
-          val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
+          val inc = Logic.incr_indexes ([], [], maxidx_of_term tm + 1);
           val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm) (Vartab.empty, Vartab.empty);
           val prems' = map (apply2 (Envir.subst_term env o inc o ren)) prems;
           val env' = Envir.Envir

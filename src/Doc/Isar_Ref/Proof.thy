@@ -184,7 +184,7 @@ text \<open>
   \<phi>[t]"}.
 
   @{rail \<open>
-    @@{command fix} (@{syntax vars} + @'and')
+    @@{command fix} @{syntax "fixes"}
     ;
     (@@{command assume} | @@{command presume}) (@{syntax props} + @'and')
     ;
@@ -432,7 +432,7 @@ text \<open>
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) @{syntax target}? (goal | longgoal)
+     @@{command schematic_corollary}) (goal | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus}) goal
     ;
@@ -441,7 +441,8 @@ text \<open>
   
     goal: (@{syntax props} + @'and')
     ;
-    longgoal: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} * ) conclusion
+    statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
+      conclusion
     ;
     conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
@@ -737,13 +738,11 @@ text \<open>
     ;
     @@{attribute OF} @{syntax thmrefs}
     ;
-    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? \<newline>
-      (@'for' (@{syntax vars} + @'and'))?
+    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? @{syntax for_fixes}
     ;
     @@{attribute "where"}
       ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
-      (@{syntax type} | @{syntax term}) * @'and') \<newline>
-      (@'for' (@{syntax vars} + @'and'))?
+      (@{syntax type} | @{syntax term}) * @'and') \<newline> @{syntax for_fixes}
   \<close>}
 
   \begin{description}
@@ -935,8 +934,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command method_setup} @{syntax target}?
-      @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}

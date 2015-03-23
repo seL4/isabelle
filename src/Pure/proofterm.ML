@@ -834,7 +834,7 @@ fun instantiate (instT, inst) =
 fun lift_proof Bi inc prop prf =
   let
     fun lift'' Us Ts t =
-      strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
+      strip_abs Ts (Logic.incr_indexes ([], Us, inc) (mk_abs Ts t));
 
     fun lift' Us Ts (Abst (s, T, prf)) =
           (Abst (s, Same.map_option (Logic.incr_tvar_same inc) T, lifth' Us (dummyT::Ts) prf)
@@ -878,7 +878,7 @@ fun lift_proof Bi inc prop prf =
 
 fun incr_indexes i =
   Same.commit (map_proof_terms_same
-    (Logic.incr_indexes_same ([], i)) (Logic.incr_tvar_same i));
+    (Logic.incr_indexes_same ([], [], i)) (Logic.incr_tvar_same i));
 
 
 (***** proof by assumption *****)

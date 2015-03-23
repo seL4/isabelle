@@ -28,7 +28,7 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
 
         val maxidx = fold (Term.maxidx_term o #2) pairs ~1;
         val offset = maxidx + 1;
-        val pairs' = map (apfst (Logic.incr_indexes ([], offset))) pairs;
+        val pairs' = map (apfst (Logic.incr_indexes ([], [], offset))) pairs;
         val maxidx' = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u) pairs' ~1;
 
         val pat_tvars = fold (Term.add_tvars o #1) pairs' [];

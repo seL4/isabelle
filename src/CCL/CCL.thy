@@ -476,7 +476,7 @@ lemma eq_coinduct3:
 method_setup eq_coinduct3 = {*
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
     SIMPLE_METHOD'
-      (Rule_Insts.res_inst_tac ctxt [((("R", 0), Position.none), s)] @{thm eq_coinduct3}))
+      (Rule_Insts.res_inst_tac ctxt [((("R", 0), Position.none), s)] [] @{thm eq_coinduct3}))
 *}
 
 

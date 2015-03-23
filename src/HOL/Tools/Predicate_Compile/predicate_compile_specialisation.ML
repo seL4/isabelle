@@ -62,7 +62,7 @@ fun specialise_intros black_list (pred, intros) pats thy =
   let
     val ctxt = Proof_Context.init_global thy
     val maxidx = fold (Term.maxidx_term o Thm.prop_of) intros ~1
-    val pats = map (Logic.incr_indexes ([], maxidx + 1)) pats
+    val pats = map (Logic.incr_indexes ([], [], maxidx + 1)) pats
     val (((pred, intros), pats), ctxt') = import (pred, intros) pats ctxt
     val result_pats = map Var (fold_rev Term.add_vars pats [])
     fun mk_fresh_name names =

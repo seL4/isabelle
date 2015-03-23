@@ -114,14 +114,14 @@ apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "g (sa) " and A = B in bspec)
 apply auto
-apply (drule_tac x = "f (sa) " and P = "%j. F \<in> ?X (j) \<longmapsto>w ?Y (j) " in bspec)
+apply (drule_tac x = "f (sa) " and P = "%j. F \<in> X(j) \<longmapsto>w Y(j)" for X Y in bspec)
 apply auto
 apply (rule PSP_Stable [THEN LeadsTo_weaken], blast, blast)
 apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
-apply (drule_tac x = "f1 (x) " and x1 = "f (sa) " and P2 = "%x y. \<forall>u\<in>B. ?P (x,y,u) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) \<longrightarrow> ?d (x,y) \<in> t" in bspec [THEN bspec])
+apply (drule_tac x = "f1 (x)" and x1 = "f (sa) " and P2 = "%x y. \<forall>u\<in>B. P (x,y,u)" for P in bspec [THEN bspec])
+apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "%x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -135,7 +135,7 @@ lemma imp_LeadsTo_comp_left:
   F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} LeadsTo {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
-apply (drule_tac x = "f (sa) " and P = "%k. F \<in> Stable (?X (k))" in bspec)
+apply (drule_tac x = "f (sa) " and P = "%k. F \<in> Stable (X (k))" for X in bspec)
 apply auto
 apply (drule_tac x = "g (sa) " in bspec)
 apply auto
@@ -144,7 +144,7 @@ apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
 apply (drule_tac x = "f (x) " and x1 = "f (sa) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "%x y. ?P (x,y) \<longrightarrow> ?d (x,y) \<in> t" in bspec [THEN bspec])
+apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "%x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)

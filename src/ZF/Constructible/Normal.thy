@@ -284,7 +284,7 @@ lemma cont_Ord_Union:
       ==> F(\<Union>(X)) = (\<Union>y\<in>X. F(y))"
 apply (frule Ord_set_cases)
 apply (erule disjE, force) 
-apply (thin_tac "X=0 \<longrightarrow> ?Q", auto)
+apply (thin_tac "X=0 \<longrightarrow> Q" for Q, auto)
  txt{*The trival case of @{term "\<Union>X \<in> X"}*}
  apply (rule equalityI, blast intro: Ord_Union_eq_succD) 
  apply (simp add: mono_le_subset_def UN_subset_iff le_subset_iff) 

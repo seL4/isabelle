@@ -563,7 +563,7 @@ apply (drule eqpoll_trans [THEN eqpoll_sym,
 apply (elim exE)
 apply (rename_tac h)
 apply (rule_tac x = "\<Union>j<a. recfunAC16 (h,f,j,a) " in exI)
-apply (rule_tac P="%z. ?Y & (\<forall>x \<in> z. ?Z (x))" 
+apply (rule_tac P="%z. Y & (\<forall>x \<in> z. Z(x))"  for Y Z
        in bij_is_surj [THEN surj_image_eq, THEN subst], assumption)
 apply (rule lemma_simp_induct)
 apply (blast del: conjI notI

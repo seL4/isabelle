@@ -100,9 +100,8 @@ text \<open>
   @{rail \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
-    @{syntax target}? \<newline>
-    @{syntax "fixes"} (@'for' @{syntax "fixes"})? (@'where' clauses)? \<newline>
-    (@'monos' @{syntax thmrefs})?
+      @{syntax "fixes"} @{syntax "for_fixes"} \<newline>
+      (@'where' clauses)? (@'monos' @{syntax thmrefs})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
@@ -266,9 +265,9 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) primrec} @{syntax target}? @{syntax "fixes"} @'where' equations
+    @@{command (HOL) primrec} @{syntax "fixes"} @'where' equations
     ;
-    (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
+    (@@{command (HOL) fun} | @@{command (HOL) function}) functionopts?
       @{syntax "fixes"} \<newline> @'where' equations
     ;
 
@@ -322,7 +321,7 @@ text \<open>
   command can then be used to establish that the function is total.
 
   \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
-  (HOL) "function"}~@{text "(sequential)"}, followed by automated
+  (HOL) "function"}~@{text "(sequential)"}'', followed by automated
   proof attempts regarding pattern matching and termination.  See
   @{cite "isabelle-function"} for further details.
 
@@ -575,8 +574,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) partial_function} @{syntax target}?
-      '(' @{syntax nameref} ')' @{syntax "fixes"} \<newline>
+    @@{command (HOL) partial_function} '(' @{syntax nameref} ')' @{syntax "fixes"} \<newline>
       @'where' @{syntax thmdecl}? @{syntax prop}
   \<close>}
 
@@ -1592,25 +1590,25 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) setup_lifting} \<newline>
-      @{syntax thmref} @{syntax thmref}? (@'parametric' @{syntax thmref})?;
+    @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
+      (@'parametric' @{syntax thmref})?
   \<close>}
 
   @{rail \<open>
     @@{command (HOL) lift_definition} @{syntax name} '::' @{syntax type}  @{syntax mixfix}? \<newline>
-      'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?;
+      'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?
   \<close>}
 
   @{rail \<open>
-    @@{command (HOL) lifting_forget} @{syntax nameref};
+    @@{command (HOL) lifting_forget} @{syntax nameref}
   \<close>}
 
   @{rail \<open>
-    @@{command (HOL) lifting_update} @{syntax nameref};
+    @@{command (HOL) lifting_update} @{syntax nameref}
   \<close>}
 
   @{rail \<open>
-    @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?;
+    @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?
   \<close>}
 
   \begin{description}

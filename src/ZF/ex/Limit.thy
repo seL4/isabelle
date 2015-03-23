@@ -1833,8 +1833,8 @@ apply (rule_tac [3] comp_fun_apply [THEN subst])
 apply (rename_tac [5] y)
 apply (rule_tac [5] P =
          "%z. rel(DD`succ(y),
-                  (ee`y O Rp(?DD(y)`y,?DD(y)`succ(y),?ee(y)`y)) ` (x`succ(y)),
-                  z)"
+                  (ee`y O Rp(DD'(y)`y,DD'(y)`succ(y),ee'(y)`y)) ` (x`succ(y)),
+                  z)" for DD' ee'
        in id_conv [THEN subst])
 apply (rule_tac [6] rel_cf)
 (* Dinf and cont_fun doesn't go well together, both Pi(_,%x._). *)

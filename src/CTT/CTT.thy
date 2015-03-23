@@ -422,15 +422,15 @@ fun eqintr_tac ctxt =
 
 fun NE_tac ctxt sp i =
   TRY (rtac @{thm EqE} i) THEN
-  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] @{thm NE} i
+  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm NE} i
 
 fun SumE_tac ctxt sp i =
   TRY (rtac @{thm EqE} i) THEN
-  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] @{thm SumE} i
+  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm SumE} i
 
 fun PlusE_tac ctxt sp i =
   TRY (rtac @{thm EqE} i) THEN
-  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] @{thm PlusE} i
+  Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm PlusE} i
 
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 

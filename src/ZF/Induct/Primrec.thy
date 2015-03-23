@@ -334,7 +334,7 @@ lemma PREC_case_lemma:
    apply (simp add: add_le_self [THEN ack_lt_mono1])
   txt {* ind step *}
   apply (rule succ_leI [THEN lt_trans1])
-   apply (rule_tac j = "g ` ?ll #+ ?mm" in lt_trans1)
+   apply (rule_tac j = "g ` ll #+ mm" for ll mm in lt_trans1)
     apply (erule_tac [2] bspec)
     apply (rule nat_le_refl [THEN add_le_mono])
        apply typecheck

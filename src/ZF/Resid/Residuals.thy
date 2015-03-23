@@ -129,7 +129,7 @@ lemma residuals_subst_rec:
                     subst_rec(v1 |> v2, u1 |> u2,n))"
 apply (erule Scomp.induct, safe)
 apply (simp_all add: lift_rec_Var subst_Var residuals_lift_rec)
-apply (drule_tac psi = "\<forall>x.?P (x) " in asm_rl)
+apply (drule_tac psi = "\<forall>x. P(x)" for P in asm_rl)
 apply (simp add: substitution)
 done
 
@@ -159,7 +159,7 @@ by (erule Scomp.induct, simp_all)
 lemma preservation [rule_format]:
      "u ~ v ==> regular(v) \<longrightarrow> u|>v = (u un v)|>v"
 apply (erule Scomp.induct, safe)
-apply (drule_tac [3] psi = "Fun (?u) |> ?v = ?w" in asm_rl)
+apply (drule_tac [3] psi = "Fun (u) |> v = w" for u v w in asm_rl)
 apply (auto simp add: union_preserve_comp comp_sym_iff)
 done
 
