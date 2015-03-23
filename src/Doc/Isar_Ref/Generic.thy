@@ -485,7 +485,7 @@ text \<open>
 
   \begin{center}
   \small
-  \begin{supertabular}{|l|l|p{0.3\textwidth}|}
+  \begin{tabular}{|l|l|p{0.3\textwidth}|}
   \hline
   Isar method & ML tactic & behavior \\\hline
 
@@ -508,7 +508,7 @@ text \<open>
   mode: an assumption is only used for simplifying assumptions which
   are to the right of it \\\hline
 
-  \end{supertabular}
+  \end{tabular}
   \end{center}
 \<close>
 
@@ -1002,11 +1002,10 @@ text \<open>The following simplification procedure for @{thm
   the Simplifier loop!  Note that a version of this simplification
   procedure is already active in Isabelle/HOL.\<close>
 
-simproc_setup unit ("x::unit") = \<open>
-  fn _ => fn _ => fn ct =>
+simproc_setup unit ("x::unit") =
+  \<open>fn _ => fn _ => fn ct =>
     if HOLogic.is_unit (Thm.term_of ct) then NONE
-    else SOME (mk_meta_eq @{thm unit_eq})
-\<close>
+    else SOME (mk_meta_eq @{thm unit_eq})\<close>
 
 text \<open>Since the Simplifier applies simplification procedures
   frequently, it is important to make the failure check in ML
