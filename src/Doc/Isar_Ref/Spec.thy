@@ -4,21 +4,18 @@ begin
 
 chapter \<open>Specifications\<close>
 
-text \<open>
-  The Isabelle/Isar theory format integrates specifications and
-  proofs, supporting interactive development with unlimited undo
-  operation.  There is an integrated document preparation system (see
-  \chref{ch:document-prep}), for typesetting formal developments
-  together with informal text.  The resulting hyper-linked PDF
-  documents can be used both for WWW presentation and printed copies.
+text \<open>The Isabelle/Isar theory format integrates specifications and proofs,
+  with support for interactive development by continuous document editing.
+  There is a separate document preparation system (see
+  \chref{ch:document-prep}), for typesetting formal developments together
+  with informal text. The resulting hyper-linked PDF documents can be used
+  both for WWW presentation and printed copies.
 
   The Isar proof language (see \chref{ch:proofs}) is embedded into the
   theory language as a proper sub-language.  Proof mode is entered by
   stating some @{command theorem} or @{command lemma} at the theory
   level, and left again with the final conclusion (e.g.\ via @{command
-  qed}).  Some theory specification mechanisms also require a proof,
-  such as @{command typedef} in HOL, which demands non-emptiness of
-  the representing sets.
+  qed}).
 \<close>
 
 
@@ -30,28 +27,36 @@ text \<open>
     @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
   \end{matharray}
 
-  Isabelle/Isar theories are defined via theory files, which may
-  contain both specifications and proofs; occasionally definitional
-  mechanisms also require some explicit proof.  The theory body may be
-  sub-structured by means of \emph{local theory targets}, such as
-  @{command "locale"} and @{command "class"}.
+  Isabelle/Isar theories are defined via theory files, which consist of an
+  outermost sequence of definition--statement--proof elements. Some
+  definitions are self-sufficient (e.g.\ @{command fun} in Isabelle/HOL),
+  with foundational proofs performed internally. Other definitions require
+  an explicit proof as justification (e.g.\ @{command function} and
+  @{command termination} in Isabelle/HOL). Plain statements like @{command
+  theorem} or @{command lemma} are merely a special case of that, defining a
+  theorem from a given proposition and its proof.
 
-  The first proper command of a theory is @{command "theory"}, which
-  indicates imports of previous theories and optional dependencies on
-  other source files (usually in ML).  Just preceding the initial
-  @{command "theory"} command there may be an optional @{command
-  "header"} declaration, which is only relevant to document
-  preparation: see also the other section markup commands in
-  \secref{sec:markup}.
+  The theory body may be sub-structured by means of \emph{local theory
+  targets}, such as @{command "locale"} and @{command "class"}. It is also
+  possible to use @{command context}~@{keyword "begin"}~\dots~@{command end}
+  blocks to delimited a local theory context: a \emph{named context} to
+  augment a locale or class specification, or an \emph{unnamed context} to
+  refer to local parameters and assumptions that are discharged later. See
+  \secref{sec:target} for more details.
 
-  A theory is concluded by a final @{command (global) "end"} command,
-  one that does not belong to a local theory target.  No further
-  commands may follow such a global @{command (global) "end"},
-  although some user-interfaces might pretend that trailing input is
-  admissible.
+  \medskip A theory is commenced by the @{command "theory"} command, which
+  indicates imports of previous theories, according to an acyclic
+  foundational order. Before the initial @{command "theory"} command, there
+  may be optional document header material (like @{command section} or
+  @{command text}, see \secref{sec:markup}). The document header is outside
+  of the formal theory context, though.
+
+  A theory is concluded by a final @{command (global) "end"} command, one
+  that does not belong to a local theory target. No further commands may
+  follow such a global @{command (global) "end"}.
 
   @{rail \<open>
-    @@{command theory} @{syntax name} imports keywords? \<newline> @'begin'
+    @@{command theory} @{syntax name} imports? keywords? \<newline> @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
     ;
@@ -72,6 +77,11 @@ text \<open>
   up-to-date: changed files are automatically rechecked whenever a
   theory header specification is processed.
 
+  Empty imports are only allowed in the bootstrap process of the special
+  theory @{theory Pure}, which is the start of any other formal development
+  based on Isabelle. Regular user theories usually refer to some more
+  complex entry point, such as theory @{theory Main} in Isabelle/HOL.
+
   The optional @{keyword_def "keywords"} specification declares outer
   syntax (\chref{ch:outer-syntax}) that is introduced in this theory
   later on (rare in end-user applications).  Both minor keywords and
@@ -85,8 +95,8 @@ text \<open>
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
 
-  It is possible to specify an alternative completion via @{text "==
-  text"}, while the default is the corresponding keyword name.
+  It is possible to specify an alternative completion via @{verbatim
+  "=="}~@{text "text"}, while the default is the corresponding keyword name.
   
   \item @{command (global) "end"} concludes the current theory
   definition.  Note that some other commands, e.g.\ local theory
@@ -106,9 +116,9 @@ text \<open>
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  A local theory target is a context managed separately within the
-  enclosing theory.  Contexts may introduce parameters (fixed
-  variables) and assumptions (hypotheses).  Definitions and theorems
+  A local theory target is a specification context that is managed
+  separately within the enclosing theory. Contexts may introduce parameters
+  (fixed variables) and assumptions (hypotheses). Definitions and theorems
   depending on the context may be added incrementally later on.
 
   \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
