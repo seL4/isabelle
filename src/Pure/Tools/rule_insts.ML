@@ -14,20 +14,28 @@ sig
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val res_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
+    int -> tactic
   val eres_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
+    int -> tactic
   val cut_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
+    int -> tactic
   val forw_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
+    int -> tactic
   val dres_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic
-  val thin_tac: Proof.context -> string -> int -> tactic
-  val subgoal_tac: Proof.context -> string -> int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
+    int -> tactic
+  val thin_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
+    int -> tactic
+  val subgoal_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
+    int -> tactic
   val make_elim_preserve: Proof.context -> thm -> thm
   val method:
-    (Proof.context -> ((indexname * Position.T) * string) list -> thm -> int -> tactic) ->
+    (Proof.context -> ((indexname * Position.T) * string) list ->
+      (binding * string option * mixfix) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
@@ -124,15 +132,15 @@ end;
 fun where_rule ctxt mixed_insts fixes thm =
   let
     val ctxt' = ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
-      |> Variable.declare_thm thm;
+      |> Variable.declare_thm thm
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
     val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
   in
     thm
     |> Drule.instantiate_normalize
       (map (apply2 (Thm.ctyp_of ctxt) o apfst TVar) inst_tvars,
        map (apply2 (Thm.cterm_of ctxt) o apfst Var) inst_vars)
-    |> singleton (Proof_Context.export ctxt' ctxt)
+    |> singleton (Variable.export ctxt' ctxt)
     |> Rule_Cases.save thm
   end;
 
@@ -192,7 +200,7 @@ end;
 
 (* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
 
-fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _) =>
+fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
     (* goal parameters *)
 
@@ -210,9 +218,15 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
     val paramTs = map #2 params;
 
 
-    (* lift and instantiate rule *)
+    (* local fixes *)
 
-    val (inst_tvars, inst_vars) = read_insts param_ctxt mixed_insts thm;
+    val fixes_ctxt = param_ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+
+    val (inst_tvars, inst_vars) = read_insts fixes_ctxt mixed_insts thm;
+
+
+    (* lift and instantiate rule *)
 
     val inc = Thm.maxidx_of st + 1;
     fun lift_var ((a, j), T) =
@@ -222,13 +236,14 @@ fun bires_inst_tac bires_flag ctxt mixed_insts thm i st = CSUBGOAL (fn (cgoal, _
         (Logic.incr_indexes (paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
-      |> map (apply2 (Thm.ctyp_of param_ctxt o Logic.incr_tvar inc) o apfst TVar);
+      |> map (apply2 (Thm.ctyp_of fixes_ctxt o Logic.incr_tvar inc) o apfst TVar);
     val inst_vars' = inst_vars
-      |> map (fn (v, t) => apply2 (Thm.cterm_of param_ctxt) (lift_var v, lift_term t));
+      |> map (fn (v, t) => apply2 (Thm.cterm_of fixes_ctxt) (lift_var v, lift_term t));
 
     val thm' =
       Drule.instantiate_normalize (inst_tvars', inst_vars')
-        (Thm.lift_rule cgoal thm);
+        (Thm.lift_rule cgoal thm)
+      |> singleton (Variable.export fixes_ctxt param_ctxt);
   in
     compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
   end) i st;
@@ -256,25 +271,27 @@ fun make_elim_preserve ctxt rl =
   end;
 
 (*instantiate and cut -- for atomic fact*)
-fun cut_inst_tac ctxt insts rule = res_inst_tac ctxt insts (make_elim_preserve ctxt rule);
+fun cut_inst_tac ctxt insts fixes rule =
+  res_inst_tac ctxt insts fixes (make_elim_preserve ctxt rule);
 
 (*forward tactic applies a rule to an assumption without deleting it*)
-fun forw_inst_tac ctxt insts rule = cut_inst_tac ctxt insts rule THEN' assume_tac ctxt;
+fun forw_inst_tac ctxt insts fixes rule =
+  cut_inst_tac ctxt insts fixes rule THEN' assume_tac ctxt;
 
 (*dresolve tactic applies a rule to replace an assumption*)
-fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve ctxt rule);
+fun dres_inst_tac ctxt insts fixes rule =
+  eres_inst_tac ctxt insts fixes (make_elim_preserve ctxt rule);
 
 
 (* derived tactics *)
 
 (*deletion of an assumption*)
-fun thin_tac ctxt s =
-  eres_inst_tac ctxt [((("V", 0), Position.none), s)] Drule.thin_rl;
+fun thin_tac ctxt s fixes =
+  eres_inst_tac ctxt [((("V", 0), Position.none), s)] fixes Drule.thin_rl;
 
 (*Introduce the given proposition as lemma and subgoal*)
-fun subgoal_tac ctxt A =
-  DETERM o res_inst_tac ctxt [((("psi", 0), Position.none), A)] cut_rl;
-
+fun subgoal_tac ctxt A fixes =
+  DETERM o res_inst_tac ctxt [((("psi", 0), Position.none), A)] fixes cut_rl;
 
 
 (* method wrapper *)
@@ -282,14 +299,16 @@ fun subgoal_tac ctxt A =
 fun method inst_tac tac =
   Args.goal_spec --
   Scan.optional (Scan.lift
-    (Parse.and_list1 (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax))
-      --| Args.$$$ "in")) [] --
+    (Parse.and_list1
+      (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax)) --
+      Parse.for_fixes --| Args.$$$ "in")) ([], []) --
   Attrib.thms >>
-  (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
-    if null insts then quant (Method.insert_tac facts THEN' tac ctxt thms)
+  (fn ((quant, (insts, fixes)), thms) => fn ctxt => METHOD (fn facts =>
+    if null insts andalso null fixes
+    then quant (Method.insert_tac facts THEN' tac ctxt thms)
     else
       (case thms of
-        [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
+        [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts fixes thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
 
@@ -309,13 +328,13 @@ val _ = Theory.setup
   Method.setup @{binding cut_tac} (method cut_inst_tac (K cut_rules_tac))
     "cut rule (dynamic instantiation)" #>
   Method.setup @{binding subgoal_tac}
-    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_inner_syntax) >>
-      (fn (quant, props) => fn ctxt =>
-        SIMPLE_METHOD'' quant (EVERY' (map (subgoal_tac ctxt) props))))
+    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_inner_syntax -- Parse.for_fixes) >>
+      (fn (quant, (props, fixes)) => fn ctxt =>
+        SIMPLE_METHOD'' quant (EVERY' (map (fn prop => subgoal_tac ctxt prop fixes) props))))
     "insert subgoal (dynamic instantiation)" #>
   Method.setup @{binding thin_tac}
-    (Args.goal_spec -- Scan.lift Args.name_inner_syntax >>
-      (fn (quant, prop) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop)))
-      "remove premise (dynamic instantiation)");
+    (Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) >>
+      (fn (quant, (prop, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop fixes)))
+    "remove premise (dynamic instantiation)");
 
 end;

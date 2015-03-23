@@ -395,15 +395,21 @@ text \<open>The main resolution tactics (\secref{sec:resolve-assume-tac})
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML Rule_Insts.res_inst_tac: "Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic"} \\
   @{index_ML Rule_Insts.eres_inst_tac: "Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic"} \\
   @{index_ML Rule_Insts.dres_inst_tac: "Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic"} \\
   @{index_ML Rule_Insts.forw_inst_tac: "Proof.context ->
-    ((indexname * Position.T) * string) list -> thm -> int -> tactic"} \\
-  @{index_ML Rule_Insts.subgoal_tac: "Proof.context -> string -> int -> tactic"} \\
-  @{index_ML Rule_Insts.thin_tac: "Proof.context -> string -> int -> tactic"} \\
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic"} \\
+  @{index_ML Rule_Insts.subgoal_tac: "Proof.context -> string ->
+    (binding * string option * mixfix) list -> int -> tactic"} \\
+  @{index_ML Rule_Insts.thin_tac: "Proof.context -> string ->
+    (binding * string option * mixfix) list -> int -> tactic"} \\
   @{index_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 

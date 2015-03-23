@@ -300,10 +300,14 @@ text \<open>
 
   @{rail \<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
-      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \<newline>
+      @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
+    @@{method thin_tac} @{syntax goal_spec}? @{syntax prop}
+    (@'for' (@{syntax vars} + @'and'))?
+    ;
     @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +)
+    (@'for' (@{syntax vars} + @'and'))?
     ;
     @@{method rename_tac} @{syntax goal_spec}? (@{syntax name} +)
     ;
@@ -313,6 +317,7 @@ text \<open>
     ;
 
     dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and')
+    (@'for' (@{syntax vars} + @'and'))?
   \<close>}
 
 \begin{description}
