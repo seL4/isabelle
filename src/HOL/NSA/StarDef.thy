@@ -795,7 +795,7 @@ apply (transfer, erule add_right_imp_eq)
 done
 
 instance star :: (cancel_ab_semigroup_add) cancel_ab_semigroup_add
-by (intro_classes, transfer, rule add_left_imp_eq)
+by intro_classes (transfer, simp add: diff_diff_eq)+
 
 instance star :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..
 

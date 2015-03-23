@@ -110,7 +110,7 @@ instance vec :: (cancel_semigroup_add, finite) cancel_semigroup_add
   by default (simp_all add: vec_eq_iff)
 
 instance vec :: (cancel_ab_semigroup_add, finite) cancel_ab_semigroup_add
-  by default (simp add: vec_eq_iff)
+  by default (simp_all add: vec_eq_iff diff_diff_eq)
 
 instance vec :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
 

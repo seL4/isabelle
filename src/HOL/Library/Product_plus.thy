@@ -98,7 +98,7 @@ instance prod ::
 
 instance prod ::
   (cancel_ab_semigroup_add, cancel_ab_semigroup_add) cancel_ab_semigroup_add
-    by default (simp add: prod_eq_iff)
+    by default (simp_all add: prod_eq_iff diff_diff_eq)
 
 instance prod ::
   (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..

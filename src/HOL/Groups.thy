@@ -248,55 +248,52 @@ by (blast dest: add_right_imp_eq)
 
 end
 
-class cancel_ab_semigroup_add = ab_semigroup_add +
-  assumes add_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
+class cancel_ab_semigroup_add = ab_semigroup_add + minus +
+  assumes add_diff_cancel_left' [simp]: "(a + b) - a = b"
+  assumes diff_diff_add [algebra_simps, field_simps]: "a - b - c = a - (b + c)"
 begin
+
+lemma add_diff_cancel_right' [simp]:
+  "(a + b) - b = a"
+  using add_diff_cancel_left' [of b a] by (simp add: ac_simps)
 
 subclass cancel_semigroup_add
 proof
   fix a b c :: 'a
-  assume "a + b = a + c" 
-  then show "b = c" by (rule add_imp_eq)
+  assume "a + b = a + c"
+  then have "a + b - a = a + c - a"
+    by simp
+  then show "b = c"
+    by simp
 next
   fix a b c :: 'a
   assume "b + a = c + a"
-  then have "a + b = a + c" by (simp only: add.commute)
-  then show "b = c" by (rule add_imp_eq)
+  then have "b + a - a = c + a - a"
+    by simp
+  then show "b = c"
+    by simp
 qed
+
+lemma add_diff_cancel_left [simp]:
+  "(c + a) - (c + b) = a - b"
+  unfolding diff_diff_add [symmetric] by simp
+
+lemma add_diff_cancel_right [simp]:
+  "(a + c) - (b + c) = a - b"
+  using add_diff_cancel_left [symmetric] by (simp add: ac_simps)
+
+lemma diff_right_commute:
+  "a - c - b = a - b - c"
+  by (simp add: diff_diff_add add.commute)
 
 end
 
 class cancel_comm_monoid_add = cancel_ab_semigroup_add + comm_monoid_add
-
-class comm_monoid_diff = comm_monoid_add + minus +
-  assumes diff_zero [simp]: "a - 0 = a"
-    and zero_diff [simp]: "0 - a = 0"
-    and add_diff_cancel_left [simp]: "(c + a) - (c + b) = a - b"
-    and diff_diff_add: "a - b - c = a - (b + c)"
 begin
 
-lemma add_diff_cancel_right [simp]:
-  "(a + c) - (b + c) = a - b"
-  using add_diff_cancel_left [symmetric] by (simp add: add.commute)
-
-lemma add_diff_cancel_left' [simp]:
-  "(b + a) - b = a"
-proof -
-  have "(b + a) - (b + 0) = a" by (simp only: add_diff_cancel_left diff_zero)
-  then show ?thesis by simp
-qed
-
-lemma add_diff_cancel_right' [simp]:
-  "(a + b) - b = a"
-  using add_diff_cancel_left' [symmetric] by (simp add: add.commute)
-
-lemma diff_add_zero [simp]:
-  "a - (a + b) = 0"
-proof -
-  have "a - (a + b) = (a + 0) - (a + b)" by simp
-  also have "\<dots> = 0" by (simp only: add_diff_cancel_left zero_diff)
-  finally show ?thesis .
-qed
+lemma diff_zero [simp]:
+  "a - 0 = a"
+  using add_diff_cancel_right' [of a 0] by simp
 
 lemma diff_cancel [simp]:
   "a - a = 0"
@@ -305,16 +302,26 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma diff_right_commute:
-  "a - c - b = a - b - c"
-  by (simp add: diff_diff_add add.commute)
-
 lemma add_implies_diff:
   assumes "c + b = a"
   shows "c = a - b"
 proof -
   from assms have "(b + c) - (b + 0) = a - b" by (simp add: add.commute)
   then show "c = a - b" by simp
+qed
+
+end  
+
+class comm_monoid_diff = cancel_comm_monoid_add +
+  assumes zero_diff [simp]: "0 - a = 0"
+begin
+
+lemma diff_add_zero [simp]:
+  "a - (a + b) = 0"
+proof -
+  have "a - (a + b) = (a + 0) - (a + b)" by simp
+  also have "\<dots> = 0" by (simp only: add_diff_cancel_left zero_diff)
+  finally show ?thesis .
 qed
 
 end
@@ -527,10 +534,12 @@ subclass group_add
 subclass cancel_comm_monoid_add
 proof
   fix a b c :: 'a
-  assume "a + b = a + c"
-  then have "- a + a + b = - a + a + c"
-    by (simp only: add.assoc)
-  then show "b = c" by simp
+  have "b + a - a = b"
+    by simp
+  then show "a + b - a = b"
+    by (simp add: ac_simps)
+  show "a - b - c = a - (b + c)"
+    by (simp add: algebra_simps)
 qed
 
 lemma uminus_add_conv_diff [simp]:
@@ -543,18 +552,6 @@ lemma minus_add_distrib [simp]:
 
 lemma diff_add_eq [algebra_simps, field_simps]:
   "(a - b) + c = (a + c) - b"
-  by (simp add: algebra_simps)
-
-lemma diff_diff_eq [algebra_simps, field_simps]:
-  "(a - b) - c = a - (b + c)"
-  by (simp add: algebra_simps)
-
-lemma diff_add_eq_diff_diff:
-  "a - (b + c) = a - b - c"
-  using diff_add_eq_diff_diff_swap [of a c b] by (simp add: add.commute)
-
-lemma add_diff_cancel_left [simp]:
-  "(c + a) - (c + b) = a - b"
   by (simp add: algebra_simps)
 
 end
@@ -1375,7 +1372,13 @@ qed
 
 end
 
-hide_fact (open) ab_diff_conv_add_uminus add_imp_eq
+hide_fact (open) ab_diff_conv_add_uminus add_0 mult_1 ab_left_minus
+
+lemmas add_0 = add_0_left -- \<open>FIXME duplicate\<close>
+lemmas mult_1 = mult_1_left -- \<open>FIXME duplicate\<close>
+lemmas ab_left_minus = left_minus -- \<open>FIXME duplicate\<close>
+lemmas diff_diff_eq = diff_diff_add -- \<open>FIXME duplicate\<close>
+
 
 subsection {* Tools setup *}
 

@@ -1079,11 +1079,17 @@ done
 lemma preal_add_left_less_cancel: "T + R < T + S ==> R <  (S::preal)"
 by (auto elim: preal_add_right_less_cancel simp add: preal_add_commute [of T])
 
-lemma preal_add_less_cancel_left: "(T + (R::preal) < T + S) = (R < S)"
+lemma preal_add_less_cancel_left [simp]: "(T + (R::preal) < T + S) = (R < S)"
 by (blast intro: preal_add_less2_mono2 preal_add_left_less_cancel)
 
-lemma preal_add_le_cancel_left: "(T + (R::preal) \<le> T + S) = (R \<le> S)"
-by (simp add: linorder_not_less [symmetric] preal_add_less_cancel_left) 
+lemma preal_add_less_cancel_right [simp]: "((R::preal) + T < S + T) = (R < S)"
+  using preal_add_less_cancel_left [symmetric, of R S T] by (simp add: ac_simps)
+
+lemma preal_add_le_cancel_left [simp]: "(T + (R::preal) \<le> T + S) = (R \<le> S)"
+by (simp add: linorder_not_less [symmetric]) 
+
+lemma preal_add_le_cancel_right [simp]: "((R::preal) + T \<le> S + T) = (R \<le> S)"
+  using preal_add_le_cancel_left [symmetric, of R S T] by (simp add: ac_simps)
 
 lemma preal_add_right_cancel: "(R::preal) + T = S + T ==> R = S"
 apply (insert linorder_less_linear [of R S], safe)
@@ -1093,10 +1099,9 @@ done
 lemma preal_add_left_cancel: "C + A = C + B ==> A = (B::preal)"
 by (auto intro: preal_add_right_cancel simp add: preal_add_commute)
 
-instance preal :: linordered_cancel_ab_semigroup_add
+instance preal :: linordered_ab_semigroup_add
 proof
   fix a b c :: preal
-  show "a + b = a + c \<Longrightarrow> b = c" by (rule preal_add_left_cancel)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b" by (simp only: preal_add_le_cancel_left)
 qed
 
@@ -1249,7 +1254,7 @@ proof -
   also have "... = x2 + (x + y1)"  by (simp add: assms)
   also have "... = (x2 + y1) + x"  by (simp add: ac_simps)
   finally have "(x1 + y2) + x = (x2 + y1) + x" .
-  thus ?thesis by (rule add_right_imp_eq)
+  thus ?thesis by (rule preal_add_right_cancel)
 qed
 
 
@@ -1361,7 +1366,7 @@ by (simp add: real_mult_def UN_UN_split_split_eq
          UN_equiv_class2 [OF equiv_realrel equiv_realrel real_mult_congruent2])
 
 lemma real_mult_commute: "(z::real) * w = w * z"
-by (cases z, cases w, simp add: real_mult ac_simps ac_simps)
+by (cases z, cases w, simp add: real_mult ac_simps)
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
@@ -1383,8 +1388,8 @@ lemma real_zero_not_eq_one: "0 \<noteq> (1::real)"
 proof -
   have "(1::preal) < 1 + 1"
     by (simp add: preal_self_less_add_left)
-  thus ?thesis
-    by (simp add: real_zero_def real_one_def)
+  then show ?thesis
+    by (simp add: real_zero_def real_one_def neq_iff)
 qed
 
 instance real :: comm_ring_1
@@ -1451,7 +1456,7 @@ lemma preal_eq_le_imp_le:
   assumes eq: "a+b = c+d" and le: "c \<le> a"
   shows "b \<le> (d::preal)"
 proof -
-  have "c+d \<le> a+d" by (simp add: le)
+  from le have "c+d \<le> a+d" by simp
   hence "a+b \<le> a+d" by (simp add: eq)
   thus "b \<le> d" by simp
 qed
@@ -1621,11 +1626,9 @@ lemma real_of_preal_le_iff:
 by (simp add: linorder_not_less [symmetric])
 
 lemma real_of_preal_zero_less: "0 < real_of_preal m"
-apply (insert preal_self_less_add_left [of 1 m])
-apply (auto simp add: real_zero_def real_of_preal_def
-                      real_less_def real_le_def ac_simps)
-apply (rule_tac x="m + 1" in exI, rule_tac x="1" in exI)
-apply (simp add: ac_simps)
+using preal_self_less_add_left [of 1 m]
+apply (auto simp add: real_zero_def real_of_preal_def real_less_def real_le_def ac_simps neq_iff)
+apply (metis Rep_preal_self_subset add.commute preal_le_def)
 done
 
 lemma real_of_preal_minus_less_zero: "- real_of_preal m < 0"

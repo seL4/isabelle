@@ -71,7 +71,7 @@ instance "fun" :: (type, ab_semigroup_add) ab_semigroup_add
   by default (simp add: fun_eq_iff add.commute)
 
 instance "fun" :: (type, cancel_ab_semigroup_add) cancel_ab_semigroup_add
-  by default simp
+  by default (simp_all add: fun_eq_iff diff_diff_eq)
 
 instance "fun" :: (type, monoid_add) monoid_add
   by default (simp_all add: fun_eq_iff)

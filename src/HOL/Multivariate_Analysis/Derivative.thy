@@ -133,7 +133,7 @@ proof -
     apply (simp add: LIM_zero_iff [where l = D, symmetric])
     apply (simp add: Lim_within dist_norm)
     apply (simp add: nonzero_norm_divide [symmetric])
-    apply (simp add: 1 diff_add_eq_diff_diff ac_simps)
+    apply (simp add: 1 diff_diff_eq ac_simps)
     done
 qed
 
@@ -299,14 +299,14 @@ lemma has_derivative_within_alt:
   "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
     (\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm(y - x) < d \<longrightarrow> norm (f y - f x - f' (y - x)) \<le> e * norm (y - x))"
   unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
-    eventually_at dist_norm diff_add_eq_diff_diff
+    eventually_at dist_norm diff_diff_eq
   by (force simp add: linear_0 bounded_linear.linear pos_divide_le_eq)
 
 lemma has_derivative_within_alt2:
   "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
     (\<forall>e>0. eventually (\<lambda>y. norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)) (at x within s))"
   unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
-    eventually_at dist_norm diff_add_eq_diff_diff
+    eventually_at dist_norm diff_diff_eq
   by (force simp add: linear_0 bounded_linear.linear pos_divide_le_eq)
 
 lemma has_derivative_at_alt:

@@ -95,8 +95,11 @@ abbreviation Mempty :: "'a multiset" ("{#}") where
 lift_definition plus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
 by (rule union_preserves_multiset)
 
+lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
+by (rule diff_preserves_multiset)
+
 instance
-by default (transfer, simp add: fun_eq_iff)+
+  by default (transfer, simp add: fun_eq_iff)+
 
 end
 
@@ -128,9 +131,6 @@ subsubsection {* Difference *}
 
 instantiation multiset :: (type) comm_monoid_diff
 begin
-
-lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
-by (rule diff_preserves_multiset)
 
 instance
 by default (transfer, simp add: fun_eq_iff)+

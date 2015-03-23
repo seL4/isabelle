@@ -90,6 +90,9 @@ token category instead.
 
 *** HOL ***
 
+* Type classes cancel_ab_semigroup_add / cancel_monoid_add specify
+explicit additive inverse operation.  INCOMPATIBILITY.
+
 * New proof method "rewrite" (in ~~/src/HOL/Library/Rewrite) for
   single-step rewriting with subterm selection based on patterns.
 

@@ -559,12 +559,31 @@ qed
 
 end
 
-instance poly :: (cancel_comm_monoid_add) cancel_comm_monoid_add
-proof
-  fix p q r :: "'a poly"
-  assume "p + q = p + r" thus "q = r"
-    by (simp add: poly_eq_iff)
+instantiation poly :: (cancel_comm_monoid_add) cancel_comm_monoid_add
+begin
+
+lift_definition minus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
+  is "\<lambda>p q n. coeff p n - coeff q n"
+proof (rule almost_everywhere_zeroI) 
+  fix q p :: "'a poly" and i
+  assume "max (degree q) (degree p) < i"
+  then show "coeff p i - coeff q i = 0"
+    by (simp add: coeff_eq_0)
 qed
+
+lemma coeff_diff [simp]:
+  "coeff (p - q) n = coeff p n - coeff q n"
+  by (simp add: minus_poly.rep_eq)
+
+instance proof
+  fix p q r :: "'a poly"
+  show "p + q - p = q"
+    by (simp add: poly_eq_iff)
+  show "p - q - r = p - (q + r)"
+    by (simp add: poly_eq_iff diff_diff_eq)
+qed
+
+end
 
 instantiation poly :: (ab_group_add) ab_group_add
 begin
@@ -578,21 +597,8 @@ proof (rule almost_everywhere_zeroI)
     by (simp add: coeff_eq_0)
 qed
 
-lift_definition minus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
-  is "\<lambda>p q n. coeff p n - coeff q n"
-proof (rule almost_everywhere_zeroI) 
-  fix q p :: "'a poly" and i
-  assume "max (degree q) (degree p) < i"
-  then show "coeff p i - coeff q i = 0"
-    by (simp add: coeff_eq_0)
-qed
-
 lemma coeff_minus [simp]: "coeff (- p) n = - coeff p n"
   by (simp add: uminus_poly.rep_eq)
-
-lemma coeff_diff [simp]:
-  "coeff (p - q) n = coeff p n - coeff q n"
-  by (simp add: minus_poly.rep_eq)
 
 instance proof
   fix p q :: "'a poly"
@@ -641,20 +647,27 @@ lemma degree_add_eq_left:
   using degree_add_eq_right [of q p]
   by (simp add: add.commute)
 
-lemma degree_minus [simp]: "degree (- p) = degree p"
+lemma degree_minus [simp]:
+  "degree (- p) = degree p"
   unfolding degree_def by simp
 
-lemma degree_diff_le_max: "degree (p - q) \<le> max (degree p) (degree q)"
+lemma degree_diff_le_max:
+  fixes p q :: "'a :: ab_group_add poly"
+  shows "degree (p - q) \<le> max (degree p) (degree q)"
   using degree_add_le [where p=p and q="-q"]
   by simp
 
 lemma degree_diff_le:
-  "\<lbrakk>degree p \<le> n; degree q \<le> n\<rbrakk> \<Longrightarrow> degree (p - q) \<le> n"
-  using degree_add_le [of p n "- q"] by simp
+  fixes p q :: "'a :: ab_group_add poly"
+  assumes "degree p \<le> n" and "degree q \<le> n"
+  shows "degree (p - q) \<le> n"
+  using assms degree_add_le [of p n "- q"] by simp
 
 lemma degree_diff_less:
-  "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p - q) < n"
-  using degree_add_less [of p n "- q"] by simp
+  fixes p q :: "'a :: ab_group_add poly"
+  assumes "degree p < n" and "degree q < n"
+  shows "degree (p - q) < n"
+  using assms degree_add_less [of p n "- q"] by simp
 
 lemma add_monom: "monom a n + monom b n = monom (a + b) n"
   by (rule poly_eqI) simp

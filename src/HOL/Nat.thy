@@ -246,11 +246,10 @@ instance proof
   fix n m q :: nat
   show "(n + m) + q = n + (m + q)" by (induct n) simp_all
   show "n + m = m + n" by (induct n) simp_all
-  show "0 + n = n" by simp
-  show "n - 0 = n" by simp
-  show "0 - n = 0" by simp
-  show "(q + n) - (q + m) = n - m" by (induct q) simp_all
+  show "m + n - m = n" by (induct m) simp_all
   show "n - m - q = n - (m + q)" by (induct q) (simp_all add: diff_Suc)
+  show "0 + n = n" by simp
+  show "0 - n = 0" by simp
 qed
 
 end
@@ -283,7 +282,6 @@ instance proof
   show "n * m = m * n" by (induct n) simp_all
   show "(n * m) * q = n * (m * q)" by (induct n) (simp_all add: add_mult_distrib)
   show "(n + m) * q = n * q + m * q" by (rule add_mult_distrib)
-  assume "n + m = n + q" thus "m = q" by (induct n) simp_all
 qed
 
 end
@@ -355,7 +353,7 @@ lemma diff_add_inverse2: "(m + n) - n = (m::nat)"
   by (fact add_diff_cancel_right')
 
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
-  by (fact comm_monoid_diff_class.add_diff_cancel_left)
+  by (fact add_diff_cancel_left)
 
 lemma diff_cancel2: "(m + k) - (n + k) = m - (n::nat)"
   by (fact add_diff_cancel_right)

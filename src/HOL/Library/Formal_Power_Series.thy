@@ -207,8 +207,8 @@ qed
 instance fps :: (cancel_ab_semigroup_add) cancel_ab_semigroup_add
 proof
   fix a b c :: "'a fps"
-  assume "a + b = a + c"
-  then show "b = c" by (simp add: expand_fps_eq)
+  show "a + b - a = b" by (simp add: expand_fps_eq)
+  show "a - b - c = a - (b + c)" by (simp add: expand_fps_eq diff_diff_eq)
 qed
 
 instance fps :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..

@@ -5392,11 +5392,7 @@ proof (rule set_eqI, rule)
     unfolding mem_interior by auto
   then have "ball (x - a) e \<subseteq> s"
     unfolding subset_eq Ball_def mem_ball dist_norm
-    apply auto
-    apply (erule_tac x="a + xa" in allE)
-    unfolding ab_group_add_class.diff_diff_eq[symmetric]
-    apply auto
-    done
+    by (auto simp add: diff_diff_eq)
   then show "x \<in> op + a ` interior s"
     unfolding image_iff
     apply (rule_tac x="x - a" in bexI)
