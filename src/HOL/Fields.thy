@@ -30,8 +30,8 @@ context semiring
 begin
 
 lemma [field_simps]:
-  shows distrib_left_NO_MATCH: "NO_MATCH a (x / y) \<Longrightarrow> a * (b + c) = a * b + a * c"
-    and distrib_right_NO_MATCH: "NO_MATCH c (x / y) \<Longrightarrow> (a + b) * c = a * c + b * c"
+  shows distrib_left_NO_MATCH: "NO_MATCH (x / y) a \<Longrightarrow> a * (b + c) = a * b + a * c"
+    and distrib_right_NO_MATCH: "NO_MATCH (x / y) c \<Longrightarrow> (a + b) * c = a * c + b * c"
   by (rule distrib_left distrib_right)+
 
 end
@@ -40,8 +40,8 @@ context ring
 begin
 
 lemma [field_simps]:
-  shows left_diff_distrib_NO_MATCH: "NO_MATCH c (x / y) \<Longrightarrow> (a - b) * c = a * c - b * c"
-    and right_diff_distrib_NO_MATCH: "NO_MATCH a (x / y) \<Longrightarrow> a * (b - c) = a * b - a * c"
+  shows left_diff_distrib_NO_MATCH: "NO_MATCH (x / y) c \<Longrightarrow> (a - b) * c = a * c - b * c"
+    and right_diff_distrib_NO_MATCH: "NO_MATCH (x / y) a \<Longrightarrow> a * (b - c) = a * b - a * c"
   by (rule left_diff_distrib right_diff_distrib)+
 
 end

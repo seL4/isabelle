@@ -1955,7 +1955,7 @@ proof -
 qed
 
 lemma nn_integral_count_space_indicator:
-  assumes "NO_MATCH (X::'a set) (UNIV::'a set)"
+  assumes "NO_MATCH (UNIV::'a set) (X::'a set)"
   shows "(\<integral>\<^sup>+x. f x \<partial>count_space X) = (\<integral>\<^sup>+x. f x * indicator X x \<partial>count_space UNIV)"
   by (simp add: nn_integral_restrict_space[symmetric] restrict_count_space)
 

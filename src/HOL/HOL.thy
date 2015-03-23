@@ -1671,13 +1671,13 @@ text {*
  The simplification procedure can be used to avoid simplification of terms of a certain form
 *}
 
-definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where "NO_MATCH val pat \<equiv> True"
+definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where "NO_MATCH pat val \<equiv> True"
 
-lemma NO_MATCH_cong[cong]: "NO_MATCH val pat = NO_MATCH val pat" by (rule refl)
+lemma NO_MATCH_cong[cong]: "NO_MATCH pat val = NO_MATCH pat val" by (rule refl)
 
 declare [[coercion_args NO_MATCH - -]]
 
-simproc_setup NO_MATCH ("NO_MATCH val pat") = {* fn _ => fn ctxt => fn ct =>
+simproc_setup NO_MATCH ("NO_MATCH pat val") = {* fn _ => fn ctxt => fn ct =>
   let
     val thy = Proof_Context.theory_of ctxt
     val dest_binop = Term.dest_comb #> apfst (Term.dest_comb #> snd)
@@ -1686,7 +1686,7 @@ simproc_setup NO_MATCH ("NO_MATCH val pat") = {* fn _ => fn ctxt => fn ct =>
 *}
 
 text {*
-  This setup ensures that a rewrite rule of the form @{term "NO_MATCH val pat \<Longrightarrow> t"}
+  This setup ensures that a rewrite rule of the form @{term "NO_MATCH pat val \<Longrightarrow> t"}
   is only applied, if the pattern @{term pat} does not match the value @{term val}.
 *}
 
