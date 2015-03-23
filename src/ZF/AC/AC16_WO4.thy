@@ -295,7 +295,7 @@ apply (rule conjI)
 apply (rule lam_type)
 apply (frule ex1_superset_a [THEN theI], fast+, clarify)
 apply (rule cons_eqE [of _ a])
-apply (drule_tac A = "THE c. ?P (c) " and C = y in eq_imp_Int_eq)
+apply (drule_tac A = "THE c. P (c)" and C = y for P in eq_imp_Int_eq)
 apply (simp_all add: the_eq_cons)
 done
 

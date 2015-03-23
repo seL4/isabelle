@@ -517,7 +517,7 @@ lemma nat_measure_field: "field(measure(nat, %x. x)) = nat"
 apply (unfold field_def)
 apply (simp add: measure_def)
 apply (rule equalityI, force, clarify)
-apply (erule_tac V = "x\<notin>range (?y) " in thin_rl)
+apply (erule_tac V = "x\<notin>range (y)" for y in thin_rl)
 apply (erule nat_induct)
 apply (rule_tac [2] b = "succ (succ (xa))" in domainI)
 apply (rule_tac b = "succ (0) " in domainI)

@@ -1024,9 +1024,9 @@ defer 1
  apply blast
 txt{*Final, difficult case: the left-to-right direction of the theorem.*}
 apply (insert power_ax, simp add: power_ax_def)
-apply (frule_tac x="A \<union> B" and P="\<lambda>x. rex(M,?Q(x))" in rspec)
+apply (frule_tac x="A \<union> B" and P="\<lambda>x. rex(M,Q(x))" for Q in rspec)
 apply (blast, clarify)
-apply (drule_tac x=z and P="\<lambda>x. rex(M,?Q(x))" in rspec)
+apply (drule_tac x=z and P="\<lambda>x. rex(M,Q(x))" for Q in rspec)
 apply assumption
 apply (blast intro: cartprod_iff_lemma)
 done
@@ -1035,9 +1035,9 @@ lemma (in M_basic) cartprod_closed_lemma:
      "[| M(A); M(B) |] ==> \<exists>C[M]. cartprod(M,A,B,C)"
 apply (simp del: cartprod_abs add: cartprod_iff)
 apply (insert power_ax, simp add: power_ax_def)
-apply (frule_tac x="A \<union> B" and P="\<lambda>x. rex(M,?Q(x))" in rspec)
+apply (frule_tac x="A \<union> B" and P="\<lambda>x. rex(M,Q(x))" for Q in rspec)
 apply (blast, clarify)
-apply (drule_tac x=z and P="\<lambda>x. rex(M,?Q(x))" in rspec, auto)
+apply (drule_tac x=z and P="\<lambda>x. rex(M,Q(x))" for Q in rspec, auto)
 apply (intro rexI conjI, simp+)
 apply (insert cartprod_separation [of A B], simp)
 done

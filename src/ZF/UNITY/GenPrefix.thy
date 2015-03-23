@@ -281,9 +281,9 @@ prefer 2 apply (blast intro: length_type, clarify)
 apply (simp_all add: nth_append length_type length_app)
 apply (rule conjI)
 apply (blast intro: gen_prefix.append)
-apply (erule_tac V = "length (xs) < length (ys) \<longrightarrow>?u" in thin_rl)
+apply (erule_tac V = "length (xs) < length (ys) \<longrightarrow>u" for u in thin_rl)
 apply (erule_tac a = zs in list.cases, auto)
-apply (rule_tac P1 = "%x. <?u (x), ?v>:?w" in nat_diff_split [THEN iffD2])
+apply (rule_tac P1 = "%x. <u(x), v>:w" for u v w in nat_diff_split [THEN iffD2])
 apply auto
 apply (simplesubst append_cons_conv)
 apply (rule_tac [2] gen_prefix.append)
@@ -407,7 +407,7 @@ done
 declare same_prefix_prefix [simp]
 
 lemma same_prefix_prefix_Nil: "xs \<in> list(A) ==> <xs@ys,xs> \<in> prefix(A) \<longleftrightarrow> (<ys,[]> \<in> prefix(A))"
-apply (rule_tac P = "%x. <?u, x>:?v \<longleftrightarrow> ?w (x) " in app_right_Nil [THEN subst])
+apply (rule_tac P = "%x. <u, x>:v \<longleftrightarrow> w(x)" for u v w in app_right_Nil [THEN subst])
 apply (rule_tac [2] same_prefix_prefix, auto)
 done
 declare same_prefix_prefix_Nil [simp]

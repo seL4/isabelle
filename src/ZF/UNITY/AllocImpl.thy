@@ -167,8 +167,8 @@ apply (auto dest: ActsD simp add: Stable_def Constrains_def constrains_def)
 apply (drule_tac f = "lift (rel) " in preserves_imp_eq)
 apply assumption+
 apply (force dest: ActsD)
-apply (erule_tac V = "\<forall>x \<in> Acts (alloc_prog) \<union> Acts (G). ?P(x)" in thin_rl)
-apply (erule_tac V = "alloc_prog \<in> stable (?u)" in thin_rl)
+apply (erule_tac V = "\<forall>x \<in> Acts (alloc_prog) \<union> Acts (G). P(x)" for P in thin_rl)
+apply (erule_tac V = "alloc_prog \<in> stable (u)" for u in thin_rl)
 apply (drule_tac a = "xc`rel" and f = "lift (rel)" in Increasing_imp_Stable)
 apply (auto simp add: Stable_def Constrains_def constrains_def)
 apply (drule bspec, force)
@@ -219,7 +219,7 @@ lemma alloc_prog_transient_lemma:
              transient({s\<in>state. k \<le> length(s`rel)} \<inter>
              {s\<in>state. succ(s`NbR) = k})"
 apply auto
-apply (erule_tac V = "G\<notin>?u" in thin_rl)
+apply (erule_tac V = "G\<notin>u" for u in thin_rl)
 apply (rule_tac act = alloc_rel_act in transientI)
 apply (simp (no_asm) add: alloc_prog_def [THEN def_prg_Acts])
 apply (simp (no_asm) add: alloc_rel_act_def [THEN def_act_eq, THEN act_subset])
@@ -329,7 +329,7 @@ lemma alloc_prog_giv_Ensures_lemma:
   {s\<in>state.  k < length(s`ask)} \<inter> {s\<in>state. length(s`giv)=k}
   Ensures {s\<in>state. ~ k <length(s`ask)} \<union> {s\<in>state. length(s`giv) \<noteq> k}"
 apply (rule EnsuresI, auto)
-apply (erule_tac [2] V = "G\<notin>?u" in thin_rl)
+apply (erule_tac [2] V = "G\<notin>u" for u in thin_rl)
 apply (rule_tac [2] act = alloc_giv_act in transientI)
  prefer 2
  apply (simp add: alloc_prog_def [THEN def_prg_Acts])
@@ -573,7 +573,7 @@ lemma (in alloc_progress) length_ask_giv2:
 apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF safety length_ask_giv], assumption+, clarify)
 apply (simp add: INT_iff)
-apply (drule_tac x = "length(x ` giv)" and P = "%x. ?f (x) \<le> NbT" in bspec)
+apply (drule_tac x = "length(x ` giv)" and P = "%x. f (x) \<le> NbT" for f in bspec)
 apply simp
 apply (blast intro: le_trans)
 done

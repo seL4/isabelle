@@ -131,7 +131,7 @@ apply (rename_tac m)
 apply (subgoal_tac "length (s ` iIn) \<in> nat")
 apply typecheck
 apply (subgoal_tac "m \<in> nat")
-apply (drule_tac x = "nth(m, s`iIn) " and P = "%elt. ?X (elt) \<longrightarrow> elt<Nclients" in bspec)
+apply (drule_tac x = "nth(m, s`iIn) " and P = "%elt. X (elt) \<longrightarrow> elt<Nclients" for X in bspec)
 apply (simp add: ltI)
 apply (simp_all add: Ord_mem_iff_lt)
 apply (blast dest: ltD)

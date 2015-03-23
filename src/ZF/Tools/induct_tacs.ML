@@ -9,8 +9,10 @@ function to install other sets as if they were datatypes.
 
 signature DATATYPE_TACTICS =
 sig
-  val induct_tac: Proof.context -> string -> int -> tactic
-  val exhaust_tac: Proof.context -> string -> int -> tactic
+  val exhaust_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
+    int -> tactic
+  val induct_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
+    int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
   val rep_datatype: Facts.ref * Token.src list -> Facts.ref * Token.src list ->
     (Facts.ref * Token.src list) list -> (Facts.ref * Token.src list) list -> theory -> theory
@@ -88,7 +90,7 @@ fun find_tname ctxt var As =
       (2) exhaustion works for VARIABLES in the premises, not general terms
 **)
 
-fun exhaust_induct_tac exh ctxt var i state = SUBGOAL (fn _ =>
+fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
     val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
@@ -101,11 +103,11 @@ fun exhaust_induct_tac exh ctxt var i state = SUBGOAL (fn _ =>
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
   in
-    Rule_Insts.eres_inst_tac ctxt [((ixn, Position.none), var)] [] rule i
+    Rule_Insts.eres_inst_tac ctxt [((ixn, Position.none), var)] fixes rule i
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)
-                case_tac ctxt var [] i
+                case_tac ctxt var fixes i
             else error msg) i state;
 
 val exhaust_tac = exhaust_induct_tac true;
@@ -177,12 +179,12 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 val _ =
   Theory.setup
     (Method.setup @{binding induct_tac}
-      (Args.goal_spec -- Scan.lift Args.name >>
-        (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s)))
+      (Args.goal_spec -- Scan.lift (Args.name -- Parse.for_fixes) >>
+        (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s xs)))
       "induct_tac emulation (dynamic instantiation!)" #>
     Method.setup @{binding case_tac}
-     (Args.goal_spec -- Scan.lift Args.name >>
-        (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s)))
+     (Args.goal_spec -- Scan.lift (Args.name -- Parse.for_fixes) >>
+        (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s xs)))
       "datatype case_tac emulation (dynamic instantiation!)");
 
 

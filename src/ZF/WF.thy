@@ -230,7 +230,7 @@ lemma apply_recfun:
     "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))"
 apply (unfold is_recfun_def)
   txt{*replace f only on the left-hand side*}
-apply (erule_tac P = "%x.?t(x) = ?u" in ssubst)
+apply (erule_tac P = "%x. t(x) = u" for t u in ssubst)
 apply (simp add: underI)
 done
 
@@ -244,7 +244,7 @@ apply (erule_tac a=x in wf_induct)
 apply (intro impI)
 apply (elim ssubst)
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
-apply (rule_tac t = "%z. H (?x,z) " in subst_context)
+apply (rule_tac t = "%z. H (x, z)" for x in subst_context)
 apply (subgoal_tac "\<forall>y\<in>r-``{x}. \<forall>z. <y,z>:f \<longleftrightarrow> <y,z>:g")
  apply (blast dest: transD)
 apply (simp add: apply_iff)
@@ -291,7 +291,7 @@ apply (unfold is_recfun_def wftrec_def)
 apply (rule lam_cong [OF refl])
 apply (drule underD)
 apply (fold is_recfun_def)
-apply (rule_tac t = "%z. H(?x,z)" in subst_context)
+apply (rule_tac t = "%z. H(x, z)" for x in subst_context)
 apply (rule fun_extension)
   apply (blast intro: is_recfun_type)
  apply (rule lam_type [THEN restrict_type2])

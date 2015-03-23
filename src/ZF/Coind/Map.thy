@@ -111,7 +111,7 @@ apply (simp_all add: if_iff, auto)
 (*Remaining subgoal*)
 apply (rule excluded_middle [THEN disjE])
 apply (erule image_Sigma1)
-apply (drule_tac psi = "?uu \<notin> B" in asm_rl)
+apply (drule_tac psi = "uu \<notin> B" for uu in asm_rl)
 apply (auto simp add: qbeta)
 done
 

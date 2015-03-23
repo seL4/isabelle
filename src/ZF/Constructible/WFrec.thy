@@ -180,7 +180,7 @@ lemma (in M_basic) restrict_Y_lemma:
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
- apply (thin_tac "rall(M,?P)")+  --{*essential for efficiency*}
+ apply (thin_tac "rall(M,P)" for P)+  --{*essential for efficiency*}
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
