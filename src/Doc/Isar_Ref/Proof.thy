@@ -432,7 +432,7 @@ text \<open>
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) (goal | longgoal)
+     @@{command schematic_corollary}) (goal | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus}) goal
     ;
@@ -441,7 +441,8 @@ text \<open>
   
     goal: (@{syntax props} + @'and')
     ;
-    longgoal: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} * ) conclusion
+    statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
+      conclusion
     ;
     conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
