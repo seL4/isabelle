@@ -217,9 +217,7 @@ lemma of_nat_of_integer [simp]:
 
 instance integer :: semiring_numeral_div
   by intro_classes (transfer,
-    fact semiring_numeral_div_class.diff_invert_add1
-    semiring_numeral_div_class.le_add_diff_inverse2
-    semiring_numeral_div_class.mult_div_cancel
+    fact semiring_numeral_div_class.le_add_diff_inverse2
     semiring_numeral_div_class.div_less
     semiring_numeral_div_class.mod_less
     semiring_numeral_div_class.div_positive

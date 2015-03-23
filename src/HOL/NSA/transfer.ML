@@ -68,7 +68,7 @@ fun transfer_thm_of ctxt ths t =
   in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
 
 fun transfer_tac ctxt ths =
-    SUBGOAL (fn (t,i) =>
+    SUBGOAL (fn (t, _) =>
         (fn th =>
             let
               val tr = transfer_thm_of ctxt ths t

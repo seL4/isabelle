@@ -443,7 +443,7 @@ lemma mod_mult_cong_int: "(a::int) ~= 0 \<Longrightarrow> b ~= 0
   apply (erule ssubst)
   apply (subst zmod_zmult2_eq)
   apply (auto simp add: mod_add_left_eq mod_minus_right div_minus_right)
-  apply (metis mod_diff_left_eq mod_diff_right_eq mod_mult_self1_is_0 semiring_numeral_div_class.diff_zero)+
+  apply (metis mod_diff_left_eq mod_diff_right_eq mod_mult_self1_is_0 diff_zero)+
   done
 
 lemma cong_to_1_nat: "([(a::nat) = 1] (mod n)) \<Longrightarrow> (n dvd (a - 1))"

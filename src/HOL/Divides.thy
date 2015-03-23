@@ -548,7 +548,7 @@ end
 
 subsubsection {* Parity and division *}
 
-class semiring_div_parity = semiring_div + semiring_numeral +
+class semiring_div_parity = comm_semiring_1_diff_distrib + numeral + semiring_div +
   assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
   assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
   assumes zero_not_eq_two: "0 \<noteq> 2"
@@ -583,19 +583,6 @@ lemma not_mod_2_eq_1_eq_0 [simp]:
 
 subclass semiring_parity
 proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
-  fix a b c
-  show "(c * a + b) mod a = 0 \<longleftrightarrow> b mod a = 0"
-    by simp
-next
-  fix a b c
-  assume "(b + c) mod a = 0"
-  with mod_add_eq [of b c a]
-  have "(b mod a + c mod a) mod a = 0"
-    by simp
-  moreover assume "b mod a = 0"
-  ultimately show "c mod a = 0"
-    by simp
-next
   show "1 mod 2 = 1"
     by (fact one_mod_two_eq_one)
 next
@@ -651,11 +638,9 @@ text {*
   and less technical class hierarchy.
 *}
 
-class semiring_numeral_div = linordered_semidom + minus + semiring_div +
-  assumes diff_invert_add1: "a + b = c \<Longrightarrow> a = c - b"
-    and le_add_diff_inverse2: "b \<le> a \<Longrightarrow> a - b + b = a"
-  assumes mult_div_cancel: "b * (a div b) = a - a mod b"
-    and div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
+class semiring_numeral_div = comm_semiring_1_diff_distrib + linordered_semidom + semiring_div +
+  assumes le_add_diff_inverse2: "b \<le> a \<Longrightarrow> a - b + b = a"
+  assumes div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"
     and mod_less_eq_dividend: "0 \<le> a \<Longrightarrow> a mod b \<le> a"
@@ -666,9 +651,16 @@ class semiring_numeral_div = linordered_semidom + minus + semiring_div +
   assumes discrete: "a < b \<longleftrightarrow> a + 1 \<le> b"
 begin
 
-lemma diff_zero [simp]:
-  "a - 0 = a"
-  by (rule diff_invert_add1 [symmetric]) simp
+lemma mult_div_cancel:
+  "b * (a div b) = a - a mod b"
+proof -
+  have "b * (a div b) + a mod b = a"
+    using mod_div_equality [of a b] by (simp add: ac_simps)
+  then have "b * (a div b) + a mod b - a mod b = a - a mod b"
+    by simp
+  then show ?thesis
+    by simp
+qed
 
 subclass semiring_div_parity
 proof
@@ -713,7 +705,7 @@ proof -
     by (simp add: w_def div_mult2_eq mult_div_cancel ac_simps)
   with `w = 1` have div: "2 * (a div (2 * b)) = a div b - 1" by simp
   then show ?P and ?Q
-    by (simp_all add: div mod diff_invert_add1 [symmetric] le_add_diff_inverse2)
+    by (simp_all add: div mod add_implies_diff [symmetric] le_add_diff_inverse2)
 qed
 
 lemma divmod_digit_0:
@@ -862,7 +854,7 @@ lemma dvd_numeral_simp [simp]:
 
 end
 
-hide_fact (open) diff_invert_add1 le_add_diff_inverse2 diff_zero
+hide_fact (open) le_add_diff_inverse2
   -- {* restore simple accesses for more general variants of theorems *}
 
   

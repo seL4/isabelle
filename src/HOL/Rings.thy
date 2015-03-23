@@ -228,35 +228,6 @@ qed
 
 end
 
-class semiring_dvd = comm_semiring_1 +
-  assumes dvd_add_times_triv_left_iff [simp]: "a dvd c * a + b \<longleftrightarrow> a dvd b"
-  assumes dvd_addD: "a dvd b + c \<Longrightarrow> a dvd b \<Longrightarrow> a dvd c"
-begin
-
-lemma dvd_add_times_triv_right_iff [simp]:
-  "a dvd b + c * a \<longleftrightarrow> a dvd b"
-  using dvd_add_times_triv_left_iff [of a c b] by (simp add: ac_simps)
-
-lemma dvd_add_triv_left_iff [simp]:
-  "a dvd a + b \<longleftrightarrow> a dvd b"
-  using dvd_add_times_triv_left_iff [of a 1 b] by simp
-
-lemma dvd_add_triv_right_iff [simp]:
-  "a dvd b + a \<longleftrightarrow> a dvd b"
-  using dvd_add_times_triv_right_iff [of a b 1] by simp
-
-lemma dvd_add_right_iff:
-  assumes "a dvd b"
-  shows "a dvd b + c \<longleftrightarrow> a dvd c"
-  using assms by (auto dest: dvd_addD)
-
-lemma dvd_add_left_iff:
-  assumes "a dvd c"
-  shows "a dvd b + c \<longleftrightarrow> a dvd b"
-  using assms dvd_add_right_iff [of a c b] by (simp add: ac_simps)
-
-end
-
 class no_zero_divisors = zero + times +
   assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 begin
@@ -290,6 +261,65 @@ begin
 subclass semiring_1_cancel ..
 subclass comm_semiring_0_cancel ..
 subclass comm_semiring_1 ..
+
+end
+
+class comm_semiring_1_diff_distrib = comm_semiring_1_cancel +
+  assumes right_diff_distrib' [algebra_simps]: "a * (b - c) = a * b - a * c"
+begin
+
+lemma left_diff_distrib' [algebra_simps]:
+  "(b - c) * a = b * a - c * a"
+  by (simp add: algebra_simps)
+
+lemma dvd_add_times_triv_left_iff [simp]:
+  "a dvd c * a + b \<longleftrightarrow> a dvd b"
+proof -
+  have "a dvd a * c + b \<longleftrightarrow> a dvd b" (is "?P \<longleftrightarrow> ?Q")
+  proof
+    assume ?Q then show ?P by simp
+  next
+    assume ?P
+    then obtain d where "a * c + b = a * d" ..
+    then have "a * c + b - a * c = a * d - a * c" by simp
+    then have "b = a * d - a * c" by simp
+    then have "b = a * (d - c)" by (simp add: algebra_simps) 
+    then show ?Q ..
+  qed
+  then show "a dvd c * a + b \<longleftrightarrow> a dvd b" by (simp add: ac_simps)
+qed
+
+lemma dvd_add_times_triv_right_iff [simp]:
+  "a dvd b + c * a \<longleftrightarrow> a dvd b"
+  using dvd_add_times_triv_left_iff [of a c b] by (simp add: ac_simps)
+
+lemma dvd_add_triv_left_iff [simp]:
+  "a dvd a + b \<longleftrightarrow> a dvd b"
+  using dvd_add_times_triv_left_iff [of a 1 b] by simp
+
+lemma dvd_add_triv_right_iff [simp]:
+  "a dvd b + a \<longleftrightarrow> a dvd b"
+  using dvd_add_times_triv_right_iff [of a b 1] by simp
+
+lemma dvd_add_right_iff:
+  assumes "a dvd b"
+  shows "a dvd b + c \<longleftrightarrow> a dvd c" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P then obtain d where "b + c = a * d" ..
+  moreover from `a dvd b` obtain e where "b = a * e" ..
+  ultimately have "a * e + c = a * d" by simp
+  then have "a * e + c - a * e = a * d - a * e" by simp
+  then have "c = a * d - a * e" by simp
+  then have "c = a * (d - e)" by (simp add: algebra_simps)
+  then show ?Q ..
+next
+  assume ?Q with assms show ?P by simp
+qed
+
+lemma dvd_add_left_iff:
+  assumes "a dvd c"
+  shows "a dvd b + c \<longleftrightarrow> a dvd b"
+  using assms dvd_add_right_iff [of a c b] by (simp add: ac_simps)
 
 end
 
@@ -370,27 +400,8 @@ begin
 subclass ring_1 ..
 subclass comm_semiring_1_cancel ..
 
-subclass semiring_dvd
-proof
-  fix a b c
-  show "a dvd c * a + b \<longleftrightarrow> a dvd b" (is "?P \<longleftrightarrow> ?Q")
-  proof
-    assume ?Q then show ?P by simp
-  next
-    assume ?P then obtain d where "c * a + b = a * d" ..
-    then have "b = a * (d - c)" by (simp add: algebra_simps)
-    then show ?Q ..
-  qed
-  assume "a dvd b + c" and "a dvd b"
-  show "a dvd c"
-  proof -
-    from `a dvd b` obtain d where "b = a * d" ..
-    moreover from `a dvd b + c` obtain e where "b + c = a * e" ..
-    ultimately have "a * d + c = a * e" by simp
-    then have "c = a * (e - d)" by (simp add: algebra_simps)
-    then show "a dvd c" ..
-  qed
-qed
+subclass comm_semiring_1_diff_distrib
+  by unfold_locales (simp add: algebra_simps)
 
 lemma dvd_minus_iff [simp]: "x dvd - y \<longleftrightarrow> x dvd y"
 proof
@@ -1265,4 +1276,3 @@ code_identifier
   code_module Rings \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-

@@ -366,12 +366,20 @@ lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
 
 text {* Difference distributes over multiplication *}
 
-lemma diff_mult_distrib: "((m::nat) - n) * k = (m * k) - (n * k)"
-by (induct m n rule: diff_induct) (simp_all add: diff_cancel)
+instance nat :: comm_semiring_1_diff_distrib
+proof
+  fix k m n :: nat
+  show "k * ((m::nat) - n) = (k * m) - (k * n)"
+    by (induct m n rule: diff_induct) simp_all
+qed
 
-lemma diff_mult_distrib2: "k * ((m::nat) - n) = (k * m) - (k * n)"
-by (simp add: diff_mult_distrib mult.commute [of k])
-  -- {* NOT added as rewrites, since sometimes they are used from right-to-left *}
+lemma diff_mult_distrib:
+  "((m::nat) - n) * k = (m * k) - (n * k)"
+  by (fact left_diff_distrib')
+  
+lemma diff_mult_distrib2:
+  "k * ((m::nat) - n) = (k * m) - (k * n)"
+  by (fact right_diff_distrib')
 
 
 subsubsection {* Multiplication *}
@@ -1875,48 +1883,6 @@ lemma mono_funpow:
   by (auto intro!: funpow_decreasing simp: mono_def)
 
 subsection {* The divides relation on @{typ nat} *}
-
-instance nat :: semiring_dvd
-proof
-  fix m n q :: nat
-  show "m dvd q * m + n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
-  proof
-    assume ?Q then show ?P by simp
-  next
-    assume ?P then obtain d where *: "q * m + n = m * d" ..
-    show ?Q
-    proof (cases "n = 0")
-      case True then show ?Q by simp
-    next
-      case False
-      with * have "q * m < m * d"
-        using less_add_eq_less [of 0 n "q * m" "m * d"] by simp
-      then have "q \<le> d" by (auto intro: ccontr simp add: mult.commute [of m])
-      with * [symmetric] have "n = m * (d - q)"
-        by (simp add: diff_mult_distrib2 mult.commute [of m])
-      then show ?Q ..
-    qed
-  qed
-  assume "m dvd n + q" and "m dvd n"
-  show "m dvd q"
-  proof -
-    from `m dvd n` obtain d where "n = m * d" ..
-    moreover from `m dvd n + q` obtain e where "n + q = m * e" ..
-    ultimately have *: "m * d + q = m * e" by simp
-    show "m dvd q"
-    proof (cases "q = 0")
-      case True then show ?thesis by simp
-    next
-      case False
-      with * have "m * d < m * e"
-        using less_add_eq_less [of 0 q "m * d" "m * e"] by simp
-      then have "d \<le> e" by (auto intro: ccontr)
-      with * have "q = m * (e - d)"
-        by (simp add: diff_mult_distrib2)
-      then show ?thesis ..
-    qed
-  qed
-qed
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
 unfolding dvd_def by simp

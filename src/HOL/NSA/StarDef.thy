@@ -698,7 +698,7 @@ definition
   star_inf_def [transfer_unfold]: "inf \<equiv> *f2* inf"
 
 instance
-  by default (transfer star_inf_def, auto)+
+  by default (transfer, auto)+
 
 end
 
@@ -709,7 +709,7 @@ definition
   star_sup_def [transfer_unfold]: "sup \<equiv> *f2* sup"
 
 instance
-  by default (transfer star_sup_def, auto)+
+  by default (transfer, auto)+
 
 end
 
@@ -850,11 +850,8 @@ instance star :: (comm_semiring_1) comm_semiring_1 ..
 
 declare dvd_def [transfer_refold]
 
-instance star :: (semiring_dvd) semiring_dvd
-apply intro_classes
-apply(transfer, rule dvd_add_times_triv_left_iff)
-apply(transfer, erule (1) dvd_addD)
-done
+instance star :: (comm_semiring_1_diff_distrib) comm_semiring_1_diff_distrib
+by intro_classes (transfer, fact right_diff_distrib')
 
 instance star :: (no_zero_divisors) no_zero_divisors
 by (intro_classes, transfer, rule no_zero_divisors)
@@ -1040,18 +1037,16 @@ done
 
 instance star :: (semiring_numeral_div) semiring_numeral_div
 apply intro_classes
-apply(transfer, erule semiring_numeral_div_class.diff_invert_add1)
-apply(transfer, erule semiring_numeral_div_class.le_add_diff_inverse2)
-apply(transfer, rule semiring_numeral_div_class.mult_div_cancel)
-apply(transfer, erule (1) semiring_numeral_div_class.div_less)
-apply(transfer, erule (1) semiring_numeral_div_class.mod_less)
-apply(transfer, erule (1) semiring_numeral_div_class.div_positive)
-apply(transfer, erule semiring_numeral_div_class.mod_less_eq_dividend)
-apply(transfer, erule semiring_numeral_div_class.pos_mod_bound)
-apply(transfer, erule semiring_numeral_div_class.pos_mod_sign)
-apply(transfer, erule semiring_numeral_div_class.mod_mult2_eq)
-apply(transfer, erule semiring_numeral_div_class.div_mult2_eq)
-apply(transfer, rule discrete)
+apply(transfer, fact semiring_numeral_div_class.le_add_diff_inverse2)
+apply(transfer, fact semiring_numeral_div_class.div_less)
+apply(transfer, fact semiring_numeral_div_class.mod_less)
+apply(transfer, fact semiring_numeral_div_class.div_positive)
+apply(transfer, fact semiring_numeral_div_class.mod_less_eq_dividend)
+apply(transfer, fact semiring_numeral_div_class.pos_mod_bound)
+apply(transfer, fact semiring_numeral_div_class.pos_mod_sign)
+apply(transfer, fact semiring_numeral_div_class.mod_mult2_eq)
+apply(transfer, fact semiring_numeral_div_class.div_mult2_eq)
+apply(transfer, fact discrete)
 done
 
 subsection {* Finite class *}
