@@ -303,21 +303,17 @@ text \<open>
       @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
-    @@{method thin_tac} @{syntax goal_spec}? @{syntax prop}
-    (@'for' (@{syntax vars} + @'and'))?
+    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and') @{syntax for_fixes}
     ;
-    @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +)
-    (@'for' (@{syntax vars} + @'and'))?
+    @@{method thin_tac} @{syntax goal_spec}? @{syntax prop} @{syntax for_fixes}
+    ;
+    @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +) @{syntax for_fixes}
     ;
     @@{method rename_tac} @{syntax goal_spec}? (@{syntax name} +)
     ;
     @@{method rotate_tac} @{syntax goal_spec}? @{syntax int}?
     ;
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
-    ;
-
-    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and')
-    (@'for' (@{syntax vars} + @'and'))?
   \<close>}
 
 \begin{description}

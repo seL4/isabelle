@@ -352,7 +352,20 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
   another level of iteration, with explicit @{keyword_ref "and"}
   separators; e.g.\ see @{command "fix"} and @{command "assume"} in
   \secref{sec:proof-context}.
-\<close>
+
+  @{rail \<open>
+    @{syntax_def "fixes"}:
+      ((@{syntax name} ('::' @{syntax type})? @{syntax mixfix}? | @{syntax vars}) + @'and')
+    ;
+    @{syntax_def "for_fixes"}: (@'for' @{syntax "fixes"})?
+  \<close>}
+
+  The category @{syntax "fixes"} is a richer variant of @{syntax vars}: it
+  admits specification of mixfix syntax for the entities that are introduced
+  into the context. An optional suffix ``@{keyword "for"}~@{text "fixes"}''
+  is admitted in many situations to indicate a so-called ``eigen-context''
+  of a formal element: the result will be exported and thus generalized over
+  the given variables.\<close>
 
 
 subsection \<open>Attributes and theorems \label{sec:syn-att}\<close>

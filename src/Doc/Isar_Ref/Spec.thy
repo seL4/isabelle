@@ -221,8 +221,7 @@ text \<open>
   locale interpretation (\secref{sec:locale}).
 
   @{rail \<open>
-    @@{command bundle} @{syntax name} '=' @{syntax thmrefs}
-      (@'for' (@{syntax vars} + @'and'))?
+    @@{command bundle} @{syntax name} '=' @{syntax thmrefs} @{syntax for_fixes}
     ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
     ;
@@ -346,10 +345,6 @@ text \<open>
   @{rail \<open>
     @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
     ;
-
-    @{syntax_def "fixes"}: ((@{syntax name} ('::' @{syntax type})?
-      @{syntax mixfix}? | @{syntax vars}) + @'and')
-    ;
     specs: (@{syntax thmdecl}? @{syntax props} + @'and')
   \<close>}
 
@@ -464,7 +459,7 @@ text \<open>
   omitted according to roundup.
 
   @{rail \<open>
-    @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax "fixes"} + @'and'))?
+    @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
     instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
     ;
@@ -524,7 +519,7 @@ text \<open>
       @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
     @{syntax_def context_elem}:
-      @'fixes' (@{syntax "fixes"} + @'and') |
+      @'fixes' @{syntax "fixes"} |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
@@ -1406,11 +1401,10 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{command lemmas} | @@{command theorems}) (@{syntax thmdef}? @{syntax thmrefs} + @'and') \<newline>
-      (@'for' (@{syntax vars} + @'and'))?
+    (@@{command lemmas} | @@{command theorems}) (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+      @{syntax for_fixes}
     ;
-    @@{command named_theorems}
-      (@{syntax name} @{syntax text}? + @'and')
+    @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 
   \begin{description}

@@ -184,7 +184,7 @@ text \<open>
   \<phi>[t]"}.
 
   @{rail \<open>
-    @@{command fix} (@{syntax vars} + @'and')
+    @@{command fix} @{syntax "fixes"}
     ;
     (@@{command assume} | @@{command presume}) (@{syntax props} + @'and')
     ;
@@ -737,13 +737,11 @@ text \<open>
     ;
     @@{attribute OF} @{syntax thmrefs}
     ;
-    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? \<newline>
-      (@'for' (@{syntax vars} + @'and'))?
+    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? @{syntax for_fixes}
     ;
     @@{attribute "where"}
       ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
-      (@{syntax type} | @{syntax term}) * @'and') \<newline>
-      (@'for' (@{syntax vars} + @'and'))?
+      (@{syntax type} | @{syntax term}) * @'and') \<newline> @{syntax for_fixes}
   \<close>}
 
   \begin{description}

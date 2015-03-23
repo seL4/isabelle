@@ -99,9 +99,9 @@ text \<open>
 
   @{rail \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
-      @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set}) \<newline>
-    @{syntax "fixes"} (@'for' @{syntax "fixes"})? (@'where' clauses)? \<newline>
-    (@'monos' @{syntax thmrefs})?
+      @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
+      @{syntax "fixes"} @{syntax "for_fixes"} \<newline>
+      (@'where' clauses)? (@'monos' @{syntax thmrefs})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
@@ -321,7 +321,7 @@ text \<open>
   command can then be used to establish that the function is total.
 
   \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
-  (HOL) "function"}~@{text "(sequential)"}, followed by automated
+  (HOL) "function"}~@{text "(sequential)"}'', followed by automated
   proof attempts regarding pattern matching and termination.  See
   @{cite "isabelle-function"} for further details.
 
