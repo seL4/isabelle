@@ -552,7 +552,6 @@ session "HOL-ex" in ex = HOL +
     Intuitionistic
     CTL
     Arith_Examples
-    BT
     Tree23
     Bubblesort
     MergeSort
