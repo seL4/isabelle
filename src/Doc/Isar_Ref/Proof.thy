@@ -432,7 +432,7 @@ text \<open>
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) @{syntax target}? (goal | longgoal)
+     @@{command schematic_corollary}) (goal | longgoal)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus}) goal
     ;
@@ -935,8 +935,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command method_setup} @{syntax target}?
-      @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}

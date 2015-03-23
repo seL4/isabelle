@@ -160,20 +160,24 @@ text \<open>
   (global) "end"} has a different meaning: it concludes the theory
   itself (\secref{sec:begin-thy}).
   
-  \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any
-  local theory command specifies an immediate target, e.g.\
-  ``@{command "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
-  "theorem"}~@{text "(\<IN> c) \<dots>"}''.  This works both in a local or
-  global theory context; the current target context will be suspended
-  for this command only.  Note that ``@{text "(\<IN> -)"}'' will
-  always produce a global result independently of the current target
-  context.
+  \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any local
+  theory command specifies an immediate target, e.g.\ ``@{command
+  "definition"}~@{text "(\<IN> c)"}'' or ``@{command "theorem"}~@{text
+  "(\<IN> c)"}''. This works both in a local or global theory context; the
+  current target context will be suspended for this command only. Note that
+  ``@{text "(\<IN> -)"}'' will always produce a global result independently
+  of the current target context.
 
   \end{description}
 
-  The exact meaning of results produced within a local theory context
-  depends on the underlying target infrastructure (locale, type class
-  etc.).  The general idea is as follows, considering a context named
+  Any specification element that operates on @{text local_theory} according
+  to this manual implicitly allows the above target syntax @{text
+  "("}@{keyword "in"}~@{text "c)"}, but individual syntax diagrams omit that
+  aspect for clarity.
+
+  \medskip The exact meaning of results produced within a local theory
+  context depends on the underlying target infrastructure (locale, type
+  class etc.). The general idea is as follows, considering a context named
   @{text c} with parameter @{text x} and assumption @{text "A[x]"}.
   
   Definitions are exported by introducing a global version with
@@ -188,11 +192,7 @@ text \<open>
   generalizing the parameters of the context.  For example, @{text "a:
   B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"}, again for arbitrary
   @{text "?x"}.
-
-  \medskip The Isabelle/HOL library contains numerous applications of
-  locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
-  example for an unnamed auxiliary contexts is given in @{file
-  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.\<close>
+\<close>
 
 
 section \<open>Bundled declarations \label{sec:bundle}\<close>
@@ -221,8 +221,8 @@ text \<open>
   locale interpretation (\secref{sec:locale}).
 
   @{rail \<open>
-    @@{command bundle} @{syntax target}? \<newline>
-    @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
+    @@{command bundle} @{syntax name} '=' @{syntax thmrefs}
+      (@'for' (@{syntax vars} + @'and'))?
     ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
     ;
@@ -284,10 +284,9 @@ text \<open>
   ``abbreviation''.
 
   @{rail \<open>
-    @@{command definition} @{syntax target}? \<newline>
-      (decl @'where')? @{syntax thmdecl}? @{syntax prop}
+    @@{command definition} (decl @'where')? @{syntax thmdecl}? @{syntax prop}
     ;
-    @@{command abbreviation} @{syntax target}? @{syntax mode}? \<newline>
+    @@{command abbreviation} @{syntax mode}? \<newline>
       (decl @'where')? @{syntax prop}
     ;
 
@@ -399,9 +398,9 @@ text \<open>
 
   @{rail \<open>
     (@@{command declaration} | @@{command syntax_declaration})
-      ('(' @'pervasive' ')')? \<newline> @{syntax target}? @{syntax text}
+      ('(' @'pervasive' ')')? \<newline> @{syntax text}
     ;
-    @@{command declare} @{syntax target}? (@{syntax thmrefs} + @'and')
+    @@{command declare} (@{syntax thmrefs} + @'and')
   \<close>}
 
   \begin{description}
@@ -923,7 +922,7 @@ text \<open>
     @@{command instance} (() | (@{syntax nameref} + @'and') '::' @{syntax arity} |
       @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
     ;
-    @@{command subclass} @{syntax target}? @{syntax nameref}
+    @@{command subclass} @{syntax nameref}
     ;
     @@{command class_deps} ( ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) ) \<newline>
       ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) )? )?
@@ -1143,8 +1142,7 @@ text \<open>
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
     ;
-    @@{command attribute_setup} @{syntax target}?
-      @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}
@@ -1408,11 +1406,10 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
-      (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    (@@{command lemmas} | @@{command theorems}) (@{syntax thmdef}? @{syntax thmrefs} + @'and') \<newline>
       (@'for' (@{syntax vars} + @'and'))?
     ;
-    @@{command named_theorems} @{syntax target}?
+    @@{command named_theorems}
       (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 

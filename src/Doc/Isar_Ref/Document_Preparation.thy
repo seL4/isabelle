@@ -44,8 +44,7 @@ text \<open>
 
   @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
-      @@{command subsubsection} | @@{command text} | @@{command txt})
-      @{syntax target}? @{syntax text}
+      @@{command subsubsection} | @@{command text} | @@{command txt}) @{syntax text}
     ;
     @@{command text_raw} @{syntax text}
   \<close>}
@@ -74,7 +73,7 @@ text \<open>
   Except for @{command "text_raw"}, the text passed to any of the above
   markup commands may refer to formal entities via \emph{document
   antiquotations}, see also \secref{sec:antiq}. These are interpreted in the
-  present theory or proof context, or the named @{text "target"}.
+  present theory or proof context.
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
