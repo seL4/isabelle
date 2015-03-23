@@ -221,6 +221,22 @@ lemma measurable_subprob_algebra:
   K \<in> measurable M (subprob_algebra N)"
   by (auto intro!: measurable_Sup_sigma2 measurable_vimage_algebra2 simp: subprob_algebra_def)
 
+lemma measurable_submarkov:
+  "K \<in> measurable M (subprob_algebra M) \<longleftrightarrow>
+    (\<forall>x\<in>space M. subprob_space (K x) \<and> sets (K x) = sets M) \<and>
+    (\<forall>A\<in>sets M. (\<lambda>x. emeasure (K x) A) \<in> measurable M borel)"
+proof
+  assume "(\<forall>x\<in>space M. subprob_space (K x) \<and> sets (K x) = sets M) \<and>
+    (\<forall>A\<in>sets M. (\<lambda>x. emeasure (K x) A) \<in> borel_measurable M)"
+  then show "K \<in> measurable M (subprob_algebra M)"
+    by (intro measurable_subprob_algebra) auto
+next
+  assume "K \<in> measurable M (subprob_algebra M)"
+  then show "(\<forall>x\<in>space M. subprob_space (K x) \<and> sets (K x) = sets M) \<and>
+    (\<forall>A\<in>sets M. (\<lambda>x. emeasure (K x) A) \<in> borel_measurable M)"
+    by (auto dest: subprob_space_kernel sets_kernel)
+qed
+
 lemma space_subprob_algebra_empty_iff:
   "space (subprob_algebra N) = {} \<longleftrightarrow> space N = {}"
 proof
