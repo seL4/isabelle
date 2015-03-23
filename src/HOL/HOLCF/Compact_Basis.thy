@@ -16,7 +16,7 @@ definition "pd_basis = {S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
 
 typedef 'a pd_basis = "pd_basis :: 'a compact_basis set set"
   unfolding pd_basis_def
-  apply (rule_tac x="{arbitrary}" in exI)
+  apply (rule_tac x="{a}" for a in exI)
   apply simp
   done
 
