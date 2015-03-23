@@ -213,7 +213,9 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
     val (param_names, param_ctxt) = ctxt
       |> Variable.declare_thm thm
       |> Thm.fold_terms Variable.declare_constraints st
+      |> Variable.improper_fixes
       |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
+      ||> Variable.restore_proper_fixes ctxt
       ||> Proof_Context.set_mode Proof_Context.mode_schematic;
     val paramTs = map #2 params;
 

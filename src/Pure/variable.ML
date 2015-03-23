@@ -34,6 +34,9 @@ sig
   val declare_const: string * string -> Proof.context -> Proof.context
   val next_bound: string * typ -> Proof.context -> term * Proof.context
   val revert_bounds: Proof.context -> term -> term
+  val improper_fixes: Proof.context -> Proof.context
+  val restore_proper_fixes: Proof.context -> Proof.context -> Proof.context
+  val is_improper: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
   val fixed_ord: Proof.context -> string * string -> order
@@ -82,7 +85,7 @@ struct
 
 (** local context data **)
 
-type fixes = string Name_Space.table;
+type fixes = (string * bool) Name_Space.table;
 val empty_fixes: fixes = Name_Space.empty_table Markup.fixedN;
 
 datatype data = Data of
@@ -335,6 +338,20 @@ fun revert_bounds ctxt t =
 
 (** fixes **)
 
+(* proper mode *)
+
+val proper_fixes =
+  Config.bool (Config.declare ("proper_fixes", @{here}) (K (Config.Bool true)));
+
+val improper_fixes = Config.put proper_fixes false;
+fun restore_proper_fixes ctxt = Config.put proper_fixes (Config.get ctxt proper_fixes);
+
+fun is_improper ctxt x =
+  (case Name_Space.lookup_key (fixes_of ctxt) x of
+    SOME (_, (_, proper)) => not proper
+  | NONE => false);
+
+
 (* specialized name space *)
 
 val is_fixed = Name_Space.defined_entry o fixes_space;
@@ -349,7 +366,7 @@ fun lookup_fixed ctxt x =
 
 fun revert_fixed ctxt x =
   (case Name_Space.lookup_key (fixes_of ctxt) x of
-    SOME (_, x') => if intern_fixed ctxt x' = x then x' else x
+    SOME (_, (x', _)) => if intern_fixed ctxt x' = x then x' else x
   | NONE => x);
 
 fun markup_fixed ctxt x =
@@ -357,7 +374,7 @@ fun markup_fixed ctxt x =
   |> Markup.name (revert_fixed ctxt x);
 
 fun dest_fixes ctxt =
-  Name_Space.fold_table (fn (x, y) => cons (y, x)) (fixes_of ctxt) []
+  Name_Space.fold_table (fn (x, (y, _)) => cons (y, x)) (fixes_of ctxt) []
   |> sort (Name_Space.entry_ord (fixes_space ctxt) o apply2 #2);
 
 
@@ -386,10 +403,13 @@ fun err_dups dups =
 fun new_fixed ((x, x'), pos) ctxt =
   if is_some (lookup_fixed ctxt x') then err_dups [Binding.make (x, pos)]
   else
-    let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming) in
+    let
+      val proper = Config.get ctxt proper_fixes;
+      val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
+    in
       ctxt
       |> map_fixes
-        (Name_Space.define context true (Binding.make (x', pos), x) #> snd #>
+        (Name_Space.define context true (Binding.make (x', pos), (x, proper)) #> snd #>
           Name_Space.alias_table Name_Space.global_naming (Binding.make (x, pos)) x')
       |> declare_fixed x
       |> declare_constraints (Syntax.free x')
