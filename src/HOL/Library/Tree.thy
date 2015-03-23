@@ -30,6 +30,22 @@ by (cases t) auto
 lemma finite_set_tree[simp]: "finite(set_tree t)"
 by(induction t) auto
 
+lemma size_map_tree[simp]: "size (map_tree f t) = size t"
+by (induction t) auto
+
+lemma size1_map_tree[simp]: "size1 (map_tree f t) = size1 t"
+by (simp add: size1_def)
+
+
+subsection "The depth"
+
+fun depth :: "'a tree => nat" where
+"depth Leaf = 0" |
+"depth (Node t1 a t2) = Suc (max (depth t1) (depth t2))"
+
+lemma depth_map_tree[simp]: "depth (map_tree f t) = depth t"
+by (induction t) auto
+
 
 subsection "The set of subtrees"
 
@@ -47,13 +63,32 @@ lemma in_set_tree_if: "\<langle>l, a, r\<rangle> \<in> subtrees t \<Longrightarr
 by (metis Node_notin_subtrees_if)
 
 
-subsection "Inorder list of entries"
+subsection "List of entries"
+
+fun preorder :: "'a tree \<Rightarrow> 'a list" where
+"preorder \<langle>\<rangle> = []" |
+"preorder \<langle>l, x, r\<rangle> = x # preorder l @ preorder r"
 
 fun inorder :: "'a tree \<Rightarrow> 'a list" where
 "inorder \<langle>\<rangle> = []" |
 "inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
 
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
+by (induction t) auto
+
+lemma set_preorder[simp]: "set (preorder t) = set_tree t"
+by (induction t) auto
+
+lemma length_preorder[simp]: "length (preorder t) = size t"
+by (induction t) auto
+
+lemma length_inorder[simp]: "length (inorder t) = size t"
+by (induction t) auto
+
+lemma preorder_map: "preorder (map_tree f t) = map f (preorder t)"
+by (induction t) auto
+
+lemma inorder_map: "inorder (map_tree f t) = map f (inorder t)"
 by (induction t) auto
 
 
@@ -78,6 +113,7 @@ apply (induction t)
  apply(simp)
 by (fastforce simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
 
+
 subsection "Function @{text mirror}"
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree" where
@@ -92,6 +128,15 @@ by (induction t) simp_all
 
 lemma size1_mirror[simp]: "size1(mirror t) = size1 t"
 by (simp add: size1_def)
+
+lemma depth_mirror[simp]: "depth(mirror t) = depth t"
+by (induction t) simp_all
+
+lemma inorder_mirror: "inorder(mirror t) = rev(inorder t)"
+by (induction t) simp_all
+
+lemma map_mirror: "map_tree f (mirror t) = mirror (map_tree f t)"
+by (induction t) simp_all
 
 lemma mirror_mirror[simp]: "mirror(mirror t) = t"
 by (induction t) simp_all
