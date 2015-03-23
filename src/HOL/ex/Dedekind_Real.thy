@@ -44,10 +44,16 @@ proof -
 qed
 
 
-definition "preal = {A. cut A}"
+typedef preal = "Collect cut"
+  by (blast intro: cut_of_rat [OF zero_less_one])
 
-typedef preal = preal
-  unfolding preal_def by (blast intro: cut_of_rat [OF zero_less_one])
+lemma Abs_preal_induct [induct type: preal]:
+  "(\<And>x. cut x \<Longrightarrow> P (Abs_preal x)) \<Longrightarrow> P x"
+  using Abs_preal_induct [of P x] by simp
+
+lemma Rep_preal:
+  "cut (Rep_preal x)"
+  using Rep_preal [of x] by simp
 
 definition
   psup :: "preal set => preal" where
@@ -111,34 +117,34 @@ text{*Reduces equality on abstractions to equality on representatives*}
 declare Abs_preal_inject [simp]
 declare Abs_preal_inverse [simp]
 
-lemma rat_mem_preal: "0 < q ==> {r::rat. 0 < r & r < q} \<in> preal"
-by (simp add: preal_def cut_of_rat)
+lemma rat_mem_preal: "0 < q ==> cut {r::rat. 0 < r & r < q}"
+by (simp add: cut_of_rat)
 
-lemma preal_nonempty: "A \<in> preal ==> \<exists>x\<in>A. 0 < x"
-  unfolding preal_def cut_def [abs_def] by blast
+lemma preal_nonempty: "cut A ==> \<exists>x\<in>A. 0 < x"
+  unfolding cut_def [abs_def] by blast
 
-lemma preal_Ex_mem: "A \<in> preal \<Longrightarrow> \<exists>x. x \<in> A"
+lemma preal_Ex_mem: "cut A \<Longrightarrow> \<exists>x. x \<in> A"
   apply (drule preal_nonempty)
   apply fast
   done
 
-lemma preal_imp_psubset_positives: "A \<in> preal ==> A < {r. 0 < r}"
-  by (force simp add: preal_def cut_def)
+lemma preal_imp_psubset_positives: "cut A ==> A < {r. 0 < r}"
+  by (force simp add: cut_def)
 
-lemma preal_exists_bound: "A \<in> preal ==> \<exists>x. 0 < x & x \<notin> A"
+lemma preal_exists_bound: "cut A ==> \<exists>x. 0 < x & x \<notin> A"
   apply (drule preal_imp_psubset_positives)
   apply auto
   done
 
-lemma preal_exists_greater: "[| A \<in> preal; y \<in> A |] ==> \<exists>u \<in> A. y < u"
-  unfolding preal_def cut_def [abs_def] by blast
+lemma preal_exists_greater: "[| cut A; y \<in> A |] ==> \<exists>u \<in> A. y < u"
+  unfolding cut_def [abs_def] by blast
 
-lemma preal_downwards_closed: "[| A \<in> preal; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
-  unfolding preal_def cut_def [abs_def] by blast
+lemma preal_downwards_closed: "[| cut A; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
+  unfolding cut_def [abs_def] by blast
 
 text{*Relaxing the final premise*}
 lemma preal_downwards_closed':
-     "[| A \<in> preal; y \<in> A; 0 < z; z \<le> y |] ==> z \<in> A"
+     "[| cut A; y \<in> A; 0 < z; z \<le> y |] ==> z \<in> A"
 apply (simp add: order_le_less)
 apply (blast intro: preal_downwards_closed)
 done
@@ -147,7 +153,7 @@ text{*A positive fraction not in a positive real is an upper bound.
  Gleason p. 122 - Remark (1)*}
 
 lemma not_in_preal_ub:
-  assumes A: "A \<in> preal"
+  assumes A: "cut A"
     and notx: "x \<notin> A"
     and y: "y \<in> A"
     and pos: "0 < x"
@@ -167,6 +173,7 @@ qed
 text {* preal lemmas instantiated to @{term "Rep_preal X"} *}
 
 lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
+thm preal_Ex_mem
 by (rule preal_Ex_mem [OF Rep_preal])
 
 lemma Rep_preal_exists_bound: "\<exists>x>0. x \<notin> Rep_preal X"
@@ -195,7 +202,7 @@ next
   by (auto simp add: preal_le_def preal_less_def Rep_preal_inject)
 qed  
 
-lemma preal_imp_pos: "[|A \<in> preal; r \<in> A|] ==> 0 < r"
+lemma preal_imp_pos: "[|cut A; r \<in> A|] ==> 0 < r"
 by (insert preal_imp_psubset_positives, blast)
 
 instance preal :: linorder
@@ -237,7 +244,7 @@ text{*Lemmas for proving that addition of two positive reals gives
 
 text{*Part 1 of Dedekind sections definition*}
 lemma add_set_not_empty:
-     "[|A \<in> preal; B \<in> preal|] ==> {} \<subset> add_set A B"
+     "[|cut A; cut B|] ==> {} \<subset> add_set A B"
 apply (drule preal_nonempty)+
 apply (auto simp add: add_set_def)
 done
@@ -245,7 +252,7 @@ done
 text{*Part 2 of Dedekind sections definition.  A structured version of
 this proof is @{text preal_not_mem_mult_set_Ex} below.*}
 lemma preal_not_mem_add_set_Ex:
-     "[|A \<in> preal; B \<in> preal|] ==> \<exists>q>0. q \<notin> add_set A B"
+     "[|cut A; cut B|] ==> \<exists>q>0. q \<notin> add_set A B"
 apply (insert preal_exists_bound [of A] preal_exists_bound [of B], auto) 
 apply (rule_tac x = "x+xa" in exI)
 apply (simp add: add_set_def, clarify)
@@ -254,8 +261,8 @@ apply (force dest: add_strict_mono)
 done
 
 lemma add_set_not_rat_set:
-   assumes A: "A \<in> preal" 
-       and B: "B \<in> preal"
+   assumes A: "cut A" 
+       and B: "cut B"
      shows "add_set A B < {r. 0 < r}"
 proof
   from preal_imp_pos [OF A] preal_imp_pos [OF B]
@@ -267,12 +274,12 @@ qed
 
 text{*Part 3 of Dedekind sections definition*}
 lemma add_set_lemma3:
-     "[|A \<in> preal; B \<in> preal; u \<in> add_set A B; 0 < z; z < u|] 
+     "[|cut A; cut B; u \<in> add_set A B; 0 < z; z < u|] 
       ==> z \<in> add_set A B"
 proof (unfold add_set_def, clarify)
   fix x::rat and y::rat
-  assume A: "A \<in> preal" 
-    and B: "B \<in> preal"
+  assume A: "cut A" 
+    and B: "cut B"
     and [simp]: "0 < z"
     and zless: "z < x + y"
     and x:  "x \<in> A"
@@ -310,7 +317,7 @@ qed
 
 text{*Part 4 of Dedekind sections definition*}
 lemma add_set_lemma4:
-     "[|A \<in> preal; B \<in> preal; y \<in> add_set A B|] ==> \<exists>u \<in> add_set A B. y < u"
+     "[|cut A; cut B; y \<in> add_set A B|] ==> \<exists>u \<in> add_set A B. y < u"
 apply (auto simp add: add_set_def)
 apply (frule preal_exists_greater [of A], auto) 
 apply (rule_tac x="u + ya" in exI)
@@ -318,8 +325,8 @@ apply (auto intro: add_strict_left_mono)
 done
 
 lemma mem_add_set:
-     "[|A \<in> preal; B \<in> preal|] ==> add_set A B \<in> preal"
-apply (simp (no_asm_simp) add: preal_def cut_def)
+     "[|cut A; cut B|] ==> cut (add_set A B)"
+apply (simp (no_asm_simp) add: cut_def)
 apply (blast intro!: add_set_not_empty add_set_not_rat_set
                      add_set_lemma3 add_set_lemma4)
 done
@@ -353,15 +360,15 @@ text{*Lemmas for proving positive reals multiplication set in @{typ preal}*}
 
 text{*Part 1 of Dedekind sections definition*}
 lemma mult_set_not_empty:
-     "[|A \<in> preal; B \<in> preal|] ==> {} \<subset> mult_set A B"
+     "[|cut A; cut B|] ==> {} \<subset> mult_set A B"
 apply (insert preal_nonempty [of A] preal_nonempty [of B]) 
 apply (auto simp add: mult_set_def)
 done
 
 text{*Part 2 of Dedekind sections definition*}
 lemma preal_not_mem_mult_set_Ex:
-  assumes A: "A \<in> preal" 
-    and B: "B \<in> preal"
+  assumes A: "cut A" 
+    and B: "cut B"
   shows "\<exists>q. 0 < q & q \<notin> mult_set A B"
 proof -
   from preal_exists_bound [OF A] obtain x where 1 [simp]: "0 < x" "x \<notin> A" by blast
@@ -389,8 +396,8 @@ proof -
 qed
 
 lemma mult_set_not_rat_set:
-  assumes A: "A \<in> preal" 
-    and B: "B \<in> preal"
+  assumes A: "cut A" 
+    and B: "cut B"
   shows "mult_set A B < {r. 0 < r}"
 proof
   show "mult_set A B \<subseteq> {r. 0 < r}"
@@ -404,12 +411,12 @@ qed
 
 text{*Part 3 of Dedekind sections definition*}
 lemma mult_set_lemma3:
-     "[|A \<in> preal; B \<in> preal; u \<in> mult_set A B; 0 < z; z < u|] 
+     "[|cut A; cut B; u \<in> mult_set A B; 0 < z; z < u|] 
       ==> z \<in> mult_set A B"
 proof (unfold mult_set_def, clarify)
   fix x::rat and y::rat
-  assume A: "A \<in> preal" 
-    and B: "B \<in> preal"
+  assume A: "cut A" 
+    and B: "cut B"
     and [simp]: "0 < z"
     and zless: "z < x * y"
     and x:  "x \<in> A"
@@ -436,7 +443,7 @@ qed
 
 text{*Part 4 of Dedekind sections definition*}
 lemma mult_set_lemma4:
-     "[|A \<in> preal; B \<in> preal; y \<in> mult_set A B|] ==> \<exists>u \<in> mult_set A B. y < u"
+     "[|cut A; cut B; y \<in> mult_set A B|] ==> \<exists>u \<in> mult_set A B. y < u"
 apply (auto simp add: mult_set_def)
 apply (frule preal_exists_greater [of A], auto) 
 apply (rule_tac x="u * ya" in exI)
@@ -446,8 +453,8 @@ done
 
 
 lemma mem_mult_set:
-     "[|A \<in> preal; B \<in> preal|] ==> mult_set A B \<in> preal"
-apply (simp (no_asm_simp) add: preal_def cut_def)
+     "[|cut A; cut B|] ==> cut (mult_set A B)"
+apply (simp (no_asm_simp) add: cut_def)
 apply (blast intro!: mult_set_not_empty mult_set_not_rat_set
                      mult_set_lemma3 mult_set_lemma4)
 done
@@ -470,7 +477,7 @@ text{* Positive real 1 is the multiplicative identity element *}
 lemma preal_mult_1: "(1::preal) * z = z"
 proof (induct z)
   fix A :: "rat set"
-  assume A: "A \<in> preal"
+  assume A: "cut A"
   have "{w. \<exists>u. 0 < u \<and> u < 1 & (\<exists>v \<in> A. w = u * v)} = A" (is "?lhs = A")
   proof
     show "?lhs \<subseteq> A"
@@ -588,7 +595,7 @@ by intro_classes (rule preal_add_mult_distrib)
 subsection{*Existence of Inverse, a Positive Real*}
 
 lemma mem_inv_set_ex:
-  assumes A: "A \<in> preal" shows "\<exists>x y. 0 < x & x < y & inverse y \<notin> A"
+  assumes A: "cut A" shows "\<exists>x y. 0 < x & x < y & inverse y \<notin> A"
 proof -
   from preal_exists_bound [OF A]
   obtain x where [simp]: "0<x" "x \<notin> A" by blast
@@ -605,7 +612,7 @@ qed
 
 text{*Part 1 of Dedekind sections definition*}
 lemma inverse_set_not_empty:
-     "A \<in> preal ==> {} \<subset> inverse_set A"
+     "cut A ==> {} \<subset> inverse_set A"
 apply (insert mem_inv_set_ex [of A])
 apply (auto simp add: inverse_set_def)
 done
@@ -613,7 +620,7 @@ done
 text{*Part 2 of Dedekind sections definition*}
 
 lemma preal_not_mem_inverse_set_Ex:
-   assumes A: "A \<in> preal"  shows "\<exists>q. 0 < q & q \<notin> inverse_set A"
+   assumes A: "cut A"  shows "\<exists>q. 0 < q & q \<notin> inverse_set A"
 proof -
   from preal_nonempty [OF A]
   obtain x where x: "x \<in> A" and  xpos [simp]: "0<x" ..
@@ -635,7 +642,7 @@ proof -
 qed
 
 lemma inverse_set_not_rat_set:
-   assumes A: "A \<in> preal"  shows "inverse_set A < {r. 0 < r}"
+   assumes A: "cut A"  shows "inverse_set A < {r. 0 < r}"
 proof
   show "inverse_set A \<subseteq> {r. 0 < r}"  by (force simp add: inverse_set_def)
 next
@@ -645,7 +652,7 @@ qed
 
 text{*Part 3 of Dedekind sections definition*}
 lemma inverse_set_lemma3:
-     "[|A \<in> preal; u \<in> inverse_set A; 0 < z; z < u|] 
+     "[|cut A; u \<in> inverse_set A; 0 < z; z < u|] 
       ==> z \<in> inverse_set A"
 apply (auto simp add: inverse_set_def)
 apply (auto intro: order_less_trans)
@@ -653,7 +660,7 @@ done
 
 text{*Part 4 of Dedekind sections definition*}
 lemma inverse_set_lemma4:
-     "[|A \<in> preal; y \<in> inverse_set A|] ==> \<exists>u \<in> inverse_set A. y < u"
+     "[|cut A; y \<in> inverse_set A|] ==> \<exists>u \<in> inverse_set A. y < u"
 apply (auto simp add: inverse_set_def)
 apply (drule dense [of y]) 
 apply (blast intro: order_less_trans)
@@ -661,8 +668,8 @@ done
 
 
 lemma mem_inverse_set:
-     "A \<in> preal ==> inverse_set A \<in> preal"
-apply (simp (no_asm_simp) add: preal_def cut_def)
+     "cut A ==> cut (inverse_set A)"
+apply (simp (no_asm_simp) add: cut_def)
 apply (blast intro!: inverse_set_not_empty inverse_set_not_rat_set
                      inverse_set_lemma3 inverse_set_lemma4)
 done
@@ -671,7 +678,7 @@ done
 subsection{*Gleason's Lemma 9-3.4, page 122*}
 
 lemma Gleason9_34_exists:
-  assumes A: "A \<in> preal"
+  assumes A: "cut A"
     and "\<forall>x\<in>A. x + u \<in> A"
     and "0 \<le> z"
   shows "\<exists>b\<in>A. b + (of_int z) * u \<in> A"
@@ -694,7 +701,7 @@ next
 qed
 
 lemma Gleason9_34_contra:
-  assumes A: "A \<in> preal"
+  assumes A: "cut A"
     shows "[|\<forall>x\<in>A. x + u \<in> A; 0 < u; 0 < y; y \<notin> A|] ==> False"
 proof (induct u, induct y)
   fix a::int and b::int
@@ -734,7 +741,7 @@ qed
 
 
 lemma Gleason9_34:
-  assumes A: "A \<in> preal"
+  assumes A: "cut A"
     and upos: "0 < u"
   shows "\<exists>r \<in> A. r + u \<notin> A"
 proof (rule ccontr, simp)
@@ -750,7 +757,7 @@ qed
 subsection{*Gleason's Lemma 9-3.6*}
 
 lemma lemma_gleason9_36:
-  assumes A: "A \<in> preal"
+  assumes A: "cut A"
     and x: "1 < x"
   shows "\<exists>r \<in> A. r*x \<notin> A"
 proof -
@@ -965,8 +972,8 @@ apply (auto simp add: ac_simps)
 done
 
 lemma mem_diff_set:
-     "R < S ==> diff_set (Rep_preal S) (Rep_preal R) \<in> preal"
-apply (unfold preal_def cut_def [abs_def])
+     "R < S ==> cut (diff_set (Rep_preal S) (Rep_preal R))"
+apply (unfold cut_def)
 apply (blast intro!: diff_set_not_empty diff_set_not_rat_set
                      diff_set_lemma3 diff_set_lemma4)
 done
@@ -1134,8 +1141,8 @@ lemma preal_sup_set_lemma4:
 by (blast dest: Rep_preal [THEN preal_exists_greater])
 
 lemma preal_sup:
-     "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y|] ==> (\<Union>X \<in> P. Rep_preal(X)) \<in> preal"
-apply (unfold preal_def cut_def [abs_def])
+     "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y|] ==> cut (\<Union>X \<in> P. Rep_preal(X))"
+apply (unfold cut_def)
 apply (blast intro!: preal_sup_set_not_empty preal_sup_set_not_rat_set
                      preal_sup_set_lemma3 preal_sup_set_lemma4)
 done
