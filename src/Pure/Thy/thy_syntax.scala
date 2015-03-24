@@ -147,8 +147,8 @@ object Thy_Syntax
     : (List[Command], List[(Command.Blobs_Info, Command_Span.Span)]) =
   {
     (cmds, blobs_spans) match {
-      case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>
-        chop_common(cmds, rest)
+      case (cmd :: cmds, (blobs_info, span) :: rest)
+      if cmd.blobs_info == blobs_info && cmd.span == span => chop_common(cmds, rest)
       case _ => (cmds, blobs_spans)
     }
   }
