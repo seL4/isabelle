@@ -52,15 +52,16 @@ sig
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
   val auto_fixes: term -> Proof.context -> Proof.context
+  val fix_dummy_patterns: term -> Proof.context -> term * Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val dest_fixes: Proof.context -> (string * string) list
-  val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
   val export_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT: Proof.context -> Proof.context -> thm list -> thm list
   val export_prf: Proof.context -> Proof.context -> Proofterm.proof -> Proofterm.proof
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
+  val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
   val importT_inst: term list -> Proof.context -> ((indexname * sort) * typ) list * Proof.context
   val import_inst: bool -> term list -> Proof.context ->
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
@@ -460,11 +461,21 @@ fun auto_fixes t ctxt = ctxt
   |> not (is_body ctxt) ? add_fixes_direct (rev (add_free_names ctxt t []))
   |> declare_term t;
 
-fun invent_types Ss ctxt =
-  let
-    val tfrees = Name.invent (names_of ctxt) Name.aT (length Ss) ~~ Ss;
-    val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
-  in (tfrees, ctxt') end;
+
+(* dummy patterns *)
+
+fun fix_dummy_patterns (Const ("Pure.dummy_pattern", T)) ctxt =
+      let val ([x], ctxt') = add_fixes [Name.uu_] ctxt
+      in (Free (x, T), ctxt') end
+  | fix_dummy_patterns (Abs (x, T, b)) ctxt =
+      let val (b', ctxt') = fix_dummy_patterns b ctxt
+      in (Abs (x, T, b'), ctxt') end
+  | fix_dummy_patterns (t $ u) ctxt =
+      let
+        val (t', ctxt') = fix_dummy_patterns t ctxt;
+        val (u', ctxt'') = fix_dummy_patterns u ctxt';
+      in (t' $ u', ctxt'') end
+  | fix_dummy_patterns a ctxt = (a, ctxt);
 
 
 
@@ -540,6 +551,12 @@ fun export_morphism inner outer =
 
 
 (** import -- fix schematic type/term variables **)
+
+fun invent_types Ss ctxt =
+  let
+    val tfrees = Name.invent (names_of ctxt) Name.aT (length Ss) ~~ Ss;
+    val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
+  in (tfrees, ctxt') end;
 
 fun importT_inst ts ctxt =
   let

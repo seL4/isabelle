@@ -68,18 +68,18 @@ fun read_type ctxt tvars ((xi, pos), s) =
     else error_var "Bad sort for instantiation of type variable: " (xi, pos)
   end;
 
-fun read_terms ctxt ss Ts =
+fun read_terms ss Ts ctxt =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
-    val ts = map2 parse Ts ss;
+    val (ts, ctxt') = fold_map Variable.fix_dummy_patterns (map2 parse Ts ss) ctxt;
     val ts' =
       map2 (Type.constraint o Type_Infer.paramify_vars) Ts ts
-      |> Syntax.check_terms ctxt
-      |> Variable.polymorphic ctxt;
+      |> Syntax.check_terms ctxt'
+      |> Variable.polymorphic ctxt';
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
-  in (ts', tyenv') end;
+  in ((ts', tyenv'), ctxt') end;
 
 fun make_instT f v =
   let
@@ -95,7 +95,7 @@ fun make_inst f v =
 
 in
 
-fun read_insts ctxt mixed_insts thm =
+fun read_insts thm mixed_insts ctxt =
   let
     val (type_insts, term_insts) =
       List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) mixed_insts;
@@ -110,7 +110,7 @@ fun read_insts ctxt mixed_insts thm =
     (*term instantiations*)
     val (xs, ss) = split_list term_insts;
     val Ts = map (the_type vars1) xs;
-    val (ts, inferred) = read_terms ctxt ss Ts;
+    val ((ts, inferred), ctxt') = read_terms ss Ts ctxt;
 
     (*implicit type instantiations*)
     val instT2 = Term_Subst.instantiateT inferred;
@@ -121,7 +121,7 @@ fun read_insts ctxt mixed_insts thm =
 
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
-  in (inst_tvars, inst_vars) end;
+  in ((inst_tvars, inst_vars), ctxt') end;
 
 end;
 
@@ -134,13 +134,13 @@ fun where_rule ctxt mixed_insts fixes thm =
     val ctxt' = ctxt
       |> Variable.declare_thm thm
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
-    val (inst_tvars, inst_vars) = read_insts ctxt' mixed_insts thm;
+    val ((inst_tvars, inst_vars), ctxt'') = read_insts thm mixed_insts ctxt';
   in
     thm
     |> Drule.instantiate_normalize
-      (map (apply2 (Thm.ctyp_of ctxt) o apfst TVar) inst_tvars,
-       map (apply2 (Thm.cterm_of ctxt) o apfst Var) inst_vars)
-    |> singleton (Variable.export ctxt' ctxt)
+      (map (apply2 (Thm.ctyp_of ctxt'') o apfst TVar) inst_tvars,
+       map (apply2 (Thm.cterm_of ctxt'') o apfst Var) inst_vars)
+    |> singleton (Variable.export ctxt'' ctxt)
     |> Rule_Cases.save thm
   end;
 
@@ -225,7 +225,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
     val (fixed, fixes_ctxt) = param_ctxt
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes;
 
-    val (inst_tvars, inst_vars) = read_insts fixes_ctxt mixed_insts thm;
+    val ((inst_tvars, inst_vars), inst_ctxt) = read_insts thm mixed_insts fixes_ctxt;
 
 
     (* lift and instantiate rule *)
@@ -238,14 +238,14 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
         (Logic.incr_indexes (fixed, paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
-      |> map (apply2 (Thm.ctyp_of fixes_ctxt o Logic.incr_tvar inc) o apfst TVar);
+      |> map (apply2 (Thm.ctyp_of inst_ctxt o Logic.incr_tvar inc) o apfst TVar);
     val inst_vars' = inst_vars
-      |> map (fn (v, t) => apply2 (Thm.cterm_of fixes_ctxt) (lift_var v, lift_term t));
+      |> map (fn (v, t) => apply2 (Thm.cterm_of inst_ctxt) (lift_var v, lift_term t));
 
     val thm' =
       Drule.instantiate_normalize (inst_tvars', inst_vars')
         (Thm.lift_rule cgoal thm)
-      |> singleton (Variable.export fixes_ctxt param_ctxt);
+      |> singleton (Variable.export inst_ctxt param_ctxt);
   in
     compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
   end) i st;
