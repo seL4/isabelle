@@ -112,7 +112,8 @@ fun nonprimitive_corec ctxt eqns =
 fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 fun use_primcorecursive () =
-  error "\"auto\" failed (try \"primcorecursive\" instead of \"primcorec\")";
+  error ("\"auto\" failed (try " ^ quote (#1 @{command_spec "primcorecursive"}) ^ " instead of " ^
+    quote (#1 @{command_spec "primcorec"}) ^ ")");
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -1552,21 +1553,20 @@ val corec_option_parser = Parse.group (K "option")
    || Parse.reserved "exhaustive" >> K Exhaustive_Option
    || Parse.reserved "transfer" >> K Transfer_Option);
 
-(* FIXME: should use "Parse_Spec.spec" instead of "Parse.prop" and honor binding *)
-val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
+val where_alt_props_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
   ((Parse.prop >> pair Attrib.empty_binding) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorecursive_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorec_cmd);
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
   gfp_rec_sugar_transfer_interpretation);

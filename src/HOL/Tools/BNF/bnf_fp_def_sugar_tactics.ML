@@ -106,9 +106,7 @@ fun co_induct_inst_as_projs ctxt k thm =
 val co_induct_inst_as_projs_tac = PRIMITIVE oo co_induct_inst_as_projs;
 
 fun mk_case_transfer_tac ctxt rel_cases cases =
-  let
-    val n = length (tl (Thm.prems_of rel_cases));
-  in
+  let val n = length (tl (Thm.prems_of rel_cases)) in
     REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
     HEADGOAL (etac rel_cases) THEN
     ALLGOALS (hyp_subst_tac ctxt) THEN

@@ -329,9 +329,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       end;
 
     val ((mor_free, (_, mor_def_free)), (lthy, lthy_old)) =
-        lthy
-        |> Local_Theory.define ((mor_bind, NoSyn), (mor_def_bind, mor_spec))
-        ||> `Local_Theory.restore;
+      lthy
+      |> Local_Theory.define ((mor_bind, NoSyn), (mor_def_bind, mor_spec))
+      ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val mor = fst (Term.dest_Const (Morphism.term phi mor_free));
@@ -652,11 +652,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       end;
 
     val ((min_alg_frees, (_, min_alg_def_frees)), (lthy, lthy_old)) =
-        lthy
-        |> fold_map (fn i => Local_Theory.define
-          ((min_alg_bind i, NoSyn), (min_alg_def_bind i, min_alg_spec i))) ks
-        |>> apsnd split_list o split_list
-        ||> `Local_Theory.restore;
+      lthy
+      |> fold_map (fn i => Local_Theory.define
+        ((min_alg_bind i, NoSyn), (min_alg_def_bind i, min_alg_spec i))) ks
+      |>> apsnd split_list o split_list
+      ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;

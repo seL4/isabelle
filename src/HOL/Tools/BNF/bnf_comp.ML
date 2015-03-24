@@ -8,7 +8,7 @@ Composition of bounded natural functors.
 
 signature BNF_COMP =
 sig
-  val bnf_inline_threshold: int Config.T
+  val inline_threshold: int Config.T
 
   val ID_bnf: BNF_Def.bnf
   val DEADID_bnf: BNF_Def.bnf
@@ -76,7 +76,7 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Comp_Tactics
 
-val bnf_inline_threshold = Attrib.setup_config_int @{binding bnf_inline_threshold} (K 5);
+val inline_threshold = Attrib.setup_config_int @{binding bnf_inline_threshold} (K 5);
 
 val ID_bnf = the (bnf_of @{context} "BNF_Composition.ID");
 val DEADID_bnf = the (bnf_of @{context} "BNF_Composition.DEADID");
@@ -756,7 +756,7 @@ val mk_rep = mk_abs_or_rep domain_type;
 
 fun maybe_typedef ctxt force_out_of_line (b, As, mx) set opt_morphs tac =
   let
-    val threshold = Config.get ctxt bnf_inline_threshold;
+    val threshold = Config.get ctxt inline_threshold;
     val repT = HOLogic.dest_setT (fastype_of set);
     val out_of_line = force_out_of_line orelse
       (threshold >= 0 andalso Term.size_of_typ repT > threshold);
