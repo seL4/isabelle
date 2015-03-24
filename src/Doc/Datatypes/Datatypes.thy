@@ -969,11 +969,11 @@ The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 \item[@{text "t."}\hthm{map_cong_simp}\rm:] ~ \\
 @{thm list.map_cong_simp[no_vars]}
 
-\item[@{text "t."}\hthm{map_id}\rm:] ~ \\
-@{thm list.map_id[no_vars]}
-
 \item[@{text "t."}\hthm{map_id0}\rm:] ~ \\
 @{thm list.map_id0[no_vars]}
+
+\item[@{text "t."}\hthm{map_id}\rm:] ~ \\
+@{thm list.map_id[no_vars]}
 
 \item[@{text "t."}\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
@@ -1001,13 +1001,13 @@ The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
 @{thm list.rel_map(1)[no_vars]} \\
 @{thm list.rel_map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
-@{thm list.rel_refl[no_vars]}
-
 \item[@{text "t."}\hthm{rel_mono} @{text "[mono, relator_mono]"}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]} \\
 The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
 (Section~\ref{ssec:lifting}).
+
+\item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
+@{thm list.rel_refl[no_vars]}
 
 \item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rel_transfer[no_vars]} \\
