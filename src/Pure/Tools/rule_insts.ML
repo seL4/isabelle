@@ -13,7 +13,7 @@ sig
     (binding * string option * mixfix) list -> thm -> thm
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
-  val insts_schematic: bool Config.T
+  val schematic: bool Config.T
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
     int -> tactic
@@ -199,7 +199,7 @@ end;
 
 (** tactics **)
 
-val insts_schematic = Attrib.setup_config_bool @{binding insts_schematic} (K true);
+val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true);
 
 (* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
 
@@ -219,7 +219,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
       |> Variable.improper_fixes
       |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
       ||> Variable.restore_proper_fixes ctxt
-      ||> Config.get ctxt insts_schematic ? Proof_Context.set_mode Proof_Context.mode_schematic;
+      ||> Config.get ctxt schematic ? Proof_Context.set_mode Proof_Context.mode_schematic;
     val paramTs = map #2 params;
 
 
