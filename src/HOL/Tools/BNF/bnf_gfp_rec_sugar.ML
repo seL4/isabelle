@@ -609,10 +609,13 @@ datatype coeqn_data =
 fun is_free_in frees (Free (v, _)) = member (op =) frees v
   | is_free_in _ _ = false;
 
+fun is_catch_all_prem (Free (v, _)) = v = Name.uu_
+  | is_catch_all_prem _ = false;
+
 fun add_extra_frees ctxt frees names =
   fold_aterms (fn x as Free (v, _) =>
     (not (member (op =) frees x) andalso not (member (op =) names v) andalso
-     not (Variable.is_fixed ctxt v) andalso v <> Name.uu_)
+     not (Variable.is_fixed ctxt v) andalso not (is_catch_all_prem x))
     ? cons x | _ => I);
 
 fun check_extra_frees ctxt frees names t =
@@ -678,9 +681,6 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
       if is_none disc' then the eq_ctr0 else find_index (curry (op =) (head_of (the disc'))) discs;
     val ctr_no = if not_disc then 1 - ctr_no' else ctr_no';
     val {ctr, disc, ...} = nth basic_ctr_specs ctr_no;
-
-    fun is_catch_all_prem (Free (s, _)) = s = Name.uu_
-      | is_catch_all_prem _ = false;
 
     val catch_all =
       (case prems0 of

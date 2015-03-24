@@ -412,7 +412,7 @@ fun check_class ctxt (xname, pos) =
 
 fun read_class ctxt text =
   let
-    val source = Syntax.read_token text;
+    val source = Syntax.read_input text;
     val (c, reports) = check_class ctxt (Input.source_content source, Input.pos_of source);
     val _ = Position.reports reports;
   in c end;
@@ -480,7 +480,7 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
 
 fun read_type_name ctxt flags text =
   let
-    val source = Syntax.read_token text;
+    val source = Syntax.read_input text;
     val (T, reports) =
       check_type_name ctxt flags (Input.source_content source, Input.pos_of source);
     val _ = Position.reports reports;
@@ -530,7 +530,7 @@ fun check_const {proper, strict} ctxt (c, ps) =
 
 fun read_const ctxt flags text =
   let
-    val source = Syntax.read_token text;
+    val source = Syntax.read_input text;
     val (t, reports) = check_const ctxt flags (Input.source_content source, [Input.pos_of source]);
     val _ = Position.reports reports;
   in t end;
@@ -945,7 +945,7 @@ fun retrieve_generic (context as Context.Proof ctxt) arg =
 fun retrieve pick context (Facts.Fact s) =
       let
         val ctxt = Context.the_proof context;
-        val pos = Syntax.read_token_pos s;
+        val pos = Syntax.read_input_pos s;
         val prop =
           Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
           |> singleton (Variable.polymorphic ctxt);

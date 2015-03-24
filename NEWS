@@ -66,6 +66,10 @@ etc.) allow an optional context of local variables ('for' declaration):
 these variables become schematic in the instantiated theorem. This
 behaviour is analogous to 'for' in attributes "where" and "of".
 
+* Explicit instantiation via attributes "where", "of", and proof methods
+"rule_tac" with derivatives like "subgoal_tac" etc. admit dummy patterns
+("_") that stand for anonymous local variables.
+
 * Command "class_deps" takes optional sort arguments constraining
 the search space.
 

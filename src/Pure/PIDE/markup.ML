@@ -114,13 +114,13 @@ sig
   val document_antiquotation_optionN: string
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
+  val inputN: string val input: bool -> Properties.T -> T
   val commandN: string val command: T
   val stringN: string val string: T
   val alt_stringN: string val alt_string: T
   val verbatimN: string val verbatim: T
   val cartoucheN: string val cartouche: T
   val commentN: string val comment: T
-  val tokenN: string val token: bool -> Properties.T -> T
   val keyword1N: string val keyword1: T
   val keyword2N: string val keyword2: T
   val keyword3N: string val keyword3: T
@@ -456,6 +456,12 @@ val (paragraphN, paragraph) = markup_elem "paragraph";
 val (text_foldN, text_fold) = markup_elem "text_fold";
 
 
+(* formal input *)
+
+val inputN = "input";
+fun input delimited props = (inputN, (delimitedN, print_bool delimited) :: props);
+
+
 (* outer syntax *)
 
 val (commandN, command) = markup_elem "command";
@@ -470,9 +476,6 @@ val (alt_stringN, alt_string) = markup_elem "alt_string";
 val (verbatimN, verbatim) = markup_elem "verbatim";
 val (cartoucheN, cartouche) = markup_elem "cartouche";
 val (commentN, comment) = markup_elem "comment";
-
-val tokenN = "token";
-fun token delimited props = (tokenN, (delimitedN, print_bool delimited) :: props);
 
 
 (* timing *)
