@@ -14,9 +14,11 @@ sig
   val ambiguity_warning: bool Config.T
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
-  val read_token_pos: string -> Position.T
-  val read_token: string -> Input.source
-  val parse_token: Proof.context -> (XML.tree list -> 'a) ->
+  val encode_input: Input.source -> XML.tree
+  val implode_input: Input.source -> string
+  val read_input_pos: string -> Position.T
+  val read_input: string -> Input.source
+  val parse_input: Proof.context -> (XML.tree list -> 'a) ->
     (bool -> Markup.T) -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
@@ -159,33 +161,42 @@ val ambiguity_limit_raw =
 val ambiguity_limit = Config.int ambiguity_limit_raw;
 
 
-(* outer syntax token -- with optional YXML content *)
+(* formal input *)
+
+fun encode_input source =
+  let
+    val delimited = Input.is_delimited source;
+    val pos = Input.pos_of source;
+    val text = Input.text_of source;
+  in XML.Elem (Markup.input delimited (Position.properties_of pos), [XML.Text text]) end;
+
+val implode_input = encode_input #> YXML.string_of;
 
 local
 
-fun token_range (XML.Elem ((name, props), _)) =
-      if name = Markup.tokenN
+fun input_range (XML.Elem ((name, props), _)) =
+      if name = Markup.inputN
       then (Markup.is_delimited props, Position.range_of_properties props)
       else (false, Position.no_range)
-  | token_range (XML.Text _) = (false, Position.no_range);
+  | input_range (XML.Text _) = (false, Position.no_range);
 
-fun token_source tree : Input.source =
+fun input_source tree =
   let
     val text = XML.content_of [tree];
-    val (delimited, range) = token_range tree;
+    val (delimited, range) = input_range tree;
   in Input.source delimited text range end;
 
 in
 
-fun read_token_pos str = #1 (#2 (token_range (YXML.parse str handle Fail msg => error msg)));
+fun read_input_pos str = #1 (#2 (input_range (YXML.parse str handle Fail msg => error msg)));
 
-fun read_token str = token_source (YXML.parse str handle Fail msg => error msg);
+fun read_input str = input_source (YXML.parse str handle Fail msg => error msg);
 
-fun parse_token ctxt decode markup parse str =
+fun parse_input ctxt decode markup parse str =
   let
     fun parse_tree tree =
       let
-        val source = token_source tree;
+        val source = input_source tree;
         val syms = Input.source_explode source;
         val pos = Input.pos_of source;
         val _ = Context_Position.report ctxt pos (markup (Input.is_delimited source));
@@ -193,7 +204,7 @@ fun parse_token ctxt decode markup parse str =
   in
     (case YXML.parse_body str handle Fail msg => error msg of
       body as [tree as XML.Elem ((name, _), _)] =>
-        if name = Markup.tokenN then parse_tree tree else decode body
+        if name = Markup.inputN then parse_tree tree else decode body
     | [tree as XML.Text _] => parse_tree tree
     | body => decode body)
   end;

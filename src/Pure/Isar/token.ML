@@ -55,9 +55,9 @@ sig
   val is_space: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
-  val inner_syntax_of: T -> string
-  val source_position_of: T -> Input.source
   val content_of: T -> string
+  val source_position_of: T -> Input.source
+  val inner_syntax_of: T -> string
   val keyword_markup: bool * Markup.T -> string -> Markup.T
   val completion_report: T -> Position.report_text list
   val reports: Keyword.keywords -> T -> Position.report_text list
@@ -279,18 +279,14 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 
 (* token content *)
 
-fun inner_syntax_of (Token ((source, (pos, _)), (kind, x), _)) =
-  if YXML.detect x then x
-  else
-    let
-      val delimited = delimited_kind kind;
-      val tree = XML.Elem (Markup.token delimited (Position.properties_of pos), [XML.Text source]);
-    in YXML.string_of tree end;
+fun content_of (Token (_, (_, x), _)) = x;
 
 fun source_position_of (Token ((source, range), (kind, _), _)) =
   Input.source (delimited_kind kind) source range;
 
-fun content_of (Token (_, (_, x), _)) = x;
+fun inner_syntax_of tok =
+  let val x = content_of tok
+  in if YXML.detect x then x else Syntax.implode_input (source_position_of tok) end;
 
 
 (* markup reports *)

@@ -365,7 +365,7 @@ fun parse_failed ctxt pos msg kind =
     Markup.markup_report (Context_Position.reported_text ctxt pos Markup.bad ""));
 
 fun parse_sort ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.sort Markup.language_sort
+  Syntax.parse_input ctxt Term_XML.Decode.sort Markup.language_sort
     (fn (syms, pos) =>
       parse_tree ctxt "sort" (syms, pos)
       |> uncurry (report_result ctxt pos)
@@ -374,7 +374,7 @@ fun parse_sort ctxt =
       handle ERROR msg => parse_failed ctxt pos msg "sort");
 
 fun parse_typ ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.typ Markup.language_type
+  Syntax.parse_input ctxt Term_XML.Decode.typ Markup.language_type
     (fn (syms, pos) =>
       parse_tree ctxt "type" (syms, pos)
       |> uncurry (report_result ctxt pos)
@@ -389,7 +389,7 @@ fun parse_term is_prop ctxt =
       else (Markup.language_term, "term", Config.get ctxt Syntax.root, I);
     val decode = constrain o Term_XML.Decode.term;
   in
-    Syntax.parse_token ctxt decode markup
+    Syntax.parse_input ctxt decode markup
       (fn (syms, pos) =>
         let
           val (ambig_msgs, results) = parse_tree ctxt root (syms, pos) ||> map (decode_term ctxt);
@@ -463,7 +463,7 @@ fun parse_ast_pattern ctxt (root, str) =
           else decode_appl ps asts
       | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
-    val source = Syntax.read_token str;
+    val source = Syntax.read_input str;
     val pos = Input.pos_of source;
     val syms = Input.source_explode source;
     val ast =
