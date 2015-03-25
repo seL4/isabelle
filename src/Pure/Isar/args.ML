@@ -22,11 +22,11 @@ sig
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
   val cartouche_inner_syntax: string parser
-  val cartouche_source_position: Input.source parser
-  val text_source_position: Input.source parser
+  val cartouche_input: Input.source parser
+  val text_input: Input.source parser
   val text: string parser
   val name_inner_syntax: string parser
-  val name_source_position: Input.source parser
+  val name_input: Input.source parser
   val name: string parser
   val binding: binding parser
   val alt_name: string parser
@@ -108,14 +108,14 @@ fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
-val cartouche_source_position = cartouche >> Token.source_position_of;
+val cartouche_input = cartouche >> Token.input_of;
 
 val text_token = named || Parse.token (Parse.verbatim || Parse.cartouche);
-val text_source_position = text_token >> Token.source_position_of;
+val text_input = text_token >> Token.input_of;
 val text = text_token >> Token.content_of;
 
 val name_inner_syntax = named >> Token.inner_syntax_of;
-val name_source_position = named >> Token.source_position_of;
+val name_input = named >> Token.input_of;
 
 val name = named >> Token.content_of;
 val binding = Parse.position name >> Binding.make;
@@ -158,12 +158,10 @@ fun named_attribute att =
   named >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
 
 fun text_declaration read =
-  internal_declaration ||
-  text_token >> evaluate Token.Declaration (read o Token.source_position_of);
+  internal_declaration || text_token >> evaluate Token.Declaration (read o Token.input_of);
 
 fun cartouche_declaration read =
-  internal_declaration ||
-  cartouche >> evaluate Token.Declaration (read o Token.source_position_of);
+  internal_declaration || cartouche >> evaluate Token.Declaration (read o Token.input_of);
 
 
 (* terms and types *)

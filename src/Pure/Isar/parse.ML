@@ -16,7 +16,7 @@ sig
   val token: 'a parser -> Token.T parser
   val range: 'a parser -> ('a * Position.range) parser
   val position: 'a parser -> ('a * Position.T) parser
-  val source_position: 'a parser -> Input.source parser
+  val input: 'a parser -> Input.source parser
   val inner_syntax: 'a parser -> string parser
   val command_: string parser
   val keyword: string parser
@@ -176,7 +176,7 @@ fun token atom = Scan.ahead not_eof --| atom;
 
 fun range scan = (Scan.ahead not_eof >> (Token.range_of o single)) -- scan >> Library.swap;
 fun position scan = (Scan.ahead not_eof >> Token.pos_of) -- scan >> Library.swap;
-fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
+fun input atom = Scan.ahead atom |-- not_eof >> Token.input_of;
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.inner_syntax_of;
 
 fun kind k =
@@ -368,8 +368,8 @@ val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 
 (* embedded source text *)
 
-val ML_source = source_position (group (fn () => "ML source") text);
-val document_source = source_position (group (fn () => "document source") text);
+val ML_source = input (group (fn () => "ML source") text);
+val document_source = input (group (fn () => "document source") text);
 
 
 (* terms *)

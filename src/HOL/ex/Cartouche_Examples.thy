@@ -144,7 +144,7 @@ setup -- "ML antiquotation"
 setup -- "document antiquotation"
 \<open>
   Thy_Output.antiquotation @{binding ML_cartouche}
-    (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn source =>
+    (Scan.lift Args.cartouche_input) (fn {context, ...} => fn source =>
       let
         val toks = ML_Lex.read "fn _ => (" @ ML_Lex.read_source false source @ ML_Lex.read ");";
         val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags (Input.pos_of source) toks;
@@ -179,7 +179,7 @@ subsubsection \<open>Uniform nesting of sub-languages: document source, ML, term
 ML \<open>
   Outer_Syntax.command
     @{command_spec "text_cartouche"} ""
-    (Parse.opt_target -- Parse.source_position Parse.cartouche >> Thy_Output.document_command)
+    (Parse.opt_target -- Parse.input Parse.cartouche >> Thy_Output.document_command)
 \<close>
 
 text_cartouche
@@ -225,7 +225,7 @@ end;
 subsubsection \<open>Explicit version: method with cartouche argument\<close>
 
 method_setup ml_tactic = \<open>
-  Scan.lift Args.cartouche_source_position
+  Scan.lift Args.cartouche_input
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
 \<close>
 
@@ -246,7 +246,7 @@ text \<open>@{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tac
 subsubsection \<open>Implicit version: method with special name "cartouche" (dynamic!)\<close>
 
 method_setup "cartouche" = \<open>
-  Scan.lift Args.cartouche_source_position
+  Scan.lift Args.cartouche_input
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
 \<close>
 

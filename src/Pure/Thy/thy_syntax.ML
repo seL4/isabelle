@@ -27,7 +27,7 @@ local
 fun reports_of_token keywords tok =
   let
     val malformed_symbols =
-      Input.source_explode (Token.source_position_of tok)
+      Input.source_explode (Token.input_of tok)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);

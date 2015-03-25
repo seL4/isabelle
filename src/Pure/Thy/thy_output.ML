@@ -600,7 +600,7 @@ val _ = Theory.setup
   basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity @{binding class} (Scan.lift Args.name_inner_syntax) pretty_class #>
   basic_entity @{binding type} (Scan.lift Args.name) pretty_type #>
-  basic_entity @{binding text} (Scan.lift Args.text_source_position) pretty_text_report #>
+  basic_entity @{binding text} (Scan.lift Args.text_input) pretty_text_report #>
   basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>
   basic_entities @{binding full_prf} Attrib.thms (pretty_prf true) #>
   basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);
@@ -672,7 +672,7 @@ val _ =
 
 local
 
-fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
+fun ml_text name ml = antiquotation name (Scan.lift Args.text_input)
   (fn {context = ctxt, ...} => fn source =>
    (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of source) (ml source);
     verbatim_text ctxt (Input.source_content source)));
