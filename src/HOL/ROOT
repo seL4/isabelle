@@ -824,7 +824,7 @@ session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   theories SPARK
 
 session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
-  options [document = false]
+  options [document = false, spark_prv = false]
   theories
     "Gcd/Greatest_Common_Divisor"
 
@@ -877,7 +877,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/rmd/s_r.siv"
 
 session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
-  options [show_question_marks = false]
+  options [show_question_marks = false, spark_prv = false]
   theories
     Example_Verification
     VC_Principles

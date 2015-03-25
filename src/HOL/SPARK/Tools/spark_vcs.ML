@@ -953,29 +953,33 @@ fun mark_proved name thms = VCs.map (fn
   | x => x);
 
 fun close incomplete thy =
-  thy |>
-  VCs.map (fn
-      {pfuns, type_map, env = SOME {vcs, path, ...}} =>
+  thy |> VCs.map (fn {pfuns, type_map, env} =>
+    (case env of
+      NONE => error "No SPARK environment is currently open"
+    | SOME {vcs, path, ...} =>
         let
           val (proved, unproved) = partition_vcs vcs;
           val _ = Thm.join_proofs (maps (#2 o snd) proved);
-          val (proved', proved'') = List.partition (fn (_, (_, thms, _, _)) =>
-            exists (#oracle o Thm.peek_status) thms) proved
-        in
-          (if null unproved then ()
-           else (if incomplete then warning else error)
-             (Pretty.string_of (pp_open_vcs unproved));
-           if null proved' then ()
-           else warning (Pretty.string_of (pp_vcs
+          val (proved', proved'') =
+            List.partition (fn (_, (_, thms, _, _)) =>
+              exists (#oracle o Thm.peek_status) thms) proved;
+          val _ =
+            if null unproved then ()
+            else (if incomplete then warning else error) (Pretty.string_of (pp_open_vcs unproved));
+          val _ =
+            if null proved' then ()
+            else warning (Pretty.string_of (pp_vcs
              "The following VCs are not marked as proved \
              \because their proofs contain oracles:" proved'));
-           File.write (Path.ext "prv" path)
-             (implode (map (fn (s, _) => snd (strip_number s) ^
-                " -- proved by " ^ Distribution.version ^ "\n") proved''));
-           {pfuns = pfuns, type_map = type_map, env = NONE})
-        end
-    | _ => error "No SPARK environment is currently open") |>
-  Sign.parent_path;
+          val prv_path = Path.ext "prv" path;
+          val _ =
+            if File.exists prv_path orelse Options.default_bool @{system_option spark_prv} then
+              File.write prv_path
+               (implode (map (fn (s, _) => snd (strip_number s) ^
+                  " -- proved by " ^ Distribution.version ^ "\n") proved''))
+            else ();
+        in {pfuns = pfuns, type_map = type_map, env = NONE} end))
+  |> Sign.parent_path;
 
 
 (** set up verification conditions **)
