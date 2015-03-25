@@ -1,11 +1,19 @@
 (*  Title:      HOL/Word/Tools/word_lib.ML
     Author:     Sascha Boehme, TU Muenchen and Thomas Sewell, NICTA
 
-Helper routines for operating on the word type at the ML level.
+Helper routines for operating on the word type.
 *)
 
+signature WORD_LIB =
+sig
+  val dest_binT: typ -> int
+  val is_wordT: typ -> bool
+  val dest_wordT: typ -> int
+  val mk_wordT: int -> typ
+end
 
-structure Word_Lib = struct
+structure Word_Lib: WORD_LIB =
+struct
 
 fun dest_binT T =
   (case T of
@@ -21,20 +29,19 @@ fun is_wordT (Type (@{type_name word}, _)) = true
 fun dest_wordT (Type (@{type_name word}, [T])) = dest_binT T
   | dest_wordT T = raise TYPE ("dest_wordT", [T], [])
 
-local
-  fun mk_bitT i T =
-    if i = 0
-    then Type (@{type_name "Numeral_Type.bit0"}, [T])
-    else Type (@{type_name "Numeral_Type.bit1"}, [T])
 
-  fun mk_binT size = 
-    if size = 0 then @{typ "Numeral_Type.num0"}
-    else if size = 1 then @{typ "Numeral_Type.num1"}
-    else let val (q, r) = Integer.div_mod size 2 in mk_bitT r (mk_binT q) end
-in
+fun mk_bitT i T =
+  if i = 0
+  then Type (@{type_name "Numeral_Type.bit0"}, [T])
+  else Type (@{type_name "Numeral_Type.bit1"}, [T])
+
+fun mk_binT size = 
+  if size = 0 then @{typ "Numeral_Type.num0"}
+  else if size = 1 then @{typ "Numeral_Type.num1"}
+  else let val (q, r) = Integer.div_mod size 2 in mk_bitT r (mk_binT q) end
+
 fun mk_wordT size =
   if size >= 0 then Type (@{type_name "word"}, [mk_binT size])
-  else raise TYPE ("mk_wordT: " ^ quote (string_of_int size), [], [])
-end
+  else raise TYPE ("mk_wordT: " ^ string_of_int size, [], [])
 
 end
