@@ -13,6 +13,7 @@ sig
   val unknownT: string
   type T
   val empty: T
+  val names: T -> string list
   val markup: T -> string * Position.T -> Markup.T
   val typ: T -> string -> string
   val bool: T -> string -> bool
@@ -58,6 +59,8 @@ val unknownT = "unknown";
 datatype T = Options of {pos: Position.T, typ: string, value: string} Symtab.table;
 
 val empty = Options Symtab.empty;
+
+fun names (Options tab) = sort_strings (Symtab.keys tab);
 
 
 (* check *)

@@ -9,6 +9,7 @@ sig
   type T
   val names: Position.T -> (string * (string * string)) list -> T
   val none: T
+  val make: string * Position.T -> ((string -> bool) -> (string * (string * string)) list) -> T
   val reported_text: T -> string
   val suppress_abbrevs: string -> Markup.T list
 end;
@@ -16,11 +17,11 @@ end;
 structure Completion: COMPLETION =
 struct
 
+(* completion of names *)
+
 abstype T =
   Completion of {pos: Position.T, total: int, names: (string * (string * string)) list}
 with
-
-(* completion of names *)
 
 fun dest (Completion args) = args;
 
@@ -33,6 +34,11 @@ fun names pos names =
 end;
 
 val none = names Position.none [];
+
+fun make (name, pos) make_names =
+  if Position.is_reported pos andalso name <> "" andalso name <> "_"
+  then names pos (make_names (String.isPrefix (Name.clean name)))
+  else none;
 
 fun reported_text completion =
   let val {pos, total, names} = dest completion in

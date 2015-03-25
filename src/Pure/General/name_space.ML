@@ -232,7 +232,7 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 (* completion *)
 
 fun completion context space (xname, pos) =
-  if Position.is_reported pos andalso xname <> "" andalso xname <> "_" then
+  Completion.make (xname, pos) (fn completed =>
     let
       fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
         (case bool_ord (apply2 Long_Name.is_local (name2, name1)) of
@@ -241,21 +241,18 @@ fun completion context space (xname, pos) =
               EQUAL => string_ord (xname1, xname2)
             | ord => ord)
         | ord => ord);
-      val x = Name.clean xname;
       val Name_Space {kind, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
-      val names =
-        Change_Table.fold
-          (fn (a, (name :: _, _)) =>
-              if String.isPrefix x a andalso not (is_concealed space name)
-              then
-                let val a' = ext name
-                in if a = a' then cons (a', (kind, name)) else I end
-              else I
-            | _ => I) internals []
-        |> sort_distinct result_ord;
-    in Completion.names pos names end
-  else Completion.none;
+    in
+      Change_Table.fold
+        (fn (a, (name :: _, _)) =>
+            if completed a andalso not (is_concealed space name) then
+              let val a' = ext name
+              in if a = a' then cons (a', (kind, name)) else I end
+            else I
+          | _ => I) internals []
+      |> sort_distinct result_ord
+    end);
 
 
 (* merge *)
