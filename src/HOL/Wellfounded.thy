@@ -232,7 +232,7 @@ apply (case_tac "y:Q")
  prefer 2 apply blast
 apply (rule_tac x = "{z. z:Q & (z,y) : r^*}" in allE)
  apply assumption
-apply (erule_tac V = "ALL Q. (EX x. x : Q) --> ?P Q" in thin_rl) 
+apply (erule_tac V = "ALL Q. (EX x. x : Q) --> P Q" for P in thin_rl) 
   --{*essential for speed*}
 txt{*Blast with new substOccur fails*}
 apply (fast intro: converse_rtrancl_into_rtrancl)

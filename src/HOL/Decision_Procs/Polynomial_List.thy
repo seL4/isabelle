@@ -787,7 +787,7 @@ lemma (in idom_char_0) order_mult:
   apply (auto simp add: divides_def simp del: pmult_Cons)
   apply (rule_tac x = qb in exI)
   apply (subgoal_tac "poly (pmult (pexp [uminus a, one] (order a p)) (pmult qa qaa)) =
-    poly (pmult (pexp [uminus a, one] (?order a p)) (pmult [uminus a, one] qb))")
+    poly (pmult (pexp [uminus a, one] (order a p)) (pmult [uminus a, one] qb))")
   apply (drule poly_mult_left_cancel [THEN iffD1], force)
   apply (subgoal_tac "poly (pmult (pexp [uminus a, one] (order a q))
       (pmult (pexp [uminus a, one] (order a p)) (pmult qa qaa))) =

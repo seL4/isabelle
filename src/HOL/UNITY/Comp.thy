@@ -186,7 +186,7 @@ lemma stable_localTo_stable2:
 apply simp
 apply (subgoal_tac "G \<in> preserves (funPair v w) ")
  prefer 2 apply simp
-apply (drule_tac P1 = "split ?Q" in preserves_subset_stable [THEN subsetD], 
+apply (drule_tac P1 = "split Q" for Q in preserves_subset_stable [THEN subsetD], 
        auto)
 done
 
@@ -198,8 +198,8 @@ apply (blast intro: constrains_weaken)
 (*The G case remains*)
 apply (auto simp add: preserves_def stable_def constrains_def)
 (*We have a G-action, so delete assumptions about F-actions*)
-apply (erule_tac V = "\<forall>act \<in> Acts F. ?P act" in thin_rl)
-apply (erule_tac V = "\<forall>z. \<forall>act \<in> Acts F. ?P z act" in thin_rl)
+apply (erule_tac V = "\<forall>act \<in> Acts F. P act" for P in thin_rl)
+apply (erule_tac V = "\<forall>z. \<forall>act \<in> Acts F. P z act" for P in thin_rl)
 apply (subgoal_tac "v x = v xa")
  apply auto
 apply (erule order_trans, blast)

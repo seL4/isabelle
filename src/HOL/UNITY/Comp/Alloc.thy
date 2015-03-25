@@ -1080,7 +1080,7 @@ lemma preserves_non_dummy_eq: "(preserves non_dummy) =
 text{*Could go to Extend.ML*}
 lemma bij_fst_inv_inv_eq: "bij f ==> fst (inv (%(x, u). inv f x) z) = f z"
   apply (rule fst_inv_equalityI)
-   apply (rule_tac f = "%z. (f z, ?h z) " in surjI)
+   apply (rule_tac f = "%z. (f z, h z)" for h in surjI)
    apply (simp add: bij_is_inj inv_f_f)
   apply (simp add: bij_is_surj surj_f_inv_f)
   done

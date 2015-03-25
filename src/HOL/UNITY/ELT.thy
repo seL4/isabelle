@@ -63,7 +63,7 @@ by (unfold givenBy_def, auto)
 
 lemma givenBy_eq_all: "(givenBy v) = {A. ALL x:A. ALL y. v x = v y --> y: A}"
 apply (unfold givenBy_def, safe)
-apply (rule_tac [2] x = "v ` ?u" in image_eqI, auto)
+apply (rule_tac [2] x = "v ` _" in image_eqI, auto)
 done
 
 lemma givenByI: "(!!x y. [| x:A;  v x = v y |] ==> y: A) ==> A: givenBy v"
@@ -101,7 +101,7 @@ lemma givenBy_DiffI:
      "[| A : givenBy v;  B : givenBy v |] ==> A-B : givenBy v"
 apply (simp (no_asm_use) add: givenBy_eq_Collect)
 apply safe
-apply (rule_tac x = "%z. ?R z & ~ ?Q z" in exI)
+apply (rule_tac x = "%z. R z & ~ Q z" for R Q in exI)
 unfolding set_diff_eq
 apply auto
 done

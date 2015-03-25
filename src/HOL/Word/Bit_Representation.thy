@@ -224,7 +224,7 @@ proof -
      apply (erule conjI)
      apply (drule_tac x=0 in fun_cong, force)
     apply (rule ext)
-    apply (drule_tac x="Suc ?x" in fun_cong, force)
+    apply (drule_tac x="Suc x" for x in fun_cong, force)
     done
   show ?thesis
   by (auto elim: bin_nth_lem)

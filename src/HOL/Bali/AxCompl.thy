@@ -71,7 +71,7 @@ lemma nyinitcls_le_SucD:
 apply (subgoal_tac 
         "nyinitcls G (x,s) = insert C (nyinitcls G (x,init_class_obj G C s))")
 apply  clarsimp
-apply  (erule_tac V="nyinitcls G (x, s) = ?rhs" in thin_rl)
+apply  (erule_tac V="nyinitcls G (x, s) = rhs" for rhs in thin_rl)
 apply  (rule card_Suc_lemma [OF _ _ finite_nyinitcls])
 apply   (auto dest!: not_initedD elim!: 
               simp add: nyinitcls_def inited_def split add: split_if_asm)

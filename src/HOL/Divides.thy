@@ -1195,7 +1195,7 @@ by (blast intro: divmod_nat_rel_add1_eq [THEN div_nat_unique] divmod_nat_rel)
 lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (cut_tac m = q and n = c in mod_less_divisor)
   apply (drule_tac [2] m = "q mod c" in less_imp_Suc_add, auto)
-  apply (erule_tac P = "%x. ?lhs < ?rhs x" in ssubst)
+  apply (erule_tac P = "%x. lhs < rhs x" for lhs rhs in ssubst)
   apply (simp add: add_mult_distrib2)
   done
 
@@ -2408,7 +2408,7 @@ lemma split_pos_lemma:
  "0<k ==> 
     P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i j)"
 apply (rule iffI, clarify)
- apply (erule_tac P="P ?x ?y" in rev_mp)  
+ apply (erule_tac P="P x y" for x y in rev_mp)  
  apply (subst mod_add_eq) 
  apply (subst zdiv_zadd1_eq) 
  apply (simp add: div_pos_pos_trivial mod_pos_pos_trivial)  
@@ -2421,7 +2421,7 @@ lemma split_neg_lemma:
  "k<0 ==>
     P(n div k :: int)(n mod k) = (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i j)"
 apply (rule iffI, clarify)
- apply (erule_tac P="P ?x ?y" in rev_mp)  
+ apply (erule_tac P="P x y" for x y in rev_mp)  
  apply (subst mod_add_eq) 
  apply (subst zdiv_zadd1_eq) 
  apply (simp add: div_neg_neg_trivial mod_neg_neg_trivial)  

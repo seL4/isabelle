@@ -186,7 +186,7 @@ apply(erule cptn.cases,simp)
   apply force
  apply clarify
  apply(erule_tac x="Suc ia" in allE,simp)
-apply(erule_tac x="0" and P="\<lambda>j. ?H j \<longrightarrow> (?J j) \<notin> ctran" in allE,simp)
+apply(erule_tac x="0" and P="\<lambda>j. H j \<longrightarrow> (J j) \<notin> ctran" for H J in allE,simp)
 done
 
 lemma etran_or_ctran2 [rule_format]:
@@ -241,14 +241,14 @@ apply(erule cptn.cases,simp)
  apply(case_tac k,simp,simp)
  apply(case_tac j,simp)
   apply(erule_tac x=0 in allE)
-  apply(erule_tac x="nat" and P="\<lambda>j. (0\<le>j) \<longrightarrow> (?J j)" in allE,simp)
+  apply(erule_tac x="nat" and P="\<lambda>j. (0\<le>j) \<longrightarrow> (J j)" for J in allE,simp)
   apply(subgoal_tac "t\<in>p")
    apply(subgoal_tac "(\<forall>i. i < length xs \<longrightarrow> ((P, t) # xs) ! i -e\<rightarrow> xs ! i \<longrightarrow> (snd (((P, t) # xs) ! i), snd (xs ! i)) \<in> rely)")
     apply clarify
-    apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran" in allE,simp)
+    apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j)\<in>etran" for H J in allE,simp)
    apply clarify
-   apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j) \<longrightarrow> (?T j)\<in>rely" in allE,simp)
-  apply(erule_tac x=0 and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran \<longrightarrow> ?T j" in allE,simp)
+   apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j) \<longrightarrow> (T j)\<in>rely" for H J T in allE,simp)
+  apply(erule_tac x=0 and P="\<lambda>j. (H j) \<longrightarrow> (J j)\<in>etran \<longrightarrow> T j" for H J T in allE,simp)
   apply(simp(no_asm_use) only:stable_def)
   apply(erule_tac x=s in allE)
   apply(erule_tac x=t in allE)
@@ -258,23 +258,23 @@ apply(erule cptn.cases,simp)
   apply(rule Env)
  apply simp
  apply(erule_tac x="nata" in allE)
- apply(erule_tac x="nat" and P="\<lambda>j. (?s\<le>j) \<longrightarrow> (?J j)" in allE,simp)
+ apply(erule_tac x="nat" and P="\<lambda>j. (s\<le>j) \<longrightarrow> (J j)" for s J in allE,simp)
  apply(subgoal_tac "(\<forall>i. i < length xs \<longrightarrow> ((P, t) # xs) ! i -e\<rightarrow> xs ! i \<longrightarrow> (snd (((P, t) # xs) ! i), snd (xs ! i)) \<in> rely)")
   apply clarify
-  apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran" in allE,simp)
+  apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j)\<in>etran" for H J in allE,simp)
  apply clarify
- apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j) \<longrightarrow> (?T j)\<in>rely" in allE,simp)
+ apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j) \<longrightarrow> (T j)\<in>rely" for H J T in allE,simp)
 apply(case_tac k,simp,simp)
 apply(case_tac j)
- apply(erule_tac x=0 and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran" in allE,simp)
+ apply(erule_tac x=0 and P="\<lambda>j. (H j) \<longrightarrow> (J j)\<in>etran" for H J in allE,simp)
  apply(erule etran.cases,simp)
 apply(erule_tac x="nata" in allE)
-apply(erule_tac x="nat" and P="\<lambda>j. (?s\<le>j) \<longrightarrow> (?J j)" in allE,simp)
+apply(erule_tac x="nat" and P="\<lambda>j. (s\<le>j) \<longrightarrow> (J j)" for s J in allE,simp)
 apply(subgoal_tac "(\<forall>i. i < length xs \<longrightarrow> ((Q, t) # xs) ! i -e\<rightarrow> xs ! i \<longrightarrow> (snd (((Q, t) # xs) ! i), snd (xs ! i)) \<in> rely)")
  apply clarify
- apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran" in allE,simp)
+ apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j)\<in>etran" for H J in allE,simp)
 apply clarify
-apply(erule_tac x="Suc i" and P="\<lambda>j. (?H j) \<longrightarrow> (?J j) \<longrightarrow> (?T j)\<in>rely" in allE,simp)
+apply(erule_tac x="Suc i" and P="\<lambda>j. (H j) \<longrightarrow> (J j) \<longrightarrow> (T j)\<in>rely" for H J T in allE,simp)
 done
 
 subsection \<open>Soundness of the System for Component Programs\<close>
@@ -341,7 +341,7 @@ apply(rule conjI)
  apply(case_tac "x!i")
  apply clarify
  apply(drule_tac s="Some (Basic f)" in sym,simp)
- apply(thin_tac "\<forall>j. ?H j")
+ apply(thin_tac "\<forall>j. H j" for H)
  apply(force elim:ctran.cases)
 apply clarify
 apply(simp add:cp_def)
@@ -468,7 +468,7 @@ apply(rule conjI)
  apply(drule_tac c=l in subsetD)
   apply (simp add:cp_def)
   apply clarify
-  apply(erule_tac x=ia and P="\<lambda>i. ?H i \<longrightarrow> (?J i,?I i)\<in>ctran" in allE,simp)
+  apply(erule_tac x=ia and P="\<lambda>i. H i \<longrightarrow> (J i, I i)\<in>ctran" for H J I in allE,simp)
   apply(erule etranE,simp)
  apply simp
 apply clarify
@@ -499,7 +499,7 @@ apply(erule_tac x=sa in allE)
 apply(drule_tac c=l in subsetD)
  apply (simp add:cp_def)
  apply clarify
- apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> (?J i,?I i)\<in>ctran" in allE,simp)
+ apply(erule_tac x=i and P="\<lambda>i. H i \<longrightarrow> (J i, I i)\<in>ctran" for H J I in allE,simp)
  apply(erule etranE,simp)
 apply simp
 apply clarify
@@ -532,7 +532,7 @@ apply(case_tac "\<exists>i. Suc i<length x \<and> x!i -c\<rightarrow> x!Suc i")
   apply(erule_tac m="length x" in etran_or_ctran,simp+)
  apply(case_tac x, (simp add:last_length)+)
 apply(erule exE)
-apply(drule_tac n=i and P="\<lambda>i. ?H i \<and> (?J i,?I i)\<in> ctran" in Ex_first_occurrence)
+apply(drule_tac n=i and P="\<lambda>i. H i \<and> (J i, I i) \<in> ctran" for H J I in Ex_first_occurrence)
 apply clarify
 apply (simp add:assum_def)
 apply(frule_tac j=0 and k="m" and p=pre in stability,simp+)
@@ -549,7 +549,7 @@ apply(erule ctran.cases,simp_all)
   apply(erule disjE)
    apply(erule_tac x=i in allE, erule impE, assumption)
    apply simp+
- apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
+ apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. H j \<longrightarrow> J j \<longrightarrow> (I j)\<in>guar" for H J I in allE)
  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
    apply(rotate_tac -2)
@@ -569,7 +569,7 @@ apply(case_tac "i\<le>m")
   apply(erule_tac x=i in allE, erule impE, assumption)
   apply simp
  apply simp
-apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
+apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. H j \<longrightarrow> J j \<longrightarrow> (I j)\<in>guar" for H J I in allE)
 apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
  apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
   apply(rotate_tac -2)
@@ -713,14 +713,14 @@ apply(case_tac "\<exists>i<length x. fst(x!i)=Some Q")
  apply(drule_tac c=xs in subsetD,simp add:cp_def cptn_iff_cptn_mod)
   apply(simp add:assum_def)
   apply clarify
-  apply(erule_tac P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE,erule impE, assumption)
+  apply(erule_tac P="\<lambda>j. H j \<longrightarrow> J j \<longrightarrow> I j" for H J I in allE,erule impE, assumption)
   apply(simp add:snd_lift)
   apply(erule mp)
   apply(force elim:etranE intro:Env simp add:lift_def)
  apply(simp add:comm_def)
  apply(rule conjI)
   apply clarify
-  apply(erule_tac P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE,erule impE, assumption)
+  apply(erule_tac P="\<lambda>j. H j \<longrightarrow> J j \<longrightarrow> I j" for H J I in allE,erule impE, assumption)
   apply(simp add:snd_lift)
   apply(erule mp)
   apply(case_tac "(xs!i)")
@@ -914,7 +914,7 @@ apply(frule_tac j="0" and k="length ((None, s) # xs) - 1" and p=post in stabilit
 apply clarify
 apply (simp add:last_length)
 --\<open>WhileOne\<close>
-apply(thin_tac "P = While b P \<longrightarrow> ?Q")
+apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp)
 apply(simp add:Cons_lift del:list.map)
 apply(simp add:comm_def del:list.map)
@@ -957,7 +957,7 @@ apply(subgoal_tac "(map (lift (While b P)) ((Some P, sa) # xs))\<noteq>[]")
  apply(simp only:last_lift_not_None)
 apply simp
 --\<open>WhileMore\<close>
-apply(thin_tac "P = While b P \<longrightarrow> ?Q")
+apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp del:last.simps)
 --\<open>metiendo la hipotesis antes de dividir la conclusion.\<close>
 apply(subgoal_tac "(Some (While b P), snd (last ((Some P, sa) # xs))) # ys \<in> assum (pre, rely)")
@@ -979,7 +979,7 @@ apply(rule conjI)
     apply simp
    apply simp
   apply(simp add:snd_lift del:list.map last.simps)
-  apply(thin_tac " \<forall>i. i < length ys \<longrightarrow> ?P i")
+  apply(thin_tac " \<forall>i. i < length ys \<longrightarrow> P i" for P)
   apply(simp only:com_validity_def cp_def cptn_iff_cptn_mod)
   apply(erule_tac x=sa in allE)
   apply(drule_tac c="(Some P, sa) # xs" in subsetD)
@@ -1111,13 +1111,13 @@ apply (rule ccontr)
 apply simp
 apply(erule exE)
 --\<open>the first c-tran that does not satisfy the guarantee-condition is from @{text "\<sigma>_i"} at step @{text "m"}.\<close>
-apply(drule_tac n=j and P="\<lambda>j. \<exists>i. ?H i j" in Ex_first_occurrence)
+apply(drule_tac n=j and P="\<lambda>j. \<exists>i. H i j" for H in Ex_first_occurrence)
 apply(erule exE)
 apply clarify
 --\<open>@{text "\<sigma>_i \<in> A(pre, rely_1)"}\<close>
 apply(subgoal_tac "take (Suc (Suc m)) (clist!i) \<in> assum(Pre(xs!i), Rely(xs!i))")
 --\<open>but this contradicts @{text "\<Turnstile> \<sigma>_i sat [pre_i,rely_i,guar_i,post_i]"}\<close>
- apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> \<Turnstile> (?J i) sat [?I i,?K i,?M i,?N i]" in allE,erule impE,assumption)
+ apply(erule_tac x=i and P="\<lambda>i. H i \<longrightarrow> \<Turnstile> (J i) sat [I i,K i,M i,N i]" for H J I K M N in allE,erule impE,assumption)
  apply(simp add:com_validity_def)
  apply(erule_tac x=s in allE)
  apply(simp add:cp_def comm_def)
@@ -1126,40 +1126,40 @@ apply(subgoal_tac "take (Suc (Suc m)) (clist!i) \<in> assum(Pre(xs!i), Rely(xs!i
   apply (blast intro: takecptn_is_cptn)
  apply simp
  apply clarify
- apply(erule_tac x=m and P="\<lambda>j. ?I j \<and> ?J j \<longrightarrow> ?H j" in allE)
+ apply(erule_tac x=m and P="\<lambda>j. I j \<and> J j \<longrightarrow> H j" for I J H in allE)
  apply (simp add:conjoin_def same_length_def)
 apply(simp add:assum_def)
 apply(rule conjI)
- apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow>  ?I j \<in>cp (?K j) (?J j)" in allE)
+ apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> I j \<in>cp (K j) (J j)" for H I K J in allE)
  apply(simp add:cp_def par_assum_def)
  apply(drule_tac c="s" in subsetD,simp)
  apply simp
 apply clarify
-apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> ?M \<union> UNION (?S j) (?T j) \<subseteq>  (?L j)" in allE)
+apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> M \<union> UNION (S j) (T j) \<subseteq> (L j)" for H M S T L in allE)
 apply simp
 apply(erule subsetD)
 apply simp
 apply(simp add:conjoin_def compat_label_def)
 apply clarify
-apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (?P j) \<or> ?Q j" in allE,simp)
+apply(erule_tac x=ia and P="\<lambda>j. H j \<longrightarrow> (P j) \<or> Q j" for H P Q in allE,simp)
 --\<open>each etran in @{text "\<sigma>_1[0\<dots>m]"} corresponds to\<close>
 apply(erule disjE)
 --\<open>a c-tran in some @{text "\<sigma>_{ib}"}\<close>
  apply clarify
  apply(case_tac "i=ib",simp)
   apply(erule etranE,simp)
- apply(erule_tac x="ib" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE)
+ apply(erule_tac x="ib" and P="\<lambda>i. H i \<longrightarrow> (I i) \<or> (J i)" for H I J in allE)
  apply (erule etranE)
  apply(case_tac "ia=m",simp)
  apply simp
- apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (\<forall> i. ?P i j)" in allE)
+ apply(erule_tac x=ia and P="\<lambda>j. H j \<longrightarrow> (\<forall>i. P i j)" for H P in allE)
  apply(subgoal_tac "ia<m",simp)
   prefer 2
   apply arith
- apply(erule_tac x=ib and P="\<lambda>j. (?I j, ?H j)\<in> ctran \<longrightarrow> (?P i j)" in allE,simp)
+ apply(erule_tac x=ib and P="\<lambda>j. (I j, H j) \<in> ctran \<longrightarrow> P i j" for I H P in allE,simp)
  apply(simp add:same_state_def)
- apply(erule_tac x=i and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in all_dupE)
- apply(erule_tac x=ib and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in allE,simp)
+ apply(erule_tac x=i and P="\<lambda>j. (T j) \<longrightarrow> (\<forall>i. (H j i) \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in all_dupE)
+ apply(erule_tac x=ib and P="\<lambda>j. (T j) \<longrightarrow> (\<forall>i. (H j i) \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in allE,simp)
 --\<open>or an e-tran in @{text "\<sigma>"},
 therefore it satisfies @{text "rely \<or> guar_{ib}"}\<close>
 apply (force simp add:par_assum_def same_state_def)
@@ -1181,19 +1181,19 @@ apply(drule two)
 apply clarify
 apply(simp add:conjoin_def compat_label_def)
 apply clarify
-apply(erule_tac x=j and P="\<lambda>j. ?H j \<longrightarrow> (?J j \<and> (\<exists>i. ?P i j)) \<or> ?I j" in allE,simp)
+apply(erule_tac x=j and P="\<lambda>j. H j \<longrightarrow> (J j \<and> (\<exists>i. P i j)) \<or> I j" for H J P I in allE,simp)
 apply(erule disjE)
  prefer 2
  apply(force simp add:same_state_def par_assum_def)
 apply clarify
 apply(case_tac "i=ia",simp)
  apply(erule etranE,simp)
-apply(erule_tac x="ia" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE,simp)
-apply(erule_tac x=j and P="\<lambda>j. \<forall>i. ?S j i \<longrightarrow> (?I j i, ?H j i)\<in> ctran \<longrightarrow> (?P i j)" in allE)
-apply(erule_tac x=ia and P="\<lambda>j. ?S j \<longrightarrow> (?I j, ?H j)\<in> ctran \<longrightarrow> (?P j)" in allE)
+apply(erule_tac x="ia" and P="\<lambda>i. H i \<longrightarrow> (I i) \<or> (J i)" for H I J in allE,simp)
+apply(erule_tac x=j and P="\<lambda>j. \<forall>i. S j i \<longrightarrow> (I j i, H j i) \<in> ctran \<longrightarrow> P i j" for S I H P in allE)
+apply(erule_tac x=ia and P="\<lambda>j. S j \<longrightarrow> (I j, H j) \<in> ctran \<longrightarrow> P j" for S I H P in allE)
 apply(simp add:same_state_def)
-apply(erule_tac x=i and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in all_dupE)
-apply(erule_tac x=ia and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in allE,simp)
+apply(erule_tac x=i and P="\<lambda>j. T j \<longrightarrow> (\<forall>i. H j i \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in all_dupE)
+apply(erule_tac x=ia and P="\<lambda>j. T j \<longrightarrow> (\<forall>i. H j i \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in allE,simp)
 done
 
 lemma four:
@@ -1224,18 +1224,18 @@ apply(assumption+)
  apply assumption
 apply(simp add:conjoin_def same_program_def)
 apply clarify
-apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> fst(?I j)=(?J j)" in all_dupE)
-apply(erule_tac x="Suc i" and P="\<lambda>j. ?H j \<longrightarrow> fst(?I j)=(?J j)" in allE)
+apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> fst(I j)=(J j)" for H I J in all_dupE)
+apply(erule_tac x="Suc i" and P="\<lambda>j. H j \<longrightarrow> fst(I j)=(J j)" for H I J in allE)
 apply(erule par_ctranE,simp)
-apply(erule_tac x=i and P="\<lambda>j. \<forall>i. ?S j i \<longrightarrow> (?I j i, ?H j i)\<in> ctran \<longrightarrow> (?P i j)" in allE)
-apply(erule_tac x=ia and P="\<lambda>j. ?S j \<longrightarrow> (?I j, ?H j)\<in> ctran \<longrightarrow> (?P j)" in allE)
+apply(erule_tac x=i and P="\<lambda>j. \<forall>i. S j i \<longrightarrow> (I j i, H j i) \<in> ctran \<longrightarrow> P i j" for S I H P in allE)
+apply(erule_tac x=ia and P="\<lambda>j. S j \<longrightarrow> (I j, H j) \<in> ctran \<longrightarrow> P j" for S I H P in allE)
 apply(rule_tac x=ia in exI)
 apply(simp add:same_state_def)
-apply(erule_tac x=ia and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in all_dupE,simp)
-apply(erule_tac x=ia and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in allE,simp)
-apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in all_dupE)
-apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in all_dupE,simp)
-apply(erule_tac x="Suc i" and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
+apply(erule_tac x=ia and P="\<lambda>j. T j \<longrightarrow> (\<forall>i. H j i \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in all_dupE,simp)
+apply(erule_tac x=ia and P="\<lambda>j. T j \<longrightarrow> (\<forall>i. H j i \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in allE,simp)
+apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> (snd (d j))=(snd (e j))" for H d e in all_dupE)
+apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> (snd (d j))=(snd (e j))" for H d e in all_dupE,simp)
+apply(erule_tac x="Suc i" and P="\<lambda>j. H j \<longrightarrow> (snd (d j))=(snd (e j))" for H d e in allE,simp)
 apply(erule mp)
 apply(subgoal_tac "r=fst(clist ! ia ! Suc i)",simp)
 apply(drule_tac i=ia in list_eq_if)
@@ -1266,17 +1266,17 @@ apply(erule subsetD)
 apply simp
 apply clarify
 apply(subgoal_tac "\<forall>i<length clist. clist!i\<in>assum(Pre(xs!i), Rely(xs!i))")
- apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> \<Turnstile> (?J i) sat [?I i,?K i,?M i,?N i]" in allE,erule impE,assumption)
+ apply(erule_tac x=i and P="\<lambda>i. H i \<longrightarrow> \<Turnstile> (J i) sat [I i,K i,M i,N i]" for H J I K M N in allE,erule impE,assumption)
  apply(simp add:com_validity_def)
  apply(erule_tac x=s in allE)
- apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (?I j) \<in> cp (?J j) s" in allE,simp)
+ apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> (I j) \<in> cp (J j) s" for H I J in allE,simp)
  apply(drule_tac c="clist!i" in subsetD)
   apply (force simp add:Com_def)
  apply(simp add:comm_def conjoin_def same_program_def del:last.simps)
  apply clarify
- apply(erule_tac x="length x - 1" and P="\<lambda>j. ?H j \<longrightarrow> fst(?I j)=(?J j)" in allE)
+ apply(erule_tac x="length x - 1" and P="\<lambda>j. H j \<longrightarrow> fst(I j)=(J j)" for H I J in allE)
  apply (simp add:All_None_def same_length_def)
- apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> length(?J j)=(?K j)" in allE)
+ apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> length(J j)=(K j)" for H J K in allE)
  apply(subgoal_tac "length x - 1 < length x",simp)
   apply(case_tac "x\<noteq>[]")
    apply(simp add: last_conv_nth)
@@ -1297,8 +1297,8 @@ apply(simp add:assum_def)
 apply(rule conjI)
  apply(simp add:conjoin_def same_state_def par_cp_def)
  apply clarify
- apply(erule_tac x=ia and P="\<lambda>j. (?T j) \<longrightarrow> (\<forall>i. (?H j i) \<longrightarrow> (snd (?d j i))=(snd (?e j i)))" in allE,simp)
- apply(erule_tac x=0 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
+ apply(erule_tac x=ia and P="\<lambda>j. T j \<longrightarrow> (\<forall>i. H j i \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in allE,simp)
+ apply(erule_tac x=0 and P="\<lambda>j. H j \<longrightarrow> (snd (d j))=(snd (e j))" for H d e in allE)
  apply(case_tac x,simp+)
  apply (simp add:par_assum_def)
  apply clarify

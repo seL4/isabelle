@@ -410,7 +410,7 @@ apply (subgoal_tac "act `` (C \<inter> extend_set h A) \<subseteq> - extend_set 
  prefer 2
  apply (simp add: stable_def constrains_def, blast) 
 (*back to main goal*)
-apply (erule_tac V = "?AA \<subseteq> -C \<union> ?BB" in thin_rl)
+apply (erule_tac V = "AA \<subseteq> -C \<union> BB" for AA BB in thin_rl)
 apply (drule bspec, assumption) 
 apply (simp add: extend_set_def project_act_def, blast)
 done

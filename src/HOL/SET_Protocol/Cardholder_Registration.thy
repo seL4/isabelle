@@ -771,7 +771,7 @@ lemma KC2_secure_lemma [rule_format]:
   ==> Nonce N \<notin> analz (knows Spy evs) -->
       (\<exists>k i W. Says (Cardholder k) (CA i) {|U,W|} \<in> set evs & 
                Cardholder k \<notin> bad & CA i \<notin> bad)"
-apply (erule_tac P = "U \<in> ?H" in rev_mp)
+apply (erule_tac P = "U \<in> H" for H in rev_mp)
 apply (erule set_cr.induct)
 apply (valid_certificate_tac [8])  --{*for message 5*}
 apply (simp_all del: image_insert image_Un imp_disjL

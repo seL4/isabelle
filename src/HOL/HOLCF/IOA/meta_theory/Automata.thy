@@ -654,7 +654,7 @@ lemma is_asig_of_rename: "is_asig_of A ==> is_asig_of (rename A f)"
 apply (simp add: is_asig_of_def rename_def rename_set_def asig_internals_def
   asig_outputs_def asig_inputs_def actions_def is_asig_def asig_of_def)
 apply auto
-apply (drule_tac [!] s = "Some ?x" in sym)
+apply (drule_tac [!] s = "Some _" in sym)
 apply auto
 done
 

@@ -349,7 +349,7 @@ lemma strict_ex_refine_lemma_v:
       ==> (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef & F\<squnion>H \<in> X --> G\<squnion>H \<in> X) =  
           (F \<in> welldef \<inter> X --> G \<in> X)"
 apply (unfold strict_ex_prop_def, safe)
-apply (erule_tac x = SKIP and P = "%H. ?PP H --> ?RR H" in allE)
+apply (erule_tac x = SKIP and P = "%H. PP H --> RR H" for PP RR in allE)
 apply (auto dest: Join_welldef_D1 Join_welldef_D2)
 done
 
@@ -372,7 +372,7 @@ lemma strict_uv_refine_lemma_v:
       ==> (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef & F\<squnion>H \<in> X --> G\<squnion>H \<in> X) =  
           (F \<in> welldef \<inter> X --> G \<in> X)"
 apply (unfold strict_uv_prop_def, safe)
-apply (erule_tac x = SKIP and P = "%H. ?PP H --> ?RR H" in allE)
+apply (erule_tac x = SKIP and P = "%H. PP H --> RR H" for PP RR in allE)
 apply (auto dest: Join_welldef_D1 Join_welldef_D2)
 done
 

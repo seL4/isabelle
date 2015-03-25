@@ -403,7 +403,7 @@ apply blast
 txt{*YM3*}
 apply blast
 txt{*YM4*}
-apply (erule_tac V = "\<forall>KK. ?P KK" in thin_rl, clarify)
+apply (erule_tac V = "\<forall>KK. P KK" for P in thin_rl, clarify)
 txt{*If @{prop "A \<in> bad"} then @{term NBa} is known, therefore
   @{prop "NBa \<noteq> NB"}.  Previous two steps make the next step
   faster.*}

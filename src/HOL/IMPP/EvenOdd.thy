@@ -91,7 +91,7 @@ apply  (clarsimp simp: Arg_Res_simps)
 apply (rule hoare_derivs.Comp)
 apply (rule_tac [2] hoare_derivs.Ass)
 apply clarsimp
-apply (rule_tac Q = "%Z s. ?P Z s & Res_ok Z s" in hoare_derivs.Comp)
+apply (rule_tac Q = "%Z s. P Z s & Res_ok Z s" and P = P for P in hoare_derivs.Comp)
 apply (rule export_s)
 apply  (rule_tac I1 = "%Z l. Z = l Arg & 0 < Z" and Q1 = "Res_ok" in Call_invariant [THEN conseq12])
 apply (rule single_asm [THEN conseq2])

@@ -6703,7 +6703,7 @@ next
   moreover have "?d > 0"
     using as(2) by (auto simp: Suc_le_eq DIM_positive)
   ultimately show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> setsum (op \<bullet> y) Basis \<le> 1"
-    apply (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) ?D" in exI)
+    apply (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) D" for D in exI)
     apply rule
     defer
     apply (rule, rule)

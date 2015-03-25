@@ -287,10 +287,10 @@ apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(case_tac "length path")
   apply force
  apply simp
- apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> ?P i" and x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> P i" and x = "nat" for P in allE)
  apply simp
  apply clarify
- apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> ?P i" and x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> P i" and x = "nat" for P in allE)
  apply simp
  apply(case_tac "j<I")
   apply(erule_tac x = "j" in allE)
@@ -329,10 +329,10 @@ apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(case_tac "length path")
   apply force
  apply simp
- apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> ?P i" and x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> P i" and x = "nat" for P in allE)
  apply simp
  apply clarify
- apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> ?P i" and x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> P i" and x = "nat" for P in allE)
  apply simp
  apply(case_tac "j\<le>R")
   apply(drule le_imp_less_or_eq [of _ R])

@@ -120,7 +120,7 @@ lemma iter2B: "iter2(f,a) = a $ map(f,iter2(f,a))"
 lemma iter2Blemma:
   "n:Nat \<Longrightarrow>  
     map(f) ^ n ` iter2(f,a) = (f ^ n ` a) $ (map(f) ^ n ` map(f,iter2(f,a)))"
-  apply (rule_tac P = "\<lambda>x. ?lhs (x) = ?rhs" in iter2B [THEN ssubst])
+  apply (rule_tac P = "\<lambda>x. lhs(x) = rhs" for lhs rhs in iter2B [THEN ssubst])
   apply (simp add: nmapBcons)
   done
 

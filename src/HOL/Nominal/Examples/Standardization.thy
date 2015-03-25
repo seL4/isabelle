@@ -384,7 +384,7 @@ proof -
     apply (subgoal_tac "r = (Lam [xa]. [(xa, x)] \<bullet> s)")
     prefer 2
     apply (simp add: calc_atm)
-    apply (thin_tac "r = ?t")
+    apply (thin_tac "r = _")
     apply simp
     apply (rule exI)
     apply (rule conjI)

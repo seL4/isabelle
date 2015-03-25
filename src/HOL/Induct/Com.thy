@@ -184,7 +184,7 @@ apply (induct set: exec)
    apply blast
   apply blast
  apply (blast elim: exec_WHILE_case)
-apply (erule_tac V = "(?c,s2) -[?ev]-> s3" in thin_rl)
+apply (erule_tac V = "(c,s2) -[ev]-> s3" for c ev in thin_rl)
 apply clarify
 apply (erule exec_WHILE_case, blast+)
 done

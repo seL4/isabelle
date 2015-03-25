@@ -286,7 +286,7 @@ apply          (blast) (* asm *)
 apply         (blast) (* cut *)
 apply        (blast) (* weaken *)
 apply       (tactic {* ALLGOALS (EVERY'
-  [REPEAT o Rule_Insts.thin_tac @{context} "hoare_derivs ?x ?y" [],
+  [REPEAT o Rule_Insts.thin_tac @{context} "hoare_derivs _ _" [],
    simp_tac @{context}, clarify_tac @{context}, REPEAT o smp_tac @{context} 1]) *})
 apply       (simp_all (no_asm_use) add: triple_valid_def2)
 apply       (intro strip, tactic "smp_tac @{context} 2 1", blast) (* conseq *)
@@ -315,7 +315,7 @@ lemma MGT_alternD: "state_not_singleton ==>
 apply (unfold MGT_def)
 apply (erule conseq12)
 apply auto
-apply (case_tac "? t. <c,?s> -c-> t")
+apply (case_tac "\<exists>t. <c,s> -c-> t" for s)
 apply  (fast elim: com_det)
 apply clarsimp
 apply (drule single_stateE)

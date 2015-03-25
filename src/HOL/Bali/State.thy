@@ -599,13 +599,13 @@ abbreviation (input)
   where "store == snd"
 
 lemma single_stateE: "\<forall>Z. Z = (s::state) \<Longrightarrow> False"
-apply (erule_tac x = "(Some k,y)" in all_dupE)
-apply (erule_tac x = "(None,y)" in allE)
+apply (erule_tac x = "(Some k,y)" for k y in all_dupE)
+apply (erule_tac x = "(None,y)" for y in allE)
 apply clarify
 done
 
 lemma state_not_single: "All (op = (x::state)) \<Longrightarrow> R"
-apply (drule_tac x = "(if abrupt x = None then Some ?x else None,?y)" in spec)
+apply (drule_tac x = "(if abrupt x = None then Some x' else None, y)" for x' y in spec)
 apply clarsimp
 done
 
@@ -823,4 +823,3 @@ by (simp add: error_free_def)
 
 
 end
-

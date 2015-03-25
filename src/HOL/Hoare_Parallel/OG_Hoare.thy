@@ -441,7 +441,7 @@ apply(rule TrueI)+
         apply simp
        apply force
       apply simp
-      apply(erule_tac V = "\<forall>i. ?P i" in thin_rl)
+      apply(erule_tac V = "\<forall>i. P i" for P in thin_rl)
       apply(drule_tac s = "length Rs" in sym)
       apply(erule allE, erule impE, assumption)
       apply(force dest: nth_mem simp add: All_None_def)

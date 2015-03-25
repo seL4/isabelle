@@ -194,7 +194,7 @@ lemma fns3:
    prefer 2
    apply (simp add: comp_assoc)
   apply (rule ext)
-  apply (drule_tac f="?a o ?b" in fun_cong)
+  apply (drule_tac f="a o b" for a b in fun_cong)
   apply simp
   done
 

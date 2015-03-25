@@ -182,7 +182,7 @@ apply (rule subsetI)
 apply (erule H_into_carrier_G)
 apply (rule H_not_empty)
 apply (simp add: H_def, clarify)
-apply (erule_tac P = "%z. ?lhs(z) = M1" in subst)
+apply (erule_tac P = "%z. lhs(z) = M1" for lhs in subst)
 apply (simp add: coset_mult_assoc )
 apply (blast intro: H_m_closed)
 done

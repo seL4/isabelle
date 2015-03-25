@@ -139,7 +139,7 @@ lemma wens_Int_eq_lemma:
       "[|T-B \<subseteq> awp F T; act \<in> Acts F|]
        ==> T \<inter> wens F act B \<subseteq> wens F act (T\<inter>B)"
 apply (rule subset_wens) 
-apply (rule_tac P="\<lambda>x. ?f x \<subseteq> ?b" in ssubst [OF wens_unfold])
+apply (rule_tac P="\<lambda>x. f x \<subseteq> b" for f b in ssubst [OF wens_unfold])
 apply (simp add: wp_def awp_def, blast)
 done
 

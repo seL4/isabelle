@@ -345,7 +345,7 @@ apply (case_tac "\<exists>x xs. size xs = k \<and> x#xs \<in> M")
 apply (erule_tac x = "{a. \<exists>xs. size xs = k \<and> a#xs:M}" in allE)
 apply (erule impE)
  apply blast
-apply (thin_tac "\<exists>x xs. ?P x xs")
+apply (thin_tac "\<exists>x xs. P x xs" for P)
 apply clarify
 apply (rename_tac maxA xs)
 apply (erule_tac x = "{ys. size ys = size xs \<and> maxA#ys \<in> M}" in allE)

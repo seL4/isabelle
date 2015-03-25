@@ -71,13 +71,13 @@ apply    simp
 apply   (rule_tac P' = "Normal (\<lambda>Y s Z. arr_inv (snd s))" in conseq1)
 prefer 2
 apply    clarsimp
-apply   (rule_tac Q' = "(\<lambda>Y s Z. ?Q Y s Z)\<leftarrow>=False\<down>=\<diamondsuit>" in conseq2)
+apply   (rule_tac Q' = "(\<lambda>Y s Z. Q Y s Z)\<leftarrow>=False\<down>=\<diamondsuit>" and Q = Q for Q in conseq2)
 prefer 2
 apply    simp
 apply   (tactic "ax_tac @{context} 1" (* While *))
 prefer 2
 apply    (rule ax_impossible [THEN conseq1], clarsimp)
-apply   (rule_tac P' = "Normal ?P" in conseq1)
+apply   (rule_tac P' = "Normal P" and P = P for P in conseq1)
 prefer 2
 apply    clarsimp
 apply   (tactic "ax_tac @{context} 1")
@@ -106,7 +106,7 @@ apply  (rule_tac C = "Ext" in ax_Call_known_DynT)
 apply     (unfold DynT_prop_def)
 apply     (simp (no_asm))
 apply    (intro strip)
-apply    (rule_tac P' = "Normal ?P" in conseq1)
+apply    (rule_tac P' = "Normal P" and P = P for P in conseq1)
 apply     (tactic "ax_tac @{context} 1" (* Methd *))
 apply     (rule ax_thin [OF _ empty_subsetI])
 apply     (simp (no_asm) add: body_def2)
@@ -185,7 +185,7 @@ apply      force
 apply     (simp (no_asm))
 apply    (unfold arr_viewed_from_def)
 apply    (rule allI)
-apply    (rule_tac P' = "Normal ?P" in conseq1)
+apply    (rule_tac P' = "Normal P" and P = P for P in conseq1)
 apply     (tactic {* simp_tac (@{context} delloop "split_all_tac") 1 *})
 apply     (tactic "ax_tac @{context} 1")
 apply     (tactic "ax_tac @{context} 1")
@@ -268,7 +268,7 @@ prefer 2
 apply   (rule ax_subst_Var_allI)
 apply   (tactic {* inst1_tac @{context} "P'" "\<lambda>b Y ba Z vf. \<lambda>Y (x,s) Z. x=None \<and> snd vf = snd (lvar i s)" [] *})
 apply   (rule allI)
-apply   (rule_tac P' = "Normal ?P" in conseq1)
+apply   (rule_tac P' = "Normal P" and P = P for P in conseq1)
 prefer 2
 apply    clarsimp
 apply   (tactic "ax_tac @{context} 1")

@@ -383,7 +383,7 @@ apply (drule cl_ident_iff [OF lattice_latticeof, THEN iffD2])
 apply (drule equalityD1)   
 apply (rule subset_trans) 
  prefer 2 apply assumption
-apply (thin_tac "?U \<subseteq> X") 
+apply (thin_tac "_ \<subseteq> X") 
 apply (cut_tac A=X in UN_singleton) 
 apply (erule subst) 
 apply (simp only: cl_UN lattice_latticeof 

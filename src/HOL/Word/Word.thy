@@ -3190,7 +3190,7 @@ lemma align_lem_or [rule_format] :
   apply clarsimp
   apply (case_tac x, force)
   apply (case_tac m, auto)
-  apply (drule_tac t="length ?xs" in sym)
+  apply (drule_tac t="length xs" for xs in sym)
   apply (clarsimp simp: map2_def zip_replicate o_def)
   done
 
@@ -3203,7 +3203,7 @@ lemma align_lem_and [rule_format] :
   apply clarsimp
   apply (case_tac x, force)
   apply (case_tac m, auto)
-  apply (drule_tac t="length ?xs" in sym)
+  apply (drule_tac t="length xs" for xs in sym)
   apply (clarsimp simp: map2_def zip_replicate o_def map_replicate_const)
   done
 
@@ -3811,7 +3811,7 @@ lemma cat_slices:
 
 lemma word_split_cat_alt:
   "w = word_cat u v \<Longrightarrow> size u + size v <= size w \<Longrightarrow> word_split w = (u, v)"
-  apply (case_tac "word_split ?w")
+  apply (case_tac "word_split w")
   apply (rule trans, assumption)
   apply (drule test_bit_split)
   apply safe
@@ -4694,7 +4694,7 @@ apply (rule_tac t="1 + n - m" and s="1 + (n - m)" in subst)
  apply simp
 apply (case_tac "1 + (n - m) = 0")
  apply (simp add: word_rec_0)
- apply (rule_tac f = "word_rec ?a ?b" in arg_cong)
+ apply (rule_tac f = "word_rec a b" for a b in arg_cong)
  apply (rule_tac t="m" and s="m + (1 + (n - m))" in subst)
   apply simp
  apply (simp (no_asm_use))

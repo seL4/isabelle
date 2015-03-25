@@ -1238,11 +1238,12 @@ apply (blast dest: Says_Kas_message_form Says_Tgs_message_form intro: less_SucI)
 txt{*K5. Not clear how this step could be integrated with the main
        simplification step. Done in KerberosV.thy*}
 apply clarify
-apply (erule_tac V = "Says Aa Tgs ?X \<in> set ?evs" in thin_rl)
+apply (erule_tac V = "Says Aa Tgs X \<in> set evs" for X evs in thin_rl)
 apply (frule Gets_imp_knows_Spy [THEN parts.Inj, THEN servK_notin_authKeysD])
 apply (assumption, assumption, blast, assumption)
 apply (simp add: analz_insert_freshK2)
-by (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
+apply (blast dest: Key_unique_SesKey intro: less_SucI)
+done
 
 
 text{* In the real world Tgs can't check wheter authK is secure! *}
