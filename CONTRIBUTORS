@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII, and Dmitriy Traytel, TUM
+  More multiset theorems, syntax, and operations.
+
 * December 2014: Johannes Hölzl, Manuel Eberl, Sudeep Kanav, TUM and Jeremy Avigad, Luke Serafin, CMU
   Various integration theorems: mostly integration on intervals and substitution.
 

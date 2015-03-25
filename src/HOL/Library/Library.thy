@@ -42,7 +42,7 @@ imports
   Mapping
   Monad_Syntax
   More_List
-  Multiset
+  Multiset_Order
   Numeral_Type
   NthRoot_Limits
   OptionalSugar

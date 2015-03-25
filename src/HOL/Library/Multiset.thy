@@ -1,6 +1,9 @@
 (*  Title:      HOL/Library/Multiset.thy
     Author:     Tobias Nipkow, Markus Wenzel, Lawrence C Paulson, Norbert Voelker
     Author:     Andrei Popescu, TU Muenchen
+    Author:     Jasmin Blanchette, Inria, LORIA, MPII
+    Author:     Dmitriy Traytel, TU Muenchen
+    Author:     Mathias Fleury, MPII
 *)
 
 section {* (Finite) multisets *}
@@ -382,8 +385,7 @@ lemma multi_psub_of_add_self[simp]: "A < A + {#x#}"
 lemma multi_psub_self[simp]: "(A::'a multiset) < A = False"
   by simp
 
-lemma mset_less_add_bothsides:
-  "T + {#x#} < S + {#x#} \<Longrightarrow> T < S"
+lemma mset_less_add_bothsides: "N + {#x#} < M + {#x#} \<Longrightarrow> N < M"
   by (fact add_less_imp_less_right)
 
 lemma mset_less_empty_nonempty:
@@ -592,6 +594,10 @@ lemma finite_Collect_mem [iff]: "finite {x. x :# M}"
 
 lemma set_of_mono: "A \<le> B \<Longrightarrow> set_of A \<subseteq> set_of B"
   by (metis mset_leD subsetI mem_set_of_iff)
+
+lemma ball_set_of_iff: "(\<forall>x \<in> set_of M. P x) \<longleftrightarrow> (\<forall>x. x \<in># M \<longrightarrow> P x)"
+  by auto
+
 
 subsubsection {* Size *}
 
@@ -895,11 +901,23 @@ syntax
 translations
   "{#e. x:#M#}" == "CONST image_mset (%x. e) M"
 
+syntax (xsymbols)
+  "_comprehension2_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
+      ("({#_/. _ \<in># _#})")
+translations
+  "{#e. x \<in># M#}" == "CONST image_mset (\<lambda>x. e) M"
+
 syntax
-  "_comprehension2_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+  "_comprehension3_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
       ("({#_/ | _ :# _./ _#})")
 translations
   "{#e | x:#M. P#}" => "{#e. x :# {# x:#M. P#}#}"
+
+syntax
+  "_comprehension4_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+      ("({#_/ | _ \<in># _./ _#})")
+translations
+  "{#e | x\<in>#M. P#}" => "{#e. x \<in># {# x\<in>#M. P#}#}"
 
 text {*
   This allows to write not just filters like @{term "{#x:#M. x<c#}"}
@@ -907,6 +925,9 @@ text {*
   "{#x+x|x:#M. x<c#}"}, where the latter is currently displayed as
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
+
+lemma in_image_mset: "y \<in># {#f x. x \<in># M#} \<longleftrightarrow> y \<in> f ` set_of M"
+  by (metis mem_set_of_iff set_of_image_mset)
 
 functor image_mset: image_mset
 proof -
@@ -924,7 +945,19 @@ proof -
   qed
 qed
 
-declare image_mset.identity [simp]
+declare
+  image_mset.id [simp]
+  image_mset.identity [simp]
+
+lemma image_mset_id[simp]: "image_mset id x = x"
+  unfolding id_def by auto
+
+lemma image_mset_cong: "(\<And>x. x \<in># M \<Longrightarrow> f x = g x) \<Longrightarrow> {#f x. x \<in># M#} = {#g x. x \<in># M#}"
+  by (induct M) auto
+
+lemma image_mset_cong_pair:
+  "(\<forall>x y. (x, y) \<in># M \<longrightarrow> f x y = g x y) \<Longrightarrow> {#f x y. (x, y) \<in># M#} = {#g x y. (x, y) \<in># M#}"
+  by (metis image_mset_cong split_cong)
 
 
 subsection {* Further conversions *}
@@ -942,7 +975,7 @@ lemma count_multiset_of:
   by (induct xs) simp_all
 
 lemma multiset_of_zero_iff[simp]: "(multiset_of x = {#}) = (x = [])"
-by (induct x) auto
+  by (induct x) auto
 
 lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
 by (induct x) auto
@@ -1059,10 +1092,6 @@ lemma multiset_of_insort [simp]:
   "multiset_of (insort x xs) = multiset_of xs + {#x#}"
   by (induct xs) (simp_all add: ac_simps)
 
-lemma in_multiset_of:
-  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
-  by (induct xs) simp_all
-
 lemma multiset_of_map:
   "multiset_of (map f xs) = image_mset f (multiset_of xs)"
   by (induct xs) simp_all
@@ -1097,6 +1126,9 @@ proof -
   then show "PROP ?P" "PROP ?Q" "PROP ?R"
   by (auto elim!: Set.set_insert)
 qed -- {* TODO: maybe define @{const multiset_of_set} also in terms of @{const Abs_multiset} *}
+
+lemma elem_multiset_of_set[simp, intro]: "finite A \<Longrightarrow> x \<in># multiset_of_set A \<longleftrightarrow> x \<in> A"
+  by (induct A rule: finite_induct) simp_all
 
 context linorder
 begin
@@ -1186,6 +1218,14 @@ qed
 
 end
 
+lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + \<Colon> 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
+  by default (simp add: add_ac comp_def)
+
+declare comp_fun_commute.fold_mset_insert[OF comp_fun_commute_plus_mset, simp]
+
+lemma in_mset_fold_plus_iff[iff]: "x \<in># Multiset.fold (op +) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
+  by (induct NN) auto
+
 notation times (infixl "*" 70)
 notation Groups.one ("1")
 
@@ -1209,6 +1249,22 @@ lemma setsum_unfold_msetsum:
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 end
+
+lemma msetsum_diff:
+  fixes M N :: "('a \<Colon> ordered_cancel_comm_monoid_diff) multiset"
+  shows "N \<le> M \<Longrightarrow> msetsum (M - N) = msetsum M - msetsum N"
+  by (metis add_diff_cancel_left' msetsum.union ordered_cancel_comm_monoid_diff_class.add_diff_inverse)
+
+abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset" where
+  "Union_mset MM \<equiv> msetsum MM"
+
+notation (xsymbols) Union_mset ("\<Union>#_" [900] 900)
+
+lemma set_of_Union_mset[simp]: "set_of (\<Union># MM) = (\<Union>M \<in> set_of MM. set_of M)"
+  by (induct MM) auto
+
+lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
+  by (induct MM) auto
 
 syntax
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
@@ -1337,6 +1393,46 @@ qed
 
 lemma mcard_filter_lesseq[simp]: "mcard (Multiset.filter f M) \<le> mcard M"
   by (rule mcard_mono[OF multiset_filter_subset])
+
+lemma mcard_1_singleton:
+  assumes card: "mcard AA = 1"
+  shows "\<exists>A. AA = {#A#}"
+  using card by (cases AA) auto
+
+lemma mcard_Diff_subset:
+  assumes "M \<le> M'"
+  shows "mcard (M' - M) = mcard M' - mcard M"
+  by (metis add_diff_cancel_left' assms mcard_plus mset_le_exists_conv)
+
+
+subsection {* Replicate operation *}
+
+definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
+  "replicate_mset n x = ((op + {#x#}) ^^ n) {#}"
+
+lemma replicate_mset_0[simp]: "replicate_mset 0 x = {#}"
+  unfolding replicate_mset_def by simp
+
+lemma replicate_mset_Suc[simp]: "replicate_mset (Suc n) x = replicate_mset n x + {#x#}"
+  unfolding replicate_mset_def by (induct n) (auto intro: add.commute)
+
+lemma in_replicate_mset[simp]: "x \<in># replicate_mset n y \<longleftrightarrow> n > 0 \<and> x = y"
+  unfolding replicate_mset_def by (induct n) simp_all
+
+lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
+  unfolding replicate_mset_def by (induct n) simp_all
+
+lemma set_of_replicate_mset_subset[simp]: "set_of (replicate_mset n x) = (if n = 0 then {} else {x})"
+  by (auto split: if_splits)
+
+lemma mcard_replicate_mset[simp]: "mcard (replicate_mset n M) = n"
+  by (induct n, simp_all)
+
+lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<le> M"
+  by (auto simp add: assms mset_less_eqI) (metis count_replicate_mset less_eq_multiset.rep_eq)
+
+lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
+  by (induct D) simp_all
 
 
 subsection {* Alternative representations *}
@@ -1790,7 +1886,7 @@ proof
 qed (auto simp add: le_multiset_def intro: union_less_mono2)
 
 
-subsection {* Termination proofs with multiset orders *}
+subsubsection {* Termination proofs with multiset orders *}
 
 lemma multi_member_skip: "x \<in># XS \<Longrightarrow> x \<in># {# y #} + XS"
   and multi_member_this: "x \<in># {# x #} + XS"
@@ -2082,9 +2178,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma [code_unfold]:
-  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
-  by (simp add: in_multiset_of)
+declare in_multiset_in_set [code_unfold]
 
 lemma [code]:
   "count (multiset_of xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
@@ -2094,25 +2188,19 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma [code]:
-  "set_of (multiset_of xs) = set xs"
-  by simp
+declare set_of_multiset_of [code]
 
-lemma [code]:
-  "sorted_list_of_multiset (multiset_of xs) = sort xs"
-  by (induct xs) simp_all
+declare sorted_list_of_multiset_multiset_of [code]
 
 lemma [code]: -- {* not very efficient, but representation-ignorant! *}
   "multiset_of_set A = multiset_of (sorted_list_of_set A)"
   apply (cases "finite A")
   apply simp_all
   apply (induct A rule: finite_induct)
-  apply (simp_all add: union_commute)
+  apply (simp_all add: add.commute)
   done
 
-lemma [code]:
-  "mcard (multiset_of xs) = length xs"
-  by (simp add: mcard_multiset_of)
+declare mcard_multiset_of [code]
 
 fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where
   "ms_lesseq_impl [] ys = Some (ys \<noteq> [])"
@@ -2287,7 +2375,7 @@ next
   have "multiset_of xs' = {#x#} + multiset_of xsa"
     unfolding xsa_def using j_len nth_j
     by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id Cons_nth_drop_Suc
-      multiset_of.simps(2) union_code union_commute)
+      multiset_of.simps(2) union_code add.commute)
   hence ms_x: "multiset_of xsa = multiset_of xs"
     by (metis Cons.prems add.commute add_right_imp_eq multiset_of.simps(2))
   then obtain ysa where
@@ -2344,7 +2432,7 @@ proof -
     by (rule image_mset.id)
 next
   show "\<And>f g. image_mset (g \<circ> f) = image_mset g \<circ> image_mset f"
-    unfolding comp_def by (rule ext) (simp add: image_mset.compositionality comp_def)
+    unfolding comp_def by (rule ext) (simp add: comp_def image_mset.compositionality)
 next
   fix X :: "'a multiset"
   show "\<And>f g. (\<And>z. z \<in> set_of X \<Longrightarrow> f z = g z) \<Longrightarrow> image_mset f X = image_mset g X"

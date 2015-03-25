@@ -262,6 +262,24 @@ use local CSDP executable, which is much faster than the NEOS server.
 The "sos_cert" functionality is invoked as "sos" with additional
 argument. Minor INCOMPATIBILITY.
 
+* Theory "Library/Multiset":
+  - Introduced "replicate_mset" operation.
+  - Introduced alternative characterizations of the multiset ordering in
+    "Library/Multiset_Order".
+  - Renamed
+      in_multiset_of ~> in_multiset_in_set
+    INCOMPATIBILITY.
+  - Added attributes:
+      image_mset.id [simp]
+      image_mset_id [simp]
+      elem_multiset_of_set [simp, intro]
+      comp_fun_commute_plus_mset [simp]
+      comp_fun_commute.fold_mset_insert [OF comp_fun_commute_plus_mset, simp]
+      in_mset_fold_plus_iff [iff]
+      set_of_Union_mset [simp]
+      in_Union_mset_iff [iff]
+    INCOMPATIBILITY.
+
 * HOL-Decision_Procs:
   - New counterexample generator quickcheck[approximation] for
     inequalities of transcendental functions.
