@@ -242,8 +242,8 @@ object Build
               { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
             rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
-      position(command(SESSION)) ~!
-        (session_name ~
+      command(SESSION) ~!
+        (position(session_name) ~
           (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
           (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
           ($$$("=") ~!
@@ -253,7 +253,7 @@ object Build
               rep1(theories) ~
               (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case (_, pos) ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
