@@ -99,8 +99,7 @@ lemma size_bool[code]: "size (b\<Colon>bool) = 0"
 
 declare prod.size[no_atp]
 
-lemma size_nat[simp, code]: "size (n\<Colon>nat) = n"
-  by (induct n) simp_all
+lemmas size_nat = size_nat_def
 
 hide_const (open) xtor ctor_rec
 

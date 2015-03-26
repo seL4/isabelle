@@ -1826,13 +1826,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val lthy' = lthy |> note_all ? snd o Local_Theory.notes (common_notes @ notes @ Ibnf_notes);
 
     val fp_res =
-      {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_co_recs = recs,
-       xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
-       ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
-       xtor_maps = ctor_Imap_thms, xtor_setss = ctor_Iset_thmss',
-       xtor_rels = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
-       xtor_co_rec_o_maps = ctor_rec_o_Imap_thms, xtor_rel_co_induct = Irel_induct_thm,
-       dtor_set_inducts = [], xtor_co_rec_transfers = ctor_rec_transfer_thms};
+      {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_un_folds = folds,
+       xtor_co_recs = recs, xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
+       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
+       dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms, xtor_setss = ctor_Iset_thmss',
+       xtor_rels = ctor_Irel_thms, xtor_un_fold_thms = ctor_fold_thms,
+       xtor_co_rec_thms = ctor_rec_thms, xtor_co_rec_o_maps = ctor_rec_o_Imap_thms,
+       xtor_rel_co_induct = Irel_induct_thm, dtor_set_inducts = [],
+       xtor_co_rec_transfers = ctor_rec_transfer_thms};
   in
     timer; (fp_res, lthy')
   end;

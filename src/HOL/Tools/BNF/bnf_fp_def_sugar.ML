@@ -553,7 +553,7 @@ fun massage_multi_notes b_names Ts =
       b_names Ts thmss)
   #> filter_out (null o fst o hd o snd);
 
-fun derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs' fp_nesting_set_maps
+fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nesting_set_maps
     live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs fp_b_name fp_bnf fpT ctor
     ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm
     ctr_Tss abs
@@ -2093,11 +2093,11 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val ((xtor_co_recs, recs_args_types, corecs_args_types), lthy') =
       mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
 
-    fun define_ctrs_dtrs_for_type fp (((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
+    fun define_ctrs_dtrs_for_type fp ((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
               xtor_co_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
             pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), abs),
-          abs_inject), abs_inverse), type_definition), ctr_bindings), ctr_mixfixes), ctr_Tss),
-        disc_bindings), sel_bindingss), raw_sel_default_eqs) no_defs_lthy =
+          abs_inject), type_definition), ctr_bindings), ctr_mixfixes), ctr_Tss), disc_bindings),
+        sel_bindingss), raw_sel_default_eqs) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
@@ -2197,7 +2197,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       in
         (wrap_ctrs
          #> (fn (ctr_sugar, lthy) =>
-           derive_map_set_rel_thms plugins fp n live As Bs abs_inverses ctr_defs'
+           derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs'
              fp_nesting_set_maps live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs
              fp_b_name fp_bnf fpT ctor ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def
              fp_map_thm fp_set_thms fp_rel_thm ctr_Tss abs ctr_sugar lthy
@@ -2257,8 +2257,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
           val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
 
-          val rec_Ts as rec_T1 :: _ = map fastype_of recs;
-          val rec_arg_Ts = binder_fun_types rec_T1;
+          val rec_arg_Ts = binder_fun_types (hd (map fastype_of recs));
 
           val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
 
@@ -2409,8 +2408,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
           val fmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_fs)) maps0;
 
-          val corec_Ts as corec_T1 :: _ = map fastype_of corecs;
-          val corec_arg_Ts = binder_fun_types corec_T1;
+          val corec_arg_Ts = binder_fun_types (hd (map fastype_of corecs));
 
           val B_ify = Term.subst_atomic_types (As ~~ Bs);
           val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
@@ -2566,8 +2564,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       |> fold_map (define_ctrs_dtrs_for_type fp) (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
         xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~ pre_set_defss ~~
         pre_rel_defs ~~ xtor_maps ~~ xtor_setss ~~ xtor_rels ~~ ns ~~ kss ~~ mss ~~
-        abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~
-        ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_default_eqss)
+        abss ~~ abs_injects ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~
+        disc_bindingss ~~ sel_bindingsss ~~ raw_sel_default_eqss)
       |> wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types
       |> case_fp fp derive_note_induct_recs_thms_for_types
            derive_note_coinduct_corecs_thms_for_types;

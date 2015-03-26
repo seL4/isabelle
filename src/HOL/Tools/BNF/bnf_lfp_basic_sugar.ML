@@ -17,9 +17,7 @@ open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
 fun trivial_absT_info_of fpT =
-  {absT = fpT,
-   repT = fpT,
-   abs = Const (@{const_name id_bnf}, fpT --> fpT),
+  {absT = fpT, repT = fpT, abs = Const (@{const_name id_bnf}, fpT --> fpT),
    rep = Const (@{const_name id_bnf}, fpT --> fpT),
    abs_inject = @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV UNIV_I UNIV_I]},
    abs_inverse = @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV UNIV_I]},
@@ -31,24 +29,19 @@ fun the_frozen_ctr_sugar_of ctxt fpT_name =
     $> Morphism.term_morphism "BNF" (Term.map_types Logic.unvarifyT_global));
 
 fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct =
-  {Ts = [fpT],
-   bnfs = [fp_bnf],
-   ctors = [Const (@{const_name xtor}, fpT --> fpT)],
-   dtors = [Const (@{const_name xtor}, fpT --> fpT)],
-   xtor_co_recs = [Const (@{const_name ctor_rec}, (fpT --> C) --> (fpT --> C))],
-   xtor_co_induct = @{thm xtor_induct},
-   dtor_ctors = @{thms xtor_xtor},
-   ctor_dtors = @{thms xtor_xtor},
-   ctor_injects = @{thms xtor_inject},
-   dtor_injects = @{thms xtor_inject},
-   xtor_maps = [xtor_map],
-   xtor_setss = [xtor_sets],
-   xtor_rels = [xtor_rel],
-   xtor_co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}],
-   xtor_co_rec_o_maps = [ctor_rec_o_map],
-   xtor_rel_co_induct = xtor_rel_induct,
-   dtor_set_inducts = [],
-   xtor_co_rec_transfers = []};
+  let
+    val xtors = [Const (@{const_name xtor}, fpT --> fpT)];
+    val co_recs = [Const (@{const_name ctor_rec}, (fpT --> C) --> (fpT --> C))];
+    val co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}];
+  in
+    {Ts = [fpT], bnfs = [fp_bnf], ctors = xtors, dtors = xtors, xtor_un_folds = co_recs,
+     xtor_co_recs = co_recs, xtor_co_induct = @{thm xtor_induct}, dtor_ctors = @{thms xtor_xtor},
+     ctor_dtors = @{thms xtor_xtor}, ctor_injects = @{thms xtor_inject},
+     dtor_injects = @{thms xtor_inject}, xtor_maps = [xtor_map], xtor_setss = [xtor_sets],
+     xtor_rels = [xtor_rel], xtor_un_fold_thms = co_rec_thms, xtor_co_rec_thms = co_rec_thms,
+     xtor_co_rec_o_maps = [ctor_rec_o_map], xtor_rel_co_induct = xtor_rel_induct,
+     dtor_set_inducts = [], xtor_co_rec_transfers = []}
+  end;
 
 fun fp_sugar_of_sum ctxt =
   let

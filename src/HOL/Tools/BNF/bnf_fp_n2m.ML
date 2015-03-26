@@ -478,7 +478,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
        used by "primrec", "primcorecursive", and "datatype_compat". *)
     val fp_res =
       ({Ts = fpTs, bnfs = of_fp_res #bnfs, dtors = dtors, ctors = ctors,
-        xtor_co_recs = co_recs, xtor_co_induct = xtor_co_induct_thm,
+        xtor_un_folds = co_recs (*wrong*), xtor_co_recs = co_recs,
+        xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
         ctor_injects = of_fp_res #ctor_injects (*too general types*),
@@ -486,11 +487,9 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         xtor_maps = of_fp_res #xtor_maps (*too general types and terms*),
         xtor_setss = of_fp_res #xtor_setss (*too general types and terms*),
         xtor_rels = of_fp_res #xtor_rels (*too general types and terms*),
-        xtor_co_rec_thms = xtor_co_rec_thms,
+        xtor_un_fold_thms = xtor_co_rec_thms (*wrong*), xtor_co_rec_thms = xtor_co_rec_thms,
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
-        xtor_rel_co_induct = xtor_rel_co_induct,
-        dtor_set_inducts = [],
-        xtor_co_rec_transfers = []}
+        xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = [], xtor_co_rec_transfers = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)
