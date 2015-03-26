@@ -83,6 +83,8 @@ sig
 
   val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
     'a list
+  val mk_ctor: typ list -> term -> term
+  val mk_dtor: typ list -> term -> term
   val liveness_of_fp_bnf: int -> BNF_Def.bnf -> bool list
   val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
