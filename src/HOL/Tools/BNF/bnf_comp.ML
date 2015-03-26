@@ -906,7 +906,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val notes = (map_b, map_def) :: (rel_b, rel_def) :: (set_bs ~~ set_defs)
       |> map (fn (b, def) => ((b, []), [([def], [])]))
 
-    val (noted, lthy'') = lthy' |> Local_Theory.notes notes
+    val (noted, lthy'') = lthy'
+      |> Local_Theory.notes notes
+      ||> (if repTA = TA then I else register_bnf_raw (fst (dest_Type TA)) bnf'')
   in
     ((morph_bnf (substitute_noted_thm noted) bnf'', (all_deads, absT_info)), lthy'')
   end;
