@@ -299,8 +299,8 @@ lemma ex_gt_imp_less_multiset: "(\<exists>y \<Colon> 'a \<Colon> linorder. y \<i
 
 lemma ex_gt_count_imp_less_multiset:
   "(\<forall>y \<Colon> 'a \<Colon> linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M \<subset># N"
-  unfolding less_multiset\<^sub>H\<^sub>O by (metis UnCI comm_monoid_diff_class.diff_cancel dual_order.asym
-    less_imp_diff_less mem_set_of_iff order.not_eq_order_implies_strict set_of_union)
+  unfolding less_multiset\<^sub>H\<^sub>O by (metis add.left_neutral add_lessD1 dual_order.strict_iff_order
+    less_not_sym mset_leD mset_le_add_left)  
 
 lemma union_less_diff_plus: "P \<le> M \<Longrightarrow> N \<subset># P \<Longrightarrow> M - P + N \<subset># M"
   by (drule ordered_cancel_comm_monoid_diff_class.diff_add[symmetric]) (metis union_less_mono2)
