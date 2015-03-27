@@ -7,11 +7,9 @@ Unstructured induction and cases analysis.
 signature INDUCT_TACS =
 sig
   val case_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
-    int -> tactic
-  val case_rule_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
-    thm -> int -> tactic
-  val induct_tac: Proof.context -> string option list list -> int -> tactic
-  val induct_rules_tac: Proof.context -> string option list list -> thm list -> int -> tactic
+    thm option -> int -> tactic
+  val induct_tac: Proof.context -> string option list list ->
+    thm list option -> int -> tactic
 end
 
 structure Induct_Tacs: INDUCT_TACS =
@@ -28,7 +26,7 @@ fun check_type ctxt (t, pos) =
         quote (Syntax.string_of_term ctxt u) ^ Position.here pos);
   in (u, U) end;
 
-fun gen_case_tac ctxt s fixes opt_rule i st =
+fun case_tac ctxt s fixes opt_rule i st =
   let
     val rule =
       (case opt_rule of
@@ -55,9 +53,6 @@ fun gen_case_tac ctxt s fixes opt_rule i st =
   in Rule_Insts.res_inst_tac ctxt [((xi, Position.none), s)] fixes rule i st end
   handle THM _ => Seq.empty;
 
-fun case_tac ctxt s xs = gen_case_tac ctxt s xs NONE;
-fun case_rule_tac ctxt s xs rule = gen_case_tac ctxt s xs (SOME rule);
-
 
 (* induction *)
 
@@ -72,7 +67,7 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun gen_induct_tac ctxt0 varss opt_rules i st =
+fun induct_tac ctxt0 varss opt_rules i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
@@ -117,9 +112,6 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
 
 end;
 
-fun induct_tac ctxt args = gen_induct_tac ctxt args NONE;
-fun induct_rules_tac ctxt args rules = gen_induct_tac ctxt args (SOME rules);
-
 
 (* method syntax *)
 
@@ -139,14 +131,13 @@ val _ =
   Theory.setup
    (Method.setup @{binding case_tac}
       (Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) -- opt_rule >>
-        (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (gen_case_tac ctxt s xs r)))
+        (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s xs r)))
       "unstructured case analysis on types" #>
     Method.setup @{binding induct_tac}
       (Args.goal_spec -- varss -- opt_rules >>
-        (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (gen_induct_tac ctxt vs rs)))
+        (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt vs rs)))
       "unstructured induction on types");
 
 end;
 
 end;
-
