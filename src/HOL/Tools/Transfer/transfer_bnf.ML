@@ -6,6 +6,8 @@ Setup for Transfer for types that are BNF.
 
 signature TRANSFER_BNF =
 sig
+  exception NO_PRED_DATA of unit
+
   val transfer_plugin: string
   val base_name_of_bnf: BNF_Def.bnf -> binding
   val type_name_of_bnf: BNF_Def.bnf -> string
@@ -20,6 +22,8 @@ open BNF_Util
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
+
+exception NO_PRED_DATA of unit
 
 val transfer_plugin = Plugin_Name.declare_setup @{binding transfer}
 
@@ -318,9 +322,9 @@ val _ =
 (* simplification rules for the predicator *)
 
 fun lookup_defined_pred_data lthy name =
-  case (Transfer.lookup_pred_data lthy name) of
+  case Transfer.lookup_pred_data lthy name of
     SOME data => data
-    | NONE => (error "lookup_pred_data: something went utterly wrong")
+  | NONE => raise NO_PRED_DATA ()
 
 fun lives_of_fp (fp_sugar: fp_sugar) =
   let
@@ -377,6 +381,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     |> Variable.export lthy old_lthy
     |> map Drule.zero_var_indexes
   end
+  handle NO_PRED_DATA () => []
 
 
 (* fp_sugar interpretation *)

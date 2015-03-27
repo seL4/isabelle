@@ -93,7 +93,7 @@ fun relator_eq_onp bnf ctxt =
   in
     [((Binding.empty, []), [([relator_eq_onp_thm], @{attributes [relator_eq_onp]})])]    
   end
-  handle ERROR _ => [] (* the "lifting" plugin should work even if "quotient" is disabled *)
+  handle NO_PRED_DATA _ => [] (* the "lifting" plugin should work even if "quotient" is disabled *)
 
 (* relator_mono  *)
 
