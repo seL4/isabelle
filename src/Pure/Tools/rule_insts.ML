@@ -14,6 +14,7 @@ sig
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val schematic: bool Config.T
+  val goal_context: int -> thm -> Proof.context -> (string * typ) list * Proof.context
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
     int -> tactic
@@ -101,17 +102,19 @@ fun read_insts thm mixed_insts ctxt =
     val (type_insts, term_insts) =
       List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) mixed_insts;
 
+    (*thm context*)
+    val ctxt1 = Variable.declare_thm thm ctxt;
     val tvars = Thm.fold_terms Term.add_tvars thm [];
     val vars = Thm.fold_terms Term.add_vars thm [];
 
     (*explicit type instantiations*)
-    val instT1 = Term_Subst.instantiateT (map (read_type ctxt tvars) type_insts);
+    val instT1 = Term_Subst.instantiateT (map (read_type ctxt1 tvars) type_insts);
     val vars1 = map (apsnd instT1) vars;
 
     (*term instantiations*)
     val (xs, ss) = split_list term_insts;
     val Ts = map (the_type vars1) xs;
-    val ((ts, inferred), ctxt') = read_terms ss Ts ctxt;
+    val ((ts, inferred), ctxt2) = read_terms ss Ts ctxt1;
 
     (*implicit type instantiations*)
     val instT2 = Term_Subst.instantiateT inferred;
@@ -122,7 +125,7 @@ fun read_insts thm mixed_insts ctxt =
 
     val inst_tvars = map_filter (make_instT (instT2 o instT1)) tvars;
     val inst_vars = map_filter (make_inst inst2) vars2;
-  in ((inst_tvars, inst_vars), ctxt') end;
+  in ((inst_tvars, inst_vars), ctxt2) end;
 
 end;
 
@@ -132,9 +135,7 @@ end;
 
 fun where_rule ctxt mixed_insts fixes thm =
   let
-    val ctxt' = ctxt
-      |> Variable.declare_thm thm
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+    val ctxt' = ctxt |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
     val ((inst_tvars, inst_vars), ctxt'') = read_insts thm mixed_insts ctxt';
   in
     thm
@@ -199,27 +200,35 @@ end;
 
 (** tactics **)
 
+(* goal context *)
+
 val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true);
 
-(* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
-
-fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
+fun goal_context i st ctxt =
   let
-    (* goal parameters *)
-
-    val goal = Thm.term_of cgoal;
+    val goal = Thm.term_of (Thm.cprem_of st i);
     val params =
       Logic.strip_params goal
       (*as they are printed: bound variables with the same name are renamed*)
       |> Term.rename_wrt_term goal
       |> rev;
     val (param_names, param_ctxt) = ctxt
-      |> Variable.declare_thm thm
       |> Thm.fold_terms Variable.declare_constraints st
       |> Variable.improper_fixes
       |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
       ||> Variable.restore_proper_fixes ctxt
       ||> Config.get ctxt schematic ? Proof_Context.set_mode Proof_Context.mode_schematic;
+    val paramTs = map #2 params;
+  in (param_names ~~ paramTs, param_ctxt) end;
+
+
+(* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
+
+fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
+  let
+    (* goal context *)
+
+    val (params, param_ctxt) = goal_context i st ctxt;
     val paramTs = map #2 params;
 
 
@@ -240,20 +249,17 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
     (* lift and instantiate rule *)
 
     val inc = Thm.maxidx_of st + 1;
-    fun lift_var ((a, j), T) =
-      Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
-    fun lift_term t =
-      fold_rev Term.absfree (param_names ~~ paramTs)
-        (Logic.incr_indexes (fixed, paramTs, inc) t);
+    val lift_type = Logic.incr_tvar inc;
+    fun lift_var ((a, j), T) = Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
+    fun lift_term t = fold_rev Term.absfree params (Logic.incr_indexes (fixed, paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
-      |> map (apply2 (Thm.ctyp_of inst_ctxt o Logic.incr_tvar inc) o apfst TVar);
+      |> map (apply2 (Thm.ctyp_of inst_ctxt o lift_type) o apfst TVar);
     val inst_vars' = inst_vars
       |> map (fn (v, t) => apply2 (Thm.cterm_of inst_ctxt) (lift_var v, lift_term t));
 
-    val thm' =
-      Drule.instantiate_normalize (inst_tvars', inst_vars')
-        (Thm.lift_rule cgoal thm)
+    val thm' = Thm.lift_rule cgoal thm
+      |> Drule.instantiate_normalize (inst_tvars', inst_vars')
       |> singleton (Variable.export inst_ctxt param_ctxt);
   in
     compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
