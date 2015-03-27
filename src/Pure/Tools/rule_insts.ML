@@ -13,6 +13,7 @@ sig
     (binding * string option * mixfix) list -> thm -> thm
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
+  val read_term: string -> Proof.context -> term * Proof.context
   val schematic: bool Config.T
   val goal_context: int -> thm -> Proof.context -> (string * typ) list * Proof.context
   val res_inst_tac: Proof.context ->
@@ -70,6 +71,18 @@ fun read_type ctxt tvars ((xi, pos), s) =
     else error_var "Bad sort for instantiation of type variable: " (xi, pos)
   end;
 
+fun make_instT f v =
+  let
+    val T = TVar v;
+    val T' = f T;
+  in if T = T' then NONE else SOME (v, T') end;
+
+fun make_inst f v =
+  let
+    val t = Var v;
+    val t' = f t;
+  in if t aconv t' then NONE else SOME (v, t') end;
+
 fun read_terms ss Ts ctxt =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
@@ -83,19 +96,13 @@ fun read_terms ss Ts ctxt =
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in ((ts', tyenv'), ctxt') end;
 
-fun make_instT f v =
-  let
-    val T = TVar v;
-    val T' = f T;
-  in if T = T' then NONE else SOME (v, T') end;
-
-fun make_inst f v =
-  let
-    val t = Var v;
-    val t' = f t;
-  in if t aconv t' then NONE else SOME (v, t') end;
-
 in
+
+fun read_term s ctxt =
+  let
+    val (t, ctxt') = Variable.fix_dummy_patterns (Syntax.parse_term ctxt s) ctxt;
+    val t' = Syntax.check_term ctxt' t;
+  in (t', ctxt') end;
 
 fun read_insts thm mixed_insts ctxt =
   let

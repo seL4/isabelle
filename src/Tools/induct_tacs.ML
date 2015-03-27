@@ -33,14 +33,13 @@ fun case_tac ctxt s fixes opt_rule i st =
         SOME rule => rule
       | NONE =>
           let
-            val ctxt' = ctxt
-              |> Variable.focus_subgoal i st |> #2
-              |> Config.get ctxt Rule_Insts.schematic ?
-                  Proof_Context.set_mode Proof_Context.mode_schematic
-              |> Context_Position.set_visible false;
-            val t = Syntax.read_term ctxt' s;
+            val (t, ctxt') = ctxt
+              |> Rule_Insts.goal_context i st |> #2
+              |> Context_Position.set_visible false
+              |> Rule_Insts.read_term s;
+            val pos = Syntax.read_input_pos s;
           in
-            (case Induct.find_casesT ctxt' (#2 (check_type ctxt' (t, Syntax.read_input_pos s))) of
+            (case Induct.find_casesT ctxt' (#2 (check_type ctxt' (t, pos))) of
               rule :: _ => rule
             | [] => @{thm case_split})
           end);
