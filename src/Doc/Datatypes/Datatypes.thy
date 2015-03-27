@@ -865,25 +865,25 @@ a set function, the map function, or the relator:
 \item[@{text "t."}\hthm{case_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.case_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{sel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 This property is missing for @{typ "'a list"} because there is no common
 selector to all constructors. \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{ctr_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{disc_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.disc_transfer(1)[no_vars]} \\
 @{thm list.disc_transfer(2)[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
@@ -958,7 +958,7 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.set_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
@@ -981,7 +981,7 @@ The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 \item[@{text "t."}\hthm{map_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.map_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]} \\
@@ -1012,7 +1012,7 @@ The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
 \item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rel_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
 \end{indentblock}
@@ -1053,7 +1053,7 @@ The @{text "[code]"} attribute is set by the @{text code} plugin
 \item[@{text "t."}\hthm{rec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rec_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
 \end{indentblock}
@@ -1928,7 +1928,7 @@ The @{text "[code]"} attribute is set by the @{text code} plugin
 \item[@{text "t."}\hthm{corec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm llist.corec_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}).
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
 \end{indentblock}
@@ -3066,7 +3066,8 @@ For each (co)datatype with live type arguments and each manually registered BNF,
 the \hthm{transfer} plugin generates a predicator @{text "t.pred_t"} and
 properties that guide the Transfer tool.
 
-The plugin derives the following properties:
+For types with no dead type arguments (and at least one live type argument), the
+plugin derives the following properties:
 
 \begin{indentblock}
 \begin{description}
