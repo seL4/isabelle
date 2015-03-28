@@ -214,19 +214,13 @@ val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true
 fun goal_context i st ctxt =
   let
     val goal = Thm.term_of (Thm.cprem_of st i);
-    val params =
-      Logic.strip_params goal
-      (*as they are printed: bound variables with the same name are renamed*)
-      |> Term.rename_wrt_term goal
-      |> rev;
-    val (param_names, param_ctxt) = ctxt
+    val ((_, params), ctxt') = ctxt
       |> Thm.fold_terms Variable.declare_constraints st
       |> Variable.improper_fixes
-      |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params)
+      |> Variable.focus_params goal
       ||> Variable.restore_proper_fixes ctxt
       ||> Config.get ctxt schematic ? Proof_Context.set_mode Proof_Context.mode_schematic;
-    val paramTs = map #2 params;
-  in (param_names ~~ paramTs, param_ctxt) end;
+  in (params, ctxt') end;
 
 
 (* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
