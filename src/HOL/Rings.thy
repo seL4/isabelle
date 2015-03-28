@@ -197,7 +197,6 @@ lemma dvd_mult_right:
 end
 
 class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
-  (*previously almost_semiring*)
 begin
 
 subclass semiring_1 ..
@@ -394,7 +393,6 @@ lemma square_diff_one_factored:
 end
 
 class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult
-  (*previously ring*)
 begin
 
 subclass ring_1 ..
@@ -857,9 +855,6 @@ lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
 
 end
 
-(* The "strict" suffix can be seen as describing the combination of linordered_ring and no_zero_divisors.
-   Basically, linordered_ring + no_zero_divisors = linordered_ring_strict.
- *)
 class linordered_ring_strict = ring + linordered_semiring_strict
   + ordered_ab_group_add + abs_if
 begin
@@ -1006,7 +1001,6 @@ subclass ordered_cancel_comm_semiring ..
 end
 
 class linordered_semidom = comm_semiring_1_cancel + linordered_comm_semiring_strict +
-  (*previously linordered_semiring*)
   assumes zero_less_one [simp]: "0 < 1"
 begin
 
@@ -1040,7 +1034,6 @@ end
 class linordered_idom = comm_ring_1 +
   linordered_comm_semiring_strict + ordered_ab_group_add +
   abs_if + sgn_if
-  (*previously linordered_ring*)
 begin
 
 subclass linordered_semiring_1_strict ..
