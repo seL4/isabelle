@@ -176,7 +176,7 @@ let
           val tacs1 = [
             quant_tac ctxt 1,
             simp_tac (put_simpset HOL_ss ctxt) 1,
-            Induct_Tacs.induct_tac ctxt [[SOME "n"]] 1,
+            Induct_Tacs.induct_tac ctxt [[SOME "n"]] NONE 1,
             simp_tac (put_simpset take_ss ctxt addsimps prems) 1,
             TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 

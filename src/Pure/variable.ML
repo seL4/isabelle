@@ -73,6 +73,7 @@ sig
     (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
+  val focus_params: term -> Proof.context -> (string list * (string * typ) list) * Proof.context
   val focus: term -> Proof.context -> ((string * (string * typ)) list * term) * Proof.context
   val focus_cterm: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
   val focus_subgoal: int -> thm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context

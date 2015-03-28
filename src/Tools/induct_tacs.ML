@@ -7,11 +7,9 @@ Unstructured induction and cases analysis.
 signature INDUCT_TACS =
 sig
   val case_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
-    int -> tactic
-  val case_rule_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
-    thm -> int -> tactic
-  val induct_tac: Proof.context -> string option list list -> int -> tactic
-  val induct_rules_tac: Proof.context -> string option list list -> thm list -> int -> tactic
+    thm option -> int -> tactic
+  val induct_tac: Proof.context -> string option list list ->
+    thm list option -> int -> tactic
 end
 
 structure Induct_Tacs: INDUCT_TACS =
@@ -28,35 +26,29 @@ fun check_type ctxt (t, pos) =
         quote (Syntax.string_of_term ctxt u) ^ Position.here pos);
   in (u, U) end;
 
-fun gen_case_tac ctxt s fixes opt_rule i st =
+fun case_tac ctxt s fixes opt_rule = SUBGOAL (fn (goal, i) =>
   let
     val rule =
       (case opt_rule of
         SOME rule => rule
       | NONE =>
           let
-            val ctxt' = ctxt
-              |> Variable.focus_subgoal i st |> #2
-              |> Config.get ctxt Rule_Insts.schematic ?
-                  Proof_Context.set_mode Proof_Context.mode_schematic
-              |> Context_Position.set_visible false;
-            val t = Syntax.read_term ctxt' s;
+            val (t, ctxt') = ctxt
+              |> Rule_Insts.goal_context goal |> #2
+              |> Context_Position.set_visible false
+              |> Rule_Insts.read_term s;
+            val pos = Syntax.read_input_pos s;
           in
-            (case Induct.find_casesT ctxt' (#2 (check_type ctxt' (t, Syntax.read_input_pos s))) of
+            (case Induct.find_casesT ctxt' (#2 (check_type ctxt' (t, pos))) of
               rule :: _ => rule
             | [] => @{thm case_split})
           end);
     val _ = Method.trace ctxt [rule];
-
-    val xi =
-      (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) of
-        Var (xi, _) :: _ => xi
-      | _ => raise THM ("Malformed cases rule", 0, [rule]));
-  in Rule_Insts.res_inst_tac ctxt [((xi, Position.none), s)] fixes rule i st end
-  handle THM _ => Seq.empty;
-
-fun case_tac ctxt s xs = gen_case_tac ctxt s xs NONE;
-fun case_rule_tac ctxt s xs rule = gen_case_tac ctxt s xs (SOME rule);
+  in
+    (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) handle THM _ => [] of
+      Var (xi, _) :: _ => Rule_Insts.res_inst_tac ctxt [((xi, Position.none), s)] fixes rule i
+    | _ => no_tac)
+  end);
 
 
 (* induction *)
@@ -72,32 +64,34 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun gen_induct_tac ctxt0 varss opt_rules i st =
+fun induct_tac ctxt varss opt_rules i st =
   let
-    val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
-    val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
+    val goal = Thm.cprem_of st i;
+    val (_, goal_ctxt) = Rule_Insts.goal_context (Thm.term_of goal) ctxt
+    and ((_, goal'), _) = Variable.focus_cterm goal ctxt;
+    val (prems, concl) = Logic.strip_horn (Thm.term_of goal');
 
     fun induct_var name =
       let
-        val t = Syntax.read_term ctxt name;
+        val t = Syntax.read_term goal_ctxt name;
         val pos = Syntax.read_input_pos name;
         val (x, _) = Term.dest_Free t handle TERM _ =>
           error ("Induction argument not a variable: " ^
-            quote (Syntax.string_of_term ctxt t) ^ Position.here pos);
+            quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos);
         val eq_x = fn Free (y, _) => x = y | _ => false;
         val _ =
           if Term.exists_subterm eq_x concl then ()
           else
             error ("No such variable in subgoal: " ^
-              quote (Syntax.string_of_term ctxt t) ^ Position.here pos);
+              quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos);
         val _ =
           if (exists o Term.exists_subterm) eq_x prems then
             warning ("Induction variable occurs also among premises: " ^
-              quote (Syntax.string_of_term ctxt t) ^ Position.here pos)
+              quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos)
           else ();
-      in #1 (check_type ctxt (t, pos)) end;
+      in #1 (check_type goal_ctxt (t, pos)) end;
 
-    val argss = map (map (Option.map induct_var)) varss;
+    val argss = (map o map o Option.map) induct_var varss;
     val rule =
       (case opt_rules of
         SOME rules => #2 (Rule_Cases.strict_mutual_rule ctxt rules)
@@ -116,9 +110,6 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
   handle THM _ => Seq.empty;
 
 end;
-
-fun induct_tac ctxt args = gen_induct_tac ctxt args NONE;
-fun induct_rules_tac ctxt args rules = gen_induct_tac ctxt args (SOME rules);
 
 
 (* method syntax *)
@@ -139,14 +130,13 @@ val _ =
   Theory.setup
    (Method.setup @{binding case_tac}
       (Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) -- opt_rule >>
-        (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (gen_case_tac ctxt s xs r)))
+        (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s xs r)))
       "unstructured case analysis on types" #>
     Method.setup @{binding induct_tac}
       (Args.goal_spec -- varss -- opt_rules >>
-        (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (gen_induct_tac ctxt vs rs)))
+        (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt vs rs)))
       "unstructured induction on types");
 
 end;
 
 end;
-
