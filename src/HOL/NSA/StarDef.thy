@@ -853,7 +853,7 @@ declare dvd_def [transfer_refold]
 instance star :: (comm_semiring_1_diff_distrib) comm_semiring_1_diff_distrib
 by intro_classes (transfer, fact right_diff_distrib')
 
-instance star :: (no_zero_divisors) no_zero_divisors
+instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors
 by (intro_classes, transfer, rule no_zero_divisors)
 
 instance star :: (semiring_1_cancel) semiring_1_cancel ..
@@ -862,7 +862,7 @@ instance star :: (ring) ring ..
 instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
-instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors ..
+instance star :: (semidom) semidom ..
 instance star :: (semiring_div) semiring_div
 apply intro_classes
 apply(transfer, rule mod_div_equality)

@@ -1150,7 +1150,7 @@ end
 
 lemma setprod_zero_iff [simp]:
   assumes "finite A"
-  shows "setprod f A = (0::'a::{comm_semiring_1,no_zero_divisors}) \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
+  shows "setprod f A = (0::'a::semidom) \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
   using assms by (induct A) (auto simp: no_zero_divisors)
 
 lemma (in field) setprod_diff1:

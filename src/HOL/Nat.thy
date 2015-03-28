@@ -783,18 +783,13 @@ apply (induct_tac m)
 apply (simp_all add: add_less_mono)
 done
 
-text{*The naturals form an ordered @{text comm_semiring_1_cancel}*}
+text{*The naturals form an ordered @{text semidom}*}
 instance nat :: linordered_semidom
 proof
   show "0 < (1::nat)" by simp
   show "\<And>m n q :: nat. m \<le> n \<Longrightarrow> q + m \<le> q + n" by simp
   show "\<And>m n q :: nat. m < n \<Longrightarrow> 0 < q \<Longrightarrow> q * m < q * n" by (simp add: mult_less_mono2)
-qed
-
-instance nat :: semiring_no_zero_divisors
-proof
-  fix m n :: nat
-  show "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> m * n \<noteq> 0" by simp
+  show "\<And>m n :: nat. m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> m * n \<noteq> 0" by simp
 qed
 
 

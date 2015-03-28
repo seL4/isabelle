@@ -227,22 +227,6 @@ qed
 
 end
 
-class no_zero_divisors = zero + times +
-  assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
-begin
-
-lemma divisors_zero:
-  assumes "a * b = 0"
-  shows "a = 0 \<or> b = 0"
-proof (rule classical)
-  assume "\<not> (a = 0 \<or> b = 0)"
-  then have "a \<noteq> 0" and "b \<noteq> 0" by auto
-  with no_zero_divisors have "a * b \<noteq> 0" by blast
-  with assms show ?thesis by simp
-qed
-
-end
-
 class semiring_1_cancel = semiring + cancel_comm_monoid_add
   + zero_neq_one + monoid_mult
 begin
@@ -431,8 +415,19 @@ lemma dvd_diff [simp]:
 
 end
 
-class semiring_no_zero_divisors = semiring_0 + no_zero_divisors
+class semiring_no_zero_divisors = semiring_0 +
+  assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 begin
+
+lemma divisors_zero:
+  assumes "a * b = 0"
+  shows "a = 0 \<or> b = 0"
+proof (rule classical)
+  assume "\<not> (a = 0 \<or> b = 0)"
+  then have "a \<noteq> 0" and "b \<noteq> 0" by auto
+  with no_zero_divisors have "a * b \<noteq> 0" by blast
+  with assms show ?thesis by simp
+qed
 
 lemma mult_eq_0_iff [simp]:
   shows "a * b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
@@ -507,22 +502,14 @@ by (insert mult_cancel_left [of c a 1], simp)
 
 end
 
-class idom = comm_ring_1 + no_zero_divisors
+class semidom = comm_semiring_1_cancel + semiring_no_zero_divisors
+
+class idom = comm_ring_1 + semiring_no_zero_divisors
 begin
 
-subclass ring_1_no_zero_divisors ..
+subclass semidom ..
 
-lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> (a = b \<or> a = - b)"
-proof
-  assume "a * a = b * b"
-  then have "(a - b) * (a + b) = 0"
-    by (simp add: algebra_simps)
-  then show "a = b \<or> a = - b"
-    by (simp add: eq_neg_iff_add_eq_0)
-next
-  assume "a = b \<or> a = - b"
-  then show "a * a = b * b" by auto
-qed
+subclass ring_1_no_zero_divisors ..
 
 lemma dvd_mult_cancel_right [simp]:
   "a * c dvd b * c \<longleftrightarrow> c = 0 \<or> a dvd b"
@@ -542,6 +529,18 @@ proof -
   also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
     unfolding dvd_def by simp
   finally show ?thesis .
+qed
+
+lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> (a = b \<or> a = - b)"
+proof
+  assume "a * a = b * b"
+  then have "(a - b) * (a + b) = 0"
+    by (simp add: algebra_simps)
+  then show "a = b \<or> a = - b"
+    by (simp add: eq_neg_iff_add_eq_0)
+next
+  assume "a = b \<or> a = - b"
+  then show "a * a = b * b" by auto
 qed
 
 end
@@ -1000,7 +999,7 @@ subclass ordered_cancel_comm_semiring ..
 
 end
 
-class linordered_semidom = comm_semiring_1_cancel + linordered_comm_semiring_strict +
+class linordered_semidom = semidom + linordered_comm_semiring_strict +
   assumes zero_less_one [simp]: "0 < 1"
 begin
 
@@ -1199,7 +1198,7 @@ begin
 
 lemma mult_right_le_one_le:
   "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> x * y \<le> x"
-  by (auto simp add: mult_le_cancel_left2)
+  by (rule mult_left_le)
 
 lemma mult_left_le_one_le:
   "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> y * x \<le> x"

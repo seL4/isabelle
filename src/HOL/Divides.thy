@@ -18,7 +18,7 @@ class div = dvd +
 
 subsection {* Abstract division in commutative semirings. *}
 
-class semiring_div = comm_semiring_1_cancel + no_zero_divisors + div +
+class semiring_div = semidom + div +
   assumes mod_div_equality: "a div b * b + a mod b = a"
     and div_by_0 [simp]: "a div 0 = 0"
     and div_0 [simp]: "0 div a = 0"
@@ -445,10 +445,10 @@ lemma dvd_div_div_eq_mult:
 
 end
 
-class ring_div = semiring_div + comm_ring_1
+class ring_div = comm_ring_1 + semiring_div
 begin
 
-subclass ring_1_no_zero_divisors ..
+subclass idom ..
 
 text {* Negation respects modular equivalence. *}
 
@@ -548,7 +548,7 @@ end
 
 subsubsection {* Parity and division *}
 
-class semiring_div_parity = comm_semiring_1_diff_distrib + numeral + semiring_div +
+class semiring_div_parity = semiring_div + comm_semiring_1_diff_distrib + numeral + 
   assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
   assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
   assumes zero_not_eq_two: "0 \<noteq> 2"
@@ -638,7 +638,7 @@ text {*
   and less technical class hierarchy.
 *}
 
-class semiring_numeral_div = comm_semiring_1_diff_distrib + linordered_semidom + semiring_div +
+class semiring_numeral_div = semiring_div + comm_semiring_1_diff_distrib + linordered_semidom +
   assumes le_add_diff_inverse2: "b \<le> a \<Longrightarrow> a - b + b = a"
   assumes div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
@@ -2849,4 +2849,3 @@ code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-
