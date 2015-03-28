@@ -64,32 +64,34 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun induct_tac ctxt0 varss opt_rules i st =
+fun induct_tac ctxt varss opt_rules i st =
   let
-    val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
-    val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
+    val goal = Thm.cprem_of st i;
+    val (_, goal_ctxt) = Rule_Insts.goal_context (Thm.term_of goal) ctxt
+    and ((_, goal'), _) = Variable.focus_cterm goal ctxt;
+    val (prems, concl) = Logic.strip_horn (Thm.term_of goal');
 
     fun induct_var name =
       let
-        val t = Syntax.read_term ctxt name;
+        val t = Syntax.read_term goal_ctxt name;
         val pos = Syntax.read_input_pos name;
         val (x, _) = Term.dest_Free t handle TERM _ =>
           error ("Induction argument not a variable: " ^
-            quote (Syntax.string_of_term ctxt t) ^ Position.here pos);
+            quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos);
         val eq_x = fn Free (y, _) => x = y | _ => false;
         val _ =
           if Term.exists_subterm eq_x concl then ()
           else
             error ("No such variable in subgoal: " ^
-              quote (Syntax.string_of_term ctxt t) ^ Position.here pos);
+              quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos);
         val _ =
           if (exists o Term.exists_subterm) eq_x prems then
             warning ("Induction variable occurs also among premises: " ^
-              quote (Syntax.string_of_term ctxt t) ^ Position.here pos)
+              quote (Syntax.string_of_term goal_ctxt t) ^ Position.here pos)
           else ();
-      in #1 (check_type ctxt (t, pos)) end;
+      in #1 (check_type goal_ctxt (t, pos)) end;
 
-    val argss = map (map (Option.map induct_var)) varss;
+    val argss = (map o map o Option.map) induct_var varss;
     val rule =
       (case opt_rules of
         SOME rules => #2 (Rule_Cases.strict_mutual_rule ctxt rules)
