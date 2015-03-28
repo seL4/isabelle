@@ -26,7 +26,7 @@ fun check_type ctxt (t, pos) =
         quote (Syntax.string_of_term ctxt u) ^ Position.here pos);
   in (u, U) end;
 
-fun case_tac ctxt s fixes opt_rule i st =
+fun case_tac ctxt s fixes opt_rule = SUBGOAL (fn (goal, i) =>
   let
     val rule =
       (case opt_rule of
@@ -34,7 +34,7 @@ fun case_tac ctxt s fixes opt_rule i st =
       | NONE =>
           let
             val (t, ctxt') = ctxt
-              |> Rule_Insts.goal_context i st |> #2
+              |> Rule_Insts.goal_context goal |> #2
               |> Context_Position.set_visible false
               |> Rule_Insts.read_term s;
             val pos = Syntax.read_input_pos s;
@@ -44,13 +44,11 @@ fun case_tac ctxt s fixes opt_rule i st =
             | [] => @{thm case_split})
           end);
     val _ = Method.trace ctxt [rule];
-
-    val xi =
-      (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) of
-        Var (xi, _) :: _ => xi
-      | _ => raise THM ("Malformed cases rule", 0, [rule]));
-  in Rule_Insts.res_inst_tac ctxt [((xi, Position.none), s)] fixes rule i st end
-  handle THM _ => Seq.empty;
+  in
+    (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) handle THM _ => [] of
+      Var (xi, _) :: _ => Rule_Insts.res_inst_tac ctxt [((xi, Position.none), s)] fixes rule i
+    | _ => no_tac)
+  end);
 
 
 (* induction *)

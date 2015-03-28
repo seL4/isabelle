@@ -15,7 +15,7 @@ sig
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val read_term: string -> Proof.context -> term * Proof.context
   val schematic: bool Config.T
-  val goal_context: int -> thm -> Proof.context -> (string * typ) list * Proof.context
+  val goal_context: term -> Proof.context -> (string * typ) list * Proof.context
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
     int -> tactic
@@ -211,11 +211,10 @@ end;
 
 val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true);
 
-fun goal_context i st ctxt =
+fun goal_context goal ctxt =
   let
-    val goal = Thm.term_of (Thm.cprem_of st i);
     val ((_, params), ctxt') = ctxt
-      |> Thm.fold_terms Variable.declare_constraints st
+      |> Variable.declare_constraints goal
       |> Variable.improper_fixes
       |> Variable.focus_params goal
       ||> Variable.restore_proper_fixes ctxt
@@ -229,7 +228,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
   let
     (* goal context *)
 
-    val (params, param_ctxt) = goal_context i st ctxt;
+    val (params, param_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
     val paramTs = map #2 params;
 
 
