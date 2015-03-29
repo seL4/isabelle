@@ -41,8 +41,9 @@ val entries = Data.get o Context.Proof;
 
 (* type analysis *)
 
-fun term_with_typ ctxt T t = Envir.subst_term_types
-  (Type.typ_match (Proof_Context.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
+fun term_with_typ ctxt T t =
+  Envir.subst_term_types
+    (Sign.typ_match (Proof_Context.theory_of ctxt) (fastype_of t, T) Vartab.empty) t;
 
 fun find_atomic ctxt T =
   let
