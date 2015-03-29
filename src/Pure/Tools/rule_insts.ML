@@ -92,7 +92,7 @@ fun read_terms ss Ts ctxt =
       |> Syntax.check_terms ctxt'
       |> Variable.polymorphic ctxt';
     val Ts' = map Term.fastype_of ts';
-    val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
+    val tyenv = fold (Sign.typ_match (Proof_Context.theory_of ctxt)) (Ts ~~ Ts') Vartab.empty;
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in ((ts', tyenv'), ctxt') end;
 
