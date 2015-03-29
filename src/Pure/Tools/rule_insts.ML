@@ -258,10 +258,8 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     val thm' = Thm.lift_rule cgoal thm
       |> Drule.instantiate_normalize (inst_tvars', inst_vars')
-      |> singleton (Variable.export inst_ctxt goal_ctxt);
-  in
-    compose_tac goal_ctxt (bires_flag, thm', Thm.nprems_of thm) i
-  end) i st;
+      |> singleton (Variable.export inst_ctxt ctxt);
+  in compose_tac ctxt (bires_flag, thm', Thm.nprems_of thm) i end) i st;
 
 val res_inst_tac = bires_inst_tac false;
 val eres_inst_tac = bires_inst_tac true;
