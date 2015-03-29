@@ -2338,7 +2338,7 @@ text \<open>
     ;
     @@{method (HOL) induct_tac} @{syntax goal_spec}? (@{syntax insts} * @'and') rule?
     ;
-    @@{method (HOL) ind_cases} (@{syntax prop}+) (@'for' (@{syntax name}+))?
+    @@{method (HOL) ind_cases} (@{syntax prop}+) @{syntax for_fixes}
     ;
     @@{command (HOL) inductive_cases} (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
     ;
