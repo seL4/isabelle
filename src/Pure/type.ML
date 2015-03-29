@@ -49,7 +49,6 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val type_space: tsig -> Name_Space.T
   val type_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
-  val is_logtype: tsig -> string -> bool
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
@@ -251,8 +250,6 @@ val type_space = Name_Space.space_of_table o #types o rep_tsig;
 
 fun type_alias naming binding name = map_tsig (fn (classes, default, types) =>
   (classes, default, (Name_Space.alias_table naming binding name types)));
-
-val is_logtype = member (op =) o logical_types;
 
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;

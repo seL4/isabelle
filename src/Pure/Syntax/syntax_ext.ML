@@ -31,7 +31,7 @@ sig
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape: string -> string
-  val syn_ext': (string -> bool) -> mfix list ->
+  val syn_ext': string list -> mfix list ->
     (string * string) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
@@ -184,8 +184,10 @@ end;
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
   let
+    val is_logtype = member (op =) logical_types;
+
     fun check_pri p =
       if p >= 0 andalso p <= 1000 then ()
       else err_in_mfix ("Precedence out of range: " ^ string_of_int p) mfix;
@@ -288,12 +290,12 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
+fun syn_ext' logical_types mfixes consts trfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
 
-    val xprod_results = map (mfix_to_xprod is_logtype) mfixes;
+    val xprod_results = map (mfix_to_xprod logical_types) mfixes;
     val xprods = map #1 xprod_results;
     val consts' = map_filter #2 xprod_results;
     val parse_rules' = rev (map_filter #3 xprod_results);
@@ -311,7 +313,7 @@ fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
   end;
 
 
-val syn_ext = syn_ext' (K false);
+val syn_ext = syn_ext' [];
 
 fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
 fun syn_ext_trfuns trfuns = syn_ext [] [] trfuns ([], []);

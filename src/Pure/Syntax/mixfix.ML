@@ -26,7 +26,7 @@ sig
   val make_type: int -> typ
   val binder_name: string -> string
   val syn_ext_types: (string * typ * mixfix) list -> Syntax_Ext.syn_ext
-  val syn_ext_consts: (string -> bool) -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
+  val syn_ext_consts: string list -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
 end;
 
 structure Mixfix: MIXFIX =
@@ -119,7 +119,7 @@ fun syn_ext_types type_decls =
 val binder_stamp = stamp ();
 val binder_name = suffix "_binder";
 
-fun syn_ext_consts is_logtype const_decls =
+fun syn_ext_consts logical_types const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 =
       [Syntax_Ext.Mfix ("op " ^ sy, ty, c, [], 1000),
@@ -152,7 +152,7 @@ fun syn_ext_consts is_logtype const_decls =
 
     val consts = binders @ map (fn (c, _, _) => (c, "")) const_decls;
   in
-    Syntax_Ext.syn_ext' is_logtype mfix consts ([], binder_trs, binder_trs', []) ([], [])
+    Syntax_Ext.syn_ext' logical_types mfix consts ([], binder_trs, binder_trs', []) ([], [])
   end;
 
 end;

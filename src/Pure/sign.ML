@@ -24,7 +24,7 @@ sig
   val of_sort: theory -> typ * sort -> bool
   val inter_sort: theory -> sort * sort -> sort
   val witness_sorts: theory -> (typ * sort) list -> sort list -> (typ * sort) list
-  val is_logtype: theory -> string -> bool
+  val logical_types: theory -> string list
   val typ_instance: theory -> typ * typ -> bool
   val typ_equiv: theory -> typ * typ -> bool
   val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
@@ -190,7 +190,7 @@ val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val inter_sort = Type.inter_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
-val is_logtype = member (op =) o Type.logical_types o tsig_of;
+val logical_types = Type.logical_types o tsig_of;
 
 val typ_instance = Type.typ_instance o tsig_of;
 fun typ_equiv thy (T, U) = typ_instance thy (T, U) andalso typ_instance thy (U, T);
@@ -369,7 +369,7 @@ fun gen_syntax change_gram parse_typ mode args thy =
     val ctxt = Type.set_mode Type.mode_syntax (Proof_Context.init_global thy);
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
-  in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
+  in thy |> map_syn (change_gram (logical_types thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
