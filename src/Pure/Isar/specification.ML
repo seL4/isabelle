@@ -7,6 +7,10 @@ toplevel polymorphism.
 
 signature SPECIFICATION =
 sig
+  val read_props: string list -> (binding * string option * mixfix) list -> Proof.context ->
+    term list * Proof.context
+  val read_prop: string -> (binding * string option * mixfix) list -> Proof.context ->
+    term * Proof.context
   val check_spec:
     (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
@@ -78,6 +82,22 @@ end;
 
 structure Specification: SPECIFICATION =
 struct
+
+(* prepare propositions *)
+
+fun read_props raw_props raw_fixes ctxt =
+  let
+    val ctxt1 = ctxt |> Proof_Context.read_vars raw_fixes |-> Proof_Context.add_fixes |> #2;
+    val props1 = map (Syntax.parse_prop ctxt1) raw_props;
+    val (props2, ctxt2) = ctxt1 |> fold_map Variable.fix_dummy_patterns props1;
+    val props3 = Syntax.check_props ctxt2 props2;
+    val ctxt3 = ctxt2 |> fold Variable.declare_term props3;
+  in (props3, ctxt3) end;
+
+fun read_prop raw_prop raw_fixes ctxt =
+  let val ([prop], ctxt') = read_props [raw_prop] raw_fixes ctxt
+  in (prop, ctxt') end;
+
 
 (* prepare specification *)
 
