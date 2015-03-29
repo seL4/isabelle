@@ -26,6 +26,7 @@ sig
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
   val default_sort: Proof.context -> indexname -> sort
+  val arity_sorts: Proof.context -> string -> sort -> sort list
   val consts_of: Proof.context -> Consts.T
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
@@ -289,6 +290,7 @@ val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 val tsig_of = #1 o #tsig o rep_data;
 val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
+fun arity_sorts ctxt = Type.arity_sorts (Context.pretty ctxt) (tsig_of ctxt);
 
 val consts_of = #1 o #consts o rep_data;
 val cases_of = #cases o rep_data;
