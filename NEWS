@@ -74,11 +74,6 @@ of schematic variables outside the context. Minor INCOMPATIBILITY,
 declare rule_insts_schematic = true temporarily and update to use local
 variable declarations or dummy patterns instead.
 
-* Configuration option "rule_insts_schematic" determines whether proof
-methods like "rule_tac" may refer to undeclared schematic variables
-implicitly, instead of using proper 'for' declarations.  This historic
-behaviour is still the default for some time.
-
 * Command "class_deps" takes optional sort arguments constraining
 the search space.
 
