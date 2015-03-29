@@ -239,9 +239,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
       |> read_insts thm mixed_insts;
 
-    fun add_fixed (Free (x, _)) = Variable.newly_fixed inst_ctxt goal_ctxt x ? insert (op =) x
-      | add_fixed _ = I;
-    val fixed = fold (Term.fold_aterms add_fixed o #2) inst_vars [];
+    val fixed = map #1 (fold (Variable.add_newly_fixed inst_ctxt goal_ctxt o #2) inst_vars []);
 
 
     (* lift and instantiate rule *)
