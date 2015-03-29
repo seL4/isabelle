@@ -38,6 +38,8 @@ sig
     (string * thm list) list * local_theory
   val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
     (string * thm list) list * local_theory
+  val ind_cases_rules: Proof.context ->
+    string list -> (binding * string option * mixfix) list -> thm list
   val inductive_simps: (Attrib.binding * string list) list -> local_theory ->
     (string * thm list) list * local_theory
   val inductive_simps_i: (Attrib.binding * term list) list -> local_theory ->
@@ -600,19 +602,22 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
 val inductive_cases = gen_inductive_cases Attrib.check_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
+
+(* ind_cases *)
+
+fun ind_cases_rules ctxt raw_props raw_fixes =
+  let
+    val (props, ctxt' ) = Specification.read_props raw_props raw_fixes ctxt;
+    val rules = Proof_Context.export ctxt' ctxt (map (mk_cases ctxt') props);
+  in rules end;
+
 val _ =
   Theory.setup
     (Method.setup @{binding ind_cases}
-      (Scan.lift (Scan.repeat1 Args.name_inner_syntax --
-        Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.binding) []) >>
-        (fn (raw_props, fixes) => fn ctxt =>
-          let
-            val (_, ctxt') = Variable.add_fixes_binding fixes ctxt;
-            val props = Syntax.read_props ctxt' raw_props;
-            val ctxt'' = fold Variable.declare_term props ctxt';
-            val rules = Proof_Context.export ctxt'' ctxt (map (mk_cases ctxt'') props)
-          in Method.erule ctxt 0 rules end))
-      "dynamic case analysis on predicates");
+      (Scan.lift (Scan.repeat1 Parse.prop -- Parse.for_fixes) >>
+        (fn (props, fixes) => fn ctxt =>
+          Method.erule ctxt 0 (ind_cases_rules ctxt props fixes)))
+      "case analysis for inductive definitions, based on simplified elimination rule");
 
 
 (* derivation of simplified equation *)

@@ -394,12 +394,11 @@ fun align_right msg xs ys =
 
 fun prep_inst ctxt align tune (tm, ts) =
   let
-    val cert = Thm.global_cterm_of (Proof_Context.theory_of ctxt);
     fun prep_var (x, SOME t) =
           let
-            val cx = cert x;
+            val cx = Thm.cterm_of ctxt x;
             val xT = Thm.typ_of_cterm cx;
-            val ct = cert (tune t);
+            val ct = Thm.cterm_of ctxt (tune t);
             val tT = Thm.typ_of_cterm ct;
           in
             if Type.could_unify (tT, xT) then SOME (cx, ct)
@@ -478,8 +477,6 @@ in
 
 fun cases_tac ctxt simp insts opt_rule facts =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     fun inst_rule r =
       (if null insts then r
        else
@@ -505,7 +502,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
           val rule' = rule
             |> simp ? (simplified_rule' ctxt #> unmark_constraints ctxt);
         in
-          CASES (Rule_Cases.make_common (thy,
+          CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             ((Method.insert_tac more_facts THEN' resolve_tac ctxt [rule'] THEN_ALL_NEW
                 (if simp then TRY o trivial_tac ctxt else K all_tac)) i) st
@@ -569,21 +566,18 @@ fun internalize ctxt k th =
 
 local
 
-fun dest_env thy env =
+fun dest_env ctxt env =
   let
-    val cert = Thm.global_cterm_of thy;
-    val certT = Thm.global_ctyp_of thy;
     val pairs = Vartab.dest (Envir.term_env env);
     val types = Vartab.dest (Envir.type_env env);
-    val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
-    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map Thm.typ_of_cterm ts);
-  in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) types, xs ~~ ts) end;
+    val ts = map (Thm.cterm_of ctxt o Envir.norm_term env o #2 o #2) pairs;
+    val xs = map2 (curry (Thm.cterm_of ctxt o Var)) (map #1 pairs) (map Thm.typ_of_cterm ts);
+  in (map (fn (xi, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (xi, S), T)) types, xs ~~ ts) end;
 
 in
 
 fun guess_instance ctxt rule i st =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val maxidx = Thm.maxidx_of st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
     val params = rev (Term.rename_wrt_term goal (Logic.strip_params goal));
@@ -599,7 +593,7 @@ fun guess_instance ctxt rule i st =
       in
         Unify.smash_unifiers (Context.Proof ctxt)
           [(Thm.concl_of rule', concl)] (Envir.empty (Thm.maxidx_of rule'))
-        |> Seq.map (fn env => Drule.instantiate_normalize (dest_env thy env) rule')
+        |> Seq.map (fn env => Drule.instantiate_normalize (dest_env ctxt env) rule')
       end
   end
   handle General.Subscript => Seq.empty;
@@ -654,19 +648,17 @@ fun goal_params k (Const (@{const_name Pure.all}, _) $ Abs (_, _, B)) = goal_par
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.global_cterm_of thy;
-
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =
       @{thm Pure.meta_spec}
       |> Thm.rename_params_rule ([Name.clean (Variable.revert_fixed ctxt x)], 1)
-      |> Thm.lift_rule (cert prfx)
+      |> Thm.lift_rule (Thm.cterm_of ctxt prfx)
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
       |-> (fn pred $ arg =>
         Drule.cterm_instantiate
-          [(cert (Term.head_of pred), cert (Logic.rlist_abs (xs, body))),
-           (cert (Term.head_of arg), cert (Logic.rlist_abs (xs, v)))]);
+          (map (apply2 (Thm.cterm_of ctxt))
+            [(Term.head_of pred, Logic.rlist_abs (xs, body)),
+             (Term.head_of arg, Logic.rlist_abs (xs, v))]));
 
     fun goal_concl k xs (Const (@{const_name Pure.all}, _) $ Abs (a, T, B)) =
           goal_concl k ((a, T) :: xs) B
@@ -835,8 +827,6 @@ in
 
 fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i, st) =>
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     fun inst_rule r =
       if null inst then `Rule_Cases.get r
       else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
@@ -857,7 +847,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i, s
         guess_instance ctxt rule i st
         |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
-          CASES (Rule_Cases.make_common (thy,
+          CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             (Method.insert_tac more_facts i THEN resolve_tac ctxt [rule'] i) st))
   end);

@@ -144,7 +144,7 @@ exception NO_UNIFIER of string * typ Vartab.table;
 fun unify weak ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) (Sign.tsig_of thy);
+    val arity_sorts = Proof_Context.arity_sorts ctxt;
 
 
     (* adjust sorts of parameters *)
@@ -344,7 +344,7 @@ fun process_constraints ctxt err cs tye_idx =
 
     val coes_graph = coes_graph_of ctxt;
     val tmaps = tmaps_of ctxt;
-    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) (Sign.tsig_of thy);
+    val arity_sorts = Proof_Context.arity_sorts ctxt;
 
     fun split_cs _ [] = ([], [])
       | split_cs f (c :: cs) =

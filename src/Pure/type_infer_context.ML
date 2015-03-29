@@ -169,7 +169,7 @@ exception NO_UNIFIER of string * typ Vartab.table;
 fun unify ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) (Sign.tsig_of thy);
+    val arity_sorts = Proof_Context.arity_sorts ctxt;
 
 
     (* adjust sorts of parameters *)

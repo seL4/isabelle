@@ -55,7 +55,7 @@ fun build_syntax thy mode mixfixes =
     val thy_syntax = Sign.syn_of thy;
     fun update_gram ((true, add, m), decls) = Syntax.update_type_gram add m decls
       | update_gram ((false, add, m), decls) =
-          Syntax.update_const_gram add (Sign.is_logtype thy) m decls;
+          Syntax.update_const_gram add (Sign.logical_types thy) m decls;
 
     val local_syntax = thy_syntax
       |> fold update_gram (AList.coalesce (op =) (rev (map snd mixfixes)));

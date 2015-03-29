@@ -371,8 +371,9 @@ fun obtain_instance ctxt arities (inst as (class, tyco)) =
         val thy = Proof_Context.theory_of ctxt;
         val all_classes = complete_proper_sort thy [class];
         val super_classes = remove (op =) class all_classes;
-        val classess = map (complete_proper_sort thy)
-          (Sign.arity_sorts thy tyco [class]);
+        val classess =
+          map (complete_proper_sort thy)
+            (Proof_Context.arity_sorts ctxt tyco [class]);
         val inst_params = inst_params thy tyco all_classes;
       in (classess, (super_classes, inst_params)) end;
 
@@ -410,7 +411,7 @@ and add_dep ctxt arities eqngr c_k c_k' vardeps_data =
     |> apfst (Vargraph.add_edge (c_k, c_k'))
   end
 and ensure_typmatch_inst ctxt arities eqngr (tyco, styps) class vardeps_data =
-  if can (Sign.arity_sorts (Proof_Context.theory_of ctxt) tyco) [class]
+  if can (Proof_Context.arity_sorts ctxt tyco) [class]
   then vardeps_data
     |> ensure_inst ctxt arities eqngr (class, tyco)
     |> fold_index (fn (k, styp) =>

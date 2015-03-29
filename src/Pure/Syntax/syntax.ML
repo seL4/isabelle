@@ -108,7 +108,7 @@ sig
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_const_gram: bool -> (string -> bool) ->
+  val update_const_gram: bool -> string list ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_trrules: Ast.ast trrule list -> syntax -> syntax
   val remove_trrules: Ast.ast trrule list -> syntax -> syntax
@@ -659,8 +659,8 @@ val update_trfuns = update_syntax mode_default o Syntax_Ext.syn_ext_trfuns;
 fun update_type_gram add prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
 
-fun update_const_gram add is_logtype prmode decls =
-  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_const_gram add logical_types prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts logical_types decls);
 
 val update_trrules = update_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
 val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;

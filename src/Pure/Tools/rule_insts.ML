@@ -92,7 +92,7 @@ fun read_terms ss Ts ctxt =
       |> Syntax.check_terms ctxt'
       |> Variable.polymorphic ctxt';
     val Ts' = map Term.fastype_of ts';
-    val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
+    val tyenv = fold (Sign.typ_match (Proof_Context.theory_of ctxt)) (Ts ~~ Ts') Vartab.empty;
     val tyenv' = Vartab.fold (fn (xi, (S, T)) => cons ((xi, S), T)) tyenv [];
   in ((ts', tyenv'), ctxt') end;
 
@@ -209,7 +209,8 @@ end;
 
 (* goal context *)
 
-val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true);
+(*legacy*)
+val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K false);
 
 fun goal_context goal ctxt =
   let
@@ -228,29 +229,24 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
   let
     (* goal context *)
 
-    val (params, param_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
+    val (params, goal_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
     val paramTs = map #2 params;
 
 
-    (* local fixes *)
+    (* instantiation context *)
 
-    val fixes_ctxt = param_ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+    val ((inst_tvars, inst_vars), inst_ctxt) = goal_ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
+      |> read_insts thm mixed_insts;
 
-    val ((inst_tvars, inst_vars), inst_ctxt) = read_insts thm mixed_insts fixes_ctxt;
-
-    fun add_fixed (Free (x, _)) =
-          if Variable.newly_fixed inst_ctxt param_ctxt x
-          then insert (op =) x else I
-      | add_fixed _ = I;
-    val fixed = fold (Term.fold_aterms add_fixed o #2) inst_vars [];
+    val fixed = map #1 (fold (Variable.add_newly_fixed inst_ctxt goal_ctxt o #2) inst_vars []);
 
 
     (* lift and instantiate rule *)
 
     val inc = Thm.maxidx_of st + 1;
     val lift_type = Logic.incr_tvar inc;
-    fun lift_var ((a, j), T) = Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
+    fun lift_var ((a, j), T) = Var ((a, j + inc), paramTs ---> lift_type T);
     fun lift_term t = fold_rev Term.absfree params (Logic.incr_indexes (fixed, paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
@@ -260,10 +256,8 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     val thm' = Thm.lift_rule cgoal thm
       |> Drule.instantiate_normalize (inst_tvars', inst_vars')
-      |> singleton (Variable.export inst_ctxt param_ctxt);
-  in
-    compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
-  end) i st;
+      |> singleton (Variable.export inst_ctxt ctxt);
+  in compose_tac ctxt (bires_flag, thm', Thm.nprems_of thm) i end) i st;
 
 val res_inst_tac = bires_inst_tac false;
 val eres_inst_tac = bires_inst_tac true;

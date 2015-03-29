@@ -38,7 +38,7 @@ sig
   val restore_proper_fixes: Proof.context -> Proof.context -> Proof.context
   val is_improper: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
-  val newly_fixed: Proof.context -> Proof.context -> string -> bool
+  val is_newly_fixed: Proof.context -> Proof.context -> string -> bool
   val fixed_ord: Proof.context -> string * string -> order
   val intern_fixed: Proof.context -> string -> string
   val markup_fixed: Proof.context -> string -> Markup.T
@@ -46,6 +46,8 @@ sig
   val revert_fixed: Proof.context -> string -> string
   val add_fixed_names: Proof.context -> term -> string list -> string list
   val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
+  val add_newly_fixed: Proof.context -> Proof.context ->
+    term -> (string * typ) list -> (string * typ) list
   val add_free_names: Proof.context -> term -> string list -> string list
   val add_frees: Proof.context -> term -> (string * typ) list -> (string * typ) list
   val add_fixes_binding: binding list -> Proof.context -> string list * Proof.context
@@ -346,7 +348,7 @@ fun is_improper ctxt x =
 (* specialized name space *)
 
 val is_fixed = Name_Space.defined_entry o fixes_space;
-fun newly_fixed inner outer = is_fixed inner andf (not o is_fixed outer);
+fun is_newly_fixed inner outer = is_fixed inner andf (not o is_fixed outer);
 
 val fixed_ord = Name_Space.entry_ord o fixes_space;
 val intern_fixed = Name_Space.intern o fixes_space;
@@ -382,6 +384,9 @@ fun add_fixed_names ctxt =
 
 fun add_fixed ctxt =
   fold_aterms (fn Free (x, T) => is_fixed ctxt x ? insert (op =) (x, T) | _ => I);
+
+fun add_newly_fixed ctxt' ctxt =
+  fold_aterms (fn Free (x, T) => is_newly_fixed ctxt' ctxt x ? insert (op =) (x, T) | _ => I);
 
 
 (* declarations *)
@@ -474,7 +479,7 @@ fun fix_dummy_patterns (Const ("Pure.dummy_pattern", T)) ctxt =
 fun export_inst inner outer =
   let
     val declared_outer = is_declared outer;
-    val still_fixed = not o newly_fixed inner outer;
+    val still_fixed = not o is_newly_fixed inner outer;
 
     val gen_fixes =
       Name_Space.fold_table (fn (y, _) => not (is_fixed outer y) ? cons y)
