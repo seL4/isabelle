@@ -128,7 +128,7 @@ fun get_rel_distr_rules ctxt s tm =
        Pretty.str "found."]))
   end
 
-fun is_id_quot thm = (Thm.prop_of thm = Thm.prop_of @{thm identity_quotient})  (* FIXME equality!? *)
+fun is_id_quot thm = Thm.eq_thm_prop (thm, @{thm identity_quotient})
 
 fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
   case try (get_rel_quot_thm ctxt) type_name of

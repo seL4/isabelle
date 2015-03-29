@@ -531,12 +531,12 @@ let
       val tab = fold Termtab.update
         (map (fn eq =>
                 let val (s,t) = Thm.cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
-                    val th = if Thm.term_of s = Thm.term_of t  (* FIXME equality? *)
-                             then the (Termtab.lookup inStab (Thm.term_of s))
-                             else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
-                                [eq, the (Termtab.lookup inStab (Thm.term_of s))]
-                 in (Thm.term_of t, th) end)
-                  sths) Termtab.empty
+                    val th =
+                      if s aconvc t
+                      then the (Termtab.lookup inStab (Thm.term_of s))
+                      else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
+                        [eq, the (Termtab.lookup inStab (Thm.term_of s))]
+                 in (Thm.term_of t, th) end) sths) Termtab.empty
         in
           fn ct => the (Termtab.lookup tab (Thm.term_of ct))
             handle Option.Option =>

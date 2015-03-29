@@ -355,7 +355,7 @@ fun get_rel_quot_thm ctxt s =
     | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
   end
 
-fun is_id_quot thm = (Thm.prop_of thm = Thm.prop_of @{thm identity_quotient3})  (* FIXME equality *)
+fun is_id_quot thm = Thm.eq_thm_prop (thm, @{thm identity_quotient3})
 
 open Lifting_Util
 
