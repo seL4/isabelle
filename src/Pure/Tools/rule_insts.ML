@@ -228,20 +228,17 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
   let
     (* goal context *)
 
-    val (params, param_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
+    val (params, goal_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
     val paramTs = map #2 params;
 
 
-    (* local fixes *)
+    (* local fixes and instantiation *)
 
-    val fixes_ctxt = param_ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+    val ((inst_tvars, inst_vars), inst_ctxt) = goal_ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
+      |> read_insts thm mixed_insts;
 
-    val ((inst_tvars, inst_vars), inst_ctxt) = read_insts thm mixed_insts fixes_ctxt;
-
-    fun add_fixed (Free (x, _)) =
-          if Variable.newly_fixed inst_ctxt param_ctxt x
-          then insert (op =) x else I
+    fun add_fixed (Free (x, _)) = Variable.newly_fixed inst_ctxt goal_ctxt x ? insert (op =) x
       | add_fixed _ = I;
     val fixed = fold (Term.fold_aterms add_fixed o #2) inst_vars [];
 
@@ -250,7 +247,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     val inc = Thm.maxidx_of st + 1;
     val lift_type = Logic.incr_tvar inc;
-    fun lift_var ((a, j), T) = Var ((a, j + inc), paramTs ---> Logic.incr_tvar inc T);
+    fun lift_var ((a, j), T) = Var ((a, j + inc), paramTs ---> lift_type T);
     fun lift_term t = fold_rev Term.absfree params (Logic.incr_indexes (fixed, paramTs, inc) t);
 
     val inst_tvars' = inst_tvars
@@ -260,9 +257,9 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     val thm' = Thm.lift_rule cgoal thm
       |> Drule.instantiate_normalize (inst_tvars', inst_vars')
-      |> singleton (Variable.export inst_ctxt param_ctxt);
+      |> singleton (Variable.export inst_ctxt goal_ctxt);
   in
-    compose_tac param_ctxt (bires_flag, thm', Thm.nprems_of thm) i
+    compose_tac goal_ctxt (bires_flag, thm', Thm.nprems_of thm) i
   end) i st;
 
 val res_inst_tac = bires_inst_tac false;
