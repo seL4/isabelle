@@ -147,8 +147,9 @@ fun indep (Bound i) t b = i < b orelse t <= i
   | indep (Abs (_,_,t)) top bot = indep t (top + 1) (bot + 1)
   | indep _ _ _ = true;
 
-fun cnt_prefixes ctxt (Abs (n, T, t)) = let
-      fun is_countable t = Type.of_sort (Proof_Context.tsig_of ctxt) (t, @{sort countable})
+fun cnt_prefixes ctxt (Abs (n, T, t)) =
+    let
+      fun is_countable ty = Sign.of_sort (Proof_Context.theory_of ctxt) (ty, @{sort countable})
       fun cnt_walk (Abs (ns, T, t)) Ts =
           map (fn (t', t'') => (Abs (ns, T, t'), t'')) (cnt_walk t (T::Ts))
         | cnt_walk (f $ g) Ts = let
