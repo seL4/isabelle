@@ -209,7 +209,8 @@ end;
 
 (* goal context *)
 
-val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K true);
+(*legacy*)
+val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K false);
 
 fun goal_context goal ctxt =
   let
@@ -232,7 +233,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
     val paramTs = map #2 params;
 
 
-    (* local fixes and instantiation *)
+    (* instantiation context *)
 
     val ((inst_tvars, inst_vars), inst_ctxt) = goal_ctxt
       |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
