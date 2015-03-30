@@ -362,7 +362,7 @@ fun declare_overloaded (c, T) thy =
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
       #>> apsnd Thm.varifyT_global
       #-> (fn (_, thm) => add_inst_param (c, tyco) (c'', thm)
-        #> Global_Theory.add_thm ((Binding.conceal (Binding.name c'), thm), [])
+        #> Global_Theory.add_thm ((Binding.concealed (Binding.name c'), thm), [])
         #> #2
         #> pair (Const (c, T))))
     ||> Sign.restore_naming thy
@@ -392,7 +392,7 @@ fun add_classrel raw_th thy =
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
     val binding =
-      Binding.conceal (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))));
+      Binding.concealed (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))));
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
     val th'' = th'
       |> Thm.unconstrainT
@@ -413,7 +413,7 @@ fun add_arity raw_th thy =
     val arity as (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
 
     val binding =
-      Binding.conceal (Binding.name (prefix arity_prefix (Logic.name_arity arity)));
+      Binding.concealed (Binding.name (prefix arity_prefix (Logic.name_arity arity)));
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
 
     val args = Name.invent_names Name.context Name.aT Ss;

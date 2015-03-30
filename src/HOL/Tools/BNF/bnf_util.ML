@@ -142,10 +142,10 @@ val parse_map_rel_bindings =
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let
     (*Work around loss of qualification in "typedef" axioms by replicating it in the name*)
-    val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (#2 (Binding.dest b))) b;
+    val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (Binding.path_of b)) b;
     val ((name, info), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.conceal
+      |> Local_Theory.concealed
       |> Typedef.add_typedef true (b', Ts, mx) set opt_morphs tac
       ||> Local_Theory.restore_naming lthy
       ||> `Local_Theory.restore;

@@ -152,7 +152,7 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
       typ_thy
       |> Sign.declare_const_global ((isom_binding, isomT), NoSyn) |> snd
       |> Global_Theory.add_defs false
-        [((Binding.conceal (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
+        [((Binding.concealed (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
     val cons = Const (@{const_name Record.iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
@@ -1720,7 +1720,7 @@ fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
     thy
     |> Class.instantiation ([tyco], vs, sort)
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
+    |-> (fn eq => Specification.definition (NONE, (apfst Binding.concealed Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
@@ -2017,12 +2017,12 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           |> fold (fn (x, T) => snd o Sign.declare_const_global ((Binding.name x, T), NoSyn))
             (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
           |> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) sel_specs
+                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) sel_specs
           ||>> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
+                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
                 map (rpair [Code.add_default_eqn_attribute]
-                o apfst (Binding.conceal o Binding.name))) (*FIXME Spec_Rules (?)*)
+                o apfst (Binding.concealed o Binding.name))) (*FIXME Spec_Rules (?)*)
             [make_spec, fields_spec, extend_spec, truncate_spec]);
     val defs_ctxt = Proof_Context.init_global defs_thy;
 

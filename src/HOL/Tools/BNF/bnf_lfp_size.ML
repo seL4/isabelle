@@ -175,7 +175,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         #>> (fn args => fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)));
 
       val maybe_conceal_def_binding = Thm.def_binding
-        #> not (Config.get lthy0 bnf_note_all) ? Binding.conceal;
+        #> not (Config.get lthy0 bnf_note_all) ? Binding.concealed;
 
       val (size_rhss, nested_size_gen_o_mapss) = fold_map mk_size_rhs recs [];
       val size_Ts = map fastype_of size_rhss;

@@ -529,7 +529,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       thy3
-      |> Sign.map_naming Name_Space.conceal
+      |> Sign.map_naming Name_Space.concealed
       |> Inductive.add_inductive_global
           {quiet_mode = false, verbose = false, alt_name = Binding.name big_rep_name,
            coind = false, no_elim = true, no_ind = false, skip_mono = true}
@@ -1505,7 +1505,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10
-      |> Sign.map_naming Name_Space.conceal
+      |> Sign.map_naming Name_Space.concealed
       |> Inductive.add_inductive_global
           {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
            coind = false, no_elim = false, no_ind = false, skip_mono = true}

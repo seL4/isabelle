@@ -917,7 +917,7 @@ text %mlref \<open>
   @{index_ML Binding.name: "string -> binding"} \\
   @{index_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
   @{index_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
-  @{index_ML Binding.conceal: "binding -> binding"} \\
+  @{index_ML Binding.concealed: "binding -> binding"} \\
   @{index_ML Binding.print: "binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
@@ -961,7 +961,7 @@ text %mlref \<open>
   typically used in the infrastructure for modular specifications,
   notably ``local theory targets'' (see also \chref{ch:local-theory}).
 
-  \item @{ML Binding.conceal}~@{text "binding"} indicates that the
+  \item @{ML Binding.concealed}~@{text "binding"} indicates that the
   binding shall refer to an entity that serves foundational purposes
   only.  This flag helps to mark implementation details of
   specification mechanism etc.  Other tools should not depend on the

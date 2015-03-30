@@ -107,20 +107,20 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
         val fnames = map (fst o fst) fixes
         fun qualify n = Binding.name n
           |> Binding.qualify true defname
-        val conceal_partial = if partials then I else Binding.conceal
+        val concealed_partial = if partials then I else Binding.concealed
 
         val addsmps = add_simps fnames post sort_cont
 
         val (((((psimps', [pinducts']), [termination']), cases'), pelims'), lthy) =
           lthy
-          |> addsmps (conceal_partial o Binding.qualify false "partial")
-               "psimps" conceal_partial psimp_attribs psimps
-          ||>> Local_Theory.notes [((conceal_partial (qualify "pinduct"), []),
+          |> addsmps (concealed_partial o Binding.qualify false "partial")
+               "psimps" concealed_partial psimp_attribs psimps
+          ||>> Local_Theory.notes [((concealed_partial (qualify "pinduct"), []),
                 simple_pinducts |> map (fn th => ([th],
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
                   Attrib.internal (K (Induct.induct_pred ""))])))]
-          ||>> (apfst snd o Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination]))
+          ||>> (apfst snd o Local_Theory.note ((Binding.concealed (qualify "termination"), []), [termination]))
           ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames]) (fnames ~~ map single cases) (* TODO: case names *)
           ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1]) (fnames ~~ pelims)
           ||> (case domintros of NONE => I | SOME thms =>

@@ -2057,9 +2057,9 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
           fun values () =
             case role of
                 TPTP_Syntax.Role_Definition =>
-                  map (apsnd Binding.dest) (#defs pannot)
+                  map (apsnd Binding.name_of) (#defs pannot)
               | TPTP_Syntax.Role_Axiom =>
-                  map (apsnd Binding.dest) (#axs pannot)
+                  map (apsnd Binding.name_of) (#axs pannot)
               | _ => raise UNSUPPORTED_ROLE
           in
             if is_none (source_inf_opt node) then []
@@ -2075,7 +2075,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
                          use the ones in the proof annotation.*)
                        (fn x =>
                          if role = TPTP_Syntax.Role_Definition then
-                           let fun values () = map (apsnd Binding.dest) (#defs pannot)
+                           let fun values () = map (apsnd Binding.name_of) (#defs pannot)
                            in
                              map snd (values ())
                            end
@@ -2086,7 +2086,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
 
       val roled_dependencies =
         roled_dependencies_names
-        #> map (#3 #> Global_Theory.get_thm thy)
+        #> map (Global_Theory.get_thm thy)
     in
       val depends_on_defs = roled_dependencies TPTP_Syntax.Role_Definition
       val depends_on_axs = roled_dependencies TPTP_Syntax.Role_Axiom

@@ -457,7 +457,7 @@ fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
     (recs, ctr_poss)
     |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
     |> Syntax.check_terms ctxt
-    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
+    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.concealed (Thm.def_binding b), []), t)))
       bs mxs
   end;
 

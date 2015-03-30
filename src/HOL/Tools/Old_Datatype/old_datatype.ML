@@ -172,7 +172,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
       thy1
-      |> Sign.map_naming Name_Space.conceal
+      |> Sign.map_naming Name_Space.concealed
       |> Inductive.add_inductive_global
           {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
            coind = false, no_elim = true, no_ind = false, skip_mono = true}

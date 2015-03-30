@@ -33,7 +33,8 @@ sig
   val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
   type naming
-  val conceal: naming -> naming
+  val private: naming -> naming
+  val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
   val set_theory_name: string -> naming -> naming
@@ -283,32 +284,37 @@ fun merge
 (* datatype naming *)
 
 datatype naming = Naming of
- {conceal: bool,
+ {private: bool,
+  concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (conceal, group, theory_name, path) =
-  Naming {conceal = conceal, group = group, theory_name = theory_name, path = path};
+fun make_naming (private, concealed, group, theory_name, path) =
+  Naming {private = private, concealed = concealed, group = group,
+    theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {conceal, group, theory_name, path}) =
-  make_naming (f (conceal, group, theory_name, path));
+fun map_naming f (Naming {private, concealed, group, theory_name, path}) =
+  make_naming (f (private, concealed, group, theory_name, path));
 
-fun map_path f = map_naming (fn (conceal, group, theory_name, path) =>
-  (conceal, group, theory_name, f path));
+fun map_path f = map_naming (fn (private, concealed, group, theory_name, path) =>
+  (private, concealed, group, theory_name, f path));
 
 
-val conceal = map_naming (fn (_, group, theory_name, path) =>
-  (true, group, theory_name, path));
+val private = map_naming (fn (_, concealed, group, theory_name, path) =>
+  (true, concealed, group, theory_name, path));
 
-fun set_theory_name theory_name = map_naming (fn (conceal, group, _, path) =>
-  (conceal, group, theory_name, path));
+val concealed = map_naming (fn (private, _, group, theory_name, path) =>
+  (private, true, group, theory_name, path));
+
+fun set_theory_name theory_name = map_naming (fn (private, concealed, group, _, path) =>
+  (private, concealed, group, theory_name, path));
 
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (conceal, _, theory_name, path) =>
-  (conceal, group, theory_name, path));
+fun set_group group = map_naming (fn (private, concealed, _, theory_name, path) =>
+  (private, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -319,9 +325,9 @@ val parent_path = map_path (perhaps (try (#1 o split_last)));
 fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 
 fun qualified_path mandatory binding = map_path (fn path =>
-  path @ #2 (Binding.dest (Binding.qualified mandatory "" binding)));
+  path @ Binding.path_of (Binding.qualified mandatory "" binding));
 
-val global_naming = make_naming (false, NONE, "", []);
+val global_naming = make_naming (false, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
 
 
@@ -329,27 +335,28 @@ val local_naming = global_naming |> add_path Long_Name.localN;
 
 fun err_bad binding = error (Binding.bad binding);
 
-fun transform_binding (Naming {conceal = true, ...}) = Binding.conceal
-  | transform_binding _ = I;
+fun transform_binding (Naming {private, concealed, ...}) =
+  private ? Binding.private #>
+  concealed ? Binding.concealed;
 
 val bad_specs = ["", "??", "__"];
 
-fun name_spec (naming as Naming {path, ...}) raw_binding =
+fun name_spec (naming as Naming {path = path1, ...}) raw_binding =
   let
     val binding = transform_binding naming raw_binding;
-    val (concealed, prefix, name) = Binding.dest binding;
+    val {private, concealed, path = path2, name} = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
 
-    val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix);
+    val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path1 @ path2);
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
       exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
-  in (concealed, if null spec2 then [] else spec) end;
+  in {private = private, concealed = concealed, spec = if null spec2 then [] else spec} end;
 
 fun full_name naming =
-  name_spec naming #> #2 #> map #1 #> Long_Name.implode;
+  name_spec naming #> #spec #> map #1 #> Long_Name.implode;
 
 val base_name = full_name global_naming #> Long_Name.base_name;
 
@@ -366,11 +373,13 @@ and mandatory_prefixes1 [] = []
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
-  let
-    val spec = #2 (name_spec naming binding);
-    val sfxs = mandatory_suffixes spec;
-    val pfxs = mandatory_prefixes spec;
-  in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
+  (case name_spec naming binding of
+    {private = true, ...} => ([], [])
+  | {spec, ...} =>
+      let
+        val sfxs = mandatory_suffixes spec;
+        val pfxs = mandatory_prefixes spec;
+      in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end);
 
 
 (* hide *)
@@ -433,7 +442,7 @@ fun declare context strict binding space =
   let
     val naming = naming_of context;
     val Naming {group, theory_name, ...} = naming;
-    val (concealed, spec) = name_spec naming binding;
+    val {concealed, spec, ...} = name_spec naming binding;
     val (accs, accs') = accesses naming binding;
 
     val name = Long_Name.implode (map fst spec);
@@ -556,4 +565,3 @@ fun extern_table ctxt (Table (space, tab)) = extern_entries ctxt space (Change_T
 fun markup_table ctxt (Table (space, tab)) = markup_entries ctxt space (Change_Table.dest tab);
 
 end;
-

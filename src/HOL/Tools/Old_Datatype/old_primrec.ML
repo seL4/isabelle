@@ -201,7 +201,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
     val raw_rhs = fold_rev (fn T => fn t => Abs ("", T, t)) (map snd ls @ [dummyT])
       (list_comb (Const (rec_name, dummyT), fs @ map Bound (0 :: (length ls downto 1))))
     val rhs = singleton (Syntax.check_terms ctxt) (Type.constraint varT raw_rhs);
-  in (var, ((Binding.conceal (Binding.name def_name), []), rhs)) end;
+  in (var, ((Binding.concealed (Binding.name def_name), []), rhs)) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)

@@ -1195,7 +1195,7 @@ fun update_case _ _ ("", _) res = res
       (Name_Space.del_table name cases, index)
   | update_case context is_proper (name, SOME c) (cases, index) =
       let
-        val binding = Binding.name name |> not is_proper ? Binding.conceal;
+        val binding = Binding.name name |> not is_proper ? Binding.concealed;
         val (_, cases') = Name_Space.define context false (binding, ((c, is_proper), index)) cases;
         val index' = index + 1;
       in (cases', index') end;
