@@ -1667,11 +1667,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           REPEAT_DETERM (rtac allI 1) THEN rtac (dtor_coinduct_thm OF prems) 1)) lthy;
 
     (*register new codatatypes as BNFs*)
-    val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jset_thmss',
+    val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jmap_unique_thms, dtor_Jset_thmss',
       dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, dtor_Jset_induct_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
+        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids), [],
         replicate n [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
         mk_Jrel_DEADID_coinduct_thm (), [], [], lthy)
       else let
@@ -1808,7 +1808,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             map_split (fn thm => (thm RS @{thm comp_eq_dest}, thm)) maps
           end;
 
-        val dtor_Jmap_unique_thm =
+        val (dtor_Jmap_unique_thms, dtor_Jmap_unique_thm) =
           let
             fun mk_prem u map dtor dtor' =
               mk_Trueprop_eq (HOLogic.mk_comp (dtor', u),
@@ -1818,11 +1818,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                 (map2 (curry HOLogic.mk_eq) us fs_Jmaps));
           in
-            Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, goal))
+            `split_conj_thm (Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, goal))
               (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Jmap_defs THEN
                 mk_dtor_map_unique_tac ctxt dtor_unfold_unique_thm sym_map_comps)
             |> Thm.close_derivation
-            |> singleton (Proof_Context.export names_lthy lthy)
+            |> singleton (Proof_Context.export names_lthy lthy))
           end;
 
         val Jmap_comp0_thms =
@@ -2455,13 +2455,13 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val ls' = if m = 1 then [0] else ls;
 
         val Jbnf_common_notes =
-          [(dtor_map_uniqueN, [dtor_Jmap_unique_thm])] @
           map2 (fn i => fn thm => (mk_dtor_set_inductN i, [thm])) ls' dtor_Jset_induct_thms
           |> map (fn (thmN, thms) =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
         val Jbnf_notes =
           [(dtor_mapN, map single dtor_Jmap_thms),
+          (dtor_map_uniqueN, map single dtor_Jmap_unique_thms),
           (dtor_relN, map single dtor_Jrel_thms),
           (dtor_set_inclN, dtor_Jset_incl_thmss),
           (dtor_set_set_inclN, map flat dtor_set_Jset_incl_thmsss)] @
@@ -2471,7 +2471,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jset_thmss',
+        (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jmap_unique_thms, dtor_Jset_thmss',
           dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, dtor_Jset_induct_thms,
           lthy)
       end;
@@ -2510,8 +2510,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val common_notes =
       [(dtor_coinductN, [dtor_coinduct_thm]),
-      (dtor_rel_coinductN, [Jrel_coinduct_thm]),
-      (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
+      (dtor_rel_coinductN, [Jrel_coinduct_thm])]
       |> map (fn (thmN, thms) =>
         ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
@@ -2520,15 +2519,16 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       (ctor_exhaustN, ctor_exhaust_thms),
       (ctor_injectN, ctor_inject_thms),
       (dtor_corecN, dtor_corec_thms),
+      (dtor_corec_o_mapN, dtor_corec_o_Jmap_thms),
       (dtor_corec_transferN, dtor_corec_transfer_thms),
+      (dtor_corec_uniqueN, dtor_corec_unique_thms),
       (dtor_ctorN, dtor_ctor_thms),
       (dtor_exhaustN, dtor_exhaust_thms),
       (dtor_injectN, dtor_inject_thms),
       (dtor_unfoldN, dtor_unfold_thms),
-      (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
-      (dtor_corec_uniqueN, dtor_corec_unique_thms),
       (dtor_unfold_o_mapN, dtor_unfold_o_Jmap_thms),
-      (dtor_corec_o_mapN, dtor_corec_o_Jmap_thms)]
+      (dtor_unfold_transferN, dtor_unfold_transfer_thms),
+      (dtor_unfold_uniqueN, dtor_unfold_unique_thms)]
       |> map (apsnd (map single))
       |> maps (fn (thmN, thmss) =>
         map2 (fn b => fn thms =>
@@ -2541,11 +2541,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_un_folds = unfolds,
        xtor_co_recs = corecs, xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
-       dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms, xtor_setss = dtor_Jset_thmss',
+       dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms,
+       xtor_map_uniques = dtor_Jmap_unique_thms, xtor_setss = dtor_Jset_thmss',
        xtor_rels = dtor_Jrel_thms, xtor_un_fold_thms = dtor_unfold_thms,
-       xtor_co_rec_thms = dtor_corec_thms, xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms,
-       xtor_rel_co_induct = Jrel_coinduct_thm, dtor_set_inducts = dtor_Jset_induct_thms,
-       xtor_co_rec_transfers = dtor_corec_transfer_thms};
+       xtor_co_rec_thms = dtor_corec_thms, xtor_un_fold_uniques = dtor_unfold_unique_thms,
+       xtor_co_rec_uniques = dtor_corec_unique_thms, xtor_un_fold_o_maps = dtor_unfold_o_Jmap_thms,
+       xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms,
+       xtor_un_fold_transfers = dtor_unfold_transfer_thms,
+       xtor_co_rec_transfers = dtor_corec_transfer_thms, xtor_rel_co_induct = Jrel_coinduct_thm,
+       dtor_set_inducts = dtor_Jset_induct_thms};
   in
     timer; (fp_res, lthy')
   end;

@@ -23,14 +23,19 @@ sig
      ctor_injects: thm list,
      dtor_injects: thm list,
      xtor_maps: thm list,
+     xtor_map_uniques: thm list,
      xtor_setss: thm list list,
      xtor_rels: thm list,
      xtor_un_fold_thms: thm list,
      xtor_co_rec_thms: thm list,
+     xtor_un_fold_uniques: thm list,
+     xtor_co_rec_uniques: thm list,
+     xtor_un_fold_o_maps: thm list,
      xtor_co_rec_o_maps: thm list,
+     xtor_un_fold_transfers: thm list,
+     xtor_co_rec_transfers: thm list,
      xtor_rel_co_induct: thm,
-     dtor_set_inducts: thm list,
-     xtor_co_rec_transfers: thm list}
+     dtor_set_inducts: thm list}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
 
@@ -207,7 +212,7 @@ open BNF_Util
 
 type fp_result =
   {Ts: typ list,
-   bnfs: BNF_Def.bnf list,
+   bnfs: bnf list,
    ctors: term list,
    dtors: term list,
    xtor_un_folds: term list,
@@ -218,19 +223,25 @@ type fp_result =
    ctor_injects: thm list,
    dtor_injects: thm list,
    xtor_maps: thm list,
+   xtor_map_uniques: thm list,
    xtor_setss: thm list list,
    xtor_rels: thm list,
    xtor_un_fold_thms: thm list,
    xtor_co_rec_thms: thm list,
+   xtor_un_fold_uniques: thm list,
+   xtor_co_rec_uniques: thm list,
+   xtor_un_fold_o_maps: thm list,
    xtor_co_rec_o_maps: thm list,
+   xtor_un_fold_transfers: thm list,
+   xtor_co_rec_transfers: thm list,
    xtor_rel_co_induct: thm,
-   dtor_set_inducts: thm list,
-   xtor_co_rec_transfers: thm list};
+   dtor_set_inducts: thm list};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xtor_co_induct,
-    dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_setss, xtor_rels,
-    xtor_un_fold_thms, xtor_co_rec_thms, xtor_co_rec_o_maps, xtor_rel_co_induct, dtor_set_inducts,
-    xtor_co_rec_transfers} =
+    dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_map_uniques, xtor_setss,
+    xtor_rels, xtor_un_fold_thms, xtor_co_rec_thms, xtor_un_fold_uniques, xtor_co_rec_uniques,
+    xtor_un_fold_o_maps, xtor_co_rec_o_maps, xtor_un_fold_transfers, xtor_co_rec_transfers,
+    xtor_rel_co_induct, dtor_set_inducts} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -243,14 +254,19 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xt
    ctor_injects = map (Morphism.thm phi) ctor_injects,
    dtor_injects = map (Morphism.thm phi) dtor_injects,
    xtor_maps = map (Morphism.thm phi) xtor_maps,
+   xtor_map_uniques = map (Morphism.thm phi) xtor_map_uniques,
    xtor_setss = map (map (Morphism.thm phi)) xtor_setss,
    xtor_rels = map (Morphism.thm phi) xtor_rels,
    xtor_un_fold_thms = map (Morphism.thm phi) xtor_un_fold_thms,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms,
+   xtor_un_fold_uniques = map (Morphism.thm phi) xtor_un_fold_uniques,
+   xtor_co_rec_uniques = map (Morphism.thm phi) xtor_co_rec_uniques,
+   xtor_un_fold_o_maps = map (Morphism.thm phi) xtor_un_fold_o_maps,
    xtor_co_rec_o_maps = map (Morphism.thm phi) xtor_co_rec_o_maps,
+   xtor_un_fold_transfers = map (Morphism.thm phi) xtor_un_fold_transfers,
+   xtor_co_rec_transfers = map (Morphism.thm phi) xtor_co_rec_transfers,
    xtor_rel_co_induct = Morphism.thm phi xtor_rel_co_induct,
-   dtor_set_inducts = map (Morphism.thm phi) dtor_set_inducts,
-   xtor_co_rec_transfers = map (Morphism.thm phi) xtor_co_rec_transfers};
+   dtor_set_inducts = map (Morphism.thm phi) dtor_set_inducts};
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^

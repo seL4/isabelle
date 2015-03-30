@@ -1309,11 +1309,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
 
     (*register new datatypes as BNFs*)
-    val (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Iset_thmss',
+    val (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thms, ctor_Iset_thmss',
         ctor_Irel_thms, Ibnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
+        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids), [],
         replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
@@ -1757,7 +1757,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Iset_thmss',
+        (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thms, ctor_Iset_thmss',
           ctor_Irel_thms, Ibnf_common_notes @ Ibnf_notes, lthy)
       end;
 
@@ -1798,8 +1798,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val common_notes =
       [(ctor_inductN, [ctor_induct_thm]),
       (ctor_induct2N, [ctor_induct2_thm]),
-      (ctor_fold_transferN, ctor_fold_transfer_thms),
-      (ctor_rec_transferN, ctor_rec_transfer_thms),
       (ctor_rel_inductN, [Irel_induct_thm])]
       |> map (fn (thmN, thms) =>
         ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
@@ -1808,10 +1806,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       [(ctor_dtorN, ctor_dtor_thms),
       (ctor_exhaustN, ctor_exhaust_thms),
       (ctor_foldN, ctor_fold_thms),
-      (ctor_fold_uniqueN, ctor_fold_unique_thms),
-      (ctor_rec_uniqueN, ctor_rec_unique_thms),
       (ctor_fold_o_mapN, ctor_fold_o_Imap_thms),
+      (ctor_fold_transferN, ctor_fold_transfer_thms),
+      (ctor_fold_uniqueN, ctor_fold_unique_thms),
       (ctor_rec_o_mapN, ctor_rec_o_Imap_thms),
+      (ctor_rec_transferN, ctor_rec_transfer_thms),
+      (ctor_rec_uniqueN, ctor_rec_unique_thms),
       (ctor_injectN, ctor_inject_thms),
       (ctor_recN, ctor_rec_thms),
       (dtor_ctorN, dtor_ctor_thms),
@@ -1829,11 +1829,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_un_folds = folds,
        xtor_co_recs = recs, xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
-       dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms, xtor_setss = ctor_Iset_thmss',
+       dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms,
+       xtor_map_uniques = ctor_Imap_unique_thms, xtor_setss = ctor_Iset_thmss',
        xtor_rels = ctor_Irel_thms, xtor_un_fold_thms = ctor_fold_thms,
-       xtor_co_rec_thms = ctor_rec_thms, xtor_co_rec_o_maps = ctor_rec_o_Imap_thms,
-       xtor_rel_co_induct = Irel_induct_thm, dtor_set_inducts = [],
-       xtor_co_rec_transfers = ctor_rec_transfer_thms};
+       xtor_co_rec_thms = ctor_rec_thms, xtor_un_fold_uniques = ctor_fold_unique_thms,
+       xtor_co_rec_uniques = ctor_rec_unique_thms, xtor_un_fold_o_maps = ctor_fold_o_Imap_thms,
+       xtor_co_rec_o_maps = ctor_rec_o_Imap_thms, xtor_un_fold_transfers = ctor_fold_transfer_thms,
+       xtor_co_rec_transfers = ctor_rec_transfer_thms, xtor_rel_co_induct = Irel_induct_thm,
+       dtor_set_inducts = []};
   in
     timer; (fp_res, lthy')
   end;

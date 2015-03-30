@@ -484,12 +484,16 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
         ctor_injects = of_fp_res #ctor_injects (*too general types*),
         dtor_injects = of_fp_res #dtor_injects (*too general types*),
-        xtor_maps = of_fp_res #xtor_maps (*too general types and terms*),
+        xtor_maps = of_fp_res #xtor_maps (*too general types and terms*), xtor_map_uniques = [],
         xtor_setss = of_fp_res #xtor_setss (*too general types and terms*),
         xtor_rels = of_fp_res #xtor_rels (*too general types and terms*),
-        xtor_un_fold_thms = xtor_co_rec_thms (*wrong*), xtor_co_rec_thms = xtor_co_rec_thms,
+        xtor_un_fold_thms = xtor_co_rec_thms (*wrong*),
+        xtor_co_rec_thms = xtor_co_rec_thms (*too general types and terms*),
+        xtor_un_fold_uniques = [], xtor_co_rec_uniques = [],
+        xtor_un_fold_o_maps = fp_rec_o_maps (*wrong*),
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
-        xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = [], xtor_co_rec_transfers = []}
+        xtor_un_fold_transfers = [], xtor_co_rec_transfers = [],
+        xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)

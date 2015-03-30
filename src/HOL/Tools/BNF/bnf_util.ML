@@ -313,7 +313,7 @@ fun mk_inj t =
   end;
 
 fun mk_leq t1 t2 =
-  Const (@{const_name less_eq}, (fastype_of t1) --> (fastype_of t2) --> HOLogic.boolT) $ t1 $ t2;
+  Const (@{const_name less_eq}, fastype_of t1 --> fastype_of t2 --> HOLogic.boolT) $ t1 $ t2;
 
 fun mk_card_binop binop typop t1 t2 =
   let

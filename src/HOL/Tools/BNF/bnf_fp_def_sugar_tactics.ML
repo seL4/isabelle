@@ -290,8 +290,7 @@ fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor
         val dtor_corec_transfer' = cterm_instantiate_pos
           (SOME active :: map SOME passives @ map SOME actives') dtor_corec_transfer;
       in
-        HEADGOAL Goal.conjunction_tac THEN
-        REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
+        HEADGOAL Goal.conjunction_tac THEN REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
         unfold_thms_tac ctxt [corec_def] THEN
         HEADGOAL (etac (mk_rel_funDN_rotated (1 + length actives) dtor_corec_transfer')) THEN
         unfold_thms_tac ctxt (rel_pre_T_defs @ rel_eqs)
@@ -492,8 +491,7 @@ fun mk_set_cases_tac ctxt ct assms exhaust sets =
      SELECT_GOAL (SOLVE (HEADGOAL (eresolve_tac ctxt assms THEN' REPEAT_DETERM o atac)))));
 
 fun mk_set_intros_tac ctxt sets =
-  TRYALL Goal.conjunction_tac THEN
-  unfold_thms_tac ctxt sets THEN
+  TRYALL Goal.conjunction_tac THEN unfold_thms_tac ctxt sets THEN
   TRYALL (REPEAT o
     (resolve_tac ctxt @{thms UnI1 UnI2} ORELSE'
      eresolve_tac ctxt @{thms UN_I UN_I[rotated]}) THEN' (rtac @{thm singletonI} ORELSE' atac));
