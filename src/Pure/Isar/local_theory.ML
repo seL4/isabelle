@@ -28,7 +28,7 @@ sig
   val naming_of: local_theory -> Name_Space.naming
   val full_name: local_theory -> binding -> string
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
-  val conceal: local_theory -> local_theory
+  val concealed: local_theory -> local_theory
   val new_group: local_theory -> local_theory
   val reset_group: local_theory -> local_theory
   val restore_naming: local_theory -> local_theory -> local_theory
@@ -188,7 +188,7 @@ fun map_naming f =
   map_top (fn (naming, operations, after_close, brittle, target) =>
     (f naming, operations, after_close, brittle, target));
 
-val conceal = map_naming Name_Space.conceal;
+val concealed = map_naming Name_Space.concealed;
 val new_group = map_naming Name_Space.new_group;
 val reset_group = map_naming Name_Space.reset_group;
 

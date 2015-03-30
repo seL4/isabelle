@@ -34,7 +34,7 @@ sig
   val merge: T * T -> T
   type naming
   val private: naming -> naming
-  val conceal: naming -> naming
+  val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
   val set_theory_name: string -> naming -> naming
@@ -285,36 +285,36 @@ fun merge
 
 datatype naming = Naming of
  {private: bool,
-  conceal: bool,
+  concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (private, conceal, group, theory_name, path) =
-  Naming {private = private, conceal = conceal, group = group,
+fun make_naming (private, concealed, group, theory_name, path) =
+  Naming {private = private, concealed = concealed, group = group,
     theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {private, conceal, group, theory_name, path}) =
-  make_naming (f (private, conceal, group, theory_name, path));
+fun map_naming f (Naming {private, concealed, group, theory_name, path}) =
+  make_naming (f (private, concealed, group, theory_name, path));
 
-fun map_path f = map_naming (fn (private, conceal, group, theory_name, path) =>
-  (private, conceal, group, theory_name, f path));
+fun map_path f = map_naming (fn (private, concealed, group, theory_name, path) =>
+  (private, concealed, group, theory_name, f path));
 
 
-val private = map_naming (fn (_, conceal, group, theory_name, path) =>
-  (true, conceal, group, theory_name, path));
+val private = map_naming (fn (_, concealed, group, theory_name, path) =>
+  (true, concealed, group, theory_name, path));
 
-val conceal = map_naming (fn (private, _, group, theory_name, path) =>
+val concealed = map_naming (fn (private, _, group, theory_name, path) =>
   (private, true, group, theory_name, path));
 
-fun set_theory_name theory_name = map_naming (fn (private, conceal, group, _, path) =>
-  (private, conceal, group, theory_name, path));
+fun set_theory_name theory_name = map_naming (fn (private, concealed, group, _, path) =>
+  (private, concealed, group, theory_name, path));
 
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (private, conceal, _, theory_name, path) =>
-  (private, conceal, group, theory_name, path));
+fun set_group group = map_naming (fn (private, concealed, _, theory_name, path) =>
+  (private, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -335,16 +335,16 @@ val local_naming = global_naming |> add_path Long_Name.localN;
 
 fun err_bad binding = error (Binding.bad binding);
 
-fun transform_binding (Naming {private, conceal, ...}) =
+fun transform_binding (Naming {private, concealed, ...}) =
   private ? Binding.private #>
-  conceal ? Binding.conceal;
+  concealed ? Binding.concealed;
 
 val bad_specs = ["", "??", "__"];
 
 fun name_spec (naming as Naming {path = path1, ...}) raw_binding =
   let
     val binding = transform_binding naming raw_binding;
-    val {private, conceal, path = path2, name} = Binding.dest binding;
+    val {private, concealed, path = path2, name} = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
 
     val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path1 @ path2);
@@ -353,7 +353,7 @@ fun name_spec (naming as Naming {path = path1, ...}) raw_binding =
     val _ =
       exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
-  in {private = private, conceal = conceal, spec = if null spec2 then [] else spec} end;
+  in {private = private, concealed = concealed, spec = if null spec2 then [] else spec} end;
 
 fun full_name naming =
   name_spec naming #> #spec #> map #1 #> Long_Name.implode;
@@ -442,7 +442,7 @@ fun declare context strict binding space =
   let
     val naming = naming_of context;
     val Naming {group, theory_name, ...} = naming;
-    val {conceal, spec, ...} = name_spec naming binding;
+    val {concealed, spec, ...} = name_spec naming binding;
     val (accs, accs') = accesses naming binding;
 
     val name = Long_Name.implode (map fst spec);
@@ -450,7 +450,7 @@ fun declare context strict binding space =
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
-     {concealed = conceal,
+     {concealed = concealed,
       group = group,
       theory_name = theory_name,
       pos = pos,

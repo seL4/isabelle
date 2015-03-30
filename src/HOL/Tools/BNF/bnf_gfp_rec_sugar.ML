@@ -984,7 +984,7 @@ fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     |> map2 currys arg_Tss
     |> (fn ts => Syntax.check_terms ctxt ts
       handle ERROR _ => nonprimitive_corec ctxt [])
-    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
+    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.concealed (Thm.def_binding b), []), t)))
       bs mxs
     |> rpair excludess'
   end;

@@ -499,7 +499,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
       |> Local_Theory.define ((case_binding, NoSyn),
-        ((Binding.conceal (Thm.def_binding case_binding), []), case_rhs))
+        ((Binding.concealed (Thm.def_binding case_binding), []), case_rhs))
       ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy lthy';

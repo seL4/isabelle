@@ -765,7 +765,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
   let
     val live = length set_rhss;
 
-    val def_qualify = Binding.conceal o Binding.qualify false (Binding.name_of bnf_b);
+    val def_qualify = Binding.concealed o Binding.qualify false (Binding.name_of bnf_b);
 
     fun mk_prefix_binding pre = Binding.prefix_name (pre ^ "_") bnf_b;
 

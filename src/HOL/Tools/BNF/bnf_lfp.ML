@@ -42,11 +42,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val b = Binding.name b_name;
 
     fun mk_internal_of_b name =
-      Binding.prefix_name (name ^ "_") #> Binding.prefix true b_name #> Binding.conceal;
+      Binding.prefix_name (name ^ "_") #> Binding.prefix true b_name #> Binding.concealed;
     fun mk_internal_b name = mk_internal_of_b name b;
     fun mk_internal_bs name = map (mk_internal_of_b name) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
-      |> not note_all ? map Binding.conceal;
+      |> not note_all ? map Binding.concealed;
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
@@ -911,7 +911,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val phi2s = map2 retype_const_or_free (map2 mk_pred2T Ts Ts') init_phis;
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
-    val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
+    val ctor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o ctor_bind;
 
     fun ctor_spec abs str map_FT_init =
       Library.foldl1 HOLogic.mk_comp [abs, str,
@@ -965,7 +965,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val foldx = HOLogic.choice_const foldT $ fold_fun;
 
     fun fold_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_foldN ^ "_");
-    val fold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o fold_bind;
+    val fold_def_bind = rpair [] o Binding.concealed o Thm.def_binding o fold_bind;
 
     fun fold_spec i = fold_rev (Term.absfree o Term.dest_Free) ss (mk_nthN n foldx i);
 
@@ -1072,7 +1072,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         map HOLogic.id_const passiveAs @ ctors)) Dss bnfs;
 
     fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
-    val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
+    val dtor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o dtor_bind;
 
     fun dtor_spec i = mk_fold Ts map_ctors i;
 
@@ -1135,7 +1135,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       end;
 
     fun rec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_recN ^ "_");
-    val rec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o rec_bind;
+    val rec_def_bind = rpair [] o Binding.concealed o Thm.def_binding o rec_bind;
 
     val rec_strs =
       @{map 3} (fn ctor => fn prod_s => fn mapx =>

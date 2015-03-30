@@ -145,7 +145,7 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
     val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (Binding.path_of b)) b;
     val ((name, info), (lthy, lthy_old)) =
       lthy
-      |> Local_Theory.conceal
+      |> Local_Theory.concealed
       |> Typedef.add_typedef true (b', Ts, mx) set opt_morphs tac
       ||> Local_Theory.restore_naming lthy
       ||> `Local_Theory.restore;

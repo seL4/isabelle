@@ -137,9 +137,9 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A lthy =
 
 (* prepare_typedef *)
 
-fun prepare_typedef conceal prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
+fun prepare_typedef concealed prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
   let
-    val concealed_name = name |> conceal ? Binding.conceal;
+    val concealed_name = name |> concealed ? Binding.concealed;
     val bname = Binding.name_of name;
 
 
@@ -242,18 +242,18 @@ fun prepare_typedef conceal prep_term (name, raw_args, mx) raw_set opt_morphs lt
 
 (* add_typedef: tactic interface *)
 
-fun add_typedef conceal typ set opt_morphs tac lthy =
+fun add_typedef concealed typ set opt_morphs tac lthy =
   let
     val ((goal, _, typedef_result), lthy') =
-      prepare_typedef conceal Syntax.check_term typ set opt_morphs lthy;
+      prepare_typedef concealed Syntax.check_term typ set opt_morphs lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (tac o #context)
       |> Goal.norm_result lthy' |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
-fun add_typedef_global conceal typ set opt_morphs tac =
+fun add_typedef_global concealed typ set opt_morphs tac =
   Named_Target.theory_init
-  #> add_typedef conceal typ set opt_morphs tac
+  #> add_typedef concealed typ set opt_morphs tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 
 

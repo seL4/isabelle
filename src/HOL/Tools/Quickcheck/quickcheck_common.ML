@@ -362,9 +362,9 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
     in
       Function.add_function
-        (map (fn (name, T) => (Binding.conceal (Binding.name name), SOME T, NoSyn))
+        (map (fn (name, T) => (Binding.concealed (Binding.name name), SOME T, NoSyn))
           (names ~~ Ts))
-        (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs_t)
+        (map (pair (apfst Binding.concealed Attrib.empty_binding)) eqs_t)
         Function_Common.default_config pat_completeness_auto
       #> snd
       #> (fn lthy => Function.prove_termination NONE (the termination_tac lthy) lthy)
@@ -372,8 +372,8 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
     end
   else
     fold_map (fn (name, T) => Local_Theory.define
-        ((Binding.conceal (Binding.name name), NoSyn),
-          (apfst Binding.conceal Attrib.empty_binding, mk_undefined T))
+        ((Binding.concealed (Binding.name name), NoSyn),
+          (apfst Binding.concealed Attrib.empty_binding, mk_undefined T))
       #> apfst fst) (names ~~ Ts)
     #> (fn (consts, lthy) =>
       let

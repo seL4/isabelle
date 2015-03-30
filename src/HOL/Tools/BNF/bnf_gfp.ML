@@ -72,11 +72,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val b = Binding.name b_name;
 
     fun mk_internal_of_b name =
-      Binding.prefix_name (name ^ "_") #> Binding.prefix true b_name #> Binding.conceal;
+      Binding.prefix_name (name ^ "_") #> Binding.prefix true b_name #> Binding.concealed;
     fun mk_internal_b name = mk_internal_of_b name b;
     fun mk_internal_bs name = map (mk_internal_of_b name) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
-      |> not note_all ? map Binding.conceal;
+      |> not note_all ? map Binding.concealed;
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
@@ -1317,7 +1317,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       ||>> mk_Frees' "rec" hrecTs;
 
     fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
-    val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
+    val dtor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o dtor_bind;
 
     fun dtor_spec rep str map_FT Jz Jz' =
       Term.absfree Jz'
@@ -1364,7 +1364,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val timer = time (timer "dtor definitions & thms");
 
     fun unfold_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_unfoldN ^ "_");
-    val unfold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o unfold_bind;
+    val unfold_def_bind = rpair [] o Binding.concealed o Thm.def_binding o unfold_bind;
 
     fun unfold_spec abs f z = fold_rev (Term.absfree o Term.dest_Free) (ss @ [z]) (abs $ (f $ z));
 
@@ -1456,7 +1456,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         map HOLogic.id_const passiveAs @ dtors)) Dss bnfs;
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
-    val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
+    val ctor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o ctor_bind;
 
     fun ctor_spec i = mk_unfold Ts map_dtors i;
 
@@ -1520,7 +1520,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       end;
 
     fun corec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_corecN ^ "_");
-    val corec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o corec_bind;
+    val corec_def_bind = rpair [] o Binding.concealed o Thm.def_binding o corec_bind;
 
     val corec_strs =
       @{map 3} (fn dtor => fn sum_s => fn mapx =>

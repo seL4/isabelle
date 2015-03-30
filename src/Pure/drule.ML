@@ -599,11 +599,11 @@ in
 val protect = Thm.apply (certify Logic.protectC);
 
 val protectI =
-  store_standard_thm (Binding.conceal (Binding.make ("protectI", @{here})))
+  store_standard_thm (Binding.concealed (Binding.make ("protectI", @{here})))
     (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A));
 
 val protectD =
-  store_standard_thm (Binding.conceal (Binding.make ("protectD", @{here})))
+  store_standard_thm (Binding.concealed (Binding.make ("protectD", @{here})))
     (Thm.equal_elim prop_def (Thm.assume (protect A)));
 
 val protect_cong =
@@ -622,7 +622,7 @@ fun implies_intr_protected asms th =
 (* term *)
 
 val termI =
-  store_standard_thm (Binding.conceal (Binding.make ("termI", @{here})))
+  store_standard_thm (Binding.concealed (Binding.make ("termI", @{here})))
     (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)));
 
 fun mk_term ct =
@@ -648,11 +648,11 @@ val dummy_thm = mk_term (certify Term.dummy_prop);
 (* sort_constraint *)
 
 val sort_constraintI =
-  store_standard_thm (Binding.conceal (Binding.make ("sort_constraintI", @{here})))
+  store_standard_thm (Binding.concealed (Binding.make ("sort_constraintI", @{here})))
     (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T));
 
 val sort_constraint_eq =
-  store_standard_thm (Binding.conceal (Binding.make ("sort_constraint_eq", @{here})))
+  store_standard_thm (Binding.concealed (Binding.make ("sort_constraint_eq", @{here})))
     (Thm.equal_intr
       (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
         (Thm.unvarify_global sort_constraintI)))

@@ -899,7 +899,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
 
     val bnf_b = qualify b;
     val def_qualify =
-      Thm.def_binding o Binding.conceal o Binding.qualify false (Binding.name_of bnf_b);
+      Thm.def_binding o Binding.concealed o Binding.qualify false (Binding.name_of bnf_b);
     fun mk_prefix_binding pre = Binding.prefix_name (pre ^ "_") bnf_b;
     val map_b = def_qualify (mk_prefix_binding mapN);
     val rel_b = def_qualify (mk_prefix_binding relN);

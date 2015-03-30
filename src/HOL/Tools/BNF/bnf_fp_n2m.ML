@@ -382,7 +382,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
       in
         (case b_opt of
           NONE => ((t, Drule.dummy_thm), lthy)
-        | SOME b => Local_Theory.define ((b, NoSyn), ((Binding.conceal (Thm.def_binding b), []),
+        | SOME b => Local_Theory.define ((b, NoSyn), ((Binding.concealed (Thm.def_binding b), []),
             fold_rev Term.absfree rec_strs' t)) lthy |>> apsnd snd)
       end;
 

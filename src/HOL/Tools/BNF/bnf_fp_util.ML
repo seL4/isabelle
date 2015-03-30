@@ -619,7 +619,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
       in
         Binding.prefix_name rawN
         #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])
-        #> Binding.conceal
+        #> Binding.concealed
       end;
 
     val ((bnfs, (deadss, livess)), accum) =
@@ -629,7 +629,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
           ((empty_comp_cache, empty_unfolds), lthy));
 
     fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
-      #> Binding.conceal;
+      #> Binding.concealed;
 
     val Ass = map (map dest_TFree) livess;
     val Ds' = fold (fold Term.add_tfreesT) deadss [];
@@ -646,7 +646,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
     val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
     fun pre_qualify b = Binding.qualify false (Binding.name_of b)
-      #> not (Config.get lthy' bnf_note_all) ? Binding.conceal;
+      #> not (Config.get lthy' bnf_note_all) ? Binding.concealed;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
       @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))

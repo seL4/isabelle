@@ -445,7 +445,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
   let
     val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
       lthy
-      |> Local_Theory.conceal
+      |> Local_Theory.concealed
       |> Inductive.add_inductive_i
           {quiet_mode = true,
             verbose = ! trace,
@@ -507,7 +507,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
   in
     Local_Theory.define
       ((Binding.name (function_name fname), mixfix),
-        ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
+        ((Binding.concealed (Binding.name fdefname), []), f_def)) lthy
   end
 
 fun define_recursion_relation Rname domT qglrs clauses RCss lthy =

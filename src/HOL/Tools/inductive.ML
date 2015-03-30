@@ -843,10 +843,10 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
 
     val is_auxiliary = length cs >= 2; 
     val ((rec_const, (_, fp_def)), lthy') = lthy
-      |> is_auxiliary ? Local_Theory.conceal
+      |> is_auxiliary ? Local_Theory.concealed
       |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Binding.conceal (Thm.def_binding rec_name), @{attributes [nitpick_unfold]}),
+         ((Binding.concealed (Thm.def_binding rec_name), @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> is_auxiliary ? Local_Theory.restore_naming lthy;
@@ -862,7 +862,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
             val xs =
               map Free (Variable.variant_frees lthy intr_ts (mk_names "x" (length Ts) ~~ Ts));
           in
-            (name_mx, (apfst Binding.conceal Attrib.empty_binding, fold_rev lambda (params @ xs)
+            (name_mx, (apfst Binding.concealed Attrib.empty_binding, fold_rev lambda (params @ xs)
               (list_comb (rec_const, params @ make_bool_args' bs i @
                 make_args argTs (xs ~~ Ts)))))
           end) (cnames_syn ~~ cs);
@@ -873,7 +873,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val (_, lthy''') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
     val mono = prove_mono quiet_mode skip_mono predT fp_fun monos lthy''';
     val (_, lthy'''') =
-      Local_Theory.note (apfst Binding.conceal Attrib.empty_binding,
+      Local_Theory.note (apfst Binding.concealed Attrib.empty_binding,
         Proof_Context.export lthy''' lthy'' [mono]) lthy'';
 
   in (lthy'''', lthy''', rec_name, mono, fp_def', map (#2 o #2) consts_defs,
