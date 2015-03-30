@@ -226,10 +226,18 @@ qed
 
 subsection {* Rings: Basic Definitions *}
 
-locale ring = abelian_group R + monoid R for R (structure) +
+locale semiring = abelian_monoid R + monoid R for R (structure) +
   assumes l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
     and r_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
+      ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
+    and l_null[simp]: "x \<in> carrier R ==> \<zero> \<otimes> x = \<zero>"
+    and r_null[simp]: "x \<in> carrier R ==> x \<otimes> \<zero> = \<zero>"
+
+locale ring = abelian_group R + monoid R for R (structure) +
+  assumes "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
+      ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
+    and "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
 
 locale cring = ring + comm_monoid R
@@ -336,26 +344,24 @@ text {*
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89.
 *}
 
-lemma l_null [simp]:
-  "x \<in> carrier R ==> \<zero> \<otimes> x = \<zero>"
+sublocale semiring
 proof -
-  assume R: "x \<in> carrier R"
-  then have "\<zero> \<otimes> x \<oplus> \<zero> \<otimes> x = (\<zero> \<oplus> \<zero>) \<otimes> x"
-    by (simp add: l_distr del: l_zero r_zero)
-  also from R have "... = \<zero> \<otimes> x \<oplus> \<zero>" by simp
-  finally have "\<zero> \<otimes> x \<oplus> \<zero> \<otimes> x = \<zero> \<otimes> x \<oplus> \<zero>" .
-  with R show ?thesis by (simp del: r_zero)
-qed
-
-lemma r_null [simp]:
-  "x \<in> carrier R ==> x \<otimes> \<zero> = \<zero>"
-proof -
-  assume R: "x \<in> carrier R"
-  then have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> (\<zero> \<oplus> \<zero>)"
-    by (simp add: r_distr del: l_zero r_zero)
-  also from R have "... = x \<otimes> \<zero> \<oplus> \<zero>" by simp
-  finally have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> \<zero> \<oplus> \<zero>" .
-  with R show ?thesis by (simp del: r_zero)
+  note [simp] = ring_axioms[unfolded ring_def ring_axioms_def]
+  show "semiring R"
+  proof (unfold_locales)
+    fix x
+    assume R: "x \<in> carrier R"
+    then have "\<zero> \<otimes> x \<oplus> \<zero> \<otimes> x = (\<zero> \<oplus> \<zero>) \<otimes> x"
+      by (simp del: l_zero r_zero)
+    also from R have "... = \<zero> \<otimes> x \<oplus> \<zero>" by simp
+    finally have "\<zero> \<otimes> x \<oplus> \<zero> \<otimes> x = \<zero> \<otimes> x \<oplus> \<zero>" .
+    with R show "\<zero> \<otimes> x = \<zero>" by (simp del: r_zero)
+    from R have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> (\<zero> \<oplus> \<zero>)"
+      by (simp del: l_zero r_zero)
+    also from R have "... = x \<otimes> \<zero> \<oplus> \<zero>" by simp
+    finally have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> \<zero> \<oplus> \<zero>" .
+    with R show "x \<otimes> \<zero> = \<zero>" by (simp del: r_zero)
+  qed auto
 qed
 
 lemma l_minus:
@@ -401,6 +407,12 @@ method_setup algebra = {*
   Scan.succeed (SIMPLE_METHOD' o Ringsimp.algebra_tac)
 *} "normalisation of algebraic structure"
 
+lemmas (in semiring) semiring_simprules
+  [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
+  a_closed zero_closed  m_closed one_closed
+  a_assoc l_zero  a_comm m_assoc l_one l_distr r_zero
+  a_lcomm r_distr l_null r_null 
+
 lemmas (in ring) ring_simprules
   [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
   a_closed zero_closed a_inv_closed minus_closed m_closed one_closed
@@ -419,11 +431,11 @@ lemmas (in cring) cring_simprules
   r_zero r_neg r_neg2 r_neg1 minus_add minus_minus minus_zero
   a_lcomm m_lcomm r_distr l_null r_null l_minus r_minus
 
-lemma (in cring) nat_pow_zero:
+lemma (in semiring) nat_pow_zero:
   "(n::nat) ~= 0 ==> \<zero> (^) n = \<zero>"
   by (induct n) simp_all
 
-context ring begin
+context semiring begin
 
 lemma one_zeroD:
   assumes onezero: "\<one> = \<zero>"
@@ -482,7 +494,7 @@ qed
 
 subsubsection {* Sums over Finite Sets *}
 
-lemma (in ring) finsum_ldistr:
+lemma (in semiring) finsum_ldistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    finsum R f A \<otimes> a = finsum R (%i. f i \<otimes> a) A"
 proof (induct set: finite)
@@ -491,7 +503,7 @@ next
   case (insert x F) then show ?case by (simp add: Pi_def l_distr)
 qed
 
-lemma (in ring) finsum_rdistr:
+lemma (in semiring) finsum_rdistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    a \<otimes> finsum R f A = finsum R (%i. a \<otimes> f i) A"
 proof (induct set: finite)
