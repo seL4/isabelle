@@ -613,7 +613,9 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
       subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;
 
     fun raw_qualify base_b =
-      let val (_, qs, n) = Binding.dest base_b;
+      let
+        val qs = Binding.path_of base_b;
+        val n = Binding.name_of base_b;
       in
         Binding.prefix_name rawN
         #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])

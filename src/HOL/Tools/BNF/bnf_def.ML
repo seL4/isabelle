@@ -689,7 +689,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
     val facts = facts_of_bnf bnf;
     val wits = wits_of_bnf bnf;
     val qualify =
-      let val (_, qs, _) = Binding.dest bnf_b;
+      let val qs = Binding.path_of bnf_b;
       in fold_rev (fn (s, mand) => Binding.qualify mand s) qs #> qualify0 end;
 
     fun note_if_note_all (noted0, lthy0) =

@@ -1006,10 +1006,7 @@ local
                     val def_thm =
                       case AList.lookup (op =) (#defs pannot) n of
                           NONE => error ("Did not find definition: " ^ n)
-                        | SOME binding =>
-                            Binding.dest binding
-                            |> #3
-                            |> Global_Theory.get_thm thy
+                        | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                   in
                     rtac def_thm 1 THEN rest (tl skel) memo
                   end
@@ -1018,10 +1015,7 @@ local
                     val ax_thm =
                       case AList.lookup (op =) (#axs pannot) n of
                           NONE => error ("Did not find axiom: " ^ n)
-                        | SOME binding =>
-                            Binding.dest binding
-                            |> #3
-                            |> Global_Theory.get_thm thy
+                        | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                   in
                     rtac ax_thm 1 THEN rest (tl skel) memo
                   end
@@ -1184,10 +1178,7 @@ local
                   fun def_thm thy =
                     case AList.lookup (op =) (#defs pannot) n of
                         NONE => error ("Did not find definition: " ^ n)
-                      | SOME binding =>
-                          Binding.dest binding
-                          |> #3
-                          |> Global_Theory.get_thm thy
+                      | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                 in
                   (hd skel,
                    Thm.prop_of (def_thm thy)
@@ -1200,10 +1191,7 @@ local
                   val ax_thm =
                     case AList.lookup (op =) (#axs pannot) n of
                         NONE => error ("Did not find axiom: " ^ n)
-                      | SOME binding =>
-                          Binding.dest binding
-                          |> #3
-                          |> Global_Theory.get_thm thy
+                      | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                 in
                   (hd skel,
                    Thm.prop_of ax_thm
