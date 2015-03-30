@@ -3583,129 +3583,30 @@ let
 in Thm.global_cterm_of thy (Logic.mk_equals (t, normalize t)) end
 *}
 
-ML {*
-  fun reorder_bounds_tac prems i =
-    let
-      fun variable_of_bound (Const (@{const_name Trueprop}, _) $
-                             (Const (@{const_name Set.member}, _) $
-                              Free (name, _) $ _)) = name
-        | variable_of_bound (Const (@{const_name Trueprop}, _) $
-                             (Const (@{const_name HOL.eq}, _) $
-                              Free (name, _) $ _)) = name
-        | variable_of_bound t = raise TERM ("variable_of_bound", [t])
-
-      val variable_bounds
-        = map (`(variable_of_bound o Thm.prop_of)) prems
-
-      fun add_deps (name, bnds)
-        = Graph.add_deps_acyclic (name,
-            remove (op =) name (Term.add_free_names (Thm.prop_of bnds) []))
-
-      val order = Graph.empty
-                  |> fold Graph.new_node variable_bounds
-                  |> fold add_deps variable_bounds
-                  |> Graph.strong_conn |> map the_single |> rev
-                  |> map_filter (AList.lookup (op =) variable_bounds)
-
-      fun prepend_prem th tac
-        = tac THEN rtac (th RSN (2, @{thm mp})) i
-    in
-      fold prepend_prem order all_tac
-    end
-
-  fun approximation_conv ctxt ct =
-    approximation_oracle (Proof_Context.theory_of ctxt, Thm.term_of ct |> tap (tracing o Syntax.string_of_term ctxt));
-
-  fun approximate ctxt t =
-    approximation_oracle (Proof_Context.theory_of ctxt, t)
-    |> Thm.prop_of |> Logic.dest_equals |> snd;
-
-  (* Should be in HOL.thy ? *)
-  fun gen_eval_tac conv ctxt = CONVERSION
-    (Object_Logic.judgment_conv (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
-    THEN' rtac TrueI
-
-  val form_equations = @{thms interpret_form_equations};
-
-  fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
-      fun lookup_splitting (Free (name, _))
-        = case AList.lookup (op =) splitting name
-          of SOME s => HOLogic.mk_number @{typ nat} s
-           | NONE => @{term "0 :: nat"}
-      val vs = nth (Thm.prems_of st) (i - 1)
-               |> Logic.strip_imp_concl
-               |> HOLogic.dest_Trueprop
-               |> Term.strip_comb |> snd |> List.last
-               |> HOLogic.dest_list
-      val p = prec
-              |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of ctxt
-    in case taylor
-    of NONE => let
-         val n = vs |> length
-                 |> HOLogic.mk_number @{typ nat}
-                 |> Thm.cterm_of ctxt
-         val s = vs
-                 |> map lookup_splitting
-                 |> HOLogic.mk_list @{typ nat}
-                 |> Thm.cterm_of ctxt
-       in
-         (rtac (Thm.instantiate ([], [(@{cpat "?n::nat"}, n),
-                                     (@{cpat "?prec::nat"}, p),
-                                     (@{cpat "?ss::nat list"}, s)])
-              @{thm "approx_form"}) i
-          THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
-       end
-
-     | SOME t =>
-       if length vs <> 1
-       then raise (TERM ("More than one variable used for taylor series expansion", [Thm.prop_of st]))
-       else let
-         val t = t
-              |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of ctxt
-         val s = vs |> map lookup_splitting |> hd
-              |> Thm.cterm_of ctxt
-       in
-         rtac (Thm.instantiate ([], [(@{cpat "?s::nat"}, s),
-                                     (@{cpat "?t::nat"}, t),
-                                     (@{cpat "?prec::nat"}, p)])
-              @{thm "approx_tse_form"}) i st
-       end
-    end
-
-  val free = Args.context -- Args.term >> (fn (_, Free (n, _)) => n | (ctxt, t) =>
-    error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
-*}
-
 lemma intervalE: "a \<le> x \<and> x \<le> b \<Longrightarrow> \<lbrakk> x \<in> { a .. b } \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by auto
 
 lemma meta_eqE: "x \<equiv> a \<Longrightarrow> \<lbrakk> x = a \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by auto
 
-method_setup approximation = {*
-  Scan.lift Parse.nat
-  --
-  Scan.optional (Scan.lift (Args.$$$ "splitting" |-- Args.colon)
-    |-- Parse.and_list' (free --| Scan.lift (Args.$$$ "=") -- Scan.lift Parse.nat)) []
-  --
-  Scan.option (Scan.lift (Args.$$$ "taylor" |-- Args.colon)
-    |-- (free |-- Scan.lift (Args.$$$ "=") |-- Scan.lift Parse.nat))
-  >>
-  (fn ((prec, splitting), taylor) => fn ctxt =>
-    SIMPLE_METHOD' (fn i =>
-      REPEAT (FIRST' [etac @{thm intervalE},
-                      etac @{thm meta_eqE},
-                      rtac @{thm impI}] i)
-      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
-      THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
-      THEN DETERM (Reification.tac ctxt form_equations NONE i)
-      THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
-      THEN gen_eval_tac (approximation_conv ctxt) ctxt i))
-*} "real number approximation"
-
 ML_file "approximation.ML"
+
+method_setup approximation = {*
+  let val free = Args.context -- Args.term >> (fn (_, Free (n, _)) => n | (ctxt, t) =>
+                   error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
+  in
+    Scan.lift Parse.nat
+    --
+    Scan.optional (Scan.lift (Args.$$$ "splitting" |-- Args.colon)
+      |-- Parse.and_list' (free --| Scan.lift (Args.$$$ "=") -- Scan.lift Parse.nat)) []
+    --
+    Scan.option (Scan.lift (Args.$$$ "taylor" |-- Args.colon)
+      |-- (free |-- Scan.lift (Args.$$$ "=") |-- Scan.lift Parse.nat))
+    >>
+    (fn ((prec, splitting), taylor) => fn ctxt =>
+      SIMPLE_METHOD' (Approximation.approximation_tac prec splitting taylor ctxt))
+  end
+*} "real number approximation"
 
 
 section "Quickcheck Generator"

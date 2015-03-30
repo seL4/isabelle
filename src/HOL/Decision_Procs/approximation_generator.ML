@@ -141,7 +141,7 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
             #> conv_term ctxt (rewrite_with ctxt postproc_form_eqs))
           frees
       in
-        if approximate ctxt (mk_approx_form e ts) |> is_True
+        if Approximation.approximate ctxt (mk_approx_form e ts) |> is_True
         then SOME (true, ts')
         else (if genuine_only then NONE else SOME (false, ts'))
       end
@@ -160,6 +160,8 @@ val preproc_form_eqs =
     "\<not> (p \<or> q) \<longleftrightarrow> \<not> p \<and> \<not> q"
     "\<not> \<not> q \<longleftrightarrow> q"
     by auto}
+
+val form_equations = @{thms interpret_form_equations};
 
 fun reify_goal ctxt t =
   HOLogic.mk_not t
