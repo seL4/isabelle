@@ -17,20 +17,20 @@ sig
   val schematic: bool Config.T
   val goal_context: term -> Proof.context -> (string * typ) list * Proof.context
   val res_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
-    int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic
   val eres_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
-    int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic
   val cut_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
-    int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic
   val forw_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
-    int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic
   val dres_inst_tac: Proof.context ->
-    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list -> thm ->
-    int -> tactic
+    ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
+    thm -> int -> tactic
   val thin_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
     int -> tactic
   val subgoal_tac: Proof.context -> string -> (binding * string option * mixfix) list ->
@@ -39,7 +39,8 @@ sig
   val method:
     (Proof.context -> ((indexname * Position.T) * string) list ->
       (binding * string option * mixfix) list -> thm -> int -> tactic) ->
-    (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
+    (Proof.context -> thm list -> int -> tactic) ->
+    (Proof.context -> Proof.method) context_parser
 end;
 
 structure Rule_Insts: RULE_INSTS =
@@ -175,14 +176,14 @@ fun read_instantiate ctxt insts xs =
 
 (* where: named instantiation *)
 
-val parse_insts =
+val named_insts =
   Parse.and_list1 (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax))
     -- Parse.for_fixes;
 
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
-    (Scan.lift parse_insts >> (fn (insts, fixes) =>
-      Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
+    (Scan.lift named_insts >> (fn args =>
+      Thm.rule_attribute (fn context => uncurry (where_rule (Context.proof_of context)) args)))
     "named instantiation of theorem");
 
 
@@ -201,8 +202,8 @@ in
 
 val _ = Theory.setup
   (Attrib.setup @{binding "of"}
-    (Scan.lift (insts -- Parse.for_fixes) >> (fn (args, fixes) =>
-      Thm.rule_attribute (fn context => of_rule (Context.proof_of context) args fixes)))
+    (Scan.lift (insts -- Parse.for_fixes) >> (fn args =>
+      Thm.rule_attribute (fn context => uncurry (of_rule (Context.proof_of context)) args)))
     "positional instantiation of theorem");
 
 end;
@@ -231,14 +232,11 @@ fun goal_context goal ctxt =
 
 fun bires_inst_tac bires_flag ctxt raw_insts raw_fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
-    (* goal context *)
-
+    (*goal context*)
     val (params, goal_ctxt) = goal_context (Thm.term_of cgoal) ctxt;
     val paramTs = map #2 params;
 
-
-    (* instantiation context *)
-
+    (*instantiation context*)
     val ((inst_tvars, inst_vars), inst_ctxt) = read_insts thm raw_insts raw_fixes goal_ctxt;
     val fixed = map #1 (fold (Variable.add_newly_fixed inst_ctxt goal_ctxt o #2) inst_vars []);
 
@@ -309,10 +307,8 @@ fun subgoal_tac ctxt A fixes =
 (* method wrapper *)
 
 fun method inst_tac tac =
-  Args.goal_spec --
-  Scan.optional (Scan.lift (parse_insts --| Args.$$$ "in")) ([], []) --
-  Attrib.thms >>
-  (fn ((quant, (insts, fixes)), thms) => fn ctxt => METHOD (fn facts =>
+  Args.goal_spec -- Scan.optional (Scan.lift (named_insts --| Args.$$$ "in")) ([], []) --
+  Attrib.thms >> (fn ((quant, (insts, fixes)), thms) => fn ctxt => METHOD (fn facts =>
     if null insts andalso null fixes
     then quant (Method.insert_tac facts THEN' tac ctxt thms)
     else
