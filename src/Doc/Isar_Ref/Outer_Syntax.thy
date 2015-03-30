@@ -290,14 +290,26 @@ text \<open>
     @{syntax_def prop}: @{syntax term}
   \<close>}
 
-  Positional instantiations are indicated by giving a sequence of
-  terms, or the placeholder ``@{text _}'' (underscore), which means to
-  skip a position.
+  Positional instantiations are specified as a sequence of terms, or the
+  placeholder ``@{text _}'' (underscore), which means to skip a position.
 
   @{rail \<open>
     @{syntax_def inst}: '_' | @{syntax term}
     ;
     @{syntax_def insts}: (@{syntax inst} *)
+  \<close>}
+
+  Named instantiations are specified as pairs of assignments @{text "v =
+  t"}, which refer to schematic variables in some theorem that is
+  instantiated. Both type and terms instantiations are admitted, and
+  distinguished by the usual syntax of variable names.
+
+  @{rail \<open>
+    @{syntax_def named_inst}: variable '=' (type | term)
+    ;
+    @{syntax_def named_insts}: (named_inst @'and' +)
+    ;
+    variable: @{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}
   \<close>}
 
   Type declarations and definitions usually refer to @{syntax
