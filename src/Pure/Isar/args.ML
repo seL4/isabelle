@@ -23,6 +23,7 @@ sig
   val maybe: 'a parser -> 'a option parser
   val cartouche_inner_syntax: string parser
   val cartouche_input: Input.source parser
+  val text_token: Token.T parser
   val text_input: Input.source parser
   val text: string parser
   val name_inner_syntax: string parser
