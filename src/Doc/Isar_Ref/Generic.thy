@@ -301,9 +301,7 @@ text \<open>
   @{rail \<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
       @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
-    ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
-    ;
-    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and') @{syntax for_fixes}
+    (@{syntax named_insts} @{syntax for_fixes} @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
     @@{method thin_tac} @{syntax goal_spec}? @{syntax prop} @{syntax for_fixes}
     ;

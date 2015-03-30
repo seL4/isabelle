@@ -740,9 +740,7 @@ text \<open>
     ;
     @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? @{syntax for_fixes}
     ;
-    @@{attribute "where"}
-      ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
-      (@{syntax type} | @{syntax term}) * @'and') \<newline> @{syntax for_fixes}
+    @@{attribute "where"} @{syntax named_insts} @{syntax for_fixes}
   \<close>}
 
   \begin{description}

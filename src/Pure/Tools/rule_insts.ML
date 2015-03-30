@@ -104,15 +104,18 @@ fun read_term s ctxt =
     val t' = Syntax.check_term ctxt' t;
   in (t', ctxt') end;
 
-fun read_insts thm mixed_insts ctxt =
+fun read_insts thm raw_insts raw_fixes ctxt =
   let
     val (type_insts, term_insts) =
-      List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) mixed_insts;
+      List.partition (fn (((x, _), _), _) => String.isPrefix "'" x) raw_insts;
 
-    (*thm context*)
-    val ctxt1 = Variable.declare_thm thm ctxt;
     val tvars = Thm.fold_terms Term.add_tvars thm [];
     val vars = Thm.fold_terms Term.add_vars thm [];
+
+    (*eigen-context*)
+    val ctxt1 = ctxt
+      |> Variable.declare_thm thm
+      |> Proof_Context.read_vars raw_fixes |-> Proof_Context.add_fixes |> #2;
 
     (*explicit type instantiations*)
     val instT1 = Term_Subst.instantiateT (map (read_type ctxt1 tvars) type_insts);
@@ -140,16 +143,15 @@ end;
 
 (** forward rules **)
 
-fun where_rule ctxt mixed_insts fixes thm =
+fun where_rule ctxt raw_insts raw_fixes thm =
   let
-    val ctxt' = ctxt |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
-    val ((inst_tvars, inst_vars), ctxt'') = read_insts thm mixed_insts ctxt';
+    val ((inst_tvars, inst_vars), ctxt') = read_insts thm raw_insts raw_fixes ctxt;
   in
     thm
     |> Drule.instantiate_normalize
-      (map (apply2 (Thm.ctyp_of ctxt'') o apfst TVar) inst_tvars,
-       map (apply2 (Thm.cterm_of ctxt'') o apfst Var) inst_vars)
-    |> singleton (Variable.export ctxt'' ctxt)
+      (map (apply2 (Thm.ctyp_of ctxt') o apfst TVar) inst_tvars,
+       map (apply2 (Thm.cterm_of ctxt') o apfst Var) inst_vars)
+    |> singleton (Variable.export ctxt' ctxt)
     |> Rule_Cases.save thm
   end;
 
@@ -173,12 +175,14 @@ fun read_instantiate ctxt insts xs =
 
 (* where: named instantiation *)
 
+val parse_insts =
+  Parse.and_list1 (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax))
+    -- Parse.for_fixes;
+
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
-    (Scan.lift
-      (Parse.and_list (Parse.position Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax))
-        -- Parse.for_fixes) >> (fn (insts, fixes) =>
-          Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
+    (Scan.lift parse_insts >> (fn (insts, fixes) =>
+      Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
     "named instantiation of theorem");
 
 
@@ -225,7 +229,7 @@ fun goal_context goal ctxt =
 
 (* resolution after lifting and instantiation; may refer to parameters of the subgoal *)
 
-fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
+fun bires_inst_tac bires_flag ctxt raw_insts raw_fixes thm i st = CSUBGOAL (fn (cgoal, _) =>
   let
     (* goal context *)
 
@@ -235,10 +239,7 @@ fun bires_inst_tac bires_flag ctxt mixed_insts fixes thm i st = CSUBGOAL (fn (cg
 
     (* instantiation context *)
 
-    val ((inst_tvars, inst_vars), inst_ctxt) = goal_ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
-      |> read_insts thm mixed_insts;
-
+    val ((inst_tvars, inst_vars), inst_ctxt) = read_insts thm raw_insts raw_fixes goal_ctxt;
     val fixed = map #1 (fold (Variable.add_newly_fixed inst_ctxt goal_ctxt o #2) inst_vars []);
 
 
@@ -309,10 +310,7 @@ fun subgoal_tac ctxt A fixes =
 
 fun method inst_tac tac =
   Args.goal_spec --
-  Scan.optional (Scan.lift
-    (Parse.and_list1
-      (Parse.position Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax)) --
-      Parse.for_fixes --| Args.$$$ "in")) ([], []) --
+  Scan.optional (Scan.lift (parse_insts --| Args.$$$ "in")) ([], []) --
   Attrib.thms >>
   (fn ((quant, (insts, fixes)), thms) => fn ctxt => METHOD (fn facts =>
     if null insts andalso null fixes
