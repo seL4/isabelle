@@ -99,16 +99,18 @@ This tutorial is organized as follows:
 \item Section \ref{sec:defining-datatypes}, ``Defining Datatypes,''
 describes how to specify datatypes using the @{command datatype} command.
 
-\item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive
-Functions,'' describes how to specify recursive functions using
-@{command primrec}.
+\item Section \ref{sec:defining-primitively-recursive-functions}, ``Defining
+Primitively Recursive Functions,'' describes how to specify recursive functions
+using @{command primrec}. (A separate tutorial @{cite "isabelle-function"}
+describes the more general \keyw{fun} and \keyw{function} commands.)
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
 describes how to specify codatatypes using the @{command codatatype} command.
 
-\item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive
-Functions,'' describes how to specify corecursive functions using the
-@{command primcorec} and @{command primcorecursive} commands.
+\item Section \ref{sec:defining-primitively-corecursive-functions},
+``Defining Primitively Corecursive Functions,'' describes how to specify
+corecursive functions using the @{command primcorec} and
+@{command primcorecursive} commands.
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
 Bounded Natural Functors,'' explains how to use the @{command bnf} command
@@ -1151,17 +1153,15 @@ to derive discriminators and selectors, this can be achieved using
 *}
 
 
-section {* Defining Recursive Functions
-  \label{sec:defining-recursive-functions} *}
+section {* Defining Primitively Recursive Functions
+  \label{sec:defining-primitively-recursive-functions} *}
 
 text {*
 Recursive functions over datatypes can be specified using the @{command primrec}
 command, which supports primitive recursion, or using the more general
-\keyw{fun} and \keyw{function} commands. In this tutorial, the focus is on
-@{command primrec}; the other two commands are described in a separate
-tutorial @{cite "isabelle-function"}.
-
-%%% TODO: partial_function
+\keyw{fun}, \keyw{function}, and \keyw{partial_function} commands. In this
+tutorial, the focus is on @{command primrec}; \keyw{fun} and \keyw{function} are
+described in a separate tutorial @{cite "isabelle-function"}.
 *}
 
 
@@ -1947,8 +1947,8 @@ For convenience, @{command codatatype} also provides the following collection:
 *}
 
 
-section {* Defining Corecursive Functions
-  \label{sec:defining-corecursive-functions} *}
+section {* Defining Primitively Corecursive Functions
+  \label{sec:defining-primitively-corecursive-functions} *}
 
 text {*
 Corecursive functions can be specified using the @{command primcorec} and
@@ -2085,7 +2085,11 @@ actions (@{text s}), a pseudorandom function generator (@{text f}), and a
 pseudorandom seed (@{text n}):
 *}
 
-    primcorec(*<*) (in early)(*>*)
+(*<*)
+    context early
+    begin
+(*>*)
+    primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "random_process s f n =
@@ -2098,6 +2102,9 @@ pseudorandom seed (@{text n}):
           else
             Choice (random_process (every_snd s) (f \<circ> f) (f n))
               (random_process (every_snd (stl s)) (f \<circ> f) (f (f n))))"
+(*<*)
+    end
+(*>*)
 
 text {*
 \noindent
@@ -2300,7 +2307,7 @@ With the constructor view, we must distinguish between the @{const LNil} and
 the @{const LCons} case. The condition for @{const LCons} is
 left implicit, as the negation of that for @{const LNil}.
 
-For this example, the constructor view is slighlty more involved than the
+For this example, the constructor view is slightly more involved than the
 code equation. Recall the code view version presented in
 Section~\ref{sssec:primcorec-simple-corecursion}.
 % TODO: \[{thm code_view.lappend.code}\]
