@@ -737,7 +737,7 @@ end
 
 (*** Isabelle helpers ***)
 
-val local_prefix = "local" ^ Long_Name.separator
+val local_prefix = Long_Name.localN ^ Long_Name.separator
 
 fun elided_backquote_thm threshold th =
   elide_string threshold (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
