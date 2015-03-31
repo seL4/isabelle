@@ -166,18 +166,17 @@ fun is_concealed space name = #concealed (the_entry space name);
 (* intern *)
 
 fun intern' (Name_Space {internals, ...}) xname =
-  (case Change_Table.lookup internals xname of
-    NONE => (xname, true)
-  | SOME ([], []) => (xname, true)
-  | SOME ([name], _) => (name, true)
-  | SOME (name :: _, _) => (name, false)
-  | SOME ([], name' :: _) => (Long_Name.hidden name', true));
+  (case the_default ([], []) (Change_Table.lookup internals xname) of
+    ([name], _) => (name, true)
+  | (name :: _, _) => (name, false)
+  | ([], []) => (Long_Name.hidden xname, true)
+  | ([], name' :: _) => (Long_Name.hidden name', true));
 
 val intern = #1 oo intern';
 
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of
-    NONE => [name]
+    NONE => []
   | SOME (externals, _) => externals);
 
 fun valid_accesses (Name_Space {internals, ...}) name =

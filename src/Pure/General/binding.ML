@@ -47,7 +47,7 @@ struct
 (* datatype *)
 
 datatype binding = Binding of
- {private: bool,                    (*entry is private -- no name space accesses, only full name*)
+ {private: bool,                    (*entry is strictly private -- no name space accesses*)
   concealed: bool,                  (*entry is for foundational purposes -- please ignore*)
   prefix: (string * bool) list,     (*system prefix*)
   qualifier: (string * bool) list,  (*user qualifier*)

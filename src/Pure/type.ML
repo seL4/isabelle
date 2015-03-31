@@ -659,8 +659,9 @@ fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val types' = f types;
     val _ =
+      not (Name_Space.defined types' "dummy") orelse
       Name_Space.intern (Name_Space.space_of_table types') "dummy" = "dummy" orelse
-        error "Illegal declaration of dummy type";
+      error "Illegal declaration of dummy type";
   in (classes, default, types') end);
 
 fun syntactic tsig (Type (c, Ts)) =
