@@ -66,8 +66,7 @@ val metis_name_table =
         else metis_ad_hoc_type_tag, true))]
 
 fun old_skolem_const_name i j num_T_args =
-  old_skolem_const_prefix ^ Long_Name.separator ^
-  (space_implode Long_Name.separator (map string_of_int [i, j, num_T_args]))
+  Long_Name.implode (old_skolem_const_prefix :: map string_of_int [i, j, num_T_args])
 
 fun conceal_old_skolem_terms i old_skolems t =
   if exists_Const (curry (op =) @{const_name Meson.skolem} o fst) t then

@@ -414,9 +414,8 @@ fun quasi_unambiguous_case_names names =
     val ps = map (`Long_Name.base_name) names;
     val dups = Library.duplicates (op =) (map fst ps);
     fun underscore s =
-      let val ss = space_explode Long_Name.separator s in
-        space_implode "_" (drop (length ss - 2) ss)
-      end;
+      let val ss = Long_Name.explode s
+      in space_implode "_" (drop (length ss - 2) ss) end;
   in
     map (fn (base, full) => if member (op =) dups base then underscore full else base) ps
     |> Name.variant_list []
