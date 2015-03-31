@@ -32,7 +32,9 @@ sig
   val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
   type naming
-  val private: naming -> naming
+  val get_scope: naming -> Binding.scope option
+  val new_scope: naming -> Binding.scope * naming
+  val private: Binding.scope -> naming -> naming
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -280,37 +282,48 @@ fun merge
 (* datatype naming *)
 
 datatype naming = Naming of
- {private: bool,
+ {scopes: Binding.scope list,
+  private: Binding.scope option,
   concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (private, concealed, group, theory_name, path) =
-  Naming {private = private, concealed = concealed, group = group,
-    theory_name = theory_name, path = path};
+fun make_naming (scopes, private, concealed, group, theory_name, path) =
+  Naming {scopes = scopes, private = private, concealed = concealed,
+    group = group, theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {private, concealed, group, theory_name, path}) =
-  make_naming (f (private, concealed, group, theory_name, path));
+fun map_naming f (Naming {scopes, private, concealed, group, theory_name, path}) =
+  make_naming (f (scopes, private, concealed, group, theory_name, path));
 
-fun map_path f = map_naming (fn (private, concealed, group, theory_name, path) =>
-  (private, concealed, group, theory_name, f path));
+fun map_path f = map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
+  (scopes, private, concealed, group, theory_name, f path));
 
 
-val private = map_naming (fn (_, concealed, group, theory_name, path) =>
-  (true, concealed, group, theory_name, path));
+fun get_scopes (Naming {scopes, ...}) = scopes;
+val get_scope = try hd o get_scopes;
 
-val concealed = map_naming (fn (private, _, group, theory_name, path) =>
-  (private, true, group, theory_name, path));
+fun new_scope naming =
+  let
+    val scope = Binding.new_scope ();
+    val naming' =
+      naming |> map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
+        (scope :: scopes, private, concealed, group, theory_name, path));
+  in (scope, naming') end;
 
-fun set_theory_name theory_name = map_naming (fn (private, concealed, group, _, path) =>
-  (private, concealed, group, theory_name, path));
+fun private scope = map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
+  (scopes, SOME scope, concealed, group, theory_name, path));
 
+val concealed = map_naming (fn (scopes, private, _, group, theory_name, path) =>
+  (scopes, private, true, group, theory_name, path));
+
+fun set_theory_name theory_name = map_naming (fn (scopes, private, concealed, group, _, path) =>
+  (scopes, private, concealed, group, theory_name, path));
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (private, concealed, _, theory_name, path) =>
-  (private, concealed, group, theory_name, path));
+fun set_group group = map_naming (fn (scopes, private, concealed, _, theory_name, path) =>
+  (scopes, private, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -325,18 +338,18 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 fun qualified_path mandatory binding = map_path (fn path =>
   path @ Binding.path_of (Binding.qualified mandatory "" binding));
 
-val global_naming = make_naming (false, false, NONE, "", []);
+val global_naming = make_naming ([], NONE, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
 
 
 (* full name *)
 
 fun transform_binding (Naming {private, concealed, ...}) =
-  private ? Binding.private #>
+  Binding.private_default private #>
   concealed ? Binding.concealed;
 
 fun name_spec naming binding =
-  Binding.name_spec (get_path naming) (transform_binding naming binding);
+  Binding.name_spec (get_scopes naming) (get_path naming) (transform_binding naming binding);
 
 fun full_name naming =
   name_spec naming #> #spec #> map #1 #> Long_Name.implode;
@@ -357,7 +370,7 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   (case name_spec naming binding of
-    {private = true, ...} => ([], [])
+    {accessible = false, ...} => ([], [])
   | {spec, ...} =>
       let
         val sfxs = mandatory_suffixes spec;

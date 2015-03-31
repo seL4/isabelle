@@ -34,6 +34,8 @@ sig
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
+  val get_scope: Proof.context -> Binding.scope option
+  val new_scope: Proof.context -> Binding.scope * Proof.context
   val concealed: Proof.context -> Proof.context
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
@@ -304,6 +306,14 @@ val map_naming = Context.proof_map o Name_Space.map_naming;
 val restore_naming = map_naming o K o naming_of;
 
 val full_name = Name_Space.full_name o naming_of;
+
+val get_scope = Name_Space.get_scope o naming_of;
+
+fun new_scope ctxt =
+  let
+    val (scope, naming') = Name_Space.new_scope (naming_of ctxt);
+    val ctxt' = map_naming (K naming') ctxt;
+  in (scope, ctxt') end;
 
 val concealed = map_naming Name_Space.concealed;
 

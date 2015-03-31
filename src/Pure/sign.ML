@@ -101,6 +101,8 @@ sig
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
+  val get_scope: theory -> Binding.scope option
+  val new_scope: theory -> Binding.scope * theory
   val new_group: theory -> theory
   val reset_group: theory -> theory
   val add_path: string -> theory -> theory
@@ -499,6 +501,14 @@ val del_trrules = map_syn o Syntax.remove_trrules;
 
 
 (* naming *)
+
+val get_scope = Name_Space.get_scope o naming_of;
+
+fun new_scope thy =
+  let
+    val (scope, naming') = Name_Space.new_scope (naming_of thy);
+    val thy' = map_naming (K naming') thy;
+  in (scope, thy') end;
 
 val new_group = map_naming Name_Space.new_group;
 val reset_group = map_naming Name_Space.reset_group;

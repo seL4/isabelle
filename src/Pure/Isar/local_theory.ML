@@ -144,9 +144,13 @@ fun assert_bottom b lthy =
     else lthy
   end;
 
-fun open_target background_naming operations after_close target =
-  assert target
-  |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)));
+fun open_target background_naming operations after_close lthy =
+  let
+    val _ = assert lthy;
+    val (_, target) = Proof_Context.new_scope lthy;
+  in
+    target |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)))
+  end;
 
 fun close_target lthy =
   let
