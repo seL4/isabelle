@@ -737,16 +737,17 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
              bnd_def
 
     val thm =
-      if Name_Space.defined_entry (Theory.axiom_space thy) def_name then
-        Thm.axiom thy def_name
-      else
-        if is_none prob_name_opt then
-          (*This mode is for testing, so we can be a bit
-            looser with theories*)
-          Thm.add_axiom_global (bnd_name, conclusion) thy
-          |> fst |> snd
-        else
-          raise (NO_SKOLEM_DEF (def_name, bnd_name, conclusion))
+      (case try (Thm.axiom thy) def_name of
+        SOME thm => thm
+      | NONE =>
+          if is_none prob_name_opt then
+            (*This mode is for testing, so we can be a bit
+              looser with theories*)
+            (* FIXME bad theory context!? *)
+            Thm.add_axiom_global (bnd_name, conclusion) thy
+            |> fst |> snd
+          else
+            raise (NO_SKOLEM_DEF (def_name, bnd_name, conclusion)))
   in
     rtac (Drule.export_without_context thm) i st
   end
