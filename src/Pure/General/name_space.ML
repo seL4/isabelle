@@ -12,7 +12,6 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
-  val defined_entry: T -> string -> bool
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
   val entry_ord: T -> string * string -> order
@@ -62,6 +61,7 @@ sig
   val check_reports: Context.generic -> 'a table ->
     xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
+  val defined: 'a table -> string -> bool
   val lookup_key: 'a table -> string -> (string * 'a) option
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -146,8 +146,6 @@ val change_ignore_space = map_name_space (fn (kind, internals, entries) =>
 fun empty kind = make_name_space (kind, Change_Table.empty, Change_Table.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
-
-fun defined_entry (Name_Space {entries, ...}) = Change_Table.defined entries;
 
 fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
@@ -497,6 +495,7 @@ fun check context table (xname, pos) =
     val _ = Position.reports reports;
   in (name, x) end;
 
+fun defined (Table (_, tab)) name = Change_Table.defined tab name;
 fun lookup_key (Table (_, tab)) name = Change_Table.lookup_key tab name;
 
 fun get table name =

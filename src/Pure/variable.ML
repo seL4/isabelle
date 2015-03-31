@@ -347,7 +347,7 @@ fun is_improper ctxt x =
 
 (* specialized name space *)
 
-val is_fixed = Name_Space.defined_entry o fixes_space;
+val is_fixed = Name_Space.defined o fixes_of;
 fun is_newly_fixed inner outer = is_fixed inner andf (not o is_fixed outer);
 
 val fixed_ord = Name_Space.entry_ord o fixes_space;
