@@ -645,6 +645,29 @@ lemma sum_power2_gt_zero_iff:
   "0 < x\<^sup>2 + y\<^sup>2 \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
   unfolding not_le [symmetric] by (simp add: sum_power2_le_zero_iff)
 
+lemma abs_le_square_iff:
+   "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> x\<^sup>2 \<le> y\<^sup>2"
+proof
+  assume "\<bar>x\<bar> \<le> \<bar>y\<bar>"
+  then have "\<bar>x\<bar>\<^sup>2 \<le> \<bar>y\<bar>\<^sup>2" by (rule power_mono, simp)
+  then show "x\<^sup>2 \<le> y\<^sup>2" by simp
+next
+  assume "x\<^sup>2 \<le> y\<^sup>2"
+  then show "\<bar>x\<bar> \<le> \<bar>y\<bar>"
+    by (auto intro!: power2_le_imp_le [OF _ abs_ge_zero])
+qed
+
+lemma abs_square_le_1:"x\<^sup>2 \<le> 1 \<longleftrightarrow> abs(x) \<le> 1"
+  using abs_le_square_iff [of x 1]
+  by simp
+
+lemma abs_square_eq_1: "x\<^sup>2 = 1 \<longleftrightarrow> abs(x) = 1"
+  by (auto simp add: abs_if power2_eq_1_iff)
+  
+lemma abs_square_less_1: "x\<^sup>2 < 1 \<longleftrightarrow> abs(x) < 1"
+  using  abs_square_eq_1 [of x] abs_square_le_1 [of x]
+  by (auto simp add: le_less)
+
 end
 
 

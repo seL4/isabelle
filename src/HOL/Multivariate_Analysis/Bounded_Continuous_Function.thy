@@ -407,7 +407,7 @@ proof -
     hence "(\<Sum>i\<in>Basis. (dist (clamp a b y \<bullet> i) (clamp a b x \<bullet> i))\<^sup>2)
         \<le> (\<Sum>i\<in>Basis. (dist (y \<bullet> i) (x \<bullet> i))\<^sup>2)"
       by (auto intro!: setsum_mono
-        simp add: clamp_def dist_real_def real_abs_le_square_iff[symmetric])
+        simp add: clamp_def dist_real_def abs_le_square_iff[symmetric])
     thus ?thesis
       by (auto intro: real_sqrt_le_mono
         simp add: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] setL2_def)

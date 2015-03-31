@@ -4542,16 +4542,6 @@ lemma summable_arctan_series:
   (is "summable (?c x)")
   by (rule summable_Leibniz(1), rule zeroseq_arctan_series[OF assms], rule monoseq_arctan_series[OF assms])
 
-lemma less_one_imp_sqr_less_one:
-  fixes x :: real
-  assumes "\<bar>x\<bar> < 1"
-  shows "x\<^sup>2 < 1"
-proof -
-  have "\<bar>x\<^sup>2\<bar> < 1"
-    by (metis abs_power2 assms pos2 power2_abs power_0 power_strict_decreasing zero_eq_power2 zero_less_abs_iff)
-  thus ?thesis using zero_le_power2 by auto
-qed
-
 lemma DERIV_arctan_series:
   assumes "\<bar> x \<bar> < 1"
   shows "DERIV (\<lambda> x'. \<Sum> k. (-1)^k * (1 / real (k*2+1) * x' ^ (k*2+1))) x :> (\<Sum> k. (-1)^k * x^(k*2))"
@@ -4568,7 +4558,7 @@ proof -
   {
     fix x :: real
     assume "\<bar>x\<bar> < 1"
-    hence "x\<^sup>2 < 1" by (rule less_one_imp_sqr_less_one)
+    hence "x\<^sup>2 < 1" by (simp add: abs_square_less_1)
     have "summable (\<lambda> n. (- 1) ^ n * (x\<^sup>2) ^n)"
       by (rule summable_Leibniz(1), auto intro!: LIMSEQ_realpow_zero monoseq_realpow `x\<^sup>2 < 1` order_less_imp_le[OF `x\<^sup>2 < 1`])
     hence "summable (\<lambda> n. (- 1) ^ n * x^(2*n))" unfolding power_mult .
@@ -4676,7 +4666,7 @@ proof -
             hence "\<bar>x\<bar> < r" by auto
             hence "\<bar>x\<bar> < 1" using `r < 1` by auto
             have "\<bar> - (x\<^sup>2) \<bar> < 1"
-              using less_one_imp_sqr_less_one[OF `\<bar>x\<bar> < 1`] by auto
+              using abs_square_less_1 `\<bar>x\<bar> < 1` by auto
             hence "(\<lambda> n. (- (x\<^sup>2)) ^ n) sums (1 / (1 - (- (x\<^sup>2))))"
               unfolding real_norm_def[symmetric] by (rule geometric_sums)
             hence "(?c' x) sums (1 / (1 - (- (x\<^sup>2))))"

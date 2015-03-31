@@ -1260,6 +1260,10 @@ lemma abs_diff_less_iff:
   "\<bar>x - a\<bar> < r \<longleftrightarrow> a - r < x \<and> x < a + r"
   by (auto simp add: diff_less_eq ac_simps abs_less_iff)
 
+lemma abs_diff_le_iff:
+   "\<bar>x - a\<bar> \<le> r \<longleftrightarrow> a - r \<le> x \<and> x \<le> a + r"
+  by (auto simp add: diff_le_eq ac_simps abs_le_iff)
+
 end
 
 hide_fact (open) comm_mult_left_mono comm_mult_strict_left_mono distrib

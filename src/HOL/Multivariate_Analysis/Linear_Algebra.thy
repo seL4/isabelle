@@ -68,25 +68,14 @@ lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
 lemma norm_eq_square: "norm x = a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x = a\<^sup>2"
   by (auto simp add: norm_eq_sqrt_inner)
 
-lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)\<^sup>2 \<le> y\<^sup>2"
-proof
-  assume "\<bar>x\<bar> \<le> \<bar>y\<bar>"
-  then have "\<bar>x\<bar>\<^sup>2 \<le> \<bar>y\<bar>\<^sup>2" by (rule power_mono, simp)
-  then show "x\<^sup>2 \<le> y\<^sup>2" by simp
-next
-  assume "x\<^sup>2 \<le> y\<^sup>2"
-  then have "sqrt (x\<^sup>2) \<le> sqrt (y\<^sup>2)" by (rule real_sqrt_le_mono)
-  then show "\<bar>x\<bar> \<le> \<bar>y\<bar>" by simp
-qed
-
 lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x \<le> a\<^sup>2"
-  apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
+  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
   using norm_ge_zero[of x]
   apply arith
   done
 
 lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> x \<bullet> x \<ge> a\<^sup>2"
-  apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
+  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
   using norm_ge_zero[of x]
   apply arith
   done
