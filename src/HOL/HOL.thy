@@ -1264,6 +1264,12 @@ next
   then show "PROP P" .
 qed
 
+lemma implies_True_equals: "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True"
+by default (intro TrueI)
+
+lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
+by default simp_all
+
 lemma ex_simps:
   "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
   "!!P Q. (EX x. P & Q x)   = (P & (EX x. Q x))"
