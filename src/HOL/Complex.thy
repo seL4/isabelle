@@ -93,10 +93,10 @@ lemma Re_power2: "Re (x ^ 2) = (Re x)^2 - (Im x)^2"
 lemma Im_power2: "Im (x ^ 2) = 2 * Re x * Im x"
   by (simp add: power2_eq_square)
 
-lemma Re_power_real: "Im x = 0 \<Longrightarrow> Re (x ^ n) = Re x ^ n "
+lemma Re_power_real [simp]: "Im x = 0 \<Longrightarrow> Re (x ^ n) = Re x ^ n "
   by (induct n) simp_all
 
-lemma Im_power_real: "Im x = 0 \<Longrightarrow> Im (x ^ n) = 0"
+lemma Im_power_real [simp]: "Im x = 0 \<Longrightarrow> Im (x ^ n) = 0"
   by (induct n) simp_all
 
 subsection {* Scalar Multiplication *}
@@ -821,6 +821,9 @@ lemma csqrt_of_real_nonneg [simp]: "Im x = 0 \<Longrightarrow> Re x \<ge> 0 \<Lo
   by (simp add: complex_eq_iff norm_complex_def)
 
 lemma csqrt_of_real_nonpos [simp]: "Im x = 0 \<Longrightarrow> Re x \<le> 0 \<Longrightarrow> csqrt x = \<i> * sqrt \<bar>Re x\<bar>"
+  by (simp add: complex_eq_iff norm_complex_def)
+
+lemma of_real_sqrt: "x \<ge> 0 \<Longrightarrow> of_real (sqrt x) = csqrt (of_real x)"
   by (simp add: complex_eq_iff norm_complex_def)
 
 lemma csqrt_0 [simp]: "csqrt 0 = 0"

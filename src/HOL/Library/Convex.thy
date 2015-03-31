@@ -121,6 +121,9 @@ proof -
   then show "convex {a<..<b}" by (simp only: convex_Int 3 4)
 qed
 
+lemma convex_Reals: "convex Reals"
+  by (simp add: convex_def scaleR_conv_of_real)
+    
 subsection {* Explicit expressions for convexity in terms of arbitrary sums. *}
 
 lemma convex_setsum:

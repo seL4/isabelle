@@ -561,6 +561,10 @@ lemma DERIV_subset:
    \<Longrightarrow> (f has_field_derivative f') (at x within t)"
   by (simp add: has_field_derivative_def has_derivative_within_subset)
 
+lemma has_field_derivative_at_within:
+    "(f has_field_derivative f') (at x) \<Longrightarrow> (f has_field_derivative f') (at x within s)"
+  using DERIV_subset by blast
+
 abbreviation (input)
   DERIV :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
   ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)

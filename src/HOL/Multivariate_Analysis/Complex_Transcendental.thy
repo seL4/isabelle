@@ -42,7 +42,7 @@ qed
 
 theorem exp_Euler: "exp(ii * z) = cos(z) + ii * sin(z)"
 proof -
-  have "(\<lambda>n. (cos_coeff n + ii * sin_coeff n) * z^n) 
+  have "(\<lambda>n. (cos_coeff n + ii * sin_coeff n) * z^n)
         = (\<lambda>n. (ii * z) ^ n /\<^sub>R (fact n))"
   proof
     fix n
@@ -74,13 +74,11 @@ lemma cos_exp_eq:  "cos z = (exp(ii * z) + exp(-(ii * z))) / 2"
 
 subsection{*Relationships between real and complex trig functions*}
 
-declare sin_of_real [simp] cos_of_real [simp]
-
 lemma real_sin_eq [simp]:
   fixes x::real
   shows "Re(sin(of_real x)) = sin x"
   by (simp add: sin_of_real)
-  
+
 lemma real_cos_eq [simp]:
   fixes x::real
   shows "Re(cos(of_real x)) = cos x"
@@ -100,10 +98,10 @@ proof -
     by (rule exp_converges)
   finally have "(\<lambda>n. cnj (z ^ n /\<^sub>R (fact n))) sums (exp (cnj z))" .
   moreover have "(\<lambda>n. cnj (z ^ n /\<^sub>R (fact n))) sums (cnj (exp z))"
-    by (metis exp_converges sums_cnj) 
+    by (metis exp_converges sums_cnj)
   ultimately show ?thesis
     using sums_unique2
-    by blast 
+    by blast
 qed
 
 lemma cnj_sin: "cnj(sin z) = sin(cnj z)"
@@ -111,15 +109,6 @@ lemma cnj_sin: "cnj(sin z) = sin(cnj z)"
 
 lemma cnj_cos: "cnj(cos z) = cos(cnj z)"
   by (simp add: cos_exp_eq exp_cnj field_simps)
-
-lemma exp_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> exp z \<in> \<real>"
-  by (metis Reals_cases Reals_of_real exp_of_real)
-
-lemma sin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> sin z \<in> \<real>"
-  by (metis Reals_cases Reals_of_real sin_of_real)
-
-lemma cos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> cos z \<in> \<real>"
-  by (metis Reals_cases Reals_of_real cos_of_real)
 
 lemma complex_differentiable_at_sin: "sin complex_differentiable at z"
   using DERIV_sin complex_differentiable_def by blast
@@ -141,7 +130,7 @@ lemma holomorphic_on_cos: "cos holomorphic_on s"
 
 subsection{* Get a nice real/imaginary separation in Euler's formula.*}
 
-lemma Euler: "exp(z) = of_real(exp(Re z)) * 
+lemma Euler: "exp(z) = of_real(exp(Re z)) *
               (of_real(cos(Im z)) + ii * of_real(sin(Im z)))"
 by (cases z) (simp add: exp_add exp_Euler cos_of_real exp_of_real sin_of_real)
 
@@ -156,11 +145,20 @@ lemma Re_cos: "Re(cos z) = cos(Re z) * (exp(Im z) + exp(-(Im z))) / 2"
 
 lemma Im_cos: "Im(cos z) = sin(Re z) * (exp(-(Im z)) - exp(Im z)) / 2"
   by (simp add: cos_exp_eq field_simps Im_divide Im_exp)
-  
+
+lemma Re_sin_pos: "0 < Re z \<Longrightarrow> Re z < pi \<Longrightarrow> Re (sin z) > 0"
+  by (auto simp: Re_sin Im_sin add_pos_pos sin_gt_zero)
+
+lemma Im_sin_nonneg: "Re z = 0 \<Longrightarrow> 0 \<le> Im z \<Longrightarrow> 0 \<le> Im (sin z)"
+  by (simp add: Re_sin Im_sin algebra_simps)
+
+lemma Im_sin_nonneg2: "Re z = pi \<Longrightarrow> Im z \<le> 0 \<Longrightarrow> 0 \<le> Im (sin z)"
+  by (simp add: Re_sin Im_sin algebra_simps)
+
 subsection{*More on the Polar Representation of Complex Numbers*}
 
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
-  by (simp add: exp_add exp_Euler exp_of_real)
+  by (simp add: exp_add exp_Euler exp_of_real sin_of_real cos_of_real)
 
 lemma exp_eq_1: "exp z = 1 \<longleftrightarrow> Re(z) = 0 \<and> (\<exists>n::int. Im(z) = of_int (2 * n) * pi)"
 apply auto
@@ -183,7 +181,7 @@ qed
 lemma exp_complex_eqI: "abs(Im w - Im z) < 2*pi \<Longrightarrow> exp w = exp z \<Longrightarrow> w = z"
   by (auto simp: exp_eq abs_mult)
 
-lemma exp_integer_2pi: 
+lemma exp_integer_2pi:
   assumes "n \<in> Ints"
   shows "exp((2 * n * pi) * ii) = 1"
 proof -
@@ -208,10 +206,10 @@ proof -
   done
 qed
 
-lemma exp_i_ne_1: 
+lemma exp_i_ne_1:
   assumes "0 < x" "x < 2*pi"
   shows "exp(\<i> * of_real x) \<noteq> 1"
-proof 
+proof
   assume "exp (\<i> * of_real x) = 1"
   then have "exp (\<i> * of_real x) = exp 0"
     by simp
@@ -225,18 +223,18 @@ proof
     by (cases n) (auto simp: zero_less_mult_iff mult_less_0_iff)
 qed
 
-lemma sin_eq_0: 
+lemma sin_eq_0:
   fixes z::complex
   shows "sin z = 0 \<longleftrightarrow> (\<exists>n::int. z = of_real(n * pi))"
   by (simp add: sin_exp_eq exp_eq of_real_numeral)
 
-lemma cos_eq_0: 
+lemma cos_eq_0:
   fixes z::complex
   shows "cos z = 0 \<longleftrightarrow> (\<exists>n::int. z = of_real(n * pi) + of_real pi/2)"
   using sin_eq_0 [of "z - of_real pi/2"]
   by (simp add: sin_diff algebra_simps)
 
-lemma cos_eq_1: 
+lemma cos_eq_1:
   fixes z::complex
   shows "cos z = 1 \<longleftrightarrow> (\<exists>n::int. z = of_real(2 * n * pi))"
 proof -
@@ -248,7 +246,7 @@ proof -
     by simp
   show ?thesis
     by (auto simp: sin_eq_0 of_real_numeral)
-qed  
+qed
 
 lemma csin_eq_1:
   fixes z::complex
@@ -275,15 +273,15 @@ proof -
     apply (simp_all add: algebra_simps)
     done
   finally show ?thesis .
-qed  
+qed
 
-lemma ccos_eq_minus1: 
+lemma ccos_eq_minus1:
   fixes z::complex
   shows "cos z = -1 \<longleftrightarrow> (\<exists>n::int. z = of_real(2 * n * pi) + pi)"
   using csin_eq_1 [of "z - of_real pi/2"]
   apply (simp add: sin_diff)
   apply (simp add: algebra_simps of_real_numeral equation_minus_iff)
-  done       
+  done
 
 lemma sin_eq_1: "sin x = 1 \<longleftrightarrow> (\<exists>n::int. x = (2 * n + 1 / 2) * pi)"
                 (is "_ = ?rhs")
@@ -301,7 +299,7 @@ proof -
   also have "... = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
-qed  
+qed
 
 lemma sin_eq_minus1: "sin x = -1 \<longleftrightarrow> (\<exists>n::int. x = (2*n + 3/2) * pi)"  (is "_ = ?rhs")
 proof -
@@ -317,7 +315,7 @@ proof -
   also have "... = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
-qed  
+qed
 
 lemma cos_eq_minus1: "cos x = -1 \<longleftrightarrow> (\<exists>n::int. x = (2*n + 1) * pi)"
                       (is "_ = ?rhs")
@@ -334,10 +332,10 @@ proof -
   also have "... = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
-qed  
+qed
 
 lemma dist_exp_ii_1: "norm(exp(ii * of_real t) - 1) = 2 * abs(sin(t / 2))"
-  apply (simp add: exp_Euler cmod_def power2_diff algebra_simps)
+  apply (simp add: exp_Euler cmod_def power2_diff sin_of_real cos_of_real algebra_simps)
   using cos_double_sin [of "t/2"]
   apply (simp add: real_sqrt_mult)
   done
@@ -369,7 +367,7 @@ lemma cosh_real:
 
 lemmas cos_ii_times = cosh_complex [symmetric]
 
-lemma norm_cos_squared: 
+lemma norm_cos_squared:
     "norm(cos z) ^ 2 = cos(Re z) ^ 2 + (exp(Im z) - inverse(exp(Im z))) ^ 2 / 4"
   apply (cases z)
   apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real)
@@ -387,12 +385,12 @@ lemma norm_sin_squared:
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib)
   apply (simp add: cos_squared_eq)
   apply (simp add: power2_eq_square algebra_simps divide_simps)
-  done 
+  done
 
 lemma exp_uminus_Im: "exp (- Im z) \<le> exp (cmod z)"
   using abs_Im_le_cmod linear order_trans by fastforce
 
-lemma norm_cos_le: 
+lemma norm_cos_le:
   fixes z::complex
   shows "norm(cos z) \<le> exp(norm z)"
 proof -
@@ -405,7 +403,7 @@ proof -
     done
 qed
 
-lemma norm_cos_plus1_le: 
+lemma norm_cos_plus1_le:
   fixes z::complex
   shows "norm(1 + cos z) \<le> 2 * exp(norm z)"
 proof -
@@ -431,12 +429,12 @@ qed
 
 subsection{* Taylor series for complex exponential, sine and cosine.*}
 
-context 
+context
 begin
 
 declare power_Suc [simp del]
 
-lemma Taylor_exp: 
+lemma Taylor_exp:
   "norm(exp z - (\<Sum>k\<le>n. z ^ k / (fact k))) \<le> exp\<bar>Re z\<bar> * (norm z) ^ (Suc n) / (fact n)"
 proof (rule complex_taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])
   show "convex (closed_segment 0 z)"
@@ -459,11 +457,11 @@ next
   show "z \<in> closed_segment 0 z"
     apply (simp add: closed_segment_def scaleR_conv_of_real)
     using of_real_1 zero_le_one by blast
-qed 
+qed
 
-lemma 
+lemma
   assumes "0 \<le> u" "u \<le> 1"
-  shows cmod_sin_le_exp: "cmod (sin (u *\<^sub>R z)) \<le> exp \<bar>Im z\<bar>" 
+  shows cmod_sin_le_exp: "cmod (sin (u *\<^sub>R z)) \<le> exp \<bar>Im z\<bar>"
     and cmod_cos_le_exp: "cmod (cos (u *\<^sub>R z)) \<le> exp \<bar>Im z\<bar>"
 proof -
   have mono: "\<And>u w z::real. w \<le> u \<Longrightarrow> z \<le> u \<Longrightarrow> w + z \<le> u*2"
@@ -485,16 +483,16 @@ proof -
     apply (meson less_eq_real_def mult_nonneg_nonpos neg_0_le_iff_le order_trans)
     done
 qed
-    
-lemma Taylor_sin: 
-  "norm(sin z - (\<Sum>k\<le>n. complex_of_real (sin_coeff k) * z ^ k)) 
+
+lemma Taylor_sin:
+  "norm(sin z - (\<Sum>k\<le>n. complex_of_real (sin_coeff k) * z ^ k))
    \<le> exp\<bar>Im z\<bar> * (norm z) ^ (Suc n) / (fact n)"
 proof -
   have mono: "\<And>u w z::real. w \<le> u \<Longrightarrow> z \<le> u \<Longrightarrow> w + z \<le> u*2"
       by arith
   have *: "cmod (sin z -
                  (\<Sum>i\<le>n. (-1) ^ (i div 2) * (if even i then sin 0 else cos 0) * z ^ i / (fact i)))
-           \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)" 
+           \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
   proof (rule complex_taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)" "exp\<bar>Im z\<bar>" 0 z,
 simplified])
   show "convex (closed_segment 0 z)"
@@ -519,7 +517,7 @@ simplified])
     show "z \<in> closed_segment 0 z"
       apply (simp add: closed_segment_def scaleR_conv_of_real)
       using of_real_1 zero_le_one by blast
-  qed 
+  qed
   have **: "\<And>k. complex_of_real (sin_coeff k) * z ^ k
             = (-1)^(k div 2) * (if even k then sin 0 else cos 0) * z^k / of_nat (fact k)"
     by (auto simp: sin_coeff_def elim!: oddE)
@@ -529,15 +527,15 @@ simplified])
     done
 qed
 
-lemma Taylor_cos: 
-  "norm(cos z - (\<Sum>k\<le>n. complex_of_real (cos_coeff k) * z ^ k)) 
+lemma Taylor_cos:
+  "norm(cos z - (\<Sum>k\<le>n. complex_of_real (cos_coeff k) * z ^ k))
    \<le> exp\<bar>Im z\<bar> * (norm z) ^ Suc n / (fact n)"
 proof -
   have mono: "\<And>u w z::real. w \<le> u \<Longrightarrow> z \<le> u \<Longrightarrow> w + z \<le> u*2"
       by arith
   have *: "cmod (cos z -
                  (\<Sum>i\<le>n. (-1) ^ (Suc i div 2) * (if even i then cos 0 else sin 0) * z ^ i / (fact i)))
-           \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)" 
+           \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
   proof (rule complex_taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" "exp\<bar>Im z\<bar>" 0 z,
 simplified])
   show "convex (closed_segment 0 z)"
@@ -563,7 +561,7 @@ simplified])
     show "z \<in> closed_segment 0 z"
       apply (simp add: closed_segment_def scaleR_conv_of_real)
       using of_real_1 zero_le_one by blast
-  qed 
+  qed
   have **: "\<And>k. complex_of_real (cos_coeff k) * z ^ k
             = (-1)^(Suc k div 2) * (if even k then cos 0 else sin 0) * z^k / of_nat (fact k)"
     by (auto simp: cos_coeff_def elim!: evenE)
@@ -910,6 +908,21 @@ lemma exists_complex_root:
   apply (auto simp: exp_of_nat_mult [symmetric])
   done
 
+subsection{*The Unwinding Number and the Ln-product Formula*}
+
+text{*Note that in this special case the unwinding number is -1, 0 or 1.*}
+
+definition unwinding :: "complex \<Rightarrow> complex" where
+   "unwinding(z) = (z - Ln(exp z)) / (of_real(2*pi) * ii)"
+
+lemma unwinding_2pi: "(2*pi) * ii * unwinding(z) = z - Ln(exp z)"
+  by (simp add: unwinding_def)
+
+lemma Ln_times_unwinding:
+    "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * ii * unwinding(Ln w + Ln z)"
+  using unwinding_2pi by (simp add: exp_add)
+
+
 subsection{*Derivative of Ln away from the branch cut*}
 
 lemma
@@ -944,6 +957,10 @@ lemma complex_differentiable_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z))
 lemma continuous_at_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) Ln"
   by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Ln)
 
+lemma isCont_Ln' [simp]:
+   "\<lbrakk>isCont f z; Im(f z) = 0 \<Longrightarrow> 0 < Re(f z)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
+  by (blast intro: isCont_o2 [OF _ continuous_at_Ln])
+
 lemma continuous_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) Ln"
   using continuous_at_Ln continuous_at_imp_continuous_within by blast
 
@@ -956,7 +973,7 @@ lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> Im(z) = 0 \<Long
 
 subsection{*Relation to Real Logarithm*}
 
-lemma ln_of_real:
+lemma Ln_of_real:
   assumes "0 < z"
     shows "Ln(of_real z) = of_real(ln z)"
 proof -
@@ -968,6 +985,9 @@ proof -
   finally show ?thesis
     using assms by simp
 qed
+
+corollary Ln_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Re z > 0 \<Longrightarrow> Ln z \<in> \<real>"
+  by (auto simp: Ln_of_real elim: Reals_cases)
 
 
 subsection{*Quadrant-type results for Ln*}
@@ -1091,7 +1111,7 @@ lemma Ln_inverse: "(Im(z) = 0 \<Longrightarrow> 0 < Re z) \<Longrightarrow> Ln(i
 lemma Ln_1 [simp]: "Ln(1) = 0"
 proof -
   have "Ln (exp 0) = 0"
-    by (metis exp_zero ln_exp ln_of_real of_real_0 of_real_1 zero_less_one)
+    by (metis exp_zero ln_exp Ln_of_real of_real_0 of_real_1 zero_less_one)
   then show ?thesis
     by simp
 qed
@@ -1261,6 +1281,10 @@ lemma complex_differentiable_within_csqrt:
 lemma continuous_at_csqrt:
     "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) csqrt"
   by (simp add: complex_differentiable_within_csqrt complex_differentiable_imp_continuous_at)
+
+corollary isCont_csqrt' [simp]:
+   "\<lbrakk>isCont f z; Im(f z) = 0 \<Longrightarrow> 0 < Re(f z)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. csqrt (f x)) z"
+  by (blast intro: isCont_o2 [OF _ continuous_at_csqrt])
 
 lemma continuous_within_csqrt:
     "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) csqrt"

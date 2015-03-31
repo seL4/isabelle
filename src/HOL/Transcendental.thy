@@ -1130,6 +1130,9 @@ lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
   apply (simp add: scaleR_conv_of_real)
   done
 
+corollary exp_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> exp z \<in> \<real>"
+  by (metis Reals_cases Reals_of_real exp_of_real)
+
 lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
 proof
   have "exp x * exp (- x) = 1" by (simp add: exp_add_commuting[symmetric])
@@ -2432,6 +2435,9 @@ proof -
     by blast
 qed
 
+corollary sin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> sin z \<in> \<real>"
+  by (metis Reals_cases Reals_of_real sin_of_real)
+
 lemma cos_of_real:
   fixes x::real
   shows "cos (of_real x) = of_real (cos x)"
@@ -2449,6 +2455,9 @@ proof -
     using sums_unique2 sums_of_real [OF cos_converges]
     by blast
 qed
+
+corollary cos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> cos z \<in> \<real>"
+  by (metis Reals_cases Reals_of_real cos_of_real)
 
 lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
   by (simp add: diffs_def sin_coeff_Suc real_of_nat_def del: of_nat_Suc)
@@ -3660,6 +3669,16 @@ subsection {* Tangent *}
 
 definition tan :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
   where "tan = (\<lambda>x. sin x / cos x)"
+
+lemma tan_of_real:
+  fixes XXX :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows  "of_real(tan x) = (tan(of_real x) :: 'a)"
+  by (simp add: tan_def sin_of_real cos_of_real)
+
+lemma tan_in_Reals [simp]:
+  fixes z :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  shows "z \<in> \<real> \<Longrightarrow> tan z \<in> \<real>"
+  by (simp add: tan_def)
 
 lemma tan_zero [simp]: "tan 0 = 0"
   by (simp add: tan_def)

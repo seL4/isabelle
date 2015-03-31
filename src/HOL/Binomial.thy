@@ -514,8 +514,7 @@ lemma pochhammer_neq_0_mono:
   unfolding pochhammer_eq_0_iff by auto
 
 lemma pochhammer_minus:
-  assumes kn: "k \<le> n"
-  shows "pochhammer (- b) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (b - of_nat k + 1) k"
+    "pochhammer (- b) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (b - of_nat k + 1) k"
 proof (cases k)
   case 0
   then show ?thesis by simp
@@ -531,16 +530,15 @@ next
 qed
 
 lemma pochhammer_minus':
-  assumes kn: "k \<le> n"
-  shows "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
-  unfolding pochhammer_minus[OF kn, where b=b]
+    "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
+  unfolding pochhammer_minus[where b=b]
   unfolding mult.assoc[symmetric]
   unfolding power_add[symmetric]
   by simp
 
 lemma pochhammer_same: "pochhammer (- of_nat n) n =
     ((- 1) ^ n :: 'a::{semiring_char_0,comm_ring_1,semiring_no_zero_divisors}) * (fact n)"
-  unfolding pochhammer_minus[OF le_refl[of n]]
+  unfolding pochhammer_minus
   by (simp add: of_nat_diff pochhammer_fact)
 
 
