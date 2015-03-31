@@ -89,6 +89,17 @@ token category instead.
 
 *** HOL ***
 
+* Given up separate type class no_zero_divisors in favour of fully algebraic
+semiring_no_zero_divisors.  INCOMPATIBILITY.
+
+* Class linordered_semidom really requires no zero divisors.
+INCOMPATIBILITY.
+
+* Classes division_ring, field and linordered_field always demand
+`inverse 0 = 0`.  Given up separate classes division_ring_inverse_zero,
+field_inverse_zero and linordered_field_inverse_zero.
+INCOMPATIBILITY.
+
 * Type classes cancel_ab_semigroup_add / cancel_monoid_add specify
 explicit additive inverse operation.  INCOMPATIBILITY.
 
