@@ -86,7 +86,7 @@ val _ = Theory.setup
       let
         val thy = Proof_Context.theory_of ctxt;
         val name = Global_Theory.check_fact thy (xname, pos);
-        val _ = get ctxt name handle ERROR msg => cat_error msg (Position.here pos);
+        val _ = get ctxt name handle ERROR msg => error (msg ^ Position.here pos);
       in ML_Syntax.print_string name end)));
 
 end;

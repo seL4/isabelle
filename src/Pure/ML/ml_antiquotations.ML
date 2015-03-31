@@ -47,7 +47,7 @@ val _ = Theory.setup
                     |> filter completed
                     |> map (fn a => (a, ("system_option", a))));
               val report = Markup.markup_report (Completion.reported_text completion);
-            in cat_error msg report end;
+            in error (msg ^ report) end;
         val _ = Context_Position.report ctxt pos markup;
       in ML_Syntax.print_string name end)) #>
 
