@@ -698,10 +698,17 @@ lemma DERIV_setsum[derivative_intros]:
      (auto simp: setsum_right_distrib mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
 lemma DERIV_inverse'[derivative_intros]:
-  "(f has_field_derivative D) (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
-  ((\<lambda>x. inverse (f x)) has_field_derivative - (inverse (f x) * D * inverse (f x))) (at x within s)"
-  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_inverse])
-     (auto dest: has_field_derivative_imp_has_derivative)
+  assumes "(f has_field_derivative D) (at x within s)"
+    and "f x \<noteq> 0"
+  shows "((\<lambda>x. inverse (f x)) has_field_derivative - (inverse (f x) * D * inverse (f x))) (at x within s)"
+proof -
+  have "(f has_derivative (\<lambda>x. x * D)) = (f has_derivative op * D)"
+    by (rule arg_cong [of "\<lambda>x. x * D"]) (simp add: fun_eq_iff)
+  with assms have "(f has_derivative (\<lambda>x. x * D)) (at x within s)"
+    by (auto dest!: has_field_derivative_imp_has_derivative)
+  then show ?thesis using `f x \<noteq> 0`
+    by (auto intro: has_derivative_imp_has_field_derivative has_derivative_inverse)
+qed
 
 text {* Power of @{text "-1"} *}
 

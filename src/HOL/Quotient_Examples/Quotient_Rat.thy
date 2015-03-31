@@ -161,7 +161,7 @@ lemma of_int_rat: "of_int k = Fract k 1"
   apply auto
   done
 
-instantiation rat :: field_inverse_zero begin
+instantiation rat :: field begin
 
 fun rat_inverse_raw where
   "rat_inverse_raw (a :: int, b :: int) = (if a = 0 then (0, 1) else (b, a))"

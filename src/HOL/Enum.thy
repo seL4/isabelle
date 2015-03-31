@@ -683,7 +683,7 @@ by(intro_classes)(auto simp add: INF_def SUP_def sup_finite_2_def inf_finite_2_d
 
 instance finite_2 :: complete_linorder ..
 
-instantiation finite_2 :: "{field_inverse_zero, abs_if, ring_div, sgn_if, semiring_div}" begin
+instantiation finite_2 :: "{field, abs_if, ring_div, sgn_if, semiring_div}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
@@ -807,7 +807,7 @@ qed
 
 instance finite_3 :: complete_linorder ..
 
-instantiation finite_3 :: "{field_inverse_zero, abs_if, ring_div, semiring_div, sgn_if}" begin
+instantiation finite_3 :: "{field, abs_if, ring_div, semiring_div, sgn_if}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition

@@ -881,20 +881,14 @@ apply (intro_classes)
 apply (transfer, erule left_inverse)
 apply (transfer, erule right_inverse)
 apply (transfer, fact divide_inverse)
+apply (transfer, fact inverse_zero)
 done
-
-instance star :: (division_ring_inverse_zero) division_ring_inverse_zero
-by (intro_classes, transfer, rule inverse_zero)
 
 instance star :: (field) field
 apply (intro_classes)
 apply (transfer, erule left_inverse)
 apply (transfer, rule divide_inverse)
-done
-
-instance star :: (field_inverse_zero) field_inverse_zero
-apply intro_classes
-apply (rule inverse_zero)
+apply (transfer, fact inverse_zero)
 done
 
 instance star :: (ordered_semiring) ordered_semiring
@@ -937,7 +931,6 @@ by (intro_classes, transfer, rule zero_less_one)
 
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..
-instance star :: (linordered_field_inverse_zero) linordered_field_inverse_zero ..
 
 subsection {* Power *}
 

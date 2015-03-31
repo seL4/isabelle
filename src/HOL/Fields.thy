@@ -56,6 +56,7 @@ class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
   assumes divide_inverse: "a / b = a * inverse b"
+  assumes inverse_zero [simp]: "inverse 0 = 0"
 begin
 
 subclass ring_1_no_zero_divisors
@@ -239,12 +240,6 @@ lemma minus_divide_diff_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> - (x / z) - y = (- x - y * z) / z"
   by (simp add: divide_diff_eq_iff[symmetric])
 
-end
-
-class division_ring_inverse_zero = division_ring +
-  assumes inverse_zero [simp]: "inverse 0 = 0"
-begin
-
 lemma divide_zero [simp]:
   "a / 0 = 0"
   by (simp add: divide_inverse)
@@ -307,6 +302,7 @@ subsection {* Fields *}
 class field = comm_ring_1 + inverse +
   assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes field_divide_inverse: "a / b = a * inverse b"
+  assumes field_inverse_zero: "inverse 0 = 0"
 begin
 
 subclass division_ring
@@ -318,6 +314,9 @@ proof
 next
   fix a b :: 'a
   show "a / b = a * inverse b" by (rule field_divide_inverse)
+next
+  show "inverse 0 = 0"
+    by (fact field_inverse_zero) 
 qed
 
 subclass idom ..
@@ -394,15 +393,6 @@ lemma frac_eq_eq:
 
 lemma divide_minus1 [simp]: "x / - 1 = - x"
   using nonzero_minus_divide_right [of "1" x] by simp
-
-end
-
-class field_inverse_zero = field +
-  assumes field_inverse_zero: "inverse 0 = 0"
-begin
-
-subclass division_ring_inverse_zero proof
-qed (fact field_inverse_zero)
 
 text{*This version builds in division by zero while also re-orienting
       the right-hand side.*}
@@ -962,11 +952,6 @@ proof (rule dense_le)
   then have "0 \<le> y - t" by (simp only: add_le_cancel_left)
   then show "t \<le> y" by (simp add: algebra_simps)
 qed
-
-end
-
-class linordered_field_inverse_zero = linordered_field + field_inverse_zero
-begin
 
 lemma inverse_positive_iff_positive [simp]:
   "(0 < inverse a) = (0 < a)"

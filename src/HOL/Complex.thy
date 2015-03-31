@@ -55,7 +55,7 @@ end
 
 subsection {* Multiplication and Division *}
 
-instantiation complex :: field_inverse_zero
+instantiation complex :: field
 begin
 
 primcorec one_complex where

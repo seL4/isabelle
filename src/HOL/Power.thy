@@ -705,7 +705,7 @@ lemma (in field) power_diff:
 
 text{*Perhaps these should be simprules.*}
 lemma power_inverse:
-  fixes a :: "'a::division_ring_inverse_zero"
+  fixes a :: "'a::division_ring"
   shows "inverse (a ^ n) = inverse a ^ n"
 apply (cases "a = 0")
 apply (simp add: power_0_left)
@@ -713,11 +713,11 @@ apply (simp add: nonzero_power_inverse)
 done (* TODO: reorient or rename to inverse_power *)
 
 lemma power_one_over:
-  "1 / (a::'a::{field_inverse_zero, power}) ^ n =  (1 / a) ^ n"
+  "1 / (a::'a::{field, power}) ^ n =  (1 / a) ^ n"
   by (simp add: divide_inverse) (rule power_inverse)
 
 lemma power_divide [field_simps, divide_simps]:
-  "(a / b) ^ n = (a::'a::field_inverse_zero) ^ n / b ^ n"
+  "(a / b) ^ n = (a::'a::field) ^ n / b ^ n"
 apply (cases "b = 0")
 apply (simp add: power_0_left)
 apply (rule nonzero_power_divide)

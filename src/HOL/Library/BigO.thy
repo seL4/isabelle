@@ -489,7 +489,7 @@ lemma bigo_const_mult3:
   shows "c \<noteq> 0 \<Longrightarrow> f \<in> O(\<lambda>x. c * f x)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs (inverse c)" in exI)
-  apply (simp add: abs_mult [symmetric] mult.assoc [symmetric])
+  apply (simp add: abs_mult mult.assoc [symmetric])
   done
 
 lemma bigo_const_mult4:
@@ -519,11 +519,7 @@ lemma bigo_const_mult5 [simp]:
   apply (rule_tac x = "\<lambda>y. inverse c * x y" in exI)
   apply (simp add: mult.assoc [symmetric] abs_mult)
   apply (rule_tac x = "abs (inverse c) * ca" in exI)
-  apply (rule allI)
-  apply (subst mult.assoc)
-  apply (rule mult_left_mono)
-  apply (erule spec)
-  apply force
+  apply auto
   done
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) \<subseteq> O(f)"

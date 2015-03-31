@@ -1062,7 +1062,7 @@ lemma filterlim_at_top_to_right:
   unfolding filterlim_def at_top_to_right filtermap_filtermap ..
 
 lemma filterlim_inverse_at_infinity:
-  fixes x :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  fixes x :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring}"
   shows "filterlim inverse at_infinity (at (0::'a))"
   unfolding filterlim_at_infinity[OF order_refl]
 proof safe
@@ -1074,7 +1074,7 @@ proof safe
 qed
 
 lemma filterlim_inverse_at_iff:
-  fixes g :: "'a \<Rightarrow> 'b\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  fixes g :: "'a \<Rightarrow> 'b\<Colon>{real_normed_div_algebra, division_ring}"
   shows "(LIM x F. inverse (g x) :> at 0) \<longleftrightarrow> (LIM x F. g x :> at_infinity)"
   unfolding filterlim_def filtermap_filtermap[symmetric]
 proof
@@ -1099,7 +1099,7 @@ lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<la
 
 
 lemma at_to_infinity:
-  fixes x :: "'a \<Colon> {real_normed_field,field_inverse_zero}"
+  fixes x :: "'a \<Colon> {real_normed_field,field}"
   shows "(at (0::'a)) = filtermap inverse at_infinity"
 proof (rule antisym)
   have "(inverse ---> (0::'a)) at_infinity"
@@ -1117,12 +1117,12 @@ next
 qed
 
 lemma lim_at_infinity_0:
-  fixes l :: "'a :: {real_normed_field,field_inverse_zero}"
+  fixes l :: "'a :: {real_normed_field,field}"
   shows "(f ---> l) at_infinity \<longleftrightarrow> ((f o inverse) ---> l) (at (0::'a))"
 by (simp add: tendsto_compose_filtermap at_to_infinity filtermap_filtermap)
 
 lemma lim_zero_infinity:
-  fixes l :: "'a :: {real_normed_field,field_inverse_zero}"
+  fixes l :: "'a :: {real_normed_field,field}"
   shows "((\<lambda>x. f(1 / x)) ---> l) (at (0::'a)) \<Longrightarrow> (f ---> l) at_infinity"
 by (simp add: inverse_eq_divide lim_at_infinity_0 comp_def)
 
@@ -1241,7 +1241,7 @@ proof safe
 qed
 
 lemma tendsto_divide_0:
-  fixes f :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  fixes f :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring}"
   assumes f: "(f ---> c) F"
   assumes g: "LIM x F. g x :> at_infinity"
   shows "((\<lambda>x. f x / g x) ---> 0) F"

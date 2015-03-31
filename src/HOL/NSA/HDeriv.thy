@@ -366,7 +366,7 @@ proof -
       done
     ultimately have "(inverse (star_of x + h) - inverse (star_of x)) / h \<approx>
       - (inverse (star_of x) * inverse (star_of x))"
-      using assms by (simp add: nonzero_inverse_mult_distrib [symmetric] nonzero_inverse_minus_eq [symmetric])
+      using assms by simp 
   } then show ?thesis by (simp add: nsderiv_def)
 qed
 

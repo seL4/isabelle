@@ -3628,7 +3628,7 @@ lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat 
 
 subsection {* Hypergeometric series *}
 
-definition "F as bs (c::'a::{field_char_0,field_inverse_zero}) =
+definition "F as bs (c::'a::{field_char_0,field}) =
   Abs_fps (\<lambda>n. (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
     (foldl (\<lambda>r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
 
@@ -3711,11 +3711,11 @@ lemma XDp_fps_integral [simp]: "XDp 0 (fps_integral a c) = X * a"
   by (simp add: fps_eq_iff fps_integral_def)
 
 lemma F_minus_nat:
-  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0,field_inverse_zero}) $ k =
+  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0,field}) $ k =
     (if k \<le> n then
       pochhammer (- of_nat n) k * c ^ k / (pochhammer (- of_nat (n + m)) k * of_nat (fact k))
      else 0)"
-  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0,field_inverse_zero}) $ k =
+  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0,field}) $ k =
     (if k \<le> m then
       pochhammer (- of_nat m) k * c ^ k / (pochhammer (- of_nat (m + n)) k * of_nat (fact k))
      else 0)"

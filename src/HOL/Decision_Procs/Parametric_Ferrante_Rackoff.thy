@@ -30,7 +30,7 @@ where
 | "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
 (* Semantics of terms tm *)
-primrec Itm :: "'a::{field_char_0, field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
+primrec Itm :: "'a::{field_char_0, field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
 where
   "Itm vs bs (CP c) = (Ipoly vs c)"
 | "Itm vs bs (Bound n) = bs!n"
@@ -311,7 +311,7 @@ lemma tmmul_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (tmmul t i
   by (induct t arbitrary: i rule: tmmul.induct) (auto simp add: Let_def)
 
 lemma tmmul_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "allpolys isnpoly t \<Longrightarrow> isnpoly c \<Longrightarrow> allpolys isnpoly (tmmul t c)"
   by (induct t rule: tmmul.induct) (simp_all add: Let_def polymul_norm)
 
@@ -337,7 +337,7 @@ lemma [simp]: "isnpoly (C (-1, 1))"
   unfolding isnpoly_def by simp
 
 lemma tmneg_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly (tmneg t)"
   unfolding tmneg_def by auto
 
@@ -354,7 +354,7 @@ lemma tmsub_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n s \<Longri
   using tmsub_def by simp
 
 lemma tmsub_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmsub t s)"
   unfolding tmsub_def by (simp add: isnpoly_def)
 
@@ -371,7 +371,7 @@ where
     (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
 
 lemma polynate_stupid:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a)"
   apply (subst polynate[symmetric])
   apply simp
@@ -394,7 +394,7 @@ lemma [simp]: "isnpoly 0\<^sub>p"
   by (simp_all add: isnpoly_def)
 
 lemma simptm_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "allpolys isnpoly (simptm p)"
   by (induct p rule: simptm.induct) (auto simp add: Let_def)
 
@@ -445,7 +445,7 @@ proof -
 qed
 
 lemma split0_nb0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "split0 t = (c',t') \<Longrightarrow>  tmbound 0 t'"
 proof -
   fix c' t'
@@ -457,7 +457,7 @@ proof -
 qed
 
 lemma split0_nb0'[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "tmbound0 (snd (split0 t))"
   using split0_nb0[of t "fst (split0 t)" "snd (split0 t)"]
   by (simp add: tmbound0_tmbound_iff)
@@ -485,7 +485,7 @@ lemma allpolys_split0: "allpolys isnpoly p \<Longrightarrow> allpolys isnpoly (s
   by (induct p rule: split0.induct) (auto simp  add: isnpoly_def Let_def split_def)
 
 lemma isnpoly_fst_split0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "allpolys isnpoly p \<Longrightarrow> isnpoly (fst (split0 p))"
   by (induct p rule: split0.induct)
     (auto simp  add: polyadd_norm polysub_norm polyneg_norm polymul_norm Let_def split_def)
@@ -514,7 +514,7 @@ lemma fmsize_pos[termination_simp]: "fmsize p > 0"
   by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-primrec Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
+primrec Ifm ::"'a::{linordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
 where
   "Ifm vs bs T = True"
 | "Ifm vs bs F = False"
@@ -1146,7 +1146,7 @@ definition "simpeq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then eq
 definition "simpneq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then neq s else NEq (CNP 0 c s))"
 
 lemma simplt_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "islin (simplt t)"
   unfolding simplt_def
   using split0_nb0'
@@ -1154,7 +1154,7 @@ lemma simplt_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly])
 
 lemma simple_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "islin (simple t)"
   unfolding simple_def
   using split0_nb0'
@@ -1162,7 +1162,7 @@ lemma simple_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] le_lin)
 
 lemma simpeq_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "islin (simpeq t)"
   unfolding simpeq_def
   using split0_nb0'
@@ -1170,7 +1170,7 @@ lemma simpeq_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] eq_lin)
 
 lemma simpneq_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "islin (simpneq t)"
   unfolding simpneq_def
   using split0_nb0'
@@ -1181,7 +1181,7 @@ lemma really_stupid: "\<not> (\<forall>c1 s'. (c1, s') \<noteq> split0 s)"
   by (cases "split0 s") auto
 
 lemma split0_npoly:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
     and n: "allpolys isnpoly t"
   shows "isnpoly (fst (split0 t))"
     and "allpolys isnpoly (snd (split0 t))"
@@ -1305,7 +1305,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
   done
 
 lemma simplt_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simplt t)"
 proof (simp add: simplt_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1326,7 +1326,7 @@ proof (simp add: simplt_def Let_def split_def)
 qed
 
 lemma simple_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simple t)"
 proof(simp add: simple_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1347,7 +1347,7 @@ proof(simp add: simple_def Let_def split_def)
 qed
 
 lemma simpeq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpeq t)"
 proof (simp add: simpeq_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1368,7 +1368,7 @@ proof (simp add: simpeq_def Let_def split_def)
 qed
 
 lemma simpneq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpneq t)"
 proof (simp add: simpneq_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1526,7 +1526,7 @@ lemma simpfm[simp]: "Ifm vs bs (simpfm p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: simpfm.induct) auto
 
 lemma simpfm_bound0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "bound0 p \<Longrightarrow> bound0 (simpfm p)"
   by (induct p rule: simpfm.induct) auto
 
@@ -1567,7 +1567,7 @@ lemma conj_lin: "islin p \<Longrightarrow> islin q \<Longrightarrow> islin (conj
   by (simp add: conj_def)
 
 lemma
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (simp_all add: conj_lin disj_lin)
 
@@ -3379,7 +3379,7 @@ proof -
 qed
 
 lemma simpfm_lin:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (auto simp add: conj_lin disj_lin)
 
@@ -3704,7 +3704,7 @@ lemma msubstpos_nb:
     (auto simp add: msubsteq2_nb msubstltpos_nb msubstlepos_nb)
 
 lemma msubstneg_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubstneg p c t)"
@@ -3713,7 +3713,7 @@ lemma msubstneg_nb:
     (auto simp add: msubsteq2_nb msubstltneg_nb msubstleneg_nb)
 
 lemma msubst2_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubst2 p c t)"
@@ -4196,7 +4196,7 @@ method_setup frpar2 = {*
   Parametric_Ferrante_Rackoff.method true
 *} "parametric QE for linear Arithmetic over fields, Version 2"
 
-lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1) * x < 0"
+lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y + 1) * x < 0"
   apply (frpar type: 'a pars: y)
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
@@ -4204,7 +4204,7 @@ lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longri
   apply simp
   done
 
-lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
   apply (frpar2 type: 'a pars: y)
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
@@ -4214,38 +4214,38 @@ lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longri
 
 text{* Collins/Jones Problem *}
 (*
-lemma "\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+  have "(\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: field_simps)
 have "?rhs"
 
-  apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "a::'a::{linordered_field_inverse_zero, number_ring}" "b::'a::{linordered_field_inverse_zero, number_ring}")
+  apply (frpar type: "'a::{linordered_field, number_ring}" pars: "a::'a::{linordered_field, number_ring}" "b::'a::{linordered_field, number_ring}")
   apply (simp add: field_simps)
 oops
 *)
 (*
-lemma "ALL (x::'a::{linordered_field_inverse_zero, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "t::'a::{linordered_field_inverse_zero, number_ring}")
+lemma "ALL (x::'a::{linordered_field, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar type: "'a::{linordered_field, number_ring}" pars: "t::'a::{linordered_field, number_ring}")
 oops
 *)
 
 text{* Collins/Jones Problem *}
 
 (*
-lemma "\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
+lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
-  have "(\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field_inverse_zero, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+  have "(\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: field_simps)
 have "?rhs"
-  apply (frpar2 type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "a::'a::{linordered_field_inverse_zero, number_ring}" "b::'a::{linordered_field_inverse_zero, number_ring}")
+  apply (frpar2 type: "'a::{linordered_field, number_ring}" pars: "a::'a::{linordered_field, number_ring}" "b::'a::{linordered_field, number_ring}")
   apply simp
 oops
 *)
 
 (*
-lemma "ALL (x::'a::{linordered_field_inverse_zero, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
-apply (frpar2 type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "t::'a::{linordered_field_inverse_zero, number_ring}")
+lemma "ALL (x::'a::{linordered_field, number_ring}) y. (1 - t)*x \<le> (1+t)*y \<and> (1 - t)*y \<le> (1+t)*x --> 0 \<le> y"
+apply (frpar2 type: "'a::{linordered_field, number_ring}" pars: "t::'a::{linordered_field, number_ring}")
 apply (simp add: field_simps linorder_neq_iff[symmetric])
 apply ferrack
 oops

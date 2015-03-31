@@ -1435,7 +1435,7 @@ done
 
 subsection{*The Real Numbers form a Field*}
 
-instance real :: field_inverse_zero
+instance real :: field
 proof
   fix x y z :: real
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
@@ -1574,7 +1574,7 @@ end
 
 subsection{*The Reals Form an Ordered Field*}
 
-instance real :: linordered_field_inverse_zero
+instance real :: linordered_field
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)

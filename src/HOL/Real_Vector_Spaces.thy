@@ -221,7 +221,7 @@ lemma nonzero_inverse_scaleR_distrib:
 by (rule inverse_unique, simp)
 
 lemma inverse_scaleR_distrib:
-  fixes x :: "'a::{real_div_algebra, division_ring_inverse_zero}"
+  fixes x :: "'a::{real_div_algebra, division_ring}"
   shows "inverse (scaleR a x) = scaleR (inverse a) (inverse x)"
 apply (case_tac "a = 0", simp)
 apply (case_tac "x = 0", simp)
@@ -270,7 +270,7 @@ by (simp add: of_real_def nonzero_inverse_scaleR_distrib)
 
 lemma of_real_inverse [simp]:
   "of_real (inverse x) =
-   inverse (of_real x :: 'a::{real_div_algebra, division_ring_inverse_zero})"
+   inverse (of_real x :: 'a::{real_div_algebra, division_ring})"
 by (simp add: of_real_def inverse_scaleR_distrib)
 
 lemma nonzero_of_real_divide:
@@ -280,7 +280,7 @@ by (simp add: divide_inverse nonzero_of_real_inverse)
 
 lemma of_real_divide [simp]:
   "of_real (x / y) =
-   (of_real x / of_real y :: 'a::{real_field, field_inverse_zero})"
+   (of_real x / of_real y :: 'a::{real_field, field})"
 by (simp add: divide_inverse)
 
 lemma of_real_power [simp]:
@@ -398,7 +398,7 @@ apply (erule nonzero_of_real_inverse [symmetric])
 done
 
 lemma Reals_inverse:
-  fixes a :: "'a::{real_div_algebra, division_ring_inverse_zero}"
+  fixes a :: "'a::{real_div_algebra, division_ring}"
   shows "a \<in> Reals \<Longrightarrow> inverse a \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
@@ -406,7 +406,7 @@ apply (rule of_real_inverse [symmetric])
 done
 
 lemma Reals_inverse_iff [simp]: 
-  fixes x:: "'a :: {real_div_algebra, division_ring_inverse_zero}"
+  fixes x:: "'a :: {real_div_algebra, division_ring}"
   shows "inverse x \<in> \<real> \<longleftrightarrow> x \<in> \<real>"
 by (metis Reals_inverse inverse_inverse_eq)
 
@@ -419,7 +419,7 @@ apply (erule nonzero_of_real_divide [symmetric])
 done
 
 lemma Reals_divide [simp]:
-  fixes a b :: "'a::{real_field, field_inverse_zero}"
+  fixes a b :: "'a::{real_field, field}"
   shows "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a / b \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
@@ -819,7 +819,7 @@ apply (simp add: norm_mult [symmetric])
 done
 
 lemma norm_inverse:
-  fixes a :: "'a::{real_normed_div_algebra, division_ring_inverse_zero}"
+  fixes a :: "'a::{real_normed_div_algebra, division_ring}"
   shows "norm (inverse a) = inverse (norm a)"
 apply (case_tac "a = 0", simp)
 apply (erule nonzero_norm_inverse)
@@ -831,7 +831,7 @@ lemma nonzero_norm_divide:
 by (simp add: divide_inverse norm_mult nonzero_norm_inverse)
 
 lemma norm_divide:
-  fixes a b :: "'a::{real_normed_field, field_inverse_zero}"
+  fixes a b :: "'a::{real_normed_field, field}"
   shows "norm (a / b) = norm a / norm b"
 by (simp add: divide_inverse norm_mult norm_inverse)
 

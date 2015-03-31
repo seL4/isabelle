@@ -449,12 +449,12 @@ fun divide_cancel_numeral_factor ctxt ct = DivideCancelNumeralFactor.proc ctxt (
 val field_divide_cancel_numeral_factor =
   [prep_simproc @{theory}
     ("field_divide_cancel_numeral_factor",
-     ["((l::'a::field_inverse_zero) * m) / n",
-      "(l::'a::field_inverse_zero) / (m * n)",
-      "((numeral v)::'a::field_inverse_zero) / (numeral w)",
-      "((numeral v)::'a::field_inverse_zero) / (- numeral w)",
-      "((- numeral v)::'a::field_inverse_zero) / (numeral w)",
-      "((- numeral v)::'a::field_inverse_zero) / (- numeral w)"],
+     ["((l::'a::field) * m) / n",
+      "(l::'a::field) / (m * n)",
+      "((numeral v)::'a::field) / (numeral w)",
+      "((numeral v)::'a::field) / (- numeral w)",
+      "((- numeral v)::'a::field) / (numeral w)",
+      "((- numeral v)::'a::field) / (- numeral w)"],
      DivideCancelNumeralFactor.proc)];
 
 val field_cancel_numeral_factors =

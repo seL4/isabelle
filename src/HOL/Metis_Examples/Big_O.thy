@@ -333,8 +333,7 @@ proof -
     also have "... <= O((\<lambda>x. 1 / f x) * (f * g))"
       by (rule bigo_mult2)
     also have "(\<lambda>x. 1 / f x) * (f * g) = g"
-      apply (simp add: func_times)
-      by (metis (lifting, no_types) a ext mult.commute nonzero_divide_eq_eq)
+      by (simp add: fun_eq_iff a)
     finally have "(\<lambda>x. (1\<Colon>'b) / f x) * h : O(g)".
     then have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) : f *o O(g)"
       by auto
@@ -458,8 +457,8 @@ proof -
     using F3 by metis
   hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis mult_left_mono)
-  thus "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. \<bar>inverse c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
-    using A2 F4 by (metis mult.assoc mult_left_mono)
+  then show "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. inverse \<bar>c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
+    using A2 F4 by (metis F1 `0 < \<bar>inverse c\<bar>` linordered_field_class.sign_simps(23) mult_le_cancel_left_pos)
 qed
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"

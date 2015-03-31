@@ -145,12 +145,12 @@ lemma nonzero_hnorm_inverse:
 by transfer (rule nonzero_norm_inverse)
 
 lemma hnorm_inverse:
-  "\<And>a::'a::{real_normed_div_algebra, division_ring_inverse_zero} star.
+  "\<And>a::'a::{real_normed_div_algebra, division_ring} star.
    hnorm (inverse a) = inverse (hnorm a)"
 by transfer (rule norm_inverse)
 
 lemma hnorm_divide:
-  "\<And>a b::'a::{real_normed_field, field_inverse_zero} star.
+  "\<And>a b::'a::{real_normed_field, field} star.
    hnorm (a / b) = hnorm a / hnorm b"
 by transfer (rule norm_divide)
 

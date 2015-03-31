@@ -2231,7 +2231,7 @@ lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x
 
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
   by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult.commute
-            order.strict_trans2 powr_gt_zero zero_less_one)
+            powr_gt_zero)
 
 lemma ln_powr_bound2:
   assumes "1 < x" and "0 < a"
@@ -3109,29 +3109,29 @@ lemma cos_times_cos:
   shows "cos(w) * cos(z) = (cos(w - z) + cos(w + z)) / 2"
   by (simp add: cos_diff cos_add)
 
-lemma sin_plus_sin:  (*FIXME field_inverse_zero should not be necessary*)
-  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+lemma sin_plus_sin:  (*FIXME field should not be necessary*)
+  fixes w :: "'a::{real_normed_field,banach,field}"
   shows "sin(w) + sin(z) = 2 * sin((w + z) / 2) * cos((w - z) / 2)"
   apply (simp add: mult.assoc sin_times_cos)
   apply (simp add: field_simps)
   done
 
 lemma sin_diff_sin: 
-  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes w :: "'a::{real_normed_field,banach,field}"
   shows "sin(w) - sin(z) = 2 * sin((w - z) / 2) * cos((w + z) / 2)"
   apply (simp add: mult.assoc sin_times_cos)
   apply (simp add: field_simps)
   done
 
 lemma cos_plus_cos: 
-  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes w :: "'a::{real_normed_field,banach,field}"
   shows "cos(w) + cos(z) = 2 * cos((w + z) / 2) * cos((w - z) / 2)"
   apply (simp add: mult.assoc cos_times_cos)
   apply (simp add: field_simps)
   done
 
 lemma cos_diff_cos: 
-  fixes w :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes w :: "'a::{real_normed_field,banach,field}"
   shows "cos(w) - cos(z) = 2 * sin((w + z) / 2) * sin((z - w) / 2)"
   apply (simp add: mult.assoc sin_times_sin)
   apply (simp add: field_simps)
@@ -3671,12 +3671,12 @@ definition tan :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
   where "tan = (\<lambda>x. sin x / cos x)"
 
 lemma tan_of_real:
-  fixes XXX :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes XXX :: "'a::{real_normed_field,banach}"
   shows  "of_real(tan x) = (tan(of_real x) :: 'a)"
   by (simp add: tan_def sin_of_real cos_of_real)
 
 lemma tan_in_Reals [simp]:
-  fixes z :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes z :: "'a::{real_normed_field,banach}"
   shows "z \<in> \<real> \<Longrightarrow> tan z \<in> \<real>"
   by (simp add: tan_def)
 
@@ -3730,7 +3730,7 @@ proof -
 qed
 
 lemma tan_half:
-  fixes x :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes x :: "'a::{real_normed_field,banach,field}"
   shows  "tan x = sin (2 * x) / (cos (2 * x) + 1)"
   unfolding tan_def sin_double cos_double sin_squared_eq
   by (simp add: power2_eq_square)
@@ -4137,7 +4137,7 @@ lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
   by (simp add: eq_divide_eq)
 
 lemma tan_sec:
-  fixes x :: "'a::{real_normed_field,banach,field_inverse_zero}"
+  fixes x :: "'a::{real_normed_field,banach,field}"
   shows "cos x \<noteq> 0 \<Longrightarrow> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
   apply (rule power_inverse [THEN subst])
   apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])

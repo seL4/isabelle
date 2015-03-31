@@ -1158,11 +1158,11 @@ lemma (in field) setprod_diff1:
     (setprod f (A - {a})) = (if a \<in> A then setprod f A / f a else setprod f A)"
   by (induct A rule: finite_induct) (auto simp add: insert_Diff_if)
 
-lemma (in field_inverse_zero) setprod_inversef: 
+lemma (in field) setprod_inversef: 
   "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
   by (induct A rule: finite_induct) simp_all
 
-lemma (in field_inverse_zero) setprod_dividef:
+lemma (in field) setprod_dividef:
   "finite A \<Longrightarrow> (\<Prod>x\<in>A. f x / g x) = setprod f A / setprod g A"
   using setprod_inversef [of A g] by (simp add: divide_inverse setprod.distrib)
 

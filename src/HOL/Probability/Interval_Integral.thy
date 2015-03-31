@@ -220,7 +220,7 @@ lemma interval_lebesgue_integrable_mult_left [intro, simp]:
   by (simp add: interval_lebesgue_integrable_def)
 
 lemma interval_lebesgue_integrable_divide [intro, simp]:
-  fixes M a b c and f :: "real \<Rightarrow> 'a::{banach, real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes M a b c and f :: "real \<Rightarrow> 'a::{banach, real_normed_field, field, second_countable_topology}"
   shows "(c \<noteq> 0 \<Longrightarrow> interval_lebesgue_integrable M a b f) \<Longrightarrow>
     interval_lebesgue_integrable M a b (\<lambda>x. f x / c)"
   by (simp add: interval_lebesgue_integrable_def)
@@ -238,7 +238,7 @@ lemma interval_lebesgue_integral_mult_left [simp]:
   by (simp add: interval_lebesgue_integral_def)
 
 lemma interval_lebesgue_integral_divide [simp]:
-  fixes M a b c and f :: "real \<Rightarrow> 'a::{banach, real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes M a b c and f :: "real \<Rightarrow> 'a::{banach, real_normed_field, field, second_countable_topology}"
   shows "interval_lebesgue_integral M a b (\<lambda>x. f x / c) =
     interval_lebesgue_integral M a b f / c"
   by (simp add: interval_lebesgue_integral_def)

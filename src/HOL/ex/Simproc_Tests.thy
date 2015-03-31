@@ -279,7 +279,7 @@ end
 subsection {* @{text divide_cancel_numeral_factor} *}
 
 notepad begin
-  fix x y z :: "'a::{field_inverse_zero,ring_char_0}"
+  fix x y z :: "'a::{field,ring_char_0}"
   {
     assume "(3*x) / (4*y) = z" have "(9*x) / (12 * y) = z"
       by (tactic {* test @{context} [@{simproc divide_cancel_numeral_factor}] *}) fact
@@ -346,13 +346,13 @@ notepad begin
   }
 end
 
-lemma shows "a*(b*c)/(y*z) = d*(b::'a::linordered_field_inverse_zero)*(x*a)/z"
+lemma shows "a*(b*c)/(y*z) = d*(b::'a::linordered_field)*(x*a)/z"
 oops -- "FIXME: need simproc to cover this case"
 
 subsection {* @{text divide_cancel_factor} *}
 
 notepad begin
-  fix a b c d k uu x y :: "'a::field_inverse_zero"
+  fix a b c d k uu x y :: "'a::field"
   {
     assume "(if k = 0 then 0 else x / y) = uu"
     have "(x*k) / (k*y) = uu"
@@ -373,7 +373,7 @@ notepad begin
 end
 
 lemma
-  fixes a b c d x y z :: "'a::linordered_field_inverse_zero"
+  fixes a b c d x y z :: "'a::linordered_field"
   shows "a*(b*c)/(y*z) = d*(b)*(x*a)/z"
 oops -- "FIXME: need simproc to cover this case"
 
@@ -420,7 +420,7 @@ end
 subsection {* @{text field_combine_numerals} *}
 
 notepad begin
-  fix x y z uu :: "'a::{field_inverse_zero,ring_char_0}"
+  fix x y z uu :: "'a::{field,ring_char_0}"
   {
     assume "5 / 6 * x = uu" have "x / 2 + x / 3 = uu"
       by (tactic {* test @{context} [@{simproc field_combine_numerals}] *}) fact
@@ -442,7 +442,7 @@ notepad begin
 end
 
 lemma
-  fixes x :: "'a::{linordered_field_inverse_zero}"
+  fixes x :: "'a::{linordered_field}"
   shows "2/3 * x + x / 3 = uu"
 apply (tactic {* test @{context} [@{simproc field_combine_numerals}] *})?
 oops -- "FIXME: test fails"

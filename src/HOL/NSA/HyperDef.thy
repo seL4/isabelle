@@ -140,12 +140,12 @@ by transfer (rule of_real_mult)
 
 lemma of_hypreal_inverse [simp]:
   "\<And>x. of_hypreal (inverse x) =
-   inverse (of_hypreal x :: 'a::{real_div_algebra, division_ring_inverse_zero} star)"
+   inverse (of_hypreal x :: 'a::{real_div_algebra, division_ring} star)"
 by transfer (rule of_real_inverse)
 
 lemma of_hypreal_divide [simp]:
   "\<And>x y. of_hypreal (x / y) =
-   (of_hypreal x / of_hypreal y :: 'a::{real_field, field_inverse_zero} star)"
+   (of_hypreal x / of_hypreal y :: 'a::{real_field, field} star)"
 by transfer (rule of_real_divide)
 
 lemma of_hypreal_eq_iff [simp]:
@@ -445,7 +445,7 @@ lemma hyperpow_not_zero:
 by transfer (rule field_power_not_zero)
 
 lemma hyperpow_inverse:
-  "\<And>r n. r \<noteq> (0::'a::field_inverse_zero star)
+  "\<And>r n. r \<noteq> (0::'a::field star)
    \<Longrightarrow> inverse (r pow n) = (inverse r) pow n"
 by transfer (rule power_inverse)
 

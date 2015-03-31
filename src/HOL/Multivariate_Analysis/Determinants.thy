@@ -64,7 +64,7 @@ lemma setprod_le:
 
 (* FIXME: In Finite_Set there is a useless further assumption *)
 lemma setprod_inversef:
-  "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: field_inverse_zero)"
+  "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: field)"
   apply (erule finite_induct)
   apply (simp)
   apply simp

@@ -1075,7 +1075,7 @@ lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
 
 subsection {* Particular lemmas concerning @{term 2} *}
 
-context linordered_field_inverse_zero
+context linordered_field
 begin
 
 lemma half_gt_zero_iff:

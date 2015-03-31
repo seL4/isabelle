@@ -98,7 +98,7 @@ lemma [code]:
   
 subsection {* Type @{typ bit} forms a field *}
 
-instantiation bit :: field_inverse_zero
+instantiation bit :: field
 begin
 
 definition plus_bit_def:

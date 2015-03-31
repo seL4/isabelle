@@ -393,7 +393,7 @@ lemma eq_Real:
 lemma Domainp_pcr_real [transfer_domain_rule]: "Domainp pcr_real = cauchy"
 by (simp add: real.domain_eq realrel_def)
 
-instantiation real :: field_inverse_zero
+instantiation real :: field
 begin
 
 lift_definition zero_real :: "real" is "\<lambda>n. 0"
@@ -575,7 +575,7 @@ apply (simp add: realrel_def)
 apply (drule (1) cauchy_not_vanishes_cases, safe, fast, fast)
 done
 
-instantiation real :: linordered_field_inverse_zero
+instantiation real :: linordered_field
 begin
 
 definition

@@ -125,7 +125,7 @@ lemma set_integral_mult_left [simp]:
   by (subst integral_mult_left_zero[symmetric]) (auto intro!: integral_cong)
 
 lemma set_integral_divide_zero [simp]: 
-  fixes a :: "'a::{real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
   shows "LINT t:A|M. f t / a = (LINT t:A|M. f t) / a"
   by (subst integral_divide_zero[symmetric], intro integral_cong)
      (auto split: split_indicator)
@@ -150,7 +150,7 @@ lemma set_integrable_mult_left [simp, intro]:
   using integrable_mult_left[of a M "\<lambda>x. indicator A x *\<^sub>R f x"] by simp
 
 lemma set_integrable_divide [simp, intro]:
-  fixes a :: "'a::{real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
   assumes "a \<noteq> 0 \<Longrightarrow> set_integrable M A f"
   shows "set_integrable M A (\<lambda>t. f t / a)"
 proof -

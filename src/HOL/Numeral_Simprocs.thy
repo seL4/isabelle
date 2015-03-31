@@ -115,8 +115,8 @@ simproc_setup int_combine_numerals
   {* fn phi => Numeral_Simprocs.combine_numerals *}
 
 simproc_setup field_combine_numerals
-  ("(i::'a::{field_inverse_zero,ring_char_0}) + j"
-  |"(i::'a::{field_inverse_zero,ring_char_0}) - j") =
+  ("(i::'a::{field,ring_char_0}) + j"
+  |"(i::'a::{field,ring_char_0}) - j") =
   {* fn phi => Numeral_Simprocs.field_combine_numerals *}
 
 simproc_setup inteq_cancel_numerals
@@ -174,9 +174,9 @@ simproc_setup int_div_cancel_numeral_factors
   {* fn phi => Numeral_Simprocs.div_cancel_numeral_factor *}
 
 simproc_setup divide_cancel_numeral_factor
-  ("((l::'a::{field_inverse_zero,ring_char_0}) * m) / n"
-  |"(l::'a::{field_inverse_zero,ring_char_0}) / (m * n)"
-  |"((numeral v)::'a::{field_inverse_zero,ring_char_0}) / (numeral w)") =
+  ("((l::'a::{field,ring_char_0}) * m) / n"
+  |"(l::'a::{field,ring_char_0}) / (m * n)"
+  |"((numeral v)::'a::{field,ring_char_0}) / (numeral w)") =
   {* fn phi => Numeral_Simprocs.divide_cancel_numeral_factor *}
 
 simproc_setup ring_eq_cancel_factor
@@ -209,8 +209,8 @@ simproc_setup dvd_cancel_factor
   {* fn phi => Numeral_Simprocs.dvd_cancel_factor *}
 
 simproc_setup divide_cancel_factor
-  ("((l::'a::field_inverse_zero) * m) / n"
-  |"(l::'a::field_inverse_zero) / (m * n)") =
+  ("((l::'a::field) * m) / n"
+  |"(l::'a::field) / (m * n)") =
   {* fn phi => Numeral_Simprocs.divide_cancel_factor *}
 
 ML_file "Tools/nat_numeral_simprocs.ML"

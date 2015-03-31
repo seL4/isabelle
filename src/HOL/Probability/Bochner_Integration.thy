@@ -676,7 +676,7 @@ lemmas has_bochner_integral_divide =
   has_bochner_integral_bounded_linear[OF bounded_linear_divide]
 
 lemma has_bochner_integral_divide_zero[intro]:
-  fixes c :: "_::{real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes c :: "_::{real_normed_field, field, second_countable_topology}"
   shows "(c \<noteq> 0 \<Longrightarrow> has_bochner_integral M f x) \<Longrightarrow> has_bochner_integral M (\<lambda>x. f x / c) (x / c)"
   using has_bochner_integral_divide by (cases "c = 0") auto
 
@@ -990,7 +990,7 @@ lemma integrable_mult_right[simp, intro]:
   unfolding integrable.simps by fastforce
 
 lemma integrable_divide_zero[simp, intro]:
-  fixes c :: "_::{real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes c :: "_::{real_normed_field, field, second_countable_topology}"
   shows "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> integrable M (\<lambda>x. f x / c)"
   unfolding integrable.simps by fastforce
 
@@ -1098,7 +1098,7 @@ lemma integral_inner_right[simp]: "(c \<noteq> 0 \<Longrightarrow> integrable M 
   by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_inner_right)
 
 lemma integral_divide_zero[simp]:
-  fixes c :: "_::{real_normed_field, field_inverse_zero, second_countable_topology}"
+  fixes c :: "_::{real_normed_field, field, second_countable_topology}"
   shows "integral\<^sup>L M (\<lambda>x. f x / c) = integral\<^sup>L M f / c"
   by (rule integral_bounded_linear'[OF bounded_linear_divide bounded_linear_mult_left[of c]]) simp
 

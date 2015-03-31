@@ -224,7 +224,7 @@ subclass ring_no_zero_divisors ..
 
 end
 
-instantiation fract :: (idom) field_inverse_zero
+instantiation fract :: (idom) field
 begin
 
 definition inverse_fract_def:
@@ -428,7 +428,7 @@ instance
 
 end
 
-instance fract :: (linordered_idom) linordered_field_inverse_zero
+instance fract :: (linordered_idom) linordered_field
 proof
   fix q r s :: "'a fract"
   assume "q \<le> r"
