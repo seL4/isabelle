@@ -445,7 +445,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
   let
     val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
       lthy
-      |> Local_Theory.concealed
+      |> Proof_Context.concealed
       |> Inductive.add_inductive_i
           {quiet_mode = true,
             verbose = ! trace,
@@ -458,7 +458,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
           [] (* no parameters *)
           (map (fn t => (Attrib.empty_binding, t)) intrs) (* intro rules *)
           [] (* no special monos *)
-      ||> Local_Theory.restore_naming lthy
+      ||> Proof_Context.restore_naming lthy
 
     fun requantify orig_intro thm =
       let

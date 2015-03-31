@@ -25,13 +25,13 @@ sig
     local_theory -> local_theory
   val close_target: local_theory -> local_theory
   val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
-  val naming_of: local_theory -> Name_Space.naming
+  val background_naming_of: local_theory -> Name_Space.naming
+  val map_background_naming: (Name_Space.naming -> Name_Space.naming) ->
+    local_theory -> local_theory
+  val restore_background_naming: local_theory -> local_theory -> local_theory
   val full_name: local_theory -> binding -> string
-  val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
-  val concealed: local_theory -> local_theory
   val new_group: local_theory -> local_theory
   val reset_group: local_theory -> local_theory
-  val restore_naming: local_theory -> local_theory -> local_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
   val standard_form: local_theory -> Proof.context -> (morphism -> 'a) -> 'a
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
@@ -97,15 +97,15 @@ type operations =
   exit: local_theory -> Proof.context};
 
 type lthy =
- {naming: Name_Space.naming,
+ {background_naming: Name_Space.naming,
   operations: operations,
   after_close: local_theory -> local_theory,
   brittle: bool,
   target: Proof.context};
 
-fun make_lthy (naming, operations, after_close, brittle, target) : lthy =
-  {naming = naming, operations = operations, after_close = after_close,
-    brittle = brittle, target = target};
+fun make_lthy (background_naming, operations, after_close, brittle, target) : lthy =
+  {background_naming = background_naming, operations = operations,
+    after_close = after_close, brittle = brittle, target = target};
 
 
 (* context data *)
@@ -124,8 +124,8 @@ val top_of = hd o Data.get o assert;
 
 fun map_top f =
   assert #>
-  Data.map (fn {naming, operations, after_close, brittle, target} :: parents =>
-    make_lthy (f (naming, operations, after_close, brittle, target)) :: parents);
+  Data.map (fn {background_naming, operations, after_close, brittle, target} :: parents =>
+    make_lthy (f (background_naming, operations, after_close, brittle, target)) :: parents);
 
 fun restore lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
 
@@ -144,9 +144,9 @@ fun assert_bottom b lthy =
     else lthy
   end;
 
-fun open_target naming operations after_close target =
+fun open_target background_naming operations after_close target =
   assert target
-  |> Data.map (cons (make_lthy (naming, operations, after_close, true, target)));
+  |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)));
 
 fun close_target lthy =
   let
@@ -156,13 +156,14 @@ fun close_target lthy =
 
 fun map_contexts f lthy =
   let val n = level lthy in
-    lthy |> (Data.map o map_index) (fn (i, {naming, operations, after_close, brittle, target}) =>
-      make_lthy (naming, operations, after_close, brittle,
-        target
-        |> Context_Position.set_visible false
-        |> f (n - i - 1)
-        |> Context_Position.restore_visible target))
-    |> f n
+    lthy |> (Data.map o map_index)
+      (fn (i, {background_naming, operations, after_close, brittle, target}) =>
+        make_lthy (background_naming, operations, after_close, brittle,
+          target
+          |> Context_Position.set_visible false
+          |> f (n - i - 1)
+          |> Context_Position.restore_visible target))
+      |> f n
   end;
 
 
@@ -170,8 +171,8 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1 then
-    map_top (fn (naming, operations, after_close, _, target) =>
-      (naming, operations, after_close, true, target)) lthy
+    map_top (fn (background_naming, operations, after_close, _, target) =>
+      (background_naming, operations, after_close, true, target)) lthy
   else lthy;
 
 fun assert_nonbrittle lthy =
@@ -179,20 +180,20 @@ fun assert_nonbrittle lthy =
   else lthy;
 
 
-(* naming *)
+(* naming for background theory *)
 
-val naming_of = #naming o top_of;
-val full_name = Name_Space.full_name o naming_of;
+val background_naming_of = #background_naming o top_of;
 
-fun map_naming f =
-  map_top (fn (naming, operations, after_close, brittle, target) =>
-    (f naming, operations, after_close, brittle, target));
+fun map_background_naming f =
+  map_top (fn (background_naming, operations, after_close, brittle, target) =>
+    (f background_naming, operations, after_close, brittle, target));
 
-val concealed = map_naming Name_Space.concealed;
-val new_group = map_naming Name_Space.new_group;
-val reset_group = map_naming Name_Space.reset_group;
+val restore_background_naming = map_background_naming o K o background_naming_of;
 
-val restore_naming = map_naming o K o naming_of;
+val full_name = Name_Space.full_name o background_naming_of;
+
+val new_group = map_background_naming Name_Space.new_group;
+val reset_group = map_background_naming Name_Space.reset_group;
 
 
 (* standard morphisms *)
@@ -200,7 +201,7 @@ val restore_naming = map_naming o K o naming_of;
 fun standard_morphism lthy ctxt =
   Proof_Context.norm_export_morphism lthy ctxt $>
   Morphism.binding_morphism "Local_Theory.standard_binding"
-    (Name_Space.transform_binding (naming_of lthy));
+    (Name_Space.transform_binding (Proof_Context.naming_of lthy));
 
 fun standard_form lthy ctxt x =
   Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);
@@ -219,7 +220,7 @@ fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 fun background_theory_result f lthy =
   lthy |> raw_theory_result (fn thy =>
     thy
-    |> Sign.map_naming (K (naming_of lthy))
+    |> Sign.map_naming (K (background_naming_of lthy))
     |> f
     ||> Sign.restore_naming thy);
 
@@ -343,9 +344,9 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 (* init *)
 
-fun init naming operations target =
+fun init background_naming operations target =
   target |> Data.map
-    (fn [] => [make_lthy (naming, operations, I, false, target)]
+    (fn [] => [make_lthy (background_naming, operations, I, false, target)]
       | _ => error "Local theory already initialized");
 
 

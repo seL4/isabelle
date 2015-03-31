@@ -138,9 +138,9 @@ local
 
 fun apply change_naming (interp: interp) (data: data) lthy =
   lthy
-  |> change_naming ? Local_Theory.map_naming (K (#naming data))
+  |> change_naming ? Local_Theory.map_background_naming (K (#naming data))
   |> #apply interp (#value data)
-  |> Local_Theory.restore_naming lthy;
+  |> Local_Theory.restore_background_naming lthy;
 
 fun unfinished data (interp: interp, data') =
   (interp,

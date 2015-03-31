@@ -109,6 +109,7 @@ sig
   val mandatory_path: string -> theory -> theory
   val qualified_path: bool -> binding -> theory -> theory
   val local_path: theory -> theory
+  val concealed: theory -> theory
   val hide_class: bool -> string -> theory -> theory
   val hide_type: bool -> string -> theory -> theory
   val hide_const: bool -> string -> theory -> theory
@@ -509,6 +510,8 @@ val mandatory_path = map_naming o Name_Space.mandatory_path;
 val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
+
+val concealed = map_naming Name_Space.concealed;
 
 
 (* hide names *)

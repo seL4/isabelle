@@ -155,14 +155,14 @@ fun init_context ("", _) = Proof_Context.init_global
 fun gen_init before_exit target thy =
   let
     val name_data = make_name_data thy target;
-    val naming =
+    val background_naming =
       Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
     thy
     |> Sign.change_begin
     |> init_context name_data
     |> is_none before_exit ? Data.put (SOME name_data)
-    |> Local_Theory.init naming
+    |> Local_Theory.init background_naming
        {define = Generic_Target.define (foundation name_data),
         notes = Generic_Target.notes (notes name_data),
         abbrev = Generic_Target.abbrev (abbrev name_data),

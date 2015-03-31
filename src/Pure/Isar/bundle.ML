@@ -98,7 +98,7 @@ fun gen_context get prep_decl raw_incls raw_elems gthy =
       |> prep_decl ([], []) I raw_elems;
   in
     lthy' |> Local_Theory.open_target
-      (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy) after_close
+      (Local_Theory.background_naming_of lthy) (Local_Theory.operations_of lthy) after_close
   end;
 
 in

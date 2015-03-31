@@ -988,7 +988,7 @@ lemma apsnd_apfst_commute:
 context
 begin
 
-local_setup {* Local_Theory.map_naming (Name_Space.mandatory_path "prod") *}
+local_setup {* Local_Theory.map_background_naming (Name_Space.mandatory_path "prod") *}
 
 definition swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a"
 where

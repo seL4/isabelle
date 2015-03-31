@@ -34,6 +34,7 @@ sig
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
+  val concealed: Proof.context -> Proof.context
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
@@ -303,6 +304,8 @@ val map_naming = Context.proof_map o Name_Space.map_naming;
 val restore_naming = map_naming o K o naming_of;
 
 val full_name = Name_Space.full_name o naming_of;
+
+val concealed = map_naming Name_Space.concealed;
 
 
 (* name spaces *)
