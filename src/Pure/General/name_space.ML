@@ -110,7 +110,7 @@ fun undefined kind name = "Undefined " ^ plain_words kind ^ ": " ^ quote name;
 
 (* internal names *)
 
-type internals = (string list * string list) Change_Table.T;  (*xname -> visible, hidden*)
+type internals = (string list * string list) Change_Table.T;
 
 fun map_internals f xname : internals -> internals =
   Change_Table.map_default (xname, ([], [])) f;
@@ -119,14 +119,15 @@ val del_name = map_internals o apfst o remove (op =);
 fun del_name_extra name =
   map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
 val add_name = map_internals o apfst o update (op =);
-val add_name' = map_internals o apsnd o update (op =);
+fun hide_name name = map_internals (apsnd (update (op =) name)) name;
 
 
 (* datatype T *)
 
 datatype T =
   Name_Space of
-   {kind: string, internals: internals,
+   {kind: string,
+    internals: internals,  (*xname -> visible, hidden*)
     entries: (xstring list * entry) Change_Table.T};  (*name -> externals, entry*)
 
 fun make_name_space (kind, internals, entries) =
@@ -377,7 +378,7 @@ fun hide fully name space =
       val _ = Change_Table.defined entries name orelse error (undefined kind name);
       val names = valid_accesses space name;
       val internals' = internals
-        |> add_name' name name
+        |> hide_name name
         |> fold (del_name name)
           (if fully then names else inter (op =) [Long_Name.base_name name] names)
         |> fold (del_name_extra name) (get_accesses space name);
