@@ -319,6 +319,8 @@ fun set_group group = map_naming (fn (private, concealed, _, theory_name, path) 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
 
+fun get_path (Naming {path, ...}) = path;
+
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
 val parent_path = map_path (perhaps (try (#1 o split_last)));
@@ -333,27 +335,12 @@ val local_naming = global_naming |> add_path Long_Name.localN;
 
 (* full name *)
 
-fun err_bad binding = error (Binding.bad binding);
-
 fun transform_binding (Naming {private, concealed, ...}) =
   private ? Binding.private #>
   concealed ? Binding.concealed;
 
-val bad_specs = ["", "??", "__"];
-
-fun name_spec (naming as Naming {path = path1, ...}) raw_binding =
-  let
-    val binding = transform_binding naming raw_binding;
-    val {private, concealed, path = path2, name} = Binding.dest binding;
-    val _ = Long_Name.is_qualified name andalso err_bad binding;
-
-    val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path1 @ path2);
-    val spec2 = if name = "" then [] else [(name, true)];
-    val spec = spec1 @ spec2;
-    val _ =
-      exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
-      andalso err_bad binding;
-  in {private = private, concealed = concealed, spec = if null spec2 then [] else spec} end;
+fun name_spec naming binding =
+  Binding.name_spec (get_path naming) (transform_binding naming binding);
 
 fun full_name naming =
   name_spec naming #> #spec #> map #1 #> Long_Name.implode;
@@ -446,7 +433,7 @@ fun declare context strict binding space =
     val (accs, accs') = accesses naming binding;
 
     val name = Long_Name.implode (map fst spec);
-    val _ = name = "" andalso err_bad binding;
+    val _ = name = "" andalso error (Binding.bad binding);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
