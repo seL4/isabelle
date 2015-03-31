@@ -61,7 +61,7 @@ val del = Thm.declaration_attribute o del_thm;
 
 fun declare binding descr lthy =
   let
-    val name = Name_Space.full_name (Local_Theory.naming_of lthy) binding;
+    val name = Local_Theory.full_name lthy binding;
     val description =
       "declaration of " ^ (if descr = "" then Binding.name_of binding ^ " rules" else descr);
     val lthy' = lthy
