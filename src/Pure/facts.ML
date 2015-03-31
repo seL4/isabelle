@@ -169,10 +169,10 @@ fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of;
 val defined = Name_Space.defined o facts_of;
 
 fun lookup context facts name =
-  (case Name_Space.lookup_key (facts_of facts) name of
+  (case Name_Space.lookup (facts_of facts) name of
     NONE => NONE
-  | SOME (_, Static ths) => SOME (true, ths)
-  | SOME (_, Dynamic f) => SOME (false, f context));
+  | SOME (Static ths) => SOME (true, ths)
+  | SOME (Dynamic f) => SOME (false, f context));
 
 fun retrieve context facts (xname, pos) =
   let

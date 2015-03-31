@@ -62,6 +62,7 @@ sig
     xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
   val defined: 'a table -> string -> bool
+  val lookup: 'a table -> string -> 'a option
   val lookup_key: 'a table -> string -> (string * 'a) option
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -162,15 +163,17 @@ fun markup (Name_Space {kind, entries, ...}) name =
 fun is_concealed space name = #concealed (the_entry space name);
 
 
-(* name accesses *)
+(* intern *)
 
-fun lookup (Name_Space {internals, ...}) xname =
+fun intern' (Name_Space {internals, ...}) xname =
   (case Change_Table.lookup internals xname of
     NONE => (xname, true)
   | SOME ([], []) => (xname, true)
   | SOME ([name], _) => (name, true)
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (Long_Name.hidden name', true));
+
+val intern = #1 oo intern';
 
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of
@@ -180,11 +183,6 @@ fun get_accesses (Name_Space {entries, ...}) name =
 fun valid_accesses (Name_Space {internals, ...}) name =
   Change_Table.fold (fn (xname, (names, _)) =>
     if not (null names) andalso hd names = name then cons xname else I) internals [];
-
-
-(* intern *)
-
-fun intern space xname = #1 (lookup space xname);
 
 
 (* extern *)
@@ -205,7 +203,7 @@ fun extern ctxt space name =
     val names_unique = Config.get ctxt names_unique;
 
     fun valid require_unique xname =
-      let val (name', is_unique) = lookup space xname
+      let val (name', is_unique) = intern' space xname
       in name = name' andalso (not require_unique orelse is_unique) end;
 
     fun ext [] = if valid false name then name else Long_Name.hidden name
@@ -496,6 +494,7 @@ fun check context table (xname, pos) =
   in (name, x) end;
 
 fun defined (Table (_, tab)) name = Change_Table.defined tab name;
+fun lookup (Table (_, tab)) name = Change_Table.lookup tab name;
 fun lookup_key (Table (_, tab)) name = Change_Table.lookup_key tab name;
 
 fun get table name =
