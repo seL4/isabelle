@@ -155,8 +155,8 @@ fun init_context ("", _) = Proof_Context.init_global
 fun gen_init before_exit target thy =
   let
     val name_data = make_name_data thy target;
-    val naming = Sign.naming_of thy
-      |> Name_Space.mandatory_path (Long_Name.base_name target);
+    val naming =
+      Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
     thy
     |> Sign.change_begin

@@ -599,8 +599,6 @@ fun conclude lthy =
 
 fun instantiation (tycos, vs, sort) thy =
   let
-    val naming = Sign.naming_of thy;
-
     val _ = if null tycos then error "At least one arity must be given" else ();
     val class_params = these_params thy (filter (can (Axclass.get_info thy)) sort);
     fun get_param tyco (param, (_, (c, ty))) =
@@ -637,7 +635,7 @@ fun instantiation (tycos, vs, sort) thy =
     |> Overloading.activate_improvable_syntax
     |> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
-    |> Local_Theory.init naming
+    |> Local_Theory.init (Sign.naming_of thy)
        {define = Generic_Target.define foundation,
         notes = Generic_Target.notes Generic_Target.theory_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_abbrev,
