@@ -48,6 +48,7 @@ sig
   val qualified_path: bool -> binding -> naming -> naming
   val global_naming: naming
   val local_naming: naming
+  val transform_naming: naming -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val base_name: binding -> string
@@ -342,11 +343,18 @@ val global_naming = make_naming ([], NONE, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
 
 
-(* full name *)
+(* visibility flags *)
+
+fun transform_naming (Naming {private = private', concealed = concealed', ...}) =
+  fold private (the_list private') #>
+  concealed' ? concealed;
 
 fun transform_binding (Naming {private, concealed, ...}) =
   Binding.private_default private #>
   concealed ? Binding.concealed;
+
+
+(* full name *)
 
 fun name_spec naming binding =
   Binding.name_spec (get_scopes naming) (get_path naming) (transform_binding naming binding);

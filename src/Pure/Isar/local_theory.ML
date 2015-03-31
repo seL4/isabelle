@@ -222,11 +222,17 @@ fun raw_theory_result f lthy =
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 
 fun background_theory_result f lthy =
-  lthy |> raw_theory_result (fn thy =>
-    thy
-    |> Sign.map_naming (K (background_naming_of lthy))
-    |> f
-    ||> Sign.restore_naming thy);
+  let
+    val naming =
+      background_naming_of lthy
+      |> Name_Space.transform_naming (Proof_Context.naming_of lthy);
+  in
+    lthy |> raw_theory_result (fn thy =>
+      thy
+      |> Sign.map_naming (K naming)
+      |> f
+      ||> Sign.restore_naming thy)
+  end;
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
 
