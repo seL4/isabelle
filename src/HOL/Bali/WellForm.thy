@@ -1979,7 +1979,7 @@ qed
 
 lemma dynmethd_Object:
   assumes statM: "methd G Object sig = Some statM" and
-        private: "accmodi statM = Private" and 
+        "private": "accmodi statM = Private" and 
        is_cls_C: "is_class G C" and
              wf: "wf_prog G"
   shows "dynmethd G Object C sig = Some statM"
@@ -1992,13 +1992,13 @@ proof -
   from wf 
   have is_cls_Obj: "is_class G Object" 
     by simp
-  from statM subclseq is_cls_Obj ws private
+  from statM subclseq is_cls_Obj ws "private"
   show ?thesis
   proof (cases rule: dynmethd_cases)
     case Static then show ?thesis .
   next
     case Overrides 
-    with private show ?thesis 
+    with "private" show ?thesis 
       by (auto dest: no_Private_override)
   qed
 qed

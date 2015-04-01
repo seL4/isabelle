@@ -173,7 +173,7 @@ fun get_statespace ctxt name =
 fun mk_free ctxt name =
   if Variable.is_fixed ctxt name orelse Variable.is_declared ctxt name
   then
-    let val n' = Variable.intern_fixed ctxt name
+    let val n' = Variable.intern_fixed ctxt name |> perhaps Long_Name.dest_hidden;
     in SOME (Free (n', Proof_Context.infer_type ctxt (n', dummyT))) end
   else NONE
 

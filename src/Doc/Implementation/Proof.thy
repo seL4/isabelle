@@ -162,7 +162,7 @@ text %mlref \<open>
 text %mlex \<open>The following example shows how to work with fixed term
   and type parameters and with type-inference.\<close>
 
-ML \<open>
+ML_val \<open>
   (*static compile-time context -- for testing only*)
   val ctxt0 = @{context};
 
@@ -188,7 +188,7 @@ text \<open>In the above example, the starting context is derived from the
   Alternatively, fixed parameters can be renamed explicitly as
   follows:\<close>
 
-ML \<open>
+ML_val \<open>
   val ctxt0 = @{context};
   val ([x1, x2, x3], ctxt1) =
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
@@ -325,7 +325,7 @@ text %mlex \<open>The following example demonstrates how rules can be
   here for testing purposes.
 \<close>
 
-ML \<open>
+ML_val \<open>
   (*static compile-time context -- for testing only*)
   val ctxt0 = @{context};
 

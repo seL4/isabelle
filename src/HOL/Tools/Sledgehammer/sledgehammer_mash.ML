@@ -737,8 +737,6 @@ end
 
 (*** Isabelle helpers ***)
 
-val local_prefix = "local" ^ Long_Name.separator
-
 fun elided_backquote_thm threshold th =
   elide_string threshold (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
 
@@ -748,10 +746,8 @@ fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
-      (case try (unprefix local_prefix) hint of
-        SOME suf =>
-        thy_name_of_thm th ^ Long_Name.separator ^ suf ^ Long_Name.separator ^
-        elided_backquote_thm 50 th
+      (case Long_Name.dest_local hint of
+        SOME suf => Long_Name.implode [thy_name_of_thm th, suf, elided_backquote_thm 50 th]
       | NONE => hint)
     end
   else
@@ -886,7 +882,7 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
       | pattify_term _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
         |> (if member (op =) fixes s then
-              cons (free_feature_of (massage_long_name (thy_name ^ Long_Name.separator ^ s)))
+              cons (free_feature_of (massage_long_name (Long_Name.append thy_name s)))
             else
               I)
       | pattify_term _ _ (Var (_, T)) = maybe_singleton_str pat_var_prefix (crude_str_of_typ T)

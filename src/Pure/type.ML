@@ -254,7 +254,7 @@ fun type_alias naming binding name = map_tsig (fn (classes, default, types) =>
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
-fun lookup_type (TSig {types, ...}) = Option.map #2 o Name_Space.lookup_key types;
+fun lookup_type (TSig {types, ...}) = Name_Space.lookup types;
 
 fun check_decl context (TSig {types, ...}) (c, pos) =
   Name_Space.check_reports context types (c, [pos]);
@@ -659,8 +659,9 @@ fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val types' = f types;
     val _ =
+      not (Name_Space.defined types' "dummy") orelse
       Name_Space.intern (Name_Space.space_of_table types') "dummy" = "dummy" orelse
-        error "Illegal declaration of dummy type";
+      error "Illegal declaration of dummy type";
   in (classes, default, types') end);
 
 fun syntactic tsig (Type (c, Ts)) =

@@ -709,7 +709,7 @@ text \<open>If @{text "tac"} can return multiple outcomes then so can @{ML
   \end{warn}
 \<close>
 
-ML \<open>
+ML_val \<open>
   (*BAD -- does not terminate!*)
   fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;
 \<close>

@@ -706,7 +706,7 @@ session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
     "ex/Measure_Not_CCC"
   document_files "root.tex"
 
-session "HOL-Nominal" (main) in Nominal = HOL +
+session "HOL-Nominal" in Nominal = HOL +
   options [document = false]
   theories Nominal
 

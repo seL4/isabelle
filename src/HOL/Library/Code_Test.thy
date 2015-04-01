@@ -64,7 +64,7 @@ lemma xml_tree_anything: "x = (y :: xml_tree)"
 by(cases x y rule: xml_tree.exhaust[case_product xml_tree.exhaust])(simp)
 
 context begin
-local_setup {* Local_Theory.map_naming (Name_Space.mandatory_path "xml") *}
+local_setup {* Local_Theory.map_background_naming (Name_Space.mandatory_path "xml") *}
 
 type_synonym attributes = "(String.literal \<times> String.literal) list"
 type_synonym body = "xml_tree list"

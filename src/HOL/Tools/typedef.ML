@@ -81,10 +81,10 @@ fun interpretation f =
   Typedef_Plugin.interpretation typedef_plugin
     (fn name => fn lthy =>
       lthy
-      |> Local_Theory.map_naming
+      |> Local_Theory.map_background_naming
           (Name_Space.root_path #> Name_Space.add_path (Long_Name.qualifier name))
       |> f name
-      |> Local_Theory.restore_naming lthy);
+      |> Local_Theory.restore_background_naming lthy);
 
 
 (* primitive typedef axiomatization -- for fresh typedecl *)

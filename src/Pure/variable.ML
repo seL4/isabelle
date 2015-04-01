@@ -340,14 +340,14 @@ val improper_fixes = Config.put proper_fixes false;
 fun restore_proper_fixes ctxt = Config.put proper_fixes (Config.get ctxt proper_fixes);
 
 fun is_improper ctxt x =
-  (case Name_Space.lookup_key (fixes_of ctxt) x of
-    SOME (_, (_, proper)) => not proper
+  (case Name_Space.lookup (fixes_of ctxt) x of
+    SOME (_, proper) => not proper
   | NONE => false);
 
 
 (* specialized name space *)
 
-val is_fixed = Name_Space.defined_entry o fixes_space;
+val is_fixed = Name_Space.defined o fixes_of;
 fun is_newly_fixed inner outer = is_fixed inner andf (not o is_fixed outer);
 
 val fixed_ord = Name_Space.entry_ord o fixes_space;
@@ -358,8 +358,8 @@ fun lookup_fixed ctxt x =
   in if is_fixed ctxt x' then SOME x' else NONE end;
 
 fun revert_fixed ctxt x =
-  (case Name_Space.lookup_key (fixes_of ctxt) x of
-    SOME (_, (x', _)) => if intern_fixed ctxt x' = x then x' else x
+  (case Name_Space.lookup (fixes_of ctxt) x of
+    SOME (x', _) => if intern_fixed ctxt x' = x then x' else x
   | NONE => x);
 
 fun markup_fixed ctxt x =

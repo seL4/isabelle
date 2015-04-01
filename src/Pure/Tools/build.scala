@@ -162,12 +162,18 @@ object Build
     def apply(name: String): Session_Info = graph.get_node(name)
     def isDefinedAt(name: String): Boolean = graph.defined(name)
 
-    def selection(requirements: Boolean, all_sessions: Boolean,
-      session_groups: List[String], sessions: List[String]): (List[String], Session_Tree) =
+    def selection(
+      requirements: Boolean = false,
+      all_sessions: Boolean = false,
+      session_groups: List[String] = Nil,
+      exclude_sessions: List[String] = Nil,
+      sessions: List[String] = Nil): (List[String], Session_Tree) =
     {
-      val bad_sessions = sessions.filterNot(isDefinedAt(_))
+      val bad_sessions =
+        SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
       if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
 
+      val excluded = graph.all_succs(exclude_sessions).toSet
       val pre_selected =
       {
         if (all_sessions) graph.keys
@@ -179,7 +185,8 @@ object Build
             if info.select || select(name) || apply(name).groups.exists(select_group)
           } yield name).toList
         }
-      }
+      }.filterNot(excluded)
+
       val selected =
         if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
         else pre_selected
@@ -427,8 +434,13 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(progress: Progress, inlined_files: Boolean,
-      verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
+  def dependencies(
+      progress: Progress = Ignore_Progress,
+      inlined_files: Boolean = false,
+      verbose: Boolean = false,
+      list_files: Boolean = false,
+      check_keywords: Set[String] = Set.empty,
+      tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
@@ -484,15 +496,19 @@ object Build
             val keywords = thy_deps.keywords
             val syntax = thy_deps.syntax.asInstanceOf[Outer_Syntax]
 
+            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files = if (inlined_files) thy_deps.loaded_files else Nil
 
             val all_files =
-              (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: loaded_files :::
+              (theory_files ::: loaded_files :::
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
             if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+
+            if (check_keywords.nonEmpty)
+              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
@@ -516,8 +532,8 @@ object Build
     dirs: List[Path],
     sessions: List[String]): Deps =
   {
-    val (_, tree) = find_sessions(options, dirs = dirs).selection(false, false, Nil, sessions)
-    dependencies(Ignore_Progress, inlined_files, false, false, tree)
+    val (_, tree) = find_sessions(options, dirs = dirs).selection(sessions = sessions)
+    dependencies(inlined_files = inlined_files, tree = tree)
   }
 
   def session_content(
@@ -737,18 +753,20 @@ object Build
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
+    check_keywords: Set[String] = Set.empty,
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
+    exclude_sessions: List[String] = Nil,
     sessions: List[String] = Nil): Map[String, Int] =
   {
     /* session tree and dependencies */
 
     val full_tree = find_sessions(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
-      full_tree.selection(requirements, all_sessions, session_groups, sessions)
+      full_tree.selection(requirements, all_sessions, session_groups, exclude_sessions, sessions)
 
-    val deps = dependencies(progress, true, verbose, list_files, selected_tree)
+    val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
     def make_stamp(name: String): String =
       sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
@@ -988,15 +1006,17 @@ object Build
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
+    check_keywords: Set[String] = Set.empty,
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
+    exclude_sessions: List[String] = Nil,
     sessions: List[String] = Nil): Int =
   {
     val results =
-      build_results(options, progress, requirements, all_sessions,
-        build_heap, clean_build, dirs, select_dirs, session_groups, max_jobs,
-        list_files, no_build, system_mode, verbose, sessions)
+      build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
+        dirs, select_dirs, session_groups, max_jobs, list_files, check_keywords,
+        no_build, system_mode, verbose, exclude_sessions, sessions)
 
     val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
@@ -1024,13 +1044,15 @@ object Build
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(dirs, select_dirs, session_groups, build_options, sessions) =>
+          Command_Line.Chunks(dirs, select_dirs, session_groups, check_keywords,
+              build_options, exclude_sessions, sessions) =>
             val options = (Options.init() /: build_options)(_ + _)
             val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
               build(options, progress, requirements, all_sessions, build_heap, clean_build,
                 dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), session_groups,
-                max_jobs, list_files, no_build, system_mode, verbose, sessions)
+                max_jobs, list_files, check_keywords.toSet, no_build, system_mode,
+                verbose, exclude_sessions, sessions)
             }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

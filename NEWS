@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
+* Command 'experiment' opens an anonymous locale context with private
+naming policy.
+
 * Structural composition of proof methods (meth1; meth2) in Isar
 corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 
@@ -340,6 +343,14 @@ style.
 
 *** ML ***
 
+* Subtle change of name space policy: undeclared entries are now
+considered inaccessible, instead of accessible via the fully-qualified
+internal name. This mainly affects Name_Space.intern (and derivatives),
+which may produce an unexpected Long_Name.hidden prefix. Note that
+contempory applications use the strict Name_Space.check (and
+derivatives) instead, which is not affected by the change. Potential
+INCOMPATIBILITY in rare applications of Name_Space.intern.
+
 * The main operations to certify logical entities are Thm.ctyp_of and
 Thm.cterm_of with a local context; old-style global theory variants are
 available as Thm.global_ctyp_of and Thm.global_cterm_of.
@@ -406,6 +417,8 @@ semicolons from theory sources.
 
 * The Isabelle tool "update_cartouches" changes theory files to use
 cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
+
+* The Isabelle tool "build" provides new options -k and -x.
 
 
 

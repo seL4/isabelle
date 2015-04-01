@@ -180,7 +180,7 @@ fun markup_extern ctxt =
 fun markup_name ctxt name = markup_extern ctxt name |-> Markup.markup;
 fun pretty_name ctxt name = markup_extern ctxt name |> Pretty.mark_str;
 
-val get_locale = Option.map #2 oo (Name_Space.lookup_key o Locales.get);
+val get_locale = Name_Space.lookup o Locales.get;
 val defined = is_some oo get_locale;
 
 fun the_locale thy name =

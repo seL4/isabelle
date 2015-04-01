@@ -6,6 +6,12 @@
 
 isabelle_admin_build jars || exit $?
 
-isabelle_scala scala -Dfile.encoding=UTF-8 \
-  -classpath "$(jvmpath "$ISABELLE_CLASSPATH")" "$@"
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+declare -a SCALA_ARGS=()
+for ARG in "${JAVA_ARGS[@]}"
+do
+  SCALA_ARGS["${#SCALA_ARGS[@]}"]="-J$ARG"
+done
 
+isabelle_scala scala "${SCALA_ARGS[@]}" \
+  -classpath "$(jvmpath "$ISABELLE_CLASSPATH")" "$@"

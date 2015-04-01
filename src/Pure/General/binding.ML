@@ -9,8 +9,9 @@ type bstring = string;    (*primitive names to be bound*)
 
 signature BINDING =
 sig
+  eqtype scope
+  val new_scope: unit -> scope
   eqtype binding
-  val dest: binding -> {private: bool, concealed: bool, path: (string * bool) list, name: bstring}
   val path_of: binding -> (string * bool) list
   val make: bstring * Position.T -> binding
   val pos_of: binding -> Position.T
@@ -29,13 +30,16 @@ sig
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
-  val private: binding -> binding
+  val private: scope -> binding -> binding
+  val private_default: scope option -> binding -> binding
   val concealed: binding -> binding
   val pretty: binding -> Pretty.T
   val print: binding -> string
   val pp: binding -> Pretty.T
   val bad: binding -> string
   val check: binding -> unit
+  val name_spec: scope list -> (string * bool) list -> binding ->
+    {accessible: bool, concealed: bool, spec: (string * bool) list}
 end;
 
 structure Binding: BINDING =
@@ -43,10 +47,17 @@ struct
 
 (** representation **)
 
-(* datatype *)
+(* scope of private entries *)
+
+datatype scope = Scope of serial;
+
+fun new_scope () = Scope (serial ());
+
+
+(* binding *)
 
 datatype binding = Binding of
- {private: bool,                    (*entry is strictly private -- no name space accesses*)
+ {private: scope option,            (*entry is strictly private within its scope*)
   concealed: bool,                  (*entry is for foundational purposes -- please ignore*)
   prefix: (string * bool) list,     (*system prefix*)
   qualifier: (string * bool) list,  (*user qualifier*)
@@ -60,10 +71,7 @@ fun make_binding (private, concealed, prefix, qualifier, name, pos) =
 fun map_binding f (Binding {private, concealed, prefix, qualifier, name, pos}) =
   make_binding (f (private, concealed, prefix, qualifier, name, pos));
 
-fun dest (Binding {private, concealed, prefix, qualifier, name, ...}) =
-  {private = private, concealed = concealed, path = prefix @ qualifier, name = name};
-
-val path_of = #path o dest;
+fun path_of (Binding {prefix, qualifier, ...}) = prefix @ qualifier;
 
 
 
@@ -71,7 +79,7 @@ val path_of = #path o dest;
 
 (* name and position *)
 
-fun make (name, pos) = make_binding (false, false, [], [], name, pos);
+fun make (name, pos) = make_binding (NONE, false, [], [], name, pos);
 
 fun pos_of (Binding {pos, ...}) = pos;
 fun set_pos pos =
@@ -109,7 +117,7 @@ fun qualified mandatory name' =
 fun qualified_name "" = empty
   | qualified_name s =
       let val (qualifier, name) = split_last (Long_Name.explode s)
-      in make_binding (false, false, [], map (rpair false) qualifier, name, Position.none) end;
+      in make_binding (NONE, false, [], map (rpair false) qualifier, name, Position.none) end;
 
 
 (* system prefix *)
@@ -126,9 +134,13 @@ fun prefix _ "" = I
 
 (* visibility flags *)
 
-val private =
+fun private scope =
   map_binding (fn (_, concealed, prefix, qualifier, name, pos) =>
-    (true, concealed, prefix, qualifier, name, pos));
+    (SOME scope, concealed, prefix, qualifier, name, pos));
+
+fun private_default private' =
+  map_binding (fn (private, concealed, prefix, qualifier, name, pos) =>
+    (if is_some private then private else private', concealed, prefix, qualifier, name, pos));
 
 val concealed =
   map_binding (fn (private, _, prefix, qualifier, name, pos) =>
@@ -156,6 +168,31 @@ fun bad binding = "Bad name binding: " ^ print binding ^ Position.here (pos_of b
 fun check binding =
   if Symbol_Pos.is_identifier (name_of binding) then ()
   else legacy_feature (bad binding);
+
+
+
+(** resulting name_spec **)
+
+val bad_specs = ["", "??", "__"];
+
+fun name_spec scopes path binding =
+  let
+    val Binding {private, concealed, prefix, qualifier, name, ...} = binding;
+    val _ = Long_Name.is_qualified name andalso error (bad binding);
+
+    val accessible =
+      (case private of
+        NONE => true
+      | SOME scope => member (op =) scopes scope);
+
+    val spec1 =
+      maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix @ qualifier);
+    val spec2 = if name = "" then [] else [(name, true)];
+    val spec = spec1 @ spec2;
+    val _ =
+      exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
+      andalso error (bad binding);
+  in {accessible = accessible, concealed = concealed, spec = if null spec2 then [] else spec} end;
 
 end;
 

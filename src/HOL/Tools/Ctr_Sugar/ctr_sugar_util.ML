@@ -231,7 +231,7 @@ fun name_noted_thms _ _ [] = []
   | name_noted_thms qualifier base ((local_name, thms) :: noted) =
     if Long_Name.base_name local_name = base then
       (local_name,
-       map_index (uncurry (fn j => Thm.name_derivation (qualifier ^ Long_Name.separator ^ base ^
+       map_index (uncurry (fn j => Thm.name_derivation (Long_Name.append qualifier base ^
          (if can the_single thms then "" else "_" ^ string_of_int (j + 1))))) thms) :: noted
     else
       ((local_name, thms) :: name_noted_thms qualifier base noted);

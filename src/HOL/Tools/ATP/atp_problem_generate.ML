@@ -396,9 +396,8 @@ fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 fun make_class clas = class_prefix ^ ascii_of clas
 
 fun new_skolem_var_name_of_const s =
-  let val ss = s |> space_explode Long_Name.separator in
-    nth ss (length ss - 2)
-  end
+  let val ss = Long_Name.explode s
+  in nth ss (length ss - 2) end
 
 (* These are ignored anyway by the relevance filter (unless they appear in
    higher-order places) but not by the monomorphizer. *)

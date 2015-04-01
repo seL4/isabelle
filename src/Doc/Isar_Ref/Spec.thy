@@ -501,6 +501,7 @@ subsection \<open>Locale declarations\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def "locale"} & : & @{text "theory \<rightarrow> local_theory"} \\
+    @{command_def "experiment"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "print_locale"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_locales"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "locale_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -512,6 +513,8 @@ text \<open>
   \indexisarelem{defines}\indexisarelem{notes}
   @{rail \<open>
     @@{command locale} @{syntax name} ('=' @{syntax locale})? @'begin'?
+    ;
+    @@{command experiment} (@{syntax context_elem}*) @'begin'
     ;
     @@{command print_locale} '!'? @{syntax nameref}
     ;
@@ -610,7 +613,12 @@ text \<open>
   @{text "\<Longrightarrow>"} by @{text "\<longrightarrow>"} in HOL; see also
   \secref{sec:object-logic}).  Separate introduction rules @{text
   loc_axioms.intro} and @{text loc.intro} are provided as well.
-  
+
+  \item @{command experiment}~@{text exprs}~@{keyword "begin"} opens an
+  anonymous locale context with private naming policy. Specifications in its
+  body are inaccessible from outside. This is useful to perform experiments,
+  without polluting the name space.
+
   \item @{command "print_locale"}~@{text "locale"} prints the
   contents of the named locale.  The command omits @{element "notes"}
   elements by default.  Use @{command "print_locale"}@{text "!"} to

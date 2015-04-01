@@ -101,6 +101,8 @@ sig
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
+  val get_scope: theory -> Binding.scope option
+  val new_scope: theory -> Binding.scope * theory
   val new_group: theory -> theory
   val reset_group: theory -> theory
   val add_path: string -> theory -> theory
@@ -109,6 +111,8 @@ sig
   val mandatory_path: string -> theory -> theory
   val qualified_path: bool -> binding -> theory -> theory
   val local_path: theory -> theory
+  val private: Binding.scope -> theory -> theory
+  val concealed: theory -> theory
   val hide_class: bool -> string -> theory -> theory
   val hide_type: bool -> string -> theory -> theory
   val hide_const: bool -> string -> theory -> theory
@@ -499,6 +503,14 @@ val del_trrules = map_syn o Syntax.remove_trrules;
 
 (* naming *)
 
+val get_scope = Name_Space.get_scope o naming_of;
+
+fun new_scope thy =
+  let
+    val (scope, naming') = Name_Space.new_scope (naming_of thy);
+    val thy' = map_naming (K naming') thy;
+  in (scope, thy') end;
+
 val new_group = map_naming Name_Space.new_group;
 val reset_group = map_naming Name_Space.reset_group;
 
@@ -509,6 +521,9 @@ val mandatory_path = map_naming o Name_Space.mandatory_path;
 val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
+
+val private = map_naming o Name_Space.private;
+val concealed = map_naming Name_Space.concealed;
 
 
 (* hide names *)

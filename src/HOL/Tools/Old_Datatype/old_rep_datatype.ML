@@ -146,7 +146,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
       thy0
-      |> Sign.map_naming Name_Space.concealed
+      |> Sign.concealed
       |> Inductive.add_inductive_global
           {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name',
             coind = false, no_elim = false, no_ind = true, skip_mono = true}

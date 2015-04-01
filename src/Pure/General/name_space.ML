@@ -12,11 +12,10 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
-  val defined_entry: T -> string -> bool
+  val markup: T -> string -> Markup.T
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
   val entry_ord: T -> string * string -> order
-  val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val names_long_raw: Config.raw
@@ -33,7 +32,9 @@ sig
   val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
   type naming
-  val private: naming -> naming
+  val get_scope: naming -> Binding.scope option
+  val new_scope: naming -> Binding.scope * naming
+  val private: Binding.scope -> naming -> naming
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -47,6 +48,7 @@ sig
   val qualified_path: bool -> binding -> naming -> naming
   val global_naming: naming
   val local_naming: naming
+  val transform_naming: naming -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val base_name: binding -> string
@@ -62,6 +64,8 @@ sig
   val check_reports: Context.generic -> 'a table ->
     xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
+  val defined: 'a table -> string -> bool
+  val lookup: 'a table -> string -> 'a option
   val lookup_key: 'a table -> string -> (string * 'a) option
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -105,12 +109,10 @@ fun err_dup kind entry1 entry2 pos =
   error ("Duplicate " ^ plain_words kind ^ " declaration " ^
     print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
 
-fun undefined kind name = "Undefined " ^ plain_words kind ^ ": " ^ quote name;
-
 
 (* internal names *)
 
-type internals = (string list * string list) Change_Table.T;  (*xname -> visible, hidden*)
+type internals = (string list * string list) Change_Table.T;
 
 fun map_internals f xname : internals -> internals =
   Change_Table.map_default (xname, ([], [])) f;
@@ -119,14 +121,15 @@ val del_name = map_internals o apfst o remove (op =);
 fun del_name_extra name =
   map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
 val add_name = map_internals o apfst o update (op =);
-val add_name' = map_internals o apsnd o update (op =);
+fun hide_name name = map_internals (apsnd (update (op =) name)) name;
 
 
 (* datatype T *)
 
 datatype T =
   Name_Space of
-   {kind: string, internals: internals,
+   {kind: string,
+    internals: internals,  (*xname -> visible, hidden*)
     entries: (xstring list * entry) Change_Table.T};  (*name -> externals, entry*)
 
 fun make_name_space (kind, internals, entries) =
@@ -146,46 +149,51 @@ fun empty kind = make_name_space (kind, Change_Table.empty, Change_Table.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
 
-fun defined_entry (Name_Space {entries, ...}) = Change_Table.defined entries;
-
-fun the_entry (Name_Space {kind, entries, ...}) name =
-  (case Change_Table.lookup entries name of
-    NONE => error (undefined kind name)
-  | SOME (_, entry) => entry);
-
-fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
-
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
     NONE => Markup.intensify
   | SOME (_, entry) => entry_markup false kind (name, entry));
 
+fun undefined (space as Name_Space {kind, entries, ...}) bad =
+  let
+    val (prfx, sfx) =
+      (case Long_Name.dest_hidden bad of
+        SOME name =>
+          if Change_Table.defined entries name
+          then ("Inaccessible", Markup.markup (markup space name) (quote name))
+          else ("Undefined", quote name)
+      | NONE => ("Undefined", quote bad));
+  in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
+
+fun the_entry (space as Name_Space {entries, ...}) name =
+  (case Change_Table.lookup entries name of
+    NONE => error (undefined space name)
+  | SOME (_, entry) => entry);
+
+fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
+
 fun is_concealed space name = #concealed (the_entry space name);
 
 
-(* name accesses *)
+(* intern *)
 
-fun lookup (Name_Space {internals, ...}) xname =
-  (case Change_Table.lookup internals xname of
-    NONE => (xname, true)
-  | SOME ([], []) => (xname, true)
-  | SOME ([name], _) => (name, true)
-  | SOME (name :: _, _) => (name, false)
-  | SOME ([], name' :: _) => (Long_Name.hidden name', true));
+fun intern' (Name_Space {internals, ...}) xname =
+  (case the_default ([], []) (Change_Table.lookup internals xname) of
+    ([name], _) => (name, true)
+  | (name :: _, _) => (name, false)
+  | ([], []) => (Long_Name.hidden xname, true)
+  | ([], name' :: _) => (Long_Name.hidden name', true));
+
+val intern = #1 oo intern';
 
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of
-    NONE => [name]
+    NONE => []
   | SOME (externals, _) => externals);
 
 fun valid_accesses (Name_Space {internals, ...}) name =
   Change_Table.fold (fn (xname, (names, _)) =>
     if not (null names) andalso hd names = name then cons xname else I) internals [];
-
-
-(* intern *)
-
-fun intern space xname = #1 (lookup space xname);
 
 
 (* extern *)
@@ -206,7 +214,7 @@ fun extern ctxt space name =
     val names_unique = Config.get ctxt names_unique;
 
     fun valid require_unique xname =
-      let val (name', is_unique) = lookup space xname
+      let val (name', is_unique) = intern' space xname
       in name = name' andalso (not require_unique orelse is_unique) end;
 
     fun ext [] = if valid false name then name else Long_Name.hidden name
@@ -236,7 +244,7 @@ fun completion context space (xname, pos) =
   Completion.make (xname, pos) (fn completed =>
     let
       fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
-        (case bool_ord (apply2 Long_Name.is_local (name2, name1)) of
+        (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
           EQUAL =>
             (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
               EQUAL => string_ord (xname1, xname2)
@@ -284,40 +292,53 @@ fun merge
 (* datatype naming *)
 
 datatype naming = Naming of
- {private: bool,
+ {scopes: Binding.scope list,
+  private: Binding.scope option,
   concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (private, concealed, group, theory_name, path) =
-  Naming {private = private, concealed = concealed, group = group,
-    theory_name = theory_name, path = path};
+fun make_naming (scopes, private, concealed, group, theory_name, path) =
+  Naming {scopes = scopes, private = private, concealed = concealed,
+    group = group, theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {private, concealed, group, theory_name, path}) =
-  make_naming (f (private, concealed, group, theory_name, path));
+fun map_naming f (Naming {scopes, private, concealed, group, theory_name, path}) =
+  make_naming (f (scopes, private, concealed, group, theory_name, path));
 
-fun map_path f = map_naming (fn (private, concealed, group, theory_name, path) =>
-  (private, concealed, group, theory_name, f path));
+fun map_path f = map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
+  (scopes, private, concealed, group, theory_name, f path));
 
 
-val private = map_naming (fn (_, concealed, group, theory_name, path) =>
-  (true, concealed, group, theory_name, path));
+fun get_scopes (Naming {scopes, ...}) = scopes;
+val get_scope = try hd o get_scopes;
 
-val concealed = map_naming (fn (private, _, group, theory_name, path) =>
-  (private, true, group, theory_name, path));
+fun new_scope naming =
+  let
+    val scope = Binding.new_scope ();
+    val naming' =
+      naming |> map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
+        (scope :: scopes, private, concealed, group, theory_name, path));
+  in (scope, naming') end;
 
-fun set_theory_name theory_name = map_naming (fn (private, concealed, group, _, path) =>
-  (private, concealed, group, theory_name, path));
+fun private scope = map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
+  (scopes, SOME scope, concealed, group, theory_name, path));
 
+val concealed = map_naming (fn (scopes, private, _, group, theory_name, path) =>
+  (scopes, private, true, group, theory_name, path));
+
+fun set_theory_name theory_name = map_naming (fn (scopes, private, concealed, group, _, path) =>
+  (scopes, private, concealed, group, theory_name, path));
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (private, concealed, _, theory_name, path) =>
-  (private, concealed, group, theory_name, path));
+fun set_group group = map_naming (fn (scopes, private, concealed, _, theory_name, path) =>
+  (scopes, private, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
+
+fun get_path (Naming {path, ...}) = path;
 
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
@@ -327,33 +348,25 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 fun qualified_path mandatory binding = map_path (fn path =>
   path @ Binding.path_of (Binding.qualified mandatory "" binding));
 
-val global_naming = make_naming (false, false, NONE, "", []);
+val global_naming = make_naming ([], NONE, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
+
+
+(* visibility flags *)
+
+fun transform_naming (Naming {private = private', concealed = concealed', ...}) =
+  fold private (the_list private') #>
+  concealed' ? concealed;
+
+fun transform_binding (Naming {private, concealed, ...}) =
+  Binding.private_default private #>
+  concealed ? Binding.concealed;
 
 
 (* full name *)
 
-fun err_bad binding = error (Binding.bad binding);
-
-fun transform_binding (Naming {private, concealed, ...}) =
-  private ? Binding.private #>
-  concealed ? Binding.concealed;
-
-val bad_specs = ["", "??", "__"];
-
-fun name_spec (naming as Naming {path = path1, ...}) raw_binding =
-  let
-    val binding = transform_binding naming raw_binding;
-    val {private, concealed, path = path2, name} = Binding.dest binding;
-    val _ = Long_Name.is_qualified name andalso err_bad binding;
-
-    val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path1 @ path2);
-    val spec2 = if name = "" then [] else [(name, true)];
-    val spec = spec1 @ spec2;
-    val _ =
-      exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
-      andalso err_bad binding;
-  in {private = private, concealed = concealed, spec = if null spec2 then [] else spec} end;
+fun name_spec naming binding =
+  Binding.name_spec (get_scopes naming) (get_path naming) (transform_binding naming binding);
 
 fun full_name naming =
   name_spec naming #> #spec #> map #1 #> Long_Name.implode;
@@ -374,7 +387,7 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   (case name_spec naming binding of
-    {private = true, ...} => ([], [])
+    {accessible = false, ...} => ([], [])
   | {spec, ...} =>
       let
         val sfxs = mandatory_suffixes spec;
@@ -387,10 +400,10 @@ fun accesses naming binding =
 fun hide fully name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
-      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val _ = the_entry space name;
       val names = valid_accesses space name;
       val internals' = internals
-        |> add_name' name name
+        |> hide_name name
         |> fold (del_name name)
           (if fully then names else inter (op =) [Long_Name.base_name name] names)
         |> fold (del_name_extra name) (get_accesses space name);
@@ -402,7 +415,7 @@ fun hide fully name space =
 fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
-      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val _ = the_entry space name;
       val (accs, accs') = accesses naming binding;
       val internals' = internals |> fold (add_name name) accs;
       val entries' = entries
@@ -446,7 +459,7 @@ fun declare context strict binding space =
     val (accs, accs') = accesses naming binding;
 
     val name = Long_Name.implode (map fst spec);
-    val _ = name = "" andalso err_bad binding;
+    val _ = name = "" andalso error (Binding.bad binding);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
@@ -498,7 +511,7 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
         let
           val completions = map (fn pos => completion context space (xname, pos)) ps;
         in
-          error (undefined (kind_of space) name ^ Position.here_list ps ^
+          error (undefined space name ^ Position.here_list ps ^
             Markup.markup_report (implode (map Completion.reported_text completions)))
         end)
   end;
@@ -509,12 +522,14 @@ fun check context table (xname, pos) =
     val _ = Position.reports reports;
   in (name, x) end;
 
+fun defined (Table (_, tab)) name = Change_Table.defined tab name;
+fun lookup (Table (_, tab)) name = Change_Table.lookup tab name;
 fun lookup_key (Table (_, tab)) name = Change_Table.lookup_key tab name;
 
 fun get table name =
   (case lookup_key table name of
     SOME (_, x) => x
-  | NONE => error (undefined (kind_of (space_of_table table)) name));
+  | NONE => error (undefined (space_of_table table) name));
 
 fun define context strict (binding, x) (Table (space, tab)) =
   let

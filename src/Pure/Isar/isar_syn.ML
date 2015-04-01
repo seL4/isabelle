@@ -361,7 +361,7 @@ val _ =
     ((Parse.position Parse.xname >> (fn name =>
         Toplevel.begin_local_theory true (Named_Target.begin name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
-        >> (fn (incls, elems) => Toplevel.open_target (Bundle.context_cmd incls elems)))
+        >> (fn (incls, elems) => Toplevel.open_target (#2 o Bundle.context_cmd incls elems)))
       --| Parse.begin);
 
 
@@ -373,12 +373,18 @@ val locale_val =
   Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
 val _ =
-  Outer_Syntax.command @{command_spec "locale"} "define named proof context"
+  Outer_Syntax.command @{command_spec "locale"} "define named specification context"
     (Parse.binding --
       Scan.optional (@{keyword "="} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           Toplevel.begin_local_theory begin
             (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
+
+val _ =
+  Outer_Syntax.command @{command_spec "experiment"} "open private specification context"
+    (Scan.repeat Parse_Spec.context_element --| Parse.begin
+      >> (fn elems =>
+          Toplevel.begin_local_theory true (Experiment.experiment_cmd elems #> snd)));
 
 fun interpretation_args mandatory =
   Parse.!!! (Parse_Spec.locale_expression mandatory) --

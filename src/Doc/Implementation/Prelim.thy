@@ -501,6 +501,9 @@ text \<open>A \emph{configuration option} is a named optional value of
   value can be modified within Isar text like this:
 \<close>
 
+experiment
+begin
+
 declare [[show_types = false]]
   -- \<open>declaration within (local) theory context\<close>
 
@@ -514,6 +517,8 @@ begin
     using [[show_types = false]]
       -- \<open>declaration within proof (backward mode)\<close>
     ..
+end
+
 end
 
 text \<open>Configuration options that are not set explicitly hold a
@@ -720,7 +725,7 @@ text %mlref \<open>
 text %mlex \<open>The following simple examples demonstrate how to produce
   fresh names from the initial @{ML Name.context}.\<close>
 
-ML \<open>
+ML_val \<open>
   val list1 = Name.invent Name.context "a" 5;
   @{assert} (list1 = ["a", "b", "c", "d", "e"]);
 
@@ -732,10 +737,10 @@ ML \<open>
 text \<open>\medskip The same works relatively to the formal context as
   follows.\<close>
 
-locale ex = fixes a b c :: 'a
+experiment fixes a b c :: 'a
 begin
 
-ML \<open>
+ML_val \<open>
   val names = Variable.names_of @{context};
 
   val list1 = Name.invent names "a" 5;
@@ -1043,7 +1048,7 @@ text %mlex \<open>The following example yields the source position of some
   concrete binding inlined into the text:
 \<close>
 
-ML \<open>Binding.pos_of @{binding here}\<close>
+ML_val \<open>Binding.pos_of @{binding here}\<close>
 
 text \<open>\medskip That position can be also printed in a message as
   follows:\<close>

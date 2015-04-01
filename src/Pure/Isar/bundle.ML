@@ -20,9 +20,10 @@ sig
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val including: string list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
-  val context: string list -> Element.context_i list -> generic_theory -> local_theory
+  val context: string list -> Element.context_i list ->
+    generic_theory -> Binding.scope * local_theory
   val context_cmd: (xstring * Position.T) list -> Element.context list ->
-    generic_theory -> local_theory
+    generic_theory -> Binding.scope * local_theory
   val print_bundles: Proof.context -> unit
 end;
 
@@ -97,8 +98,8 @@ fun gen_context get prep_decl raw_incls raw_elems gthy =
       |> gen_includes get raw_incls
       |> prep_decl ([], []) I raw_elems;
   in
-    lthy' |> Local_Theory.open_target
-      (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy) after_close
+    lthy' |> Local_Theory.init_target
+      (Local_Theory.background_naming_of lthy) (Local_Theory.operations_of lthy) after_close
   end;
 
 in
@@ -137,4 +138,3 @@ fun print_bundles ctxt =
   end |> Pretty.writeln_chunks;
 
 end;
-

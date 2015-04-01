@@ -590,8 +590,8 @@ fun name_derivation name (thm as Thm (der, args)) =
 fun axiom theory name =
   let
     fun get_ax thy =
-      Name_Space.lookup_key (Theory.axiom_table thy) name
-      |> Option.map (fn (_, prop) =>
+      Name_Space.lookup (Theory.axiom_table thy) name
+      |> Option.map (fn prop =>
            let
              val der = deriv_rule0 (Proofterm.axm_proof name prop);
              val maxidx = maxidx_of_term prop;
