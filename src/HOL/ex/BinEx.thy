@@ -78,6 +78,9 @@ apply simp  oops
 lemma "- (2*i) + 3  + (2*i + 4) = (0::int)"
 apply simp  oops
 
+(*Tobias's example dated 2015-03-02*)
+lemma "(pi * (real u * 2) = pi * (real (xa v) * - 2))"
+apply simp oops
 
 
 subsection {* Arithmetic Method Tests *}
