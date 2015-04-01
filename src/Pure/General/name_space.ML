@@ -235,7 +235,7 @@ fun completion context space (xname, pos) =
   Completion.make (xname, pos) (fn completed =>
     let
       fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
-        (case bool_ord (apply2 Long_Name.is_local (name2, name1)) of
+        (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
           EQUAL =>
             (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
               EQUAL => string_ord (xname1, xname2)

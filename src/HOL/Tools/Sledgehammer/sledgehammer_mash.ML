@@ -737,8 +737,6 @@ end
 
 (*** Isabelle helpers ***)
 
-val local_prefix = Long_Name.localN ^ Long_Name.separator
-
 fun elided_backquote_thm threshold th =
   elide_string threshold (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
 
@@ -748,7 +746,7 @@ fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
-      (case try (unprefix local_prefix) hint of
+      (case Long_Name.dest_local hint of
         SOME suf => Long_Name.implode [thy_name_of_thm th, suf, elided_backquote_thm 50 th]
       | NONE => hint)
     end
