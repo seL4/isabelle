@@ -21,9 +21,6 @@ sig
   val assert_bottom: bool -> local_theory -> local_theory
   val mark_brittle: local_theory -> local_theory
   val assert_nonbrittle: local_theory -> local_theory
-  val open_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
-    local_theory -> local_theory
-  val close_target: local_theory -> local_theory
   val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
   val background_naming_of: local_theory -> Name_Space.naming
   val map_background_naming: (Name_Space.naming -> Name_Space.naming) ->
@@ -73,6 +70,10 @@ sig
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
+  val init_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
+    local_theory -> Binding.scope * local_theory
+  val open_target: local_theory -> Binding.scope * local_theory
+  val close_target: local_theory -> local_theory
 end;
 
 structure Local_Theory: LOCAL_THEORY =
@@ -143,20 +144,6 @@ fun assert_bottom b lthy =
     else if not b andalso b' then error "Already at bottom of local theory nesting"
     else lthy
   end;
-
-fun open_target background_naming operations after_close lthy =
-  let
-    val _ = assert lthy;
-    val (_, target) = Proof_Context.new_scope lthy;
-  in
-    target |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)))
-  end;
-
-fun close_target lthy =
-  let
-    val _ = assert_bottom false lthy;
-    val ({after_close, ...} :: rest) = Data.get lthy;
-  in lthy |> Data.put rest |> restore |> after_close end;
 
 fun map_contexts f lthy =
   let val n = level lthy in
@@ -350,17 +337,14 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 
 
-(** init and exit **)
+(** manage targets **)
 
-(* init *)
+(* outermost target *)
 
 fun init background_naming operations target =
   target |> Data.map
     (fn [] => [make_lthy (background_naming, operations, I, false, target)]
       | _ => error "Local theory already initialized");
-
-
-(* exit *)
 
 val exit = operation #exit;
 val exit_global = Proof_Context.theory_of o exit;
@@ -377,5 +361,26 @@ fun exit_result_global f (x, lthy) =
     val thy_ctxt = Proof_Context.init_global thy;
     val phi = standard_morphism lthy thy_ctxt;
   in (f phi x, thy) end;
+
+
+(* nested targets *)
+
+fun init_target background_naming operations after_close lthy =
+  let
+    val _ = assert lthy;
+    val (scope, target) = Proof_Context.new_scope lthy;
+    val lthy' =
+      target
+      |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)));
+  in (scope, lthy') end;
+
+fun open_target lthy =
+  init_target (background_naming_of lthy) (operations_of lthy) I lthy;
+
+fun close_target lthy =
+  let
+    val _ = assert_bottom false lthy;
+    val ({after_close, ...} :: rest) = Data.get lthy;
+  in lthy |> Data.put rest |> restore |> after_close end;
 
 end;
