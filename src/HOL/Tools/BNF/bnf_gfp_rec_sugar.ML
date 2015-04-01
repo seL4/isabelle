@@ -964,10 +964,6 @@ fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
       (if exists has_call corec_args then nonprimitive_corec ctxt []
        else extra_variable ctxt [] (hd bad));
 
-    fun currys [] t = t
-      | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
-          |> fold_rev (Term.abs o pair Name.uu) Ts;
-
     val excludess' =
       disc_eqnss
       |> map (map (fn x => (#fun_args x, #ctr_no x, #prems x, #auto_gen x))
@@ -980,8 +976,7 @@ fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
             ||> curry Logic.list_all (map dest_Free fun_args))));
   in
     map (Term.list_comb o rpair corec_args) corecs
-    |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
-    |> map2 currys arg_Tss
+    |> map2 abs_curried_balanced arg_Tss
     |> (fn ts => Syntax.check_terms ctxt ts
       handle ERROR _ => nonprimitive_corec ctxt [])
     |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.concealed (Thm.def_binding b), []), t)))

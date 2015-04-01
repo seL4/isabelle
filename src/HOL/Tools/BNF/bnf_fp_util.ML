@@ -155,6 +155,7 @@ sig
   val Inr_const: typ -> typ -> term
   val mk_tuple_balanced: term list -> term
   val mk_tuple1_balanced: typ list -> term list -> term
+  val abs_curried_balanced: typ list -> term -> term
 
   val mk_case_sum: term * term -> term
   val mk_case_sumN: term list -> term
@@ -436,6 +437,10 @@ fun mk_tuple1_balanced _ [] = HOLogic.unit
   | mk_tuple1_balanced bound_Ts ts = Balanced_Tree.make (mk_prod1 bound_Ts) ts;
 
 val mk_tuple_balanced = mk_tuple1_balanced [];
+
+fun abs_curried_balanced Ts t =
+  t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
+  |> fold_rev (Term.abs o pair Name.uu) Ts;
 
 fun mk_sumprod_balanced T n k ts = Sum_Tree.mk_inj T n k (mk_tuple_balanced ts);
 
