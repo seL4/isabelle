@@ -284,6 +284,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
+    -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
     -n           no build -- test dependencies only
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -369,7 +370,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   \medskip Option @{verbatim "-v"} increases the general level of
   verbosity.  Option @{verbatim "-l"} lists the source files that
   contribute to a session.
-\<close>
+
+  \medskip Option @{verbatim "-k"} specifies a newly proposed keyword for
+  outer syntax (multiple uses allowed). The theory sources are checked for
+  conflicts wrt.\ this hypothetical change of syntax, e.g.\ to reveal
+  occurrences of identifiers that need to be quoted.\<close>
+
 
 subsubsection \<open>Examples\<close>
 

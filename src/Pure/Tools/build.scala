@@ -427,8 +427,13 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(progress: Progress, inlined_files: Boolean,
-      verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
+  def dependencies(
+      progress: Progress = Ignore_Progress,
+      inlined_files: Boolean = false,
+      verbose: Boolean = false,
+      list_files: Boolean = false,
+      check_keywords: Set[String] = Set.empty,
+      tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
@@ -484,15 +489,27 @@ object Build
             val keywords = thy_deps.keywords
             val syntax = thy_deps.syntax.asInstanceOf[Outer_Syntax]
 
+            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files = if (inlined_files) thy_deps.loaded_files else Nil
 
             val all_files =
-              (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: loaded_files :::
+              (theory_files ::: loaded_files :::
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
             if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+
+            if (check_keywords.nonEmpty) {
+              for {
+                path <- theory_files
+                (tok, pos) <- Check_Keywords.conflicts(syntax.keywords, check_keywords, path)
+              } {
+                progress.echo(Output.warning_text(
+                  "keyword conflict: " + tok.kind.toString + " " + quote(tok.content) +
+                    Position.here(pos)))
+              }
+            }
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
@@ -517,7 +534,7 @@ object Build
     sessions: List[String]): Deps =
   {
     val (_, tree) = find_sessions(options, dirs = dirs).selection(false, false, Nil, sessions)
-    dependencies(Ignore_Progress, inlined_files, false, false, tree)
+    dependencies(inlined_files = inlined_files, tree = tree)
   }
 
   def session_content(
@@ -737,6 +754,7 @@ object Build
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
+    check_keywords: Set[String] = Set.empty,
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
@@ -748,7 +766,7 @@ object Build
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
 
-    val deps = dependencies(progress, true, verbose, list_files, selected_tree)
+    val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
     def make_stamp(name: String): String =
       sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
@@ -988,6 +1006,7 @@ object Build
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
+    check_keywords: Set[String] = Set.empty,
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
@@ -996,7 +1015,7 @@ object Build
     val results =
       build_results(options, progress, requirements, all_sessions,
         build_heap, clean_build, dirs, select_dirs, session_groups, max_jobs,
-        list_files, no_build, system_mode, verbose, sessions)
+        list_files, check_keywords, no_build, system_mode, verbose, sessions)
 
     val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
@@ -1024,13 +1043,15 @@ object Build
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(dirs, select_dirs, session_groups, build_options, sessions) =>
+          Command_Line.Chunks(
+              dirs, select_dirs, session_groups, check_keywords, build_options, sessions) =>
             val options = (Options.init() /: build_options)(_ + _)
             val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
               build(options, progress, requirements, all_sessions, build_heap, clean_build,
                 dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), session_groups,
-                max_jobs, list_files, no_build, system_mode, verbose, sessions)
+                max_jobs, list_files, check_keywords.toSet, no_build, system_mode,
+                verbose, sessions)
             }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

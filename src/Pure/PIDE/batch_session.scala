@@ -29,7 +29,7 @@ object Batch_Session
         dirs = dirs, sessions = List(parent_session)) != 0)
       new RuntimeException
 
-    val deps = Build.dependencies(Build.Ignore_Progress, false, verbose, false, session_tree)
+    val deps = Build.dependencies(verbose = verbose, tree = session_tree)
     val resources =
     {
       val content = deps(parent_session)
