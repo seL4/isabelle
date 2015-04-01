@@ -110,7 +110,7 @@ proof -
 qed
 
 lemma bij_betw_tan: "bij_betw tan {-pi/2<..<pi/2} UNIV"
-  using arctan_ubound by (intro bij_betw_byWitness[where f'=arctan]) (auto simp: arctan_tan)
+  using arctan_ubound by (intro bij_betw_byWitness[where f'=arctan]) (auto simp: arctan arctan_tan)
 
 lemma uncountable_open_interval:
   fixes a b :: real assumes ab: "a < b"
