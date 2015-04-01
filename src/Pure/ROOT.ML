@@ -273,6 +273,7 @@ use "Isar/named_target.ML";
 use "Isar/expression.ML";
 use "Isar/class_declaration.ML";
 use "Isar/bundle.ML";
+use "Isar/experiment.ML";
 
 use "simplifier.ML";
 use "Tools/plugin.ML";

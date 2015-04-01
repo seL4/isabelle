@@ -33,7 +33,7 @@ theory Pure
   and "bundle" :: thy_decl
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
-  and "context" "locale" :: thy_decl_block
+  and "context" "locale" "experiment" :: thy_decl_block
   and "sublocale" "interpretation" :: thy_goal
   and "interpret" :: prf_goal % "proof"
   and "class" :: thy_decl_block

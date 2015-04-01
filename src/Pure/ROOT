@@ -121,6 +121,7 @@ session Pure =
     "Isar/code.ML"
     "Isar/context_rules.ML"
     "Isar/element.ML"
+    "Isar/experiment.ML"
     "Isar/expression.ML"
     "Isar/generic_target.ML"
     "Isar/isar_cmd.ML"

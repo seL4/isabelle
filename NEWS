@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
+* Command 'experiment' opens an anonymous locale context with private
+naming policy.
+
 * Structural composition of proof methods (meth1; meth2) in Isar
 corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 
