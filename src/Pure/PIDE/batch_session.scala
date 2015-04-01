@@ -19,7 +19,7 @@ object Batch_Session
     session: String): Batch_Session =
   {
     val (_, session_tree) =
-      Build.find_sessions(options, dirs).selection(false, false, Nil, List(session))
+      Build.find_sessions(options, dirs).selection(sessions = List(session))
     val session_info = session_tree(session)
     val parent_session =
       session_info.parent getOrElse error("No parent session for " + quote(session))

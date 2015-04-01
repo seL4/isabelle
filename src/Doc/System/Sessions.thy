@@ -290,6 +290,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode: produce output in ISABELLE_HOME
     -v           verbose
+    -x SESSION   exclude SESSION and all its descendants
 
   Build and manage Isabelle sessions, depending on implicit
   ISABELLE_BUILD_OPTIONS="..."
@@ -321,6 +322,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
+
+  \medskip One or more options @{verbatim "-x"}~@{text SESSION} specify
+  sessions to be excluded. All descendents of excluded sessions are removed
+  from the selection as specified above.
 
   \medskip Option @{verbatim "-R"} reverses the selection in the sense
   that it refers to its requirements: all ancestor sessions excluding

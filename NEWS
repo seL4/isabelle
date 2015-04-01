@@ -396,7 +396,7 @@ semicolons from theory sources.
 * The Isabelle tool "update_cartouches" changes theory files to use
 cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
 
-* The Isabelle tool "build" provides new option -k.
+* The Isabelle tool "build" provides new options -k and -x.
 
 
 

@@ -40,6 +40,7 @@ function usage()
   echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo "    -v           verbose"
+  echo "    -x SESSION   exclude SESSION and all its descendants"
   echo
   echo "  Build and manage Isabelle sessions, depending on implicit"
   show_settings "  "
@@ -75,8 +76,9 @@ NO_BUILD=false
 eval "declare -a BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
 SYSTEM_MODE=false
 VERBOSE=false
+declare -a EXCLUDE_SESSIONS=()
 
-while getopts "D:Rabcd:g:j:k:lno:sv" OPT
+while getopts "D:Rabcd:g:j:k:lno:svx:" OPT
 do
   case "$OPT" in
     D)
@@ -122,6 +124,9 @@ do
     v)
       VERBOSE="true"
       ;;
+    x)
+      EXCLUDE_SESSIONS["${#EXCLUDE_SESSIONS[@]}"]="$OPTARG"
+      ;;
     \?)
       usage
       ;;
@@ -151,7 +156,7 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
   "$LIST_FILES" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${INCLUDE_DIRS[@]}" $'\n' "${SELECT_DIRS[@]}" $'\n' \
   "${SESSION_GROUPS[@]}" $'\n' "${CHECK_KEYWORDS[@]}" $'\n' \
-  "${BUILD_OPTIONS[@]}" $'\n' "$@"
+  "${BUILD_OPTIONS[@]}" $'\n' "${EXCLUDE_SESSIONS[@]}" $'\n' "$@"
 RC="$?"
 
 if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
