@@ -260,10 +260,12 @@ text \<open>
   Here is an artificial example of bundling various configuration
   options:\<close>
 
+(*<*)experiment begin(*>*)
 bundle trace = [[simp_trace, linarith_trace, metis_trace, smt_trace]]
 
 lemma "x = x"
   including trace by metis
+(*<*)end(*>*)
 
 
 section \<open>Term definitions \label{sec:term-definitions}\<close>
@@ -1205,6 +1207,7 @@ text \<open>
   \end{description}
 \<close>
 
+(*<*)experiment begin(*>*)
   attribute_setup my_rule =
     \<open>Attrib.thms >> (fn ths =>
       Thm.rule_attribute
@@ -1218,6 +1221,7 @@ text \<open>
         (fn th: thm => fn context: Context.generic =>
           let val context' = context
           in context' end))\<close>
+(*<*)end(*>*)
 
 text \<open>
   \begin{description}

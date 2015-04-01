@@ -952,6 +952,7 @@ text \<open>
   \end{description}
 \<close>
 
+(*<*)experiment begin(*>*)
   method_setup my_method1 =
     \<open>Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))\<close>
     "my first method (without any arguments)"
@@ -965,6 +966,7 @@ text \<open>
     \<open>Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
       SIMPLE_METHOD' (fn i: int => no_tac))\<close>
     "my third method (with theorem arguments and context)"
+(*<*)end(*>*)
 
 
 section \<open>Generalized elimination \label{sec:obtain}\<close>

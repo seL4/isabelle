@@ -18,12 +18,14 @@ text \<open>Isabelle/Pure maintains a record of named configuration
   this:
 \<close>
 
+(*<*)experiment begin(*>*)
 declare [[show_main_goal = false]]
 
 notepad
 begin
   note [[show_main_goal = true]]
 end
+(*<*)end(*>*)
 
 text \<open>For historical reasons, some tools cannot take the full proof
   context into account and merely refer to the background theory.
@@ -816,7 +818,7 @@ text \<open>Ordered rewriting is particularly effective in the case of
   lexicographically --- the rewriting engine imitates bubble-sort.
 \<close>
 
-locale AC_example =
+experiment
   fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infix "\<bullet>" 60)
   assumes assoc: "(x \<bullet> y) \<bullet> z = x \<bullet> (y \<bullet> z)"
   assumes commute: "x \<bullet> y = y \<bullet> x"
@@ -922,8 +924,10 @@ text \<open>
   \end{description}
 \<close>
 
+(*<*)experiment begin(*>*)
 declare conjI [simp_break]
 declare [[simp_break "?x \<and> ?y"]]
+(*<*)end(*>*)
 
 
 subsection \<open>Simplification procedures \label{sec:simproc}\<close>
@@ -996,10 +1000,12 @@ text \<open>The following simplification procedure for @{thm
   the Simplifier loop!  Note that a version of this simplification
   procedure is already active in Isabelle/HOL.\<close>
 
+(*<*)experiment begin(*>*)
 simproc_setup unit ("x::unit") =
   \<open>fn _ => fn _ => fn ct =>
     if HOLogic.is_unit (Thm.term_of ct) then NONE
     else SOME (mk_meta_eq @{thm unit_eq})\<close>
+(*<*)end(*>*)
 
 text \<open>Since the Simplifier applies simplification procedures
   frequently, it is important to make the failure check in ML
@@ -1049,7 +1055,7 @@ text \<open>
   As an example, consider the following alternative subgoaler:
 \<close>
 
-ML \<open>
+ML_val \<open>
   fun subgoaler_tac ctxt =
     assume_tac ctxt ORELSE'
     resolve_tac ctxt (Simplifier.prems_of ctxt) ORELSE'
@@ -1873,7 +1879,7 @@ text \<open>
 
   Initially the two wrapper lists are empty, which means no
   modification of the step tactics. Safe and unsafe wrappers are added
-  to a claset with the functions given below, supplying them with
+  to the context with the functions given below, supplying them with
   wrapper names.  These names may be used to selectively delete
   wrappers.
 

@@ -220,6 +220,7 @@ subsubsection \<open>Examples\<close>
 
 text \<open>The finite powerset operator can be defined inductively like this:\<close>
 
+(*<*)experiment begin(*>*)
 inductive_set Fin :: "'a set \<Rightarrow> 'a set set" for A :: "'a set"
 where
   empty: "{} \<in> Fin A"
@@ -230,11 +231,13 @@ text \<open>The accessible part of a relation is defined as follows:\<close>
 inductive acc :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<prec>" 50)
 where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> acc r x"
+(*<*)end(*>*)
 
 text \<open>Common logical connectives can be easily characterized as
 non-recursive inductive definitions with parameters, but without
 arguments.\<close>
 
+(*<*)experiment begin(*>*)
 inductive AND for A B :: bool
 where "A \<Longrightarrow> B \<Longrightarrow> AND A B"
 
@@ -244,6 +247,7 @@ where "A \<Longrightarrow> OR A B"
 
 inductive EXISTS for B :: "'a \<Rightarrow> bool"
 where "B a \<Longrightarrow> EXISTS B"
+(*<*)end(*>*)
 
 text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by
   the @{command inductive} package coincide with the expected
@@ -378,6 +382,7 @@ text \<open>Subsequently, we define mutual datatypes for arithmetic and
   boolean expressions, and use @{command primrec} for evaluation
   functions that follow the same recursive structure.\<close>
 
+(*<*)experiment begin(*>*)
 datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
   | Sum "'a aexp"  "'a aexp"
@@ -442,6 +447,7 @@ lemma subst_all:
   "evala env (substa s a) = evala (\<lambda>x. evala env (s x)) a"
   "evalb env (substb s b) = evalb (\<lambda>x. evala env (s x)) b"
   by (induct a and b) simp_all
+(*<*)end(*>*)
 
 
 subsubsection \<open>Example: a substitution function for terms\<close>
@@ -449,6 +455,7 @@ subsubsection \<open>Example: a substitution function for terms\<close>
 text \<open>Functions on datatypes with nested recursion are also defined
   by mutual primitive recursion.\<close>
 
+(*<*)experiment begin(*>*)
 datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
 
 text \<open>A substitution function on type @{typ "('a, 'b) term"} can be
@@ -468,9 +475,12 @@ text \<open>The recursion scheme follows the structure of the unfolded
   substitution function, mutual induction is needed:
 \<close>
 
-lemma "subst_term (subst_term f1 \<circ> f2) t = subst_term f1 (subst_term f2 t)" and
-  "subst_term_list (subst_term f1 \<circ> f2) ts = subst_term_list f1 (subst_term_list f2 ts)"
+lemma "subst_term (subst_term f1 \<circ> f2) t =
+    subst_term f1 (subst_term f2 t)" and
+  "subst_term_list (subst_term f1 \<circ> f2) ts =
+    subst_term_list f1 (subst_term_list f2 ts)"
   by (induct t and ts rule: subst_term.induct subst_term_list.induct) simp_all
+(*<*)end(*>*)
 
 
 subsubsection \<open>Example: a map function for infinitely branching trees\<close>
@@ -479,6 +489,7 @@ text \<open>Defining functions on infinitely branching datatypes by
   primitive recursion is just as easy.
 \<close>
 
+(*<*)experiment begin(*>*)
 datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
 
 primrec map_tree :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a tree \<Rightarrow> 'b tree"
@@ -494,6 +505,7 @@ text \<open>Here is a simple composition lemma for @{term map_tree}:\<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
   by (induct t) simp_all
+(*<*)end(*>*)
 
 
 subsection \<open>Proof methods related to recursive definitions\<close>
@@ -748,6 +760,7 @@ text \<open>We define a type of finite sequences, with slightly different
   names than the existing @{typ "'a list"} that is already in @{theory
   Main}:\<close>
 
+(*<*)experiment begin(*>*)
 datatype 'a seq = Empty | Seq 'a "'a seq"
 
 text \<open>We can now prove some simple lemma by structural induction:\<close>
@@ -771,6 +784,7 @@ text \<open>Here is a more succinct version of the same proof:\<close>
 
 lemma "Seq x xs \<noteq> xs"
   by (induct xs arbitrary: x) simp_all
+(*<*)end(*>*)
 
 
 section \<open>Records \label{sec:hol-record}\<close>
@@ -1118,6 +1132,7 @@ text \<open>
   \end{description}
 \<close>
 
+
 subsubsection \<open>Examples\<close>
 
 text \<open>Type definitions permit the introduction of abstract data
@@ -1142,6 +1157,7 @@ text \<open>Type definitions permit the introduction of abstract data
   \medskip The following trivial example pulls a three-element type
   into existence within the formal logical environment of HOL.\<close>
 
+(*<*)experiment begin(*>*)
 typedef three = "{(True, True), (True, False), (False, True)}"
   by blast
 
@@ -1155,11 +1171,14 @@ lemma three_distinct: "One \<noteq> Two"  "One \<noteq> Three"  "Two \<noteq> Th
 lemma three_cases:
   fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
   by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject)
+(*<*)end(*>*)
 
 text \<open>Note that such trivial constructions are better done with
   derived specification mechanisms such as @{command datatype}:\<close>
 
-datatype three' = One' | Two' | Three'
+(*<*)experiment begin(*>*)
+datatype three = One | Two | Three
+(*<*)end(*>*)
 
 text \<open>This avoids re-doing basic definitions and proofs from the
   primitive @{command typedef} above.\<close>
@@ -1988,6 +2007,7 @@ subsubsection \<open>Example\<close>
 text \<open>The subsequent example is from geometry: collinearity is
   invariant by rotation.\<close>
 
+(*<*)experiment begin(*>*)
 type_synonym point = "int \<times> int"
 
 fun collinear :: "point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bool" where
@@ -1999,6 +2019,7 @@ lemma collinear_inv_rotation:
   shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
   using assms by (algebra add: collinear.simps)
+(*<*)end(*>*)
 
 text \<open>
  See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
