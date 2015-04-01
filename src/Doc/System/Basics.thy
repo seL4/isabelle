@@ -402,9 +402,9 @@ text \<open>
 
   The read-write state of sessions is determined at startup only, it
   cannot be changed intermediately. Also note that heap images may
-  require considerable amounts of disk space (approximately
-  50--200~MB). Users are responsible for themselves to dispose their
-  heap files when they are no longer needed.
+  require considerable amounts of disk space (hundreds of MB or some GB).
+  Users are responsible for themselves to dispose their heap files
+  when they are no longer needed.
 
   \medskip The @{verbatim "-w"} option makes the output heap file
   read-only after terminating.  Thus subsequent invocations cause the
