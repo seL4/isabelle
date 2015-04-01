@@ -736,7 +736,7 @@ text %mlantiq \<open>
 text %mlex \<open>The following artificial examples show how to produce
   adhoc output of ML values for debugging purposes.\<close>
 
-ML \<open>
+ML_val \<open>
   val x = 42;
   val y = true;
 
@@ -928,7 +928,7 @@ text %mlex \<open>The following example shows how to fill a text buffer
   list.
 \<close>
 
-ML \<open>
+ML_val \<open>
   val s =
     Buffer.empty
     |> Buffer.add "digits: "
@@ -1091,6 +1091,25 @@ ML_command \<open>
     "The jaws that bite, the claws that catch!",
     "Beware the Jubjub Bird, and shun",
     "The frumious Bandersnatch!"]);
+\<close>
+
+text \<open>
+  \medskip An alternative is to make a paragraph of freely-floating words as
+  follows.
+\<close>
+
+ML_command \<open>
+  warning (Pretty.string_of (Pretty.para
+    "Beware the Jabberwock, my son! \
+    \The jaws that bite, the claws that catch! \
+    \Beware the Jubjub Bird, and shun \
+    \The frumious Bandersnatch!"))
+\<close>
+
+text \<open>
+  This has advantages with variable window / popup sizes, but might make it
+  harder to search for message content systematically, e.g.\ by other tools or
+  by humans expecting the ``verse'' of a formal message in a fixed layout.
 \<close>
 
 
@@ -1551,7 +1570,7 @@ text %mlex \<open>Using canonical @{ML fold} together with @{ML cons} (or
   prevented.
 \<close>
 
-ML \<open>
+ML_val \<open>
   val items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   val list1 = fold cons items [];
@@ -1564,7 +1583,7 @@ ML \<open>
 text \<open>The subsequent example demonstrates how to \emph{merge} two
   lists in a natural way.\<close>
 
-ML \<open>
+ML_val \<open>
   fun merge_lists eq (xs, ys) = fold_rev (insert eq) ys xs;
 \<close>
 
@@ -1817,7 +1836,7 @@ text %mlex \<open>The following example shows how to create unique
   temporary file names.
 \<close>
 
-ML \<open>
+ML_val \<open>
   val tmp1 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
   val tmp2 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
   @{assert} (tmp1 <> tmp2);
@@ -1878,7 +1897,7 @@ text %mlex \<open>The following example implements a counter that produces
   positive integers that are unique over the runtime of the Isabelle
   process:\<close>
 
-ML \<open>
+ML_val \<open>
   local
     val counter = Synchronized.var "counter" 0;
   in
@@ -1888,9 +1907,7 @@ ML \<open>
           let val j = i + 1
           in SOME (j, j) end);
   end;
-\<close>
 
-ML \<open>
   val a = next ();
   val b = next ();
   @{assert} (a <> b);
