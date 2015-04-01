@@ -12,10 +12,10 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
+  val markup: T -> string -> Markup.T
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
   val entry_ord: T -> string * string -> order
-  val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val names_long_raw: Config.raw
@@ -109,8 +109,6 @@ fun err_dup kind entry1 entry2 pos =
   error ("Duplicate " ^ plain_words kind ^ " declaration " ^
     print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
 
-fun undefined kind name = "Undefined " ^ plain_words kind ^ ": " ^ quote name;
-
 
 (* internal names *)
 
@@ -151,17 +149,28 @@ fun empty kind = make_name_space (kind, Change_Table.empty, Change_Table.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
 
-fun the_entry (Name_Space {kind, entries, ...}) name =
-  (case Change_Table.lookup entries name of
-    NONE => error (undefined kind name)
-  | SOME (_, entry) => entry);
-
-fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
-
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
     NONE => Markup.intensify
   | SOME (_, entry) => entry_markup false kind (name, entry));
+
+fun undefined (space as Name_Space {kind, entries, ...}) bad =
+  let
+    val (prfx, sfx) =
+      (case Long_Name.dest_hidden bad of
+        SOME name =>
+          if Change_Table.defined entries name
+          then ("Inaccessible", Markup.markup (markup space name) (quote name))
+          else ("Undefined", quote name)
+      | NONE => ("Undefined", quote bad));
+  in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
+
+fun the_entry (space as Name_Space {entries, ...}) name =
+  (case Change_Table.lookup entries name of
+    NONE => error (undefined space name)
+  | SOME (_, entry) => entry);
+
+fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
 
 fun is_concealed space name = #concealed (the_entry space name);
 
@@ -391,7 +400,7 @@ fun accesses naming binding =
 fun hide fully name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
-      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val _ = the_entry space name;
       val names = valid_accesses space name;
       val internals' = internals
         |> hide_name name
@@ -406,7 +415,7 @@ fun hide fully name space =
 fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
-      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val _ = the_entry space name;
       val (accs, accs') = accesses naming binding;
       val internals' = internals |> fold (add_name name) accs;
       val entries' = entries
@@ -502,7 +511,7 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
         let
           val completions = map (fn pos => completion context space (xname, pos)) ps;
         in
-          error (undefined (kind_of space) name ^ Position.here_list ps ^
+          error (undefined space name ^ Position.here_list ps ^
             Markup.markup_report (implode (map Completion.reported_text completions)))
         end)
   end;
@@ -520,7 +529,7 @@ fun lookup_key (Table (_, tab)) name = Change_Table.lookup_key tab name;
 fun get table name =
   (case lookup_key table name of
     SOME (_, x) => x
-  | NONE => error (undefined (kind_of (space_of_table table)) name));
+  | NONE => error (undefined (space_of_table table) name));
 
 fun define context strict (binding, x) (Table (space, tab)) =
   let
