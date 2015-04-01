@@ -507,17 +507,8 @@ object Build
             if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
-            if (check_keywords.nonEmpty) {
-              for (path <- theory_files) {
-                if (progress.stopped) throw Exn.Interrupt()
-                for ((tok, pos) <- Check_Keywords.conflicts(syntax.keywords, check_keywords, path))
-                {
-                  progress.echo(Output.warning_text(
-                    "keyword conflict: " + tok.kind.toString + " " + quote(tok.content) +
-                      Position.here(pos)))
-                }
-              }
-            }
+            if (check_keywords.nonEmpty)
+              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 

@@ -31,7 +31,24 @@ object Check_Keywords
     Parser.result
   }
 
-  def conflicts(
-    keywords: Keyword.Keywords, check: Set[String], path: Path): List[(Token, Position.T)] =
-    conflicts(keywords, check, File.read(path), Token.Pos.file(path.expand.implode))
+  def check_keywords(
+    progress: Build.Progress,
+    keywords: Keyword.Keywords,
+    check: Set[String],
+    paths: List[Path])
+  {
+    val parallel_args = paths.map(path => (File.read(path), Token.Pos.file(path.expand.implode)))
+
+    val bad =
+      Par_List.map((arg: (String, Token.Pos)) => {
+        if (progress.stopped) throw Exn.Interrupt()
+        conflicts(keywords, check, arg._1, arg._2)
+      }, parallel_args).flatten
+
+    for ((tok, pos) <- bad) {
+      progress.echo(Output.warning_text(
+        "keyword conflict: " + tok.kind.toString + " " + quote(tok.content) +
+          Position.here(pos)))
+    }
+  }
 }
