@@ -4013,6 +4013,27 @@ lemma arcsin_sin: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2\<rbrakk> \<Longrightar
   apply (rule sin_total, auto)
   done
 
+lemma arcsin_0 [simp]: "arcsin 0 = 0"
+  using arcsin_sin [of 0]
+  by simp
+
+lemma arcsin_1 [simp]: "arcsin 1 = pi/2"
+  using arcsin_sin [of "pi/2"]
+  by simp
+
+lemma arcsin_minus_1 [simp]: "arcsin (-1) = - (pi/2)"
+  using arcsin_sin [of "-pi/2"]
+  by simp
+
+lemma arcsin_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin(-x) = -arcsin x"
+  by (metis (no_types, hide_lams) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
+
+lemma arcsin_eq_iff: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> (arcsin x = arcsin y \<longleftrightarrow> x = y)"
+  by (metis abs_le_interval_iff arcsin)
+
+lemma cos_arcsin_nonzero: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> cos(arcsin x) \<noteq> 0"
+  using arcsin_lt_bounded cos_gt_zero_pi by force
+
 lemma arccos:
      "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk>
       \<Longrightarrow> 0 \<le> arccos y & arccos y \<le> pi & cos(arccos y) = y"
@@ -4031,8 +4052,7 @@ lemma arccos_ubound: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> 
   by (blast dest: arccos)
 
 lemma arccos_lt_bounded:
-     "\<lbrakk>-1 < y; y < 1\<rbrakk>
-      \<Longrightarrow> 0 < arccos y & arccos y < pi"
+     "\<lbrakk>-1 < y; y < 1\<rbrakk> \<Longrightarrow> 0 < arccos y & arccos y < pi"
   apply (frule order_less_imp_le)
   apply (frule_tac y = y in order_less_imp_le)
   apply (frule arccos_bounded, auto)
@@ -4081,17 +4101,27 @@ by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero pi_half_ge_zero n
 lemma arccos_1 [simp]: "arccos 1 = 0"
   using arccos_cos by force
 
-lemma arctan [simp]: "- (pi/2) < arctan y  & arctan y < pi/2 & tan (arctan y) = y"
+lemma arccos_minus_1 [simp]: "arccos(-1) = pi"
+  by (metis arccos_cos cos_pi order_refl pi_ge_zero)
+
+lemma arccos_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos(-x) = pi - arccos x"
+  by (metis arccos_cos arccos_cos2 cos_minus_pi cos_total diff_le_0_iff_le le_add_same_cancel1 
+    minus_diff_eq uminus_add_conv_diff)
+
+lemma sin_arccos_nonzero: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> ~(sin(arccos x) = 0)"
+  using arccos_lt_bounded sin_gt_zero by force
+
+lemma arctan: "- (pi/2) < arctan y  & arctan y < pi/2 & tan (arctan y) = y"
   unfolding arctan_def by (rule theI' [OF tan_total])
 
 lemma tan_arctan: "tan (arctan y) = y"
-  by auto
+  by (simp add: arctan)
 
 lemma arctan_bounded: "- (pi/2) < arctan y  & arctan y < pi/2"
   by (auto simp only: arctan)
 
 lemma arctan_lbound: "- (pi/2) < arctan y"
-  by auto
+  by (simp add: arctan)
 
 lemma arctan_ubound: "arctan y < pi/2"
   by (auto simp only: arctan)
@@ -4112,7 +4142,7 @@ lemma arctan_zero_zero [simp]: "arctan 0 = 0"
 lemma arctan_minus: "arctan (- x) = - arctan x"
   apply (rule arctan_unique)
   apply (simp only: neg_less_iff_less arctan_ubound)
-  apply (metis minus_less_iff arctan_lbound, simp)
+  apply (metis minus_less_iff arctan_lbound, simp add: arctan)
   done
 
 lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
@@ -4128,7 +4158,7 @@ proof (rule power2_eq_imp_eq)
   have "(cos (arctan x))\<^sup>2 * (1 + (tan (arctan x))\<^sup>2) = 1"
     unfolding tan_def by (simp add: distrib_left power_divide)
   thus "(cos (arctan x))\<^sup>2 = (1 / sqrt (1 + x\<^sup>2))\<^sup>2"
-    using `0 < 1 + x\<^sup>2` by (simp add: power_divide eq_divide_eq)
+    using `0 < 1 + x\<^sup>2` by (simp add: arctan power_divide eq_divide_eq)
 qed
 
 lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
@@ -4221,7 +4251,7 @@ lemma isCont_arccos: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont ar
 lemma isCont_arctan: "isCont arctan x"
   apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
   apply (rule arctan_ubound [of x, THEN dense, THEN exE], clarify)
-  apply (subgoal_tac "isCont arctan (tan (arctan x))", simp)
+  apply (subgoal_tac "isCont arctan (tan (arctan x))", simp add: arctan)
   apply (erule (1) isCont_inverse_function2 [where f=tan])
   apply (metis arctan_tan order_le_less_trans order_less_le_trans)
   apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans less_le)
@@ -4262,10 +4292,9 @@ lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
   apply (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
   apply (rule DERIV_cong [OF DERIV_tan])
   apply (rule cos_arctan_not_zero)
-  apply (simp add: power_inverse tan_sec [symmetric])
+  apply (simp add: arctan power_inverse tan_sec [symmetric])
   apply (subgoal_tac "0 < 1 + x\<^sup>2", simp)
-  apply (simp add: add_pos_nonneg)
-  apply (simp, simp, simp, rule isCont_arctan)
+  apply (simp_all add: add_pos_nonneg arctan isCont_arctan)
   done
 
 declare
@@ -4275,12 +4304,12 @@ declare
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
+     (auto simp: arctan le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma filterlim_tan_at_left: "filterlim tan at_top (at_left (pi/2))"
   by (rule filterlim_at_top_at_left[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
+     (auto simp: arctan le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma tendsto_arctan_at_top: "(arctan ---> (pi/2)) at_top"
@@ -4312,6 +4341,12 @@ lemma tendsto_arctan_at_bot: "(arctan ---> - (pi/2)) at_bot"
 
 subsection{* Prove Totality of the Trigonometric Functions *}
 
+lemma cos_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> cos (arccos y) = y"
+  by (simp add: abs_le_iff)
+
+lemma sin_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> sin (arccos y) = sqrt (1 - y\<^sup>2)"
+  by (simp add: sin_arccos abs_le_iff)
+
 lemma sin_mono_less_eq: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2; -(pi/2) \<le> y; y \<le> pi/2\<rbrakk>
          \<Longrightarrow> (sin(x) < sin(y) \<longleftrightarrow> x < y)"
 by (metis not_less_iff_gr_or_eq sin_monotone_2pi)
@@ -4320,12 +4355,12 @@ lemma sin_mono_le_eq: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2; -(pi/2) \<le> y; 
          \<Longrightarrow> (sin(x) \<le> sin(y) \<longleftrightarrow> x \<le> y)"
 by (meson leD le_less_linear sin_monotone_2pi sin_monotone_2pi_le)
 
-lemma sin_inj_pi: "-(pi/2) \<le> x ==> x \<le> pi/2 ==>
-         -(pi/2) \<le> y ==> y \<le> pi/2 ==> sin(x) = sin(y) \<Longrightarrow> x = y"
+lemma sin_inj_pi: 
+    "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2;-(pi/2) \<le> y; y \<le> pi/2; sin(x) = sin(y)\<rbrakk> \<Longrightarrow> x = y"
 by (metis arcsin_sin)
 
-lemma cos_mono_lt_eq: "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi
-         \<Longrightarrow> (cos(x) < cos(y) \<longleftrightarrow> y < x)"
+lemma cos_mono_less_eq:
+    "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi \<Longrightarrow> (cos(x) < cos(y) \<longleftrightarrow> y < x)"
 by (meson cos_monotone_0_pi cos_monotone_0_pi_le leD le_less_linear)
 
 lemma cos_mono_le_eq: "0 \<le> x ==> x \<le> pi ==> 0 \<le> y ==> y \<le> pi
@@ -4407,6 +4442,40 @@ proof -
     done
 qed
 
+lemma arcsin_less_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arcsin x < arcsin y \<longleftrightarrow> x < y"
+  apply (rule trans [OF sin_mono_less_eq [symmetric]])
+  using arcsin_ubound arcsin_lbound
+  apply (auto simp: )
+  done
+
+lemma arcsin_le_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y \<longleftrightarrow> x \<le> y"
+  using arcsin_less_mono not_le by blast
+
+lemma arcsin_less_arcsin: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin x < arcsin y"
+  using arcsin_less_mono by auto
+
+lemma arcsin_le_arcsin: "-1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y"
+  using arcsin_le_mono by auto
+
+lemma arccos_less_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> (arccos x < arccos y \<longleftrightarrow> y < x)"
+  apply (rule trans [OF cos_mono_less_eq [symmetric]])
+  using arccos_ubound arccos_lbound
+  apply (auto simp: )
+  done
+
+lemma arccos_le_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arccos x \<le> arccos y \<longleftrightarrow> y \<le> x"
+  using arccos_less_mono [of y x] 
+  by (simp add: not_le [symmetric])
+
+lemma arccos_less_arccos: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arccos y < arccos x"
+  using arccos_less_mono by auto
+
+lemma arccos_le_arccos: "-1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arccos y \<le> arccos x"
+  using arccos_le_mono by auto
+
+lemma arccos_eq_iff: "abs x \<le> 1 & abs y \<le> 1 \<Longrightarrow> (arccos x = arccos y \<longleftrightarrow> x = y)"
+  using cos_arccos_abs by fastforce
+
 subsection {* Machins formula *}
 
 lemma arctan_one: "arctan 1 = pi / 4"
@@ -4418,7 +4487,8 @@ lemma tan_total_pi4:
 proof
   show "- (pi / 4) < arctan x \<and> arctan x < pi / 4 \<and> tan (arctan x) = x"
     unfolding arctan_one [symmetric] arctan_minus [symmetric]
-    unfolding arctan_less_iff using assms by auto
+    unfolding arctan_less_iff using assms  by (auto simp add: arctan)
+
 qed
 
 lemma arctan_add:
@@ -4436,7 +4506,7 @@ proof (rule arctan_unique [symmetric])
   from add_le_less_mono [OF this]
   show 2: "arctan x + arctan y < pi / 2" by simp
   show "tan (arctan x + arctan y) = (x + y) / (1 - x * y)"
-    using cos_gt_zero_pi [OF 1 2] by (simp add: tan_add)
+    using cos_gt_zero_pi [OF 1 2] by (simp add: arctan tan_add)
 qed
 
 theorem machin: "pi / 4 = 4 * arctan (1/5) - arctan (1 / 239)"
@@ -4882,7 +4952,7 @@ proof (rule arctan_unique)
   show "- (pi / 2) < sgn x * pi / 2 - arctan x"
     using arctan_bounded [of x] assms
     unfolding sgn_real_def
-    apply (auto simp add: algebra_simps)
+    apply (auto simp add: arctan algebra_simps)
     apply (drule zero_less_arctan_iff [THEN iffD2])
     apply arith
     done
@@ -4910,12 +4980,6 @@ lemma cos_x_y_le_one: "\<bar>x / sqrt (x\<^sup>2 + y\<^sup>2)\<bar> \<le> 1"
   apply (rule power2_le_imp_le [OF _ zero_le_one])
   apply (simp add: power_divide divide_le_eq not_sum_power2_lt_zero)
   done
-
-lemma cos_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> cos (arccos y) = y"
-  by (simp add: abs_le_iff)
-
-lemma sin_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> sin (arccos y) = sqrt (1 - y\<^sup>2)"
-  by (simp add: sin_arccos abs_le_iff)
 
 lemmas cos_arccos_lemma1 = cos_arccos_abs [OF cos_x_y_le_one]
 
