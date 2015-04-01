@@ -8,6 +8,39 @@ theory Complex_Transcendental
 imports  "~~/src/HOL/Multivariate_Analysis/Complex_Analysis_Basics"
 begin
 
+
+lemma cmod_add_real_less:
+  assumes "Im z \<noteq> 0" "r\<noteq>0"
+    shows "cmod (z + r) < cmod z + abs r"
+proof (cases z)
+  case (Complex x y)
+  have "r * x / \<bar>r\<bar> < sqrt (x*x + y*y)"
+    apply (rule real_less_rsqrt)
+    using assms
+    apply (simp add: Complex power2_eq_square)
+    using not_real_square_gt_zero by blast
+  then show ?thesis using assms Complex
+    apply (auto simp: cmod_def)
+    apply (rule power2_less_imp_less, auto)
+    apply (simp add: power2_eq_square field_simps)
+    done
+qed
+
+lemma cmod_diff_real_less: "Im z \<noteq> 0 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> cmod (z - x) < cmod z + abs x"
+  using cmod_add_real_less [of z "-x"]
+  by simp
+
+lemma cmod_square_less_1_plus:
+  assumes "Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1"
+    shows "(cmod z)\<^sup>2 < 1 + cmod (1 - z\<^sup>2)"
+  using assms
+  apply (cases "Im z = 0 \<or> Re z = 0")
+  using abs_square_less_1
+    apply (force simp add: Re_power2 Im_power2 cmod_def)
+  using cmod_diff_real_less [of "1 - z\<^sup>2" "1"]
+  apply (simp add: norm_power Im_power2)
+  done
+
 subsection{*The Exponential Function is Differentiable and Continuous*}
 
 lemma complex_differentiable_at_exp: "exp complex_differentiable at z"
@@ -1324,5 +1357,824 @@ next
 by (metis linear not_less real_sqrt_less_iff real_sqrt_pow2_iff real_sqrt_power)
 qed
 
+subsection{*Complex arctangent*}
+
+text{*branch cut gives standard bounds in real case.*}
+
+definition Arctan :: "complex \<Rightarrow> complex" where
+    "Arctan \<equiv> \<lambda>z. (\<i>/2) * Ln((1 - \<i>*z) / (1 + \<i>*z))"
+
+lemma Arctan_0 [simp]: "Arctan 0 = 0"
+  by (simp add: Arctan_def)
+
+lemma Im_complex_div_lemma: "Im((1 - \<i>*z) / (1 + \<i>*z)) = 0 \<longleftrightarrow> Re z = 0"
+  by (auto simp: Im_complex_div_eq_0 algebra_simps)
+
+lemma Re_complex_div_lemma: "0 < Re((1 - \<i>*z) / (1 + \<i>*z)) \<longleftrightarrow> norm z < 1"
+  by (simp add: Re_complex_div_gt_0 algebra_simps cmod_def power2_eq_square)
+
+lemma tan_Arctan:
+  assumes "z\<^sup>2 \<noteq> -1"
+    shows [simp]:"tan(Arctan z) = z"
+proof -
+  have "1 + \<i>*z \<noteq> 0"
+    by (metis assms complex_i_mult_minus i_squared minus_unique power2_eq_square power2_minus)
+  moreover
+  have "1 - \<i>*z \<noteq> 0"
+    by (metis assms complex_i_mult_minus i_squared power2_eq_square power2_minus right_minus_eq)
+  ultimately
+  show ?thesis
+    by (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus csqrt_exp_Ln [symmetric]
+                  divide_simps power2_eq_square [symmetric])
+qed
+
+lemma Arctan_tan [simp]:
+  assumes "\<bar>Re z\<bar> < pi/2"
+    shows "Arctan(tan z) = z"
+proof -
+  have ge_pi2: "\<And>n::int. abs (of_int (2*n + 1) * pi/2) \<ge> pi/2"
+    by (case_tac n rule: int_cases) (auto simp: abs_mult)
+  have "exp (\<i>*z)*exp (\<i>*z) = -1 \<longleftrightarrow> exp (2*\<i>*z) = -1"
+    by (metis distrib_right exp_add mult_2)
+  also have "... \<longleftrightarrow> exp (2*\<i>*z) = exp (\<i>*pi)"
+    using cis_conv_exp cis_pi by auto
+  also have "... \<longleftrightarrow> exp (2*\<i>*z - \<i>*pi) = 1"
+    by (metis (no_types) diff_add_cancel diff_minus_eq_add exp_add exp_minus_inverse mult.commute)
+  also have "... \<longleftrightarrow> Re(\<i>*2*z - \<i>*pi) = 0 \<and> (\<exists>n::int. Im(\<i>*2*z - \<i>*pi) = of_int (2 * n) * pi)"
+    by (simp add: exp_eq_1)
+  also have "... \<longleftrightarrow> Im z = 0 \<and> (\<exists>n::int. 2 * Re z = of_int (2*n + 1) * pi)"
+    by (simp add: algebra_simps)
+  also have "... \<longleftrightarrow> False"
+    using assms ge_pi2
+    apply (auto simp: algebra_simps)
+    by (metis abs_mult_pos not_less not_real_of_nat_less_zero real_of_nat_numeral)
+  finally have *: "exp (\<i>*z)*exp (\<i>*z) + 1 \<noteq> 0"
+    by (auto simp: add.commute minus_unique)
+  show ?thesis
+    using assms *
+    apply (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus divide_simps
+                     ii_times_eq_iff power2_eq_square [symmetric])
+    apply (rule Ln_unique)
+    apply (auto simp: divide_simps exp_minus)
+    apply (simp add: algebra_simps exp_double [symmetric])
+    done
+qed
+
+lemma
+  assumes "Re z = 0 \<Longrightarrow> abs(Im z) < 1"
+  shows Re_Arctan_bounds: "abs(Re(Arctan z)) < pi/2"
+    and has_field_derivative_Arctan: "(Arctan has_field_derivative inverse(1 + z\<^sup>2)) (at z)"
+proof -
+  have nz0: "1 + \<i>*z \<noteq> 0"
+    using assms
+    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add ii.simps(1) ii.simps(2) 
+              less_irrefl minus_diff_eq mult.right_neutral right_minus_eq)
+  have "z \<noteq> -\<i>" using assms
+    by auto
+  then have zz: "1 + z * z \<noteq> 0"
+    by (metis abs_one assms i_squared ii.simps less_irrefl minus_unique square_eq_iff)
+  have nz1: "1 - \<i>*z \<noteq> 0"
+    using assms by (force simp add: ii_times_eq_iff)
+  have nz2: "inverse (1 + \<i>*z) \<noteq> 0"
+    using assms
+    by (metis Im_complex_div_lemma Re_complex_div_lemma cmod_eq_Im divide_complex_def
+              less_irrefl mult_zero_right zero_complex.simps(1) zero_complex.simps(2))
+  have nzi: "((1 - \<i>*z) * inverse (1 + \<i>*z)) \<noteq> 0"
+    using nz1 nz2 by auto
+  have *: "Im ((1 - \<i>*z) / (1 + \<i>*z)) = 0 \<Longrightarrow> 0 < Re ((1 - \<i>*z) / (1 + \<i>*z))"
+    apply (simp add: divide_complex_def)
+    apply (simp add: divide_simps split: split_if_asm)
+    using assms
+    apply (auto simp: algebra_simps abs_square_less_1 [unfolded power2_eq_square])
+    done
+  show "abs(Re(Arctan z)) < pi/2"
+    unfolding Arctan_def divide_complex_def
+    using mpi_less_Im_Ln [OF nzi]
+    by (auto simp: abs_if intro: Im_Ln_less_pi * [unfolded divide_complex_def])
+  show "(Arctan has_field_derivative inverse(1 + z\<^sup>2)) (at z)"
+    unfolding Arctan_def scaleR_conv_of_real
+    apply (rule DERIV_cong)
+    apply (intro derivative_eq_intros | simp add: nz0 *)+
+    using nz0 nz1 zz
+    apply (simp add: divide_simps power2_eq_square)
+    apply (auto simp: algebra_simps)
+    done
+qed
+
+lemma complex_differentiable_at_Arctan: "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> Arctan complex_differentiable at z"
+  using has_field_derivative_Arctan
+  by (auto simp: complex_differentiable_def)
+
+lemma complex_differentiable_within_Arctan:
+    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> Arctan complex_differentiable (at z within s)"
+  using complex_differentiable_at_Arctan complex_differentiable_at_within by blast
+
+declare has_field_derivative_Arctan [derivative_intros]
+declare has_field_derivative_Arctan [THEN DERIV_chain2, derivative_intros]
+
+lemma continuous_at_Arctan:
+    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> continuous (at z) Arctan"
+  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Arctan)
+
+lemma continuous_within_Arctan:
+    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> continuous (at z within s) Arctan"
+  using continuous_at_Arctan continuous_at_imp_continuous_within by blast
+
+lemma continuous_on_Arctan [continuous_intros]:
+    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> abs \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous_on s Arctan"
+  by (auto simp: continuous_at_imp_continuous_on continuous_within_Arctan)
+
+lemma holomorphic_on_Arctan:
+    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> abs \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan holomorphic_on s"
+  by (simp add: complex_differentiable_within_Arctan holomorphic_on_def)
+
+
+subsection {*Real arctangent*}
+
+lemma norm_exp_ii_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
+  by simp
+
+lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
+  by (simp add: complex_norm_eq_1_exp)
+
+lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
+  unfolding Arctan_def divide_complex_def
+  apply (simp add: complex_eq_iff)
+  apply (rule norm_exp_imaginary)
+  apply (subst exp_Ln, auto)
+  apply (simp_all add: cmod_def complex_eq_iff)
+  apply (auto simp: divide_simps)
+  apply (metis power_one realpow_two_sum_zero_iff zero_neq_one, algebra)
+  done
+
+lemma arctan_eq_Re_Arctan: "arctan x = Re (Arctan (of_real x))"
+proof (rule arctan_unique)
+  show "- (pi / 2) < Re (Arctan (complex_of_real x))"
+    apply (simp add: Arctan_def)
+    apply (rule Im_Ln_less_pi)
+    apply (auto simp: Im_complex_div_lemma)
+    done
+next
+  have *: " (1 - \<i>*x) / (1 + \<i>*x) \<noteq> 0"
+    by (simp add: divide_simps) ( simp add: complex_eq_iff)
+  show "Re (Arctan (complex_of_real x)) < pi / 2"
+    using mpi_less_Im_Ln [OF *]
+    by (simp add: Arctan_def)
+next
+  have "tan (Re (Arctan (of_real x))) = Re (tan (Arctan (of_real x)))"
+    apply (auto simp: tan_def Complex.Re_divide Re_sin Re_cos Im_sin Im_cos)
+    apply (simp add: field_simps)
+    by (simp add: power2_eq_square)
+  also have "... = x"
+    apply (subst tan_Arctan, auto)
+    by (metis diff_0_right minus_diff_eq mult_zero_left not_le of_real_1 of_real_eq_iff of_real_minus of_real_power power2_eq_square real_minus_mult_self_le zero_less_one)
+  finally show "tan (Re (Arctan (complex_of_real x))) = x" .
+qed
+
+lemma Arctan_of_real: "Arctan (of_real x) = of_real (arctan x)"
+  unfolding arctan_eq_Re_Arctan divide_complex_def
+  by (simp add: complex_eq_iff)
+
+lemma Arctan_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Arctan z \<in> \<real>"
+  by (metis Reals_cases Reals_of_real Arctan_of_real)
+
+declare arctan_one [simp]
+
+lemma arctan_less_pi4_pos: "x < 1 \<Longrightarrow> arctan x < pi/4"
+  by (metis arctan_less_iff arctan_one)
+
+lemma arctan_less_pi4_neg: "-1 < x \<Longrightarrow> -(pi/4) < arctan x"
+  by (metis arctan_less_iff arctan_minus arctan_one)
+
+lemma arctan_less_pi4: "abs x < 1 \<Longrightarrow> abs(arctan x) < pi/4"
+  by (metis abs_less_iff arctan_less_pi4_pos arctan_minus)
+
+lemma arctan_le_pi4: "abs x \<le> 1 \<Longrightarrow> abs(arctan x) \<le> pi/4"
+  by (metis abs_le_iff arctan_le_iff arctan_minus arctan_one)
+
+lemma abs_arctan: "abs(arctan x) = arctan(abs x)"
+  by (simp add: abs_if arctan_minus)
+
+lemma arctan_add_raw:
+  assumes "abs(arctan x + arctan y) < pi/2"
+    shows "arctan x + arctan y = arctan((x + y) / (1 - x * y))"
+proof (rule arctan_unique [symmetric])
+  show 12: "- (pi / 2) < arctan x + arctan y" "arctan x + arctan y < pi / 2"
+    using assms by linarith+
+  show "tan (arctan x + arctan y) = (x + y) / (1 - x * y)"
+    using cos_gt_zero_pi [OF 12]
+    by (simp add: arctan tan_add)
+qed
+
+lemma arctan_inverse:
+  assumes "0 < x"
+    shows "arctan(inverse x) = pi/2 - arctan x"
+proof -
+  have "arctan(inverse x) = arctan(inverse(tan(arctan x)))"
+    by (simp add: arctan)
+  also have "... = arctan (tan (pi / 2 - arctan x))"
+    by (simp add: tan_cot)
+  also have "... = pi/2 - arctan x"
+  proof -
+    have "0 < pi - arctan x"
+    using arctan_ubound [of x] pi_gt_zero by linarith
+    with assms show ?thesis
+      by (simp add: Transcendental.arctan_tan)
+  qed
+  finally show ?thesis .
+qed
+
+lemma arctan_add_small:
+  assumes "abs(x * y) < 1"
+    shows "(arctan x + arctan y = arctan((x + y) / (1 - x * y)))"
+proof (cases "x = 0 \<or> y = 0")
+  case True then show ?thesis
+    by auto
+next
+  case False
+  then have *: "\<bar>arctan x\<bar> < pi / 2 - \<bar>arctan y\<bar>" using assms
+    apply (auto simp add: abs_arctan arctan_inverse [symmetric] arctan_less_iff)
+    apply (simp add: divide_simps abs_mult)
+    done
+  show ?thesis
+    apply (rule arctan_add_raw)
+    using * by linarith
+qed
+
+lemma abs_arctan_le:
+  fixes x::real shows "abs(arctan x) \<le> abs x"
+proof -
+  { fix w::complex and z::complex
+    assume *: "w \<in> \<real>" "z \<in> \<real>"
+    have "cmod (Arctan w - Arctan z) \<le> 1 * cmod (w-z)"
+      apply (rule complex_differentiable_bound [OF convex_Reals, of Arctan _ 1])
+      apply (rule has_field_derivative_at_within [OF has_field_derivative_Arctan])
+      apply (force simp add: Reals_def)
+      apply (simp add: norm_divide divide_simps in_Reals_norm complex_is_Real_iff power2_eq_square)
+      using * by auto
+  }
+  then have "cmod (Arctan (of_real x) - Arctan 0) \<le> 1 * cmod (of_real x -0)"
+    using Reals_0 Reals_of_real by blast
+  then show ?thesis
+    by (simp add: Arctan_of_real)
+qed
+
+lemma arctan_le_self: "0 \<le> x \<Longrightarrow> arctan x \<le> x"
+  by (metis abs_arctan_le abs_of_nonneg zero_le_arctan_iff)
+
+lemma abs_tan_ge: "abs x < pi/2 \<Longrightarrow> abs x \<le> abs(tan x)"
+  by (metis abs_arctan_le abs_less_iff arctan_tan minus_less_iff)
+
+
+subsection{*Inverse Sine*}
+
+definition Arcsin :: "complex \<Rightarrow> complex" where
+   "Arcsin \<equiv> \<lambda>z. -\<i> * Ln(\<i> * z + csqrt(1 - z\<^sup>2))"
+
+lemma Arcsin_body_lemma: "\<i> * z + csqrt(1 - z\<^sup>2) \<noteq> 0"
+  using power2_csqrt [of "1 - z\<^sup>2"]
+  apply auto
+  by (metis complex_i_mult_minus diff_add_cancel diff_minus_eq_add diff_self mult.assoc mult.left_commute numeral_One power2_csqrt power2_eq_square zero_neq_numeral)
+
+lemma Arcsin_range_lemma: "abs (Re z) < 1 \<Longrightarrow> 0 < Re(\<i> * z + csqrt(1 - z\<^sup>2))"
+  using Complex.cmod_power2 [of z, symmetric]
+  by (simp add: real_less_rsqrt algebra_simps Re_power2 cmod_square_less_1_plus)
+
+lemma Re_Arcsin: "Re(Arcsin z) = Im (Ln (\<i> * z + csqrt(1 - z\<^sup>2)))"
+  by (simp add: Arcsin_def)
+
+lemma Im_Arcsin: "Im(Arcsin z) = - ln (cmod (\<i> * z + csqrt (1 - z\<^sup>2)))"
+  by (simp add: Arcsin_def Arcsin_body_lemma)
+
+lemma isCont_Arcsin:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+    shows "isCont Arcsin z"
+proof -
+  have rez: "Im (1 - z\<^sup>2) = 0 \<Longrightarrow> 0 < Re (1 - z\<^sup>2)"
+    using assms
+    by (auto simp: Re_power2 Im_power2 abs_square_less_1 add_pos_nonneg algebra_simps)
+  have cmz: "(cmod z)\<^sup>2 < 1 + cmod (1 - z\<^sup>2)"
+    by (blast intro: assms cmod_square_less_1_plus)
+  show ?thesis
+    using assms
+    apply (simp add: Arcsin_def)
+    apply (rule isCont_Ln' isCont_csqrt' continuous_intros)+
+    apply (erule rez)
+    apply (auto simp: Re_power2 Im_power2 abs_square_less_1 [symmetric] real_less_rsqrt algebra_simps split: split_if_asm)
+    apply (simp add: norm_complex_def)
+    using cmod_power2 [of z, symmetric] cmz
+    apply (simp add: real_less_rsqrt)
+    done
+qed
+
+lemma isCont_Arcsin' [simp]:
+  shows "isCont f z \<Longrightarrow> (Im (f z) = 0 \<Longrightarrow> \<bar>Re (f z)\<bar> < 1) \<Longrightarrow> isCont (\<lambda>x. Arcsin (f x)) z"
+  by (blast intro: isCont_o2 [OF _ isCont_Arcsin])
+
+lemma sin_Arcsin [simp]: "sin(Arcsin z) = z"
+proof -  
+  have "\<i>*z*2 + csqrt (1 - z\<^sup>2)*2 = 0 \<longleftrightarrow> (\<i>*z)*2 + csqrt (1 - z\<^sup>2)*2 = 0"
+    by (simp add: algebra_simps)  --{*Cancelling a factor of 2*}
+  moreover have "... \<longleftrightarrow> (\<i>*z) + csqrt (1 - z\<^sup>2) = 0"
+    by (metis Arcsin_body_lemma distrib_right no_zero_divisors zero_neq_numeral)
+  ultimately show ?thesis
+    apply (simp add: sin_exp_eq Arcsin_def Arcsin_body_lemma exp_minus divide_simps)
+    apply (simp add: algebra_simps)
+    apply (simp add: power2_eq_square [symmetric] algebra_simps)
+    done
+qed
+
+lemma Re_eq_pihalf_lemma:
+    "\<bar>Re z\<bar> = pi/2 \<Longrightarrow> Im z = 0 \<Longrightarrow>
+      Re ((exp (\<i>*z) + inverse (exp (\<i>*z))) / 2) = 0 \<and> 0 \<le> Im ((exp (\<i>*z) + inverse (exp (\<i>*z))) / 2)"
+  apply (simp add: cos_ii_times [symmetric] Re_cos Im_cos abs_if del: eq_divide_eq_numeral1)
+  by (metis cos_minus cos_pi_half)
+
+lemma Re_less_pihalf_lemma:
+  assumes "\<bar>Re z\<bar> < pi / 2"
+    shows "0 < Re ((exp (\<i>*z) + inverse (exp (\<i>*z))) / 2)"
+proof -
+  have "0 < cos (Re z)" using assms
+    using cos_gt_zero_pi by auto
+  then show ?thesis
+    by (simp add: cos_ii_times [symmetric] Re_cos Im_cos add_pos_pos)
+qed
+
+lemma Arcsin_sin:
+    assumes "\<bar>Re z\<bar> < pi/2 \<or> (\<bar>Re z\<bar> = pi/2 \<and> Im z = 0)"
+      shows "Arcsin(sin z) = z"
+proof -
+  have "Arcsin(sin z) = - (\<i> * Ln (csqrt (1 - (\<i> * (exp (\<i>*z) - inverse (exp (\<i>*z))))\<^sup>2 / 4) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
+    by (simp add: sin_exp_eq Arcsin_def exp_minus)
+  also have "... = - (\<i> * Ln (csqrt (((exp (\<i>*z) + inverse (exp (\<i>*z)))/2)\<^sup>2) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
+    by (simp add: field_simps power2_eq_square)
+  also have "... = - (\<i> * Ln (((exp (\<i>*z) + inverse (exp (\<i>*z)))/2) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
+    apply (subst csqrt_square)
+    using assms Re_eq_pihalf_lemma Re_less_pihalf_lemma
+    apply auto
+    done
+  also have "... =  - (\<i> * Ln (exp (\<i>*z)))"
+    by (simp add: field_simps power2_eq_square)
+  also have "... = z"
+    apply (subst Complex_Transcendental.Ln_exp)
+    using assms
+    apply (auto simp: abs_if simp del: eq_divide_eq_numeral1 split: split_if_asm)
+    done
+  finally show ?thesis .
+qed
+
+lemma Arcsin_unique:
+    "\<lbrakk>sin z = w; \<bar>Re z\<bar> < pi/2 \<or> (\<bar>Re z\<bar> = pi/2 \<and> Im z = 0)\<rbrakk> \<Longrightarrow> Arcsin w = z"
+  by (metis Arcsin_sin)
+
+lemma Arcsin_0 [simp]: "Arcsin 0 = 0"
+  by (metis Arcsin_sin norm_zero pi_half_gt_zero real_norm_def sin_zero zero_complex.simps(1))
+
+lemma Arcsin_1 [simp]: "Arcsin 1 = pi/2"
+  by (metis Arcsin_sin Im_complex_of_real Re_complex_of_real numeral_One of_real_numeral pi_half_ge_zero real_sqrt_abs real_sqrt_pow2 real_sqrt_power sin_of_real sin_pi_half)
+
+lemma Arcsin_minus_1 [simp]: "Arcsin(-1) = - (pi/2)"
+  by (metis Arcsin_1 Arcsin_sin Im_complex_of_real Re_complex_of_real abs_of_nonneg of_real_minus pi_half_ge_zero power2_minus real_sqrt_abs sin_Arcsin sin_minus)
+
+lemma has_field_derivative_Arcsin:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+    shows "(Arcsin has_field_derivative inverse(cos(Arcsin z))) (at z)"
+proof -
+  have "(sin (Arcsin z))\<^sup>2 \<noteq> 1"
+    using assms
+    apply atomize
+    apply (auto simp: complex_eq_iff Re_power2 Im_power2 abs_square_eq_1)
+    apply (metis abs_minus_cancel abs_one abs_power2 numeral_One numeral_neq_neg_one)
+    by (metis abs_minus_cancel abs_one abs_power2 one_neq_neg_one)
+  then have "cos (Arcsin z) \<noteq> 0"
+    by (metis diff_0_right power_zero_numeral sin_squared_eq)
+  then show ?thesis
+    apply (rule has_complex_derivative_inverse_basic [OF DERIV_sin])
+    apply (auto intro: isCont_Arcsin open_ball [of z 1] assms)
+    done
+qed
+
+declare has_field_derivative_Arcsin [derivative_intros]
+declare has_field_derivative_Arcsin [THEN DERIV_chain2, derivative_intros]
+
+lemma complex_differentiable_at_Arcsin:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin complex_differentiable at z"
+  using complex_differentiable_def has_field_derivative_Arcsin by blast
+
+lemma complex_differentiable_within_Arcsin:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin complex_differentiable (at z within s)"
+  using complex_differentiable_at_Arcsin complex_differentiable_within_subset by blast
+
+lemma continuous_within_Arcsin:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arcsin"
+  using continuous_at_imp_continuous_within isCont_Arcsin by blast
+
+lemma continuous_on_Arcsin [continuous_intros]:
+    "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous_on s Arcsin"
+  by (simp add: continuous_at_imp_continuous_on)
+
+lemma holomorphic_on_Arcsin: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin holomorphic_on s"
+  by (simp add: complex_differentiable_within_Arcsin holomorphic_on_def)
+
+
+subsection{*Inverse Cosine*}
+
+definition Arccos :: "complex \<Rightarrow> complex" where
+   "Arccos \<equiv> \<lambda>z. -\<i> * Ln(z + \<i> * csqrt(1 - z\<^sup>2))"
+
+lemma Arccos_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Im(z + \<i> * csqrt(1 - z\<^sup>2))"
+  using Arcsin_range_lemma [of "-z"]
+  by simp
+
+lemma Arccos_body_lemma: "z + \<i> * csqrt(1 - z\<^sup>2) \<noteq> 0"
+  using Arcsin_body_lemma [of z]
+  by (metis complex_i_mult_minus diff_add_cancel minus_diff_eq minus_unique mult.assoc mult.left_commute
+           power2_csqrt power2_eq_square zero_neq_one)
+
+lemma Re_Arccos: "Re(Arccos z) = Im (Ln (z + \<i> * csqrt(1 - z\<^sup>2)))"
+  by (simp add: Arccos_def)
+
+lemma Im_Arccos: "Im(Arccos z) = - ln (cmod (z + \<i> * csqrt (1 - z\<^sup>2)))"
+  by (simp add: Arccos_def Arccos_body_lemma)
+
+text{*A very tricky argument to find!*}
+lemma abs_Re_less_1_preserve:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"  "Im (z + \<i> * csqrt (1 - z\<^sup>2)) = 0"
+    shows "0 < Re (z + \<i> * csqrt (1 - z\<^sup>2))"
+proof (cases "Im z = 0")
+  case True
+  then show ?thesis
+    using assms 
+    by (fastforce simp add: cmod_def Re_power2 Im_power2 algebra_simps abs_square_less_1 [symmetric])
+next
+  case False
+  have Imz: "Im z = - sqrt ((1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2)"
+    using assms abs_Re_le_cmod [of "1-z\<^sup>2"]
+    by (simp add: Re_power2 algebra_simps)
+  have "(cmod z)\<^sup>2 - 1 \<noteq> cmod (1 - z\<^sup>2)"
+  proof (clarsimp simp add: cmod_def)
+    assume "(Re z)\<^sup>2 + (Im z)\<^sup>2 - 1 = sqrt ((1 - Re (z\<^sup>2))\<^sup>2 + (Im (z\<^sup>2))\<^sup>2)"
+    then have "((Re z)\<^sup>2 + (Im z)\<^sup>2 - 1)\<^sup>2 = ((1 - Re (z\<^sup>2))\<^sup>2 + (Im (z\<^sup>2))\<^sup>2)"
+      by simp
+    then show False using False
+      by (simp add: power2_eq_square algebra_simps)
+  qed
+  moreover have "(Im z)\<^sup>2 = ((1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2)"
+    apply (subst Imz, simp)
+    apply (subst real_sqrt_pow2)
+    using abs_Re_le_cmod [of "1-z\<^sup>2"]
+    apply (auto simp: Re_power2 field_simps)
+    done
+  ultimately show ?thesis
+    by (simp add: Re_power2 Im_power2 cmod_power2)
+qed
+
+lemma isCont_Arccos:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+    shows "isCont Arccos z"
+proof -
+  have rez: "Im (1 - z\<^sup>2) = 0 \<Longrightarrow> 0 < Re (1 - z\<^sup>2)"
+    using assms
+    by (auto simp: Re_power2 Im_power2 abs_square_less_1 add_pos_nonneg algebra_simps)
+  show ?thesis
+    using assms
+    apply (simp add: Arccos_def)
+    apply (rule isCont_Ln' isCont_csqrt' continuous_intros)+
+    apply (erule rez)
+    apply (blast intro: abs_Re_less_1_preserve)
+    done
+qed
+
+lemma isCont_Arccos' [simp]:
+  shows "isCont f z \<Longrightarrow> (Im (f z) = 0 \<Longrightarrow> \<bar>Re (f z)\<bar> < 1) \<Longrightarrow> isCont (\<lambda>x. Arccos (f x)) z"
+  by (blast intro: isCont_o2 [OF _ isCont_Arccos])
+
+lemma cos_Arccos [simp]: "cos(Arccos z) = z"
+proof -
+  have "z*2 + \<i> * (2 * csqrt (1 - z\<^sup>2)) = 0 \<longleftrightarrow> z*2 + \<i> * csqrt (1 - z\<^sup>2)*2 = 0"
+    by (simp add: algebra_simps)  --{*Cancelling a factor of 2*}
+  moreover have "... \<longleftrightarrow> z + \<i> * csqrt (1 - z\<^sup>2) = 0"
+    by (metis distrib_right mult_eq_0_iff zero_neq_numeral)
+  ultimately show ?thesis
+    apply (simp add: cos_exp_eq Arccos_def Arccos_body_lemma exp_minus field_simps)
+    apply (simp add: power2_eq_square [symmetric])
+    done
+qed
+
+lemma Arccos_cos:
+    assumes "0 < Re z & Re z < pi \<or>
+             Re z = 0 & 0 \<le> Im z \<or>
+             Re z = pi & Im z \<le> 0"
+      shows "Arccos(cos z) = z"
+proof -
+  have *: "((\<i> - (Exp (\<i> * z))\<^sup>2 * \<i>) / (2 * Exp (\<i> * z))) = sin z"
+    by (simp add: sin_exp_eq exp_minus field_simps power2_eq_square)
+  have "1 - (exp (\<i> * z) + inverse (exp (\<i> * z)))\<^sup>2 / 4 = ((\<i> - (Exp (\<i> * z))\<^sup>2 * \<i>) / (2 * Exp (\<i> * z)))\<^sup>2"
+    by (simp add: field_simps power2_eq_square)
+  then have "Arccos(cos z) = - (\<i> * Ln ((exp (\<i> * z) + inverse (exp (\<i> * z))) / 2 +
+                           \<i> * csqrt (((\<i> - (Exp (\<i> * z))\<^sup>2 * \<i>) / (2 * Exp (\<i> * z)))\<^sup>2)))"
+    by (simp add: cos_exp_eq Arccos_def exp_minus)
+  also have "... = - (\<i> * Ln ((exp (\<i> * z) + inverse (exp (\<i> * z))) / 2 +
+                              \<i> * ((\<i> - (Exp (\<i> * z))\<^sup>2 * \<i>) / (2 * Exp (\<i> * z)))))"
+    apply (subst csqrt_square)
+    using assms Re_sin_pos [of z] Im_sin_nonneg [of z] Im_sin_nonneg2 [of z]
+    apply (auto simp: * Re_sin Im_sin)
+    done
+  also have "... =  - (\<i> * Ln (exp (\<i>*z)))"
+    by (simp add: field_simps power2_eq_square)
+  also have "... = z"
+    using assms
+    apply (subst Complex_Transcendental.Ln_exp, auto)
+    done
+  finally show ?thesis .
+qed
+
+lemma Arccos_unique:
+    "\<lbrakk>cos z = w;
+      0 < Re z \<and> Re z < pi \<or>
+      Re z = 0 \<and> 0 \<le> Im z \<or>
+      Re z = pi \<and> Im z \<le> 0\<rbrakk> \<Longrightarrow> Arccos w = z"
+  using Arccos_cos by blast
+
+lemma Arccos_0 [simp]: "Arccos 0 = pi/2"
+  by (rule Arccos_unique) (auto simp: of_real_numeral)
+
+lemma Arccos_1 [simp]: "Arccos 1 = 0"
+  by (rule Arccos_unique) auto
+
+lemma Arccos_minus1: "Arccos(-1) = pi"
+  by (rule Arccos_unique) auto
+
+lemma has_field_derivative_Arccos:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+    shows "(Arccos has_field_derivative - inverse(sin(Arccos z))) (at z)"
+proof -
+  have "(cos (Arccos z))\<^sup>2 \<noteq> 1"
+    using assms
+    apply atomize
+    apply (auto simp: complex_eq_iff Re_power2 Im_power2 abs_square_eq_1)
+    apply (metis abs_minus_cancel abs_one abs_power2 numeral_One numeral_neq_neg_one)
+    apply (metis left_minus less_irrefl power_one sum_power2_gt_zero_iff zero_neq_neg_one)
+    done
+  then have "- sin (Arccos z) \<noteq> 0"
+    by (metis cos_squared_eq diff_0_right mult_zero_left neg_0_equal_iff_equal power2_eq_square)
+  then have "(Arccos has_field_derivative inverse(- sin(Arccos z))) (at z)"
+    apply (rule has_complex_derivative_inverse_basic [OF DERIV_cos])
+    apply (auto intro: isCont_Arccos open_ball [of z 1] assms)
+    done
+  then show ?thesis
+    by simp
+qed
+
+declare has_field_derivative_Arcsin [derivative_intros]
+declare has_field_derivative_Arcsin [THEN DERIV_chain2, derivative_intros]
+
+lemma complex_differentiable_at_Arccos:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos complex_differentiable at z"
+  using complex_differentiable_def has_field_derivative_Arccos by blast
+
+lemma complex_differentiable_within_Arccos:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos complex_differentiable (at z within s)"
+  using complex_differentiable_at_Arccos complex_differentiable_within_subset by blast
+
+lemma continuous_within_Arccos:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arccos"
+  using continuous_at_imp_continuous_within isCont_Arccos by blast
+
+lemma continuous_on_Arccos [continuous_intros]:
+    "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous_on s Arccos"
+  by (simp add: continuous_at_imp_continuous_on)
+
+lemma holomorphic_on_Arccos: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos holomorphic_on s"
+  by (simp add: complex_differentiable_within_Arccos holomorphic_on_def)
+
+
+subsection{*Upper and Lower Bounds for Inverse Sine and Cosine*}
+
+lemma Arcsin_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> abs(Re(Arcsin z)) < pi/2"
+  unfolding Re_Arcsin
+  by (blast intro: Re_Ln_pos_lt_imp Arcsin_range_lemma)
+
+lemma Arccos_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Re(Arccos z) \<and> Re(Arccos z) < pi"
+  unfolding Re_Arccos
+  by (blast intro!: Im_Ln_pos_lt_imp Arccos_range_lemma)
+
+lemma Re_Arccos_bounds: "-pi < Re(Arccos z) \<and> Re(Arccos z) \<le> pi"
+  unfolding Re_Arccos
+  by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arccos_body_lemma)
+
+lemma Re_Arccos_bound: "abs(Re(Arccos z)) \<le> pi"
+  using Re_Arccos_bounds abs_le_interval_iff less_eq_real_def by blast
+
+lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
+  unfolding Re_Arcsin
+  by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arcsin_body_lemma)
+
+lemma Re_Arcsin_bound: "abs(Re(Arcsin z)) \<le> pi"
+  using Re_Arcsin_bounds abs_le_interval_iff less_eq_real_def by blast
+
+
+subsection{*Interrelations between Arcsin and Arccos*}
+
+lemma cos_Arcsin_nonzero:
+  assumes "z\<^sup>2 \<noteq> 1" shows "cos(Arcsin z) \<noteq> 0"
+proof -
+  have eq: "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = z\<^sup>2 * (z\<^sup>2 - 1)"
+    by (simp add: power_mult_distrib algebra_simps)
+  have "\<i> * z * (csqrt (1 - z\<^sup>2)) \<noteq> z\<^sup>2 - 1"
+  proof
+    assume "\<i> * z * (csqrt (1 - z\<^sup>2)) = z\<^sup>2 - 1"
+    then have "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = (z\<^sup>2 - 1)\<^sup>2"
+      by simp
+    then have "z\<^sup>2 * (z\<^sup>2 - 1) = (z\<^sup>2 - 1)*(z\<^sup>2 - 1)"
+      using eq power2_eq_square by auto
+    then show False
+      using assms by simp
+  qed
+  then have "1 + \<i> * z * (csqrt (1 - z * z)) \<noteq> z\<^sup>2"
+    by (metis add_minus_cancel power2_eq_square uminus_add_conv_diff)
+  then have "2*(1 + \<i> * z * (csqrt (1 - z * z))) \<noteq> 2*z\<^sup>2"  (*FIXME cancel_numeral_factor*)
+    by (metis mult_cancel_left zero_neq_numeral)
+  then have "(\<i> * z + csqrt (1 - z\<^sup>2))\<^sup>2 \<noteq> -1"
+    using assms
+    apply (auto simp: power2_sum)
+    apply (simp add: power2_eq_square algebra_simps)
+    done
+  then show ?thesis
+    apply (simp add: cos_exp_eq Arcsin_def exp_minus)
+    apply (simp add: divide_simps Arcsin_body_lemma)
+    apply (metis add.commute minus_unique power2_eq_square)
+    done
+qed
+
+lemma sin_Arccos_nonzero:
+  assumes "z\<^sup>2 \<noteq> 1" shows "sin(Arccos z) \<noteq> 0"
+proof -
+  have eq: "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = -(z\<^sup>2) * (1 - z\<^sup>2)"
+    by (simp add: power_mult_distrib algebra_simps)
+  have "\<i> * z * (csqrt (1 - z\<^sup>2)) \<noteq> 1 - z\<^sup>2"
+  proof
+    assume "\<i> * z * (csqrt (1 - z\<^sup>2)) = 1 - z\<^sup>2"
+    then have "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = (1 - z\<^sup>2)\<^sup>2"
+      by simp
+    then have "-(z\<^sup>2) * (1 - z\<^sup>2) = (1 - z\<^sup>2)*(1 - z\<^sup>2)"
+      using eq power2_eq_square by auto
+    then have "-(z\<^sup>2) = (1 - z\<^sup>2)"
+      using assms
+      by (metis add.commute add.right_neutral diff_add_cancel mult_right_cancel)
+    then show False
+      using assms by simp
+  qed
+  then have "z\<^sup>2 + \<i> * z * (csqrt (1 - z\<^sup>2)) \<noteq> 1"
+    by (simp add: algebra_simps)
+  then have "2*(z\<^sup>2 + \<i> * z * (csqrt (1 - z\<^sup>2))) \<noteq> 2*1"
+    by (metis mult_cancel_left2 zero_neq_numeral)  (*FIXME cancel_numeral_factor*)
+  then have "(z + \<i> * csqrt (1 - z\<^sup>2))\<^sup>2 \<noteq> 1"
+    using assms
+    apply (auto simp: Power.comm_semiring_1_class.power2_sum power_mult_distrib)
+    apply (simp add: power2_eq_square algebra_simps)
+    done
+  then show ?thesis
+    apply (simp add: sin_exp_eq Arccos_def exp_minus)
+    apply (simp add: divide_simps Arccos_body_lemma)
+    apply (simp add: power2_eq_square)
+    done
+qed
+
+lemma cos_sin_csqrt:
+  assumes "0 < cos(Re z)  \<or>  cos(Re z) = 0 \<and> Im z * sin(Re z) \<le> 0"
+    shows "cos z = csqrt(1 - (sin z)\<^sup>2)"
+  apply (rule csqrt_unique [THEN sym])
+  apply (simp add: cos_squared_eq)
+  using assms
+  apply (auto simp: Re_cos Im_cos add_pos_pos mult_le_0_iff zero_le_mult_iff)
+  apply (auto simp: algebra_simps)
+  done
+
+lemma sin_cos_csqrt:
+  assumes "0 < sin(Re z)  \<or>  sin(Re z) = 0 \<and> 0 \<le> Im z * cos(Re z)"
+    shows "sin z = csqrt(1 - (cos z)\<^sup>2)"
+  apply (rule csqrt_unique [THEN sym])
+  apply (simp add: sin_squared_eq)
+  using assms
+  apply (auto simp: Re_sin Im_sin add_pos_pos mult_le_0_iff zero_le_mult_iff)
+  apply (auto simp: algebra_simps)
+  done
+
+lemma Arcsin_Arccos_csqrt_pos:
+    "(0 < Re z | Re z = 0 & 0 \<le> Im z) \<Longrightarrow> Arcsin z = Arccos(csqrt(1 - z\<^sup>2))"
+  by (simp add: Arcsin_def Arccos_def Complex.csqrt_square add.commute)
+
+lemma Arccos_Arcsin_csqrt_pos:
+    "(0 < Re z | Re z = 0 & 0 \<le> Im z) \<Longrightarrow> Arccos z = Arcsin(csqrt(1 - z\<^sup>2))"
+  by (simp add: Arcsin_def Arccos_def Complex.csqrt_square add.commute)
+
+lemma sin_Arccos:
+    "0 < Re z | Re z = 0 & 0 \<le> Im z \<Longrightarrow> sin(Arccos z) = csqrt(1 - z\<^sup>2)"
+  by (simp add: Arccos_Arcsin_csqrt_pos)
+
+lemma cos_Arcsin:
+    "0 < Re z | Re z = 0 & 0 \<le> Im z \<Longrightarrow> cos(Arcsin z) = csqrt(1 - z\<^sup>2)"
+  by (simp add: Arcsin_Arccos_csqrt_pos)
+
+
+subsection{*Relationship with Arcsin on the Real Numbers*}
+
+lemma Im_Arcsin_of_real:
+  assumes "abs x \<le> 1"
+    shows "Im (Arcsin (of_real x)) = 0"
+proof -
+  have "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
+    by (simp add: of_real_sqrt del: csqrt_of_real_nonneg)
+  then have "cmod (\<i> * of_real x + csqrt (1 - (of_real x)\<^sup>2))^2 = 1"
+    using assms abs_square_le_1
+    by (force simp add: Complex.cmod_power2)
+  then have "cmod (\<i> * of_real x + csqrt (1 - (of_real x)\<^sup>2)) = 1"
+    by (simp add: norm_complex_def)
+  then show ?thesis
+    by (simp add: Im_Arcsin exp_minus)
+qed
+
+corollary Arcsin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arcsin z \<in> \<real>"
+  by (metis Im_Arcsin_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
+
+lemma arcsin_eq_Re_Arcsin:
+  assumes "abs x \<le> 1"
+    shows "arcsin x = Re (Arcsin (of_real x))"
+unfolding arcsin_def
+proof (rule the_equality, safe)
+  show "- (pi / 2) \<le> Re (Arcsin (complex_of_real x))"
+    using Re_Ln_pos_le [OF Arcsin_body_lemma, of "of_real x"]
+    by (auto simp: Complex.in_Reals_norm Re_Arcsin)
+next
+  show "Re (Arcsin (complex_of_real x)) \<le> pi / 2"
+    using Re_Ln_pos_le [OF Arcsin_body_lemma, of "of_real x"]
+    by (auto simp: Complex.in_Reals_norm Re_Arcsin)
+next
+  show "sin (Re (Arcsin (complex_of_real x))) = x"
+    using Re_sin [of "Arcsin (of_real x)"] Arcsin_body_lemma [of "of_real x"]
+    by (simp add: Im_Arcsin_of_real assms)
+next
+  fix x'
+  assume "- (pi / 2) \<le> x'" "x' \<le> pi / 2" "x = sin x'"
+  then show "x' = Re (Arcsin (complex_of_real (sin x')))"
+    apply (simp add: sin_of_real [symmetric])
+    apply (subst Arcsin_sin)
+    apply (auto simp: )
+    done
+qed
+
+lemma of_real_arcsin: "abs x \<le> 1 \<Longrightarrow> of_real(arcsin x) = Arcsin(of_real x)"
+  by (metis Im_Arcsin_of_real add.right_neutral arcsin_eq_Re_Arcsin complex_eq mult_zero_right of_real_0)
+
+
+subsection{*Relationship with Arccos on the Real Numbers*}
+
+lemma Im_Arccos_of_real:
+  assumes "abs x \<le> 1"
+    shows "Im (Arccos (of_real x)) = 0"
+proof -
+  have "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
+    by (simp add: of_real_sqrt del: csqrt_of_real_nonneg)
+  then have "cmod (of_real x + \<i> * csqrt (1 - (of_real x)\<^sup>2))^2 = 1"
+    using assms abs_square_le_1
+    by (force simp add: Complex.cmod_power2)
+  then have "cmod (of_real x + \<i> * csqrt (1 - (of_real x)\<^sup>2)) = 1"
+    by (simp add: norm_complex_def)
+  then show ?thesis
+    by (simp add: Im_Arccos exp_minus)
+qed
+
+corollary Arccos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arccos z \<in> \<real>"
+  by (metis Im_Arccos_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
+
+lemma arccos_eq_Re_Arccos:
+  assumes "abs x \<le> 1"
+    shows "arccos x = Re (Arccos (of_real x))"
+unfolding arccos_def
+proof (rule the_equality, safe)
+  show "0 \<le> Re (Arccos (complex_of_real x))"
+    using Im_Ln_pos_le [OF Arccos_body_lemma, of "of_real x"]
+    by (auto simp: Complex.in_Reals_norm Re_Arccos)
+next
+  show "Re (Arccos (complex_of_real x)) \<le> pi"
+    using Im_Ln_pos_le [OF Arccos_body_lemma, of "of_real x"]
+    by (auto simp: Complex.in_Reals_norm Re_Arccos)
+next
+  show "cos (Re (Arccos (complex_of_real x))) = x"
+    using Re_cos [of "Arccos (of_real x)"] Arccos_body_lemma [of "of_real x"]
+    by (simp add: Im_Arccos_of_real assms)
+next
+  fix x'
+  assume "0 \<le> x'" "x' \<le> pi" "x = cos x'"
+  then show "x' = Re (Arccos (complex_of_real (cos x')))"
+    apply (simp add: cos_of_real [symmetric])
+    apply (subst Arccos_cos)
+    apply (auto simp: )
+    done
+qed
+
+lemma of_real_arccos: "abs x \<le> 1 \<Longrightarrow> of_real(arccos x) = Arccos(of_real x)"
+  by (metis Im_Arccos_of_real add.right_neutral arccos_eq_Re_Arccos complex_eq mult_zero_right of_real_0)
 
 end

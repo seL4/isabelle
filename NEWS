@@ -111,7 +111,7 @@ explicit additive inverse operation.  INCOMPATIBILITY.
   Minor INCOMPATIBILITY: type constraints may be needed.
 
 * New library of properties of the complex transcendental functions sin, cos, tan, exp,
-  ported from HOL Light.
+  Ln, Arctan, Arcsin, Arccos. Ported from HOL Light.
 
 * The factorial function, "fact", now has type "nat => 'a" (of a sort that admits
   numeric types including nat, int, real and complex. INCOMPATIBILITY:
