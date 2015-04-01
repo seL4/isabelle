@@ -36,6 +36,7 @@ sig
   val full_name: Proof.context -> binding -> string
   val get_scope: Proof.context -> Binding.scope option
   val new_scope: Proof.context -> Binding.scope * Proof.context
+  val private: Binding.scope -> Proof.context -> Proof.context
   val concealed: Proof.context -> Proof.context
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
@@ -315,6 +316,7 @@ fun new_scope ctxt =
     val ctxt' = map_naming (K naming') ctxt;
   in (scope, ctxt') end;
 
+val private = map_naming o Name_Space.private;
 val concealed = map_naming Name_Space.concealed;
 
 
