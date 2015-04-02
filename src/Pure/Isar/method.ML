@@ -65,6 +65,7 @@ sig
   val method_setup: bstring * Position.T -> Input.source -> string -> local_theory -> local_theory
   val method: Proof.context -> Token.src -> Proof.context -> method
   val method_closure: Proof.context -> Token.src -> Token.src
+  val closure: bool Config.T
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val evaluate: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
@@ -395,15 +396,19 @@ fun method ctxt =
   let val table = get_methods (Context.Proof ctxt)
   in fn src => #1 (Name_Space.get table (#1 (Token.name_of_src src))) src end;
 
-fun method_closure ctxt0 src0 =
+fun method_closure ctxt src =
   let
-    val src1 = check_src ctxt0 src0;
-    val src2 = Token.init_assignable_src src1;
-    val ctxt = Context_Position.not_really ctxt0;
-    val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
-  in Token.closure_src src2 end;
+    val src' = Token.init_assignable_src src;
+    val ctxt' = Context_Position.not_really ctxt;
+    val _ = Seq.pull (method ctxt' src' ctxt' [] (Goal.protect 0 Drule.dummy_thm));
+  in Token.closure_src src' end;
 
-fun method_cmd ctxt = method ctxt o method_closure ctxt;
+val closure = Config.bool (Config.declare ("Method.closure", @{here}) (K (Config.Bool true)));
+
+fun method_cmd ctxt =
+  check_src ctxt #>
+  Config.get ctxt closure ? method_closure ctxt #>
+  method ctxt;
 
 
 (* evaluate method text *)
