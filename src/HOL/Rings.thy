@@ -502,7 +502,7 @@ by (insert mult_cancel_left [of c a 1], simp)
 
 end
 
-class semidom = comm_semiring_1_cancel + semiring_no_zero_divisors
+class semidom = comm_semiring_1_diff_distrib + semiring_no_zero_divisors
 
 class idom = comm_ring_1 + semiring_no_zero_divisors
 begin
