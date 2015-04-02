@@ -32,6 +32,7 @@ sig
   val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
   type naming
+  val get_scopes: naming -> Binding.scope list
   val get_scope: naming -> Binding.scope option
   val new_scope: naming -> Binding.scope * naming
   val private: Binding.scope -> naming -> naming
