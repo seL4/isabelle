@@ -372,6 +372,10 @@ fun check_name ctxt =
 fun check_src ctxt =
   #1 o Token.check_src ctxt (get_methods (Context.Proof ctxt));
 
+fun checked_info ctxt name =
+  let val space = Name_Space.space_of_table (get_methods (Context.Proof ctxt))
+  in (Name_Space.kind_of space, Name_Space.markup space name) end;
+
 
 (* method setup *)
 
@@ -574,7 +578,7 @@ fun parser check_ctxt low_pri =
         NONE => (Parse.xname, Token.src)
       | SOME ctxt =>
          (Args.checked_name (fn (xname, _) => check_name ctxt (xname, Position.none)),
-          fn name => fn args => check_src ctxt (Token.src name args)));
+          fn (name, pos) => fn args => Token.src_checked (name, pos) args (checked_info ctxt name)));
 
     fun meth5 x =
      (Parse.position meth_name >> (fn name => Source (mk_src name [])) ||
@@ -586,8 +590,8 @@ fun parser check_ctxt low_pri =
         >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Try, [m])) ||
       meth5 -- Parse.position (Parse.$$$ "+")
         >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Repeat1, [m])) ||
-      meth5 --
-        (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
+      meth5 -- (Parse.position (Parse.$$$ "[") --
+          Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
         >> (fn (m, (((_, pos1), n), (_, pos2))) =>
             Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
       meth5) x
