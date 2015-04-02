@@ -384,11 +384,13 @@ fun canonical_abbrev class phi prmode dangling_term_params ((b, mx), rhs) thy =
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val c' = Sign.full_name thy b;
     val ty' = map Term.fastype_of dangling_term_params ---> Term.fastype_of rhs';
+    val ty'' = Morphism.typ phi ty';
+    val rhs'' = map_types (Morphism.typ phi) (fold lambda dangling_term_params rhs');
   in
     thy
-    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global (fold lambda dangling_term_params rhs'))
+    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs'')
     |> snd
-    |> Sign.notation true prmode [(Const (c', ty'), mx)]
+    |> Sign.notation true prmode [(Const (c', ty''), mx)]
     |> (null dangling_term_params andalso not (#1 prmode = Print_Mode.input))
       ? register_operation class (c', rhs')
     |> Sign.add_const_constraint (c', SOME ty')
