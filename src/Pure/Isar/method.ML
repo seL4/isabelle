@@ -56,6 +56,7 @@ sig
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
+  val check_src: Proof.context -> Token.src -> Token.src
   val method_syntax: (Proof.context -> method) context_parser ->
     Token.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
@@ -367,8 +368,8 @@ fun check_name ctxt =
   let val context = Context.Proof ctxt
   in #1 o Name_Space.check context (get_methods context) end;
 
-fun check_src ctxt src =
-  Token.check_src ctxt (get_methods (Context.Proof ctxt)) src;
+fun check_src ctxt =
+  #1 o Token.check_src ctxt (get_methods (Context.Proof ctxt));
 
 
 (* method setup *)
@@ -396,7 +397,7 @@ fun method ctxt =
 
 fun method_closure ctxt0 src0 =
   let
-    val (src1, _) = check_src ctxt0 src0;
+    val src1 = check_src ctxt0 src0;
     val src2 = Token.init_assignable_src src1;
     val ctxt = Context_Position.not_really ctxt0;
     val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
@@ -568,7 +569,7 @@ fun parser check_ctxt low_pri =
         NONE => (Parse.xname, Token.src)
       | SOME ctxt =>
          (Args.checked_name (fn (xname, _) => check_name ctxt (xname, Position.none)),
-          fn name => fn args => #1 (check_src ctxt (Token.src name args))));
+          fn name => fn args => check_src ctxt (Token.src name args)));
 
     fun meth5 x =
      (Parse.position meth_name >> (fn name => Source (mk_src name [])) ||
