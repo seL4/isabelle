@@ -160,7 +160,7 @@ and src =
   Src of
    {name: string * Position.T,
     args: T list,
-    output_info: (string * Markup.T) option}
+    checked_markup: (string * Markup.T) option}
 
 and slot =
   Slot |
@@ -194,10 +194,10 @@ fun range_of (toks as tok :: _) =
 
 (* src *)
 
-fun src name args = Src {name = name, args = args, output_info = NONE};
+fun src name args = Src {name = name, args = args, checked_markup = NONE};
 
-fun map_args f (Src {name, args, output_info}) =
-  Src {name = name, args = map f args, output_info = output_info};
+fun map_args f (Src {name, args, checked_markup}) =
+  Src {name = name, args = map f args, checked_markup = checked_markup};
 
 fun name_of_src (Src {name, ...}) = name;
 fun args_of_src (Src {args, ...}) = args;
@@ -206,15 +206,15 @@ fun range_of_src (Src {name = (_, pos), args, ...}) =
   if null args then pos
   else Position.set_range (pos, #2 (range_of args));
 
-fun check_src _ table (src as Src {name = (name, _), output_info = SOME _, ...}) =
+fun check_src _ table (src as Src {name = (name, _), checked_markup = SOME _, ...}) =
       (src, Name_Space.get table name)
-  | check_src ctxt table (Src {name = (xname, pos), args, output_info = NONE}) =
+  | check_src ctxt table (Src {name = (xname, pos), args, checked_markup = NONE}) =
       let
         val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
         val space = Name_Space.space_of_table table;
         val kind = Name_Space.kind_of space;
         val markup = Name_Space.markup space name;
-      in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
+      in (Src {name = (name, pos), args = args, checked_markup = SOME (kind, markup)}, x) end;
 
 
 (* stopper *)
@@ -474,9 +474,9 @@ fun pretty_value ctxt tok =
 
 fun pretty_src ctxt src =
   let
-    val Src {name = (name, _), args, output_info} = src;
+    val Src {name = (name, _), args, checked_markup} = src;
     val prt_name =
-      (case output_info of
+      (case checked_markup of
         NONE => Pretty.str name
       | SOME (_, markup) => Pretty.mark_str (markup, name));
     val prt_arg = pretty_value ctxt;
@@ -659,7 +659,7 @@ fun read_antiq keywords scan (syms, pos) =
 
 (* wrapped syntax *)
 
-fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) context =
+fun syntax_generic scan (Src {name = (name, pos), args = args0, checked_markup}) context =
   let
     val args1 = map init_assignable args0;
     fun reported_text () =
@@ -675,7 +675,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) co
     | (_, (_, args2)) =>
         let
           val print_name =
-            (case output_info of
+            (case checked_markup of
               NONE => quote name
             | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
           val print_args =
