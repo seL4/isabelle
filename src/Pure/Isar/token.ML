@@ -32,6 +32,7 @@ sig
   val pos_of: T -> Position.T
   val range_of: T list -> Position.range
   val src: xstring * Position.T -> T list -> src
+  val src_checked: string * Position.T -> T list -> string * Markup.T -> src
   val name_of_src: src -> string * Position.T
   val args_of_src: src -> T list
   val range_of_src: src -> Position.T
@@ -161,7 +162,7 @@ and src =
   Src of
    {name: string * Position.T,
     args: T list,
-    checked_markup: (string * Markup.T) option}
+    checked: (string * Markup.T) option}
 
 and slot =
   Slot |
@@ -195,10 +196,11 @@ fun range_of (toks as tok :: _) =
 
 (* src *)
 
-fun src name args = Src {name = name, args = args, checked_markup = NONE};
+fun src name args = Src {name = name, args = args, checked = NONE};
+fun src_checked name args checked = Src {name = name, args = args, checked = SOME checked};
 
-fun map_args f (Src {name, args, checked_markup}) =
-  Src {name = name, args = map f args, checked_markup = checked_markup};
+fun map_args f (Src {name, args, checked}) =
+  Src {name = name, args = map f args, checked = checked};
 
 fun name_of_src (Src {name, ...}) = name;
 fun args_of_src (Src {args, ...}) = args;
@@ -207,15 +209,15 @@ fun range_of_src (Src {name = (_, pos), args, ...}) =
   if null args then pos
   else Position.set_range (pos, #2 (range_of args));
 
-fun check_src _ table (src as Src {name = (name, _), checked_markup = SOME _, ...}) =
+fun check_src _ table (src as Src {name = (name, _), checked = SOME _, ...}) =
       (src, Name_Space.get table name)
-  | check_src ctxt table (Src {name = (xname, pos), args, checked_markup = NONE}) =
+  | check_src ctxt table (Src {name = (xname, pos), args, checked = NONE}) =
       let
         val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
         val space = Name_Space.space_of_table table;
         val kind = Name_Space.kind_of space;
         val markup = Name_Space.markup space name;
-      in (Src {name = (name, pos), args = args, checked_markup = SOME (kind, markup)}, x) end;
+      in (src_checked (name, pos) args (kind, markup), x) end;
 
 
 (* stopper *)
@@ -478,9 +480,9 @@ fun pretty_value ctxt tok =
 
 fun pretty_src ctxt src =
   let
-    val Src {name = (name, _), args, checked_markup} = src;
+    val Src {name = (name, _), args, checked} = src;
     val prt_name =
-      (case checked_markup of
+      (case checked of
         NONE => Pretty.str name
       | SOME (_, markup) => Pretty.mark_str (markup, name));
     val prt_arg = pretty_value ctxt;
@@ -663,7 +665,7 @@ fun read_antiq keywords scan (syms, pos) =
 
 (* wrapped syntax *)
 
-fun syntax_generic scan (Src {name = (name, pos), args = args0, checked_markup}) context =
+fun syntax_generic scan (Src {name = (name, pos), args = args0, checked}) context =
   let
     val args1 = map init_assignable args0;
     fun reported_text () =
@@ -679,7 +681,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, checked_markup})
     | (_, (_, args2)) =>
         let
           val print_name =
-            (case checked_markup of
+            (case checked of
               NONE => quote name
             | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
           val print_args =
@@ -696,4 +698,3 @@ end;
 
 type 'a parser = 'a Token.parser;
 type 'a context_parser = 'a Token.context_parser;
-
