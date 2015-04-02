@@ -72,6 +72,7 @@ sig
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val reports_of_value: T -> Position.report list
+  val map_values: (value -> value) -> src -> src
   val declare_maxidx: T -> Proof.context -> Proof.context
   val declare_maxidx_src: src -> Proof.context -> Proof.context
   val transform: morphism -> T -> T
@@ -402,6 +403,9 @@ fun reports_of_value tok =
         else []
       end
   | _ => []);
+
+fun map_values f =
+  (map_args o map_value) (fn Source src => Source (map_values f src) | x => f x);
 
 
 (* maxidx *)
