@@ -157,25 +157,22 @@ fun pretty_full_theory verbose thy =
     val arities = Sorts.arities_of class_algebra;
 
     val clsses =
-      Name_Space.extern_entries ctxt class_space
+      Name_Space.extern_entries verbose ctxt class_space
         (map (fn ((c, _), cs) => (c, Sign.minimize_sort thy cs)) (Graph.dest classes))
       |> map (apfst #1);
-    val tdecls = Name_Space.extern_table ctxt types |> map (apfst #1);
+    val tdecls = Name_Space.extern_table verbose ctxt types |> map (apfst #1);
     val arties =
-      Name_Space.extern_entries ctxt (Type.type_space tsig) (Symtab.dest arities)
+      Name_Space.extern_entries verbose ctxt (Type.type_space tsig) (Symtab.dest arities)
       |> map (apfst #1);
 
-    fun prune_const c = not verbose andalso Consts.is_concealed consts c;
-    val cnsts =
-      Name_Space.markup_entries ctxt const_space
-        (filter_out (prune_const o fst) constants);
-
+    val cnsts = Name_Space.markup_entries verbose ctxt const_space constants;
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = Name_Space.markup_entries ctxt const_space constraints;
+    val cnstrs = Name_Space.markup_entries verbose ctxt const_space constraints;
 
-    val axms = Name_Space.markup_table ctxt (Theory.axiom_table thy);
+    val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
 
+    fun prune_const c = not verbose andalso Consts.is_concealed consts c;
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>
         (apfst extern_const lhs, map (apfst extern_const) (filter_out (prune_const o fst) rhs)))
@@ -195,7 +192,8 @@ fun pretty_full_theory verbose thy =
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.big_list "axioms:" (map pretty_axm axms),
       Pretty.block
-        (Pretty.breaks (Pretty.str "oracles:" :: map Pretty.mark_str (Thm.extern_oracles ctxt))),
+        (Pretty.breaks (Pretty.str "oracles:" ::
+          map Pretty.mark_str (Thm.extern_oracles verbose ctxt))),
       Pretty.big_list "definitions:"
         [pretty_finals reds0,
          Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),

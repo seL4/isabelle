@@ -42,7 +42,7 @@ sig
   val def_simproc_cmd: {name: binding, lhss: string list,
     proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
-  val pretty_simpset: Proof.context -> Pretty.T
+  val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
@@ -158,7 +158,7 @@ end;
 
 (** pretty_simpset **)
 
-fun pretty_simpset ctxt =
+fun pretty_simpset verbose ctxt =
   let
     val pretty_term = Syntax.pretty_term ctxt;
     val pretty_thm = Display.pretty_thm ctxt;
@@ -177,7 +177,7 @@ fun pretty_simpset ctxt =
     val {simps, procs, congs, loopers, unsafe_solvers, safe_solvers, ...} =
       dest_ss (simpset_of ctxt);
     val simprocs =
-      Name_Space.markup_entries ctxt (Name_Space.space_of_table (get_simprocs ctxt)) procs;
+      Name_Space.markup_entries verbose ctxt (Name_Space.space_of_table (get_simprocs ctxt)) procs;
   in
     [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) simps),
       Pretty.big_list "simplification procedures:" (map pretty_simproc simprocs),

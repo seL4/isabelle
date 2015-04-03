@@ -79,10 +79,12 @@ sig
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*exception Change_Table.SAME*) ->
     'a table * 'a table -> 'a table
-  val extern_entries: Proof.context -> T -> (string * 'a) list -> ((string * xstring) * 'a) list
-  val markup_entries: Proof.context -> T -> (string * 'a) list -> ((Markup.T * xstring) * 'a) list
-  val extern_table: Proof.context -> 'a table -> ((string * xstring) * 'a) list
-  val markup_table: Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
+  val extern_entries: bool -> Proof.context -> T -> (string * 'a) list ->
+    ((string * xstring) * 'a) list
+  val markup_entries: bool -> Proof.context -> T -> (string * 'a) list ->
+    ((Markup.T * xstring) * 'a) list
+  val extern_table: bool -> Proof.context -> 'a table -> ((string * xstring) * 'a) list
+  val markup_table: bool -> Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
 end;
 
 structure Name_Space: NAME_SPACE =
@@ -569,15 +571,20 @@ fun join_tables f (Table (space1, tab1), Table (space2, tab2)) =
 
 (* present table content *)
 
-fun extern_entries ctxt space entries =
-  fold (fn (name, x) => cons ((name, extern ctxt space name), x)) entries []
+fun extern_entries verbose ctxt space entries =
+  fold (fn (name, x) =>
+    (verbose orelse not (is_concealed space name)) ?
+      cons ((name, extern ctxt space name), x)) entries []
   |> Library.sort_wrt (#2 o #1);
 
-fun markup_entries ctxt space entries =
-  extern_entries ctxt space entries
+fun markup_entries verbose ctxt space entries =
+  extern_entries verbose ctxt space entries
   |> map (fn ((name, xname), x) => ((markup space name, xname), x));
 
-fun extern_table ctxt (Table (space, tab)) = extern_entries ctxt space (Change_Table.dest tab);
-fun markup_table ctxt (Table (space, tab)) = markup_entries ctxt space (Change_Table.dest tab);
+fun extern_table verbose ctxt (Table (space, tab)) =
+  extern_entries verbose ctxt space (Change_Table.dest tab);
+
+fun markup_table verbose ctxt (Table (space, tab)) =
+  markup_entries verbose ctxt space (Change_Table.dest tab);
 
 end;

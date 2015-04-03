@@ -46,6 +46,7 @@ sig
   val tags: string list parser
   val opt_unit: unit parser
   val opt_keyword: string -> bool parser
+  val opt_bang: bool parser
   val begin: string parser
   val opt_begin: bool parser
   val nat: int parser
@@ -231,6 +232,7 @@ val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
+val opt_bang = Scan.optional ($$$ "!" >> K true) false;
 
 val begin = $$$ "begin";
 val opt_begin = Scan.optional (begin >> K true) false;
@@ -460,4 +462,3 @@ val xthm =
 val xthms1 = Scan.repeat1 xthm;
 
 end;
-

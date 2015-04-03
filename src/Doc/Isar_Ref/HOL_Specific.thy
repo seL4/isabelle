@@ -105,6 +105,8 @@ text \<open>
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
+    @@{command print_inductives} ('!'?)
+    ;
     @@{attribute (HOL) mono} (() | 'add' | 'del')
   \<close>}
 
@@ -137,7 +139,7 @@ text \<open>
   where multiple arguments are simulated via tuples.
 
   \item @{command "print_inductives"} prints (co)inductive definitions and
-  monotonicity rules.
+  monotonicity rules; the ``@{text "!"}'' option indicates extra verbosity.
 
   \item @{attribute (HOL) mono} declares monotonicity rules in the
   context.  These rule are involved in the automated monotonicity

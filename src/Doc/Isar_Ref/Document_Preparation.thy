@@ -85,6 +85,7 @@ section \<open>Document Antiquotations \label{sec:antiq}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
+    @{command_def "print_antiquotations"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
     @{antiquotation_def "theory"} & : & @{text antiquotation} \\
     @{antiquotation_def "thm"} & : & @{text antiquotation} \\
     @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
@@ -131,6 +132,10 @@ text \<open>
   informal explanation is achieved, since terms and types appearing in
   antiquotations are checked within the current theory or proof
   context.
+
+  @{rail \<open>
+    @@{command print_antiquotations} ('!'?)
+  \<close>}
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
@@ -182,7 +187,11 @@ text \<open>
   text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
 
   \begin{description}
-  
+
+  \item @{command "print_antiquotations"} prints all document antiquotations
+  that are defined in the current context; the ``@{text "!"}'' option
+  indicates extra verbosity.
+
   \item @{text "@{theory A}"} prints the name @{text "A"}, which is
   guaranteed to refer to a valid ancestor theory in the current
   context.

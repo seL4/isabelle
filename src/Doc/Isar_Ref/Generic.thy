@@ -37,13 +37,16 @@ text \<open>For historical reasons, some tools cannot take the full proof
   \end{matharray}
 
   @{rail \<open>
+    @@{command print_options} ('!'?)
+    ;
     @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
   \<close>}
 
   \begin{description}
   
   \item @{command "print_options"} prints the available configuration
-  options, with names, types, and current values.
+  options, with names, types, and current values; the ``@{text "!"}'' option
+  indicates extra verbosity.
   
   \item @{text "name = value"} as an attribute expression modifies the
   named option, with the syntax of the value depending on the option's
@@ -611,6 +614,8 @@ text \<open>
   @{rail \<open>
     (@@{attribute simp} | @@{attribute split} | @@{attribute cong})
       (() | 'add' | 'del')
+    ;
+    @@{command print_simpset} ('!'?)
   \<close>}
 
   \begin{description}
@@ -716,9 +721,9 @@ text \<open>
   This can make simplification much faster, but may require an extra
   case split over the condition @{text "?q"} to prove the goal.
 
-  \item @{command "print_simpset"} prints the collection of rules
-  declared to the Simplifier, which is also known as ``simpset''
-  internally.
+  \item @{command "print_simpset"} prints the collection of rules declared
+  to the Simplifier, which is also known as ``simpset'' internally; the
+  ``@{text "!"}'' option indicates extra verbosity.
 
   For historical reasons, simpsets may occur independently from the
   current context, but are conceptually dependent on it.  When the

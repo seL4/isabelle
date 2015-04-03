@@ -21,9 +21,12 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{command print_theory} | @@{command print_theorems} | @@{command print_facts}) ('!'?)
+    (@@{command print_theory} |
+      @@{command print_methods} |
+      @@{command print_attributes} |
+      @@{command print_theorems} |
+      @@{command print_facts}) ('!'?)
     ;
-
     @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thmcriterion * )
     ;
     thmcriterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
@@ -45,23 +48,24 @@ text \<open>
 
   \begin{description}
   
-  \item @{command "print_theory"} prints the main logical content of
-  the background theory; the ``@{text "!"}'' option indicates extra
-  verbosity.
+  \item @{command "print_theory"} prints the main logical content of the
+  background theory; the ``@{text "!"}'' option indicates extra verbosity.
 
-  \item @{command "print_methods"} prints all proof methods
-  available in the current theory context.
+  \item @{command "print_methods"} prints all proof methods available in the
+  current theory context; the ``@{text "!"}'' option indicates extra
+  verbosity.
   
-  \item @{command "print_attributes"} prints all attributes
-  available in the current theory context.
+  \item @{command "print_attributes"} prints all attributes available in the
+  current theory context; the ``@{text "!"}'' option indicates extra
+  verbosity.
   
-  \item @{command "print_theorems"} prints theorems of the background
-  theory resulting from the last command; the ``@{text "!"}'' option
-  indicates extra verbosity.
+  \item @{command "print_theorems"} prints theorems of the background theory
+  resulting from the last command; the ``@{text "!"}'' option indicates
+  extra verbosity.
   
-  \item @{command "print_facts"} prints all local facts of the
-  current context, both named and unnamed ones; the ``@{text "!"}''
-  option indicates extra verbosity.
+  \item @{command "print_facts"} prints all local facts of the current
+  context, both named and unnamed ones; the ``@{text "!"}'' option indicates
+  extra verbosity.
   
   \item @{command "print_term_bindings"} prints all term bindings that
   are present in the context.

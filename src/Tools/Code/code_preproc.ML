@@ -227,12 +227,12 @@ fun print_codeproc ctxt =
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_simpset (put_simpset pre ctxt)
+        Simplifier.pretty_simpset true (put_simpset pre ctxt)
       ],
       Pretty.block [
         Pretty.str "postprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_simpset (put_simpset post ctxt)
+        Simplifier.pretty_simpset true (put_simpset post ctxt)
       ],
       Pretty.block (
         Pretty.str "function transformers:"

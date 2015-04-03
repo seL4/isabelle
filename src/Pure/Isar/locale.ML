@@ -84,7 +84,7 @@ sig
 
   (* Diagnostic *)
   val hyp_spec_of: theory -> string -> Element.context_i list
-  val print_locales: theory -> unit
+  val print_locales: bool -> theory -> unit
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
   val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
@@ -653,12 +653,12 @@ val _ = Theory.setup
 
 fun hyp_spec_of thy = #hyp_spec o the_locale thy;
 
-fun print_locales thy =
+fun print_locales verbose thy =
   Pretty.block
     (Pretty.breaks
       (Pretty.str "locales:" ::
         map (Pretty.mark_str o #1)
-          (Name_Space.markup_table (Proof_Context.init_global thy) (Locales.get thy))))
+          (Name_Space.markup_table verbose (Proof_Context.init_global thy) (Locales.get thy))))
   |> Pretty.writeln;
 
 fun pretty_locale thy show_facts name =

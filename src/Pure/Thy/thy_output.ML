@@ -17,7 +17,7 @@ sig
   val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val check_command: Proof.context -> xstring * Position.T -> string
   val check_option: Proof.context -> xstring * Position.T -> string
-  val print_antiquotations: Proof.context -> unit
+  val print_antiquotations: bool -> Proof.context -> unit
   val antiquotation: binding -> 'a context_parser ->
     ({source: Token.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
       theory -> theory
@@ -104,11 +104,11 @@ fun option ((xname, pos), s) ctxt =
       Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt)) (xname, pos);
   in opt s ctxt end;
 
-fun print_antiquotations ctxt =
+fun print_antiquotations verbose ctxt =
   let
     val (commands, options) = get_antiquotations ctxt;
-    val command_names = map #1 (Name_Space.markup_table ctxt commands);
-    val option_names = map #1 (Name_Space.markup_table ctxt options);
+    val command_names = map #1 (Name_Space.markup_table verbose ctxt commands);
+    val option_names = map #1 (Name_Space.markup_table verbose ctxt options);
   in
     [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
      Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]

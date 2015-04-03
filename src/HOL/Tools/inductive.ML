@@ -26,7 +26,7 @@ sig
   val transform_result: morphism -> inductive_result -> inductive_result
   type inductive_info = {names: string list, coind: bool} * inductive_result
   val the_inductive: Proof.context -> string -> inductive_info
-  val print_inductives: Proof.context -> unit
+  val print_inductives: bool -> Proof.context -> unit
   val get_monos: Proof.context -> thm list
   val mono_add: attribute
   val mono_del: attribute
@@ -227,7 +227,7 @@ fun map_data f =
 
 fun rep_data ctxt = Data.get (Context.Proof ctxt) |> (fn Data rep => rep);
 
-fun print_inductives ctxt =
+fun print_inductives verbose ctxt =
   let
     val {infos, monos, ...} = rep_data ctxt;
     val space = Consts.space_of (Proof_Context.consts_of ctxt);
@@ -235,7 +235,8 @@ fun print_inductives ctxt =
     [Pretty.block
       (Pretty.breaks
         (Pretty.str "(co)inductives:" ::
-          map (Pretty.mark_str o #1) (Name_Space.markup_entries ctxt space (Symtab.dest infos)))),
+          map (Pretty.mark_str o #1)
+            (Name_Space.markup_entries verbose ctxt space (Symtab.dest infos)))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_item ctxt) monos)]
   end |> Pretty.writeln_chunks;
 
@@ -1190,7 +1191,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "print_inductives"}
     "print (co)inductive definitions and monotonicity rules"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (print_inductives o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+      Toplevel.keep (print_inductives b o Toplevel.context_of)));
 
 end;

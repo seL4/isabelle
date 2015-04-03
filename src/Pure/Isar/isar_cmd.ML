@@ -257,7 +257,7 @@ val _ = Theory.setup
 
 fun pretty_theorems verbose st =
   if Toplevel.is_proof st then
-    Proof_Context.pretty_local_facts (Toplevel.context_of st) verbose
+    Proof_Context.pretty_local_facts verbose (Toplevel.context_of st)
   else
     let
       val thy = Toplevel.theory_of st;

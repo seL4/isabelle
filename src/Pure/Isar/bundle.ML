@@ -24,7 +24,7 @@ sig
     generic_theory -> Binding.scope * local_theory
   val context_cmd: (xstring * Position.T) list -> Element.context list ->
     generic_theory -> Binding.scope * local_theory
-  val print_bundles: Proof.context -> unit
+  val print_bundles: bool -> Proof.context -> unit
 end;
 
 structure Bundle: BUNDLE =
@@ -122,7 +122,7 @@ end;
 
 (* print_bundles *)
 
-fun print_bundles ctxt =
+fun print_bundles verbose ctxt =
   let
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
 
@@ -134,7 +134,7 @@ fun print_bundles ctxt =
       Pretty.block (Pretty.keyword1 "bundle" :: Pretty.str " " :: Pretty.mark_str name ::
         Pretty.breaks (Pretty.str " =" :: maps prt_fact bundle));
   in
-    map prt_bundle (Name_Space.markup_table ctxt (get_bundles ctxt))
+    map prt_bundle (Name_Space.markup_table verbose ctxt (get_bundles ctxt))
   end |> Pretty.writeln_chunks;
 
 end;

@@ -54,7 +54,7 @@ sig
   val done_text: text
   val sorry_text: bool -> text
   val finish_text: text option * bool -> text
-  val print_methods: Proof.context -> unit
+  val print_methods: bool -> Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
   val method_syntax: (Proof.context -> method) context_parser ->
@@ -333,7 +333,7 @@ fun transfer_methods ctxt =
     val meths' = Name_Space.merge_tables (meths0, get_methods (Context.Proof ctxt));
   in Context.proof_map (map_methods (K meths')) ctxt end;
 
-fun print_methods ctxt =
+fun print_methods verbose ctxt =
   let
     val meths = get_methods (Context.Proof ctxt);
     fun prt_meth (name, (_, "")) = Pretty.mark_str name
@@ -341,7 +341,7 @@ fun print_methods ctxt =
           Pretty.block
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table ctxt meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table verbose ctxt meths))]
     |> Pretty.writeln_chunks
   end;
 

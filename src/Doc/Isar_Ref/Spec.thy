@@ -223,6 +223,8 @@ text \<open>
   @{rail \<open>
     @@{command bundle} @{syntax name} '=' @{syntax thmrefs} @{syntax for_fixes}
     ;
+    @@{command print_bundles} ('!'?)
+    ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
     ;
     @{syntax_def "includes"}: @'includes' (@{syntax nameref}+)
@@ -237,8 +239,9 @@ text \<open>
   into different application contexts; this works analogously to any
   other local theory specification.
 
-  \item @{command print_bundles} prints the named bundles that are
-  available in the current context.
+  \item @{command print_bundles} prints the named bundles that are available
+  in the current context; the ``@{text "!"}'' option indicates extra
+  verbosity.
 
   \item @{command include}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} includes the declarations
   from the given bundles into the current proof body context.  This is
@@ -290,8 +293,9 @@ text \<open>
     @@{command abbreviation} @{syntax mode}? \<newline>
       (decl @'where')? @{syntax prop}
     ;
-
     decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
+    ;
+    @@{command print_abbrevs} ('!'?)
   \<close>}
 
   \begin{description}
@@ -330,8 +334,8 @@ text \<open>
   declared for abbreviations, cf.\ @{command "syntax"} in
   \secref{sec:syn-trans}.
   
-  \item @{command "print_abbrevs"} prints all constant abbreviations
-  of the current context.
+  \item @{command "print_abbrevs"} prints all constant abbreviations of the
+  current context; the ``@{text "!"}'' option indicates extra verbosity.
   
   \end{description}
 \<close>
@@ -520,6 +524,8 @@ text \<open>
     ;
     @@{command print_locale} '!'? @{syntax nameref}
     ;
+    @@{command print_locales} ('!'?)
+    ;
     @{syntax_def locale}: @{syntax context_elem}+ |
       @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
@@ -626,8 +632,8 @@ text \<open>
   elements by default.  Use @{command "print_locale"}@{text "!"} to
   have them included.
 
-  \item @{command "print_locales"} prints the names of all locales
-  of the current theory.
+  \item @{command "print_locales"} prints the names of all locales of the
+  current theory; the ``@{text "!"}'' option indicates extra verbosity.
 
   \item @{command "locale_deps"} visualizes all locales and their
   relations as a Hasse diagram. This includes locales defined as type

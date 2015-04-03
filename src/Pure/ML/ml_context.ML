@@ -19,7 +19,7 @@ sig
   val value_decl: string -> string -> Proof.context -> decl * Proof.context
   val add_antiquotation: binding -> (Token.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
-  val print_antiquotations: Proof.context -> unit
+  val print_antiquotations: bool -> Proof.context -> unit
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
   val eval_file: ML_Compiler.flags -> Path.T -> unit
   val eval_source: ML_Compiler.flags -> Input.source -> unit
@@ -102,9 +102,9 @@ fun check_antiquotation ctxt =
 fun add_antiquotation name f thy = thy
   |> Antiquotations.map (Name_Space.define (Context.Theory thy) true (name, f) #> snd);
 
-fun print_antiquotations ctxt =
+fun print_antiquotations verbose ctxt =
   Pretty.big_list "ML antiquotations:"
-    (map (Pretty.mark_str o #1) (Name_Space.markup_table ctxt (get_antiquotations ctxt)))
+    (map (Pretty.mark_str o #1) (Name_Space.markup_table verbose ctxt (get_antiquotations ctxt)))
   |> Pretty.writeln;
 
 fun apply_antiquotation src ctxt =

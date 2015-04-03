@@ -9,7 +9,7 @@ sig
   type binding = binding * Token.src list
   val empty_binding: binding
   val is_empty_binding: binding -> bool
-  val print_attributes: Proof.context -> unit
+  val print_attributes: bool -> Proof.context -> unit
   val define_global: Binding.binding -> (Token.src -> attribute) ->
     string -> theory -> string * theory
   val define: Binding.binding -> (Token.src -> attribute) ->
@@ -56,7 +56,7 @@ sig
   val partial_evaluation: Proof.context ->
     (binding * (thm list * Token.src list) list) list ->
     (binding * (thm list * Token.src list) list) list
-  val print_options: Proof.context -> unit
+  val print_options: bool -> Proof.context -> unit
   val config_bool: Binding.binding ->
     (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int: Binding.binding ->
@@ -111,7 +111,7 @@ fun transfer_attributes ctxt =
     val attribs' = Name_Space.merge_tables (attribs0, get_attributes ctxt);
   in Context.proof_map (Attributes.put attribs') ctxt end;
 
-fun print_attributes ctxt =
+fun print_attributes verbose ctxt =
   let
     val attribs = get_attributes ctxt;
     fun prt_attr (name, (_, "")) = Pretty.mark_str name
@@ -119,7 +119,7 @@ fun print_attributes ctxt =
           Pretty.block
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table ctxt attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table verbose ctxt attribs))]
     |> Pretty.writeln_chunks
   end;
 
@@ -387,7 +387,7 @@ structure Configs = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-fun print_options ctxt =
+fun print_options verbose ctxt =
   let
     fun prt (name, config) =
       let val value = Config.get ctxt config in
@@ -396,7 +396,7 @@ fun print_options ctxt =
       end;
     val space = attribute_space ctxt;
     val configs =
-      Name_Space.markup_entries ctxt space
+      Name_Space.markup_entries verbose ctxt space
         (Symtab.dest (Configs.get (Proof_Context.theory_of ctxt)));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 

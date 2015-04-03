@@ -167,10 +167,10 @@ sig
     (term * term) * Context.generic
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
   val print_syntax: Proof.context -> unit
-  val print_abbrevs: Proof.context -> unit
+  val print_abbrevs: bool -> Proof.context -> unit
   val pretty_term_bindings: Proof.context -> Pretty.T list
-  val pretty_local_facts: Proof.context -> bool -> Pretty.T list
-  val print_local_facts: Proof.context -> bool -> unit
+  val pretty_local_facts: bool -> Proof.context -> Pretty.T list
+  val print_local_facts: bool -> Proof.context -> unit
   val pretty_cases: Proof.context -> Pretty.T list
   val debug: bool Config.T
   val verbose: bool Config.T
@@ -1276,7 +1276,7 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 (* abbreviations *)
 
-fun pretty_abbrevs show_globals ctxt =
+fun pretty_abbrevs verbose show_globals ctxt =
   let
     val space = const_space ctxt;
     val (constants, global_constants) =
@@ -1286,13 +1286,13 @@ fun pretty_abbrevs show_globals ctxt =
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = Name_Space.markup_entries ctxt space (fold add_abbr constants []);
+    val abbrevs = Name_Space.markup_entries verbose ctxt space (fold add_abbr constants []);
   in
     if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
 
-val print_abbrevs = Pretty.writeln_chunks o pretty_abbrevs true;
+fun print_abbrevs verbose = Pretty.writeln_chunks o pretty_abbrevs verbose true;
 
 
 (* term bindings *)
@@ -1309,7 +1309,7 @@ fun pretty_term_bindings ctxt =
 
 (* local facts *)
 
-fun pretty_local_facts ctxt verbose =
+fun pretty_local_facts verbose ctxt =
   let
     val facts = facts_of ctxt;
     val props = Facts.props facts;
@@ -1323,8 +1323,8 @@ fun pretty_local_facts ctxt verbose =
         (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) local_facts)))]
   end;
 
-fun print_local_facts ctxt verbose =
-  Pretty.writeln_chunks (pretty_local_facts ctxt verbose);
+fun print_local_facts verbose ctxt =
+  Pretty.writeln_chunks (pretty_local_facts verbose ctxt);
 
 
 (* local contexts *)
@@ -1447,9 +1447,9 @@ fun pretty_context ctxt =
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
-    verb (pretty_abbrevs false) (K ctxt) @
+    verb (pretty_abbrevs true false) (K ctxt) @
     verb pretty_term_bindings (K ctxt) @
-    verb (pretty_local_facts ctxt) (K true) @
+    verb (pretty_local_facts true) (K ctxt) @
     verb pretty_cases (K ctxt) @
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
@@ -1458,4 +1458,3 @@ fun pretty_context ctxt =
 end;
 
 val show_abbrevs = Proof_Context.show_abbrevs;
-

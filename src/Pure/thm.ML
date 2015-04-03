@@ -137,7 +137,7 @@ sig
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   (*oracles*)
-  val extern_oracles: Proof.context -> (Markup.T * xstring) list
+  val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
@@ -1750,8 +1750,8 @@ structure Oracles = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-fun extern_oracles ctxt =
-  map #1 (Name_Space.markup_table ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
+fun extern_oracles verbose ctxt =
+  map #1 (Name_Space.markup_table verbose ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
 
 fun add_oracle (b, oracle) thy =
   let
