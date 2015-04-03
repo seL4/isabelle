@@ -9,6 +9,7 @@ sig
   val separator: string
   val is_qualified: string -> bool
   val hidden: string -> string
+  val is_hidden: string -> bool
   val dest_hidden: string -> string option
   val localN: string
   val dest_local: string -> string option
@@ -29,8 +30,10 @@ val separator = ".";
 
 val is_qualified = exists_string (fn s => s = separator);
 
-val hidden = prefix "??.";
-val dest_hidden = try (unprefix "??.");
+val hidden_prefix = "??."
+val hidden = prefix hidden_prefix;
+val is_hidden = String.isPrefix hidden_prefix;
+val dest_hidden = try (unprefix hidden_prefix);
 
 val localN = "local";
 val dest_local = try (unprefix "local.");

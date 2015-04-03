@@ -476,7 +476,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
-           (is_some (Long_Name.dest_hidden (Facts.intern facts name0)) orelse
+           (Long_Name.is_hidden (Facts.intern facts name0) orelse
             ((Facts.is_concealed facts name0 orelse
               (not generous andalso is_blacklisted_or_something name0)) andalso
              forall (not o member Thm.eq_thm_prop add_ths) ths)) then

@@ -328,7 +328,7 @@ end;
 local
 
 val index_ord = option_ord (K EQUAL);
-val hidden_ord = bool_ord o apply2 (is_some o Long_Name.dest_hidden);
+val hidden_ord = bool_ord o apply2 Long_Name.is_hidden;
 val qual_ord = int_ord o apply2 Long_Name.qualification;
 val txt_ord = int_ord o apply2 size;
 
