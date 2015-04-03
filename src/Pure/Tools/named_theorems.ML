@@ -12,6 +12,7 @@ sig
   val del_thm: string -> thm -> Context.generic -> Context.generic
   val add: string -> attribute
   val del: string -> attribute
+  val check: Proof.context -> string * Position.T -> string
   val declare: binding -> string -> local_theory -> string * local_theory
 end;
 
@@ -34,9 +35,11 @@ fun new_entry name =
     then error ("Duplicate declaration of named theorems: " ^ quote name)
     else Symtab.update (name, Thm.full_rules) data);
 
+fun undeclared name = "Undeclared named theorems " ^ quote name;
+
 fun the_entry context name =
   (case Symtab.lookup (Data.get context) name of
-    NONE => error ("Undeclared named theorems " ^ quote name)
+    NONE => error (undeclared name)
   | SOME entry => entry);
 
 fun map_entry name f context =
@@ -55,6 +58,20 @@ fun del_thm name = map_entry name o Item_Net.remove;
 
 val add = Thm.declaration_attribute o add_thm;
 val del = Thm.declaration_attribute o del_thm;
+
+
+(* check *)
+
+fun check ctxt (xname, pos) =
+  let
+    val context = Context.Proof ctxt;
+    val fact_ref = Facts.Named ((xname, Position.none), NONE);
+    fun err () = error (undeclared xname ^ Position.here pos);
+  in
+    (case try (Proof_Context.get_fact_generic context) fact_ref of
+      SOME (SOME name, _) => if can (the_entry context) name then name else err ()
+    | _ => err ())
+  end;
 
 
 (* declaration *)
@@ -82,11 +99,7 @@ val _ =
 
 val _ = Theory.setup
   (ML_Antiquotation.inline @{binding named_theorems}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (xname, pos)) =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val name = Global_Theory.check_fact thy (xname, pos);
-        val _ = get ctxt name handle ERROR msg => error (msg ^ Position.here pos);
-      in ML_Syntax.print_string name end)));
+    (Args.context -- Scan.lift (Parse.position Args.name) >>
+      (fn (ctxt, name) => ML_Syntax.print_string (check ctxt name))));
 
 end;
