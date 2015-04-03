@@ -15,12 +15,14 @@ struct
 
 fun gen_experiment add_locale elems thy =
   let
-    val (_, lthy) = thy
-      |> add_locale (Binding.name ("experiment" ^ serial_string ())) Binding.empty ([], []) elems;
+    val experiment_name = Binding.name ("experiment" ^ serial_string ()) |> Binding.concealed;
+    val (_, lthy) = thy |> add_locale experiment_name Binding.empty ([], []) elems;
     val (scope, naming) =
       Name_Space.new_scope (Proof_Context.naming_of (Local_Theory.target_of lthy));
     val naming' = naming |> Name_Space.private scope;
-    val lthy' = lthy |> Local_Theory.map_contexts (K (Proof_Context.map_naming (K naming')));
+    val lthy' = lthy
+      |> Local_Theory.map_contexts (K (Proof_Context.map_naming (K naming')))
+      |> Local_Theory.map_background_naming Name_Space.concealed;
   in (scope, lthy') end;
 
 val experiment = gen_experiment Expression.add_locale;
