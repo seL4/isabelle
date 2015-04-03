@@ -527,7 +527,6 @@ session "HOL-ex" in ex = HOL +
     "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
   theories
-    Approximations
     Commands
     Adhoc_Overloading_Examples
     Iff_Oracle
@@ -692,6 +691,10 @@ session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
     Complex_Transcendental
   document_files
     "root.tex"
+
+session "HOL-Multivariate_Analysis-ex" in "Multivariate_Analysis/ex" = "HOL-Multivariate_Analysis" +
+  theories
+    Approximations
 
 session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
   theories [document = false]
