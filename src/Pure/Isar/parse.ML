@@ -44,7 +44,6 @@ sig
   val maybe: 'a parser -> 'a option parser
   val tag_name: string parser
   val tags: string list parser
-  val opt_unit: unit parser
   val opt_keyword: string -> bool parser
   val opt_bang: bool parser
   val begin: string parser
@@ -230,7 +229,6 @@ val real = float_number >> Markup.parse_real || int >> Real.fromInt;
 val tag_name = group (fn () => "tag name") (short_ident || string);
 val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
-val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
 val opt_bang = Scan.optional ($$$ "!" >> K true) false;
 
