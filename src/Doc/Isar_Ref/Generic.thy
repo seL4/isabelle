@@ -27,11 +27,7 @@ begin
 end
 (*<*)end(*>*)
 
-text \<open>For historical reasons, some tools cannot take the full proof
-  context into account and merely refer to the background theory.
-  This is accommodated by configuration options being declared as
-  ``global'', which may not be changed within a local context.
-
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "print_options"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
