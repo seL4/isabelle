@@ -6,6 +6,23 @@ New in this Isabelle version
 
 *** General ***
 
+* Local theory specifications may have a 'private' modifier to restrict
+name space accesses to the current local scope, as delimited by "context
+begin ... end". For example, this works like this:
+
+  context
+  begin
+
+  private definition ...
+  private definition ...
+  private lemma ...
+
+  lemma ...
+  lemma ...
+  theorem ...
+
+  end
+
 * Command 'experiment' opens an anonymous locale context with private
 naming policy.
 

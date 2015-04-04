@@ -114,6 +114,7 @@ text \<open>
   \begin{matharray}{rcll}
     @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
+    @{keyword_def "private"} \\
   \end{matharray}
 
   A local theory target is a specification context that is managed
@@ -160,6 +161,13 @@ text \<open>
   (global) "end"} has a different meaning: it concludes the theory
   itself (\secref{sec:begin-thy}).
   
+  \item @{keyword "private"} may be given as a modifier to any local theory
+  command (before the command keyword). This limits name space accesses to
+  the current local scope, as determined by the enclosing @{command
+  "context"}~@{keyword "begin"}~\dots~@{command "end"} block. Neither a
+  global theory nor a locale target have such a local scope by themselves:
+  an extra unnamed context is required to use @{keyword "private"} here.
+
   \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any local
   theory command specifies an immediate target, e.g.\ ``@{command
   "definition"}~@{text "(\<IN> c)"}'' or ``@{command "theorem"}~@{text
