@@ -121,9 +121,9 @@ val _ =
        (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_vc"}
+  Outer_Syntax.local_theory_to_proof @{command_spec "spark_vc"}
     "enter into proof mode for a specific verification condition"
-    (Parse.name >> (fn name => Toplevel.local_theory_to_proof NONE NONE (prove_vc name)));
+    (Parse.name >> prove_vc);
 
 val _ =
   Outer_Syntax.command @{command_spec "spark_status"}
