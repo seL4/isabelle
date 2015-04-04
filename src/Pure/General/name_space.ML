@@ -335,7 +335,7 @@ fun private_scope scope = map_naming (fn (scopes, _, concealed, group, theory_na
 fun private pos naming =
   (case get_scope naming of
     SOME scope => private_scope scope naming
-  | NONE => error ("Unknown scope -- cannot declare names private" ^ Position.here pos));
+  | NONE => error ("Missing local scope -- cannot declare private names" ^ Position.here pos));
 
 val concealed = map_naming (fn (scopes, private, _, group, theory_name, path) =>
   (scopes, private, true, group, theory_name, path));
