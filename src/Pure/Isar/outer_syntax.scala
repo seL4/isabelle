@@ -149,7 +149,7 @@ final class Outer_Syntax private(
 
   /* line-oriented structure */
 
-  def line_structure(tokens: List[Token], struct: Outer_Syntax.Line_Structure)
+  def line_structure(tokens: List[Token], structure: Outer_Syntax.Line_Structure)
     : Outer_Syntax.Line_Structure =
   {
     val improper1 = tokens.forall(_.is_improper)
@@ -157,11 +157,11 @@ final class Outer_Syntax private(
 
     val depth1 =
       if (tokens.exists(tok => tok.is_command_kind(keywords, Keyword.theory))) 0
-      else if (command1) struct.after_span_depth
-      else struct.span_depth
+      else if (command1) structure.after_span_depth
+      else structure.span_depth
 
     val (span_depth1, after_span_depth1) =
-      ((struct.span_depth, struct.after_span_depth) /: tokens) {
+      ((structure.span_depth, structure.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
             if (tok.is_command_kind(keywords, Keyword.theory_goal))
@@ -194,13 +194,20 @@ final class Outer_Syntax private(
     def ship(span: List[Token])
     {
       val kind =
-        if (span.nonEmpty && span.head.is_command && !span.exists(_.is_error)) {
-          val name = span.head.source
-          val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length) + 1)
-          Command_Span.Command_Span(name, pos)
-        }
-        else if (span.forall(_.is_improper)) Command_Span.Ignored_Span
-        else Command_Span.Malformed_Span
+        if (span.forall(_.is_improper)) Command_Span.Ignored_Span
+        else if (span.exists(_.is_error)) Command_Span.Malformed_Span
+        else
+          span.find(_.is_command) match {
+            case None => Command_Span.Malformed_Span
+            case Some(cmd) =>
+              val name = cmd.source
+              val offset =
+                (0 /: span.takeWhile(_ != cmd)) {
+                  case (i, tok) => i + Symbol.iterator(tok.source).length }
+              val end_offset = offset + Symbol.iterator(name).length
+              val pos = Position.Range(Text.Range(offset, end_offset) + 1)
+              Command_Span.Command_Span(name, pos)
+          }
       result += Command_Span.Span(kind, span)
     }
 
@@ -211,8 +218,10 @@ final class Outer_Syntax private(
     }
 
     for (tok <- toks) {
-      if (tok.is_command) { flush(); content += tok }
-      else if (tok.is_improper) improper += tok
+      if (tok.is_improper) improper += tok
+      else if (tok.is_private ||
+        tok.is_command && (!content.exists(_.is_private) || content.exists(_.is_command)))
+      { flush(); content += tok }
       else { content ++= improper; improper.clear; content += tok }
     }
     flush()

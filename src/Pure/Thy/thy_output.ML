@@ -203,7 +203,7 @@ fun check_text source state =
 
 (** present theory source **)
 
-(*NB: arranging white space around command spans is a black art.*)
+(*NB: arranging white space around command spans is a black art*)
 
 (* presentation tokens *)
 
@@ -384,11 +384,12 @@ fun present_thy thy command_results toks =
         in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Parse.position (Scan.one (Token.is_command)) --
-      Scan.repeat tag
-      >> (fn ((tok, pos), tags) =>
-        let val name = Token.content_of tok
-        in (SOME (name, pos, tags), (Basic_Token tok, (Latex.markup_false, d))) end));
+      Scan.optional (Scan.one Token.is_private -- improper >> op ::) [] --
+      Scan.one Token.is_command -- Scan.repeat tag
+      >> (fn ((private, cmd), tags) =>
+        map (fn tok => (NONE, (Basic_Token tok, ("", d)))) private @
+          [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
+            (Basic_Token cmd, (Latex.markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
       Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >>
@@ -397,12 +398,13 @@ fun present_thy thy command_results toks =
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
 
-    val token =
-      ignored ||
-      markup Keyword.is_document_heading Markup_Token Latex.markup_true ||
-      markup Keyword.is_document_body Markup_Env_Token Latex.markup_true ||
-      markup Keyword.is_document_raw (Verbatim_Token o #2) "" ||
-      command || cmt || other;
+    val tokens =
+      (ignored ||
+        markup Keyword.is_document_heading Markup_Token Latex.markup_true ||
+        markup Keyword.is_document_body Markup_Env_Token Latex.markup_true ||
+        markup Keyword.is_document_raw (Verbatim_Token o #2) "") >> single ||
+      command ||
+      (cmt || other) >> single;
 
 
     (* spans *)
@@ -431,7 +433,7 @@ fun present_thy thy command_results toks =
     val spans = toks
       |> take_suffix Token.is_space |> #1
       |> Source.of_list
-      |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token))
+      |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
       |> Source.source stopper (Scan.error (Scan.bulk span))
       |> Source.exhaust;
 

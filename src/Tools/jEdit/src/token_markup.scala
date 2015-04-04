@@ -207,7 +207,7 @@ object Token_Markup
   }
 
 
-  /* line tokens */
+  /* tokens from line (inclusive) */
 
   private def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
     : Option[List[Token]] =
@@ -250,23 +250,70 @@ object Token_Markup
     } yield Text.Info(Text.Range(i - tok.source.length, i), tok)
 
 
+  /* tokens from offset (inclusive) */
+
+  def token_iterator(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset):
+      Iterator[Text.Info[Token]] =
+    if (JEdit_Lib.buffer_range(buffer).contains(offset))
+      line_token_iterator(syntax, buffer, buffer.getLineOfOffset(offset), buffer.getLineCount).
+        dropWhile(info => !info.range.contains(offset))
+    else Iterator.empty
+
+  def token_reverse_iterator(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset):
+      Iterator[Text.Info[Token]] =
+    if (JEdit_Lib.buffer_range(buffer).contains(offset))
+      line_token_reverse_iterator(syntax, buffer, buffer.getLineOfOffset(offset), -1).
+        dropWhile(info => !info.range.contains(offset))
+    else Iterator.empty
+
+
   /* command spans */
 
   def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
     : Option[Text.Info[Command_Span.Span]] =
   {
+    def maybe_command_start(i: Text.Offset): Option[Text.Info[Token]] =
+      token_reverse_iterator(syntax, buffer, i).
+        find(info => info.info.is_private || info.info.is_command)
+
+    def maybe_command_stop(i: Text.Offset): Option[Text.Info[Token]] =
+      token_iterator(syntax, buffer, i).
+        find(info => info.info.is_private || info.info.is_command)
+
     if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
-      val start =
-        line_token_reverse_iterator(syntax, buffer, buffer.getLineOfOffset(offset), -1).
-          dropWhile(info => !info.range.contains(offset)).
-          collectFirst({ case Text.Info(range, tok) if tok.is_command => range.start }).
-          getOrElse(0)
+      val start_info =
+      {
+        val info1 = maybe_command_start(offset)
+        info1 match {
+          case Some(Text.Info(range1, tok1)) if tok1.is_command =>
+            val info2 = maybe_command_start(range1.start - 1)
+            info2 match {
+              case Some(Text.Info(_, tok2)) if tok2.is_private => info2
+              case _ => info1
+            }
+          case _ => info1
+        }
+      }
+      val (start_is_private, start, start_next) =
+        start_info match {
+          case Some(Text.Info(range, tok)) => (tok.is_private, range.start, range.stop)
+          case None => (false, 0, 0)
+        }
+
+      val stop_info =
+      {
+        val info1 = maybe_command_stop(start_next)
+        info1 match {
+          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_is_private =>
+            maybe_command_stop(range1.stop)
+          case _ => info1
+        }
+      }
       val stop =
-        line_token_iterator(syntax, buffer, buffer.getLineOfOffset(start), buffer.getLineCount).
-          dropWhile(info => !info.range.contains(start)).
-          dropWhile(info => info.range.contains(start)).
-          collectFirst({ case Text.Info(range, tok) if tok.is_command => range.start }).
-          getOrElse(buffer.getLength)
+        stop_info match {
+          case Some(Text.Info(range, _)) => range.start
+          case None => buffer.getLength
+        }
 
       val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
       val spans = syntax.parse_spans(text)

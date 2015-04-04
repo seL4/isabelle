@@ -325,13 +325,11 @@ object Command
   }
 
   private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
-    tokens match {
-      case (tok, _) :: toks =>
-        if (tok.is_command)
-          toks.collectFirst({ case (t, i) if t.is_name => (t.content, i) })
-        else None
-      case Nil => None
+    if (tokens.exists({ case (t, _) => t.is_command })) {
+      tokens.dropWhile({ case (t, _) => !t.is_command }).
+        collectFirst({ case (t, i) if t.is_name => (t.content, i) })
     }
+    else None
 
   def span_files(syntax: Prover.Syntax, span: Command_Span.Span): (List[String], Int) =
     syntax.load_command(span.name) match {

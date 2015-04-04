@@ -103,6 +103,8 @@ sig
   val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
+  val private: Position.T parser
+  val opt_private: Position.T option parser
   val target: (xstring * Position.T) parser
   val opt_target: (xstring * Position.T) option parser
   val args: Token.T list parser
@@ -396,7 +398,10 @@ val propp = prop -- Scan.optional ($$$ "(" |-- !!! (is_props --| $$$ ")")) [];
 val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 
-(* targets *)
+(* target information *)
+
+val private = position ($$$ "private") >> #2;
+val opt_private = Scan.option private;
 
 val target = ($$$ "(" -- $$$ "in") |-- !!! (position xname --| $$$ ")");
 val opt_target = Scan.option target;

@@ -42,16 +42,20 @@ fun err_dup_command name ps =
 
 (* command parsers *)
 
+datatype command_parser =
+  Parser of (Toplevel.transition -> Toplevel.transition) parser |
+  Private_Parser of Position.T option -> (Toplevel.transition -> Toplevel.transition) parser;
+
 datatype command = Command of
  {comment: string,
-  parse: (Toplevel.transition -> Toplevel.transition) parser,
+  command_parser: command_parser,
   pos: Position.T,
   id: serial};
 
 fun eq_command (Command {id = id1, ...}, Command {id = id2, ...}) = id1 = id2;
 
-fun new_command comment parse pos =
-  Command {comment = comment, parse = parse, pos = pos, id = serial ()};
+fun new_command comment command_parser pos =
+  Command {comment = comment, command_parser = command_parser, pos = pos, id = serial ()};
 
 fun command_pos (Command {pos, ...}) = pos;
 
@@ -132,16 +136,16 @@ val _ = Theory.setup (Theory.at_end (fn thy =>
 
 type command_spec = string * Position.T;
 
-fun command (name, pos) comment parse =
-  Theory.setup (add_command name (new_command comment parse pos));
+fun raw_command (name, pos) comment command_parser =
+  Theory.setup (add_command name (new_command comment command_parser pos));
 
-val opt_private =
-  Scan.option (Parse.$$$ "(" |-- (Parse.position (Parse.$$$ "private") >> #2) --| Parse.$$$ ")");
+fun command (name, pos) comment parse =
+  raw_command (name, pos) comment (Parser parse);
 
 fun local_theory_command trans command_spec comment parse =
-  command command_spec comment
-    (opt_private -- Parse.opt_target -- parse >>
-      (fn ((private, target), f) => trans private target f));
+  raw_command command_spec comment
+    (Private_Parser (fn private =>
+      Parse.opt_target -- parse >> (fn (target, f) => trans private target f)));
 
 val local_theory' = local_theory_command Toplevel.local_theory';
 val local_theory = local_theory_command Toplevel.local_theory;
@@ -157,12 +161,17 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 local
 
 fun parse_command thy =
-  Parse.position Parse.command_ :|-- (fn (name, pos) =>
+  Scan.ahead (Parse.opt_private |-- Parse.position Parse.command_) :|-- (fn (name, pos) =>
     let
+      val command_tags = Parse.command_ -- Parse.tags;
       val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
     in
       (case lookup_commands thy name of
-        SOME (Command {parse, ...}) => Parse.!!! (Parse.tags |-- parse) >> (fn f => f tr0)
+        SOME (Command {command_parser = Parser parse, ...}) =>
+          Parse.!!! (command_tags |-- parse) >> (fn f => f tr0)
+      | SOME (Command {command_parser = Private_Parser parse, ...}) =>
+          Parse.opt_private :|-- (fn private =>
+            Parse.!!! (command_tags |-- parse private)) >> (fn f => f tr0)
       | NONE =>
           Scan.succeed
             (tr0 |> Toplevel.imperative (fn () => err_command "Undefined command " name [pos])))
@@ -200,10 +209,12 @@ local
 fun ship span =
   let
     val kind =
-      if not (null span) andalso Token.is_command (hd span) andalso not (exists Token.is_error span)
-      then Command_Span.Command_Span (Token.content_of (hd span), Token.pos_of (hd span))
-      else if forall Token.is_improper span then Command_Span.Ignored_Span
-      else Command_Span.Malformed_Span;
+      if forall Token.is_improper span then Command_Span.Ignored_Span
+      else if exists Token.is_error span then Command_Span.Malformed_Span
+      else
+        (case find_first Token.is_command span of
+          NONE => Command_Span.Malformed_Span
+        | SOME cmd => Command_Span.Command_Span (Token.content_of cmd, Token.pos_of cmd));
   in cons (Command_Span.Span (kind, span)) end;
 
 fun flush (result, content, improper) =
@@ -212,8 +223,11 @@ fun flush (result, content, improper) =
   |> not (null improper) ? ship (rev improper);
 
 fun parse tok (result, content, improper) =
-  if Token.is_command tok then (flush (result, content, improper), [tok], [])
-  else if Token.is_improper tok then (result, content, tok :: improper)
+  if Token.is_improper tok then (result, content, tok :: improper)
+  else if Token.is_private tok orelse
+    Token.is_command tok andalso
+      (not (exists Token.is_private content) orelse exists Token.is_command content)
+  then (flush (result, content, improper), [tok], [])
   else (result, tok :: (improper @ content), []);
 
 in
@@ -246,4 +260,3 @@ fun command_reports thy tok =
   else [];
 
 end;
-
