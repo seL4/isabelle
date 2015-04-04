@@ -19,7 +19,7 @@ fun gen_experiment add_locale elems thy =
     val (_, lthy) = thy |> add_locale experiment_name Binding.empty ([], []) elems;
     val (scope, naming) =
       Name_Space.new_scope (Proof_Context.naming_of (Local_Theory.target_of lthy));
-    val naming' = naming |> Name_Space.private scope;
+    val naming' = naming |> Name_Space.private_scope scope;
     val lthy' = lthy
       |> Local_Theory.map_contexts (K (Proof_Context.map_naming (K naming')))
       |> Local_Theory.map_background_naming Name_Space.concealed;

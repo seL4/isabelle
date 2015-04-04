@@ -135,8 +135,13 @@ type command_spec = string * Position.T;
 fun command (name, pos) comment parse =
   Theory.setup (add_command name (new_command comment parse pos));
 
+val opt_private =
+  Scan.option (Parse.$$$ "(" |-- (Parse.position (Parse.$$$ "private") >> #2) --| Parse.$$$ ")");
+
 fun local_theory_command trans command_spec comment parse =
-  command command_spec comment (Parse.opt_target -- parse >> (fn (loc, f) => trans loc f));
+  command command_spec comment
+    (opt_private -- Parse.opt_target -- parse >>
+      (fn ((private, target), f) => trans private target f));
 
 val local_theory' = local_theory_command Toplevel.local_theory';
 val local_theory = local_theory_command Toplevel.local_theory;

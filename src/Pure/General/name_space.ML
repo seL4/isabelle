@@ -35,7 +35,8 @@ sig
   val get_scopes: naming -> Binding.scope list
   val get_scope: naming -> Binding.scope option
   val new_scope: naming -> Binding.scope * naming
-  val private: Binding.scope -> naming -> naming
+  val private_scope: Binding.scope -> naming -> naming
+  val private: Position.T -> naming -> naming
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -316,6 +317,10 @@ fun map_path f = map_naming (fn (scopes, private, concealed, group, theory_name,
 fun get_scopes (Naming {scopes, ...}) = scopes;
 val get_scope = try hd o get_scopes;
 
+fun put_scope scope =
+  map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
+    (scope :: scopes, private, concealed, group, theory_name, path));
+
 fun new_scope naming =
   let
     val scope = Binding.new_scope ();
@@ -324,8 +329,13 @@ fun new_scope naming =
         (scope :: scopes, private, concealed, group, theory_name, path));
   in (scope, naming') end;
 
-fun private scope = map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
+fun private_scope scope = map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
   (scopes, SOME scope, concealed, group, theory_name, path));
+
+fun private pos naming =
+  (case get_scope naming of
+    SOME scope => private_scope scope naming
+  | NONE => error ("Unknown scope -- cannot declare names private" ^ Position.here pos));
 
 val concealed = map_naming (fn (scopes, private, _, group, theory_name, path) =>
   (scopes, private, true, group, theory_name, path));
@@ -358,7 +368,7 @@ val local_naming = global_naming |> add_path Long_Name.localN;
 (* visibility flags *)
 
 fun transform_naming (Naming {private = private', concealed = concealed', ...}) =
-  fold private (the_list private') #>
+  fold private_scope (the_list private') #>
   concealed' ? concealed;
 
 fun transform_binding (Naming {private, concealed, ...}) =

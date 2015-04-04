@@ -11,7 +11,8 @@ theory Pure
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
     "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
-    "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
+    "overloaded" "pervasive" "private" "shows" "structure" "unchecked"
+    "where" "|"
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""

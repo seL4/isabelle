@@ -398,13 +398,13 @@ val _ =
       interpretation_args false >> (fn (loc, (expr, equations)) =>
         Toplevel.theory_to_proof (Expression.sublocale_global_cmd loc expr equations)))
     || interpretation_args false >> (fn (expr, equations) =>
-        Toplevel.local_theory_to_proof NONE (Expression.sublocale_cmd expr equations)));
+        Toplevel.local_theory_to_proof NONE NONE (Expression.sublocale_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpretation"}
     "prove interpretation of locale expression in local theory"
     (interpretation_args true >> (fn (expr, equations) =>
-      Toplevel.local_theory_to_proof NONE (Expression.interpretation_cmd expr equations)));
+      Toplevel.local_theory_to_proof NONE NONE (Expression.interpretation_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpret"}
@@ -441,7 +441,7 @@ val _ =
   ((Parse.class --
     ((@{keyword "\<subseteq>"} || @{keyword "<"}) |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
     Parse.multi_arity >> Class.instance_arity_cmd) >> Toplevel.theory_to_proof ||
-    Scan.succeed (Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
+    Scan.succeed (Toplevel.local_theory_to_proof NONE NONE (Class.instantiation_instance I)));
 
 
 (* arbitrary overloading *)

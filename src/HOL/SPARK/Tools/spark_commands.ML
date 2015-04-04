@@ -123,7 +123,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "spark_vc"}
     "enter into proof mode for a specific verification condition"
-    (Parse.name >> (fn name => Toplevel.local_theory_to_proof NONE (prove_vc name)));
+    (Parse.name >> (fn name => Toplevel.local_theory_to_proof NONE NONE (prove_vc name)));
 
 val _ =
   Outer_Syntax.command @{command_spec "spark_status"}
