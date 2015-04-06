@@ -39,10 +39,18 @@ object Isabelle_Sidekick
     protected var _end = int_to_pos(range.stop)
     override def getIcon: Icon = null
     override def getShortString: String =
-      "<html><span style=\"" + css + "\">" +
-      (if (keyword != "" && _name.startsWith(keyword))
-        "<b>" + HTML.encode(keyword) + "</b>" + HTML.encode(_name.substring(keyword.length))
-       else HTML.encode(_name)) + "</span></html>"
+    {
+      val n = keyword.length
+      val s =
+        _name.indexOf(keyword) match {
+          case i if i >= 0 && n > 0 =>
+            HTML.encode(_name.substring(0, i)) +
+            "<b>" + HTML.encode(keyword) + "</b>" +
+            HTML.encode(_name.substring(i + n))
+          case _ => HTML.encode(_name)
+        }
+      "<html><span style=\"" + css + "\">" + s + "</span></html>"
+    }
     override def getLongString: String = _name
     override def getName: String = _name
     override def setName(name: String) = _name = name
