@@ -1374,12 +1374,15 @@ structure Project_Rule = Project_Rule
 );
 *}
 
-definition "induct_forall P \<equiv> \<forall>x. P x"
-definition "induct_implies A B \<equiv> A \<longrightarrow> B"
-definition "induct_equal x y \<equiv> x = y"
-definition "induct_conj A B \<equiv> A \<and> B"
-definition "induct_true \<equiv> True"
-definition "induct_false \<equiv> False"
+context
+begin
+
+restricted definition "induct_forall P \<equiv> \<forall>x. P x"
+restricted definition "induct_implies A B \<equiv> A \<longrightarrow> B"
+restricted definition "induct_equal x y \<equiv> x = y"
+restricted definition "induct_conj A B \<equiv> A \<and> B"
+restricted definition "induct_true \<equiv> True"
+restricted definition "induct_false \<equiv> False"
 
 lemma induct_forall_eq: "(\<And>x. P x) \<equiv> Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
@@ -1444,8 +1447,8 @@ structure Induct = Induct
 
 ML_file "~~/src/Tools/induction.ML"
 
-setup {*
-  Context.theory_map (Induct.map_simpset (fn ss => ss
+declaration {*
+  fn _ => Induct.map_simpset (fn ss => ss
     addsimprocs
       [Simplifier.simproc_global @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
@@ -1468,7 +1471,7 @@ setup {*
               | _ => NONE))]
     |> Simplifier.set_mksimps (fn ctxt =>
         Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
-        map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback})))))
+        map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback}))))
 *}
 
 text {* Pre-simplification of induction and cases rules *}
@@ -1523,7 +1526,7 @@ lemma [induct_simp]: "induct_implies induct_true P \<equiv> P"
 lemma [induct_simp]: "x = x \<longleftrightarrow> True"
   by (rule simp_thms)
 
-hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
+end
 
 ML_file "~~/src/Tools/induct_tacs.ML"
 

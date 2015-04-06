@@ -88,7 +88,7 @@ sig
    (Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic) ->
-   theory -> theory
+   local_theory -> local_theory
 end;
 
 functor Induct(Induct_Args: INDUCT_ARGS): INDUCT =
@@ -363,14 +363,14 @@ fun attrib add_type add_pred del =
 in
 
 val _ =
-  Theory.setup
-   (Attrib.setup @{binding cases} (attrib cases_type cases_pred cases_del)
+  Theory.local_setup
+   (Attrib.local_setup @{binding cases} (attrib cases_type cases_pred cases_del)
       "declaration of cases rule" #>
-    Attrib.setup @{binding induct} (attrib induct_type induct_pred induct_del)
+    Attrib.local_setup @{binding induct} (attrib induct_type induct_pred induct_del)
       "declaration of induction rule" #>
-    Attrib.setup @{binding coinduct} (attrib coinduct_type coinduct_pred coinduct_del)
+    Attrib.local_setup @{binding coinduct} (attrib coinduct_type coinduct_pred coinduct_del)
       "declaration of coinduction rule" #>
-    Attrib.setup @{binding induct_simp} (Attrib.add_del induct_simp_add induct_simp_del)
+    Attrib.local_setup @{binding induct_simp} (Attrib.add_del induct_simp_add induct_simp_del)
       "declaration of rules for simplifying induction or cases rules");
 
 end;
@@ -737,10 +737,10 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
   SUBGOAL_CASES (fn (_, i, st) =>
     let
       val thy = Proof_Context.theory_of ctxt;
-  
+
       val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
       val atomized_defs = map (map (Conv.fconv_rule (atomize_cterm defs_ctxt))) defs;
-  
+
       fun inst_rule (concls, r) =
         (if null insts then `Rule_Cases.get r
          else (align_left "Rule has fewer conclusions than arguments given"
@@ -749,7 +749,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
           |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r))
         |> mod_cases thy
         |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
-  
+
       val ruleq =
         (case opt_rule of
           SOME rs => Seq.single (inst_rule (Rule_Cases.strict_mutual_rule ctxt rs))
@@ -759,7 +759,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
             |> map_filter (Rule_Cases.mutual_rule ctxt)
             |> tap (trace_rules ctxt inductN o map #2)
             |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
-  
+
       fun rule_cases ctxt rule cases =
         let
           val rule' = Rule_Cases.internalize_params rule;
@@ -910,18 +910,8 @@ val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
 
 in
 
-val _ =
-  Theory.setup
-    (Method.setup @{binding cases}
-      (Scan.lift (Args.mode no_simpN) --
-        (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
-        (fn (no_simp, (insts, opt_rule)) => fn ctxt =>
-          METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL
-            (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
-      "case analysis on types or predicates/sets");
-
 fun gen_induct_setup binding tac =
-  Method.setup binding
+  Method.local_setup binding
     (Scan.lift (Args.mode no_simpN) --
       (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
         (arbitrary -- taking -- Scan.option induct_rule)) >>
@@ -929,11 +919,17 @@ fun gen_induct_setup binding tac =
         Seq.DETERM (HEADGOAL (tac ctxt (not no_simp) insts arbitrary taking opt_rule facts))))
     "induction on types or predicates/sets";
 
-val _ = Theory.setup (gen_induct_setup @{binding induct} induct_tac);
-
 val _ =
-  Theory.setup
-    (Method.setup @{binding coinduct}
+  Theory.local_setup
+    (Method.local_setup @{binding cases}
+      (Scan.lift (Args.mode no_simpN) --
+        (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
+        (fn (no_simp, (insts, opt_rule)) => fn ctxt =>
+          METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL
+            (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
+      "case analysis on types or predicates/sets" #>
+    gen_induct_setup @{binding induct} induct_tac #>
+     Method.local_setup @{binding coinduct}
       (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule >>
         (fn ((insts, taking), opt_rule) => fn ctxt => fn facts =>
           Seq.DETERM (HEADGOAL (coinduct_tac ctxt insts taking opt_rule facts))))

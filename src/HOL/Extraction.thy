@@ -34,8 +34,8 @@ lemmas [extraction_expand] =
   True_implies_equals TrueE
 
 lemmas [extraction_expand_def] =
-  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
-  induct_true_def induct_false_def
+  HOL.induct_forall_def HOL.induct_implies_def HOL.induct_equal_def HOL.induct_conj_def
+  HOL.induct_true_def HOL.induct_false_def
 
 datatype (plugins only: code extraction) sumbool = Left | Right
 

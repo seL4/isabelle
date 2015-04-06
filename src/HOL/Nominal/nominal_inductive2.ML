@@ -15,7 +15,7 @@ end
 structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
 struct
 
-val inductive_forall_def = @{thm induct_forall_def};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 

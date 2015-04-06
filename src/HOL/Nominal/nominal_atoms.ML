@@ -28,7 +28,7 @@ struct
 val finite_emptyI = @{thm "finite.emptyI"};
 val Collect_const = @{thm "Collect_const"};
 
-val inductive_forall_def = @{thm "induct_forall_def"};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
 
 
 (* theory data *)

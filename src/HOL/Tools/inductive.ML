@@ -97,9 +97,8 @@ struct
 
 (** theory context references **)
 
-val inductive_forall_def = @{thm induct_forall_def};
-val inductive_conj_name = "HOL.induct_conj";
-val inductive_conj_def = @{thm induct_conj_def};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
+val inductive_conj_def = @{thm HOL.induct_conj_def};
 val inductive_conj = @{thms induct_conj};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
@@ -689,7 +688,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
                 val P = list_comb (nth preds i, map (incr_boundvars k) ys @ bs);
                 val Q =
                   fold_rev Term.abs (mk_names "x" k ~~ Ts)
-                    (HOLogic.mk_binop inductive_conj_name
+                    (HOLogic.mk_binop @{const_name HOL.induct_conj}
                       (list_comb (incr_boundvars k s, bs), P));
               in (Q, case Ts of [] => SOME (s, P) | _ => NONE) end
           | NONE =>
