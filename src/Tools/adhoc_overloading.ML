@@ -233,12 +233,12 @@ fun adhoc_overloading_cmd add raw_args lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "adhoc_overloading"}
+  Outer_Syntax.local_theory @{command_keyword adhoc_overloading}
     "add adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd true);
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "no_adhoc_overloading"}
+  Outer_Syntax.local_theory @{command_keyword no_adhoc_overloading}
     "delete adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
 

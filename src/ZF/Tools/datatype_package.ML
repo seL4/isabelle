@@ -430,7 +430,7 @@ val coind_prefix = if coind then "co" else "";
 
 val _ =
   Outer_Syntax.command
-    (if coind then @{command_spec "codatatype"} else @{command_spec "datatype"})
+    (if coind then @{command_keyword codatatype} else @{command_keyword datatype})
     ("define " ^ coind_prefix ^ "datatype")
     ((Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.!!! Parse.term) "") --
       Parse.and_list1 (Parse.term -- (@{keyword "="} |-- Parse.enum1 "|" con_decl)) --

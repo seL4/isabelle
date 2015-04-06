@@ -257,7 +257,7 @@ fun print_setup ctxt =
   end
 
 val _ =
-  Outer_Syntax.command @{command_spec "smt_status"}
+  Outer_Syntax.command @{command_keyword smt_status}
     "show the available SMT solvers, the currently selected SMT solver, \
     \and the values of SMT configuration options"
     (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))

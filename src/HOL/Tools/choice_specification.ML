@@ -198,7 +198,7 @@ val opt_name = Scan.optional (Parse.name --| @{keyword ":"}) ""
 val opt_overloaded = Parse.opt_keyword "overloaded"
 
 val _ =
-  Outer_Syntax.command @{command_spec "specification"} "define constants by specification"
+  Outer_Syntax.command @{command_keyword specification} "define constants by specification"
     (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
       Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
       >> (fn (cos, alt_props) => Toplevel.theory_to_proof (process_spec cos alt_props)))

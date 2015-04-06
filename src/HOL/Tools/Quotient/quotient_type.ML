@@ -342,7 +342,7 @@ val quotspec_parser =
           -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword quotient_type}
     "quotient type definitions (require equivalence proofs)"
       (quotspec_parser >> quotient_type_cmd)
 

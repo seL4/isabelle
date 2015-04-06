@@ -595,7 +595,7 @@ val ind_decl =
 
 val _ =
   Outer_Syntax.command
-    (if coind then @{command_spec "coinductive"} else @{command_spec "inductive"})
+    (if coind then @{command_keyword coinductive} else @{command_keyword inductive})
     ("define " ^ co_prefix ^ "inductive sets") ind_decl;
 
 end;

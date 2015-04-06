@@ -257,7 +257,7 @@ fun print_rules ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_induct_rules"}
+  Outer_Syntax.command @{command_keyword print_induct_rules}
     "print induction and cases rules"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (print_rules o Toplevel.context_of)));

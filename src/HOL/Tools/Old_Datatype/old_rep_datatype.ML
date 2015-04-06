@@ -680,7 +680,7 @@ end;
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "old_rep_datatype"}
+  Outer_Syntax.command @{command_keyword old_rep_datatype}
     "register existing types as old-style datatypes"
     (Scan.repeat1 Parse.term >> (fn ts =>
       Toplevel.theory_to_proof (rep_datatype_cmd Old_Datatype_Aux.default_config (K I) ts)));

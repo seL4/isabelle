@@ -755,7 +755,7 @@ val parse_domain_isos = Parse.and_list1 parse_domain_iso
 in
 
 val _ =
-  Outer_Syntax.command @{command_spec "domain_isomorphism"} "define domain isomorphisms (HOLCF)"
+  Outer_Syntax.command @{command_keyword domain_isomorphism} "define domain isomorphisms (HOLCF)"
     (parse_domain_isos >> (Toplevel.theory o domain_isomorphism_cmd))
 
 end

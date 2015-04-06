@@ -787,7 +787,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
   end
 
 val _ = 
-  Outer_Syntax.local_theory @{command_spec "setup_lifting"}
+  Outer_Syntax.local_theory @{command_keyword setup_lifting}
     "setup lifting infrastructure" 
       (Parse.xthm -- Scan.option Parse.xthm 
       -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm) >> 
@@ -998,7 +998,7 @@ fun lifting_forget_cmd bundle_name lthy =
 
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "lifting_forget"} 
+  Outer_Syntax.local_theory @{command_keyword lifting_forget} 
     "unsetup Lifting and Transfer for the given lifting bundle"
     (Parse.position Parse.xname >> (lifting_forget_cmd))
 
@@ -1027,7 +1027,7 @@ fun lifting_update_cmd bundle_name lthy =
   update_transfer_rules (pointer_of_bundle_name bundle_name lthy) lthy
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "lifting_update"}
+  Outer_Syntax.local_theory @{command_keyword lifting_update}
     "add newly introduced transfer rules to a bundle storing the state of Lifting and Transfer"
     (Parse.position Parse.xname >> lifting_update_cmd)
 

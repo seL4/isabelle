@@ -219,7 +219,7 @@ fun simps_of_case_cmd ((bind, thm_ref), splits_ref) lthy =
   end
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "case_of_simps"}
+  Outer_Syntax.local_theory @{command_keyword case_of_simps}
     "turn a list of equations into a case expression"
     (Parse_Spec.opt_thm_name ":"  -- Parse.xthms1 >> case_of_simps_cmd)
 
@@ -227,7 +227,7 @@ val parse_splits = @{keyword "("} |-- Parse.reserved "splits" |-- @{keyword ":"}
   Parse.xthms1 --| @{keyword ")"}
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "simps_of_case"}
+  Outer_Syntax.local_theory @{command_keyword simps_of_case}
     "perform case split on rule"
     (Parse_Spec.opt_thm_name ":"  -- Parse.xthm --
       Scan.optional parse_splits [] >> simps_of_case_cmd)

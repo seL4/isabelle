@@ -151,7 +151,7 @@ fun read_query pos str =
   |> #1;
 
 val _ =
-  Outer_Syntax.command @{command_spec "find_consts"}
+  Outer_Syntax.command @{command_keyword find_consts}
     "find constants by name / type patterns"
     (query >> (fn spec =>
       Toplevel.keep (fn st =>

@@ -527,11 +527,11 @@ val parse_args =
   @{keyword "["} |-- Parse.list1 parse_arg --| @{keyword "]"} || Scan.succeed [];
 
 val _ =
-  Outer_Syntax.command @{command_spec "quickcheck_params"} "set parameters for random testing"
+  Outer_Syntax.command @{command_keyword quickcheck_params} "set parameters for random testing"
     (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ =
-  Outer_Syntax.command @{command_spec "quickcheck"}
+  Outer_Syntax.command @{command_keyword quickcheck}
     "try to find counterexample for subgoal"
     (parse_args -- Scan.optional Parse.nat 1 >> (fn (args, i) =>
       Toplevel.unknown_proof o Toplevel.keep (quickcheck_cmd args i)));

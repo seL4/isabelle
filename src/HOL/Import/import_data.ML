@@ -117,13 +117,13 @@ val _ = Theory.setup
   "declare a type_definition theorem as a map for an imported type with abs and rep")
 
 val _ =
-  Outer_Syntax.command @{command_spec "import_type_map"}
+  Outer_Syntax.command @{command_keyword import_type_map}
     "map external type name to existing Isabelle/HOL type name"
     ((Parse.name --| @{keyword ":"}) -- Parse.type_const >>
       (fn (ty_name1, ty_name2) => Toplevel.theory (add_typ_map_cmd ty_name1 ty_name2)))
 
 val _ =
-  Outer_Syntax.command @{command_spec "import_const_map"}
+  Outer_Syntax.command @{command_keyword import_const_map}
     "map external const name to existing Isabelle/HOL const name"
     ((Parse.name --| @{keyword ":"}) -- Parse.const >>
       (fn (cname1, cname2) => Toplevel.theory (add_const_map_cmd cname1 cname2)))

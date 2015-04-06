@@ -630,7 +630,7 @@ fun print_case_translations ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_case_translations"}
+  Outer_Syntax.command @{command_keyword print_case_translations}
     "print registered case combinators and constructors"
     (Scan.succeed (Toplevel.keep (print_case_translations o Toplevel.context_of)))
 

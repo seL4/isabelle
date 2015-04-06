@@ -278,12 +278,12 @@ val value_options =
 (* code_pred command and values command *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "code_pred"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword code_pred}
     "prove equations for predicate specified by intro/elim rules"
     (opt_expected_modes -- opt_modes -- scan_options -- Parse.term >> code_pred_cmd)
 
 val _ =
-  Outer_Syntax.command @{command_spec "values"}
+  Outer_Syntax.command @{command_keyword values}
     "enumerate and print comprehensions"
     (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional Parse.nat ~1 -- Parse.term
       >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep

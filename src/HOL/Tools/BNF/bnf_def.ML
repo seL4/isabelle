@@ -1615,12 +1615,12 @@ fun print_bnfs ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_bnfs"}
+  Outer_Syntax.command @{command_keyword print_bnfs}
     "print all bounded natural functors"
     (Scan.succeed (Toplevel.keep (print_bnfs o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "bnf"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword bnf}
     "register a type as a bounded natural functor"
     (parse_opt_binding_colon -- Parse.typ --|
        (Parse.reserved "map" -- @{keyword ":"}) -- Parse.term --

@@ -957,14 +957,14 @@ fun code_deps_cmd ctxt = code_deps ctxt o read_const_exprs_all ctxt;
 in
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_thms"}
+  Outer_Syntax.command @{command_keyword code_thms}
     "print system of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_context o
       Toplevel.keep (fn state => code_thms_cmd (Toplevel.context_of state) cs)));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_deps"}
+  Outer_Syntax.command @{command_keyword code_deps}
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_context o

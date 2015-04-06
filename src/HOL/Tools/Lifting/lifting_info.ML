@@ -533,11 +533,11 @@ val _ = Context.>> (fold add_reflexivity_rule
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_quot_maps"} "print quotient map functions"
+  Outer_Syntax.command @{command_keyword print_quot_maps} "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quot_maps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_quotients"} "print quotients"
+  Outer_Syntax.command @{command_keyword print_quotients} "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 end

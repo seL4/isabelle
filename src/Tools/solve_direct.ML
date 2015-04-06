@@ -92,7 +92,7 @@ fun do_solve_direct mode state =
 val solve_direct = do_solve_direct Normal
 
 val _ =
-  Outer_Syntax.command @{command_spec "solve_direct"}
+  Outer_Syntax.command @{command_keyword solve_direct}
     "try to solve conjectures directly with existing theorems"
     (Scan.succeed (Toplevel.unknown_proof o
       Toplevel.keep (ignore o solve_direct o Toplevel.proof_of)));

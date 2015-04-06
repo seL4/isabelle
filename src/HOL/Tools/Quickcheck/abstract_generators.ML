@@ -67,7 +67,7 @@ val quickcheck_generator_cmd =
     Syntax.read_term
   
 val _ =
-  Outer_Syntax.command @{command_spec "quickcheck_generator"}
+  Outer_Syntax.command @{command_keyword quickcheck_generator}
     "define quickcheck generators for abstract types"
     ((Parse.type_const --
       Scan.option (Args.$$$ "predicate" |-- @{keyword ":"} |-- Parse.term)) --

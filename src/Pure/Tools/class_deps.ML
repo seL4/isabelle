@@ -46,7 +46,7 @@ val parse_sort_list = (Parse.sort >> single)
   || (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
 
 val _ =
-  Outer_Syntax.command @{command_spec "class_deps"} "visualize class dependencies"
+  Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
     ((Scan.option parse_sort_list -- Scan.option parse_sort_list) >> (fn (super, sub) =>
       (Toplevel.unknown_theory o
        Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) super sub))));

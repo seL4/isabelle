@@ -535,7 +535,7 @@ fun read_query pos str =
   |> #1;
 
 val _ =
-  Outer_Syntax.command @{command_spec "find_theorems"}
+  Outer_Syntax.command @{command_keyword find_theorems}
     "find theorems meeting specified criteria"
     (options -- query >> (fn ((opt_lim, rem_dups), spec) =>
       Toplevel.keep (fn st =>

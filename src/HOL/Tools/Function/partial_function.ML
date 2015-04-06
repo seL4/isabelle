@@ -309,7 +309,7 @@ val add_partial_function_cmd = gen_add_partial_function Specification.read_spec;
 val mode = @{keyword "("} |-- Parse.xname --| @{keyword ")"};
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "partial_function"} "define partial function"
+  Outer_Syntax.local_theory @{command_keyword partial_function} "define partial function"
     ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.spec)))
       >> (fn (mode, (fixes, spec)) => add_partial_function_cmd mode fixes spec));
 

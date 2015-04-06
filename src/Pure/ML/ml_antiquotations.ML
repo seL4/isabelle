@@ -253,7 +253,7 @@ val _ = Theory.setup
       if Keyword.is_keyword (Thy_Header.get_keywords thy) name then
         "Parse.$$$ " ^ ML_Syntax.print_string name
       else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
-  ML_Antiquotation.value @{binding command_spec}
+  ML_Antiquotation.value @{binding command_keyword}
     (Args.context -- Scan.lift (Parse.position Parse.name) >> (fn (ctxt, (name, pos)) =>
       (case Keyword.command_markup (Thy_Header.get_keywords' ctxt) name of
         SOME markup =>

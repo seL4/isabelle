@@ -1171,25 +1171,25 @@ fun gen_ind_decl mk_def coind =
 val ind_decl = gen_ind_decl add_ind_def;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive"} "define inductive predicates"
+  Outer_Syntax.local_theory @{command_keyword inductive} "define inductive predicates"
     (ind_decl false);
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "coinductive"} "define coinductive predicates"
+  Outer_Syntax.local_theory @{command_keyword coinductive} "define coinductive predicates"
     (ind_decl true);
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive_cases"}
+  Outer_Syntax.local_theory @{command_keyword inductive_cases}
     "create simplified instances of elimination rules"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive_simps"}
+  Outer_Syntax.local_theory @{command_keyword inductive_simps}
     "create simplification rules for inductive predicates"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_inductives"}
+  Outer_Syntax.command @{command_keyword print_inductives}
     "print (co)inductive definitions and monotonicity rules"
     (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
       Toplevel.keep (print_inductives b o Toplevel.context_of)));
