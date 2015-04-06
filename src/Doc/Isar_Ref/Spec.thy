@@ -115,6 +115,7 @@ text \<open>
     @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
     @{keyword_def "private"} \\
+    @{keyword_def "restricted"} \\
   \end{matharray}
 
   A local theory target is a specification context that is managed
@@ -161,12 +162,16 @@ text \<open>
   (global) "end"} has a different meaning: it concludes the theory
   itself (\secref{sec:begin-thy}).
   
-  \item @{keyword "private"} may be given as a modifier to any local theory
-  command (before the command keyword). This limits name space accesses to
-  the current local scope, as determined by the enclosing @{command
-  "context"}~@{keyword "begin"}~\dots~@{command "end"} block. Neither a
-  global theory nor a locale target have such a local scope by themselves:
-  an extra unnamed context is required to use @{keyword "private"} here.
+  \item @{keyword "private"} or @{keyword "restricted"} may be given as
+  modifiers before any local theory command. This limits name space accesses
+  to the local scope, as determined by the enclosing @{command
+  "context"}~@{keyword "begin"}~\dots~@{command "end"} block. Outside its
+  scope, a @{keyword "private"} name is inaccessible, and a @{keyword
+  "restricted"} name is only accessible with additional qualification.
+
+  Neither a global @{command theory} nor a @{command locale} target provides
+  a local scope by itself: an extra unnamed context is required to use
+  @{keyword "private"} or @{keyword "restricted"} here.
 
   \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any local
   theory command specifies an immediate target, e.g.\ ``@{command

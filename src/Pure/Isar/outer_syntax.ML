@@ -44,7 +44,8 @@ fun err_dup_command name ps =
 
 datatype command_parser =
   Parser of (Toplevel.transition -> Toplevel.transition) parser |
-  Private_Parser of Position.T option -> (Toplevel.transition -> Toplevel.transition) parser;
+  Limited_Parser of
+    (bool * Position.T) option -> (Toplevel.transition -> Toplevel.transition) parser;
 
 datatype command = Command of
  {comment: string,
@@ -145,8 +146,8 @@ fun command (name, pos) comment parse =
 
 fun local_theory_command trans command_keyword comment parse =
   raw_command command_keyword comment
-    (Private_Parser (fn private =>
-      Parse.opt_target -- parse >> (fn (target, f) => trans private target f)));
+    (Limited_Parser (fn limited =>
+      Parse.opt_target -- parse >> (fn (target, f) => trans limited target f)));
 
 val local_theory' = local_theory_command Toplevel.local_theory';
 val local_theory = local_theory_command Toplevel.local_theory;
@@ -161,8 +162,11 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 local
 
+val before_command =
+  Scan.option (Parse.position (Parse.private >> K true || Parse.restricted >> K false));
+
 fun parse_command thy =
-  Scan.ahead (Parse.opt_private |-- Parse.position Parse.command_) :|-- (fn (name, pos) =>
+  Scan.ahead (before_command |-- Parse.position Parse.command_) :|-- (fn (name, pos) =>
     let
       val command_tags = Parse.command_ -- Parse.tags;
       val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
@@ -170,9 +174,9 @@ fun parse_command thy =
       (case lookup_commands thy name of
         SOME (Command {command_parser = Parser parse, ...}) =>
           Parse.!!! (command_tags |-- parse) >> (fn f => f tr0)
-      | SOME (Command {command_parser = Private_Parser parse, ...}) =>
-          Parse.opt_private :|-- (fn private =>
-            Parse.!!! (command_tags |-- parse private)) >> (fn f => f tr0)
+      | SOME (Command {command_parser = Limited_Parser parse, ...}) =>
+          before_command :|-- (fn limited =>
+            Parse.!!! (command_tags |-- parse limited)) >> (fn f => f tr0)
       | NONE =>
           Scan.succeed
             (tr0 |> Toplevel.imperative (fn () => err_command "Undefined command " name [pos])))
@@ -225,9 +229,9 @@ fun flush (result, content, improper) =
 
 fun parse tok (result, content, improper) =
   if Token.is_improper tok then (result, content, tok :: improper)
-  else if Token.is_private tok orelse
+  else if Token.is_command_modifier tok orelse
     Token.is_command tok andalso
-      (not (exists Token.is_private content) orelse exists Token.is_command content)
+      (not (exists Token.is_command_modifier content) orelse exists Token.is_command content)
   then (flush (result, content, improper), [tok], [])
   else (result, tok :: (improper @ content), []);
 

@@ -384,10 +384,10 @@ fun present_thy thy command_results toks =
         in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Scan.optional (Scan.one Token.is_private -- improper >> op ::) [] --
+      Scan.optional (Scan.one Token.is_command_modifier -- improper >> op ::) [] --
       Scan.one Token.is_command -- Scan.repeat tag
-      >> (fn ((private, cmd), tags) =>
-        map (fn tok => (NONE, (Basic_Token tok, ("", d)))) private @
+      >> (fn ((cmd_mod, cmd), tags) =>
+        map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
           [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
             (Basic_Token cmd, (Latex.markup_false, d)))]));
 
