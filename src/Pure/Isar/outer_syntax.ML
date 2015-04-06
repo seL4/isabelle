@@ -137,7 +137,8 @@ val _ = Theory.setup (Theory.at_end (fn thy =>
 type command_spec = string * Position.T;
 
 fun raw_command (name, pos) comment command_parser =
-  Theory.setup (add_command name (new_command comment command_parser pos));
+  let val setup = add_command name (new_command comment command_parser pos)
+  in Context.>> (Context.mapping setup (Local_Theory.background_theory setup)) end;
 
 fun command (name, pos) comment parse =
   raw_command (name, pos) comment (Parser parse);
