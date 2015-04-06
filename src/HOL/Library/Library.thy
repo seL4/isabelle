@@ -71,7 +71,7 @@ imports
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table
-  Tree
+  Tree_Multiset
   While_Combinator
 begin
 end

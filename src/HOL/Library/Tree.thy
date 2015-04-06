@@ -98,9 +98,6 @@ fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
 "bst \<langle>\<rangle> \<longleftrightarrow> True" |
 "bst \<langle>l, a, r\<rangle> \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
 
-lemma (in linorder) bst_imp_sorted: "bst t \<Longrightarrow> sorted (inorder t)"
-by (induction t) (auto simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
-
 text{* In case there are duplicates: *}
 
 fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
@@ -108,10 +105,25 @@ fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
 "bst_eq \<langle>l,a,r\<rangle> \<longleftrightarrow>
  bst_eq l \<and> bst_eq r \<and> (\<forall>x\<in>set_tree l. x \<le> a) \<and> (\<forall>x\<in>set_tree r. a \<le> x)"
 
+lemma (in linorder) bst_eq_if_bst: "bst t \<Longrightarrow> bst_eq t"
+by (induction t) (auto)
+
 lemma (in linorder) bst_eq_imp_sorted: "bst_eq t \<Longrightarrow> sorted (inorder t)"
 apply (induction t)
  apply(simp)
 by (fastforce simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
+
+lemma (in linorder) distinct_preorder_if_bst: "bst t \<Longrightarrow> distinct (preorder t)"
+apply (induction t)
+ apply simp
+apply(fastforce elim: order.asym)
+done
+
+lemma (in linorder) distinct_inorder_if_bst: "bst t \<Longrightarrow> distinct (inorder t)"
+apply (induction t)
+ apply simp
+apply(fastforce elim: order.asym)
+done
 
 
 subsection "Function @{text mirror}"
