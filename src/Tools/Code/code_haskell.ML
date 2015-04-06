@@ -516,7 +516,7 @@ val _ = Theory.setup
   #> fold (fold (Code_Target.add_reserved target) o snd) prelude_import_unqualified_constr);
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_monad"} "define code syntax for monads"
+  Outer_Syntax.command @{command_keyword code_monad} "define code syntax for monads"
     (Parse.term -- Parse.name >> (fn (raw_bind, target) =>
       Toplevel.theory (add_monad target raw_bind)));
 

@@ -363,8 +363,7 @@ fun output_rules state rules =
 in
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding rail}
-    (Scan.lift (Parse.input (Parse.string || Parse.cartouche)))
+  (Thy_Output.antiquotation @{binding rail} (Scan.lift Args.text_input)
     (fn {state, context, ...} => output_rules state o read context));
 
 end;

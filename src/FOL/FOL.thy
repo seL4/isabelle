@@ -384,10 +384,13 @@ subsection {* Proof by cases and induction *}
 
 text {* Proper handling of non-atomic rule statements. *}
 
-definition "induct_forall(P) == \<forall>x. P(x)"
-definition "induct_implies(A, B) == A \<longrightarrow> B"
-definition "induct_equal(x, y) == x = y"
-definition "induct_conj(A, B) == A \<and> B"
+context
+begin
+
+restricted definition "induct_forall(P) == \<forall>x. P(x)"
+restricted definition "induct_implies(A, B) == A \<longrightarrow> B"
+restricted definition "induct_equal(x, y) == x = y"
+restricted definition "induct_conj(A, B) == A \<and> B"
 
 lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
   unfolding atomize_all induct_forall_def .
@@ -406,9 +409,6 @@ lemmas induct_rulify [symmetric] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 
-hide_const induct_forall induct_implies induct_equal induct_conj
-
-
 text {* Method setup. *}
 
 ML_file "~~/src/Tools/induct.ML"
@@ -426,6 +426,8 @@ ML {*
 *}
 
 declare case_split [cases type: o]
+
+end
 
 ML_file "~~/src/Tools/case_product.ML"
 

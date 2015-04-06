@@ -15,7 +15,7 @@ end
 structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
 struct
 
-val inductive_forall_def = @{thm induct_forall_def};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 
@@ -483,7 +483,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "nominal_inductive2"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword nominal_inductive2}
     "prove strong induction theorem for inductive predicate involving nominal datatypes"
     (Parse.xname -- 
      Scan.option (@{keyword "("} |-- Parse.!!! (Parse.name --| @{keyword ")"})) --

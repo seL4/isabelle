@@ -6,7 +6,7 @@ Static theory header information.
 
 signature THY_HEADER =
 sig
-  type keywords = (string * Keyword.spec option) list
+  type keywords = ((string * Position.T) * Keyword.spec option) list
   type header =
    {name: string * Position.T,
     imports: (string * Position.T) list,
@@ -29,7 +29,7 @@ struct
 
 (* header *)
 
-type keywords = (string * Keyword.spec option) list;
+type keywords = ((string * Position.T) * Keyword.spec option) list;
 
 type header =
  {name: string * Position.T,
@@ -59,26 +59,26 @@ val beginN = "begin";
 val bootstrap_keywords =
   Keyword.empty_keywords
   |> Keyword.add_keywords
-    [("%", NONE),
-     ("(", NONE),
-     (")", NONE),
-     (",", NONE),
-     ("::", NONE),
-     ("==", NONE),
-     ("and", NONE),
-     (beginN, NONE),
-     (importsN, NONE),
-     (keywordsN, NONE),
-     (headerN, SOME ((Keyword.document_heading, []), [])),
-     (chapterN, SOME ((Keyword.document_heading, []), [])),
-     (sectionN, SOME ((Keyword.document_heading, []), [])),
-     (subsectionN, SOME ((Keyword.document_heading, []), [])),
-     (subsubsectionN, SOME ((Keyword.document_heading, []), [])),
-     (textN, SOME ((Keyword.document_body, []), [])),
-     (txtN, SOME ((Keyword.document_body, []), [])),
-     (text_rawN, SOME ((Keyword.document_raw, []), [])),
-     (theoryN, SOME ((Keyword.thy_begin, []), ["theory"])),
-     ("ML_file", SOME ((Keyword.thy_load, []), ["ML"]))];
+    [(("%", @{here}), NONE),
+     (("(", @{here}), NONE),
+     ((")", @{here}), NONE),
+     ((",", @{here}), NONE),
+     (("::", @{here}), NONE),
+     (("==", @{here}), NONE),
+     (("and", @{here}), NONE),
+     ((beginN, @{here}), NONE),
+     ((importsN, @{here}), NONE),
+     ((keywordsN, @{here}), NONE),
+     ((headerN, @{here}), SOME ((Keyword.document_heading, []), [])),
+     ((chapterN, @{here}), SOME ((Keyword.document_heading, []), [])),
+     ((sectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
+     ((subsectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
+     ((subsubsectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
+     ((textN, @{here}), SOME ((Keyword.document_body, []), [])),
+     ((txtN, @{here}), SOME ((Keyword.document_body, []), [])),
+     ((text_rawN, @{here}), SOME ((Keyword.document_raw, []), [])),
+     ((theoryN, @{here}), SOME ((Keyword.thy_begin, []), ["theory"])),
+     (("ML_file", @{here}), SOME ((Keyword.thy_load, []), ["ML"]))];
 
 
 (* theory data *)
@@ -119,7 +119,7 @@ val keyword_compl =
   Parse.group (fn () => "outer syntax keyword completion") Parse.name;
 
 val keyword_decl =
-  Scan.repeat1 Parse.string --
+  Scan.repeat1 (Parse.position Parse.string) --
   Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_spec) --
   Scan.option (Parse.$$$ "==" |-- Parse.!!! keyword_compl)
   >> (fn ((names, spec), _) => map (rpair spec) names);

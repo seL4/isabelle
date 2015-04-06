@@ -700,7 +700,7 @@ val liftdef_parser =
     --| @{keyword "is"} -- Parse.term -- 
       Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "lift_definition"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword lift_definition}
     "definition for constants over the quotient type"
       (liftdef_parser >> lift_def_cmd_with_err_handling)
 

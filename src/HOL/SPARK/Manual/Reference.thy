@@ -23,7 +23,9 @@ text {*
 \label{sec:spark-commands}
 This section describes the syntax and effect of each of the commands provided
 by HOL-\SPARK{}.
-@{rail "@'spark_open' name ('(' name ')')?"}
+@{rail \<open>
+  @'spark_open' name ('(' name ')')?
+\<close>}
 Opens a new \SPARK{} verification environment and loads a \texttt{*.siv} file with VCs.
 Alternatively, \texttt{*.vcg} files can be loaded using \isa{\isacommand{spark\_open\_vcg}}.
 The corresponding \texttt{*.fdl} and \texttt{*.rls}
@@ -36,7 +38,9 @@ Since the full package name currently cannot be determined from the files genera
 format \texttt{$p_1$\_\_$\ldots$\_\_$p_n$}. When working with projects consisting of several
 packages, this is necessary in order for the verification environment to be able to map proof
 functions and types defined in Isabelle to their \SPARK{} counterparts.
-@{rail "@'spark_proof_functions' ((name '=' term)+)"}
+@{rail \<open>
+  @'spark_proof_functions' ((name '=' term)+)
+\<close>}
 Associates a proof function with the given name to a term. The name should be the full name
 of the proof function as it appears in the \texttt{*.fdl} file, including the package prefix.
 This command can be used both inside and outside a verification environment. The latter
@@ -44,8 +48,11 @@ variant is useful for introducing proof functions that are shared by several pro
 or packages, whereas the former allows the given term to refer to the types generated
 by \isa{\isacommand{spark\_open}} for record or enumeration types specified in the
 \texttt{*.fdl} file.
-@{rail "@'spark_types' ((name '=' type (mapping?))+);
-mapping: '('((name '=' nameref)+',')')'"}
+@{rail \<open>
+  @'spark_types' ((name '=' type (mapping?))+)
+  ;
+  mapping: '('((name '=' nameref)+',')')'
+\<close>}
 Associates a \SPARK{} type with the given name with an Isabelle type. This command can
 only be used outside a verification environment. The given type must be either a record
 or a datatype, where the names of fields or constructors must either match those of the
@@ -57,18 +64,24 @@ procedures or packages. First, the types required by the proof functions can be 
 using Isabelle's commands for defining records or datatypes. Having introduced the
 types, the proof functions can be defined in Isabelle. Finally, both the proof
 functions and the types can be associated with their \SPARK{} counterparts.
-@{rail "@'spark_status' (('(proved)' | '(unproved)')?)"}
+@{rail \<open>
+  @'spark_status' (('(proved)' | '(unproved)')?)
+\<close>}
 Outputs the variables declared in the \texttt{*.fdl} file, the rules declared in
 the \texttt{*.rls} file, and all VCs, together with their status (proved, unproved).
 The output can be restricted to the proved or unproved VCs by giving the corresponding
 option to the command.
-@{rail "@'spark_vc' name"}
+@{rail \<open>
+  @'spark_vc' name
+\<close>}
 Initiates the proof of the VC with the given name. Similar to the standard
 \isa{\isacommand{lemma}} or \isa{\isacommand{theorem}} commands, this command
 must be followed by a sequence of proof commands. The command introduces the
 hypotheses \texttt{H1} \dots \texttt{H$n$}, as well as the identifiers
 \texttt{?C1} \dots \texttt{?C$m$} corresponding to the conclusions of the VC.
-@{rail "@'spark_end' '(incomplete)'?"}
+@{rail \<open>
+  @'spark_end' '(incomplete)'?
+\<close>}
 Closes the current verification environment. Unless the \texttt{incomplete}
 option is given, all VCs must have been proved,
 otherwise the command issues an error message. As a side effect, the command

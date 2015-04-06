@@ -247,10 +247,10 @@ fun is_forbidden_theorem (s, th) =
   end
 
 val forbidden_mutant_constnames =
- ["HOL.induct_equal",
-  "HOL.induct_implies",
-  "HOL.induct_conj",
-  "HOL.induct_forall",
+[@{const_name HOL.induct_equal},
+ @{const_name HOL.induct_implies},
+ @{const_name HOL.induct_conj},
+ @{const_name HOL.induct_forall},
  @{const_name undefined},
  @{const_name default},
  @{const_name Pure.dummy_pattern},

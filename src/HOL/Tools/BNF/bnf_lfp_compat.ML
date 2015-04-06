@@ -539,7 +539,7 @@ val add_primrec_simple = apfst (apsnd (apsnd (flat o snd))) ooo
   BNF_LFP_Rec_Sugar.add_primrec_simple;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "datatype_compat"}
+  Outer_Syntax.local_theory @{command_keyword datatype_compat}
     "register datatypes as old-style datatypes and derive old-style properties"
     (Scan.repeat1 Parse.type_const >> datatype_compat_cmd);
 

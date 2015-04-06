@@ -53,7 +53,7 @@ fun inductive_cases args thy =
   in thy |> Global_Theory.note_thmss "" facts |> snd end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "inductive_cases"}
+  Outer_Syntax.command @{command_keyword inductive_cases}
     "create simplified instances of elimination rules (improper)"
     (Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Scan.repeat1 Parse.prop)
       >> (Toplevel.theory o inductive_cases));

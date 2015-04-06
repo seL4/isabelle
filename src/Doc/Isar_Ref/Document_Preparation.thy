@@ -471,7 +471,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    'rail' (@{syntax string} | @{syntax cartouche})
+    'rail' @{syntax text}
   \<close>}
 
   The @{antiquotation rail} antiquotation allows to include syntax

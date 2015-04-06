@@ -211,25 +211,25 @@ val calc_args =
   Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.xthms1 --| @{keyword ")"})));
 
 val _ =
-  Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"
+  Outer_Syntax.command @{command_keyword also} "combine calculation and current facts"
     (calc_args >> (Toplevel.proofs' o also_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "finally"}
+  Outer_Syntax.command @{command_keyword finally}
     "combine calculation and current facts, exhibit result"
     (calc_args >> (Toplevel.proofs' o finally_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "moreover"} "augment calculation by current facts"
+  Outer_Syntax.command @{command_keyword moreover} "augment calculation by current facts"
     (Scan.succeed (Toplevel.proof' moreover));
 
 val _ =
-  Outer_Syntax.command @{command_spec "ultimately"}
+  Outer_Syntax.command @{command_keyword ultimately}
     "augment calculation by current facts, exhibit result"
     (Scan.succeed (Toplevel.proof' ultimately));
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_trans_rules"} "print transitivity rules"
+  Outer_Syntax.command @{command_keyword print_trans_rules} "print transitivity rules"
     (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_rules o Toplevel.context_of)));
 
 end;

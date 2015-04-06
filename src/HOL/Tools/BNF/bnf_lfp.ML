@@ -1842,7 +1842,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "datatype"} "define inductive datatypes"
+  Outer_Syntax.local_theory @{command_keyword datatype} "define inductive datatypes"
     (parse_co_datatype_cmd Least_FP construct_lfp);
 
 val _ = Theory.setup (fp_antiquote_setup @{binding datatype});

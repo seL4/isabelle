@@ -213,7 +213,7 @@ val quotdef_parser =
     Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "quotient_definition"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword quotient_definition}
     "definition for constants over the quotient type"
       (quotdef_parser >> quotient_def_cmd)
 

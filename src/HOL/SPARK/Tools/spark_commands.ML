@@ -92,13 +92,13 @@ fun show_status thy (p, f) =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_open_vcg"}
+  Outer_Syntax.command @{command_keyword spark_open_vcg}
     "open a new SPARK environment and load a SPARK-generated .vcg file"
     (Resources.provide_parse_files "spark_open_vcg" -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.vcg_header));
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_open"}
+  Outer_Syntax.command @{command_keyword spark_open}
     "open a new SPARK environment and load a SPARK-generated .siv file"
     (Resources.provide_parse_files "spark_open" -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.siv_header));
@@ -107,13 +107,13 @@ val pfun_type = Scan.option
   (Args.parens (Parse.list1 Parse.name) --| Args.colon -- Parse.name);
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_proof_functions"}
+  Outer_Syntax.command @{command_keyword spark_proof_functions}
     "associate SPARK proof functions with terms"
     (Scan.repeat1 (Parse.name -- (pfun_type --| Args.$$$ "=" -- Parse.term)) >>
       (Toplevel.theory o fold add_proof_fun_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_types"}
+  Outer_Syntax.command @{command_keyword spark_types}
     "associate SPARK types with types"
     (Scan.repeat1 (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.typ --
        Scan.optional (Args.parens (Parse.list1
@@ -121,12 +121,12 @@ val _ =
        (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "spark_vc"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword spark_vc}
     "enter into proof mode for a specific verification condition"
     (Parse.name >> prove_vc);
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_status"}
+  Outer_Syntax.command @{command_keyword spark_status}
     "show the name and state of all loaded verification conditions"
     (Scan.optional
        (Args.parens
@@ -136,7 +136,7 @@ val _ =
         Toplevel.keep (fn state => show_status (Toplevel.theory_of state) args)))
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_end"}
+  Outer_Syntax.command @{command_keyword spark_end}
     "close the current SPARK environment"
     (Scan.optional (@{keyword "("} |-- Parse.!!!
          (Parse.reserved "incomplete" --| @{keyword ")"}) >> K true) false >>

@@ -44,7 +44,7 @@ fun thm_deps thy thms =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "thm_deps"} "visualize theorem dependencies"
+  Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
     (Parse.xthms1 >> (fn args =>
       Toplevel.unknown_theory o Toplevel.keep (fn state =>
         thm_deps (Toplevel.theory_of state) (Attrib.eval_thms (Toplevel.context_of state) args))));
@@ -101,7 +101,7 @@ fun unused_thms (base_thys, thys) =
   in rev thms' end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "unused_thms"} "find unused theorems"
+  Outer_Syntax.command @{command_keyword unused_thms} "find unused theorems"
     (Scan.option ((Scan.repeat1 (Scan.unless Parse.minus Parse.name) --| Parse.minus) --
        Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >> (fn opt_range =>
         Toplevel.keep (fn state =>

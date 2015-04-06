@@ -266,7 +266,7 @@ fun boogie_prove thy lines =
 (* Isar command *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "boogie_file"}
+  Outer_Syntax.command @{command_keyword boogie_file}
     "prove verification condition from .b2i file"
     (Resources.provide_parse_files "boogie_file" >> (fn files =>
       Toplevel.theory (fn thy =>

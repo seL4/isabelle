@@ -15,7 +15,7 @@ begin
 subsection \<open>Diagnostic command: no state change\<close>
 
 ML \<open>
-  Outer_Syntax.command @{command_spec "print_test"} "print term test"
+  Outer_Syntax.command @{command_keyword print_test} "print term test"
     (Parse.term >> (fn s => Toplevel.keep (fn st =>
       let
         val ctxt = Toplevel.context_of st;
@@ -30,7 +30,7 @@ print_test "\<lambda>x. x = a"
 subsection \<open>Old-style global theory declaration\<close>
 
 ML \<open>
-  Outer_Syntax.command @{command_spec "global_test"} "test constant declaration"
+  Outer_Syntax.command @{command_keyword global_test} "test constant declaration"
     (Parse.binding >> (fn b => Toplevel.theory (fn thy =>
       let
         val thy' = Sign.add_consts [(b, @{typ 'a}, NoSyn)] thy;
@@ -45,7 +45,7 @@ print_test a
 subsection \<open>Local theory specification\<close>
 
 ML \<open>
-  Outer_Syntax.local_theory @{command_spec "local_test"} "test local definition"
+  Outer_Syntax.local_theory @{command_keyword local_test} "test local definition"
     (Parse.binding -- (@{keyword "="} |-- Parse.term) >> (fn (b, s) => fn lthy =>
       let
         val t = Syntax.read_term lthy s;

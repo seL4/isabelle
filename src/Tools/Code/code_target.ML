@@ -638,25 +638,25 @@ val code_exprP = (Scan.optional (@{keyword "open"} |-- Scan.succeed true) false
   :|-- (fn (all_public, raw_cs) => (code_expr_checkingP all_public raw_cs || code_expr_inP all_public raw_cs));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_reserved"}
+  Outer_Syntax.command @{command_keyword code_reserved}
     "declare words as reserved for target language"
     (Parse.name -- Scan.repeat1 Parse.name
       >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_identifier"} "declare mandatory names for code symbols"
+  Outer_Syntax.command @{command_keyword code_identifier} "declare mandatory names for code symbols"
     (parse_symbol_pragmas Parse.name Parse.name Parse.name Parse.name Parse.name Parse.name
       >> (Toplevel.theory o fold set_identifiers_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_printing"} "declare dedicated printing for code symbols"
+  Outer_Syntax.command @{command_keyword code_printing} "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
       (Parse.text -- Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"
+  Outer_Syntax.command @{command_keyword export_code} "generate executable code for constants"
     (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
 
 end; (*struct*)

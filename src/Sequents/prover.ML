@@ -68,7 +68,7 @@ fun pretty_pack ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_pack"} "print pack of classical rules"
+  Outer_Syntax.command @{command_keyword print_pack} "print pack of classical rules"
     (Scan.succeed (Toplevel.keep (Pretty.writeln o pretty_pack o Toplevel.context_of)));
 
 

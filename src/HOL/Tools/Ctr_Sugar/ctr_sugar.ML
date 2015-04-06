@@ -1143,7 +1143,7 @@ val parse_ctr_specs = Parse.enum1 "|" (parse_ctr_spec Parse.term Parse.binding);
 val parse_sel_default_eqs = Scan.optional (@{keyword "where"} |-- Parse.enum1 "|" Parse.prop) [];
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "free_constructors"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword free_constructors}
     "register an existing freely generated type's constructors"
     (parse_ctr_options -- Parse.binding --| @{keyword "for"} -- parse_ctr_specs
        -- parse_sel_default_eqs

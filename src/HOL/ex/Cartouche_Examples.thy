@@ -40,7 +40,7 @@ end
 subsection \<open>Outer syntax: cartouche within command syntax\<close>
 
 ML \<open>
-  Outer_Syntax.command @{command_spec "cartouche"} ""
+  Outer_Syntax.command @{command_keyword cartouche} ""
     (Parse.cartouche >> (fn s =>
       Toplevel.imperative (fn () => writeln s)))
 \<close>
@@ -116,7 +116,7 @@ term "\"\001\010\100\""
 subsubsection \<open>Term cartouche and regular quotes\<close>
 
 ML \<open>
-  Outer_Syntax.command @{command_spec "term_cartouche"} ""
+  Outer_Syntax.command @{command_keyword term_cartouche} ""
     (Parse.inner_syntax Parse.cartouche >> (fn s =>
       Toplevel.keep (fn state =>
         let
@@ -178,7 +178,7 @@ subsubsection \<open>Uniform nesting of sub-languages: document source, ML, term
 
 ML \<open>
   Outer_Syntax.command
-    @{command_spec "text_cartouche"} ""
+    @{command_keyword text_cartouche} ""
     (Parse.opt_target -- Parse.input Parse.cartouche >> Thy_Output.document_command)
 \<close>
 

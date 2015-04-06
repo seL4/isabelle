@@ -118,7 +118,7 @@ val parse_bnf_axiomatization =
   parse_witTs -- Parse.opt_mixfix -- parse_map_rel_bindings;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "bnf_axiomatization"} "bnf declaration"
+  Outer_Syntax.local_theory @{command_keyword bnf_axiomatization} "bnf declaration"
     (parse_bnf_axiomatization >> 
       (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb)) =>
          bnf_axiomatization_cmd plugins bsTs b mx mapb relb witTs #> snd));

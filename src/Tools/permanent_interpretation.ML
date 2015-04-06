@@ -95,7 +95,7 @@ fun permanent_interpretation_cmd x = gen_permanent_interpretation read_interpret
 end;
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "permanent_interpretation"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword permanent_interpretation}
     "prove interpretation of locale expression into named theory"
     (Parse.!!! (Parse_Spec.locale_expression true) --
       Scan.optional (@{keyword "defining"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"

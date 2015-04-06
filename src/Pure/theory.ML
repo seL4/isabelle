@@ -14,6 +14,7 @@ sig
   val merge: theory * theory -> theory
   val merge_list: theory list -> theory
   val setup: (theory -> theory) -> unit
+  val local_setup: (Proof.context -> Proof.context) -> unit
   val get_markup: theory -> Markup.T
   val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
@@ -51,6 +52,7 @@ fun merge_list [] = raise THEORY ("Empty merge of theories", [])
   | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
 fun setup f = Context.>> (Context.map_theory f);
+fun local_setup f = Context.>> (Context.map_proof f);
 
 
 

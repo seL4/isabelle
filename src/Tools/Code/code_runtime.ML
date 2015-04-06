@@ -475,7 +475,7 @@ val parse_datatype =
 in
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_reflect"}
+  Outer_Syntax.command @{command_keyword code_reflect}
     "enrich runtime environment with generated code"
     (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- Parse.!!!  (parse_datatype
       ::: Scan.repeat (@{keyword "and"} |-- parse_datatype))) []

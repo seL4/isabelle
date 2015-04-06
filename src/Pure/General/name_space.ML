@@ -35,8 +35,11 @@ sig
   val get_scopes: naming -> Binding.scope list
   val get_scope: naming -> Binding.scope option
   val new_scope: naming -> Binding.scope * naming
+  val limited: bool -> Position.T -> naming -> naming
   val private_scope: Binding.scope -> naming -> naming
   val private: Position.T -> naming -> naming
+  val restricted_scope: Binding.scope -> naming -> naming
+  val restricted: Position.T -> naming -> naming
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -297,61 +300,72 @@ fun merge
 
 datatype naming = Naming of
  {scopes: Binding.scope list,
-  private: Binding.scope option,
+  limited: (bool * Binding.scope) option,
   concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (scopes, private, concealed, group, theory_name, path) =
-  Naming {scopes = scopes, private = private, concealed = concealed,
+fun make_naming (scopes, limited, concealed, group, theory_name, path) =
+  Naming {scopes = scopes, limited = limited, concealed = concealed,
     group = group, theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {scopes, private, concealed, group, theory_name, path}) =
-  make_naming (f (scopes, private, concealed, group, theory_name, path));
+fun map_naming f (Naming {scopes, limited, concealed, group, theory_name, path}) =
+  make_naming (f (scopes, limited, concealed, group, theory_name, path));
 
-fun map_path f = map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
-  (scopes, private, concealed, group, theory_name, f path));
 
+(* scope and access limitation *)
 
 fun get_scopes (Naming {scopes, ...}) = scopes;
 val get_scope = try hd o get_scopes;
-
-fun put_scope scope =
-  map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
-    (scope :: scopes, private, concealed, group, theory_name, path));
 
 fun new_scope naming =
   let
     val scope = Binding.new_scope ();
     val naming' =
-      naming |> map_naming (fn (scopes, private, concealed, group, theory_name, path) =>
-        (scope :: scopes, private, concealed, group, theory_name, path));
+      naming |> map_naming (fn (scopes, limited, concealed, group, theory_name, path) =>
+        (scope :: scopes, limited, concealed, group, theory_name, path));
   in (scope, naming') end;
 
-fun private_scope scope = map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
-  (scopes, SOME scope, concealed, group, theory_name, path));
+fun limited_scope strict scope =
+  map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
+    (scopes, SOME (strict, scope), concealed, group, theory_name, path));
 
-fun private pos naming =
+fun limited strict pos naming =
   (case get_scope naming of
-    SOME scope => private_scope scope naming
-  | NONE => error ("Missing local scope -- cannot declare private names" ^ Position.here pos));
+    SOME scope => limited_scope strict scope naming
+  | NONE => error ("Missing local scope -- cannot limit name space accesses" ^ Position.here pos));
 
-val concealed = map_naming (fn (scopes, private, _, group, theory_name, path) =>
-  (scopes, private, true, group, theory_name, path));
+val private_scope = limited_scope true;
+val private = limited true;
 
-fun set_theory_name theory_name = map_naming (fn (scopes, private, concealed, group, _, path) =>
-  (scopes, private, concealed, group, theory_name, path));
+val restricted_scope = limited_scope false;
+val restricted = limited false;
+
+val concealed = map_naming (fn (scopes, limited, _, group, theory_name, path) =>
+  (scopes, limited, true, group, theory_name, path));
+
+
+(* additional structural info *)
+
+fun set_theory_name theory_name = map_naming (fn (scopes, limited, concealed, group, _, path) =>
+  (scopes, limited, concealed, group, theory_name, path));
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (scopes, private, concealed, _, theory_name, path) =>
-  (scopes, private, concealed, group, theory_name, path));
+fun set_group group = map_naming (fn (scopes, limited, concealed, _, theory_name, path) =>
+  (scopes, limited, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
 
+
+(* name entry path *)
+
 fun get_path (Naming {path, ...}) = path;
+
+fun map_path f = map_naming (fn (scopes, limited, concealed, group, theory_name, path) =>
+  (scopes, limited, concealed, group, theory_name, f path));
 
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
@@ -365,14 +379,16 @@ val global_naming = make_naming ([], NONE, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
 
 
-(* visibility flags *)
+(* transform *)
 
-fun transform_naming (Naming {private = private', concealed = concealed', ...}) =
-  fold private_scope (the_list private') #>
+fun transform_naming (Naming {limited = limited', concealed = concealed', ...}) =
+  (case limited' of
+    SOME (strict, scope) => limited_scope strict scope
+  | NONE => I) #>
   concealed' ? concealed;
 
-fun transform_binding (Naming {private, concealed, ...}) =
-  Binding.private_default private #>
+fun transform_binding (Naming {limited, concealed, ...}) =
+  Binding.limited_default limited #>
   concealed ? Binding.concealed;
 
 
@@ -400,11 +416,12 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   (case name_spec naming binding of
-    {accessible = false, ...} => ([], [])
-  | {spec, ...} =>
+    {limitation = SOME true, ...} => ([], [])
+  | {limitation, spec, ...} =>
       let
-        val sfxs = mandatory_suffixes spec;
-        val pfxs = mandatory_prefixes spec;
+        val restrict = is_some limitation ? filter (fn [_] => false | _ => true);
+        val sfxs = restrict (mandatory_suffixes spec);
+        val pfxs = restrict (mandatory_prefixes spec);
       in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end);
 
 

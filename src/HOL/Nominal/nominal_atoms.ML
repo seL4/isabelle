@@ -28,7 +28,7 @@ struct
 val finite_emptyI = @{thm "finite.emptyI"};
 val Collect_const = @{thm "Collect_const"};
 
-val inductive_forall_def = @{thm "induct_forall_def"};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
 
 
 (* theory data *)
@@ -1018,7 +1018,7 @@ fun create_nom_typedecls ak_names thy =
 (* syntax und parsing *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "atom_decl"} "declare new kinds of atoms"
+  Outer_Syntax.command @{command_keyword atom_decl} "declare new kinds of atoms"
     (Scan.repeat1 Parse.name >> (Toplevel.theory o create_nom_typedecls));
 
 end;

@@ -444,7 +444,7 @@ fun process_line str tstate =
 fun process_file path thy =
   (thy, init_state) |> File.fold_lines process_line path |> fst
 
-val _ = Outer_Syntax.command @{command_spec "import_file"}
+val _ = Outer_Syntax.command @{command_keyword import_file}
   "import a recorded proof file"
   (Parse.path >> (fn name => Toplevel.theory (fn thy => process_file (Path.explode name) thy)))
 

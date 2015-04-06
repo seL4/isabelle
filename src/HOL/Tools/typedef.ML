@@ -281,7 +281,7 @@ end;
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "typedef"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword typedef}
     "HOL type definition (requires non-emptiness proof)"
     (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
       (@{keyword "="} |-- Parse.term) --

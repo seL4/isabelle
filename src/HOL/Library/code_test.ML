@@ -567,7 +567,7 @@ fun evaluate_in_scala ctxt =
 val test_codeP = Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
 
 val _ = 
-  Outer_Syntax.command @{command_spec "test_code"}
+  Outer_Syntax.command @{command_keyword test_code}
     "compile test cases to target languages, execute them and report results"
       (test_codeP >> (fn (raw_ts, targets) => Toplevel.keep (test_code_cmd raw_ts targets)))
 

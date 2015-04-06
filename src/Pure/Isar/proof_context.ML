@@ -38,6 +38,8 @@ sig
   val new_scope: Proof.context -> Binding.scope * Proof.context
   val private_scope: Binding.scope -> Proof.context -> Proof.context
   val private: Position.T -> Proof.context -> Proof.context
+  val restricted_scope: Binding.scope -> Proof.context -> Proof.context
+  val restricted: Position.T -> Proof.context -> Proof.context
   val concealed: Proof.context -> Proof.context
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
@@ -319,6 +321,9 @@ fun new_scope ctxt =
 
 val private_scope = map_naming o Name_Space.private_scope;
 val private = map_naming o Name_Space.private;
+val restricted_scope = map_naming o Name_Space.restricted_scope;
+val restricted = map_naming o Name_Space.restricted;
+
 val concealed = map_naming Name_Space.concealed;
 
 

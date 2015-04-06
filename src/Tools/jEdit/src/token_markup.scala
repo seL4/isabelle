@@ -274,11 +274,11 @@ object Token_Markup
   {
     def maybe_command_start(i: Text.Offset): Option[Text.Info[Token]] =
       token_reverse_iterator(syntax, buffer, i).
-        find(info => info.info.is_private || info.info.is_command)
+        find(info => info.info.is_command_modifier || info.info.is_command)
 
     def maybe_command_stop(i: Text.Offset): Option[Text.Info[Token]] =
       token_iterator(syntax, buffer, i).
-        find(info => info.info.is_private || info.info.is_command)
+        find(info => info.info.is_command_modifier || info.info.is_command)
 
     if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
       val start_info =
@@ -288,15 +288,15 @@ object Token_Markup
           case Some(Text.Info(range1, tok1)) if tok1.is_command =>
             val info2 = maybe_command_start(range1.start - 1)
             info2 match {
-              case Some(Text.Info(_, tok2)) if tok2.is_private => info2
+              case Some(Text.Info(_, tok2)) if tok2.is_command_modifier => info2
               case _ => info1
             }
           case _ => info1
         }
       }
-      val (start_is_private, start, start_next) =
+      val (start_is_command_modifier, start, start_next) =
         start_info match {
-          case Some(Text.Info(range, tok)) => (tok.is_private, range.start, range.stop)
+          case Some(Text.Info(range, tok)) => (tok.is_command_modifier, range.start, range.stop)
           case None => (false, 0, 0)
         }
 
@@ -304,7 +304,7 @@ object Token_Markup
       {
         val info1 = maybe_command_stop(start_next)
         info1 match {
-          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_is_private =>
+          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_is_command_modifier =>
             maybe_command_stop(range1.stop)
           case _ => info1
         }

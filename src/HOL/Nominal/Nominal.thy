@@ -3563,7 +3563,7 @@ lemmas [eqvt] =
   (* connectives *)
   if_eqvt imp_eqvt disj_eqvt conj_eqvt neg_eqvt 
   true_eqvt false_eqvt
-  imp_eqvt [folded induct_implies_def]
+  imp_eqvt [folded HOL.induct_implies_def]
   
   (* datatypes *)
   perm_unit.simps

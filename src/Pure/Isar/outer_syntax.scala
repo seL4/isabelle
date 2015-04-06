@@ -219,8 +219,8 @@ final class Outer_Syntax private(
 
     for (tok <- toks) {
       if (tok.is_improper) improper += tok
-      else if (tok.is_private ||
-        tok.is_command && (!content.exists(_.is_private) || content.exists(_.is_command)))
+      else if (tok.is_command_modifier ||
+        tok.is_command && (!content.exists(_.is_command_modifier) || content.exists(_.is_command)))
       { flush(); content += tok }
       else { content ++= improper; improper.clear; content += tok }
     }

@@ -1854,7 +1854,7 @@ fun import_thm cautious path_prefixes file_name
 
 (*This has been disabled since it requires a hook to be specified to use "import_thm"
 val _ =
-  Outer_Syntax.command @{command_spec "import_leo2_proof"} "import TPTP proof"
+  Outer_Syntax.command @{command_keyword import_leo2_proof} "import TPTP proof"
     (Parse.path >> (fn name =>
       Toplevel.theory (fn thy =>
        let val path = Path.explode name

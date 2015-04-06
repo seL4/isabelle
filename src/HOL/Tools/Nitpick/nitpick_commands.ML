@@ -374,7 +374,7 @@ fun nitpick_params_trans params =
                                       |> sort_strings |> cat_lines)))))
 
 val _ =
-  Outer_Syntax.command @{command_spec "nitpick"}
+  Outer_Syntax.command @{command_keyword nitpick}
     "try to find a counterexample for a given subgoal using Nitpick"
     (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
       Toplevel.unknown_proof o
@@ -383,7 +383,7 @@ val _ =
           (Toplevel.proof_of state)))))
 
 val _ =
-  Outer_Syntax.command @{command_spec "nitpick_params"}
+  Outer_Syntax.command @{command_keyword nitpick_params}
     "set and display the default parameters for Nitpick"
     (parse_params #>> nitpick_params_trans)
 

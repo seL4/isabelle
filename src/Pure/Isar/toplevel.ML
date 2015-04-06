@@ -51,15 +51,15 @@ sig
   val end_local_theory: transition -> transition
   val open_target: (generic_theory -> local_theory) -> transition -> transition
   val close_target: transition -> transition
-  val local_theory': Position.T option -> (xstring * Position.T) option ->
+  val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> local_theory) -> transition -> transition
-  val local_theory: Position.T option -> (xstring * Position.T) option ->
+  val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: (xstring * Position.T) option -> (state -> unit) ->
     transition -> transition
-  val local_theory_to_proof': Position.T option -> (xstring * Position.T) option ->
+  val local_theory_to_proof': (bool * Position.T) option -> (xstring * Position.T) option ->
     (bool -> local_theory -> Proof.state) -> transition -> transition
-  val local_theory_to_proof: Position.T option -> (xstring * Position.T) option ->
+  val local_theory_to_proof: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
@@ -412,12 +412,15 @@ val close_target = transaction (fn _ =>
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
 
-fun local_theory' private target f = present_transaction (fn int =>
+val limited_context =
+  fn SOME (strict, scope) => Proof_Context.map_naming (Name_Space.limited strict scope) | NONE => I;
+
+fun local_theory' limited target f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val (finish, lthy) = Named_Target.switch target gthy;
           val lthy' = lthy
-            |> fold Proof_Context.private (the_list private)
+            |> limited_context limited
             |> Local_Theory.new_group
             |> f int
             |> Local_Theory.reset_group;
@@ -425,7 +428,7 @@ fun local_theory' private target f = present_transaction (fn int =>
     | _ => raise UNDEF))
   (K ());
 
-fun local_theory private target f = local_theory' private target (K f);
+fun local_theory limited target f = local_theory' limited target (K f);
 
 fun present_local_theory target = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
@@ -470,18 +473,18 @@ fun begin_proof init = transaction (fn int =>
 
 in
 
-fun local_theory_to_proof' private target f = begin_proof
+fun local_theory_to_proof' limited target f = begin_proof
   (fn int => fn gthy =>
     let
       val (finish, lthy) = Named_Target.switch target gthy;
       val prf = lthy
-        |> fold Proof_Context.private (the_list private)
+        |> limited_context limited
         |> Local_Theory.new_group
         |> f int;
     in (finish o Local_Theory.reset_group, prf) end);
 
-fun local_theory_to_proof private target f =
-  local_theory_to_proof' private target (K f);
+fun local_theory_to_proof limited target f =
+  local_theory_to_proof' limited target (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>

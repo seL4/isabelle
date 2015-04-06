@@ -140,7 +140,7 @@ val criterion =
 
 val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
-val query_keywords = Keyword.add_keywords [(":", NONE)] Keyword.empty_keywords;
+val query_keywords = Keyword.add_keywords [((":", @{here}), NONE)] Keyword.empty_keywords;
 
 in
 
@@ -151,7 +151,7 @@ fun read_query pos str =
   |> #1;
 
 val _ =
-  Outer_Syntax.command @{command_spec "find_consts"}
+  Outer_Syntax.command @{command_keyword find_consts}
     "find constants by name / type patterns"
     (query >> (fn spec =>
       Toplevel.keep (fn st =>

@@ -6,9 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
-* Local theory specifications may have a 'private' modifier to restrict
-name space accesses to the current local scope, as delimited by "context
-begin ... end". For example, this works like this:
+* Local theory specification commands may have a 'private' or
+'restricted' modifier to limit name space accesses to the local scope,
+as provided by some "context begin ... end" block. For example:
 
   context
   begin
@@ -406,6 +406,10 @@ subtle change of semantics with minimal potential for INCOMPATIBILITY.
 
 * Goal.prove_multi is superseded by the fully general Goal.prove_common,
 which also allows to specify a fork priority.
+
+* Antiquotation @{command_spec "COMMAND"} is superseded by
+@{command_keyword COMMAND} (usually without quotes and with PIDE
+markup). Minor INCOMPATIBILITY.
 
 
 *** System ***

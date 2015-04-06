@@ -387,12 +387,12 @@ val parse_fact_override =
     no_fact_override
 
 val _ =
-  Outer_Syntax.command @{command_spec "sledgehammer"}
+  Outer_Syntax.command @{command_keyword sledgehammer}
     "search for first-order proof using automatic theorem provers"
     ((Scan.optional Parse.name runN -- parse_params
       -- parse_fact_override -- Scan.option Parse.nat) #>> sledgehammer_trans)
 val _ =
-  Outer_Syntax.command @{command_spec "sledgehammer_params"}
+  Outer_Syntax.command @{command_keyword sledgehammer_params}
     "set and display the default parameters for Sledgehammer"
     (parse_params #>> sledgehammer_params_trans)
 

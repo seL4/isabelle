@@ -261,7 +261,7 @@ fun mk_domain
   end
 
 val _ =
-  Outer_Syntax.command @{command_spec "domain"} "define recursive domains (HOLCF)"
+  Outer_Syntax.command @{command_keyword domain} "define recursive domains (HOLCF)"
     (domains_decl >> (Toplevel.theory o mk_domain))
 
 end

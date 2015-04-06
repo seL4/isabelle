@@ -112,8 +112,8 @@ fun nonprimitive_corec ctxt eqns =
 fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 fun use_primcorecursive () =
-  error ("\"auto\" failed (try " ^ quote (#1 @{command_spec "primcorecursive"}) ^ " instead of " ^
-    quote (#1 @{command_spec "primcorec"}) ^ ")");
+  error ("\"auto\" failed (try " ^ quote (#1 @{command_keyword primcorecursive}) ^ " instead of " ^
+    quote (#1 @{command_keyword primcorec}) ^ ")");
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -1551,13 +1551,13 @@ val corec_option_parser = Parse.group (K "option")
 val where_alt_props_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
   ((Parse.prop >> pair Attrib.empty_binding) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
-val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
+val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorecursive_cmd);
 
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
+val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| @{keyword ")"}) []) --

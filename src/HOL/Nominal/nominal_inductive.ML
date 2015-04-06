@@ -14,7 +14,7 @@ end
 structure NominalInductive : NOMINAL_INDUCTIVE =
 struct
 
-val inductive_forall_def = @{thm induct_forall_def};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 
@@ -671,14 +671,14 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "nominal_inductive"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword nominal_inductive}
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes"
     (Parse.xname -- Scan.optional (@{keyword "avoids"} |-- Parse.and_list1 (Parse.name --
       (@{keyword ":"} |-- Scan.repeat1 Parse.name))) [] >> (fn (name, avoids) =>
         prove_strong_ind name avoids));
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "equivariance"}
+  Outer_Syntax.local_theory @{command_keyword equivariance}
     "prove equivariance for inductive predicate involving nominal datatypes"
     (Parse.xname -- Scan.optional (@{keyword "["} |-- Parse.list1 Parse.name --| @{keyword "]"}) [] >>
       (fn (name, atoms) => prove_eqvt name atoms));

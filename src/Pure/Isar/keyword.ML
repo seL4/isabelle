@@ -37,10 +37,11 @@ sig
   val no_command_keywords: keywords -> keywords
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
-  val add_keywords: (string * spec option) list -> keywords -> keywords
+  val add_keywords: ((string * Position.T) * spec option) list -> keywords -> keywords
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
+  val command_markup: keywords -> string -> Markup.T option
   val command_kind: keywords -> string -> string option
   val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
@@ -105,19 +106,21 @@ val kinds =
 
 (* specifications *)
 
-type T =
- {kind: string,
+type spec = (string * string list) * string list;
+
+type entry =
+ {pos: Position.T,
+  id: serial,
+  kind: string,
   files: string list,  (*extensions of embedded files*)
   tags: string list};
 
-type spec = (string * string list) * string list;
-
-fun check_spec ((kind, files), tags) : T =
+fun check_spec pos ((kind, files), tags) : entry =
   if not (member (op =) kinds kind) then
     error ("Unknown outer syntax keyword kind " ^ quote kind)
   else if not (null files) andalso kind <> thy_load then
     error ("Illegal specification of files for " ^ quote kind)
-  else {kind = kind, files = files, tags = tags};
+  else {pos = pos, id = serial (), kind = kind, files = files, tags = tags};
 
 
 
@@ -128,7 +131,7 @@ fun check_spec ((kind, files), tags) : T =
 datatype keywords = Keywords of
  {minor: Scan.lexicon,
   major: Scan.lexicon,
-  commands: T Symtab.table};
+  commands: entry Symtab.table};
 
 fun minor_keywords (Keywords {minor, ...}) = minor;
 fun major_keywords (Keywords {major, ...}) = major;
@@ -157,7 +160,7 @@ fun merge_keywords
     Symtab.merge (K true) (commands1, commands2));
 
 val add_keywords =
-  fold (fn (name, opt_spec) => map_keywords (fn (minor, major, commands) =>
+  fold (fn ((name, pos), opt_spec) => map_keywords (fn (minor, major, commands) =>
     (case opt_spec of
       NONE =>
         let
@@ -165,9 +168,9 @@ val add_keywords =
         in (minor', major, commands) end
     | SOME spec =>
         let
-          val kind = check_spec spec;
+          val entry = check_spec pos spec;
           val major' = Scan.extend_lexicon (Symbol.explode name) major;
-          val commands' = Symtab.update (name, kind) commands;
+          val commands' = Symtab.update (name, entry) commands;
         in (minor, major', commands') end)));
 
 
@@ -178,9 +181,15 @@ fun is_command (Keywords {commands, ...}) = Symtab.defined commands;
 fun is_literal keywords = is_keyword keywords orf is_command keywords;
 
 
-(* command kind *)
+(* command keywords *)
 
 fun lookup_command (Keywords {commands, ...}) = Symtab.lookup commands;
+
+fun command_markup keywords name =
+  lookup_command keywords name
+  |> Option.map (fn {pos, id, ...} =>
+      Markup.properties (Position.entity_properties_of false id pos)
+        (Markup.entity Markup.command_keywordN name));
 
 fun command_kind keywords = Option.map #kind o lookup_command keywords;
 

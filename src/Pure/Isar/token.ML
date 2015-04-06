@@ -46,7 +46,7 @@ sig
   val is_command: T -> bool
   val is_name: T -> bool
   val keyword_with: (string -> bool) -> T -> bool
-  val is_private: T -> bool
+  val is_command_modifier: T -> bool
   val ident_with: (string -> bool) -> T -> bool
   val is_proper: T -> bool
   val is_improper: T -> bool
@@ -247,7 +247,7 @@ val is_name = is_kind Ident orf is_kind Sym_Ident orf is_kind String orf is_kind
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;
 
-val is_private = keyword_with (fn x => x = "private");
+val is_command_modifier = keyword_with (fn x => x = "private" orelse x = "restricted");
 
 fun ident_with pred (Token (_, (Ident, x), _)) = pred x
   | ident_with _ _ = false;

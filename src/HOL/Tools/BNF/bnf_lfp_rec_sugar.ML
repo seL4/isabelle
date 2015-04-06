@@ -669,7 +669,7 @@ val rec_option_parser = Parse.group (K "option")
    || Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option
    || Parse.reserved "transfer" >> K Transfer_Option);
 
-val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
+val _ = Outer_Syntax.local_theory @{command_keyword primrec}
   "define primitive recursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
       --| @{keyword ")"}) []) --

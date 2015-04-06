@@ -525,6 +525,8 @@ fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
 val private_scope = map_naming o Name_Space.private_scope;
 val private = map_naming o Name_Space.private;
+val restricted_scope = map_naming o Name_Space.restricted_scope;
+val restricted = map_naming o Name_Space.restricted;
 val concealed = map_naming Name_Space.concealed;
 
 

@@ -97,9 +97,8 @@ struct
 
 (** theory context references **)
 
-val inductive_forall_def = @{thm induct_forall_def};
-val inductive_conj_name = "HOL.induct_conj";
-val inductive_conj_def = @{thm induct_conj_def};
+val inductive_forall_def = @{thm HOL.induct_forall_def};
+val inductive_conj_def = @{thm HOL.induct_conj_def};
 val inductive_conj = @{thms induct_conj};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
@@ -689,7 +688,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
                 val P = list_comb (nth preds i, map (incr_boundvars k) ys @ bs);
                 val Q =
                   fold_rev Term.abs (mk_names "x" k ~~ Ts)
-                    (HOLogic.mk_binop inductive_conj_name
+                    (HOLogic.mk_binop @{const_name HOL.induct_conj}
                       (list_comb (incr_boundvars k s, bs), P));
               in (Q, case Ts of [] => SOME (s, P) | _ => NONE) end
           | NONE =>
@@ -1171,25 +1170,25 @@ fun gen_ind_decl mk_def coind =
 val ind_decl = gen_ind_decl add_ind_def;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive"} "define inductive predicates"
+  Outer_Syntax.local_theory @{command_keyword inductive} "define inductive predicates"
     (ind_decl false);
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "coinductive"} "define coinductive predicates"
+  Outer_Syntax.local_theory @{command_keyword coinductive} "define coinductive predicates"
     (ind_decl true);
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive_cases"}
+  Outer_Syntax.local_theory @{command_keyword inductive_cases}
     "create simplified instances of elimination rules"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "inductive_simps"}
+  Outer_Syntax.local_theory @{command_keyword inductive_simps}
     "create simplification rules for inductive predicates"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
 
 val _ =
-  Outer_Syntax.command @{command_spec "print_inductives"}
+  Outer_Syntax.command @{command_keyword print_inductives}
     "print (co)inductive definitions and monotonicity rules"
     (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
       Toplevel.keep (print_inductives b o Toplevel.context_of)));

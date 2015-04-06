@@ -191,7 +191,7 @@ val _ =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "rep_datatype"} "represent existing set inductively"
+  Outer_Syntax.command @{command_keyword rep_datatype} "represent existing set inductively"
     ((@{keyword "elimination"} |-- Parse.!!! Parse.xthm) --
      (@{keyword "induction"} |-- Parse.!!! Parse.xthm) --
      (@{keyword "case_eqns"} |-- Parse.!!! Parse.xthms1) --

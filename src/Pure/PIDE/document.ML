@@ -125,8 +125,8 @@ fun read_header node span =
           NONE => I
         | SOME id => Protocol_Message.command_positions_yxml id)
         |> error;
-    val {name = (name, _), imports, keywords} = header;
-    val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
+    val {name = (name, _), imports, ...} = header;
+    val {name = (_, pos), imports = imports', keywords} = Thy_Header.read_tokens span;
   in Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
