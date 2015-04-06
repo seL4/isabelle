@@ -387,21 +387,21 @@ text {* Proper handling of non-atomic rule statements. *}
 context
 begin
 
-restricted definition "induct_forall(P) == \<forall>x. P(x)"
-restricted definition "induct_implies(A, B) == A \<longrightarrow> B"
-restricted definition "induct_equal(x, y) == x = y"
-restricted definition "induct_conj(A, B) == A \<and> B"
+restricted definition "induct_forall(P) \<equiv> \<forall>x. P(x)"
+restricted definition "induct_implies(A, B) \<equiv> A \<longrightarrow> B"
+restricted definition "induct_equal(x, y) \<equiv> x = y"
+restricted definition "induct_conj(A, B) \<equiv> A \<and> B"
 
-lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
+lemma induct_forall_eq: "(\<And>x. P(x)) \<equiv> Trueprop(induct_forall(\<lambda>x. P(x)))"
   unfolding atomize_all induct_forall_def .
 
-lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
+lemma induct_implies_eq: "(A \<Longrightarrow> B) \<equiv> Trueprop(induct_implies(A, B))"
   unfolding atomize_imp induct_implies_def .
 
-lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
+lemma induct_equal_eq: "(x \<equiv> y) \<equiv> Trueprop(induct_equal(x, y))"
   unfolding atomize_eq induct_equal_def .
 
-lemma induct_conj_eq: "(A &&& B) == Trueprop(induct_conj(A, B))"
+lemma induct_conj_eq: "(A &&& B) \<equiv> Trueprop(induct_conj(A, B))"
   unfolding atomize_conj induct_conj_def .
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
