@@ -162,7 +162,7 @@ fun mk_swap_rrule ctxt ct =
 
 val rearrange_eqs_simproc =
   Simplifier.simproc_global Pure.thy "rearrange_eqs" ["Pure.all t"]
-    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.global_cterm_of (Proof_Context.theory_of ctxt) t));
+    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.cterm_of ctxt t));
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)
@@ -515,7 +515,7 @@ end;
 
 (** induct method **)
 
-val conjunction_congs = [@{thm Pure.all_conjunction}, @{thm imp_conjunction}];
+val conjunction_congs = @{thms Pure.all_conjunction imp_conjunction};
 
 
 (* atomize *)
@@ -549,7 +549,7 @@ fun rulify_tac ctxt =
   rewrite_goal_tac ctxt (Induct_Args.rulify @ conjunction_congs) THEN'
   rewrite_goal_tac ctxt Induct_Args.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
-  (rewrite_goal_tac ctxt [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac ctxt);
+  (rewrite_goal_tac ctxt @{thms Pure.conjunction_imp} THEN' Goal.norm_hhf_tac ctxt);
 
 
 (* prepare rule *)

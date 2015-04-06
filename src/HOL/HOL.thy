@@ -1365,44 +1365,32 @@ lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
 subsubsection {* Generic cases and induction *}
 
 text {* Rule projections: *}
-
 ML {*
 structure Project_Rule = Project_Rule
 (
   val conjunct1 = @{thm conjunct1}
   val conjunct2 = @{thm conjunct2}
   val mp = @{thm mp}
-)
+);
 *}
 
-definition induct_forall where
-  "induct_forall P == \<forall>x. P x"
+definition "induct_forall P \<equiv> \<forall>x. P x"
+definition "induct_implies A B \<equiv> A \<longrightarrow> B"
+definition "induct_equal x y \<equiv> x = y"
+definition "induct_conj A B \<equiv> A \<and> B"
+definition "induct_true \<equiv> True"
+definition "induct_false \<equiv> False"
 
-definition induct_implies where
-  "induct_implies A B == A \<longrightarrow> B"
-
-definition induct_equal where
-  "induct_equal x y == x = y"
-
-definition induct_conj where
-  "induct_conj A B == A \<and> B"
-
-definition induct_true where
-  "induct_true == True"
-
-definition induct_false where
-  "induct_false == False"
-
-lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
+lemma induct_forall_eq: "(\<And>x. P x) \<equiv> Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
 
-lemma induct_implies_eq: "(A ==> B) == Trueprop (induct_implies A B)"
+lemma induct_implies_eq: "(A \<Longrightarrow> B) \<equiv> Trueprop (induct_implies A B)"
   by (unfold atomize_imp induct_implies_def)
 
-lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
+lemma induct_equal_eq: "(x \<equiv> y) \<equiv> Trueprop (induct_equal x y)"
   by (unfold atomize_eq induct_equal_def)
 
-lemma induct_conj_eq: "(A &&& B) == Trueprop (induct_conj A B)"
+lemma induct_conj_eq: "(A &&& B) \<equiv> Trueprop (induct_conj A B)"
   by (unfold atomize_conj induct_conj_def)
 
 lemmas induct_atomize' = induct_forall_eq induct_implies_eq induct_conj_eq
@@ -1413,7 +1401,6 @@ lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
   induct_true_def induct_false_def
 
-
 lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
     induct_conj (induct_forall A) (induct_forall B)"
   by (unfold induct_forall_def induct_conj_def) iprover
@@ -1422,13 +1409,15 @@ lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
     induct_conj (induct_implies C A) (induct_implies C B)"
   by (unfold induct_implies_def induct_conj_def) iprover
 
-lemma induct_conj_curry: "(induct_conj A B ==> PROP C) == (A ==> B ==> PROP C)"
+lemma induct_conj_curry: "(induct_conj A B \<Longrightarrow> PROP C) \<equiv> (A \<Longrightarrow> B \<Longrightarrow> PROP C)"
 proof
-  assume r: "induct_conj A B ==> PROP C" and A B
-  show "PROP C" by (rule r) (simp add: induct_conj_def `A` `B`)
+  assume r: "induct_conj A B \<Longrightarrow> PROP C"
+  assume ab: A B
+  show "PROP C" by (rule r) (simp add: induct_conj_def ab)
 next
-  assume r: "A ==> B ==> PROP C" and "induct_conj A B"
-  show "PROP C" by (rule r) (simp_all add: `induct_conj A B` [unfolded induct_conj_def])
+  assume r: "A \<Longrightarrow> B \<Longrightarrow> PROP C"
+  assume ab: "induct_conj A B"
+  show "PROP C" by (rule r) (simp_all add: ab [unfolded induct_conj_def])
 qed
 
 lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
@@ -1484,52 +1473,54 @@ setup {*
 
 text {* Pre-simplification of induction and cases rules *}
 
-lemma [induct_simp]: "(!!x. induct_equal x t ==> PROP P x) == PROP P t"
+lemma [induct_simp]: "(\<And>x. induct_equal x t \<Longrightarrow> PROP P x) \<equiv> PROP P t"
   unfolding induct_equal_def
 proof
-  assume R: "!!x. x = t ==> PROP P x"
-  show "PROP P t" by (rule R [OF refl])
+  assume r: "\<And>x. x = t \<Longrightarrow> PROP P x"
+  show "PROP P t" by (rule r [OF refl])
 next
-  fix x assume "PROP P t" "x = t"
+  fix x
+  assume "PROP P t" "x = t"
   then show "PROP P x" by simp
 qed
 
-lemma [induct_simp]: "(!!x. induct_equal t x ==> PROP P x) == PROP P t"
+lemma [induct_simp]: "(\<And>x. induct_equal t x \<Longrightarrow> PROP P x) \<equiv> PROP P t"
   unfolding induct_equal_def
 proof
-  assume R: "!!x. t = x ==> PROP P x"
-  show "PROP P t" by (rule R [OF refl])
+  assume r: "\<And>x. t = x \<Longrightarrow> PROP P x"
+  show "PROP P t" by (rule r [OF refl])
 next
-  fix x assume "PROP P t" "t = x"
+  fix x
+  assume "PROP P t" "t = x"
   then show "PROP P x" by simp
 qed
 
-lemma [induct_simp]: "(induct_false ==> P) == Trueprop induct_true"
+lemma [induct_simp]: "(induct_false \<Longrightarrow> P) \<equiv> Trueprop induct_true"
   unfolding induct_false_def induct_true_def
   by (iprover intro: equal_intr_rule)
 
-lemma [induct_simp]: "(induct_true ==> PROP P) == PROP P"
+lemma [induct_simp]: "(induct_true \<Longrightarrow> PROP P) \<equiv> PROP P"
   unfolding induct_true_def
 proof
-  assume R: "True \<Longrightarrow> PROP P"
-  from TrueI show "PROP P" by (rule R)
+  assume "True \<Longrightarrow> PROP P"
+  then show "PROP P" using TrueI .
 next
   assume "PROP P"
   then show "PROP P" .
 qed
 
-lemma [induct_simp]: "(PROP P ==> induct_true) == Trueprop induct_true"
+lemma [induct_simp]: "(PROP P \<Longrightarrow> induct_true) \<equiv> Trueprop induct_true"
   unfolding induct_true_def
   by (iprover intro: equal_intr_rule)
 
-lemma [induct_simp]: "(!!x. induct_true) == Trueprop induct_true"
+lemma [induct_simp]: "(\<And>x. induct_true) \<equiv> Trueprop induct_true"
   unfolding induct_true_def
   by (iprover intro: equal_intr_rule)
 
-lemma [induct_simp]: "induct_implies induct_true P == P"
+lemma [induct_simp]: "induct_implies induct_true P \<equiv> P"
   by (simp add: induct_implies_def induct_true_def)
 
-lemma [induct_simp]: "(x = x) = True"
+lemma [induct_simp]: "x = x \<longleftrightarrow> True"
   by (rule simp_thms)
 
 hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
