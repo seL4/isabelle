@@ -173,8 +173,8 @@ val _ =
 
 local
 
-fun hide_names command_spec what hide parse prep =
-  Outer_Syntax.command command_spec ("hide " ^ what ^ " from name space")
+fun hide_names command_keyword what hide parse prep =
+  Outer_Syntax.command command_keyword ("hide " ^ what ^ " from name space")
     ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 parse >> (fn (fully, args) =>
       (Toplevel.theory (fn thy =>
         let val ctxt = Proof_Context.init_global thy

@@ -115,6 +115,7 @@ sig
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
   val inputN: string val input: bool -> Properties.T -> T
+  val command_keywordN: string val command_keyword: T
   val commandN: string val command: T
   val stringN: string val string: T
   val alt_stringN: string val alt_string: T
@@ -464,6 +465,7 @@ fun input delimited props = (inputN, (delimitedN, print_bool delimited) :: props
 
 (* outer syntax *)
 
+val (command_keywordN, command_keyword) = markup_elem "command_keyword";
 val (commandN, command) = markup_elem "command";
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";

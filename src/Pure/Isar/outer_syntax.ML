@@ -8,16 +8,16 @@ signature OUTER_SYNTAX =
 sig
   val help: theory -> string list -> unit
   val print_commands: theory -> unit
-  type command_spec = string * Position.T
-  val command: command_spec -> string ->
+  type command_keyword = string * Position.T
+  val command: command_keyword -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val local_theory': command_spec -> string ->
+  val local_theory': command_keyword -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
-  val local_theory: command_spec -> string ->
+  val local_theory: command_keyword -> string ->
     (local_theory -> local_theory) parser -> unit
-  val local_theory_to_proof': command_spec -> string ->
+  val local_theory_to_proof': command_keyword -> string ->
     (bool -> local_theory -> Proof.state) parser -> unit
-  val local_theory_to_proof: command_spec -> string ->
+  val local_theory_to_proof: command_keyword -> string ->
     (local_theory -> Proof.state) parser -> unit
   val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_tokens: theory -> Token.T list -> Toplevel.transition list
@@ -134,7 +134,7 @@ val _ = Theory.setup (Theory.at_end (fn thy =>
 
 (* implicit theory setup *)
 
-type command_spec = string * Position.T;
+type command_keyword = string * Position.T;
 
 fun raw_command (name, pos) comment command_parser =
   let val setup = add_command name (new_command comment command_parser pos)
@@ -143,8 +143,8 @@ fun raw_command (name, pos) comment command_parser =
 fun command (name, pos) comment parse =
   raw_command (name, pos) comment (Parser parse);
 
-fun local_theory_command trans command_spec comment parse =
-  raw_command command_spec comment
+fun local_theory_command trans command_keyword comment parse =
+  raw_command command_keyword comment
     (Private_Parser (fn private =>
       Parse.opt_target -- parse >> (fn (target, f) => trans private target f)));
 

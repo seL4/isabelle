@@ -189,7 +189,7 @@ fun command_markup keywords name =
   lookup_command keywords name
   |> Option.map (fn {pos, id, ...} =>
       Markup.properties (Position.entity_properties_of false id pos)
-        (Markup.entity Markup.commandN name));
+        (Markup.entity Markup.command_keywordN name));
 
 fun command_kind keywords = Option.map #kind o lookup_command keywords;
 
