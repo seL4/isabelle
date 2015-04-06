@@ -6,7 +6,7 @@ Miscellaneous Isar commands.
 
 signature ISAR_CMD =
 sig
-  val global_setup: Input.source -> theory -> theory
+  val setup: Input.source -> theory -> theory
   val local_setup: Input.source -> Proof.context -> Proof.context
   val parse_ast_translation: Input.source -> theory -> theory
   val parse_translation: Input.source -> theory -> theory
@@ -57,7 +57,7 @@ struct
 
 (* generic setup *)
 
-fun global_setup source =
+fun setup source =
   ML_Lex.read_source false source
   |> ML_Context.expression (Input.range_of source) "setup" "theory -> theory"
     "Context.map_theory setup"

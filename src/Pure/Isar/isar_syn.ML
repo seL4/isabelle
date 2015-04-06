@@ -257,11 +257,11 @@ val _ =
     (Parse.ML_source >> Isar_Cmd.ml_diag false);
 
 val _ =
-  Outer_Syntax.command @{command_spec "setup"} "ML theory setup"
-    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.global_setup));
+  Outer_Syntax.command @{command_spec "setup"} "ML setup for global theory"
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.setup));
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "local_setup"} "ML local theory setup"
+  Outer_Syntax.local_theory @{command_spec "local_setup"} "ML setup for local theory"
     (Parse.ML_source >> Isar_Cmd.local_setup);
 
 val _ =
@@ -913,4 +913,3 @@ val _ =
         Toplevel.end_proof (K Proof.end_notepad)));
 
 end;
-
