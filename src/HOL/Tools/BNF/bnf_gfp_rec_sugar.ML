@@ -44,6 +44,8 @@ sig
      fp_nesting_map_comps: thm list,
      ctr_specs: corec_ctr_spec list}
 
+  val abs_tuple_balanced: term list -> term -> term
+
   val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
     term -> 'a -> 'a
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
@@ -157,6 +159,8 @@ type corec_spec =
    ctr_specs: corec_ctr_spec list};
 
 exception NO_MAP of term;
+
+val abs_tuple_balanced = HOLogic.tupled_lambda o mk_tuple_balanced;
 
 fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
 
@@ -561,8 +565,6 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
-
-val abs_tuple_balanced = HOLogic.tupled_lambda o mk_tuple_balanced;
 
 fun abstract vs =
   let
