@@ -302,6 +302,7 @@ argument. Minor INCOMPATIBILITY.
   - Renamed
       in_multiset_of ~> in_multiset_in_set
     INCOMPATIBILITY.
+  - Removed mcard, is equal to size.
   - Added attributes:
       image_mset.id [simp]
       image_mset_id [simp]

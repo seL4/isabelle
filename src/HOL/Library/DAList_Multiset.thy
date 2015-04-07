@@ -28,7 +28,7 @@ lemma [code, code del]: "Multiset.filter = Multiset.filter" ..
 
 lemma [code, code del]: "count = count" ..
 
-lemma [code, code del]: "mcard = mcard" ..
+lemma [code, code del]: "size = (size :: _ multiset \<Rightarrow> nat)" ..
 
 lemma [code, code del]: "msetsum = msetsum" ..
 
@@ -388,14 +388,14 @@ lemma msetprod_Bag[code]: "msetprod (Bag ms) = DAList_Multiset.fold (\<lambda>a 
   apply (auto simp: ac_simps)
   done
 
-lemma mcard_fold: "mcard A = Multiset.fold (\<lambda>_. Suc) 0 A" (is "_ = Multiset.fold ?f _ _")
+lemma size_fold: "size A = Multiset.fold (\<lambda>_. Suc) 0 A" (is "_ = Multiset.fold ?f _ _")
 proof -
   interpret comp_fun_commute ?f by default auto
   show ?thesis by (induct A) auto
 qed
 
-lemma mcard_Bag[code]: "mcard (Bag ms) = DAList_Multiset.fold (\<lambda>a n. op + n) 0 ms"
-  unfolding mcard_fold
+lemma size_Bag[code]: "size (Bag ms) = DAList_Multiset.fold (\<lambda>a n. op + n) 0 ms"
+  unfolding size_fold
 proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, simp)
   fix a n x
   show "n + x = (Suc ^^ n) x"
