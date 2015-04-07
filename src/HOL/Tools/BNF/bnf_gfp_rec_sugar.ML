@@ -315,12 +315,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t0 =
         (Type (@{type_name fun}, [T1, T2])) t =
         Abs (Name.uu, T1, massage_mutual_call bound_Ts U2 T2 (incr_boundvars 1 t $ Bound 0))
       | massage_mutual_call bound_Ts U T t =
-        if has_call t then
-          (case try dest_sumT U of
-            SOME (U1, U2) => if U1 = T then raw_massage_call bound_Ts T U2 t else invalid_map ctxt t
-          | NONE => invalid_map ctxt t)
-        else
-          build_map_Inl (T, U) $ t;
+        if has_call t then raw_massage_call bound_Ts T U t else build_map_Inl (T, U) $ t;
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -883,6 +878,7 @@ fun build_corec_args_mutual_call ctxt has_call (sel_eqns : coeqn_data_sel list) 
   | SOME {fun_args, rhs_term, ... } =>
     let
       val bound_Ts = List.rev (map fastype_of fun_args);
+
       fun rewrite_stop _ t = if has_call t then @{term False} else @{term True};
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
@@ -898,13 +894,18 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
     NONE => I
   | SOME {fun_args, rhs_term, ...} =>
     let
-      fun massage bound_Ts U T =
+      fun massage_leaf bound_Ts T U t0 =
         let
+          val U2 =
+            (case try dest_sumT U of
+              SOME (U1, U2) => if U1 = T then U2 else invalid_map ctxt t0
+            | NONE => invalid_map ctxt t0);
+
           fun rewrite bound_Ts (Abs (v, V, b)) = Abs (v, V, rewrite (V :: bound_Ts) b)
             | rewrite bound_Ts (t as _ $ _) =
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
-                  Inr_const U T $ mk_tuple1_balanced bound_Ts vs
+                  Inr_const T U2 $ mk_tuple1_balanced bound_Ts vs
                 else if try (fst o dest_Const) u = SOME @{const_name case_prod} then
                   map (rewrite bound_Ts) vs |> chop 1
                   |>> HOLogic.mk_split o the_single
@@ -913,16 +914,16 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
                   Term.list_comb (rewrite bound_Ts u, map (rewrite bound_Ts) vs)
               end
             | rewrite _ t =
-              if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
+              if is_Free t andalso has_call t then Inr_const T U2 $ HOLogic.unit else t;
           in
-            rewrite bound_Ts
+            rewrite bound_Ts t0
           end;
 
       val bound_Ts = List.rev (map fastype_of fun_args);
 
       fun build t =
         rhs_term
-        |> massage_nested_corec_call ctxt has_call massage bound_Ts (range_type (fastype_of t))
+        |> massage_nested_corec_call ctxt has_call massage_leaf bound_Ts (range_type (fastype_of t))
         |> abs_tuple_balanced fun_args;
     in
       build
