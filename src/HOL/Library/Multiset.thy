@@ -674,6 +674,20 @@ proof -
   then show ?thesis by blast
 qed
 
+lemma size_mset_mono: assumes "A \<le> B"
+  shows "size A \<le> size(B::_ multiset)"
+proof -
+  from assms[unfolded mset_le_exists_conv]
+  obtain C where B: "B = A + C" by auto
+  show ?thesis unfolding B by (induct C, auto)
+qed
+
+lemma size_filter_mset_lesseq[simp]: "size (Multiset.filter f M) \<le> size M"
+by (rule size_mset_mono[OF multiset_filter_subset])
+
+lemma size_Diff_submset:
+  "M \<le> M' \<Longrightarrow> size (M' - M) = size M' - size(M::'a multiset)"
+by (metis add_diff_cancel_left' size_union mset_le_exists_conv)
 
 subsection {* Induction and case splits *}
 
@@ -727,6 +741,9 @@ next
   then show ?case using T by simp
 qed
 
+
+lemma size_1_singleton_mset: "size M = 1 \<Longrightarrow> \<exists>a. M = {#a#}"
+by (cases M) auto
 
 subsubsection {* Strong induction and subset induction for multisets *}
 
@@ -1255,6 +1272,16 @@ lemma msetsum_diff:
   shows "N \<le> M \<Longrightarrow> msetsum (M - N) = msetsum M - msetsum N"
   by (metis add_diff_cancel_left' msetsum.union ordered_cancel_comm_monoid_diff_class.add_diff_inverse)
 
+lemma size_eq_msetsum: "size M = msetsum (image_mset (\<lambda>_. 1) M)"
+proof (induct M)
+  case empty then show ?case by simp
+next
+  case (add M x) then show ?case
+    by (cases "x \<in> set_of M")
+      (simp_all del: mem_set_of_iff add: size_multiset_overloaded_eq setsum.distrib setsum.delta' insert_absorb, simp)
+qed
+
+
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset" where
   "Union_mset MM \<equiv> msetsum MM"
 
@@ -1343,68 +1370,6 @@ proof -
 qed
 
 
-subsection {* Cardinality *}
-
-definition mcard :: "'a multiset \<Rightarrow> nat"
-where
-  "mcard = msetsum \<circ> image_mset (\<lambda>_. 1)"
-
-lemma mcard_empty [simp]:
-  "mcard {#} = 0"
-  by (simp add: mcard_def)
-
-lemma mcard_singleton [simp]:
-  "mcard {#a#} = Suc 0"
-  by (simp add: mcard_def)
-
-lemma mcard_plus [simp]:
-  "mcard (M + N) = mcard M + mcard N"
-  by (simp add: mcard_def)
-
-lemma mcard_empty_iff [simp]:
-  "mcard M = 0 \<longleftrightarrow> M = {#}"
-  by (induct M) simp_all
-
-lemma mcard_unfold_setsum:
-  "mcard M = setsum (count M) (set_of M)"
-proof (induct M)
-  case empty then show ?case by simp
-next
-  case (add M x) then show ?case
-    by (cases "x \<in> set_of M")
-      (simp_all del: mem_set_of_iff add: setsum.distrib setsum.delta' insert_absorb, simp)
-qed
-
-lemma size_eq_mcard:
-  "size = mcard"
-  by (simp add: fun_eq_iff size_multiset_overloaded_eq mcard_unfold_setsum)
-
-lemma mcard_multiset_of:
-  "mcard (multiset_of xs) = length xs"
-  by (induct xs) simp_all
-
-lemma mcard_mono: assumes "A \<le> B"
-  shows "mcard A \<le> mcard B"
-proof -
-  from assms[unfolded mset_le_exists_conv]
-  obtain C where B: "B = A + C" by auto
-  show ?thesis unfolding B by (induct C, auto)
-qed
-
-lemma mcard_filter_lesseq[simp]: "mcard (Multiset.filter f M) \<le> mcard M"
-  by (rule mcard_mono[OF multiset_filter_subset])
-
-lemma mcard_1_singleton:
-  assumes card: "mcard AA = 1"
-  shows "\<exists>A. AA = {#A#}"
-  using card by (cases AA) auto
-
-lemma mcard_Diff_subset:
-  assumes "M \<le> M'"
-  shows "mcard (M' - M) = mcard M' - mcard M"
-  by (metis add_diff_cancel_left' assms mcard_plus mset_le_exists_conv)
-
-
 subsection {* Replicate operation *}
 
 definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
@@ -1425,7 +1390,7 @@ lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then
 lemma set_of_replicate_mset_subset[simp]: "set_of (replicate_mset n x) = (if n = 0 then {} else {x})"
   by (auto split: if_splits)
 
-lemma mcard_replicate_mset[simp]: "mcard (replicate_mset n M) = n"
+lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
   by (induct n, simp_all)
 
 lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<le> M"
@@ -2200,7 +2165,7 @@ lemma [code]: -- {* not very efficient, but representation-ignorant! *}
   apply (simp_all add: add.commute)
   done
 
-declare mcard_multiset_of [code]
+declare size_multiset_of [code]
 
 fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where
   "ms_lesseq_impl [] ys = Some (ys \<noteq> [])"
@@ -2276,10 +2241,6 @@ proof -
     by (induct xs) (simp_all add: mult.assoc)
   then show ?thesis by simp
 qed
-
-lemma [code]:
-  "size = mcard"
-  by (fact size_eq_mcard)
 
 text {*
   Exercise for the casual reader: add implementations for @{const le_multiset}
@@ -2386,7 +2347,7 @@ next
   have xs': "xs' = take j xsa @ x # drop j xsa"
     using ms_x j_len nth_j Cons.prems xsa_def
     by (metis append_eq_append_conv append_take_drop_id diff_Suc_Suc Cons_nth_drop_Suc length_Cons
-      length_drop mcard_multiset_of)
+      length_drop size_multiset_of)
   have j_len': "j \<le> length xsa"
     using j_len xs' xsa_def
     by (metis add_Suc_right append_take_drop_id length_Cons length_append less_eq_Suc_le not_less)
@@ -2512,17 +2473,13 @@ proof-
 qed
 
 lemma rel_mset'_imp_rel_mset:
-"rel_mset' R M N \<Longrightarrow> rel_mset R M N"
+  "rel_mset' R M N \<Longrightarrow> rel_mset R M N"
 apply(induct rule: rel_mset'.induct)
 using rel_mset_Zero rel_mset_Plus by auto
 
-lemma mcard_image_mset[simp]: "mcard (image_mset f M) = mcard M"
-  unfolding size_eq_mcard[symmetric] by (rule size_image_mset)
-
-lemma rel_mset_mcard:
-  assumes "rel_mset R M N"
-  shows "mcard M = mcard N"
-using assms unfolding multiset.rel_compp_Grp Grp_def by auto
+lemma rel_mset_size:
+  "rel_mset R M N \<Longrightarrow> size M = size N"
+unfolding multiset.rel_compp_Grp Grp_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
 assumes empty: "P {#} {#}"
@@ -2534,12 +2491,12 @@ apply(induct N rule: multiset_induct)
   apply(induct M rule: multiset_induct, erule addR, erule addR)
 done
 
-lemma multiset_induct2_mcard[consumes 1, case_names empty add]:
-assumes c: "mcard M = mcard N"
+lemma multiset_induct2_size[consumes 1, case_names empty add]:
+assumes c: "size M = size N"
 and empty: "P {#} {#}"
 and add: "\<And>M N a b. P M N \<Longrightarrow> P (M + {#a#}) (N + {#b#})"
 shows "P M N"
-using c proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
+using c proof(induct M arbitrary: N rule: measure_induct_rule[of size])
   case (less M)  show ?case
   proof(cases "M = {#}")
     case True hence "N = {#}" using less.prems by auto
@@ -2548,7 +2505,7 @@ using c proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
     case False then obtain M1 a where M: "M = M1 + {#a#}" by (metis multi_nonempty_split)
     have "N \<noteq> {#}" using False less.prems by auto
     then obtain N1 b where N: "N = N1 + {#b#}" by (metis multi_nonempty_split)
-    have "mcard M1 = mcard N1" using less.prems unfolding M N by auto
+    have "size M1 = size N1" using less.prems unfolding M N by auto
     thus ?thesis using M N less.hyps add by auto
   qed
 qed
@@ -2615,9 +2572,9 @@ qed
 lemma rel_mset_imp_rel_mset':
 assumes "rel_mset R M N"
 shows "rel_mset' R M N"
-using assms proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
+using assms proof(induct M arbitrary: N rule: measure_induct_rule[of size])
   case (less M)
-  have c: "mcard M = mcard N" using rel_mset_mcard[OF less.prems] .
+  have c: "size M = size N" using rel_mset_size[OF less.prems] .
   show ?case
   proof(cases "M = {#}")
     case True hence "N = {#}" using c by simp
