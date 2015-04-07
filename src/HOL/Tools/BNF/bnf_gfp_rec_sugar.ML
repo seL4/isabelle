@@ -51,8 +51,8 @@ sig
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
     typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
-    (typ list -> typ -> typ -> term -> term) -> (typ -> typ -> term) -> typ list -> typ -> term ->
-    term
+    (typ list -> typ -> typ -> term -> term) -> (typ -> typ -> term -> term) -> typ list -> typ ->
+    term -> term
   val expand_to_ctr_term: Proof.context -> string -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
     typ list -> term -> term
@@ -314,7 +314,7 @@ fun massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts U
         (Type (@{type_name fun}, [T1, T2])) t =
         Abs (Name.uu, T1, massage_mutual_call bound_Ts U2 T2 (incr_boundvars 1 t $ Bound 0))
       | massage_mutual_call bound_Ts U T t =
-        if has_call t then massage_call bound_Ts T U t else wrap_noncall T U $ t;
+        if has_call t then massage_call bound_Ts T U t else wrap_noncall T U t;
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -383,11 +383,11 @@ fun massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts U
               | _ => massage_mutual_call bound_Ts U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
-          wrap_noncall T U $ t) bound_Ts;
+          wrap_noncall T U t) bound_Ts;
 
     val T = fastype_of1 (bound_Ts, t0);
   in
-    if has_call t0 then massage_any_call bound_Ts U T t0 else wrap_noncall T U $ t0
+    if has_call t0 then massage_any_call bound_Ts U T t0 else wrap_noncall T U t0
   end;
 
 fun expand_to_ctr_term ctxt s Ts t =
@@ -564,7 +564,7 @@ val undef_const = Const (@{const_name undefined}, dummyT);
 fun abstract vs =
   let
     fun abs n (t $ u) = abs n t $ abs n u
-      | abs n (Abs (v, T, b)) = Abs (v, T, abs (n + 1) b)
+      | abs n (Abs (s, T, t)) = Abs (s, T, abs (n + 1) t)
       | abs n t =
         let val j = find_index (curry (op =) t) vs in
           if j < 0 then t else Bound (n + j)
@@ -603,16 +603,16 @@ datatype coeqn_data =
   Disc of coeqn_data_disc |
   Sel of coeqn_data_sel;
 
-fun is_free_in frees (Free (v, _)) = member (op =) frees v
+fun is_free_in frees (Free (s, _)) = member (op =) frees s
   | is_free_in _ _ = false;
 
-fun is_catch_all_prem (Free (v, _)) = v = Name.uu_
+fun is_catch_all_prem (Free (s, _)) = s = Name.uu_
   | is_catch_all_prem _ = false;
 
 fun add_extra_frees ctxt frees names =
-  fold_aterms (fn x as Free (v, _) =>
-    (not (member (op =) frees x) andalso not (member (op =) names v) andalso
-     not (Variable.is_fixed ctxt v) andalso not (is_catch_all_prem x))
+  fold_aterms (fn x as Free (s, _) =>
+    (not (member (op =) frees x) andalso not (member (op =) names s) andalso
+     not (Variable.is_fixed ctxt s) andalso not (is_catch_all_prem x))
     ? cons x | _ => I);
 
 fun check_extra_frees ctxt frees names t =
@@ -901,7 +901,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
               SOME (U1, U2) => if U1 = T then U2 else invalid_map ctxt t0
             | NONE => invalid_map ctxt t0);
 
-          fun rewrite bound_Ts (Abs (v, V, b)) = Abs (v, V, rewrite (V :: bound_Ts) b)
+          fun rewrite bound_Ts (Abs (s, T', t')) = Abs (s, T', rewrite (T' :: bound_Ts) t')
             | rewrite bound_Ts (t as _ $ _) =
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
@@ -919,7 +919,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
             rewrite bound_Ts t0
           end;
 
-      fun wrap_noncall T U = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U);
+      fun wrap_noncall T U t = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
 
       val bound_Ts = List.rev (map fastype_of fun_args);
 

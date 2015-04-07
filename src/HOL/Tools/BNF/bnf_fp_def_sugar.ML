@@ -1974,7 +1974,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           let
             fun add_edges i =
               fold (fn T => fold_index (fn (j, X) =>
-                exists_subtype (curry (op =) X) T ? cons (i, j)) Xs);
+                Term.exists_subtype (curry (op =) X) T ? cons (i, j)) Xs);
           in
             fold_index (uncurry (fold o add_edges)) ctrXs_Tsss []
           end;
