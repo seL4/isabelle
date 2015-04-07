@@ -8,6 +8,9 @@ theory AList
 imports Main
 begin
 
+context
+begin
+
 text {*
   The operations preserve distinctness of keys and
   function @{term "clearjunk"} distributes over them. Since
@@ -17,7 +20,7 @@ text {*
 
 subsection {* @{text update} and @{text updates} *}
 
-primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
   "update k v [] = [(k, v)]"
 | "update k v (p # ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
@@ -83,7 +86,8 @@ lemma image_update [simp]:
   "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
   by (simp add: update_conv')
 
-definition updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted definition
+    updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "updates ks vs = fold (case_prod update) (zip ks vs)"
 
 lemma updates_simps [simp]:
@@ -161,7 +165,7 @@ lemma updates_append2_drop [simp]:
 
 subsection {* @{text delete} *}
 
-definition delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted definition delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where delete_eq: "delete k = filter (\<lambda>(k', _). k \<noteq> k')"
 
 lemma delete_simps [simp]:
@@ -213,7 +217,7 @@ lemma length_delete_le: "length (delete k al) \<le> length al"
 
 subsection {* @{text restrict} *}
 
-definition restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted definition restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where restrict_eq: "restrict A = filter (\<lambda>(k, v). k \<in> A)"
 
 lemma restr_simps [simp]:
@@ -297,7 +301,7 @@ lemma restr_delete_twist: "(restrict A (delete a ps)) = delete a (restrict A ps)
 
 subsection {* @{text clearjunk} *}
 
-function clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted function clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
   "clearjunk [] = []"
 | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
@@ -407,7 +411,7 @@ lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
 
 subsection {* @{text merge} *}
 
-definition merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted definition merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "merge qs ps = foldr (\<lambda>(k, v). update k v) ps qs"
 
 lemma merge_simps [simp]:
@@ -475,7 +479,7 @@ lemma merge_append: "map_of (xs @ ys) = map_of (merge ys xs)"
 
 subsection {* @{text compose} *}
 
-function compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
+restricted function compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
 where
   "compose [] ys = []"
 | "compose (x # xs) ys =
@@ -640,7 +644,7 @@ lemma map_comp_None_iff:
 
 subsection {* @{text map_entry} *}
 
-fun map_entry :: "'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+restricted fun map_entry :: "'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
   "map_entry k f [] = []"
 | "map_entry k f (p # ps) =
@@ -681,6 +685,6 @@ lemma distinct_map_default:
   shows "distinct (map fst (map_default k v f xs))"
   using assms by (induct xs) (auto simp add: dom_map_default)
 
-hide_const (open) update updates delete restrict clearjunk merge compose map_entry
+end
 
 end
