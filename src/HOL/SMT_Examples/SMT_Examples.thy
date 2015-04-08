@@ -323,11 +323,6 @@ lemma
   shows "x + x \<noteq> (let P = (abs x > 1) in if P \<or> \<not> P then 4 else 2) * x"
   using assms [[z3_extensions]] by smt
 
-lemma
-  assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"
-  shows "n mod 2 = 1 \<and> m mod 2 = (1::int)"
-  using assms [[z3_extensions]] by smt
-
 
 subsection {* Linear arithmetic with quantifiers *}
 
