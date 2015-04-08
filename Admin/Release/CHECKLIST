@@ -18,8 +18,6 @@ Checklist for official releases
 - check sources:
     isabelle java isabelle.Check_Source '~~' '$AFP_BASE'
 
-- run isabelle update_keywords;
-
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
 - check funny base directory, e.g. "Test 中国";
@@ -54,7 +52,11 @@ Checklist for official releases
 
 - Mac OS X: check app bundle with Retina display;
 
+- Mac OS X: check recent MacTeX;
+
 - Windows: check dpi scaling with high-definition display;
+
+- Windows: check recent MiKTeX;
 
 
 Repository fork
@@ -90,4 +92,3 @@ Post-release
 ============
 
 - update /home/isabelle and /home/isabelle/html-data
-

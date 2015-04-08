@@ -6,21 +6,24 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII, and Dmitriy Traytel, TUM
+* March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII,
+  and Dmitriy Traytel, TUM
   More multiset theorems, syntax, and operations.
 
-* December 2014: Johannes Hölzl, Manuel Eberl, Sudeep Kanav, TUM and Jeremy Avigad, Luke Serafin, CMU
-  Various integration theorems: mostly integration on intervals and substitution.
+* December 2014: Johannes Hölzl, Manuel Eberl, Sudeep Kanav, TUM, and
+  Jeremy Avigad, Luke Serafin, CMU
+  Various integration theorems: mostly integration on intervals and
+  substitution.
 
 * September 2014: Florian Haftmann, TUM
   Lexicographic order on functions and
   sum/product over function bodies.
 
 * August 2014: Andreas Lochbihler, ETH Zurich
-  Test infrastructure for executing generated code in target langauges
+  Test infrastructure for executing generated code in target languages.
 
 * August 2014: Manuel Eberl, TUM
-  Generic euclidean algorithms for gcd et al.
+  Generic euclidean algorithms for GCD et al.
 
 
 Contributions to Isabelle2014
