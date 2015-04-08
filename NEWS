@@ -293,6 +293,8 @@ Minor INCOMPATIBILITY.
 * Sledgehammer:
   - CVC4 is now included with Isabelle instead of CVC3 and run by
     default.
+  - Z3 is now always enabled by default, now that it is fully open
+    source. The "z3_non_commercial" option is discontinued.
   - Minimization is now always enabled by default.
     Removed subcommand:
       min
