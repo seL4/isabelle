@@ -68,6 +68,8 @@ sig
   val forall_intr_frees: thm -> thm
   val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
+  val rename_params_rule: string list * int -> thm -> thm
+  val rename_boundvars: term -> term -> thm -> thm
   val add_axiom: Proof.context -> binding * term -> theory -> (string * thm) * theory
   val add_axiom_global: binding * term -> theory -> (string * thm) * theory
   val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> (string * thm) * theory
@@ -390,6 +392,38 @@ fun unvarify_global th =
 fun close_derivation thm =
   if Thm.derivation_name thm = "" then Thm.name_derivation "" thm
   else thm;
+
+
+(* user renaming of parameters in a subgoal *)
+
+(*The names, if distinct, are used for the innermost parameters of subgoal i;
+  preceding parameters may be renamed to make all parameters distinct.*)
+fun rename_params_rule (names, i) st =
+  let
+    val (_, Bs, Bi, C) = Thm.dest_state (st, i);
+    val params = map #1 (Logic.strip_params Bi);
+    val short = length params - length names;
+    val names' =
+      if short < 0 then error "More names than parameters in subgoal!"
+      else Name.variant_list names (take short params) @ names;
+    val free_names = Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) Bi [];
+    val Bi' = Logic.list_rename_params names' Bi;
+  in
+    (case duplicates (op =) names of
+      a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); st)
+    | [] =>
+      (case inter (op =) names free_names of
+        a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); st)
+      | [] => Thm.renamed_prop (Logic.list_implies (Bs @ [Bi'], C)) st))
+  end;
+
+
+(* preservation of bound variable names *)
+
+fun rename_boundvars pat obj th =
+  (case Term.rename_abs pat obj (Thm.prop_of th) of
+    NONE => th
+  | SOME prop' => Thm.renamed_prop prop' th);
 
 
 
