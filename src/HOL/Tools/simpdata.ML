@@ -147,7 +147,7 @@ val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
 structure Splitter = Splitter
 (
-  val thy = @{theory}
+  val context = @{context}
   val mk_eq = mk_eq
   val meta_eq_to_iff = @{thm meta_eq_to_obj_eq}
   val iffD = @{thm iffD2}

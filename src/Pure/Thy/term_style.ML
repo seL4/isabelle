@@ -49,8 +49,7 @@ val parse = Args.context :|-- (fn ctxt => Scan.lift
 
 fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
   let
-    val concl =
-      Object_Logic.drop_judgment (Proof_Context.theory_of ctxt) (Logic.strip_imp_concl t)
+    val concl = Object_Logic.drop_judgment ctxt (Logic.strip_imp_concl t);
   in
     (case concl of
       _ $ l $ r => proj (l, r)

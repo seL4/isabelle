@@ -188,14 +188,12 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
 
 fun mk_ind_goal ctxt branches =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     fun brnch (SchemeBranch { P, xs, ws, Cs, ... }) =
       HOLogic.mk_Trueprop (list_comb (P, map Free xs))
       |> fold_rev (curry Logic.mk_implies) Cs
       |> fold_rev (Logic.all o Free) ws
       |> term_conv ctxt (ind_atomize ctxt)
-      |> Object_Logic.drop_judgment thy
+      |> Object_Logic.drop_judgment ctxt
       |> HOLogic.tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
   in
     Sum_Tree.mk_sumcases HOLogic.boolT (map brnch branches)

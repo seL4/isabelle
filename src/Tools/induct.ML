@@ -59,11 +59,11 @@ sig
   val arbitrary_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
   val add_defs: (binding option * (term * bool)) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
-  val atomize_term: theory -> term -> term
+  val atomize_term: Proof.context -> term -> term
   val atomize_cterm: Proof.context -> conv
   val atomize_tac: Proof.context -> int -> tactic
   val inner_atomize_tac: Proof.context -> int -> tactic
-  val rulified_term: thm -> theory * term
+  val rulified_term: Proof.context -> thm -> term
   val rulify_tac: Proof.context -> int -> tactic
   val simplified_rule: Proof.context -> thm -> thm
   val simplify_tac: Proof.context -> int -> tactic
@@ -75,7 +75,7 @@ sig
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
   type case_data = (((string * string list) * string list) list * int) (* FIXME -> rule_cases.ML *)
-  val gen_induct_tac: (theory -> case_data * thm -> case_data * thm) ->
+  val gen_induct_tac: (case_data * thm -> case_data * thm) ->
     Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
@@ -137,14 +137,12 @@ fun swap_prems_conv 0 = Conv.all_conv
       Conv.implies_concl_conv (swap_prems_conv (i - 1)) then_conv
       Conv.rewr_conv Drule.swap_prems_eq
 
-fun drop_judgment ctxt = Object_Logic.drop_judgment (Proof_Context.theory_of ctxt);
-
 fun find_eq ctxt t =
   let
     val l = length (Logic.strip_params t);
     val Hs = Logic.strip_assums_hyp t;
     fun find (i, t) =
-      (case Induct_Args.dest_def (drop_judgment ctxt t) of
+      (case Induct_Args.dest_def (Object_Logic.drop_judgment ctxt t) of
         SOME (Bound j, _) => SOME (i, j)
       | SOME (_, Bound j) => SOME (i, j)
       | _ => NONE);
@@ -167,11 +165,11 @@ val rearrange_eqs_simproc =
 
 (* rotate k premises to the left by j, skipping over first j premises *)
 
-fun rotate_conv 0 j 0 = Conv.all_conv
+fun rotate_conv 0 _ 0 = Conv.all_conv
   | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k - 1)
   | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i - 1) j k);
 
-fun rotate_tac j 0 = K all_tac
+fun rotate_tac _ 0 = K all_tac
   | rotate_tac j k = SUBGOAL (fn (goal, i) =>
       CONVERSION (rotate_conv
         j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
@@ -181,7 +179,7 @@ fun rotate_tac j 0 = K all_tac
 
 fun rulify_defs_conv ctxt ct =
   if exists_subterm (is_some o Induct_Args.dest_def) (Thm.term_of ct) andalso
-    not (is_some (Induct_Args.dest_def (drop_judgment ctxt (Thm.term_of ct))))
+    not (is_some (Induct_Args.dest_def (Object_Logic.drop_judgment ctxt (Thm.term_of ct))))
   then
     (Conv.forall_conv (rulify_defs_conv o snd) ctxt else_conv
      Conv.implies_conv (Conv.try_conv (rulify_defs_conv ctxt))
@@ -502,8 +500,8 @@ fun cases_tac ctxt simp insts opt_rule facts =
           val rule' = rule
             |> simp ? (simplified_rule' ctxt #> unmark_constraints ctxt);
         in
-          CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt,
-              Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
+          CASES (Rule_Cases.make_common ctxt
+              (Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             ((Method.insert_tac more_facts THEN' resolve_tac ctxt [rule'] THEN_ALL_NEW
                 (if simp then TRY o trivial_tac ctxt else K all_tac)) i) st
         end)
@@ -520,9 +518,9 @@ val conjunction_congs = @{thms Pure.all_conjunction imp_conjunction};
 
 (* atomize *)
 
-fun atomize_term thy =
-  Raw_Simplifier.rewrite_term thy Induct_Args.atomize []
-  #> Object_Logic.drop_judgment thy;
+fun atomize_term ctxt =
+  Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctxt) Induct_Args.atomize []
+  #> Object_Logic.drop_judgment ctxt;
 
 fun atomize_cterm ctxt = Raw_Simplifier.rewrite ctxt true Induct_Args.atomize;
 
@@ -538,12 +536,11 @@ fun rulify_term thy =
   Raw_Simplifier.rewrite_term thy (Induct_Args.rulify @ conjunction_congs) [] #>
   Raw_Simplifier.rewrite_term thy Induct_Args.rulify_fallback [];
 
-fun rulified_term thm =
+fun rulified_term ctxt thm =
   let
-    val thy = Thm.theory_of_thm thm;
-    val rulify = rulify_term thy;
+    val rulify = rulify_term (Proof_Context.theory_of ctxt);
     val (As, B) = Logic.strip_horn (Thm.prop_of thm);
-  in (thy, Logic.list_implies (map rulify As, rulify B)) end;
+  in Logic.list_implies (map rulify As, rulify B) end;
 
 fun rulify_tac ctxt =
   rewrite_goal_tac ctxt (Induct_Args.rulify @ conjunction_congs) THEN'
@@ -606,7 +603,7 @@ end;
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
       let
         val x = Name.clean (Variable.revert_fixed ctxt z);
-        fun index i [] = []
+        fun index _ [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
               else y :: index i ys;
@@ -734,10 +731,8 @@ fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of f
 type case_data = (((string * string list) * string list) list * int);
 
 fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
-  SUBGOAL_CASES (fn (_, i, st) =>
+  SUBGOAL_CASES (fn (_, i) =>
     let
-      val thy = Proof_Context.theory_of ctxt;
-
       val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
       val atomized_defs = map (map (Conv.fconv_rule (atomize_cterm defs_ctxt))) defs;
 
@@ -745,9 +740,9 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
         (if null insts then `Rule_Cases.get r
          else (align_left "Rule has fewer conclusions than arguments given"
             (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
-          |> maps (prep_inst ctxt align_right (atomize_term thy))
+          |> maps (prep_inst ctxt align_right (atomize_term ctxt))
           |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r))
-        |> mod_cases thy
+        |> mod_cases
         |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
       val ruleq =
@@ -766,7 +761,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
           val rule'' = rule' |> simp ? simplified_rule ctxt;
           val nonames = map (fn ((cn, _), cls) => ((cn, []), cls));
           val cases' = if Thm.eq_thm_prop (rule', rule'') then cases else nonames cases;
-        in Rule_Cases.make_nested (Thm.prop_of rule'') (rulified_term rule'') cases' end;
+        in Rule_Cases.make_nested ctxt (Thm.prop_of rule'') (rulified_term ctxt rule'') cases' end;
     in
       fn st =>
         ruleq
@@ -800,7 +795,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
         ((if simp then simplify_tac ctxt THEN' (TRY o trivial_tac ctxt) else K all_tac)
          THEN_ALL_NEW rulify_tac ctxt);
 
-val induct_tac = gen_induct_tac (K I);
+val induct_tac = gen_induct_tac I;
 
 
 
@@ -825,30 +820,27 @@ fun main_prop_of th =
 
 in
 
-fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i, st) =>
+fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i) =>
   let
     fun inst_rule r =
       if null inst then `Rule_Cases.get r
       else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
         |> pair (Rule_Cases.get r);
-
-    fun ruleq goal =
+  in
+    fn st =>
       (case opt_rule of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
           (get_coinductP ctxt goal @ get_coinductT ctxt inst)
           |> tap (trace_rules ctxt coinductN)
-          |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
-  in
-    fn st =>
-      ruleq goal
+          |> Seq.of_list |> Seq.maps (Seq.try inst_rule))
       |> Seq.maps (Rule_Cases.consume ctxt [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         guess_instance ctxt rule i st
         |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
-          CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt,
-              Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
+          CASES (Rule_Cases.make_common ctxt
+              (Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             (Method.insert_tac more_facts i THEN resolve_tac ctxt [rule'] i) st))
   end);
 

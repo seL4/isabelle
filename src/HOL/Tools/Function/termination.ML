@@ -32,8 +32,6 @@ sig
   val decompose_tac : Proof.context -> ttac
 end
 
-
-
 structure Termination : TERMINATION =
 struct
 
@@ -275,14 +273,13 @@ in
 
 fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
   let
-    val thy = Proof_Context.theory_of ctxt
     val ((_ $ (_ $ rel)) :: ineqs) = Thm.prems_of st
 
     fun mk_compr ineq =
       let
         val (vars, prems, lhs, rhs) = dest_term ineq
       in
-        mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (Object_Logic.atomize_term thy) prems)
+        mk_pair_compr (fastype_of lhs, vars, lhs, rhs, map (Object_Logic.atomize_term ctxt) prems)
       end
 
     val relation =
@@ -359,6 +356,5 @@ fun decompose_tac ctxt D = CALLS (fn (cs, i) =>
     if length sccs > 1 then split sccs i
     else solve_trivial_tac D i
   end)
-
 
 end

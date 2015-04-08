@@ -321,7 +321,7 @@ fun is_executable_term thy t =
           Config.put Quickcheck.finite_types true #>
           Config.put Quickcheck.finite_type_size 1 #>
           Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
-        (false, false) [])) (map (rpair [] o Object_Logic.atomize_term thy)
+        (false, false) [])) (map (rpair [] o Object_Logic.atomize_term ctxt)
         (fst (Variable.import_terms true [t] ctxt)))
   end
 

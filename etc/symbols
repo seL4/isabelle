@@ -347,6 +347,7 @@
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
 \<some>                 code: 0x0003f5
+\<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
@@ -358,4 +359,3 @@
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
 \<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
-

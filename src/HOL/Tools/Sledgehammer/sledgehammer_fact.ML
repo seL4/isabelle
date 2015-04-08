@@ -428,10 +428,9 @@ fun external_frees t =
 fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
   if Config.get ctxt instantiate_inducts then
     let
-      val thy = Proof_Context.theory_of ctxt
       val ind_stmt =
         (hyp_ts |> filter_out (null o external_frees), concl_t)
-        |> Logic.list_implies |> Object_Logic.atomize_term thy
+        |> Logic.list_implies |> Object_Logic.atomize_term ctxt
       val ind_stmt_xs = external_frees ind_stmt
     in
       maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)

@@ -31,6 +31,7 @@ session "HOL-Library" (main) in Library = HOL +
   *}
   theories
     Library
+    Rewrite
     (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order

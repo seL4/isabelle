@@ -677,13 +677,13 @@ fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
 fun refute ctxt tm =
  if tm aconvc false_tm then assume_Trueprop tm else
  ((let
-   val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims (assume_Trueprop tm))
+   val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims ctxt (assume_Trueprop tm))
    val  nths = filter (is_eq o Thm.dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
   in
    if null eths then
     let
-      val th1 = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
+      val th1 = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr ctxt th1 th2)) nths
       val th2 =
         Conv.fconv_rule
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
@@ -703,13 +703,13 @@ fun refute ctxt tm =
       end
      else
       let
-       val nth = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
+       val nth = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr ctxt th1 th2)) nths
        val (vars,pol::pols) =
           grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 =
         Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) nth
-       val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr th1) neq_01
+       val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr ctxt th1) neq_01
       in (vars,l,cert,th2)
       end)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c >/ rat_0) p)) cert
@@ -724,7 +724,7 @@ fun refute ctxt tm =
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
-    val th3 = HOLogic.conj_intr(mk_add (Thm.symmetric th1) th2 |> mk_object_eq) noteqth
+    val th3 = HOLogic.conj_intr ctxt (mk_add (Thm.symmetric th1) th2 |> mk_object_eq) noteqth
     val th4 =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
@@ -931,7 +931,7 @@ fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac ctxt
   THEN' presimplify ctxt add_ths del_ths
   THEN' CSUBGOAL (fn (p, i) =>
-    rtac (let val form = Object_Logic.dest_judgment p
+    rtac (let val form = Object_Logic.dest_judgment ctxt p
           in case get_ring_ideal_convs ctxt form of
            NONE => Thm.reflexive form
           | SOME thy => #ring_conv thy ctxt form

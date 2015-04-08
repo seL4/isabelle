@@ -34,6 +34,7 @@ sig
   val maxidx_of_cterm: cterm -> int
   val global_cterm_of: theory -> term -> cterm
   val cterm_of: Proof.context -> term -> cterm
+  val renamed_term: term -> cterm -> cterm
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
   val dest_arg: cterm -> cterm
@@ -81,6 +82,7 @@ sig
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
   val transfer: theory -> thm -> thm
+  val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
@@ -125,14 +127,13 @@ sig
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
+  val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
   val assumption: Proof.context option -> int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
   val rotate_rule: int -> int -> thm -> thm
   val permute_prems: int -> int -> thm -> thm
-  val rename_params_rule: string list * int -> thm -> thm
-  val rename_boundvars: term -> term -> thm -> thm
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
@@ -194,6 +195,10 @@ fun global_cterm_of thy tm =
   in Cterm {thy = thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
 val cterm_of = global_cterm_of o Proof_Context.theory_of;
+
+fun renamed_term t' (Cterm {thy, t, T, maxidx, sorts}) =
+  if t aconv t' then Cterm {thy = thy, t = t', T = T, maxidx = maxidx, sorts = sorts}
+  else raise TERM ("renamed_term: terms disagree", [t, t']);
 
 fun merge_thys0 (Cterm {thy = thy1, ...}) (Cterm {thy = thy2, ...}) =
   Theory.merge (thy1, thy2);
@@ -415,6 +420,13 @@ fun transfer thy' thm =
         tpairs = tpairs,
         prop = prop})
   end;
+
+(*implicit alpha-conversion*)
+fun renamed_prop prop' (Thm (der, {thy, tags, maxidx, shyps, hyps, tpairs, prop})) =
+  if prop aconv prop' then
+    Thm (der, {thy = thy, tags = tags, maxidx = maxidx, shyps = shyps,
+      hyps = hyps, tpairs = tpairs, prop = prop'})
+  else raise TERM ("renamed_prop: props disagree", [prop, prop']);
 
 fun make_context NONE thy = Context.Theory thy
   | make_context (SOME ctxt) thy =
@@ -1424,56 +1436,6 @@ fun permute_prems j k rl =
       tpairs = tpairs,
       prop = prop'})
   end;
-
-
-(** User renaming of parameters in a subgoal **)
-
-(*Calls error rather than raising an exception because it is intended
-  for top-level use -- exception handling would not make sense here.
-  The names in cs, if distinct, are used for the innermost parameters;
-  preceding parameters may be renamed to make all params distinct.*)
-fun rename_params_rule (cs, i) state =
-  let
-    val Thm (der, {thy, tags, maxidx, shyps, hyps, ...}) = state;
-    val (tpairs, Bs, Bi, C) = dest_state (state, i);
-    val iparams = map #1 (Logic.strip_params Bi);
-    val short = length iparams - length cs;
-    val newnames =
-      if short < 0 then error "More names than abstractions!"
-      else Name.variant_list cs (take short iparams) @ cs;
-    val freenames = Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) Bi [];
-    val newBi = Logic.list_rename_params newnames Bi;
-  in
-    (case duplicates (op =) cs of
-      a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); state)
-    | [] =>
-      (case inter (op =) cs freenames of
-        a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); state)
-      | [] =>
-        Thm (der,
-         {thy = thy,
-          tags = tags,
-          maxidx = maxidx,
-          shyps = shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = Logic.list_implies (Bs @ [newBi], C)})))
-  end;
-
-
-(*** Preservation of bound variable names ***)
-
-fun rename_boundvars pat obj (thm as Thm (der, {thy, tags, maxidx, shyps, hyps, tpairs, prop})) =
-  (case Term.rename_abs pat obj prop of
-    NONE => thm
-  | SOME prop' => Thm (der,
-      {thy = thy,
-       tags = tags,
-       maxidx = maxidx,
-       hyps = hyps,
-       shyps = shyps,
-       tpairs = tpairs,
-       prop = prop'}));
 
 
 (* strip_apply f B A strips off all assumptions/parameters from A

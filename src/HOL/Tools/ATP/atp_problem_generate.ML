@@ -1243,10 +1243,9 @@ fun freeze_term t =
 
 fun presimp_prop ctxt type_enc t =
   let
-    val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_prop
-              |> Object_Logic.atomize_term thy
+              |> Object_Logic.atomize_term ctxt
     val need_trueprop = (fastype_of t = @{typ bool})
     val is_ho = is_type_enc_higher_order type_enc
   in

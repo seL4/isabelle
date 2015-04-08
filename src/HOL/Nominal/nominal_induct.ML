@@ -93,7 +93,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
 
     fun rule_cases ctxt r =
       let val r' = if simp then Induct.simplified_rule ctxt r else r
-      in Rule_Cases.make_nested (Thm.prop_of r') (Induct.rulified_term r') end;
+      in Rule_Cases.make_nested ctxt (Thm.prop_of r') (Induct.rulified_term ctxt r') end;
   in
     (fn i => fn st =>
       rules

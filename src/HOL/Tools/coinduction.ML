@@ -37,7 +37,7 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
 
-fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _, _) =>
+fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _) =>
   let
     val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
     fun find_coinduct t =
@@ -98,9 +98,9 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
                DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
                  (case prems of
                    [] => all_tac
-                 | inv::case_prems =>
+                 | inv :: case_prems =>
                      let
-                       val (init, last) = funpow_yield (p + e - 1) HOLogic.conj_elim inv;
+                       val (init, last) = funpow_yield (p + e - 1) (HOLogic.conj_elim ctxt) inv;
                        val inv_thms = init @ [last];
                        val eqs = take e inv_thms;
                        fun is_local_var t =
@@ -115,7 +115,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
         end) ctxt) THEN'
       K (prune_params_tac ctxt))
     #> Seq.maps (fn st =>
-      CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, Thm.prop_of st) cases) all_tac st)
+      CASES (Rule_Cases.make_common ctxt (Thm.prop_of st) cases) all_tac st)
   end));
 
 local

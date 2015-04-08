@@ -89,7 +89,7 @@ fun map_criteria f {goal, limit, rem_dups, criteria} =
 
 (* matching theorems *)
 
-fun is_nontrivial thy = Term.is_Const o Term.head_of o Object_Logic.drop_judgment thy;
+fun is_nontrivial ctxt = Term.is_Const o Term.head_of o Object_Logic.drop_judgment ctxt;
 
 (*extract terms from term_src, refine them to the parts that concern us,
   if po try match them against obj else vice versa.
@@ -100,7 +100,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
     val thy = Proof_Context.theory_of ctxt;
 
     fun matches pat =
-      is_nontrivial thy pat andalso
+      is_nontrivial ctxt pat andalso
       Pattern.matches thy (if po then (pat, obj) else (obj, pat));
 
     fun subst_size pat =
@@ -171,8 +171,7 @@ fun filter_elim ctxt goal (_, thm) =
     in
       (*elim rules always have assumptions, so an elim with one
         assumption is as good as an intro rule with none*)
-      if is_nontrivial (Proof_Context.theory_of ctxt) (Thm.major_prem_of thm)
-          andalso not (null successful) then
+      if is_nontrivial ctxt (Thm.major_prem_of thm) andalso not (null successful) then
         SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm - 1, foldl1 Int.min successful)
       else NONE
     end

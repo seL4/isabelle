@@ -406,9 +406,8 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
-fun goal_cases st =
-  Rule_Cases.make_common
-    (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
+fun goal_cases ctxt st =
+  Rule_Cases.make_common ctxt (Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
 fun apply_method text ctxt state =
   #2 (#2 (find_goal state)) |> (fn {statement, using, goal, before_qed, after_qed} =>
@@ -416,7 +415,7 @@ fun apply_method text ctxt state =
     |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
-          (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
+          (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases ctxt goal') #>
            Proof_Context.update_cases true meth_cases)
           (K (statement, using, goal', before_qed, after_qed)) I));
 

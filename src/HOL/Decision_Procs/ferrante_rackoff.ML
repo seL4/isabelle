@@ -226,7 +226,7 @@ fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
   | SOME instance =>
       Object_Logic.full_atomize_tac ctxt i THEN
       simp_tac (put_simpset (#simpset (snd instance)) ctxt) i THEN  (* FIXME already part of raw_ferrack_qe_conv? *)
-      CONVERSION (Object_Logic.judgment_conv (raw_ferrack_qe_conv ctxt instance)) i THEN
+      CONVERSION (Object_Logic.judgment_conv ctxt (raw_ferrack_qe_conv ctxt instance)) i THEN
       simp_tac ctxt i));  (* FIXME really? *)
 
 end;

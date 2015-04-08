@@ -72,7 +72,7 @@ sig
   val deepen_tac: Proof.context -> int -> int -> tactic
 
   val contr_tac: Proof.context -> int -> tactic
-  val dup_elim: Context.generic option -> thm -> thm
+  val dup_elim: Proof.context -> thm -> thm
   val dup_intr: thm -> thm
   val dup_step_tac: Proof.context -> int -> tactic
   val eq_mp_tac: Proof.context -> int -> tactic
@@ -96,7 +96,7 @@ end;
 signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
-  val classical_rule: thm -> thm
+  val classical_rule: Proof.context -> thm -> thm
   type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net
   val rep_cs: claset ->
    {safeIs: thm Item_Net.T,
@@ -144,8 +144,8 @@ FAILED"; classical_rule will strengthen this to
     [| inj f; ~ W ==> f x = f y; x = y ==> W |] ==> W
 *)
 
-fun classical_rule rule =
-  if is_some (Object_Logic.elim_concl rule) then
+fun classical_rule ctxt rule =
+  if is_some (Object_Logic.elim_concl ctxt rule) then
     let
       val rule' = rule RS Data.classical;
       val concl' = Thm.concl_of rule';
@@ -165,13 +165,8 @@ fun classical_rule rule =
   else rule;
 
 (*flatten nested meta connectives in prems*)
-fun flat_rule opt_context th =
-  let
-    val ctxt =
-      (case opt_context of
-        NONE => Proof_Context.init_global (Thm.theory_of_thm th)
-      | SOME context => Context.proof_of context);
-  in Conv.fconv_rule (Conv.prems_conv ~1 (Object_Logic.atomize_prems ctxt)) th end;
+fun flat_rule ctxt =
+  Conv.fconv_rule (Conv.prems_conv ~1 (Object_Logic.atomize_prems ctxt));
 
 
 (*** Useful tactics for classical reasoning ***)
@@ -206,13 +201,8 @@ fun swap_res_tac ctxt rls =
 (*Duplication of hazardous rules, for complete provers*)
 fun dup_intr th = zero_var_indexes (th RS Data.classical);
 
-fun dup_elim context th =
-  let
-    val ctxt =
-      (case context of
-        SOME c => Context.proof_of c
-      | NONE => Proof_Context.init_global (Thm.theory_of_thm th));
-    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
+fun dup_elim ctxt th =
+  let val rl = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
   in rule_by_tactic ctxt (TRYALL (eresolve_tac ctxt [revcut_rl])) rl end;
 
 
@@ -258,6 +248,9 @@ fun rep_cs (CS args) = args;
 
     In case of overlap, new rules are tried BEFORE old ones!!
 ***)
+
+fun default_context (SOME context) _ = Context.proof_of context
+  | default_context NONE th = Proof_Context.init_global (Thm.theory_of_thm th);
 
 (*For use with biresolve_tac.  Combines intro rules with swap to handle negated
   assumptions.  Pairs elim rules with true. *)
@@ -320,7 +313,8 @@ fun addSI w context th
   if warn_rules context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
-      val th' = flat_rule context th;
+      val ctxt = default_context context th;
+      val th' = flat_rule ctxt th;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition Thm.no_prems [th'];
       val nI = Item_Net.length safeIs + 1;
@@ -349,7 +343,8 @@ fun addSE w context th
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
     let
-      val th' = classical_rule (flat_rule context th);
+      val ctxt = default_context context th;
+      val th' = classical_rule ctxt (flat_rule ctxt th);
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (fn rl => Thm.nprems_of rl=1) [th'];
       val nI = Item_Net.length safeIs;
@@ -381,7 +376,8 @@ fun addI w context th
   if warn_rules context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
-      val th' = flat_rule context th;
+      val ctxt = default_context context th;
+      val th' = flat_rule ctxt th;
       val nI = Item_Net.length hazIs + 1;
       val nE = Item_Net.length hazEs;
       val _ = warn_claset context th cs;
@@ -410,7 +406,8 @@ fun addE w context th
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
     let
-      val th' = classical_rule (flat_rule context th);
+      val ctxt = default_context context th;
+      val th' = classical_rule ctxt (flat_rule ctxt th);
       val nI = Item_Net.length hazIs;
       val nE = Item_Net.length hazEs + 1;
       val _ = warn_claset context th cs;
@@ -418,7 +415,7 @@ fun addE w context th
       CS
        {hazEs = Item_Net.update th hazEs,
         haz_netpair = insert (nI, nE) ([], [th']) haz_netpair,
-        dup_netpair = insert (nI, nE) ([], [dup_elim context th']) dup_netpair,
+        dup_netpair = insert (nI, nE) ([], [dup_elim ctxt th']) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         hazIs = hazIs,
@@ -443,7 +440,8 @@ fun delSI context th
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeIs th then
     let
-      val th' = flat_rule context th;
+      val ctxt = default_context context th;
+      val th' = flat_rule ctxt th;
       val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th'];
     in
       CS
@@ -466,7 +464,8 @@ fun delSE context th
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeEs th then
     let
-      val th' = classical_rule (flat_rule context th);
+      val ctxt = default_context context th;
+      val th' = classical_rule ctxt (flat_rule ctxt th);
       val (safe0_rls, safep_rls) = List.partition (fn rl => Thm.nprems_of rl = 1) [th'];
     in
       CS
@@ -488,7 +487,10 @@ fun delI context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazIs th then
-    let val th' = flat_rule context th in
+    let
+      val ctxt = default_context context th;
+      val th' = flat_rule ctxt th;
+    in
       CS
        {haz_netpair = delete ([th'], []) haz_netpair,
         dup_netpair = delete ([dup_intr th'], []) dup_netpair,
@@ -510,10 +512,13 @@ fun delE context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazEs th then
-    let val th' = classical_rule (flat_rule context th) in
+    let
+      val ctxt = default_context context th;
+      val th' = classical_rule ctxt (flat_rule ctxt th);
+    in
       CS
        {haz_netpair = delete ([], [th']) haz_netpair,
-        dup_netpair = delete ([], [dup_elim context th']) dup_netpair,
+        dup_netpair = delete ([], [dup_elim ctxt th']) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         hazIs = hazIs,

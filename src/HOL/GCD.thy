@@ -49,8 +49,8 @@ end
 
 class semiring_gcd = comm_semiring_1 + gcd +
   assumes gcd_dvd1 [iff]: "gcd a b dvd a"
-		and gcd_dvd2 [iff]: "gcd a b dvd b"
-		and gcd_greatest: "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b"
+    and gcd_dvd2 [iff]: "gcd a b dvd b"
+    and gcd_greatest: "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b"
 
 class ring_gcd = comm_ring_1 + semiring_gcd
 

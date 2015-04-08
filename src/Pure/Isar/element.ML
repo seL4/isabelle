@@ -197,13 +197,12 @@ val pretty_ctxt_no_attribs = gen_pretty_ctxt false;
 
 local
 
-fun standard_elim th =
-  (case Object_Logic.elim_concl th of
+fun standard_elim ctxt th =
+  (case Object_Logic.elim_concl ctxt th of
     SOME C =>
       let
-        val thy = Thm.theory_of_thm th;
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val th' = Thm.instantiate ([], [(Thm.global_cterm_of thy C, Thm.global_cterm_of thy thesis)]) th;
+        val th' = Thm.instantiate ([], [apply2 (Thm.cterm_of ctxt) (C, thesis)]) th;
       in (th', true) end
   | NONE => (th, false));
 
@@ -227,13 +226,11 @@ in
 
 fun pretty_statement ctxt kind raw_th =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
-    val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf ctxt raw_th);
+    val (th, is_elim) = standard_elim ctxt (Raw_Simplifier.norm_hhf ctxt raw_th);
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body true ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
-    val concl_term = Object_Logic.drop_judgment thy concl;
+    val concl_term = Object_Logic.drop_judgment ctxt concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.is_newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)

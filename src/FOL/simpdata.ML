@@ -88,7 +88,7 @@ structure Quantifier1 = Quantifier1
 
 structure Splitter = Splitter
 (
-  val thy = @{theory}
+  val context = @{context}
   val mk_eq = mk_eq
   val meta_eq_to_iff = @{thm meta_eq_to_iff}
   val iffD = @{thm iffD2}

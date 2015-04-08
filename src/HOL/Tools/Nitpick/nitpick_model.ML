@@ -1050,7 +1050,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
     fun try_out negate =
       let
         val concl = (negate ? curry (op $) @{const Not})
-                    (Object_Logic.atomize_term thy prop)
+                    (Object_Logic.atomize_term ctxt prop)
         val prop = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
                    |> map_types (map_type_tfree
                                      (fn (s, []) => TFree (s, @{sort type})
@@ -1062,7 +1062,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
             |> writeln
           else
             ()
-        val goal = prop |> Thm.global_cterm_of thy |> Goal.init
+        val goal = prop |> Thm.cterm_of ctxt |> Goal.init
       in
         (goal |> SINGLE (DETERM_TIMEOUT auto_timeout (auto_tac ctxt))
               |> the |> Goal.finish ctxt; true)

@@ -848,7 +848,7 @@ apply (rule ex1E [OF major])
 apply (rule prem)
 apply assumption
 apply (rule allI)+
-apply (tactic {* eresolve_tac @{context} [Classical.dup_elim NONE @{thm allE}] 1 *})
+apply (tactic {* eresolve_tac @{context} [Classical.dup_elim @{context} @{thm allE}] 1 *})
 apply iprover
 done
 
