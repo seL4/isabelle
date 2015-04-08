@@ -287,10 +287,10 @@ lemmas cUn_cempty_right = Un_empty_right[Transfer.transferred]
 lemmas cUn_cinsert_left[simp] = Un_insert_left[Transfer.transferred]
 lemmas cUn_cinsert_right[simp] = Un_insert_right[Transfer.transferred]
 lemmas cInt_cinsert_left = Int_insert_left[Transfer.transferred]
-lemmas cInt_cinsert_left_ifffempty[simp] = Int_insert_left_if0[Transfer.transferred]
+lemmas cInt_cinsert_left_if0[simp] = Int_insert_left_if0[Transfer.transferred]
 lemmas cInt_cinsert_left_if1[simp] = Int_insert_left_if1[Transfer.transferred]
 lemmas cInt_cinsert_right = Int_insert_right[Transfer.transferred]
-lemmas cInt_cinsert_right_ifffempty[simp] = Int_insert_right_if0[Transfer.transferred]
+lemmas cInt_cinsert_right_if0[simp] = Int_insert_right_if0[Transfer.transferred]
 lemmas cInt_cinsert_right_if1[simp] = Int_insert_right_if1[Transfer.transferred]
 lemmas cUn_cInt_distrib = Un_Int_distrib[Transfer.transferred]
 lemmas cUn_cInt_distrib2 = Un_Int_distrib2[Transfer.transferred]
@@ -345,11 +345,11 @@ lemmas cequalityI = equalityI[Transfer.transferred]
 
 subsection {* Additional lemmas*}
 
-subsubsection {* @{text femepty} *}
+subsubsection {* @{text cempty} *}
 
 lemma cemptyE [elim!]: "cin a cempty \<Longrightarrow> P" by simp
 
-subsubsection {* @{text finsert} *}
+subsubsection {* @{text cinsert} *}
 
 lemma countable_insert_iff: "countable (insert x A) \<longleftrightarrow> countable A"
 by (metis Diff_eq_empty_iff countable_empty countable_insert subset_insertI uncountable_minus_countable)
