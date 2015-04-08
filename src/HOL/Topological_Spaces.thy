@@ -443,7 +443,7 @@ proof -
 qed
 
 ML {*
-  fun eventually_elim_tac ctxt thms = SUBGOAL_CASES (fn (_, _, st) =>
+  fun eventually_elim_tac ctxt thms st = SUBGOAL_CASES (fn _ =>
     let
       val mp_thms = thms RL [@{thm eventually_rev_mp}]
       val raw_elim_thm =
@@ -454,7 +454,7 @@ ML {*
       val cases = Rule_Cases.make_common ctxt cases_prop [(("elim", []), [])]
     in
       CASES cases (rtac raw_elim_thm 1)
-    end) 1
+    end) 1 st
 *}
 
 method_setup eventually_elim = {*

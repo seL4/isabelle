@@ -37,7 +37,7 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
 
-fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _, _) =>
+fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _) =>
   let
     val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
     fun find_coinduct t =

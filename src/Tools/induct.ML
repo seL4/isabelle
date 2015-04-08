@@ -731,7 +731,7 @@ fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of f
 type case_data = (((string * string list) * string list) list * int);
 
 fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
-  SUBGOAL_CASES (fn (_, i, st) =>
+  SUBGOAL_CASES (fn (_, i) =>
     let
       val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
       val atomized_defs = map (map (Conv.fconv_rule (atomize_cterm defs_ctxt))) defs;
@@ -820,7 +820,7 @@ fun main_prop_of th =
 
 in
 
-fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i, st) =>
+fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i) =>
   let
     fun inst_rule r =
       if null inst then `Rule_Cases.get r
