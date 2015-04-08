@@ -443,22 +443,22 @@ proof -
 qed
 
 ML {*
-  fun eventually_elim_tac ctxt thms st = SUBGOAL_CASES (fn _ =>
+  fun eventually_elim_tac ctxt facts = SUBGOAL_CASES (fn (goal, i) =>
     let
-      val mp_thms = thms RL [@{thm eventually_rev_mp}]
+      val mp_thms = facts RL @{thms eventually_rev_mp}
       val raw_elim_thm =
         (@{thm allI} RS @{thm always_eventually})
         |> fold (fn thm1 => fn thm2 => thm2 RS thm1) mp_thms
-        |> fold (fn _ => fn thm => @{thm impI} RS thm) thms
-      val cases_prop = Thm.prop_of (raw_elim_thm RS st)
+        |> fold (fn _ => fn thm => @{thm impI} RS thm) facts
+      val cases_prop = Thm.prop_of (raw_elim_thm RS Goal.init (Thm.cterm_of ctxt goal))
       val cases = Rule_Cases.make_common ctxt cases_prop [(("elim", []), [])]
     in
-      CASES cases (rtac raw_elim_thm 1)
-    end) 1 st
+      CASES cases (rtac raw_elim_thm i)
+    end)
 *}
 
 method_setup eventually_elim = {*
-  Scan.succeed (fn ctxt => METHOD_CASES (eventually_elim_tac ctxt))
+  Scan.succeed (fn ctxt => METHOD_CASES (HEADGOAL o eventually_elim_tac ctxt))
 *} "elimination of eventually quantifiers"
 
 
