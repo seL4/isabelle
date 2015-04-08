@@ -1,3 +1,9 @@
+(*  Title:      HOL/Library/cconv.ML
+    Author:     Christoph Traut, Lars Noschinski, TU Muenchen
+
+FIXME!?
+*)
+
 infix 1 then_cconv
 infix 0 else_cconv
 
@@ -170,7 +176,8 @@ fun params_cconv n cv ctxt ct =
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =
       (case ct |> Thm.term_of of
-        (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
+        (Const (@{const_name "Pure.imp"}, _) $ _) $ _ =>
+          ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 
 (*rewrite B in A1 Pure.imp ... Pure.imp An Pure.imp B*)
@@ -212,7 +219,7 @@ fun gconv_rule cv i th =
       end
   | NONE => raise THM ("gconv_rule", i, [th]))
 
-  (* Conditional conversions as tactics. *)
+(* Conditional conversions as tactics. *)
 fun CCONVERSION cv i st = Seq.single (gconv_rule cv i st)
   handle THM _ => Seq.empty
        | CTERM _ => Seq.empty

@@ -1,24 +1,26 @@
-(* Author: Christoph Traut, Lars Noschinski
+(*  Title:      HOL/Library/rewrite.ML
+    Author:     Christoph Traut, Lars Noschinski, TU Muenchen
 
-  This is a rewrite method supports subterm-selection based on patterns.
+This is a rewrite method that supports subterm-selection based on patterns.
 
-  The patterns accepted by rewrite are of the following form:
-    <atom>    ::= <term> | "concl" | "asm" | "for" "(" <names> ")"
-    <pattern> ::= (in <atom> | at <atom>) [<pattern>]
-    <args>    ::= [<pattern>] ("to" <term>) <thms>
+The patterns accepted by rewrite are of the following form:
+  <atom>    ::= <term> | "concl" | "asm" | "for" "(" <names> ")"
+  <pattern> ::= (in <atom> | at <atom>) [<pattern>]
+  <args>    ::= [<pattern>] ("to" <term>) <thms>
 
-  This syntax was clearly inspired by Gonthier's and Tassi's language of
-  patterns but has diverged significantly during its development.
+This syntax was clearly inspired by Gonthier's and Tassi's language of
+patterns but has diverged significantly during its development.
 
-  We also allow introduction of identifiers for bound variables,
-  which can then be used to match arbitary subterms inside abstractions.
+We also allow introduction of identifiers for bound variables,
+which can then be used to match arbitrary subterms inside abstractions.
 *)
 
-signature REWRITE1 = sig
-  val setup : theory -> theory
+signature REWRITE =
+sig
+  (* FIXME proper ML interface!? *)
 end
 
-structure Rewrite : REWRITE1 =
+structure Rewrite : REWRITE =
 struct
 
 datatype ('a, 'b) pattern = At | In | Term of 'a | Concl | Asm | For of 'b list
@@ -68,8 +70,10 @@ fun abs_rewr_cconv ident : subterm_position =
   let
     fun add_ident NONE _ l = l
       | add_ident (SOME name) ct l = (name, Thm.term_of ct) :: l
-    fun inner rewr ctxt idents = CConv.abs_cconv (fn (ct, ctxt) => rewr ctxt (add_ident ident ct idents)) ctxt
+    fun inner rewr ctxt idents =
+      CConv.abs_cconv (fn (ct, ctxt) => rewr ctxt (add_ident ident ct idents)) ctxt
   in inner end
+
 val fun_rewr_cconv : subterm_position = fn rewr => CConv.fun_cconv oo rewr
 val arg_rewr_cconv : subterm_position = fn rewr => CConv.arg_cconv oo rewr
 
@@ -80,17 +84,19 @@ fun ft_abs ctxt (s,T) (tyenv, u, pos) =
   case try (fastype_of #> dest_funT) u of
     NONE => raise TERM ("ft_abs: no function type", [u])
   | SOME (U, _) =>
-  let
-    val tyenv' = if T = dummyT then tyenv else Sign.typ_match (Proof_Context.theory_of ctxt) (T, U) tyenv
-    val x = Free (the_default (Name.internal dummyN) s, Envir.norm_type tyenv' T)
-    val eta_expand_cconv = CConv.rewr_cconv @{thm eta_expand}
-    fun eta_expand rewr ctxt bounds = eta_expand_cconv then_conv rewr ctxt bounds
-    val (u', pos') =
-      case u of
-        Abs (_,_,t') => (subst_bound (x, t'), pos o abs_rewr_cconv s)
-      | _ => (u $ x, pos o eta_expand o abs_rewr_cconv s)
-  in (tyenv', u', pos') end
-  handle Pattern.MATCH => raise TYPE ("ft_abs: types don't match", [T,U], [u])
+      let
+        val tyenv' =
+          if T = dummyT then tyenv
+          else Sign.typ_match (Proof_Context.theory_of ctxt) (T, U) tyenv
+        val x = Free (the_default (Name.internal dummyN) s, Envir.norm_type tyenv' T)
+        val eta_expand_cconv = CConv.rewr_cconv @{thm eta_expand}
+        fun eta_expand rewr ctxt bounds = eta_expand_cconv then_conv rewr ctxt bounds
+        val (u', pos') =
+          case u of
+            Abs (_,_,t') => (subst_bound (x, t'), pos o abs_rewr_cconv s)
+          | _ => (u $ x, pos o eta_expand o abs_rewr_cconv s)
+      in (tyenv', u', pos') end
+      handle Pattern.MATCH => raise TYPE ("ft_abs: types don't match", [T,U], [u])
 
 fun ft_fun _ (tyenv, l $ _, pos) = (tyenv, l, pos o fun_rewr_cconv)
   | ft_fun ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_fun ctxt o ft_abs ctxt (NONE, T)) ft
@@ -127,7 +133,8 @@ fun ft_for ctxt idents (ft as (_, t, _) : focusterm) =
           | (x :: xs) => (xs , desc o ft_all ctxt x)
         end
       | f rev_idents _ = (rev_idents, I)
-  in case f (rev idents) t of
+  in
+    case f (rev idents) t of
       ([], ft') => SOME (ft' ft)
     | _ => NONE
   end
@@ -153,7 +160,8 @@ fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
 fun find_subterms ctxt condition (ft as (_, t, _) : focusterm) =
   let
     val recurse = find_subterms ctxt condition
-    val recursive_matches = case t of
+    val recursive_matches =
+      case t of
         _ $ _ => Seq.append (ft |> ft_fun ctxt |> recurse) (ft |> ft_arg ctxt |> recurse)
       | Abs (_,T,_) => ft |> ft_abs ctxt (NONE, T) |> recurse
       | _ => Seq.empty
@@ -250,7 +258,6 @@ fun find_matches ctxt pattern_list =
     fun apply_pats ft = ft
       |> Seq.single
       |> fold apply_pat pattern_list
-
   in
     apply_pats
   end
@@ -322,9 +329,9 @@ fun rewrite_tac ctxt pattern thms =
     val tac = rewrite_goal_with_thm ctxt pattern thms'
   in tac end
 
-val setup =
+val _ =
+  Theory.setup
   let
-
     fun mk_fix s = (Binding.name s, NONE, NoSyn)
 
     val raw_pattern : (string, binding * string option * mixfix) pattern list parser =
@@ -342,11 +349,11 @@ val setup =
 
       in Scan.repeat sep_atom >> (flat #> rev #> append_default) end
 
-    fun ctxt_lift (scan : 'a parser) f = fn (ctxt : Context.generic, toks) =>
+    fun context_lift (scan : 'a parser) f = fn (context : Context.generic, toks) =>
       let
         val (r, toks') = scan toks
-        val (r', ctxt') = Context.map_proof_result (fn ctxt => f ctxt r) ctxt
-      in (r', (ctxt', toks' : Token.T list))end
+        val (r', context') = Context.map_proof_result (fn ctxt => f ctxt r) context
+      in (r', (context', toks' : Token.T list)) end
 
     fun read_fixes fixes ctxt =
       let fun read_typ (b, rawT, mx) = (b, Option.map (Syntax.read_typ ctxt) rawT, mx)
@@ -354,7 +361,6 @@ val setup =
 
     fun prep_pats ctxt (ps : (string, binding * string option * mixfix) pattern list) =
       let
-
         fun add_constrs ctxt n (Abs (x, T, t)) =
             let
               val (x', ctxt') = yield_singleton Proof_Context.add_fixes (mk_fix x) ctxt
@@ -470,10 +476,11 @@ val setup =
 
     val subst_parser =
       let val scan = raw_pattern -- to_parser -- Parse.xthms1
-      in ctxt_lift scan prep_args end
+      in context_lift scan prep_args end
   in
     Method.setup @{binding rewrite} (subst_parser >>
-      (fn (pattern, inthms, inst) => fn ctxt => SIMPLE_METHOD' (rewrite_tac ctxt (pattern, inst) inthms)))
+      (fn (pattern, inthms, inst) => fn ctxt =>
+        SIMPLE_METHOD' (rewrite_tac ctxt (pattern, inst) inthms)))
       "single-step rewriting, allowing subterm selection via patterns."
   end
 end
