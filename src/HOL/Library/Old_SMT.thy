@@ -164,7 +164,8 @@ command.
 
 Due to licensing restrictions, Yices and Z3 are not installed/enabled
 by default.  Z3 is free for non-commercial applications and can be enabled
-by setting Isabelle system option @{text z3_non_commercial} to @{text yes}.
+by setting the @{text OLD_Z3_NON_COMMERCIAL} environment variable to
+@{text yes}.
 *}
 
 declare [[ old_smt_solver = z3 ]]
