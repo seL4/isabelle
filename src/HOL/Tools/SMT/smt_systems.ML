@@ -6,11 +6,7 @@ Setup SMT solvers.
 
 signature SMT_SYSTEMS =
 sig
-  datatype z3_non_commercial =
-    Z3_Non_Commercial_Unknown |
-    Z3_Non_Commercial_Accepted |
-    Z3_Non_Commercial_Declined
-  val z3_non_commercial: unit -> z3_non_commercial
+  val cvc4_extensions: bool Config.T
   val z3_extensions: bool Config.T
 end;
 
@@ -117,47 +113,9 @@ val veriT: SMT_Solver.solver_config = {
 
 (* Z3 *)
 
-datatype z3_non_commercial =
-  Z3_Non_Commercial_Unknown |
-  Z3_Non_Commercial_Accepted |
-  Z3_Non_Commercial_Declined
-
-local
-  val accepted = member (op =) ["yes", "Yes", "YES"]
-  val declined = member (op =) ["no", "No", "NO"]
-in
-
-fun z3_non_commercial () =
-  let
-    val flag1 = Options.default_string @{system_option z3_non_commercial}
-    val flag2 = getenv "Z3_NON_COMMERCIAL"
-  in
-    if accepted flag1 then Z3_Non_Commercial_Accepted
-    else if declined flag1 then Z3_Non_Commercial_Declined
-    else if accepted flag2 then Z3_Non_Commercial_Accepted
-    else if declined flag2 then Z3_Non_Commercial_Declined
-    else Z3_Non_Commercial_Unknown
-  end
-
-fun if_z3_non_commercial f =
-  (case z3_non_commercial () of
-    Z3_Non_Commercial_Accepted => f ()
-  | Z3_Non_Commercial_Declined =>
-      error (Pretty.string_of (Pretty.para
-        "The SMT solver Z3 may be used only for non-commercial applications."))
-  | Z3_Non_Commercial_Unknown =>
-      error (Pretty.string_of (Pretty.para
-        ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
-         \system option \"z3_non_commercial\" to \"yes\" (e.g. via \
-         \the Isabelle/jEdit menu Plugin Options / Isabelle / General)."))))
-
-end
-
 val z3_extensions = Attrib.setup_config_bool @{binding z3_extensions} (K false)
 
 local
-  fun z3_make_command name () = if_z3_non_commercial (make_command name)
-
   fun z3_options ctxt =
     ["smt.random_seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
      "smt.refine_inj_axioms=false",
@@ -171,8 +129,8 @@ in
 val z3: SMT_Solver.solver_config = {
   name = "z3",
   class = select_class,
-  avail = make_avail "Z3_NEW",
-  command = z3_make_command "Z3_NEW",
+  avail = make_avail "Z3",
+  command = make_command "Z3",
   options = z3_options,
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 350 (* FUDGE *),
