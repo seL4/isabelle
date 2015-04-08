@@ -330,6 +330,12 @@ argument. Minor INCOMPATIBILITY.
   - Introduced "replicate_mset" operation.
   - Introduced alternative characterizations of the multiset ordering in
     "Library/Multiset_Order".
+  - Renamed multiset ordering:
+      <# ~> #<#
+      <=# ~> #<=#
+      \<subset># ~> #\<subset>#
+      \<subseteq># ~> #\<subseteq>#
+    INCOMPATIBILITY.
   - Renamed
       in_multiset_of ~> in_multiset_in_set
     INCOMPATIBILITY.

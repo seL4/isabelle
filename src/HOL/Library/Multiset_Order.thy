@@ -198,7 +198,7 @@ qed
 end
 
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
-  "M \<subset># N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
+  "M #\<subset># N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
   unfolding less_multiset_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
 
 lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
@@ -206,10 +206,10 @@ lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset
 
 lemma le_multiset\<^sub>H\<^sub>O:
   fixes M N :: "('a \<Colon> linorder) multiset"
-  shows "M \<subseteq># N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
+  shows "M #\<subseteq># N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
   by (auto simp: le_multiset_def less_multiset\<^sub>H\<^sub>O)
 
-lemma wf_less_multiset: "wf {(M \<Colon> ('a \<Colon> wellorder) multiset, N). M \<subset># N}"
+lemma wf_less_multiset: "wf {(M \<Colon> ('a \<Colon> wellorder) multiset, N). M #\<subset># N}"
   unfolding less_multiset_def by (auto intro: wf_mult wf)
 
 lemma order_multiset: "class.order
@@ -234,52 +234,52 @@ interpretation multiset_wellorder: wellorder
 
 lemma le_multiset_total:
   fixes M N :: "('a \<Colon> linorder) multiset"
-  shows "\<not> M \<subseteq># N \<Longrightarrow> N \<subseteq># M"
+  shows "\<not> M #\<subseteq># N \<Longrightarrow> N #\<subseteq># M"
   by (metis multiset_linorder.le_cases)
 
 lemma less_eq_imp_le_multiset:
   fixes M N :: "('a \<Colon> linorder) multiset"
-  shows "M \<le> N \<Longrightarrow> M \<subseteq># N"
+  shows "M \<le> N \<Longrightarrow> M #\<subseteq># N"
   unfolding le_multiset_def less_multiset\<^sub>H\<^sub>O
   by (auto dest: leD simp add: less_eq_multiset.rep_eq)
 
 lemma less_multiset_right_total:
   fixes M :: "('a \<Colon> linorder) multiset"
-  shows "M \<subset># M + {#undefined#}"
+  shows "M #\<subset># M + {#undefined#}"
   unfolding le_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma le_multiset_empty_left[simp]:
   fixes M :: "('a \<Colon> linorder) multiset"
-  shows "{#} \<subseteq># M"
+  shows "{#} #\<subseteq># M"
   by (simp add: less_eq_imp_le_multiset)
 
 lemma le_multiset_empty_right[simp]:
   fixes M :: "('a \<Colon> linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> \<not> M \<subseteq># {#}"
+  shows "M \<noteq> {#} \<Longrightarrow> \<not> M #\<subseteq># {#}"
   by (metis le_multiset_empty_left multiset_order.antisym)
 
 lemma less_multiset_empty_left[simp]:
   fixes M :: "('a \<Colon> linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> {#} \<subset># M"
+  shows "M \<noteq> {#} \<Longrightarrow> {#} #\<subset># M"
   by (simp add: less_multiset\<^sub>H\<^sub>O)
 
 lemma less_multiset_empty_right[simp]:
   fixes M :: "('a \<Colon> linorder) multiset"
-  shows "\<not> M \<subset># {#}"
+  shows "\<not> M #\<subset># {#}"
   using le_empty less_multiset\<^sub>D\<^sub>M by blast
 
 lemma
   fixes M N :: "('a \<Colon> linorder) multiset"
   shows
-    le_multiset_plus_left[simp]: "N \<subseteq># (M + N)" and
-    le_multiset_plus_right[simp]: "M \<subseteq># (M + N)"
+    le_multiset_plus_left[simp]: "N #\<subseteq># (M + N)" and
+    le_multiset_plus_right[simp]: "M #\<subseteq># (M + N)"
   using [[metis_verbose = false]] by (metis less_eq_imp_le_multiset mset_le_add_left add.commute)+
 
 lemma
   fixes M N :: "('a \<Colon> linorder) multiset"
   shows
-    less_multiset_plus_plus_left_iff[simp]: "M + N \<subset># M' + N \<longleftrightarrow> M \<subset># M'" and
-    less_multiset_plus_plus_right_iff[simp]: "M + N \<subset># M + N' \<longleftrightarrow> N \<subset># N'"
+    less_multiset_plus_plus_left_iff[simp]: "M + N #\<subset># M' + N \<longleftrightarrow> M #\<subset># M'" and
+    less_multiset_plus_plus_right_iff[simp]: "M + N #\<subset># M + N' \<longleftrightarrow> N #\<subset># N'"
   unfolding less_multiset\<^sub>H\<^sub>O by auto
 
 lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
@@ -288,21 +288,21 @@ lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
 lemma
   fixes M N :: "('a \<Colon> linorder) multiset"
   shows
-    less_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N \<subset># M + N" and
-    less_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M \<subset># M + N"
+    less_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N #\<subset># M + N" and
+    less_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M #\<subset># M + N"
   using [[metis_verbose = false]]
   by (metis add.right_neutral less_multiset_empty_left less_multiset_plus_plus_right_iff
     add.commute)+
 
-lemma ex_gt_imp_less_multiset: "(\<exists>y \<Colon> 'a \<Colon> linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M \<subset># N"
+lemma ex_gt_imp_less_multiset: "(\<exists>y \<Colon> 'a \<Colon> linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M #\<subset># N"
   unfolding less_multiset\<^sub>H\<^sub>O by (metis less_irrefl less_nat_zero_code not_gr0)
 
 lemma ex_gt_count_imp_less_multiset:
-  "(\<forall>y \<Colon> 'a \<Colon> linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M \<subset># N"
+  "(\<forall>y \<Colon> 'a \<Colon> linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M #\<subset># N"
   unfolding less_multiset\<^sub>H\<^sub>O by (metis add.left_neutral add_lessD1 dual_order.strict_iff_order
     less_not_sym mset_leD mset_le_add_left)  
 
-lemma union_less_diff_plus: "P \<le> M \<Longrightarrow> N \<subset># P \<Longrightarrow> M - P + N \<subset># M"
+lemma union_less_diff_plus: "P \<le> M \<Longrightarrow> N #\<subset># P \<Longrightarrow> M - P + N #\<subset># M"
   by (drule ordered_cancel_comm_monoid_diff_class.diff_add[symmetric]) (metis union_less_mono2)
 
 end

@@ -1778,21 +1778,21 @@ using one_step_implies_mult_aux by blast
 
 subsubsection {* Partial-order properties *}
 
-definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<#" 50) where
-  "M' <# M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<#" 50) where
+  "M' #<# M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
-definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
-  "M' <=# M \<longleftrightarrow> M' <# M \<or> M' = M"
+definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<=#" 50) where
+  "M' #<=# M \<longleftrightarrow> M' #<# M \<or> M' = M"
 
-notation (xsymbols) less_multiset (infix "\<subset>#" 50)
-notation (xsymbols) le_multiset (infix "\<subseteq>#" 50)
+notation (xsymbols) less_multiset (infix "#\<subset>#" 50)
+notation (xsymbols) le_multiset (infix "#\<subseteq>#" 50)
 
 interpretation multiset_order: order le_multiset less_multiset
 proof -
-  have irrefl: "\<And>M :: 'a multiset. \<not> M \<subset># M"
+  have irrefl: "\<And>M :: 'a multiset. \<not> M #\<subset># M"
   proof
     fix M :: "'a multiset"
-    assume "M \<subset># M"
+    assume "M #\<subset># M"
     then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
     have "trans {(x'::'a, x). x' < x}"
       by (rule transI) simp
@@ -1809,13 +1809,13 @@ proof -
       by (induct rule: finite_induct) (auto intro: order_less_trans)
     with aux1 show False by simp
   qed
-  have trans: "\<And>K M N :: 'a multiset. K \<subset># M \<Longrightarrow> M \<subset># N \<Longrightarrow> K \<subset># N"
+  have trans: "\<And>K M N :: 'a multiset. K #\<subset># M \<Longrightarrow> M #\<subset># N \<Longrightarrow> K #\<subset># N"
     unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
   show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset"
     by default (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
-lemma mult_less_irrefl [elim!]: "M \<subset># (M::'a::order multiset) ==> R"
+lemma mult_less_irrefl [elim!]: "M #\<subset># (M::'a::order multiset) ==> R"
   by simp
 
 
@@ -1829,21 +1829,21 @@ apply (rule_tac x = "C + M0" in exI)
 apply (simp add: add.assoc)
 done
 
-lemma union_less_mono2: "B \<subset># D ==> C + B \<subset># C + (D::'a::order multiset)"
+lemma union_less_mono2: "B #\<subset># D ==> C + B #\<subset># C + (D::'a::order multiset)"
 apply (unfold less_multiset_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)
 done
 
-lemma union_less_mono1: "B \<subset># D ==> B + C \<subset># D + (C::'a::order multiset)"
+lemma union_less_mono1: "B #\<subset># D ==> B + C #\<subset># D + (C::'a::order multiset)"
 apply (subst add.commute [of B C])
 apply (subst add.commute [of D C])
 apply (erule union_less_mono2)
 done
 
 lemma union_less_mono:
-  "A \<subset># C ==> B \<subset># D ==> A + B \<subset># C + (D::'a::order multiset)"
+  "A #\<subset># C ==> B #\<subset># D ==> A + B #\<subset># C + (D::'a::order multiset)"
   by (blast intro!: union_less_mono1 union_less_mono2 multiset_order.less_trans)
 
 interpretation multiset_order: ordered_ab_semigroup_add plus le_multiset less_multiset
@@ -2044,19 +2044,19 @@ lemmas multiset_inter_ac =
   multiset_inter_left_commute
 
 lemma mult_less_not_refl:
-  "\<not> M \<subset># (M::'a::order multiset)"
+  "\<not> M #\<subset># (M::'a::order multiset)"
   by (fact multiset_order.less_irrefl)
 
 lemma mult_less_trans:
-  "K \<subset># M ==> M \<subset># N ==> K \<subset># (N::'a::order multiset)"
+  "K #\<subset># M ==> M #\<subset># N ==> K #\<subset># (N::'a::order multiset)"
   by (fact multiset_order.less_trans)
 
 lemma mult_less_not_sym:
-  "M \<subset># N ==> \<not> N \<subset># (M::'a::order multiset)"
+  "M #\<subset># N ==> \<not> N #\<subset># (M::'a::order multiset)"
   by (fact multiset_order.less_not_sym)
 
 lemma mult_less_asym:
-  "M \<subset># N ==> (\<not> P ==> N \<subset># (M::'a::order multiset)) ==> P"
+  "M #\<subset># N ==> (\<not> P ==> N #\<subset># (M::'a::order multiset)) ==> P"
   by (fact multiset_order.less_asym)
 
 ML {*
