@@ -103,7 +103,7 @@ ML_file "Tools/Function/fun.ML"
 ML_file "Tools/Function/induction_schema.ML"
 
 method_setup induction_schema = {*
-  Scan.succeed (NO_CASES oo Induction_Schema.induction_schema_tac)
+  Scan.succeed (EMPTY_CASES oo Induction_Schema.induction_schema_tac)
 *} "prove an induction principle"
 
 

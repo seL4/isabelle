@@ -276,7 +276,7 @@ fun prove_witness ctxt t tac =
 local
 
 val refine_witness =
-  Proof.refine (Method.Basic (fn ctxt => NO_CASES o
+  Proof.refine (Method.Basic (fn ctxt => EMPTY_CASES o
     K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (resolve_tac ctxt [Drule.protectI]))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =

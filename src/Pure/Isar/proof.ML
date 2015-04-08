@@ -884,7 +884,7 @@ fun implicit_vars props =
   in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
-  refine (Method.Basic (fn ctxt => NO_CASES o
+  refine (Method.Basic (fn ctxt => EMPTY_CASES o
     K (HEADGOAL (PRECISE_CONJUNCTS n
       (HEADGOAL (CONJUNCTS (ALLGOALS (resolve_tac ctxt [Drule.termI]))))))))
   #> Seq.hd;

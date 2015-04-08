@@ -12,7 +12,7 @@ sig
   type cases_state = cases * thm
   type cases_tactic = thm -> cases_state Seq.seq
   val CASES: cases -> tactic -> cases_tactic
-  val NO_CASES: tactic -> cases_tactic
+  val EMPTY_CASES: tactic -> cases_tactic
   val SUBGOAL_CASES: ((term * int * thm) -> cases_tactic) -> int -> cases_tactic
   val THEN_ALL_NEW_CASES: (int -> cases_tactic) * (int -> tactic) -> int -> cases_tactic
 end
@@ -188,7 +188,7 @@ type cases_state = cases * thm;
 type cases_tactic = thm -> cases_state Seq.seq;
 
 fun CASES cases tac st = Seq.map (pair cases) (tac st);
-fun NO_CASES tac = CASES [] tac;
+fun EMPTY_CASES tac = CASES [] tac;
 
 fun SUBGOAL_CASES tac i st =
   (case try Logic.nth_prem (i, Thm.prop_of st) of

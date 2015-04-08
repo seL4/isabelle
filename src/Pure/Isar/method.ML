@@ -90,8 +90,11 @@ struct
 
 type method = thm list -> cases_tactic;
 
-fun METHOD_CASES tac : method = fn facts => Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
-fun METHOD tac : method = fn facts => NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
+fun METHOD_CASES tac : method =
+  fn facts => Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+
+fun METHOD tac : method =
+  fn facts => EMPTY_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -144,7 +147,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 fun atomize false ctxt =
       SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
   | atomize true ctxt =
-      NO_CASES o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
+      EMPTY_CASES o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
 
 
 (* this -- resolve facts directly *)
@@ -654,7 +657,7 @@ val _ = Theory.setup
       "rotate assumptions of goal" #>
   setup @{binding tactic} (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
-  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => NO_CASES o tac))
+  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => EMPTY_CASES o tac))
     "ML tactic as raw proof method");
 
 
