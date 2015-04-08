@@ -165,11 +165,11 @@ val rearrange_eqs_simproc =
 
 (* rotate k premises to the left by j, skipping over first j premises *)
 
-fun rotate_conv 0 j 0 = Conv.all_conv
+fun rotate_conv 0 _ 0 = Conv.all_conv
   | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k - 1)
   | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i - 1) j k);
 
-fun rotate_tac j 0 = K all_tac
+fun rotate_tac _ 0 = K all_tac
   | rotate_tac j k = SUBGOAL (fn (goal, i) =>
       CONVERSION (rotate_conv
         j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
@@ -603,7 +603,7 @@ end;
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
       let
         val x = Name.clean (Variable.revert_fixed ctxt z);
-        fun index i [] = []
+        fun index _ [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
               else y :: index i ys;
@@ -826,17 +826,14 @@ fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i) =
       if null inst then `Rule_Cases.get r
       else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
         |> pair (Rule_Cases.get r);
-
-    fun ruleq goal =
+  in
+    fn st =>
       (case opt_rule of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
           (get_coinductP ctxt goal @ get_coinductT ctxt inst)
           |> tap (trace_rules ctxt coinductN)
-          |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
-  in
-    fn st =>
-      ruleq goal
+          |> Seq.of_list |> Seq.maps (Seq.try inst_rule))
       |> Seq.maps (Rule_Cases.consume ctxt [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         guess_instance ctxt rule i st
