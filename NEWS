@@ -298,7 +298,7 @@ Minor INCOMPATIBILITY.
   - Minimization is now always enabled by default.
     Removed subcommand:
       min
-  - The proof reconstruction, both one-liners and Isar, has been
+  - Proof reconstruction, both one-liners and Isar, has been
     dramatically improved.
   - Improved support for CVC4 and veriT.
 
