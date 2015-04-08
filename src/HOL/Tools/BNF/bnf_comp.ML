@@ -102,7 +102,6 @@ fun cache_comp_simple key cache (bnf, (unfold_set, lthy)) =
 fun cache_comp key (bnf_Ds_As, ((cache, unfold_set), lthy)) =
   (bnf_Ds_As, ((Typtab.update (key, bnf_Ds_As) cache, unfold_set), lthy));
 
-(* TODO: Replace by "BNF_Defs.defs list"? *)
 type unfold_set = {
   map_unfolds: thm list,
   set_unfoldss: thm list list,
