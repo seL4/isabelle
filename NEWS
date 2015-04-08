@@ -26,40 +26,35 @@ as provided by some "context begin ... end" block. For example:
 * Command 'experiment' opens an anonymous locale context with private
 naming policy.
 
-* Structural composition of proof methods (meth1; meth2) in Isar
-corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
-
-* Generated schematic variables in standard format of exported facts are
-incremented to avoid material in the proof context. Rare
-INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
-different index.
-
-* Commands 'method_setup' and 'attribute_setup' now work within a local
-theory context.
-
-* Command 'named_theorems' declares a dynamic fact within the context,
-together with an attribute to maintain the content incrementally. This
-supersedes functor Named_Thms, but with a subtle change of semantics due
-to external visual order vs. internal reverse order.
-
 * Command 'notepad' requires proper nesting of begin/end and its proof
 structure in the body: 'oops' is no longer supported here. Minor
 INCOMPATIBILITY, use 'sorry' instead.
 
-* Outer syntax commands are managed authentically within the theory
-context, without implicit global state. Potential for accidental
-INCOMPATIBILITY, make sure that required theories are really imported.
+* Command 'named_theorems' declares a dynamic fact within the context,
+together with an attribute to maintain the content incrementally. This
+supersedes functor Named_Thms in Isabelle/ML, but with a subtle change
+of semantics due to external visual order vs. internal reverse order.
 
 * 'find_theorems': search patterns which are abstractions are
 schematically expanded before search. Search results match the naive
 expectation more closely, particularly wrt. abbreviations.
 INCOMPATIBILITY.
 
+* Commands 'method_setup' and 'attribute_setup' now work within a local
+theory context.
+
+* Outer syntax commands are managed authentically within the theory
+context, without implicit global state. Potential for accidental
+INCOMPATIBILITY, make sure that required theories are really imported.
+
+* Structural composition of proof methods (meth1; meth2) in Isar
+corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Old graph browser (Java/AWT 1.0) is superseded by improved graphview
-panel, which also includes PDF output.
+* Old graph browser (Java/AWT 1.1) is superseded by improved graphview
+panel, which also produces PDF output without external tools.
 
 * Improved folding mode "isabelle" based on Isar syntax. Alternatively,
 the "sidekick" mode may be used for document structure.
@@ -79,6 +74,43 @@ in the editor (hyperlinks, completion etc.).
 Options / Text Area).
 
 
+*** Document preparation ***
+
+* Discontinued obsolete option "document_graph": session_graph.pdf is
+produced unconditionally for HTML browser_info and PDF-LaTeX document.
+
+* Document markup commands 'chapter', 'section', 'subsection',
+'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
+context, even before the initial 'theory' command. Obsolete proof
+commands 'sect', 'subsect', 'subsubsect', 'txt_raw' have been
+discontinued, use 'section', 'subsection', 'subsubsection', 'text_raw'
+instead. The old 'header' command is still retained for some time, but
+should be replaced by 'chapter', 'section' etc. (using "isabelle
+update_header"). Minor INCOMPATIBILITY.
+
+* Diagnostic commands and document markup commands within a proof do not
+affect the command tag for output. Thus commands like 'thm' are subject
+to proof document structure, and no longer "stick out" accidentally.
+Commands 'text' and 'txt' merely differ in the LaTeX style, not their
+tags. Potential INCOMPATIBILITY in exotic situations.
+
+* System option "pretty_margin" is superseded by "thy_output_margin",
+which is also accessible via document antiquotation option "margin".
+Only the margin for document output may be changed, but not the global
+pretty printing: that is 76 for plain console output, and adapted
+dynamically in GUI front-ends. Implementations of document
+antiquotations need to observe the margin explicitly according to
+Thy_Output.string_of_margin. Minor INCOMPATIBILITY.
+
+* Official support for "tt" style variants, via \isatt{...} or
+\begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
+verbatim environment of LaTeX is no longer used. This allows @{ML} etc.
+as argument to other macros (such as footnotes).
+
+* Document antiquotation @{verbatim} prints ASCII text literally in "tt"
+style.
+
+
 *** Pure ***
 
 * Explicit instantiation via attributes "where", "of", and proof methods
@@ -93,6 +125,11 @@ Configuration option rule_insts_schematic (default false) controls use
 of schematic variables outside the context. Minor INCOMPATIBILITY,
 declare rule_insts_schematic = true temporarily and update to use local
 variable declarations or dummy patterns instead.
+
+* Generated schematic variables in standard format of exported facts are
+incremented to avoid material in the proof context. Rare
+INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
+different index.
 
 * Command "class_deps" takes optional sort arguments constraining
 the search space.
@@ -109,43 +146,44 @@ token category instead.
 
 *** HOL ***
 
-* Given up separate type class no_zero_divisors in favour of fully algebraic
-semiring_no_zero_divisors.  INCOMPATIBILITY.
+* Given up separate type class no_zero_divisors in favour of fully
+algebraic semiring_no_zero_divisors. INCOMPATIBILITY.
 
 * Class linordered_semidom really requires no zero divisors.
 INCOMPATIBILITY.
 
 * Classes division_ring, field and linordered_field always demand
-`inverse 0 = 0`.  Given up separate classes division_ring_inverse_zero,
-field_inverse_zero and linordered_field_inverse_zero.
-INCOMPATIBILITY.
+"inverse 0 = 0". Given up separate classes division_ring_inverse_zero,
+field_inverse_zero and linordered_field_inverse_zero. INCOMPATIBILITY.
 
 * Type classes cancel_ab_semigroup_add / cancel_monoid_add specify
-explicit additive inverse operation.  INCOMPATIBILITY.
+explicit additive inverse operation. INCOMPATIBILITY.
 
-* New proof method "rewrite" (in ~~/src/HOL/Library/Rewrite) for
-  single-step rewriting with subterm selection based on patterns.
+* New proof method "rewrite" (in theory ~~/src/HOL/Library/Rewrite) for
+single-step rewriting with subterm selection based on patterns.
 
-* The functions "sin" and "cos" are now defined for any "'{real_normed_algebra_1,banach}"
-  type, so in particular on "real" and "complex" uniformly.
-  Minor INCOMPATIBILITY: type constraints may be needed.
+* The functions "sin" and "cos" are now defined for any
+"'{real_normed_algebra_1,banach}" type, so in particular on "real" and
+"complex" uniformly. Minor INCOMPATIBILITY: type constraints may be
+needed.
 
-* New library of properties of the complex transcendental functions sin, cos, tan, exp,
-  Ln, Arctan, Arcsin, Arccos. Ported from HOL Light.
+* New library of properties of the complex transcendental functions sin,
+cos, tan, exp, Ln, Arctan, Arcsin, Arccos. Ported from HOL Light.
 
-* The factorial function, "fact", now has type "nat => 'a" (of a sort that admits
-  numeric types including nat, int, real and complex. INCOMPATIBILITY:
-  an expression such as "fact 3 = 6" may require a type constraint, and the combination
-  "real (fact k)" is likely to be unsatisfactory. If a type conversion is still necessary,
-  then use "of_nat (fact k)" or "real_of_nat (fact k)".
+* The factorial function, "fact", now has type "nat => 'a" (of a sort
+that admits numeric types including nat, int, real and complex.
+INCOMPATIBILITY: an expression such as "fact 3 = 6" may require a type
+constraint, and the combination "real (fact k)" is likely to be
+unsatisfactory. If a type conversion is still necessary, then use
+"of_nat (fact k)" or "real_of_nat (fact k)".
 
-* removed functions "natfloor" and "natceiling",
-  use "nat o floor" and "nat o ceiling" instead.
-  A few of the lemmas have been retained and adapted: in their names
-  "natfloor"/"natceiling" has been replaced by "nat_floor"/"nat_ceiling".
+* Removed functions "natfloor" and "natceiling", use "nat o floor" and
+"nat o ceiling" instead. A few of the lemmas have been retained and
+adapted: in their names "natfloor"/"natceiling" has been replaced by
+"nat_floor"/"nat_ceiling".
 
-* Qualified some duplicated fact names required for boostrapping
-the type class hierarchy:
+* Qualified some duplicated fact names required for boostrapping the
+type class hierarchy:
   ab_add_uminus_conv_diff ~> diff_conv_add_uminus
   field_inverse_zero ~> inverse_zero
   field_divide_inverse ~> divide_inverse
@@ -160,13 +198,7 @@ Minor INCOMPATIBILITY.
 * Fact consolidation: even_less_0_iff is subsumed by
 double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
 
-* Discontinued old-fashioned "codegen" tool. Code generation can always
-be externally triggered using an appropriate ROOT file plus a
-corresponding theory. Parametrization is possible using environment
-variables, or ML snippets in the most extreme cases. Minor
-INCOMPATIBILITY.
-
-* Add NO_MATCH-simproc, allows to check for syntactic non-equality
+* Add NO_MATCH-simproc, allows to check for syntactic non-equality.
 
 * Generalized and consolidated some theorems concerning divsibility:
   dvd_reduce ~> dvd_add_triv_right_iff
@@ -175,18 +207,17 @@ INCOMPATIBILITY.
 Minor INCOMPATIBILITY.
 
 * "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _"
-and part of HOL-Main.
+and part of theory Main.
   even_def ~> even_iff_mod_2_eq_zero
 INCOMPATIBILITY.
 
-* Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
-Minor INCOMPATIBILITY.
+* Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1. Minor
+INCOMPATIBILITY.
 
 * field_simps: Use NO_MATCH-simproc for distribution rules, to avoid
-  non-termination in case of distributing a division. With this change
-  field_simps is in some cases slightly less powerful, if it fails try
-  to add algebra_simps, or use divide_simps.
-Minor INCOMPATIBILITY.
+non-termination in case of distributing a division. With this change
+field_simps is in some cases slightly less powerful, if it fails try to
+add algebra_simps, or use divide_simps. Minor INCOMPATIBILITY.
 
 * Bootstrap of listsum as special case of abstract product over lists.
 Fact rename:
@@ -194,7 +225,7 @@ Fact rename:
 INCOMPATIBILITY.
 
 * Command and antiquotation "value" provide different evaluation slots
-(again), where the previous strategy (nbe after ML) serves as default.
+(again), where the previous strategy (NBE after ML) serves as default.
 Minor INCOMPATIBILITY.
 
 * New (co)datatype package:
@@ -284,7 +315,7 @@ Minor INCOMPATIBILITY.
   - New option 'smt_statistics' to display statistics of the new 'smt'
     method, especially runtime statistics of Z3 proof reconstruction.
 
-* List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc
+* List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc.
 
 * New infrastructure for compiling, running, evaluating and testing
 generated code in target languages in HOL/Library/Code_Test. See
@@ -330,44 +361,26 @@ argument. Minor INCOMPATIBILITY.
     projection
 
 
-*** Document preparation ***
-
-* Discontinued obsolete option "document_graph": session_graph.pdf is
-produced unconditionally for HTML browser_info and PDF-LaTeX document.
-
-* Document markup commands 'chapter', 'section', 'subsection',
-'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
-context, even before the initial 'theory' command. Obsolete proof
-commands 'sect', 'subsect', 'subsubsect', 'txt_raw' have been
-discontinued, use 'section', 'subsection', 'subsubsection', 'text_raw'
-instead. The old 'header' command is still retained for some time, but
-should be replaced by 'chapter', 'section' etc. (using "isabelle
-update_header"). Minor INCOMPATIBILITY.
-
-* Diagnostic commands and document markup commands within a proof do not
-affect the command tag for output. Thus commands like 'thm' are subject
-to proof document structure, and no longer "stick out" accidentally.
-Commands 'text' and 'txt' merely differ in the LaTeX style, not their
-tags. Potential INCOMPATIBILITY in exotic situations.
-
-* Official support for "tt" style variants, via \isatt{...} or
-\begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
-verbatim environment of LaTeX is no longer used. This allows @{ML} etc.
-as argument to other macros (such as footnotes).
-
-* Document antiquotation @{verbatim} prints ASCII text literally in "tt"
-style.
-
-
 *** ML ***
 
-* Subtle change of name space policy: undeclared entries are now
-considered inaccessible, instead of accessible via the fully-qualified
-internal name. This mainly affects Name_Space.intern (and derivatives),
-which may produce an unexpected Long_Name.hidden prefix. Note that
-contempory applications use the strict Name_Space.check (and
-derivatives) instead, which is not affected by the change. Potential
-INCOMPATIBILITY in rare applications of Name_Space.intern.
+* Cartouches within ML sources are turned into values of type
+Input.source (with formal position information).
+
+* Basic combinators map, fold, fold_map, split_list, apply are available
+as parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
+
+* Renamed "pairself" to "apply2", in accordance to @{apply 2}.
+INCOMPATIBILITY.
+
+* Former combinators NAMED_CRITICAL and CRITICAL for central critical
+sections have been discontinued, in favour of the more elementary
+Multithreading.synchronized and its high-level derivative
+Synchronized.var (which is usually sufficient in applications). Subtle
+INCOMPATIBILITY: synchronized access needs to be atomic and cannot be
+nested.
+
+* Synchronized.value (ML) is actually synchronized (as in Scala):
+subtle change of semantics with minimal potential for INCOMPATIBILITY.
 
 * The main operations to certify logical entities are Thm.ctyp_of and
 Thm.cterm_of with a local context; old-style global theory variants are
@@ -378,15 +391,13 @@ INCOMPATIBILITY.
 INCOMPATIBILITY, need to use qualified Thm.prop_of, Thm.cterm_of,
 Thm.term_of etc.
 
-* Former combinators NAMED_CRITICAL and CRITICAL for central critical
-sections have been discontinued, in favour of the more elementary
-Multithreading.synchronized and its high-level derivative
-Synchronized.var (which is usually sufficient in applications). Subtle
-INCOMPATIBILITY: synchronized access needs to be atomic and cannot be
-nested.
-
-* Cartouches within ML sources are turned into values of type
-Input.source (with formal position information).
+* Subtle change of name space policy: undeclared entries are now
+considered inaccessible, instead of accessible via the fully-qualified
+internal name. This mainly affects Name_Space.intern (and derivatives),
+which may produce an unexpected Long_Name.hidden prefix. Note that
+contempory applications use the strict Name_Space.check (and
+derivatives) instead, which is not affected by the change. Potential
+INCOMPATIBILITY in rare applications of Name_Space.intern.
 
 * Proper context for various elementary tactics: assume_tac,
 resolve_tac, eresolve_tac, dresolve_tac, forward_tac, match_tac,
@@ -394,16 +405,6 @@ compose_tac, Splitter.split_tac etc. INCOMPATIBILITY.
 
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to
 PARALLEL_GOALS.
-
-* Basic combinators map, fold, fold_map, split_list, apply are
-available as parameterized antiquotations, e.g. @{map 4} for lists of
-quadruples.
-
-* Renamed "pairself" to "apply2", in accordance to @{apply 2}.
-INCOMPATIBILITY.
-
-* Synchronized.value (ML) is actually synchronized (as in Scala):
-subtle change of semantics with minimal potential for INCOMPATIBILITY.
 
 * Goal.prove_multi is superseded by the fully general Goal.prove_common,
 which also allows to specify a fork priority.
@@ -415,8 +416,16 @@ markup). Minor INCOMPATIBILITY.
 
 *** System ***
 
-* Support for Proof General and Isar TTY loop has been discontinued.
-Minor INCOMPATIBILITY.
+* The Isabelle tool "update_cartouches" changes theory files to use
+cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
+
+* The Isabelle tool "build" provides new options -k and -x.
+
+* Discontinued old-fashioned "codegen" tool. Code generation can always
+be externally triggered using an appropriate ROOT file plus a
+corresponding theory. Parametrization is possible using environment
+variables, or ML snippets in the most extreme cases. Minor
+INCOMPATIBILITY.
 
 * JVM system property "isabelle.threads" determines size of Scala thread
 pool, like Isabelle system option "threads" for ML.
@@ -425,22 +434,12 @@ pool, like Isabelle system option "threads" for ML.
 look-and-feel, via internal class name or symbolic name as in the jEdit
 menu Global Options / Appearance.
 
-* System option "pretty_margin" is superseded by "thy_output_margin",
-which is also accessible via document antiquotation option "margin".
-Only the margin for document output may be changed, but not the global
-pretty printing: that is 76 for plain console output, and adapted
-dynamically in GUI front-ends. Implementations of document
-antiquotations need to observe the margin explicitly according to
-Thy_Output.string_of_margin. Minor INCOMPATIBILITY.
-
 * Historical command-line terminator ";" is no longer accepted.  Minor
 INCOMPATIBILITY, use "isabelle update_semicolons" to remove obsolete
 semicolons from theory sources.
 
-* The Isabelle tool "update_cartouches" changes theory files to use
-cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
-
-* The Isabelle tool "build" provides new options -k and -x.
+* Support for Proof General and Isar TTY loop has been discontinued.
+Minor INCOMPATIBILITY.
 
 
 
