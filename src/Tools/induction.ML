@@ -43,7 +43,7 @@ fun name_hyps (arg as ((cases, consumes), th)) =
           (take n cases ~~ take n hnamess);
     in ((cases', consumes), th) end;
 
-val induction_tac = Induct.gen_induct_tac (K name_hyps);
+val induction_tac = Induct.gen_induct_tac name_hyps;
 
 val _ = Theory.local_setup (Induct.gen_induct_setup @{binding induction} induction_tac);
 

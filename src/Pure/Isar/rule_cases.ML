@@ -27,9 +27,9 @@ sig
     cases: (string * T) list}
   val case_hypsN: string
   val strip_params: term -> (string * typ) list
-  val make_common: theory * term ->
+  val make_common: Proof.context -> term ->
     ((string * string list) * string list) list -> cases
-  val make_nested: term -> theory * term ->
+  val make_nested: Proof.context -> term -> term ->
     ((string * string list) * string list) list -> cases
   val apply: term list -> T -> T
   val consume: Proof.context -> thm list -> thm list -> ('a * int) * thm ->
@@ -107,9 +107,9 @@ fun extract_assumes _ _ NONE prop = ([(Binding.empty, Logic.strip_assums_hyp pro
 
 fun bindings args = map (apfst Binding.name) args;
 
-fun extract_case thy (case_outline, raw_prop) name hyp_names concls =
+fun extract_case ctxt (case_outline, raw_prop) name hyp_names concls =
   let
-    val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
+    val props = Logic.dest_conjunctions (Drule.norm_hhf (Proof_Context.theory_of ctxt) raw_prop);
     val len = length props;
     val nested = is_some case_outline andalso len > 1;
 
@@ -126,7 +126,7 @@ fun extract_case thy (case_outline, raw_prop) name hyp_names concls =
           extract_assumes name hyp_names case_outline prop
           |> apply2 (map (apsnd (maps Logic.dest_conjunctions)));
 
-        val concl = Object_Logic.drop_judgment thy (Logic.strip_assums_concl prop);
+        val concl = Object_Logic.drop_judgment ctxt (Logic.strip_assums_concl prop);
         val binds =
           (case_conclN, concl) :: dest_binops concls concl
           |> map (fn (x, t) => ((x, 0), SOME (abs_fixes t)));
@@ -152,7 +152,7 @@ fun extract_case thy (case_outline, raw_prop) name hyp_names concls =
     else SOME (nested_case (hd cases))
   end;
 
-fun make rule_struct (thy, prop) cases =
+fun make ctxt rule_struct prop cases =
   let
     val n = length cases;
     val nprems = Logic.count_prems prop;
@@ -160,13 +160,13 @@ fun make rule_struct (thy, prop) cases =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
-      | SOME p => (name, extract_case thy p name hyp_names concls)) :: cs, i - 1);
+      | SOME p => (name, extract_case ctxt p name hyp_names concls)) :: cs, i - 1);
   in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
 
 in
 
-val make_common = make NONE;
-fun make_nested rule_struct = make (SOME rule_struct);
+fun make_common ctxt = make ctxt NONE;
+fun make_nested ctxt rule_struct = make ctxt (SOME rule_struct);
 
 fun apply args =
   let

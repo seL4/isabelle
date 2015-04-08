@@ -300,7 +300,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val psimp_table = const_psimp_table ctxt subst
     val choice_spec_table = const_choice_spec_table ctxt subst
     val nondefs =
-      nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
+      nondefs |> filter_out (is_choice_spec_axiom ctxt choice_spec_table)
     val intro_table = inductive_intro_table ctxt subst def_tables
     val ground_thm_table = ground_theorem_table thy
     val ersatz_table = ersatz_table ctxt

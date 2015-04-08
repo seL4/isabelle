@@ -445,7 +445,7 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
   let
     val thy = Proof_Context.theory_of ctxt
 
-    val preproc = Object_Logic.atomize_term thy
+    val preproc = Object_Logic.atomize_term ctxt
 
     val conditions = map preproc hyps_t0
     val consequence = preproc concl_t0

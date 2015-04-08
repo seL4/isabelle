@@ -24,9 +24,9 @@ sig
   val mk_set: typ -> term list -> term
   val dest_set: term -> term list
   val mk_UNIV: typ -> term
-  val conj_intr: thm -> thm -> thm
-  val conj_elim: thm -> thm * thm
-  val conj_elims: thm -> thm list
+  val conj_intr: Proof.context -> thm -> thm -> thm
+  val conj_elim: Proof.context -> thm -> thm * thm
+  val conj_elims: Proof.context -> thm -> thm list
   val conj: term
   val disj: term
   val imp: term
@@ -203,25 +203,25 @@ fun Trueprop_conv cv ct =
   | _ => raise CTERM ("Trueprop_conv", [ct]))
 
 
-fun conj_intr thP thQ =
+fun conj_intr ctxt thP thQ =
   let
-    val (P, Q) = apply2 (Object_Logic.dest_judgment o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = apply2 (Object_Logic.dest_judgment ctxt o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
   in Drule.implies_elim_list (inst @{thm conjI}) [thP, thQ] end;
 
-fun conj_elim thPQ =
+fun conj_elim ctxt thPQ =
   let
-    val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment (Thm.cprop_of thPQ))
+    val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment ctxt (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
     val thP = Thm.implies_elim (inst @{thm conjunct1}) thPQ;
     val thQ = Thm.implies_elim (inst @{thm conjunct2}) thPQ;
   in (thP, thQ) end;
 
-fun conj_elims th =
-  let val (th1, th2) = conj_elim th
-  in conj_elims th1 @ conj_elims th2 end handle THM _ => [th];
+fun conj_elims ctxt th =
+  let val (th1, th2) = conj_elim ctxt th
+  in conj_elims ctxt th1 @ conj_elims ctxt th2 end handle THM _ => [th];
 
 val conj = @{term HOL.conj}
 and disj = @{term HOL.disj}

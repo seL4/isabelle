@@ -98,9 +98,9 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
                DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
                  (case prems of
                    [] => all_tac
-                 | inv::case_prems =>
+                 | inv :: case_prems =>
                      let
-                       val (init, last) = funpow_yield (p + e - 1) HOLogic.conj_elim inv;
+                       val (init, last) = funpow_yield (p + e - 1) (HOLogic.conj_elim ctxt) inv;
                        val inv_thms = init @ [last];
                        val eqs = take e inv_thms;
                        fun is_local_var t =
@@ -115,7 +115,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
         end) ctxt) THEN'
       K (prune_params_tac ctxt))
     #> Seq.maps (fn st =>
-      CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, Thm.prop_of st) cases) all_tac st)
+      CASES (Rule_Cases.make_common ctxt (Thm.prop_of st) cases) all_tac st)
   end));
 
 local

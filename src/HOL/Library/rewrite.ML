@@ -143,7 +143,7 @@ fun ft_assm ctxt (ft as (_, t, _) : focusterm) =
   | _ => raise TERM ("ft_assm", [t])
 
 fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
-  if Object_Logic.is_judgment (Proof_Context.theory_of ctxt) t
+  if Object_Logic.is_judgment ctxt t
   then ft_arg ctxt ft
   else ft
 

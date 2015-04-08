@@ -842,7 +842,7 @@ val bind_terms = fold (fn (xi, t) => fn ctxt =>
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f (theory_of ctxt) ts));
+fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f ctxt ts));
 
 val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;

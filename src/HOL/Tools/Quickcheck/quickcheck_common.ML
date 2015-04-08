@@ -236,7 +236,7 @@ fun preprocess ctxt t =
     val rewrs = map (swap o dest) @{thms all_simps} @
       (map dest [@{thm not_ex}, @{thm not_all}, @{thm imp_conjL}, @{thm fun_eq_iff},
         @{thm bot_fun_def}, @{thm less_bool_def}])
-    val t' = Pattern.rewrite_term thy rewrs [] (Object_Logic.atomize_term thy t)
+    val t' = Pattern.rewrite_term thy rewrs [] (Object_Logic.atomize_term ctxt t)
     val (vs, body) = strip_all t'
     val vs' = Variable.variant_frees ctxt [t'] vs
   in

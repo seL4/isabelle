@@ -409,7 +409,7 @@ fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
       | concrete (Type (@{type_name prod}, Ts)) = forall concrete Ts
       | concrete _ = true
     val neg_t =
-      @{const Not} $ Object_Logic.atomize_term thy t
+      @{const Not} $ Object_Logic.atomize_term ctxt t
       |> map_types unsetify_type
     val _ = fold_types (K o check_type ctxt raw_infinite) neg_t ()
     val frees = Term.add_frees neg_t []

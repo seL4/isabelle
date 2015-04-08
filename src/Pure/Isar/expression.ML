@@ -622,16 +622,15 @@ local
 
 val introN = "intro";
 
-fun atomize_spec thy ts =
+fun atomize_spec ctxt ts =
   let
     val t = Logic.mk_conjunction_balanced ts;
-    val body = Object_Logic.atomize_term thy t;
+    val body = Object_Logic.atomize_term ctxt t;
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT
-    then (t, propT, Thm.reflexive (Thm.global_cterm_of thy t))
-    else
-      (body, bodyT, Object_Logic.atomize (Proof_Context.init_global thy) (Thm.global_cterm_of thy t))
+    then (t, propT, Thm.reflexive (Thm.cterm_of ctxt t))
+    else (body, bodyT, Object_Logic.atomize ctxt (Thm.cterm_of ctxt t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
@@ -658,7 +657,9 @@ fun def_pred binding parms defs ts norm_ts thy =
   let
     val name = Sign.full_name thy binding;
 
-    val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
+    val thy_ctxt = Proof_Context.init_global thy;
+
+    val (body, bodyT, body_eq) = atomize_spec thy_ctxt norm_ts;
     val env = Term.add_free_names body [];
     val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
@@ -669,7 +670,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val args = map Logic.mk_type extraTs @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
-    val statement = Object_Logic.ensure_propT thy head;
+    val statement = Object_Logic.ensure_propT thy_ctxt head;
 
     val ([pred_def], defs_thy) =
       thy

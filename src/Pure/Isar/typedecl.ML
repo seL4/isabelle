@@ -26,11 +26,6 @@ fun read_constraint _ NONE = dummyS
 
 (* primitives *)
 
-fun object_logic_arity name thy =
-  (case Object_Logic.get_base_sort thy of
-    NONE => thy
-  | SOME S => Axclass.arity_axiomatization (name, replicate (Sign.arity_number thy name) S, S) thy);
-
 fun basic_decl decl (b, n, mx) lthy =
   let val name = Local_Theory.full_name lthy b in
     lthy
@@ -41,8 +36,11 @@ fun basic_decl decl (b, n, mx) lthy =
   end;
 
 fun basic_typedecl (b, n, mx) lthy =
-  basic_decl (fn name => Sign.add_type lthy (b, n, NoSyn) #> object_logic_arity name)
-    (b, n, mx) lthy;
+  basic_decl (fn name =>
+    Sign.add_type lthy (b, n, NoSyn) #>
+    (case Object_Logic.get_base_sort lthy of
+      SOME S => Axclass.arity_axiomatization (name, replicate n S, S)
+    | NONE => I)) (b, n, mx) lthy;
 
 
 (* global type -- without dependencies on type parameters of the context *)

@@ -50,7 +50,7 @@ fun approximate ctxt t =
 
 (* Should be in HOL.thy ? *)
 fun gen_eval_tac conv ctxt = CONVERSION
-  (Object_Logic.judgment_conv (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
+  (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
   THEN' rtac TrueI
 
 val form_equations = @{thms interpret_form_equations};

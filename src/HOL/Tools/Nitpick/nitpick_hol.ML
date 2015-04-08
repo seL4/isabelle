@@ -218,7 +218,7 @@ sig
   val nondef_props_for_const :
     theory -> bool -> const_table -> string * typ -> term list
   val is_choice_spec_fun : hol_context -> string * typ -> bool
-  val is_choice_spec_axiom : theory -> const_table -> term -> bool
+  val is_choice_spec_axiom : Proof.context -> const_table -> term -> bool
   val is_raw_equational_fun : hol_context -> string * typ -> bool
   val is_equational_fun : hol_context -> string * typ -> bool
   val codatatype_bisim_axioms : hol_context -> typ -> term list
@@ -1548,13 +1548,13 @@ fun unvarify_term (t1 $ t2) = unvarify_term t1 $ unvarify_term t2
   | unvarify_term (Abs (s, T, t')) = Abs (s, T, unvarify_term t')
   | unvarify_term t = t
 
-fun axiom_for_choice_spec thy =
+fun axiom_for_choice_spec ctxt =
   unvarify_term
-  #> Object_Logic.atomize_term thy
+  #> Object_Logic.atomize_term ctxt
   #> Choice_Specification.close_form
   #> HOLogic.mk_Trueprop
 
-fun is_choice_spec_fun ({thy, def_tables, nondef_table, choice_spec_table, ...}
+fun is_choice_spec_fun ({thy, ctxt, def_tables, nondef_table, choice_spec_table, ...}
                         : hol_context) x =
   case nondef_props_for_const thy true choice_spec_table x of
     [] => false
@@ -1565,7 +1565,7 @@ fun is_choice_spec_fun ({thy, def_tables, nondef_table, choice_spec_table, ...}
             let val ts' = nondef_props_for_const thy true nondef_table x in
               length ts' = length ts andalso
               forall (fn t =>
-                         exists (curry (op aconv) (axiom_for_choice_spec thy t))
+                         exists (curry (op aconv) (axiom_for_choice_spec ctxt t))
                                 ts') ts
             end
 
@@ -2074,10 +2074,10 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
 
 exception NO_TRIPLE of unit
 
-fun triple_for_intro_rule thy x t =
+fun triple_for_intro_rule ctxt x t =
   let
-    val prems = Logic.strip_imp_prems t |> map (Object_Logic.atomize_term thy)
-    val concl = Logic.strip_imp_concl t |> Object_Logic.atomize_term thy
+    val prems = Logic.strip_imp_prems t |> map (Object_Logic.atomize_term ctxt)
+    val concl = Logic.strip_imp_concl t |> Object_Logic.atomize_term ctxt
     val (main, side) = List.partition (exists_Const (curry (op =) x)) prems
     val is_good_head = curry (op =) (Const x) o head_of
   in
@@ -2122,7 +2122,7 @@ fun uncached_is_well_founded_inductive_pred
     [] => raise TERM ("Nitpick_HOL.uncached_is_well_founded_inductive",
                       [Const x])
   | intro_ts =>
-    (case map (triple_for_intro_rule thy x) intro_ts
+    (case map (triple_for_intro_rule ctxt x) intro_ts
           |> filter_out (null o #2) of
        [] => true
      | triples =>
@@ -2149,7 +2149,7 @@ fun uncached_is_well_founded_inductive_pred
            SOME wf => wf
          | NONE =>
            let
-             val goal = prop |> Thm.global_cterm_of thy |> Goal.init
+             val goal = prop |> Thm.cterm_of ctxt |> Goal.init
              val wf = exists (terminates_by ctxt tac_timeout goal)
                              termination_tacs
            in Synchronized.change cached_wf_props (cons (prop, wf)); wf end
