@@ -324,7 +324,7 @@ proof-
   finally show ?thesis .
 qed
 
-(* TODO: Rename. This name is too general – Manuel *)
+(* TODO: Rename. This name is too general -- Manuel *)
 lemma measurable_pair_measure:
   assumes f: "f \<in> measurable M (subprob_algebra N)"
   assumes g: "g \<in> measurable M (subprob_algebra L)"
