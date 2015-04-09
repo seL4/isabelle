@@ -565,7 +565,7 @@ text \<open>Proof methods are either basic ones, or expressions composed of
   that method @{text m\<^sub>1} is applied with restriction to the first subgoal,
   then @{text m\<^sub>2} is applied consecutively with restriction to each subgoal
   that has newly emerged due to @{text m\<^sub>1}. This is analogous to the tactic
-  combinator @{ML THEN_ALL_NEW} in Isabelle/ML, see also @{cite
+  combinator @{ML_op THEN_ALL_NEW} in Isabelle/ML, see also @{cite
   "isabelle-implementation"}. For example, @{text "(rule r; blast)"} applies
   rule @{text "r"} and then solves all new subgoals by @{text blast}.
 

@@ -229,7 +229,7 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
-  options [document = false, browser_info = false]
+  options [condition = ML_SYSTEM_POLYML, document = false, browser_info = false]
   theories
     Generate
     Generate_Binary_Nat
@@ -673,7 +673,7 @@ session "HOL-TPTP" in TPTP = HOL +
 
     TPTP-related extensions.
   *}
-  options [document = false]
+  options [condition = ML_SYSTEM_POLYML, document = false]
   theories
     ATP_Theory_Export
     MaSh_Eval
