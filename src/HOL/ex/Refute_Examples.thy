@@ -259,15 +259,6 @@ lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 refute [expect = genuine]
 oops
 
-text {* "The union of transitive closures is equal to the transitive closure of unions." *}
-
-lemma "(\<forall>x y. (P x y | R x y) \<longrightarrow> T x y) \<longrightarrow> trans T \<longrightarrow> (\<forall>Q. (\<forall>x y. (P x y | R x y) \<longrightarrow> Q x y) \<longrightarrow> trans Q \<longrightarrow> subset T Q)
-        \<longrightarrow> trans_closure TP P
-        \<longrightarrow> trans_closure TR R
-        \<longrightarrow> (T x y = (TP x y | TR x y))"
-refute [expect = genuine]
-oops
-
 text {* "Every surjective function is invertible." *}
 
 lemma "(\<forall>y. \<exists>x. y = f x) \<longrightarrow> (\<exists>g. \<forall>x. g (f x) = x)"
