@@ -387,10 +387,10 @@ text {* Proper handling of non-atomic rule statements. *}
 context
 begin
 
-restricted definition "induct_forall(P) \<equiv> \<forall>x. P(x)"
-restricted definition "induct_implies(A, B) \<equiv> A \<longrightarrow> B"
-restricted definition "induct_equal(x, y) \<equiv> x = y"
-restricted definition "induct_conj(A, B) \<equiv> A \<and> B"
+qualified definition "induct_forall(P) \<equiv> \<forall>x. P(x)"
+qualified definition "induct_implies(A, B) \<equiv> A \<longrightarrow> B"
+qualified definition "induct_equal(x, y) \<equiv> x = y"
+qualified definition "induct_conj(A, B) \<equiv> A \<and> B"
 
 lemma induct_forall_eq: "(\<And>x. P(x)) \<equiv> Trueprop(induct_forall(\<lambda>x. P(x)))"
   unfolding atomize_all induct_forall_def .

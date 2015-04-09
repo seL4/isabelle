@@ -163,7 +163,7 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 local
 
 val before_command =
-  Scan.option (Parse.position (Parse.private >> K true || Parse.restricted >> K false));
+  Scan.option (Parse.position (Parse.private >> K true || Parse.qualified >> K false));
 
 fun parse_command thy =
   Scan.ahead (before_command |-- Parse.position Parse.command_) :|-- (fn (name, pos) =>

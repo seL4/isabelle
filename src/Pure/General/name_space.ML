@@ -35,11 +35,11 @@ sig
   val get_scopes: naming -> Binding.scope list
   val get_scope: naming -> Binding.scope option
   val new_scope: naming -> Binding.scope * naming
-  val limited: bool -> Position.T -> naming -> naming
+  val restricted: bool -> Position.T -> naming -> naming
   val private_scope: Binding.scope -> naming -> naming
   val private: Position.T -> naming -> naming
-  val restricted_scope: Binding.scope -> naming -> naming
-  val restricted: Position.T -> naming -> naming
+  val qualified_scope: Binding.scope -> naming -> naming
+  val qualified: Position.T -> naming -> naming
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
@@ -300,21 +300,21 @@ fun merge
 
 datatype naming = Naming of
  {scopes: Binding.scope list,
-  limited: (bool * Binding.scope) option,
+  restricted: (bool * Binding.scope) option,
   concealed: bool,
   group: serial option,
   theory_name: string,
   path: (string * bool) list};
 
-fun make_naming (scopes, limited, concealed, group, theory_name, path) =
-  Naming {scopes = scopes, limited = limited, concealed = concealed,
+fun make_naming (scopes, restricted, concealed, group, theory_name, path) =
+  Naming {scopes = scopes, restricted = restricted, concealed = concealed,
     group = group, theory_name = theory_name, path = path};
 
-fun map_naming f (Naming {scopes, limited, concealed, group, theory_name, path}) =
-  make_naming (f (scopes, limited, concealed, group, theory_name, path));
+fun map_naming f (Naming {scopes, restricted, concealed, group, theory_name, path}) =
+  make_naming (f (scopes, restricted, concealed, group, theory_name, path));
 
 
-(* scope and access limitation *)
+(* scope and access restriction *)
 
 fun get_scopes (Naming {scopes, ...}) = scopes;
 val get_scope = try hd o get_scopes;
@@ -323,38 +323,38 @@ fun new_scope naming =
   let
     val scope = Binding.new_scope ();
     val naming' =
-      naming |> map_naming (fn (scopes, limited, concealed, group, theory_name, path) =>
-        (scope :: scopes, limited, concealed, group, theory_name, path));
+      naming |> map_naming (fn (scopes, restricted, concealed, group, theory_name, path) =>
+        (scope :: scopes, restricted, concealed, group, theory_name, path));
   in (scope, naming') end;
 
-fun limited_scope strict scope =
+fun restricted_scope strict scope =
   map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
     (scopes, SOME (strict, scope), concealed, group, theory_name, path));
 
-fun limited strict pos naming =
+fun restricted strict pos naming =
   (case get_scope naming of
-    SOME scope => limited_scope strict scope naming
-  | NONE => error ("Missing local scope -- cannot limit name space accesses" ^ Position.here pos));
+    SOME scope => restricted_scope strict scope naming
+  | NONE => error ("Missing local scope -- cannot restrict name space accesses" ^ Position.here pos));
 
-val private_scope = limited_scope true;
-val private = limited true;
+val private_scope = restricted_scope true;
+val private = restricted true;
 
-val restricted_scope = limited_scope false;
-val restricted = limited false;
+val qualified_scope = restricted_scope false;
+val qualified = restricted false;
 
-val concealed = map_naming (fn (scopes, limited, _, group, theory_name, path) =>
-  (scopes, limited, true, group, theory_name, path));
+val concealed = map_naming (fn (scopes, restricted, _, group, theory_name, path) =>
+  (scopes, restricted, true, group, theory_name, path));
 
 
 (* additional structural info *)
 
-fun set_theory_name theory_name = map_naming (fn (scopes, limited, concealed, group, _, path) =>
-  (scopes, limited, concealed, group, theory_name, path));
+fun set_theory_name theory_name = map_naming (fn (scopes, restricted, concealed, group, _, path) =>
+  (scopes, restricted, concealed, group, theory_name, path));
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (scopes, limited, concealed, _, theory_name, path) =>
-  (scopes, limited, concealed, group, theory_name, path));
+fun set_group group = map_naming (fn (scopes, restricted, concealed, _, theory_name, path) =>
+  (scopes, restricted, concealed, group, theory_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -364,8 +364,8 @@ val reset_group = set_group NONE;
 
 fun get_path (Naming {path, ...}) = path;
 
-fun map_path f = map_naming (fn (scopes, limited, concealed, group, theory_name, path) =>
-  (scopes, limited, concealed, group, theory_name, f path));
+fun map_path f = map_naming (fn (scopes, restricted, concealed, group, theory_name, path) =>
+  (scopes, restricted, concealed, group, theory_name, f path));
 
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
@@ -381,14 +381,14 @@ val local_naming = global_naming |> add_path Long_Name.localN;
 
 (* transform *)
 
-fun transform_naming (Naming {limited = limited', concealed = concealed', ...}) =
-  (case limited' of
-    SOME (strict, scope) => limited_scope strict scope
+fun transform_naming (Naming {restricted = restricted', concealed = concealed', ...}) =
+  (case restricted' of
+    SOME (strict, scope) => restricted_scope strict scope
   | NONE => I) #>
   concealed' ? concealed;
 
-fun transform_binding (Naming {limited, concealed, ...}) =
-  Binding.limited_default limited #>
+fun transform_binding (Naming {restricted, concealed, ...}) =
+  Binding.restricted_default restricted #>
   concealed ? Binding.concealed;
 
 
@@ -416,10 +416,10 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   (case name_spec naming binding of
-    {limitation = SOME true, ...} => ([], [])
-  | {limitation, spec, ...} =>
+    {restriction = SOME true, ...} => ([], [])
+  | {restriction, spec, ...} =>
       let
-        val restrict = is_some limitation ? filter (fn [_] => false | _ => true);
+        val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
         val sfxs = restrict (mandatory_suffixes spec);
         val pfxs = restrict (mandatory_prefixes spec);
       in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end);

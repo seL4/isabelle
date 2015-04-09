@@ -247,7 +247,7 @@ val is_name = is_kind Ident orf is_kind Sym_Ident orf is_kind String orf is_kind
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;
 
-val is_command_modifier = keyword_with (fn x => x = "private" orelse x = "restricted");
+val is_command_modifier = keyword_with (fn x => x = "private" orelse x = "qualified");
 
 fun ident_with pred (Token (_, (Ident, x), _)) = pred x
   | ident_with _ _ = false;

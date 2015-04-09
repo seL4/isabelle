@@ -113,6 +113,8 @@ sig
   val local_path: theory -> theory
   val private_scope: Binding.scope -> theory -> theory
   val private: Position.T -> theory -> theory
+  val qualified_scope: Binding.scope -> theory -> theory
+  val qualified: Position.T -> theory -> theory
   val concealed: theory -> theory
   val hide_class: bool -> string -> theory -> theory
   val hide_type: bool -> string -> theory -> theory
@@ -525,8 +527,8 @@ fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
 val private_scope = map_naming o Name_Space.private_scope;
 val private = map_naming o Name_Space.private;
-val restricted_scope = map_naming o Name_Space.restricted_scope;
-val restricted = map_naming o Name_Space.restricted;
+val qualified_scope = map_naming o Name_Space.qualified_scope;
+val qualified = map_naming o Name_Space.qualified;
 val concealed = map_naming Name_Space.concealed;
 
 

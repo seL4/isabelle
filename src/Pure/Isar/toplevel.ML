@@ -412,15 +412,16 @@ val close_target = transaction (fn _ =>
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
 
-val limited_context =
-  fn SOME (strict, scope) => Proof_Context.map_naming (Name_Space.limited strict scope) | NONE => I;
+fun restricted_context (SOME (strict, scope)) =
+      Proof_Context.map_naming (Name_Space.restricted strict scope)
+  | restricted_context NONE = I;
 
-fun local_theory' limited target f = present_transaction (fn int =>
+fun local_theory' restricted target f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val (finish, lthy) = Named_Target.switch target gthy;
           val lthy' = lthy
-            |> limited_context limited
+            |> restricted_context restricted
             |> Local_Theory.new_group
             |> f int
             |> Local_Theory.reset_group;
@@ -428,7 +429,7 @@ fun local_theory' limited target f = present_transaction (fn int =>
     | _ => raise UNDEF))
   (K ());
 
-fun local_theory limited target f = local_theory' limited target (K f);
+fun local_theory restricted target f = local_theory' restricted target (K f);
 
 fun present_local_theory target = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
@@ -473,18 +474,18 @@ fun begin_proof init = transaction (fn int =>
 
 in
 
-fun local_theory_to_proof' limited target f = begin_proof
+fun local_theory_to_proof' restricted target f = begin_proof
   (fn int => fn gthy =>
     let
       val (finish, lthy) = Named_Target.switch target gthy;
       val prf = lthy
-        |> limited_context limited
+        |> restricted_context restricted
         |> Local_Theory.new_group
         |> f int;
     in (finish o Local_Theory.reset_group, prf) end);
 
-fun local_theory_to_proof limited target f =
-  local_theory_to_proof' limited target (K f);
+fun local_theory_to_proof restricted target f =
+  local_theory_to_proof' restricted target (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>

@@ -30,9 +30,7 @@ sig
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
-  val private: scope -> binding -> binding
-  val restricted: scope -> binding -> binding
-  val limited_default: (bool * scope) option -> binding -> binding
+  val restricted_default: (bool * scope) option -> binding -> binding
   val concealed: binding -> binding
   val pretty: binding -> Pretty.T
   val print: binding -> string
@@ -40,7 +38,7 @@ sig
   val bad: binding -> string
   val check: binding -> unit
   val name_spec: scope list -> (string * bool) list -> binding ->
-    {limitation: bool option, concealed: bool, spec: (string * bool) list}
+    {restriction: bool option, concealed: bool, spec: (string * bool) list}
 end;
 
 structure Binding: BINDING =
@@ -48,7 +46,7 @@ struct
 
 (** representation **)
 
-(* scope of limited entries *)
+(* scope of restricted entries *)
 
 datatype scope = Scope of serial;
 
@@ -58,19 +56,19 @@ fun new_scope () = Scope (serial ());
 (* binding *)
 
 datatype binding = Binding of
- {limited: (bool * scope) option,  (*entry is private (true) / restricted (false) to scope*)
-  concealed: bool,                 (*entry is for foundational purposes -- please ignore*)
-  prefix: (string * bool) list,    (*system prefix*)
-  qualifier: (string * bool) list, (*user qualifier*)
-  name: bstring,                   (*base name*)
-  pos: Position.T};                (*source position*)
+ {restricted: (bool * scope) option,  (*entry is private (true) or qualified (false) wrt. scope*)
+  concealed: bool,  (*entry is for foundational purposes -- please ignore*)
+  prefix: (string * bool) list,  (*system prefix*)
+  qualifier: (string * bool) list,  (*user qualifier*)
+  name: bstring,  (*base name*)
+  pos: Position.T};  (*source position*)
 
-fun make_binding (limited, concealed, prefix, qualifier, name, pos) =
-  Binding {limited = limited, concealed = concealed, prefix = prefix,
+fun make_binding (restricted, concealed, prefix, qualifier, name, pos) =
+  Binding {restricted = restricted, concealed = concealed, prefix = prefix,
     qualifier = qualifier, name = name, pos = pos};
 
-fun map_binding f (Binding {limited, concealed, prefix, qualifier, name, pos}) =
-  make_binding (f (limited, concealed, prefix, qualifier, name, pos));
+fun map_binding f (Binding {restricted, concealed, prefix, qualifier, name, pos}) =
+  make_binding (f (restricted, concealed, prefix, qualifier, name, pos));
 
 fun path_of (Binding {prefix, qualifier, ...}) = prefix @ qualifier;
 
@@ -84,8 +82,8 @@ fun make (name, pos) = make_binding (NONE, false, [], [], name, pos);
 
 fun pos_of (Binding {pos, ...}) = pos;
 fun set_pos pos =
-  map_binding (fn (limited, concealed, prefix, qualifier, name, _) =>
-    (limited, concealed, prefix, qualifier, name, pos));
+  map_binding (fn (restricted, concealed, prefix, qualifier, name, _) =>
+    (restricted, concealed, prefix, qualifier, name, pos));
 
 fun name name = make (name, Position.none);
 fun name_of (Binding {name, ...}) = name;
@@ -93,8 +91,8 @@ fun name_of (Binding {name, ...}) = name;
 fun eq_name (b, b') = name_of b = name_of b';
 
 fun map_name f =
-  map_binding (fn (limited, concealed, prefix, qualifier, name, pos) =>
-    (limited, concealed, prefix, qualifier, f name, pos));
+  map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
+    (restricted, concealed, prefix, qualifier, f name, pos));
 
 val prefix_name = map_name o prefix;
 val suffix_name = map_name o suffix;
@@ -107,13 +105,13 @@ fun is_empty b = name_of b = "";
 
 fun qualify _ "" = I
   | qualify mandatory qual =
-      map_binding (fn (limited, concealed, prefix, qualifier, name, pos) =>
-        (limited, concealed, prefix, (qual, mandatory) :: qualifier, name, pos));
+      map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
+        (restricted, concealed, prefix, (qual, mandatory) :: qualifier, name, pos));
 
 fun qualified mandatory name' =
-  map_binding (fn (limited, concealed, prefix, qualifier, name, pos) =>
+  map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
     let val qualifier' = if name = "" then qualifier else qualifier @ [(name, mandatory)]
-    in (limited, concealed, prefix, qualifier', name', pos) end);
+    in (restricted, concealed, prefix, qualifier', name', pos) end);
 
 fun qualified_name "" = empty
   | qualified_name s =
@@ -126,8 +124,8 @@ fun qualified_name "" = empty
 fun prefix_of (Binding {prefix, ...}) = prefix;
 
 fun map_prefix f =
-  map_binding (fn (limited, concealed, prefix, qualifier, name, pos) =>
-    (limited, concealed, f prefix, qualifier, name, pos));
+  map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
+    (restricted, concealed, f prefix, qualifier, name, pos));
 
 fun prefix _ "" = I
   | prefix mandatory prfx = map_prefix (cons (prfx, mandatory));
@@ -135,20 +133,18 @@ fun prefix _ "" = I
 
 (* visibility flags *)
 
-fun limited strict scope =
+fun restricted strict scope =
   map_binding (fn (_, concealed, prefix, qualifier, name, pos) =>
     (SOME (strict, scope), concealed, prefix, qualifier, name, pos));
 
-val private = limited true;
-val restricted = limited false;
-
-fun limited_default limited' =
-  map_binding (fn (limited, concealed, prefix, qualifier, name, pos) =>
-    (if is_some limited then limited else limited', concealed, prefix, qualifier, name, pos));
+fun restricted_default restricted' =
+  map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
+    (if is_some restricted then restricted else restricted',
+      concealed, prefix, qualifier, name, pos));
 
 val concealed =
-  map_binding (fn (limited, _, prefix, qualifier, name, pos) =>
-    (limited, true, prefix, qualifier, name, pos));
+  map_binding (fn (restricted, _, prefix, qualifier, name, pos) =>
+    (restricted, true, prefix, qualifier, name, pos));
 
 
 (* print *)
@@ -181,11 +177,11 @@ val bad_specs = ["", "??", "__"];
 
 fun name_spec scopes path binding =
   let
-    val Binding {limited, concealed, prefix, qualifier, name, ...} = binding;
+    val Binding {restricted, concealed, prefix, qualifier, name, ...} = binding;
     val _ = Long_Name.is_qualified name andalso error (bad binding);
 
-    val limitation =
-      (case limited of
+    val restriction =
+      (case restricted of
         NONE => NONE
       | SOME (strict, scope) => if member (op =) scopes scope then NONE else SOME strict);
 
@@ -196,7 +192,7 @@ fun name_spec scopes path binding =
     val _ =
       exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso error (bad binding);
-  in {limitation = limitation, concealed = concealed, spec = if null spec2 then [] else spec} end;
+  in {restriction = restriction, concealed = concealed, spec = if null spec2 then [] else spec} end;
 
 end;
 
