@@ -1377,12 +1377,12 @@ structure Project_Rule = Project_Rule
 context
 begin
 
-restricted definition "induct_forall P \<equiv> \<forall>x. P x"
-restricted definition "induct_implies A B \<equiv> A \<longrightarrow> B"
-restricted definition "induct_equal x y \<equiv> x = y"
-restricted definition "induct_conj A B \<equiv> A \<and> B"
-restricted definition "induct_true \<equiv> True"
-restricted definition "induct_false \<equiv> False"
+qualified definition "induct_forall P \<equiv> \<forall>x. P x"
+qualified definition "induct_implies A B \<equiv> A \<longrightarrow> B"
+qualified definition "induct_equal x y \<equiv> x = y"
+qualified definition "induct_conj A B \<equiv> A \<and> B"
+qualified definition "induct_true \<equiv> True"
+qualified definition "induct_false \<equiv> False"
 
 lemma induct_forall_eq: "(\<And>x. P x) \<equiv> Trueprop (induct_forall (\<lambda>x. P x))"
   by (unfold atomize_all induct_forall_def)
