@@ -7,7 +7,7 @@
 section {* Polynomials as type over a ring structure *}
 
 theory Polynomial
-imports Main GCD "~~/src/HOL/Library/More_List"
+imports Main GCD "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Infinite_Set"
 begin
 
 subsection {* Auxiliary: operations for lists (later) representing coefficients *}
@@ -50,48 +50,13 @@ lemma tl_cCons [simp]:
   "tl (x ## xs) = xs"
   by (simp add: cCons_def)
 
-
-subsection {* Almost everywhere zero functions *}
-
-definition almost_everywhere_zero :: "(nat \<Rightarrow> 'a::zero) \<Rightarrow> bool"
-where
-  "almost_everywhere_zero f \<longleftrightarrow> (\<exists>n. \<forall>i>n. f i = 0)"
-
-lemma almost_everywhere_zeroI:
-  "(\<And>i. i > n \<Longrightarrow> f i = 0) \<Longrightarrow> almost_everywhere_zero f"
-  by (auto simp add: almost_everywhere_zero_def)
-
-lemma almost_everywhere_zeroE:
-  assumes "almost_everywhere_zero f"
-  obtains n where "\<And>i. i > n \<Longrightarrow> f i = 0"
-proof -
-  from assms have "\<exists>n. \<forall>i>n. f i = 0" by (simp add: almost_everywhere_zero_def)
-  then obtain n where "\<And>i. i > n \<Longrightarrow> f i = 0" by blast
-  with that show thesis .
-qed
-
-lemma almost_everywhere_zero_case_nat:
-  assumes "almost_everywhere_zero f"
-  shows "almost_everywhere_zero (case_nat a f)"
-  using assms
-  by (auto intro!: almost_everywhere_zeroI elim!: almost_everywhere_zeroE split: nat.split)
-    blast
-
-lemma almost_everywhere_zero_Suc:
-  assumes "almost_everywhere_zero f"
-  shows "almost_everywhere_zero (\<lambda>n. f (Suc n))"
-proof -
-  from assms obtain n where "\<And>i. i > n \<Longrightarrow> f i = 0" by (erule almost_everywhere_zeroE)
-  then have "\<And>i. i > n \<Longrightarrow> f (Suc i) = 0" by auto
-  then show ?thesis by (rule almost_everywhere_zeroI)
-qed
-
+lemma MOST_SucD: "(\<forall>\<^sub>\<infinity> n. P (Suc n)) \<Longrightarrow> (\<forall>\<^sub>\<infinity> n. P n)"
+  by (auto simp: MOST_nat) (metis Suc_lessE)
 
 subsection {* Definition of type @{text poly} *}
 
-typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. almost_everywhere_zero f}"
-  morphisms coeff Abs_poly
-  unfolding almost_everywhere_zero_def by auto
+typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
+  morphisms coeff Abs_poly by (auto intro!: ALL_MOST)
 
 setup_lifting type_definition_poly
 
@@ -101,8 +66,7 @@ lemma poly_eq_iff: "p = q \<longleftrightarrow> (\<forall>n. coeff p n = coeff q
 lemma poly_eqI: "(\<And>n. coeff p n = coeff q n) \<Longrightarrow> p = q"
   by (simp add: poly_eq_iff)
 
-lemma coeff_almost_everywhere_zero:
-  "almost_everywhere_zero (coeff p)"
+lemma MOST_coeff_eq_0: "\<forall>\<^sub>\<infinity> n. coeff p n = 0"
   using coeff [of p] by simp
 
 
@@ -116,8 +80,8 @@ lemma coeff_eq_0:
   assumes "degree p < n"
   shows "coeff p n = 0"
 proof -
-  from coeff_almost_everywhere_zero
-  have "\<exists>n. \<forall>i>n. coeff p i = 0" by (blast intro: almost_everywhere_zeroE)
+  have "\<exists>n. \<forall>i>n. coeff p i = 0"
+    using MOST_coeff_eq_0 by (simp add: MOST_nat)
   then have "\<forall>i>degree p. coeff p i = 0"
     unfolding degree_def by (rule LeastI_ex)
   with assms show ?thesis by simp
@@ -139,7 +103,7 @@ instantiation poly :: (zero) zero
 begin
 
 lift_definition zero_poly :: "'a poly"
-  is "\<lambda>_. 0" by (rule almost_everywhere_zeroI) simp
+  is "\<lambda>_. 0" by (rule MOST_I) simp
 
 instance ..
 
@@ -184,7 +148,7 @@ subsection {* List-style constructor for polynomials *}
 
 lift_definition pCons :: "'a::zero \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>a p. case_nat a (coeff p)"
-  using coeff_almost_everywhere_zero by (rule almost_everywhere_zero_case_nat)
+  by (rule MOST_SucD) (simp add: MOST_coeff_eq_0)
 
 lemmas coeff_pCons = pCons.rep_eq
 
@@ -247,7 +211,8 @@ lemma pCons_cases [cases type: poly]:
 proof
   show "p = pCons (coeff p 0) (Abs_poly (\<lambda>n. coeff p (Suc n)))"
     by transfer
-      (simp add: Abs_poly_inverse almost_everywhere_zero_Suc fun_eq_iff split: nat.split)
+       (simp_all add: MOST_inj[where f=Suc and P="\<lambda>n. p n = 0" for p] fun_eq_iff Abs_poly_inverse
+                 split: nat.split)
 qed
 
 lemma pCons_induct [case_names 0 pCons, induct type: poly]:
@@ -483,7 +448,7 @@ subsection {* Monomials *}
 
 lift_definition monom :: "'a \<Rightarrow> nat \<Rightarrow> 'a::zero poly"
   is "\<lambda>a m n. if m = n then a else 0"
-  by (auto intro!: almost_everywhere_zeroI)
+  by (simp add: MOST_iff_cofinite)
 
 lemma coeff_monom [simp]:
   "coeff (monom a m) n = (if m = n then a else 0)"
@@ -536,11 +501,9 @@ begin
 
 lift_definition plus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n + coeff q n"
-proof (rule almost_everywhere_zeroI) 
-  fix q p :: "'a poly" and i
-  assume "max (degree q) (degree p) < i"
-  then show "coeff p i + coeff q i = 0"
-    by (simp add: coeff_eq_0)
+proof (rule MOST_rev_mp[OF MOST_coeff_eq_0 MOST_rev_mp[OF MOST_coeff_eq_0]])
+  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> coeff q n = 0 \<longrightarrow> coeff p n + coeff q n = 0"
+    by simp
 qed
 
 lemma coeff_add [simp]:
@@ -564,11 +527,9 @@ begin
 
 lift_definition minus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n - coeff q n"
-proof (rule almost_everywhere_zeroI) 
-  fix q p :: "'a poly" and i
-  assume "max (degree q) (degree p) < i"
-  then show "coeff p i - coeff q i = 0"
-    by (simp add: coeff_eq_0)
+proof (rule MOST_rev_mp[OF MOST_coeff_eq_0 MOST_rev_mp[OF MOST_coeff_eq_0]])
+  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> coeff q n = 0 \<longrightarrow> coeff p n - coeff q n = 0"
+    by simp
 qed
 
 lemma coeff_diff [simp]:
@@ -590,11 +551,9 @@ begin
 
 lift_definition uminus_poly :: "'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p n. - coeff p n"
-proof (rule almost_everywhere_zeroI)
-  fix p :: "'a poly" and i
-  assume "degree p < i"
-  then show "- coeff p i = 0"
-    by (simp add: coeff_eq_0)
+proof (rule MOST_rev_mp[OF MOST_coeff_eq_0])
+  fix p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> - coeff p n = 0"
+    by simp
 qed
 
 lemma coeff_minus [simp]: "coeff (- p) n = - coeff p n"
@@ -748,7 +707,7 @@ subsection {* Multiplication by a constant, polynomial multiplication and the un
 
 lift_definition smult :: "'a::comm_semiring_0 \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>a p n. a * coeff p n"
-proof (rule almost_everywhere_zeroI)
+proof (intro MOST_nat[THEN iffD2] exI allI impI) 
   fix a :: 'a and p :: "'a poly" and i
   assume "degree p < i"
   then show "a * coeff p i = 0"
