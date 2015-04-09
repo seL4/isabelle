@@ -70,8 +70,8 @@ sig
   val evaluate: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
   val modifier: attribute -> Position.T -> modifier
-  val section: modifier parser list -> declaration context_parser
-  val sections: modifier parser list -> declaration list context_parser
+  val old_section_parser: bool Config.T
+  val sections: modifier parser list -> unit context_parser
   type text_range = text * Position.range
   val text: text_range option -> text option
   val position: text_range option -> Position.T
@@ -488,6 +488,26 @@ fun modifier attribute pos : modifier = {init = I, attribute = attribute, pos = 
 
 (* sections *)
 
+val old_section_parser =
+  Config.bool (Config.declare ("Method.old_section_parser", @{here}) (K (Config.Bool false)));
+
+local
+
+fun thms ss =
+  Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
+
+fun app {init, attribute, pos = _} ths context =
+  fold_map (Thm.apply_attribute attribute) ths (Context.map_proof init context);
+
+fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
+  (fn (m, ths) => Scan.succeed (swap (app m ths context))));
+
+in
+
+fun old_sections ss = Scan.repeat (section ss) >> K ();
+
+end;
+
 local
 
 fun sect (modifier : modifier parser) = Scan.depend (fn context =>
@@ -523,8 +543,10 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
 
 in
 
-val section = sect o Scan.first;
-val sections = Scan.repeat o section;
+fun sections ss =
+  Args.context :|-- (fn ctxt =>
+    if Config.get ctxt old_section_parser then old_sections ss
+    else Scan.repeat (sect (Scan.first ss)) >> K ());
 
 end;
 
