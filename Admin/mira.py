@@ -24,7 +24,6 @@ def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps, more_setting
 
     # patch settings
     extra_settings = '''
-Z3_NON_COMMERCIAL="yes"
 
 init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
 init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/optional"

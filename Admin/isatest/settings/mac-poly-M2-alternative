@@ -30,6 +30,3 @@ ISABELLE_BUILD_OPTIONS="browser_info=true document=pdf threads=2 parallel_proofs
 ISABELLE_FULL_TEST=true
 
 ISABELLE_GHC=ghc
-
-Z3_NON_COMMERCIAL="yes"
-
