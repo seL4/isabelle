@@ -77,8 +77,9 @@ sig
   val position: text_range option -> Position.T
   val reports_of: text_range -> Position.report list
   val report: text_range -> unit
+  val parser': Proof.context -> int -> text_range parser
+  val parser: int -> text_range parser
   val parse: text_range parser
-  val parse_internal: Proof.context -> text_range parser
 end;
 
 structure Method: METHOD =
@@ -574,7 +575,7 @@ local
 fun is_symid_meth s =
   s <> "|" andalso s <> "?" andalso s <> "+" andalso Token.ident_or_symbolic s;
 
-fun parser check_ctxt low_pri =
+fun gen_parser check_ctxt pri =
   let
     val (meth_name, mk_src) =
       (case check_ctxt of
@@ -610,15 +611,17 @@ fun parser check_ctxt low_pri =
     and meth0 x =
       (Parse.enum1_positions "|" meth1
         >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Orelse, ms))) x;
-  in
-    Scan.trace (if low_pri then meth0 else meth4)
-      >> (fn (m, toks) => (m, Token.range_of toks))
-  end;
+
+    val meth =
+      nth [meth0, meth1, meth2, meth3, meth4, meth5] pri
+        handle General.Subscript => raise Fail ("Bad method parser priority " ^ string_of_int pri);
+  in Scan.trace meth >> (fn (m, toks) => (m, Token.range_of toks)) end;
 
 in
 
-val parse = parser NONE false;
-fun parse_internal ctxt = parser (SOME ctxt) true;
+val parser' = gen_parser o SOME;
+val parser = gen_parser NONE;
+val parse = parser 4;
 
 end;
 
@@ -672,4 +675,3 @@ val METHOD = Method.METHOD;
 val SIMPLE_METHOD = Method.SIMPLE_METHOD;
 val SIMPLE_METHOD' = Method.SIMPLE_METHOD';
 val SIMPLE_METHOD'' = Method.SIMPLE_METHOD'';
-
