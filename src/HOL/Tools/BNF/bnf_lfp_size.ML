@@ -54,7 +54,7 @@ fun mk_to_natT T = T --> HOLogic.natT;
 
 fun mk_abs_zero_nat T = Term.absdummy T HOLogic.zero;
 
-fun mk_pointfull ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
+fun mk_pointful ctxt thm = unfold_thms ctxt [o_apply] (thm RS fun_cong);
 
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
@@ -235,7 +235,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (Spec_Rules.retrieve lthy0 @{const size ('a)}
          |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
-      val nested_size_maps = map (mk_pointfull lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
+      val nested_size_maps = map (mk_pointful lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
       val all_inj_maps =
         @{thm prod.inj_map} :: map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
         |> distinct Thm.eq_thm_prop;
