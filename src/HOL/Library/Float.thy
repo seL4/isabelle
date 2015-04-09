@@ -1093,9 +1093,9 @@ lemma div_mult_twopow_eq: fixes a b::nat shows "a div ((2::nat) ^ n) div b = a d
   by (cases "b=0") (simp_all add: div_mult2_eq[symmetric] ac_simps)
 
 lemma real_div_nat_eq_floor_of_divide:
-  fixes a b::nat
-  shows "a div b = real (floor (a/b))"
-by (metis floor_divide_eq_div real_of_int_of_nat_eq zdiv_int)
+  fixes a b :: nat
+  shows "a div b = real \<lfloor>a / b\<rfloor>"
+  by (simp add: floor_divide_of_nat_eq [of a b] real_eq_of_nat)
 
 definition "rat_precision prec x y = int prec - (bitlen x - bitlen y)"
 

@@ -610,8 +610,7 @@ qed
 end
 
 lemma floor_Fract: "floor (Fract a b) = a div b"
-  using rat_floor_lemma [of a b]
-  by (simp add: floor_unique)
+  by (simp add: Fract_of_int_quotient floor_divide_of_int_eq)
 
 
 subsection {* Linear arithmetic setup *}

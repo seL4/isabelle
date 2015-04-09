@@ -309,6 +309,71 @@ proof -
   finally show ?thesis unfolding of_int_less_iff by simp
 qed
 
+lemma floor_divide_of_int_eq:
+  fixes k l :: int
+  shows "\<lfloor>of_int k / of_int l\<rfloor> = of_int (k div l)"
+proof (cases "l = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  have *: "\<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> = 0"
+  proof (cases "l > 0")
+    case True then show ?thesis
+      by (auto intro: floor_unique)
+  next
+    case False
+    obtain r where "r = - l" by blast
+    then have l: "l = - r" by simp
+    moreover with `l \<noteq> 0` False have "r > 0" by simp
+    ultimately show ?thesis using pos_mod_bound [of r]
+      by (auto simp add: zmod_zminus2_eq_if less_le field_simps intro: floor_unique)
+  qed
+  have "(of_int k :: 'a) = of_int (k div l * l + k mod l)"
+    by simp
+  also have "\<dots> = (of_int (k div l) + of_int (k mod l) / of_int l) * of_int l"
+    using False by (simp only: of_int_add) (simp add: field_simps)
+  finally have "(of_int k / of_int l :: 'a) = \<dots> / of_int l"
+    by simp 
+  then have "(of_int k / of_int l :: 'a) = of_int (k div l) + of_int (k mod l) / of_int l"
+    using False by (simp only:) (simp add: field_simps)
+  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k div l) + of_int (k mod l) / of_int l :: 'a\<rfloor>" 
+    by simp
+  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l + of_int (k div l) :: 'a\<rfloor>"
+    by (simp add: ac_simps)
+  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> + of_int (k div l)"
+    by simp
+  with * show ?thesis by simp
+qed
+
+lemma floor_divide_of_nat_eq:
+  fixes m n :: nat
+  shows "\<lfloor>of_nat m / of_nat n\<rfloor> = of_nat (m div n)"
+proof (cases "n = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have *: "\<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> = 0"
+    by (auto intro: floor_unique)
+  have "(of_nat m :: 'a) = of_nat (m div n * n + m mod n)"
+    by simp
+  also have "\<dots> = (of_nat (m div n) + of_nat (m mod n) / of_nat n) * of_nat n"
+    using False by (simp only: of_nat_add) (simp add: field_simps of_nat_mult)
+  finally have "(of_nat m / of_nat n :: 'a) = \<dots> / of_nat n"
+    by simp 
+  then have "(of_nat m / of_nat n :: 'a) = of_nat (m div n) + of_nat (m mod n) / of_nat n"
+    using False by (simp only:) simp
+  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m div n) + of_nat (m mod n) / of_nat n :: 'a\<rfloor>" 
+    by simp
+  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m mod n) / of_nat n + of_nat (m div n) :: 'a\<rfloor>"
+    by (simp add: ac_simps)
+  moreover have "(of_nat (m div n) :: 'a) = of_int (of_nat (m div n))"
+    by simp
+  ultimately have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> + of_nat (m div n)"
+    by (simp only: floor_add_of_int)
+  with * show ?thesis by simp
+qed
+
+
 subsection {* Ceiling function *}
 
 definition
