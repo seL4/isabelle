@@ -51,8 +51,8 @@ sig
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
     typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
-    (typ list -> typ -> typ -> term -> term) -> (typ -> typ -> term -> term) -> typ list -> typ ->
-    term -> term
+    (typ list -> typ -> typ -> term -> term) -> (typ list -> typ -> typ -> term -> term) ->
+    typ list -> typ -> typ -> term -> term
   val expand_to_ctr_term: Proof.context -> string -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
     typ list -> term -> term
@@ -306,7 +306,7 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
 
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
-fun massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts U t0 =
+fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_Ts U T t0 =
   let
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt [t0] t else ();
 
@@ -314,7 +314,7 @@ fun massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts U
         (Type (@{type_name fun}, [T1, T2])) t =
         Abs (Name.uu, T1, massage_mutual_call bound_Ts U2 T2 (incr_boundvars 1 t $ Bound 0))
       | massage_mutual_call bound_Ts U T t =
-        if has_call t then massage_call bound_Ts T U t else wrap_noncall T U t;
+        (if has_call t then massage_call else massage_noncall) bound_Ts U T t;
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -374,20 +374,20 @@ fun massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts U
                 end
               | t1 $ t2 =>
                 (if has_call t2 then
-                  massage_mutual_call bound_Ts U T t
-                else
-                  massage_map bound_Ts U T t1 $ t2
-                  handle NO_MAP _ => massage_mutual_call bound_Ts U T t)
+                   massage_mutual_call bound_Ts U T t
+                 else
+                   massage_map bound_Ts U T t1 $ t2
+                   handle NO_MAP _ => massage_mutual_call bound_Ts U T t)
               | Abs (s, T', t') =>
                 Abs (s, T', massage_any_call (T' :: bound_Ts) (range_type U) (range_type T) t')
               | _ => massage_mutual_call bound_Ts U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
-          wrap_noncall T U t) bound_Ts;
+          massage_noncall bound_Ts U T t) bound_Ts;
 
     val T = fastype_of1 (bound_Ts, t0);
   in
-    if has_call t0 then massage_any_call bound_Ts U T t0 else wrap_noncall T U t0
+    (if has_call t0 then massage_any_call else massage_noncall) bound_Ts U T t0
   end;
 
 fun expand_to_ctr_term ctxt s Ts t =
@@ -894,7 +894,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
     NONE => I
   | SOME {fun_args, rhs_term, ...} =>
     let
-      fun massage_call bound_Ts T U t0 =
+      fun massage_call bound_Ts U T t0 =
         let
           val U2 =
             (case try dest_sumT U of
@@ -919,17 +919,16 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
             rewrite bound_Ts t0
           end;
 
-      fun wrap_noncall T U t = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
+      fun massage_noncall bound_Ts U T t =
+        build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
 
       val bound_Ts = List.rev (map fastype_of fun_args);
-
-      fun build t =
-        rhs_term
-        |> massage_nested_corec_call ctxt has_call massage_call wrap_noncall bound_Ts
-          (range_type (fastype_of t))
-        |> abs_tuple_balanced fun_args;
     in
-      build
+      fn t =>
+      rhs_term
+      |> massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_Ts
+        (range_type (fastype_of t)) (fastype_of1 (bound_Ts, rhs_term))
+      |> abs_tuple_balanced fun_args
     end);
 
 fun build_corec_args_sel ctxt has_call (all_sel_eqns : coeqn_data_sel list)
