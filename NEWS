@@ -338,6 +338,10 @@ argument. Minor INCOMPATIBILITY.
       \<subset># ~> #\<subset>#
       \<subseteq># ~> #\<subseteq>#
     INCOMPATIBILITY.
+  - Introduced abbreviations for ill-named multiset operations:
+      <#, \<subset># abbreviate < (strict subset)
+      <=#, \<le>#, \<subseteq># abbreviate <= (subset or equal)
+    INCOMPATIBILITY.
   - Renamed
       in_multiset_of ~> in_multiset_in_set
     INCOMPATIBILITY.

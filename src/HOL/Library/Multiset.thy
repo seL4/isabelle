@@ -295,6 +295,18 @@ instance
 
 end
 
+abbreviation less_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<#" 50) where
+  "A <# B \<equiv> A < B"
+abbreviation (xsymbols) subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50) where
+  "A \<subset># B \<equiv> A < B"
+
+abbreviation less_eq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
+  "A <=# B \<equiv> A \<le> B"
+abbreviation (xsymbols) leq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<le>#" 50) where
+  "A \<le># B \<equiv> A \<le> B"
+abbreviation (xsymbols) subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subseteq>#" 50) where
+  "A \<subseteq># B \<equiv> A \<le> B"
+
 lemma mset_less_eqI:
   "(\<And>x. count A x \<le> count B x) \<Longrightarrow> A \<le> B"
   by (simp add: mset_le_def)
