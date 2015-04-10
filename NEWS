@@ -345,6 +345,8 @@ argument. Minor INCOMPATIBILITY.
     INCOMPATIBILITY.
   - Renamed
       in_multiset_of ~> in_multiset_in_set
+      Multiset.fold ~> fold_mset
+      Multiset.filter ~> filter_mset
     INCOMPATIBILITY.
   - Removed mcard, is equal to size.
   - Added attributes:
