@@ -6,7 +6,13 @@
 More recursor sugar.
 *)
 
-structure BNF_LFP_Rec_Sugar_More : sig end =
+signature BNF_LFP_REC_SUGAR_MORE =
+sig
+  val massage_nested_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
+    typ list -> term -> term -> term -> term
+end;
+
+structure BNF_LFP_Rec_Sugar_More : BNF_LFP_REC_SUGAR_MORE =
 struct
 
 open BNF_Util
@@ -71,7 +77,7 @@ fun invalid_map ctxt t =
 fun unexpected_rec_call ctxt t =
   error ("Unexpected recursive call: " ^ quote (Syntax.string_of_term ctxt t));
 
-fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
+fun massage_nested_rec_call ctxt has_call massage_fun bound_Ts y y' =
   let
     fun check_no_call t = if has_call t then unexpected_rec_call ctxt t else ();
 
@@ -91,7 +97,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
       | _ =>
         if has_call t then
           (case try HOLogic.dest_prodT U of
-            SOME (U1, U2) => if U1 = T then raw_massage_fun T U2 t else invalid_map ctxt t
+            SOME (U1, U2) => if U1 = T then massage_fun T U2 t else invalid_map ctxt t
           | NONE => invalid_map ctxt t)
         else
           mk_comp bound_Ts (t, build_map_fst (U, T)));
