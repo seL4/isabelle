@@ -617,7 +617,7 @@ fun primrec_simple fixes ts lthy =
 
 fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
   let
-    val dups = duplicates (op =) (map (Binding.name_of o #1) raw_fixes);
+    val dups = duplicates (op =) (map (fn (x, _, _) => Binding.name_of x) raw_fixes);
     val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
 
     val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
