@@ -4,7 +4,7 @@
 
 ## global parameters
 
-CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2014"
+CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2015"
 
 
 ## diagnostics
@@ -55,7 +55,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
   --site "$CYGWIN_MIRROR" --no-verify \
   --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
-  --packages libgmp3,perl,perl_vendor,rlwrap,unzip,vim \
+  --packages perl,perl-libwww-perl,rlwrap,unzip,vim \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
 
 [ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2
@@ -65,7 +65,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
 
 for NAME in hosts protocols services networks passwd group
 do
-  rm "$TARGET/etc/$NAME"
+  rm -f "$TARGET/etc/$NAME"
 done
 
 ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
@@ -77,4 +77,3 @@ rm "$TARGET/Cygwin.bat"
 
 DATE=$(date +%Y%m%d)
 tar -C "$TARGET/.." -cz -f "cygwin-${DATE}.tar.gz" cygwin
-
