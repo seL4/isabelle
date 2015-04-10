@@ -2438,8 +2438,7 @@ next
     unfolding rel_mset_def[abs_def] BNF_Def.Grp_def OO_def
     apply (rule ext)+
     apply auto
-     apply (rule_tac x = "multiset_of (zip xs ys)" in exI)
-     apply auto[1]
+     apply (rule_tac x = "multiset_of (zip xs ys)" in exI; auto)
         apply (metis list_all2_lengthD map_fst_zip multiset_of_map)
        apply (auto simp: list_all2_iff)[1]
       apply (metis list_all2_lengthD map_snd_zip multiset_of_map)
@@ -2451,7 +2450,8 @@ next
     apply (rule_tac x = "map fst xys" in exI)
     apply (auto simp: multiset_of_map)
     apply (rule_tac x = "map snd xys" in exI)
-    by (auto simp: multiset_of_map list_all2I subset_eq zip_map_fst_snd)
+    apply (auto simp: multiset_of_map list_all2I subset_eq zip_map_fst_snd)
+    done
 next
   show "\<And>z. z \<in> set_of {#} \<Longrightarrow> False"
     by auto
