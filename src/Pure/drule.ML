@@ -204,10 +204,12 @@ fun lift_all goal th =
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
-    val inst = Thm.fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
-      (Thm.global_cterm_of thy (Var (xi, T)), Thm.global_cterm_of thy (Term.list_comb (Var (xi, Ts ---> T), ps))));
+    val inst =
+      Thm.fold_terms Term.add_vars th []
+      |> map (fn (xi, T) => ((xi, T), Term.list_comb (Var (xi, Ts ---> T), ps)));
   in
-    th |> Thm.instantiate ([], inst)
+    th
+    |> Thm.instantiate (Thm.certify_inst thy ([], inst))
     |> fold_rev (Thm.forall_intr o Thm.global_cterm_of thy) ps
   end;
 
@@ -228,12 +230,10 @@ fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
-        val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-        val cinstT =
-          map (fn (v, T) => (Thm.global_ctyp_of thy (TVar v), Thm.global_ctyp_of thy T)) instT;
-        val cinst =
-          map (fn (v, t) => (Thm.global_cterm_of thy (Var v), Thm.global_cterm_of thy t)) inst;
-      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;
+        val inst =
+          Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths)
+          |> Thm.certify_inst thy;
+      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate inst) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
 
@@ -629,9 +629,9 @@ fun mk_term ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val T = Thm.typ_of_cterm ct;
-    val a = Thm.global_ctyp_of thy (TVar (("'a", 0), []));
+    val instT = apply2 (Thm.global_ctyp_of thy) (TVar (("'a", 0), []), T);
     val x = Thm.global_cterm_of thy (Var (("x", 0), T));
-  in Thm.instantiate ([(a, Thm.global_ctyp_of thy T)], [(x, ct)]) termI end;
+  in Thm.instantiate ([instT], [(x, ct)]) termI end;
 
 fun dest_term th =
   let val cprop = strip_imp_concl (Thm.cprop_of th) in
