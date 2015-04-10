@@ -61,16 +61,16 @@ sig
   val lfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val add_primrec: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory
-  val add_primrec_cmd: rec_option list -> (binding * string option * mixfix) list ->
+  val primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
+    local_theory -> (term list * thm list list) * local_theory
+  val primrec_cmd: rec_option list -> (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> (term list * thm list list) * local_theory
-  val add_primrec_global: (binding * typ option * mixfix) list ->
+  val primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list list) * theory
-  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
+  val primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list list) * theory
-  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string list * (term list * (int list list * thm list list))) * local_theory
 end;
 
@@ -591,7 +591,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
-fun add_primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
+fun primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
   let
     val actual_nn = length fixes;
 
@@ -608,10 +608,10 @@ fun add_primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
       in ((names, (map fst defs, thms)), lthy) end)
   end;
 
-fun add_primrec_simple fixes ts lthy =
-  add_primrec_simple0 Plugin_Name.default_filter false false fixes ts lthy
+fun primrec_simple fixes ts lthy =
+  primrec_simple0 Plugin_Name.default_filter false false fixes ts lthy
   handle OLD_PRIMREC () =>
-    Old_Primrec.add_primrec_simple fixes ts lthy
+    Old_Primrec.primrec_simple fixes ts lthy
     |>> apsnd (apsnd (pair [] o single)) o apfst single;
 
 fun gen_primrec old_primrec prep_spec opts
@@ -643,7 +643,7 @@ fun gen_primrec old_primrec prep_spec opts
         end);
   in
     lthy
-    |> add_primrec_simple0 plugins nonexhaustive transfer fixes (map snd specs)
+    |> primrec_simple0 plugins nonexhaustive transfer fixes (map snd specs)
     |-> (fn (names, (ts, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names simpss)
@@ -651,17 +651,17 @@ fun gen_primrec old_primrec prep_spec opts
   end
   handle OLD_PRIMREC () => old_primrec raw_fixes raw_specs lthy |>> apsnd single;
 
-val add_primrec = gen_primrec Old_Primrec.add_primrec Specification.check_spec [];
-val add_primrec_cmd = gen_primrec Old_Primrec.add_primrec_cmd Specification.read_spec;
+val primrec = gen_primrec Old_Primrec.primrec Specification.check_spec [];
+val primrec_cmd = gen_primrec Old_Primrec.primrec_cmd Specification.read_spec;
 
-fun add_primrec_global fixes specs =
+fun primrec_global fixes specs =
   Named_Target.theory_init
-  #> add_primrec fixes specs
+  #> primrec fixes specs
   ##> Local_Theory.exit_global;
 
-fun add_primrec_overloaded ops fixes specs =
+fun primrec_overloaded ops fixes specs =
   Overloading.overloading ops
-  #> add_primrec fixes specs
+  #> primrec fixes specs
   ##> Local_Theory.exit_global;
 
 val rec_option_parser = Parse.group (K "option")
@@ -674,6 +674,6 @@ val _ = Outer_Syntax.local_theory @{command_keyword primrec}
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
       --| @{keyword ")"}) []) --
     (Parse.fixes -- Parse_Spec.where_alt_specs)
-    >> (fn (opts, (fixes, specs)) => snd o add_primrec_cmd opts fixes specs));
+    >> (fn (opts, (fixes, specs)) => snd o primrec_cmd opts fixes specs));
 
 end;

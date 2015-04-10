@@ -96,7 +96,7 @@ fun random_aux_primrec eq lthy =
       subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, (_, eqs2)), lthy') = lthy
-      |> BNF_LFP_Compat.add_primrec_simple
+      |> BNF_LFP_Compat.primrec_simple
         [((Binding.concealed (Binding.name random_aux), T), NoSyn)] eqs1;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;

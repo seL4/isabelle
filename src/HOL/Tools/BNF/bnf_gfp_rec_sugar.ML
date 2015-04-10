@@ -70,10 +70,10 @@ sig
   val gfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val add_primcorecursive_cmd: corec_option list ->
+  val primcorecursive_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
-  val add_primcorec_cmd: corec_option list ->
+  val primcorec_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     local_theory -> local_theory
 end;
@@ -1041,7 +1041,7 @@ fun applied_fun_of fun_name fun_T fun_args =
 fun is_trivial_implies thm =
   uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
 
-fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
+fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -1527,7 +1527,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
+fun primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
   let
     val dups = duplicates (op =) (map (Binding.name_of o #1) raw_fixes);
     val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
@@ -1536,18 +1536,18 @@ fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
       split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
     val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
   in
-    add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
+    primcorec_ursive auto opts fixes specs of_specs_opt lthy
   end;
 
-val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
+val primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> Proof.theorem NONE after_qed goalss
   |> Proof.refine (Method.primitive_text (K I))
-  |> Seq.hd) ooo add_primcorec_ursive_cmd false;
+  |> Seq.hd) ooo primcorec_ursive_cmd false;
 
-val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
+val primcorec_cmd = (fn (goalss, after_qed, lthy) =>
     lthy |> after_qed (map (fn [] => [] | _ => use_primcorecursive ()) goalss)) ooo
-  add_primcorec_ursive_cmd true;
+  primcorec_ursive_cmd true;
 
 val corec_option_parser = Parse.group (K "option")
   (Plugin_Name.parse_filter >> Plugins_Option
@@ -1562,13 +1562,13 @@ val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorecursive_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorec_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorec_cmd);
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
   gfp_rec_sugar_transfer_interpretation);

@@ -26,14 +26,14 @@ sig
   val datatype_compat_global: string list -> theory -> theory
   val datatype_compat_cmd: string list -> local_theory -> local_theory
   val add_datatype: preference list -> Old_Datatype_Aux.spec list -> theory -> string list * theory
-  val add_primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
+  val primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
     local_theory -> (term list * thm list) * local_theory
-  val add_primrec_global: (binding * typ option * mixfix) list ->
+  val primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
-  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
+  val primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> theory ->
     (term list * thm list) * theory
-  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string list * (term list * thm list)) * local_theory
 end;
 
@@ -532,11 +532,10 @@ fun add_datatype prefs old_specs thy =
      |> not (member (op =) prefs Keep_Nesting) ? perhaps (try (datatype_compat_global fpT_names)))
   end;
 
-val add_primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec;
-val add_primrec_global = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec_global;
-val add_primrec_overloaded = apfst (apsnd flat) oooo BNF_LFP_Rec_Sugar.add_primrec_overloaded;
-val add_primrec_simple = apfst (apsnd (apsnd (flat o snd))) ooo
-  BNF_LFP_Rec_Sugar.add_primrec_simple;
+val primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.primrec;
+val primrec_global = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.primrec_global;
+val primrec_overloaded = apfst (apsnd flat) oooo BNF_LFP_Rec_Sugar.primrec_overloaded;
+val primrec_simple = apfst (apsnd (apsnd (flat o snd))) ooo BNF_LFP_Rec_Sugar.primrec_simple;
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword datatype_compat}
