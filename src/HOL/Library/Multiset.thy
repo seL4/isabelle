@@ -527,40 +527,39 @@ subsubsection {* Filter (with comprehension syntax) *}
 
 text {* Multiset comprehension *}
 
-lift_definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
+lift_definition filter_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"
+is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
 by (rule filter_preserves_multiset)
 
-hide_const (open) filter
+lemma count_filter_mset [simp]:
+  "count (filter_mset P M) a = (if P a then count M a else 0)"
+  by (simp add: filter_mset.rep_eq)
 
-lemma count_filter [simp]:
-  "count (Multiset.filter P M) a = (if P a then count M a else 0)"
-  by (simp add: filter.rep_eq)
-
-lemma filter_empty [simp]:
-  "Multiset.filter P {#} = {#}"
+lemma filter_empty_mset [simp]:
+  "filter_mset P {#} = {#}"
   by (rule multiset_eqI) simp
 
-lemma filter_single [simp]:
-  "Multiset.filter P {#x#} = (if P x then {#x#} else {#})"
+lemma filter_single_mset [simp]:
+  "filter_mset P {#x#} = (if P x then {#x#} else {#})"
   by (rule multiset_eqI) simp
 
-lemma filter_union [simp]:
-  "Multiset.filter P (M + N) = Multiset.filter P M + Multiset.filter P N"
+lemma filter_union_mset [simp]:
+  "filter_mset P (M + N) = filter_mset P M + filter_mset P N"
   by (rule multiset_eqI) simp
 
-lemma filter_diff [simp]:
-  "Multiset.filter P (M - N) = Multiset.filter P M - Multiset.filter P N"
+lemma filter_diff_mset [simp]:
+  "filter_mset P (M - N) = filter_mset P M - filter_mset P N"
   by (rule multiset_eqI) simp
 
-lemma filter_inter [simp]:
-  "Multiset.filter P (M #\<inter> N) = Multiset.filter P M #\<inter> Multiset.filter P N"
+lemma filter_inter_mset [simp]:
+  "filter_mset P (M #\<inter> N) = filter_mset P M #\<inter> filter_mset P N"
   by (rule multiset_eqI) simp
 
-lemma multiset_filter_subset[simp]: "Multiset.filter f M \<le> M"
+lemma multiset_filter_subset[simp]: "filter_mset f M \<le> M"
   unfolding less_eq_multiset.rep_eq by auto
 
 lemma multiset_filter_mono: assumes "A \<le> B"
-  shows "Multiset.filter f A \<le> Multiset.filter f B"
+  shows "filter_mset f A \<le> filter_mset f B"
 proof -
   from assms[unfolded mset_le_exists_conv]
   obtain C where B: "B = A + C" by auto
@@ -572,7 +571,7 @@ syntax
 syntax (xsymbol)
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ \<in># _./ _#})")
 translations
-  "{#x \<in># M. P#}" == "CONST Multiset.filter (\<lambda>x. P) M"
+  "{#x \<in># M. P#}" == "CONST filter_mset (\<lambda>x. P) M"
 
 
 subsubsection {* Set of elements *}
@@ -694,7 +693,7 @@ proof -
   show ?thesis unfolding B by (induct C, auto)
 qed
 
-lemma size_filter_mset_lesseq[simp]: "size (Multiset.filter f M) \<le> size M"
+lemma size_filter_mset_lesseq[simp]: "size (filter_mset f M) \<le> size M"
 by (rule size_mset_mono[OF multiset_filter_subset])
 
 lemma size_Diff_submset:
@@ -798,19 +797,19 @@ qed
 
 subsection {* The fold combinator *}
 
-definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
+definition fold_mset :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
 where
-  "fold f s M = Finite_Set.fold (\<lambda>x. f x ^^ count M x) s (set_of M)"
+  "fold_mset f s M = Finite_Set.fold (\<lambda>x. f x ^^ count M x) s (set_of M)"
 
 lemma fold_mset_empty [simp]:
-  "fold f s {#} = s"
-  by (simp add: fold_def)
+  "fold_mset f s {#} = s"
+  by (simp add: fold_mset_def)
 
 context comp_fun_commute
 begin
 
 lemma fold_mset_insert:
-  "fold f s (M + {#x#}) = f x (fold f s M)"
+  "fold_mset f s (M + {#x#}) = f x (fold_mset f s M)"
 proof -
   interpret mset: comp_fun_commute "\<lambda>y. f y ^^ count M y"
     by (fact comp_fun_commute_funpow)
@@ -824,7 +823,7 @@ proof -
       Finite_Set.fold (\<lambda>y. f y ^^ count M y) s (set_of M)"
       by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
     with False * show ?thesis
-      by (simp add: fold_def del: count_union)
+      by (simp add: fold_mset_def del: count_union)
   next
     case True
     def N \<equiv> "set_of M - {x}"
@@ -832,23 +831,23 @@ proof -
     then have "Finite_Set.fold (\<lambda>y. f y ^^ count (M + {#x#}) y) s N =
       Finite_Set.fold (\<lambda>y. f y ^^ count M y) s N"
       by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
-    with * show ?thesis by (simp add: fold_def del: count_union) simp
+    with * show ?thesis by (simp add: fold_mset_def del: count_union) simp
   qed
 qed
 
 corollary fold_mset_single [simp]:
-  "fold f s {#x#} = f x s"
+  "fold_mset f s {#x#} = f x s"
 proof -
-  have "fold f s ({#} + {#x#}) = f x s" by (simp only: fold_mset_insert) simp
+  have "fold_mset f s ({#} + {#x#}) = f x s" by (simp only: fold_mset_insert) simp
   then show ?thesis by simp
 qed
 
 lemma fold_mset_fun_left_comm:
-  "f x (fold f s M) = fold f (f x s) M"
+  "f x (fold_mset f s M) = fold_mset f (f x s) M"
   by (induct M) (simp_all add: fold_mset_insert fun_left_comm)
 
 lemma fold_mset_union [simp]:
-  "fold f s (M + N) = fold f (fold f s M) N"
+  "fold_mset f s (M + N) = fold_mset f (fold_mset f s M) N"
 proof (induct M)
   case empty then show ?case by simp
 next
@@ -860,7 +859,7 @@ qed
 
 lemma fold_mset_fusion:
   assumes "comp_fun_commute g"
-  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold g w A) = fold f (h w) A" (is "PROP ?P")
+  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
 proof -
   interpret comp_fun_commute g by (fact assms)
   show "PROP ?P" by (induct A) auto
@@ -870,10 +869,10 @@ end
 
 text {*
   A note on code generation: When defining some function containing a
-  subterm @{term "fold F"}, code generation is not automatic. When
+  subterm @{term "fold_mset F"}, code generation is not automatic. When
   interpreting locale @{text left_commutative} with @{text F}, the
-  would be code thms for @{const fold} become thms like
-  @{term "fold F z {#} = z"} where @{text F} is not a pattern but
+  would be code thms for @{const fold_mset} become thms like
+  @{term "fold_mset F z {#} = z"} where @{text F} is not a pattern but
   contains defined symbols, i.e.\ is not a code thm. Hence a separate
   constant with its own code thms needs to be introduced for @{text
   F}. See the image operator below.
@@ -883,7 +882,7 @@ text {*
 subsection {* Image *}
 
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
-  "image_mset f = fold (plus o single o f) {#}"
+  "image_mset f = fold_mset (plus o single o f) {#}"
 
 lemma comp_fun_commute_mset_image:
   "comp_fun_commute (plus o single o f)"
@@ -1164,7 +1163,7 @@ begin
 
 definition sorted_list_of_multiset :: "'a multiset \<Rightarrow> 'a list"
 where
-  "sorted_list_of_multiset M = fold insort [] M"
+  "sorted_list_of_multiset M = fold_mset insort [] M"
 
 lemma sorted_list_of_multiset_empty [simp]:
   "sorted_list_of_multiset {#} = []"
@@ -1223,7 +1222,7 @@ begin
 
 definition F :: "'a multiset \<Rightarrow> 'a"
 where
-  eq_fold: "F M = Multiset.fold f 1 M"
+  eq_fold: "F M = fold_mset f 1 M"
 
 lemma empty [simp]:
   "F {#} = 1"
@@ -1252,7 +1251,7 @@ lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + \<Colon> 'a mult
 
 declare comp_fun_commute.fold_mset_insert[OF comp_fun_commute_plus_mset, simp]
 
-lemma in_mset_fold_plus_iff[iff]: "x \<in># Multiset.fold (op +) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
+lemma in_mset_fold_plus_iff[iff]: "x \<in># fold_mset (op +) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
   by (induct NN) auto
 
 notation times (infixl "*" 70)
@@ -1353,7 +1352,7 @@ lemma setprod_unfold_msetprod:
 
 lemma msetprod_multiplicity:
   "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
-  by (simp add: Multiset.fold_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
+  by (simp add: fold_mset_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
 
 end
 
@@ -2101,8 +2100,6 @@ Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
     multiset_postproc
 *}
 
-hide_const (open) fold
-
 
 subsection {* Naive implementation using lists *}
 
@@ -2125,7 +2122,7 @@ lemma [code]:
   by (simp add: multiset_of_map)
 
 lemma [code]:
-  "Multiset.filter f (multiset_of xs) = multiset_of (filter f xs)"
+  "filter_mset f (multiset_of xs) = multiset_of (filter f xs)"
   by (simp add: multiset_of_filter)
 
 lemma [code]:
