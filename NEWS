@@ -4,8 +4,8 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of this file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2015 (May 2015)
+------------------------------
 
 *** General ***
 
@@ -57,9 +57,6 @@ corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Old graph browser (Java/AWT 1.1) is superseded by improved graphview
-panel, which also produces PDF output without external tools.
-
 * Improved folding mode "isabelle" based on Isar syntax. Alternatively,
 the "sidekick" mode may be used for document structure.
 
@@ -77,11 +74,11 @@ in the editor (hyperlinks, completion etc.).
 * Less waste of vertical space via negative line spacing (see Global
 Options / Text Area).
 
+* Old graph browser (Java/AWT 1.1) is superseded by improved graphview
+panel, which also produces PDF output without external tools.
+
 
 *** Document preparation ***
-
-* Discontinued obsolete option "document_graph": session_graph.pdf is
-produced unconditionally for HTML browser_info and PDF-LaTeX document.
 
 * Document markup commands 'chapter', 'section', 'subsection',
 'subsubsection', 'text', 'txt', 'text_raw' work uniformly in any
@@ -91,6 +88,17 @@ discontinued, use 'section', 'subsection', 'subsubsection', 'text_raw'
 instead. The old 'header' command is still retained for some time, but
 should be replaced by 'chapter', 'section' etc. (using "isabelle
 update_header"). Minor INCOMPATIBILITY.
+
+* Official support for "tt" style variants, via \isatt{...} or
+\begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
+verbatim environment of LaTeX is no longer used. This allows @{ML} etc.
+as argument to other macros (such as footnotes).
+
+* Document antiquotation @{verbatim} prints ASCII text literally in "tt"
+style.
+
+* Discontinued obsolete option "document_graph": session_graph.pdf is
+produced unconditionally for HTML browser_info and PDF-LaTeX document.
 
 * Diagnostic commands and document markup commands within a proof do not
 affect the command tag for output. Thus commands like 'thm' are subject
@@ -106,20 +114,8 @@ dynamically in GUI front-ends. Implementations of document
 antiquotations need to observe the margin explicitly according to
 Thy_Output.string_of_margin. Minor INCOMPATIBILITY.
 
-* Official support for "tt" style variants, via \isatt{...} or
-\begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
-verbatim environment of LaTeX is no longer used. This allows @{ML} etc.
-as argument to other macros (such as footnotes).
-
-* Document antiquotation @{verbatim} prints ASCII text literally in "tt"
-style.
-
 
 *** Pure ***
-
-* Explicit instantiation via attributes "where", "of", and proof methods
-"rule_tac" with derivatives like "subgoal_tac" etc. admit dummy patterns
-("_") that stand for anonymous local variables.
 
 * Proof methods with explicit instantiation ("rule_tac", "subgoal_tac"
 etc.) allow an optional context of local variables ('for' declaration):
@@ -130,13 +126,17 @@ of schematic variables outside the context. Minor INCOMPATIBILITY,
 declare rule_insts_schematic = true temporarily and update to use local
 variable declarations or dummy patterns instead.
 
+* Explicit instantiation via attributes "where", "of", and proof methods
+"rule_tac" with derivatives like "subgoal_tac" etc. admit dummy patterns
+("_") that stand for anonymous local variables.
+
 * Generated schematic variables in standard format of exported facts are
 incremented to avoid material in the proof context. Rare
 INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
 different index.
 
-* Command "class_deps" takes optional sort arguments constraining
-the search space.
+* Command "class_deps" takes optional sort arguments to constrain then
+resulting class hierarchy.
 
 * Lexical separation of signed and unsigend numerals: categories "num"
 and "float" are unsigend.  INCOMPATIBILITY: subtle change in precedence
@@ -149,88 +149,6 @@ token category instead.
 
 
 *** HOL ***
-
-* Given up separate type class no_zero_divisors in favour of fully
-algebraic semiring_no_zero_divisors. INCOMPATIBILITY.
-
-* Class linordered_semidom really requires no zero divisors.
-INCOMPATIBILITY.
-
-* Classes division_ring, field and linordered_field always demand
-"inverse 0 = 0". Given up separate classes division_ring_inverse_zero,
-field_inverse_zero and linordered_field_inverse_zero. INCOMPATIBILITY.
-
-* Type classes cancel_ab_semigroup_add / cancel_monoid_add specify
-explicit additive inverse operation. INCOMPATIBILITY.
-
-* New proof method "rewrite" (in theory ~~/src/HOL/Library/Rewrite) for
-single-step rewriting with subterm selection based on patterns.
-
-* The functions "sin" and "cos" are now defined for any
-"'{real_normed_algebra_1,banach}" type, so in particular on "real" and
-"complex" uniformly. Minor INCOMPATIBILITY: type constraints may be
-needed.
-
-* New library of properties of the complex transcendental functions sin,
-cos, tan, exp, Ln, Arctan, Arcsin, Arccos. Ported from HOL Light.
-
-* The factorial function, "fact", now has type "nat => 'a" (of a sort
-that admits numeric types including nat, int, real and complex.
-INCOMPATIBILITY: an expression such as "fact 3 = 6" may require a type
-constraint, and the combination "real (fact k)" is likely to be
-unsatisfactory. If a type conversion is still necessary, then use
-"of_nat (fact k)" or "real_of_nat (fact k)".
-
-* Removed functions "natfloor" and "natceiling", use "nat o floor" and
-"nat o ceiling" instead. A few of the lemmas have been retained and
-adapted: in their names "natfloor"/"natceiling" has been replaced by
-"nat_floor"/"nat_ceiling".
-
-* Qualified some duplicated fact names required for boostrapping the
-type class hierarchy:
-  ab_add_uminus_conv_diff ~> diff_conv_add_uminus
-  field_inverse_zero ~> inverse_zero
-  field_divide_inverse ~> divide_inverse
-  field_inverse ~> left_inverse
-Minor INCOMPATIBILITY.
-
-* Eliminated fact duplicates:
-  mult_less_imp_less_right ~> mult_right_less_imp_less
-  mult_less_imp_less_left ~> mult_left_less_imp_less
-Minor INCOMPATIBILITY.
-
-* Fact consolidation: even_less_0_iff is subsumed by
-double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
-
-* Add NO_MATCH-simproc, allows to check for syntactic non-equality.
-
-* Generalized and consolidated some theorems concerning divsibility:
-  dvd_reduce ~> dvd_add_triv_right_iff
-  dvd_plus_eq_right ~> dvd_add_right_iff
-  dvd_plus_eq_left ~> dvd_add_left_iff
-Minor INCOMPATIBILITY.
-
-* "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _"
-and part of theory Main.
-  even_def ~> even_iff_mod_2_eq_zero
-INCOMPATIBILITY.
-
-* Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1. Minor
-INCOMPATIBILITY.
-
-* field_simps: Use NO_MATCH-simproc for distribution rules, to avoid
-non-termination in case of distributing a division. With this change
-field_simps is in some cases slightly less powerful, if it fails try to
-add algebra_simps, or use divide_simps. Minor INCOMPATIBILITY.
-
-* Bootstrap of listsum as special case of abstract product over lists.
-Fact rename:
-    listsum_def ~> listsum.eq_foldr
-INCOMPATIBILITY.
-
-* Command and antiquotation "value" provide different evaluation slots
-(again), where the previous strategy (NBE after ML) serves as default.
-Minor INCOMPATIBILITY.
 
 * New (co)datatype package:
   - The 'datatype_new' command has been renamed 'datatype'. The old
@@ -288,8 +206,6 @@ Minor INCOMPATIBILITY.
       ~~/src/HOL/Datatype.thy ~> ~~/src/HOL/Library/Old_Datatype.thy
     INCOMPATIBILITY.
 
-* Product over lists via constant "listprod".
-
 * Nitpick:
   - Fixed soundness bug related to the strict and nonstrict subset
     operations.
@@ -321,18 +237,95 @@ Minor INCOMPATIBILITY.
   - New option 'smt_statistics' to display statistics of the new 'smt'
     method, especially runtime statistics of Z3 proof reconstruction.
 
-* List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc.
+* Command and antiquotation "value" provide different evaluation slots
+(again), where the previous strategy (NBE after ML) serves as default.
+Minor INCOMPATIBILITY.
+
+* Add NO_MATCH-simproc, allows to check for syntactic non-equality.
+
+* field_simps: Use NO_MATCH-simproc for distribution rules, to avoid
+non-termination in case of distributing a division. With this change
+field_simps is in some cases slightly less powerful, if it fails try to
+add algebra_simps, or use divide_simps. Minor INCOMPATIBILITY.
+
+* Separate class no_zero_divisors has been given up in favour of fully
+algebraic semiring_no_zero_divisors. INCOMPATIBILITY.
+
+* Class linordered_semidom really requires no zero divisors.
+INCOMPATIBILITY.
+
+* Classes division_ring, field and linordered_field always demand
+"inverse 0 = 0". Given up separate classes division_ring_inverse_zero,
+field_inverse_zero and linordered_field_inverse_zero. INCOMPATIBILITY.
+
+* Classes cancel_ab_semigroup_add / cancel_monoid_add specify explicit
+additive inverse operation. INCOMPATIBILITY.
+
+* The functions "sin" and "cos" are now defined for any type of sort
+"{real_normed_algebra_1,banach}" type, so in particular on "real" and
+"complex" uniformly. Minor INCOMPATIBILITY: type constraints may be
+needed.
+
+* New library of properties of the complex transcendental functions sin,
+cos, tan, exp, Ln, Arctan, Arcsin, Arccos. Ported from HOL Light.
+
+* The factorial function, "fact", now has type "nat => 'a" (of a sort
+that admits numeric types including nat, int, real and complex.
+INCOMPATIBILITY: an expression such as "fact 3 = 6" may require a type
+constraint, and the combination "real (fact k)" is likely to be
+unsatisfactory. If a type conversion is still necessary, then use
+"of_nat (fact k)" or "real_of_nat (fact k)".
+
+* Removed functions "natfloor" and "natceiling", use "nat o floor" and
+"nat o ceiling" instead. A few of the lemmas have been retained and
+adapted: in their names "natfloor"/"natceiling" has been replaced by
+"nat_floor"/"nat_ceiling".
+
+* Qualified some duplicated fact names required for boostrapping the
+type class hierarchy:
+  ab_add_uminus_conv_diff ~> diff_conv_add_uminus
+  field_inverse_zero ~> inverse_zero
+  field_divide_inverse ~> divide_inverse
+  field_inverse ~> left_inverse
+Minor INCOMPATIBILITY.
+
+* Eliminated fact duplicates:
+  mult_less_imp_less_right ~> mult_right_less_imp_less
+  mult_less_imp_less_left ~> mult_left_less_imp_less
+Minor INCOMPATIBILITY.
+
+* Fact consolidation: even_less_0_iff is subsumed by
+double_add_less_zero_iff_single_add_less_zero (simp by default anyway).
+
+* Generalized and consolidated some theorems concerning divsibility:
+  dvd_reduce ~> dvd_add_triv_right_iff
+  dvd_plus_eq_right ~> dvd_add_right_iff
+  dvd_plus_eq_left ~> dvd_add_left_iff
+Minor INCOMPATIBILITY.
+
+* "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _"
+and part of theory Main.
+  even_def ~> even_iff_mod_2_eq_zero
+INCOMPATIBILITY.
+
+* Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1. Minor
+INCOMPATIBILITY.
+
+* Bootstrap of listsum as special case of abstract product over lists.
+Fact rename:
+    listsum_def ~> listsum.eq_foldr
+INCOMPATIBILITY.
+
+* Product over lists via constant "listprod".
+
+* Theory List: renamed drop_Suc_conv_tl and nth_drop' to
+Cons_nth_drop_Suc.
 
 * New infrastructure for compiling, running, evaluating and testing
 generated code in target languages in HOL/Library/Code_Test. See
 HOL/Codegenerator_Test/Code_Test* for examples.
 
-* Library/Sum_of_Squares: simplified and improved "sos" method. Always
-use local CSDP executable, which is much faster than the NEOS server.
-The "sos_cert" functionality is invoked as "sos" with additional
-argument. Minor INCOMPATIBILITY.
-
-* Theory "Library/Multiset":
+* Library/Multiset:
   - Introduced "replicate_mset" operation.
   - Introduced alternative characterizations of the multiset ordering in
     "Library/Multiset_Order".
@@ -363,14 +356,17 @@ argument. Minor INCOMPATIBILITY.
       in_Union_mset_iff [iff]
     INCOMPATIBILITY.
 
-* HOL-Decision_Procs:
-  - New counterexample generator quickcheck[approximation] for
-    inequalities of transcendental functions.
-    Uses hardware floating point arithmetic to randomly discover
-    potential counterexamples. Counterexamples are certified with the
-    'approximation' method.
-    See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
-    examples.
+* Library/Sum_of_Squares: simplified and improved "sos" method. Always
+use local CSDP executable, which is much faster than the NEOS server.
+The "sos_cert" functionality is invoked as "sos" with additional
+argument. Minor INCOMPATIBILITY.
+
+* HOL-Decision_Procs: New counterexample generator quickcheck
+[approximation] for inequalities of transcendental functions. Uses
+hardware floating point arithmetic to randomly discover potential
+counterexamples. Counterexamples are certified with the 'approximation'
+method. See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
+examples.
 
 * HOL-Probability: Reworked measurability prover
   - applies destructor rules repeatetly
@@ -378,11 +374,19 @@ argument. Minor INCOMPATIBILITY.
   - added congruence rules to rewrite measure spaces under the sets
     projection
 
+* New proof method "rewrite" (in theory ~~/src/HOL/Library/Rewrite) for
+single-step rewriting with subterm selection based on patterns.
+
 
 *** ML ***
 
-* Cartouches within ML sources are turned into values of type
-Input.source (with formal position information).
+* Subtle change of name space policy: undeclared entries are now
+considered inaccessible, instead of accessible via the fully-qualified
+internal name. This mainly affects Name_Space.intern (and derivatives),
+which may produce an unexpected Long_Name.hidden prefix. Note that
+contempory applications use the strict Name_Space.check (and
+derivatives) instead, which is not affected by the change. Potential
+INCOMPATIBILITY in rare applications of Name_Space.intern.
 
 * Basic combinators map, fold, fold_map, split_list, apply are available
 as parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
@@ -397,8 +401,8 @@ Synchronized.var (which is usually sufficient in applications). Subtle
 INCOMPATIBILITY: synchronized access needs to be atomic and cannot be
 nested.
 
-* Synchronized.value (ML) is actually synchronized (as in Scala):
-subtle change of semantics with minimal potential for INCOMPATIBILITY.
+* Synchronized.value (ML) is actually synchronized (as in Scala): subtle
+change of semantics with minimal potential for INCOMPATIBILITY.
 
 * The main operations to certify logical entities are Thm.ctyp_of and
 Thm.cterm_of with a local context; old-style global theory variants are
@@ -408,14 +412,6 @@ INCOMPATIBILITY.
 * Elementary operations in module Thm are no longer pervasive.
 INCOMPATIBILITY, need to use qualified Thm.prop_of, Thm.cterm_of,
 Thm.term_of etc.
-
-* Subtle change of name space policy: undeclared entries are now
-considered inaccessible, instead of accessible via the fully-qualified
-internal name. This mainly affects Name_Space.intern (and derivatives),
-which may produce an unexpected Long_Name.hidden prefix. Note that
-contempory applications use the strict Name_Space.check (and
-derivatives) instead, which is not affected by the change. Potential
-INCOMPATIBILITY in rare applications of Name_Space.intern.
 
 * Proper context for various elementary tactics: assume_tac,
 resolve_tac, eresolve_tac, dresolve_tac, forward_tac, match_tac,
@@ -430,6 +426,9 @@ which also allows to specify a fork priority.
 * Antiquotation @{command_spec "COMMAND"} is superseded by
 @{command_keyword COMMAND} (usually without quotes and with PIDE
 markup). Minor INCOMPATIBILITY.
+
+* Cartouches within ML sources are turned into values of type
+Input.source (with formal position information).
 
 
 *** System ***
@@ -457,7 +456,7 @@ INCOMPATIBILITY, use "isabelle update_semicolons" to remove obsolete
 semicolons from theory sources.
 
 * Support for Proof General and Isar TTY loop has been discontinued.
-Minor INCOMPATIBILITY.
+Minor INCOMPATIBILITY, use standard PIDE infrastructure instead.
 
 
 
