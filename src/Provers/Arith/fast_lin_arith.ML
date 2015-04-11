@@ -91,16 +91,16 @@ sig
   val map_data:
     ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: simpset,
-      number_of: (theory -> typ -> int -> cterm) option} ->
+      number_of: (Proof.context -> typ -> int -> cterm) option} ->
      {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: simpset,
-      number_of: (theory -> typ -> int -> cterm) option}) ->
+      number_of: (Proof.context -> typ -> int -> cterm) option}) ->
       Context.generic -> Context.generic
   val add_inj_thms: thm list -> Context.generic -> Context.generic
   val add_lessD: thm -> Context.generic -> Context.generic
   val add_simps: thm list -> Context.generic -> Context.generic
   val add_simprocs: simproc list -> Context.generic -> Context.generic
-  val set_number_of: (theory -> typ -> int -> cterm) -> Context.generic -> Context.generic
+  val set_number_of: (Proof.context -> typ -> int -> cterm) -> Context.generic -> Context.generic
 end;
 
 functor Fast_Lin_Arith
@@ -119,7 +119,7 @@ structure Data = Generic_Data
     lessD: thm list,
     neqE: thm list,
     simpset: simpset,
-    number_of: (theory -> typ -> int -> cterm) option};
+    number_of: (Proof.context -> typ -> int -> cterm) option};
 
   val empty : T =
    {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
@@ -169,7 +169,7 @@ fun set_number_of f =
 
 fun number_of ctxt =
   (case Data.get (Context.Proof ctxt) of
-    {number_of = SOME f, ...} => f (Proof_Context.theory_of ctxt)
+    {number_of = SOME f, ...} => f ctxt
   | _ => fn _ => fn _ => raise CTERM ("number_of", []));
 
 

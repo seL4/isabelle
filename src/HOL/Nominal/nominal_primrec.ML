@@ -8,11 +8,11 @@ Taken from HOL/Tools/primrec.ML
 
 signature NOMINAL_PRIMREC =
 sig
-  val add_primrec: term list option -> term option ->
+  val primrec: term list option -> term option ->
     (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> Proof.state
-  val add_primrec_cmd: string list option -> string option ->
+  val primrec_cmd: string list option -> string option ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> Proof.state
@@ -382,8 +382,8 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
 
 in
 
-val add_primrec = gen_primrec Specification.check_spec (K I);
-val add_primrec_cmd = gen_primrec Specification.read_spec Syntax.read_term;
+val primrec = gen_primrec Specification.check_spec (K I);
+val primrec_cmd = gen_primrec Specification.read_spec Syntax.read_term;
 
 end;
 
@@ -407,7 +407,7 @@ val _ =
     "define primitive recursive functions on nominal datatypes"
     (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_alt_specs
       >> (fn ((((invs, fctxt), fixes), params), specs) =>
-        add_primrec_cmd invs fctxt fixes params specs));
+        primrec_cmd invs fctxt fixes params specs));
 
 end;
 

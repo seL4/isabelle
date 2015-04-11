@@ -51,14 +51,14 @@ structure Data = Generic_Data
     dest_thms : thm Item_Net.T,
     cong_thms : thm Item_Net.T,
     preprocessors : (string * preprocessor) list }
-  val empty = {
+  val empty: T = {
     measurable_thms = Item_Net.init eq_measurable_thms (single o Thm.prop_of o fst),
     dest_thms = Thm.full_rules,
     cong_thms = Thm.full_rules,
     preprocessors = [] };
   val extend = I;
   fun merge ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1 },
-      {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2 }) = {
+      {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2 }) : T = {
     measurable_thms = Item_Net.merge (t1, t2),
     dest_thms = Item_Net.merge (dt1, dt2),
     cong_thms = Item_Net.merge (ct1, ct2),
@@ -81,7 +81,7 @@ fun map_dest_thms f = map_data I f I I
 fun map_cong_thms f = map_data I I f I
 fun map_preprocessors f = map_data I I I f
 
-fun generic_add_del map = 
+fun generic_add_del map : attribute context_parser =
   Scan.lift
     (Args.add >> K Item_Net.update || Args.del >> K Item_Net.remove || Scan.succeed Item_Net.update) >>
     (fn f => Thm.declaration_attribute (Data.map o map o f))

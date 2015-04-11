@@ -162,7 +162,7 @@ fun fresh_const T U = Const (@{const_name Nominal.fresh}, T --> U --> HOLogic.bo
 fun fresh_star_const T U =
   Const (@{const_name Nominal.fresh_star}, HOLogic.mk_setT T --> U --> HOLogic.boolT);
 
-fun gen_nominal_datatype prep_specs config dts thy =
+fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
   let
     val new_type_names = map (fn ((tname, _, _), _) => Binding.name_of tname) dts;
 
@@ -256,7 +256,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       end) descr;
 
     val (perm_simps, thy2) =
-      BNF_LFP_Compat.add_primrec_overloaded
+      BNF_LFP_Compat.primrec_overloaded
         (map (fn (s, sT) => (s, sT, false))
            (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
         (map (fn s => (Binding.name s, NONE, NoSyn)) perm_names') perm_eqs thy1;

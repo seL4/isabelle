@@ -6,7 +6,13 @@
 More recursor sugar.
 *)
 
-structure BNF_LFP_Rec_Sugar_More : sig end =
+signature BNF_LFP_REC_SUGAR_MORE =
+sig
+  val massage_nested_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
+    (typ * typ -> term) -> typ list -> term -> term -> term -> term
+end;
+
+structure BNF_LFP_Rec_Sugar_More : BNF_LFP_REC_SUGAR_MORE =
 struct
 
 open BNF_Util
@@ -68,20 +74,20 @@ fun ill_formed_rec_call ctxt t =
   error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
 fun invalid_map ctxt t =
   error ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
-fun unexpected_rec_call ctxt t =
-  error ("Unexpected recursive call: " ^ quote (Syntax.string_of_term ctxt t));
+fun unexpected_rec_call ctxt eqns t =
+  error_at ctxt eqns ("Unexpected recursive call in " ^ quote (Syntax.string_of_term ctxt t));
 
-fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
+fun massage_nested_rec_call ctxt has_call massage_fun massage_nonfun bound_Ts y y' t0 =
   let
-    fun check_no_call t = if has_call t then unexpected_rec_call ctxt t else ();
+    fun check_no_call t = if has_call t then unexpected_rec_call ctxt [t0] t else ();
 
     val typof = curry fastype_of1 bound_Ts;
-    val build_map_fst = build_map ctxt [] (fst_const o fst);
+    val massage_no_call = build_map ctxt [] massage_nonfun;
 
     val yT = typof y;
     val yU = typof y';
 
-    fun y_of_y' () = build_map_fst (yU, yT) $ y';
+    fun y_of_y' () = massage_no_call (yU, yT) $ y';
     val elim_y = Term.map_aterms (fn t => if t = y then y_of_y' () else t);
 
     fun massage_mutual_fun U T t =
@@ -89,12 +95,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         Const (@{const_name comp}, _) $ t1 $ t2 =>
         mk_comp bound_Ts (tap check_no_call t1, massage_mutual_fun U T t2)
       | _ =>
-        if has_call t then
-          (case try HOLogic.dest_prodT U of
-            SOME (U1, U2) => if U1 = T then raw_massage_fun T U2 t else invalid_map ctxt t
-          | NONE => invalid_map ctxt t)
-        else
-          mk_comp bound_Ts (t, build_map_fst (U, T)));
+        if has_call t then massage_fun U T t else mk_comp bound_Ts (t, massage_no_call (U, T)));
 
     fun massage_map (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -115,7 +116,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         massage_map U T t
         handle NO_MAP _ => massage_mutual_fun U T t;
 
-    fun massage_call (t as t1 $ t2) =
+    fun massage_outer_call (t as t1 $ t2) =
         if has_call t then
           if t2 = y then
             massage_map yU yT (elim_y t1) $ y'
@@ -123,25 +124,28 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
           else
             let val (g, xs) = Term.strip_comb t2 in
               if g = y then
-                if exists has_call xs then unexpected_rec_call ctxt t2
-                else Term.list_comb (massage_call (mk_compN (length xs) bound_Ts (t1, y)), xs)
+                if exists has_call xs then unexpected_rec_call ctxt [t0] t2
+                else Term.list_comb (massage_outer_call (mk_compN (length xs) bound_Ts (t1, y)), xs)
               else
                 ill_formed_rec_call ctxt t
             end
         else
           elim_y t
-      | massage_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
+      | massage_outer_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
   in
-    massage_call
+    massage_outer_call t0
   end;
 
-fun rewrite_map_arg ctxt get_ctr_pos rec_type res_type =
+fun rewrite_map_fun ctxt get_ctr_pos U T t =
   let
-    val pT = HOLogic.mk_prodT (rec_type, res_type);
+    val _ =
+      (case try HOLogic.dest_prodT U of
+        SOME (U1, _) => U1 = T orelse invalid_map ctxt t
+      | NONE => invalid_map ctxt t);
 
-    fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const pT)
+    fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const U)
       | subst d (Abs (v, T, b)) =
-        Abs (v, if d = SOME ~1 then pT else T, subst (Option.map (Integer.add 1) d) b)
+        Abs (v, if d = SOME ~1 then U else T, subst (Option.map (Integer.add 1) d) b)
       | subst d t =
         let
           val (u, vs) = strip_comb t;
@@ -149,22 +153,22 @@ fun rewrite_map_arg ctxt get_ctr_pos rec_type res_type =
         in
           if ctr_pos >= 0 then
             if d = SOME ~1 andalso length vs = ctr_pos then
-              Term.list_comb (permute_args ctr_pos (snd_const pT), vs)
+              Term.list_comb (permute_args ctr_pos (snd_const U), vs)
             else if length vs > ctr_pos andalso is_some d andalso
                 d = try (fn Bound n => n) (nth vs ctr_pos) then
-              Term.list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
+              Term.list_comb (snd_const U $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
             else
               error ("Recursive call not directly applied to constructor argument in " ^
                 quote (Syntax.string_of_term ctxt t))
           else
-            Term.list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
-        end
+            Term.list_comb (u, map (subst (if d = SOME ~1 then NONE else d)) vs)
+        end;
   in
-    subst (SOME ~1)
+    subst (SOME ~1) t
   end;
 
 fun rewrite_nested_rec_call ctxt has_call get_ctr_pos =
-  massage_nested_rec_call ctxt has_call (rewrite_map_arg ctxt get_ctr_pos);
+  massage_nested_rec_call ctxt has_call (rewrite_map_fun ctxt get_ctr_pos) (fst_const o fst);
 
 val _ = Theory.setup (register_lfp_rec_extension
   {nested_simps = nested_simps, is_new_datatype = is_new_datatype,

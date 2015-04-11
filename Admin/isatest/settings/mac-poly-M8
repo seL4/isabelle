@@ -35,6 +35,3 @@ ISABELLE_OCAMLC=ocamlc
 ISABELLE_POLYML="$ML_HOME/poly"
 #ISABELLE_SCALA="$SCALA_HOME/bin"
 ISABELLE_SMLNJ="/mnt/nfsbroy/home/smlnj/bin/sml"
-
-Z3_NON_COMMERCIAL="yes"
-

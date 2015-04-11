@@ -24,7 +24,7 @@ lemma [code, code del]: "sup = (sup :: 'a multiset \<Rightarrow> _)" ..
 
 lemma [code, code del]: "image_mset = image_mset" ..
 
-lemma [code, code del]: "Multiset.filter = Multiset.filter" ..
+lemma [code, code del]: "filter_mset = filter_mset" ..
 
 lemma [code, code del]: "count = count" ..
 
@@ -199,7 +199,7 @@ lemma minus_Bag [code]: "Bag xs - Bag ys = Bag (subtract_entries xs ys)"
     (simp add: count_of_subtract_entries_raw alist.Alist_inverse
       distinct_subtract_entries_raw subtract_entries_def)
 
-lemma filter_Bag [code]: "Multiset.filter P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
+lemma filter_Bag [code]: "filter_mset P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
   by (rule multiset_eqI) (simp add: count_of_filter DAList.filter.rep_eq)
 
 
@@ -285,7 +285,7 @@ begin
 
 lemma DAList_Multiset_fold:
   assumes fn: "\<And>a n x. fn a n x = (f a ^^ n) x"
-  shows "Multiset.fold f e (Bag al) = DAList_Multiset.fold fn e al"
+  shows "fold_mset f e (Bag al) = DAList_Multiset.fold fn e al"
   unfolding DAList_Multiset.fold_def
 proof (induct al)
   fix ys
@@ -294,12 +294,12 @@ proof (induct al)
   have count[simp]: "\<And>x. count (Abs_multiset (count_of x)) = count_of x"
     by (rule Abs_multiset_inverse[OF count_of_multiset])
   assume ys: "ys \<in> ?inv"
-  then show "Multiset.fold f e (Bag (Alist ys)) = fold_impl fn e (DAList.impl_of (Alist ys))"
+  then show "fold_mset f e (Bag (Alist ys)) = fold_impl fn e (DAList.impl_of (Alist ys))"
     unfolding Bag_def unfolding Alist_inverse[OF ys]
   proof (induct ys arbitrary: e rule: list.induct)
     case Nil
     show ?case
-      by (rule trans[OF arg_cong[of _ "{#}" "Multiset.fold f e", OF multiset_eqI]])
+      by (rule trans[OF arg_cong[of _ "{#}" "fold_mset f e", OF multiset_eqI]])
          (auto, simp add: cs)
   next
     case (Cons pair ys e)
@@ -388,7 +388,7 @@ lemma msetprod_Bag[code]: "msetprod (Bag ms) = DAList_Multiset.fold (\<lambda>a 
   apply (auto simp: ac_simps)
   done
 
-lemma size_fold: "size A = Multiset.fold (\<lambda>_. Suc) 0 A" (is "_ = Multiset.fold ?f _ _")
+lemma size_fold: "size A = fold_mset (\<lambda>_. Suc) 0 A" (is "_ = fold_mset ?f _ _")
 proof -
   interpret comp_fun_commute ?f by default auto
   show ?thesis by (induct A) auto
@@ -403,7 +403,7 @@ proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, simp)
 qed
 
 
-lemma set_of_fold: "set_of A = Multiset.fold insert {} A" (is "_ = Multiset.fold ?f _ _")
+lemma set_of_fold: "set_of A = fold_mset insert {} A" (is "_ = fold_mset ?f _ _")
 proof -
   interpret comp_fun_commute ?f by default auto
   show ?thesis by (induct A) auto

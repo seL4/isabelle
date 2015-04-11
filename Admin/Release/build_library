@@ -75,7 +75,6 @@ tar -x -z -f "$ARCHIVE_FULL"
 cd *
 ISABELLE_NAME="$(basename "$PWD")"
 
-echo "Z3_NON_COMMERCIAL=yes" >> etc/settings
 echo "ISABELLE_FULL_TEST=true" >> etc/settings
 
 echo -n > src/Doc/ROOT

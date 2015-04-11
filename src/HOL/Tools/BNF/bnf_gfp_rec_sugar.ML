@@ -49,7 +49,7 @@ sig
   val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
     term -> 'a -> 'a
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
-    typ list -> term -> term
+    (typ list -> term -> unit) -> typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> (typ list -> typ -> typ -> term -> term) ->
     typ list -> typ -> typ -> term -> term
@@ -70,10 +70,10 @@ sig
   val gfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val add_primcorecursive_cmd: corec_option list ->
+  val primcorecursive_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
-  val add_primcorec_cmd: corec_option list ->
+  val primcorec_cmd: corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     local_theory -> local_theory
 end;
@@ -243,11 +243,11 @@ fun case_of ctxt s =
     SOME {casex = Const (s', _), split_sels = _ :: _, ...} => SOME s'
   | _ => NONE);
 
-fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
+fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    fun check_no_call t = if has_call t then unexpected_corec_call ctxt [t0] t else ();
+    fun check_no_call bound_Ts t = if has_call t then unexpected_call bound_Ts t else ();
 
     fun massage_abs bound_Ts 0 t = massage_rec bound_Ts t
       | massage_abs bound_Ts m (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) (m - 1) t)
@@ -264,7 +264,8 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
             (dummy_branch' :: _, []) => dummy_branch'
           | (_, [branch']) => branch'
           | (_, branches') =>
-            Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches'))
+            Term.list_comb (If_const (typof (hd branches')) $ tap (check_no_call bound_Ts) obj,
+              branches'))
         | (c as Const (@{const_name case_prod}, _), arg :: args) =>
           massage_rec bound_Ts
             (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
@@ -287,7 +288,7 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
                       val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
                     in
                       Term.list_comb (casex',
-                        branches' @ tap (List.app check_no_call) obj_leftovers)
+                        branches' @ tap (List.app (check_no_call bound_Ts)) obj_leftovers)
                     end
                   else
                     massage_leaf bound_Ts t
@@ -303,6 +304,9 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts t0 =
     |> Term.map_aterms (fn t =>
       if Term.is_dummy_pattern t then Const (@{const_name undefined}, fastype_of t) else t)
   end;
+
+fun massage_let_if_case_corec ctxt has_call massage_leaf bound_Ts t0 =
+  massage_let_if_case ctxt has_call massage_leaf (K (unexpected_corec_call ctxt [t0])) bound_Ts t0;
 
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
@@ -348,7 +352,7 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
             (betapply (t, var))))
         end)
     and massage_any_call bound_Ts U T =
-      massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
+      massage_let_if_case_corec ctxt has_call (fn bound_Ts => fn t =>
         if has_call t then
           (case U of
             Type (s, Us) =>
@@ -384,8 +388,6 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
           | _ => ill_formed_corec_call ctxt t)
         else
           massage_noncall bound_Ts U T t) bound_Ts;
-
-    val T = fastype_of1 (bound_Ts, t0);
   in
     (if has_call t0 then massage_any_call else massage_noncall) bound_Ts U T t0
   end;
@@ -399,12 +401,12 @@ fun expand_to_ctr_term ctxt s Ts t =
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     Type (s, Ts) =>
-    massage_let_if_case ctxt has_call (fn _ => fn t =>
+    massage_let_if_case_corec ctxt has_call (fn _ => fn t =>
       if can (dest_ctr ctxt s) t then t else expand_to_ctr_term ctxt s Ts t) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
-  massage_let_if_case ctxt (K false)
+  massage_let_if_case_corec ctxt (K false)
     (fn bound_Ts => uncurry (massage_ctr bound_Ts) o Term.strip_comb);
 
 fun fold_rev_corec_code_rhs ctxt f =
@@ -883,7 +885,7 @@ fun build_corec_args_mutual_call ctxt has_call (sel_eqns : coeqn_data_sel list) 
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
         if has_call t then mk_tuple1_balanced bound_Ts (snd (strip_comb t)) else undef_const;
-      fun massage f _ = massage_let_if_case ctxt has_call f bound_Ts rhs_term
+      fun massage f _ = massage_let_if_case_corec ctxt has_call f bound_Ts rhs_term
         |> abs_tuple_balanced fun_args;
     in
       (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
@@ -1039,7 +1041,7 @@ fun applied_fun_of fun_name fun_T fun_args =
 fun is_trivial_implies thm =
   uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
 
-fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
+fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -1525,7 +1527,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
+fun primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
   let
     val dups = duplicates (op =) (map (Binding.name_of o #1) raw_fixes);
     val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
@@ -1534,18 +1536,18 @@ fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
       split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
     val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
   in
-    add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
+    primcorec_ursive auto opts fixes specs of_specs_opt lthy
   end;
 
-val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
+val primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> Proof.theorem NONE after_qed goalss
   |> Proof.refine (Method.primitive_text (K I))
-  |> Seq.hd) ooo add_primcorec_ursive_cmd false;
+  |> Seq.hd) ooo primcorec_ursive_cmd false;
 
-val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
+val primcorec_cmd = (fn (goalss, after_qed, lthy) =>
     lthy |> after_qed (map (fn [] => [] | _ => use_primcorecursive ()) goalss)) ooo
-  add_primcorec_ursive_cmd true;
+  primcorec_ursive_cmd true;
 
 val corec_option_parser = Parse.group (K "option")
   (Plugin_Name.parse_filter >> Plugins_Option
@@ -1560,13 +1562,13 @@ val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorecursive_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry add_primcorec_cmd);
+    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorec_cmd);
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
   gfp_rec_sugar_transfer_interpretation);

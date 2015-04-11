@@ -8,8 +8,8 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: ((binding * string) * Token.src list) list -> theory -> theory * thm list
-  val add_primrec_i: ((binding * term) * attribute list) list -> theory -> theory * thm list
+  val primrec: ((binding * string) * Token.src list) list -> theory -> theory * thm list
+  val primrec_i: ((binding * term) * attribute list) list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -161,7 +161,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
 
 (* prepare functions needed for definitions *)
 
-fun add_primrec_i args thy =
+fun primrec_i args thy =
   let
     val ((eqn_names, eqn_terms), eqn_atts) = apfst split_list (split_list args);
     val SOME (fname, ftype, ls, rs, con_info, eqns) =
@@ -188,8 +188,8 @@ fun add_primrec_i args thy =
       ||> Sign.parent_path;
   in (thy3, eqn_thms') end;
 
-fun add_primrec args thy =
-  add_primrec_i (map (fn ((name, s), srcs) =>
+fun primrec args thy =
+  primrec_i (map (fn ((name, s), srcs) =>
     ((name, Syntax.read_prop_global thy s), map (Attrib.attribute_cmd_global thy) srcs))
     args) thy;
 
@@ -199,7 +199,7 @@ fun add_primrec args thy =
 val _ =
   Outer_Syntax.command @{command_keyword primrec} "define primitive recursive functions on datatypes"
     (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
-      >> (Toplevel.theory o (#1 oo (add_primrec o map Parse.triple_swap))));
+      >> (Toplevel.theory o (#1 oo (primrec o map Parse.triple_swap))));
 
 end;
 

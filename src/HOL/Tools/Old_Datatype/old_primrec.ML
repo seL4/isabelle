@@ -8,16 +8,16 @@ Primitive recursive functions on datatypes.
 
 signature OLD_PRIMREC =
 sig
-  val add_primrec: (binding * typ option * mixfix) list ->
+  val primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list) * local_theory
-  val add_primrec_cmd: (binding * string option * mixfix) list ->
+  val primrec_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> (term list * thm list) * local_theory
-  val add_primrec_global: (binding * typ option * mixfix) list ->
+  val primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
-  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
+  val primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
-  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string * (term list * thm list)) * local_theory
 end;
 
@@ -260,7 +260,7 @@ fun distill ctxt fixes eqs =
 
 (* primrec definition *)
 
-fun add_primrec_simple fixes ts lthy =
+fun primrec_simple fixes ts lthy =
   let
     val ((prefix, (_, defs)), prove) = distill lthy fixes ts;
   in
@@ -280,7 +280,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
       (Binding.qualify true prefix (Binding.name "simps"), @{attributes [simp, nitpick_simp]});
   in
     lthy
-    |> add_primrec_simple fixes (map snd spec)
+    |> primrec_simple fixes (map snd spec)
     |-> (fn (prefix, (ts, simps)) =>
       Spec_Rules.add Spec_Rules.Equational (ts, simps)
       #> fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
@@ -290,22 +290,22 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
 
 in
 
-val add_primrec = gen_primrec Specification.check_spec;
-val add_primrec_cmd = gen_primrec Specification.read_spec;
+val primrec = gen_primrec Specification.check_spec;
+val primrec_cmd = gen_primrec Specification.read_spec;
 
 end;
 
-fun add_primrec_global fixes specs thy =
+fun primrec_global fixes specs thy =
   let
     val lthy = Named_Target.theory_init thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
+    val ((ts, simps), lthy') = primrec fixes specs lthy;
     val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
-fun add_primrec_overloaded ops fixes specs thy =
+fun primrec_overloaded ops fixes specs thy =
   let
     val lthy = Overloading.overloading ops thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
+    val ((ts, simps), lthy') = primrec fixes specs lthy;
     val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 

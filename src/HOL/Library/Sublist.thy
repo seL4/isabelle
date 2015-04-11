@@ -144,7 +144,7 @@ lemma prefix_simps [simp, code]:
 
 lemma take_prefix: "prefix xs ys \<Longrightarrow> prefix (take n xs) ys"
   apply (induct n arbitrary: xs ys)
-   apply (case_tac ys, simp_all)[1]
+   apply (case_tac ys; simp)
   apply (metis prefix_order.less_trans prefixI take_is_prefixeq)
   done
 
