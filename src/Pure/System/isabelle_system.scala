@@ -256,11 +256,9 @@ object Isabelle_System
 
   /* mkdirs */
 
-  def mkdirs(path: Path)
-  {
-    path.file.mkdirs
-    if (!path.is_dir) error("Cannot create directory: " + quote(platform_path(path)))
-  }
+  def mkdirs(path: Path): Unit =
+    if (bash("mkdir -p " + shell_path(path)).rc != 0)
+      error("Failed to create directory: " + quote(platform_path(path)))
 
 
 
@@ -388,7 +386,7 @@ object Isabelle_System
   private def isabelle_tmp_prefix(): JFile =
   {
     val path = Path.explode("$ISABELLE_TMP_PREFIX")
-    mkdirs(path)
+    path.file.mkdirs  // low-level mkdirs
     platform_file(path)
   }
 
