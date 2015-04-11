@@ -1,40 +1,15 @@
-Subject: Announcing Isabelle2014
+Subject: Announcing Isabelle2015
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2014 is now available.
+Isabelle2015 is now available.
 
-This version significantly improves upon Isabelle2013-2, see the NEWS
-file in the distribution for more details.  Some highlights are:
+This version improves upon Isabelle2014 in many ways, see the NEWS file in
+the distribution for more details. Important points are:
 
-* Improved Isabelle/jEdit Prover IDE: navigation, completion,
-  spell-checking, Query panel, Simplifier Trace panel.
-
-* Support for auxiliary files within the Prover IDE, notably
-  Isabelle/ML.
-
-* Support for official Standard ML within the Prover IDE,
-  independently of Isabelle theory and proof development.
-
-* HOL: BNF datatypes and codatatypes within theory Main, with numerous
-  add-on tools.
-
-* HOL tool enhancements: Nitpick, Sledgehammer.
-
-* HOL: internal SAT solver "cdclite" with models and proof traces.
-
-* HOL: updated SMT module, with support for SMT-LIB 2 and recent
-  versions of Z3, as well as CVC3, CVC4.
-
-* HOL: numerous library enhancements: main HOL, HOL-Word,
-  HOL-Multivariate_Analysis, HOL-Probability.
-
-* System integration: improved support of LaTeX on Windows platform.
-
-* Updated and extended manuals: codegen, datatypes, implementation,
-  isar-ref, jedit, system.
+* FIXME
 
 
-You may get Isabelle2014 from the following mirror sites:
+You may get Isabelle2015 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/
