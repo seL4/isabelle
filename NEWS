@@ -262,8 +262,8 @@ field_inverse_zero and linordered_field_inverse_zero. INCOMPATIBILITY.
 additive inverse operation. INCOMPATIBILITY.
 
 * Complex powers and square roots. The functions "ln" and "powr" are now
-  overloaded for types real and complex, and 0 powr y = 0 by definition.
-  INCOMPATIBILITY: type constraints may be necessary.
+overloaded for types real and complex, and 0 powr y = 0 by definition.
+INCOMPATIBILITY: type constraints may be necessary.
 
 * The functions "sin" and "cos" are now defined for any type of sort
 "{real_normed_algebra_1,banach}" type, so in particular on "real" and
