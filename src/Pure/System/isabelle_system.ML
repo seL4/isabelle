@@ -58,7 +58,10 @@ fun system_command cmd =
 
 (* directory operations *)
 
-fun mkdirs path = system_command ("mkdir -p " ^ File.shell_path path);
+fun mkdirs path =
+  if #rc (Bash.process ("mkdir -p " ^ File.shell_path path)) <> 0 then
+    error ("Failed to create directory: " ^ Path.print path)
+  else ();
 
 fun mkdir path =
   if File.is_dir path then () else OS.FileSys.mkDir (File.platform_path path);
