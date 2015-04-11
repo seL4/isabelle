@@ -330,13 +330,13 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 
     fun print_wf (x, (gfp, wf)) =
       pprint_nt (fn () => Pretty.blk (0,
-          Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate \"")
-          @ Syntax.pretty_term ctxt (Const x) ::
+          Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate") @
+          [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt (Const x)), Pretty.brk 1] @
           Pretty.text (if wf then
-                   "\" was proved well-founded. Nitpick can compute it \
+                   "was proved well-founded. Nitpick can compute it \
                    \efficiently."
                  else
-                   "\" could not be proved well-founded. Nitpick might need to \
+                   "could not be proved well-founded. Nitpick might need to \
                    \unroll it.")))
     val _ = if verbose then List.app print_wf (!wf_cache) else ()
     val das_wort_formula = if falsify then "Negated conjecture" else "Formula"
@@ -367,9 +367,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun monotonicity_message Ts extra =
       let val pretties = map (pretty_maybe_quote keywords o pretty_for_type ctxt) Ts in
         Pretty.blk (0,
-          Pretty.text ("The type" ^ plural_s_for_list pretties ^ " ") @
-          pretty_serial_commas "and" pretties @
-          Pretty.text (" " ^
+          Pretty.text ("The type" ^ plural_s_for_list pretties) @ [Pretty.brk 1] @
+          pretty_serial_commas "and" pretties @ [Pretty.brk 1] @
+          Pretty.text (
                  (if none_true monos then
                     "passed the monotonicity test"
                   else
@@ -664,7 +664,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                            else " quasi genuine ") ^ das_wort_model) @
                    (case pretties_for_scope scope verbose of
                       [] => []
-                    | pretties => Pretty.text " for " @ pretties) @
+                    | pretties => [Pretty.brk 1, Pretty.str "for", Pretty.brk 1] @ pretties) @
                    [Pretty.str ":", Pretty.fbrk])),
               Pretty.indent indent_size reconstructed_model]);
          print_t (K "% SZS output end FiniteModel");
