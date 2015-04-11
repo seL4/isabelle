@@ -1291,7 +1291,7 @@ class ln = real_normed_algebra_1 + banach +
 
 definition powr :: "['a,'a] => 'a::ln"     (infixr "powr" 80)
   -- {*exponentation via ln and exp*}
-  where "x powr a \<equiv> if x = 0 then 0 else exp(a * ln x)"
+  where  [code del]: "x powr a \<equiv> if x = 0 then 0 else exp(a * ln x)"
 
 
 instantiation real :: ln
