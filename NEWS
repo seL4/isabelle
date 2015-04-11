@@ -138,10 +138,10 @@ different index.
 * Command "class_deps" takes optional sort arguments to constrain then
 resulting class hierarchy.
 
-* Lexical separation of signed and unsigend numerals: categories "num"
-and "float" are unsigend.  INCOMPATIBILITY: subtle change in precedence
-of numeral signs, particulary in expressions involving infix syntax like
-"(- 1) ^ n".
+* Lexical separation of signed and unsigned numerals: categories "num"
+and "float" are unsigned. INCOMPATIBILITY: subtle change in precedence
+of numeral signs, particularly in expressions involving infix syntax
+like "(- 1) ^ n".
 
 * Old inner token category "xnum" has been discontinued.  Potential
 INCOMPATIBILITY for exotic syntax: may use mixfix grammar with "num"
@@ -207,7 +207,7 @@ token category instead.
     INCOMPATIBILITY.
 
 * Nitpick:
-  - Fixed soundness bug related to the strict and nonstrict subset
+  - Fixed soundness bug related to the strict and non-strict subset
     operations.
 
 * Sledgehammer:
@@ -216,7 +216,7 @@ token category instead.
   - Z3 is now always enabled by default, now that it is fully open
     source. The "z3_non_commercial" option is discontinued.
   - Minimization is now always enabled by default.
-    Removed subcommand:
+    Removed sub-command:
       min
   - Proof reconstruction, both one-liners and Isar, has been
     dramatically improved.
@@ -364,12 +364,12 @@ argument. Minor INCOMPATIBILITY.
 * HOL-Decision_Procs: New counterexample generator quickcheck
 [approximation] for inequalities of transcendental functions. Uses
 hardware floating point arithmetic to randomly discover potential
-counterexamples. Counterexamples are certified with the 'approximation'
+counterexamples. Counterexamples are certified with the "approximation"
 method. See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
 examples.
 
 * HOL-Probability: Reworked measurability prover
-  - applies destructor rules repeatetly
+  - applies destructor rules repeatedly
   - removed application splitting (replaced by destructor rule)
   - added congruence rules to rewrite measure spaces under the sets
     projection
@@ -384,7 +384,7 @@ single-step rewriting with subterm selection based on patterns.
 considered inaccessible, instead of accessible via the fully-qualified
 internal name. This mainly affects Name_Space.intern (and derivatives),
 which may produce an unexpected Long_Name.hidden prefix. Note that
-contempory applications use the strict Name_Space.check (and
+contemporary applications use the strict Name_Space.check (and
 derivatives) instead, which is not affected by the change. Potential
 INCOMPATIBILITY in rare applications of Name_Space.intern.
 
