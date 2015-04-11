@@ -306,34 +306,37 @@ done
 lemma starfun_exp_gt_one [simp]: "!!x::hypreal. 0 < x ==> 1 < ( *f* exp) x"
 by transfer (rule exp_gt_one)
 
-lemma starfun_ln_exp [simp]: "!!x. ( *f* ln) (( *f* exp) x) = x"
+abbreviation real_ln :: "real \<Rightarrow> real" where 
+  "real_ln \<equiv> ln"
+
+lemma starfun_ln_exp [simp]: "!!x. ( *f* real_ln) (( *f* exp) x) = x"
 by transfer (rule ln_exp)
 
-lemma starfun_exp_ln_iff [simp]: "!!x. (( *f* exp)(( *f* ln) x) = x) = (0 < x)"
+lemma starfun_exp_ln_iff [simp]: "!!x. (( *f* exp)(( *f* real_ln) x) = x) = (0 < x)"
 by transfer (rule exp_ln_iff)
 
-lemma starfun_exp_ln_eq: "!!u x. ( *f* exp) u = x ==> ( *f* ln) x = u"
+lemma starfun_exp_ln_eq: "!!u x. ( *f* exp) u = x ==> ( *f* real_ln) x = u"
 by transfer (rule ln_unique)
 
-lemma starfun_ln_less_self [simp]: "!!x. 0 < x ==> ( *f* ln) x < x"
+lemma starfun_ln_less_self [simp]: "!!x. 0 < x ==> ( *f* real_ln) x < x"
 by transfer (rule ln_less_self)
 
-lemma starfun_ln_ge_zero [simp]: "!!x. 1 \<le> x ==> 0 \<le> ( *f* ln) x"
+lemma starfun_ln_ge_zero [simp]: "!!x. 1 \<le> x ==> 0 \<le> ( *f* real_ln) x"
 by transfer (rule ln_ge_zero)
 
-lemma starfun_ln_gt_zero [simp]: "!!x .1 < x ==> 0 < ( *f* ln) x"
+lemma starfun_ln_gt_zero [simp]: "!!x .1 < x ==> 0 < ( *f* real_ln) x"
 by transfer (rule ln_gt_zero)
 
-lemma starfun_ln_not_eq_zero [simp]: "!!x. [| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
+lemma starfun_ln_not_eq_zero [simp]: "!!x. [| 0 < x; x \<noteq> 1 |] ==> ( *f* real_ln) x \<noteq> 0"
 by transfer simp
 
-lemma starfun_ln_HFinite: "[| x \<in> HFinite; 1 \<le> x |] ==> ( *f* ln) x \<in> HFinite"
+lemma starfun_ln_HFinite: "[| x \<in> HFinite; 1 \<le> x |] ==> ( *f* real_ln) x \<in> HFinite"
 apply (rule HFinite_bounded)
 apply assumption 
 apply (simp_all add: starfun_ln_less_self order_less_imp_le)
 done
 
-lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
+lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* real_ln) (inverse x) = -( *f* ln) x"
 by transfer (rule ln_inverse)
 
 lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) (x::hypreal)\<bar> = ( *f* exp) x"
@@ -360,7 +363,7 @@ done
 
 (* using previous result to get to result *)
 lemma starfun_ln_HInfinite:
-     "[| x \<in> HInfinite; 0 < x |] ==> ( *f* ln) x \<in> HInfinite"
+     "[| x \<in> HInfinite; 0 < x |] ==> ( *f* real_ln) x \<in> HInfinite"
 apply (rule ccontr, drule HFinite_HInfinite_iff [THEN iffD2])
 apply (drule starfun_exp_HFinite)
 apply (simp add: starfun_exp_ln_iff [THEN iffD2] HFinite_HInfinite_iff)
@@ -374,7 +377,7 @@ done
 
 (* check out this proof!!! *)
 lemma starfun_ln_HFinite_not_Infinitesimal:
-     "[| x \<in> HFinite - Infinitesimal; 0 < x |] ==> ( *f* ln) x \<in> HFinite"
+     "[| x \<in> HFinite - Infinitesimal; 0 < x |] ==> ( *f* real_ln) x \<in> HFinite"
 apply (rule ccontr, drule HInfinite_HFinite_iff [THEN iffD2])
 apply (drule starfun_exp_HInfinite_Infinitesimal_disj)
 apply (simp add: starfun_exp_ln_iff [symmetric] HInfinite_HFinite_iff
@@ -383,22 +386,22 @@ done
 
 (* we do proof by considering ln of 1/x *)
 lemma starfun_ln_Infinitesimal_HInfinite:
-     "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* ln) x \<in> HInfinite"
+     "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* real_ln) x \<in> HInfinite"
 apply (drule Infinitesimal_inverse_HInfinite)
 apply (frule positive_imp_inverse_positive)
 apply (drule_tac [2] starfun_ln_HInfinite)
 apply (auto simp add: starfun_ln_inverse HInfinite_minus_iff)
 done
 
-lemma starfun_ln_less_zero: "!!x. [| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
+lemma starfun_ln_less_zero: "!!x. [| 0 < x; x < 1 |] ==> ( *f* real_ln) x < 0"
 by transfer (rule ln_less_zero)
 
 lemma starfun_ln_Infinitesimal_less_zero:
-     "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* ln) x < 0"
+     "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* real_ln) x < 0"
 by (auto intro!: starfun_ln_less_zero simp add: Infinitesimal_def)
 
 lemma starfun_ln_HInfinite_gt_zero:
-     "[| x \<in> HInfinite; 0 < x |] ==> 0 < ( *f* ln) x"
+     "[| x \<in> HInfinite; 0 < x |] ==> 0 < ( *f* real_ln) x"
 by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
 
 

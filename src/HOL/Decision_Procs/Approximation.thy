@@ -241,7 +241,9 @@ proof (induct n)
   show ?case
   proof (cases x)
     case (Float m e)
-    hence "0 < m" using assms powr_gt_zero[of 2 e] by (auto simp: sign_simps)
+    hence "0 < m" using assms 
+      apply (auto simp: sign_simps)
+      by (meson not_less powr_ge_pzero)
     hence "0 < sqrt m" by auto
 
     have int_nat_bl: "(nat (bitlen m)) = bitlen m" using bitlen_nonneg by auto
@@ -1858,7 +1860,8 @@ proof -
   finally show "?ln \<le> ?ub" .
 qed
 
-lemma ln_add: assumes "0 < x" and "0 < y" shows "ln (x + y) = ln x + ln (1 + y / x)"
+lemma ln_add: 
+  fixes x::real assumes "0 < x" and "0 < y" shows "ln (x + y) = ln x + ln (1 + y / x)"
 proof -
   have "x \<noteq> 0" using assms by auto
   have "x + y = x * (1 + y / x)" unfolding distrib_left times_divide_eq_right nonzero_mult_divide_cancel_left[OF `x \<noteq> 0`] by auto
@@ -1885,7 +1888,7 @@ proof -
   let ?uthird = "rapprox_rat (max prec 1) 1 3"
   let ?lthird = "lapprox_rat prec 1 3"
 
-  have ln2_sum: "ln 2 = ln (1/2 + 1) + ln (1 / 3 + 1)"
+  have ln2_sum: "ln 2 = ln (1/2 + 1) + ln (1 / 3 + 1::real)"
     using ln_add[of "3 / 2" "1 / 2"] by auto
   have lb3: "?lthird \<le> 1 / 3" using lapprox_rat[of prec 1 3] by auto
   hence lb3_ub: "real ?lthird < 1" by auto
@@ -1955,10 +1958,8 @@ qed
 
 lemma float_pos_eq_mantissa_pos:  "x > 0 \<longleftrightarrow> mantissa x > 0"
   apply (subst Float_mantissa_exponent[of x, symmetric])
-  apply (auto simp add: zero_less_mult_iff zero_float_def powr_gt_zero[of 2 "exponent x"] dest: less_zeroE)
-  using powr_gt_zero[of 2 "exponent x"]
-  apply simp
-  done
+  apply (auto simp add: zero_less_mult_iff zero_float_def  dest: less_zeroE)
+  by (metis not_le powr_ge_pzero)
 
 lemma Float_pos_eq_mantissa_pos:  "Float m e > 0 \<longleftrightarrow> m > 0"
   using powr_gt_zero[of 2 "e"]
@@ -2140,8 +2141,9 @@ next
     let ?s = "Float (e + (bitlen m - 1)) 0"
     let ?x = "Float m (- (bitlen m - 1))"
 
-    have "0 < m" and "m \<noteq> 0" using `0 < x` Float powr_gt_zero[of 2 e]
-      by (auto simp: zero_less_mult_iff)
+    have "0 < m" and "m \<noteq> 0" using `0 < x` Float powr_gt_zero[of 2 e] 
+      apply (auto simp add: zero_less_mult_iff)
+      using not_le powr_ge_pzero by blast
     def bl \<equiv> "bitlen m - 1" hence "bl \<ge> 0" using `m > 0` by (simp add: bitlen_def)
     have "1 \<le> Float m e" using `1 \<le> x` Float unfolding less_eq_float_def by auto
     from bitlen_div[OF `0 < m`] float_gt1_scale[OF `1 \<le> Float m e`] `bl \<ge> 0`
@@ -2180,7 +2182,7 @@ next
         from float_gt1_scale[OF `1 \<le> Float m e`]
         show "0 \<le> real (e + (bitlen m - 1))" by auto
       next
-        have "0 \<le> ln 2" by simp
+        have "0 \<le> ln (2 :: real)" by simp
         thus "0 \<le> real (ub_ln2 prec)" using ub_ln2[of prec] by arith
       qed auto
       ultimately have "ln x \<le> float_plus_up prec ?ub2 ?ub_horner"
@@ -2333,10 +2335,9 @@ lemma interpret_floatarith_tan:
   unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def divide_inverse
   by auto
 
-lemma interpret_floatarith_powr: "interpret_floatarith (Exp (Mult b (Ln a))) vs = (interpret_floatarith a vs) powr (interpret_floatarith b vs)"
-  unfolding powr_def interpret_floatarith.simps ..
-
-lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs = log (interpret_floatarith b vs) (interpret_floatarith x vs)"
+lemma interpret_floatarith_log: 
+    "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs = 
+     log (interpret_floatarith b vs) (interpret_floatarith x vs)"
   unfolding log_def interpret_floatarith.simps divide_inverse ..
 
 lemma interpret_floatarith_num:
@@ -3481,7 +3482,7 @@ fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float * float) op
 subsection {* Implement proof method \texttt{approximation} *}
 
 lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simps interpret_floatarith_num
-  interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
+  interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_log
   interpret_floatarith_sin
 
 oracle approximation_oracle = {* fn (thy, t) =>

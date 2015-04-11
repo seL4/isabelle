@@ -167,6 +167,10 @@ lemma Re_divide_numeral [simp]: "Re (z / numeral w) = Re z / numeral w"
 lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
   by (simp add: Im_divide sqr_conv_mult)
 
+lemma of_real_Re [simp]:
+    "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
+  by (auto simp: Reals_def)
+
 subsection {* The Complex Number $i$ *}
 
 primcorec "ii" :: complex  ("\<i>") where

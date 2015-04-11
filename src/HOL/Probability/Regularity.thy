@@ -363,7 +363,7 @@ proof -
       fix e::real assume "e > 0"
       with measure_LIMSEQ
       have "\<exists>no. \<forall>n\<ge>no. \<bar>(\<Sum>i<n. measure M (D i)) -measure M (\<Union>x. D x)\<bar> < e/2"
-        by (auto simp: LIMSEQ_def dist_real_def simp del: less_divide_eq_numeral1)
+        by (auto simp: lim_sequentially dist_real_def simp del: less_divide_eq_numeral1)
       hence "\<exists>n0. \<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>x. D x)\<bar> < e/2" by auto
       then obtain n0 where n0: "\<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>i. D i)\<bar> < e/2"
         unfolding choice_iff by blast

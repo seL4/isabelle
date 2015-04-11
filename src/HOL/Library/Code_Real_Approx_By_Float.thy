@@ -103,7 +103,7 @@ code_printing
   constant ln \<rightharpoonup>
     (SML) "Math.ln"
     and (OCaml) "Pervasives.ln"
-declare ln_def[code del]
+declare ln_real_def[code del]
 
 code_printing
   constant cos \<rightharpoonup>

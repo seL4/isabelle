@@ -34,13 +34,13 @@ by (transfer, simp)
 
 lemma powhr_mult:
   "!!a x y. [| 0 < x; 0 < y |] ==> (x * y) powhr a = (x powhr a) * (y powhr a)"
-by (transfer, rule powr_mult)
+by (transfer, simp add: powr_mult)
 
-lemma powhr_gt_zero [simp]: "!!a x. 0 < x powhr a"
+lemma powhr_gt_zero [simp]: "!!a x. 0 < x powhr a \<longleftrightarrow> x \<noteq> 0"
 by (transfer, simp)
 
-lemma powhr_not_zero [simp]: "x powhr a \<noteq> 0"
-by (metis less_numeral_extra(3) powhr_gt_zero)
+lemma powhr_not_zero [simp]: "\<And>a x. x powhr a \<noteq> 0 \<longleftrightarrow> x \<noteq> 0"
+by transfer simp
 
 lemma powhr_divide:
   "!!a x y. [| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
@@ -105,8 +105,8 @@ lemma hlog_eq_div_starfun_ln_mult_hlog:
       ==> hlog a x = (( *f* ln) b/( *f*ln) a) * hlog b x"
 by (transfer, rule log_eq_div_ln_mult_log)
 
-lemma powhr_as_starfun: "!!a x. x powhr a = ( *f* exp) (a * ( *f* ln) x)"
-by (transfer, simp add: powr_def)
+lemma powhr_as_starfun: "!!a x. x powhr a = (if x=0 then 0 else ( *f* exp) (a * ( *f* real_ln) x))"
+  by (transfer, simp add: powr_def)
 
 lemma HInfinite_powhr:
      "[| x : HInfinite; 0 < x; a : HFinite - Infinitesimal;  

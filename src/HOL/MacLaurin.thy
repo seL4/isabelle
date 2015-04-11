@@ -389,6 +389,12 @@ lemma Maclaurin_exp_le:
                        (exp t / (fact n)) * x ^ n"
 by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_le_objl, auto)
 
+lemma exp_lower_taylor_quadratic:
+  fixes x::real
+  shows "0 \<le> x \<Longrightarrow> 1 + x + x\<^sup>2 / 2 \<le> exp x"
+  using Maclaurin_exp_le [of x 3]
+  by (auto simp: numeral_3_eq_3 power2_eq_square power_Suc)
+
 
 subsection{*Version for Sine Function*}
 

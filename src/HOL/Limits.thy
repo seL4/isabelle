@@ -1287,7 +1287,7 @@ lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
 lemma LIMSEQ_iff:
   fixes L :: "'a::real_normed_vector"
   shows "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n - L) < r)"
-unfolding LIMSEQ_def dist_norm ..
+unfolding lim_sequentially dist_norm ..
 
 lemma LIMSEQ_I:
   fixes L :: "'a::real_normed_vector"

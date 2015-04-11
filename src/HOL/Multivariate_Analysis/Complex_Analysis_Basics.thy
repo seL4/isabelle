@@ -250,6 +250,21 @@ proof -
     by (metis closed_halfspace_Im_eq)
 qed
 
+lemma closed_Real_halfspace_Re_le: "closed (\<real> \<inter> {w. Re w \<le> x})"
+  by (simp add: closed_Int closed_complex_Reals closed_halfspace_Re_le)
+
+lemma closed_Real_halfspace_Re_ge: "closed (\<real> \<inter> {w. x \<le> Re(w)})"
+  using closed_halfspace_Re_ge
+  by (simp add: closed_Int closed_complex_Reals)
+
+lemma closed_real_abs_le: "closed {w \<in> \<real>. \<bar>Re w\<bar> \<le> r}"
+proof -
+  have "{w \<in> \<real>. \<bar>Re w\<bar> \<le> r} = (\<real> \<inter> {w. Re w \<le> r}) \<inter> (\<real> \<inter> {w. Re w \<ge> -r})"
+    by auto
+  then show "closed {w \<in> \<real>. \<bar>Re w\<bar> \<le> r}"
+    by (simp add: closed_Int closed_Real_halfspace_Re_ge closed_Real_halfspace_Re_le)
+qed
+
 lemma real_lim:
   fixes l::complex
   assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
@@ -1149,6 +1164,95 @@ proof -
                "\<lambda>u. (f (Suc n) u * (z-u)^n / (fact n))"])
     apply (auto simp add: intro: open_closed_segment)
     done
+qed
+
+
+subsection {* Polynomal function extremal theorem, from HOL Light*}
+
+lemma polyfun_extremal_lemma: (*COMPLEX_POLYFUN_EXTREMAL_LEMMA in HOL Light*)
+    fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  assumes "0 < e"
+    shows "\<exists>M. \<forall>z. M \<le> norm(z) \<longrightarrow> norm (\<Sum>i\<le>n. c(i) * z^i) \<le> e * norm(z) ^ (Suc n)"
+proof (induct n)
+  case 0 with assms
+  show ?case
+    apply (rule_tac x="norm (c 0) / e" in exI)
+    apply (auto simp: field_simps)
+    done
+next
+  case (Suc n)
+  obtain M where M: "\<And>z. M \<le> norm z \<Longrightarrow> norm (\<Sum>i\<le>n. c i * z^i) \<le> e * norm z ^ Suc n"
+    using Suc assms by blast
+  show ?case
+  proof (rule exI [where x= "max M (1 + norm(c(Suc n)) / e)"], clarsimp simp del: power_Suc)
+    fix z::'a
+    assume z1: "M \<le> norm z" and "1 + norm (c (Suc n)) / e \<le> norm z"
+    then have z2: "e + norm (c (Suc n)) \<le> e * norm z"
+      using assms by (simp add: field_simps)
+    have "norm (\<Sum>i\<le>n. c i * z^i) \<le> e * norm z ^ Suc n"
+      using M [OF z1] by simp
+    then have "norm (\<Sum>i\<le>n. c i * z^i) + norm (c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc n + norm (c (Suc n) * z ^ Suc n)"
+      by simp
+    then have "norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc n + norm (c (Suc n) * z ^ Suc n)"
+      by (blast intro: norm_triangle_le elim: )
+    also have "... \<le> (e + norm (c (Suc n))) * norm z ^ Suc n"
+      by (simp add: norm_power norm_mult algebra_simps)
+    also have "... \<le> (e * norm z) * norm z ^ Suc n"
+      by (metis z2 mult.commute mult_left_mono norm_ge_zero norm_power)
+    finally show "norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc (Suc n)"
+      by (simp add: power_Suc)
+  qed
+qed
+
+lemma polyfun_extremal: (*COMPLEX_POLYFUN_EXTREMAL in HOL Light*)
+    fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  assumes k: "c k \<noteq> 0" "1\<le>k" and kn: "k\<le>n"
+    shows "eventually (\<lambda>z. norm (\<Sum>i\<le>n. c(i) * z^i) \<ge> B) at_infinity"
+using kn
+proof (induction n)
+  case 0
+  then show ?case
+    using k  by simp
+next
+  case (Suc m)
+  let ?even = ?case
+  show ?even
+  proof (cases "c (Suc m) = 0")
+    case True
+    then show ?even using Suc k
+      by auto (metis antisym_conv less_eq_Suc_le not_le)
+  next
+    case False
+    then obtain M where M:
+          "\<And>z. M \<le> norm z \<Longrightarrow> norm (\<Sum>i\<le>m. c i * z^i) \<le> norm (c (Suc m)) / 2 * norm z ^ Suc m"
+      using polyfun_extremal_lemma [of "norm(c (Suc m)) / 2" c m] Suc
+      by auto
+    have "\<exists>b. \<forall>z. b \<le> norm z \<longrightarrow> B \<le> norm (\<Sum>i\<le>Suc m. c i * z^i)"
+    proof (rule exI [where x="max M (max 1 (\<bar>B\<bar> / (norm(c (Suc m)) / 2)))"], clarsimp simp del: power_Suc)
+      fix z::'a
+      assume z1: "M \<le> norm z" "1 \<le> norm z"
+         and "\<bar>B\<bar> * 2 / norm (c (Suc m)) \<le> norm z"
+      then have z2: "\<bar>B\<bar> \<le> norm (c (Suc m)) * norm z / 2"
+        using False by (simp add: field_simps)
+      have nz: "norm z \<le> norm z ^ Suc m"
+        by (metis `1 \<le> norm z` One_nat_def less_eq_Suc_le power_increasing power_one_right zero_less_Suc)
+      have *: "\<And>y x. norm (c (Suc m)) * norm z / 2 \<le> norm y - norm x \<Longrightarrow> B \<le> norm (x + y)"
+        by (metis abs_le_iff add.commute norm_diff_ineq order_trans z2)
+      have "norm z * norm (c (Suc m)) + 2 * norm (\<Sum>i\<le>m. c i * z^i)
+            \<le> norm (c (Suc m)) * norm z + norm (c (Suc m)) * norm z ^ Suc m"
+        using M [of z] Suc z1  by auto
+      also have "... \<le> 2 * (norm (c (Suc m)) * norm z ^ Suc m)"
+        using nz by (simp add: mult_mono del: power_Suc)
+      finally show "B \<le> norm ((\<Sum>i\<le>m. c i * z^i) + c (Suc m) * z ^ Suc m)"
+        using Suc.IH
+        apply (auto simp: eventually_at_infinity)
+        apply (rule *)
+        apply (simp add: field_simps norm_mult norm_power)
+        done
+    qed
+    then show ?even
+      by (simp add: eventually_at_infinity)
+  qed
 qed
 
 end

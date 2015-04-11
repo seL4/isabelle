@@ -188,7 +188,7 @@ proof
       by simp
   qed
   show "convergent f"
-  proof (rule convergentI, subst LIMSEQ_def, safe)
+  proof (rule convergentI, subst lim_sequentially, safe)
     --{* The limit function converges according to its norm *}
     fix e::real
     assume "e > 0" hence "e/2 > 0" by simp

@@ -35,7 +35,7 @@ only one variable can be used.
 
 section "Compute some transcendental values"
 
-lemma "\<bar> ln 2 - 544531980202654583340825686620847 / 785593587443817081832229725798400 \<bar> < inverse (2^51) "
+lemma "\<bar> ln 2 - 544531980202654583340825686620847 / 785593587443817081832229725798400 \<bar> < (inverse (2^51) :: real)"
   by (approximation 60)
 
 lemma "\<bar> exp 1.626 - 5.083499996273 \<bar> < (inverse 10 ^ 10 :: real)"

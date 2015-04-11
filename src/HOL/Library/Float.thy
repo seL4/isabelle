@@ -82,16 +82,18 @@ qed
 lemma uminus_float[simp]: "x \<in> float \<Longrightarrow> -x \<in> float"
   apply (auto simp: float_def)
   apply hypsubst_thin
-  apply (rule_tac x="-x" in exI)
-  apply (rule_tac x="xa" in exI)
+  apply (rename_tac m e)
+  apply (rule_tac x="-m" in exI)
+  apply (rule_tac x="e" in exI)
   apply (simp add: field_simps)
   done
 
 lemma times_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x * y \<in> float"
   apply (auto simp: float_def)
   apply hypsubst_thin
-  apply (rule_tac x="x * xa" in exI)
-  apply (rule_tac x="xb + xc" in exI)
+  apply (rename_tac mx my ex ey)
+  apply (rule_tac x="mx * my" in exI)
+  apply (rule_tac x="ex + ey" in exI)
   apply (simp add: powr_add)
   done
 
@@ -107,16 +109,18 @@ lemma sgn_of_float[simp]: "x \<in> float \<Longrightarrow> sgn x \<in> float"
 lemma div_power_2_float[simp]: "x \<in> float \<Longrightarrow> x / 2^d \<in> float"
   apply (auto simp add: float_def)
   apply hypsubst_thin
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="xa - d" in exI)
+  apply (rename_tac m e)
+  apply (rule_tac x="m" in exI)
+  apply (rule_tac x="e - d" in exI)
   apply (simp add: powr_realpow[symmetric] field_simps powr_add[symmetric])
   done
 
 lemma div_power_2_int_float[simp]: "x \<in> float \<Longrightarrow> x / (2::int)^d \<in> float"
   apply (auto simp add: float_def)
   apply hypsubst_thin
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="xa - d" in exI)
+  apply (rename_tac m e)
+  apply (rule_tac x="m" in exI)
+  apply (rule_tac x="e - d" in exI)
   apply (simp add: powr_realpow[symmetric] field_simps powr_add[symmetric])
   done
 
@@ -687,8 +691,9 @@ next
 
   from neg have "2 powr real p \<le> 2 powr 0"
     by (intro powr_mono) auto
-  also have "\<dots> \<le> \<lfloor>2 powr 0\<rfloor>" by simp
-  also have "\<dots> \<le> \<lfloor>x * 2 powr real p\<rfloor>" unfolding real_of_int_le_iff
+  also have "\<dots> \<le> \<lfloor>2 powr 0::real\<rfloor>" by simp
+  also have "... \<le> \<lfloor>x * 2 powr (real p)\<rfloor>" 
+    unfolding real_of_int_le_iff
     using x x_le by (intro floor_mono) (simp add: powr_minus_divide field_simps)
   finally show ?thesis
     using prec x
@@ -723,7 +728,7 @@ unfolding atLeastAtMost_iff
 proof
   have "round_up e f - f \<le> round_up e f - round_down e f" using round_down by simp
   also have "\<dots> \<le> 2 powr -e" using round_up_diff_round_down by simp
-  finally show "round_up e f - f \<le> 2 powr real (- e)"
+  finally show "round_up e f - f \<le> 2 powr - (real e)"
     by simp
 qed (simp add: algebra_simps round_up)
 
@@ -740,7 +745,7 @@ unfolding atLeastAtMost_iff
 proof
   have "f - round_down e f \<le> round_up e f - round_down e f" using round_up by simp
   also have "\<dots> \<le> 2 powr -e" using round_up_diff_round_down by simp
-  finally show "f - round_down e f \<le> 2 powr real (- e)"
+  finally show "f - round_down e f \<le> 2 powr - (real e)"
     by simp
 qed (simp add: algebra_simps round_down)
 
@@ -923,8 +928,9 @@ lemma float_gt1_scale: assumes "1 \<le> Float m e"
   shows "0 \<le> e + (bitlen m - 1)"
 proof -
   have "0 < Float m e" using assms by auto
-  hence "0 < m" using powr_gt_zero[of 2 e]
-    by (auto simp: zero_less_mult_iff)
+  hence "0 < m" using powr_gt_zero[of 2 e]  
+    apply (auto simp: zero_less_mult_iff)
+    using not_le powr_ge_pzero by blast
   hence "m \<noteq> 0" by auto
   show ?thesis
   proof (cases "0 \<le> e")
@@ -2017,8 +2023,7 @@ lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> trunc
   by (simp add: truncate_up_eq_truncate_down truncate_down_mono)
 
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
- apply (auto simp: zero_float_def mult_le_0_iff)
- using powr_gt_zero[of 2 b] by simp
+ by (auto simp: zero_float_def mult_le_0_iff) (simp add: not_less [symmetric])
 
 lemma real_of_float_pprt[simp]: fixes a::float shows "real (pprt a) = pprt (real a)"
   unfolding pprt_def sup_float_def max_def sup_real_def by auto

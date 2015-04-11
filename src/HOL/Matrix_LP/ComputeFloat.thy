@@ -189,18 +189,15 @@ lemma float_minus:
 
 lemma zero_le_float:
   "(0 <= float (a,b)) = (0 <= a)"
-  using powr_gt_zero[of 2 "real b", arith]
-  by (simp add: float_def zero_le_mult_iff)
+  by (simp add: float_def zero_le_mult_iff) (simp add: not_less [symmetric])
 
 lemma float_le_zero:
   "(float (a,b) <= 0) = (a <= 0)"
-  using powr_gt_zero[of 2 "real b", arith]
-  by (simp add: float_def mult_le_0_iff)
+  by (simp add: float_def mult_le_0_iff) (simp add: not_less [symmetric])
 
 lemma float_abs:
   "abs (float (a,b)) = (if 0 <= a then (float (a,b)) else (float (-a,b)))"
-  using powr_gt_zero[of 2 "real b", arith]
-  by (simp add: float_def abs_if mult_less_0_iff)
+  by (simp add: float_def abs_if mult_less_0_iff not_less)
 
 lemma float_zero:
   "float (0, b) = 0"

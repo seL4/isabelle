@@ -624,7 +624,7 @@ proof -
       by blast
   }
   then show ?thesis
-    unfolding LIMSEQ_def by blast
+    unfolding lim_sequentially by blast
 qed
 
 

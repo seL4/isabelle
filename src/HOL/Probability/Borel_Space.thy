@@ -1038,7 +1038,7 @@ lemma convex_measurable:
 
 lemma borel_measurable_ln[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
-  shows "(\<lambda>x. ln (f x)) \<in> borel_measurable M"
+  shows "(\<lambda>x. ln (f x :: real)) \<in> borel_measurable M"
   apply (rule measurable_compose[OF f])
   apply (rule borel_measurable_continuous_countable_exceptions[of "{0}"])
   apply (auto intro!: continuous_on_ln continuous_on_id)

@@ -72,7 +72,7 @@ definition
   (*------------ e ^ (x + iy) ------------*)
 definition
   hExp :: "hcomplex => hcomplex" where
-  "hExp = *f* Exp"
+  "hExp = *f* exp"
 
 definition
   HComplex :: "[hypreal,hypreal] => hcomplex" where
@@ -485,7 +485,7 @@ lemma hrcis_Ex: "!!z. \<exists>r a. z = hrcis r a"
 by transfer (rule rcis_Ex)
 
 lemma hRe_hcomplex_polar [simp]:
-  "!!r a. hRe (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
+  "!!r a. hRe (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
       r * ( *f* cos) a"
 by transfer simp
 
@@ -493,7 +493,7 @@ lemma hRe_hrcis [simp]: "!!r a. hRe(hrcis r a) = r * ( *f* cos) a"
 by transfer (rule Re_rcis)
 
 lemma hIm_hcomplex_polar [simp]:
-  "!!r a. hIm (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
+  "!!r a. hIm (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
       r * ( *f* sin) a"
 by transfer simp
 
@@ -621,8 +621,8 @@ by transfer (rule refl)
 
 subsection{*Numerals and Arithmetic*}
 
-lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 
-     "hcomplex_of_hypreal (hypreal_of_real x) =  
+lemma hcomplex_of_hypreal_eq_hcomplex_of_complex:
+     "hcomplex_of_hypreal (hypreal_of_real x) =
       hcomplex_of_complex (complex_of_real x)"
 by transfer (rule refl)
 
@@ -642,15 +642,15 @@ lemma hcomplex_numeral_hcmod [simp]:
       "hcmod(numeral v :: hcomplex) = (numeral v :: hypreal)"
 by transfer (rule norm_numeral)
 
-lemma hcomplex_neg_numeral_hcmod [simp]: 
+lemma hcomplex_neg_numeral_hcmod [simp]:
       "hcmod(- numeral v :: hcomplex) = (numeral v :: hypreal)"
 by transfer (rule norm_neg_numeral)
 
-lemma hcomplex_numeral_hRe [simp]: 
+lemma hcomplex_numeral_hRe [simp]:
       "hRe(numeral v :: hcomplex) = numeral v"
 by transfer (rule complex_Re_numeral)
 
-lemma hcomplex_numeral_hIm [simp]: 
+lemma hcomplex_numeral_hIm [simp]:
       "hIm(numeral v :: hcomplex) = 0"
 by transfer (rule complex_Im_numeral)
 

@@ -1544,19 +1544,19 @@ lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
 
 subsubsection {* Limits of Sequences *}
 
-lemma LIMSEQ_def: "X ----> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
+lemma lim_sequentially: "X ----> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding tendsto_iff eventually_sequentially ..
 
 lemma LIMSEQ_iff_nz: "X ----> (L::'a::metric_space) = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
-  unfolding LIMSEQ_def by (metis Suc_leD zero_less_Suc)
+  unfolding lim_sequentially by (metis Suc_leD zero_less_Suc)
 
 lemma metric_LIMSEQ_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X ----> (L::'a::metric_space)"
-by (simp add: LIMSEQ_def)
+by (simp add: lim_sequentially)
 
 lemma metric_LIMSEQ_D:
   "\<lbrakk>X ----> (L::'a::metric_space); 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r"
-by (simp add: LIMSEQ_def)
+by (simp add: lim_sequentially)
 
 
 subsubsection {* Limits of Functions *}
@@ -1823,7 +1823,7 @@ lemma tendsto_at_topI_sequentially_real:
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   with limseq obtain N :: nat where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>f (real n) - y\<bar> < e"
-    by (auto simp: LIMSEQ_def dist_real_def)
+    by (auto simp: lim_sequentially dist_real_def)
   { fix x :: real
     obtain n where "x \<le> real_of_nat n"
       using ex_le_of_nat[of x] ..

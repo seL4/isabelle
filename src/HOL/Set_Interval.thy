@@ -1562,12 +1562,6 @@ lemma nested_setsum_swap':
      "(\<Sum>i\<le>n. (\<Sum>j<i. a i j)) = (\<Sum>j<n. \<Sum>i = Suc j..n. a i j)"
   by (induction n) (auto simp: setsum.distrib)
 
-lemma setsum_zero_power [simp]:
-  fixes c :: "nat \<Rightarrow> 'a::division_ring"
-  shows "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
-apply (cases "finite A")
-  by (induction A rule: finite_induct) auto
-
 lemma setsum_zero_power' [simp]:
   fixes c :: "nat \<Rightarrow> 'a::field"
   shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"

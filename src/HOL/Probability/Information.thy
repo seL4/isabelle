@@ -46,7 +46,7 @@ proof -
     finally have "exp u \<noteq> x"
       by auto }
   then show "log b x = log b 0"
-    by (simp add: log_def ln_def)
+    by (simp add: log_def ln_real_def)
 qed
 
 lemma log_mult_eq:
