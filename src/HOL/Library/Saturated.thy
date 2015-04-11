@@ -161,12 +161,17 @@ lemma [code_abbrev]:
   "of_nat (numeral k) = (numeral k :: 'a::len sat)"
   by simp
 
-definition sat_of_nat :: "nat \<Rightarrow> ('a::len) sat"
+context
+begin
+
+qualified definition sat_of_nat :: "nat \<Rightarrow> ('a::len) sat"
   where [code_abbrev]: "sat_of_nat = of_nat"
 
 lemma [code abstract]:
   "nat_of (sat_of_nat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
   by (simp add: sat_of_nat_def)
+
+end
 
 instance sat :: (len) finite
 proof
@@ -270,8 +275,6 @@ next
   show "Sup {} = (bot::'a sat)"
     by (auto simp: bot_sat_def)
 qed
-
-hide_const (open) sat_of_nat
 
 end
 

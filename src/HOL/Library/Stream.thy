@@ -18,14 +18,17 @@ for
   map: smap
   rel: stream_all2
 
+context
+begin
+
 (*for code generation only*)
-definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where
+qualified definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where
   [code_abbrev]: "smember x s \<longleftrightarrow> x \<in> sset s"
 
 lemma smember_code[code, simp]: "smember x (y ## s) = (if x = y then True else smember x s)"
   unfolding smember_def by auto
 
-hide_const (open) smember
+end
 
 lemmas smap_simps[simp] = stream.map_sel
 lemmas shd_sset = stream.set_sel(1)
