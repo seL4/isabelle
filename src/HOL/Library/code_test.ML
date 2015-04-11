@@ -148,7 +148,8 @@ fun pretty_eval _ NONE _ = []
        (ts ~~ evals))]
 
 fun pretty_failure ctxt target (((_, evals), query), eval_ts) =
-  Pretty.block (Pretty.text ("Test in " ^ target ^ " failed for") @ [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt query)]
+  Pretty.block (Pretty.text ("Test in " ^ target ^ " failed for")
+    @ [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt query)]
     @ pretty_eval ctxt evals eval_ts)
 
 fun pretty_failures ctxt target failures =
