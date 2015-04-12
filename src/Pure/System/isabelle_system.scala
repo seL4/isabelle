@@ -257,8 +257,8 @@ object Isabelle_System
   /* mkdirs */
 
   def mkdirs(path: Path): Unit =
-    if (bash("mkdir -p " + shell_path(path)).rc != 0)
-      error("Failed to create directory: " + quote(platform_path(path)))
+    if (path.is_dir || bash("mkdir -p " + shell_path(path)).rc == 0) ()
+    else error("Failed to create directory: " + quote(platform_path(path)))
 
 
 
