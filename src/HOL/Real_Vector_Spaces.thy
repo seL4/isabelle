@@ -405,7 +405,7 @@ apply (rule range_eqI)
 apply (rule of_real_inverse [symmetric])
 done
 
-lemma Reals_inverse_iff [simp]: 
+lemma Reals_inverse_iff [simp]:
   fixes x:: "'a :: {real_div_algebra, division_ring}"
   shows "inverse x \<in> \<real> \<longleftrightarrow> x \<in> \<real>"
 by (metis Reals_inverse inverse_inverse_eq)
@@ -454,7 +454,7 @@ next
     by (metis Reals_0 setsum.infinite)
 qed
 
-lemma setprod_in_Reals [intro,simp]: 
+lemma setprod_in_Reals [intro,simp]:
   assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setprod f s \<in> \<real>"
 proof (cases "finite s")
   case True then show ?thesis using assms
@@ -640,7 +640,7 @@ begin
 
 lemma norm_ge_zero [simp]: "0 \<le> norm x"
 proof -
-  have "0 = norm (x + -1 *\<^sub>R x)" 
+  have "0 = norm (x + -1 *\<^sub>R x)"
     using scaleR_add_left[of 1 "-1" x] norm_scaleR[of 0 x] by (simp add: scaleR_one)
   also have "\<dots> \<le> norm x + norm (-1 *\<^sub>R x)" by (rule norm_triangle_ineq)
   finally show ?thesis by simp
@@ -756,7 +756,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma norm_triangle_mono: 
+lemma norm_triangle_mono:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>norm a \<le> r; norm b \<le> s\<rbrakk> \<Longrightarrow> norm (a + b) \<le> r + s"
 by (metis add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
@@ -876,7 +876,7 @@ lemma setprod_norm:
   shows "setprod (\<lambda>x. norm(f x)) A = norm (setprod f A)"
   by (induct A rule: infinite_finite_induct) (auto simp: norm_mult)
 
-lemma norm_setprod_le: 
+lemma norm_setprod_le:
   "norm (setprod f A) \<le> (\<Prod>a\<in>A. norm (f a :: 'a :: {real_normed_algebra_1, comm_monoid_mult}))"
 proof (induction A rule: infinite_finite_induct)
   case (insert a A)
@@ -891,7 +891,7 @@ qed simp_all
 lemma norm_setprod_diff:
   fixes z w :: "'i \<Rightarrow> 'a::{real_normed_algebra_1, comm_monoid_mult}"
   shows "(\<And>i. i \<in> I \<Longrightarrow> norm (z i) \<le> 1) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> norm (w i) \<le> 1) \<Longrightarrow>
-    norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))" 
+    norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))"
 proof (induction I rule: infinite_finite_induct)
   case (insert i I)
   note insert.hyps[simp]
@@ -918,7 +918,7 @@ proof (induction I rule: infinite_finite_induct)
     by (auto simp add: ac_simps mult_right_mono mult_left_mono)
 qed simp_all
 
-lemma norm_power_diff: 
+lemma norm_power_diff:
   fixes z w :: "'a::{real_normed_algebra_1, comm_monoid_mult}"
   assumes "norm z \<le> 1" "norm w \<le> 1"
   shows "norm (z^m - w^m) \<le> m * norm (z - w)"
@@ -1025,7 +1025,7 @@ qed
 
 subclass first_countable_topology
 proof
-  fix x 
+  fix x
   show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
   proof (safe intro!: exI[of _ "\<lambda>n. {y. dist x y < inverse (Suc n)}"])
     fix S assume "open S" "x \<in> S"
@@ -1202,13 +1202,13 @@ unfolding real_sgn_eq by simp
 
 lemma zero_le_sgn_iff [simp]: "0 \<le> sgn x \<longleftrightarrow> 0 \<le> (x::real)"
   by (cases "0::real" x rule: linorder_cases) simp_all
-  
+
 lemma zero_less_sgn_iff [simp]: "0 < sgn x \<longleftrightarrow> 0 < (x::real)"
   by (cases "0::real" x rule: linorder_cases) simp_all
 
 lemma sgn_le_0_iff [simp]: "sgn x \<le> 0 \<longleftrightarrow> (x::real) \<le> 0"
   by (cases "0::real" x rule: linorder_cases) simp_all
-  
+
 lemma sgn_less_0_iff [simp]: "sgn x < 0 \<longleftrightarrow> (x::real) < 0"
   by (cases "0::real" x rule: linorder_cases) simp_all
 
@@ -1547,6 +1547,8 @@ subsubsection {* Limits of Sequences *}
 lemma lim_sequentially: "X ----> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding tendsto_iff eventually_sequentially ..
 
+lemmas LIMSEQ_def = lim_sequentially  (*legacy binding*)
+
 lemma LIMSEQ_iff_nz: "X ----> (L::'a::metric_space) = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding lim_sequentially by (metis Suc_leD zero_less_Suc)
 
@@ -1729,7 +1731,7 @@ proof -
   also have "\<dots> < x" using N by simp
   finally have "y \<le> x"
     by (rule order_less_imp_le) }
-  note bound_isUb = this 
+  note bound_isUb = this
 
   obtain N where "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m) (X n) < 1"
     using X[THEN metric_CauchyD, OF zero_less_one] by auto
