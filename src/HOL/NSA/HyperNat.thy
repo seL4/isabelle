@@ -274,10 +274,10 @@ definition
   hypnat_omega_def: "whn = star_n (%n::nat. n)"
 
 lemma hypnat_of_nat_neq_whn: "hypnat_of_nat n \<noteq> whn"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff)
+by (simp add: FreeUltrafilterNat.singleton' hypnat_omega_def star_of_def star_n_eq_iff)
 
 lemma whn_neq_hypnat_of_nat: "whn \<noteq> hypnat_of_nat n"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff)
+by (simp add: FreeUltrafilterNat.singleton hypnat_omega_def star_of_def star_n_eq_iff)
 
 lemma whn_not_Nats [simp]: "whn \<notin> Nats"
 by (simp add: Nats_def image_def whn_neq_hypnat_of_nat)
@@ -285,15 +285,9 @@ by (simp add: Nats_def image_def whn_neq_hypnat_of_nat)
 lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
 
-lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
-apply (insert finite_atMost [of m])
-apply (drule FreeUltrafilterNat.finite)
-apply (drule FreeUltrafilterNat.not_memD)
-apply (simp add: Collect_neg_eq [symmetric] linorder_not_le atMost_def)
-done
-
-lemma Compl_Collect_le: "- {n::nat. N \<le> n} = {n. n < N}"
-by (simp add: Collect_neg_eq [symmetric] linorder_not_le) 
+lemma lemma_unbounded_set [simp]: "eventually (\<lambda>n::nat. m < n) \<U>"
+  by (rule filter_leD[OF FreeUltrafilterNat.le_cofinite])
+     (auto simp add: cofinite_eq_sequentially eventually_at_top_dense)
 
 lemma hypnat_of_nat_eq:
      "hypnat_of_nat m  = star_n (%n::nat. m)"
@@ -327,14 +321,14 @@ text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
-  assumes "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat"
-  shows "{n. N < f n} \<in> FreeUltrafilterNat"
+  assumes "\<forall>N::nat. eventually (\<lambda>n. f n \<noteq> N) \<U>"
+  shows "eventually (\<lambda>n. N < f n) \<U>"
 apply (induct N)
 using assms
 apply (drule_tac x = 0 in spec, simp)
 using assms
 apply (drule_tac x = "Suc N" in spec)
-apply (elim ultra, auto)
+apply (auto elim: eventually_elim2)
 done
 
 lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
@@ -347,18 +341,18 @@ subsubsection{*Alternative Characterization of @{term HNatInfinite} using
 Free Ultrafilter*}
 
 lemma HNatInfinite_FreeUltrafilterNat:
-     "star_n X \<in> HNatInfinite ==> \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
+     "star_n X \<in> HNatInfinite ==> \<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat"
 apply (auto simp add: HNatInfinite_iff SHNat_eq)
 apply (drule_tac x="star_of u" in spec, simp)
 apply (simp add: star_of_def star_less_def starP2_star_n)
 done
 
 lemma FreeUltrafilterNat_HNatInfinite:
-     "\<forall>u. {n. u < X n}:  FreeUltrafilterNat ==> star_n X \<in> HNatInfinite"
+     "\<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat ==> star_n X \<in> HNatInfinite"
 by (auto simp add: star_less_def starP2_star_n HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
-     "(star_n X \<in> HNatInfinite) = (\<forall>u. {n. u < X n}:  FreeUltrafilterNat)"
+     "(star_n X \<in> HNatInfinite) = (\<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat)"
 by (rule iffI [OF HNatInfinite_FreeUltrafilterNat 
                  FreeUltrafilterNat_HNatInfinite])
 

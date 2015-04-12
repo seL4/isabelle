@@ -22,8 +22,8 @@ definition
 definition
   (* nonstandard extension of function *)
   is_starext  :: "['a star => 'a star, 'a => 'a] => bool" where
-  "is_starext F f = (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
-                        ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
+  "is_starext F f =
+    (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y). ((y = (F x)) = (eventually (\<lambda>n. Y n = f(X n)) \<U>)))"
 
 definition
   (* internal functions *)
@@ -71,7 +71,7 @@ by auto
 lemma STAR_real_seq_to_hypreal:
     "\<forall>n. (X n) \<notin> M ==> star_n X \<notin> *s* M"
 apply (unfold starset_def star_of_def)
-apply (simp add: Iset_star_n)
+apply (simp add: Iset_star_n FreeUltrafilterNat.proper)
 done
 
 lemma STAR_singleton: "*s* {x} = {star_of x}"
@@ -304,9 +304,7 @@ text{*Another characterization of Infinitesimal and one of @= relation.
    In this theory since @{text hypreal_hrabs} proved here. Maybe
    move both theorems??*}
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
-     "(star_n X \<in> Infinitesimal) =
-      (\<forall>m. {n. norm(X n) < inverse(real(Suc m))}
-                \<in>  FreeUltrafilterNat)"
+     "(star_n X \<in> Infinitesimal) = (\<forall>m. eventually (\<lambda>n. norm(X n) < inverse(real(Suc m))) \<U>)"
 by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
      hnorm_def star_of_nat_def starfun_star_n
      star_n_inverse star_n_less real_of_nat_def)
@@ -318,11 +316,11 @@ apply (auto simp add: of_hypnat_def starfun_star_n real_of_nat_def [symmetric] s
       HNatInfinite_FreeUltrafilterNat_iff
       Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x="Suc m" in spec)
-apply (erule ultra, simp)
+apply (auto elim!: eventually_elim1)
 done
 
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
-      (\<forall>r>0. {n. norm (X n - Y n) < r} : FreeUltrafilterNat)"
+      (\<forall>r>0. eventually (\<lambda>n. norm (X n - Y n) < r) \<U>)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
 apply (simp add: star_n_diff)
@@ -330,8 +328,7 @@ apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 done
 
 lemma approx_FreeUltrafilterNat_iff2: "star_n X @= star_n Y =
-      (\<forall>m. {n. norm (X n - Y n) <
-                  inverse(real(Suc m))} : FreeUltrafilterNat)"
+      (\<forall>m. eventually (\<lambda>n. norm (X n - Y n) < inverse(real(Suc m))) \<U>)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
 apply (simp add: star_n_diff)
@@ -342,7 +339,7 @@ lemma inj_starfun: "inj starfun"
 apply (rule inj_onI)
 apply (rule ext, rule ccontr)
 apply (drule_tac x = "star_n (%n. xa)" in fun_cong)
-apply (auto simp add: starfun star_n_eq_iff)
+apply (auto simp add: starfun star_n_eq_iff FreeUltrafilterNat.proper)
 done
 
 end

@@ -11,7 +11,7 @@ begin
 subsection {* A Free Ultrafilter over the Naturals *}
 
 definition
-  FreeUltrafilterNat :: "nat set set"  ("\<U>") where
+  FreeUltrafilterNat :: "nat filter"  ("\<U>") where
   "\<U> = (SOME U. freeultrafilter U)"
 
 lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
@@ -24,19 +24,11 @@ done
 interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
 by (rule freeultrafilter_FreeUltrafilterNat)
 
-text {* This rule takes the place of the old ultra tactic *}
-
-lemma ultra:
-  "\<lbrakk>{n. P n} \<in> \<U>; {n. P n \<longrightarrow> Q n} \<in> \<U>\<rbrakk> \<Longrightarrow> {n. Q n} \<in> \<U>"
-by (simp add: Collect_imp_eq
-    FreeUltrafilterNat.Un_iff FreeUltrafilterNat.Compl_iff)
-
-
 subsection {* Definition of @{text star} type constructor *}
 
 definition
   starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set" where
-  "starrel = {(X,Y). {n. X n = Y n} \<in> \<U>}"
+  "starrel = {(X,Y). eventually (\<lambda>n. X n = Y n) \<U>}"
 
 definition "star = (UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
 
@@ -59,14 +51,14 @@ by (auto, rule_tac x=x in star_cases, auto)
 
 text {* Proving that @{term starrel} is an equivalence relation *}
 
-lemma starrel_iff [iff]: "((X,Y) \<in> starrel) = ({n. X n = Y n} \<in> \<U>)"
+lemma starrel_iff [iff]: "((X,Y) \<in> starrel) = (eventually (\<lambda>n. X n = Y n) \<U>)"
 by (simp add: starrel_def)
 
 lemma equiv_starrel: "equiv UNIV starrel"
 proof (rule equivI)
   show "refl starrel" by (simp add: refl_on_def)
   show "sym starrel" by (simp add: sym_def eq_commute)
-  show "trans starrel" by (auto intro: transI elim!: ultra)
+  show "trans starrel" by (intro transI) (auto elim: eventually_elim2)
 qed
 
 lemmas equiv_starrel_iff =
@@ -75,7 +67,7 @@ lemmas equiv_starrel_iff =
 lemma starrel_in_star: "starrel``{x} \<in> star"
 by (simp add: star_def quotientI)
 
-lemma star_n_eq_iff: "(star_n X = star_n Y) = ({n. X n = Y n} \<in> \<U>)"
+lemma star_n_eq_iff: "(star_n X = star_n Y) = (eventually (\<lambda>n. X n = Y n) \<U>)"
 by (simp add: star_n_def Abs_star_inject starrel_in_star equiv_starrel_iff)
 
 
@@ -83,8 +75,8 @@ subsection {* Transfer principle *}
 
 text {* This introduction rule starts each transfer proof. *}
 lemma transfer_start:
-  "P \<equiv> {n. Q} \<in> \<U> \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
-by (subgoal_tac "P \<equiv> Q", simp, simp add: atomize_eq)
+  "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
+  by (simp add: FreeUltrafilterNat.proper)
 
 text {*Initialize transfer tactic.*}
 ML_file "transfer.ML"
@@ -98,66 +90,66 @@ method_setup transfer = {*
 text {* Transfer introduction rules. *}
 
 lemma transfer_ex [transfer_intro]:
-  "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> \<exists>x::'a star. p x \<equiv> {n. \<exists>x. P n x} \<in> \<U>"
-by (simp only: ex_star_eq FreeUltrafilterNat.Collect_ex)
+  "\<lbrakk>\<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
+    \<Longrightarrow> \<exists>x::'a star. p x \<equiv> eventually (\<lambda>n. \<exists>x. P n x) \<U>"
+by (simp only: ex_star_eq eventually_ex)
 
 lemma transfer_all [transfer_intro]:
-  "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> \<forall>x::'a star. p x \<equiv> {n. \<forall>x. P n x} \<in> \<U>"
-by (simp only: all_star_eq FreeUltrafilterNat.Collect_all)
+  "\<lbrakk>\<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
+    \<Longrightarrow> \<forall>x::'a star. p x \<equiv> eventually (\<lambda>n. \<forall>x. P n x) \<U>"
+by (simp only: all_star_eq FreeUltrafilterNat.eventually_all_iff)
 
 lemma transfer_not [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>\<rbrakk> \<Longrightarrow> \<not> p \<equiv> {n. \<not> P n} \<in> \<U>"
-by (simp only: FreeUltrafilterNat.Collect_not)
+  "\<lbrakk>p \<equiv> eventually P \<U>\<rbrakk> \<Longrightarrow> \<not> p \<equiv> eventually (\<lambda>n. \<not> P n) \<U>"
+by (simp only: FreeUltrafilterNat.eventually_not_iff)
 
 lemma transfer_conj [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> p \<and> q \<equiv> {n. P n \<and> Q n} \<in> \<U>"
-by (simp only: FreeUltrafilterNat.Collect_conj)
+  "\<lbrakk>p \<equiv> eventually P \<U>; q \<equiv> eventually Q \<U>\<rbrakk>
+    \<Longrightarrow> p \<and> q \<equiv> eventually (\<lambda>n. P n \<and> Q n) \<U>"
+by (simp only: eventually_conj_iff)
 
 lemma transfer_disj [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> p \<or> q \<equiv> {n. P n \<or> Q n} \<in> \<U>"
-by (simp only: FreeUltrafilterNat.Collect_disj)
+  "\<lbrakk>p \<equiv> eventually P \<U>; q \<equiv> eventually Q \<U>\<rbrakk>
+    \<Longrightarrow> p \<or> q \<equiv> eventually (\<lambda>n. P n \<or> Q n) \<U>"
+by (simp only: FreeUltrafilterNat.eventually_disj_iff)
 
 lemma transfer_imp [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> p \<longrightarrow> q \<equiv> {n. P n \<longrightarrow> Q n} \<in> \<U>"
-by (simp only: imp_conv_disj transfer_disj transfer_not)
+  "\<lbrakk>p \<equiv> eventually P \<U>; q \<equiv> eventually Q \<U>\<rbrakk>
+    \<Longrightarrow> p \<longrightarrow> q \<equiv> eventually (\<lambda>n. P n \<longrightarrow> Q n) \<U>"
+by (simp only: FreeUltrafilterNat.eventually_imp_iff)
 
 lemma transfer_iff [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> p = q \<equiv> {n. P n = Q n} \<in> \<U>"
-by (simp only: iff_conv_conj_imp transfer_conj transfer_imp)
+  "\<lbrakk>p \<equiv> eventually P \<U>; q \<equiv> eventually Q \<U>\<rbrakk>
+    \<Longrightarrow> p = q \<equiv> eventually (\<lambda>n. P n = Q n) \<U>"
+by (simp only: FreeUltrafilterNat.eventually_iff_iff)
 
 lemma transfer_if_bool [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; x \<equiv> {n. X n} \<in> \<U>; y \<equiv> {n. Y n} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> (if p then x else y) \<equiv> {n. if P n then X n else Y n} \<in> \<U>"
+  "\<lbrakk>p \<equiv> eventually P \<U>; x \<equiv> eventually X \<U>; y \<equiv> eventually Y \<U>\<rbrakk>
+    \<Longrightarrow> (if p then x else y) \<equiv> eventually (\<lambda>n. if P n then X n else Y n) \<U>"
 by (simp only: if_bool_eq_conj transfer_conj transfer_imp transfer_not)
 
 lemma transfer_eq [transfer_intro]:
-  "\<lbrakk>x \<equiv> star_n X; y \<equiv> star_n Y\<rbrakk> \<Longrightarrow> x = y \<equiv> {n. X n = Y n} \<in> \<U>"
+  "\<lbrakk>x \<equiv> star_n X; y \<equiv> star_n Y\<rbrakk> \<Longrightarrow> x = y \<equiv> eventually (\<lambda>n. X n = Y n) \<U>"
 by (simp only: star_n_eq_iff)
 
 lemma transfer_if [transfer_intro]:
-  "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; x \<equiv> star_n X; y \<equiv> star_n Y\<rbrakk>
+  "\<lbrakk>p \<equiv> eventually (\<lambda>n. P n) \<U>; x \<equiv> star_n X; y \<equiv> star_n Y\<rbrakk>
     \<Longrightarrow> (if p then x else y) \<equiv> star_n (\<lambda>n. if P n then X n else Y n)"
 apply (rule eq_reflection)
-apply (auto simp add: star_n_eq_iff transfer_not elim!: ultra)
+apply (auto simp add: star_n_eq_iff transfer_not elim!: eventually_elim1)
 done
 
 lemma transfer_fun_eq [transfer_intro]:
   "\<lbrakk>\<And>X. f (star_n X) = g (star_n X) 
-    \<equiv> {n. F n (X n) = G n (X n)} \<in> \<U>\<rbrakk>
-      \<Longrightarrow> f = g \<equiv> {n. F n = G n} \<in> \<U>"
+    \<equiv> eventually (\<lambda>n. F n (X n) = G n (X n)) \<U>\<rbrakk>
+      \<Longrightarrow> f = g \<equiv> eventually (\<lambda>n. F n = G n) \<U>"
 by (simp only: fun_eq_iff transfer_all)
 
 lemma transfer_star_n [transfer_intro]: "star_n X \<equiv> star_n (\<lambda>n. X n)"
 by (rule reflexive)
 
-lemma transfer_bool [transfer_intro]: "p \<equiv> {n. p} \<in> \<U>"
-by (simp add: atomize_eq)
+lemma transfer_bool [transfer_intro]: "p \<equiv> eventually (\<lambda>n. p) \<U>"
+by (simp add: FreeUltrafilterNat.proper)
 
 
 subsection {* Standard elements *}
@@ -191,7 +183,7 @@ definition
 
 lemma Ifun_congruent2:
   "congruent2 starrel starrel (\<lambda>F X. starrel``{\<lambda>n. F n (X n)})"
-by (auto simp add: congruent2_def equiv_starrel_iff elim!: ultra)
+by (auto simp add: congruent2_def equiv_starrel_iff elim!: eventually_rev_mp)
 
 lemma Ifun_star_n: "star_n F \<star> star_n X = star_n (\<lambda>n. F n (X n))"
 by (simp add: Ifun_def star_n_def Abs_star_inverse starrel_in_star
@@ -298,7 +290,7 @@ subsection {* Internal predicates *}
 definition unstar :: "bool star \<Rightarrow> bool" where
   "unstar b \<longleftrightarrow> b = star_of True"
 
-lemma unstar_star_n: "unstar (star_n P) = ({n. P n} \<in> \<U>)"
+lemma unstar_star_n: "unstar (star_n P) = (eventually P \<U>)"
 by (simp add: unstar_def star_of_def star_n_eq_iff)
 
 lemma unstar_star_of [simp]: "unstar (star_of p) = p"
@@ -308,7 +300,7 @@ text {* Transfer tactic should remove occurrences of @{term unstar} *}
 setup {* Transfer_Principle.add_const @{const_name unstar} *}
 
 lemma transfer_unstar [transfer_intro]:
-  "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> {n. P n} \<in> \<U>"
+  "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> eventually P \<U>"
 by (simp only: unstar_star_n)
 
 definition
@@ -322,11 +314,11 @@ definition
 declare starP_def [transfer_unfold]
 declare starP2_def [transfer_unfold]
 
-lemma starP_star_n: "( *p* P) (star_n X) = ({n. P (X n)} \<in> \<U>)"
+lemma starP_star_n: "( *p* P) (star_n X) = (eventually (\<lambda>n. P (X n)) \<U>)"
 by (simp only: starP_def star_of_def Ifun_star_n unstar_star_n)
 
 lemma starP2_star_n:
-  "( *p2* P) (star_n X) (star_n Y) = ({n. P (X n) (Y n)} \<in> \<U>)"
+  "( *p2* P) (star_n X) (star_n Y) = (eventually (\<lambda>n. P (X n) (Y n)) \<U>)"
 by (simp only: starP2_def star_of_def Ifun_star_n unstar_star_n)
 
 lemma starP_star_of [simp]: "( *p* P) (star_of x) = P x"
@@ -343,7 +335,7 @@ definition
   "Iset A = {x. ( *p2* op \<in>) x A}"
 
 lemma Iset_star_n:
-  "(star_n X \<in> Iset (star_n A)) = ({n. X n \<in> A n} \<in> \<U>)"
+  "(star_n X \<in> Iset (star_n A)) = (eventually (\<lambda>n. X n \<in> A n) \<U>)"
 by (simp add: Iset_def starP2_star_n)
 
 text {* Transfer tactic should remove occurrences of @{term Iset} *}
@@ -351,27 +343,27 @@ setup {* Transfer_Principle.add_const @{const_name Iset} *}
 
 lemma transfer_mem [transfer_intro]:
   "\<lbrakk>x \<equiv> star_n X; a \<equiv> Iset (star_n A)\<rbrakk>
-    \<Longrightarrow> x \<in> a \<equiv> {n. X n \<in> A n} \<in> \<U>"
+    \<Longrightarrow> x \<in> a \<equiv> eventually (\<lambda>n. X n \<in> A n) \<U>"
 by (simp only: Iset_star_n)
 
 lemma transfer_Collect [transfer_intro]:
-  "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
+  "\<lbrakk>\<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
     \<Longrightarrow> Collect p \<equiv> Iset (star_n (\<lambda>n. Collect (P n)))"
 by (simp add: atomize_eq set_eq_iff all_star_eq Iset_star_n)
 
 lemma transfer_set_eq [transfer_intro]:
   "\<lbrakk>a \<equiv> Iset (star_n A); b \<equiv> Iset (star_n B)\<rbrakk>
-    \<Longrightarrow> a = b \<equiv> {n. A n = B n} \<in> \<U>"
+    \<Longrightarrow> a = b \<equiv> eventually (\<lambda>n. A n = B n) \<U>"
 by (simp only: set_eq_iff transfer_all transfer_iff transfer_mem)
 
 lemma transfer_ball [transfer_intro]:
-  "\<lbrakk>a \<equiv> Iset (star_n A); \<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> \<forall>x\<in>a. p x \<equiv> {n. \<forall>x\<in>A n. P n x} \<in> \<U>"
+  "\<lbrakk>a \<equiv> Iset (star_n A); \<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
+    \<Longrightarrow> \<forall>x\<in>a. p x \<equiv> eventually (\<lambda>n. \<forall>x\<in>A n. P n x) \<U>"
 by (simp only: Ball_def transfer_all transfer_imp transfer_mem)
 
 lemma transfer_bex [transfer_intro]:
-  "\<lbrakk>a \<equiv> Iset (star_n A); \<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
-    \<Longrightarrow> \<exists>x\<in>a. p x \<equiv> {n. \<exists>x\<in>A n. P n x} \<in> \<U>"
+  "\<lbrakk>a \<equiv> Iset (star_n A); \<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
+    \<Longrightarrow> \<exists>x\<in>a. p x \<equiv> eventually (\<lambda>n. \<exists>x\<in>A n. P n x) \<U>"
 by (simp only: Bex_def transfer_ex transfer_conj transfer_mem)
 
 lemma transfer_Iset [transfer_intro]:

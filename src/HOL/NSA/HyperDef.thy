@@ -178,7 +178,7 @@ lemma mem_Rep_star_iff: "(X \<in> Rep_star x) = (x = star_n X)"
 by (cases x, simp add: star_n_def)
 
 lemma Rep_star_star_n_iff [simp]:
-  "(X \<in> Rep_star (star_n Y)) = ({n. Y n = X n} \<in> \<U>)"
+  "(X \<in> Rep_star (star_n Y)) = (eventually (\<lambda>n. Y n = X n) \<U>)"
 by (simp add: star_n_def)
 
 lemma Rep_star_star_n: "X \<in> Rep_star (star_n X)"
@@ -207,12 +207,11 @@ lemma star_n_inverse:
 by (simp only: star_inverse_def starfun_star_n)
 
 lemma star_n_le:
-      "star_n X \<le> star_n Y =
-       ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
+      "star_n X \<le> star_n Y = (eventually (\<lambda>n. X n \<le> Y n) FreeUltrafilterNat)"
 by (simp only: star_le_def starP2_star_n)
 
 lemma star_n_less:
-      "star_n X < star_n Y = ({n. X n < Y n} \<in> FreeUltrafilterNat)"
+      "star_n X < star_n Y = (eventually (\<lambda>n. X n < Y n) FreeUltrafilterNat)"
 by (simp only: star_less_def starP2_star_n)
 
 lemma star_n_zero_num: "0 = star_n (%n. 0)"
@@ -273,7 +272,7 @@ lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
 by (insert not_ex_hypreal_of_real_eq_epsilon, auto)
 
 lemma hypreal_epsilon_not_zero: "epsilon \<noteq> 0"
-by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff
+by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff FreeUltrafilterNat.proper
          del: star_of_zero)
 
 lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
