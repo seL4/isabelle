@@ -264,10 +264,6 @@ case "$PLATFORM_FAMILY" in
 
       touch "contrib/cygwin/isabelle/uninitialized"
     )
-
-    perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
-      "$ISABELLE_TARGET/contrib/cygwin/etc/postinstall/autorebase.bat.done"
-
     ;;
   *)
     ;;
