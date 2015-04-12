@@ -202,9 +202,9 @@ ML_file "bnf_lfp_countable.ML"
 
 ML {*
 fun countable_datatype_tac ctxt st =
-  HEADGOAL (old_countable_datatype_tac ctxt) st
-  handle exn =>
-    if Exn.is_interrupt exn then reraise exn else BNF_LFP_Countable.countable_datatype_tac ctxt st;
+  (case try (fn () => HEADGOAL (old_countable_datatype_tac ctxt) st) () of
+    SOME res => res
+  | NONE => BNF_LFP_Countable.countable_datatype_tac ctxt st);
 
 (* compatibility *)
 fun countable_tac ctxt =
