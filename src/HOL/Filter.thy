@@ -613,6 +613,41 @@ lemma eventually_sequentially_seg:
   apply auto []
   done
 
+subsection \<open> The cofinite filter \<close>
+
+definition "cofinite = Abs_filter (\<lambda>P. finite {x. \<not> P x})"
+
+lemma eventually_cofinite: "eventually P cofinite \<longleftrightarrow> finite {x. \<not> P x}"
+  unfolding cofinite_def
+proof (rule eventually_Abs_filter, rule is_filter.intro)
+  fix P Q :: "'a \<Rightarrow> bool" assume "finite {x. \<not> P x}" "finite {x. \<not> Q x}"
+  from finite_UnI[OF this] show "finite {x. \<not> (P x \<and> Q x)}"
+    by (rule rev_finite_subset) auto
+next
+  fix P Q :: "'a \<Rightarrow> bool" assume P: "finite {x. \<not> P x}" and *: "\<forall>x. P x \<longrightarrow> Q x"
+  from * show "finite {x. \<not> Q x}"
+    by (intro finite_subset[OF _ P]) auto
+qed simp
+
+lemma cofinite_bot[simp]: "cofinite = (bot::'a filter) \<longleftrightarrow> finite (UNIV :: 'a set)"
+  unfolding trivial_limit_def eventually_cofinite by simp
+
+lemma cofinite_eq_sequentially: "cofinite = sequentially"
+  unfolding filter_eq_iff eventually_sequentially eventually_cofinite
+proof safe
+  fix P :: "nat \<Rightarrow> bool" assume [simp]: "finite {x. \<not> P x}"
+  show "\<exists>N. \<forall>n\<ge>N. P n"
+  proof cases
+    assume "{x. \<not> P x} \<noteq> {}" then show ?thesis
+      by (intro exI[of _ "Suc (Max {x. \<not> P x})"]) (auto simp: Suc_le_eq)
+  qed auto
+next
+  fix P :: "nat \<Rightarrow> bool" and N :: nat assume "\<forall>n\<ge>N. P n"
+  then have "{x. \<not> P x} \<subseteq> {..< N}"
+    by (auto simp: not_le)
+  then show "finite {x. \<not> P x}"
+    by (blast intro: finite_subset)
+qed
 
 subsection {* Limits *}
 
