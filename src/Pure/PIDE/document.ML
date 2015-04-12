@@ -388,10 +388,8 @@ fun define_command command_id name blobs_digests blobs_index toks =
                     map_filter Exn.get_exn blobs_digests
                     |> List.app (Output.error_message o Runtime.exn_message)
                   else (*auxiliary files*)
-                    let val pos = Token.pos_of (nth tokens blobs_index) in
-                      Position.reports
-                        ((pos, Markup.language_path) :: maps (blob_reports pos) blobs_digests)
-                    end;
+                    let val pos = Token.pos_of (nth tokens blobs_index)
+                    in Position.reports (maps (blob_reports pos) blobs_digests) end;
               in tokens end) ());
       val commands' =
         Inttab.update_new (command_id, (name, blobs_digests, blobs_index, span)) commands

@@ -92,7 +92,8 @@ fun resolve_files keywords master_dir (blobs, blobs_index) toks =
                   Exn.interruptible_capture (fn () =>
                     read_file_node file_node master_dir pos src_path) ()
               | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
-                  Exn.Res (blob_file src_path lines digest file_node)
+                  (Position.report pos Markup.language_path;
+                    Exn.Res (blob_file src_path lines digest file_node))
               | make_file _ (Exn.Exn e) = Exn.Exn e;
             val src_paths = Keyword.command_files keywords cmd path;
             val files =
