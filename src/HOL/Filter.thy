@@ -39,6 +39,15 @@ subsubsection {* Eventually *}
 definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
+syntax
+  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3ALL _ in _./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3\<forall>_ in _./ _)" [0, 0, 10] 10)
+
+translations
+  "\<forall>x in F. P" == "CONST eventually (%x. P) F"
+
 lemma eventually_Abs_filter:
   assumes "is_filter F" shows "eventually P (Abs_filter F) = F P"
   unfolding eventually_def using assms by (simp add: Abs_filter_inverse)
