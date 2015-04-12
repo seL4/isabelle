@@ -5201,7 +5201,7 @@ next
   then have wnz: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"
     using Suc  by auto
   then have "(\<lambda>h. \<Sum>i\<le>n. c (Suc i) * h^i) -- 0 --> 0"
-    by (simp cong: LIM_cong)                   --{*the case @{term"w=0"} by continuity}*}
+    by (simp cong: LIM_cong)                   --{*the case @{term"w=0"} by continuity*}
   then have "(\<Sum>i\<le>n. c (Suc i) * 0^i) = 0"
     using isCont_polynom [of 0 "\<lambda>i. c (Suc i)" n] LIM_unique
     by (force simp add: Limits.isCont_iff)
