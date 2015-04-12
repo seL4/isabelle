@@ -1,5 +1,4 @@
 /*  Title:      Pure/GUI/html5_panel.scala
-    Module:     PIDE-JFX
     Author:     Makarius
 
 HTML5 panel based on Java FX WebView.

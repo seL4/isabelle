@@ -1,5 +1,4 @@
 /*  Title:      Pure/GUI/jfx_gui.scala
-    Module:     PIDE-JFX
     Author:     Makarius
 
 Basic GUI tools (for Java FX).

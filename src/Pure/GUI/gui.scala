@@ -1,5 +1,4 @@
 /*  Title:      Pure/GUI/gui.scala
-    Module:     PIDE-GUI
     Author:     Makarius
 
 Basic GUI tools (for AWT/Swing).
