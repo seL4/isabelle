@@ -47,8 +47,7 @@ Checklist for official releases
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
 
-- check "Handler catches all exceptions", using
-  PolyML.Compiler.reportExhaustiveHandlers := true;
+- check "Handler catches all exceptions"
 
 - Mac OS X: check app bundle with Retina display;
 
