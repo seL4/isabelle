@@ -12,38 +12,6 @@ subsection {* Lemmas about MOST *}
 
 default_sort type
 
-lemma MOST_INFM:
-  assumes inf: "infinite (UNIV::'a set)"
-  shows "MOST x::'a. P x \<Longrightarrow> INFM x::'a. P x"
-  unfolding Alm_all_def Inf_many_def
-  apply (auto simp add: Collect_neg_eq)
-  apply (drule (1) finite_UnI)
-  apply (simp add: Compl_partition2 inf)
-  done
-
-lemma MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
-by (rule MOST_inj [OF _ inj_Suc])
-
-lemma MOST_SucD: "MOST n. P (Suc n) \<Longrightarrow> MOST n. P n"
-unfolding MOST_nat
-apply (clarify, rule_tac x="Suc m" in exI, clarify)
-apply (erule Suc_lessE, simp)
-done
-
-lemma MOST_Suc_iff: "(MOST n. P (Suc n)) \<longleftrightarrow> (MOST n. P n)"
-by (rule iffI [OF MOST_SucD MOST_SucI])
-
-lemma INFM_finite_Bex_distrib:
-  "finite A \<Longrightarrow> (INFM y. \<exists>x\<in>A. P x y) \<longleftrightarrow> (\<exists>x\<in>A. INFM y. P x y)"
-by (induct set: finite, simp, simp add: INFM_disj_distrib)
-
-lemma MOST_finite_Ball_distrib:
-  "finite A \<Longrightarrow> (MOST y. \<forall>x\<in>A. P x y) \<longleftrightarrow> (\<forall>x\<in>A. MOST y. P x y)"
-by (induct set: finite, simp, simp add: MOST_conj_distrib)
-
-lemma MOST_ge_nat: "MOST n::nat. m \<le> n"
-unfolding MOST_nat_le by fast
-
 subsection {* Eventually constant sequences *}
 
 definition

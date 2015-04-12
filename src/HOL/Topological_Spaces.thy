@@ -1636,7 +1636,7 @@ proof (rule openI)
     by (rule compactE)
   from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
   with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
-    by (simp add: eventually_Ball_finite)
+    by (simp add: eventually_ball_finite)
   with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
     by (auto elim!: eventually_mono [rotated])
   thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"

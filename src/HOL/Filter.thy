@@ -63,6 +63,9 @@ proof -
   thus "eventually P F" by simp
 qed
 
+lemma eventuallyI: "(\<And>x. P x) \<Longrightarrow> eventually P F"
+  by (auto intro: always_eventually)
+
 lemma eventually_mono:
   "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P F \<Longrightarrow> eventually Q F"
   unfolding eventually_def
@@ -74,17 +77,6 @@ lemma eventually_conj:
   shows "eventually (\<lambda>x. P x \<and> Q x) F"
   using assms unfolding eventually_def
   by (rule is_filter.conj [OF is_filter_Rep_filter])
-
-lemma eventually_Ball_finite:
-  assumes "finite A" and "\<forall>y\<in>A. eventually (\<lambda>x. P x y) net"
-  shows "eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
-using assms by (induct set: finite, simp, simp add: eventually_conj)
-
-lemma eventually_all_finite:
-  fixes P :: "'a \<Rightarrow> 'b::finite \<Rightarrow> bool"
-  assumes "\<And>y. eventually (\<lambda>x. P x y) net"
-  shows "eventually (\<lambda>x. \<forall>y. P x y) net"
-using eventually_Ball_finite [of UNIV P] assms by simp
 
 lemma eventually_mp:
   assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
@@ -119,6 +111,29 @@ lemma eventually_elim2:
   shows "eventually (\<lambda>i. R i) F"
   using assms by (auto elim!: eventually_rev_mp)
 
+lemma eventually_ball_finite_distrib:
+  "finite A \<Longrightarrow> (eventually (\<lambda>x. \<forall>y\<in>A. P x y) net) \<longleftrightarrow> (\<forall>y\<in>A. eventually (\<lambda>x. P x y) net)"
+  by (induction A rule: finite_induct) (auto simp: eventually_conj_iff)
+
+lemma eventually_ball_finite:
+  "finite A \<Longrightarrow> \<forall>y\<in>A. eventually (\<lambda>x. P x y) net \<Longrightarrow> eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
+  by (auto simp: eventually_ball_finite_distrib)
+
+lemma eventually_all_finite:
+  fixes P :: "'a \<Rightarrow> 'b::finite \<Rightarrow> bool"
+  assumes "\<And>y. eventually (\<lambda>x. P x y) net"
+  shows "eventually (\<lambda>x. \<forall>y. P x y) net"
+using eventually_ball_finite [of UNIV P] assms by simp
+
+lemma eventually_ex: "(\<forall>\<^sub>Fx in F. \<exists>y. P x y) \<longleftrightarrow> (\<exists>Y. \<forall>\<^sub>Fx in F. P x (Y x))"
+proof
+  assume "\<forall>\<^sub>Fx in F. \<exists>y. P x y"
+  then have "\<forall>\<^sub>Fx in F. P x (SOME y. P x y)"
+    by (auto intro: someI_ex eventually_elim1)
+  then show "\<exists>Y. \<forall>\<^sub>Fx in F. P x (Y x)"
+    by auto
+qed (auto intro: eventually_elim1)
+
 lemma not_eventually_impI: "eventually P F \<Longrightarrow> \<not> eventually Q F \<Longrightarrow> \<not> eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
   by (auto intro: eventually_mp)
 
@@ -134,6 +149,93 @@ proof -
     by (auto elim: eventually_elim1)
   then show ?thesis by (auto elim: eventually_elim2)
 qed
+
+subsection \<open> Frequently as dual to eventually \<close>
+
+definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
+  where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
+
+syntax (xsymbols)
+  "_frequently"  :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+
+translations
+  "\<exists>\<^sub>Fx in F. P" == "CONST frequently (\<lambda>x. P) F"
+
+lemma not_frequently_False [simp]: "\<not> (\<exists>\<^sub>Fx in F. False)"
+  by (simp add: frequently_def)
+
+lemma frequently_ex: "\<exists>\<^sub>Fx in F. P x \<Longrightarrow> \<exists>x. P x"
+  by (auto simp: frequently_def dest: not_eventuallyD)
+
+lemma frequentlyE: assumes "frequently P F" obtains x where "P x"
+  using frequently_ex[OF assms] by auto
+
+lemma frequently_mp:
+  assumes ev: "\<forall>\<^sub>Fx in F. P x \<longrightarrow> Q x" and P: "\<exists>\<^sub>Fx in F. P x" shows "\<exists>\<^sub>Fx in F. Q x"
+proof - 
+  from ev have "eventually (\<lambda>x. \<not> Q x \<longrightarrow> \<not> P x) F"
+    by (rule eventually_rev_mp) (auto intro!: always_eventually)
+  from eventually_mp[OF this] P show ?thesis
+    by (auto simp: frequently_def)
+qed
+
+lemma frequently_rev_mp:
+  assumes "\<exists>\<^sub>Fx in F. P x"
+  assumes "\<forall>\<^sub>Fx in F. P x \<longrightarrow> Q x"
+  shows "\<exists>\<^sub>Fx in F. Q x"
+using assms(2) assms(1) by (rule frequently_mp)
+
+lemma frequently_mono: "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> frequently P F \<Longrightarrow> frequently Q F"
+  using frequently_mp[of P Q] by (simp add: always_eventually)
+
+lemma frequently_elim1: "\<exists>\<^sub>Fx in F. P x \<Longrightarrow> (\<And>i. P i \<Longrightarrow> Q i) \<Longrightarrow> \<exists>\<^sub>Fx in F. Q x"
+  by (metis frequently_mono)
+
+lemma frequently_disj_iff: "(\<exists>\<^sub>Fx in F. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>Fx in F. P x) \<or> (\<exists>\<^sub>Fx in F. Q x)"
+  by (simp add: frequently_def eventually_conj_iff)
+
+lemma frequently_disj: "\<exists>\<^sub>Fx in F. P x \<Longrightarrow> \<exists>\<^sub>Fx in F. Q x \<Longrightarrow> \<exists>\<^sub>Fx in F. P x \<or> Q x"
+  by (simp add: frequently_disj_iff)
+
+lemma frequently_bex_finite_distrib:
+  assumes "finite A" shows "(\<exists>\<^sub>Fx in F. \<exists>y\<in>A. P x y) \<longleftrightarrow> (\<exists>y\<in>A. \<exists>\<^sub>Fx in F. P x y)"
+  using assms by induction (auto simp: frequently_disj_iff)
+
+lemma frequently_bex_finite: "finite A \<Longrightarrow> \<exists>\<^sub>Fx in F. \<exists>y\<in>A. P x y \<Longrightarrow> \<exists>y\<in>A. \<exists>\<^sub>Fx in F. P x y"
+  by (simp add: frequently_bex_finite_distrib)
+
+lemma frequently_all: "(\<exists>\<^sub>Fx in F. \<forall>y. P x y) \<longleftrightarrow> (\<forall>Y. \<exists>\<^sub>Fx in F. P x (Y x))"
+  using eventually_ex[of "\<lambda>x y. \<not> P x y" F] by (simp add: frequently_def)
+
+lemma
+  shows not_eventually: "\<not> eventually P F \<longleftrightarrow> (\<exists>\<^sub>Fx in F. \<not> P x)"
+    and not_frequently: "\<not> frequently P F \<longleftrightarrow> (\<forall>\<^sub>Fx in F. \<not> P x)"
+  by (auto simp: frequently_def)
+
+lemma frequently_imp_iff:
+  "(\<exists>\<^sub>Fx in F. P x \<longrightarrow> Q x) \<longleftrightarrow> (eventually P F \<longrightarrow> frequently Q F)"
+  unfolding imp_conv_disj frequently_disj_iff not_eventually[symmetric] ..
+
+lemma eventually_frequently_const_simps:
+  "(\<exists>\<^sub>Fx in F. P x \<and> C) \<longleftrightarrow> (\<exists>\<^sub>Fx in F. P x) \<and> C"
+  "(\<exists>\<^sub>Fx in F. C \<and> P x) \<longleftrightarrow> C \<and> (\<exists>\<^sub>Fx in F. P x)"
+  "(\<forall>\<^sub>Fx in F. P x \<or> C) \<longleftrightarrow> (\<forall>\<^sub>Fx in F. P x) \<or> C"
+  "(\<forall>\<^sub>Fx in F. C \<or> P x) \<longleftrightarrow> C \<or> (\<forall>\<^sub>Fx in F. P x)"
+  "(\<forall>\<^sub>Fx in F. P x \<longrightarrow> C) \<longleftrightarrow> ((\<exists>\<^sub>Fx in F. P x) \<longrightarrow> C)"
+  "(\<forall>\<^sub>Fx in F. C \<longrightarrow> P x) \<longleftrightarrow> (C \<longrightarrow> (\<forall>\<^sub>Fx in F. P x))"
+  by (cases C; simp add: not_frequently)+
+
+lemmas eventually_frequently_simps = 
+  eventually_frequently_const_simps
+  not_eventually
+  eventually_conj_iff
+  eventually_ball_finite_distrib
+  eventually_ex
+  not_frequently
+  frequently_disj_iff
+  frequently_bex_finite_distrib
+  frequently_all
+  frequently_imp_iff
 
 ML {*
   fun eventually_elim_tac ctxt facts = SUBGOAL_CASES (fn (goal, i) =>
@@ -153,54 +255,6 @@ ML {*
 method_setup eventually_elim = {*
   Scan.succeed (fn ctxt => METHOD_CASES (HEADGOAL o eventually_elim_tac ctxt))
 *} "elimination of eventually quantifiers"
-
-subsection \<open> Frequently as dual to eventually \<close>
-
-definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
-
-syntax (xsymbols)
-  "_frequently"  :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
-
-translations
-  "\<exists>\<^sub>Fx in F. P" == "CONST frequently (\<lambda>x. P) F"
-
-lemma not_frequently_False [simp]: "\<not> frequently (\<lambda>x. False) F"
-  by (simp add: frequently_def)
-
-lemma frequently_ex: "frequently P F \<Longrightarrow> \<exists>x. P x"
-  by (auto simp: frequently_def dest: not_eventuallyD)
-
-lemma frequently_mp:
-  assumes ev: "eventually (\<lambda>x. P x \<longrightarrow> Q x) F" and P: "frequently (\<lambda>x. P x) F"
-  shows "frequently (\<lambda>x. Q x) F"
-proof - 
-  from ev have "eventually (\<lambda>x. \<not> Q x \<longrightarrow> \<not> P x) F"
-    by (rule eventually_rev_mp) (auto intro!: always_eventually)
-  from eventually_mp[OF this] P show ?thesis
-    by (auto simp: frequently_def)
-qed
-
-lemma frequently_rev_mp:
-  assumes "frequently (\<lambda>x. P x) F"
-  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
-  shows "frequently (\<lambda>x. Q x) F"
-using assms(2) assms(1) by (rule frequently_mp)
-
-lemma frequently_mono: "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> frequently P F \<Longrightarrow> frequently Q F"
-  using frequently_mp[of P Q] by (simp add: always_eventually)
-
-lemma frequently_disj_iff:
-  "frequently (\<lambda>x. P x \<or> Q x) F \<longleftrightarrow> frequently (\<lambda>x. P x) F \<or> frequently (\<lambda>x. Q x) F"
-  by (simp add: frequently_def eventually_conj_iff)
-
-lemma frequently_disj:
-  "frequently (\<lambda>x. P x) F \<Longrightarrow> frequently (\<lambda>x. Q x) F \<Longrightarrow> frequently (\<lambda>x. P x \<or> Q x) F"
-  by (simp add: frequently_disj_iff)
-
-lemma frequently_Bex_finite:
-  assumes "finite A" shows "frequently (\<lambda>x. \<exists>y\<in>A. P x y) net \<longleftrightarrow> (\<exists>y\<in>A. frequently (\<lambda>x. P x y) net)"
-  using assms by induction (auto simp: frequently_disj_iff)
 
 subsubsection {* Finer-than relation *}
 
@@ -318,14 +372,27 @@ lemma eventually_False:
   "eventually (\<lambda>x. False) F \<longleftrightarrow> F = bot"
   unfolding filter_eq_iff by (auto elim: eventually_rev_mp)
 
+lemma eventually_frequently: "F \<noteq> bot \<Longrightarrow> eventually P F \<Longrightarrow> frequently P F"
+  using eventually_conj[of P F "\<lambda>x. \<not> P x"]
+  by (auto simp add: frequently_def eventually_False)
+
+lemma eventually_const_iff: "eventually (\<lambda>x. P) F \<longleftrightarrow> P \<or> F = bot"
+  by (cases P) (auto simp: eventually_False)
+
+lemma eventually_const[simp]: "F \<noteq> bot \<Longrightarrow> eventually (\<lambda>x. P) F \<longleftrightarrow> P"
+  by (simp add: eventually_const_iff)
+
+lemma frequently_const_iff: "frequently (\<lambda>x. P) F \<longleftrightarrow> P \<and> F \<noteq> bot"
+  by (simp add: frequently_def eventually_const_iff)
+
+lemma frequently_const[simp]: "F \<noteq> bot \<Longrightarrow> frequently (\<lambda>x. P) F \<longleftrightarrow> P"
+  by (simp add: frequently_const_iff)
+
 abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
   where "trivial_limit F \<equiv> F = bot"
 
 lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
   by (rule eventually_False [symmetric])
-
-lemma eventually_const: "\<not> trivial_limit net \<Longrightarrow> eventually (\<lambda>x. P) net \<longleftrightarrow> P"
-  by (cases P) (simp_all add: eventually_False)
 
 lemma eventually_Inf: "eventually P (Inf B) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X))"
 proof -
@@ -601,21 +668,29 @@ lemma eventually_sequentiallyI:
   shows "eventually P sequentially"
 using assms by (auto simp: eventually_sequentially)
 
-lemma eventually_sequentially_seg:
-  "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
-  unfolding eventually_sequentially
-  apply safe
-   apply (rule_tac x="N + k" in exI)
-   apply rule
-   apply (erule_tac x="n - k" in allE)
-   apply auto []
-  apply (rule_tac x=N in exI)
-  apply auto []
-  done
+lemma eventually_sequentially_Suc: "eventually (\<lambda>i. P (Suc i)) sequentially \<longleftrightarrow> eventually P sequentially"
+  unfolding eventually_sequentially by (metis Suc_le_D Suc_le_mono le_Suc_eq)
+
+lemma eventually_sequentially_seg: "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
+  using eventually_sequentially_Suc[of "\<lambda>n. P (n + k)" for k] by (induction k) auto
 
 subsection \<open> The cofinite filter \<close>
 
 definition "cofinite = Abs_filter (\<lambda>P. finite {x. \<not> P x})"
+
+abbreviation Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10) where
+  "Inf_many P \<equiv> frequently P cofinite"
+
+abbreviation Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10) where
+  "Alm_all P \<equiv> eventually P cofinite"
+
+notation (xsymbols)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
+  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
+
+notation (HTML output)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
+  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
 lemma eventually_cofinite: "eventually P cofinite \<longleftrightarrow> finite {x. \<not> P x}"
   unfolding cofinite_def
@@ -628,6 +703,9 @@ next
   from * show "finite {x. \<not> Q x}"
     by (intro finite_subset[OF _ P]) auto
 qed simp
+
+lemma frequently_cofinite: "frequently P cofinite \<longleftrightarrow> \<not> finite {x. P x}"
+  by (simp add: frequently_def eventually_cofinite)
 
 lemma cofinite_bot[simp]: "cofinite = (bot::'a filter) \<longleftrightarrow> finite (UNIV :: 'a set)"
   unfolding trivial_limit_def eventually_cofinite by simp
@@ -736,9 +814,6 @@ lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambd
 lemma filterlim_sup:
   "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
   unfolding filterlim_def filtermap_sup by auto
-
-lemma eventually_sequentially_Suc: "eventually (\<lambda>i. P (Suc i)) sequentially \<longleftrightarrow> eventually P sequentially"
-  unfolding eventually_sequentially by (metis Suc_le_D Suc_le_mono le_Suc_eq)
 
 lemma filterlim_sequentially_Suc:
   "(LIM x sequentially. f (Suc x) :> F) \<longleftrightarrow> (LIM x sequentially. f x :> F)"

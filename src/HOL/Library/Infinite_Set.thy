@@ -67,36 +67,22 @@ text {*
   infinite.
 *}
 
-lemma finite_nat_bounded: assumes S: "finite (S::nat set)" shows "\<exists>k. S \<subseteq> {..<k}"
-proof cases
-  assume "S \<noteq> {}" with Max_less_iff[OF S this] show ?thesis
-    by auto
-qed simp
+lemma infinite_nat_iff_unbounded_le: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
+  using frequently_cofinite[of "\<lambda>x. x \<in> S"]
+  by (simp add: cofinite_eq_sequentially frequently_def eventually_sequentially)
+
+lemma infinite_nat_iff_unbounded: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n>m. n \<in> S)"
+  using frequently_cofinite[of "\<lambda>x. x \<in> S"]
+  by (simp add: cofinite_eq_sequentially frequently_def eventually_at_top_dense)
 
 lemma finite_nat_iff_bounded: "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"
-  by (auto intro: finite_nat_bounded dest: finite_subset)
+  using infinite_nat_iff_unbounded_le[of S] by (simp add: subset_eq) (metis not_le)
 
-lemma finite_nat_iff_bounded_le:
-  "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..k})"  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  then obtain k where "S \<subseteq> {..<k}"
-    by (blast dest: finite_nat_bounded)
-  then have "S \<subseteq> {..k}" by auto
-  then show ?rhs ..
-next
-  assume ?rhs
-  then obtain k where "S \<subseteq> {..k}" ..
-  then show "finite S"
-    by (rule finite_subset) simp
-qed
+lemma finite_nat_iff_bounded_le: "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {.. k})"
+  using infinite_nat_iff_unbounded[of S] by (simp add: subset_eq) (metis not_le)
 
-lemma infinite_nat_iff_unbounded: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> n \<in> S)"
-  unfolding finite_nat_iff_bounded_le by (auto simp: subset_eq not_le)
-
-lemma infinite_nat_iff_unbounded_le:
-  "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m \<le> n \<and> n \<in> S)"
-  unfolding finite_nat_iff_bounded by (auto simp: subset_eq not_less)
+lemma finite_nat_bounded: "finite (S::nat set) \<Longrightarrow> \<exists>k. S \<subseteq> {..<k}"
+  by (simp add: finite_nat_iff_bounded)
 
 text {*
   For a set of natural numbers to be infinite, it is enough to know
@@ -104,25 +90,9 @@ text {*
   number that is an element of the set.
 *}
 
-lemma unbounded_k_infinite:
-  assumes k: "\<forall>m. k < m \<longrightarrow> (\<exists>n. m < n \<and> n \<in> S)"
-  shows "infinite (S::nat set)"
-proof -
-  {
-    fix m have "\<exists>n. m < n \<and> n \<in> S"
-    proof (cases "k < m")
-      case True
-      with k show ?thesis by blast
-    next
-      case False
-      from k obtain n where "Suc k < n \<and> n \<in> S" by auto
-      with False have "m < n \<and> n \<in> S" by auto
-      then show ?thesis ..
-    qed
-  }
-  then show ?thesis
-    by (auto simp add: infinite_nat_iff_unbounded)
-qed
+lemma unbounded_k_infinite: "\<forall>m>k. \<exists>n>m. n \<in> S \<Longrightarrow> infinite (S::nat set)"
+  by (metis (full_types) infinite_nat_iff_unbounded_le le_imp_less_Suc not_less
+            not_less_iff_gr_or_eq sup.bounded_iff)
 
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
@@ -178,187 +148,117 @@ text {*
   we introduce corresponding binders and their proof rules.
 *}
 
-definition Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10)
-  where "Inf_many P \<longleftrightarrow> infinite {x. P x}"
-
-definition Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10)
-  where "Alm_all P \<longleftrightarrow> \<not> (INFM x. \<not> P x)"
-
-notation (xsymbols)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
-  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
-
-notation (HTML output)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
-  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
-
-lemma INFM_iff_infinite: "(INFM x. P x) \<longleftrightarrow> infinite {x. P x}"
-  unfolding Inf_many_def ..
-
-lemma MOST_iff_cofinite: "(MOST x. P x) \<longleftrightarrow> finite {x. \<not> P x}"
-  unfolding Alm_all_def Inf_many_def by simp
-
-(* legacy name *)
-lemmas MOST_iff_finiteNeg = MOST_iff_cofinite
-
-lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)"
-  unfolding Alm_all_def not_not ..
-
-lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)"
-  unfolding Alm_all_def not_not ..
+(* The following two lemmas are available as filter-rules, but not in the simp-set *)
+lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)" by (fact not_frequently)
+lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)" by (fact not_eventually)
 
 lemma INFM_const [simp]: "(INFM x::'a. P) \<longleftrightarrow> P \<and> infinite (UNIV::'a set)"
-  unfolding Inf_many_def by simp
+  by (simp add: frequently_const_iff)
 
 lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (UNIV::'a set)"
-  unfolding Alm_all_def by simp
+  by (simp add: eventually_const_iff)
 
-lemma INFM_EX: "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
-  apply (erule contrapos_pp)
-  apply simp
-  done
+lemma INFM_imp_distrib: "(INFM x. P x \<longrightarrow> Q x) \<longleftrightarrow> ((MOST x. P x) \<longrightarrow> (INFM x. Q x))"
+  by (simp only: imp_conv_disj frequently_disj_iff not_eventually)
 
-lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x"
-  by simp
+lemma MOST_imp_iff: "MOST x. P x \<Longrightarrow> (MOST x. P x \<longrightarrow> Q x) \<longleftrightarrow> (MOST x. Q x)"
+  by (auto intro: eventually_rev_mp eventually_elim1)
 
-lemma INFM_E:
-  assumes "INFM x. P x"
-  obtains x where "P x"
-  using INFM_EX [OF assms] by (rule exE)
-
-lemma MOST_I:
-  assumes "\<And>x. P x"
-  shows "MOST x. P x"
-  using assms by simp
-
-lemma INFM_mono:
-  assumes inf: "\<exists>\<^sub>\<infinity>x. P x" and q: "\<And>x. P x \<Longrightarrow> Q x"
-  shows "\<exists>\<^sub>\<infinity>x. Q x"
-proof -
-  from inf have "infinite {x. P x}" unfolding Inf_many_def .
-  moreover from q have "{x. P x} \<subseteq> {x. Q x}" by auto
-  ultimately show ?thesis
-    using Inf_many_def infinite_super by blast
-qed
-
-lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x"
-  unfolding Alm_all_def by (blast intro: INFM_mono)
-
-lemma INFM_disj_distrib:
-  "(\<exists>\<^sub>\<infinity>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>\<infinity>x. P x) \<or> (\<exists>\<^sub>\<infinity>x. Q x)"
-  unfolding Inf_many_def by (simp add: Collect_disj_eq)
-
-lemma INFM_imp_distrib:
-  "(INFM x. P x \<longrightarrow> Q x) \<longleftrightarrow> ((MOST x. P x) \<longrightarrow> (INFM x. Q x))"
-  by (simp only: imp_conv_disj INFM_disj_distrib not_MOST)
-
-lemma MOST_conj_distrib:
-  "(\<forall>\<^sub>\<infinity>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>\<^sub>\<infinity>x. P x) \<and> (\<forall>\<^sub>\<infinity>x. Q x)"
-  unfolding Alm_all_def by (simp add: INFM_disj_distrib del: disj_not1)
-
-lemma MOST_conjI:
-  "MOST x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> MOST x. P x \<and> Q x"
-  by (simp add: MOST_conj_distrib)
-
-lemma INFM_conjI:
-  "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
-  unfolding MOST_iff_cofinite INFM_iff_infinite
-  apply (drule (1) Diff_infinite_finite)
-  apply (simp add: Collect_conj_eq Collect_neg_eq)
-  done
-
-lemma MOST_rev_mp:
-  assumes "\<forall>\<^sub>\<infinity>x. P x" and "\<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x"
-  shows "\<forall>\<^sub>\<infinity>x. Q x"
-proof -
-  have "\<forall>\<^sub>\<infinity>x. P x \<and> (P x \<longrightarrow> Q x)"
-    using assms by (rule MOST_conjI)
-  thus ?thesis by (rule MOST_mono) simp
-qed
-
-lemma MOST_imp_iff:
-  assumes "MOST x. P x"
-  shows "(MOST x. P x \<longrightarrow> Q x) \<longleftrightarrow> (MOST x. Q x)"
-proof
-  assume "MOST x. P x \<longrightarrow> Q x"
-  with assms show "MOST x. Q x" by (rule MOST_rev_mp)
-next
-  assume "MOST x. Q x"
-  then show "MOST x. P x \<longrightarrow> Q x" by (rule MOST_mono) simp
-qed
-
-lemma INFM_MOST_simps [simp]:
-  "\<And>P Q. (INFM x. P x \<and> Q) \<longleftrightarrow> (INFM x. P x) \<and> Q"
-  "\<And>P Q. (INFM x. P \<and> Q x) \<longleftrightarrow> P \<and> (INFM x. Q x)"
-  "\<And>P Q. (MOST x. P x \<or> Q) \<longleftrightarrow> (MOST x. P x) \<or> Q"
-  "\<And>P Q. (MOST x. P \<or> Q x) \<longleftrightarrow> P \<or> (MOST x. Q x)"
-  "\<And>P Q. (MOST x. P x \<longrightarrow> Q) \<longleftrightarrow> ((INFM x. P x) \<longrightarrow> Q)"
-  "\<And>P Q. (MOST x. P \<longrightarrow> Q x) \<longleftrightarrow> (P \<longrightarrow> (MOST x. Q x))"
-  unfolding Alm_all_def Inf_many_def
-  by (simp_all add: Collect_conj_eq)
+lemma INFM_conjI: "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
+  by (rule frequently_rev_mp[of P]) (auto elim: eventually_elim1)
 
 text {* Properties of quantifiers with injective functions. *}
 
 lemma INFM_inj: "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM x. P x"
-  unfolding INFM_iff_infinite
-  apply clarify
-  apply (drule (1) finite_vimageI)
-  apply simp
-  done
+  using finite_vimageI[of "{x. P x}" f] by (auto simp: frequently_cofinite)
 
 lemma MOST_inj: "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
-  unfolding MOST_iff_cofinite
-  apply (drule (1) finite_vimageI)
-  apply simp
-  done
+  using finite_vimageI[of "{x. \<not> P x}" f] by (auto simp: eventually_cofinite)
 
 text {* Properties of quantifiers with singletons. *}
 
 lemma not_INFM_eq [simp]:
   "\<not> (INFM x. x = a)"
   "\<not> (INFM x. a = x)"
-  unfolding INFM_iff_infinite by simp_all
+  unfolding frequently_cofinite by simp_all
 
 lemma MOST_neq [simp]:
   "MOST x. x \<noteq> a"
   "MOST x. a \<noteq> x"
-  unfolding MOST_iff_cofinite by simp_all
+  unfolding eventually_cofinite by simp_all
 
 lemma INFM_neq [simp]:
   "(INFM x::'a. x \<noteq> a) \<longleftrightarrow> infinite (UNIV::'a set)"
   "(INFM x::'a. a \<noteq> x) \<longleftrightarrow> infinite (UNIV::'a set)"
-  unfolding INFM_iff_infinite by simp_all
+  unfolding frequently_cofinite by simp_all
 
 lemma MOST_eq [simp]:
   "(MOST x::'a. x = a) \<longleftrightarrow> finite (UNIV::'a set)"
   "(MOST x::'a. a = x) \<longleftrightarrow> finite (UNIV::'a set)"
-  unfolding MOST_iff_cofinite by simp_all
+  unfolding eventually_cofinite by simp_all
 
 lemma MOST_eq_imp:
   "MOST x. x = a \<longrightarrow> P x"
   "MOST x. a = x \<longrightarrow> P x"
-  unfolding MOST_iff_cofinite by simp_all
+  unfolding eventually_cofinite by simp_all
 
 text {* Properties of quantifiers over the naturals. *}
 
-lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> P n)"
-  by (simp add: Inf_many_def infinite_nat_iff_unbounded)
+lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n>m. P n)"
+  by (auto simp add: eventually_cofinite finite_nat_iff_bounded_le subset_eq not_le[symmetric])
 
-lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n. m \<le> n \<and> P n)"
-  by (simp add: Inf_many_def infinite_nat_iff_unbounded_le)
+lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n\<ge>m. P n)"
+  by (auto simp add: eventually_cofinite finite_nat_iff_bounded subset_eq not_le[symmetric])
 
-lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n. m < n \<longrightarrow> P n)"
-  by (simp add: Alm_all_def INFM_nat)
+lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n>m. P n)"
+  by (simp add: frequently_cofinite infinite_nat_iff_unbounded)
 
-lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n. m \<le> n \<longrightarrow> P n)"
-  by (simp add: Alm_all_def INFM_nat_le)
+lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. P n)"
+  by (simp add: frequently_cofinite infinite_nat_iff_unbounded_le)
 
+lemma MOST_INFM: "infinite (UNIV::'a set) \<Longrightarrow> MOST x::'a. P x \<Longrightarrow> INFM x::'a. P x"
+  by (simp add: eventually_frequently)
+
+lemma MOST_Suc_iff: "(MOST n. P (Suc n)) \<longleftrightarrow> (MOST n. P n)"
+  by (simp add: cofinite_eq_sequentially eventually_sequentially_Suc)
+
+lemma
+  shows MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
+    and MOST_SucD: "MOST n. P (Suc n) \<Longrightarrow> MOST n. P n"
+  by (simp_all add: MOST_Suc_iff)
+
+lemma MOST_ge_nat: "MOST n::nat. m \<le> n"
+  by (simp add: cofinite_eq_sequentially eventually_ge_at_top)
+
+(* legacy names *)
+lemma Inf_many_def: "Inf_many P \<longleftrightarrow> infinite {x. P x}" by (fact frequently_cofinite)
+lemma Alm_all_def: "Alm_all P \<longleftrightarrow> \<not> (INFM x. \<not> P x)" by simp
+lemma INFM_iff_infinite: "(INFM x. P x) \<longleftrightarrow> infinite {x. P x}" by (fact frequently_cofinite)
+lemma MOST_iff_cofinite: "(MOST x. P x) \<longleftrightarrow> finite {x. \<not> P x}" by (fact eventually_cofinite)
+lemma INFM_EX: "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)" by (fact frequently_ex)
+lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x" by (fact always_eventually)
+lemma INFM_mono: "\<exists>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<exists>\<^sub>\<infinity>x. Q x" by (fact frequently_elim1)
+lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x" by (fact eventually_elim1)
+lemma INFM_disj_distrib: "(\<exists>\<^sub>\<infinity>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>\<infinity>x. P x) \<or> (\<exists>\<^sub>\<infinity>x. Q x)" by (fact frequently_disj_iff)
+lemma MOST_rev_mp: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x" by (fact eventually_rev_mp)
+lemma MOST_conj_distrib: "(\<forall>\<^sub>\<infinity>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>\<^sub>\<infinity>x. P x) \<and> (\<forall>\<^sub>\<infinity>x. Q x)" by (fact eventually_conj_iff)
+lemma MOST_conjI: "MOST x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> MOST x. P x \<and> Q x" by (fact eventually_conj)
+lemma INFM_finite_Bex_distrib: "finite A \<Longrightarrow> (INFM y. \<exists>x\<in>A. P x y) \<longleftrightarrow> (\<exists>x\<in>A. INFM y. P x y)" by (fact frequently_bex_finite_distrib)
+lemma MOST_finite_Ball_distrib: "finite A \<Longrightarrow> (MOST y. \<forall>x\<in>A. P x y) \<longleftrightarrow> (\<forall>x\<in>A. MOST y. P x y)" by (fact eventually_ball_finite_distrib)
+lemma INFM_E: "INFM x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> thesis) \<Longrightarrow> thesis" by (fact frequentlyE)
+lemma MOST_I: "(\<And>x. P x) \<Longrightarrow> MOST x. P x" by (rule eventuallyI)
+lemmas MOST_iff_finiteNeg = MOST_iff_cofinite
 
 subsection "Enumeration of an Infinite Set"
 
 text {*
   The set's element type must be wellordered (e.g. the natural numbers).
 *}
+
+text \<open>
+  Could be generalized to
+    @{term "enumerate' S n = (SOME t. t \<in> s \<and> finite {s\<in>S. s < t} \<and> card {s\<in>S. s < t} = n)"}.
+\<close>
 
 primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a"
 where
@@ -368,7 +268,7 @@ where
 lemma enumerate_Suc': "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"
   by simp
 
-lemma enumerate_in_set: "infinite S \<Longrightarrow> enumerate S n : S"
+lemma enumerate_in_set: "infinite S \<Longrightarrow> enumerate S n \<in> S"
   apply (induct n arbitrary: S)
    apply (fastforce intro: LeastI dest!: infinite_imp_nonempty)
   apply simp
@@ -382,13 +282,13 @@ lemma enumerate_step: "infinite S \<Longrightarrow> enumerate S n < enumerate S 
    apply (rule order_le_neq_trans)
     apply (simp add: enumerate_0 Least_le enumerate_in_set)
    apply (simp only: enumerate_Suc')
-   apply (subgoal_tac "enumerate (S - {enumerate S 0}) 0 : S - {enumerate S 0}")
+   apply (subgoal_tac "enumerate (S - {enumerate S 0}) 0 \<in> S - {enumerate S 0}")
     apply (blast intro: sym)
    apply (simp add: enumerate_in_set del: Diff_iff)
   apply (simp add: enumerate_Suc')
   done
 
-lemma enumerate_mono: "m<n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
+lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
   apply (erule less_Suc_induct)
   apply (auto intro: enumerate_step)
   done

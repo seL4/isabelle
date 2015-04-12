@@ -3331,10 +3331,8 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
   have "(\<forall>B \<subseteq> Z. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {})"
   proof (intro allI impI)
     fix B assume "finite B" "B \<subseteq> Z"
-    with `finite B` ev_Z have "eventually (\<lambda>x. \<forall>b\<in>B. x \<in> b) F"
-      by (auto intro!: eventually_Ball_finite)
-    with F(2) have "eventually (\<lambda>x. x \<in> U \<inter> (\<Inter>B)) F"
-      by eventually_elim auto
+    with `finite B` ev_Z F(2) have "eventually (\<lambda>x. x \<in> U \<inter> (\<Inter>B)) F"
+      by (auto simp: eventually_ball_finite_distrib eventually_conj_iff)
     with F show "U \<inter> \<Inter>B \<noteq> {}"
       by (intro notI) (simp add: eventually_False)
   qed
@@ -7506,7 +7504,7 @@ proof -
   then have cont: "continuous_on ?D (\<lambda>x. dist ((g \<circ> fst) x) (snd x))"
     unfolding continuous_on_eq_continuous_within
     by (intro continuous_dist ballI continuous_within_compose)
-       (auto intro!:  continuous_fst continuous_snd continuous_within_id simp: image_image)
+       (auto intro!: continuous_fst continuous_snd continuous_within_id simp: image_image)
 
   obtain a where "a \<in> s" and le: "\<And>x. x \<in> s \<Longrightarrow> dist (g a) a \<le> dist (g x) x"
     using continuous_attains_inf[OF D cont] by auto

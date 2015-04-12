@@ -12,4 +12,6 @@ text {*
   Basic HOLCF concepts and types; does not include definition packages.
 *}
 
+hide_const (open) Filter.principal
+
 end

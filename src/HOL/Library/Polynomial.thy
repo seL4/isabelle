@@ -50,9 +50,6 @@ lemma tl_cCons [simp]:
   "tl (x ## xs) = xs"
   by (simp add: cCons_def)
 
-lemma MOST_SucD: "(\<forall>\<^sub>\<infinity> n. P (Suc n)) \<Longrightarrow> (\<forall>\<^sub>\<infinity> n. P n)"
-  by (auto simp: MOST_nat) (metis Suc_lessE)
-
 subsection {* Definition of type @{text poly} *}
 
 typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
@@ -501,9 +498,9 @@ begin
 
 lift_definition plus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n + coeff q n"
-proof (rule MOST_rev_mp[OF MOST_coeff_eq_0 MOST_rev_mp[OF MOST_coeff_eq_0]])
-  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> coeff q n = 0 \<longrightarrow> coeff p n + coeff q n = 0"
-    by simp
+proof -
+  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n + coeff q n = 0"
+    using MOST_coeff_eq_0[of p] MOST_coeff_eq_0[of q] by eventually_elim simp
 qed
 
 lemma coeff_add [simp]:
@@ -527,9 +524,9 @@ begin
 
 lift_definition minus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n - coeff q n"
-proof (rule MOST_rev_mp[OF MOST_coeff_eq_0 MOST_rev_mp[OF MOST_coeff_eq_0]])
-  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> coeff q n = 0 \<longrightarrow> coeff p n - coeff q n = 0"
-    by simp
+proof -
+  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n - coeff q n = 0"
+    using MOST_coeff_eq_0[of p] MOST_coeff_eq_0[of q] by eventually_elim simp
 qed
 
 lemma coeff_diff [simp]:
@@ -551,9 +548,9 @@ begin
 
 lift_definition uminus_poly :: "'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p n. - coeff p n"
-proof (rule MOST_rev_mp[OF MOST_coeff_eq_0])
-  fix p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n = 0 \<longrightarrow> - coeff p n = 0"
-    by simp
+proof -
+  fix p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. - coeff p n = 0"
+    using MOST_coeff_eq_0 by simp
 qed
 
 lemma coeff_minus [simp]: "coeff (- p) n = - coeff p n"
@@ -707,11 +704,9 @@ subsection {* Multiplication by a constant, polynomial multiplication and the un
 
 lift_definition smult :: "'a::comm_semiring_0 \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>a p n. a * coeff p n"
-proof (intro MOST_nat[THEN iffD2] exI allI impI) 
-  fix a :: 'a and p :: "'a poly" and i
-  assume "degree p < i"
-  then show "a * coeff p i = 0"
-    by (simp add: coeff_eq_0)
+proof -
+  fix a :: 'a and p :: "'a poly" show "\<forall>\<^sub>\<infinity> i. a * coeff p i = 0"
+    using MOST_coeff_eq_0[of p] by eventually_elim simp
 qed
 
 lemma coeff_smult [simp]:
