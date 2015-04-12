@@ -1,4 +1,4 @@
-(*  Title:      HOL/NSA/Filter.thy
+(*  Title:      HOL/NSA/Free_Ultrafilter.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
     Author:     Brian Huffman
@@ -6,7 +6,7 @@
 
 section {* Filters and Ultrafilters *}
 
-theory Filter
+theory Free_Ultrafilter
 imports "~~/src/HOL/Library/Infinite_Set"
 begin
 

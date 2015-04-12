@@ -5,7 +5,7 @@
 section {* Construction of Star Types Using Ultrafilters *}
 
 theory StarDef
-imports Filter
+imports Free_Ultrafilter
 begin
 
 subsection {* A Free Ultrafilter over the Naturals *}
