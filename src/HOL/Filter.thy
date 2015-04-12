@@ -39,14 +39,11 @@ subsubsection {* Eventually *}
 definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
-syntax
-  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3ALL _ in _./ _)" [0, 0, 10] 10)
-
 syntax (xsymbols)
-  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3\<forall>_ in _./ _)" [0, 0, 10] 10)
+  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3\<forall>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
 
 translations
-  "\<forall>x in F. P" == "CONST eventually (%x. P) F"
+  "\<forall>\<^sub>Fx in F. P" == "CONST eventually (\<lambda>x. P) F"
 
 lemma eventually_Abs_filter:
   assumes "is_filter F" shows "eventually P (Abs_filter F) = F P"
@@ -157,6 +154,53 @@ method_setup eventually_elim = {*
   Scan.succeed (fn ctxt => METHOD_CASES (HEADGOAL o eventually_elim_tac ctxt))
 *} "elimination of eventually quantifiers"
 
+subsection \<open> Frequently as dual to eventually \<close>
+
+definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
+  where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
+
+syntax (xsymbols)
+  "_frequently"  :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+
+translations
+  "\<exists>\<^sub>Fx in F. P" == "CONST frequently (\<lambda>x. P) F"
+
+lemma not_frequently_False [simp]: "\<not> frequently (\<lambda>x. False) F"
+  by (simp add: frequently_def)
+
+lemma frequently_ex: "frequently P F \<Longrightarrow> \<exists>x. P x"
+  by (auto simp: frequently_def dest: not_eventuallyD)
+
+lemma frequently_mp:
+  assumes ev: "eventually (\<lambda>x. P x \<longrightarrow> Q x) F" and P: "frequently (\<lambda>x. P x) F"
+  shows "frequently (\<lambda>x. Q x) F"
+proof - 
+  from ev have "eventually (\<lambda>x. \<not> Q x \<longrightarrow> \<not> P x) F"
+    by (rule eventually_rev_mp) (auto intro!: always_eventually)
+  from eventually_mp[OF this] P show ?thesis
+    by (auto simp: frequently_def)
+qed
+
+lemma frequently_rev_mp:
+  assumes "frequently (\<lambda>x. P x) F"
+  assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
+  shows "frequently (\<lambda>x. Q x) F"
+using assms(2) assms(1) by (rule frequently_mp)
+
+lemma frequently_mono: "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> frequently P F \<Longrightarrow> frequently Q F"
+  using frequently_mp[of P Q] by (simp add: always_eventually)
+
+lemma frequently_disj_iff:
+  "frequently (\<lambda>x. P x \<or> Q x) F \<longleftrightarrow> frequently (\<lambda>x. P x) F \<or> frequently (\<lambda>x. Q x) F"
+  by (simp add: frequently_def eventually_conj_iff)
+
+lemma frequently_disj:
+  "frequently (\<lambda>x. P x) F \<Longrightarrow> frequently (\<lambda>x. Q x) F \<Longrightarrow> frequently (\<lambda>x. P x \<or> Q x) F"
+  by (simp add: frequently_disj_iff)
+
+lemma frequently_Bex_finite:
+  assumes "finite A" shows "frequently (\<lambda>x. \<exists>y\<in>A. P x y) net \<longleftrightarrow> (\<exists>y\<in>A. frequently (\<lambda>x. P x y) net)"
+  using assms by induction (auto simp: frequently_disj_iff)
 
 subsubsection {* Finer-than relation *}
 
@@ -799,6 +843,10 @@ qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_i
 lemma eventually_parametric [transfer_rule]:
   "((A ===> op =) ===> rel_filter A ===> op =) eventually eventually"
 by(simp add: rel_fun_def rel_filter_eventually)
+
+lemma frequently_parametric [transfer_rule]:
+  "((A ===> op =) ===> rel_filter A ===> op =) frequently frequently"
+  unfolding frequently_def[abs_def] by transfer_prover
 
 lemma rel_filter_eq [relator_eq]: "rel_filter op = = op ="
 by(auto simp add: rel_filter_eventually rel_fun_eq fun_eq_iff filter_eq_iff)
