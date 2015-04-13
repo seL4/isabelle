@@ -68,12 +68,18 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
 
     fun prove goal =
       Goal.prove_sorry_global thy [] [] goal (fn {context = ctxt, ...} =>
+        HEADGOAL Goal.conjunction_tac THEN
         ALLGOALS (simp_tac
           (put_simpset HOL_basic_ss ctxt
-            addsimps (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)))))
-      |> Simpdata.mk_eq;
+            addsimps (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)))));
+
+    fun proves goals = goals
+      |> Logic.mk_conjunction_balanced
+      |> prove
+      |> Conjunction.elim_balanced (length goals)
+      |> map Simpdata.mk_eq;
   in
-    (map prove (triv_inject_goals @ inject_goals @ distinct_goals), prove refl_goal)
+    (proves (triv_inject_goals @ inject_goals @ distinct_goals), Simpdata.mk_eq (prove refl_goal))
   end;
 
 fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
