@@ -6,7 +6,7 @@ Definitions for constants on quotient types.
 
 signature LIFTING_DEF =
 sig
-  datatype code_eq = NONE_EQ | ABS_EQ | REP_EQ
+  datatype code_eq = UNKNOWN_EQ | NONE_EQ | ABS_EQ | REP_EQ
   type lift_def
   val rty_of_lift_def: lift_def -> typ
   val qty_of_lift_def: lift_def -> typ
@@ -59,7 +59,7 @@ open Lifting_Util
 
 infix 0 MRSL
 
-datatype code_eq = NONE_EQ | ABS_EQ | REP_EQ
+datatype code_eq = UNKNOWN_EQ | NONE_EQ | ABS_EQ | REP_EQ
 
 datatype lift_def = LIFT_DEF of {
   rty: typ,
@@ -486,17 +486,68 @@ local
           end
       else
         true
+
+  fun encode_code_eq ctxt abs_eq opt_rep_eq (rty, qty) = 
+    let
+      fun mk_type typ = typ |> Logic.mk_type |> Thm.cterm_of ctxt |> Drule.mk_term
+    in
+      Conjunction.intr_balanced [abs_eq, (the_default TrueI opt_rep_eq), mk_type rty, mk_type qty]
+    end
+  
+  exception DECODE
+    
+  fun decode_code_eq thm =
+    if Thm.nprems_of thm > 0 then raise DECODE 
+    else
+      let
+        val [abs_eq, rep_eq, rty, qty] = Conjunction.elim_balanced 4 thm
+        val opt_rep_eq = if Thm.eq_thm_prop (rep_eq, TrueI) then NONE else SOME rep_eq
+        fun dest_type typ = typ |> Drule.dest_term |> Thm.term_of |> Logic.dest_type
+      in
+        (abs_eq, opt_rep_eq, (dest_type rty, dest_type qty)) 
+      end
+  
+  structure Data = Generic_Data
+  (
+    type T = code_eq option
+    val empty = NONE
+    val extend = I
+    fun merge _ = NONE
+  );
+
+  fun register_encoded_code_eq thm thy =
+    let
+      val (abs_eq_thm, opt_rep_eq_thm, (rty, qty)) = decode_code_eq thm
+      val (code_eq, thy) = register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy
+    in
+      Context.theory_map (Data.put (SOME code_eq)) thy
+    end
+    handle DECODE => thy
+  
+  val register_code_eq_attribute = Thm.declaration_attribute
+    (fn thm => Context.mapping (register_encoded_code_eq thm) I)
+  val register_code_eq_attrib = Attrib.internal (K register_code_eq_attribute)
+
 in
 
 fun register_code_eq abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
   let
-    val mthm = Morphism.thm (Local_Theory.target_morphism lthy)
-    val abs_eq_thm =  mthm abs_eq_thm
-    val opt_rep_eq_thm = Option.map mthm opt_rep_eq_thm
+    val encoded_code_eq = encode_code_eq lthy abs_eq_thm opt_rep_eq_thm (rty, qty)
   in
-    if no_no_code lthy (rty, qty) then 
-      Local_Theory.background_theory_result 
-        (register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty)) lthy
+    if no_no_code lthy (rty, qty) then
+      let
+        val lthy = (snd oo Local_Theory.note) 
+          ((Binding.empty, [register_code_eq_attrib]), [encoded_code_eq]) lthy
+        val opt_code_eq = Data.get (Context.Theory (Proof_Context.theory_of lthy))
+        val code_eq = if is_some opt_code_eq then the opt_code_eq 
+          else UNKNOWN_EQ (* UNKNOWN_EQ means that we are in a locale and we do not know
+            which code equation is going to be used. This is going to be resolved at the
+            point when an interpretation of the locale is executed. *)
+        val lthy = Local_Theory.declaration {syntax = false, pervasive = true} 
+          (K (Data.put NONE)) lthy
+      in
+        (code_eq, lthy)
+      end
     else
       (NONE_EQ, lthy)
   end

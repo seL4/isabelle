@@ -242,7 +242,10 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
 
     val (ret_lift_def, lthy) = add_lift_def (#lift_config config) var qty rhs rsp_thm par_thms lthy
   in
-    if (not (#code_dt config) orelse (code_eq_of_lift_def ret_lift_def <> NONE_EQ))
+    if (not (#code_dt config) orelse (code_eq_of_lift_def ret_lift_def <> NONE_EQ)
+      andalso (code_eq_of_lift_def ret_lift_def <> UNKNOWN_EQ))
+      (* Let us try even in case of UNKNOWN_EQ. If this leads to problems, the user can always
+        say that they do not want this workaround. *)
     then  (ret_lift_def, lthy)
     else
       let
