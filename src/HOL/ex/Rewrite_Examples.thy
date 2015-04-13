@@ -22,30 +22,30 @@ lemma
   fixes a b c :: int
   assumes "f (a - a + (a - a)) + f (   0    + c) = f 0 + f c"
   shows   "f (a - a + (a - a)) + f ((a - a) + c) = f 0 + f c"
-  by (rewrite in "f _ + f \<box> = _" diff_self) fact
+  by (rewrite in "f _ + f \<hole> = _" diff_self) fact
 
 lemma
   fixes a b c :: int
   assumes "f (a - a +    0   ) + f ((a - a) + c) = f 0 + f c"
   shows   "f (a - a + (a - a)) + f ((a - a) + c) = f 0 + f c"
-  by (rewrite at "f (_ + \<box>) + f _ = _" diff_self) fact
+  by (rewrite at "f (_ + \<hole>) + f _ = _" diff_self) fact
 
 lemma
   fixes a b c :: int
   assumes "f (  0   + (a - a)) + f ((a - a) + c) = f 0 + f c"
   shows   "f (a - a + (a - a)) + f ((a - a) + c) = f 0 + f c"
-  by (rewrite in "f (\<box> + _) + _ = _" diff_self) fact
+  by (rewrite in "f (\<hole> + _) + _ = _" diff_self) fact
 
 lemma
   fixes a b c :: int
   assumes "f (a - a +    0   ) + f ((a - a) + c) = f 0 + f c"
   shows   "f (a - a + (a - a)) + f ((a - a) + c) = f 0 + f c"
-  by (rewrite in "f (_ + \<box>) + _ = _" diff_self) fact
+  by (rewrite in "f (_ + \<hole>) + _ = _" diff_self) fact
 
 lemma
   fixes x y :: nat
   shows"x + y > c \<Longrightarrow> y + x > c"
-  by (rewrite at "\<box> > c" add.commute) assumption
+  by (rewrite at "\<hole> > c" add.commute) assumption
 
 (* We can also rewrite in the assumptions.  *)
 lemma
@@ -64,23 +64,23 @@ lemma
   fixes x y :: nat
   assumes "y + x > c \<Longrightarrow> y + x > c"
   shows   "x + y > c \<Longrightarrow> y + x > c"
-  by (rewrite at "\<box> > c" at asm  add.commute) fact
+  by (rewrite at "\<hole> > c" at asm  add.commute) fact
 
 lemma
   assumes "P {x::int. y + 1 = 1 + x}"
   shows   "P {x::int. y + 1 = x + 1}"
-  by (rewrite at "x+1" in "{x::int. \<box> }" add.commute) fact
+  by (rewrite at "x+1" in "{x::int. \<hole> }" add.commute) fact
 
 lemma
   assumes "P {x::int. y + 1 = 1 + x}"
   shows   "P {x::int. y + 1 = x + 1}"
-  by (rewrite at "any_identifier_will_work+1" in "{any_identifier_will_work::int. \<box> }" add.commute)
+  by (rewrite at "any_identifier_will_work+1" in "{any_identifier_will_work::int. \<hole> }" add.commute)
    fact
 
 lemma
   assumes "P {(x::nat, y::nat, z). x + z * 3 = Q (\<lambda>s t. s * t + y - 3)}"
   shows   "P {(x::nat, y::nat, z). x + z * 3 = Q (\<lambda>s t. y + s * t - 3)}"
-  by (rewrite at "b + d * e" in "\<lambda>(a, b, c). _ = Q (\<lambda>d e. \<box>)" add.commute) fact
+  by (rewrite at "b + d * e" in "\<lambda>(a, b, c). _ = Q (\<lambda>d e. \<hole>)" add.commute) fact
 
 
 (* Rewriting with conditional rewriting rules works just as well. *)
@@ -126,13 +126,13 @@ lemma
 lemma
   assumes "P (\<lambda>n. f_inv (\<lambda>x. n < x + 1) n + 1) = x"
   shows "P (\<lambda>n. f n + 1) = x"
-  by (rewrite in "\<lambda>n. \<box>" to "f_inv (\<lambda>x. n < x + 1)" annotate_f) fact
+  by (rewrite in "\<lambda>n. \<hole>" to "f_inv (\<lambda>x. n < x + 1)" annotate_f) fact
 
 (* Any identifier will work *)
 lemma
   assumes "P (\<lambda>n. f_inv (\<lambda>x. n < x + 1) n + 1) = x"
   shows "P (\<lambda>n. f n + 1) = x"
-  by (rewrite in "\<lambda>abc. \<box>" to "f_inv (\<lambda>x. abc < x + 1)" annotate_f) fact
+  by (rewrite in "\<lambda>abc. \<hole>" to "f_inv (\<lambda>x. abc < x + 1)" annotate_f) fact
 
 (* The "for" keyword. *)
 lemma
@@ -158,7 +158,7 @@ by (rewrite at "(_ + y) + z" in concl at for (y z) add.commute) fact
 lemma
   assumes "\<And>x y z. x + y + z = y + z + (x::int)"
   shows   "\<And>x y z. x + y + z = z + y + (x::int)"
-by (rewrite at "\<box> + _" at "_ = \<box>" in concl at for () add.commute) fact
+by (rewrite at "\<hole> + _" at "_ = \<hole>" in concl at for () add.commute) fact
 
 (* The all-keyword can be used anywhere in the pattern where there is an \<And>-Quantifier. *)
 lemma

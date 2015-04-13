@@ -10,7 +10,7 @@ begin
 
 consts rewrite_HOLE :: "'a::{}"
 notation rewrite_HOLE ("HOLE")
-notation rewrite_HOLE ("\<box>")
+notation rewrite_HOLE ("\<hole>")
 
 lemma eta_expand:
   fixes f :: "'a::{} \<Rightarrow> 'b::{}"
