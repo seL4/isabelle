@@ -24,6 +24,11 @@ section {* Pairs *}
 
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}] *}
 
+section {* Filters *}
+
+(*TODO: shouldn't this be done by typedef? *)
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name Abs_filter}, @{const_name Rep_filter}] *}
+
 section {* Bounded quantifiers *}
 
 declare Ball_def[code_pred_inline]
