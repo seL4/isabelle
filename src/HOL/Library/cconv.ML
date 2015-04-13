@@ -95,10 +95,11 @@ fun rewr_cconv rule ct =
     val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1
     val rule3 = Thm.instantiate (Thm.match (lhs, ct)) rule2
                 handle Pattern.MATCH => raise CTERM ("rewr_cconv", [lhs, ct])
+    val concl = rule3 |> Thm.cprop_of |> Drule.strip_imp_concl
     val rule4 =
-      if concl_lhs_of rule3 aconvc ct then rule3
-      else let val ceq = Thm.dest_fun2 (Thm.cprop_of rule3)
-           in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (concl_rhs_of rule3)) end
+      if Thm.dest_equals_lhs concl aconvc ct then rule3
+      else let val ceq = Thm.dest_fun2 concl
+           in rule3 RS Thm.trivial (Thm.mk_binop ceq ct (Thm.dest_equals_rhs concl)) end
   in
     transitive rule4 (Thm.beta_conversion true (concl_rhs_of rule4))
   end
