@@ -33,6 +33,7 @@ sig
   val rewrs_cconv: thm list -> cconv
   val params_cconv: int -> (Proof.context -> cconv) -> Proof.context -> cconv
   val prems_cconv: int -> cconv -> cconv
+  val with_prems_cconv: int -> cconv -> cconv
   val concl_cconv: int -> cconv -> cconv
   val fconv_rule: cconv -> thm -> thm
   val gconv_rule: cconv -> int -> thm -> thm
@@ -189,6 +190,25 @@ fun concl_cconv 0 cv ct = cv ct
       (case try Thm.dest_implies ct of
         NONE => cv ct
       | SOME (A,B) => (concl_cconv (n-1) cv B) RS inst_imp_cong A)
+
+(* Rewrites A in A \<Longrightarrow> A1 \<Longrightarrow> An \<Longrightarrow> B.
+   The premises of the resulting theorem assume A1, ..., An
+   *)
+fun with_prems_cconv n cv ct =
+  let
+    fun strip_prems 0 As B = (As, B)
+      | strip_prems i As B =
+          case try Thm.dest_implies B of
+            NONE => (As, B)
+          | SOME (A,B) => strip_prems (i - 1) (A::As) B
+    val (prem, (prems, concl)) = ct |> Thm.dest_implies ||> strip_prems n [] 
+    val rewr_imp_concl = Thm.instantiate ([], [(@{cpat "?C :: prop"}, concl)]) @{thm rewr_imp}
+    val th1 = cv prem RS rewr_imp_concl
+    val nprems = Thm.nprems_of th1
+    fun inst_cut_rl ct = Thm.instantiate ([], [(@{cpat "?psi :: prop"}, ct)]) cut_rl
+    fun f p th = (th RS inst_cut_rl p)
+      |> Conv.fconv_rule (Conv.concl_conv nprems (Conv.rewr_conv @{thm imp_cong_eq}))
+  in fold f prems th1 end
 
 (*forward conversion, cf. FCONV_RULE in LCF*)
 fun fconv_rule cv th =

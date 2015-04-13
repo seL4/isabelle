@@ -77,6 +77,7 @@ fun abs_rewr_cconv ident : subterm_position =
 val fun_rewr_cconv : subterm_position = fn rewr => CConv.fun_cconv oo rewr
 val arg_rewr_cconv : subterm_position = fn rewr => CConv.arg_cconv oo rewr
 val imp_rewr_cconv : subterm_position = fn rewr => CConv.concl_cconv 1 oo rewr
+val with_prems_rewr_cconv : subterm_position = fn rewr => CConv.with_prems_cconv ~1 oo rewr
 
 
 (* focus terms *)
@@ -154,10 +155,9 @@ fun ft_concl ctxt (ft as (_, t, _) : focusterm) =
     (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_concl ctxt o ft_imp ctxt) ft
   | _ => ft
 
-fun ft_assm ctxt (ft as (_, t, _) : focusterm) =
-  case t of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_arg ctxt o ft_fun ctxt) ft
-  | _ => raise TERM ("ft_assm", [t])
+fun ft_assm _ (tyenv, (Const (@{const_name "Pure.imp"}, _) $ l) $ _, pos) =
+      (tyenv, l, pos o with_prems_rewr_cconv)
+  | ft_assm _ (_, t, _) = raise TERM ("ft_assm", [t])
 
 fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
   if Object_Logic.is_judgment ctxt t

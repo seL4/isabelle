@@ -116,6 +116,20 @@ lemma
   apply (rule refl)
   done
 
+(* This holds also for rewriting in assumptions. The order of assumptions is preserved *)
+lemma
+  assumes rewr: "PROP P \<Longrightarrow> PROP Q \<Longrightarrow> PROP R \<equiv> PROP R'"
+  assumes A1: "PROP S \<Longrightarrow> PROP T \<Longrightarrow> PROP U \<Longrightarrow> PROP P"
+  assumes A2: "PROP S \<Longrightarrow> PROP T \<Longrightarrow> PROP U \<Longrightarrow> PROP Q"
+  assumes C: "PROP S \<Longrightarrow> PROP R' \<Longrightarrow> PROP T \<Longrightarrow> PROP U \<Longrightarrow> PROP V"
+  shows "PROP S \<Longrightarrow> PROP R \<Longrightarrow> PROP T \<Longrightarrow> PROP U \<Longrightarrow> PROP V"
+  apply (rewrite at asm rewr)
+  apply (fact A1)
+  apply (fact A2)
+  apply (fact C)
+  done
+
+
 (*
    Instantiation.
 
