@@ -89,15 +89,17 @@ lemma test_theorem:
   shows "x \<le> y \<Longrightarrow> x \<ge> y \<Longrightarrow> x = y"
   by (rule Orderings.order_antisym)
 
+(* Premises of the conditional rule yield new subgoals. The
+   assumptions of the goal are propagated into these subgoals
+*)
 lemma
-fixes f :: "nat \<Rightarrow> nat"
-  assumes "f x \<le> 0" "f x \<ge> 0"
-  shows "f x = 0"
+  fixes f :: "nat \<Rightarrow> nat"
+  shows "f x \<le> 0 \<Longrightarrow> f x \<ge> 0 \<Longrightarrow> f x = 0"
   apply (rewrite at "f x" to "0" test_theorem)
-  apply fact
-  apply fact
+  apply assumption
+  apply assumption
   apply (rule refl)
-done
+  done
 
 (*
    Instantiation.

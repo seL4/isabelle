@@ -181,12 +181,14 @@ fun prems_cconv 0 cv ct = cv ct
           ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 
+fun inst_imp_cong ct = Thm.instantiate ([], [(@{cpat "?A :: prop"}, ct)]) Drule.imp_cong
+
 (*rewrite B in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun concl_cconv 0 cv ct = cv ct
   | concl_cconv n cv ct =
-      (case ct |> Thm.term_of of
-        (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => arg_cconv (concl_cconv (n-1) cv) ct
-      | _ =>  cv ct)
+      (case try Thm.dest_implies ct of
+        NONE => cv ct
+      | SOME (A,B) => (concl_cconv (n-1) cv B) RS inst_imp_cong A)
 
 (*forward conversion, cf. FCONV_RULE in LCF*)
 fun fconv_rule cv th =

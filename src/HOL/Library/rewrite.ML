@@ -76,6 +76,7 @@ fun abs_rewr_cconv ident : subterm_position =
 
 val fun_rewr_cconv : subterm_position = fn rewr => CConv.fun_cconv oo rewr
 val arg_rewr_cconv : subterm_position = fn rewr => CConv.arg_cconv oo rewr
+val imp_rewr_cconv : subterm_position = fn rewr => CConv.concl_cconv 1 oo rewr
 
 
 (* focus terms *)
@@ -102,9 +103,18 @@ fun ft_fun _ (tyenv, l $ _, pos) = (tyenv, l, pos o fun_rewr_cconv)
   | ft_fun ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_fun ctxt o ft_abs ctxt (NONE, T)) ft
   | ft_fun _ (_, t, _) = raise TERM ("ft_fun", [t])
 
-fun ft_arg _ (tyenv, _ $ r, pos) = (tyenv, r, pos o arg_rewr_cconv)
-  | ft_arg ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_arg ctxt o ft_abs ctxt (NONE, T)) ft
-  | ft_arg _ (_, t, _) = raise TERM ("ft_arg", [t])
+local
+
+fun ft_arg_gen cconv _ (tyenv, _ $ r, pos) = (tyenv, r, pos o cconv)
+  | ft_arg_gen cconv ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_arg_gen cconv ctxt o ft_abs ctxt (NONE, T)) ft
+  | ft_arg_gen _ _ (_, t, _) = raise TERM ("ft_arg", [t])
+
+in
+
+val ft_arg = ft_arg_gen arg_rewr_cconv
+val ft_imp = ft_arg_gen imp_rewr_cconv
+
+end
 
 (* Move to B in !!x_1 ... x_n. B. Do not eta-expand *)
 fun ft_params ctxt (ft as (_, t, _) : focusterm) =
@@ -141,7 +151,7 @@ fun ft_for ctxt idents (ft as (_, t, _) : focusterm) =
 
 fun ft_concl ctxt (ft as (_, t, _) : focusterm) =
   case t of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_concl ctxt o ft_arg ctxt) ft
+    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_concl ctxt o ft_imp ctxt) ft
   | _ => ft
 
 fun ft_assm ctxt (ft as (_, t, _) : focusterm) =
