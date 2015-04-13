@@ -88,6 +88,14 @@ lemma
   shows "PROP R \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"
     by (rewrite at asm assms)
 
+(* Rewriting "at asm" selects each full assumption, not any parts *)
+lemma
+  assumes "(PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP S \<Longrightarrow> PROP R)"
+  shows "PROP S \<Longrightarrow> (PROP P \<Longrightarrow> PROP Q) \<Longrightarrow> PROP R"
+  apply (rewrite at asm assms)
+  apply assumption
+  done
+
 
 
 (* Rewriting with conditional rewriting rules works just as well. *)

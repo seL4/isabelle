@@ -156,7 +156,7 @@ fun ft_concl ctxt (ft as (_, t, _) : focusterm) =
 
 fun ft_assm ctxt (ft as (_, t, _) : focusterm) =
   case t of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_concl ctxt o ft_arg ctxt o ft_fun ctxt) ft
+    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_arg ctxt o ft_fun ctxt) ft
   | _ => raise TERM ("ft_assm", [t])
 
 fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
