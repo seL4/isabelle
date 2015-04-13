@@ -126,9 +126,9 @@ fun abs_cconv cv ctxt ct =
          fun abstract_rule u v eq =
            let
              (* Take a variable v and an equality theorem of form:
-                  P1 Pure.imp ... Pure.imp Pn Pure.imp L v == R v
+                  P1 \<Longrightarrow> ... \<Longrightarrow> Pn \<Longrightarrow> L v \<equiv> R v
                 And build a term of form:
-                  !!v. (%x. L x) v == (%x. R x) v *)
+                  \<And>v. (\<lambda>x. L x) v \<equiv> (\<lambda>x. R x) v *)
              fun mk_concl var eq =
                let
                  val certify = Thm.cterm_of ctxt
@@ -165,7 +165,7 @@ val fun2_cconv = fun_cconv o fun_cconv
 
 (* conversions on HHF rules *)
 
-(*rewrite B in !!x1 ... xn. B*)
+(*rewrite B in \<And>x1 ... xn. B*)
 fun params_cconv n cv ctxt ct =
   if n <> 0 andalso Logic.is_all (Thm.term_of ct)
   then arg_cconv (abs_cconv (params_cconv (n - 1) cv o #2) ctxt) ct
@@ -173,7 +173,7 @@ fun params_cconv n cv ctxt ct =
 
 (* TODO: This code behaves not exactly like Conv.prems_cconv does.
          Fix this! *)
-(*rewrite the A's in A1 Pure.imp ... Pure.imp An Pure.imp B*)
+(*rewrite the A's in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =
       (case ct |> Thm.term_of of
@@ -181,7 +181,7 @@ fun prems_cconv 0 cv ct = cv ct
           ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 
-(*rewrite B in A1 Pure.imp ... Pure.imp An Pure.imp B*)
+(*rewrite B in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun concl_cconv 0 cv ct = cv ct
   | concl_cconv n cv ct =
       (case ct |> Thm.term_of of
