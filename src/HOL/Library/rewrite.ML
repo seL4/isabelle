@@ -253,14 +253,16 @@ fun find_matches ctxt pattern_list =
             | SOME ft => SOME ft
       in desc eta_expands ft end
 
-    fun seq_unfold f ft =
-      case f ft of
-        NONE => Seq.empty
-      | SOME ft' => Seq.cons ft' (seq_unfold f ft')
+    fun move_assms ctxt (ft: focusterm) =
+      let
+        fun f () = case try (ft_assm ctxt) ft of
+            NONE => NONE
+          | SOME ft' => SOME (ft', move_assms ctxt (ft_imp ctxt ft))
+      in Seq.make f end
 
     fun apply_pat At = Seq.map (ft_judgment ctxt)
       | apply_pat In = Seq.maps (valid_match_points ctxt)
-      | apply_pat Asm = Seq.maps (seq_unfold (try (ft_assm ctxt)) o ft_params ctxt)
+      | apply_pat Asm = Seq.maps (move_assms ctxt o ft_params ctxt)
       | apply_pat Concl = Seq.map (ft_concl ctxt o ft_params ctxt)
       | apply_pat (For idents) = Seq.map_filter ((ft_for ctxt (map (apfst SOME) idents)))
       | apply_pat (Term x) = Seq.map_filter ( (move_term ctxt x))

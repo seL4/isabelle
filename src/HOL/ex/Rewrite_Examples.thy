@@ -82,6 +82,13 @@ lemma
   shows   "P {(x::nat, y::nat, z). x + z * 3 = Q (\<lambda>s t. y + s * t - 3)}"
   by (rewrite at "b + d * e" in "\<lambda>(a, b, c). _ = Q (\<lambda>d e. \<hole>)" add.commute) fact
 
+(* This is not limited to the first assumption *)
+lemma
+  assumes "PROP P \<equiv> PROP Q"
+  shows "PROP R \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"
+    by (rewrite at asm assms)
+
+
 
 (* Rewriting with conditional rewriting rules works just as well. *)
 lemma test_theorem:
