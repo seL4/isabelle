@@ -12,6 +12,40 @@ begin
 named_theorems partial_function_mono "monotonicity rules for partial function definitions"
 ML_file "Tools/Function/partial_function.ML"
 
+lemma (in ccpo) in_chain_finite:
+  assumes "Complete_Partial_Order.chain op \<le> A" "finite A" "A \<noteq> {}"
+  shows "\<Squnion>A \<in> A"
+using assms(2,1,3)
+proof induction
+  case empty thus ?case by simp
+next
+  case (insert x A)
+  note chain = `Complete_Partial_Order.chain op \<le> (insert x A)`
+  show ?case
+  proof(cases "A = {}")
+    case True thus ?thesis by simp
+  next
+    case False
+    from chain have chain': "Complete_Partial_Order.chain op \<le> A"
+      by(rule chain_subset) blast
+    hence "\<Squnion>A \<in> A" using False by(rule insert.IH)
+    show ?thesis
+    proof(cases "x \<le> \<Squnion>A")
+      case True
+      have "\<Squnion>insert x A \<le> \<Squnion>A" using chain
+        by(rule ccpo_Sup_least)(auto simp add: True intro: ccpo_Sup_upper[OF chain'])
+      hence "\<Squnion>insert x A = \<Squnion>A"
+        by(rule antisym)(blast intro: ccpo_Sup_upper[OF chain] ccpo_Sup_least[OF chain'])
+      with `\<Squnion>A \<in> A` show ?thesis by simp
+    next
+      case False
+      with chainD[OF chain, of x "\<Squnion>A"] `\<Squnion>A \<in> A`
+      have "\<Squnion>insert x A = x"
+        by(auto intro: antisym ccpo_Sup_least[OF chain] order_trans[OF ccpo_Sup_upper[OF chain']] ccpo_Sup_upper[OF chain])
+      thus ?thesis by simp
+    qed
+  qed
+qed
 
 subsection {* Axiomatic setup *}
 
