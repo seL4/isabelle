@@ -641,6 +641,8 @@ next
   ultimately show ?case by (simp only: map_of.simps ran_map_upd) simp
 qed
 
+lemma ran_map_option: "ran (\<lambda>x. map_option f (m x)) = f ` ran m"
+by(auto simp add: ran_def)
 
 subsection {* @{text "map_le"} *}
 

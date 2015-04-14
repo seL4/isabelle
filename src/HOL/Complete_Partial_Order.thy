@@ -53,6 +53,9 @@ using assms unfolding chain_def by fast
 lemma chain_empty: "chain ord {}"
 by(simp add: chain_def)
 
+lemma chain_equality: "chain op = A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x = y)"
+by(auto simp add: chain_def)
+
 subsection {* Chain-complete partial orders *}
 
 text {*
