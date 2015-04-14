@@ -164,36 +164,22 @@ fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
   then ft_arg ctxt ft
   else ft
 
-
-(* Return a lazy sequenze of all subterms of the focusterm for which
-   the condition holds. *)
-fun find_subterms ctxt condition (ft as (_, t, _) : focusterm) =
-  let
-    val recurse = find_subterms ctxt condition
-    val recursive_matches =
-      case t of
-        _ $ _ => Seq.append (ft |> ft_fun ctxt |> recurse) (ft |> ft_arg ctxt |> recurse)
-      | Abs (_,T,_) => ft |> ft_abs ctxt (NONE, T) |> recurse
-      | _ => Seq.empty
-  in
-    (* If the condition is met, then the current focusterm is part of the
-       sequence of results. Otherwise, only the results of the recursive
-       application are. *)
-    if condition ft
-    then Seq.cons ft recursive_matches
-    else recursive_matches
-  end
-
 (* Find all subterms that might be a valid point to apply a rule. *)
-fun valid_match_points ctxt =
+fun valid_match_points ctxt (ft : focusterm) =
   let
+    fun descend (_, _ $ _, _) = [ft_fun ctxt, ft_arg ctxt]
+      | descend (_, Abs (_, T, _), _) = [ft_abs ctxt (NONE, T)]
+      | descend _ = []
+    fun subseq ft =
+      descend ft |> Seq.of_list |> Seq.maps (fn f => ft |> f |> valid_match_points ctxt)
     fun is_valid (l $ _) = is_valid l
       | is_valid (Abs (_, _, a)) = is_valid a
       | is_valid (Var _) = false
       | is_valid (Bound _) = false
       | is_valid _ = true
   in
-    find_subterms ctxt (#2 #> is_valid )
+    Seq.make (fn () => SOME (ft, subseq ft))
+    |> Seq.filter (#2 #> is_valid)
   end
 
 fun is_hole (Var ((name, _), _)) = (name = holeN)
