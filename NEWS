@@ -77,6 +77,9 @@ Options / Text Area).
 * Old graph browser (Java/AWT 1.1) is superseded by improved graphview
 panel, which also produces PDF output without external tools.
 
+* Improved scheduling for asynchronous print commands (e.g. provers
+managed by the Sledgehammer panel) wrt. ongoing document processing.
+
 
 *** Document preparation ***
 
