@@ -56,6 +56,17 @@ by(simp add: chain_def)
 lemma chain_equality: "chain op = A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x = y)"
 by(auto simp add: chain_def)
 
+lemma chain_subset:
+  "\<lbrakk> chain ord A; B \<subseteq> A \<rbrakk>
+  \<Longrightarrow> chain ord B"
+by(rule chainI)(blast dest: chainD)
+
+lemma chain_imageI: 
+  assumes chain: "chain le_a Y"
+  and mono: "\<And>x y. \<lbrakk> x \<in> Y; y \<in> Y; le_a x y \<rbrakk> \<Longrightarrow> le_b (f x) (f y)"
+  shows "chain le_b (f ` Y)"
+by(blast intro: chainI dest: chainD[OF chain] mono)
+
 subsection {* Chain-complete partial orders *}
 
 text {*
@@ -67,6 +78,12 @@ class ccpo = order + Sup +
   assumes ccpo_Sup_upper: "\<lbrakk>chain (op \<le>) A; x \<in> A\<rbrakk> \<Longrightarrow> x \<le> Sup A"
   assumes ccpo_Sup_least: "\<lbrakk>chain (op \<le>) A; \<And>x. x \<in> A \<Longrightarrow> x \<le> z\<rbrakk> \<Longrightarrow> Sup A \<le> z"
 begin
+
+lemma chain_singleton: "Complete_Partial_Order.chain op \<le> {x}"
+by(rule chainI) simp
+
+lemma ccpo_Sup_singleton [simp]: "\<Squnion>{x} = x"
+by(rule antisym)(auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
 
 subsection {* Transfinite iteration of a function *}
 
