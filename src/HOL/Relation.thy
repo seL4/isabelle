@@ -216,6 +216,8 @@ lemma refl_on_def' [nitpick_unfold, code]:
   "refl_on A r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<in> A \<and> y \<in> A) \<and> (\<forall>x \<in> A. (x, x) \<in> r)"
   by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
+lemma reflp_equality [simp]: "reflp op ="
+by(simp add: reflp_def)
 
 subsubsection {* Irreflexivity *}
 
@@ -357,6 +359,8 @@ lemma antisym_subset: "r \<subseteq> s ==> antisym s ==> antisym r"
 lemma antisym_empty [simp]: "antisym {}"
   by (unfold antisym_def) blast
 
+lemma antisymP_equality [simp]: "antisymP op ="
+by(auto intro: antisymI)
 
 subsubsection {* Transitivity *}
 

@@ -2361,6 +2361,10 @@ proof (subst sets_measure_of)
     by simp
 qed
 
+lemma sets_restrict_space_count_space :
+  "sets (restrict_space (count_space A) B) = sets (count_space (A \<inter> B))"
+by(auto simp add: sets_restrict_space)
+
 lemma sets_restrict_UNIV[simp]: "sets (restrict_space M UNIV) = sets M"
   by (auto simp add: sets_restrict_space)
 

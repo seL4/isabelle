@@ -1650,7 +1650,6 @@ proof (rule finite_measureI)
   with f show "emeasure (distr M M' f) (space (distr M M' f)) \<noteq> \<infinity>" by (auto simp: emeasure_distr)
 qed
 
-
 subsection {* Counting space *}
 
 lemma strict_monoI_Suc:
@@ -1880,6 +1879,40 @@ proof (rule measure_eqI)
   ultimately have "X \<subseteq> A \<inter> B" by auto
   then show "emeasure (restrict_space (count_space B) A) X = emeasure (count_space (A \<inter> B)) X"
     by (cases "finite X") (auto simp add: emeasure_restrict_space)
+qed
+
+lemma sigma_finite_measure_restrict_space:
+  assumes "sigma_finite_measure M"
+  and A: "A \<in> sets M"
+  shows "sigma_finite_measure (restrict_space M A)"
+proof -
+  interpret sigma_finite_measure M by fact
+  from sigma_finite_countable obtain C
+    where C: "countable C" "C \<subseteq> sets M" "(\<Union>C) = space M" "\<forall>a\<in>C. emeasure M a \<noteq> \<infinity>"
+    by blast
+  let ?C = "op \<inter> A ` C"
+  from C have "countable ?C" "?C \<subseteq> sets (restrict_space M A)" "(\<Union>?C) = space (restrict_space M A)"
+    by(auto simp add: sets_restrict_space space_restrict_space)
+  moreover {
+    fix a
+    assume "a \<in> ?C"
+    then obtain a' where "a = A \<inter> a'" "a' \<in> C" ..
+    then have "emeasure (restrict_space M A) a \<le> emeasure M a'"
+      using A C by(auto simp add: emeasure_restrict_space intro: emeasure_mono)
+    also have "\<dots> < \<infinity>" using C(4)[rule_format, of a'] \<open>a' \<in> C\<close> by simp
+    finally have "emeasure (restrict_space M A) a \<noteq> \<infinity>" by simp }
+  ultimately show ?thesis
+    by unfold_locales (rule exI conjI|assumption|blast)+
+qed
+
+lemma finite_measure_restrict_space:
+  assumes "finite_measure M"
+  and A: "A \<in> sets M"
+  shows "finite_measure (restrict_space M A)"
+proof -
+  interpret finite_measure M by fact
+  show ?thesis
+    by(rule finite_measureI)(simp add: emeasure_restrict_space A space_restrict_space)
 qed
 
 lemma restrict_distr: 

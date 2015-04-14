@@ -1875,6 +1875,15 @@ proof (rule integral_eq_cases)
   qed
 qed (simp add: integrable_restrict_space)
 
+lemma integral_empty:
+  assumes "space M = {}"
+  shows "integral\<^sup>L M f = 0"
+proof -
+  have "(\<integral> x. f x \<partial>M) = (\<integral> x. 0 \<partial>M)"
+    by(rule integral_cong)(simp_all add: assms)
+  thus ?thesis by simp
+qed
+
 subsection {* Measure spaces with an associated density *}
 
 lemma integrable_density:

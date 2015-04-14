@@ -247,6 +247,13 @@ lemma countable_relpow:
   shows "countable ((X ^^ i) `` Y)"
   using Y by (induct i arbitrary: Y) (auto simp: relcomp_Image Image_X)
 
+lemma countable_funpow:
+  fixes f :: "'a set \<Rightarrow> 'a set"
+  assumes "\<And>A. countable A \<Longrightarrow> countable (f A)"
+  and "countable A"
+  shows "countable ((f ^^ n) A)"
+by(induction n)(simp_all add: assms)
+
 lemma countable_rtrancl:
   "(\<And>Y. countable Y \<Longrightarrow> countable (X `` Y)) \<Longrightarrow> countable Y \<Longrightarrow> countable (X^* `` Y)"
   unfolding rtrancl_is_UN_relpow UN_Image by (intro countable_UN countableI_type countable_relpow)
@@ -275,6 +282,9 @@ lemma Collect_finite_subset_eq_lists: "{A. finite A \<and> A \<subseteq> T} = se
 lemma countable_Collect_finite_subset:
   "countable T \<Longrightarrow> countable {A. finite A \<and> A \<subseteq> T}"
   unfolding Collect_finite_subset_eq_lists by auto
+
+lemma countable_set_option [simp]: "countable (set_option x)"
+by(cases x) auto
 
 subsection {* Misc lemmas *}
 

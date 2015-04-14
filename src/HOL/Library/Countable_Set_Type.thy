@@ -341,7 +341,30 @@ lemmas cminus_mono = Diff_mono[Transfer.transferred]
 lemmas cin_mono = in_mono[Transfer.transferred]
 lemmas cLeast_mono = Least_mono[Transfer.transferred]
 lemmas cequalityI = equalityI[Transfer.transferred]
-
+lemmas cUnion_cimage_eq [simp] = Union_image_eq[Transfer.transferred]
+lemmas cUN_iff [simp] = UN_iff[Transfer.transferred]
+lemmas cUN_I [intro] = UN_I[Transfer.transferred]
+lemmas cUN_E [elim!] = UN_E[Transfer.transferred]
+lemmas cimage_eq_cUN = image_eq_UN[Transfer.transferred]
+lemmas cUN_upper = UN_upper[Transfer.transferred]
+lemmas cUN_least = UN_least[Transfer.transferred]
+lemmas cUN_cinsert_distrib = UN_insert_distrib[Transfer.transferred]
+lemmas cUN_empty [simp] = UN_empty[Transfer.transferred]
+lemmas cUN_empty2 [simp] = UN_empty2[Transfer.transferred]
+lemmas cUN_absorb = UN_absorb[Transfer.transferred]
+lemmas cUN_cinsert [simp] = UN_insert[Transfer.transferred]
+lemmas cUN_cUn [simp] = UN_Un[Transfer.transferred]
+lemmas cUN_cUN_flatten = UN_UN_flatten[Transfer.transferred]
+lemmas cUN_csubset_iff = UN_subset_iff[Transfer.transferred]
+lemmas cUN_constant [simp] = UN_constant[Transfer.transferred]
+lemmas cimage_cUnion = image_Union[Transfer.transferred]
+lemmas cUNION_cempty_conv [simp] = UNION_empty_conv[Transfer.transferred]
+lemmas cBall_cUN = ball_UN[Transfer.transferred]
+lemmas cBex_cUN = bex_UN[Transfer.transferred]
+lemmas cUn_eq_cUN = Un_eq_UN[Transfer.transferred]
+lemmas cUN_mono = UN_mono[Transfer.transferred]
+lemmas cimage_cUN = image_UN[Transfer.transferred]
+lemmas cUN_csingleton [simp] = UN_singleton[Transfer.transferred]
 
 subsection {* Additional lemmas*}
 
@@ -395,6 +418,11 @@ apply (simp only: atomize_all atomize_imp)
 apply (rule equal_intr_rule)
 by (transfer, simp)+
 
+subsubsection {* @{const cUnion} *}
+
+lemma cUNION_cimage: "cUNION (cimage f A) g = cUNION A (g \<circ> f)"
+including cset.lifting by transfer auto
+
 
 subsection {* Setup for Lifting/Transfer *}
 
@@ -413,6 +441,14 @@ lemma rel_cset_iff:
   "rel_cset R a b \<longleftrightarrow>
    (\<forall>t. cin t a \<longrightarrow> (\<exists>u. cin u b \<and> R t u)) \<and>
    (\<forall>t. cin t b \<longrightarrow> (\<exists>u. cin u a \<and> R u t))"
+by transfer(auto simp add: rel_set_def)
+
+lemma rel_cset_cUNION:
+  "\<lbrakk> rel_cset Q A B; rel_fun Q (rel_cset R) f g \<rbrakk>
+  \<Longrightarrow> rel_cset R (cUNION A f) (cUNION B g)"
+unfolding rel_fun_def by transfer(erule rel_set_UNION, simp add: rel_fun_def)
+
+lemma rel_cset_csingle_iff [simp]: "rel_cset R (csingle x) (csingle y) \<longleftrightarrow> R x y"
 by transfer(auto simp add: rel_set_def)
 
 subsubsection {* Transfer rules for the Transfer package *}
