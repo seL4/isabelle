@@ -177,14 +177,10 @@ fun parse_command thy =
       | SOME (Command {command_parser = Limited_Parser parse, ...}) =>
           before_command :|-- (fn limited =>
             Parse.!!! (command_tags |-- parse limited)) >> (fn f => f tr0)
-      | NONE =>
-          Scan.succeed
-            (tr0 |> Toplevel.imperative (fn () => err_command "Undefined command " name [pos])))
+      | NONE => Scan.fail_with (fn _ => fn _ => err_command "Undefined command " name [pos]))
     end);
 
 val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;
-
-in
 
 fun commands_source thy =
   Token.source_proper #>
@@ -192,7 +188,7 @@ fun commands_source thy =
   Source.map_filter I #>
   Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy) xs));
 
-end;
+in
 
 fun parse thy pos str =
   Source.of_string str
@@ -205,6 +201,8 @@ fun parse_tokens thy toks =
   Source.of_list toks
   |> commands_source thy
   |> Source.exhaust;
+
+end;
 
 
 (* parse spans *)
