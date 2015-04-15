@@ -31,7 +31,7 @@ sig
   val empty: transition
   val name_of: transition -> string
   val pos_of: transition -> Position.T
-  val type_error: transition -> state -> string
+  val type_error: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
@@ -309,11 +309,12 @@ val empty = make_transition ("", Position.none, NONE, []);
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
 
-fun command_msg msg tr = msg ^ "command " ^ quote (name_of tr) ^ Position.here (pos_of tr);
-fun at_command tr = command_msg "At " tr;
+fun command_msg msg tr =
+  msg ^ "command " ^ quote (Markup.markup Markup.keyword1 (name_of tr)) ^
+    Position.here (pos_of tr);
 
-fun type_error tr state =
-  command_msg "Illegal application of " tr ^ " " ^ str_of_state state;
+fun at_command tr = command_msg "At " tr;
+fun type_error tr = command_msg "Bad context for " tr;
 
 
 (* modify transitions *)
@@ -569,9 +570,7 @@ fun app int (tr as Transition {name, trans, ...}) =
       val timing_props =
         Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
       val _ = Timing.protocol_message timing_props timing_result;
-    in
-      (result, Option.map (fn UNDEF => ERROR (type_error tr state) | exn => exn) opt_err)
-    end);
+    in (result, Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn) opt_err) end);
 
 in
 

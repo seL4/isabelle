@@ -110,13 +110,18 @@ lemma embed_measure_eq_distr:
     "inj f \<Longrightarrow> embed_measure M f = distr M (embed_measure M f) f"
   by (rule embed_measure_eq_distr') (auto intro!: inj_onI dest: injD)
 
+lemma nn_integral_embed_measure':
+  "inj_on f (space M) \<Longrightarrow> g \<in> borel_measurable (embed_measure M f) \<Longrightarrow>
+  nn_integral (embed_measure M f) g = nn_integral M (\<lambda>x. g (f x))"
+  apply (subst embed_measure_eq_distr', simp)
+  apply (subst nn_integral_distr)
+  apply (simp_all add: measurable_embed_measure2')
+  done
+
 lemma nn_integral_embed_measure:
   "inj f \<Longrightarrow> g \<in> borel_measurable (embed_measure M f) \<Longrightarrow>
   nn_integral (embed_measure M f) g = nn_integral M (\<lambda>x. g (f x))"
-  apply (subst embed_measure_eq_distr, simp)
-  apply (subst nn_integral_distr)
-  apply (simp_all add: measurable_embed_measure2)
-  done
+  by(erule nn_integral_embed_measure'[OF subset_inj_on]) simp
 
 lemma emeasure_embed_measure':
     assumes "inj_on f (space M)" "A \<in> sets (embed_measure M f)"
@@ -167,17 +172,20 @@ proof
   qed
 qed
 
-lemma embed_measure_count_space: 
-    "inj f \<Longrightarrow> embed_measure (count_space A) f = count_space (f`A)"
+lemma embed_measure_count_space':
+    "inj_on f A \<Longrightarrow> embed_measure (count_space A) f = count_space (f`A)"
   apply (subst distr_bij_count_space[of f A "f`A", symmetric])
   apply (simp add: inj_on_def bij_betw_def)
-  apply (subst embed_measure_eq_distr)
+  apply (subst embed_measure_eq_distr')
   apply simp
-  apply (auto intro!: measure_eqI imageI simp: sets_embed_measure subset_image_iff)
-  apply blast
+  apply(auto 4 3 intro!: measure_eqI imageI simp add: sets_embed_measure' subset_image_iff)
   apply (subst (1 2) emeasure_distr)
-  apply (auto simp: space_embed_measure sets_embed_measure)
+  apply (auto simp: space_embed_measure sets_embed_measure')
   done
+
+lemma embed_measure_count_space: 
+    "inj f \<Longrightarrow> embed_measure (count_space A) f = count_space (f`A)"
+  by(rule embed_measure_count_space')(erule subset_inj_on, simp)
 
 lemma sets_embed_measure_alt:
     "inj f \<Longrightarrow> sets (embed_measure M f) = (op`f) ` sets M"
@@ -339,5 +347,34 @@ lemma AE_embed_measure:
   assumes inj: "inj f"
   shows "(AE x in embed_measure M f. P x) \<longleftrightarrow> (AE x in M. P (f x))"
   using assms by (intro AE_embed_measure') (auto intro!: inj_onI dest: injD)
+
+lemma nn_integral_monotone_convergence_SUP_countable:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> ereal"
+  assumes nonempty: "Y \<noteq> {}"
+  and chain: "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  and countable: "countable B"
+  shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space B) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space B))"
+  (is "?lhs = ?rhs")
+proof -
+  let ?f = "(\<lambda>i x. f i (from_nat_into B x) * indicator (to_nat_on B ` B) x)"
+  have "?lhs = \<integral>\<^sup>+ x. (SUP i:Y. f i (from_nat_into B (to_nat_on B x))) \<partial>count_space B"
+    by(rule nn_integral_cong)(simp add: countable)
+  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i:Y. f i (from_nat_into B x)) \<partial>count_space (to_nat_on B ` B)"
+    by(simp add: embed_measure_count_space'[symmetric] inj_on_to_nat_on countable nn_integral_embed_measure' measurable_embed_measure1)
+  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i:Y. ?f i x) \<partial>count_space UNIV"
+    by(simp add: nn_integral_count_space_indicator ereal_indicator[symmetric] Sup_ereal_mult_right' nonempty)
+  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. ?f i x \<partial>count_space UNIV)" using nonempty
+  proof(rule nn_integral_monotone_convergence_SUP_nat)
+    show "Complete_Partial_Order.chain op \<le> (?f ` Y)"
+      by(rule chain_imageI[OF chain, unfolded image_image])(auto intro!: le_funI split: split_indicator dest: le_funD)
+  qed
+  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. f i (from_nat_into B x) \<partial>count_space (to_nat_on B ` B))"
+    by(simp add: nn_integral_count_space_indicator)
+  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. f i (from_nat_into B (to_nat_on B x)) \<partial>count_space B)"
+    by(simp add: embed_measure_count_space'[symmetric] inj_on_to_nat_on countable nn_integral_embed_measure' measurable_embed_measure1)
+  also have "\<dots> = ?rhs" 
+    by(intro arg_cong2[where f="SUPREMUM"] ext nn_integral_cong_AE)(simp_all add: AE_count_space countable)
+  finally show ?thesis .
+qed
 
 end

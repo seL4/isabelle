@@ -281,4 +281,9 @@ qed
 lemmas setsum_parametric = setsum.F_parametric
 lemmas setprod_parametric = setprod.F_parametric
 
+lemma rel_set_UNION:
+  assumes [transfer_rule]: "rel_set Q A B" "rel_fun Q (rel_set R) f g"
+  shows "rel_set R (UNION A f) (UNION B g)"
+by transfer_prover
+
 end

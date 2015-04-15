@@ -1224,6 +1224,18 @@ proof (safe intro!: imageI)
     using * eq[symmetric] by auto
 qed simp_all
 
+lemma inj_on_apfst [simp]: "inj_on (apfst f) (A \<times> UNIV) \<longleftrightarrow> inj_on f A"
+by(auto simp add: inj_on_def)
+
+lemma inj_apfst [simp]: "inj (apfst f) \<longleftrightarrow> inj f"
+using inj_on_apfst[of f UNIV] by simp
+
+lemma inj_on_apsnd [simp]: "inj_on (apsnd f) (UNIV \<times> A) \<longleftrightarrow> inj_on f A"
+by(auto simp add: inj_on_def)
+
+lemma inj_apsnd [simp]: "inj (apsnd f) \<longleftrightarrow> inj f"
+using inj_on_apsnd[of f UNIV] by simp
+
 definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
   [code_abbrev]: "product A B = A \<times> B"
 

@@ -1056,6 +1056,13 @@ proof -
   finally show ?thesis .
 qed
 
+lemma measurable_pair_measure_countable1:
+  assumes "countable A"
+  and [measurable]: "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) \<in> measurable N K"
+  shows "f \<in> measurable (count_space A \<Otimes>\<^sub>M N) K"
+using _ _ assms(1)
+by(rule measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g=fst and I=A, simplified])simp_all
+
 subsection {* Product of Borel spaces *}
 
 lemma borel_Times:

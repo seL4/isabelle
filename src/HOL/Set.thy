@@ -647,7 +647,6 @@ lemma UNIV_not_empty [iff]: "UNIV ~= {}"
 lemma empty_not_UNIV[simp]: "{} \<noteq> UNIV"
 by blast
 
-
 subsubsection {* The Powerset operator -- Pow *}
 
 definition Pow :: "'a set => 'a set set" where
@@ -845,6 +844,9 @@ proof
 next
   assume ?R thus ?L by (auto split: if_splits)
 qed
+
+lemma insert_UNIV: "insert x UNIV = UNIV"
+by auto
 
 subsubsection {* Singletons, using insert *}
 
@@ -1884,6 +1886,8 @@ lemma nonempty_bind_const:
 lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
   by (auto simp add: bind_def)
 
+lemma bind_singleton_conv_image: "Set.bind A (\<lambda>x. {f x}) = f ` A"
+  by(auto simp add: bind_def)
 
 subsubsection {* Operations for execution *}
 

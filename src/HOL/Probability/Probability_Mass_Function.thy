@@ -224,6 +224,9 @@ lemma emeasure_pmf_single:
   shows "emeasure M {x} = pmf M x"
   by transfer (simp add: finite_measure.emeasure_eq_measure[OF prob_space.finite_measure])
 
+lemma measure_pmf_single: "measure (measure_pmf M) {x} = pmf M x"
+using emeasure_pmf_single[of M x] by(simp add: measure_pmf.emeasure_eq_measure)
+
 lemma emeasure_measure_pmf_finite: "finite S \<Longrightarrow> emeasure (measure_pmf M) S = (\<Sum>s\<in>S. pmf M s)"
   by (subst emeasure_eq_setsum_singleton) (auto simp: emeasure_pmf_single)
 
@@ -510,13 +513,13 @@ proof -
   finally show ?thesis .
 qed
 
-lemma map_return_pmf: "map_pmf f (return_pmf x) = return_pmf (f x)"
+lemma map_return_pmf [simp]: "map_pmf f (return_pmf x) = return_pmf (f x)"
   by transfer (simp add: distr_return)
 
 lemma map_pmf_const[simp]: "map_pmf (\<lambda>_. c) M = return_pmf c"
   by transfer (auto simp: prob_space.distr_const)
 
-lemma pmf_return: "pmf (return_pmf x) y = indicator {y} x"
+lemma pmf_return [simp]: "pmf (return_pmf x) y = indicator {y} x"
   by transfer (simp add: measure_return)
 
 lemma nn_integral_return_pmf[simp]: "0 \<le> f x \<Longrightarrow> (\<integral>\<^sup>+x. f x \<partial>return_pmf x) = f x"
@@ -592,7 +595,7 @@ proof (rule measure_eqI)
   then show "emeasure ?L X = emeasure ?R X"
     apply (simp add: emeasure_bind[OF _ M' X])
     apply (simp add: nn_integral_bind[where B="count_space UNIV"] pair_pmf_def measure_pmf_bind[of A]
-                     nn_integral_measure_pmf_finite emeasure_nonneg pmf_return one_ereal_def[symmetric])
+                     nn_integral_measure_pmf_finite emeasure_nonneg one_ereal_def[symmetric])
     apply (subst emeasure_bind[OF _ _ X])
     apply measurable
     apply (subst emeasure_bind[OF _ _ X])
@@ -624,6 +627,16 @@ lemma pmf_map_inj: "inj_on f (set_pmf M) \<Longrightarrow> x \<in> set_pmf M \<L
   by (auto simp: pmf.rep_eq map_pmf_rep_eq measure_distr AE_measure_pmf_iff inj_onD
            intro!: measure_pmf.finite_measure_eq_AE)
 
+lemma pmf_map_inj': "inj f \<Longrightarrow> pmf (map_pmf f M) (f x) = pmf M x"
+apply(cases "x \<in> set_pmf M")
+ apply(simp add: pmf_map_inj[OF subset_inj_on])
+apply(simp add: pmf_eq_0_set_pmf[symmetric])
+apply(auto simp add: pmf_eq_0_set_pmf dest: injD)
+done
+
+lemma pmf_map_outside: "x \<notin> f ` set_pmf M \<Longrightarrow> pmf (map_pmf f M) x = 0"
+unfolding pmf_eq_0_set_pmf by simp
+
 subsection \<open> PMFs as function \<close>
 
 context
@@ -650,6 +663,9 @@ proof transfer
   fix x show "measure (density (count_space UNIV) (ereal \<circ> f)) {x} = f x"
     by transfer (simp add: measure_def emeasure_density nonneg max_def)
 qed
+
+lemma set_embed_pmf: "set_pmf embed_pmf = {x. f x \<noteq> 0}"
+by(auto simp add: set_pmf_eq assms pmf_embed_pmf)
 
 end
 
@@ -699,6 +715,9 @@ next
 qed (rule pmf_nonneg)
 
 end
+
+lemma nn_integral_measure_pmf: "(\<integral>\<^sup>+ x. f x \<partial>measure_pmf p) = \<integral>\<^sup>+ x. ereal (pmf p x) * f x \<partial>count_space UNIV"
+by(simp add: measure_pmf_eq_density nn_integral_density pmf_nonneg)
 
 locale pmf_as_function
 begin
@@ -896,11 +915,11 @@ proof
   then show "\<And>x y. (x, y) \<in> set_pmf ?pq \<Longrightarrow> R x y"
     by auto
   show "map_pmf fst ?pq = p"
-    by (simp add: map_bind_pmf map_return_pmf bind_return_pmf')
+    by (simp add: map_bind_pmf bind_return_pmf')
 
   show "map_pmf snd ?pq = q"
     using R eq
-    apply (simp add: bind_cond_pmf_cancel map_bind_pmf map_return_pmf bind_return_pmf')
+    apply (simp add: bind_cond_pmf_cancel map_bind_pmf bind_return_pmf')
     apply (rule bind_cond_pmf_cancel)
     apply (auto simp: rel_set_def)
     done
@@ -1064,10 +1083,10 @@ proof -
         by blast
     next
       have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {yz. fst yz = y}))"
-        by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_return_pmf map_pmf_comp)
+        by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_pmf_comp)
       then show "map_pmf snd pr = r"
         unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) (auto simp: eq_commute)
-    qed (simp add: pr_def map_bind_pmf split_beta map_return_pmf map_pmf_def[symmetric] p map_pmf_comp) }
+    qed (simp add: pr_def map_bind_pmf split_beta map_pmf_def[symmetric] p map_pmf_comp) }
   then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     by(auto simp add: le_fun_def)
 qed (fact natLeq_card_order natLeq_cinfinite)+
@@ -1420,7 +1439,58 @@ lemma set_pmf_of_set[simp]: "set_pmf pmf_of_set = S"
 lemma emeasure_pmf_of_set[simp]: "emeasure pmf_of_set S = 1"
   by (rule measure_pmf.emeasure_eq_1_AE) (auto simp: AE_measure_pmf_iff)
 
+lemma nn_integral_pmf_of_set': 
+  "(\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0) \<Longrightarrow> nn_integral (measure_pmf pmf_of_set) f = setsum f S / card S"
+apply(subst nn_integral_measure_pmf_finite, simp_all add: S_finite)
+apply(simp add: setsum_ereal_left_distrib[symmetric])
+apply(subst ereal_divide', simp add: S_not_empty S_finite)
+apply(simp add: ereal_times_divide_eq one_ereal_def[symmetric])
+done
+
+lemma nn_integral_pmf_of_set: 
+  "nn_integral (measure_pmf pmf_of_set) f = setsum (max 0 \<circ> f) S / card S"
+apply(subst nn_integral_max_0[symmetric])
+apply(subst nn_integral_pmf_of_set')
+apply simp_all
+done
+
+lemma integral_pmf_of_set:
+  "integral\<^sup>L (measure_pmf pmf_of_set) f = setsum f S / card S"
+apply(simp add: real_lebesgue_integral_def integrable_measure_pmf_finite nn_integral_pmf_of_set S_finite)
+apply(subst real_of_ereal_minus')
+ apply(simp add: ereal_max_0 S_finite del: ereal_max)
+apply(simp add: ereal_max_0 S_finite S_not_empty del: ereal_max)
+apply(simp add: field_simps S_finite S_not_empty)
+apply(subst setsum.distrib[symmetric])
+apply(rule setsum.cong; simp_all)
+done
+
 end
+
+lemma pmf_of_set_singleton: "pmf_of_set {x} = return_pmf x"
+by(rule pmf_eqI)(simp add: indicator_def)
+
+lemma map_pmf_of_set_inj: 
+  assumes f: "inj_on f A"
+  and [simp]: "A \<noteq> {}" "finite A"
+  shows "map_pmf f (pmf_of_set A) = pmf_of_set (f ` A)" (is "?lhs = ?rhs")
+proof(rule pmf_eqI)
+  fix i
+  show "pmf ?lhs i = pmf ?rhs i"
+  proof(cases "i \<in> f ` A")
+    case True
+    then obtain i' where "i = f i'" "i' \<in> A" by auto
+    thus ?thesis using f by(simp add: card_image pmf_map_inj)
+  next
+    case False
+    hence "pmf ?lhs i = 0" by(simp add: pmf_eq_0_set_pmf set_map_pmf)
+    moreover have "pmf ?rhs i = 0" using False by simp
+    ultimately show ?thesis by simp
+  qed
+qed
+
+lemma bernoulli_pmf_half_conv_pmf_of_set: "bernoulli_pmf (1 / 2) = pmf_of_set UNIV"
+by(rule pmf_eqI) simp_all
 
 subsubsection \<open> Poisson Distribution \<close>
 

@@ -298,6 +298,10 @@ qed
 
 end
 
+lemma ereal_0_plus [simp]: "ereal 0 + x = x"
+  and plus_ereal_0 [simp]: "x + ereal 0 = x"
+by(simp_all add: zero_ereal_def[symmetric])
+
 instance ereal :: numeral ..
 
 lemma real_of_ereal_0[simp]: "real (0::ereal) = 0"
@@ -1286,6 +1290,9 @@ lemma real_of_ereal_minus:
   shows "real (a - b) = (if \<bar>a\<bar> = \<infinity> \<or> \<bar>b\<bar> = \<infinity> then 0 else real a - real b)"
   by (cases rule: ereal2_cases[of a b]) auto
 
+lemma real_of_ereal_minus': "\<bar>x\<bar> = \<infinity> \<longleftrightarrow> \<bar>y\<bar> = \<infinity> \<Longrightarrow> real x - real y = real (x - y :: ereal)"
+by(subst real_of_ereal_minus) auto
+
 lemma ereal_diff_positive:
   fixes a b :: ereal shows "a \<le> b \<Longrightarrow> 0 \<le> b - a"
   by (cases rule: ereal2_cases[of a b]) auto
@@ -1427,6 +1434,14 @@ lemma ereal_0_gt_inverse:
   fixes x :: ereal
   shows "0 < inverse x \<longleftrightarrow> x \<noteq> \<infinity> \<and> 0 \<le> x"
   by (cases x) auto
+
+lemma ereal_inverse_le_0_iff:
+  fixes x :: ereal
+  shows "inverse x \<le> 0 \<longleftrightarrow> x < 0 \<or> x = \<infinity>"
+  by(cases x) auto
+
+lemma ereal_divide_eq_0_iff: "x / y = 0 \<longleftrightarrow> x = 0 \<or> \<bar>y :: ereal\<bar> = \<infinity>"
+by(cases x y rule: ereal2_cases) simp_all
 
 lemma ereal_mult_less_right:
   fixes a b c :: ereal
@@ -1971,7 +1986,7 @@ lemma SUP_ereal_mult_left:
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" and c: "0 \<le> c"
   shows "(SUP i:I. c * f i) = c * (SUP i:I. f i)"
 proof cases
-  assume "(SUP i:I. f i) = 0"
+  assume "(SUP i: I. f i) = 0"
   moreover then have "\<And>i. i \<in> I \<Longrightarrow> f i = 0"
     by (metis SUP_upper f antisym)
   ultimately show ?thesis
@@ -2646,6 +2661,38 @@ proof (subst SUP_ereal_add_left[symmetric])
   finally show "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. INF x:Collect P. f x + g x)" .
 qed
 
+lemma Sup_ereal_mult_right':
+  assumes nonempty: "Y \<noteq> {}"
+  and x: "x \<ge> 0"
+  shows "(SUP i:Y. f i) * ereal x = (SUP i:Y. f i * ereal x)" (is "?lhs = ?rhs")
+proof(cases "x = 0")
+  case True thus ?thesis by(auto simp add: nonempty zero_ereal_def[symmetric])
+next
+  case False
+  show ?thesis
+  proof(rule antisym)
+    show "?rhs \<le> ?lhs"
+      by(rule SUP_least)(simp add: ereal_mult_right_mono SUP_upper x)
+  next
+    have "?lhs / ereal x = (SUP i:Y. f i) * (ereal x / ereal x)" by(simp only: ereal_times_divide_eq)
+    also have "\<dots> = (SUP i:Y. f i)" using False by simp
+    also have "\<dots> \<le> ?rhs / x"
+    proof(rule SUP_least)
+      fix i
+      assume "i \<in> Y"
+      have "f i = f i * (ereal x / ereal x)" using False by simp
+      also have "\<dots> = f i * x / x" by(simp only: ereal_times_divide_eq)
+      also from \<open>i \<in> Y\<close> have "f i * x \<le> ?rhs" by(rule SUP_upper)
+      hence "f i * x / x \<le> ?rhs / x" using x False by simp
+      finally show "f i \<le> ?rhs / x" .
+    qed
+    finally have "(?lhs / x) * x \<le> (?rhs / x) * x"
+      by(rule ereal_mult_right_mono)(simp add: x)
+    also have "\<dots> = ?rhs" using False ereal_divide_eq mult.commute by force
+    also have "(?lhs / x) * x = ?lhs" using False ereal_divide_eq mult.commute by force
+    finally show "?lhs \<le> ?rhs" .
+  qed
+qed
 
 subsubsection {* Tests for code generator *}
 

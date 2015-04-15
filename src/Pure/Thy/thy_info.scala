@@ -7,6 +7,15 @@ Theory and file dependencies.
 package isabelle
 
 
+object Thy_Info
+{
+  /* dependencies */
+
+  sealed case class Dep(
+    name: Document.Node.Name,
+    header: Document.Node.Header)
+}
+
 class Thy_Info(resources: Resources)
 {
   /* messages */
@@ -24,29 +33,18 @@ class Thy_Info(resources: Resources)
 
   /* dependencies */
 
-  sealed case class Dep(
-    name: Document.Node.Name,
-    header: Document.Node.Header)
-  {
-    def loaded_files(syntax: Prover.Syntax): List[String] =
-    {
-      val string = resources.with_thy_reader(name, reader => Symbol.decode(reader.source.toString))
-      resources.loaded_files(syntax, string)
-    }
-  }
-
   object Dependencies
   {
     val empty = new Dependencies(Nil, Nil, Multi_Map.empty, Multi_Map.empty)
   }
 
   final class Dependencies private(
-    rev_deps: List[Dep],
+    rev_deps: List[Thy_Info.Dep],
     val keywords: Thy_Header.Keywords,
     val seen_names: Multi_Map[String, Document.Node.Name],
     val seen_positions: Multi_Map[String, Position.T])
   {
-    def :: (dep: Dep): Dependencies =
+    def :: (dep: Thy_Info.Dep): Dependencies =
       new Dependencies(dep :: rev_deps, dep.header.keywords ::: keywords,
         seen_names, seen_positions)
 
@@ -58,7 +56,7 @@ class Thy_Info(resources: Resources)
         seen_positions + (name.theory -> pos))
     }
 
-    def deps: List[Dep] = rev_deps.reverse
+    def deps: List[Thy_Info.Dep] = rev_deps.reverse
 
     def errors: List[String] =
     {
@@ -84,32 +82,15 @@ class Thy_Info(resources: Resources)
 
     def loaded_files: List[Path] =
     {
-      val dep_files =
-        Par_List.map(
-          (dep: Dep) =>
-            dep.loaded_files(syntax).map(a => Path.explode(dep.name.master_dir) + Path.explode(a)),
-          rev_deps)
-      ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
-    }
-
-    def deps_graph(parent_session: String, parent_loaded: String => Boolean): Graph_Display.Graph =
-    {
-      val parent_session_node =
-        Graph_Display.Node("[" + parent_session + "]", "session." + parent_session)
-
-      def node(name: Document.Node.Name): Graph_Display.Node =
-        if (parent_loaded(name.theory)) parent_session_node
-        else Graph_Display.Node(name.theory, "theory." + name.theory)
-
-      (Graph_Display.empty_graph /: rev_deps) {
-        case (g, dep) =>
-          if (parent_loaded(dep.name.theory)) g
-          else {
-            val a = node(dep.name)
-            val bs = dep.header.imports.map({ case (name, _) => node(name) })
-            ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a))
-          }
+      def loaded(dep: Thy_Info.Dep): List[Path] =
+      {
+        val string = resources.with_thy_reader(dep.name,
+          reader => Symbol.decode(reader.source.toString))
+        resources.loaded_files(syntax, string).
+          map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
       }
+      val dep_files = Par_List.map(loaded _, rev_deps)
+      ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
   }
 
@@ -136,11 +117,12 @@ class Thy_Info(resources: Resources)
         val header =
           try { resources.check_thy(session, name, Token.Pos.file(name.node)).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        Dep(name, header) :: require_thys(session, name :: initiators, required1, header.imports)
+        Thy_Info.Dep(name, header) ::
+          require_thys(session, name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>
-          Dep(name, Document.Node.bad_header(Exn.message(e))) :: required1
+          Thy_Info.Dep(name, Document.Node.bad_header(Exn.message(e))) :: required1
       }
     }
   }

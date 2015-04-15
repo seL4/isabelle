@@ -758,6 +758,9 @@ lemma nn_integral_nonneg: "0 \<le> integral\<^sup>N M f"
 lemma nn_integral_le_0[simp]: "integral\<^sup>N M f \<le> 0 \<longleftrightarrow> integral\<^sup>N M f = 0"
   using nn_integral_nonneg[of M f] by auto
 
+lemma nn_integral_not_less_0 [simp]: "\<not> nn_integral M f < 0"
+by(simp add: not_less nn_integral_nonneg)
+
 lemma nn_integral_not_MInfty[simp]: "integral\<^sup>N M f \<noteq> -\<infinity>"
   using nn_integral_nonneg[of M f] by auto
 
@@ -1648,6 +1651,15 @@ qed
 
 subsection {* Integral under concrete measures *}
 
+lemma nn_integral_empty: 
+  assumes "space M = {}"
+  shows "nn_integral M f = 0"
+proof -
+  have "(\<integral>\<^sup>+ x. f x \<partial>M) = (\<integral>\<^sup>+ x. 0 \<partial>M)"
+    by(rule nn_integral_cong)(simp add: assms)
+  thus ?thesis by simp
+qed
+
 subsubsection {* Distributions *}
 
 lemma nn_integral_distr':
@@ -1853,6 +1865,143 @@ proof (rule measure_eqI)
     using ae by (intro emeasure_eq_AE) auto
   finally show "emeasure M A = emeasure N A" ..
 qed simp
+
+lemma nn_integral_monotone_convergence_SUP_nat':
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
+  assumes chain: "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  and nonempty: "Y \<noteq> {}"
+  and nonneg: "\<And>i n. i \<in> Y \<Longrightarrow> f i n \<ge> 0"
+  shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space UNIV) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space UNIV))"
+  (is "?lhs = ?rhs" is "integral\<^sup>N ?M _ = _")
+proof (rule order_class.order.antisym)
+  show "?rhs \<le> ?lhs"
+    by (auto intro!: SUP_least SUP_upper nn_integral_mono)
+next
+  have "\<And>x. \<exists>g. incseq g \<and> range g \<subseteq> (\<lambda>i. f i x) ` Y \<and> (SUP i:Y. f i x) = (SUP i. g i)"
+    unfolding Sup_class.SUP_def by(rule Sup_countable_SUP[unfolded Sup_class.SUP_def])(simp add: nonempty)
+  then obtain g where incseq: "\<And>x. incseq (g x)"
+    and range: "\<And>x. range (g x) \<subseteq> (\<lambda>i. f i x) ` Y"
+    and sup: "\<And>x. (SUP i:Y. f i x) = (SUP i. g x i)" by moura
+  from incseq have incseq': "incseq (\<lambda>i x. g x i)"
+    by(blast intro: incseq_SucI le_funI dest: incseq_SucD)
+
+  have "?lhs = \<integral>\<^sup>+ x. (SUP i. g x i) \<partial>?M" by(simp add: sup)
+  also have "\<dots> = (SUP i. \<integral>\<^sup>+ x. g x i \<partial>?M)" using incseq'
+    by(rule nn_integral_monotone_convergence_SUP) simp
+  also have "\<dots> \<le> (SUP i:Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
+  proof(rule SUP_least)
+    fix n
+    have "\<And>x. \<exists>i. g x n = f i x \<and> i \<in> Y" using range by blast
+    then obtain I where I: "\<And>x. g x n = f (I x) x" "\<And>x. I x \<in> Y" by moura
+
+    { fix x
+      from range[of x] obtain i where "i \<in> Y" "g x n = f i x" by auto
+      hence "g x n \<ge> 0" using nonneg[of i x] by simp }
+    note nonneg_g = this
+    then have "(\<integral>\<^sup>+ x. g x n \<partial>count_space UNIV) = (\<Sum>x. g x n)"
+      by(rule nn_integral_count_space_nat)
+    also have "\<dots> = (SUP m. \<Sum>x<m. g x n)" using nonneg_g
+      by(rule suminf_ereal_eq_SUP)
+    also have "\<dots> \<le> (SUP i:Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
+    proof(rule SUP_mono)
+      fix m
+      show "\<exists>m'\<in>Y. (\<Sum>x<m. g x n) \<le> (\<integral>\<^sup>+ x. f m' x \<partial>?M)"
+      proof(cases "m > 0")
+        case False
+        thus ?thesis using nonempty by(auto simp add: nn_integral_nonneg)
+      next
+        case True
+        let ?Y = "I ` {..<m}"
+        have "f ` ?Y \<subseteq> f ` Y" using I by auto
+        with chain have chain': "Complete_Partial_Order.chain op \<le> (f ` ?Y)" by(rule chain_subset)
+        hence "Sup (f ` ?Y) \<in> f ` ?Y"
+          by(rule ccpo_class.in_chain_finite)(auto simp add: True lessThan_empty_iff)
+        then obtain m' where "m' < m" and m': "(SUP i:?Y. f i) = f (I m')" by auto
+        have "I m' \<in> Y" using I by blast
+        have "(\<Sum>x<m. g x n) \<le> (\<Sum>x<m. f (I m') x)"
+        proof(rule setsum_mono)
+          fix x
+          assume "x \<in> {..<m}"
+          hence "x < m" by simp
+          have "g x n = f (I x) x" by(simp add: I)
+          also have "\<dots> \<le> (SUP i:?Y. f i) x" unfolding SUP_def Sup_fun_def image_image
+            using \<open>x \<in> {..<m}\<close> by(rule Sup_upper[OF imageI])
+          also have "\<dots> = f (I m') x" unfolding m' by simp
+          finally show "g x n \<le> f (I m') x" .
+        qed
+        also have "\<dots> \<le> (SUP m. (\<Sum>x<m. f (I m') x))"
+          by(rule SUP_upper) simp
+        also have "\<dots> = (\<Sum>x. f (I m') x)"
+          by(rule suminf_ereal_eq_SUP[symmetric])(simp add: nonneg \<open>I m' \<in> Y\<close>)
+        also have "\<dots> = (\<integral>\<^sup>+ x. f (I m') x \<partial>?M)"
+          by(rule nn_integral_count_space_nat[symmetric])(simp add: nonneg \<open>I m' \<in> Y\<close>)
+        finally show ?thesis using \<open>I m' \<in> Y\<close> by blast
+      qed
+    qed
+    finally show "(\<integral>\<^sup>+ x. g x n \<partial>count_space UNIV) \<le> \<dots>" .
+  qed
+  finally show "?lhs \<le> ?rhs" .
+qed
+
+lemma nn_integral_monotone_convergence_SUP_nat:
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
+  assumes nonempty: "Y \<noteq> {}"
+  and chain: "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space UNIV) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space UNIV))"
+  (is "?lhs = ?rhs")
+proof -
+  let ?f = "\<lambda>i x. max 0 (f i x)"
+  have chain': "Complete_Partial_Order.chain op \<le> (?f ` Y)"
+  proof(rule chainI)
+    fix g h
+    assume "g \<in> ?f ` Y" "h \<in> ?f ` Y"
+    then obtain g' h' where gh: "g' \<in> Y" "h' \<in> Y" "g = ?f g'" "h = ?f h'" by blast
+    hence "f g' \<in> f ` Y" "f h' \<in> f ` Y" by blast+
+    with chain have "f g' \<le> f h' \<or> f h' \<le> f g'" by(rule chainD)
+    thus "g \<le> h \<or> h \<le> g"
+    proof
+      assume "f g' \<le> f h'"
+      hence "g \<le> h" using gh order_trans by(auto simp add: le_fun_def max_def)
+      thus ?thesis ..
+    next
+      assume "f h' \<le> f g'"
+      hence "h \<le> g" using gh order_trans by(auto simp add: le_fun_def max_def)
+      thus ?thesis ..
+    qed
+  qed
+  have "?lhs = (\<integral>\<^sup>+ x. max 0 (SUP i:Y. f i x) \<partial>count_space UNIV)"
+    by(simp add: nn_integral_max_0)
+  also have "\<dots> = (\<integral>\<^sup>+ x. (SUP i:Y. ?f i x) \<partial>count_space UNIV)"
+  proof(rule nn_integral_cong)
+    fix x
+    have "max 0 (SUP i:Y. f i x) \<le> (SUP i:Y. ?f i x)"
+    proof(cases "0 \<le> (SUP i:Y. f i x)")
+      case True
+      have "(SUP i:Y. f i x) \<le> (SUP i:Y. ?f i x)" by(rule SUP_mono)(auto intro: rev_bexI)
+      with True show ?thesis by simp
+    next
+      case False
+      have "0 \<le> (SUP i:Y. ?f i x)" using nonempty by(auto intro: SUP_upper2)
+      thus ?thesis using False by simp
+    qed
+    moreover have "\<dots> \<le> max 0 (SUP i:Y. f i x)"
+    proof(cases "(SUP i:Y. f i x) \<ge> 0")
+      case True
+      show ?thesis
+        by(rule SUP_least)(auto simp add: True max_def intro: SUP_upper)
+    next
+      case False
+      hence "(SUP i:Y. f i x) \<le> 0" by simp
+      hence less: "\<forall>i\<in>Y. f i x \<le> 0" by(simp add: SUP_le_iff)
+      show ?thesis by(rule SUP_least)(auto simp add: max_def less intro: SUP_upper)
+    qed
+    ultimately show "\<dots> = (SUP i:Y. ?f i x)" by(rule order.antisym)
+  qed
+  also have "\<dots> = (SUP i:Y. (\<integral>\<^sup>+ x. ?f i x \<partial>count_space UNIV))"
+    using chain' nonempty by(rule nn_integral_monotone_convergence_SUP_nat') simp
+  also have "\<dots> = ?rhs" by(simp add: nn_integral_max_0)
+  finally show ?thesis .
+qed
 
 subsubsection {* Measures with Restricted Space *}
 

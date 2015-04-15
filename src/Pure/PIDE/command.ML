@@ -170,7 +170,7 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   in
     (case res of
       NONE => st0
-    | SOME st => (Output.error_message (Toplevel.type_error tr st0 ^ " -- using reset state"); st))
+    | SOME st => (Output.error_message (Toplevel.type_error tr ^ " -- using reset state"); st))
   end) ();
 
 fun run keywords int tr st =
