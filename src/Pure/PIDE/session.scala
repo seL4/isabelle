@@ -624,11 +624,6 @@ class Session(val resources: Resources)
   def update_options(options: Options)
   { manager.send_wait(Update_Options(options)) }
 
-  def init_options(options: Options)
-  {
-    update_options(options)
-  }
-
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
   { manager.send(Session.Dialog_Result(id, serial, result)) }
 
