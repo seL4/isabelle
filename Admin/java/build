@@ -11,8 +11,8 @@ function fail()
 
 ## parameters
 
-VERSION="7u76"
-FULL_VERSION="1.7.0_76"
+VERSION="7u80"
+FULL_VERSION="1.7.0_80"
 
 ARCHIVE_LINUX32="jdk-${VERSION}-linux-i586.tar.gz"
 ARCHIVE_LINUX64="jdk-${VERSION}-linux-x64.tar.gz"
@@ -35,7 +35,7 @@ See http://www.oracle.com/technetwork/java/javase/downloads/index.html
 for the original downloads, which are covered by the Oracle Binary
 Code License Agreement for Java SE.
 
-Linux, Mac OS X, Windows work uniformly, depending on certain
+Linux, Windows Mac OS X, work uniformly, depending on certain
 platform-specific subdirectories.
 EOF
 
