@@ -17,6 +17,9 @@ struct
 
 fun thm_deps thy thms =
   let
+    fun make_node name directory =
+      Graph_Display.session_node
+       {name = Long_Name.base_name name, directory = directory, unfold = false, path = ""};
     fun add_dep ("", _, _) = I
       | add_dep (name, _, PBody {thms = thms', ...}) =
           let
@@ -30,16 +33,17 @@ fun thm_deps thy thms =
                         "" => []
                       | session => [session])
                   | NONE => [])
-               | _ => ["global"]);
-            val directory = space_implode "/" (session @ prefix);
-            val parents = filter_out (fn s => s = "") (map (#1 o #2) thms');
-          in
-            cons ((name, Graph_Display.session_node
-              {name = Long_Name.base_name name, directory = directory,
-                unfold = false, path = ""}), parents)
-          end;
+              | _ => ["global"]);
+            val node = make_node name (space_implode "/" (session @ prefix));
+            val deps = filter_out (fn s => s = "") (map (#1 o #2) thms');
+          in Symtab.update (name, (node, deps)) end;
+    val entries0 = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) Symtab.empty;
+    val entries1 =
+      Symtab.fold (fn (_, (_, deps)) => deps |> fold (fn d => fn tab =>
+        if Symtab.defined tab d then tab
+        else Symtab.update (d, (make_node d "", [])) tab)) entries0 entries0;
   in
-    Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) []
+    Symtab.fold (fn (name, (node, deps)) => cons ((name, node), deps)) entries1 []
     |> Graph_Display.display_graph
   end;
 
@@ -120,4 +124,3 @@ val _ =
           end)));
 
 end;
-
