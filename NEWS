@@ -74,8 +74,10 @@ in the editor (hyperlinks, completion etc.).
 * Less waste of vertical space via negative line spacing (see Global
 Options / Text Area).
 
-* Old graph browser (Java/AWT 1.1) is superseded by improved graphview
-panel, which also produces PDF output without external tools.
+* Improved graphview panel (with optional output of PNG or PDF)
+supersedes the old graph browser from 1996, but the latter remains
+available for some time as a fall-back. The old browser is still
+required for the massive graphs produced by 'thm_deps', for example.
 
 * Improved scheduling for asynchronous print commands (e.g. provers
 managed by the Sledgehammer panel) wrt. ongoing document processing.
