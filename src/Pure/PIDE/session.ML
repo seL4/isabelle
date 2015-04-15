@@ -6,7 +6,7 @@ Prover session: persistent state of logic image.
 
 signature SESSION =
 sig
-  val name: unit -> string
+  val get_name: unit -> string
   val welcome: unit -> string
   val get_keywords: unit -> Keyword.keywords
   val init: bool -> bool -> Path.T -> string -> string -> (string * string) list ->
@@ -26,12 +26,14 @@ struct
 val session = Unsynchronized.ref {chapter = "Pure", name = "Pure"};
 val session_finished = Unsynchronized.ref false;
 
-fun name () = "Isabelle/" ^ #name (! session);
+fun get_name () = #name (! session);
+
+fun description () = "Isabelle/" ^ get_name ();
 
 fun welcome () =
   if Distribution.is_identified then
-    "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
-  else "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")";
+    "Welcome to " ^ description () ^ " (" ^ Distribution.version ^ ")"
+  else "Unofficial version of " ^ description () ^ " (" ^ Distribution.version ^ ")";
 
 
 (* base syntax *)
@@ -44,7 +46,7 @@ fun get_keywords () = ! keywords;
 
 fun init build info info_path doc doc_output doc_variants doc_files graph_file
     parent (chapter, name) verbose =
-  if #name (! session) <> parent orelse not (! session_finished) then
+  if get_name () <> parent orelse not (! session_finished) then
     error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
   else
     let
