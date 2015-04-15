@@ -270,33 +270,22 @@ fun pretty_theorems verbose st =
 
 (* display dependencies *)
 
-val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let
-    val thy = Toplevel.theory_of state;
-    val thy_session = Present.session_name thy;
-  in
-    Theory.nodes_of thy
-    |> map (fn thy_node =>
-        let
-          val name = Context.theory_name thy_node;
-          val parents = map Context.theory_name (Theory.parents_of thy_node);
-          val session = Present.session_name thy_node;
-          val node =
-            Graph_Display.session_node
-              {name = name, directory = session, unfold = session = thy_session, path = ""};
-        in ((name, node), parents) end)
-    |> Graph_Display.display_graph
-  end);
+val thy_deps =
+  Toplevel.unknown_theory o
+  Toplevel.keep (fn st =>
+    let
+      val thy = Toplevel.theory_of st;
+      val parent_session = Session.get_name ();
+      val parent_loaded = is_some o Thy_Info.lookup_theory;
+    in Graph_Display.display_graph (Present.session_graph parent_session parent_loaded thy) end);
 
-val locale_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let
-    val thy = Toplevel.theory_of state;
-  in
+val locale_deps =
+  Toplevel.unknown_theory o
+  Toplevel.keep (Toplevel.theory_of #> (fn thy =>
     Locale.pretty_locale_deps thy
     |> map (fn {name, parents, body} =>
       ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-    |> Graph_Display.display_graph
-  end);
+    |> Graph_Display.display_graph));
 
 
 (* print theorems, terms, types etc. *)
