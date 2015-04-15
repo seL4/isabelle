@@ -512,7 +512,8 @@ object Build
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
-            val session_graph = thy_deps.deps_graph(info.parent getOrElse "", loaded_theories0)
+            val session_graph =
+              Present.session_graph(info.parent getOrElse "", loaded_theories0, thy_deps.deps)
 
             val content =
               Session_Content(loaded_theories, known_theories, keywords, syntax,
