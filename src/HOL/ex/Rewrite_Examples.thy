@@ -199,5 +199,60 @@ lemma
 by (rewrite at "x + 1" in for (x) at asm add.commute)
    (rule assms)
 
+(* The rewrite method also has an ML interface *)
+lemma
+  assumes "\<And>a b. P ((a + 1) * (1 + b)) "
+  shows "\<And>a b :: nat. P ((a + 1) * (b + 1))"
+  apply (tactic \<open>
+    let
+      val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+      (* Note that the pattern order is reversed *)
+      val pat = [
+        Rewrite.For [(x, SOME @{typ nat})],
+        Rewrite.In,
+        Rewrite.Term (@{const plus(nat)} $ Free (x, @{typ nat}) $ @{term "1 :: nat"}, [])]
+      val to = NONE
+    in Rewrite.rewrite_tac ctxt (pat, to) @{thms add.commute} 1 end
+  \<close>)
+  apply (fact assms)
+  done
+
+lemma
+  assumes "Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. a + b))"
+  shows "Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. b + a))"
+  apply (tactic \<open>
+    let
+      val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+      val pat = [
+        Rewrite.Concl,
+        Rewrite.In,
+        Rewrite.Term (Free ("Q", (@{typ "int"} --> TVar (("'b",0), [])) --> @{typ bool})
+          $ Abs ("x", @{typ int}, Rewrite.mk_hole 1 (@{typ int} --> TVar (("'b",0), [])) $ Bound 0), [(x, @{typ int})]),
+        Rewrite.In,
+        Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
+        ]
+      val to = NONE
+    in Rewrite.rewrite_tac ctxt (pat, to) @{thms add.commute} 1 end
+  \<close>)
+  apply (fact assms)
+  done
+
+(* There is also conversion-like rewrite function: *)
+ML \<open>
+  val ct = @{cprop "Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. b + a))"}
+  val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+  val pat = [
+    Rewrite.Concl,
+    Rewrite.In,
+    Rewrite.Term (Free ("Q", (@{typ "int"} --> TVar (("'b",0), [])) --> @{typ bool})
+      $ Abs ("x", @{typ int}, Rewrite.mk_hole 1 (@{typ int} --> TVar (("'b",0), [])) $ Bound 0), [(x, @{typ int})]),
+    Rewrite.In,
+    Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
+    ]
+  val to = NONE
+  val ct_ths = Rewrite.rewrite ctxt (pat, to) @{thms add.commute} ct
+    |> Seq.list_of
+\<close>
+
 end
 
