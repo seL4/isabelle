@@ -173,17 +173,14 @@ object Isabelle
   private val CONTINUOUS_CHECKING = "editor_continuous_checking"
 
   def continuous_checking: Boolean = PIDE.options.bool(CONTINUOUS_CHECKING)
-
-  def continuous_checking_=(b: Boolean)
-  {
-    GUI_Thread.require {}
-
-    if (continuous_checking != b) {
-      PIDE.options.bool(CONTINUOUS_CHECKING) = b
-      PIDE.options_changed()
-      PIDE.editor.flush()
+  def continuous_checking_=(b: Boolean): Unit =
+    GUI_Thread.require {
+      if (continuous_checking != b) {
+        PIDE.options.bool(CONTINUOUS_CHECKING) = b
+        PIDE.options_changed()
+        PIDE.editor.flush()
+      }
     }
-  }
 
   def set_continuous_checking() { continuous_checking = true }
   def reset_continuous_checking() { continuous_checking = false }
@@ -194,6 +191,28 @@ object Isabelle
     tooltip = "Continuous checking of proof document (visible and required parts)"
     reactions += { case ButtonClicked(_) => continuous_checking = selected }
     def load() { selected = continuous_checking }
+    load()
+  }
+
+
+  /* ML statistics */
+
+  private val ML_STATISTICS = "ML_statistics"
+
+  def ml_statistics: Boolean = PIDE.options.bool(ML_STATISTICS)
+  def ml_statistics_=(b: Boolean): Unit =
+    GUI_Thread.require {
+      if (ml_statistics != b) {
+        PIDE.options.bool(ML_STATISTICS) = b
+        PIDE.session.update_options(PIDE.options.value)
+      }
+    }
+
+  class ML_Stats extends CheckBox("ML statistics")
+  {
+    tooltip = "Enable ML runtime system statistics"
+    reactions += { case ButtonClicked(_) => ml_statistics = selected }
+    def load() { selected = ml_statistics }
     load()
   }
 

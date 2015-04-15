@@ -16,7 +16,7 @@ val _ =
     (fn [options_yxml] =>
       let val options = Options.decode (YXML.parse_body options_yxml) in
         Options.set_default options;
-        Future.ML_statistics := true;
+        Future.ML_statistics := Options.bool options "ML_statistics";
         Multithreading.trace := Options.int options "threads_trace";
         Multithreading.max_threads_update (Options.int options "threads");
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)

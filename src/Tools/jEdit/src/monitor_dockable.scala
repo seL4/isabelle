@@ -44,6 +44,8 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
+  private val ml_stats = new Isabelle.ML_Stats
+
   private val select_data = new ComboBox[String](
     ML_Statistics.standard_fields.map(_._1))
   {
@@ -65,7 +67,8 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
   }
 
-  private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(select_data, reset_data)
+  private val controls =
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(ml_stats, select_data, reset_data)
 
 
   /* layout */
@@ -77,13 +80,24 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   /* main */
 
   private val main =
-    Session.Consumer[Session.Statistics](getClass.getName) {
-      case stats =>
+    Session.Consumer[Any](getClass.getName) {
+      case stats: Session.Statistics =>
         rev_stats.change(stats.props :: _)
         delay_update.invoke()
+
+      case _: Session.Global_Options =>
+        GUI_Thread.later { ml_stats.load() }
     }
 
-  override def init() { PIDE.session.statistics += main }
-  override def exit() { PIDE.session.statistics -= main }
-}
+  override def init()
+  {
+    PIDE.session.statistics += main
+    PIDE.session.global_options += main
+  }
 
+  override def exit()
+  {
+    PIDE.session.statistics -= main
+    PIDE.session.global_options -= main
+  }
+}
