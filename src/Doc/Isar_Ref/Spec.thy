@@ -948,8 +948,9 @@ text \<open>
     ;
     @@{command subclass} @{syntax nameref}
     ;
-    @@{command class_deps} ( ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) ) \<newline>
-      ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) )? )?
+    @@{command class_deps} (sort_list sort_list?)?
+    ;
+    sort_list: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>}
 
   \begin{description}
@@ -1012,11 +1013,13 @@ text \<open>
   \item @{command "print_classes"} prints all classes in the current
   theory.
 
-  \item @{command "class_deps"} visualizes all classes and their
-  subclass relations as a Hasse diagram.  An optional first argument
-  constrains the set of classes to all subclasses of at least one given
-  sort, an optional second rgument to all superclasses of at least one given
-  sort.
+  \item @{command "class_deps"} visualizes classes and their subclass
+  relations as a directed acyclic graph. By default, all classes from the
+  current theory context are show. This may be restricted by optional bounds
+  as follows: @{command "class_deps"}~@{text upper} or @{command
+  "class_deps"}~@{text "upper lower"}. A class is visualized, iff it is a
+  subclass of some sort from @{text upper} and a superclass of some sort
+  from @{text lower}.
 
   \item @{method intro_classes} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually
