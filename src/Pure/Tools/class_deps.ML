@@ -6,7 +6,8 @@ Visualization of class dependencies.
 
 signature CLASS_DEPS =
 sig
-  val class_deps: Proof.context -> sort list option * sort list option -> unit
+  val class_deps: Proof.context -> sort list option * sort list option ->
+    Graph_Display.entry list
   val class_deps_cmd: Proof.context -> string list option * string list option -> unit
 end;
 
@@ -32,20 +33,19 @@ fun gen_class_deps prep_sort ctxt raw_bounds =
     Sorts.subalgebra (Context.pretty ctxt) restrict (K NONE) algebra
     |> #2 |> Sorts.classes_of |> Graph.dest
     |> map (fn ((c, _), ds) => ((c, node c), ds))
-    |> Graph_Display.display_graph
   end;
 
 val class_deps = gen_class_deps (Type.cert_sort o Proof_Context.tsig_of);
-val class_deps_cmd = gen_class_deps Syntax.read_sort;
+val class_deps_cmd = Graph_Display.display_graph oo gen_class_deps Syntax.read_sort;
 
-val parse_sort_list =
+val class_bounds =
   Parse.sort >> single ||
   (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
 
 val _ =
   Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
-    ((Scan.option parse_sort_list -- Scan.option parse_sort_list) >> (fn bounds =>
+    (Scan.option class_bounds -- Scan.option class_bounds >> (fn args =>
       (Toplevel.unknown_theory o
-       Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) bounds))));
+       Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) args))));
 
 end;

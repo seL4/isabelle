@@ -948,9 +948,9 @@ text \<open>
     ;
     @@{command subclass} @{syntax nameref}
     ;
-    @@{command class_deps} (sort_list sort_list?)?
+    @@{command class_deps} (class_bounds class_bounds?)?
     ;
-    sort_list: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
+    class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>}
 
   \begin{description}
