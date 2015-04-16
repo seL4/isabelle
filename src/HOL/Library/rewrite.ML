@@ -69,7 +69,7 @@ type subterm_position = rewrite_conv -> rewrite_conv
 
 (* A focusterm represents a subterm. It is a tuple (t, p), consisting
   of the subterm t itself and its subterm position p. *)
-type focusterm = Type.tyenv * term * subterm_position
+type focusterm = (Type.tyenv * Proof.context) * term * subterm_position
 
 val dummyN = Name.internal "__dummy"
 val holeN = Name.internal "_hole"
@@ -96,7 +96,7 @@ val with_prems_rewr_cconv : subterm_position = fn rewr => CConv.with_prems_cconv
 
 (* focus terms *)
 
-fun ft_abs ctxt (s,T) (tyenv, u, pos) =
+fun ft_abs ctxt (s,T) ((tyenv, u_ctxt), u, pos) =
   case try (fastype_of #> dest_funT) u of
     NONE => raise TERM ("ft_abs: no function type", [u])
   | SOME (U, _) =>
@@ -104,14 +104,18 @@ fun ft_abs ctxt (s,T) (tyenv, u, pos) =
         val tyenv' =
           if T = dummyT then tyenv
           else Sign.typ_match (Proof_Context.theory_of ctxt) (T, U) tyenv
-        val x = Free (the_default (Name.internal dummyN) s, Envir.norm_type tyenv' T)
+        val (s', u_ctxt') =
+          case s of
+           NONE => yield_singleton Variable.variant_fixes (Name.internal dummyN) u_ctxt
+          | SOME s => (s, u_ctxt)
+        val x = Free (s', Envir.norm_type tyenv' T)
         val eta_expand_cconv = CConv.rewr_cconv @{thm eta_expand}
         fun eta_expand rewr ctxt bounds = eta_expand_cconv then_conv rewr ctxt bounds
         val (u', pos') =
           case u of
             Abs (_,_,t') => (subst_bound (x, t'), pos o abs_rewr_cconv s)
           | _ => (u $ x, pos o eta_expand o abs_rewr_cconv s)
-      in (tyenv', u', pos') end
+      in ((tyenv', u_ctxt'), u', pos') end
       handle Pattern.MATCH => raise TYPE ("ft_abs: types don't match", [T,U], [u])
 
 fun ft_fun _ (tyenv, l $ _, pos) = (tyenv, l, pos o fun_rewr_cconv)
@@ -235,10 +239,10 @@ fun find_matches ctxt pattern_list =
           let val (_, ts) = strip_comb t
           in map fastype_of (snd (take_suffix is_Var ts)) end
 
-        fun do_match (tyenv, u, pos) =
-          case try (Pattern.match thy (t,u)) (tyenv, Vartab.empty) of
+        fun do_match ((tyenv, u_ctxt), u, pos) =
+          case try (Pattern.match thy (apply2 Logic.mk_term (t,u))) (tyenv, Vartab.empty) of
             NONE => NONE
-          | SOME (tyenv', _) => SOME (off (tyenv', u, pos))
+          | SOME (tyenv', _) => SOME (off ((tyenv', u_ctxt), u, pos))
 
         fun match_argT T u =
           let val (U, _) = dest_funT (fastype_of u)
@@ -246,12 +250,12 @@ fun find_matches ctxt pattern_list =
           handle TYPE _ => K NONE
 
         fun desc [] ft = do_match ft
-          | desc (T :: Ts) (ft as (tyenv , u, pos)) =
+          | desc (T :: Ts) (ft as ((tyenv, u_ctxt) , u, pos)) =
             case do_match ft of
               NONE =>
                 (case match_argT T u tyenv of
                   NONE => NONE
-                | SOME tyenv' => desc Ts (ft_abs ctxt (NONE, T) (tyenv', u, pos)))
+                | SOME tyenv' => desc Ts (ft_abs ctxt (NONE, T) ((tyenv', u_ctxt), u, pos)))
             | SOME ft => SOME ft
       in desc eta_expands ft end
 
@@ -349,7 +353,7 @@ fun rewrite_raw ctxt (pattern, to) thms ct =
       in map (map_term_pattern f) end
 
     val pattern' = interpret_term_patterns ctxt pattern
-    val matches = find_matches ctxt pattern' (Vartab.empty, Thm.term_of ct, I)
+    val matches = find_matches ctxt pattern' ((Vartab.empty, ctxt), Thm.term_of ct, I)
 
     val thms' = maps (prep_meta_eq ctxt) thms
 
@@ -361,7 +365,7 @@ fun rewrite_raw ctxt (pattern, to) thms ct =
         NONE => th
       | SOME (th', _) => th'
 
-    fun conv ((tyenv, _, position) : focusterm) =
+    fun conv (((tyenv, _), _, position) : focusterm) =
       distinct_prems o position (rewrite_conv (to, tyenv)) ctxt []
 
   in Seq.map (fn ft => conv ft) matches end

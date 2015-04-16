@@ -254,5 +254,22 @@ ML \<open>
     |> Seq.list_of
 \<close>
 
+section \<open>Regression tests\<close>
+
+ML \<open>
+  val ct = @{cterm "(\<lambda>b :: int. (\<lambda>a. b + a))"}
+  val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+  val pat = [
+    Rewrite.In,
+    Rewrite.Term (@{const plus(int)} $ Var (("c", 0), @{typ int}) $ Var (("c", 0), @{typ int}), [])
+    ]
+  val to = NONE
+  val ct_ths = Rewrite.rewrite ctxt (pat, to) @{thms add.commute} ct
+  val _ = case Seq.pull ct_ths of      NONE => ()
+    | _ => error "should not have matched anything"
+\<close>
+
+
+
 end
 
