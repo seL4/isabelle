@@ -614,16 +614,12 @@ end;
 
 local
 
-fun proof_state state =
-  (case try (Proof.goal o Toplevel.proof_of) state of
-    SOME {goal, ...} => goal
-  | _ => error "No proof state");
-
 fun goal_state name main = antiquotation name (Scan.succeed ())
   (fn {state, context = ctxt, ...} => fn () =>
     output ctxt
       [Goal_Display.pretty_goal
-        (Config.put Goal_Display.show_main_goal main ctxt) (proof_state state)]);
+        (Config.put Goal_Display.show_main_goal main ctxt)
+        (#goal (Proof.goal (Toplevel.proof_of state)))]);
 
 in
 

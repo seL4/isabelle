@@ -398,6 +398,9 @@ contemporary applications use the strict Name_Space.check (and
 derivatives) instead, which is not affected by the change. Potential
 INCOMPATIBILITY in rare applications of Name_Space.intern.
 
+* Subtle change of error semantics of Toplevel.proof_of: regular user
+ERROR instead of internal Toplevel.UNDEF.
+
 * Basic combinators map, fold, fold_map, split_list, apply are available
 as parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
 

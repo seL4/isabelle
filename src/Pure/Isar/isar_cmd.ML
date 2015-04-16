@@ -240,10 +240,7 @@ fun ml_diag verbose source = Toplevel.keep (fn state =>
   in ML_Context.eval_source_in opt_ctxt flags source end);
 
 val diag_state = Diag_State.get;
-
-fun diag_goal ctxt =
-  Proof.goal (Toplevel.proof_of (diag_state ctxt))
-    handle Toplevel.UNDEF => error "No goal present";
+val diag_goal = Proof.goal o Toplevel.proof_of o diag_state;
 
 val _ = Theory.setup
   (ML_Antiquotation.value (Binding.qualify true "Isar" @{binding state})
