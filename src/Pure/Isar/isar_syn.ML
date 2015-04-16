@@ -789,7 +789,12 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword locale_deps} "visualize locale dependencies"
-    (Scan.succeed Isar_Cmd.locale_deps);
+    (Scan.succeed
+      (Toplevel.keep (Toplevel.theory_of #> (fn thy =>
+        Locale.pretty_locale_deps thy
+        |> map (fn {name, parents, body} =>
+          ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
+        |> Graph_Display.display_graph))));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_term_bindings}

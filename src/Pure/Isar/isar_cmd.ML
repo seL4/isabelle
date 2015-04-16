@@ -35,7 +35,6 @@ sig
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val pretty_theorems: bool -> Toplevel.state -> Pretty.T list
-  val locale_deps: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (Facts.ref * Token.src list) list
@@ -262,16 +261,6 @@ fun pretty_theorems verbose st =
           SOME prev => [Proof_Context.theory_of prev]
         | NONE => Theory.parents_of thy);
     in Proof_Display.pretty_theorems_diff verbose prev_thys thy end;
-
-
-(* display dependencies *)
-
-val locale_deps =
-  Toplevel.keep (Toplevel.theory_of #> (fn thy =>
-    Locale.pretty_locale_deps thy
-    |> map (fn {name, parents, body} =>
-      ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-    |> Graph_Display.display_graph));
 
 
 (* print theorems, terms, types etc. *)
