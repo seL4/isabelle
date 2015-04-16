@@ -35,7 +35,6 @@ sig
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val pretty_theorems: bool -> Toplevel.state -> Pretty.T list
-  val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
@@ -269,15 +268,6 @@ fun pretty_theorems verbose st =
 
 
 (* display dependencies *)
-
-val thy_deps =
-  Toplevel.unknown_theory o
-  Toplevel.keep (fn st =>
-    let
-      val thy = Toplevel.theory_of st;
-      val parent_session = Session.get_name ();
-      val parent_loaded = is_some o Thy_Info.lookup_theory;
-    in Graph_Display.display_graph (Present.session_graph parent_session parent_loaded thy) end);
 
 val locale_deps =
   Toplevel.unknown_theory o

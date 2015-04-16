@@ -800,10 +800,6 @@ val _ =
       Toplevel.keep (ML_Context.print_antiquotations b o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
-    (Scan.succeed Isar_Cmd.thy_deps);
-
-val _ =
   Outer_Syntax.command @{command_keyword locale_deps} "visualize locale dependencies"
     (Scan.succeed Isar_Cmd.locale_deps);
 

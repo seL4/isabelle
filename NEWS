@@ -77,6 +77,9 @@ Options / Text Area).
 * Improved graphview panel with optional output of PNG or PDF, for
 display of 'thy_deps', 'locale_deps', 'class_deps' etc.
 
+* Command 'thy_deps' allows optional bounds, analogously to
+'class_deps'.
+
 * Improved scheduling for asynchronous print commands (e.g. provers
 managed by the Sledgehammer panel) wrt. ongoing document processing.
 

@@ -25,6 +25,7 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "theory"} & : & @{text "toplevel \<rightarrow> theory"} \\
     @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
+    @{command_def "thy_deps"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow>"} \\
   \end{matharray}
 
   Isabelle/Isar theories are defined via theory files, which consist of an
@@ -64,6 +65,10 @@ text \<open>
     ;
     keyword_decls: (@{syntax string} +)
       ('::' @{syntax name} @{syntax tags})? ('==' @{syntax name})?
+    ;
+    @@{command thy_deps} (thy_bounds thy_bounds?)?
+    ;
+    thy_bounds: @{syntax name} | '(' (@{syntax name} + @'|') ')'
   \<close>}
 
   \begin{description}
@@ -103,6 +108,12 @@ text \<open>
   targets @{command locale} or @{command class} may involve a
   @{keyword "begin"} that needs to be matched by @{command (local)
   "end"}, according to the usual rules for nested blocks.
+
+  \item @{command thy_deps} visualizes the theory hierarchy as a directed
+  acyclic graph. By default, all imported theories are shown, taking the
+  base session as a starting point. Alternatively, it is possibly to
+  restrict the full theory graph by giving bounds, analogously to
+  @{command_ref class_deps}.
 
   \end{description}
 \<close>
