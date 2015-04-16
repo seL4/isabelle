@@ -50,8 +50,8 @@ fun thm_deps thy thms =
 val _ =
   Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
     (Parse.xthms1 >> (fn args =>
-      Toplevel.unknown_theory o Toplevel.keep (fn state =>
-        thm_deps (Toplevel.theory_of state) (Attrib.eval_thms (Toplevel.context_of state) args))));
+      Toplevel.keep (fn st =>
+        thm_deps (Toplevel.theory_of st) (Attrib.eval_thms (Toplevel.context_of st) args))));
 
 
 (* unused_thms *)

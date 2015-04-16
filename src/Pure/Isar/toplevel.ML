@@ -72,8 +72,6 @@ sig
   val skip_proof: (int -> int) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
-  val unknown_theory: transition -> transition
-  val unknown_context: transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val add_hook: (transition -> state -> state -> unit) -> unit
   val get_timing: transition -> Time.time option
@@ -354,9 +352,6 @@ fun is_ignored tr = name_of tr = "<ignored>";
 
 fun malformed pos msg =
   empty |> name "<malformed>" |> position pos |> imperative (fn () => error msg);
-
-val unknown_theory = imperative (fn () => warning "Unknown theory context");
-val unknown_context = imperative (fn () => warning "Unknown context");
 
 
 (* theory transitions *)

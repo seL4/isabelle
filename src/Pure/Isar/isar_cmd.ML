@@ -267,7 +267,6 @@ fun pretty_theorems verbose st =
 (* display dependencies *)
 
 val locale_deps =
-  Toplevel.unknown_theory o
   Toplevel.keep (Toplevel.theory_of #> (fn thy =>
     Locale.pretty_locale_deps thy
     |> map (fn {name, parents, body} =>

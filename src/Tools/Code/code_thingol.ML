@@ -960,14 +960,12 @@ val _ =
   Outer_Syntax.command @{command_keyword code_thms}
     "print system of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_context o
-      Toplevel.keep (fn state => code_thms_cmd (Toplevel.context_of state) cs)));
+      Toplevel.keep (fn st => code_thms_cmd (Toplevel.context_of st) cs)));
 
 val _ =
   Outer_Syntax.command @{command_keyword code_deps}
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_context o
       Toplevel.keep (fn st => code_deps_cmd (Toplevel.context_of st) cs)));
 
 end;

@@ -44,7 +44,6 @@ val class_bounds =
 val _ =
   Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
     (Scan.option class_bounds -- Scan.option class_bounds >> (fn args =>
-      (Toplevel.unknown_theory o
-       Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) args))));
+      Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) args)));
 
 end;

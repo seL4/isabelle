@@ -230,6 +230,6 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword print_trans_rules} "print transitivity rules"
-    (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_rules o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_rules o Toplevel.context_of)));
 
 end;

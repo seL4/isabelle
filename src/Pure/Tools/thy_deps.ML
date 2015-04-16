@@ -43,8 +43,7 @@ val theory_bounds =
 
 val _ =
   Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
-    (Scan.option theory_bounds -- Scan.option theory_bounds >> (fn args =>
-      (Toplevel.unknown_theory o
-       Toplevel.keep (fn st => thy_deps_cmd (Toplevel.theory_of st) args))));
+    (Scan.option theory_bounds -- Scan.option theory_bounds >>
+      (fn args => Toplevel.keep (fn st => thy_deps_cmd (Toplevel.theory_of st) args)));
 
 end;

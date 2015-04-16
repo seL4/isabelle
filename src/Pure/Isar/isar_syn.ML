@@ -350,8 +350,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_bundles}
     "print bundles of declarations"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
-      Toplevel.keep (Bundle.print_bundles b o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.keep (Bundle.print_bundles b o Toplevel.context_of)));
 
 
 (* local theories *)
@@ -693,8 +692,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword print_options} "print configuration options"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
-      Toplevel.keep (Attrib.print_options b o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.keep (Attrib.print_options b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_context}
@@ -704,99 +702,89 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_theory}
     "print logical theory contents"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_theory o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_syntax}
     "print inner syntax of context"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_defn_rules}
     "print definitional rewrite rules of context"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Local_Defs.print_rules o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (Local_Defs.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_abbrevs}
     "print constant abbreviations of context"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Proof_Context.print_abbrevs b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_theorems}
     "print theorems of local theory or proof context"
     (Parse.opt_bang >> (fn b =>
-      Toplevel.unknown_context o
       Toplevel.keep (Pretty.writeln o Pretty.chunks o Isar_Cmd.pretty_theorems b)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_locales}
     "print locales of this theory"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_theory o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Locale.print_locales b o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_classes}
     "print classes of this theory"
-    (Scan.succeed (Toplevel.unknown_theory o
-      Toplevel.keep (Class.print_classes o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (Class.print_classes o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_locale}
     "print locale of this theory"
     (Parse.opt_bang -- Parse.position Parse.xname >> (fn (b, name) =>
-      Toplevel.unknown_theory o
       Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) b name)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_interps}
     "print interpretations of locale for this theory or proof context"
     (Parse.position Parse.xname >> (fn name =>
-      Toplevel.unknown_context o
       Toplevel.keep (fn state => Locale.print_registrations (Toplevel.context_of state) name)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_dependencies}
     "print dependencies of locale expression"
     (Parse.opt_bang -- Parse_Spec.locale_expression true >> (fn (b, expr) =>
-      Toplevel.unknown_context o
       Toplevel.keep (fn state => Expression.print_dependencies (Toplevel.context_of state) b expr)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_attributes}
     "print attributes of this theory"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_theory o
-      Toplevel.keep (Attrib.print_attributes b o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.keep (Attrib.print_attributes b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_simpset}
     "print context of Simplifier"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Pretty.writeln o Simplifier.pretty_simpset b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_rules} "print intro/elim rules"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_methods} "print methods of this theory"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_theory o
-      Toplevel.keep (Method.print_methods b o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.keep (Method.print_methods b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_antiquotations}
     "print document antiquotations"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Thy_Output.print_antiquotations b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_ML_antiquotations}
     "print ML antiquotations"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (ML_Context.print_antiquotations b o Toplevel.context_of)));
 
 val _ =
@@ -806,19 +794,19 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_term_bindings}
     "print term bindings of proof context"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep
+    (Scan.succeed
+      (Toplevel.keep
         (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_facts} "print facts of proof context"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
+    (Parse.opt_bang >> (fn b =>
       Toplevel.keep (Proof_Context.print_local_facts b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_cases} "print cases of proof context"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
+    (Scan.succeed
+      (Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_statement}
@@ -852,8 +840,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword print_codesetup} "print code generator setup"
-    (Scan.succeed (Toplevel.unknown_theory o
-      Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_state}
