@@ -1,7 +1,8 @@
 (*  Title:      Pure/pure_syn.ML
     Author:     Makarius
 
-Outer syntax for bootstrapping Isabelle/Pure.
+Outer syntax for bootstrapping: commands that are accessible outside a
+regular theory context.
 *)
 
 signature PURE_SYN =
