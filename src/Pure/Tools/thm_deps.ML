@@ -44,7 +44,7 @@ fun thm_deps thy thms =
         else Symtab.update (d, (make_node d "", [])) tab)) entries0 entries0;
   in
     Symtab.fold (fn (name, (node, deps)) => cons ((name, node), deps)) entries1 []
-    |> Graph_Display.display_graph
+    |> Graph_Display.display_graph_old
   end;
 
 val _ =

@@ -946,7 +946,7 @@ fun code_deps ctxt consts =
     |> join_strong_conn
     |> Graph.dest
     |> map (fn ((c, cs), ds) => ((c, Graph_Display.content_node (namify cs) []), ds))
-    |> Graph_Display.display_graph
+    |> Graph_Display.display_graph_old
   end;
 
 local

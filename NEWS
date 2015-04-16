@@ -74,10 +74,8 @@ in the editor (hyperlinks, completion etc.).
 * Less waste of vertical space via negative line spacing (see Global
 Options / Text Area).
 
-* Improved graphview panel (with optional output of PNG or PDF)
-supersedes the old graph browser from 1996, but the latter remains
-available for some time as a fall-back. The old browser is still
-required for the massive graphs produced by 'thm_deps', for example.
+* Improved graphview panel with optional output of PNG or PDF, for
+display of 'thy_deps', 'locale_deps', 'class_deps' etc.
 
 * Improved scheduling for asynchronous print commands (e.g. provers
 managed by the Sledgehammer panel) wrt. ongoing document processing.
