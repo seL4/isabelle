@@ -127,7 +127,6 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword print_tcset} "print context of ZF typecheck"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (print_tcset o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_tcset o Toplevel.context_of)));
 
 end;

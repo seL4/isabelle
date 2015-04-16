@@ -44,14 +44,14 @@ fun thm_deps thy thms =
         else Symtab.update (d, (make_node d "", [])) tab)) entries0 entries0;
   in
     Symtab.fold (fn (name, (node, deps)) => cons ((name, node), deps)) entries1 []
-    |> Graph_Display.display_graph
+    |> Graph_Display.display_graph_old
   end;
 
 val _ =
   Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
     (Parse.xthms1 >> (fn args =>
-      Toplevel.unknown_theory o Toplevel.keep (fn state =>
-        thm_deps (Toplevel.theory_of state) (Attrib.eval_thms (Toplevel.context_of state) args))));
+      Toplevel.keep (fn st =>
+        thm_deps (Toplevel.theory_of st) (Attrib.eval_thms (Toplevel.context_of st) args))));
 
 
 (* unused_thms *)

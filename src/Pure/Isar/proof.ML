@@ -338,7 +338,7 @@ local
   fun find i state =
     (case try current_goal state of
       SOME (ctxt, goal) => (ctxt, (i, goal))
-    | NONE => find (i + 1) (close_block state handle ERROR _ => error "No goal present"));
+    | NONE => find (i + 1) (close_block state handle ERROR _ => error "No proof goal"));
 in val find_goal = find 0 end;
 
 fun get_goal state =

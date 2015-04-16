@@ -62,7 +62,7 @@ text %mlref \<open>
   for an empty toplevel state.
 
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
-  state if available, otherwise it raises @{ML Toplevel.UNDEF}.
+  state if available, otherwise it raises an error.
 
   \end{description}
 \<close>
