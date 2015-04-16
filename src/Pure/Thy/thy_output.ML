@@ -540,11 +540,7 @@ fun pretty_type ctxt s =
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 
-fun pretty_theory ctxt (name, pos) =
-  (case find_first (fn thy => Context.theory_name thy = name)
-      (Theory.nodes_of (Proof_Context.theory_of ctxt)) of
-    NONE => error ("No ancestor theory " ^ quote name ^ Position.here pos)
-  | SOME thy => (Context_Position.report ctxt pos (Theory.get_markup thy); Pretty.str name));
+fun pretty_theory ctxt (name, pos) = (Theory.check ctxt (name, pos); Pretty.str name);
 
 
 (* default output *)
