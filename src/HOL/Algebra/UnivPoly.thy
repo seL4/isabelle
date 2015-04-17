@@ -1208,13 +1208,9 @@ text{*JE: I was considering using it in @{text eval_ring_hom}, but that property
   maybe it is not that necessary.*}
 
 lemma (in ring_hom_ring) hom_finsum [simp]:
-  "[| finite A; f \<in> A -> carrier R |] ==>
+  "f \<in> A -> carrier R ==>
   h (finsum R f A) = finsum S (h o f) A"
-proof (induct set: finite)
-  case empty then show ?case by simp
-next
-  case insert then show ?case by (simp add: Pi_def)
-qed
+  by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 context UP_pre_univ_prop
 begin
