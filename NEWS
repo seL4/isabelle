@@ -74,10 +74,11 @@ in the editor (hyperlinks, completion etc.).
 * Less waste of vertical space via negative line spacing (see Global
 Options / Text Area).
 
-* Improved graphview panel (with optional output of PNG or PDF)
-supersedes the old graph browser from 1996, but the latter remains
-available for some time as a fall-back. The old browser is still
-required for the massive graphs produced by 'thm_deps', for example.
+* Improved graphview panel with optional output of PNG or PDF, for
+display of 'thy_deps', 'locale_deps', 'class_deps' etc.
+
+* Command 'thy_deps' allows optional bounds, analogously to
+'class_deps'.
 
 * Improved scheduling for asynchronous print commands (e.g. provers
 managed by the Sledgehammer panel) wrt. ongoing document processing.
@@ -396,6 +397,9 @@ which may produce an unexpected Long_Name.hidden prefix. Note that
 contemporary applications use the strict Name_Space.check (and
 derivatives) instead, which is not affected by the change. Potential
 INCOMPATIBILITY in rare applications of Name_Space.intern.
+
+* Subtle change of error semantics of Toplevel.proof_of: regular user
+ERROR instead of internal Toplevel.UNDEF.
 
 * Basic combinators map, fold, fold_map, split_list, apply are available
 as parameterized antiquotations, e.g. @{map 4} for lists of quadruples.

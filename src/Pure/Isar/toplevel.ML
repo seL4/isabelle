@@ -72,9 +72,6 @@ sig
   val skip_proof: (int -> int) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
-  val unknown_theory: transition -> transition
-  val unknown_proof: transition -> transition
-  val unknown_context: transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val add_hook: (transition -> state -> state -> unit) -> unit
   val get_timing: transition -> Time.time option
@@ -164,12 +161,12 @@ fun previous_context_of (State (_, NONE)) = NONE
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
 val theory_of = node_case Context.theory_of Proof.theory_of;
-val proof_of = node_case (fn _ => raise UNDEF) I;
+val proof_of = node_case (fn _ => error "No proof state") I;
 
 fun proof_position_of state =
   (case node_of state of
     Proof (prf, _) => Proof_Node.position prf
-  | _ => raise UNDEF);
+  | _ => ~1);
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
   | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)
@@ -355,10 +352,6 @@ fun is_ignored tr = name_of tr = "<ignored>";
 
 fun malformed pos msg =
   empty |> name "<malformed>" |> position pos |> imperative (fn () => error msg);
-
-val unknown_theory = imperative (fn () => warning "Unknown theory context");
-val unknown_proof = imperative (fn () => warning "Unknown proof context");
-val unknown_context = imperative (fn () => warning "Unknown context");
 
 
 (* theory transitions *)

@@ -25,6 +25,7 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "theory"} & : & @{text "toplevel \<rightarrow> theory"} \\
     @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
+    @{command_def "thy_deps"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow>"} \\
   \end{matharray}
 
   Isabelle/Isar theories are defined via theory files, which consist of an
@@ -64,6 +65,10 @@ text \<open>
     ;
     keyword_decls: (@{syntax string} +)
       ('::' @{syntax name} @{syntax tags})? ('==' @{syntax name})?
+    ;
+    @@{command thy_deps} (thy_bounds thy_bounds?)?
+    ;
+    thy_bounds: @{syntax name} | '(' (@{syntax name} + @'|') ')'
   \<close>}
 
   \begin{description}
@@ -103,6 +108,12 @@ text \<open>
   targets @{command locale} or @{command class} may involve a
   @{keyword "begin"} that needs to be matched by @{command (local)
   "end"}, according to the usual rules for nested blocks.
+
+  \item @{command thy_deps} visualizes the theory hierarchy as a directed
+  acyclic graph. By default, all imported theories are shown, taking the
+  base session as a starting point. Alternatively, it is possibly to
+  restrict the full theory graph by giving bounds, analogously to
+  @{command_ref class_deps}.
 
   \end{description}
 \<close>
@@ -948,8 +959,9 @@ text \<open>
     ;
     @@{command subclass} @{syntax nameref}
     ;
-    @@{command class_deps} ( ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) ) \<newline>
-      ( @{syntax sort} | ( '(' ( @{syntax sort} + @'|' ) ')' ) )? )?
+    @@{command class_deps} (class_bounds class_bounds?)?
+    ;
+    class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>}
 
   \begin{description}
@@ -1012,11 +1024,13 @@ text \<open>
   \item @{command "print_classes"} prints all classes in the current
   theory.
 
-  \item @{command "class_deps"} visualizes all classes and their
-  subclass relations as a Hasse diagram.  An optional first argument
-  constrains the set of classes to all subclasses of at least one given
-  sort, an optional second rgument to all superclasses of at least one given
-  sort.
+  \item @{command "class_deps"} visualizes classes and their subclass
+  relations as a directed acyclic graph. By default, all classes from the
+  current theory context are show. This may be restricted by optional bounds
+  as follows: @{command "class_deps"}~@{text upper} or @{command
+  "class_deps"}~@{text "upper lower"}. A class is visualized, iff it is a
+  subclass of some sort from @{text upper} and a superclass of some sort
+  from @{text lower}.
 
   \item @{method intro_classes} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually

@@ -35,8 +35,6 @@ sig
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val pretty_theorems: bool -> Toplevel.state -> Pretty.T list
-  val thy_deps: Toplevel.transition -> Toplevel.transition
-  val locale_deps: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (Facts.ref * Token.src list) list
@@ -241,10 +239,7 @@ fun ml_diag verbose source = Toplevel.keep (fn state =>
   in ML_Context.eval_source_in opt_ctxt flags source end);
 
 val diag_state = Diag_State.get;
-
-fun diag_goal ctxt =
-  Proof.goal (Toplevel.proof_of (diag_state ctxt))
-    handle Toplevel.UNDEF => error "No goal present";
+val diag_goal = Proof.goal o Toplevel.proof_of o diag_state;
 
 val _ = Theory.setup
   (ML_Antiquotation.value (Binding.qualify true "Isar" @{binding state})
@@ -266,26 +261,6 @@ fun pretty_theorems verbose st =
           SOME prev => [Proof_Context.theory_of prev]
         | NONE => Theory.parents_of thy);
     in Proof_Display.pretty_theorems_diff verbose prev_thys thy end;
-
-
-(* display dependencies *)
-
-val thy_deps =
-  Toplevel.unknown_theory o
-  Toplevel.keep (fn st =>
-    let
-      val thy = Toplevel.theory_of st;
-      val parent_session = Session.get_name ();
-      val parent_loaded = is_some o Thy_Info.lookup_theory;
-    in Graph_Display.display_graph (Present.session_graph parent_session parent_loaded thy) end);
-
-val locale_deps =
-  Toplevel.unknown_theory o
-  Toplevel.keep (Toplevel.theory_of #> (fn thy =>
-    Locale.pretty_locale_deps thy
-    |> map (fn {name, parents, body} =>
-      ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-    |> Graph_Display.display_graph));
 
 
 (* print theorems, terms, types etc. *)

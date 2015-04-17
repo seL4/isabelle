@@ -1,10 +1,16 @@
 (*  Title:      Pure/pure_syn.ML
     Author:     Makarius
 
-Outer syntax for bootstrapping Isabelle/Pure.
+Outer syntax for bootstrapping: commands that are accessible outside a
+regular theory context.
 *)
 
-structure Pure_Syn: sig end =
+signature PURE_SYN =
+sig
+  val bootstrap_thy: theory
+end;
+
+structure Pure_Syn: PURE_SYN =
 struct
 
 val _ =
@@ -44,5 +50,9 @@ val _ =
     (Thy_Header.args >>
       (fn _ => Toplevel.init_theory (fn () => error "Missing theory initialization")));
 
-end;
 
+val bootstrap_thy = ML_Context.the_global_context ();
+
+val _ = Theory.setup (Config.put_global Outer_Syntax.bootstrap false);
+
+end;

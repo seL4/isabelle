@@ -130,8 +130,8 @@ fun ft_arg_gen cconv _ (tyenv, _ $ r, pos) = (tyenv, r, pos o cconv)
 
 in
 
-val ft_arg = ft_arg_gen arg_rewr_cconv
-val ft_imp = ft_arg_gen imp_rewr_cconv
+fun ft_arg ctxt = ft_arg_gen arg_rewr_cconv ctxt
+fun ft_imp ctxt = ft_arg_gen imp_rewr_cconv ctxt
 
 end
 

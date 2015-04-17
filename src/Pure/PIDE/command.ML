@@ -109,11 +109,10 @@ fun resolve_files keywords master_dir (blobs, blobs_index) toks =
       | NONE => toks)
   | _ => toks);
 
-val bootstrap_thy = ML_Context.the_global_context ();
-
 in
 
-fun read_thy st = Toplevel.theory_of st handle Toplevel.UNDEF => bootstrap_thy;
+fun read_thy st = Toplevel.theory_of st
+  handle Toplevel.UNDEF => Pure_Syn.bootstrap_thy;
 
 fun read keywords thy master_dir init blobs_info span =
   let

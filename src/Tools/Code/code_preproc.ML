@@ -589,6 +589,6 @@ val _ = Theory.setup (
 
 val _ =
   Outer_Syntax.command @{command_keyword print_codeproc} "print code preprocessor setup"
-    (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_codeproc o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_codeproc o Toplevel.context_of)));
 
 end; (*struct*)
