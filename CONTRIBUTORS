@@ -6,6 +6,9 @@ distribution.
 Contributions to Isabelle2015
 -----------------------------
 
+* 2014/2015: Daniel Matichuk, Toby Murray, NICTA and Makarius Wenzel
+  The Eisbach proof method language and "match" method.
+
 * March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII,
   and Dmitriy Traytel, TUM
   More multiset theorems, syntax, and operations.

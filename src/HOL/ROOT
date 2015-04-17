@@ -631,6 +631,15 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
     "root.tex"
     "style.tex"
 
+session "HOL-Eisbach" in Eisbach = HOL +
+  description {*
+    The Eisbach proof method language and "match" method.
+  *}
+  theories
+    Eisbach
+    Tests
+    Examples
+
 session "HOL-SET_Protocol" in SET_Protocol = HOL +
   description {*
     Verification of the SET Protocol.
