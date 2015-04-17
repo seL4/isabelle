@@ -311,7 +311,7 @@ qed
 
 lemma floor_divide_of_int_eq:
   fixes k l :: int
-  shows "\<lfloor>of_int k / of_int l\<rfloor> = of_int (k div l)"
+  shows "\<lfloor>of_int k / of_int l\<rfloor> = k div l"
 proof (cases "l = 0")
   case True then show ?thesis by simp
 next
@@ -340,7 +340,7 @@ next
     by simp
   then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l + of_int (k div l) :: 'a\<rfloor>"
     by (simp add: ac_simps)
-  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> + of_int (k div l)"
+  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> + k div l"
     by simp
   with * show ?thesis by simp
 qed
