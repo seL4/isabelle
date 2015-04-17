@@ -13,3 +13,4 @@ Notes on building Poly/ML as Isabelle component
 
 * linux: include copy of libgmp.so with symlinks from build host
 
+* include copy of "polyml" script
