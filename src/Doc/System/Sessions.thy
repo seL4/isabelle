@@ -278,6 +278,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Options are:
     -D DIR       include session directory and select its sessions
     -R           operate on requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
     -c           clean build
@@ -290,7 +291,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode: produce output in ISABELLE_HOME
     -v           verbose
-    -x SESSION   exclude SESSION and all its descendants
+    -x NAME      exclude session NAME and all descendants
 
   Build and manage Isabelle sessions, depending on implicit
   ISABELLE_BUILD_OPTIONS="..."
@@ -323,9 +324,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
 
-  \medskip One or more options @{verbatim "-x"}~@{text SESSION} specify
+  \medskip One or more options @{verbatim "-x"}~@{text NAME} specify
   sessions to be excluded. All descendents of excluded sessions are removed
-  from the selection as specified above.
+  from the selection as specified above. Option @{verbatim "-X"} is
+  analogous to this, but excluded sessions are specified by session group
+  membership.
 
   \medskip Option @{verbatim "-R"} reverses the selection in the sense
   that it refers to its requirements: all ancestor sessions excluding
