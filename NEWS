@@ -449,7 +449,7 @@ Input.source (with formal position information).
 * The Isabelle tool "update_cartouches" changes theory files to use
 cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
 
-* The Isabelle tool "build" provides new options -k and -x.
+* The Isabelle tool "build" provides new options -X, -k, -x.
 
 * Discontinued old-fashioned "codegen" tool. Code generation can always
 be externally triggered using an appropriate ROOT file plus a

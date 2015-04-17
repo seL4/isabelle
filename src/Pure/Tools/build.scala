@@ -165,15 +165,26 @@ object Build
     def selection(
       requirements: Boolean = false,
       all_sessions: Boolean = false,
-      session_groups: List[String] = Nil,
+      exclude_session_groups: List[String] = Nil,
       exclude_sessions: List[String] = Nil,
+      session_groups: List[String] = Nil,
       sessions: List[String] = Nil): (List[String], Session_Tree) =
     {
       val bad_sessions =
         SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
       if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
 
-      val excluded = graph.all_succs(exclude_sessions).toSet
+      val excluded =
+      {
+        val exclude_group = exclude_session_groups.toSet
+        val exclude_group_sessions =
+          (for {
+            (name, (info, _)) <- graph.iterator
+            if apply(name).groups.exists(exclude_group)
+          } yield name).toList
+        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
+      }
+
       val pre_selected =
       {
         if (all_sessions) graph.keys
@@ -751,6 +762,7 @@ object Build
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    exclude_session_groups: List[String] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
@@ -765,7 +777,8 @@ object Build
 
     val full_tree = find_sessions(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
-      full_tree.selection(requirements, all_sessions, session_groups, exclude_sessions, sessions)
+      full_tree.selection(requirements, all_sessions,
+        exclude_session_groups, exclude_sessions, session_groups, sessions)
 
     val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
@@ -1004,6 +1017,7 @@ object Build
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    exclude_session_groups: List[String] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
@@ -1016,8 +1030,8 @@ object Build
   {
     val results =
       build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
-        dirs, select_dirs, session_groups, max_jobs, list_files, check_keywords,
-        no_build, system_mode, verbose, exclude_sessions, sessions)
+        dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
+        check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
 
     val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
@@ -1046,13 +1060,13 @@ object Build
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(dirs, select_dirs, session_groups, check_keywords,
-              build_options, exclude_sessions, sessions) =>
+              build_options, exclude_session_groups, exclude_sessions, sessions) =>
             val options = (Options.init() /: build_options)(_ + _)
             val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
               build(options, progress, requirements, all_sessions, build_heap, clean_build,
-                dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), session_groups,
-                max_jobs, list_files, check_keywords.toSet, no_build, system_mode,
+                dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), exclude_session_groups,
+                session_groups, max_jobs, list_files, check_keywords.toSet, no_build, system_mode,
                 verbose, exclude_sessions, sessions)
             }
         case _ => error("Bad arguments:\n" + cat_lines(args))
@@ -1116,4 +1130,3 @@ object Build
         Markup.LOADING_THEORY -> loading_theory _)
   }
 }
-
