@@ -1,6 +1,6 @@
 chapter ZF
 
-session ZF (main) = Pure +
+session ZF (main ZF) = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -47,7 +47,7 @@ session ZF (main) = Pure +
     Main_ZFC
   document_files "root.tex"
 
-session "ZF-AC" in AC = ZF +
+session "ZF-AC" (ZF) in AC = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -75,7 +75,7 @@ session "ZF-AC" in AC = ZF +
     DC
   document_files "root.tex" "root.bib"
 
-session "ZF-Coind" in Coind = ZF +
+session "ZF-Coind" (ZF) in Coind = ZF +
   description {*
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -101,7 +101,7 @@ session "ZF-Coind" in Coind = ZF +
   options [document = false]
   theories ECR
 
-session "ZF-Constructible" in Constructible = ZF +
+session "ZF-Constructible" (ZF) in Constructible = ZF +
   description {*
     Relative Consistency of the Axiom of Choice:
     Inner Models, Absoluteness and Consistency Proofs.
@@ -127,7 +127,7 @@ session "ZF-Constructible" in Constructible = ZF +
     Rank_Separation
   document_files "root.tex" "root.bib"
 
-session "ZF-IMP" in IMP = ZF +
+session "ZF-IMP" (ZF) in IMP = ZF +
   description {*
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
@@ -145,7 +145,7 @@ session "ZF-IMP" in IMP = ZF +
   theories Equiv
   document_files "root.tex" "root.bib"
 
-session "ZF-Induct" in Induct = ZF +
+session "ZF-Induct" (ZF) in Induct = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
@@ -178,7 +178,7 @@ session "ZF-Induct" in Induct = ZF +
     "root.bib"
     "root.tex"
 
-session "ZF-Resid" in Resid = ZF +
+session "ZF-Resid" (ZF) in Resid = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -198,7 +198,7 @@ session "ZF-Resid" in Resid = ZF +
   options [document = false]
   theories Confluence
 
-session "ZF-UNITY" in UNITY = ZF +
+session "ZF-UNITY" (ZF) in UNITY = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -216,7 +216,7 @@ session "ZF-UNITY" in UNITY = ZF +
     (*Prefix relation; the Allocator example*)
     Distributor Merge ClientImpl AllocImpl
 
-session "ZF-ex" in ex = ZF +
+session "ZF-ex" (ZF) in ex = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -243,4 +243,3 @@ session "ZF-ex" in ex = ZF +
     Limit            (*Inverse limit construction of domains*)
     BinEx            (*Binary integer arithmetic*)
     LList CoUnit     (*CoDatatypes*)
-
