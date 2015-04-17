@@ -152,8 +152,8 @@ fun arg_pconv_gen cv0 cv ctxt tytenv ct =
 
 in
 
-val arg_pconv = arg_pconv_gen CConv.arg_cconv
-val imp_pconv = arg_pconv_gen (CConv.concl_cconv 1)
+fun arg_pconv ctxt = arg_pconv_gen CConv.arg_cconv ctxt
+fun imp_pconv ctxt = arg_pconv_gen (CConv.concl_cconv 1) ctxt
 
 end
 
