@@ -51,6 +51,11 @@ theory context.
 context, without implicit global state. Potential for accidental
 INCOMPATIBILITY, make sure that required theories are really imported.
 
+* Historical command-line terminator ";" is no longer accepted (and
+already used differently in Isar). Minor INCOMPATIBILITY, use "isabelle
+update_semicolons" to remove obsolete semicolons from old theory
+sources.
+
 * Structural composition of proof methods (meth1; meth2) in Isar
 corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 
@@ -77,8 +82,8 @@ Options / Text Area).
 * Improved graphview panel with optional output of PNG or PDF, for
 display of 'thy_deps', 'locale_deps', 'class_deps' etc.
 
-* Command 'thy_deps' allows optional bounds, analogously to
-'class_deps'.
+* The commands 'thy_deps' and 'class_deps' allow optional bounds to
+restrict the visualized hierarchy.
 
 * Improved scheduling for asynchronous print commands (e.g. provers
 managed by the Sledgehammer panel) wrt. ongoing document processing.
@@ -141,9 +146,6 @@ incremented to avoid material in the proof context. Rare
 INCOMPATIBILITY, explicit instantiation sometimes needs to refer to
 different index.
 
-* Command "class_deps" takes optional sort arguments to constrain then
-resulting class hierarchy.
-
 * Lexical separation of signed and unsigned numerals: categories "num"
 and "float" are unsigned. INCOMPATIBILITY: subtle change in precedence
 of numeral signs, particularly in expressions involving infix syntax
@@ -198,6 +200,15 @@ token category instead.
       BNF_Constructions_on_Wellorders ~> BNF_Wellorder_Constructions
       Cardinals/Constructions_on_Wellorders ~> Cardinals/Wellorder_Constructions
     INCOMPATIBILITY.
+  - Lifting and Transfer setup for basic HOL types sum and prod (also
+    option) is now performed by the BNF package. Theories Lifting_Sum,
+    Lifting_Product and Lifting_Option from Main became obsolete and
+    were removed. Changed definitions of the relators rel_prod and
+    rel_sum (using inductive).
+    INCOMPATIBILITY: use rel_prod.simps and rel_sum.simps instead
+    of rel_prod_def and rel_sum_def.
+    Minor INCOMPATIBILITY: (rarely used by name) transfer theorem names
+    changed (e.g. map_prod_transfer ~> prod.map_transfer).
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and
@@ -463,10 +474,6 @@ pool, like Isabelle system option "threads" for ML.
 * JVM system property "isabelle.laf" determines the default Swing
 look-and-feel, via internal class name or symbolic name as in the jEdit
 menu Global Options / Appearance.
-
-* Historical command-line terminator ";" is no longer accepted.  Minor
-INCOMPATIBILITY, use "isabelle update_semicolons" to remove obsolete
-semicolons from theory sources.
 
 * Support for Proof General and Isar TTY loop has been discontinued.
 Minor INCOMPATIBILITY, use standard PIDE infrastructure instead.

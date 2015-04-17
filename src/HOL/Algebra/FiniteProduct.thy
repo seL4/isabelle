@@ -292,7 +292,7 @@ definition
   where "finprod G f A =
    (if finite A
     then foldD (carrier G) (mult G o f) \<one>\<^bsub>G\<^esub> A
-    else undefined)"
+    else \<one>\<^bsub>G\<^esub>)"
 
 syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
@@ -309,6 +309,10 @@ translations
 
 lemma (in comm_monoid) finprod_empty [simp]: 
   "finprod G f {} = \<one>"
+  by (simp add: finprod_def)
+
+lemma (in comm_monoid) finprod_infinite[simp]:
+  "\<not> finite A \<Longrightarrow> finprod G f A = \<one>" 
   by (simp add: finprod_def)
 
 declare funcsetI [intro]
@@ -335,28 +339,28 @@ lemma finprod_insert [simp]:
   done
 
 lemma finprod_one [simp]:
-  "finite A ==> (\<Otimes>i:A. \<one>) = \<one>"
-proof (induct set: finite)
+  "(\<Otimes>i:A. \<one>) = \<one>"
+proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A)
   have "(%i. \<one>) \<in> A -> carrier G" by auto
   with insert show ?case by simp
-qed
+qed simp
 
 lemma finprod_closed [simp]:
   fixes A
-  assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
+  assumes f: "f \<in> A -> carrier G" 
   shows "finprod G f A \<in> carrier G"
-using fin f
-proof induct
+using f
+proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A)
   then have a: "f a \<in> carrier G" by fast
   from insert have A: "f \<in> A -> carrier G" by fast
   from insert A a show ?case by simp
-qed
+qed simp
 
 lemma funcset_Int_left [simp, intro]:
   "[| f \<in> A -> C; f \<in> B -> C |] ==> f \<in> A Int B -> C"
@@ -390,9 +394,9 @@ lemma finprod_Un_disjoint:
   done
 
 lemma finprod_multf:
-  "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
+  "[| f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
    finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
-proof (induct set: finite)
+proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A) then
@@ -404,7 +408,7 @@ next
     by (simp add: Pi_def)
   show ?case
     by (simp add: insert fA fa gA ga fgA m_ac)
-qed
+qed simp
 
 lemma finprod_cong':
   "[| A = B; g \<in> B -> carrier G;
@@ -443,7 +447,7 @@ proof -
     qed
     with prems show ?thesis by simp
   next
-    case False with prems show ?thesis by (simp add: finprod_def)
+    case False with prems show ?thesis by simp
   qed
 qed
 
@@ -494,23 +498,26 @@ lemma finprod_mult [simp]:
 (* The following two were contributed by Jeremy Avigad. *)
 
 lemma finprod_reindex:
-  assumes fin: "finite A"
-    shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
+  "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
         inj_on h A ==> finprod G f (h ` A) = finprod G (%x. f (h x)) A"
-  using fin
-  by induct (auto simp add: Pi_def)
+proof (induct A rule: infinite_finite_induct)
+  case (infinite A)
+  hence "\<not> finite (h ` A)"
+    using finite_imageD by blast
+  with `\<not> finite A` show ?case by simp
+qed (auto simp add: Pi_def)
 
 lemma finprod_const:
-  assumes fin [simp]: "finite A"
-      and a [simp]: "a : carrier G"
+  assumes a [simp]: "a : carrier G"
     shows "finprod G (%x. a) A = a (^) card A"
-  using fin apply induct
-  apply force
-  apply (subst finprod_insert)
-  apply auto
-  apply (subst m_comm)
-  apply auto
-  done
+proof (induct A rule: infinite_finite_induct)
+  case (insert b A)
+  show ?case 
+  proof (subst finprod_insert[OF insert(1-2)])
+    show "a \<otimes> (\<Otimes>x\<in>A. a) = a (^) card (insert b A)"
+      by (insert insert, auto, subst m_comm, auto)
+  qed auto
+qed auto
 
 (* The following lemma was contributed by Jesus Aransay. *)
 

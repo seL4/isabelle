@@ -73,7 +73,7 @@ proof -
 qed
 
 interpretation int: comm_monoid \<Z>
-  where "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
+  where "finprod \<Z> f A = setprod f A"
 proof -
   -- "Specification"
   show "comm_monoid \<Z>" by default auto
@@ -83,28 +83,15 @@ proof -
   { fix x y have "mult \<Z> x y = x * y" by simp }
   note mult = this
   have one: "one \<Z> = 1" by simp
-  show "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
-  proof (cases "finite A")
-    case True
-    then show ?thesis
-    proof induct
-      case empty
-      show ?case by (simp add: one)
-    next
-      case insert
-      then show ?case by (simp add: Pi_def mult)
-    qed
-  next
-    case False
-    then show ?thesis by (simp add: finprod_def)
-  qed
+  show "finprod \<Z> f A = setprod f A"
+    by (induct A rule: infinite_finite_induct, auto)
 qed
 
 interpretation int: abelian_monoid \<Z>
   where int_carrier_eq: "carrier \<Z> = UNIV"
     and int_zero_eq: "zero \<Z> = 0"
     and int_add_eq: "add \<Z> x y = x + y"
-    and int_finsum_eq: "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+    and int_finsum_eq: "finsum \<Z> f A = setsum f A"
 proof -
   -- "Specification"
   show "abelian_monoid \<Z>" by default auto
@@ -118,21 +105,8 @@ proof -
   note add = this
   show zero: "zero \<Z> = 0"
     by simp
-  show "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
-  proof (cases "finite A")
-    case True
-    then show ?thesis
-    proof induct
-      case empty
-      show ?case by (simp add: zero)
-    next
-      case insert
-      then show ?case by (simp add: Pi_def add)
-    qed
-  next
-    case False
-    then show ?thesis by (simp add: finsum_def finprod_def)
-  qed
+  show "finsum \<Z> f A = setsum f A"
+    by (induct A rule: infinite_finite_induct, auto)
 qed
 
 interpretation int: abelian_group \<Z>
@@ -143,7 +117,7 @@ interpretation int: abelian_group \<Z>
   where "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+    and "finsum \<Z> f A = setsum f A"
     and int_a_inv_eq: "a_inv \<Z> x = - x"
     and int_a_minus_eq: "a_minus \<Z> x y = x - y"
 proof -
@@ -176,7 +150,7 @@ interpretation int: "domain" \<Z>
   where "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+    and "finsum \<Z> f A = setsum f A"
     and "a_inv \<Z> x = - x"
     and "a_minus \<Z> x y = x - y"
 proof -
