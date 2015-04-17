@@ -24,6 +24,8 @@ new free (!) version of Z3.
 * New proof method "rewrite" for single-step rewriting with subterm
 selection based on patterns.
 
+* New Eisbach proof method language and "match" method.
+
 * Updated manuals: datatypes, implementation, isar-ref, jedit, sledgehammer,
 system.
 

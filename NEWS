@@ -59,6 +59,13 @@ sources.
 * Structural composition of proof methods (meth1; meth2) in Isar
 corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 
+* The Eisbach proof method language allows to define new proof methods
+by combining existing ones with their usual syntax. The "match" proof
+method provides basic fact/term matching in addition to
+premise/conclusion matching through Subgoal.focus, and binds fact names
+from matches as well as term patterns within matches. See also
+~~/src/HOL/Eisbach/Eisbach.thy and the included examples.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
