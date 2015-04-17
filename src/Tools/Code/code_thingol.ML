@@ -946,7 +946,7 @@ fun code_deps ctxt consts =
     |> join_strong_conn
     |> Graph.dest
     |> map (fn ((c, cs), ds) => ((c, Graph_Display.content_node (namify cs) []), ds))
-    |> Graph_Display.display_graph
+    |> Graph_Display.display_graph_old
   end;
 
 local
@@ -960,14 +960,12 @@ val _ =
   Outer_Syntax.command @{command_keyword code_thms}
     "print system of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_context o
-      Toplevel.keep (fn state => code_thms_cmd (Toplevel.context_of state) cs)));
+      Toplevel.keep (fn st => code_thms_cmd (Toplevel.context_of st) cs)));
 
 val _ =
   Outer_Syntax.command @{command_keyword code_deps}
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_context o
       Toplevel.keep (fn st => code_deps_cmd (Toplevel.context_of st) cs)));
 
 end;

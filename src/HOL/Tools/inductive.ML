@@ -1190,7 +1190,6 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_inductives}
     "print (co)inductive definitions and monotonicity rules"
-    (Parse.opt_bang >> (fn b => Toplevel.unknown_context o
-      Toplevel.keep (print_inductives b o Toplevel.context_of)));
+    (Parse.opt_bang >> (fn b => Toplevel.keep (print_inductives b o Toplevel.context_of)));
 
 end;

@@ -533,8 +533,8 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword quickcheck}
     "try to find counterexample for subgoal"
-    (parse_args -- Scan.optional Parse.nat 1 >> (fn (args, i) =>
-      Toplevel.unknown_proof o Toplevel.keep (quickcheck_cmd args i)));
+    (parse_args -- Scan.optional Parse.nat 1 >>
+      (fn (args, i) => Toplevel.keep (quickcheck_cmd args i)));
 
 
 (* automatic testing *)

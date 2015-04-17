@@ -154,8 +154,6 @@ lemma less_diff_eq': "(a < c - b) = (b + a < (c::int))" by arith
 lemma diff_less_eq': "(a - b < c) = (a < b + (c::int))" by arith
 
 lemmas m1mod22k = mult_pos_pos [OF zless2 zless2p, THEN zmod_minus1]
-lemmas z1pmod2' = zero_le_one [THEN pos_zmod_mult_2, simplified]
-lemmas z1pdiv2' = zero_le_one [THEN pos_zdiv_mult_2, simplified]
 
 lemma z1pdiv2:
   "(2 * b + 1) div 2 = (b::int)" by arith

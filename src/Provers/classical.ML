@@ -980,6 +980,6 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword print_claset} "print context of Classical Reasoner"
-    (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_claset o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_claset o Toplevel.context_of)));
 
 end;

@@ -441,8 +441,7 @@ fun print_structures ctxt =
 val _ =
   Outer_Syntax.command @{command_keyword print_orders}
     "print order structures available to transitivity reasoner"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (print_structures o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.keep (print_structures o Toplevel.context_of)));
 
 
 (* tactics *)

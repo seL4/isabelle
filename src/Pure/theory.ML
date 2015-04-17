@@ -16,6 +16,7 @@ sig
   val setup: (theory -> theory) -> unit
   val local_setup: (Proof.context -> Proof.context) -> unit
   val get_markup: theory -> Markup.T
+  val check: Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
   val axioms_of: theory -> (string * term) list
@@ -127,6 +128,25 @@ fun init_markup (name, pos) thy =
 fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
   in theory_markup false (Context.theory_name thy) id pos end;
+
+fun check ctxt (name, pos) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val thy' =
+      Context.get_theory thy name
+        handle ERROR msg =>
+          let
+            val completion =
+              Completion.make (name, pos)
+                (fn completed =>
+                  map Context.theory_name (ancestors_of thy)
+                  |> filter completed
+                  |> sort_strings
+                  |> map (fn a => (a, (Markup.theoryN, a))));
+            val report = Markup.markup_report (Completion.reported_text completion);
+          in error (msg ^ Position.here pos ^ report) end;
+    val _ = Context_Position.report ctxt pos (get_markup thy');
+  in thy' end;
 
 
 (* basic operations *)

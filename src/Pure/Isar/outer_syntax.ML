@@ -19,6 +19,7 @@ sig
     (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: command_keyword -> string ->
     (local_theory -> Proof.state) parser -> unit
+  val bootstrap: bool Config.T
   val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_tokens: theory -> Token.T list -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
@@ -160,6 +161,9 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 (* parse commands *)
 
+val bootstrap =
+  Config.bool (Config.declare ("Outer_Syntax.bootstrap", @{here}) (K (Config.Bool true)));
+
 local
 
 val before_command =
@@ -177,7 +181,14 @@ fun parse_command thy =
       | SOME (Command {command_parser = Limited_Parser parse, ...}) =>
           before_command :|-- (fn limited =>
             Parse.!!! (command_tags |-- parse limited)) >> (fn f => f tr0)
-      | NONE => Scan.fail_with (fn _ => fn _ => err_command "Undefined command " name [pos]))
+      | NONE =>
+          Scan.fail_with (fn _ => fn _ =>
+            let
+              val msg =
+                if Config.get_global thy bootstrap
+                then "missing theory context for command "
+                else "undefined command ";
+            in msg ^ quote (Markup.markup Markup.keyword1 name) end))
     end);
 
 val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;

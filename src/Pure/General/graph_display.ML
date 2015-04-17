@@ -11,6 +11,7 @@ sig
   val session_node: {name: string, unfold: bool, directory: string, path: string} -> node
   type entry = (string * node) * string list
   val display_graph: entry list -> unit
+  val display_graph_old: entry list -> unit
 end;
 
 structure Graph_Display: GRAPH_DISPLAY =
@@ -30,7 +31,9 @@ fun session_node {name, unfold, directory, path} =
 type entry = (string * node) * string list;
 
 
-(* encode graph *)
+(* display graph *)
+
+local
 
 fun encode_node (Node {name, content, ...}) =
   (name, content) |>
@@ -40,8 +43,21 @@ fun encode_node (Node {name, content, ...}) =
 val encode_graph =
   let open XML.Encode in list (pair (pair string encode_node) (list string)) end;
 
+in
+
+fun display_graph entries =
+  let
+    val ((bg1, bg2), en) =
+      YXML.output_markup_elem
+        (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
+  in writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "graph" ^ en) end;
+
+end;
+
 
 (* support for old browser *)
+
+local
 
 structure Graph =
   Graph(type key = string * string val ord = prod_ord string_ord string_ord);
@@ -71,23 +87,15 @@ val encode_browser =
     path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;")
   #> cat_lines;
 
+in
 
-(* display graph *)
-
-fun display_graph entries =
+fun display_graph_old entries =
   let
     val ((bg1, bg2), en) =
       YXML.output_markup_elem
-        (Active.make_markup Markup.graphviewN {implicit = false, properties = []});
-    val _ =
-      writeln ("See " ^ bg1 ^ YXML.string_of_body (encode_graph entries) ^ bg2 ^ "graph" ^ en);
-
-    (*old browser*)
-    val ((bg1, bg2), en) =
-      YXML.output_markup_elem
         (Active.make_markup Markup.browserN {implicit = false, properties = []});
-    val _ =
-      writeln ("See " ^ bg1 ^ encode_browser entries ^ bg2 ^ "old graph" ^ en);
-  in () end;
+  in writeln ("See " ^ bg1 ^ encode_browser entries ^ bg2 ^ "graph" ^ en) end;
+
+end;
 
 end;
