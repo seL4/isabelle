@@ -179,19 +179,29 @@ by (rewrite in "P (x + _)" at for (x y) add.commute) fact
 lemma
   assumes "\<And>x y z. y + x + z = z + y + (x::int)"
   shows   "\<And>x y z. x + y + z = z + y + (x::int)"
-by (rewrite at "x + y" in "x + y + z" in concl at for (x y z) add.commute) fact
+by (rewrite at "x + y" in "x + y + z" in for (x y z) add.commute) fact
 
 lemma
   assumes "\<And>x y z. z + (x + y) = z + y + (x::int)"
   shows   "\<And>x y z. x + y + z = z + y + (x::int)"
-by (rewrite at "(_ + y) + z" in concl at for (y z) add.commute) fact
+by (rewrite at "(_ + y) + z" in for (y z) add.commute) fact
 
 lemma
   assumes "\<And>x y z. x + y + z = y + z + (x::int)"
   shows   "\<And>x y z. x + y + z = z + y + (x::int)"
-by (rewrite at "\<hole> + _" at "_ = \<hole>" in concl at for () add.commute) fact
+by (rewrite at "\<hole> + _" at "_ = \<hole>" in for () add.commute) fact
 
-(* The all-keyword can be used anywhere in the pattern where there is an \<And>-Quantifier. *)
+lemma
+  assumes eq: "\<And>x. P x \<Longrightarrow> g x = x"
+  assumes f1: "\<And>x. Q x \<Longrightarrow> P x"
+  assumes f2: "\<And>x. Q x \<Longrightarrow> x"
+  shows "\<And>x. Q x \<Longrightarrow> g x"
+  apply (rewrite at "g x" in for (x) eq)
+  apply (fact f1)
+  apply (fact f2)
+  done
+
+(* The for keyword can be used anywhere in the pattern where there is an \<And>-Quantifier. *)
 lemma
   assumes "(\<And>(x::int). x < 1 + x)"
   and     "(x::int) + 1 > x"

@@ -406,6 +406,8 @@ val _ =
 
         fun append_default [] = [Concl, In]
           | append_default (ps as Term _ :: _) = Concl :: In :: ps
+          | append_default [For x, In] = [For x, Concl, In]
+          | append_default (For x :: (ps as In :: Term _:: _)) = For x :: Concl :: ps
           | append_default ps = ps
 
       in Scan.repeat sep_atom >> (flat #> rev #> append_default) end
