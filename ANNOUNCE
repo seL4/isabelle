@@ -8,7 +8,7 @@ the distribution for more details. Some important points are as follows.
 
 * Improved Isabelle/jEdit Prover IDE: folding / bracket matching for Isar,
 support for BibTeX files, improved graphview panel, improved scheduling for
-asynchronous print commands (e.g. Slegehammer provers).
+asynchronous print commands (e.g. Sledgehammer provers).
 
 * Support for 'private' and 'qualified' name space modifiers.
 
