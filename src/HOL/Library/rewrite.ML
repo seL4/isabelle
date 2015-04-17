@@ -15,23 +15,38 @@ We also allow introduction of identifiers for bound variables,
 which can then be used to match arbitrary subterms inside abstractions.
 *)
 
+infix 1 then_pconv;
+infix 0 else_pconv;
+
 signature REWRITE =
 sig
+  type patconv = Proof.context -> Type.tyenv * (string * term) list -> cconv
+  val then_pconv: patconv * patconv -> patconv
+  val else_pconv: patconv * patconv -> patconv
+  val abs_pconv:  patconv -> string option * typ -> patconv (*XXX*)
+  val fun_pconv: patconv -> patconv
+  val arg_pconv: patconv -> patconv
+  val imp_pconv: patconv -> patconv
+  val params_pconv: patconv -> patconv
+  val forall_pconv: patconv -> string option * typ option -> patconv
+  val all_pconv: patconv
+  val for_pconv: patconv -> (string option * typ option) list -> patconv
+  val concl_pconv: patconv -> patconv
+  val asm_pconv: patconv -> patconv
+  val asms_pconv: patconv -> patconv
+  val judgment_pconv: patconv -> patconv
+  val in_pconv: patconv -> patconv
+  val match_pconv: patconv -> term * (string option * typ) list -> patconv
+  val rewrs_pconv: term option -> thm list -> patconv
+
   datatype ('a, 'b) pattern = At | In | Term of 'a | Concl | Asm | For of 'b list
 
   val mk_hole: int -> typ -> term
 
-  val rewrite: Proof.context
+  val rewrite_conv: Proof.context
     -> (term * (string * typ) list, string * typ option) pattern list * term option
     -> thm list
-    -> cterm
-    -> thm Seq.seq
-
-  val rewrite_tac: Proof.context
-    -> (term * (string * typ) list, string * typ option) pattern list * term option
-    -> thm list
-    -> int
-    -> tactic
+    -> conv
 end
 
 structure Rewrite : REWRITE =
@@ -39,166 +54,14 @@ struct
 
 datatype ('a, 'b) pattern = At | In | Term of 'a | Concl | Asm | For of 'b list
 
-fun map_term_pattern f (Term x) = f x
-  | map_term_pattern _ (For ss) = (For ss)
-  | map_term_pattern _ At = At
-  | map_term_pattern _ In = In
-  | map_term_pattern _ Concl = Concl
-  | map_term_pattern _ Asm = Asm
-
-
 exception NO_TO_MATCH
 
-fun SEQ_CONCAT (tacq : tactic Seq.seq) : tactic = fn st => Seq.maps (fn tac => tac st) tacq
-
-(* We rewrite subterms using rewrite conversions. These are conversions
-   that also take a context and a list of identifiers for bound variables
-   as parameters. *)
-type rewrite_conv = Proof.context -> (string * term) list -> conv
-
-(* To apply such a rewrite conversion to a subterm of our goal, we use
-   subterm positions, which are just functions that map a rewrite conversion,
-   working on the top level, to a new rewrite conversion, working on
-   a specific subterm.
-
-   During substitution, we are traversing the goal to find subterms that
-   we can rewrite. For each of these subterms, a subterm position is
-   created and later used in creating a conversion that we use to try and
-   rewrite this subterm. *)
-type subterm_position = rewrite_conv -> rewrite_conv
-
-(* A focusterm represents a subterm. It is a tuple (t, p), consisting
-  of the subterm t itself and its subterm position p. *)
-type focusterm = (Type.tyenv * Proof.context) * term * subterm_position
-
-val dummyN = Name.internal "__dummy"
 val holeN = Name.internal "_hole"
 
-fun prep_meta_eq ctxt =
-  Simplifier.mksimps ctxt #> map Drule.zero_var_indexes
+fun prep_meta_eq ctxt = Simplifier.mksimps ctxt #> map Drule.zero_var_indexes
 
 
-(* rewrite conversions *)
-
-fun abs_rewr_cconv ident : subterm_position =
-  let
-    fun add_ident NONE _ l = l
-      | add_ident (SOME name) ct l = (name, Thm.term_of ct) :: l
-    fun inner rewr ctxt idents =
-      CConv.abs_cconv (fn (ct, ctxt) => rewr ctxt (add_ident ident ct idents)) ctxt
-  in inner end
-
-val fun_rewr_cconv : subterm_position = fn rewr => CConv.fun_cconv oo rewr
-val arg_rewr_cconv : subterm_position = fn rewr => CConv.arg_cconv oo rewr
-val imp_rewr_cconv : subterm_position = fn rewr => CConv.concl_cconv 1 oo rewr
-val with_prems_rewr_cconv : subterm_position = fn rewr => CConv.with_prems_cconv ~1 oo rewr
-
-
-(* focus terms *)
-
-fun ft_abs ctxt (s,T) ((tyenv, u_ctxt), u, pos) =
-  case try (fastype_of #> dest_funT) u of
-    NONE => raise TERM ("ft_abs: no function type", [u])
-  | SOME (U, _) =>
-      let
-        val tyenv' =
-          if T = dummyT then tyenv
-          else Sign.typ_match (Proof_Context.theory_of ctxt) (T, U) tyenv
-        val (s', u_ctxt') =
-          case s of
-           NONE => yield_singleton Variable.variant_fixes (Name.internal dummyN) u_ctxt
-          | SOME s => (s, u_ctxt)
-        val x = Free (s', Envir.norm_type tyenv' T)
-        val eta_expand_cconv = CConv.rewr_cconv @{thm eta_expand}
-        fun eta_expand rewr ctxt bounds = eta_expand_cconv then_conv rewr ctxt bounds
-        val (u', pos') =
-          case u of
-            Abs (_,_,t') => (subst_bound (x, t'), pos o abs_rewr_cconv s)
-          | _ => (u $ x, pos o eta_expand o abs_rewr_cconv s)
-      in ((tyenv', u_ctxt'), u', pos') end
-      handle Pattern.MATCH => raise TYPE ("ft_abs: types don't match", [T,U], [u])
-
-fun ft_fun _ (tyenv, l $ _, pos) = (tyenv, l, pos o fun_rewr_cconv)
-  | ft_fun ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_fun ctxt o ft_abs ctxt (NONE, T)) ft
-  | ft_fun _ (_, t, _) = raise TERM ("ft_fun", [t])
-
-local
-
-fun ft_arg_gen cconv _ (tyenv, _ $ r, pos) = (tyenv, r, pos o cconv)
-  | ft_arg_gen cconv ctxt (ft as (_, Abs (_, T, _ $ Bound 0), _)) = (ft_arg_gen cconv ctxt o ft_abs ctxt (NONE, T)) ft
-  | ft_arg_gen _ _ (_, t, _) = raise TERM ("ft_arg", [t])
-
-in
-
-fun ft_arg ctxt = ft_arg_gen arg_rewr_cconv ctxt
-fun ft_imp ctxt = ft_arg_gen imp_rewr_cconv ctxt
-
-end
-
-(* Move to B in !!x_1 ... x_n. B. Do not eta-expand *)
-fun ft_params ctxt (ft as (_, t, _) : focusterm) =
-  case t of
-    Const (@{const_name "Pure.all"}, _) $ Abs (_,T,_) =>
-      (ft_params ctxt o ft_abs ctxt (NONE, T) o ft_arg ctxt) ft
-  | Const (@{const_name "Pure.all"}, _) =>
-      (ft_params ctxt o ft_arg ctxt) ft
-  | _ => ft
-
-fun ft_all ctxt ident (ft as (_, Const (@{const_name "Pure.all"}, T) $ _, _) : focusterm) =
-    let
-      val def_U = T |> dest_funT |> fst |> dest_funT |> fst
-      val ident' = apsnd (the_default (def_U)) ident
-    in (ft_abs ctxt ident' o ft_arg ctxt) ft end
-  | ft_all _ _ (_, t, _) = raise TERM ("ft_all", [t])
-
-fun ft_for ctxt idents (ft as (_, t, _) : focusterm) =
-  let
-    fun f rev_idents (Const (@{const_name "Pure.all"}, _) $ t) =
-        let
-         val (rev_idents', desc) = f rev_idents (case t of Abs (_,_,u) => u | _ => t)
-        in
-          case rev_idents' of
-            [] => ([], desc o ft_all ctxt (NONE, NONE))
-          | (x :: xs) => (xs , desc o ft_all ctxt x)
-        end
-      | f rev_idents _ = (rev_idents, I)
-  in
-    case f (rev idents) t of
-      ([], ft') => SOME (ft' ft)
-    | _ => NONE
-  end
-
-fun ft_concl ctxt (ft as (_, t, _) : focusterm) =
-  case t of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => (ft_concl ctxt o ft_imp ctxt) ft
-  | _ => ft
-
-fun ft_assm _ (tyenv, (Const (@{const_name "Pure.imp"}, _) $ l) $ _, pos) =
-      (tyenv, l, pos o with_prems_rewr_cconv)
-  | ft_assm _ (_, t, _) = raise TERM ("ft_assm", [t])
-
-fun ft_judgment ctxt (ft as (_, t, _) : focusterm) =
-  if Object_Logic.is_judgment ctxt t
-  then ft_arg ctxt ft
-  else ft
-
-(* Find all subterms that might be a valid point to apply a rule. *)
-fun valid_match_points ctxt (ft : focusterm) =
-  let
-    fun descend (_, _ $ _, _) = [ft_fun ctxt, ft_arg ctxt]
-      | descend (_, Abs (_, T, _), _) = [ft_abs ctxt (NONE, T)]
-      | descend _ = []
-    fun subseq ft =
-      descend ft |> Seq.of_list |> Seq.maps (fn f => ft |> f |> valid_match_points ctxt)
-    fun is_valid (l $ _) = is_valid l
-      | is_valid (Abs (_, _, a)) = is_valid a
-      | is_valid (Var _) = false
-      | is_valid (Bound _) = false
-      | is_valid _ = true
-  in
-    Seq.make (fn () => SOME (ft, subseq ft))
-    |> Seq.filter (#2 #> is_valid)
-  end
+(* holes *)
 
 fun mk_hole i T = Var ((holeN, i), T)
 
@@ -228,167 +91,239 @@ val hole_syntax =
     #> Proof_Context.set_mode Proof_Context.mode_pattern
   end
 
-(* Find a subterm of the focusterm matching the pattern. *)
-fun find_matches ctxt pattern_list =
-  let
-    fun move_term ctxt (t, off) (ft : focusterm) =
-      let
-        val thy = Proof_Context.theory_of ctxt
 
-        val eta_expands =
-          let val (_, ts) = strip_comb t
-          in map fastype_of (snd (take_suffix is_Var ts)) end
+(* pattern conversions *)
 
-        fun do_match ((tyenv, u_ctxt), u, pos) =
-          case try (Pattern.match thy (apply2 Logic.mk_term (t,u))) (tyenv, Vartab.empty) of
-            NONE => NONE
-          | SOME (tyenv', _) => SOME (off ((tyenv', u_ctxt), u, pos))
+type patconv = Proof.context -> Type.tyenv * (string * term) list -> cterm -> thm
 
-        fun match_argT T u =
-          let val (U, _) = dest_funT (fastype_of u)
-          in try (Sign.typ_match thy (T,U)) end
-          handle TYPE _ => K NONE
+fun (cv1 then_pconv cv2) ctxt tytenv ct = (cv1 ctxt tytenv then_conv cv2 ctxt tytenv) ct
 
-        fun desc [] ft = do_match ft
-          | desc (T :: Ts) (ft as ((tyenv, u_ctxt) , u, pos)) =
-            case do_match ft of
-              NONE =>
-                (case match_argT T u tyenv of
-                  NONE => NONE
-                | SOME tyenv' => desc Ts (ft_abs ctxt (NONE, T) ((tyenv', u_ctxt), u, pos)))
-            | SOME ft => SOME ft
-      in desc eta_expands ft end
+fun (cv1 else_pconv cv2) ctxt tytenv ct = (cv1 ctxt tytenv else_conv cv2 ctxt tytenv) ct
 
-    fun move_assms ctxt (ft: focusterm) =
-      let
-        fun f () = case try (ft_assm ctxt) ft of
-            NONE => NONE
-          | SOME ft' => SOME (ft', move_assms ctxt (ft_imp ctxt ft))
-      in Seq.make f end
+fun raw_abs_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    Abs _ => CConv.abs_cconv (fn (x, ctxt') => cv x ctxt' tytenv) ctxt ct
+  | t => raise TERM ("raw_abs_pconv", [t])
 
-    fun apply_pat At = Seq.map (ft_judgment ctxt)
-      | apply_pat In = Seq.maps (valid_match_points ctxt)
-      | apply_pat Asm = Seq.maps (move_assms ctxt o ft_params ctxt)
-      | apply_pat Concl = Seq.map (ft_concl ctxt o ft_params ctxt)
-      | apply_pat (For idents) = Seq.map_filter ((ft_for ctxt (map (apfst SOME) idents)))
-      | apply_pat (Term x) = Seq.map_filter ( (move_term ctxt x))
+fun raw_fun_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    _ $ _ => CConv.fun_cconv (cv ctxt tytenv) ct
+  | t => raise TERM ("raw_fun_pconv", [t])
 
-    fun apply_pats ft = ft
-      |> Seq.single
-      |> fold apply_pat pattern_list
+fun raw_arg_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    _ $ _ => CConv.arg_cconv (cv ctxt tytenv) ct
+  | t => raise TERM ("raw_arg_pconv", [t])
+
+fun abs_pconv cv (s,T) ctxt (tyenv, ts) ct =
+  let val u = Thm.term_of ct
   in
-    apply_pats
+    case try (fastype_of #> dest_funT) u of
+      NONE => raise TERM ("abs_pconv: no function type", [u])
+    | SOME (U, _) =>
+        let
+          val tyenv' =
+            if T = dummyT then tyenv
+            else Sign.typ_match (Proof_Context.theory_of ctxt) (T, U) tyenv
+          val eta_expand_cconv =
+            case u of
+              Abs _=> Thm.reflexive
+            | _ => CConv.rewr_cconv @{thm eta_expand}
+          fun add_ident NONE _ l = l
+            | add_ident (SOME name) ct l = (name, Thm.term_of ct) :: l
+          val abs_cv = CConv.abs_cconv (fn (ct, ctxt) => cv ctxt (tyenv', add_ident s ct ts)) ctxt
+        in (eta_expand_cconv then_conv abs_cv) ct end
+        handle Pattern.MATCH => raise TYPE ("abs_pconv: types don't match", [T,U], [u])
   end
 
-fun instantiate_normalize_env ctxt env thm =
-  let
-    fun certs f = map (apply2 (f ctxt))
-    val prop = Thm.prop_of thm
-    val norm_type = Envir.norm_type o Envir.type_env
-    val insts = Term.add_vars prop []
-      |> map (fn x as (s,T) => (Var (s, norm_type env T), Envir.norm_term env (Var x)))
-      |> certs Thm.cterm_of
-    val tyinsts = Term.add_tvars prop []
-      |> map (fn x => (TVar x, norm_type env (TVar x)))
-      |> certs Thm.ctyp_of
-  in Drule.instantiate_normalize (tyinsts, insts) thm end
-
-fun unify_with_rhs context to env thm =
-  let
-    val (_, rhs) = thm |> Thm.concl_of |> Logic.dest_equals
-    val env' = Pattern.unify context (Logic.mk_term to, Logic.mk_term rhs) env
-      handle Pattern.Unif => raise NO_TO_MATCH
-  in env' end
-
-fun inst_thm_to _ (NONE, _) thm = thm
-  | inst_thm_to (ctxt : Proof.context) (SOME to, env) thm =
-      instantiate_normalize_env ctxt (unify_with_rhs (Context.Proof ctxt) to env thm) thm
-
-fun inst_thm ctxt idents (to, tyenv) thm =
-  let
-    (* Replace any identifiers with their corresponding bound variables. *)
-    val maxidx = Term.maxidx_typs (map (snd o snd) (Vartab.dest tyenv)) 0
-    val env = Envir.Envir {maxidx = maxidx, tenv = Vartab.empty, tyenv = tyenv}
-    val replace_idents =
-      let
-        fun subst ((n1, s)::ss) (t as Free (n2, _)) = if n1 = n2 then s else subst ss t
-          | subst _ t = t
-      in Term.map_aterms (subst idents) end
-
-    val maxidx = Envir.maxidx_of env |> fold Term.maxidx_term (the_list to)
-    val thm' = Thm.incr_indexes (maxidx + 1) thm
-  in SOME (inst_thm_to ctxt (Option.map replace_idents to, env) thm') end
-  handle NO_TO_MATCH => NONE
+fun fun_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    _ $ _ => CConv.fun_cconv (cv ctxt tytenv) ct
+  | Abs (_, T, _ $ Bound 0) => abs_pconv (fun_pconv cv) (NONE, T) ctxt tytenv ct
+  | t => raise TERM ("fun_pconv", [t])
 
 local
 
-fun rewrite_raw ctxt (pattern, to) thms ct =
-  let
-    fun interpret_term_patterns ctxt =
+fun arg_pconv_gen cv0 cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    _ $ _ => cv0 (cv ctxt tytenv) ct
+  | Abs (_, T, _ $ Bound 0) => abs_pconv (arg_pconv_gen cv0 cv) (NONE, T) ctxt tytenv ct
+  | t => raise TERM ("arg_pconv_gen", [t])
+
+in
+
+val arg_pconv = arg_pconv_gen CConv.arg_cconv
+val imp_pconv = arg_pconv_gen (CConv.concl_cconv 1)
+
+end
+
+(* Move to B in !!x_1 ... x_n. B. Do not eta-expand *)
+fun params_pconv cv ctxt tytenv ct =
+  let val pconv =
+    case Thm.term_of ct of
+      Const (@{const_name "Pure.all"}, _) $ Abs _ => (raw_arg_pconv o raw_abs_pconv) (fn _ => params_pconv cv)
+    | Const (@{const_name "Pure.all"}, _) => raw_arg_pconv (params_pconv cv)
+    | _ => cv
+  in pconv ctxt tytenv ct end
+
+fun forall_pconv cv ident ctxt tytenv ct =
+  case Thm.term_of ct of
+    Const (@{const_name "Pure.all"}, T) $ _ =>
       let
-    
-        fun descend_hole fixes (Abs (_, _, t)) =
-            (case descend_hole fixes t of
-              NONE => NONE
-            | SOME (fix :: fixes', pos) => SOME (fixes', pos o ft_abs ctxt (apfst SOME fix))
-            | SOME ([], _) => raise Match (* XXX -- check phases modified binding *))
-          | descend_hole fixes (t as l $ r) =
-            let val (f, _) = strip_comb t
-            in
-              if is_hole f
-              then SOME (fixes, I)
-              else
-                (case descend_hole fixes l of
-                  SOME (fixes', pos) => SOME (fixes', pos o ft_fun ctxt)
-                | NONE =>
-                  (case descend_hole fixes r of
-                    SOME (fixes', pos) => SOME (fixes', pos o ft_arg ctxt)
-                  | NONE => NONE))
-            end
-          | descend_hole fixes t =
-            if is_hole t then SOME (fixes, I) else NONE
-    
-        fun f (t, fixes) = Term (t, (descend_hole (rev fixes) #> the_default ([], I) #> snd) t)
-    
-      in map (map_term_pattern f) end
+        val def_U = T |> dest_funT |> fst |> dest_funT |> fst
+        val ident' = apsnd (the_default (def_U)) ident
+      in arg_pconv (abs_pconv cv ident') ctxt tytenv ct end
+  | t => raise TERM ("forall_pconv", [t])
 
-    val pattern' = interpret_term_patterns ctxt pattern
-    val matches = find_matches ctxt pattern' ((Vartab.empty, ctxt), Thm.term_of ct, I)
+fun all_pconv _ _ = Thm.reflexive
 
-    val thms' = maps (prep_meta_eq ctxt) thms
+fun for_pconv cv idents ctxt tytenv ct =
+  let
+    fun f rev_idents (Const (@{const_name "Pure.all"}, _) $ t) =
+        let val (rev_idents', cv') = f rev_idents (case t of Abs (_,_,u) => u | _ => t)
+        in
+          case rev_idents' of
+            [] => ([], forall_pconv cv' (NONE, NONE))
+          | (x :: xs) => (xs, forall_pconv cv' x)
+        end
+      | f rev_idents _ = (rev_idents, cv)
+  in
+    case f (rev idents) (Thm.term_of ct) of
+      ([], cv') => cv' ctxt tytenv ct
+    | _ => raise CTERM ("for_pconv", [ct])
+  end
 
-    fun rewrite_conv insty ctxt bounds =
-      CConv.rewrs_cconv (map_filter (inst_thm ctxt bounds insty) thms')
+fun concl_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => imp_pconv (concl_pconv cv) ctxt tytenv ct
+  | _ => cv ctxt tytenv ct
+
+fun asm_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => CConv.with_prems_cconv ~1 (cv ctxt tytenv) ct
+  | t => raise TERM ("asm_pconv", [t])
+
+fun asms_pconv cv ctxt tytenv ct =
+  case Thm.term_of ct of
+    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ =>
+      ((CConv.with_prems_cconv ~1 oo cv) else_pconv imp_pconv (asms_pconv cv)) ctxt tytenv ct
+  | t => raise TERM ("asms_pconv", [t])
+
+fun judgment_pconv cv ctxt tytenv ct =
+  if Object_Logic.is_judgment ctxt (Thm.term_of ct)
+  then arg_pconv cv ctxt tytenv ct
+  else cv ctxt tytenv ct
+
+fun in_pconv cv ctxt tytenv ct =
+  (cv else_pconv 
+   raw_fun_pconv (in_pconv cv) else_pconv
+   raw_arg_pconv (in_pconv cv) else_pconv
+   raw_abs_pconv (fn _  => in_pconv cv))
+  ctxt tytenv ct
+
+fun replace_idents idents t =
+  let
+    fun subst ((n1, s)::ss) (t as Free (n2, _)) = if n1 = n2 then s else subst ss t
+      | subst _ t = t
+  in Term.map_aterms (subst idents) t end
+
+fun match_pconv cv (t,fixes) ctxt (tyenv, env_ts) ct =
+  let
+    val t' = replace_idents env_ts t
+    val thy = Proof_Context.theory_of ctxt
+    val u = Thm.term_of ct
+
+    fun descend_hole fixes (Abs (_, _, t)) =
+        (case descend_hole fixes t of
+          NONE => NONE
+        | SOME (fix :: fixes', pos) => SOME (fixes', abs_pconv pos fix)
+        | SOME ([], _) => raise Match (* less fixes than abstractions on path to hole *))
+      | descend_hole fixes (t as l $ r) =
+        let val (f, _) = strip_comb t
+        in
+          if is_hole f
+          then SOME (fixes, cv)
+          else
+            (case descend_hole fixes l of
+              SOME (fixes', pos) => SOME (fixes', fun_pconv pos)
+            | NONE =>
+              (case descend_hole fixes r of
+                SOME (fixes', pos) => SOME (fixes', arg_pconv pos)
+              | NONE => NONE))
+        end
+      | descend_hole fixes t =
+        if is_hole t then SOME (fixes, cv) else NONE
+
+    val to_hole = descend_hole (rev fixes) #> the_default ([], cv) #> snd
+  in
+    case try (Pattern.match thy (apply2 Logic.mk_term (t',u))) (tyenv, Vartab.empty) of
+      NONE => raise TERM ("match_pconv: Does not match pattern", [t, t',u])
+    | SOME (tyenv', _) => to_hole t ctxt (tyenv', env_ts) ct
+  end
+
+fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
+  let
+    fun instantiate_normalize_env ctxt env thm =
+      let
+        fun certs f = map (apply2 (f ctxt))
+        val prop = Thm.prop_of thm
+        val norm_type = Envir.norm_type o Envir.type_env
+        val insts = Term.add_vars prop []
+          |> map (fn x as (s,T) => (Var (s, norm_type env T), Envir.norm_term env (Var x)))
+          |> certs Thm.cterm_of
+        val tyinsts = Term.add_tvars prop []
+          |> map (fn x => (TVar x, norm_type env (TVar x)))
+          |> certs Thm.ctyp_of
+      in Drule.instantiate_normalize (tyinsts, insts) thm end
+    
+    fun unify_with_rhs context to env thm =
+      let
+        val (_, rhs) = thm |> Thm.concl_of |> Logic.dest_equals
+        val env' = Pattern.unify context (Logic.mk_term to, Logic.mk_term rhs) env
+          handle Pattern.Unif => raise NO_TO_MATCH
+      in env' end
+    
+    fun inst_thm_to _ (NONE, _) thm = thm
+      | inst_thm_to (ctxt : Proof.context) (SOME to, env) thm =
+          instantiate_normalize_env ctxt (unify_with_rhs (Context.Proof ctxt) to env thm) thm
+    
+    fun inst_thm ctxt idents (to, tyenv) thm =
+      let
+        (* Replace any identifiers with their corresponding bound variables. *)
+        val maxidx = Term.maxidx_typs (map (snd o snd) (Vartab.dest tyenv)) 0
+        val env = Envir.Envir {maxidx = maxidx, tenv = Vartab.empty, tyenv = tyenv}
+        val maxidx = Envir.maxidx_of env |> fold Term.maxidx_term (the_list to)
+        val thm' = Thm.incr_indexes (maxidx + 1) thm
+      in SOME (inst_thm_to ctxt (Option.map (replace_idents idents) to, env) thm') end
+      handle NO_TO_MATCH => NONE
+    
+  in CConv.rewrs_cconv (map_filter (inst_thm ctxt env_ts (to, tyenv)) thms) end
+
+fun rewrite_conv ctxt (pattern, to) thms ct =
+  let
+    fun apply_pat At = judgment_pconv
+      | apply_pat In = in_pconv
+      | apply_pat Asm = params_pconv o asms_pconv
+      | apply_pat Concl = params_pconv o concl_pconv
+      | apply_pat (For idents) = (fn cv => for_pconv cv (map (apfst SOME) idents))
+      | apply_pat (Term x) = (fn cv => match_pconv cv (apsnd (map (apfst SOME)) x))
+
+    val cv = fold_rev apply_pat pattern
 
     fun distinct_prems th =
       case Seq.pull (distinct_subgoals_tac th) of
         NONE => th
       | SOME (th', _) => th'
 
-    fun conv (((tyenv, _), _, position) : focusterm) =
-      distinct_prems o position (rewrite_conv (to, tyenv)) ctxt []
-
-  in Seq.map (fn ft => conv ft) matches end
-
-in
-
-fun rewrite ctxt pat thms ct =
-  rewrite_raw ctxt pat thms ct |> Seq.map_filter (fn cv => try cv ct)
+    val rewrite = rewrs_pconv to (maps (prep_meta_eq ctxt) thms)
+  in cv rewrite ctxt (Vartab.empty, []) ct |> distinct_prems end
 
 fun rewrite_export_tac ctxt (pat, pat_ctxt) thms =
   let
     val export = case pat_ctxt of
         NONE => I
       | SOME inner => singleton (Proof_Context.export inner ctxt)
-    val tac = CSUBGOAL (fn (ct, i) =>
-      rewrite_raw ctxt pat thms ct
-      |> Seq.map (fn cv => CCONVERSION (export o cv) i)
-      |> SEQ_CONCAT)
-  in tac end
-
-fun rewrite_tac ctxt pat = rewrite_export_tac ctxt (pat, NONE)
-
-end
+  in CCONVERSION (export o rewrite_conv ctxt pat thms) end
 
 val _ =
   Theory.setup

@@ -9,7 +9,6 @@ section \<open>The rewrite Proof Method by Example\<close>
 
    See also https://www21.in.tum.de/~noschinl/Pattern-2014/
 *)
-
 lemma
   fixes a::int and b::int and c::int
   assumes "P (b + a)"
@@ -86,6 +85,11 @@ lemma
 lemma
   assumes "PROP P \<equiv> PROP Q"
   shows "PROP R \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"
+    by (rewrite at asm assms)
+
+lemma
+  assumes "PROP P \<equiv> PROP Q"
+  shows "PROP R \<Longrightarrow> PROP R \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"
     by (rewrite at asm assms)
 
 (* Rewriting "at asm" selects each full assumption, not any parts *)
@@ -222,7 +226,7 @@ lemma
         Rewrite.In,
         Rewrite.Term (@{const plus(nat)} $ Free (x, @{typ nat}) $ @{term "1 :: nat"}, [])]
       val to = NONE
-    in Rewrite.rewrite_tac ctxt (pat, to) @{thms add.commute} 1 end
+    in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
   \<close>)
   apply (fact assms)
   done
@@ -242,7 +246,7 @@ lemma
         Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
         ]
       val to = NONE
-    in Rewrite.rewrite_tac ctxt (pat, to) @{thms add.commute} 1 end
+    in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
   \<close>)
   apply (fact assms)
   done
@@ -260,8 +264,7 @@ ML \<open>
     Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
     ]
   val to = NONE
-  val ct_ths = Rewrite.rewrite ctxt (pat, to) @{thms add.commute} ct
-    |> Seq.list_of
+  val th = Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute} ct
 \<close>
 
 section \<open>Regression tests\<close>
@@ -274,12 +277,24 @@ ML \<open>
     Rewrite.Term (@{const plus(int)} $ Var (("c", 0), @{typ int}) $ Var (("c", 0), @{typ int}), [])
     ]
   val to = NONE
-  val ct_ths = Rewrite.rewrite ctxt (pat, to) @{thms add.commute} ct
-  val _ = case Seq.pull ct_ths of      NONE => ()
+  val _ =
+    case try (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) ct of
+      NONE => ()
     | _ => error "should not have matched anything"
 \<close>
 
+ML \<open>
+  Rewrite.params_pconv (Conv.all_conv |> K |> K) @{context} (Vartab.empty, []) @{cterm "\<And>x. PROP A"}
+\<close>
 
+lemma
+  assumes eq: "PROP A \<Longrightarrow> PROP B \<equiv> PROP C"
+  assumes f1: "PROP D \<Longrightarrow> PROP A"
+  assumes f2: "PROP D \<Longrightarrow> PROP C"
+  shows "\<And>x. PROP D \<Longrightarrow> PROP B"
+  apply (rewrite eq)
+  apply (fact f1)
+  apply (fact f2)
+  done
 
 end
-
