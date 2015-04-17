@@ -143,6 +143,7 @@ lemmas finsum_0 = add.finprod_0
 lemmas finsum_Suc = add.finprod_Suc
 lemmas finsum_Suc2 = add.finprod_Suc2
 lemmas finsum_add = add.finprod_mult
+lemmas finsum_infinite = add.finprod_infinite
 
 lemmas finsum_cong = add.finprod_cong
 text {*Usually, if this rule causes a failed congruence proof error,
@@ -680,22 +681,14 @@ proof -
 qed
 
 lemma (in ring_hom_cring) hom_finsum [simp]:
-  "[| finite A; f \<in> A -> carrier R |] ==>
+  "f \<in> A -> carrier R ==>
   h (finsum R f A) = finsum S (h o f) A"
-proof (induct set: finite)
-  case empty then show ?case by simp
-next
-  case insert then show ?case by (simp add: Pi_def)
-qed
+  by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 lemma (in ring_hom_cring) hom_finprod:
-  "[| finite A; f \<in> A -> carrier R |] ==>
+  "f \<in> A -> carrier R ==>
   h (finprod R f A) = finprod S (h o f) A"
-proof (induct set: finite)
-  case empty then show ?case by simp
-next
-  case insert then show ?case by (simp add: Pi_def)
-qed
+  by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 declare ring_hom_cring.hom_finprod [simp]
 
