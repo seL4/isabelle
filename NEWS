@@ -198,6 +198,15 @@ token category instead.
       BNF_Constructions_on_Wellorders ~> BNF_Wellorder_Constructions
       Cardinals/Constructions_on_Wellorders ~> Cardinals/Wellorder_Constructions
     INCOMPATIBILITY.
+  - Lifting and Transfer setup for basic HOL types sum and prod
+    (also option) is now performed by the BNF package. Theories
+    Lifting_Sum, Lifting_Product and Lifting_Option from Main
+    became obsolete and were removed. Changed definitions of
+    the relators rel_prod and rel_sum (using inductive).
+    INCOMPATIBILITY: use rel_prod.simps and rel_sum.simps instead
+      of rel_prod_def and rel_sum_def.
+    Minor INCOMPATIBILITY: (rarely used by name) transfer theorem
+      names changed (e.g. map_prod_transfer ~> prod.map_transfer).
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and
