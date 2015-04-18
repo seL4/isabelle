@@ -2,8 +2,11 @@
 
 init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-# to be retired:
-# JINJATHREADS_OPTIONS="-M 1 -q 0 -p 0"
+  POLYML_HOME="/home/polyml/polyml-5.5.2"
+  ML_SYSTEM="polyml-5.5.2"
+  ML_PLATFORM="x86_64-darwin"
+  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+  ML_OPTIONS="-H 2000"
 
 ISABELLE_GHC=ghc
 
@@ -23,5 +26,5 @@ ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
-ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=4 parallel_proofs=2"
+ISABELLE_BUILD_OPTIONS="parallel_proofs=2"
 
