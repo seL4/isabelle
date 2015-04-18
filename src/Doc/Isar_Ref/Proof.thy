@@ -444,9 +444,9 @@ text \<open>
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion
     ;
-    conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
+    conclusion: @'shows' goal | @'obtains' (@{syntax parname}? obtain_case + '|')
     ;
-    case: (@{syntax vars} + @'and') @'where' (@{syntax props} + @'and')
+    obtain_case: (@{syntax vars} + @'and') @'where' (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}
 
   \begin{description}
