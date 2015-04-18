@@ -444,9 +444,9 @@ text \<open>
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion
     ;
-    conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
+    conclusion: @'shows' goal | @'obtains' (@{syntax par_name}? obtain_case + '|')
     ;
-    case: (@{syntax vars} + @'and') @'where' (@{syntax props} + @'and')
+    obtain_case: (@{syntax vars} + @'and') @'where' (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}
 
   \begin{description}
@@ -989,7 +989,7 @@ text \<open>
   occur in the conclusion.
 
   @{rail \<open>
-    @@{command obtain} @{syntax parname}? (@{syntax vars} + @'and')
+    @@{command obtain} @{syntax par_name}? (@{syntax vars} + @'and')
       @'where' (@{syntax props} + @'and')
     ;
     @@{command guess} (@{syntax vars} + @'and')

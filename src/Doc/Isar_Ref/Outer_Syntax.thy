@@ -205,7 +205,7 @@ text \<open>Entity @{syntax name} usually refers to any name of types,
     @{syntax_def name}: @{syntax ident} | @{syntax symident} |
       @{syntax string} | @{syntax nat}
     ;
-    @{syntax_def parname}: '(' @{syntax name} ')'
+    @{syntax_def par_name}: '(' @{syntax name} ')'
     ;
     @{syntax_def nameref}: @{syntax name} | @{syntax longident}
   \<close>}
