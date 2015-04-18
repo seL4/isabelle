@@ -259,8 +259,9 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_begin: Boolean = is_keyword && source == "begin"
   def is_end: Boolean = is_command && source == "end"
 
+  // FIXME avoid hard-wired stuff
   def is_command_modifier: Boolean =
-    is_keyword && (source == "private" || source == "qualified")
+    is_keyword && (source == "public" || source == "private" || source == "qualified")
 
   def is_begin_block: Boolean = is_command && source == "{"
   def is_end_block: Boolean = is_command && source == "}"
@@ -273,4 +274,3 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     else if (kind == Token.Kind.COMMENT) Scan.Parsers.comment_content(source)
     else source
 }
-

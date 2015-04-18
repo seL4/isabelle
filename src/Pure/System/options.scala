@@ -76,7 +76,7 @@ object Options
 
   lazy val options_syntax =
     Outer_Syntax.init() + ":" + "=" + "--" +
-      (SECTION, Keyword.DOCUMENT_HEADING) + (PUBLIC, Keyword.THY_DECL) + (OPTION, Keyword.THY_DECL)
+      (SECTION, Keyword.DOCUMENT_HEADING) + PUBLIC + (OPTION, Keyword.THY_DECL)
 
   lazy val prefs_syntax = Outer_Syntax.init() + "="
 
@@ -93,7 +93,7 @@ object Options
     {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
-      opt(command(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
+      opt($$$(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
       $$$("=") ~ option_value ~ ($$$("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e) =>
             (options: Options) => options.declare(a.isDefined, pos, b, c, d, e) }
