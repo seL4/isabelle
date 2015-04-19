@@ -1183,7 +1183,7 @@ Primitive recursion removes one layer of constructors on the left-hand side in
 each equation. For example:
 *}
 
-    primrec bool_of_trool :: "trool \<Rightarrow> bool" where
+    primrec (nonexhaustive) bool_of_trool :: "trool \<Rightarrow> bool" where
       "bool_of_trool Faalse \<longleftrightarrow> False" |
       "bool_of_trool Truue \<longleftrightarrow> True"
 
@@ -1227,7 +1227,7 @@ allowed on the right-hand side:
 
 text {* \blankline *}
 
-    primrec at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+    primrec (nonexhaustive) at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (x # xs) j =
          (case j of
             Zero \<Rightarrow> x
@@ -1364,7 +1364,7 @@ For example:
 
 text {* \blankline *}
 
-    primrec subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec (nonexhaustive) subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "subtree_ft x (FTNode g) = g x"
 
 text {*
@@ -1390,7 +1390,7 @@ text {* \blankline *}
 
 text {* \blankline *}
 
-    primrec subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+    primrec (nonexhaustive) subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "subtree_ft2 x y (FTNode2 g) = g x y"
 
 
@@ -1409,7 +1409,7 @@ as mutually recursive ones if the recursion takes place though new-style
 datatypes. For example:
 *}
 
-    primrec
+    primrec (nonexhaustive)
       at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
       ats\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
     where
@@ -2718,15 +2718,17 @@ text {* \blankline *}
       show "map_fn id = id"
         by transfer auto
     next
-      fix F G show "map_fn (G \<circ> F) = map_fn G \<circ> map_fn F"
+      fix f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'c"
+      show "map_fn (g \<circ> f) = map_fn g \<circ> map_fn f"
         by transfer (auto simp add: comp_def)
     next
-      fix F f g
+      fix F :: "('d, 'a) fn" and f g :: "'a \<Rightarrow> 'b"
       assume "\<And>x. x \<in> set_fn F \<Longrightarrow> f x = g x"
       thus "map_fn f F = map_fn g F"
         by transfer auto
     next
-      fix f show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
+      fix f :: "'a \<Rightarrow> 'b"
+      show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
         by transfer (auto simp add: comp_def)
     next
       show "card_order (natLeq +c |UNIV \<Colon> 'd set| )"
@@ -2746,11 +2748,11 @@ text {* \blankline *}
         by (rule ordLeq_csum2) (rule card_of_Card_order)
       finally show "|set_fn F| \<le>o natLeq +c |UNIV \<Colon> 'd set|" .
     next
-      fix R S
+      fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
       show "rel_fn R OO rel_fn S \<le> rel_fn (R OO S)"
         by (rule, transfer) (auto simp add: rel_fun_def)
     next
-      fix R
+      fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
       show "rel_fn R =
             (BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
              BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
