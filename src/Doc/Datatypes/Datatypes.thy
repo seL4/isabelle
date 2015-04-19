@@ -3034,7 +3034,7 @@ subsection {* Size
 text {*
 For each datatype, the \hthm{size} plugin generates a generic size
 function @{text "t.size_t"} as well as a specific instance
-@{text "size \<Colon> t \<Rightarrow> bool"} belonging to the @{text size} type
+@{text "size \<Colon> t \<Rightarrow> nat"} belonging to the @{text size} type
 class. The \keyw{fun} command relies on @{const size} to prove termination of
 recursive functions on datatypes.
 
@@ -3058,7 +3058,7 @@ The plugin derives the following properties:
 
 \item[@{text "t."}\hthm{size_neq}\rm:] ~ \\
 This property is missing for @{typ "'a list"}. If the @{term size} function
-always evaluate to a non-zero value, this theorem have the form
+always evaluates to a non-zero value, this theorem has the form
 @{prop "\<not> size x = 0"}.
 
 \end{description}
