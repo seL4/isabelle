@@ -3228,11 +3228,12 @@ Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 versions of the package, especially on the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions. Ond\v{r}ej
 Kun\v{c}ar implemented the @{text transfer} and @{text lifting} plugins.
-Florian Haftmann and Christian Urban provided general advice on Isabelle and
-package writing. Stefan Milius and Lutz Schr\"oder found an elegant proof that
-eliminated one of the BNF proof obligations. Gerwin Klein, Andreas Lochbihler,
-Tobias Nipkow, and Christian Sternagel suggested many textual improvements to
-this tutorial.
+Christian Sternagel and Ren\'e Thiemann ported the \keyw{derive} command
+from the \emph{Archive of Formal Proofs} to the new datatypes. Florian Haftmann
+and Christian Urban provided general advice on Isabelle and package writing.
+Stefan Milius and Lutz Schr\"oder found an elegant proof that eliminated one of
+the BNF proof obligations. Gerwin Klein, Andreas Lochbihler, Tobias Nipkow, and
+Christian Sternagel suggested many textual improvements to this tutorial.
 *}
 
 end
