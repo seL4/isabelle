@@ -484,7 +484,6 @@ and reconstruct_term maybe_opt unfold pool
                           (uniterize_unarize_unbox_etc_type T1)
                           (uniterize_unarize_unbox_etc_type T2))
 
-
     fun term_for_fun_or_set seen T T' j =
         let
           val k1 = card_of_type card_assigns (pseudo_domain_type T)
@@ -880,6 +879,25 @@ fun bisimilar_values _ 0 _ = true
         t1 = t2
     end
 
+fun pretty_term_auto_global ctxt t =
+  let
+    fun add_fake_const s =
+      Sign.declare_const_global ((Binding.name s, @{typ 'a}), NoSyn)
+      #> #2
+
+    val globals = Term.add_const_names t []
+      |> filter_out (String.isSubstring Long_Name.separator)
+
+    val fake_ctxt =
+      ctxt |> Proof_Context.background_theory (fn thy =>
+        thy
+        |> Sign.map_naming (K Name_Space.global_naming)
+        |> fold (perhaps o try o add_fake_const) globals
+        |> Sign.restore_naming thy)
+  in
+    Syntax.pretty_term fake_ctxt t
+  end
+
 fun reconstruct_hol_model {show_types, show_skolems, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
@@ -893,8 +911,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
         rel_table bounds =
   let
     val pool = Unsynchronized.ref []
-    val (wacky_names as (_, base_step_names), ctxt) =
-      add_wacky_syntax ctxt
+    val (wacky_names as (_, base_step_names), ctxt) = add_wacky_syntax ctxt
     val hol_ctxt =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        wfs = wfs, user_axioms = user_axioms, debug = debug, whacks = whacks,
@@ -948,8 +965,8 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
                                    T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
-            [Syntax.pretty_term ctxt t1, Pretty.str oper,
-             Syntax.pretty_term ctxt t2])
+            [pretty_term_auto_global ctxt t1, Pretty.str oper,
+             pretty_term_auto_global ctxt t2])
       end
     fun pretty_for_data_type ({typ, card, complete, ...} : data_type_spec) =
       Pretty.block (Pretty.breaks
@@ -960,7 +977,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
             | _ => []) @
            [Pretty.str "=",
             Pretty.enum "," "{" "}"
-                (map (Syntax.pretty_term ctxt) (all_values card typ) @
+                (map (pretty_term_auto_global ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
                   else [Pretty.str (unrep ())]))]))
     fun integer_data_type T =
