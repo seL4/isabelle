@@ -396,7 +396,7 @@ lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
-lemma tendsto_0_le: "\<lbrakk>(f ---> 0) F; eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F\<rbrakk> 
+lemma tendsto_0_le: "\<lbrakk>(f ---> 0) F; eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F\<rbrakk>
                      \<Longrightarrow> (g ---> 0) F"
   by (simp add: Zfun_imp_Zfun tendsto_Zfun_iff)
 
@@ -1134,7 +1134,7 @@ value or against infinity. Further rules are easy to derive by using @{thm filte
 
 *}
 
-lemma filterlim_tendsto_pos_mult_at_top: 
+lemma filterlim_tendsto_pos_mult_at_top:
   assumes f: "(f ---> c) F" and c: "0 < c"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x * g x :: real) :> at_top"
@@ -1156,7 +1156,7 @@ proof safe
   qed
 qed
 
-lemma filterlim_at_top_mult_at_top: 
+lemma filterlim_at_top_mult_at_top:
   assumes f: "LIM x F. f x :> at_top"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x * g x :: real) :> at_top"
@@ -1202,7 +1202,7 @@ lemma filterlim_pow_at_bot_odd:
   shows "0 < n \<Longrightarrow> LIM x F. f x :> at_bot \<Longrightarrow> odd n \<Longrightarrow> LIM x F. (f x)^n :> at_bot"
   using filterlim_pow_at_top[of n "\<lambda>x. - f x" F] by (simp add: filterlim_uminus_at_bot)
 
-lemma filterlim_tendsto_add_at_top: 
+lemma filterlim_tendsto_add_at_top:
   assumes f: "(f ---> c) F"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x + g x :: real) :> at_top"
@@ -1225,7 +1225,7 @@ lemma LIM_at_top_divide:
   unfolding divide_inverse
   by (rule filterlim_tendsto_pos_mult_at_top[OF f]) (rule filterlim_inverse_at_top[OF g])
 
-lemma filterlim_at_top_add_at_top: 
+lemma filterlim_at_top_add_at_top:
   assumes f: "LIM x F. f x :> at_top"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x + g x :: real) :> at_top"
@@ -1315,16 +1315,108 @@ lemma Bseq_inverse:
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
   by (rule Bfun_inverse)
 
-lemma LIMSEQ_diff_approach_zero:
-  fixes L :: "'a::real_normed_vector"
-  shows "g ----> L ==> (%x. f x - g x) ----> 0 ==> f ----> L"
-  by (drule (1) tendsto_add, simp)
+text{* Transformation of limit. *}
 
-lemma LIMSEQ_diff_approach_zero2:
-  fixes L :: "'a::real_normed_vector"
-  shows "f ----> L ==> (%x. f x - g x) ----> 0 ==> g ----> L"
-  by (drule (1) tendsto_diff, simp)
+lemma eventually_at2:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
+  unfolding eventually_at dist_nz by auto
 
+lemma Lim_transform:
+  fixes a b :: "'a::real_normed_vector"
+  shows "\<lbrakk>(g ---> a) F; ((\<lambda>x. f x - g x) ---> 0) F\<rbrakk> \<Longrightarrow> (f ---> a) F"
+  using tendsto_add [of g a F "\<lambda>x. f x - g x" 0] by simp
+
+lemma Lim_transform2:
+  fixes a b :: "'a::real_normed_vector"
+  shows "\<lbrakk>(f ---> a) F; ((\<lambda>x. f x - g x) ---> 0) F\<rbrakk> \<Longrightarrow> (g ---> a) F"
+  by (erule Lim_transform) (simp add: tendsto_minus_cancel)
+
+lemma Lim_transform_eventually:
+  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net \<Longrightarrow> (g ---> l) net"
+  apply (rule topological_tendstoI)
+  apply (drule (2) topological_tendstoD)
+  apply (erule (1) eventually_elim2, simp)
+  done
+
+lemma Lim_transform_within:
+  assumes "0 < d"
+    and "\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
+    and "(f ---> l) (at x within S)"
+  shows "(g ---> l) (at x within S)"
+proof (rule Lim_transform_eventually)
+  show "eventually (\<lambda>x. f x = g x) (at x within S)"
+    using assms(1,2) by (auto simp: dist_nz eventually_at)
+  show "(f ---> l) (at x within S)" by fact
+qed
+
+lemma Lim_transform_at:
+  assumes "0 < d"
+    and "\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
+    and "(f ---> l) (at x)"
+  shows "(g ---> l) (at x)"
+  using _ assms(3)
+proof (rule Lim_transform_eventually)
+  show "eventually (\<lambda>x. f x = g x) (at x)"
+    unfolding eventually_at2
+    using assms(1,2) by auto
+qed
+
+text{* Common case assuming being away from some crucial point like 0. *}
+
+lemma Lim_transform_away_within:
+  fixes a b :: "'a::t1_space"
+  assumes "a \<noteq> b"
+    and "\<forall>x\<in>S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
+    and "(f ---> l) (at a within S)"
+  shows "(g ---> l) (at a within S)"
+proof (rule Lim_transform_eventually)
+  show "(f ---> l) (at a within S)" by fact
+  show "eventually (\<lambda>x. f x = g x) (at a within S)"
+    unfolding eventually_at_topological
+    by (rule exI [where x="- {b}"], simp add: open_Compl assms)
+qed
+
+lemma Lim_transform_away_at:
+  fixes a b :: "'a::t1_space"
+  assumes ab: "a\<noteq>b"
+    and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
+    and fl: "(f ---> l) (at a)"
+  shows "(g ---> l) (at a)"
+  using Lim_transform_away_within[OF ab, of UNIV f g l] fg fl by simp
+
+text{* Alternatively, within an open set. *}
+
+lemma Lim_transform_within_open:
+  assumes "open S" and "a \<in> S"
+    and "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"
+    and "(f ---> l) (at a)"
+  shows "(g ---> l) (at a)"
+proof (rule Lim_transform_eventually)
+  show "eventually (\<lambda>x. f x = g x) (at a)"
+    unfolding eventually_at_topological
+    using assms(1,2,3) by auto
+  show "(f ---> l) (at a)" by fact
+qed
+
+text{* A congruence rule allowing us to transform limits assuming not at point. *}
+
+(* FIXME: Only one congruence rule for tendsto can be used at a time! *)
+
+lemma Lim_cong_within(*[cong add]*):
+  assumes "a = b"
+    and "x = y"
+    and "S = T"
+    and "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
+  shows "(f ---> x) (at a within S) \<longleftrightarrow> (g ---> y) (at b within T)"
+  unfolding tendsto_def eventually_at_topological
+  using assms by simp
+
+lemma Lim_cong_at(*[cong add]*):
+  assumes "a = b" "x = y"
+    and "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
+  shows "((\<lambda>x. f x) ---> x) (at a) \<longleftrightarrow> ((g ---> y) (at a))"
+  unfolding tendsto_def eventually_at_topological
+  using assms by simp
 text{*An unbounded sequence's inverse tends to 0*}
 
 lemma LIMSEQ_inverse_zero:
@@ -1684,7 +1776,7 @@ lemma (in bounded_bilinear) isCont:
   "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x ** g x) a"
   by (fact continuous)
 
-lemmas isCont_scaleR [simp] = 
+lemmas isCont_scaleR [simp] =
   bounded_bilinear.isCont [OF bounded_bilinear_scaleR]
 
 lemmas isCont_of_real [simp] =
@@ -1740,7 +1832,7 @@ qed
 lemma (in bounded_linear) Cauchy: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
 by (rule isUCont [THEN isUCont_Cauchy])
 
-lemma LIM_less_bound: 
+lemma LIM_less_bound:
   fixes f :: "real \<Rightarrow> real"
   assumes ev: "b < x" "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and "isCont f x"
   shows "0 \<le> f x"
@@ -1804,7 +1896,7 @@ proof -
 
   show "P a b"
   proof (rule ccontr)
-    assume "\<not> P a b" 
+    assume "\<not> P a b"
     { fix n have "\<not> P (l n) (u n)"
       proof (induct n)
         case (Suc n) with trans[of "l n" "(l n + u n) / 2" "u n"] show ?case by auto
@@ -1911,7 +2003,7 @@ lemma IVT2_objl: "(f(b::real) \<le> (y::real) & y \<le> f(a) & a \<le> b &
 lemma isCont_Lb_Ub:
   fixes f :: "real \<Rightarrow> real"
   assumes "a \<le> b" "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
-  shows "\<exists>L M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> L \<le> f x \<and> f x \<le> M) \<and> 
+  shows "\<exists>L M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> L \<le> f x \<and> f x \<le> M) \<and>
                (\<forall>y. L \<le> y \<and> y \<le> M \<longrightarrow> (\<exists>x. a \<le> x \<and> x \<le> b \<and> (f x = y)))"
 proof -
   obtain M where M: "a \<le> M" "M \<le> b" "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> f M"
@@ -1974,8 +2066,8 @@ done
 
 lemma isCont_inv_fun:
   fixes f g :: "real \<Rightarrow> real"
-  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
+  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]
       ==> isCont g (f x)"
 by (rule isCont_inverse_function)
 

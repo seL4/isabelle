@@ -705,7 +705,7 @@ next
     apply (clarsimp simp add: less_diff_eq)
     by (metis dist_commute dist_triangle_lt)
   assume ?rhs then have 2: "S = U \<inter> T"
-    unfolding T_def 
+    unfolding T_def
     by auto (metis dist_self)
   from 1 2 show ?lhs
     unfolding openin_open open_dist by fast
@@ -1750,10 +1750,6 @@ lemma not_trivial_limit_within: "\<not> trivial_limit (at x within S) = (x \<in>
 
 text {* Some property holds "sufficiently close" to the limit point. *}
 
-lemma eventually_at2:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_at dist_nz by auto
-
 lemma eventually_happens: "eventually P net \<Longrightarrow> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding trivial_limit_def
   by (auto elim: eventually_rev_mp)
@@ -2051,100 +2047,6 @@ lemma netlimit_within_interior:
   shows "netlimit (at x within S) = x"
   using assms by (metis at_within_interior netlimit_at)
 
-text{* Transformation of limit. *}
-
-lemma Lim_transform:
-  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
-  assumes "((\<lambda>x. f x - g x) ---> 0) net" "(f ---> l) net"
-  shows "(g ---> l) net"
-  using tendsto_diff [OF assms(2) assms(1)] by simp
-
-lemma Lim_transform_eventually:
-  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net \<Longrightarrow> (g ---> l) net"
-  apply (rule topological_tendstoI)
-  apply (drule (2) topological_tendstoD)
-  apply (erule (1) eventually_elim2, simp)
-  done
-
-lemma Lim_transform_within:
-  assumes "0 < d"
-    and "\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f ---> l) (at x within S)"
-  shows "(g ---> l) (at x within S)"
-proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>x. f x = g x) (at x within S)"
-    using assms(1,2) by (auto simp: dist_nz eventually_at)
-  show "(f ---> l) (at x within S)" by fact
-qed
-
-lemma Lim_transform_at:
-  assumes "0 < d"
-    and "\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f ---> l) (at x)"
-  shows "(g ---> l) (at x)"
-  using _ assms(3)
-proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>x. f x = g x) (at x)"
-    unfolding eventually_at2
-    using assms(1,2) by auto
-qed
-
-text{* Common case assuming being away from some crucial point like 0. *}
-
-lemma Lim_transform_away_within:
-  fixes a b :: "'a::t1_space"
-  assumes "a \<noteq> b"
-    and "\<forall>x\<in>S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
-    and "(f ---> l) (at a within S)"
-  shows "(g ---> l) (at a within S)"
-proof (rule Lim_transform_eventually)
-  show "(f ---> l) (at a within S)" by fact
-  show "eventually (\<lambda>x. f x = g x) (at a within S)"
-    unfolding eventually_at_topological
-    by (rule exI [where x="- {b}"], simp add: open_Compl assms)
-qed
-
-lemma Lim_transform_away_at:
-  fixes a b :: "'a::t1_space"
-  assumes ab: "a\<noteq>b"
-    and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
-    and fl: "(f ---> l) (at a)"
-  shows "(g ---> l) (at a)"
-  using Lim_transform_away_within[OF ab, of UNIV f g l] fg fl by simp
-
-text{* Alternatively, within an open set. *}
-
-lemma Lim_transform_within_open:
-  assumes "open S" and "a \<in> S"
-    and "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"
-    and "(f ---> l) (at a)"
-  shows "(g ---> l) (at a)"
-proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>x. f x = g x) (at a)"
-    unfolding eventually_at_topological
-    using assms(1,2,3) by auto
-  show "(f ---> l) (at a)" by fact
-qed
-
-text{* A congruence rule allowing us to transform limits assuming not at point. *}
-
-(* FIXME: Only one congruence rule for tendsto can be used at a time! *)
-
-lemma Lim_cong_within(*[cong add]*):
-  assumes "a = b"
-    and "x = y"
-    and "S = T"
-    and "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
-  shows "(f ---> x) (at a within S) \<longleftrightarrow> (g ---> y) (at b within T)"
-  unfolding tendsto_def eventually_at_topological
-  using assms by simp
-
-lemma Lim_cong_at(*[cong add]*):
-  assumes "a = b" "x = y"
-    and "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
-  shows "((\<lambda>x. f x) ---> x) (at a) \<longleftrightarrow> ((g ---> y) (at a))"
-  unfolding tendsto_def eventually_at_topological
-  using assms by simp
 
 text{* Useful lemmas on closure and set of possible sequential limits.*}
 

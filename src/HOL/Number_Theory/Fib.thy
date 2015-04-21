@@ -11,11 +11,11 @@ Jeremy Avigad.
 section {* Fib *}
 
 theory Fib
-imports Main "../GCD"
+imports Main "../GCD" "../Binomial"
 begin
 
 
-subsection {* Main definitions *}
+subsection {* Fibonacci numbers *}
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -23,7 +23,7 @@ where
   | fib1: "fib (Suc 0) = 1"
   | fib2: "fib (Suc (Suc n)) = fib (Suc n) + fib n"
 
-subsection {* Fibonacci numbers *}
+subsection {* Basic Properties *}
 
 lemma fib_1 [simp]: "fib (1::nat) = 1"
   by (metis One_nat_def fib1)
@@ -41,6 +41,8 @@ lemma fib_add: "fib (Suc (n+k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
 lemma fib_neq_0_nat: "n > 0 \<Longrightarrow> fib n > 0"
   by (induct n rule: fib.induct) (auto simp add: )
 
+subsection {* A Few Elementary Results *}
+
 text {*
   \medskip Concrete Mathematics, page 278: Cassini's identity.  The proof is
   much easier using integers, not natural numbers!
@@ -55,7 +57,7 @@ lemma fib_Cassini_nat:
 using fib_Cassini_int [of n] by auto
 
 
-text {* \medskip Toward Law 6.111 of Concrete Mathematics *}
+subsection {* Law 6.111 of Concrete Mathematics *}
 
 lemma coprime_fib_Suc_nat: "coprime (fib (n::nat)) (fib (Suc n))"
   apply (induct n rule: fib.induct)
@@ -67,9 +69,7 @@ lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (simp add: gcd_commute_nat [of "fib m"])
   apply (cases m)
   apply (auto simp add: fib_add)
-  apply (subst gcd_commute_nat)
-  apply (subst mult.commute)
-  apply (metis coprime_fib_Suc_nat gcd_add_mult_nat gcd_mult_cancel_nat gcd_nat.commute)
+  apply (metis gcd_commute_nat mult.commute coprime_fib_Suc_nat gcd_add_mult_nat gcd_mult_cancel_nat gcd_nat.commute)
   done
 
 lemma gcd_fib_diff: "m \<le> n \<Longrightarrow>
@@ -108,6 +108,36 @@ lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"
 theorem fib_mult_eq_setsum_nat:
     "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   by (induct n rule: nat.induct) (auto simp add:  field_simps)
+
+subsection {* Fibonacci and Binomial Coefficients *}
+
+lemma setsum_drop_zero: "(\<Sum>k = 0..Suc n. if 0<k then (f (k - 1)) else 0) = (\<Sum>j = 0..n. f j)"
+  by (induct n) auto
+
+lemma setsum_choose_drop_zero:
+    "(\<Sum>k = 0..Suc n. if k=0 then 0 else (Suc n - k) choose (k - 1)) = (\<Sum>j = 0..n. (n-j) choose j)"
+  by (rule trans [OF setsum.cong setsum_drop_zero]) auto
+
+lemma ne_diagonal_fib:
+   "(\<Sum>k = 0..n. (n-k) choose k) = fib (Suc n)"
+proof (induct n rule: fib.induct)
+  case 1 show ?case by simp
+next
+  case 2 show ?case by simp
+next
+  case (3 n)
+  have "(\<Sum>k = 0..Suc n. Suc (Suc n) - k choose k) =
+        (\<Sum>k = 0..Suc n. (Suc n - k choose k) + (if k=0 then 0 else (Suc n - k choose (k - 1))))"
+    by (rule setsum.cong) (simp_all add: choose_reduce_nat)
+  also have "... = (\<Sum>k = 0..Suc n. Suc n - k choose k) +
+                   (\<Sum>k = 0..Suc n. if k=0 then 0 else (Suc n - k choose (k - 1)))"
+    by (simp add: setsum.distrib)
+  also have "... = (\<Sum>k = 0..Suc n. Suc n - k choose k) +
+                   (\<Sum>j = 0..n. n - j choose j)"
+    by (metis setsum_choose_drop_zero)
+  finally show ?case using 3
+    by simp
+qed
 
 end
 

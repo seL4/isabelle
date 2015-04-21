@@ -201,6 +201,13 @@ lemma Suc_times_binomial_eq:
    apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
   done
 
+lemma binomial_le_pow2: "n choose k \<le> 2^n"
+  apply (induction n arbitrary: k)
+  apply (simp add: binomial.simps)
+  apply (case_tac k)
+  apply (auto simp: power_Suc)
+  by (simp add: add_le_mono mult_2)
+
 text{*The absorption property*}
 lemma Suc_times_binomial:
   "Suc k * (Suc n choose Suc k) = Suc n * (n choose k)"
@@ -701,6 +708,16 @@ lemma gbinomial_reduce_nat:
   shows "0 < k \<Longrightarrow> a gchoose k = (a - 1) gchoose (k - 1) + ((a - 1) gchoose k)"
   by (metis Suc_pred' diff_add_cancel gbinomial_Suc_Suc)
 
+lemma gchoose_row_sum_weighted:
+  fixes r :: "'a::field_char_0"
+  shows "(\<Sum>k = 0..m. (r gchoose k) * (r/2 - of_nat k)) = of_nat(Suc m) / 2 * (r gchoose (Suc m))"
+proof (induct m)
+  case 0 show ?case by simp
+next
+  case (Suc m)
+  from Suc show ?case
+    by (simp add: algebra_simps distrib gbinomial_mult_1)
+qed
 
 lemma binomial_symmetric:
   assumes kn: "k \<le> n"

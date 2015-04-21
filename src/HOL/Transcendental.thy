@@ -104,7 +104,22 @@ lemma one_diff_power_eq:
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
 by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
 
-text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
+lemma powser_zero:
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_algebra_1"
+  shows "(\<Sum>n. f n * 0 ^ n) = f 0"
+proof -
+  have "(\<Sum>n<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
+    by (subst suminf_finite[where N="{0}"]) (auto simp: power_0_left)
+  thus ?thesis unfolding One_nat_def by simp
+qed
+
+lemma powser_sums_zero:
+  fixes a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  shows "(\<lambda>n. a n * 0^n) sums a 0"
+    using sums_finite [of "{0}" "\<lambda>n. a n * 0 ^ n"]
+    by simp
+
+text{*Power series has a circle or radius of convergence: if it sums for @{term
   x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
@@ -166,6 +181,46 @@ lemma powser_inside:
     "summable (\<lambda>n. f n * (x^n)) \<Longrightarrow> norm z < norm x \<Longrightarrow>
       summable (\<lambda>n. f n * (z ^ n))"
   by (rule powser_insidea [THEN summable_norm_cancel])
+
+lemma powser_times_n_limit_0:
+  fixes x :: "'a::{real_normed_div_algebra,banach}"
+  assumes "norm x < 1"
+    shows "(\<lambda>n. of_nat n * x ^ n) ----> 0"
+proof -
+  have "norm x / (1 - norm x) \<ge> 0"
+    using assms
+    by (auto simp: divide_simps)
+  moreover obtain N where N: "norm x / (1 - norm x) < of_int N"
+    using ex_le_of_int
+    by (meson ex_less_of_int)
+  ultimately have N0: "N>0" 
+    by auto
+  then have *: "real (N + 1) * norm x / real N < 1"
+    using N assms
+    by (auto simp: field_simps)
+  { fix n::nat
+    assume "N \<le> int n"
+    then have "real N * real_of_nat (Suc n) \<le> real_of_nat n * real (1 + N)"
+      by (simp add: algebra_simps)
+    then have "(real N * real_of_nat (Suc n)) * (norm x * norm (x ^ n))
+               \<le> (real_of_nat n * real (1 + N)) * (norm x * norm (x ^ n))"
+      using N0 mult_mono by fastforce
+    then have "real N * (norm x * (real_of_nat (Suc n) * norm (x ^ n)))
+         \<le> real_of_nat n * (norm x * (real (1 + N) * norm (x ^ n)))"
+      by (simp add: algebra_simps)
+  } note ** = this
+  show ?thesis using *
+    apply (rule summable_LIMSEQ_zero [OF summable_ratio_test, where N1="nat N"])
+    apply (simp add: N0 norm_mult nat_le_iff field_simps power_Suc ** 
+                del: of_nat_Suc real_of_int_add)
+    done
+qed
+
+corollary lim_n_over_pown:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) ---> 0) sequentially"
+using powser_times_n_limit_0 [of "inverse x"]
+by (simp add: norm_divide divide_simps)
 
 lemma sum_split_even_odd:
   fixes f :: "nat \<Rightarrow> real"
@@ -683,6 +738,132 @@ proof (rule LIM_zero_cancel)
   qed
 qed
 
+subsection {* The Derivative of a Power Series Has the Same Radius of Convergence *}
+
+lemma termdiff_converges:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes K: "norm x < K"
+      and sm: "\<And>x. norm x < K \<Longrightarrow> summable(\<lambda>n. c n * x ^ n)"
+    shows "summable (\<lambda>n. diffs c n * x ^ n)"
+proof (cases "x = 0")
+  case True then show ?thesis
+  using powser_sums_zero sums_summable by auto
+next
+  case False
+  then have "K>0"
+    using K less_trans zero_less_norm_iff by blast
+  then obtain r::real where r: "norm x < norm r" "norm r < K" "r>0"
+    using K False
+    by (auto simp: abs_less_iff add_pos_pos intro: that [of "(norm x + K) / 2"])
+  have "(\<lambda>n. of_nat n * (x / of_real r) ^ n) ----> 0"
+    using r by (simp add: norm_divide powser_times_n_limit_0 [of "x / of_real r"])
+  then obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> real_of_nat n * norm x ^ n < r ^ n"
+    using r unfolding LIMSEQ_iff
+    apply (drule_tac x=1 in spec)
+    apply (auto simp: norm_divide norm_mult norm_power field_simps)
+    done
+  have "summable (\<lambda>n. (of_nat n * c n) * x ^ n)"
+    apply (rule summable_comparison_test' [of "\<lambda>n. norm(c n * (of_real r) ^ n)" N])
+    apply (rule powser_insidea [OF sm [of "of_real ((r+K)/2)"]])
+    using N r norm_of_real [of "r+K", where 'a = 'a]
+    apply (auto simp add: norm_divide norm_mult norm_power )
+    using less_eq_real_def by fastforce
+  then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ Suc n)"
+    using summable_iff_shift [of "\<lambda>n. of_nat n * c n * x ^ n" 1]
+    by simp
+  then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ n)"
+    using False summable_mult2 [of "\<lambda>n. (of_nat (Suc n) * c(Suc n) * x ^ n) * x" "inverse x"]
+    by (simp add: mult.assoc) (auto simp: power_Suc mult_ac)
+  then show ?thesis 
+    by (simp add: diffs_def)
+qed
+
+lemma termdiff_converges_all:
+  fixes x :: "'a::{real_normed_field,banach}"
+  assumes "\<And>x. summable (\<lambda>n. c n * x^n)"
+    shows "summable (\<lambda>n. diffs c n * x^n)"
+  apply (rule termdiff_converges [where K = "1 + norm x"])
+  using assms
+  apply (auto simp: )
+  done
+
+lemma termdiffs_strong:
+  fixes K x :: "'a::{real_normed_field,banach}"
+  assumes sm: "summable (\<lambda>n. c n * K ^ n)"
+      and K: "norm x < norm K"
+  shows "DERIV (\<lambda>x. \<Sum>n. c n * x^n) x :> (\<Sum>n. diffs c n * x^n)"
+proof -
+  have [simp]: "norm ((of_real (norm K) + of_real (norm x)) / 2 :: 'a) < norm K"
+    using K
+    apply (auto simp: norm_divide)
+    apply (rule le_less_trans [of _ "of_real (norm K) + of_real (norm x)"])
+    apply (auto simp: mult_2_right norm_triangle_mono)
+    done
+  have "summable (\<lambda>n. c n * (of_real (norm x + norm K) / 2) ^ n)"
+    apply (rule summable_norm_cancel [OF powser_insidea [OF sm]])
+    using K
+    apply (auto simp: algebra_simps)
+    done
+  moreover have "\<And>x. norm x < norm K \<Longrightarrow> summable (\<lambda>n. diffs c n * x ^ n)"
+    by (blast intro: sm termdiff_converges powser_inside)
+  moreover have "\<And>x. norm x < norm K \<Longrightarrow> summable (\<lambda>n. diffs(diffs c) n * x ^ n)"
+    by (blast intro: sm termdiff_converges powser_inside)
+  ultimately show ?thesis
+    apply (rule termdiffs [where K = "of_real (norm x + norm K) / 2"])
+    apply (auto simp: algebra_simps)
+    using K
+    apply (simp add: norm_divide)
+    apply (rule less_le_trans [of _ "of_real (norm K) + of_real (norm x)"])
+    apply (simp_all add: of_real_add [symmetric] del: of_real_add)
+    done
+qed
+
+lemma powser_limit_0: 
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
+  assumes s: "0 < s"
+      and sm: "\<And>x. norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
+    shows "(f ---> a 0) (at 0)"
+proof -
+  have "summable (\<lambda>n. a n * (of_real s / 2) ^ n)"
+    apply (rule sums_summable [where l = "f (of_real s / 2)", OF sm])
+    using s
+    apply (auto simp: norm_divide)
+    done
+  then have "((\<lambda>x. \<Sum>n. a n * x ^ n) has_field_derivative (\<Sum>n. diffs a n * 0 ^ n)) (at 0)"
+    apply (rule termdiffs_strong)
+    using s
+    apply (auto simp: norm_divide)
+    done
+  then have "isCont (\<lambda>x. \<Sum>n. a n * x ^ n) 0"
+    by (blast intro: DERIV_continuous)
+  then have "((\<lambda>x. \<Sum>n. a n * x ^ n) ---> a 0) (at 0)"
+    by (simp add: continuous_within powser_zero)
+  then show ?thesis 
+    apply (rule Lim_transform)
+    apply (auto simp add: LIM_eq)
+    apply (rule_tac x="s" in exI)
+    using s 
+    apply (auto simp: sm [THEN sums_unique])
+    done
+qed
+
+lemma powser_limit_0_strong: 
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
+  assumes s: "0 < s"
+      and sm: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
+    shows "(f ---> a 0) (at 0)"
+proof -
+  have *: "((\<lambda>x. if x = 0 then a 0 else f x) ---> a 0) (at 0)"
+    apply (rule powser_limit_0 [OF s])
+    apply (case_tac "x=0")
+    apply (auto simp add: powser_sums_zero sm)
+    done
+  show ?thesis
+    apply (subst LIM_equal [where g = "(\<lambda>x. if x = 0 then a 0 else f x)"])
+    apply (simp_all add: *)
+    done
+qed
+
 
 subsection {* Derivability of power series *}
 
@@ -1045,15 +1226,6 @@ lemma continuous_on_exp [continuous_intros]:
 
 subsubsection {* Properties of the Exponential Function *}
 
-lemma powser_zero:
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1}"
-  shows "(\<Sum>n. f n * 0 ^ n) = f 0"
-proof -
-  have "(\<Sum>n<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
-    by (subst suminf_finite[where N="{0}"]) (auto simp: power_0_left)
-  thus ?thesis unfolding One_nat_def by simp
-qed
-
 lemma exp_zero [simp]: "exp 0 = 1"
   unfolding exp_def by (simp add: scaleR_conv_of_real powser_zero)
 
@@ -1292,6 +1464,9 @@ class ln = real_normed_algebra_1 + banach +
 definition powr :: "['a,'a] => 'a::ln"     (infixr "powr" 80)
   -- {*exponentation via ln and exp*}
   where  [code del]: "x powr a \<equiv> if x = 0 then 0 else exp(a * ln x)"
+
+lemma powr_0 [simp]: "0 powr z = 0"
+  by (simp add: powr_def)
 
 
 instantiation real :: ln
@@ -1791,6 +1966,11 @@ lemma ln_le_minus_one:
   fixes x::real shows "0 < x \<Longrightarrow> ln x \<le> x - 1"
   using exp_ge_add_one_self[of "ln x"] by simp
 
+corollary ln_diff_le: 
+  fixes x::real 
+  shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x - ln y \<le> (x - y) / y"
+  by (simp add: ln_div [symmetric] diff_divide_distrib ln_le_minus_one)
+
 lemma ln_eq_minus_one:
   fixes x::real 
   assumes "0 < x" "ln x = x - 1"
@@ -2272,24 +2452,26 @@ lemma ge_one_powr_ge_zero:
 using powr_mono by fastforce
 
 lemma powr_less_mono2:
-  fixes x::real shows "0 < a ==> 0 < x ==> x < y ==> x powr a < y powr a"
+  fixes x::real shows "0 < a ==> 0 \<le> x ==> x < y ==> x powr a < y powr a"
   by (simp add: powr_def)
-
 
 lemma powr_less_mono2_neg:
   fixes x::real shows "a < 0 ==> 0 < x ==> x < y ==> y powr a < x powr a"
   by (simp add: powr_def)
 
 lemma powr_mono2:
-  fixes x::real shows "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
+  fixes x::real shows "0 <= a ==> 0 \<le> x ==> x <= y ==> x powr a <= y powr a"
   apply (case_tac "a = 0", simp)
   apply (case_tac "x = y", simp)
-  apply (metis less_eq_real_def powr_less_mono2)
+  apply (metis dual_order.strict_iff_order powr_less_mono2)
   done
 
 lemma powr_inj:
   fixes x::real shows "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   unfolding powr_def exp_inj_iff by simp
+
+lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
+  by (simp add: powr_def root_powr_inverse sqrt_def)
 
 lemma ln_powr_bound:
   fixes x::real shows "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
@@ -2316,28 +2498,31 @@ proof -
   finally show ?thesis .
 qed
 
-lemma tendsto_powr [tendsto_intros]:  (*FIXME a mess, suggests a general rule about exceptions*)
+lemma tendsto_powr [tendsto_intros]: 
   fixes a::real 
-  shows "\<lbrakk>(f ---> a) F; (g ---> b) F; a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
-  apply (simp add: powr_def)
-  apply (simp add: tendsto_def)
-  apply (simp add: eventually_conj_iff )
-  apply safe
-  apply (case_tac "0 \<in> S")
-  apply (auto simp: )
-  apply (subgoal_tac "\<exists>T. open T & a : T & 0 \<notin> T")
-  apply clarify
-  apply (drule_tac x="T" in spec)
-  apply (simp add: )
-  apply (metis (mono_tags, lifting) eventually_mono)
-  apply (simp add: separation_t1)
-  apply (subgoal_tac "((\<lambda>x. exp (g x * ln (f x))) ---> exp (b * ln a)) F")
-  apply (simp add: tendsto_def)
-  apply (metis (mono_tags, lifting) eventually_mono)
-  apply (simp add: tendsto_def [symmetric])
-  apply (intro tendsto_intros)
-  apply (auto simp: )
-  done
+  assumes f: "(f ---> a) F" and g: "(g ---> b) F" and a: "a \<noteq> 0"
+  shows "((\<lambda>x. f x powr g x) ---> a powr b) F"
+proof -
+  { fix S :: "real set"
+    obtain T where "open T" "a \<in> T" "0 \<notin> T"
+      using t1_space a by blast
+    then have "eventually (\<lambda>x. f x = 0 \<longrightarrow> 0 \<in> S) F"
+      using f
+      by (simp add: tendsto_def) (metis (mono_tags, lifting) eventually_mono)
+  }
+  moreover
+  { fix S :: "real set"
+    assume S: "open S" "exp (b * ln a) \<in> S"
+    then have "((\<lambda>x. exp (g x * ln (f x))) ---> exp (b * ln a)) F"
+    using f g a
+      by (intro tendsto_intros) auto
+    then have "eventually (\<lambda>x. f x \<noteq> 0 \<longrightarrow> exp (g x * ln (f x)) \<in> S) F"
+      using f S
+      by (simp add: tendsto_def) (metis (mono_tags, lifting) eventually_mono)
+  }
+  ultimately show ?thesis using assms
+    by (simp add: powr_def tendsto_def eventually_conj_iff)
+qed
 
 lemma continuous_powr:
   assumes "continuous F f"

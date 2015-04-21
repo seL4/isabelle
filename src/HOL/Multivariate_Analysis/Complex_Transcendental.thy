@@ -1263,9 +1263,6 @@ lemma Ln_times_ii:
 
 subsection{*Complex Powers*}
 
-lemma powr_0 [simp]: "0 powr z = 0"
-  by (simp add: powr_def)
-
 lemma powr_to_1 [simp]: "z powr 1 = (z::complex)"
   by (simp add: powr_def)
 
@@ -1526,7 +1523,7 @@ lemma
 proof -
   have nz0: "1 + \<i>*z \<noteq> 0"
     using assms
-    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add ii.simps(1) ii.simps(2) 
+    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add ii.simps(1) ii.simps(2)
               less_irrefl minus_diff_eq mult.right_neutral right_minus_eq)
   have "z \<noteq> -\<i>" using assms
     by auto
@@ -1771,7 +1768,7 @@ lemma isCont_Arcsin' [simp]:
   by (blast intro: isCont_o2 [OF _ isCont_Arcsin])
 
 lemma sin_Arcsin [simp]: "sin(Arcsin z) = z"
-proof -  
+proof -
   have "\<i>*z*2 + csqrt (1 - z\<^sup>2)*2 = 0 \<longleftrightarrow> (\<i>*z)*2 + csqrt (1 - z\<^sup>2)*2 = 0"
     by (simp add: algebra_simps)  --{*Cancelling a factor of 2*}
   moreover have "... \<longleftrightarrow> (\<i>*z) + csqrt (1 - z\<^sup>2) = 0"
@@ -1903,7 +1900,7 @@ lemma abs_Re_less_1_preserve:
 proof (cases "Im z = 0")
   case True
   then show ?thesis
-    using assms 
+    using assms
     by (fastforce simp add: cmod_def Re_power2 Im_power2 algebra_simps abs_square_less_1 [symmetric])
 next
   case False

@@ -643,7 +643,7 @@ proof -
     by (simp only: setsum_diff finite_S1 S2_le_S1)
 
   with 1 have "(\<lambda>n. setsum ?g (?S2 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
-    by (rule LIMSEQ_diff_approach_zero2)
+    by (rule Lim_transform2)
   thus ?thesis by (simp only: sums_def setsum_triangle_reindex)
 qed
 

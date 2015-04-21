@@ -44,7 +44,6 @@ imports
   More_List
   Multiset_Order
   Numeral_Type
-  NthRoot_Limits
   OptionalSugar
   Option_ord
   Order_Continuity
