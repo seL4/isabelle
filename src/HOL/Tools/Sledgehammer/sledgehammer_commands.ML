@@ -359,7 +359,7 @@ fun hammer_away override_params subcommand opt_i fact_override state0 =
   end
 
 fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
-  Toplevel.keep (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
+  Toplevel.keep_proof (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
 
 fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)

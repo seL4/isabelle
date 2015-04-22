@@ -377,7 +377,7 @@ val _ =
   Outer_Syntax.command @{command_keyword nitpick}
     "try to find a counterexample for a given subgoal using Nitpick"
     (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
-      Toplevel.keep (fn state =>
+      Toplevel.keep_proof (fn state =>
         ignore (pick_nits params Normal i (Toplevel.proof_position_of state)
           (Toplevel.proof_of state)))))
 

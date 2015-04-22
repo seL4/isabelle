@@ -154,7 +154,8 @@ fun generic_try0 mode timeout_opt quad st =
 fun try0 timeout_opt = fst oo generic_try0 Normal timeout_opt;
 
 fun try0_trans quad =
-  Toplevel.keep (K () o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
+  Toplevel.keep_proof
+    (ignore o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, d1 @ d2);
 

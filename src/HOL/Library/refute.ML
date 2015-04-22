@@ -2969,7 +2969,7 @@ val _ =
     "try to find a model that refutes a given subgoal"
     (scan_parms -- Scan.optional Parse.nat 1 >>
       (fn (parms, i) =>
-        Toplevel.keep (fn state =>
+        Toplevel.keep_proof (fn state =>
           let
             val ctxt = Toplevel.context_of state;
             val {goal = st, ...} = Proof.raw_goal (Toplevel.proof_of state);
