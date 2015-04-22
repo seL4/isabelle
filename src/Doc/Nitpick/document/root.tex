@@ -26,7 +26,8 @@
 \def\lparr{\mathopen{(\mkern-4mu\mid}}
 \def\rparr{\mathclose{\mid\mkern-4mu)}}
 
-\def\unk{{?}}
+%\def\unk{{?}}
+\def\unk{{\_}}
 \def\unkef{(\lambda x.\; \unk)}
 \def\undef{(\lambda x.\; \_)}
 %\def\unr{\textit{others}}
@@ -930,7 +931,7 @@ assumption of each introduction rule. For example:
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $n = 1$ \\
 \hbox{}\qquad Constants: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{even} = (λx. ?)(0 := True, 1 := False, 2 := True, 3 := False)$ \\
+\hbox{}\qquad\qquad $\textit{even} = \unkef(0 := True, 1 := False, 2 := True, 3 := False)$ \\
 \hbox{}\qquad\qquad $\textit{odd}_{\textsl{base}} = {}$ \\
 \hbox{}\qquad\qquad\quad $\unkef(0 := \textit{False},\, 1 := \textit{True},\, 2 := \textit{False},\, 3 := \textit{False})$ \\
 \hbox{}\qquad\qquad $\textit{odd}_{\textsl{step}} = \unkef$\\
