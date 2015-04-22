@@ -2038,9 +2038,6 @@ proof -
   using elems
   unfolding Cs
     apply (induct Cs', simp)
-    apply clarsimp
-    apply (subgoal_tac "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and> 
-                             multiset_of (map (assocs G) cs) = multiset_of Cs'")
   proof clarsimp
     fix a Cs' cs 
     assume ih: "\<And>X. X = a \<or> X \<in> set Cs' \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
@@ -2060,7 +2057,7 @@ proof -
     show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and>
                multiset_of (map (assocs G) cs) =
                multiset_of Cs' + {#a#}" by fast
-  qed simp
+  qed
   thus ?thesis by (simp add: fmset_def)
 qed
 

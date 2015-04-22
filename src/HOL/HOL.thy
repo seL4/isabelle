@@ -1292,7 +1292,8 @@ lemma all_simps:
 
 lemmas [simp] =
   triv_forall_equality (*prunes params*)
-  True_implies_equals  (*prune asms `True'*)
+  True_implies_equals implies_True_equals (*prune True in asms*)
+  False_implies_equals (*prune False in asms*)
   if_True
   if_False
   if_cancel

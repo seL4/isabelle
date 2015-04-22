@@ -95,12 +95,12 @@ fun tac ctxt = SUBGOAL (fn (g, i) =>
   let
     val cring_ctxt = ctxt addsimps cring_simps;  (*FIXME really the full simpset!?*)
     val (ca, cvs, clhs, crhs) = reif_eq ctxt (HOLogic.dest_Trueprop g);
-    val norm_eq_th =
+    val norm_eq_th = (* may collapse to True *)
       simplify cring_ctxt (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq});
   in
     cut_tac norm_eq_th i
     THEN (simp_tac cring_ctxt i)
-    THEN (simp_tac cring_ctxt i)
+    THEN TRY(simp_tac cring_ctxt i)
   end);
 
 end;

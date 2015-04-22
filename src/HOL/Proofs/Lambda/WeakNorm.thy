@@ -173,7 +173,7 @@ proof (induct U)
       next
         assume neq: "x \<noteq> i"
         from App have "listall ?R ts" by (iprover dest: listall_conj2)
-        with TrueI TrueI uNF uT argsT
+        with uNF uT argsT
         have "\<exists>ts'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. t[u/i]) ts \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> ts' \<and>
           NF (Var j \<degree>\<degree> ts')" (is "\<exists>ts'. ?ex ts'")
           by (rule norm_list [of "\<lambda>t. t", simplified])

@@ -2865,13 +2865,7 @@ where
 using ty_cases sum_cases 
 apply(auto simp add: ty.inject)
 apply(drule_tac x="x" in meta_spec)
-apply(auto simp add: ty.inject)
-apply(rotate_tac 10)
-apply(drule_tac x="a" in meta_spec)
-apply(auto simp add: ty.inject)
-apply(rotate_tac 10)
-apply(drule_tac x="a" in meta_spec)
-apply(auto simp add: ty.inject)
+apply(fastforce simp add: ty.inject)
 done
 
 termination
