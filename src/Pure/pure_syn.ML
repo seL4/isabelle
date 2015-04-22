@@ -43,7 +43,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command ("text_raw", @{here}) "raw LaTeX text"
-    (Parse.document_source >> K (Toplevel.imperative I));
+    (Parse.document_source >> K (Toplevel.keep (fn _ => ())));
 
 val _ =
   Outer_Syntax.command ("theory", @{here}) "begin theory"

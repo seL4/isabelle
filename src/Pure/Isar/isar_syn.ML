@@ -854,13 +854,13 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword welcome} "print welcome message"
-    (Scan.succeed (Toplevel.imperative (writeln o Session.welcome)));
+    (Scan.succeed (Toplevel.keep (fn _ => writeln (Session.welcome ()))));
 
 val _ =
   Outer_Syntax.command @{command_keyword display_drafts}
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
-      Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));
+      Toplevel.keep (fn _ => ignore (Present.display_drafts (map Path.explode names)))));
 
 
 
