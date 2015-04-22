@@ -100,7 +100,7 @@ This tutorial is organized as follows:
 describes how to specify datatypes using the @{command datatype} command.
 
 \item Section \ref{sec:defining-primitively-recursive-functions}, ``Defining
-Primitively Recursive Functions,'' describes how to specify recursive functions
+Primitively Recursive Functions,'' describes how to specify functions
 using @{command primrec}. (A separate tutorial @{cite "isabelle-function"}
 describes the more general \keyw{fun} and \keyw{function} commands.)
 
@@ -109,7 +109,7 @@ describes how to specify codatatypes using the @{command codatatype} command.
 
 \item Section \ref{sec:defining-primitively-corecursive-functions},
 ``Defining Primitively Corecursive Functions,'' describes how to specify
-corecursive functions using the @{command primcorec} and
+functions using the @{command primcorec} and
 @{command primcorecursive} commands.
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
@@ -124,7 +124,7 @@ and theorems for freely generated types, as performed internally by
 @{command datatype} and @{command codatatype}.
 
 %\item Section \ref{sec:using-the-standard-ml-interface}, ``Using the Standard
-ML Interface,'' %describes the package's programmatic interface.
+%ML Interface,'' describes the package's programmatic interface.
 
 \item Section \ref{sec:selecting-plugins}, ``Selecting Plugins,'' is concerned
 with the package's interoperability with other Isabelle packages and tools, such
