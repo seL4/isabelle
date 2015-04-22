@@ -870,7 +870,7 @@ lemma bigo_LIMSEQ2: "f =o g +o O(h) \<Longrightarrow> h ----> 0 \<Longrightarrow
   apply (drule bigo_LIMSEQ1)
   apply assumption
   apply (simp only: fun_diff_def)
-  apply (erule Lim_transform)
+  apply (erule Lim_transform2)
   apply assumption
   done
 

@@ -389,7 +389,7 @@ proof -
   ultimately have "(\<lambda>i. f' (\<Union>i. A i) - f' (A i)) ----> 0"
     by (simp add: zero_ereal_def)
   then have "(\<lambda>i. f' (A i)) ----> f' (\<Union>i. A i)"
-    by (rule Lim_transform[OF tendsto_const])
+    by (rule Lim_transform2[OF tendsto_const])
   then show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
     using A by (subst (1 2) f') auto
 qed
