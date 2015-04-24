@@ -83,7 +83,8 @@ object Thy_Syntax
         if (update_header) {
           val node1 = node.update_header(header)
           if (node.header.imports.map(_._1) != node1.header.imports.map(_._1) ||
-              node.header.keywords != node1.header.keywords) syntax_changed0 += name
+              node.header.keywords != node1.header.keywords ||
+              node.header.errors != node1.header.errors) syntax_changed0 += name
           nodes += (name -> node1)
           doc_edits += (name -> Document.Node.Deps(header))
         }
@@ -304,7 +305,7 @@ object Thy_Syntax
         val reparse =
           (syntax_changed /: nodes0.iterator)({
             case (reparse, (name, node)) =>
-              if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
+              if (node.load_commands.exists(_.blobs_changed(doc_blobs)) && !reparse.contains(name))
                 name :: reparse
               else reparse
             })
