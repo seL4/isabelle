@@ -18,7 +18,11 @@ ISABELLE_JAVA_SYSTEM_OPTIONS="-server -Dfile.encoding=UTF-8 -Disabelle.threads=0
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
-#paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
+#paranoia settings -- avoid intrusion of alien options
+unset "_JAVA_OPTIONS"
+unset "JAVA_TOOL_OPTIONS"
+
+#paranoia settings -- avoid problems of Java/Swing versus XIM/IBus etc.
 unset XMODIFIERS
 
 
