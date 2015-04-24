@@ -2,11 +2,9 @@
 
 init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-  POLYML_HOME="/home/polyml/polyml-5.5.2"
-  ML_SYSTEM="polyml-5.5.2"
-  ML_PLATFORM="x86_64-linux"
-  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="--minheap 2000 --maxheap 8000 --gcthreads 1"
+ML_PLATFORM="$ISABELLE_PLATFORM64"
+ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+ML_OPTIONS="--minheap 2000 --maxheap 8000 --gcthreads 1"
 
 ISABELLE_HOME_USER=~/isabelle-at64-poly
 
