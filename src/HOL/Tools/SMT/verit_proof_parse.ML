@@ -70,7 +70,7 @@ fun parse_proof
     val fact_helper_ids' =
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids' @ map (apsnd (fst o fst)) fact_ids'
   in
-    {outcome = NONE, fact_ids = fact_ids',
+    {outcome = NONE, fact_ids = SOME fact_ids',
      atp_proof = fn () => atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules prems concl
        fact_helper_ts prem_ids conjecture_id fact_helper_ids' steps}
   end

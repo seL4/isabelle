@@ -126,7 +126,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
               reraise exn
             else
               {outcome = SOME (SMT_Failure.Other_Failure (Runtime.exn_message exn)),
-               fact_ids = [], atp_proof = K []}
+               fact_ids = NONE, atp_proof = K []}
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
@@ -189,8 +189,10 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt_filter_loop name params state goal subgoal factss
-    val used_named_facts = map snd fact_ids
-    val used_facts = sort_wrt fst (map fst used_named_facts)
+    val used_facts =
+      (case fact_ids of
+        NONE => map fst used_from
+      | SOME ids => sort_wrt fst (map (fst o snd) ids))
     val outcome = Option.map failure_of_smt_failure outcome
 
     val (preferred_methss, message) =

@@ -11,7 +11,7 @@ sig
 
   type parsed_proof =
     {outcome: SMT_Failure.failure option,
-     fact_ids: (int * ((string * ATP_Problem_Generate.stature) * thm)) list,
+     fact_ids: (int * ((string * ATP_Problem_Generate.stature) * thm)) list option,
      atp_proof: unit -> (term, string) ATP_Proof.atp_step list}
 
   type solver_config =
@@ -140,7 +140,7 @@ datatype outcome = Unsat | Sat | Unknown
 
 type parsed_proof =
   {outcome: SMT_Failure.failure option,
-   fact_ids: (int * ((string * ATP_Problem_Generate.stature) * thm)) list,
+   fact_ids: (int * ((string * ATP_Problem_Generate.stature) * thm)) list option,
    atp_proof: unit -> (term, string) ATP_Proof.atp_step list}
 
 type solver_config =
@@ -195,7 +195,7 @@ local
       (Unsat, lines) =>
         (case parse_proof0 of
           SOME pp => pp outer_ctxt replay_data xfacts prems concl lines
-        | NONE => {outcome = NONE, fact_ids = [], atp_proof = K []})
+        | NONE => {outcome = NONE, fact_ids = NONE, atp_proof = K []})
     | (result, _) => raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat)))
 
   fun replay outcome replay0 oracle outer_ctxt
@@ -270,7 +270,7 @@ fun smt_filter ctxt0 goal xfacts i time_limit =
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end
-  handle SMT_Failure.SMT fail => {outcome = SOME fail, fact_ids = [], atp_proof = K []}
+  handle SMT_Failure.SMT fail => {outcome = SOME fail, fact_ids = NONE, atp_proof = K []}
 
 
 (* SMT tactic *)
