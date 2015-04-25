@@ -413,11 +413,12 @@ val _ =
       let
         val thy = Proof.theory_of state
         val ctxt = Proof.context_of state
-        val [provers_arg, isar_proofs_arg] = args
+        val [provers_arg, isar_proofs_arg, try0_arg] = args
 
         val override_params =
           ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
             [("isar_proofs", [isar_proofs_arg]),
+             ("try0", [try0_arg]),
              ("blocking", ["true"]),
              ("debug", ["false"]),
              ("verbose", ["false"]),
