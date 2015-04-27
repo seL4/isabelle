@@ -380,6 +380,35 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
+subsection {* Well-Foundedness of Composition *}
+
+text{* Provided by Tjark Weber: *}
+
+lemma wf_relcomp_compatible:
+  assumes "wf R" and "R O S \<subseteq> S O R"
+  shows "wf (S O R)"
+proof (rule wfI_pf)
+  fix A assume A: "A \<subseteq> (S O R) `` A"
+  {
+    fix n have "(S ^^ n) `` A \<subseteq> R `` (S ^^ Suc n) `` A"
+    proof (induction n)
+      case 0 show ?case using A by (simp add: relcomp_Image)
+    next
+      case (Suc n)
+      then have "S `` (S ^^ n) `` A \<subseteq> S `` R `` (S ^^ Suc n) `` A"
+        by (simp add: Image_mono)
+      also have "\<dots> \<subseteq> R `` S `` (S ^^ Suc n) `` A" using assms(2)
+        by (simp add: Image_mono O_assoc relcomp_Image[symmetric] relcomp_mono)
+      finally show ?case by (simp add: relcomp_Image)
+    qed
+  }
+  then have "(\<Union>n. (S ^^ n) `` A) \<subseteq> R `` (\<Union>n. (S ^^ n) `` A)" by blast
+  then have "(\<Union>n. (S ^^ n) `` A) = {}"
+    using assms(1) by (simp only: wfE_pf)
+  then show "A = {}" using relpow.simps(1) by blast
+qed
+
+
 subsection {* Acyclic relations *}
 
 lemma wf_acyclic: "wf r ==> acyclic r"
