@@ -924,16 +924,18 @@ fun code_depgr ctxt consts =
 
 fun code_thms ctxt = Pretty.writeln o Code_Preproc.pretty ctxt o code_depgr ctxt;
 
-fun join_strong_conn gr =
+fun coalesce_strong_conn gr =
   let
     val xss = Graph.strong_conn gr;
-    val xss_zs = map (fn xs => (xs, commas xs)) xss;
-    val z_for = the o AList.lookup (op =) (maps (fn (xs, z) => map (fn x => (x, z)) xs) xss_zs);
-    val succs = map (fn (xs, z) => (z, (map z_for o maps (Graph.immediate_succs gr)) xs)) xss_zs;
+    val xss_ys = map (fn xs => (xs, commas xs)) xss;
+    val y_for = the o AList.lookup (op =) (maps (fn (xs, y) => map (fn x => (x, y)) xs) xss_ys);
+    fun coalesced_succs_for xs = maps (Graph.immediate_succs gr) xs
+      |> subtract (op =) xs
+      |> map y_for
+      |> distinct (op =);
+    val succs = map (fn (xs, _) => (xs, coalesced_succs_for xs)) xss_ys;
   in
-    Graph.empty
-    |> fold (fn (xs, z) => Graph.new_node (z, map (Graph.get_node gr) xs)) xss_zs
-    |> fold (fn (z, succs) => fold (fn w => Graph.add_edge (z, w)) succs) succs
+    map (fn (xs, y) => ((y, xs), (the o AList.lookup (op =) succs) xs)) xss_ys
   end;
 
 fun code_deps ctxt consts =
@@ -943,10 +945,9 @@ fun code_deps ctxt consts =
   in
     code_depgr ctxt consts
     |> Graph.map (fn c => fn _ => c)
-    |> join_strong_conn
-    |> Graph.dest
-    |> map (fn ((c, cs), ds) => ((c, Graph_Display.content_node (namify cs) []), ds))
-    |> Graph_Display.display_graph_old
+    |> coalesce_strong_conn
+    |> map (fn ((name, consts), deps) => ((name, Graph_Display.content_node (namify consts) []), deps))
+    |> Graph_Display.display_graph
   end;
 
 local
