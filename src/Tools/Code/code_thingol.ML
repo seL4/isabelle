@@ -935,18 +935,21 @@ fun coalesce_strong_conn gr =
       |> distinct (op =);
     val succs = map (fn (xs, _) => (xs, coalesced_succs_for xs)) xss_ys;
   in
-    map (fn (xs, y) => ((y, xs), (the o AList.lookup (op =) succs) xs)) xss_ys
+    map (fn (xs, y) => ((y, xs), (maps (Graph.get_node gr) xs, (the o AList.lookup (op =) succs) xs))) xss_ys
   end;
 
 fun code_deps ctxt consts =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val namify = commas o map (Code.string_of_const thy);
+    fun mk_entry ((name, consts), (ps, deps)) =
+      let
+        val label = commas (map (Code.string_of_const thy) consts);
+      in ((name, Graph_Display.content_node label (Pretty.str label :: ps)), deps) end;
   in
     code_depgr ctxt consts
-    |> Graph.map (fn c => fn _ => c)
+    |> Graph.map (K (Code.pretty_cert thy o snd))
     |> coalesce_strong_conn
-    |> map (fn ((name, consts), deps) => ((name, Graph_Display.content_node (namify consts) []), deps))
+    |> map mk_entry
     |> Graph_Display.display_graph
   end;
 
