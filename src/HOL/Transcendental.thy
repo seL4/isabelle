@@ -4781,6 +4781,11 @@ proof (rule arctan_unique [symmetric])
     using cos_gt_zero_pi [OF 1 2] by (simp add: arctan tan_add)
 qed
 
+lemma arctan_double:
+  assumes "\<bar>x\<bar> < 1"
+  shows "2 * arctan x = arctan ((2*x) / (1 - x\<^sup>2))"
+  by (metis assms arctan_add linear mult_2 not_less power2_eq_square)
+
 theorem machin: "pi / 4 = 4 * arctan (1/5) - arctan (1 / 239)"
 proof -
   have "\<bar>1 / 5\<bar> < (1 :: real)" by auto
@@ -4797,6 +4802,35 @@ proof -
   ultimately have "arctan 1 + arctan (1 / 239) = 4 * arctan (1 / 5)" by auto
   thus ?thesis unfolding arctan_one by algebra
 qed
+
+lemma machin_Euler: "5 * arctan(1/7) + 2 * arctan(3/79) = pi/4"
+proof -
+  have 17: "\<bar>1/7\<bar> < (1 :: real)" by auto
+  with arctan_double
+  have "2 * arctan (1/7) = arctan (7/24)"  by auto
+  moreover
+  have "\<bar>7/24\<bar> < (1 :: real)" by auto
+  with arctan_double
+  have "2 * arctan (7/24) = arctan (336/527)"  by auto
+  moreover
+  have "\<bar>336/527\<bar> < (1 :: real)" by auto
+  from arctan_add[OF less_imp_le[OF 17] this]
+  have "arctan(1/7) + arctan (336/527) = arctan (2879/3353)"  by auto 
+  ultimately have I: "5 * arctan(1/7) = arctan (2879/3353)"  by auto
+  have 379: "\<bar>3/79\<bar> < (1 :: real)" by auto
+  with arctan_double
+  have II: "2 * arctan (3/79) = arctan (237/3116)"  by auto
+  have *: "\<bar>2879/3353\<bar> < (1 :: real)" by auto
+  have "\<bar>237/3116\<bar> < (1 :: real)" by auto
+  from arctan_add[OF less_imp_le[OF *] this]
+  have "arctan (2879/3353) + arctan (237/3116) = pi/4"
+    by (simp add: arctan_one)
+  then show ?thesis using I II
+    by auto
+qed
+
+(*But could also prove MACHIN_GAUSS:
+  12 * arctan(1/18) + 8 * arctan(1/57) - 5 * arctan(1/239) = pi/4*)
 
 
 subsection {* Introducing the inverse tangent power series *}
@@ -5110,8 +5144,8 @@ proof -
       hence "\<forall> x \<in> { 0 <..< 1 }. 0 \<le> ?a x n - ?diff x n" by auto
       moreover have "\<And>x. isCont (\<lambda> x. ?a x n - ?diff x n) x"
         unfolding diff_conv_add_uminus divide_inverse
-        by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan
-          isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum
+        by (auto intro!: isCont_add isCont_rabs continuous_ident isCont_minus isCont_arctan
+          isCont_inverse isCont_mult isCont_power continuous_const isCont_setsum
           simp del: add_uminus_conv_diff)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n"
         by (rule LIM_less_bound)
@@ -5282,8 +5316,57 @@ proof -
 qed
 
 
-subsection{*Basics about polynomial functions: extremal behaviour and root counts*}
-(*ALL COULD GO TO COMPLEX_MAIN OR EARLIER*)
+subsection{*Basics about polynomial functions: products, extremal behaviour and root counts*}
+
+lemma pairs_le_eq_Sigma:
+  fixes m::nat
+  shows "{(i,j). i+j \<le> m} = Sigma (atMost m) (\<lambda>r. atMost (m-r))"
+by auto
+
+lemma setsum_up_index_split:
+    "(\<Sum>k\<le>m + n. f k) = (\<Sum>k\<le>m. f k) + (\<Sum>k = Suc m..m + n. f k)"
+  by (metis atLeast0AtMost Suc_eq_plus1 le0 setsum_ub_add_nat)
+
+lemma Sigma_interval_disjoint:
+  fixes w :: "'a::order"
+  shows "(SIGMA i:A. {..v i}) \<inter> (SIGMA i:A.{v i<..w}) = {}"
+    by auto
+
+lemma product_atMost_eq_Un:
+  fixes m :: nat
+  shows "A \<times> {..m} = (SIGMA i:A.{..m - i}) \<union> (SIGMA i:A.{m - i<..m})"
+    by auto
+
+lemma polynomial_product: (*with thanks to Chaitanya Mangla*)
+  fixes x:: "'a :: idom"
+  assumes m: "\<And>i. i>m \<Longrightarrow> (a i) = 0" and n: "\<And>j. j>n \<Longrightarrow> (b j) = 0"
+  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = 
+         (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
+proof -
+  have "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = (\<Sum>i\<le>m. \<Sum>j\<le>n. (a i * x ^ i) * (b j * x ^ j))"
+    by (rule setsum_product)
+  also have "... = (\<Sum>i\<le>m + n. \<Sum>j\<le>n + m. a i * x ^ i * (b j * x ^ j))"
+    using assms by (auto simp: setsum_up_index_split)
+  also have "... = (\<Sum>r\<le>m + n. \<Sum>j\<le>m + n - r. a r * x ^ r * (b j * x ^ j))"
+    apply (simp add: add_ac setsum.Sigma product_atMost_eq_Un)
+    apply (clarsimp simp add: setsum_Un Sigma_interval_disjoint intro!: setsum.neutral)
+    by (metis add_diff_assoc2 add.commute add_lessD1 leD m n nat_le_linear neqE)
+  also have "... = (\<Sum>(i,j)\<in>{(i,j). i+j \<le> m+n}. (a i * x ^ i) * (b j * x ^ j))"
+    by (auto simp: pairs_le_eq_Sigma setsum.Sigma)
+  also have "... = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
+    apply (subst setsum_triangle_reindex_eq)  
+    apply (auto simp: algebra_simps setsum_right_distrib intro!: setsum.cong)
+    by (metis le_add_diff_inverse power_add)
+  finally show ?thesis .
+qed
+
+lemma polynomial_product_nat: 
+  fixes x:: nat
+  assumes m: "\<And>i. i>m \<Longrightarrow> (a i) = 0" and n: "\<And>j. j>n \<Longrightarrow> (b j) = 0"
+  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = 
+         (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
+  using polynomial_product [of m a n b x] assms
+  by (simp add: Int.zpower_int Int.zmult_int Int.int_setsum [symmetric])
 
 lemma polyfun_diff: (*COMPLEX_SUB_POLYFUN in HOL Light*)
     fixes x :: "'a::idom"
@@ -5356,6 +5439,9 @@ lemma polyfun_linear_factor_root:  (*COMPLEX_POLYFUN_LINEAR_FACTOR_ROOT in HOL L
   obtains b where "\<And>z. (\<Sum>i\<le>n. c(i) * z^i) = (z - a) * (\<Sum>i<n. b(i) * z^i)"
   using polyfun_linear_factor [of c n a] assms
   by auto
+
+(*The material of this section, up until this point, could go into a new theory of polynomials
+  based on Main alone. The remaining material involves limits, continuity, series, etc.*)
 
 lemma isCont_polynom:
   fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"

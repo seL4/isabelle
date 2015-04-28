@@ -28,7 +28,7 @@ qed
 lemma square_continuous:
   fixes e :: real
   shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
-  using isCont_power[OF isCont_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
+  using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
   apply (auto simp add: power2_eq_square)
   apply (rule_tac x="s" in exI)
   apply auto

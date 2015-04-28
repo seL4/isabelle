@@ -240,7 +240,7 @@ lemma
     and closed_halfspace_Im_le: "closed {z. Im(z) \<le> b}"
     and closed_halfspace_Im_eq: "closed {z. Im(z) = b}"
   by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
-            isCont_Im isCont_ident isCont_const)+
+            isCont_Im continuous_ident continuous_const)+
 
 lemma closed_complex_Reals: "closed (Reals :: complex set)"
 proof -

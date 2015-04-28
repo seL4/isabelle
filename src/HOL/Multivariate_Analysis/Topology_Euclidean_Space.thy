@@ -4804,7 +4804,7 @@ subsubsection {* Structural rules for pointwise continuity *}
 
 lemmas continuous_within_id = continuous_ident
 
-lemmas continuous_at_id = isCont_ident
+lemmas continuous_at_id = continuous_ident
 
 lemma continuous_infdist[continuous_intros]:
   assumes "continuous F f"

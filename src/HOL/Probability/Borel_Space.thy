@@ -1345,7 +1345,7 @@ proof (safe intro!: measurable_measure_of)
       by (intro tendsto_infdist lim)
     show "\<And>i. (\<lambda>x. infdist (f i x) A) \<in> borel_measurable M"
       by (intro borel_measurable_continuous_on[where f="\<lambda>x. infdist x A"]
-        continuous_at_imp_continuous_on ballI continuous_infdist isCont_ident) auto
+        continuous_at_imp_continuous_on ballI continuous_infdist continuous_ident) auto
   qed
 
   show "g -` A \<inter> space M \<in> sets M"

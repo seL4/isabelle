@@ -7,14 +7,6 @@ theory Inequalities
   imports Real_Vector_Spaces
 begin
 
-lemma setsum_triangle_reindex:
-  fixes n :: nat
-  shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-  apply (simp add: setsum.Sigma)
-  apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
-  apply auto
-  done
-
 lemma gauss_sum_div2: "(2::'a::semiring_div) \<noteq> 0 \<Longrightarrow>
   setsum of_nat {1..n} = of_nat n * (of_nat n + 1) div (2::'a)"
 using gauss_sum[where n=n and 'a = 'a,symmetric] by auto

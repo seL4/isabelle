@@ -1298,7 +1298,14 @@ lemma ivl_disj_un_two:
   "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {m<..u} = {l..u}"
 by auto
 
-lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
+lemma ivl_disj_un_two_touch:
+  "[| (l::'a::linorder) < m; m < u |] ==> {l<..m} Un {m..<u} = {l<..<u}"
+  "[| (l::'a::linorder) <= m; m < u |] ==> {l..m} Un {m..<u} = {l..<u}"
+  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..m} Un {m..u} = {l<..u}"
+  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {m..u} = {l..u}"
+by auto
+
+lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two ivl_disj_un_two_touch
 
 subsubsection {* Disjoint Intersections *}
 
@@ -1497,6 +1504,20 @@ lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum
   apply (induct "n")
   apply (simp_all add: setsum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
   done
+
+lemma setsum_triangle_reindex:
+  fixes n :: nat
+  shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
+  apply (simp add: setsum.Sigma)
+  apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
+  apply auto
+  done
+
+lemma setsum_triangle_reindex_eq:
+  fixes n :: nat
+  shows "(\<Sum>(i,j)\<in>{(i,j). i+j \<le> n}. f i j) = (\<Sum>k\<le>n. \<Sum>i\<le>k. f i (k - i))"
+using setsum_triangle_reindex [of f "Suc n"]
+by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 
 subsection{* Shifting bounds *}
 

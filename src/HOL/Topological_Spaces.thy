@@ -1479,14 +1479,6 @@ lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s
 lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
   by (auto intro: continuous_at_within simp: continuous_on_eq_continuous_within)
 
-lemma isContI_continuous: "continuous (at x within UNIV) f \<Longrightarrow> isCont f x"
-  by simp
-
-lemma isCont_ident[continuous_intros, simp]: "isCont (\<lambda>x. x) a"
-  using continuous_ident by (rule isContI_continuous)
-
-lemmas isCont_const = continuous_const
-
 lemma isCont_o2: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
   unfolding isCont_def by (rule tendsto_compose)
 
