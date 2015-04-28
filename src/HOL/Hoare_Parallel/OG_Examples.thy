@@ -192,6 +192,7 @@ apply force
 --\<open>6 subgoals left\<close>
 prefer 6
 apply(erule_tac x=i in allE)
+apply simp
 apply fastforce
 --\<open>5 subgoals left\<close>
 prefer 5
