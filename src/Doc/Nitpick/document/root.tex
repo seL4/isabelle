@@ -2785,6 +2785,10 @@ morphisms could possibly confuse Nitpick, resulting in spurious counterexamples.
 
 \item[\labelitemi] All constants, types, free variables, and schematic variables
 whose names start with \textit{Nitpick}{.} are reserved for internal use.
+
+\item[\labelitemi] Some users report technical issues with the default SAT
+solver on Windows. Setting the \textit{sat\_solver} option
+(\S\ref{optimizations}) to \textit{MiniSat\_JNI} should solve this.
 \end{enum}
 
 \let\em=\sl
