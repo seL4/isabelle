@@ -13,7 +13,7 @@ import javax.swing.JOptionPane
 
 import scala.swing.{ListView, ScrollPane}
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug}
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
 import org.jedit.options.CombinedOptions
 import org.gjt.sp.jedit.gui.AboutDialog
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
@@ -199,7 +199,9 @@ class Plugin extends EBPlugin
   private lazy val delay_load =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      if (Isabelle.continuous_checking && delay_load_activated()) {
+      if (Isabelle.continuous_checking && delay_load_activated() &&
+          PerspectiveManager.isPerspectiveEnabled)
+      {
         try {
           val view = jEdit.getActiveView()
 
