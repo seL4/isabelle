@@ -62,7 +62,7 @@ sig
      live_nesting_bnfs: BNF_Def.bnf list,
      fp_ctr_sugar: fp_ctr_sugar,
      fp_bnf_sugar: fp_bnf_sugar,
-     fp_co_induct_sugar: fp_co_induct_sugar};
+     fp_co_induct_sugar: fp_co_induct_sugar}
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a

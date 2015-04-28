@@ -1637,7 +1637,7 @@ text {* \blankline *}
 text {* \blankline *}
 
     lemma termi_TCons[simp]: "termi (TCons x xs) = termi xs"
-    by (cases xs) auto
+      by (cases xs) auto
 
 
 subsection {* Compatibility Issues
@@ -2681,9 +2681,9 @@ set function, and relator.
 *}
 
     typedef ('d, 'a) fn = "UNIV \<Colon> ('d \<Rightarrow> 'a) set"
-    by simp
+      by simp
 
-    text {* \blankline *}
+text {* \blankline *}
 
     setup_lifting type_definition_fn
 
