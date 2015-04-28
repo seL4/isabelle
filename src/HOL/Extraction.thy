@@ -32,7 +32,7 @@ lemmas [extraction_expand] =
   induct_atomize induct_atomize' induct_rulify induct_rulify'
   induct_rulify_fallback induct_trueI
   True_implies_equals implies_True_equals TrueE
-  False_implies_equals implies_False_swap
+  False_implies_equals
 
 lemmas [extraction_expand_def] =
   HOL.induct_forall_def HOL.induct_implies_def HOL.induct_equal_def HOL.induct_conj_def

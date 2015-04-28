@@ -1270,10 +1270,6 @@ by default (intro TrueI)
 lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
 by default simp_all
 
-lemma implies_False_swap:
-  "(False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
-by(rule swap_prems_eq)
-
 lemma ex_simps:
   "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
   "!!P Q. (EX x. P & Q x)   = (P & (EX x. Q x))"
@@ -1297,7 +1293,7 @@ lemma all_simps:
 lemmas [simp] =
   triv_forall_equality (*prunes params*)
   True_implies_equals implies_True_equals (*prune True in asms*)
-  False_implies_equals implies_False_swap (*prune False in asms*)
+  False_implies_equals (*prune False in asms*)
   if_True
   if_False
   if_cancel
