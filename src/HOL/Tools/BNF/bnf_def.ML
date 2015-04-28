@@ -777,7 +777,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
           | Smart_Inline => Term.size_of_term rhs <= smart_max_inline_term_size
-          | Do_Inline => true)
+          | Do_Inline => true);
       in
         if inline then
           ((rhs, Drule.reflexive_thm), lthy)
@@ -861,13 +861,16 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
     fun mk_bnf_t Ds As' = Term.subst_atomic_types ((deads ~~ Ds) @ (alphas ~~ As'));
     fun mk_bnf_T Ds As' = Term.typ_subst_atomic ((deads ~~ Ds) @ (alphas ~~ As'));
 
-    val (((As, Bs), Ds), names_lthy) = lthy
+    val (((As, Bs), unsorted_Ds), names_lthy) = lthy
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees (length deads);
+
+    val Ds = map2 (resort_tfree_or_tvar o Type.sort_of_atyp) deads unsorted_Ds;
+
     val RTs = map2 (curry HOLogic.mk_prodT) As Bs;
     val pred2RTs = map2 mk_pred2T As Bs;
-    val (Rs, Rs') = names_lthy |> mk_Frees' "R" pred2RTs |> fst
+    val (Rs, Rs') = names_lthy |> mk_Frees' "R" pred2RTs |> fst;
     val CA = mk_bnf_T Ds As Calpha;
     val CR = mk_bnf_T Ds RTs Calpha;
     val setRs =
@@ -967,7 +970,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
     val dead = length deads;
 
-    val (((((((As', Bs'), Cs), Ds), Es), B1Ts), B2Ts), (Ts, T)) = lthy
+    val (((((((As', Bs'), Cs), unsorted_Ds), Es), B1Ts), B2Ts), (Ts, T)) = lthy
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees live
@@ -978,6 +981,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
       ||> fst o mk_TFrees 1
       ||> the_single
       ||> `(replicate live);
+
+    val Ds = map2 (resort_tfree_or_tvar o Type.sort_of_atyp) deads unsorted_Ds;
 
     val mk_bnf_map = mk_bnf_map_Ds Ds;
     val mk_bnf_t = mk_bnf_t_Ds Ds;
