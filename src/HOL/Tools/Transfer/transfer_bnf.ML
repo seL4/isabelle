@@ -102,7 +102,7 @@ fun generate_relation_constraint_goal ctxt bnf constraint_def =
     val (((As, Bs), Ds), ctxt) = ctxt
       |> mk_TFrees live
       ||>> mk_TFrees live
-      ||>> mk_TFrees (dead_of_bnf bnf)
+      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
 
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
@@ -181,7 +181,7 @@ fun define_pred bnf lthy =
     val Tname = base_name_of_bnf bnf
     val ((As, Ds), lthy) = lthy
       |> mk_TFrees live
-      ||>> mk_TFrees (dead_of_bnf bnf)
+      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
     val T = mk_T_of_bnf Ds As bnf
     val sets = mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf
     val argTs = map mk_pred1T As
@@ -232,7 +232,7 @@ fun prove_Domainp_rel ctxt bnf pred_def =
     val (((As, Bs), Ds), ctxt) = ctxt
       |> mk_TFrees live
       ||>> mk_TFrees live
-      ||>> mk_TFrees (dead_of_bnf bnf)
+      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
 
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
@@ -259,7 +259,7 @@ fun prove_rel_eq_onp ctxt bnf pred_def =
     val old_ctxt = ctxt
     val ((As, Ds), ctxt) = ctxt
       |> mk_TFrees live
-      ||>> mk_TFrees (dead_of_bnf bnf)
+      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
     val T = mk_T_of_bnf Ds As bnf
     val argTs = map mk_pred1T As
     val (args, ctxt) = mk_Frees "P" argTs ctxt
@@ -334,8 +334,6 @@ fun lives_of_fp (fp_sugar: fp_sugar) =
     map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
   end
 
-fun sorts_of_fp fp_sugar = map (snd o Ctr_Sugar_Util.dest_TFree_or_TVar) (lives_of_fp fp_sugar)
-
 fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
   let
     val involved_types = distinct op= (
@@ -344,7 +342,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
       @ map type_name_of_bnf (#bnfs (#fp_res fp_sugar)))
     val eq_onps = map (Transfer.rel_eq_onp o lookup_defined_pred_data lthy) involved_types
     val old_lthy = lthy
-    val (As, lthy) = mk_TFrees' (sorts_of_fp fp_sugar) lthy
+    val (As, lthy) = mk_TFrees' (map Type.sort_of_atyp (lives_of_fp fp_sugar)) lthy
     val predTs = map mk_pred1T As
     val (preds, lthy) = mk_Frees "P" predTs lthy
     val args = map mk_eq_onp preds

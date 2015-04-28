@@ -149,10 +149,10 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
   let
     val olive = live_of_bnf outer;
     val onwits = nwits_of_bnf outer;
-    val odead = dead_of_bnf outer;
+    val odeads = deads_of_bnf outer;
     val inner = hd inners;
     val ilive = live_of_bnf inner;
-    val ideads = map dead_of_bnf inners;
+    val ideadss = map deads_of_bnf inners;
     val inwitss = map nwits_of_bnf inners;
 
     (* TODO: check olive = length inners > 0,
@@ -160,9 +160,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
                    forall inner from inners. idead = dead  *)
 
     val (oDs, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate odead @{sort type}) lthy);
+      (Variable.invent_types (map Type.sort_of_atyp odeads) lthy);
     val (Dss, lthy2) = apfst (map (map TFree))
-      (fold_map Variable.invent_types (map (fn n => replicate n @{sort type}) ideads) lthy1);
+      (fold_map Variable.invent_types (map (map Type.sort_of_atyp) ideadss) lthy1);
     val (Ass, lthy3) = apfst (replicate ilive o map TFree)
       (Variable.invent_types (replicate ilive @{sort type}) lthy2);
     val As = if ilive > 0 then hd Ass else [];
@@ -379,13 +379,13 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
   let
     val b = Binding.suffix_name (mk_killN n) (name_of_bnf bnf);
     val live = live_of_bnf bnf;
-    val dead = dead_of_bnf bnf;
+    val deads = deads_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
 
     (* TODO: check 0 < n <= live *)
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead @{sort type}) lthy);
+      (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val ((killedAs, As), lthy2) = apfst (`(take n) o map TFree)
       (Variable.invent_types (replicate live @{sort type}) lthy1);
     val (Bs, _(*lthy3*)) = apfst (append killedAs o map TFree)
@@ -478,13 +478,13 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
   let
     val b = Binding.suffix_name (mk_liftN n) (name_of_bnf bnf);
     val live = live_of_bnf bnf;
-    val dead = dead_of_bnf bnf;
+    val deads = deads_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
 
     (* TODO: check 0 < n *)
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead @{sort type}) lthy);
+      (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val ((newAs, As), lthy2) = apfst (chop n o map TFree)
       (Variable.invent_types (replicate (n + live) @{sort type}) lthy1);
     val ((newBs, Bs), _(*lthy3*)) = apfst (chop n o map TFree)
@@ -568,14 +568,14 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
   let
     val b = Binding.suffix_name (mk_permuteN src dest) (name_of_bnf bnf);
     val live = live_of_bnf bnf;
-    val dead = dead_of_bnf bnf;
+    val deads = deads_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
 
     fun permute xs = permute_like_unique (op =) src dest xs;
     fun unpermute xs = permute_like_unique (op =) dest src xs;
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead @{sort type}) lthy);
+      (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val (As, lthy2) = apfst (map TFree)
       (Variable.invent_types (replicate live @{sort type}) lthy1);
     val (Bs, _(*lthy3*)) = apfst (map TFree)
