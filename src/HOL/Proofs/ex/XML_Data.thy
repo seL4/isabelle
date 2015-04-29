@@ -57,9 +57,9 @@ ML_val {*
 text {* Some fairly large proof: *}
 
 ML_val {*
-  val xml = export_proof @{thm Int.times_int.abs_eq};
+  val xml = export_proof @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
-  @{assert} (size (YXML.string_of_body xml) > 50000000);
+  @{assert} (size (YXML.string_of_body xml) > 1000000);
 *}
 
 end
