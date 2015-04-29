@@ -131,8 +131,24 @@ lemma power_mult_distrib [field_simps]:
 
 end
 
+text{*Extract constant factors from powers*}
 declare power_mult_distrib [where a = "numeral w" for w, simp]
 declare power_mult_distrib [where b = "numeral w" for w, simp]
+
+lemma power_add_numeral [simp]:
+  fixes a :: "'a :: monoid_mult"
+  shows "a^numeral m * a^numeral n = a^numeral (m + n)"
+  by (simp add: power_add [symmetric])
+
+lemma power_add_numeral2 [simp]:
+  fixes a :: "'a :: monoid_mult"
+  shows "a^numeral m * (a^numeral n * b) = a^numeral (m + n) * b"
+  by (simp add: mult.assoc [symmetric])
+
+lemma power_mult_numeral [simp]:
+  fixes a :: "'a :: monoid_mult"
+  shows"(a^numeral m)^numeral n = a^numeral (m * n)"
+  by (simp only: numeral_mult power_mult)
 
 context semiring_numeral
 begin

@@ -316,10 +316,10 @@ lemma of_real_real_of_nat_eq [simp]: "of_real (real n) = of_nat n"
 lemma of_real_real_of_int_eq [simp]: "of_real (real z) = of_int z"
   by (simp add: real_of_int_def)
 
-lemma of_real_numeral: "of_real (numeral w) = numeral w"
+lemma of_real_numeral [simp]: "of_real (numeral w) = numeral w"
 using of_real_of_int_eq [of "numeral w"] by simp
 
-lemma of_real_neg_numeral: "of_real (- numeral w) = - numeral w"
+lemma of_real_neg_numeral [simp]: "of_real (- numeral w) = - numeral w"
 using of_real_of_int_eq [of "- numeral w"] by simp
 
 text{*Every real algebra has characteristic zero*}

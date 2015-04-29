@@ -10,6 +10,12 @@ theory Transcendental
 imports Binomial Series Deriv NthRoot
 begin
 
+lemma reals_Archimedean4:
+  assumes "0 < y" "0 \<le> x" 
+  obtains n where "real n * y \<le> x" "x < real (Suc n) * y"
+  using floor_correct [of "x/y"] assms
+  by (auto simp: Real.real_of_nat_Suc field_simps intro: that [of "nat (floor (x/y))"])
+
 lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
@@ -221,6 +227,16 @@ corollary lim_n_over_pown:
   shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) ---> 0) sequentially"
 using powser_times_n_limit_0 [of "inverse x"]
 by (simp add: norm_divide divide_simps)
+
+lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a\<Colon>real_normed_field)) sequentially"
+  apply (clarsimp simp: lim_sequentially norm_divide dist_norm divide_simps)
+  apply (auto simp: mult_ac dest!: ex_less_of_nat_mult [of _ 1])
+  by (metis le_eq_less_or_eq less_trans linordered_comm_semiring_strict_class.comm_mult_strict_left_mono 
+          of_nat_less_0_iff of_nat_less_iff zero_less_mult_iff zero_less_one)
+
+lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a\<Colon>real_normed_field)) sequentially"
+  using lim_1_over_n
+  by (simp add: inverse_eq_divide)
 
 lemma sum_split_even_odd:
   fixes f :: "nat \<Rightarrow> real"
@@ -1127,7 +1143,7 @@ proof -
   obtain r :: real where r0: "0 < r" and r1: "r < 1"
     using dense [OF zero_less_one] by fast
   obtain N :: nat where N: "norm x < real N * r"
-    using reals_Archimedean3 [OF r0] by fast
+    using ex_less_of_nat_mult r0 real_of_nat_def by auto
   from r1 show ?thesis
   proof (rule summable_ratio_test [rule_format])
     fix n :: nat
@@ -3535,22 +3551,18 @@ proof -
     done
 qed
 
-lemma reals_Archimedean4:
-     "\<lbrakk>0 < y; 0 \<le> x\<rbrakk> \<Longrightarrow> \<exists>n. real n * y \<le> x & x < real (Suc n) * y"
-apply (auto dest!: reals_Archimedean3)
-apply (drule_tac x = x in spec, clarify)
-apply (subgoal_tac "x < real(LEAST m::nat. x < real m * y) * y")
- prefer 2 apply (erule LeastI)
-apply (case_tac "LEAST m::nat. x < real m * y", simp)
-apply (rename_tac m)
-apply (subgoal_tac "~ x < real m * y")
- prefer 2 apply (rule not_less_Least, simp, force)
+lemma reals_Archimedean4':
+     "\<lbrakk>0 < y; 0 \<le> x\<rbrakk> \<Longrightarrow> \<exists>n. real n * y \<le> x \<and> x < real (Suc n) * y"
+apply (rule_tac x="nat (floor (x/y))" in exI)
+using floor_correct [of "x/y"]
+apply (auto simp: Real.real_of_nat_Suc field_simps)
 done
 
 lemma cos_zero_lemma:
      "\<lbrakk>0 \<le> x; cos x = 0\<rbrakk> \<Longrightarrow>
       \<exists>n::nat. odd n & x = real n * (pi/2)"
-apply (drule pi_gt_zero [THEN reals_Archimedean4], safe)
+apply (erule reals_Archimedean4 [OF pi_gt_zero])
+apply (auto simp: )
 apply (subgoal_tac "0 \<le> x - real n * pi &
                     (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
 apply (auto simp: algebra_simps real_of_nat_Suc)
