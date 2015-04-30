@@ -569,116 +569,127 @@ fun right_hand_set_comprehension_conv conv ctxt =
 
 datatype termlets = If | Case of typ * int
 
-fun simproc ctxt redex =
+local
+
+val set_Nil_I = @{lemma "set [] = {x. False}" by (simp add: empty_def [symmetric])}
+val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
+val inst_Collect_mem_eq = @{lemma "set A = {x. x \<in> set A}" by simp}
+val del_refl_eq = @{lemma "(t = t \<and> P) \<equiv> P" by simp}
+
+fun mk_set T = Const (@{const_name set}, HOLogic.listT T --> HOLogic.mk_setT T)
+fun dest_set (Const (@{const_name set}, _) $ xs) = xs
+
+fun dest_singleton_list (Const (@{const_name Cons}, _) $ t $ (Const (@{const_name Nil}, _))) = t
+  | dest_singleton_list t = raise TERM ("dest_singleton_list", [t])
+
+(*We check that one case returns a singleton list and all other cases
+  return [], and return the index of the one singleton list case.*)
+fun possible_index_of_singleton_case cases =
   let
-    val set_Nil_I = @{lemma "set [] = {x. False}" by (simp add: empty_def [symmetric])}
-    val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
-    val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
-    val del_refl_eq = @{lemma "(t = t \<and> P) \<equiv> P" by simp}
-    fun mk_set T = Const (@{const_name set}, HOLogic.listT T --> HOLogic.mk_setT T)
-    fun dest_set (Const (@{const_name set}, _) $ xs) = xs
-    fun dest_singleton_list (Const (@{const_name Cons}, _) $ t $ (Const (@{const_name Nil}, _))) = t
-      | dest_singleton_list t = raise TERM ("dest_singleton_list", [t])
-    (* We check that one case returns a singleton list and all other cases
-       return [], and return the index of the one singleton list case *)
-    fun possible_index_of_singleton_case cases =
-      let
-        fun check (i, case_t) s =
-          (case strip_abs_body case_t of
-            (Const (@{const_name Nil}, _)) => s
-          | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
-      in
-        fold_index check cases (SOME NONE) |> the_default NONE
-      end
-    (* returns (case_expr type index chosen_case constr_name) option  *)
-    fun dest_case case_term =
-      let
-        val (case_const, args) = strip_comb case_term
-      in
-        (case try dest_Const case_const of
-          SOME (c, T) =>
-            (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
-              SOME {ctrs, ...} =>
-                (case possible_index_of_singleton_case (fst (split_last args)) of
-                  SOME i =>
-                    let
-                      val constr_names = map (fst o dest_Const) ctrs
-                      val (Ts, _) = strip_type T
-                      val T' = List.last Ts
-                    in SOME (List.last args, T', i, nth args i, nth constr_names i) end
-                | NONE => NONE)
+    fun check (i, case_t) s =
+      (case strip_abs_body case_t of
+        (Const (@{const_name Nil}, _)) => s
+      | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
+  in
+    fold_index check cases (SOME NONE) |> the_default NONE
+  end
+
+(*returns condition continuing term option*)
+fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
+      SOME (cond, then_t)
+  | dest_if _ = NONE
+
+(*returns (case_expr type index chosen_case constr_name) option*)
+fun dest_case ctxt case_term =
+  let
+    val (case_const, args) = strip_comb case_term
+  in
+    (case try dest_Const case_const of
+      SOME (c, T) =>
+        (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
+          SOME {ctrs, ...} =>
+            (case possible_index_of_singleton_case (fst (split_last args)) of
+              SOME i =>
+                let
+                  val constr_names = map (fst o dest_Const) ctrs
+                  val (Ts, _) = strip_type T
+                  val T' = List.last Ts
+                in SOME (List.last args, T', i, nth args i, nth constr_names i) end
             | NONE => NONE)
         | NONE => NONE)
+    | NONE => NONE)
+  end
+
+fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
+  | tac ctxt (If :: cont) =
+      Splitter.split_tac ctxt @{thms split_if} 1
+      THEN rtac @{thm conjI} 1
+      THEN rtac @{thm impI} 1
+      THEN Subgoal.FOCUS (fn {prems, context, ...} =>
+        CONVERSION (right_hand_set_comprehension_conv (K
+          (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
+           then_conv
+           rewr_conv' @{lemma "(True \<and> P) = P" by simp})) context) 1) ctxt 1
+      THEN tac ctxt cont
+      THEN rtac @{thm impI} 1
+      THEN Subgoal.FOCUS (fn {prems, context, ...} =>
+          CONVERSION (right_hand_set_comprehension_conv (K
+            (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
+             then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) context) 1) ctxt 1
+      THEN rtac set_Nil_I 1
+  | tac ctxt (Case (T, i) :: cont) =
+      let
+        val SOME {injects, distincts, case_thms, split, ...} =
+          Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
+      in
+        (* do case distinction *)
+        Splitter.split_tac ctxt [split] 1
+        THEN EVERY (map_index (fn (i', _) =>
+          (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
+          THEN REPEAT_DETERM (rtac @{thm allI} 1)
+          THEN rtac @{thm impI} 1
+          THEN (if i' = i then
+            (* continue recursively *)
+            Subgoal.FOCUS (fn {prems, context, ...} =>
+              CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
+                  ((HOLogic.conj_conv
+                    (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
+                      (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
+                    Conv.all_conv)
+                    then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
+                    then_conv conjunct_assoc_conv)) context
+                then_conv (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
+                  Conv.repeat_conv
+                    (all_but_last_exists_conv
+                      (K (rewr_conv'
+                        @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt)) context)))) 1) ctxt 1
+            THEN tac ctxt cont
+          else
+            Subgoal.FOCUS (fn {prems, context, ...} =>
+              CONVERSION
+                (right_hand_set_comprehension_conv (K
+                  (HOLogic.conj_conv
+                    ((HOLogic.eq_conv Conv.all_conv
+                      (rewr_conv' (List.last prems))) then_conv
+                      (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
+                    Conv.all_conv then_conv
+                    (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) context then_conv
+                  HOLogic.Trueprop_conv
+                    (HOLogic.eq_conv Conv.all_conv
+                      (Collect_conv (fn (_, ctxt) =>
+                        Conv.repeat_conv
+                          (Conv.bottom_conv
+                            (K (rewr_conv'
+                              @{lemma "(\<exists>x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
+            THEN rtac set_Nil_I 1)) case_thms)
       end
-    (* returns condition continuing term option *)
-    fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
-          SOME (cond, then_t)
-      | dest_if _ = NONE
-    fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
-      | tac ctxt (If :: cont) =
-          Splitter.split_tac ctxt [@{thm split_if}] 1
-          THEN rtac @{thm conjI} 1
-          THEN rtac @{thm impI} 1
-          THEN Subgoal.FOCUS (fn {prems, context, ...} =>
-            CONVERSION (right_hand_set_comprehension_conv (K
-              (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
-               then_conv
-               rewr_conv' @{lemma "(True \<and> P) = P" by simp})) context) 1) ctxt 1
-          THEN tac ctxt cont
-          THEN rtac @{thm impI} 1
-          THEN Subgoal.FOCUS (fn {prems, context, ...} =>
-              CONVERSION (right_hand_set_comprehension_conv (K
-                (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
-                 then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) context) 1) ctxt 1
-          THEN rtac set_Nil_I 1
-      | tac ctxt (Case (T, i) :: cont) =
-          let
-            val SOME {injects, distincts, case_thms, split, ...} =
-              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
-          in
-            (* do case distinction *)
-            Splitter.split_tac ctxt [split] 1
-            THEN EVERY (map_index (fn (i', _) =>
-              (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
-              THEN REPEAT_DETERM (rtac @{thm allI} 1)
-              THEN rtac @{thm impI} 1
-              THEN (if i' = i then
-                (* continue recursively *)
-                Subgoal.FOCUS (fn {prems, context, ...} =>
-                  CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
-                      ((HOLogic.conj_conv
-                        (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
-                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
-                        Conv.all_conv)
-                        then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
-                        then_conv conjunct_assoc_conv)) context
-                    then_conv (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
-                      Conv.repeat_conv
-                        (all_but_last_exists_conv
-                          (K (rewr_conv'
-                            @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt)) context)))) 1) ctxt 1
-                THEN tac ctxt cont
-              else
-                Subgoal.FOCUS (fn {prems, context, ...} =>
-                  CONVERSION
-                    (right_hand_set_comprehension_conv (K
-                      (HOLogic.conj_conv
-                        ((HOLogic.eq_conv Conv.all_conv
-                          (rewr_conv' (List.last prems))) then_conv
-                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
-                        Conv.all_conv then_conv
-                        (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) context then_conv
-                      HOLogic.Trueprop_conv
-                        (HOLogic.eq_conv Conv.all_conv
-                          (Collect_conv (fn (_, ctxt) =>
-                            Conv.repeat_conv
-                              (Conv.bottom_conv
-                                (K (rewr_conv'
-                                  @{lemma "(\<exists>x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
-                THEN rtac set_Nil_I 1)) case_thms)
-          end
+
+in
+
+fun simproc ctxt redex =
+  let
     fun make_inner_eqs bound_vs Tis eqs t =
-      (case dest_case t of
+      (case dest_case ctxt t of
         SOME (x, T, i, cont, constr_name) =>
           let
             val (vs, body) = strip_abs (Envir.eta_long (map snd bound_vs) cont)
@@ -695,7 +706,7 @@ fun simproc ctxt redex =
           (case dest_if t of
             SOME (condition, cont) => make_inner_eqs bound_vs (If :: Tis) (condition :: eqs) cont
           | NONE =>
-            if eqs = [] then NONE (* no rewriting, nothing to be done *)
+            if null eqs then NONE (*no rewriting, nothing to be done*)
             else
               let
                 val Type (@{type_name list}, [rT]) = fastype_of1 (map snd bound_vs, t)
@@ -725,6 +736,8 @@ fun simproc ctxt redex =
   in
     make_inner_eqs [] [] [] (dest_set (Thm.term_of redex))
   end
+
+end
 
 end
 *}
