@@ -458,9 +458,6 @@ qed
 
 subsection{* Taylor series for complex exponential, sine and cosine.*}
 
-context
-begin
-
 declare power_Suc [simp del]
 
 lemma Taylor_exp:
@@ -522,8 +519,9 @@ proof -
   have *: "cmod (sin z -
                  (\<Sum>i\<le>n. (-1) ^ (i div 2) * (if even i then sin 0 else cos 0) * z ^ i / (fact i)))
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
-  proof (rule complex_taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)" "exp\<bar>Im z\<bar>" 0 z,
-simplified])
+  proof (rule complex_taylor [of "closed_segment 0 z" n 
+                                 "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)" 
+                                 "exp\<bar>Im z\<bar>" 0 z,  simplified])
   show "convex (closed_segment 0 z)"
     by (rule convex_segment [of 0 z])
   next
@@ -600,7 +598,7 @@ simplified])
     done
 qed
 
-end (* of context *)
+declare power_Suc [simp]
 
 text{*32-bit Approximation to e*}
 lemma e_approx_32: "abs(exp(1) - 5837465777 / 2147483648) \<le> (inverse(2 ^ 32)::real)"
@@ -2626,13 +2624,13 @@ lemma arccos_arcsin_eq: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow
 lemma arcsin_arctan: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> arcsin x = arctan(x / sqrt(1 - x\<^sup>2))"
   by (simp add: arccos_arctan arcsin_arccos_eq)
 
-lemma zz: "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
+lemma csqrt_1_diff_eq: "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
   by ( simp add: of_real_sqrt del: csqrt_of_real_nonneg)
 
 lemma arcsin_arccos_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin x = arccos(sqrt(1 - x\<^sup>2))"
   apply (simp add: abs_square_le_1 diff_le_iff arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
   apply (subst Arcsin_Arccos_csqrt_pos)
-  apply (auto simp: power_le_one zz)
+  apply (auto simp: power_le_one csqrt_1_diff_eq)
   done
 
 lemma arcsin_arccos_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrightarrow> arcsin x = -arccos(sqrt(1 - x\<^sup>2))"
@@ -2642,7 +2640,7 @@ lemma arcsin_arccos_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrigh
 lemma arccos_arcsin_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos x = arcsin(sqrt(1 - x\<^sup>2))"
   apply (simp add: abs_square_le_1 diff_le_iff arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
   apply (subst Arccos_Arcsin_csqrt_pos)
-  apply (auto simp: power_le_one zz)
+  apply (auto simp: power_le_one csqrt_1_diff_eq)
   done
 
 lemma arccos_arcsin_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrightarrow> arccos x = pi - arcsin(sqrt(1 - x\<^sup>2))"

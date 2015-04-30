@@ -757,10 +757,7 @@ lemma of_nat_less_two_power:
   "of_nat n < (2::'a::linordered_idom) ^ n"
 apply (induct n)
 apply simp
-apply (subgoal_tac "(1::'a) \<le> 2 ^ n")
-apply (drule (1) add_le_less_mono, simp)
-apply simp
-done
+by (metis add_le_less_mono mult_2 of_nat_Suc one_le_numeral one_le_power power_Suc)
 
 lemma complete_real:
   fixes S :: "real set"
@@ -807,7 +804,7 @@ proof -
   have width: "\<And>n. B n - A n = (b - a) / 2^n"
     apply (simp add: eq_divide_eq)
     apply (induct_tac n, simp)
-    apply (simp add: C_def avg_def algebra_simps)
+    apply (simp add: C_def avg_def power_Suc algebra_simps)
     done
 
   have twos: "\<And>y r :: rat. 0 < r \<Longrightarrow> \<exists>n. y / 2 ^ n < r"
@@ -1518,12 +1515,7 @@ lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
 by simp
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
-apply (induct "n")
-apply (auto simp add: real_of_nat_Suc)
-apply (subst mult_2)
-apply (erule add_less_le_mono)
-apply (rule two_realpow_ge_one)
-done
+  by (simp add: of_nat_less_two_power real_of_nat_def)
 
 text {* TODO: no longer real-specific; rename and move elsewhere *}
 lemma realpow_Suc_le_self:
@@ -1535,7 +1527,7 @@ text {* TODO: no longer real-specific; rename and move elsewhere *}
 lemma realpow_minus_mult:
   fixes x :: "'a::monoid_mult"
   shows "0 < n \<Longrightarrow> x ^ (n - 1) * x = x ^ n"
-by (simp add: power_commutes split add: nat_diff_split)
+by (simp add: power_Suc power_commutes split add: nat_diff_split)
 
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma real_two_squares_add_zero_iff [simp]:

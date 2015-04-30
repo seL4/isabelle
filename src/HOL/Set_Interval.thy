@@ -1519,6 +1519,9 @@ lemma setsum_triangle_reindex_eq:
 using setsum_triangle_reindex [of f "Suc n"]
 by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 
+lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
+  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
+
 subsection{* Shifting bounds *}
 
 lemma setsum_shift_bounds_nat_ivl:
@@ -1598,9 +1601,52 @@ lemma geometric_sum:
 proof -
   from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
   moreover have "(\<Sum>i<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
-    by (induct n) (simp_all add: field_simps `y \<noteq> 0`)
+    by (induct n) (simp_all add: power_Suc field_simps `y \<noteq> 0`)
   ultimately show ?thesis by simp
 qed
+
+lemma diff_power_eq_setsum:
+  fixes y :: "'a::{comm_ring,monoid_mult}"
+  shows
+    "x ^ (Suc n) - y ^ (Suc n) =
+      (x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))"
+proof (induct n)
+  case (Suc n)
+  have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x^n) - y * (y * y ^ n)"
+    by (simp add: power_Suc)
+  also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x^n)"
+    by (simp add: power_Suc algebra_simps)
+  also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
+    by (simp only: Suc)
+  also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
+    by (simp only: mult.left_commute)
+  also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
+    by (simp add: power_Suc field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
+  finally show ?case .
+qed simp
+
+corollary power_diff_sumr2: --{* @{text COMPLEX_POLYFUN} in HOL Light *}
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
+using diff_power_eq_setsum[of x "n - 1" y]
+by (cases "n = 0") (simp_all add: field_simps)
+
+lemma power_diff_1_eq:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
+using diff_power_eq_setsum [of x _ 1]
+  by (cases n) auto
+
+lemma one_diff_power_eq':
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
+using diff_power_eq_setsum [of 1 _ x]
+  by (cases n) auto
+
+lemma one_diff_power_eq:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
+by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
 
 
 subsection {* The formula for arithmetic sums *}
@@ -1664,9 +1710,6 @@ lemma arith_series_int:
 
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst setsum_subtractf_nat) auto
-
-lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
-  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
 subsection {* Products indexed over intervals *}
 

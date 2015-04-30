@@ -575,9 +575,8 @@ next
     by simp
   also have "\<dots> \<le> (1 + x) ^ Suc n"
     apply (subst diff_le_0_iff_le[symmetric])
-    apply (simp add: field_simps)
     using mult_left_mono[OF p Suc.prems]
-    apply simp
+    apply (simp add: field_simps)
     done
   finally show ?case
     by (simp add: real_of_nat_Suc field_simps)
@@ -887,10 +886,8 @@ lemma (in real_vector) dependent_0:
   assumes "0 \<in> A"
   shows "dependent A"
   unfolding dependent_def
-  apply (rule_tac x=0 in bexI)
   using assms span_0
-  apply auto
-  done
+  by auto
 
 lemma (in real_vector) span_add: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x + y \<in> span S"
   by (metis subspace_add subspace_span)

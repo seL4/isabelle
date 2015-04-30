@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 *)
 
-section {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
+section {* The Integers as Equivalence Classes over Pairs of Natural Numbers *}
 
 theory Int
 imports Equiv_Relations Power Quotient Fun_Def
@@ -338,10 +338,10 @@ lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 
 text{*An alternative condition is @{term "0 \<le> w"} *}
 corollary nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
-by (simp add: nat_le_eq_zle linorder_not_le [symmetric]) 
+by (simp add: nat_le_eq_zle linorder_not_le [symmetric])
 
 corollary nat_less_eq_zless: "0 \<le> w ==> (nat w < nat z) = (w<z)"
-by (simp add: nat_le_eq_zle linorder_not_le [symmetric]) 
+by (simp add: nat_le_eq_zle linorder_not_le [symmetric])
 
 lemma zless_nat_conj [simp]: "(nat w < nat z) = (0 < z & w < z)"
   by transfer (clarsimp, arith)
@@ -355,7 +355,7 @@ lemma nonneg_eq_int:
 lemma nat_eq_iff:
   "nat w = m \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
   by transfer (clarsimp simp add: le_imp_diff_is_add)
- 
+
 corollary nat_eq_iff2:
   "m = nat w \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
   using nat_eq_iff [of w m] by auto
@@ -378,7 +378,7 @@ lemma nat_neg_numeral [simp]:
 
 lemma nat_2: "nat 2 = Suc (Suc 0)"
   by simp
- 
+
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
   by transfer (clarsimp, arith)
 
@@ -404,7 +404,7 @@ lemma nat_add_distrib:
 lemma nat_diff_distrib':
   "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> nat (x - y) = nat x - nat y"
   by transfer clarsimp
- 
+
 lemma nat_diff_distrib:
   "0 \<le> z' \<Longrightarrow> z' \<le> z \<Longrightarrow> nat (z - z') = nat z - nat z'"
   by (rule nat_diff_distrib') auto
@@ -415,7 +415,7 @@ lemma nat_zminus_int [simp]: "nat (- int n) = 0"
 lemma le_nat_iff:
   "k \<ge> 0 \<Longrightarrow> n \<le> nat k \<longleftrightarrow> int n \<le> k"
   by transfer auto
-  
+
 lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
   by transfer (clarsimp simp add: less_diff_conv)
 
@@ -427,7 +427,7 @@ lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
 
 end
 
-lemma diff_nat_numeral [simp]: 
+lemma diff_nat_numeral [simp]:
   "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
   by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
 
@@ -550,7 +550,7 @@ subsubsection {* Binary comparisons *}
 
 text {* Preliminaries *}
 
-lemma le_imp_0_less: 
+lemma le_imp_0_less:
   assumes le: "0 \<le> z"
   shows "(0::int) < 1 + z"
 proof -
@@ -565,7 +565,7 @@ lemma odd_less_0_iff:
 proof (cases z)
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add.assoc add_increasing
-                             le_imp_0_less [THEN order_less_imp_le])  
+                             le_imp_0_less [THEN order_less_imp_le])
 next
   case (neg n)
   thus ?thesis by (simp del: of_nat_Suc of_nat_add of_nat_1
@@ -580,19 +580,19 @@ lemma odd_nonzero:
   "1 + z + z \<noteq> (0::int)"
 proof (cases z)
   case (nonneg n)
-  have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
+  have le: "0 \<le> z+z" by (simp add: nonneg add_increasing)
   thus ?thesis using  le_imp_0_less [OF le]
-    by (auto simp add: add.assoc) 
+    by (auto simp add: add.assoc)
 next
   case (neg n)
   show ?thesis
   proof
     assume eq: "1 + z + z = 0"
     have "(0::int) < 1 + (int n + int n)"
-      by (simp add: le_imp_0_less add_increasing) 
-    also have "... = - (1 + z + z)" 
-      by (simp add: neg add.assoc [symmetric]) 
-    also have "... = 0" by (simp add: eq) 
+      by (simp add: le_imp_0_less add_increasing)
+    also have "... = - (1 + z + z)"
+      by (simp add: neg add.assoc [symmetric])
+    also have "... = 0" by (simp add: eq)
     finally have "0<0" ..
     thus False by blast
   qed
@@ -699,12 +699,12 @@ proof -
     hence "1 + z + z = 0" by (simp only: of_int_eq_iff)
     with odd_nonzero show False by blast
   qed
-qed 
+qed
 
 lemma Nats_numeral [simp]: "numeral w \<in> Nats"
   using of_nat_in_Nats [of "numeral w"] by simp
 
-lemma Ints_odd_less_0: 
+lemma Ints_odd_less_0:
   assumes in_Ints: "a \<in> Ints"
   shows "(1 + a + a < 0) = (a < (0::'a::linordered_idom))"
 proof -
@@ -787,9 +787,7 @@ subsection{*The functions @{term nat} and @{term int}*}
 text{*Simplify the term @{term "w + - z"}*}
 
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
-apply (insert zless_nat_conj [of 1 z])
-apply auto
-done
+  using zless_nat_conj [of 1 z] by auto
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
@@ -857,7 +855,7 @@ done
 
 lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
 apply (cases "z=0 | w=0")
-apply (auto simp add: abs_if nat_mult_distrib [symmetric] 
+apply (auto simp add: abs_if nat_mult_distrib [symmetric]
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
 
@@ -867,9 +865,9 @@ apply (simp add: nat_eq_iff)
 done
 
 lemma diff_nat_eq_if:
-     "nat z - nat z' =  
-        (if z' < 0 then nat z   
-         else let d = z-z' in     
+     "nat z - nat z' =
+        (if z' < 0 then nat z
+         else let d = z-z' in
               if d < 0 then 0 else nat d)"
 by (simp add: Let_def nat_diff_distrib [symmetric])
 
@@ -891,8 +889,8 @@ theorem wf_int_ge_less_than: "wf (int_ge_less_than d)"
 proof -
   have "int_ge_less_than d \<subseteq> measure (%z. nat (z-d))"
     by (auto simp add: int_ge_less_than_def)
-  thus ?thesis 
-    by (rule wf_subset [OF wf_measure]) 
+  thus ?thesis
+    by (rule wf_subset [OF wf_measure])
 qed
 
 text{*This variant looks odd, but is typical of the relations suggested
@@ -905,10 +903,10 @@ where
 
 theorem wf_int_ge_less_than2: "wf (int_ge_less_than2 d)"
 proof -
-  have "int_ge_less_than2 d \<subseteq> measure (%z. nat (1+z-d))" 
+  have "int_ge_less_than2 d \<subseteq> measure (%z. nat (1+z-d))"
     by (auto simp add: int_ge_less_than2_def)
-  thus ?thesis 
-    by (rule wf_subset [OF wf_measure]) 
+  thus ?thesis
+    by (rule wf_subset [OF wf_measure])
 qed
 
 (* `set:int': dummy construction *)
@@ -1009,7 +1007,7 @@ qed
 subsection{*Intermediate value theorems*}
 
 lemma int_val_lemma:
-     "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->  
+     "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
 unfolding One_nat_def
 apply (induct n)
@@ -1027,9 +1025,9 @@ done
 lemmas nat0_intermed_int_val = int_val_lemma [rule_format (no_asm)]
 
 lemma nat_intermed_int_val:
-     "[| \<forall>i. m \<le> i & i < n --> abs(f(i + 1::nat) - f i) \<le> 1; m < n;  
+     "[| \<forall>i. m \<le> i & i < n --> abs(f(i + 1::nat) - f i) \<le> 1; m < n;
          f m \<le> k; k \<le> f n |] ==> ? i. m \<le> i & i \<le> n & f i = (k::int)"
-apply (cut_tac n = "n-m" and f = "%i. f (i+m) " and k = k 
+apply (cut_tac n = "n-m" and f = "%i. f (i+m) " and k = k
        in int_val_lemma)
 unfolding One_nat_def
 apply simp
@@ -1053,8 +1051,8 @@ proof -
   proof
     assume "2 \<le> \<bar>m\<bar>"
     hence "2*\<bar>n\<bar> \<le> \<bar>m\<bar>*\<bar>n\<bar>"
-      by (simp add: mult_mono 0) 
-    also have "... = \<bar>m*n\<bar>" 
+      by (simp add: mult_mono 0)
+    also have "... = \<bar>m*n\<bar>"
       by (simp add: abs_mult)
     also have "... = 1"
       by (simp add: mn)
@@ -1077,10 +1075,10 @@ proof -
 qed
 
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
-apply (rule iffI) 
+apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma)
- apply (simp add: mult.commute [of m]) 
- apply (frule pos_zmult_eq_1_iff_lemma, auto) 
+ apply (simp add: mult.commute [of m])
+ apply (frule pos_zmult_eq_1_iff_lemma, auto)
 done
 
 lemma infinite_UNIV_int: "\<not> finite (UNIV::int set)"
@@ -1226,14 +1224,14 @@ lemma zdvd_antisym_nonneg:
   apply (auto simp add: mult.assoc zero_le_mult_iff zmult_eq_1_iff)
   done
 
-lemma zdvd_antisym_abs: assumes "(a::int) dvd b" and "b dvd a" 
+lemma zdvd_antisym_abs: assumes "(a::int) dvd b" and "b dvd a"
   shows "\<bar>a\<bar> = \<bar>b\<bar>"
 proof cases
   assume "a = 0" with assms show ?thesis by simp
 next
   assume "a \<noteq> 0"
-  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast 
-  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
+  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast
+  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast
   from k k' have "a = a*k*k'" by simp
   with mult_cancel_left1[where c="a" and b="k*k'"]
   have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult.assoc)
@@ -1242,7 +1240,7 @@ next
 qed
 
 lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
-  using dvd_add_right_iff [of k "- n" m] by simp 
+  using dvd_add_right_iff [of k "- n" m] by simp
 
 lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
   using dvd_add_times_triv_right_iff [of k n m] by (simp add: ac_simps)
@@ -1317,10 +1315,10 @@ next
   then show "x dvd 1" by (auto intro: dvdI)
 qed
 
-lemma zdvd_mult_cancel1: 
+lemma zdvd_mult_cancel1:
   assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
 proof
-  assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
+  assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m"
     by (cases "n >0") (auto simp add: minus_equation_iff)
 next
   assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp

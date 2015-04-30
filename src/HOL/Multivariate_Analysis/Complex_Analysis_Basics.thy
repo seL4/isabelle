@@ -1200,7 +1200,7 @@ next
     also have "... \<le> (e * norm z) * norm z ^ Suc n"
       by (metis z2 mult.commute mult_left_mono norm_ge_zero norm_power)
     finally show "norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc (Suc n)"
-      by (simp add: power_Suc)
+      by simp
   qed
 qed
 

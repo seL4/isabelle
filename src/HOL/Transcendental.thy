@@ -53,63 +53,6 @@ qed
 
 subsection {* Properties of Power Series *}
 
-lemma lemma_realpow_diff:
-  fixes y :: "'a::monoid_mult"
-  shows "p \<le> n \<Longrightarrow> y ^ (Suc n - p) = (y ^ (n - p)) * y"
-proof -
-  assume "p \<le> n"
-  hence "Suc n - p = Suc (n - p)" by (rule Suc_diff_le)
-  thus ?thesis by (simp add: power_commutes)
-qed
-
-lemma lemma_realpow_diff_sumr2:
-  fixes y :: "'a::{comm_ring,monoid_mult}"
-  shows
-    "x ^ (Suc n) - y ^ (Suc n) =
-      (x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))"
-proof (induct n)
-  case (Suc n)
-  have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x^n) - y * (y * y ^ n)"
-    by simp
-  also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x^n)"
-    by (simp add: algebra_simps)
-  also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
-    by (simp only: Suc)
-  also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
-    by (simp only: mult.left_commute)
-  also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
-    by (simp add: field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
-  finally show ?case .
-qed simp
-
-corollary power_diff_sumr2: --{* @{text COMPLEX_POLYFUN} in HOL Light *}
-  fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
-using lemma_realpow_diff_sumr2[of x "n - 1" y]
-by (cases "n = 0") (simp_all add: field_simps)
-
-lemma lemma_realpow_rev_sumr:
-   "(\<Sum>p<Suc n. (x ^ p) * (y ^ (n - p))) =
-    (\<Sum>p<Suc n. (x ^ (n - p)) * (y ^ p))"
-  by (subst nat_diff_setsum_reindex[symmetric]) simp
-
-lemma power_diff_1_eq:
-  fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
-using lemma_realpow_diff_sumr2 [of x _ 1]
-  by (cases n) auto
-
-lemma one_diff_power_eq':
-  fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
-using lemma_realpow_diff_sumr2 [of 1 _ x]
-  by (cases n) auto
-
-lemma one_diff_power_eq:
-  fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
-by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
-
 lemma powser_zero:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_algebra_1"
   shows "(\<Sum>n. f n * 0 ^ n) = f 0"
@@ -533,6 +476,11 @@ lemma sumr_diff_mult_const2:
   "setsum f {..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i<n. f i - r)"
   by (simp add: setsum_subtractf)
 
+lemma lemma_realpow_rev_sumr:
+   "(\<Sum>p<Suc n. (x ^ p) * (y ^ (n - p))) =
+    (\<Sum>p<Suc n. (x ^ (n - p)) * (y ^ p))"
+  by (subst nat_diff_setsum_reindex[symmetric]) simp
+
 lemma lemma_termdiff2:
   fixes h :: "'a :: {field}"
   assumes h: "h \<noteq> 0"
@@ -544,7 +492,7 @@ lemma lemma_termdiff2:
   apply (simp add: right_diff_distrib diff_divide_distrib h)
   apply (simp add: mult.assoc [symmetric])
   apply (cases "n", simp)
-  apply (simp add: lemma_realpow_diff_sumr2 h
+  apply (simp add: diff_power_eq_setsum h
                    right_diff_distrib [symmetric] mult.assoc
               del: power_Suc setsum_lessThan_Suc of_nat_Suc)
   apply (subst lemma_realpow_rev_sumr)
@@ -554,7 +502,7 @@ lemma lemma_termdiff2:
   apply (rule setsum.cong [OF refl])
   apply (simp add: less_iff_Suc_add)
   apply (clarify)
-  apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 ac_simps
+  apply (simp add: setsum_right_distrib diff_power_eq_setsum ac_simps
               del: setsum_lessThan_Suc power_Suc)
   apply (subst mult.assoc [symmetric], subst power_add [symmetric])
   apply (simp add: ac_simps)
@@ -1043,7 +991,7 @@ proof -
         proof -
           have "\<bar>f n * x ^ (Suc n) - f n * y ^ (Suc n)\<bar> =
             (\<bar>f n\<bar> * \<bar>x-y\<bar>) * \<bar>\<Sum>p<Suc n. x ^ p * y ^ (n - p)\<bar>"
-            unfolding right_diff_distrib[symmetric] lemma_realpow_diff_sumr2 abs_mult
+            unfolding right_diff_distrib[symmetric] diff_power_eq_setsum abs_mult
             by auto
           also have "\<dots> \<le> (\<bar>f n\<bar> * \<bar>x-y\<bar>) * (\<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>)"
           proof (rule mult_left_mono)
@@ -1345,7 +1293,10 @@ lemma exp_diff:
 lemma exp_of_nat_mult:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "exp(of_nat n * x) = exp(x) ^ n"
-    by (induct n) (auto simp add: distrib_left exp_add mult.commute)
+    by (induct n) (auto simp add: power_Suc distrib_left exp_add mult.commute)
+
+corollary exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
+  by (simp add: exp_of_nat_mult real_of_nat_def)
 
 lemma exp_setsum: "finite I \<Longrightarrow> exp(setsum f I) = setprod (\<lambda>x. exp(f x)) I"
   by (induction I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
@@ -1373,10 +1324,6 @@ lemma not_exp_le_zero [simp]: "\<not> exp (x::real) \<le> 0"
 
 lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
   by simp
-
-(*FIXME: superseded by exp_of_nat_mult*)
-lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
-  by (induct n) (auto simp add: real_of_nat_Suc distrib_left exp_add mult.commute)
 
 text {* Strict monotonicity of exponential. *}
 
@@ -2361,10 +2308,7 @@ lemma
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (induct n)
   apply simp
-  apply (subgoal_tac "real(Suc n) = real n + 1")
-  apply (erule ssubst)
-  apply (subst powr_add, simp, simp)
-  done
+  by (simp add: add.commute power.simps(2) powr_add real_of_nat_Suc)
 
 lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   unfolding real_of_nat_numeral [symmetric] by (rule powr_realpow)
@@ -3159,7 +3103,7 @@ qed
 
 lemmas realpow_num_eq_if = power_eq_if
 
-lemma sumr_pos_lt_pair:  (*FIXME A MESS, BUT THE REAL MESS IS THE NEXT THEOREM*)
+lemma sumr_pos_lt_pair: 
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>summable f;
         \<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
@@ -3169,11 +3113,7 @@ apply (subst suminf_split_initial_segment [where k=k], assumption, simp)
 apply (drule_tac k=k in summable_ignore_initial_segment)
 apply (drule_tac k="Suc (Suc 0)" in sums_group [OF summable_sums], simp)
 apply simp
-apply (frule sums_unique)
-apply (drule sums_summable, simp)
-apply (erule suminf_pos)
-apply (simp add: ac_simps)
-done
+by (metis (no_types, lifting) add.commute suminf_pos summable_def sums_unique)
 
 lemma cos_two_less_zero [simp]:
   "cos 2 < (0::real)"
@@ -3182,30 +3122,25 @@ proof -
   from sums_minus [OF cos_paired]
   have *: "(\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / fact (2 * n))) sums - cos (2::real)"
     by simp
-  then have **: "summable (\<lambda>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
+  then have sm: "summable (\<lambda>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule sums_summable)
   have "0 < (\<Sum>n<Suc (Suc (Suc 0)). - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (simp add: fact_num_eq_if realpow_num_eq_if)
   moreover have "(\<Sum>n<Suc (Suc (Suc 0)). - ((- 1::real) ^ n  * 2 ^ (2 * n) / (fact (2 * n))))
-    < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
+                 < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
   proof -
     { fix d
-      have "(4::real) * (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
-            < (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))) *
-              fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
+      let ?six4d = "Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))"
+      have "(4::real) * (fact (?six4d)) < (Suc (Suc (?six4d)) * fact (Suc (?six4d)))"
         unfolding real_of_nat_mult
         by (rule mult_strict_mono) (simp_all add: fact_less_mono)
-      then have "(4::real) * (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
-        <  (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))"
-        by (simp only: fact.simps(2) [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"] real_of_nat_def of_nat_mult of_nat_fact)
-      then have "(4::real) * inverse (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))
-        < inverse (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))"
+      then have "(4::real) * (fact (?six4d)) < (fact (Suc (Suc (?six4d))))"
+        by (simp only: fact.simps(2) [of "Suc (?six4d)"] real_of_nat_def of_nat_mult of_nat_fact)
+      then have "(4::real) * inverse (fact (Suc (Suc (?six4d)))) < inverse (fact (?six4d))"
         by (simp add: inverse_eq_divide less_divide_eq)
-    }
-    note *** = this
-    have [simp]: "\<And>x y::real. 0 < x - y \<longleftrightarrow> y < x" by arith
-    from ** show ?thesis by (rule sumr_pos_lt_pair)
-      (simp add: divide_inverse mult.assoc [symmetric] ***)
+    } 
+    then show ?thesis
+      by (force intro!: sumr_pos_lt_pair [OF sm] simp add: power_Suc divide_inverse algebra_simps)
   qed
   ultimately have "0 < (\<Sum>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule order_less_trans)

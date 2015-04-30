@@ -54,6 +54,7 @@ imports
   Polynomial
   Preorder
   Product_Vector
+  Quadratic_Discriminant
   Quotient_List
   Quotient_Option
   Quotient_Product

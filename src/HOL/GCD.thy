@@ -755,24 +755,16 @@ lemma gcd_coprime_exists_int:
 done
 
 lemma coprime_exp_nat: "coprime (d::nat) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n, simp_all add: coprime_mult_nat)
+  by (induct n, simp_all add: power_Suc coprime_mult_nat)
 
 lemma coprime_exp_int: "coprime (d::int) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n, simp_all add: coprime_mult_int)
+  by (induct n, simp_all add: power_Suc coprime_mult_int)
 
 lemma coprime_exp2_nat [intro]: "coprime (a::nat) b \<Longrightarrow> coprime (a^n) (b^m)"
-  apply (rule coprime_exp_nat)
-  apply (subst gcd_commute_nat)
-  apply (rule coprime_exp_nat)
-  apply (subst gcd_commute_nat, assumption)
-done
+  by (simp add: coprime_exp_nat gcd_nat.commute)
 
 lemma coprime_exp2_int [intro]: "coprime (a::int) b \<Longrightarrow> coprime (a^n) (b^m)"
-  apply (rule coprime_exp_int)
-  apply (subst gcd_commute_int)
-  apply (rule coprime_exp_int)
-  apply (subst gcd_commute_int, assumption)
-done
+  by (simp add: coprime_exp_int gcd_int.commute)
 
 lemma gcd_exp_nat: "gcd ((a::nat)^n) (b^n) = (gcd a b)^n"
 proof (cases)
@@ -783,24 +775,11 @@ proof (cases)
     by (auto simp:div_gcd_coprime_nat)
   hence "gcd ((a div gcd a b)^n * (gcd a b)^n)
       ((b div gcd a b)^n * (gcd a b)^n) = (gcd a b)^n"
-    apply (subst (1 2) mult.commute)
-    apply (subst gcd_mult_distrib_nat [symmetric])
-    apply simp
-    done
+    by (metis gcd_mult_distrib_nat mult.commute mult.right_neutral)
   also have "(a div gcd a b)^n * (gcd a b)^n = a^n"
-    apply (subst div_power)
-    apply auto
-    apply (rule dvd_div_mult_self)
-    apply (rule dvd_power_same)
-    apply auto
-    done
+    by (metis dvd_div_mult_self gcd_unique_nat power_mult_distrib)
   also have "(b div gcd a b)^n * (gcd a b)^n = b^n"
-    apply (subst div_power)
-    apply auto
-    apply (rule dvd_div_mult_self)
-    apply (rule dvd_power_same)
-    apply auto
-    done
+    by (metis dvd_div_mult_self gcd_unique_nat power_mult_distrib)
   finally show ?thesis .
 qed
 
@@ -908,7 +887,7 @@ proof-
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n"
       using dvd_trans[of a' "a'^n" "b'^n"] by simp
-    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
+    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute power_Suc)
     from coprime_dvd_mult_int[OF coprime_exp_int [OF ab'(3), of m]] th1
     have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
@@ -947,21 +926,13 @@ proof-
 qed
 
 lemma coprime_plus_one_nat [simp]: "coprime ((n::nat) + 1) n"
-  apply (subgoal_tac "gcd (n + 1) n dvd (n + 1 - n)")
-  apply force
-  apply (rule dvd_diff_nat)
-  apply auto
-done
+  by (simp add: gcd_nat.commute)
 
 lemma coprime_Suc_nat [simp]: "coprime (Suc n) n"
   using coprime_plus_one_nat by (simp add: One_nat_def)
 
 lemma coprime_plus_one_int [simp]: "coprime ((n::int) + 1) n"
-  apply (subgoal_tac "gcd (n + 1) n dvd (n + 1 - n)")
-  apply force
-  apply (rule dvd_diff)
-  apply auto
-done
+  by (simp add: gcd_int.commute)
 
 lemma coprime_minus_one_nat: "(n::nat) \<noteq> 0 \<Longrightarrow> coprime (n - 1) n"
   using coprime_plus_one_nat [of "n - 1"]
@@ -985,36 +956,23 @@ lemma setprod_coprime_int [rule_format]:
   apply (auto simp add: gcd_mult_cancel_int)
 done
 
-lemma coprime_common_divisor_nat: "coprime (a::nat) b \<Longrightarrow> x dvd a \<Longrightarrow>
-    x dvd b \<Longrightarrow> x = 1"
-  apply (subgoal_tac "x dvd gcd a b")
-  apply simp
-  apply (erule (1) gcd_greatest)
-done
+lemma coprime_common_divisor_nat: 
+    "coprime (a::nat) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> x = 1"
+  by (metis gcd_greatest_iff_nat nat_dvd_1_iff_1)
 
-lemma coprime_common_divisor_int: "coprime (a::int) b \<Longrightarrow> x dvd a \<Longrightarrow>
-    x dvd b \<Longrightarrow> abs x = 1"
-  apply (subgoal_tac "x dvd gcd a b")
-  apply simp
-  apply (erule (1) gcd_greatest)
-done
+lemma coprime_common_divisor_int:
+    "coprime (a::int) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> abs x = 1"
+  using gcd_greatest by fastforce
 
-lemma coprime_divisors_nat: "(d::int) dvd a \<Longrightarrow> e dvd b \<Longrightarrow> coprime a b \<Longrightarrow>
-    coprime d e"
-  apply (auto simp add: dvd_def)
-  apply (frule coprime_lmult_int)
-  apply (subst gcd_commute_int)
-  apply (subst (asm) (2) gcd_commute_int)
-  apply (erule coprime_lmult_int)
-done
+lemma coprime_divisors_nat:
+    "(d::int) dvd a \<Longrightarrow> e dvd b \<Longrightarrow> coprime a b \<Longrightarrow> coprime d e"
+  by (meson coprime_int dvd_trans gcd_dvd1 gcd_dvd2 gcd_ge_0_int)
 
 lemma invertible_coprime_nat: "(x::nat) * y mod m = 1 \<Longrightarrow> coprime x m"
-apply (metis coprime_lmult_nat gcd_1_nat gcd_commute_nat gcd_red_nat)
-done
+by (metis coprime_lmult_nat gcd_1_nat gcd_commute_nat gcd_red_nat)
 
 lemma invertible_coprime_int: "(x::int) * y mod m = 1 \<Longrightarrow> coprime x m"
-apply (metis coprime_lmult_int gcd_1_int gcd_commute_int gcd_red_int)
-done
+by (metis coprime_lmult_int gcd_1_int gcd_commute_int gcd_red_int)
 
 
 subsection {* Bezout's theorem *}

@@ -742,38 +742,40 @@ proof -
     by (auto simp add: expand_fps_eq)
 qed
 
-lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field)))
-    = Abs_fps (\<lambda>n. if n= 0 then 1 else if n=1 then - 1 else 0)"
-  apply (rule fps_inverse_unique)
-  apply simp
-  apply (simp add: fps_eq_iff fps_mult_nth)
-  apply clarsimp
+lemma setsum_zero_lemma:
+  fixes n::nat
+  assumes "0 < n"
+  shows "(\<Sum>i = 0..n. if n = i then 1 else if n - i = 1 then - 1 else 0) = (0::'a::field)"
 proof -
-  fix n :: nat
-  assume n: "n > 0"
-  let ?f = "\<lambda>i. if n = i then (1::'a) else if n - i = 1 then - 1 else 0"
-  let ?g = "\<lambda>i. if i = n then 1 else if i=n - 1 then - 1 else 0"
+  let ?f = "\<lambda>i. if n = i then 1 else if n - i = 1 then - 1 else 0"
+  let ?g = "\<lambda>i. if i = n then 1 else if i = n - 1 then - 1 else 0"
   let ?h = "\<lambda>i. if i=n - 1 then - 1 else 0"
   have th1: "setsum ?f {0..n} = setsum ?g {0..n}"
     by (rule setsum.cong) auto
   have th2: "setsum ?g {0..n - 1} = setsum ?h {0..n - 1}"
-    apply (insert n)
     apply (rule setsum.cong)
+    using assms
     apply auto
     done
   have eq: "{0 .. n} = {0.. n - 1} \<union> {n}"
     by auto
-  from n have d: "{0.. n - 1} \<inter> {n} = {}"
+  from assms have d: "{0.. n - 1} \<inter> {n} = {}"
     by auto
   have f: "finite {0.. n - 1}" "finite {n}"
     by auto
-  show "setsum ?f {0..n} = 0"
+  show ?thesis
     unfolding th1
     apply (simp add: setsum.union_disjoint[OF f d, unfolded eq[symmetric]] del: One_nat_def)
     unfolding th2
     apply (simp add: setsum.delta)
     done
 qed
+
+lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field)))
+    = Abs_fps (\<lambda>n. if n= 0 then 1 else if n=1 then - 1 else 0)"
+  apply (rule fps_inverse_unique)
+  apply (simp_all add: fps_eq_iff fps_mult_nth setsum_zero_lemma)
+  done
 
 
 subsection {* Formal Derivatives, and the MacLaurin theorem around 0 *}
@@ -2885,8 +2887,7 @@ proof
       unfolding th
       using fact_gt_zero
       apply (simp add: field_simps del: of_nat_Suc fact_Suc)
-      apply (drule sym)
-      apply (simp add: field_simps of_nat_mult)
+      apply simp
       done
   }
   note th' = this
@@ -2894,11 +2895,7 @@ proof
 next
   assume h: ?rhs
   show ?lhs
-    apply (subst h)
-    apply simp
-    apply (simp only: h[symmetric])
-    apply simp
-    done
+    by (metis E_deriv fps_deriv_mult_const_left h mult.left_commute)
 qed
 
 lemma E_add_mult: "E (a + b) = E (a::'a::field_char_0) * E b" (is "?l = ?r")
@@ -2949,16 +2946,6 @@ lemma fps_const_inverse:
   apply auto
   done
 
-lemma inverse_one_plus_X:
-  "inverse (1 + X) = Abs_fps (\<lambda>n. (- 1 ::'a::field)^n)"
-  (is "inverse ?l = ?r")
-proof -
-  have th: "?l * ?r = 1"
-    by (auto simp add: field_simps fps_eq_iff minus_one_power_iff)
-  have th': "?l $ 0 \<noteq> 0" by (simp add: )
-  from fps_inverse_unique[OF th' th] show ?thesis .
-qed
-
 lemma E_power_mult: "(E (c::'a::field_char_0))^n = E (of_nat n * c)"
   by (induct n) (auto simp add: field_simps E_add_mult)
 
@@ -2993,7 +2980,7 @@ definition L :: "'a::field_char_0 \<Rightarrow> 'a fps"
   where "L c = fps_const (1/c) * Abs_fps (\<lambda>n. if n = 0 then 0 else (- 1) ^ (n - 1) / of_nat n)"
 
 lemma fps_deriv_L: "fps_deriv (L c) = fps_const (1/c) * inverse (1 + X)"
-  unfolding inverse_one_plus_X
+  unfolding fps_inverse_X_plus1
   by (simp add: L_def fps_eq_iff del: of_nat_Suc)
 
 lemma L_nth: "L c $ n = (if n=0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
@@ -3438,12 +3425,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma divide_eq_iff: "a \<noteq> (0::'a::field) \<Longrightarrow> x / a = y \<longleftrightarrow> x = y * a"
-  by auto
-
-lemma eq_divide_iff: "a \<noteq> (0::'a::field) \<Longrightarrow> x = y / a \<longleftrightarrow> x * a = y"
-  by auto
-
 lemma fps_sin_nth_0 [simp]: "fps_sin c $ 0 = 0"
   unfolding fps_sin_def by simp
 
@@ -3454,7 +3435,7 @@ lemma fps_sin_nth_add_2:
   "fps_sin c $ (n + 2) = - (c * c * fps_sin c $ n / (of_nat(n+1) * of_nat(n+2)))"
   unfolding fps_sin_def
   apply (cases n, simp)
-  apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+  apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
   apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
   done
 
@@ -3467,7 +3448,7 @@ lemma fps_cos_nth_1 [simp]: "fps_cos c $ 1 = 0"
 lemma fps_cos_nth_add_2:
   "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat(n+1) * of_nat(n+2)))"
   unfolding fps_cos_def
-  apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+  apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
   apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
   done
 
@@ -3500,7 +3481,7 @@ lemma eq_fps_sin:
   apply (simp add: nat_add_1_add_1 fps_sin_nth_add_2
               del: One_nat_def of_nat_Suc of_nat_add add_2_eq_Suc')
   apply (subst minus_divide_left)
-  apply (subst eq_divide_iff)
+  apply (subst nonzero_eq_divide_eq)
   apply (simp del: of_nat_add of_nat_Suc)
   apply (simp only: ac_simps)
   done
@@ -3518,7 +3499,7 @@ lemma eq_fps_cos:
   apply (simp add: nat_add_1_add_1 fps_cos_nth_add_2
               del: One_nat_def of_nat_Suc of_nat_add add_2_eq_Suc')
   apply (subst minus_divide_left)
-  apply (subst eq_divide_iff)
+  apply (subst nonzero_eq_divide_eq)
   apply (simp del: of_nat_add of_nat_Suc)
   apply (simp only: ac_simps)
   done
@@ -3793,7 +3774,8 @@ proof
         THEN spec, of "\<lambda>x. x < e"]
       have "eventually (\<lambda>i. inverse (2 ^ i) < e) sequentially"
         unfolding eventually_nhds
-        apply safe
+        apply clarsimp
+        apply (rule FalseE)
         apply auto --{*slow*}
         done
       then obtain i where "inverse (2 ^ i) < e" by (auto simp: eventually_sequentially)
