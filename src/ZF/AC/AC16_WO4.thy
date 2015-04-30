@@ -541,7 +541,7 @@ apply (blast del: subsetI
                                   THEN apply_type])+
 done
 
-lemma (in AC16) conclusion:
+lemma (in AC16) "conclusion":
      "\<exists>a f. Ord(a) & domain(f) = a & (\<Union>b<a. f ` b) = x & (\<forall>b<a. f ` b \<lesssim> m)"
 apply (rule well_ord_LL [THEN exE])
 apply (rename_tac S)
