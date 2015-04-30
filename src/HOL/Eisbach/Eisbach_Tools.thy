@@ -35,7 +35,12 @@ val _ =
       (Scan.lift (Scan.ahead Parse.not_eof) -- Args.term)
       (fn ctxt => fn (tok, t) =>
         (* FIXME proper formatting!? *)
-        Token.unparse tok ^ ": " ^ Syntax.string_of_term ctxt t));
+        Token.unparse tok ^ ": " ^ Syntax.string_of_term ctxt t) #>
+    setup_trace_method @{binding print_type}
+      (Scan.lift (Scan.ahead Parse.not_eof) -- Args.typ)
+      (fn ctxt => fn (tok, t) =>
+        (* FIXME proper formatting!? *)
+        Token.unparse tok ^ ": " ^ Syntax.string_of_typ ctxt t));
 
 end
 \<close>

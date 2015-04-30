@@ -8,13 +8,14 @@ theory Eisbach
 imports Pure
 keywords
   "method" :: thy_decl and
-  "concl"
-  "prems"  (* FIXME conflict with "prems" in Isar, which is presently dormant *)
+  "conclusion"
+  "premises"
   "declares"
   "methods"
   "\<bar>" "\<Rightarrow>"
   "uses"
 begin
+
 
 ML_file "parse_tools.ML"
 ML_file "eisbach_rule_insts.ML"
@@ -38,6 +39,6 @@ attribute_setup rotated =
     Method_Closure.free_aware_rule_attribute [] (fn _ => rotate_prems n)))\<close>
   "rotated theorem premises"
 
-method solves methods m = \<open>m; fail\<close>
+method solves methods m = (m; fail)
 
 end
