@@ -486,35 +486,38 @@ parse_translation {*
 
 ML_val {*
   let
-    val read = Syntax.read_term @{context};
-    fun check s1 s2 = read s1 aconv read s2 orelse error ("Check failed: " ^ quote s1);
+    val read = Syntax.read_term @{context} o Syntax.implode_input;
+    fun check s1 s2 =
+      read s1 aconv read s2 orelse
+        error ("Check failed: " ^
+          quote (Input.source_content s1) ^ Position.here_list [Input.pos_of s1, Input.pos_of s2]);
   in
-    check "[(x,y,z). b]" "if b then [(x, y, z)] else []";
-    check "[(x,y,z). x\<leftarrow>xs]" "map (\<lambda>x. (x, y, z)) xs";
-    check "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]" "concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)";
-    check "[(x,y,z). x<a, x>b]" "if x < a then if b < x then [(x, y, z)] else [] else []";
-    check "[(x,y,z). x\<leftarrow>xs, x>b]" "concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)";
-    check "[(x,y,z). x<a, x\<leftarrow>xs]" "if x < a then map (\<lambda>x. (x, y, z)) xs else []";
-    check "[(x,y). Cons True x \<leftarrow> xs]"
-      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | True # x \<Rightarrow> [(x, y)] | False # x \<Rightarrow> []) xs)";
-    check "[(x,y,z). Cons x [] \<leftarrow> xs]"
-      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | [x] \<Rightarrow> [(x, y, z)] | x # aa # lista \<Rightarrow> []) xs)";
-    check "[(x,y,z). x<a, x>b, x=d]"
-      "if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []";
-    check "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
-      "if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []";
-    check "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
-      "if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []";
-    check "[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]"
-      "if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []";
-    check "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
-      "concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
-      "concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
-      "concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
-      "concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)"
+    check \<open>[(x,y,z). b]\<close> \<open>if b then [(x, y, z)] else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs]\<close> \<open>map (\<lambda>x. (x, y, z)) xs\<close>;
+    check \<open>[e x y. x\<leftarrow>xs, y\<leftarrow>ys]\<close> \<open>concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x>b]\<close> \<open>if x < a then if b < x then [(x, y, z)] else [] else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b]\<close> \<open>concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs]\<close> \<open>if x < a then map (\<lambda>x. (x, y, z)) xs else []\<close>;
+    check \<open>[(x,y). Cons True x \<leftarrow> xs]\<close>
+      \<open>concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | True # x \<Rightarrow> [(x, y)] | False # x \<Rightarrow> []) xs)\<close>;
+    check \<open>[(x,y,z). Cons x [] \<leftarrow> xs]\<close>
+      \<open>concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | [x] \<Rightarrow> [(x, y, z)] | x # aa # lista \<Rightarrow> []) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x>b, x=d]\<close>
+      \<open>if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []\<close>;
+    check \<open>[(x,y,z). x<a, x>b, y\<leftarrow>ys]\<close>
+      \<open>if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs,y>b]\<close>
+      \<open>if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]\<close>
+      \<open>if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y<a]\<close>
+      \<open>concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]\<close>
+      \<open>concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]\<close>
+      \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]\<close>
+      \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)\<close>
   end;
 *}
 
