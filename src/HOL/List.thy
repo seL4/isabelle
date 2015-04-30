@@ -625,17 +625,17 @@ fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
       Splitter.split_tac ctxt @{thms split_if} 1
       THEN rtac @{thm conjI} 1
       THEN rtac @{thm impI} 1
-      THEN Subgoal.FOCUS (fn {prems, context, ...} =>
+      THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
         CONVERSION (right_hand_set_comprehension_conv (K
           (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
            then_conv
-           rewr_conv' @{lemma "(True \<and> P) = P" by simp})) context) 1) ctxt 1
+           rewr_conv' @{lemma "(True \<and> P) = P" by simp})) ctxt') 1) ctxt 1
       THEN tac ctxt cont
       THEN rtac @{thm impI} 1
-      THEN Subgoal.FOCUS (fn {prems, context, ...} =>
+      THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
           CONVERSION (right_hand_set_comprehension_conv (K
             (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
-             then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) context) 1) ctxt 1
+             then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) ctxt') 1) ctxt 1
       THEN rtac set_Nil_I 1
   | tac ctxt (Case (T, i) :: cont) =
       let
@@ -650,22 +650,24 @@ fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
           THEN rtac @{thm impI} 1
           THEN (if i' = i then
             (* continue recursively *)
-            Subgoal.FOCUS (fn {prems, context, ...} =>
+            Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
               CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
                   ((HOLogic.conj_conv
                     (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
                       (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
                     Conv.all_conv)
                     then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
-                    then_conv conjunct_assoc_conv)) context
-                then_conv (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
-                  Conv.repeat_conv
-                    (all_but_last_exists_conv
-                      (K (rewr_conv'
-                        @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt)) context)))) 1) ctxt 1
+                    then_conv conjunct_assoc_conv)) ctxt'
+                then_conv
+                  (HOLogic.Trueprop_conv
+                    (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt'') =>
+                      Conv.repeat_conv
+                        (all_but_last_exists_conv
+                          (K (rewr_conv'
+                            @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt'')) ctxt')))) 1) ctxt 1
             THEN tac ctxt cont
           else
-            Subgoal.FOCUS (fn {prems, context, ...} =>
+            Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
               CONVERSION
                 (right_hand_set_comprehension_conv (K
                   (HOLogic.conj_conv
@@ -673,14 +675,13 @@ fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
                       (rewr_conv' (List.last prems))) then_conv
                       (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
                     Conv.all_conv then_conv
-                    (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) context then_conv
+                    (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) ctxt' then_conv
                   HOLogic.Trueprop_conv
                     (HOLogic.eq_conv Conv.all_conv
-                      (Collect_conv (fn (_, ctxt) =>
+                      (Collect_conv (fn (_, ctxt'') =>
                         Conv.repeat_conv
                           (Conv.bottom_conv
-                            (K (rewr_conv'
-                              @{lemma "(\<exists>x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
+                            (K (rewr_conv' @{lemma "(\<exists>x. P) = P" by simp})) ctxt'')) ctxt'))) 1) ctxt 1
             THEN rtac set_Nil_I 1)) case_thms)
       end
 
@@ -731,7 +732,7 @@ fun simproc ctxt redex =
               in
                 SOME
                   ((Goal.prove ctxt [] [] rewrite_rule_t
-                    (fn {context, ...} => tac context (rev Tis))) RS @{thm eq_reflection})
+                    (fn {context = ctxt', ...} => tac ctxt' (rev Tis))) RS @{thm eq_reflection})
               end))
   in
     make_inner_eqs [] [] [] (dest_set (Thm.term_of redex))
@@ -742,10 +743,10 @@ end
 end
 *}
 
-simproc_setup list_to_set_comprehension ("set xs") = {* K List_to_Set_Comprehension.simproc *}
+simproc_setup list_to_set_comprehension ("set xs") =
+  {* K List_to_Set_Comprehension.simproc *}
 
 code_datatype set coset
-
 hide_const (open) coset
 
 
