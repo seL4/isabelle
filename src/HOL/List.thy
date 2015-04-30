@@ -486,35 +486,38 @@ parse_translation {*
 
 ML_val {*
   let
-    val read = Syntax.read_term @{context};
-    fun check s1 s2 = read s1 aconv read s2 orelse error ("Check failed: " ^ quote s1);
+    val read = Syntax.read_term @{context} o Syntax.implode_input;
+    fun check s1 s2 =
+      read s1 aconv read s2 orelse
+        error ("Check failed: " ^
+          quote (Input.source_content s1) ^ Position.here_list [Input.pos_of s1, Input.pos_of s2]);
   in
-    check "[(x,y,z). b]" "if b then [(x, y, z)] else []";
-    check "[(x,y,z). x\<leftarrow>xs]" "map (\<lambda>x. (x, y, z)) xs";
-    check "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]" "concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)";
-    check "[(x,y,z). x<a, x>b]" "if x < a then if b < x then [(x, y, z)] else [] else []";
-    check "[(x,y,z). x\<leftarrow>xs, x>b]" "concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)";
-    check "[(x,y,z). x<a, x\<leftarrow>xs]" "if x < a then map (\<lambda>x. (x, y, z)) xs else []";
-    check "[(x,y). Cons True x \<leftarrow> xs]"
-      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | True # x \<Rightarrow> [(x, y)] | False # x \<Rightarrow> []) xs)";
-    check "[(x,y,z). Cons x [] \<leftarrow> xs]"
-      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | [x] \<Rightarrow> [(x, y, z)] | x # aa # lista \<Rightarrow> []) xs)";
-    check "[(x,y,z). x<a, x>b, x=d]"
-      "if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []";
-    check "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
-      "if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []";
-    check "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
-      "if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []";
-    check "[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]"
-      "if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []";
-    check "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
-      "concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
-      "concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
-      "concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)";
-    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
-      "concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)"
+    check \<open>[(x,y,z). b]\<close> \<open>if b then [(x, y, z)] else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs]\<close> \<open>map (\<lambda>x. (x, y, z)) xs\<close>;
+    check \<open>[e x y. x\<leftarrow>xs, y\<leftarrow>ys]\<close> \<open>concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x>b]\<close> \<open>if x < a then if b < x then [(x, y, z)] else [] else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b]\<close> \<open>concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs]\<close> \<open>if x < a then map (\<lambda>x. (x, y, z)) xs else []\<close>;
+    check \<open>[(x,y). Cons True x \<leftarrow> xs]\<close>
+      \<open>concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | True # x \<Rightarrow> [(x, y)] | False # x \<Rightarrow> []) xs)\<close>;
+    check \<open>[(x,y,z). Cons x [] \<leftarrow> xs]\<close>
+      \<open>concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | [x] \<Rightarrow> [(x, y, z)] | x # aa # lista \<Rightarrow> []) xs)\<close>;
+    check \<open>[(x,y,z). x<a, x>b, x=d]\<close>
+      \<open>if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []\<close>;
+    check \<open>[(x,y,z). x<a, x>b, y\<leftarrow>ys]\<close>
+      \<open>if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs,y>b]\<close>
+      \<open>if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []\<close>;
+    check \<open>[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]\<close>
+      \<open>if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y<a]\<close>
+      \<open>concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]\<close>
+      \<open>concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]\<close>
+      \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]\<close>
+      \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)\<close>
   end;
 *}
 
@@ -569,116 +572,128 @@ fun right_hand_set_comprehension_conv conv ctxt =
 
 datatype termlets = If | Case of typ * int
 
-fun simproc ctxt redex =
+local
+
+val set_Nil_I = @{lemma "set [] = {x. False}" by (simp add: empty_def [symmetric])}
+val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
+val inst_Collect_mem_eq = @{lemma "set A = {x. x \<in> set A}" by simp}
+val del_refl_eq = @{lemma "(t = t \<and> P) \<equiv> P" by simp}
+
+fun mk_set T = Const (@{const_name set}, HOLogic.listT T --> HOLogic.mk_setT T)
+fun dest_set (Const (@{const_name set}, _) $ xs) = xs
+
+fun dest_singleton_list (Const (@{const_name Cons}, _) $ t $ (Const (@{const_name Nil}, _))) = t
+  | dest_singleton_list t = raise TERM ("dest_singleton_list", [t])
+
+(*We check that one case returns a singleton list and all other cases
+  return [], and return the index of the one singleton list case.*)
+fun possible_index_of_singleton_case cases =
   let
-    val set_Nil_I = @{lemma "set [] = {x. False}" by (simp add: empty_def [symmetric])}
-    val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
-    val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
-    val del_refl_eq = @{lemma "(t = t \<and> P) \<equiv> P" by simp}
-    fun mk_set T = Const (@{const_name set}, HOLogic.listT T --> HOLogic.mk_setT T)
-    fun dest_set (Const (@{const_name set}, _) $ xs) = xs
-    fun dest_singleton_list (Const (@{const_name Cons}, _) $ t $ (Const (@{const_name Nil}, _))) = t
-      | dest_singleton_list t = raise TERM ("dest_singleton_list", [t])
-    (* We check that one case returns a singleton list and all other cases
-       return [], and return the index of the one singleton list case *)
-    fun possible_index_of_singleton_case cases =
-      let
-        fun check (i, case_t) s =
-          (case strip_abs_body case_t of
-            (Const (@{const_name Nil}, _)) => s
-          | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
-      in
-        fold_index check cases (SOME NONE) |> the_default NONE
-      end
-    (* returns (case_expr type index chosen_case constr_name) option  *)
-    fun dest_case case_term =
-      let
-        val (case_const, args) = strip_comb case_term
-      in
-        (case try dest_Const case_const of
-          SOME (c, T) =>
-            (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
-              SOME {ctrs, ...} =>
-                (case possible_index_of_singleton_case (fst (split_last args)) of
-                  SOME i =>
-                    let
-                      val constr_names = map (fst o dest_Const) ctrs
-                      val (Ts, _) = strip_type T
-                      val T' = List.last Ts
-                    in SOME (List.last args, T', i, nth args i, nth constr_names i) end
-                | NONE => NONE)
+    fun check (i, case_t) s =
+      (case strip_abs_body case_t of
+        (Const (@{const_name Nil}, _)) => s
+      | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
+  in
+    fold_index check cases (SOME NONE) |> the_default NONE
+  end
+
+(*returns condition continuing term option*)
+fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
+      SOME (cond, then_t)
+  | dest_if _ = NONE
+
+(*returns (case_expr type index chosen_case constr_name) option*)
+fun dest_case ctxt case_term =
+  let
+    val (case_const, args) = strip_comb case_term
+  in
+    (case try dest_Const case_const of
+      SOME (c, T) =>
+        (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
+          SOME {ctrs, ...} =>
+            (case possible_index_of_singleton_case (fst (split_last args)) of
+              SOME i =>
+                let
+                  val constr_names = map (fst o dest_Const) ctrs
+                  val (Ts, _) = strip_type T
+                  val T' = List.last Ts
+                in SOME (List.last args, T', i, nth args i, nth constr_names i) end
             | NONE => NONE)
         | NONE => NONE)
-      end
-    (* returns condition continuing term option *)
-    fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
-          SOME (cond, then_t)
-      | dest_if _ = NONE
-    fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
-      | tac ctxt (If :: cont) =
-          Splitter.split_tac ctxt [@{thm split_if}] 1
-          THEN rtac @{thm conjI} 1
+    | NONE => NONE)
+  end
+
+fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
+  | tac ctxt (If :: cont) =
+      Splitter.split_tac ctxt @{thms split_if} 1
+      THEN rtac @{thm conjI} 1
+      THEN rtac @{thm impI} 1
+      THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
+        CONVERSION (right_hand_set_comprehension_conv (K
+          (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
+           then_conv
+           rewr_conv' @{lemma "(True \<and> P) = P" by simp})) ctxt') 1) ctxt 1
+      THEN tac ctxt cont
+      THEN rtac @{thm impI} 1
+      THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
+          CONVERSION (right_hand_set_comprehension_conv (K
+            (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
+             then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) ctxt') 1) ctxt 1
+      THEN rtac set_Nil_I 1
+  | tac ctxt (Case (T, i) :: cont) =
+      let
+        val SOME {injects, distincts, case_thms, split, ...} =
+          Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
+      in
+        (* do case distinction *)
+        Splitter.split_tac ctxt [split] 1
+        THEN EVERY (map_index (fn (i', _) =>
+          (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
+          THEN REPEAT_DETERM (rtac @{thm allI} 1)
           THEN rtac @{thm impI} 1
-          THEN Subgoal.FOCUS (fn {prems, context, ...} =>
-            CONVERSION (right_hand_set_comprehension_conv (K
-              (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
-               then_conv
-               rewr_conv' @{lemma "(True \<and> P) = P" by simp})) context) 1) ctxt 1
-          THEN tac ctxt cont
-          THEN rtac @{thm impI} 1
-          THEN Subgoal.FOCUS (fn {prems, context, ...} =>
-              CONVERSION (right_hand_set_comprehension_conv (K
-                (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
-                 then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) context) 1) ctxt 1
-          THEN rtac set_Nil_I 1
-      | tac ctxt (Case (T, i) :: cont) =
-          let
-            val SOME {injects, distincts, case_thms, split, ...} =
-              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
-          in
-            (* do case distinction *)
-            Splitter.split_tac ctxt [split] 1
-            THEN EVERY (map_index (fn (i', _) =>
-              (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
-              THEN REPEAT_DETERM (rtac @{thm allI} 1)
-              THEN rtac @{thm impI} 1
-              THEN (if i' = i then
-                (* continue recursively *)
-                Subgoal.FOCUS (fn {prems, context, ...} =>
-                  CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
-                      ((HOLogic.conj_conv
-                        (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
-                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
-                        Conv.all_conv)
-                        then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
-                        then_conv conjunct_assoc_conv)) context
-                    then_conv (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
+          THEN (if i' = i then
+            (* continue recursively *)
+            Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
+              CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
+                  ((HOLogic.conj_conv
+                    (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
+                      (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
+                    Conv.all_conv)
+                    then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
+                    then_conv conjunct_assoc_conv)) ctxt'
+                then_conv
+                  (HOLogic.Trueprop_conv
+                    (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt'') =>
                       Conv.repeat_conv
                         (all_but_last_exists_conv
                           (K (rewr_conv'
-                            @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt)) context)))) 1) ctxt 1
-                THEN tac ctxt cont
-              else
-                Subgoal.FOCUS (fn {prems, context, ...} =>
-                  CONVERSION
-                    (right_hand_set_comprehension_conv (K
-                      (HOLogic.conj_conv
-                        ((HOLogic.eq_conv Conv.all_conv
-                          (rewr_conv' (List.last prems))) then_conv
-                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
-                        Conv.all_conv then_conv
-                        (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) context then_conv
-                      HOLogic.Trueprop_conv
-                        (HOLogic.eq_conv Conv.all_conv
-                          (Collect_conv (fn (_, ctxt) =>
-                            Conv.repeat_conv
-                              (Conv.bottom_conv
-                                (K (rewr_conv'
-                                  @{lemma "(\<exists>x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
-                THEN rtac set_Nil_I 1)) case_thms)
-          end
+                            @{lemma "(\<exists>x. x = t \<and> P x) = P t" by simp})) ctxt'')) ctxt')))) 1) ctxt 1
+            THEN tac ctxt cont
+          else
+            Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
+              CONVERSION
+                (right_hand_set_comprehension_conv (K
+                  (HOLogic.conj_conv
+                    ((HOLogic.eq_conv Conv.all_conv
+                      (rewr_conv' (List.last prems))) then_conv
+                      (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
+                    Conv.all_conv then_conv
+                    (rewr_conv' @{lemma "(False \<and> P) = False" by simp}))) ctxt' then_conv
+                  HOLogic.Trueprop_conv
+                    (HOLogic.eq_conv Conv.all_conv
+                      (Collect_conv (fn (_, ctxt'') =>
+                        Conv.repeat_conv
+                          (Conv.bottom_conv
+                            (K (rewr_conv' @{lemma "(\<exists>x. P) = P" by simp})) ctxt'')) ctxt'))) 1) ctxt 1
+            THEN rtac set_Nil_I 1)) case_thms)
+      end
+
+in
+
+fun simproc ctxt redex =
+  let
     fun make_inner_eqs bound_vs Tis eqs t =
-      (case dest_case t of
+      (case dest_case ctxt t of
         SOME (x, T, i, cont, constr_name) =>
           let
             val (vs, body) = strip_abs (Envir.eta_long (map snd bound_vs) cont)
@@ -695,7 +710,7 @@ fun simproc ctxt redex =
           (case dest_if t of
             SOME (condition, cont) => make_inner_eqs bound_vs (If :: Tis) (condition :: eqs) cont
           | NONE =>
-            if eqs = [] then NONE (* no rewriting, nothing to be done *)
+            if null eqs then NONE (*no rewriting, nothing to be done*)
             else
               let
                 val Type (@{type_name list}, [rT]) = fastype_of1 (map snd bound_vs, t)
@@ -720,19 +735,21 @@ fun simproc ctxt redex =
               in
                 SOME
                   ((Goal.prove ctxt [] [] rewrite_rule_t
-                    (fn {context, ...} => tac context (rev Tis))) RS @{thm eq_reflection})
+                    (fn {context = ctxt', ...} => tac ctxt' (rev Tis))) RS @{thm eq_reflection})
               end))
   in
     make_inner_eqs [] [] [] (dest_set (Thm.term_of redex))
   end
 
 end
+
+end
 *}
 
-simproc_setup list_to_set_comprehension ("set xs") = {* K List_to_Set_Comprehension.simproc *}
+simproc_setup list_to_set_comprehension ("set xs") =
+  {* K List_to_Set_Comprehension.simproc *}
 
 code_datatype set coset
-
 hide_const (open) coset
 
 
