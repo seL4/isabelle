@@ -7,30 +7,22 @@ theory Inequalities
   imports Real_Vector_Spaces
 begin
 
-lemma gauss_sum_div2: "(2::'a::semiring_div) \<noteq> 0 \<Longrightarrow>
-  setsum of_nat {1..n} = of_nat n * (of_nat n + 1) div (2::'a)"
-using gauss_sum[where n=n and 'a = 'a,symmetric] by auto
-
-lemma Setsum_Icc_int: assumes "0 \<le> m" and "(m::int) \<le> n"
-shows "\<Sum> {m..n} = (n*(n+1) - m*(m-1)) div 2"
-proof-
-  { fix k::int assume "k\<ge>0"
-    hence "\<Sum> {1..k::int} = k * (k+1) div 2"
-      by (rule gauss_sum_div2[where 'a = int, transferred]) simp
-  } note 1 = this
-  have "{m..n} = {0..n} - {0..m-1}" using `m\<ge>0` by auto
-  hence "\<Sum>{m..n} = \<Sum>{0..n} - \<Sum>{0..m-1}" using assms
-    by (force intro!: setsum_diff)
-  also have "{0..n} = {0} Un {1..n}" using assms by auto
-  also have "\<Sum>({0} \<union> {1..n}) = \<Sum>{1..n}" by(simp add: setsum.union_disjoint)
-  also have "\<dots> = n * (n+1) div 2" by(rule 1[OF order_trans[OF assms]])
-  also have "{0..m-1} = (if m=0 then {} else {0} Un {1..m-1})"
-    using assms by auto
-  also have "\<Sum> \<dots> = m*(m-1) div 2" using `m\<ge>0` by(simp add: 1 mult.commute)
-  also have "n*(n+1) div 2 - m*(m-1) div 2 = (n*(n+1) - m*(m-1)) div 2"
-    apply(subgoal_tac "even(n*(n+1)) \<and> even(m*(m-1))")
-    by (auto (*simp: even_def[symmetric]*))
-  finally show ?thesis .
+lemma Setsum_Icc_int: "(m::int) \<le> n \<Longrightarrow> \<Sum> {m..n} = (n*(n+1) - m*(m-1)) div 2"
+proof(induct i == "nat(n-m)" arbitrary: m n)
+  case 0
+  hence "m = n" by arith
+  thus ?case by (simp add: algebra_simps)
+next
+  case (Suc i)
+  have 0: "i = nat((n-1) - m)" "m \<le> n-1" using Suc(2,3) by arith+
+  have "\<Sum> {m..n} = \<Sum> {m..1+(n-1)}" by simp
+  also have "\<dots> = \<Sum> {m..n-1} + n" using `m \<le> n`
+    by(subst atLeastAtMostPlus1_int_conv) simp_all
+  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1)) div 2 + n"
+    by(simp add: Suc(1)[OF 0])
+  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1) + 2*n) div 2" by simp
+  also have "\<dots> = (n*(n+1) - m*(m-1)) div 2" by(simp add: algebra_simps)
+  finally show ?case .
 qed
 
 lemma Setsum_Icc_nat: assumes "(m::nat) \<le> n"
@@ -39,7 +31,7 @@ proof -
   have "m*(m-1) \<le> n*(n + 1)"
    using assms by (meson diff_le_self order_trans le_add1 mult_le_mono)
   hence "int(\<Sum> {m..n}) = int((n*(n+1) - m*(m-1)) div 2)" using assms
-    by (auto simp add: Setsum_Icc_int[transferred, OF _ assms] zdiv_int int_mult
+    by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int int_mult
       split: zdiff_int_split)
   thus ?thesis by simp
 qed
