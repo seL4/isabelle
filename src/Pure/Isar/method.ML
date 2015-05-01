@@ -511,11 +511,11 @@ end;
 local
 
 fun sect (modifier : modifier parser) = Scan.depend (fn context =>
-  Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier Parse.xthm) >>
-    (fn ((tok, {init, attribute, pos}), xthms) =>
+  Scan.ahead Parse.not_eof -- Scan.trace modifier -- Scan.repeat (Scan.unless modifier Parse.xthm)
+    >> (fn ((tok0, ({init, attribute, pos}, modifier_toks)), xthms) =>
       let
         val decl =
-          (case Token.get_value tok of
+          (case Token.get_value tok0 of
             SOME (Token.Declaration decl) => decl
           | _ =>
               let
@@ -530,14 +530,19 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                 val facts =
                   Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
                   |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
-                val _ =
-                  Context_Position.report ctxt (Token.pos_of tok)
-                    (Markup.entity Markup.method_modifierN ""
-                      |> Markup.properties (Position.def_properties_of pos));
+
                 fun decl phi =
                   Context.mapping I init #>
                   Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
-                val _ = Token.assign (SOME (Token.Declaration decl)) tok;
+
+                val modifier_markup =
+                  Markup.properties (Position.def_properties_of pos)
+                    (Markup.entity Markup.method_modifierN "");
+                val _ =
+                  Context_Position.reports ctxt
+                    (map (fn tok => (Token.pos_of tok, modifier_markup)) modifier_toks @
+                      Token.reports_of_value tok0);
+                val _ = Token.assign (SOME (Token.Declaration decl)) tok0;
               in decl end);
       in (Morphism.form decl context, decl) end));
 
