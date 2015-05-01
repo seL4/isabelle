@@ -535,13 +535,12 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                   Context.mapping I init #>
                   Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
 
-                val modifier_markup =
-                  Markup.properties (Position.def_properties_of pos)
-                    (Markup.entity Markup.method_modifierN "");
+                val modifier_report =
+                  (Position.set_range (Token.range_of modifier_toks),
+                    Markup.properties (Position.def_properties_of pos)
+                      (Markup.entity Markup.method_modifierN ""));
                 val _ =
-                  Context_Position.reports ctxt
-                    (map (fn tok => (Token.pos_of tok, modifier_markup)) modifier_toks @
-                      Token.reports_of_value tok0);
+                  Context_Position.reports ctxt (modifier_report :: Token.reports_of_value tok0);
                 val _ = Token.assign (SOME (Token.Declaration decl)) tok0;
               in decl end);
       in (Morphism.form decl context, decl) end));
