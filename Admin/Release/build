@@ -115,7 +115,7 @@ DISTBASE="$BASE_DIR/dist-${DISTNAME}"
 
 # make bundles
 
-for PLATFORM_FAMILY in linux macos windows
+for PLATFORM_FAMILY in linux windows macos
 do
 
 echo
