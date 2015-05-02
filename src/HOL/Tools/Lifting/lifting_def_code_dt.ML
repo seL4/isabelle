@@ -495,6 +495,18 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
               Raw_Simplifier.rewrite_goal_tac ctxt simp_rules, rtac TrueI ]] i
         end
     end
+    
+    (* stolen from bnf_fp_n2m.ML *)
+    fun force_typ ctxt T =
+      Term.map_types Type_Infer.paramify_vars
+      #> Type.constraint T
+      #> singleton (Type_Infer_Context.infer_types ctxt);
+
+    (* The following tests that types in rty have corresponding arities imposed by constraints of
+       the datatype fp. Otherwise rep_isom_code_tac could fail (especially transfer in it) is such
+       a way that it is not easy to infer the problem with sorts.
+    *)
+    val _ = yield_singleton (mk_Frees "x") (#T fp) lthy |> fst |> force_typ lthy qty
 
     val rep_isom_code = Goal.prove_sorry lthy [] [] rep_isom_code_goal
       (fn {context = ctxt, prems = _} => rep_isom_code_tac ctr_sugar ctxt 1)
