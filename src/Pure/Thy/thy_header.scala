@@ -100,7 +100,7 @@ object Thy_Header extends Parse.Parser
 
     val args =
       position(theory_name) ~
-      (opt($$$(IMPORTS) ~! (rep1(position(theory_xname)))) ^^
+      (opt($$$(IMPORTS) ~! rep1(position(theory_xname))) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt($$$(KEYWORDS) ~! keyword_decls) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~

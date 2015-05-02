@@ -368,7 +368,7 @@ final class Options private(
       (for {
         (name, opt2) <- options.iterator
         opt1 = defaults.options.get(name)
-        if (opt1.isEmpty || opt1.get.value != opt2.value)
+        if opt1.isEmpty || opt1.get.value != opt2.value
       } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else "")).toList
 
     val prefs =
@@ -429,4 +429,3 @@ class Options_Variable
   }
   val seconds = new Seconds_Access
 }
-

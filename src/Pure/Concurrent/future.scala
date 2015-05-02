@@ -26,7 +26,7 @@ object Future
     new Pending_Future(Scala_Future[A](body)(execution_context))
 
   def promise[A]: Promise[A] =
-    new Promise_Future[A](Scala_Promise[A])
+    new Promise_Future[A](Scala_Promise[A]())
 }
 
 trait Future[A]
@@ -90,4 +90,3 @@ private class Promise_Future[A](promise: Scala_Promise[A])
     }
   def fulfill(x: A): Unit = promise.success(x)
 }
-

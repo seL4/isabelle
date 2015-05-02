@@ -318,7 +318,7 @@ object Symbol
     val names: Map[Symbol, String] =
     {
       val name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
-      Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
+      Map((for ((sym @ name(a), _) <- symbols) yield sym -> a): _*)
     }
 
     val groups: List[(String, List[Symbol])] =
@@ -334,7 +334,7 @@ object Symbol
         for {
           (sym, props) <- symbols
           ("abbrev", a) <- props.reverse
-        } yield (sym -> a)): _*)
+        } yield sym -> a): _*)
 
 
     /* recoding */
@@ -381,7 +381,7 @@ object Symbol
 
     private val Font = new Properties.String("font")
     val fonts: Map[Symbol, String] =
-      recode_map((for ((sym, Font(font)) <- symbols) yield (sym -> font)): _*)
+      recode_map((for ((sym, Font(font)) <- symbols) yield sym -> font): _*)
 
     val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
     val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)

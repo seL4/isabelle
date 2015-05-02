@@ -284,7 +284,7 @@ class Rich_Text_Area(
             for { (color, separator) <- rendering.line_background(line_range) }
             {
               gfx.setColor(color)
-              val sep = if (separator) (2 min (line_height / 2)) else 0
+              val sep = if (separator) 2 min (line_height / 2) else 0
               gfx.fillRect(0, y + i * line_height, text_area.getWidth, line_height - sep)
             }
 
@@ -659,4 +659,3 @@ class Rich_Text_Area(
     painter.removeExtension(set_state)
   }
 }
-

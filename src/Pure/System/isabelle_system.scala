@@ -93,9 +93,9 @@ object Isabelle_System
         default(
           default(
             default(sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home())),
-              ("TEMP_WINDOWS" -> temp_windows)),
-            ("HOME" -> user_home)),
-          ("ISABELLE_APP" -> "true"))
+              "TEMP_WINDOWS" -> temp_windows),
+            "HOME" -> user_home),
+          "ISABELLE_APP" -> "true")
       }
 
       val system_home =
@@ -125,8 +125,8 @@ object Isabelle_System
           val entries =
             (for (entry <- File.read(dump) split "\u0000" if entry != "") yield {
               val i = entry.indexOf('=')
-              if (i <= 0) (entry -> "")
-              else (entry.substring(0, i) -> entry.substring(i + 1))
+              if (i <= 0) entry -> ""
+              else entry.substring(0, i) -> entry.substring(i + 1)
             }).toMap
           entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
         }

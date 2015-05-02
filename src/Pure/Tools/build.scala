@@ -908,7 +908,7 @@ object Build
             loop(pending - name, running - name,
               results + (name -> Result(false, heap, res.rc)))
             //}}}
-          case None if (running.size < (max_jobs max 1)) =>
+          case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>

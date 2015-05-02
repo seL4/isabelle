@@ -57,7 +57,7 @@ object Markup_Tree
     def filter_markup(elements: Markup.Elements): List[XML.Elem] =
     {
       var result: List[XML.Elem] = Nil
-      for { elem <- rev_markup; if (elements(elem.name)) }
+      for (elem <- rev_markup if elements(elem.name))
         result ::= elem
       result.toList
     }
@@ -267,4 +267,3 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       case list => list.mkString("Tree(", ",", ")")
     }
 }
-

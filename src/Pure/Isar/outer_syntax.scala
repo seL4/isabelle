@@ -33,7 +33,7 @@ object Outer_Syntax
           result += '\\'
           if (c < 10) result += '0'
           if (c < 100) result += '0'
-          result ++= (c.asInstanceOf[Int].toString)
+          result ++= c.asInstanceOf[Int].toString
         }
         else result += c
       }

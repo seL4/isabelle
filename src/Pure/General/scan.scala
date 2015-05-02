@@ -91,7 +91,7 @@ object Scan
     private def quoted_body(quote: Symbol.Symbol): Parser[String] =
     {
       rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
-        (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
+        ("""\\\d\d\d""".r ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
     }
 
     def quoted(quote: Symbol.Symbol): Parser[String] =
@@ -307,7 +307,7 @@ object Scan
   {
     /* representation */
 
-    private sealed case class Tree(val branches: Map[Char, (String, Tree)])
+    private sealed case class Tree(branches: Map[Char, (String, Tree)])
     private val empty_tree = Tree(Map())
 
     val empty: Lexicon = new Lexicon(empty_tree)

@@ -293,7 +293,7 @@ abstract class Prover(
       {
         val n = read_int()
         val buf =
-          if (n <= default_buffer.size) default_buffer
+          if (n <= default_buffer.length) default_buffer
           else new Array[Byte](n)
 
         var i = 0
@@ -367,4 +367,3 @@ abstract class Prover(
     protocol_command_bytes(name, args.map(Bytes(_)): _*)
   }
 }
-

@@ -133,7 +133,7 @@ object Bibtex
     }
   }
 
-  sealed case class Token(kind: Token.Kind.Value, val source: String)
+  sealed case class Token(kind: Token.Kind.Value, source: String)
   {
     def is_kind: Boolean =
       kind == Token.Kind.COMMAND ||
@@ -398,7 +398,7 @@ object Bibtex
     var ctxt = context
     while (!in.atEnd) {
       Parsers.parse(Parsers.chunk_line(ctxt), in) match {
-        case Parsers.Success((x, c), rest) => { chunks += x; ctxt = c; in = rest }
+        case Parsers.Success((x, c), rest) => chunks += x; ctxt = c; in = rest
         case Parsers.NoSuccess(_, rest) =>
           error("Unepected failure to parse input:\n" + rest.source.toString)
       }
@@ -406,4 +406,3 @@ object Bibtex
     (chunks.toList, ctxt)
   }
 }
-

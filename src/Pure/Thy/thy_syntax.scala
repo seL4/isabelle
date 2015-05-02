@@ -339,7 +339,7 @@ object Thy_Syntax
                   node2, (name, node2.edit_perspective))
               else node2
 
-            if (!(node.same_perspective(node3.text_perspective, node3.perspective)))
+            if (!node.same_perspective(node3.text_perspective, node3.perspective))
               doc_edits += (name -> node3.perspective)
 
             doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))

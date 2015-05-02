@@ -18,9 +18,9 @@ object Path
   /* path elements */
 
   sealed abstract class Elem
-  private case class Root(val name: String) extends Elem
-  private case class Basic(val name: String) extends Elem
-  private case class Variable(val name: String) extends Elem
+  private case class Root(name: String) extends Elem
+  private case class Basic(name: String) extends Elem
+  private case class Variable(name: String) extends Elem
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
@@ -30,7 +30,7 @@ object Path
     if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
     else {
       "/\\$:\"'".iterator.foreach(c =>
-        if (s.iterator.exists(_ == c))
+        if (s.iterator.contains(c))
           err_elem("Illegal character " + quote(c.toString) + " in", s))
       s
     }

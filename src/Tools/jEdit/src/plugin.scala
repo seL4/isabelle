@@ -332,10 +332,10 @@ class Plugin extends EBPlugin
           }
 
         case msg: EditPaneUpdate
-        if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
+        if msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
             msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
             msg.getWhat == EditPaneUpdate.CREATED ||
-            msg.getWhat == EditPaneUpdate.DESTROYED) =>
+            msg.getWhat == EditPaneUpdate.DESTROYED =>
           val edit_pane = msg.getEditPane
           val buffer = edit_pane.getBuffer
           val text_area = edit_pane.getTextArea

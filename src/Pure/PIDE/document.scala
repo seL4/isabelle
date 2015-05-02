@@ -502,21 +502,21 @@ object Document
 
   final case class State private(
     /*reachable versions*/
-    val versions: Map[Document_ID.Version, Version] = Map.empty,
+    versions: Map[Document_ID.Version, Version] = Map.empty,
     /*inlined auxiliary files*/
-    val blobs: Set[SHA1.Digest] = Set.empty,
+    blobs: Set[SHA1.Digest] = Set.empty,
     /*static markup from define_command*/
-    val commands: Map[Document_ID.Command, Command.State] = Map.empty,
+    commands: Map[Document_ID.Command, Command.State] = Map.empty,
     /*dynamic markup from execution*/
-    val execs: Map[Document_ID.Exec, Command.State] = Map.empty,
+    execs: Map[Document_ID.Exec, Command.State] = Map.empty,
     /*command-exec assignment for each version*/
-    val assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
+    assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
     /*commands with markup produced by other commands (imm_succs)*/
-    val commands_redirection: Graph[Document_ID.Command, Unit] = Graph.long,
+    commands_redirection: Graph[Document_ID.Command, Unit] = Graph.long,
     /*explicit (linear) history*/
-    val history: History = History.init,
+    history: History = History.init,
     /*intermediate state between remove_versions/removed_versions*/
-    val removing_versions: Boolean = false)
+    removing_versions: Boolean = false)
   {
     private def fail[A]: A = throw new State.Fail(this)
 

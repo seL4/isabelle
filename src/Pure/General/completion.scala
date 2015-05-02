@@ -432,7 +432,7 @@ final class Completion private(
                     if ok
                     completion <- words_map.get_list(complete_word)
                   } yield (complete_word, completion)
-              ((full_word, completions))
+              (full_word, completions)
           })
       }
 
