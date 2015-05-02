@@ -16,6 +16,7 @@ sig
   val quotient_eq: quotient * quotient -> bool
   val transform_quotient: morphism -> quotient -> quotient
   val lookup_quotients: Proof.context -> string -> quotient option
+  val lookup_quot_thm_quotients: Proof.context -> thm -> quotient option
   val update_quotients: string -> quotient -> Context.generic -> Context.generic
   val delete_quotients: thm -> Context.generic -> Context.generic
   val print_quotients: Proof.context -> unit
@@ -221,6 +222,17 @@ fun transform_quotient phi {quot_thm, pcr_info} =
 
 fun lookup_quotients ctxt type_name = Symtab.lookup (get_quotients ctxt) type_name
 
+fun lookup_quot_thm_quotients ctxt quot_thm =
+  let
+    val (_, qtyp) = quot_thm_rty_qty quot_thm
+    val qty_full_name = (fst o dest_Type) qtyp
+    fun compare_data (data:quotient) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
+  in
+    case lookup_quotients ctxt qty_full_name of
+      SOME quotient => if compare_data quotient then SOME quotient else NONE
+      | NONE => NONE
+  end
+
 fun update_quotients type_name qinfo ctxt = 
   Data.map (map_quotients (Symtab.update (type_name, qinfo))) ctxt
 
@@ -228,10 +240,8 @@ fun delete_quotients quot_thm ctxt =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
-    val symtab = get_quotients' ctxt
-    fun compare_data (_, data:quotient) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
   in
-    if Symtab.member compare_data symtab (qty_full_name, quot_thm)
+    if is_some (lookup_quot_thm_quotients (Context.proof_of ctxt) quot_thm)
       then Data.map (map_quotients (Symtab.delete qty_full_name)) ctxt
       else ctxt
   end

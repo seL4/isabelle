@@ -266,9 +266,13 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val code_dt = the code_dt
             val rhs = dest_comb (rhs_of_lift_def lift_def) |> snd
             val rep_isom_data = code_dt |> rep_isom_data_of_code_dt |> the
+            val pointer = pointer_of_rep_isom_data rep_isom_data
+            val quot_active = 
+              Lifting_Info.lookup_restore_data lthy pointer |> the |> #quotient |> #quot_thm
+              |> Lifting_Info.lookup_quot_thm_quotients lthy |> is_some
             val qty_code_dt_bundle_name = bundle_name_of_rep_isom_data rep_isom_data
             val rep_isom = mk_rep_isom_of_code_dt qty_ret code_dt |> the
-            val lthy = Bundle.includes [qty_code_dt_bundle_name] lthy
+            val lthy = if quot_active then lthy else Bundle.includes [qty_code_dt_bundle_name] lthy
             fun qty_isom_of_rep_isom rep = rep |> dest_Const |> snd |> domain_type
             val qty_isom = qty_isom_of_rep_isom rep_isom
             val f'_var = (Binding.suffix_name "_aux" (fst var), NoSyn);
@@ -303,7 +307,9 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val lthy =  lthy
               |> Local_Theory.note ((Binding.empty, @{attributes [code]}), [f_alt_def])
               |> snd
-              |> Lifting_Setup.lifting_forget (pointer_of_rep_isom_data rep_isom_data)
+              (* if processing a mutual datatype (there is a cycle!) the corresponding quotient 
+                 will be needed later and will be forgotten later *)
+              |> (if quot_active then I else Lifting_Setup.lifting_forget pointer)
           in
             (ret_lift_def, lthy)
           end
@@ -311,6 +317,32 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
     end
 and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
   let
+    (* logical definition of qty qty_isom isomorphism *) 
+    val uTname = unique_Tname (rty, qty)
+    fun eq_onp_to_top_tac ctxt = SELECT_GOAL (Local_Defs.unfold_tac ctxt 
+      (@{thm eq_onp_top_eq_eq[symmetric]} :: Lifting_Info.get_relator_eq_onp_rules ctxt))
+    fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
+      THEN' (rtac @{thm id_transfer}));
+
+    val (rep_isom_lift_def, lthy) = lift_def ld_no_notes (Binding.qualified true "Rep_isom" uTname, NoSyn)
+      (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac [] lthy
+      |> apfst (inst_of_lift_def lthy (qty_isom --> qty));
+    val (abs_isom, lthy) = lift_def ld_no_notes (Binding.qualified true "Abs_isom" uTname, NoSyn)
+      (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac [] lthy
+      |> apfst (mk_lift_const_of_lift_def (qty --> qty_isom));
+    val rep_isom = lift_const_of_lift_def rep_isom_lift_def
+
+    val pointer = Lifting_Setup.pointer_of_bundle_binding lthy qty_isom_bundle
+    fun code_dt phi context = code_dt_of lthy (rty, qty) |> the |>
+      update_rep_isom rep_isom (transfer_rules_of_lift_def rep_isom_lift_def |> hd)
+       (bundle_name_of_bundle_binding qty_isom_bundle phi context) pointer;
+    val lthy = lthy  
+      |> Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
+      |> Local_Theory.restore
+
+    (* in order to make the qty qty_isom isomorphism executable we have to define discriminators 
+      and selectors for qty_isom *)
     val (rty_name, typs) = dest_Type rty
     val (_, qty_typs) = dest_Type qty
     val fp = BNF_FP_Def_Sugar.fp_sugar_of lthy rty_name
@@ -364,15 +396,11 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val sel_rhs = map (map mk_sel_rhs) sel_argss
     val dis_rhs = map (fn k => list_comb (dis_casex, mk_dis_case_args (ks ~~ xss) k)) ks
     val dis_qty = qty_isom --> HOLogic.boolT;
-    val uTname = unique_Tname (rty, qty)
     val dis_names = map (fn k => Binding.qualified true ("dis" ^ string_of_int k) uTname) ks;
 
     val (diss, lthy) = @{fold_map 2} (fn b => fn rhs => fn lthy =>
       lift_def ld_no_notes (b, NoSyn) dis_qty rhs (K all_tac) [] lthy
       |> apfst (mk_lift_const_of_lift_def dis_qty)) dis_names dis_rhs lthy
-
-    fun eq_onp_to_top_tac ctxt = SELECT_GOAL (Local_Defs.unfold_tac ctxt 
-      (@{thm eq_onp_top_eq_eq[symmetric]} :: Lifting_Info.get_relator_eq_onp_rules ctxt))
 
     val unfold_lift_sel_rsp = @{lemma "(\<And>x. P1 x \<Longrightarrow> P2 (f x)) \<Longrightarrow> (rel_fun (eq_onp P1) (eq_onp P2)) f f"
       by (simp add: eq_onp_same_args rel_fun_eq_onp_rel)}
@@ -394,23 +422,13 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
         (b, NoSyn) (qty_isom --> qty_ret) rhs (HEADGOAL o sel_tac wits) [] lthy
       |> apfst (mk_lift_const_of_lift_def (qty_isom --> qty_ret)))) sel_names sel_rhs lthy
 
-    fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
-      THEN' (rtac @{thm id_transfer}));
-
-    val (rep_isom_lift_def, lthy) = lift_def ld_no_notes (Binding.qualified true "Rep_isom" uTname, NoSyn)
-      (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac [] lthy
-      |> apfst (inst_of_lift_def lthy (qty_isom --> qty));
-    val (abs_isom, lthy) = lift_def ld_no_notes (Binding.qualified true "Abs_isom" uTname, NoSyn)
-      (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac [] lthy
-      |> apfst (mk_lift_const_of_lift_def (qty --> qty_isom));
+    (* now we can execute the qty qty_isom isomorphism *)
     fun mk_type_definition newT oldT RepC AbsC A =
       let
         val typedefC =
           Const (@{const_name type_definition},
             (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
       in typedefC $ RepC $ AbsC $ A end;
-
-    val rep_isom = lift_const_of_lift_def rep_isom_lift_def
     val typedef_goal = mk_type_definition qty_isom qty rep_isom abs_isom (HOLogic.mk_UNIV qty) |>
       HOLogic.mk_Trueprop;
     fun typ_isom_tac ctxt i =
@@ -431,7 +449,6 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
       |> singleton (Variable.export transfer_lthy lthy)
       |> (fn thm => @{thm UNIV_typedef_to_Quotient} OF [thm, @{thm reflexive}])
     val qty_isom_name = Tname qty_isom;
-    
     val quot_isom_rep =
       let
         val (quotients : Lifting_Term.quotients) = Symtab.insert (Lifting_Info.quotient_eq) (qty_isom_name,
@@ -442,7 +459,6 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           ctxt (rty, qty) () |> fst |> Lifting_Term.force_qty_type ctxt qty
           |> quot_thm_rep
       end;
-
     val x_lthy = lthy
     val (x, lthy) = yield_singleton (mk_Frees "x") qty_isom lthy;
 
@@ -513,16 +529,9 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
       |> Thm.close_derivation
       |> singleton(Variable.export lthy x_lthy)
     val lthy = x_lthy
-    val pointer = Lifting_Setup.pointer_of_bundle_binding lthy qty_isom_bundle
-    fun code_dt phi context = code_dt_of lthy (rty, qty) |> the |>
-      update_rep_isom rep_isom (transfer_rules_of_lift_def rep_isom_lift_def |> hd)
-       (bundle_name_of_bundle_binding qty_isom_bundle phi context) pointer;
     val lthy =
       lthy
       |> snd o Local_Theory.note ((Binding.empty, @{attributes [code]}), [rep_isom_code])
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
-      |> Local_Theory.restore
       |> Lifting_Setup.lifting_forget pointer
   in
     ((selss, diss, rep_isom_code), lthy)
@@ -710,6 +719,21 @@ fun rename_to_tnames ctxt term =
     rename term new_names
   end
 
+fun quot_thm_err ctxt (rty, qty) pretty_msg =
+  let
+    val error_msg = cat_lines
+       ["Lifting failed for the following types:",
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Raw type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty]),
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Abstract type:", Pretty.brk 2, Syntax.pretty_typ ctxt qty]),
+        "",
+        (Pretty.string_of (Pretty.block
+         [Pretty.str "Reason:", Pretty.brk 2, pretty_msg]))]
+  in
+    error error_msg
+  end
+
 fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
   let
     val config = evaluate_params params
@@ -740,21 +764,6 @@ fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
           end 
   in
     Proof.theorem NONE (snd oo after_qed) [map (rpair []) (the_list goal)] lthy
-  end
-
-fun quot_thm_err ctxt (rty, qty) pretty_msg =
-  let
-    val error_msg = cat_lines
-       ["Lifting failed for the following types:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Raw type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Abstract type:", Pretty.brk 2, Syntax.pretty_typ ctxt qty]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:", Pretty.brk 2, pretty_msg]))]
-  in
-    error error_msg
   end
 
 fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
