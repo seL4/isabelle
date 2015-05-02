@@ -734,6 +734,28 @@ fun quot_thm_err ctxt (rty, qty) pretty_msg =
     error error_msg
   end
 
+fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
+  let
+    val (_, ctxt') = yield_singleton Proof_Context.read_vars raw_var ctxt
+    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
+    val error_msg = cat_lines
+       ["Lifting failed for the following term:",
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty_schematic]),
+        "",
+        (Pretty.string_of (Pretty.block
+         [Pretty.str "Reason:",
+          Pretty.brk 2,
+          Pretty.str "The type of the term cannot be instantiated to",
+          Pretty.brk 1,
+          Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
+          Pretty.str "."]))]
+    in
+      error error_msg
+    end
+
 fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
   let
     val config = evaluate_params params
@@ -761,32 +783,14 @@ fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
               end
           in
             (SOME readable_rsp_tm_tnames, after_qed')
-          end 
+          end
+    fun after_qed_with_err_handling thmss ctxt = (after_qed thmss ctxt
+      handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
+      handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) =>
+        check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw);
   in
-    Proof.theorem NONE (snd oo after_qed) [map (rpair []) (the_list goal)] lthy
+    Proof.theorem NONE (snd oo after_qed_with_err_handling) [map (rpair []) (the_list goal)] lthy
   end
-
-fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
-  let
-    val (_, ctxt') = yield_singleton Proof_Context.read_vars raw_var ctxt
-    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
-    val error_msg = cat_lines
-       ["Lifting failed for the following term:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty_schematic]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:",
-          Pretty.brk 2,
-          Pretty.str "The type of the term cannot be instantiated to",
-          Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
-          Pretty.str "."]))]
-    in
-      error error_msg
-    end
 
 fun lift_def_cmd_with_err_handling (params, (raw_var, rhs_raw, par_xthms)) lthy =
   (lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy
