@@ -777,7 +777,6 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
     fun check_qty qty = if not (is_Type qty) 
           then error "The abstract type must be a type constructor."
           else ()
-    val config = { notes = true }       
    
     fun setup_quotient () = 
       let
@@ -786,7 +785,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
         val _ = check_qty (snd (quot_thm_rty_qty input_thm))
       in
-        setup_by_quotient config input_thm opt_reflp_thm opt_par_thm lthy |> snd
+        setup_by_quotient default_config input_thm opt_reflp_thm opt_par_thm lthy |> snd
       end
 
     fun setup_typedef () = 
@@ -799,7 +798,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
           | NONE => (
             case opt_par_xthm of
               SOME _ => error "The parametricity theorem cannot be specified if the type_definition theorem is used."
-              | NONE => setup_by_typedef_thm config input_thm lthy |> snd
+              | NONE => setup_by_typedef_thm default_config input_thm lthy |> snd
           )
       end
   in

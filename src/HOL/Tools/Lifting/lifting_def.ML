@@ -37,7 +37,7 @@ sig
     (binding * mixfix -> typ -> term -> thm -> thm list -> Proof.context -> 
       lift_def * local_theory) -> 
     binding * mixfix -> typ -> term -> thm list -> local_theory -> 
-    term option * (thm list list -> Proof.context -> lift_def * local_theory)
+    term option * (thm -> Proof.context -> lift_def * local_theory)
 
   val gen_lift_def:
     (binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> 
@@ -616,112 +616,6 @@ fun add_lift_def config var qty rhs rsp_thm par_thms lthy =
       ||> Local_Theory.restore
   end
 
-local
-  val eq_onp_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
-    [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
-      @{thm pcr_Domainp}]
-in
-fun mk_readable_rsp_thm_eq tm lthy =
-  let
-    val ctm = Thm.cterm_of lthy tm
-    
-    fun assms_rewr_conv tactic rule ct =
-      let
-        fun prove_extra_assms thm =
-          let
-            val assms = cprems_of thm
-            fun finish thm = if Thm.no_prems thm then SOME (Goal.conclude thm) else NONE
-            fun prove ctm = Option.mapPartial finish (SINGLE tactic (Goal.init ctm))
-          in
-            map_interrupt prove assms
-          end
-    
-        fun cconl_of thm = Drule.strip_imp_concl (Thm.cprop_of thm)
-        fun lhs_of thm = fst (Thm.dest_equals (cconl_of thm))
-        fun rhs_of thm = snd (Thm.dest_equals (cconl_of thm))
-        val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule;
-        val lhs = lhs_of rule1;
-        val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
-        val rule3 =
-          Thm.instantiate (Thm.match (lhs, ct)) rule2
-            handle Pattern.MATCH => raise CTERM ("assms_rewr_conv", [lhs, ct]);
-        val proved_assms = prove_extra_assms rule3
-      in
-        case proved_assms of
-          SOME proved_assms =>
-            let
-              val rule3 = proved_assms MRSL rule3
-              val rule4 =
-                if lhs_of rule3 aconvc ct then rule3
-                else
-                  let val ceq = Thm.dest_fun2 (Thm.cprop_of rule3)
-                  in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (rhs_of rule3)) end
-            in Thm.transitive rule4 (Thm.beta_conversion true (rhs_of rule4)) end
-          | NONE => Conv.no_conv ct
-      end
-
-    fun assms_rewrs_conv tactic rules = Conv.first_conv (map (assms_rewr_conv tactic) rules)
-
-    fun simp_arrows_conv ctm =
-      let
-        val unfold_conv = Conv.rewrs_conv 
-          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, 
-            @{thm rel_fun_eq_onp_rel[THEN eq_reflection]},
-            @{thm rel_fun_eq[THEN eq_reflection]},
-            @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
-            @{thm rel_fun_def[THEN eq_reflection]}]
-        fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
-        val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
-            eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
-        val intro_top_rule = @{thm eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
-        val kill_tops = Transfer.top_sweep_rewr_conv [@{thm eq_onp_top_eq_eq[THEN eq_reflection]}]
-        val eq_onp_assms_tac = (CONVERSION kill_tops THEN' 
-          TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
-          THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
-        val relator_eq_onp_conv = Conv.bottom_conv
-          (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac
-            (intro_top_rule :: Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
-          then_conv kill_tops
-        val relator_eq_conv = Conv.bottom_conv
-          (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
-      in
-        case (Thm.term_of ctm) of
-          Const (@{const_name "rel_fun"}, _) $ _ $ _ => 
-            (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => (relator_eq_onp_conv then_conv relator_eq_conv) ctm
-      end
-    
-    val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
-    val unfold_inv_conv = 
-      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy
-    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
-    val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
-    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
-    val beta_conv = Thm.beta_conversion true
-    val eq_thm = 
-      (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs
-         then_conv unfold_inv_conv) ctm
-  in
-    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
-  end
-end
-
-fun rename_to_tnames ctxt term =
-  let
-    fun all_typs (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) = T :: all_typs t
-      | all_typs _ = []
-
-    fun rename (Const (@{const_name Pure.all}, T1) $ Abs (_, T2, t)) (new_name :: names) = 
-        (Const (@{const_name Pure.all}, T1) $ Abs (new_name, T2, rename t names)) 
-      | rename t _ = t
-
-    val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt
-    val new_names = Old_Datatype_Prop.make_tnames (all_typs fixed_def_t)
-  in
-    rename term new_names
-  end
-
 (* This is not very cheap way of getting the rules but we have only few active
   liftings in the current setting *)
 fun get_cr_pcr_eqs ctxt =
@@ -756,23 +650,7 @@ fun prepare_lift_def add_lift_def var qty rhs par_thms lthy =
   in
     case opt_proven_rsp_thm of
       SOME thm => (NONE, K (after_qed thm))
-      | NONE =>  
-        let
-          val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
-          val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
-          val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
-      
-          fun after_qed' thm_list lthy = 
-            let
-              val internal_rsp_thm = Goal.prove lthy [] [] prsp_tm 
-                  (fn {context = ctxt, ...} =>
-                    rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt (hd thm_list) 1)
-            in
-              after_qed internal_rsp_thm lthy
-            end
-        in
-          (SOME readable_rsp_tm_tnames, after_qed')
-        end 
+      | NONE => (SOME prsp_tm, after_qed) 
   end
 
 fun gen_lift_def add_lift_def var qty rhs tac par_thms lthy =
@@ -785,9 +663,9 @@ fun gen_lift_def add_lift_def var qty rhs tac par_thms lthy =
           val rsp_thm = Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} => tac ctxt)
             |> Thm.close_derivation
         in
-          after_qed [[rsp_thm]] lthy
+          after_qed rsp_thm lthy
         end
-      | NONE => after_qed [[Drule.dummy_thm]] lthy
+      | NONE => after_qed Drule.dummy_thm lthy
   end
 
 fun lift_def config var qty rhs tac par_thms lthy = gen_lift_def (add_lift_def config)
