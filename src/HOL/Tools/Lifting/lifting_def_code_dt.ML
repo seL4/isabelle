@@ -322,11 +322,6 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val ctr_Tss = map (dest_Const #> snd #> binder_types) ctrs;
     val qty_ctr_Tss = map (dest_Const #> snd #> binder_types) qty_ctrs;
 
-    fun lazy_prove_code_dt (rty, qty) lthy =
-      if is_none (code_dt_of lthy (rty, qty)) then prove_code_dt (rty, qty) lthy |> fst else lthy;
-
-    val lthy = fold2 (fold2 (lazy_prove_code_dt oo pair)) ctr_Tss qty_ctr_Tss lthy
-
     val n = length ctrs;
     val ks = 1 upto n;
     val (xss, _) = mk_Freess "x" ctr_Tss lthy;
@@ -336,18 +331,25 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           then Type (s, map sel_retT (rtys' ~~ qtys')) else qty')
       | sel_retT (_, qty') = qty';
 
-    val sel_argss = @{map 5} (fn k => fn xs => @{map 3} (fn x => fn rty => fn qty =>
-      (k, (qty, sel_retT (rty,qty)), (xs, x)))) ks xss xss ctr_Tss qty_ctr_Tss;
+    val sel_retTs = map2 (map2 (sel_retT oo pair)) ctr_Tss qty_ctr_Tss
+
+    fun lazy_prove_code_dt (rty, qty) lthy =
+      if is_none (code_dt_of lthy (rty, qty)) then prove_code_dt (rty, qty) lthy |> fst else lthy;
+
+    val lthy = fold2 (fold2 (lazy_prove_code_dt oo pair)) ctr_Tss sel_retTs lthy
+
+    val sel_argss = @{map 4} (fn k => fn xs => @{map 2} (fn x => fn qty_ret => 
+      (k, qty_ret, (xs, x)))) ks xss xss sel_retTs;
 
     fun mk_sel_casex (_, _, (_, x)) = Ctr_Sugar.mk_case typs (x |> dest_Free |> snd) (#casex ctr_sugar);
     val dis_casex = Ctr_Sugar.mk_case typs HOLogic.boolT (#casex ctr_sugar);
-    fun mk_sel_case_args lthy ctr_Tss ks (k, (qty, _), (xs, x)) =
+    fun mk_sel_case_args lthy ctr_Tss ks (k, qty_ret, (xs, x)) =
       let
         val T = x |> dest_Free |> snd;
         fun gen_undef_wit Ts wits =
-          case code_dt_of lthy (T, qty) of
+          case code_dt_of lthy (T, qty_ret) of
             SOME code_dt =>
-              (fold_rev (Term.lambda o curry Free Name.uu) Ts (mk_witness_of_code_dt qty code_dt),
+              (fold_rev (Term.lambda o curry Free Name.uu) Ts (mk_witness_of_code_dt qty_ret code_dt),
                 wit_thm_of_code_dt code_dt :: wits)
             | NONE => (fold_rev (Term.lambda o curry Free Name.uu) Ts (mk_undefined T), wits)
       in
@@ -387,7 +389,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
     val sel_names = map (fn (k, xs) => map (fn k' => Binding.qualified true
       ("sel" ^ string_of_int k ^ string_of_int k') uTname) (1 upto length xs)) (ks ~~ ctr_Tss);
-    val (selss, lthy) = @{fold_map 2} (@{fold_map 2} (fn b => fn ((_, qty_ret), wits, rhs) => fn lthy =>
+    val (selss, lthy) = @{fold_map 2} (@{fold_map 2} (fn b => fn (qty_ret, wits, rhs) => fn lthy =>
         lift_def_code_dt { code_dt = true, lift_config = ld_no_notes }
         (b, NoSyn) (qty_isom --> qty_ret) rhs (HEADGOAL o sel_tac wits) [] lthy
       |> apfst (mk_lift_const_of_lift_def (qty_isom --> qty_ret)))) sel_names sel_rhs lthy
