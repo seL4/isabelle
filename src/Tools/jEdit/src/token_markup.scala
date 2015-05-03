@@ -109,7 +109,7 @@ object Token_Markup
   {
     val max_user_fonts = 2
     if (Symbol.font_names.length > max_user_fonts)
-      error("Too many user symbol fonts (max " + max_user_fonts + " permitted): " +
+      error("Too many user symbol fonts (" + max_user_fonts + " permitted): " +
         Symbol.font_names.mkString(", "))
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
@@ -448,4 +448,3 @@ object Token_Markup
     }
   }
 }
-
