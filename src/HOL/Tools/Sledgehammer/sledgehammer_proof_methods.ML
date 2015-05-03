@@ -34,6 +34,7 @@ sig
     ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
   val is_proof_method_direct : proof_method -> bool
+  val proof_method_distinguishes_chained_and_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val thms_influence_proof_method : Proof.context -> proof_method -> thm list -> bool
@@ -79,6 +80,10 @@ fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Simp_Method = true
   | is_proof_method_direct Simp_Size_Method = true
   | is_proof_method_direct _ = false
+
+fun proof_method_distinguishes_chained_and_direct Simp_Method = true
+  | proof_method_distinguishes_chained_and_direct Simp_Size_Method = true
+  | proof_method_distinguishes_chained_and_direct _ = false
 
 fun is_proof_method_multi_goal Auto_Method = true
   | is_proof_method_multi_goal _ = false
@@ -163,8 +168,14 @@ fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal i n = "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 (* FIXME *)
-fun proof_method_command ctxt meth i n _(*used_chaineds*) _(*num_chained*) ss =
-  let val (indirect_ss, direct_ss) = if is_proof_method_direct meth then ([], ss) else (ss, []) in
+fun proof_method_command ctxt meth i n used_chaineds _(*num_chained*) extras =
+  let
+    val (indirect_ss, direct_ss) =
+      if is_proof_method_direct meth then
+        ([], extras |> proof_method_distinguishes_chained_and_direct meth ? append used_chaineds)
+      else
+        (extras, [])
+  in
     (if null indirect_ss then "" else "using " ^ space_implode " " indirect_ss ^ " ") ^
     apply_on_subgoal i n ^ string_of_proof_method ctxt direct_ss meth ^
     (if is_proof_method_multi_goal meth andalso n <> 1 then "[1]" else "")

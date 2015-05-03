@@ -55,6 +55,8 @@ type fact_override =
    del : (Facts.ref * Token.src list) list,
    only : bool}
 
+val local_thisN = Long_Name.localN ^ Long_Name.separator ^ Auto_Bind.thisN
+
 (* gracefully handle huge background theories *)
 val max_facts_for_duplicates = 50000
 val max_facts_for_complex_check = 25000
@@ -499,7 +501,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
                else
                  let
                    fun get_name () =
-                     if name0 = "" then
+                     if name0 = "" orelse name0 = local_thisN then
                        backquote_thm ctxt th
                      else
                        let val short_name = Facts.extern ctxt facts name0 in
