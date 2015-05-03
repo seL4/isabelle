@@ -588,7 +588,10 @@ fun pretty lthy =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.keyword1 "instantiation" :: map pr_arity tycos @ map pr_param params end;
+  in
+    [Pretty.block
+      (Pretty.fbreaks (Pretty.keyword1 "instantiation" :: map pr_arity tycos @ map pr_param params))]
+  end;
 
 fun conclude lthy =
   let
@@ -754,4 +757,3 @@ fun pretty_specification thy c =
   else [];
 
 end;
-
