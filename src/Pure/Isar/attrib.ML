@@ -160,11 +160,13 @@ fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Token.pretty_src ctxt) srcs)];
 
 fun pretty_binding ctxt (b, atts) sep =
-  if is_empty_binding (b, atts) then []
-  else if Binding.is_empty b then
-    [Pretty.block (pretty_attribs ctxt atts @ [Pretty.str sep])]
-  else
-    [Pretty.block (Binding.pretty b :: Pretty.brk 1 :: pretty_attribs ctxt atts @ [Pretty.str sep])];
+  (case (Binding.is_empty b, null atts) of
+    (true, true) => []
+  | (false, true) => [Pretty.block [Binding.pretty b, Pretty.str sep]]
+  | (true, false) => [Pretty.block (pretty_attribs ctxt atts @ [Pretty.str sep])]
+  | (false, false) =>
+      [Pretty.block
+        (Binding.pretty b :: Pretty.brk 1 :: pretty_attribs ctxt atts @ [Pretty.str sep])]);
 
 
 (* get attributes *)
