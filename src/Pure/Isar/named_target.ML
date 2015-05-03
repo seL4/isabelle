@@ -116,28 +116,28 @@ fun subscription ("", _) = Generic_Target.theory_registration
 (* pretty *)
 
 fun pretty (target, is_class) ctxt =
-  let
-    val target_name =
-      [Pretty.keyword1 (if is_class then "class" else "locale"), Pretty.brk 1,
-        Locale.pretty_name ctxt target];
-    val fixes =
-      map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
-        (#1 (Proof_Context.inferred_fixes ctxt));
-    val assumes =
-      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
-        (Assumption.all_assms_of ctxt);
-    val elems =
-      (if null fixes then [] else [Element.Fixes fixes]) @
-      (if null assumes then [] else [Element.Assumes assumes]);
-    val body_elems =
-      if target = "" then []
-      else if null elems then [Pretty.block target_name]
+  if target = "" then
+    [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
+      Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]
+  else if is_class then Class.pretty_specification (Proof_Context.theory_of ctxt) target
+  else
+    (* FIXME pretty locale content *)
+    let
+      val target_name = [Pretty.keyword1 "locale", Pretty.brk 1, Locale.pretty_name ctxt target];
+      val fixes =
+        map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
+          (#1 (Proof_Context.inferred_fixes ctxt));
+      val assumes =
+        map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
+          (Assumption.all_assms_of ctxt);
+      val elems =
+        (if null fixes then [] else [Element.Fixes fixes]) @
+        (if null assumes then [] else [Element.Assumes assumes]);
+    in
+      if null elems then [Pretty.block target_name]
       else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
-        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))];
-  in
-    Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
-      Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))] :: body_elems
-  end;
+        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
+    end;
 
 
 (* init *)
