@@ -1,4 +1,4 @@
-(*  Title:      eisbach_rule_insts.ML
+(*  Title:      HOL/Eisbach/eisbach_rule_insts.ML
     Author:     Daniel Matichuk, NICTA/UNSW
 
 Eisbach-aware variants of the "where" and "of" attributes.
@@ -77,10 +77,11 @@ datatype rule_inst =
   Named_Insts of ((indexname * string) * (term -> unit)) list
 | Term_Insts of (indexname * term) list;
 
-fun embed_indexname ((xi,s),f) =
+fun embed_indexname ((xi, s), f) =
   let
-    fun wrap_xi xi t = Logic.mk_conjunction (Logic.mk_term (Var (xi,fastype_of t)),Logic.mk_term t);
-  in ((xi,s),f o wrap_xi xi) end;
+    fun wrap_xi xi t =
+      Logic.mk_conjunction (Logic.mk_term (Var (xi, fastype_of t)), Logic.mk_term t);
+  in ((xi, s), f o wrap_xi xi) end;
 
 fun unembed_indexname t =
   let
@@ -98,9 +99,9 @@ fun read_where_insts toks =
 
     val insts' =
       if forall (fn (_, v) => Parse_Tools.is_real_val v) insts
-      then Term_Insts (map (fn (_,t) => unembed_indexname (Parse_Tools.the_real_val t)) insts)
+      then Term_Insts (map (fn (_, t) => unembed_indexname (Parse_Tools.the_real_val t)) insts)
       else Named_Insts (map (fn (xi, p) => embed_indexname
-            ((xi,Parse_Tools.the_parse_val p),Parse_Tools.the_parse_fun p)) insts);
+            ((xi, Parse_Tools.the_parse_val p), Parse_Tools.the_parse_fun p)) insts);
   in
     (insts', fixes)
   end;
@@ -132,13 +133,14 @@ fun read_of_insts toks thm =
       if forall (fn SOME t => Parse_Tools.is_real_val t | NONE => true) (insts @ concl_insts)
       then
         Term_Insts
-          (map_filter (Option.map (Parse_Tools.the_real_val #> unembed_indexname)) (insts @ concl_insts))
-
+          (map_filter
+            (Option.map (Parse_Tools.the_real_val #> unembed_indexname)) (insts @ concl_insts))
       else
         Named_Insts
-          (apply2 (map (Option.map (fn p => (Parse_Tools.the_parse_val p,Parse_Tools.the_parse_fun p))))
+          (apply2
+            (map (Option.map (fn p => (Parse_Tools.the_parse_val p, Parse_Tools.the_parse_fun p))))
             (insts, concl_insts)
-            |> of_rule thm |> map ((fn (xi, (nm, tok)) => embed_indexname ((xi, nm), tok))));
+          |> of_rule thm |> map ((fn (xi, (nm, tok)) => embed_indexname ((xi, nm), tok))));
   in
     (insts', fixes)
   end;

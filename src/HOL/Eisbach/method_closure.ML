@@ -1,4 +1,4 @@
-(*  Title:      method_closure.ML
+(*  Title:      HOL/Eisbach/method_closure.ML
     Author:     Daniel Matichuk, NICTA/UNSW
 
 Facilities for treating method syntax as a closure, with abstraction
@@ -13,6 +13,7 @@ sig
   val is_dummy: thm -> bool
   val tag_free_thm: thm -> thm
   val free_aware_rule_attribute: thm list -> (Context.generic -> thm -> thm) -> Thm.attribute
+  val wrap_attribute: bool -> Binding.binding -> theory -> theory
   val read_inner_method: Proof.context -> Token.src -> Method.text
   val read_text_closure: Proof.context -> Token.src -> Token.src * Method.text
   val read_inner_text_closure: Proof.context -> Input.source -> Token.src * Method.text
@@ -35,12 +36,10 @@ struct
 
 structure Data = Generic_Data
 (
-  type T =
-    ((term list * (string list * string list)) * Method.text) Symtab.table;
+  type T = ((term list * (string list * string list)) * Method.text) Symtab.table;
   val empty: T = Symtab.empty;
   val extend = I;
-  fun merge (methods1,methods2) : T =
-    (Symtab.merge (K true) (methods1, methods2));
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 val get_methods = Data.get o Context.Proof;
@@ -88,6 +87,32 @@ fun free_aware_rule_attribute args f =
     if exists is_free_thm (thm :: args) then dummy_free_thm
     else f context thm);
 
+fun free_aware_attribute thy declaration src (context, thm) =
+  let
+    val src' = Token.init_assignable_src src;
+    fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
+    val _ = try apply_att Drule.dummy_thm;
+    val src'' = Token.closure_src src';
+    val thms =
+      map_filter Token.get_value (Token.args_of_src src'')
+      |> map_filter (fn (Token.Fact (_, f)) => SOME f | _ => NONE)
+      |> flat;
+  in
+    if exists is_free_thm (thm :: thms) then
+      if declaration then (NONE, NONE)
+      else (NONE, SOME dummy_free_thm)
+    else apply_att thm
+  end;
+
+fun wrap_attribute declaration binding thy =
+  let
+    val name = Binding.name_of binding;
+    val name' = Attrib.check_name_generic (Context.Theory thy) (name, Position.none);
+    fun get_src src = Token.src (name', Token.range_of_src src) (Token.args_of_src src);
+  in
+    Attrib.define_global binding (free_aware_attribute thy declaration o get_src) "" thy
+    |> snd
+  end;
 
 (* thm semantics for combined methods with internal parser. Simulates outer syntax parsing. *)
 (* Creates closures for each combined method while parsing, based on the parse context *)
@@ -108,7 +133,8 @@ fun read_text_closure ctxt source =
     val method_text = read_inner_method ctxt src;
     val method_text' = Method.map_source (Method.method_closure ctxt) method_text;
     (*FIXME: Does not markup method parameters. Needs to be done by Method.parser' directly. *)
-    val _ = Method.map_source (fn src => (try (Method.check_name ctxt) (Token.name_of_src src);src)) method_text;
+    val _ = Method.map_source (fn src =>
+                  (try (Method.check_name ctxt) (Token.name_of_src src);src)) method_text;
     val src' = Token.closure_src src;
   in (src', method_text') end;
 
@@ -127,7 +153,7 @@ val parse_method =
       NONE =>
         let
            val input = Token.input_of tok;
-           val (src,text) = read_inner_text_closure ctxt input;
+           val (src, text) = read_inner_text_closure ctxt input;
            val _ = Token.assign (SOME (Token.Source src)) tok;
         in text end
     | SOME (Token.Source src) => read_inner_method ctxt src

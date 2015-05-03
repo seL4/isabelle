@@ -1,4 +1,4 @@
-(*  Title:      Eisbach_Tools.thy
+(*  Title:      HOL/Eisbach/Eisbach_Tools.thy
     Author:     Daniel Matichuk, NICTA/UNSW
 
 Usability tools for Eisbach.

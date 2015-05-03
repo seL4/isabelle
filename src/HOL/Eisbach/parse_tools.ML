@@ -1,4 +1,4 @@
-(*  Title:      parse_tools.ML
+(*  Title:      HOL/Eisbach/parse_tools.ML
     Author:     Daniel Matichuk, NICTA/UNSW
 
 Simple tools for deferred stateful token values.

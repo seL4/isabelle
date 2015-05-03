@@ -1,4 +1,4 @@
-(*  Title:      eisbach_antiquotations.ML
+(*  Title:      HOL/Eisbach/eisbach_antiquotations.ML
     Author:     Daniel Matichuk, NICTA/UNSW
 
 ML antiquotations for Eisbach.

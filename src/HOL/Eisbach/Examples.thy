@@ -1,4 +1,4 @@
-(*  Title:      Examples.thy
+(*  Title:      HOL/Eisbach/Examples.thy
     Author:     Daniel Matichuk, NICTA/UNSW
 *)
 

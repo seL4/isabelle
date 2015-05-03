@@ -1,4 +1,4 @@
-(*  Title:      Tests.thy
+(*  Title:      HOL/Eisbach/Tests.thy
     Author:     Daniel Matichuk, NICTA/UNSW
 *)
 
@@ -7,6 +7,7 @@ section \<open>Miscellaneous Eisbach tests\<close>
 theory Tests
 imports Main Eisbach_Tools
 begin
+
 
 
 section \<open>Named Theorems Tests\<close>
@@ -161,6 +162,7 @@ begin
 
 end
 
+
 (* Testing inner focusing. This fails if we don't smash flex-flex pairs produced
    by retrofitting. This needs to be done more carefully to avoid smashing
    legitimate pairs.*)
@@ -292,7 +294,7 @@ lemma
   done
 
 
-ML {*
+ML \<open>
 structure Data = Generic_Data
 (
   type T = thm list;
@@ -300,7 +302,7 @@ structure Data = Generic_Data
   val extend = I;
   fun merge data : T = Thm.merge_thms data;
 );
-*}
+\<close>
 
 local_setup \<open>Local_Theory.add_thms_dynamic (@{binding test_dyn}, Data.get)\<close>
 
@@ -319,6 +321,34 @@ local_setup
 
 lemma A by dynamic_thms_test
 
+end
+
+
+notepad begin
+  fix A x
+  assume X: "\<And>x. A x"
+  have "A x"
+  by (match X in H[of x]:"\<And>x. A x" \<Rightarrow> \<open>print_fact H,match H in "A x" \<Rightarrow> \<open>rule H\<close>\<close>)
+
+  fix A x B
+  assume X: "\<And>x :: bool. A x \<Longrightarrow> B" "\<And>x. A x"
+  assume Y: "A B"
+  have "B \<and> B \<and> B \<and> B \<and> B \<and> B"
+  apply (intro conjI)
+  apply (match X in H[OF X(2)]:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H,rule H\<close>)
+  apply (match X in H':"\<And>x. A x" and H[OF H']:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H',print_fact H,rule H\<close>)
+  apply (match X in H[of Q]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H, rule Y\<close>)
+  apply (match X in H[of Q,OF Y]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H\<close>)
+  apply (match X in H[OF Y,intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>print_fact H,fastforce\<close>)
+  apply (match X in H[intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>rule H[where x=B], rule Y\<close>)  
+  done
+  
+  fix x :: "prop" and A
+  assume X: "TERM x"
+  assume Y: "\<And>x :: prop. A x"
+  have "A TERM x"
+  apply (match X in "PROP y" for y \<Rightarrow> \<open>rule Y[where x="PROP y"]\<close>)
+  done
 end
 
 (* Method name internalization test *)
