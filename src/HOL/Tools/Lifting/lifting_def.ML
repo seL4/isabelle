@@ -565,7 +565,7 @@ end
   par_thms - a parametricity theorem for rhs
 *)
 
-fun add_lift_def config var qty rhs rsp_thm par_thms lthy =
+fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)

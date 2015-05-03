@@ -589,8 +589,8 @@ and lift_def_code_dt config var qty rhs tac par_thms lthy = gen_lift_def (add_li
 
 (** from parsed parameters to the config record **)
 
-fun map_config_code_dt f1 f2 { code_dt = code_dt, lift_config = lift_config } =
-  { code_dt = f1 code_dt, lift_config = f2 lift_config }
+fun map_config_code_dt f1 f2 ({code_dt = code_dt, lift_config = lift_config}: config_code_dt) =
+  {code_dt = f1 code_dt, lift_config = f2 lift_config}
 
 fun update_config_code_dt nval = map_config_code_dt (K nval) I
 

@@ -73,7 +73,7 @@ fun equiv_match_err ctxt ty_pat ty =
        Pretty.str "don't match."])
   end
 
-fun get_quot_data quotients s =
+fun get_quot_data (quotients: quotients) s =
   case Symtab.lookup quotients s of
     SOME qdata => qdata
   | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
@@ -237,7 +237,7 @@ fun instantiate_rtys ctxt (rty, qty) =
 type 'a fold_quot_thm = { constr: typ -> thm * 'a -> thm * 'a, lift: typ -> thm * 'a -> thm * 'a, 
   comp_lift: typ -> thm * 'a -> thm * 'a }
 
-fun prove_schematic_quot_thm actions quotients ctxt (rty, qty) fold_val =
+fun prove_schematic_quot_thm (actions: 'a fold_quot_thm) quotients ctxt (rty, qty) fold_val =
   let
     fun lifting_step (rty, qty) =
       let

@@ -37,7 +37,7 @@ exception SETUP_LIFTING_INFR of string
 type config = { notes: bool };
 val default_config = { notes = true };
 
-fun define_crel config rep_fun lthy =
+fun define_crel (config: config) rep_fun lthy =
   let
     val (qty, rty) = (dest_funT o fastype_of) rep_fun
     val rep_fun_graph = (HOLogic.eq_const rty) $ Bound 1 $ (rep_fun $ Bound 0)
@@ -63,7 +63,7 @@ fun print_define_pcrel_warning msg =
     warning warning_msg
   end
 
-fun define_pcrel config crel lthy =
+fun define_pcrel (config: config) crel lthy =
   let
     val (fixed_crel, lthy) = yield_singleton Variable.importT_terms crel lthy
     val [rty', qty] = (binder_types o fastype_of) fixed_crel
@@ -122,10 +122,12 @@ local
       error error_msg
     end
 in
-  fun define_pcr_cr_eq config lthy pcr_rel_def =
+  fun define_pcr_cr_eq (config: config) lthy pcr_rel_def =
     let
       val lhs = (Thm.term_of o Thm.lhs_of) pcr_rel_def
-      val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type o List.last o binder_types o fastype_of) lhs
+      val qty_name =
+        (Binding.name o Long_Name.base_name o fst o dest_Type o
+          List.last o binder_types o fastype_of) lhs
       val args = (snd o strip_comb) lhs
       
       fun make_inst var ctxt = 
@@ -519,7 +521,7 @@ fun map_thms map_name map_thm thms =
   opt_par_thm - a parametricity theorem for R
 *)
 
-fun setup_by_quotient config quot_thm opt_reflp_thm opt_par_thm lthy =
+fun setup_by_quotient (config: config) quot_thm opt_reflp_thm opt_par_thm lthy =
   let
     (**)
     val quot_thm = Morphism.thm (Local_Theory.target_morphism lthy) quot_thm
