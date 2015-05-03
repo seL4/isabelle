@@ -382,9 +382,9 @@ fun begin_local_theory begin f = transaction (fn _ =>
           val lthy = f thy;
           val gthy = if begin then Context.Proof lthy else Context.Theory (Named_Target.exit lthy);
           val _ =
-            if begin then
-              Output.state (Pretty.string_of (Pretty.chunks (Local_Theory.pretty lthy)))
-            else ();
+            (case Local_Theory.pretty lthy of
+              [] => ()
+            | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
         in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));
 
