@@ -751,7 +751,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
         fun prove_split selss goal =
           Goal.prove_sorry lthy [] [] goal (fn _ =>
-            mk_split_tac lthy uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
+            mk_split_tac lthy ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
