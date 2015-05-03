@@ -18,6 +18,7 @@ sig
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
   val pretty_attribs: Proof.context -> Token.src list -> Pretty.T list
+  val pretty_binding: Proof.context -> binding -> string -> Pretty.T list
   val attribute: Proof.context -> Token.src -> attribute
   val attribute_global: theory -> Token.src -> attribute
   val attribute_cmd: Proof.context -> Token.src -> attribute
@@ -157,6 +158,13 @@ fun check_src ctxt src =
 
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Token.pretty_src ctxt) srcs)];
+
+fun pretty_binding ctxt (b, atts) sep =
+  if is_empty_binding (b, atts) then []
+  else if Binding.is_empty b then
+    [Pretty.block (pretty_attribs ctxt atts @ [Pretty.str sep])]
+  else
+    [Pretty.block (Binding.pretty b :: Pretty.brk 1 :: pretty_attribs ctxt atts @ [Pretty.str sep])];
 
 
 (* get attributes *)
