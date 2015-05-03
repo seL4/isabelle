@@ -118,7 +118,7 @@ class Pretty_Text_Area(
       jEdit.getColorProperty("view.gutter.focusBorderColor"),
       jEdit.getColorProperty("view.gutter.noFocusBorderColor"),
       getPainter.getBackground)
-    getGutter.setFoldPainter(getFoldPainter)
+    getGutter.setFoldPainter(view.getTextArea.getFoldPainter)
     getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
 
     if (getWidth > 0) {
