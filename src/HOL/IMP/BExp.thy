@@ -16,15 +16,6 @@ value "bval (Less (V ''x'') (Plus (N 3) (V ''y'')))
             <''x'' := 3, ''y'' := 1>"
 
 
-text{* To improve automation: *}
-
-lemma bval_And_if[simp]:
-  "bval (And b1 b2) s = (if bval b1 s then bval b2 s else False)"
-by(simp)
-
-declare bval.simps(3)[simp del]  --"remove the original eqn"
-
-
 subsection "Constant Folding"
 
 text{* Optimizing constructors: *}
