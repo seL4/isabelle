@@ -115,13 +115,8 @@ fun mk_atomize ctxt pairs =
 fun mksimps pairs ctxt =
   map_filter (try mk_eq) o mk_atomize ctxt pairs o Drule.gen_all (Variable.maxidx_of ctxt);
 
-val simp_legacy_precond =
-  Attrib.setup_config_bool @{binding "simp_legacy_precond"} (K false)
-
 fun unsafe_solver_tac ctxt =
   let
-    val intros =
-      if Config.get ctxt simp_legacy_precond then [] else [@{thm conjI}]
     val sol_thms =
       reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
     fun sol_tac i =
@@ -129,7 +124,8 @@ fun unsafe_solver_tac ctxt =
        [resolve_tac ctxt sol_thms i,
         assume_tac ctxt i,
         eresolve_tac ctxt @{thms FalseE} i] ORELSE
-      (match_tac ctxt intros THEN_ALL_NEW sol_tac) i
+          (match_tac ctxt [@{thm conjI}]
+      THEN_ALL_NEW sol_tac) i
   in
     (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN' sol_tac
   end;
