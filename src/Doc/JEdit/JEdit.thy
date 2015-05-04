@@ -84,7 +84,7 @@ text \<open>
   application startup, the selected logic session image is provided
   automatically by the Isabelle build tool @{cite "isabelle-sys"}: if it is
   absent or outdated wrt.\ its sources, the build process updates it before
-  entering the Prover IDE.  Changing the logic session within Isabelle/jEdit
+  entering the Prover IDE.  Change of the logic session within Isabelle/jEdit
   requires a restart of the whole application.
 
   \medskip The main job of the Prover IDE is to manage sources and their
@@ -103,7 +103,8 @@ text \<open>
 
   Thus the Prover IDE gives an impression of direct access to formal content
   of the prover within the editor, but in reality only certain aspects are
-  exposed, according to the possibilities of the prover and its many tools.
+  exposed, according to the possibilities of the prover and its many add-on
+  tools.
 \<close>
 
 
@@ -311,7 +312,7 @@ text \<open>jEdit is a Java/AWT/Swing application with some ambition to
   in mind that this extra variance of GUI functionality is unlikely to
   work in arbitrary combinations.  The platform-independent
   \emph{Nimbus} and \emph{Metal} should always work.  The historic
-  \emph{CDE/Motif} is better avoided.
+  \emph{CDE/Motif} is better ignore altogether.
 
   After changing the look-and-feel in \emph{Global Options~/
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
@@ -336,10 +337,10 @@ text \<open>
   \emph{HyperSearch Results} or the \emph{File System Browser}. Plugins often
   provide a central dockable to access their key functionality, which may be
   opened by the user on demand. The Isabelle/jEdit plugin takes this approach
-  to the extreme: its plugin menu merely provides entry-points to panels that
-  are managed as dockable windows. Some important panels are docked by
+  to the extreme: its plugin menu provides the entry-points to many panels
+  that are managed as dockable windows. Some important panels are docked by
   default, e.g.\ \emph{Documentation}, \emph{Output}, \emph{Query}, but the
-  user can change this arrangement easily.
+  user can change this arrangement easily and persistently.
 
   Compared to plain jEdit, dockable window management in Isabelle/jEdit is
   slightly augmented according to the the following principles:
@@ -401,15 +402,15 @@ text \<open>
   alphabets in comments.
 
   \medskip \paragraph{Encoding.} Technically, the Unicode view on Isabelle
-  symbols is an \emph{encoding} in jEdit (not in the underlying JVM) that is
-  called @{verbatim "UTF-8-Isabelle"}. It is provided by the Isabelle/jEdit
-  plugin and enabled by default for all source files. Sometimes such defaults
-  are reset accidentally, or malformed UTF-8 sequences in the text force jEdit
-  to fall back on a different encoding like @{verbatim "ISO-8859-15"}. In that
-  case, verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer instead
-  of its Unicode rendering ``@{text "\<alpha>"}''. The jEdit menu operation
-  \emph{File~/ Reload with Encoding~/ UTF-8-Isabelle} helps to resolve such
-  problems (after repairing malformed parts of the text).
+  symbols is an \emph{encoding} called @{verbatim "UTF-8-Isabelle"} in jEdit
+  (not in the underlying JVM). It is provided by the Isabelle/jEdit plugin and
+  enabled by default for all source files. Sometimes such defaults are reset
+  accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
+  back on a different encoding like @{verbatim "ISO-8859-15"}. In that case,
+  verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer instead of its
+  Unicode rendering ``@{text "\<alpha>"}''. The jEdit menu operation \emph{File~/
+  Reload with Encoding~/ UTF-8-Isabelle} helps to resolve such problems (after
+  repairing malformed parts of the text).
 
   \medskip \paragraph{Font.} Correct rendering via Unicode requires a
   font that contains glyphs for the corresponding codepoints.  Most
@@ -453,11 +454,11 @@ text \<open>
   some web browser or mail client, as long as the same Unicode view on
   Isabelle symbols is used.
 
-  \item Copy/paste from prover output within Isabelle/jEdit.  The
-  same principles as for text buffers apply, but note that \emph{copy}
-  in secondary Isabelle/jEdit windows works via the keyboard shortcut
-  @{verbatim "C+c"}, while jEdit menu actions always refer to the
-  primary text area!
+  \item Copy/paste from prover output within Isabelle/jEdit. The same
+  principles as for text buffers apply, but note that \emph{copy} in secondary
+  Isabelle/jEdit windows works via the keyboard shortcuts @{verbatim "C+c"} or
+  @{verbatim "C+INSERT"}, while jEdit menu actions always refer to the primary
+  text area!
 
   \item Completion provided by Isabelle plugin (see
   \secref{sec:completion}).  Isabelle symbols have a canonical name
@@ -595,9 +596,9 @@ text \<open>
   Despite the flexibility of URLs in jEdit, local files are particularly
   important and are accessible without protocol prefix. Here the path notation
   is that of the Java Virtual Machine on the underlying platform. On Windows
-  the preferred form uses backslashes, but happens to accept forward slashes
-  like Unix/POSIX. Further differences arise due to Windows drive letters and
-  network shares.
+  the preferred form uses backslashes, but happens to accept also forward
+  slashes like Unix/POSIX. Further differences arise due to Windows drive
+  letters and network shares.
 
   The Java notation for files needs to be distinguished from the one of
   Isabelle, which uses POSIX notation with forward slashes on \emph{all}
@@ -614,8 +615,8 @@ text \<open>
   though, due to the bias of jEdit towards platform-specific notation and of
   Isabelle towards POSIX. Moreover, the Isabelle settings environment is not
   yet active when starting Isabelle/jEdit via its standard application
-  wrapper, in contrast to @{verbatim "isabelle jedit"} run from the command
-  line (\secref{sec:command-line}).
+  wrapper, in contrast to @{tool jedit} run from the command line
+  (\secref{sec:command-line}).
 
   Isabelle/jEdit imitates @{verbatim "$ISABELLE_HOME"} and @{verbatim
   "$ISABELLE_HOME_USER"} within the Java process environment, in order to
@@ -687,7 +688,7 @@ text \<open>
 
   In any case, source files are managed by the PIDE infrastructure: the
   physical file-system only plays a subordinate role. The relevant version of
-  source text is passed directly from the editor to the prover, via internal
+  source text is passed directly from the editor to the prover, using internal
   communication channels.
 \<close>
 
@@ -739,13 +740,14 @@ text \<open>
   rendering, based on a standard repertoire known from IDEs for programming
   languages: colors, icons, highlighting, squiggly underlines, tooltips,
   hyperlinks etc. For outer syntax of Isabelle/Isar there is some traditional
-  syntax-highlighting via static keyword tables and tokenization within the
-  editor. In contrast, the painting of inner syntax (term language etc.)\ uses
-  semantic information that is reported dynamically from the logical context.
-  Thus the prover can provide additional markup to help the user to understand
-  the meaning of formal text, and to produce more text with some add-on tools
-  (e.g.\ information messages with \emph{sendback} markup by automated provers
-  or disprovers in the background).
+  syntax-highlighting via static keywords and tokenization within the editor;
+  this buffer syntax is determined from theory imports. In contrast, the
+  painting of inner syntax (term language etc.)\ uses semantic information
+  that is reported dynamically from the logical context. Thus the prover can
+  provide additional markup to help the user to understand the meaning of
+  formal text, and to produce more text with some add-on tools (e.g.\
+  information messages with \emph{sendback} markup by automated provers or
+  disprovers in the background).
 
 \<close>
 
@@ -766,7 +768,7 @@ text \<open>
   document-model on demand, the first time when opened explicitly in the
   editor. There are further tricks to manage markup of ML files, such that
   Isabelle/HOL may be edited conveniently in the Prover IDE on small machines
-  with only 4--8\,GB of main memory. Using @{verbatim Pure} as logic session
+  with only 8\,GB of main memory. Using @{verbatim Pure} as logic session
   image, the exploration may start at the top @{file
   "$ISABELLE_HOME/src/HOL/Main.thy"} or the bottom @{file
   "$ISABELLE_HOME/src/HOL/HOL.thy"}, for example.
@@ -1020,7 +1022,7 @@ text \<open>
   subject to formal document processing of the editor session and thus
   prevents further exploration: the chain of hyperlinks may end in
   some source file of the underlying logic image, or within the
-  Isabelle/ML bootstrap sources of Isabelle/Pure.\<close>
+  ML bootstrap sources of Isabelle/Pure.\<close>
 
 
 section \<open>Completion \label{sec:completion}\<close>
@@ -1095,7 +1097,7 @@ subsubsection \<open>Syntax keywords\<close>
 text \<open>
   Syntax completion tables are determined statically from the keywords of the
   ``outer syntax'' of the underlying edit mode: for theory files this is the
-  syntax of Isar commands.
+  syntax of Isar commands according to the cumulative theory imports.
 
   Keywords are usually plain words, which means the completion mechanism only
   inserts them directly into the text for explicit completion
@@ -1384,7 +1386,7 @@ text \<open>
   \begin{itemize}
 
   \item @{system_option_def completion_limit} specifies the maximum number of
-  name-space entries exposed in semantic completion by the prover.
+  items for various semantic completion operations (name-space entries etc.)
 
   \item @{system_option_def jedit_completion} guards implicit completion via
   regular jEdit key events (\secref{sec:completion-input}): it allows to
@@ -1598,9 +1600,9 @@ text \<open>Theory sources may contain document markup commands, such as
 section \<open>Citations and Bib{\TeX} entries\<close>
 
 text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"}
-  files. The Isabelle session build process and the
-  @{verbatim "isabelle latex"} tool @{cite "isabelle-sys"} are smart enough
-  to assemble the result, based on the session directory layout.
+  files. The Isabelle session build process and the @{tool latex} tool @{cite
+  "isabelle-sys"} are smart enough to assemble the result, based on the
+  session directory layout.
 
   The document antiquotation @{text "@{cite}"} is described in @{cite
   "isabelle-isar-ref"}. Within the Prover IDE it provides semantic markup for
@@ -1685,7 +1687,7 @@ text \<open>Prover output is normally shown directly in the main text area
   \begin{itemize}
 
   \item \emph{Protocol} shows internal messages between the
-  Isabelle/Scala and Isabelle/ML side of the PIDE editing protocol.
+  Isabelle/Scala and Isabelle/ML side of the PIDE document editing protocol.
   Recording of messages starts with the first activation of the
   corresponding dockable window; earlier messages are lost.
 
@@ -1707,11 +1709,14 @@ text \<open>Prover output is normally shown directly in the main text area
   Under normal circumstances, prover output always works via managed message
   channels (corresponding to @{ML writeln}, @{ML warning}, @{ML
   Output.error_message} in Isabelle/ML), which are displayed by regular means
-  within the document model (\secref{sec:output}).
+  within the document model (\secref{sec:output}). Unhandled Isabelle/ML
+  exceptions are printed by the system via @{ML Output.error_message}.
 
-  \item \emph{Syslog} shows system messages that might be relevant to
-  diagnose problems with the startup or shutdown phase of the prover
-  process; this also includes raw output on @{verbatim stderr}.
+  \item \emph{Syslog} shows system messages that might be relevant to diagnose
+  problems with the startup or shutdown phase of the prover process; this also
+  includes raw output on @{verbatim stderr}. Isabelle/ML also provides an
+  explicit @{ML Output.system_message} operation, which is occasionally useful
+  for diagnostic purposes within the system infrastructure itself.
 
   A limited amount of syslog messages are buffered, independently of
   the docking state of the \emph{Syslog} panel.  This allows to
@@ -1778,9 +1783,9 @@ text \<open>
 
   \textbf{Workaround:} Use a regular re-parenting X11 window manager.
 
-  \item \textbf{Problem:} Recent forks of Linux/X11 window managers
-  and desktop environments (variants of Gnome) disrupt the handling of
-  menu popups and mouse positions of Java/AWT/Swing.
+  \item \textbf{Problem:} Various forks of Linux/X11 window managers and
+  desktop environments (like Gnome) disrupt the handling of menu popups and
+  mouse positions of Java/AWT/Swing.
 
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
 
