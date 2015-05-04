@@ -7,8 +7,6 @@ theory Measurable
     "~~/src/HOL/Library/Order_Continuity"
 begin
 
-hide_const (open) Order_Continuity.continuous
-
 subsection {* Measurability prover *}
 
 lemma (in algebra) sets_Collect_finite_All:
@@ -425,7 +423,7 @@ qed
 lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M"
-  assumes F: "Order_Continuity.continuous F"
+  assumes F: "sup_continuous F"
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "lfp F \<in> measurable M (count_space UNIV)"
 proof -
@@ -434,13 +432,13 @@ proof -
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = lfp F"
-    by (subst continuous_lfp) (auto intro: F)
+    by (subst sup_continuous_lfp) (auto intro: F)
   finally show ?thesis .
 qed
 
 lemma measurable_lfp:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
-  assumes F: "Order_Continuity.continuous F"
+  assumes F: "sup_continuous F"
   assumes *: "\<And>A. A \<in> measurable M (count_space UNIV) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "lfp F \<in> measurable M (count_space UNIV)"
   by (coinduction rule: measurable_lfp_coinduct[OF _ F]) (blast intro: *)
@@ -448,7 +446,7 @@ lemma measurable_lfp:
 lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M"
-  assumes F: "Order_Continuity.down_continuous F"
+  assumes F: "inf_continuous F"
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "gfp F \<in> measurable M (count_space UNIV)"
 proof -
@@ -457,13 +455,13 @@ proof -
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = gfp F"
-    by (subst down_continuous_gfp) (auto intro: F)
+    by (subst inf_continuous_gfp) (auto intro: F)
   finally show ?thesis .
 qed
 
 lemma measurable_gfp:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
-  assumes F: "Order_Continuity.down_continuous F"
+  assumes F: "inf_continuous F"
   assumes *: "\<And>A. A \<in> measurable M (count_space UNIV) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "gfp F \<in> measurable M (count_space UNIV)"
   by (coinduction rule: measurable_gfp_coinduct[OF _ F]) (blast intro: *)
@@ -471,7 +469,7 @@ lemma measurable_gfp:
 lemma measurable_lfp2_coinduct[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'c \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'c \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M s"
-  assumes F: "Order_Continuity.continuous F"
+  assumes F: "sup_continuous F"
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "lfp F s \<in> measurable M (count_space UNIV)"
 proof -
@@ -480,14 +478,14 @@ proof -
   then have "(\<lambda>x. SUP i. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot s x) = lfp F s"
-    by (subst continuous_lfp) (auto simp: F)
+    by (subst sup_continuous_lfp) (auto simp: F)
   finally show ?thesis .
 qed
 
 lemma measurable_gfp2_coinduct[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'c \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'c \<Rightarrow> 'b::{complete_lattice, countable})"
   assumes "P M s"
-  assumes F: "Order_Continuity.down_continuous F"
+  assumes F: "inf_continuous F"
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "gfp F s \<in> measurable M (count_space UNIV)"
 proof -
@@ -496,7 +494,7 @@ proof -
   then have "(\<lambda>x. INF i. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top s x) = gfp F s"
-    by (subst down_continuous_gfp) (auto simp: F)
+    by (subst inf_continuous_gfp) (auto simp: F)
   finally show ?thesis .
 qed
 

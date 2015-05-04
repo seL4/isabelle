@@ -121,8 +121,8 @@ done
 
 lemma stream_monoP2_gfp_admI: "[| !i. ? l. !x y. 
  enat l <= #x --> (x::'a::flat stream) << y --> x:(F ^^ i) top --> y:(F ^^ i) top;
-    down_continuous F |] ==> adm (%x. x:gfp F)"
-apply (erule down_continuous_gfp[of F, THEN ssubst])
+    inf_continuous F |] ==> adm (%x. x:gfp F)"
+apply (erule inf_continuous_gfp[of F, THEN ssubst])
 apply (simp (no_asm))
 apply (rule adm_lemmas)
 apply (rule flatstream_admI)
@@ -170,10 +170,10 @@ apply (assumption)
 done
 
 lemma stream_antiP2_non_gfp_admI:
-"!!X. [|!i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top; down_continuous F |] 
+"!!X. [|!i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top; inf_continuous F |] 
   ==> adm (%u. ~ u:gfp F)"
 apply (unfold adm_def)
-apply (simp add: down_continuous_gfp)
+apply (simp add: inf_continuous_gfp)
 apply (fast dest!: is_ub_thelub)
 done
 

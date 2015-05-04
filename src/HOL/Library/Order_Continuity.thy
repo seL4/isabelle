@@ -28,32 +28,38 @@ lemma INF_nat_binary:
   apply simp_all
   done
 
+text \<open>
+  The name @{text continuous} is already taken in @{text "Complex_Main"}, so we use
+  @{text "sup_continuous"} and @{text "inf_continuous"}. These names appear sometimes in literature
+  and have the advantage that these names are duals.
+\<close>
+
 subsection {* Continuity for complete lattices *}
 
 definition
-  continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
-  "continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. mono M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
+  sup_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
+  "sup_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. mono M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
-lemma continuousD: "continuous F \<Longrightarrow> mono M \<Longrightarrow> F (SUP i::nat. M i) = (SUP i. F (M i))"
-  by (auto simp: continuous_def)
+lemma sup_continuousD: "sup_continuous F \<Longrightarrow> mono M \<Longrightarrow> F (SUP i::nat. M i) = (SUP i. F (M i))"
+  by (auto simp: sup_continuous_def)
 
-lemma continuous_mono:
+lemma sup_continuous_mono:
   fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
-  assumes [simp]: "continuous F" shows "mono F"
+  assumes [simp]: "sup_continuous F" shows "mono F"
 proof
   fix A B :: "'a" assume [simp]: "A \<le> B"
   have "F B = F (SUP n::nat. if n = 0 then A else B)"
     by (simp add: sup_absorb2 SUP_nat_binary)
   also have "\<dots> = (SUP n::nat. if n = 0 then F A else F B)"
-    by (auto simp: continuousD mono_def intro!: SUP_cong)
+    by (auto simp: sup_continuousD mono_def intro!: SUP_cong)
   finally show "F A \<le> F B"
     by (simp add: SUP_nat_binary le_iff_sup)
 qed
 
-lemma continuous_lfp:
-  assumes "continuous F" shows "lfp F = (SUP i. (F ^^ i) bot)" (is "lfp F = ?U")
+lemma sup_continuous_lfp:
+  assumes "sup_continuous F" shows "lfp F = (SUP i. (F ^^ i) bot)" (is "lfp F = ?U")
 proof (rule antisym)
-  note mono = continuous_mono[OF `continuous F`]
+  note mono = sup_continuous_mono[OF `sup_continuous F`]
   show "?U \<le> lfp F"
   proof (rule SUP_least)
     fix i show "(F ^^ i) bot \<le> lfp F"
@@ -77,36 +83,38 @@ proof (rule antisym)
         qed }
       thus ?thesis by (auto simp add: mono_iff_le_Suc)
     qed
-    hence "F ?U = (SUP i. (F ^^ Suc i) bot)" using `continuous F` by (simp add: continuous_def)
-    also have "\<dots> \<le> ?U" by (fast intro: SUP_least SUP_upper)
+    hence "F ?U = (SUP i. (F ^^ Suc i) bot)"
+      using `sup_continuous F` by (simp add: sup_continuous_def)
+    also have "\<dots> \<le> ?U"
+      by (fast intro: SUP_least SUP_upper)
     finally show "F ?U \<le> ?U" .
   qed
 qed
 
 definition
-  down_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
-  "down_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. antimono M \<longrightarrow> F (INF i. M i) = (INF i. F (M i)))"
+  inf_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
+  "inf_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. antimono M \<longrightarrow> F (INF i. M i) = (INF i. F (M i)))"
 
-lemma down_continuousD: "down_continuous F \<Longrightarrow> antimono M \<Longrightarrow> F (INF i::nat. M i) = (INF i. F (M i))"
-  by (auto simp: down_continuous_def)
+lemma inf_continuousD: "inf_continuous F \<Longrightarrow> antimono M \<Longrightarrow> F (INF i::nat. M i) = (INF i. F (M i))"
+  by (auto simp: inf_continuous_def)
 
-lemma down_continuous_mono:
+lemma inf_continuous_mono:
   fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
-  assumes [simp]: "down_continuous F" shows "mono F"
+  assumes [simp]: "inf_continuous F" shows "mono F"
 proof
   fix A B :: "'a" assume [simp]: "A \<le> B"
   have "F A = F (INF n::nat. if n = 0 then B else A)"
     by (simp add: inf_absorb2 INF_nat_binary)
   also have "\<dots> = (INF n::nat. if n = 0 then F B else F A)"
-    by (auto simp: down_continuousD antimono_def intro!: INF_cong)
+    by (auto simp: inf_continuousD antimono_def intro!: INF_cong)
   finally show "F A \<le> F B"
     by (simp add: INF_nat_binary le_iff_inf inf_commute)
 qed
 
-lemma down_continuous_gfp:
-  assumes "down_continuous F" shows "gfp F = (INF i. (F ^^ i) top)" (is "gfp F = ?U")
+lemma inf_continuous_gfp:
+  assumes "inf_continuous F" shows "gfp F = (INF i. (F ^^ i) top)" (is "gfp F = ?U")
 proof (rule antisym)
-  note mono = down_continuous_mono[OF `down_continuous F`]
+  note mono = inf_continuous_mono[OF `inf_continuous F`]
   show "gfp F \<le> ?U"
   proof (rule INF_greatest)
     fix i show "gfp F \<le> (F ^^ i) top"
@@ -133,7 +141,7 @@ proof (rule antisym)
     have "?U \<le> (INF i. (F ^^ Suc i) top)"
       by (fast intro: INF_greatest INF_lower)
     also have "\<dots> \<le> F ?U"
-      by (simp add: down_continuousD `down_continuous F` *)
+      by (simp add: inf_continuousD `inf_continuous F` *)
     finally show "?U \<le> F ?U" .
   qed
 qed

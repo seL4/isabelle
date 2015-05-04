@@ -8,15 +8,89 @@
 section {* Extended real number line *}
 
 theory Extended_Real
-imports Complex_Main Extended_Nat Liminf_Limsup
+imports Complex_Main Extended_Nat Liminf_Limsup Order_Continuity
 begin
 
 text {*
 
-This should be part of @{theory Extended_Nat}, but then the AFP-entry @{text "Jinja_Thread"} fails, as it does
-overload certain named from @{theory Complex_Main}.
+This should be part of @{theory Extended_Nat} or @{theory Order_Continuity}, but then the
+AFP-entry @{text "Jinja_Thread"} fails, as it does overload certain named from @{theory Complex_Main}.
 
 *}
+
+lemma continuous_at_left_imp_sup_continuous:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  assumes "mono f" "\<And>x. continuous (at_left x) f"
+  shows "sup_continuous f"
+  unfolding sup_continuous_def
+proof safe
+  fix M :: "nat \<Rightarrow> 'a" assume "incseq M" then show "f (SUP i. M i) = (SUP i. f (M i))"
+    using continuous_at_Sup_mono[OF assms, of "range M"] by simp
+qed
+
+lemma sup_continuous_at_left:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  assumes f: "sup_continuous f"
+  shows "continuous (at_left x) f"
+proof cases
+  assume "x = bot" then show ?thesis
+    by (simp add: trivial_limit_at_left_bot)
+next
+  assume x: "x \<noteq> bot" 
+  show ?thesis
+    unfolding continuous_within
+  proof (intro tendsto_at_left_sequentially[of bot])
+    fix S :: "nat \<Rightarrow> 'a" assume S: "incseq S" and S_x: "S ----> x"
+    from S_x have x_eq: "x = (SUP i. S i)"
+      by (rule LIMSEQ_unique) (intro LIMSEQ_SUP S)
+    show "(\<lambda>n. f (S n)) ----> f x"
+      unfolding x_eq sup_continuousD[OF f S]
+      using S sup_continuous_mono[OF f] by (intro LIMSEQ_SUP) (auto simp: mono_def)
+  qed (insert x, auto simp: bot_less)
+qed
+
+lemma sup_continuous_iff_at_left:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  shows "sup_continuous f \<longleftrightarrow> (\<forall>x. continuous (at_left x) f) \<and> mono f"
+  using sup_continuous_at_left[of f] continuous_at_left_imp_sup_continuous[of f]
+    sup_continuous_mono[of f] by auto
+  
+lemma continuous_at_right_imp_inf_continuous:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  assumes "mono f" "\<And>x. continuous (at_right x) f"
+  shows "inf_continuous f"
+  unfolding inf_continuous_def
+proof safe
+  fix M :: "nat \<Rightarrow> 'a" assume "decseq M" then show "f (INF i. M i) = (INF i. f (M i))"
+    using continuous_at_Inf_mono[OF assms, of "range M"] by simp
+qed
+
+lemma inf_continuous_at_right:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  assumes f: "inf_continuous f"
+  shows "continuous (at_right x) f"
+proof cases
+  assume "x = top" then show ?thesis
+    by (simp add: trivial_limit_at_right_top)
+next
+  assume x: "x \<noteq> top" 
+  show ?thesis
+    unfolding continuous_within
+  proof (intro tendsto_at_right_sequentially[of _ top])
+    fix S :: "nat \<Rightarrow> 'a" assume S: "decseq S" and S_x: "S ----> x"
+    from S_x have x_eq: "x = (INF i. S i)"
+      by (rule LIMSEQ_unique) (intro LIMSEQ_INF S)
+    show "(\<lambda>n. f (S n)) ----> f x"
+      unfolding x_eq inf_continuousD[OF f S]
+      using S inf_continuous_mono[OF f] by (intro LIMSEQ_INF) (auto simp: mono_def antimono_def)
+  qed (insert x, auto simp: less_top)
+qed
+
+lemma inf_continuous_iff_at_right:
+  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  shows "inf_continuous f \<longleftrightarrow> (\<forall>x. continuous (at_right x) f) \<and> mono f"
+  using inf_continuous_at_right[of f] continuous_at_right_imp_inf_continuous[of f]
+    inf_continuous_mono[of f] by auto
 
 instantiation enat :: linorder_topology
 begin

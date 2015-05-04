@@ -452,6 +452,9 @@ qed
 
 end
 
+instance complete_linorder < conditionally_complete_linorder
+  ..
+
 lemma cSup_eq_Max: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup X = Max X"
   using cSup_eq_Sup_fin[of X] Sup_fin_eq_Max[of X] by simp
 

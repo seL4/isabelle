@@ -550,12 +550,12 @@ lemma Lim_emeasure_decseq:
 
 lemma emeasure_lfp[consumes 1, case_names cont measurable]:
   assumes "P M"
-  assumes cont: "Order_Continuity.continuous F"
+  assumes cont: "sup_continuous F"
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
   shows "emeasure M {x\<in>space M. lfp F x} = (SUP i. emeasure M {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
 proof -
   have "emeasure M {x\<in>space M. lfp F x} = emeasure M (\<Union>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
-    using continuous_lfp[OF cont] by (auto simp add: bot_fun_def intro!: arg_cong2[where f=emeasure])
+    using sup_continuous_lfp[OF cont] by (auto simp add: bot_fun_def intro!: arg_cong2[where f=emeasure])
   moreover { fix i from `P M` have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M"
     by (induct i arbitrary: M) (auto simp add: pred_def[symmetric] intro: *) }
   moreover have "incseq (\<lambda>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
@@ -565,7 +565,7 @@ proof -
     proof (induct i)
       case 0 show ?case by (simp add: le_fun_def)
     next
-      case Suc thus ?case using monoD[OF continuous_mono[OF cont] Suc] by auto
+      case Suc thus ?case using monoD[OF sup_continuous_mono[OF cont] Suc] by auto
     qed
     then show "{x \<in> space M. (F ^^ i) (\<lambda>x. False) x} \<subseteq> {x \<in> space M. (F ^^ Suc i) (\<lambda>x. False) x}"
       by auto
@@ -1227,7 +1227,7 @@ lemma emeasure_Collect_distr:
 
 lemma emeasure_lfp2[consumes 1, case_names cont f measurable]:
   assumes "P M"
-  assumes cont: "Order_Continuity.continuous F"
+  assumes cont: "sup_continuous F"
   assumes f: "\<And>M. P M \<Longrightarrow> f \<in> measurable M' M"
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
   shows "emeasure M' {x\<in>space M'. lfp F (f x)} = (SUP i. emeasure M' {x\<in>space M'. (F ^^ i) (\<lambda>x. False) (f x)})"

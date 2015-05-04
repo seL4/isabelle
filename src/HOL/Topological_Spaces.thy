@@ -1231,7 +1231,7 @@ lemma LIMSEQ_SEQ_conv:
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
 
 lemma sequentially_imp_eventually_at_left:
-  fixes a :: "'a :: {dense_linorder, linorder_topology, first_countable_topology}"
+  fixes a :: "'a :: {linorder_topology, first_countable_topology}"
   assumes b[simp]: "b < a"
   assumes *: "\<And>f. (\<And>n. b < f n) \<Longrightarrow> (\<And>n. f n < a) \<Longrightarrow> incseq f \<Longrightarrow> f ----> a \<Longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
   shows "eventually P (at_left a)"
@@ -1261,7 +1261,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
 qed
 
 lemma tendsto_at_left_sequentially:
-  fixes a :: "_ :: {dense_linorder, linorder_topology, first_countable_topology}"
+  fixes a :: "_ :: {linorder_topology, first_countable_topology}"
   assumes "b < a"
   assumes *: "\<And>S. (\<And>n. S n < a) \<Longrightarrow> (\<And>n. b < S n) \<Longrightarrow> incseq S \<Longrightarrow> S ----> a \<Longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "(X ---> L) (at_left a)"
@@ -1269,7 +1269,7 @@ lemma tendsto_at_left_sequentially:
   by (simp add: sequentially_imp_eventually_at_left)
 
 lemma sequentially_imp_eventually_at_right:
-  fixes a :: "'a :: {dense_linorder, linorder_topology, first_countable_topology}"
+  fixes a :: "'a :: {linorder_topology, first_countable_topology}"
   assumes b[simp]: "a < b"
   assumes *: "\<And>f. (\<And>n. a < f n) \<Longrightarrow> (\<And>n. f n < b) \<Longrightarrow> decseq f \<Longrightarrow> f ----> a \<Longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
   shows "eventually P (at_right a)"
@@ -1299,7 +1299,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
 qed
 
 lemma tendsto_at_right_sequentially:
-  fixes a :: "_ :: {dense_linorder, linorder_topology, first_countable_topology}"
+  fixes a :: "_ :: {linorder_topology, first_countable_topology}"
   assumes "a < b"
   assumes *: "\<And>S. (\<And>n. a < S n) \<Longrightarrow> (\<And>n. S n < b) \<Longrightarrow> decseq S \<Longrightarrow> S ----> a \<Longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "(X ---> L) (at_right a)"

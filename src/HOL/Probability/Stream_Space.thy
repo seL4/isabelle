@@ -117,18 +117,18 @@ lemma measurable_ev_at[measurable]:
 lemma measurable_alw[measurable]:
   "Measurable.pred (stream_space M) P \<Longrightarrow> Measurable.pred (stream_space M) (alw P)"
   unfolding alw_def
-  by (coinduction rule: measurable_gfp_coinduct) (auto simp: Order_Continuity.down_continuous_def)
+  by (coinduction rule: measurable_gfp_coinduct) (auto simp: inf_continuous_def)
 
 lemma measurable_ev[measurable]:
   "Measurable.pred (stream_space M) P \<Longrightarrow> Measurable.pred (stream_space M) (ev P)"
   unfolding ev_def
-  by (coinduction rule: measurable_lfp_coinduct) (auto simp: Order_Continuity.continuous_def)
+  by (coinduction rule: measurable_lfp_coinduct) (auto simp: sup_continuous_def)
 
 lemma measurable_until:
   assumes [measurable]: "Measurable.pred (stream_space M) \<phi>" "Measurable.pred (stream_space M) \<psi>"
   shows "Measurable.pred (stream_space M) (\<phi> until \<psi>)"
   unfolding UNTIL_def
-  by (coinduction rule: measurable_gfp_coinduct) (simp_all add: down_continuous_def fun_eq_iff)
+  by (coinduction rule: measurable_gfp_coinduct) (simp_all add: inf_continuous_def fun_eq_iff)
 
 lemma measurable_holds [measurable]: "Measurable.pred M P \<Longrightarrow> Measurable.pred (stream_space M) (holds P)"
   unfolding holds.simps[abs_def]
@@ -144,7 +144,7 @@ lemma measurable_nxt[measurable (raw)]:
 lemma measurable_suntil[measurable]:
   assumes [measurable]: "Measurable.pred (stream_space M) Q" "Measurable.pred (stream_space M) P"
   shows "Measurable.pred (stream_space M) (Q suntil P)"
-  unfolding suntil_def by (coinduction rule: measurable_lfp_coinduct) (auto simp: Order_Continuity.continuous_def)
+  unfolding suntil_def by (coinduction rule: measurable_lfp_coinduct) (auto simp: sup_continuous_def)
 
 lemma measurable_szip:
   "(\<lambda>(\<omega>1, \<omega>2). szip \<omega>1 \<omega>2) \<in> measurable (stream_space M \<Otimes>\<^sub>M stream_space N) (stream_space (M \<Otimes>\<^sub>M N))"
@@ -263,7 +263,7 @@ proof -
   also have "\<dots> \<in> sets (stream_space M)"
     apply (intro predE)
     apply (coinduction rule: measurable_gfp_coinduct)
-    apply (auto simp: down_continuous_def)
+    apply (auto simp: inf_continuous_def)
     done
   finally show ?thesis .
 qed

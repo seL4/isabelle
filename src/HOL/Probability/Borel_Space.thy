@@ -409,7 +409,7 @@ lemma borel_measurable_INF[measurable (raw)]:
 
 lemma borel_measurable_lfp[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_linorder, linorder_topology, second_countable_topology})"
-  assumes "Order_Continuity.continuous F"
+  assumes "sup_continuous F"
   assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
   shows "lfp F \<in> borel_measurable M"
 proof -
@@ -420,13 +420,13 @@ proof -
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = (SUP i. (F ^^ i) bot)"
     by auto
   also have "(SUP i. (F ^^ i) bot) = lfp F"
-    by (rule continuous_lfp[symmetric]) fact
+    by (rule sup_continuous_lfp[symmetric]) fact
   finally show ?thesis .
 qed
 
 lemma borel_measurable_gfp[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_linorder, linorder_topology, second_countable_topology})"
-  assumes "Order_Continuity.down_continuous F"
+  assumes "inf_continuous F"
   assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
   shows "gfp F \<in> borel_measurable M"
 proof -
@@ -437,7 +437,7 @@ proof -
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = (INF i. (F ^^ i) top)"
     by auto
   also have "\<dots> = gfp F"
-    by (rule down_continuous_gfp[symmetric]) fact
+    by (rule inf_continuous_gfp[symmetric]) fact
   finally show ?thesis .
 qed
 

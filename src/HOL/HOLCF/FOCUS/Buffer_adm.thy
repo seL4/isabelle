@@ -22,8 +22,8 @@ lemma BufAC_Asm_F_def3:
   (? d. ft\<cdot>s=Def(Md d)) & (rt\<cdot>s=<> | ft\<cdot>(rt\<cdot>s)=Def \<bullet> & rt\<cdot>(rt\<cdot>s):A))"
 by (unfold BufAC_Asm_F_def, auto)
 
-lemma cont_BufAC_Asm_F: "down_continuous BufAC_Asm_F"
-by (auto simp add: down_continuous_def BufAC_Asm_F_def3)
+lemma cont_BufAC_Asm_F: "inf_continuous BufAC_Asm_F"
+by (auto simp add: inf_continuous_def BufAC_Asm_F_def3)
 
 lemma BufAC_Cmt_F_def3:
  "((s,t):BufAC_Cmt_F C) = (!d x.
@@ -37,8 +37,8 @@ apply (simp)
 apply (auto intro: surjectiv_scons [symmetric])
 done
 
-lemma cont_BufAC_Cmt_F: "down_continuous BufAC_Cmt_F"
-by (auto simp add: down_continuous_def BufAC_Cmt_F_def3)
+lemma cont_BufAC_Cmt_F: "inf_continuous BufAC_Cmt_F"
+by (auto simp add: inf_continuous_def BufAC_Cmt_F_def3)
 
 
 (**** adm_BufAC_Asm ***********************************************************)
@@ -184,7 +184,7 @@ done
 
 lemma BufAC_Cmt_iterate_all: "(x\<in>BufAC_Cmt) = (\<forall>n. x\<in>(BufAC_Cmt_F ^^ n) top)"
 apply (unfold BufAC_Cmt_def)
-apply (subst cont_BufAC_Cmt_F [THEN down_continuous_gfp])
+apply (subst cont_BufAC_Cmt_F [THEN inf_continuous_gfp])
 apply (fast)
 done
 

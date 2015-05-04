@@ -556,6 +556,14 @@ lemma mono_Sup:
   shows "(\<Squnion>x\<in>A. f x) \<le> f (\<Squnion>A)"
   using `mono f` by (auto intro: complete_lattice_class.SUP_least Sup_upper dest: monoD)
 
+lemma mono_INF:
+  "f (INF i : I. A i) \<le> (INF x : I. f (A x))"
+  by (intro complete_lattice_class.INF_greatest monoD[OF `mono f`] INF_lower)
+
+lemma mono_SUP:
+  "(SUP x : I. f (A x)) \<le> f (SUP i : I. A i)"
+  by (intro complete_lattice_class.SUP_least monoD[OF `mono f`] SUP_upper)
+
 end
 
 end
