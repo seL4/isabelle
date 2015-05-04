@@ -216,11 +216,10 @@ token category instead.
     of rel_prod_def and rel_sum_def.
     Minor INCOMPATIBILITY: (rarely used by name) transfer theorem names
     changed (e.g. map_prod_transfer ~> prod.map_transfer).
-  - Parametricity theorems for map functions, relators, set
-    functions, constructors, case combinators, discriminators,
-    selectors and (co)recursors are automatically proved and registred
-    as transfer rules.
-
+  - Parametricity theorems for map functions, relators, set functions,
+    constructors, case combinators, discriminators, selectors and
+    (co)recursors are automatically proved and registered as transfer
+    rules.
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and
@@ -266,12 +265,10 @@ token category instead.
   - New option 'smt_statistics' to display statistics of the new 'smt'
     method, especially runtime statistics of Z3 proof reconstruction.
 
-* Lifting
-  - lift_definition command implements a workaround that allows us 
-    to execute lifted constants that have as a return type 
-    a datatype containing a subtype.
-    This was a long time limitation in the area of code generation and
-    lifting and the used workarounds were tedious.
+* Lifting: command 'lift_definition' allows to execute lifted constants
+that have as a return type a datatype containing a subtype. This
+overcomes long-time limitations in the area of code generation and
+lifting, and avoids tedious workarounds.
 
 * Command and antiquotation "value" provide different evaluation slots
 (again), where the previous strategy (NBE after ML) serves as default.

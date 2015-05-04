@@ -10,8 +10,8 @@ Contributions to Isabelle2015
   The Eisbach proof method language and "match" method.
 
 * Winter 2014 and Spring 2015: Ondrej Kuncar, TUM
-  Extension of lift_definition to execute lifted functions that have as a return type 
-  a datatype containing a subtype. 
+  Extension of lift_definition to execute lifted functions that have as a
+  return type a datatype containing a subtype.
 
 * March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII,
   and Dmitriy Traytel, TUM
