@@ -248,6 +248,103 @@ text{*Monotonicity of @{term gfp}!*}
 lemma gfp_mono: "(!!Z. f Z \<le> g Z) ==> gfp f \<le> gfp g"
   by (rule gfp_upperbound [THEN gfp_least], blast intro: order_trans)
 
+subsection {* Rules for fixed point calculus *}
+
+
+lemma lfp_rolling:
+  assumes "mono g" "mono f"
+  shows "g (lfp (\<lambda>x. f (g x))) = lfp (\<lambda>x. g (f x))"
+proof (rule antisym)
+  have *: "mono (\<lambda>x. f (g x))"
+    using assms by (auto simp: mono_def)
+
+  show "lfp (\<lambda>x. g (f x)) \<le> g (lfp (\<lambda>x. f (g x)))"
+    by (rule lfp_lowerbound) (simp add: lfp_unfold[OF *, symmetric])
+
+  show "g (lfp (\<lambda>x. f (g x))) \<le> lfp (\<lambda>x. g (f x))"
+  proof (rule lfp_greatest)
+    fix u assume "g (f u) \<le> u"
+    moreover then have "g (lfp (\<lambda>x. f (g x))) \<le> g (f u)"
+      by (intro assms[THEN monoD] lfp_lowerbound)
+    ultimately show "g (lfp (\<lambda>x. f (g x))) \<le> u"
+      by auto
+  qed
+qed
+
+lemma lfp_square:
+  assumes "mono f" shows "lfp f = lfp (\<lambda>x. f (f x))"
+proof (rule antisym)
+  show "lfp f \<le> lfp (\<lambda>x. f (f x))"
+    by (intro lfp_lowerbound) (simp add: assms lfp_rolling)
+  show "lfp (\<lambda>x. f (f x)) \<le> lfp f"
+    by (intro lfp_lowerbound) (simp add: lfp_unfold[OF assms, symmetric])
+qed
+
+lemma lfp_lfp:
+  assumes f: "\<And>x y w z. x \<le> y \<Longrightarrow> w \<le> z \<Longrightarrow> f x w \<le> f y z"
+  shows "lfp (\<lambda>x. lfp (f x)) = lfp (\<lambda>x. f x x)"
+proof (rule antisym)
+  have *: "mono (\<lambda>x. f x x)"
+    by (blast intro: monoI f)
+  show "lfp (\<lambda>x. lfp (f x)) \<le> lfp (\<lambda>x. f x x)"
+    by (intro lfp_lowerbound) (simp add: lfp_unfold[OF *, symmetric])
+  show "lfp (\<lambda>x. lfp (f x)) \<ge> lfp (\<lambda>x. f x x)" (is "?F \<ge> _")
+  proof (intro lfp_lowerbound)
+    have *: "?F = lfp (f ?F)"
+      by (rule lfp_unfold) (blast intro: monoI lfp_mono f)
+    also have "\<dots> = f ?F (lfp (f ?F))"
+      by (rule lfp_unfold) (blast intro: monoI lfp_mono f)
+    finally show "f ?F ?F \<le> ?F"
+      by (simp add: *[symmetric])
+  qed
+qed
+
+lemma gfp_rolling:
+  assumes "mono g" "mono f"
+  shows "g (gfp (\<lambda>x. f (g x))) = gfp (\<lambda>x. g (f x))"
+proof (rule antisym)
+  have *: "mono (\<lambda>x. f (g x))"
+    using assms by (auto simp: mono_def)
+  show "g (gfp (\<lambda>x. f (g x))) \<le> gfp (\<lambda>x. g (f x))"
+    by (rule gfp_upperbound) (simp add: gfp_unfold[OF *, symmetric])
+
+  show "gfp (\<lambda>x. g (f x)) \<le> g (gfp (\<lambda>x. f (g x)))"
+  proof (rule gfp_least)
+    fix u assume "u \<le> g (f u)"
+    moreover then have "g (f u) \<le> g (gfp (\<lambda>x. f (g x)))"
+      by (intro assms[THEN monoD] gfp_upperbound)
+    ultimately show "u \<le> g (gfp (\<lambda>x. f (g x)))"
+      by auto
+  qed
+qed
+
+lemma gfp_square:
+  assumes "mono f" shows "gfp f = gfp (\<lambda>x. f (f x))"
+proof (rule antisym)
+  show "gfp (\<lambda>x. f (f x)) \<le> gfp f"
+    by (intro gfp_upperbound) (simp add: assms gfp_rolling)
+  show "gfp f \<le> gfp (\<lambda>x. f (f x))"
+    by (intro gfp_upperbound) (simp add: gfp_unfold[OF assms, symmetric])
+qed
+
+lemma gfp_gfp:
+  assumes f: "\<And>x y w z. x \<le> y \<Longrightarrow> w \<le> z \<Longrightarrow> f x w \<le> f y z"
+  shows "gfp (\<lambda>x. gfp (f x)) = gfp (\<lambda>x. f x x)"
+proof (rule antisym)
+  have *: "mono (\<lambda>x. f x x)"
+    by (blast intro: monoI f)
+  show "gfp (\<lambda>x. f x x) \<le> gfp (\<lambda>x. gfp (f x))"
+    by (intro gfp_upperbound) (simp add: gfp_unfold[OF *, symmetric])
+  show "gfp (\<lambda>x. gfp (f x)) \<le> gfp (\<lambda>x. f x x)" (is "?F \<le> _")
+  proof (intro gfp_upperbound)
+    have *: "?F = gfp (f ?F)"
+      by (rule gfp_unfold) (blast intro: monoI gfp_mono f)
+    also have "\<dots> = f ?F (gfp (f ?F))"
+      by (rule gfp_unfold) (blast intro: monoI gfp_mono f)
+    finally show "?F \<le> f ?F ?F"
+      by (simp add: *[symmetric])
+  qed
+qed
 
 subsection {* Inductive predicates and sets *}
 
