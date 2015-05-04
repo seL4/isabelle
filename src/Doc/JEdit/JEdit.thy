@@ -285,11 +285,14 @@ text \<open>jEdit is a Java/AWT/Swing application with some ambition to
   \item[Linux:] The platform-independent \emph{Nimbus} is used by
   default.
 
-  \emph{GTK+} works under the side-condition that the overall GTK theme is
-  selected in a Swing-friendly way.\footnote{GTK support in Java/Swing was
-  once marketed aggressively by Sun, but never quite finished. Today (2013) it
+  \emph{GTK+} also works under the side-condition that the overall GTK theme
+  is selected in a Swing-friendly way.\footnote{GTK support in Java/Swing was
+  once marketed aggressively by Sun, but never quite finished. Today (2015) it
   is lagging behind further development of Swing and GTK. The graphics
-  rendering performance can be worse than for other Swing look-and-feels.}
+  rendering performance can be worse than for other Swing look-and-feels.
+  Nonetheless it has its uses for displays with very high resolution (such as
+  ``4K'' or ``UHD'' models), because the rendering by the external library is
+  subject to global system settings for font scaling.}
 
   \item[Windows:] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
