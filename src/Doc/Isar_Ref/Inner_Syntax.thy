@@ -1023,7 +1023,7 @@ text \<open>The inner syntax engine of Isabelle provides separate
   need to be passed-through carefully by syntax transformations.
 
   Pre-terms are further processed by the so-called \emph{check} and
-  \emph{unckeck} phases that are intertwined with type-inference (see
+  \emph{uncheck} phases that are intertwined with type-inference (see
   also @{cite "isabelle-implementation"}).  The latter allows to operate
   on higher-order abstract syntax with proper binding and type
   information already available.
