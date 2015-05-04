@@ -56,32 +56,10 @@ lemma lfp_const: "lfp (\<lambda>x. t) = t"
 
 subsection {* General induction rules for least fixed points *}
 
-theorem lfp_induct:
-  assumes mono: "mono f" and ind: "f (inf (lfp f) P) <= P"
-  shows "lfp f <= P"
-proof -
-  have "inf (lfp f) P <= lfp f" by (rule inf_le1)
-  with mono have "f (inf (lfp f) P) <= f (lfp f)" ..
-  also from mono have "f (lfp f) = lfp f" by (rule lfp_unfold [symmetric])
-  finally have "f (inf (lfp f) P) <= lfp f" .
-  from this and ind have "f (inf (lfp f) P) <= inf (lfp f) P" by (rule le_infI)
-  hence "lfp f <= inf (lfp f) P" by (rule lfp_lowerbound)
-  also have "inf (lfp f) P <= P" by (rule inf_le2)
-  finally show ?thesis .
-qed
-
-lemma lfp_induct_set:
-  assumes lfp: "a: lfp(f)"
-      and mono: "mono(f)"
-      and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
-  shows "P(a)"
-  by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
-    (auto simp: intro: indhyp)
-
-lemma lfp_ordinal_induct:
+lemma lfp_ordinal_induct[case_names mono step union]:
   fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
   assumes mono: "mono f"
-  and P_f: "\<And>S. P S \<Longrightarrow> P (f S)"
+  and P_f: "\<And>S. P S \<Longrightarrow> S \<le> lfp f \<Longrightarrow> P (f S)"
   and P_Union: "\<And>M. \<forall>S\<in>M. P S \<Longrightarrow> P (Sup M)"
   shows "P (lfp f)"
 proof -
@@ -92,12 +70,28 @@ proof -
     show "Sup ?M \<le> lfp f" by (blast intro: Sup_least)
     hence "f (Sup ?M) \<le> f (lfp f)" by (rule mono [THEN monoD])
     hence "f (Sup ?M) \<le> lfp f" using mono [THEN lfp_unfold] by simp
-    hence "f (Sup ?M) \<in> ?M" using P_f P_Union by simp
+    hence "f (Sup ?M) \<in> ?M" using P_Union by simp (intro P_f Sup_least, auto)
     hence "f (Sup ?M) \<le> Sup ?M" by (rule Sup_upper)
     thus "lfp f \<le> Sup ?M" by (rule lfp_lowerbound)
   qed
   finally show ?thesis .
 qed 
+
+theorem lfp_induct:
+  assumes mono: "mono f" and ind: "f (inf (lfp f) P) \<le> P"
+  shows "lfp f \<le> P"
+proof (induction rule: lfp_ordinal_induct)
+  case (step S) then show ?case
+    by (intro order_trans[OF _ ind] monoD[OF mono]) auto
+qed (auto intro: mono Sup_least)
+
+lemma lfp_induct_set:
+  assumes lfp: "a: lfp(f)"
+      and mono: "mono(f)"
+      and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
+  shows "P(a)"
+  by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
+     (auto simp: intro: indhyp)
 
 lemma lfp_ordinal_induct_set: 
   assumes mono: "mono f"
@@ -179,17 +173,35 @@ text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
   by (rule weak_coinduct[rotated], rule coinduct_lemma) blast+
 
-lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
-  apply (rule order_trans)
-  apply (rule sup_ge1)
-  apply (rule gfp_upperbound)
-  apply (erule coinduct_lemma)
-  apply assumption
-  done
-
 lemma gfp_fun_UnI2: "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))"
   by (blast dest: gfp_lemma2 mono_Un)
 
+lemma gfp_ordinal_induct[case_names mono step union]:
+  fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
+  assumes mono: "mono f"
+  and P_f: "\<And>S. P S \<Longrightarrow> gfp f \<le> S \<Longrightarrow> P (f S)"
+  and P_Union: "\<And>M. \<forall>S\<in>M. P S \<Longrightarrow> P (Inf M)"
+  shows "P (gfp f)"
+proof -
+  let ?M = "{S. gfp f \<le> S \<and> P S}"
+  have "P (Inf ?M)" using P_Union by simp
+  also have "Inf ?M = gfp f"
+  proof (rule antisym)
+    show "gfp f \<le> Inf ?M" by (blast intro: Inf_greatest)
+    hence "f (gfp f) \<le> f (Inf ?M)" by (rule mono [THEN monoD])
+    hence "gfp f \<le> f (Inf ?M)" using mono [THEN gfp_unfold] by simp
+    hence "f (Inf ?M) \<in> ?M" using P_Union by simp (intro P_f Inf_greatest, auto)
+    hence "Inf ?M \<le> f (Inf ?M)" by (rule Inf_lower)
+    thus "Inf ?M \<le> gfp f" by (rule gfp_upperbound)
+  qed
+  finally show ?thesis .
+qed 
+
+lemma coinduct: assumes mono: "mono f" and ind: "X \<le> f (sup X (gfp f))" shows "X \<le> gfp f"
+proof (induction rule: gfp_ordinal_induct)
+  case (step S) then show ?case
+    by (intro order_trans[OF ind _] monoD[OF mono]) auto
+qed (auto intro: mono Inf_greatest)
 
 subsection {* Even Stronger Coinduction Rule, by Martin Coen *}
 
