@@ -183,7 +183,9 @@ session JEdit (doc) in "JEdit" = HOL +
     "style.sty"
   document_files
     "auto-tools.png"
+    "bibtex-mode.png"
     "build"
+    "cite-completion.png"
     "isabelle-jedit.png"
     "output.png"
     "query.png"
@@ -191,6 +193,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "popup2.png"
     "root.tex"
     "sidekick.png"
+    "sidekick-document.png"
     "sledgehammer.png"
     "theories.png"
 

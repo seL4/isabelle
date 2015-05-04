@@ -1567,6 +1567,70 @@ text \<open>The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   nonetheless, say to remove earlier proof attempts.\<close>
 
 
+chapter \<open>Isabelle document preparation\<close>
+
+text \<open>The ultimate purpose of Isabelle is to produce nicely rendered documents
+  with the Isabelle document preparation system, which is based on {\LaTeX};
+  see also @{cite "isabelle-sys" and "isabelle-isar-ref"}. Isabelle/jEdit
+  provides some additional support for document editing.\<close>
+
+
+section \<open>Document outline\<close>
+
+text \<open>Theory sources may contain document markup commands, such as
+  @{command_ref chapter}, @{command_ref section}, @{command subsection}. The
+  Isabelle SideKick parser (\secref{sec:sidekick}) represents this document
+  outline as structured tree view, with formal statements and proofs nested
+  inside; see \figref{fig:sidekick-document}.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{sidekick-document}
+  \end{center}
+  \caption{Isabelle document outline via SideKick tree view}
+  \label{fig:sidekick-document}
+  \end{figure}
+\<close>
+
+section \<open>Citations and Bib{\TeX} entries\<close>
+
+text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"}
+  files. The Isabelle session build process and the
+  @{verbatim "isabelle latex"} tool @{cite "isabelle-sys"} are smart enough
+  to assemble the result, based on the session directory layout.
+
+  The document antiquotation @{text "@{cite}"} is described in @{cite
+  "isabelle-isar-ref"}. Within the Prover IDE it provides semantic markup for
+  tooltips, hyperlinks, and completion for Bib{\TeX} database entries.
+  Isabelle/jEdit does \emph{not} know about the actual Bib{\TeX} environment
+  used in {\LaTeX} batch-mode, but it can take citations from those @{verbatim
+  ".bib"} files that happen to be open in the editor; see
+  \figref{fig:cite-completion}.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{cite-completion}
+  \end{center}
+  \caption{Semantic completion of citations from open Bib{\TeX} files}
+  \label{fig:cite-completion}
+  \end{figure}
+
+  Isabelle/jEdit also provides some support for editing @{verbatim ".bib"}
+  files themselves. There is syntax highlighting based on entry types
+  (according to standard Bib{\TeX} styles), a context-menu to compose entries
+  systematically, and a SideKick tree view of the overall content; see
+  \figref{fig:bibtex-mode}.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{bibtex-mode}
+  \end{center}
+  \caption{Bib{\TeX} mode with context menu and SideKick tree view}
+  \label{fig:bibtex-mode}
+  \end{figure}
+\<close>
+
+
 chapter \<open>Miscellaneous tools\<close>
 
 section \<open>Timing\<close>
