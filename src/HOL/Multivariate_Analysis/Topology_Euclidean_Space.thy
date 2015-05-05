@@ -6695,6 +6695,90 @@ lemma image_smult_cbox:"(\<lambda>x. m *\<^sub>R (x::_::euclidean_space)) ` cbox
   (if cbox a b = {} then {} else if 0 \<le> m then cbox (m *\<^sub>R a) (m *\<^sub>R b) else cbox (m *\<^sub>R b) (m *\<^sub>R a))"
   using image_affinity_cbox[of m 0 a b] by auto
 
+lemma islimpt_greaterThanLessThan1:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows  "a islimpt {a<..<b}"
+proof (rule islimptI)
+  fix T
+  assume "open T" "a \<in> T"
+  from open_right[OF this `a < b`]
+  obtain c where c: "a < c" "{a..<c} \<subseteq> T" by auto
+  with assms dense[of a "min c b"]
+  show "\<exists>y\<in>{a<..<b}. y \<in> T \<and> y \<noteq> a"
+    by (metis atLeastLessThan_iff greaterThanLessThan_iff min_less_iff_conj
+      not_le order.strict_implies_order subset_eq)
+qed
+
+lemma islimpt_greaterThanLessThan2:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows  "b islimpt {a<..<b}"
+proof (rule islimptI)
+  fix T
+  assume "open T" "b \<in> T"
+  from open_left[OF this `a < b`]
+  obtain c where c: "c < b" "{c<..b} \<subseteq> T" by auto
+  with assms dense[of "max a c" b]
+  show "\<exists>y\<in>{a<..<b}. y \<in> T \<and> y \<noteq> b"
+    by (metis greaterThanAtMost_iff greaterThanLessThan_iff max_less_iff_conj
+      not_le order.strict_implies_order subset_eq)
+qed
+
+lemma closure_greaterThanLessThan[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  shows "a < b \<Longrightarrow> closure {a <..< b} = {a .. b}" (is "_ \<Longrightarrow> ?l = ?r")
+proof
+  have "?l \<subseteq> closure ?r"
+    by (rule closure_mono) auto
+  thus "closure {a<..<b} \<subseteq> {a..b}" by simp
+qed (auto simp: closure_def order.order_iff_strict islimpt_greaterThanLessThan1
+  islimpt_greaterThanLessThan2)
+
+lemma closure_greaterThan[simp]:
+  fixes a b::"'a::{no_top, linorder_topology, dense_order}"
+  shows "closure {a<..} = {a..}"
+proof -
+  from gt_ex obtain b where "a < b" by auto
+  hence "{a<..} = {a<..<b} \<union> {b..}" by auto
+  also have "closure \<dots> = {a..}" using `a < b` unfolding closure_union
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closure_lessThan[simp]:
+  fixes b::"'a::{no_bot, linorder_topology, dense_order}"
+  shows "closure {..<b} = {..b}"
+proof -
+  from lt_ex obtain a where "a < b" by auto
+  hence "{..<b} = {a<..<b} \<union> {..a}" by auto
+  also have "closure \<dots> = {..b}" using `a < b` unfolding closure_union
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closure_atLeastLessThan[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows "closure {a ..< b} = {a .. b}"
+proof -
+  from assms have "{a ..< b} = {a} \<union> {a <..< b}" by auto
+  also have "closure \<dots> = {a .. b}" unfolding closure_union
+    by (auto simp add: assms less_imp_le)
+  finally show ?thesis .
+qed
+
+lemma closure_greaterThanAtMost[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows "closure {a <.. b} = {a .. b}"
+proof -
+  from assms have "{a <.. b} = {b} \<union> {a <..< b}" by auto
+  also have "closure \<dots> = {a .. b}" unfolding closure_union
+    by (auto simp add: assms less_imp_le)
+  finally show ?thesis .
+qed
+
 
 subsection {* Homeomorphisms *}
 

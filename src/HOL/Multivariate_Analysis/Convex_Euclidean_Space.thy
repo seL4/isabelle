@@ -6356,6 +6356,24 @@ lemma segment_bound:
 lemma segment_refl: "closed_segment a a = {a}"
   unfolding segment by (auto simp add: algebra_simps)
 
+lemma closed_segment_commute: "closed_segment a b = closed_segment b a"
+proof -
+  have "{a, b} = {b, a}" by auto
+  thus ?thesis
+    by (simp add: segment_convex_hull)
+qed
+
+lemma closed_segment_eq_real_ivl:
+  fixes a b::real
+  shows "closed_segment a b = (if a \<le> b then {a .. b} else {b .. a})"
+proof -
+  have "b \<le> a \<Longrightarrow> closed_segment b a = {b .. a}"
+    and "a \<le> b \<Longrightarrow> closed_segment a b = {a .. b}"
+    by (auto simp: convex_hull_eq_real_cbox segment_convex_hull)
+  thus ?thesis
+    by (auto simp: closed_segment_commute)
+qed
+
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto
 
