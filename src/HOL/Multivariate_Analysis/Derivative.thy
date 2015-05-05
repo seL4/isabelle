@@ -779,10 +779,225 @@ proof -
   qed
 qed
 
-text {* Still more general bound theorem. *}
+
+subsection {* More general bound theorems *}
+
+lemma differentiable_bound_general:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  assumes "a < b"
+    and f_cont: "continuous_on {a .. b} f"
+    and phi_cont: "continuous_on {a .. b} \<phi>"
+    and f': "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+    and phi': "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (\<phi> has_vector_derivative \<phi>' x) (at x)"
+    and bnd: "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> norm (f' x) \<le> \<phi>' x"
+  shows "norm (f b - f a) \<le> \<phi> b - \<phi> a"
+proof -
+  {
+    fix x assume x: "a < x" "x < b"
+    have "0 \<le> norm (f' x)" by simp
+    also have "\<dots> \<le> \<phi>' x" using x by (auto intro!: bnd)
+    finally have "0 \<le> \<phi>' x" .
+  } note phi'_nonneg = this
+  note f_tendsto = assms(2)[simplified continuous_on_def, rule_format]
+  note phi_tendsto = assms(3)[simplified continuous_on_def, rule_format]
+  {
+    fix e::real assume "e > 0"
+    def e2 \<equiv> "e / 2" with `e > 0` have "e2 > 0" by simp
+    let ?le = "\<lambda>x1. norm (f x1 - f a) \<le> \<phi> x1 - \<phi> a + e * (x1 - a) + e"
+    def A \<equiv> "{x2. a \<le> x2 \<and> x2 \<le> b \<and> (\<forall>x1\<in>{a ..< x2}. ?le x1)}"
+    have A_subset: "A \<subseteq> {a .. b}" by (auto simp: A_def)
+    {
+      fix x2
+      assume a: "a \<le> x2" "x2 \<le> b" and le: "\<forall>x1\<in>{a..<x2}. ?le x1"
+      have "?le x2" using `e > 0`
+      proof cases
+        assume "x2 \<noteq> a" with a have "a < x2" by simp
+        have "at x2 within {a <..<x2}\<noteq> bot"
+          using `a < x2`
+          by (auto simp: trivial_limit_within islimpt_in_closure)
+        moreover
+        have "((\<lambda>x1. (\<phi> x1 - \<phi> a) + e * (x1 - a) + e) ---> (\<phi> x2 - \<phi> a) + e * (x2 - a) + e) (at x2 within {a <..<x2})"
+          "((\<lambda>x1. norm (f x1 - f a)) ---> norm (f x2 - f a)) (at x2 within {a <..<x2})"
+          using a
+          by (auto intro!: tendsto_eq_intros f_tendsto phi_tendsto
+            intro: tendsto_within_subset[where S="{a .. b}"])
+        moreover
+        have "eventually (\<lambda>x. x > a) (at x2 within {a <..<x2})"
+          by (auto simp: eventually_at_filter)
+        hence "eventually ?le (at x2 within {a <..<x2})"
+          unfolding eventually_at_filter
+          by eventually_elim (insert le, auto)
+        ultimately
+        show ?thesis
+          by (rule tendsto_le)
+      qed simp
+    } note le_cont = this
+    have "a \<in> A"
+      using assms by (auto simp: A_def)
+    hence [simp]: "A \<noteq> {}" by auto
+    have A_ivl: "\<And>x1 x2. x2 \<in> A \<Longrightarrow> x1 \<in> {a ..x2} \<Longrightarrow> x1 \<in> A"
+      by (simp add: A_def)
+    have [simp]: "bdd_above A" by (auto simp: A_def)
+    def y \<equiv> "Sup A"
+    have "y \<le> b"
+      unfolding y_def
+      by (simp add: cSup_le_iff) (simp add: A_def)
+     have leI: "\<And>x x1. a \<le> x1 \<Longrightarrow> x \<in> A \<Longrightarrow> x1 < x \<Longrightarrow> ?le x1"
+       by (auto simp: A_def intro!: le_cont)
+    have y_all_le: "\<forall>x1\<in>{a..<y}. ?le x1"
+      by (auto simp: y_def less_cSup_iff leI)
+    have "a \<le> y"
+      by (metis `a \<in> A` `bdd_above A` cSup_upper y_def)
+    have "y \<in> A"
+      using y_all_le `a \<le> y` `y \<le> b`
+      by (auto simp: A_def)
+    hence "A = {a .. y}"
+      using A_subset
+      by (auto simp: subset_iff y_def cSup_upper intro: A_ivl)
+    from le_cont[OF `a \<le> y` `y \<le> b` y_all_le] have le_y: "?le y" .
+    {
+      assume "a \<noteq> y" with `a \<le> y` have "a < y" by simp
+      have "y = b"
+      proof (rule ccontr)
+        assume "y \<noteq> b"
+        hence "y < b" using `y \<le> b` by simp
+        let ?F = "at y within {y..<b}"
+        from f' phi'
+        have "(f has_vector_derivative f' y) ?F"
+          and "(\<phi> has_vector_derivative \<phi>' y) ?F"
+          using `a < y` `y < b`
+          by (auto simp add: at_within_open[of _ "{a<..<b}"] has_vector_derivative_def
+            intro!: has_derivative_subset[where s="{a<..<b}" and t="{y..<b}"])
+        hence "\<forall>\<^sub>F x1 in ?F. norm (f x1 - f y - (x1 - y) *\<^sub>R f' y) \<le> e2 * \<bar>x1 - y\<bar>"
+            "\<forall>\<^sub>F x1 in ?F. norm (\<phi> x1 - \<phi> y - (x1 - y) *\<^sub>R \<phi>' y) \<le> e2 * \<bar>x1 - y\<bar>"
+          using `e2 > 0`
+          by (auto simp: has_derivative_within_alt2 has_vector_derivative_def)
+        moreover
+        have "\<forall>\<^sub>F x1 in ?F. y \<le> x1" "\<forall>\<^sub>F x1 in ?F. x1 < b"
+          by (auto simp: eventually_at_filter)
+        ultimately
+        have "\<forall>\<^sub>F x1 in ?F. norm (f x1 - f y) \<le> (\<phi> x1 - \<phi> y) + e * \<bar>x1 - y\<bar>"
+          (is "\<forall>\<^sub>F x1 in ?F. ?le' x1")
+        proof eventually_elim
+          case elim
+          from norm_triangle_ineq2[THEN order_trans, OF elim(1)]
+          have "norm (f x1 - f y) \<le> norm (f' y) * \<bar>x1 - y\<bar> + e2 * \<bar>x1 - y\<bar>"
+            by (simp add: ac_simps)
+          also have "norm (f' y) \<le> \<phi>' y" using bnd `a < y` `y < b` by simp
+          also
+          from elim have "\<phi>' y * \<bar>x1 - y\<bar> \<le> \<phi> x1 - \<phi> y + e2 * \<bar>x1 - y\<bar>"
+            by (simp add: ac_simps)
+          finally
+          have "norm (f x1 - f y) \<le> \<phi> x1 - \<phi> y + e2 * \<bar>x1 - y\<bar> + e2 * \<bar>x1 - y\<bar>"
+            by (auto simp: mult_right_mono)
+          thus ?case by (simp add: e2_def)
+        qed
+        moreover have "?le' y" by simp
+        ultimately obtain S
+        where S: "open S" "y \<in> S" "\<And>x. x\<in>S \<Longrightarrow> x \<in> {y..<b} \<Longrightarrow> ?le' x"
+          unfolding eventually_at_topological
+          by metis
+        from `open S` obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
+          by (force simp: dist_commute open_real_def ball_def
+            dest!: bspec[OF _ `y \<in> S`])
+        def d' \<equiv> "min ((y + b)/2) (y + (d/2))"
+        have "d' \<in> A"
+          unfolding A_def
+        proof safe
+          show "a \<le> d'" using `a < y` `0 < d` `y < b` by (simp add: d'_def)
+          show "d' \<le> b" using `y < b` by (simp add: d'_def min_def)
+          fix x1
+          assume x1: "x1 \<in> {a..<d'}"
+          {
+            assume "x1 < y"
+            hence "?le x1"
+              using `x1 \<in> {a..<d'}` y_all_le by auto
+          } moreover {
+            assume "x1 \<ge> y"
+            hence x1': "x1 \<in> S" "x1 \<in> {y..<b}" using x1
+              by (auto simp: d'_def dist_real_def intro!: d)
+            have "norm (f x1 - f a) \<le> norm (f x1 - f y) + norm (f y - f a)"
+              by (rule order_trans[OF _ norm_triangle_ineq]) simp
+            also note S(3)[OF x1']
+            also note le_y
+            finally have "?le x1"
+              using `x1 \<ge> y` by (auto simp: algebra_simps)
+          } ultimately show "?le x1" by arith
+        qed
+        hence "d' \<le> y"
+          unfolding y_def
+          by (rule cSup_upper) simp
+        thus False using `d > 0` `y < b`
+          by (simp add: d'_def min_def split: split_if_asm)
+      qed
+    } moreover {
+      assume "a = y"
+      with `a < b` have "y < b" by simp
+      with `a = y` f_cont phi_cont `e2 > 0`
+      have 1: "\<forall>\<^sub>F x in at y within {y..b}. dist (f x) (f y) < e2"
+       and 2: "\<forall>\<^sub>F x in at y within {y..b}. dist (\<phi> x) (\<phi> y) < e2"
+        by (auto simp: continuous_on_def tendsto_iff)
+      have 3: "eventually (\<lambda>x. y < x) (at y within {y..b})"
+        by (auto simp: eventually_at_filter)
+      have 4: "eventually (\<lambda>x::real. x < b) (at y within {y..b})"
+        using _ `y < b`
+        by (rule order_tendstoD) (auto intro!: tendsto_eq_intros)
+      from 1 2 3 4
+      have eventually_le: "eventually (\<lambda>x. ?le x) (at y within {y .. b})"
+      proof eventually_elim
+        case (elim x1)
+        have "norm (f x1 - f a) = norm (f x1 - f y)"
+          by (simp add: `a = y`)
+        also have "norm (f x1 - f y) \<le> e2"
+          using elim `a = y` by (auto simp : dist_norm intro!:  less_imp_le)
+        also have "\<dots> \<le> e2 + (\<phi> x1 - \<phi> a + e2 + e * (x1 - a))"
+          using `0 < e` elim
+          by (intro add_increasing2[OF add_nonneg_nonneg order.refl])
+            (auto simp: `a = y` dist_norm intro!: mult_nonneg_nonneg)
+        also have "\<dots> = \<phi> x1 - \<phi> a + e * (x1 - a) + e"
+          by (simp add: e2_def)
+        finally show "?le x1" .
+      qed
+      from this[unfolded eventually_at_topological] `?le y`
+      obtain S
+      where S: "open S" "y \<in> S" "\<And>x. x\<in>S \<Longrightarrow> x \<in> {y..b} \<Longrightarrow> ?le x"
+        by metis
+      from `open S` obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
+        by (force simp: dist_commute open_real_def ball_def
+          dest!: bspec[OF _ `y \<in> S`])
+      def d' \<equiv> "min b (y + (d/2))"
+      have "d' \<in> A"
+        unfolding A_def
+      proof safe
+        show "a \<le> d'" using `a = y` `0 < d` `y < b` by (simp add: d'_def)
+        show "d' \<le> b" by (simp add: d'_def)
+        fix x1
+        assume "x1 \<in> {a..<d'}"
+        hence "x1 \<in> S" "x1 \<in> {y..b}"
+          by (auto simp: `a = y` d'_def dist_real_def intro!: d )
+        thus "?le x1"
+          by (rule S)
+      qed
+      hence "d' \<le> y"
+        unfolding y_def
+        by (rule cSup_upper) simp
+      hence "y = b" using `d > 0` `y < b`
+        by (simp add: d'_def)
+    } ultimately have "y = b"
+      by auto
+    with le_y have "norm (f b - f a) \<le> \<phi> b - \<phi> a + e * (b - a + 1)"
+      by (simp add: algebra_simps)
+  } note * = this
+  {
+    fix e::real assume "e > 0"
+    hence "norm (f b - f a) \<le> \<phi> b - \<phi> a + e"
+      using *[of "e / (b - a + 1)"] `a < b` by simp
+  } thus ?thesis
+    by (rule field_le_epsilon)
+qed
 
 lemma differentiable_bound:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"
     and "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)"
     and "\<forall>x\<in>s. onorm (f' x) \<le> B"
@@ -791,14 +1006,15 @@ lemma differentiable_bound:
   shows "norm (f x - f y) \<le> B * norm (x - y)"
 proof -
   let ?p = "\<lambda>u. x + u *\<^sub>R (y - x)"
+  let ?\<phi> = "\<lambda>h. h * B * norm (x - y)"
   have *: "\<And>u. u\<in>{0..1} \<Longrightarrow> x + u *\<^sub>R (y - x) \<in> s"
     using assms(1)[unfolded convex_alt,rule_format,OF x y]
     unfolding scaleR_left_diff_distrib scaleR_right_diff_distrib
     by (auto simp add: algebra_simps)
-  then have 1: "continuous_on {0 .. 1} (f \<circ> ?p)"
-    apply -
-    apply (rule continuous_intros)+
+  have 0: "continuous_on (?p ` {0..1}) f"
+    using *
     unfolding continuous_on_eq_continuous_within
+    apply -
     apply rule
     apply (rule differentiable_imp_continuous_within)
     unfolding differentiable_def
@@ -807,51 +1023,93 @@ proof -
     apply (rule assms(2)[rule_format])
     apply auto
     done
-  have 2: "\<forall>u\<in>{0 <..< 1}.
-    ((f \<circ> ?p) has_derivative f' (x + u *\<^sub>R (y - x)) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u)"
-  proof rule
-    case goal1
-    let ?u = "x + u *\<^sub>R (y - x)"
+  from * have 1: "continuous_on {0 .. 1} (f \<circ> ?p)"
+    by (intro continuous_intros 0)+
+  {
+    fix u::real assume u: "u \<in>{0 <..< 1}"
+    let ?u = "?p u"
+    interpret linear "(f' ?u)"
+      using u by (auto intro!: has_derivative_linear assms(2)[rule_format] *)
     have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within box 0 1)"
       apply (rule diff_chain_within)
       apply (rule derivative_intros)+
       apply (rule has_derivative_within_subset)
       apply (rule assms(2)[rule_format])
-      using goal1 *
+      using u *
       apply auto
       done
-    then show ?case
-      by (simp add: has_derivative_within_open[OF goal1 open_greaterThanLessThan])
-  qed
-  obtain u where u:
-      "u \<in> {0<..<1}"
-      "norm ((f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 1 - (f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 0)
-        \<le> norm ((f' (x + u *\<^sub>R (y - x)) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (1 - 0))"
-    using mvt_general[OF zero_less_one 1 2] ..
-  have **: "\<And>x y. x \<in> s \<Longrightarrow> norm (f' x y) \<le> B * norm y"
-  proof -
-    case goal1
-    have "norm (f' x y) \<le> onorm (f' x) * norm y"
-      by (rule onorm[OF has_derivative_bounded_linear[OF assms(2)[rule_format,OF goal1]]])
-    also have "\<dots> \<le> B * norm y"
-      apply (rule mult_right_mono)
-      using assms(3)[rule_format,OF goal1]
-      apply (auto simp add: field_simps)
-      done
-    finally show ?case
-      by simp
-  qed
+    hence "((f \<circ> ?p) has_vector_derivative f' ?u (y - x)) (at u)"
+      by (simp add: has_derivative_within_open[OF u open_greaterThanLessThan]
+        scaleR has_vector_derivative_def o_def)
+  } note 2 = this
+  {
+    have "continuous_on {0..1} ?\<phi>"
+      by (rule continuous_intros)+
+  } note 3 = this
+  {
+    fix u::real assume u: "u \<in>{0 <..< 1}"
+    have "(?\<phi> has_vector_derivative B * norm (x - y)) (at u)"
+      by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros)
+  } note 4 = this
+  {
+    fix u::real assume u: "u \<in>{0 <..< 1}"
+    let ?u = "?p u"
+    interpret bounded_linear "(f' ?u)"
+      using u by (auto intro!: has_derivative_bounded_linear assms(2)[rule_format] *)
+    have "norm (f' ?u (y - x)) \<le> onorm (f' ?u) * norm (y - x)"
+      by (rule onorm) fact
+    also have "onorm (f' ?u) \<le> B"
+      using u by (auto intro!: assms(3)[rule_format] *)
+    finally have "norm ((f' ?u) (y - x)) \<le> B * norm (x - y)"
+      by (simp add: mult_right_mono norm_minus_commute)
+  } note 5 = this
   have "norm (f x - f y) = norm ((f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 1 - (f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 0)"
     by (auto simp add: norm_minus_commute)
-  also have "\<dots> \<le> norm (f' (x + u *\<^sub>R (y - x)) (y - x))"
-    using u by auto
-  also have "\<dots> \<le> B * norm(y - x)"
-    apply (rule **)
-    using * and u
-    apply auto
-    done
-  finally show ?thesis
-    by (auto simp add: norm_minus_commute)
+  also
+  from differentiable_bound_general[OF zero_less_one 1, OF 3 2 4 5]
+  have "norm ((f \<circ> ?p) 1 - (f \<circ> ?p) 0) \<le> B * norm (x - y)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma
+  differentiable_bound_segment:
+  fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<And>t. t \<in> {0..1} \<Longrightarrow> x0 + t *\<^sub>R a \<in> G"
+  assumes f': "\<And>x. x \<in> G \<Longrightarrow> (f has_derivative f' x) (at x within G)"
+  assumes B: "\<forall>x\<in>{0..1}. onorm (f' (x0 + x *\<^sub>R a)) \<le> B"
+  shows "norm (f (x0 + a) - f x0) \<le> norm a * B"
+proof -
+  let ?G = "(\<lambda>x. x0 + x *\<^sub>R a) ` {0..1}"
+  have "?G = op + x0 ` (\<lambda>x. x *\<^sub>R a) ` {0..1}" by auto
+  also have "convex \<dots>"
+    by (intro convex_translation convex_scaled convex_real_interval)
+  finally have "convex ?G" .
+  moreover have "?G \<subseteq> G" "x0 \<in> ?G" "x0 + a \<in> ?G" using assms by (auto intro: image_eqI[where x=1])
+  ultimately show ?thesis
+    using has_derivative_subset[OF f' `?G \<subseteq> G`] B
+      differentiable_bound[of "(\<lambda>x. x0 + x *\<^sub>R a) ` {0..1}" f f' B "x0 + a" x0]
+    by (auto simp: ac_simps)
+qed
+
+lemma differentiable_bound_linearization:
+  fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<And>t. t \<in> {0..1} \<Longrightarrow> a + t *\<^sub>R (b - a) \<in> S"
+  assumes f'[derivative_intros]: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
+  assumes B: "\<forall>x\<in>S. onorm (f' x - f' x0) \<le> B"
+  assumes "x0 \<in> S"
+  shows "norm (f b - f a - f' x0 (b - a)) \<le> norm (b - a) * B"
+proof -
+  def g \<equiv> "\<lambda>x. f x - f' x0 x"
+  have g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative (\<lambda>i. f' x i - f' x0 i)) (at x within S)"
+    unfolding g_def using assms
+    by (auto intro!: derivative_eq_intros
+      bounded_linear.has_derivative[OF has_derivative_bounded_linear, OF f'])
+  from B have B: "\<forall>x\<in>{0..1}. onorm (\<lambda>i. f' (a + x *\<^sub>R (b - a)) i - f' x0 i) \<le> B"
+     using assms by (auto simp: fun_diff_def)
+  from differentiable_bound_segment[OF assms(1) g B] `x0 \<in> S`
+  show ?thesis
+    by (simp add: g_def field_simps linear_sub[OF has_derivative_linear[OF f']])
 qed
 
 text {* In particular. *}

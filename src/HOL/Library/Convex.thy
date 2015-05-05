@@ -389,6 +389,16 @@ proof -
     using `convex s` by (rule convex_linear_image)
 qed
 
+lemma convex_scaled:
+  assumes "convex s"
+  shows "convex ((\<lambda>x. x *\<^sub>R c) ` s)"
+proof -
+  have "linear (\<lambda>x. x *\<^sub>R c)"
+    by (simp add: linearI scaleR_add_left)
+  then show ?thesis
+    using `convex s` by (rule convex_linear_image)
+qed
+
 lemma convex_negations:
   assumes "convex s"
   shows "convex ((\<lambda>x. - x) ` s)"
