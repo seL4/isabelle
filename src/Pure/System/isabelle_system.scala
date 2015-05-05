@@ -258,8 +258,10 @@ object Isabelle_System
   /* mkdirs */
 
   def mkdirs(path: Path): Unit =
-    if (path.is_dir || bash("mkdir -p " + shell_path(path)).rc == 0) ()
-    else error("Failed to create directory: " + quote(platform_path(path)))
+    if (!path.is_dir) {
+      bash("perl -e \"use File::Path make_path; make_path(" + shell_path(path) + ");\"")
+      if (!path.is_dir) error("Failed to create directory: " + quote(platform_path(path)))
+    }
 
 
 
