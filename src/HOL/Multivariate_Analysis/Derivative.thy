@@ -1115,7 +1115,7 @@ qed
 text {* In particular. *}
 
 lemma has_derivative_zero_constant:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"
     and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
   shows "\<exists>c. \<forall>x\<in>s. f x = c"
@@ -1130,7 +1130,7 @@ proof -
 qed
 
 lemma has_derivative_zero_unique:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"
     and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
     and "x \<in> s" "y \<in> s"
@@ -1138,7 +1138,7 @@ lemma has_derivative_zero_unique:
   using has_derivative_zero_constant[OF assms(1,2)] assms(3-) by force
 
 lemma has_derivative_zero_unique_connected:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "open s" "connected s"
   assumes f: "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>x. 0)) (at x)"
   assumes "x \<in> s" "y \<in> s"
@@ -1831,7 +1831,7 @@ qed
 subsection {* Uniformly convergent sequence of derivatives *}
 
 lemma has_derivative_sequence_lipschitz_lemma:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -1866,7 +1866,7 @@ proof rule+
 qed
 
 lemma has_derivative_sequence_lipschitz:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -1886,7 +1886,7 @@ proof (rule, rule)
 qed
 
 lemma has_derivative_sequence:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -2090,7 +2090,7 @@ qed
 text {* Can choose to line up antiderivatives if we want. *}
 
 lemma has_antiderivative_sequence:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -2111,7 +2111,7 @@ proof (cases "s = {}")
 qed auto
 
 lemma has_antiderivative_limit:
-  fixes g' :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'b::{real_inner, complete_space}"
+  fixes g' :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'b::banach"
   assumes "convex s"
     and "\<forall>e>0. \<exists>f f'. \<forall>x\<in>s.
       (f has_derivative (f' x)) (at x within s) \<and> (\<forall>h. norm (f' x h - g' x h) \<le> e * norm h)"
@@ -2163,7 +2163,7 @@ qed
 subsection {* Differentiation of a series *}
 
 lemma has_derivative_series:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex s"
     and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
