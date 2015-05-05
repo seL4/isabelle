@@ -1877,6 +1877,11 @@ lemma mono_funpow:
   shows "mono Q \<Longrightarrow> mono (\<lambda>i. (Q ^^ i) \<bottom>)"
   by (auto intro!: funpow_decreasing simp: mono_def)
 
+lemma antimono_funpow:
+  fixes Q :: "('i \<Rightarrow> 'a::{lattice, order_top}) \<Rightarrow> ('i \<Rightarrow> 'a)"
+  shows "mono Q \<Longrightarrow> antimono (\<lambda>i. (Q ^^ i) \<top>)"
+  by (auto intro!: funpow_increasing simp: antimono_def)
+
 subsection {* The divides relation on @{typ nat} *}
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
