@@ -1595,7 +1595,13 @@ text \<open>Theory sources may contain document markup commands, such as
   \caption{Isabelle document outline via SideKick tree view}
   \label{fig:sidekick-document}
   \end{figure}
-\<close>
+
+  It is also possible to use text folding according to this structure, by
+  adjusting \emph{Utilities / Buffer Options / Folding mode} of jEdit. The
+  default mode @{verbatim isabelle} uses the structure of formal definitions,
+  statements, and proofs. The alternative mode @{verbatim sidekick} uses the
+  document structure of the SideKick parser, as explained above.\<close>
+
 
 section \<open>Citations and Bib{\TeX} entries\<close>
 
