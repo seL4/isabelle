@@ -6887,6 +6887,121 @@ proof safe
 qed
 
 
+subsection {* Taylor series expansion *}
+
+lemma
+  setsum_telescope:
+  fixes f::"nat \<Rightarrow> 'a::ab_group_add"
+  shows "setsum (\<lambda>i. f i - f (Suc i)) {.. i} = f 0 - f (Suc i)"
+  by (induct i) simp_all
+
+lemma (in bounded_bilinear) setsum_prod_derivatives_has_vector_derivative:
+  assumes "p>0"
+  and f0: "Df 0 = f"
+  and Df: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
+    (Df m has_vector_derivative Df (Suc m) t) (at t within {a .. b})"
+  and g0: "Dg 0 = g"
+  and Dg: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
+    (Dg m has_vector_derivative Dg (Suc m) t) (at t within {a .. b})"
+  and ivl: "a \<le> t" "t \<le> b"
+  shows "((\<lambda>t. \<Sum>i<p. (-1)^i *\<^sub>R prod (Df i t) (Dg (p - Suc i) t))
+    has_vector_derivative
+      prod (f t) (Dg p t) - (-1)^p *\<^sub>R prod (Df p t) (g t))
+    (at t within {a .. b})"
+  using assms
+proof cases
+  assume p: "p \<noteq> 1"
+  def p' \<equiv> "p - 2"
+  from assms p have p': "{..<p} = {..Suc p'}" "p = Suc (Suc p')"
+    by (auto simp: p'_def)
+  have *: "\<And>i. i \<le> p' \<Longrightarrow> Suc (Suc p' - i) = (Suc (Suc p') - i)"
+    by auto
+  let ?f = "\<lambda>i. (-1) ^ i *\<^sub>R (prod (Df i t) (Dg ((p - i)) t))"
+  have "(\<Sum>i<p. (-1) ^ i *\<^sub>R (prod (Df i t) (Dg (Suc (p - Suc i)) t) +
+    prod (Df (Suc i) t) (Dg (p - Suc i) t))) =
+    (\<Sum>i\<le>(Suc p'). ?f i - ?f (Suc i))"
+    by (auto simp: algebra_simps p'(2) numeral_2_eq_2 * lessThan_Suc_atMost)
+  also note setsum_telescope
+  finally
+  have "(\<Sum>i<p. (-1) ^ i *\<^sub>R (prod (Df i t) (Dg (Suc (p - Suc i)) t) +
+    prod (Df (Suc i) t) (Dg (p - Suc i) t)))
+    = prod (f t) (Dg p t) - (- 1) ^ p *\<^sub>R prod (Df p t) (g t)"
+    unfolding p'[symmetric]
+    by (simp add: assms)
+  thus ?thesis
+    using assms
+    by (auto intro!: derivative_eq_intros has_vector_derivative)
+qed (auto intro!: derivative_eq_intros has_vector_derivative)
+
+lemma taylor_integral:
+  fixes f::"real\<Rightarrow>'a::banach"
+  assumes "p>0"
+  and f0: "Df 0 = f"
+  and Df: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
+    (Df m has_vector_derivative Df (Suc m) t) (at t within {a .. b})"
+  and ivl: "a \<le> b"
+  shows "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) +
+    integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)"
+proof -
+  interpret bounded_bilinear "scaleR::real\<Rightarrow>'a\<Rightarrow>'a"
+    by (rule bounded_bilinear_scaleR)
+  def g \<equiv> "\<lambda>s. (b - s)^(p - 1)/fact (p - 1)"
+  def Dg \<equiv> "\<lambda>n s. if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0"
+  have g0: "Dg 0 = g"
+    using `p > 0`
+    by (auto simp add: Dg_def divide_simps g_def split: split_if_asm)
+  {
+    fix m
+    assume "p > Suc m"
+    hence "p - Suc m = Suc (p - Suc (Suc m))"
+      by auto
+    hence "real (p - Suc m) * fact (p - Suc (Suc m)) = fact (p - Suc m)"
+      by auto
+  } note fact_eq = this
+  have Dg: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
+    (Dg m has_vector_derivative Dg (Suc m) t) (at t within {a .. b})"
+    unfolding Dg_def
+    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def
+      fact_eq real_eq_of_nat[symmetric] divide_simps)
+  from setsum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
+      OF `p > 0` g0 Dg f0 Df]
+  have deriv: "\<And>t. a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
+    ((\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t) has_vector_derivative
+      g t *\<^sub>R Df p t - (- 1) ^ p *\<^sub>R Dg p t *\<^sub>R f t) (at t within {a..b})"
+    by auto
+  from fundamental_theorem_of_calculus[rule_format, OF `a \<le> b` deriv]
+  have ftc: "integral {a..b} (\<lambda>x. g x *\<^sub>R Df p x - (- 1) ^ p *\<^sub>R Dg p x *\<^sub>R f x) =
+    (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i b *\<^sub>R Df (p - Suc i) b) -
+    (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i a *\<^sub>R Df (p - Suc i) a)"
+    unfolding atLeastAtMost_iff by (auto dest!: integral_unique)
+  def p' \<equiv> "p - 1"
+  have p': "p = Suc p'" using `p > 0` by (simp add: p'_def)
+  have Dgp': "Dg p' = (\<lambda>_. (- 1) ^ p')"
+    by (auto simp: Dg_def p')
+  have one: "\<And>p'. (- 1::real) ^ p' * (- 1) ^ p' = 1"
+    "\<And>p' k. (- 1::real) ^ p' * ((- 1) ^ p' * k) = k"
+    by (simp_all add: power_mult_distrib[symmetric] )
+  from ftc
+  have "f b =
+    (\<Sum>i<p. ((b - a) ^ (p' - i) / fact (p' - i)) *\<^sub>R Df (p' - i) a) +
+     integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)"
+    by (simp add: p' assms Dgp' one Dg_def g_def zero_power)
+  also
+  have "{..<p} = (\<lambda>x. p - x - 1) ` {..<p}"
+  proof safe
+    fix x
+    assume "x < p"
+    thus "x \<in> (\<lambda>x. p - x - 1) ` {..<p}"
+      by (auto intro!: image_eqI[where x = "p - x - 1"])
+  qed simp
+  from _ this have "(\<Sum>i<p. ((b - a) ^ (p' - i) / fact (p' - i)) *\<^sub>R Df (p' - i) a) =
+    (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
+    by (rule setsum.reindex_cong) (auto simp add: p' inj_on_def)
+  finally show "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) +
+    integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)" .
+qed
+
+
 subsection {* Attempt a systematic general set of "offset" results for components. *}
 
 lemma gauge_modify:
