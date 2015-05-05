@@ -609,6 +609,84 @@ lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) -
 lemma mult_commute_abs: "(\<lambda>x. x * c) = op * (c::'a::ab_semigroup_mult)"
   by (simp add: fun_eq_iff mult.commute)
 
+subsection {* Vector derivative *}
+
+lemma has_field_derivative_iff_has_vector_derivative:
+  "(f has_field_derivative y) F \<longleftrightarrow> (f has_vector_derivative y) F"
+  unfolding has_vector_derivative_def has_field_derivative_def real_scaleR_def mult_commute_abs ..
+
+lemma has_field_derivative_subset:
+  "(f has_field_derivative y) (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_field_derivative y) (at x within t)"
+  unfolding has_field_derivative_def by (rule has_derivative_subset)
+
+lemma has_vector_derivative_const[simp, derivative_intros]: "((\<lambda>x. c) has_vector_derivative 0) net"
+  by (auto simp: has_vector_derivative_def)
+
+lemma has_vector_derivative_id[simp, derivative_intros]: "((\<lambda>x. x) has_vector_derivative 1) net"
+  by (auto simp: has_vector_derivative_def)
+
+lemma has_vector_derivative_minus[derivative_intros]:
+  "(f has_vector_derivative f') net \<Longrightarrow> ((\<lambda>x. - f x) has_vector_derivative (- f')) net"
+  by (auto simp: has_vector_derivative_def)
+
+lemma has_vector_derivative_add[derivative_intros]:
+  "(f has_vector_derivative f') net \<Longrightarrow> (g has_vector_derivative g') net \<Longrightarrow>
+    ((\<lambda>x. f x + g x) has_vector_derivative (f' + g')) net"
+  by (auto simp: has_vector_derivative_def scaleR_right_distrib)
+
+lemma has_vector_derivative_setsum[derivative_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i has_vector_derivative f' i) net) \<Longrightarrow>
+    ((\<lambda>x. \<Sum>i\<in>I. f i x) has_vector_derivative (\<Sum>i\<in>I. f' i)) net"
+  by (auto simp: has_vector_derivative_def fun_eq_iff scaleR_setsum_right intro!: derivative_eq_intros)
+
+lemma has_vector_derivative_diff[derivative_intros]:
+  "(f has_vector_derivative f') net \<Longrightarrow> (g has_vector_derivative g') net \<Longrightarrow>
+    ((\<lambda>x. f x - g x) has_vector_derivative (f' - g')) net"
+  by (auto simp: has_vector_derivative_def scaleR_diff_right)
+
+lemma (in bounded_linear) has_vector_derivative:
+  assumes "(g has_vector_derivative g') F"
+  shows "((\<lambda>x. f (g x)) has_vector_derivative f g') F"
+  using has_derivative[OF assms[unfolded has_vector_derivative_def]]
+  by (simp add: has_vector_derivative_def scaleR)
+
+lemma (in bounded_bilinear) has_vector_derivative:
+  assumes "(f has_vector_derivative f') (at x within s)"
+    and "(g has_vector_derivative g') (at x within s)"
+  shows "((\<lambda>x. f x ** g x) has_vector_derivative (f x ** g' + f' ** g x)) (at x within s)"
+  using FDERIV[OF assms(1-2)[unfolded has_vector_derivative_def]]
+  by (simp add: has_vector_derivative_def scaleR_right scaleR_left scaleR_right_distrib)
+
+lemma has_vector_derivative_scaleR[derivative_intros]:
+  "(f has_field_derivative f') (at x within s) \<Longrightarrow> (g has_vector_derivative g') (at x within s) \<Longrightarrow>
+    ((\<lambda>x. f x *\<^sub>R g x) has_vector_derivative (f x *\<^sub>R g' + f' *\<^sub>R g x)) (at x within s)"
+  unfolding has_field_derivative_iff_has_vector_derivative
+  by (rule bounded_bilinear.has_vector_derivative[OF bounded_bilinear_scaleR])
+
+lemma has_vector_derivative_mult[derivative_intros]:
+  "(f has_vector_derivative f') (at x within s) \<Longrightarrow> (g has_vector_derivative g') (at x within s) \<Longrightarrow>
+    ((\<lambda>x. f x * g x) has_vector_derivative (f x * g' + f' * g x :: 'a :: real_normed_algebra)) (at x within s)"
+  by (rule bounded_bilinear.has_vector_derivative[OF bounded_bilinear_mult])
+
+lemma has_vector_derivative_of_real[derivative_intros]:
+  "(f has_field_derivative D) F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_vector_derivative (of_real D)) F"
+  by (rule bounded_linear.has_vector_derivative[OF bounded_linear_of_real])
+     (simp add: has_field_derivative_iff_has_vector_derivative)
+
+lemma has_vector_derivative_continuous: "(f has_vector_derivative D) (at x within s) \<Longrightarrow> continuous (at x within s) f"
+  by (auto intro: has_derivative_continuous simp: has_vector_derivative_def)
+
+lemma has_vector_derivative_mult_right[derivative_intros]:
+  fixes a :: "'a :: real_normed_algebra"
+  shows "(f has_vector_derivative x) F \<Longrightarrow> ((\<lambda>x. a * f x) has_vector_derivative (a * x)) F"
+  by (rule bounded_linear.has_vector_derivative[OF bounded_linear_mult_right])
+
+lemma has_vector_derivative_mult_left[derivative_intros]:
+  fixes a :: "'a :: real_normed_algebra"
+  shows "(f has_vector_derivative x) F \<Longrightarrow> ((\<lambda>x. f x * a) has_vector_derivative (x * a)) F"
+  by (rule bounded_linear.has_vector_derivative[OF bounded_linear_mult_left])
+
+
 subsection {* Derivatives *}
 
 lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
