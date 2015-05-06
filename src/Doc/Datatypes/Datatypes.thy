@@ -169,7 +169,7 @@ subsection {* Introductory Examples
 text {*
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
-\verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|.
+\verb|~~/src/HOL/|\allowbreak\verb|Datatype_Examples|.
 *}
 
 
@@ -1675,7 +1675,7 @@ text {*
 Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
-\verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|. The
+\verb|~~/src/HOL/|\allowbreak\verb|Datatype_Examples|. The
 \emph{Archive of Formal Proofs} also includes some useful codatatypes, notably
 for lazy lists @{cite "lochbihler-2010"}.
 *}
