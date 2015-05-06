@@ -256,6 +256,7 @@ sidekick.complete-delay=0
 sidekick.complete-instant.toggle=false
 sidekick.complete-popup.accept-characters=\\t
 sidekick.complete-popup.insert-characters=
+sidekick.showFilter=true
 sidekick.splitter.location=721
 systrayicon=false
 tip.show=false
