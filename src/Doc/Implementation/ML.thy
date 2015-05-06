@@ -1418,7 +1418,7 @@ text %mlref \<open>
   \item sequence of Isabelle symbols (see also \secref{sec:symbols}),
   with @{ML Symbol.explode} as key operation;
 
-  \item XML tree structure via YXML (see also @{cite "isabelle-sys"}),
+  \item XML tree structure via YXML (see also @{cite "isabelle-system"}),
   with @{ML YXML.parse_body} as key operation.
 
   \end{enumerate}

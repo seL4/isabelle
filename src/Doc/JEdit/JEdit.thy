@@ -82,7 +82,7 @@ text \<open>
   The options allow to specify a logic session name --- the same selector is
   accessible in the \emph{Theories} panel (\secref{sec:theories}). On
   application startup, the selected logic session image is provided
-  automatically by the Isabelle build tool @{cite "isabelle-sys"}: if it is
+  automatically by the Isabelle build tool @{cite "isabelle-system"}: if it is
   absent or outdated wrt.\ its sources, the build process updates it before
   entering the Prover IDE.  Change of the logic session within Isabelle/jEdit
   requires a restart of the whole application.
@@ -170,7 +170,7 @@ text \<open>Both jEdit and Isabelle have distinctive management of
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
   in @{file_unchecked "$ISABELLE_HOME_USER/etc/preferences"}, independently of
-  other jEdit properties. See also @{cite "isabelle-sys"}, especially the
+  other jEdit properties. See also @{cite "isabelle-system"}, especially the
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
 
@@ -182,7 +182,7 @@ text \<open>Both jEdit and Isabelle have distinctive management of
   Isabelle system options. Note that some of these options affect general
   parameters that are relevant outside Isabelle/jEdit as well, e.g.\
   @{system_option threads} or @{system_option parallel_proofs} for the
-  Isabelle build tool @{cite "isabelle-sys"}, but it is possible to use the
+  Isabelle build tool @{cite "isabelle-system"}, but it is possible to use the
   settings variable @{setting ISABELLE_BUILD_OPTIONS} to change defaults for
   batch builds without affecting Isabelle/jEdit.
 
@@ -243,7 +243,7 @@ text \<open>
   The @{verbatim "-l"} option specifies the session name of the logic
   image to be used for proof processing.  Additional session root
   directories may be included via option @{verbatim "-d"} to augment
-  that name space of @{tool build} @{cite "isabelle-sys"}.
+  that name space of @{tool build} @{cite "isabelle-system"}.
 
   By default, the specified image is checked and built on demand. The
   @{verbatim "-s"} option determines where to store the result session image
@@ -257,7 +257,7 @@ text \<open>
 
   The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass additional
   low-level options to the JVM or jEdit, respectively. The defaults are
-  provided by the Isabelle settings environment @{cite "isabelle-sys"}, but
+  provided by the Isabelle settings environment @{cite "isabelle-system"}, but
   note that these only work for the command-line tool described here, and not
   the regular application.
 
@@ -699,7 +699,7 @@ text \<open>
   The \emph{Theories} panel (see also \figref{fig:theories}) provides an
   overview of the status of continuous checking of theory nodes within the
   document model. Unlike batch sessions of @{tool build} @{cite
-  "isabelle-sys"}, theory nodes are identified by full path names; this allows
+  "isabelle-system"}, theory nodes are identified by full path names; this allows
   to work with multiple (disjoint) Isabelle sessions simultaneously within the
   same editor session.
 
@@ -1576,7 +1576,7 @@ chapter \<open>Isabelle document preparation\<close>
 
 text \<open>The ultimate purpose of Isabelle is to produce nicely rendered documents
   with the Isabelle document preparation system, which is based on {\LaTeX};
-  see also @{cite "isabelle-sys" and "isabelle-isar-ref"}. Isabelle/jEdit
+  see also @{cite "isabelle-system" and "isabelle-isar-ref"}. Isabelle/jEdit
   provides some additional support for document editing.\<close>
 
 
@@ -1607,7 +1607,7 @@ section \<open>Citations and Bib{\TeX} entries\<close>
 
 text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"}
   files. The Isabelle session build process and the @{tool latex} tool @{cite
-  "isabelle-sys"} are smart enough to assemble the result, based on the
+  "isabelle-system"} are smart enough to assemble the result, based on the
   session directory layout.
 
   The document antiquotation @{text "@{cite}"} is described in @{cite

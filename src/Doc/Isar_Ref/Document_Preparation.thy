@@ -11,7 +11,7 @@ text \<open>Isabelle/Isar provides a simple document preparation system
 
   {\LaTeX} output is generated while processing a \emph{session} in
   batch mode, as explained in the \emph{The Isabelle System Manual}
-  @{cite "isabelle-sys"}.  The main Isabelle tools to get started with
+  @{cite "isabelle-system"}.  The main Isabelle tools to get started with
   document preparation are @{tool_ref mkroot} and @{tool_ref build}.
 
   The classic Isabelle/HOL tutorial @{cite "isabelle-hol-book"} also
@@ -434,7 +434,7 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
   \end{tabular}
 
   \medskip The Isabelle document preparation system
-  @{cite "isabelle-sys"} allows tagged command regions to be presented
+  @{cite "isabelle-system"} allows tagged command regions to be presented
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
@@ -459,7 +459,7 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
   arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding
   parts of the text.  Logic sessions may also specify ``document
   versions'', where given tags are interpreted in some particular way.
-  Again see @{cite "isabelle-sys"} for further details.
+  Again see @{cite "isabelle-system"} for further details.
 \<close>
 
 

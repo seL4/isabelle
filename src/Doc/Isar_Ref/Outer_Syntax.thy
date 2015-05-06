@@ -28,7 +28,7 @@ text \<open>
 
   Printed theory documents usually omit quotes to gain readability
   (this is a matter of {\LaTeX} macro setup, say via @{verbatim
-  "\\isabellestyle"}, see also @{cite "isabelle-sys"}).  Experienced
+  "\\isabellestyle"}, see also @{cite "isabelle-system"}).  Experienced
   users of Isabelle/Isar may easily reconstruct the lost technical
   information, while mere readers need not care about quotes at all.
 \<close>

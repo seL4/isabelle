@@ -187,7 +187,7 @@ text %mlref \<open>
   sub-graph of theories, the intrinsic parallelism can be exploited by the
   system to speedup loading.
 
-  This variant is used by default in @{tool build} @{cite "isabelle-sys"}.
+  This variant is used by default in @{tool build} @{cite "isabelle-system"}.
 
   \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
   presently associated with name @{text A}. Note that the result might be

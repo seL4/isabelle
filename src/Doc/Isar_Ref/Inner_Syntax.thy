@@ -110,7 +110,7 @@ text \<open>
   @{command "print_state"}~@{text "(latex xsymbols)"} prints the
   current proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
-  @{cite "isabelle-sys"}.
+  @{cite "isabelle-system"}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
   systematic way to include formal items into the printed text
