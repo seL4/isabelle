@@ -3228,8 +3228,9 @@ Christian Sternagel and Ren\'e Thiemann ported the \keyw{derive} command
 from the \emph{Archive of Formal Proofs} to the new datatypes. Florian Haftmann
 and Christian Urban provided general advice on Isabelle and package writing.
 Stefan Milius and Lutz Schr\"oder found an elegant proof that eliminated one of
-the BNF proof obligations. Gerwin Klein, Andreas Lochbihler, Tobias Nipkow, and
-Christian Sternagel suggested many textual improvements to this tutorial.
+the BNF proof obligations. Mamoun Filali-Amine, Gerwin Klein, Andreas
+Lochbihler, Tobias Nipkow, and Christian Sternagel suggested many textual
+improvements to this tutorial.
 *}
 
 end
