@@ -1183,6 +1183,12 @@ lemma filterlim_tendsto_pos_mult_at_bot:
   using filterlim_tendsto_pos_mult_at_top[OF assms(1,2), of "\<lambda>x. - g x"] assms(3)
   unfolding filterlim_uminus_at_bot by simp
 
+lemma filterlim_tendsto_neg_mult_at_bot:
+  assumes c: "(f ---> c) F" "(c::real) < 0" and g: "filterlim g at_top F"
+  shows "LIM x F. f x * g x :> at_bot"
+  using c filterlim_tendsto_pos_mult_at_top[of "\<lambda>x. - f x" "- c" F, OF _ _ g]
+  unfolding filterlim_uminus_at_bot tendsto_minus_cancel_left by simp
+
 lemma filterlim_pow_at_top:
   fixes f :: "real \<Rightarrow> real"
   assumes "0 < n" and f: "LIM x F. f x :> at_top"

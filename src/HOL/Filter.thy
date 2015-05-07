@@ -822,6 +822,11 @@ lemma filterlim_sequentially_Suc:
 lemma filterlim_Suc: "filterlim Suc sequentially sequentially"
   by (simp add: filterlim_iff eventually_sequentially) (metis le_Suc_eq)
 
+lemma filterlim_If:
+  "LIM x inf F (principal {x. P x}). f x :> G \<Longrightarrow>
+    LIM x inf F (principal {x. \<not> P x}). g x :> G \<Longrightarrow>
+    LIM x F. if P x then f x else g x :> G"
+  unfolding filterlim_iff eventually_inf_principal by (auto simp: eventually_conj_iff)
 
 subsection {* Limits to @{const at_top} and @{const at_bot} *}
 

@@ -356,6 +356,10 @@ lemma (in topological_space) eventually_nhds:
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
 
+lemma (in t1_space) t1_space_nhds:
+  "x \<noteq> y \<Longrightarrow> (\<forall>\<^sub>F x in nhds x. x \<noteq> y)"
+  by (drule t1_space) (auto simp: eventually_nhds)
+
 lemma at_within_eq: "at x within s = (INF S:{S. open S \<and> x \<in> S}. principal (S \<inter> s - {x}))"
   unfolding nhds_def at_within_def by (subst INF_inf_const2[symmetric]) (auto simp add: Diff_Int_distrib)
 
