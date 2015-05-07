@@ -794,7 +794,7 @@ val _ =
         Locale.pretty_locale_deps thy
         |> map (fn {name, parents, body} =>
           ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-        |> Graph_Display.display_graph))));
+        |> Graph_Display.display_graph_old))));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_term_bindings}

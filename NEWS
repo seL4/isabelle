@@ -87,7 +87,7 @@ the editor (hyperlinks, completion etc.).
 Options / Text Area).
 
 * Improved graphview panel with optional output of PNG or PDF, for
-display of 'thy_deps', 'locale_deps', 'class_deps' etc.
+display of 'thy_deps', 'class_deps' etc.
 
 * The commands 'thy_deps' and 'class_deps' allow optional bounds to
 restrict the visualized hierarchy.
