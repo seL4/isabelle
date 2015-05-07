@@ -148,7 +148,7 @@ object PIDE
 
   /* current document content */
 
-  def snapshot(view: View): Document.Snapshot = GUI_Thread.now
+  def snapshot(view: View): Document.Snapshot =
   {
     val buffer = view.getBuffer
     document_model(buffer) match {

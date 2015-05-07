@@ -27,7 +27,6 @@ object Document_Model
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {
-    GUI_Thread.require {}
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
       case _ => None
@@ -223,17 +222,19 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* pending edits */
 
-  private object pending_edits  // owned by GUI thread
+  private object pending_edits
   {
     private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = Document.Node.no_perspective_text
 
-    def is_pending(): Boolean = pending_clear || pending.nonEmpty
-    def snapshot(): List[Text.Edit] = pending.toList
+    def is_pending(): Boolean = synchronized { pending_clear || pending.nonEmpty }
+    def snapshot(): List[Text.Edit] = synchronized { pending.toList }
 
-    def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
+    def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] = synchronized
     {
+      GUI_Thread.require {}
+
       val clear = pending_clear
       val edits = snapshot()
       val (reparse, perspective) = node_perspective(doc_blobs)
@@ -246,8 +247,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       else Nil
     }
 
-    def edit(clear: Boolean, e: Text.Edit)
+    def edit(clear: Boolean, e: Text.Edit): Unit = synchronized
     {
+      GUI_Thread.require {}
+
       reset_blob()
       reset_bibtex()
 
@@ -261,10 +264,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   }
 
   def snapshot(): Document.Snapshot =
-    GUI_Thread.require { session.snapshot(node_name, pending_edits.snapshot()) }
+    session.snapshot(node_name, pending_edits.snapshot())
 
   def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
-    GUI_Thread.require { pending_edits.flushed_edits(doc_blobs) }
+    pending_edits.flushed_edits(doc_blobs)
 
 
   /* buffer listener */
