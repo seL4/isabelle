@@ -358,18 +358,8 @@ fun hammer_away override_params subcommand opt_i fact_override state0 =
       error ("Unknown subcommand: " ^ quote subcommand ^ ".")
   end
 
-fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
-  Toplevel.keep_proof (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
-
 fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
-
-fun sledgehammer_params_trans params =
-  Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
-    writeln ("Default parameters for Sledgehammer:\n" ^
-      (case rev (default_raw_params Normal thy) of
-        [] => "none"
-      | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))
 
 val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
 val parse_key = Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
@@ -389,11 +379,18 @@ val _ =
   Outer_Syntax.command @{command_keyword sledgehammer}
     "search for first-order proof using automatic theorem provers"
     ((Scan.optional Parse.name runN -- parse_params
-      -- parse_fact_override -- Scan.option Parse.nat) #>> sledgehammer_trans)
+      -- parse_fact_override -- Scan.option Parse.nat) >>
+      (fn (((subcommand, params), fact_override), opt_i) =>
+        Toplevel.keep_proof (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)))
 val _ =
   Outer_Syntax.command @{command_keyword sledgehammer_params}
     "set and display the default parameters for Sledgehammer"
-    (parse_params #>> sledgehammer_params_trans)
+    (parse_params >> (fn params =>
+      Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
+        writeln ("Default parameters for Sledgehammer:\n" ^
+          (case rev (default_raw_params Normal thy) of
+            [] => "none"
+          | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))))
 
 fun try_sledgehammer auto state =
   let
