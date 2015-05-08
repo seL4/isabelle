@@ -296,7 +296,7 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 val default_learn_prover_timeout = 2.0
 
-fun hammer_away override_params subcommand opt_i fact_override state0 =
+fun hammer_away override_params output_result subcommand opt_i fact_override state0 =
   let
     (* We generally want chained facts to be picked up by the relevance filter, because it can then
        give it a proper name, which is useful for a variety of reasons (minimization, Isar proofs,
@@ -324,8 +324,9 @@ fun hammer_away override_params subcommand opt_i fact_override state0 =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        ignore (run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
-          state)
+        ignore
+          (run_sledgehammer
+            (get_params Normal thy override_params) Normal output_result i fact_override state)
       end
     else if subcommand = messagesN then
       messages opt_i
@@ -378,10 +379,11 @@ val parse_fact_override =
 val _ =
   Outer_Syntax.command @{command_keyword sledgehammer}
     "search for first-order proof using automatic theorem provers"
-    ((Scan.optional Parse.name runN -- parse_params
-      -- parse_fact_override -- Scan.option Parse.nat) >>
+    (Scan.optional Parse.name runN -- parse_params
+      -- parse_fact_override -- Scan.option Parse.nat >>
       (fn (((subcommand, params), fact_override), opt_i) =>
-        Toplevel.keep_proof (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)))
+        Toplevel.keep_proof
+          (hammer_away params NONE subcommand opt_i fact_override o Toplevel.proof_of)))
 val _ =
   Outer_Syntax.command @{command_keyword sledgehammer_params}
     "set and display the default parameters for Sledgehammer"
@@ -407,24 +409,17 @@ val _ =
   Query_Operation.register sledgehammerN (fn {state = st, args, output_result} =>
     (case try Toplevel.proof_of st of
       SOME state =>
-      let
-        val thy = Proof.theory_of state
-        val ctxt = Proof.context_of state
-        val [provers_arg, isar_proofs_arg, try0_arg] = args
-
-        val override_params =
-          ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-            [("isar_proofs", [isar_proofs_arg]),
-             ("try0", [try0_arg]),
-             ("blocking", ["true"]),
-             ("debug", ["false"]),
-             ("verbose", ["false"]),
-             ("overlord", ["false"])])
-          |> map (normalize_raw_param ctxt)
-      in
-        ignore (run_sledgehammer (get_params Normal thy override_params) Normal
-          (SOME output_result) 1 no_fact_override state)
-      end
+        let
+          val [provers_arg, isar_proofs_arg, try0_arg] = args
+          val override_params =
+            ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
+              [("isar_proofs", [isar_proofs_arg]),
+               ("try0", [try0_arg]),
+               ("blocking", ["true"]),
+               ("debug", ["false"]),
+               ("verbose", ["false"]),
+               ("overlord", ["false"])]);
+        in hammer_away override_params (SOME output_result) runN NONE no_fact_override state end
     | NONE => error "Unknown proof context"))
 
 end;
