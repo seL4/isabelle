@@ -50,18 +50,19 @@ object Document_Model
   {
     GUI_Thread.require {}
 
-    old_model match {
-      case Some(old)
-      if old.node_name == node_name && Isabelle.buffer_token_marker(buffer).isEmpty => old
-
-      case _ =>
-        apply(buffer).map(_.deactivate)
-        val model = new Document_Model(session, buffer, node_name)
-        buffer.setProperty(key, model)
-        model.activate()
-        buffer.propertiesChanged
-        model
-    }
+    val model =
+      old_model match {
+        case Some(old) if old.node_name == node_name => old
+        case _ =>
+          apply(buffer).map(_.deactivate)
+          val model = new Document_Model(session, buffer, node_name)
+          buffer.setProperty(key, model)
+          model.activate()
+          buffer.propertiesChanged
+          model
+      }
+    model.init_token_marker
+    model
   }
 }
 
