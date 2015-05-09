@@ -169,7 +169,7 @@ lemma Ticket_mutex:
 apply oghoare
 --\<open>35 vc\<close>
 apply simp_all
---\<open>21 vc\<close>
+--\<open>16 vc\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
 --\<open>11 vc\<close>
 apply simp_all
@@ -433,14 +433,14 @@ apply oghoare
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
 --\<open>112 subgoals left\<close>
 apply(simp_all (no_asm))
---\<open>97 subgoals left\<close>
+--\<open>43 subgoals left\<close>
 apply(tactic \<open>ALLGOALS (conjI_Tac (K all_tac))\<close>)
---\<open>930 subgoals left\<close>
+--\<open>419 subgoals left\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
 --\<open>99 subgoals left\<close>
-apply(simp_all (*asm_lr*) only:length_0_conv [THEN sym])
+apply(simp_all only:length_0_conv [THEN sym])
 --\<open>20 subgoals left\<close>
-apply (simp_all (*asm_lr*) del:length_0_conv length_greater_0_conv add: nth_list_update mod_lemma)
+apply (simp_all del:length_0_conv length_greater_0_conv add: nth_list_update mod_lemma)
 --\<open>9 subgoals left\<close>
 apply (force simp add:less_Suc_eq)
 apply(hypsubst_thin, drule sym)

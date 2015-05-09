@@ -1270,6 +1270,8 @@ by default (intro TrueI)
 lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
 by default simp_all
 
+(* This is not made a simp rule because it does not improve any proofs
+   but slows some AFP entries down by 5% (cpu time). May 2015 *)
 lemma implies_False_swap: "NO_MATCH (Trueprop False) P \<Longrightarrow>
   (False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
 by(rule swap_prems_eq)
@@ -1297,7 +1299,7 @@ lemma all_simps:
 lemmas [simp] =
   triv_forall_equality (*prunes params*)
   True_implies_equals implies_True_equals (*prune True in asms*)
-  False_implies_equals implies_False_swap (*prune False in asms*)
+  False_implies_equals (*prune False in asms*)
   if_True
   if_False
   if_cancel
