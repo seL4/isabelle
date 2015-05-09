@@ -44,9 +44,6 @@ open Ctr_Sugar_Util
 
 val meta_mp = @{thm meta_mp};
 
-fun clean_blast_depth_tac ctxt depth =
-  depth_tac (put_claset (claset_of @{theory_context HOL}) ctxt) depth;
-
 fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
   tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);
 
@@ -176,7 +173,10 @@ fun mk_split_tac ctxt ms uexhaust cases selss injectss distinctsss =
     ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
        simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
          flat (nth distinctsss (k - 1))) ctxt)) k) THEN
-    ALLGOALS (clean_blast_depth_tac ctxt depth)
+    ALLGOALS (etac thin_rl THEN' rtac iffI THEN'
+      REPEAT_DETERM o rtac allI THEN' rtac impI THEN' REPEAT_DETERM o etac conjE THEN'
+      hyp_subst_tac ctxt THEN' atac THEN' REPEAT_DETERM o etac allE THEN' etac impE THEN'
+      REPEAT_DETERM o (rtac conjI THEN' rtac refl) THEN' rtac refl THEN' atac)
   end;
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};

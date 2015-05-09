@@ -397,7 +397,13 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
 
-    val Type (fcT_name, As0) = body_type (fastype_of (hd ctrs0));
+    val (fcT_name, As0) =
+      (case body_type (fastype_of (hd ctrs0)) of
+        Type T' => T'
+      | _ => error "Expected type constructor in body type of constructor");
+    val _ = forall ((fn Type (T_name, _) => T_name = fcT_name | _ => false) o body_type
+      o fastype_of) (tl ctrs0) orelse error "Constructors not constructing same type";
+
     val fc_b_name = Long_Name.base_name fcT_name;
     val fc_b = Binding.name fc_b_name;
 
@@ -675,7 +681,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss;
 
-    fun after_qed (thmss0 as [exhaust_thm] :: thmss) lthy =
+    fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
