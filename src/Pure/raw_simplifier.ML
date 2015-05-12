@@ -630,10 +630,6 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", [thm]);
       val (xs, weak) = congs;
-      val _ =
-        if AList.defined (op =) xs a then
-          cond_warning ctxt (fn () => "Overwriting congruence rule for " ^ quote (#2 a))
-        else ();
       val xs' = AList.update (op =) (a, thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
