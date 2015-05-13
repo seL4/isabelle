@@ -7,17 +7,17 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  (* consts *)
+  (*consts*)
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
 
-  (* background operations *)
+  (*background operations*)
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
 
-  (* lifting primitives to local theory operations *)
+  (*lifting primitives to local theory operations*)
   val define: (((binding * typ) * mixfix) * (binding * term) ->
       term list * term list -> local_theory -> (term * thm) * local_theory) ->
     bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -31,7 +31,7 @@ sig
       term list * term list -> local_theory -> local_theory) ->
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
 
-  (* theory operations *)
+  (*theory operations*)
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string ->
@@ -44,7 +44,7 @@ sig
   val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
     local_theory -> local_theory
 
-  (* locale operations *)
+  (*locale operations*)
   val locale_notes: string -> string ->
     (Attrib.binding * (thm list * Token.src list) list) list ->
     (Attrib.binding * (thm list * Token.src list) list) list ->
@@ -75,6 +75,7 @@ fun standard_notes pred kind facts lthy =
     else ctxt) lthy;
 
 
+
 (** declarations **)
 
 fun standard_declaration pred decl lthy =
@@ -82,6 +83,7 @@ fun standard_declaration pred decl lthy =
     if pred (Local_Theory.level lthy, level)
     then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
     else ctxt) lthy;
+
 
 
 (** consts **)
@@ -123,7 +125,7 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
           | _ => NONE)
         else NONE;
     in
-      case const_alias of
+      (case const_alias of
         SOME c =>
           context
           |> Context.mapping (Sign.const_alias b' c) (Proof_Context.const_alias b' c)
@@ -133,12 +135,13 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
           |> Proof_Context.generic_add_abbrev Print_Mode.internal (b', Term.close_schematic_term rhs')
           |-> (fn (const as Const (c, _), _) => same_shape ?
                 (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
-                 Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)])))
+                 Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
     end
   else context;
 
 fun standard_const pred prmode ((b, mx), rhs) =
   standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
+
 
 
 (** background primitives **)
@@ -168,6 +171,7 @@ fun background_declaration decl lthy =
 fun background_abbrev (b, global_rhs) params =
   Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, global_rhs))
   #>> apply2 (fn t => Term.list_comb (Logic.unvarify_global t, params))
+
 
 
 (** lifting primitive to local theory operations **)
@@ -300,6 +304,7 @@ fun abbrev abbrev' prmode ((b, mx), rhs) lthy =
   end;
 
 
+
 (** theory operations **)
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
@@ -324,6 +329,7 @@ fun theory_abbrev prmode (b, mx) global_rhs params =
 
 val theory_registration =
   Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
+
 
 
 (** locale operations **)
