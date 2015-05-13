@@ -450,8 +450,7 @@ fun alias naming binding name space =
       val (accs, accs') = accesses naming binding;
       val internals' = internals |> fold (add_name name) accs;
       val entries' = entries
-        |> Change_Table.map_entry name (fn (externals, entry) =>
-          (Library.merge (op =) (externals, accs'), entry))
+        |> Change_Table.map_entry name (apfst (fold_rev (update op =) accs'));
     in (kind, internals', entries') end);
 
 
