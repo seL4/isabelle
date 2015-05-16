@@ -9,8 +9,7 @@ imports Main Eisbach_Tools
 begin
 
 
-
-section \<open>Named Theorems Tests\<close>
+subsection \<open>Named Theorems Tests\<close>
 
 named_theorems foo
 
@@ -22,8 +21,10 @@ lemma
   apply foo
   done
 
+method abs_used for P = (match (P) in "\<lambda>a. ?Q" \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>)
 
-section \<open>Match Tests\<close>
+
+subsection \<open>Match Tests\<close>
 
 notepad
 begin
@@ -75,7 +76,8 @@ begin
     apply (intro conjI)
     apply (match premises in Y: "\<And>z :: 'a. A z" and Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>fastforce\<close>)
     apply (match premises in Y: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>match premises in Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>fastforce\<close>\<close>)
-    apply (match premises in Y[thin]: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> \<open>print_fact Y,fail\<close> \<bar> Y': "?H" \<Rightarrow> \<open>-\<close>)\<close>)
+    apply (match premises in Y[thin]: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> \<open>print_fact Y,fail\<close> \<bar> _ \<Rightarrow> \<open>print_fact Y\<close>)\<close>)
+    (*apply (match premises in Y: "\<And>z :: 'b. B z"  \<Rightarrow> \<open>(match premises in Y'[thin]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> \<open>fail\<close> \<bar> Y': _ \<Rightarrow> \<open>-\<close>)\<close>)\<close>)*)
     apply assumption
     done
 
@@ -106,14 +108,39 @@ begin
     apply (match premises in Y: "C y" \<Rightarrow> \<open>rule Y\<close>)
     done
 
+  fix A B C P Q and x :: 'a and y :: 'a
+  have "(\<And>x y :: 'a. A x y \<and> Q) \<Longrightarrow> (\<And>a b. B (a :: 'a) (b :: 'a) \<and> Q) \<Longrightarrow> (\<And>x y. C (x :: 'a) (y :: 'a) \<and> P) \<Longrightarrow> A y x \<and> B y x"
+    by (match premises in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule conjI, rule Y[where z=x,THEN conjunct1], rule Y[THEN conjunct1]\<close>)
+
 
   (*We may use for-fixes in multi-matches too. All bound facts must agree on the fixed term *)
   fix A B C x
   have "(\<And>y :: 'a. B y \<and> C y) \<Longrightarrow> (\<And>x :: 'a. A x \<and> B x) \<Longrightarrow> (\<And>y :: 'a. A y \<and> C y) \<Longrightarrow> C y \<Longrightarrow> (A x \<and> B y \<and> C y)"
-    apply (match premises in Y: "\<And>x :: 'a. P x \<and> ?U x" (multi) for P \<Rightarrow> \<open>intro conjI Y[THEN conjunct1]\<close>)
+    apply (match premises in Y: "\<And>x :: 'a. P x \<and> ?U x" (multi) for P \<Rightarrow>
+                                  \<open>match (P) in B \<Rightarrow> \<open>fail\<close>
+                                        \<bar> "\<lambda>a. B" \<Rightarrow> \<open>fail\<close>
+                                        \<bar> _ \<Rightarrow> \<open>-\<close>,
+                                  intro conjI, (rule Y[THEN conjunct1])\<close>)
+    apply (rule dup)
+    apply (match premises in Y':"\<And>x :: 'a. ?U x \<and> Q x" and Y: "\<And>x :: 'a. Q x \<and> ?U x" (multi)  for Q \<Rightarrow> \<open>insert Y[THEN conjunct1]\<close>)
+    apply assumption (* Previous match requires that Q is consistent *)
     apply (match premises in Y: "\<And>z :: 'a. ?A z \<longrightarrow> False" (multi) \<Rightarrow> \<open>print_fact Y, fail\<close> \<bar> "C y" \<Rightarrow> \<open>print_term C\<close>) (* multi-match must bind something *)
     apply (match premises in Y: "\<And>x. B x \<and> C x" \<Rightarrow> \<open>intro conjI Y[THEN conjunct1]\<close>)
     apply (match premises in Y: "C ?x" \<Rightarrow> \<open>rule Y\<close>)
+    done
+
+  (* All bindings must be tried for a particular theorem.
+     However all combinations are NOT explored. *)
+  fix B A C
+  assume asms:"\<And>a b. B (a :: 'a) (b :: 'a) \<and> Q" "\<And>x :: 'a. A x x \<and> Q" "\<And>a b. C (a :: 'a) (b :: 'a) \<and> Q"
+  have "B y x \<and> C x y \<and> B x y \<and> C y x \<and> A x x"
+    apply (intro conjI)
+    apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where z=x,THEN conjunct1]\<close>)
+    apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where a=x,THEN conjunct1]\<close>)
+    apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where a=x,THEN conjunct1]\<close>)
+    apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where z=x,THEN conjunct1]\<close>)
+    apply (match asms in Y: "\<And>z a. A (z :: 'a) (a :: 'a) \<and> R"  for R \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>)
+    apply (rule asms[THEN conjunct1])
     done
 
   (* Attributes *)
@@ -145,6 +172,10 @@ begin
     by (((match premises in I: "P \<and> Q" (cut)
               and I': "P \<longrightarrow> ?U" for P Q \<Rightarrow> \<open>rule mp [OF I' I[THEN conjunct1]]\<close>)?), simp)
 
+  have "D \<and> C  \<Longrightarrow> A \<and> B  \<Longrightarrow> A \<longrightarrow> C \<Longrightarrow> D \<longrightarrow> True \<Longrightarrow> C"
+    by (match premises in I: "P \<and> Q" (cut 2)
+              and I': "P \<longrightarrow> ?U" for P Q \<Rightarrow> \<open>rule mp [OF I' I[THEN conjunct1]]\<close>)
+
   have "A \<and> B \<Longrightarrow> A \<longrightarrow> C \<Longrightarrow> C"
     by (((match premises in I: "P \<and> Q" (cut)
               and I': "P \<longrightarrow> ?U" for P Q \<Rightarrow> \<open>rule mp [OF I' I[THEN conjunct1]]\<close>)?, simp) | simp)
@@ -156,11 +187,37 @@ begin
   fix A B C
   assume X: "A \<and> B" "A \<and> C" C
   have "A \<and> B \<and> C"
-    by (match X in H: "A \<and> ?H" (multi,cut) \<Rightarrow>
+    by (match X in H: "A \<and> ?H" (multi, cut) \<Rightarrow>
           \<open>match H in "A \<and> C" and "A \<and> B" \<Rightarrow> \<open>fail\<close>\<close>
         | simp add: X)
 
+
+  (* Thinning an inner focus *)
+  (* Thinning should persist within a match, even when on an external premise *)
+
+  fix A
+  have "(\<And>x. A x \<and> B) \<Longrightarrow> B \<and> C \<Longrightarrow> C"
+    apply (match premises in H:"\<And>x. A x \<and> B" \<Rightarrow>
+                     \<open>match premises in H'[thin]: "\<And>x. A x \<and> B" \<Rightarrow>
+                      \<open>match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close>
+                                         \<bar> _ \<Rightarrow> \<open>-\<close>\<close>
+                      ,match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>\<close>)
+    apply (match premises in H:"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close>
+                              \<bar> H':_ \<Rightarrow> \<open>rule H'[THEN conjunct2]\<close>)
+    done
+
+
+  (* Local premises *)
+  (* Only match premises which actually existed in the goal we just focused.*)
+
+  fix A
+  assume asms: "C \<and> D"
+  have "B \<and> C \<Longrightarrow> C"
+    by (match premises in _ \<Rightarrow> \<open>insert asms,
+            match premises (local) in "B \<and> C" \<Rightarrow> \<open>fail\<close>
+                                  \<bar> H:"C \<and> D" \<Rightarrow> \<open>rule H[THEN conjunct1]\<close>\<close>)
 end
+
 
 
 (* Testing inner focusing. This fails if we don't smash flex-flex pairs produced
@@ -193,7 +250,8 @@ ML \<open>
   fun test_internal_fact ctxt factnm =
     (case try (Proof_Context.get_thms ctxt) factnm of
       NONE => ()
-    | SOME _ => error "Found internal fact")\<close>
+    | SOME _ => error "Found internal fact");
+\<close>
 
 method uses_test\<^sub>1 uses uses_test\<^sub>1_uses = (rule uses_test\<^sub>1_uses)
 
@@ -205,7 +263,7 @@ ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1_uses"\<close>
 ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1.uses_test\<^sub>1_uses"\<close>
 
 
-(* Testing term and fact passing in recursion *)
+subsection \<open>Testing term and fact passing in recursion\<close>
 
 method recursion_example for x :: bool uses facts =
   (match (x) in
@@ -218,6 +276,23 @@ lemma
   apply (recursion_example "(A \<and> B) \<and> (C \<and> D)" facts: asms)
   apply simp
   done
+
+(* uses facts are not accumulated *)
+
+method recursion_example' for A :: bool and B :: bool uses facts =
+  (match facts in
+    H: "A" and H': "B" \<Rightarrow> \<open>recursion_example' "A" "B" facts: H TrueI\<close>
+  \<bar> "A" and "True" \<Rightarrow> \<open>recursion_example' "A" "B" facts: TrueI\<close>
+  \<bar> "True" \<Rightarrow> \<open>-\<close>
+  \<bar> "PROP ?P" \<Rightarrow> \<open>fail\<close>)
+
+lemma
+  assumes asms: "A" "B"
+  shows "True"
+  apply (recursion_example' "A" "B" facts: asms)
+  apply simp
+  done
+
 
 (*Method.sections in existing method*)
 method my_simp\<^sub>1 uses my_simp\<^sub>1_facts = (simp add: my_simp\<^sub>1_facts)
@@ -265,13 +340,14 @@ lemma "\<forall>x. Q x \<Longrightarrow> Q x" by (my_allE\<^sub>4 x Q)
 
 
 
-(* Polymorphism test *)
+subsection \<open>Polymorphism test\<close>
 
 axiomatization foo' :: "'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> bool"
 axiomatization where foo'_ax1: "foo' x y z \<Longrightarrow> z \<and> y"
 axiomatization where foo'_ax2: "foo' x y y \<Longrightarrow> x \<and> z"
+axiomatization where foo'_ax3: "foo' (x :: int) y y \<Longrightarrow> y \<and> y"
 
-lemmas my_thms = foo'_ax1 foo'_ax2
+lemmas my_thms = foo'_ax1 foo'_ax2 foo'_ax3
 
 definition first_id where "first_id x = x"
 
@@ -292,6 +368,36 @@ lemma
           rule foo
       \<close>\<close>\<close>)
   done
+
+
+subsection \<open>Unchecked rule instantiation, with the possibility of runtime errors\<close>
+
+named_theorems my_thms_named
+
+declare foo'_ax3[my_thms_named]
+
+method foo_method3 declares my_thms_named =
+  (match my_thms_named[of (unchecked) z for z] in R:"PROP ?H" \<Rightarrow> \<open>rule R\<close>)
+
+notepad
+begin
+
+  (*FIXME: Shouldn't need unchecked keyword here. See Tests_Failing.thy *)
+  fix A B x
+  have "foo' x B A \<Longrightarrow> A \<and> B"
+    by (match my_thms[of (unchecked) z for z] in R:"PROP ?H" \<Rightarrow> \<open>rule R\<close>)
+
+  fix A B x
+  note foo'_ax1[my_thms_named]
+  have "foo' x B A \<Longrightarrow> A \<and> B"
+    by (match my_thms_named[where x=z for z] in R:"PROP ?H" \<Rightarrow> \<open>rule R\<close>)
+
+  fix A B x
+  note foo'_ax1[my_thms_named] foo'_ax2[my_thms_named] foo'_ax3[my_thms_named]
+  have "foo' x B A \<Longrightarrow> A \<and> B"
+   by foo_method3
+
+end
 
 
 ML \<open>
@@ -324,34 +430,36 @@ lemma A by dynamic_thms_test
 end
 
 
-notepad begin
+notepad
+begin
   fix A x
   assume X: "\<And>x. A x"
   have "A x"
-  by (match X in H[of x]:"\<And>x. A x" \<Rightarrow> \<open>print_fact H,match H in "A x" \<Rightarrow> \<open>rule H\<close>\<close>)
+    by (match X in H[of x]:"\<And>x. A x" \<Rightarrow> \<open>print_fact H,match H in "A x" \<Rightarrow> \<open>rule H\<close>\<close>)
 
   fix A x B
   assume X: "\<And>x :: bool. A x \<Longrightarrow> B" "\<And>x. A x"
   assume Y: "A B"
   have "B \<and> B \<and> B \<and> B \<and> B \<and> B"
-  apply (intro conjI)
-  apply (match X in H[OF X(2)]:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H,rule H\<close>)
-  apply (match X in H':"\<And>x. A x" and H[OF H']:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H',print_fact H,rule H\<close>)
-  apply (match X in H[of Q]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H, rule Y\<close>)
-  apply (match X in H[of Q,OF Y]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H\<close>)
-  apply (match X in H[OF Y,intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>print_fact H,fastforce\<close>)
-  apply (match X in H[intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>rule H[where x=B], rule Y\<close>)  
-  done
-  
+    apply (intro conjI)
+    apply (match X in H[OF X(2)]:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H,rule H\<close>)
+    apply (match X in H':"\<And>x. A x" and H[OF H']:"\<And>x. A x \<Longrightarrow> B" \<Rightarrow> \<open>print_fact H',print_fact H,rule H\<close>)
+    apply (match X in H[of Q]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H, rule Y\<close>)
+    apply (match X in H[of Q,OF Y]:"\<And>x. A x \<Longrightarrow> ?R" and "?P \<Longrightarrow> Q" for Q \<Rightarrow> \<open>print_fact H,rule H\<close>)
+    apply (match X in H[OF Y,intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>print_fact H,fastforce\<close>)
+    apply (match X in H[intro]:"\<And>x. A x \<Longrightarrow> ?R" \<Rightarrow> \<open>rule H[where x=B], rule Y\<close>)
+    done
+
   fix x :: "prop" and A
   assume X: "TERM x"
   assume Y: "\<And>x :: prop. A x"
   have "A TERM x"
-  apply (match X in "PROP y" for y \<Rightarrow> \<open>rule Y[where x="PROP y"]\<close>)
-  done
+    apply (match X in "PROP y" for y \<Rightarrow> \<open>rule Y[where x="PROP y"]\<close>)
+    done
 end
 
-(* Method name internalization test *)
+
+subsection \<open>Method name internalization test\<close>
 
 method test2 = (simp)
 

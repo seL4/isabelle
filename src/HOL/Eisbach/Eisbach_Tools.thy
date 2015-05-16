@@ -45,4 +45,37 @@ val _ =
 end
 \<close>
 
+ML \<open>
+  fun try_map v seq =
+    (case try Seq.pull seq of
+      SOME (SOME (x, seq')) => Seq.make (fn () => SOME(x, try_map v seq'))
+    | SOME NONE => Seq.empty
+    | NONE => v);
+\<close>
+
+method_setup catch = \<open>
+  Method_Closure.parse_method -- Method_Closure.parse_method >>
+    (fn (text, text') => fn ctxt => fn using => fn st =>
+      let
+        val method = Method_Closure.method_evaluate text ctxt using;
+        val backup_results = Method_Closure.method_evaluate text' ctxt using st;
+      in
+        (case try method st of
+          SOME seq => try_map backup_results seq
+        | NONE => backup_results)
+      end)
+\<close>
+
+ML \<open>
+  fun uncurry_rule thm = Conjunction.uncurry_balanced (Thm.nprems_of thm) thm;
+  fun curry_rule thm =
+    if Thm.no_prems thm then thm
+    else
+      let val conjs = Logic.dest_conjunctions (Thm.major_prem_of thm);
+      in Conjunction.curry_balanced (length conjs) thm end;
+\<close>
+
+attribute_setup uncurry = \<open>Scan.succeed (Thm.rule_attribute (K uncurry_rule))\<close>
+attribute_setup curry = \<open>Scan.succeed (Thm.rule_attribute (K curry_rule))\<close>
+
 end

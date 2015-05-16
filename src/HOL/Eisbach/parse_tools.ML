@@ -6,18 +6,21 @@ Simple tools for deferred stateful token values.
 
 signature PARSE_TOOLS =
 sig
+
   datatype ('a, 'b) parse_val =
     Real_Val of 'a
-  | Parse_Val of 'b * ('a -> unit)
+  | Parse_Val of 'b * ('a -> unit);
 
-  val parse_term_val : 'b parser -> (term, 'b) parse_val parser
-
-  val name_term : (term, string) parse_val parser
   val is_real_val : ('a, 'b) parse_val -> bool
 
   val the_real_val : ('a, 'b) parse_val -> 'a
   val the_parse_val : ('a, 'b) parse_val -> 'b
   val the_parse_fun : ('a, 'b) parse_val -> ('a -> unit)
+
+  val parse_val_cases: ('b -> 'a) -> ('a, 'b) parse_val -> ('a * ('a -> unit))
+
+  val parse_term_val : 'b parser -> (term, 'b) parse_val parser
+  val name_term : (term, string) parse_val parser
 end;
 
 structure Parse_Tools: PARSE_TOOLS =
@@ -45,5 +48,8 @@ fun the_parse_val (Parse_Val (b, _)) = b
 
 fun the_parse_fun (Parse_Val (_, f)) = f
   | the_parse_fun _ = raise Fail "Expected open parsed value";
+
+fun parse_val_cases g (Parse_Val (b, f)) = (g b, f)
+  | parse_val_cases _ (Real_Val v) = (v, K ());
 
 end;

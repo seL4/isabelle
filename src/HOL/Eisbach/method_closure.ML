@@ -12,11 +12,15 @@ signature METHOD_CLOSURE =
 sig
   val is_dummy: thm -> bool
   val tag_free_thm: thm -> thm
+  val is_free_thm: thm -> bool
+  val dummy_free_thm: thm
   val free_aware_rule_attribute: thm list -> (Context.generic -> thm -> thm) -> Thm.attribute
-  val wrap_attribute: bool -> Binding.binding -> theory -> theory
+  val wrap_attribute: {handle_all_errs : bool, declaration : bool} ->
+    Binding.binding -> theory -> theory
   val read_inner_method: Proof.context -> Token.src -> Method.text
   val read_text_closure: Proof.context -> Token.src -> Token.src * Method.text
   val read_inner_text_closure: Proof.context -> Input.source -> Token.src * Method.text
+  val parse_method: Method.text context_parser
   val method_evaluate: Method.text -> Proof.context -> Method.method
   val get_inner_method: Proof.context -> string * Position.T ->
     (term list * (string list * string list)) * Method.text
@@ -87,11 +91,14 @@ fun free_aware_rule_attribute args f =
     if exists is_free_thm (thm :: args) then dummy_free_thm
     else f context thm);
 
-fun free_aware_attribute thy declaration src (context, thm) =
+fun free_aware_attribute thy {handle_all_errs,declaration} src (context, thm) =
   let
     val src' = Token.init_assignable_src src;
     fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
-    val _ = try apply_att Drule.dummy_thm;
+    val _ =
+      if handle_all_errs then (try apply_att Drule.dummy_thm; ())
+      else (apply_att Drule.dummy_thm; ()) handle THM _ => () | TERM _ => () | TYPE _ => ();
+
     val src'' = Token.closure_src src';
     val thms =
       map_filter Token.get_value (Token.args_of_src src'')
@@ -104,13 +111,13 @@ fun free_aware_attribute thy declaration src (context, thm) =
     else apply_att thm
   end;
 
-fun wrap_attribute declaration binding thy =
+fun wrap_attribute args binding thy =
   let
     val name = Binding.name_of binding;
     val name' = Attrib.check_name_generic (Context.Theory thy) (name, Position.none);
     fun get_src src = Token.src (name', Token.range_of_src src) (Token.args_of_src src);
   in
-    Attrib.define_global binding (free_aware_attribute thy declaration o get_src) "" thy
+    Attrib.define_global binding (free_aware_attribute thy args o get_src) "" thy
     |> snd
   end;
 
@@ -133,8 +140,9 @@ fun read_text_closure ctxt source =
     val method_text = read_inner_method ctxt src;
     val method_text' = Method.map_source (Method.method_closure ctxt) method_text;
     (*FIXME: Does not markup method parameters. Needs to be done by Method.parser' directly. *)
-    val _ = Method.map_source (fn src =>
-                  (try (Method.check_name ctxt) (Token.name_of_src src);src)) method_text;
+    val _ =
+      Method.map_source (fn src => (try (Method.check_name ctxt) (Token.name_of_src src); src))
+        method_text;
     val src' = Token.closure_src src;
   in (src', method_text') end;
 
@@ -169,18 +177,18 @@ fun method_evaluate text ctxt : Method.method = fn facts => fn st =>
 fun parse_term_args args =
   Args.context :|-- (fn ctxt =>
     let
+      val ctxt' = Proof_Context.set_mode (Proof_Context.mode_schematic) ctxt;
+
       fun parse T =
-        (if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt)
+        (if T = propT then Syntax.parse_prop ctxt' else Syntax.parse_term ctxt')
         #> Type.constraint (Type_Infer.paramify_vars T);
 
       fun do_parse' T =
-        Parse_Tools.name_term >>
-          (fn Parse_Tools.Parse_Val (s, f) => (parse T s, f)
-            | Parse_Tools.Real_Val t' => (t', K ()));
+        Parse_Tools.name_term >> Parse_Tools.parse_val_cases (parse T);
 
       fun do_parse (Var (_, T)) = do_parse' T
         | do_parse (Free (_, T)) = do_parse' T
-        | do_parse t = error ("Unexpected method parameter: " ^ Syntax.string_of_term ctxt t);
+        | do_parse t = error ("Unexpected method parameter: " ^ Syntax.string_of_term ctxt' t);
 
        fun rep [] x = Scan.succeed [] x
          | rep (t :: ts) x  = (do_parse t -- rep ts >> op ::) x;
@@ -188,7 +196,7 @@ fun parse_term_args args =
       fun check ts =
         let
           val (ts, fs) = split_list ts;
-          val ts' = Syntax.check_terms ctxt ts |> Variable.polymorphic ctxt;
+          val ts' = Syntax.check_terms ctxt' ts |> Variable.polymorphic ctxt';
           val _ = ListPair.app (fn (f, t) => f t) (fs, ts');
         in ts' end;
     in Scan.lift (rep args) >> check end);
@@ -218,7 +226,7 @@ fun instantiate_text env text =
   in Method.map_source (Token.transform_src morphism) text end;
 
 fun evaluate_dynamic_thm ctxt name =
-  (case (try (Named_Theorems.get ctxt) name) of
+  (case try (Named_Theorems.get ctxt) name of
     SOME thms => thms
   | NONE => Proof_Context.get_thms ctxt name);
 
@@ -246,6 +254,20 @@ fun setup_local_method binding lthy =
   end;
 
 fun setup_local_fact binding = Named_Theorems.declare binding "";
+
+(* FIXME: In general we need the ability to override all dynamic facts.
+   This is also slow: we need Named_Theorems.only *)
+fun empty_named_thm named_thm ctxt =
+  let
+    val contents = Named_Theorems.get ctxt named_thm;
+    val attrib = snd oo Thm.proof_attributes [Named_Theorems.del named_thm];
+  in fold attrib contents ctxt end;
+
+fun dummy_named_thm named_thm ctxt =
+  let
+    val ctxt' = empty_named_thm named_thm ctxt;
+    val (_,ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
+  in ctxt'' end;
 
 fun parse_method_args method_names =
   let
@@ -320,11 +342,13 @@ fun gen_method_definition prep_vars name vars uses attribs methods source lthy =
     fun parser args eval =
       apfst (Config.put_generic Method.old_section_parser true) #>
       (parse_term_args args --|
-        Method.sections modifiers --
-        (*Scan.depend (fn context => Scan.succeed () >> (K (fold XNamed_Theorems.empty uses_nms context, ()))) --*)  (* FIXME *)
-        parse_method_args method_names >> eval);
+        (Scan.depend (fn context =>
+              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context,())) --
+         Method.sections modifiers) --
+       parse_method_args method_names >> eval);
 
     val lthy3 = lthy2
+      |> fold dummy_named_thm named_thms
       |> Method.local_setup (Binding.make (Binding.name_of name, Position.none))
         (parser term_args
           (fn (fixes, decl) => fn ctxt => get_recursive_method ctxt fixes (decl ctxt))) "(internal)";

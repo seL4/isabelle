@@ -72,39 +72,59 @@ fun instantiate_xis insts thm =
     |> restore_tags thm
   end;
 
+(* FIXME unused *)
+fun read_instantiate_no_thm ctxt insts fixes =
+  let
+    val (type_insts, term_insts) =
+      List.partition (fn (((x, _) : indexname), _) => String.isPrefix "'" x) insts;
+
+    val ctxt1 =
+      ctxt
+      |> Context_Position.not_really
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+
+    val typs =
+      map snd type_insts
+      |> Syntax.read_typs ctxt1
+      |> Syntax.check_typs ctxt1;
+
+    val typ_insts' = map2 (fn (xi, _) => fn T => (xi,T)) type_insts typs;
+
+    val terms =
+      map snd term_insts
+      |> Syntax.read_terms ctxt1
+      |> Syntax.check_terms ctxt1;
+
+    val term_insts' = map2 (fn (xi, _) => fn t => (xi, t)) term_insts terms;
+
+  in (typ_insts',term_insts') end;
+
 
 datatype rule_inst =
-  Named_Insts of ((indexname * string) * (term -> unit)) list
-| Term_Insts of (indexname * term) list;
+  Named_Insts of ((indexname * string) * (term -> unit)) list * (binding * string option * mixfix) list
+(*| Unchecked_Of_Insts of (string option list * string option list) * (binding * string option * mixfix) list*)
+| Term_Insts of (indexname * term) list
+| Unchecked_Term_Insts of term option list * term option list;
+
+fun mk_pair (t, t') = Logic.mk_conjunction (Logic.mk_term t, Logic.mk_term t');
+
+fun dest_pair t = apply2 Logic.dest_term (Logic.dest_conjunction t);
 
 fun embed_indexname ((xi, s), f) =
-  let
-    fun wrap_xi xi t =
-      Logic.mk_conjunction (Logic.mk_term (Var (xi, fastype_of t)), Logic.mk_term t);
+  let fun wrap_xi xi t = mk_pair (Var (xi, fastype_of t), t);
   in ((xi, s), f o wrap_xi xi) end;
 
-fun unembed_indexname t =
-  let
-    val (t, t') = apply2 Logic.dest_term (Logic.dest_conjunction t);
-    val (xi, _) = Term.dest_Var t;
-  in (xi, t') end;
+fun unembed_indexname t = dest_pair t |> apfst (Term.dest_Var #> fst);
 
-fun read_where_insts toks =
+fun read_where_insts (insts, fixes) =
   let
-    val parser =
-      Parse.!!!
-        (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse_Tools.name_term)) -- Parse.for_fixes)
-          --| Scan.ahead Parse.eof;
-    val (insts, fixes) = the (Scan.read Token.stopper parser toks);
-
     val insts' =
       if forall (fn (_, v) => Parse_Tools.is_real_val v) insts
-      then Term_Insts (map (fn (_, t) => unembed_indexname (Parse_Tools.the_real_val t)) insts)
-      else Named_Insts (map (fn (xi, p) => embed_indexname
-            ((xi, Parse_Tools.the_parse_val p), Parse_Tools.the_parse_fun p)) insts);
-  in
-    (insts', fixes)
-  end;
+      then Term_Insts (map (unembed_indexname o Parse_Tools.the_real_val o snd) insts)
+      else
+        Named_Insts (map (fn (xi, p) => embed_indexname
+          ((xi, Parse_Tools.the_parse_val p), Parse_Tools.the_parse_fun p)) insts, fixes);
+  in insts' end;
 
 fun of_rule thm  (args, concl_args) =
   let
@@ -120,32 +140,55 @@ fun of_rule thm  (args, concl_args) =
 val inst =  Args.maybe Parse_Tools.name_term;
 val concl = Args.$$$ "concl" -- Args.colon;
 
-fun read_of_insts toks thm =
+fun close_unchecked_insts context ((insts,concl_inst), fixes) =
   let
-    val parser =
-      Parse.!!!
-        ((Scan.repeat (Scan.unless concl inst) -- Scan.optional (concl |-- Scan.repeat inst) [])
-          -- Parse.for_fixes) --| Scan.ahead Parse.eof;
-    val ((insts, concl_insts), fixes) =
-      the (Scan.read Token.stopper parser toks);
+    val ctxt = Context.proof_of context;
+    val ctxt1 = ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
 
-    val insts' =
-      if forall (fn SOME t => Parse_Tools.is_real_val t | NONE => true) (insts @ concl_insts)
-      then
-        Term_Insts
-          (map_filter
-            (Option.map (Parse_Tools.the_real_val #> unembed_indexname)) (insts @ concl_insts))
-      else
+    val insts' = insts @ concl_inst;
+
+    val term_insts =
+      map (the_list o (Option.map Parse_Tools.the_parse_val)) insts'
+      |> burrow (Syntax.read_terms ctxt1
+        #> Syntax.check_terms ctxt1
+        #> Variable.export_terms ctxt1 ctxt)
+      |> map (try the_single);
+
+    val _ =
+      (insts', term_insts)
+      |> ListPair.app (fn (SOME p, SOME t) => Parse_Tools.the_parse_fun p t | _ => ());
+    val (insts'',concl_insts'') = chop (length insts) term_insts;
+   in Unchecked_Term_Insts (insts'', concl_insts'') end;
+
+fun read_of_insts checked context ((insts, concl_insts), fixes) =
+  if forall (fn SOME t => Parse_Tools.is_real_val t | NONE => true) (insts @ concl_insts)
+  then
+    if checked
+    then
+      (fn _ =>
+       Term_Insts
+        (map (unembed_indexname o Parse_Tools.the_real_val) (map_filter I (insts @ concl_insts))))
+    else
+      (fn _ =>
+        Unchecked_Term_Insts
+          (map (Option.map Parse_Tools.the_real_val) insts,
+            map (Option.map Parse_Tools.the_real_val) concl_insts))
+  else
+    if checked
+    then
+      (fn thm =>
         Named_Insts
           (apply2
             (map (Option.map (fn p => (Parse_Tools.the_parse_val p, Parse_Tools.the_parse_fun p))))
             (insts, concl_insts)
-          |> of_rule thm |> map ((fn (xi, (nm, tok)) => embed_indexname ((xi, nm), tok))));
-  in
-    (insts', fixes)
-  end;
+          |> of_rule thm |> map ((fn (xi, (nm, f)) => embed_indexname ((xi, nm), f))), fixes))
+    else
+      let val result = close_unchecked_insts context ((insts, concl_insts), fixes);
+      in fn _ => result end;
 
-fun read_instantiate_closed ctxt ((Named_Insts insts), fixes) thm  =
+
+fun read_instantiate_closed ctxt (Named_Insts (insts, fixes)) thm  =
       let
         val insts' = map (fn ((v, t), _) => ((v, Position.none), t)) insts;
 
@@ -170,22 +213,42 @@ fun read_instantiate_closed ctxt ((Named_Insts insts), fixes) thm  =
       in
         (thm'' |> restore_tags thm)
       end
-  | read_instantiate_closed _ ((Term_Insts insts), _) thm = instantiate_xis insts thm;
-
-val parse_all : Token.T list context_parser = Scan.lift (Scan.many Token.not_eof);
+  | read_instantiate_closed ctxt (Unchecked_Term_Insts insts) thm =
+      let
+        val (xis, ts) = ListPair.unzip (of_rule thm insts);
+        val ctxt' = Variable.declare_maxidx (Thm.maxidx_of thm) ctxt;
+        val (ts', ctxt'') = Variable.import_terms false ts ctxt';
+        val ts'' = Variable.export_terms ctxt'' ctxt ts';
+        val insts' = ListPair.zip (xis, ts'');
+      in instantiate_xis insts' thm end
+  | read_instantiate_closed _ (Term_Insts insts) thm = instantiate_xis insts thm;
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding "where"} (parse_all >>
-      (fn toks => Thm.rule_attribute (fn context =>
-        read_instantiate_closed (Context.proof_of context) (read_where_insts toks))))
+    (Attrib.setup @{binding "where"}
+      (Scan.lift
+        (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse_Tools.name_term)) -- Parse.for_fixes)
+        >> (fn args => let val args' = read_where_insts args in Thm.rule_attribute (fn context =>
+            read_instantiate_closed (Context.proof_of context) args') end))
       "named instantiation of theorem");
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding "of"} (parse_all >>
-      (fn toks => Thm.rule_attribute (fn context => fn thm =>
-        read_instantiate_closed (Context.proof_of context) (read_of_insts toks thm) thm)))
+    (Attrib.setup @{binding "of"}
+      (Scan.lift
+        (Args.mode "unchecked" --
+          (Scan.repeat (Scan.unless concl inst) --
+            Scan.optional (concl |-- Scan.repeat inst) [] --
+            Parse.for_fixes)) -- Scan.state >>
+      (fn ((unchecked, args), context) =>
+        let
+          val read_insts = read_of_insts (not unchecked) context args;
+        in
+          Thm.rule_attribute (fn context => fn thm =>
+            if Method_Closure.is_free_thm thm andalso unchecked
+            then Method_Closure.dummy_free_thm
+            else read_instantiate_closed (Context.proof_of context) (read_insts thm) thm)
+        end))
       "positional instantiation of theorem");
 
 end;
