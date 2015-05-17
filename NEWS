@@ -63,8 +63,9 @@ corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 by combining existing ones with their usual syntax. The "match" proof
 method provides basic fact/term matching in addition to
 premise/conclusion matching through Subgoal.focus, and binds fact names
-from matches as well as term patterns within matches. See also
-~~/src/HOL/Eisbach/Eisbach.thy and the included examples.
+from matches as well as term patterns within matches. The Isabelle
+documentation provides an entry "eisbach" for the Eisbach User Manual.
+Sources and various examples are in ~~/src/HOL/Eisbach/.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***

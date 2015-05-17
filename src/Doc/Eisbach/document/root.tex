@@ -1,0 +1,88 @@
+\documentclass[12pt,a4paper,fleqn]{report}
+\usepackage[T1]{fontenc}
+\usepackage{latexsym,graphicx}
+\usepackage[refpage]{nomencl}
+\usepackage{iman,extra,isar,proof}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{railsetup}
+\usepackage{ttbox}
+\usepackage{supertabular}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+
+\hyphenation{Isabelle}
+\hyphenation{Eisbach}
+
+\isadroptag{theory}
+\title{\includegraphics[scale=0.5]{isabelle_eisbach}
+  \\[4ex] The Eisbach User Manual}
+\author{Daniel Matichuk \\
+  Makarius Wenzel \\
+  Toby Murray
+}
+
+
+% Control fixmes etc.
+\newif\ifDraft \newif\ifFinal
+%\Drafttrue\Finalfalse
+\Draftfalse\Finaltrue
+
+
+\ifDraft
+  \usepackage{draftcopy}
+  \newcommand{\Comment}[1]{\textbf{\textsl{#1}}}
+  \newenvironment{LongComment}[1] % multi-paragraph comment, argument is owner
+    {\begingroup\par\noindent\slshape \textbf{Begin Comment[#1]}\par}
+    {\par\noindent\textbf{End Comment}\endgroup\par}
+  \newcommand{\FIXME}[1]{\textbf{\textsl{FIXME: #1}}}
+  \newcommand{\TODO}[1]{\textbf{\textsl{TODO: #1}}}
+\else
+  \newcommand{\Comment}[1]{\relax}
+  \newenvironment{LongComment}[1]{\expandafter\comment}{\expandafter\endcomment}
+  \newcommand{\FIXME}[1]{\relax}
+  \newcommand{\TODO}[1]{\relax}
+\fi
+
+% This sort of command for each active author can be convenient
+\newcommand{\dan}[1]{\Comment{#1 [dan]}}
+\newcommand{\toby}[1]{\Comment{#1 [toby]}}
+\newcommand{\makarius}[1]{\Comment{#1 [makarius]}}
+
+
+\makeindex
+
+\chardef\charbackquote=`\`
+\newcommand{\backquote}{\mbox{\tt\charbackquote}}
+
+
+\begin{document}
+
+\maketitle
+
+\pagenumbering{roman}
+\chapter*{Preface}
+\input{Preface.tex}
+\tableofcontents
+\clearfirst
+
+\input{Manual.tex}
+
+\begingroup
+\tocentry{\bibname}
+\bibliographystyle{abbrv} \small\raggedright\frenchspacing
+\bibliography{manual}
+\endgroup
+
+\tocentry{\indexname}
+\printindex
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
