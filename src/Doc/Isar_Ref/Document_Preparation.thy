@@ -81,7 +81,7 @@ text \<open>
 \<close>
 
 
-section \<open>Document Antiquotations \label{sec:antiq}\<close>
+section \<open>Document antiquotations \label{sec:antiq}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
