@@ -25,7 +25,7 @@ sig
   val get_inner_method: Proof.context -> string * Position.T ->
     (term list * (string list * string list)) * Method.text
   val eval_inner_method: Proof.context -> (term list * string list) * Method.text ->
-    term list -> (string * thm list) list -> Method.method list ->
+    term list -> (string * thm list) list -> (Proof.context -> Method.method) list ->
     Proof.context -> Method.method
   val method_definition: binding -> (binding * typ option * mixfix) list ->
     binding list -> binding list -> binding list -> Token.src -> local_theory -> local_theory
@@ -53,12 +53,12 @@ val map_methods = Data.map;
 structure Local_Data = Proof_Data
 (
   type T =
-    Method.method Symtab.table *  (*dynamic methods*)
+    (Proof.context -> Method.method) Symtab.table *  (*dynamic methods*)
     (term list -> Proof.context -> Method.method)  (*recursive method*);
   fun init _ : T = (Symtab.empty, fn _ => fn _ => Method.fail);
 );
 
-fun lookup_dynamic_method full_name ctxt =
+fun lookup_dynamic_method ctxt full_name =
   (case Symtab.lookup (#1 (Local_Data.get ctxt)) full_name of
     SOME m => m
   | NONE => error ("Illegal use of internal Eisbach method: " ^ quote full_name));
@@ -169,10 +169,6 @@ val parse_method =
         error ("Unexpected inner token value for method cartouche" ^
           Position.here (Token.pos_of tok))));
 
-fun method_evaluate text ctxt : Method.method = fn facts => fn st =>
-  if is_dummy st then Seq.empty
-  else Method.evaluate text (Config.put Method.closure false ctxt) facts st;
-
 
 fun parse_term_args args =
   Args.context :|-- (fn ctxt =>
@@ -237,20 +233,28 @@ fun evaluate_named_theorems ctxt =
           Token.Fact (SOME name, evaluate_dynamic_thm ctxt name)
       | x => x);
 
+fun method_evaluate text ctxt : Method.method = fn facts => fn st =>
+  let
+    val ctxt' = Config.put Method.closure false ctxt;
+  in
+    if is_dummy st then Seq.empty
+    else Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st
+  end;
+
 fun evaluate_method_def fix_env raw_text ctxt =
   let
     val text = raw_text
-      |> instantiate_text fix_env
-      |> evaluate_named_theorems ctxt;
+      |> instantiate_text fix_env;
   in method_evaluate text ctxt end;
 
 fun setup_local_method binding lthy =
   let
     val full_name = Local_Theory.full_name lthy binding;
+    fun get_method ctxt = lookup_dynamic_method ctxt full_name ctxt;
   in
     lthy
-    |> update_dynamic_method (full_name, Method.fail)
-    |> Method.local_setup binding (Scan.succeed (lookup_dynamic_method full_name)) "(internal)"
+    |> update_dynamic_method (full_name, K Method.fail)
+    |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
   end;
 
 fun setup_local_fact binding = Named_Theorems.declare binding "";
@@ -271,8 +275,11 @@ fun dummy_named_thm named_thm ctxt =
 
 fun parse_method_args method_names =
   let
-    fun bind_method (name, text) ctxt =
-      update_dynamic_method (name, method_evaluate text ctxt) ctxt;
+    fun bind_method (name, text) ctxt = 
+    let
+      val method = method_evaluate text;
+      val inner_update = method o update_dynamic_method (name,K (method ctxt));
+    in update_dynamic_method (name,inner_update) ctxt end;
 
     fun do_parse t = parse_method >> pair t;
     fun rep [] x = Scan.succeed [] x
@@ -341,11 +348,11 @@ fun gen_method_definition prep_vars name vars uses attribs methods source lthy =
 
     fun parser args eval =
       apfst (Config.put_generic Method.old_section_parser true) #>
-      (parse_term_args args --|
+      (parse_term_args args --
+        parse_method_args method_names --|
         (Scan.depend (fn context =>
               Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context,())) --
-         Method.sections modifiers) --
-       parse_method_args method_names >> eval);
+         Method.sections modifiers) >> eval);
 
     val lthy3 = lthy2
       |> fold dummy_named_thm named_thms
@@ -384,11 +391,11 @@ val method_definition_cmd = gen_method_definition Proof_Context.read_vars;
 val _ =
   Outer_Syntax.local_theory @{command_keyword method} "Eisbach method definition"
     (Parse.binding -- Parse.for_fixes --
-      ((Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-        (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
-      (Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
+      ((Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
+        (Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
+      (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
       Parse.!!! (@{keyword "="}
         |-- (Parse.position (Parse.args1 (K true)) >> (fn (args, pos) => Token.src ("", pos) args)))
-      >> (fn ((((name, vars), (uses, attribs)), methods), source) =>
+      >> (fn ((((name, vars), (methods, uses)), attribs), source) =>
         method_definition_cmd name vars uses attribs methods source));
 end;

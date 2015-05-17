@@ -60,9 +60,9 @@ val bound_term : (term, binding) Parse_Tools.parse_val parser =
   Parse_Tools.parse_term_val Parse.binding;
 
 val fixes =
-  Parse.and_list1 (Scan.repeat1  (Parse.position bound_term) --
+  Parse.and_list1 (Scan.repeat1 (Parse.position bound_term) --
     Scan.option (@{keyword "::"} |-- Parse.!!! Parse.typ)
-    >> (fn (xs, T) => map (fn (nm, pos) => ((nm, T), pos)) xs)) >> flat;
+    >> (fn (xs, T) => map (fn (x, pos) => ((x, T), pos)) xs)) >> flat;
 
 val for_fixes = Scan.optional (@{keyword "for"} |-- fixes) [];
 
@@ -77,7 +77,7 @@ type match_args = {multi : bool, cut : int};
 
 val parse_match_args =
   Scan.optional (Args.parens (Parse.enum1 ","
-    (Args.$$$ "multi" -- Scan.succeed ~1 || Args.$$$ "cut" -- Scan.optional Parse.int 1))) [] >>
+    (Args.$$$ "multi" -- Scan.succeed ~1 || Args.$$$ "cut" -- Scan.optional Parse.nat 1))) [] >>
     (fn ss =>
       fold (fn s => fn {multi, cut} =>
         (case s of
@@ -87,14 +87,15 @@ val parse_match_args =
 
 fun parse_named_pats match_kind =
   Args.context :|-- (fn ctxt =>
-    Scan.lift (Parse.and_list1 (Scan.option (dynamic_fact ctxt --| Args.colon) :--
-      (fn opt_dyn =>
-        if is_none opt_dyn orelse nameable_match match_kind
-        then Parse_Tools.name_term -- parse_match_args
-        else
-          let val b = #1 (the opt_dyn)
-          in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end))
-    -- for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
+    Scan.lift (Parse.and_list1
+      (Scan.option (dynamic_fact ctxt --| Args.colon) :--
+        (fn opt_dyn =>
+          if is_none opt_dyn orelse nameable_match match_kind
+          then Parse_Tools.name_term -- parse_match_args
+          else
+            let val b = #1 (the opt_dyn)
+            in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end))
+        -- for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
   >> (fn ((ts, fixes), cartouche) =>
     (case Token.get_value cartouche of
       SOME (Token.Source src) =>
@@ -247,10 +248,6 @@ fun parse_named_pats match_kind =
         in
           (binds'', real_fixes', text)
         end)));
-
-
-fun parse_match_bodies match_kind =
-  Parse.enum1' "\<bar>" (parse_named_pats match_kind);
 
 
 fun dest_internal_fact t =
@@ -799,22 +796,19 @@ fun real_match using ctxt fixes m text pats goal =
   end;
 
 val match_parser =
-  parse_match_kind :-- (fn kind => Scan.lift @{keyword "in"} |-- parse_match_bodies kind) >>
+  parse_match_kind :-- (fn kind =>
+      Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
     (fn (matches, bodies) => fn ctxt => fn using => fn goal =>
       if Method_Closure.is_dummy goal then Seq.empty
       else
         let
           fun exec (pats, fixes, text) goal =
             let
-              val ctxt' = fold Variable.declare_term fixes ctxt
-              |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
-            in
-              real_match using ctxt' fixes matches text pats goal
-            end;
-        in
-          Seq.FIRST (map exec bodies) goal
-          |> Seq.flat
-        end);
+              val ctxt' =
+                fold Variable.declare_term fixes ctxt
+                |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
+            in real_match using ctxt' fixes matches text pats goal end;
+        in Seq.flat (Seq.FIRST (map exec bodies) goal) end);
 
 val _ =
   Theory.setup

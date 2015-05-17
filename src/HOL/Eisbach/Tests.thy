@@ -458,8 +458,35 @@ begin
     done
 end
 
+subsection \<open>Proper context for method parameters\<close>
+
+method add_simp methods m uses f = (match f in H[simp]:_ \<Rightarrow> \<open>m\<close>)
+
+method add_my_thms methods m uses f = (match f in H[my_thms_named]:_ \<Rightarrow> \<open>m\<close>)
+
+method rule_my_thms = (rule my_thms_named)
+method rule_my_thms' declares my_thms_named = (rule my_thms_named)
+
+lemma
+  assumes A: A and B: B
+  shows
+  "(A \<or> B) \<and> A \<and> A \<and> A"
+  apply (intro conjI)
+  apply (add_simp \<open>add_simp \<open>simp\<close> f: B\<close> f: A)
+  apply (add_my_thms \<open>rule_my_thms\<close> f:A)
+  apply (add_my_thms \<open>rule_my_thms'\<close> f:A)
+  apply (add_my_thms \<open>rule my_thms_named\<close> f:A)
+  done
+
+subsection \<open>Shallow parser tests\<close>
+
+method all_args for A B methods m1 m2 uses f1 f2 declares my_thms_named = (fail)
+
+lemma True
+  by (all_args True False \<open>-\<close> \<open>fail\<close> f1: TrueI f2: TrueI my_thms_named: TrueI | rule TrueI)
 
 subsection \<open>Method name internalization test\<close>
+
 
 method test2 = (simp)
 
