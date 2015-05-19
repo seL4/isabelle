@@ -209,6 +209,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "build"
     "cite-completion.png"
     "isabelle-jedit.png"
+    "isabelle-jedit-hdpi.png"
     "output.png"
     "query.png"
     "popup1.png"

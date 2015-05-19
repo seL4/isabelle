@@ -271,12 +271,15 @@ text \<open>
 
 chapter \<open>Augmented jEdit functionality\<close>
 
-section \<open>Look-and-feel\<close>
+section \<open>GUI rendering\<close>
 
-text \<open>jEdit is a Java/AWT/Swing application with some ambition to
-  support ``native'' look-and-feel on all platforms, within the limits
-  of what Oracle as Java provider and major operating system
-  distributors allow (see also \secref{sec:problems}).
+subsection \<open>Look-and-feel \label{sec:look-and-feel}\<close>
+
+text \<open>
+  jEdit is a Java/AWT/Swing application with some ambition to support
+  ``native'' look-and-feel on all platforms, within the limits of what Oracle
+  as Java provider and major operating system distributors allow (see also
+  \secref{sec:problems}).
 
   Isabelle/jEdit enables platform-specific look-and-feel by default as
   follows.
@@ -316,7 +319,74 @@ text \<open>jEdit is a Java/AWT/Swing application with some ambition to
 
   After changing the look-and-feel in \emph{Global Options~/
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
-  take full effect.\<close>
+  take full effect.
+\<close>
+
+
+subsection \<open>Displays with very high resolution \label{sec:hdpi}\<close>
+
+text \<open>
+  Many years ago, displays with $1024 \times 768$ or $1280 \times 1024$ pixels
+  were considered ``high resolution'' and bitmap fonts with 12 or 14 pixels as
+  adequate for text rendering. Today (2015), we routinely see ``Full HD''
+  monitors at $1920 \times 1080$ pixels, and occasionally ``Ultra HD'' at
+  $3840 \times 2160$ or more, but GUI rendering did not really progress
+  beyond the old standards.
+
+  Isabelle/jEdit defaults are a compromise for reasonable out-of-the box
+  results on common platforms and medium resolution displays (e.g.\ the ``Full
+  HD'' category). Subsequently there are further hints to improve on that.
+
+  \medskip The \textbf{operating-system platform} usually provides some
+  configuration for global scaling of text fonts, e.g.\ $120\%$--$250\%$ on
+  Windows. Changing that only has a partial effect on GUI rendering;
+  satisfactory display quality requires further adjustments.
+
+  \medskip The Isabelle/jEdit \textbf{application} and its plugins provide
+  various font properties that are summarized below.
+
+  \begin{itemize}
+
+  \item \emph{Global Options / Text Area / Text font}: the main text area
+  font, which is also used as reference point for various derived font sizes,
+  e.g.\ the Output panel (\secref{sec:output}).
+
+  \item \emph{Global Options / Gutter / Gutter font}: the font for the gutter
+  area left of the main text area, e.g.\ relevant for display of line numbers
+  (disabled by default).
+
+  \item \emph{Global Options / Appearance / Button, menu and label font} as
+  well as \emph{List and text field font}: this specifies the primary and
+  secondary font for the old \emph{Metal} look-and-feel
+  (\secref{sec:look-and-feel}), which happens to scale better than newer ones
+  like \emph{Nimbus}.
+
+  \item \emph{Plugin Options / Isabelle / General / Reset Font Size}: the main
+  text area font size for action @{action_ref "isabelle.reset-font-size"},
+  e.g.\ relevant for quick scaling like in major web browsers.
+
+  \item \emph{Plugin Options / Console / General / Font}: the console window
+  font, e.g.\ relevant for Isabelle/Scala command-line.
+
+  \end{itemize}
+
+  In \figref{fig:isabelle-jedit-hdpi} the \emph{Metal} look-and-feel is
+  configured with custom fonts at 30 pixels, and the main text area and
+  console at 36 pixels. Despite the old-fashioned appearance of \emph{Metal},
+  this leads to decent rendering quality on all platforms.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[width=\textwidth]{isabelle-jedit-hdpi}
+  \end{center}
+  \caption{Metal look-and-feel with custom fonts for very high resolution}
+  \label{fig:isabelle-jedit-hdpi}
+  \end{figure}
+
+  On Linux, it is also possible to use \emph{GTK+} with a suitable theme and
+  global font scaling. On Mac OS X, the default setup for ``Retina'' displays
+  should work adequately with the native look-and-feel.
+\<close>
 
 
 section \<open>Dockable windows \label{sec:dockables}\<close>
@@ -1794,6 +1864,13 @@ text \<open>
   mouse positions of Java/AWT/Swing.
 
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
+
+  \item \textbf{Problem:} Native Windows look-and-feel with global font
+  scaling leads to bad GUI rendering of various list views, e.g.\ the
+  \emph{Documentation} panel.
+
+  \textbf{Workaround:} Use \emph{Metal} look-and-feel and re-adjust its
+  primary and secondary font as explained in \secref{sec:hdpi}.
 
   \item \textbf{Problem:} Full-screen mode via jEdit action @{action_ref
   "toggle-full-screen"} (default keyboard shortcut @{verbatim F11}) works on
