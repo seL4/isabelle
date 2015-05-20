@@ -1866,8 +1866,7 @@ text \<open>
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
 
   \item \textbf{Problem:} Native Windows look-and-feel with global font
-  scaling leads to bad GUI rendering of various list views, e.g.\ the
-  \emph{Documentation} panel.
+  scaling leads to bad GUI rendering of various tree views.
 
   \textbf{Workaround:} Use \emph{Metal} look-and-feel and re-adjust its
   primary and secondary font as explained in \secref{sec:hdpi}.
