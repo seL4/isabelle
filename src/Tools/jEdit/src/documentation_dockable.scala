@@ -46,6 +46,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   private val tree = new JTree(root)
+  tree.setRowHeight(0)
 
   override def focusOnDefaultComponent { tree.requestFocusInWindow }
 
