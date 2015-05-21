@@ -16,6 +16,8 @@ Checklist for official releases
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
+- check versions in src/Tools/jEdit/Isabelle.props;
+
 - check funny base directory, e.g. "Test 中国";
 
 - check scalable fonts, e.g. src/Doc/Prog_Prove (NOTE: T1 encoding
