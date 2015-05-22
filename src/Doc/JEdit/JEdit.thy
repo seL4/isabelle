@@ -315,7 +315,7 @@ text \<open>
   in mind that this extra variance of GUI functionality is unlikely to
   work in arbitrary combinations.  The platform-independent
   \emph{Nimbus} and \emph{Metal} should always work.  The historic
-  \emph{CDE/Motif} is better ignore altogether.
+  \emph{CDE/Motif} should be ignored.
 
   After changing the look-and-feel in \emph{Global Options~/
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
