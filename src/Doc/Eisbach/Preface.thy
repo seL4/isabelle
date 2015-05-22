@@ -12,7 +12,7 @@ text \<open>
 
   The core functionality of Eisbach is provided by the Isar @{command method}
   command. Here users may define new methods by combining existing ones with
-  the usual Isar syntax These methods can be abstracted over terms, facts and
+  the usual Isar syntax. These methods can be abstracted over terms, facts and
   other methods, as one might expect in any higher-order functional language.
 
   Additional functionality is provided by extending the space of methods and

@@ -102,9 +102,8 @@ text \<open>
   A @{text "named theorem"} is a fact whose contents are produced dynamically
   within the current proof context. The Isar command @{command_ref
   "named_theorems"} provides simple access to this concept: it declares a
-  dynamic fact with corresponding \emph{attribute}
-  (see \autoref{s:attributes}) for managing this particular data slot in the
-  context.
+  dynamic fact with corresponding \emph{attribute} for managing
+  this particular data slot in the context.
 \<close>
 
     named_theorems intros
@@ -178,7 +177,7 @@ text \<open>
   @{text method\<^sub>1}. This is useful to handle cases where the number of
   subgoals produced by a method is determined dynamically at run-time.
 \<close>
-
+text_raw\<open>\vbox{\<close>
     method conj_with uses rule =
       (intro conjI ; intro rule)
 
@@ -186,7 +185,7 @@ text \<open>
       assumes A: "P"
       shows "P \<and> P \<and> P"
       by (conj_with rule: A)
-
+text_raw\<open>}\<close>
 text \<open>
   Method definitions may take other methods as arguments, and thus implement
   method combinators with prefix syntax. For example, to more usefully exploit
@@ -254,7 +253,7 @@ text \<open>
       disjCI  --  \<open>@{thm disjCI}\<close>
       iffI  --  \<open>@{thm iffI}\<close>
       notI  --  \<open>@{thm notI}\<close>
-      (*<*)TrueI(*>*)
+
     lemmas [elims] =
       impCE  --  \<open>@{thm impCE}\<close>
       conjE  --  \<open>@{thm conjE}\<close>
@@ -327,7 +326,7 @@ text\<open>
   the Isar proof state. In general, however, proof subgoals can be
   \emph{unstructured}, with goal parameters and premises arising from rule
   application. To address this, @{method match} uses \emph{subgoal focusing}
-  (see also \autoref{s:design}) to produce structured goals out of
+  to produce structured goals out of
   unstructured ones. In place of fact or term, we may give the
   keyword @{keyword_def "premises"} as the match target. This causes a subgoal
   focus on the first subgoal, lifting local goal parameters to fixed term
@@ -394,7 +393,7 @@ text \<open>
       by solve_ex
 
 
-subsubsection \<open>Operating within a focus\<close>
+subsection \<open>Operating within a focus\<close>
 
 text \<open>
   Subgoal focusing provides a structured form of a subgoal, allowing for more
@@ -461,8 +460,42 @@ text \<open>
     lemma "\<forall>x. P x \<Longrightarrow> \<forall>x. Q x \<Longrightarrow> P y \<and> Q y"
       by (my_allE y)+ (rule conjI)
 
+subsubsection \<open>Inner focusing\<close>
 
-subsection \<open>Attributes\<close>
+text \<open>
+  Premises are \emph{accumulated} for the purposes of subgoal focusing.
+  In contrast to using standard methods like @{method frule} within
+  focused match, another @{method match} will have access to all the premises
+  of the outer focus.
+  \<close>
+
+    lemma "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
+      by (match premises in H: A \<Rightarrow> \<open>intro conjI, rule H,
+            match premises in H': B \<Rightarrow> \<open>rule H'\<close>\<close>)
+
+text \<open>
+  In this example, the inner @{method match} can find the focused premise
+  @{term B}. In contrast, the @{method assumption} method would fail here
+  due to @{term B} not being logically accessible.
+\<close>
+
+    lemma
+    "A \<Longrightarrow> A \<and> (B \<longrightarrow> B)"
+      by (match premises in H: A \<Rightarrow> \<open>intro conjI, rule H, rule impI,
+            match premises (local) in A \<Rightarrow> \<open>fail\<close>
+                                 \<bar> H': B \<Rightarrow> \<open>rule H'\<close>\<close>)
+
+text \<open>
+  In this example, the only premise that exists in the first focus is
+  @{term "A"}. Prior to the inner match, the rule @{text impI} changes
+  the goal @{term "B \<longrightarrow> B"} into @{term "B \<Longrightarrow> B"}. A standard premise
+  match would also include @{term A} as an original premise of the outer
+  match. The @{text local} argument limits the match to
+  newly focused premises.
+
+\<close>
+
+section \<open>Attributes\<close>
 
 text \<open>
   Attributes may throw errors when applied to a given fact. For example, rule
@@ -474,7 +507,7 @@ text \<open>
 \<close>
 
     method my_compose uses rule1 rule2 =
-      (rule rule1[OF rule2])
+      (rule rule1 [OF rule2])
 
 text \<open>
   Some attributes (like @{attribute OF}) have been made partially
@@ -493,13 +526,13 @@ text \<open>
   forming a static closure, allowing the @{attribute "where"} attribute to
   perform an instantiation at run-time.
 \<close>
-
+text_raw\<open>\vbox{\<close>
     lemma
       assumes A: "Q \<Longrightarrow> False"
       shows "\<not> Q"
       by (match intros in X: "\<And>P. (P \<Longrightarrow> False) \<Longrightarrow> \<not> P" \<Rightarrow>
             \<open>rule X [where P = Q, OF A]\<close>)
-
+text_raw\<open>}\<close>
 text \<open>
   Subgoal focusing converts the outermost quantifiers of premises into
   schematics when lifting them to hypothetical facts. This allows us to
@@ -551,7 +584,7 @@ text \<open>
 \<close>
 
     lemma "(\<And>x :: 'a. A x \<Longrightarrow> B x) \<Longrightarrow> A y \<longrightarrow> B y"
-      by (match premises in I[of y, intros]: "\<And>x :: 'a. ?P x \<Longrightarrow> ?Q x" \<Rightarrow>
+      by (match premises in I [of y, intros]: "\<And>x :: 'a. ?P x \<Longrightarrow> ?Q x" \<Rightarrow>
             \<open>prop_solver\<close>)
 
 text \<open>
@@ -574,10 +607,11 @@ text \<open>
 \<close>
 
     lemma
-      assumes asms: "A \<Longrightarrow> B" "A \<Longrightarrow> D"
+      assumes asms: "A \<Longrightarrow> B"  "A \<Longrightarrow> D"
       shows "(A \<longrightarrow> B) \<and> (A \<longrightarrow> D)"
-      apply (match asms in I[intros]: "?P \<Longrightarrow> ?Q"  \<Rightarrow> \<open>solves \<open>prop_solver\<close>\<close>)?
-      by (match asms in I[intros]: "?P \<Longrightarrow> ?Q" (multi) \<Rightarrow> \<open>prop_solver\<close>)
+      apply (match asms in I [intros]: "?P \<Longrightarrow> ?Q"  \<Rightarrow> \<open>solves \<open>prop_solver\<close>\<close>)?
+      apply (match asms in I [intros]: "?P \<Longrightarrow> ?Q" (multi) \<Rightarrow> \<open>prop_solver\<close>)
+      done
 
 text \<open>
   In the first @{method match}, without the @{text "(multi)"} argument, @{term
@@ -598,12 +632,13 @@ text \<open>
 \<close>
 
     lemma
-      assumes asms: "A \<Longrightarrow> B" "A \<Longrightarrow> D" "D \<Longrightarrow> B"
+      assumes asms: "A \<Longrightarrow> B"  "A \<Longrightarrow> D"  "D \<Longrightarrow> B"
       shows "(A \<longrightarrow> B) \<and> (A \<longrightarrow> D)"
-      apply (match asms in I[intros]: "?P \<Longrightarrow> Q" (multi) for Q \<Rightarrow>
+      apply (match asms in I [intros]: "?P \<Longrightarrow> Q" (multi) for Q \<Rightarrow>
               \<open>solves \<open>prop_solver\<close>\<close>)?
-      by (match asms in I[intros]: "P \<Longrightarrow> ?Q" (multi) for P \<Rightarrow>
+      apply (match asms in I [intros]: "P \<Longrightarrow> ?Q" (multi) for P \<Rightarrow>
               \<open>prop_solver\<close>)
+      done
 
 text \<open>
   Here we have two seemingly-equivalent applications of @{method match},
@@ -631,7 +666,7 @@ text \<open>
     lemma
       assumes asms: "A &&& B \<Longrightarrow> D"
       shows "(A \<and> B \<longrightarrow> D)"
-      by (match asms in I:_ \<Rightarrow> \<open>prop_solver intros: I conjunctionI\<close>)
+      by (match asms in I: _ \<Rightarrow> \<open>prop_solver intros: I conjunctionI\<close>)
 
 
 section \<open>Backtracking\<close>
@@ -649,22 +684,17 @@ text \<open>
 
   The method @{text foo} below fails for all goals that are conjunctions. Any
   such goal will match the first pattern, causing the second pattern (that
-  would otherwise match all goals) to never be considered. If multiple
-  unifiers exist for the pattern @{text "?P \<and> ?Q"} against the current goal,
-  then the failing method @{method fail} will be (uselessly) tried for all of
-  them.
+  would otherwise match all goals) to never be considered.
 \<close>
 
     method foo =
       (match conclusion in "?P \<and> ?Q" \<Rightarrow> \<open>fail\<close> \<bar> "?R" \<Rightarrow> \<open>prop_solver\<close>)
 
 text \<open>
-  This behaviour is in direct contrast to the backtracking done by Coq's Ltac,
-  which will attempt all patterns in a match before failing. This means that
-  the failure of an inner method that is executed after a successful match
-  does not, in Ltac, cause the entire match to fail, whereas it does in
-  Eisbach. In Eisbach the distinction is important due to the pervasive use of
-  backtracking. When a method is used in a combinator chain, its failure
+  The failure of an inner method that is executed after a successful match
+  will cause the entire match to fail. This distinction is important
+  due to the pervasive use of backtracking. When a method is used in a
+  combinator chain, its failure
   becomes significant because it signals previously applied methods to move to
   the next result. Therefore, it is necessary for @{method match} to not mask
   such failure. One can always rewrite a match using the combinators ``@{text
@@ -713,6 +743,11 @@ text \<open>
   succeeding after picking @{term "A \<longrightarrow> C"}. In the second lemma, however,
   @{term "C \<and> D"} is matched first, the second pattern in the match cannot be
   found and so the method fails, falling through to @{method prop_solver}.
+
+  More precise control is also possible by giving a positive
+  number @{text n} as an argument to @{text cut}. This will limit the number
+  of backtracking results of that match to be at most @{text n}.
+  The match argument @{text "(cut 1)"} is the same as simply @{text "(cut)"}.
 \<close>
 
 
@@ -728,7 +763,7 @@ text \<open>
 \<close>
 
     lemma
-      assumes asms: "\<And>x. A x \<and> B x" "\<And>y. A y \<and> C y" "\<And>z. B z \<and> C z"
+      assumes asms: "\<And>x. A x \<and> B x"  "\<And>y. A y \<and> C y"  "\<And>z. B z \<and> C z"
       shows "A x \<and> C x"
       by (match asms in I: "\<And>x. P x \<and> ?Q x" (multi) for P \<Rightarrow>
          \<open>match (P) in "A" \<Rightarrow> \<open>fail\<close>
@@ -771,21 +806,23 @@ text \<open>
   via meta-implication @{text "_ \<Longrightarrow> _"}.
 \<close>
 
+text_raw \<open>\vbox{\<close>
     lemma
-      assumes asms: "D \<Longrightarrow> B \<Longrightarrow> C" "D \<Longrightarrow> A"
+      assumes asms: "D \<Longrightarrow> B \<Longrightarrow> C"  "D \<Longrightarrow> A"
       shows "D \<Longrightarrow> B \<Longrightarrow> C \<and> A"
-      by (match asms in H:"D \<Longrightarrow> _" (multi) \<Rightarrow> \<open>prop_solver elims: H\<close>)
-
+      by (match asms in H: "D \<Longrightarrow> _" (multi) \<Rightarrow> \<open>prop_solver elims: H\<close>)
+text_raw \<open>}\<close>
 text \<open>
   For the first member of @{text asms} the dummy pattern successfully matches
   against @{term "B \<Longrightarrow> C"} and so the proof is successful.
 \<close>
 
     lemma
-      assumes asms: "A \<Longrightarrow> B \<Longrightarrow> C" "D \<Longrightarrow> C"
+      assumes asms: "A \<Longrightarrow> B \<Longrightarrow> C"  "D \<Longrightarrow> C"
       shows "D \<or> (A \<and> B) \<Longrightarrow> C"
-      apply (match asms in H:"_ \<Longrightarrow> C" (multi) \<Rightarrow> \<open>prop_solver elims: H\<close>)(*<*)?
-      by (prop_solver elims: asms)(*>*)
+      apply (match asms in H: "_ \<Longrightarrow> C" (multi) \<Rightarrow> \<open>prop_solver elims: H\<close>)(*<*)?
+      apply (prop_solver elims: asms)
+      done(*>*)
 
 text \<open>
   This proof will fail to solve the goal. Our match pattern will only match
@@ -804,9 +841,9 @@ text \<open>
 \<close>
 
     lemma
-      assumes asms: "A \<Longrightarrow> B \<Longrightarrow> C" "D \<Longrightarrow> C"
+      assumes asms: "A \<Longrightarrow> B \<Longrightarrow> C"  "D \<Longrightarrow> C"
       shows "D \<or> (A \<and> B) \<Longrightarrow> C"
-      by (match asms[uncurry] in H[curry]:"_ \<Longrightarrow> C" (multi) \<Rightarrow>
+      by (match asms [uncurry] in H [curry]: "_ \<Longrightarrow> C" (multi) \<Rightarrow>
           \<open>prop_solver elims: H\<close>)
 
 
@@ -821,9 +858,10 @@ text \<open>
     lemma
       assumes asms: "\<And>x :: 'a. A x"
       shows "A y"
-      apply (match asms in H:"A y" \<Rightarrow> \<open>rule H\<close>)?
-      by (match asms in H:"P" for P \<Rightarrow>
-          \<open>match ("A y") in "P" \<Rightarrow> \<open>rule H\<close>\<close>)
+      apply (match asms in H: "A y" \<Rightarrow> \<open>rule H\<close>)?
+      apply (match asms in H: P for P \<Rightarrow>
+          \<open>match ("A y") in P \<Rightarrow> \<open>rule H\<close>\<close>)
+      done
 
 text \<open>
   In the first @{method match} we attempt to find a member of @{text asms}
@@ -847,8 +885,8 @@ text \<open>
     lemma
       assumes asms: "\<And>x :: 'a. A x"
       shows "A y"
-      by (match asms in H:"\<And>z :: 'b. P z" for P \<Rightarrow>
-          \<open>match (y) in "y :: 'b" for y \<Rightarrow> \<open>rule H[where z=y]\<close>\<close>)
+      by (match asms in H: "\<And>z :: 'b. P z" for P \<Rightarrow>
+          \<open>match (y) in "y :: 'b" for y \<Rightarrow> \<open>rule H [where z = y]\<close>\<close>)
 
 text \<open>
   In this example the type @{text 'b} is matched to @{text 'a}, however
@@ -875,8 +913,9 @@ text \<open>
     lemma
       assumes asms: A B C D
       shows D
-      apply (match asms in H:_ \<Rightarrow> \<open>print_fact H, fail\<close>)(*<*)?
-      by (simp add: asms)(*>*)
+      apply (match asms in H: _ \<Rightarrow> \<open>print_fact H, fail\<close>)(*<*)?
+      apply (simp add: asms)
+      done(*>*)
 
 text \<open>
   This proof will fail, but the tracing output will show the order that the
@@ -886,7 +925,7 @@ text \<open>
 
 section \<open>Integrating with Isabelle/ML\<close>
 
-subsection \<open>Attributes\<close>
+subsubsection \<open>Attributes\<close>
 
 text \<open>
   A custom rule attribute is a simple way to extend the functionality of
@@ -905,19 +944,28 @@ text \<open>
 
 text \<open>
   In this example, the new attribute @{attribute get_split_rule} lifts the ML
-  function of the same name into an attribute. When applied to a cast
+  function of the same name into an attribute. When applied to a case
   distinction over a datatype, it retrieves its corresponding split rule.
 
-  We can then integrate this intro a method that applies the split rule, fist
+  We can then integrate this intro a method that applies the split rule, first
   matching to ensure that fetching the rule was successful.
 \<close>
-
+(*<*)declare TrueI [intros](*>*)
     method splits =
       (match conclusion in "?P f" for f \<Rightarrow>
         \<open>match [[get_split_rule f]] in U: "(_ :: bool) = _" \<Rightarrow>
-          \<open>rule U[THEN iffD2]\<close>\<close>)
+          \<open>rule U [THEN iffD2]\<close>\<close>)
 
     lemma "L \<noteq> [] \<Longrightarrow> case L of [] \<Rightarrow> False | _ \<Rightarrow> True"
-      by (splits, prop_solver intros: allI)
+      apply splits
+      apply (prop_solver intros: allI)
+      done
+
+text \<open>
+  Here the new @{method splits} method transforms the goal to use only logical
+  connectives: @{term "L = [] \<longrightarrow> False \<and> (\<forall>x y. L = x # y \<longrightarrow> True)"}. This goal
+  is then in a form solvable by @{method prop_solver} when given the universal
+  quantifier introduction rule @{text allI}.
+\<close>
 
 end
