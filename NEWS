@@ -133,6 +133,11 @@ dynamically in GUI front-ends. Implementations of document
 antiquotations need to observe the margin explicitly according to
 Thy_Output.string_of_margin. Minor INCOMPATIBILITY.
 
+* Specification of 'document_files' in the session ROOT file is
+mandatory for document preparation. The legacy mode with implicit
+copying of the document/ directory is no longer supported. Minor
+INCOMPATIBILITY.
+
 
 *** Pure ***
 
