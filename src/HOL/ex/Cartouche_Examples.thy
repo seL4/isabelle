@@ -42,7 +42,7 @@ subsection \<open>Outer syntax: cartouche within command syntax\<close>
 ML \<open>
   Outer_Syntax.command @{command_keyword cartouche} ""
     (Parse.cartouche >> (fn s =>
-      Toplevel.imperative (fn () => writeln s)))
+      Toplevel.keep (fn _ => writeln s)))
 \<close>
 
 cartouche \<open>abc\<close>

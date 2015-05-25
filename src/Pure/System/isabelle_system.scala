@@ -93,9 +93,9 @@ object Isabelle_System
         default(
           default(
             default(sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home())),
-              ("TEMP_WINDOWS" -> temp_windows)),
-            ("HOME" -> user_home)),
-          ("ISABELLE_APP" -> "true"))
+              "TEMP_WINDOWS" -> temp_windows),
+            "HOME" -> user_home),
+          "ISABELLE_APP" -> "true")
       }
 
       val system_home =
@@ -125,8 +125,8 @@ object Isabelle_System
           val entries =
             (for (entry <- File.read(dump) split "\u0000" if entry != "") yield {
               val i = entry.indexOf('=')
-              if (i <= 0) (entry -> "")
-              else (entry.substring(0, i) -> entry.substring(i + 1))
+              if (i <= 0) entry -> ""
+              else entry.substring(0, i) -> entry.substring(i + 1)
             }).toMap
           entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
         }
@@ -145,7 +145,8 @@ object Isabelle_System
   def getenv_strict(name: String): String =
   {
     val value = getenv(name)
-    if (value != "") value else error("Undefined environment variable: " + name)
+    if (value != "") value
+    else error("Undefined Isabelle environment variable: " + quote(name))
   }
 
   def get_cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
@@ -257,8 +258,10 @@ object Isabelle_System
   /* mkdirs */
 
   def mkdirs(path: Path): Unit =
-    if (path.is_dir || bash("mkdir -p " + shell_path(path)).rc == 0) ()
-    else error("Failed to create directory: " + quote(platform_path(path)))
+    if (!path.is_dir) {
+      bash("perl -e \"use File::Path make_path; make_path(" + shell_path(path) + ");\"")
+      if (!path.is_dir) error("Failed to create directory: " + quote(platform_path(path)))
+    }
 
 
 

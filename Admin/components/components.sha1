@@ -1,6 +1,7 @@
 70105fd6fbfd1a868383fc510772b95234325d31  csdp-6.x.tar.gz
 2f6417b8e96a0e4e8354fe0f1a253c18fb55d9a7  cvc3-2.4.1.tar.gz
 a5e02b5e990da4275dc5d4480c3b72fc73160c28  cvc4-1.5pre-1.tar.gz
+4d9658fd2688ae8ac78da8fdfcbf85960f871b71  cvc4-1.5pre-2.tar.gz
 03aec2ec5757301c9df149f115d1f4f1d2cafd9e  cvc4-1.5pre.tar.gz
 842d9526f37b928cf9e22f141884365129990d63  cygwin-20130110.tar.gz
 cb3b0706d208f104b800267697204f6d82f7b48a  cygwin-20130114.tar.gz
@@ -26,6 +27,7 @@ e6aada354da11e533af2dee3dcdd96c06479b053  exec_process-1.0.3.tar.gz
 ae7ee5becb26512f18c609e83b34612918bae5f0  exec_process-1.0.tar.gz
 59a71e08c34ff01f3f5c4af00db5e16369527eb7  Haskabelle-2013.tar.gz
 23a96ff4951d72f4024b6e8843262eda988bc151  Haskabelle-2014.tar.gz
+eccff31931fb128c1dd522cfc85495c9b66e67af  Haskabelle-2015.tar.gz
 683acd94761ef460cca1a628f650355370de5afb  hol-light-bundle-0.5-126.tar.gz
 8d83e433c1419e0c0cc5fd1762903d11b4a5752c  jdk-6u31.tar.gz
 38d2d2a91c66714c18430e136e7e5191af3996e6  jdk-7u11.tar.gz
@@ -86,6 +88,7 @@ b3d776e6744f0cd2773d467bc2cfe1de3d1ca2fd  polyml-5.5.0-3.tar.gz
 36f78f27291a9ceb13bf1120b62a45625afd44a6  polyml-5.5.1.tar.gz
 a588640dbf5da9ae15455b02ef709764a48637dc  polyml-5.5.2-1.tar.gz
 4b690390946f7bfb777b89eb16d6f08987cca12f  polyml-5.5.2-2.tar.gz
+5b31ad8556e41dfd6d5e85f407818be399aa3d2a  polyml-5.5.2-3.tar.gz
 532f6e8814752aeb406c62fabcfd2cc05f8a7ca8  polyml-5.5.2.tar.gz
 8ee375cfc38972f080dbc78f07b68dac03efe968  ProofGeneral-3.7.1.1.tar.gz
 847b52c0676b5eb0fbf0476f64fc08c2d72afd0c  ProofGeneral-4.1.tar.gz

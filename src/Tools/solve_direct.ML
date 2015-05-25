@@ -94,7 +94,7 @@ val solve_direct = do_solve_direct Normal
 val _ =
   Outer_Syntax.command @{command_keyword solve_direct}
     "try to solve conjectures directly with existing theorems"
-    (Scan.succeed (Toplevel.keep (ignore o solve_direct o Toplevel.proof_of)));
+    (Scan.succeed (Toplevel.keep_proof (ignore o solve_direct o Toplevel.proof_of)));
 
 
 (* hook *)

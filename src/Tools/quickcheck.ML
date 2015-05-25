@@ -510,8 +510,8 @@ fun gen_quickcheck args i state =
 fun quickcheck args i state =
   Option.map (the o get_first counterexample_of) (fst (gen_quickcheck args i state));
 
-fun quickcheck_cmd args i state =
-  gen_quickcheck args i (Toplevel.proof_of state)
+fun quickcheck_cmd args i st =
+  gen_quickcheck args i (Toplevel.proof_of st)
   |> apfst (Option.map (the o get_first response_of))
   |> (fn (r, state) =>
       writeln (Pretty.string_of
@@ -534,7 +534,7 @@ val _ =
   Outer_Syntax.command @{command_keyword quickcheck}
     "try to find counterexample for subgoal"
     (parse_args -- Scan.optional Parse.nat 1 >>
-      (fn (args, i) => Toplevel.keep (quickcheck_cmd args i)));
+      (fn (args, i) => Toplevel.keep_proof (quickcheck_cmd args i)));
 
 
 (* automatic testing *)

@@ -588,7 +588,10 @@ fun pretty lthy =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.keyword1 "instantiation" :: map pr_arity tycos @ map pr_param params end;
+  in
+    [Pretty.block
+      (Pretty.fbreaks (Pretty.keyword1 "instantiation" :: map pr_arity tycos @ map pr_param params))]
+  end;
 
 fun conclude lthy =
   let
@@ -729,22 +732,27 @@ val _ = Theory.setup
     "apply some intro/elim rule");
 
 
+
 (** diagnostics **)
 
-fun pretty_specification thy c =
-  if is_class thy c then
+fun pretty_specification thy class =
+  if is_class thy class then
     let
-      val class_ctxt = init c thy;
-      val class_space = Proof_Context.class_space class_ctxt;
+      val class_ctxt = init class thy;
+      val prt_class = Name_Space.pretty class_ctxt (Proof_Context.class_space class_ctxt);
+
+      val super_classes = Sign.minimize_sort thy (Sign.super_classes thy class);
 
       val fix_args =
-        #params (Axclass.get_info thy c)
+        #params (Axclass.get_info thy class)
         |> map (fn (c, T) => (Binding.name (Long_Name.base_name c), SOME T, NoSyn));
       val fixes = if null fix_args then [] else [Element.Fixes fix_args];
-      val assumes = Locale.hyp_spec_of thy c;
+      val assumes = Locale.hyp_spec_of thy class;
 
       val header =
-        [Pretty.keyword1 "class", Pretty.brk 1, Name_Space.pretty class_ctxt class_space c];
+        [Pretty.keyword1 "class", Pretty.brk 1, prt_class class, Pretty.str " =", Pretty.brk 1] @
+        Pretty.separate " +" (map prt_class super_classes) @
+        (if null super_classes then [] else [Pretty.str " +"]);
       val body =
         if null fixes andalso null assumes then []
         else
@@ -754,4 +762,3 @@ fun pretty_specification thy c =
   else [];
 
 end;
-

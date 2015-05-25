@@ -70,8 +70,9 @@ corresponds to (tac1 THEN_ALL_NEW tac2) in ML.
 by combining existing ones with their usual syntax. The "match" proof
 method provides basic fact/term matching in addition to
 premise/conclusion matching through Subgoal.focus, and binds fact names
-from matches as well as term patterns within matches. See also
-~~/src/HOL/Eisbach/Eisbach.thy and the included examples.
+from matches as well as term patterns within matches. The Isabelle
+documentation provides an entry "eisbach" for the Eisbach User Manual.
+Sources and various examples are in ~~/src/HOL/Eisbach/.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
@@ -87,14 +88,14 @@ in the buffer.
 marker, SideKick parser.
 
 * Document antiquotation @{cite} provides formal markup, which is
-interpreted semi-formally based on .bib files that happen to be opened
-in the editor (hyperlinks, completion etc.).
+interpreted semi-formally based on .bib files that happen to be open in
+the editor (hyperlinks, completion etc.).
 
 * Less waste of vertical space via negative line spacing (see Global
 Options / Text Area).
 
 * Improved graphview panel with optional output of PNG or PDF, for
-display of 'thy_deps', 'locale_deps', 'class_deps' etc.
+display of 'thy_deps', 'class_deps' etc.
 
 * The commands 'thy_deps' and 'class_deps' allow optional bounds to
 restrict the visualized hierarchy.
@@ -138,6 +139,11 @@ pretty printing: that is 76 for plain console output, and adapted
 dynamically in GUI front-ends. Implementations of document
 antiquotations need to observe the margin explicitly according to
 Thy_Output.string_of_margin. Minor INCOMPATIBILITY.
+
+* Specification of 'document_files' in the session ROOT file is
+mandatory for document preparation. The legacy mode with implicit
+copying of the document/ directory is no longer supported. Minor
+INCOMPATIBILITY.
 
 
 *** Pure ***
@@ -223,6 +229,10 @@ token category instead.
     of rel_prod_def and rel_sum_def.
     Minor INCOMPATIBILITY: (rarely used by name) transfer theorem names
     changed (e.g. map_prod_transfer ~> prod.map_transfer).
+  - Parametricity theorems for map functions, relators, set functions,
+    constructors, case combinators, discriminators, selectors and
+    (co)recursors are automatically proved and registered as transfer
+    rules.
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and
@@ -267,6 +277,11 @@ token category instead.
     reconstruction time of Z3 proof steps in the new 'smt' method.
   - New option 'smt_statistics' to display statistics of the new 'smt'
     method, especially runtime statistics of Z3 proof reconstruction.
+
+* Lifting: command 'lift_definition' allows to execute lifted constants
+that have as a return type a datatype containing a subtype. This
+overcomes long-time limitations in the area of code generation and
+lifting, and avoids tedious workarounds.
 
 * Command and antiquotation "value" provide different evaluation slots
 (again), where the previous strategy (NBE after ML) serves as default.

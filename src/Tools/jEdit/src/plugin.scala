@@ -13,7 +13,7 @@ import javax.swing.JOptionPane
 
 import scala.swing.{ListView, ScrollPane}
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug}
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
 import org.jedit.options.CombinedOptions
 import org.gjt.sp.jedit.gui.AboutDialog
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
@@ -148,7 +148,7 @@ object PIDE
 
   /* current document content */
 
-  def snapshot(view: View): Document.Snapshot = GUI_Thread.now
+  def snapshot(view: View): Document.Snapshot =
   {
     val buffer = view.getBuffer
     document_model(buffer) match {
@@ -199,7 +199,9 @@ class Plugin extends EBPlugin
   private lazy val delay_load =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      if (Isabelle.continuous_checking && delay_load_activated()) {
+      if (Isabelle.continuous_checking && delay_load_activated() &&
+          PerspectiveManager.isPerspectiveEnabled)
+      {
         try {
           val view = jEdit.getActiveView()
 
@@ -311,7 +313,7 @@ class Plugin extends EBPlugin
 
           if (Distribution.is_identified && !Distribution.is_official) {
             GUI.warning_dialog(jEdit.getActiveView, "Isabelle version for testing",
-              "This is " + Distribution.version +".",
+              "This is " + Distribution.version + ".",
               "It is for testing only, not for production use.")
           }
 
@@ -330,10 +332,10 @@ class Plugin extends EBPlugin
           }
 
         case msg: EditPaneUpdate
-        if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
+        if msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
             msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
             msg.getWhat == EditPaneUpdate.CREATED ||
-            msg.getWhat == EditPaneUpdate.DESTROYED) =>
+            msg.getWhat == EditPaneUpdate.DESTROYED =>
           val edit_pane = msg.getEditPane
           val buffer = edit_pane.getBuffer
           val text_area = edit_pane.getTextArea

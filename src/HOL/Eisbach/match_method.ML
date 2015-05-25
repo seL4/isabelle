@@ -1,4 +1,4 @@
-(*  Title:      match_method.ML
+(*  Title:      HOL/Eisbach/match_method.ML
     Author:     Daniel Matichuk, NICTA/UNSW
 
 Setup for "match" proof method. It provides basic fact/term matching in
@@ -40,86 +40,79 @@ datatype match_kind =
     Match_Term of term Item_Net.T
   | Match_Fact of thm Item_Net.T
   | Match_Concl
-  | Match_Prems;
+  | Match_Prems of bool;
 
 
 val aconv_net = Item_Net.init (op aconv) single;
 
 val parse_match_kind =
-  Scan.lift @{keyword "concl"} >> K Match_Concl ||
-  Scan.lift @{keyword "prems"} >> K Match_Prems ||
+  Scan.lift @{keyword "conclusion"} >> K Match_Concl ||
+  Scan.lift (@{keyword "premises"} |-- Args.mode "local") >> Match_Prems ||
   Scan.lift (@{keyword "("}) |-- Args.term --| Scan.lift (@{keyword ")"}) >>
     (fn t => Match_Term (Item_Net.update t aconv_net)) ||
   Attrib.thms >> (fn thms => Match_Fact (fold Item_Net.update thms Thm.full_rules));
 
 
-fun nameable_match m = (case m of Match_Fact _ => true | Match_Prems => true | _ => false);
+fun nameable_match m = (case m of Match_Fact _ => true | Match_Prems _ => true | _ => false);
 fun prop_match m = (case m of Match_Term _ => false | _ => true);
 
 val bound_term : (term, binding) Parse_Tools.parse_val parser =
   Parse_Tools.parse_term_val Parse.binding;
 
 val fixes =
-  Parse.and_list1 (Scan.repeat1 bound_term --
-    Scan.option (@{keyword "::"} |-- Parse.!!! Parse.typ) >> (fn (xs, T) => map (rpair T) xs))
-  >> flat;
+  Parse.and_list1 (Scan.repeat1 (Parse.position bound_term) --
+    Scan.option (@{keyword "::"} |-- Parse.!!! Parse.typ)
+    >> (fn (xs, T) => map (fn (x, pos) => ((x, T), pos)) xs)) >> flat;
 
 val for_fixes = Scan.optional (@{keyword "for"} |-- fixes) [];
 
-fun pos_of dyn =
-  (case dyn of
-    Parse_Tools.Parse_Val (b, _) => Binding.pos_of b
-  | _ => raise Fail "Not a parse value");
-
+fun pos_of dyn = Parse_Tools.the_parse_val dyn |> Binding.pos_of;
 
 (*FIXME: Dynamic facts modify the background theory, so we have to resort
   to token replacement for matched facts. *)
 fun dynamic_fact ctxt =
   bound_term -- Args.opt_attribs (Attrib.check_name ctxt);
 
-type match_args = {unify : bool, multi : bool, cut : bool};
+type match_args = {multi : bool, cut : int};
 
 val parse_match_args =
   Scan.optional (Args.parens (Parse.enum1 ","
-    (Args.$$$ "unify" || Args.$$$ "multi" || Args.$$$ "cut"))) [] >>
+    (Args.$$$ "multi" -- Scan.succeed ~1 || Args.$$$ "cut" -- Scan.optional Parse.nat 1))) [] >>
     (fn ss =>
-      fold (fn s => fn {unify, multi, cut} =>
+      fold (fn s => fn {multi, cut} =>
         (case s of
-          "unify" => {unify = true, multi = multi, cut = cut}
-        | "multi" => {unify = unify, multi = true, cut = cut}
-        | "cut" => {unify = unify, multi = multi, cut = true}))
-      ss {unify = false, multi = false, cut = false});
+          ("multi", _) => {multi = true, cut = cut}
+        | ("cut", n) => {multi = multi, cut = n}))
+      ss {multi = false, cut = ~1});
 
-(*TODO: Shape holes in thms *)
 fun parse_named_pats match_kind =
   Args.context :|-- (fn ctxt =>
-    Scan.lift (Parse.and_list1 (Scan.option (dynamic_fact ctxt --| Args.colon) :--
-      (fn opt_dyn =>
-        if is_none opt_dyn orelse nameable_match match_kind
-        then Parse_Tools.name_term -- parse_match_args
-        else
-          let val b = #1 (the opt_dyn)
-          in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end))
-    -- for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
+    Scan.lift (Parse.and_list1
+      (Scan.option (dynamic_fact ctxt --| Args.colon) :--
+        (fn opt_dyn =>
+          if is_none opt_dyn orelse nameable_match match_kind
+          then Parse_Tools.name_term -- parse_match_args
+          else
+            let val b = #1 (the opt_dyn)
+            in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end))
+        -- for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
   >> (fn ((ts, fixes), cartouche) =>
     (case Token.get_value cartouche of
       SOME (Token.Source src) =>
         let
           val text = Method_Closure.read_inner_method ctxt src
-          (*TODO: Correct parse context for attributes?*)
           val ts' =
             map
               (fn (b, (Parse_Tools.Real_Val v, match_args)) =>
                 ((Option.map (fn (b, att) =>
-                  (Parse_Tools.the_real_val b,
-                    map (Attrib.attribute ctxt) att)) b, match_args), v)
+                  (Parse_Tools.the_real_val b, att)) b, match_args), v)
                 | _ => raise Fail "Expected closed term") ts
-          val fixes' = map (fn (p, _) => Parse_Tools.the_real_val p) fixes
+          val fixes' = map (fn ((p, _), _) => Parse_Tools.the_real_val p) fixes
         in (ts', fixes', text) end
     | SOME _ => error "Unexpected token value in match cartouche"
     | NONE =>
         let
-          val fixes' = map (fn (pb, otyp) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes;
+          val fixes' = map (fn ((pb, otyp), _) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes;
           val (fixes'', ctxt1) = Proof_Context.read_vars fixes' ctxt;
           val (fix_nms, ctxt2) = Proof_Context.add_fixes fixes'' ctxt1;
 
@@ -130,9 +123,33 @@ fun parse_named_pats match_kind =
             then Syntax.parse_prop ctxt3 term
             else Syntax.parse_term ctxt3 term;
 
+          fun drop_Trueprop_dummy t =
+            (case t of
+              Const (@{const_name Trueprop}, _) $
+                (Const (@{syntax_const "_type_constraint_"}, T) $
+                  Const (@{const_name Pure.dummy_pattern}, _)) =>
+                    Const (@{syntax_const "_type_constraint_"}, T) $
+                      Const (@{const_name Pure.dummy_pattern}, propT)
+            | t1 $ t2 => drop_Trueprop_dummy t1 $ drop_Trueprop_dummy t2
+            | Abs (a, T, b) => Abs (a, T, drop_Trueprop_dummy b)
+            | _ => t);
+
           val pats =
             map (fn (_, (term, _)) => parse_term (Parse_Tools.the_parse_val term)) ts
+            |> map drop_Trueprop_dummy
+            |> (fn ts => fold_map Term.replace_dummy_patterns ts (Variable.maxidx_of ctxt3 + 1))
+            |> fst
             |> Syntax.check_terms ctxt3;
+
+          val pat_fixes = fold (Term.add_frees) pats [] |> map fst;
+
+          val _ =
+            map2 (fn nm => fn (_, pos) =>
+                member (op =) pat_fixes nm orelse
+                error ("For-fixed variable must be bound in some pattern" ^ Position.here pos))
+              fix_nms fixes;
+
+          val _ = map (Term.map_types Type.no_tvars) pats;
 
           val ctxt4 = fold Variable.declare_term pats ctxt3;
 
@@ -146,12 +163,6 @@ fun parse_named_pats match_kind =
             | reject_extra_free _ () = ();
           val _ = (fold o fold_aterms) reject_extra_free pats ();
 
-          (*fun test_multi_bind {multi = multi, ...} pat = multi andalso
-           not (null (inter (op =) (map Free (Term.add_frees pat [])) real_fixes)) andalso
-           error "Cannot fix terms in multi-match. Use a schematic instead."
-
-          val _ = map2 (fn pat => fn (_, (_, match_args)) => test_multi_bind match_args pat) pats ts*)
-
           val binds =
             map (fn (b, _) => Option.map (fn (b, att) => (Parse_Tools.the_parse_val b, att)) b) ts;
 
@@ -163,20 +174,27 @@ fun parse_named_pats match_kind =
 
                   val param_thm = map (Drule.mk_term o Thm.cterm_of ctxt' o Free) abs_nms
                     |> Conjunction.intr_balanced
-                    |> Drule.generalize ([], map fst abs_nms);
-
-                  val thm =
-                    Thm.cterm_of ctxt' (Free (nm, propT))
-                    |> Drule.mk_term
-                    |> not (null abs_nms) ? Conjunction.intr param_thm
-                    |> Drule.zero_var_indexes
+                    |> Drule.generalize ([], map fst abs_nms)
                     |> Method_Closure.tag_free_thm;
 
-                  (*TODO: Preprocess attributes here?*)
+                  val atts = map (Attrib.attribute ctxt') att;
+                  val (param_thm', ctxt'') = Thm.proof_attributes atts param_thm ctxt';
 
-                  val (_, ctxt'') = Proof_Context.note_thmss "" [((b, []), [([thm], [])])] ctxt';
+                  fun label_thm thm =
+                    Thm.cterm_of ctxt' (Free (nm, propT))
+                    |> Drule.mk_term
+                    |> not (null abs_nms) ? Conjunction.intr thm
+
+                  val [head_thm, body_thm] =
+                    Drule.zero_var_indexes_list (map label_thm [param_thm, param_thm'])
+                    |> map Method_Closure.tag_free_thm;
+
+                  val ctxt''' =
+                    Attrib.local_notes "" [((b, []), [([body_thm], [])])] ctxt''
+                    |> snd
+                    |> Variable.declare_maxidx (Thm.maxidx_of head_thm);
                 in
-                  (SOME (Thm.prop_of thm, map (Attrib.attribute ctxt) att) :: tms, ctxt'')
+                  (SOME (Thm.prop_of head_thm, att) :: tms, ctxt''')
                 end
             | upd_ctxt NONE _ (tms, ctxt) = (NONE :: tms, ctxt);
 
@@ -184,7 +202,7 @@ fun parse_named_pats match_kind =
             |> (fn ctxt => fold2 upd_ctxt binds pats ([], ctxt) |> apfst rev)
             ||> Proof_Context.restore_mode ctxt;
 
-          val (src, text) = Method_Closure.read_text_closure ctxt6 (Token.input_of cartouche);
+          val (src, text) = Method_Closure.read_inner_text_closure ctxt6 (Token.input_of cartouche);
 
           val morphism =
             Variable.export_morphism ctxt6
@@ -193,20 +211,34 @@ fun parse_named_pats match_kind =
                 |> Variable.declare_maxidx (Variable.maxidx_of ctxt6));
 
           val pats' = map (Term.map_types Type_Infer.paramify_vars #> Morphism.term morphism) pats;
-          val _ = ListPair.app (fn ((_, (Parse_Tools.Parse_Val (_, f), _)), t) => f t) (ts, pats');
+          val _ = ListPair.app (fn ((_, (v, _)), t) => Parse_Tools.the_parse_fun v t) (ts, pats');
 
-          val binds' = map (Option.map (fn (t, atts) => (Morphism.term morphism t, atts))) binds;
+          fun close_src src =
+            let
+              val src' = Token.closure_src src |> Token.transform_src morphism;
+              val _ =
+                map2 (fn tok1 => fn tok2 =>
+                  (case Token.get_value tok2 of
+                    SOME value => Token.assign (SOME value) tok1
+                  | NONE => ()))
+                  (Token.args_of_src src)
+                  (Token.args_of_src src');
+            in src' end;
+
+          val binds' =
+            map (Option.map (fn (t, atts) => (Morphism.term morphism t, map close_src atts))) binds;
 
           val _ =
             ListPair.app
-              (fn ((SOME ((Parse_Tools.Parse_Val (_, f), _)), _), SOME (t, _)) => f t
+              (fn ((SOME ((v, _)), _), SOME (t, _)) => Parse_Tools.the_parse_fun v t
                 | ((NONE, _), NONE) => ()
                 | _ => error "Mismatch between real and parsed bound variables")
               (ts, binds');
 
           val real_fixes' = map (Morphism.term morphism) real_fixes;
           val _ =
-            ListPair.app (fn ((Parse_Tools.Parse_Val (_, f), _), t) => f t) (fixes, real_fixes');
+            ListPair.app (fn (((v, _) , _), t) => Parse_Tools.the_parse_fun v t)
+              (fixes, real_fixes');
 
           val match_args = map (fn (_, (_, match_args)) => match_args) ts;
           val binds'' = (binds' ~~ match_args) ~~ pats';
@@ -216,10 +248,6 @@ fun parse_named_pats match_kind =
         in
           (binds'', real_fixes', text)
         end)));
-
-
-fun parse_match_bodies match_kind =
-  Parse.enum1' "\<bar>" (parse_named_pats match_kind);
 
 
 fun dest_internal_fact t =
@@ -234,19 +262,8 @@ fun inst_thm ctxt env ts params thm =
   let
     val ts' = map (Envir.norm_term env) ts;
     val insts = map (Thm.cterm_of ctxt) ts' ~~ map (Thm.cterm_of ctxt) params;
-    val tags = Thm.get_tags thm;
-
-   (*
-    val Tinsts = Type.raw_matches ((map (fastype_of) params), (map (fastype_of) ts')) Vartab.empty
-    |> Vartab.dest
-    |> map (fn (xi, (S, typ)) => (certT (TVar (xi, S)), certT typ))
-   *)
-
-    val thm' = Drule.cterm_instantiate insts thm
-    (*|> Thm.instantiate (Tinsts, [])*)
-      |> Thm.map_tags (K tags);
   in
-    thm'
+    Drule.cterm_instantiate insts thm
   end;
 
 fun do_inst fact_insts' env text ctxt =
@@ -256,35 +273,30 @@ fun do_inst fact_insts' env text ctxt =
         (fn ((((SOME ((_, head), att), _), _), _), thms) => SOME (head, (thms, att))
           | _ => NONE) fact_insts';
 
-    fun apply_attribute thm att ctxt =
-      let
-        val (opt_context', thm') = att (Context.Proof ctxt, thm)
-      in
-        (case thm' of
-          SOME _ => error "Rule attributes cannot be applied here"
-        | _ => the_default ctxt (Option.map Context.proof_of opt_context'))
-      end;
-
-    fun apply_attributes atts thm = fold (apply_attribute thm) atts;
-
-     (*TODO: What to do about attributes that raise errors?*)
-    val (fact_insts, ctxt') =
-      fold_map (fn (head, (thms, atts : attribute list)) => fn ctxt =>
-        ((head, thms), fold (apply_attributes atts) thms ctxt)) fact_insts ctxt;
-
     fun try_dest_term thm = try (Thm.prop_of #> dest_internal_fact #> snd) thm;
 
-    fun expand_fact thm =
+    fun expand_fact fact_insts thm =
       the_default [thm]
         (case try_dest_term thm of
           SOME t_ident => AList.lookup (op aconv) fact_insts t_ident
         | NONE => NONE);
 
-    val morphism =
+    fun fact_morphism fact_insts =
       Morphism.term_morphism "do_inst.term" (Envir.norm_term env) $>
-      Morphism.fact_morphism "do_inst.fact" (maps expand_fact);
+      Morphism.typ_morphism "do_inst.type" (Envir.norm_type (Envir.type_env env)) $>
+      Morphism.fact_morphism "do_inst.fact" (maps (expand_fact fact_insts));
 
-    val text' = Method.map_source (Token.transform_src morphism) text;
+    fun apply_attribute (head, (fact, atts)) (fact_insts, ctxt) =
+      let
+        val morphism = fact_morphism fact_insts;
+        val atts' = map (Attrib.attribute ctxt o Token.transform_src morphism) atts;
+        val (fact'', ctxt') = fold_map (Thm.proof_attributes atts') fact ctxt;
+      in ((head, fact'') :: fact_insts, ctxt') end;
+
+     (*TODO: What to do about attributes that raise errors?*)
+    val (fact_insts', ctxt') = fold_rev (apply_attribute) fact_insts ([], ctxt);
+
+    val text' = Method.map_source (Token.transform_src (fact_morphism fact_insts')) text;
   in
     (text', ctxt')
   end;
@@ -307,28 +319,62 @@ fun prep_fact_pat ((x, args), pat) ctxt =
     ((((Option.map prep_head x, args), params''), pat''), ctxt')
   end;
 
-fun match_filter_env ctxt fixes (ts, params) thm env =
+fun recalculate_maxidx env =
+  let
+    val tenv = Envir.term_env env;
+    val tyenv = Envir.type_env env;
+    val max_tidx = Vartab.fold (fn (_, (_, t)) => curry Int.max (maxidx_of_term t)) tenv ~1;
+    val max_Tidx = Vartab.fold (fn (_, (_, T)) => curry Int.max (maxidx_of_typ T)) tyenv ~1;
+  in
+    Envir.Envir
+      {maxidx = Int.max (Int.max (max_tidx, max_Tidx), Envir.maxidx_of env),
+        tenv = tenv, tyenv = tyenv}
+  end
+
+fun morphism_env morphism env =
+  let
+    val tenv = Envir.term_env env
+      |> Vartab.map (K (fn (T, t) => (Morphism.typ morphism T, Morphism.term morphism t)));
+    val tyenv = Envir.type_env env
+      |> Vartab.map (K (fn (S, T) => (S, Morphism.typ morphism T)));
+   in Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv, tyenv = tyenv} end;
+
+fun export_with_params ctxt morphism (SOME ts, params) thm env =
+      let
+        val outer_env = morphism_env morphism env;
+        val thm' = Morphism.thm morphism thm;
+      in inst_thm ctxt outer_env params ts thm' end
+  | export_with_params _ morphism (NONE,_) thm _ = Morphism.thm morphism thm;
+
+fun match_filter_env is_newly_fixed pat_vars fixes params env =
   let
     val param_vars = map Term.dest_Var params;
-    val params' = map (Envir.lookup env) param_vars;
+
+    val tenv = Envir.term_env env;
+
+    val params' = map (fn (xi, _) => Vartab.lookup tenv xi) param_vars;
 
     val fixes_vars = map Term.dest_Var fixes;
 
-    val tenv = Envir.term_env env;
     val all_vars = Vartab.keys tenv;
 
     val extra_vars = subtract (fn ((xi, _), xi') => xi = xi') fixes_vars all_vars;
 
-    val tenv' = Envir.term_env env
-      |> fold (Vartab.delete_safe) extra_vars;
+    val tenv' = tenv |> fold (Vartab.delete_safe) extra_vars;
 
     val env' =
-      Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv', tyenv = Envir.type_env env};
+      Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv', tyenv = Envir.type_env env}
 
-    val all_params_bound = forall (fn SOME (Var _) => true | _ => false) params';
+    val all_params_bound = forall (fn SOME (_, Free (x,_)) => is_newly_fixed x | _ => false) params';
+
+    val all_params_distinct = not (has_duplicates (op =) params');
+
+    val pat_fixes = inter (eq_fst (op =)) fixes_vars pat_vars;
+
+    val all_pat_fixes_bound = forall (fn (xi, _) => is_some (Vartab.lookup tenv' xi)) pat_fixes;
   in
-    if all_params_bound
-    then SOME (case ts of SOME ts => inst_thm ctxt env params ts thm | _ => thm, env')
+    if all_params_bound andalso all_pat_fixes_bound andalso all_params_distinct
+    then SOME env'
     else NONE
   end;
 
@@ -339,7 +385,7 @@ val prem_idN = "premise_id";
 fun prem_id_eq ((id, _ : thm), (id', _ : thm)) = id = id';
 
 val prem_rules : (int * thm) Item_Net.T =
-   Item_Net.init prem_id_eq (single o Thm.full_prop_of o snd);
+  Item_Net.init prem_id_eq (single o Thm.full_prop_of o snd);
 
 fun raw_thm_to_id thm =
   (case Properties.get (Thm.get_tags thm) prem_idN of NONE => NONE | SOME id => Int.fromString id)
@@ -359,13 +405,34 @@ structure Focus_Data = Proof_Data
 
 val focus_prems = #1 o Focus_Data.get;
 
+fun hyp_from_premid ctxt (ident, prem) =
+  let
+    val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
+    val hyp =
+      (case #hyps (Thm.crep_thm prem) of
+        [hyp] => hyp
+      | _ => error "Prem should have exactly one hyp");  (* FIXME error vs. raise Fail !? *)
+    val ct = Drule.mk_term (hyp) |> Thm.cprop_of;
+  in Drule.protect (Conjunction.mk_conjunction (ident, ct)) end;
+
+fun hyp_from_ctermid ctxt (ident,cterm) =
+  let
+    val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
+  in Drule.protect (Conjunction.mk_conjunction (ident, cterm)) end;
+
+fun add_premid_hyp premid ctxt =
+  Thm.declare_hyps (hyp_from_premid ctxt premid) ctxt;
+
 fun add_focus_prem prem =
+  `(Focus_Data.get #> #1 #> #1) ##>
   (Focus_Data.map o @{apply 3(1)}) (fn (next, net) =>
     (next + 1, Item_Net.update (next, Thm.tag_rule (prem_idN, string_of_int next) prem) net));
 
-fun remove_focus_prem thm =
+fun remove_focus_prem' (ident, thm) =
   (Focus_Data.map o @{apply 3(1)} o apsnd)
-    (Item_Net.remove (raw_thm_to_id thm, thm));
+    (Item_Net.remove (ident, thm));
+
+fun remove_focus_prem thm = remove_focus_prem' (raw_thm_to_id thm, thm);
 
 (*TODO: Preliminary analysis to see if we're trying to clear in a non-focus match?*)
 val _ =
@@ -394,22 +461,48 @@ fun add_focus_params params =
   (Focus_Data.map o @{apply 3(3)})
     (append (map (fn (_, ct) => Thm.term_of ct) params));
 
+fun solve_term ct = Thm.trivial ct OF [Drule.termI];
+
+fun get_thinned_prems goal =
+  let
+    val chyps = Thm.crep_thm goal |> #hyps;
+
+    fun prem_from_hyp hyp goal =
+    let
+      val asm = Thm.assume hyp;
+      val (identt,ct) = asm |> Goal.conclude |> Thm.cprop_of |> Conjunction.dest_conjunction;
+      val ident = HOLogic.dest_number (Thm.term_of identt |> Logic.dest_term) |> snd;
+      val thm = Conjunction.intr (solve_term identt) (solve_term ct) |> Goal.protect 0
+      val goal' = Thm.implies_elim (Thm.implies_intr hyp goal) thm;
+    in
+      (SOME (ident,ct),goal')
+    end handle TERM _ => (NONE,goal) | THM _ => (NONE,goal);
+  in
+    fold_map prem_from_hyp chyps goal
+    |>> map_filter I
+  end;
+
 
 (* Add focus elements as proof data *)
-fun augment_focus
-    ({context, params, prems, asms, concl, schematics} : Subgoal.focus) : Subgoal.focus =
+fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
   let
-    val context' = context
+    val {context, params, prems, asms, concl, schematics} = focus;
+
+    val (prem_ids,ctxt') = context
       |> add_focus_params params
       |> add_focus_schematics (snd schematics)
-      |> fold add_focus_prem (rev prems);
+      |> fold_map add_focus_prem (rev prems)
+
+    val local_prems = map2 pair prem_ids (rev prems);
+
+    val ctxt'' = fold add_premid_hyp local_prems ctxt';
   in
-    {context = context',
+    (prem_ids,{context = ctxt'',
      params = params,
      prems = prems,
      concl = concl,
      schematics = schematics,
-     asms = asms}
+     asms = asms})
   end;
 
 
@@ -432,69 +525,154 @@ fun focus_concl ctxt i goal =
       schematics = schematics', asms = asms} : Subgoal.focus, goal'')
   end;
 
-exception MATCH_CUT;
 
-val raise_match : (thm * Envir.env) Seq.seq = Seq.make (fn () => raise MATCH_CUT);
+fun deduplicate eq prev seq =
+  Seq.make (fn () =>
+    (case Seq.pull seq of
+      SOME (x, seq') =>
+        if member eq prev x
+        then Seq.pull (deduplicate eq prev seq')
+        else SOME (x, deduplicate eq (x :: prev) seq')
+    | NONE => NONE));
+
+
+fun consistent_env env =
+  let
+    val tenv = Envir.term_env env;
+    val tyenv = Envir.type_env env;
+  in
+    forall (fn (_, (T, t)) => Envir.norm_type tyenv T = fastype_of t) (Vartab.dest tenv)
+  end;
+
+fun term_eq_wrt (env1,env2) (t1,t2) =
+  Envir.eta_contract (Envir.norm_term env1 t1) aconv
+  Envir.eta_contract (Envir.norm_term env2 t2);
+
+fun type_eq_wrt (env1,env2) (T1,T2) =
+  Envir.norm_type (Envir.type_env env1) T1 = Envir.norm_type (Envir.type_env env2) T2
+
+
+fun eq_env (env1, env2) =
+    Envir.maxidx_of env1 = Envir.maxidx_of env1 andalso
+    ListPair.allEq (fn ((var, (_, t)), (var', (_, t'))) =>
+        (var = var' andalso term_eq_wrt (env1,env2) (t,t')))
+      (apply2 Vartab.dest (Envir.term_env env1, Envir.term_env env2))
+    andalso
+    ListPair.allEq (fn ((var, (_, T)), (var', (_, T'))) =>
+        var = var' andalso type_eq_wrt (env1,env2) (T,T'))
+      (apply2 Vartab.dest (Envir.type_env env1, Envir.type_env env2));
+
+
+fun merge_env (env1,env2) =
+  let
+    val tenv =
+      Vartab.merge (eq_snd (term_eq_wrt (env1, env2))) (Envir.term_env env1, Envir.term_env env2);
+    val tyenv =
+      Vartab.merge (eq_snd (type_eq_wrt (env1, env2)) andf eq_fst (op =))
+        (Envir.type_env env1,Envir.type_env env2);
+    val maxidx = Int.max (Envir.maxidx_of env1, Envir.maxidx_of env2);
+  in Envir.Envir {maxidx = maxidx, tenv = tenv, tyenv = tyenv} end;
+
+
+fun import_with_tags thms ctxt =
+  let
+    val ((_, thms'), ctxt') = Variable.import false thms ctxt;
+    val thms'' = map2 (fn thm => Thm.map_tags (K (Thm.get_tags thm))) thms thms';
+  in (thms'', ctxt') end;
+
+
+fun try_merge (env, env') = SOME (merge_env (env, env')) handle Vartab.DUP _ => NONE
+
+
+fun Seq_retrieve seq f =
+  let
+    fun retrieve' (list, seq) f =
+      (case Seq.pull seq of
+        SOME (x, seq') =>
+          if f x then (SOME x, (list, seq'))
+          else retrieve' (list @ [x], seq') f
+      | NONE => (NONE, (list, seq)));
+
+    val (result, (list, seq)) = retrieve' ([], seq) f;
+  in (result, Seq.append (Seq.of_list list) seq) end;
 
 fun match_facts ctxt fixes prop_pats get =
   let
     fun is_multi (((_, x : match_args), _), _) = #multi x;
-    fun is_unify (_, x : match_args) = #unify x;
-    fun is_cut (_, x : match_args) = #cut x;
+    fun get_cut (((_, x : match_args), _), _) = #cut x;
+    fun do_cut n = if n = ~1 then I else Seq.take n;
 
-    fun match_thm (((x, params), pat), thm) env  =
+    val raw_thmss = map (get o snd) prop_pats;
+    val (thmss,ctxt') = fold_burrow import_with_tags raw_thmss ctxt;
+
+    val newly_fixed = Variable.is_newly_fixed ctxt' ctxt;
+
+    val morphism = Variable.export_morphism ctxt' ctxt;
+
+    fun match_thm (((x, params), pat), thm)  =
       let
-        fun try_dest_term term = the_default term (try Logic.dest_term term);
+        val pat_vars = Term.add_vars pat [];
 
-        val pat' = pat |> Envir.norm_term env |> try_dest_term;
-
-        val item' = Thm.prop_of thm |> try_dest_term;
         val ts = Option.map (fst o fst) (fst x);
-        (*FIXME: Do we need to move one of these patterns above the other?*)
+
+        val item' = Thm.prop_of thm;
 
         val matches =
-          (if is_unify x
-           then Unify.smash_unifiers (Context.Proof ctxt) [(pat', item') ] env
-           else Unify.matchers (Context.Proof ctxt) [(pat', item')])
+          (Unify.matchers (Context.Proof ctxt) [(pat, item')])
+          |> Seq.filter consistent_env
           |> Seq.map_filter (fn env' =>
-              match_filter_env ctxt fixes (ts, params) thm (Envir.merge (env, env')))
-          |> is_cut x ? (fn t => Seq.make (fn () =>
-            Option.map (fn (x, _) => (x, raise_match)) (Seq.pull t)));
-      in
-        matches
-      end;
+              (case match_filter_env newly_fixed pat_vars fixes params env' of
+                SOME env'' => SOME (export_with_params ctxt morphism (ts,params) thm env',env'')
+              | NONE => NONE))
+          |> Seq.map (apfst (Thm.map_tags (K (Thm.get_tags thm))))
+          |> deduplicate (eq_pair Thm.eq_thm_prop eq_env) []
+      in matches end;
 
     val all_matches =
-      map (fn pat => (pat, get (snd pat))) prop_pats
+      map2 pair prop_pats thmss
       |> map (fn (pat, matches) => (pat, map (fn thm => match_thm (pat, thm)) matches));
 
     fun proc_multi_match (pat, thmenvs) (pats, env) =
-      if is_multi pat then
-        let
-          val empty = ([], Envir.empty ~1);
+      do_cut (get_cut pat)
+        (if is_multi pat then
+          let
+            fun maximal_set tail seq envthms =
+              Seq.make (fn () =>
+                (case Seq.pull seq of
+                  SOME ((thm, env'), seq') =>
+                    let
+                      val (result, envthms') =
+                        Seq_retrieve envthms (fn (env, _) => eq_env (env, env'));
+                    in
+                      (case result of
+                        SOME (_,thms) => SOME ((env', thm :: thms), maximal_set tail seq' envthms')
+                      | NONE => Seq.pull (maximal_set (tail @ [(env', [thm])]) seq' envthms'))
+                    end
+                 | NONE => Seq.pull (Seq.append envthms (Seq.of_list tail))));
 
-          val thmenvs' =
-            Seq.EVERY (map (fn e => fn (thms, env) =>
-              Seq.append (Seq.map (fn (thm, env') => (thm :: thms, env')) (e env))
-                (Seq.single (thms, env))) thmenvs) empty;
-        in
-          Seq.map_filter (fn (fact, env') =>
-            if not (null fact) then SOME ((pat, fact) :: pats, env') else NONE) thmenvs'
-        end
-      else
-        fold (fn e => Seq.append (Seq.map (fn (thm, env') =>
-          ((pat, [thm]) :: pats, env')) (e env))) thmenvs Seq.empty;
+            val maximal_sets = fold (maximal_set []) thmenvs Seq.empty;
+          in
+            maximal_sets
+            |> Seq.map swap
+            |> Seq.filter (fn (thms, _) => not (null thms))
+            |> Seq.map_filter (fn (thms, env') =>
+              (case try_merge (env, env') of
+                SOME env'' => SOME ((pat, thms) :: pats, env'')
+              | NONE => NONE))
+          end
+        else
+          let
+            fun just_one (thm, env') =
+              (case try_merge (env,env') of
+                SOME env'' => SOME ((pat,[thm]) :: pats, env'')
+              | NONE => NONE);
+          in fold (fn seq => Seq.append (Seq.map_filter just_one seq)) thmenvs Seq.empty end);
 
     val all_matches =
-      Seq.EVERY (map proc_multi_match all_matches) ([], Envir.empty ~1)
-      |> Seq.filter (fn (_, e) => forall (is_some o Envir.lookup e o Term.dest_Var) fixes);
-
-    fun map_handle seq = Seq.make (fn () =>
-      (case (Seq.pull seq handle MATCH_CUT => NONE) of
-        SOME (x, seq') => SOME (x, map_handle seq')
-      | NONE => NONE));
+      Seq.EVERY (map proc_multi_match all_matches) ([], Envir.empty ~1);
   in
-    map_handle all_matches
+    all_matches
+    |> Seq.map (apsnd (morphism_env morphism))
   end;
 
 fun real_match using ctxt fixes m text pats goal =
@@ -507,7 +685,6 @@ fun real_match using ctxt fixes m text pats goal =
         |> Seq.map (fn (fact_insts, env) => do_inst fact_insts env text ctxt')
       end;
 
-    (*TODO: Slightly hacky re-use of fact match implementation in plain term matching *)
     fun make_term_matches ctxt get =
       let
         val pats' =
@@ -535,20 +712,24 @@ fun real_match using ctxt fixes m text pats goal =
           let
             fun focus_cases f g =
               (case match_kind of
-                Match_Prems => f
+                Match_Prems b => f b
               | Match_Concl => g
               | _ => raise Fail "Match kind fell through");
 
-            val ({context = focus_ctxt, params, asms, concl, ...}, focused_goal) =
-              focus_cases (Subgoal.focus_prems) (focus_concl) ctxt 1 goal
+            val (goal_thins,goal) = get_thinned_prems goal;
+
+            val ((local_premids,{context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
+              focus_cases (K Subgoal.focus_prems) (focus_concl) ctxt 1 goal
               |>> augment_focus;
 
             val texts =
               focus_cases
-                (fn _ =>
+                (fn is_local => fn _ =>
                   make_fact_matches focus_ctxt
-                    (Item_Net.retrieve (focus_prems focus_ctxt |> snd) #>
-                  order_list))
+                    (Item_Net.retrieve (focus_prems focus_ctxt |> snd)
+                     #> filter_out (member (eq_fst (op =)) goal_thins)
+                     #> is_local ? filter (fn (p,_) => exists (fn id' => id' = p) local_premids)
+                     #> order_list))
                 (fn _ =>
                   make_term_matches focus_ctxt (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
                 ();
@@ -557,13 +738,34 @@ fun real_match using ctxt fixes m text pats goal =
 
             fun do_retrofit inner_ctxt goal' =
               let
-                val cleared_prems =
-                  subtract (eq_fst (op =))
+                val (goal'_thins,goal') = get_thinned_prems goal';
+
+                val thinned_prems =
+                  ((subtract (eq_fst (op =))
                     (focus_prems inner_ctxt |> snd |> Item_Net.content)
-                    (focus_prems focus_ctxt |> snd |> Item_Net.content)
-                  |> map (fn (_, thm) =>
-                    Thm.hyps_of thm
-                    |> (fn [hyp] => hyp | _ => error "Prem should have only one hyp"));
+                    (focus_prems focus_ctxt |> snd |> Item_Net.content))
+                    |> map (fn (id, thm) =>
+                        #hyps (Thm.crep_thm thm)
+                        |> (fn [chyp] => (id, (SOME chyp, NONE))
+                             | _ => error "Prem should have only one hyp")));
+
+                val all_thinned_prems =
+                  thinned_prems @
+                  map (fn (id, prem) => (id, (NONE, SOME prem))) (goal'_thins @ goal_thins);
+
+                val (thinned_local_prems,thinned_extra_prems) =
+                  List.partition (fn (id, _) => member (op =) local_premids id) all_thinned_prems;
+
+                val local_thins =
+                  thinned_local_prems
+                  |> map (fn (_, (SOME t, _)) => Thm.term_of t
+                           | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
+
+                val extra_thins =
+                  thinned_extra_prems
+                  |> map (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
+                           | (id, (_, SOME pt)) => (id, pt))
+                  |> map (hyp_from_ctermid inner_ctxt);
 
                 val n_subgoals = Thm.nprems_of goal';
                 fun prep_filter t =
@@ -572,12 +774,13 @@ fun real_match using ctxt fixes m text pats goal =
                   if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
                 Subgoal.retrofit inner_ctxt ctxt params asms 1 goal' goal |>
-                (if n_subgoals = 0 orelse null cleared_prems then I
+                (if n_subgoals = 0 orelse null local_thins then I
                  else
                   Seq.map (Goal.restrict 1 n_subgoals)
                   #> Seq.maps (ALLGOALS (fn i =>
-                      DETERM (filter_prems_tac' ctxt prep_filter filter_test cleared_prems i)))
+                      DETERM (filter_prems_tac' ctxt prep_filter filter_test local_thins i)))
                   #> Seq.map (Goal.unrestrict 1))
+                  |> Seq.map (fold Thm.weaken extra_thins)
               end;
 
             fun apply_text (text, ctxt') =
@@ -585,7 +788,7 @@ fun real_match using ctxt fixes m text pats goal =
                 val goal' =
                   DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
                   |> Seq.maps (DETERM (do_retrofit ctxt'))
-                  |> Seq.map (fn goal => ([]: cases, goal))
+                  |> Seq.map (fn goal => ([]: cases, goal));
               in goal' end;
           in
             Seq.map apply_text texts
@@ -593,22 +796,19 @@ fun real_match using ctxt fixes m text pats goal =
   end;
 
 val match_parser =
-  parse_match_kind :-- (fn kind => Scan.lift @{keyword "in"} |-- parse_match_bodies kind) >>
+  parse_match_kind :-- (fn kind =>
+      Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
     (fn (matches, bodies) => fn ctxt => fn using => fn goal =>
       if Method_Closure.is_dummy goal then Seq.empty
       else
         let
           fun exec (pats, fixes, text) goal =
             let
-              val ctxt' = fold Variable.declare_term fixes ctxt
-              |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
-            in
-              real_match using ctxt' fixes matches text pats goal
-            end;
-        in
-          Seq.FIRST (map exec bodies) goal
-          |> Seq.flat
-        end);
+              val ctxt' =
+                fold Variable.declare_term fixes ctxt
+                |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
+            in real_match using ctxt' fixes matches text pats goal end;
+        in Seq.flat (Seq.FIRST (map exec bodies) goal) end);
 
 val _ =
   Theory.setup

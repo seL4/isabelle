@@ -1,6 +1,6 @@
 theory HOL_Specific
 imports Base "~~/src/HOL/Library/Old_Datatype" "~~/src/HOL/Library/Old_Recdef"
-  "~~/src/Tools/Adhoc_Overloading"
+  "~~/src/Tools/Adhoc_Overloading" "~~/src/HOL/Library/Dlist"  "~~/src/HOL/Library/FSet"
 begin
 
 chapter \<open>Higher-Order Logic\<close>
@@ -1616,8 +1616,8 @@ text \<open>
   \<close>}
 
   @{rail \<open>
-    @@{command (HOL) lift_definition} @{syntax name} '::' @{syntax type}  @{syntax mixfix}? \<newline>
-      'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?
+    @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? @{syntax name} '::' @{syntax type}  \<newline>  
+      @{syntax mixfix}? 'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?
   \<close>}
 
   @{rail \<open>
@@ -1695,9 +1695,24 @@ text \<open>
     the abstraction function.
 
     Integration with [@{attribute code} abstract]: For subtypes (e.g.,
-    corresponding to a datatype invariant, such as dlist), @{command
+    corresponding to a datatype invariant, such as @{typ "'a dlist"}), @{command
     (HOL) "lift_definition"} uses a code certificate theorem
-    @{text f.rep_eq} as a code equation.
+    @{text f.rep_eq} as a code equation. Because of the limitation of the code generator,
+    @{text f.rep_eq} cannot be used as a code equation if the subtype occurs inside the result
+    type rather than at the top level (e.g., function returning @{typ "'a dlist option"} vs. 
+    @{typ "'a dlist"}). In this case, an extension of @{command
+    (HOL) "lift_definition"} can be invoked by specifying the flag @{text "code_dt"}. This
+    extension enables code execution through series of internal type and lifting definitions 
+    if the return type @{text "\<tau>"} meets the following inductive conditions:
+    \begin{description}
+      \item  @{text "\<tau>"} is a type variable
+      \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, where @{text "\<kappa>"} is an abstract type constructor 
+        and @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"} do not contain abstract types (i.e., @{typ "int dlist"} is allowed 
+        whereas @{typ "int dlist dlist"} not)
+      \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that was defined as a 
+        (co)datatype whose constructor argument types do not contain either non-free datatypes 
+        or the function type.
+    \end{description}
 
     Integration with [@{attribute code} equation]: For total quotients, @{command
     (HOL) "lift_definition"} uses @{text f.abs_eq} as a code equation.
@@ -1780,7 +1795,7 @@ text \<open>
     and thus sets up lifting for an abstract type @{text \<tau>} (that is defined by @{text Quotient_thm}).
     Optional theorems @{text pcr_def} and @{text pcr_cr_eq_thm} can be specified to register 
     the parametrized
-    correspondence relation for @{text \<tau>}. E.g., for @{text "'a dlist"}, @{text pcr_def} is
+    correspondence relation for @{text \<tau>}. E.g., for @{typ "'a dlist"}, @{text pcr_def} is
     @{text "pcr_dlist A \<equiv> list_all2 A \<circ>\<circ> cr_dlist"} and @{text pcr_cr_eq_thm} is 
     @{text "pcr_dlist op= = op="}.
     This attribute is rather used for low-level

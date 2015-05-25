@@ -3,7 +3,7 @@ Poly/ML for Isabelle
 
 This compilation of Poly/ML 5.5.2 is based on
 http://sourceforge.net/p/polyml/code/HEAD/tree/fixes-5.5.2 version
-2007.  See also fixes-5.5.2.diff for the differences to the official
+2009.  See also fixes-5.5.2.diff for the differences to the official
 source distribution polyml.5.5.2.tar.gz from
 http://sourceforge.net/projects/polyml/.
 
@@ -21,4 +21,4 @@ efficient digesting of strings according to SHA-1.
 
 
         Makarius
-        17-Apr-2015
+        22-Apr-2015

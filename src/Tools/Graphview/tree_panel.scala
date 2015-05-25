@@ -70,6 +70,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
   private val root = new DefaultMutableTreeNode("Nodes")
 
   val tree = new JTree(root)
+  tree.setRowHeight(0)
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =

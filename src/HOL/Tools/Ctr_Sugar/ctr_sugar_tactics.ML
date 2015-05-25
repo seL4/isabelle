@@ -7,7 +7,6 @@ Tactics for wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR_GENERAL_TACTICS =
 sig
-  val clean_blast_tac: Proof.context -> int -> tactic
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val unfold_thms_tac: Proof.context -> thm list -> tactic
 end;
@@ -32,8 +31,8 @@ sig
   val mk_half_distinct_disc_tac: Proof.context -> int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_distinct_disc_tac: thm -> tactic
-  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list ->
-    thm list list list -> tactic
+  val mk_split_tac: Proof.context -> int list -> thm -> thm list -> thm list list ->
+    thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
@@ -44,8 +43,6 @@ struct
 open Ctr_Sugar_Util
 
 val meta_mp = @{thm meta_mp};
-
-fun clean_blast_tac ctxt = blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt);
 
 fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
   tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);
@@ -170,12 +167,17 @@ fun mk_case_eq_if_tac ctxt n uexhaust cases discss' selss =
           rtac casex])
       cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss));
 
-fun mk_split_tac ctxt uexhaust cases selss injectss distinctsss =
-  HEADGOAL (rtac uexhaust) THEN
-  ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
-     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
-       flat (nth distinctsss (k - 1))) ctxt)) k) THEN
-  ALLGOALS (clean_blast_tac ctxt);
+fun mk_split_tac ctxt ms uexhaust cases selss injectss distinctsss =
+  let val depth = fold Integer.max ms 0 in
+    HEADGOAL (rtac uexhaust) THEN
+    ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
+       simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
+         flat (nth distinctsss (k - 1))) ctxt)) k) THEN
+    ALLGOALS (etac thin_rl THEN' rtac iffI THEN'
+      REPEAT_DETERM o rtac allI THEN' rtac impI THEN' REPEAT_DETERM o etac conjE THEN'
+      hyp_subst_tac ctxt THEN' atac THEN' REPEAT_DETERM o etac allE THEN' etac impE THEN'
+      REPEAT_DETERM o (rtac conjI THEN' rtac refl) THEN' rtac refl THEN' atac)
+  end;
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 

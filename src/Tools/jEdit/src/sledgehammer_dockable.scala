@@ -73,13 +73,15 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private def clicked {
     PIDE.options.string("sledgehammer_provers") = provers.getText
-    sledgehammer.apply_query(List(provers.getText, isar_proofs.selected.toString))
+    sledgehammer.apply_query(
+      List(provers.getText, isar_proofs.selected.toString, try0.selected.toString))
   }
 
   private val provers_label = new Label("Provers:") {
     tooltip =
       GUI.tooltip_lines(
-        "Automatic provers as space-separated list, e.g.\ne spass remote_vampire")
+        "Automatic provers as space-separated list, e.g.\n" +
+          PIDE.options.value.check_name("sledgehammer_provers").default_value)
   }
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
@@ -103,8 +105,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val isar_proofs = new CheckBox("Isar proofs") {
-    tooltip = "Specify whether Isar proofs should be output in addition to metis line"
+    tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner"
     selected = false
+  }
+
+  private val try0 = new CheckBox("Try methods") {
+    tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\""
+    selected = true
   }
 
   private val apply_query = new Button("<html><b>Apply</b></html>") {
@@ -124,7 +131,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      provers_label, Component.wrap(provers), isar_proofs,
+      provers_label, Component.wrap(provers), isar_proofs, try0,
       process_indicator.component, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 

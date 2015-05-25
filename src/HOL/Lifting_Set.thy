@@ -205,10 +205,7 @@ lemma subset_transfer [transfer_rule]:
   shows "(rel_set A ===> rel_set A ===> op =) (op \<subseteq>) (op \<subseteq>)"
   unfolding subset_eq [abs_def] by transfer_prover
 
-lemma right_total_UNIV_transfer[transfer_rule]: 
-  assumes "right_total A"
-  shows "(rel_set A) (Collect (Domainp A)) UNIV"
-  using assms unfolding right_total_def rel_set_def Domainp_iff by blast
+declare right_total_UNIV_transfer[transfer_rule]
 
 lemma UNIV_transfer [transfer_rule]:
   assumes "bi_total A"

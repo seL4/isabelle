@@ -396,8 +396,18 @@ fun get_value (Token (_, _, Value v)) = v
 fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
   | map_value _ tok = tok;
 
+fun map_values f =
+  (map_args o map_value) (fn Source src => Source (map_values f src) | x => f x);
+
+
+(* reports of value *)
+
+fun get_assignable_value (Token (_, _, Assignable r)) = ! r
+  | get_assignable_value (Token (_, _, Value v)) = v
+  | get_assignable_value _ = NONE;
+
 fun reports_of_value tok =
-  (case get_value tok of
+  (case get_assignable_value tok of
     SOME (Literal markup) =>
       let
         val pos = pos_of tok;
@@ -408,9 +418,6 @@ fun reports_of_value tok =
         else []
       end
   | _ => []);
-
-fun map_values f =
-  (map_args o map_value) (fn Source src => Source (map_values f src) | x => f x);
 
 
 (* maxidx *)

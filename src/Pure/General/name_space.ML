@@ -179,7 +179,8 @@ fun the_entry (space as Name_Space {entries, ...}) name =
 
 fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
 
-fun is_concealed space name = #concealed (the_entry space name);
+fun is_concealed space name =
+  #concealed (the_entry space name) handle ERROR _ => false;
 
 
 (* intern *)
@@ -449,8 +450,7 @@ fun alias naming binding name space =
       val (accs, accs') = accesses naming binding;
       val internals' = internals |> fold (add_name name) accs;
       val entries' = entries
-        |> Change_Table.map_entry name (fn (externals, entry) =>
-          (Library.merge (op =) (externals, accs'), entry))
+        |> Change_Table.map_entry name (apfst (fold_rev (update op =) accs'));
     in (kind, internals', entries') end);
 
 

@@ -1132,8 +1132,7 @@ lemma exp_converges: "(\<lambda>n. x^n /\<^sub>R fact n) sums exp x"
   unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
 lemma exp_fdiffs:
-  fixes XXX :: "'a::{real_normed_field,banach}"
-  shows "diffs (\<lambda>n. inverse (fact n)) = (\<lambda>n. inverse (fact n :: 'a))"
+  "diffs (\<lambda>n. inverse (fact n)) = (\<lambda>n. inverse (fact n :: 'a::{real_normed_field,banach}))"
   by (simp add: diffs_def mult_ac nonzero_inverse_mult_distrib nonzero_of_real_inverse
            del: mult_Suc of_nat_Suc)
 
@@ -3897,8 +3896,7 @@ definition tan :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
   where "tan = (\<lambda>x. sin x / cos x)"
 
 lemma tan_of_real:
-  fixes XXX :: "'a::{real_normed_field,banach}"
-  shows  "of_real(tan x) = (tan(of_real x) :: 'a)"
+  "of_real (tan x) = (tan (of_real x) :: 'a::{real_normed_field,banach})"
   by (simp add: tan_def sin_of_real cos_of_real)
 
 lemma tan_in_Reals [simp]:

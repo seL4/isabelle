@@ -794,7 +794,7 @@ val _ =
         Locale.pretty_locale_deps thy
         |> map (fn {name, parents, body} =>
           ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-        |> Graph_Display.display_graph))));
+        |> Graph_Display.display_graph_old))));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_term_bindings}
@@ -854,13 +854,13 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword welcome} "print welcome message"
-    (Scan.succeed (Toplevel.imperative (writeln o Session.welcome)));
+    (Scan.succeed (Toplevel.keep (fn _ => writeln (Session.welcome ()))));
 
 val _ =
   Outer_Syntax.command @{command_keyword display_drafts}
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
-      Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));
+      Toplevel.keep (fn _ => ignore (Present.display_drafts (map Path.explode names)))));
 
 
 

@@ -61,9 +61,9 @@ object Active
                   props match {
                     case Position.Id(id) =>
                       Isabelle.edit_command(snapshot, buffer,
-                        props.exists(_ == Markup.PADDING_COMMAND), id, text)
+                        props.contains(Markup.PADDING_COMMAND), id, text)
                     case _ =>
-                      if (props.exists(_ == Markup.PADDING_LINE))
+                      if (props.contains(Markup.PADDING_LINE))
                         Isabelle.insert_line_padding(text_area, text)
                       else text_area.setSelectedText(text)
                   }

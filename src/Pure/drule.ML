@@ -93,6 +93,7 @@ sig
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
   val dummy_thm: thm
+  val is_sort_constraint: term -> bool
   val sort_constraintI: thm
   val sort_constraint_eq: thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
@@ -646,6 +647,9 @@ val dummy_thm = mk_term (certify Term.dummy_prop);
 
 
 (* sort_constraint *)
+
+fun is_sort_constraint (Const ("Pure.sort_constraint", _) $ Const ("Pure.type", _)) = true
+  | is_sort_constraint _ = false;
 
 val sort_constraintI =
   store_standard_thm (Binding.concealed (Binding.make ("sort_constraintI", @{here})))

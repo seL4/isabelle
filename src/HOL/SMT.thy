@@ -49,7 +49,7 @@ fun moura_tac ctxt =
 *}
 
 method_setup moura = {*
- Scan.succeed (SIMPLE_METHOD' o moura_tac)
+  Scan.succeed (SIMPLE_METHOD' o moura_tac)
 *} "solve skolemization goals, especially those arising from Z3 proofs"
 
 hide_fact (open) choices bchoices

@@ -110,7 +110,7 @@ text \<open>
   @{command "print_state"}~@{text "(latex xsymbols)"} prints the
   current proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
-  @{cite "isabelle-sys"}.
+  @{cite "isabelle-system"}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
   systematic way to include formal items into the printed text
@@ -1023,7 +1023,7 @@ text \<open>The inner syntax engine of Isabelle provides separate
   need to be passed-through carefully by syntax transformations.
 
   Pre-terms are further processed by the so-called \emph{check} and
-  \emph{unckeck} phases that are intertwined with type-inference (see
+  \emph{uncheck} phases that are intertwined with type-inference (see
   also @{cite "isabelle-implementation"}).  The latter allows to operate
   on higher-order abstract syntax with proper binding and type
   information already available.

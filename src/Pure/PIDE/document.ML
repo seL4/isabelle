@@ -434,6 +434,21 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
 
 (* document execution *)
 
+fun make_required nodes =
+  let
+    fun all_preds P =
+      String_Graph.fold (fn (a, (node, _)) => P node ? cons a) nodes []
+      |> String_Graph.all_preds nodes
+      |> Symtab.make_set;
+
+    val all_visible = all_preds visible_node;
+    val all_required = all_preds required_node;
+  in
+    Symtab.fold (fn (a, ()) =>
+      exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
+        Symtab.update (a, ())) all_visible all_required
+  end;
+
 fun start_execution state = state |> map_state (fn (versions, blobs, commands, execution) =>
   timeit "Document.start_execution" (fn () =>
     let
@@ -446,10 +461,13 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
 
       fun finished_import (name, (node, _)) =
         finished_result node orelse is_some (loaded_theory name);
+
+      val nodes = nodes_of (the_version state version_id);
+      val required = make_required nodes;
       val _ =
-        nodes_of (the_version state version_id) |> String_Graph.schedule
+        nodes |> String_Graph.schedule
           (fn deps => fn (name, node) =>
-            if visible_node node orelse pending_result node then
+            if Symtab.defined required name orelse visible_node node orelse pending_result node then
               let
                 fun body () =
                   (if forall finished_import deps then
@@ -497,21 +515,6 @@ fun assign_update_result (tab: assign_update) =
 (* update *)
 
 local
-
-fun make_required nodes =
-  let
-    fun all_preds P =
-      String_Graph.fold (fn (a, (node, _)) => P node ? cons a) nodes []
-      |> String_Graph.all_preds nodes
-      |> Symtab.make_set;
-
-    val all_visible = all_preds visible_node;
-    val all_required = all_preds required_node;
-  in
-    Symtab.fold (fn (a, ()) =>
-      exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
-        Symtab.update (a, ())) all_visible all_required
-  end;
 
 fun init_theory deps node span =
   let

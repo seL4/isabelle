@@ -7,10 +7,6 @@ Checklist for official releases
 
 - test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0, smlnj;
 
-- test Isabelle/jEdit on single-core;
-
-- test Isabelle/jEdit on airy device;
-
 - test 'display_drafts' command;
 
 - test "#!/usr/bin/env isabelle_scala_script";
@@ -19,6 +15,8 @@ Checklist for official releases
     isabelle java isabelle.Check_Source '~~' '$AFP_BASE'
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
+
+- check versions in src/Tools/jEdit/Isabelle.props;
 
 - check funny base directory, e.g. "Test 中国";
 
@@ -42,7 +40,9 @@ Checklist for official releases
     Admin/build jars_test
 
 - test Isabelle/jEdit:
-    print buffer
+    . print buffer
+    . on single-core
+    . on airy device
 
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
@@ -83,8 +83,8 @@ Final release stage
   default = http://bitbucket.org/isabelle_project/isabelle-release
   default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
 
-- isatest@macbroy28:hg-isabelle/.hg/hgrc
-- isatest@macbroy28:devel-page/content/index.content
+- isatest@lxbroy2:hg-isabelle/.hg/hgrc
+- isatest@lxbroy2:devel-page/content/index.content
 
 
 Post-release

@@ -1001,14 +1001,16 @@ lemmas size_fset_overloaded_simps[simp] =
     folded size_fset_overloaded_def]
 
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
-  unfolding size_fset_def fimage_def
-  by (auto simp: Abs_fset_inverse setsum.reindex_cong[OF subset_inj_on[OF _ top_greatest]])
-
+  apply (subst fun_eq_iff)
+  including fset.lifting by transfer (auto intro: setsum.reindex_cong subset_inj_on)
+  
 setup {*
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
   @{thms size_fset_simps size_fset_overloaded_simps} @{thms fset_size_o_map}
 *}
 
+lifting_update fset.lifting
+lifting_forget fset.lifting
 
 subsection {* Advanced relator customization *}
 

@@ -40,7 +40,7 @@ sig
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
-  val imperative: (unit -> unit) -> transition -> transition
+  val keep_proof: (state -> unit) -> transition -> transition
   val ignored: Position.T -> transition
   val is_ignored: transition -> bool
   val malformed: Position.T -> string -> transition
@@ -345,13 +345,18 @@ fun present_transaction f g = add_trans (Transaction (f, g));
 fun transaction f = present_transaction f (K ());
 
 fun keep f = add_trans (Keep (fn _ => f));
-fun imperative f = keep (fn _ => f ());
 
-fun ignored pos = empty |> name "<ignored>" |> position pos |> imperative I;
+fun keep_proof f =
+  keep (fn st =>
+    if is_proof st then f st
+    else if is_skipped_proof st then ()
+    else warning "No proof state");
+
+fun ignored pos = empty |> name "<ignored>" |> position pos |> keep (fn _ => ());
 fun is_ignored tr = name_of tr = "<ignored>";
 
 fun malformed pos msg =
-  empty |> name "<malformed>" |> position pos |> imperative (fn () => error msg);
+  empty |> name "<malformed>" |> position pos |> keep (fn _ => error msg);
 
 
 (* theory transitions *)
@@ -377,9 +382,9 @@ fun begin_local_theory begin f = transaction (fn _ =>
           val lthy = f thy;
           val gthy = if begin then Context.Proof lthy else Context.Theory (Named_Target.exit lthy);
           val _ =
-            if begin then
-              Output.state (Pretty.string_of (Pretty.chunks (Local_Theory.pretty lthy)))
-            else ();
+            (case Local_Theory.pretty lthy of
+              [] => ()
+            | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
         in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));
 

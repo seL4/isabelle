@@ -27,10 +27,13 @@ fun outcome_of unsat sat unknown solver_name line =
     " failed -- enable tracing using the " ^ quote (Config.name_of SMT_Config.trace) ^
     " option for details"))
 
+fun is_blank_or_error_line "" = true
+  | is_blank_or_error_line s = String.isPrefix "(error " s
+
 fun on_first_line test_outcome solver_name lines =
   let
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, ls) = split_first (snd (take_prefix (curry (op =) "") lines))
+    val (l, ls) = split_first (snd (take_prefix is_blank_or_error_line lines))
   in (test_outcome solver_name l, ls) end
 
 fun on_first_non_unsupported_line test_outcome solver_name lines =
@@ -59,7 +62,6 @@ val cvc3: SMT_Solver.solver_config = {
 
 end
 
-
 (* CVC4 *)
 
 val cvc4_extensions = Attrib.setup_config_bool @{binding cvc4_extensions} (K false)
@@ -68,6 +70,7 @@ local
   fun cvc4_options ctxt = [
     "--random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--lang=smt2",
+    "--continued-execution",
     "--tlimit", string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout))]
 
   fun select_class ctxt =

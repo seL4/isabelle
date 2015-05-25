@@ -87,6 +87,7 @@ RC="$?"
 cd ..
 
 if [ "$RC" = 0 ]; then
+  chmod -R a+r "$ISABELLE_NAME"
   chmod -R g=o "$ISABELLE_NAME"
   tar -c -z -f "$ARCHIVE_DIR/${ISABELLE_NAME}_library.tar.gz" "$ISABELLE_NAME/browser_info"
 fi

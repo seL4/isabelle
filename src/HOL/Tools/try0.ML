@@ -106,12 +106,14 @@ fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms;
 fun silence_methods debug =
   Config.put Metis_Tactic.verbose debug
   #> Config.put Lin_Arith.verbose debug
-  #> (not debug ?
-    (Context_Position.set_visible false
-     #> Proof_Context.background_theory (fn thy =>
-       thy
-       |> Context_Position.set_visible_global false
-       |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound))));
+  #> not debug ? (fn ctxt =>
+      ctxt
+      |> Context_Position.set_visible false
+      |> Config.put Unify.trace_bound (Config.get ctxt Unify.search_bound)
+      |> Proof_Context.background_theory (fn thy =>
+          thy
+          |> Context_Position.set_visible_global false
+          |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound)));
 
 fun generic_try0 mode timeout_opt quad st =
   let
@@ -154,7 +156,8 @@ fun generic_try0 mode timeout_opt quad st =
 fun try0 timeout_opt = fst oo generic_try0 Normal timeout_opt;
 
 fun try0_trans quad =
-  Toplevel.keep (K () o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
+  Toplevel.keep_proof
+    (ignore o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, d1 @ d2);
 

@@ -345,7 +345,7 @@ text {*
   setup) and \texttt{isabelle build} (to run sessions as specified in
   the corresponding \texttt{ROOT} file).  These Isabelle tools are
   described in further detail in the \emph{Isabelle System Manual}
-  @{cite "isabelle-sys"}.
+  @{cite "isabelle-system"}.
 
   For example, a new session \texttt{MySession} (with document
   preparation) may be produced as follows:
@@ -406,7 +406,7 @@ text {*
   \texttt{MySession/document} directory as well.  In particular,
   adding a file named \texttt{root.bib} causes an automatic run of
   \texttt{bibtex} to process a bibliographic database; see also
-  \texttt{isabelle document} @{cite "isabelle-sys"}.
+  \texttt{isabelle document} @{cite "isabelle-system"}.
 
   \medskip Any failure of the document preparation phase in an
   Isabelle batch session leaves the generated sources in their target
@@ -694,7 +694,7 @@ text {*
   preparation system allows the user to specify how to interpret a
   tagged region, in order to keep, drop, or fold the corresponding
   parts of the document.  See the \emph{Isabelle System Manual}
-  @{cite "isabelle-sys"} for further details, especially on
+  @{cite "isabelle-system"} for further details, especially on
   \texttt{isabelle build} and \texttt{isabelle document}.
 
   Ignored material is specified by delimiting the original formal

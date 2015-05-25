@@ -25,7 +25,7 @@ object Isabelle_Process
         process.stdin.close
         process
       }
-      catch { case exn @ ERROR(_) => system_channel.accepted(); throw(exn) }
+      catch { case exn @ ERROR(_) => system_channel.accepted(); throw exn }
 
     new Isabelle_Process(receiver, system_channel, system_process)
   }

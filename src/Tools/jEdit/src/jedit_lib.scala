@@ -230,7 +230,7 @@ object JEdit_Lib
 
   /* graphics range */
 
-  case class Gfx_Range(val x: Int, val y: Int, val length: Int)
+  case class Gfx_Range(x: Int, y: Int, length: Int)
 
   // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
@@ -274,7 +274,7 @@ object JEdit_Lib
       if (offset >= 0) {
         val range = point_range(text_area.getBuffer, offset)
         gfx_range(text_area, range) match {
-          case Some(g) if (g.x <= x && x < g.x + g.length) => Some(range)
+          case Some(g) if g.x <= x && x < g.x + g.length => Some(range)
           case _ => None
         }
       }
@@ -371,4 +371,3 @@ object JEdit_Lib
     (mod & InputEvent.META_MASK) != 0
   }
 }
-

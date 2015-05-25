@@ -93,7 +93,7 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
     // FIXME lock buffer (!??)
     val data = Isabelle_Sidekick.root_data(buffer)
-    val syntax = GUI_Thread.now { Isabelle.buffer_syntax(buffer) }
+    val syntax = Isabelle.buffer_syntax(buffer)
     val ok =
       if (syntax.isDefined) {
         val ok = parser(buffer, syntax.get, data)
@@ -162,11 +162,9 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
     val opt_snapshot =
-      GUI_Thread.now {
-        PIDE.document_model(buffer) match {
-          case Some(model) if model.is_theory => Some(model.snapshot)
-          case _ => None
-        }
+      PIDE.document_model(buffer) match {
+        case Some(model) if model.is_theory => Some(model.snapshot)
+        case _ => None
       }
     opt_snapshot match {
       case Some(snapshot) =>

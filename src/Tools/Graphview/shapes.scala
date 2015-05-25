@@ -163,7 +163,7 @@ object Shapes
         val seg = Array[Double](0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         var p1 = (0.0, 0.0)
         var p2 = (0.0, 0.0)
-        while (!i.isDone()) {
+        while (!i.isDone) {
           i.currentSegment(seg) match {
             case PathIterator.SEG_MOVETO => p2 = (seg(0), seg(1))
             case PathIterator.SEG_LINETO =>

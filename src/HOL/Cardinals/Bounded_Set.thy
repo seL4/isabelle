@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Boundes_Set.thy
+(*  Title:      HOL/Cardinals/Bounded_Set.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2015
 

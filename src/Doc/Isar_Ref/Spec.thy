@@ -178,7 +178,7 @@ text \<open>
   accesses to the local scope, as determined by the enclosing @{command
   "context"}~@{keyword "begin"}~\dots~@{command "end"} block. Outside its
   scope, a @{keyword "private"} name is inaccessible, and a @{keyword
-  "qualified"} name is only accessible with additional qualification.
+  "qualified"} name is only accessible with some qualification.
 
   Neither a global @{command theory} nor a @{command locale} target provides
   a local scope by itself: an extra unnamed context is required to use
@@ -1541,7 +1541,7 @@ text \<open>
 
   \item @{command "hide_class"}~@{text names} fully removes class
   declarations from a given name space; with the @{text "(open)"}
-  option, only the base name is hidden.
+  option, only the unqualified base name is hidden.
 
   Note that hiding name space accesses has no impact on logical
   declarations --- they remain valid internally.  Entities that are no

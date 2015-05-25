@@ -138,17 +138,19 @@ fun export inner outer =    (*beware of closure sizes*)
     fn th =>
       let
         val th' = exp th;
-        val defs_asms = asms |> map (Thm.assume #> (fn asm =>
-          (case try (head_of_def o Thm.prop_of) asm of
-            NONE => (asm, false)
-          | SOME x =>
-              let val t = Free x in
-                (case try exp_term t of
-                  NONE => (asm, false)
-                | SOME u =>
-                    if t aconv u then (asm, false)
-                    else (Drule.abs_def (Drule.gen_all (Variable.maxidx_of outer) asm), true))
-              end)));
+        val defs_asms = asms
+          |> filter_out (Drule.is_sort_constraint o Thm.term_of)
+          |> map (Thm.assume #> (fn asm =>
+            (case try (head_of_def o Thm.prop_of) asm of
+              NONE => (asm, false)
+            | SOME x =>
+                let val t = Free x in
+                  (case try exp_term t of
+                    NONE => (asm, false)
+                  | SOME u =>
+                      if t aconv u then (asm, false)
+                      else (Drule.abs_def (Drule.gen_all (Variable.maxidx_of outer) asm), true))
+                end)));
       in (apply2 (map #1) (List.partition #2 defs_asms), th') end
   end;
 

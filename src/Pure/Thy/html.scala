@@ -28,7 +28,7 @@ object HTML
         case '"' => result ++= "&quot;"
         case '\'' => result ++= "&#39;"
         case '\n' => result ++= "<br/>"
-        case c => result += c
+        case _ => result += c
       }
     def encode_chars(s: String) = s.iterator.foreach(encode_char(_))
 

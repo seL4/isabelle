@@ -1346,9 +1346,10 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
       [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
         Pretty.quote (prt_term t)];
 
-    fun prt_asm (b, ts) = Pretty.block (Pretty.breaks
-      ((if Binding.is_empty b then []
-        else [Binding.pretty b, Pretty.str ":"]) @ map (Pretty.quote o prt_term) ts));
+    fun prt_asm (b, ts) =
+      Pretty.block (Pretty.breaks
+        ((if Binding.is_empty b then [] else [Binding.pretty b, Pretty.str ":"]) @
+          map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
       | prt_sect head sep prt xs =

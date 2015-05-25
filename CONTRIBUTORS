@@ -13,6 +13,10 @@ Contributions to Isabelle2015
 * 2014/2015: Daniel Matichuk, Toby Murray, NICTA and Makarius Wenzel
   The Eisbach proof method language and "match" method.
 
+* Winter 2014 and Spring 2015: Ondrej Kuncar, TUM
+  Extension of lift_definition to execute lifted functions that have as a
+  return type a datatype containing a subtype.
+
 * March 2015: Jasmin Blanchette, Inria & LORIA & MPII, Mathias Fleury, MPII,
   and Dmitriy Traytel, TUM
   More multiset theorems, syntax, and operations.

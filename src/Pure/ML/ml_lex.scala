@@ -62,7 +62,7 @@ object ML_Lex
     val ERROR = Value("bad input")
   }
 
-  sealed case class Token(val kind: Kind.Value, val source: String)
+  sealed case class Token(kind: Kind.Value, source: String)
   {
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
@@ -282,7 +282,7 @@ object ML_Lex
     var ctxt = context
     while (!in.atEnd) {
       Parsers.parse(Parsers.token_line(SML, ctxt), in) match {
-        case Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
+        case Parsers.Success((x, c), rest) => toks += x; ctxt = c; in = rest
         case Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }

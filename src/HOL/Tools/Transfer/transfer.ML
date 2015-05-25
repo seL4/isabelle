@@ -8,10 +8,16 @@ Generic theorem transfer method.
 signature TRANSFER =
 sig
   type pred_data
+  val mk_pred_data: thm -> thm -> thm list -> pred_data
   val rel_eq_onp: pred_data -> thm
+  val rel_eq_onp_with_tops: pred_data -> thm
+  val pred_def: pred_data -> thm
+  val pred_simps: pred_data -> thm list
+  val update_pred_simps: thm list -> pred_data -> pred_data
 
   val bottom_rewr_conv: thm list -> conv
   val top_rewr_conv: thm list -> conv
+  val top_sweep_rewr_conv: thm list -> conv
 
   val prep_conv: conv
   val get_transfer_raw: Proof.context -> thm list
@@ -46,15 +52,33 @@ end
 structure Transfer : TRANSFER =
 struct
 
+fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+fun top_sweep_rewr_conv rewrs = Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) @{context}
+
 (** Theory Data **)
 
 val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o apply2 snd) (single o fst);
 val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
-type pred_data = {rel_eq_onp: thm}
+datatype pred_data = PRED_DATA of {pred_def:thm, rel_eq_onp: thm, pred_simps: thm list}
 
-val rel_eq_onp: pred_data -> thm = #rel_eq_onp
+fun mk_pred_data pred_def rel_eq_onp pred_simps = PRED_DATA {pred_def = pred_def, 
+  rel_eq_onp = rel_eq_onp, pred_simps = pred_simps}
+
+fun map_pred_data' f1 f2 f3 (PRED_DATA {pred_def, rel_eq_onp, pred_simps}) =
+  PRED_DATA {pred_def = f1 pred_def, rel_eq_onp = f2 rel_eq_onp, pred_simps = f3 pred_simps}
+
+fun rep_pred_data (PRED_DATA p) = p
+val rel_eq_onp = #rel_eq_onp o rep_pred_data
+val rel_eq_onp_with_tops = (Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
+  (top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}))))
+  o #rel_eq_onp o rep_pred_data
+val pred_def = #pred_def o rep_pred_data
+val pred_simps = #pred_simps o rep_pred_data
+fun update_pred_simps new_pred_data = map_pred_data' I I (K new_pred_data)
+
 
 structure Data = Generic_Data
 (
@@ -181,9 +205,6 @@ fun transfer_raw_add thm ctxt = add_transfer_thm thm ctxt
 fun transfer_raw_del thm ctxt = del_transfer_thm thm ctxt
 
 (** Conversions **)
-
-fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
-fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
 
 fun transfer_rel_conv conv =
   Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.fun2_conv (Conv.arg_conv conv)))
@@ -788,7 +809,12 @@ val transferred_attribute_parser =
 val untransferred_attribute_parser =
   Attrib.thms >> untransferred_attribute
 
-fun morph_pred_data phi {rel_eq_onp} = {rel_eq_onp = Morphism.thm phi rel_eq_onp}
+fun morph_pred_data phi = 
+  let
+    val morph_thm = Morphism.thm phi
+  in
+    map_pred_data' morph_thm morph_thm (map morph_thm)
+  end
 
 fun lookup_pred_data ctxt type_name = Symtab.lookup (get_pred_data ctxt) type_name
   |> Option.map (morph_pred_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))

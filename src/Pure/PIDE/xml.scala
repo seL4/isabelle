@@ -36,9 +36,9 @@ object XML
 
   /* wrapped elements */
 
-  val XML_ELEM = "xml_elem";
-  val XML_NAME = "xml_name";
-  val XML_BODY = "xml_body";
+  val XML_ELEM = "xml_elem"
+  val XML_NAME = "xml_name"
+  val XML_BODY = "xml_body"
 
   object Wrapped_Elem
   {

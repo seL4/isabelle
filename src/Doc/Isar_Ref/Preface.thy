@@ -2,8 +2,6 @@ theory Preface
 imports Base Main
 begin
 
-chapter \<open>Preface\<close>
-
 text \<open>
   The \emph{Isabelle} system essentially provides a generic
   infrastructure for building deductive systems (programmed in

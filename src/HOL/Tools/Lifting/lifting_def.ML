@@ -6,15 +6,48 @@ Definitions for constants on quotient types.
 
 signature LIFTING_DEF =
 sig
+  datatype code_eq = UNKNOWN_EQ | NONE_EQ | ABS_EQ | REP_EQ
+  type lift_def
+  val rty_of_lift_def: lift_def -> typ
+  val qty_of_lift_def: lift_def -> typ
+  val rhs_of_lift_def: lift_def -> term
+  val lift_const_of_lift_def: lift_def -> term
+  val def_thm_of_lift_def: lift_def -> thm
+  val rsp_thm_of_lift_def: lift_def -> thm
+  val abs_eq_of_lift_def: lift_def -> thm
+  val rep_eq_of_lift_def: lift_def -> thm option
+  val code_eq_of_lift_def: lift_def -> code_eq
+  val transfer_rules_of_lift_def: lift_def -> thm list
+  val morph_lift_def: morphism -> lift_def -> lift_def
+  val inst_of_lift_def: Proof.context -> typ -> lift_def -> lift_def
+  val mk_lift_const_of_lift_def: typ -> lift_def -> term
+
+  type config = { notes: bool }
+  val map_config: (bool -> bool) -> config -> config
+  val default_config: config
+
   val generate_parametric_transfer_rule:
     Proof.context -> thm -> thm -> thm
 
-  val add_lift_def:
-    (binding * mixfix) -> typ -> term -> thm -> thm list -> local_theory -> local_theory
+  val add_lift_def: 
+    config -> binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> 
+      lift_def * local_theory
+  
+  val prepare_lift_def:
+    (binding * mixfix -> typ -> term -> thm -> thm list -> Proof.context -> 
+      lift_def * local_theory) -> 
+    binding * mixfix -> typ -> term -> thm list -> local_theory -> 
+    term option * (thm -> Proof.context -> lift_def * local_theory)
 
-  val lift_def_cmd:
-    (binding * string option * mixfix) * string * (Facts.ref * Token.src list) list ->
-    local_theory -> Proof.state
+  val gen_lift_def:
+    (binding * mixfix -> typ -> term -> thm -> thm list -> local_theory -> 
+      lift_def * local_theory) -> 
+    binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
+    local_theory -> lift_def * local_theory
+
+  val lift_def: 
+    config -> binding * mixfix -> typ -> term -> (Proof.context -> tactic) -> thm list -> 
+    local_theory -> lift_def * local_theory
 
   val can_generate_code_cert: thm -> bool
 end
@@ -25,6 +58,70 @@ struct
 open Lifting_Util
 
 infix 0 MRSL
+
+datatype code_eq = UNKNOWN_EQ | NONE_EQ | ABS_EQ | REP_EQ
+
+datatype lift_def = LIFT_DEF of {
+  rty: typ,
+  qty: typ,
+  rhs: term,
+  lift_const: term,
+  def_thm: thm,
+  rsp_thm: thm,
+  abs_eq: thm,
+  rep_eq: thm option,
+  code_eq: code_eq,
+  transfer_rules: thm list
+};
+
+fun rep_lift_def (LIFT_DEF lift_def) = lift_def;
+val rty_of_lift_def = #rty o rep_lift_def;
+val qty_of_lift_def = #qty o rep_lift_def;
+val rhs_of_lift_def = #rhs o rep_lift_def;
+val lift_const_of_lift_def = #lift_const o rep_lift_def;
+val def_thm_of_lift_def = #def_thm o rep_lift_def;
+val rsp_thm_of_lift_def = #rsp_thm o rep_lift_def;
+val abs_eq_of_lift_def = #abs_eq o rep_lift_def;
+val rep_eq_of_lift_def = #rep_eq o rep_lift_def;
+val code_eq_of_lift_def = #code_eq o rep_lift_def;
+val transfer_rules_of_lift_def = #transfer_rules o rep_lift_def;
+
+fun mk_lift_def rty qty rhs lift_const def_thm rsp_thm abs_eq rep_eq code_eq transfer_rules =
+  LIFT_DEF {rty = rty, qty = qty,
+            rhs = rhs, lift_const = lift_const,
+            def_thm = def_thm, rsp_thm = rsp_thm, abs_eq = abs_eq, rep_eq = rep_eq, 
+            code_eq = code_eq, transfer_rules = transfer_rules };
+
+fun map_lift_def f1 f2 f3 f4 f5 f6 f7 f8 f9 f10
+  (LIFT_DEF {rty = rty, qty = qty, rhs = rhs, lift_const = lift_const,
+  def_thm = def_thm, rsp_thm = rsp_thm, abs_eq = abs_eq, rep_eq = rep_eq, code_eq = code_eq,
+  transfer_rules = transfer_rules }) =
+  LIFT_DEF {rty = f1 rty, qty = f2 qty, rhs = f3 rhs, lift_const = f4 lift_const,
+            def_thm = f5 def_thm, rsp_thm = f6 rsp_thm, abs_eq = f7 abs_eq, rep_eq = f8 rep_eq,
+            code_eq = f9 code_eq, transfer_rules = f10 transfer_rules }
+
+fun morph_lift_def phi =
+  let
+    val mtyp = Morphism.typ phi
+    val mterm = Morphism.term phi
+    val mthm = Morphism.thm phi
+  in
+    map_lift_def mtyp mtyp mterm mterm mthm mthm mthm (Option.map mthm) I (map mthm)
+  end
+
+fun mk_inst_of_lift_def qty lift_def = Vartab.empty |> Type.raw_match (qty_of_lift_def lift_def, qty)
+
+fun mk_lift_const_of_lift_def qty lift_def = Envir.subst_term_types (mk_inst_of_lift_def qty lift_def)
+  (lift_const_of_lift_def lift_def)
+
+fun inst_of_lift_def ctxt qty lift_def =  mk_inst_of_lift_def qty lift_def
+  |> instT_morphism ctxt |> (fn phi => morph_lift_def phi lift_def)
+
+(* Config *)
+
+type config = { notes: bool };
+fun map_config f1 { notes = notes } = { notes = f1 notes }
+val default_config = { notes = true };
 
 (* Reflexivity prover *)
 
@@ -289,7 +386,6 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
       SOME (simplify_code_eq ctxt (unabs_def RS @{thm meta_eq_to_obj_eq}))
     else 
       let
-        val thy = Proof_Context.theory_of ctxt
         val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
         val rel_fun = prove_rel ctxt rsp_thm (rty, qty)
         val rep_abs_thm = [quot_thm, rel_fun] MRSL @{thm Quotient_rep_abs_eq}
@@ -358,23 +454,39 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 
   in
     if is_valid_eq abs_eq_thm then
-      Code.add_default_eqn abs_eq_thm thy
+      (ABS_EQ, Code.add_default_eqn abs_eq_thm thy)
     else
       let
         val (rty_body, qty_body) = get_body_types (rty, qty)
       in
         if rty_body = qty_body then
-         Code.add_default_eqn (the opt_rep_eq_thm) thy
+          (REP_EQ, Code.add_default_eqn (the opt_rep_eq_thm) thy)
         else
           if is_some opt_rep_eq_thm andalso is_valid_abs_eq (the opt_rep_eq_thm)
           then
-            Code.add_abs_default_eqn (the opt_rep_eq_thm) thy
+            (REP_EQ, Code.add_abs_default_eqn (the opt_rep_eq_thm) thy)
           else
-            thy
+            (NONE_EQ, thy)
       end
   end
 
 local
+  fun no_no_code ctxt (rty, qty) =
+    if same_type_constrs (rty, qty) then
+      forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
+    else
+      if is_Type qty then
+        if Lifting_Info.is_no_code_type ctxt (Tname qty) then false
+        else 
+          let 
+            val (rty', rtyq) = Lifting_Term.instantiate_rtys ctxt (rty, qty)
+            val (rty's, rtyqs) = (Targs rty', Targs rtyq)
+          in
+            forall (no_no_code ctxt) (rty's ~~ rtyqs)
+          end
+      else
+        true
+
   fun encode_code_eq ctxt abs_eq opt_rep_eq (rty, qty) = 
     let
       fun mk_type typ = typ |> Logic.mk_type |> Thm.cterm_of ctxt |> Drule.mk_term
@@ -395,11 +507,20 @@ local
         (abs_eq, opt_rep_eq, (dest_type rty, dest_type qty)) 
       end
   
+  structure Data = Generic_Data
+  (
+    type T = code_eq option
+    val empty = NONE
+    val extend = I
+    fun merge _ = NONE
+  );
+
   fun register_encoded_code_eq thm thy =
     let
       val (abs_eq_thm, opt_rep_eq_thm, (rty, qty)) = decode_code_eq thm
+      val (code_eq, thy) = register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy
     in
-      register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy
+      Context.theory_map (Data.put (SOME code_eq)) thy
     end
     handle DECODE => thy
   
@@ -407,31 +528,28 @@ local
     (fn thm => Context.mapping (register_encoded_code_eq thm) I)
   val register_code_eq_attrib = Attrib.internal (K register_code_eq_attribute)
 
-  fun no_no_code ctxt (rty, qty) =
-    if same_type_constrs (rty, qty) then
-      forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
-    else
-      if is_Type qty then
-        if Lifting_Info.is_no_code_type ctxt (Tname qty) then false
-        else 
-          let 
-            val (rty', rtyq) = Lifting_Term.instantiate_rtys ctxt (rty, qty)
-            val (rty's, rtyqs) = (Targs rty', Targs rtyq)
-          in
-            forall (no_no_code ctxt) (rty's ~~ rtyqs)
-          end
-      else
-        true
 in
 
 fun register_code_eq abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
   let
     val encoded_code_eq = encode_code_eq lthy abs_eq_thm opt_rep_eq_thm (rty, qty)
   in
-    if no_no_code lthy (rty, qty) then 
-      (snd oo Local_Theory.note) ((Binding.empty, [register_code_eq_attrib]), [encoded_code_eq]) lthy
+    if no_no_code lthy (rty, qty) then
+      let
+        val lthy = (snd oo Local_Theory.note) 
+          ((Binding.empty, [register_code_eq_attrib]), [encoded_code_eq]) lthy
+        val opt_code_eq = Data.get (Context.Theory (Proof_Context.theory_of lthy))
+        val code_eq = if is_some opt_code_eq then the opt_code_eq 
+          else UNKNOWN_EQ (* UNKNOWN_EQ means that we are in a locale and we do not know
+            which code equation is going to be used. This is going to be resolved at the
+            point when an interpretation of the locale is executed. *)
+        val lthy = Local_Theory.declaration {syntax = false, pervasive = true} 
+          (K (Data.put NONE)) lthy
+      in
+        (code_eq, lthy)
+      end
     else
-      lthy
+      (NONE_EQ, lthy)
   end
 end
             
@@ -447,7 +565,7 @@ end
   par_thms - a parametricity theorem for rhs
 *)
 
-fun add_lift_def var qty rhs rsp_thm par_thms lthy =
+fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
@@ -458,134 +576,44 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
     val prop = Logic.mk_equals (lhs, absrep_trm $ forced_rhs)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
+    val var = (#notes config = false ? apfst Binding.concealed) var
+    val def_name = if #notes config then Thm.def_binding (#1 var) else Binding.empty
+    
+    val ((lift_const, (_ , def_thm)), lthy) = 
+      Local_Theory.define (var, ((def_name, []), newrhs)) lthy
 
-    val ((_, (_ , def_thm)), lthy') = 
-      Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
+    val transfer_rules = generate_transfer_rules lthy quot_thm rsp_thm def_thm par_thms
 
-    val transfer_rules = generate_transfer_rules lthy' quot_thm rsp_thm def_thm par_thms
-
-    val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
-    val opt_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)
+    val abs_eq_thm = generate_abs_eq lthy def_thm rsp_thm quot_thm
+    val opt_rep_eq_thm = generate_rep_eq lthy def_thm rsp_thm (rty_forced, qty)
 
     fun qualify defname suffix = Binding.qualified true suffix defname
 
-    val lhs_name = (#1 var)
-    val rsp_thm_name = qualify lhs_name "rsp"
-    val abs_eq_thm_name = qualify lhs_name "abs_eq"
-    val rep_eq_thm_name = qualify lhs_name "rep_eq"
-    val transfer_rule_name = qualify lhs_name "transfer"
-    val transfer_attr = Attrib.internal (K Transfer.transfer_add)
-  in
-    lthy'
-      |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
-      |> (snd oo Local_Theory.note) ((transfer_rule_name, [transfer_attr]), transfer_rules)
-      |> (snd oo Local_Theory.note) ((abs_eq_thm_name, []), [abs_eq_thm])
-      |> (case opt_rep_eq_thm of 
-            SOME rep_eq_thm => (snd oo Local_Theory.note) ((rep_eq_thm_name, []), [rep_eq_thm])
-            | NONE => I)
-      |> register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty)
-  end
-
-local
-  val eq_onp_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
-    [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
-      @{thm pcr_Domainp}]
-in
-fun mk_readable_rsp_thm_eq tm lthy =
-  let
-    val ctm = Thm.cterm_of lthy tm
-    
-    fun assms_rewr_conv tactic rule ct =
+    fun notes names =
       let
-        fun prove_extra_assms thm =
-          let
-            val assms = cprems_of thm
-            fun finish thm = if Thm.no_prems thm then SOME (Goal.conclude thm) else NONE
-            fun prove ctm = Option.mapPartial finish (SINGLE tactic (Goal.init ctm))
-          in
-            map_interrupt prove assms
-          end
-    
-        fun cconl_of thm = Drule.strip_imp_concl (Thm.cprop_of thm)
-        fun lhs_of thm = fst (Thm.dest_equals (cconl_of thm))
-        fun rhs_of thm = snd (Thm.dest_equals (cconl_of thm))
-        val rule1 = Thm.incr_indexes (Thm.maxidx_of_cterm ct + 1) rule;
-        val lhs = lhs_of rule1;
-        val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
-        val rule3 =
-          Thm.instantiate (Thm.match (lhs, ct)) rule2
-            handle Pattern.MATCH => raise CTERM ("assms_rewr_conv", [lhs, ct]);
-        val proved_assms = prove_extra_assms rule3
+        val lhs_name = (#1 var)
+        val rsp_thmN = qualify lhs_name "rsp"
+        val abs_eq_thmN = qualify lhs_name "abs_eq"
+        val rep_eq_thmN = qualify lhs_name "rep_eq"
+        val transfer_ruleN = qualify lhs_name "transfer"
+        val notes = 
+          [(rsp_thmN, [], [rsp_thm]), 
+          (transfer_ruleN, @{attributes [transfer_rule]}, transfer_rules),
+          (abs_eq_thmN, [], [abs_eq_thm])] 
+          @ (case opt_rep_eq_thm of SOME rep_eq_thm => [(rep_eq_thmN, [], [rep_eq_thm])] | NONE => [])
       in
-        case proved_assms of
-          SOME proved_assms =>
-            let
-              val rule3 = proved_assms MRSL rule3
-              val rule4 =
-                if lhs_of rule3 aconvc ct then rule3
-                else
-                  let val ceq = Thm.dest_fun2 (Thm.cprop_of rule3)
-                  in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (rhs_of rule3)) end
-            in Thm.transitive rule4 (Thm.beta_conversion true (rhs_of rule4)) end
-          | NONE => Conv.no_conv ct
+        if names then map (fn (name, attrs, thms) => ((name, []), [(thms, attrs)])) notes
+        else map_filter (fn (_, attrs, thms) => if null attrs then NONE 
+          else SOME ((Binding.empty, []), [(thms, attrs)])) notes
       end
-
-    fun assms_rewrs_conv tactic rules = Conv.first_conv (map (assms_rewr_conv tactic) rules)
-
-    fun simp_arrows_conv ctm =
-      let
-        val unfold_conv = Conv.rewrs_conv 
-          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, 
-            @{thm rel_fun_eq_onp_rel[THEN eq_reflection]},
-            @{thm rel_fun_eq[THEN eq_reflection]},
-            @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
-            @{thm rel_fun_def[THEN eq_reflection]}]
-        fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
-        val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
-            eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
-        val eq_onp_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
-          THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
-        val relator_eq_onp_conv = Conv.bottom_conv
-          (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac
-            (Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
-        val relator_eq_conv = Conv.bottom_conv
-          (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
-      in
-        case (Thm.term_of ctm) of
-          Const (@{const_name "rel_fun"}, _) $ _ $ _ => 
-            (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => (relator_eq_onp_conv then_conv relator_eq_conv) ctm
-      end
-    
-    val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
-    val unfold_inv_conv = 
-      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy
-    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
-    val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
-    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
-    val beta_conv = Thm.beta_conversion true
-    val eq_thm = 
-      (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs
-         then_conv unfold_inv_conv) ctm
+    val (code_eq, lthy) = register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty) lthy
+    val lift_def = mk_lift_def rty_forced qty newrhs lift_const def_thm rsp_thm abs_eq_thm 
+          opt_rep_eq_thm code_eq transfer_rules
   in
-    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
-  end
-end
-
-fun rename_to_tnames ctxt term =
-  let
-    fun all_typs (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) = T :: all_typs t
-      | all_typs _ = []
-
-    fun rename (Const (@{const_name Pure.all}, T1) $ Abs (_, T2, t)) (new_name :: names) = 
-        (Const (@{const_name Pure.all}, T1) $ Abs (new_name, T2, rename t names)) 
-      | rename t _ = t
-
-    val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt
-    val new_names = Old_Datatype_Prop.make_tnames (all_typs fixed_def_t)
-  in
-    rename term new_names
+    lthy
+      |> Local_Theory.notes (notes (#notes config)) |> snd
+      |> ` (fn lthy => morph_lift_def (Local_Theory.target_morphism lthy) lift_def)
+      ||> Local_Theory.restore
   end
 
 (* This is not very cheap way of getting the rules but we have only few active
@@ -601,17 +629,8 @@ fun get_cr_pcr_eqs ctxt =
     Symtab.fold (fn (_, data) => fn l => collect data l) table []
   end
 
-(*
-
-  lifting_definition command. It opens a proof of a corresponding respectfulness 
-  theorem in a user-friendly, readable form. Then add_lift_def is called internally.
-
-*)
-
-fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
+fun prepare_lift_def add_lift_def var qty rhs par_thms lthy =
   let
-    val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
     val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
     val forced_rhs = force_rty_type lthy rty_forced rhs;
@@ -625,84 +644,31 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
       |>> snd
     val to_rsp = rsp_prsp_eq RS Drule.equal_elim_rule2
     val opt_proven_rsp_thm = try_prove_reflexivity lthy prsp_tm
-    val par_thms = Attrib.eval_thms lthy par_xthms
     
     fun after_qed internal_rsp_thm lthy = 
-      add_lift_def (binding, mx) qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
+      add_lift_def var qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
   in
     case opt_proven_rsp_thm of
-      SOME thm => Proof.theorem NONE (K (after_qed thm)) [] lthy
-      | NONE =>  
-        let
-          val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
-          val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
-          val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
-      
-          fun after_qed' thm_list lthy = 
-            let
-              val internal_rsp_thm = Goal.prove lthy [] [] prsp_tm 
-                  (fn {context = ctxt, ...} =>
-                    rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt (hd thm_list) 1)
-            in
-              after_qed internal_rsp_thm lthy
-            end
-        in
-          Proof.theorem NONE after_qed' [[(readable_rsp_tm_tnames,[])]] lthy
-        end 
+      SOME thm => (NONE, K (after_qed thm))
+      | NONE => (SOME prsp_tm, after_qed) 
   end
 
-fun quot_thm_err ctxt (rty, qty) pretty_msg =
+fun gen_lift_def add_lift_def var qty rhs tac par_thms lthy =
   let
-    val error_msg = cat_lines
-       ["Lifting failed for the following types:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Raw type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Abstract type:", Pretty.brk 2, Syntax.pretty_typ ctxt qty]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:", Pretty.brk 2, pretty_msg]))]
+    val (goal, after_qed) = prepare_lift_def add_lift_def var qty rhs par_thms lthy
   in
-    error error_msg
+    case goal of
+      SOME goal => 
+        let 
+          val rsp_thm = Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} => tac ctxt)
+            |> Thm.close_derivation
+        in
+          after_qed rsp_thm lthy
+        end
+      | NONE => after_qed Drule.dummy_thm lthy
   end
 
-fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
-  let
-    val (_, ctxt') = yield_singleton Proof_Context.read_vars raw_var ctxt 
-    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
-    val error_msg = cat_lines
-       ["Lifting failed for the following term:",
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt rhs]),
-        Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt rty_schematic]),
-        "",
-        (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason:", 
-          Pretty.brk 2, 
-          Pretty.str "The type of the term cannot be instantiated to",
-          Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
-          Pretty.str "."]))]
-    in
-      error error_msg
-    end
-
-fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, par_xthms) lthy =
-  (lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy
-    handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
-    handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) => 
-      check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw)
-
-(* parser and command *)
-val liftdef_parser =
-  (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')) >> Parse.triple2)
-    --| @{keyword "is"} -- Parse.term -- 
-      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1
-val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword lift_definition}
-    "definition for constants over the quotient type"
-      (liftdef_parser >> lift_def_cmd_with_err_handling)
-
+fun lift_def config var qty rhs tac par_thms lthy = gen_lift_def (add_lift_def config)
+  var qty rhs tac par_thms lthy
 
 end (* structure *)

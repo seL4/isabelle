@@ -407,7 +407,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   PIDE.editor.hyperlink_command_id(snapshot, id, offset)
                 case _ => None
               }
-            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
+            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             val opt_link =
@@ -419,14 +419,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   PIDE.editor.hyperlink_command_id(snapshot, id, offset)
                 case _ => None
               }
-            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
+            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val opt_link =
               Bibtex_JEdit.entries_iterator.collectFirst(
                 { case (a, buffer, offset) if a == name =>
                     PIDE.editor.hyperlink_buffer(buffer, offset) })
-            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
+            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
@@ -472,7 +472,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (msgs, Text.Info(info_range,
             XML.Elem(Markup(name, props @ Markup.Serial(serial)), body))) =>
             val entry: Command.Results.Entry =
-              (serial -> XML.Elem(Markup(Markup.message(name), props), body))
+              serial -> XML.Elem(Markup(Markup.message(name), props), body)
             Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
 
           case _ => None

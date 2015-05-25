@@ -59,6 +59,28 @@ session Datatypes (doc) in "Datatypes" = HOL +
     "root.tex"
     "style.sty"
 
+session Eisbach (doc) in "Eisbach" = "HOL-Eisbach" +
+  options [document_variants = "eisbach", quick_and_dirty,
+    print_mode = "no_brackets,iff", show_question_marks = false]
+  theories [document = false]
+    Base
+  theories
+    Preface
+    Manual
+  document_files (in "..")
+    "prepare_document"
+    "pdfsetup.sty"
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "ttbox.sty"
+    "underscore.sty"
+    "manual.bib"
+  document_files
+    "build"
+    "root.tex"
+    "style.sty"
+
 session Functions (doc) in "Functions" = HOL +
   options [document_variants = "functions", skip_proofs = false, quick_and_dirty]
   theories Functions
@@ -183,14 +205,18 @@ session JEdit (doc) in "JEdit" = HOL +
     "style.sty"
   document_files
     "auto-tools.png"
+    "bibtex-mode.png"
     "build"
+    "cite-completion.png"
     "isabelle-jedit.png"
+    "isabelle-jedit-hdpi.png"
     "output.png"
     "query.png"
     "popup1.png"
     "popup2.png"
     "root.tex"
     "sidekick.png"
+    "sidekick-document.png"
     "sledgehammer.png"
     "theories.png"
 

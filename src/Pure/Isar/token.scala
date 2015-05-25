@@ -144,7 +144,7 @@ object Token
     var ctxt = context
     while (!in.atEnd) {
       Parsers.parse(Parsers.token_line(keywords, ctxt), in) match {
-        case Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
+        case Parsers.Success((x, c), rest) => toks += x; ctxt = c; in = rest
         case Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
@@ -158,7 +158,7 @@ object Token
   def implode(toks: List[Token]): String =
     toks match {
       case List(tok) => tok.source
-      case toks => toks.map(_.source).mkString
+      case _ => toks.map(_.source).mkString
     }
 
 
@@ -222,7 +222,7 @@ object Token
 }
 
 
-sealed case class Token(val kind: Token.Kind.Value, val source: String)
+sealed case class Token(kind: Token.Kind.Value, source: String)
 {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command_kind(keywords: Keyword.Keywords, pred: String => Boolean): Boolean =

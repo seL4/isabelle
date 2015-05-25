@@ -78,10 +78,8 @@ object Isabelle
   def buffer_token_marker(buffer: Buffer): Option[TokenMarker] =
   {
     val mode = JEdit_Lib.buffer_mode(buffer)
-    val new_token_marker =
-      if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
-      else mode_token_marker(mode)
-    if (new_token_marker == Some(buffer.getTokenMarker)) None else new_token_marker
+    if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
+    else mode_token_marker(mode)
   }
 
 

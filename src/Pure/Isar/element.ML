@@ -112,12 +112,6 @@ fun pretty_items _ _ [] = []
       Pretty.block [Pretty.keyword2 keyword, Pretty.brk 1, x] ::
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword2 sep, Pretty.brk 1, y]) ys;
 
-fun pretty_name_atts ctxt (b, atts) sep =
-  if Attrib.is_empty_binding (b, atts) then []
-  else
-    [Pretty.block (Pretty.breaks
-      (Binding.pretty b :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
-
 
 (* pretty_stmt *)
 
@@ -126,10 +120,10 @@ fun pretty_stmt ctxt =
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_terms = separate (Pretty.keyword2 "and") o map prt_term;
-    val prt_name_atts = pretty_name_atts ctxt;
+    val prt_binding = Attrib.pretty_binding ctxt;
 
     fun prt_show (a, ts) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ prt_terms (map fst ts)));
+      Pretty.block (Pretty.breaks (prt_binding a ":" @ prt_terms (map fst ts)));
 
     fun prt_var (x, SOME T) = Pretty.block
           [Pretty.str (Binding.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
@@ -153,10 +147,8 @@ fun gen_pretty_ctxt show_attribs ctxt =
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
 
-    fun prt_name_atts (b, atts) sep =
-      if not show_attribs orelse null atts then
-        [Pretty.block [Binding.pretty b, Pretty.str sep]]
-      else pretty_name_atts ctxt (b, atts) sep;
+    fun prt_binding (b, atts) =
+      Attrib.pretty_binding ctxt (b, if show_attribs then atts else []);
 
     fun prt_fact (ths, atts) =
       if not show_attribs orelse null atts then map prt_thm ths
@@ -174,12 +166,12 @@ fun gen_pretty_ctxt show_attribs ctxt =
     fun prt_constrain (x, T) = prt_fix (Binding.name x, SOME T, NoSyn);
 
     fun prt_asm (a, ts) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
+      Pretty.block (Pretty.breaks (prt_binding a ":" @ map (prt_term o fst) ts));
     fun prt_def (a, (t, _)) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ [prt_term t]));
+      Pretty.block (Pretty.breaks (prt_binding a ":" @ [prt_term t]));
 
     fun prt_note (a, ths) =
-      Pretty.block (Pretty.breaks (flat (prt_name_atts a "=" :: map prt_fact ths)));
+      Pretty.block (Pretty.breaks (flat (prt_binding a " =" :: map prt_fact ths)));
   in
     fn Fixes fixes => pretty_items "fixes" "and" (map prt_fix fixes)
      | Constrains xs => pretty_items "constrains" "and" (map prt_constrain xs)

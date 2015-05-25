@@ -427,7 +427,7 @@ final class Command private(
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
       (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield (Symbol.Text_Chunk.File(name.node) -> file))).toMap
+        yield Symbol.Text_Chunk.File(name.node) -> file)).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range

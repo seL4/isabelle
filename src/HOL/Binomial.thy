@@ -39,7 +39,7 @@ lemma fact_mono_nat: "m \<le> n \<Longrightarrow> fact m \<le> (fact n :: nat)"
   by (induct n) (auto simp: le_Suc_eq)
 
 context
-  fixes XXX :: "'a :: {semiring_char_0,linordered_semidom,semiring_no_zero_divisors}"
+  assumes "SORT_CONSTRAINT('a::linordered_semidom)"
 begin
   
   lemma fact_mono: "m \<le> n \<Longrightarrow> fact m \<le> (fact n :: 'a)"
@@ -79,8 +79,7 @@ lemma fact_less_mono_nat: "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact
   by (induct n) (auto simp: less_Suc_eq)
 
 lemma fact_less_mono:
-  fixes XXX :: "'a :: {semiring_char_0,linordered_semidom,semiring_no_zero_divisors}"
-  shows "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact m < (fact n :: 'a)"
+  "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact m < (fact n :: 'a::linordered_semidom)"
   by (metis of_nat_fact of_nat_less_iff fact_less_mono_nat)
 
 lemma fact_ge_Suc_0_nat [simp]: "fact n \<ge> Suc 0"
