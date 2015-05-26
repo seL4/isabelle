@@ -48,13 +48,13 @@ lemma mem_convex:
   shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
   using assms unfolding convex_alt by auto
 
-lemma convex_empty[intro]: "convex {}"
+lemma convex_empty[intro,simp]: "convex {}"
   unfolding convex_def by simp
 
-lemma convex_singleton[intro]: "convex {a}"
+lemma convex_singleton[intro,simp]: "convex {a}"
   unfolding convex_def by (auto simp: scaleR_left_distrib[symmetric])
 
-lemma convex_UNIV[intro]: "convex UNIV"
+lemma convex_UNIV[intro,simp]: "convex UNIV"
   unfolding convex_def by auto
 
 lemma convex_Inter: "(\<forall>s\<in>f. convex s) \<Longrightarrow> convex(\<Inter> f)"

@@ -29,12 +29,7 @@ lemma square_continuous:
   fixes e :: real
   shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
   using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
-  apply (auto simp add: power2_eq_square)
-  apply (rule_tac x="s" in exI)
-  apply auto
-  apply (erule_tac x=y in allE)
-  apply auto
-  done
+  by (force simp add: power2_eq_square)
 
 text{* Hence derive more interesting properties of the norm. *}
 
@@ -1594,6 +1589,12 @@ lemma independent_bound:
   shows "independent S \<Longrightarrow> finite S \<and> card S \<le> DIM('a)"
   using independent_span_bound[OF finite_Basis, of S] by auto
 
+corollary 
+  fixes S :: "'a::euclidean_space set"
+  assumes "independent S"
+  shows independent_imp_finite: "finite S" and independent_card_le:"card S \<le> DIM('a)"
+using assms independent_bound by auto
+  
 lemma dependent_biggerset:
   fixes S :: "'a::euclidean_space set"
   shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
@@ -1785,7 +1786,7 @@ lemma dependent_biggerset_general:
   shows "(finite S \<Longrightarrow> card S > dim S) \<Longrightarrow> dependent S"
   using independent_bound_general[of S] by (metis linorder_not_le)
 
-lemma dim_span:
+lemma dim_span [simp]:
   fixes S :: "'a::euclidean_space set"
   shows "dim (span S) = dim S"
 proof -

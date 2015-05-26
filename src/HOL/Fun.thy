@@ -478,16 +478,14 @@ by(erule inj_on_image_eq_iff) simp_all
 
 lemma inj_on_image_Int:
    "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A Int B) = f`A Int f`B"
-apply (simp add: inj_on_def, blast)
-done
+  by (simp add: inj_on_def, blast)
 
 lemma inj_on_image_set_diff:
-   "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A-B) = f`A - f`B"
-apply (simp add: inj_on_def, blast)
-done
+   "[| inj_on f C;  A-B \<subseteq> C;  B \<subseteq> C |] ==> f`(A-B) = f`A - f`B"
+  by (simp add: inj_on_def, blast)
 
 lemma image_Int: "inj f ==> f`(A Int B) = f`A Int f`B"
-by (simp add: inj_on_def, blast)
+  by (simp add: inj_on_def, blast)
 
 lemma image_set_diff: "inj f ==> f`(A-B) = f`A - f`B"
 by (simp add: inj_on_def, blast)

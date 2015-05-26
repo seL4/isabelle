@@ -30,7 +30,7 @@ proof -
   have "f ` (A - {a}) = g ` (A - {a})"
     by (intro image_cong) (simp_all add: eq)
   then have "B - {f a} = B - {g a}"
-    using f g a by (auto simp: bij_betw_def inj_on_image_set_diff set_eq_iff)
+    using f g a  by (auto simp: bij_betw_def inj_on_image_set_diff set_eq_iff Diff_subset)
   moreover have "f a \<in> B" "g a \<in> B"
     using f g a by (auto simp: bij_betw_def)
   ultimately show ?thesis
@@ -211,7 +211,7 @@ proof (rule kuhn_counting_lemma)
     moreover obtain a where "rl a = Suc n" "a \<in> s"
       by (metis atMost_iff image_iff le_Suc_eq rl)
     ultimately have n: "{..n} = rl ` (s - {a})"
-      by (auto simp add: inj_on_image_set_diff rl)
+      by (auto simp add: inj_on_image_set_diff Diff_subset rl)
     have "{a\<in>s. rl ` (s - {a}) = {..n}} = {a}"
       using inj_rl `a \<in> s` by (auto simp add: n inj_on_image_eq_iff[OF inj_rl] Diff_subset)
     then show "card ?S = 1"
@@ -234,7 +234,7 @@ proof (rule kuhn_counting_lemma)
 
       { fix x assume "x \<in> s" "x \<notin> {a, b}"
         then have "rl ` s - {rl x} = rl ` ((s - {a}) - {x})"
-          by (auto simp: eq inj_on_image_set_diff[OF inj])
+          by (auto simp: eq Diff_subset inj_on_image_set_diff[OF inj])
         also have "\<dots> = rl ` (s - {x})"
           using ab `x \<notin> {a, b}` by auto
         also assume "\<dots> = rl ` s"
@@ -597,8 +597,8 @@ proof safe
       have "\<And>i. Suc ` {..< i} = {..< Suc i} - {0}"
         by (auto simp: image_iff Ball_def) arith
       then have upd_Suc: "\<And>i. i \<le> n \<Longrightarrow> (upd\<circ>Suc) ` {..< i} = upd ` {..< Suc i} - {n}"
-        using `upd 0 = n`
-        by (simp add: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
+        using `upd 0 = n` upd_inj
+        by (auto simp add: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
       have n_in_upd: "\<And>i. n \<in> upd ` {..< Suc i}"
         using `upd 0 = n` by auto
 
@@ -773,7 +773,7 @@ proof cases
       by auto
     finally have eq: "s - {a} = f' ` {.. n} - {f' n}"
       unfolding s_eq `a = enum i` `i = 0`
-      by (simp add: inj_on_image_set_diff[OF inj_enum] inj_on_image_set_diff[OF inj_f'])
+      by (simp add: Diff_subset inj_on_image_set_diff[OF inj_enum] inj_on_image_set_diff[OF inj_f'])
 
     have "enum 0 < f' 0"
       using `n \<noteq> 0` by (simp add: enum_strict_mono f'_eq_enum)
@@ -887,9 +887,9 @@ proof cases
       by auto
     finally have eq: "s - {a} = b.enum ` {.. n} - {b.enum 0}"
       unfolding s_eq `a = enum i` `i = n`
-      using inj_on_image_set_diff[OF inj_enum order_refl, of "{n}"]
-            inj_on_image_set_diff[OF b.inj_enum order_refl, of "{0}"]
-      by (simp add: comp_def)
+      using inj_on_image_set_diff[OF inj_enum Diff_subset, of "{n}"]
+            inj_on_image_set_diff[OF b.inj_enum Diff_subset, of "{0}"]
+      by (simp add: comp_def )
 
     have "b.enum 0 \<le> b.enum n"
       by (simp add: b.enum_mono)
@@ -980,8 +980,8 @@ proof cases
       by (intro image_cong) auto
     then have eq: "s - {a} = b.enum ` {.. n} - {b.enum i}"
       unfolding s_eq `a = enum i`
-      using inj_on_image_set_diff[OF inj_enum order_refl `{i} \<subseteq> {..n}`]
-            inj_on_image_set_diff[OF b.inj_enum order_refl `{i} \<subseteq> {..n}`]
+      using inj_on_image_set_diff[OF inj_enum Diff_subset `{i} \<subseteq> {..n}`]
+            inj_on_image_set_diff[OF b.inj_enum Diff_subset `{i} \<subseteq> {..n}`]
       by (simp add: comp_def)
 
     have "a \<noteq> b.enum i"

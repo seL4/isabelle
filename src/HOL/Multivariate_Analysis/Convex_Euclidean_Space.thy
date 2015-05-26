@@ -384,13 +384,13 @@ lemma affine_sing[intro]: "affine {x}"
 lemma affine_UNIV[intro]: "affine UNIV"
   unfolding affine_def by auto
 
-lemma affine_Inter: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter> f)"
+lemma affine_Inter[intro]: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter> f)"
   unfolding affine_def by auto
 
-lemma affine_Int: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine (s \<inter> t)"
+lemma affine_Int[intro]: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine (s \<inter> t)"
   unfolding affine_def by auto
 
-lemma affine_affine_hull: "affine(affine hull s)"
+lemma affine_affine_hull [simp]: "affine(affine hull s)"
   unfolding hull_def
   using affine_Inter[of "{t. affine t \<and> s \<subseteq> t}"] by auto
 
@@ -2355,13 +2355,13 @@ lemma affine_independent_sing: "\<not> affine_dependent {a}"
 lemma affine_hull_translation: "affine hull ((\<lambda>x. a + x) `  S) = (\<lambda>x. a + x) ` (affine hull S)"
 proof -
   have "affine ((\<lambda>x. a + x) ` (affine hull S))"
-    using affine_translation affine_affine_hull by auto
+    using affine_translation affine_affine_hull by blast
   moreover have "(\<lambda>x. a + x) `  S \<subseteq> (\<lambda>x. a + x) ` (affine hull S)"
     using hull_subset[of S] by auto
   ultimately have h1: "affine hull ((\<lambda>x. a + x) `  S) \<subseteq> (\<lambda>x. a + x) ` (affine hull S)"
     by (metis hull_minimal)
   have "affine((\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S)))"
-    using affine_translation affine_affine_hull by (auto simp del: uminus_add_conv_diff)
+    using affine_translation affine_affine_hull by blast
   moreover have "(\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S \<subseteq> (\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S))"
     using hull_subset[of "(\<lambda>x. a + x) `  S"] by auto
   moreover have "S = (\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S"
@@ -2933,7 +2933,7 @@ proof -
   have "dim (affine hull S) \<ge> dim S"
     using dim_subset by auto
   moreover have "dim (span S) \<ge> dim (affine hull S)"
-    using dim_subset affine_hull_subset_span by auto
+    using dim_subset affine_hull_subset_span by blast
   moreover have "dim (span S) = dim S"
     using dim_span by auto
   ultimately show ?thesis by auto
@@ -3178,13 +3178,13 @@ lemma rel_interior_cball:
   "rel_interior S = {x \<in> S. \<exists>e. e > 0 \<and> cball x e \<inter> affine hull S \<subseteq> S}"
   using mem_rel_interior_cball [of _ S] by auto
 
-lemma rel_interior_empty: "rel_interior {} = {}"
+lemma rel_interior_empty [simp]: "rel_interior {} = {}"
    by (auto simp add: rel_interior_def)
 
-lemma affine_hull_sing: "affine hull {a :: 'n::euclidean_space} = {a}"
+lemma affine_hull_sing [simp]: "affine hull {a :: 'n::euclidean_space} = {a}"
   by (metis affine_hull_eq affine_sing)
 
-lemma rel_interior_sing: "rel_interior {a :: 'n::euclidean_space} = {a}"
+lemma rel_interior_sing [simp]: "rel_interior {a :: 'n::euclidean_space} = {a}"
   unfolding rel_interior_ball affine_hull_sing
   apply auto
   apply (rule_tac x = "1 :: real" in exI)
@@ -3217,6 +3217,12 @@ proof -
   then show ?thesis
     unfolding rel_interior interior_def by auto
 qed
+
+lemma rel_interior_interior:
+  fixes S :: "'n::euclidean_space set"
+  assumes "affine hull S = UNIV"
+  shows "rel_interior S = interior S"
+  using assms unfolding rel_interior interior_def by auto
 
 lemma rel_interior_open:
   fixes S :: "'n::euclidean_space set"
@@ -3694,7 +3700,7 @@ proof -
     unfolding affine_hull_insert_span_gen span_substd_basis[OF assms,symmetric] * ..
 qed
 
-lemma affine_hull_convex_hull: "affine hull (convex hull S) = affine hull S"
+lemma affine_hull_convex_hull [simp]: "affine hull (convex hull S) = affine hull S"
   by (metis Int_absorb1 Int_absorb2 convex_hull_subset_affine_hull hull_hull hull_mono hull_subset)
 
 
@@ -8040,22 +8046,14 @@ lemma rel_interior_direct_sum:
     and "convex T"
   shows "rel_interior (S \<times> T) = rel_interior S \<times> rel_interior T"
 proof -
-  {
-    assume "S = {}"
+  { assume "S = {}"
     then have ?thesis
-      apply auto
-      using rel_interior_empty
-      apply auto
-      done
+      by auto
   }
   moreover
-  {
-    assume "T = {}"
+  { assume "T = {}"
     then have ?thesis
-      apply auto
-      using rel_interior_empty
-      apply auto
-      done
+       by auto
   }
   moreover
   {

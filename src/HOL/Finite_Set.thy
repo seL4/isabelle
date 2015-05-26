@@ -277,7 +277,8 @@ next
   then have B_A: "insert x B = f ` A" by simp
   then obtain y where "x = f y" and "y \<in> A" by blast
   from B_A `x \<notin> B` have "B = f ` A - {x}" by blast
-  with B_A `x \<notin> B` `x = f y` `inj_on f A` `y \<in> A` have "B = f ` (A - {y})" by (simp add: inj_on_image_set_diff)
+  with B_A `x \<notin> B` `x = f y` `inj_on f A` `y \<in> A` have "B = f ` (A - {y})" 
+    by (simp add: inj_on_image_set_diff Set.Diff_subset)
   moreover from `inj_on f A` have "inj_on f (A - {y})" by (rule inj_on_diff)
   ultimately have "finite (A - {y})" by (rule insert.hyps)
   then show "finite A" by simp

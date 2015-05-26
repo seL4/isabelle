@@ -518,6 +518,13 @@ lemma scaleR_image_atLeastAtMost:
 
 end
 
+lemma neg_le_divideR_eq:
+  fixes a :: "'a :: ordered_real_vector"
+  assumes "c < 0"
+  shows "a \<le> b /\<^sub>R c \<longleftrightarrow> b \<le> c *\<^sub>R a"
+  using pos_le_divideR_eq [of "-c" a "-b"] assms
+  by simp
+
 lemma scaleR_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> (x::'a::ordered_real_vector) \<Longrightarrow> 0 \<le> a *\<^sub>R x"
   using scaleR_left_mono [of 0 x a]
   by simp
