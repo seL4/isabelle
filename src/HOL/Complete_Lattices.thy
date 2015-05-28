@@ -1204,6 +1204,9 @@ lemma Union_image_eq:
   "\<Union>(B ` A) = (\<Union>x\<in>A. B x)"
   by (fact Sup_image_eq)
 
+lemma Union_SetCompr_eq: "\<Union> {f x| x. P x} = {a. \<exists>x. P x \<and> a \<in> f x}"
+  by blast
+
 lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<exists>x\<in>A. b \<in> B x)"
   using Union_iff [of _ "B ` A"] by simp
 

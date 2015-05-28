@@ -1657,6 +1657,11 @@ lemma basis_exists:
   using maximal_independent_subset[of V] independent_bound
   by auto
 
+corollary dim_le_card:
+  fixes s :: "'a::euclidean_space set"
+  shows "finite s \<Longrightarrow> dim s \<le> card s"
+by (metis basis_exists card_mono)
+
 text {* Consequences of independence or spanning for cardinality. *}
 
 lemma independent_card_le_dim:

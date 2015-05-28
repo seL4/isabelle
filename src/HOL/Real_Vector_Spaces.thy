@@ -1222,6 +1222,9 @@ lemma sgn_less_0_iff [simp]: "sgn x < 0 \<longleftrightarrow> (x::real) < 0"
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
 
+lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
+  by (simp_all add: dist_norm)
+  
 subsection {* Bounded Linear and Bilinear Operators *}
 
 locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
