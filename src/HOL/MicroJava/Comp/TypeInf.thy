@@ -4,7 +4,7 @@
 
 (* Exact position in theory hierarchy still to be determined *)
 theory TypeInf
-imports "../J/WellType"
+imports "../J/WellType" "~~/src/HOL/Eisbach/Eisbach"
 begin
 
 
@@ -102,6 +102,9 @@ lemma Loop_invers:
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
 
+method ty_case_simp = ((erule ty_exprs.cases ty_expr.cases; simp)+)[]
+method strip_case_simp = (intro strip, ty_case_simp)
+
 (* Uniqueness of types property *)
 
 lemma uniqueness_of_types: "
@@ -109,82 +112,62 @@ lemma uniqueness_of_types: "
   E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2) \<and>
   (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) Ts1 Ts2. 
   E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
-apply (rule compat_expr_expr_list.induct)
+  apply (rule compat_expr_expr_list.induct)
+            (* NewC *)
+            apply strip_case_simp
 
-(* NewC *)
-apply (intro strip)
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+           (* Cast *)
+           apply strip_case_simp
 
-(* Cast *)
-apply (intro strip) 
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+          (* Lit *)
+          apply strip_case_simp
 
-(* Lit *)
-apply (intro strip) 
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+         (* BinOp *)
+         apply (intro strip)
+         apply (rename_tac binop x2 x3 E T1 T2, case_tac binop)
+          (* Eq *)
+          apply ty_case_simp
+         (* Add *)
+         apply ty_case_simp
 
-(* BinOp *)
-apply (intro strip)
-apply (rename_tac binop x2 x3 E T1 T2, case_tac binop)
-(* Eq *)
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
-(* Add *)
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+        (* LAcc *)
+        apply (strip_case_simp)
 
-(* LAcc *)
-apply (intro strip) 
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+       (* LAss *)
+       apply (strip_case_simp)
 
-(* LAss *)
-apply (intro strip) 
-apply (erule ty_expr.cases) apply simp+
-apply (erule ty_expr.cases) apply simp+
+      (* FAcc *)
+      apply (intro strip)
+      apply (drule FAcc_invers)+
+      apply fastforce
 
+     (* FAss *)
+     apply (intro strip)
+     apply (drule FAss_invers)+
+     apply (elim conjE exE)
+     apply (drule FAcc_invers)+
+     apply fastforce
 
-(* FAcc *)
-apply (intro strip)
-apply (drule FAcc_invers)+ apply (erule exE)+ 
-  apply (subgoal_tac "C = Ca", simp) apply blast
+    (* Call *)
+    apply (intro strip)
+    apply (drule Call_invers)+
+    apply fastforce
 
+   (* expression lists *)
+   apply (strip_case_simp)
 
-(* FAss *)
-apply (intro strip)
-apply (drule FAss_invers)+ apply (erule exE)+ apply (erule conjE)+
-apply (drule FAcc_invers)+ apply (erule exE)+ apply blast 
-
-
-(* Call *)
-apply (intro strip)
-apply (drule Call_invers)+ apply (erule exE)+ apply (erule conjE)+
-apply (subgoal_tac "pTs = pTsa", simp) apply blast
-
-(* expression lists *)
-apply (intro strip)
-apply (erule ty_exprs.cases)+ apply simp+
-
-apply (intro strip)
-apply (erule ty_exprs.cases, simp)
-apply (erule ty_exprs.cases, simp)
-apply (subgoal_tac "e = ea", simp) apply simp
-done
+  apply (strip_case_simp)
+  done
 
 
 lemma uniqueness_of_types_expr [rule_format (no_asm)]: "
-  (\<forall> E T1 T2. E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2)"
-by (rule uniqueness_of_types [THEN conjunct1])
+  (\<forall>E T1 T2. E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2)"
+  by (rule uniqueness_of_types [THEN conjunct1])
 
 lemma uniqueness_of_types_exprs [rule_format (no_asm)]: "
-  (\<forall> E Ts1 Ts2. E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
-by (rule uniqueness_of_types [THEN conjunct2])
+  (\<forall>E Ts1 Ts2. E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
+  by (rule uniqueness_of_types [THEN conjunct2])
 
-
-  
 
 definition inferred_tp :: "[java_mb env, expr] \<Rightarrow> ty" where
   "inferred_tp E e == (SOME T. E\<turnstile>e :: T)"
@@ -194,11 +177,9 @@ definition inferred_tps :: "[java_mb env, expr list] \<Rightarrow> ty list" wher
 
 (* get inferred type(s) for well-typed term *)
 lemma inferred_tp_wt: "E\<turnstile>e :: T \<Longrightarrow> (inferred_tp E e) = T"
-by (auto simp: inferred_tp_def intro: uniqueness_of_types_expr)
+  by (auto simp: inferred_tp_def intro: uniqueness_of_types_expr)
 
 lemma inferred_tps_wt: "E\<turnstile>es [::] Ts \<Longrightarrow> (inferred_tps E es) = Ts"
-by (auto simp: inferred_tps_def intro: uniqueness_of_types_exprs)
-
+  by (auto simp: inferred_tps_def intro: uniqueness_of_types_exprs)
 
 end
-

@@ -20,20 +20,18 @@ notation (xsymbols)
   comb  (infixr "\<box>" 55)
 
 lemma comb_nil_left [simp]: "comb_nil \<box> f = f"
-by (simp add: comb_def comb_nil_def split_beta)
+  by (simp add: comb_def comb_nil_def split_beta)
 
 lemma comb_nil_right [simp]: "f \<box> comb_nil = f"
-by (simp add: comb_def comb_nil_def split_beta)
+  by (simp add: comb_def comb_nil_def split_beta)
 
 lemma comb_assoc [simp]: "(fa \<box> fb) \<box> fc = fa \<box> (fb \<box> fc)"
-by (simp add: comb_def split_beta)
+  by (simp add: comb_def split_beta)
 
-lemma comb_inv: "(xs', x') = (f1 \<box> f2) x0 \<Longrightarrow>
-  \<exists> xs1 x1 xs2 x2. (xs1, x1) = (f1 x0) \<and> (xs2, x2) = f2 x1 \<and> xs'= xs1 @ xs2 \<and> x'=x2"
-apply (case_tac "f1 x0")
-apply (case_tac "f2 x1")
-apply (simp add: comb_def split_beta)
-done
+lemma comb_inv:
+  "(xs', x') = (f1 \<box> f2) x0 \<Longrightarrow>
+  \<exists>xs1 x1 xs2 x2. (xs1, x1) = (f1 x0) \<and> (xs2, x2) = f2 x1 \<and> xs'= xs1 @ xs2 \<and> x'=x2"
+  by (case_tac "f1 x0") (simp add: comb_def split_beta)
 
 (**********************************************************************)
 
