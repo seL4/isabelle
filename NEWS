@@ -10,6 +10,11 @@ New in this Isabelle version
 
 * Discontinued simp_legacy_precond. Potential INCOMPATIBILITY.
 
+* Sledgehammer:
+  - Proof reconstruction has been improved, to minimize the incidence of
+    cases where Sledgehammer gives a proof that does not work.
+  - Auto Sledgehammer now minimizes and preplays the results.
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------

@@ -275,9 +275,9 @@ fun extract_params mode default_params override_params =
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_option lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
-    val minimize = mode <> Auto_Try andalso lookup_bool "minimize"
+    val minimize = lookup_bool "minimize"
     val timeout = lookup_time "timeout"
-    val preplay_timeout = if mode = Auto_Try then Time.zeroTime else lookup_time "preplay_timeout"
+    val preplay_timeout = lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
