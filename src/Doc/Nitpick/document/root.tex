@@ -2773,10 +2773,14 @@ style.
 \item[\labelitemi] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.
 
-\item[\labelitemi] Datatypes defined using \textbf{datatype\_new} and
+\item[\labelitemi] Datatypes defined using \textbf{datatype} and
 codatatypes defined using \textbf{codatatype} that involve nested (co)recursion
 through non-(co)datatypes are not properly supported and may result in spurious
 counterexamples.
+
+\item[\labelitemi] Types that are registered with several distinct sets of
+constructors, including \textit{enat} if the \textit{Coinductive} entry of
+the \textit{Archive of Formal Proofs} is loaded, can confuse Nitpick.
 
 \item[\labelitemi] The \textit{nitpick\_xxx} attributes and the
 \textit{Nitpick\_xxx.register\_yyy} functions can cause havoc if used
