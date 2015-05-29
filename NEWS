@@ -15,6 +15,9 @@ New in this Isabelle version
     cases where Sledgehammer gives a proof that does not work.
   - Auto Sledgehammer now minimizes and preplays the results.
 
+* Nitpick:
+  - Removed "check_potential" and "check_genuine" options.
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------

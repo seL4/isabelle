@@ -74,7 +74,7 @@ nitpick [binary_ints, bits = 16, expect = genuine]
 oops
 
 lemma "\<forall>n. Suc n \<noteq> n \<Longrightarrow> P"
-nitpick [card nat = 100, check_potential, tac_timeout = 5, expect = genuine]
+nitpick [card nat = 100, expect = potential]
 oops
 
 lemma "P Suc"

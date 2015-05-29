@@ -39,9 +39,6 @@ sig
     -> (typ option * string list) list -> (string * typ) list ->
     (string * typ) list -> nut list -> nut list -> nut list ->
     nut NameTable.table -> Kodkod.raw_bound list -> Pretty.T * bool
-  val prove_hol_model :
-    scope -> Time.time -> nut list -> nut list -> nut NameTable.table
-    -> Kodkod.raw_bound list -> term -> bool option
 end;
 
 structure Nitpick_Model : NITPICK_MODEL =
@@ -1034,65 +1031,6 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
                     else chunks),
      bisim_depth >= 0 orelse
      forall (is_codatatype_wellformed codatatypes) codatatypes)
-  end
-
-fun term_for_name pool scope atomss sel_names rel_table bounds name =
-  let val T = type_of name in
-    tuple_list_for_name rel_table bounds name
-    |> reconstruct_term (not (is_fully_representable_set name)) false pool
-                        (("", ""), ("", "")) scope atomss sel_names rel_table
-                        bounds T T (rep_of name)
-  end
-
-fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
-                               card_assigns, ...})
-                    auto_timeout free_names sel_names rel_table bounds prop =
-  let
-    val pool = Unsynchronized.ref []
-    val atomss = [(NONE, [])]
-    fun free_type_assm (T, k) =
-      let
-        fun atom j = nth_atom thy atomss pool true T j
-        fun equation_for_atom j = HOLogic.eq_const T $ Bound 0 $ atom j
-        val eqs = map equation_for_atom (index_seq 0 k)
-        val compreh_assm =
-          Const (@{const_name All}, (T --> bool_T) --> bool_T)
-              $ Abs ("x", T, foldl1 HOLogic.mk_disj eqs)
-        val distinct_assm = distinctness_formula T (map atom (index_seq 0 k))
-      in s_conj (compreh_assm, distinct_assm) end
-    fun free_name_assm name =
-      HOLogic.mk_eq (Free (nickname_of name, type_of name),
-                     term_for_name pool scope atomss sel_names rel_table bounds
-                                   name)
-    val freeT_assms = map free_type_assm (filter (is_TFree o fst) card_assigns)
-    val model_assms = map free_name_assm free_names
-    val assm = foldr1 s_conj (freeT_assms @ model_assms)
-    fun try_out negate =
-      let
-        val concl = (negate ? curry (op $) @{const Not})
-                    (Object_Logic.atomize_term ctxt prop)
-        val prop = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
-                   |> map_types (map_type_tfree
-                                     (fn (s, []) => TFree (s, @{sort type})
-                                       | x => TFree x))
-        val _ =
-          if debug then
-            (if negate then "Genuineness" else "Spuriousness") ^ " goal: " ^
-            Syntax.string_of_term ctxt prop ^ "."
-            |> writeln
-          else
-            ()
-        val goal = prop |> Thm.cterm_of ctxt |> Goal.init
-      in
-        (goal |> SINGLE (DETERM_TIMEOUT auto_timeout (auto_tac ctxt))
-              |> the |> Goal.finish ctxt; true)
-        handle THM _ => false
-             | TimeLimit.TimeOut => false
-      end
-  in
-    if try_out false then SOME true
-    else if try_out true then SOME false
-    else NONE
   end
 
 end;

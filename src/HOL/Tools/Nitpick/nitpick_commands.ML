@@ -69,9 +69,7 @@ val default_default_params =
    ("show_consts", "false"),
    ("format", "1"),
    ("max_potential", "1"),
-   ("max_genuine", "1"),
-   ("check_potential", "false"),
-   ("check_genuine", "false")]
+   ("max_genuine", "1")]
 
 val negated_params =
   [("dont_box", "box"),
@@ -95,9 +93,7 @@ val negated_params =
    ("dont_spy", "spy"),
    ("hide_types", "show_types"),
    ("hide_skolems", "show_skolems"),
-   ("hide_consts", "show_consts"),
-   ("trust_potential", "check_potential"),
-   ("trust_genuine", "check_genuine")]
+   ("hide_consts", "show_consts")]
 
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
@@ -270,8 +266,6 @@ fun extract_params ctxt mode default_params override_params =
     val max_potential =
       if mode = Normal then Int.max (0, lookup_int "max_potential") else 0
     val max_genuine = Int.max (0, lookup_int "max_genuine")
-    val check_potential = lookup_bool "check_potential"
-    val check_genuine = lookup_bool "check_genuine"
     val batch_size =
       case lookup_int_option "batch_size" of
         SOME n => Int.max (1, n)
@@ -294,7 +288,6 @@ fun extract_params ctxt mode default_params override_params =
      show_types = show_types, show_skolems = show_skolems,
      show_consts = show_consts, evals = evals, formats = formats,
      atomss = atomss, max_potential = max_potential, max_genuine = max_genuine,
-     check_potential = check_potential, check_genuine = check_genuine,
      batch_size = batch_size, expect = expect}
   end
 

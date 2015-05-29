@@ -52,8 +52,6 @@ sig
      atomss: (typ option * string list) list,
      max_potential: int,
      max_genuine: int,
-     check_potential: bool,
-     check_genuine: bool,
      batch_size: int,
      expect: string}
 
@@ -138,8 +136,6 @@ type params =
    atomss: (typ option * string list) list,
    max_potential: int,
    max_genuine: int,
-   check_potential: bool,
-   check_genuine: bool,
    batch_size: int,
    expect: string}
 
@@ -234,7 +230,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          total_consts, needs, peephole_optim, datatype_sym_break,
          kodkod_sym_break, tac_timeout, max_threads, show_types, show_skolems,
          show_consts, evals, formats, atomss, max_potential, max_genuine,
-         check_potential, check_genuine, batch_size, ...} = params
+         batch_size, ...} = params
     val outcome = Synchronized.var "Nitpick.outcome" (Queue.empty: string Queue.T)
     fun pprint print prt =
       if mode = Auto_Try then
@@ -669,25 +665,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
               Pretty.indent indent_size reconstructed_model]);
          print_t (K "% SZS output end FiniteModel");
          if genuine then
-           (if check_genuine then
-              case prove_hol_model scope tac_timeout free_names sel_names
-                                   rel_table bounds (assms_prop ()) of
-                SOME true =>
-                print ("Confirmation by \"auto\": The above " ^
-                       das_wort_model ^ " is really genuine.")
-              | SOME false =>
-                if genuine_means_genuine then
-                  error ("A supposedly genuine " ^ das_wort_model ^ " was \
-                         \shown to be spurious by \"auto\".\nThis should never \
-                         \happen.\nPlease send a bug report to blanchet\
-                         \te@in.tum.de.")
-                 else
-                   print ("Refutation by \"auto\": The above " ^
-                          das_wort_model ^ " is spurious.")
-               | NONE => print "No confirmation by \"auto\"."
-            else
-              ();
-            if has_lonely_bool_var orig_t then
+           (if has_lonely_bool_var orig_t then
               print "Hint: Maybe you forgot a colon after the lemma's name?"
             else if has_syntactic_sorts orig_t then
               print "Hint: Maybe you forgot a type constraint?"
@@ -725,24 +703,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             NONE)
          else
            if not genuine then
-             (Unsynchronized.inc met_potential;
-              if check_potential then
-                let
-                  val status = prove_hol_model scope tac_timeout free_names
-                                               sel_names rel_table bounds
-                                               (assms_prop ())
-                in
-                  (case status of
-                     SOME true => print ("Confirmation by \"auto\": The \
-                                         \above " ^ das_wort_model ^
-                                         " is genuine.")
-                   | SOME false => print ("Refutation by \"auto\": The above " ^
-                                          das_wort_model ^ " is spurious.")
-                   | NONE => print "No confirmation by \"auto\".");
-                  status
-                end
-              else
-                NONE)
+             (Unsynchronized.inc met_potential; NONE)
            else
              NONE)
         |> pair genuine_means_genuine

@@ -463,35 +463,26 @@ the \textit{bits} option. For example:
 \postw
 
 With infinite types, we don't always have the luxury of a genuine counterexample
-and must often content ourselves with a potentially spurious one. The tedious
-task of finding out whether the potentially spurious counterexample is in fact
-genuine can be delegated to \textit{auto} by passing \textit{check\_potential}.
+and must often content ourselves with a potentially spurious one.
 For example:
 
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
-\textbf{nitpick} [\textit{card~nat}~= 50, \textit{check\_potential}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{card~nat}~= 50] \\[2\smallskipamount]
 \slshape Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported
 fragment. Only potentially spurious counterexamples may be found. \\[2\smallskipamount]
 Nitpick found a potentially spurious counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \textit{False}$ \\[2\smallskipamount]
-Confirmation by ``\textit{auto}'': The above counterexample is genuine.
+\hbox{}\qquad\qquad $P = \textit{False}$
 \postw
 
-You might wonder why the counterexample is first reported as potentially
-spurious. The root of the problem is that the bound variable in $\forall n.\;
+The issue is that the bound variable in $\forall n.\;
 \textit{Suc}~n \mathbin{\not=} n$ ranges over an infinite type. If Nitpick finds
 an $n$ such that $\textit{Suc}~n \mathbin{=} n$, it evaluates the assumption to
 \textit{False}; but otherwise, it does not know anything about values of $n \ge
 \textit{card~nat}$ and must therefore evaluate the assumption to~$\unk$, not
-\textit{True}. Since the assumption can never be satisfied, the putative lemma
-can never be falsified.
-
-Incidentally, if you distrust the so-called genuine counterexamples, you can
-enable \textit{check\_\allowbreak genuine} to verify them as well. However, be
-aware that \textit{auto} will usually fail to prove that the counterexample is
-genuine or spurious.
+\textit{True}. Since the assumption can never be fully satisfied by Nitpick,
+the putative lemma can never be falsified.
 
 Some conjectures involving elementary number theory make Nitpick look like a
 giant with feet of clay:
@@ -1746,8 +1737,7 @@ using \textbf{nitpick\_\allowbreak params}. For example:
 
 The options are categorized as follows:\ mode of operation
 (\S\ref{mode-of-operation}), scope of search (\S\ref{scope-of-search}), output
-format (\S\ref{output-format}), automatic counterexample checks
-(\S\ref{authentication}), regression testing (\S\ref{regression-testing}),
+format (\S\ref{output-format}), regression testing (\S\ref{regression-testing}),
 optimizations (\S\ref{optimizations}), and timeouts (\S\ref{timeouts}).
 
 If you use Isabelle/jEdit, Nitpick also provides an automatic mode that can
@@ -1757,9 +1747,9 @@ be enabled via the ``Auto Nitpick'' option under ``Plugins > Plugin Options
 \textit{assms} (\S\ref{mode-of-operation}), and \textit{mono}
 (\S\ref{scope-of-search}) are implicitly enabled, \textit{blocking}
 (\S\ref{mode-of-operation}), \textit{verbose} (\S\ref{output-format}), and
-\textit{debug} (\S\ref{output-format}) are disabled, \textit{max\_threads}
-(\S\ref{optimizations}) is taken to be 1, \textit{max\_potential}
-(\S\ref{output-format}) is taken to be 0, and \textit{timeout}
+\textit{debug} (\S\ref{output-format}) are disabled, \textit{max\_potential}
+(\S\ref{output-format}) is taken to be 0, \textit{max\_threads}
+(\S\ref{optimizations}) is taken to be 1, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Time Limit'' in jEdit. Nitpick's
 output is also more concise.
 
@@ -2112,8 +2102,7 @@ value greater than 1, you will need an incremental SAT solver, such as
 the counterexamples may be identical.
 
 \nopagebreak
-{\small See also \textit{check\_potential} (\S\ref{authentication}) and
-\textit{sat\_solver} (\S\ref{optimizations}).}
+{\small See also \textit{sat\_solver} (\S\ref{optimizations}).}
 
 \opdefault{max\_genuine}{int}{\upshape 1}
 Specifies the maximum number of genuine counterexamples to display. If you set
@@ -2122,8 +2111,7 @@ such as \textit{MiniSat\_JNI} (recommended) and \textit{SAT4J}. Be aware that
 many of the counterexamples may be identical.
 
 \nopagebreak
-{\small See also \textit{check\_genuine} (\S\ref{authentication}) and
-\textit{sat\_solver} (\S\ref{optimizations}).}
+{\small See also \textit{sat\_solver} (\S\ref{optimizations}).}
 
 \opnodefault{eval}{term\_list}
 Specifies the list of terms whose values should be displayed along with
@@ -2166,31 +2154,10 @@ default format can be overridden on a per-variable or per-constant basis using
 the \textit{format}~\qty{term} option described above.
 \end{enum}
 
-\subsection{Authentication}
-\label{authentication}
-
-\begin{enum}
-\opfalse{check\_potential}{trust\_potential}
-Specifies whether potentially spurious counterexamples should be given to
-Isabelle's \textit{auto} tactic to assess their validity. If a potentially
-spurious counterexample is shown to be genuine, Nitpick displays a message to
-this effect and terminates.
-
-\nopagebreak
-{\small See also \textit{max\_potential} (\S\ref{output-format}).}
-
-\opfalse{check\_genuine}{trust\_genuine}
-Specifies whether genuine and quasi genuine counterexamples should be given to
-Isabelle's \textit{auto} tactic to assess their validity. If a ``genuine''
-counterexample is shown to be spurious, the user is kindly asked to send a bug
-report to the author at \authoremail.
-
-\nopagebreak
-{\small See also \textit{max\_genuine} (\S\ref{output-format}).}
-
 \subsection{Regression Testing}
 \label{regression-testing}
 
+\begin{enum}
 \opnodefault{expect}{string}
 Specifies the expected outcome, which must be one of the following:
 
@@ -2426,15 +2393,12 @@ instead.
 \opdefault{tac\_timeout}{float}{\upshape 0.5}
 Specifies the maximum number of seconds that should be used by internal
 tactics---\textit{lexicographic\_order} and \textit{size\_change} when checking
-whether a (co)in\-duc\-tive predicate is well-founded, \textit{auto} tactic when
-checking a counterexample, or the monotonicity inference. Nitpick tries to honor
-this constraint but offers no guarantees.
+whether a (co)in\-duc\-tive predicate is well-founded or the monotonicity
+inference. Nitpick tries to honor this constraint but offers no guarantees.
 
 \nopagebreak
-{\small See also \textit{wf} (\S\ref{scope-of-search}),
-\textit{mono} (\S\ref{scope-of-search}),
-\textit{check\_potential} (\S\ref{authentication}),
-and \textit{check\_genuine} (\S\ref{authentication}).}
+{\small See also \textit{wf} (\S\ref{scope-of-search}) and
+\textit{mono} (\S\ref{scope-of-search}).}
 \end{enum}
 
 \section{Attribute Reference}
@@ -2501,7 +2465,7 @@ or
 
 \nopagebreak
 This attribute specifies the (free-form) specification of a constant defined
-using the \hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command.
+using the \textbf{specification} command.
 \end{enum}
 
 When faced with a constant, Nitpick proceeds as follows:
@@ -2515,7 +2479,7 @@ the constant is not empty, it uses these rules as the specification of the
 constant.
 
 \item[3.] Otherwise, if the constant was defined using the
-\hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command and the
+\allowbreak\textbf{specification} command and the
 \textit{nitpick\_choice\_spec} set associated with the constant is not empty, it
 uses these theorems as the specification of the constant.
 
