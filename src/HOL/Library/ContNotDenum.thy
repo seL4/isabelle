@@ -113,14 +113,35 @@ lemma bij_betw_tan: "bij_betw tan {-pi/2<..<pi/2} UNIV"
   using arctan_ubound by (intro bij_betw_byWitness[where f'=arctan]) (auto simp: arctan arctan_tan)
 
 lemma uncountable_open_interval:
-  fixes a b :: real assumes ab: "a < b"
-  shows "uncountable {a<..<b}"
-proof -
-  obtain f where "bij_betw f {a <..< b} {-pi/2<..<pi/2}"
-    using bij_betw_open_intervals[OF `a < b`, of "-pi/2" "pi/2"] by auto
-  then show ?thesis
-    by (metis bij_betw_tan uncountable_bij_betw uncountable_UNIV_real)
+  fixes a b :: real 
+  shows "uncountable {a<..<b} \<longleftrightarrow> a < b"
+proof
+  assume "uncountable {a<..<b}"
+  then show "a < b"
+    using uncountable_def by force
+next 
+  assume "a < b"
+  show "uncountable {a<..<b}"
+  proof -
+    obtain f where "bij_betw f {a <..< b} {-pi/2<..<pi/2}"
+      using bij_betw_open_intervals[OF `a < b`, of "-pi/2" "pi/2"] by auto
+    then show ?thesis
+      by (metis bij_betw_tan uncountable_bij_betw uncountable_UNIV_real)
+  qed
 qed
 
-end
+lemma uncountable_half_open_interval_1:
+  fixes a :: real shows "uncountable {a..<b} \<longleftrightarrow> a<b"
+  apply auto
+  using atLeastLessThan_empty_iff apply fastforce
+  using uncountable_open_interval [of a b]
+  by (metis countable_Un_iff ivl_disj_un_singleton(3))
 
+lemma uncountable_half_open_interval_2:
+  fixes a :: real shows "uncountable {a<..b} \<longleftrightarrow> a<b"
+  apply auto
+  using atLeastLessThan_empty_iff apply fastforce
+  using uncountable_open_interval [of a b]
+  by (metis countable_Un_iff ivl_disj_un_singleton(4))
+
+end
