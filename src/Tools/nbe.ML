@@ -86,13 +86,12 @@ fun lift_triv_classes_conv ctxt conv ct =
   let
     val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
-    val certT = Thm.global_ctyp_of thy;
     val triv_classes = get_triv_classes thy;
     fun additional_classes sort = filter_out (fn class => Sorts.sort_le algebra (sort, [class])) triv_classes;
     fun mk_entry (v, sort) =
       let
         val T = TFree (v, sort);
-        val cT = certT T;
+        val cT = Thm.ctyp_of ctxt T;
         val triv_sort = additional_classes sort;
       in
         (v, (Sorts.inter_sort algebra (sort, triv_sort),
@@ -102,14 +101,14 @@ fun lift_triv_classes_conv ctxt conv ct =
     val vs_tab = map mk_entry (Term.add_tfrees (Thm.term_of ct) []);
     fun instantiate thm =
       let
-        val cert_tvars = map (certT o TVar) (Term.add_tvars
+        val cert_tvars = map (Thm.ctyp_of ctxt o TVar) (Term.add_tvars
           ((fst o Logic.dest_equals o Logic.strip_imp_concl o Thm.prop_of) thm) []);
         val instantiation =
           map2 (fn cert_tvar => fn (_, (_, (cT, _))) => (cert_tvar, cT)) cert_tvars vs_tab;
       in Thm.instantiate (instantiation, []) thm end;
     fun of_class (TFree (v, _), class) =
           the (AList.lookup (op =) ((snd o snd o the o AList.lookup (op =) vs_tab) v) class)
-      | of_class (T, _) = error ("Bad type " ^ Syntax.string_of_typ_global thy T);
+      | of_class (T, _) = error ("Bad type " ^ Syntax.string_of_typ ctxt T);
     fun strip_of_class thm =
       let
         val prems_of_class = Thm.prop_of thm
@@ -118,8 +117,10 @@ fun lift_triv_classes_conv ctxt conv ct =
       in fold Thm.elim_implies prems_of_class thm end;
   in
     ct
-    |> (Drule.cterm_fun o map_types o map_type_tfree)
+    |> Thm.term_of
+    |> (map_types o map_type_tfree)
         (fn (v, _) => TFree (v, (fst o the o AList.lookup (op =) vs_tab) v))
+    |> Thm.cterm_of ctxt
     |> conv
     |> Thm.strip_shyps
     |> Thm.varifyT_global
