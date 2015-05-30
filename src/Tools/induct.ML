@@ -617,11 +617,10 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
               (case filter (fn x' => x' = x) xs of
                 [] => xs | [_] => xs | _ => index 1 xs);
           in Logic.list_rename_params xs' A end;
-        fun rename_prop p =
-          let val (As, C) = Logic.strip_horn p
+        fun rename_prop prop =
+          let val (As, C) = Logic.strip_horn prop
           in Logic.list_implies (map rename_asm As, C) end;
-        val cp' = cterm_fun rename_prop (Thm.cprop_of thm);
-        val thm' = Thm.equal_elim (Thm.reflexive cp') thm;
+        val thm' = Thm.renamed_prop (rename_prop (Thm.prop_of thm)) thm;
       in [Rule_Cases.save thm thm'] end
   | special_rename_params _ _ ths = ths;
 

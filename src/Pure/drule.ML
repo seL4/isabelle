@@ -829,19 +829,16 @@ fun instantiate' cTs cts thm =
 fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
       let
-        val thy = Thm.theory_of_thm thm;
-        fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
-          | ren (t $ u) = ren t $ ren u
-          | ren t = t;
-      in Thm.equal_elim (Thm.reflexive (Thm.global_cterm_of thy (ren (Thm.prop_of thm)))) thm end;
+        fun rename (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, rename t)
+          | rename (t $ u) = rename t $ rename u
+          | rename a = a;
+      in Thm.renamed_prop (rename (Thm.prop_of thm)) thm end;
 
 
 (* renaming in left-to-right order *)
 
 fun rename_bvars' xs thm =
   let
-    val thy = Thm.theory_of_thm thm;
-    val prop = Thm.prop_of thm;
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
           let val (xs', t') = rename xs t
@@ -849,12 +846,12 @@ fun rename_bvars' xs thm =
       | rename xs (t $ u) =
           let
             val (xs', t') = rename xs t;
-            val (xs'', u') = rename xs' u
+            val (xs'', u') = rename xs' u;
           in (xs'', t' $ u') end
       | rename xs t = (xs, t);
   in
-    (case rename xs prop of
-      ([], prop') => Thm.equal_elim (Thm.reflexive (Thm.global_cterm_of thy prop')) thm
+    (case rename xs (Thm.prop_of thm) of
+      ([], prop') => Thm.renamed_prop prop' thm
     | _ => error "More names than abstractions in theorem")
   end;
 

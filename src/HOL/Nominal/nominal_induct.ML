@@ -76,7 +76,7 @@ fun rename_params_rule internal xs rule =
     fun rename_prems prop =
       let val (As, C) = Logic.strip_horn prop
       in Logic.list_implies (map rename As, C) end;
-  in Thm.equal_elim (Thm.reflexive (Drule.cterm_fun rename_prems (Thm.cprop_of rule))) rule end;
+  in Thm.renamed_prop (rename_prems (Thm.prop_of rule)) rule end;
 
 
 (* nominal_induct_tac *)
