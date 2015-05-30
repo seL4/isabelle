@@ -1934,10 +1934,10 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
       (rtac @{thm polarise} 1 THEN atac 1)
       ORELSE
         (REPEAT_DETERM (etac @{thm conjE} 1 THEN etac @{thm drop_first_hypothesis} 1)
-         THEN PRIMITIVE (Conv.fconv_rule Drule.eta_long_conversion)
+         THEN PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion)
          THEN (REPEAT_DETERM (ex_expander_tac ctxt 1))
          THEN (TRY ((CHANGED o rewrite_goal_tac ctxt @{thms simp_meta}) 1))
-         THEN PRIMITIVE (Conv.fconv_rule Drule.eta_long_conversion)
+         THEN PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion)
          THEN
            (HEADGOAL atac
            ORELSE
@@ -2160,7 +2160,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
     | "replace_andrewsEQ" => nonfull_extcnf_combined_tac [Assumption]
     | "split_preprocessing" =>
          (REPEAT (HEADGOAL (split_simp_tac ctxt)))
-         THEN TRY (PRIMITIVE (Conv.fconv_rule Drule.eta_long_conversion))
+         THEN TRY (PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion))
          THEN HEADGOAL atac
 
     (*FIXME some of these could eventually be handled specially*)

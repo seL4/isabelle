@@ -75,7 +75,6 @@ sig
   val binop_cong_rule: cterm -> thm -> thm -> thm
   val fun_cong_rule: thm -> cterm -> thm
   val beta_eta_conversion: cterm -> thm
-  val eta_long_conversion: cterm -> thm
   val eta_contraction_rule: thm -> thm
   val norm_hhf_eq: thm
   val norm_hhf_eqs: thm list
@@ -434,11 +433,6 @@ fun binop_cong_rule ct th1 th2 = Thm.combination (arg_cong_rule ct th1) th2;
 fun beta_eta_conversion ct =
   let val thm = Thm.beta_conversion true ct
   in Thm.transitive thm (Thm.eta_conversion (Thm.rhs_of thm)) end;
-
-fun eta_long_conversion ct =
-  Thm.transitive
-    (beta_eta_conversion ct)
-    (Thm.symmetric (beta_eta_conversion (cterm_fun (Envir.eta_long []) ct)));
 
 (*Contract all eta-redexes in the theorem, lest they give rise to needless abstractions*)
 fun eta_contraction_rule th =
