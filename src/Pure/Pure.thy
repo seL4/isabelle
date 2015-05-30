@@ -186,10 +186,6 @@ attribute_setup no_vars =
     in th' end))\<close>
   "imported schematic variables"
 
-attribute_setup eta_long =
-  \<open>Scan.succeed (Thm.rule_attribute (fn _ => Conv.fconv_rule Drule.eta_long_conversion))\<close>
-  "put theorem into eta long beta normal form"
-
 attribute_setup atomize =
   \<open>Scan.succeed Object_Logic.declare_atomize\<close>
   "declaration of atomize rule"
