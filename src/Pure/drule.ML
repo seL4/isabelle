@@ -81,7 +81,7 @@ sig
   val norm_hhf_eqs: thm list
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
-  val norm_hhf_cterm: cterm -> cterm
+  val norm_hhf_cterm: Proof.context -> cterm -> cterm
   val protect: cterm -> cterm
   val protectI: thm
   val protectD: thm
@@ -706,9 +706,12 @@ fun norm_hhf thy t =
   if is_norm_hhf t then t
   else Pattern.rewrite_term thy [norm_hhf_prop] [] t;
 
-fun norm_hhf_cterm ct =
-  if is_norm_hhf (Thm.term_of ct) then ct
-  else cterm_fun (Pattern.rewrite_term (Thm.theory_of_cterm ct) [norm_hhf_prop] []) ct;
+fun norm_hhf_cterm ctxt raw_ct =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ct = Thm.transfer_cterm thy raw_ct;
+    val t = Thm.term_of ct;
+  in if is_norm_hhf t then ct else Thm.cterm_of ctxt (norm_hhf thy t) end;
 
 
 (* var indexes *)

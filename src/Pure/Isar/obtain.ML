@@ -81,7 +81,7 @@ fun eliminate fix_ctxt rule xs As thm =
     val prems = Drule.strip_imp_prems (#prop (Thm.crep_thm thm'));
   in
     ((Drule.implies_elim_list thm' (map Thm.assume prems)
-        |> Drule.implies_intr_list (map Drule.norm_hhf_cterm As)
+        |> Drule.implies_intr_list (map (Drule.norm_hhf_cterm ctxt') As)
         |> Drule.forall_intr_list xs)
       COMP rule)
     |> Drule.implies_intr_list prems

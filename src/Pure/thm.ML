@@ -34,6 +34,7 @@ sig
   val maxidx_of_cterm: cterm -> int
   val global_cterm_of: theory -> term -> cterm
   val cterm_of: Proof.context -> term -> cterm
+  val transfer_cterm: theory -> cterm -> cterm
   val renamed_term: term -> cterm -> cterm
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
@@ -196,12 +197,23 @@ fun global_cterm_of thy tm =
 
 val cterm_of = global_cterm_of o Proof_Context.theory_of;
 
+fun merge_thys0 (Cterm {thy = thy1, ...}) (Cterm {thy = thy2, ...}) =
+  Theory.merge (thy1, thy2);
+
+fun transfer_cterm thy' ct =
+  let
+    val Cterm {thy, t, T, maxidx, sorts} = ct;
+    val _ =
+      Theory.subthy (thy, thy') orelse
+        raise CTERM ("transfer_cterm: not a super theory", [ct]);
+  in
+    if Theory.eq_thy (thy, thy') then ct
+    else Cterm {thy = thy', t = t, T = T, maxidx = maxidx, sorts = sorts}
+  end;
+
 fun renamed_term t' (Cterm {thy, t, T, maxidx, sorts}) =
   if t aconv t' then Cterm {thy = thy, t = t', T = T, maxidx = maxidx, sorts = sorts}
   else raise TERM ("renamed_term: terms disagree", [t, t']);
-
-fun merge_thys0 (Cterm {thy = thy1, ...}) (Cterm {thy = thy2, ...}) =
-  Theory.merge (thy1, thy2);
 
 
 (* destructors *)
