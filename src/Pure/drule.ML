@@ -14,7 +14,6 @@ sig
   val strip_imp_concl: cterm -> cterm
   val cprems_of: thm -> cterm list
   val cterm_fun: (term -> term) -> (cterm -> cterm)
-  val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
@@ -133,7 +132,6 @@ fun strip_imp_concl ct =
 val cprems_of = strip_imp_prems o Thm.cprop_of;
 
 fun cterm_fun f ct = Thm.global_cterm_of (Thm.theory_of_cterm ct) (f (Thm.term_of ct));
-fun ctyp_fun f cT = Thm.global_ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
 
 fun certify t = Thm.global_cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
