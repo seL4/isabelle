@@ -86,7 +86,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
     |> Context.map_theory (Attrib.setup (Binding.name ("old_" ^ name ^ "_options"))
         (Scan.lift (@{keyword "="} |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
-        ("Additional command line options for SMT solver " ^ quote name))
+        ("additional command line options for SMT solver " ^ quote name))
 
 fun all_solvers_of ctxt = Symtab.keys (fst (Solvers.get (Context.Proof ctxt)))
 
