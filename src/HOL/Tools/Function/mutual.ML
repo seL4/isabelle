@@ -250,7 +250,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs = Ts, ...}) =
     val [P, x] =
       Variable.variant_frees ctxt [] [("P", @{typ bool}), ("x", HOLogic.mk_tupleT Ts)]
       |> map (Thm.cterm_of ctxt o Free);
-    val sumtree_inj = Drule.cterm_fun (Sum_Tree.mk_inj ST n i) x;
+    val sumtree_inj = Thm.cterm_of ctxt (Sum_Tree.mk_inj ST n i (Thm.term_of x));
 
     fun prep_subgoal_tac i =
       REPEAT (eresolve_tac ctxt
