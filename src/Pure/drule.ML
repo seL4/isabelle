@@ -838,7 +838,7 @@ fun rename_bvars' xs thm =
             val (xs', t') = rename xs t;
             val (xs'', u') = rename xs' u;
           in (xs'', t' $ u') end
-      | rename xs t = (xs, t);
+      | rename xs a = (xs, a);
   in
     (case rename xs (Thm.prop_of thm) of
       ([], prop') => Thm.renamed_prop prop' thm
