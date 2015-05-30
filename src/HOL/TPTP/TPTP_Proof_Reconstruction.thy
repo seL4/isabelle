@@ -1930,7 +1930,7 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
                      ORELSE' atac
                      ORELSE' kill_meta_eqs_tac)
 
-    val tectic =
+    val tactic =
       (rtac @{thm polarise} 1 THEN atac 1)
       ORELSE
         (REPEAT_DETERM (etac @{thm conjE} 1 THEN etac @{thm drop_first_hypothesis} 1)
@@ -1944,7 +1944,7 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
             (unfold_tac ctxt depends_on_defs
              THEN IF_UNSOLVED continue_reducing_tac)))
   in
-    tectic st
+    tactic st
   end
 *}
 
