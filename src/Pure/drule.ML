@@ -431,14 +431,9 @@ fun arg_cong_rule ct th = Thm.combination (Thm.reflexive ct) th;    (*AP_TERM in
 fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM in LCF/HOL*)
 fun binop_cong_rule ct th1 th2 = Thm.combination (arg_cong_rule ct th1) th2;
 
-local
-  val dest_eq = Thm.dest_equals o Thm.cprop_of
-  val rhs_of = snd o dest_eq
-in
-fun beta_eta_conversion t =
-  let val thm = Thm.beta_conversion true t
-  in Thm.transitive thm (Thm.eta_conversion (rhs_of thm)) end
-end;
+fun beta_eta_conversion ct =
+  let val thm = Thm.beta_conversion true ct
+  in Thm.transitive thm (Thm.eta_conversion (Thm.rhs_of thm)) end;
 
 fun eta_long_conversion ct =
   Thm.transitive
