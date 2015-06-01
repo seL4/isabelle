@@ -7,17 +7,17 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  (*consts*)
-  val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
-    local_theory -> local_theory
-
-  (*background operations*)
+  (*background primitives*)
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
 
-  (*lifting primitives to local theory operations*)
+  (*nested local theories primitives*)
+  val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
+    local_theory -> local_theory
+
+  (*lifting target primitives to local theory operations*)
   val define: (((binding * typ) * mixfix) * (binding * term) ->
       term list * term list -> local_theory -> (term * thm) * local_theory) ->
     bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -62,29 +62,6 @@ end
 
 structure Generic_Target: GENERIC_TARGET =
 struct
-
-(** notes **)
-
-fun standard_facts lthy ctxt =
-  Attrib.transform_facts (Local_Theory.standard_morphism lthy ctxt);
-
-fun standard_notes pred kind facts lthy =
-  Local_Theory.map_contexts (fn level => fn ctxt =>
-    if pred (Local_Theory.level lthy, level)
-    then Attrib.local_notes kind (standard_facts lthy ctxt facts) ctxt |> snd
-    else ctxt) lthy;
-
-
-
-(** declarations **)
-
-fun standard_declaration pred decl lthy =
-  Local_Theory.map_contexts (fn level => fn ctxt =>
-    if pred (Local_Theory.level lthy, level)
-    then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
-    else ctxt) lthy;
-
-
 
 (** consts **)
 
@@ -139,9 +116,6 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
     end
   else context;
 
-fun standard_const pred prmode ((b, mx), rhs) =
-  standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
-
 
 
 (** background primitives **)
@@ -174,7 +148,28 @@ fun background_abbrev (b, global_rhs) params =
 
 
 
-(** lifting primitive to local theory operations **)
+(** nested local theories primitives **)
+
+fun standard_facts lthy ctxt =
+  Attrib.transform_facts (Local_Theory.standard_morphism lthy ctxt);
+
+fun standard_notes pred kind facts lthy =
+  Local_Theory.map_contexts (fn level => fn ctxt =>
+    if pred (Local_Theory.level lthy, level)
+    then Attrib.local_notes kind (standard_facts lthy ctxt facts) ctxt |> snd
+    else ctxt) lthy;
+
+fun standard_declaration pred decl lthy =
+  Local_Theory.map_contexts (fn level => fn ctxt =>
+    if pred (Local_Theory.level lthy, level)
+    then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
+    else ctxt) lthy;
+
+fun standard_const pred prmode ((b, mx), rhs) =
+  standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
+
+
+(** lifting target primitives to local theory operations **)
 
 (* define *)
 
