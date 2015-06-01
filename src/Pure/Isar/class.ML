@@ -13,7 +13,7 @@ sig
   val rules: theory -> class -> thm option * thm
   val these_defs: theory -> sort -> thm list
   val these_operations: theory -> sort
-    -> (string * (class * (typ * term))) list
+    -> (string * (class * ((typ * term) * bool))) list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
@@ -74,7 +74,7 @@ datatype class_data = Class_Data of {
 
   (* dynamic part *)
   defs: thm list,
-  operations: (string * (class * (typ * term))) list
+  operations: (string * (class * ((typ * term) * bool))) list
 
   (* n.b.
     params = logical parameters of class
@@ -216,7 +216,7 @@ fun register class sups params base_sort base_morph export_morph
     some_axiom some_assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
-      (c, (class, (ty, Free v_ty)))) params;
+      (c, (class, ((ty, Free v_ty), false)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
           base_morph, export_morph, some_assm_intro, of_class, some_axiom), ([], operations)))
@@ -230,7 +230,7 @@ fun activate_defs class thms thy =
         (eq_morph, true) (export_morphism thy cls)) thy) (heritage thy [class]) thy
   | NONE => thy);
 
-fun register_operation class (c, t) thy =
+fun register_operation class (c, t) input_only thy =
   let
     val base_sort = base_sort thy class;
     val prep_typ = map_type_tfree
@@ -241,7 +241,7 @@ fun register_operation class (c, t) thy =
   in
     thy
     |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apsnd)
-        (cons (c, (class, (ty', t'))))
+        (cons (c, (class, ((ty', t'), input_only))))
   end;
 
 fun register_def class def_thm thy =
@@ -259,7 +259,8 @@ fun register_def class def_thm thy =
 
 (* class context syntax *)
 
-fun these_unchecks thy = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
+fun these_unchecks thy =
+  map_filter (fn (c, (_, ((ty, t), input_only))) => if input_only then NONE else SOME (t, Const (c, ty)))
   o these_operations thy;
 
 fun redeclare_const thy c =
@@ -273,9 +274,9 @@ fun synchronize_class_syntax sort base_sort ctxt =
     val operations = these_operations thy sort;
     fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
     val primary_constraints =
-      (map o apsnd) (subst_class_typ base_sort o fst o snd) operations;
+      (map o apsnd) (subst_class_typ base_sort o fst o fst o snd) operations;
     val secondary_constraints =
-      (map o apsnd) (fn (class, (ty, _)) => subst_class_typ [class] ty) operations;
+      (map o apsnd) (fn (class, ((ty, _), _)) => subst_class_typ [class] ty) operations;
     fun improve (c, ty) =
       (case AList.lookup (op =) primary_constraints c of
         SOME ty' =>
@@ -289,7 +290,7 @@ fun synchronize_class_syntax sort base_sort ctxt =
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE);
-    fun subst (c, _) = Option.map snd (AList.lookup (op =) operations c);
+    fun subst (c, _) = Option.map (fst o snd) (AList.lookup (op =) operations c);
     val unchecks = these_unchecks thy sort;
   in
     ctxt
@@ -377,7 +378,7 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     |> snd
     |> global_def (b_def, def_eq)
     |-> (fn def_thm => register_def class def_thm)
-    |> null dangling_params ? register_operation class (c, rhs)
+    |> null dangling_params ? register_operation class (c, rhs) false
     |> Sign.add_const_constraint (c, SOME ty)
   end;
 
@@ -413,7 +414,7 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
     |> snd
     |> with_syntax ? Sign.notation true prmode [(Const (c, fastype_of rhs), mx)]
     |> with_syntax ? register_operation class (c, rhs)
-        (*FIXME input syntax!?*)
+        (#1 prmode = Print_Mode.input)
     |> Sign.add_const_constraint (c, SOME (fastype_of rhs'))
   end;
 

@@ -116,7 +116,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       else fold inter_sort (map (Class.base_sort thy) sups) [];
     val is_param = member (op =) (map fst (Class.these_params thy sups));
     val base_constraints = (map o apsnd)
-      (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
+      (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o fst o snd)
         (Class.these_operations thy sups);
     fun singleton_fixateT Ts =
       let
