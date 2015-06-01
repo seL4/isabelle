@@ -51,7 +51,7 @@ sig
                              -> thm -> thm * term list
   val RIGHT_ASSOC: Proof.context -> thm -> thm
 
-  val prove: bool -> cterm * tactic -> thm
+  val prove: Proof.context -> bool -> term * tactic -> thm
 end;
 
 structure Rules: RULES =
@@ -792,14 +792,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  end;
 
 
-fun prove strict (ptm, tac) =
+fun prove ctxt strict (t, tac) =
   let
-    val thy = Thm.theory_of_cterm ptm;
-    val t = Thm.term_of ptm;
-    val ctxt = Proof_Context.init_global thy |> Variable.auto_fixes t;
+    val ctxt' = Variable.auto_fixes t ctxt;
   in
-    if strict then Goal.prove ctxt [] [] t (K tac)
-    else Goal.prove ctxt [] [] t (K tac)
+    if strict
+    then Goal.prove ctxt' [] [] t (K tac)
+    else Goal.prove ctxt' [] [] t (K tac)
       handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg)
   end;
 

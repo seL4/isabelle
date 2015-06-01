@@ -914,15 +914,13 @@ fun trace_cterm ctxt s ct =
 fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
 let val ctxt = Proof_Context.init_global theory;
     val tych = Thry.typecheck theory;
-    val prove = Rules.prove strict;
 
    (*---------------------------------------------------------------------
     * Attempt to eliminate WF condition. It's the only assumption of rules
     *---------------------------------------------------------------------*)
    val (rules1,induction1)  =
-       let val thm = prove(tych(HOLogic.mk_Trueprop
-                                  (hd(#1(Rules.dest_thm rules)))),
-                             wf_tac)
+       let val thm =
+        Rules.prove ctxt strict (HOLogic.mk_Trueprop (hd(#1(Rules.dest_thm rules))), wf_tac)
        in (Rules.PROVE_HYP thm rules, Rules.PROVE_HYP thm induction)
        end handle Utils.ERR _ => (rules,induction);
 
@@ -944,7 +942,7 @@ let val ctxt = Proof_Context.init_global theory;
        elim_tc (Rules.MATCH_MP Thms.eqT tc_eq) (r,ind)
        handle Utils.ERR _ =>
         (elim_tc (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
-                  (prove(tych(HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq))),
+                  (Rules.prove ctxt strict (HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq)),
                            terminator)))
                  (r,ind)
          handle Utils.ERR _ =>
@@ -972,7 +970,7 @@ let val ctxt = Proof_Context.init_global theory;
        (Rules.MATCH_MP Thms.eqT tc_eq
         handle Utils.ERR _ =>
           (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
-                      (prove(tych(HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq))),
+                      (Rules.prove ctxt strict (HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq)),
                                terminator))
             handle Utils.ERR _ => tc_eq))
       end
