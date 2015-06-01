@@ -325,8 +325,6 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-local
-
 fun guess_morphism_identity (b, rhs) phi1 phi2 =
   let
     (*FIXME proper concept to identify morphism instead of educated guess*)
@@ -337,14 +335,18 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
     val rhs2 = Morphism.term phi2 rhs;
   in n1 = n2 andalso Term.aconv_untyped (rhs1, rhs2) end;
 
-fun target_const class phi0 prmode (b, rhs) =
+fun target_const class phi0 prmode (b, rhs) lthy =
   let
-    val guess_identity = guess_morphism_identity (b, rhs) Morphism.identity;
-    val guess_canonical = guess_morphism_identity (b, rhs) phi0;
+    val export = Variable.export_morphism lthy (Local_Theory.target_of lthy);
+    val guess_identity = guess_morphism_identity (b, rhs) export;
+    val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi0);
   in
-    Generic_Target.locale_target_const class
+    lthy
+    |> Generic_Target.locale_target_const class
       (not o (guess_identity orf guess_canonical)) prmode ((b, NoSyn), rhs)
   end;
+
+local
 
 fun dangling_params_for lthy class (type_params, term_params) =
   let
@@ -379,24 +381,6 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c, SOME ty)
   end;
 
-fun canonical_abbrev class phi prmode dangling_term_params ((b, mx), rhs) thy =
-  let
-    val unchecks = these_unchecks thy [class];
-    val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
-    val c' = Sign.full_name thy b;
-    val ty' = map Term.fastype_of dangling_term_params ---> Term.fastype_of rhs';
-    val ty'' = Morphism.typ phi ty';
-    val rhs'' = map_types (Morphism.typ phi) (fold lambda dangling_term_params rhs');
-  in
-    thy
-    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs'')
-    |> snd
-    |> Sign.notation true prmode [(Const (c', ty''), mx)]
-    |> (null dangling_term_params andalso not (#1 prmode = Print_Mode.input))
-      ? register_operation class (c', rhs')
-    |> Sign.add_const_constraint (c', SOME ty')
-  end;
-
 in
 
 fun const class ((b, mx), lhs) params lthy =
@@ -413,23 +397,58 @@ fun const class ((b, mx), lhs) params lthy =
     |> synchronize_class_syntax_target class
   end;
 
-fun target_abbrev class prmode ((b, mx), lhs) rhs' params lthy =
+end;
+
+local
+
+fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
   let
-    val phi = morphism (Proof_Context.theory_of lthy) class;
-    val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
+    val c = Sign.full_name thy b;
+    val constrain = map_atyps (fn T as TFree (v, _) =>
+      if v = Name.aT then TFree (v, [class]) else T | T => T);
+    val rhs' = map_types constrain rhs;
   in
-    lthy
-    |> target_const class phi prmode (b, lhs)
-    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode dangling_term_params
-         ((Morphism.binding phi b, if null dangling_term_params then mx else NoSyn), rhs'))
-    |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
-         prmode ((b, if null dangling_term_params then NoSyn else mx), lhs)
-    |> synchronize_class_syntax_target class
+    thy
+    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs')
+    |> snd
+    |> with_syntax ? Sign.notation true prmode [(Const (c, fastype_of rhs), mx)]
+    |> with_syntax ? register_operation class (c, rhs)
+        (*FIXME input syntax!?*)
+    |> Sign.add_const_constraint (c, SOME (fastype_of rhs'))
   end;
 
-fun abbrev class = Generic_Target.abbrev (fn prmode => fn (b, mx) => fn global_rhs => fn params =>
-  Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, rhs) => target_abbrev class prmode ((b, mx), lhs) rhs params));
+fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+    val preprocess = perhaps (try (Pattern.rewrite_term thy (these_unchecks thy [class]) []));
+    val (global_rhs, (extra_tfrees, (type_params, term_params))) =
+      Generic_Target.export_abbrev lthy preprocess rhs;
+    val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
+  in
+    lthy
+    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode (null term_params)
+        ((Morphism.binding phi b, mx'), Logic.unvarify_types_global global_rhs))
+  end;
+
+fun further_abbrev_target class phi prmode (b, mx) rhs params =
+  Generic_Target.background_abbrev (b, rhs) (snd params)
+  #-> (fn (lhs, _) => target_const class phi prmode (b, lhs)
+    #> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), lhs))
+
+in
+
+fun abbrev class prmode ((b, mx), rhs) lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+    val phi = morphism thy class;
+    val rhs_generic =
+      perhaps (try (Pattern.rewrite_term thy (map swap (these_unchecks thy [class])) [])) rhs;
+  in
+    lthy
+    |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
+    |> Generic_Target.abbrev (further_abbrev_target class phi) prmode ((b, mx), rhs_generic)
+    ||> synchronize_class_syntax_target class
+  end;
 
 end;
 

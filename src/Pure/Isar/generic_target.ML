@@ -7,6 +7,11 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
+  (*auxiliary*)
+  val export_abbrev: Proof.context ->
+      (term -> term) -> term -> term * ((string * sort) list * (term list * term list))
+  val check_mixfix_global: binding * bool -> mixfix -> mixfix
+
   (*background primitives*)
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
@@ -75,7 +80,7 @@ struct
 
 (** consts **)
 
-fun export_abbrev lthy preprocess (b, rhs) =
+fun export_abbrev lthy preprocess rhs =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
@@ -89,7 +94,7 @@ fun export_abbrev lthy preprocess (b, rhs) =
     val extra_tfrees =
       subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
-  in ((b, global_rhs), (extra_tfrees, (type_params, term_params))) end;
+  in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
 fun check_mixfix ctxt (b, extra_tfrees) mx =
   if null extra_tfrees then mx
@@ -306,7 +311,7 @@ end;
 
 fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
   let
-    val ((b, global_rhs), (extra_tfrees, (type_params, term_params))) = export_abbrev lthy I (b, rhs);
+    val (global_rhs, (extra_tfrees, (type_params, term_params))) = export_abbrev lthy I rhs;
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
   in
     lthy
