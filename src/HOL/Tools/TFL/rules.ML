@@ -33,7 +33,7 @@ sig
   val IMP_TRANS: thm -> thm -> thm
   val PROVE_HYP: thm -> thm -> thm
 
-  val CHOOSE: cterm * thm -> thm -> thm
+  val CHOOSE: Proof.context -> cterm * thm -> thm -> thm
   val EXISTS: cterm * cterm -> thm -> thm
   val EXISTL: cterm list -> thm -> thm
   val IT_EXISTS: (cterm*cterm) list -> thm -> thm
@@ -337,13 +337,12 @@ fun MATCH_MP th1 th2 =
  *
  *---------------------------------------------------------------------------*)
 
-fun CHOOSE (fvar, exth) fact =
+fun CHOOSE ctxt (fvar, exth) fact =
   let
     val lam = #2 (Dcterm.dest_comb (Dcterm.drop_prop (cconcl exth)))
     val redex = Dcterm.capply lam fvar
-    val thy = Thm.theory_of_cterm redex
     val t$u = Thm.term_of redex
-    val residue = Thm.global_cterm_of thy (Term.betapply (t, u))
+    val residue = Thm.cterm_of ctxt (Term.betapply (t, u))
   in
     GEN fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg

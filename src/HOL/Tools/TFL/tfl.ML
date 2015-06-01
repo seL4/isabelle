@@ -666,7 +666,7 @@ fun mk_case ty_info usednames thy =
             val recursive_thms = map mk news
             val build_exists = Library.foldr
                                 (fn((x,t), th) =>
-                                 Rules.CHOOSE (tych x, Rules.ASSUME (tych t)) th)
+                                 Rules.CHOOSE ctxt (tych x, Rules.ASSUME (tych t)) th)
             val thms' = ListPair.map build_exists (vexl, recursive_thms)
             val same_concls = Rules.EVEN_ORS thms'
         in Rules.DISJ_CASESL thm' same_concls
@@ -695,7 +695,7 @@ fun complete_cases thy =
  in
  Rules.GEN (tych a)
        (Rules.RIGHT_ASSOC ctxt
-          (Rules.CHOOSE(tych v, ex_th0)
+          (Rules.CHOOSE ctxt (tych v, ex_th0)
                 (mk_case ty_info (vname::aname::names)
                  thy {path=[v], rows=rows})))
  end end;
@@ -810,10 +810,10 @@ fun prove_case f thy (tm,TCs_locals,thm) =
  *      ?v1 ... vn. x = (v1,...,vn) |- M[x]
  *
  *---------------------------------------------------------------------------*)
-fun LEFT_ABS_VSTRUCT tych thm =
+fun LEFT_ABS_VSTRUCT ctxt tych thm =
   let fun CHOOSER v (tm,thm) =
         let val ex_tm = USyntax.mk_exists{Bvar=v,Body=tm}
-        in (ex_tm, Rules.CHOOSE(tych v, Rules.ASSUME (tych ex_tm)) thm)
+        in (ex_tm, Rules.CHOOSE ctxt (tych v, Rules.ASSUME (tych ex_tm)) thm)
         end
       val [veq] = filter (can USyntax.dest_eq) (#1 (Rules.dest_thm thm))
       val {lhs,rhs} = USyntax.dest_eq veq
@@ -854,7 +854,7 @@ let val ctxt = Proof_Context.init_global thy
     val substs = map (Rules.SYM o Rules.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
     val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS ctxt [th]th')
                           (substs, proved_cases)
-    val abs_cases = map (LEFT_ABS_VSTRUCT tych) proved_cases1
+    val abs_cases = map (LEFT_ABS_VSTRUCT ctxt tych) proved_cases1
     val dant = Rules.GEN vtyped (Rules.DISJ_CASESL (Rules.ISPEC vtyped case_thm) abs_cases)
     val dc = Rules.MP Sinduct dant
     val Parg_ty = type_of(#Bvar(USyntax.dest_forall(concl dc)))
