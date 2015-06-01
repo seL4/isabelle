@@ -169,10 +169,9 @@ fun iso_tuple_intros_tac ctxt =
   resolve_from_net_tac ctxt iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
-      val thy = Thm.theory_of_cterm cgoal;
       val goal = Thm.term_of cgoal;
 
-      val isthms = Iso_Tuple_Thms.get thy;
+      val isthms = Iso_Tuple_Thms.get (Proof_Context.theory_of ctxt);
       fun err s t = raise TERM ("iso_tuple_intros_tac: " ^ s, [t]);
 
       val goal' = Envir.beta_eta_contract goal;
