@@ -18,7 +18,7 @@ sig
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> term -> term list * term list -> local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
   val register: class -> class list -> ((string * typ) * (string * typ)) list
@@ -413,7 +413,7 @@ fun const class ((b, mx), lhs) params lthy =
     |> synchronize_class_syntax_target class
   end;
 
-fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
+fun target_abbrev class prmode ((b, mx), lhs) rhs' params lthy =
   let
     val phi = morphism (Proof_Context.theory_of lthy) class;
     val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
@@ -426,6 +426,10 @@ fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
          prmode ((b, if null dangling_term_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class
   end;
+
+fun abbrev class = Generic_Target.abbrev (fn prmode => fn (b, mx) => fn global_rhs => fn params =>
+  Generic_Target.background_abbrev (b, global_rhs) (snd params)
+  #-> (fn (lhs, rhs) => target_abbrev class prmode ((b, mx), lhs) rhs params));
 
 end;
 

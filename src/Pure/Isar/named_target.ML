@@ -88,17 +88,9 @@ fun notes ("", _) = Generic_Target.theory_target_notes
 
 (* abbrev *)
 
-fun locale_abbrev locale prmode (b, mx) global_rhs params =
-  Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, _) => Generic_Target.locale_const locale prmode ((b, mx), lhs));
-
-fun class_abbrev class prmode (b, mx) global_rhs params =
-  Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
-
-fun abbrev ("", _) = Generic_Target.theory_target_abbrev
-  | abbrev (locale, false) = locale_abbrev locale
-  | abbrev (class, true) = class_abbrev class;
+fun abbrev ("", _) = Generic_Target.theory_abbrev
+  | abbrev (locale, false) = Generic_Target.locale_abbrev locale
+  | abbrev (class, true) = Class.abbrev class;
 
 
 (* declaration *)
@@ -165,7 +157,7 @@ fun gen_init before_exit target thy =
     |> Local_Theory.init background_naming
        {define = Generic_Target.define (foundation name_data),
         notes = Generic_Target.notes (notes name_data),
-        abbrev = Generic_Target.abbrev (abbrev name_data),
+        abbrev = abbrev name_data,
         declaration = declaration name_data,
         subscription = subscription name_data,
         pretty = pretty name_data,
