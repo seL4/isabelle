@@ -106,7 +106,7 @@ val verbose = Attrib.setup_config_bool @{binding linarith_verbose} (K true);
 val trace = Attrib.setup_config_bool @{binding linarith_trace} (K false);
 
 
-structure LA_Data =
+structure LA_Data: LIN_ARITH_DATA =
 struct
 
 val neq_limit = neq_limit;
@@ -166,8 +166,7 @@ let
             (SOME s', SOME t') => SOME (mC $ s' $ t')
           | (SOME s', NONE) => SOME s'
           | (NONE, SOME t') =>
-               let val Const(_,T) = mC
-               in SOME (mC $ Const (@{const_name Groups.one}, domain_type T) $ t') end
+               SOME (mC $ Const (@{const_name Groups.one}, domain_type (snd (dest_Const mC))) $ t')
           | (NONE, NONE) => NONE,
           Rat.mult m' (Rat.inv p))
       end
