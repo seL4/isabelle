@@ -69,6 +69,22 @@ struct
 
 (** consts **)
 
+fun export_abbrev lthy preprocess (b, rhs) =
+  let
+    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
+
+    val rhs' = rhs
+      |> Assumption.export_term lthy (Local_Theory.target_of lthy)
+      |> preprocess;
+    val term_params = map Free (sort (Variable.fixed_ord lthy o apply2 #1) (Variable.add_fixed lthy rhs' []));
+    val u = fold_rev lambda term_params rhs';
+    val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
+
+    val extra_tfrees =
+      subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+    val type_params = map (Logic.mk_type o TFree) extra_tfrees;
+  in ((b, global_rhs), (extra_tfrees, (type_params, term_params))) end;
+
 fun check_mixfix ctxt (b, extra_tfrees) mx =
   if null extra_tfrees then mx
   else
@@ -284,17 +300,8 @@ end;
 
 fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
   let
-    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
-
-    val rhs' = Assumption.export_term lthy (Local_Theory.target_of lthy) rhs;
-    val term_params = map Free (sort (Variable.fixed_ord lthy o apply2 #1) (Variable.add_fixed lthy rhs' []));
-    val u = fold_rev lambda term_params rhs';
-    val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
-
-    val extra_tfrees =
-      subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+    val ((b, global_rhs), (extra_tfrees, (type_params, term_params))) = export_abbrev lthy I (b, rhs);
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
-    val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in
     lthy
     |> target_abbrev prmode (b, mx') global_rhs (type_params, term_params)
