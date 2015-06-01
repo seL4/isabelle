@@ -868,13 +868,13 @@ fun real_nonlinear_prover proof_method ctxt =
   in mainf end
 end
 
-fun C f x y = f y x;
 (* FIXME : This is very bad!!!*)
 fun subst_conv eqs t =
   let
     val t' = fold (Thm.lambda o Thm.lhs_of) eqs t
   in
-    Conv.fconv_rule (Thm.beta_conversion true) (fold (C Thm.combination) eqs (Thm.reflexive t'))
+    Conv.fconv_rule (Thm.beta_conversion true)
+      (fold (fn a => fn b => Thm.combination b a) eqs (Thm.reflexive t'))
   end
 
 (* A wrapper that tries to substitute away variables first.                  *)

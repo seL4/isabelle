@@ -7,7 +7,6 @@ Basic utilities.
 signature UTILS =
 sig
   exception ERR of {module: string, func: string, mesg: string}
-  val C: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   val end_itlist: ('a -> 'a -> 'a) -> 'a list -> 'a
   val itlist2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val pluck: ('a -> bool) -> 'a list -> 'a * 'a list
@@ -23,8 +22,6 @@ exception ERR of {module: string, func: string, mesg: string};
 
 fun UTILS_ERR func mesg = ERR {module = "Utils", func = func, mesg = mesg};
 
-
-fun C f x y = f y x
 
 fun end_itlist f [] = raise (UTILS_ERR "end_itlist" "list too short")
   | end_itlist f [x] = x 

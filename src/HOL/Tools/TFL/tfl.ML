@@ -567,7 +567,7 @@ fun lazyR_def thy fid tflCongs eqns =
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
      val bar = Rules.MP (Rules.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
  in {theory = theory, R=R1, SV=SV,
-     rules = fold (Utils.C Rules.MP) (Rules.CONJUNCTS bar) def',
+     rules = fold (fn a => fn b => Rules.MP b a) (Rules.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
  end;
@@ -794,7 +794,7 @@ fun prove_case f thy (tm,TCs_locals,thm) =
                             #2 o USyntax.strip_forall) TCs
            val TClist = map (fn(TC,lvs) => (Rules.SPEC_ALL(Rules.ASSUME(tych TC)),lvs))
                             TCs_locals
-           val th2list = map (Utils.C Rules.SPEC th1 o tych) ylist
+           val th2list = map (fn t => Rules.SPEC (tych t) th1) ylist
            val nlist = map nested TCs
            val triples = Utils.zip3 TClist th2list nlist
            val Pylist = map mk_ih triples

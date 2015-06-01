@@ -636,7 +636,7 @@ fun dest_pbeta_redex used M n =
   in (strip_aabs used f,args)
   end;
 
-fun pbeta_redex M n = can (Utils.C (dest_pbeta_redex []) n) M;
+fun pbeta_redex M n = can (fn t => dest_pbeta_redex [] t n) M;
 
 fun dest_impl tm =
   let val ants = Logic.strip_imp_prems tm
