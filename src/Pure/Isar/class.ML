@@ -294,8 +294,9 @@ fun synchronize_class_syntax sort base_sort ctxt =
   in
     ctxt
     |> fold (redeclare_const thy o fst) primary_constraints
-    |> Overloading.map_improvable_syntax (K (((primary_constraints, secondary_constraints),
-        (((improve, subst), true), unchecks)), false))
+    |> Overloading.map_improvable_syntax (K {primary_constraints = primary_constraints,
+      secondary_constraints = secondary_constraints, improve = improve, subst = subst,
+      no_subst_in_abbrev_mode = true, unchecks = unchecks})
     |> Overloading.set_primary_constraints
   end;
 
@@ -545,9 +546,10 @@ fun synchronize_inst_syntax ctxt =
       map (fn ((c, _), v_ty as (_, ty)) => (Free v_ty, Const (c, ty))) params;
   in
     ctxt
-    |> Overloading.map_improvable_syntax
-      (fn (((primary_constraints, _), (((improve, _), _), _)), _) =>
-          (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
+    |> Overloading.map_improvable_syntax (fn {primary_constraints, improve, ...} =>
+      {primary_constraints = primary_constraints, secondary_constraints = [],
+        improve = improve, subst = subst, no_subst_in_abbrev_mode = false,
+        unchecks = unchecks})
   end;
 
 fun resort_terms ctxt algebra consts constraints ts =
@@ -635,8 +637,9 @@ fun instantiation (tycos, vs, sort) thy =
     |> Instantiation.put (make_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
-    |> (Overloading.map_improvable_syntax o apfst)
-         (K ((primary_constraints, []), (((improve, K NONE), false), [])))
+    |> (Overloading.map_improvable_syntax) (K {primary_constraints = primary_constraints,
+      secondary_constraints = [], improve = improve, subst = K NONE,
+      no_subst_in_abbrev_mode = false, unchecks = []})
     |> Overloading.activate_improvable_syntax
     |> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
