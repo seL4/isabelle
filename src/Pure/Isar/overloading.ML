@@ -11,6 +11,7 @@ sig
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
     -> Proof.context -> Proof.context
   val set_primary_constraints: Proof.context -> Proof.context
+  val show_reverted_improvements: bool Config.T;
 
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
   val overloading_cmd: (string * string * bool) list -> theory -> local_theory
@@ -90,12 +91,16 @@ fun rewrite_liberal thy unchecks t =
     NONE => NONE
   | SOME t' => if t aconv t' then NONE else SOME t');
 
+val show_reverted_improvements =
+  Attrib.setup_config_bool @{binding "show_reverted_improvements"} (K true);
+
 fun improve_term_uncheck ts ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val {syntax = {unchecks, ...}, ...} = Improvable_Syntax.get ctxt;
+    val revert = Config.get ctxt show_reverted_improvements;
     val ts' = map (rewrite_liberal thy unchecks) ts;
-  in if exists is_some ts' then SOME (map2 the_default ts ts', ctxt) else NONE end;
+  in if revert andalso exists is_some ts' then SOME (map2 the_default ts ts', ctxt) else NONE end;
 
 fun set_primary_constraints ctxt =
   let
