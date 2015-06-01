@@ -24,7 +24,6 @@ sig
     local_theory -> Inductive.inductive_result * local_theory
   val mono_add: attribute
   val mono_del: attribute
-  val codegen_preproc: theory -> thm list -> thm list
 end;
 
 structure Inductive_Set: INDUCTIVE_SET =
@@ -382,28 +381,6 @@ fun to_set thms context thm =
   end;
 
 val to_set_att = Thm.rule_attribute o to_set;
-
-
-(**** preprocessor for code generator ****)
-
-(* FIXME unused!? *)
-fun codegen_preproc thy =  (* FIXME proper context!? *)
-  let
-    val ctxt = Proof_Context.init_global thy;
-    val {to_pred_simps, set_arities, pred_arities, ...} =
-      Data.get (Context.Theory thy);
-    fun preproc thm =
-      if exists_Const (fn (s, _) => case Symtab.lookup set_arities s of
-          NONE => false
-        | SOME arities => exists (fn (_, (xs, _)) =>
-            forall is_none xs) arities) (Thm.prop_of thm)
-      then
-        thm |>
-        Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
-          [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
-        eta_contract_thm ctxt (is_pred pred_arities)
-      else thm
-  in map preproc end;
 
 
 (**** definition of inductive sets ****)
