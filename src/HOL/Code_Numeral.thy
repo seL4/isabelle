@@ -150,11 +150,11 @@ lemma int_of_integer_sub [simp]:
 instantiation integer :: "{ring_div, equal, linordered_idom}"
 begin
 
-lift_definition div_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
-  is "Divides.div :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition divide_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "divide :: int \<Rightarrow> int \<Rightarrow> int"
   .
 
-declare div_integer.rep_eq [simp]
+declare divide_integer.rep_eq [simp]
 
 lift_definition mod_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
   is "Divides.mod :: int \<Rightarrow> int \<Rightarrow> int"
@@ -709,11 +709,11 @@ lemma nat_of_natural_numeral [simp]:
 instantiation natural :: "{semiring_div, equal, linordered_semiring}"
 begin
 
-lift_definition div_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
-  is "Divides.div :: nat \<Rightarrow> nat \<Rightarrow> nat"
+lift_definition divide_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "divide :: nat \<Rightarrow> nat \<Rightarrow> nat"
   .
 
-declare div_natural.rep_eq [simp]
+declare divide_natural.rep_eq [simp]
 
 lift_definition mod_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
   is "Divides.mod :: nat \<Rightarrow> nat \<Rightarrow> nat"

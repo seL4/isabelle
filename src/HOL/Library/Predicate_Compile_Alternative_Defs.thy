@@ -53,7 +53,7 @@ section {* Setup for Numerals *}
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name numeral}] *}
 setup {* Predicate_Compile_Data.keep_functions [@{const_name numeral}] *}
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name div}, @{const_name mod}, @{const_name times}] *}
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name mod}, @{const_name times}] *}
 
 section {* Arithmetic operations *}
 

@@ -402,7 +402,7 @@ val built_in_typed_consts =
    ((@{const_name plus_class.plus}, nat_T --> nat_T --> nat_T), 0),
    ((@{const_name minus_class.minus}, nat_T --> nat_T --> nat_T), 0),
    ((@{const_name times_class.times}, nat_T --> nat_T --> nat_T), 0),
-   ((@{const_name div_class.div}, nat_T --> nat_T --> nat_T), 0),
+   ((@{const_name Rings.divide}, nat_T --> nat_T --> nat_T), 0),
    ((@{const_name ord_class.less}, nat_T --> nat_T --> bool_T), 2),
    ((@{const_name ord_class.less_eq}, nat_T --> nat_T --> bool_T), 2),
    ((@{const_name of_nat}, nat_T --> int_T), 0),
@@ -411,7 +411,7 @@ val built_in_typed_consts =
    ((@{const_name plus_class.plus}, int_T --> int_T --> int_T), 0),
    ((@{const_name minus_class.minus}, int_T --> int_T --> int_T), 0),
    ((@{const_name times_class.times}, int_T --> int_T --> int_T), 0),
-   ((@{const_name div_class.div}, int_T --> int_T --> int_T), 0),
+   ((@{const_name Rings.divide}, int_T --> int_T --> int_T), 0),
    ((@{const_name uminus_class.uminus}, int_T --> int_T), 0),
    ((@{const_name ord_class.less}, int_T --> int_T --> bool_T), 2),
    ((@{const_name ord_class.less_eq}, int_T --> int_T --> bool_T), 2)]

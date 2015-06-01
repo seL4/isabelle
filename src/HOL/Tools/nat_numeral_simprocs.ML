@@ -288,8 +288,8 @@ end;
 
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} HOLogic.natT
   val cancel = @{thm nat_mult_div_cancel1} RS trans
   val neg_exchanges = false
 );
@@ -393,8 +393,8 @@ structure LessCancelFactor = ExtractCommonTermFun
 
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} HOLogic.natT
   fun simp_conv _ _ = SOME @{thm nat_mult_div_cancel_disj}
 );
 

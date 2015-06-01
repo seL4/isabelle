@@ -585,12 +585,11 @@ definition [simp]: "Groups.zero = a\<^sub>1"
 definition [simp]: "Groups.one = a\<^sub>1"
 definition [simp]: "op + = (\<lambda>_ _. a\<^sub>1)"
 definition [simp]: "op * = (\<lambda>_ _. a\<^sub>1)"
-definition [simp]: "op div = (\<lambda>_ _. a\<^sub>1)" 
 definition [simp]: "op mod = (\<lambda>_ _. a\<^sub>1)" 
 definition [simp]: "abs = (\<lambda>_. a\<^sub>1)"
 definition [simp]: "sgn = (\<lambda>_. a\<^sub>1)"
 definition [simp]: "inverse = (\<lambda>_. a\<^sub>1)"
-definition [simp]: "op / = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "divide = (\<lambda>_ _. a\<^sub>1)"
 
 instance by intro_classes(simp_all add: less_finite_1_def)
 end
@@ -691,15 +690,14 @@ definition "uminus = (\<lambda>x :: finite_2. x)"
 definition "op - = (op + :: finite_2 \<Rightarrow> _)"
 definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
 definition "inverse = (\<lambda>x :: finite_2. x)"
-definition "op / = (op * :: finite_2 \<Rightarrow> _)"
+definition "divide = (op * :: finite_2 \<Rightarrow> _)"
 definition "abs = (\<lambda>x :: finite_2. x)"
-definition "op div = (op / :: finite_2 \<Rightarrow> _)"
 definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
 definition "sgn = (\<lambda>x :: finite_2. x)"
 instance
 by intro_classes
   (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
-       inverse_finite_2_def divide_finite_2_def abs_finite_2_def div_finite_2_def mod_finite_2_def sgn_finite_2_def
+       inverse_finite_2_def divide_finite_2_def abs_finite_2_def mod_finite_2_def sgn_finite_2_def
      split: finite_2.splits)
 end
 
@@ -819,15 +817,14 @@ definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | a\<^sub>2 \<Rig
 definition "x - y = x + (- y :: finite_3)"
 definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>3 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
 definition "inverse = (\<lambda>x :: finite_3. x)" 
-definition "x / y = x * inverse (y :: finite_3)"
+definition "divide x y = x * inverse (y :: finite_3)"
 definition "abs = (\<lambda>x :: finite_3. x)"
-definition "op div = (op / :: finite_3 \<Rightarrow> _)"
 definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
 definition "sgn = (\<lambda>x. case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
 instance
 by intro_classes
   (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
-       inverse_finite_3_def divide_finite_3_def abs_finite_3_def div_finite_3_def mod_finite_3_def sgn_finite_3_def
+       inverse_finite_3_def divide_finite_3_def abs_finite_3_def mod_finite_3_def sgn_finite_3_def
        less_finite_3_def
      split: finite_3.splits)
 end

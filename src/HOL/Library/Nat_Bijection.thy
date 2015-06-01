@@ -336,10 +336,19 @@ by auto
 
 lemma set_decode_plus_power_2:
   "n \<notin> set_decode z \<Longrightarrow> set_decode (2 ^ n + z) = insert n (set_decode z)"
- apply (induct n arbitrary: z, simp_all)
-  apply (rule set_eqI, induct_tac x, simp, simp)
- apply (rule set_eqI, induct_tac x, simp, simp add: add.commute)
-done
+proof (induct n arbitrary: z)
+  case 0 show ?case
+  proof (rule set_eqI)
+    fix q show "q \<in> set_decode (2 ^ 0 + z) \<longleftrightarrow> q \<in> insert 0 (set_decode z)"
+      by (induct q) (insert 0, simp_all)
+  qed
+next
+  case (Suc n) show ?case
+  proof (rule set_eqI)
+    fix q show "q \<in> set_decode (2 ^ Suc n + z) \<longleftrightarrow> q \<in> insert (Suc n) (set_decode z)"
+      by (induct q) (insert Suc, simp_all)
+  qed
+qed
 
 lemma finite_set_decode [simp]: "finite (set_decode n)"
 apply (induct n rule: nat_less_induct)
@@ -389,4 +398,3 @@ proof -
 qed
 
 end
-

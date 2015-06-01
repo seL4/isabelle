@@ -102,7 +102,7 @@ definition
   preal_inverse_def:
     "inverse R == Abs_preal (inverse_set (Rep_preal R))"
 
-definition "R / S = R * inverse (S\<Colon>preal)"
+definition "divide R S = R * inverse (S\<Colon>preal)"
 
 definition
   preal_one_def:
@@ -1222,7 +1222,7 @@ definition
   real_inverse_def: "inverse (R::real) = (THE S. (R = 0 & S = 0) | S * R = 1)"
 
 definition
-  real_divide_def: "R / (S::real) = R * inverse S"
+  real_divide_def: "divide R (S::real) = R * inverse S"
 
 definition
   real_le_def: "z \<le> (w::real) \<longleftrightarrow>

@@ -36,6 +36,14 @@ INCOMPATIBILITY in exotic situations.
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
 
+* Constants Fields.divide (... / ...) and Divides.div (... div ...)
+are logically unified to Rings.divide in syntactic type class
+Rings.divide, with particular infix syntax added as abbreviations
+in classes Fields.inverse and Divides.div respectively.  INCOMPATIBILITY,
+instantiatios must refer to Rings.divide rather than the former
+separate constants, and infix syntax is usually not available during
+instantiation.
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------

@@ -162,9 +162,9 @@ lemma inverse_rat [simp]: "inverse (Fract a b) = Fract b a"
   by transfer simp
 
 definition
-  divide_rat_def: "q / r = q * inverse (r::rat)"
+  divide_rat_def: "divide q r = q * inverse (r::rat)"
 
-lemma divide_rat [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
+lemma divide_rat [simp]: "divide (Fract a b) (Fract c d) = Fract (a * d) (b * c)"
   by (simp add: divide_rat_def)
 
 instance proof
@@ -191,7 +191,7 @@ instance proof
     by transfer simp
   { assume "q \<noteq> 0" thus "inverse q * q = 1"
     by transfer simp }
-  show "q / r = q * inverse r"
+  show "divide q r = q * inverse r"
     by (fact divide_rat_def)
   show "inverse 0 = (0::rat)"
     by transfer simp
@@ -1158,8 +1158,8 @@ parse_translation {*
         val {mant = i, exp = n} = Lexicon.read_float str;
         val exp = Syntax.const @{const_syntax Power.power};
         val ten = Numeral.mk_number_syntax 10;
-        val exp10 = if n = 1 then ten else exp $ ten $ Numeral.mk_number_syntax n;;
-      in Syntax.const @{const_syntax divide} $ Numeral.mk_number_syntax i $ exp10 end;
+        val exp10 = if n = 1 then ten else exp $ ten $ Numeral.mk_number_syntax n;
+      in Syntax.const @{const_syntax Fields.inverse_divide} $ Numeral.mk_number_syntax i $ exp10 end;
 
     fun float_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ float_tr [t] $ u
       | float_tr [t as Const (str, _)] = mk_frac str

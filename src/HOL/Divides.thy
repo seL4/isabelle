@@ -11,10 +11,15 @@ begin
 
 subsection {* Syntactic division operations *}
 
-class div = dvd +
-  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "div" 70)
-    and mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
+class div = dvd + divide +
+  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
+begin
 
+abbreviation div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
+where
+  "op div \<equiv> divide"
+
+end
 
 subsection {* Abstract division in commutative semirings. *}
 
@@ -951,18 +956,25 @@ lemma divmod_nat_unique:
   shows "divmod_nat m n = qr"
   using assms by (auto intro: divmod_nat_rel_unique divmod_nat_rel_divmod_nat)
 
-instantiation nat :: semiring_div
+instantiation nat :: "Divides.div"
 begin
 
-definition div_nat where
-  "m div n = fst (divmod_nat m n)"
+definition divide_nat where
+  div_nat_def: "divide m n = fst (divmod_nat m n)"
+
+definition mod_nat where
+  "m mod n = snd (divmod_nat m n)"
+  
+instance ..
+
+end
+
+instantiation nat :: semiring_div
+begin
 
 lemma fst_divmod_nat [simp]:
   "fst (divmod_nat m n) = m div n"
   by (simp add: div_nat_def)
-
-definition mod_nat where
-  "m mod n = snd (divmod_nat m n)"
 
 lemma snd_divmod_nat [simp]:
   "snd (divmod_nat m n) = m mod n"
@@ -1069,7 +1081,7 @@ ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
 ML {*
 structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 (
-  val div_name = @{const_name div};
+  val div_name = @{const_name divide};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
   val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
@@ -1184,18 +1196,23 @@ lemma div_add1_eq:
   "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
 by (blast intro: divmod_nat_rel_add1_eq [THEN div_nat_unique] divmod_nat_rel)
 
-lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
-  apply (cut_tac m = q and n = c in mod_less_divisor)
-  apply (drule_tac [2] m = "q mod c" in less_imp_Suc_add, auto)
-  apply (erule_tac P = "%x. lhs < rhs x" for lhs rhs in ssubst)
-  apply (simp add: add_mult_distrib2)
-  done
-
 lemma divmod_nat_rel_mult2_eq:
-  "divmod_nat_rel a b (q, r)
-   \<Longrightarrow> divmod_nat_rel a (b * c) (q div c, b *(q mod c) + r)"
-by (auto simp add: mult.commute mult.left_commute divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
-
+  assumes "divmod_nat_rel a b (q, r)"
+  shows "divmod_nat_rel a (b * c) (q div c, b *(q mod c) + r)"
+proof -
+  { assume "r < b" and "0 < c" 
+    then have "b * (q mod c) + r < b * c"
+      apply (cut_tac m = q and n = c in mod_less_divisor)
+      apply (drule_tac [2] m = "q mod c" in less_imp_Suc_add, auto)
+      apply (erule_tac P = "%x. lhs < rhs x" for lhs rhs in ssubst)
+      apply (simp add: add_mult_distrib2)
+      done
+    then have "r + b * (q mod c) < b * c"
+      by (simp add: ac_simps)
+  } with assms show ?thesis
+    by (auto simp add: divmod_nat_rel_def algebra_simps add_mult_distrib2 [symmetric])
+qed
+    
 lemma div_mult2_eq: "a div (b * c) = (a div b) div (c::nat)"
 by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_unique])
 
@@ -1583,8 +1600,16 @@ lemma odd_Suc_div_two [simp]:
   using odd_succ_div_two [of n] by simp
 
 lemma odd_two_times_div_two_nat [simp]:
-  "odd n \<Longrightarrow> 2 * (n div 2) = n - (1 :: nat)"
-  using odd_two_times_div_two_succ [of n] by simp
+  assumes "odd n"
+  shows "2 * (n div 2) = n - (1 :: nat)"
+proof -
+  from assms have "2 * (n div 2) + 1 = n"
+    by (rule odd_two_times_div_two_succ)
+  then have "Suc (2 * (n div 2)) - 1 = n - 1"
+    by simp
+  then show ?thesis
+    by simp
+qed
 
 lemma odd_Suc_minus_one [simp]:
   "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
@@ -1669,23 +1694,23 @@ definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" 
 instantiation int :: Divides.div
 begin
 
-definition div_int where
-  "a div b = fst (divmod_int a b)"
+definition divide_int where
+  div_int_def: "divide a b = fst (divmod_int a b)"
+
+definition mod_int where
+  "a mod b = snd (divmod_int a b)"
+
+instance ..
+
+end
 
 lemma fst_divmod_int [simp]:
   "fst (divmod_int a b) = a div b"
   by (simp add: div_int_def)
 
-definition mod_int where
-  "a mod b = snd (divmod_int a b)"
-
 lemma snd_divmod_int [simp]:
   "snd (divmod_int a b) = a mod b"
   by (simp add: mod_int_def)
-
-instance ..
-
-end
 
 lemma divmod_int_mod_div:
   "divmod_int p q = (p div q, p mod q)"
@@ -1909,7 +1934,7 @@ text {* Tool setup *}
 ML {*
 structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 (
-  val div_name = @{const_name div};
+  val div_name = @{const_name Rings.divide};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
   val mk_sum = Arith_Data.mk_sum HOLogic.intT;

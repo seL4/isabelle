@@ -41,7 +41,7 @@ local
         has_datatypes=true}
     end
 
-  fun is_div_mod @{const div (int)} = true
+  fun is_div_mod @{const divide (int)} = true
     | is_div_mod @{const mod (int)} = true
     | is_div_mod _ = false
 

@@ -4033,7 +4033,7 @@ fun num_of_term ps (Const (@{const_name Groups.uminus}, _) $ t) =
       @{code poly.Mul} (num_of_term ps a, num_of_term ps b)
   | num_of_term ps (Const (@{const_name Power.power}, _) $ a $ n) =
       @{code poly.Pw} (num_of_term ps a, @{code nat_of_integer} (dest_nat n))
-  | num_of_term ps (Const (@{const_name Fields.divide}, _) $ a $ b) =
+  | num_of_term ps (Const (@{const_name Rings.divide}, _) $ a $ b) =
       mk_C (dest_num a, dest_num b)
   | num_of_term ps t =
       (case try_dest_num t of
@@ -4087,7 +4087,7 @@ fun term_of_num T ps (@{code poly.C} (a, b)) =
         (if d = 1 then HOLogic.mk_number T c
         else if d = 0 then Const (@{const_name Groups.zero}, T)
         else
-          Const (@{const_name Fields.divide}, binopT T) $
+          Const (@{const_name Rings.divide}, binopT T) $
             HOLogic.mk_number T c $ HOLogic.mk_number T d)
       end
   | term_of_num T ps (@{code poly.Bound} i) = nth ps (@{code integer_of_nat} i)

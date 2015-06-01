@@ -152,7 +152,7 @@ let
               (SOME t', m'') => (SOME (mC $ s' $ t'), m'')
             | (NONE,    m'') => (SOME s', m''))
         | (NONE,    m') => demult (t, m')))
-    | demult (atom as (mC as Const (@{const_name Fields.divide}, T)) $ s $ t, m) =
+    | demult (atom as (mC as Const (@{const_name Rings.divide}, T)) $ s $ t, m) =
       (* FIXME: Shouldn't we simplify nested quotients, e.g. '(s/t)/u' could
          become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
          if we choose to do so here, the simpset used by arith must be able to
@@ -219,7 +219,7 @@ let
         (case demult thy inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const (@{const_name Fields.divide}, T) $ _ $ _, m, pi as (p, i)) =
+    | poly (all as Const (@{const_name Rings.divide}, T) $ _ $ _, m, pi as (p, i)) =
         if of_field_sort thy (domain_type T) then 
           (case demult thy inj_consts (all, m) of
              (NONE,   m') => (p, Rat.add i m')
@@ -302,7 +302,7 @@ fun is_split_thm ctxt thm =
           @{const_name Groups.minus},
           "Int.nat" (*DYNAMIC BINDING!*),
           "Divides.div_class.mod" (*DYNAMIC BINDING!*),
-          "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
+          @{const_name Rings.divide}] a
     | _ =>
       (if Context_Position.is_visible ctxt then
         warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
@@ -501,7 +501,7 @@ in
     (* ?P ((?n::nat) div (numeral ?k)) =
          ((numeral ?k = 0 --> ?P 0) & (~ (numeral ?k = 0) -->
            (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.div_class.div", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
+    | (Const (@{const_name Rings.divide}, Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -592,7 +592,7 @@ in
           (numeral ?k < 0 -->
             (ALL i j.
               numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.div_class.div",
+    | (Const (@{const_name Rings.divide},
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
