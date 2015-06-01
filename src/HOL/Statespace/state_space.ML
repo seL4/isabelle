@@ -194,7 +194,7 @@ fun neq_x_y ctxt x y =
     val tree = Thm.term_of ctree;
     val x_path = the (DistinctTreeProver.find_tree x tree);
     val y_path = the (DistinctTreeProver.find_tree y tree);
-    val thm = DistinctTreeProver.distinctTreeProver dist_thm x_path y_path;
+    val thm = DistinctTreeProver.distinctTreeProver ctxt dist_thm x_path y_path;
   in SOME thm
   end handle Option.Option => NONE)
 
@@ -221,7 +221,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
     fun solve_tac ctxt = CSUBGOAL (fn (goal, i) =>
       let
         val distinct_thm = Proof_Context.get_thm ctxt dist_thm_name;
-        val rule = DistinctTreeProver.distinct_implProver distinct_thm goal;
+        val rule = DistinctTreeProver.distinct_implProver ctxt distinct_thm goal;
       in rtac rule i end);
 
     fun tac ctxt =

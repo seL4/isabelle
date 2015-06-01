@@ -10,12 +10,12 @@ sig
   val find_tree : term -> term -> direction list option
 
   val neq_to_eq_False : thm
-  val distinctTreeProver : thm -> direction list -> direction list -> thm
+  val distinctTreeProver : Proof.context -> thm -> direction list -> direction list -> thm
   val neq_x_y : Proof.context -> term -> term -> string -> thm option
   val distinctFieldSolver : string list -> solver
   val distinctTree_tac : string list -> Proof.context -> int -> tactic
-  val distinct_implProver : thm -> cterm -> thm
-  val subtractProver : term -> cterm -> thm -> thm
+  val distinct_implProver : Proof.context -> thm -> cterm -> thm
+  val subtractProver : Proof.context -> term -> cterm -> thm -> thm
   val distinct_simproc : string list -> simproc
 
   val discharge : thm list -> thm -> thm
@@ -88,14 +88,12 @@ fun split_common_prefix xs [] = ([], xs, [])
 (* Wrapper around Thm.instantiate. The type instiations of instTs are applied to
  * the right hand sides of insts
  *)
-fun instantiate instTs insts =
+fun instantiate ctxt instTs insts =
   let
     val instTs' = map (fn (T, U) => (dest_TVar (Thm.typ_of T), Thm.typ_of U)) instTs;
     fun substT x = (case AList.lookup (op =) instTs' x of NONE => TVar x | SOME T' => T');
     fun mapT_and_recertify ct =
-      let
-        val thy = Thm.theory_of_cterm ct;
-      in (Thm.global_cterm_of thy (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct))) end;
+      (Thm.cterm_of ctxt (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct)));
     val insts' = map (apfst mapT_and_recertify) insts;
   in Thm.instantiate (instTs, insts') end;
 
@@ -198,7 +196,7 @@ in
    otherwise all_distinct_left_right
 *)
 
-fun distinctTreeProver dist_thm x_path y_path =
+fun distinctTreeProver ctxt dist_thm x_path y_path =
   let
     fun dist_subtree [] thm = thm
       | dist_subtree (p :: ps) thm =
@@ -219,14 +217,14 @@ fun distinctTreeProver dist_thm x_path y_path =
       in
         (case ps of
           [] =>
-            instantiate
+            instantiate ctxt
               [(Thm.ctyp_of_cterm x_in_set_root, xT)]
               [(l_in_set_root, l), (x_in_set_root, x), (r_in_set_root, r)] @{thm in_set_root}
         | Left :: ps' =>
             let
               val in_set_l = in_set ps' l;
               val in_set_left' =
-                instantiate
+                instantiate ctxt
                   [(Thm.ctyp_of_cterm x_in_set_left, xT)]
                   [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
             in discharge [in_set_l] in_set_left' end
@@ -234,7 +232,7 @@ fun distinctTreeProver dist_thm x_path y_path =
             let
               val in_set_r = in_set ps' r;
               val in_set_right' =
-                instantiate
+                instantiate ctxt
                   [(Thm.ctyp_of_cterm x_in_set_right, xT)]
                   [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
             in discharge [in_set_r] in_set_right' end)
@@ -291,35 +289,34 @@ local
     in (alpha, #1 (dest_Var (Thm.term_of ct))) end;
 in
 
-fun subtractProver (Const (@{const_name Tip}, T)) ct dist_thm =
+fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
       let
         val ct' = dist_thm |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
-        val thy = Thm.theory_of_cterm ct;
         val [alphaI] = #2 (dest_Type T);
       in
         Thm.instantiate
-          ([(alpha, Thm.global_ctyp_of thy alphaI)],
-           [(Thm.global_cterm_of thy (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
+          ([(alpha, Thm.ctyp_of ctxt alphaI)],
+           [(Thm.cterm_of ctxt (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
       end
-  | subtractProver (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
+  | subtractProver ctxt (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
       let
         val ct' = dist_thm |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
         val (_, [cl, _, _, cr]) = Drule.strip_comb ct;
         val ps = the (find_tree x (Thm.term_of ct'));
         val del_tree = deleteProver dist_thm ps;
         val dist_thm' = discharge [del_tree, dist_thm] @{thm delete_Some_all_distinct};
-        val sub_l = subtractProver (Thm.term_of cl) cl (dist_thm');
+        val sub_l = subtractProver ctxt (Thm.term_of cl) cl (dist_thm');
         val sub_r =
-          subtractProver (Thm.term_of cr) cr
+          subtractProver ctxt (Thm.term_of cr) cr
             (discharge [sub_l, dist_thm'] @{thm subtract_Some_all_distinct_res});
       in discharge [del_tree, sub_l, sub_r] @{thm subtract_Node} end;
 
 end;
 
-fun distinct_implProver dist_thm ct =
+fun distinct_implProver ctxt dist_thm ct =
   let
     val ctree = ct |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
-    val sub = subtractProver (Thm.term_of ctree) ctree dist_thm;
+    val sub = subtractProver ctxt (Thm.term_of ctree) ctree dist_thm;
   in @{thm subtract_Some_all_distinct} OF [sub, dist_thm] end;
 
 fun get_fst_success f [] = NONE
@@ -335,7 +332,7 @@ fun neq_x_y ctxt x y name =
     val tree = Thm.term_of ctree;
     val x_path = the (find_tree x tree);
     val y_path = the (find_tree y tree);
-    val thm = distinctTreeProver dist_thm x_path y_path;
+    val thm = distinctTreeProver ctxt dist_thm x_path y_path;
   in SOME thm
   end handle Option.Option => NONE);
 
