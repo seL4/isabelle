@@ -1295,11 +1295,10 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
   let
     val thy = Proof_Context.theory_of raw_ctxt;
 
-    val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
+    val ct = raw_ct
+      |> Thm.transfer_cterm thy
+      |> Thm.adjust_maxidx_cterm ~1;
     val maxidx = Thm.maxidx_of_cterm ct;
-    val _ =
-      Theory.subthy (Thm.theory_of_cterm ct, thy) orelse
-        raise CTERM ("rewrite_cterm: bad background theory", [ct]);
 
     val ctxt =
       raw_ctxt

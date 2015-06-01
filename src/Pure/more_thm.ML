@@ -279,10 +279,9 @@ structure Hyps = Proof_Data
   fun init _ : T = (Termtab.empty, true);
 );
 
-fun declare_hyps ct ctxt =
-  if Theory.subthy (Thm.theory_of_cterm ct, Proof_Context.theory_of ctxt) then
-    (Hyps.map o apfst) (Termtab.update (Thm.term_of ct, ())) ctxt
-  else raise CTERM ("assume_hyps: bad background theory", [ct]);
+fun declare_hyps raw_ct ctxt =
+  let val ct = Thm.transfer_cterm (Proof_Context.theory_of ctxt) raw_ct
+  in (Hyps.map o apfst) (Termtab.update (Thm.term_of ct, ())) ctxt end;
 
 fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
 
