@@ -259,9 +259,22 @@ fun register_def class def_thm thy =
 
 (* class context syntax *)
 
+fun make_rewrite t c_ty =
+  let
+    val (vs, t') = strip_abs t;
+    val vts = map snd vs
+      |> Name.invent_names Name.context Name.uu
+      |> map (fn (v, T) => Var ((v, 0), T));
+  in (betapplys (t, vts), betapplys (Const c_ty, vts)) end;
+
 fun these_unchecks thy =
-  map_filter (fn (c, (_, ((ty, t), input_only))) => if input_only then NONE else SOME (t, Const (c, ty)))
-  o these_operations thy;
+  these_operations thy
+  #> map_filter (fn (c, (_, ((ty, t), input_only))) =>
+    if input_only then NONE else SOME (make_rewrite t (c, ty)));
+
+fun these_unchecks_reversed thy =
+  these_operations thy
+  #> map (fn (c, (_, ((ty, t), _))) => (Const (c, ty), t));
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -421,7 +434,7 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
 fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val preprocess = perhaps (try (Pattern.rewrite_term thy (these_unchecks thy [class]) []));
+    val preprocess = perhaps (try (Pattern.rewrite_term_top thy (these_unchecks thy [class]) []));
     val (global_rhs, (extra_tfrees, (type_params, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -443,7 +456,7 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism thy class;
     val rhs_generic =
-      perhaps (try (Pattern.rewrite_term thy (map swap (these_unchecks thy [class])) [])) rhs;
+      perhaps (try (Pattern.rewrite_term_top thy (these_unchecks_reversed thy [class]) [])) rhs;
   in
     lthy
     |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
