@@ -18,7 +18,7 @@ sig
   val forall_intr_rename: (string * cterm) -> thm -> thm
 
   datatype proof_attempt = Solved of thm | Stuck of thm | Fail
-  val try_proof: cterm -> tactic -> proof_attempt
+  val try_proof: Proof.context -> cterm -> tactic -> proof_attempt
 
   val dest_binop_list: string -> term -> term list
   val regroup_conv: Proof.context -> string -> string -> thm list -> int list -> conv
@@ -68,13 +68,13 @@ fun forall_intr_rename (n, cv) thm =
 
 datatype proof_attempt = Solved of thm | Stuck of thm | Fail
 
-fun try_proof cgoal tac =
-  case SINGLE tac (Goal.init cgoal) of
+fun try_proof ctxt cgoal tac =
+  (case SINGLE tac (Goal.init cgoal) of
     NONE => Fail
   | SOME st =>
-    if Thm.no_prems st
-    then Solved (Goal.finish (Syntax.init_pretty_global (Thm.theory_of_cterm cgoal)) st)
-    else Stuck st
+      if Thm.no_prems st
+      then Solved (Goal.finish ctxt st)
+      else Stuck st)
 
 
 fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) =

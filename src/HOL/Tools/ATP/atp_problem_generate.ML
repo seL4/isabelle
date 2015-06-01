@@ -759,7 +759,7 @@ fun reveal_bounds Ts =
 fun do_introduce_combinators ctxt Ts t =
   (t |> conceal_bounds Ts
      |> Thm.cterm_of ctxt
-     |> Meson_Clausify.introduce_combinators_in_cterm
+     |> Meson_Clausify.introduce_combinators_in_cterm ctxt
      |> Thm.prop_of |> Logic.dest_equals |> snd
      |> reveal_bounds Ts)
   (* A type variable of sort "{}" will make abstraction fail. *)

@@ -112,11 +112,10 @@ fun eta_contract p =
       | eta b t = t
   in eta false end;
 
-fun eta_contract_thm p =
+fun eta_contract_thm ctxt p =
   Conv.fconv_rule (Conv.then_conv (Thm.beta_conversion true, fn ct =>
     Thm.transitive (Thm.eta_conversion ct)
-      (Thm.symmetric (Thm.eta_conversion
-        (Thm.global_cterm_of (Thm.theory_of_cterm ct) (eta_contract p (Thm.term_of ct)))))));
+      (Thm.symmetric (Thm.eta_conversion (Thm.cterm_of ctxt (eta_contract p (Thm.term_of ct)))))));
 
 
 (***********************************************************)
@@ -238,7 +237,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
   in
     Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]
       addsimprocs [@{simproc Collect_mem}]) thm'' |>
-        zero_var_indexes |> eta_contract_thm (equal p)
+        zero_var_indexes |> eta_contract_thm ctxt (equal p)
   end;
 
 
@@ -342,7 +341,7 @@ fun to_pred thms context thm =
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
       [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
-    eta_contract_thm (is_pred pred_arities) |>
+    eta_contract_thm ctxt (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
 
@@ -402,7 +401,7 @@ fun codegen_preproc thy =  (* FIXME proper context!? *)
         thm |>
         Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
           [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
-        eta_contract_thm (is_pred pred_arities)
+        eta_contract_thm ctxt (is_pred pred_arities)
       else thm
   in map preproc end;
 

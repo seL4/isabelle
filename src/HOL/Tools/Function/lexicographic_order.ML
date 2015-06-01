@@ -70,16 +70,16 @@ fun mk_cell ctxt solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
     val goals = Thm.cterm_of ctxt o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
-    case try_proof (goals @{const_name Orderings.less}) solve_tac of
+    (case try_proof ctxt (goals @{const_name Orderings.less}) solve_tac of
       Solved thm => Less thm
     | Stuck thm =>
-      (case try_proof (goals @{const_name Orderings.less_eq}) solve_tac of
-         Solved thm2 => LessEq (thm2, thm)
-       | Stuck thm2 =>
-         if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}] then False thm2
-         else None (thm2, thm)
-       | _ => raise Match) (* FIXME *)
-    | _ => raise Match
+        (case try_proof ctxt (goals @{const_name Orderings.less_eq}) solve_tac of
+          Solved thm2 => LessEq (thm2, thm)
+        | Stuck thm2 =>
+            if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}] then False thm2
+            else None (thm2, thm)
+        | _ => raise Match) (* FIXME *)
+    | _ => raise Match)
   end);
 
 

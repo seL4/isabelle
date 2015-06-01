@@ -11,7 +11,7 @@ sig
   val new_nonskolem_var_prefix : string
   val is_zapped_var_name : string -> bool
   val is_quasi_lambda_free : term -> bool
-  val introduce_combinators_in_cterm : cterm -> thm
+  val introduce_combinators_in_cterm : Proof.context -> cterm -> thm
   val introduce_combinators_in_theorem : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val ss_only : thm list -> Proof.context -> Proof.context
@@ -99,16 +99,14 @@ val [g_C,f_C] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars (Thm.prop_o
 val [f_S,g_S] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_S}));
 
 (* FIXME: Requires more use of cterm constructors. *)
-fun abstract ct =
+fun abstract ctxt ct =
   let
-      val thy = Thm.theory_of_cterm ct
       val Abs(x,_,body) = Thm.term_of ct
       val Type (@{type_name fun}, [xT,bodyT]) = Thm.typ_of_cterm ct
-      val cxT = Thm.global_ctyp_of thy xT
-      val cbodyT = Thm.global_ctyp_of thy bodyT
+      val cxT = Thm.ctyp_of ctxt xT
+      val cbodyT = Thm.ctyp_of ctxt bodyT
       fun makeK () =
-        instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.global_cterm_of thy body)]
-                     @{thm abs_K}
+        instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.cterm_of ctxt body)] @{thm abs_K}
   in
       case body of
           Const _ => makeK()
@@ -118,35 +116,35 @@ fun abstract ct =
         | rator$rand =>
             if Term.is_dependent rator then (*C or S*)
                if Term.is_dependent rand then (*S*)
-                 let val crator = Thm.global_cterm_of thy (Abs(x,xT,rator))
-                     val crand = Thm.global_cterm_of thy (Abs(x,xT,rand))
+                 let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
+                     val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
                      val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] @{thm abs_S}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_S')
                  in
-                   Thm.transitive abs_S' (Conv.binop_conv abstract rhs)
+                   Thm.transitive abs_S' (Conv.binop_conv (abstract ctxt) rhs)
                  end
                else (*C*)
-                 let val crator = Thm.global_cterm_of thy (Abs(x,xT,rator))
+                 let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
                      val abs_C' =
-                      cterm_instantiate [(f_C,crator),(g_C,Thm.global_cterm_of thy rand)] @{thm abs_C}
+                      cterm_instantiate [(f_C, crator), (g_C, Thm.cterm_of ctxt rand)] @{thm abs_C}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_C')
                  in
-                   Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
+                   Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv (abstract ctxt)) rhs)
                  end
             else if Term.is_dependent rand then (*B or eta*)
                if rand = Bound 0 then Thm.eta_conversion ct
                else (*B*)
-                 let val crand = Thm.global_cterm_of thy (Abs(x,xT,rand))
-                     val crator = Thm.global_cterm_of thy rator
+                 let val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
+                     val crator = Thm.cterm_of ctxt rator
                      val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] @{thm abs_B}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_B')
-                 in Thm.transitive abs_B' (Conv.arg_conv abstract rhs) end
-            else makeK()
+                 in Thm.transitive abs_B' (Conv.arg_conv (abstract ctxt) rhs) end
+            else makeK ()
         | _ => raise Fail "abstract: Bad term"
   end;
 
 (* Traverse a theorem, remplacing lambda-abstractions with combinators. *)
-fun introduce_combinators_in_cterm ct =
+fun introduce_combinators_in_cterm ctxt ct =
   if is_quasi_lambda_free (Thm.term_of ct) then
     Thm.reflexive ct
   else case Thm.term_of ct of
@@ -154,14 +152,14 @@ fun introduce_combinators_in_cterm ct =
     let
       val (cv, cta) = Thm.dest_abs NONE ct
       val (v, _) = dest_Free (Thm.term_of cv)
-      val u_th = introduce_combinators_in_cterm cta
+      val u_th = introduce_combinators_in_cterm ctxt cta
       val cu = Thm.rhs_of u_th
-      val comb_eq = abstract (Thm.lambda cv cu)
+      val comb_eq = abstract ctxt (Thm.lambda cv cu)
     in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
   | _ $ _ =>
     let val (ct1, ct2) = Thm.dest_comb ct in
-        Thm.combination (introduce_combinators_in_cterm ct1)
-                        (introduce_combinators_in_cterm ct2)
+        Thm.combination (introduce_combinators_in_cterm ctxt ct1)
+                        (introduce_combinators_in_cterm ctxt ct2)
     end
 
 fun introduce_combinators_in_theorem ctxt th =
@@ -170,7 +168,7 @@ fun introduce_combinators_in_theorem ctxt th =
   else
     let
       val th = Drule.eta_contraction_rule th
-      val eqth = introduce_combinators_in_cterm (Thm.cprop_of th)
+      val eqth = introduce_combinators_in_cterm ctxt (Thm.cprop_of th)
     in Thm.equal_elim eqth th end
     handle THM (msg, _, _) =>
            (warning ("Error in the combinator translation of " ^ Display.string_of_thm ctxt th ^

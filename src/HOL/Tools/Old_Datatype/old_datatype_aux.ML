@@ -52,7 +52,7 @@ sig
 
   val app_bnds : term -> int -> term
 
-  val ind_tac : thm -> string list -> int -> tactic
+  val ind_tac : Proof.context -> thm -> string list -> int -> tactic
   val exh_tac : Proof.context -> (string -> thm) -> int -> tactic
 
   exception Datatype
@@ -124,9 +124,8 @@ fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
 (* instantiate induction rule *)
 
-fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
+fun ind_tac ctxt indrule indnames = CSUBGOAL (fn (cgoal, i) =>
   let
-    val thy = Thm.theory_of_cterm cgoal;
     val goal = Thm.term_of cgoal;
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of indrule));
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop (Logic.strip_imp_concl goal));
@@ -145,11 +144,10 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))));
     val insts =
-      map_filter (fn (t, u) =>
+      (ts ~~ ts') |> map_filter (fn (t, u) =>
         (case abstr (getP u) of
           NONE => NONE
-        | SOME u' =>
-            SOME (apply2 (Thm.global_cterm_of thy) (t |> getP |> snd |> head_of, u')))) (ts ~~ ts');
+        | SOME u' => SOME (apply2 (Thm.cterm_of ctxt) (t |> getP |> snd |> head_of, u'))));
     val indrule' = cterm_instantiate insts indrule;
   in resolve0_tac [indrule'] i end);
 

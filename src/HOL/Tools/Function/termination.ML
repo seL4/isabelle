@@ -142,9 +142,9 @@ fun prove_chain ctxt chain_tac (c1, c2) =
         Const (@{const_abbrev Set.empty}, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
-    case Function_Lib.try_proof (Thm.cterm_of ctxt goal) chain_tac of
+    (case Function_Lib.try_proof ctxt (Thm.cterm_of ctxt goal) chain_tac of
       Function_Lib.Solved thm => SOME thm
-    | _ => NONE
+    | _ => NONE)
   end
 
 
@@ -167,22 +167,22 @@ fun dest_call (sk, _, _, _, _) = dest_call' sk
 fun mk_desc ctxt tac vs Gam l r m1 m2 =
   let
     fun try rel =
-      try_proof (Thm.cterm_of ctxt
+      try_proof ctxt (Thm.cterm_of ctxt
         (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
-             HOLogic.mk_Trueprop (Const (rel, @{typ "nat => nat => bool"})
+             HOLogic.mk_Trueprop (Const (rel, @{typ "nat \<Rightarrow> nat \<Rightarrow> bool"})
                $ (m2 $ r) $ (m1 $ l)))))) tac
   in
-    case try @{const_name Orderings.less} of
-       Solved thm => Less thm
-     | Stuck thm =>
-       (case try @{const_name Orderings.less_eq} of
+    (case try @{const_name Orderings.less} of
+      Solved thm => Less thm
+    | Stuck thm =>
+        (case try @{const_name Orderings.less_eq} of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-          if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
-          then False thm2 else None (thm2, thm)
+            if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
+            then False thm2 else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
-     | _ => raise Match
+    | _ => raise Match)
 end
 
 fun prove_descent ctxt tac sk (c, (m1, m2)) =

@@ -418,7 +418,8 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
           Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj ind_concl1))
             (fn {context = ctxt, ...} => EVERY
-              [(Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+              [(Old_Datatype_Aux.ind_tac ctxt induct [] THEN_ALL_NEW
+                  Object_Logic.atomize_prems_tac ctxt) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
                   Old_Datatype_Aux.exh_tac ctxt (exh_thm_of dt_info) 1,
@@ -445,7 +446,8 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
             (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj ind_concl2))
             (fn {context = ctxt, ...} =>
               EVERY [
-                (Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+                (Old_Datatype_Aux.ind_tac ctxt induct [] THEN_ALL_NEW
+                  Object_Logic.atomize_prems_tac ctxt) 1,
                 rewrite_goals_tac ctxt rewrites,
                 REPEAT ((resolve_tac ctxt rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
@@ -481,7 +483,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       else
         drop (length newTs) (Old_Datatype_Aux.split_conj_thm
           (Goal.prove_sorry_global thy5 [] [] iso_t (fn {context = ctxt, ...} => EVERY
-             [(Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW
+             [(Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
                  Object_Logic.atomize_prems_tac ctxt) 1,
               REPEAT (rtac TrueI 1),
               rewrite_goals_tac ctxt (mk_meta_eq @{thm choice_eq} ::
@@ -636,7 +638,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       (fn {context = ctxt, prems, ...} =>
         EVERY
           [rtac indrule_lemma' 1,
-           (Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW
+           (Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
               Object_Logic.atomize_prems_tac ctxt) 1,
            EVERY (map (fn (prem, r) => (EVERY
              [REPEAT (eresolve_tac ctxt Abs_inverse_thms 1),
