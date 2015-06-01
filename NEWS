@@ -3,8 +3,15 @@ Isabelle NEWS -- history of user-relevant changes
 
 (Note: Isabelle/jEdit shows a tree-view of this file in Sidekick.)
 
+
 New in this Isabelle version
 ----------------------------
+
+*** Pure ***
+
+* Configuration option rule_insts_schematic has been discontinued
+(intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.
+
 
 *** HOL ***
 

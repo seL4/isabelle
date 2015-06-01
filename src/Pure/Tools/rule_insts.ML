@@ -14,7 +14,6 @@ sig
   val read_instantiate: Proof.context ->
     ((indexname * Position.T) * string) list -> string list -> thm -> thm
   val read_term: string -> Proof.context -> term * Proof.context
-  val schematic: bool Config.T
   val goal_context: term -> Proof.context -> (string * typ) list * Proof.context
   val res_inst_tac: Proof.context ->
     ((indexname * Position.T) * string) list -> (binding * string option * mixfix) list ->
@@ -214,17 +213,13 @@ end;
 
 (* goal context *)
 
-(*legacy*)
-val schematic = Attrib.setup_config_bool @{binding rule_insts_schematic} (K false);
-
 fun goal_context goal ctxt =
   let
     val ((_, params), ctxt') = ctxt
       |> Variable.declare_constraints goal
       |> Variable.improper_fixes
       |> Variable.focus_params goal
-      ||> Variable.restore_proper_fixes ctxt
-      ||> Config.get ctxt schematic ? Proof_Context.set_mode Proof_Context.mode_schematic;
+      ||> Variable.restore_proper_fixes ctxt;
   in (params, ctxt') end;
 
 
