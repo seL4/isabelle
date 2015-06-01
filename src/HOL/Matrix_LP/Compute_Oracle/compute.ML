@@ -2,8 +2,8 @@
     Author:     Steven Obua
 *)
 
-signature COMPUTE = sig
-
+signature COMPUTE =
+sig
     type computer
     type theorem
     type naming = int -> string
@@ -32,10 +32,10 @@ signature COMPUTE = sig
     (* ! *) val instantiate : computer -> (string * cterm) list -> theorem -> theorem
     (* ! *) val evaluate_prem : computer -> int -> theorem -> theorem
     (* ! *) val modus_ponens : computer -> int -> thm -> theorem -> theorem
-
 end
 
-structure Compute :> COMPUTE = struct
+structure Compute :> COMPUTE =
+struct
 
 open Report;
 
@@ -186,10 +186,6 @@ fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,_))))
     (r := SOME (p1,p2,p3,p4,p5,p6,naming'))
 
 fun ref_of (Computer r) = r
-
-fun super_theory thy1 thy2 =
-  if Theory.subthy (thy1, thy2) then thy2
-  else raise THEORY ("Not a super theory", [thy1, thy2]);
 
 
 datatype cthm = ComputeThm of term list * sort list * term
@@ -375,12 +371,12 @@ fun export_thm thy hyps shyps prop =
         
 (* --------- Rewrite ----------- *)
 
-fun rewrite computer ct =
+fun rewrite computer raw_ct =
     let
-        val thy = Thm.theory_of_cterm ct
+        val thy = theory_of computer
+        val ct = Thm.transfer_cterm thy raw_ct
         val t' = Thm.term_of ct
         val ty = Thm.typ_of_cterm ct
-        val _ = super_theory (theory_of computer) thy
         val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
         val t = runprog (prog_of computer) t
@@ -400,9 +396,10 @@ datatype theorem = Theorem of theory * unit Unsynchronized.ref * (int * typ) Sym
 
 exception ParamSimplify of computer * theorem
 
-fun make_theorem computer th vars =
+fun make_theorem computer raw_th vars =
 let
-    val _ = super_theory (theory_of computer) (Thm.theory_of_thm th)
+    val thy = theory_of computer
+    val th = Thm.transfer thy raw_th
 
     val (ComputeThm (hyps, shyps, prop)) = thm2cthm th 
 
@@ -453,8 +450,7 @@ let
     val (encoding, concl) = remove_types encoding (Logic.strip_imp_concl prop)
     val _ = set_encoding computer encoding
 in
-    Theorem (Thm.theory_of_thm th, stamp_of computer, vartab, varsubst, 
-             prems, concl, hyps, shyps)
+    Theorem (thy, stamp_of computer, vartab, varsubst, prems, concl, hyps, shyps)
 end
     
 fun theory_of_theorem (Theorem (thy,_,_,_,_,_,_,_)) = thy
@@ -505,9 +501,9 @@ let
         else 
             raise Compute "instantiate: not a closed term"
 
-    fun compute_inst (s, ct) vs =
+    fun compute_inst (s, raw_ct) vs =
         let
-            val _ = super_theory (Thm.theory_of_cterm ct) thy
+            val ct = Thm.transfer_cterm thy raw_ct
             val ty = Thm.typ_of_cterm ct
         in          
             (case Symtab.lookup vartab s of 
@@ -606,19 +602,13 @@ fun prem2term (Prem t) = t
   | prem2term (EqPrem (a,b,_,eq)) = 
     AbstractMachine.App (AbstractMachine.App (AbstractMachine.Const eq, a), b)
 
-fun modus_ponens computer prem_no th' th = 
+fun modus_ponens computer prem_no raw_th' th = 
 let
+    val thy = theory_of computer
     val _ = check_compatible computer th
-    val thy = 
-        let
-            val thy1 = theory_of_theorem th
-            val thy2 = Thm.theory_of_thm th'
-        in
-            if Theory.subthy (thy1, thy2) then thy2 
-            else if Theory.subthy (thy2, thy1) then thy1 else
-            raise Compute "modus_ponens: theorems are not compatible with each other"
-        end 
-    val th' = make_theorem computer th' []
+    val _ =
+      Theory.subthy (theory_of_theorem th, thy) orelse raise Compute "modus_ponens: bad theory"
+    val th' = make_theorem computer (Thm.transfer thy raw_th') []
     val varsubst = varsubst_of_theorem th
     fun run vars_allowed t =
         runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
