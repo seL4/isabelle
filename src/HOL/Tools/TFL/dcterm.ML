@@ -175,18 +175,12 @@ val strip_disj   = rev o (op::) o strip dest_disj
  * Going into and out of prop
  *---------------------------------------------------------------------------*)
 
-fun mk_prop ctm =
-  let
-    val thy = Thm.theory_of_cterm ctm;
-    val t = Thm.term_of ctm;
-  in
-    if can HOLogic.dest_Trueprop t then ctm
-    else Thm.global_cterm_of thy (HOLogic.mk_Trueprop t)
-  end
-  handle TYPE (msg, _, _) => raise ERR "mk_prop" msg
-    | TERM (msg, _) => raise ERR "mk_prop" msg;
+fun is_Trueprop ct =
+  (case Thm.term_of ct of
+    Const (@{const_name Trueprop}, _) $ _ => true
+  | _ => false);
 
-fun drop_prop ctm = dest_monop @{const_name Trueprop} ctm handle Utils.ERR _ => ctm;
-
+fun mk_prop ct = if is_Trueprop ct then ct else Thm.apply @{cterm Trueprop} ct;
+fun drop_prop ct = if is_Trueprop ct then Thm.dest_arg ct else ct;
 
 end;
