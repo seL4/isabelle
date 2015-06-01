@@ -31,7 +31,13 @@ class semiring_div = semidom + div +
     and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
 begin
 
-subclass semiring_no_zero_divisors ..
+subclass semidom_divide
+proof
+  fix b a
+  assume "b \<noteq> 0"
+  then show "a * b div b = a"
+    using div_mult_self1 [of b 0 a] by (simp add: ac_simps)
+qed simp
 
 lemma power_not_zero: -- \<open>FIXME cf. @{text field_power_not_zero}\<close>
   "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
@@ -107,11 +113,13 @@ lemma mod_mult_self4 [simp]:
   "(b * c + a) mod b = a mod b"
   by (simp add: add.commute)
 
-lemma div_mult_self1_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
-  using div_mult_self2 [of b 0 a] by simp
+lemma div_mult_self1_is_id:
+  "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
+  by (fact nonzero_mult_divide_cancel_left)
 
-lemma div_mult_self2_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
-  using div_mult_self1 [of b 0 a] by simp
+lemma div_mult_self2_is_id:
+  "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
+  by (fact nonzero_mult_divide_cancel_right)
 
 lemma mod_mult_self1_is_0 [simp]: "b * a mod b = 0"
   using mod_mult_self2 [of 0 b a] by simp
@@ -439,21 +447,21 @@ proof
 next
   assume "b div a = c"
   then have "b div a * a = c * a" by simp
-  moreover from `a dvd b` have "b div a * a = b" by (simp add: dvd_div_mult_self)
+  moreover from `a dvd b` have "b div a * a = b" by simp
   ultimately show "b = c * a" by simp
 qed
    
 lemma dvd_div_div_eq_mult:
   assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
   shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
-  using assms by (auto simp add: mult.commute [of _ a] dvd_div_mult_self dvd_div_eq_mult div_mult_swap intro: sym)
+  using assms by (auto simp add: mult.commute [of _ a] dvd_div_eq_mult div_mult_swap intro: sym)
 
 end
 
 class ring_div = comm_ring_1 + semiring_div
 begin
 
-subclass idom ..
+subclass idom_divide ..
 
 text {* Negation respects modular equivalence. *}
 

@@ -221,7 +221,7 @@ lemma minus_divide_diff_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> - (x / z) - y = (- x - y * z) / z"
   by (simp add: divide_diff_eq_iff[symmetric])
 
-lemma divide_zero [simp]:
+lemma division_ring_divide_zero [simp]:
   "a / 0 = 0"
   by (simp add: divide_inverse)
 
@@ -300,18 +300,31 @@ next
     by (fact field_inverse_zero) 
 qed
 
-subclass idom ..
+subclass idom_divide
+proof
+  fix b a
+  assume "b \<noteq> 0"
+  then show "a * b / b = a"
+    by (simp add: divide_inverse ac_simps)
+next
+  fix a
+  show "a / 0 = 0"
+    by (simp add: divide_inverse)
+qed
 
 text{*There is no slick version using division by zero.*}
 lemma inverse_add:
-  "[| a \<noteq> 0;  b \<noteq> 0 |]
-   ==> inverse a + inverse b = (a + b) * inverse a * inverse b"
-by (simp add: division_ring_inverse_add ac_simps)
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a + inverse b = (a + b) * inverse a * inverse b"
+  by (simp add: division_ring_inverse_add ac_simps)
 
 lemma nonzero_mult_divide_mult_cancel_left [simp]:
-assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/b"
-proof -
-  have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
+  assumes [simp]: "c \<noteq> 0"
+  shows "(c * a) / (c * b) = a / b"
+proof (cases "b = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
     by (simp add: divide_inverse nonzero_inverse_mult_distrib)
   also have "... =  a * inverse b * (inverse c * c)"
     by (simp only: ac_simps)
@@ -320,8 +333,8 @@ proof -
 qed
 
 lemma nonzero_mult_divide_mult_cancel_right [simp]:
-  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (b * c) = a / b"
-by (simp add: mult.commute [of _ c])
+  "c \<noteq> 0 \<Longrightarrow> (a * c) / (b * c) = a / b"
+  using nonzero_mult_divide_mult_cancel_left [of c a b] by (simp add: ac_simps)
 
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse ac_simps)
@@ -340,33 +353,24 @@ qed
 
 text{*Special Cancellation Simprules for Division*}
 
-lemma nonzero_mult_divide_cancel_right [simp]:
-  "b \<noteq> 0 \<Longrightarrow> a * b / b = a"
-  using nonzero_mult_divide_mult_cancel_right [of 1 b a] by simp
-
-lemma nonzero_mult_divide_cancel_left [simp]:
-  "a \<noteq> 0 \<Longrightarrow> a * b / a = b"
-using nonzero_mult_divide_mult_cancel_left [of 1 a b] by simp
-
 lemma nonzero_divide_mult_cancel_right [simp]:
-  "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> b / (a * b) = 1 / a"
-using nonzero_mult_divide_mult_cancel_right [of a b 1] by simp
+  "b \<noteq> 0 \<Longrightarrow> b / (a * b) = 1 / a"
+  using nonzero_mult_divide_mult_cancel_right [of b 1 a] by simp
 
 lemma nonzero_divide_mult_cancel_left [simp]:
-  "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / (a * b) = 1 / b"
-using nonzero_mult_divide_mult_cancel_left [of b a 1] by simp
+  "a \<noteq> 0 \<Longrightarrow> a / (a * b) = 1 / b"
+  using nonzero_mult_divide_mult_cancel_left [of a 1 b] by simp
 
 lemma nonzero_mult_divide_mult_cancel_left2 [simp]:
-  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (c * a) / (b * c) = a / b"
-using nonzero_mult_divide_mult_cancel_left [of b c a] by (simp add: ac_simps)
+  "c \<noteq> 0 \<Longrightarrow> (c * a) / (b * c) = a / b"
+  using nonzero_mult_divide_mult_cancel_left [of c a b] by (simp add: ac_simps)
 
 lemma nonzero_mult_divide_mult_cancel_right2 [simp]:
-  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (c * b) = a / b"
-using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: ac_simps)
+  "c \<noteq> 0 \<Longrightarrow> (a * c) / (c * b) = a / b"
+  using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: ac_simps)
 
 lemma diff_frac_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y - w / z = (x * z - w * y) / (y * z)"
-  thm field_simps
   by (simp add: field_simps)
 
 lemma frac_eq_eq:
@@ -427,7 +431,7 @@ text {*Special Cancellation Simprules for Division*}
 
 lemma mult_divide_mult_cancel_left_if [simp]:
   shows "(c * a) / (c * b) = (if c = 0 then 0 else a / b)"
-  by (simp add: mult_divide_mult_cancel_left)
+  by simp
 
 
 text {* Division and Unary Minus *}

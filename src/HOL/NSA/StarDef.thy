@@ -853,6 +853,13 @@ instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
 instance star :: (semidom) semidom ..
+instance star :: (semidom_divide) semidom_divide
+proof
+  show "\<And>b a :: 'a star. b \<noteq> 0 \<Longrightarrow> divide (a * b) b = a"
+    by transfer simp
+  show "\<And>a :: 'a star. divide a 0 = 0"
+    by transfer simp
+qed
 instance star :: (semiring_div) semiring_div
 apply intro_classes
 apply(transfer, rule mod_div_equality)
@@ -865,6 +872,7 @@ done
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 instance star :: (idom) idom .. 
+instance star :: (idom_divide) idom_divide ..
 
 instance star :: (division_ring) division_ring
 apply (intro_classes)

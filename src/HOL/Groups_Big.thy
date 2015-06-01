@@ -1153,10 +1153,29 @@ lemma setprod_zero_iff [simp]:
   shows "setprod f A = (0::'a::semidom) \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
   using assms by (induct A) (auto simp: no_zero_divisors)
 
-lemma (in field) setprod_diff1:
-  "finite A \<Longrightarrow> f a \<noteq> 0 \<Longrightarrow>
-    (setprod f (A - {a})) = (if a \<in> A then setprod f A / f a else setprod f A)"
-  by (induct A rule: finite_induct) (auto simp add: insert_Diff_if)
+lemma (in semidom_divide) setprod_diff1:
+  assumes "finite A" and "f a \<noteq> 0"
+  shows "setprod f (A - {a}) = (if a \<in> A then divide (setprod f A) (f a) else setprod f A)"
+proof (cases "a \<notin> A")
+  case True then show ?thesis by simp
+next
+  case False with assms show ?thesis
+  proof (induct A rule: finite_induct)
+    case empty then show ?case by simp
+  next
+    case (insert b B)
+    then show ?case
+    proof (cases "a = b")
+      case True with insert show ?thesis by simp
+    next
+      case False with insert have "a \<in> B" by simp
+      def C \<equiv> "B - {a}"
+      with `finite B` `a \<in> B`
+        have *: "B = insert a C" "finite C" "a \<notin> C" by auto
+      with insert show ?thesis by (auto simp add: insert_commute ac_simps)
+    qed
+  qed
+qed
 
 lemma (in field) setprod_inversef: 
   "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
