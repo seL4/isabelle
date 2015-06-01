@@ -27,9 +27,9 @@ sig
       (Attrib.binding * (thm list * Token.src list) list) list -> local_theory -> local_theory) ->
     string -> (Attrib.binding * (thm list * Token.src list) list) list -> local_theory ->
     (string * thm list) list * local_theory
-  val abbrev: (string * bool -> binding * mixfix -> term ->
+  val abbrev: (Syntax.mode -> binding * mixfix -> term ->
       term list * term list -> local_theory -> local_theory) ->
-    string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
+    Syntax.mode -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
 
   (*theory operations*)
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->

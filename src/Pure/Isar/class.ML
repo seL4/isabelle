@@ -336,7 +336,7 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
     val rhs2 = Morphism.term phi2 rhs;
   in n1 = n2 andalso Term.aconv_untyped (rhs1, rhs2) end;
 
-fun target_const class phi0 prmode ((b, _), rhs) =
+fun target_const class phi0 prmode (b, rhs) =
   let
     val guess_identity = guess_morphism_identity (b, rhs) Morphism.identity;
     val guess_canonical = guess_morphism_identity (b, rhs) phi0;
@@ -404,7 +404,7 @@ fun const class ((b, mx), lhs) params lthy =
     val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
-    |> target_const class phi Syntax.mode_default ((b, mx), lhs)
+    |> target_const class phi Syntax.mode_default (b, lhs)
     |> Local_Theory.raw_theory (canonical_const class phi dangling_params
          ((Morphism.binding phi b, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
     |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
@@ -418,7 +418,7 @@ fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
     val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
   in
     lthy
-    |> target_const class phi prmode ((b, mx), lhs)
+    |> target_const class phi prmode (b, lhs)
     |> Local_Theory.raw_theory (canonical_abbrev class phi prmode dangling_term_params
          ((Morphism.binding phi b, if null dangling_term_params then mx else NoSyn), rhs'))
     |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
