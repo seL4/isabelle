@@ -161,7 +161,7 @@ fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
       if mx <> NoSyn
       then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
       else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
-  | NONE => lthy |> Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) params);
+  | NONE => lthy |> Generic_Target.theory_target_foundation (((b, U), mx), (b_def, rhs)) params);
 
 fun pretty lthy =
   let
@@ -201,8 +201,8 @@ fun gen_overloading prep_const raw_overloading thy =
     |> synchronize_syntax
     |> Local_Theory.init (Sign.naming_of thy)
        {define = Generic_Target.define foundation,
-        notes = Generic_Target.notes Generic_Target.theory_notes,
-        abbrev = Generic_Target.abbrev Generic_Target.theory_abbrev,
+        notes = Generic_Target.notes Generic_Target.theory_target_notes,
+        abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
         subscription = Generic_Target.theory_registration,
         pretty = pretty,
