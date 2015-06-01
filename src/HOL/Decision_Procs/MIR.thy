@@ -5532,7 +5532,7 @@ ML_val {* @{code mirlfrqe} @{code problem4} *}
   functions mircfrqe mirlfrqe
   file "mir.ML"*)
 
-oracle mirfr_oracle = {* fn (proofs, ct) =>
+oracle mirfr_oracle = {*
 let
 
 val mk_C = @{code C} o @{code int_of_integer};
@@ -5648,14 +5648,14 @@ fun term_of_fm vs @{code T} = @{term True}
       @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm vs t1 $ term_of_fm vs t2;
 
 in
+  fn (ctxt, t) =>
   let 
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
     val fs = Misc_Legacy.term_frees t;
     val vs = map_index swap fs;
-    val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
-    val t' = (term_of_fm vs o qe o fm_of_term vs) t;
-  in (Thm.global_cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+    (*If quick_and_dirty then run without proof generation as oracle*)
+    val qe = if Config.get ctxt quick_and_dirty then @{code mircfrqe} else @{code mirlfrqe};
+    val t' = term_of_fm vs (qe (fm_of_term vs t));
+  in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
 *}
 

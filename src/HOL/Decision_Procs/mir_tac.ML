@@ -112,11 +112,8 @@ fun mir_tac ctxt q =
     val (th, tac) =
       case Thm.prop_of pre_thm of
         Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
-    let val pth =
-          (* If quick_and_dirty then run without proof generation as oracle*)
-             if Config.get ctxt quick_and_dirty
-             then mirfr_oracle (false, Thm.cterm_of ctxt (Envir.eta_long [] t1))
-             else mirfr_oracle (true, Thm.cterm_of ctxt (Envir.eta_long [] t1))
+    let
+      val pth = mirfr_oracle (ctxt, Envir.eta_long [] t1)
     in 
        ((pth RS iffD2) RS pre_thm,
         assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))

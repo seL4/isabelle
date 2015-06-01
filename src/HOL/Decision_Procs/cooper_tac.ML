@@ -85,7 +85,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
       (case Thm.prop_of pre_thm of
         Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
           let
-            val pth = linzqe_oracle (Thm.cterm_of ctxt (Envir.eta_long [] t1))
+            val pth = linzqe_oracle (ctxt, Envir.eta_long [] t1)
           in
             ((pth RS iffD2) RS pre_thm,
               assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))

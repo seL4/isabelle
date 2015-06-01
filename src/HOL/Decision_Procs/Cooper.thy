@@ -2640,16 +2640,14 @@ fun term_bools acc t =
   end;
 
 in
-  fn ct =>
+  fn (ctxt, t) =>
     let
-      val thy = Thm.theory_of_cterm ct;
-      val t = Thm.term_of ct;
       val fs = Misc_Legacy.term_frees t;
       val bs = term_bools [] t;
       val vs = map_index swap fs;
       val ps = map_index swap bs;
-      val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
-    in Thm.global_cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
+      val t' = term_of_fm ps vs (@{code pa} (fm_of_term ps vs t));
+    in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
 *}
 
