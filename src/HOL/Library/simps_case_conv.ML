@@ -187,8 +187,10 @@ val atomize_meta_eq = forward_tac [meta_eq_to_obj_eq]
 in
 
 fun gen_to_simps ctxt splitthms thm =
-  Seq.list_of ((TRY atomize_meta_eq
-                 THEN (REPEAT (FIRST (map (do_split ctxt) splitthms)))) thm)
+  let val splitthms' = filter (fn t => not (Thm.eq_thm (t, Drule.dummy_thm))) splitthms
+  in
+    Seq.list_of ((TRY atomize_meta_eq THEN (REPEAT (FIRST (map (do_split ctxt) splitthms')))) thm)
+  end
 
 fun to_simps ctxt thm =
   let
