@@ -65,7 +65,7 @@ sig
   val partition_rules: thm -> thm list -> (string * thm list) list
   val partition_rules': thm -> (thm * 'a) list -> (string * (thm * 'a) list) list
   val unpartition_rules: thm list -> (string * 'a list) list -> 'a list
-  val infer_intro_vars: thm -> int -> thm list -> term list list
+  val infer_intro_vars: theory -> thm -> int -> thm list -> term list list
 end;
 
 signature INDUCTIVE =
@@ -1132,9 +1132,8 @@ fun unpartition_rules intros xs =
     (fn x :: xs => (x, xs)) #>> the) intros xs |> fst;
 
 (* infer order of variables in intro rules from order of quantifiers in elim rule *)
-fun infer_intro_vars elim arity intros =
+fun infer_intro_vars thy elim arity intros =
   let
-    val thy = Thm.theory_of_thm elim;
     val _ :: cases = Thm.prems_of elim;
     val used = map (fst o fst) (Term.add_vars (Thm.prop_of elim) []);
     fun mtch (t, u) =

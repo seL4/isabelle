@@ -140,7 +140,7 @@ fun process_spec cos alt_props thy =
             val cT = Thm.ctyp_of_cterm cv
             val spec' = instantiate' [SOME cT] [NONE, SOME cv] spec
           in thm RS spec' end
-        fun remove_alls frees thm = fold (inst_all (Thm.theory_of_thm thm)) frees thm
+        fun remove_alls frees (thm, thy) = (fold (inst_all thy) frees thm, thy)
         fun process_single ((name, atts), rew_imp, frees) args =
           let
             fun undo_imps thm = Thm.equal_elim (Thm.symmetric rew_imp) thm
@@ -152,7 +152,7 @@ fun process_spec cos alt_props thy =
                 Global_Theory.store_thm (Binding.name name, thm) thy)
           in
             swap args
-            |> apfst (remove_alls frees)
+            |> remove_alls frees
             |> apfst undo_imps
             |> apfst Drule.export_without_context
             |-> Thm.theory_attributes

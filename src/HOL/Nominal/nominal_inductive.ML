@@ -591,7 +591,7 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
     val monos = Inductive.get_monos ctxt;
     val intrs' = Inductive.unpartition_rules intrs
       (map (fn (((s, ths), (_, k)), th) =>
-           (s, ths ~~ Inductive.infer_intro_vars th k ths))
+           (s, ths ~~ Inductive.infer_intro_vars thy th k ths))
          (Inductive.partition_rules raw_induct intrs ~~
           Inductive.arities_of raw_induct ~~ elims));
     val k = length (Inductive.params_of raw_induct);

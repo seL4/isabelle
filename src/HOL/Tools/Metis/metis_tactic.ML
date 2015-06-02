@@ -85,7 +85,7 @@ fun introduce_lam_wrappers ctxt th =
               (case add_vars_and_frees u [] of
                 [] =>
                 Conv.abs_conv (conv false o snd) ctxt ct
-                |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
+                |> (fn th => Meson.first_order_resolve ctxt th @{thm Metis.eq_lambdaI})
               | v :: _ =>
                 Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
                 |> Thm.cterm_of ctxt

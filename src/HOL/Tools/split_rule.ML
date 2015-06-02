@@ -39,12 +39,11 @@ fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
   | ap_split _ T3 u = u;
 
 (*Curries any Var of function type in the rule*)
-fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
+fun split_rule_var' ctxt (t as Var (v, Type ("fun", [T1, T2]))) rl =
       let val T' = HOLogic.flatten_tupleT T1 ---> T2;
           val newt = ap_split T1 T2 (Var (v, T'));
-          val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl);
-      in Thm.instantiate ([], [(cterm t, cterm newt)]) rl end
-  | split_rule_var' _ rl = rl;
+      in Thm.instantiate ([], [apply2 (Thm.cterm_of ctxt) (t, newt)]) rl end
+  | split_rule_var' _ _ rl = rl;
 
 
 (* complete splitting of partially split rules *)
@@ -85,11 +84,11 @@ fun collect_vars (Abs (_, _, t)) = collect_vars t
 
 
 fun split_rule_var ctxt =
-  (Drule.export_without_context o remove_internal_split ctxt) oo split_rule_var';
+  (Drule.export_without_context o remove_internal_split ctxt) oo split_rule_var' ctxt;
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule ctxt rl =
-  fold_rev split_rule_var' (Misc_Legacy.term_vars (Thm.concl_of rl)) rl
+  fold_rev (split_rule_var' ctxt) (Misc_Legacy.term_vars (Thm.concl_of rl)) rl
   |> remove_internal_split ctxt
   |> Drule.export_without_context;
 

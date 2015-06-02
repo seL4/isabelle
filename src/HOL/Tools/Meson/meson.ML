@@ -11,7 +11,7 @@ sig
   val trace : bool Config.T
   val max_clauses : int Config.T
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
-  val first_order_resolve : thm -> thm -> thm
+  val first_order_resolve : Proof.context -> thm -> thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
@@ -98,16 +98,16 @@ val disj_FalseD2 = @{thm disj_FalseD2};
 fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
 
 (*FIXME: currently does not "rename variables apart"*)
-fun first_order_resolve thA thB =
+fun first_order_resolve ctxt thA thB =
   (case
     try (fn () =>
-      let val thy = Thm.theory_of_thm thA
+      let val thy = Proof_Context.theory_of ctxt
           val tmA = Thm.concl_of thA
           val Const(@{const_name Pure.imp},_) $ tmB $ _ = Thm.prop_of thB
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
-          val ct_pairs = map (apply2 (Thm.global_cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+          val ct_pairs = map (apply2 (Thm.cterm_of ctxt) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
@@ -359,11 +359,10 @@ in
     in (th RS spec', ctxt') end
 end;
 
-fun apply_skolem_theorem (th, rls) =
+fun apply_skolem_theorem ctxt (th, rls) =
   let
     fun tryall [] = raise THM ("apply_skolem_theorem", 0, th::rls)
-      | tryall (rl :: rls) =
-        first_order_resolve th rl handle THM _ => tryall rls
+      | tryall (rl :: rls) = first_order_resolve ctxt th rl handle THM _ => tryall rls
   in tryall rls end
 
 (* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
@@ -383,7 +382,7 @@ fun cnf old_skolem_ths ctxt (th, ths) =
                 in  ctxt_ref := ctxt'; cnf_aux (th', ths) end
           | Const (@{const_name Ex}, _) =>
               (*existential quantifier: Insert Skolem functions*)
-              cnf_aux (apply_skolem_theorem (th, old_skolem_ths), ths)
+              cnf_aux (apply_skolem_theorem (! ctxt_ref) (th, old_skolem_ths), ths)
           | Const (@{const_name HOL.disj}, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
