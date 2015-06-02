@@ -78,7 +78,7 @@ fun join_assums ctxt th =
       val cntxtr = (#1 o USyntax.strip_imp) rhs  (* but union is solider *)
       val cntxt = union (op aconv) cntxtl cntxtr
   in
-    Rules.GEN_ALL
+    Rules.GEN_ALL ctxt
       (Rules.DISCH_ALL
          (rewrite ctxt (map (Rules.ASSUME o tych) cntxt) (Rules.SPEC_ALL th)))
   end
@@ -211,7 +211,8 @@ fun func_of_cond_eqn tm =
   #1 (USyntax.strip_comb (#lhs (USyntax.dest_eq (#2 (USyntax.strip_forall (#2 (USyntax.strip_imp tm)))))));
 
 fun defer_i congs fid eqs thy =
- let val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
+ let
+     val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
      val f = func_of_cond_eqn (concl (Rules.CONJUNCT1 rules handle Utils.ERR _ => rules));
      val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory

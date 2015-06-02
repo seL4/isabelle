@@ -535,30 +535,30 @@ fun lazyR_def thy fid tflCongs eqns =
      val (c,args) = USyntax.strip_comb lhs
      val (name,Ty) = dest_atom c
      val defn = const_def thy (name, Ty, USyntax.list_mk_abs (args,rhs))
-     val ([def0], theory) =
+     val ([def0], thy') =
        thy
        |> Global_Theory.add_defs false
             [Thm.no_attributes (Binding.name (Thm.def_name fid), defn)]
      val def = Thm.unvarify_global def0;
+     val ctxt' = Syntax.init_pretty_global thy';
      val dummy =
-       if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)
+       if !trace then writeln ("DEF = " ^ Display.string_of_thm ctxt' def)
        else ()
      (* val fconst = #lhs(USyntax.dest_eq(concl def))  *)
-     val tych = Thry.typecheck theory
+     val tych = Thry.typecheck thy'
      val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
          (*lcp: a lot of object-logic inference to remove*)
      val baz = Rules.DISCH_ALL
                  (fold_rev Rules.DISCH full_rqt_prop
                   (Rules.LIST_CONJ extractants))
-     val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm_global theory baz)
-                           else ()
+     val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm ctxt' baz) else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
      val SVrefls = map Thm.reflexive SV'
      val def0 = (fold (fn x => fn th => Rules.rbeta(Thm.combination th x))
                    SVrefls def)
                 RS meta_eq_to_obj_eq
-     val def' = Rules.MP (Rules.SPEC (tych R') (Rules.GEN (tych R1) baz)) def0
+     val def' = Rules.MP (Rules.SPEC (tych R') (Rules.GEN ctxt' (tych R1) baz)) def0
      val body_th = Rules.LIST_CONJ (map Rules.ASSUME full_rqt_prop)
      val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
                        theory Hilbert_Choice*)
@@ -566,7 +566,7 @@ fun lazyR_def thy fid tflCongs eqns =
          handle ERROR msg => cat_error msg
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
      val bar = Rules.MP (Rules.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
- in {theory = theory, R=R1, SV=SV,
+ in {theory = thy', R=R1, SV=SV,
      rules = fold (fn a => fn b => Rules.MP b a) (Rules.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
@@ -633,7 +633,7 @@ fun mk_case ty_info usednames thy =
  fun fail s = raise TFL_ERR "mk_case" s
  fun mk{rows=[],...} = fail"no rows"
    | mk{path=[], rows = [([], (thm, bindings))]} =
-                         Rules.IT_EXISTS (map tych_binding bindings) thm
+                         Rules.IT_EXISTS ctxt (map tych_binding bindings) thm
    | mk{path = u::rstp, rows as (p::_, _)::_} =
      let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map hd pat_rectangle
@@ -693,7 +693,7 @@ fun complete_cases thy =
      val th0 = Rules.ASSUME (tych a_eq_v)
      val rows = map (fn x => ([x], (th0,[]))) pats
  in
- Rules.GEN (tych a)
+ Rules.GEN ctxt (tych a)
        (Rules.RIGHT_ASSOC ctxt
           (Rules.CHOOSE ctxt (tych v, ex_th0)
                 (mk_case ty_info (vname::aname::names)
@@ -774,14 +774,14 @@ end;
  *           TCs = TC_1[pat] ... TC_n[pat]
  *           thm = ih1 /\ ... /\ ih_n |- ih[pat]
  *---------------------------------------------------------------------------*)
-fun prove_case f thy (tm,TCs_locals,thm) =
- let val tych = Thry.typecheck thy
+fun prove_case ctxt f (tm,TCs_locals,thm) =
+ let val tych = Thry.typecheck (Proof_Context.theory_of ctxt)
      val antc = tych(#ant(USyntax.dest_imp tm))
      val thm' = Rules.SPEC_ALL thm
      fun nested tm = is_some (USyntax.find_term (curry (op aconv) f) tm)
      fun get_cntxt TC = tych(#ant(USyntax.dest_imp(#2(USyntax.strip_forall(concl TC)))))
      fun mk_ih ((TC,locals),th2,nested) =
-         Rules.GENL (map tych locals)
+         Rules.GENL ctxt (map tych locals)
             (if nested then Rules.DISCH (get_cntxt TC) th2 handle Utils.ERR _ => th2
              else if USyntax.is_imp (concl TC) then Rules.IMP_TRANS TC th2
              else Rules.MP th2 TC)
@@ -845,7 +845,7 @@ let val ctxt = Proof_Context.init_global thy
     val Rinduct_assum = Rules.ASSUME (tych (USyntax.list_mk_conj Rassums))
     val cases = map (fn pat => Term.betapply (Sinduct_assumf, pat)) pats
     val tasks = Utils.zip3 cases TCl' (Rules.CONJUNCTS Rinduct_assum)
-    val proved_cases = map (prove_case fconst thy) tasks
+    val proved_cases = map (prove_case ctxt fconst) tasks
     val v =
       Free (singleton
         (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] (map concl proved_cases))) "v",
@@ -855,14 +855,14 @@ let val ctxt = Proof_Context.init_global thy
     val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS ctxt [th]th')
                           (substs, proved_cases)
     val abs_cases = map (LEFT_ABS_VSTRUCT ctxt tych) proved_cases1
-    val dant = Rules.GEN vtyped (Rules.DISJ_CASESL (Rules.ISPEC vtyped case_thm) abs_cases)
+    val dant = Rules.GEN ctxt vtyped (Rules.DISJ_CASESL (Rules.ISPEC vtyped case_thm) abs_cases)
     val dc = Rules.MP Sinduct dant
     val Parg_ty = type_of(#Bvar(USyntax.dest_forall(concl dc)))
     val vars = map (gvvariant[Pname]) (USyntax.strip_prod_type Parg_ty)
-    val dc' = fold_rev (Rules.GEN o tych) vars
+    val dc' = fold_rev (Rules.GEN ctxt o tych) vars
                        (Rules.SPEC (tych(USyntax.mk_vstruct Parg_ty vars)) dc)
 in
-   Rules.GEN (tych P) (Rules.DISCH (tych(concl Rinduct_assum)) dc')
+   Rules.GEN ctxt (tych P) (Rules.DISCH (tych(concl Rinduct_assum)) dc')
 end
 handle Utils.ERR _ => raise TFL_ERR "mk_induction" "failed derivation";
 
@@ -966,7 +966,7 @@ let val ctxt = Proof_Context.init_global theory;
    fun simplify_nested_tc tc =
       let val tc_eq = simplifier (tych (#2 (USyntax.strip_forall tc)))
       in
-      Rules.GEN_ALL
+      Rules.GEN_ALL ctxt
        (Rules.MATCH_MP Thms.eqT tc_eq
         handle Utils.ERR _ =>
           (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)

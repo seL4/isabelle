@@ -21,22 +21,22 @@ sig
   val SPEC: cterm -> thm -> thm
   val ISPEC: cterm -> thm -> thm
   val ISPECL: cterm list -> thm -> thm
-  val GEN: cterm -> thm -> thm
-  val GENL: cterm list -> thm -> thm
+  val GEN: Proof.context -> cterm -> thm -> thm
+  val GENL: Proof.context -> cterm list -> thm -> thm
   val LIST_CONJ: thm list -> thm
 
   val SYM: thm -> thm
   val DISCH_ALL: thm -> thm
   val FILTER_DISCH_ALL: (term -> bool) -> thm -> thm
   val SPEC_ALL: thm -> thm
-  val GEN_ALL: thm -> thm
+  val GEN_ALL: Proof.context -> thm -> thm
   val IMP_TRANS: thm -> thm -> thm
   val PROVE_HYP: thm -> thm -> thm
 
   val CHOOSE: Proof.context -> cterm * thm -> thm -> thm
   val EXISTS: cterm * cterm -> thm -> thm
   val EXISTL: cterm list -> thm -> thm
-  val IT_EXISTS: (cterm*cterm) list -> thm -> thm
+  val IT_EXISTS: Proof.context -> (cterm * cterm) list -> thm -> thm
 
   val EVEN_ORS: thm list -> thm list
   val DISJ_CASESL: thm -> thm list -> thm
@@ -158,19 +158,19 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
 (*----------------------------------------------------------------------------
  *        Disjunction
  *---------------------------------------------------------------------------*)
-local val thy = Thm.theory_of_thm disjI1
-      val prop = Thm.prop_of disjI1
-      val [P,Q] = Misc_Legacy.term_vars prop
-      val disj1 = Thm.forall_intr (Thm.global_cterm_of thy Q) disjI1
+local
+  val prop = Thm.prop_of disjI1
+  val [P,Q] = Misc_Legacy.term_vars prop
+  val disj1 = Thm.forall_intr (Thm.cterm_of @{context} Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
 end;
 
-local val thy = Thm.theory_of_thm disjI2
-      val prop = Thm.prop_of disjI2
-      val [P,Q] = Misc_Legacy.term_vars prop
-      val disj2 = Thm.forall_intr (Thm.global_cterm_of thy P) disjI2
+local
+  val prop = Thm.prop_of disjI2
+  val [P,Q] = Misc_Legacy.term_vars prop
+  val disj2 = Thm.forall_intr (Thm.cterm_of @{context} P) disjI2
 in
 fun DISJ2 tm thm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj2)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ2" msg;
@@ -262,11 +262,10 @@ fun DISJ_CASESL disjth thl =
  *        Universals
  *---------------------------------------------------------------------------*)
 local (* this is fragile *)
-      val thy = Thm.theory_of_thm spec
-      val prop = Thm.prop_of spec
-      val x = hd (tl (Misc_Legacy.term_vars prop))
-      val cTV = Thm.global_ctyp_of thy (type_of x)
-      val gspec = Thm.forall_intr (Thm.global_cterm_of thy x) spec
+  val prop = Thm.prop_of spec
+  val x = hd (tl (Misc_Legacy.term_vars prop))
+  val cTV = Thm.ctyp_of @{context} (type_of x)
+  val gspec = Thm.forall_intr (Thm.cterm_of @{context} x) spec
 in
 fun SPEC tm thm =
    let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_cterm tm)], []) gspec
@@ -279,41 +278,38 @@ val ISPEC = SPEC
 val ISPECL = fold ISPEC;
 
 (* Not optimized! Too complicated. *)
-local val thy = Thm.theory_of_thm allI
-      val prop = Thm.prop_of allI
-      val [P] = Misc_Legacy.add_term_vars (prop, [])
-      fun cty_theta s = map (fn (i, (S, ty)) => (Thm.global_ctyp_of s (TVar (i, S)), Thm.global_ctyp_of s ty))
-      fun ctm_theta s = map (fn (i, (_, tm2)) =>
-                             let val ctm2 = Thm.global_cterm_of s tm2
-                             in (Thm.global_cterm_of s (Var(i, Thm.typ_of_cterm ctm2)), ctm2)
-                             end)
-      fun certify s (ty_theta,tm_theta) =
-        (cty_theta s (Vartab.dest ty_theta),
-         ctm_theta s (Vartab.dest tm_theta))
+local
+  val prop = Thm.prop_of allI
+  val [P] = Misc_Legacy.add_term_vars (prop, [])
+  fun cty_theta ctxt = map (fn (i, (S, ty)) => apply2 (Thm.ctyp_of ctxt) (TVar (i, S), ty))
+  fun ctm_theta ctxt =
+    map (fn (i, (_, tm2)) =>
+      let val ctm2 = Thm.cterm_of ctxt tm2
+      in (Thm.cterm_of ctxt (Var (i, Thm.typ_of_cterm ctm2)), ctm2) end)
+  fun certify ctxt (ty_theta,tm_theta) =
+    (cty_theta ctxt (Vartab.dest ty_theta),
+     ctm_theta ctxt (Vartab.dest tm_theta))
 in
-fun GEN v th =
+fun GEN ctxt v th =
    let val gth = Thm.forall_intr v th
-       val thy = Thm.theory_of_thm gth
+       val thy = Proof_Context.theory_of ctxt
        val Const(@{const_name Pure.all},_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
-       val allI2 = Drule.instantiate_normalize (certify thy theta) allI
+       val allI2 = Drule.instantiate_normalize (certify ctxt theta) allI
        val thm = Thm.implies_elim allI2 gth
        val tp $ (A $ Abs(_,_,M)) = Thm.prop_of thm
        val prop' = tp $ (A $ Abs(x,ty,M))
-   in ALPHA thm (Thm.global_cterm_of thy prop')
-   end
+   in ALPHA thm (Thm.cterm_of ctxt prop') end
 end;
 
-val GENL = fold_rev GEN;
+fun GENL ctxt = fold_rev (GEN ctxt);
 
-fun GEN_ALL thm =
-   let val thy = Thm.theory_of_thm thm
-       val prop = Thm.prop_of thm
-       val tycheck = Thm.global_cterm_of thy
-       val vlist = map tycheck (Misc_Legacy.add_term_vars (prop, []))
-  in GENL vlist thm
-  end;
+fun GEN_ALL ctxt thm =
+  let
+    val prop = Thm.prop_of thm
+    val vlist = map (Thm.cterm_of ctxt) (Misc_Legacy.add_term_vars (prop, []))
+  in GENL ctxt vlist thm end;
 
 
 fun MATCH_MP th1 th2 =
@@ -344,24 +340,19 @@ fun CHOOSE ctxt (fvar, exth) fact =
     val t$u = Thm.term_of redex
     val residue = Thm.cterm_of ctxt (Term.betapply (t, u))
   in
-    GEN fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
+    GEN ctxt fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg
   end;
 
-local val thy = Thm.theory_of_thm exI
-      val prop = Thm.prop_of exI
-      val [P,x] = Misc_Legacy.term_vars prop
+local
+  val prop = Thm.prop_of exI
+  val [P, x] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars prop)
 in
 fun EXISTS (template,witness) thm =
-   let val thy = Thm.theory_of_thm thm
-       val prop = Thm.prop_of thm
-       val P' = Thm.global_cterm_of thy P
-       val x' = Thm.global_cterm_of thy x
-       val abstr = #2 (Dcterm.dest_comb template)
-   in
-   thm RS (cterm_instantiate[(P',abstr), (x',witness)] exI)
-     handle THM (msg, _, _) => raise RULES_ERR "EXISTS" msg
-   end
+  let val abstr = #2 (Dcterm.dest_comb template) in
+    thm RS (cterm_instantiate [(P, abstr), (x, witness)] exI)
+      handle THM (msg, _, _) => raise RULES_ERR "EXISTS" msg
+  end
 end;
 
 (*----------------------------------------------------------------------------
@@ -386,16 +377,14 @@ fun EXISTL vlist th =
  *---------------------------------------------------------------------------*)
 (* Could be improved, but needs "subst_free" for certified terms *)
 
-fun IT_EXISTS blist th =
-   let val thy = Thm.theory_of_thm th
-       val tych = Thm.global_cterm_of thy
-       val blist' = map (apply2 Thm.term_of) blist
-       fun ex v M  = Thm.global_cterm_of thy (USyntax.mk_exists{Bvar=v,Body = M})
-
+fun IT_EXISTS ctxt blist th =
+  let
+    val blist' = map (apply2 Thm.term_of) blist
+    fun ex v M = Thm.cterm_of ctxt (USyntax.mk_exists{Bvar=v,Body = M})
   in
-  fold_rev (fn (b as (r1,r2)) => fn thm =>
+    fold_rev (fn (b as (r1,r2)) => fn thm =>
         EXISTS(ex r2 (subst_free [b]
-                   (HOLogic.dest_Trueprop(Thm.prop_of thm))), tych r1)
+                   (HOLogic.dest_Trueprop(Thm.prop_of thm))), Thm.cterm_of ctxt r1)
               thm)
        blist' th
   end;
@@ -509,13 +498,10 @@ fun get ([],_,L) = rev L
 
 (* Note: Thm.rename_params_rule counts from 1, not 0 *)
 fun rename thm =
-  let val thy = Thm.theory_of_thm thm
-      val tych = Thm.global_cterm_of thy
-      val ants = Logic.strip_imp_prems (Thm.prop_of thm)
-      val news = get (ants,1,[])
-  in
-  fold Thm.rename_params_rule news thm
-  end;
+  let
+    val ants = Logic.strip_imp_prems (Thm.prop_of thm)
+    val news = get (ants,1,[])
+  in fold Thm.rename_params_rule news thm end;
 
 
 (*---------------------------------------------------------------------------
@@ -737,10 +723,9 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
          handle Utils.ERR _ => NONE    (* FIXME handle THM as well?? *)
 
         fun restrict_prover ctxt thm =
-          let val dummy = say "restrict_prover:"
+          let val _ = say "restrict_prover:"
               val cntxt = rev (Simplifier.prems_of ctxt)
-              val dummy = print_thms ctxt "cntxt:" cntxt
-              val thy = Thm.theory_of_thm thm
+              val _ = print_thms ctxt "cntxt:" cntxt
               val Const(@{const_name Pure.imp},_) $ (Const(@{const_name Trueprop},_) $ A) $ _ =
                 Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
@@ -762,14 +747,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [USyntax.list_mk_conj(map cncl rcontext)]
               val TC = genl(USyntax.list_mk_imp(antl, A))
-              val dummy = print_cterm ctxt "func:" (Thm.global_cterm_of thy func)
-              val dummy = print_cterm ctxt "TC:" (Thm.global_cterm_of thy (HOLogic.mk_Trueprop TC))
+              val dummy = print_cterm ctxt "func:" (Thm.cterm_of ctxt func)
+              val dummy = print_cterm ctxt "TC:" (Thm.cterm_of ctxt (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = is_some (USyntax.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
-                        else let val cTC = Thm.global_cterm_of thy
-                                              (HOLogic.mk_Trueprop TC)
+                        else let val cTC = Thm.cterm_of ctxt (HOLogic.mk_Trueprop TC)
                              in case rcontext of
                                 [] => SPEC_ALL(ASSUME cTC)
                                | _ => MP (SPEC_ALL (ASSUME cTC))

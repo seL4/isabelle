@@ -32,28 +32,28 @@ fun case_thm_of_ty thy ty  =
 
 (* for use when there are no prems to the subgoal *)
 (* does a case split on the given variable *)
-fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
+fun mk_casesplit_goal_thm ctxt (vstr,ty) gt =
     let
-      val x = Free(vstr,ty)
+      val thy = Proof_Context.theory_of ctxt;
+
+      val x = Free(vstr,ty);
       val abst = Abs(vstr, ty, Term.abstract_over (x, gt));
 
-      val ctermify = Thm.global_cterm_of sgn;
-      val ctypify = Thm.global_ctyp_of sgn;
-      val case_thm = case_thm_of_ty sgn ty;
+      val case_thm = case_thm_of_ty thy ty;
 
-      val abs_ct = ctermify abst;
-      val free_ct = ctermify x;
+      val abs_ct = Thm.cterm_of ctxt abst;
+      val free_ct = Thm.cterm_of ctxt x;
 
       val (Pv, Dv, type_insts) =
           case (Thm.concl_of case_thm) of
-            (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>
+            (_ $ (Pv $ (Dv as Var(D, Dty)))) =>
             (Pv, Dv,
-             Sign.typ_match sgn (Dty, ty) Vartab.empty)
+             Sign.typ_match thy (Dty, ty) Vartab.empty)
           | _ => error "not a valid case thm";
-      val type_cinsts = map (fn (ixn, (S, T)) => (ctypify (TVar (ixn, S)), ctypify T))
+      val type_cinsts = map (fn (ixn, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (ixn, S), T))
         (Vartab.dest type_insts);
-      val cPv = ctermify (Envir.subst_term_types type_insts Pv);
-      val cDv = ctermify (Envir.subst_term_types type_insts Dv);
+      val cPv = Thm.cterm_of ctxt (Envir.subst_term_types type_insts Pv);
+      val cDv = Thm.cterm_of ctxt (Envir.subst_term_types type_insts Dv);
     in
       Conv.fconv_rule Drule.beta_eta_conversion
          (case_thm
@@ -117,7 +117,6 @@ having to (re)search for variables to split. *)
 fun splitto ctxt splitths genth =
     let
       val _ = not (null splitths) orelse error "splitto: no given splitths";
-      val thy = Thm.theory_of_thm genth;
 
       (* check if we are a member of splitths - FIXME: quicker and
       more flexible with discrim net. *)
@@ -134,7 +133,7 @@ fun splitto ctxt splitths genth =
         | SOME v =>
             let
               val gt = HOLogic.dest_Trueprop (#1 (Logic.dest_implies (Thm.prop_of th)));
-              val split_thm = mk_casesplit_goal_thm thy v gt;
+              val split_thm = mk_casesplit_goal_thm ctxt v gt;
               val (subthms, expf) = IsaND.fixed_subgoal_thms ctxt split_thm;
             in
               expf (map recsplitf subthms)

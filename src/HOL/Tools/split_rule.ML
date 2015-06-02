@@ -53,9 +53,8 @@ fun ap_split' (T::Ts) U u = Abs ("v", T, ap_split' Ts U
         (incr_boundvars 1 u) $ Bound 0))
   | ap_split' _ _ u = u;
 
-fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
+fun complete_split_rule_var ctxt (t as Var (v, T), ts) (rl, vs) =
       let
-        val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl)
         val (Us', U') = strip_type T;
         val Us = take (length ts) Us';
         val U = drop (length ts) Us' ---> U';
@@ -64,17 +63,19 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
               let
                 val Ts = HOLogic.flatten_tupleT T;
                 val ys = Name.variant_list xs (replicate (length Ts) a);
-              in (xs @ ys, (cterm v, cterm (HOLogic.mk_ptuple (HOLogic.flat_tupleT_paths T) T
-                (map (Var o apfst (rpair 0)) (ys ~~ Ts))))::insts)
+              in
+                (xs @ ys,
+                  apply2 (Thm.cterm_of ctxt)
+                    (v, HOLogic.mk_ptuple (HOLogic.flat_tupleT_paths T) T
+                      (map (Var o apfst (rpair 0)) (ys ~~ Ts))) :: insts)
               end
           | mk_tuple _ x = x;
         val newt = ap_split' Us U (Var (v, T'));
-        val cterm = Thm.global_cterm_of (Thm.theory_of_thm rl);
         val (vs', insts) = fold mk_tuple ts (vs, []);
       in
-        (Drule.instantiate_normalize ([], [(cterm t, cterm newt)] @ insts) rl, vs')
+        (Drule.instantiate_normalize ([], [apply2 (Thm.cterm_of ctxt) (t, newt)] @ insts) rl, vs')
       end
-  | complete_split_rule_var _ x = x;
+  | complete_split_rule_var _ _ x = x;
 
 fun collect_vars (Abs (_, _, t)) = collect_vars t
   | collect_vars t =
@@ -99,7 +100,7 @@ fun complete_split_rule ctxt rl =
     val xs = Term.fold_aterms (fn Var ((x, _), _) => insert (op =) x | _ => I) prop [];
     val vars = collect_vars prop [];
   in
-    fst (fold_rev complete_split_rule_var vars (rl, xs))
+    fst (fold_rev (complete_split_rule_var ctxt) vars (rl, xs))
     |> remove_internal_split ctxt
     |> Drule.export_without_context
     |> Rule_Cases.save rl
