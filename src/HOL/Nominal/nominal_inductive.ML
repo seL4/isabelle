@@ -39,8 +39,8 @@ val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
 fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
   [(perm_boolI_pi, pi)] perm_boolI;
 
-fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
-  (Thm.theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
+fun mk_perm_bool_simproc names =
+  Simplifier.simproc_global_i @{theory} "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
     fn Const (@{const_name Nominal.perm}, _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE

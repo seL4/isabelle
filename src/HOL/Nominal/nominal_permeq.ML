@@ -70,11 +70,6 @@ val cp1_aux             = @{thm "cp1_aux"};
 val perm_aux_fold       = @{thm "perm_aux_fold"}; 
 val supports_fresh_rule = @{thm "supports_fresh"};
 
-(* pulls out dynamically a thm via the proof state *)
-fun dynamic_thms st name = Global_Theory.get_thms (Thm.theory_of_thm st) name;
-fun dynamic_thm  st name = Global_Theory.get_thm  (Thm.theory_of_thm st) name;
-
-
 (* needed in the process of fully simplifying permutations *)
 val strong_congs = [@{thm "if_cong"}]
 (* needed to avoid warnings about overwritten congs *)
@@ -146,7 +141,7 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     ("general simplification of permutations", fn st => SUBGOAL (fn _ =>
     let
        val ctxt' = ctxt
-         addsimps (maps (dynamic_thms st) dyn_thms @ eqvt_thms)
+         addsimps (maps (Proof_Context.get_thms ctxt) dyn_thms @ eqvt_thms)
          addsimprocs [perm_simproc_fun, perm_simproc_app]
          |> fold Simplifier.del_cong weak_congs
          |> fold Simplifier.add_cong strong_congs
@@ -296,7 +291,6 @@ fun finite_guess_tac_i tactical ctxt i st =
       case Envir.eta_contract (Logic.strip_assums_concl (Thm.term_of goal)) of
           _ $ (Const (@{const_name finite}, _) $ (Const (@{const_name Nominal.supp}, T) $ x)) =>
           let
-            val cert = Thm.global_cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 x [];
@@ -310,8 +304,8 @@ fun finite_guess_tac_i tactical ctxt i st =
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (Thm.prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
-              [(cert (head_of S), cert s')] supports_rule'
-            val fin_supp = dynamic_thms st ("fin_supp")
+              [apply2 (Thm.cterm_of ctxt) (head_of S, s')] supports_rule'
+            val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
             val ctxt' = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
           in
             (tactical ctxt ("guessing of the right supports-set",
@@ -332,15 +326,14 @@ fun finite_guess_tac_i tactical ctxt i st =
 fun fresh_guess_tac_i tactical ctxt i st =
     let 
         val goal = nth (cprems_of st) (i - 1)
-        val fin_supp = dynamic_thms st ("fin_supp")
-        val fresh_atm = dynamic_thms st ("fresh_atm")
+        val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
+        val fresh_atm = Proof_Context.get_thms ctxt "fresh_atm"
         val ctxt1 = ctxt addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
         val ctxt2 = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
       case Logic.strip_assums_concl (Thm.term_of goal) of
           _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) => 
           let
-            val cert = Thm.global_cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 t [];
@@ -354,7 +347,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (Thm.prems_of supports_fresh_rule'));
             val supports_fresh_rule'' = Drule.cterm_instantiate
-              [(cert (head_of S), cert s')] supports_fresh_rule'
+              [apply2 (Thm.cterm_of ctxt) (head_of S, s')] supports_fresh_rule'
           in
             (tactical ctxt ("guessing of the right set that supports the goal", 
                       (EVERY [compose_tac ctxt (false, supports_fresh_rule'', 3) i,
