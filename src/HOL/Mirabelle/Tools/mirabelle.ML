@@ -28,7 +28,7 @@ sig
   (*utility functions*)
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
-  val theorems_in_proof_term : thm -> thm list
+  val theorems_in_proof_term : theory -> thm -> thm list
   val theorems_of_sucessful_proof : Toplevel.state option -> thm list
   val get_setting : (string * string) list -> string * string -> string
   val get_int_setting : (string * string) list -> string * int -> int
@@ -178,9 +178,9 @@ fun fold_body_thms f =
 
 in
 
-fun theorems_in_proof_term thm =
+fun theorems_in_proof_term thy thm =
   let
-    val all_thms = Global_Theory.all_thms_of (Thm.theory_of_thm thm) true
+    val all_thms = Global_Theory.all_thms_of thy true
     fun collect (s, _, _) = if s <> "" then insert (op =) s else I
     fun member_of xs (x, y) = if member (op =) xs x then SOME y else NONE
     fun resolve_thms names = map_filter (member_of names) all_thms
@@ -195,7 +195,8 @@ fun theorems_of_sucessful_proof state =
     NONE => []
   | SOME st =>
       if not (Toplevel.is_proof st) then []
-      else theorems_in_proof_term (#goal (Proof.goal (Toplevel.proof_of st))))
+      else
+        theorems_in_proof_term (Toplevel.theory_of st) (#goal (Proof.goal (Toplevel.proof_of st))))
 
 fun get_setting settings (key, default) =
   the_default default (AList.lookup (op =) settings key)
