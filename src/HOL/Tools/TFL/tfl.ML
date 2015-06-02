@@ -440,8 +440,8 @@ fun post_definition ctxt meta_tflCongs (def, pats) =
           |> fold (Simplifier.add_cong o #case_cong_weak o snd)
               (Symtab.dest (BNF_LFP_Compat.get_all thy [BNF_LFP_Compat.Keep_Nesting]))
      val corollaries' = map (Simplifier.simplify case_simpset) corollaries
-     val extract = Rules.CONTEXT_REWRITE_RULE
-                     (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
+     val extract =
+      Rules.CONTEXT_REWRITE_RULE ctxt (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
      val rules0 = map (rewrite_rule ctxt [Thms.CUT_DEF]) rules
      val mk_cond_rule = Rules.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
@@ -498,8 +498,8 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val corollary' = Rules.UNDISCH (Rules.UNDISCH WFREC_THM)
      val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary') given_pats
      val corollaries' = map (rewrite_rule ctxt case_rewrites) corollaries
-     fun extract X = Rules.CONTEXT_REWRITE_RULE
-                       (f, R1::SV, @{thm cut_apply}, tflCongs@context_congs) X
+     val extract =
+      Rules.CONTEXT_REWRITE_RULE ctxt (f, R1::SV, @{thm cut_apply}, tflCongs @ context_congs)
  in {proto_def = proto_def,
      SV=SV,
      WFR=WFR,

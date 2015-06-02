@@ -47,8 +47,8 @@ sig
 
   val rbeta: thm -> thm
   val tracing: bool Unsynchronized.ref
-  val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
-                             -> thm -> thm * term list
+  val CONTEXT_REWRITE_RULE: Proof.context ->
+    term * term list * thm * thm list -> thm -> thm * term list
   val RIGHT_ASSOC: Proof.context -> thm -> thm
 
   val prove: Proof.context -> bool -> term * tactic -> thm
@@ -525,8 +525,8 @@ fun say s = if !tracing then writeln s else ();
 fun print_thms ctxt s L =
   say (cat_lines (s :: map (Display.string_of_thm ctxt) L));
 
-fun print_cterm ctxt s ct =
-  say (cat_lines [s, Syntax.string_of_term ctxt (Thm.term_of ct)]);
+fun print_term ctxt s t =
+  say (cat_lines [s, Syntax.string_of_term ctxt t]);
 
 
 (*---------------------------------------------------------------------------
@@ -633,9 +633,9 @@ fun restricted t = is_some (USyntax.find_term
                             (fn (Const(@{const_name Wfrec.cut},_)) =>true | _ => false)
                             t)
 
-fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
+fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
  let val globals = func::G
-     val ctxt0 = empty_simpset (Proof_Context.init_global (Thm.theory_of_thm th))
+     val ctxt0 = empty_simpset main_ctxt
      val pbeta_reduce = simpl_conv ctxt0 [@{thm split_conv} RS eq_reflection];
      val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val cut_lemma' = cut_lemma RS eq_reflection
@@ -647,28 +647,28 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              val dummy = say "cong rule:"
              val dummy = say (Display.string_of_thm ctxt thm)
              (* Unquantified eliminate *)
-             fun uq_eliminate (thm,imp,thy) =
-                 let val tych = Thm.global_cterm_of thy
-                     val dummy = print_cterm ctxt "To eliminate:" (tych imp)
+             fun uq_eliminate (thm,imp) =
+                 let val tych = Thm.cterm_of ctxt
+                     val _ = print_term ctxt "To eliminate:" imp
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val ctxt' = Simplifier.add_prems (map ASSUME ants) ctxt
                      val lhs_eq_lhs1 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used) ctxt' lhs
                        handle Utils.ERR _ => Thm.reflexive lhs
-                     val dummy = print_thms ctxt' "proven:" [lhs_eq_lhs1]
+                     val _ = print_thms ctxt' "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
                      val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
                   in
                   lhs_eeq_lhs2 COMP thm
                   end
-             fun pq_eliminate (thm,thy,vlist,imp_body,lhs_eq) =
+             fun pq_eliminate (thm, vlist, imp_body, lhs_eq) =
               let val ((vstrl, _, used'), args) = dest_pbeta_redex used lhs_eq (length vlist)
                   val dummy = forall (op aconv) (ListPair.zip (vlist, args))
                     orelse error "assertion failed in CONTEXT_REWRITE_RULE"
                   val imp_body1 = subst_free (ListPair.zip (args, vstrl))
                                              imp_body
-                  val tych = Thm.global_cterm_of thy
+                  val tych = Thm.cterm_of ctxt
                   val ants1 = map tych (Logic.strip_imp_prems imp_body1)
                   val eq1 = Logic.strip_imp_concl imp_body1
                   val Q = get_lhs eq1
@@ -691,13 +691,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val ant_th = Utils.itlist2 (PGEN ctxt' tych) args vstrl impth1
               in ant_th COMP thm
               end
-             fun q_eliminate (thm,imp,thy) =
+             fun q_eliminate (thm, imp) =
               let val (vlist, imp_body, used') = strip_all used imp
                   val (ants,Q) = dest_impl imp_body
               in if (pbeta_redex Q) (length vlist)
-                 then pq_eliminate (thm,thy,vlist,imp_body,Q)
+                 then pq_eliminate (thm, vlist, imp_body, Q)
                  else
-                 let val tych = Thm.global_cterm_of thy
+                 let val tych = Thm.cterm_of ctxt
                      val ants1 = map tych ants
                      val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
                      val Q_eeq_Q1 = Raw_Simplifier.rewrite_cterm
@@ -711,12 +711,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               end end
 
              fun eliminate thm =
-               case Thm.prop_of thm
-               of Const(@{const_name Pure.imp},_) $ imp $ _ =>
+               case Thm.prop_of thm of
+                 Const(@{const_name Pure.imp},_) $ imp $ _ =>
                    eliminate
                     (if not(is_all imp)
-                     then uq_eliminate (thm, imp, Thm.theory_of_thm thm)
-                     else q_eliminate (thm, imp, Thm.theory_of_thm thm))
+                     then uq_eliminate (thm, imp)
+                     else q_eliminate (thm, imp))
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
          in SOME(eliminate (rename thm)) end
@@ -747,11 +747,11 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [USyntax.list_mk_conj(map cncl rcontext)]
               val TC = genl(USyntax.list_mk_imp(antl, A))
-              val dummy = print_cterm ctxt "func:" (Thm.cterm_of ctxt func)
-              val dummy = print_cterm ctxt "TC:" (Thm.cterm_of ctxt (HOLogic.mk_Trueprop TC))
-              val dummy = tc_list := (TC :: !tc_list)
+              val _ = print_term ctxt "func:" func
+              val _ = print_term ctxt "TC:" (HOLogic.mk_Trueprop TC)
+              val _ = tc_list := (TC :: !tc_list)
               val nestedp = is_some (USyntax.find_term is_func TC)
-              val dummy = if nestedp then say "nested" else say "not_nested"
+              val _ = if nestedp then say "nested" else say "not_nested"
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
                         else let val cTC = Thm.cterm_of ctxt (HOLogic.mk_Trueprop TC)
                              in case rcontext of
