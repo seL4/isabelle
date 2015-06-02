@@ -41,8 +41,8 @@ sig
   val prolog_step_tac': Proof.context -> thm list -> int -> tactic
   val iter_deepen_prolog_tac: Proof.context -> thm list -> tactic
   val iter_deepen_meson_tac: Proof.context -> thm list -> int -> tactic
-  val make_meta_clause: thm -> thm
-  val make_meta_clauses: thm list -> thm list
+  val make_meta_clause: Proof.context -> thm -> thm
+  val make_meta_clauses: Proof.context -> thm list -> thm list
   val meson_tac: Proof.context -> thm list -> int -> tactic
 end
 
@@ -787,15 +787,15 @@ fun negated_asm_of_head th =
     th RS notEfalse handle THM _ => th RS notEfalse';
 
 (*Converting one theorem from a disjunction to a meta-level clause*)
-fun make_meta_clause th =
-  let val (fth,thaw) = Misc_Legacy.freeze_thaw_robust th
+fun make_meta_clause ctxt th =
+  let val (fth, thaw) = Misc_Legacy.freeze_thaw_robust ctxt th
   in  
       (zero_var_indexes o Thm.varifyT_global o thaw 0 o 
        negated_asm_of_head o make_horn resolution_clause_rules) fth
   end;
 
-fun make_meta_clauses ths =
+fun make_meta_clauses ctxt ths =
     name_thms "MClause#"
-      (distinct Thm.eq_thm_prop (map make_meta_clause ths));
+      (distinct Thm.eq_thm_prop (map (make_meta_clause ctxt) ths));
 
 end;

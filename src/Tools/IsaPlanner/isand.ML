@@ -137,14 +137,12 @@ Result:
  ["SG0", ..., "SGm"] : thm list ->   -- export function
    "G" : thm)
 *)
-fun subgoal_thms th =
+fun subgoal_thms ctxt th =
   let
-    val thy = Thm.theory_of_thm th;
-
     val t = Thm.prop_of th;
 
     val prems = Logic.strip_imp_prems t;
-    val aprems = map (Thm.trivial o Thm.global_cterm_of thy) prems;
+    val aprems = map (Thm.trivial o Thm.cterm_of ctxt) prems;
 
     fun explortf premths = Drule.implies_elim_list th premths;
   in (aprems, explortf) end;
@@ -167,7 +165,7 @@ Result:
 (* requires being given solutions! *)
 fun fixed_subgoal_thms ctxt th =
   let
-    val (subgoals, expf) = subgoal_thms th;
+    val (subgoals, expf) = subgoal_thms ctxt th;
 (*  fun export_sg (th, exp) = exp th; *)
     fun export_sgs expfs solthms =
       expf (map2 (curry (op |>)) solthms expfs);
