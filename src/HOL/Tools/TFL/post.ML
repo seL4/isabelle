@@ -7,10 +7,10 @@ Second part of main module (postprocessing of TFL definitions).
 
 signature TFL =
 sig
-  val define_i: bool -> Proof.context -> thm list -> thm list -> xstring -> term -> term list ->
-    theory -> {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * theory
-  val define: bool -> Proof.context -> thm list -> thm list -> xstring -> string -> string list ->
-    theory -> {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * theory
+  val define_i: bool -> thm list -> thm list -> xstring -> term -> term list -> Proof.context ->
+    {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * Proof.context
+  val define: bool -> thm list -> thm list -> xstring -> string -> string list -> Proof.context ->
+    {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * Proof.context
   val defer_i: thm list -> xstring -> term list -> theory -> thm * theory
   val defer: thm list -> xstring -> string list -> theory -> thm * theory
 end;
@@ -34,13 +34,13 @@ fun termination_goals rules =
  * non-proved termination conditions, and finally attempts to prove the
  * simplified termination conditions.
  *--------------------------------------------------------------------------*)
-fun std_postprocessor strict ctxt wfs =
-  Prim.postprocess strict
+fun std_postprocessor ctxt strict wfs =
+  Prim.postprocess ctxt strict
    {wf_tac = REPEAT (ares_tac wfs 1),
     terminator =
       asm_simp_tac ctxt 1
       THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE
-        fast_force_tac (ctxt addSDs [@{thm not0_implies_Suc}]) 1),
+        fast_force_tac (ctxt addSDs @{thms not0_implies_Suc}) 1),
     simplifier = Rules.simpl_conv ctxt []};
 
 
@@ -84,13 +84,15 @@ fun join_assums ctxt th =
   end
   val gen_all = USyntax.gen_all
 in
-fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
+fun proof_stage ctxt strict wfs {f, R, rules, full_pats_TCs, TCs} =
   let
     val _ = writeln "Proving induction theorem ..."
-    val ind = Prim.mk_induction theory {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
+    val ind =
+      Prim.mk_induction (Proof_Context.theory_of ctxt)
+        {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
     val _ = writeln "Postprocessing ...";
     val {rules, induction, nested_tcs} =
-      std_postprocessor strict ctxt wfs theory {rules=rules, induction=ind, TCs=TCs}
+      std_postprocessor ctxt strict wfs {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
   of [] => {induction=induction, rules=rules,tcs=[]}
@@ -134,29 +136,28 @@ val spec'=
 fun tracing true _ = ()
   | tracing false msg = writeln msg;
 
-fun simplify_defn strict thy ctxt congs wfs id pats def0 =
-   let
-       val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
-       val {rules,rows,TCs,full_pats_TCs} =
-           Prim.post_definition congs thy ctxt (def, pats)
-       val {lhs=f,rhs} = USyntax.dest_eq (concl def)
-       val (_,[R,_]) = USyntax.strip_comb rhs
-       val dummy = Prim.trace_thms ctxt "congs =" congs
-       (*the next step has caused simplifier looping in some cases*)
-       val {induction, rules, tcs} =
-             proof_stage strict ctxt wfs thy
-               {f = f, R = R, rules = rules,
-                full_pats_TCs = full_pats_TCs,
-                TCs = TCs}
-       val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
-                        (Rules.CONJUNCTS rules)
-         in  {induct = meta_outer ctxt (Object_Logic.rulify_no_asm ctxt (induction RS spec')),
-        rules = ListPair.zip(rules', rows),
-        tcs = (termination_goals rules') @ tcs}
-   end
+fun simplify_defn ctxt strict congs wfs id pats def0 =
+  let
+    val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
+    val {rules, rows, TCs, full_pats_TCs} = Prim.post_definition ctxt congs (def, pats)
+    val {lhs=f,rhs} = USyntax.dest_eq (concl def)
+    val (_,[R,_]) = USyntax.strip_comb rhs
+    val dummy = Prim.trace_thms ctxt "congs =" congs
+    (*the next step has caused simplifier looping in some cases*)
+    val {induction, rules, tcs} =
+      proof_stage ctxt strict wfs
+       {f = f, R = R, rules = rules,
+        full_pats_TCs = full_pats_TCs,
+        TCs = TCs}
+    val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
+                      (Rules.CONJUNCTS rules)
+  in
+    {induct = meta_outer ctxt (Object_Logic.rulify_no_asm ctxt (induction RS spec')),
+     rules = ListPair.zip(rules', rows),
+     tcs = (termination_goals rules') @ tcs}
+  end
   handle Utils.ERR {mesg,func,module} =>
-               error (mesg ^
-                      "\n    (In TFL function " ^ module ^ "." ^ func ^ ")");
+    error (mesg ^ "\n    (In TFL function " ^ module ^ "." ^ func ^ ")");
 
 
 (* Derive the initial equations from the case-split rules to meet the
@@ -184,21 +185,21 @@ end;
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation.
  *---------------------------------------------------------------------------*)
-fun define_i strict ctxt congs wfs fid R eqs thy =
-  let val {functional,pats} = Prim.mk_functional thy eqs
-      val (thy, def) = Prim.wfrec_definition0 thy fid R functional
-      val ctxt = Proof_Context.transfer thy ctxt
-      val (lhs, _) = Logic.dest_equals (Thm.prop_of def)
-      val {induct, rules, tcs} = simplify_defn strict thy ctxt congs wfs fid pats def
-      val rules' = 
-          if strict then derive_init_eqs ctxt rules eqs
-          else rules
-  in ({lhs = lhs, rules = rules', induct = induct, tcs = tcs}, thy) end;
+fun define_i strict congs wfs fid R eqs ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val {functional, pats} = Prim.mk_functional thy eqs
+    val (def, thy') = Prim.wfrec_definition0 fid R functional thy
+    val ctxt' = Proof_Context.transfer thy' ctxt
+    val (lhs, _) = Logic.dest_equals (Thm.prop_of def)
+    val {induct, rules, tcs} = simplify_defn ctxt' strict congs wfs fid pats def
+    val rules' = if strict then derive_init_eqs ctxt' rules eqs else rules
+  in ({lhs = lhs, rules = rules', induct = induct, tcs = tcs}, ctxt') end;
 
-fun define strict ctxt congs wfs fid R seqs thy =
-  define_i strict ctxt congs wfs fid
-      (Syntax.read_term ctxt R) (map (Syntax.read_term ctxt) seqs) thy
-    handle Utils.ERR {mesg,...} => error mesg;
+fun define strict congs wfs fid R seqs ctxt =
+  define_i strict congs wfs fid
+    (Syntax.read_term ctxt R) (map (Syntax.read_term ctxt) seqs) ctxt
+      handle Utils.ERR {mesg,...} => error mesg;
 
 
 (*---------------------------------------------------------------------------

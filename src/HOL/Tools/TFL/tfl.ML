@@ -11,8 +11,8 @@ sig
   val trace_cterm: Proof.context -> string -> cterm -> unit
   type pattern
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
-  val wfrec_definition0: theory -> string -> term -> term -> theory * thm
-  val post_definition: thm list -> theory -> Proof.context -> thm * pattern list ->
+  val wfrec_definition0: string -> term -> term -> theory -> thm * theory
+  val post_definition: Proof.context -> thm list -> thm * pattern list ->
    {rules: thm,
     rows: int list,
     TCs: term list list,
@@ -32,9 +32,10 @@ sig
     patterns : pattern list}
   val mk_induction: theory ->
     {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
-  val postprocess: bool -> {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm}
-    -> theory -> {rules: thm, induction: thm, TCs: term list list}
-    -> {rules: thm, induction: thm, nested_tcs: thm list}
+  val postprocess: Proof.context -> bool ->
+    {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm} ->
+    {rules: thm, induction: thm, TCs: term list list} ->
+    {rules: thm, induction: thm, nested_tcs: thm list}
 end;
 
 structure Prim: PRIM =
@@ -364,21 +365,23 @@ fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
   | poly_tvars (TFree (a,sort)) = TVar (("?" ^ a, 0), sort)
   | poly_tvars (TVar ((a,i),sort)) = TVar (("?" ^ a, i+1), sort);
 
-local val f_eq_wfrec_R_M =
-           #ant(USyntax.dest_imp(#2(USyntax.strip_forall (concl Thms.WFREC_COROLLARY))))
-      val {lhs=f, rhs} = USyntax.dest_eq f_eq_wfrec_R_M
-      val (fname,_) = dest_Free f
-      val (wfrec,_) = USyntax.strip_comb rhs
+local
+  val f_eq_wfrec_R_M =
+    #ant(USyntax.dest_imp(#2(USyntax.strip_forall (concl Thms.WFREC_COROLLARY))))
+  val {lhs=f, rhs} = USyntax.dest_eq f_eq_wfrec_R_M
+  val (fname,_) = dest_Free f
+  val (wfrec,_) = USyntax.strip_comb rhs
 in
-fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
- let val def_name = Thm.def_name (Long_Name.base_name fid)
-     val wfrec_R_M =  map_types poly_tvars
-                          (wfrec $ map_types poly_tvars R)
-                      $ functional
-     val def_term = const_def thy (fid, Ty, wfrec_R_M)
-     val ([def], thy') =
+
+fun wfrec_definition0 fid R (functional as Abs(x, Ty, _)) thy =
+  let
+    val def_name = Thm.def_name (Long_Name.base_name fid)
+    val wfrec_R_M = map_types poly_tvars (wfrec $ map_types poly_tvars R) $ functional
+    val def_term = const_def thy (fid, Ty, wfrec_R_M)
+    val ([def], thy') =
       Global_Theory.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
- in (thy', def) end;
+  in (def, thy') end;
+
 end;
 
 
@@ -415,8 +418,9 @@ end;
 
 fun givens pats = map pat_of (filter given pats);
 
-fun post_definition meta_tflCongs theory ctxt (def, pats) =
- let val tych = Thry.typecheck theory
+fun post_definition ctxt meta_tflCongs (def, pats) =
+ let val thy = Proof_Context.theory_of ctxt
+     val tych = Thry.typecheck thy
      val f = #lhs(USyntax.dest_eq(concl def))
      val corollary = Rules.MATCH_MP Thms.WFREC_COROLLARY def
      val pats' = filter given pats
@@ -425,9 +429,8 @@ fun post_definition meta_tflCongs theory ctxt (def, pats) =
      val WFR = #ant(USyntax.dest_imp(concl corollary))
      val R = #Rand(USyntax.dest_comb WFR)
      val corollary' = Rules.UNDISCH corollary  (* put WF R on assums *)
-     val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary')
-                           given_pats
-     val (case_rewrites,context_congs) = extraction_thms theory
+     val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary') given_pats
+     val (case_rewrites,context_congs) = extraction_thms thy
      (*case_ss causes minimal simplification: bodies of case expressions are
        not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
@@ -435,7 +438,7 @@ fun post_definition meta_tflCongs theory ctxt (def, pats) =
        put_simpset HOL_basic_ss ctxt
           addsimps case_rewrites
           |> fold (Simplifier.add_cong o #case_cong_weak o snd)
-              (Symtab.dest (BNF_LFP_Compat.get_all theory [BNF_LFP_Compat.Keep_Nesting]))
+              (Symtab.dest (BNF_LFP_Compat.get_all thy [BNF_LFP_Compat.Keep_Nesting]))
      val corollaries' = map (Simplifier.simplify case_simpset) corollaries
      val extract = Rules.CONTEXT_REWRITE_RULE
                      (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
@@ -911,14 +914,15 @@ fun trace_cterm ctxt s ct =
   else ();
 
 
-fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
-let val ctxt = Proof_Context.init_global theory;
-    val tych = Thry.typecheck theory;
+fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TCs} =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val tych = Thry.typecheck thy;
 
    (*---------------------------------------------------------------------
     * Attempt to eliminate WF condition. It's the only assumption of rules
     *---------------------------------------------------------------------*)
-   val (rules1,induction1)  =
+    val (rules1,induction1)  =
        let val thm =
         Rules.prove ctxt strict (HOLogic.mk_Trueprop (hd(#1(Rules.dest_thm rules))), wf_tac)
        in (Rules.PROVE_HYP thm rules, Rules.PROVE_HYP thm induction)
@@ -947,7 +951,7 @@ let val ctxt = Proof_Context.init_global theory;
                  (r,ind)
          handle Utils.ERR _ =>
           (Rules.UNDISCH(Rules.MATCH_MP (Rules.MATCH_MP Thms.simp_thm r) tc_eq),
-           simplify_induction theory tc_eq ind))
+           simplify_induction thy tc_eq ind))
        end
 
    (*----------------------------------------------------------------------
