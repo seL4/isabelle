@@ -63,27 +63,26 @@ local
   Failing other cases, A is added as a Safe Intr rule*)
 
 fun add_iff safe unsafe =
-  Thm.declaration_attribute (fn th =>
+  Thm.declaration_attribute (fn th => fn context =>
     let
       val n = Thm.nprems_of th;
       val (elim, intro) = if n = 0 then safe else unsafe;
       val zero_rotate = zero_var_indexes o rotate_prems n;
-    in
-      Thm.attribute_declaration intro (zero_rotate (th RS Data.iffD2)) #>
-      Thm.attribute_declaration elim (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
-      handle THM _ =>
-        (Thm.attribute_declaration elim (zero_rotate (th RS Data.notE))
-          handle THM _ => Thm.attribute_declaration intro th)
-    end);
+      val decls =
+        [(intro, zero_rotate (th RS Data.iffD2)),
+         (elim, Tactic.make_elim (zero_rotate (th RS Data.iffD1)))]
+        handle THM _ => [(elim, zero_rotate (th RS Data.notE))]
+        handle THM _ => [(intro, th)];
+    in fold (uncurry Thm.attribute_declaration) decls context end);
 
-fun del_iff del = Thm.declaration_attribute (fn th =>
-  let val zero_rotate = zero_var_indexes o rotate_prems (Thm.nprems_of th) in
-    Thm.attribute_declaration del (zero_rotate (th RS Data.iffD2)) #>
-    Thm.attribute_declaration del (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))
-    handle THM _ =>
-      (Thm.attribute_declaration del (zero_rotate (th RS Data.notE))
-        handle THM _ => Thm.attribute_declaration del th)
-  end);
+fun del_iff del = Thm.declaration_attribute (fn th => fn context =>
+  let
+    val zero_rotate = zero_var_indexes o rotate_prems (Thm.nprems_of th);
+    val rls =
+      [zero_rotate (th RS Data.iffD2), Tactic.make_elim (zero_rotate (th RS Data.iffD1))]
+        handle THM _ => [zero_rotate (th RS Data.notE)]
+        handle THM _ => [th];
+  in fold (Thm.attribute_declaration del) rls context end);
 
 in
 
