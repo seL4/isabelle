@@ -1449,7 +1449,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 (the_single exhaust_thms) disc_thms disc_thmss' (flat distinct_discss)
               |> K |> Goal.prove_sorry lthy [] [] goal
               |> Thm.close_derivation
-              |> fold (fn rule => perhaps (try (fn thm => Meson.first_order_resolve thm rule)))
+              |> fold (fn rule => perhaps (try (fn thm => Meson.first_order_resolve lthy thm rule)))
                 @{thms eqTrueE eq_False[THEN iffD1] notnotD}
               |> pair eqn_pos
               |> single

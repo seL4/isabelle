@@ -947,7 +947,7 @@ fun instantiated_case_rewrite thy Tcon =
     val U = TFree ("'u", @{sort type})
     val y = Free (yname, U)
     val f' = absdummy (U --> T') (Bound 0 $ y)
-    val th' = Thm.certify_instantiate
+    val th' = Thm.certify_instantiate ctxt
       ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
        [((fst (dest_Var f), (U --> T') --> T'), f')]) th
     val [th'] = Variable.export (Variable.declare_thm th' ctxt') ctxt [th']
@@ -1086,13 +1086,13 @@ fun import_intros inp_pred [] ctxt =
               if not (fst (dest_Const pred) = fst (dest_Const pred')) then
                 raise Fail "Trying to instantiate another predicate"
               else ()
-          in Thm.certify_instantiate (subst_of (pred', pred), []) th end
+          in Thm.certify_instantiate ctxt' (subst_of (pred', pred), []) th end
         fun instantiate_ho_args th =
           let
             val (_, args') =
               (strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o Thm.prop_of) th
             val ho_args' = map dest_Var (ho_args_of_typ T args')
-          in Thm.certify_instantiate ([], ho_args' ~~ ho_args) th end
+          in Thm.certify_instantiate ctxt' ([], ho_args' ~~ ho_args) th end
         val outp_pred =
           Term_Subst.instantiate (subst_of (inp_pred, pred), []) inp_pred
         val ((_, ths'), ctxt1) =

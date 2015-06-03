@@ -133,7 +133,7 @@ datatype isa_thm =
 
 val proxy_defs = map (fst o snd o snd) proxy_table
 fun prepare_helper ctxt =
-  Meson.make_meta_clause #> rewrite_rule ctxt (map safe_mk_meta_eq proxy_defs)
+  Meson.make_meta_clause ctxt #> rewrite_rule ctxt (map safe_mk_meta_eq proxy_defs)
 
 fun metis_term_of_atp type_enc (ATerm ((s, []), tms)) =
   if is_tptp_variable s then
@@ -181,7 +181,7 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
           SOME s =>
           let val s = s |> space_explode "_" |> tl |> space_implode "_" in
             (case Int.fromString s of
-              SOME j => Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
+              SOME j => Meson.make_meta_clause ctxt (snd (nth clauses j)) |> Isa_Raw |> some
             | NONE =>
               if String.isPrefix lam_fact_prefix (unascii_of s) then Isa_Lambda_Lifted |> some
               else raise Fail ("malformed fact identifier " ^ quote ident))

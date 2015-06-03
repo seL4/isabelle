@@ -23,8 +23,8 @@ sig
   val mk_defpair: term * term -> string * term
   val get_def: theory -> xstring -> thm
   val METAHYPS: Proof.context -> (thm list -> tactic) -> int -> tactic
-  val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
-  val freeze_thaw: thm -> thm * (thm -> thm)
+  val freeze_thaw_robust: Proof.context -> thm -> thm * (int -> thm -> thm)
+  val freeze_thaw: Proof.context -> thm -> thm * (thm -> thm)
 end;
 
 structure Misc_Legacy: MISC_LEGACY =
@@ -161,13 +161,12 @@ fun metahyps_split_prem prem =
 fun metahyps_aux_tac ctxt tacf (prem,gno) state =
   let val (insts,params,hyps,concl) = metahyps_split_prem prem
       val maxidx = Thm.maxidx_of state
-      val cterm = Thm.global_cterm_of (Thm.theory_of_thm state)
-      val chyps = map cterm hyps
+      val chyps = map (Thm.cterm_of ctxt) hyps
       val hypths = map Thm.assume chyps
       val subprems = map (Thm.forall_elim_vars 0) hypths
       val fparams = map Free params
-      val cparams = map cterm fparams
-      fun swap_ctpair (t,u) = (cterm u, cterm t)
+      val cparams = map (Thm.cterm_of ctxt) fparams
+      fun swap_ctpair (t, u) = apply2 (Thm.cterm_of ctxt) (u, t)
       (*Subgoal variables: make Free; lift type over params*)
       fun mk_subgoal_inst concl_vars (v, T) =
           if member (op =) concl_vars (v, T)
@@ -175,12 +174,12 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
           else ((v, T), false, free_of "METAHYP2_" (v, map #2 params ---> T))
       (*Instantiate subgoal vars by Free applied to params*)
       fun mk_ctpair (v, in_concl, u) =
-          if in_concl then (cterm (Var v), cterm u)
-          else (cterm (Var v), cterm (list_comb (u, fparams)))
+          if in_concl then apply2 (Thm.cterm_of ctxt) (Var v, u)
+          else apply2 (Thm.cterm_of ctxt) (Var v, list_comb (u, fparams))
       (*Restore Vars with higher type and index*)
       fun mk_subgoal_swap_ctpair (((a, i), T), in_concl, u as Free (_, U)) =
-          if in_concl then (cterm u, cterm (Var ((a, i), T)))
-          else (cterm u, cterm (Var ((a, i + maxidx), U)))
+          if in_concl then apply2 (Thm.cterm_of ctxt) (u, Var ((a, i), T))
+          else apply2 (Thm.cterm_of ctxt) (u, Var ((a, i + maxidx), U))
       (*Embed B in the original context of params and hyps*)
       fun embed B = fold_rev Logic.all fparams (Logic.list_implies (hyps, B))
       (*Strip the context using elimination rules*)
@@ -193,7 +192,7 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
             and concl_vars = Term.add_vars (Logic.strip_imp_concl prop) []
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
             val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
-            val emBs = map (cterm o embed) (Thm.prems_of st')
+            val emBs = map (Thm.cterm_of ctxt o embed) (Thm.prems_of st')
             val Cth  = implies_elim_list st' (map (elim o Thm.assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
             free_instantiate (map swap_ctpair insts @
@@ -206,7 +205,7 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
       fun next st =
         Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}
           (false, relift st, Thm.nprems_of st) gno state
-  in Seq.maps next (tacf subprems (Thm.trivial (cterm concl))) end;
+  in Seq.maps next (tacf subprems (Thm.trivial (Thm.cterm_of ctxt concl))) end;
 
 fun print_vars_terms ctxt n thm =
   let
@@ -255,9 +254,8 @@ end;
 (*Convert all Vars in a theorem to Frees.  Also return a function for
   reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.*)
 
-fun freeze_thaw_robust th =
+fun freeze_thaw_robust ctxt th =
  let val fth = Thm.legacy_freezeT th
-     val thy = Thm.theory_of_thm fth
  in
    case Thm.fold_terms Term.add_vars fth [] of
        [] => (fth, fn _ => fn x => x)   (*No vars: nothing to do!*)
@@ -265,8 +263,8 @@ fun freeze_thaw_robust th =
          let fun newName (ix,_) = (ix, gensym (string_of_indexname ix))
              val alist = map newName vars
              fun mk_inst (v,T) =
-                 (Thm.global_cterm_of thy (Var(v,T)),
-                  Thm.global_cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                 apply2 (Thm.cterm_of ctxt)
+                  (Var (v, T), Free (the (AList.lookup (op =) alist v), T))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -276,9 +274,8 @@ fun freeze_thaw_robust th =
 
 (*Basic version of the function above. No option to rename Vars apart in thaw.
   The Frees created from Vars have nice names.*)
-fun freeze_thaw th =
+fun freeze_thaw ctxt th =
  let val fth = Thm.legacy_freezeT th
-     val thy = Thm.theory_of_thm fth
  in
    case Thm.fold_terms Term.add_vars fth [] of
        [] => (fth, fn x => x)
@@ -289,8 +286,7 @@ fun freeze_thaw th =
              val (alist, _) =
                  fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
              fun mk_inst (v, T) =
-                 (Thm.global_cterm_of thy (Var(v,T)),
-                  Thm.global_cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
+                apply2 (Thm.cterm_of ctxt) (Var (v, T), Free (the (AList.lookup (op =) alist v), T))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)
@@ -299,4 +295,3 @@ fun freeze_thaw th =
  end;
 
 end;
-

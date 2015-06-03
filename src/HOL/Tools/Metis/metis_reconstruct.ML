@@ -171,11 +171,10 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
 (* INFERENCE RULE: RESOLVE *)
 
 (*Increment the indexes of only the type variables*)
-fun incr_type_indexes inc th =
+fun incr_type_indexes ctxt inc th =
   let
     val tvs = Term.add_tvars (Thm.full_prop_of th) []
-    val thy = Thm.theory_of_thm th
-    fun inc_tvar ((a, i), s) = apply2 (Thm.global_ctyp_of thy) (TVar ((a, i), s), TVar ((a, i + inc), s))
+    fun inc_tvar ((a, i), s) = apply2 (Thm.ctyp_of ctxt) (TVar ((a, i), s), TVar ((a, i + inc), s))
   in
     Thm.instantiate (map inc_tvar tvs, []) th
   end
@@ -185,7 +184,7 @@ fun incr_type_indexes inc th =
    Instantiations of those Vars could then fail. *)
 fun resolve_inc_tyvars ctxt tha i thb =
   let
-    val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
+    val tha = incr_type_indexes ctxt (1 + Thm.maxidx_of thb) tha
     fun res (tha, thb) =
       (case Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
             (false, tha, Thm.nprems_of tha) i thb
@@ -393,16 +392,16 @@ fun one_step ctxt type_enc concealed sym_tab th_pairs p =
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
     equality_inference ctxt type_enc concealed sym_tab f_lit f_p f_r)
 
-fun flexflex_first_order th =
+fun flexflex_first_order ctxt th =
   (case Thm.tpairs_of th of
     [] => th
   | pairs =>
       let
-        val thy = Thm.theory_of_thm th
+        val thy = Proof_Context.theory_of ctxt
         val (tyenv, tenv) = fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
   
-        fun mkT (v, (S, T)) = apply2 (Thm.global_ctyp_of thy) (TVar (v, S), T)
-        fun mk (v, (T, t)) = apply2 (Thm.global_cterm_of thy) (Var (v, Envir.subst_type tyenv T), t)
+        fun mkT (v, (S, T)) = apply2 (Thm.ctyp_of ctxt) (TVar (v, S), T)
+        fun mk (v, (T, t)) = apply2 (Thm.cterm_of ctxt) (Var (v, Envir.subst_type tyenv T), t)
   
         val instsT = Vartab.fold (cons o mkT) tyenv []
         val insts = Vartab.fold (cons o mk) tenv []
@@ -462,7 +461,7 @@ fun replay_one_inference ctxt type_enc concealed sym_tab (fol_th, inf)
       val _ = trace_msg ctxt (fn () => "METIS THM: " ^ Metis_Thm.toString fol_th)
       val _ = trace_msg ctxt (fn () => "INFERENCE: " ^ Metis_Proof.inferenceToString inf)
       val th = one_step ctxt type_enc concealed sym_tab th_pairs (fol_th, inf)
-        |> flexflex_first_order
+        |> flexflex_first_order ctxt
         |> resynchronize ctxt fol_th
       val _ = trace_msg ctxt (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
       val _ = trace_msg ctxt (fn () => "=============================================")

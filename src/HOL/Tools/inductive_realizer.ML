@@ -19,9 +19,9 @@ fun name_of_thm thm =
     [name] => name
   | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
 
-fun prf_of thm =
+fun prf_of thy thm =
   Reconstruct.proof_of thm
-  |> Reconstruct.expand_proof (Thm.theory_of_thm thm) [("", NONE)];  (* FIXME *)
+  |> Reconstruct.expand_proof thy [("", NONE)];  (* FIXME *)
 
 fun subsets [] = [[]]
   | subsets (x::xs) =
@@ -268,7 +268,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
     Extraction.abs_corr_shyps thy rule vs vs2
       (ProofRewriteRules.un_hhf_proof rlz' (attach_typeS rlz)
-         (fold_rev Proofterm.forall_intr_proof' rs (prf_of rrule)))))
+         (fold_rev Proofterm.forall_intr_proof' rs (prf_of thy rrule)))))
   end;
 
 fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
@@ -285,7 +285,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val params' = map dest_Var params;
     val rss = Inductive.partition_rules raw_induct intrs;
     val rss' = map (fn (((s, rs), (_, arity)), elim) =>
-      (s, (Inductive.infer_intro_vars elim arity rs ~~ rs)))
+      (s, (Inductive.infer_intro_vars thy elim arity rs ~~ rs)))
         (rss ~~ arities ~~ elims);
     val (prfx, _) = split_last (Long_Name.explode (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;

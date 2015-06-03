@@ -1355,7 +1355,7 @@ lemma lcm_unique_nat: "(a::nat) dvd d \<and> b dvd d \<and>
 
 lemma lcm_unique_int: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (auto intro: dvd_antisym [transferred] lcm_least_int)  (* FIXME slow *)
+  using lcm_least_int zdvd_antisym_nonneg by auto
 
 interpretation lcm_nat: abel_semigroup "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat"
   + lcm_nat: semilattice_neutr "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat" 1

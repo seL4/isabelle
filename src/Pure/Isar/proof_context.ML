@@ -935,7 +935,7 @@ local
 
 fun comp_hhf_tac ctxt th i st =
   PRIMSEQ (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
-    (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
+    (false, Drule.lift_all ctxt (Thm.cprem_of st i) th, 0) i) st;
 
 fun comp_incr_tac _ [] _ = no_tac
   | comp_incr_tac ctxt (th :: ths) i =

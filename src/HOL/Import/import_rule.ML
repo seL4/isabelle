@@ -328,13 +328,14 @@ fun pairList (h1 :: (h2 :: t)) = ((h1, h2) :: pairList t)
 
 fun store_thm binding thm thy =
   let
+    val ctxt = Proof_Context.init_global thy
     val thm = Drule.export_without_context_open thm
     val tvs = Term.add_tvars (Thm.prop_of thm) []
     val tns = map (fn (_, _) => "'") tvs
-    val nms = fst (fold_map Name.variant tns (Variable.names_of (Proof_Context.init_global thy)))
+    val nms = fst (fold_map Name.variant tns (Variable.names_of ctxt))
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val cvs = map (Thm.global_ctyp_of thy) vs
-    val ctvs = map (Thm.global_ctyp_of thy) (map TVar tvs)
+    val cvs = map (Thm.ctyp_of ctxt) vs
+    val ctvs = map (Thm.ctyp_of ctxt) (map TVar tvs)
     val thm' = Thm.instantiate ((ctvs ~~ cvs), []) thm
   in
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)

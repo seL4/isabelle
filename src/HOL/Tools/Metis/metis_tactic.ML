@@ -32,8 +32,9 @@ val new_skolem = Attrib.setup_config_bool @{binding metis_new_skolem} (K false)
 val advisory_simp = Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
-fun have_common_thm ths1 ths2 =
-  exists (member (Term.aconv_untyped o apply2 Thm.prop_of) ths1) (map Meson.make_meta_clause ths2)
+fun have_common_thm ctxt ths1 ths2 =
+  exists (member (Term.aconv_untyped o apply2 Thm.prop_of) ths1)
+    (map (Meson.make_meta_clause ctxt) ths2)
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
@@ -54,14 +55,14 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
     (if can HOLogic.dest_not t1 then t2 else t1)
     |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
   | _ => raise Fail "expected reflexive or trivial clause")
-  |> Meson.make_meta_clause
+  |> Meson.make_meta_clause ctxt
 
 fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
     val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
-  in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause end
+  in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause ctxt end
 
 fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
   | add_vars_and_frees (Abs (_, _, t)) = add_vars_and_frees t
@@ -84,7 +85,7 @@ fun introduce_lam_wrappers ctxt th =
               (case add_vars_and_frees u [] of
                 [] =>
                 Conv.abs_conv (conv false o snd) ctxt ct
-                |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
+                |> (fn th => Meson.first_order_resolve ctxt th @{thm Metis.eq_lambdaI})
               | v :: _ =>
                 Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
                 |> Thm.cterm_of ctxt
@@ -201,7 +202,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
          val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
          val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
          val (used_th_cls_pairs, unused_th_cls_pairs) =
-           List.partition (have_common_thm used o snd o snd) th_cls_pairs
+           List.partition (have_common_thm ctxt used o snd o snd) th_cls_pairs
          val unused_ths = maps (snd o snd) unused_th_cls_pairs
          val unused_names = map fst unused_th_cls_pairs
        in
@@ -210,7 +211,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
            verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused_names)
          else
            ();
-         if not (null cls) andalso not (have_common_thm used cls) then
+         if not (null cls) andalso not (have_common_thm ctxt used cls) then
            verbose_warning ctxt "The assumptions are inconsistent"
          else
            ();

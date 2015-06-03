@@ -145,10 +145,11 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
     fun inst_fresh vars params i st =
    let val vars' = Misc_Legacy.term_vars (Thm.prop_of st);
-       val thy = Thm.theory_of_thm st;
    in case subtract (op =) vars vars' of
      [x] =>
-      Seq.single (Thm.instantiate ([], [(Thm.global_cterm_of thy x, Thm.global_cterm_of thy (fold_rev Term.abs params (Bound 0)))]) st)
+      Seq.single
+        (Thm.instantiate ([],
+          [apply2 (Thm.cterm_of ctxt) (x, fold_rev Term.abs params (Bound 0))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in

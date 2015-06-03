@@ -12,9 +12,8 @@ begin
 subsection {* Export and re-import of global proof terms *}
 
 ML {*
-  fun export_proof thm =
+  fun export_proof thy thm =
     let
-      val thy = Thm.theory_of_thm thm;
       val {prop, hyps, shyps, ...} = Thm.rep_thm thm;
       val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop));
       val prf =
@@ -40,24 +39,24 @@ ML {* val thy1 = @{theory} *}
 lemma ex: "A \<longrightarrow> A" ..
 
 ML_val {*
-  val xml = export_proof @{thm ex};
+  val xml = export_proof @{theory} @{thm ex};
   val thm = import_proof thy1 xml;
 *}
 
 ML_val {*
-  val xml = export_proof @{thm de_Morgan};
+  val xml = export_proof @{theory} @{thm de_Morgan};
   val thm = import_proof thy1 xml;
 *}
 
 ML_val {*
-  val xml = export_proof @{thm Drinker's_Principle};
+  val xml = export_proof @{theory} @{thm Drinker's_Principle};
   val thm = import_proof thy1 xml;
 *}
 
 text {* Some fairly large proof: *}
 
 ML_val {*
-  val xml = export_proof @{thm abs_less_iff};
+  val xml = export_proof @{theory} @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
   @{assert} (size (YXML.string_of_body xml) > 1000000);
 *}

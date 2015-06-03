@@ -60,10 +60,15 @@ sig
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val certify_inst: theory ->
+  val global_certify_inst: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     (ctyp * ctyp) list * (cterm * cterm) list
-  val certify_instantiate:
+  val global_certify_instantiate: theory ->
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
+  val certify_inst: Proof.context ->
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
+    (ctyp * ctyp) list * (cterm * cterm) list
+  val certify_instantiate: Proof.context ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val unvarify_global: thm -> thm
@@ -351,12 +356,19 @@ end;
 
 (* certify_instantiate *)
 
-fun certify_inst thy (instT, inst) =
+fun global_certify_inst thy (instT, inst) =
  (map (fn (v, T) => apply2 (Thm.global_ctyp_of thy) (TVar v, T)) instT,
   map (fn (v, t) => apply2 (Thm.global_cterm_of thy) (Var v, t)) inst);
 
-fun certify_instantiate insts th =
-  Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
+fun global_certify_instantiate thy insts th =
+  Thm.instantiate (global_certify_inst thy insts) th;
+
+fun certify_inst ctxt (instT, inst) =
+ (map (fn (v, T) => apply2 (Thm.ctyp_of ctxt) (TVar v, T)) instT,
+  map (fn (v, t) => apply2 (Thm.cterm_of ctxt) (Var v, t)) inst);
+
+fun certify_instantiate ctxt insts th =
+  Thm.instantiate (certify_inst ctxt insts) th;
 
 
 (* forall_intr_frees: generalization over all suitable Free variables *)
@@ -375,6 +387,8 @@ fun forall_intr_frees th =
 
 fun unvarify_global th =
   let
+    val thy = Thm.theory_of_thm th;
+
     val prop = Thm.full_prop_of th;
     val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
@@ -383,7 +397,7 @@ fun unvarify_global th =
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
       let val T' = Term_Subst.instantiateT instT T
       in (((a, i), T'), Free ((a, T'))) end);
-  in certify_instantiate (instT, inst) th end;
+  in global_certify_instantiate thy (instT, inst) th end;
 
 
 (* close_derivation *)
@@ -444,7 +458,7 @@ fun add_axiom ctxt (b, prop) thy =
     val _ = Sign.no_vars ctxt prop;
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
-    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.global_ctyp_of thy T, S)) strip;
+    val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of ctxt T, S)) strip;
 
     val thy' = thy
       |> Theory.add_axiom ctxt (b, Logic.list_implies (maps Logic.mk_of_sort constraints, prop'));
@@ -461,7 +475,7 @@ fun add_axiom_global arg thy = add_axiom (Syntax.init_pretty_global thy) arg thy
 fun add_def ctxt unchecked overloaded (b, prop) thy =
   let
     val _ = Sign.no_vars ctxt prop;
-    val prems = map (Thm.global_cterm_of thy) (Logic.strip_imp_prems prop);
+    val prems = map (Thm.cterm_of ctxt) (Logic.strip_imp_prems prop);
     val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
 
     val thy' = Theory.add_def ctxt unchecked overloaded (b, concl') thy;

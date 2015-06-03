@@ -285,9 +285,8 @@ fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
    call split_posns with appropriate parameters
 *************************************************************)
 
-fun select cmap state i =
+fun select thy cmap state i =
   let
-    val thy = Thm.theory_of_thm state
     val goal = Thm.term_of (Thm.cprem_of state i);
     val Ts = rev (map #2 (Logic.strip_params goal));
     val _ $ t $ _ = Logic.strip_assums_concl goal;
@@ -313,16 +312,14 @@ fun exported_split_posns cmap thy Ts t =
    i       : no. of subgoal
 **************************************************************)
 
-fun inst_lift Ts t (T, U, pos) state i =
+fun inst_lift ctxt Ts t (T, U, pos) state i =
   let
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm state);
     val (cntxt, u) = mk_cntxt t pos (T --> U);
     val trlift' = Thm.lift_rule (Thm.cprem_of state i)
       (Thm.rename_boundvars abs_lift u trlift);
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (Thm.prop_of trlift'))));
-  in cterm_instantiate [(cert P, cert (abss Ts cntxt))] trlift'
-  end;
+  in cterm_instantiate [apply2 (Thm.cterm_of ctxt) (P, abss Ts cntxt)] trlift' end;
 
 
 (*************************************************************
@@ -338,15 +335,13 @@ fun inst_lift Ts t (T, U, pos) state i =
    i     : number of subgoal
 **************************************************************)
 
-fun inst_split Ts t tt thm TB state i =
+fun inst_split ctxt Ts t tt thm TB state i =
   let
     val thm' = Thm.lift_rule (Thm.cprem_of state i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (Thm.prop_of thm'))));
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
-  in cterm_instantiate [(cert P, cert (abss Ts cntxt))] thm'
-  end;
+  in cterm_instantiate [apply2 (Thm.cterm_of ctxt) (P, abss Ts cntxt)] thm' end;
 
 
 (*****************************************************************************
@@ -359,14 +354,15 @@ fun inst_split Ts t tt thm TB state i =
 fun split_tac _ [] i = no_tac
   | split_tac ctxt splits i =
   let val cmap = cmap_of_split_thms splits
-      fun lift_tac Ts t p st = compose_tac ctxt (false, inst_lift Ts t p st i, 2) i st
+      fun lift_tac Ts t p st = compose_tac ctxt (false, inst_lift ctxt Ts t p st i, 2) i st
       fun lift_split_tac state =
-            let val (Ts, t, splits) = select cmap state i
+            let val (Ts, t, splits) = select (Proof_Context.theory_of ctxt) cmap state i
             in case splits of
                  [] => no_tac state
                | (thm, apsns, pos, TB, tt)::_ =>
                    (case apsns of
-                      [] => compose_tac ctxt (false, inst_split Ts t tt thm TB state i, 0) i state
+                      [] =>
+                        compose_tac ctxt (false, inst_split ctxt Ts t tt thm TB state i, 0) i state
                     | p::_ => EVERY [lift_tac Ts t p,
                                      resolve_tac ctxt [reflexive_thm] (i+1),
                                      lift_split_tac] state)

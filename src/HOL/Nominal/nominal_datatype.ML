@@ -120,8 +120,8 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
 val perm_simproc =
   Simplifier.simproc_global @{theory} "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
 
-fun projections rule =
-  Project_Rule.projections (Proof_Context.init_global (Thm.theory_of_thm rule)) rule
+fun projections ctxt rule =
+  Project_Rule.projections ctxt rule
   |> map (Drule.export_without_context #> Rule_Cases.save rule);
 
 val supp_prod = @{thm supp_prod};
@@ -1114,7 +1114,9 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val (_, thy9) = thy8 |>
       Sign.add_path big_name |>
       Global_Theory.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])] ||>>
-      Global_Theory.add_thmss [((Binding.name "inducts", projections dt_induct), [case_names_induct])] ||>
+      Global_Theory.add_thmss
+        [((Binding.name "inducts", projections (Proof_Context.init_global thy8) dt_induct),
+            [case_names_induct])] ||>
       Sign.parent_path ||>>
       Old_Datatype_Aux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       Old_Datatype_Aux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
@@ -1412,7 +1414,9 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
       Sign.add_path big_name |>
       Global_Theory.add_thms [((Binding.name "strong_induct'", induct_aux), [])] ||>>
       Global_Theory.add_thms [((Binding.name "strong_induct", induct), [case_names_induct])] ||>>
-      Global_Theory.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])];
+      Global_Theory.add_thmss
+        [((Binding.name "strong_inducts", projections (Proof_Context.init_global thy9) induct),
+            [case_names_induct])];
 
     (**** recursion combinator ****)
 

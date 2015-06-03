@@ -14,7 +14,7 @@ sig
     * term (* outer term *)
 
   type searchinfo =
-    theory
+    Proof.context
     * int (* maxidx *)
     * Zipper.T (* focusterm to search under *)
 
@@ -67,7 +67,7 @@ type match =
   * term; (* outer term *)
 
 type searchinfo =
-  theory
+  Proof.context
   * int (* maxidx *)
   * Zipper.T; (* focusterm to search under *)
 
@@ -138,8 +138,8 @@ fun prep_zipper_match z =
   end;
 
 (* Unification with exception handled *)
-(* given theory, max var index, pat, tgt; returns Seq of instantiations *)
-fun clean_unify thy ix (a as (pat, tgt)) =
+(* given context, max var index, pat, tgt; returns Seq of instantiations *)
+fun clean_unify ctxt ix (a as (pat, tgt)) =
   let
     (* type info will be re-derived, maybe this can be cached
        for efficiency? *)
@@ -148,7 +148,7 @@ fun clean_unify thy ix (a as (pat, tgt)) =
     (* FIXME is it OK to ignore the type instantiation info?
        or should I be using it? *)
     val typs_unify =
-      SOME (Sign.typ_unify thy (pat_ty, tgt_ty) (Vartab.empty, ix))
+      SOME (Sign.typ_unify (Proof_Context.theory_of ctxt) (pat_ty, tgt_ty) (Vartab.empty, ix))
         handle Type.TUNIFY => NONE;
   in
     (case typs_unify of
@@ -161,7 +161,7 @@ fun clean_unify thy ix (a as (pat, tgt)) =
              Vartab.dest (Envir.term_env env));
           val initenv =
             Envir.Envir {maxidx = ix2, tenv = Vartab.empty, tyenv = typinsttab};
-          val useq = Unify.smash_unifiers (Context.Theory thy) [a] initenv
+          val useq = Unify.smash_unifiers (Context.Proof ctxt) [a] initenv
             handle ListPair.UnequalLengths => Seq.empty
               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
@@ -181,10 +181,10 @@ fun clean_unify thy ix (a as (pat, tgt)) =
    bound variables. New names have been introduced to make sure they are
    unique w.r.t all names in the term and each other. usednames' is
    oldnames + new names. *)
-fun clean_unify_z thy maxidx pat z =
+fun clean_unify_z ctxt maxidx pat z =
   let val (t, (FakeTs, Ts, absterm)) = prep_zipper_match z in
     Seq.map (fn insts => (insts, FakeTs, Ts, absterm))
-      (clean_unify thy maxidx (t, pat))
+      (clean_unify ctxt maxidx (t, pat))
   end;
 
 
@@ -230,8 +230,8 @@ fun search_bt_valid validf =
       end;
   in Zipper.lzy_search sf_valid_td_lr end;
 
-fun searchf_unify_gen f (thy, maxidx, z) lhs =
-  Seq.map (clean_unify_z thy maxidx lhs) (Zipper.limit_apply f z);
+fun searchf_unify_gen f (ctxt, maxidx, z) lhs =
+  Seq.map (clean_unify_z ctxt maxidx lhs) (Zipper.limit_apply f z);
 
 (* search all unifications *)
 val searchf_lr_unify_all = searchf_unify_gen search_lr_all;
@@ -271,7 +271,7 @@ fun prep_concl_subst ctxt i gth =
        o Zipper.mktop
        o Thm.prop_of) conclthm
   in
-    ((cfvs, conclthm), (Proof_Context.theory_of ctxt, maxidx, ft))
+    ((cfvs, conclthm), (ctxt, maxidx, ft))
   end;
 
 (* substitute using an object or meta level equality *)
@@ -345,23 +345,20 @@ fun prep_subst_in_asm ctxt i gth j =
     val th = Thm.incr_indexes 1 gth;
     val tgt_term = Thm.prop_of th;
 
-    val thy = Thm.theory_of_thm th;
-    val cert = Thm.global_cterm_of thy;
-
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
-    val cfvs = rev (map cert fvs);
+    val cfvs = rev (map (Thm.cterm_of ctxt) fvs);
 
     val asmt = nth (Logic.strip_imp_prems fixedbody) (j - 1);
     val asm_nprems = length (Logic.strip_imp_prems asmt);
 
-    val pth = Thm.trivial (cert asmt);
+    val pth = Thm.trivial ((Thm.cterm_of ctxt) asmt);
     val maxidx = Thm.maxidx_of th;
 
     val ft =
       (Zipper.move_down_right (* trueprop *)
          o Zipper.mktop
          o Thm.prop_of) pth
-  in ((cfvs, j, asm_nprems, pth), (thy, maxidx, ft)) end;
+  in ((cfvs, j, asm_nprems, pth), (ctxt, maxidx, ft)) end;
 
 (* prepare subst in every possible assumption *)
 fun prep_subst_in_asms ctxt i gth =

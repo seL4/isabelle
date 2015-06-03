@@ -30,15 +30,13 @@ Given: x
 th: A vs ==> B vs
 Results in: "B vs" [!!x. A x]
 *)
-fun allify_conditions Ts th =
+fun allify_conditions ctxt Ts th =
   let
-    val thy = Thm.theory_of_thm th;
-
     fun allify (x, T) t =
       Logic.all_const T $ Abs (x, T, Term.abstract_over (Free (x, T), t));
 
-    val cTs = map (Thm.global_cterm_of thy o Free) Ts;
-    val cterm_asms = map (Thm.global_cterm_of thy o fold_rev allify Ts) (Thm.prems_of th);
+    val cTs = map (Thm.cterm_of ctxt o Free) Ts;
+    val cterm_asms = map (Thm.cterm_of ctxt o fold_rev allify Ts) (Thm.prems_of th);
     val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms;
   in (fold (curry op COMP) allifyied_asm_thms th, cterm_asms) end;
 
@@ -82,7 +80,7 @@ fun mk_abstractedrule ctxt TsFake Ts rule =
       |> Drule.forall_elim_list tonames;
 
     (* make unconditional rule and prems *)
-    val (uncond_rule, cprems) = allify_conditions (rev Ts') rule';
+    val (uncond_rule, cprems) = allify_conditions ctxt (rev Ts') rule';
 
     (* using these names create lambda-abstracted version of the rule *)
     val abstractions = rev (Ts' ~~ tonames);

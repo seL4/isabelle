@@ -85,7 +85,7 @@ end;
 
 type recdef_info = {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
-structure GlobalRecdefData = Theory_Data
+structure Data = Generic_Data
 (
   type T = recdef_info Symtab.table * hints;
   val empty = (Symtab.empty, mk_hints ([], [], [])): T;
@@ -99,28 +99,15 @@ structure GlobalRecdefData = Theory_Data
           Thm.merge_thms (wfs1, wfs2)));
 );
 
-val get_recdef = Symtab.lookup o #1 o GlobalRecdefData.get;
+val get_recdef = Symtab.lookup o #1 o Data.get o Context.Theory;
 
-fun put_recdef name info thy =
-  let
-    val (tab, hints) = GlobalRecdefData.get thy;
-    val tab' = Symtab.update_new (name, info) tab
-      handle Symtab.DUP _ => error ("Duplicate recursive function definition " ^ quote name);
-  in GlobalRecdefData.put (tab', hints) thy end;
+fun put_recdef name info =
+  (Context.theory_map o Data.map o apfst) (fn tab =>
+    Symtab.update_new (name, info) tab
+      handle Symtab.DUP _ => error ("Duplicate recursive function definition " ^ quote name));
 
-val get_global_hints = #2 o GlobalRecdefData.get;
-
-
-(* proof data *)
-
-structure LocalRecdefData = Proof_Data
-(
-  type T = hints;
-  val init = get_global_hints;
-);
-
-val get_hints = LocalRecdefData.get;
-fun map_hints f = Context.mapping (GlobalRecdefData.map (apsnd f)) (LocalRecdefData.map f);
+val get_hints = #2 o Data.get o Context.Proof;
+val map_hints = Data.map o apsnd;
 
 
 (* attributes *)
@@ -155,25 +142,23 @@ val recdef_modifiers =
 
 
 
-(** prepare_hints(_i) **)
+(** prepare hints **)
 
-fun prepare_hints thy opt_src =
+fun prepare_hints opt_src ctxt =
   let
-    val ctxt0 = Proof_Context.init_global thy;
-    val ctxt =
+    val ctxt' =
       (case opt_src of
-        NONE => ctxt0
-      | SOME src => #2 (Token.syntax (Method.sections recdef_modifiers) src ctxt0));
+        NONE => ctxt
+      | SOME src => #2 (Token.syntax (Method.sections recdef_modifiers) src ctxt));
+    val {simps, congs, wfs} = get_hints ctxt';
+    val ctxt'' = ctxt' addsimps simps |> Simplifier.del_cong @{thm imp_cong};
+  in ((rev (map snd congs), wfs), ctxt'') end;
+
+fun prepare_hints_i () ctxt =
+  let
     val {simps, congs, wfs} = get_hints ctxt;
     val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
-  in (ctxt', rev (map snd congs), wfs) end;
-
-fun prepare_hints_i thy () =
-  let
-    val ctxt = Proof_Context.init_global thy;
-    val {simps, congs, wfs} = get_global_hints thy;
-    val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
-  in (ctxt', rev (map snd congs), wfs) end;
+  in ((rev (map snd congs), wfs), ctxt') end;
 
 
 
@@ -190,30 +175,30 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
 
-    val (ctxt, congs, wfs) = prep_hints thy hints;
+    val ((congs, wfs), ctxt) = prep_hints hints (Proof_Context.init_global thy);
     (*We must remove imp_cong to prevent looping when the induction rule
       is simplified. Many induction rules have nested implications that would
       give rise to looping conditional rewriting.*)
-    val ({lhs, rules = rules_idx, induct, tcs}, thy) =
-      tfl_fn not_permissive ctxt congs wfs name R eqs thy;
+    val ({lhs, rules = rules_idx, induct, tcs}, ctxt1) =
+      tfl_fn not_permissive congs wfs name R eqs ctxt;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
     val simp_att =
       if null tcs then [Simplifier.simp_add,
         Named_Theorems.add @{named_theorems nitpick_simp}, Code.add_default_eqn_attribute]
       else [];
-    val ((simps' :: rules', [induct']), thy) =
-      thy
+    val ((simps' :: rules', [induct']), thy2) =
+      Proof_Context.theory_of ctxt1
       |> Sign.add_path bname
       |> Global_Theory.add_thmss
         (((Binding.name "simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
       ||>> Global_Theory.add_thms [((Binding.name "induct", induct), [])]
       ||> Spec_Rules.add_global Spec_Rules.Equational ([lhs], flat rules);
     val result = {lhs = lhs, simps = simps', rules = rules', induct = induct', tcs = tcs};
-    val thy =
-      thy
+    val thy3 =
+      thy2
       |> put_recdef name result
       |> Sign.parent_path;
-  in (thy, result) end;
+  in (thy3, result) end;
 
 val add_recdef = gen_add_recdef Tfl.define Attrib.attribute_cmd_global prepare_hints;
 fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z w ();

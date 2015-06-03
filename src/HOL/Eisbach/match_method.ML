@@ -181,7 +181,7 @@ fun parse_named_pats match_kind =
                   val (param_thm', ctxt'') = Thm.proof_attributes atts param_thm ctxt';
 
                   fun label_thm thm =
-                    Thm.cterm_of ctxt' (Free (nm, propT))
+                    Thm.cterm_of ctxt'' (Free (nm, propT))
                     |> Drule.mk_term
                     |> not (null abs_nms) ? Conjunction.intr thm
 
@@ -509,19 +509,18 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
 (* Fix schematics in the goal *)
 fun focus_concl ctxt i goal =
   let
-    val ({context, concl, params, prems, asms, schematics}, goal') =
+    val ({context = ctxt', concl, params, prems, asms, schematics}, goal') =
       Subgoal.focus_params ctxt i goal;
 
-    val ((_, schematic_terms), context') =
-      Variable.import_inst true [Thm.term_of concl] context
-      |>> Thm.certify_inst (Thm.theory_of_thm goal');
+    val (inst, ctxt'') = Variable.import_inst true [Thm.term_of concl] ctxt';
+    val (_, schematic_terms) = Thm.certify_inst ctxt'' inst;
 
     val goal'' = Thm.instantiate ([], schematic_terms) goal';
     val concl' = Thm.instantiate_cterm ([], schematic_terms) concl;
     val (schematic_types, schematic_terms') = schematics;
     val schematics' = (schematic_types, schematic_terms @ schematic_terms');
   in
-    ({context = context', concl = concl', params = params, prems = prems,
+    ({context = ctxt'', concl = concl', params = params, prems = prems,
       schematics = schematics', asms = asms} : Subgoal.focus, goal'')
   end;
 
