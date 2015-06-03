@@ -697,7 +697,7 @@ fun transferred ctxt extra_rules thm =
     val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
                 |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
     val thm2 = thm1
-      |> Thm.certify_instantiate (instT, [])
+      |> Thm.certify_instantiate ctxt (instT, [])
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
@@ -733,7 +733,7 @@ fun untransferred ctxt extra_rules thm =
     val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
                 |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
     val thm2 = thm1
-      |> Thm.certify_instantiate (instT, [])
+      |> Thm.certify_instantiate ctxt (instT, [])
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)

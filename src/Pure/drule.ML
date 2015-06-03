@@ -17,7 +17,7 @@ sig
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
   val gen_all: int -> thm -> thm
-  val lift_all: cterm -> thm -> thm
+  val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate_normalize: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
@@ -192,9 +192,12 @@ fun gen_all maxidx0 th =
 
 (*lift vars wrt. outermost goal parameters
   -- reverses the effect of gen_all modulo higher-order unification*)
-fun lift_all goal th =
+fun lift_all ctxt raw_goal raw_th =
   let
-    val thy = Theory.merge (Thm.theory_of_cterm goal, Thm.theory_of_thm th);
+    val thy = Proof_Context.theory_of ctxt;
+    val goal = Thm.transfer_cterm thy raw_goal;
+    val th = Thm.transfer thy raw_th;
+
     val maxidx = Thm.maxidx_of th;
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
@@ -204,8 +207,8 @@ fun lift_all goal th =
       |> map (fn (xi, T) => ((xi, T), Term.list_comb (Var (xi, Ts ---> T), ps)));
   in
     th
-    |> Thm.instantiate (Thm.certify_inst thy ([], inst))
-    |> fold_rev (Thm.forall_intr o Thm.global_cterm_of thy) ps
+    |> Thm.certify_instantiate ctxt ([], inst)
+    |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 
 (*direct generalization*)
@@ -225,10 +228,8 @@ fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
-        val inst =
-          Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths)
-          |> Thm.certify_inst thy;
-      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate inst) ths end;
+        val insts = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
+      in map (Thm.adjust_maxidx_thm ~1 o Thm.global_certify_instantiate thy insts) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
 
@@ -359,7 +360,7 @@ fun store_thm_open name th =
   Context.>>> (Context.map_theory_result (Global_Theory.store_thm_open (name, th)));
 
 fun store_standard_thm name th = store_thm name (export_without_context th);
-fun store_standard_thm_open name thm = store_thm_open name (export_without_context_open thm);
+fun store_standard_thm_open name th = store_thm_open name (export_without_context_open th);
 
 val reflexive_thm =
   let val cx = certify (Var(("x",0),TVar(("'a",0),[])))

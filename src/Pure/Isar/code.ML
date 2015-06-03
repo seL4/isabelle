@@ -635,19 +635,19 @@ fun mk_desymbolization pre post mk vs =
     else SOME (((v, i), x), mk ((v', 0), x))) (vs ~~ names)
   end;
 
-fun desymbolize_tvars thms =
+fun desymbolize_tvars thy thms =
   let
     val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
     val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") TVar tvs;
-  in map (Thm.certify_instantiate (tvar_subst, [])) thms end;
+  in map (Thm.global_certify_instantiate thy (tvar_subst, [])) thms end;
 
-fun desymbolize_vars thm =
+fun desymbolize_vars thy thm =
   let
     val vs = Term.add_vars (Thm.prop_of thm) [];
     val var_subst = mk_desymbolization I I Var vs;
-  in Thm.certify_instantiate ([], var_subst) thm end;
+  in Thm.global_certify_instantiate thy ([], var_subst) thm end;
 
-fun canonize_thms thy = desymbolize_tvars #> same_arity thy #> map desymbolize_vars;
+fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbolize_vars thy);
 
 
 (* abstype certificates *)
@@ -706,7 +706,7 @@ fun constrain_thm thy vs sorts thm =
   in
     thm
     |> Thm.varifyT_global
-    |> Thm.certify_instantiate (inst, [])
+    |> Thm.global_certify_instantiate thy (inst, [])
     |> pair subst
   end;
 
@@ -771,7 +771,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val sorts = map_transpose inter_sorts vss;
         val vts = Name.invent_names Name.context Name.aT sorts;
         val thms' =
-          map2 (fn vs => Thm.certify_instantiate (vs ~~ map TFree vts, [])) vss thms;
+          map2 (fn vs => Thm.certify_instantiate ctxt (vs ~~ map TFree vts, [])) vss thms;
         val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms'))));
         fun head_conv ct = if can Thm.dest_comb ct
           then Conv.fun_conv head_conv ct
