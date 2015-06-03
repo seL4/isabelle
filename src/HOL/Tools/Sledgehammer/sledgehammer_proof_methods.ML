@@ -135,8 +135,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     | Fastforce_Method => Clasimp.fast_force_tac ctxt
     | Force_Method => Clasimp.force_tac ctxt
     | Moura_Method => moura_tac ctxt
-    | Linarith_Method =>
-      let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
+    | Linarith_Method => Lin_Arith.tac ctxt
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 

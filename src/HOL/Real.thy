@@ -438,7 +438,7 @@ definition
   "x - y = (x::real) + - y"
 
 definition
-  "x / y = (x::real) * inverse y"
+  "divide x y = (x::real) * inverse y"
 
 lemma add_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
@@ -501,7 +501,7 @@ instance proof
     apply (rule_tac x=k in exI, clarify)
     apply (drule_tac x=n in spec, simp)
     done
-  show "a / b = a * inverse b"
+  show "divide a b = a * inverse b"
     by (rule divide_real_def)
   show "inverse (0::real) = 0"
     by transfer (simp add: realrel_def)

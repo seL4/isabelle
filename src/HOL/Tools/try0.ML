@@ -105,7 +105,6 @@ fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms;
    bound exceeded" warnings and the like. *)
 fun silence_methods debug =
   Config.put Metis_Tactic.verbose debug
-  #> Config.put Lin_Arith.verbose debug
   #> not debug ? (fn ctxt =>
       ctxt
       |> Context_Position.set_visible false

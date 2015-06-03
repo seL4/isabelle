@@ -505,11 +505,18 @@ instance ..
 
 end
 
-instantiation star :: (inverse) inverse
+instantiation star :: (divide) divide
 begin
 
 definition
-  star_divide_def:  "(op /) \<equiv> *f2* (op /)"
+  star_divide_def:  "divide \<equiv> *f2* divide"
+
+instance ..
+
+end
+
+instantiation star :: (inverse) inverse
+begin
 
 definition
   star_inverse_def: "inverse \<equiv> *f* inverse"
@@ -522,9 +529,6 @@ instance star :: (Rings.dvd) Rings.dvd ..
 
 instantiation star :: (Divides.div) Divides.div
 begin
-
-definition
-  star_div_def:     "(op div) \<equiv> *f2* (op div)"
 
 definition
   star_mod_def:     "(op mod) \<equiv> *f2* (op mod)"
@@ -551,7 +555,7 @@ lemmas star_class_defs [transfer_unfold] =
   star_add_def      star_diff_def     star_minus_def
   star_mult_def     star_divide_def   star_inverse_def
   star_le_def       star_less_def     star_abs_def       star_sgn_def
-  star_div_def      star_mod_def
+  star_mod_def
 
 text {* Class operations preserve standard elements *}
 
@@ -573,7 +577,7 @@ by (simp add: star_minus_def)
 lemma Standard_mult: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x * y \<in> Standard"
 by (simp add: star_mult_def)
 
-lemma Standard_divide: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x / y \<in> Standard"
+lemma Standard_divide: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> divide x y \<in> Standard"
 by (simp add: star_divide_def)
 
 lemma Standard_inverse: "x \<in> Standard \<Longrightarrow> inverse x \<in> Standard"
@@ -582,17 +586,14 @@ by (simp add: star_inverse_def)
 lemma Standard_abs: "x \<in> Standard \<Longrightarrow> abs x \<in> Standard"
 by (simp add: star_abs_def)
 
-lemma Standard_div: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x div y \<in> Standard"
-by (simp add: star_div_def)
-
 lemma Standard_mod: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x mod y \<in> Standard"
 by (simp add: star_mod_def)
 
 lemmas Standard_simps [simp] =
   Standard_zero  Standard_one
-  Standard_add  Standard_diff  Standard_minus
+  Standard_add   Standard_diff    Standard_minus
   Standard_mult  Standard_divide  Standard_inverse
-  Standard_abs  Standard_div  Standard_mod
+  Standard_abs   Standard_mod
 
 text {* @{term star_of} preserves class operations *}
 
@@ -612,9 +613,6 @@ lemma star_of_divide: "star_of (x / y) = star_of x / star_of y"
 by transfer (rule refl)
 
 lemma star_of_inverse: "star_of (inverse x) = inverse (star_of x)"
-by transfer (rule refl)
-
-lemma star_of_div: "star_of (x div y) = star_of x div star_of y"
 by transfer (rule refl)
 
 lemma star_of_mod: "star_of (x mod y) = star_of x mod star_of y"
@@ -665,7 +663,7 @@ lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
 lemmas star_of_simps [simp] =
   star_of_add     star_of_diff    star_of_minus
   star_of_mult    star_of_divide  star_of_inverse
-  star_of_div     star_of_mod     star_of_abs
+  star_of_mod     star_of_abs
   star_of_zero    star_of_one
   star_of_less    star_of_le      star_of_eq
   star_of_0_less  star_of_0_le    star_of_0_eq
@@ -855,6 +853,13 @@ instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
 instance star :: (semidom) semidom ..
+instance star :: (semidom_divide) semidom_divide
+proof
+  show "\<And>b a :: 'a star. b \<noteq> 0 \<Longrightarrow> divide (a * b) b = a"
+    by transfer simp
+  show "\<And>a :: 'a star. divide a 0 = 0"
+    by transfer simp
+qed
 instance star :: (semiring_div) semiring_div
 apply intro_classes
 apply(transfer, rule mod_div_equality)
@@ -867,6 +872,7 @@ done
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 instance star :: (idom) idom .. 
+instance star :: (idom_divide) idom_divide ..
 
 instance star :: (division_ring) division_ring
 apply (intro_classes)

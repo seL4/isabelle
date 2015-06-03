@@ -307,7 +307,7 @@ lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wo
   by (metis bintr_ariths(4))
 
 definition
-  word_div_def: "a div b = word_of_int (uint a div uint b)"
+  word_div_def: "divide a b = word_of_int (uint a div uint b)"
 
 definition
   word_mod_def: "a mod b = word_of_int (uint a mod uint b)"

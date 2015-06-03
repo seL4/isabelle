@@ -34,7 +34,7 @@ local
     {logic = K "", fp_kinds = [BNF_Util.Least_FP],
      serialize = #serialize (SMTLIB_Interface.translate_config ctxt)}
 
-  fun is_div_mod @{const div (int)} = true
+  fun is_div_mod @{const divide (int)} = true
     | is_div_mod @{const mod (int)} = true
     | is_div_mod _ = false
 

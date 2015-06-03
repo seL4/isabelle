@@ -325,7 +325,7 @@ overloaded operators:
 @{const abs} & @{typeof abs}\\
 @{const sgn} & @{typeof sgn}\\
 @{const dvd_class.dvd} & @{typeof "dvd_class.dvd"}\\
-@{const div_class.div} & @{typeof "div_class.div"}\\
+@{const Rings.divide} & @{typeof Rings.divide}\\
 @{const div_class.mod} & @{typeof "div_class.mod"}\\
 \end{supertabular}
 

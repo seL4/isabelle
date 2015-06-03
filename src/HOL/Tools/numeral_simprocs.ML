@@ -116,7 +116,7 @@ fun mk_frac (p, q) = if q = 0 then raise Div else (p, q);
   Fractions are reduced later by the cancel_numeral_factor simproc.*)
 fun add_frac ((p1, q1), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
 
-val mk_divide = HOLogic.mk_binop @{const_name Fields.divide};
+val mk_divide = HOLogic.mk_binop @{const_name Rings.divide};
 
 (*Build term (p / q) * t*)
 fun mk_fcoeff ((p, q), t) =
@@ -125,7 +125,7 @@ fun mk_fcoeff ((p, q), t) =
 
 (*Express t as a product of a fraction with other sorted terms*)
 fun dest_fcoeff sign (Const (@{const_name Groups.uminus}, _) $ t) = dest_fcoeff (~sign) t
-  | dest_fcoeff sign (Const (@{const_name Fields.divide}, _) $ t $ u) =
+  | dest_fcoeff sign (Const (@{const_name Rings.divide}, _) $ t $ u) =
     let val (p, t') = dest_coeff sign t
         val (q, u') = dest_coeff 1 u
     in (mk_frac (p, q), mk_divide (t', u')) end
@@ -401,8 +401,8 @@ end
 (*Version for semiring_div*)
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} dummyT
   val cancel = @{thm div_mult_mult1} RS trans
   val neg_exchanges = false
 )
@@ -410,8 +410,8 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 (*Version for fields*)
 structure DivideCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Fields.divide}
-  val dest_bal = HOLogic.dest_bin @{const_name Fields.divide} dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} dummyT
   val cancel = @{thm mult_divide_mult_cancel_left} RS trans
   val neg_exchanges = false
 )
@@ -548,8 +548,8 @@ structure LessCancelFactor = ExtractCommonTermFun
 (*for semirings with division*)
 structure DivCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} dummyT
   fun simp_conv _ _ = SOME @{thm div_mult_mult1_if}
 );
 
@@ -571,8 +571,8 @@ structure DvdCancelFactor = ExtractCommonTermFun
 (*Version for all fields, including unordered ones (type complex).*)
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Fields.divide}
-  val dest_bal = HOLogic.dest_bin @{const_name Fields.divide} dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name Rings.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name Rings.divide} dummyT
   fun simp_conv _ _ = SOME @{thm mult_divide_mult_cancel_left_if}
 );
 
@@ -620,13 +620,13 @@ local
     val (l,r) = Thm.dest_binop ct
     val T = Thm.ctyp_of_cterm l
   in (case (Thm.term_of l, Thm.term_of r) of
-      (Const(@{const_name Fields.divide},_)$_$_, _) =>
+      (Const(@{const_name Rings.divide},_)$_$_, _) =>
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
         in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
-     | (_, Const (@{const_name Fields.divide},_)$_$_) =>
+     | (_, Const (@{const_name Rings.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
@@ -636,49 +636,49 @@ local
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun is_number (Const(@{const_name Fields.divide},_)$a$b) = is_number a andalso is_number b
+ fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
    | is_number t = can HOLogic.dest_number t
 
  val is_number = is_number o Thm.term_of
 
  fun proc3 phi ctxt ct =
   (case Thm.term_of ct of
-    Const(@{const_name Orderings.less},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
+    Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
+  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.eq},_)$(Const(@{const_name Fields.divide},_)$_$_)$_ =>
+  | Const(@{const_name HOL.eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
+  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
+  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name HOL.eq},_)$_$(Const(@{const_name Fields.divide},_)$_$_) =>
+  | Const(@{const_name HOL.eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]

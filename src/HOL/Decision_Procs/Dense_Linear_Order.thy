@@ -710,7 +710,7 @@ let
 
 fun dest_frac ct =
   case Thm.term_of ct of
-    Const (@{const_name Fields.divide},_) $ a $ b=>
+    Const (@{const_name Rings.divide},_) $ a $ b=>
       Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
   | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
   | t => Rat.rat_of_int (snd (HOLogic.dest_number t))

@@ -1360,14 +1360,14 @@ lemmas pdivmod_rel_unique_mod = pdivmod_rel_unique [THEN conjunct2]
 instantiation poly :: (field) ring_div
 begin
 
-definition div_poly where
-  "x div y = (THE q. \<exists>r. pdivmod_rel x y q r)"
+definition divide_poly where
+  div_poly_def: "divide x y = (THE q. \<exists>r. pdivmod_rel x y q r)"
 
 definition mod_poly where
   "x mod y = (THE r. \<exists>q. pdivmod_rel x y q r)"
 
 lemma div_poly_eq:
-  "pdivmod_rel x y q r \<Longrightarrow> x div y = q"
+  "pdivmod_rel x y q r \<Longrightarrow> divide x y = q"
 unfolding div_poly_def
 by (fast elim: pdivmod_rel_unique_div)
 
@@ -1377,7 +1377,7 @@ unfolding mod_poly_def
 by (fast elim: pdivmod_rel_unique_mod)
 
 lemma pdivmod_rel:
-  "pdivmod_rel x y (x div y) (x mod y)"
+  "pdivmod_rel x y (divide x y) (x mod y)"
 proof -
   from pdivmod_rel_exists
     obtain q r where "pdivmod_rel x y q r" by fast
@@ -1387,41 +1387,41 @@ qed
 
 instance proof
   fix x y :: "'a poly"
-  show "x div y * y + x mod y = x"
+  show "divide x y * y + x mod y = x"
     using pdivmod_rel [of x y]
     by (simp add: pdivmod_rel_def)
 next
   fix x :: "'a poly"
   have "pdivmod_rel x 0 0 x"
     by (rule pdivmod_rel_by_0)
-  thus "x div 0 = 0"
+  thus "divide x 0 = 0"
     by (rule div_poly_eq)
 next
   fix y :: "'a poly"
   have "pdivmod_rel 0 y 0 0"
     by (rule pdivmod_rel_0)
-  thus "0 div y = 0"
+  thus "divide 0 y = 0"
     by (rule div_poly_eq)
 next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
-  hence "pdivmod_rel (x + z * y) y (z + x div y) (x mod y)"
+  hence "pdivmod_rel (x + z * y) y (z + divide x y) (x mod y)"
     using pdivmod_rel [of x y]
     by (simp add: pdivmod_rel_def distrib_right)
-  thus "(x + z * y) div y = z + x div y"
+  thus "divide (x + z * y) y = z + divide x y"
     by (rule div_poly_eq)
 next
   fix x y z :: "'a poly"
   assume "x \<noteq> 0"
-  show "(x * y) div (x * z) = y div z"
+  show "divide (x * y) (x * z) = divide y z"
   proof (cases "y \<noteq> 0 \<and> z \<noteq> 0")
     have "\<And>x::'a poly. pdivmod_rel x 0 0 x"
       by (rule pdivmod_rel_by_0)
-    then have [simp]: "\<And>x::'a poly. x div 0 = 0"
+    then have [simp]: "\<And>x::'a poly. divide x 0 = 0"
       by (rule div_poly_eq)
     have "\<And>x::'a poly. pdivmod_rel 0 x 0 0"
       by (rule pdivmod_rel_0)
-    then have [simp]: "\<And>x::'a poly. 0 div x = 0"
+    then have [simp]: "\<And>x::'a poly. divide 0 x = 0"
       by (rule div_poly_eq)
     case False then show ?thesis by auto
   next
@@ -1430,8 +1430,8 @@ next
     have "\<And>q r. pdivmod_rel y z q r \<Longrightarrow> pdivmod_rel (x * y) (x * z) q (x * r)"
       by (auto simp add: pdivmod_rel_def algebra_simps)
         (rule classical, simp add: degree_mult_eq)
-    moreover from pdivmod_rel have "pdivmod_rel y z (y div z) (y mod z)" .
-    ultimately have "pdivmod_rel (x * y) (x * z) (y div z) (x * (y mod z))" .
+    moreover from pdivmod_rel have "pdivmod_rel y z (divide y z) (y mod z)" .
+    ultimately have "pdivmod_rel (x * y) (x * z) (divide y z) (x * (y mod z))" .
     then show ?thesis by (simp add: div_poly_eq)
   qed
 qed

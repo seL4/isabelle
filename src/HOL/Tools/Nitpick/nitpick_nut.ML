@@ -553,7 +553,7 @@ fun nut_from_term (hol_ctxt as {ctxt, ...}) eq =
         | (Const (x as (s as @{const_name times_class.times}, T)), []) =>
           if is_built_in_const x then Cst (Multiply, T, Any)
           else ConstName (s, T, Any)
-        | (Const (x as (s as @{const_name div_class.div}, T)), []) =>
+        | (Const (x as (s as @{const_name Rings.divide}, T)), []) =>
           if is_built_in_const x then Cst (Divide, T, Any)
           else ConstName (s, T, Any)
         | (t0 as Const (x as (@{const_name ord_class.less}, _)),

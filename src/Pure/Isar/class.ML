@@ -13,12 +13,12 @@ sig
   val rules: theory -> class -> thm option * thm
   val these_defs: theory -> sort -> thm list
   val these_operations: theory -> sort
-    -> (string * (class * (typ * term))) list
+    -> (string * (class * ((typ * term) * bool))) list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> term -> term list * term list -> local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
   val register: class -> class list -> ((string * typ) * (string * typ)) list
@@ -74,7 +74,7 @@ datatype class_data = Class_Data of {
 
   (* dynamic part *)
   defs: thm list,
-  operations: (string * (class * (typ * term))) list
+  operations: (string * (class * ((typ * term) * bool))) list
 
   (* n.b.
     params = logical parameters of class
@@ -216,7 +216,7 @@ fun register class sups params base_sort base_morph export_morph
     some_axiom some_assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
-      (c, (class, (ty, Free v_ty)))) params;
+      (c, (class, ((ty, Free v_ty), false)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
           base_morph, export_morph, some_assm_intro, of_class, some_axiom), ([], operations)))
@@ -230,7 +230,7 @@ fun activate_defs class thms thy =
         (eq_morph, true) (export_morphism thy cls)) thy) (heritage thy [class]) thy
   | NONE => thy);
 
-fun register_operation class (c, t) thy =
+fun register_operation class (c, t) input_only thy =
   let
     val base_sort = base_sort thy class;
     val prep_typ = map_type_tfree
@@ -241,7 +241,7 @@ fun register_operation class (c, t) thy =
   in
     thy
     |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apsnd)
-        (cons (c, (class, (ty', t'))))
+        (cons (c, (class, ((ty', t'), input_only))))
   end;
 
 fun register_def class def_thm thy =
@@ -259,8 +259,22 @@ fun register_def class def_thm thy =
 
 (* class context syntax *)
 
-fun these_unchecks thy = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
-  o these_operations thy;
+fun make_rewrite t c_ty =
+  let
+    val (vs, t') = strip_abs t;
+    val vts = map snd vs
+      |> Name.invent_names Name.context Name.uu
+      |> map (fn (v, T) => Var ((v, 0), T));
+  in (betapplys (t, vts), betapplys (Const c_ty, vts)) end;
+
+fun these_unchecks thy =
+  these_operations thy
+  #> map_filter (fn (c, (_, ((ty, t), input_only))) =>
+    if input_only then NONE else SOME (make_rewrite t (c, ty)));
+
+fun these_unchecks_reversed thy =
+  these_operations thy
+  #> map (fn (c, (_, ((ty, t), _))) => (Const (c, ty), t));
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -273,9 +287,9 @@ fun synchronize_class_syntax sort base_sort ctxt =
     val operations = these_operations thy sort;
     fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
     val primary_constraints =
-      (map o apsnd) (subst_class_typ base_sort o fst o snd) operations;
+      (map o apsnd) (subst_class_typ base_sort o fst o fst o snd) operations;
     val secondary_constraints =
-      (map o apsnd) (fn (class, (ty, _)) => subst_class_typ [class] ty) operations;
+      (map o apsnd) (fn (class, ((ty, _), _)) => subst_class_typ [class] ty) operations;
     fun improve (c, ty) =
       (case AList.lookup (op =) primary_constraints c of
         SOME ty' =>
@@ -289,13 +303,14 @@ fun synchronize_class_syntax sort base_sort ctxt =
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE);
-    fun subst (c, _) = Option.map snd (AList.lookup (op =) operations c);
+    fun subst (c, _) = Option.map (fst o snd) (AList.lookup (op =) operations c);
     val unchecks = these_unchecks thy sort;
   in
     ctxt
     |> fold (redeclare_const thy o fst) primary_constraints
-    |> Overloading.map_improvable_syntax (K (((primary_constraints, secondary_constraints),
-        (((improve, subst), true), unchecks)), false))
+    |> Overloading.map_improvable_syntax (K {primary_constraints = primary_constraints,
+      secondary_constraints = secondary_constraints, improve = improve, subst = subst,
+      no_subst_in_abbrev_mode = true, unchecks = unchecks})
     |> Overloading.set_primary_constraints
   end;
 
@@ -324,8 +339,6 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-local
-
 fun guess_morphism_identity (b, rhs) phi1 phi2 =
   let
     (*FIXME proper concept to identify morphism instead of educated guess*)
@@ -336,14 +349,18 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
     val rhs2 = Morphism.term phi2 rhs;
   in n1 = n2 andalso Term.aconv_untyped (rhs1, rhs2) end;
 
-fun target_const class phi0 prmode ((b, _), rhs) =
+fun target_const class phi0 prmode (b, rhs) lthy =
   let
-    val guess_identity = guess_morphism_identity (b, rhs) Morphism.identity;
-    val guess_canonical = guess_morphism_identity (b, rhs) phi0;
+    val export = Variable.export_morphism lthy (Local_Theory.target_of lthy);
+    val guess_identity = guess_morphism_identity (b, rhs) export;
+    val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi0);
   in
-    Generic_Target.locale_target_const class
+    lthy
+    |> Generic_Target.locale_target_const class
       (not o (guess_identity orf guess_canonical)) prmode ((b, NoSyn), rhs)
   end;
+
+local
 
 fun dangling_params_for lthy class (type_params, term_params) =
   let
@@ -374,26 +391,8 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     |> snd
     |> global_def (b_def, def_eq)
     |-> (fn def_thm => register_def class def_thm)
-    |> null dangling_params ? register_operation class (c, rhs)
+    |> null dangling_params ? register_operation class (c, rhs) false
     |> Sign.add_const_constraint (c, SOME ty)
-  end;
-
-fun canonical_abbrev class phi prmode dangling_term_params ((b, mx), rhs) thy =
-  let
-    val unchecks = these_unchecks thy [class];
-    val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
-    val c' = Sign.full_name thy b;
-    val ty' = map Term.fastype_of dangling_term_params ---> Term.fastype_of rhs';
-    val ty'' = Morphism.typ phi ty';
-    val rhs'' = map_types (Morphism.typ phi) (fold lambda dangling_term_params rhs');
-  in
-    thy
-    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs'')
-    |> snd
-    |> Sign.notation true prmode [(Const (c', ty''), mx)]
-    |> (null dangling_term_params andalso not (#1 prmode = Print_Mode.input))
-      ? register_operation class (c', rhs')
-    |> Sign.add_const_constraint (c', SOME ty')
   end;
 
 in
@@ -404,7 +403,7 @@ fun const class ((b, mx), lhs) params lthy =
     val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
-    |> target_const class phi Syntax.mode_default ((b, mx), lhs)
+    |> target_const class phi Syntax.mode_default (b, lhs)
     |> Local_Theory.raw_theory (canonical_const class phi dangling_params
          ((Morphism.binding phi b, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
     |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
@@ -412,18 +411,57 @@ fun const class ((b, mx), lhs) params lthy =
     |> synchronize_class_syntax_target class
   end;
 
-fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
+end;
+
+local
+
+fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
   let
-    val phi = morphism (Proof_Context.theory_of lthy) class;
-    val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
+    val c = Sign.full_name thy b;
+    val constrain = map_atyps (fn T as TFree (v, _) =>
+      if v = Name.aT then TFree (v, [class]) else T | T => T);
+    val rhs' = map_types constrain rhs;
+  in
+    thy
+    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs')
+    |> snd
+    |> with_syntax ? Sign.notation true prmode [(Const (c, fastype_of rhs), mx)]
+    |> with_syntax ? register_operation class (c, rhs)
+        (#1 prmode = Print_Mode.input)
+    |> Sign.add_const_constraint (c, SOME (fastype_of rhs'))
+  end;
+
+fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+    val preprocess = perhaps (try (Pattern.rewrite_term_top thy (these_unchecks thy [class]) []));
+    val (global_rhs, (extra_tfrees, (type_params, term_params))) =
+      Generic_Target.export_abbrev lthy preprocess rhs;
+    val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
   in
     lthy
-    |> target_const class phi prmode ((b, mx), lhs)
-    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode dangling_term_params
-         ((Morphism.binding phi b, if null dangling_term_params then mx else NoSyn), rhs'))
-    |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
-         prmode ((b, if null dangling_term_params then NoSyn else mx), lhs)
-    |> synchronize_class_syntax_target class
+    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode (null term_params)
+        ((Morphism.binding phi b, mx'), Logic.unvarify_types_global global_rhs))
+  end;
+
+fun further_abbrev_target class phi prmode (b, mx) rhs params =
+  Generic_Target.background_abbrev (b, rhs) (snd params)
+  #-> (fn (lhs, _) => target_const class phi prmode (b, lhs)
+    #> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), lhs))
+
+in
+
+fun abbrev class prmode ((b, mx), rhs) lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+    val phi = morphism thy class;
+    val rhs_generic =
+      perhaps (try (Pattern.rewrite_term_top thy (these_unchecks_reversed thy [class]) [])) rhs;
+  in
+    lthy
+    |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
+    |> Generic_Target.abbrev (further_abbrev_target class phi) prmode ((b, mx), rhs_generic)
+    ||> synchronize_class_syntax_target class
   end;
 
 end;
@@ -545,9 +583,10 @@ fun synchronize_inst_syntax ctxt =
       map (fn ((c, _), v_ty as (_, ty)) => (Free v_ty, Const (c, ty))) params;
   in
     ctxt
-    |> Overloading.map_improvable_syntax
-      (fn (((primary_constraints, _), (((improve, _), _), _)), _) =>
-          (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
+    |> Overloading.map_improvable_syntax (fn {primary_constraints, improve, ...} =>
+      {primary_constraints = primary_constraints, secondary_constraints = [],
+        improve = improve, subst = subst, no_subst_in_abbrev_mode = false,
+        unchecks = unchecks})
   end;
 
 fun resort_terms ctxt algebra consts constraints ts =
@@ -578,7 +617,7 @@ fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
     SOME c =>
       if mx <> NoSyn then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
       else lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
-  | NONE => lthy |> Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) params);
+  | NONE => lthy |> Generic_Target.theory_target_foundation (((b, U), mx), (b_def, rhs)) params);
 
 fun pretty lthy =
   let
@@ -635,15 +674,16 @@ fun instantiation (tycos, vs, sort) thy =
     |> Instantiation.put (make_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
-    |> (Overloading.map_improvable_syntax o apfst)
-         (K ((primary_constraints, []), (((improve, K NONE), false), [])))
+    |> (Overloading.map_improvable_syntax) (K {primary_constraints = primary_constraints,
+      secondary_constraints = [], improve = improve, subst = K NONE,
+      no_subst_in_abbrev_mode = false, unchecks = []})
     |> Overloading.activate_improvable_syntax
     |> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
     |> Local_Theory.init (Sign.naming_of thy)
        {define = Generic_Target.define foundation,
-        notes = Generic_Target.notes Generic_Target.theory_notes,
-        abbrev = Generic_Target.abbrev Generic_Target.theory_abbrev,
+        notes = Generic_Target.notes Generic_Target.theory_target_notes,
+        abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
         subscription = Generic_Target.theory_registration,
         pretty = pretty,

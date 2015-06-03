@@ -118,75 +118,60 @@ end
 subsection {* Instances for @{typ nat} and @{typ int} *}
 
 lemma even_Suc_Suc_iff [simp]:
-  "even (Suc (Suc n)) \<longleftrightarrow> even n"
+  "2 dvd Suc (Suc n) \<longleftrightarrow> 2 dvd n"
   using dvd_add_triv_right_iff [of 2 n] by simp
 
 lemma even_Suc [simp]:
-  "even (Suc n) \<longleftrightarrow> odd n"
+  "2 dvd Suc n \<longleftrightarrow> \<not> 2 dvd n"
   by (induct n) auto
 
 lemma even_diff_nat [simp]:
   fixes m n :: nat
-  shows "even (m - n) \<longleftrightarrow> m < n \<or> even (m + n)"
+  shows "2 dvd (m - n) \<longleftrightarrow> m < n \<or> 2 dvd (m + n)"
 proof (cases "n \<le> m")
   case True
   then have "m - n + n * 2 = m + n" by (simp add: mult_2_right)
-  moreover have "even (m - n) \<longleftrightarrow> even (m - n + n * 2)" by simp
-  ultimately have "even (m - n) \<longleftrightarrow> even (m + n)" by (simp only:)
+  moreover have "2 dvd (m - n) \<longleftrightarrow> 2 dvd (m - n + n * 2)" by simp
+  ultimately have "2 dvd (m - n) \<longleftrightarrow> 2 dvd (m + n)" by (simp only:)
   then show ?thesis by auto
 next
   case False
   then show ?thesis by simp
 qed 
   
-lemma even_diff_iff [simp]:
-  fixes k l :: int
-  shows "even (k - l) \<longleftrightarrow> even (k + l)"
-  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
-
-lemma even_abs_add_iff [simp]:
-  fixes k l :: int
-  shows "even (\<bar>k\<bar> + l) \<longleftrightarrow> even (k + l)"
-  by (cases "k \<ge> 0") (simp_all add: ac_simps)
-
-lemma even_add_abs_iff [simp]:
-  fixes k l :: int
-  shows "even (k + \<bar>l\<bar>) \<longleftrightarrow> even (k + l)"
-  using even_abs_add_iff [of l k] by (simp add: ac_simps)
-
 instance nat :: semiring_parity
 proof
-  show "odd (1 :: nat)"
+  show "\<not> 2 dvd (1 :: nat)"
     by (rule notI, erule dvdE) simp
 next
   fix m n :: nat
-  assume "odd m"
-  moreover assume "odd n"
-  ultimately have *: "even (Suc m) \<and> even (Suc n)"
+  assume "\<not> 2 dvd m"
+  moreover assume "\<not> 2 dvd n"
+  ultimately have *: "2 dvd Suc m \<and> 2 dvd Suc n"
     by simp
-  then have "even (Suc m + Suc n)"
+  then have "2 dvd (Suc m + Suc n)"
     by (blast intro: dvd_add)
   also have "Suc m + Suc n = m + n + 2"
     by simp
-  finally show "even (m + n)"
+  finally show "2 dvd (m + n)"
     using dvd_add_triv_right_iff [of 2 "m + n"] by simp
 next
   fix m n :: nat
-  assume *: "even (m * n)"
-  show "even m \<or> even n"
+  assume *: "2 dvd (m * n)"
+  show "2 dvd m \<or> 2 dvd n"
   proof (rule disjCI)
-    assume "odd n"
-    then have "even (Suc n)" by simp
+    assume "\<not> 2 dvd n"
+    then have "2 dvd (Suc n)" by simp
     then obtain r where "Suc n = 2 * r" ..
     moreover from * obtain s where "m * n = 2 * s" ..
     then have "2 * s + m = m * Suc n" by simp
     ultimately have " 2 * s + m = 2 * (m * r)" by (simp add: algebra_simps)
     then have "m = 2 * (m * r - s)" by simp
-    then show "even m" ..
+    then show "2 dvd m" ..
   qed
 next
   fix n :: nat
-  assume "odd n"
+  assume "\<not> 2 dvd n"
   then show "\<exists>m. n = m + 1"
     by (cases n) simp_all
 qed
@@ -194,23 +179,38 @@ qed
 lemma odd_pos: 
   "odd (n :: nat) \<Longrightarrow> 0 < n"
   by (auto elim: oddE)
-  
+
+lemma even_diff_iff [simp]:
+  fixes k l :: int
+  shows "2 dvd (k - l) \<longleftrightarrow> 2 dvd (k + l)"
+  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
+
+lemma even_abs_add_iff [simp]:
+  fixes k l :: int
+  shows "2 dvd (\<bar>k\<bar> + l) \<longleftrightarrow> 2 dvd (k + l)"
+  by (cases "k \<ge> 0") (simp_all add: ac_simps)
+
+lemma even_add_abs_iff [simp]:
+  fixes k l :: int
+  shows "2 dvd (k + \<bar>l\<bar>) \<longleftrightarrow> 2 dvd (k + l)"
+  using even_abs_add_iff [of l k] by (simp add: ac_simps)
+
 instance int :: ring_parity
 proof
-  show "odd (1 :: int)" by (simp add: dvd_int_unfold_dvd_nat)
+  show "\<not> 2 dvd (1 :: int)" by (simp add: dvd_int_unfold_dvd_nat)
   fix k l :: int
-  assume "odd k"
-  moreover assume "odd l"
-  ultimately have "even (nat \<bar>k\<bar> + nat \<bar>l\<bar>)" 
+  assume "\<not> 2 dvd k"
+  moreover assume "\<not> 2 dvd l"
+  ultimately have "2 dvd (nat \<bar>k\<bar> + nat \<bar>l\<bar>)" 
     by (auto simp add: dvd_int_unfold_dvd_nat intro: odd_even_add)
-  then have "even (\<bar>k\<bar> + \<bar>l\<bar>)"
+  then have "2 dvd (\<bar>k\<bar> + \<bar>l\<bar>)"
     by (simp add: dvd_int_unfold_dvd_nat nat_add_distrib)
-  then show "even (k + l)"
+  then show "2 dvd (k + l)"
     by simp
 next
   fix k l :: int
-  assume "even (k * l)"
-  then show "even k \<or> even l"
+  assume "2 dvd (k * l)"
+  then show "2 dvd k \<or> 2 dvd l"
     by (simp add: dvd_int_unfold_dvd_nat even_multD nat_abs_mult_distrib)
 next
   fix k :: int
@@ -352,4 +352,3 @@ declare transfer_morphism_int_nat [transfer add return:
 ]
 
 end
-

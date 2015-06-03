@@ -429,7 +429,7 @@ local
     @{const Suc}, @{const plus (nat)}, @{const minus (nat)}]
 
   val mult_nat_ops =
-    [@{const times (nat)}, @{const div (nat)}, @{const mod (nat)}]
+    [@{const times (nat)}, @{const divide (nat)}, @{const mod (nat)}]
 
   val nat_ops = simple_nat_ops @ mult_nat_ops
 

@@ -21,7 +21,6 @@ sig
   val global_setup: theory -> theory
   val split_limit: int Config.T
   val neq_limit: int Config.T
-  val verbose: bool Config.T
   val trace: bool Config.T
 end;
 
@@ -102,15 +101,13 @@ fun add_inj_const c = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
 
 val split_limit = Attrib.setup_config_int @{binding linarith_split_limit} (K 9);
 val neq_limit = Attrib.setup_config_int @{binding linarith_neq_limit} (K 9);
-val verbose = Attrib.setup_config_bool @{binding linarith_verbose} (K true);
 val trace = Attrib.setup_config_bool @{binding linarith_trace} (K false);
 
 
-structure LA_Data =
+structure LA_Data: LIN_ARITH_DATA =
 struct
 
 val neq_limit = neq_limit;
-val verbose = verbose;
 val trace = trace;
 
 
@@ -139,7 +136,9 @@ fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
 
    returns either (SOME term, associated multiplicity) or (NONE, constant)
 *)
-fun demult (inj_consts : (string * typ) list) : term * Rat.rat -> term option * Rat.rat =
+fun of_field_sort thy U = Sign.of_sort thy (U, @{sort inverse});
+
+fun demult thy (inj_consts : (string * typ) list) : term * Rat.rat -> term option * Rat.rat =
 let
   fun demult ((mC as Const (@{const_name Groups.times}, _)) $ s $ t, m) =
       (case s of Const (@{const_name Groups.times}, _) $ s1 $ s2 =>
@@ -153,24 +152,26 @@ let
               (SOME t', m'') => (SOME (mC $ s' $ t'), m'')
             | (NONE,    m'') => (SOME s', m''))
         | (NONE,    m') => demult (t, m')))
-    | demult ((mC as Const (@{const_name Fields.divide}, _)) $ s $ t, m) =
+    | demult (atom as (mC as Const (@{const_name Rings.divide}, T)) $ s $ t, m) =
       (* FIXME: Shouldn't we simplify nested quotients, e.g. '(s/t)/u' could
          become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
          if we choose to do so here, the simpset used by arith must be able to
          perform the same simplifications. *)
       (* quotient 's / t', where the denominator t can be NONE *)
       (* Note: will raise Rat.DIVZERO iff m' is Rat.zero *)
-      let val (os',m') = demult (s, m);
+      if of_field_sort thy (domain_type T) then
+        let
+          val (os',m') = demult (s, m);
           val (ot',p) = demult (t, Rat.one)
-      in (case (os',ot') of
+        in (case (os',ot') of
             (SOME s', SOME t') => SOME (mC $ s' $ t')
           | (SOME s', NONE) => SOME s'
           | (NONE, SOME t') =>
-               let val Const(_,T) = mC
-               in SOME (mC $ Const (@{const_name Groups.one}, domain_type T) $ t') end
+               SOME (mC $ Const (@{const_name Groups.one}, domain_type (snd (dest_Const mC))) $ t')
           | (NONE, NONE) => NONE,
           Rat.mult m' (Rat.inv p))
-      end
+        end
+      else (SOME atom, m)
     (* terms that evaluate to numeric constants *)
     | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
     | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, Rat.zero)
@@ -192,7 +193,7 @@ let
     | demult (atom, m) = (SOME atom, m)
 in demult end;
 
-fun decomp0 (inj_consts : (string * typ) list) (rel : string, lhs : term, rhs : term) :
+fun decomp0 thy (inj_consts : (string * typ) list) (rel : string, lhs : term, rhs : term) :
             ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat) option =
 let
   (* Turns a term 'all' and associated multiplicity 'm' into a list 'p' of
@@ -215,13 +216,15 @@ let
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add i m))
     | poly (all as Const (@{const_name Groups.times}, _) $ _ $ _, m, pi as (p, i)) =
-        (case demult inj_consts (all, m) of
+        (case demult thy inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const (@{const_name Fields.divide}, _) $ _ $ _, m, pi as (p, i)) =
-        (case demult inj_consts (all, m) of
-           (NONE,   m') => (p, Rat.add i m')
-         | (SOME u, m') => add_atom u m' pi)
+    | poly (all as Const (@{const_name Rings.divide}, T) $ _ $ _, m, pi as (p, i)) =
+        if of_field_sort thy (domain_type T) then 
+          (case demult thy inj_consts (all, m) of
+             (NONE,   m') => (p, Rat.add i m')
+           | (SOME u, m') => add_atom u m' pi)
+        else add_atom all m pi
     | poly (all as Const f $ x, m, pi) =
         if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
@@ -244,12 +247,12 @@ fun allows_lin_arith thy (discrete : string list) (U as Type (D, [])) : bool * b
       else if member (op =) discrete D then (true, true) else (false, false)
   | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
 
-fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decomp option =
+fun decomp_typecheck thy (discrete, inj_consts) (T : typ, xxx) : decomp option =
   case T of
     Type ("fun", [U, _]) =>
       (case allows_lin_arith thy discrete U of
         (true, d) =>
-          (case decomp0 inj_consts xxx of
+          (case decomp0 thy inj_consts xxx of
             NONE                   => NONE
           | SOME (p, i, rel, q, j) => SOME (p, i, rel, q, j, d))
       | (false, _) =>
@@ -259,20 +262,20 @@ fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decomp option 
 fun negate (SOME (x, i, rel, y, j, d)) = SOME (x, i, "~" ^ rel, y, j, d)
   | negate NONE                        = NONE;
 
-fun decomp_negation data
-  ((Const (@{const_name Trueprop}, _)) $ (Const (rel, T) $ lhs $ rhs)) : decomp option =
-      decomp_typecheck data (T, (rel, lhs, rhs))
-  | decomp_negation data ((Const (@{const_name Trueprop}, _)) $
-  (Const (@{const_name Not}, _) $ (Const (rel, T) $ lhs $ rhs))) =
-      negate (decomp_typecheck data (T, (rel, lhs, rhs)))
-  | decomp_negation data _ =
+fun decomp_negation thy data
+      ((Const (@{const_name Trueprop}, _)) $ (Const (rel, T) $ lhs $ rhs)) : decomp option =
+      decomp_typecheck thy data (T, (rel, lhs, rhs))
+  | decomp_negation thy data
+      ((Const (@{const_name Trueprop}, _)) $ (Const (@{const_name Not}, _) $ (Const (rel, T) $ lhs $ rhs))) =
+      negate (decomp_typecheck thy data (T, (rel, lhs, rhs)))
+  | decomp_negation thy data _ =
       NONE;
 
 fun decomp ctxt : term -> decomp option =
   let
     val thy = Proof_Context.theory_of ctxt
     val {discrete, inj_consts, ...} = get_arith_data ctxt
-  in decomp_negation (thy, discrete, inj_consts) end;
+  in decomp_negation thy (discrete, inj_consts) end;
 
 fun domain_is_nat (_ $ (Const (_, T) $ _ $ _)) = nT T
   | domain_is_nat (_ $ (Const (@{const_name Not}, _) $ (Const (_, T) $ _ $ _))) = nT T
@@ -299,7 +302,7 @@ fun is_split_thm ctxt thm =
           @{const_name Groups.minus},
           "Int.nat" (*DYNAMIC BINDING!*),
           "Divides.div_class.mod" (*DYNAMIC BINDING!*),
-          "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
+          @{const_name Rings.divide}] a
     | _ =>
       (if Context_Position.is_visible ctxt then
         warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
@@ -498,7 +501,7 @@ in
     (* ?P ((?n::nat) div (numeral ?k)) =
          ((numeral ?k = 0 --> ?P 0) & (~ (numeral ?k = 0) -->
            (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.div_class.div", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
+    | (Const (@{const_name Rings.divide}, Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -589,7 +592,7 @@ in
           (numeral ?k < 0 -->
             (ALL i j.
               numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.div_class.div",
+    | (Const (@{const_name Rings.divide},
         Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms

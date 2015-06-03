@@ -56,7 +56,7 @@ val should_use_binary_ints =
   let
     fun aux (t1 $ t2) = aux t1 orelse aux t2
       | aux (Const (s, T)) =
-        ((s = @{const_name times} orelse s = @{const_name div}) andalso
+        ((s = @{const_name times} orelse s = @{const_name Rings.divide}) andalso
          is_integer_type (body_type T)) orelse
         (String.isPrefix numeral_prefix s andalso
          let val n = the (Int.fromString (unprefix numeral_prefix s)) in

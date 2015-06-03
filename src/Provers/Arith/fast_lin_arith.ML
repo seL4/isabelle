@@ -207,105 +207,6 @@ exception NoEx;
    Need to know if it is a lower or upper bound for unambiguous interpretation!
 *)
 
-fun elim_eqns (Lineq (i, Le, cs, _)) = [(i, true, cs)]
-  | elim_eqns (Lineq (i, Eq, cs, _)) = [(i, true, cs),(~i, true, map ~ cs)]
-  | elim_eqns (Lineq (i, Lt, cs, _)) = [(i, false, cs)];
-
-(* PRE: ex[v] must be 0! *)
-fun eval ex v (a, le, cs) =
-  let
-    val rs = map Rat.rat_of_int cs;
-    val rsum = fold2 (Rat.add oo Rat.mult) rs ex Rat.zero;
-  in (Rat.mult (Rat.add (Rat.rat_of_int a) (Rat.neg rsum)) (Rat.inv (nth rs v)), le) end;
-(* If nth rs v < 0, le should be negated.
-   Instead this swap is taken into account in ratrelmin2.
-*)
-
-fun ratrelmin2 (x as (r, ler), y as (s, les)) =
-  case Rat.ord (r, s)
-   of EQUAL => (r, (not ler) andalso (not les))
-    | LESS => x
-    | GREATER => y;
-
-fun ratrelmax2 (x as (r, ler), y as (s, les)) =
-  case Rat.ord (r, s)
-   of EQUAL => (r, ler andalso les)
-    | LESS => y
-    | GREATER => x;
-
-val ratrelmin = foldr1 ratrelmin2;
-val ratrelmax = foldr1 ratrelmax2;
-
-fun ratexact up (r, exact) =
-  if exact then r else
-  let
-    val (_, q) = Rat.quotient_of_rat r;
-    val nth = Rat.inv (Rat.rat_of_int q);
-  in Rat.add r (if up then nth else Rat.neg nth) end;
-
-fun ratmiddle (r, s) = Rat.mult (Rat.add r s) (Rat.inv Rat.two);
-
-fun choose2 d ((lb, exactl), (ub, exactu)) =
-  let val ord = Rat.sign lb in
-  if (ord = LESS orelse exactl) andalso (ord = GREATER orelse exactu)
-    then Rat.zero
-    else if not d then
-      if ord = GREATER
-        then if exactl then lb else ratmiddle (lb, ub)
-        else if exactu then ub else ratmiddle (lb, ub)
-      else (*discrete domain, both bounds must be exact*)
-      if ord = GREATER
-        then let val lb' = Rat.roundup lb in
-          if Rat.le lb' ub then lb' else raise NoEx end
-        else let val ub' = Rat.rounddown ub in
-          if Rat.le lb ub' then ub' else raise NoEx end
-  end;
-
-fun findex1 discr (v, lineqs) ex =
-  let
-    val nz = filter (fn (Lineq (_, _, cs, _)) => nth cs v <> 0) lineqs;
-    val ineqs = maps elim_eqns nz;
-    val (ge, le) = List.partition (fn (_,_,cs) => nth cs v > 0) ineqs
-    val lb = ratrelmax (map (eval ex v) ge)
-    val ub = ratrelmin (map (eval ex v) le)
-  in nth_map v (K (choose2 (nth discr v) (lb, ub))) ex end;
-
-fun elim1 v x =
-  map (fn (a,le,bs) => (Rat.add a (Rat.neg (Rat.mult (nth bs v) x)), le,
-                        nth_map v (K Rat.zero) bs));
-
-fun single_var v (_, _, cs) = case filter_out (curry (op =) EQUAL o Rat.sign) cs
- of [x] => x =/ nth cs v
-  | _ => false;
-
-(* The base case:
-   all variables occur only with positive or only with negative coefficients *)
-fun pick_vars discr (ineqs,ex) =
-  let val nz = filter_out (fn (_,_,cs) => forall (curry (op =) EQUAL o Rat.sign) cs) ineqs
-  in case nz of [] => ex
-     | (_,_,cs) :: _ =>
-       let val v = find_index (not o curry (op =) EQUAL o Rat.sign) cs
-           val d = nth discr v;
-           val pos = not (Rat.sign (nth cs v) = LESS);
-           val sv = filter (single_var v) nz;
-           val minmax =
-             if pos then if d then Rat.roundup o fst o ratrelmax
-                         else ratexact true o ratrelmax
-                    else if d then Rat.rounddown o fst o ratrelmin
-                         else ratexact false o ratrelmin
-           val bnds = map (fn (a,le,bs) => (Rat.mult a (Rat.inv (nth bs v)), le)) sv
-           val x = minmax((Rat.zero,if pos then true else false)::bnds)
-           val ineqs' = elim1 v x nz
-           val ex' = nth_map v (K x) ex
-       in pick_vars discr (ineqs',ex') end
-  end;
-
-fun findex0 discr n lineqs =
-  let val ineqs = maps elim_eqns lineqs
-      val rineqs = map (fn (a,le,cs) => (Rat.rat_of_int a, le, map Rat.rat_of_int cs))
-                       ineqs
-  in pick_vars discr (rineqs,replicate n Rat.zero) end;
-
 (* ------------------------------------------------------------------------- *)
 (* End of counterexample finder. The actual decision procedure starts here.  *)
 (* ------------------------------------------------------------------------- *)
@@ -432,7 +333,7 @@ fun elim ctxt (ineqs, hist) =
       val nziblows = filter_out (fn (i, _) => i = 0) iblows
   in if null nziblows then Failure((~1,nontriv)::hist)
      else
-     let val (c,v) = hd(sort (fn (x,y) => int_ord(fst(x),fst(y))) nziblows)
+     let val (_,v) = hd(sort (fn (x,y) => int_ord(fst(x),fst(y))) nziblows)
          val (no,yes) = List.partition (fn (Lineq(_,_,l,_)) => nth l v = 0) ineqs
          val (pos,neg) = List.partition(fn (Lineq(_,_,l,_)) => nth l v > 0) yes
      in elim ctxt (no @ map_product (elim_var v) pos neg, (v,nontriv)::hist) end
@@ -458,7 +359,6 @@ fun trace_msg ctxt msg =
   if Config.get ctxt LA_Data.trace then tracing msg else ();
 
 val union_term = union Envir.aeconv;
-val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Envir.aeconv (t, t'));
 
 fun add_atoms (lhs, _, _, rhs, _, _) =
   union_term (map fst lhs) o union_term (map fst rhs);
@@ -607,46 +507,6 @@ fun mklineq atoms =
 (* Print (counter) example                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun print_atom((a,d),r) =
-  let val (p,q) = Rat.quotient_of_rat r
-      val s = if d then string_of_int p else
-              if p = 0 then "0"
-              else string_of_int p ^ "/" ^ string_of_int q
-  in a ^ " = " ^ s end;
-
-fun is_variable (Free _) = true
-  | is_variable (Var _) = true
-  | is_variable (Bound _) = true
-  | is_variable _ = false
-
-fun trace_ex ctxt params atoms discr n (hist: history) =
-  case hist of
-    [] => ()
-  | (v, lineqs) :: hist' =>
-      let
-        val frees = map Free params
-        fun show_term t = Syntax.string_of_term ctxt (subst_bounds (frees, t))
-        val start =
-          if v = ~1 then (hist', findex0 discr n lineqs)
-          else (hist, replicate n Rat.zero)
-        val produce_ex =
-          map print_atom #> commas #>
-          prefix "Counterexample (possibly spurious):\n"
-        val ex = (
-          uncurry (fold (findex1 discr)) start
-          |> map2 pair (atoms ~~ discr)
-          |> filter (fn ((t, _), _) => is_variable t)
-          |> map (apfst (apfst show_term))
-          |> (fn [] => NONE | sdss => SOME (produce_ex sdss)))
-          handle NoEx => NONE
-      in
-        case ex of
-          SOME s =>
-            (warning "Linear arithmetic failed -- see trace for a (potentially spurious) counterexample.";
-              tracing s)
-        | NONE => warning "Linear arithmetic failed"
-      end;
-
 (* ------------------------------------------------------------------------- *)
 
 fun mknat (pTs : typ list) (ixs : int list) (atom : term, i : int) : lineq option =
@@ -730,9 +590,6 @@ in
     string_of_int (length result) ^ " subgoal(s) total.");
   result
 end;
-
-fun add_datoms ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _) (dats : (bool * term) list) =
-  union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
 fun refutes ctxt :
     (typ list * (LA_Data.decomp * int) list) list -> injust list -> injust list option =

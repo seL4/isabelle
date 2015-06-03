@@ -75,30 +75,22 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun foundation ("", _) = Generic_Target.theory_foundation
+fun foundation ("", _) = Generic_Target.theory_target_foundation
   | foundation (locale, false) = locale_foundation locale
   | foundation (class, true) = class_foundation class;
 
 
 (* notes *)
 
-fun notes ("", _) = Generic_Target.theory_notes
-  | notes (locale, _) = Generic_Target.locale_notes locale;
+fun notes ("", _) = Generic_Target.theory_target_notes
+  | notes (locale, _) = Generic_Target.locale_target_notes locale;
 
 
 (* abbrev *)
 
-fun locale_abbrev locale prmode (b, mx) global_rhs params =
-  Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, _) => Generic_Target.locale_const locale prmode ((b, mx), lhs));
-
-fun class_abbrev class prmode (b, mx) global_rhs params =
-  Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
-
 fun abbrev ("", _) = Generic_Target.theory_abbrev
-  | abbrev (locale, false) = locale_abbrev locale
-  | abbrev (class, true) = class_abbrev class;
+  | abbrev (locale, false) = Generic_Target.locale_abbrev locale
+  | abbrev (class, true) = Class.abbrev class;
 
 
 (* declaration *)
@@ -165,7 +157,7 @@ fun gen_init before_exit target thy =
     |> Local_Theory.init background_naming
        {define = Generic_Target.define (foundation name_data),
         notes = Generic_Target.notes (notes name_data),
-        abbrev = Generic_Target.abbrev (abbrev name_data),
+        abbrev = abbrev name_data,
         declaration = declaration name_data,
         subscription = subscription name_data,
         pretty = pretty name_data,
