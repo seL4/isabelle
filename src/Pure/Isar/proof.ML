@@ -31,6 +31,8 @@ sig
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
+  val enter_chain: state -> state
+  val enter_backward: state -> state
   val has_bottom_goal: state -> bool
   val pretty_state: int -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
