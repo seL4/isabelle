@@ -527,6 +527,10 @@ val _ =
     (Parse_Spec.name_facts >> (Toplevel.proof o Proof.note_thmss_cmd));
 
 val _ =
+  Outer_Syntax.command @{command_keyword supply} "define facts during goal refinement (unstructured)"
+    (Parse_Spec.name_facts >> (Toplevel.proof o Proof.supply_cmd));
+
+val _ =
   Outer_Syntax.command @{command_keyword using} "augment goal facts"
     (facts >> (Toplevel.proof o Proof.using_cmd));
 
@@ -647,11 +651,11 @@ val _ =
     (Parse.nat >> (Toplevel.proof o Proof.prefer));
 
 val _ =
-  Outer_Syntax.command @{command_keyword apply} "initial refinement step (unstructured)"
+  Outer_Syntax.command @{command_keyword apply} "initial goal refinement step (unstructured)"
     (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_results m))));
 
 val _ =
-  Outer_Syntax.command @{command_keyword apply_end} "terminal refinement step (unstructured)"
+  Outer_Syntax.command @{command_keyword apply_end} "terminal goal refinement step (unstructured)"
     (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_end_results m))));
 
 val _ =

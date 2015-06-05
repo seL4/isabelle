@@ -67,6 +67,8 @@ sig
   val from_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val with_thmss: ((thm list * attribute list) list) list -> state -> state
   val with_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
+  val supply: (Thm.binding * (thm list * attribute list) list) list -> state -> state
+  val supply_cmd: (Attrib.binding * (Facts.ref * Token.src list) list) list -> state -> state
   val using: ((thm list * attribute list) list) list -> state -> state
   val using_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
@@ -702,6 +704,24 @@ val with_thmss_cmd =
   gen_thmss the_facts chain #2 Attrib.attribute_cmd Proof_Context.get_fact o no_binding;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
+
+end;
+
+
+(* facts during goal refinement *)
+
+local
+
+fun gen_supply prep_att prep_fact args state =
+  state
+  |> assert_backward
+  |> map_context (fn ctxt => ctxt |> Proof_Context.note_thmss ""
+       (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) args) |> snd);
+
+in
+
+val supply = gen_supply (K I) (K I);
+val supply_cmd = gen_supply Attrib.attribute_cmd Proof_Context.get_fact;
 
 end;
 

@@ -860,6 +860,7 @@ text \<open>
   be used in scripts, too.
 
   \begin{matharray}{rcl}
+    @{command_def "supply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
     @{command_def "apply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
     @{command_def "apply_end"}@{text "\<^sup>*"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "done"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
@@ -869,6 +870,8 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
+    @@{command supply} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    ;
     ( @@{command apply} | @@{command apply_end} ) @{syntax method}
     ;
     @@{command defer} @{syntax nat}?
@@ -877,6 +880,10 @@ text \<open>
   \<close>}
 
   \begin{description}
+
+  \item @{command "supply"} supports fact definitions during goal
+  refinement: it is similar to @{command "note"}, but it operates in
+  backwards mode and does not have any impact on chained facts.
 
   \item @{command "apply"}~@{text m} applies proof method @{text m} in
   initial position, but unlike @{command "proof"} it retains ``@{text

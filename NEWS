@@ -9,6 +9,9 @@ New in this Isabelle version
 
 *** Pure ***
 
+* New Isar command 'supply' supports fact definitions during goal
+refinement ('apply' scripts).
+
 * Configuration option rule_insts_schematic has been discontinued
 (intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.
 
