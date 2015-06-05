@@ -12,9 +12,6 @@ New in this Isabelle version
 * Configuration option rule_insts_schematic has been discontinued
 (intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.
 
-
-*** Pure ***
-
 * Abbreviations in type classes now carry proper sort constraint.
 Rare INCOMPATIBILITY in situations where the previous misbehaviour
 has been exploited previously.
