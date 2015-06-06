@@ -40,22 +40,21 @@ fun retrofit st' =
 
 in
 
-fun PARALLEL_GOALS tac =
-  Thm.adjust_maxidx_thm ~1 #>
-  (fn st =>
-    if not (Multithreading.enabled ()) orelse Thm.maxidx_of st >= 0 orelse Thm.nprems_of st <= 1
-    then DETERM tac st
-    else
-      let
-        fun try_tac g =
-          (case SINGLE tac g of
-            NONE => raise FAILED ()
-          | SOME g' => g');
-
-        val goals = Drule.strip_imp_prems (Thm.cprop_of st);
-        val results = Par_List.map (try_tac o Goal.init) goals;
-      in EVERY (map retrofit (rev results)) st end
-      handle FAILED () => Seq.empty);
+fun PARALLEL_GOALS tac st =
+  if not (Multithreading.enabled ()) orelse Thm.nprems_of st <= 1 then DETERM tac st
+  else
+    let val subgoals = map (Thm.adjust_maxidx_cterm ~1) (Drule.strip_imp_prems (Thm.cprop_of st)) in
+      if exists (fn sg => Thm.maxidx_of_cterm sg >= 0) subgoals then DETERM tac st
+      else
+        let
+          fun try_tac g =
+            (case SINGLE tac g of
+              NONE => raise FAILED ()
+            | SOME g' => g');
+          val results = Par_List.map (try_tac o Goal.init) subgoals;
+        in EVERY (map retrofit (rev results)) st end
+        handle FAILED () => Seq.empty
+    end;
 
 end;
 
@@ -65,4 +64,3 @@ end;
 
 structure Basic_Par_Tactical: BASIC_PAR_TACTICAL = Par_Tactical;
 open Basic_Par_Tactical;
-
