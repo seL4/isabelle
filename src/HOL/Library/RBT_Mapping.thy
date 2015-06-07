@@ -66,13 +66,15 @@ by (transfer fixing: t) (simp add: lookup_keys distinct_card)
 context
   notes RBT.bulkload.transfer[transfer_rule del]
 begin
-  lemma tabulate_Mapping [code]:
-    "Mapping.tabulate ks f = Mapping (RBT.bulkload (List.map (\<lambda>k. (k, f k)) ks))"
-  by transfer (simp add: map_of_map_restrict)
-  
-  lemma bulkload_Mapping [code]:
-    "Mapping.bulkload vs = Mapping (RBT.bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
-  by transfer (simp add: map_of_map_restrict fun_eq_iff)
+
+lemma tabulate_Mapping [code]:
+  "Mapping.tabulate ks f = Mapping (RBT.bulkload (List.map (\<lambda>k. (k, f k)) ks))"
+by transfer (simp add: map_of_map_restrict)
+
+lemma bulkload_Mapping [code]:
+  "Mapping.bulkload vs = Mapping (RBT.bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
+by transfer (simp add: map_of_map_restrict fun_eq_iff)
+
 end
 
 lemma equal_Mapping [code]:
