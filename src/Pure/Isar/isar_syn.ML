@@ -490,20 +490,22 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
-    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.have));
+    (Parse_Spec.statement >> (Toplevel.proof' o Proof.have_cmd NONE (K I)));
 
 val _ =
   Outer_Syntax.command @{command_keyword hence} "old-style alias of \"then have\""
-    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.hence));
+    (Parse_Spec.statement >> (fn stmt =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) stmt int)));
 
 val _ =
   Outer_Syntax.command @{command_keyword show}
     "state local goal, solving current obligation"
-    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.show));
+    (Parse_Spec.statement >> (Toplevel.proof' o Proof.show_cmd NONE (K I)));
 
 val _ =
   Outer_Syntax.command @{command_keyword thus} "old-style alias of  \"then show\""
-    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.thus));
+    (Parse_Spec.statement >> (fn stmt =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) stmt int)));
 
 
 (* facts *)

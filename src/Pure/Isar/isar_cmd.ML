@@ -20,10 +20,6 @@ sig
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Input.source ->
     string list -> local_theory -> local_theory
-  val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
-  val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
-  val show: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
-  val thus: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text_range * Method.text_range option ->
     Toplevel.transition -> Toplevel.transition
