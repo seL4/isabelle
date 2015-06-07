@@ -136,10 +136,10 @@ sig
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
-  val read_vars: (binding * string option * mixfix) list -> Proof.context ->
-    (binding * typ option * mixfix) list * Proof.context
-  val cert_vars: (binding * typ option * mixfix) list -> Proof.context ->
-    (binding * typ option * mixfix) list * Proof.context
+  val read_var: binding * string option * mixfix -> Proof.context ->
+    (binding * typ option * mixfix) * Proof.context
+  val cert_var: binding * typ option * mixfix -> Proof.context ->
+    (binding * typ option * mixfix) * Proof.context
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
   val add_assms: Assumption.export ->
@@ -1063,21 +1063,20 @@ fun check_var internal b =
 
 local
 
-fun prep_vars prep_typ internal =
-  fold_map (fn (b, raw_T, mx) => fn ctxt =>
-    let
-      val x = check_var internal b;
-      fun cond_tvars T =
-        if internal then T
-        else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
-      val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
-    in ((b, opt_T, mx), ctxt') end);
+fun prep_var prep_typ internal (b, raw_T, mx) ctxt =
+  let
+    val x = check_var internal b;
+    fun cond_tvars T =
+      if internal then T
+      else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
+    val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
+    val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
+  in ((b, opt_T, mx), ctxt') end;
 
 in
 
-val read_vars = prep_vars Syntax.read_typ false;
-val cert_vars = prep_vars (K I) true;
+val read_var = prep_var Syntax.read_typ false;
+val cert_var = prep_var (K I) true;
 
 end;
 
@@ -1168,7 +1167,7 @@ fun generic_revert_abbrev mode arg =
 (* fixes *)
 
 fun add_fixes raw_vars ctxt =
-  let val vars = #1 (cert_vars raw_vars ctxt) in
+  let val (vars, _) = fold_map cert_var raw_vars ctxt in
     ctxt
     |> Variable.add_fixes_binding (map #1 vars)
     |-> (fn xs =>

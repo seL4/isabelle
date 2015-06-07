@@ -113,7 +113,7 @@ fun parse_named_pats match_kind =
     | NONE =>
         let
           val fixes' = map (fn ((pb, otyp), _) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes;
-          val (fixes'', ctxt1) = Proof_Context.read_vars fixes' ctxt;
+          val (fixes'', ctxt1) = fold_map Proof_Context.read_var fixes' ctxt;
           val (fix_nms, ctxt2) = Proof_Context.add_fixes fixes'' ctxt1;
 
           val ctxt3 = Proof_Context.set_mode Proof_Context.mode_schematic ctxt2;

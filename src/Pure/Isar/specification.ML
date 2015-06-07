@@ -87,7 +87,7 @@ struct
 
 fun read_props raw_props raw_fixes ctxt =
   let
-    val ctxt1 = ctxt |> Proof_Context.read_vars raw_fixes |-> Proof_Context.add_fixes |> #2;
+    val ctxt1 = ctxt |> fold_map Proof_Context.read_var raw_fixes |-> Proof_Context.add_fixes |> #2;
     val props1 = map (Syntax.parse_prop ctxt1) raw_props;
     val (props2, ctxt2) = ctxt1 |> fold_map Variable.fix_dummy_patterns props1;
     val props3 = Syntax.check_props ctxt2 props2;
@@ -130,9 +130,9 @@ fun close_forms ctxt i xs As =
       in fold_rev close bounds A end;
   in map close_form As end;
 
-fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
+fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
-    val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
+    val (vars, vars_ctxt) = ctxt |> fold_map prep_var raw_vars;
     val (xs, params_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
 
     val Asss =
@@ -159,23 +159,23 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
 fun single_spec (a, prop) = [(a, [prop])];
 fun the_spec (a, [prop]) = (a, prop);
 
-fun prep_spec prep_vars parse_prop prep_att do_close vars specs =
-  prepare prep_vars parse_prop prep_att do_close
+fun prep_spec prep_var parse_prop prep_att do_close vars specs =
+  prepare prep_var parse_prop prep_att do_close
     vars (map single_spec specs) #>> apsnd (map the_spec);
 
 in
 
-fun check_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) true x;
-fun read_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.check_src true x;
+fun check_spec x = prep_spec Proof_Context.cert_var (K I) (K I) true x;
+fun read_spec x = prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src true x;
 
-fun check_free_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) false x;
-fun read_free_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.check_src false x;
+fun check_free_spec x = prep_spec Proof_Context.cert_var (K I) (K I) false x;
+fun read_free_spec x = prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src false x;
 
 fun check_specification vars specs =
-  prepare Proof_Context.cert_vars (K I) (K I) true vars [specs];
+  prepare Proof_Context.cert_var (K I) (K I) true vars [specs];
 
 fun read_specification vars specs =
-  prepare Proof_Context.read_vars Syntax.parse_prop Attrib.check_src true vars [specs];
+  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars [specs];
 
 end;
 
@@ -309,13 +309,13 @@ end;
 
 local
 
-fun gen_theorems prep_fact prep_att prep_vars
+fun gen_theorems prep_fact prep_att prep_var
     kind raw_facts raw_fixes int lthy =
   let
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map (prep_att lthy) atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map (prep_att lthy) more_atts))));
-    val (_, ctxt') = lthy |> prep_vars raw_fixes |-> Proof_Context.add_fixes;
+    val (_, ctxt') = lthy |> fold_map prep_var raw_fixes |-> Proof_Context.add_fixes;
 
     val facts' = facts
       |> Attrib.partial_evaluation ctxt'
@@ -326,8 +326,8 @@ fun gen_theorems prep_fact prep_att prep_vars
 
 in
 
-val theorems = gen_theorems (K I) (K I) Proof_Context.cert_vars;
-val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.check_src Proof_Context.read_vars;
+val theorems = gen_theorems (K I) (K I) Proof_Context.cert_var;
+val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.check_src Proof_Context.read_var;
 
 end;
 

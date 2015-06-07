@@ -58,7 +58,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
   let
     val rty = fastype_of rhs
     val qty = fastype_of lhs
-    val absrep_trm = 
+    val absrep_trm =
       Quotient_Term.absrep_fun lthy Quotient_Term.AbsF (rty, qty) $ rhs
     val prop = Syntax.check_term lthy (Logic.mk_equals (lhs, absrep_trm))
     val (_, prop') = Local_Defs.cert_def lthy prop
@@ -69,13 +69,13 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = def_thm}
-     
+
     fun qualify defname suffix = Binding.name suffix
       |> Binding.qualify true defname
 
     val lhs_name = Binding.name_of (#1 var)
     val rsp_thm_name = qualify lhs_name "rsp"
-    
+
     val lthy'' = lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi =>
@@ -83,7 +83,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
             qcinfo as {qconst = Const (c, _), ...} =>
               Quotient_Info.update_quotconsts (c, qcinfo)
           | _ => I))
-      |> (snd oo Local_Theory.note) 
+      |> (snd oo Local_Theory.note)
         ((rsp_thm_name, @{attributes [quot_respect]}), [rsp_thm])
   in
     (qconst_data, lthy'')
@@ -92,14 +92,14 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
 fun mk_readable_rsp_thm_eq tm lthy =
   let
     val ctm = Thm.cterm_of lthy tm
-    
-    fun norm_fun_eq ctm = 
+
+    fun norm_fun_eq ctm =
       let
         fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
         fun erase_quants ctm' =
           case (Thm.term_of ctm') of
             Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.all_conv ctm'
-            | _ => (Conv.binder_conv (K erase_quants) lthy then_conv 
+            | _ => (Conv.binder_conv (K erase_quants) lthy then_conv
               Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
       in
         (abs_conv2 erase_quants then_conv Thm.eta_conversion) ctm
@@ -107,52 +107,55 @@ fun mk_readable_rsp_thm_eq tm lthy =
 
     fun simp_arrows_conv ctm =
       let
-        val unfold_conv = Conv.rewrs_conv 
-          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
+        val unfold_conv = Conv.rewrs_conv
+          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, @{thm rel_fun_eq_rel[THEN eq_reflection]},
             @{thm rel_fun_def[THEN eq_reflection]}]
         val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name rel_fun}, _) $ _ $ _ => 
+          Const (@{const_name rel_fun}, _) $ _ $ _ =>
             (binop_conv2 left_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => Conv.all_conv ctm
       end
 
-    val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy 
+    val unfold_ret_val_invs = Conv.bottom_conv
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
     val simp_conv = Conv.arg_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
     val beta_conv = Thm.beta_conversion true
-    val eq_thm = 
+    val eq_thm =
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
   in
     Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
   end
 
 
-
-fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) lthy =
+fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) lthy =
   let
-    val (vars, ctxt) = prep_vars (the_list raw_var) lthy
-    val T_opt = (case vars of [(_, SOME T, _)] => SOME T | _ => NONE)
-    val lhs = prep_term T_opt ctxt lhs_raw
-    val rhs = prep_term NONE ctxt rhs_raw
+    val (opt_var, ctxt) =
+      (case raw_var of
+        NONE => (NONE, lthy)
+      | SOME var => prep_var var lthy |>> SOME)
+    val lhs_constraint = (case opt_var of SOME (_, SOME T, _) => T | _ => dummyT)
+
+    fun prep_term T = parse_term ctxt #> Type.constraint T #> Syntax.check_term ctxt;
+    val lhs = prep_term lhs_constraint raw_lhs
+    val rhs = prep_term dummyT raw_rhs
 
     val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
     val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
     val _ = if is_Const rhs then () else warning "The definiens is not a constant"
 
     val var =
-      (case vars of 
-        [] => (Binding.name lhs_str, NoSyn)
-      | [(binding, _, mx)] =>
+      (case opt_var of
+        NONE => (Binding.name lhs_str, NoSyn)
+      | SOME (binding, _, mx) =>
           if Variable.check_name binding = lhs_str then (binding, mx)
-          else error_msg binding lhs_str
-      | _ => raise Match)
-    
-    fun try_to_prove_refl thm = 
+          else error_msg binding lhs_str);
+
+    fun try_to_prove_refl thm =
       let
         val lhs_eq =
           thm
@@ -167,7 +170,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
           | SOME _ => (case body_type (fastype_of lhs) of
             Type (typ_name, _) =>
               try (fn () =>
-                #equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name)) 
+                #equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name))
                   RS @{thm Equiv_Relations.equivp_reflp} RS thm) ()
             | _ => NONE
             )
@@ -179,32 +182,25 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
     val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
-  
-    fun after_qed thm_list lthy = 
+
+    fun after_qed thm_list lthy =
       let
         val internal_rsp_thm =
           case thm_list of
             [] => the maybe_proven_rsp_thm
-          | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm 
+          | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm
             (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
       in
         snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy)
       end
-
   in
     case maybe_proven_rsp_thm of
       SOME _ => Proof.theorem NONE after_qed [] lthy
       | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm,[])]] lthy
   end
 
-fun check_term' cnstr ctxt =
-  Syntax.check_term ctxt o (case cnstr of SOME T => Type.constraint T | _ => I)
-
-fun read_term' cnstr ctxt =
-  check_term' cnstr ctxt o Syntax.parse_term ctxt
-
-val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
-val quotient_def_cmd = gen_quotient_def Proof_Context.read_vars read_term'
+val quotient_def = gen_quotient_def Proof_Context.cert_var (K I)
+val quotient_def_cmd = gen_quotient_def Proof_Context.read_var Syntax.parse_term
 
 
 (* parser and command *)

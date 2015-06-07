@@ -115,7 +115,7 @@ fun read_insts thm raw_insts raw_fixes ctxt =
     (*eigen-context*)
     val ctxt1 = ctxt
       |> Variable.declare_thm thm
-      |> Proof_Context.read_vars raw_fixes |-> Proof_Context.add_fixes |> #2;
+      |> fold_map Proof_Context.read_var raw_fixes |-> Proof_Context.add_fixes |> #2;
 
     (*explicit type instantiations*)
     val instT1 = Term_Subst.instantiateT (map (read_type ctxt1 tvars) type_insts);

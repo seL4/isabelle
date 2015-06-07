@@ -105,7 +105,7 @@ val thatN = "that";
 
 local
 
-fun gen_obtain prep_att prep_vars prep_propp
+fun gen_obtain prep_att prep_var prep_propp
     name raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
@@ -113,7 +113,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
-    val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
+    val (vars, vars_ctxt) = fold_map prep_var raw_vars ctxt;
     val (xs', fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
     val xs = map (Variable.check_name o #1) vars;
 
@@ -163,8 +163,8 @@ fun gen_obtain prep_att prep_vars prep_propp
 
 in
 
-val obtain = gen_obtain (K I) Proof_Context.cert_vars Proof_Context.cert_propp;
-val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.read_propp;
+val obtain = gen_obtain (K I) Proof_Context.cert_var Proof_Context.cert_propp;
+val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_var Proof_Context.read_propp;
 
 end;
 
@@ -260,14 +260,16 @@ fun polymorphic ctxt vars =
   let val Ts = map Logic.dest_type (Variable.polymorphic ctxt (map (Logic.mk_type o #2) vars))
   in map2 (fn (x, _, mx) => fn T => ((x, T), mx)) vars Ts end;
 
-fun gen_guess prep_vars raw_vars int state =
+fun gen_guess prep_var raw_vars int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);
-    val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> fst |> polymorphic ctxt;
+    val vars = ctxt
+      |> fold_map prep_var raw_vars |-> fold_map inferred_type
+      |> fst |> polymorphic ctxt;
 
     fun guess_context raw_rule state' =
       let
@@ -314,8 +316,8 @@ fun gen_guess prep_vars raw_vars int state =
 
 in
 
-val guess = gen_guess Proof_Context.cert_vars;
-val guess_cmd = gen_guess Proof_Context.read_vars;
+val guess = gen_guess Proof_Context.cert_var;
+val guess_cmd = gen_guess Proof_Context.read_var;
 
 end;
 

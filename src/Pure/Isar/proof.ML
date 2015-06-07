@@ -591,15 +591,15 @@ end;
 
 local
 
-fun gen_fix prep_vars args =
+fun gen_fix prep_var args =
   assert_forward
-  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (fst (prep_vars args ctxt)) ctxt))
+  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (fst (fold_map prep_var args ctxt)) ctxt))
   #> reset_facts;
 
 in
 
-val fix = gen_fix Proof_Context.cert_vars;
-val fix_cmd = gen_fix Proof_Context.read_vars;
+val fix = gen_fix Proof_Context.cert_var;
+val fix_cmd = gen_fix Proof_Context.read_var;
 
 end;
 
@@ -630,14 +630,14 @@ end;
 
 local
 
-fun gen_def prep_att prep_vars prep_binds args state =
+fun gen_def prep_att prep_var prep_binds args state =
   let
     val _ = assert_forward state;
     val (raw_name_atts, (raw_vars, raw_rhss)) = args |> split_list ||> split_list;
     val name_atts = map (apsnd (map (prep_att (context_of state)))) raw_name_atts;
   in
     state
-    |> map_context_result (prep_vars (map (fn (x, mx) => (x, NONE, mx)) raw_vars))
+    |> map_context_result (fold_map (fn (x, mx) => prep_var (x, NONE, mx)) raw_vars)
     |>> map (fn (x, _, mx) => (x, mx))
     |-> (fn vars =>
       map_context_result (prep_binds false (map swap raw_rhss))
@@ -651,8 +651,8 @@ fun gen_def prep_att prep_vars prep_binds args state =
 
 in
 
-val def = gen_def (K I) Proof_Context.cert_vars Proof_Context.match_bind;
-val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.match_bind_cmd;
+val def = gen_def (K I) Proof_Context.cert_var Proof_Context.match_bind;
+val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_var Proof_Context.match_bind_cmd;
 
 end;
 

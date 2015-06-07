@@ -81,7 +81,7 @@ fun read_instantiate_no_thm ctxt insts fixes =
     val ctxt1 =
       ctxt
       |> Context_Position.not_really
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+      |> fold_map Proof_Context.read_var fixes |-> Proof_Context.add_fixes |> #2;
 
     val typs =
       map snd type_insts
@@ -144,7 +144,7 @@ fun close_unchecked_insts context ((insts,concl_inst), fixes) =
   let
     val ctxt = Context.proof_of context;
     val ctxt1 = ctxt
-      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2;
+      |> fold_map Proof_Context.read_var fixes |-> Proof_Context.add_fixes |> #2;
 
     val insts' = insts @ concl_inst;
 

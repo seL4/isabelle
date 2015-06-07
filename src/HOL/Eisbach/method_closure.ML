@@ -328,7 +328,7 @@ fun eval_inner_method ctxt0 header fixes attribs methods =
     fn ctxt => evaluate_method_def (match fixes) text (setup_ctxt ctxt)
   end;
 
-fun gen_method_definition prep_vars name vars uses attribs methods source lthy =
+fun gen_method_definition prep_var name vars uses attribs methods source lthy =
   let
     val (uses_nms, lthy1) = lthy
       |> Proof_Context.concealed
@@ -339,7 +339,7 @@ fun gen_method_definition prep_vars name vars uses attribs methods source lthy =
       |> fold_map setup_local_fact uses;
 
     val ((xs, Ts), lthy2) = lthy1
-      |> prep_vars vars |-> Proof_Context.add_fixes
+      |> fold_map prep_var vars |-> Proof_Context.add_fixes
       |-> (fn xs => fold_map Proof_Context.inferred_param xs #>> pair xs);
 
     val term_args = map Free (xs ~~ Ts);
@@ -385,8 +385,8 @@ fun gen_method_definition prep_vars name vars uses attribs methods source lthy =
     |> add_method name ((term_args', named_thms, method_names), text')
   end;
 
-val method_definition = gen_method_definition Proof_Context.cert_vars;
-val method_definition_cmd = gen_method_definition Proof_Context.read_vars;
+val method_definition = gen_method_definition Proof_Context.cert_var;
+val method_definition_cmd = gen_method_definition Proof_Context.read_var;
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword method} "Eisbach method definition"

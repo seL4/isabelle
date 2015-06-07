@@ -291,11 +291,11 @@ end;
 
 (** Prepare locale elements **)
 
-fun declare_elem prep_vars (Fixes fixes) ctxt =
-      let val (vars, _) = prep_vars fixes ctxt
+fun declare_elem prep_var (Fixes fixes) ctxt =
+      let val (vars, _) = fold_map prep_var fixes ctxt
       in ctxt |> Proof_Context.add_fixes vars |> snd end
-  | declare_elem prep_vars (Constrains csts) ctxt =
-      ctxt |> prep_vars (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) csts) |> snd
+  | declare_elem prep_var (Constrains csts) ctxt =
+      ctxt |> fold_map (fn (x, T) => prep_var (Binding.name x, SOME T, NoSyn)) csts |> snd
   | declare_elem _ (Assumes _) ctxt = ctxt
   | declare_elem _ (Defines _) ctxt = ctxt
   | declare_elem _ (Notes _) ctxt = ctxt;
@@ -358,7 +358,7 @@ end;
 local
 
 fun prep_full_context_statement
-    parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
+    parse_typ parse_prop prep_var_elem prep_inst prep_var_inst prep_expr
     {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_concl ctxt1 =
   let
     val thy = Proof_Context.theory_of ctxt1;
@@ -384,7 +384,7 @@ fun prep_full_context_statement
       let
         val ctxt' = ctxt
           |> Context_Position.set_visible false
-          |> declare_elem prep_vars_elem raw_elem
+          |> declare_elem prep_var_elem raw_elem
           |> Context_Position.restore_visible ctxt;
         val elems' = parse_elem parse_typ parse_prop ctxt' raw_elem;
       in (elems', ctxt') end;
@@ -394,7 +394,7 @@ fun prep_full_context_statement
         val concl = parse_concl parse_prop ctxt raw_concl;
       in check_autofix insts elems concl ctxt end;
 
-    val fors = prep_vars_inst fixed ctxt1 |> fst;
+    val fors = fold_map prep_var_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> Proof_Context.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
 
@@ -426,16 +426,16 @@ fun prep_full_context_statement
 in
 
 fun cert_full_context_statement x =
-  prep_full_context_statement (K I) (K I) Proof_Context.cert_vars
-  make_inst Proof_Context.cert_vars (K I) x;
+  prep_full_context_statement (K I) (K I) Proof_Context.cert_var
+  make_inst Proof_Context.cert_var (K I) x;
 
 fun cert_read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_vars
-  make_inst Proof_Context.cert_vars (K I) x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_var
+  make_inst Proof_Context.cert_var (K I) x;
 
 fun read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_vars
-  parse_inst Proof_Context.read_vars check_expr x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_var
+  parse_inst Proof_Context.read_var check_expr x;
 
 end;
 
