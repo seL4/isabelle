@@ -286,9 +286,8 @@ schematic_lemma
   by (tactic "fast_tac @{context} FOLP_cs 1")
 
 text "Problem 58  NOT PROVED AUTOMATICALLY"
-schematic_lemma
-  notes f_cong = subst_context [where t = f]
-  shows "?p : (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
+schematic_lemma "?p : (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
+  supply f_cong = subst_context [where t = f]
   by (tactic {* fast_tac @{context} (FOLP_cs addSIs [@{thm f_cong}]) 1 *})
 
 text "Problem 59"
