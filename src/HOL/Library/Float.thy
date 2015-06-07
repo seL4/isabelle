@@ -1124,9 +1124,12 @@ hide_fact (open) compute_lapprox_posrat
 lift_definition rapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float"
   is "\<lambda>prec (x::nat) (y::nat). round_up (rat_precision prec x y) (x / y)" by simp
 
-lemma compute_rapprox_posrat[code]:
-  fixes prec x y
+context
   notes divmod_int_mod_div[simp]
+begin
+
+qualified lemma compute_rapprox_posrat[code]:
+  fixes prec x y
   defines "l \<equiv> rat_precision prec x y"
   shows "rapprox_posrat prec x y = (let
      l = l ;
@@ -1163,7 +1166,8 @@ next
          (auto simp add: round_up_def ceil_divide_floor_conv floor_divide_eq_div [symmetric])
   qed
 qed
-hide_fact (open) compute_rapprox_posrat
+
+end
 
 lemma rat_precision_pos:
   assumes "0 \<le> x" and "0 < y" and "2 * x < y" and "0 < n"
