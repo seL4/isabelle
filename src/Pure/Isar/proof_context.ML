@@ -254,10 +254,7 @@ fun map_syntax f =
     (mode, f syntax, tsig, consts, facts, cases));
 
 fun map_syntax_idents f ctxt =
-  let
-    val idents = Syntax_Trans.get_idents ctxt;
-    val (opt_idents', syntax') = f (#syntax (rep_data ctxt));
-  in
+  let val (opt_idents', syntax') = f (#syntax (rep_data ctxt)) in
     ctxt
     |> map_syntax (K syntax')
     |> (case opt_idents' of NONE => I | SOME idents' => Syntax_Trans.put_idents idents')
