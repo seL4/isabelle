@@ -304,25 +304,25 @@ text \<open>
 
 primrec uid_of :: "operation \<Rightarrow> uid"
 where
-    "uid_of (Read uid text path) = uid"
-  | "uid_of (Write uid text path) = uid"
-  | "uid_of (Chmod uid perms path) = uid"
-  | "uid_of (Creat uid perms path) = uid"
-  | "uid_of (Unlink uid path) = uid"
-  | "uid_of (Mkdir uid path perms) = uid"
-  | "uid_of (Rmdir uid path) = uid"
-  | "uid_of (Readdir uid names path) = uid"
+  "uid_of (Read uid text path) = uid"
+| "uid_of (Write uid text path) = uid"
+| "uid_of (Chmod uid perms path) = uid"
+| "uid_of (Creat uid perms path) = uid"
+| "uid_of (Unlink uid path) = uid"
+| "uid_of (Mkdir uid path perms) = uid"
+| "uid_of (Rmdir uid path) = uid"
+| "uid_of (Readdir uid names path) = uid"
 
 primrec path_of :: "operation \<Rightarrow> path"
 where
-    "path_of (Read uid text path) = path"
-  | "path_of (Write uid text path) = path"
-  | "path_of (Chmod uid perms path) = path"
-  | "path_of (Creat uid perms path) = path"
-  | "path_of (Unlink uid path) = path"
-  | "path_of (Mkdir uid perms path) = path"
-  | "path_of (Rmdir uid path) = path"
-  | "path_of (Readdir uid names path) = path"
+  "path_of (Read uid text path) = path"
+| "path_of (Write uid text path) = path"
+| "path_of (Chmod uid perms path) = path"
+| "path_of (Creat uid perms path) = path"
+| "path_of (Unlink uid path) = path"
+| "path_of (Mkdir uid perms path) = path"
+| "path_of (Rmdir uid path) = path"
+| "path_of (Readdir uid names path) = path"
 
 text \<open>
   \medskip Note that we have omitted explicit @{text Open} and @{text
@@ -499,8 +499,8 @@ text \<open>
 inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
   ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
 where
-    nil: "root =[]\<Rightarrow> root"
-  | cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
+  nil: "root =[]\<Rightarrow> root"
+| cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
 
 text \<open>
   \medskip We establish a few basic facts relating iterated
@@ -801,7 +801,7 @@ text \<open>
   of local parameters in the subsequent development.
 \<close>
 
-locale situation =
+context
   fixes users :: "uid set"
     and user\<^sub>1 :: uid
     and user\<^sub>2 :: uid
@@ -824,8 +824,8 @@ definition
      [Mkdir user\<^sub>1 perms\<^sub>1 [user\<^sub>1, name\<^sub>1],
       Mkdir user\<^sub>2 perms\<^sub>2 [user\<^sub>1, name\<^sub>1, name\<^sub>2],
       Creat user\<^sub>2 perms\<^sub>2 [user\<^sub>1, name\<^sub>1, name\<^sub>2, name\<^sub>3]]"
-definition
-  "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
+
+definition "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
 
 text \<open>
   The @{term bogus} operations are the ones that lead into the uncouth
@@ -900,8 +900,8 @@ qed
 
 lemma
   assumes init: "init users =bogus\<Rightarrow> root"
-  notes eval = facts access_def init_def
   shows init_invariant: "invariant root bogus_path"
+  supply eval = facts access_def init_def
   using init
   apply (unfold bogus_def bogus_path_def)
   apply (drule transitions_consD, rule transition.intros,
