@@ -19,7 +19,6 @@ sig
   val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
-  val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
@@ -221,7 +220,6 @@ fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mo
 fun propagate_ml_env state = map_contexts
   (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
-val bind_terms = map_context o Proof_Context.bind_terms;
 val put_thms = map_context oo Proof_Context.put_thms;
 
 
@@ -771,7 +769,7 @@ fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
   in
     state'
     |> assume assumptions
-    |> bind_terms Auto_Bind.no_facts
+    |> map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
     |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
   end;
 

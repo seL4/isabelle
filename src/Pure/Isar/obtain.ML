@@ -289,7 +289,7 @@ fun gen_guess prep_var raw_vars int state =
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
           (obtain_export fix_ctxt rule (map (Thm.cterm_of ctxt) ts))
             [(Thm.empty_binding, asms)])
-        |> Proof.bind_terms Auto_Bind.no_facts
+        |> Proof.map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
       end;
 
     val goal = Var (("guess", 0), propT);
