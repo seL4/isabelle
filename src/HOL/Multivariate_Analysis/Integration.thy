@@ -158,10 +158,7 @@ lemma transitive_stepwise_gt:
 proof -
   have "\<forall>m. \<forall>n>m. R m n"
     apply (subst transitive_stepwise_lt_eq)
-    apply (rule assms)
-    apply assumption
-    apply assumption
-    using assms(2) apply auto
+    apply (blast intro: assms)+
     done
   then show ?thesis by auto
 qed
@@ -183,11 +180,8 @@ proof safe
     show ?case
     proof (cases "m \<le> n")
       case True
-      show ?thesis
-        apply (rule assms(2))
-        apply (rule Suc(1)[OF True])
-        using `?r` apply auto
-        done
+      with Suc.hyps `\<forall>n. R n (Suc n)` assms show ?thesis
+        by blast
     next
       case False
       then have "m = Suc n"
@@ -205,10 +199,7 @@ lemma transitive_stepwise_le:
 proof -
   have "\<forall>m. \<forall>n\<ge>m. R m n"
     apply (subst transitive_stepwise_le_eq)
-    apply (rule assms)
-    apply (rule assms,assumption,assumption)
-    using assms(3)
-    apply auto
+    apply (blast intro: assms)+
     done
   then show ?thesis by auto
 qed
@@ -239,13 +230,8 @@ proof -
     done
   ultimately
   show ?thesis
-    apply -
-    apply (rule interior_maximal)
-    defer
-    apply (rule open_interior)
-    unfolding assms(1,2) interior_cbox
-    apply auto
-    done
+    unfolding assms interior_cbox
+      by auto (metis IntI UnE empty_iff interior_maximal open_box subsetCE subsetI)
 qed
 
 lemma inter_interior_unions_intervals:
@@ -258,14 +244,8 @@ lemma inter_interior_unions_intervals:
 proof (rule ccontr, unfold ex_in_conv[symmetric])
   case goal1
   have lem1: "\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U"
-    apply rule
-    defer
-    apply (rule_tac Int_greatest)
-    unfolding open_subset_interior[OF open_ball]
     using interior_subset
-    apply auto
-    done
-  have lem2: "\<And>x s P. \<exists>x\<in>s. P x \<Longrightarrow> \<exists>x\<in>insert x s. P x" by auto
+    by auto (meson Topology_Euclidean_Space.open_ball contra_subsetD interior_maximal mem_ball)
   have "\<And>f. finite f \<Longrightarrow> \<forall>t\<in>f. \<exists>a b. t = cbox a b \<Longrightarrow>
     \<exists>x. x \<in> s \<inter> interior (\<Union>f) \<Longrightarrow> \<exists>t\<in>f. \<exists>x. \<exists>e>0. ball x e \<subseteq> s \<inter> t"
   proof -
@@ -300,11 +280,7 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
           using e unfolding lem1 unfolding  ball_min_Int by auto
         then have "x \<in> s \<inter> interior (\<Union>f)" using `d>0` e by auto
         then have "\<exists>t\<in>f. \<exists>x e. 0 < e \<and> ball x e \<subseteq> s \<inter> t"
-          apply -
-          apply (rule insert(3))
-          using insert(4)
-          apply auto
-          done
+          using insert.hyps(3) insert.prems(1) by blast
         then show ?thesis by auto
       next
         case True show ?thesis
@@ -355,7 +331,6 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
               fix y
               assume as: "y \<in> ball ?z (e/2)"
               have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R k)"
-                apply -
                 apply (rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R k"])
                 unfolding norm_scaleR norm_Basis[OF k]
                 apply auto
@@ -404,7 +379,6 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
               fix y
               assume as: "y\<in> ball ?z (e/2)"
               have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R k)"
-                apply -
                 apply (rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R k"])
                 unfolding norm_scaleR
                 apply (auto simp: k)
@@ -427,12 +401,8 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
           then have "x \<in> s \<inter> interior (\<Union>f)"
             unfolding lem1[where U="\<Union>f", symmetric]
             using centre_in_ball e[THEN conjunct1] by auto
-          then show ?thesis
-            apply -
-            apply (rule lem2, rule insert(3))
-            using insert(4)
-            apply auto
-            done
+          then show ?thesis 
+            using insert.hyps(3) insert.prems(1) by blast
         qed
       qed
     qed
@@ -524,17 +494,13 @@ lemma content_cbox:
   shows "content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
   using interval_not_empty[OF assms]
   unfolding content_def
-  by (auto simp: )
+  by auto
 
 lemma content_cbox':
   fixes a :: "'a::euclidean_space"
   assumes "cbox a b \<noteq> {}"
   shows "content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
-  apply (rule content_cbox)
-  using assms
-  unfolding box_ne_empty
-  apply assumption
-  done
+    using assms box_ne_empty(1) content_cbox by blast
 
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
   by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def content_def)
@@ -753,13 +719,11 @@ lemma division_of_sing[simp]:
 proof
   assume ?r
   moreover
-  {
-    assume "s = {{a}}"
-    moreover fix k assume "k\<in>s"
-    ultimately have"\<exists>x y. k = cbox x y"
+  { fix k
+    assume "s = {{a}}" "k\<in>s"
+    then have "\<exists>x y. k = cbox x y"
       apply (rule_tac x=a in exI)+
-      unfolding cbox_sing
-      apply auto
+      apply (force simp: cbox_sing)
       done
   }
   ultimately show ?l
@@ -798,10 +762,7 @@ lemma division_of_subset:
 proof (rule division_ofI)
   note * = division_ofD[OF assms(1)]
   show "finite q"
-    apply (rule finite_subset)
-    using *(1) assms(2)
-    apply auto
-    done
+    using "*"(1) assms(2) infinite_super by auto
   {
     fix k
     assume "k \<in> q"
@@ -829,13 +790,7 @@ lemma division_of_content_0:
   assumes "content (cbox a b) = 0" "d division_of (cbox a b)"
   shows "\<forall>k\<in>d. content k = 0"
   unfolding forall_in_division[OF assms(2)]
-  apply (rule,rule,rule)
-  apply (drule division_ofD(2)[OF assms(2)])
-  apply (drule content_subset) unfolding assms(1)
-proof -
-  case goal1
-  then show ?case using content_pos_le[of a b] by auto
-qed
+  by (metis antisym_conv assms content_pos_le content_subset division_ofD(2))
 
 lemma division_inter:
   fixes s1 s2 :: "'a::euclidean_space set"
@@ -896,12 +851,7 @@ proof -
     show "interior k1 \<inter> interior k2 = {}"
       unfolding k1 k2
       apply (rule *)
-      defer
-      apply (rule_tac[1-4] interior_mono)
-      using division_ofD(5)[OF assms(1) k1(2) k2(2)]
-      using division_ofD(5)[OF assms(2) k1(3) k2(3)]
-      using th
-      apply auto
+      using assms division_ofD(5) k1 k2(2) k2(3) th apply auto
       done
   qed
 qed
@@ -927,9 +877,7 @@ lemma elementary_inter:
   assumes "p1 division_of s"
     and "p2 division_of t"
   shows "\<exists>p. p division_of (s \<inter> t)"
-  apply rule
-  apply (rule division_inter[OF assms])
-  done
+using assms division_inter by blast
 
 lemma elementary_inters:
   assumes "finite f"
@@ -951,12 +899,7 @@ proof (induct f rule: finite_induct)
     moreover obtain px where "px division_of x"
       using insert(5)[rule_format,OF insertI1] ..
     ultimately show ?thesis
-      apply -
-      unfolding Inter_insert
-      apply (rule elementary_inter)
-      apply assumption
-      apply assumption
-      done
+      by (simp add: elementary_inter Inter_insert)
   qed
 qed auto
 
@@ -1063,7 +1006,7 @@ proof
         qed
         then obtain i where *: "i \<in> Basis" "f i \<noteq> g i" ..
         then have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
-            "g i = (a, c) \<or> g i = (c, d) \<or> g i = (d, b)"
+                  "g i = (a, c) \<or> g i = (c, d) \<or> g i = (d, b)"
           using f g by (auto simp: PiE_iff)
         with * ord[of i] show "interior l \<inter> interior k = {}"
           by (auto simp add: l k interior_cbox disjoint_interval intro!: bexI[of _ i])
@@ -1107,11 +1050,7 @@ proof (cases "p = {}")
   obtain q where "q division_of (cbox a b)"
     by (rule elementary_interval)
   then show ?thesis
-    apply -
-    apply (rule that[of q])
-    unfolding True
-    apply auto
-    done
+    using True that by blast
 next
   case False
   note p = division_ofD[OF assms(1)]
@@ -1137,7 +1076,6 @@ next
     fix x
     assume x: "x \<in> p"
     show "q x division_of \<Union>q x"
-      apply -
       apply (rule division_ofI)
       using division_ofD[OF q(1)[OF x]]
       apply auto
@@ -1279,16 +1217,8 @@ lemma division_of_unions:
     and "\<And>p. p \<in> f \<Longrightarrow> p division_of (\<Union>p)"
     and "\<And>k1 k2. k1 \<in> \<Union>f \<Longrightarrow> k2 \<in> \<Union>f \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
   shows "\<Union>f division_of \<Union>\<Union>f"
-  apply (rule division_ofI)
-  prefer 5
-  apply (rule assms(3)|assumption)+
-  apply (rule finite_Union assms(1))+
-  prefer 3
-  apply (erule UnionE)
-  apply (rule_tac s=X in division_ofD(3)[OF assms(2)])
-  using division_ofD[OF assms(2)]
-  apply auto
-  done
+  using assms
+  by (auto intro!: division_ofI)
 
 lemma elementary_union_interval:
   fixes a b :: "'a::euclidean_space"
@@ -1311,19 +1241,11 @@ proof -
     obtain p where "p division_of (cbox a b)"
       by (rule elementary_interval)
     then show thesis
-      apply -
-      apply (rule that[of p])
-      unfolding as
-      apply auto
-      done
+      using as that by auto
   next
     assume as: "cbox a b = {}"
     show thesis
-      apply (rule that)
-      unfolding as
-      using assms
-      apply auto
-      done
+      using as assms that by auto
   next
     assume as: "interior (cbox a b) = {}" "cbox a b \<noteq> {}"
     show thesis
@@ -1337,14 +1259,11 @@ proof -
   next
     assume as: "p \<noteq> {}" "interior (cbox a b) \<noteq> {}" "cbox a b \<noteq> {}"
     have "\<forall>k\<in>p. \<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> k)"
-    proof
+    proof 
       case goal1
       from assm(4)[OF this] obtain c d where "k = cbox c d" by blast
       then show ?case
-        apply -
-        apply (rule division_union_intervals_exists[OF as(3), of c d])
-        apply auto
-        done
+        by (meson as(3) division_union_intervals_exists)
     qed
     from bchoice[OF this] obtain q where "\<forall>x\<in>p. insert (cbox a b) (q x) division_of (cbox a b) \<union> x" ..
     note q = division_ofD[OF this[rule_format]]
@@ -1356,12 +1275,7 @@ proof -
       have *: "{insert (cbox a b) (q k) |k. k \<in> p} = (\<lambda>k. insert (cbox a b) (q k)) ` p"
         by auto
       show "finite ?D"
-        apply (rule finite_Union)
-        unfolding *
-        apply (rule finite_imageI)
-        using assm(1) q(1)
-        apply auto
-        done
+        using "*" assm(1) q(1) by auto
       show "\<Union>?D = cbox a b \<union> \<Union>p"
         unfolding * lem1
         unfolding lem2[OF as(1), of "cbox a b", symmetric]
@@ -1385,11 +1299,7 @@ proof -
       proof (cases "x = x'")
         case True
         show ?thesis
-          apply(rule q(5))
-          using x x' k'
-          unfolding True
-          apply auto
-          done
+          using True k' q(5) x' x by auto
       next
         case False
         {
@@ -1400,48 +1310,27 @@ proof -
         next
           assume as': "k  = cbox a b"
           show ?thesis
-            apply (rule q(5))
-            using x' k'(2)
-            unfolding as'
-            apply auto
-            done
+            using as' k' q(5) x' by auto
         next
           assume as': "k' = cbox a b"
           show ?thesis
-            apply (rule q(5))
-            using x  k'(2)
-            unfolding as'
-            apply auto
-            done
+            using as' k'(2) q(5) x by auto
         }
         assume as': "k \<noteq> cbox a b" "k' \<noteq> cbox a b"
         obtain c d where k: "k = cbox c d"
           using q(4)[OF x(2,1)] by blast
         have "interior k \<inter> interior (cbox a b) = {}"
-          apply (rule q(5))
-          using x k'(2)
-          using as'
-          apply auto
-          done
+          using as' k'(2) q(5) x by auto
         then have "interior k \<subseteq> interior x"
-          apply -
-          apply (rule interior_subset_union_intervals[OF k _ as(2) q(2)[OF x(2,1)]])
-          apply auto
-          done
+        using interior_subset_union_intervals
+          by (metis as(2) k q(2) x interior_subset_union_intervals)
         moreover
         obtain c d where c_d: "k' = cbox c d"
           using q(4)[OF x'(2,1)] by blast
         have "interior k' \<inter> interior (cbox a b) = {}"
-          apply (rule q(5))
-          using x' k'(2)
-          using as'
-          apply auto
-          done
+          using as'(2) q(5) x' by auto
         then have "interior k' \<subseteq> interior x'"
-          apply -
-          apply (rule interior_subset_union_intervals[OF c_d _ as(2) q(2)[OF x'(2,1)]])
-          apply auto
-          done
+          by (metis as(2) c_d interior_subset_union_intervals q(2) x'(1) x'(2))
         ultimately show ?thesis
           using assm(5)[OF x(2) x'(2) False] by auto
       qed
@@ -1469,31 +1358,20 @@ proof -
       unfolding Union_insert x * by metis
   qed (insert assms, auto)
   then show ?thesis
-    apply -
-    apply (erule exE)
-    apply (rule that)
-    apply auto
-    done
+    using that by auto
 qed
 
 lemma elementary_union:
   fixes s t :: "'a::euclidean_space set"
-  assumes "ps division_of s"
-    and "pt division_of t"
+  assumes "ps division_of s" "pt division_of t"
   obtains p where "p division_of (s \<union> t)"
 proof -
-  have "s \<union> t = \<Union>ps \<union> \<Union>pt"
+  have *: "s \<union> t = \<Union>ps \<union> \<Union>pt"
     using assms unfolding division_of_def by auto
-  then have *: "\<Union>(ps \<union> pt) = s \<union> t" by auto
   show ?thesis
-    apply -
     apply (rule elementary_unions_intervals[of "ps \<union> pt"])
-    unfolding *
-    prefer 3
-    apply (rule_tac p=p in that)
-    using assms[unfolded division_of_def]
-    apply auto
-    done
+    using assms apply auto
+    by (simp add: * that)
 qed
 
 lemma partial_division_extend:
@@ -1507,12 +1385,8 @@ proof -
   obtain a b where ab: "t \<subseteq> cbox a b"
     using elementary_subset_cbox[OF assms(2)] by auto
   obtain r1 where "p \<subseteq> r1" "r1 division_of (cbox a b)"
-    apply (rule partial_division_extend_interval)
-    apply (rule assms(1)[unfolded divp(6)[symmetric]])
-    apply (rule subset_trans)
-    apply (rule ab assms[unfolded divp(6)[symmetric]])+
-    apply assumption
-    done
+    using assms
+    by (metis ab dual_order.trans partial_division_extend_interval divp(6))
   note r1 = this division_ofD[OF this(2)]
   obtain p' where "p' division_of \<Union>(r1 - p)"
     apply (rule elementary_unions_intervals[of "r1 - p"])
@@ -1520,10 +1394,7 @@ proof -
     apply auto
     done
   then obtain r2 where r2: "r2 division_of (\<Union>(r1 - p)) \<inter> (\<Union>q)"
-    apply -
-    apply (drule elementary_inter[OF _ assms(2)[unfolded divq(6)[symmetric]]])
-    apply auto
-    done
+    by (metis assms(2) divq(6) elementary_inter)
   {
     fix x
     assume x: "x \<in> t" "x \<notin> s"
@@ -1565,11 +1436,7 @@ proof -
           show "finite p" and "open (interior m)" and "\<forall>t\<in>p. \<exists>a b. t = cbox a b"
             using divp by auto
           show "\<forall>t\<in>p. interior m \<inter> interior t = {}"
-            apply (rule, rule r1(7))
-            using as
-            using r1 
-            apply auto
-            done
+            by (metis DiffD1 DiffD2 as r1(1) r1(7) set_rev_mp)
         qed
         then show "interior s \<inter> interior m = {}"
           unfolding divp by auto
@@ -1625,21 +1492,12 @@ lemma tagged_division_ofI:
     and "(\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
   shows "s tagged_division_of i"
   unfolding tagged_division_of
-  apply rule
-  defer
-  apply rule
-  apply (rule allI impI conjI assms)+
-  apply assumption
-  apply rule
-  apply (rule assms)
-  apply assumption
-  apply (rule assms)
-  apply assumption
-  using assms(1,5-)
-  apply blast+
+  using assms
+  apply auto
+  apply fastforce+
   done
 
-lemma tagged_division_ofD[dest]:
+lemma tagged_division_ofD[dest]:  (*FIXME USE A LOCALE*)
   assumes "s tagged_division_of i"
   shows "finite s"
     and "\<And>x k. (x,k) \<in> s \<Longrightarrow> x \<in> k"
@@ -1668,12 +1526,7 @@ proof (rule division_ofI)
   from this(1) obtain xk' where xk': "(xk', k') \<in> s"
     by auto
   then show "interior k \<inter> interior k' = {}"
-    apply -
-    apply (rule assm(5))
-    apply (rule xk xk')+
-    using k'
-    apply auto
-    done
+    using assm(5) k'(2) xk by blast
 qed
 
 lemma partial_division_of_tagged_division:
@@ -1694,12 +1547,7 @@ proof (rule division_ofI)
   from this(1) obtain xk' where xk': "(xk', k') \<in> s"
     by auto
   then show "interior k \<inter> interior k' = {}"
-    apply -
-    apply (rule assm(5))
-    apply(rule xk xk')+
-    using k'
-    apply auto
-    done
+    using assm(5) k'(2) xk by auto
 qed
 
 lemma tagged_partial_division_subset:
@@ -1784,19 +1632,8 @@ proof (rule tagged_division_ofI)
     using assms(3) interior_mono by blast
   show "interior k \<inter> interior k' = {}"
     apply (cases "(x, k) \<in> p1")
-    apply (case_tac[!] "(x',k') \<in> p1")
-    apply (rule p1(5))
-    prefer 4
-    apply (rule *)
-    prefer 6
-    apply (subst Int_commute)
-    apply (rule *)
-    prefer 8
-    apply (rule p2(5))
-    using p1(3) p2(3)
-    using xk xk'
-    apply auto
-    done
+    apply (meson "*" UnE assms(1) assms(2) p1(5) tagged_division_ofD(3) xk'(1) xk'(2))
+    by (metis "*" UnE assms(1) assms(2) inf_sup_aci(1) p2(5) tagged_division_ofD(3) xk xk'(1) xk'(2))
 qed
 
 lemma tagged_division_unions:
@@ -1832,13 +1669,8 @@ proof (rule tagged_division_ofI)
     by blast
   show "interior k \<inter> interior k' = {}"
     apply (cases "i = i'")
-    using assm(5)[OF i _ xk'(2)] i'(2)
-    using assm(3)[OF i] assm(3)[OF i']
-    defer
-    apply -
-    apply (rule *)
-    apply auto
-    done
+    using assm(5) i' i(2) xk'(2) apply blast
+    using "*" assm(3) i' i by auto
 qed
 
 lemma tagged_partial_division_of_union_self:
@@ -2004,13 +1836,8 @@ proof -
     using bchoice[OF assms(2)] by auto
   show thesis
     apply (rule_tac p="\<Union>(pfn ` iset)" in that)
-    unfolding assms(4)[symmetric]
-    apply (rule tagged_division_unions[OF assms(1) _ assms(3)])
-    defer
-    apply (rule fine_unions)
-    using pfn
-    apply auto
-    done
+    using assms(1) assms(3) assms(4) pfn(1) tagged_division_unions apply force
+    by (metis (mono_tags, lifting) fine_unions imageE pfn(2))
 qed
 
 
@@ -2050,14 +1877,9 @@ proof -
       show ?case
         unfolding Union_insert
         apply (rule assms(2)[rule_format])
-        apply rule
-        defer
-        apply rule
-        defer
-        apply (rule inter_interior_unions_intervals)
-        using insert
-        apply auto
-        done
+        using inter_interior_unions_intervals [of f "interior x"]
+        apply (auto simp: insert)
+        using insert.prems(3)  insert.hyps(2) by fastforce
     qed
   } note * = this
   let ?A = "{cbox c d | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<or>
@@ -2067,11 +1889,7 @@ proof -
     presume "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d) \<Longrightarrow> False"
     then show thesis
       unfolding atomize_not not_all
-      apply -
-      apply (erule exE)+
-      apply (rule_tac c=x and d=xa in that)
-      apply auto
-      done
+      by (blast intro: that)
   }
   assume as: "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d)"
   have "P (\<Union> ?A)"
@@ -2215,8 +2033,7 @@ proof -
     qed
     then show "x\<in>\<Union>?A"
       unfolding Union_iff Bex_def mem_Collect_eq choice_Basis_iff
-      apply -
-      apply (erule exE)+
+      apply auto
       apply (rule_tac x="cbox xa xaa" in exI)
       unfolding mem_box
       apply auto
