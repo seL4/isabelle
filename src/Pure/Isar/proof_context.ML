@@ -114,10 +114,6 @@ sig
     (term * term list) list list * Proof.context
   val cert_propp: (term * term list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
-  val read_propp_schematic: (string * string list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
-  val cert_propp_schematic: (term * term list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
   val bind_propp: (term * term list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val bind_propp_cmd: (string * string list) list list -> Proof.context ->
@@ -890,22 +886,20 @@ end;
 
 local
 
-fun prep_propp mode prep_props args context =
+fun prep_propp mode prep_props raw_args ctxt =
   let
-    fun prep (_, raw_pats) (ctxt, prop :: props) =
-      let val ctxt' = Variable.declare_term prop ctxt
-      in ((prop, prep_props (set_mode mode_pattern ctxt') raw_pats), (ctxt', props)) end;
-
-    val (propp, (context', _)) =
-      (fold_map o fold_map) prep args
-        (context, prep_props (set_mode mode context) (maps (map fst) args));
-  in (propp, context') end;
+    val props = prep_props (set_mode mode ctxt) (maps (map fst) raw_args);
+    val ctxt' = fold Variable.declare_term props ctxt;
+    val patss = maps (map (prep_props (set_mode mode_pattern ctxt') o snd)) raw_args;
+    val propp = unflat raw_args (props ~~ patss);
+  in (propp, ctxt') end;
 
 fun gen_bind_propp mode parse_prop raw_args ctxt =
   let
     val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
-    val binds = flat (flat (map (map (simult_matches ctxt')) args));
-    val propss = map (map #1) args;
+
+    val binds = (maps o maps) (simult_matches ctxt') args;
+    val propss = map (map fst) args;
     fun gen_binds ctxt0 = ctxt0
       |> bind_terms (map #1 binds ~~
           map (SOME o Term.close_schematic_term) (Variable.export_terms ctxt' ctxt0 (map #2 binds)));
@@ -915,8 +909,6 @@ in
 
 val read_propp = prep_propp mode_default Syntax.read_props;
 val cert_propp = prep_propp mode_default (map o cert_prop);
-val read_propp_schematic = prep_propp mode_schematic Syntax.read_props;
-val cert_propp_schematic = prep_propp mode_schematic (map o cert_prop);
 
 val bind_propp = gen_bind_propp mode_default (map o cert_prop);
 val bind_propp_cmd = gen_bind_propp mode_default Syntax.read_props;
