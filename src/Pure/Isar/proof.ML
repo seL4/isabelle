@@ -557,8 +557,8 @@ fun gen_bind bind args state =
 
 in
 
-val let_bind = gen_bind Proof_Context.match_bind_i;
-val let_bind_cmd = gen_bind Proof_Context.match_bind;
+val let_bind = gen_bind Proof_Context.match_bind;
+val let_bind_cmd = gen_bind Proof_Context.match_bind_cmd;
 
 end;
 
@@ -616,8 +616,8 @@ fun gen_assume asm prep_att exp args state =
 
 in
 
-val assm = gen_assume Proof_Context.add_assms_i (K I);
-val assm_cmd = gen_assume Proof_Context.add_assms Attrib.attribute_cmd;
+val assm = gen_assume Proof_Context.add_assms (K I);
+val assm_cmd = gen_assume Proof_Context.add_assms_cmd Attrib.attribute_cmd;
 val assume = assm Assumption.assume_export;
 val assume_cmd = assm_cmd Assumption.assume_export;
 val presume = assm Assumption.presume_export;
@@ -651,8 +651,8 @@ fun gen_def prep_att prep_vars prep_binds args state =
 
 in
 
-val def = gen_def (K I) Proof_Context.cert_vars Proof_Context.match_bind_i;
-val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.match_bind;
+val def = gen_def (K I) Proof_Context.cert_vars Proof_Context.match_bind;
+val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_vars Proof_Context.match_bind_cmd;
 
 end;
 
@@ -1007,8 +1007,8 @@ fun global_goal prepp before_qed after_qed propp =
   init #>
   generic_goal (prepp_auto_fixes prepp) "" before_qed (K I, after_qed) propp;
 
-val theorem = global_goal Proof_Context.bind_propp_schematic_i;
-val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
+val theorem = global_goal Proof_Context.bind_propp_schematic;
+val theorem_cmd = global_goal Proof_Context.bind_propp_schematic_cmd;
 
 fun global_qeds arg =
   end_proof true arg
@@ -1101,10 +1101,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
 in
 
-val have = gen_have (K I) Proof_Context.bind_propp_i;
-val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.bind_propp;
-val show = gen_show (K I) Proof_Context.bind_propp_i;
-val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.bind_propp;
+val have = gen_have (K I) Proof_Context.bind_propp;
+val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.bind_propp_cmd;
+val show = gen_show (K I) Proof_Context.bind_propp;
+val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.bind_propp_cmd;
 
 end;
 

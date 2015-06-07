@@ -119,7 +119,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain asms*)
     val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
-    val ((_, bind_ctxt), _) = Proof_Context.bind_propp_i proppss asms_ctxt;
+    val ((_, bind_ctxt), _) = Proof_Context.bind_propp proppss asms_ctxt;
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (map (prep_att ctxt)) raw_asms) ~~ proppss;
 

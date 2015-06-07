@@ -372,7 +372,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           in
             ctxt'
             |> Variable.auto_fixes asm
-            |> Proof_Context.add_assms_i Assumption.assume_export
+            |> Proof_Context.add_assms Assumption.assume_export
               [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;

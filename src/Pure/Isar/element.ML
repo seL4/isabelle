@@ -280,7 +280,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
 
 fun proof_local cmd goal_ctxt int after_qed' propss =
   Proof.map_context (K goal_ctxt) #>
-  Proof.local_goal (K (K ())) (K I) Proof_Context.bind_propp_i cmd NONE
+  Proof.local_goal (K (K ())) (K I) Proof_Context.bind_propp cmd NONE
     after_qed' (map (pair Thm.empty_binding) propss);
 
 in
@@ -473,7 +473,7 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
         val asms' = Attrib.map_specs (map (Attrib.attribute ctxt)) asms;
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
-          |> Proof_Context.add_assms_i Assumption.assume_export asms';
+          |> Proof_Context.add_assms Assumption.assume_export asms';
       in ctxt' end)
   | init (Defines defs) = Context.map_proof (fn ctxt =>
       let
@@ -483,7 +483,7 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
             in (t', (b, [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
-          |> Proof_Context.add_assms_i Local_Defs.def_export (map #2 asms);
+          |> Proof_Context.add_assms Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
 

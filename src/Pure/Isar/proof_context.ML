@@ -108,8 +108,8 @@ sig
   val bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
-  val match_bind_i: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
+  val match_bind: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
+  val match_bind_cmd: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
   val read_propp: (string * string list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
   val cert_propp: (term * term list) list list -> Proof.context ->
@@ -118,13 +118,13 @@ sig
     (term * term list) list list * Proof.context
   val cert_propp_schematic: (term * term list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
-  val bind_propp: (string * string list) list list -> Proof.context ->
+  val bind_propp: (term * term list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
-  val bind_propp_i: (term * term list) list list -> Proof.context ->
+  val bind_propp_cmd: (string * string list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
-  val bind_propp_schematic: (string * string list) list list -> Proof.context ->
+  val bind_propp_schematic: (term * term list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
-  val bind_propp_schematic_i: (term * term list) list list -> Proof.context ->
+  val bind_propp_schematic_cmd: (string * string list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
@@ -143,10 +143,10 @@ sig
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
   val add_assms: Assumption.export ->
-    (Thm.binding * (string * string list) list) list ->
-    Proof.context -> (string * thm list) list * Proof.context
-  val add_assms_i: Assumption.export ->
     (Thm.binding * (term * term list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
+  val add_assms_cmd: Assumption.export ->
+    (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val dest_cases: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val update_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
@@ -848,7 +848,7 @@ val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;
 
 
-(* match_bind(_i) *)
+(* match_bind *)
 
 local
 
@@ -880,8 +880,8 @@ in
 fun read_terms ctxt T =
   map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
 
-val match_bind = gen_bind read_terms;
-val match_bind_i = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
+val match_bind = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
+val match_bind_cmd = gen_bind read_terms;
 
 end;
 
@@ -913,15 +913,15 @@ fun gen_bind_propp mode parse_prop raw_args ctxt =
 
 in
 
-val read_propp           = prep_propp mode_default Syntax.read_props;
-val cert_propp           = prep_propp mode_default (map o cert_prop);
+val read_propp = prep_propp mode_default Syntax.read_props;
+val cert_propp = prep_propp mode_default (map o cert_prop);
 val read_propp_schematic = prep_propp mode_schematic Syntax.read_props;
 val cert_propp_schematic = prep_propp mode_schematic (map o cert_prop);
 
-val bind_propp             = gen_bind_propp mode_default Syntax.read_props;
-val bind_propp_i           = gen_bind_propp mode_default (map o cert_prop);
-val bind_propp_schematic   = gen_bind_propp mode_schematic Syntax.read_props;
-val bind_propp_schematic_i = gen_bind_propp mode_schematic (map o cert_prop);
+val bind_propp = gen_bind_propp mode_default (map o cert_prop);
+val bind_propp_cmd = gen_bind_propp mode_default Syntax.read_props;
+val bind_propp_schematic = gen_bind_propp mode_schematic (map o cert_prop);
+val bind_propp_schematic_cmd = gen_bind_propp mode_schematic Syntax.read_props;
 
 end;
 
@@ -1198,7 +1198,7 @@ fun gen_assms prepp exp args ctxt =
 in
 
 val add_assms = gen_assms bind_propp;
-val add_assms_i = gen_assms bind_propp_i;
+val add_assms_cmd = gen_assms bind_propp_cmd;
 
 end;
 
