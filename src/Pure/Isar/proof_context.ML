@@ -107,22 +107,25 @@ sig
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val maybe_bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
   val bind_terms: (indexname * term) list -> Proof.context -> Proof.context
+  val export_bind_terms: (indexname * term) list -> Proof.context -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
-  val match_bind_cmd: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
+  val match_bind: bool -> (term list * term) list -> Proof.context ->
+    term list * Proof.context
+  val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
+    term list * Proof.context
   val read_propp: (string * string list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
   val cert_propp: (term * term list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
   val bind_propp: (term * term list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_schematic: (term * term list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_schematic_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
@@ -832,6 +835,10 @@ val maybe_bind_terms = fold (fn (xi, t) => fn ctxt =>
 
 val bind_terms = maybe_bind_terms o map (apsnd SOME);
 
+fun export_bind_terms binds ctxt ctxt0 =
+  let val ts0 = map Term.close_schematic_term (Variable.export_terms ctxt ctxt0 (map snd binds))
+  in bind_terms (map fst binds ~~ ts0) ctxt0 end;
+
 
 (* auto_bind *)
 
@@ -896,13 +903,9 @@ fun prep_propp mode prep_props raw_args ctxt =
 fun gen_bind_propp mode parse_prop raw_args ctxt =
   let
     val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
-
-    val binds = (maps o maps) (simult_matches ctxt') args;
     val propss = map (map fst) args;
-    fun gen_binds ctxt0 = ctxt0
-      |> bind_terms (map #1 binds ~~
-          map Term.close_schematic_term (Variable.export_terms ctxt' ctxt0 (map #2 binds)));
-  in ((propss, gen_binds), ctxt' |> bind_terms binds) end;
+    val binds = (maps o maps) (simult_matches ctxt') args;
+  in ((propss, binds), bind_terms binds ctxt') end;
 
 in
 

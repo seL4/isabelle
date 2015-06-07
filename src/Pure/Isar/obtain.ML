@@ -119,7 +119,7 @@ fun gen_obtain prep_att prep_var prep_propp
 
     (*obtain asms*)
     val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
-    val ((_, bind_ctxt), _) = Proof_Context.bind_propp proppss asms_ctxt;
+    val ((_, binds), binds_ctxt) = Proof_Context.bind_propp proppss asms_ctxt;
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (map (prep_att ctxt)) raw_asms) ~~ proppss;
 
@@ -150,7 +150,7 @@ fun gen_obtain prep_att prep_var prep_propp
     state
     |> Proof.enter_forward
     |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
-    |> Proof.map_context bind_ctxt
+    |> Proof.map_context (Proof_Context.export_bind_terms binds binds_ctxt)
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume
@@ -308,7 +308,7 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.local_goal print_result (K I) (pair o rpair I)
+    |> Proof.local_goal print_result (K I) (pair o rpair [])
       "guess" (SOME before_qed) after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
         Goal.init (Thm.cterm_of ctxt thesis))) |> Seq.hd
