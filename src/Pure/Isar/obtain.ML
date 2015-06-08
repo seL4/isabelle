@@ -120,15 +120,13 @@ fun gen_obtain prep_att prep_var prep_propp
     (*obtain asms*)
     val (asm_propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
     val asm_props = flat asm_propss;
-    val asms_ctxt = fix_ctxt
-      |> fold Variable.declare_term asm_props
-      |> Proof_Context.bind_terms binds;
+    val declare_asms = fold Variable.declare_term asm_props #> Proof_Context.bind_terms binds;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att ctxt) raw_atts)) raw_asms ~~
       unflat asm_propss (map (rpair []) asm_props);
 
     (*obtain params*)
-    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
+    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
     val params = map Free (xs' ~~ Ts);
     val cparams = map (Thm.cterm_of params_ctxt) params;
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
@@ -158,7 +156,7 @@ fun gen_obtain prep_att prep_var prep_propp
       Proof.local_qed (NONE, false)
       #> `Proof.the_fact #-> (fn rule =>
         Proof.fix vars
-        #> Proof.map_context (Proof_Context.bind_terms binds)
+        #> Proof.map_context declare_asms
         #> Proof.assm (obtain_export params_ctxt rule cparams) asms);
   in
     state
