@@ -114,18 +114,10 @@ sig
     term list * Proof.context
   val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
     term list * Proof.context
-  val read_propp: (string * string list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
-  val cert_propp: (term * term list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
-  val bind_propp: (term * term list) list list -> Proof.context ->
-    (term list list * (indexname * term) list) * Proof.context
-  val bind_propp_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (indexname * term) list) * Proof.context
-  val bind_propp_schematic: (term * term list) list list -> Proof.context ->
-    (term list list * (indexname * term) list) * Proof.context
-  val bind_propp_schematic_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (indexname * term) list) * Proof.context
+  val cert_propp: Proof.context -> (term * term list) list list ->
+    (term list list * (indexname * term) list)
+  val read_propp: Proof.context -> (string * string list) list list ->
+    (term list list * (indexname * term) list)
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
@@ -892,30 +884,20 @@ end;
 
 local
 
-fun prep_propp mode prep_props raw_args ctxt =
+fun prep_propp prep_props ctxt raw_args =
   let
-    val props = prep_props (set_mode mode ctxt) (maps (map fst) raw_args);
-    val ctxt' = fold Variable.declare_term props ctxt;
-    val patss = maps (map (prep_props (set_mode mode_pattern ctxt') o snd)) raw_args;
-    val propp = unflat raw_args (props ~~ patss);
-  in (propp, ctxt') end;
+    val props = prep_props ctxt (maps (map fst) raw_args);
+    val props_ctxt = fold Variable.declare_term props ctxt;
+    val patss = maps (map (prep_props (set_mode mode_pattern props_ctxt) o snd)) raw_args;
 
-fun gen_bind_propp mode parse_prop raw_args ctxt =
-  let
-    val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
-    val propss = map (map fst) args;
-    val binds = (maps o maps) (simult_matches ctxt') args;
-  in ((propss, binds), bind_terms binds ctxt') end;
+    val propps = unflat raw_args (props ~~ patss);
+    val binds = (maps o maps) (simult_matches props_ctxt) propps;
+  in (map (map fst) propps, binds) end;
 
 in
 
-val read_propp = prep_propp mode_default Syntax.read_props;
-val cert_propp = prep_propp mode_default (map o cert_prop);
-
-val bind_propp = gen_bind_propp mode_default (map o cert_prop);
-val bind_propp_cmd = gen_bind_propp mode_default Syntax.read_props;
-val bind_propp_schematic = gen_bind_propp mode_schematic (map o cert_prop);
-val bind_propp_schematic_cmd = gen_bind_propp mode_schematic Syntax.read_props;
+val cert_propp = prep_propp (map o cert_prop);
+val read_propp = prep_propp Syntax.read_props;
 
 end;
 
@@ -1176,22 +1158,25 @@ fun add_fixes raw_vars ctxt =
 
 local
 
-fun gen_assms prepp exp args ctxt =
+fun gen_assms prep_propp exp args ctxt =
   let
-    val ((propss, _), ctxt1) = prepp (map snd args) ctxt;
-    val _ = Variable.warn_extra_tfrees ctxt ctxt1;
-    val (premss, ctxt2) =
-      fold_burrow (Assumption.add_assms exp o map (Thm.cterm_of ctxt)) propss ctxt1;
+    val (propss, binds) = prep_propp ctxt (map snd args);
+    val props = flat propss;
   in
-    ctxt2
-    |> auto_bind_facts (flat propss)
-    |> note_thmss "" (map fst args ~~ map (map (fn th => ([th], []))) premss)
+    ctxt
+    |> fold Variable.declare_term props
+    |> tap (Variable.warn_extra_tfrees ctxt)
+    |> fold_burrow (Assumption.add_assms exp o map (Thm.cterm_of ctxt)) propss
+    |-> (fn premss =>
+      auto_bind_facts props
+      #> bind_terms binds
+      #> note_thmss "" (map fst args ~~ map (map (fn th => ([th], []))) premss))
   end;
 
 in
 
-val add_assms = gen_assms bind_propp;
-val add_assms_cmd = gen_assms bind_propp_cmd;
+val add_assms = gen_assms cert_propp;
+val add_assms_cmd = gen_assms read_propp;
 
 end;
 
