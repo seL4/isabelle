@@ -278,10 +278,10 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness #> Seq.hd end;
 
-fun proof_local cmd goal_ctxt int after_qed' propss =
+fun proof_local cmd goal_ctxt int after_qed' propp =
   Proof.map_context (K goal_ctxt) #>
-  Proof.local_goal (K (K ())) (K I) Proof_Context.bind_propp cmd NONE
-    after_qed' (map (pair Thm.empty_binding) propss);
+  Proof.local_goal (K (K ())) (K I) Proof_Context.cert_propp cmd NONE
+    after_qed' (map (pair Thm.empty_binding) propp);
 
 in
 

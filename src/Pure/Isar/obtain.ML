@@ -118,14 +118,17 @@ fun gen_obtain prep_att prep_var prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val ((propss, binds), props_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
-    val props = flat propss;
+    val (asm_propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
+    val asm_props = flat asm_propss;
+    val asms_ctxt = fix_ctxt
+      |> fold Variable.declare_term asm_props
+      |> Proof_Context.bind_terms binds;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att ctxt) raw_atts)) raw_asms ~~
-      unflat propss (map (rpair []) props);
+      unflat asm_propss (map (rpair []) asm_props);
 
     (*obtain params*)
-    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' props_ctxt;
+    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
     val params = map Free (xs' ~~ Ts);
     val cparams = map (Thm.cterm_of params_ctxt) params;
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
@@ -146,7 +149,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
-        (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
+        (fold_rev Logic.all params (Logic.list_implies (asm_props, thesis)));
     val obtain_prop =
       Logic.list_rename_params [Auto_Bind.thesisN]
         (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
@@ -174,8 +177,8 @@ fun gen_obtain prep_att prep_var prep_propp
 
 in
 
-val obtain = gen_obtain (K I) Proof_Context.cert_var Proof_Context.bind_propp;
-val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_var Proof_Context.bind_propp_cmd;
+val obtain = gen_obtain (K I) Proof_Context.cert_var Proof_Context.cert_propp;
+val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_var Proof_Context.read_propp;
 
 end;
 
@@ -319,7 +322,7 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.local_goal print_result (K I) (pair o rpair [])
+    |> Proof.local_goal print_result (K I) (K (rpair []))
       "guess" (SOME before_qed) after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
         Goal.init (Thm.cterm_of ctxt thesis))) |> Seq.hd

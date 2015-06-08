@@ -91,7 +91,7 @@ sig
   val apply_end_results: Method.text_range -> state -> state Seq.result Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (context -> 'a -> attribute) ->
-    ('b list -> context -> (term list list * (indexname * term) list) * context) ->
+    (context -> 'b list -> (term list list * (indexname * term) list)) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text_range option * bool -> state -> state
@@ -910,19 +910,21 @@ fun refine_terms n =
 
 in
 
-fun generic_goal prepp kind before_qed after_qed raw_propp state =
+fun generic_goal prep_propp kind before_qed after_qed propp state =
   let
     val ctxt = context_of state;
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
-    val ((propss, binds), goal_state) =
+    val (propss, binds) = prep_propp ctxt propp;
+    val props = flat propss;
+
+    val goal_state =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> open_block
-      |> map_context_result (prepp raw_propp);
-    val props = flat propss;
+      |> map_context (fold Variable.auto_fixes props #> Proof_Context.bind_terms binds);
     val goal_ctxt = context_of goal_state;
 
     val vars = implicit_vars props;
@@ -972,7 +974,7 @@ end;
 
 (* local goals *)
 
-fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state =
+fun local_goal print_results prep_att prep_propp kind before_qed after_qed stmt state =
   let
     val ((names, attss), propp) =
       Attrib.map_specs (map (prep_att (context_of state))) stmt |> split_list |>> split_list;
@@ -983,7 +985,8 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
       #> after_qed results;
   in
     state
-    |> generic_goal prepp kind before_qed (after_qed', K I) propp
+    |> map_context (Variable.set_body true)
+    |> generic_goal prep_propp kind before_qed (after_qed', K I) propp
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
@@ -998,21 +1001,13 @@ fun local_qed arg =
 
 (* global goals *)
 
-fun global_goal prepp before_qed after_qed propp =
-  let
-    fun prepp' args ctxt1 =
-      let
-        val ((propss, binds), ctxt2) = ctxt1
-          |> Proof_Context.set_mode Proof_Context.mode_schematic
-          |> prepp args;
-        val ctxt3 = ctxt2
-          |> (fold o fold) Variable.auto_fixes propss
-          |> Proof_Context.restore_mode ctxt1;
-      in ((propss, binds), ctxt3) end;
-  in init #> generic_goal prepp' "" before_qed (K I, after_qed) propp end;
+fun global_goal prep_propp before_qed after_qed propp =
+  init
+  #> generic_goal (prep_propp o Proof_Context.set_mode Proof_Context.mode_schematic) ""
+    before_qed (K I, after_qed) propp;
 
-val theorem = global_goal Proof_Context.bind_propp;
-val theorem_cmd = global_goal Proof_Context.bind_propp_cmd;
+val theorem = global_goal Proof_Context.cert_propp;
+val theorem_cmd = global_goal Proof_Context.read_propp;
 
 fun global_qeds arg =
   end_proof true arg
@@ -1061,11 +1056,11 @@ fun global_skip_proof int state =
 
 local
 
-fun gen_have prep_att prepp before_qed after_qed stmt int =
+fun gen_have prep_att prep_propp before_qed after_qed stmt int =
   local_goal (Proof_Display.print_results int (Position.thread_data ()))
-    prep_att prepp "have" before_qed after_qed stmt;
+    prep_att prep_propp "have" before_qed after_qed stmt;
 
-fun gen_show prep_att prepp before_qed after_qed stmt int state =
+fun gen_show prep_att prep_propp before_qed after_qed stmt int state =
   let
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
@@ -1096,7 +1091,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       #> after_qed results;
   in
     state
-    |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
+    |> local_goal print_results prep_att prep_propp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res _ => goal_state
@@ -1105,10 +1100,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
 in
 
-val have = gen_have (K I) Proof_Context.bind_propp;
-val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.bind_propp_cmd;
-val show = gen_show (K I) Proof_Context.bind_propp;
-val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.bind_propp_cmd;
+val have = gen_have (K I) Proof_Context.cert_propp;
+val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.read_propp;
+val show = gen_show (K I) Proof_Context.cert_propp;
+val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.read_propp;
 
 end;
 
