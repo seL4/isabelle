@@ -114,10 +114,6 @@ sig
     term list * Proof.context
   val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
     term list * Proof.context
-  val read_propp: (string * string list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
-  val cert_propp: (term * term list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
   val bind_propp: (term * term list) list list -> Proof.context ->
     (term list list * (indexname * term) list) * Proof.context
   val bind_propp_cmd: (string * string list) list list -> Proof.context ->
@@ -888,25 +884,19 @@ end;
 
 local
 
-fun prep_propp prep_props raw_args ctxt =
+fun gen_bind_propp prep_props raw_args ctxt =
   let
     val props = prep_props ctxt (maps (map fst) raw_args);
     val ctxt' = fold Variable.declare_term props ctxt;
-    val patss = maps (map (prep_props (set_mode mode_pattern ctxt') o snd)) raw_args;
-    val propp = unflat raw_args (props ~~ patss);
-  in (propp, ctxt') end;
 
-fun gen_bind_propp parse_prop raw_args ctxt =
-  let
-    val (args, ctxt') = prep_propp parse_prop raw_args ctxt;
-    val propss = map (map fst) args;
-    val binds = (maps o maps) (simult_matches ctxt') args;
+    val patss = maps (map (prep_props (set_mode mode_pattern ctxt') o snd)) raw_args;
+    val propps = unflat raw_args (props ~~ patss);
+    val binds = (maps o maps) (simult_matches ctxt') propps;
+
+    val propss = map (map fst) propps;
   in ((propss, binds), bind_terms binds ctxt') end;
 
 in
-
-val read_propp = prep_propp Syntax.read_props;
-val cert_propp = prep_propp (map o cert_prop);
 
 val bind_propp = gen_bind_propp (map o cert_prop);
 val bind_propp_cmd = gen_bind_propp Syntax.read_props;

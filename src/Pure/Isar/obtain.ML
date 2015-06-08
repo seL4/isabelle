@@ -71,13 +71,13 @@ fun eliminate_term ctxt xs tm =
         space_implode " " (map (Syntax.string_of_term ctxt) bads));
   in tm end;
 
-fun eliminate fix_ctxt rule xs As thm =
+fun eliminate ctxt rule xs As thm =
   let
-    val _ = eliminate_term fix_ctxt xs (Thm.full_prop_of thm);
-    val _ = Object_Logic.is_judgment fix_ctxt (Thm.concl_of thm) orelse
+    val _ = eliminate_term ctxt xs (Thm.full_prop_of thm);
+    val _ = Object_Logic.is_judgment ctxt (Thm.concl_of thm) orelse
       error "Conclusion in obtained context must be object-logic judgment";
 
-    val ((_, [thm']), ctxt') = Variable.import true [thm] fix_ctxt;
+    val ((_, [thm']), ctxt') = Variable.import true [thm] ctxt;
     val prems = Drule.strip_imp_prems (#prop (Thm.crep_thm thm'));
   in
     ((Drule.implies_elim_list thm' (map Thm.assume prems)
@@ -85,7 +85,7 @@ fun eliminate fix_ctxt rule xs As thm =
         |> Drule.forall_intr_list xs)
       COMP rule)
     |> Drule.implies_intr_list prems
-    |> singleton (Variable.export ctxt' fix_ctxt)
+    |> singleton (Variable.export ctxt' ctxt)
   end;
 
 fun obtain_export ctxt rule xs _ As =
@@ -118,16 +118,26 @@ fun gen_obtain prep_att prep_var prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val (proppss, asms_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
-    val ((_, binds), binds_ctxt) = Proof_Context.bind_propp proppss asms_ctxt;
-    val asm_props = maps (map fst) proppss;
-    val asms = map fst (Attrib.map_specs (map (prep_att ctxt)) raw_asms) ~~ proppss;
+    val ((propss, binds), props_ctxt) = prep_propp (map snd raw_asms) fix_ctxt;
+    val props = flat propss;
+    val asms =
+      map (fn ((b, raw_atts), _) => (b, map (prep_att ctxt) raw_atts)) raw_asms ~~
+      unflat propss (map (rpair []) props);
 
-    (*obtain parms*)
-    val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
-    val parms = map Free (xs' ~~ Ts);
-    val cparms = map (Thm.cterm_of ctxt) parms;
-    val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
+    (*obtain params*)
+    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' props_ctxt;
+    val params = map Free (xs' ~~ Ts);
+    val cparams = map (Thm.cterm_of params_ctxt) params;
+    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
+
+    (*abstracted term bindings*)
+    fun abs_params t =
+      let
+        val ps =
+          (xs ~~ params) |> map_filter (fn (x, p) =>
+            if exists_subterm (fn u => u aconv p) t then SOME (x, p) else NONE);
+      in fold_rev Term.lambda_name ps t end;
+    val binds' = map (apsnd (Term.close_schematic_term o abs_params)) binds;
 
     (*obtain statements*)
     val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
@@ -136,7 +146,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
-        (fold_rev Logic.all parms (Logic.list_implies (asm_props, thesis)));
+        (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
     val obtain_prop =
       Logic.list_rename_params [Auto_Bind.thesisN]
         (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
@@ -145,12 +155,13 @@ fun gen_obtain prep_att prep_var prep_propp
       Proof.local_qed (NONE, false)
       #> `Proof.the_fact #-> (fn rule =>
         Proof.fix vars
-        #> Proof.assm (obtain_export fix_ctxt rule cparms) asms);
+        #> Proof.map_context (Proof_Context.bind_terms binds)
+        #> Proof.assm (obtain_export params_ctxt rule cparams) asms);
   in
     state
     |> Proof.enter_forward
     |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
-    |> Proof.map_context (Proof_Context.export_bind_terms binds binds_ctxt)
+    |> Proof.map_context (Proof_Context.bind_terms binds')
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume
@@ -163,8 +174,8 @@ fun gen_obtain prep_att prep_var prep_propp
 
 in
 
-val obtain = gen_obtain (K I) Proof_Context.cert_var Proof_Context.cert_propp;
-val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_var Proof_Context.read_propp;
+val obtain = gen_obtain (K I) Proof_Context.cert_var Proof_Context.bind_propp;
+val obtain_cmd = gen_obtain Attrib.attribute_cmd Proof_Context.read_var Proof_Context.bind_propp_cmd;
 
 end;
 
