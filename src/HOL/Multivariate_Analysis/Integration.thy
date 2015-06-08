@@ -241,8 +241,9 @@ lemma inter_interior_unions_intervals:
     and "\<forall>t\<in>f. \<exists>a b. t = cbox a b"
     and "\<forall>t\<in>f. s \<inter> (interior t) = {}"
   shows "s \<inter> interior (\<Union>f) = {}"
-proof (rule ccontr, unfold ex_in_conv[symmetric])
-  case goal1
+proof (clarsimp simp only: all_not_in_conv [symmetric])
+  fix x
+  assume x: "x \<in> s" "x \<in> interior (\<Union>f)"
   have lem1: "\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U"
     using interior_subset
     by auto (meson Topology_Euclidean_Space.open_ball contra_subsetD interior_maximal mem_ball)
@@ -308,17 +309,14 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
             let ?z = "x - (e/2) *\<^sub>R k"
             assume as: "x\<bullet>k = a\<bullet>k"
             have "ball ?z (e / 2) \<inter> i = {}"
-              apply (rule ccontr)
-              unfolding ex_in_conv[symmetric]
-              apply (erule exE)
-            proof -
+            proof (clarsimp simp only: all_not_in_conv [symmetric])
               fix y
-              assume "y \<in> ball ?z (e / 2) \<inter> i"
-              then have "dist ?z y < e/2" and yi:"y\<in>i" by auto
+              assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
+              then have "dist ?z y < e/2" by auto
               then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
                 using Basis_le_norm[OF k, of "?z - y"] unfolding dist_norm by auto
               then have "y\<bullet>k < a\<bullet>k"
-                using e[THEN conjunct1] k
+                using e k
                 by (auto simp add: field_simps abs_less_iff as inner_simps)
               then have "y \<notin> i"
                 unfolding ab mem_box by (auto intro!: bexI[OF _ k])
@@ -337,10 +335,8 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
                 done
               also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
                 apply (rule add_strict_left_mono)
-                using as
-                unfolding mem_ball dist_norm
-                using e
-                apply (auto simp add: field_simps)
+                using as e
+                apply (auto simp add: field_simps dist_norm)
                 done
               finally show "y \<in> ball x e"
                 unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
@@ -354,19 +350,16 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
             let ?z = "x + (e/2) *\<^sub>R k"
             assume as: "x\<bullet>k = b\<bullet>k"
             have "ball ?z (e / 2) \<inter> i = {}"
-              apply (rule ccontr)
-              unfolding ex_in_conv[symmetric]
-              apply (erule exE)
-            proof -
+            proof (clarsimp simp only: all_not_in_conv [symmetric])
               fix y
-              assume "y \<in> ball ?z (e / 2) \<inter> i"
-              then have "dist ?z y < e/2" and yi: "y \<in> i"
+              assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
+              then have "dist ?z y < e/2"
                 by auto
               then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
                 using Basis_le_norm[OF k, of "?z - y"]
                 unfolding dist_norm by auto
               then have "y\<bullet>k > b\<bullet>k"
-                using e[THEN conjunct1] k
+                using e k
                 by (auto simp add:field_simps inner_simps inner_Basis as)
               then have "y \<notin> i"
                 unfolding ab mem_box by (auto intro!: bexI[OF _ k])
@@ -400,14 +393,14 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
           then obtain x where "ball x (e / 2) \<subseteq> s \<inter> \<Union>f" ..
           then have "x \<in> s \<inter> interior (\<Union>f)"
             unfolding lem1[where U="\<Union>f", symmetric]
-            using centre_in_ball e[THEN conjunct1] by auto
+            using centre_in_ball e by auto
           then show ?thesis 
             using insert.hyps(3) insert.prems(1) by blast
         qed
       qed
     qed
   qed
-  from this[OF assms(1,3) goal1]
+  from this[OF assms(1,3)] x
   obtain t x e where "t \<in> f" "0 < e" "ball x e \<subseteq> s \<inter> t"
     by blast
   then have "x \<in> s" "x \<in> interior t"
@@ -564,14 +557,15 @@ lemma content_eq_0_interior: "content (cbox a b) = 0 \<longleftrightarrow> inter
 
 lemma content_pos_lt_eq:
   "0 < content (cbox a (b::'a::euclidean_space)) \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
-  apply rule
-  defer
-  apply (rule content_pos_lt, assumption)
-proof -
+proof (rule iffI)
   assume "0 < content (cbox a b)"
   then have "content (cbox a b) \<noteq> 0" by auto
   then show "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
     unfolding content_eq_0 not_ex not_le by fastforce
+next
+  assume "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
+  then show "0 < content (cbox a b)"
+    by (metis content_pos_lt)
 qed
 
 lemma content_empty [simp]: "content {} = 0"
@@ -593,22 +587,16 @@ next
   have "cbox c d \<noteq> {}" using assms False by auto
   then have cd_ne: "\<forall>i\<in>Basis. c \<bullet> i \<le> d \<bullet> i"
     using assms unfolding box_ne_empty by auto
-  show ?thesis
-    unfolding content_def
-    unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    unfolding if_not_P[OF False] if_not_P[OF `cbox c d \<noteq> {}`]
-    apply (rule setprod_mono)
-    apply rule
-  proof
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    show "0 \<le> b \<bullet> i - a \<bullet> i"
-      using ab_ne[THEN bspec, OF i] i by auto
-    show "b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
-      using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2),of i]
-      using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(1),of i]
-      using i by auto
-  qed
+  have "\<And>i. i \<in> Basis \<Longrightarrow> 0 \<le> b \<bullet> i - a \<bullet> i"
+    using ab_ne by (metis diff_le_iff(1))
+  moreover
+  have "\<And>i. i \<in> Basis \<Longrightarrow> b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
+    using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2)]
+          assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(1)]
+      by (metis diff_mono)
+  ultimately show ?thesis
+    unfolding content_def interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
+    by (simp add: setprod_mono if_not_P[OF False] if_not_P[OF `cbox c d \<noteq> {}`])
 qed
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
@@ -1069,36 +1057,26 @@ next
   qed
   obtain q where q: "\<And>x. x \<in> p \<Longrightarrow> q x division_of cbox a b" "\<And>x. x \<in> p \<Longrightarrow> x \<in> q x"
     using bchoice[OF *] by blast
-  have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
-    apply rule
-    apply (rule_tac p="q x" in division_of_subset)
-  proof -
-    fix x
+  { fix x
     assume x: "x \<in> p"
-    show "q x division_of \<Union>q x"
+    have "q x division_of \<Union>q x"
       apply (rule division_ofI)
       using division_ofD[OF q(1)[OF x]]
       apply auto
-      done
-    show "q x - {x} \<subseteq> q x"
-      by auto
-  qed
+      done }
+  then have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
+    by (meson Diff_subset division_of_subset)
   then have "\<exists>d. d division_of \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)"
     apply -
-    apply (rule elementary_inters)
-    apply (rule finite_imageI[OF p(1)])
-    unfolding image_is_empty
-    apply (rule False)
-    apply auto
+    apply (rule elementary_inters [OF finite_imageI[OF p(1)]])
+    apply (auto simp: False elementary_inters [OF finite_imageI[OF p(1)]])
     done
   then obtain d where d: "d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)" ..
-  show ?thesis
-    apply (rule that[of "d \<union> p"])
+  have "d \<union> p division_of cbox a b"
   proof -
-    have *: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
+    have te: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
     have *: "cbox a b = \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
-      apply (rule *[OF False])
-    proof
+    proof (rule te[OF False], clarify)
       fix i
       assume i: "i \<in> p"
       show "\<Union>(q i - {i}) \<union> i = cbox a b"
@@ -1135,7 +1113,9 @@ next
           done
       qed
     qed
-  qed auto
+  qed
+  then show ?thesis
+    by (meson Un_upper2 that)
 qed
 
 lemma elementary_bounded[dest]:
@@ -1938,11 +1918,7 @@ proof -
     show "P s"
       unfolding s
       apply (rule as[rule_format])
-    proof -
-      case goal1
-      then show ?case
-        using s(2)[of i] using ab[OF `i \<in> Basis`] by auto
-    qed
+      using ab s(2) by force
     show "\<exists>a b. s = cbox a b"
       unfolding s by auto
     fix t
@@ -1959,17 +1935,8 @@ proof -
     then obtain i where "c\<bullet>i \<noteq> e\<bullet>i \<or> d\<bullet>i \<noteq> f\<bullet>i" and i': "i \<in> Basis"
       unfolding euclidean_eq_iff[where 'a='a] by auto
     then have i: "c\<bullet>i \<noteq> e\<bullet>i" "d\<bullet>i \<noteq> f\<bullet>i"
-      apply -
-      apply(erule_tac[!] disjE)
-    proof -
-      assume "c\<bullet>i \<noteq> e\<bullet>i"
-      then show "d\<bullet>i \<noteq> f\<bullet>i"
-        using s(2)[OF i'] t(2)[OF i'] by fastforce
-    next
-      assume "d\<bullet>i \<noteq> f\<bullet>i"
-      then show "c\<bullet>i \<noteq> e\<bullet>i"
-        using s(2)[OF i'] t(2)[OF i'] by fastforce
-    qed
+      using s(2) t(2) apply fastforce
+      using t(2)[OF i'] `c \<bullet> i \<noteq> e \<bullet> i \<or> d \<bullet> i \<noteq> f \<bullet> i` i' s(2) t(2) by fastforce
     have *: "\<And>s t. (\<And>a. a \<in> s \<Longrightarrow> a \<in> t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}"
       by auto
     show "interior s \<inter> interior t = {}"
@@ -1979,16 +1946,9 @@ proof -
       assume "x \<in> box c d" "x \<in> box e f"
       then have x: "c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i"
         unfolding mem_box using i'
-        apply -
-        apply (erule_tac[!] x=i in ballE)+
-        apply auto
-        done
-      show False
-        using s(2)[OF i']
-        apply -
-        apply (erule_tac disjE)
-        apply (erule_tac[!] conjE)
-      proof -
+        by force+
+      show False  using s(2)[OF i']
+      proof safe
         assume as: "c \<bullet> i = a \<bullet> i" "d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2"
         show False
           using t(2)[OF i'] and i x unfolding as by (fastforce simp add:field_simps)
@@ -2007,7 +1967,8 @@ proof -
       "x \<in> cbox c d"
       "\<And>i. i \<in> Basis \<Longrightarrow>
         c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
+        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" 
+      by blast
     show "x\<in>cbox a b"
       unfolding mem_box
     proof safe
@@ -2056,7 +2017,7 @@ proof -
        2 * (snd y\<bullet>i - fst y\<bullet>i) \<le> snd x\<bullet>i - fst x\<bullet>i))"
   proof
     case goal1
-    then show ?case
+    show ?case
     proof -
       presume "\<not> P (cbox (fst x) (snd x)) \<Longrightarrow> ?thesis"
       then show ?thesis by (cases "P (cbox (fst x) (snd x))") auto
