@@ -123,7 +123,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val declare_asms = fold Variable.declare_term asm_props #> Proof_Context.bind_terms binds;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att ctxt) raw_atts)) raw_asms ~~
-      unflat asm_propss (map (rpair []) asm_props);
+      map (map (rpair [])) asm_propss;
 
     (*obtain params*)
     val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
