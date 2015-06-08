@@ -105,27 +105,27 @@ sig
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
-  val bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
+  val maybe_bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
+  val bind_terms: (indexname * term) list -> Proof.context -> Proof.context
+  val export_bind_terms: (indexname * term) list -> Proof.context -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
-  val match_bind_cmd: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
+  val match_bind: bool -> (term list * term) list -> Proof.context ->
+    term list * Proof.context
+  val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
+    term list * Proof.context
   val read_propp: (string * string list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
   val cert_propp: (term * term list) list list -> Proof.context ->
     (term * term list) list list * Proof.context
-  val read_propp_schematic: (string * string list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
-  val cert_propp_schematic: (term * term list) list list -> Proof.context ->
-    (term * term list) list list * Proof.context
   val bind_propp: (term * term list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_schematic: (term * term list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val bind_propp_schematic_cmd: (string * string list) list list -> Proof.context ->
-    (term list list * (Proof.context -> Proof.context)) * Proof.context
+    (term list list * (indexname * term) list) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
@@ -257,10 +257,7 @@ fun map_syntax f =
     (mode, f syntax, tsig, consts, facts, cases));
 
 fun map_syntax_idents f ctxt =
-  let
-    val idents = Syntax_Trans.get_idents ctxt;
-    val (opt_idents', syntax') = f (#syntax (rep_data ctxt));
-  in
+  let val (opt_idents', syntax') = f (#syntax (rep_data ctxt)) in
     ctxt
     |> map_syntax (K syntax')
     |> (case opt_idents' of NONE => I | SOME idents' => Syntax_Trans.put_idents idents')
@@ -832,9 +829,15 @@ fun simult_matches ctxt (t, pats) =
 
 (* bind_terms *)
 
-val bind_terms = fold (fn (xi, t) => fn ctxt =>
+val maybe_bind_terms = fold (fn (xi, t) => fn ctxt =>
   ctxt
   |> Variable.bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
+
+val bind_terms = maybe_bind_terms o map (apsnd SOME);
+
+fun export_bind_terms binds ctxt ctxt0 =
+  let val ts0 = map Term.close_schematic_term (Variable.export_terms ctxt ctxt0 (map snd binds))
+  in bind_terms (map fst binds ~~ ts0) ctxt0 end;
 
 
 (* auto_bind *)
@@ -842,7 +845,7 @@ val bind_terms = fold (fn (xi, t) => fn ctxt =>
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f ctxt ts));
+fun auto_bind f ts ctxt = ctxt |> maybe_bind_terms (map drop_schematic (f ctxt ts));
 
 val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;
@@ -867,12 +870,11 @@ fun gen_bind prep_terms gen raw_binds ctxt =
     val binds' =
       if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
       else binds;
-    val binds'' = map (apsnd SOME) binds';
     val ctxt'' =
       tap (Variable.warn_extra_tfrees ctxt)
        (if gen then
-          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> bind_terms binds''
-        else ctxt' |> bind_terms binds'');
+          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> bind_terms binds'
+        else ctxt' |> bind_terms binds');
   in (ts, ctxt'') end;
 
 in
@@ -890,33 +892,25 @@ end;
 
 local
 
-fun prep_propp mode prep_props args context =
+fun prep_propp mode prep_props raw_args ctxt =
   let
-    fun prep (_, raw_pats) (ctxt, prop :: props) =
-      let val ctxt' = Variable.declare_term prop ctxt
-      in ((prop, prep_props (set_mode mode_pattern ctxt') raw_pats), (ctxt', props)) end;
-
-    val (propp, (context', _)) =
-      (fold_map o fold_map) prep args
-        (context, prep_props (set_mode mode context) (maps (map fst) args));
-  in (propp, context') end;
+    val props = prep_props (set_mode mode ctxt) (maps (map fst) raw_args);
+    val ctxt' = fold Variable.declare_term props ctxt;
+    val patss = maps (map (prep_props (set_mode mode_pattern ctxt') o snd)) raw_args;
+    val propp = unflat raw_args (props ~~ patss);
+  in (propp, ctxt') end;
 
 fun gen_bind_propp mode parse_prop raw_args ctxt =
   let
     val (args, ctxt') = prep_propp mode parse_prop raw_args ctxt;
-    val binds = flat (flat (map (map (simult_matches ctxt')) args));
-    val propss = map (map #1) args;
-    fun gen_binds ctxt0 = ctxt0
-      |> bind_terms (map #1 binds ~~
-          map (SOME o Term.close_schematic_term) (Variable.export_terms ctxt' ctxt0 (map #2 binds)));
-  in ((propss, gen_binds), ctxt' |> bind_terms (map (apsnd SOME) binds)) end;
+    val propss = map (map fst) args;
+    val binds = (maps o maps) (simult_matches ctxt') args;
+  in ((propss, binds), bind_terms binds ctxt') end;
 
 in
 
 val read_propp = prep_propp mode_default Syntax.read_props;
 val cert_propp = prep_propp mode_default (map o cert_prop);
-val read_propp_schematic = prep_propp mode_schematic Syntax.read_props;
-val cert_propp_schematic = prep_propp mode_schematic (map o cert_prop);
 
 val bind_propp = gen_bind_propp mode_default (map o cert_prop);
 val bind_propp_cmd = gen_bind_propp mode_default Syntax.read_props;
@@ -1242,7 +1236,7 @@ fun case_result c ctxt =
     val Rule_Cases.Case {assumes, binds, cases, ...} = Rule_Cases.apply ts c;
   in
     ctxt'
-    |> bind_terms (map drop_schematic binds)
+    |> maybe_bind_terms (map drop_schematic binds)
     |> update_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;

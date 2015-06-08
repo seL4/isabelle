@@ -19,7 +19,6 @@ sig
   val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
-  val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
@@ -92,7 +91,7 @@ sig
   val apply_end_results: Method.text_range -> state -> state Seq.result Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (context -> 'a -> attribute) ->
-    ('b list -> context -> (term list list * (context -> context)) * context) ->
+    ('b list -> context -> (term list list * (indexname * term) list) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text_range option * bool -> state -> state
@@ -221,7 +220,6 @@ fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mo
 fun propagate_ml_env state = map_contexts
   (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
-val bind_terms = map_context o Proof_Context.bind_terms;
 val put_thms = map_context oo Proof_Context.put_thms;
 
 
@@ -771,7 +769,7 @@ fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
   in
     state'
     |> assume assumptions
-    |> bind_terms Auto_Bind.no_facts
+    |> map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
     |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
   end;
 
@@ -918,13 +916,14 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
-    val ((propss, after_ctxt), goal_state) =
+    val ((propss, binds), goal_state) =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> open_block
       |> map_context_result (prepp raw_propp);
     val props = flat propss;
+    val goal_ctxt = context_of goal_state;
 
     val vars = implicit_vars props;
     val propss' = vars :: propss;
@@ -932,10 +931,10 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     val goal =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
       |> Thm.cterm_of ctxt
-      |> Thm.weaken_sorts (Variable.sorts_of (context_of goal_state));
+      |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
     val statement = ((kind, pos), propss', Thm.term_of goal);
-    val after_qed' = after_qed |>> (fn after_local =>
-      fn results => map_context after_ctxt #> after_local results);
+    val after_qed' = after_qed |>> (fn after_local => fn results =>
+      map_context (Proof_Context.export_bind_terms binds goal_ctxt) #> after_local results);
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
