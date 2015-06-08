@@ -9,6 +9,9 @@ New in this Isabelle version
 
 *** Pure ***
 
+* Isar command 'obtain' binds term abbreviations (via 'is' patterns) in
+the proof body as well, abstracted over the hypothetical parameters.
+
 * New Isar command 'supply' supports fact definitions during goal
 refinement ('apply' scripts).
 
