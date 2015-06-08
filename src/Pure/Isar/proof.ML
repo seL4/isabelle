@@ -998,16 +998,21 @@ fun local_qed arg =
 
 (* global goals *)
 
-fun prepp_auto_fixes prepp args =
-  prepp args #>
-  (fn ((propss, a), ctxt) => ((propss, a), (fold o fold) Variable.auto_fixes propss ctxt));
-
 fun global_goal prepp before_qed after_qed propp =
-  init #>
-  generic_goal (prepp_auto_fixes prepp) "" before_qed (K I, after_qed) propp;
+  let
+    fun prepp' args ctxt1 =
+      let
+        val ((propss, binds), ctxt2) = ctxt1
+          |> Proof_Context.set_mode Proof_Context.mode_schematic
+          |> prepp args;
+        val ctxt3 = ctxt2
+          |> (fold o fold) Variable.auto_fixes propss
+          |> Proof_Context.restore_mode ctxt1;
+      in ((propss, binds), ctxt3) end;
+  in init #> generic_goal prepp' "" before_qed (K I, after_qed) propp end;
 
-val theorem = global_goal Proof_Context.bind_propp_schematic;
-val theorem_cmd = global_goal Proof_Context.bind_propp_schematic_cmd;
+val theorem = global_goal Proof_Context.bind_propp;
+val theorem_cmd = global_goal Proof_Context.bind_propp_cmd;
 
 fun global_qeds arg =
   end_proof true arg
