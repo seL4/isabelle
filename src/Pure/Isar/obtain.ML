@@ -113,8 +113,9 @@ fun gen_obtain prep_att prep_var prep_propp
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
-    val (vars, vars_ctxt) = fold_map prep_var raw_vars ctxt;
-    val (xs', fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
+    val ((xs', vars), fix_ctxt) = ctxt
+      |> fold_map prep_var raw_vars
+      |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
@@ -122,7 +123,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val asm_props = flat asm_propss;
     val declare_asms = fold Variable.declare_term asm_props #> Proof_Context.bind_terms binds;
     val asms =
-      map (fn ((b, raw_atts), _) => (b, map (prep_att ctxt) raw_atts)) raw_asms ~~
+      map (fn ((b, raw_atts), _) => (b, map (prep_att fix_ctxt) raw_atts)) raw_asms ~~
       map (map (rpair [])) asm_propss;
 
     (*obtain params*)
@@ -137,7 +138,7 @@ fun gen_obtain prep_att prep_var prep_propp
 
     (*obtain statements*)
     val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
-    val (thesis_var, thesis) = #1 (bind_judgment fix_ctxt thesisN);
+    val (thesis_var, thesis) = #1 (bind_judgment params_ctxt thesisN);
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
