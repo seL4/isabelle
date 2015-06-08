@@ -132,13 +132,8 @@ fun gen_obtain prep_att prep_var prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
     (*abstracted term bindings*)
-    fun abs_params t =
-      let
-        val ps =
-          (xs ~~ params) |> map_filter (fn (x, p) =>
-            if exists_subterm (fn u => u aconv p) t then SOME (x, p) else NONE);
-      in fold_rev Term.lambda_name ps t end;
-    val binds' = map (apsnd (Term.close_schematic_term o abs_params)) binds;
+    val abs_term = Term.close_schematic_term o fold_rev Term.lambda_name (xs ~~ params);
+    val binds' = map (apsnd abs_term) binds;
 
     (*obtain statements*)
     val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
