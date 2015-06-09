@@ -192,8 +192,7 @@ fun pretty_state state =
   (case try node_of state of
     NONE => []
   | SOME (Theory _) => []
-  | SOME (Proof (prf, _)) =>
-      Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
+  | SOME (Proof (prf, _)) => Proof.pretty_state (Proof_Node.current prf)
   | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
 val print_state = pretty_state #> Pretty.chunks #> Pretty.string_of #> Output.state;

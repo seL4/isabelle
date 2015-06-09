@@ -33,7 +33,7 @@ sig
   val enter_chain: state -> state
   val enter_backward: state -> state
   val has_bottom_goal: state -> bool
-  val pretty_state: int -> state -> Pretty.T list
+  val pretty_state: state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
@@ -121,10 +121,8 @@ sig
   val schematic_goal: state -> bool
   val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
-  val local_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
-    state -> state
-  val global_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
-    state -> context
+  val local_future_terminal_proof: Method.text_range * Method.text_range option -> state -> state
+  val global_future_terminal_proof: Method.text_range * Method.text_range option -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -362,13 +360,12 @@ fun pretty_sep prts [] = prts
 
 in
 
-fun pretty_state nr state =
+fun pretty_state state =
   let
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun prt_goal (SOME (_, (_,
-      {statement = ((_, pos), _, _), using, goal, before_qed = _, after_qed = _}))) =
+    fun prt_goal (SOME (_, (_, {statement = _, using, goal, before_qed = _, after_qed = _}))) =
           pretty_sep
             (pretty_facts ctxt "using"
               (if mode <> Backward orelse null using then NONE else SOME using))
@@ -1195,7 +1192,7 @@ end;
 
 local
 
-fun future_terminal_proof proof1 proof2 done int state =
+fun future_terminal_proof proof1 proof2 done state =
   if Goal.future_enabled 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
       let
