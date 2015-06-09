@@ -910,21 +910,19 @@ fun refine_terms n =
 
 in
 
-fun generic_goal prep_propp kind before_qed after_qed propp state =
+fun generic_goal kind before_qed after_qed make_propp state =
   let
     val ctxt = context_of state;
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
-    val (propss, binds) = prep_propp ctxt propp;
-    val props = flat propss;
-
-    val goal_state =
+    val ((propss, binds), goal_state) =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> open_block
-      |> map_context (fold Variable.auto_fixes props #> Proof_Context.bind_terms binds);
+      |> map_context_result make_propp;
+    val props = flat propss;
     val goal_ctxt = context_of goal_state;
 
     val vars = implicit_vars props;
@@ -935,6 +933,7 @@ fun generic_goal prep_propp kind before_qed after_qed propp state =
       |> Thm.cterm_of ctxt
       |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
     val statement = ((kind, pos), propss', Thm.term_of goal);
+
     val binds' = map #1 binds ~~ Variable.export_terms goal_ctxt ctxt (map #2 binds);
     val after_qed' = after_qed |>> (fn after_local => fn results =>
       map_context (fold Variable.bind_term binds') #> after_local results);
@@ -980,14 +979,21 @@ fun local_goal print_results prep_att prep_propp kind before_qed after_qed stmt 
     val ((names, attss), propp) =
       Attrib.map_specs (map (prep_att (context_of state))) stmt |> split_list |>> split_list;
 
+    fun make_propp ctxt' =
+      let
+        val (propss, binds) = prep_propp ctxt' propp;
+        val ctxt'' = ctxt'
+          |> (fold o fold) Variable.declare_term propss
+          |> Proof_Context.bind_terms binds;
+      in ((propss, binds), ctxt'') end;
+
     fun after_qed' results =
       local_results ((names ~~ attss) ~~ results)
       #-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
       #> after_qed results;
   in
     state
-    |> map_context (Variable.set_body true)
-    |> generic_goal prep_propp kind before_qed (after_qed', K I) propp
+    |> generic_goal kind before_qed (after_qed', K I) make_propp
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
@@ -1003,9 +1009,16 @@ fun local_qed arg =
 (* global goals *)
 
 fun global_goal prep_propp before_qed after_qed propp =
-  init
-  #> generic_goal (prep_propp o Proof_Context.set_mode Proof_Context.mode_schematic) ""
-    before_qed (K I, after_qed) propp;
+  let
+    fun make_propp ctxt' =
+      let
+        val (propss, binds) =
+          prep_propp (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') propp;
+        val ctxt'' = ctxt'
+          |> (fold o fold) Variable.auto_fixes propss
+          |> Proof_Context.bind_terms binds;
+      in ((propss, binds), ctxt'') end;
+  in init #> generic_goal "" before_qed (K I, after_qed) make_propp end;
 
 val theorem = global_goal Proof_Context.cert_propp;
 val theorem_cmd = global_goal Proof_Context.read_propp;
