@@ -11,7 +11,7 @@ sig
   val assmsN: string
   val goal: Proof.context -> term list -> (indexname * term option) list
   val facts: Proof.context -> term list -> (indexname * term option) list
-  val no_facts: (indexname * term option) list
+  val no_facts: indexname list
 end;
 
 structure Auto_Bind: AUTO_BIND =
@@ -47,6 +47,6 @@ fun facts _ [] = []
       let val prop = List.last props
       in [(Syntax_Ext.dddot_indexname, get_arg ctxt prop)] @ statement_binds ctxt thisN prop end;
 
-val no_facts = [(Syntax_Ext.dddot_indexname, NONE), ((thisN, 0), NONE)];
+val no_facts = [Syntax_Ext.dddot_indexname, (thisN, 0)];
 
 end;

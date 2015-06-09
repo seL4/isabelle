@@ -107,7 +107,6 @@ sig
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val maybe_bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
   val bind_terms: (indexname * term) list -> Proof.context -> Proof.context
-  val export_bind_terms: (indexname * term) list -> Proof.context -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
   val match_bind: bool -> (term list * term) list -> Proof.context ->
@@ -823,13 +822,9 @@ fun simult_matches ctxt (t, pats) =
 
 val maybe_bind_terms = fold (fn (xi, t) => fn ctxt =>
   ctxt
-  |> Variable.bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
+  |> Variable.maybe_bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
 
 val bind_terms = maybe_bind_terms o map (apsnd SOME);
-
-fun export_bind_terms binds ctxt ctxt0 =
-  let val ts0 = map Term.close_schematic_term (Variable.export_terms ctxt ctxt0 (map snd binds))
-  in bind_terms (map fst binds ~~ ts0) ctxt0 end;
 
 
 (* auto_bind *)

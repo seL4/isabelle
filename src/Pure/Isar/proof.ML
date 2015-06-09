@@ -769,7 +769,7 @@ fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
   in
     state'
     |> assume assumptions
-    |> map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
+    |> map_context (fold Variable.unbind_term Auto_Bind.no_facts)
     |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
   end;
 
@@ -935,8 +935,9 @@ fun generic_goal prep_propp kind before_qed after_qed propp state =
       |> Thm.cterm_of ctxt
       |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
     val statement = ((kind, pos), propss', Thm.term_of goal);
+    val binds' = map #1 binds ~~ Variable.export_terms goal_ctxt ctxt (map #2 binds);
     val after_qed' = after_qed |>> (fn after_local => fn results =>
-      map_context (Proof_Context.export_bind_terms binds goal_ctxt) #> after_local results);
+      map_context (fold Variable.bind_term binds') #> after_local results);
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)

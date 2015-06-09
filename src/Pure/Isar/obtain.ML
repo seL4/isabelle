@@ -130,11 +130,9 @@ fun gen_obtain prep_att prep_var prep_propp
     val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
     val params = map Free (xs' ~~ Ts);
     val cparams = map (Thm.cterm_of params_ctxt) params;
-    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
+    val binds' = map (apsnd (fold_rev Term.lambda_name (xs ~~ params))) binds;
 
-    (*abstracted term bindings*)
-    val abs_term = Term.close_schematic_term o fold_rev Term.lambda_name (xs ~~ params);
-    val binds' = map (apsnd abs_term) binds;
+    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
     (*obtain statements*)
     val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
@@ -158,7 +156,7 @@ fun gen_obtain prep_att prep_var prep_propp
     state
     |> Proof.enter_forward
     |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
-    |> Proof.map_context (Proof_Context.bind_terms binds')
+    |> Proof.map_context (fold Variable.bind_term binds')
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume
@@ -297,7 +295,7 @@ fun gen_guess prep_var raw_vars int state =
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
           (obtain_export fix_ctxt rule (map (Thm.cterm_of ctxt) ts))
             [(Thm.empty_binding, asms)])
-        |> Proof.map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
+        |> Proof.map_context (fold Variable.unbind_term Auto_Bind.no_facts)
       end;
 
     val goal = Var (("guess", 0), propT);
