@@ -150,8 +150,8 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
 
-    val Ts = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
-    val params = map2 (fn (b, _, mx) => fn T => ((b, T), mx)) vars Ts;
+    val ps = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
+    val params = map2 (fn (b, _, mx) => fn (_, T) => ((b, T), mx)) vars ps;
     val name_atts = map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
   in ((params, name_atts ~~ specs), specs_ctxt) end;
 
@@ -363,10 +363,10 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             val bs = map fst vars;
             val xs = map Variable.check_name bs;
             val props = map fst asms;
-            val (Ts, _) = ctxt'
+            val (params, _) = ctxt'
               |> fold Variable.declare_term props
-              |> fold_map Proof_Context.inferred_param xs;
-            val params = map Free (xs ~~ Ts);
+              |> fold_map Proof_Context.inferred_param xs
+              |>> map Free;
             val asm = fold_rev Logic.all params (Logic.list_implies (props, thesis));
             val _ = ctxt' |> Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
           in

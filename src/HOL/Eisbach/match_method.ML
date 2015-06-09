@@ -114,7 +114,7 @@ fun parse_named_pats match_kind =
         let
           val fixes' = map (fn ((pb, otyp), _) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes;
           val (fixes'', ctxt1) = fold_map Proof_Context.read_var fixes' ctxt;
-          val (fix_nms, ctxt2) = Proof_Context.add_fixes fixes'' ctxt1;
+          val (fix_names, ctxt2) = Proof_Context.add_fixes fixes'' ctxt1;
 
           val ctxt3 = Proof_Context.set_mode Proof_Context.mode_schematic ctxt2;
 
@@ -147,15 +147,14 @@ fun parse_named_pats match_kind =
             map2 (fn nm => fn (_, pos) =>
                 member (op =) pat_fixes nm orelse
                 error ("For-fixed variable must be bound in some pattern" ^ Position.here pos))
-              fix_nms fixes;
+              fix_names fixes;
 
           val _ = map (Term.map_types Type.no_tvars) pats;
 
           val ctxt4 = fold Variable.declare_term pats ctxt3;
 
-          val (Ts, ctxt5) = ctxt4 |> fold_map Proof_Context.inferred_param fix_nms;
-
-          val real_fixes = map Free (fix_nms ~~ Ts);
+          val (real_fixes, ctxt5) = ctxt4
+            |> fold_map Proof_Context.inferred_param fix_names |>> map Free;
 
           fun reject_extra_free (Free (x, _)) () =
                 if Variable.is_fixed ctxt5 x then ()

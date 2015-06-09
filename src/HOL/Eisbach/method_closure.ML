@@ -338,11 +338,10 @@ fun gen_method_definition prep_var name vars uses attribs methods source lthy =
       |> fold setup_local_method methods
       |> fold_map setup_local_fact uses;
 
-    val ((xs, Ts), lthy2) = lthy1
+    val (term_args, lthy2) = lthy1
       |> fold_map prep_var vars |-> Proof_Context.add_fixes
-      |-> (fn xs => fold_map Proof_Context.inferred_param xs #>> pair xs);
+      |-> fold_map Proof_Context.inferred_param |>> map Free;
 
-    val term_args = map Free (xs ~~ Ts);
     val (named_thms, modifiers) = map (check_attrib lthy2) (attribs @ uses) |> split_list;
     val self_name :: method_names = map (Local_Theory.full_name lthy2) (name :: methods);
 

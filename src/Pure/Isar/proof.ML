@@ -991,13 +991,13 @@ fun local_goal print_results prep_att prep_propp prep_var
           |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
 
         val (propss, binds) = prep_propp fix_ctxt propp;
-        val (Ts, params_ctxt) = fix_ctxt
+        val (ps, params_ctxt) = fix_ctxt
           |> (fold o fold) Variable.declare_term propss
           |> Proof_Context.bind_terms binds
           |> fold_map Proof_Context.inferred_param xs';
 
         val xs = map (Variable.check_name o #1) vars;
-        val params = xs ~~ map Free (xs' ~~ Ts);
+        val params = xs ~~ map Free ps;
 
         val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
       in ((propss, params, binds), params_ctxt) end;

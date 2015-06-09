@@ -127,8 +127,8 @@ fun gen_obtain prep_att prep_var prep_propp
       map (map (rpair [])) asm_propss;
 
     (*obtain params*)
-    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
-    val params = map Free (xs' ~~ Ts);
+    val (params, params_ctxt) =
+      declare_asms fix_ctxt |> fold_map Proof_Context.inferred_param xs' |>> map Free;
     val cparams = map (Thm.cterm_of params_ctxt) params;
     val binds' = map (apsnd (fold_rev Term.dependent_lambda_name (xs ~~ params))) binds;
 
@@ -259,7 +259,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 fun inferred_type (binding, _, mx) ctxt =
   let
     val x = Variable.check_name binding;
-    val (T, ctxt') = Proof_Context.inferred_param x ctxt
+    val ((_, T), ctxt') = Proof_Context.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
 fun polymorphic ctxt vars =

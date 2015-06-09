@@ -74,7 +74,7 @@ sig
   val cert_typ_syntax: Proof.context -> typ -> typ
   val cert_typ_abbrev: Proof.context -> typ -> typ
   val infer_type: Proof.context -> string * typ -> typ
-  val inferred_param: string -> Proof.context -> typ * Proof.context
+  val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val check_type_name: {proper: bool, strict: bool} -> Proof.context ->
     xstring * Position.T -> typ * Position.report list
@@ -458,14 +458,11 @@ fun infer_type ctxt x =
   Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt)) (Free x));
 
 fun inferred_param x ctxt =
-  let val T = infer_type ctxt (x, dummyT)
-  in (T, ctxt |> Variable.declare_term (Free (x, T))) end;
+  let val p = (x, infer_type ctxt (x, dummyT))
+  in (p, ctxt |> Variable.declare_term (Free p)) end;
 
 fun inferred_fixes ctxt =
-  let
-    val xs = map #2 (Variable.dest_fixes ctxt);
-    val (Ts, ctxt') = fold_map inferred_param xs ctxt;
-  in (xs ~~ Ts, ctxt') end;
+  fold_map inferred_param (map #2 (Variable.dest_fixes ctxt)) ctxt;
 
 
 (* type names *)

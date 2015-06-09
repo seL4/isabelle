@@ -410,11 +410,12 @@ fun prep_full_context_statement
     val (elems, ctxt5) = fold_map prep_elem raw_elems ctxt4;
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
-    (* Retrieve parameter types *)
+
+    (* parameters from expression and elements *)
+
     val xs = maps (fn Fixes fixes => map (Variable.check_name o #1) fixes | _ => [])
       (Fixes fors :: elems');
-    val (Ts, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
-    val parms = xs ~~ Ts;  (* params from expression and elements *)
+    val (parms, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
 
     val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
