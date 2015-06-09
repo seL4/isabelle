@@ -7,13 +7,19 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Isar ***
+
+* Command 'obtain' binds term abbreviations (via 'is' patterns) in the
+proof body as well, abstracted over relevant parameters.
+
+* Local goal statements (commands 'have', 'show', 'hence', 'thus') allow
+an optional context of local variables ('for' declaration).
+
+* New command 'supply' supports fact definitions during goal refinement
+('apply' scripts).
+
+
 *** Pure ***
-
-* Isar command 'obtain' binds term abbreviations (via 'is' patterns) in
-the proof body as well, abstracted over relevant parameters.
-
-* New Isar command 'supply' supports fact definitions during goal
-refinement ('apply' scripts).
 
 * Configuration option rule_insts_schematic has been discontinued
 (intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.

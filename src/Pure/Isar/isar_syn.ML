@@ -490,22 +490,23 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
-    (Parse_Spec.statement >> (Toplevel.proof' o Proof.have_cmd NONE (K I)));
+    (Parse_Spec.statement -- Parse.for_fixes >> (fn (stmt, fixes) =>
+      Toplevel.proof' (fn int => Proof.have_cmd NONE (K I) fixes stmt int)));
+
+val _ =
+  Outer_Syntax.command @{command_keyword show} "state local goal, to refine pending subgoals"
+    (Parse_Spec.statement -- Parse.for_fixes >> (fn (stmt, fixes) =>
+      Toplevel.proof' (fn int => Proof.show_cmd NONE (K I) fixes stmt int)));
 
 val _ =
   Outer_Syntax.command @{command_keyword hence} "old-style alias of \"then have\""
-    (Parse_Spec.statement >> (fn stmt =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) stmt int)));
-
-val _ =
-  Outer_Syntax.command @{command_keyword show}
-    "state local goal, solving current obligation"
-    (Parse_Spec.statement >> (Toplevel.proof' o Proof.show_cmd NONE (K I)));
+    (Parse_Spec.statement -- Parse.for_fixes >> (fn (stmt, fixes) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) fixes stmt int)));
 
 val _ =
   Outer_Syntax.command @{command_keyword thus} "old-style alias of  \"then show\""
-    (Parse_Spec.statement >> (fn stmt =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) stmt int)));
+    (Parse_Spec.statement -- Parse.for_fixes >> (fn (stmt, fixes) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) fixes stmt int)));
 
 
 (* facts *)
