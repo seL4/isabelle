@@ -130,7 +130,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
     val params = map Free (xs' ~~ Ts);
     val cparams = map (Thm.cterm_of params_ctxt) params;
-    val binds' = map (apsnd (fold_rev Term.lambda_name (xs ~~ params))) binds;
+    val binds' = map (apsnd (fold_rev Term.dependent_lambda_name (xs ~~ params))) binds;
 
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 

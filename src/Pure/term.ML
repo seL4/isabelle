@@ -152,6 +152,7 @@ sig
   val rename_abs: term -> term -> term -> term option
   val is_open: term -> bool
   val is_dependent: term -> bool
+  val dependent_lambda_name: string * term -> term -> term
   val lambda_name: string * term -> term -> term
   val close_schematic_term: term -> term
   val maxidx_typ: typ -> int -> int
@@ -748,6 +749,10 @@ fun term_name (Const (x, _)) = Long_Name.base_name x
   | term_name (Free (x, _)) = x
   | term_name (Var ((x, _), _)) = x
   | term_name _ = Name.uu;
+
+fun dependent_lambda_name (x, v) t =
+  let val t' = abstract_over (v, t)
+  in if is_dependent t' then Abs (if x = "" then term_name v else x, fastype_of v, t') else t end;
 
 fun lambda_name (x, v) t =
   Abs (if x = "" then term_name v else x, fastype_of v, abstract_over (v, t));
