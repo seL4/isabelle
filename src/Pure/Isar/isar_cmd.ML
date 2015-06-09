@@ -173,17 +173,6 @@ fun simproc_setup name lhss source identifier =
   |> Context.proof_map;
 
 
-(* goals *)
-
-fun goal opt_chain goal stmt int =
-  opt_chain #> goal NONE (K I) stmt int;
-
-val have = goal I Proof.have_cmd;
-val hence = goal Proof.chain Proof.have_cmd;
-val show = goal I Proof.show_cmd;
-val thus = goal Proof.chain Proof.show_cmd;
-
-
 (* local endings *)
 
 fun local_qed m = Toplevel.proof (Proof.local_qed (m, true));
