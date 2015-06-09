@@ -119,18 +119,20 @@ fun gen_obtain prep_att prep_var prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val (asm_propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
-    val asm_props = flat asm_propss;
-    val declare_asms = fold Variable.declare_term asm_props #> Proof_Context.bind_terms binds;
+    val (propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
+    val props = flat propss;
+    val declare_asms =
+      fold Variable.declare_term props #>
+      fold Variable.bind_term binds;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att fix_ctxt) raw_atts)) raw_asms ~~
-      map (map (rpair [])) asm_propss;
+      map (map (rpair [])) propss;
 
     (*obtain params*)
     val (params, params_ctxt) =
       declare_asms fix_ctxt |> fold_map Proof_Context.inferred_param xs' |>> map Free;
     val cparams = map (Thm.cterm_of params_ctxt) params;
-    val binds' = map (apsnd (fold_rev Term.dependent_lambda_name (xs ~~ params))) binds;
+    val binds' = (map o apsnd) (fold_rev Term.dependent_lambda_name (xs ~~ params)) binds;
 
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
@@ -141,7 +143,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
-        (fold_rev Logic.all params (Logic.list_implies (asm_props, thesis)));
+        (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
     val obtain_prop =
       Logic.list_rename_params [Auto_Bind.thesisN]
         (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));

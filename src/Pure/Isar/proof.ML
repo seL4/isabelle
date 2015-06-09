@@ -891,10 +891,6 @@ fun apply_end_results (text, (pos, _)) =
 
 local
 
-fun export_binds ctxt' ctxt params binds =
-  let val ts = map (fold_rev Term.dependent_lambda_name params o snd) binds;
-  in map fst binds ~~ Variable.export_terms ctxt' ctxt ts end;
-
 val is_var =
   can (dest_TVar o Logic.dest_type o Logic.dest_term) orf
   can (dest_Var o Logic.dest_term);
@@ -916,11 +912,10 @@ in
 
 fun generic_goal kind before_qed after_qed make_statement state =
   let
-    val ctxt = context_of state;
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
-    val ((propss, params, binds), goal_state) =
+    val ((propss, result_binds), goal_state) =
       state
       |> assert_forward_or_chain
       |> enter_forward
@@ -928,7 +923,6 @@ fun generic_goal kind before_qed after_qed make_statement state =
       |> map_context_result make_statement;
     val props = flat propss;
     val goal_ctxt = context_of goal_state;
-    val result_binds = export_binds goal_ctxt ctxt params binds;
 
     val vars = implicit_vars props;
     val propss' = vars :: propss;
@@ -940,7 +934,7 @@ fun generic_goal kind before_qed after_qed make_statement state =
     val statement = ((kind, pos), propss', Thm.term_of goal);
 
     val after_qed' = after_qed |>> (fn after_local => fn results =>
-      map_context (fold Variable.bind_term result_binds) #> after_local results);
+      map_context (fold Variable.maybe_bind_term result_binds) #> after_local results);
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
@@ -955,28 +949,34 @@ fun generic_goal kind before_qed after_qed make_statement state =
     |> null props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
-fun generic_qed after_ctxt state =
-  let
-    val (goal_ctxt, {statement = (_, stmt, _), goal, after_qed, ...}) = current_goal state;
-    val outer_state = state |> close_block;
-    val outer_ctxt = context_of outer_state;
-
-    val props =
-      flat (tl stmt)
-      |> Variable.exportT_terms goal_ctxt outer_ctxt;
-    val results =
-      tl (conclude_goal goal_ctxt goal stmt)
-      |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
-  in
-    outer_state
-    |> map_context (after_ctxt props)
-    |> pair (after_qed, results)
+fun generic_qed state =
+  let val (goal_ctxt, {statement = (_, stmt, _), goal, after_qed, ...}) = current_goal state in
+    state
+    |> close_block
+    |> `(fn outer_state =>
+      let
+        val results =
+          tl (conclude_goal goal_ctxt goal stmt)
+          |> burrow (Proof_Context.export goal_ctxt (context_of outer_state));
+      in (after_qed, results) end)
   end;
 
 end;
 
 
 (* local goals *)
+
+local
+
+fun export_binds ctxt' ctxt binds =
+  let
+    val rhss =
+      map (the_list o snd) binds
+      |> burrow (Variable.export_terms ctxt' ctxt)
+      |> map (try the_single);
+  in map fst binds ~~ rhss end;
+
+in
 
 fun local_goal print_results prep_att prep_propp prep_var
     kind before_qed after_qed fixes stmt state =
@@ -991,16 +991,28 @@ fun local_goal print_results prep_att prep_propp prep_var
           |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
 
         val (propss, binds) = prep_propp fix_ctxt propp;
+        val props = flat propss;
+
         val (ps, params_ctxt) = fix_ctxt
-          |> (fold o fold) Variable.declare_term propss
-          |> Proof_Context.bind_terms binds
+          |> fold Variable.declare_term props
+          |> fold Variable.bind_term binds
           |> fold_map Proof_Context.inferred_param xs';
 
         val xs = map (Variable.check_name o #1) vars;
         val params = xs ~~ map Free ps;
 
+        val binds' =
+          (case try List.last props of
+            NONE => []
+          | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds);
+        val result_binds =
+          (Auto_Bind.facts params_ctxt props @ binds')
+          |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
+          |> export_binds params_ctxt ctxt;
+
         val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
-      in ((propss, params, binds), params_ctxt) end;
+
+      in ((propss, result_binds), params_ctxt) end;
 
     fun after_qed' results =
       local_results ((names ~~ attss) ~~ results)
@@ -1008,10 +1020,11 @@ fun local_goal print_results prep_att prep_propp prep_var
       #> after_qed results;
   in generic_goal kind before_qed (after_qed', K I) make_statement state end;
 
+end;
+
 fun local_qeds arg =
   end_proof false arg
-  #> Seq.map_result (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results));
+  #> Seq.map_result (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
 
 fun local_qed arg =
   local_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
@@ -1027,8 +1040,8 @@ fun global_goal prep_propp before_qed after_qed propp =
           prep_propp (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) propp;
         val ctxt' = ctxt
           |> (fold o fold) Variable.auto_fixes propss
-          |> Proof_Context.bind_terms binds;
-      in ((propss, [], []), ctxt') end;
+          |> fold Variable.bind_term binds;
+      in ((propss, []), ctxt') end;
   in init #> generic_goal "" before_qed (K I, after_qed) make_statement end;
 
 val theorem = global_goal Proof_Context.cert_propp;
@@ -1036,7 +1049,7 @@ val theorem_cmd = global_goal Proof_Context.read_propp;
 
 fun global_qeds arg =
   end_proof true arg
-  #> Seq.map_result (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
+  #> Seq.map_result (generic_qed #> (fn (((_, after_qed), results), state) =>
     after_qed results (context_of state)));
 
 fun global_qed arg =

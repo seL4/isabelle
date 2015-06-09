@@ -12,6 +12,9 @@ New in this Isabelle version
 * Command 'obtain' binds term abbreviations (via 'is' patterns) in the
 proof body as well, abstracted over relevant parameters.
 
+* Term abbreviations via 'is' patterns also work for schematic
+statements: result is abstracted over unknowns.
+
 * Local goal statements (commands 'have', 'show', 'hence', 'thus') allow
 an optional context of local variables ('for' declaration).
 
