@@ -2794,7 +2794,7 @@ proof
   assume ?l
   then guess y unfolding integrable_on_def has_integral .. note y=this
   show "\<forall>e>0. \<exists>d. ?P e d"
-  proof (rule, rule)
+  proof clarify
     case goal1
     then have "e/2 > 0" by auto
     then guess d
@@ -2824,15 +2824,7 @@ next
     apply auto
     done
   then have "\<forall>n. \<exists>p. p tagged_division_of (cbox a b) \<and> (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}}) fine p"
-    apply -
-  proof
-    case goal1
-    from this[of n]
-    show ?case
-      apply (drule_tac fine_division_exists)
-      apply auto
-      done
-  qed
+    by (meson fine_division_exists)
   from choice[OF this] guess p .. note p = conjunctD2[OF this[rule_format]]
   have dp: "\<And>i n. i\<le>n \<Longrightarrow> d i fine p n"
     using p(2) unfolding fine_inters by auto
@@ -2842,7 +2834,7 @@ next
     then guess N unfolding real_arch_inv[of e] .. note N=this
     show ?case
       apply (rule_tac x=N in exI)
-    proof (rule, rule, rule, rule)
+    proof clarify
       fix m n
       assume mn: "N \<le> m" "N \<le> n"
       have *: "N = (N - 1) + 1" using N by auto
@@ -2850,8 +2842,7 @@ next
         apply (rule less_trans[OF _ N[THEN conjunct2,THEN conjunct2]])
         apply(subst *)
         apply(rule d(2))
-        using dp p(1)
-        using mn
+        using dp p(1) mn
         apply auto
         done
     qed
@@ -2859,24 +2850,18 @@ next
   then guess y unfolding convergent_eq_cauchy[symmetric] .. note y=this[THEN LIMSEQ_D]
   show ?l
     unfolding integrable_on_def has_integral
-    apply (rule_tac x=y in exI)
-  proof (rule, rule)
+  proof (rule_tac x=y in exI, clarify)
     fix e :: real
     assume "e>0"
-    then have *:"e/2 > 0" by auto
+    then have *:"e/2 > 0" by auto 
     then guess N1 unfolding real_arch_inv[of "e/2"] .. note N1=this
     then have N1': "N1 = N1 - 1 + 1"
       by auto
     guess N2 using y[OF *] .. note N2=this
-    show "\<exists>d. gauge d \<and>
-      (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e)"
-      apply (rule_tac x="d (N1 + N2)" in exI)
-      apply rule
-      defer
-    proof (rule, rule, erule conjE)
-      show "gauge (d (N1 + N2))"
-        using d by auto
+    have "gauge (d (N1 + N2))"
+      using d by auto
+    moreover
+    {
       fix q
       assume as: "q tagged_division_of (cbox a b)" "d (N1 + N2) fine q"
       have *: "inverse (real (N1 + N2 + 1)) < e / 2"
@@ -2884,18 +2869,18 @@ next
         using N1
         apply auto
         done
-      show "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e"
+      have "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e"
         apply (rule norm_triangle_half_r)
         apply (rule less_trans[OF _ *])
         apply (subst N1', rule d(2)[of "p (N1+N2)"])
-        defer
-        using N2[rule_format,of "N1+N2"]
-        using as dp[of "N1 - 1 + 1 + N2" "N1 + N2"]
-        using p(1)[of "N1 + N2"]
-        using N1
-        apply auto
-        done
-    qed
+        using N1' as(1) as(2) dp 
+        apply (simp add: `\<forall>x. p x tagged_division_of cbox a b \<and> (\<lambda>xa. \<Inter>{d i xa |i. i \<in> {0..x}}) fine p x`)
+        using N2 le_add2 by blast
+    }
+    ultimately show "\<exists>d. gauge d \<and>
+      (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
+        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e)"
+      by (rule_tac x="d (N1 + N2)" in exI) auto
   qed
 qed
 
@@ -2980,11 +2965,8 @@ proof -
   show ?thesis
     unfolding uv1 uv2 *
     apply (rule **[OF d(5)[OF assms(2-4)]])
-    defer
-    apply (subst assms(5)[unfolded uv1 uv2])
-    unfolding uv1 uv2
-    apply auto
-    done
+    apply (simp add: uv1)
+    using assms(5) uv1 by auto
 qed
 
 lemma division_split_right_inj:
@@ -3008,57 +2990,42 @@ proof -
   show ?thesis
     unfolding uv1 uv2 *
     apply (rule **[OF d(5)[OF assms(2-4)]])
-    defer
-    apply (subst assms(5)[unfolded uv1 uv2])
-    unfolding uv1 uv2
-    apply auto
-    done
+    apply (simp add: uv1)
+    using assms(5) uv1 by auto
 qed
 
 lemma tagged_division_split_left_inj:
   fixes x1 :: "'a::euclidean_space"
-  assumes "d tagged_division_of i"
-    and "(x1, k1) \<in> d"
-    and "(x2, k2) \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
-    and k: "k \<in> Basis"
+  assumes d: "d tagged_division_of i"
+    and k12: "(x1, k1) \<in> d"
+             "(x2, k2) \<in> d"
+             "k1 \<noteq> k2"
+             "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
+             "k \<in> Basis"
   shows "content (k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
 proof -
   have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
-    unfolding image_iff
-    apply (rule_tac x="(a,b)" in bexI)
-    apply auto
-    done
+    by force
   show ?thesis
-    apply (rule division_split_left_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply (rule_tac[1-2] *)
-    using assms(2-)
-    apply auto
-    done
+    using k12
+    by (fastforce intro!:  division_split_left_inj[OF division_of_tagged_division[OF d]] *)
 qed
 
 lemma tagged_division_split_right_inj:
   fixes x1 :: "'a::euclidean_space"
-  assumes "d tagged_division_of i"
-    and "(x1, k1) \<in> d"
-    and "(x2, k2) \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-  and k: "k \<in> Basis"
+  assumes d: "d tagged_division_of i"
+    and k12: "(x1, k1) \<in> d"
+             "(x2, k2) \<in> d"
+             "k1 \<noteq> k2"
+             "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+             "k \<in> Basis"
   shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
 proof -
   have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
-    unfolding image_iff
-    apply (rule_tac x="(a,b)" in bexI)
-    apply auto
-    done
+    by force
   show ?thesis
-    apply (rule division_split_right_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply (rule_tac[1-2] *)
-    using assms(2-)
-    apply auto
-    done
+    using k12
+    by (fastforce intro!:  division_split_right_inj[OF division_of_tagged_division[OF d]] *)
 qed
 
 lemma division_split:
@@ -3080,12 +3047,12 @@ proof (rule_tac[!] division_ofI)
     assume "k \<in> ?p1"
     then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
     guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I1" "k \<noteq> {}" "\<exists>a b. k = cbox a b"
-      unfolding l
-      using p(2-3)[OF l(2)] l(3)
-      unfolding uv
-      apply -
-      prefer 3
+    show "k \<subseteq> ?I1" 
+      using l p(2) uv by force
+    show  "k \<noteq> {}" 
+      by (simp add: l)
+    show  "\<exists>a b. k = cbox a b"
+      apply (simp add: l uv p(2-3)[OF l(2)])
       apply (subst interval_split[OF k])
       apply (auto intro: order.trans)
       done
@@ -3101,12 +3068,12 @@ proof (rule_tac[!] division_ofI)
     assume "k \<in> ?p2"
     then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
     guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I2" "k \<noteq> {}" "\<exists>a b. k = cbox a b"
-      unfolding l
-      using p(2-3)[OF l(2)] l(3)
-      unfolding uv
-      apply -
-      prefer 3
+    show "k \<subseteq> ?I2" 
+      using l p(2) uv by force
+    show  "k \<noteq> {}" 
+      by (simp add: l)
+    show  "\<exists>a b. k = cbox a b"
+      apply (simp add: l uv p(2-3)[OF l(2)])
       apply (subst interval_split[OF k])
       apply (auto intro: order.trans)
       done
@@ -3200,11 +3167,10 @@ proof (unfold has_integral, rule, rule)
     have lem2: "\<And>f s P f. finite s \<Longrightarrow> finite {(x,f k) | x k. (x,k) \<in> s \<and> P x k}"
     proof -
       case goal1
+      then have "finite ((\<lambda>(x, k). (x, f k)) ` s)"
+        by auto
       then show ?case
-        apply -
-        apply (rule finite_subset[of _ "(\<lambda>(x,k). (x,f k)) ` s"])
-        apply auto
-        done
+        by (rule rev_finite_subset) auto
     qed
     have lem3: "\<And>g :: 'a set \<Rightarrow> 'a set. finite p \<Longrightarrow>
       setsum (\<lambda>(x, k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> g k \<noteq> {}} =
@@ -3321,10 +3287,7 @@ proof (unfold has_integral, rule, rule)
     qed
     ultimately
     have "norm (((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) + ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j)) < e/2 + e/2"
-      apply -
-      apply (rule norm_triangle_lt)
-      apply auto
-      done
+      using norm_add_less by blast
     also {
       have *: "\<And>x y. x = (0::real) \<Longrightarrow> x *\<^sub>R (y::'b) = 0"
         using scaleR_zero_left by auto
@@ -3468,12 +3431,8 @@ proof -
         have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (e / 2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then e/2 else 0)"
           using e k by (auto simp: inner_simps inner_not_same_Basis)
         have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (e / 2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
-          (\<Sum>i\<in>Basis. (if i = k then e / 2 else 0))"
-          apply (rule setsum.cong)
-          apply (rule refl)
-          apply (subst *)
-          apply auto
-          done
+              (\<Sum>i\<in>Basis. (if i = k then e / 2 else 0))"
+          using "*" by (blast intro: setsum.cong)
         also have "\<dots> < e"
           apply (subst setsum.delta)
           using e
