@@ -281,10 +281,10 @@ qed
 subsubsection {* Pointwise ordering induced by count *}
 
 definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
-"subseteq_mset A B \<equiv> (\<forall>a. count A a \<le> count B a)"
+"subseteq_mset A B = (\<forall>a. count A a \<le> count B a)"
 
 definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<#" 50) where
-"subset_mset A B \<equiv> (A <=# B \<and> A \<noteq> B)"
+"subset_mset A B = (A <=# B \<and> A \<noteq> B)"
 
 notation subseteq_mset (infix "\<le>#" 50)
 notation (xsymbols) subseteq_mset (infix "\<subseteq>#" 50)
