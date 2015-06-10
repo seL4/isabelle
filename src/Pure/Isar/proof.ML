@@ -151,8 +151,8 @@ and node =
     goal: goal option}
 and goal =
   Goal of
-   {statement: (string * Position.T) * term list list * term,
-      (*goal kind and statement (starting with vars), initial proposition*)
+   {statement: bool * (string * Position.T) * term list list * term,
+      (*regular export, goal kind and statement (starting with vars), initial proposition*)
     using: thm list,                      (*goal facts*)
     goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
@@ -931,7 +931,7 @@ fun generic_goal kind before_qed after_qed make_statement state =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
       |> Thm.cterm_of goal_ctxt
       |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
-    val statement = ((kind, pos), propss', Thm.term_of goal);
+    val statement = (true, (kind, pos), propss', Thm.term_of goal);
 
     val after_qed' = after_qed |>> (fn after_local => fn results =>
       map_context (fold Variable.maybe_bind_term result_binds) #> after_local results);
@@ -950,14 +950,17 @@ fun generic_goal kind before_qed after_qed make_statement state =
   end;
 
 fun generic_qed state =
-  let val (goal_ctxt, {statement = (_, stmt, _), goal, after_qed, ...}) = current_goal state in
+  let
+    val (goal_ctxt, {statement, goal, after_qed, ...}) = current_goal state;
+    val (regular_export, _, propss, _) = statement;
+  in
     state
     |> close_block
     |> `(fn outer_state =>
       let
         val results =
-          tl (conclude_goal goal_ctxt goal stmt)
-          |> burrow (Proof_Context.export goal_ctxt (context_of outer_state));
+          tl (conclude_goal goal_ctxt goal propss)
+          |> regular_export ? burrow (Proof_Context.export goal_ctxt (context_of outer_state));
       in (after_qed, results) end)
   end;
 
@@ -1159,13 +1162,13 @@ end;
 (* relevant proof states *)
 
 fun schematic_goal state =
-  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state
+  let val (_, (_, {statement = (_, _, _, prop), ...})) = find_goal state
   in Goal.is_schematic prop end;
 
 fun is_relevant state =
   (case try find_goal state of
     NONE => true
-  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
+  | SOME (_, (_, {statement = (_, _, _, prop), goal, ...})) =>
       Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
 
 
@@ -1192,24 +1195,20 @@ in
 fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
-    val (goal_ctxt, (_, goal)) = find_goal state;
-    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal;
-    val goal_tfrees =
-      fold Term.add_tfrees
-        (prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt)) [];
+    val (goal_ctxt, (_, goal_info)) = find_goal state;
+    val {statement as (_, kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
     val prop' = Logic.protect prop;
-    val statement' = (kind, [[], [prop']], prop');
+    val statement' = (false, kind, [[], [prop']], prop');
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal) (Goal.protect (Thm.nprems_of goal) goal);
     val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
 
     val result_ctxt =
       state
       |> map_context reset_result
-      |> map_goal I (K (statement', using, goal', before_qed, after_qed'))
-        (fold (Variable.declare_typ o TFree) goal_tfrees)
+      |> map_goal I (K (statement', using, goal', before_qed, after_qed')) I
       |> fork_proof;
 
     val future_thm = Future.map (the_result o snd) result_ctxt;
