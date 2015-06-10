@@ -308,8 +308,13 @@ fun gen_guess prep_var raw_vars int state =
       Method.primitive_text (fn ctxt =>
         Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
           (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th)));
-    fun after_qed [[_, res]] =
-      Proof.end_block #> guess_context (check_result ctxt thesis res);
+    fun after_qed (result_ctxt, results) state' =
+      let val [_, res] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results)
+      in
+        state'
+        |> Proof.end_block
+        |> guess_context (check_result ctxt thesis res)
+      end;
   in
     state
     |> Proof.enter_forward
