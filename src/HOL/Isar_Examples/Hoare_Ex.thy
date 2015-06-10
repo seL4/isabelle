@@ -220,18 +220,13 @@ theorem
 proof -
   let ?sum = "\<lambda>k::nat. \<Sum>j<k. j"
   let ?inv = "\<lambda>s i::nat. s = ?sum i"
-
   show ?thesis
   proof hoare
     show "?inv 0 1" by simp
-  next
-    fix s i
-    assume "?inv s i \<and> i \<noteq> n"
-    then show "?inv (s + i) (i + 1)" by simp
-  next
-    fix s i
-    assume "?inv s i \<and> \<not> i \<noteq> n"
-    then show "s = ?sum n" by simp
+    show "?inv (s + i) (i + 1)" if "?inv s i \<and> i \<noteq> n" for s i
+      using prems by simp
+    show "s = ?sum n" if "?inv s i \<and> \<not> i \<noteq> n" for s i
+      using prems by simp
   qed
 qed
 

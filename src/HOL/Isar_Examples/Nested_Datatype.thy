@@ -37,17 +37,12 @@ proof -
     subst_term_list f1 (subst_term_list f2 ts)"
   show ?thesis
   proof (induct t rule: subst_term.induct)
-    fix a show "?P (Var a)" by simp
-  next
-    fix b ts assume "?Q ts"
-    then show "?P (App b ts)"
-      by (simp only: subst_simps)
-  next
+    show "?P (Var a)" for a by simp
+    show "?P (App b ts)" if "?Q ts" for b ts
+      using prems by (simp only: subst_simps)
     show "?Q []" by simp
-  next
-    fix t ts
-    assume "?P t" "?Q ts" then show "?Q (t # ts)"
-      by (simp only: subst_simps)
+    show "?Q (t # ts)" if "?P t" "?Q ts" for t ts
+      using prems by (simp only: subst_simps)
   qed
 qed
 

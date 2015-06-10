@@ -208,9 +208,8 @@ next
   let ?e = evnodd
   note hyp = \<open>card (?e t 0) = card (?e t 1)\<close>
     and at = \<open>a \<subseteq> - t\<close>
-  have card_suc: "b < 2 \<Longrightarrow> card (?e (a \<union> t) b) = Suc (card (?e t b))" for b :: nat
+  have card_suc: "card (?e (a \<union> t) b) = Suc (card (?e t b))" if "b < 2" for b :: nat
   proof -
-    assume "b < 2"
     have "?e (a \<union> t) b = ?e a b \<union> ?e t b" by (rule evnodd_Un)
     also obtain i j where e: "?e a b = {(i, j)}"
     proof -
