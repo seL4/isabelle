@@ -5,7 +5,7 @@
 
 section{*Common Declarations for Chandy and Charpentier's Allocator*}
 
-theory AllocBase imports "../UNITY_Main" begin
+theory AllocBase imports "../UNITY_Main" "~~/src/HOL/Library/Multiset_Order" begin
 
 consts Nclients :: nat  (*Number of clients*)
 
@@ -41,12 +41,19 @@ done
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
   by (induct l) (simp_all add: ac_simps)
 
+lemma subseteq_le_multiset: "A #<=# A + B"
+unfolding le_multiset_def apply (cases B; simp)
+apply (rule HOL.disjI1)
+apply (rule union_less_mono2[of "{#}" "_ + {#_#}" A, simplified])
+apply (simp add: less_multiset\<^sub>H\<^sub>O)
+done
+
 lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"
 apply (rule monoI)
 apply (unfold prefix_def)
-apply (erule genPrefix.induct, auto)
+apply (erule genPrefix.induct, simp_all add: add_right_mono)
 apply (erule order_trans)
-apply simp
+apply (simp add: less_eq_multiset_def subseteq_le_multiset)
 done
 
 (** setsum **)

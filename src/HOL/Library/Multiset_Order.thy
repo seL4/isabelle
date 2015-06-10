@@ -69,7 +69,7 @@ text {* The Dershowitz--Manna ordering: *}
 
 definition less_multiset\<^sub>D\<^sub>M where
   "less_multiset\<^sub>D\<^sub>M M N \<longleftrightarrow>
-   (\<exists>X Y. X \<noteq> {#} \<and> X \<le> N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
+   (\<exists>X Y. X \<noteq> {#} \<and> X \<le># N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
 
 
 text {* The Huet--Oppen ordering: *}
@@ -134,12 +134,12 @@ lemma less_multiset\<^sub>D\<^sub>M_imp_mult:
 proof -
   assume "less_multiset\<^sub>D\<^sub>M M N"
   then obtain X Y where
-    "X \<noteq> {#}" and "X \<le> N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
+    "X \<noteq> {#}" and "X \<le># N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
     unfolding less_multiset\<^sub>D\<^sub>M_def by blast
   then have "(N - X + Y, N - X + X) \<in> mult {(x, y). x < y}"
     by (intro one_step_implies_mult) (auto simp: Bex_def trans_def)
-  with `M = N - X + Y` `X \<le> N` show "(M, N) \<in> mult {(x, y). x < y}"
-    by (metis ordered_cancel_comm_monoid_diff_class.diff_add)
+  with `M = N - X + Y` `X \<le># N` show "(M, N) \<in> mult {(x, y). x < y}"
+    by (metis subset_mset.diff_add)
 qed
 
 lemma less_multiset\<^sub>H\<^sub>O_imp_less_multiset\<^sub>D\<^sub>M: "less_multiset\<^sub>H\<^sub>O M N \<Longrightarrow> less_multiset\<^sub>D\<^sub>M M N"
@@ -151,7 +151,7 @@ proof (intro iffI exI conjI)
   def X \<equiv> "N - M"
   def Y \<equiv> "M - N"
   from z show "X \<noteq> {#}" unfolding X_def by (auto simp: multiset_eq_iff not_less_eq_eq Suc_le_eq)
-  from z show "X \<le> N" unfolding X_def by auto
+  from z show "X \<le># N" unfolding X_def by auto
   show "M = (N - X) + Y" unfolding X_def Y_def multiset_eq_iff count_union count_diff by force
   show "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
   proof (intro allI impI)
@@ -239,9 +239,9 @@ lemma le_multiset_total:
 
 lemma less_eq_imp_le_multiset:
   fixes M N :: "('a \<Colon> linorder) multiset"
-  shows "M \<le> N \<Longrightarrow> M #\<subseteq># N"
+  shows "M \<le># N \<Longrightarrow> M #\<subseteq># N"
   unfolding le_multiset_def less_multiset\<^sub>H\<^sub>O
-  by (auto dest: leD simp add: less_eq_multiset.rep_eq)
+  by (simp add: less_le_not_le subseteq_mset_def)
 
 lemma less_multiset_right_total:
   fixes M :: "('a \<Colon> linorder) multiset"
@@ -302,7 +302,7 @@ lemma ex_gt_count_imp_less_multiset:
   unfolding less_multiset\<^sub>H\<^sub>O by (metis add.left_neutral add_lessD1 dual_order.strict_iff_order
     less_not_sym mset_leD mset_le_add_left)  
 
-lemma union_less_diff_plus: "P \<le> M \<Longrightarrow> N #\<subset># P \<Longrightarrow> M - P + N #\<subset># M"
-  by (drule ordered_cancel_comm_monoid_diff_class.diff_add[symmetric]) (metis union_less_mono2)
+lemma union_less_diff_plus: "P \<le># M \<Longrightarrow> N #\<subset># P \<Longrightarrow> M - P + N #\<subset># M"
+  by (drule subset_mset.diff_add[symmetric]) (metis union_less_mono2)
 
 end

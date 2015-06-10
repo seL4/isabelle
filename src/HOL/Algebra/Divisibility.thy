@@ -2137,7 +2137,7 @@ lemma (in factorial_monoid) divides_fmsubset:
   assumes ab: "a divides b"
     and afs: "wfactors G as a" and bfs: "wfactors G bs b"
     and carr: "a \<in> carrier G"  "b \<in> carrier G"  "set as \<subseteq> carrier G"  "set bs \<subseteq> carrier G"
-  shows "fmset G as \<le> fmset G bs"
+  shows "fmset G as \<le># fmset G bs"
 using ab
 proof (elim dividesE)
   fix c
@@ -2157,7 +2157,7 @@ proof (elim dividesE)
 qed
 
 lemma (in comm_monoid_cancel) fmsubset_divides:
-  assumes msubset: "fmset G as \<le> fmset G bs"
+  assumes msubset: "fmset G as \<le># fmset G bs"
     and afs: "wfactors G as a" and bfs: "wfactors G bs b"
     and acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G"
     and ascarr: "set as \<subseteq> carrier G" and bscarr: "set bs \<subseteq> carrier G"
@@ -2193,7 +2193,7 @@ proof -
 
   from csmset msubset
       have "fmset G bs = fmset G as + fmset G cs"
-      by (simp add: multiset_eq_iff mset_le_def)
+      by (simp add: multiset_eq_iff subseteq_mset_def)
   hence basc: "b \<sim> a \<otimes> c"
       by (rule fmset_wfactors_mult) fact+
 
@@ -2210,7 +2210,7 @@ lemma (in factorial_monoid) divides_as_fmsubset:
   assumes "wfactors G as a" and "wfactors G bs b"
     and "a \<in> carrier G" and "b \<in> carrier G" 
     and "set as \<subseteq> carrier G" and "set bs \<subseteq> carrier G"
-  shows "a divides b = (fmset G as \<le> fmset G bs)"
+  shows "a divides b = (fmset G as \<le># fmset G bs)"
 using assms
 by (blast intro: divides_fmsubset fmsubset_divides)
 
@@ -2218,7 +2218,7 @@ by (blast intro: divides_fmsubset fmsubset_divides)
 text {* Proper factors on multisets *}
 
 lemma (in factorial_monoid) fmset_properfactor:
-  assumes asubb: "fmset G as \<le> fmset G bs"
+  assumes asubb: "fmset G as \<le># fmset G bs"
     and anb: "fmset G as \<noteq> fmset G bs"
     and "wfactors G as a" and "wfactors G bs b"
     and "a \<in> carrier G" and "b \<in> carrier G"
@@ -2228,10 +2228,10 @@ apply (rule properfactorI)
 apply (rule fmsubset_divides[of as bs], fact+)
 proof
   assume "b divides a"
-  hence "fmset G bs \<le> fmset G as"
+  hence "fmset G bs \<le># fmset G as"
       by (rule divides_fmsubset) fact+
   with asubb
-      have "fmset G as = fmset G bs" by (rule order_antisym)
+      have "fmset G as = fmset G bs" by (rule subset_mset.antisym)
   with anb
       show "False" ..
 qed
@@ -2241,7 +2241,7 @@ lemma (in factorial_monoid) properfactor_fmset:
     and "wfactors G as a" and "wfactors G bs b"
     and "a \<in> carrier G" and "b \<in> carrier G"
     and "set as \<subseteq> carrier G" and "set bs \<subseteq> carrier G"
-  shows "fmset G as \<le> fmset G bs \<and> fmset G as \<noteq> fmset G bs"
+  shows "fmset G as \<le># fmset G bs \<and> fmset G as \<noteq> fmset G bs"
 using pf
 apply (elim properfactorE)
 apply rule
@@ -2619,13 +2619,13 @@ proof -
   have "c gcdof a b"
   proof (simp add: isgcd_def, safe)
     from csmset
-        have "fmset G cs \<le> fmset G as"
-        by (simp add: multiset_inter_def mset_le_def)
+        have "fmset G cs \<le># fmset G as"
+        by (simp add: multiset_inter_def subset_mset_def)
     thus "c divides a" by (rule fmsubset_divides) fact+
   next
     from csmset
-        have "fmset G cs \<le> fmset G bs"
-        by (simp add: multiset_inter_def mset_le_def, force)
+        have "fmset G cs \<le># fmset G bs"
+        by (simp add: multiset_inter_def subseteq_mset_def, force)
     thus "c divides b" by (rule fmsubset_divides) fact+
   next
     fix y
@@ -2637,13 +2637,13 @@ proof -
         by auto
 
     assume "y divides a"
-    hence ya: "fmset G ys \<le> fmset G as" by (rule divides_fmsubset) fact+
+    hence ya: "fmset G ys \<le># fmset G as" by (rule divides_fmsubset) fact+
 
     assume "y divides b"
-    hence yb: "fmset G ys \<le> fmset G bs" by (rule divides_fmsubset) fact+
+    hence yb: "fmset G ys \<le># fmset G bs" by (rule divides_fmsubset) fact+
 
     from ya yb csmset
-    have "fmset G ys \<le> fmset G cs" by (simp add: mset_le_def)
+    have "fmset G ys \<le># fmset G cs" by (simp add: subset_mset_def)
     thus "y divides c" by (rule fmsubset_divides) fact+
   qed
 
@@ -2718,10 +2718,10 @@ proof -
 
   have "c lcmof a b"
   proof (simp add: islcm_def, safe)
-    from csmset have "fmset G as \<le> fmset G cs" by (simp add: mset_le_def, force)
+    from csmset have "fmset G as \<le># fmset G cs" by (simp add: subseteq_mset_def, force)
     thus "a divides c" by (rule fmsubset_divides) fact+
   next
-    from csmset have "fmset G bs \<le> fmset G cs" by (simp add: mset_le_def)
+    from csmset have "fmset G bs \<le># fmset G cs" by (simp add: subset_mset_def)
     thus "b divides c" by (rule fmsubset_divides) fact+
   next
     fix y
@@ -2733,14 +2733,14 @@ proof -
         by auto
 
     assume "a divides y"
-    hence ya: "fmset G as \<le> fmset G ys" by (rule divides_fmsubset) fact+
+    hence ya: "fmset G as \<le># fmset G ys" by (rule divides_fmsubset) fact+
 
     assume "b divides y"
-    hence yb: "fmset G bs \<le> fmset G ys" by (rule divides_fmsubset) fact+
+    hence yb: "fmset G bs \<le># fmset G ys" by (rule divides_fmsubset) fact+
 
     from ya yb csmset
-    have "fmset G cs \<le> fmset G ys"
-      apply (simp add: mset_le_def, clarify)
+    have "fmset G cs \<le># fmset G ys"
+      apply (simp add: subseteq_mset_def, clarify)
       apply (case_tac "count (fmset G as) a < count (fmset G bs) a")
        apply simp
       apply simp

@@ -18,9 +18,9 @@ lemma [code, code del]: "plus = (plus :: 'a multiset \<Rightarrow> _)" ..
 
 lemma [code, code del]: "minus = (minus :: 'a multiset \<Rightarrow> _)" ..
 
-lemma [code, code del]: "inf = (inf :: 'a multiset \<Rightarrow> _)" ..
+lemma [code, code del]: "inf_subset_mset = (inf_subset_mset :: 'a multiset \<Rightarrow> _)" ..
 
-lemma [code, code del]: "sup = (sup :: 'a multiset \<Rightarrow> _)" ..
+lemma [code, code del]: "sup_subset_mset = (sup_subset_mset :: 'a multiset \<Rightarrow> _)" ..
 
 lemma [code, code del]: "image_mset = image_mset" ..
 
@@ -38,9 +38,9 @@ lemma [code, code del]: "set_of = set_of" ..
 
 lemma [code, code del]: "sorted_list_of_multiset = sorted_list_of_multiset" ..
 
-lemma [code, code del]: "ord_multiset_inst.less_eq_multiset = ord_multiset_inst.less_eq_multiset" ..
+lemma [code, code del]: "subset_mset = subset_mset" ..
 
-lemma [code, code del]: "ord_multiset_inst.less_multiset = ord_multiset_inst.less_multiset" ..
+lemma [code, code del]: "subseteq_mset = subseteq_mset" ..
 
 lemma [code, code del]: "equal_multiset_inst.equal_multiset = equal_multiset_inst.equal_multiset" ..
 
@@ -203,21 +203,21 @@ lemma filter_Bag [code]: "filter_mset P (Bag xs) = Bag (DAList.filter (P \<circ>
   by (rule multiset_eqI) (simp add: count_of_filter DAList.filter.rep_eq)
 
 
-lemma mset_eq [code]: "HOL.equal (m1::'a::equal multiset) m2 \<longleftrightarrow> m1 \<le> m2 \<and> m2 \<le> m1"
-  by (metis equal_multiset_def eq_iff)
+lemma mset_eq [code]: "HOL.equal (m1::'a::equal multiset) m2 \<longleftrightarrow> m1 \<le># m2 \<and> m2 \<le># m1"
+  by (metis equal_multiset_def subset_mset.eq_iff)
 
 text \<open>By default the code for @{text "<"} is @{prop"xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> xs = ys"}.
 With equality implemented by @{text"\<le>"}, this leads to three calls of  @{text"\<le>"}.
 Here is a more efficient version:\<close>
-lemma mset_less[code]: "xs < (ys :: 'a multiset) \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
-  by (rule less_le_not_le)
+lemma mset_less[code]: "xs <# (ys :: 'a multiset) \<longleftrightarrow> xs \<le># ys \<and> \<not> ys \<le># xs"
+  by (rule subset_mset.less_le_not_le)
 
 lemma mset_less_eq_Bag0:
-  "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
+  "Bag xs \<le># A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
-  then show ?rhs by (auto simp add: mset_le_def)
+  then show ?rhs by (auto simp add: subseteq_mset_def)
 next
   assume ?rhs
   show ?lhs
@@ -225,12 +225,12 @@ next
     fix x
     from \<open>?rhs\<close> have "count_of (DAList.impl_of xs) x \<le> count A x"
       by (cases "x \<in> fst ` set (DAList.impl_of xs)") (auto simp add: count_of_empty)
-    then show "count (Bag xs) x \<le> count A x" by (simp add: mset_le_def)
+    then show "count (Bag xs) x \<le> count A x" by (simp add: subset_mset_def)
   qed
 qed
 
 lemma mset_less_eq_Bag [code]:
-  "Bag xs \<le> (A :: 'a multiset) \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). n \<le> count A x)"
+  "Bag xs \<le># (A :: 'a multiset) \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). n \<le> count A x)"
 proof -
   {
     fix x n
@@ -266,7 +266,7 @@ proof -
 qed
 
 declare multiset_inter_def [code]
-declare sup_multiset_def [code]
+declare sup_subset_mset_def [code]
 declare multiset_of.simps [code]
 
 

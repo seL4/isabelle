@@ -47,6 +47,24 @@ instantiatios must refer to Rings.divide rather than the former
 separate constants, and infix syntax is usually not available during
 instantiation.
 
+* Library/Multiset:
+  - Renamed multiset inclusion operators:
+      < ~> <#
+      \<subset> ~> \<subset>#
+      <= ~> <=#
+      \<le> ~> \<le>#
+      \<subseteq> ~> \<subseteq>#
+    INCOMPATIBILITY.
+  - "'a multiset" is no longer an instance of the "order",
+    "ordered_ab_semigroup_add_imp_le", "ordered_cancel_comm_monoid_diff",
+    "semilattice_inf", and "semilattice_sup" type classes. The theorems
+    previously provided by these type classes (directly or indirectly)
+    are now available through the "subset_mset" interpretation
+    (e.g. add_mono ~> subset_mset.add_mono).
+    INCOMPATIBILITY.
+  - Removing mset_le_def:
+    mset_le_def ~> subseteq_mset_def
+    mset_less_def ~> subset_mset_def
 
 New in Isabelle2015 (May 2015)
 ------------------------------
