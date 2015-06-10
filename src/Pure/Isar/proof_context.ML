@@ -1385,12 +1385,12 @@ fun pretty_ctxt ctxt =
         else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
           Pretty.commas (map prt_fix fixes))];
 
-      (*prems*)
-      val prt_prems =
+      (*assumptions*)
+      val prt_assms =
         (case Assumption.all_prems_of ctxt of
           [] => []
-        | prems => [Pretty.big_list "prems:" [pretty_fact ctxt ("", prems)]]);
-    in prt_structs @ prt_fixes @ prt_prems end;
+        | prems => [Pretty.big_list "assumptions:" [pretty_fact ctxt ("", prems)]]);
+    in prt_structs @ prt_fixes @ prt_assms end;
 
 
 (* main context *)
