@@ -1200,19 +1200,16 @@ fun future_proof fork_proof state =
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
-    val prop' = Logic.protect prop;
-    val statement' = (false, kind, [[], [prop']], prop');
-    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal) (Goal.protect (Thm.nprems_of goal) goal);
+    val statement' = (false, kind, [[], [prop]], prop);
     val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
-
     val result_ctxt =
       state
       |> map_context reset_result
-      |> map_goal I (K (statement', using, goal', before_qed, after_qed')) I
+      |> map_goal I (K (statement', using, goal, before_qed, after_qed')) I
       |> fork_proof;
 
     val future_thm = Future.map (the_result o snd) result_ctxt;
-    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
+    val finished_goal = Goal.protect 0 (Goal.future_result goal_ctxt future_thm prop);
     val state' =
       state
       |> map_goal I (K (statement, using, finished_goal, NONE, after_qed)) I;
