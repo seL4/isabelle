@@ -8,6 +8,7 @@ signature AUTO_BIND =
 sig
   val thesisN: string
   val thisN: string
+  val premsN: string
   val assmsN: string
   val abs_params: term -> term -> term
   val goal: Proof.context -> term list -> (indexname * term option) list
@@ -23,6 +24,7 @@ struct
 val thesisN = "thesis";
 val thisN = "this";
 val assmsN = "assms";
+val premsN = "prems";
 
 fun strip_judgment ctxt = Object_Logic.drop_judgment ctxt o Logic.strip_assums_concl;
 

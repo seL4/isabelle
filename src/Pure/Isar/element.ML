@@ -281,7 +281,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
 fun proof_local cmd goal_ctxt int after_qed' propp =
   Proof.map_context (K goal_ctxt) #>
   Proof.internal_goal (K (K ())) (Proof_Context.get_mode goal_ctxt) cmd
-    NONE after_qed' [] (map (pair Thm.empty_binding) propp);
+    NONE after_qed' [] [] (map (pair Thm.empty_binding) propp);
 
 in
 

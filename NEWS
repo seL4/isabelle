@@ -15,8 +15,25 @@ proof body as well, abstracted over relevant parameters.
 * Term abbreviations via 'is' patterns also work for schematic
 statements: result is abstracted over unknowns.
 
-* Local goal statements (commands 'have', 'show', 'hence', 'thus') allow
-an optional context of local variables ('for' declaration).
+* Local goals ('have', 'show', 'hence', 'thus') allow structured
+statements like fixes/assumes/shows in theorem specifications, but the
+notation is postfix with keywords 'if' and 'for'. For example:
+
+  have result: "C x y"
+    if "A x" and "B y"
+    for x :: 'a and y :: 'a
+    <proof>
+
+The local assumptions are always bound to the name "prems".  The result
+is exported from context of the statement as usual.  The above roughly
+corresponds to a raw proof block like this:
+
+  {
+    fix x :: 'a and y :: 'a
+    assume prems: "A x" "B y"
+    have "C x y" <proof>
+  }
+  note result = this
 
 * New command 'supply' supports fact definitions during goal refinement
 ('apply' scripts).

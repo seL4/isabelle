@@ -157,7 +157,7 @@ fun gen_obtain prep_att prep_var prep_propp
   in
     state
     |> Proof.enter_forward
-    |> Proof.have NONE (K I) [] [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.have NONE (K I) [] [] [(Thm.empty_binding, [(obtain_prop, [])])] int
     |> Proof.map_context (fold Variable.bind_term binds')
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
@@ -165,7 +165,7 @@ fun gen_obtain prep_att prep_var prep_propp
       [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
-    ||> Proof.show NONE after_qed [] [(Thm.empty_binding, [(thesis, [])])] false
+    ||> Proof.show NONE after_qed [] [] [(Thm.empty_binding, [(thesis, [])])] false
     |-> Proof.refine_insert
   end;
 
@@ -317,7 +317,7 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.internal_goal print_result Proof_Context.mode_schematic "guess"
-      (SOME before_qed) after_qed [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
+      (SOME before_qed) after_qed [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
     |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
         Goal.init (Thm.cterm_of ctxt thesis))) |> Seq.hd
   end;
