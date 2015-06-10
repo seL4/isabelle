@@ -241,8 +241,9 @@ lemma inter_interior_unions_intervals:
     and "\<forall>t\<in>f. \<exists>a b. t = cbox a b"
     and "\<forall>t\<in>f. s \<inter> (interior t) = {}"
   shows "s \<inter> interior (\<Union>f) = {}"
-proof (rule ccontr, unfold ex_in_conv[symmetric])
-  case goal1
+proof (clarsimp simp only: all_not_in_conv [symmetric])
+  fix x
+  assume x: "x \<in> s" "x \<in> interior (\<Union>f)"
   have lem1: "\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U"
     using interior_subset
     by auto (meson Topology_Euclidean_Space.open_ball contra_subsetD interior_maximal mem_ball)
@@ -308,17 +309,14 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
             let ?z = "x - (e/2) *\<^sub>R k"
             assume as: "x\<bullet>k = a\<bullet>k"
             have "ball ?z (e / 2) \<inter> i = {}"
-              apply (rule ccontr)
-              unfolding ex_in_conv[symmetric]
-              apply (erule exE)
-            proof -
+            proof (clarsimp simp only: all_not_in_conv [symmetric])
               fix y
-              assume "y \<in> ball ?z (e / 2) \<inter> i"
-              then have "dist ?z y < e/2" and yi:"y\<in>i" by auto
+              assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
+              then have "dist ?z y < e/2" by auto
               then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
                 using Basis_le_norm[OF k, of "?z - y"] unfolding dist_norm by auto
               then have "y\<bullet>k < a\<bullet>k"
-                using e[THEN conjunct1] k
+                using e k
                 by (auto simp add: field_simps abs_less_iff as inner_simps)
               then have "y \<notin> i"
                 unfolding ab mem_box by (auto intro!: bexI[OF _ k])
@@ -337,10 +335,8 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
                 done
               also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
                 apply (rule add_strict_left_mono)
-                using as
-                unfolding mem_ball dist_norm
-                using e
-                apply (auto simp add: field_simps)
+                using as e
+                apply (auto simp add: field_simps dist_norm)
                 done
               finally show "y \<in> ball x e"
                 unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
@@ -354,19 +350,16 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
             let ?z = "x + (e/2) *\<^sub>R k"
             assume as: "x\<bullet>k = b\<bullet>k"
             have "ball ?z (e / 2) \<inter> i = {}"
-              apply (rule ccontr)
-              unfolding ex_in_conv[symmetric]
-              apply (erule exE)
-            proof -
+            proof (clarsimp simp only: all_not_in_conv [symmetric])
               fix y
-              assume "y \<in> ball ?z (e / 2) \<inter> i"
-              then have "dist ?z y < e/2" and yi: "y \<in> i"
+              assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
+              then have "dist ?z y < e/2"
                 by auto
               then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
                 using Basis_le_norm[OF k, of "?z - y"]
                 unfolding dist_norm by auto
               then have "y\<bullet>k > b\<bullet>k"
-                using e[THEN conjunct1] k
+                using e k
                 by (auto simp add:field_simps inner_simps inner_Basis as)
               then have "y \<notin> i"
                 unfolding ab mem_box by (auto intro!: bexI[OF _ k])
@@ -400,14 +393,14 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
           then obtain x where "ball x (e / 2) \<subseteq> s \<inter> \<Union>f" ..
           then have "x \<in> s \<inter> interior (\<Union>f)"
             unfolding lem1[where U="\<Union>f", symmetric]
-            using centre_in_ball e[THEN conjunct1] by auto
+            using centre_in_ball e by auto
           then show ?thesis 
             using insert.hyps(3) insert.prems(1) by blast
         qed
       qed
     qed
   qed
-  from this[OF assms(1,3) goal1]
+  from this[OF assms(1,3)] x
   obtain t x e where "t \<in> f" "0 < e" "ball x e \<subseteq> s \<inter> t"
     by blast
   then have "x \<in> s" "x \<in> interior t"
@@ -564,14 +557,15 @@ lemma content_eq_0_interior: "content (cbox a b) = 0 \<longleftrightarrow> inter
 
 lemma content_pos_lt_eq:
   "0 < content (cbox a (b::'a::euclidean_space)) \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
-  apply rule
-  defer
-  apply (rule content_pos_lt, assumption)
-proof -
+proof (rule iffI)
   assume "0 < content (cbox a b)"
   then have "content (cbox a b) \<noteq> 0" by auto
   then show "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
     unfolding content_eq_0 not_ex not_le by fastforce
+next
+  assume "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
+  then show "0 < content (cbox a b)"
+    by (metis content_pos_lt)
 qed
 
 lemma content_empty [simp]: "content {} = 0"
@@ -593,22 +587,16 @@ next
   have "cbox c d \<noteq> {}" using assms False by auto
   then have cd_ne: "\<forall>i\<in>Basis. c \<bullet> i \<le> d \<bullet> i"
     using assms unfolding box_ne_empty by auto
-  show ?thesis
-    unfolding content_def
-    unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    unfolding if_not_P[OF False] if_not_P[OF `cbox c d \<noteq> {}`]
-    apply (rule setprod_mono)
-    apply rule
-  proof
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    show "0 \<le> b \<bullet> i - a \<bullet> i"
-      using ab_ne[THEN bspec, OF i] i by auto
-    show "b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
-      using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2),of i]
-      using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(1),of i]
-      using i by auto
-  qed
+  have "\<And>i. i \<in> Basis \<Longrightarrow> 0 \<le> b \<bullet> i - a \<bullet> i"
+    using ab_ne by (metis diff_le_iff(1))
+  moreover
+  have "\<And>i. i \<in> Basis \<Longrightarrow> b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
+    using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2)]
+          assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(1)]
+      by (metis diff_mono)
+  ultimately show ?thesis
+    unfolding content_def interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
+    by (simp add: setprod_mono if_not_P[OF False] if_not_P[OF `cbox c d \<noteq> {}`])
 qed
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
@@ -1069,36 +1057,26 @@ next
   qed
   obtain q where q: "\<And>x. x \<in> p \<Longrightarrow> q x division_of cbox a b" "\<And>x. x \<in> p \<Longrightarrow> x \<in> q x"
     using bchoice[OF *] by blast
-  have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
-    apply rule
-    apply (rule_tac p="q x" in division_of_subset)
-  proof -
-    fix x
+  { fix x
     assume x: "x \<in> p"
-    show "q x division_of \<Union>q x"
+    have "q x division_of \<Union>q x"
       apply (rule division_ofI)
       using division_ofD[OF q(1)[OF x]]
       apply auto
-      done
-    show "q x - {x} \<subseteq> q x"
-      by auto
-  qed
+      done }
+  then have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
+    by (meson Diff_subset division_of_subset)
   then have "\<exists>d. d division_of \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)"
     apply -
-    apply (rule elementary_inters)
-    apply (rule finite_imageI[OF p(1)])
-    unfolding image_is_empty
-    apply (rule False)
-    apply auto
+    apply (rule elementary_inters [OF finite_imageI[OF p(1)]])
+    apply (auto simp: False elementary_inters [OF finite_imageI[OF p(1)]])
     done
   then obtain d where d: "d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)" ..
-  show ?thesis
-    apply (rule that[of "d \<union> p"])
+  have "d \<union> p division_of cbox a b"
   proof -
-    have *: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
+    have te: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
     have *: "cbox a b = \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
-      apply (rule *[OF False])
-    proof
+    proof (rule te[OF False], clarify)
       fix i
       assume i: "i \<in> p"
       show "\<Union>(q i - {i}) \<union> i = cbox a b"
@@ -1135,7 +1113,9 @@ next
           done
       qed
     qed
-  qed auto
+  qed
+  then show ?thesis
+    by (meson Un_upper2 that)
 qed
 
 lemma elementary_bounded[dest]:
@@ -1938,11 +1918,7 @@ proof -
     show "P s"
       unfolding s
       apply (rule as[rule_format])
-    proof -
-      case goal1
-      then show ?case
-        using s(2)[of i] using ab[OF `i \<in> Basis`] by auto
-    qed
+      using ab s(2) by force
     show "\<exists>a b. s = cbox a b"
       unfolding s by auto
     fix t
@@ -1959,17 +1935,8 @@ proof -
     then obtain i where "c\<bullet>i \<noteq> e\<bullet>i \<or> d\<bullet>i \<noteq> f\<bullet>i" and i': "i \<in> Basis"
       unfolding euclidean_eq_iff[where 'a='a] by auto
     then have i: "c\<bullet>i \<noteq> e\<bullet>i" "d\<bullet>i \<noteq> f\<bullet>i"
-      apply -
-      apply(erule_tac[!] disjE)
-    proof -
-      assume "c\<bullet>i \<noteq> e\<bullet>i"
-      then show "d\<bullet>i \<noteq> f\<bullet>i"
-        using s(2)[OF i'] t(2)[OF i'] by fastforce
-    next
-      assume "d\<bullet>i \<noteq> f\<bullet>i"
-      then show "c\<bullet>i \<noteq> e\<bullet>i"
-        using s(2)[OF i'] t(2)[OF i'] by fastforce
-    qed
+      using s(2) t(2) apply fastforce
+      using t(2)[OF i'] `c \<bullet> i \<noteq> e \<bullet> i \<or> d \<bullet> i \<noteq> f \<bullet> i` i' s(2) t(2) by fastforce
     have *: "\<And>s t. (\<And>a. a \<in> s \<Longrightarrow> a \<in> t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}"
       by auto
     show "interior s \<inter> interior t = {}"
@@ -1979,16 +1946,9 @@ proof -
       assume "x \<in> box c d" "x \<in> box e f"
       then have x: "c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i"
         unfolding mem_box using i'
-        apply -
-        apply (erule_tac[!] x=i in ballE)+
-        apply auto
-        done
-      show False
-        using s(2)[OF i']
-        apply -
-        apply (erule_tac disjE)
-        apply (erule_tac[!] conjE)
-      proof -
+        by force+
+      show False  using s(2)[OF i']
+      proof safe
         assume as: "c \<bullet> i = a \<bullet> i" "d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2"
         show False
           using t(2)[OF i'] and i x unfolding as by (fastforce simp add:field_simps)
@@ -2007,7 +1967,8 @@ proof -
       "x \<in> cbox c d"
       "\<And>i. i \<in> Basis \<Longrightarrow>
         c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
+        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" 
+      by blast
     show "x\<in>cbox a b"
       unfolding mem_box
     proof safe
@@ -2056,7 +2017,7 @@ proof -
        2 * (snd y\<bullet>i - fst y\<bullet>i) \<le> snd x\<bullet>i - fst x\<bullet>i))"
   proof
     case goal1
-    then show ?case
+    show ?case
     proof -
       presume "\<not> P (cbox (fst x) (snd x)) \<Longrightarrow> ?thesis"
       then show ?thesis by (cases "P (cbox (fst x) (snd x))") auto
@@ -2128,10 +2089,7 @@ proof -
     obtain n where n: "(\<Sum>i\<in>Basis. b \<bullet> i - a \<bullet> i) / e < 2 ^ n"
       using real_arch_pow2[of "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] ..
     show ?case
-      apply (rule_tac x=n in exI)
-      apply rule
-      apply rule
-    proof -
+    proof (rule exI [where x=n], clarify)
       fix x y
       assume xy: "x\<in>cbox (A n) (B n)" "y\<in>cbox (A n) (B n)"
       have "dist x y \<le> setsum (\<lambda>i. abs((x - y)\<bullet>i)) Basis"
@@ -2189,25 +2147,20 @@ proof -
     assume "e > 0"
     from interv[OF this] obtain n
       where n: "\<forall>x\<in>cbox (A n) (B n). \<forall>y\<in>cbox (A n) (B n). dist x y < e" ..
-    show "\<exists>c d. x0 \<in> cbox c d \<and> cbox c d \<subseteq> ball x0 e \<and> cbox c d \<subseteq> cbox a b \<and> \<not> P (cbox c d)"
+    have "\<not> P (cbox (A n) (B n))"
+      apply (cases "0 < n")
+      using AB(3)[of "n - 1"] assms(3) AB(1-2)
+      apply auto
+      done
+    moreover have "cbox (A n) (B n) \<subseteq> ball x0 e"
+      using n using x0[of n] by auto
+    moreover have "cbox (A n) (B n) \<subseteq> cbox a b"
+      unfolding AB(1-2)[symmetric] by (rule ABsubset) auto
+    ultimately show "\<exists>c d. x0 \<in> cbox c d \<and> cbox c d \<subseteq> ball x0 e \<and> cbox c d \<subseteq> cbox a b \<and> \<not> P (cbox c d)"
       apply (rule_tac x="A n" in exI)
       apply (rule_tac x="B n" in exI)
-      apply rule
-      apply (rule x0)
-      apply rule
-      defer
-      apply rule
-    proof -
-      show "\<not> P (cbox (A n) (B n))"
-        apply (cases "0 < n")
-        using AB(3)[of "n - 1"] assms(3) AB(1-2)
-        apply auto
-        done
-      show "cbox (A n) (B n) \<subseteq> ball x0 e"
-        using n using x0[of n] by auto
-      show "cbox (A n) (B n) \<subseteq> cbox a b"
-        unfolding AB(1-2)[symmetric] by (rule ABsubset) auto
-    qed
+      apply (auto simp: x0)
+      done
   qed
 qed
 
@@ -2244,22 +2197,17 @@ next
     assume "p tagged_division_of s" "g fine p" "p' tagged_division_of t" "g fine p'"
       "interior s \<inter> interior t = {}"
     then show "\<exists>p. p tagged_division_of s \<union> t \<and> g fine p"
-      apply -
       apply (rule_tac x="p \<union> p'" in exI)
-      apply rule
-      apply (rule tagged_division_union)
-      prefer 4
-      apply (rule fine_union)
-      apply auto
+      apply (simp add: tagged_division_union fine_union)
       done
   qed blast
   obtain e where e: "e > 0" "ball x e \<subseteq> g x"
     using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
-  from x(2)[OF e(1)] obtain c d where c_d:
-    "x \<in> cbox c d"
-    "cbox c d \<subseteq> ball x e"
-    "cbox c d \<subseteq> cbox a b"
-    "\<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
+  from x(2)[OF e(1)] 
+  obtain c d where c_d: "x \<in> cbox c d"
+                        "cbox c d \<subseteq> ball x e"
+                        "cbox c d \<subseteq> cbox a b"
+                        "\<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
     by blast
   have "g fine {(x, cbox c d)}"
     unfolding fine_def using e using c_d(2) by auto
@@ -2320,11 +2268,7 @@ proof (rule ccontr)
   {
     presume "\<not> (\<exists>a b. i = cbox a b) \<Longrightarrow> False"
     then show False
-      apply -
-      apply (cases "\<exists>a b. i = cbox a b")
-      using assms
-      apply (auto simp add:has_integral intro:lem[OF _ _ as])
-      done
+      using as assms lem by blast
   }
   assume as: "\<not> (\<exists>a b. i = cbox a b)"
   obtain B1 where B1:
@@ -2378,23 +2322,11 @@ proof -
   have lem: "\<And>a b. \<And>f::'n \<Rightarrow> 'a.
     (\<forall>x\<in>cbox a b. f(x) = 0) \<Longrightarrow> (f has_integral 0) (cbox a b)"
     unfolding has_integral
-    apply rule
-    apply rule
-  proof -
+  proof clarify
     fix a b e
     fix f :: "'n \<Rightarrow> 'a"
     assume as: "\<forall>x\<in>cbox a b. f x = 0" "0 < (e::real)"
-    show "\<exists>d. gauge d \<and>
-      (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e)"
-      apply (rule_tac x="\<lambda>x. ball x 1" in exI)
-      apply rule
-      apply (rule gaugeI)
-      unfolding centre_in_ball
-      defer
-      apply (rule open_ball)
-      apply rule
-      apply rule
-      apply (erule conjE)
+    have "\<And>p. p tagged_division_of cbox a b \<Longrightarrow> (\<lambda>x. ball x 1) fine p \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
     proof -
       case goal1
       have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) = 0"
@@ -2411,16 +2343,15 @@ proof -
       qed
       then show ?case
         using as by auto
-    qed auto
+    qed
+    then show "\<exists>d. gauge d \<and>
+                   (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e)"
+      by auto
   qed
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
-    then show ?thesis
-      apply -
-      apply (cases "\<exists>a b. s = cbox a b")
-      using assms
-      apply (auto simp add:has_integral intro: lem)
-      done
+    with assms lem show ?thesis
+      by blast
   }
   have *: "(\<lambda>x. if x \<in> s then f x else 0) = (\<lambda>x. 0)"
     apply (rule ext)
@@ -2429,26 +2360,8 @@ proof -
     done
   assume "\<not> (\<exists>a b. s = cbox a b)"
   then show ?thesis
-    apply (subst has_integral_alt)
-    unfolding if_not_P *
-    apply rule
-    apply rule
-    apply (rule_tac x=1 in exI)
-    apply rule
-    defer
-    apply rule
-    apply rule
-    apply rule
-  proof -
-    fix e :: real
-    fix a b
-    assume "e > 0"
-    then show "\<exists>z. ((\<lambda>x::'n. 0::'a) has_integral z) (cbox a b) \<and> norm (z - 0) < e"
-      apply (rule_tac x=0 in exI)
-      apply(rule,rule lem)
-      apply auto
-      done
-  qed auto
+    using lem
+    by (subst has_integral_alt) (force simp add: *)
 qed
 
 lemma has_integral_0[simp]: "((\<lambda>x::'n::euclidean_space. 0) has_integral 0) s"
@@ -2469,20 +2382,17 @@ proof -
     by blast
   have lem: "\<And>(f :: 'n \<Rightarrow> 'a) y a b.
     (f has_integral y) (cbox a b) \<Longrightarrow> ((h o f) has_integral h y) (cbox a b)"
-    apply (subst has_integral)
-    apply rule
-    apply rule
-  proof -
+  unfolding has_integral
+  proof clarify
     case goal1
     from pos_bounded
     obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
       by blast
     have *: "e / B > 0" using goal1(2) B by simp
-    obtain g where g:
-      "gauge g"
-      "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
-        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
-      by (rule has_integralD[OF goal1(1) *]) blast
+    obtain g where g: "gauge g"
+              "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
+                norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
+        using "*" goal1(1) by auto
     show ?case
       apply (rule_tac x=g in exI)
       apply rule
@@ -2511,19 +2421,11 @@ proof -
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
-      apply -
-      apply (cases "\<exists>a b. s = cbox a b")
-      using assms
-      apply (auto simp add:has_integral intro!:lem)
-      done
+      using assms(1) lem by blast
   }
   assume as: "\<not> (\<exists>a b. s = cbox a b)"
   then show ?thesis
-    apply (subst has_integral_alt)
-    unfolding if_not_P
-    apply rule
-    apply rule
-  proof -
+  proof (subst has_integral_alt, clarsimp)
     fix e :: real
     assume e: "e > 0"
     have *: "0 < e/B" using e B(1) by simp
@@ -2534,34 +2436,18 @@ proof -
       using has_integral_altD[OF assms(1) as *] by blast
     show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
       (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
-      apply (rule_tac x=M in exI)
-      apply rule
-      apply (rule M(1))
-      apply rule
-      apply rule
-      apply rule
-    proof -
+    proof (rule_tac x=M in exI, clarsimp simp add: M)
       case goal1
       obtain z where z:
         "((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b)"
         "norm (z - y) < e / B"
         using M(2)[OF goal1(1)] by blast
       have *: "(\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> s then f x else 0)"
-        unfolding o_def
-        apply (rule ext)
-        using zero
-        apply auto
-        done
+        using zero by auto
       show ?case
         apply (rule_tac x="h z" in exI)
-        apply rule
-        unfolding *
-        apply (rule lem[OF z(1)])
-        unfolding diff[symmetric]
-        apply (rule le_less_trans[OF B(2)])
-        using B(1) z(2)
-        apply (auto simp add: field_simps)
-        done
+        apply (simp add: "*" lem z(1))
+        by (metis B diff le_less_trans pos_less_divide_eq z(2))
     qed
   qed
 qed
@@ -2577,9 +2463,7 @@ lemma has_integral_mult_left:
 
 lemma has_integral_cmul: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
   unfolding o_def[symmetric]
-  apply (rule has_integral_linear,assumption)
-  apply (rule bounded_linear_scaleR_right)
-  done
+  by (metis has_integral_linear bounded_linear_scaleR_right)
 
 lemma has_integral_cmult_real:
   fixes c :: real
@@ -2595,9 +2479,7 @@ next
 qed
 
 lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
-  apply (drule_tac c="-1" in has_integral_cmul)
-  apply auto
-  done
+  by (drule_tac c="-1" in has_integral_cmul) auto
 
 lemma has_integral_add:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
@@ -2613,9 +2495,7 @@ proof -
     case goal1
     show ?case
       unfolding has_integral
-      apply rule
-      apply rule
-    proof -
+    proof clarify
       fix e :: real
       assume e: "e > 0"
       then have *: "e/2 > 0"
@@ -2631,30 +2511,23 @@ proof -
           norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l) < e / 2"
         using has_integralD[OF goal1(2) *] by blast
       show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e)"
-        apply (rule_tac x="\<lambda>x. (d1 x) \<inter> (d2 x)" in exI)
-        apply rule
-        apply (rule gauge_inter[OF d1(1) d2(1)])
-        apply (rule,rule,erule conjE)
-      proof -
+                norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e)"
+      proof (rule exI [where x="\<lambda>x. (d1 x) \<inter> (d2 x)"], clarsimp simp add: gauge_inter[OF d1(1) d2(1)])
         fix p
         assume as: "p tagged_division_of (cbox a b)" "(\<lambda>x. d1 x \<inter> d2 x) fine p"
         have *: "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) =
           (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p. content k *\<^sub>R g x)"
           unfolding scaleR_right_distrib setsum.distrib[of "\<lambda>(x,k). content k *\<^sub>R f x" "\<lambda>(x,k). content k *\<^sub>R g x" p,symmetric]
           by (rule setsum.cong) auto
-        have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) =
-          norm (((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l))"
-          unfolding * by (auto simp add: algebra_simps)
-        also
-        let ?res = "\<dots>"
-        from as have *: "d1 fine p" "d2 fine p"
+        from as have fine: "d1 fine p" "d2 fine p"
           unfolding fine_inter by auto
-        have "?res < e/2 + e/2"
+        have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) =
+              norm (((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l))"
+          unfolding * by (auto simp add: algebra_simps)
+        also have "\<dots> < e/2 + e/2"
           apply (rule le_less_trans[OF norm_triangle_ineq])
-          apply (rule add_strict_mono)
-          using d1(2)[OF as(1) *(1)] and d2(2)[OF as(1) *(2)]
-          apply auto
+          using as d1 d2 fine 
+          apply (blast intro: add_strict_mono)
           done
         finally show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e"
           by auto
@@ -2664,19 +2537,11 @@ proof -
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
-      apply -
-      apply (cases "\<exists>a b. s = cbox a b")
-      using assms
-      apply (auto simp add:has_integral intro!:lem)
-      done
+      using assms lem by force
   }
   assume as: "\<not> (\<exists>a b. s = cbox a b)"
   then show ?thesis
-    apply (subst has_integral_alt)
-    unfolding if_not_P
-    apply rule
-    apply rule
-  proof -
+  proof (subst has_integral_alt, clarsimp)
     case goal1
     then have *: "e/2 > 0"
       by auto
@@ -2693,14 +2558,7 @@ proof -
           \<exists>z. ((\<lambda>x. if x \<in> s then g x else 0) has_integral z) (cbox a b) \<and> norm (z - l) < e / 2"
       by blast
     show ?case
-      apply (rule_tac x="max B1 B2" in exI)
-      apply rule
-      apply (rule max.strict_coboundedI1)
-      apply (rule B1)
-      apply rule
-      apply rule
-      apply rule
-    proof -
+    proof (rule_tac x="max B1 B2" in exI, clarsimp simp add: max.strict_coboundedI1 B1)
       fix a b
       assume "ball 0 (max B1 B2) \<subseteq> cbox a (b::'n)"
       then have *: "ball 0 B1 \<subseteq> cbox a (b::'n)" "ball 0 B2 \<subseteq> cbox a (b::'n)"
@@ -2718,8 +2576,7 @@ proof -
         by auto
       show "\<exists>z. ((\<lambda>x. if x \<in> s then f x + g x else 0) has_integral z) (cbox a b) \<and> norm (z - (k + l)) < e"
         apply (rule_tac x="w + z" in exI)
-        apply rule
-        apply (rule lem[OF w(1) z(1), unfolded *[symmetric]])
+        apply (simp add: lem[OF w(1) z(1), unfolded *[symmetric]])
         using norm_triangle_ineq[of "w - k" "z - l"] w(2) z(2)
         apply (auto simp add: field_simps)
         done
@@ -2740,33 +2597,17 @@ lemma integral_0:
 
 lemma integral_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
     integral s (\<lambda>x. f x + g x) = integral s f + integral s g"
-  apply (rule integral_unique)
-  apply (drule integrable_integral)+
-  apply (rule has_integral_add)
-  apply assumption+
-  done
+  by (rule integral_unique) (metis integrable_integral has_integral_add)
 
 lemma integral_cmul: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
-  apply (rule integral_unique)
-  apply (drule integrable_integral)+
-  apply (rule has_integral_cmul)
-  apply assumption+
-  done
+  by (rule integral_unique) (metis integrable_integral has_integral_cmul)
 
 lemma integral_neg: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. - f x) = - integral s f"
-  apply (rule integral_unique)
-  apply (drule integrable_integral)+
-  apply (rule has_integral_neg)
-  apply assumption+
-  done
+  by (rule integral_unique) (metis integrable_integral has_integral_neg)
 
 lemma integral_sub: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
     integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
-  apply (rule integral_unique)
-  apply (drule integrable_integral)+
-  apply (rule has_integral_sub)
-  apply assumption+
-  done
+  by (rule integral_unique) (metis integrable_integral has_integral_sub)
 
 lemma integrable_0: "(\<lambda>x. 0) integrable_on s"
   unfolding integrable_on_def using has_integral_0 by auto
@@ -2797,13 +2638,8 @@ lemma integrable_linear:
 
 lemma integral_linear:
   "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> integral s (h \<circ> f) = h (integral s f)"
-  apply (rule has_integral_unique)
-  defer
-  unfolding has_integral_integral
-  apply (drule (2) has_integral_linear)
-  unfolding has_integral_integral[symmetric]
-  apply (rule integrable_linear)
-  apply assumption+
+  apply (rule has_integral_unique [where i=s and f = "h \<circ> f"])
+  apply (simp_all add: integrable_integral integrable_linear has_integral_linear )
   done
 
 lemma integral_component_eq[simp]:
@@ -2822,24 +2658,17 @@ proof (induct rule: finite_subset_induct)
   then show ?case by auto
 next
   case (insert x F)
-  show ?case
-    unfolding setsum.insert[OF insert(1,3)]
-    apply (rule has_integral_add)
-    using insert assms
-    apply auto
-    done
+  with assms show ?case
+    by (simp add: has_integral_add)
 qed
 
-lemma integral_setsum: "finite t \<Longrightarrow> \<forall>a\<in>t. (f a) integrable_on s \<Longrightarrow>
-  integral s (\<lambda>x. setsum (\<lambda>a. f a x) t) = setsum (\<lambda>a. integral s (f a)) t"
-  apply (rule integral_unique)
-  apply (rule has_integral_setsum)
-  using integrable_integral
-  apply auto
-  done
+lemma integral_setsum:
+  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow>
+   integral s (\<lambda>x. setsum (\<lambda>a. f a x) t) = setsum (\<lambda>a. integral s (f a)) t"
+  by (auto intro: has_integral_setsum integrable_integral)
 
 lemma integrable_setsum:
-  "finite t \<Longrightarrow> \<forall>a \<in> t. (f a) integrable_on s \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) t) integrable_on s"
+  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) t) integrable_on s"
   unfolding integrable_on_def
   apply (drule bchoice)
   using has_integral_setsum[of t]
@@ -2896,19 +2725,10 @@ lemma has_integral_null_real[dest]:
   by (metis assms box_real(2) has_integral_null)
 
 lemma has_integral_null_eq[simp]: "content (cbox a b) = 0 \<Longrightarrow> (f has_integral i) (cbox a b) \<longleftrightarrow> i = 0"
-  apply rule
-  apply (rule has_integral_unique)
-  apply assumption
-  apply (drule (1) has_integral_null)
-  apply (drule has_integral_null)
-  apply auto
-  done
+  by (auto simp add: has_integral_null dest!: integral_unique)
 
 lemma integral_null[dest]: "content (cbox a b) = 0 \<Longrightarrow> integral (cbox a b) f = 0"
-  apply (rule integral_unique)
-  apply (drule has_integral_null)
-  apply assumption
-  done
+  by (metis has_integral_null integral_unique)
 
 lemma integrable_on_null[dest]: "content (cbox a b) = 0 \<Longrightarrow> f integrable_on (cbox a b)"
   unfolding integrable_on_def
@@ -2917,19 +2737,10 @@ lemma integrable_on_null[dest]: "content (cbox a b) = 0 \<Longrightarrow> f inte
   done
 
 lemma has_integral_empty[intro]: "(f has_integral 0) {}"
-  unfolding empty_as_interval
-  apply (rule has_integral_null)
-  using content_empty
-  unfolding empty_as_interval
-  apply assumption
-  done
+  by (simp add: has_integral_is_0)
 
 lemma has_integral_empty_eq[simp]: "(f has_integral i) {} \<longleftrightarrow> i = 0"
-  apply rule
-  apply (rule has_integral_unique)
-  apply assumption
-  apply auto
-  done
+  by (auto simp add: has_integral_empty has_integral_unique)
 
 lemma integrable_on_empty[intro]: "f integrable_on {}"
   unfolding integrable_on_def by auto
@@ -2993,17 +2804,10 @@ proof
       done
     note d=this[rule_format]
     show ?case
-      apply (rule_tac x=d in exI)
-      apply rule
-      apply (rule d)
-      apply rule
-      apply rule
-      apply rule
-      apply (erule conjE)+
-    proof -
+    proof (rule_tac x=d in exI, clarsimp simp: d)
       fix p1 p2
       assume as: "p1 tagged_division_of (cbox a b)" "d fine p1"
-        "p2 tagged_division_of (cbox a b)" "d fine p2"
+                 "p2 tagged_division_of (cbox a b)" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
         apply (rule dist_triangle_half_l[where y=y,unfolded dist_norm])
         using d(2)[OF conjI[OF as(1-2)]] d(2)[OF conjI[OF as(3-4)]] .
