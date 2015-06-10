@@ -208,10 +208,8 @@ next
   let ?e = evnodd
   note hyp = \<open>card (?e t 0) = card (?e t 1)\<close>
     and at = \<open>a \<subseteq> - t\<close>
-  have card_suc:
-    "\<And>b. b < 2 \<Longrightarrow> card (?e (a \<union> t) b) = Suc (card (?e t b))"
+  have card_suc: "b < 2 \<Longrightarrow> card (?e (a \<union> t) b) = Suc (card (?e t b))" for b :: nat
   proof -
-    fix b :: nat
     assume "b < 2"
     have "?e (a \<union> t) b = ?e a b \<union> ?e t b" by (rule evnodd_Un)
     also obtain i j where e: "?e a b = {(i, j)}"
@@ -230,7 +228,7 @@ next
       from e have "(i, j) \<in> ?e a b" by simp
       with at show "(i, j) \<notin> ?e t b" by (blast dest: evnoddD)
     qed
-    finally show "?thesis b" .
+    finally show ?thesis .
   qed
   then have "card (?e (a \<union> t) 0) = Suc (card (?e t 0))" by simp
   also from hyp have "card (?e t 0) = card (?e t 1)" .

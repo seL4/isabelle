@@ -99,7 +99,7 @@ qed
 
 lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
-  have "\<And>m n::nat. m = n \<longrightarrow> m + 1 \<noteq> n"
+  have "m = n \<longrightarrow> m + 1 \<noteq> n" for m n :: nat
       -- \<open>inclusion of assertions expressed in ``pure'' logic,\<close>
       -- \<open>without mentioning the state space\<close>
     by simp
@@ -192,13 +192,13 @@ proof -
   also have "\<turnstile> \<dots> ?while \<lbrace>?inv \<acute>S \<acute>I \<and> \<not> \<acute>I \<noteq> n\<rbrace>"
   proof
     let ?body = "\<acute>S := \<acute>S + \<acute>I; \<acute>I := \<acute>I + 1"
-    have "\<And>s i. ?inv s i \<and> i \<noteq> n \<longrightarrow> ?inv (s + i) (i + 1)"
+    have "?inv s i \<and> i \<noteq> n \<longrightarrow> ?inv (s + i) (i + 1)" for s i
       by simp
     also have "\<turnstile> \<lbrace>\<acute>S + \<acute>I = ?sum (\<acute>I + 1)\<rbrace> ?body \<lbrace>?inv \<acute>S \<acute>I\<rbrace>"
       by hoare
     finally show "\<turnstile> \<lbrace>?inv \<acute>S \<acute>I \<and> \<acute>I \<noteq> n\<rbrace> ?body \<lbrace>?inv \<acute>S \<acute>I\<rbrace>" .
   qed
-  also have "\<And>s i. s = ?sum i \<and> \<not> i \<noteq> n \<longrightarrow> s = ?sum n"
+  also have "s = ?sum i \<and> \<not> i \<noteq> n \<longrightarrow> s = ?sum n" for s i
     by simp
   finally show ?thesis .
 qed
