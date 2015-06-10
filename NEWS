@@ -62,9 +62,10 @@ instantiation.
     are now available through the "subset_mset" interpretation
     (e.g. add_mono ~> subset_mset.add_mono).
     INCOMPATIBILITY.
-  - Removing mset_le_def:
-    mset_le_def ~> subseteq_mset_def
-    mset_less_def ~> subset_mset_def
+  - Renamed lemmas:
+      mset_le_def ~> subseteq_mset_def
+      mset_less_def ~> subset_mset_def
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------
