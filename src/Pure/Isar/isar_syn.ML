@@ -464,6 +464,11 @@ val _ =
 
 (** proof commands **)
 
+val _ =
+  Outer_Syntax.local_theory_to_proof @{command_keyword notepad} "begin proof context"
+    (Parse.begin >> K Proof.begin_notepad);
+
+
 (* statements *)
 
 fun theorem spec schematic kind =
@@ -484,28 +489,29 @@ val _ = theorem @{command_keyword schematic_theorem} true Thm.theoremK;
 val _ = theorem @{command_keyword schematic_lemma} true Thm.lemmaK;
 val _ = theorem @{command_keyword schematic_corollary} true Thm.corollaryK;
 
-val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword notepad} "begin proof context"
-    (Parse.begin >> K Proof.begin_notepad);
+
+val structured_statement =
+  Parse_Spec.statement -- Parse_Spec.if_prems -- Parse.for_fixes >> (fn ((a, b), c) => (c, b, a));
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
-    (Parse_Spec.statement >> (Toplevel.proof' o Proof.have_cmd NONE (K I)));
+    (structured_statement >> (fn (fixes, assumes, shows) =>
+      Toplevel.proof' (fn int => Proof.have_cmd NONE (K I) fixes assumes shows int)));
+
+val _ =
+  Outer_Syntax.command @{command_keyword show} "state local goal, to refine pending subgoals"
+    (structured_statement >> (fn (fixes, assumes, shows) =>
+      Toplevel.proof' (fn int => Proof.show_cmd NONE (K I) fixes assumes shows int)));
 
 val _ =
   Outer_Syntax.command @{command_keyword hence} "old-style alias of \"then have\""
-    (Parse_Spec.statement >> (fn stmt =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) stmt int)));
-
-val _ =
-  Outer_Syntax.command @{command_keyword show}
-    "state local goal, solving current obligation"
-    (Parse_Spec.statement >> (Toplevel.proof' o Proof.show_cmd NONE (K I)));
+    (structured_statement >> (fn (fixes, assumes, shows) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) fixes assumes shows int)));
 
 val _ =
   Outer_Syntax.command @{command_keyword thus} "old-style alias of  \"then show\""
-    (Parse_Spec.statement >> (fn stmt =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) stmt int)));
+    (structured_statement >> (fn (fixes, assumes, shows) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) fixes assumes shows int)));
 
 
 (* facts *)

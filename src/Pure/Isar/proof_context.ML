@@ -74,7 +74,7 @@ sig
   val cert_typ_syntax: Proof.context -> typ -> typ
   val cert_typ_abbrev: Proof.context -> typ -> typ
   val infer_type: Proof.context -> string * typ -> typ
-  val inferred_param: string -> Proof.context -> typ * Proof.context
+  val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val check_type_name: {proper: bool, strict: bool} -> Proof.context ->
     xstring * Position.T -> typ * Position.report list
@@ -105,9 +105,6 @@ sig
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
-  val maybe_bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
-  val bind_terms: (indexname * term) list -> Proof.context -> Proof.context
-  val export_bind_terms: (indexname * term) list -> Proof.context -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
   val match_bind: bool -> (term list * term) list -> Proof.context ->
@@ -459,14 +456,11 @@ fun infer_type ctxt x =
   Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt)) (Free x));
 
 fun inferred_param x ctxt =
-  let val T = infer_type ctxt (x, dummyT)
-  in (T, ctxt |> Variable.declare_term (Free (x, T))) end;
+  let val p = (x, infer_type ctxt (x, dummyT))
+  in (p, ctxt |> Variable.declare_term (Free p)) end;
 
 fun inferred_fixes ctxt =
-  let
-    val xs = map #2 (Variable.dest_fixes ctxt);
-    val (Ts, ctxt') = fold_map inferred_param xs ctxt;
-  in (xs ~~ Ts, ctxt') end;
+  fold_map inferred_param (map #2 (Variable.dest_fixes ctxt)) ctxt;
 
 
 (* type names *)
@@ -819,28 +813,21 @@ fun simult_matches ctxt (t, pats) =
   | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
 
 
-(* bind_terms *)
-
-val maybe_bind_terms = fold (fn (xi, t) => fn ctxt =>
-  ctxt
-  |> Variable.bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
-
-val bind_terms = maybe_bind_terms o map (apsnd SOME);
-
-fun export_bind_terms binds ctxt ctxt0 =
-  let val ts0 = map Term.close_schematic_term (Variable.export_terms ctxt ctxt0 (map snd binds))
-  in bind_terms (map fst binds ~~ ts0) ctxt0 end;
-
-
 (* auto_bind *)
 
-fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
-  | drop_schematic b = b;
-
-fun auto_bind f ts ctxt = ctxt |> maybe_bind_terms (map drop_schematic (f ctxt ts));
+fun auto_bind f props ctxt = fold Variable.maybe_bind_term (f ctxt props) ctxt;
 
 val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;
+
+
+(* bind terms (non-schematic) *)
+
+fun cert_maybe_bind_term (xi, t) ctxt =
+  ctxt
+  |> Variable.maybe_bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t);
+
+val cert_bind_term = cert_maybe_bind_term o apsnd SOME;
 
 
 (* match_bind *)
@@ -865,8 +852,10 @@ fun gen_bind prep_terms gen raw_binds ctxt =
     val ctxt'' =
       tap (Variable.warn_extra_tfrees ctxt)
        (if gen then
-          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> bind_terms binds'
-        else ctxt' |> bind_terms binds');
+          ctxt (*sic!*)
+          |> fold Variable.declare_term (map #2 binds')
+          |> fold cert_bind_term binds'
+        else ctxt' |> fold cert_bind_term binds');
   in (ts, ctxt'') end;
 
 in
@@ -1169,7 +1158,7 @@ fun gen_assms prep_propp exp args ctxt =
     |> fold_burrow (Assumption.add_assms exp o map (Thm.cterm_of ctxt)) propss
     |-> (fn premss =>
       auto_bind_facts props
-      #> bind_terms binds
+      #> fold Variable.bind_term binds
       #> note_thmss "" (map fst args ~~ map (map (fn th => ([th], []))) premss))
   end;
 
@@ -1189,6 +1178,9 @@ fun dest_cases ctxt =
   |> sort (int_ord o apply2 #1) |> map #2;
 
 local
+
+fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
+  | drop_schematic b = b;
 
 fun update_case _ _ ("", _) res = res
   | update_case _ _ (name, NONE) (cases, index) =
@@ -1221,7 +1213,7 @@ fun case_result c ctxt =
     val Rule_Cases.Case {assumes, binds, cases, ...} = Rule_Cases.apply ts c;
   in
     ctxt'
-    |> maybe_bind_terms (map drop_schematic binds)
+    |> fold (cert_maybe_bind_term o drop_schematic) binds
     |> update_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;
@@ -1393,12 +1385,12 @@ fun pretty_ctxt ctxt =
         else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
           Pretty.commas (map prt_fix fixes))];
 
-      (*prems*)
-      val prt_prems =
+      (*assumptions*)
+      val prt_assms =
         (case Assumption.all_prems_of ctxt of
           [] => []
-        | prems => [Pretty.big_list "prems:" [pretty_fact ctxt ("", prems)]]);
-    in prt_structs @ prt_fixes @ prt_prems end;
+        | prems => [Pretty.big_list "assumptions:" [pretty_fact ctxt ("", prems)]]);
+    in prt_structs @ prt_fixes @ prt_assms end;
 
 
 (* main context *)

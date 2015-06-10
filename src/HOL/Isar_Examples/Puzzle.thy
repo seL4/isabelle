@@ -16,52 +16,46 @@ theorem
   assumes f_ax: "\<And>n. f (f n) < f (Suc n)"
   shows "f n = n"
 proof (rule order_antisym)
-  {
-    fix n show "n \<le> f n"
-    proof (induct "f n" arbitrary: n rule: less_induct)
-      case less
-      show "n \<le> f n"
-      proof (cases n)
-        case (Suc m)
-        from f_ax have "f (f m) < f n" by (simp only: Suc)
-        with less have "f m \<le> f (f m)" .
-        also from f_ax have "\<dots> < f n" by (simp only: Suc)
-        finally have "f m < f n" .
-        with less have "m \<le> f m" .
-        also note \<open>\<dots> < f n\<close>
-        finally have "m < f n" .
-        then have "n \<le> f n" by (simp only: Suc)
-        then show ?thesis .
-      next
-        case 0
-        then show ?thesis by simp
-      qed
-    qed
-  } note ge = this
-
-  {
-    fix m n :: nat
-    assume "m \<le> n"
-    then have "f m \<le> f n"
-    proof (induct n)
-      case 0
-      then have "m = 0" by simp
-      then show ?case by simp
+  show ge: "n \<le> f n" for n
+  proof (induct "f n" arbitrary: n rule: less_induct)
+    case less
+    show "n \<le> f n"
+    proof (cases n)
+      case (Suc m)
+      from f_ax have "f (f m) < f n" by (simp only: Suc)
+      with less have "f m \<le> f (f m)" .
+      also from f_ax have "\<dots> < f n" by (simp only: Suc)
+      finally have "f m < f n" .
+      with less have "m \<le> f m" .
+      also note \<open>\<dots> < f n\<close>
+      finally have "m < f n" .
+      then have "n \<le> f n" by (simp only: Suc)
+      then show ?thesis .
     next
-      case (Suc n)
-      from Suc.prems show "f m \<le> f (Suc n)"
-      proof (rule le_SucE)
-        assume "m \<le> n"
-        with Suc.hyps have "f m \<le> f n" .
-        also from ge f_ax have "\<dots> < f (Suc n)"
-          by (rule le_less_trans)
-        finally show ?thesis by simp
-      next
-        assume "m = Suc n"
-        then show ?thesis by simp
-      qed
+      case 0
+      then show ?thesis by simp
     qed
-  } note mono = this
+  qed
+
+  have mono: "m \<le> n \<Longrightarrow> f m \<le> f n" for m n :: nat
+  proof (induct n)
+    case 0
+    then have "m = 0" by simp
+    then show ?case by simp
+  next
+    case (Suc n)
+    from Suc.prems show "f m \<le> f (Suc n)"
+    proof (rule le_SucE)
+      assume "m \<le> n"
+      with Suc.hyps have "f m \<le> f n" .
+      also from ge f_ax have "\<dots> < f (Suc n)"
+        by (rule le_less_trans)
+      finally show ?thesis by simp
+    next
+      assume "m = Suc n"
+      then show ?thesis by simp
+    qed
+  qed
 
   show "f n \<le> n"
   proof -

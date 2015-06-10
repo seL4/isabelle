@@ -33,11 +33,10 @@ sig
   val enter_chain: state -> state
   val enter_backward: state -> state
   val has_bottom_goal: state -> bool
-  val pretty_state: int -> state -> Pretty.T list
+  val pretty_state: state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
-  val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
@@ -89,11 +88,6 @@ sig
   val apply_end: Method.text -> state -> state Seq.seq
   val apply_results: Method.text_range -> state -> state Seq.result Seq.seq
   val apply_end_results: Method.text_range -> state -> state Seq.result Seq.seq
-  val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
-    (context -> 'a -> attribute) ->
-    (context -> 'b list -> (term list list * (indexname * term) list)) ->
-    string -> Method.text option -> (thm list list -> state -> state) ->
-    ((binding * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text_range option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
@@ -110,21 +104,33 @@ sig
   val global_immediate_proof: state -> context
   val global_skip_proof: bool -> state -> context
   val global_done_proof: state -> context
-  val have: Method.text option -> (thm list list -> state -> state) ->
+  val internal_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
+    Proof_Context.mode -> string -> Method.text option ->
+    (context * thm list list -> state -> state) ->
+    (binding * typ option * mixfix) list ->
+    (Thm.binding * (term * term list) list) list ->
+    (Thm.binding * (term * term list) list) list -> state -> state
+  val have: Method.text option -> (context * thm list list -> state -> state) ->
+    (binding * typ option * mixfix) list ->
+    (Thm.binding * (term * term list) list) list ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
-  val have_cmd: Method.text option -> (thm list list -> state -> state) ->
+  val have_cmd: Method.text option -> (context * thm list list -> state -> state) ->
+    (binding * string option * mixfix) list ->
+    (Attrib.binding * (string * string list) list) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val show: Method.text option -> (thm list list -> state -> state) ->
+  val show: Method.text option -> (context * thm list list -> state -> state) ->
+    (binding * typ option * mixfix) list ->
+    (Thm.binding * (term * term list) list) list ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> state
-  val show_cmd: Method.text option -> (thm list list -> state -> state) ->
+  val show_cmd: Method.text option -> (context * thm list list -> state -> state) ->
+    (binding * string option * mixfix) list ->
+    (Attrib.binding * (string * string list) list) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
   val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
-  val local_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
-    state -> state
-  val global_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
-    state -> context
+  val local_future_terminal_proof: Method.text_range * Method.text_range option -> state -> state
+  val global_future_terminal_proof: Method.text_range * Method.text_range option -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -156,8 +162,8 @@ and goal =
     goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
     after_qed:
-      (thm list list -> state -> state) *
-      (thm list list -> context -> context)};
+      ((context * thm list list) -> state -> state) *
+      ((context * thm list list) -> context -> context)};
 
 fun make_goal (statement, using, goal, before_qed, after_qed) =
   Goal {statement = statement, using = using, goal = goal,
@@ -282,7 +288,7 @@ val enter_backward = put_mode Backward;
 
 fun current_goal state =
   (case top state of
-    {context, goal = SOME (Goal goal), ...} => (context, goal)
+    {context = ctxt, goal = SOME (Goal goal), ...} => (ctxt, goal)
   | _ => error "No current goal");
 
 fun assert_current_goal g state =
@@ -362,13 +368,12 @@ fun pretty_sep prts [] = prts
 
 in
 
-fun pretty_state nr state =
+fun pretty_state state =
   let
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun prt_goal (SOME (_, (_,
-      {statement = ((_, pos), _, _), using, goal, before_qed = _, after_qed = _}))) =
+    fun prt_goal (SOME (_, (_, {using, goal, ...}))) =
           pretty_sep
             (pretty_facts ctxt "using"
               (if mode <> Backward orelse null using then NONE else SOME using))
@@ -455,13 +460,13 @@ fun FINDGOAL tac st =
 
 in
 
-fun refine_goals print_rule inner raw_rules state =
+fun refine_goals print_rule result_ctxt result state =
   let
-    val (outer, (_, goal)) = get_goal state;
-    fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac outer rule) st);
+    val (goal_ctxt, (_, goal)) = get_goal state;
+    fun refine rule st = (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
   in
-    raw_rules
-    |> Proof_Context.goal_export inner outer
+    result
+    |> Proof_Context.goal_export result_ctxt goal_ctxt
     |> (fn rules => Seq.lift provide_goal (EVERY (map refine rules) goal) state)
   end;
 
@@ -769,7 +774,7 @@ fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
   in
     state'
     |> assume assumptions
-    |> map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
+    |> map_context (fold Variable.unbind_term Auto_Bind.no_facts)
     |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
   end;
 
@@ -910,90 +915,133 @@ fun refine_terms n =
 
 in
 
-fun generic_goal prep_propp kind before_qed after_qed propp state =
+fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds state =
   let
-    val ctxt = context_of state;
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
-
-    val (propss, binds) = prep_propp ctxt propp;
-    val props = flat propss;
 
     val goal_state =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> open_block
-      |> map_context (fold Variable.auto_fixes props #> Proof_Context.bind_terms binds);
-    val goal_ctxt = context_of goal_state;
+      |> map_context (K goal_ctxt);
+    val goal_props = flat goal_propss;
 
-    val vars = implicit_vars props;
-    val propss' = vars :: propss;
+    val vars = implicit_vars goal_props;
+    val propss' = vars :: goal_propss;
     val goal_propss = filter_out null propss';
     val goal =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
-      |> Thm.cterm_of ctxt
+      |> Thm.cterm_of goal_ctxt
       |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
     val statement = ((kind, pos), propss', Thm.term_of goal);
+
     val after_qed' = after_qed |>> (fn after_local => fn results =>
-      map_context (Proof_Context.export_bind_terms binds goal_ctxt) #> after_local results);
+      map_context (fold Variable.maybe_bind_term result_binds) #> after_local results);
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
     |> set_goal (make_goal (statement, [], Goal.init goal, before_qed, after_qed'))
-    |> map_context (Proof_Context.auto_bind_goal props)
+    |> map_context (Proof_Context.auto_bind_goal goal_props)
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
     |> open_block
     |> reset_goal
     |> enter_backward
     |> not (null vars) ? refine_terms (length goal_propss)
-    |> null props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
+    |> null goal_props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
-fun generic_qed after_ctxt state =
+fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, stmt, _), goal, after_qed, ...}) = current_goal state;
-    val outer_state = state |> close_block;
-    val outer_ctxt = context_of outer_state;
-
-    val props =
-      flat (tl stmt)
-      |> Variable.exportT_terms goal_ctxt outer_ctxt;
-    val results =
-      tl (conclude_goal goal_ctxt goal stmt)
-      |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
-  in
-    outer_state
-    |> map_context (after_ctxt props)
-    |> pair (after_qed, results)
-  end;
+    val (goal_ctxt, {statement = (_, propss, _), goal, after_qed, ...}) =
+      current_goal state;
+    val results = tl (conclude_goal goal_ctxt goal propss);
+  in state |> close_block |> pair (after_qed, (goal_ctxt, results)) end;
 
 end;
 
 
 (* local goals *)
 
-fun local_goal print_results prep_att prep_propp kind before_qed after_qed stmt state =
-  let
-    val ((names, attss), propp) =
-      Attrib.map_specs (map (prep_att (context_of state))) stmt |> split_list |>> split_list;
+local
 
-    fun after_qed' results =
-      local_results ((names ~~ attss) ~~ results)
-      #-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
-      #> after_qed results;
-  in
-    state
-    |> map_context (Variable.set_body true)
-    |> generic_goal prep_propp kind before_qed (after_qed', K I) propp
-    |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
-  end;
+fun export_binds ctxt' ctxt binds =
+  let
+    val rhss =
+      map (the_list o snd) binds
+      |> burrow (Variable.export_terms ctxt' ctxt)
+      |> map (try the_single);
+  in map fst binds ~~ rhss end;
+
+in
+
+fun local_goal print_results prep_att prep_propp prep_var
+    kind before_qed after_qed raw_fixes raw_assumes raw_shows state =
+  let
+    val ctxt = context_of state;
+
+    val (assumes_bindings, shows_bindings) =
+      apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
+    val (assumes_propp, shows_propp) = apply2 (map snd) (raw_assumes, raw_shows);
+
+    val (goal_ctxt, goal_propss, result_binds) =
+      let
+        (*fixed variables*)
+        val ((xs', vars), fix_ctxt) = ctxt
+          |> fold_map prep_var raw_fixes
+          |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
+
+        (*propositions with term bindings*)
+        val (all_propss, binds) = prep_propp fix_ctxt (assumes_propp @ shows_propp);
+        val (assumes_propss, shows_propss) = chop (length assumes_propp) all_propss;
+
+        (*params*)
+        val (ps, params_ctxt) = fix_ctxt
+          |> (fold o fold) Variable.declare_term all_propss
+          |> fold Variable.bind_term binds
+          |> fold_map Proof_Context.inferred_param xs';
+        val xs = map (Variable.check_name o #1) vars;
+        val params = xs ~~ map Free ps;
+
+        (*prems*)
+        val goal_ctxt = params_ctxt
+          |> fold_burrow (Assumption.add_assms Assumption.assume_export)
+              ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
+          |> (fn (premss, ctxt') => ctxt'
+                |> not (null assumes_propss) ?
+                  (snd o Proof_Context.note_thmss ""
+                    [((Binding.name Auto_Bind.premsN, []),
+                      [(Assumption.local_prems_of ctxt' ctxt, [])])])
+                |> (snd o Proof_Context.note_thmss ""
+                    (assumes_bindings ~~ map (map (fn th => ([th], []))) premss)));
+
+        val _ = Variable.warn_extra_tfrees fix_ctxt goal_ctxt;
+
+        (*result term bindings*)
+        val shows_props = flat shows_propss;
+        val binds' =
+          (case try List.last shows_props of
+            NONE => []
+          | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds);
+        val result_binds =
+          (Auto_Bind.facts goal_ctxt shows_props @ binds')
+          |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
+          |> export_binds goal_ctxt ctxt;
+      in (goal_ctxt, shows_propss, result_binds) end;
+
+    fun after_qed' (result_ctxt, results) state' = state'
+      |> local_results (shows_bindings ~~ burrow (Proof_Context.export result_ctxt ctxt) results)
+      |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
+      |> after_qed (result_ctxt, results);
+  in generic_goal kind before_qed (after_qed', K I) goal_ctxt goal_propss result_binds state end;
+
+end;
 
 fun local_qeds arg =
   end_proof false arg
-  #> Seq.map_result (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results));
+  #> Seq.map_result (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
 
 fun local_qed arg =
   local_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
@@ -1001,17 +1049,27 @@ fun local_qed arg =
 
 (* global goals *)
 
-fun global_goal prep_propp before_qed after_qed propp =
-  init
-  #> generic_goal (prep_propp o Proof_Context.set_mode Proof_Context.mode_schematic) ""
-    before_qed (K I, after_qed) propp;
+fun global_goal prep_propp before_qed after_qed propp ctxt =
+  let
+    val (propss, binds) =
+      prep_propp (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) propp;
+    val goal_ctxt = ctxt
+      |> (fold o fold) Variable.auto_fixes propss
+      |> fold Variable.bind_term binds;
+    fun after_qed' (result_ctxt, results) ctxt' =
+      after_qed (burrow (Proof_Context.export result_ctxt ctxt') results) ctxt';
+  in
+    ctxt
+    |> init
+    |> generic_goal "" before_qed (K I, after_qed') goal_ctxt propss []
+  end;
 
 val theorem = global_goal Proof_Context.cert_propp;
 val theorem_cmd = global_goal Proof_Context.read_propp;
 
 fun global_qeds arg =
   end_proof true arg
-  #> Seq.map_result (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
+  #> Seq.map_result (generic_qed #> (fn (((_, after_qed), results), state) =>
     after_qed results (context_of state)));
 
 fun global_qed arg =
@@ -1054,13 +1112,19 @@ fun global_skip_proof int state =
 
 (* common goal statements *)
 
+fun internal_goal print_results mode =
+  local_goal print_results (K I) (Proof_Context.cert_propp o Proof_Context.set_mode mode)
+    Proof_Context.cert_var;
+
 local
 
-fun gen_have prep_att prep_propp before_qed after_qed stmt int =
+fun gen_have prep_att prep_propp prep_var
+    before_qed after_qed fixes assumes shows int =
   local_goal (Proof_Display.print_results int (Position.thread_data ()))
-    prep_att prep_propp "have" before_qed after_qed stmt;
+    prep_att prep_propp prep_var "have" before_qed after_qed fixes assumes shows;
 
-fun gen_show prep_att prep_propp before_qed after_qed stmt int state =
+fun gen_show prep_att prep_propp prep_var
+    before_qed after_qed fixes assumes shows int state =
   let
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
@@ -1085,13 +1149,14 @@ fun gen_show prep_att prep_propp before_qed after_qed stmt int state =
       |> Unsynchronized.setmp testing true
       |> Exn.interruptible_capture;
 
-    fun after_qed' results =
-      refine_goals print_rule (context_of state) (flat results)
-      #> check_result "Failed to refine any pending goal"
-      #> after_qed results;
+    fun after_qed' (result_ctxt, results) state' = state'
+      |> refine_goals print_rule result_ctxt (flat results)
+      |> check_result "Failed to refine any pending goal"
+      |> after_qed (result_ctxt, results);
   in
     state
-    |> local_goal print_results prep_att prep_propp "show" before_qed after_qed' stmt
+    |> local_goal print_results prep_att prep_propp prep_var
+      "show" before_qed after_qed' fixes assumes shows
     |> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res _ => goal_state
@@ -1100,10 +1165,10 @@ fun gen_show prep_att prep_propp before_qed after_qed stmt int state =
 
 in
 
-val have = gen_have (K I) Proof_Context.cert_propp;
-val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.read_propp;
-val show = gen_show (K I) Proof_Context.cert_propp;
-val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.read_propp;
+val have = gen_have (K I) Proof_Context.cert_propp Proof_Context.cert_var;
+val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.read_propp Proof_Context.read_var;
+val show = gen_show (K I) Proof_Context.cert_propp Proof_Context.cert_var;
+val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.read_propp Proof_Context.read_var;
 
 end;
 
@@ -1147,28 +1212,22 @@ in
 fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
-    val (goal_ctxt, (_, goal)) = find_goal state;
-    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal;
-    val goal_tfrees =
-      fold Term.add_tfrees
-        (prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt)) [];
+    val (goal_ctxt, (_, goal_info)) = find_goal state;
+    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
-    val prop' = Logic.protect prop;
-    val statement' = (kind, [[], [prop']], prop');
-    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal) (Goal.protect (Thm.nprems_of goal) goal);
-    val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
-
+    val after_qed' =
+      (fn (_, [[th]]) => map_context (set_result th),
+       fn (_, [[th]]) => set_result th);
     val result_ctxt =
       state
       |> map_context reset_result
-      |> map_goal I (K (statement', using, goal', before_qed, after_qed'))
-        (fold (Variable.declare_typ o TFree) goal_tfrees)
+      |> map_goal I (K ((kind, [[], [prop]], prop), using, goal, before_qed, after_qed')) I
       |> fork_proof;
 
     val future_thm = Future.map (the_result o snd) result_ctxt;
-    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
+    val finished_goal = Goal.protect 0 (Goal.future_result goal_ctxt future_thm prop);
     val state' =
       state
       |> map_goal I (K (statement, using, finished_goal, NONE, after_qed)) I;
@@ -1181,7 +1240,7 @@ end;
 
 local
 
-fun future_terminal_proof proof1 proof2 done int state =
+fun future_terminal_proof proof1 proof2 done state =
   if Goal.future_enabled 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
       let

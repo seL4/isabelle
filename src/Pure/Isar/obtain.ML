@@ -119,22 +119,22 @@ fun gen_obtain prep_att prep_var prep_propp
     val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
-    val (asm_propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
-    val asm_props = flat asm_propss;
-    val declare_asms = fold Variable.declare_term asm_props #> Proof_Context.bind_terms binds;
+    val (propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
+    val props = flat propss;
+    val declare_asms =
+      fold Variable.declare_term props #>
+      fold Variable.bind_term binds;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att fix_ctxt) raw_atts)) raw_asms ~~
-      map (map (rpair [])) asm_propss;
+      map (map (rpair [])) propss;
 
     (*obtain params*)
-    val (Ts, params_ctxt) = fold_map Proof_Context.inferred_param xs' (declare_asms fix_ctxt);
-    val params = map Free (xs' ~~ Ts);
+    val (params, params_ctxt) =
+      declare_asms fix_ctxt |> fold_map Proof_Context.inferred_param xs' |>> map Free;
     val cparams = map (Thm.cterm_of params_ctxt) params;
-    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
+    val binds' = (map o apsnd) (fold_rev Term.dependent_lambda_name (xs ~~ params)) binds;
 
-    (*abstracted term bindings*)
-    val abs_term = Term.close_schematic_term o fold_rev Term.lambda_name (xs ~~ params);
-    val binds' = map (apsnd abs_term) binds;
+    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
     (*obtain statements*)
     val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
@@ -143,7 +143,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
-        (fold_rev Logic.all params (Logic.list_implies (asm_props, thesis)));
+        (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
     val obtain_prop =
       Logic.list_rename_params [Auto_Bind.thesisN]
         (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
@@ -157,15 +157,15 @@ fun gen_obtain prep_att prep_var prep_propp
   in
     state
     |> Proof.enter_forward
-    |> Proof.have NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
-    |> Proof.map_context (Proof_Context.bind_terms binds')
+    |> Proof.have NONE (K I) [] [] [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.map_context (fold Variable.bind_term binds')
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume
       [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
-    ||> Proof.show NONE after_qed [(Thm.empty_binding, [(thesis, [])])] false
+    ||> Proof.show NONE after_qed [] [] [(Thm.empty_binding, [(thesis, [])])] false
     |-> Proof.refine_insert
   end;
 
@@ -261,7 +261,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 fun inferred_type (binding, _, mx) ctxt =
   let
     val x = Variable.check_name binding;
-    val (T, ctxt') = Proof_Context.inferred_param x ctxt
+    val ((_, T), ctxt') = Proof_Context.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
 fun polymorphic ctxt vars =
@@ -297,7 +297,7 @@ fun gen_guess prep_var raw_vars int state =
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
           (obtain_export fix_ctxt rule (map (Thm.cterm_of ctxt) ts))
             [(Thm.empty_binding, asms)])
-        |> Proof.map_context (Proof_Context.maybe_bind_terms Auto_Bind.no_facts)
+        |> Proof.map_context (fold Variable.unbind_term Auto_Bind.no_facts)
       end;
 
     val goal = Var (("guess", 0), propT);
@@ -308,16 +308,21 @@ fun gen_guess prep_var raw_vars int state =
       Method.primitive_text (fn ctxt =>
         Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
           (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th)));
-    fun after_qed [[_, res]] =
-      Proof.end_block #> guess_context (check_result ctxt thesis res);
+    fun after_qed (result_ctxt, results) state' =
+      let val [_, res] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results)
+      in
+        state'
+        |> Proof.end_block
+        |> guess_context (check_result ctxt thesis res)
+      end;
   in
     state
     |> Proof.enter_forward
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.local_goal print_result (K I) (K (rpair []))
-      "guess" (SOME before_qed) after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
+    |> Proof.internal_goal print_result Proof_Context.mode_schematic "guess"
+      (SOME before_qed) after_qed [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
     |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
         Goal.init (Thm.cterm_of ctxt thesis))) |> Seq.hd
   end;

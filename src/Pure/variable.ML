@@ -24,7 +24,9 @@ sig
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
   val declare_thm: thm -> Proof.context -> Proof.context
   val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
-  val bind_term: indexname * term option -> Proof.context -> Proof.context
+  val bind_term: indexname * term -> Proof.context -> Proof.context
+  val unbind_term: indexname -> Proof.context -> Proof.context
+  val maybe_bind_term: indexname * term option -> Proof.context -> Proof.context
   val expand_binds: Proof.context -> term -> term
   val lookup_const: Proof.context -> string -> string option
   val is_const: Proof.context -> string -> bool
@@ -274,12 +276,16 @@ fun variant_frees ctxt ts frees =
 
 (** term bindings **)
 
-fun bind_term (xi, NONE) = map_binds (Vartab.delete_safe xi)
-  | bind_term ((x, i), SOME t) =
-      let
-        val u = Term.close_schematic_term t;
-        val U = Term.fastype_of u;
-      in declare_term u #> map_binds (Vartab.update ((x, i), (U, u))) end;
+fun bind_term ((x, i), t) =
+  let
+    val u = Term.close_schematic_term t;
+    val U = Term.fastype_of u;
+  in declare_term u #> map_binds (Vartab.update ((x, i), (U, u))) end;
+
+val unbind_term = map_binds o Vartab.delete_safe;
+
+fun maybe_bind_term (xi, SOME t) = bind_term (xi, t)
+  | maybe_bind_term (xi, NONE) = unbind_term xi;
 
 fun expand_binds ctxt =
   let
@@ -638,9 +644,8 @@ fun focus_cterm goal ctxt =
 fun focus_subgoal i st =
   let
     val all_vars = Thm.fold_terms Term.add_vars st [];
-    val no_binds = map (fn (xi, _) => (xi, NONE)) all_vars;
   in
-    fold bind_term no_binds #>
+    fold (unbind_term o #1) all_vars #>
     fold (declare_constraints o Var) all_vars #>
     focus_cterm (Thm.cprem_of st i)
   end;

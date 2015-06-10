@@ -432,19 +432,22 @@ text \<open>
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) (goal | statement)
+     @@{command schematic_corollary}) (stmt | statement)
     ;
-    (@@{command have} | @@{command show} | @@{command hence} | @@{command thus}) goal
+    (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
+      stmt if_prems @{syntax for_fixes}
     ;
     @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
   
-    goal: (@{syntax props} + @'and')
+    stmt: (@{syntax props} + @'and')
+    ;
+    if_prems: (@'if' stmt)?
     ;
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion
     ;
-    conclusion: @'shows' goal | @'obtains' (@{syntax par_name}? obtain_case + '|')
+    conclusion: @'shows' stmt | @'obtains' (@{syntax par_name}? obtain_case + '|')
     ;
     obtain_case: (@{syntax vars} + @'and') @'where' (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}

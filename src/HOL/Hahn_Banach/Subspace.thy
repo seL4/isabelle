@@ -132,7 +132,7 @@ proof
   qed
   fix x y assume x: "x \<in> U" and y: "y \<in> U"
   from uv and x y show "x + y \<in> U" by (rule subspace.add_closed)
-  from uv and x show "\<And>a. a \<cdot> x \<in> U" by (rule subspace.mult_closed)
+  from uv and x show "a \<cdot> x \<in> U" for a by (rule subspace.mult_closed)
 qed
 
 
@@ -152,8 +152,10 @@ lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"
 lemma linI' [iff]: "a \<cdot> x \<in> lin x"
   unfolding lin_def by blast
 
-lemma linE [elim]: "x \<in> lin v \<Longrightarrow> (\<And>a::real. x = a \<cdot> v \<Longrightarrow> C) \<Longrightarrow> C"
-  unfolding lin_def by blast
+lemma linE [elim]:
+  assumes "x \<in> lin v"
+  obtains a :: real where "x = a \<cdot> v"
+  using assms unfolding lin_def by blast
 
 
 text \<open>Every vector is contained in its linear closure.\<close>
@@ -263,7 +265,7 @@ proof -
     qed
     fix x y assume x: "x \<in> U" and "y \<in> U"
     then show "x + y \<in> U" by simp
-    from x show "\<And>a. a \<cdot> x \<in> U" by simp
+    from x show "a \<cdot> x \<in> U" for a by simp
   qed
 qed
 
