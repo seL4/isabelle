@@ -1,4 +1,4 @@
-section {* polynomial functions: extremal behaviour and root counts *}
+section \<open>polynomial functions: extremal behaviour and root counts\<close>
 
 (*  Author: John Harrison and Valentina Bruno
     Ported from "hol_light/Multivariate/complexes.ml" by L C Paulson
@@ -9,7 +9,7 @@ imports Complex_Main
 
 begin
 
-subsection{*Geometric progressions*}
+subsection\<open>Geometric progressions\<close>
 
 lemma setsum_gp_basic:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -35,7 +35,7 @@ proof -
   have "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i=m..n. x^(i-m))"
     by (simp add: setsum_right_distrib power_add [symmetric])
   also have "(\<Sum>i=m..n. x^(i-m)) = (\<Sum>i\<le>n-m. x^i)"
-    using `m \<le> n` by (intro setsum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
+    using \<open>m \<le> n\<close> by (intro setsum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
   finally show ?thesis .
 qed
 
@@ -76,7 +76,7 @@ lemma setsum_gp_strict:
   shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
   by (induct n) (auto simp: algebra_simps divide_simps)
     
-subsection{*Basics about polynomial functions: extremal behaviour and root counts.*}
+subsection\<open>Basics about polynomial functions: extremal behaviour and root counts.\<close>
 
 lemma sub_polyfun:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -203,7 +203,7 @@ next
       then have "\<bar>B\<bar> * 2 + 2 \<le> norm z * norm (c (Suc n))"
         by (metis False pos_divide_le_eq zero_less_norm_iff)
       then have "\<bar>B\<bar> * 2 + 2 \<le> norm z ^ (Suc n) * norm (c (Suc n))" 
-        by (metis `1 \<le> norm z` order.trans mult_right_mono norm_ge_zero self_le_power zero_less_Suc)
+        by (metis \<open>1 \<le> norm z\<close> order.trans mult_right_mono norm_ge_zero self_le_power zero_less_Suc)
       then show "B \<le> norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * (z * z ^ n))" using M les
         apply auto
         apply (rule norm_lemma_xy [where a = "norm (c (Suc n)) * norm z ^ (Suc n) / 2"])

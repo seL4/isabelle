@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section {* Traces, Determinant of square matrices and some properties *}
+section \<open>Traces, Determinant of square matrices and some properties\<close>
 
 theory Determinants
 imports
@@ -10,7 +10,7 @@ imports
   "~~/src/HOL/Library/Permutations"
 begin
 
-subsection{* First some facts about products*}
+subsection\<open>First some facts about products\<close>
 
 lemma setprod_add_split:
   fixes m n :: nat
@@ -78,7 +78,7 @@ lemma setprod_le_1:
   using setprod_le[OF fS f] unfolding setprod.neutral_const .
 
 
-subsection {* Trace *}
+subsection \<open>Trace\<close>
 
 definition trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
   where "trace A = setsum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
@@ -101,14 +101,14 @@ lemma trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)
   apply (simp add: mult.commute)
   done
 
-text {* Definition of determinant. *}
+text \<open>Definition of determinant.\<close>
 
 definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
     setsum (\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
       {p. p permutes (UNIV :: 'n set)}"
 
-text {* A few general lemmas we need below. *}
+text \<open>A few general lemmas we need below.\<close>
 
 lemma setprod_permute:
   assumes p: "p permutes S"
@@ -120,7 +120,7 @@ lemma setproduct_permute_nat_interval:
   shows "p permutes {m..n} \<Longrightarrow> setprod f {m..n} = setprod (f \<circ> p) {m..n}"
   by (blast intro!: setprod_permute)
 
-text {* Basic determinant properties. *}
+text \<open>Basic determinant properties.\<close>
 
 lemma det_transpose: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
 proof -
@@ -555,10 +555,10 @@ proof -
     done
 qed
 
-text {*
+text \<open>
   May as well do this, though it's a bit unsatisfactory since it ignores
   exact duplicates by considering the rows/columns as a set.
-*}
+\<close>
 
 lemma det_dependent_rows:
   fixes A:: "real^'n^'n"
@@ -598,7 +598,7 @@ lemma det_dependent_columns:
   shows "det A = 0"
   by (metis d det_dependent_rows rows_transpose det_transpose)
 
-text {* Multilinearity and the multiplication formula. *}
+text \<open>Multilinearity and the multiplication formula.\<close>
 
 lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (vec_lambda f::'a^'n) = (vec_lambda g :: 'a^'n)"
   by (rule iffD1[OF vec_lambda_unique]) vector
@@ -673,7 +673,7 @@ next
   have thif2: "\<And>a b c d e. (if a then b else if c then d else e) =
      (if c then (if a then b else d) else (if a then b else e))"
     by simp
-  from `z \<notin> T` have nz: "\<And>i. i \<in> T \<Longrightarrow> i = z \<longleftrightarrow> False"
+  from \<open>z \<notin> T\<close> have nz: "\<And>i. i \<in> T \<Longrightarrow> i = z \<longleftrightarrow> False"
     by auto
   have "det (\<chi> i. if i \<in> insert z T then setsum (a i) S else c i) =
     det (\<chi> i. if i = z then setsum (a i) S else if i \<in> T then setsum (a i) S else c i)"
@@ -691,7 +691,7 @@ next
                                 else c i))"
     unfolding insert.hyps unfolding setsum.cartesian_product by blast
   show ?case unfolding tha
-    using `z \<notin> T`
+    using \<open>z \<notin> T\<close>
     by (intro setsum.reindex_bij_witness[where i="?k" and j="?h"])
        (auto intro!: cong[OF refl[of det]] simp: vec_eq_iff)
 qed
@@ -852,7 +852,7 @@ proof -
   finally show ?thesis unfolding th2 .
 qed
 
-text {* Relation to invertibility. *}
+text \<open>Relation to invertibility.\<close>
 
 lemma invertible_left_inverse:
   fixes A :: "real^'n^'n"
@@ -922,7 +922,7 @@ proof -
     by blast
 qed
 
-text {* Cramer's rule. *}
+text \<open>Cramer's rule.\<close>
 
 lemma cramer_lemma_transpose:
   fixes A:: "real^'n^'n"
@@ -1010,7 +1010,7 @@ proof -
     by auto
 qed
 
-text {* Orthogonality of a transformation and matrix. *}
+text \<open>Orthogonality of a transformation and matrix.\<close>
 
 definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
@@ -1118,7 +1118,7 @@ proof -
   then show ?thesis unfolding th .
 qed
 
-text {* Linearity of scaling, and hence isometry, that preserves origin. *}
+text \<open>Linearity of scaling, and hence isometry, that preserves origin.\<close>
 
 lemma scaling_linear:
   fixes f :: "real ^'n \<Rightarrow> real ^'n"
@@ -1146,7 +1146,7 @@ lemma isometry_linear:
   "f (0:: real^'n) = (0:: real^'n) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
   by (rule scaling_linear[where c=1]) simp_all
 
-text {* Hence another formulation of orthogonal transformation. *}
+text \<open>Hence another formulation of orthogonal transformation.\<close>
 
 lemma orthogonal_transformation_isometry:
   "orthogonal_transformation f \<longleftrightarrow> f(0::real^'n) = (0::real^'n) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
@@ -1164,7 +1164,7 @@ lemma orthogonal_transformation_isometry:
   apply (simp add: dist_norm)
   done
 
-text {* Can extend an isometry from unit sphere. *}
+text \<open>Can extend an isometry from unit sphere.\<close>
 
 lemma isometry_sphere_extend:
   fixes f:: "real ^'n \<Rightarrow> real ^'n"
@@ -1262,7 +1262,7 @@ proof -
     done
 qed
 
-text {* Rotation, reflection, rotoinversion. *}
+text \<open>Rotation, reflection, rotoinversion.\<close>
 
 definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
 definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
@@ -1272,7 +1272,7 @@ lemma orthogonal_rotation_or_rotoinversion:
   shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
   by (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
 
-text {* Explicit formulas for low dimensions. *}
+text \<open>Explicit formulas for low dimensions.\<close>
 
 lemma setprod_neutral_const: "setprod f {(1::nat)..1} = f 1"
   by (fact setprod_singleton_nat_seg)

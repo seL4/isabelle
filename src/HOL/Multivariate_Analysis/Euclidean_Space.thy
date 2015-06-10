@@ -3,7 +3,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section {* Finite-Dimensional Inner Product Spaces *}
+section \<open>Finite-Dimensional Inner Product Spaces\<close>
 
 theory Euclidean_Space
 imports
@@ -12,7 +12,7 @@ imports
   "~~/src/HOL/Library/Product_Vector"
 begin
 
-subsection {* Type class of Euclidean spaces *}
+subsection \<open>Type class of Euclidean spaces\<close>
 
 class euclidean_space = real_inner +
   fixes Basis :: "'a set"
@@ -95,7 +95,7 @@ qed auto
 lemma DIM_positive: "0 < DIM('a::euclidean_space)"
   by (simp add: card_gt_0_iff)
 
-subsection {* Subclass relationships *}
+subsection \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space
 proof
@@ -107,18 +107,18 @@ proof
     def y \<equiv> "x + scaleR (e/2) (SOME b. b \<in> Basis)"
     have [simp]: "(SOME b. b \<in> Basis) \<in> Basis"
       by (rule someI_ex) (auto simp: ex_in_conv)
-    from `0 < e` have "y \<noteq> x"
+    from \<open>0 < e\<close> have "y \<noteq> x"
       unfolding y_def by (auto intro!: nonzero_Basis)
-    from `0 < e` have "dist y x < e"
+    from \<open>0 < e\<close> have "dist y x < e"
       unfolding y_def by (simp add: dist_norm)
-    from `y \<noteq> x` and `dist y x < e` show "False"
+    from \<open>y \<noteq> x\<close> and \<open>dist y x < e\<close> show "False"
       using e by simp
   qed
 qed
 
-subsection {* Class instances *}
+subsection \<open>Class instances\<close>
 
-subsubsection {* Type @{typ real} *}
+subsubsection \<open>Type @{typ real}\<close>
 
 instantiation real :: euclidean_space
 begin
@@ -134,7 +134,7 @@ end
 lemma DIM_real[simp]: "DIM(real) = 1"
   by simp
 
-subsubsection {* Type @{typ complex} *}
+subsubsection \<open>Type @{typ complex}\<close>
 
 instantiation complex :: euclidean_space
 begin
@@ -150,7 +150,7 @@ end
 lemma DIM_complex[simp]: "DIM(complex) = 2"
   unfolding Basis_complex_def by simp
 
-subsubsection {* Type @{typ "'a \<times> 'b"} *}
+subsubsection \<open>Type @{typ "'a \<times> 'b"}\<close>
 
 instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin

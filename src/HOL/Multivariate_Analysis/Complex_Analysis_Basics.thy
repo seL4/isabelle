@@ -2,7 +2,7 @@
     Ported from "hol_light/Multivariate/canal.ml" by L C Paulson (2014)
 *)
 
-section {* Complex Analysis Basics *}
+section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
 imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"
@@ -12,7 +12,7 @@ begin
 lemma cmod_fact [simp]: "cmod (fact n) = fact n"
   by (metis norm_of_nat of_nat_fact)
 
-subsection{*General lemmas*}
+subsection\<open>General lemmas\<close>
 
 lemma has_derivative_mult_right:
   fixes c:: "'a :: real_normed_algebra"
@@ -141,7 +141,7 @@ lemma continuous_within_norm_id [continuous_intros]: "continuous (at x within S)
 lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
   by (intro continuous_on_id continuous_on_norm)
 
-subsection{*DERIV stuff*}
+subsection\<open>DERIV stuff\<close>
 
 lemma DERIV_zero_connected_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
@@ -211,7 +211,7 @@ lemma DERIV_zero_UNIV_unique:
   shows "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a" 
 by (metis DERIV_zero_unique UNIV_I assms convex_UNIV)
 
-subsection {*Some limit theorems about real part of real series etc.*}
+subsection \<open>Some limit theorems about real part of real series etc.\<close>
 
 (*MOVE? But not to Finite_Cartesian_Product*)
 lemma sums_vec_nth :
@@ -226,7 +226,7 @@ lemma summable_vec_nth :
 using assms unfolding summable_def
 by (blast intro: sums_vec_nth)
 
-subsection {*Complex number lemmas *}
+subsection \<open>Complex number lemmas\<close>
 
 lemma
   shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
@@ -289,7 +289,7 @@ lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g ---> 0) F" shows "(f ---> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
 
-subsection{*Holomorphic functions*}
+subsection\<open>Holomorphic functions\<close>
 
 definition complex_differentiable :: "[complex \<Rightarrow> complex, complex filter] \<Rightarrow> bool"
            (infixr "(complex'_differentiable)" 50)  
@@ -406,7 +406,7 @@ lemma complex_differentiable_within_open:
   unfolding complex_differentiable_def
   by (metis at_within_open)
 
-subsection{*Caratheodory characterization.*}
+subsection\<open>Caratheodory characterization.\<close>
 
 lemma complex_differentiable_caratheodory_at:
   "f complex_differentiable (at z) \<longleftrightarrow>
@@ -420,7 +420,7 @@ lemma complex_differentiable_caratheodory_within:
   using DERIV_caratheodory_within [of f]
   by (simp add: complex_differentiable_def has_field_derivative_def)
 
-subsection{*Holomorphic*}
+subsection\<open>Holomorphic\<close>
 
 definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
            (infixl "(holomorphic'_on)" 50)
@@ -578,7 +578,7 @@ apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_c
 apply (simp add: algebra_simps)
 done
 
-subsection{*Analyticity on a set*}
+subsection\<open>Analyticity on a set\<close>
 
 definition analytic_on (infixl "(analytic'_on)" 50)  
   where
@@ -777,7 +777,7 @@ lemma analytic_on_setsum:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) analytic_on s"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 
-subsection{*analyticity at a point.*}
+subsection\<open>analyticity at a point.\<close>
 
 lemma analytic_at_ball:
   "f analytic_on {z} \<longleftrightarrow> (\<exists>e. 0<e \<and> f holomorphic_on ball z e)"
@@ -812,7 +812,7 @@ next
     by (force simp add: analytic_at)
 qed
 
-subsection{*Combining theorems for derivative with ``analytic at'' hypotheses*}
+subsection\<open>Combining theorems for derivative with ``analytic at'' hypotheses\<close>
 
 lemma 
   assumes "f analytic_on {z}" "g analytic_on {z}"
@@ -848,7 +848,7 @@ lemma complex_derivative_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
 by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_const)
 
-subsection{*Complex differentiation of sequences and series*}
+subsection\<open>Complex differentiation of sequences and series\<close>
 
 lemma has_complex_derivative_sequence:
   fixes s :: "complex set"
@@ -930,7 +930,7 @@ proof -
   qed
 qed
 
-subsection{*Bound theorem*}
+subsection\<open>Bound theorem\<close>
 
 lemma complex_differentiable_bound:
   fixes s :: "complex set"
@@ -946,7 +946,7 @@ lemma complex_differentiable_bound:
   apply fact
   done
 
-subsection{*Inverse function theorem for complex derivatives.*}
+subsection\<open>Inverse function theorem for complex derivatives.\<close>
 
 lemma has_complex_derivative_inverse_basic:
   fixes f :: "complex \<Rightarrow> complex"
@@ -991,7 +991,7 @@ lemma has_complex_derivative_inverse_strong_x:
   using assms 
   by auto
 
-subsection {* Taylor on Complex Numbers *}
+subsection \<open>Taylor on Complex Numbers\<close>
 
 lemma setsum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1055,7 +1055,7 @@ proof -
                 has_field_derivative f (Suc n) u * (z-u) ^ n / (fact n))
                (at u within s)"
       apply (intro derivative_eq_intros)
-      apply (blast intro: assms `u \<in> s`)
+      apply (blast intro: assms \<open>u \<in> s\<close>)
       apply (rule refl)+
       apply (auto simp: field_simps)
       done
@@ -1092,7 +1092,7 @@ proof -
   finally show ?thesis .
 qed
 
-text{* Something more like the traditional MVT for real components.*}
+text\<open>Something more like the traditional MVT for real components.\<close>
 
 lemma complex_mvt_line:
   assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"
@@ -1167,7 +1167,7 @@ proof -
 qed
 
 
-subsection {* Polynomal function extremal theorem, from HOL Light*}
+subsection \<open>Polynomal function extremal theorem, from HOL Light\<close>
 
 lemma polyfun_extremal_lemma: (*COMPLEX_POLYFUN_EXTREMAL_LEMMA in HOL Light*)
     fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
@@ -1235,7 +1235,7 @@ next
       then have z2: "\<bar>B\<bar> \<le> norm (c (Suc m)) * norm z / 2"
         using False by (simp add: field_simps)
       have nz: "norm z \<le> norm z ^ Suc m"
-        by (metis `1 \<le> norm z` One_nat_def less_eq_Suc_le power_increasing power_one_right zero_less_Suc)
+        by (metis \<open>1 \<le> norm z\<close> One_nat_def less_eq_Suc_le power_increasing power_one_right zero_less_Suc)
       have *: "\<And>y x. norm (c (Suc m)) * norm z / 2 \<le> norm y - norm x \<Longrightarrow> B \<le> norm (x + y)"
         by (metis abs_le_iff add.commute norm_diff_ineq order_trans z2)
       have "norm z * norm (c (Suc m)) + 2 * norm (\<Sum>i\<le>m. c i * z^i)

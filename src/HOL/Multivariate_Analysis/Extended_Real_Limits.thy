@@ -5,7 +5,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-section {* Limits on the Extended real number line *}
+section \<open>Limits on the Extended real number line\<close>
 
 theory Extended_Real_Limits
   imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real" "~~/src/HOL/Library/Indicator_Function"
@@ -50,7 +50,7 @@ proof -
      using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"]
      by auto
   then show ?thesis
-    using `subseq r` by auto
+    using \<open>subseq r\<close> by auto
 qed
 
 lemma compact_UNIV:
@@ -155,7 +155,7 @@ lemma ereal_open_uminus:
   fixes S :: "ereal set"
   assumes "open S"
   shows "open (uminus ` S)"
-  using `open S`[unfolded open_generated_order]
+  using \<open>open S\<close>[unfolded open_generated_order]
 proof induct
   have "range uminus = (UNIV :: ereal set)"
     by (auto simp: image_iff ereal_uminus_eq_reorder)
@@ -195,7 +195,7 @@ proof (rule ccontr)
   {
     assume "Inf S = \<infinity>"
     then have "S = {\<infinity>}"
-      by (metis Inf_eq_PInfty `S \<noteq> {}`)
+      by (metis Inf_eq_PInfty \<open>S \<noteq> {}\<close>)
     then have False
       by (metis assms(1) not_open_singleton)
   }
@@ -252,7 +252,7 @@ lemma ereal_open_affinity_pos:
 proof -
   have "open ((\<lambda>x. inverse m * (x + -t)) -` S)"
     using m t
-    apply (intro open_vimage `open S`)
+    apply (intro open_vimage \<open>open S\<close>)
     apply (intro continuous_at_imp_continuous_on ballI tendsto_cmult_ereal continuous_at[THEN iffD2]
                  tendsto_ident_at tendsto_add_left_ereal)
     apply auto
@@ -277,17 +277,17 @@ lemma ereal_open_affinity:
 proof cases
   assume "0 < m"
   then show ?thesis
-    using ereal_open_affinity_pos[OF `open S` _ _ t, of m] m
+    using ereal_open_affinity_pos[OF \<open>open S\<close> _ _ t, of m] m
     by auto
 next
   assume "\<not> 0 < m" then
   have "0 < -m"
-    using `m \<noteq> 0`
+    using \<open>m \<noteq> 0\<close>
     by (cases m) auto
   then have m: "-m \<noteq> \<infinity>" "0 < -m"
-    using `\<bar>m\<bar> \<noteq> \<infinity>`
+    using \<open>\<bar>m\<bar> \<noteq> \<infinity>\<close>
     by (auto simp: ereal_uminus_eq_reorder)
-  from ereal_open_affinity_pos[OF ereal_open_uminus[OF `open S`] m t] show ?thesis
+  from ereal_open_affinity_pos[OF ereal_open_uminus[OF \<open>open S\<close>] m t] show ?thesis
     unfolding image_image by simp
 qed
 
@@ -439,7 +439,7 @@ lemma SUP_eq_LIMSEQ:
   shows "(SUP n. ereal (f n)) = ereal x \<longleftrightarrow> f ----> x"
 proof
   have inc: "incseq (\<lambda>i. ereal (f i))"
-    using `mono f` unfolding mono_def incseq_def by auto
+    using \<open>mono f\<close> unfolding mono_def incseq_def by auto
   {
     assume "f ----> x"
     then have "(\<lambda>i. ereal (f i)) ----> ereal x"
@@ -468,10 +468,10 @@ next
     apply (subst SUP_ereal_minus_right)
     apply auto
     done
-qed (insert `c \<noteq> -\<infinity>`, simp)
+qed (insert \<open>c \<noteq> -\<infinity>\<close>, simp)
 
 
-subsubsection {* Continuity *}
+subsubsection \<open>Continuity\<close>
 
 lemma continuous_at_of_ereal:
   fixes x0 :: ereal
@@ -607,7 +607,7 @@ proof -
         using cInf_lower[of _ S] ex by (metis bdd_below_def)
       then have "Inf S \<in> S"
         apply (subst closed_contains_Inf)
-        using ex `S \<noteq> {}` `closed S`
+        using ex \<open>S \<noteq> {}\<close> \<open>closed S\<close>
         apply auto
         done
       then have "\<forall>x. Inf S \<le> x \<longleftrightarrow> x \<in> S"
@@ -676,7 +676,7 @@ proof -
 qed
 
 
-subsection {* Sums *}
+subsection \<open>Sums\<close>
 
 lemma sums_ereal_positive:
   fixes f :: "nat \<Rightarrow> ereal"
@@ -767,7 +767,7 @@ proof (safe intro!: suminf_bound)
   have "setsum f {..<n} \<le> setsum g {..<n}"
     using assms by (auto intro: setsum_mono)
   also have "\<dots> \<le> suminf g"
-    using `\<And>N. 0 \<le> g N`
+    using \<open>\<And>N. 0 \<le> g N\<close>
     by (rule suminf_upper)
   finally show "setsum f {..<n} \<le> suminf g" .
 qed (rule assms(2))
@@ -867,8 +867,8 @@ proof -
       using ord[of i] by auto
   }
   moreover
-  from suminf_PInfty_fun[OF `\<And>i. 0 \<le> f i` fin(1)] obtain f' where [simp]: "f = (\<lambda>x. ereal (f' x))" ..
-  from suminf_PInfty_fun[OF `\<And>i. 0 \<le> g i` fin(2)] obtain g' where [simp]: "g = (\<lambda>x. ereal (g' x))" ..
+  from suminf_PInfty_fun[OF \<open>\<And>i. 0 \<le> f i\<close> fin(1)] obtain f' where [simp]: "f = (\<lambda>x. ereal (f' x))" ..
+  from suminf_PInfty_fun[OF \<open>\<And>i. 0 \<le> g i\<close> fin(2)] obtain g' where [simp]: "g = (\<lambda>x. ereal (g' x))" ..
   {
     fix i
     have "0 \<le> f i - g i"
@@ -880,7 +880,7 @@ proof -
   then have "suminf (\<lambda>i. f i - g i) \<noteq> \<infinity>"
     using fin by auto
   ultimately show ?thesis
-    using assms `\<And>i. 0 \<le> f i`
+    using assms \<open>\<And>i. 0 \<le> f i\<close>
     apply simp
     apply (subst (1 2 3) suminf_ereal)
     apply (auto intro!: suminf_diff[symmetric] summable_ereal)
@@ -976,7 +976,7 @@ proof
       using nneg
       by (auto intro!: suminf_le_pos)
     finally have False
-      using `(\<Sum>i. f i) = 0` by auto
+      using \<open>(\<Sum>i. f i) = 0\<close> by auto
   }
   then show "\<forall>i. f i = 0"
     by auto
@@ -992,7 +992,7 @@ proof (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
   then show "\<exists>r>0. INFIMUM (Collect P) f \<le> INFIMUM (S \<inter> ball x r - {x}) f"
-    by (intro exI[of _ d] INF_mono conjI `0 < d`) auto
+    by (intro exI[of _ d] INF_mono conjI \<open>0 < d\<close>) auto
 next
   fix d :: real
   assume "0 < d"
@@ -1012,7 +1012,7 @@ proof (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
   then show "\<exists>r>0. SUPREMUM (S \<inter> ball x r - {x}) f \<le> SUPREMUM (Collect P) f"
-    by (intro exI[of _ d] SUP_mono conjI `0 < d`) auto
+    by (intro exI[of _ d] SUP_mono conjI \<open>0 < d\<close>) auto
 next
   fix d :: real
   assume "0 < d"
@@ -1089,7 +1089,7 @@ proof-
   thus "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>" by simp_all
 qed
 
-subsection {* monoset *}
+subsection \<open>monoset\<close>
 
 definition (in order) mono_set:
   "mono_set S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
@@ -1111,7 +1111,7 @@ proof
   proof cases
     assume "a \<in> S"
     show ?c
-      using mono[OF _ `a \<in> S`]
+      using mono[OF _ \<open>a \<in> S\<close>]
       by (auto intro: Inf_lower simp: a_def)
   next
     assume "a \<notin> S"
@@ -1121,7 +1121,7 @@ proof
       then have "a \<le> x"
         unfolding a_def by (rule Inf_lower)
       then show "a < x"
-        using `x \<in> S` `a \<notin> S` by (cases "a = x") auto
+        using \<open>x \<in> S\<close> \<open>a \<notin> S\<close> by (cases "a = x") auto
     next
       fix x assume "a < x"
       then obtain y where "y < x" "y \<in> S"
@@ -1251,7 +1251,7 @@ next
         using om by auto
       then have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"
         unfolding B
-        using `x0 \<le> liminf x` liminf_bounded_iff
+        using \<open>x0 \<le> liminf x\<close> liminf_bounded_iff
         by auto
     }
     ultimately have "\<exists>N. \<forall>n\<ge>N. x n \<in> S"

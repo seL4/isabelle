@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen (translation from HOL light)
 *)
 
-section {* Fashoda meet theorem *}
+section \<open>Fashoda meet theorem\<close>
 
 theory Fashoda
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
@@ -16,7 +16,7 @@ lemma cart_eq_inner_axis: "a $ i = a \<bullet> axis i 1"
 lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
   by (auto simp add: Basis_vec_def axis_eq_axis)
 
-subsection {*Bijections between intervals. *}
+subsection \<open>Bijections between intervals.\<close>
 
 definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
   where "interval_bij =
@@ -78,7 +78,7 @@ lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \
   using assms by (intro interval_bij_bij) (auto simp: Basis_vec_def inner_axis)
 
 
-subsection {* Fashoda meet theorem *}
+subsection \<open>Fashoda meet theorem\<close>
 
 lemma infnorm_2:
   fixes x :: "real^2"
@@ -560,7 +560,7 @@ next
 qed
 
 
-subsection {* Some slightly ad hoc lemmas I use below *}
+subsection \<open>Some slightly ad hoc lemmas I use below\<close>
 
 lemma segment_vertical:
   fixes a :: "real^2"
@@ -627,7 +627,7 @@ proof -
       then show ?L
         apply (rule_tac x="(x$2 - a$2) / (b$2 - a$2)" in exI)
         unfolding assms True
-        using `?R`
+        using \<open>?R\<close>
         apply (auto simp add: field_simps)
         done
     next
@@ -635,7 +635,7 @@ proof -
       then show ?L
         apply (rule_tac x="1 - (x$2 - b$2) / (a$2 - b$2)" in exI)
         unfolding assms
-        using `?R`
+        using \<open>?R\<close>
         apply (auto simp add: field_simps)
         done
     qed
@@ -708,7 +708,7 @@ proof -
       then show ?L
         apply (rule_tac x="(x$1 - a$1) / (b$1 - a$1)" in exI)
         unfolding assms True
-        using `?R`
+        using \<open>?R\<close>
         apply (auto simp add: field_simps)
         done
     next
@@ -716,7 +716,7 @@ proof -
       then show ?L
         apply (rule_tac x="1 - (x$1 - b$1) / (a$1 - b$1)" in exI)
         unfolding assms
-        using `?R`
+        using \<open>?R\<close>
         apply (auto simp add: field_simps)
         done
     qed
@@ -724,7 +724,7 @@ proof -
 qed
 
 
-subsection {* Useful Fashoda corollary pointed out to me by Tom Hales *}
+subsection \<open>Useful Fashoda corollary pointed out to me by Tom Hales\<close>
 
 lemma fashoda_interlace:
   fixes a :: "real^2"

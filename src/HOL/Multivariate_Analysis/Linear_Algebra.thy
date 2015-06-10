@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section {* Elementary linear algebra on Euclidean spaces *}
+section \<open>Elementary linear algebra on Euclidean spaces\<close>
 
 theory Linear_Algebra
 imports
@@ -31,7 +31,7 @@ lemma square_continuous:
   using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
   by (force simp add: power2_eq_square)
 
-text{* Hence derive more interesting properties of the norm. *}
+text\<open>Hence derive more interesting properties of the norm.\<close>
 
 lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
   by simp (* TODO: delete *)
@@ -55,7 +55,7 @@ lemma norm_eq: "norm x = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet
 lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> x \<bullet> x = 1"
   by (simp add: norm_eq_sqrt_inner)
 
-text{* Squaring equations and inequalities involving norms.  *}
+text\<open>Squaring equations and inequalities involving norms.\<close>
 
 lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
   by (simp only: power2_norm_eq_inner) (* TODO: move? *)
@@ -81,7 +81,7 @@ lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> x \<bullet>
 lemma norm_gt_square: "norm x > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
   by (metis norm_le_square not_less)
 
-text{* Dot product in terms of the norm rather than conversely. *}
+text\<open>Dot product in terms of the norm rather than conversely.\<close>
 
 lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left
   inner_scaleR_left inner_scaleR_right
@@ -93,7 +93,7 @@ lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (n
   unfolding power2_norm_eq_inner inner_simps inner_commute
   by (auto simp add: algebra_simps)
 
-text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
+text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
 
 lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -173,7 +173,7 @@ proof
 qed simp
 
 
-subsection {* Orthogonality. *}
+subsection \<open>Orthogonality.\<close>
 
 context real_inner
 begin
@@ -199,7 +199,7 @@ lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def inner_commute)
 
 
-subsection {* Linear functions. *}
+subsection \<open>Linear functions.\<close>
 
 lemma linear_iff:
   "linear f \<longleftrightarrow> (\<forall>x y. f (x + y) = f x + f y) \<and> (\<forall>c x. f (c *\<^sub>R x) = c *\<^sub>R f x)"
@@ -301,7 +301,7 @@ proof -
 qed
 
 
-subsection {* Bilinear functions. *}
+subsection \<open>Bilinear functions.\<close>
 
 definition "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
@@ -364,7 +364,7 @@ proof -
 qed
 
 
-subsection {* Adjoints. *}
+subsection \<open>Adjoints.\<close>
 
 definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
@@ -389,10 +389,10 @@ next
   then show "h = g" by (simp add: ext)
 qed
 
-text {* TODO: The following lemmas about adjoints should hold for any
+text \<open>TODO: The following lemmas about adjoints should hold for any
 Hilbert space (i.e. complete inner product space).
 (see @{url "http://en.wikipedia.org/wiki/Hermitian_adjoint"})
-*}
+\<close>
 
 lemma adjoint_works:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
@@ -437,7 +437,7 @@ lemma adjoint_adjoint:
   by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
 
-subsection {* Interlude: Some properties of real sets *}
+subsection \<open>Interlude: Some properties of real sets\<close>
 
 lemma seq_mono_lemma:
   assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
@@ -480,7 +480,7 @@ proof -
 qed
 
 
-subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
+subsection \<open>A generic notion of "hull" (convex, affine, conic hull and closure).\<close>
 
 definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
   where "S hull s = \<Inter>{t. S t \<and> s \<subseteq> t}"
@@ -547,7 +547,7 @@ lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) 
   by (metis hull_redundant_eq)
 
 
-subsection {* Archimedean properties and useful consequences *}
+subsection \<open>Archimedean properties and useful consequences\<close>
 
 lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
   unfolding real_of_nat_def by (rule ex_le_of_nat)
@@ -607,7 +607,7 @@ proof (cases "x > 0")
   with x1 have ix: "1 < 1/x" by (simp add: field_simps)
   from real_arch_pow[OF ix, of "1/y"]
   obtain n where n: "1/y < (1/x)^n" by blast
-  then show ?thesis using y `x > 0`
+  then show ?thesis using y \<open>x > 0\<close>
     by (auto simp add: field_simps)
 next
   case False
@@ -651,7 +651,7 @@ proof (rule ccontr)
 qed
 
 
-subsection{* A bit of linear algebra. *}
+subsection\<open>A bit of linear algebra.\<close>
 
 definition (in real_vector) subspace :: "'a set \<Rightarrow> bool"
   where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x \<in> S. \<forall>y \<in> S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in> S. c *\<^sub>R x \<in> S)"
@@ -660,7 +660,7 @@ definition (in real_vector) "span S = (subspace hull S)"
 definition (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span (S - {a}))"
 abbreviation (in real_vector) "independent s \<equiv> \<not> dependent s"
 
-text {* Closure properties of subspaces. *}
+text \<open>Closure properties of subspaces.\<close>
 
 lemma subspace_UNIV[simp]: "subspace UNIV"
   by (simp add: subspace_def)
@@ -718,7 +718,7 @@ lemma (in real_vector) subspace_inter: "subspace A \<Longrightarrow> subspace B 
 lemma subspace_Times: "subspace A \<Longrightarrow> subspace B \<Longrightarrow> subspace (A \<times> B)"
   unfolding subspace_def zero_prod_def by simp
 
-text {* Properties of span. *}
+text \<open>Properties of span.\<close>
 
 lemma (in real_vector) span_mono: "A \<subseteq> B \<Longrightarrow> span A \<subseteq> span B"
   by (metis span_def hull_mono)
@@ -863,7 +863,7 @@ lemma span_induct_alt:
   shows "h x"
   using span_induct_alt'[of h S] h0 hS x by blast
 
-text {* Individual closure properties. *}
+text \<open>Individual closure properties.\<close>
 
 lemma span_span: "span (span A) = span A"
   unfolding span_def hull_hull ..
@@ -902,7 +902,7 @@ lemma (in real_vector) span_setsum: "\<forall>x\<in>A. f x \<in> span S \<Longri
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
   by (metis add_minus_cancel scaleR_minus1_left subspace_def subspace_span)
 
-text {* Mapping under linear image. *}
+text \<open>Mapping under linear image.\<close>
 
 lemma span_linear_image:
   assumes lf: "linear f"
@@ -938,7 +938,7 @@ next
     by (auto intro!: subspace_add elim: span_induct)
 qed
 
-text {* The key breakdown property. *}
+text \<open>The key breakdown property.\<close>
 
 lemma span_singleton: "span {x} = range (\<lambda>k. k *\<^sub>R x)"
 proof (rule span_unique)
@@ -976,7 +976,7 @@ lemma span_breakdown:
 lemma span_breakdown_eq: "x \<in> span (insert a S) \<longleftrightarrow> (\<exists>k. x - k *\<^sub>R a \<in> span S)"
   by (simp add: span_insert)
 
-text {* Hence some "reversal" results. *}
+text \<open>Hence some "reversal" results.\<close>
 
 lemma in_span_insert:
   assumes a: "a \<in> span (insert b S)"
@@ -995,7 +995,7 @@ proof -
     from k have "(- inverse k) *\<^sub>R (a - k *\<^sub>R b) \<in> span S"
       by (rule span_mul)
     then have "b - inverse k *\<^sub>R a \<in> span S"
-      using `k \<noteq> 0` by (simp add: scaleR_diff_right)
+      using \<open>k \<noteq> 0\<close> by (simp add: scaleR_diff_right)
     then show ?thesis
       unfolding span_insert by fast
   qed
@@ -1013,7 +1013,7 @@ lemma in_span_delete:
   apply (rule na)
   done
 
-text {* Transitivity property. *}
+text \<open>Transitivity property.\<close>
 
 lemma span_redundant: "x \<in> span S \<Longrightarrow> span (insert x S) = span S"
   unfolding span_def by (rule hull_redundant)
@@ -1027,7 +1027,7 @@ lemma span_trans:
 lemma span_insert_0[simp]: "span (insert 0 S) = span S"
   by (simp only: span_redundant span_0)
 
-text {* An explicit expansion is sometimes needed. *}
+text \<open>An explicit expansion is sometimes needed.\<close>
 
 lemma span_explicit:
   "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
@@ -1168,7 +1168,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-text {* This is useful for building a basis step-by-step. *}
+text \<open>This is useful for building a basis step-by-step.\<close>
 
 lemma independent_insert:
   "independent (insert a S) \<longleftrightarrow>
@@ -1201,7 +1201,7 @@ next
   qed
 qed
 
-text {* The degenerate case of the Exchange Lemma. *}
+text \<open>The degenerate case of the Exchange Lemma.\<close>
 
 lemma spanning_subset_independent:
   assumes BA: "B \<subseteq> A"
@@ -1240,7 +1240,7 @@ proof
   then show "A \<subseteq> B" by blast
 qed
 
-text {* The general case of the Exchange Lemma, the key to what follows. *}
+text \<open>The general case of the Exchange Lemma, the key to what follows.\<close>
 
 lemma exchange_lemma:
   assumes f:"finite t"
@@ -1250,7 +1250,7 @@ lemma exchange_lemma:
   using f i sp
 proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   case less
-  note ft = `finite t` and s = `independent s` and sp = `s \<subseteq> span t`
+  note ft = \<open>finite t\<close> and s = \<open>independent s\<close> and sp = \<open>s \<subseteq> span t\<close>
   let ?P = "\<lambda>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
   let ?ths = "\<exists>t'. ?P t'"
   {
@@ -1347,7 +1347,7 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   ultimately show ?ths by blast
 qed
 
-text {* This implies corresponding size bounds. *}
+text \<open>This implies corresponding size bounds.\<close>
 
 lemma independent_span_bound:
   assumes f: "finite t"
@@ -1367,7 +1367,7 @@ proof -
 qed
 
 
-subsection {* Euclidean Spaces as Typeclass *}
+subsection \<open>Euclidean Spaces as Typeclass\<close>
 
 lemma independent_Basis: "independent Basis"
   unfolding dependent_def
@@ -1429,7 +1429,7 @@ proof -
 qed
 
 
-subsection {* Linearity and Bilinearity continued *}
+subsection \<open>Linearity and Bilinearity continued\<close>
 
 lemma linear_bounded:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -1473,7 +1473,7 @@ proof
   show "bounded_linear f"
   proof
     have "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
-      using `linear f` by (rule linear_bounded)
+      using \<open>linear f\<close> by (rule linear_bounded)
     then show "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
       by (simp add: mult.commute)
   qed
@@ -1540,24 +1540,24 @@ proof
   proof
     fix x y z
     show "h (x + y) z = h x z + h y z"
-      using `bilinear h` unfolding bilinear_def linear_iff by simp
+      using \<open>bilinear h\<close> unfolding bilinear_def linear_iff by simp
   next
     fix x y z
     show "h x (y + z) = h x y + h x z"
-      using `bilinear h` unfolding bilinear_def linear_iff by simp
+      using \<open>bilinear h\<close> unfolding bilinear_def linear_iff by simp
   next
     fix r x y
     show "h (scaleR r x) y = scaleR r (h x y)"
-      using `bilinear h` unfolding bilinear_def linear_iff
+      using \<open>bilinear h\<close> unfolding bilinear_def linear_iff
       by simp
   next
     fix r x y
     show "h x (scaleR r y) = scaleR r (h x y)"
-      using `bilinear h` unfolding bilinear_def linear_iff
+      using \<open>bilinear h\<close> unfolding bilinear_def linear_iff
       by simp
   next
     have "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
-      using `bilinear h` by (rule bilinear_bounded)
+      using \<open>bilinear h\<close> by (rule bilinear_bounded)
     then show "\<exists>K. \<forall>x y. norm (h x y) \<le> norm x * norm y * K"
       by (simp add: ac_simps)
   qed
@@ -1582,7 +1582,7 @@ proof -
 qed
 
 
-subsection {* We continue. *}
+subsection \<open>We continue.\<close>
 
 lemma independent_bound:
   fixes S :: "'a::euclidean_space set"
@@ -1600,7 +1600,7 @@ lemma dependent_biggerset:
   shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
   by (metis independent_bound not_less)
 
-text {* Hence we can create a maximal independent subset. *}
+text \<open>Hence we can create a maximal independent subset.\<close>
 
 lemma maximal_independent_subset_extend:
   fixes S :: "'a::euclidean_space set"
@@ -1610,7 +1610,7 @@ lemma maximal_independent_subset_extend:
   using sv iS
 proof (induct "DIM('a) - card S" arbitrary: S rule: less_induct)
   case less
-  note sv = `S \<subseteq> V` and i = `independent S`
+  note sv = \<open>S \<subseteq> V\<close> and i = \<open>independent S\<close>
   let ?P = "\<lambda>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   let ?ths = "\<exists>x. ?P x"
   let ?d = "DIM('a)"
@@ -1647,7 +1647,7 @@ lemma maximal_independent_subset:
     empty_subsetI independent_empty)
 
 
-text {* Notion of dimension. *}
+text \<open>Notion of dimension.\<close>
 
 definition "dim V = (SOME n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> card B = n)"
 
@@ -1662,7 +1662,7 @@ corollary dim_le_card:
   shows "finite s \<Longrightarrow> dim s \<le> card s"
 by (metis basis_exists card_mono)
 
-text {* Consequences of independence or spanning for cardinality. *}
+text \<open>Consequences of independence or spanning for cardinality.\<close>
 
 lemma independent_card_le_dim:
   fixes B :: "'a::euclidean_space set"
@@ -1670,12 +1670,12 @@ lemma independent_card_le_dim:
     and "independent B"
   shows "card B \<le> dim V"
 proof -
-  from basis_exists[of V] `B \<subseteq> V`
+  from basis_exists[of V] \<open>B \<subseteq> V\<close>
   obtain B' where "independent B'"
     and "B \<subseteq> span B'"
     and "card B' = dim V"
     by blast
-  with independent_span_bound[OF _ `independent B` `B \<subseteq> span B'`] independent_bound[of B']
+  with independent_span_bound[OF _ \<open>independent B\<close> \<open>B \<subseteq> span B'\<close>] independent_bound[of B']
   show ?thesis by auto
 qed
 
@@ -1694,7 +1694,7 @@ lemma dim_unique:
   shows "B \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
   by (metis basis_card_eq_dim)
 
-text {* More lemmas about dimension. *}
+text \<open>More lemmas about dimension.\<close>
 
 lemma dim_UNIV: "dim (UNIV :: 'a::euclidean_space set) = DIM('a)"
   using independent_Basis
@@ -1711,7 +1711,7 @@ lemma dim_subset_UNIV:
   shows "dim S \<le> DIM('a)"
   by (metis dim_subset subset_UNIV dim_UNIV)
 
-text {* Converses to those. *}
+text \<open>Converses to those.\<close>
 
 lemma card_ge_dim_independent:
   fixes B :: "'a::euclidean_space set"
@@ -1779,7 +1779,7 @@ lemma card_eq_dim:
   shows "B \<subseteq> V \<Longrightarrow> card B = dim V \<Longrightarrow> finite B \<Longrightarrow> independent B \<longleftrightarrow> V \<subseteq> span B"
   by (metis order_eq_iff card_le_dim_spanning card_ge_dim_independent)
 
-text {* More general size bound lemmas. *}
+text \<open>More general size bound lemmas.\<close>
 
 lemma independent_bound_general:
   fixes S :: "'a::euclidean_space set"
@@ -1845,7 +1845,7 @@ proof -
   finally show ?thesis .
 qed
 
-text {* Relation between bases and injectivity/surjectivity of map. *}
+text \<open>Relation between bases and injectivity/surjectivity of map.\<close>
 
 lemma spanning_surjective_image:
   assumes us: "UNIV \<subseteq> span S"
@@ -1882,7 +1882,7 @@ proof -
     unfolding dependent_def by blast
 qed
 
-text {* Picking an orthogonal replacement for a spanning set. *}
+text \<open>Picking an orthogonal replacement for a spanning set.\<close>
 
 (* FIXME : Move to some general theory ?*)
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
@@ -1913,8 +1913,8 @@ proof (induct rule: finite_induct)
     done
 next
   case (insert a B)
-  note fB = `finite B` and aB = `a \<notin> B`
-  from `\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C`
+  note fB = \<open>finite B\<close> and aB = \<open>a \<notin> B\<close>
+  from \<open>\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C\<close>
   obtain C where C: "finite C" "card C \<le> card B"
     "span C = span B" "pairwise orthogonal C" by blast
   let ?a = "a - setsum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *\<^sub>R x) C"
@@ -1950,14 +1950,14 @@ next
     have "orthogonal ?a y"
       unfolding orthogonal_def
       unfolding inner_diff inner_setsum_left right_minus_eq
-      unfolding setsum.remove [OF `finite C` `y \<in> C`]
+      unfolding setsum.remove [OF \<open>finite C\<close> \<open>y \<in> C\<close>]
       apply (clarsimp simp add: inner_commute[of y a])
       apply (rule setsum.neutral)
       apply clarsimp
       apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-      using `y \<in> C` by auto
+      using \<open>y \<in> C\<close> by auto
   }
-  with `pairwise orthogonal C` have CPO: "pairwise orthogonal ?C"
+  with \<open>pairwise orthogonal C\<close> have CPO: "pairwise orthogonal ?C"
     by (rule pairwise_orthogonal_insert)
   from fC cC SC CPO have "?P (insert a B) ?C"
     by blast
@@ -1998,7 +1998,7 @@ lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and
   using span_inc[unfolded subset_eq] using span_mono[of T "span S"] span_mono[of S "span T"]
   by (auto simp add: span_span)
 
-text {* Low-dimensional subset is in a hyperplane (weak orthogonal complement). *}
+text \<open>Low-dimensional subset is in a hyperplane (weak orthogonal complement).\<close>
 
 lemma span_not_univ_orthogonal:
   fixes S :: "'a::euclidean_space set"
@@ -2081,7 +2081,7 @@ proof -
   from span_not_univ_subset_hyperplane[OF th] show ?thesis .
 qed
 
-text {* We can extend a linear basis-basis injection to the whole set. *}
+text \<open>We can extend a linear basis-basis injection to the whole set.\<close>
 
 lemma linear_indep_image_lemma:
   assumes lf: "linear f"
@@ -2144,7 +2144,7 @@ next
   from "2.hyps"(3)[OF fb ifb fib xsb "2.prems"(5)] show "x = 0" .
 qed
 
-text {* We can extend a linear mapping from basis. *}
+text \<open>We can extend a linear mapping from basis.\<close>
 
 lemma linear_independent_extend_lemma:
   fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
@@ -2290,7 +2290,7 @@ proof -
     done
 qed
 
-text {* Can construct an isomorphism between spaces of same dimension. *}
+text \<open>Can construct an isomorphism between spaces of same dimension.\<close>
 
 lemma subspace_isomorphism:
   fixes S :: "'a::euclidean_space set"
@@ -2307,7 +2307,7 @@ proof -
   obtain C where C: "C \<subseteq> T" "independent C" "T \<subseteq> span C" "card C = dim T" and fC: "finite C"
     by blast
   from B(4) C(4) card_le_inj[of B C] d
-  obtain f where f: "f ` B \<subseteq> C" "inj_on f B" using `finite B` `finite C`
+  obtain f where f: "f ` B \<subseteq> C" "inj_on f B" using \<open>finite B\<close> \<open>finite C\<close>
     by auto
   from linear_independent_extend[OF B(2)]
   obtain g where g: "linear g" "\<forall>x\<in> B. g x = f x"
@@ -2346,7 +2346,7 @@ proof -
     by blast
 qed
 
-text {* Linear functions are equal on a subspace if they are on a spanning set. *}
+text \<open>Linear functions are equal on a subspace if they are on a spanning set.\<close>
 
 lemma subspace_kernel:
   assumes lf: "linear f"
@@ -2389,7 +2389,7 @@ lemma linear_eq_stdbasis:
   shows "f = g"
   using linear_eq[OF lf lg, of _ Basis] fg by auto
 
-text {* Similar results for bilinear functions. *}
+text \<open>Similar results for bilinear functions.\<close>
 
 lemma bilinear_eq:
   assumes bf: "bilinear f"
@@ -2427,7 +2427,7 @@ lemma bilinear_eq_stdbasis:
   shows "f = g"
   using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
 
-text {* Detailed theorems about left and right invertibility in general case. *}
+text \<open>Detailed theorems about left and right invertibility in general case.\<close>
 
 lemma linear_injective_left_inverse:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2464,7 +2464,7 @@ proof -
     using h(1) by blast
 qed
 
-text {* An injective map @{typ "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"} is also surjective. *}
+text \<open>An injective map @{typ "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"} is also surjective.\<close>
 
 lemma linear_injective_imp_surjective:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
@@ -2494,7 +2494,7 @@ proof -
     using B(3) by blast
 qed
 
-text {* And vice versa. *}
+text \<open>And vice versa.\<close>
 
 lemma surjective_iff_injective_gen:
   assumes fS: "finite S"
@@ -2599,7 +2599,7 @@ proof -
     by blast
 qed
 
-text {* Hence either is enough for isomorphism. *}
+text \<open>Hence either is enough for isomorphism.\<close>
 
 lemma left_right_inverse_eq:
   assumes fg: "f \<circ> g = id"
@@ -2638,8 +2638,8 @@ lemma linear_surjective_isomorphism:
     linear_injective_left_inverse[OF lf linear_surjective_imp_injective[OF lf sf]]
   by (metis left_right_inverse_eq)
 
-text {* Left and right inverses are the same for
-  @{typ "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"}. *}
+text \<open>Left and right inverses are the same for
+  @{typ "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"}.\<close>
 
 lemma linear_inverse_left:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
@@ -2663,7 +2663,7 @@ proof -
     using lf lf' by metis
 qed
 
-text {* Moreover, a one-sided inverse is automatically linear. *}
+text \<open>Moreover, a one-sided inverse is automatically linear.\<close>
 
 lemma left_inverse_linear:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
@@ -2687,7 +2687,7 @@ proof -
 qed
 
 
-subsection {* Infinity norm *}
+subsection \<open>Infinity norm\<close>
 
 definition "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
 
@@ -2792,7 +2792,7 @@ lemma infnorm_mul_lemma: "infnorm (a *\<^sub>R x) \<le> \<bar>a\<bar> * infnorm 
 lemma infnorm_pos_lt: "infnorm x > 0 \<longleftrightarrow> x \<noteq> 0"
   using infnorm_pos_le[of x] infnorm_eq_0[of x] by arith
 
-text {* Prove that it differs only up to a bound from Euclidean norm. *}
+text \<open>Prove that it differs only up to a bound from Euclidean norm.\<close>
 
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
   by (simp add: Basis_le_norm infnorm_Max)
@@ -2838,7 +2838,7 @@ proof (rule tendsto_compose [OF LIM_I assms])
     by (metis real_norm_def le_less_trans real_abs_sub_infnorm infnorm_le_norm)
 qed
 
-text {* Equality in Cauchy-Schwarz and triangle inequalities. *}
+text \<open>Equality in Cauchy-Schwarz and triangle inequalities.\<close>
 
 lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -2928,7 +2928,7 @@ proof -
 qed
 
 
-subsection {* Collinearity *}
+subsection \<open>Collinearity\<close>
 
 definition collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"

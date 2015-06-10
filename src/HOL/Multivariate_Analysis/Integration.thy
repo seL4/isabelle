@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light)
 *)
 
-section {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
+section \<open>Kurzweil-Henstock Gauge Integration in many dimensions.\<close>
 
 theory Integration
 imports
@@ -81,7 +81,7 @@ lemma real_arch_invD:
   by (subst(asm) real_arch_inv)
 
 
-subsection {* Sundries *}
+subsection \<open>Sundries\<close>
 
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
@@ -139,7 +139,7 @@ proof safe
       case True
       show ?thesis
         apply (rule assms[OF Suc(1)[OF True]])
-        using `?r`
+        using \<open>?r\<close>
         apply auto
         done
     next
@@ -147,7 +147,7 @@ proof safe
       then have "m = n"
         using Suc(2) by auto
       then show ?thesis
-        using `?r` by auto
+        using \<open>?r\<close> by auto
     qed
   qed
 qed auto
@@ -180,7 +180,7 @@ proof safe
     show ?case
     proof (cases "m \<le> n")
       case True
-      with Suc.hyps `\<forall>n. R n (Suc n)` assms show ?thesis
+      with Suc.hyps \<open>\<forall>n. R n (Suc n)\<close> assms show ?thesis
         by blast
     next
       case False
@@ -205,7 +205,7 @@ proof -
 qed
 
 
-subsection {* Some useful lemmas about intervals. *}
+subsection \<open>Some useful lemmas about intervals.\<close>
 
 lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
   using nonempty_Basis
@@ -279,7 +279,7 @@ proof (clarsimp simp only: all_not_in_conv [symmetric])
           unfolding ab ball_min_Int by auto
         then have "ball x (min d e) \<subseteq> s \<inter> interior (\<Union>f)"
           using e unfolding lem1 unfolding  ball_min_Int by auto
-        then have "x \<in> s \<inter> interior (\<Union>f)" using `d>0` e by auto
+        then have "x \<in> s \<inter> interior (\<Union>f)" using \<open>d>0\<close> e by auto
         then have "\<exists>t\<in>f. \<exists>x e. 0 < e \<and> ball x e \<subseteq> s \<inter> t"
           using insert.hyps(3) insert.prems(1) by blast
         then show ?thesis by auto
@@ -407,10 +407,10 @@ proof (clarsimp simp only: all_not_in_conv [symmetric])
     using open_subset_interior[OF open_ball, of x e t]
     by auto
   then show False
-    using `t \<in> f` assms(4) by auto
+    using \<open>t \<in> f\<close> assms(4) by auto
 qed
 
-subsection {* Bounds on intervals where they exist. *}
+subsection \<open>Bounds on intervals where they exist.\<close>
 
 definition interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
@@ -473,7 +473,7 @@ proof-
       by (subst setsum_Basis_prod_eq) (auto simp add: setsum_prod)
 qed
 
-subsection {* Content (length, area, volume...) of an interval. *}
+subsection \<open>Content (length, area, volume...) of an interval.\<close>
 
 definition "content (s::('a::euclidean_space) set) =
   (if s = {} then 0 else (\<Prod>i\<in>Basis. (interval_upperbound s)\<bullet>i - (interval_lowerbound s)\<bullet>i))"
@@ -596,7 +596,7 @@ next
       by (metis diff_mono)
   ultimately show ?thesis
     unfolding content_def interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    by (simp add: setprod_mono if_not_P[OF False] if_not_P[OF `cbox c d \<noteq> {}`])
+    by (simp add: setprod_mono if_not_P[OF False] if_not_P[OF \<open>cbox c d \<noteq> {}\<close>])
 qed
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
@@ -617,7 +617,7 @@ proof (cases "A \<times> B = {}")
 qed (auto simp: content_def)
 
 
-subsection {* The notion of a gauge --- simply an open set containing the point. *}
+subsection \<open>The notion of a gauge --- simply an open set containing the point.\<close>
 
 definition "gauge d \<longleftrightarrow> (\<forall>x. x \<in> d x \<and> open (d x))"
 
@@ -662,7 +662,7 @@ lemma gauge_existence_lemma:
   by (metis zero_less_one)
 
 
-subsection {* Divisions. *}
+subsection \<open>Divisions.\<close>
 
 definition division_of (infixl "division'_of" 40)
 where
@@ -757,7 +757,7 @@ proof (rule division_ofI)
     then have kp: "k \<in> p"
       using assms(2) by auto
     show "k \<subseteq> \<Union>q"
-      using `k \<in> q` by auto
+      using \<open>k \<in> q\<close> by auto
     show "\<exists>a b. k = cbox a b"
       using *(4)[OF kp] by auto
     show "k \<noteq> {}"
@@ -989,7 +989,7 @@ proof
           assume "\<not> ?thesis"
           with f g have "f = g"
             by (auto simp: PiE_iff extensional_def intro!: ext)
-          with `l \<noteq> k` show False
+          with \<open>l \<noteq> k\<close> show False
             by (simp add: l k)
         qed
         then obtain i where *: "i \<in> Basis" "f i \<noteq> g i" ..
@@ -999,7 +999,7 @@ proof
         with * ord[of i] show "interior l \<inter> interior k = {}"
           by (auto simp add: l k interior_cbox disjoint_interval intro!: bexI[of _ i])
       }
-      note `k \<subseteq> cbox a b`
+      note \<open>k \<subseteq> cbox a b\<close>
     }
     moreover
     {
@@ -1149,7 +1149,7 @@ next
       apply (rule that[of "{cbox c d}"])
       unfolding *
       apply (rule division_disjoint_union)
-      using `cbox c d \<noteq> {}` True assms
+      using \<open>cbox c d \<noteq> {}\<close> True assms
       using interior_subset
       apply auto
       done
@@ -1428,7 +1428,7 @@ proof -
 qed
 
 
-subsection {* Tagged (partial) divisions. *}
+subsection \<open>Tagged (partial) divisions.\<close>
 
 definition tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
@@ -1555,15 +1555,15 @@ proof -
     fix x y
     assume "x\<in>p" "y\<in>p" "x\<noteq>y" "snd x = snd y"
     obtain a b where ab: "snd x = cbox a b"
-      using assm(4)[of "fst x" "snd x"] `x\<in>p` by auto
+      using assm(4)[of "fst x" "snd x"] \<open>x\<in>p\<close> by auto
     have "(fst x, snd y) \<in> p" "(fst x, snd y) \<noteq> y"
-      by (metis pair_collapse `x\<in>p` `snd x = snd y` `x \<noteq> y`)+
-    with `x\<in>p` `y\<in>p` have "interior (snd x) \<inter> interior (snd y) = {}"
+      by (metis pair_collapse \<open>x\<in>p\<close> \<open>snd x = snd y\<close> \<open>x \<noteq> y\<close>)+
+    with \<open>x\<in>p\<close> \<open>y\<in>p\<close> have "interior (snd x) \<inter> interior (snd y) = {}"
       by (intro assm(5)[of "fst x" _ "fst y"]) auto
     then have "content (cbox a b) = 0"
-      unfolding `snd x = snd y`[symmetric] ab content_eq_0_interior by auto
+      unfolding \<open>snd x = snd y\<close>[symmetric] ab content_eq_0_interior by auto
     then have "d (cbox a b) = 0"
-      using assm(2)[of "fst x" "snd x"] `x\<in>p` ab[symmetric] by (intro assms(2)) auto
+      using assm(2)[of "fst x" "snd x"] \<open>x\<in>p\<close> ab[symmetric] by (intro assms(2)) auto
     then show "d (snd x) = 0"
       unfolding ab by auto
   qed
@@ -1670,7 +1670,7 @@ lemma tagged_division_of_union_self:
   done
 
 
-subsection {* Fine-ness of a partition w.r.t. a gauge. *}
+subsection \<open>Fine-ness of a partition w.r.t. a gauge.\<close>
 
 definition fine  (infixr "fine" 46)
   where "d fine s \<longleftrightarrow> (\<forall>(x,k) \<in> s. k \<subseteq> d x)"
@@ -1702,7 +1702,7 @@ lemma fine_subset: "p \<subseteq> q \<Longrightarrow> d fine q \<Longrightarrow>
   unfolding fine_def by blast
 
 
-subsection {* Gauge integral. Define on compact intervals first, then use a limit. *}
+subsection \<open>Gauge integral. Define on compact intervals first, then use a limit.\<close>
 
 definition has_integral_compact_interval (infixr "has'_integral'_compact'_interval" 46)
   where "(f has_integral_compact_interval y) i \<longleftrightarrow>
@@ -1801,7 +1801,7 @@ proof (rule setsum.neutral, rule)
 qed
 
 
-subsection {* Some basic combining lemmas. *}
+subsection \<open>Some basic combining lemmas.\<close>
 
 lemma tagged_division_unions_exists:
   assumes "finite iset"
@@ -1821,14 +1821,14 @@ proof -
 qed
 
 
-subsection {* The set we're concerned with must be closed. *}
+subsection \<open>The set we're concerned with must be closed.\<close>
 
 lemma division_of_closed:
   fixes i :: "'n::euclidean_space set"
   shows "s division_of i \<Longrightarrow> closed i"
   unfolding division_of_def by fastforce
 
-subsection {* General bisection principle for intervals; might be useful elsewhere. *}
+subsection \<open>General bisection principle for intervals; might be useful elsewhere.\<close>
 
 lemma interval_bisection_step:
   fixes type :: "'a::euclidean_space"
@@ -1936,7 +1936,7 @@ proof -
       unfolding euclidean_eq_iff[where 'a='a] by auto
     then have i: "c\<bullet>i \<noteq> e\<bullet>i" "d\<bullet>i \<noteq> f\<bullet>i"
       using s(2) t(2) apply fastforce
-      using t(2)[OF i'] `c \<bullet> i \<noteq> e \<bullet> i \<or> d \<bullet> i \<noteq> f \<bullet> i` i' s(2) t(2) by fastforce
+      using t(2)[OF i'] \<open>c \<bullet> i \<noteq> e \<bullet> i \<or> d \<bullet> i \<noteq> f \<bullet> i\<close> i' s(2) t(2) by fastforce
     have *: "\<And>s t. (\<And>a. a \<in> s \<Longrightarrow> a \<in> t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}"
       by auto
     show "interior s \<inter> interior t = {}"
@@ -2165,7 +2165,7 @@ proof -
 qed
 
 
-subsection {* Cousin's lemma. *}
+subsection \<open>Cousin's lemma.\<close>
 
 lemma fine_division_exists:
   fixes a b :: "'a::euclidean_space"
@@ -2221,7 +2221,7 @@ lemma fine_division_exists_real:
   obtains p where "p tagged_division_of {a .. b}" "g fine p"
   by (metis assms box_real(2) fine_division_exists)
 
-subsection {* Basic theorems about integrals. *}
+subsection \<open>Basic theorems about integrals.\<close>
 
 lemma has_integral_unique:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
@@ -2622,7 +2622,7 @@ lemma integrable_on_cmult_iff:
   fixes c :: real
   assumes "c \<noteq> 0"
   shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
-  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] `c \<noteq> 0`
+  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] \<open>c \<noteq> 0\<close>
   by auto
 
 lemma integrable_neg: "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
@@ -2778,7 +2778,7 @@ lemma integral_refl: "integral (cbox a a) f = 0"
   by (rule integral_unique) auto
 
 
-subsection {* Cauchy-type criterion for integrability. *}
+subsection \<open>Cauchy-type criterion for integrability.\<close>
 
 (* XXXXXXX *)
 lemma integrable_cauchy:
@@ -2900,7 +2900,7 @@ next
 qed
 
 
-subsection {* Additivity of integral on abutting intervals. *}
+subsection \<open>Additivity of integral on abutting intervals.\<close>
 
 lemma interval_split:
   fixes a :: "'a::euclidean_space"
@@ -3387,7 +3387,7 @@ proof (unfold has_integral, rule, rule)
 qed
 
 
-subsection {* A sort of converse, integrability on subintervals. *}
+subsection \<open>A sort of converse, integrability on subintervals.\<close>
 
 lemma tagged_division_union_interval:
   fixes a :: "'a::euclidean_space"
@@ -3571,7 +3571,7 @@ proof -
 qed
 
 
-subsection {* Generalized notion of additivity. *}
+subsection \<open>Generalized notion of additivity.\<close>
 
 definition "neutral opp = (SOME x. \<forall>y. opp x y = y \<and> opp y x = y)"
 
@@ -3598,7 +3598,7 @@ lemma operative_empty: "operative opp f \<Longrightarrow> f {} = neutral opp"
   unfolding operative_def by (rule property_empty_interval) auto
 
 
-subsection {* Using additivity of lifted function to encode definedness. *}
+subsection \<open>Using additivity of lifted function to encode definedness.\<close>
 
 lemma forall_option: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P (Some x))"
   by (metis option.nchotomy)
@@ -3735,7 +3735,7 @@ next
     show ?thesis
       unfolding iterate_def fold'_def  if_not_P[OF x] support_clauses if_not_P[OF False]
       apply (subst comp_fun_commute.fold_insert[OF * finite_support, simplified comp_def])
-      using `finite s`
+      using \<open>finite s\<close>
       unfolding support_def
       using False x
       apply auto
@@ -3767,7 +3767,7 @@ next
 qed
 
 
-subsection {* Two key instances of additivity. *}
+subsection \<open>Two key instances of additivity.\<close>
 
 lemma neutral_add[simp]: "neutral op + = (0::'a::comm_monoid_add)"
   unfolding neutral_def
@@ -3850,7 +3850,7 @@ next
 qed
 
 
-subsection {* Points of division of a partition. *}
+subsection \<open>Points of division of a partition.\<close>
 
 definition "division_points (k::('a::euclidean_space) set) d =
    {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
@@ -3909,13 +3909,13 @@ proof -
     have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
       using l using as(6) unfolding box_ne_empty[symmetric] by auto
     show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      apply (rule bexI[OF _ `l \<in> d`])
+      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
       apply (auto split: split_if_asm)
       done
     show "snd x < b \<bullet> fst x"
-      using as(2) `c < b\<bullet>k` by (auto split: split_if_asm)
+      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: split_if_asm)
   qed
   show ?t2
     unfolding division_points_def interval_split[OF k, of a b]
@@ -3940,13 +3940,13 @@ proof -
     have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
       using l using as(6) unfolding box_ne_empty[symmetric] by auto
     show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      apply (rule bexI[OF _ `l \<in> d`])
+      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
       apply (auto split: split_if_asm)
       done
     show "a \<bullet> fst x < snd x"
-      using as(1) `a\<bullet>k < c` by (auto split: split_if_asm)
+      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: split_if_asm)
    qed
 qed
 
@@ -4034,7 +4034,7 @@ proof -
 qed
 
 
-subsection {* Preservation by divisions and tagged divisions. *}
+subsection \<open>Preservation by divisions and tagged divisions.\<close>
 
 lemma support_support[simp]:"support opp f (support opp f s) = support opp f s"
   unfolding support_def by auto
@@ -4505,7 +4505,7 @@ proof -
 qed
 
 
-subsection {* Additivity of content. *}
+subsection \<open>Additivity of content.\<close>
 
 lemma setsum_iterate:
   assumes "finite s"
@@ -4540,7 +4540,7 @@ lemma additive_content_tagged_division:
   done
 
 
-subsection {* Finally, the integral of a constant *}
+subsection \<open>Finally, the integral of a constant\<close>
 
 lemma has_integral_const[intro]:
   fixes a b :: "'a::euclidean_space"
@@ -4578,7 +4578,7 @@ lemma integral_const_real[simp]:
   by (metis box_real(2) integral_const)
 
 
-subsection {* Bounds on the norm of Riemann sums and the integral itself. *}
+subsection \<open>Bounds on the norm of Riemann sums and the integral itself.\<close>
 
 lemma dsum_bound:
   assumes "p division_of (cbox a b)"
@@ -4727,7 +4727,7 @@ lemma has_integral_bound_real:
   by (metis assms(1) assms(2) assms(3) box_real(2) has_integral_bound)
 
 
-subsection {* Similar theorems about relationship among components. *}
+subsection \<open>Similar theorems about relationship among components.\<close>
 
 lemma rsum_component_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -4917,7 +4917,7 @@ lemma integral_component_ubound_real:
   using assms
   by (metis box_real(2) integral_component_ubound)
 
-subsection {* Uniform limit of integrable functions is integrable. *}
+subsection \<open>Uniform limit of integrable functions is integrable.\<close>
 
 lemma integrable_uniform_limit:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
@@ -4958,7 +4958,7 @@ proof -
       apply (rule_tac x=M in exI,rule,rule,rule,rule)
     proof -
       case goal1
-      have "e/4>0" using `e>0` by auto
+      have "e/4>0" using \<open>e>0\<close> by auto
       note * = i[unfolded has_integral,rule_format,OF this]
       from *[of m] guess gm by (elim conjE exE) note gm=this[rule_format]
       from *[of n] guess gn by (elim conjE exE) note gn=this[rule_format]
@@ -5060,7 +5060,7 @@ proof -
         then have "content (cbox a b) < e / 3 * (real (N1 + N2) + 1)"
           apply -
           apply (rule less_le_trans,assumption)
-          using `e>0`
+          using \<open>e>0\<close>
           apply auto
           done
         then show "inverse (real (N1 + N2) + 1) * content (cbox a b) \<le> e / 3"
@@ -5074,13 +5074,13 @@ proof -
 qed
 
 
-subsection {* Negligible sets. *}
+subsection \<open>Negligible sets.\<close>
 
 definition "negligible (s:: 'a::euclidean_space set) \<longleftrightarrow>
   (\<forall>a b. ((indicator s :: 'a\<Rightarrow>real) has_integral 0) (cbox a b))"
 
 
-subsection {* Negligibility of hyperplane. *}
+subsection \<open>Negligibility of hyperplane.\<close>
 
 lemma vsum_nonzero_image_lemma:
   assumes "finite s"
@@ -5367,7 +5367,7 @@ proof -
 qed
 
 
-subsection {* A technical lemma about "refinement" of division. *}
+subsection \<open>A technical lemma about "refinement" of division.\<close>
 
 lemma tagged_division_finer:
   fixes p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"
@@ -5500,7 +5500,7 @@ proof -
 qed
 
 
-subsection {* Hence the main theorem about negligible sets. *}
+subsection \<open>Hence the main theorem about negligible sets.\<close>
 
 lemma finite_product_dependent:
   assumes "finite s"
@@ -5833,7 +5833,7 @@ lemma integral_spike:
   by auto
 
 
-subsection {* Some other trivialities about negligible sets. *}
+subsection \<open>Some other trivialities about negligible sets.\<close>
 
 lemma negligible_subset[intro]:
   assumes "negligible s"
@@ -5936,7 +5936,7 @@ proof -
 qed auto
 
 
-subsection {* Finite case of the spike theorem is quite commonly needed. *}
+subsection \<open>Finite case of the spike theorem is quite commonly needed.\<close>
 
 lemma has_integral_spike_finite:
   assumes "finite s"
@@ -5972,7 +5972,7 @@ lemma integrable_spike_finite:
   done
 
 
-subsection {* In particular, the boundary of an interval is negligible. *}
+subsection \<open>In particular, the boundary of an interval is negligible.\<close>
 
 lemma negligible_frontier_interval: "negligible(cbox (a::'a::euclidean_space) b - box a b)"
 proof -
@@ -6020,7 +6020,7 @@ lemma integrable_spike_interior:
   by auto
 
 
-subsection {* Integrability of continuous functions. *}
+subsection \<open>Integrability of continuous functions.\<close>
 
 lemma neutral_and[simp]: "neutral op \<and> = True"
   unfolding neutral_def by (rule some_equality) auto
@@ -6166,7 +6166,7 @@ lemma integrable_continuous_real:
   by (metis assms box_real(2) integrable_continuous)
 
 
-subsection {* Specialization of additivity to one dimension. *}
+subsection \<open>Specialization of additivity to one dimension.\<close>
 
 lemma
   shows real_inner_1_left: "inner 1 x = x"
@@ -6330,7 +6330,7 @@ next
 qed
 
 
-subsection {* Special case of additivity we need for the FCT. *}
+subsection \<open>Special case of additivity we need for the FCT.\<close>
 
 lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
@@ -6360,7 +6360,7 @@ proof -
 qed
 
 
-subsection {* A useful lemma allowing us to factor out the content size. *}
+subsection \<open>A useful lemma allowing us to factor out the content size.\<close>
 
 lemma has_integral_factor_content:
   "(f has_integral i) (cbox a b) \<longleftrightarrow>
@@ -6426,7 +6426,7 @@ lemma has_integral_factor_content_real:
   by (rule has_integral_factor_content)
 
 
-subsection {* Fundamental theorem of calculus. *}
+subsection \<open>Fundamental theorem of calculus.\<close>
 
 lemma interval_bounds_real:
   fixes q b :: real
@@ -6474,7 +6474,7 @@ proof safe
       have *: "u \<le> v"
         using xk unfolding k by auto
       have ball: "\<forall>xa\<in>k. xa \<in> ball x (d x)"
-        using as(2)[unfolded fine_def,rule_format,OF `(x,k)\<in>p`,unfolded split_conv subset_eq] .
+        using as(2)[unfolded fine_def,rule_format,OF \<open>(x,k)\<in>p\<close>,unfolded split_conv subset_eq] .
       have "norm ((v - u) *\<^sub>R f' x - (f v - f u)) \<le>
         norm (f u - f x - (u - x) *\<^sub>R f' x) + norm (f v - f x - (v - x) *\<^sub>R f' x)"
         apply (rule order_trans[OF _ norm_triangle_ineq4])
@@ -6508,7 +6508,7 @@ proof safe
 qed
 
 
-subsection {* Taylor series expansion *}
+subsection \<open>Taylor series expansion\<close>
 
 lemma
   setsum_telescope:
@@ -6569,7 +6569,7 @@ proof -
   def g \<equiv> "\<lambda>s. (b - s)^(p - 1)/fact (p - 1)"
   def Dg \<equiv> "\<lambda>n s. if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0"
   have g0: "Dg 0 = g"
-    using `p > 0`
+    using \<open>p > 0\<close>
     by (auto simp add: Dg_def divide_simps g_def split: split_if_asm)
   {
     fix m
@@ -6585,18 +6585,18 @@ proof -
     by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def
       fact_eq real_eq_of_nat[symmetric] divide_simps)
   from setsum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
-      OF `p > 0` g0 Dg f0 Df]
+      OF \<open>p > 0\<close> g0 Dg f0 Df]
   have deriv: "\<And>t. a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     ((\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t) has_vector_derivative
       g t *\<^sub>R Df p t - (- 1) ^ p *\<^sub>R Dg p t *\<^sub>R f t) (at t within {a..b})"
     by auto
-  from fundamental_theorem_of_calculus[rule_format, OF `a \<le> b` deriv]
+  from fundamental_theorem_of_calculus[rule_format, OF \<open>a \<le> b\<close> deriv]
   have ftc: "integral {a..b} (\<lambda>x. g x *\<^sub>R Df p x - (- 1) ^ p *\<^sub>R Dg p x *\<^sub>R f x) =
     (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i b *\<^sub>R Df (p - Suc i) b) -
     (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i a *\<^sub>R Df (p - Suc i) a)"
     unfolding atLeastAtMost_iff by (auto dest!: integral_unique)
   def p' \<equiv> "p - 1"
-  have p': "p = Suc p'" using `p > 0` by (simp add: p'_def)
+  have p': "p = Suc p'" using \<open>p > 0\<close> by (simp add: p'_def)
   have Dgp': "Dg p' = (\<lambda>_. (- 1) ^ p')"
     by (auto simp: Dg_def p')
   have one: "\<And>p'. (- 1::real) ^ p' * (- 1) ^ p' = 1"
@@ -6623,7 +6623,7 @@ proof -
 qed
 
 
-subsection {* Attempt a systematic general set of "offset" results for components. *}
+subsection \<open>Attempt a systematic general set of "offset" results for components.\<close>
 
 lemma gauge_modify:
   assumes "(\<forall>s. open s \<longrightarrow> open {x. f(x) \<in> s})" "gauge d"
@@ -6638,7 +6638,7 @@ lemma gauge_modify:
   done
 
 
-subsection {* Only need trivial subintervals if the interval itself is trivial. *}
+subsection \<open>Only need trivial subintervals if the interval itself is trivial.\<close>
 
 lemma division_of_nontrivial:
   fixes s :: "'a::euclidean_space set set"
@@ -6767,7 +6767,7 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
 qed
 
 
-subsection {* Integrability on subintervals. *}
+subsection \<open>Integrability on subintervals.\<close>
 
 lemma operative_integrable:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
@@ -6801,7 +6801,7 @@ lemma integrable_subinterval_real:
   by (metis assms(1) assms(2) box_real(2) integrable_subinterval)
 
 
-subsection {* Combining adjacent intervals in 1 dimension. *}
+subsection \<open>Combining adjacent intervals in 1 dimension.\<close>
 
 lemma has_integral_combine:
   fixes a b c :: real
@@ -6860,7 +6860,7 @@ lemma integrable_combine:
   by (fastforce intro!:has_integral_combine)
 
 
-subsection {* Reduce integrability to "local" integrability. *}
+subsection \<open>Reduce integrability to "local" integrability.\<close>
 
 lemma integrable_on_little_subintervals:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
@@ -6897,7 +6897,7 @@ proof -
 qed
 
 
-subsection {* Second FCT or existence of antiderivative. *}
+subsection \<open>Second FCT or existence of antiderivative.\<close>
 
 lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   unfolding integrable_on_def
@@ -7044,7 +7044,7 @@ lemma antiderivative_continuous:
   done
 
 
-subsection {* Combined fundamental theorem of calculus. *}
+subsection \<open>Combined fundamental theorem of calculus.\<close>
 
 lemma antiderivative_integral_continuous:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -7069,7 +7069,7 @@ proof -
 qed
 
 
-subsection {* General "twiddling" for interval-to-interval function image. *}
+subsection \<open>General "twiddling" for interval-to-interval function image.\<close>
 
 lemma has_integral_twiddle:
   assumes "0 < r"
@@ -7231,7 +7231,7 @@ proof -
 qed
 
 
-subsection {* Special case of a basic affine transformation. *}
+subsection \<open>Special case of a basic affine transformation.\<close>
 
 lemma interval_image_affinity_interval:
   "\<exists>u v. (\<lambda>x. m *\<^sub>R (x::'a::euclidean_space) + c) ` cbox a b = cbox u v"
@@ -7318,7 +7318,7 @@ lemma integrable_affinity:
   done
 
 
-subsection {* Special case of stretching coordinate axes separately. *}
+subsection \<open>Special case of stretching coordinate axes separately.\<close>
 
 lemma image_stretch_interval:
   "(\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k)) *\<^sub>R k) ` cbox a (b::'a::euclidean_space) =
@@ -7431,7 +7431,7 @@ lemma integrable_stretch:
   done
 
 
-subsection {* even more special cases. *}
+subsection \<open>even more special cases.\<close>
 
 lemma uminus_interval_vector[simp]:
   fixes a b :: "'a::euclidean_space"
@@ -7479,7 +7479,7 @@ lemma integral_reflect_real[simp]: "integral {-b .. -a} (\<lambda>x. f (-x)) = i
   by (rule integral_reflect)
 
 
-subsection {* Stronger form of FCT; quite a tedious proof. *}
+subsection \<open>Stronger form of FCT; quite a tedious proof.\<close>
 
 lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
   by (meson zero_less_one)
@@ -7524,7 +7524,7 @@ proof -
       show ?thesis
         unfolding *(2)
         unfolding content_eq_0
-        using * `a = b`
+        using * \<open>a = b\<close>
         by (auto simp: ex_in_conv)
     qed
   }
@@ -7826,7 +7826,7 @@ proof -
             then have *: "s = {x}"
               using goal2(1) by auto
             then show ?case
-              using `x \<in> s` goal2(2) by auto
+              using \<open>x \<in> s\<close> goal2(2) by auto
           qed auto
           case goal2
           show ?case
@@ -8016,7 +8016,7 @@ proof -
 qed
 
 
-subsection {* Stronger form with finite number of exceptional points. *}
+subsection \<open>Stronger form with finite number of exceptional points.\<close>
 
 lemma fundamental_theorem_of_calculus_interior_strong:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -8111,7 +8111,7 @@ proof -
   have "\<exists>w>0. \<forall>t. c - w < t \<and> t < c \<longrightarrow> norm (f c) * norm(c - t) < e / 3"
   proof (cases "f c = 0")
     case False
-    hence "0 < e / 3 / norm (f c)" using `e>0` by simp
+    hence "0 < e / 3 / norm (f c)" using \<open>e>0\<close> by simp
     then show ?thesis
       apply -
       apply rule
@@ -8138,7 +8138,7 @@ proof -
     show ?thesis
       apply (rule_tac x=1 in exI)
       unfolding True
-      using `e > 0`
+      using \<open>e > 0\<close>
       apply auto
       done
   qed
@@ -8178,7 +8178,7 @@ proof -
         defer
         apply (rule *)
         apply (subst less_le)
-        using `e > 0` as(2)
+        using \<open>e > 0\<close> as(2)
         apply auto
         done
     }
@@ -8256,7 +8256,7 @@ proof -
         case goal1
         from p'(2-3)[OF this] have "c \<in> cbox a t"
           by auto
-        then show False using `t < c`
+        then show False using \<open>t < c\<close>
           by auto
       qed
       then show ?thesis
@@ -8274,17 +8274,17 @@ proof -
     have ***: "c - w < t \<and> t < c"
     proof -
       have "c - k < t"
-        using `k>0` as(1) by (auto simp add: field_simps)
+        using \<open>k>0\<close> as(1) by (auto simp add: field_simps)
       moreover have "k \<le> w"
         apply (rule ccontr)
         using k(2)
         unfolding subset_eq
         apply (erule_tac x="c + ((k + w)/2)" in ballE)
         unfolding d_def
-        using `k > 0` `w > 0`
+        using \<open>k > 0\<close> \<open>w > 0\<close>
         apply (auto simp add: field_simps not_le not_less dist_real_def)
         done
-      ultimately show ?thesis using `t < c`
+      ultimately show ?thesis using \<open>t < c\<close>
         by (auto simp add: field_simps)
     qed
     show ?thesis
@@ -8312,7 +8312,7 @@ lemma indefinite_integral_continuous_right:
 proof -
   have *: "(\<lambda>x. f (- x)) integrable_on {-b .. -a}" "- b < - c" "- c \<le> - a"
     using assms by auto
-  from indefinite_integral_continuous_left[OF * `e>0`] guess d . note d = this
+  from indefinite_integral_continuous_left[OF * \<open>e>0\<close>] guess d . note d = this
   let ?d = "min d (b - c)"
   show ?thesis
     apply (rule that[of "?d"])
@@ -8362,7 +8362,7 @@ proof (unfold continuous_on_iff, safe)
         apply (rule set_eqI)
         apply auto
         done
-      then show ?case using `e > 0` by auto
+      then show ?case using \<open>e > 0\<close> by auto
     qed
   }
   assume "a < b"
@@ -8373,28 +8373,28 @@ proof (unfold continuous_on_iff, safe)
   proof -
     assume "x = a"
     have "a \<le> a" ..
-    from indefinite_integral_continuous_right[OF assms(1) this `a<b` `e>0`] guess d . note d=this
+    from indefinite_integral_continuous_right[OF assms(1) this \<open>a<b\<close> \<open>e>0\<close>] guess d . note d=this
     show ?thesis
       apply rule
       apply rule
       apply (rule d)
       apply safe
       apply (subst dist_commute)
-      unfolding `x = a` dist_norm
+      unfolding \<open>x = a\<close> dist_norm
       apply (rule d(2)[rule_format])
       apply auto
       done
   next
     assume "x = b"
     have "b \<le> b" ..
-    from indefinite_integral_continuous_left[OF assms(1) `a<b` this `e>0`] guess d . note d=this
+    from indefinite_integral_continuous_left[OF assms(1) \<open>a<b\<close> this \<open>e>0\<close>] guess d . note d=this
     show ?thesis
       apply rule
       apply rule
       apply (rule d)
       apply safe
       apply (subst dist_commute)
-      unfolding `x = b` dist_norm
+      unfolding \<open>x = b\<close> dist_norm
       apply (rule d(2)[rule_format])
       apply auto
       done
@@ -8402,8 +8402,8 @@ proof (unfold continuous_on_iff, safe)
     assume "a < x \<and> x < b"
     then have xl: "a < x" "x \<le> b" and xr: "a \<le> x" "x < b"
       by auto
-    from indefinite_integral_continuous_left [OF assms(1) xl `e>0`] guess d1 . note d1=this
-    from indefinite_integral_continuous_right[OF assms(1) xr `e>0`] guess d2 . note d2=this
+    from indefinite_integral_continuous_left [OF assms(1) xl \<open>e>0\<close>] guess d1 . note d1=this
+    from indefinite_integral_continuous_right[OF assms(1) xr \<open>e>0\<close>] guess d2 . note d2=this
     show ?thesis
       apply (rule_tac x="min d1 d2" in exI)
     proof safe
@@ -8426,7 +8426,7 @@ proof (unfold continuous_on_iff, safe)
 qed
 
 
-subsection {* This doesn't directly involve integration, but that gives an easy proof. *}
+subsection \<open>This doesn't directly involve integration, but that gives an easy proof.\<close>
 
 lemma has_derivative_zero_unique_strong_interval:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -8460,7 +8460,7 @@ proof -
 qed
 
 
-subsection {* Generalize a bit to any convex set. *}
+subsection \<open>Generalize a bit to any convex set.\<close>
 
 lemma has_derivative_zero_unique_strong_convex:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
@@ -8499,7 +8499,7 @@ proof -
     then have "(t - xa) *\<^sub>R x = (t - xa) *\<^sub>R c"
       unfolding scaleR_simps by (auto simp add: algebra_simps)
     then show ?case
-      using `x \<noteq> c` by auto
+      using \<open>x \<noteq> c\<close> by auto
   qed
   have as2: "finite {t. ((1 - t) *\<^sub>R c + t *\<^sub>R x) \<in> k}"
     using assms(2)
@@ -8528,7 +8528,7 @@ proof -
     have *: "c - t *\<^sub>R c + t *\<^sub>R x \<in> s - k"
       apply safe
       apply (rule conv[unfolded scaleR_simps])
-      using `x \<in> s` `c \<in> s` as
+      using \<open>x \<in> s\<close> \<open>c \<in> s\<close> as
       by (auto simp add: algebra_simps)
     have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x))
       (at t within {0 .. 1})"
@@ -8540,7 +8540,7 @@ proof -
       apply (rule *)
       apply safe
       apply (rule conv[unfolded scaleR_simps])
-      using `x \<in> s` `c \<in> s`
+      using \<open>x \<in> s\<close> \<open>c \<in> s\<close>
       apply auto
       done
     then show "((\<lambda>xa. f ((1 - xa) *\<^sub>R c + xa *\<^sub>R x)) has_derivative (\<lambda>h. 0)) (at t within {0 .. 1})"
@@ -8551,8 +8551,8 @@ proof -
 qed
 
 
-text {* Also to any open connected set with finite set of exceptions. Could
- generalize to locally convex set with limpt-free set of exceptions. *}
+text \<open>Also to any open connected set with finite set of exceptions. Could
+ generalize to locally convex set with limpt-free set of exceptions.\<close>
 
 lemma has_derivative_zero_unique_strong_connected:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
@@ -8604,7 +8604,7 @@ proof -
     qed
   qed
   then show ?thesis
-    using `x \<in> s` `f c = y` `c \<in> s` by auto
+    using \<open>x \<in> s\<close> \<open>f c = y\<close> \<open>c \<in> s\<close> by auto
 qed
 
 lemma has_derivative_zero_connected_constant:
@@ -8628,7 +8628,7 @@ next
 qed
 
 
-subsection {* Integrating characteristic function of an interval *}
+subsection \<open>Integrating characteristic function of an interval\<close>
 
 lemma has_integral_restrict_open_subinterval:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
@@ -8773,7 +8773,7 @@ proof (cases "cbox c d = {}")
     then have "i = integral (cbox c d) f"
       apply -
       apply (rule has_integral_unique)
-      apply (rule `?l`)
+      apply (rule \<open>?l\<close>)
       apply (rule has_integral_restrict_closed_subinterval[OF _ assms])
       apply auto
       done
@@ -8783,7 +8783,7 @@ proof (cases "cbox c d = {}")
 qed auto
 
 
-text {* Hence we can apply the limit process uniformly to all integrals. *}
+text \<open>Hence we can apply the limit process uniformly to all integrals.\<close>
 
 lemma has_integral':
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -8822,14 +8822,14 @@ proof -
         unfolding s
         apply -
         apply (rule has_integral_restrict_closed_subinterval)
-        apply (rule `?l`[unfolded s])
+        apply (rule \<open>?l\<close>[unfolded s])
         apply safe
         apply (drule B(2)[rule_format])
         unfolding subset_eq
         apply (erule_tac x=x in ballE)
         apply (auto simp add: dist_norm)
         done
-    qed (insert B `e>0`, auto)
+    qed (insert B \<open>e>0\<close>, auto)
   next
     assume as: "\<forall>e>0. ?r e"
     from this[rule_format,OF zero_less_one] guess C .. note C=conjunctD2[OF this,rule_format]
@@ -8842,7 +8842,7 @@ proof -
     proof
       case goal1
       then show ?case
-        using Basis_le_norm[OF `i\<in>Basis`, of x]
+        using Basis_le_norm[OF \<open>i\<in>Basis\<close>, of x]
         unfolding c_def d_def
         by (auto simp add: field_simps setsum_negf)
     qed
@@ -8852,7 +8852,7 @@ proof -
     proof
       case goal1
       then show ?case
-        using Basis_le_norm[OF `i\<in>Basis`, of x]
+        using Basis_le_norm[OF \<open>i\<in>Basis\<close>, of x]
         unfolding c_def d_def
         by (auto simp: setsum_negf)
     qed
@@ -8945,7 +8945,7 @@ lemma integral_nonneg:
   by (rule has_integral_nonneg[OF assms(1)[unfolded has_integral_integral] assms(2)])
 
 
-text {* Hence a general restriction property. *}
+text \<open>Hence a general restriction property.\<close>
 
 lemma has_integral_restrict[simp]:
   assumes "s \<subseteq> t"
@@ -9018,7 +9018,7 @@ proof
   proof safe
     case goal1
     show ?case
-      apply (rule has_integral_negligible[OF `?r`[rule_format,of a b]])
+      apply (rule has_integral_negligible[OF \<open>?r\<close>[rule_format,of a b]])
       unfolding indicator_def
       apply auto
       done
@@ -9093,7 +9093,7 @@ qed  REPEAT STRIP_TAC THEN MATCH_MP_TAC HAS_INTEGRAL_SPIKE_SET_EQ THEN
   SET_TAC[]);;*)
 
 
-subsection {* More lemmas that are useful later *}
+subsection \<open>More lemmas that are useful later\<close>
 
 lemma has_integral_subset_component_le:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
@@ -9159,7 +9159,7 @@ proof
     apply safe
   proof -
     case goal1
-    from `?r`[THEN conjunct2,rule_format,OF this] guess B .. note B=conjunctD2[OF this]
+    from \<open>?r\<close>[THEN conjunct2,rule_format,OF this] guess B .. note B=conjunctD2[OF this]
     show ?case
       apply rule
       apply rule
@@ -9167,7 +9167,7 @@ proof
       apply safe
       apply (rule_tac x="integral (cbox a b) (\<lambda>x. if x \<in> s then f x else 0)" in exI)
       apply (drule B(2)[rule_format])
-      using integrable_integral[OF `?r`[THEN conjunct1,rule_format]]
+      using integrable_integral[OF \<open>?r\<close>[THEN conjunct1,rule_format]]
       apply auto
       done
   qed
@@ -9221,7 +9221,7 @@ next
 qed
 
 
-subsection {* Continuity of the integral (for a 1-dimensional interval). *}
+subsection \<open>Continuity of the integral (for a 1-dimensional interval).\<close>
 
 lemma integrable_alt:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -9275,7 +9275,7 @@ next
       proof
         case goal1
         then show ?case
-          using Basis_le_norm[of i x] `i\<in>Basis`
+          using Basis_le_norm[of i x] \<open>i\<in>Basis\<close>
           using n N
           by (auto simp add: field_simps setsum_negf)
       qed
@@ -9332,7 +9332,7 @@ next
         proof
           case goal1
           then show ?case
-            using Basis_le_norm[of i x] `i \<in> Basis`
+            using Basis_le_norm[of i x] \<open>i \<in> Basis\<close>
             using n
             by (auto simp add: field_simps setsum_negf)
         qed
@@ -9362,7 +9362,7 @@ lemma integrable_on_subcbox:
   done
 
 
-subsection {* A straddling criterion for integrability *}
+subsection \<open>A straddling criterion for integrability\<close>
 
 lemma integrable_straddle_interval:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
@@ -9385,7 +9385,7 @@ proof (subst integrable_cauchy, safe)
     have **: "\<And>i j g1 g2 h1 h2 f1 f2. g1 - h2 \<le> f1 - f2 \<Longrightarrow> f1 - f2 \<le> h1 - g2 \<Longrightarrow>
       abs (i - j) < e / 3 \<Longrightarrow> abs (g2 - i) < e / 3 \<Longrightarrow>  abs (g1 - i) < e / 3 \<Longrightarrow>
       abs (h2 - j) < e / 3 \<Longrightarrow> abs (h1 - j) < e / 3 \<Longrightarrow> abs (f1 - f2) < e"
-    using `e > 0` by arith
+    using \<open>e > 0\<close> by arith
     case goal1
     note tagged_division_ofD(2-4) note * = this[OF goal1(1)] this[OF goal1(4)]
 
@@ -9586,7 +9586,7 @@ proof -
 qed
 
 
-subsection {* Adding integrals over several sets *}
+subsection \<open>Adding integrals over several sets\<close>
 
 lemma has_integral_union:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -9651,7 +9651,7 @@ proof -
 qed
 
 
-text {* In particular adding integrals over a division, maybe not of an interval. *}
+text \<open>In particular adding integrals over a division, maybe not of an interval.\<close>
 
 lemma has_integral_combine_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -9752,7 +9752,7 @@ proof safe
 qed
 
 
-subsection {* Also tagged divisions *}
+subsection \<open>Also tagged divisions\<close>
 
 lemma has_integral_combine_tagged_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -9820,7 +9820,7 @@ lemma integral_combine_tagged_division_topdown:
   done
 
 
-subsection {* Henstock's lemma *}
+subsection \<open>Henstock's lemma\<close>
 
 lemma henstock_lemma_part1:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -9863,7 +9863,7 @@ proof -
       done
     note integrable_integral[OF this, unfolded has_integral[of f]]
     from this[rule_format,OF *] guess dd .. note dd=conjunctD2[OF this,rule_format]
-    note gauge_inter[OF `gauge d` dd(1)]
+    note gauge_inter[OF \<open>gauge d\<close> dd(1)]
     from fine_division_exists[OF this,of u v] guess qq .
     then show ?case
       apply (rule_tac x=qq in exI)
@@ -9956,7 +9956,7 @@ proof -
       using as(1,3) q(1) unfolding r_def by auto
     note q'(5)[OF this]
     then have "interior l = {}"
-      using interior_mono[OF `l \<subseteq> k`] by blast
+      using interior_mono[OF \<open>l \<subseteq> k\<close>] by blast
     then show "content l *\<^sub>R f x = 0"
       unfolding uv content_eq_0_interior[symmetric] by auto
   qed auto
@@ -10114,17 +10114,17 @@ proof -
     note * = henstock_lemma_part2[OF assms(1) * d this]
     show ?case
       apply (rule le_less_trans[OF *])
-      using `e > 0`
+      using \<open>e > 0\<close>
       apply (auto simp add: field_simps)
       done
   qed
 qed
 
 
-subsection {* Geometric progression *}
+subsection \<open>Geometric progression\<close>
 
-text {* FIXME: Should one or more of these theorems be moved to @{file
-"~~/src/HOL/Set_Interval.thy"}, alongside @{text geometric_sum}? *}
+text \<open>FIXME: Should one or more of these theorems be moved to @{file
+"~~/src/HOL/Set_Interval.thy"}, alongside @{text geometric_sum}?\<close>
 
 lemma sum_gp_basic:
   fixes x :: "'a::ring_1"
@@ -10204,7 +10204,7 @@ lemma sum_gp_offset:
   by (simp add: field_simps power_add)
 
 
-subsection {* Monotone convergence (bounded interval first) *}
+subsection \<open>Monotone convergence (bounded interval first)\<close>
 
 lemma monotone_convergence_interval:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
@@ -10300,7 +10300,7 @@ next
     proof
       case goal1
       have "e / (4 * content (cbox a b)) > 0"
-        using `e>0` False content_pos_le[of a b] by auto
+        using \<open>e>0\<close> False content_pos_le[of a b] by auto
       from assms(3)[rule_format, OF goal1, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       then show ?case
@@ -10616,7 +10616,7 @@ proof -
         by auto
       from LIMSEQ_D [OF i this] guess N .. note N=this
       note assms(2)[of N,unfolded has_integral_integral has_integral_alt'[of "f N"]]
-      from this[THEN conjunct2,rule_format,OF `e/4>0`] guess B .. note B=conjunctD2[OF this]
+      from this[THEN conjunct2,rule_format,OF \<open>e/4>0\<close>] guess B .. note B=conjunctD2[OF this]
       show ?case
         apply rule
         apply rule
@@ -10625,7 +10625,7 @@ proof -
       proof -
         fix a b :: 'n
         assume ab: "ball 0 B \<subseteq> cbox a b"
-        from `e > 0` have "e/2 > 0"
+        from \<open>e > 0\<close> have "e/2 > 0"
           by auto
         from LIMSEQ_D [OF g(2)[of a b] this] guess M .. note M=this
         have **: "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f N x else 0) - i) < e/2"
@@ -10765,7 +10765,7 @@ proof -
       unfolding x by (rule convergent_imp_bounded) fact
   qed (auto intro: f)
   moreover then have "integral s g = x'"
-    by (intro LIMSEQ_unique[OF _ `x ----> x'`]) (simp add: x_eq)
+    by (intro LIMSEQ_unique[OF _ \<open>x ----> x'\<close>]) (simp add: x_eq)
   ultimately show ?thesis
     by (simp add: has_integral_integral)
 qed
@@ -10816,7 +10816,7 @@ proof -
 qed
 
 
-subsection {* Absolute integrability (this is the same as Lebesgue integrability) *}
+subsection \<open>Absolute integrability (this is the same as Lebesgue integrability)\<close>
 
 definition absolutely_integrable_on (infixr "absolutely'_integrable'_on" 46)
   where "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s \<and> (\<lambda>x. (norm(f x))) integrable_on s"
@@ -11674,12 +11674,12 @@ proof (rule absolutely_integrable_onI, fact, rule)
         note f = absolutely_integrable_onD[OF f_int[of a b]]
         note * = this(2)[unfolded has_integral_integral has_integral[of "\<lambda>x. norm (f x)"],rule_format]
         have "e/2>0"
-          using `e > 0` by auto
+          using \<open>e > 0\<close> by auto
         from * [OF this] obtain d1 where
           d1: "gauge d1" "\<forall>p. p tagged_division_of (cbox a b) \<and> d1 fine p \<longrightarrow>
             norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e / 2"
           by auto
-        from henstock_lemma [OF f(1) `e/2>0`] obtain d2 where
+        from henstock_lemma [OF f(1) \<open>e/2>0\<close>] obtain d2 where
           d2: "gauge d2" "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d2 fine p \<longrightarrow>
             (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
           by blast
@@ -11958,7 +11958,7 @@ next
       apply (subst absolutely_integrable_restrict_univ[symmetric])
       apply (rule lem)
       unfolding integrable_restrict_univ *
-      using `?r`
+      using \<open>?r\<close>
       apply auto
       done
   }
@@ -12008,7 +12008,7 @@ next
         unfolding inner_setsum_left[symmetric] integral_combine_division_topdown[OF * d] ..
       also have "\<dots> \<le> integral UNIV (\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x\<bullet>i\<bar> *\<^sub>R i::'m) \<bullet> j"
         apply (rule integral_subset_component_le)
-        using assms * `j \<in> Basis`
+        using assms * \<open>j \<in> Basis\<close>
         apply auto
         done
       finally show ?case .
@@ -12190,7 +12190,7 @@ proof induct
 qed auto
 
 
-subsection {* Dominated convergence *}
+subsection \<open>Dominated convergence\<close>
 
 (* GENERALIZE the following theorems *)
 
@@ -12260,7 +12260,7 @@ proof -
       note r = this
 
       have "\<exists>y\<in>?S. y < Inf ?S + r"
-        by (subst cInf_less_iff[symmetric]) (auto simp: `x\<in>s` r)
+        by (subst cInf_less_iff[symmetric]) (auto simp: \<open>x\<in>s\<close> r)
       then obtain N where N: "f N x < Inf ?S + r" "m \<le> N"
         by blast
 
@@ -12273,7 +12273,7 @@ proof -
         show ?case
           unfolding real_norm_def
             apply (rule *[rule_format, OF N(1)])
-            apply (rule cInf_superset_mono, auto simp: `x\<in>s`) []
+            apply (rule cInf_superset_mono, auto simp: \<open>x\<in>s\<close>) []
             apply (rule cInf_lower)
             using N goal1
             apply auto []
@@ -12327,7 +12327,7 @@ proof -
     proof (rule LIMSEQ_I)
       case goal1 note r=this
       have "\<exists>y\<in>?S. Sup ?S - r < y"
-        by (subst less_cSup_iff[symmetric]) (auto simp: r `x\<in>s`)
+        by (subst less_cSup_iff[symmetric]) (auto simp: r \<open>x\<in>s\<close>)
       then obtain N where N: "Sup ?S - r < f N x" "m \<le> N"
         by blast
 
@@ -12340,7 +12340,7 @@ proof -
         show ?case
           apply simp
           apply (rule *[rule_format, OF N(1)])
-          apply (rule cSup_subset_mono, auto simp: `x\<in>s`) []
+          apply (rule cSup_subset_mono, auto simp: \<open>x\<in>s\<close>) []
           apply (subst cSup_upper)
           using N goal1
           apply auto
@@ -12374,7 +12374,7 @@ proof -
 
     have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
     show "Inf {f j x |j. k \<le> j} \<le> Inf {f j x |j. Suc k \<le> j}"
-      by (intro cInf_superset_mono) (auto simp: `x\<in>s`)
+      by (intro cInf_superset_mono) (auto simp: \<open>x\<in>s\<close>)
 
     show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) ----> g x"
     proof (rule LIMSEQ_I)
@@ -12422,7 +12422,7 @@ proof -
     assume x: "x \<in> s"
 
     show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}"
-      by (rule cSup_subset_mono) (auto simp: `x\<in>s`)
+      by (rule cSup_subset_mono) (auto simp: \<open>x\<in>s\<close>)
     show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
     proof (rule LIMSEQ_I)
       case goal1

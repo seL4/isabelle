@@ -1,9 +1,9 @@
-section {* Bounded Continuous Functions *}
+section \<open>Bounded Continuous Functions\<close>
 theory Bounded_Continuous_Function
 imports Integration
 begin
 
-subsection{* Definition *}
+subsection\<open>Definition\<close>
 
 definition "bcontfun = {f :: 'a::topological_space \<Rightarrow> 'b::metric_space. continuous_on UNIV f \<and> bounded (range f)}"
 
@@ -143,7 +143,7 @@ proof safe
     moreover have "eventually (\<lambda>xa. Rep_bcontfun (f xa) x \<in> X x) sequentially"
     proof (rule always_eventually, safe)
       fix i
-      from seq[THEN spec, of i] `x \<in> I`
+      from seq[THEN spec, of i] \<open>x \<in> I\<close>
       show "Rep_bcontfun (f i) x \<in> X x"
         by (auto simp: Abs_bcontfun_inverse)
     qed
@@ -155,24 +155,24 @@ proof safe
   qed (auto simp: Rep_bcontfun Rep_bcontfun_inverse)
 qed
 
-subsection {* Complete Space *}
+subsection \<open>Complete Space\<close>
 
 instance bcontfun :: (metric_space, complete_space) complete_space
 proof
   fix f::"nat \<Rightarrow> ('a,'b) bcontfun"
-  assume "Cauchy f" --{* Cauchy equals uniform convergence *}
+  assume "Cauchy f" --\<open>Cauchy equals uniform convergence\<close>
   then obtain g where limit_function:
     "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x. dist (Rep_bcontfun (f n) x) (g x) < e"
     using uniformly_convergent_eq_cauchy[of "\<lambda>_. True"
       "\<lambda>n. Rep_bcontfun (f n)"]
     unfolding Cauchy_def by (metis dist_fun_lt_imp_dist_val_lt)
 
-  then obtain N where fg_dist: --{* for an upper bound on g *}
+  then obtain N where fg_dist: --\<open>for an upper bound on g\<close>
     "\<forall>n\<ge>N. \<forall>x. dist (g x) ( Rep_bcontfun (f n) x) < 1"
     by (force simp add: dist_commute)
   from bcontfunE'[OF Rep_bcontfun, of "f N"] obtain b where
     f_bound: "\<forall>x. dist (Rep_bcontfun (f N) x) undefined \<le> b" by force
-  have "g \<in> bcontfun" --{* The limit function is bounded and continuous *}
+  have "g \<in> bcontfun" --\<open>The limit function is bounded and continuous\<close>
   proof (intro bcontfunI)
     show "continuous_on UNIV g"
       using bcontfunE[OF Rep_bcontfun] limit_function
@@ -189,7 +189,7 @@ proof
   qed
   show "convergent f"
   proof (rule convergentI, subst lim_sequentially, safe)
-    --{* The limit function converges according to its norm *}
+    --\<open>The limit function converges according to its norm\<close>
     fix e::real
     assume "e > 0" hence "e/2 > 0" by simp
     with limit_function[THEN spec, of"e/2"]
@@ -203,12 +203,12 @@ proof
       with N show "dist (f n) (Abs_bcontfun g) < e"
         using dist_val_lt_imp_dist_fun_le[of
           "f n" "Abs_bcontfun g" "e/2"]
-          Abs_bcontfun_inverse[OF `g \<in> bcontfun`] `e > 0` by simp
+          Abs_bcontfun_inverse[OF \<open>g \<in> bcontfun\<close>] \<open>e > 0\<close> by simp
     qed
   qed
 qed
 
-subsection{* Supremum norm for a normed vector space *}
+subsection\<open>Supremum norm for a normed vector space\<close>
 
 instantiation bcontfun :: (topological_space, real_normed_vector) real_vector
 begin
@@ -378,7 +378,7 @@ lemma norm_bound:
   by (simp add: norm_bcontfun_def norm_conv_dist Abs_bcontfun_inverse zero_bcontfun_def
     const_bcontfun)
 
-subsection{* Continuously Extended Functions *}
+subsection\<open>Continuously Extended Functions\<close>
 
 definition clamp::"'a::euclidean_space \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "clamp a b x = (\<Sum>i\<in>Basis. (if x\<bullet>i < a\<bullet>i then a\<bullet>i else if x\<bullet>i \<le> b\<bullet>i then x\<bullet>i else b\<bullet>i) *\<^sub>R i)"

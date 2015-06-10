@@ -1,4 +1,4 @@
-section {*Instanciates the finite cartesian product of euclidean spaces as a euclidean space.*}
+section \<open>Instanciates the finite cartesian product of euclidean spaces as a euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Integration
@@ -31,7 +31,7 @@ proof (rule setsum.cong, simp, rule setsum.reindex_cong)
 qed simp
 
 
-subsection{* Basic componentwise operations on vectors. *}
+subsection\<open>Basic componentwise operations on vectors.\<close>
 
 instantiation vec :: (times, finite) times
 begin
@@ -58,7 +58,7 @@ instance ..
 
 end
 
-text{* The ordering on one-dimensional vectors is linear. *}
+text\<open>The ordering on one-dimensional vectors is linear.\<close>
 
 class cart_one =
   assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
@@ -90,20 +90,20 @@ proof
   show "x \<le> y \<or> y \<le> x" by auto
 qed
 
-text{* Constant Vectors *}
+text\<open>Constant Vectors\<close>
 
 definition "vec x = (\<chi> i. x)"
 
 lemma interval_cbox_cart: "{a::real^'n..b} = cbox a b"
   by (auto simp add: less_eq_vec_def mem_box Basis_vec_def inner_axis)
 
-text{* Also the scalar-vector multiplication. *}
+text\<open>Also the scalar-vector multiplication.\<close>
 
 definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a ^ 'n" (infixl "*s" 70)
   where "c *s x = (\<chi> i. c * (x$i))"
 
 
-subsection {* A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space. *}
+subsection \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space.\<close>
 
 lemma setsum_cong_aux:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> setsum f A = setsum g A"
@@ -111,7 +111,7 @@ lemma setsum_cong_aux:
 
 hide_fact (open) setsum_cong_aux
 
-method_setup vector = {*
+method_setup vector = \<open>
 let
   val ss1 =
     simpset_of (put_simpset HOL_basic_ss @{context}
@@ -135,7 +135,7 @@ let
 in
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (vector_arith_tac ctxt ths))
 end
-*} "lift trivial vector statements to real arith statements"
+\<close> "lift trivial vector statements to real arith statements"
 
 lemma vec_0[simp]: "vec 0 = 0" by vector
 lemma vec_1[simp]: "vec 1 = 1" by vector
@@ -161,7 +161,7 @@ next
   then show ?case by (auto simp add: vec_add)
 qed
 
-text{* Obvious "component-pushing". *}
+text\<open>Obvious "component-pushing".\<close>
 
 lemma vec_component [simp]: "vec x $ i = x"
   by vector
@@ -180,7 +180,7 @@ lemmas vector_component =
   vector_scaleR_component cond_component
 
 
-subsection {* Some frequently useful arithmetic lemmas over vectors. *}
+subsection \<open>Some frequently useful arithmetic lemmas over vectors.\<close>
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
   by default (vector mult.assoc)
@@ -332,9 +332,9 @@ lemma setsum_norm_allsubsets_bound_cart:
   using setsum_norm_allsubsets_bound[OF assms]
   by simp
 
-subsection {* Matrix operations *}
+subsection \<open>Matrix operations\<close>
 
-text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"} *}
+text\<open>Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"}\<close>
 
 definition matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
     (infixl "**" 70)
@@ -445,7 +445,7 @@ lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
 lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A"
   by (metis transpose_transpose rows_transpose)
 
-text{* Two sometimes fruitful ways of looking at matrix-vector multiplication. *}
+text\<open>Two sometimes fruitful ways of looking at matrix-vector multiplication.\<close>
 
 lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
   by (simp add: matrix_vector_mult_def inner_vec_def)
@@ -477,7 +477,7 @@ proof -
     by simp
 qed
 
-text{* Inverse matrices  (not necessarily square) *}
+text\<open>Inverse matrices  (not necessarily square)\<close>
 
 definition
   "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
@@ -486,7 +486,7 @@ definition
   "matrix_inv(A:: 'a::semiring_1^'n^'m) =
     (SOME A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
-text{* Correspondence between matrices and linear operators. *}
+text\<open>Correspondence between matrices and linear operators.\<close>
 
 definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
@@ -536,7 +536,7 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   done
 
 
-subsection {* lambda skolemization on cartesian products *}
+subsection \<open>lambda skolemization on cartesian products\<close>
 
 (* FIXME: rename do choice_cart *)
 
@@ -736,7 +736,7 @@ lemma matrix_left_invertible_span_rows:
   unfolding matrix_right_invertible_span_columns
   ..
 
-text {* The same result in terms of square matrices. *}
+text \<open>The same result in terms of square matrices.\<close>
 
 lemma matrix_left_right_inverse:
   fixes A A' :: "real ^'n^'n"
@@ -765,7 +765,7 @@ proof -
   then show ?thesis by blast
 qed
 
-text {* Considering an n-element vector as an n-by-1 or 1-by-n matrix. *}
+text \<open>Considering an n-element vector as an n-by-1 or 1-by-n matrix.\<close>
 
 definition "rowvector v = (\<chi> i j. (v$j))"
 
@@ -836,7 +836,7 @@ proof
     obtain l1::"'a^'n" and r1 where r1:"subseq r1"
       and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
       using insert(3) by auto
-    have s': "bounded ((\<lambda>x. x $ k) ` range f)" using `bounded (range f)`
+    have s': "bounded ((\<lambda>x. x $ k) ` range f)" using \<open>bounded (range f)\<close>
       by (auto intro!: bounded_component_cart)
     have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` range f" by simp
     have "bounded (range (\<lambda>i. f (r1 i) $ k))"
@@ -850,9 +850,9 @@ proof
     moreover
     def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::'a^'n"
     { fix e :: real assume "e > 0"
-      from lr1 `e>0` have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
+      from lr1 \<open>e>0\<close> have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
         by blast
-      from lr2 `e>0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $ k) l2 < e) sequentially"
+      from lr2 \<open>e>0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $ k) l2 < e) sequentially"
         by (rule tendstoD)
       from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) $ i) (l1 $ i) < e) sequentially"
         by (rule eventually_subseq)
@@ -1159,8 +1159,8 @@ lemma jacobian_works:
   done
 
 
-subsection {* Component of the differential must be zero if it exists at a local
-  maximum or minimum for that corresponding component. *}
+subsection \<open>Component of the differential must be zero if it exists at a local
+  maximum or minimum for that corresponding component.\<close>
 
 lemma differential_zero_maxmin_cart:
   fixes f::"real^'a \<Rightarrow> real^'b"
@@ -1171,7 +1171,7 @@ lemma differential_zero_maxmin_cart:
     vector_cart[of "\<lambda>j. frechet_derivative f (at x) j $ k"]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis jacobian_def matrix_def)
 
-subsection {* Lemmas for working on @{typ "real^1"} *}
+subsection \<open>Lemmas for working on @{typ "real^1"}\<close>
 
 lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
   by (metis (full_types) num1_eq_iff)
@@ -1233,7 +1233,7 @@ qed
 
 end
 
-subsection{* The collapse of the general concepts to dimension one. *}
+subsection\<open>The collapse of the general concepts to dimension one.\<close>
 
 lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
   by (simp add: vec_eq_iff)
@@ -1254,7 +1254,7 @@ lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
   by (auto simp add: norm_real dist_norm)
 
 
-subsection{* Explicit vector construction from lists. *}
+subsection\<open>Explicit vector construction from lists.\<close>
 
 definition "vector l = (\<chi> i. foldr (\<lambda>x f n. fun_upd (f (n+1)) n x) l (\<lambda>n x. 0) 1 i)"
 

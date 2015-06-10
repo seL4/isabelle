@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section {* Definition of finite Cartesian product types. *}
+section \<open>Definition of finite Cartesian product types.\<close>
 
 theory Finite_Cartesian_Product
 imports
@@ -11,7 +11,7 @@ imports
   "~~/src/HOL/Library/Numeral_Type"
 begin
 
-subsection {* Finite Cartesian products, with indexing and lambdas. *}
+subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>
 
 typedef ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
@@ -27,7 +27,7 @@ notation
 
 syntax "_finite_vec" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)" [15, 16] 15)
 
-parse_translation {*
+parse_translation \<open>
   let
     fun vec t u = Syntax.const @{type_syntax vec} $ t $ u;
     fun finite_vec_tr [t, u] =
@@ -41,7 +41,7 @@ parse_translation {*
   in
     [(@{syntax_const "_finite_vec"}, K finite_vec_tr)]
   end
-*}
+\<close>
 
 lemma vec_eq_iff: "(x = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
   by (simp add: vec_nth_inject [symmetric] fun_eq_iff)
@@ -56,7 +56,7 @@ lemma vec_lambda_eta: "(\<chi> i. (g$i)) = g"
   by (simp add: vec_eq_iff)
 
 
-subsection {* Group operations and class instances *}
+subsection \<open>Group operations and class instances\<close>
 
 instantiation vec :: (zero, finite) zero
 begin
@@ -121,7 +121,7 @@ instance vec :: (ab_group_add, finite) ab_group_add
   by default (simp_all add: vec_eq_iff)
 
 
-subsection {* Real vector space *}
+subsection \<open>Real vector space\<close>
 
 instantiation vec :: (real_vector, finite) real_vector
 begin
@@ -137,7 +137,7 @@ instance
 end
 
 
-subsection {* Topological space *}
+subsection \<open>Topological space\<close>
 
 instantiation vec :: (topological_space, finite) topological_space
 begin
@@ -238,12 +238,12 @@ proof (rule openI)
   then obtain z where "a = z $ i" and "z \<in> S" ..
   then obtain A where A: "\<forall>i. open (A i) \<and> z $ i \<in> A i"
     and S: "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
-    using `open S` unfolding open_vec_def by auto
+    using \<open>open S\<close> unfolding open_vec_def by auto
   hence "A i \<subseteq> (\<lambda>x. x $ i) ` S"
     by (clarsimp, rule_tac x="\<chi> j. if j = i then x else z $ j" in image_eqI,
       simp_all)
   hence "open (A i) \<and> a \<in> A i \<and> A i \<subseteq> (\<lambda>x. x $ i) ` S"
-    using A `a = z $ i` by simp
+    using A \<open>a = z $ i\<close> by simp
   then show "\<exists>T. open T \<and> a \<in> T \<and> T \<subseteq> (\<lambda>x. x $ i) ` S" by - (rule exI)
 qed
 
@@ -259,7 +259,7 @@ proof
 qed
 
 
-subsection {* Metric space *}
+subsection \<open>Metric space\<close>
 
 instantiation vec :: (metric_space, finite) metric_space
 begin
@@ -291,7 +291,7 @@ next
       fix x assume "x \<in> S"
       obtain A where A: "\<forall>i. open (A i)" "\<forall>i. x $ i \<in> A i"
         and S: "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
-        using `open S` and `x \<in> S` unfolding open_vec_def by metis
+        using \<open>open S\<close> and \<open>x \<in> S\<close> unfolding open_vec_def by metis
       have "\<forall>i\<in>UNIV. \<exists>r>0. \<forall>y. dist y (x $ i) < r \<longrightarrow> y \<in> A i"
         using A unfolding open_dist by simp
       hence "\<exists>r. \<forall>i\<in>UNIV. 0 < r i \<and> (\<forall>y. dist y (x $ i) < r i \<longrightarrow> y \<in> A i)"
@@ -309,9 +309,9 @@ next
       then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
         using * by fast
       def r \<equiv> "\<lambda>i::'b. e / sqrt (of_nat CARD('b))"
-      from `0 < e` have r: "\<forall>i. 0 < r i"
+      from \<open>0 < e\<close> have r: "\<forall>i. 0 < r i"
         unfolding r_def by simp_all
-      from `0 < e` have e: "e = setL2 r UNIV"
+      from \<open>0 < e\<close> have e: "e = setL2 r UNIV"
         unfolding r_def by (simp add: setL2_constant)
       def A \<equiv> "\<lambda>i. {y. dist (x $ i) y < r i}"
       have "\<forall>i. open (A i) \<and> x $ i \<in> A i"
@@ -340,7 +340,7 @@ proof (rule metric_CauchyI)
   def N \<equiv> "\<lambda>i. LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
   def M \<equiv> "Max (range N)"
   have "\<And>i. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
-    using X `0 < ?s` by (rule metric_CauchyD)
+    using X \<open>0 < ?s\<close> by (rule metric_CauchyD)
   hence "\<And>i. \<forall>m\<ge>N i. \<forall>n\<ge>N i. dist (X m $ i) (X n $ i) < ?s"
     unfolding N_def by (rule LeastI_ex)
   hence M: "\<And>i. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m $ i) (X n $ i) < ?s"
@@ -353,7 +353,7 @@ proof (rule metric_CauchyI)
     also have "\<dots> \<le> setsum (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
       by (rule setL2_le_setsum [OF zero_le_dist])
     also have "\<dots> < setsum (\<lambda>i::'n. ?s) UNIV"
-      by (rule setsum_strict_mono, simp_all add: M `M \<le> m` `M \<le> n`)
+      by (rule setsum_strict_mono, simp_all add: M \<open>M \<le> m\<close> \<open>M \<le> n\<close>)
     also have "\<dots> = r"
       by simp
     finally have "dist (X m) (X n) < r" .
@@ -367,7 +367,7 @@ instance vec :: (complete_space, finite) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
   have "\<And>i. (\<lambda>n. X n $ i) ----> lim (\<lambda>n. X n $ i)"
-    using Cauchy_vec_nth [OF `Cauchy X`]
+    using Cauchy_vec_nth [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   hence "X ----> vec_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
     by (simp add: vec_tendstoI)
@@ -376,7 +376,7 @@ proof
 qed
 
 
-subsection {* Normed vector space *}
+subsection \<open>Normed vector space\<close>
 
 instantiation vec :: (real_normed_vector, finite) real_normed_vector
 begin
@@ -421,7 +421,7 @@ done
 instance vec :: (banach, finite) banach ..
 
 
-subsection {* Inner product space *}
+subsection \<open>Inner product space\<close>
 
 instantiation vec :: (real_inner, finite) real_inner
 begin
@@ -453,9 +453,9 @@ qed
 end
 
 
-subsection {* Euclidean space *}
+subsection \<open>Euclidean space\<close>
 
-text {* Vectors pointing along a single axis. *}
+text \<open>Vectors pointing along a single axis.\<close>
 
 definition "axis k x = (\<chi> i. if i = k then x else 0)"
 

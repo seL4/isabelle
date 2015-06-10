@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section {* General linear decision procedure for normed spaces *}
+section \<open>General linear decision procedure for normed spaces\<close>
 
 theory Norm_Arith
 imports "~~/src/HOL/Library/Sum_of_Squares"
@@ -126,12 +126,12 @@ lemmas arithmetic_simps =
 
 ML_file "normarith.ML"
 
-method_setup norm = {*
+method_setup norm = \<open>
   Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
-*} "prove simple linear statements about vector norms"
+\<close> "prove simple linear statements about vector norms"
 
 
-text {* Hence more metric properties. *}
+text \<open>Hence more metric properties.\<close>
 
 lemma dist_triangle_add:
   fixes x y x' y' :: "'a::real_normed_vector"

@@ -16,7 +16,7 @@
 (*              (c) Copyright, John Harrison 1998-2008                       *)
 (* ========================================================================= *)
 
-section {* Results connected with topological dimension. *}
+section \<open>Results connected with topological dimension.\<close>
 
 theory Brouwer_Fixpoint
 imports Convex_Euclidean_Space
@@ -137,7 +137,7 @@ proof -
 qed
 
 
-subsection {* The key "counting" observation, somewhat abstracted. *}
+subsection \<open>The key "counting" observation, somewhat abstracted.\<close>
 
 lemma kuhn_counting_lemma:
   fixes bnd compo compo' face S F
@@ -168,7 +168,7 @@ proof -
     by auto
 qed
 
-subsection {* The odd/even result for faces of complete vertices, generalized. *}
+subsection \<open>The odd/even result for faces of complete vertices, generalized.\<close>
 
 lemma kuhn_complete_lemma:
   assumes [simp]: "finite simplices"
@@ -187,7 +187,7 @@ proof (rule kuhn_counting_lemma)
   have F_eq: "?F = (\<Union>s\<in>simplices. \<Union>a\<in>s. {s - {a}})"
     by (auto simp: face)
   show "finite ?F"
-    using `finite simplices` unfolding F_eq by auto
+    using \<open>finite simplices\<close> unfolding F_eq by auto
 
   { fix f assume "f \<in> ?F" "bnd f" then show "card {s \<in> simplices. face f s} = 1"
       using bnd by auto }
@@ -213,7 +213,7 @@ proof (rule kuhn_counting_lemma)
     ultimately have n: "{..n} = rl ` (s - {a})"
       by (auto simp add: inj_on_image_set_diff Diff_subset rl)
     have "{a\<in>s. rl ` (s - {a}) = {..n}} = {a}"
-      using inj_rl `a \<in> s` by (auto simp add: n inj_on_image_eq_iff[OF inj_rl] Diff_subset)
+      using inj_rl \<open>a \<in> s\<close> by (auto simp add: n inj_on_image_eq_iff[OF inj_rl] Diff_subset)
     then show "card ?S = 1"
       unfolding card_S by simp }
 
@@ -236,16 +236,16 @@ proof (rule kuhn_counting_lemma)
         then have "rl ` s - {rl x} = rl ` ((s - {a}) - {x})"
           by (auto simp: eq Diff_subset inj_on_image_set_diff[OF inj])
         also have "\<dots> = rl ` (s - {x})"
-          using ab `x \<notin> {a, b}` by auto
+          using ab \<open>x \<notin> {a, b}\<close> by auto
         also assume "\<dots> = rl ` s"
         finally have False
-          using `x\<in>s` by auto }
+          using \<open>x\<in>s\<close> by auto }
       moreover
       { fix x assume "x \<in> {a, b}" with ab have "x \<in> s \<and> rl ` (s - {x}) = rl ` s"
           by (simp add: set_eq_iff image_iff Bex_def) metis }
       ultimately have "{a\<in>s. rl ` (s - {a}) = {..n}} = {a, b}"
         unfolding rl_s[symmetric] by fastforce
-      with `a \<noteq> b` show "card ?S = 0 \<or> card ?S = 2"
+      with \<open>a \<noteq> b\<close> show "card ?S = 0 \<or> card ?S = 2"
         unfolding card_S by simp
     next
       assume "\<not> {..n} \<subseteq> rl ` s"
@@ -321,7 +321,7 @@ proof
     unfolding s_eq by auto
   from this[of 0] this[of n] have "j \<notin> upd ` {..< n}"
     by (auto simp: enum_def fun_eq_iff split: split_if_asm)
-  with upd `j < n` show False
+  with upd \<open>j < n\<close> show False
     by (auto simp: bij_betw_def)
 qed
 
@@ -394,7 +394,7 @@ proof cases
   assume "x \<noteq> a"
   have "a j \<noteq> 0"
     using assms by (intro one_step[where a=a]) auto
-  with less[OF `x\<in>s` `a\<in>s`, of j] p[rule_format, of x] `x \<in> s` `x \<noteq> a`
+  with less[OF \<open>x\<in>s\<close> \<open>a\<in>s\<close>, of j] p[rule_format, of x] \<open>x \<in> s\<close> \<open>x \<noteq> a\<close>
   show ?thesis
     by auto
 qed simp
@@ -406,10 +406,10 @@ proof cases
   assume "x \<noteq> a"
   have "a j \<noteq> p"
     using assms by (intro one_step[where a=a]) auto
-  with enum_le_p[of _ j] `j < n` `a\<in>s`
+  with enum_le_p[of _ j] \<open>j < n\<close> \<open>a\<in>s\<close>
   have "a j < p"
     by (auto simp: less_le s_eq)
-  with less[OF `a\<in>s` `x\<in>s`, of j] p[rule_format, of x] `x \<in> s` `x \<noteq> a`
+  with less[OF \<open>a\<in>s\<close> \<open>x\<in>s\<close>, of j] p[rule_format, of x] \<open>x \<in> s\<close> \<open>x \<noteq> a\<close>
   show ?thesis
     by auto
 qed simp
@@ -428,24 +428,24 @@ using l proof (induct l rule: dec_induct)
   case base
   then have s: "s.enum i \<in> t.enum ` {i + d .. j + d}" and t: "t.enum (i + d) \<in> s.enum ` {i .. j}"
     using eq by auto
-  from t `i \<le> j` `j + d \<le> n` have "s.enum i \<le> t.enum (i + d)"
+  from t \<open>i \<le> j\<close> \<open>j + d \<le> n\<close> have "s.enum i \<le> t.enum (i + d)"
     by (auto simp: s.enum_mono)
-  moreover from s `i \<le> j` `j + d \<le> n` have "t.enum (i + d) \<le> s.enum i"
+  moreover from s \<open>i \<le> j\<close> \<open>j + d \<le> n\<close> have "t.enum (i + d) \<le> s.enum i"
     by (auto simp: t.enum_mono)
   ultimately show ?case
     by auto
 next
   case (step l)
-  moreover from step.prems `j + d \<le> n` have
+  moreover from step.prems \<open>j + d \<le> n\<close> have
       "s.enum l < s.enum (Suc l)"
       "t.enum (l + d) < t.enum (Suc l + d)"
     by (simp_all add: s.enum_strict_mono t.enum_strict_mono)
   moreover have
       "s.enum (Suc l) \<in> t.enum ` {i + d .. j + d}"
       "t.enum (Suc l + d) \<in> s.enum ` {i .. j}"
-    using step `j + d \<le> n` eq by (auto simp: s.enum_inj t.enum_inj)
+    using step \<open>j + d \<le> n\<close> eq by (auto simp: s.enum_inj t.enum_inj)
   ultimately have "s.enum (Suc l) = t.enum (Suc (l + d))"
-    using `j + d \<le> n`
+    using \<open>j + d \<le> n\<close>
     by (intro antisym s.enum_less[THEN iffD1] t.enum_less[THEN iffD1]) 
        (auto intro!: s.enum_in t.enum_in)
   then show ?case by simp
@@ -462,7 +462,7 @@ next
   assume "n \<noteq> 0"
   have "s.enum 0 = (s.enum (Suc 0)) (u_s 0 := s.enum (Suc 0) (u_s 0) - 1)"
        "t.enum 0 = (t.enum (Suc 0)) (u_t 0 := t.enum (Suc 0) (u_t 0) - 1)"
-    using `n \<noteq> 0` by (simp_all add: s.enum_Suc t.enum_Suc)
+    using \<open>n \<noteq> 0\<close> by (simp_all add: s.enum_Suc t.enum_Suc)
   moreover have e0: "a = s.enum 0" "b = t.enum 0"
     using a b by (simp_all add: s.enum_0_bot t.enum_0_bot)
   moreover
@@ -473,7 +473,7 @@ next
       using enum_eq[of "1" j n 0] eq by auto }
   note enum_eq = this
   then have "s.enum (Suc 0) = t.enum (Suc 0)"
-    using `n \<noteq> 0` by auto
+    using \<open>n \<noteq> 0\<close> by auto
   moreover
   { fix j assume "Suc j < n"
     with enum_eq[of "Suc j"] enum_eq[of "Suc (Suc j)"]
@@ -482,7 +482,7 @@ next
       by (auto simp: fun_eq_iff split: split_if_asm) }
   then have "\<And>j. 0 < j \<Longrightarrow> j < n \<Longrightarrow> u_s j = u_t j"
     by (auto simp: gr0_conv_Suc)
-  with `n \<noteq> 0` have "u_t 0 = u_s 0"
+  with \<open>n \<noteq> 0\<close> have "u_t 0 = u_s 0"
     by (intro bij_betw_singleton_eq[OF t.upd s.upd, of 0]) auto
   ultimately have "a = b"
     by simp
@@ -539,7 +539,7 @@ proof (rule finite_subset)
   { fix a s assume "ksimplex p n s" "a \<in> s"
     then obtain b u where "kuhn_simplex p n b u s" by (auto elim: ksimplex.cases)
     then interpret kuhn_simplex p n b u s .
-    from s_space `a \<in> s` out_eq_p[OF `a \<in> s`]
+    from s_space \<open>a \<in> s\<close> out_eq_p[OF \<open>a \<in> s\<close>]
     have "a \<in> (\<lambda>f x. if n \<le> x then p else f x) ` ({..< n} \<rightarrow>\<^sub>E {.. p})"
       by (auto simp: image_iff subset_eq Pi_iff split: split_if_asm
                intro!: bexI[of _ "restrict a {..< n}"]) }
@@ -568,15 +568,15 @@ proof safe
     then interpret kuhn_simplex p "Suc n" base upd "s" .
 
     have "a n < p"
-      using one_step[of a n p] na `a\<in>s` s_space by (auto simp: less_le)
+      using one_step[of a n p] na \<open>a\<in>s\<close> s_space by (auto simp: less_le)
     then have "a = enum 0"
-      using `a \<in> s` na by (subst enum_0_bot) (auto simp: le_less intro!: less[of a _ n])
+      using \<open>a \<in> s\<close> na by (subst enum_0_bot) (auto simp: le_less intro!: less[of a _ n])
     then have s_eq: "s - {a} = enum ` Suc ` {.. n}"
       using s_eq by (simp add: atMost_Suc_eq_insert_0 insert_ident Zero_notin_Suc in_enum_image subset_eq)
     then have "enum 1 \<in> s - {a}"
       by auto
     then have "upd 0 = n"
-      using `a n < p` `a = enum 0` na[rule_format, of "enum 1"]
+      using \<open>a n < p\<close> \<open>a = enum 0\<close> na[rule_format, of "enum 1"]
       by (auto simp: fun_eq_iff enum_Suc split: split_if_asm)
     then have "bij_betw upd (Suc ` {..< n}) {..< n}"
       using upd
@@ -586,7 +586,7 @@ proof safe
       by (rule bij_betw_trans[rotated]) (auto simp: bij_betw_def)
 
     have "a n = p - 1"
-      using enum_Suc[of 0] na[rule_format, OF `enum 1 \<in> s - {a}`] `a = enum 0` by (auto simp: `upd 0 = n`)
+      using enum_Suc[of 0] na[rule_format, OF \<open>enum 1 \<in> s - {a}\<close>] \<open>a = enum 0\<close> by (auto simp: \<open>upd 0 = n\<close>)
 
     show ?thesis
     proof (rule ksimplex.intros, default)
@@ -597,14 +597,14 @@ proof safe
       have "\<And>i. Suc ` {..< i} = {..< Suc i} - {0}"
         by (auto simp: image_iff Ball_def) arith
       then have upd_Suc: "\<And>i. i \<le> n \<Longrightarrow> (upd\<circ>Suc) ` {..< i} = upd ` {..< Suc i} - {n}"
-        using `upd 0 = n` upd_inj
+        using \<open>upd 0 = n\<close> upd_inj
         by (auto simp add: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
       have n_in_upd: "\<And>i. n \<in> upd ` {..< Suc i}"
-        using `upd 0 = n` by auto
+        using \<open>upd 0 = n\<close> by auto
 
       def f' \<equiv> "\<lambda>i j. if j \<in> (upd\<circ>Suc)`{..< i} then Suc ((base(n := p)) j) else (base(n := p)) j"
       { fix x i assume i[arith]: "i \<le> n" then have "enum (Suc i) x = f' i x"
-          unfolding f'_def enum_def using `a n < p` `a = enum 0` `upd 0 = n` `a n = p - 1`
+          unfolding f'_def enum_def using \<open>a n < p\<close> \<open>a = enum 0\<close> \<open>upd 0 = n\<close> \<open>a n = p - 1\<close>
           by (simp add: upd_Suc enum_0 n_in_upd) }
       then show "s - {a} = f' ` {.. n}"
         unfolding s_eq image_comp by (intro image_cong) auto
@@ -622,7 +622,7 @@ next
     have "ksimplex p (Suc n) (s' \<union> {b})"
     proof (rule ksimplex.intros, default)
       show "b \<in> {..<Suc n} \<rightarrow> {..<p}"
-        using base `0 < p` unfolding lessThan_Suc b_def by (auto simp: PiE_iff)
+        using base \<open>0 < p\<close> unfolding lessThan_Suc b_def by (auto simp: PiE_iff)
       show "\<And>i. Suc n \<le> i \<Longrightarrow> b i = p"
         using base_out by (auto simp: b_def)
 
@@ -646,13 +646,13 @@ next
       also have "\<dots> = (f' \<circ> Suc) ` {.. n} \<union> {b}"
         by (auto simp: f'_def)
       also have "(f' \<circ> Suc) ` {.. n} = s'"
-        using `0 < p` base_out[of n]
+        using \<open>0 < p\<close> base_out[of n]
         unfolding s_eq enum_def[abs_def] f'_def[abs_def] upd_space
         by (intro image_cong) (simp_all add: u_eq b_def fun_eq_iff n_not_upd)
       finally show "s' \<union> {b} = f' ` {.. Suc n}" ..
     qed
     moreover have "b \<notin> s'"
-      using * `0 < p` by (auto simp: b_def)
+      using * \<open>0 < p\<close> by (auto simp: b_def)
     ultimately show ?thesis by auto
   qed
 qed
@@ -675,7 +675,7 @@ proof cases
     with a j p s.replace_0[of _ a] t.replace_0[of _ b] have "s = t"
       by (intro ksimplex_eq_top[of a b]) auto }
   then have "{s'. ksimplex p n s' \<and> (\<exists>b\<in>s'. s' - {b} = s - {a})} = {s}"
-    using s `a \<in> s` by auto
+    using s \<open>a \<in> s\<close> by auto
   then show ?thesis
     by simp
 qed
@@ -698,7 +698,7 @@ proof cases
     with a j p s.replace_1[of _ a] t.replace_1[of _ b] have "s = t"
       by (intro ksimplex_eq_bot[of a b]) auto }
   then have "{s'. ksimplex p n s' \<and> (\<exists>b\<in>s'. s' - {b} = s - {a})} = {s}"
-    using s `a \<in> s` by auto
+    using s \<open>a \<in> s\<close> by auto
   then show ?thesis
     by simp
 qed
@@ -716,10 +716,10 @@ proof cases
   case (ksimplex base upd)
   then interpret kuhn_simplex p n base upd s .
 
-  from `a \<in> s` obtain i where "i \<le> n" "a = enum i"
+  from \<open>a \<in> s\<close> obtain i where "i \<le> n" "a = enum i"
     unfolding s_eq by auto
 
-  from `i \<le> n` have "i = 0 \<or> i = n \<or> (0 < i \<and> i < n)"
+  from \<open>i \<le> n\<close> have "i = 0 \<or> i = n \<or> (0 < i \<and> i < n)"
     by linarith
   then have "\<exists>!s'. s' \<noteq> s \<and> ksimplex p n s' \<and> (\<exists>b\<in>s'. s - {a} = s'- {b})"
   proof (elim disjE conjE)
@@ -737,7 +737,7 @@ proof cases
 
     interpret b: kuhn_simplex p n "enum (Suc 0)" "upd \<circ> rot" "f' ` {.. n}"
     proof
-      from `a = enum i` ub `n \<noteq> 0` `i = 0`
+      from \<open>a = enum i\<close> ub \<open>n \<noteq> 0\<close> \<open>i = 0\<close>
       obtain i' where "i' \<le> n" "enum i' \<noteq> enum 0" "enum i' (upd 0) \<noteq> p"
         unfolding s_eq by (auto intro: upd_space simp: enum_inj)
       then have "enum 1 \<le> enum i'" "enum i' (upd 0) < p"
@@ -745,10 +745,10 @@ proof cases
       then have "enum 1 (upd 0) < p"
         by (auto simp add: le_fun_def intro: le_less_trans)
       then show "enum (Suc 0) \<in> {..<n} \<rightarrow> {..<p}"
-        using base `n \<noteq> 0` by (auto simp add: enum_0 enum_Suc PiE_iff extensional_def upd_space)
+        using base \<open>n \<noteq> 0\<close> by (auto simp add: enum_0 enum_Suc PiE_iff extensional_def upd_space)
 
       { fix i assume "n \<le> i" then show "enum (Suc 0) i = p"
-        using `n \<noteq> 0` by (auto simp: enum_eq_p) }
+        using \<open>n \<noteq> 0\<close> by (auto simp: enum_eq_p) }
       show "bij_betw ?upd {..<n} {..<n}" by fact
     qed (simp add: f'_def)
     have ks_f': "ksimplex p n (f' ` {.. n})"
@@ -762,7 +762,7 @@ proof cases
          arith
 
     { fix j assume j: "j < n"
-      from j `n \<noteq> 0` have "f' j = enum (Suc j)"
+      from j \<open>n \<noteq> 0\<close> have "f' j = enum (Suc j)"
         by (auto simp add: f'_def enum_def upd_inj in_upd_image image_comp[symmetric] fun_eq_iff) }
     note f'_eq_enum = this
     then have "enum ` Suc ` {..< n} = f' ` {..< n}"
@@ -772,39 +772,39 @@ proof cases
     also have "{..< n} = {.. n} - {n}"
       by auto
     finally have eq: "s - {a} = f' ` {.. n} - {f' n}"
-      unfolding s_eq `a = enum i` `i = 0`
+      unfolding s_eq \<open>a = enum i\<close> \<open>i = 0\<close>
       by (simp add: Diff_subset inj_on_image_set_diff[OF inj_enum] inj_on_image_set_diff[OF inj_f'])
 
     have "enum 0 < f' 0"
-      using `n \<noteq> 0` by (simp add: enum_strict_mono f'_eq_enum)
+      using \<open>n \<noteq> 0\<close> by (simp add: enum_strict_mono f'_eq_enum)
     also have "\<dots> < f' n"
-      using `n \<noteq> 0` b.enum_strict_mono[of 0 n] unfolding b_enum by simp
+      using \<open>n \<noteq> 0\<close> b.enum_strict_mono[of 0 n] unfolding b_enum by simp
     finally have "a \<noteq> f' n"
-      using `a = enum i` `i = 0` by auto
+      using \<open>a = enum i\<close> \<open>i = 0\<close> by auto
 
     { fix t c assume "ksimplex p n t" "c \<in> t" and eq_sma: "s - {a} = t - {c}"
       obtain b u where "kuhn_simplex p n b u t"
-        using `ksimplex p n t` by (auto elim: ksimplex.cases)
+        using \<open>ksimplex p n t\<close> by (auto elim: ksimplex.cases)
       then interpret t: kuhn_simplex p n b u t .
 
       { fix x assume "x \<in> s" "x \<noteq> a"
          then have "x (upd 0) = enum (Suc 0) (upd 0)"
-           by (auto simp: `a = enum i` `i = 0` s_eq enum_def enum_inj) }
+           by (auto simp: \<open>a = enum i\<close> \<open>i = 0\<close> s_eq enum_def enum_inj) }
       then have eq_upd0: "\<forall>x\<in>t-{c}. x (upd 0) = enum (Suc 0) (upd 0)"
         unfolding eq_sma[symmetric] by auto
       then have "c (upd 0) \<noteq> enum (Suc 0) (upd 0)"
-        using `n \<noteq> 0` by (intro t.one_step[OF `c\<in>t` ]) (auto simp: upd_space)
+        using \<open>n \<noteq> 0\<close> by (intro t.one_step[OF \<open>c\<in>t\<close> ]) (auto simp: upd_space)
       then have "c (upd 0) < enum (Suc 0) (upd 0) \<or> c (upd 0) > enum (Suc 0) (upd 0)"
         by auto
       then have "t = s \<or> t = f' ` {..n}"
       proof (elim disjE conjE)
         assume *: "c (upd 0) < enum (Suc 0) (upd 0)"
         interpret st: kuhn_simplex_pair p n base upd s b u t ..
-        { fix x assume "x \<in> t" with * `c\<in>t` eq_upd0[rule_format, of x] have "c \<le> x"
+        { fix x assume "x \<in> t" with * \<open>c\<in>t\<close> eq_upd0[rule_format, of x] have "c \<le> x"
             by (auto simp: le_less intro!: t.less[of _ _ "upd 0"]) }
         note top = this
         have "s = t"
-          using `a = enum i` `i = 0` `c \<in> t`
+          using \<open>a = enum i\<close> \<open>i = 0\<close> \<open>c \<in> t\<close>
           by (intro st.ksimplex_eq_bot[OF _ _ _ _ eq_sma])
              (auto simp: s_eq enum_mono t.s_eq t.enum_mono top)
         then show ?thesis by simp
@@ -813,23 +813,23 @@ proof cases
         interpret st: kuhn_simplex_pair p n "enum (Suc 0)" "upd \<circ> rot" "f' ` {.. n}" b u t ..
         have eq: "f' ` {..n} - {f' n} = t - {c}"
           using eq_sma eq by simp
-        { fix x assume "x \<in> t" with * `c\<in>t` eq_upd0[rule_format, of x] have "x \<le> c"
+        { fix x assume "x \<in> t" with * \<open>c\<in>t\<close> eq_upd0[rule_format, of x] have "x \<le> c"
             by (auto simp: le_less intro!: t.less[of _ _ "upd 0"]) }
         note top = this
         have "f' ` {..n} = t"
-          using `a = enum i` `i = 0` `c \<in> t`
+          using \<open>a = enum i\<close> \<open>i = 0\<close> \<open>c \<in> t\<close>
           by (intro st.ksimplex_eq_top[OF _ _ _ _ eq])
              (auto simp: b.s_eq b.enum_mono t.s_eq t.enum_mono b_enum[symmetric] top)
         then show ?thesis by simp
       qed }
-    with ks_f' eq `a \<noteq> f' n` `n \<noteq> 0` show ?thesis
+    with ks_f' eq \<open>a \<noteq> f' n\<close> \<open>n \<noteq> 0\<close> show ?thesis
       apply (intro ex1I[of _ "f' ` {.. n}"])
       apply auto []
       apply metis
       done
   next
     assume "i = n"
-    from `n \<noteq> 0` obtain n' where n': "n = Suc n'"
+    from \<open>n \<noteq> 0\<close> obtain n' where n': "n = Suc n'"
       by (cases n) auto
 
     def rot \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> n' | Suc i \<Rightarrow> i"
@@ -849,7 +849,7 @@ proof cases
       { fix i assume "n \<le> i" then show "b i = p"
           using base_out[of i] upd_space[of n'] by (auto simp: b_def n') }
       show "b \<in> {..<n} \<rightarrow> {..<p}"
-        using base `n \<noteq> 0` upd_space[of n']
+        using base \<open>n \<noteq> 0\<close> upd_space[of n']
         by (auto simp: b_def PiE_def Pi_iff Ball_def upd_space extensional_def n')
 
       show "bij_betw ?upd {..<n} {..<n}" by fact
@@ -859,17 +859,17 @@ proof cases
       unfolding f' by rule unfold_locales
 
     have "0 < n" 
-      using `n \<noteq> 0` by auto
+      using \<open>n \<noteq> 0\<close> by auto
 
-    { from `a = enum i` `n \<noteq> 0` `i = n` lb upd_space[of n']
+    { from \<open>a = enum i\<close> \<open>n \<noteq> 0\<close> \<open>i = n\<close> lb upd_space[of n']
       obtain i' where "i' \<le> n" "enum i' \<noteq> enum n" "0 < enum i' (upd n')"
         unfolding s_eq by (auto simp: enum_inj n')
       moreover have "enum i' (upd n') = base (upd n')"
-        unfolding enum_def using `i' \<le> n` `enum i' \<noteq> enum n` by (auto simp: n' upd_inj enum_inj)
+        unfolding enum_def using \<open>i' \<le> n\<close> \<open>enum i' \<noteq> enum n\<close> by (auto simp: n' upd_inj enum_inj)
       ultimately have "0 < base (upd n')"
         by auto }
     then have benum1: "b.enum (Suc 0) = base"
-      unfolding b.enum_Suc[OF `0<n`] b.enum_0 by (auto simp: b_def rot_def)
+      unfolding b.enum_Suc[OF \<open>0<n\<close>] b.enum_0 by (auto simp: b_def rot_def)
 
     have [simp]: "\<And>j. Suc j < n \<Longrightarrow> rot ` {..< Suc j} = {n'} \<union> {..< j}"
       by (auto simp: rot_def image_iff Ball_def split: nat.splits)
@@ -886,7 +886,7 @@ proof cases
     also have "{..< n} = {.. n} - {n}"
       by auto
     finally have eq: "s - {a} = b.enum ` {.. n} - {b.enum 0}"
-      unfolding s_eq `a = enum i` `i = n`
+      unfolding s_eq \<open>a = enum i\<close> \<open>i = n\<close>
       using inj_on_image_set_diff[OF inj_enum Diff_subset, of "{n}"]
             inj_on_image_set_diff[OF b.inj_enum Diff_subset, of "{0}"]
       by (simp add: comp_def )
@@ -894,33 +894,33 @@ proof cases
     have "b.enum 0 \<le> b.enum n"
       by (simp add: b.enum_mono)
     also have "b.enum n < enum n"
-      using `n \<noteq> 0` by (simp add: enum_strict_mono b_enum_eq_enum n')
+      using \<open>n \<noteq> 0\<close> by (simp add: enum_strict_mono b_enum_eq_enum n')
     finally have "a \<noteq> b.enum 0"
-      using `a = enum i` `i = n` by auto
+      using \<open>a = enum i\<close> \<open>i = n\<close> by auto
 
     { fix t c assume "ksimplex p n t" "c \<in> t" and eq_sma: "s - {a} = t - {c}"
       obtain b' u where "kuhn_simplex p n b' u t"
-        using `ksimplex p n t` by (auto elim: ksimplex.cases)
+        using \<open>ksimplex p n t\<close> by (auto elim: ksimplex.cases)
       then interpret t: kuhn_simplex p n b' u t .
 
       { fix x assume "x \<in> s" "x \<noteq> a"
          then have "x (upd n') = enum n' (upd n')"
-           by (auto simp: `a = enum i` n' `i = n` s_eq enum_def enum_inj in_upd_image) }
+           by (auto simp: \<open>a = enum i\<close> n' \<open>i = n\<close> s_eq enum_def enum_inj in_upd_image) }
       then have eq_upd0: "\<forall>x\<in>t-{c}. x (upd n') = enum n' (upd n')"
         unfolding eq_sma[symmetric] by auto
       then have "c (upd n') \<noteq> enum n' (upd n')"
-        using `n \<noteq> 0` by (intro t.one_step[OF `c\<in>t` ]) (auto simp: n' upd_space[unfolded n'])
+        using \<open>n \<noteq> 0\<close> by (intro t.one_step[OF \<open>c\<in>t\<close> ]) (auto simp: n' upd_space[unfolded n'])
       then have "c (upd n') < enum n' (upd n') \<or> c (upd n') > enum n' (upd n')"
         by auto
       then have "t = s \<or> t = b.enum ` {..n}"
       proof (elim disjE conjE)
         assume *: "c (upd n') > enum n' (upd n')"
         interpret st: kuhn_simplex_pair p n base upd s b' u t ..
-        { fix x assume "x \<in> t" with * `c\<in>t` eq_upd0[rule_format, of x] have "x \<le> c"
+        { fix x assume "x \<in> t" with * \<open>c\<in>t\<close> eq_upd0[rule_format, of x] have "x \<le> c"
             by (auto simp: le_less intro!: t.less[of _ _ "upd n'"]) }
         note top = this
         have "s = t"
-          using `a = enum i` `i = n` `c \<in> t`
+          using \<open>a = enum i\<close> \<open>i = n\<close> \<open>c \<in> t\<close>
           by (intro st.ksimplex_eq_top[OF _ _ _ _ eq_sma])
              (auto simp: s_eq enum_mono t.s_eq t.enum_mono top)
         then show ?thesis by simp
@@ -929,16 +929,16 @@ proof cases
         interpret st: kuhn_simplex_pair p n b "upd \<circ> rot" "f' ` {.. n}" b' u t ..
         have eq: "f' ` {..n} - {b.enum 0} = t - {c}"
           using eq_sma eq f' by simp
-        { fix x assume "x \<in> t" with * `c\<in>t` eq_upd0[rule_format, of x] have "c \<le> x"
+        { fix x assume "x \<in> t" with * \<open>c\<in>t\<close> eq_upd0[rule_format, of x] have "c \<le> x"
             by (auto simp: le_less intro!: t.less[of _ _ "upd n'"]) }
         note bot = this
         have "f' ` {..n} = t"
-          using `a = enum i` `i = n` `c \<in> t`
+          using \<open>a = enum i\<close> \<open>i = n\<close> \<open>c \<in> t\<close>
           by (intro st.ksimplex_eq_bot[OF _ _ _ _ eq])
              (auto simp: b.s_eq b.enum_mono t.s_eq t.enum_mono bot)
         with f' show ?thesis by simp
       qed }
-    with ks_f' eq `a \<noteq> b.enum 0` `n \<noteq> 0` show ?thesis
+    with ks_f' eq \<open>a \<noteq> b.enum 0\<close> \<open>n \<noteq> 0\<close> show ?thesis
       apply (intro ex1I[of _ "b.enum ` {.. n}"])
       apply auto []
       apply metis
@@ -979,81 +979,81 @@ proof cases
     then have "enum ` ({.. n} - {i}) = b.enum ` ({.. n} - {i})"
       by (intro image_cong) auto
     then have eq: "s - {a} = b.enum ` {.. n} - {b.enum i}"
-      unfolding s_eq `a = enum i`
-      using inj_on_image_set_diff[OF inj_enum Diff_subset `{i} \<subseteq> {..n}`]
-            inj_on_image_set_diff[OF b.inj_enum Diff_subset `{i} \<subseteq> {..n}`]
+      unfolding s_eq \<open>a = enum i\<close>
+      using inj_on_image_set_diff[OF inj_enum Diff_subset \<open>{i} \<subseteq> {..n}\<close>]
+            inj_on_image_set_diff[OF b.inj_enum Diff_subset \<open>{i} \<subseteq> {..n}\<close>]
       by (simp add: comp_def)
 
     have "a \<noteq> b.enum i"
-      using `a = enum i` enum_eq_benum i by auto
+      using \<open>a = enum i\<close> enum_eq_benum i by auto
 
     { fix t c assume "ksimplex p n t" "c \<in> t" and eq_sma: "s - {a} = t - {c}"
       obtain b' u where "kuhn_simplex p n b' u t"
-        using `ksimplex p n t` by (auto elim: ksimplex.cases)
+        using \<open>ksimplex p n t\<close> by (auto elim: ksimplex.cases)
       then interpret t: kuhn_simplex p n b' u t .
       have "enum i' \<in> s - {a}" "enum (i + 1) \<in> s - {a}"
-        using `a = enum i` i enum_in by (auto simp: enum_inj i'_def)
+        using \<open>a = enum i\<close> i enum_in by (auto simp: enum_inj i'_def)
       then obtain l k where
         l: "t.enum l = enum i'" "l \<le> n" "t.enum l \<noteq> c" and
         k: "t.enum k = enum (i + 1)" "k \<le> n" "t.enum k \<noteq> c"
         unfolding eq_sma by (auto simp: t.s_eq)
       with i have "t.enum l < t.enum k"
         by (simp add: enum_strict_mono i'_def)
-      with `l \<le> n` `k \<le> n` have "l < k"
+      with \<open>l \<le> n\<close> \<open>k \<le> n\<close> have "l < k"
         by (simp add: t.enum_strict_mono)
       { assume "Suc l = k"
         have "enum (Suc (Suc i')) = t.enum (Suc l)"
-          using i by (simp add: k `Suc l = k` i'_def)
+          using i by (simp add: k \<open>Suc l = k\<close> i'_def)
         then have False
-          using `l < k` `k \<le> n` `Suc i' < n`
+          using \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close>
           by (auto simp: t.enum_Suc enum_Suc l upd_inj fun_eq_iff split: split_if_asm)
              (metis Suc_lessD n_not_Suc_n upd_inj) }
-      with `l < k` have "Suc l < k"
+      with \<open>l < k\<close> have "Suc l < k"
         by arith
       have c_eq: "c = t.enum (Suc l)"
       proof (rule ccontr)
         assume "c \<noteq> t.enum (Suc l)"
         then have "t.enum (Suc l) \<in> s - {a}"
-          using `l < k` `k \<le> n` by (simp add: t.s_eq eq_sma)
+          using \<open>l < k\<close> \<open>k \<le> n\<close> by (simp add: t.s_eq eq_sma)
         then obtain j where "t.enum (Suc l) = enum j" "j \<le> n" "enum j \<noteq> enum i"
-          unfolding s_eq `a = enum i` by auto
+          unfolding s_eq \<open>a = enum i\<close> by auto
         with i have "t.enum (Suc l) \<le> t.enum l \<or> t.enum k \<le> t.enum (Suc l)"
           by (auto simp add: i'_def enum_mono enum_inj l k)
-        with `Suc l < k` `k \<le> n` show False
+        with \<open>Suc l < k\<close> \<open>k \<le> n\<close> show False
           by (simp add: t.enum_mono)
       qed
 
       { have "t.enum (Suc (Suc l)) \<in> s - {a}"
-          unfolding eq_sma c_eq t.s_eq using `Suc l < k` `k \<le> n` by (auto simp: t.enum_inj)
+          unfolding eq_sma c_eq t.s_eq using \<open>Suc l < k\<close> \<open>k \<le> n\<close> by (auto simp: t.enum_inj)
         then obtain j where eq: "t.enum (Suc (Suc l)) = enum j" and "j \<le> n" "j \<noteq> i"
-          by (auto simp: s_eq `a = enum i`)
+          by (auto simp: s_eq \<open>a = enum i\<close>)
         moreover have "enum i' < t.enum (Suc (Suc l))"
-          unfolding l(1)[symmetric] using `Suc l < k` `k \<le> n` by (auto simp: t.enum_strict_mono)
+          unfolding l(1)[symmetric] using \<open>Suc l < k\<close> \<open>k \<le> n\<close> by (auto simp: t.enum_strict_mono)
         ultimately have "i' < j"
           using i by (simp add: enum_strict_mono i'_def)
-        with `j \<noteq> i` `j \<le> n` have "t.enum k \<le> t.enum (Suc (Suc l))"
+        with \<open>j \<noteq> i\<close> \<open>j \<le> n\<close> have "t.enum k \<le> t.enum (Suc (Suc l))"
           unfolding i'_def by (simp add: enum_mono k eq)
         then have "k \<le> Suc (Suc l)"
-          using `k \<le> n` `Suc l < k` by (simp add: t.enum_mono) }
-      with `Suc l < k` have "Suc (Suc l) = k" by simp
+          using \<open>k \<le> n\<close> \<open>Suc l < k\<close> by (simp add: t.enum_mono) }
+      with \<open>Suc l < k\<close> have "Suc (Suc l) = k" by simp
       then have "enum (Suc (Suc i')) = t.enum (Suc (Suc l))"
         using i by (simp add: k i'_def)
       also have "\<dots> = (enum i') (u l := Suc (enum i' (u l)), u (Suc l) := Suc (enum i' (u (Suc l))))"
-        using `Suc l < k` `k \<le> n` by (simp add: t.enum_Suc l t.upd_inj)
+        using \<open>Suc l < k\<close> \<open>k \<le> n\<close> by (simp add: t.enum_Suc l t.upd_inj)
       finally have "(u l = upd i' \<and> u (Suc l) = upd (Suc i')) \<or> 
         (u l = upd (Suc i') \<and> u (Suc l) = upd i')"
-        using `Suc i' < n` by (auto simp: enum_Suc fun_eq_iff split: split_if_asm)
+        using \<open>Suc i' < n\<close> by (auto simp: enum_Suc fun_eq_iff split: split_if_asm)
 
       then have "t = s \<or> t = b.enum ` {..n}"
       proof (elim disjE conjE)
         assume u: "u l = upd i'"
         have "c = t.enum (Suc l)" unfolding c_eq ..
         also have "t.enum (Suc l) = enum (Suc i')"
-          using u `l < k` `k \<le> n` `Suc i' < n` by (simp add: enum_Suc t.enum_Suc l)
+          using u \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close> by (simp add: enum_Suc t.enum_Suc l)
         also have "\<dots> = a"
-          using `a = enum i` i by (simp add: i'_def)
+          using \<open>a = enum i\<close> i by (simp add: i'_def)
         finally show ?thesis
-          using eq_sma `a \<in> s` `c \<in> t` by auto
+          using eq_sma \<open>a \<in> s\<close> \<open>c \<in> t\<close> by auto
       next
         assume u: "u l = upd (Suc i')"
         def B \<equiv> "b.enum ` {..n}"
@@ -1061,30 +1061,30 @@ proof cases
           using enum_eq_benum[of i'] i by (auto simp add: i'_def gr0_conv_Suc)
         have "c = t.enum (Suc l)" unfolding c_eq ..
         also have "t.enum (Suc l) = b.enum (Suc i')"
-          using u `l < k` `k \<le> n` `Suc i' < n`
-          by (simp_all add: enum_Suc t.enum_Suc l b.enum_Suc `b.enum i' = enum i'` swap_apply1)
+          using u \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close>
+          by (simp_all add: enum_Suc t.enum_Suc l b.enum_Suc \<open>b.enum i' = enum i'\<close> swap_apply1)
              (simp add: Suc_i')
         also have "\<dots> = b.enum i"
           using i by (simp add: i'_def)
         finally have "c = b.enum i" .
         then have "t - {c} = B - {c}" "c \<in> B"
           unfolding eq_sma[symmetric] eq B_def using i by auto
-        with `c \<in> t` have "t = B"
+        with \<open>c \<in> t\<close> have "t = B"
           by auto
         then show ?thesis
           by (simp add: B_def)
       qed }
-    with ks_f' eq `a \<noteq> b.enum i` `n \<noteq> 0` `i \<le> n` show ?thesis
+    with ks_f' eq \<open>a \<noteq> b.enum i\<close> \<open>n \<noteq> 0\<close> \<open>i \<le> n\<close> show ?thesis
       apply (intro ex1I[of _ "b.enum ` {.. n}"])
       apply auto []
       apply metis
       done
   qed
   then show ?thesis
-    using s `a \<in> s` by (simp add: card_2_exists Ex1_def) metis
+    using s \<open>a \<in> s\<close> by (simp add: card_2_exists Ex1_def) metis
 qed
 
-text {* Hence another step towards concreteness. *}
+text \<open>Hence another step towards concreteness.\<close>
 
 lemma kuhn_simplex_lemma:
   assumes "\<forall>s. ksimplex p (Suc n) s \<longrightarrow> rl ` s \<subseteq> {.. Suc n}"
@@ -1129,7 +1129,7 @@ next
       by (subst (asm) eq_commute) auto }
 qed
 
-subsection {* Reduced labelling *}
+subsection \<open>Reduced labelling\<close>
 
 definition reduced :: "nat \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> nat" where "reduced n x = (LEAST k. k = n \<or> x k \<noteq> 0)"
 
@@ -1185,7 +1185,7 @@ next
       with assms j have "reduced (Suc n) (lab x) \<le> j"
         by (intro reduced_labelling_nonzero) auto
       then have "reduced (Suc n) (lab x) \<noteq> n"
-        using `j \<noteq> n` `j \<le> n` by simp }
+        using \<open>j \<noteq> n\<close> \<open>j \<le> n\<close> by simp }
     moreover
     have "n \<in> (reduced (Suc n) \<circ> lab) ` f" 
       using eq by auto
@@ -1198,7 +1198,7 @@ next
     using j x by auto
 qed auto
 
-text {* Hence we get just about the nice induction. *}
+text \<open>Hence we get just about the nice induction.\<close>
 
 lemma kuhn_induction:
   assumes "0 < p"
@@ -1231,7 +1231,7 @@ proof -
       using rl by (simp cong: image_cong)
     moreover
     obtain t a where "ksimplex p (Suc n) t" "a \<in> t" "s = t - {a}"
-      using s unfolding simplex_top_face[OF `0 < p` all_eq_p] by auto
+      using s unfolding simplex_top_face[OF \<open>0 < p\<close> all_eq_p] by auto
     ultimately
     show "\<exists>t a. ksimplex p (Suc n) t \<and> a \<in> t \<and> s = t - {a} \<and> ?rl ` s = {..n} \<and> ?ext s"
       by auto
@@ -1253,7 +1253,7 @@ proof -
     then show rl': "(reduced n\<circ>lab) ` (s - {a}) = {..n}"
       unfolding rl[symmetric] by (intro image_cong) auto
 
-    from `?ext (s - {a})`
+    from \<open>?ext (s - {a})\<close>
     have all_eq_p: "\<forall>x\<in>s - {a}. x n = p"
     proof (elim disjE exE conjE)
       fix j assume "j \<le> n" "\<forall>x\<in>s - {a}. x j = 0"
@@ -1261,7 +1261,7 @@ proof -
       have "\<And>x. x \<in> s - {a} \<Longrightarrow> reduced (Suc n) (lab x) \<noteq> j"
         by (intro reduced_labelling_zero) auto
       moreover have "j \<in> ?rl ` (s - {a})"
-        using `j \<le> n` unfolding rl by auto
+        using \<open>j \<le> n\<close> unfolding rl by auto
       ultimately show ?thesis
         by force
     next
@@ -1275,12 +1275,12 @@ proof -
           have "reduced n (lab x) \<le> j"
           proof (rule reduced_labelling_nonzero)
             show "lab x j \<noteq> 0"
-              using lab_1[rule_format, of j x] x s_le_p[of x] eq_p `j \<le> n` by auto
+              using lab_1[rule_format, of j x] x s_le_p[of x] eq_p \<open>j \<le> n\<close> by auto
             show "j < n"
-              using `j \<le> n` `j \<noteq> n` by simp
+              using \<open>j \<le> n\<close> \<open>j \<noteq> n\<close> by simp
           qed
           then have "reduced n (lab x) \<noteq> n"
-            using `j \<le> n` `j \<noteq> n` by simp }
+            using \<open>j \<le> n\<close> \<open>j \<noteq> n\<close> by simp }
         moreover have "n \<in> (reduced n\<circ>lab) ` (s - {a})"
           unfolding rl' by auto
         ultimately show ?thesis
@@ -1288,13 +1288,13 @@ proof -
       qed
     qed
     show "ksimplex p n (s - {a})"
-      unfolding simplex_top_face[OF `0 < p` all_eq_p] using s a by auto
+      unfolding simplex_top_face[OF \<open>0 < p\<close> all_eq_p] using s a by auto
   qed
   ultimately show ?thesis
     using assms by (intro kuhn_simplex_lemma) auto
 qed
 
-text {* And so we get the final combinatorial result. *}
+text \<open>And so we get the final combinatorial result.\<close>
 
 lemma ksimplex_0: "ksimplex p 0 s \<longleftrightarrow> s = {(\<lambda>x. p)}"
 proof
@@ -1360,18 +1360,18 @@ proof -
 
     have "label u i \<noteq> label v i"
       using reduced_labelling [of n "label u"] reduced_labelling [of n "label v"]
-        u(2)[symmetric] v(2)[symmetric] `i < n`
+        u(2)[symmetric] v(2)[symmetric] \<open>i < n\<close>
       by auto
     moreover
     { fix j assume "j < n"
       then have "b j \<le> u j" "u j \<le> b j + 1" "b j \<le> v j" "v j \<le> b j + 1"
-        using base_le[OF `u\<in>s`] le_Suc_base[OF `u\<in>s`] base_le[OF `v\<in>s`] le_Suc_base[OF `v\<in>s`] by auto }
+        using base_le[OF \<open>u\<in>s\<close>] le_Suc_base[OF \<open>u\<in>s\<close>] base_le[OF \<open>v\<in>s\<close>] le_Suc_base[OF \<open>v\<in>s\<close>] by auto }
     ultimately show ?case
       by blast
   qed
 qed
 
-subsection {* The main result for the unit cube *}
+subsection \<open>The main result for the unit cube\<close>
 
 lemma kuhn_labelling_lemma':
   assumes "(\<forall>x::nat\<Rightarrow>real. P x \<longrightarrow> P (f x))"
@@ -1645,7 +1645,7 @@ proof (rule ccontr)
     (\<forall>i<n. (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0 \<or>
            (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
     unfolding *
-    using `p > 0` `n > 0`
+    using \<open>p > 0\<close> \<open>n > 0\<close>
     using label(1)[OF b'']
     by auto
   { fix x :: "nat \<Rightarrow> nat" and i assume "\<forall>i<n. x i \<le> p" "i < n" "x i = p \<or> x i = 0"
@@ -1655,10 +1655,10 @@ proof (rule ccontr)
   note cube = this
   have q2: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = 0 \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
-    unfolding o_def using cube `p > 0` by (intro allI impI label(2)) (auto simp add: b'')
+    unfolding o_def using cube \<open>p > 0\<close> by (intro allI impI label(2)) (auto simp add: b'')
   have q3: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = p \<longrightarrow> 
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
-    using cube `p > 0` unfolding o_def by (intro allI impI label(3)) (auto simp add: b'')
+    using cube \<open>p > 0\<close> unfolding o_def by (intro allI impI label(3)) (auto simp add: b'')
   obtain q where q:
       "\<forall>i<n. q i < p"
       "\<forall>i<n.
@@ -1681,7 +1681,7 @@ proof (rule ccontr)
       by (rule d)
     assume "\<not> ?thesis"
     then have as: "\<forall>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar> < d / real n"
-      using `n > 0`
+      using \<open>n > 0\<close>
       by (auto simp add: not_le inner_diff)
     have "norm (f z - z) \<le> (\<Sum>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar>)"
       unfolding inner_diff_left[symmetric]
@@ -1733,7 +1733,7 @@ proof (rule ccontr)
     by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1)
   have "z \<in> unit_cube"
     unfolding z_def mem_unit_cube
-    using b'_Basis q(1)[rule_format,OF b'_im] `p > 0`
+    using b'_Basis q(1)[rule_format,OF b'_im] \<open>p > 0\<close>
     by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1 less_imp_le)
   have *: "\<And>x. 1 + real x = real (Suc x)"
     by auto
@@ -1744,7 +1744,7 @@ proof (rule ccontr)
       apply (auto simp add:* field_simps)
       done
     also have "\<dots> < e * real p"
-      using p `e > 0` `p > 0`
+      using p \<open>e > 0\<close> \<open>p > 0\<close>
       by (auto simp add: field_simps n_def real_of_nat_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
@@ -1756,27 +1756,27 @@ proof (rule ccontr)
       apply (auto simp add:* field_simps)
       done
     also have "\<dots> < e * real p"
-      using p `e > 0` `p > 0`
+      using p \<open>e > 0\<close> \<open>p > 0\<close>
       by (auto simp add: field_simps n_def real_of_nat_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
   ultimately
   have "norm (r' - z) < e" and "norm (s' - z) < e"
     unfolding r'_def s'_def z_def
-    using `p > 0`
+    using \<open>p > 0\<close>
     apply (rule_tac[!] le_less_trans[OF norm_le_l1])
     apply (auto simp add: field_simps setsum_divide_distrib[symmetric] inner_diff_left)
     done
   then have "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
     using rs(3) i
     unfolding r'_def[symmetric] s'_def[symmetric] o_def bb'
-    by (intro e(2)[OF `r'\<in>unit_cube` `s'\<in>unit_cube` `z\<in>unit_cube`]) auto
+    by (intro e(2)[OF \<open>r'\<in>unit_cube\<close> \<open>s'\<in>unit_cube\<close> \<open>z\<in>unit_cube\<close>]) auto
   then show False
     using i by auto
 qed
 
 
-subsection {* Retractions *}
+subsection \<open>Retractions\<close>
 
 definition "retraction s t r \<longleftrightarrow> t \<subseteq> s \<and> continuous_on s r \<and> r ` s \<subseteq> t \<and> (\<forall>x\<in>t. r x = x)"
 
@@ -1786,7 +1786,7 @@ definition retract_of (infixl "retract'_of" 12)
 lemma retraction_idempotent: "retraction s t r \<Longrightarrow> x \<in> s \<Longrightarrow>  r (r x) = r x"
   unfolding retraction_def by auto
 
-subsection {* Preservation of fixpoints under (more general notion of) retraction *}
+subsection \<open>Preservation of fixpoints under (more general notion of) retraction\<close>
 
 lemma invertible_fixpoint_property:
   fixes s :: "'a::euclidean_space set"
@@ -1876,7 +1876,7 @@ proof -
 qed
 
 
-subsection {* The Brouwer theorem for any set with nonempty interior *}
+subsection \<open>The Brouwer theorem for any set with nonempty interior\<close>
 
 lemma convex_unit_cube: "convex unit_cube"
   apply (rule is_interval_convex)
@@ -1918,7 +1918,7 @@ proof -
 qed
 
 
-text {* And in particular for a closed ball. *}
+text \<open>And in particular for a closed ball.\<close>
 
 lemma brouwer_ball:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
@@ -1930,9 +1930,9 @@ lemma brouwer_ball:
   unfolding interior_cball ball_eq_empty
   using assms by auto
 
-text {*Still more general form; could derive this directly without using the
+text \<open>Still more general form; could derive this directly without using the
   rather involved @{text "HOMEOMORPHIC_CONVEX_COMPACT"} theorem, just using
-  a scaling and translation to put the set inside the unit cube. *}
+  a scaling and translation to put the set inside the unit cube.\<close>
 
 lemma brouwer:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
@@ -1981,7 +1981,7 @@ proof -
     done
 qed
 
-text {*So we get the no-retraction theorem. *}
+text \<open>So we get the no-retraction theorem.\<close>
 
 lemma no_retraction_cball:
   fixes a :: "'a::euclidean_space"

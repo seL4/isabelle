@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen, and LCP with material from HOL Light
 *)
 
-section {* Continuous paths and path-connected sets *}
+section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
 imports Convex_Euclidean_Space
@@ -74,7 +74,7 @@ lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
   by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
 
-subsection {* Paths and Arcs *}
+subsection \<open>Paths and Arcs\<close>
 
 definition path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "path g \<longleftrightarrow> continuous_on {0..1} g"
@@ -103,7 +103,7 @@ definition arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bo
   where "arc g \<longleftrightarrow> path g \<and> inj_on g {0..1}"
 
 
-subsection{*Invariance theorems*}
+subsection\<open>Invariance theorems\<close>
 
 lemma path_eq: "path p \<Longrightarrow> (\<And>t. t \<in> {0..1} \<Longrightarrow> p t = q t) \<Longrightarrow> path q"
   using continuous_on_eq path_def by blast
@@ -198,7 +198,7 @@ lemma arc_linear_image_eq:
   using assms inj_on_eq_iff [of f]
   by (auto simp: arc_def inj_on_def path_linear_image_eq)
 
-subsection{*Basic lemmas about paths*}
+subsection\<open>Basic lemmas about paths\<close>
 
 lemma arc_imp_simple_path: "arc g \<Longrightarrow> simple_path g"
   by (simp add: arc_def inj_on_def simple_path_def)
@@ -358,7 +358,7 @@ next
     done
 qed
 
-section {*Path Images*}
+section \<open>Path Images\<close>
 
 lemma bounded_path_image: "path g \<Longrightarrow> bounded(path_image g)"
   by (simp add: compact_imp_bounded compact_path_image)
@@ -451,7 +451,7 @@ lemma simple_path_inj_on: "simple_path g \<Longrightarrow> inj_on g {0<..<1}"
   by (auto simp: simple_path_def path_image_def inj_on_def less_eq_real_def Ball_def)
 
 
-subsection{*Simple paths with the endpoints removed*}
+subsection\<open>Simple paths with the endpoints removed\<close>
 
 lemma simple_path_endless:
     "simple_path c \<Longrightarrow> path_image c - {pathstart c,pathfinish c} = c ` {0<..<1}"
@@ -474,7 +474,7 @@ lemma nonempty_simple_path_endless:
   by (simp add: simple_path_endless)
 
 
-subsection{* The operations on paths*}
+subsection\<open>The operations on paths\<close>
 
 lemma path_image_subset_reversepath: "path_image(reversepath g) \<le> path_image g"
   by (auto simp: path_image_def reversepath_def)
@@ -630,7 +630,7 @@ lemma reversepath_joinpaths:
   by (rule ext) (auto simp: mult.commute)
 
 
-subsection{* Choosing a subpath of an existing path*}
+subsection\<open>Choosing a subpath of an existing path\<close>
     
 definition subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
   where "subpath a b g \<equiv> \<lambda>x. g((b - a) * x + a)"
@@ -802,7 +802,7 @@ lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p =
   by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
 
 
-subsection {* Reparametrizing a closed curve to start at some chosen point *}
+subsection \<open>Reparametrizing a closed curve to start at some chosen point\<close>
 
 definition shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
@@ -903,7 +903,7 @@ proof -
 qed
 
 
-subsection {* Special case of straight-line paths *}
+subsection \<open>Special case of straight-line paths\<close>
 
 definition linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
   where "linepath a b = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b)"
@@ -957,7 +957,7 @@ lemma simple_path_linepath[intro]: "a \<noteq> b \<Longrightarrow> simple_path (
   by (simp add: arc_imp_simple_path arc_linepath)
 
 
-subsection {* Bounding a point away from a path *}
+subsection \<open>Bounding a point away from a path\<close>
 
 lemma not_on_path_ball:
   fixes g :: "real \<Rightarrow> 'a::heine_borel"
@@ -984,7 +984,7 @@ proof -
   obtain e where "ball z e \<inter> path_image g = {}" "e > 0"
     using not_on_path_ball[OF assms] by auto
   moreover have "cball z (e/2) \<subseteq> ball z e"
-    using `e > 0` by auto
+    using \<open>e > 0\<close> by auto
   ultimately show ?thesis
     apply (rule_tac x="e/2" in exI)
     apply auto
@@ -992,7 +992,7 @@ proof -
 qed
 
 
-subsection {* Path component, considered as a "joinability" relation (from Tom Hales) *}
+subsection \<open>Path component, considered as a "joinability" relation (from Tom Hales)\<close>
 
 definition "path_component s x y \<longleftrightarrow>
   (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
@@ -1041,7 +1041,7 @@ lemma path_component_of_subset: "s \<subseteq> t \<Longrightarrow> path_componen
   unfolding path_component_def by auto
 
 
-text {* Can also consider it as a set, as the name suggests. *}
+text \<open>Can also consider it as a set, as the name suggests.\<close>
 
 lemma path_component_set:
   "{y. path_component s x y} =
@@ -1057,7 +1057,7 @@ lemma path_component_eq_empty: "{y. path_component s x y} = {} \<longleftrightar
   using path_component_mem path_component_refl_eq
     by fastforce
 
-subsection {* Path connectedness of a space *}
+subsection \<open>Path connectedness of a space\<close>
 
 definition "path_connected s \<longleftrightarrow>
   (\<forall>x\<in>s. \<forall>y\<in>s. \<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
@@ -1070,7 +1070,7 @@ lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<f
   apply auto
   using path_component_mem(2) by blast
 
-subsection {* Some useful lemmas about path-connectedness *}
+subsection \<open>Some useful lemmas about path-connectedness\<close>
 
 lemma convex_imp_path_connected:
   fixes s :: "'a::real_normed_vector set"
@@ -1140,7 +1140,7 @@ proof
     by auto
   show "\<exists>e > 0. ball y e \<subseteq> {y. path_component s x y}"
     apply (rule_tac x=e in exI)
-    apply (rule,rule `e>0`)
+    apply (rule,rule \<open>e>0\<close>)
     apply rule
     unfolding mem_ball mem_Collect_eq
   proof -
@@ -1151,7 +1151,7 @@ proof
       defer
       apply (rule path_component_of_subset[OF e(2)])
       apply (rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format])
-      using `e > 0` as
+      using \<open>e > 0\<close> as
       apply auto
       done
   qed
@@ -1171,7 +1171,7 @@ proof
   show "\<exists>e>0. ball y e \<subseteq> s - {y. path_component s x y}"
     apply (rule_tac x=e in exI)
     apply rule
-    apply (rule `e>0`)
+    apply (rule \<open>e>0\<close>)
     apply rule
     apply rule
     defer
@@ -1179,7 +1179,7 @@ proof
     fix z
     assume "z \<in> ball y e" "\<not> z \<notin> {y. path_component s x y}"
     then have "y \<in> {y. path_component s x y}"
-      unfolding not_not mem_Collect_eq using `e>0`
+      unfolding not_not mem_Collect_eq using \<open>e>0\<close>
       apply -
       apply (rule path_component_trans, assumption)
       apply (rule path_component_of_subset[OF e(2)])
@@ -1204,11 +1204,11 @@ proof (rule, rule, rule path_component_subset, rule)
   proof (rule ccontr)
     assume "\<not> ?thesis"
     moreover have "{y. path_component s x y} \<inter> s \<noteq> {}"
-      using `x \<in> s` path_component_eq_empty path_component_subset[of s x]
+      using \<open>x \<in> s\<close> path_component_eq_empty path_component_subset[of s x]
       by auto
     ultimately
     show False
-      using `y \<in> s` open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
+      using \<open>y \<in> s\<close> open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
       using assms(2)[unfolded connected_def not_ex, rule_format,
         of"{y. path_component s x y}" "s - {y. path_component s x y}"]
       by auto
@@ -1295,7 +1295,7 @@ proof clarify
 qed
 
 
-subsection {* Sphere is path-connected *}
+subsection \<open>Sphere is path-connected\<close>
 
 lemma path_connected_punctured_universe:
   assumes "2 \<le> DIM('a::euclidean_space)"

@@ -4,7 +4,7 @@ imports
   "~~/src/HOL/Library/Product_Order"
 begin
 
-subsection {* An ordering on euclidean spaces that will allow us to talk about intervals *}
+subsection \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>
 
 class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_space +
   assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
@@ -119,7 +119,7 @@ proof atomize_elim
   hence "Inf ?proj = x \<bullet> b"
     by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum simp del: Inf_class.Inf_image_eq)
   hence "x \<bullet> b = Inf X \<bullet> b"
-    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum.delta
+    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> setsum.delta
       simp del: Inf_class.Inf_image_eq
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
@@ -142,7 +142,7 @@ proof atomize_elim
   hence "Sup ?proj = x \<bullet> b"
     by (auto intro!: cSup_eq_maximum simp del: Sup_image_eq)
   hence "x \<bullet> b = Sup X \<bullet> b"
-    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum.delta
+    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> setsum.delta
       simp del: Sup_image_eq cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed
@@ -174,7 +174,7 @@ instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_eucl
       inner_Basis_SUP_left Sup_prod_def less_prod_def less_eq_prod_def eucl_le[where 'a='a]
       eucl_le[where 'a='b] abs_prod_def abs_inner)
 
-text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
+text\<open>Instantiation for intervals on @{text ordered_euclidean_space}\<close>
 
 lemma
   fixes a :: "'a\<Colon>ordered_euclidean_space"

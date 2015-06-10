@@ -3,13 +3,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Operator Norm *}
+section \<open>Operator Norm\<close>
 
 theory Operator_Norm
 imports Complex_Main
 begin
 
-text {* This formulation yields zero if @{text 'a} is the trivial vector space. *}
+text \<open>This formulation yields zero if @{text 'a} is the trivial vector space.\<close>
 
 definition onorm :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> real"
   where "onorm f = (SUP x. norm (f x) / norm x)"
@@ -24,7 +24,7 @@ proof (rule cSUP_least)
     using assms by (cases "x = 0") (simp_all add: pos_divide_le_eq)
 qed simp
 
-text {* In non-trivial vector spaces, the first assumption is redundant. *}
+text \<open>In non-trivial vector spaces, the first assumption is redundant.\<close>
 
 lemma onorm_le:
   fixes f :: "'a::{real_normed_vector, perfect_space} \<Rightarrow> 'b::real_normed_vector"
@@ -35,7 +35,7 @@ proof (rule onorm_bound [OF _ assms])
   then obtain a :: 'a where "a \<noteq> 0" by fast
   have "0 \<le> b * norm a"
     by (rule order_trans [OF norm_ge_zero assms])
-  with `a \<noteq> 0` show "0 \<le> b"
+  with \<open>a \<noteq> 0\<close> show "0 \<le> b"
     by (simp add: zero_le_mult_iff)
 qed
 
@@ -69,7 +69,7 @@ proof -
     have "norm (f x) / norm x \<le> onorm f"
       by (rule le_onorm [OF assms])
     then show "norm (f x) \<le> onorm f * norm x"
-      by (simp add: pos_divide_le_eq `x \<noteq> 0`)
+      by (simp add: pos_divide_le_eq \<open>x \<noteq> 0\<close>)
   qed
 qed
 
@@ -141,7 +141,7 @@ proof (cases "r = 0")
       using bounded_linear_scaleR_right f by (rule bounded_linear_compose)
     then have "onorm (\<lambda>x. inverse r *\<^sub>R r *\<^sub>R f x) \<le> \<bar>inverse r\<bar> * onorm (\<lambda>x. r *\<^sub>R f x)"
       by (rule onorm_scaleR_lemma)
-    with `r \<noteq> 0` show "\<bar>r\<bar> * onorm f \<le> onorm (\<lambda>x. r *\<^sub>R f x)"
+    with \<open>r \<noteq> 0\<close> show "\<bar>r\<bar> * onorm f \<le> onorm (\<lambda>x. r *\<^sub>R f x)"
       by (simp add: inverse_eq_divide pos_le_divide_eq mult.commute)
   qed
 qed (simp add: onorm_zero)

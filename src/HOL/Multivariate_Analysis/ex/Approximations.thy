@@ -1,4 +1,4 @@
-section {* Binary Approximations to Constants *}
+section \<open>Binary Approximations to Constants\<close>
 
 theory Approximations
 imports "~~/src/HOL/Multivariate_Analysis/Complex_Transcendental"
@@ -6,7 +6,7 @@ begin
 
 declare of_real_numeral [simp]
 
-subsection{*Approximation to pi*}
+subsection\<open>Approximation to pi\<close>
 
 lemma sin_pi6_straddle:
   assumes "0 \<le> a" "a \<le> b" "b \<le> 4" "sin(a/6) \<le> 1/2" "1/2 \<le> sin(b/6)"

@@ -2,7 +2,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section {* Square root of sum of squares *}
+section \<open>Square root of sum of squares\<close>
 
 theory L2_Norm
 imports NthRoot
