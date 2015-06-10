@@ -997,22 +997,25 @@ fun local_goal print_results prep_att prep_propp prep_var
         val (all_propss, binds) = prep_propp fix_ctxt (assumes_propp @ shows_propp);
         val (assumes_propss, shows_propss) = chop (length assumes_propp) all_propss;
 
-        (*prems*)
-        val asms = assumes_bindings ~~ (map o map) (rpair []) assumes_propss;
-        fun note_prems ctxt' =
-          ctxt' |> not (null asms) ?
-            (snd o Proof_Context.note_thmss ""
-              [((Binding.name Auto_Bind.premsN, []), [(Assumption.local_prems_of ctxt' ctxt, [])])]);
-
         (*params*)
-        val (ps, goal_ctxt) = fix_ctxt
+        val (ps, params_ctxt) = fix_ctxt
           |> (fold o fold) Variable.declare_term all_propss
-          |> Proof_Context.add_assms Assumption.assume_export asms |> snd
-          |> note_prems
           |> fold Variable.bind_term binds
           |> fold_map Proof_Context.inferred_param xs';
         val xs = map (Variable.check_name o #1) vars;
         val params = xs ~~ map Free ps;
+
+        (*prems*)
+        val goal_ctxt = params_ctxt
+          |> fold_burrow (Assumption.add_assms Assumption.assume_export)
+              ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
+          |> (fn (premss, ctxt') => ctxt'
+                |> not (null assumes_propss) ?
+                  (snd o Proof_Context.note_thmss ""
+                    [((Binding.name Auto_Bind.premsN, []),
+                      [(Assumption.local_prems_of ctxt' ctxt, [])])])
+                |> (snd o Proof_Context.note_thmss ""
+                    (assumes_bindings ~~ map (map (fn th => ([th], []))) premss)));
 
         val _ = Variable.warn_extra_tfrees fix_ctxt goal_ctxt;
 
