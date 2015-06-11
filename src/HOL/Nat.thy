@@ -1881,12 +1881,12 @@ lemma funpow_decreasing:
            intro: order_trans[OF _ funpow_mono])
 
 lemma mono_funpow:
-  fixes Q :: "('i \<Rightarrow> 'a::{lattice, order_bot}) \<Rightarrow> ('i \<Rightarrow> 'a)"
+  fixes Q :: "'a::{lattice, order_bot} \<Rightarrow> 'a"
   shows "mono Q \<Longrightarrow> mono (\<lambda>i. (Q ^^ i) \<bottom>)"
   by (auto intro!: funpow_decreasing simp: mono_def)
 
 lemma antimono_funpow:
-  fixes Q :: "('i \<Rightarrow> 'a::{lattice, order_top}) \<Rightarrow> ('i \<Rightarrow> 'a)"
+  fixes Q :: "'a::{lattice, order_top} \<Rightarrow> 'a"
   shows "mono Q \<Longrightarrow> antimono (\<lambda>i. (Q ^^ i) \<top>)"
   by (auto intro!: funpow_increasing simp: antimono_def)
 

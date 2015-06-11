@@ -91,6 +91,19 @@ proof (rule antisym)
   qed
 qed
 
+lemma lfp_transfer:
+  assumes \<alpha>: "sup_continuous \<alpha>" and f: "sup_continuous f" and g: "sup_continuous g"
+  assumes [simp]: "\<alpha> bot = bot" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
+  shows "\<alpha> (lfp f) = lfp g"
+proof -
+  have "\<alpha> (lfp f) = (SUP i. \<alpha> ((f^^i) bot))"
+    unfolding sup_continuous_lfp[OF f] by (intro f \<alpha> sup_continuousD mono_funpow sup_continuous_mono)
+  moreover have "\<alpha> ((f^^i) bot) = (g^^i) bot" for i
+    by (induction i; simp)
+  ultimately show ?thesis
+    unfolding sup_continuous_lfp[OF g] by simp
+qed
+
 definition
   inf_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
   "inf_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. antimono M \<longrightarrow> F (INF i. M i) = (INF i. F (M i)))"
@@ -144,6 +157,19 @@ proof (rule antisym)
       by (simp add: inf_continuousD `inf_continuous F` *)
     finally show "?U \<le> F ?U" .
   qed
+qed
+
+lemma gfp_transfer:
+  assumes \<alpha>: "inf_continuous \<alpha>" and f: "inf_continuous f" and g: "inf_continuous g"
+  assumes [simp]: "\<alpha> top = top" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
+  shows "\<alpha> (gfp f) = gfp g"
+proof -
+  have "\<alpha> (gfp f) = (INF i. \<alpha> ((f^^i) top))"
+    unfolding inf_continuous_gfp[OF f] by (intro f \<alpha> inf_continuousD antimono_funpow inf_continuous_mono)
+  moreover have "\<alpha> ((f^^i) top) = (g^^i) top" for i
+    by (induction i; simp)
+  ultimately show ?thesis
+    unfolding inf_continuous_gfp[OF g] by simp
 qed
 
 end
