@@ -1,5 +1,5 @@
 (*  Author:     John Harrison
-    Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light)
+    Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light); proofs reworked by LCP
 *)
 
 section \<open>Kurzweil-Henstock Gauge Integration in many dimensions.\<close>
@@ -1042,7 +1042,7 @@ proof (cases "p = {}")
 next
   case False
   note p = division_ofD[OF assms(1)]
-  have *: "\<forall>k\<in>p. \<exists>q. q division_of cbox a b \<and> k \<in> q"
+  have div_cbox: "\<forall>k\<in>p. \<exists>q. q division_of cbox a b \<and> k \<in> q"
   proof
     case goal1
     obtain c d where k: "k = cbox c d"
@@ -1056,7 +1056,7 @@ next
       unfolding k by auto
   qed
   obtain q where q: "\<And>x. x \<in> p \<Longrightarrow> q x division_of cbox a b" "\<And>x. x \<in> p \<Longrightarrow> x \<in> q x"
-    using bchoice[OF *] by blast
+    using bchoice[OF div_cbox] by blast
   { fix x
     assume x: "x \<in> p"
     have "q x division_of \<Union>q x"
@@ -1075,44 +1075,37 @@ next
   have "d \<union> p division_of cbox a b"
   proof -
     have te: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
-    have *: "cbox a b = \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
+    have cbox_eq: "cbox a b = \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
     proof (rule te[OF False], clarify)
       fix i
       assume i: "i \<in> p"
       show "\<Union>(q i - {i}) \<union> i = cbox a b"
         using division_ofD(6)[OF q(1)[OF i]] using q(2)[OF i] by auto
     qed
-    show "d \<union> p division_of (cbox a b)"
-      unfolding *
-      apply (rule division_disjoint_union[OF d assms(1)])
-      apply (rule inter_interior_unions_intervals)
-      apply (rule p open_interior ballI)+
-      apply assumption
-    proof
-      fix k
+    { fix k
       assume k: "k \<in> p"
-      have *: "\<And>u t s. u \<subseteq> s \<Longrightarrow> s \<inter> t = {} \<Longrightarrow> u \<inter> t = {}"
+      have *: "\<And>u t s. t \<inter> s = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<inter> t = {}"
         by auto
-      show "interior (\<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)) \<inter> interior k = {}"
-        apply (rule *[of _ "interior (\<Union>(q k - {k}))"])
-        defer
-        apply (subst Int_commute)
-        apply (rule inter_interior_unions_intervals)
-      proof -
+      have "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<inter> interior k = {}"
+      proof (rule *[OF inter_interior_unions_intervals])
         note qk=division_ofD[OF q(1)[OF k]]
         show "finite (q k - {k})" "open (interior k)" "\<forall>t\<in>q k - {k}. \<exists>a b. t = cbox a b"
           using qk by auto
         show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}"
           using qk(5) using q(2)[OF k] by auto
-        have *: "\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x"
-          by auto
-        show "interior (\<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)) \<subseteq> interior (\<Union>(q k - {k}))"
-          apply (rule interior_mono *)+
+        show "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<subseteq> interior (\<Union>(q k - {k}))"
+          apply (rule interior_mono)+
           using k
           apply auto
           done
-      qed
-    qed
+      qed } note [simp] = this
+    show "d \<union> p division_of (cbox a b)"
+      unfolding cbox_eq
+      apply (rule division_disjoint_union[OF d assms(1)])
+      apply (rule inter_interior_unions_intervals)
+      apply (rule p open_interior ballI)+
+      apply simp_all 
+      done
   qed
   then show ?thesis
     by (meson Un_upper2 that)
@@ -1144,51 +1137,40 @@ next
   show ?thesis
   proof (cases "cbox a b \<inter> cbox c d = {}")
     case True
-    have *: "\<And>a b. {a, b} = {a} \<union> {b}" by auto
     show ?thesis
       apply (rule that[of "{cbox c d}"])
-      unfolding *
+      apply (subst insert_is_Un)
       apply (rule division_disjoint_union)
-      using \<open>cbox c d \<noteq> {}\<close> True assms
-      using interior_subset
+      using \<open>cbox c d \<noteq> {}\<close> True assms interior_subset
       apply auto
       done
   next
     case False
     obtain u v where uv: "cbox a b \<inter> cbox c d = cbox u v"
       unfolding inter_interval by auto
-    have *: "cbox u v \<subseteq> cbox c d" using uv by auto
+    have uv_sub: "cbox u v \<subseteq> cbox c d" using uv by auto
     obtain p where "p division_of cbox c d" "cbox u v \<in> p"
-      by (rule partial_division_extend_1[OF * False[unfolded uv]])
+      by (rule partial_division_extend_1[OF uv_sub False[unfolded uv]])
     note p = this division_ofD[OF this(1)]
-    have *: "cbox a b \<union> cbox c d = cbox a b \<union> \<Union>(p - {cbox u v})" "\<And>x s. insert x s = {x} \<union> s"
+    have "interior (cbox a b \<inter> \<Union>(p - {cbox u v})) = interior(cbox u v \<inter> \<Union>(p - {cbox u v}))"
+      apply (rule arg_cong[of _ _ interior])
+      using p(8) uv by auto
+    also have "\<dots> = {}"
+      unfolding interior_inter
+      apply (rule inter_interior_unions_intervals)
+      using p(6) p(7)[OF p(2)] p(3)
+      apply auto
+      done
+    finally have [simp]: "interior (cbox a b) \<inter> interior (\<Union>(p - {cbox u v})) = {}" by simp
+    have cbe: "cbox a b \<union> cbox c d = cbox a b \<union> \<Union>(p - {cbox u v})" 
       using p(8) unfolding uv[symmetric] by auto
     show ?thesis
       apply (rule that[of "p - {cbox u v}"])
-      unfolding *(1)
-      apply (subst *(2))
+      apply (simp add: cbe)
+      apply (subst insert_is_Un)
       apply (rule division_disjoint_union)
-      apply (rule, rule assms)
-      apply (rule division_of_subset[of p])
-      apply (rule division_of_union_self[OF p(1)])
-      defer
-      unfolding interior_inter[symmetric]
-    proof -
-      have *: "\<And>cd p uv ab. p \<subseteq> cd \<Longrightarrow> ab \<inter> cd = uv \<Longrightarrow> ab \<inter> p = uv \<inter> p" by auto
-      have "interior (cbox a b \<inter> \<Union>(p - {cbox u v})) = interior(cbox u v \<inter> \<Union>(p - {cbox u v}))"
-        apply (rule arg_cong[of _ _ interior])
-        apply (rule *[OF _ uv])
-        using p(8)
-        apply auto
-        done
-      also have "\<dots> = {}"
-        unfolding interior_inter
-        apply (rule inter_interior_unions_intervals)
-        using p(6) p(7)[OF p(2)] p(3)
-        apply auto
-        done
-      finally show "interior (cbox a b \<inter> \<Union>(p - {cbox u v})) = {}" .
-    qed auto
+      apply (simp_all add: assms division_of_self)
+      by (metis Diff_subset division_of_subset p(1) p(8))
   qed
 qed
 
@@ -1248,10 +1230,8 @@ proof -
     from bchoice[OF this] obtain q where "\<forall>x\<in>p. insert (cbox a b) (q x) division_of (cbox a b) \<union> x" ..
     note q = division_ofD[OF this[rule_format]]
     let ?D = "\<Union>{insert (cbox a b) (q k) | k. k \<in> p}"
-    show thesis
-      apply (rule that[of "?D"])
-      apply (rule division_ofI)
-    proof -
+    show thesis 
+    proof (rule that[OF division_ofI])
       have *: "{insert (cbox a b) (q k) |k. k \<in> p} = (\<lambda>k. insert (cbox a b) (q k)) ` p"
         by auto
       show "finite ?D"
@@ -1842,12 +1822,11 @@ proof -
     using assms(1,3) by metis
   then have ab: "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
     by (force simp: mem_box)
-  {
-    fix f
-    have "finite f \<Longrightarrow>
-      \<forall>s\<in>f. P s \<Longrightarrow>
-      \<forall>s\<in>f. \<exists>a b. s = cbox a b \<Longrightarrow>
-      \<forall>s\<in>f.\<forall>t\<in>f. s \<noteq> t \<longrightarrow> interior s \<inter> interior t = {} \<Longrightarrow> P (\<Union>f)"
+  { fix f
+    have "\<lbrakk>finite f;
+           \<And>s. s\<in>f \<Longrightarrow> P s;
+           \<And>s. s\<in>f \<Longrightarrow> \<exists>a b. s = cbox a b;
+           \<And>s t. s\<in>f \<Longrightarrow> t\<in>f \<Longrightarrow> s \<noteq> t \<Longrightarrow> interior s \<inter> interior t = {}\<rbrakk> \<Longrightarrow> P (\<Union>f)"
     proof (induct f rule: finite_induct)
       case empty
       show ?case
@@ -1859,9 +1838,9 @@ proof -
         apply (rule assms(2)[rule_format])
         using inter_interior_unions_intervals [of f "interior x"]
         apply (auto simp: insert)
-        using insert.prems(3)  insert.hyps(2) by fastforce
+        by (metis IntI empty_iff insert.hyps(2) insert.prems(3) insert_iff)
     qed
-  } note * = this
+  } note UN_cases = this
   let ?A = "{cbox c d | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<or>
     (c\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<and> (d\<bullet>i = b\<bullet>i)}"
   let ?PP = "\<lambda>c d. \<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
@@ -1873,47 +1852,35 @@ proof -
   }
   assume as: "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d)"
   have "P (\<Union> ?A)"
-    apply (rule *)
-    apply (rule_tac[2-] ballI)
-    apply (rule_tac[4] ballI)
-    apply (rule_tac[4] impI)
-  proof -
+  proof (rule UN_cases)
     let ?B = "(\<lambda>s. cbox (\<Sum>i\<in>Basis. (if i \<in> s then a\<bullet>i else (a\<bullet>i + b\<bullet>i) / 2) *\<^sub>R i::'a)
       (\<Sum>i\<in>Basis. (if i \<in> s then (a\<bullet>i + b\<bullet>i) / 2 else b\<bullet>i) *\<^sub>R i)) ` {s. s \<subseteq> Basis}"
     have "?A \<subseteq> ?B"
     proof
       case goal1
-      then obtain c d where x: "x = cbox c d"
-        "\<And>i. i \<in> Basis \<Longrightarrow>
-          c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-          c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
-      have *: "\<And>a b c d. a = c \<Longrightarrow> b = d \<Longrightarrow> cbox a b = cbox c d"
-        by auto
+      then obtain c d 
+        where x:  "x = cbox c d"
+                  "\<And>i. i \<in> Basis \<Longrightarrow>
+                        c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+                        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
       show "x \<in> ?B"
-        unfolding image_iff
+        unfolding image_iff x
         apply (rule_tac x="{i. i\<in>Basis \<and> c\<bullet>i = a\<bullet>i}" in bexI)
-        unfolding x
-        apply (rule *)
-        apply (simp_all only: euclidean_eq_iff[where 'a='a] inner_setsum_left_Basis mem_Collect_eq simp_thms
-          cong: ball_cong)
-        apply safe
-      proof -
-        fix i :: 'a
-        assume i: "i \<in> Basis"
-        then show "c \<bullet> i = (if c \<bullet> i = a \<bullet> i then a \<bullet> i else (a \<bullet> i + b \<bullet> i) / 2)"
-          and "d \<bullet> i = (if c \<bullet> i = a \<bullet> i then (a \<bullet> i + b \<bullet> i) / 2 else b \<bullet> i)"
-          using x(2)[of i] ab[OF i] by (auto simp add:field_simps)
-      qed
+        apply (rule arg_cong2 [where f = cbox])
+        using x(2) ab
+        apply (auto simp add: euclidean_eq_iff[where 'a='a])
+        by fastforce
     qed
     then show "finite ?A"
       by (rule finite_subset) auto
+  next
     fix s
     assume "s \<in> ?A"
-    then obtain c d where s:
-      "s = cbox c d"
-      "\<And>i. i \<in> Basis \<Longrightarrow>
-         c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-         c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i"
+    then obtain c d
+      where s: "s = cbox c d"
+               "\<And>i. i \<in> Basis \<Longrightarrow>
+                     c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+                     c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i"
       by blast
     show "P s"
       unfolding s
@@ -2179,28 +2146,18 @@ proof -
 next
   assume as: "\<not> (\<exists>p. p tagged_division_of (cbox a b) \<and> g fine p)"
   obtain x where x:
-    "x \<in> (cbox a b)"
-    "\<And>e. 0 < e \<Longrightarrow>
-      \<exists>c d.
-        x \<in> cbox c d \<and>
-        cbox c d \<subseteq> ball x e \<and>
-        cbox c d \<subseteq> (cbox a b) \<and>
-        \<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
-    apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p",rule_format,OF _ _ as])
-    apply (rule_tac x="{}" in exI)
-    defer
-    apply (erule conjE exE)+
-  proof -
-    show "{} tagged_division_of {} \<and> g fine {}"
-      unfolding fine_def by auto
-    fix s t p p'
-    assume "p tagged_division_of s" "g fine p" "p' tagged_division_of t" "g fine p'"
-      "interior s \<inter> interior t = {}"
-    then show "\<exists>p. p tagged_division_of s \<union> t \<and> g fine p"
-      apply (rule_tac x="p \<union> p'" in exI)
-      apply (simp add: tagged_division_union fine_union)
-      done
-  qed blast
+      "x \<in> (cbox a b)"
+      "\<And>e. 0 < e \<Longrightarrow>
+        \<exists>c d.
+          x \<in> cbox c d \<and>
+          cbox c d \<subseteq> ball x e \<and>
+          cbox c d \<subseteq> (cbox a b) \<and>
+          \<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
+    apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p", OF _ _ as])
+    apply (simp add: fine_def)
+    apply (metis tagged_division_union fine_union)
+    apply (auto simp: )
+    done
   obtain e where e: "e > 0" "ball x e \<subseteq> g x"
     using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
   from x(2)[OF e(1)] 
@@ -2388,35 +2345,30 @@ proof -
     from pos_bounded
     obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
       by blast
-    have *: "e / B > 0" using goal1(2) B by simp
-    obtain g where g: "gauge g"
-              "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
-                norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
-        using "*" goal1(1) by auto
-    show ?case
-      apply (rule_tac x=g in exI)
-      apply rule
-      apply (rule g(1))
-      apply rule
-      apply rule
-      apply (erule conjE)
-    proof -
-      fix p
+    have "e / B > 0" using goal1(2) B by simp
+    then obtain g 
+      where g: "gauge g"
+               "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
+                    norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
+        using goal1(1) by auto
+    { fix p
       assume as: "p tagged_division_of (cbox a b)" "g fine p"
-      have *: "\<And>x k. h ((\<lambda>(x, k). content k *\<^sub>R f x) x) = (\<lambda>(x, k). h (content k *\<^sub>R f x)) x"
+      have hc: "\<And>x k. h ((\<lambda>(x, k). content k *\<^sub>R f x) x) = (\<lambda>(x, k). h (content k *\<^sub>R f x)) x"
         by auto
-      have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = setsum (h \<circ> (\<lambda>(x, k). content k *\<^sub>R f x)) p"
-        unfolding o_def unfolding scaleR[symmetric] * by simp
+      then have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = setsum (h \<circ> (\<lambda>(x, k). content k *\<^sub>R f x)) p"
+        unfolding o_def unfolding scaleR[symmetric] hc by simp
       also have "\<dots> = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)"
         using setsum[of "\<lambda>(x,k). content k *\<^sub>R f x" p] using as by auto
-      finally have *: "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" .
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) - h y) < e"
-        unfolding * diff[symmetric]
+      finally have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" .
+      then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) - h y) < e"
+        apply (simp add: diff[symmetric])
         apply (rule le_less_trans[OF B(2)])
         using g(2)[OF as] B(1)
         apply (auto simp add: field_simps)
         done
-    qed
+    }
+    with g show ?case
+      by (rule_tac x=g in exI) auto
   qed
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
@@ -2696,27 +2648,23 @@ lemma has_integral_eq_eq: "\<forall>x\<in>s. f x = g x \<Longrightarrow> (f has_
 lemma has_integral_null[dest]:
   assumes "content(cbox a b) = 0"
   shows "(f has_integral 0) (cbox a b)"
-  unfolding has_integral
-  apply rule
-  apply rule
-  apply (rule_tac x="\<lambda>x. ball x 1" in exI)
-  apply rule
-  defer
-  apply rule
-  apply rule
-  apply (erule conjE)
 proof -
-  fix e :: real
-  assume e: "e > 0"
-  then show "gauge (\<lambda>x. ball x 1)"
+  have "gauge (\<lambda>x. ball x 1)"
     by auto
-  fix p
-  assume p: "p tagged_division_of (cbox a b)"
-  have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) = 0"
-    unfolding norm_eq_zero diff_0_right
-    using setsum_content_null[OF assms(1) p, of f] .
-  then show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
-    using e by auto
+  moreover
+  {
+    fix e :: real
+    fix p
+    assume e: "e > 0"
+    assume p: "p tagged_division_of (cbox a b)"
+    have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) = 0"
+      unfolding norm_eq_zero diff_0_right
+      using setsum_content_null[OF assms(1) p, of f] .
+    then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
+      using e by auto
+  }
+  ultimately show ?thesis
+    by (auto simp: has_integral)
 qed
 
 lemma has_integral_null_real[dest]:
@@ -3259,9 +3207,7 @@ proof (unfold has_integral, rule, rule)
         unfolding xl' by auto
       show "x \<in> l" "l \<subseteq> cbox a b \<inter> {x. x \<bullet> k \<ge> c}"
         unfolding xl'
-        using p(4-6)[OF xl'(3)]
-        using xl'(4)
-        using lem0(2)[OF xl'(3-4)]
+        using p(4-6)[OF xl'(3)] xl'(4) lem0(2)[OF xl'(3-4)]
         by auto
       show "\<exists>a b. l = cbox a b"
         unfolding xl'
@@ -3391,32 +3337,17 @@ lemma has_integral_separate_sides:
         norm ((setsum (\<lambda>(x,k). content k *\<^sub>R f x) p1 + setsum (\<lambda>(x,k). content k *\<^sub>R f x) p2) - i) < e"
 proof -
   guess d using has_integralD[OF assms(1-2)] . note d=this
-  show ?thesis
-    apply (rule that[of d])
-    apply (rule d)
-    apply rule
-    apply rule
-    apply rule
-    apply (elim conjE)
-  proof -
-    fix p1 p2
+  { fix p1 p2
     assume "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p1"
     note p1=tagged_division_ofD[OF this(1)] this
     assume "p2 tagged_division_of (cbox a b) \<inter> {x. c \<le> x \<bullet> k}" "d fine p2"
     note p2=tagged_division_ofD[OF this(1)] this
     note tagged_division_union_interval[OF p1(7) p2(7)] note p12 = tagged_division_ofD[OF this] this
-    have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) =
-      norm ((\<Sum>(x, k)\<in>p1 \<union> p2. content k *\<^sub>R f x) - i)"
-      apply (subst setsum.union_inter_neutral)
-      apply (rule p1 p2)+
-      apply rule
-      unfolding split_paired_all split_conv
-    proof -
-      fix a b
+    { fix a b
       assume ab: "(a, b) \<in> p1 \<inter> p2"
       have "(a, b) \<in> p1"
         using ab by auto
-      from p1(4)[OF this] guess u v by (elim exE) note uv = this
+      with p1 obtain u v where uv: "b = cbox u v" by auto
       have "b \<subseteq> {x. x\<bullet>k = c}"
         using ab p1(3)[of a b] p2(3)[of a b] by fastforce
       moreover
@@ -3447,17 +3378,19 @@ proof -
       qed
       ultimately have "content b = 0"
         unfolding uv content_eq_0_interior
-        apply -
-        apply (drule interior_mono)
-        apply auto
-        done
-      then show "content b *\<^sub>R f a = 0"
+        using interior_mono by blast
+      then have "content b *\<^sub>R f a = 0"
         by auto
-    qed auto
+    }
+    then have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) =
+               norm ((\<Sum>(x, k)\<in>p1 \<union> p2. content k *\<^sub>R f x) - i)"
+      by (subst setsum.union_inter_neutral) (auto simp: p1 p2)
     also have "\<dots> < e"
       by (rule k d(2) p12 fine_union p1 p2)+
-    finally show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) < e" .
-  qed
+    finally have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) < e" .
+   } 
+  then show ?thesis
+    by (auto intro: that[of d] d elim: )
 qed
 
 lemma integrable_split[intro]:
@@ -3483,46 +3416,32 @@ proof -
       p2 tagged_division_of (cbox a b) \<inter> A \<and> d fine p2 \<longrightarrow>
       norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e)"
     show "?P {x. x \<bullet> k \<le> c}"
-      apply (rule_tac x=d in exI)
-      apply rule
-      apply (rule d)
-      apply rule
-      apply rule
-      apply rule
-    proof -
+    proof (rule_tac x=d in exI, clarsimp simp add: d)
       fix p1 p2
-      assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c} \<and> d fine p1 \<and>
-        p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c} \<and> d fine p2"
+      assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p1"
+                 "p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-      proof -
-        guess p using fine_division_exists[OF d(1), of a' b] . note p=this
-        show ?thesis
-          using norm_triangle_half_l[OF d(2)[of p1 p] d(2)[of p2 p]]
-          using as unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
-          using p using assms
+      proof (rule fine_division_exists[OF d(1), of a' b] )
+        fix p
+        assume "p tagged_division_of cbox a' b" "d fine p"
+        then show ?thesis
+          using as norm_triangle_half_l[OF d(2)[of p1 p] d(2)[of p2 p]]
+          unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
           by (auto simp add: algebra_simps)
       qed
     qed
     show "?P {x. x \<bullet> k \<ge> c}"
-      apply (rule_tac x=d in exI)
-      apply rule
-      apply (rule d)
-      apply rule
-      apply rule
-      apply rule
-    proof -
+    proof (rule_tac x=d in exI, clarsimp simp add: d)
       fix p1 p2
-      assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c} \<and> d fine p1 \<and>
-        p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c} \<and> d fine p2"
+      assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c}" "d fine p1"
+                 "p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-      proof -
-        guess p using fine_division_exists[OF d(1), of a b'] . note p=this
-        show ?thesis
-          using norm_triangle_half_l[OF d(2)[of p p1] d(2)[of p p2]]
-          using as
+      proof (rule fine_division_exists[OF d(1), of a b'] )
+        fix p
+        assume "p tagged_division_of cbox a b'" "d fine p"
+        then show ?thesis
+          using as norm_triangle_half_l[OF d(2)[of p p1] d(2)[of p p2]]
           unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
-          using p
-          using assms
           by (auto simp add: algebra_simps)
       qed
     qed
@@ -3547,9 +3466,6 @@ lemma operativeD[dest]:
       opp (f (cbox a b \<inter> {x. x\<bullet>k \<le> c})) (f (cbox a b \<inter> {x. x\<bullet>k \<ge> c}))"
   using assms unfolding operative_def by auto
 
-lemma operative_trivial: "operative opp f \<Longrightarrow> content (cbox a b) = 0 \<Longrightarrow> f (cbox a b) = neutral opp"
-  unfolding operative_def by auto
-
 lemma property_empty_interval: "\<forall>a b. content (cbox a b) = 0 \<longrightarrow> P (cbox a b) \<Longrightarrow> P {}"
   using content_empty unfolding empty_as_interval by auto
 
@@ -3558,12 +3474,6 @@ lemma operative_empty: "operative opp f \<Longrightarrow> f {} = neutral opp"
 
 
 subsection \<open>Using additivity of lifted function to encode definedness.\<close>
-
-lemma forall_option: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P (Some x))"
-  by (metis option.nchotomy)
-
-lemma exists_option: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
-  by (metis option.nchotomy)
 
 fun lifted where
   "lifted (opp :: 'a \<Rightarrow> 'a \<Rightarrow> 'b) (Some x) (Some y) = Some (opp x y)"
@@ -3587,18 +3497,12 @@ lemma monoidalI:
 
 lemma monoidal_ac:
   assumes "monoidal opp"
-  shows "opp (neutral opp) a = a"
-    and "opp a (neutral opp) = a"
+  shows [simp]: "opp (neutral opp) a = a"
+    and [simp]: "opp a (neutral opp) = a"
     and "opp a b = opp b a"
     and "opp (opp a b) c = opp a (opp b c)"
     and "opp a (opp b c) = opp b (opp a c)"
   using assms unfolding monoidal_def by metis+
-
-lemma monoidal_simps[simp]:
-  assumes "monoidal opp"
-  shows "opp (neutral opp) a = a"
-    and "opp a (neutral opp) = a"
-  using monoidal_ac[OF assms] by auto
 
 lemma neutral_lifted[cong]:
   assumes "monoidal opp"
@@ -3630,7 +3534,7 @@ qed (auto simp add:monoidal_ac[OF assms])
 lemma monoidal_lifted[intro]:
   assumes "monoidal opp"
   shows "monoidal (lifted opp)"
-  unfolding monoidal_def forall_option neutral_lifted[OF assms]
+  unfolding monoidal_def split_option_all neutral_lifted[OF assms]
   using monoidal_ac[OF assms]
   by auto
 
@@ -3687,7 +3591,8 @@ next
     case True
     show ?thesis
       unfolding iterate_def if_not_P[OF x] support_clauses if_P[OF True]
-      unfolding True monoidal_simps[OF assms(1)]
+      unfolding True
+      using assms
       by auto
   next
     case False
