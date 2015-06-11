@@ -347,8 +347,6 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
       in (([], prems, stmt, NONE), goal_ctxt) end
   | Element.Obtains obtains =>
       let
-        val case_names = obtains |> map_index (fn (i, (b, _)) =>
-          if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
             (vars |> map_filter (fn (x, SOME T) => SOME (Variable.check_name x, T) | _ => NONE)));
@@ -377,8 +375,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             |>> (fn [(_, [th])] => th)
           end;
 
-        val more_atts = map (Attrib.internal o K)
-          [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names];
+        val more_atts = map (Attrib.internal o K) (Obtain.obtains_attributes obtains);
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = [((Binding.empty, []), [(thesis, [])])];
 

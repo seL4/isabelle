@@ -38,6 +38,7 @@ similar, but derives these elements from the course of reasoning!
 
 signature OBTAIN =
 sig
+  val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
   val thatN: string
   val obtain: string -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
@@ -90,6 +91,16 @@ fun eliminate ctxt rule xs As thm =
 
 fun obtain_export ctxt rule xs _ As =
   (eliminate ctxt rule xs As, eliminate_term ctxt xs);
+
+
+
+(** specification elements **)
+
+fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
+  let
+    val case_names = obtains |> map_index (fn (i, (b, _)) =>
+      if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
+  in [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names] end;
 
 
 

@@ -7,9 +7,10 @@ logical operations.
 
 signature ELEMENT =
 sig
+  type ('typ, 'term) obtain = binding * ((binding * 'typ option) list * 'term list)
   datatype ('typ, 'term) stmt =
     Shows of (Attrib.binding * ('term * 'term list) list) list |
-    Obtains of (binding * ((binding * 'typ option) list * 'term list)) list
+    Obtains of ('typ, 'term) obtain list
   type statement = (string, string) stmt
   type statement_i = (typ, term) stmt
   datatype ('typ, 'term, 'fact) ctxt =
@@ -61,9 +62,10 @@ struct
 
 (* statement *)
 
+type ('typ, 'term) obtain = binding * ((binding * 'typ option) list * 'term list);
 datatype ('typ, 'term) stmt =
   Shows of (Attrib.binding * ('term * 'term list) list) list |
-  Obtains of (binding * ((binding * 'typ option) list * 'term list)) list;
+  Obtains of ('typ, 'term) obtain list;
 
 type statement = (string, string) stmt;
 type statement_i = (typ, term) stmt;
