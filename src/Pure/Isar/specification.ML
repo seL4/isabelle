@@ -103,13 +103,9 @@ fun read_prop raw_prop raw_fixes ctxt =
 
 local
 
-fun close_forms ctxt i xs As =
+fun close_forms ctxt i As =
   let
-    val commons = map #1 xs;
-    val _ =
-      (case duplicates (op =) commons of [] => ()
-      | dups => error ("Duplicate local variables " ^ commas_quote dups));
-    val frees = rev (fold (Variable.add_free_names ctxt) As (rev commons));
+    val frees = rev (fold (Variable.add_free_names ctxt) As []);
     val types =
       map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
     val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
@@ -120,14 +116,10 @@ fun close_forms ctxt i xs As =
           if x = y then Type.constraint (uniform_typing x) (Type.constraint T (Bound lev))
           else t
       | abs_body _ _ a = a;
-    fun close (y, U) B =
+    fun close y B =
       let val B' = abs_body 0 y (Term.incr_boundvars 1 B)
-      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y, U, B') else B end;
-    fun close_form A =
-      let
-        val occ_frees = rev (Variable.add_free_names ctxt A []);
-        val bounds = xs @ map (rpair dummyT) (subtract (op =) commons occ_frees);
-      in fold_rev close bounds A end;
+      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y, dummyT, B') else B end;
+    fun close_form A = fold close (Variable.add_free_names ctxt A []) A;
   in map close_form As end;
 
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
@@ -145,7 +137,7 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
     val specs =
       (if do_close then
         #1 (fold_map
-            (fn Ass => fn i => (burrow (close_forms params_ctxt i []) Ass, i + 1)) Asss' idx)
+            (fn Ass => fn i => (burrow (close_forms params_ctxt i) Ass, i + 1)) Asss' idx)
       else Asss')
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
