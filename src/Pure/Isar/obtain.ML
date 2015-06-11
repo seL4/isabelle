@@ -39,6 +39,8 @@ similar, but derives these elements from the course of reasoning!
 signature OBTAIN =
 sig
   val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
+  val parse_clause: Proof.context -> term -> (binding * typ option * mixfix) list ->
+    string list -> term
   val thatN: string
   val obtain: string -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
@@ -103,14 +105,29 @@ fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
   in [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names] end;
 
 
+fun declare_thesis ctxt =
+  let
+    val ([x], ctxt') =
+      Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)] ctxt;
+    val t = Object_Logic.fixed_judgment ctxt x;
+    val v = dest_Free (Object_Logic.drop_judgment ctxt t);
+  in ((v, t), ctxt') end;
+
+fun parse_clause ctxt thesis vars raw_props =
+  let
+    val (xs', ctxt') = ctxt |> Proof_Context.add_fixes vars;
+    val xs = map (Variable.check_name o #1) vars;
+
+    val default_name = AList.lookup (op =) (xs' ~~ xs);
+    val default_type = Variable.default_type ctxt';
+  in
+    Logic.list_implies (map (Syntax.parse_prop ctxt') raw_props, thesis)
+    |> Element.close_form ctxt default_name default_type
+  end;
+
+
 
 (** obtain **)
-
-fun bind_judgment ctxt name =
-  let
-    val ([x], ctxt') = Proof_Context.add_fixes [(Binding.name name, NONE, NoSyn)] ctxt;
-    val (t as _ $ Free v) = Object_Logic.fixed_judgment ctxt x;
-  in ((v, t), ctxt') end;
 
 val thatN = "that";
 
@@ -123,13 +140,14 @@ fun gen_obtain prep_att prep_var prep_propp
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    (*obtain vars*)
-    val ((xs', vars), fix_ctxt) = ctxt
+    (*vars*)
+    val ((thesis_var, thesis), thesis_ctxt) = declare_thesis ctxt;
+    val ((xs', vars), fix_ctxt) = thesis_ctxt
       |> fold_map prep_var raw_vars
       |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
     val xs = map (Variable.check_name o #1) vars;
 
-    (*obtain asms*)
+    (*asms*)
     val (propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
     val props = flat propss;
     val declare_asms =
@@ -139,7 +157,7 @@ fun gen_obtain prep_att prep_var prep_propp
       map (fn ((b, raw_atts), _) => (b, map (prep_att fix_ctxt) raw_atts)) raw_asms ~~
       map (map (rpair [])) propss;
 
-    (*obtain params*)
+    (*params*)
     val (params, params_ctxt) =
       declare_asms fix_ctxt |> fold_map Proof_Context.inferred_param xs' |>> map Free;
     val cparams = map (Thm.cterm_of params_ctxt) params;
@@ -147,10 +165,7 @@ fun gen_obtain prep_att prep_var prep_propp
 
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
-    (*obtain statements*)
-    val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
-    val (thesis_var, thesis) = #1 (bind_judgment params_ctxt thesisN);
-
+    (*statements*)
     val that_name = if name = "" then thatN else name;
     val that_prop =
       Logic.list_rename_params xs
@@ -171,7 +186,7 @@ fun gen_obtain prep_att prep_var prep_propp
     |> Proof.have NONE (K I) [] [] [(Thm.empty_binding, [(obtain_prop, [])])] int
     |> Proof.map_context (fold Variable.bind_term binds')
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
+    |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.assume
       [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
@@ -202,7 +217,7 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
+    val ((thesis_var, thesis), thesis_ctxt) = declare_thesis ctxt;
     val st = Goal.init (Thm.cterm_of ctxt thesis);
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) st of
@@ -285,7 +300,7 @@ fun gen_guess prep_var raw_vars int state =
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);
+    val (thesis_var, thesis) = #1 (declare_thesis ctxt);
     val vars = ctxt
       |> fold_map prep_var raw_vars |-> fold_map inferred_type
       |> fst |> polymorphic ctxt;

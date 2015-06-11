@@ -108,19 +108,8 @@ fun close_forms ctxt i As =
     val frees = rev (fold (Variable.add_free_names ctxt) As []);
     val types =
       map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
-    val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
-
-    fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)
-      | abs_body lev y (t $ u) = abs_body lev y t $ abs_body lev y u
-      | abs_body lev y (t as Free (x, T)) =
-          if x = y then Type.constraint (uniform_typing x) (Type.constraint T (Bound lev))
-          else t
-      | abs_body _ _ a = a;
-    fun close y B =
-      let val B' = abs_body 0 y (Term.incr_boundvars 1 B)
-      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y, dummyT, B') else B end;
-    fun close_form A = fold close (Variable.add_free_names ctxt A []) A;
-  in map close_form As end;
+    val uniform_typing = AList.lookup (op =) (frees ~~ types);
+  in map (Element.close_form ctxt (K NONE) uniform_typing) As end;
 
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
