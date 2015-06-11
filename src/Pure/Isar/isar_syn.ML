@@ -570,6 +570,10 @@ val _ =
     >> (Toplevel.proof o Proof.def_cmd));
 
 val _ =
+  Outer_Syntax.command @{command_keyword consider} "state cases rule"
+    (Parse_Spec.obtains >> (Toplevel.proof' o Obtain.consider_cmd));
+
+val _ =
   Outer_Syntax.command @{command_keyword obtain} "generalized elimination"
     (Parse.parname -- Scan.optional (Parse.fixes --| Parse.where_) [] -- Parse_Spec.statement
       >> (fn ((x, y), z) => Toplevel.proof' (Obtain.obtain_cmd x y z)));

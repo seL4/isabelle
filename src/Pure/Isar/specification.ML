@@ -330,7 +330,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
       let
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (Variable.check_name x, T) | _ => NONE)));
+            (vars |> map_filter (fn (x, SOME T, _) => SOME (Variable.check_name x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -339,7 +339,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
-            val bs = map fst vars;
+            val bs = map (fn (b, _, _) => b) vars;
             val xs = map Variable.check_name bs;
             val props = map fst asms;
             val (params, _) = ctxt'
@@ -364,7 +364,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           |> (snd o Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths =>
-            Proof_Context.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
+            Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(ths, [])])] #>
             #2 #> pair ths);
       in ((more_atts, prems, stmt, SOME facts), goal_ctxt) end);
 

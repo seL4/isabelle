@@ -8,6 +8,7 @@ signature AUTO_BIND =
 sig
   val thesisN: string
   val thisN: string
+  val thatN: string
   val premsN: string
   val assmsN: string
   val abs_params: term -> term -> term
@@ -23,6 +24,7 @@ struct
 
 val thesisN = "thesis";
 val thisN = "this";
+val thatN = "that";
 val assmsN = "assms";
 val premsN = "prems";
 

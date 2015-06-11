@@ -55,6 +55,7 @@ theory Pure
   and "supply" :: prf_script % "proof"
   and "using" "unfolding" :: prf_decl % "proof"
   and "fix" "assume" "presume" "def" :: prf_asm % "proof"
+  and "consider" :: prf_goal % "proof"
   and "obtain" :: prf_asm_goal % "proof"
   and "guess" :: prf_asm_goal_script % "proof"
   and "let" "write" :: prf_decl % "proof"

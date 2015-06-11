@@ -7,7 +7,9 @@ logical operations.
 
 signature ELEMENT =
 sig
-  type ('typ, 'term) obtain = binding * ((binding * 'typ option) list * 'term list)
+  type ('typ, 'term) obtain = binding * ((binding * 'typ option * mixfix) list * 'term list)
+  type obtains = (string, string) obtain list
+  type obtains_i = (typ, term) obtain list
   datatype ('typ, 'term) stmt =
     Shows of (Attrib.binding * ('term * 'term list) list) list |
     Obtains of ('typ, 'term) obtain list
@@ -64,7 +66,10 @@ struct
 
 (* statement *)
 
-type ('typ, 'term) obtain = binding * ((binding * 'typ option) list * 'term list);
+type ('typ, 'term) obtain = binding * ((binding * 'typ option * mixfix) list * 'term list);
+type obtains = (string, string) obtain list;
+type obtains_i = (typ, term) obtain list;
+
 datatype ('typ, 'term) stmt =
   Shows of (Attrib.binding * ('term * 'term list) list) list |
   Obtains of ('typ, 'term) obtain list;
@@ -129,14 +134,14 @@ fun pretty_stmt ctxt =
     fun prt_show (a, ts) =
       Pretty.block (Pretty.breaks (prt_binding a ":" @ prt_terms (map fst ts)));
 
-    fun prt_var (x, SOME T) = Pretty.block
+    fun prt_var (x, SOME T, _) = Pretty.block
           [Pretty.str (Binding.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
-      | prt_var (x, NONE) = Pretty.str (Binding.name_of x);
+      | prt_var (x, NONE, _) = Pretty.str (Binding.name_of x);
     val prt_vars = separate (Pretty.keyword2 "and") o map prt_var;
 
-    fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
-      | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
-          (prt_vars xs @ [Pretty.keyword2 "where"] @ prt_terms ts));
+    fun prt_obtain (_, ([], props)) = Pretty.block (Pretty.breaks (prt_terms props))
+      | prt_obtain (_, (vars, props)) = Pretty.block (Pretty.breaks
+          (prt_vars vars @ [Pretty.keyword2 "where"] @ prt_terms props));
   in
     fn Shows shows => pretty_items "shows" "and" (map prt_show shows)
      | Obtains obtains => pretty_items "obtains" "|" (map prt_obtain obtains)
@@ -213,7 +218,7 @@ fun thm_name kind th prts =
 fun obtain prop ctxt =
   let
     val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
-    fun fix (x, T) = (Binding.name (Variable.revert_fixed ctxt' x), SOME T);
+    fun fix (x, T) = (Binding.name (Variable.revert_fixed ctxt' x), SOME T, NoSyn);
     val xs = map (fix o #2) ps;
     val As = Logic.strip_imp_prems prop';
   in ((Binding.empty, (xs, As)), ctxt') end;

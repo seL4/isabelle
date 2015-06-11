@@ -25,6 +25,7 @@ sig
   val context_element: Element.context parser
   val statement: (Attrib.binding * (string * string list) list) list parser
   val if_prems: (Attrib.binding * (string * string list) list) list parser
+  val obtains: Element.obtains parser
   val general_statement: (Element.context list * Element.statement) parser
   val statement_keyword: string parser
 end;
@@ -72,7 +73,7 @@ val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position 
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- Parse.mixfix
     >> (single o Parse.triple1) ||
-  Parse.params >> map (fn (x, y) => (x, y, NoSyn))) >> flat;
+  Parse.params) >> flat;
 
 val locale_insts =
   Scan.optional
@@ -136,13 +137,15 @@ val if_prems = Scan.optional (Parse.$$$ "if" |-- Parse.!!! statement) [];
 
 val obtain_case =
   Parse.parbinding --
-    (Scan.optional (Parse.and_list1 Parse.params --| Parse.where_ >> flat) [] --
+    (Scan.optional (Parse.and_list1 Parse.fixes --| Parse.where_ >> flat) [] --
       (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat));
+
+val obtains = Parse.enum1 "|" obtain_case;
 
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||
   Scan.repeat context_element --
-   (Parse.$$$ "obtains" |-- Parse.!!! (Parse.enum1 "|" obtain_case) >> Element.Obtains ||
+   (Parse.$$$ "obtains" |-- Parse.!!! obtains >> Element.Obtains ||
     Parse.$$$ "shows" |-- Parse.!!! statement >> Element.Shows);
 
 val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";

@@ -7,17 +7,23 @@ fixes/assumes may be introduced into the present context; 'guess' is
 similar, but derives these elements from the course of reasoning!
 
   <chain_facts>
-  obtain x where "A x" <proof> ==
+  consider x where "A x" | y where "B x" | ... <proof> ==
 
-  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
+  have "!!thesis. (!!x. A x ==> thesis) ==> (!!x. B x ==> thesis) ==> ... ==> thesis"
   proof succeed
     fix thesis
-    assume that [intro?]: "!!x. A x ==> thesis"
+    assume that [intro?]: "!!x. A x ==> thesis" "!!x. B x ==> thesis" ...
     <chain_facts>
     show thesis
       apply (insert that)
       <proof>
   qed
+
+
+  <chain_facts>
+  obtain x where "A x" <proof> ==
+
+  consider x where "A x" <chain_facts> <proof>
   fix x assm <<obtain_export>> "A x"
 
 
@@ -39,9 +45,12 @@ similar, but derives these elements from the course of reasoning!
 signature OBTAIN =
 sig
   val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
-  val parse_clause: Proof.context -> term -> (binding * typ option * mixfix) list ->
-    string list -> term
-  val thatN: string
+  val parse_clause: Proof.context -> term ->
+    (binding * typ option * mixfix) list -> string list -> term
+  val read_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
+  val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
+  val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
+  val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
   val obtain: string -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
   val obtain_cmd: string -> (binding * string option * mixfix) list ->
@@ -98,6 +107,8 @@ fun obtain_export ctxt rule xs _ As =
 
 (** specification elements **)
 
+(* result declaration *)
+
 fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
   let
     val case_names = obtains |> map_index (fn (i, (b, _)) =>
@@ -105,7 +116,9 @@ fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
   in [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names] end;
 
 
-fun declare_thesis ctxt =
+(* obtain thesis *)
+
+fun obtain_thesis ctxt =
   let
     val ([x], ctxt') =
       Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)] ctxt;
@@ -113,7 +126,12 @@ fun declare_thesis ctxt =
     val v = dest_Free (Object_Logic.drop_judgment ctxt t);
   in ((v, t), ctxt') end;
 
-fun parse_clause ctxt thesis vars raw_props =
+
+(* obtain clauses *)
+
+local
+
+fun prepare_clause parse_prop ctxt thesis vars raw_props =
   let
     val (xs', ctxt') = ctxt |> Proof_Context.add_fixes vars;
     val xs = map (Variable.check_name o #1) vars;
@@ -121,15 +139,80 @@ fun parse_clause ctxt thesis vars raw_props =
     val default_name = AList.lookup (op =) (xs' ~~ xs);
     val default_type = Variable.default_type ctxt';
   in
-    Logic.list_implies (map (Syntax.parse_prop ctxt') raw_props, thesis)
+    Logic.list_implies (map (parse_prop ctxt') raw_props, thesis)
     |> Element.close_form ctxt default_name default_type
   end;
+
+fun prepare_obtains prep_var parse_prop ctxt thesis raw_obtains =
+  let
+    val all_types =
+      fold_map prep_var (maps (fn (_, (vs, _)) => vs) raw_obtains)
+        (ctxt |> Context_Position.set_visible false)
+      |> #1 |> map_filter (fn (_, opt_T, _) => opt_T);
+    val types_ctxt = fold Variable.declare_typ all_types ctxt;
+
+    val clauses =
+      raw_obtains |> map (fn (_, (raw_vars, raw_props)) =>
+        let
+          val (vars, vars_ctxt) = fold_map prep_var raw_vars types_ctxt;
+          val clause = prepare_clause parse_prop vars_ctxt thesis vars raw_props;
+        in clause end)
+      |> Syntax.check_terms ctxt;
+  in map fst raw_obtains ~~ clauses end;
+
+in
+
+val parse_clause = prepare_clause Syntax.parse_prop;
+
+val read_obtains = prepare_obtains Proof_Context.read_var Syntax.parse_prop;
+val cert_obtains = prepare_obtains Proof_Context.cert_var (K I);
+
+end;
+
+
+
+(** consider **)
+
+local
+
+fun gen_consider prep_obtains raw_obtains int state =
+  let
+    val _ = Proof.assert_forward_or_chain state;
+    val ctxt = Proof.context_of state;
+    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
+
+    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
+    val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
+
+    val obtain_prop =
+      Logic.list_rename_params [Auto_Bind.thesisN]
+        (Logic.all (Free thesis_var)
+          (fold_rev (fn (_, A) => fn B => Logic.mk_implies (A, B)) obtains thesis));
+  in
+    state
+    |> Proof.enter_forward
+    |> Proof.have NONE (K I) [] []
+      [((Binding.empty, obtains_attributes raw_obtains), [(obtain_prop, [])])] int
+    |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
+    |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
+    |> Proof.assume (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
+    |> `Proof.the_facts
+    ||> Proof.chain_facts chain_facts
+    ||> Proof.show NONE (K (Proof.local_qed (NONE, false)))
+      [] [] [(Thm.empty_binding, [(thesis, [])])] false
+    |-> Proof.refine_insert
+  end;
+
+in
+
+val consider = gen_consider cert_obtains;
+val consider_cmd = gen_consider read_obtains;
+
+end;
 
 
 
 (** obtain **)
-
-val thatN = "that";
 
 local
 
@@ -141,7 +224,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*vars*)
-    val ((thesis_var, thesis), thesis_ctxt) = declare_thesis ctxt;
+    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val ((xs', vars), fix_ctxt) = thesis_ctxt
       |> fold_map prep_var raw_vars
       |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
@@ -166,7 +249,7 @@ fun gen_obtain prep_att prep_var prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
     (*statements*)
-    val that_name = if name = "" then thatN else name;
+    val that_name = if name = "" then Auto_Bind.thatN else name;
     val that_prop =
       Logic.list_rename_params xs
         (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
@@ -217,7 +300,7 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val ((thesis_var, thesis), thesis_ctxt) = declare_thesis ctxt;
+    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val st = Goal.init (Thm.cterm_of ctxt thesis);
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) st of
@@ -300,7 +383,7 @@ fun gen_guess prep_var raw_vars int state =
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    val (thesis_var, thesis) = #1 (declare_thesis ctxt);
+    val (thesis_var, thesis) = #1 (obtain_thesis ctxt);
     val vars = ctxt
       |> fold_map prep_var raw_vars |-> fold_map inferred_type
       |> fst |> polymorphic ctxt;

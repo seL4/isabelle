@@ -999,7 +999,7 @@ text \<open>
   occur in the conclusion.
 
   @{rail \<open>
-    @@{command obtain} @{syntax par_name}? (@{syntax vars} + @'and')
+    @@{command obtain} @{syntax par_name}? (@{syntax "fixes"} + @'and')
       @'where' (@{syntax props} + @'and')
     ;
     @@{command guess} (@{syntax vars} + @'and')
