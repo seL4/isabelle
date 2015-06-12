@@ -1478,7 +1478,7 @@ lemma Lcm_finite:
   by (induct rule: finite.induct[OF `finite A`])
     (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_lcm])
 
-lemma Lcm_set [code, code_unfold]:
+lemma Lcm_set [code_unfold]:
   "Lcm (set xs) = fold lcm xs 1"
   using comp_fun_idem.fold_set_fold[OF comp_fun_idem_lcm] Lcm_finite by (simp add: ac_simps)
 
@@ -1571,7 +1571,7 @@ lemma Gcd_finite:
   by (induct rule: finite.induct[OF `finite A`])
     (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_gcd])
 
-lemma Gcd_set [code, code_unfold]:
+lemma Gcd_set [code_unfold]:
   "Gcd (set xs) = fold gcd xs 0"
   using comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd] Gcd_finite by (simp add: ac_simps)
 
