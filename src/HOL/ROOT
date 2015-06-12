@@ -594,6 +594,9 @@ session "HOL-ex" in ex = HOL +
     SAT_Examples
     SOS
     SOS_Cert
+    Ballot
+    Erdoes_Szekeres
+    Sum_of_Powers
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = ISABELLE_FULL_TEST]
