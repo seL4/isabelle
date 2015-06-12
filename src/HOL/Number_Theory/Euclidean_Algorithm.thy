@@ -29,9 +29,40 @@ lemma mult_cancel_left [simp]:
 
 end
 
-context semiring_div
+context semidom_divide
 begin 
+ 
+lemma div_self [simp]:
+  assumes "a \<noteq> 0"
+  shows "a div a = 1"
+  using assms nonzero_mult_divide_cancel_left [of a 1] by simp
 
+lemma dvd_div_mult_self [simp]:
+  "a dvd b \<Longrightarrow> b div a * a = b"
+  by (cases "a = 0") (auto elim: dvdE simp add: ac_simps)
+
+lemma dvd_mult_div_cancel [simp]:
+  "a dvd b \<Longrightarrow> a * (b div a) = b"
+  using dvd_div_mult_self [of a b] by (simp add: ac_simps)
+  
+lemma div_mult_swap:
+  assumes "c dvd b"
+  shows "a * (b div c) = (a * b) div c"
+proof (cases "c = 0")
+  case True then show ?thesis by simp
+next
+  case False from assms obtain d where "b = c * d" ..
+  moreover from False have "a * divide (d * c) c = ((a * d) * c) div c"
+    by simp
+  ultimately show ?thesis by (simp add: ac_simps)
+qed
+
+lemma dvd_div_mult:
+  assumes "c dvd b"
+  shows "b div c * a = (b * a) div c"
+  using assms div_mult_swap [of c b a] by (simp add: ac_simps)
+
+  
 text \<open>Units: invertible elements in a ring\<close>
 
 abbreviation is_unit :: "'a \<Rightarrow> bool"
