@@ -9,19 +9,10 @@ theory Divides
 imports Parity
 begin
 
-subsection {* Syntactic division operations *}
+subsection {* Abstract division in commutative semirings. *}
 
 class div = dvd + divide +
   fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
-begin
-
-abbreviation div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
-where
-  "op div \<equiv> divide"
-
-end
-
-subsection {* Abstract division in commutative semirings. *}
 
 class semiring_div = semidom + div +
   assumes mod_div_equality: "a div b * b + a mod b = a"
@@ -47,7 +38,7 @@ lemma semiring_div_power_eq_0_iff: -- \<open>FIXME cf. @{text power_eq_0_iff}, @
   "n \<noteq> 0 \<Longrightarrow> a ^ n = 0 \<longleftrightarrow> a = 0"
   using power_not_zero [of a n] by (auto simp add: zero_power)
 
-text {* @{const div} and @{const mod} *}
+text {* @{const divide} and @{const mod} *}
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
   unfolding mult.commute [of b]
@@ -874,7 +865,7 @@ hide_fact (open) le_add_diff_inverse2
 subsection {* Division on @{typ nat} *}
 
 text {*
-  We define @{const div} and @{const mod} on @{typ nat} by means
+  We define @{const divide} and @{const mod} on @{typ nat} by means
   of a characteristic relation with two input arguments
   @{term "m\<Colon>nat"}, @{term "n\<Colon>nat"} and two output arguments
   @{term "q\<Colon>nat"}(uotient) and @{term "r\<Colon>nat"}(emainder).
@@ -964,21 +955,14 @@ lemma divmod_nat_unique:
   shows "divmod_nat m n = qr"
   using assms by (auto intro: divmod_nat_rel_unique divmod_nat_rel_divmod_nat)
 
-instantiation nat :: "Divides.div"
+instantiation nat :: semiring_div
 begin
 
 definition divide_nat where
-  div_nat_def: "divide m n = fst (divmod_nat m n)"
+  div_nat_def: "m div n = fst (divmod_nat m n)"
 
 definition mod_nat where
   "m mod n = snd (divmod_nat m n)"
-  
-instance ..
-
-end
-
-instantiation nat :: semiring_div
-begin
 
 lemma fst_divmod_nat [simp]:
   "fst (divmod_nat m n) = m div n"
@@ -1024,7 +1008,7 @@ proof (rule divmod_nat_unique)
     unfolding divmod_nat_rel_def using assms by auto
 qed
 
-text {* The ''recursion'' equations for @{const div} and @{const mod} *}
+text {* The ''recursion'' equations for @{const divide} and @{const mod} *}
 
 lemma div_less [simp]:
   fixes m n :: nat
@@ -1082,7 +1066,7 @@ lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) 
   let (q, r) = divmod_nat (m - n) n in (Suc q, r))"
   by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
 
-text {* Simproc for cancelling @{const div} and @{const mod} *}
+text {* Simproc for cancelling @{const divide} and @{const mod} *}
 
 ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
 
@@ -1699,18 +1683,14 @@ definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" 
                   if 0 < b then negDivAlg a b
                   else apsnd uminus (posDivAlg (-a) (-b)))"
 
-instantiation int :: Divides.div
+instantiation int :: ring_div
 begin
 
 definition divide_int where
-  div_int_def: "divide a b = fst (divmod_int a b)"
+  div_int_def: "a div b = fst (divmod_int a b)"
 
 definition mod_int where
   "a mod b = snd (divmod_int a b)"
-
-instance ..
-
-end
 
 lemma fst_divmod_int [simp]:
   "fst (divmod_int a b) = a div b"
@@ -1897,7 +1877,7 @@ lemma div_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a div b = q"
 lemma mod_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a mod b = r"
   by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
 
-instance int :: ring_div
+instance
 proof
   fix a b :: int
   show "a div b * b + a mod b = a"
@@ -1931,6 +1911,8 @@ next
   fix a :: int show "0 div a = 0"
     by (rule div_int_unique, auto simp add: divmod_int_rel_def)
 qed
+
+end
 
 text{*Basic laws about division and remainder*}
 
@@ -2479,7 +2461,7 @@ apply (erule disjE)
                       split_neg_lemma [of concl: "%x y. P y"])
 done
 
-text {* Enable (lin)arith to deal with @{const div} and @{const mod}
+text {* Enable (lin)arith to deal with @{const divide} and @{const mod}
   when these are applied to some constant that is of the form
   @{term "numeral k"}: *}
 declare split_zdiv [of _ _ "numeral k", arith_split] for k

@@ -198,7 +198,7 @@ lemma FACT[import_const "FACT" : fact]:
   by simp
 
 import_const_map MOD : mod
-import_const_map DIV : div
+import_const_map DIV : divide
 
 lemma DIVISION_0:
   "\<forall>m n\<Colon>nat. if n = id 0 then m div n = id 0 \<and> m mod n = m else m = m div n * n + m mod n \<and> m mod n < n"

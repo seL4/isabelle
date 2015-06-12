@@ -70,7 +70,7 @@ primcorec inverse_complex where
   "Re (inverse x) = Re x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
 | "Im (inverse x) = - Im x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
 
-definition "divide x (y\<Colon>complex) = x * inverse y"
+definition "x div (y\<Colon>complex) = x * inverse y"
 
 instance
   by intro_classes

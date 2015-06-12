@@ -162,9 +162,9 @@ lemma inverse_rat [simp]: "inverse (Fract a b) = Fract b a"
   by transfer simp
 
 definition
-  divide_rat_def: "divide q r = q * inverse (r::rat)"
+  divide_rat_def: "q div r = q * inverse (r::rat)"
 
-lemma divide_rat [simp]: "divide (Fract a b) (Fract c d) = Fract (a * d) (b * c)"
+lemma divide_rat [simp]: "Fract a b div Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_rat_def)
 
 instance proof
@@ -191,7 +191,7 @@ instance proof
     by transfer simp
   { assume "q \<noteq> 0" thus "inverse q * q = 1"
     by transfer simp }
-  show "divide q r = q * inverse r"
+  show "q div r = q * inverse r"
     by (fact divide_rat_def)
   show "inverse 0 = (0::rat)"
     by transfer simp

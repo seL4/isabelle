@@ -14,8 +14,8 @@ Constant & Type & Syntax \\
 @{term [source] minus} & @{typeof [show_sorts] "minus"} & (infixl $-$ 65) \\
 @{term [source] uminus} & @{typeof [show_sorts] "uminus"} & $- x$ \\
 @{term [source] times} & @{typeof [show_sorts] "times"} & (infixl $*$ 70) \\
-@{term [source] divide} & @{typeof [show_sorts] "divide"} & (infixl $/$ 70) \\
-@{term [source] Divides.div} & @{typeof [show_sorts] "Divides.div"} & (infixl $div$ 70) \\
+@{term [source] inverse_divide} & @{typeof [show_sorts] "inverse_divide"} & (infixl $/$ 70) \\
+@{term [source] divide} & @{typeof [show_sorts] "divide"} & (infixl $div$ 70) \\
 @{term [source] Divides.mod} & @{typeof [show_sorts] "Divides.mod"} & (infixl $mod$ 70) \\
 @{term [source] abs} & @{typeof [show_sorts] "abs"} & ${\mid} x {\mid}$ \\
 @{term [source] sgn} & @{typeof [show_sorts] "sgn"} \\

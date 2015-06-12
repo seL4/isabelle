@@ -117,7 +117,7 @@ definition inverse_bit_def [simp]:
   "inverse x = (x :: bit)"
 
 definition divide_bit_def [simp]:
-  "divide x y = (x * y :: bit)"
+  "x div y = (x * y :: bit)"
 
 lemmas field_bit_defs =
   plus_bit_def times_bit_def minus_bit_def uminus_bit_def

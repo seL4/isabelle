@@ -1403,7 +1403,7 @@ function inverse_ereal where
   by (auto intro: ereal_cases)
 termination by (relation "{}") simp
 
-definition "divide x y = x * inverse (y :: ereal)"
+definition "x div y = x * inverse (y :: ereal)"
 
 instance ..
 

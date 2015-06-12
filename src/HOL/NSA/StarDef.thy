@@ -577,7 +577,7 @@ by (simp add: star_minus_def)
 lemma Standard_mult: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x * y \<in> Standard"
 by (simp add: star_mult_def)
 
-lemma Standard_divide: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> divide x y \<in> Standard"
+lemma Standard_divide: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x / y \<in> Standard"
 by (simp add: star_divide_def)
 
 lemma Standard_inverse: "x \<in> Standard \<Longrightarrow> inverse x \<in> Standard"
@@ -855,9 +855,9 @@ instance star :: (comm_ring_1) comm_ring_1 ..
 instance star :: (semidom) semidom ..
 instance star :: (semidom_divide) semidom_divide
 proof
-  show "\<And>b a :: 'a star. b \<noteq> 0 \<Longrightarrow> divide (a * b) b = a"
+  show "\<And>b a :: 'a star. b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
     by transfer simp
-  show "\<And>a :: 'a star. divide a 0 = 0"
+  show "\<And>a :: 'a star. a div 0 = 0"
     by transfer simp
 qed
 instance star :: (semiring_div) semiring_div

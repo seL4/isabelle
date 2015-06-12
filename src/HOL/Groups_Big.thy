@@ -1155,7 +1155,7 @@ lemma setprod_zero_iff [simp]:
 
 lemma (in semidom_divide) setprod_diff1:
   assumes "finite A" and "f a \<noteq> 0"
-  shows "setprod f (A - {a}) = (if a \<in> A then divide (setprod f A) (f a) else setprod f A)"
+  shows "setprod f (A - {a}) = (if a \<in> A then setprod f A div f a else setprod f A)"
 proof (cases "a \<notin> A")
   case True then show ?thesis by simp
 next

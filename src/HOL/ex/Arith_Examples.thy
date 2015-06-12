@@ -31,7 +31,7 @@ text {*
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term minus}, @{term nat}, @{term Divides.mod},
-           @{term Divides.div} *}
+           @{term divide} *}
 
 lemma "(i::nat) <= max i j"
   by linarith

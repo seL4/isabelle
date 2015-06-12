@@ -241,9 +241,9 @@ proof -
     by (simp add: Fract_def inverse_fract_def UN_fractrel)
 qed
 
-definition divide_fract_def: "divide q r = q * inverse (r:: 'a fract)"
+definition divide_fract_def: "q div r = q * inverse (r:: 'a fract)"
 
-lemma divide_fract [simp]: "divide (Fract a b) (Fract c d) = Fract (a * d) (b * c)"
+lemma divide_fract [simp]: "Fract a b div Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_fract_def)
 
 instance
@@ -255,7 +255,7 @@ proof
       (simp_all add: fract_expand eq_fract mult.commute)
 next
   fix q r :: "'a fract"
-  show "divide q r = q * inverse r" by (simp add: divide_fract_def)
+  show "q div r = q * inverse r" by (simp add: divide_fract_def)
 next
   show "inverse 0 = (0:: 'a fract)"
     by (simp add: fract_expand) (simp add: fract_collapse)

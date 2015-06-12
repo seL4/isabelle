@@ -15,7 +15,7 @@ begin
 
 definition "inverse f = inverse \<circ> f"
 
-definition "divide f g = (\<lambda>x. f x / g x)"
+definition "f div g = (\<lambda>x. f x / g x)"
 
 instance ..
 
