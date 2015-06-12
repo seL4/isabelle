@@ -1654,6 +1654,9 @@ lemma Gcd_singleton [simp]: "Gcd {a} = a div normalization_factor a"
 lemma Gcd_2 [simp]: "Gcd {a,b} = gcd a b"
   by (simp only: Gcd_insert Gcd_empty gcd_0) (cases "b = 0", simp, rule gcd_div_unit2, simp)
 
+subclass semiring_gcd
+  by unfold_locales (simp_all add: gcd_greatest_iff)
+  
 end
 
 text {*
@@ -1667,6 +1670,8 @@ class euclidean_ring_gcd = euclidean_semiring_gcd + idom
 begin
 
 subclass euclidean_ring ..
+
+subclass ring_gcd ..
 
 lemma gcd_neg1 [simp]:
   "gcd (-a) b = gcd a b"
