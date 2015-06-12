@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Summer 2015: Florian Haftmann, TUM
+  Generic partial division in rings as inverse operation
+  of multiplication.
+
 
 Contributions to Isabelle2015
 -----------------------------
