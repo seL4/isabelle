@@ -6,6 +6,29 @@ theory Euclidean_Algorithm
 imports Complex_Main
 begin
 
+context semidom_divide
+begin
+
+lemma mult_cancel_right [simp]:
+  "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
+proof (cases "c = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  { assume "a * c = b * c"
+    then have "a * c div c = b * c div c"
+      by simp
+    with False have "a = b"
+      by simp
+  } then show ?thesis by auto
+qed
+
+lemma mult_cancel_left [simp]:
+  "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
+  using mult_cancel_right [of a c b] by (simp add: ac_simps)
+
+end
+
 context semiring_div
 begin 
 
@@ -144,13 +167,7 @@ lemma unit_eq_div2:
 lemma unit_mult_left_cancel:
   assumes "is_unit a"
   shows "a * b = a * c \<longleftrightarrow> b = c" (is "?P \<longleftrightarrow> ?Q")
-proof
-  assume ?Q then show ?P by simp
-next
-  assume ?P then have "a * b div a = a * c div a" by simp
-  moreover from assms have "a \<noteq> 0" by auto
-  ultimately show ?Q by simp
-qed
+  using assms mult_cancel_left [of a b c] by auto 
 
 lemma unit_mult_right_cancel:
   "is_unit a \<Longrightarrow> b * a = c * a \<longleftrightarrow> b = c"
@@ -217,34 +234,33 @@ lemma associated_unit:
   "associated a b \<Longrightarrow> is_unit a \<Longrightarrow> is_unit b"
   using dvd_unit_imp_unit by (auto dest!: associatedD1 associatedD2)
 
-lemma associated_iff_div_unit:
-  "associated a b \<longleftrightarrow> (\<exists>c. is_unit c \<and> a = c * b)"
-proof
-  assume "associated a b"
-  show "\<exists>c. is_unit c \<and> a = c * b"
-  proof (cases "a = 0")
-    assume "a = 0"
-    then show "\<exists>c. is_unit c \<and> a = c * b" using `associated a b`
-        by (intro exI[of _ 1], simp add: associated_def)
-  next
-    assume [simp]: "a \<noteq> 0"
-    hence [simp]: "a dvd b" "b dvd a" using `associated a b`
-        unfolding associated_def by simp_all
-    hence "1 = a div b * (b div a)"
-      by (simp add: div_mult_swap)
-    hence "is_unit (a div b)" ..
-    moreover have "a = (a div b) * b" by simp
-    ultimately show ?thesis by blast
-  qed
-next
-  assume "\<exists>c. is_unit c \<and> a = c * b"
-  then obtain c where "is_unit c" and "a = c * b" by blast
-  hence "b = a * (1 div c)" by (simp add: algebra_simps)
-  hence "a dvd b" by simp
-  moreover from `a = c * b` have "b dvd a" by simp
-  ultimately show "associated a b" unfolding associated_def by simp
+lemma is_unit_associatedI:
+  assumes "is_unit c" and "a = c * b"
+  shows "associated a b"
+proof (rule associatedI)
+  from `a = c * b` show "b dvd a" by auto
+  from `is_unit c` obtain d where "c * d = 1" by (rule is_unitE)
+  moreover from `a = c * b` have "d * a = d * (c * b)" by simp
+  ultimately have "b = a * d" by (simp add: ac_simps)
+  then show "a dvd b" ..
 qed
 
+lemma associated_is_unitE:
+  assumes "associated a b"
+  obtains c where "is_unit c" and "a = c * b"
+proof (cases "b = 0")
+  case True with assms have "is_unit 1" and "a = 1 * b" by simp_all
+  with that show thesis .
+next
+  case False
+  from assms have "a dvd b" and "b dvd a" by (auto dest: associatedD1 associatedD2)
+  then obtain c d where "b = a * d" and "a = b * c" by (blast elim: dvdE)
+  then have "a = c * b" and "(c * d) * b = 1 * b" by (simp_all add: ac_simps)
+  with False have "c * d = 1" using mult_cancel_right [of "c * d" b 1] by simp
+  then have "is_unit c" by auto
+  with `a = c * b` that show thesis by blast
+qed
+  
 lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff 
   dvd_div_unit_iff unit_div_mult_swap unit_div_commute
   unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel 
@@ -343,11 +359,12 @@ proof (cases "b = 0", simp, cases "a = 0", metis associated_0(1) normalisation_0
     done
   with `a \<noteq> 0` `b \<noteq> 0` have "\<exists>c. is_unit c \<and> a = c * b"
     by (intro exI[of _ "?nf a div ?nf b"], force simp: mult_ac)
-  with associated_iff_div_unit show "associated a b" by simp
+  then obtain c where "is_unit c" and "a = c * b" by blast
+  then show "associated a b" by (rule is_unit_associatedI) 
 next
   let ?nf = normalisation_factor
   assume "a \<noteq> 0" "b \<noteq> 0" "associated a b"
-  with associated_iff_div_unit obtain c where "is_unit c" and "a = c * b" by blast
+  then obtain c where "is_unit c" and "a = c * b" by (blast elim: associated_is_unitE)
   then show "a div ?nf a = b div ?nf b"
     apply (simp only: `a = c * b` normalisation_factor_mult normalisation_factor_unit)
     apply (rule div_mult_mult1, force)
