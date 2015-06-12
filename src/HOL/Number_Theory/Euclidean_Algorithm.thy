@@ -9,61 +9,92 @@ begin
 context semiring_div
 begin 
 
+text \<open>Units: invertible elements in a ring\<close>
+
 abbreviation is_unit :: "'a \<Rightarrow> bool"
 where
   "is_unit a \<equiv> a dvd 1"
 
-definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
-where
-  "associated a b \<longleftrightarrow> a dvd b \<and> b dvd a"
+lemma not_is_unit_0 [simp]:
+  "\<not> is_unit 0"
+  by simp
+
+lemma unit_imp_dvd [dest]: 
+  "is_unit b \<Longrightarrow> b dvd a"
+  by (rule dvd_trans [of _ 1]) simp_all
+
+lemma unit_dvdE:
+  assumes "is_unit a"
+  obtains c where "a \<noteq> 0" and "b = a * c"
+proof -
+  from assms have "a dvd b" by auto
+  then obtain c where "b = a * c" ..
+  moreover from assms have "a \<noteq> 0" by auto
+  ultimately show thesis using that by blast
+qed
+
+lemma dvd_unit_imp_unit:
+  "a dvd b \<Longrightarrow> is_unit b \<Longrightarrow> is_unit a"
+  by (rule dvd_trans)
+
+lemma unit_div_1_unit [simp, intro]:
+  assumes "is_unit a"
+  shows "is_unit (1 div a)"
+proof -
+  from assms have "1 = 1 div a * a" by simp
+  then show "is_unit (1 div a)" by (rule dvdI)
+qed
+
+lemma is_unitE [elim?]:
+  assumes "is_unit a"
+  obtains b where "a \<noteq> 0" and "b \<noteq> 0"
+    and "is_unit b" and "1 div a = b" and "1 div b = a"
+    and "a * b = 1" and "c div a = c * b"
+proof (rule that)
+  def b \<equiv> "1 div a"
+  then show "1 div a = b" by simp
+  from b_def `is_unit a` show "is_unit b" by simp
+  from `is_unit a` and `is_unit b` show "a \<noteq> 0" and "b \<noteq> 0" by auto
+  from b_def `is_unit a` show "a * b = 1" by simp
+  then have "1 = a * b" ..
+  with b_def `b \<noteq> 0` show "1 div b = a" by simp
+  from `is_unit a` have "a dvd c" ..
+  then obtain d where "c = a * d" ..
+  with `a \<noteq> 0` `a * b = 1` show "c div a = c * b"
+    by (simp add: mult.assoc mult.left_commute [of a])
+qed
 
 lemma unit_prod [intro]:
   "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a * b)"
-  by (subst mult_1_left [of 1, symmetric], rule mult_dvd_mono) 
-
-lemma unit_divide_1:
-  "is_unit b \<Longrightarrow> a div b = a * divide 1 b"
-  by (simp add: div_mult_swap)
-
-lemma unit_divide_1_divide_1 [simp]:
-  "is_unit a \<Longrightarrow> divide 1 (divide 1 a) = a"
-  by (metis div_mult_mult1_if div_mult_self1_is_id dvd_mult_div_cancel mult_1_right)
-
-lemma inv_imp_eq_divide_1:
-  "a * b = 1 \<Longrightarrow> divide 1 a = b"
-  by (metis dvd_mult_div_cancel dvd_mult_right mult_1_right mult.left_commute one_dvd)
-
-lemma unit_divide_1_unit [simp, intro]:
-  assumes "is_unit a"
-  shows "is_unit (divide 1 a)"
-proof -
-  from assms have "1 = divide 1 a * a" by simp
-  then show "is_unit (divide 1 a)" by (rule dvdI)
-qed
+  by (subst mult_1_left [of 1, symmetric]) (rule mult_dvd_mono) 
+  
+lemma unit_div [intro]:
+  "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a div b)"
+  by (erule is_unitE [of b a]) (simp add: ac_simps unit_prod)
 
 lemma mult_unit_dvd_iff:
-  "is_unit b \<Longrightarrow> a * b dvd c \<longleftrightarrow> a dvd c"
+  assumes "is_unit b"
+  shows "a * b dvd c \<longleftrightarrow> a dvd c"
 proof
-  assume "is_unit b" "a * b dvd c"
-  then show "a dvd c" by (simp add: dvd_mult_left)
+  assume "a * b dvd c"
+  with assms show "a dvd c"
+    by (simp add: dvd_mult_left)
 next
-  assume "is_unit b" "a dvd c"
-  then obtain k where "c = a * k" unfolding dvd_def by blast
-  with `is_unit b` have "c = (a * b) * (divide 1 b * k)" 
-      by (simp add: mult_ac)
+  assume "a dvd c"
+  then obtain k where "c = a * k" ..
+  with assms have "c = (a * b) * (1 div b * k)"
+    by (simp add: mult_ac)
   then show "a * b dvd c" by (rule dvdI)
 qed
 
-lemma div_unit_dvd_iff:
-  "is_unit b \<Longrightarrow> a div b dvd c \<longleftrightarrow> a dvd c"
-  by (subst unit_divide_1) (assumption, simp add: mult_unit_dvd_iff)
-
 lemma dvd_mult_unit_iff:
-  "is_unit b \<Longrightarrow> a dvd c * b \<longleftrightarrow> a dvd c"
+  assumes "is_unit b"
+  shows "a dvd c * b \<longleftrightarrow> a dvd c"
 proof
-  assume "is_unit b" and "a dvd c * b"
-  have "c * b dvd c * (b * divide 1 b)" by (subst mult_assoc [symmetric]) simp
-  also from `is_unit b` have "b * divide 1 b = 1" by simp
+  assume "a dvd c * b"
+  with assms have "c * b dvd c * (b * (1 div b))"
+    by (subst mult_assoc [symmetric]) simp
+  also from `is_unit b` have "b * (1 div b) = 1" by (rule is_unitE) simp
   finally have "c * b dvd c" by simp
   with `a dvd c * b` show "a dvd c" by (rule dvd_trans)
 next
@@ -71,95 +102,120 @@ next
   then show "a dvd c * b" by simp
 qed
 
+lemma div_unit_dvd_iff:
+  "is_unit b \<Longrightarrow> a div b dvd c \<longleftrightarrow> a dvd c"
+  by (erule is_unitE [of _ a]) (auto simp add: mult_unit_dvd_iff)
+
 lemma dvd_div_unit_iff:
   "is_unit b \<Longrightarrow> a dvd c div b \<longleftrightarrow> a dvd c"
-  by (subst unit_divide_1) (assumption, simp add: dvd_mult_unit_iff)
+  by (erule is_unitE [of _ c]) (simp add: dvd_mult_unit_iff)
 
-lemmas unit_dvd_iff = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff dvd_div_unit_iff
+lemmas unit_dvd_iff = mult_unit_dvd_iff div_unit_dvd_iff
+  dvd_mult_unit_iff dvd_div_unit_iff -- \<open>FIXME consider fact collection\<close>
 
-lemma unit_div [intro]:
-  "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a div b)"
-  by (subst unit_divide_1) (assumption, rule unit_prod, simp_all)
+lemma unit_mult_div_div [simp]:
+  "is_unit a \<Longrightarrow> b * (1 div a) = b div a"
+  by (erule is_unitE [of _ b]) simp
+
+lemma unit_div_mult_self [simp]:
+  "is_unit a \<Longrightarrow> b div a * a = b"
+  by (rule dvd_div_mult_self) auto
+
+lemma unit_div_1_div_1 [simp]:
+  "is_unit a \<Longrightarrow> 1 div (1 div a) = a"
+  by (erule is_unitE) simp
 
 lemma unit_div_mult_swap:
-  "is_unit c \<Longrightarrow> a * (b div c) = a * b div c"
-  by (simp only: unit_divide_1 [of _ b] unit_divide_1 [of _ "a*b"] ac_simps)
+  "is_unit c \<Longrightarrow> a * (b div c) = (a * b) div c"
+  by (erule unit_dvdE [of _ b]) (simp add: mult.left_commute [of _ c])
 
 lemma unit_div_commute:
-  "is_unit b \<Longrightarrow> a div b * c = a * c div b"
-  by (simp only: unit_divide_1 [of _ a] unit_divide_1 [of _ "a*c"] ac_simps)
+  "is_unit b \<Longrightarrow> (a div b) * c = (a * c) div b"
+  using unit_div_mult_swap [of b c a] by (simp add: ac_simps)
 
-lemma unit_imp_dvd [dest]:
-  "is_unit b \<Longrightarrow> b dvd a"
-  by (rule dvd_trans [of _ 1]) simp_all
+lemma unit_eq_div1:
+  "is_unit b \<Longrightarrow> a div b = c \<longleftrightarrow> a = c * b"
+  by (auto elim: is_unitE)
 
-lemma dvd_unit_imp_unit:
-  "is_unit b \<Longrightarrow> a dvd b \<Longrightarrow> is_unit a"
-  by (rule dvd_trans)
+lemma unit_eq_div2:
+  "is_unit b \<Longrightarrow> a = c div b \<longleftrightarrow> a * b = c"
+  using unit_eq_div1 [of b c a] by auto
 
-lemma unit_divide_1'1:
-  assumes "is_unit b"
-  shows "a div (b * c) = a * divide 1 b div c" 
-proof -
-  from assms have "a div (b * c) = a * (divide 1 b * b) div (b * c)"
-    by simp
-  also have "... = b * (a * divide 1 b) div (b * c)"
-    by (simp only: mult_ac)
-  also have "... = a * divide 1 b div c"
-    by (cases "b = 0", simp, rule div_mult_mult1)
-  finally show ?thesis .
+lemma unit_mult_left_cancel:
+  assumes "is_unit a"
+  shows "a * b = a * c \<longleftrightarrow> b = c" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q then show ?P by simp
+next
+  assume ?P then have "a * b div a = a * c div a" by simp
+  moreover from assms have "a \<noteq> 0" by auto
+  ultimately show ?Q by simp
 qed
 
-lemma associated_comm:
-  "associated a b \<Longrightarrow> associated b a"
+lemma unit_mult_right_cancel:
+  "is_unit a \<Longrightarrow> b * a = c * a \<longleftrightarrow> b = c"
+  using unit_mult_left_cancel [of a b c] by (auto simp add: ac_simps)
+
+lemma unit_div_cancel:
+  assumes "is_unit a"
+  shows "b div a = c div a \<longleftrightarrow> b = c"
+proof -
+  from assms have "is_unit (1 div a)" by simp
+  then have "b * (1 div a) = c * (1 div a) \<longleftrightarrow> b = c"
+    by (rule unit_mult_right_cancel)
+  with assms show ?thesis by simp
+qed
+  
+
+text \<open>Associated elements in a ring – an equivalence relation induced by the quasi-order divisibility \<close>
+
+definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
+where
+  "associated a b \<longleftrightarrow> a dvd b \<and> b dvd a"
+
+lemma associatedI:
+  "a dvd b \<Longrightarrow> b dvd a \<Longrightarrow> associated a b"
   by (simp add: associated_def)
+
+lemma associatedD1:
+  "associated a b \<Longrightarrow> a dvd b"
+  by (simp add: associated_def)
+
+lemma associatedD2:
+  "associated a b \<Longrightarrow> b dvd a"
+  by (simp add: associated_def)
+
+lemma associated_refl [simp]:
+  "associated a a"
+  by (auto intro: associatedI)
+
+lemma associated_sym:
+  "associated b a \<longleftrightarrow> associated a b"
+  by (auto intro: associatedI dest: associatedD1 associatedD2)
+
+lemma associated_trans:
+  "associated a b \<Longrightarrow> associated b c \<Longrightarrow> associated a c"
+  by (auto intro: associatedI dvd_trans dest: associatedD1 associatedD2)
+
+lemma equivp_associated:
+  "equivp associated"
+proof (rule equivpI)
+  show "reflp associated"
+    by (rule reflpI) simp
+  show "symp associated"
+    by (rule sympI) (simp add: associated_sym)
+  show "transp associated"
+    by (rule transpI) (fact associated_trans)
+qed
 
 lemma associated_0 [simp]:
   "associated 0 b \<longleftrightarrow> b = 0"
   "associated a 0 \<longleftrightarrow> a = 0"
-  unfolding associated_def by simp_all
+  by (auto dest: associatedD1 associatedD2)
 
 lemma associated_unit:
-  "is_unit a \<Longrightarrow> associated a b \<Longrightarrow> is_unit b"
-  unfolding associated_def using dvd_unit_imp_unit by auto
-
-lemma is_unit_1 [simp]:
-  "is_unit 1"
-  by simp
-
-lemma not_is_unit_0 [simp]:
-  "\<not> is_unit 0"
-  by auto
-
-lemma unit_mult_left_cancel:
-  assumes "is_unit a"
-  shows "(a * b) = (a * c) \<longleftrightarrow> b = c"
-proof -
-  from assms have "a \<noteq> 0" by auto
-  then show ?thesis by (metis div_mult_self1_is_id)
-qed
-
-lemma unit_mult_right_cancel:
-  "is_unit a \<Longrightarrow> (b * a) = (c * a) \<longleftrightarrow> b = c"
-  by (simp add: ac_simps unit_mult_left_cancel)
-
-lemma unit_div_cancel:
-  "is_unit a \<Longrightarrow> (b div a) = (c div a) \<longleftrightarrow> b = c"
-  apply (subst unit_divide_1[of _ b], assumption)
-  apply (subst unit_divide_1[of _ c], assumption)
-  apply (rule unit_mult_right_cancel, erule unit_divide_1_unit)
-  done
-
-lemma unit_eq_div1:
-  "is_unit b \<Longrightarrow> a div b = c \<longleftrightarrow> a = c * b"
-  apply (subst unit_divide_1, assumption)
-  apply (subst unit_mult_right_cancel[symmetric], assumption)
-  apply (subst mult_assoc, subst dvd_div_mult_self, assumption, simp)
-  done
-
-lemma unit_eq_div2:
-  "is_unit b \<Longrightarrow> a = c div b \<longleftrightarrow> a * b = c"
-  by (subst (1 2) eq_commute, simp add: unit_eq_div1, subst eq_commute, rule refl)
+  "associated a b \<Longrightarrow> is_unit a \<Longrightarrow> is_unit b"
+  using dvd_unit_imp_unit by (auto dest!: associatedD1 associatedD2)
 
 lemma associated_iff_div_unit:
   "associated a b \<longleftrightarrow> (\<exists>c. is_unit c \<and> a = c * b)"
@@ -183,7 +239,7 @@ proof
 next
   assume "\<exists>c. is_unit c \<and> a = c * b"
   then obtain c where "is_unit c" and "a = c * b" by blast
-  hence "b = a * divide 1 c" by (simp add: algebra_simps)
+  hence "b = a * (1 div c)" by (simp add: algebra_simps)
   hence "a dvd b" by simp
   moreover from `a = c * b` have "b dvd a" by simp
   ultimately show "associated a b" unfolding associated_def by simp
@@ -196,27 +252,11 @@ lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff
 
 end
 
-context ring_div
-begin
-
-lemma is_unit_neg [simp]:
-  "is_unit (- a) \<Longrightarrow> is_unit a"
-  by simp
-
-lemma is_unit_neg_1 [simp]:
-  "is_unit (-1)"
-  by simp
-
-end
-
-lemma is_unit_nat [simp]:
-  "is_unit (a::nat) \<longleftrightarrow> a = 1"
-  by simp
-
 lemma is_unit_int:
-  "is_unit (a::int) \<longleftrightarrow> a = 1 \<or> a = -1"
+  "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto
 
+  
 text {*
   A Euclidean semiring is a semiring upon which the Euclidean algorithm can be
   implemented. It must provide:
@@ -225,7 +265,7 @@ text {*
   \item a size function such that @{term "size (a mod b) < size b"} 
         for any @{term "b \<noteq> 0"}
   \item a normalisation factor such that two associated numbers are equal iff 
-        they are the same when divided by their normalisation factors.
+        they are the same when divd by their normalisation factors.
   \end{itemize}
   The existence of these functions makes it possible to derive gcd and lcm functions 
   for any Euclidean semiring.
@@ -258,12 +298,9 @@ lemma normalisation_factor_0_iff [simp]:
 proof
   assume "normalisation_factor a = 0"
   hence "\<not> is_unit (normalisation_factor a)"
-    by (metis not_is_unit_0)
-  then show "a = 0" by force
-next
-  assume "a = 0"
-  then show "normalisation_factor a = 0" by simp
-qed
+    by simp
+  then show "a = 0" by auto
+qed simp
 
 lemma normalisation_factor_pow:
   "normalisation_factor (a ^ n) = normalisation_factor a ^ n"
@@ -275,20 +312,25 @@ proof (cases "a = 0", simp)
   assume "a \<noteq> 0"
   let ?nf = "normalisation_factor"
   from normalisation_factor_is_unit[OF `a \<noteq> 0`] have "?nf a \<noteq> 0"
-    by (metis not_is_unit_0) 
+    by auto
   have "?nf (a div ?nf a) * ?nf (?nf a) = ?nf (a div ?nf a * ?nf a)" 
     by (simp add: normalisation_factor_mult)
   also have "a div ?nf a * ?nf a = a" using `a \<noteq> 0`
     by simp
   also have "?nf (?nf a) = ?nf a" using `a \<noteq> 0` 
     normalisation_factor_is_unit normalisation_factor_unit by simp
-  finally show ?thesis using `a \<noteq> 0` and `?nf a \<noteq> 0` 
-    by (metis div_mult_self2_is_id div_self)
+  finally have "normalisation_factor (a div normalisation_factor a) = 1"  
+    using `?nf a \<noteq> 0` by (metis div_mult_self2_is_id div_self)
+  with `a \<noteq> 0` show ?thesis by simp
 qed
 
 lemma normalisation_0_iff [simp]:
   "a div normalisation_factor a = 0 \<longleftrightarrow> a = 0"
   by (cases "a = 0", simp, subst unit_eq_div1, blast, simp)
+
+lemma mult_div_normalisation [simp]:
+  "b * (1 div normalisation_factor a) = b div normalisation_factor a"
+  by (cases "a = 0") simp_all
 
 lemma associated_iff_normed_eq:
   "associated a b \<longleftrightarrow> a div normalisation_factor a = b div normalisation_factor b"
@@ -613,10 +655,10 @@ lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
   by (subst gcd.commute, subst gcd_mult_unit1, assumption, rule gcd.commute)
 
 lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
-  by (subst unit_divide_1) (simp_all add: gcd_mult_unit1)
+  by (erule is_unitE [of _ b]) (simp add: gcd_mult_unit1)
 
 lemma gcd_div_unit2: "is_unit a \<Longrightarrow> gcd b (c div a) = gcd b c"
-  by (subst unit_divide_1) (simp_all add: gcd_mult_unit2)
+  by (erule is_unitE [of _ c]) (simp add: gcd_mult_unit2)
 
 lemma gcd_idem: "gcd a a = a div normalisation_factor a"
   by (cases "a = 0") (simp add: gcd_0_left, rule sym, rule gcdI, simp_all)
@@ -870,7 +912,7 @@ next
   then show ?thesis by blast
 qed
 
-lemma pow_divides_pow:
+lemma pow_divs_pow:
   assumes ab: "a ^ n dvd b ^ n" and n: "n \<noteq> 0"
   shows "a dvd b"
 proof (cases "gcd a b = 0")
@@ -897,11 +939,11 @@ next
   with ab'(1,2) show ?thesis by simp
 qed
 
-lemma pow_divides_eq [simp]:
+lemma pow_divs_eq [simp]:
   "n \<noteq> 0 \<Longrightarrow> a ^ n dvd b ^ n \<longleftrightarrow> a dvd b"
-  by (auto intro: pow_divides_pow dvd_power_same)
+  by (auto intro: pow_divs_pow dvd_power_same)
 
-lemma divides_mult:
+lemma divs_mult:
   assumes mr: "m dvd r" and nr: "n dvd r" and mn: "gcd m n = 1"
   shows "m * n dvd r"
 proof -
@@ -973,8 +1015,8 @@ lemma lcm_dvd1 [iff]:
 proof (cases "a*b = 0")
   assume "a * b \<noteq> 0"
   hence "gcd a b \<noteq> 0" by simp
-  let ?c = "divide 1 (normalisation_factor (a*b))"
-  from `a * b \<noteq> 0` have [simp]: "is_unit (normalisation_factor (a*b))" by simp
+  let ?c = "1 div normalisation_factor (a * b)"
+  from `a * b \<noteq> 0` have [simp]: "is_unit (normalisation_factor (a * b))" by simp
   from lcm_gcd_prod[of a b] have "lcm a b * gcd a b = a * ?c * b"
     by (simp add: div_mult_swap unit_div_commute)
   hence "lcm a b * gcd a b div gcd a b = a * ?c * b div gcd a b" by simp
@@ -1050,14 +1092,14 @@ lemma gcd_lcm:
   shows "gcd a b = a * b div (lcm a b * normalisation_factor (a * b))"
 proof-
   from assms have "gcd a b \<noteq> 0" by (simp add: lcm_zero)
-  let ?c = "normalisation_factor (a*b)"
+  let ?c = "normalisation_factor (a * b)"
   from `lcm a b \<noteq> 0` have "?c \<noteq> 0" by (intro notI, simp add: lcm_zero no_zero_divisors)
   hence "is_unit ?c" by simp
   from lcm_gcd_prod [of a b] have "gcd a b = a * b div ?c div lcm a b"
     by (subst (2) div_mult_self2_is_id[OF `lcm a b \<noteq> 0`, symmetric], simp add: mult_ac)
-  also from `is_unit ?c` have "... = a * b div (?c * lcm a b)"
-    by (metis local.unit_divide_1 local.unit_divide_1'1)
-  finally show ?thesis by (simp only: ac_simps)
+  also from `is_unit ?c` have "... = a * b div (lcm a b * ?c)"
+    by (metis `?c \<noteq> 0` div_mult_mult1 dvd_mult_div_cancel mult_commute normalisation_factor_dvd')
+  finally show ?thesis .
 qed
 
 lemma normalisation_factor_lcm [simp]:
@@ -1249,11 +1291,11 @@ lemma lcm_mult_unit2:
 
 lemma lcm_div_unit1:
   "is_unit a \<Longrightarrow> lcm (b div a) c = lcm b c"
-  by (metis lcm_mult_unit1 local.unit_divide_1 local.unit_divide_1_unit)
+  by (erule is_unitE [of _ b]) (simp add: lcm_mult_unit1) 
 
 lemma lcm_div_unit2:
   "is_unit a \<Longrightarrow> lcm b (c div a) = lcm b c"
-  by (metis lcm_mult_unit2 local.unit_divide_1 local.unit_divide_1_unit)
+  by (erule is_unitE [of _ c]) (simp add: lcm_mult_unit2)
 
 lemma lcm_left_idem:
   "lcm a (lcm a b) = lcm a b"
@@ -1623,7 +1665,7 @@ lemma lcm_neg_numeral_2 [simp]: "lcm a (- numeral n) = lcm a (numeral n)"
 function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times> 'a" where
   "euclid_ext a b = 
      (if b = 0 then 
-        let c = divide 1 (normalisation_factor a) in (c, 0, a * c)
+        let c = 1 div normalisation_factor a in (c, 0, a * c)
       else 
         case euclid_ext b (a mod b) of
             (s,t,c) \<Rightarrow> (t, s - t * (a div b), c))"
@@ -1633,13 +1675,13 @@ function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times
 declare euclid_ext.simps [simp del]
 
 lemma euclid_ext_0: 
-  "euclid_ext a 0 = (divide 1 (normalisation_factor a), 0, a * divide 1 (normalisation_factor a))"
-  by (subst euclid_ext.simps, simp add: Let_def)
+  "euclid_ext a 0 = (1 div normalisation_factor a, 0, a div normalisation_factor a)"
+  by (subst euclid_ext.simps) (simp add: Let_def)
 
 lemma euclid_ext_non_0:
   "b \<noteq> 0 \<Longrightarrow> euclid_ext a b = (case euclid_ext b (a mod b) of 
     (s,t,c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by (subst euclid_ext.simps, simp)
+  by (subst euclid_ext.simps) simp
 
 definition euclid_ext' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
 where
@@ -1652,8 +1694,8 @@ proof (induct a b rule: euclid_ext.induct)
   then show ?case
   proof (cases "b = 0")
     case True
-      then show ?thesis by (cases "a = 0") 
-        (simp_all add: euclid_ext_0 unit_div mult_ac unit_simps gcd_0)
+      then show ?thesis by  
+        (simp add: euclid_ext_0 unit_div mult_ac unit_simps gcd_0)
     next
     case False with 1 show ?thesis
       by (simp add: euclid_ext_non_0 ac_simps split: prod.split prod.split_asm)
@@ -1697,7 +1739,7 @@ qed
 lemma bezout: "\<exists>s t. s * a + t * b = gcd a b"
   using euclid_ext'_correct by blast
 
-lemma euclid_ext'_0 [simp]: "euclid_ext' a 0 = (divide 1 (normalisation_factor a), 0)" 
+lemma euclid_ext'_0 [simp]: "euclid_ext' a 0 = (1 div normalisation_factor a, 0)" 
   by (simp add: bezw_def euclid_ext'_def euclid_ext_0)
 
 lemma euclid_ext'_non_0: "b \<noteq> 0 \<Longrightarrow> euclid_ext' a b = (snd (euclid_ext' b (a mod b)),
