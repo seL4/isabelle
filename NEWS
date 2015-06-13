@@ -38,6 +38,11 @@ corresponds to a raw proof block like this:
 * New command 'supply' supports fact definitions during goal refinement
 ('apply' scripts).
 
+* New command 'consider' states rules for generalized elimination and
+case splitting. This is like a toplevel statement "theorem obtains" used
+within a proof body; or like a multi-branch 'obtain' without activation
+of the local context elements yet.
+
 * Proof method "cases" allows to specify the rule as first entry of
 chained facts.  This is particularly useful with 'consider':
 
