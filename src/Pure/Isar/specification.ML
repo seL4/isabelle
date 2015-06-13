@@ -103,32 +103,14 @@ fun read_prop raw_prop raw_fixes ctxt =
 
 local
 
-fun close_forms ctxt i xs As =
+fun close_forms ctxt i As =
   let
-    val commons = map #1 xs;
-    val _ =
-      (case duplicates (op =) commons of [] => ()
-      | dups => error ("Duplicate local variables " ^ commas_quote dups));
-    val frees = rev (fold (Variable.add_free_names ctxt) As (rev commons));
+    val xs = rev (fold (Variable.add_free_names ctxt) As []);
     val types =
-      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
-    val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
-
-    fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)
-      | abs_body lev y (t $ u) = abs_body lev y t $ abs_body lev y u
-      | abs_body lev y (t as Free (x, T)) =
-          if x = y then Type.constraint (uniform_typing x) (Type.constraint T (Bound lev))
-          else t
-      | abs_body _ _ a = a;
-    fun close (y, U) B =
-      let val B' = abs_body 0 y (Term.incr_boundvars 1 B)
-      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y, U, B') else B end;
-    fun close_form A =
-      let
-        val occ_frees = rev (Variable.add_free_names ctxt A []);
-        val bounds = xs @ map (rpair dummyT) (subtract (op =) commons occ_frees);
-      in fold_rev close bounds A end;
-  in map close_form As end;
+      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
+    val uniform_typing = AList.lookup (op =) (xs ~~ types);
+    val close = fold_rev (Logic.dependent_all_constraint uniform_typing) (xs ~~ xs);
+  in map close As end;
 
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
@@ -145,7 +127,7 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
     val specs =
       (if do_close then
         #1 (fold_map
-            (fn Ass => fn i => (burrow (close_forms params_ctxt i []) Ass, i + 1)) Asss' idx)
+            (fn Ass => fn i => (burrow (close_forms params_ctxt i) Ass, i + 1)) Asss' idx)
       else Asss')
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
@@ -347,11 +329,9 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
       in (([], prems, stmt, NONE), goal_ctxt) end
   | Element.Obtains obtains =>
       let
-        val case_names = obtains |> map_index (fn (i, (b, _)) =>
-          if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (Variable.check_name x, T) | _ => NONE)));
+            (vars |> map_filter (fn (x, SOME T, _) => SOME (Variable.check_name x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -360,7 +340,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
-            val bs = map fst vars;
+            val bs = map (fn (b, _, _) => b) vars;
             val xs = map Variable.check_name bs;
             val props = map fst asms;
             val (params, _) = ctxt'
@@ -377,8 +357,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             |>> (fn [(_, [th])] => th)
           end;
 
-        val more_atts = map (Attrib.internal o K)
-          [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names];
+        val more_atts = map (Attrib.internal o K) (Obtain.obtains_attributes obtains);
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = [((Binding.empty, []), [(thesis, [])])];
 
@@ -386,7 +365,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           |> (snd o Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths =>
-            Proof_Context.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
+            Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(ths, [])])] #>
             #2 #> pair ths);
       in ((more_atts, prems, stmt, SOME facts), goal_ctxt) end);
 

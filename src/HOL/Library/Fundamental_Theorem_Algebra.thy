@@ -159,8 +159,9 @@ proof (induct n rule: nat_less_induct)
   assume IH: "\<forall>m<n. m \<noteq> 0 \<longrightarrow> (\<exists>z. cmod (1 + b * z ^ m) < 1)"
   assume n: "n \<noteq> 0"
   let ?P = "\<lambda>z n. cmod (1 + b * z ^ n) < 1"
-  {
-    assume e: "even n"
+  show "\<exists>z. ?P z n"
+  proof cases
+    assume "even n"
     then have "\<exists>m. n = 2 * m"
       by presburger
     then obtain m where m: "n = 2 * m"
@@ -170,19 +171,17 @@ proof (induct n rule: nat_less_induct)
     with IH[rule_format, of m] obtain z where z: "?P z m"
       by blast
     from z have "?P (csqrt z) n"
-      by (simp add: m power_mult power2_csqrt)
-    then have "\<exists>z. ?P z n" ..
-  }
-  moreover
-  {
-    assume o: "odd n"
-    have th0: "cmod (complex_of_real (cmod b) / b) = 1"
-      using b by (simp add: norm_divide)
-    from o have "\<exists>m. n = Suc (2 * m)"
+      by (simp add: m power_mult)
+    then show ?thesis ..
+  next
+    assume "odd n"
+    then have "\<exists>m. n = Suc (2 * m)"
       by presburger+
     then obtain m where m: "n = Suc (2 * m)"
       by blast
-    from unimodular_reduce_norm[OF th0] o
+    have th0: "cmod (complex_of_real (cmod b) / b) = 1"
+      using b by (simp add: norm_divide)
+    from unimodular_reduce_norm[OF th0] \<open>odd n\<close>
     have "\<exists>v. cmod (complex_of_real (cmod b) / b + v^n) < 1"
       apply (cases "cmod (complex_of_real (cmod b) / b + 1) < 1")
       apply (rule_tac x="1" in exI)
@@ -206,7 +205,7 @@ proof (induct n rule: nat_less_induct)
     then obtain v where v: "cmod (complex_of_real (cmod b) / b + v^n) < 1"
       by blast
     let ?w = "v / complex_of_real (root n (cmod b))"
-    from odd_real_root_pow[OF o, of "cmod b"]
+    from odd_real_root_pow[OF \<open>odd n\<close>, of "cmod b"]
     have th1: "?w ^ n = v^n / complex_of_real (cmod b)"
       by (simp add: power_divide of_real_power[symmetric])
     have th2:"cmod (complex_of_real (cmod b) / b) = 1"
@@ -222,9 +221,8 @@ proof (induct n rule: nat_less_induct)
       done
     from mult_left_less_imp_less[OF th4 th3]
     have "?P ?w n" unfolding th1 .
-    then have "\<exists>z. ?P z n" ..
-  }
-  ultimately show "\<exists>z. ?P z n" by blast
+    then show ?thesis ..
+  qed
 qed
 
 text \<open>Bolzano-Weierstrass type property for closed disc in complex plane.\<close>
@@ -1020,51 +1018,44 @@ lemma nullstellensatz_univariate:
   "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow>
     p dvd (q ^ (degree p)) \<or> (p = 0 \<and> q = 0)"
 proof -
-  show ?thesis
-  proof (cases "p = 0")
-    case True
+  consider "p = 0" | "p \<noteq> 0" "degree p = 0" | n where "p \<noteq> 0" "degree p = Suc n"
+    by (cases "degree p") auto
+  then show ?thesis
+  proof cases
+    case 1
     then have eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> q = 0"
       by (auto simp add: poly_all_0_iff_0)
     {
       assume "p dvd (q ^ (degree p))"
       then obtain r where r: "q ^ (degree p) = p * r" ..
-      from r True have False by simp
+      from r 1 have False by simp
     }
-    with eq True show ?thesis by blast
+    with eq 1 show ?thesis by blast
   next
-    case False
-    show ?thesis
-    proof (cases "degree p = 0")
-      case True
-      with \<open>p \<noteq> 0\<close> obtain k where k: "p = [:k:]" "k \<noteq> 0"
-        by (cases p) (simp split: if_splits)
-      then have th1: "\<forall>x. poly p x \<noteq> 0"
+    case 2
+    then obtain k where k: "p = [:k:]" "k \<noteq> 0"
+      by (cases p) (simp split: if_splits)
+    then have th1: "\<forall>x. poly p x \<noteq> 0"
+      by simp
+    from k 2(2) have "q ^ (degree p) = p * [:1/k:]"
+      by (simp add: one_poly_def)
+    then have th2: "p dvd (q ^ (degree p))" ..
+    from 2(1) th1 th2 show ?thesis
+      by blast
+  next
+    case 3
+    {
+      assume "p dvd (q ^ (Suc n))"
+      then obtain u where u: "q ^ (Suc n) = p * u" ..
+      fix x
+      assume h: "poly p x = 0" "poly q x \<noteq> 0"
+      then have "poly (q ^ (Suc n)) x \<noteq> 0"
         by simp
-      from k True have "q ^ (degree p) = p * [:1/k:]"
-        by (simp add: one_poly_def)
-      then have th2: "p dvd (q ^ (degree p))" ..
-      from False th1 th2 show ?thesis
-        by blast
-    next
-      case False
-      assume dp: "degree p \<noteq> 0"
-      then obtain n where n: "degree p = Suc n "
-        by (cases "degree p") auto
-      {
-        assume "p dvd (q ^ (Suc n))"
-        then obtain u where u: "q ^ (Suc n) = p * u" ..
-        {
-          fix x
-          assume h: "poly p x = 0" "poly q x \<noteq> 0"
-          then have "poly (q ^ (Suc n)) x \<noteq> 0"
-            by simp
-          then have False using u h(1)
-            by (simp only: poly_mult) simp
-        }
-      }
-      with n nullstellensatz_lemma[of p q "degree p"] dp
-      show ?thesis by auto
-    qed
+      then have False using u h(1)
+        by (simp only: poly_mult) simp
+    }
+    with 3 nullstellensatz_lemma[of p q "degree p"]
+    show ?thesis by auto
   qed
 qed
 
@@ -1191,7 +1182,7 @@ lemma basic_cqe_conv2:
   shows "\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)"
 proof -
   have False if "h \<noteq> 0" "t = 0" and "pCons a (pCons b p) = pCons h t" for h t
-    using l prems by simp
+    using l that by simp
   then have th: "\<not> (\<exists> h t. h \<noteq> 0 \<and> t = 0 \<and> pCons a (pCons b p) = pCons h t)"
     by blast
   from fundamental_theorem_of_algebra_alt[OF th] show ?thesis

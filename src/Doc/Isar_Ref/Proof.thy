@@ -435,21 +435,22 @@ text \<open>
      @@{command schematic_corollary}) (stmt | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
-      stmt if_prems @{syntax for_fixes}
+      stmt (@'if' stmt)? @{syntax for_fixes}
     ;
     @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
   
     stmt: (@{syntax props} + @'and')
     ;
-    if_prems: (@'if' stmt)?
-    ;
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion
     ;
-    conclusion: @'shows' stmt | @'obtains' (@{syntax par_name}? obtain_case + '|')
+    conclusion: @'shows' stmt | @'obtains' @{syntax obtain_clauses}
     ;
-    obtain_case: (@{syntax vars} + @'and') @'where' (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
+    @{syntax_def obtain_clauses}: (@{syntax par_name}? obtain_case + '|')
+    ;
+    @{syntax_def obtain_case}: (@{syntax vars} + @'and') @'where'
+      (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}
 
   \begin{description}
@@ -523,11 +524,10 @@ text \<open>
   @{variable_ref "?thesis"}) to be bound automatically, see also
   \secref{sec:term-abbrev}.
 
-  The optional case names of @{element_ref "obtains"} have a twofold
-  meaning: (1) in the proof of this claim they refer to the local context
-  introductions, (2) in the resulting rule they become annotations for
-  symbolic case splits, e.g.\ for the @{method_ref cases} method
-  (\secref{sec:cases-induct}).
+  Structured goal statements involving @{keyword_ref "if"} define the
+  special fact ``@{text that}'' to refer to these assumptions in the proof
+  body. The user may provide separate names according to the syntax of the
+  statement.
 \<close>
 
 
@@ -853,15 +853,6 @@ text \<open>
 subsection \<open>Emulating tactic scripts \label{sec:tactic-commands}\<close>
 
 text \<open>
-  The Isar provides separate commands to accommodate tactic-style
-  proof scripts within the same system.  While being outside the
-  orthodox Isar proof language, these might come in handy for
-  interactive exploration and debugging, or even actual tactical proof
-  within new-style theories (to benefit from document preparation, for
-  example).  See also \secref{sec:tactics} for actual tactics, that
-  have been encapsulated as proof methods.  Proper proof methods may
-  be used in scripts, too.
-
   \begin{matharray}{rcl}
     @{command_def "supply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
     @{command_def "apply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
@@ -871,6 +862,15 @@ text \<open>
     @{command_def "prefer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
     @{command_def "back"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
+
+  The Isar language provides separate commands to accommodate tactic-style
+  proof scripts within the same system.  While being outside the
+  orthodox Isar proof language, these might come in handy for
+  interactive exploration and debugging, or even actual tactical proof
+  within new-style theories (to benefit from document preparation, for
+  example).  See also \secref{sec:tactics} for actual tactics, that
+  have been encapsulated as proof methods.  Proper proof methods may
+  be used in scripts, too.
 
   @{rail \<open>
     @@{command supply} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
@@ -979,83 +979,125 @@ text \<open>
 (*<*)end(*>*)
 
 
-section \<open>Generalized elimination \label{sec:obtain}\<close>
+section \<open>Generalized elimination and case splitting \label{sec:obtain}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
+    @{command_def "consider"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "obtain"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "guess"}@{text "\<^sup>*"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  Generalized elimination means that additional elements with certain
-  properties may be introduced in the current context, by virtue of a
-  locally proven ``soundness statement''.  Technically speaking, the
-  @{command "obtain"} language element is like a declaration of
-  @{command "fix"} and @{command "assume"} (see also see
-  \secref{sec:proof-context}), together with a soundness proof of its
-  additional claim.  According to the nature of existential reasoning,
-  assumptions get eliminated from any result exported from the context
-  later, provided that the corresponding parameters do \emph{not}
-  occur in the conclusion.
+  Generalized elimination means that hypothetical parameters and premises
+  may be introduced in the current context, potentially with a split into
+  cases. This works by virtue of a locally proven rule that establishes the
+  soundness of this temporary context extension. As representative examples,
+  one may think of standard rules from Isabelle/HOL like this:
+
+  \medskip
+  \begin{tabular}{ll}
+  @{text "\<exists>x. B x \<Longrightarrow> (\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
+  @{text "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
+  @{text "A \<or> B \<Longrightarrow> (A \<Longrightarrow> thesis) \<Longrightarrow> (B \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
+  \end{tabular}
+  \medskip
+
+  In general, these particular rules and connectives need to get involved at
+  all: this concept works directly in Isabelle/Pure via Isar commands
+  defined below. In particular, the logic of elimination and case splitting
+  is delegated to an Isar proof, which often involves automated tools.
 
   @{rail \<open>
-    @@{command obtain} @{syntax par_name}? (@{syntax vars} + @'and')
+    @@{command consider} @{syntax obtain_clauses}
+    ;
+    @@{command obtain} @{syntax par_name}? (@{syntax "fixes"} + @'and')
       @'where' (@{syntax props} + @'and')
     ;
-    @@{command guess} (@{syntax vars} + @'and')
+    @@{command guess} (@{syntax "fixes"} + @'and')
   \<close>}
 
-  The derived Isar command @{command "obtain"} is defined as follows
-  (where @{text "b\<^sub>1, \<dots>, b\<^sub>k"} shall refer to (optional)
-  facts indicated for forward chaining).
+  \begin{description}
+
+  \item @{command consider}~@{text "(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x
+  | (b) \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots> "} states a rule for case
+  splitting into separate subgoals, such that each case involves new
+  parameters and premises. After the proof is finished, the resulting rule
+  may be used directly with the @{method cases} proof method
+  (\secref{sec:cases-induct}), in order to perform actual case-splitting of
+  the proof text via @{command case} and @{command next} as usual.
+
+  Optional names in round parentheses refer to case names: in the proof of
+  the rule this is a fact name, in the resulting rule it is used as
+  annotation with the @{attribute_ref case_names} attribute.
+
+  \medskip Formally, the command @{command consider} is defined as derived
+  Isar language element as follows:
+
   \begin{matharray}{l}
-    @{text "\<langle>using b\<^sub>1 \<dots> b\<^sub>k\<rangle>"}~~@{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
-    \quad @{command "have"}~@{text "\<And>thesis. (\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
-    \quad @{command "proof"}~@{method succeed} \\
-    \qquad @{command "fix"}~@{text thesis} \\
-    \qquad @{command "assume"}~@{text "that [Pure.intro?]: \<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis"} \\
-    \qquad @{command "then"}~@{command "show"}~@{text thesis} \\
-    \quad\qquad @{command "apply"}~@{text -} \\
-    \quad\qquad @{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>k  \<langle>proof\<rangle>"} \\
-    \quad @{command "qed"} \\
-    \quad @{command "fix"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}@{text "\<^sup>* a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} \\
+    @{command "consider"}~@{text "(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x | (b) \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots> \<equiv>"} \\[1ex]
+    \quad @{command "have"}~@{text "[case_names a b \<dots>]: thesis"} \\
+    \qquad @{text "\<IF> a [Pure.intro?]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"} \\
+    \qquad @{text "\<AND> b [Pure.intro?]: \<And>\<^vec>y. \<^vec>B \<^vec>y \<Longrightarrow> thesis"} \\
+    \qquad @{text "\<AND> \<dots>"} \\
+    \qquad @{text "\<FOR> thesis"} \\
+    \qquad @{command "apply"}~@{text "(insert a b \<dots>)"} \\
   \end{matharray}
 
-  Typically, the soundness proof is relatively straight-forward, often
-  just by canonical automated tools such as ``@{command "by"}~@{text
-  simp}'' or ``@{command "by"}~@{text blast}''.  Accordingly, the
-  ``@{text that}'' reduction above is declared as simplification and
-  introduction rule.
+  See also \secref{sec:goals} for @{keyword "obtains"} in toplevel goal
+  statements, as well as @{command print_statement} to print existing rules
+  in a similar format.
 
-  In a sense, @{command "obtain"} represents at the level of Isar
-  proofs what would be meta-logical existential quantifiers and
-  conjunctions.  This concept has a broad range of useful
-  applications, ranging from plain elimination (or introduction) of
-  object-level existential and conjunctions, to elimination over
-  results of symbolic evaluation of recursive definitions, for
-  example.  Also note that @{command "obtain"} without parameters acts
-  much like @{command "have"}, where the result is treated as a
-  genuine assumption.
+  \item @{command obtain}~@{text "\<^vec>x \<WHERE> \<^vec>A \<^vec>x"}
+  states a generalized elimination rule with exactly one case. After the
+  proof is finished, it is activated for the subsequent proof text: the
+  context is augmented via @{command fix}~@{text "\<^vec>x"} @{command
+  assume}~@{text "\<^vec>A \<^vec>x"}, with special provisions to export
+  later results by discharging these assumptions again.
 
-  An alternative name to be used instead of ``@{text that}'' above may
-  be given in parentheses.
+  Note that according to the parameter scopes within the elimination rule,
+  results \emph{must not} refer to hypothetical parameters; otherwise the
+  export will fail! This restriction conforms to the usual manner of
+  existential reasoning in Natural Deduction.
 
-  \medskip The improper variant @{command "guess"} is similar to
-  @{command "obtain"}, but derives the obtained statement from the
-  course of reasoning!  The proof starts with a fixed goal @{text
-  thesis}.  The subsequent proof may refine this to anything of the
-  form like @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots>
-  \<phi>\<^sub>n \<Longrightarrow> thesis"}, but must not introduce new subgoals.  The
-  final goal state is then used as reduction rule for the obtain
-  scheme described above.  Obtained parameters @{text "x\<^sub>1, \<dots>,
-  x\<^sub>m"} are marked as internal by default, which prevents the
-  proof context from being polluted by ad-hoc variables.  The variable
-  names and type constraints given as arguments for @{command "guess"}
-  specify a prefix of obtained parameters explicitly in the text.
+  \medskip Formally, the command @{command obtain} is defined as derived
+  Isar language element as follows, using an instrumented variant of
+  @{command assume}:
 
-  It is important to note that the facts introduced by @{command
-  "obtain"} and @{command "guess"} may not be polymorphic: any
-  type-variables occurring here are fixed in the present context!
+  \begin{matharray}{l}
+    @{command "obtain"}~@{text "\<^vec>x \<WHERE> a: \<^vec>A \<^vec>x  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
+    \quad @{command "have"}~@{text "thesis"} \\
+    \qquad @{text "\<IF> that [Pure.intro?]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"} \\
+    \qquad @{text "\<FOR> thesis"} \\
+    \qquad @{command "apply"}~@{text "(insert that)"} \\
+    \qquad @{text "\<langle>proof\<rangle>"} \\
+    \quad @{command "fix"}~@{text "\<^vec>x"}~@{command "assume"}@{text "\<^sup>* a: \<^vec>A \<^vec>x"} \\
+  \end{matharray}
+
+  \item @{command guess} is similar to @{command obtain}, but it derives the
+  obtained context elements from the course of tactical reasoning in the
+  proof. Thus it can considerably obscure the proof: it is classified as
+  \emph{improper}.
+
+  A proof with @{command guess} starts with a fixed goal @{text thesis}. The
+  subsequent refinement steps may turn this to anything of the form @{text
+  "\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"}, but without splitting into new
+  subgoals. The final goal state is then used as reduction rule for the
+  obtain pattern described above. Obtained parameters @{text "\<^vec>x"} are
+  marked as internal by default, and thus inaccessible in the proof text.
+  The variable names and type constraints given as arguments for @{command
+  "guess"} specify a prefix of accessible parameters.
+
+  \end{description}
+
+  In the proof of @{command consider} and @{command obtain} the local
+  premises are always bound to the fact name ``@{text that}'', according to
+  structured Isar statements involving @{keyword_ref "if"}
+  (\secref{sec:goals}).
+
+  Facts that are established by @{command "obtain"} and @{command "guess"}
+  may not be polymorphic: any type-variables occurring here are fixed in the
+  present context. This is a natural consequence of the role of @{command
+  fix} and @{command assume} in these constructs.
 \<close>
 
 
@@ -1372,6 +1414,7 @@ text \<open>
   \medskip
   \begin{tabular}{llll}
     facts           &                 & arguments   & rule \\\hline
+    @{text "\<turnstile> R"}   & @{method cases} &             & implicit rule @{text R} \\
                     & @{method cases} &             & classical case split \\
                     & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
     @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\

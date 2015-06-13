@@ -538,7 +538,7 @@ next
       by auto
     let ?a = "\<lambda>j. a j / (1 - a i)"
     have a_nonneg: "?a j \<ge> 0" if "j \<in> s" for j
-      using i0 insert prems by fastforce
+      using i0 insert that by fastforce
     have "(\<Sum> j \<in> insert i s. a j) = 1"
       using insert by auto
     then have "(\<Sum> j \<in> s. a j) = 1 - a i"

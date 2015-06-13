@@ -90,7 +90,7 @@ sig
   val where_: string parser
   val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
-  val params: (binding * string option) list parser
+  val params: (binding * string option * mixfix) list parser
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: Input.source parser
@@ -358,13 +358,12 @@ val where_ = $$$ "where";
 val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
-val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
-  >> (fn (xs, T) => map (rpair T) xs);
+val param_mixfix = binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o triple1);
+val params =
+  Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
+    >> (fn (xs, T) => map (fn x => (x, T, NoSyn)) xs);
 
-val fixes =
-  and_list1 (binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o triple1) ||
-    params >> map (fn (x, y) => (x, y, NoSyn))) >> flat;
-
+val fixes = and_list1 (param_mixfix || params) >> flat;
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 
 

@@ -483,25 +483,32 @@ fun cases_tac ctxt simp insts opt_rule facts =
       |> simp ? mark_constraints (Rule_Cases.get_constraints r) ctxt
       |> pair (Rule_Cases.get r);
 
+    val (opt_rule', facts') =
+      (case (opt_rule, facts) of
+        (NONE, th :: ths) =>
+          if is_some (Object_Logic.elim_concl ctxt th) then (SOME th, ths)
+          else (opt_rule, facts)
+      | _ => (opt_rule, facts));
+
     val ruleq =
-      (case opt_rule of
+      (case opt_rule' of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
-          (get_casesP ctxt facts @ get_casesT ctxt insts @ [Induct_Args.cases_default])
+          (get_casesP ctxt facts' @ get_casesT ctxt insts @ [Induct_Args.cases_default])
           |> tap (trace_rules ctxt casesN)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
   in
     fn i => fn st =>
       ruleq
-      |> Seq.maps (Rule_Cases.consume ctxt [] facts)
-      |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
+      |> Seq.maps (Rule_Cases.consume ctxt [] facts')
+      |> Seq.maps (fn ((cases, (_, facts'')), rule) =>
         let
           val rule' = rule
             |> simp ? (simplified_rule' ctxt #> unmark_constraints ctxt);
         in
           CASES (Rule_Cases.make_common ctxt
               (Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
-            ((Method.insert_tac more_facts THEN' resolve_tac ctxt [rule'] THEN_ALL_NEW
+            ((Method.insert_tac facts'' THEN' resolve_tac ctxt [rule'] THEN_ALL_NEW
                 (if simp then TRY o trivial_tac ctxt else K all_tac)) i) st
         end)
   end;

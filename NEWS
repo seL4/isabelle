@@ -24,19 +24,40 @@ notation is postfix with keywords 'if' and 'for'. For example:
     for x :: 'a and y :: 'a
     <proof>
 
-The local assumptions are always bound to the name "prems".  The result
-is exported from context of the statement as usual.  The above roughly
+The local assumptions are bound to the name "that". The result is
+exported from context of the statement as usual. The above roughly
 corresponds to a raw proof block like this:
 
   {
     fix x :: 'a and y :: 'a
-    assume prems: "A x" "B y"
+    assume that: "A x" "B y"
     have "C x y" <proof>
   }
   note result = this
 
 * New command 'supply' supports fact definitions during goal refinement
 ('apply' scripts).
+
+* New command 'consider' states rules for generalized elimination and
+case splitting. This is like a toplevel statement "theorem obtains" used
+within a proof body; or like a multi-branch 'obtain' without activation
+of the local context elements yet.
+
+* Proof method "cases" allows to specify the rule as first entry of
+chained facts.  This is particularly useful with 'consider':
+
+  consider (a) A | (b) B | (c) C <proof>
+  then have something
+  proof cases
+    case a
+    then show ?thesis <proof>
+  next
+    case b
+    then show ?thesis <proof>
+  next
+    case c
+    then show ?thesis <proof>
+  qed
 
 
 *** Pure ***
