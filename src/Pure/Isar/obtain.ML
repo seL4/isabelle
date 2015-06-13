@@ -6,24 +6,19 @@ the level of proof texts: 'obtain' involves a proof that certain
 fixes/assumes may be introduced into the present context; 'guess' is
 similar, but derives these elements from the course of reasoning!
 
-  <chain_facts>
-  consider x where "A x" | y where "B x" | ... <proof> ==
 
-  have "!!thesis. (!!x. A x ==> thesis) ==> (!!x. B x ==> thesis) ==> ... ==> thesis"
+  <chain_facts>
+  obtain x where "A x" <proof> ==
+
+  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
   proof succeed
     fix thesis
-    assume that [intro?]: "!!x. A x ==> thesis" "!!x. B x ==> thesis" ...
+    assume that [intro?]: "!!x. A x ==> thesis"
     <chain_facts>
     show thesis
       apply (insert that)
       <proof>
   qed
-
-
-  <chain_facts>
-  obtain x where "A x" <proof> ==
-
-  consider x where "A x" <chain_facts> <proof>
   fix x assm <<obtain_export>> "A x"
 
 
@@ -171,36 +166,36 @@ end;
 
 
 
-(** consider **)
+(** consider: generalized elimination and cases rule **)
+
+(*
+  consider x where (a) "A x" | y (b) where "B x" | ... ==
+
+  have thesis
+    if a [intro?]: "!!x. A x ==> thesis"
+    and b [intro?]: "!!x. B x ==> thesis"
+    and ...
+    for thesis
+    apply (insert that)
+*)
 
 local
 
 fun gen_consider prep_obtains raw_obtains int state =
   let
     val _ = Proof.assert_forward_or_chain state;
+
     val ctxt = Proof.context_of state;
-    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
-
-    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
+    val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
-
-    val obtain_prop =
-      Logic.list_rename_params [Auto_Bind.thesisN]
-        (Logic.all (Free thesis_var)
-          (fold_rev (fn (_, A) => fn B => Logic.mk_implies (A, B)) obtains thesis));
   in
     state
-    |> Proof.enter_forward
-    |> Proof.have NONE (K I) [] []
-      [((Binding.empty, obtains_attributes raw_obtains), [(obtain_prop, [])])] int
-    |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
-    |> Proof.assume (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
-    |> `Proof.the_facts
-    ||> Proof.chain_facts chain_facts
-    ||> Proof.show NONE (K (Proof.local_qed (NONE, false)))
-      [] [] [(Thm.empty_binding, [(thesis, [])])] false
-    |-> Proof.refine_insert
+    |> Proof.have NONE (K I)
+      [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
+      (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
+      [((Binding.empty, obtains_attributes raw_obtains), [(thesis, [])])] int
+    |> (fn state' => state'
+        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
   end;
 
 in
