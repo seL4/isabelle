@@ -13,9 +13,9 @@ sig
   val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
   val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
   val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
-  val obtain: string -> (binding * typ option * mixfix) list ->
+  val obtain: binding -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
-  val obtain_cmd: string -> (binding * string option * mixfix) list ->
+  val obtain_cmd: binding -> (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     ((string * cterm) list * thm list) * Proof.context
@@ -150,8 +150,8 @@ local
 fun gen_consider prep_obtains raw_obtains int state =
   let
     val _ = Proof.assert_forward_or_chain state;
-
     val ctxt = Proof.context_of state;
+
     val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
   in
@@ -176,32 +176,24 @@ end;
 (** obtain: augmented context based on generalized existence rule **)
 
 (*
-  <chain_facts>
-  obtain x where "A x" <proof> ==
+  obtain (a) x where "A x" <proof> ==
 
-  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
-  proof succeed
-    fix thesis
-    assume that [intro?]: "!!x. A x ==> thesis"
-    <chain_facts>
-    show thesis
-      apply (insert that)
-      <proof>
-  qed
+  have thesis if a [intro?]: "!!x. A x ==> thesis" for thesis
+    apply (insert that)
+    <proof>
   fix x assm <<obtain_export>> "A x"
 *)
 
 local
 
 fun gen_obtain prep_att prep_var prep_propp
-    name raw_vars raw_asms int state =
+    that_binding raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*vars*)
-    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
+    val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val ((xs', vars), fix_ctxt) = thesis_ctxt
       |> fold_map prep_var raw_vars
       |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
@@ -226,33 +218,26 @@ fun gen_obtain prep_att prep_var prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
     (*statements*)
-    val that_name = if name = "" then Auto_Bind.thatN else name;
     val that_prop =
       Logic.list_rename_params xs
         (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
-    val obtain_prop =
-      Logic.list_rename_params [Auto_Bind.thesisN]
-        (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
 
-    fun after_qed _ =
-      Proof.local_qed (NONE, false)
-      #> `Proof.the_fact #-> (fn rule =>
-        Proof.fix vars
-        #> Proof.map_context declare_asms
-        #> Proof.assm (obtain_export params_ctxt rule cparams) asms);
+    fun after_qed (result_ctxt, results) state' =
+      let val [rule] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results) in
+        state'
+        |> Proof.fix vars
+        |> Proof.map_context declare_asms
+        |> Proof.assm (obtain_export params_ctxt rule cparams) asms
+      end;
   in
     state
-    |> Proof.enter_forward
-    |> Proof.have NONE (K I) [] [] [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.have NONE after_qed
+      [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
+      [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
+      [(Thm.empty_binding, [(thesis, [])])] int
+    |> (fn state' => state'
+        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
     |> Proof.map_context (fold Variable.bind_term binds')
-    |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
-    |> Proof.assume
-      [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
-    |> `Proof.the_facts
-    ||> Proof.chain_facts chain_facts
-    ||> Proof.show NONE after_qed [] [] [(Thm.empty_binding, [(thesis, [])])] false
-    |-> Proof.refine_insert
   end;
 
 in

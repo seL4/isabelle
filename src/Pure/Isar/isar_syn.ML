@@ -576,7 +576,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword obtain} "generalized elimination"
-    (Parse.parname -- Scan.optional (Parse.fixes --| Parse.where_) [] -- Parse_Spec.statement
+    (Parse.parbinding -- Scan.optional (Parse.fixes --| Parse.where_) [] -- Parse_Spec.statement
       >> (fn ((x, y), z) => Toplevel.proof' (Obtain.obtain_cmd x y z)));
 
 val _ =
