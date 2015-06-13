@@ -3061,68 +3061,54 @@ proof (unfold has_integral, rule, rule)
        apply (simp add: interval_split[symmetric] k)
        done
   let ?d = "\<lambda>x. if x\<bullet>k = c then (d1 x \<inter> d2 x) else ball x (abs(x\<bullet>k - c)) \<inter> d1 x \<inter> d2 x"
-  show ?case
-    apply (rule_tac x="?d" in exI)
-    apply rule
-    defer
-    apply rule
-    apply rule
-    apply (elim conjE)
-  proof -
-    show "gauge ?d"
-      using d1(1) d2(1) unfolding gauge_def by auto
+  have "gauge ?d"
+    using d1 d2 unfolding gauge_def by auto
+  then show ?case
+  proof (rule_tac x="?d" in exI, safe)
     fix p
     assume "p tagged_division_of (cbox a b)" "?d fine p"
     note p = this tagged_division_ofD[OF this(1)]
     have xk_le_c: "\<And>x kk. (x, kk) \<in> p \<Longrightarrow> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {} \<Longrightarrow> x\<bullet>k \<le> c"
     proof -
       fix x kk
-      assume as: "(x, kk) \<in> p" and *: "kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}"
+      assume as: "(x, kk) \<in> p" and kk: "kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}"
       show "x\<bullet>k \<le> c"
       proof (rule ccontr)
         assume **: "\<not> ?thesis"
         from this[unfolded not_le]
         have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
-          using p(2)[unfolded fine_def, rule_format,OF as,unfolded split_conv] by auto
-        with * have "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<le> c}"
+          using p(2)[unfolded fine_def, rule_format,OF as] by auto
+        with kk obtain y where y: "y \<in> ball x \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<le> c"
           by blast
-        then guess y ..
-        then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<le> c"
-          apply -
-          apply (rule le_less_trans)
+        then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" 
           using Basis_le_norm[OF k, of "x - y"]
-          apply (auto simp add: dist_norm inner_diff_left)
-          done
-        then show False
-          using **[unfolded not_le] by (auto simp add: field_simps)
+          by (auto simp add: dist_norm inner_diff_left intro: le_less_trans)
+        with y show False
+          using ** by (auto simp add: field_simps)
       qed 
     qed
-    have xk_ge_c:
-      "\<And>x kk. (x, kk) \<in> p \<Longrightarrow> kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {} \<Longrightarrow> x\<bullet>k \<ge> c"
+    have xk_ge_c: "\<And>x kk. (x, kk) \<in> p \<Longrightarrow> kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {} \<Longrightarrow> x\<bullet>k \<ge> c"
     proof -
       fix x kk
-      assume as: "(x, kk) \<in> p" and *: "kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}"
+      assume as: "(x, kk) \<in> p" and kk: "kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}"
       show "x\<bullet>k \<ge> c"
       proof (rule ccontr)
         assume **: "\<not> ?thesis"
         from this[unfolded not_le] have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
           using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
-        with * have "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<ge> c}"
+        with kk obtain y where y: "y \<in> ball x \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<ge> c"
           by blast
-        then guess y ..
-        then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<ge> c"
-          apply -
-          apply (rule le_less_trans)
+        then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" 
           using Basis_le_norm[OF k, of "x - y"]
-          apply (auto simp add: dist_norm inner_diff_left)
-          done
-        then show False
-          using **[unfolded not_le] by (auto simp add: field_simps)
+          by (auto simp add: dist_norm inner_diff_left intro: le_less_trans)
+        with y show False
+          using ** by (auto simp add: field_simps)
       qed
     qed
 
     have lem1: "\<And>f P Q. (\<forall>x k. (x, k) \<in> {(x, f k) | x k. P x k} \<longrightarrow> Q x k) \<longleftrightarrow>
-      (\<forall>x k. P x k \<longrightarrow> Q x (f k))" by auto
+                         (\<forall>x k. P x k \<longrightarrow> Q x (f k))" 
+      by auto
     have fin_finite: "\<And>f s P f. finite s \<Longrightarrow> finite {(x,f k) | x k. (x,k) \<in> s \<and> P x k}"
     proof -
       case goal1
@@ -3475,32 +3461,24 @@ lemma monoidal_ac:
     and "opp a (opp b c) = opp b (opp a c)"
   using assms unfolding monoidal_def by metis+
 
-lemma neutral_lifted[cong]:
+lemma neutral_lifted [cong]:
   assumes "monoidal opp"
   shows "neutral (lifted opp) = Some (neutral opp)"
-  apply (subst neutral_def)
-  apply (rule some_equality)
-  apply rule
-  apply (induct_tac y)
-  prefer 3
 proof -
-  fix x
-  assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
-  then show "x = Some (neutral opp)"
-    apply (induct x)
-    defer
-    apply rule
+  { fix x
+    assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
+    then have "Some (neutral opp) = x"
+      apply (induct x)
+      apply force
+      by (metis assms lifted.simps(1) monoidal_ac(2) option.inject) }
+  note [simp] = this
+  show ?thesis
     apply (subst neutral_def)
-    apply (subst eq_commute)
-    apply(rule some_equality)
-    apply rule
-    apply (erule_tac x="Some y" in allE)
-    defer
-    apply (rename_tac x)
-    apply (erule_tac x="Some x" in allE)
-    apply auto
+    apply (intro some_equality allI)
+    apply (induct_tac y)
+    apply (auto simp add:monoidal_ac[OF assms])
     done
-qed (auto simp add:monoidal_ac[OF assms])
+qed
 
 lemma monoidal_lifted[intro]:
   assumes "monoidal opp"
@@ -3547,77 +3525,42 @@ lemma iterate_insert[simp]:
   assumes "monoidal opp"
     and "finite s"
   shows "iterate opp (insert x s) f =
-    (if x \<in> s then iterate opp s f else opp (f x) (iterate opp s f))"
+         (if x \<in> s then iterate opp s f else opp (f x) (iterate opp s f))"
 proof (cases "x \<in> s")
   case True
-  then have *: "insert x s = s"
-    by auto
-  show ?thesis unfolding iterate_def if_P[OF True] * by auto
+  then show ?thesis by (auto simp: insert_absorb iterate_def)
 next
   case False
-  note x = this
   note * = comp_fun_commute.comp_comp_fun_commute [OF comp_fun_commute_monoidal[OF assms(1)]]
   show ?thesis
   proof (cases "f x = neutral opp")
     case True
-    show ?thesis
-      unfolding iterate_def if_not_P[OF x] support_clauses if_P[OF True]
-      unfolding True
-      using assms
-      by auto
+    then show ?thesis
+      using assms `x \<notin> s`
+      by (auto simp: iterate_def support_clauses)
   next
     case False
-    show ?thesis
-      unfolding iterate_def fold'_def  if_not_P[OF x] support_clauses if_not_P[OF False]
+    with `x \<notin> s` \<open>finite s\<close> support_subset show ?thesis
+      apply (simp add: iterate_def fold'_def support_clauses)
       apply (subst comp_fun_commute.fold_insert[OF * finite_support, simplified comp_def])
-      using \<open>finite s\<close>
-      unfolding support_def
-      using False x
-      apply auto
+      apply (force simp add: )+
       done
   qed
 qed
 
 lemma iterate_some:
-  assumes "monoidal opp"
-    and "finite s"
-  shows "iterate (lifted opp) s (\<lambda>x. Some(f x)) = Some (iterate opp s f)"
-  using assms(2)
-proof (induct s)
-  case empty
-  then show ?case
-    using assms by auto
-next
-  case (insert x F)
-  show ?case
-    apply (subst iterate_insert)
-    prefer 3
-    apply (subst if_not_P)
-    defer
-    unfolding insert(3) lifted.simps
-    apply rule
-    using assms insert
-    apply auto
-    done
-qed
+    "\<lbrakk>monoidal opp; finite s\<rbrakk> \<Longrightarrow> iterate (lifted opp) s (\<lambda>x. Some(f x)) = Some (iterate opp s f)"
+  by (erule finite_induct) (auto simp: monoidal_lifted)
 
 
 subsection \<open>Two key instances of additivity.\<close>
 
 lemma neutral_add[simp]: "neutral op + = (0::'a::comm_monoid_add)"
   unfolding neutral_def
-  apply (rule some_equality)
-  defer
-  apply (erule_tac x=0 in allE)
-  apply auto
-  done
+  by (force elim: allE [where x=0])
 
 lemma operative_content[intro]: "operative (op +) content"
-  unfolding operative_def neutral_add
-  apply safe
-  unfolding content_split[symmetric]
-  apply rule
-  done
+  by (force simp add: operative_def content_split[symmetric])
 
 lemma monoidal_monoid[intro]: "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
   unfolding monoidal_def neutral_add
@@ -3626,35 +3569,20 @@ lemma monoidal_monoid[intro]: "monoidal ((op +)::('a::comm_monoid_add) \<Rightar
 lemma operative_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
   shows "operative (lifted(op +)) (\<lambda>i. if f integrable_on i then Some(integral i f) else None)"
-  unfolding operative_def
-  unfolding neutral_lifted[OF monoidal_monoid] neutral_add
-  apply rule
-  apply rule
-  apply rule
-  apply rule
-  defer
-  apply (rule allI ballI)+
-proof -
+  unfolding operative_def neutral_lifted[OF monoidal_monoid] neutral_add
+proof safe
   fix a b c
   fix k :: 'a
   assume k: "k \<in> Basis"
   show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) =
-    lifted op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
-    (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
+        lifted op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
+        (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
   proof (cases "f integrable_on cbox a b")
     case True
-    show ?thesis
-      unfolding if_P[OF True]
-      using k
-      apply -
-      unfolding if_P[OF integrable_split(1)[OF True]]
-      unfolding if_P[OF integrable_split(2)[OF True]]
-      unfolding lifted.simps option.inject
-      apply (rule integral_unique)
-      apply (rule has_integral_split[OF _ _ k])
-      apply (rule_tac[!] integrable_integral integrable_split)+
-      using True k
-      apply auto
+    with k show ?thesis
+      apply (simp add: integrable_split)
+      apply (rule integral_unique [OF has_integral_split[OF _ _ k]])
+      apply (auto intro: integrable_integral)
       done
   next
     case False
@@ -3662,12 +3590,10 @@ proof -
     proof (rule ccontr)
       assume "\<not> ?thesis"
       then have "f integrable_on cbox a b"
-        apply -
         unfolding integrable_on_def
         apply (rule_tac x="integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f + integral (cbox a b \<inter> {x. x \<bullet> k \<ge> c}) f" in exI)
         apply (rule has_integral_split[OF _ _ k])
-        apply (rule_tac[!] integrable_integral)
-        apply auto
+        apply (auto intro: integrable_integral)
         done
       then show False
         using False by auto
@@ -3677,11 +3603,10 @@ proof -
   qed
 next
   fix a b :: 'a
-  assume as: "content (cbox a b) = 0"
+  assume "content (cbox a b) = 0"
   then show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) = Some 0"
-    unfolding if_P[OF integrable_on_null[OF as]]
-    using has_integral_null_eq[OF as]
-    by auto
+    using has_integral_null_eq 
+    by (auto simp: integrable_on_null)
 qed
 
 
