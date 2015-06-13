@@ -125,7 +125,7 @@ fun fixed_judgment ctxt x =
     val aT = TFree (Name.aT, []);
     val T =
       the_default (aT --> propT) (Sign.const_type (Proof_Context.theory_of ctxt) c)
-      |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
+      |> Term.map_type_tvar (fn ((a, _), S) => TFree (a, S));
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;
 

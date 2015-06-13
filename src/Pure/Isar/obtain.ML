@@ -1,47 +1,21 @@
 (*  Title:      Pure/Isar/obtain.ML
     Author:     Markus Wenzel, TU Muenchen
 
-The 'obtain' and 'guess' language elements -- generalized existence at
-the level of proof texts: 'obtain' involves a proof that certain
-fixes/assumes may be introduced into the present context; 'guess' is
-similar, but derives these elements from the course of reasoning!
-
-  <chain_facts>
-  obtain x where "A x" <proof> ==
-
-  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
-  proof succeed
-    fix thesis
-    assume that [intro?]: "!!x. A x ==> thesis"
-    <chain_facts>
-    show thesis
-      apply (insert that)
-      <proof>
-  qed
-  fix x assm <<obtain_export>> "A x"
-
-
-  <chain_facts>
-  guess x <proof body> <proof end> ==
-
-  {
-    fix thesis
-    <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
-      <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
-        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
-      <proof end>
-  }
-  fix x assm <<obtain_export>> "A x"
+Generalized existence and cases rules within Isar proof text.
 *)
 
 signature OBTAIN =
 sig
-  val thatN: string
-  val obtain: string -> (binding * typ option * mixfix) list ->
+  val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
+  val parse_clause: Proof.context -> term ->
+    (binding * typ option * mixfix) list -> string list -> term
+  val read_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
+  val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
+  val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
+  val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
+  val obtain: binding -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
-  val obtain_cmd: string -> (binding * string option * mixfix) list ->
+  val obtain_cmd: binding -> (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     ((string * cterm) list * thm list) * Proof.context
@@ -52,7 +26,9 @@ end;
 structure Obtain: OBTAIN =
 struct
 
-(** obtain_export **)
+(** specification elements **)
+
+(* obtain_export *)
 
 (*
   [x, A x]
@@ -92,33 +68,136 @@ fun obtain_export ctxt rule xs _ As =
   (eliminate ctxt rule xs As, eliminate_term ctxt xs);
 
 
+(* result declaration *)
 
-(** obtain **)
-
-fun bind_judgment ctxt name =
+fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
   let
-    val ([x], ctxt') = Proof_Context.add_fixes [(Binding.name name, NONE, NoSyn)] ctxt;
-    val (t as _ $ Free v) = Object_Logic.fixed_judgment ctxt x;
+    val case_names = obtains |> map_index (fn (i, (b, _)) =>
+      if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
+  in [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names] end;
+
+
+(* obtain thesis *)
+
+fun obtain_thesis ctxt =
+  let
+    val ([x], ctxt') =
+      Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)] ctxt;
+    val t = Object_Logic.fixed_judgment ctxt x;
+    val v = dest_Free (Object_Logic.drop_judgment ctxt t);
   in ((v, t), ctxt') end;
 
-val thatN = "that";
+
+(* obtain clauses *)
+
+local
+
+fun prepare_clause parse_prop ctxt thesis vars raw_props =
+  let
+    val (xs', ctxt') = ctxt |> Proof_Context.add_fixes vars;
+    val xs = map (Variable.check_name o #1) vars;
+  in
+    Logic.list_implies (map (parse_prop ctxt') raw_props, thesis)
+    |> fold_rev (Logic.all_constraint (Variable.default_type ctxt')) (xs ~~ xs')
+  end;
+
+fun prepare_obtains prep_var parse_prop ctxt thesis raw_obtains =
+  let
+    val all_types =
+      fold_map prep_var (maps (fn (_, (vs, _)) => vs) raw_obtains)
+        (ctxt |> Context_Position.set_visible false)
+      |> #1 |> map_filter (fn (_, opt_T, _) => opt_T);
+    val types_ctxt = fold Variable.declare_typ all_types ctxt;
+
+    val clauses =
+      raw_obtains |> map (fn (_, (raw_vars, raw_props)) =>
+        let
+          val (vars, vars_ctxt) = fold_map prep_var raw_vars types_ctxt;
+          val clause = prepare_clause parse_prop vars_ctxt thesis vars raw_props;
+        in clause end)
+      |> Syntax.check_terms ctxt;
+  in map fst raw_obtains ~~ clauses end;
+
+in
+
+val parse_clause = prepare_clause Syntax.parse_prop;
+
+val read_obtains = prepare_obtains Proof_Context.read_var Syntax.parse_prop;
+val cert_obtains = prepare_obtains Proof_Context.cert_var (K I);
+
+end;
+
+
+
+(** consider: generalized elimination and cases rule **)
+
+(*
+  consider x where (a) "A x" | y (b) where "B x" | ... ==
+
+  have thesis
+    if a [intro?]: "!!x. A x ==> thesis"
+    and b [intro?]: "!!x. B x ==> thesis"
+    and ...
+    for thesis
+    apply (insert that)
+*)
+
+local
+
+fun gen_consider prep_obtains raw_obtains int state =
+  let
+    val _ = Proof.assert_forward_or_chain state;
+    val ctxt = Proof.context_of state;
+
+    val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
+    val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
+    val atts = Rule_Cases.cases_open :: obtains_attributes raw_obtains;
+  in
+    state
+    |> Proof.have NONE (K I)
+      [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
+      (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
+      [((Binding.empty, atts), [(thesis, [])])] int
+    |> (fn state' => state'
+        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
+  end;
+
+in
+
+val consider = gen_consider cert_obtains;
+val consider_cmd = gen_consider read_obtains;
+
+end;
+
+
+
+(** obtain: augmented context based on generalized existence rule **)
+
+(*
+  obtain (a) x where "A x" <proof> ==
+
+  have thesis if a [intro?]: "!!x. A x ==> thesis" for thesis
+    apply (insert that)
+    <proof>
+  fix x assm <<obtain_export>> "A x"
+*)
 
 local
 
 fun gen_obtain prep_att prep_var prep_propp
-    name raw_vars raw_asms int state =
+    that_binding raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    (*obtain vars*)
-    val ((xs', vars), fix_ctxt) = ctxt
+    (*vars*)
+    val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
+    val ((xs', vars), fix_ctxt) = thesis_ctxt
       |> fold_map prep_var raw_vars
       |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
     val xs = map (Variable.check_name o #1) vars;
 
-    (*obtain asms*)
+    (*asms*)
     val (propss, binds) = prep_propp fix_ctxt (map snd raw_asms);
     val props = flat propss;
     val declare_asms =
@@ -128,7 +207,7 @@ fun gen_obtain prep_att prep_var prep_propp
       map (fn ((b, raw_atts), _) => (b, map (prep_att fix_ctxt) raw_atts)) raw_asms ~~
       map (map (rpair [])) propss;
 
-    (*obtain params*)
+    (*params*)
     val (params, params_ctxt) =
       declare_asms fix_ctxt |> fold_map Proof_Context.inferred_param xs' |>> map Free;
     val cparams = map (Thm.cterm_of params_ctxt) params;
@@ -136,37 +215,27 @@ fun gen_obtain prep_att prep_var prep_propp
 
     val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
 
-    (*obtain statements*)
-    val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
-    val (thesis_var, thesis) = #1 (bind_judgment params_ctxt thesisN);
-
-    val that_name = if name = "" then thatN else name;
+    (*statements*)
     val that_prop =
       Logic.list_rename_params xs
         (fold_rev Logic.all params (Logic.list_implies (props, thesis)));
-    val obtain_prop =
-      Logic.list_rename_params [Auto_Bind.thesisN]
-        (Logic.all (Free thesis_var) (Logic.mk_implies (that_prop, thesis)));
 
-    fun after_qed _ =
-      Proof.local_qed (NONE, false)
-      #> `Proof.the_fact #-> (fn rule =>
-        Proof.fix vars
-        #> Proof.map_context declare_asms
-        #> Proof.assm (obtain_export params_ctxt rule cparams) asms);
+    fun after_qed (result_ctxt, results) state' =
+      let val [rule] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results) in
+        state'
+        |> Proof.fix vars
+        |> Proof.map_context declare_asms
+        |> Proof.assm (obtain_export params_ctxt rule cparams) asms
+      end;
   in
     state
-    |> Proof.enter_forward
-    |> Proof.have NONE (K I) [] [] [(Thm.empty_binding, [(obtain_prop, [])])] int
+    |> Proof.have NONE after_qed
+      [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
+      [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
+      [(Thm.empty_binding, [(thesis, [])])] int
+    |> (fn state' => state'
+        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
     |> Proof.map_context (fold Variable.bind_term binds')
-    |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix [(Binding.name thesisN, NONE, NoSyn)]
-    |> Proof.assume
-      [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
-    |> `Proof.the_facts
-    ||> Proof.chain_facts chain_facts
-    ||> Proof.show NONE after_qed [] [] [(Thm.empty_binding, [(thesis, [])])] false
-    |-> Proof.refine_insert
   end;
 
 in
@@ -191,7 +260,7 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
+    val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val st = Goal.init (Thm.cterm_of ctxt thesis);
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) st of
@@ -211,7 +280,23 @@ fun result tac facts ctxt =
 
 
 
-(** guess **)
+(** guess: obtain based on tactical result **)
+
+(*
+  <chain_facts>
+  guess x <proof body> <proof end> ==
+
+  {
+    fix thesis
+    <chain_facts> have "PROP ?guess"
+      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
+      <proof body>
+      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
+        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
+      <proof end>
+  }
+  fix x assm <<obtain_export>> "A x"
+*)
 
 local
 
@@ -274,7 +359,7 @@ fun gen_guess prep_var raw_vars int state =
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);
+    val (thesis_var, thesis) = #1 (obtain_thesis ctxt);
     val vars = ctxt
       |> fold_map prep_var raw_vars |-> fold_map inferred_type
       |> fst |> polymorphic ctxt;

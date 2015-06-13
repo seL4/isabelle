@@ -190,10 +190,10 @@ proof (rule kuhn_counting_lemma)
     using \<open>finite simplices\<close> unfolding F_eq by auto
 
   show "card {s \<in> simplices. face f s} = 1" if "f \<in> ?F" "bnd f" for f
-    using bnd prems by auto
+    using bnd that by auto
 
   show "card {s \<in> simplices. face f s} = 2" if "f \<in> ?F" "\<not> bnd f" for f
-    using nbnd prems by auto
+    using nbnd that by auto
 
   show "odd (card {f \<in> {f. \<exists>s\<in>simplices. face f s}. rl ` f = {..n} \<and> bnd f})"
     using odd_card by simp

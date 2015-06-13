@@ -47,11 +47,13 @@ sig
   val case_conclusion: string * string list -> attribute
   val is_inner_rule: thm -> bool
   val inner_rule: attribute
+  val is_cases_open: thm -> bool
+  val cases_open: attribute
+  val internalize_params: thm -> thm
   val save: thm -> thm -> thm
   val get: thm -> ((string * string list) * string list) list * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
-  val internalize_params: thm -> thm
   val mutual_rule: Proof.context -> thm list -> (int list * thm) option
   val strict_mutual_rule: Proof.context -> thm list -> int list * thm
 end;
@@ -201,7 +203,9 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 
 
-(** consume facts **)
+(** annotations and operations on rules **)
+
+(* consume facts *)
 
 local
 
@@ -256,8 +260,7 @@ val save_consumes = put_consumes o lookup_consumes;
 fun consumes n = Thm.mixed_attribute (apsnd (put_consumes (SOME n)));
 
 
-
-(** equality constraints **)
+(* equality constraints *)
 
 val constraints_tagN = "constraints";
 
@@ -281,8 +284,7 @@ val save_constraints = put_constraints o lookup_constraints;
 fun constraints n = Thm.mixed_attribute (apsnd (put_constraints (SOME n)));
 
 
-
-(** case names **)
+(* case names *)
 
 val implode_args = space_implode ";";
 val explode_args = space_explode ";";
@@ -303,8 +305,7 @@ val name = add_case_names o SOME;
 fun case_names cs = Thm.mixed_attribute (apsnd (name cs));
 
 
-
-(** hyp names **)
+(* hyp names *)
 
 val implode_hyps = implode_args o map (suffix "," o space_implode ",");
 val explode_hyps = map (space_explode "," o unsuffix ",") o explode_args;
@@ -325,8 +326,7 @@ fun cases_hyp_names cs hs =
   Thm.mixed_attribute (apsnd (name cs #> add_cases_hyp_names (SOME hs)));
 
 
-
-(** case conclusions **)
+(* case conclusions *)
 
 val case_concl_tagN = "case_conclusion";
 
@@ -355,8 +355,7 @@ fun save_case_concls th =
 fun case_conclusion concl = Thm.mixed_attribute (apsnd (add_case_concl concl));
 
 
-
-(** inner rule **)
+(* inner rule *)
 
 val inner_rule_tagN = "inner_rule";
 
@@ -372,6 +371,35 @@ val save_inner_rule = put_inner_rule o is_inner_rule;
 val inner_rule = Thm.mixed_attribute (apsnd (put_inner_rule true));
 
 
+(* parameter names *)
+
+val cases_open_tagN = "cases_open";
+
+fun is_cases_open th =
+  AList.defined (op =) (Thm.get_tags th) cases_open_tagN;
+
+fun put_cases_open cases_open =
+  Thm.untag_rule cases_open_tagN
+  #> cases_open ? Thm.tag_rule (cases_open_tagN, "");
+
+val save_cases_open = put_cases_open o is_cases_open;
+
+val cases_open = Thm.mixed_attribute (apsnd (put_cases_open true));
+
+fun internalize_params rule =
+  if is_cases_open rule then rule
+  else
+    let
+      fun rename prem =
+        let val xs =
+          map (Name.internal o Name.clean o fst) (Logic.strip_params prem)
+        in Logic.list_rename_params xs prem end;
+      fun rename_prems prop =
+        let val (As, C) = Logic.strip_horn prop
+        in Logic.list_implies (map rename As, C) end;
+    in Thm.renamed_prop (rename_prems (Thm.prop_of rule)) rule end;
+
+
 
 (** case declarations **)
 
@@ -383,7 +411,8 @@ fun save th =
   save_case_names th #>
   save_cases_hyp_names th #>
   save_case_concls th #>
-  save_inner_rule th;
+  save_inner_rule th #>
+  save_cases_open th;
 
 fun get th =
   let
@@ -408,20 +437,6 @@ fun rename_params xss th =
   |> save th;
 
 fun params xss = Thm.rule_attribute (K (rename_params xss));
-
-
-(* internalize parameter names *)
-
-fun internalize_params rule =
-  let
-    fun rename prem =
-      let val xs =
-        map (Name.internal o Name.clean o fst) (Logic.strip_params prem)
-      in Logic.list_rename_params xs prem end;
-    fun rename_prems prop =
-      let val (As, C) = Logic.strip_horn prop
-      in Logic.list_implies (map rename As, C) end;
-  in Thm.renamed_prop (rename_prems (Thm.prop_of rule)) rule end;
 
 
 

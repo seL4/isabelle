@@ -222,7 +222,7 @@ val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
 fun is_low_level_class_const s =
   s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
 
-val sep_that = Long_Name.separator ^ Obtain.thatN
+val sep_that = Long_Name.separator ^ Auto_Bind.thatN
 val skolem_thesis = Name.skolem Auto_Bind.thesisN
 
 fun is_that_fact th =

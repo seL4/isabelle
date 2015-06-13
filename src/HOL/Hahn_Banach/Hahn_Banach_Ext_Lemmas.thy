@@ -69,7 +69,8 @@ proof -
     fix y assume "y \<in> F"
     then have "a y \<in> ?S" by blast
     with xi have "a y \<le> xi" by (rule lub.upper)
-  } moreover {
+  }
+  moreover {
     fix y assume y: "y \<in> F"
     from xi have "xi \<le> b y"
     proof (rule lub.least)
@@ -78,7 +79,8 @@ proof -
       from u y have "a u \<le> b y" by (rule r)
       with au show "au \<le> b y" by (simp only:)
     qed
-  } ultimately show "\<exists>xi. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y" by blast
+  }
+  ultimately show "\<exists>xi. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y" by blast
 qed
 
 text \<open>

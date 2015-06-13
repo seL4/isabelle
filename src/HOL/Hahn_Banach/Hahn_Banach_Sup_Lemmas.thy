@@ -126,11 +126,11 @@ proof -
     @{text x} and @{text y} are contained in the greater
     one. \label{cases1}\<close>
 
-  from cM c'' c' have "graph H'' h'' \<subseteq> graph H' h' \<or> graph H' h' \<subseteq> graph H'' h''"
-    (is "?case1 \<or> ?case2") ..
+  from cM c'' c' consider "graph H'' h'' \<subseteq> graph H' h'" | "graph H' h' \<subseteq> graph H'' h''"
+    by (blast dest: chainsD)
   then show ?thesis
-  proof
-    assume ?case1
+  proof cases
+    case 1
     have "(x, h x) \<in> graph H'' h''" by fact
     also have "\<dots> \<subseteq> graph H' h'" by fact
     finally have xh:"(x, h x) \<in> graph H' h'" .
@@ -139,14 +139,16 @@ proof -
     moreover from cM u and c' have "graph H' h' \<subseteq> graph H h" by blast
     ultimately show ?thesis using * by blast
   next
-    assume ?case2
+    case 2
     from x_hx have "x \<in> H''" ..
-    moreover {
+    moreover have "y \<in> H''"
+    proof -
       have "(y, h y) \<in> graph H' h'" by (rule y_hy)
       also have "\<dots> \<subseteq> graph H'' h''" by fact
       finally have "(y, h y) \<in> graph H'' h''" .
-    } then have "y \<in> H''" ..
-    moreover from cM u and c'' have "graph H'' h'' \<subseteq> graph H h" by blast
+      then show ?thesis ..
+    qed
+    moreover from u c'' have "graph H'' h'' \<subseteq> graph H h" by blast
     ultimately show ?thesis using ** by blast
   qed
 qed
@@ -179,10 +181,11 @@ proof -
     or vice versa, since both @{text "G\<^sub>1"} and @{text
     "G\<^sub>2"} are members of @{text c}. \label{cases2}\<close>
 
-  from cM G1 G2 have "G1 \<subseteq> G2 \<or> G2 \<subseteq> G1" (is "?case1 \<or> ?case2") ..
+  from cM G1 G2 consider "G1 \<subseteq> G2" | "G2 \<subseteq> G1"
+    by (blast dest: chainsD)
   then show ?thesis
-  proof
-    assume ?case1
+  proof cases
+    case 1
     with xy' G2_rep have "(x, y) \<in> graph H2 h2" by blast
     then have "y = h2 x" ..
     also
@@ -190,7 +193,7 @@ proof -
     then have "z = h2 x" ..
     finally show ?thesis .
   next
-    assume ?case2
+    case 2
     with xz' G1_rep have "(x, z) \<in> graph H1 h1" by blast
     then have "z = h1 x" ..
     also
