@@ -158,8 +158,7 @@ fun gen_consider prep_obtains raw_obtains int state =
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
       [((Binding.empty, atts), [(thesis, [])])] int
-    |> (fn state' => state'
-        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
+    |-> Proof.refine_insert
   end;
 
 in
@@ -233,8 +232,7 @@ fun gen_obtain prep_att prep_var prep_propp
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
       [(Thm.empty_binding, [(thesis, [])])] int
-    |> (fn state' => state'
-        |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
+    |-> Proof.refine_insert
     |> Proof.map_context (fold Variable.bind_term binds')
   end;
 
@@ -407,9 +405,12 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.internal_goal print_result Proof_Context.mode_schematic "guess"
-      (SOME before_qed) after_qed [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
+      (SOME before_qed) after_qed
+      [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
+    |> snd
     |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
-        Goal.init (Thm.cterm_of ctxt thesis))) |> Seq.hd
+        Goal.init (Thm.cterm_of ctxt thesis)))
+    |> Seq.hd
   end;
 
 in

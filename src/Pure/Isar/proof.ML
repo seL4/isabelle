@@ -109,23 +109,23 @@ sig
     (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
-    (Thm.binding * (term * term list) list) list -> state -> state
+    (Thm.binding * (term * term list) list) list -> state -> thm list * state
   val have: Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
-    (Thm.binding * (term * term list) list) list -> bool -> state -> state
+    (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
   val have_cmd: Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
+    (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
   val show: Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
-    (Thm.binding * (term * term list) list) list -> bool -> state -> state
+    (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
   val show_cmd: Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> state
+    (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
   val schematic_goal: state -> bool
   val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
@@ -986,7 +986,7 @@ fun local_goal print_results prep_att prep_propp prep_var
       apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
     val (assumes_propp, shows_propp) = apply2 (map snd) (raw_assumes, raw_shows);
 
-    val (goal_ctxt, goal_propss, result_binds) =
+    val (goal_ctxt, goal_propss, result_binds, that_fact) =
       let
         (*fixed variables*)
         val ((xs', vars), fix_ctxt) = ctxt
@@ -1006,16 +1006,20 @@ fun local_goal print_results prep_att prep_propp prep_var
         val params = xs ~~ map Free ps;
 
         (*prems*)
-        val goal_ctxt = params_ctxt
+        val (that_fact, goal_ctxt) = params_ctxt
           |> fold_burrow (Assumption.add_assms Assumption.assume_export)
               ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
-          |> (fn (premss, ctxt') => ctxt'
-                |> not (null assumes_propss) ?
-                  (snd o Proof_Context.note_thmss ""
-                    [((Binding.name Auto_Bind.thatN, []),
-                      [(Assumption.local_prems_of ctxt' ctxt, [])])])
-                |> (snd o Proof_Context.note_thmss ""
-                    (assumes_bindings ~~ map (map (fn th => ([th], []))) premss)));
+          |> (fn (premss, ctxt') =>
+              let
+                val prems = Assumption.local_prems_of ctxt' ctxt;
+                val ctxt'' =
+                  ctxt'
+                  |> not (null assumes_propss) ?
+                    (snd o Proof_Context.note_thmss ""
+                      [((Binding.name Auto_Bind.thatN, []), [(prems, [])])])
+                  |> (snd o Proof_Context.note_thmss ""
+                      (assumes_bindings ~~ map (map (fn th => ([th], []))) premss))
+              in (prems, ctxt'') end);
 
         val _ = Variable.warn_extra_tfrees fix_ctxt goal_ctxt;
 
@@ -1029,13 +1033,17 @@ fun local_goal print_results prep_att prep_propp prep_var
           (Auto_Bind.facts goal_ctxt shows_props @ binds')
           |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
           |> export_binds goal_ctxt ctxt;
-      in (goal_ctxt, shows_propss, result_binds) end;
+      in (goal_ctxt, shows_propss, result_binds, that_fact) end;
 
     fun after_qed' (result_ctxt, results) state' = state'
       |> local_results (shows_bindings ~~ burrow (Proof_Context.export result_ctxt ctxt) results)
       |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
       |> after_qed (result_ctxt, results);
-  in generic_goal kind before_qed (after_qed', K I) goal_ctxt goal_propss result_binds state end;
+  in
+    state
+    |> generic_goal kind before_qed (after_qed', K I) goal_ctxt goal_propss result_binds
+    |> pair that_fact
+  end;
 
 end;
 
@@ -1157,7 +1165,7 @@ fun gen_show prep_att prep_propp prep_var
     state
     |> local_goal print_results prep_att prep_propp prep_var
       "show" before_qed after_qed' fixes assumes shows
-    |> int ? (fn goal_state =>
+    ||> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res _ => goal_state
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
