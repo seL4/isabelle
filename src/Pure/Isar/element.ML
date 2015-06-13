@@ -33,8 +33,6 @@ sig
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_ctxt_no_attribs: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
-  val close_form: Proof.context -> (string -> string option) -> (string -> typ option) ->
-    term -> term
   type witness
   val prove_witness: Proof.context -> term -> tactic -> witness
   val witness_proof: (witness list list -> Proof.context -> Proof.context) ->
@@ -248,26 +246,6 @@ fun pretty_statement ctxt kind raw_th =
   end |> thm_name kind raw_th;
 
 end;
-
-
-(** abstract syntax operations: before type-inference **)
-
-fun close_form ctxt default_name default_type A =
-  let
-    fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)
-      | abs_body lev y (t $ u) = abs_body lev y t $ abs_body lev y u
-      | abs_body lev y (t as Free (x, T)) =
-          if x = y then
-            Type.constraint (the_default dummyT (default_type x))
-              (Type.constraint T (Bound lev))
-          else t
-      | abs_body _ _ a = a;
-    fun close y B =
-      let
-        val y' = perhaps default_name y;
-        val B' = abs_body 0 y (Term.incr_boundvars 1 B);
-      in if Term.is_dependent B' then Logic.all_const dummyT $ Abs (y', dummyT, B') else B end;
-  in fold close (Variable.add_free_names ctxt A []) A end;
 
 
 

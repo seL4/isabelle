@@ -105,11 +105,12 @@ local
 
 fun close_forms ctxt i As =
   let
-    val frees = rev (fold (Variable.add_free_names ctxt) As []);
+    val xs = rev (fold (Variable.add_free_names ctxt) As []);
     val types =
-      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
-    val uniform_typing = AList.lookup (op =) (frees ~~ types);
-  in map (Element.close_form ctxt (K NONE) uniform_typing) As end;
+      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
+    val uniform_typing = AList.lookup (op =) (xs ~~ types);
+    val close = fold_rev (Logic.dependent_all_constraint uniform_typing) (xs ~~ xs);
+  in map close As end;
 
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let

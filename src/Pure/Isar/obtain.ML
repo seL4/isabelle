@@ -96,12 +96,9 @@ fun prepare_clause parse_prop ctxt thesis vars raw_props =
   let
     val (xs', ctxt') = ctxt |> Proof_Context.add_fixes vars;
     val xs = map (Variable.check_name o #1) vars;
-
-    val default_name = AList.lookup (op =) (xs' ~~ xs);
-    val default_type = Variable.default_type ctxt';
   in
     Logic.list_implies (map (parse_prop ctxt') raw_props, thesis)
-    |> Element.close_form ctxt default_name default_type
+    |> fold_rev (Logic.all_constraint (Variable.default_type ctxt')) (xs ~~ xs')
   end;
 
 fun prepare_obtains prep_var parse_prop ctxt thesis raw_obtains =
