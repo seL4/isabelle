@@ -151,12 +151,13 @@ fun gen_consider prep_obtains raw_obtains int state =
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
+    val atts = Rule_Cases.cases_open :: obtains_attributes raw_obtains;
   in
     state
     |> Proof.have NONE (K I)
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
-      [((Binding.empty, obtains_attributes raw_obtains), [(thesis, [])])] int
+      [((Binding.empty, atts), [(thesis, [])])] int
     |> (fn state' => state'
         |> Proof.refine_insert (Assumption.local_prems_of (Proof.context_of state') ctxt))
   end;
