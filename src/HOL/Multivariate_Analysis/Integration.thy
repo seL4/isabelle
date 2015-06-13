@@ -3829,7 +3829,7 @@ qed
 
 lemma iterate_eq_neutral:
   assumes "monoidal opp"
-      and "\<forall>x \<in> s. f x = neutral opp"
+      and "\<And>x. x \<in> s \<Longrightarrow> f x = neutral opp"
     shows "iterate opp s f = neutral opp"
 proof -
   have [simp]: "support opp f s = {}"
@@ -3880,231 +3880,174 @@ lemma nonempty_witness:
 lemma operative_division:
   fixes f :: "'a::euclidean_space set \<Rightarrow> 'b"
   assumes "monoidal opp"
-    and "operative opp f"
-    and "d division_of (cbox a b)"
-  shows "iterate opp d f = f (cbox a b)"
+      and "operative opp f"
+      and "d division_of (cbox a b)"
+    shows "iterate opp d f = f (cbox a b)"
 proof -
   def C \<equiv> "card (division_points (cbox a b) d)"
   then show ?thesis
     using assms
-  proof (induct C arbitrary: a b d rule: full_nat_induct)
-    case goal1
-    { presume *: "content (cbox a b) \<noteq> 0 \<Longrightarrow> ?case"
-      then show ?case
-        apply -
-        apply cases
-        defer
-        apply assumption
-      proof -
-        assume as: "content (cbox a b) = 0"
-        show ?case
-          unfolding operativeD(1)[OF assms(2) as]
-          apply(rule iterate_eq_neutral[OF goal1(2)])
-        proof
-          fix x
-          assume x: "x \<in> d"
-          then guess u v
-            apply (drule_tac division_ofD(4)[OF goal1(4)])
-            apply (elim exE)
-            done
-          then show "f x = neutral opp"
-            using division_of_content_0[OF as goal1(4)]
-            using operativeD(1)[OF assms(2)] x
-            by auto
-        qed
-      qed
-    }
-    assume "content (cbox a b) \<noteq> 0" note ab = this[unfolded content_lt_nz[symmetric] content_pos_lt_eq]
-    then have ab': "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-      by (auto intro!: less_imp_le)
+  proof (induct C arbitrary: a b d rule: full_nat_induct) 
+    case (1 a b d)
     show ?case
-    proof (cases "division_points (cbox a b) d = {}")
+    proof (cases "content (cbox a b) = 0")
       case True
-      have d': "\<forall>i\<in>d. \<exists>u v. i = cbox u v \<and>
-        (\<forall>j\<in>Basis. u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j)"
-        unfolding forall_in_division[OF goal1(4)]
-        apply rule
-        apply rule
-        apply rule
-        apply (rule_tac x=a in exI)
-        apply (rule_tac x=b in exI)
-        apply rule
-        apply (rule refl)
-      proof
-        fix u v
-        fix j :: 'a
-        assume j: "j \<in> Basis"
-        assume as: "cbox u v \<in> d"
-        note division_ofD(3)[OF goal1(4) this]
-        then have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "u\<bullet>j \<le> v\<bullet>j"
-          using j unfolding box_ne_empty by auto
-        have *: "\<And>p r Q. \<not> j\<in>Basis \<or> p \<or> r \<or> (\<forall>x\<in>d. Q x) \<Longrightarrow> p \<or> r \<or> Q (cbox u v)"
-          using as j by auto
-        have "(j, u\<bullet>j) \<notin> division_points (cbox a b) d"
-          "(j, v\<bullet>j) \<notin> division_points (cbox a b) d" using True by auto
-        note this[unfolded de_Morgan_conj division_points_def mem_Collect_eq split_conv interval_bounds[OF ab'] bex_simps]
-        note *[OF this(1)] *[OF this(2)] note this[unfolded interval_bounds[OF uv(1)]]
-        moreover
-        have "a\<bullet>j \<le> u\<bullet>j" "v\<bullet>j \<le> b\<bullet>j"
-          using division_ofD(2,2,3)[OF goal1(4) as]
-          unfolding subset_eq
-          apply -
-          apply (erule_tac x=u in ballE,erule_tac[3] x=v in ballE)
-          unfolding box_ne_empty mem_box
-          using j
-          apply auto
-          done
-        ultimately show "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
-          unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force
-      qed
-      have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
-        unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)
-      note this[unfolded division_ofD(6)[OF goal1(4),symmetric] Union_iff]
-      then guess i .. note i=this
-      guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
-      have "cbox a b \<in> d"
-      proof -
-        { presume "i = cbox a b" then show ?thesis using i by auto }
-        { presume "u = a" "v = b" then show "i = cbox a b" using uv by auto }
-        show "u = a" "v = b"
-          unfolding euclidean_eq_iff[where 'a='a]
-        proof safe
-          fix j :: 'a
-          assume j: "j \<in> Basis"
-          note i(2)[unfolded uv mem_box,rule_format,of j]
-          then show "u \<bullet> j = a \<bullet> j" and "v \<bullet> j = b \<bullet> j"
-            using uv(2)[rule_format,of j] j by (auto simp: inner_simps)
-        qed
-      qed
-      then have *: "d = insert (cbox a b) (d - {cbox a b})"
-        by auto
-      have "iterate opp (d - {cbox a b}) f = neutral opp"
-        apply (rule iterate_eq_neutral[OF goal1(2)])
-      proof
+      show "iterate opp d f = f (cbox a b)"
+        unfolding operativeD(1)[OF assms(2) True]
+      proof (rule iterate_eq_neutral[OF `monoidal opp`]) 
         fix x
-        assume x: "x \<in> d - {cbox a b}"
-        then have "x\<in>d"
-          by auto note d'[rule_format,OF this]
-        then guess u v by (elim exE conjE) note uv=this
-        have "u \<noteq> a \<or> v \<noteq> b"
-          using x[unfolded uv] by auto
-        then obtain j where "u\<bullet>j \<noteq> a\<bullet>j \<or> v\<bullet>j \<noteq> b\<bullet>j" and j: "j \<in> Basis"
-          unfolding euclidean_eq_iff[where 'a='a] by auto
-        then have "u\<bullet>j = v\<bullet>j"
-          using uv(2)[rule_format,OF j] by auto
-        then have "content (cbox u v) = 0"
-          unfolding content_eq_0
-          apply (rule_tac x=j in bexI)
-          using j
-          apply auto
-          done
-        then show "f x = neutral opp"
-          unfolding uv(1) by (rule operativeD(1)[OF goal1(3)])
+        assume x: "x \<in> d"
+        then show "f x = neutral opp" 
+          by (metis division_ofD(4) 1(4) division_of_content_0[OF True] operativeD(1)[OF assms(2)] x)
       qed
-      then show "iterate opp d f = f (cbox a b)"
-        apply -
-        apply (subst *)
-        apply (subst iterate_insert[OF goal1(2)])
-        using goal1(2,4)
-        apply auto
-        done
     next
       case False
-      then have "\<exists>x. x \<in> division_points (cbox a b) d"
-        by auto
-      then guess k c
-        unfolding split_paired_Ex
-        unfolding division_points_def mem_Collect_eq split_conv
-        apply (elim exE conjE)
-        done
-      note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
-      from this(3) guess j .. note j=this
-      def d1 \<equiv> "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
-      def d2 \<equiv> "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
-      def cb \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)::'a"
-      def ca \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)::'a"
-      note division_points_psubset[OF goal1(4) ab kc(1-2) j]
-      note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
-      then have *: "(iterate opp d1 f) = f (cbox a b \<inter> {x. x\<bullet>k \<le> c})"
-        "(iterate opp d2 f) = f (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-        unfolding interval_split[OF kc(4)]
-        apply (rule_tac[!] goal1(1)[rule_format])
-        using division_split[OF goal1(4), where k=k and c=c]
-        unfolding interval_split[OF kc(4)] d1_def[symmetric] d2_def[symmetric]
-        unfolding goal1(2) Suc_le_mono
-        using goal1(2-3)
-        using division_points_finite[OF goal1(4)]
-        using kc(4)
-        apply auto
-        done
-      have "f (cbox a b) = opp (iterate opp d1 f) (iterate opp d2 f)" (is "_ = ?prev")
-        unfolding *
-        apply (rule operativeD(2))
-        using goal1(3)
-        using kc(4)
-        apply auto
-        done
-      also have "iterate opp d1 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<le> c}))"
-        unfolding d1_def
-        apply (rule iterate_nonzero_image_lemma[unfolded o_def])
-        unfolding empty_as_interval
-        apply (rule goal1 division_of_finite operativeD[OF goal1(3)])+
-        unfolding empty_as_interval[symmetric]
-        apply (rule content_empty)
-      proof (rule, rule, rule, erule conjE)
-        fix l y
-        assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
-        from division_ofD(4)[OF goal1(4) this(1)] guess u v by (elim exE) note l=this
-        show "f (l \<inter> {x. x \<bullet> k \<le> c}) = neutral opp"
-          unfolding l interval_split[OF kc(4)]
-          apply (rule operativeD(1) goal1)+
-          unfolding interval_split[symmetric,OF kc(4)]
-          apply (rule division_split_left_inj)
-          apply (rule goal1)
-          unfolding l[symmetric]
-          apply (rule as(1), rule as(2))
-          apply (rule kc(4) as)+
+      note ab = this[unfolded content_lt_nz[symmetric] content_pos_lt_eq]
+      then have ab': "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
+        by (auto intro!: less_imp_le)
+        show "iterate opp d f = f (cbox a b)"
+      proof (cases "division_points (cbox a b) d = {}")
+        case True
+        { fix u v and j :: 'a
+          assume j: "j \<in> Basis" and as: "cbox u v \<in> d"
+          then have "cbox u v \<noteq> {}"
+            using "1.prems"(3) by blast
+          then have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "u\<bullet>j \<le> v\<bullet>j"
+            using j unfolding box_ne_empty by auto
+          have *: "\<And>p r Q. \<not> j\<in>Basis \<or> p \<or> r \<or> (\<forall>x\<in>d. Q x) \<Longrightarrow> p \<or> r \<or> Q (cbox u v)"
+            using as j by auto
+          have "(j, u\<bullet>j) \<notin> division_points (cbox a b) d"
+               "(j, v\<bullet>j) \<notin> division_points (cbox a b) d" using True by auto
+          note this[unfolded de_Morgan_conj division_points_def mem_Collect_eq split_conv interval_bounds[OF ab'] bex_simps]
+          note *[OF this(1)] *[OF this(2)] note this[unfolded interval_bounds[OF uv(1)]]
+          moreover
+          have "a\<bullet>j \<le> u\<bullet>j" "v\<bullet>j \<le> b\<bullet>j"
+            using division_ofD(2,2,3)[OF `d division_of cbox a b` as]
+            apply (metis j subset_box(1) uv(1))
+            by (metis `cbox u v \<subseteq> cbox a b` j subset_box(1) uv(1))
+          ultimately have "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
+            unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force }
+        then have d': "\<forall>i\<in>d. \<exists>u v. i = cbox u v \<and>
+          (\<forall>j\<in>Basis. u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j)"
+          unfolding forall_in_division[OF 1(4)]
+          by blast 
+        have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
+          unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)
+        note this[unfolded division_ofD(6)[OF `d division_of cbox a b`,symmetric] Union_iff]
+        then guess i .. note i=this
+        guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
+        have "cbox a b \<in> d"
+        proof -
+          have "u = a" "v = b"
+            unfolding euclidean_eq_iff[where 'a='a]
+          proof safe
+            fix j :: 'a
+            assume j: "j \<in> Basis"
+            note i(2)[unfolded uv mem_box,rule_format,of j]
+            then show "u \<bullet> j = a \<bullet> j" and "v \<bullet> j = b \<bullet> j"
+              using uv(2)[rule_format,of j] j by (auto simp: inner_simps)
+          qed
+          then have "i = cbox a b" using uv by auto
+          then show ?thesis using i by auto
+        qed
+        then have deq: "d = insert (cbox a b) (d - {cbox a b})"
+          by auto
+        have "iterate opp (d - {cbox a b}) f = neutral opp"
+        proof (rule iterate_eq_neutral[OF 1(2)])
+          fix x
+          assume x: "x \<in> d - {cbox a b}"
+          then have "x\<in>d"
+            by auto note d'[rule_format,OF this]
+          then guess u v by (elim exE conjE) note uv=this
+          have "u \<noteq> a \<or> v \<noteq> b"
+            using x[unfolded uv] by auto
+          then obtain j where "u\<bullet>j \<noteq> a\<bullet>j \<or> v\<bullet>j \<noteq> b\<bullet>j" and j: "j \<in> Basis"
+            unfolding euclidean_eq_iff[where 'a='a] by auto
+          then have "u\<bullet>j = v\<bullet>j"
+            using uv(2)[rule_format,OF j] by auto
+          then have "content (cbox u v) = 0"
+            unfolding content_eq_0 using j
+            by force
+          then show "f x = neutral opp"
+            unfolding uv(1) by (rule operativeD(1)[OF 1(3)])
+        qed
+        then show "iterate opp d f = f (cbox a b)"
+          apply (subst deq)
+          apply (subst iterate_insert[OF 1(2)])
+          using 1
+          apply auto
           done
+      next
+        case False
+        then have "\<exists>x. x \<in> division_points (cbox a b) d"
+          by auto
+        then guess k c
+          unfolding split_paired_Ex division_points_def mem_Collect_eq split_conv
+          apply (elim exE conjE)
+          done
+        note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
+        from this(3) guess j .. note j=this
+        def d1 \<equiv> "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+        def d2 \<equiv> "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+        def cb \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)::'a"
+        def ca \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)::'a"
+        note division_points_psubset[OF `d division_of cbox a b` ab kc(1-2) j]
+        note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
+        then have *: "(iterate opp d1 f) = f (cbox a b \<inter> {x. x\<bullet>k \<le> c})"
+          "(iterate opp d2 f) = f (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+          unfolding interval_split[OF kc(4)]
+          apply (rule_tac[!] "1.hyps"[rule_format])
+          using division_split[OF `d division_of cbox a b`, where k=k and c=c]
+          apply (simp_all add: interval_split 1 kc d1_def d2_def division_points_finite[OF `d division_of cbox a b`])
+          done
+        { fix l y
+          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
+          from division_ofD(4)[OF `d division_of cbox a b` this(1)] guess u v by (elim exE) note leq=this
+          have "f (l \<inter> {x. x \<bullet> k \<le> c}) = neutral opp"
+            unfolding leq interval_split[OF kc(4)]
+            apply (rule operativeD(1) 1)+
+            unfolding interval_split[symmetric,OF kc(4)]
+            using division_split_left_inj 1 as kc leq by blast 
+        } note fxk_le = this
+        { fix l y
+          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
+          from division_ofD(4)[OF `d division_of cbox a b` this(1)] guess u v by (elim exE) note leq=this
+          have "f (l \<inter> {x. x \<bullet> k \<ge> c}) = neutral opp"
+            unfolding leq interval_split[OF kc(4)]
+            apply (rule operativeD(1) 1)+
+            unfolding interval_split[symmetric,OF kc(4)]
+            using division_split_right_inj 1 leq as kc by blast
+        } note fxk_ge = this
+        have "f (cbox a b) = opp (iterate opp d1 f) (iterate opp d2 f)" (is "_ = ?prev")
+          unfolding *
+          using assms(2) kc(4) by blast
+        also have "iterate opp d1 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<le> c}))"
+          unfolding d1_def empty_as_interval
+          apply (rule iterate_nonzero_image_lemma[unfolded o_def])
+          apply (rule 1 division_of_finite operativeD[OF 1(3)])+
+          apply (force simp add: empty_as_interval[symmetric] fxk_le)+
+          done
+        also have "iterate opp d2 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<ge> c}))"
+          unfolding d2_def empty_as_interval
+          apply (rule iterate_nonzero_image_lemma[unfolded o_def])
+          apply (rule 1 division_of_finite operativeD[OF 1(3)])+
+          apply (force simp add: empty_as_interval[symmetric] fxk_ge)+
+          done
+        also have *: "\<forall>x\<in>d. f x = opp (f (x \<inter> {x. x \<bullet> k \<le> c})) (f (x \<inter> {x. c \<le> x \<bullet> k}))"
+          unfolding forall_in_division[OF `d division_of cbox a b`]
+          using assms(2) kc(4) by blast
+        have "opp (iterate opp d (\<lambda>l. f (l \<inter> {x. x \<bullet> k \<le> c}))) (iterate opp d (\<lambda>l. f (l \<inter> {x. c \<le> x \<bullet> k}))) =
+          iterate opp d f"
+          apply (subst(3) iterate_eq[OF _ *[rule_format]])
+          using 1
+          apply (auto simp: iterate_op[symmetric])
+          done
+        finally show ?thesis by auto
       qed
-      also have "iterate opp d2 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<ge> c}))"
-        unfolding d2_def
-        apply (rule iterate_nonzero_image_lemma[unfolded o_def])
-        unfolding empty_as_interval
-        apply (rule goal1 division_of_finite operativeD[OF goal1(3)])+
-        unfolding empty_as_interval[symmetric]
-        apply (rule content_empty)
-      proof (rule, rule, rule, erule conjE)
-        fix l y
-        assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
-        from division_ofD(4)[OF goal1(4) this(1)] guess u v by (elim exE) note l=this
-        show "f (l \<inter> {x. x \<bullet> k \<ge> c}) = neutral opp"
-        unfolding l interval_split[OF kc(4)]
-          apply (rule operativeD(1) goal1)+
-          unfolding interval_split[symmetric,OF kc(4)]
-          apply (rule division_split_right_inj)
-          apply (rule goal1)
-          unfolding l[symmetric]
-          apply (rule as(1))
-          apply (rule as(2))
-          apply (rule as kc(4))+
-          done
-      qed also have *: "\<forall>x\<in>d. f x = opp (f (x \<inter> {x. x \<bullet> k \<le> c})) (f (x \<inter> {x. c \<le> x \<bullet> k}))"
-        unfolding forall_in_division[OF goal1(4)]
-        apply (rule, rule, rule, rule operativeD(2))
-        using goal1(3) kc
-        by auto
-      have "opp (iterate opp d (\<lambda>l. f (l \<inter> {x. x \<bullet> k \<le> c}))) (iterate opp d (\<lambda>l. f (l \<inter> {x. c \<le> x \<bullet> k}))) =
-        iterate opp d f"
-        apply (subst(3) iterate_eq[OF _ *[rule_format]])
-        prefer 3
-        apply (rule iterate_op[symmetric])
-        using goal1
-        apply auto
-        done
-      finally show ?thesis by auto
     qed
   qed
 qed
+
 
 lemma iterate_image_nonzero:
   assumes "monoidal opp"
@@ -8350,7 +8293,7 @@ proof -
   note * = this[unfolded neutral_add]
   have iterate:"iterate (lifted op +) (p - {cbox c d})
     (\<lambda>i. if g integrable_on i then Some (integral i g) else None) = Some 0"
-  proof (rule *, rule)
+  proof (rule *)
     case goal1
     then have "x \<in> p"
       by auto
