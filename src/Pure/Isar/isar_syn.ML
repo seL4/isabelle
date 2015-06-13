@@ -491,7 +491,8 @@ val _ = theorem @{command_keyword schematic_corollary} true Thm.corollaryK;
 
 
 val structured_statement =
-  Parse_Spec.statement -- Parse_Spec.if_prems -- Parse.for_fixes >> (fn ((a, b), c) => (c, b, a));
+  Parse_Spec.statement -- Parse_Spec.if_statement -- Parse.for_fixes
+    >> (fn ((shows, assumes), fixes) => (fixes, assumes, shows));
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"

@@ -39,10 +39,10 @@ proof -
   proof (induct t rule: subst_term.induct)
     show "?P (Var a)" for a by simp
     show "?P (App b ts)" if "?Q ts" for b ts
-      using prems by (simp only: subst_simps)
+      using that by (simp only: subst_simps)
     show "?Q []" by simp
     show "?Q (t # ts)" if "?P t" "?Q ts" for t ts
-      using prems by (simp only: subst_simps)
+      using that by (simp only: subst_simps)
   qed
 qed
 

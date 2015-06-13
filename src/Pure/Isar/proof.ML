@@ -1012,7 +1012,7 @@ fun local_goal print_results prep_att prep_propp prep_var
           |> (fn (premss, ctxt') => ctxt'
                 |> not (null assumes_propss) ?
                   (snd o Proof_Context.note_thmss ""
-                    [((Binding.name Auto_Bind.premsN, []),
+                    [((Binding.name Auto_Bind.thatN, []),
                       [(Assumption.local_prems_of ctxt' ctxt, [])])])
                 |> (snd o Proof_Context.note_thmss ""
                     (assumes_bindings ~~ map (map (fn th => ([th], []))) premss)));

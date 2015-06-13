@@ -224,9 +224,9 @@ proof -
   proof hoare
     show "?inv 0 1" by simp
     show "?inv (s + i) (i + 1)" if "?inv s i \<and> i \<noteq> n" for s i
-      using prems by simp
+      using that by simp
     show "s = ?sum n" if "?inv s i \<and> \<not> i \<noteq> n" for s i
-      using prems by simp
+      using that by simp
   qed
 qed
 

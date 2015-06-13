@@ -435,14 +435,12 @@ text \<open>
      @@{command schematic_corollary}) (stmt | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
-      stmt if_prems @{syntax for_fixes}
+      stmt (@'if' stmt)? @{syntax for_fixes}
     ;
     @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
   
     stmt: (@{syntax props} + @'and')
-    ;
-    if_prems: (@'if' stmt)?
     ;
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion

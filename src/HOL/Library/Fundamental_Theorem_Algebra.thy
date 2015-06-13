@@ -1191,7 +1191,7 @@ lemma basic_cqe_conv2:
   shows "\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)"
 proof -
   have False if "h \<noteq> 0" "t = 0" and "pCons a (pCons b p) = pCons h t" for h t
-    using l prems by simp
+    using l that by simp
   then have th: "\<not> (\<exists> h t. h \<noteq> 0 \<and> t = 0 \<and> pCons a (pCons b p) = pCons h t)"
     by blast
   from fundamental_theorem_of_algebra_alt[OF th] show ?thesis

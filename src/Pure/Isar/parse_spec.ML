@@ -24,7 +24,7 @@ sig
   val locale_expression: bool -> Expression.expression parser
   val context_element: Element.context parser
   val statement: (Attrib.binding * (string * string list) list) list parser
-  val if_prems: (Attrib.binding * (string * string list) list) list parser
+  val if_statement: (Attrib.binding * (string * string list) list) list parser
   val obtains: Element.obtains parser
   val general_statement: (Element.context list * Element.statement) parser
   val statement_keyword: string parser
@@ -132,8 +132,7 @@ end;
 (* statements *)
 
 val statement = Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.propp);
-
-val if_prems = Scan.optional (Parse.$$$ "if" |-- Parse.!!! statement) [];
+val if_statement = Scan.optional (Parse.$$$ "if" |-- Parse.!!! statement) [];
 
 val obtain_case =
   Parse.parbinding --

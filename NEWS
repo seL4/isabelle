@@ -24,13 +24,13 @@ notation is postfix with keywords 'if' and 'for'. For example:
     for x :: 'a and y :: 'a
     <proof>
 
-The local assumptions are always bound to the name "prems".  The result
-is exported from context of the statement as usual.  The above roughly
+The local assumptions are bound to the name "that". The result is
+exported from context of the statement as usual. The above roughly
 corresponds to a raw proof block like this:
 
   {
     fix x :: 'a and y :: 'a
-    assume prems: "A x" "B y"
+    assume that: "A x" "B y"
     have "C x y" <proof>
   }
   note result = this
