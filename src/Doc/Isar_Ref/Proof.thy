@@ -1370,6 +1370,7 @@ text \<open>
   \medskip
   \begin{tabular}{llll}
     facts           &                 & arguments   & rule \\\hline
+    @{text "\<turnstile> R"}   & @{method cases} &             & implicit rule @{text R} \\
                     & @{method cases} &             & classical case split \\
                     & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
     @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\

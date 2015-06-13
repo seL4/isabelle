@@ -38,6 +38,22 @@ corresponds to a raw proof block like this:
 * New command 'supply' supports fact definitions during goal refinement
 ('apply' scripts).
 
+* Proof method "cases" allows to specify the rule as first entry of
+chained facts.  This is particularly useful with 'consider':
+
+  consider (a) A | (b) B | (c) C <proof>
+  then have something
+  proof cases
+    case a
+    then show ?thesis <proof>
+  next
+    case b
+    then show ?thesis <proof>
+  next
+    case c
+    then show ?thesis <proof>
+  qed
+
 
 *** Pure ***
 
