@@ -921,8 +921,8 @@ lemma open_UNION_box:
   defines "I \<equiv> {f\<in>Basis \<rightarrow>\<^sub>E \<rat> \<times> \<rat>. box (a' f) (b' f) \<subseteq> M}"
   shows "M = (\<Union>f\<in>I. box (a' f) (b' f))"
 proof -
-  {
-    fix x assume "x \<in> M"
+  have "x \<in> (\<Union>f\<in>I. box (a' f) (b' f))" if "x \<in> M" for x
+  proof -
     obtain e where e: "e > 0" "ball x e \<subseteq> M"
       using openE[OF \<open>open M\<close> \<open>x \<in> M\<close>] by auto
     moreover obtain a b where ab:
@@ -931,10 +931,10 @@ proof -
       "\<forall>i\<in>Basis. b \<bullet> i \<in> \<rat>"
       "box a b \<subseteq> ball x e"
       using rational_boxes[OF e(1)] by metis
-    ultimately have "x \<in> (\<Union>f\<in>I. box (a' f) (b' f))"
+    ultimately show ?thesis
        by (intro UN_I[of "\<lambda>i\<in>Basis. (a \<bullet> i, b \<bullet> i)"])
           (auto simp: euclidean_representation I_def a'_def b'_def)
-  }
+  qed
   then show ?thesis by (auto simp: I_def)
 qed
 
@@ -1153,17 +1153,18 @@ qed
 
 lemma UN_box_eq_UNIV: "(\<Union>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One)) = UNIV"
 proof -
-  {
-    fix x b :: 'a
-    assume [simp]: "b \<in> Basis"
+  have "\<bar>x \<bullet> b\<bar> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+    if [simp]: "b \<in> Basis" for x b :: 'a
+  proof -
     have "\<bar>x \<bullet> b\<bar> \<le> real (ceiling \<bar>x \<bullet> b\<bar>)"
       by (rule real_of_int_ceiling_ge)
     also have "\<dots> \<le> real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
       by (auto intro!: ceiling_mono)
     also have "\<dots> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
       by simp
-    finally have "\<bar>x \<bullet> b\<bar> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)" . }
-  then have "\<And>x::'a. \<exists>n::nat. \<forall>b\<in>Basis. \<bar>x \<bullet> b\<bar> < real n"
+    finally show ?thesis .
+  qed
+  then have "\<exists>n::nat. \<forall>b\<in>Basis. \<bar>x \<bullet> b\<bar> < real n" for x :: 'a
     by (metis order.strict_trans reals_Archimedean2)
   moreover have "\<And>x b::'a. \<And>n::nat.  \<bar>x \<bullet> b\<bar> < real n \<longleftrightarrow> - real n < x \<bullet> b \<and> x \<bullet> b < real n"
     by auto
@@ -1254,7 +1255,7 @@ lemma connected_local:
 
 lemma exists_diff:
   fixes P :: "'a set \<Rightarrow> bool"
-  shows "(\<exists>S. P(- S)) \<longleftrightarrow> (\<exists>S. P S)" (is "?lhs \<longleftrightarrow> ?rhs")
+  shows "(\<exists>S. P (- S)) \<longleftrightarrow> (\<exists>S. P S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   {
     assume "?lhs"
@@ -1374,7 +1375,7 @@ proof (induct rule: finite_induct[OF fS])
   then show ?case by (auto intro: zero_less_one)
 next
   case (2 x F)
-  from 2 obtain d where d: "d >0" "\<forall>x\<in>F. x\<noteq>a \<longrightarrow> d \<le> dist a x"
+  from 2 obtain d where d: "d > 0" "\<forall>x\<in>F. x \<noteq> a \<longrightarrow> d \<le> dist a x"
     by blast
   show ?case
   proof (cases "x = a")
@@ -1385,7 +1386,7 @@ next
     let ?d = "min d (dist a x)"
     have dp: "?d > 0"
       using False d(1) using dist_nz by auto
-    from d have d': "\<forall>x\<in>F. x\<noteq>a \<longrightarrow> ?d \<le> dist a x"
+    from d have d': "\<forall>x\<in>F. x \<noteq> a \<longrightarrow> ?d \<le> dist a x"
       by auto
     with dp False show ?thesis
       by (auto intro!: exI[where x="?d"])
@@ -2116,10 +2117,10 @@ lemma closed_contains_Inf:
 
 lemma not_trivial_limit_within_ball:
   "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"
-  (is "?lhs = ?rhs")
-proof -
-  {
-    assume "?lhs"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show ?rhs if ?lhs
+  proof -
     {
       fix e :: real
       assume "e > 0"
@@ -2130,11 +2131,10 @@ proof -
         unfolding ball_def by (simp add: dist_commute)
       then have "S \<inter> ball x e - {x} \<noteq> {}" by blast
     }
-    then have "?rhs" by auto
-  }
-  moreover
-  {
-    assume "?rhs"
+    then show ?thesis by auto
+  qed
+  show ?lhs if ?rhs
+  proof -
     {
       fix e :: real
       assume "e > 0"
@@ -2145,11 +2145,10 @@ proof -
       then have "\<exists>y \<in> S - {x}. dist y x < e"
         by auto
     }
-    then have "?lhs"
+    then show ?thesis
       using not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"]
       by auto
-  }
-  ultimately show ?thesis by auto
+  qed
 qed
 
 
@@ -2347,102 +2346,103 @@ lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>
 lemma islimpt_ball:
   fixes x y :: "'a::{real_normed_vector,perfect_space}"
   shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e"
-  (is "?lhs = ?rhs")
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "?lhs"
-  {
-    assume "e \<le> 0"
-    then have *:"ball x e = {}"
-      using ball_eq_empty[of x e] by auto
-    have False using \<open>?lhs\<close>
-      unfolding * using islimpt_EMPTY[of y] by auto
-  }
-  then have "e > 0" by (metis not_less)
-  moreover
-  have "y \<in> cball x e"
-    using closed_cball[of x e] islimpt_subset[of y "ball x e" "cball x e"]
-      ball_subset_cball[of x e] \<open>?lhs\<close>
-    unfolding closed_limpt by auto
-  ultimately show "?rhs" by auto
-next
-  assume "?rhs"
-  then have "e > 0" by auto
-  {
-    fix d :: real
-    assume "d > 0"
-    have "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-    proof (cases "d \<le> dist x y")
-      case True
-      then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-      proof (cases "x = y")
+  show ?rhs if ?lhs
+  proof
+    {
+      assume "e \<le> 0"
+      then have *: "ball x e = {}"
+        using ball_eq_empty[of x e] by auto
+      have False using \<open>?lhs\<close>
+        unfolding * using islimpt_EMPTY[of y] by auto
+    }
+    then show "e > 0" by (metis not_less)
+    show "y \<in> cball x e"
+      using closed_cball[of x e] islimpt_subset[of y "ball x e" "cball x e"]
+        ball_subset_cball[of x e] \<open>?lhs\<close>
+      unfolding closed_limpt by auto
+  qed
+  show ?lhs if ?rhs
+  proof -
+    from that have "e > 0" by auto
+    {
+      fix d :: real
+      assume "d > 0"
+      have "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+      proof (cases "d \<le> dist x y")
         case True
-        then have False
-          using \<open>d \<le> dist x y\<close> \<open>d>0\<close> by auto
         then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-          by auto
+        proof (cases "x = y")
+          case True
+          then have False
+            using \<open>d \<le> dist x y\<close> \<open>d>0\<close> by auto
+          then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            by auto
+        next
+          case False
+          have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
+            norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
+            unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
+            by auto
+          also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
+            using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
+            unfolding scaleR_minus_left scaleR_one
+            by (auto simp add: norm_minus_commute)
+          also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
+            unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
+            unfolding distrib_right using \<open>x\<noteq>y\<close>[unfolded dist_nz, unfolded dist_norm]
+            by auto
+          also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
+            by (auto simp add: dist_norm)
+          finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
+            by auto
+          moreover
+          have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
+            using \<open>x\<noteq>y\<close>[unfolded dist_nz] \<open>d>0\<close> unfolding scaleR_eq_0_iff
+            by (auto simp add: dist_commute)
+          moreover
+          have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d"
+            unfolding dist_norm
+            apply simp
+            unfolding norm_minus_cancel
+            using \<open>d > 0\<close> \<open>x\<noteq>y\<close>[unfolded dist_nz] dist_commute[of x y]
+            unfolding dist_norm
+            apply auto
+            done
+          ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            apply (rule_tac x = "y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI)
+            apply auto
+            done
+        qed
       next
         case False
-        have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
-          norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
-          unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
-          by auto
-        also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
-          using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
-          unfolding scaleR_minus_left scaleR_one
-          by (auto simp add: norm_minus_commute)
-        also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
-          unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
-          unfolding distrib_right using \<open>x\<noteq>y\<close>[unfolded dist_nz, unfolded dist_norm]
-          by auto
-        also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
-          by (auto simp add: dist_norm)
-        finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
-          by auto
-        moreover
-        have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
-          using \<open>x\<noteq>y\<close>[unfolded dist_nz] \<open>d>0\<close> unfolding scaleR_eq_0_iff
-          by (auto simp add: dist_commute)
-        moreover
-        have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d"
-          unfolding dist_norm
-          apply simp
-          unfolding norm_minus_cancel
-          using \<open>d > 0\<close> \<open>x\<noteq>y\<close>[unfolded dist_nz] dist_commute[of x y]
-          unfolding dist_norm
-          apply auto
-          done
-        ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-          apply (rule_tac x = "y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI)
-          apply auto
-          done
+        then have "d > dist x y" by auto
+        show "\<exists>x' \<in> ball x e. x' \<noteq> y \<and> dist x' y < d"
+        proof (cases "x = y")
+          case True
+          obtain z where **: "z \<noteq> y" "dist z y < min e d"
+            using perfect_choose_dist[of "min e d" y]
+            using \<open>d > 0\<close> \<open>e>0\<close> by auto
+          show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            unfolding \<open>x = y\<close>
+            using \<open>z \<noteq> y\<close> **
+            apply (rule_tac x=z in bexI)
+            apply (auto simp add: dist_commute)
+            done
+        next
+          case False
+          then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            using \<open>d>0\<close> \<open>d > dist x y\<close> \<open>?rhs\<close>
+            apply (rule_tac x=x in bexI)
+            apply auto
+            done
+        qed
       qed
-    next
-      case False
-      then have "d > dist x y" by auto
-      show "\<exists>x' \<in> ball x e. x' \<noteq> y \<and> dist x' y < d"
-      proof (cases "x = y")
-        case True
-        obtain z where **: "z \<noteq> y" "dist z y < min e d"
-          using perfect_choose_dist[of "min e d" y]
-          using \<open>d > 0\<close> \<open>e>0\<close> by auto
-        show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-          unfolding \<open>x = y\<close>
-          using \<open>z \<noteq> y\<close> **
-          apply (rule_tac x=z in bexI)
-          apply (auto simp add: dist_commute)
-          done
-      next
-        case False
-        then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-          using \<open>d>0\<close> \<open>d > dist x y\<close> \<open>?rhs\<close>
-          apply (rule_tac x=x in bexI)
-          apply auto
-          done
-      qed
-    qed
-  }
-  then show "?lhs"
-    unfolding mem_cball islimpt_approachable mem_ball by auto
+    }
+    then show ?thesis
+      unfolding mem_cball islimpt_approachable mem_ball by auto
+  qed
 qed
 
 lemma closure_ball_lemma:
