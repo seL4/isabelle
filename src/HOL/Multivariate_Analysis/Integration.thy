@@ -3646,15 +3646,14 @@ proof -
     "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i \<le> b\<bullet>i"
     "min (b \<bullet> k) c = c" "max (a \<bullet> k) c = c"
     using assms using less_imp_le by auto
-  show ?t1
+  show ?t1 (*FIXME a horrible mess*)
     unfolding division_points_def interval_split[OF k, of a b]
     unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
     unfolding *
-    unfolding subset_eq
-    apply rule
+    apply (rule subsetI)
     unfolding mem_Collect_eq split_beta
     apply (erule bexE conjE)+
-    apply (simp only: mem_Collect_eq inner_setsum_left_Basis simp_thms)
+    apply (simp add: )
     apply (erule exE conjE)+
   proof
     fix i l x
@@ -3713,84 +3712,58 @@ qed
 lemma division_points_psubset:
   fixes a :: "'a::euclidean_space"
   assumes "d division_of (cbox a b)"
-    and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
-    and "l \<in> d"
-     and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
-    and k: "k \<in> Basis"
+      and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
+      and "l \<in> d"
+      and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
+      and k: "k \<in> Basis"
   shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subset>
-      division_points (cbox a b) d" (is "?D1 \<subset> ?D")
+         division_points (cbox a b) d" (is "?D1 \<subset> ?D")
     and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} \<subset>
-      division_points (cbox a b) d" (is "?D2 \<subset> ?D")
+         division_points (cbox a b) d" (is "?D2 \<subset> ?D")
 proof -
   have ab: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
     using assms(2) by (auto intro!:less_imp_le)
   guess u v using division_ofD(4)[OF assms(1,5)] by (elim exE) note l=this
   have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "\<forall>i\<in>Basis. a\<bullet>i \<le> u\<bullet>i \<and> v\<bullet>i \<le> b\<bullet>i"
     using division_ofD(2,2,3)[OF assms(1,5)] unfolding l box_ne_empty
-    unfolding subset_eq
-    apply -
-    defer
-    apply (erule_tac x=u in ballE)
-    apply (erule_tac x=v in ballE)
-    unfolding mem_box
+    using subset_box(1)    
     apply auto
+    apply blast+
     done
   have *: "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
-    "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
-    unfolding interval_split[OF k]
-    apply (subst interval_bounds)
-    prefer 3
-    apply (subst interval_bounds)
-    unfolding l interval_bounds[OF uv(1)]
-    using uv[rule_format,of k] ab k
-    apply auto
-    done
+          "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
+    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
+    using uv[rule_format, of k] ab k
+    by auto
   have "\<exists>x. x \<in> ?D - ?D1"
-    using assms(2-)
+    using assms(3-)
+    unfolding division_points_def interval_bounds[OF ab]
     apply -
     apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI)
-    defer
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI)
-    unfolding division_points_def
-    unfolding interval_bounds[OF ab]
-    apply (auto simp add:*)
+    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
+    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
     done
-  then show "?D1 \<subset> ?D"
-    apply -
-    apply rule
-    apply (rule division_points_subset[OF assms(1-4)])
-    using k
-    apply auto
-    done
-
+  moreover have "?D1 \<subseteq> ?D"
+    by (auto simp add: assms division_points_subset)
+  ultimately show "?D1 \<subset> ?D"
+    by blast
   have *: "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
     "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
-    unfolding interval_split[OF k]
-    apply (subst interval_bounds)
-    prefer 3
-    apply (subst interval_bounds)
-    unfolding l interval_bounds[OF uv(1)]
-    using uv[rule_format,of k] ab k
-    apply auto
-    done
+    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
+    using uv[rule_format, of k] ab k
+    by auto
   have "\<exists>x. x \<in> ?D - ?D2"
-    using assms(2-)
+    using assms(3-)
+    unfolding division_points_def interval_bounds[OF ab]
     apply -
     apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI)
-    defer
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI)
-    unfolding division_points_def
-    unfolding interval_bounds[OF ab]
-    apply (auto simp add:*)
+    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
+    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
     done
-  then show "?D2 \<subset> ?D"
-    apply -
-    apply rule
-    apply (rule division_points_subset[OF assms(1-4) k])
-    apply auto
-    done
+  moreover have "?D2 \<subseteq> ?D"
+    by (auto simp add: assms division_points_subset)
+  ultimately show "?D2 \<subset> ?D"
+    by blast
 qed
 
 
@@ -3804,57 +3777,30 @@ lemma iterate_support[simp]: "iterate opp (support opp f s) f = iterate opp s f"
 
 lemma iterate_expand_cases:
   "iterate opp s f = (if finite(support opp f s) then iterate opp (support opp f s) f else neutral opp)"
-  apply cases
-  apply (subst if_P, assumption)
-  unfolding iterate_def support_support fold'_def
-  apply auto
-  done
+    by (simp add: iterate_def fold'_def)
 
 lemma iterate_image:
   assumes "monoidal opp"
-    and "inj_on f s"
-  shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
+      and "inj_on f s"
+    shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
 proof -
   have *: "\<And>s. finite s \<Longrightarrow>  \<forall>x\<in>s. \<forall>y\<in>s. f x = f y \<longrightarrow> x = y \<Longrightarrow>
     iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
   proof -
     case goal1
     then show ?case
-    proof (induct s)
-      case empty
-      then show ?case
-        using assms(1) by auto
-    next
-      case (insert x s)
-      show ?case
-        unfolding iterate_insert[OF assms(1) insert(1)]
-        unfolding if_not_P[OF insert(2)]
-        apply (subst insert(3)[symmetric])
-        unfolding image_insert
-        defer
-        apply (subst iterate_insert[OF assms(1)])
-        apply (rule finite_imageI insert)+
-        apply (subst if_not_P)
-        unfolding image_iff o_def
-        using insert(2,4)
-        apply auto
-        done
-    qed
+      apply (induct s)
+      using assms(1) by auto
   qed
   show ?thesis
     apply (cases "finite (support opp g (f ` s))")
-    apply (subst (1) iterate_support[symmetric],subst (2) iterate_support[symmetric])
+    prefer 2
+      apply (metis finite_imageI iterate_expand_cases support_clauses(7))
+    apply (subst (1) iterate_support[symmetric], subst (2) iterate_support[symmetric])
     unfolding support_clauses
     apply (rule *)
-    apply (rule finite_imageD,assumption)
-    unfolding inj_on_def[symmetric]
-    apply (rule subset_inj_on[OF assms(2) support_subset])+
-    apply (subst iterate_expand_cases)
-    unfolding support_clauses
-    apply (simp only: if_False)
-    apply (subst iterate_expand_cases)
-    apply (subst if_not_P)
-    apply auto
+    apply (meson assms(2) finite_imageD subset_inj_on support_subset)
+    apply (meson assms(2) inj_on_contraD rev_subsetD support_subset)
     done
 qed
 
@@ -3870,51 +3816,32 @@ proof -
     by auto
   have **: "support opp (g \<circ> f) {x \<in> s. f x \<noteq> a} = support opp (g \<circ> f) s"
     unfolding support_def using assms(3) by auto
+  have inj: "inj_on f (support opp (g \<circ> f) {x \<in> s. f x \<noteq> a})"
+    apply (simp add: inj_on_def)
+    apply (metis (mono_tags, lifting) assms(4) comp_def mem_Collect_eq support_def)
+    done
   show ?thesis
-    unfolding *
     apply (subst iterate_support[symmetric])
-    unfolding support_clauses
-    apply (subst iterate_image[OF assms(1)])
-    defer
-    apply (subst(2) iterate_support[symmetric])
-    apply (subst **)
-    unfolding inj_on_def
-    using assms(3,4)
-    unfolding support_def
-    apply auto
+    apply (simp add: * support_clauses iterate_image[OF assms(1) inj])
+    apply (simp add: iterate_def **)
     done
 qed
 
 lemma iterate_eq_neutral:
   assumes "monoidal opp"
-    and "\<forall>x \<in> s. f x = neutral opp"
-  shows "iterate opp s f = neutral opp"
+      and "\<forall>x \<in> s. f x = neutral opp"
+    shows "iterate opp s f = neutral opp"
 proof -
-  have *: "support opp f s = {}"
+  have [simp]: "support opp f s = {}"
     unfolding support_def using assms(2) by auto
   show ?thesis
-    apply (subst iterate_support[symmetric])
-    unfolding *
-    using assms(1)
-    apply auto
-    done
+    by (subst iterate_support[symmetric]) simp
 qed
 
 lemma iterate_op:
-  assumes "monoidal opp"
-    and "finite s"
-  shows "iterate opp s (\<lambda>x. opp (f x) (g x)) = opp (iterate opp s f) (iterate opp s g)"
-  using assms(2)
-proof (induct s)
-  case empty
-  then show ?case
-    unfolding iterate_insert[OF assms(1)] using assms(1) by auto
-next
-  case (insert x F)
-  show ?case
-    unfolding iterate_insert[OF assms(1) insert(1)] if_not_P[OF insert(2)] insert(3)
-    by (simp add: monoidal_ac[OF assms(1)])
-qed
+   "\<lbrakk>monoidal opp; finite s\<rbrakk> 
+    \<Longrightarrow> iterate opp s (\<lambda>x. opp (f x) (g x)) = opp (iterate opp s f) (iterate opp s g)"
+by (erule finite_induct) (auto simp: monoidal_ac(4) monoidal_ac(5))
 
 lemma iterate_eq:
   assumes "monoidal opp"
@@ -3927,36 +3854,21 @@ proof -
   proof (cases "finite (support opp f s)")
     case False
     then show ?thesis
-      apply (subst iterate_expand_cases)
-      apply (subst(2) iterate_expand_cases)
-      unfolding *
-      apply auto
-      done
+      by (simp add: "*" iterate_expand_cases)
   next
+    case True
     def su \<equiv> "support opp f s"
-    case True note support_subset[of opp f s]
+    have fsu: "finite su"
+      using True by (simp add: su_def)
+    moreover    
+    { assume "finite su" "su \<subseteq> s"
+      then have "iterate opp su f = iterate opp su g"
+        by (induct su) (auto simp: assms)
+    }
+    ultimately have "iterate opp (support opp f s) f = iterate opp (support opp g s) g"
+      by (simp add: "*" su_def support_subset)    
     then show ?thesis
-      apply -
-      apply (subst iterate_support[symmetric])
-      apply (subst(2) iterate_support[symmetric])
-      unfolding *
-      using True
-      unfolding su_def[symmetric]
-    proof (induct su)
-      case empty
-      show ?case by auto
-    next
-      case (insert x s)
-      show ?case
-        unfolding iterate_insert[OF assms(1) insert(1)]
-        unfolding if_not_P[OF insert(2)]
-        apply (subst insert(3))
-        defer
-        apply (subst assms(2)[of x])
-        using insert
-        apply auto
-        done
-    qed
+      by simp
   qed
 qed
 
