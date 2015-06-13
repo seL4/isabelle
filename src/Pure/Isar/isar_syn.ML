@@ -496,23 +496,23 @@ val structured_statement =
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
-    (structured_statement >> (fn (fixes, assumes, shows) =>
-      Toplevel.proof' (fn int => Proof.have_cmd NONE (K I) fixes assumes shows int)));
+    (structured_statement >> (fn (a, b, c) =>
+      Toplevel.proof' (fn int => Proof.have_cmd NONE (K I) a b c int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword show} "state local goal, to refine pending subgoals"
-    (structured_statement >> (fn (fixes, assumes, shows) =>
-      Toplevel.proof' (fn int => Proof.show_cmd NONE (K I) fixes assumes shows int)));
+    (structured_statement >> (fn (a, b, c) =>
+      Toplevel.proof' (fn int => Proof.show_cmd NONE (K I) a b c int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword hence} "old-style alias of \"then have\""
-    (structured_statement >> (fn (fixes, assumes, shows) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) fixes assumes shows int)));
+    (structured_statement >> (fn (a, b, c) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) a b c int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword thus} "old-style alias of  \"then show\""
-    (structured_statement >> (fn (fixes, assumes, shows) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) fixes assumes shows int)));
+    (structured_statement >> (fn (a, b, c) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) a b c int #> #2)));
 
 
 (* facts *)
