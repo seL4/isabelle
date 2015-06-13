@@ -1,40 +1,7 @@
 (*  Title:      Pure/Isar/obtain.ML
     Author:     Markus Wenzel, TU Muenchen
 
-The 'obtain' and 'guess' language elements -- generalized existence at
-the level of proof texts: 'obtain' involves a proof that certain
-fixes/assumes may be introduced into the present context; 'guess' is
-similar, but derives these elements from the course of reasoning!
-
-
-  <chain_facts>
-  obtain x where "A x" <proof> ==
-
-  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
-  proof succeed
-    fix thesis
-    assume that [intro?]: "!!x. A x ==> thesis"
-    <chain_facts>
-    show thesis
-      apply (insert that)
-      <proof>
-  qed
-  fix x assm <<obtain_export>> "A x"
-
-
-  <chain_facts>
-  guess x <proof body> <proof end> ==
-
-  {
-    fix thesis
-    <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
-      <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
-        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
-      <proof end>
-  }
-  fix x assm <<obtain_export>> "A x"
+Generalized existence and cases rules within Isar proof text.
 *)
 
 signature OBTAIN =
@@ -59,7 +26,9 @@ end;
 structure Obtain: OBTAIN =
 struct
 
-(** obtain_export **)
+(** specification elements **)
+
+(* obtain_export *)
 
 (*
   [x, A x]
@@ -98,9 +67,6 @@ fun eliminate ctxt rule xs As thm =
 fun obtain_export ctxt rule xs _ As =
   (eliminate ctxt rule xs As, eliminate_term ctxt xs);
 
-
-
-(** specification elements **)
 
 (* result declaration *)
 
@@ -207,7 +173,23 @@ end;
 
 
 
-(** obtain **)
+(** obtain: augmented context based on generalized existence rule **)
+
+(*
+  <chain_facts>
+  obtain x where "A x" <proof> ==
+
+  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
+  proof succeed
+    fix thesis
+    assume that [intro?]: "!!x. A x ==> thesis"
+    <chain_facts>
+    show thesis
+      apply (insert that)
+      <proof>
+  qed
+  fix x assm <<obtain_export>> "A x"
+*)
 
 local
 
@@ -315,7 +297,23 @@ fun result tac facts ctxt =
 
 
 
-(** guess **)
+(** guess: obtain based on tactical result **)
+
+(*
+  <chain_facts>
+  guess x <proof body> <proof end> ==
+
+  {
+    fix thesis
+    <chain_facts> have "PROP ?guess"
+      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
+      <proof body>
+      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
+        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
+      <proof end>
+  }
+  fix x assm <<obtain_export>> "A x"
+*)
 
 local
 
