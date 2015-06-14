@@ -132,11 +132,11 @@ end;
 (** consider: generalized elimination and cases rule **)
 
 (*
-  consider x where (a) "A x" | y (b) where "B x" | ... ==
+  consider (a) x where "A x" | (b) y where "B y" | ... ==
 
   have thesis
     if a [intro?]: "!!x. A x ==> thesis"
-    and b [intro?]: "!!x. B x ==> thesis"
+    and b [intro?]: "!!y. B y ==> thesis"
     and ...
     for thesis
     apply (insert that)
@@ -287,9 +287,9 @@ fun result tac facts ctxt =
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
+      apply magic      -- {* turn goal into "thesis ==> #thesis" *}
       <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
+      apply_end magic  -- {* turn final "(!!x. P x ==> thesis) ==> #thesis" into
         "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
       <proof end>
   }
