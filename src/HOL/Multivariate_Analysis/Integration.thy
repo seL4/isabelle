@@ -4137,28 +4137,27 @@ lemma dsum_bound:
   assumes "p division_of (cbox a b)"
     and "norm c \<le> e"
   shows "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> e * content(cbox a b)"
-  apply (rule order_trans)
-  apply (rule norm_setsum)
-  unfolding norm_scaleR setsum_left_distrib[symmetric]
-  apply (rule order_trans[OF mult_left_mono])
-  apply (rule assms)
-  apply (rule setsum_abs_ge_zero)
-  apply (subst mult.commute)
-  apply (rule mult_left_mono)
-  apply (rule order_trans[of _ "setsum content p"])
-  apply (rule eq_refl)
-  apply (rule setsum.cong)
-  apply (rule refl)
-  apply (subst abs_of_nonneg)
-  unfolding additive_content_division[OF assms(1)]
 proof -
-  from order_trans[OF norm_ge_zero[of c] assms(2)]
-  show "0 \<le> e" .
-  fix x assume "x \<in> p"
-  from division_ofD(4)[OF assms(1) this] guess u v by (elim exE)
-  then show "0 \<le> content x"
-    using content_pos_le by auto
-qed (insert assms, auto)
+  have sumeq: "(\<Sum>i\<in>p. \<bar>content i\<bar>) = setsum content p"
+    apply (rule setsum.cong)
+    using assms
+    apply simp
+    apply (metis abs_of_nonneg assms(1) content_pos_le division_ofD(4))
+    done
+  have e: "0 \<le> e"
+    using assms(2) norm_ge_zero order_trans by blast
+  have "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> (\<Sum>i\<in>p. norm (content i *\<^sub>R c))"
+    using norm_setsum by blast
+  also have "...  \<le> e * (\<Sum>i\<in>p. \<bar>content i\<bar>)"
+    apply (simp add: setsum_right_distrib[symmetric] mult.commute)
+    using assms(2) mult_right_mono by blast
+  also have "... \<le> e * content (cbox a b)"
+    apply (rule mult_left_mono [OF _ e])
+    apply (simp add: sumeq)
+    using additive_content_division assms(1) eq_iff apply blast
+    done
+  finally show ?thesis .
+qed
 
 lemma rsum_bound:
   assumes "p tagged_division_of (cbox a b)"
