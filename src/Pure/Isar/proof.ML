@@ -594,15 +594,15 @@ end;
 
 local
 
-fun gen_fix prep_var args =
+fun gen_fix add_fixes raw_fixes =
   assert_forward
-  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (fst (fold_map prep_var args ctxt)) ctxt))
+  #> map_context (snd o add_fixes raw_fixes)
   #> reset_facts;
 
 in
 
-val fix = gen_fix Proof_Context.cert_var;
-val fix_cmd = gen_fix Proof_Context.read_var;
+val fix = gen_fix Proof_Context.add_fixes;
+val fix_cmd = gen_fix Proof_Context.add_fixes_cmd;
 
 end;
 

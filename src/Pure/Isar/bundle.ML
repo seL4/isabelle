@@ -57,9 +57,9 @@ fun get_bundle_cmd ctxt = get_bundle ctxt o check ctxt;
 
 local
 
-fun gen_bundle prep_fact prep_att prep_var (binding, raw_bundle) fixes lthy =
+fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy =
   let
-    val (_, ctxt') = lthy |> fold_map prep_var fixes |-> Proof_Context.add_fixes;
+    val (_, ctxt') = add_fixes raw_fixes lthy;
     val bundle0 = raw_bundle
       |> map (fn (fact, atts) => (prep_fact ctxt' fact, map (prep_att ctxt') atts));
     val bundle =
@@ -75,8 +75,8 @@ fun gen_bundle prep_fact prep_att prep_var (binding, raw_bundle) fixes lthy =
 
 in
 
-val bundle = gen_bundle (K I) (K I) Proof_Context.cert_var;
-val bundle_cmd = gen_bundle Proof_Context.get_fact Attrib.check_src Proof_Context.read_var;
+val bundle = gen_bundle (K I) (K I) Proof_Context.add_fixes;
+val bundle_cmd = gen_bundle Proof_Context.get_fact Attrib.check_src Proof_Context.add_fixes_cmd;
 
 end;
 
