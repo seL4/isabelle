@@ -122,6 +122,8 @@ not available during instantiation.
     less_eq_multiset_def
     INCOMPATIBILITY
 
+
+
 New in Isabelle2015 (May 2015)
 ------------------------------
 
