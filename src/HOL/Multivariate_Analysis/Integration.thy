@@ -4160,97 +4160,55 @@ proof -
 qed
 
 lemma rsum_bound:
-  assumes "p tagged_division_of (cbox a b)"
-    and "\<forall>x\<in>cbox a b. norm (f x) \<le> e"
-  shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> e * content (cbox a b)"
+  assumes p: "p tagged_division_of (cbox a b)"
+      and "\<forall>x\<in>cbox a b. norm (f x) \<le> e"
+    shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> e * content (cbox a b)"
 proof (cases "cbox a b = {}")
-  case True
-  show ?thesis
-    using assms(1) unfolding True tagged_division_of_trivial by auto
+  case True show ?thesis
+    using p unfolding True tagged_division_of_trivial by auto
 next
   case False
-  show ?thesis
-    apply (rule order_trans)
-    apply (rule norm_setsum)
+  then have e: "e \<ge> 0"
+    by (metis assms(2) norm_ge_zero order_trans nonempty_witness)
+  have setsum_le: "setsum (content \<circ> snd) p \<le> content (cbox a b)"
+    unfolding additive_content_tagged_division[OF p, symmetric] split_def
+    by (auto intro: eq_refl)
+  have con: "\<And>xk. xk \<in> p \<Longrightarrow> 0 \<le> content (snd xk)"
+    using tagged_division_ofD(4) [OF p] content_pos_le
+    by force
+  have norm: "\<And>xk. xk \<in> p \<Longrightarrow> norm (f (fst xk)) \<le> e"
+    unfolding fst_conv using tagged_division_ofD(2,3)[OF p] assms
+    by (metis prod.collapse subset_eq)
+  have "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> (\<Sum>i\<in>p. norm (case i of (x, k) \<Rightarrow> content k *\<^sub>R f x))"
+    by (rule norm_setsum)
+  also have "...  \<le> e * content (cbox a b)"
     unfolding split_def norm_scaleR
     apply (rule order_trans[OF setsum_mono])
     apply (rule mult_left_mono[OF _ abs_ge_zero, of _ e])
-    defer
+    apply (metis norm)
     unfolding setsum_left_distrib[symmetric]
-    apply (subst mult.commute)
-    apply (rule mult_left_mono)
-    apply (rule order_trans[of _ "setsum (content \<circ> snd) p"])
-    apply (rule eq_refl)
-    apply (rule setsum.cong)
-    apply (rule refl)
-    apply (subst o_def)
-    apply (rule abs_of_nonneg)
-  proof -
-    show "setsum (content \<circ> snd) p \<le> content (cbox a b)"
-      apply (rule eq_refl)
-      unfolding additive_content_tagged_division[OF assms(1),symmetric] split_def
-      apply auto
-      done
-    guess w using nonempty_witness[OF False] .
-    then show "e \<ge> 0"
-      apply -
-      apply (rule order_trans)
-      defer
-      apply (rule assms(2)[rule_format])
-      apply assumption
-      apply auto
-      done
-    fix xk
-    assume *: "xk \<in> p"
-    guess x k using surj_pair[of xk] by (elim exE) note xk = this *[unfolded this]
-    from tagged_division_ofD(4)[OF assms(1) xk(2)] guess u v by (elim exE) note uv=this
-    show "0 \<le> content (snd xk)"
-      unfolding xk snd_conv uv by(rule content_pos_le)
-    show "norm (f (fst xk)) \<le> e"
-      unfolding xk fst_conv using tagged_division_ofD(2,3)[OF assms(1) xk(2)] assms(2) by auto
-  qed
+    using con setsum_le 
+    apply (auto simp: mult.commute intro: mult_left_mono [OF _ e])
+    done
+  finally show ?thesis .
 qed
 
 lemma rsum_diff_bound:
   assumes "p tagged_division_of (cbox a b)"
     and "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e"
   shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - setsum (\<lambda>(x,k). content k *\<^sub>R g x) p) \<le>
-    e * content (cbox a b)"
+         e * content (cbox a b)"
   apply (rule order_trans[OF _ rsum_bound[OF assms]])
-  apply (rule eq_refl)
-  apply (rule arg_cong[where f=norm])
-  unfolding setsum_subtractf[symmetric]
-  apply (rule setsum.cong)
-  unfolding scaleR_diff_right
-  apply auto
+  apply (simp add: split_def scaleR_diff_right setsum_subtractf eq_refl)
   done
 
 lemma has_integral_bound:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "0 \<le> B"
-    and "(f has_integral i) (cbox a b)"
-    and "\<forall>x\<in>cbox a b. norm (f x) \<le> B"
-  shows "norm i \<le> B * content (cbox a b)"
-proof -
-  let ?P = "content (cbox a b) > 0"
-  {
-    presume "?P \<Longrightarrow> ?thesis"
-    then show ?thesis
-    proof (cases ?P)
-      case False
-      then have *: "content (cbox a b) = 0"
-        using content_lt_nz by auto
-      then have **: "i = 0"
-        using assms(2)
-        apply (subst has_integral_null_eq[symmetric])
-        apply auto
-        done
-      show ?thesis
-        unfolding * ** using assms(1) by auto
-    qed auto
-  }
-  assume ab: ?P
-  { presume "\<not> ?thesis \<Longrightarrow> False" then show ?thesis by auto }
+      and "(f has_integral i) (cbox a b)"
+      and "\<forall>x\<in>cbox a b. norm (f x) \<le> B"
+    shows "norm i \<le> B * content (cbox a b)"
+proof (rule ccontr)
   assume "\<not> ?thesis"
   then have *: "norm i - B * content (cbox a b) > 0"
     by auto
@@ -4258,14 +4216,8 @@ proof -
   guess d by (elim exE conjE) note d=this[rule_format]
   from fine_division_exists[OF this(1), of a b] guess p . note p=this
   have *: "\<And>s B. norm s \<le> B \<Longrightarrow> \<not> norm (s - i) < norm i - B"
-  proof -
-    case goal1
-    then show ?case
-      unfolding not_less
-      using norm_triangle_sub[of i s]
-      unfolding norm_minus_commute
-      by auto
-  qed
+    unfolding not_less
+    by (metis norm_triangle_sub[of i] add.commute le_less_trans less_diff_eq linorder_not_le norm_minus_commute)
   show False
     using d(2)[OF conjI[OF p]] *[OF rsum_bound[OF p(1) assms(3)]] by auto
 qed
@@ -4273,9 +4225,9 @@ qed
 lemma has_integral_bound_real:
   fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
   assumes "0 \<le> B"
-    and "(f has_integral i) {a .. b}"
-    and "\<forall>x\<in>{a .. b}. norm (f x) \<le> B"
-  shows "norm i \<le> B * content {a .. b}"
+      and "(f has_integral i) {a .. b}"
+      and "\<forall>x\<in>{a .. b}. norm (f x) \<le> B"
+    shows "norm i \<le> B * content {a .. b}"
   by (metis assms(1) assms(2) assms(3) box_real(2) has_integral_bound)
 
 
@@ -4284,25 +4236,19 @@ subsection \<open>Similar theorems about relationship among components.\<close>
 lemma rsum_component_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "p tagged_division_of (cbox a b)"
-    and "\<forall>x\<in>cbox a b. (f x)\<bullet>i \<le> (g x)\<bullet>i"
-  shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)\<bullet>i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)\<bullet>i"
-  unfolding inner_setsum_left
-  apply (rule setsum_mono)
-  apply safe
-proof -
+      and "\<forall>x\<in>cbox a b. (f x)\<bullet>i \<le> (g x)\<bullet>i"
+    shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)\<bullet>i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)\<bullet>i"
+unfolding inner_setsum_left
+proof (rule setsum_mono, clarify)
   fix a b
   assume ab: "(a, b) \<in> p"
   note tagged = tagged_division_ofD(2-4)[OF assms(1) ab]
   from this(3) guess u v by (elim exE) note b=this
   show "(content b *\<^sub>R f a) \<bullet> i \<le> (content b *\<^sub>R g a) \<bullet> i"
-    unfolding b
-    unfolding inner_simps real_scaleR_def
+    unfolding b inner_simps real_scaleR_def
     apply (rule mult_left_mono)
-    defer
-    apply (rule content_pos_le,rule assms(2)[rule_format])
-    using tagged
-    apply auto
-    done
+    using assms(2) tagged 
+    by (auto simp add: content_pos_le)
 qed
 
 lemma has_integral_component_le:
