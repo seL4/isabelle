@@ -318,56 +318,30 @@ end;
 
 local
 
-fun prep_statement prep_att prep_stmt elems concl ctxt =
-  (case concl of
-    Element.Shows shows =>
-      let
-        val (propp, elems_ctxt) = prep_stmt elems (map snd shows) ctxt;
-        val prems = Assumption.local_prems_of elems_ctxt ctxt;
-        val stmt = Attrib.map_specs (map prep_att) (map fst shows ~~ propp);
-        val goal_ctxt = (fold o fold) (Variable.auto_fixes o fst) propp elems_ctxt;
-      in (([], prems, stmt, NONE), goal_ctxt) end
-  | Element.Obtains obtains =>
-      let
-        val constraints = obtains |> map (fn (_, (vars, _)) =>
-          Element.Constrains
-            (vars |> map_filter (fn (x, SOME T, _) => SOME (Variable.check_name x, T) | _ => NONE)));
+fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
+  let
+    val (stmt, elems_ctxt) = prep_stmt raw_elems raw_stmt ctxt;
+    val prems = Assumption.local_prems_of elems_ctxt ctxt;
+    val stmt_ctxt = fold (fold (Variable.auto_fixes o fst) o snd) stmt elems_ctxt;
+  in
+    (case raw_stmt of
+      Element.Shows _ =>
+        let val stmt' = Attrib.map_specs (map prep_att) stmt
+        in (([], prems, stmt', NONE), stmt_ctxt) end
+    | Element.Obtains raw_obtains =>
+        let
+          val asms_ctxt = stmt_ctxt
+            |> fold (fn ((name, _), asm) =>
+                snd o Proof_Context.add_assms Assumption.assume_export
+                  [((name, [Context_Rules.intro_query NONE]), asm)]) stmt;
+          val that = Assumption.local_prems_of asms_ctxt stmt_ctxt;
+          val ([(_, that')], that_ctxt) = asms_ctxt
+            |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(that, [])])];
 
-        val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
-        val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
-
-        val thesis = Object_Logic.fixed_judgment ctxt Auto_Bind.thesisN;
-
-        fun assume_case ((name, (vars, _)), asms) ctxt' =
-          let
-            val bs = map (fn (b, _, _) => b) vars;
-            val xs = map Variable.check_name bs;
-            val props = map fst asms;
-            val (params, _) = ctxt'
-              |> fold Variable.declare_term props
-              |> fold_map Proof_Context.inferred_param xs
-              |>> map Free;
-            val asm = fold_rev Logic.all params (Logic.list_implies (props, thesis));
-            val _ = ctxt' |> Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
-          in
-            ctxt'
-            |> Variable.auto_fixes asm
-            |> Proof_Context.add_assms Assumption.assume_export
-              [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
-            |>> (fn [(_, [th])] => th)
-          end;
-
-        val more_atts = map (Attrib.internal o K) (Obtain.obtains_attributes obtains);
-        val prems = Assumption.local_prems_of elems_ctxt ctxt;
-        val stmt = [((Binding.empty, []), [(thesis, [])])];
-
-        val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
-          |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths =>
-            Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(ths, [])])] #>
-            #2 #> pair ths);
-      in ((more_atts, prems, stmt, SOME facts), goal_ctxt) end);
+          val more_atts = map (Attrib.internal o K) (Obtain.obtains_attributes raw_obtains);
+          val stmt' = [((Binding.empty, []), [(#2 (#1 (Obtain.obtain_thesis ctxt)), [])])];
+        in ((more_atts, prems, stmt', SOME that'), that_ctxt) end)
+  end;
 
 fun gen_theorem schematic bundle_includes prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
