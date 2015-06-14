@@ -281,9 +281,9 @@ fun check_autofix insts elems concl ctxt =
       (fold_burrow o fold_burrow) check (inst_cs :: elem_css @ [concl_cs]) ctxt;
     val (elem_css', [concl_cs']) = chop (length elem_css) css';
   in
-    (map restore_inst (insts ~~ inst_cs'),
+    ((map restore_inst (insts ~~ inst_cs'),
       map restore_elem (elems ~~ elem_css'),
-      concl_cs', ctxt')
+      concl_cs'), ctxt')
   end;
 
 end;
@@ -374,7 +374,7 @@ fun prep_full_context_statement
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val (insts'', _, _, _) = check_autofix insts' [] [] ctxt;
+        val ((insts'', _, _), _) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst''') ctxt;
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
@@ -389,14 +389,12 @@ fun prep_full_context_statement
         val elems' = parse_elem parse_typ parse_prop ctxt' raw_elem;
       in (elems', ctxt') end;
 
-    fun prep_concl raw_concl (insts, elems, ctxt) =
-      let
-        val concl = parse_concl parse_prop ctxt raw_concl;
-      in check_autofix insts elems concl ctxt end;
-
     val fors = fold_map prep_var_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> Proof_Context.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
+
+    fun prep_concl elems ctxt =
+      check_autofix insts' elems (parse_concl parse_prop ctxt raw_concl) ctxt;
 
     val _ =
       if fixed_frees then ()
@@ -406,23 +404,24 @@ fun prep_full_context_statement
         | frees => error ("Illegal free variables in expression: " ^
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
-    val ctxt4 = init_body ctxt3;
-    val (elems, ctxt5) = fold_map prep_elem raw_elems ctxt4;
-    val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
+    val ((insts, elems', concl), ctxt4) = ctxt3
+      |> init_body
+      |> fold_map prep_elem raw_elems
+      |-> prep_concl;
 
 
     (* parameters from expression and elements *)
 
     val xs = maps (fn Fixes fixes => map (Variable.check_name o #1) fixes | _ => [])
       (Fixes fors :: elems');
-    val (parms, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
+    val (parms, ctxt5) = fold_map Proof_Context.inferred_param xs ctxt4;
 
     val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
-    val deps = map (finish_inst ctxt6) insts;
-    val elems'' = map (finish_elem (ctxt1, ctxt6) parms do_close) elems';
+    val deps = map (finish_inst ctxt5) insts;
+    val elems'' = map (finish_elem (ctxt1, ctxt5) parms do_close) elems';
 
-  in ((fixed, deps, elems'', concl), (parms, ctxt7)) end;
+  in ((fixed, deps, elems'', concl), (parms, ctxt5)) end;
 
 in
 
