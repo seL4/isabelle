@@ -4266,54 +4266,50 @@ proof -
       by auto
     guess d1 using goal1(1)[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d1=this[rule_format]
     guess d2 using goal1(2)[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d2=this[rule_format]
-    guess p using fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] unfolding fine_inter .
-    note p = this(1) conjunctD2[OF this(2)]
+    obtain p where p: "p tagged_division_of cbox a b" "d1 fine p" "d2 fine p"   
+       using fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] unfolding fine_inter 
+       by metis    
     note le_less_trans[OF Basis_le_norm[OF k]]
-    note this[OF d1(2)[OF conjI[OF p(1,2)]]] this[OF d2(2)[OF conjI[OF p(1,3)]]]
+    then have "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
+              "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - j) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
+      using  k norm_bound_Basis_lt d1 d2 p
+      by blast+
     then show False
       unfolding inner_simps
       using rsum_component_le[OF p(1) goal1(3)]
       by (simp add: abs_real_def split: split_if_asm)
   qed
-  let ?P = "\<exists>a b. s = cbox a b"
-  {
-    presume "\<not> ?P \<Longrightarrow> ?thesis"
-    then show ?thesis
-    proof (cases ?P)
-      case True
-      then guess a b by (elim exE) note s=this
-      show ?thesis
-        apply (rule lem)
-        using assms[unfolded s]
-        apply auto
-        done
-    qed auto
-  }
-  assume as: "\<not> ?P"
-  { presume "\<not> ?thesis \<Longrightarrow> False" then show ?thesis by auto }
-  assume "\<not> i\<bullet>k \<le> j\<bullet>k"
-  then have ij: "(i\<bullet>k - j\<bullet>k) / 3 > 0"
-    by auto
-  note has_integral_altD[OF _ as this]
-  from this[OF assms(2)] this[OF assms(3)] guess B1 B2 . note B=this[rule_format]
-  have "bounded (ball 0 B1 \<union> ball (0::'a) B2)"
-    unfolding bounded_Un by(rule conjI bounded_ball)+
-  from bounded_subset_cbox[OF this] guess a b by (elim exE)
-  note ab = conjunctD2[OF this[unfolded Un_subset_iff]]
-  guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
-  guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
-  have *: "\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
-    by (simp add: abs_real_def split: split_if_asm)
-  note le_less_trans[OF Basis_le_norm[OF k]]
-  note this[OF w1(2)] this[OF w2(2)]
-  moreover
-  have "w1\<bullet>k \<le> w2\<bullet>k"
-    apply (rule lem[OF w1(1) w2(1)])
-    using assms
-    apply auto
-    done
-  ultimately show False
-    unfolding inner_simps by(rule *)
+  show ?thesis
+  proof (cases "\<exists>a b. s = cbox a b")
+    case True
+    with lem assms show ?thesis
+      by auto
+  next
+    case False
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> i\<bullet>k \<le> j\<bullet>k"
+      then have ij: "(i\<bullet>k - j\<bullet>k) / 3 > 0"
+        by auto
+      note has_integral_altD[OF _ False this]
+      from this[OF assms(2)] this[OF assms(3)] guess B1 B2 . note B=this[rule_format]
+      have "bounded (ball 0 B1 \<union> ball (0::'a) B2)"
+        unfolding bounded_Un by(rule conjI bounded_ball)+
+      from bounded_subset_cbox[OF this] guess a b by (elim exE)
+      note ab = conjunctD2[OF this[unfolded Un_subset_iff]]
+      guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
+      guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
+      have *: "\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
+        by (simp add: abs_real_def split: split_if_asm)
+      note le_less_trans[OF Basis_le_norm[OF k]]
+      note this[OF w1(2)] this[OF w2(2)]
+      moreover
+      have "w1\<bullet>k \<le> w2\<bullet>k"
+        by (rule lem[OF w1(1) w2(1)]) (simp add: assms(4))
+      ultimately show False
+        unfolding inner_simps by(rule *)
+    qed
+  qed
 qed
 
 lemma integral_component_le:
