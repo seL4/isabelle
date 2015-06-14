@@ -1034,14 +1034,14 @@ fun prep_var prep_typ internal (b, raw_T, mx) ctxt =
     fun cond_tvars T =
       if internal then T
       else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
-    val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
+    val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
     val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
   in ((b, opt_T, mx), ctxt') end;
 
 in
 
 val read_var = prep_var Syntax.read_typ false;
-val cert_var = prep_var (K I) true;
+val cert_var = prep_var cert_typ true;
 
 end;
 
