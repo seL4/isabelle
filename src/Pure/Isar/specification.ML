@@ -87,7 +87,7 @@ struct
 
 fun read_props raw_props raw_fixes ctxt =
   let
-    val ctxt1 = ctxt |> fold_map Proof_Context.read_var raw_fixes |-> Proof_Context.add_fixes |> #2;
+    val (_, ctxt1) = ctxt |> Proof_Context.add_fixes_cmd raw_fixes;
     val props1 = map (Syntax.parse_prop ctxt1) raw_props;
     val (props2, ctxt2) = ctxt1 |> fold_map Variable.fix_dummy_patterns props1;
     val props3 = Syntax.check_props ctxt2 props2;
@@ -291,13 +291,13 @@ end;
 
 local
 
-fun gen_theorems prep_fact prep_att prep_var
+fun gen_theorems prep_fact prep_att add_fixes
     kind raw_facts raw_fixes int lthy =
   let
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map (prep_att lthy) atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map (prep_att lthy) more_atts))));
-    val (_, ctxt') = lthy |> fold_map prep_var raw_fixes |-> Proof_Context.add_fixes;
+    val (_, ctxt') = add_fixes raw_fixes lthy;
 
     val facts' = facts
       |> Attrib.partial_evaluation ctxt'
@@ -308,8 +308,8 @@ fun gen_theorems prep_fact prep_att prep_var
 
 in
 
-val theorems = gen_theorems (K I) (K I) Proof_Context.cert_var;
-val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.check_src Proof_Context.read_var;
+val theorems = gen_theorems (K I) (K I) Proof_Context.add_fixes;
+val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.check_src Proof_Context.add_fixes_cmd;
 
 end;
 

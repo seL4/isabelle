@@ -131,6 +131,8 @@ sig
     (binding * typ option * mixfix) * Proof.context
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
+  val add_fixes_cmd: (binding * string option * mixfix) list -> Proof.context ->
+    string list * Proof.context
   val add_assms: Assumption.export ->
     (Thm.binding * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -1034,14 +1036,14 @@ fun prep_var prep_typ internal (b, raw_T, mx) ctxt =
     fun cond_tvars T =
       if internal then T
       else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
-    val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
+    val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
     val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx);
   in ((b, opt_T, mx), ctxt') end;
 
 in
 
 val read_var = prep_var Syntax.read_typ false;
-val cert_var = prep_var (K I) true;
+val cert_var = prep_var cert_typ true;
 
 end;
 
@@ -1131,15 +1133,25 @@ fun generic_revert_abbrev mode arg =
 
 (* fixes *)
 
-fun add_fixes raw_vars ctxt =
-  let val (vars, _) = fold_map cert_var raw_vars ctxt in
-    ctxt
-    |> Variable.add_fixes_binding (map #1 vars)
-    |-> (fn xs =>
-      fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
-      #-> (map_syntax_idents o Local_Syntax.add_syntax ctxt o map (pair Local_Syntax.Fixed))
-      #> pair xs)
+local
+
+fun gen_fixes prep_var raw_vars ctxt =
+  let
+    val (vars, _) = fold_map prep_var raw_vars ctxt;
+    val (xs, ctxt') = Variable.add_fixes_binding (map #1 vars) ctxt;
+  in
+    ctxt'
+    |> fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
+    |-> (map_syntax_idents o Local_Syntax.add_syntax ctxt o map (pair Local_Syntax.Fixed))
+    |> pair xs
   end;
+
+in
+
+val add_fixes = gen_fixes cert_var;
+val add_fixes_cmd = gen_fixes read_var;
+
+end;
 
 
 
