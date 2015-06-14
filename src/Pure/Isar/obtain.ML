@@ -6,11 +6,11 @@ Generalized existence and cases rules within Isar proof text.
 
 signature OBTAIN =
 sig
+  val obtain_thesis: Proof.context -> ((string * typ) * term) * Proof.context
   val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
-  val parse_clause: Proof.context -> term ->
-    (binding * typ option * mixfix) list -> string list -> term
   val read_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
   val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
+  val parse_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
   val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
   val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
   val obtain: binding -> (binding * typ option * mixfix) list ->
@@ -92,38 +92,38 @@ fun obtain_thesis ctxt =
 
 local
 
-fun prepare_clause parse_prop ctxt thesis vars raw_props =
+val mk_all_external = Logic.all_constraint o Variable.default_type;
+fun mk_all_internal _ (y, z) t =
+  let val T = the (AList.lookup (op =) (Term.add_frees t []) z);
+  in Logic.all_const T $ Term.lambda_name (y, Free (z, T)) t end;
+
+fun prepare_clause prep_var parse_prop mk_all ctxt thesis raw_vars raw_props =
   let
-    val (xs', ctxt') = ctxt |> Proof_Context.add_fixes vars;
+    val ((xs', vars), ctxt') = ctxt
+      |> fold_map prep_var raw_vars
+      |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
     val xs = map (Variable.check_name o #1) vars;
   in
     Logic.list_implies (map (parse_prop ctxt') raw_props, thesis)
-    |> fold_rev (Logic.all_constraint (Variable.default_type ctxt')) (xs ~~ xs')
+    |> fold_rev (mk_all ctxt') (xs ~~ xs')
   end;
 
-fun prepare_obtains prep_var parse_prop ctxt thesis raw_obtains =
+fun prepare_obtains prep_clause check_terms
+    ctxt thesis (raw_obtains: ('typ, 'term) Element.obtain list) =
   let
-    val all_types =
-      fold_map prep_var (maps (fn (_, (vs, _)) => vs) raw_obtains)
-        (ctxt |> Context_Position.set_visible false)
-      |> #1 |> map_filter (fn (_, opt_T, _) => opt_T);
-    val types_ctxt = fold Variable.declare_typ all_types ctxt;
-
-    val clauses =
-      raw_obtains |> map (fn (_, (raw_vars, raw_props)) =>
-        let
-          val (vars, vars_ctxt) = fold_map prep_var raw_vars types_ctxt;
-          val clause = prepare_clause parse_prop vars_ctxt thesis vars raw_props;
-        in clause end)
-      |> Syntax.check_terms ctxt;
+    val clauses = raw_obtains
+      |> map (fn (_, (raw_vars, raw_props)) => prep_clause ctxt thesis raw_vars raw_props)
+      |> check_terms ctxt;
   in map fst raw_obtains ~~ clauses end;
+
+val parse_clause = prepare_clause Proof_Context.read_var Syntax.parse_prop mk_all_external;
+val cert_clause = prepare_clause Proof_Context.cert_var (K I) mk_all_internal;
 
 in
 
-val parse_clause = prepare_clause Syntax.parse_prop;
-
-val read_obtains = prepare_obtains Proof_Context.read_var Syntax.parse_prop;
-val cert_obtains = prepare_obtains Proof_Context.cert_var (K I);
+val read_obtains = prepare_obtains parse_clause Syntax.check_terms;
+val cert_obtains = prepare_obtains cert_clause (K I);
+val parse_obtains = prepare_obtains parse_clause (K I);
 
 end;
 
@@ -132,11 +132,11 @@ end;
 (** consider: generalized elimination and cases rule **)
 
 (*
-  consider x where (a) "A x" | y (b) where "B x" | ... ==
+  consider (a) x where "A x" | (b) y where "B y" | ... ==
 
   have thesis
     if a [intro?]: "!!x. A x ==> thesis"
-    and b [intro?]: "!!x. B x ==> thesis"
+    and b [intro?]: "!!y. B y ==> thesis"
     and ...
     for thesis
     apply (insert that)
@@ -287,9 +287,9 @@ fun result tac facts ctxt =
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
+      apply magic      -- {* turn goal into "thesis ==> #thesis" *}
       <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
+      apply_end magic  -- {* turn final "(!!x. P x ==> thesis) ==> #thesis" into
         "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
       <proof end>
   }

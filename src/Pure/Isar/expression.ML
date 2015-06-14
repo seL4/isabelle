@@ -13,10 +13,10 @@ sig
   type expression = (xstring * Position.T, string) expr * (binding * string option * mixfix) list
 
   (* Processing of context statements *)
-  val cert_statement: Element.context_i list -> (term * term list) list list ->
-    Proof.context -> (term * term list) list list * Proof.context
-  val read_statement: Element.context list -> (string * string list) list list ->
-    Proof.context -> (term * term list) list list * Proof.context
+  val cert_statement: Element.context_i list -> Element.statement_i ->
+    Proof.context -> (Attrib.binding * (term * term list) list) list * Proof.context
+  val read_statement: Element.context list -> Element.statement ->
+    Proof.context -> (Attrib.binding * (term * term list) list) list * Proof.context
 
   (* Declaring locales *)
   val cert_declaration: expression_i -> (Proof.context -> Proof.context) ->
@@ -217,13 +217,20 @@ fun parse_elem prep_typ prep_term ctxt =
     fact = I,
     attrib = I};
 
-fun parse_concl prep_term ctxt concl =
-  (map o map) (fn (t, ps) =>
-    (prep_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) t,
-      map (prep_term (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)) ps)) concl;
+fun prepare_stmt prep_prop prep_obtains ctxt stmt =
+  (case stmt of
+    Element.Shows raw_shows =>
+      raw_shows |> (map o apsnd o map) (fn (t, ps) =>
+        (prep_prop (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) t,
+          map (prep_prop (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)) ps))
+  | Element.Obtains raw_obtains =>
+      let
+        val ((_, thesis), thesis_ctxt) = Obtain.obtain_thesis ctxt;
+        val obtains = prep_obtains thesis_ctxt thesis raw_obtains;
+      in map (fn (b, t) => ((b, []), [(t, [])])) obtains end);
 
 
-(** Simultaneous type inference: instantiations + elements + conclusion **)
+(** Simultaneous type inference: instantiations + elements + statement **)
 
 local
 
@@ -275,15 +282,15 @@ fun check_autofix insts elems concl ctxt =
   let
     val inst_cs = map extract_inst insts;
     val elem_css = map extract_elem elems;
-    val concl_cs = (map o map) mk_propp concl;
+    val concl_cs = (map o map) mk_propp (map snd concl);
     (* Type inference *)
     val (inst_cs' :: css', ctxt') =
       (fold_burrow o fold_burrow) check (inst_cs :: elem_css @ [concl_cs]) ctxt;
     val (elem_css', [concl_cs']) = chop (length elem_css) css';
   in
-    (map restore_inst (insts ~~ inst_cs'),
+    ((map restore_inst (insts ~~ inst_cs'),
       map restore_elem (elems ~~ elem_css'),
-      concl_cs', ctxt')
+      map fst concl ~~ concl_cs'), ctxt')
   end;
 
 end;
@@ -351,15 +358,15 @@ fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
 end;
 
 
-(** Process full context statement: instantiations + elements + conclusion **)
+(** Process full context statement: instantiations + elements + statement **)
 
 (* Interleave incremental parsing and type inference over entire parsed stretch. *)
 
 local
 
 fun prep_full_context_statement
-    parse_typ parse_prop prep_var_elem prep_inst prep_var_inst prep_expr
-    {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_concl ctxt1 =
+    parse_typ parse_prop prep_obtains prep_var_elem prep_inst prep_var_inst prep_expr
+    {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_stmt ctxt1 =
   let
     val thy = Proof_Context.theory_of ctxt1;
 
@@ -374,7 +381,7 @@ fun prep_full_context_statement
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val (insts'', _, _, _) = check_autofix insts' [] [] ctxt;
+        val ((insts'', _, _), _) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst''') ctxt;
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
@@ -389,14 +396,12 @@ fun prep_full_context_statement
         val elems' = parse_elem parse_typ parse_prop ctxt' raw_elem;
       in (elems', ctxt') end;
 
-    fun prep_concl raw_concl (insts, elems, ctxt) =
-      let
-        val concl = parse_concl parse_prop ctxt raw_concl;
-      in check_autofix insts elems concl ctxt end;
-
     val fors = fold_map prep_var_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> Proof_Context.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
+
+    fun prep_stmt elems ctxt =
+      check_autofix insts' elems (prepare_stmt parse_prop prep_obtains ctxt raw_stmt) ctxt;
 
     val _ =
       if fixed_frees then ()
@@ -406,50 +411,51 @@ fun prep_full_context_statement
         | frees => error ("Illegal free variables in expression: " ^
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
-    val ctxt4 = init_body ctxt3;
-    val (elems, ctxt5) = fold_map prep_elem raw_elems ctxt4;
-    val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
+    val ((insts, elems', concl), ctxt4) = ctxt3
+      |> init_body
+      |> fold_map prep_elem raw_elems
+      |-> prep_stmt;
 
 
     (* parameters from expression and elements *)
 
     val xs = maps (fn Fixes fixes => map (Variable.check_name o #1) fixes | _ => [])
       (Fixes fors :: elems');
-    val (parms, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
+    val (parms, ctxt5) = fold_map Proof_Context.inferred_param xs ctxt4;
 
     val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
-    val deps = map (finish_inst ctxt6) insts;
-    val elems'' = map (finish_elem (ctxt1, ctxt6) parms do_close) elems';
+    val deps = map (finish_inst ctxt5) insts;
+    val elems'' = map (finish_elem (ctxt1, ctxt5) parms do_close) elems';
 
-  in ((fixed, deps, elems'', concl), (parms, ctxt7)) end;
+  in ((fixed, deps, elems'', concl), (parms, ctxt5)) end;
 
 in
 
 fun cert_full_context_statement x =
-  prep_full_context_statement (K I) (K I) Proof_Context.cert_var
-  make_inst Proof_Context.cert_var (K I) x;
+  prep_full_context_statement (K I) (K I) Obtain.cert_obtains
+    Proof_Context.cert_var make_inst Proof_Context.cert_var (K I) x;
 
 fun cert_read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_var
-  make_inst Proof_Context.cert_var (K I) x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Obtain.parse_obtains
+    Proof_Context.read_var make_inst Proof_Context.cert_var (K I) x;
 
 fun read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_var
-  parse_inst Proof_Context.read_var check_expr x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Obtain.parse_obtains
+    Proof_Context.read_var parse_inst Proof_Context.read_var check_expr x;
 
 end;
 
 
-(* Context statement: elements + conclusion *)
+(* Context statement: elements + statement *)
 
 local
 
-fun prep_statement prep activate raw_elems raw_concl context =
+fun prep_statement prep activate raw_elems raw_stmt context =
   let
     val ((_, _, elems, concl), _) =
       prep {strict = true, do_close = false, fixed_frees = true}
-        ([], []) I raw_elems raw_concl context;
+        ([], []) I raw_elems raw_stmt context;
     val (_, context') = context
       |> Proof_Context.set_stmt true
       |> fold_map activate elems;
@@ -474,7 +480,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
   let
     val ((fixed, deps, elems, _), (parms, ctxt')) =
       prep {strict = false, do_close = true, fixed_frees = false}
-        raw_import init_body raw_elems [] context;
+        raw_import init_body raw_elems (Element.Shows []) context;
     (* Declare parameters and imported facts *)
     val context' = context |>
       fix_params fixed |>
@@ -510,7 +516,8 @@ fun prep_goal_expression prep expression context =
     val thy = Proof_Context.theory_of context;
 
     val ((fixed, deps, _, _), _) =
-      prep {strict = true, do_close = true, fixed_frees = true} expression I [] [] context;
+      prep {strict = true, do_close = true, fixed_frees = true} expression I []
+        (Element.Shows []) context;
     (* proof obligations *)
     val propss = map (props_of thy) deps;
 

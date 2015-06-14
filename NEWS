@@ -12,6 +12,9 @@ New in this Isabelle version
 * Command 'obtain' binds term abbreviations (via 'is' patterns) in the
 proof body as well, abstracted over relevant parameters.
 
+* Improved type-inference for theorem statement 'obtains': separate
+parameter scope for of each clause.
+
 * Term abbreviations via 'is' patterns also work for schematic
 statements: result is abstracted over unknowns.
 
