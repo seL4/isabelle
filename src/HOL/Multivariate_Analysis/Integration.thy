@@ -639,7 +639,7 @@ lemma gauge_ball_dependent: "\<forall>x. 0 < e x \<Longrightarrow> gauge (\<lamb
 lemma gauge_ball[intro]: "0 < e \<Longrightarrow> gauge (\<lambda>x. ball x e)"
   unfolding gauge_def by auto
 
-lemma gauge_trivial[intro]: "gauge (\<lambda>x. ball x 1)"
+lemma gauge_trivial[intro!]: "gauge (\<lambda>x. ball x 1)"
   by (rule gauge_ball) auto
 
 lemma gauge_inter[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. d1 x \<inter> d2 x)"
@@ -4048,72 +4048,33 @@ proof -
   qed
 qed
 
-
 lemma iterate_image_nonzero:
   assumes "monoidal opp"
-    and "finite s"
-    and "\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<and> f x = f y \<longrightarrow> g (f x) = neutral opp"
-  shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
-  using assms
-proof (induct rule: finite_subset_induct[OF assms(2) subset_refl])
-  case goal1
-  show ?case
-    using assms(1) by auto
-next
-  case goal2
-  have *: "\<And>x y. y = neutral opp \<Longrightarrow> x = opp y x"
-    using assms(1) by auto
-  show ?case
-    unfolding image_insert
-    apply (subst iterate_insert[OF assms(1)])
-    apply (rule finite_imageI goal2)+
-    apply (cases "f a \<in> f ` F")
-    unfolding if_P if_not_P
-    apply (subst goal2(4)[OF assms(1) goal2(1)])
-    defer
-    apply (subst iterate_insert[OF assms(1) goal2(1)])
-    defer
-    apply (subst iterate_insert[OF assms(1) goal2(1)])
-    unfolding if_not_P[OF goal2(3)]
-    defer unfolding image_iff
-    defer
-    apply (erule bexE)
-    apply (rule *)
-    unfolding o_def
-    apply (rule_tac y=x in goal2(7)[rule_format])
-    using goal2
-    unfolding o_def
-    apply auto
-    done
-qed
+      and "finite s"
+      and "\<And>x y. \<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<and> f x = f y \<longrightarrow> g (f x) = neutral opp"
+    shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
+using assms
+by (induct rule: finite_subset_induct[OF assms(2) subset_refl]) auto
 
 lemma operative_tagged_division:
   assumes "monoidal opp"
-    and "operative opp f"
-    and "d tagged_division_of (cbox a b)"
-  shows "iterate opp d (\<lambda>(x,l). f l) = f (cbox a b)"
+      and "operative opp f"
+      and "d tagged_division_of (cbox a b)"
+    shows "iterate opp d (\<lambda>(x,l). f l) = f (cbox a b)"
 proof -
   have *: "(\<lambda>(x,l). f l) = f \<circ> snd"
-    unfolding o_def by rule auto note assm = tagged_division_ofD[OF assms(3)]
-  have "iterate opp d (\<lambda>(x,l). f l) = iterate opp (snd ` d) f"
-    unfolding *
-    apply (rule iterate_image_nonzero[symmetric,OF assms(1)])
-    apply (rule tagged_division_of_finite assms)+
-    unfolding Ball_def split_paired_All snd_conv
-    apply (rule, rule, rule, rule, rule, rule, rule, erule conjE)
-  proof -
-    fix a b aa ba
-    assume as: "(a, b) \<in> d" "(aa, ba) \<in> d" "(a, b) \<noteq> (aa, ba)" "b = ba"
-    guess u v using assm(4)[OF as(1)] by (elim exE) note uv=this
-    show "f b = neutral opp"
-      unfolding uv
+    unfolding o_def by rule auto note tagged = tagged_division_ofD[OF assms(3)]
+  { fix a b a' 
+    assume as: "(a, b) \<in> d" "(a', b) \<in> d" "(a, b) \<noteq> (a', b)" 
+    have "f b = neutral opp"
+      using tagged(4)[OF as(1)] 
+      apply clarify
       apply (rule operativeD(1)[OF assms(2)])
-      unfolding content_eq_0_interior
-      using tagged_division_ofD(5)[OF assms(3) as(1-3)]
-      unfolding as(4)[symmetric] uv
-      apply auto
-      done
-  qed
+      by (metis content_eq_0_interior inf.idem tagged_division_ofD(5)[OF assms(3) as(1-3)])
+  } 
+  then have "iterate opp d (\<lambda>(x,l). f l) = iterate opp (snd ` d) f"
+    unfolding *
+    by (force intro!: assms iterate_image_nonzero[symmetric, OF _ tagged_division_of_finite])
   also have "\<dots> = f (cbox a b)"
     using operative_division[OF assms(1-2) division_of_tagged_division[OF assms(3)]] .
   finally show ?thesis .
@@ -4126,68 +4087,45 @@ lemma setsum_iterate:
   assumes "finite s"
   shows "setsum f s = iterate op + s f"
 proof -
-  have *: "setsum f s = setsum f (support op + f s)"
-    apply (rule setsum.mono_neutral_right)
-    unfolding support_def neutral_add
+  have "setsum f s = setsum f (support op + f s)"
     using assms
-    apply auto
-    done
-  then show ?thesis unfolding * iterate_def fold'_def setsum.eq_fold
-    unfolding neutral_add by (simp add: comp_def)
+    by (auto simp: support_def intro: setsum.mono_neutral_right)
+  then show ?thesis unfolding iterate_def fold'_def setsum.eq_fold
+    by (simp add: comp_def)
 qed
 
 lemma additive_content_division:
-  assumes "d division_of (cbox a b)"
-  shows "setsum content d = content (cbox a b)"
-  unfolding operative_division[OF monoidal_monoid operative_content assms,symmetric]
-  apply (subst setsum_iterate)
-  using assms
-  apply auto
-  done
+    "d division_of (cbox a b) \<Longrightarrow> setsum content d = content (cbox a b)"
+  by (metis division_ofD(1) monoidal_monoid operative_content operative_division setsum_iterate)
 
 lemma additive_content_tagged_division:
-  assumes "d tagged_division_of (cbox a b)"
-  shows "setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
+    "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
   unfolding operative_tagged_division[OF monoidal_monoid operative_content assms,symmetric]
-  apply (subst setsum_iterate)
-  using assms
-  apply auto
-  done
+  using setsum_iterate by blast
 
 
 subsection \<open>Finally, the integral of a constant\<close>
 
-lemma has_integral_const[intro]:
+lemma has_integral_const [intro]:
   fixes a b :: "'a::euclidean_space"
   shows "((\<lambda>x. c) has_integral (content (cbox a b) *\<^sub>R c)) (cbox a b)"
-  unfolding has_integral
-  apply rule
-  apply rule
-  apply (rule_tac x="\<lambda>x. ball x 1" in exI)
-  apply rule
-  apply (rule gauge_trivial)
-  apply rule
-  apply rule
-  apply (erule conjE)
-  unfolding split_def
+  apply (auto intro!: exI [where x="\<lambda>x. ball x 1"] simp: split_def has_integral)
   apply (subst scaleR_left.setsum[symmetric, unfolded o_def])
-  defer
   apply (subst additive_content_tagged_division[unfolded split_def])
-  apply assumption
   apply auto
   done
 
-lemma has_integral_const_real[intro]:
+lemma has_integral_const_real [intro]:
   fixes a b :: real
   shows "((\<lambda>x. c) has_integral (content {a .. b} *\<^sub>R c)) {a .. b}"
   by (metis box_real(2) has_integral_const)
 
-lemma integral_const[simp]:
+lemma integral_const [simp]:
   fixes a b :: "'a::euclidean_space"
   shows "integral (cbox a b) (\<lambda>x. c) = content (cbox a b) *\<^sub>R c"
   by (rule integral_unique) (rule has_integral_const)
 
-lemma integral_const_real[simp]:
+lemma integral_const_real [simp]:
   fixes a b :: real
   shows "integral {a .. b} (\<lambda>x. c) = content {a .. b} *\<^sub>R c"
   by (metis box_real(2) integral_const)
@@ -4355,7 +4293,7 @@ lemma rsum_component_le:
 proof -
   fix a b
   assume ab: "(a, b) \<in> p"
-  note assm = tagged_division_ofD(2-4)[OF assms(1) ab]
+  note tagged = tagged_division_ofD(2-4)[OF assms(1) ab]
   from this(3) guess u v by (elim exE) note b=this
   show "(content b *\<^sub>R f a) \<bullet> i \<le> (content b *\<^sub>R g a) \<bullet> i"
     unfolding b
@@ -4363,7 +4301,7 @@ proof -
     apply (rule mult_left_mono)
     defer
     apply (rule content_pos_le,rule assms(2)[rule_format])
-    using assm
+    using tagged
     apply auto
     done
 qed
