@@ -112,11 +112,10 @@ fun parse_named_pats match_kind =
     | SOME _ => error "Unexpected token value in match cartouche"
     | NONE =>
         let
-          val fixes' = map (fn ((pb, otyp), _) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes;
-          val (fixes'', ctxt1) = fold_map Proof_Context.read_var fixes' ctxt;
-          val (fix_names, ctxt2) = Proof_Context.add_fixes fixes'' ctxt1;
-
-          val ctxt3 = Proof_Context.set_mode Proof_Context.mode_schematic ctxt2;
+          val (fix_names, ctxt3) = ctxt
+            |> Proof_Context.add_fixes_cmd
+              (map (fn ((pb, otyp), _) => (Parse_Tools.the_parse_val pb, otyp, NoSyn)) fixes)
+            ||> Proof_Context.set_mode Proof_Context.mode_schematic;
 
           fun parse_term term =
             if prop_match match_kind

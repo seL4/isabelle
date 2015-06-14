@@ -8,9 +8,42 @@ theory Structured_Statements
 imports Main
 begin
 
+subsection \<open>Introduction steps\<close>
+
 notepad
 begin
+  fix A B :: bool
+  fix P :: "'a \<Rightarrow> bool"
 
+  have "A \<longrightarrow> B"
+  proof
+    show B if A using that sorry
+  qed
+
+  have "\<not> A"
+  proof
+    show False if A using that sorry
+  qed
+
+  have "\<forall>x. P x"
+  proof
+    show "P x" for x sorry
+  qed
+end
+
+
+subsection \<open>If-and-only-if\<close>
+
+notepad
+begin
+  fix A B :: bool
+
+  have "A \<longleftrightarrow> B"
+  proof
+    show B if A sorry
+    show A if B sorry
+  qed
+next
   fix A B :: bool
 
   have iff_comm: "(A \<and> B) \<longleftrightarrow> (B \<and> A)"
@@ -38,7 +71,63 @@ begin
     then show "A \<and> B" if "B \<and> A"
       by this (rule that)
   qed
+end
 
+
+subsection \<open>Elimination and cases\<close>
+
+notepad
+begin
+  fix A B C D :: bool
+  assume *: "A \<or> B \<or> C \<or> D"
+
+  consider (a) A | (b) B | (c) C | (d) D
+    using * by blast
+  then have something
+  proof cases
+    case a  thm \<open>A\<close>
+    then show ?thesis sorry
+  next
+    case b  thm \<open>B\<close>
+    then show ?thesis sorry
+  next
+    case c  thm \<open>C\<close>
+    then show ?thesis sorry
+  next
+    case d  thm \<open>D\<close>
+    then show ?thesis sorry
+  qed
+next
+  fix A :: "'a \<Rightarrow> bool"
+  fix B :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
+  assume *: "(\<exists>x. A x) \<or> (\<exists>y z. B y z)"
+
+  consider (a) x where "A x" | (b) y z where "B y z"
+    using * by blast
+  then have something
+  proof cases
+    case a  thm \<open>A x\<close>
+    then show ?thesis sorry
+  next
+    case b  thm \<open>B y z\<close>
+    then show ?thesis sorry
+  qed
+end
+
+
+subsection \<open>Induction\<close>
+
+notepad
+begin
+  fix P :: "nat \<Rightarrow> bool"
+  fix n :: nat
+
+  have "P n"
+  proof (induct n)
+    show "P 0" sorry
+    show "P (Suc n)" if "P n" for n  thm \<open>P n\<close>
+      using that sorry
+  qed
 end
 
 end
