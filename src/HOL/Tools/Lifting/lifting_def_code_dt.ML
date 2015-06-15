@@ -737,7 +737,7 @@ fun quot_thm_err ctxt (rty, qty) pretty_msg =
 fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
   let
     val (_, ctxt') = Proof_Context.read_var raw_var ctxt
-    val rhs = (Syntax.check_term ctxt' o Syntax.parse_term ctxt') rhs_raw
+    val rhs = Syntax.read_term ctxt' rhs_raw
     val error_msg = cat_lines
        ["Lifting failed for the following term:",
         Pretty.string_of (Pretty.block
@@ -761,7 +761,7 @@ fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
     val config = evaluate_params params
     val ((binding, SOME qty, mx), lthy) = Proof_Context.read_var raw_var lthy
     val var = (binding, mx)
-    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
+    val rhs = Syntax.read_term lthy rhs_raw
     val par_thms = Attrib.eval_thms lthy par_xthms
     val (goal, after_qed) = prepare_lift_def (add_lift_def_code_dt config) var qty rhs par_thms lthy
     val (goal, after_qed) =
