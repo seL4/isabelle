@@ -191,28 +191,28 @@ text \<open>
   \<close>}
 
   \begin{description}
-  
+
   \item @{command "fix"}~@{text x} introduces a local variable @{text
   x} that is \emph{arbitrary, but fixed.}
-  
+
   \item @{command "assume"}~@{text "a: \<phi>"} and @{command
   "presume"}~@{text "a: \<phi>"} introduce a local fact @{text "\<phi> \<turnstile> \<phi>"} by
   assumption.  Subsequent results applied to an enclosing goal (e.g.\
   by @{command_ref "show"}) are handled as follows: @{command
   "assume"} expects to be able to unify with existing premises in the
   goal, while @{command "presume"} leaves @{text \<phi>} as new subgoals.
-  
+
   Several lists of assumptions may be given (separated by
   @{keyword_ref "and"}; the resulting list of current facts consists
   of all of these concatenated.
-  
+
   \item @{command "def"}~@{text "x \<equiv> t"} introduces a local
   (non-polymorphic) definition.  In results exported from the context,
   @{text x} is replaced by @{text t}.  Basically, ``@{command
   "def"}~@{text "x \<equiv> t"}'' abbreviates ``@{command "fix"}~@{text
   x}~@{command "assume"}~@{text "x \<equiv> t"}'', with the resulting
   hypothetical equation solved by reflexivity.
-  
+
   The default name for the definitional equation is @{text x_def}.
   Several simultaneous definitions may be given at the same time.
 
@@ -333,19 +333,19 @@ text \<open>
   rather than an introduction.  Automatic methods usually insert the
   facts into the goal state before operation.  This provides a simple
   scheme to control relevance of facts in automated proof search.
-  
+
   \item @{command "from"}~@{text b} abbreviates ``@{command
   "note"}~@{text b}~@{command "then"}''; thus @{command "then"} is
   equivalent to ``@{command "from"}~@{text this}''.
-  
+
   \item @{command "with"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} abbreviates ``@{command
   "from"}~@{text "b\<^sub>1 \<dots> b\<^sub>n \<AND> this"}''; thus the forward chaining
   is from earlier facts together with the current ones.
-  
+
   \item @{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} augments the facts being
   currently indicated for use by a subsequent refinement step (such as
   @{command_ref "apply"} or @{command_ref "proof"}).
-  
+
   \item @{command "unfolding"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} is structurally
   similar to @{command "using"}, but unfolds definitional equations
   @{text "b\<^sub>1, \<dots> b\<^sub>n"} throughout the goal state and facts.
@@ -431,7 +431,7 @@ text \<open>
     ;
     @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
-  
+
     stmt: (@{syntax props} + @'and')
     ;
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
@@ -446,7 +446,7 @@ text \<open>
   \<close>}
 
   \begin{description}
-  
+
   \item @{command "lemma"}~@{text "a: \<phi>"} enters proof mode with
   @{text \<phi>} as main goal, eventually resulting in some fact @{text "\<turnstile>
   \<phi>"} to be put back into the target context.  An additional @{syntax
@@ -454,7 +454,7 @@ text \<open>
   subsequent claim; this includes local definitions and syntax as
   well, see also @{syntax "includes"} in \secref{sec:bundle} and
   @{syntax context_elem} in \secref{sec:locale}.
-  
+
   \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
   "corollary"}~@{text "a: \<phi>"} are essentially the same as @{command
   "lemma"}~@{text "a: \<phi>"}, but the facts are internally marked as
@@ -472,20 +472,20 @@ text \<open>
   With schematic statements, the inherent compositionality of Isar
   proofs is lost, which also impacts performance, because proof
   checking is forced into sequential mode.
-  
+
   \item @{command "have"}~@{text "a: \<phi>"} claims a local goal,
   eventually resulting in a fact within the current logical context.
   This operation is completely independent of any pending sub-goals of
   an enclosing goal statements, so @{command "have"} may be freely
   used for experimental exploration of potential results within a
   proof body.
-  
+
   \item @{command "show"}~@{text "a: \<phi>"} is like @{command
   "have"}~@{text "a: \<phi>"} plus a second stage to refine some pending
   sub-goal for each one of the finished result, after having been
   exported into the corresponding context (at the head of the
   sub-proof of this @{command "show"} command).
-  
+
   To accommodate interactive debugging, resulting rules are printed
   before being applied internally.  Even more, interactive execution
   of @{command "show"} predicts potential failure and displays the
@@ -496,16 +496,16 @@ text \<open>
   \begin{ttbox}
   Problem! Local statement will fail to solve any pending goal
   \end{ttbox}
-  
+
   \item @{command "hence"} abbreviates ``@{command "then"}~@{command
   "have"}'', i.e.\ claims a local goal to be proven by forward
   chaining the current facts.  Note that @{command "hence"} is also
   equivalent to ``@{command "from"}~@{text this}~@{command "have"}''.
-  
+
   \item @{command "thus"} abbreviates ``@{command "then"}~@{command
   "show"}''.  Note that @{command "thus"} is also equivalent to
   ``@{command "from"}~@{text this}~@{command "show"}''.
-  
+
   \item @{command "print_statement"}~@{text a} prints facts from the
   current theory or proof context in long statement form, according to
   the syntax for @{command "lemma"} given above.
@@ -520,6 +520,117 @@ text \<open>
   special fact @{fact_ref that} to refer to these assumptions in the proof
   body. The user may provide separate names according to the syntax of the
   statement.
+\<close>
+
+
+section \<open>Calculational reasoning \label{sec:calculation}\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def "also"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "finally"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "moreover"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "ultimately"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "print_trans_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute trans} & : & @{text attribute} \\
+    @{attribute sym} & : & @{text attribute} \\
+    @{attribute symmetric} & : & @{text attribute} \\
+  \end{matharray}
+
+  Calculational proof is forward reasoning with implicit application
+  of transitivity rules (such those of @{text "="}, @{text "\<le>"},
+  @{text "<"}).  Isabelle/Isar maintains an auxiliary fact register
+  @{fact_ref calculation} for accumulating results obtained by
+  transitivity composed with the current result.  Command @{command
+  "also"} updates @{fact calculation} involving @{fact this}, while
+  @{command "finally"} exhibits the final @{fact calculation} by
+  forward chaining towards the next goal statement.  Both commands
+  require valid current facts, i.e.\ may occur only after commands
+  that produce theorems such as @{command "assume"}, @{command
+  "note"}, or some finished proof of @{command "have"}, @{command
+  "show"} etc.  The @{command "moreover"} and @{command "ultimately"}
+  commands are similar to @{command "also"} and @{command "finally"},
+  but only collect further results in @{fact calculation} without
+  applying any rules yet.
+
+  Also note that the implicit term abbreviation ``@{text "\<dots>"}'' has
+  its canonical application with calculational proofs.  It refers to
+  the argument of the preceding statement. (The argument of a curried
+  infix expression happens to be its right-hand side.)
+
+  Isabelle/Isar calculations are implicitly subject to block structure
+  in the sense that new threads of calculational reasoning are
+  commenced for any new block (as opened by a local goal, for
+  example).  This means that, apart from being able to nest
+  calculations, there is no separate \emph{begin-calculation} command
+  required.
+
+  \medskip The Isar calculation proof commands may be defined as
+  follows:\footnote{We suppress internal bookkeeping such as proper
+  handling of block-structure.}
+
+  \begin{matharray}{rcl}
+    @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
+    @{command "also"}@{text "\<^sub>n+1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
+    @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
+    @{command "moreover"} & \equiv & @{command "note"}~@{text "calculation = calculation this"} \\
+    @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\
+  \end{matharray}
+
+  @{rail \<open>
+    (@@{command also} | @@{command finally}) ('(' @{syntax thmrefs} ')')?
+    ;
+    @@{attribute trans} (() | 'add' | 'del')
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintains the auxiliary
+  @{fact calculation} register as follows.  The first occurrence of
+  @{command "also"} in some calculational thread initializes @{fact
+  calculation} by @{fact this}. Any subsequent @{command "also"} on
+  the same level of block-structure updates @{fact calculation} by
+  some transitivity rule applied to @{fact calculation} and @{fact
+  this} (in that order).  Transitivity rules are picked from the
+  current context, unless alternative rules are given as explicit
+  arguments.
+
+  \item @{command "finally"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintaining @{fact
+  calculation} in the same way as @{command "also"}, and concludes the
+  current calculational thread.  The final result is exhibited as fact
+  for forward chaining towards the next goal. Basically, @{command
+  "finally"} just abbreviates @{command "also"}~@{command
+  "from"}~@{fact calculation}.  Typical idioms for concluding
+  calculational proofs are ``@{command "finally"}~@{command
+  "show"}~@{text ?thesis}~@{command "."}'' and ``@{command
+  "finally"}~@{command "have"}~@{text \<phi>}~@{command "."}''.
+
+  \item @{command "moreover"} and @{command "ultimately"} are
+  analogous to @{command "also"} and @{command "finally"}, but collect
+  results only, without applying rules.
+
+  \item @{command "print_trans_rules"} prints the list of transitivity
+  rules (for calculational commands @{command "also"} and @{command
+  "finally"}) and symmetry rules (for the @{attribute symmetric}
+  operation and single step elimination patters) of the current
+  context.
+
+  \item @{attribute trans} declares theorems as transitivity rules.
+
+  \item @{attribute sym} declares symmetry rules, as well as
+  @{attribute "Pure.elim"}@{text "?"} rules.
+
+  \item @{attribute symmetric} resolves a theorem with some rule
+  declared as @{attribute sym} in the current context.  For example,
+  ``@{command "assume"}~@{text "[symmetric]: x = y"}'' produces a
+  swapped fact derived from that assumption.
+
+  In structured proof texts it is often more appropriate to use an
+  explicit single-step elimination proof, such as ``@{command
+  "assume"}~@{text "x = y"}~@{command "then"}~@{command "have"}~@{text
+  "y = x"}~@{command ".."}''.
+
+  \end{description}
 \<close>
 
 
@@ -606,7 +717,7 @@ text \<open>
   of sub-goals that are to be solved later.  Facts are passed to
   @{text "m\<^sub>1"} for forward chaining, if so indicated by @{text
   "proof(chain)"} mode.
-  
+
   \item A \emph{terminal} conclusion step @{command_ref "qed"}~@{text
   "m\<^sub>2"} is intended to solve remaining goals.  No facts are
   passed to @{text "m\<^sub>2"}.
@@ -644,11 +755,11 @@ text \<open>
   \<close>}
 
   \begin{description}
-  
+
   \item @{command "proof"}~@{text "m\<^sub>1"} refines the goal by proof
   method @{text "m\<^sub>1"}; facts for forward chaining are passed if so
   indicated by @{text "proof(chain)"} mode.
-  
+
   \item @{command "qed"}~@{text "m\<^sub>2"} refines any remaining goals by
   proof method @{text "m\<^sub>2"} and concludes the sub-proof by assumption.
   If the goal had been @{text "show"} (or @{text "thus"}), some
@@ -661,7 +772,7 @@ text \<open>
   situation might involve temporarily changing @{command "show"} into
   @{command "have"}, or weakening the local context by replacing
   occurrences of @{command "assume"} by @{command "presume"}.
-  
+
   \item @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} is a \emph{terminal
   proof}\index{proof!terminal}; it abbreviates @{command
   "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"}, but with
@@ -678,7 +789,7 @@ text \<open>
   \item ``@{command "."}'' is a \emph{trivial
   proof}\index{proof!trivial}; it abbreviates @{command "by"}~@{text
   "this"}.
-  
+
   \item @{command "sorry"} is a \emph{fake proof}\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the @{attribute
@@ -686,7 +797,7 @@ text \<open>
   proofs are not the real thing.  Internally, the derivation object is
   tainted by an oracle invocation, which may be inspected via the
   theorem status @{cite "isabelle-implementation"}.
-  
+
   The most important application of @{command "sorry"} is to support
   experimentation and top-down proof development.
 
@@ -739,7 +850,7 @@ text \<open>
   \<close>}
 
   \begin{description}
-  
+
   \item @{command "print_rules"} prints rules declared via attributes
   @{attribute (Pure) intro}, @{attribute (Pure) elim}, @{attribute
   (Pure) dest} of Isabelle/Pure.
@@ -754,7 +865,7 @@ text \<open>
   reduction step using the @{method_ref (Pure) rule} method; thus a plain
   \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
   "-"}'' rather than @{command "proof"} alone.
-  
+
   \item @{method "fact"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} composes some fact from
   @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (or implicitly from the current proof context)
   modulo unification of schematic type and term variables.  The rule
@@ -765,7 +876,7 @@ text \<open>
   "note"}~@{verbatim "`"}@{text \<phi>}@{verbatim "`"}'' provided that
   @{text "\<turnstile> \<phi>"} is an instance of some known @{text "\<turnstile> \<phi>"} in the
   proof context.
-  
+
   \item @{method assumption} solves some goal by a single assumption
   step.  All given facts are guaranteed to participate in the
   refinement; this means there may be only 0 or 1 in the first place.
@@ -773,34 +884,34 @@ text \<open>
   concludes any remaining sub-goals by assumption, so structured
   proofs usually need not quote the @{method assumption} method at
   all.
-  
+
   \item @{method this} applies all of the current facts directly as
   rules.  Recall that ``@{command "."}'' (dot) abbreviates ``@{command
   "by"}~@{text this}''.
-  
+
   \item @{method (Pure) rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some rule given as
   argument in backward manner; facts are used to reduce the rule
   before applying it to the goal.  Thus @{method (Pure) rule} without facts
   is plain introduction, while with facts it becomes elimination.
-  
+
   When no arguments are given, the @{method (Pure) rule} method tries to pick
   appropriate rules automatically, as declared in the current context
   using the @{attribute (Pure) intro}, @{attribute (Pure) elim},
   @{attribute (Pure) dest} attributes (see below).  This is the
-  default behavior of @{command "proof"} and ``@{command ".."}'' 
+  default behavior of @{command "proof"} and ``@{command ".."}''
   (double-dot) steps (see \secref{sec:proof-steps}).
-  
+
   \item @{attribute (Pure) intro}, @{attribute (Pure) elim}, and
   @{attribute (Pure) dest} declare introduction, elimination, and
   destruct rules, to be used with method @{method (Pure) rule}, and similar
   tools.  Note that the latter will ignore rules declared with
   ``@{text "?"}'', while ``@{text "!"}''  are used most aggressively.
-  
+
   The classical reasoner (see \secref{sec:classical}) introduces its
   own variants of these attributes; use qualified names to access the
   present versions of Isabelle/Pure, i.e.\ @{attribute (Pure)
   "Pure.intro"}.
-  
+
   \item @{attribute (Pure) rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
 
@@ -815,7 +926,7 @@ text \<open>
   Argument positions may be effectively skipped by using ``@{text _}''
   (underscore), which refers to the propositional identity rule in the
   Pure theory.
-  
+
   \item @{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"} performs positional
   instantiation of term variables.  The terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"} are
   substituted for any schematic variables occurring in a theorem from
@@ -826,7 +937,7 @@ text \<open>
   An optional context of local variables @{text "\<FOR> x\<^sub>1 \<dots> x\<^sub>m"} may
   be specified: the instantiated theorem is exported, and these
   variables become schematic (usually with some shifting of indices).
-  
+
   \item @{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots> x\<^sub>n = t\<^sub>n"}
   performs named instantiation of schematic type and term variables
   occurring in a theorem.  Schematic variables have to be specified on
@@ -884,22 +995,22 @@ text \<open>
   initial position, but unlike @{command "proof"} it retains ``@{text
   "proof(prove)"}'' mode.  Thus consecutive method applications may be
   given just as in tactic scripts.
-  
+
   Facts are passed to @{text m} as indicated by the goal's
   forward-chain mode, and are \emph{consumed} afterwards.  Thus any
   further @{command "apply"} command would always work in a purely
   backward manner.
-  
+
   \item @{command "apply_end"}~@{text "m"} applies proof method @{text
   m} as if in terminal position.  Basically, this simulates a
   multi-step tactic script for @{command "qed"}, but may be given
   anywhere within the proof body.
-  
+
   No facts are passed to @{text m} here.  Furthermore, the static
   context is that of the enclosing goal (as for actual @{command
   "qed"}).  Thus the proof method may not refer to any assumptions
   introduced in the current body, for example.
-  
+
   \item @{command "done"} completes a proof script, provided that the
   current goal state is solved completely.  Note that actual
   structured proof commands (e.g.\ ``@{command "."}'' or @{command
@@ -910,13 +1021,13 @@ text \<open>
   sub-goal @{text n} to the end of the list (@{text "n = 1"} by
   default), while @{command "prefer"} brings sub-goal @{text n} to the
   front.
-  
+
   \item @{command "back"} does back-tracking over the result sequence
   of the latest proof command.  Any proof command may return multiple
   results, and this command explores the possibilities step-by-step.
   It is mainly useful for experimentation and interactive exploration,
   and should be avoided in finished proofs.
-  
+
   \end{description}
 
   Any proper Isar proof method may be used with tactic script commands
@@ -969,6 +1080,411 @@ text \<open>
       SIMPLE_METHOD' (fn i: int => no_tac))\<close>
     "my third method (with theorem arguments and context)"
 (*<*)end(*>*)
+
+
+section \<open>Proof by cases and induction \label{sec:cases-induct}\<close>
+
+subsection \<open>Rule contexts\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def "case"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "print_cases"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def case_names} & : & @{text attribute} \\
+    @{attribute_def case_conclusion} & : & @{text attribute} \\
+    @{attribute_def params} & : & @{text attribute} \\
+    @{attribute_def consumes} & : & @{text attribute} \\
+  \end{matharray}
+
+  The puristic way to build up Isar proof contexts is by explicit
+  language elements like @{command "fix"}, @{command "assume"},
+  @{command "let"} (see \secref{sec:proof-context}).  This is adequate
+  for plain natural deduction, but easily becomes unwieldy in concrete
+  verification tasks, which typically involve big induction rules with
+  several cases.
+
+  The @{command "case"} command provides a shorthand to refer to a
+  local context symbolically: certain proof methods provide an
+  environment of named ``cases'' of the form @{text "c: x\<^sub>1, \<dots>,
+  x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>n"}; the effect of ``@{command
+  "case"}~@{text c}'' is then equivalent to ``@{command "fix"}~@{text
+  "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"}''.  Term bindings may be covered as well, notably
+  @{variable ?case} for the main conclusion.
+
+  By default, the ``terminology'' @{text "x\<^sub>1, \<dots>, x\<^sub>m"} of
+  a case value is marked as hidden, i.e.\ there is no way to refer to
+  such parameters in the subsequent proof text.  After all, original
+  rule parameters stem from somewhere outside of the current proof
+  text.  By using the explicit form ``@{command "case"}~@{text "(c
+  y\<^sub>1 \<dots> y\<^sub>m)"}'' instead, the proof author is able to
+  chose local names that fit nicely into the current context.
+
+  \medskip It is important to note that proper use of @{command
+  "case"} does not provide means to peek at the current goal state,
+  which is not directly observable in Isar!  Nonetheless, goal
+  refinement commands do provide named cases @{text "goal\<^sub>i"}
+  for each subgoal @{text "i = 1, \<dots>, n"} of the resulting goal state.
+  Using this extra feature requires great care, because some bits of
+  the internal tactical machinery intrude the proof text.  In
+  particular, parameter names stemming from the left-over of automated
+  reasoning tools are usually quite unpredictable.
+
+  Under normal circumstances, the text of cases emerge from standard
+  elimination or induction rules, which in turn are derived from
+  previous theory specifications in a canonical way (say from
+  @{command "inductive"} definitions).
+
+  \medskip Proper cases are only available if both the proof method
+  and the rules involved support this.  By using appropriate
+  attributes, case names, conclusions, and parameters may be also
+  declared by hand.  Thus variant versions of rules that have been
+  derived manually become ready to use in advanced case analysis
+  later.
+
+  @{rail \<open>
+    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) *) ')')
+    ;
+    caseref: nameref attributes?
+    ;
+
+    @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
+    ;
+    @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
+    ;
+    @@{attribute params} ((@{syntax name} * ) + @'and')
+    ;
+    @@{attribute consumes} @{syntax int}?
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
+  context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an
+  appropriate proof method (such as @{method_ref cases} and
+  @{method_ref induct}).  The command ``@{command "case"}~@{text "(c
+  x\<^sub>1 \<dots> x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
+  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''.
+
+  \item @{command "print_cases"} prints all local contexts of the
+  current state, using Isar proof language notation.
+
+  \item @{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"} declares names for
+  the local contexts of premises of a theorem; @{text "c\<^sub>1, \<dots>, c\<^sub>k"}
+  refers to the \emph{prefix} of the list of premises. Each of the
+  cases @{text "c\<^sub>i"} can be of the form @{text "c[h\<^sub>1 \<dots> h\<^sub>n]"} where
+  the @{text "h\<^sub>1 \<dots> h\<^sub>n"} are the names of the hypotheses in case @{text "c\<^sub>i"}
+  from left to right.
+
+  \item @{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots> d\<^sub>k"} declares
+  names for the conclusions of a named premise @{text c}; here @{text
+  "d\<^sub>1, \<dots>, d\<^sub>k"} refers to the prefix of arguments of a logical formula
+  built by nesting a binary connective (e.g.\ @{text "\<or>"}).
+
+  Note that proof methods such as @{method induct} and @{method
+  coinduct} already provide a default name for the conclusion as a
+  whole.  The need to name subformulas only arises with cases that
+  split into several sub-cases, as in common co-induction rules.
+
+  \item @{attribute params}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots> q\<^sub>1 \<dots> q\<^sub>n"} renames
+  the innermost parameters of premises @{text "1, \<dots>, n"} of some
+  theorem.  An empty list of names may be given to skip positions,
+  leaving the present parameters unchanged.
+
+  Note that the default usage of case rules does \emph{not} directly
+  expose parameters to the proof context.
+
+  \item @{attribute consumes}~@{text n} declares the number of ``major
+  premises'' of a rule, i.e.\ the number of facts to be consumed when
+  it is applied by an appropriate proof method.  The default value of
+  @{attribute consumes} is @{text "n = 1"}, which is appropriate for
+  the usual kind of cases and induction rules for inductive sets (cf.\
+  \secref{sec:hol-inductive}).  Rules without any @{attribute
+  consumes} declaration given are treated as if @{attribute
+  consumes}~@{text 0} had been specified.
+
+  A negative @{text n} is interpreted relatively to the total number
+  of premises of the rule in the target context.  Thus its absolute
+  value specifies the remaining number of premises, after subtracting
+  the prefix of major premises as indicated above. This form of
+  declaration has the technical advantage of being stable under more
+  morphisms, notably those that export the result from a nested
+  @{command_ref context} with additional assumptions.
+
+  Note that explicit @{attribute consumes} declarations are only
+  rarely needed; this is already taken care of automatically by the
+  higher-level @{attribute cases}, @{attribute induct}, and
+  @{attribute coinduct} declarations.
+
+  \end{description}
+\<close>
+
+
+subsection \<open>Proof methods\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def cases} & : & @{text method} \\
+    @{method_def induct} & : & @{text method} \\
+    @{method_def induction} & : & @{text method} \\
+    @{method_def coinduct} & : & @{text method} \\
+  \end{matharray}
+
+  The @{method cases}, @{method induct}, @{method induction},
+  and @{method coinduct}
+  methods provide a uniform interface to common proof techniques over
+  datatypes, inductive predicates (or sets), recursive functions etc.
+  The corresponding rules may be specified and instantiated in a
+  casual manner.  Furthermore, these methods provide named local
+  contexts that may be invoked via the @{command "case"} proof command
+  within the subsequent proof text.  This accommodates compact proof
+  texts even when reasoning about large specifications.
+
+  The @{method induct} method also provides some additional
+  infrastructure in order to be applicable to structure statements
+  (either using explicit meta-level connectives, or including facts
+  and parameters separately).  This avoids cumbersome encoding of
+  ``strengthened'' inductive statements within the object-logic.
+
+  Method @{method induction} differs from @{method induct} only in
+  the names of the facts in the local context invoked by the @{command "case"}
+  command.
+
+  @{rail \<open>
+    @@{method cases} ('(' 'no_simp' ')')? \<newline>
+      (@{syntax insts} * @'and') rule?
+    ;
+    (@@{method induct} | @@{method induction})
+      ('(' 'no_simp' ')')? (definsts * @'and') \<newline> arbitrary? taking? rule?
+    ;
+    @@{method coinduct} @{syntax insts} taking rule?
+    ;
+
+    rule: ('type' | 'pred' | 'set') ':' (@{syntax nameref} +) | 'rule' ':' (@{syntax thmref} +)
+    ;
+    definst: @{syntax name} ('==' | '\<equiv>') @{syntax term} | '(' @{syntax term} ')' | @{syntax inst}
+    ;
+    definsts: ( definst * )
+    ;
+    arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
+    ;
+    taking: 'taking' ':' @{syntax insts}
+  \<close>}
+
+  \begin{description}
+
+  \item @{method cases}~@{text "insts R"} applies method @{method
+  rule} with an appropriate case distinction theorem, instantiated to
+  the subjects @{text insts}.  Symbolic case names are bound according
+  to the rule's local contexts.
+
+  The rule is determined as follows, according to the facts and
+  arguments passed to the @{method cases} method:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                 & arguments   & rule \\\hline
+    @{text "\<turnstile> R"}   & @{method cases} &             & implicit rule @{text R} \\
+                    & @{method cases} &             & classical case split \\
+                    & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
+    @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\
+    @{text "\<dots>"}     & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+  \medskip
+
+  Several instantiations may be given, referring to the \emph{suffix}
+  of premises of the case rule; within each premise, the \emph{prefix}
+  of variables is instantiated.  In most situations, only a single
+  term needs to be specified; this refers to the first variable of the
+  last premise (it is usually the same for all cases).  The @{text
+  "(no_simp)"} option can be used to disable pre-simplification of
+  cases (see the description of @{method induct} below for details).
+
+  \item @{method induct}~@{text "insts R"} and
+  @{method induction}~@{text "insts R"} are analogous to the
+  @{method cases} method, but refer to induction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                  & arguments            & rule \\\hline
+                    & @{method induct} & @{text "P x"}        & datatype induction (type of @{text x}) \\
+    @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"}          & predicate/set induction (of @{text A}) \\
+    @{text "\<dots>"}     & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+  \medskip
+
+  Several instantiations may be given, each referring to some part of
+  a mutual inductive definition or datatype --- only related partial
+  induction rules may be used together, though.  Any of the lists of
+  terms @{text "P, x, \<dots>"} refers to the \emph{suffix} of variables
+  present in the induction rule.  This enables the writer to specify
+  only induction variables, or both predicates and variables, for
+  example.
+
+  Instantiations may be definitional: equations @{text "x \<equiv> t"}
+  introduce local definitions, which are inserted into the claim and
+  discharged after applying the induction rule.  Equalities reappear
+  in the inductive cases, but have been transformed according to the
+  induction principle being involved here.  In order to achieve
+  practically useful induction hypotheses, some variables occurring in
+  @{text t} need to be fixed (see below).  Instantiations of the form
+  @{text t}, where @{text t} is not a variable, are taken as a
+  shorthand for \mbox{@{text "x \<equiv> t"}}, where @{text x} is a fresh
+  variable. If this is not intended, @{text t} has to be enclosed in
+  parentheses.  By default, the equalities generated by definitional
+  instantiations are pre-simplified using a specific set of rules,
+  usually consisting of distinctness and injectivity theorems for
+  datatypes. This pre-simplification may cause some of the parameters
+  of an inductive case to disappear, or may even completely delete
+  some of the inductive cases, if one of the equalities occurring in
+  their premises can be simplified to @{text False}.  The @{text
+  "(no_simp)"} option can be used to disable pre-simplification.
+  Additional rules to be used in pre-simplification can be declared
+  using the @{attribute_def induct_simp} attribute.
+
+  The optional ``@{text "arbitrary: x\<^sub>1 \<dots> x\<^sub>m"}''
+  specification generalizes variables @{text "x\<^sub>1, \<dots>,
+  x\<^sub>m"} of the original goal before applying induction.  One can
+  separate variables by ``@{text "and"}'' to generalize them in other
+  goals then the first. Thus induction hypotheses may become
+  sufficiently general to get the proof through.  Together with
+  definitional instantiations, one may effectively perform induction
+  over expressions of a certain structure.
+
+  The optional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
+  specification provides additional instantiations of a prefix of
+  pending variables in the rule.  Such schematic induction rules
+  rarely occur in practice, though.
+
+  \item @{method coinduct}~@{text "inst R"} is analogous to the
+  @{method induct} method, but refers to coinduction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    goal          &                    & arguments & rule \\\hline
+                  & @{method coinduct} & @{text x} & type coinduction (type of @{text x}) \\
+    @{text "A x"} & @{method coinduct} & @{text "\<dots>"} & predicate/set coinduction (of @{text A}) \\
+    @{text "\<dots>"}   & @{method coinduct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+
+  Coinduction is the dual of induction.  Induction essentially
+  eliminates @{text "A x"} towards a generic result @{text "P x"},
+  while coinduction introduces @{text "A x"} starting with @{text "B
+  x"}, for a suitable ``bisimulation'' @{text B}.  The cases of a
+  coinduct rule are typically named after the predicates or sets being
+  covered, while the conclusions consist of several alternatives being
+  named after the individual destructor patterns.
+
+  The given instantiation refers to the \emph{suffix} of variables
+  occurring in the rule's major premise, or conclusion if unavailable.
+  An additional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
+  specification may be required in order to specify the bisimulation
+  to be used in the coinduction step.
+
+  \end{description}
+
+  Above methods produce named local contexts, as determined by the
+  instantiated rule as given in the text.  Beyond that, the @{method
+  induct} and @{method coinduct} methods guess further instantiations
+  from the goal specification itself.  Any persisting unresolved
+  schematic variables of the resulting rule will render the the
+  corresponding case invalid.  The term binding @{variable ?case} for
+  the conclusion will be provided with each case, provided that term
+  is fully specified.
+
+  The @{command "print_cases"} command prints all named cases present
+  in the current proof state.
+
+  \medskip Despite the additional infrastructure, both @{method cases}
+  and @{method coinduct} merely apply a certain rule, after
+  instantiation, while conforming due to the usual way of monotonic
+  natural deduction: the context of a structured statement @{text
+  "\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<dots>"}
+  reappears unchanged after the case split.
+
+  The @{method induct} method is fundamentally different in this
+  respect: the meta-level structure is passed through the
+  ``recursive'' course involved in the induction.  Thus the original
+  statement is basically replaced by separate copies, corresponding to
+  the induction hypotheses and conclusion; the original goal context
+  is no longer available.  Thus local assumptions, fixed parameters
+  and definitions effectively participate in the inductive rephrasing
+  of the original statement.
+
+  In @{method induct} proofs, local assumptions introduced by cases are split
+  into two different kinds: @{text hyps} stemming from the rule and
+  @{text prems} from the goal statement.  This is reflected in the
+  extracted cases accordingly, so invoking ``@{command "case"}~@{text
+  c}'' will provide separate facts @{text c.hyps} and @{text c.prems},
+  as well as fact @{text c} to hold the all-inclusive list.
+
+  In @{method induction} proofs, local assumptions introduced by cases are
+  split into three different kinds: @{text IH}, the induction hypotheses,
+  @{text hyps}, the remaining hypotheses stemming from the rule, and
+  @{text prems}, the assumptions from the goal statement. The names are
+  @{text c.IH}, @{text c.hyps} and @{text c.prems}, as above.
+
+
+  \medskip Facts presented to either method are consumed according to
+  the number of ``major premises'' of the rule involved, which is
+  usually 0 for plain cases and induction rules of datatypes etc.\ and
+  1 for rules of inductive predicates or sets and the like.  The
+  remaining facts are inserted into the goal verbatim before the
+  actual @{text cases}, @{text induct}, or @{text coinduct} rule is
+  applied.
+\<close>
+
+
+subsection \<open>Declaring rules\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def cases} & : & @{text attribute} \\
+    @{attribute_def induct} & : & @{text attribute} \\
+    @{attribute_def coinduct} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{attribute cases} spec
+    ;
+    @@{attribute induct} spec
+    ;
+    @@{attribute coinduct} spec
+    ;
+
+    spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "print_induct_rules"} prints cases and induct rules
+  for predicates (or sets) and types of the current context.
+
+  \item @{attribute cases}, @{attribute induct}, and @{attribute
+  coinduct} (as attributes) declare rules for reasoning about
+  (co)inductive predicates (or sets) and types, using the
+  corresponding methods of the same name.  Certain definitional
+  packages of object-logics usually declare emerging cases and
+  induction rules as expected, so users rarely need to intervene.
+
+  Rules may be deleted via the @{text "del"} specification, which
+  covers all of the @{text "type"}/@{text "pred"}/@{text "set"}
+  sub-categories simultaneously.  For example, @{attribute
+  cases}~@{text del} removes any @{attribute cases} rules declared for
+  some type, predicate, or set.
+
+  Manual rule declarations usually refer to the @{attribute
+  case_names} and @{attribute params} attributes to adjust names of
+  cases and parameters of a rule; the @{attribute consumes}
+  declaration is taken care of automatically: @{attribute
+  consumes}~@{text 0} is specified for ``type'' rules and @{attribute
+  consumes}~@{text 1} for ``predicate'' / ``set'' rules.
+
+  \end{description}
+\<close>
 
 
 section \<open>Generalized elimination and case splitting \label{sec:obtain}\<close>
@@ -1090,522 +1606,6 @@ text \<open>
   may not be polymorphic: any type-variables occurring here are fixed in the
   present context. This is a natural consequence of the role of @{command
   fix} and @{command assume} in these constructs.
-\<close>
-
-
-section \<open>Calculational reasoning \label{sec:calculation}\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def "also"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
-    @{command_def "finally"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
-    @{command_def "moreover"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
-    @{command_def "ultimately"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
-    @{command_def "print_trans_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute trans} & : & @{text attribute} \\
-    @{attribute sym} & : & @{text attribute} \\
-    @{attribute symmetric} & : & @{text attribute} \\
-  \end{matharray}
-
-  Calculational proof is forward reasoning with implicit application
-  of transitivity rules (such those of @{text "="}, @{text "\<le>"},
-  @{text "<"}).  Isabelle/Isar maintains an auxiliary fact register
-  @{fact_ref calculation} for accumulating results obtained by
-  transitivity composed with the current result.  Command @{command
-  "also"} updates @{fact calculation} involving @{fact this}, while
-  @{command "finally"} exhibits the final @{fact calculation} by
-  forward chaining towards the next goal statement.  Both commands
-  require valid current facts, i.e.\ may occur only after commands
-  that produce theorems such as @{command "assume"}, @{command
-  "note"}, or some finished proof of @{command "have"}, @{command
-  "show"} etc.  The @{command "moreover"} and @{command "ultimately"}
-  commands are similar to @{command "also"} and @{command "finally"},
-  but only collect further results in @{fact calculation} without
-  applying any rules yet.
-
-  Also note that the implicit term abbreviation ``@{text "\<dots>"}'' has
-  its canonical application with calculational proofs.  It refers to
-  the argument of the preceding statement. (The argument of a curried
-  infix expression happens to be its right-hand side.)
-
-  Isabelle/Isar calculations are implicitly subject to block structure
-  in the sense that new threads of calculational reasoning are
-  commenced for any new block (as opened by a local goal, for
-  example).  This means that, apart from being able to nest
-  calculations, there is no separate \emph{begin-calculation} command
-  required.
-
-  \medskip The Isar calculation proof commands may be defined as
-  follows:\footnote{We suppress internal bookkeeping such as proper
-  handling of block-structure.}
-
-  \begin{matharray}{rcl}
-    @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
-    @{command "also"}@{text "\<^sub>n+1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
-    @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
-    @{command "moreover"} & \equiv & @{command "note"}~@{text "calculation = calculation this"} \\
-    @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\
-  \end{matharray}
-
-  @{rail \<open>
-    (@@{command also} | @@{command finally}) ('(' @{syntax thmrefs} ')')?
-    ;
-    @@{attribute trans} (() | 'add' | 'del')
-  \<close>}
-
-  \begin{description}
-
-  \item @{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintains the auxiliary
-  @{fact calculation} register as follows.  The first occurrence of
-  @{command "also"} in some calculational thread initializes @{fact
-  calculation} by @{fact this}. Any subsequent @{command "also"} on
-  the same level of block-structure updates @{fact calculation} by
-  some transitivity rule applied to @{fact calculation} and @{fact
-  this} (in that order).  Transitivity rules are picked from the
-  current context, unless alternative rules are given as explicit
-  arguments.
-
-  \item @{command "finally"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintaining @{fact
-  calculation} in the same way as @{command "also"}, and concludes the
-  current calculational thread.  The final result is exhibited as fact
-  for forward chaining towards the next goal. Basically, @{command
-  "finally"} just abbreviates @{command "also"}~@{command
-  "from"}~@{fact calculation}.  Typical idioms for concluding
-  calculational proofs are ``@{command "finally"}~@{command
-  "show"}~@{text ?thesis}~@{command "."}'' and ``@{command
-  "finally"}~@{command "have"}~@{text \<phi>}~@{command "."}''.
-
-  \item @{command "moreover"} and @{command "ultimately"} are
-  analogous to @{command "also"} and @{command "finally"}, but collect
-  results only, without applying rules.
-
-  \item @{command "print_trans_rules"} prints the list of transitivity
-  rules (for calculational commands @{command "also"} and @{command
-  "finally"}) and symmetry rules (for the @{attribute symmetric}
-  operation and single step elimination patters) of the current
-  context.
-
-  \item @{attribute trans} declares theorems as transitivity rules.
-
-  \item @{attribute sym} declares symmetry rules, as well as
-  @{attribute "Pure.elim"}@{text "?"} rules.
-
-  \item @{attribute symmetric} resolves a theorem with some rule
-  declared as @{attribute sym} in the current context.  For example,
-  ``@{command "assume"}~@{text "[symmetric]: x = y"}'' produces a
-  swapped fact derived from that assumption.
-
-  In structured proof texts it is often more appropriate to use an
-  explicit single-step elimination proof, such as ``@{command
-  "assume"}~@{text "x = y"}~@{command "then"}~@{command "have"}~@{text
-  "y = x"}~@{command ".."}''.
-
-  \end{description}
-\<close>
-
-
-section \<open>Proof by cases and induction \label{sec:cases-induct}\<close>
-
-subsection \<open>Rule contexts\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def "case"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
-    @{command_def "print_cases"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def case_names} & : & @{text attribute} \\
-    @{attribute_def case_conclusion} & : & @{text attribute} \\
-    @{attribute_def params} & : & @{text attribute} \\
-    @{attribute_def consumes} & : & @{text attribute} \\
-  \end{matharray}
-
-  The puristic way to build up Isar proof contexts is by explicit
-  language elements like @{command "fix"}, @{command "assume"},
-  @{command "let"} (see \secref{sec:proof-context}).  This is adequate
-  for plain natural deduction, but easily becomes unwieldy in concrete
-  verification tasks, which typically involve big induction rules with
-  several cases.
-
-  The @{command "case"} command provides a shorthand to refer to a
-  local context symbolically: certain proof methods provide an
-  environment of named ``cases'' of the form @{text "c: x\<^sub>1, \<dots>,
-  x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>n"}; the effect of ``@{command
-  "case"}~@{text c}'' is then equivalent to ``@{command "fix"}~@{text
-  "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"}''.  Term bindings may be covered as well, notably
-  @{variable ?case} for the main conclusion.
-
-  By default, the ``terminology'' @{text "x\<^sub>1, \<dots>, x\<^sub>m"} of
-  a case value is marked as hidden, i.e.\ there is no way to refer to
-  such parameters in the subsequent proof text.  After all, original
-  rule parameters stem from somewhere outside of the current proof
-  text.  By using the explicit form ``@{command "case"}~@{text "(c
-  y\<^sub>1 \<dots> y\<^sub>m)"}'' instead, the proof author is able to
-  chose local names that fit nicely into the current context.
-
-  \medskip It is important to note that proper use of @{command
-  "case"} does not provide means to peek at the current goal state,
-  which is not directly observable in Isar!  Nonetheless, goal
-  refinement commands do provide named cases @{text "goal\<^sub>i"}
-  for each subgoal @{text "i = 1, \<dots>, n"} of the resulting goal state.
-  Using this extra feature requires great care, because some bits of
-  the internal tactical machinery intrude the proof text.  In
-  particular, parameter names stemming from the left-over of automated
-  reasoning tools are usually quite unpredictable.
-
-  Under normal circumstances, the text of cases emerge from standard
-  elimination or induction rules, which in turn are derived from
-  previous theory specifications in a canonical way (say from
-  @{command "inductive"} definitions).
-
-  \medskip Proper cases are only available if both the proof method
-  and the rules involved support this.  By using appropriate
-  attributes, case names, conclusions, and parameters may be also
-  declared by hand.  Thus variant versions of rules that have been
-  derived manually become ready to use in advanced case analysis
-  later.
-
-  @{rail \<open>
-    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) *) ')')
-    ;
-    caseref: nameref attributes?
-    ;
-
-    @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
-    ;
-    @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
-    ;
-    @@{attribute params} ((@{syntax name} * ) + @'and')
-    ;
-    @@{attribute consumes} @{syntax int}?
-  \<close>}
-
-  \begin{description}
-  
-  \item @{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
-  context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an
-  appropriate proof method (such as @{method_ref cases} and
-  @{method_ref induct}).  The command ``@{command "case"}~@{text "(c
-  x\<^sub>1 \<dots> x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
-  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''.
-
-  \item @{command "print_cases"} prints all local contexts of the
-  current state, using Isar proof language notation.
-  
-  \item @{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"} declares names for
-  the local contexts of premises of a theorem; @{text "c\<^sub>1, \<dots>, c\<^sub>k"}
-  refers to the \emph{prefix} of the list of premises. Each of the
-  cases @{text "c\<^sub>i"} can be of the form @{text "c[h\<^sub>1 \<dots> h\<^sub>n]"} where
-  the @{text "h\<^sub>1 \<dots> h\<^sub>n"} are the names of the hypotheses in case @{text "c\<^sub>i"}
-  from left to right.
-  
-  \item @{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots> d\<^sub>k"} declares
-  names for the conclusions of a named premise @{text c}; here @{text
-  "d\<^sub>1, \<dots>, d\<^sub>k"} refers to the prefix of arguments of a logical formula
-  built by nesting a binary connective (e.g.\ @{text "\<or>"}).
-  
-  Note that proof methods such as @{method induct} and @{method
-  coinduct} already provide a default name for the conclusion as a
-  whole.  The need to name subformulas only arises with cases that
-  split into several sub-cases, as in common co-induction rules.
-
-  \item @{attribute params}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots> q\<^sub>1 \<dots> q\<^sub>n"} renames
-  the innermost parameters of premises @{text "1, \<dots>, n"} of some
-  theorem.  An empty list of names may be given to skip positions,
-  leaving the present parameters unchanged.
-  
-  Note that the default usage of case rules does \emph{not} directly
-  expose parameters to the proof context.
-  
-  \item @{attribute consumes}~@{text n} declares the number of ``major
-  premises'' of a rule, i.e.\ the number of facts to be consumed when
-  it is applied by an appropriate proof method.  The default value of
-  @{attribute consumes} is @{text "n = 1"}, which is appropriate for
-  the usual kind of cases and induction rules for inductive sets (cf.\
-  \secref{sec:hol-inductive}).  Rules without any @{attribute
-  consumes} declaration given are treated as if @{attribute
-  consumes}~@{text 0} had been specified.
-
-  A negative @{text n} is interpreted relatively to the total number
-  of premises of the rule in the target context.  Thus its absolute
-  value specifies the remaining number of premises, after subtracting
-  the prefix of major premises as indicated above. This form of
-  declaration has the technical advantage of being stable under more
-  morphisms, notably those that export the result from a nested
-  @{command_ref context} with additional assumptions.
-
-  Note that explicit @{attribute consumes} declarations are only
-  rarely needed; this is already taken care of automatically by the
-  higher-level @{attribute cases}, @{attribute induct}, and
-  @{attribute coinduct} declarations.
-
-  \end{description}
-\<close>
-
-
-subsection \<open>Proof methods\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def cases} & : & @{text method} \\
-    @{method_def induct} & : & @{text method} \\
-    @{method_def induction} & : & @{text method} \\
-    @{method_def coinduct} & : & @{text method} \\
-  \end{matharray}
-
-  The @{method cases}, @{method induct}, @{method induction},
-  and @{method coinduct}
-  methods provide a uniform interface to common proof techniques over
-  datatypes, inductive predicates (or sets), recursive functions etc.
-  The corresponding rules may be specified and instantiated in a
-  casual manner.  Furthermore, these methods provide named local
-  contexts that may be invoked via the @{command "case"} proof command
-  within the subsequent proof text.  This accommodates compact proof
-  texts even when reasoning about large specifications.
-
-  The @{method induct} method also provides some additional
-  infrastructure in order to be applicable to structure statements
-  (either using explicit meta-level connectives, or including facts
-  and parameters separately).  This avoids cumbersome encoding of
-  ``strengthened'' inductive statements within the object-logic.
-
-  Method @{method induction} differs from @{method induct} only in
-  the names of the facts in the local context invoked by the @{command "case"}
-  command.
-
-  @{rail \<open>
-    @@{method cases} ('(' 'no_simp' ')')? \<newline>
-      (@{syntax insts} * @'and') rule?
-    ;
-    (@@{method induct} | @@{method induction})
-      ('(' 'no_simp' ')')? (definsts * @'and') \<newline> arbitrary? taking? rule?
-    ;
-    @@{method coinduct} @{syntax insts} taking rule?
-    ;
-
-    rule: ('type' | 'pred' | 'set') ':' (@{syntax nameref} +) | 'rule' ':' (@{syntax thmref} +)
-    ;
-    definst: @{syntax name} ('==' | '\<equiv>') @{syntax term} | '(' @{syntax term} ')' | @{syntax inst}
-    ;
-    definsts: ( definst * )
-    ;
-    arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
-    ;
-    taking: 'taking' ':' @{syntax insts}
-  \<close>}
-
-  \begin{description}
-
-  \item @{method cases}~@{text "insts R"} applies method @{method
-  rule} with an appropriate case distinction theorem, instantiated to
-  the subjects @{text insts}.  Symbolic case names are bound according
-  to the rule's local contexts.
-
-  The rule is determined as follows, according to the facts and
-  arguments passed to the @{method cases} method:
-
-  \medskip
-  \begin{tabular}{llll}
-    facts           &                 & arguments   & rule \\\hline
-    @{text "\<turnstile> R"}   & @{method cases} &             & implicit rule @{text R} \\
-                    & @{method cases} &             & classical case split \\
-                    & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
-    @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\
-    @{text "\<dots>"}     & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
-  \end{tabular}
-  \medskip
-
-  Several instantiations may be given, referring to the \emph{suffix}
-  of premises of the case rule; within each premise, the \emph{prefix}
-  of variables is instantiated.  In most situations, only a single
-  term needs to be specified; this refers to the first variable of the
-  last premise (it is usually the same for all cases).  The @{text
-  "(no_simp)"} option can be used to disable pre-simplification of
-  cases (see the description of @{method induct} below for details).
-
-  \item @{method induct}~@{text "insts R"} and
-  @{method induction}~@{text "insts R"} are analogous to the
-  @{method cases} method, but refer to induction rules, which are
-  determined as follows:
-
-  \medskip
-  \begin{tabular}{llll}
-    facts           &                  & arguments            & rule \\\hline
-                    & @{method induct} & @{text "P x"}        & datatype induction (type of @{text x}) \\
-    @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"}          & predicate/set induction (of @{text A}) \\
-    @{text "\<dots>"}     & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
-  \end{tabular}
-  \medskip
-  
-  Several instantiations may be given, each referring to some part of
-  a mutual inductive definition or datatype --- only related partial
-  induction rules may be used together, though.  Any of the lists of
-  terms @{text "P, x, \<dots>"} refers to the \emph{suffix} of variables
-  present in the induction rule.  This enables the writer to specify
-  only induction variables, or both predicates and variables, for
-  example.
-
-  Instantiations may be definitional: equations @{text "x \<equiv> t"}
-  introduce local definitions, which are inserted into the claim and
-  discharged after applying the induction rule.  Equalities reappear
-  in the inductive cases, but have been transformed according to the
-  induction principle being involved here.  In order to achieve
-  practically useful induction hypotheses, some variables occurring in
-  @{text t} need to be fixed (see below).  Instantiations of the form
-  @{text t}, where @{text t} is not a variable, are taken as a
-  shorthand for \mbox{@{text "x \<equiv> t"}}, where @{text x} is a fresh
-  variable. If this is not intended, @{text t} has to be enclosed in
-  parentheses.  By default, the equalities generated by definitional
-  instantiations are pre-simplified using a specific set of rules,
-  usually consisting of distinctness and injectivity theorems for
-  datatypes. This pre-simplification may cause some of the parameters
-  of an inductive case to disappear, or may even completely delete
-  some of the inductive cases, if one of the equalities occurring in
-  their premises can be simplified to @{text False}.  The @{text
-  "(no_simp)"} option can be used to disable pre-simplification.
-  Additional rules to be used in pre-simplification can be declared
-  using the @{attribute_def induct_simp} attribute.
-
-  The optional ``@{text "arbitrary: x\<^sub>1 \<dots> x\<^sub>m"}''
-  specification generalizes variables @{text "x\<^sub>1, \<dots>,
-  x\<^sub>m"} of the original goal before applying induction.  One can
-  separate variables by ``@{text "and"}'' to generalize them in other
-  goals then the first. Thus induction hypotheses may become
-  sufficiently general to get the proof through.  Together with
-  definitional instantiations, one may effectively perform induction
-  over expressions of a certain structure.
-  
-  The optional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
-  specification provides additional instantiations of a prefix of
-  pending variables in the rule.  Such schematic induction rules
-  rarely occur in practice, though.
-
-  \item @{method coinduct}~@{text "inst R"} is analogous to the
-  @{method induct} method, but refers to coinduction rules, which are
-  determined as follows:
-
-  \medskip
-  \begin{tabular}{llll}
-    goal          &                    & arguments & rule \\\hline
-                  & @{method coinduct} & @{text x} & type coinduction (type of @{text x}) \\
-    @{text "A x"} & @{method coinduct} & @{text "\<dots>"} & predicate/set coinduction (of @{text A}) \\
-    @{text "\<dots>"}   & @{method coinduct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
-  \end{tabular}
-  
-  Coinduction is the dual of induction.  Induction essentially
-  eliminates @{text "A x"} towards a generic result @{text "P x"},
-  while coinduction introduces @{text "A x"} starting with @{text "B
-  x"}, for a suitable ``bisimulation'' @{text B}.  The cases of a
-  coinduct rule are typically named after the predicates or sets being
-  covered, while the conclusions consist of several alternatives being
-  named after the individual destructor patterns.
-  
-  The given instantiation refers to the \emph{suffix} of variables
-  occurring in the rule's major premise, or conclusion if unavailable.
-  An additional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
-  specification may be required in order to specify the bisimulation
-  to be used in the coinduction step.
-
-  \end{description}
-
-  Above methods produce named local contexts, as determined by the
-  instantiated rule as given in the text.  Beyond that, the @{method
-  induct} and @{method coinduct} methods guess further instantiations
-  from the goal specification itself.  Any persisting unresolved
-  schematic variables of the resulting rule will render the the
-  corresponding case invalid.  The term binding @{variable ?case} for
-  the conclusion will be provided with each case, provided that term
-  is fully specified.
-
-  The @{command "print_cases"} command prints all named cases present
-  in the current proof state.
-
-  \medskip Despite the additional infrastructure, both @{method cases}
-  and @{method coinduct} merely apply a certain rule, after
-  instantiation, while conforming due to the usual way of monotonic
-  natural deduction: the context of a structured statement @{text
-  "\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<dots>"}
-  reappears unchanged after the case split.
-
-  The @{method induct} method is fundamentally different in this
-  respect: the meta-level structure is passed through the
-  ``recursive'' course involved in the induction.  Thus the original
-  statement is basically replaced by separate copies, corresponding to
-  the induction hypotheses and conclusion; the original goal context
-  is no longer available.  Thus local assumptions, fixed parameters
-  and definitions effectively participate in the inductive rephrasing
-  of the original statement.
-
-  In @{method induct} proofs, local assumptions introduced by cases are split
-  into two different kinds: @{text hyps} stemming from the rule and
-  @{text prems} from the goal statement.  This is reflected in the
-  extracted cases accordingly, so invoking ``@{command "case"}~@{text
-  c}'' will provide separate facts @{text c.hyps} and @{text c.prems},
-  as well as fact @{text c} to hold the all-inclusive list.
-
-  In @{method induction} proofs, local assumptions introduced by cases are
-  split into three different kinds: @{text IH}, the induction hypotheses,
-  @{text hyps}, the remaining hypotheses stemming from the rule, and
-  @{text prems}, the assumptions from the goal statement. The names are
-  @{text c.IH}, @{text c.hyps} and @{text c.prems}, as above.
-
-
-  \medskip Facts presented to either method are consumed according to
-  the number of ``major premises'' of the rule involved, which is
-  usually 0 for plain cases and induction rules of datatypes etc.\ and
-  1 for rules of inductive predicates or sets and the like.  The
-  remaining facts are inserted into the goal verbatim before the
-  actual @{text cases}, @{text induct}, or @{text coinduct} rule is
-  applied.
-\<close>
-
-
-subsection \<open>Declaring rules\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def cases} & : & @{text attribute} \\
-    @{attribute_def induct} & : & @{text attribute} \\
-    @{attribute_def coinduct} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{attribute cases} spec
-    ;
-    @@{attribute induct} spec
-    ;
-    @@{attribute coinduct} spec
-    ;
-
-    spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
-  \<close>}
-
-  \begin{description}
-
-  \item @{command "print_induct_rules"} prints cases and induct rules
-  for predicates (or sets) and types of the current context.
-
-  \item @{attribute cases}, @{attribute induct}, and @{attribute
-  coinduct} (as attributes) declare rules for reasoning about
-  (co)inductive predicates (or sets) and types, using the
-  corresponding methods of the same name.  Certain definitional
-  packages of object-logics usually declare emerging cases and
-  induction rules as expected, so users rarely need to intervene.
-
-  Rules may be deleted via the @{text "del"} specification, which
-  covers all of the @{text "type"}/@{text "pred"}/@{text "set"}
-  sub-categories simultaneously.  For example, @{attribute
-  cases}~@{text del} removes any @{attribute cases} rules declared for
-  some type, predicate, or set.
-  
-  Manual rule declarations usually refer to the @{attribute
-  case_names} and @{attribute params} attributes to adjust names of
-  cases and parameters of a rule; the @{attribute consumes}
-  declaration is taken care of automatically: @{attribute
-  consumes}~@{text 0} is specified for ``type'' rules and @{attribute
-  consumes}~@{text 1} for ``predicate'' / ``set'' rules.
-
-  \end{description}
 \<close>
 
 end
