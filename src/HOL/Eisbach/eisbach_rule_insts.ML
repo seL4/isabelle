@@ -85,15 +85,13 @@ fun read_instantiate_no_thm ctxt insts fixes =
 
     val typs =
       map snd type_insts
-      |> Syntax.read_typs ctxt1
-      |> Syntax.check_typs ctxt1;
+      |> Syntax.read_typs ctxt1;
 
     val typ_insts' = map2 (fn (xi, _) => fn T => (xi,T)) type_insts typs;
 
     val terms =
       map snd term_insts
-      |> Syntax.read_terms ctxt1
-      |> Syntax.check_terms ctxt1;
+      |> Syntax.read_terms ctxt1;
 
     val term_insts' = map2 (fn (xi, _) => fn t => (xi, t)) term_insts terms;
 
@@ -149,9 +147,7 @@ fun close_unchecked_insts context ((insts, concl_inst), fixes) =
 
     val term_insts =
       map (the_list o (Option.map Parse_Tools.the_parse_val)) insts'
-      |> burrow (Syntax.read_terms ctxt1
-        #> Syntax.check_terms ctxt1
-        #> Variable.export_terms ctxt1 ctxt)
+      |> burrow (Syntax.read_terms ctxt1 #> Variable.export_terms ctxt1 ctxt)
       |> map (try the_single);
 
     val _ =
