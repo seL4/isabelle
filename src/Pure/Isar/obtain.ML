@@ -93,8 +93,13 @@ fun obtain_thesis ctxt =
 local
 
 val mk_all_external = Logic.all_constraint o Variable.default_type;
-fun mk_all_internal _ (y, z) t =
-  let val T = the (AList.lookup (op =) (Term.add_frees t []) z);
+
+fun mk_all_internal ctxt (y, z) t =
+  let
+    val T =
+      (case AList.lookup (op =) (Term.add_frees t []) z of
+        SOME T => T
+      | NONE => the_default dummyT (Variable.default_type ctxt z));
   in Logic.all_const T $ Term.lambda_name (y, Free (z, T)) t end;
 
 fun prepare_clause prep_var parse_prop mk_all ctxt thesis raw_vars raw_props =
