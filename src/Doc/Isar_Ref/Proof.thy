@@ -23,10 +23,9 @@ text \<open>
   intermediate results etc.
 
   \item @{text "proof(chain)"} is intermediate between @{text
-  "proof(state)"} and @{text "proof(prove)"}: existing facts (i.e.\
-  the contents of the special ``@{fact_ref this}'' register) have been
-  just picked up in order to be used when refining the goal claimed
-  next.
+  "proof(state)"} and @{text "proof(prove)"}: existing facts (i.e.\ the
+  contents of the special @{fact_ref this} register) have been just picked
+  up in order to be used when refining the goal claimed next.
 
   \end{description}
 
@@ -221,10 +220,6 @@ text \<open>
   Several simultaneous definitions may be given at the same time.
 
   \end{description}
-
-  The special name @{fact_ref prems} refers to all assumptions of the
-  current context as a list of theorems.  This feature should be used
-  with great care!  It is better avoided in final proof texts.
 \<close>
 
 
@@ -525,7 +520,7 @@ text \<open>
   \secref{sec:term-abbrev}.
 
   Structured goal statements involving @{keyword_ref "if"} define the
-  special fact ``@{text that}'' to refer to these assumptions in the proof
+  special fact @{fact_ref that} to refer to these assumptions in the proof
   body. The user may provide separate names according to the syntax of the
   statement.
 \<close>
@@ -1090,7 +1085,7 @@ text \<open>
   \end{description}
 
   In the proof of @{command consider} and @{command obtain} the local
-  premises are always bound to the fact name ``@{text that}'', according to
+  premises are always bound to the fact name @{fact_ref that}, according to
   structured Isar statements involving @{keyword_ref "if"}
   (\secref{sec:goals}).
 
