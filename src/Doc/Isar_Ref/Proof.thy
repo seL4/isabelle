@@ -60,12 +60,9 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "notepad"}~@{keyword "begin"} opens a proof state
-  without any goal statement.  This allows to experiment with Isar,
-  without producing any persistent result.
-
-  The notepad can be closed by @{command "end"} or discontinued by
-  @{command "oops"}.
+  \item @{command "notepad"}~@{keyword "begin"} opens a proof state without
+  any goal statement. This allows to experiment with Isar, without producing
+  any persistent result. The notepad is closed by @{command "end"}.
 
   \end{description}
 \<close>
