@@ -65,6 +65,9 @@ chained facts.  This is particularly useful with 'consider':
 
 *** Pure ***
 
+* The vacuous fact "TERM x" may be established "by fact" or as `TERM x`
+as well, not just "by this" or "." as before.
+
 * Configuration option rule_insts_schematic has been discontinued
 (intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.
 

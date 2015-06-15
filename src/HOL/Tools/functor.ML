@@ -9,7 +9,7 @@ sig
   val find_atomic: Proof.context -> typ -> (typ * (bool * bool)) list
   val construct_mapper: Proof.context -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val functorx: string option -> term -> local_theory -> Proof.state
+  val functor_: string option -> term -> local_theory -> Proof.state
   val functor_cmd: string option -> string -> Proof.context -> Proof.state
   type entry
   val entries: Proof.context -> entry list Symtab.table
@@ -269,7 +269,7 @@ fun gen_functor prep_term some_prfx raw_mapper lthy =
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [comp_prop, id_prop])
   end
 
-val functorx = gen_functor Syntax.check_term;
+val functor_ = gen_functor Syntax.check_term;
 val functor_cmd = gen_functor Syntax.read_term;
 
 val _ =

@@ -909,12 +909,17 @@ fun comp_incr_tac _ [] _ = no_tac
       (fn st => comp_hhf_tac ctxt (Drule.incr_indexes st th) i st) APPEND
       comp_incr_tac ctxt ths i;
 
+val vacuous_facts = [Drule.termI];
+
 in
 
 fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac ctxt facts;
 
 fun potential_facts ctxt prop =
-  Facts.could_unify (facts_of ctxt) (Term.strip_all_body prop);
+  let
+    val body = Term.strip_all_body prop;
+    val vacuous = filter (fn th => Term.could_unify (body, Thm.concl_of th)) vacuous_facts;
+  in Facts.could_unify (facts_of ctxt) body @ vacuous end;
 
 fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac ctxt (potential_facts ctxt goal) i);
 

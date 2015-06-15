@@ -399,8 +399,9 @@ fun parse_term is_prop ctxt =
           val limit = Config.get ctxt Syntax.ambiguity_limit;
 
           (*brute-force disambiguation via type-inference*)
-          fun check t = (Syntax.check_term ctxt (constrain t); Exn.Res t)
-            handle exn as ERROR _ => Exn.Exn exn;
+          fun check t =
+            (Syntax.check_term (Proof_Context.allow_dummies ctxt) (constrain t); Exn.Res t)
+              handle exn as ERROR _ => Exn.Exn exn;
 
           val results' =
             if parsed_len > 1 then
