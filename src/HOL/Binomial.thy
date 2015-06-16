@@ -1029,4 +1029,24 @@ next
     qed
 qed
 
+
+lemma Suc_times_binomial_add: -- \<open>by Lukas Bulwahn\<close>
+  "Suc a * (Suc (a + b) choose Suc a) = Suc b * (Suc (a + b) choose a)"
+proof -
+  have dvd: "Suc a * (fact a * fact b) dvd fact (Suc (a + b))" for a b
+    using fact_fact_dvd_fact[of "Suc a" "b", where 'a=nat]
+    by (simp only: fact_Suc add_Suc[symmetric] of_nat_id mult.assoc)
+
+  have "Suc a * (fact (Suc (a + b)) div (Suc a * fact a * fact b)) =
+      Suc a * fact (Suc (a + b)) div (Suc a * (fact a * fact b))"
+    by (subst div_mult_swap[symmetric]; simp only: mult.assoc dvd)
+  also have "\<dots> = Suc b * fact (Suc (a + b)) div (Suc b * (fact a * fact b))"
+    by (simp only: div_mult_mult1)
+  also have "\<dots> = Suc b * (fact (Suc (a + b)) div (Suc b * (fact a * fact b)))"
+    using dvd[of b a] by (subst div_mult_swap[symmetric]; simp only: ac_simps dvd)
+  finally show ?thesis
+    by (subst (1 2) binomial_altdef_nat)
+       (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
+qed
+
 end
