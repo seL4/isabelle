@@ -4578,7 +4578,8 @@ lemma division_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "p division_of (cbox a b)"
     and k: "k \<in> Basis"
-  shows "{l \<inter> {x. abs(x\<bullet>k - c) \<le> e} |l. l \<in> p \<and> l \<inter> {x. abs(x\<bullet>k - c) \<le> e} \<noteq> {}} division_of (cbox a b \<inter> {x. abs(x\<bullet>k - c) \<le> e})"
+  shows "{l \<inter> {x. abs(x\<bullet>k - c) \<le> e} |l. l \<in> p \<and> l \<inter> {x. abs(x\<bullet>k - c) \<le> e} \<noteq> {}}
+         division_of  (cbox a b \<inter> {x. abs(x\<bullet>k - c) \<le> e})"
 proof -
   have *: "\<And>x c. abs (x - c) \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
     by auto
@@ -4588,18 +4589,11 @@ proof -
   note division_split(2)[OF this, where c="c-e" and k=k,OF k]
   then show ?thesis
     apply (rule **)
+    unfolding interval_doublesplit [OF k]
     using k
-    apply -
-    unfolding interval_doublesplit
-    unfolding *
-    unfolding interval_split interval_doublesplit
-    apply (rule set_eqI)
-    unfolding mem_Collect_eq
-    apply rule
-    apply (erule conjE exE)+
-    apply (rule_tac x=la in exI)
-    defer
-    apply (erule conjE exE)+
+    apply (simp_all add: * interval_split)
+    apply (rule equalityI, blast)
+    apply clarsimp
     apply (rule_tac x="l \<inter> {x. c + e \<ge> x \<bullet> k}" in exI)
     apply auto
     done
@@ -4612,16 +4606,14 @@ lemma content_doublesplit:
   obtains d where "0 < d" and "content (cbox a b \<inter> {x. abs(x\<bullet>k - c) \<le> d}) < e"
 proof (cases "content (cbox a b) = 0")
   case True
+  then have ce: "content (cbox a b) < e"
+    by (metis `0 < e`)
   show ?thesis
     apply (rule that[of 1])
-    defer
+    apply simp
     unfolding interval_doublesplit[OF k]
-    apply (rule le_less_trans[OF content_subset])
-    defer
-    apply (subst True)
-    unfolding interval_doublesplit[symmetric,OF k]
-    using assms
-    apply auto
+    apply (rule le_less_trans[OF content_subset ce])
+    apply (auto simp: interval_doublesplit[symmetric] k)
     done
 next
   case False
@@ -4630,47 +4622,15 @@ next
   then have "\<And>x. x \<in> Basis \<Longrightarrow> b\<bullet>x > a\<bullet>x"
     by (auto simp add:not_le)
   then have prod0: "0 < setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) (Basis - {k})"
-    apply -
-    apply (rule setprod_pos)
-    apply (auto simp add: field_simps)
-    done
+    by (force simp add: setprod_pos field_simps)
   then have "d > 0"
-    unfolding d_def
     using assms
-    by (auto simp add:field_simps)
+    by (auto simp add: d_def field_simps)
   then show ?thesis
   proof (rule that[of d])
     have *: "Basis = insert k (Basis - {k})"
       using k by auto
-    have **: "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {} \<Longrightarrow>
-      (\<Prod>i\<in>Basis - {k}. interval_upperbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i -
-        interval_lowerbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i) =
-      (\<Prod>i\<in>Basis - {k}. b\<bullet>i - a\<bullet>i)"
-      apply (rule setprod.cong)
-      apply (rule refl)
-      unfolding interval_doublesplit[OF k]
-      apply (subst interval_bounds)
-      defer
-      apply (subst interval_bounds)
-      unfolding box_eq_empty not_ex not_less
-      apply auto
-      done
-    show "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
-      apply cases
-      unfolding content_def
-      apply (subst if_P)
-      apply assumption
-      apply (rule assms)
-      unfolding if_not_P
-      apply (subst *)
-      apply (subst setprod.insert)
-      unfolding **
-      unfolding interval_doublesplit[OF k] box_eq_empty not_ex not_less
-      prefer 3
-      apply (subst interval_bounds)
-      defer
-      apply (subst interval_bounds)
-      apply (simp_all only: k inner_setsum_left_Basis simp_thms if_P cong: bex_cong ball_cong)
+    have less_e: "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) * (\<Prod>i\<in>Basis - {k}. b \<bullet> i - a \<bullet> i) < e"
     proof -
       have "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) \<le> 2 * d"
         by auto
@@ -4680,7 +4640,27 @@ next
         by (auto simp add: field_simps)
       finally show "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) * (\<Prod>i\<in>Basis - {k}. b \<bullet> i - a \<bullet> i) < e"
         unfolding pos_less_divide_eq[OF prod0] .
-    qed auto
+    qed
+    show "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
+    proof (cases "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = {}")
+      case True
+      then show ?thesis
+        using assms by simp
+    next
+      case False
+      then have 
+          "(\<Prod>i\<in>Basis - {k}. interval_upperbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i -
+                interval_lowerbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i) 
+           = (\<Prod>i\<in>Basis - {k}. b\<bullet>i - a\<bullet>i)"
+        by (simp add: box_eq_empty interval_doublesplit[OF k])
+      then show "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
+        unfolding content_def
+        using assms False 
+        apply (subst *)
+        apply (subst setprod.insert)
+        apply (simp_all add: interval_doublesplit[OF k] box_eq_empty not_less less_e)
+        done
+    qed
   qed
 qed
 
@@ -4689,8 +4669,7 @@ lemma negligible_standard_hyperplane[intro]:
   assumes k: "k \<in> Basis"
   shows "negligible {x. x\<bullet>k = c}"
   unfolding negligible_def has_integral
-  apply (rule, rule, rule, rule)
-proof -
+proof clarify
   case goal1
   from content_doublesplit[OF this k,of a b c] guess d . note d=this
   let ?i = "indicator {x::'a. x\<bullet>k = c} :: 'a\<Rightarrow>real"
