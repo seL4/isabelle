@@ -318,7 +318,6 @@ lemma wf_Union:
   2. There is no such step.
      Pick an S-min element of A. In this case it must be an R-min
      element of A as well.
-
 *)
 lemma wf_Un:
      "[| wf r; wf s; Domain r Int Range s = {} |] ==> wf(r Un s)"
@@ -382,30 +381,59 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
 
 subsection {* Well-Foundedness of Composition *}
 
-text{* Provided by Tjark Weber: *}
+text \<open>Bachmair and Dershowitz 1986, Lemma 2. [Provided by Tjark Weber]\<close>
 
-lemma wf_relcomp_compatible:
+lemma qc_wf_relto_iff:
+  assumes "R O S \<subseteq> (R \<union> S)\<^sup>* O R" -- \<open>R quasi-commutes over S\<close>
+  shows "wf (S\<^sup>* O R O S\<^sup>*) \<longleftrightarrow> wf R" (is "wf ?S \<longleftrightarrow> _")
+proof
+  assume "wf ?S"
+  moreover have "R \<subseteq> ?S" by auto
+  ultimately show "wf R" using wf_subset by auto
+next
+  assume "wf R"
+  show "wf ?S"
+  proof (rule wfI_pf)
+    fix A assume A: "A \<subseteq> ?S `` A"
+    let ?X = "(R \<union> S)\<^sup>* `` A"
+    have *: "R O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R"
+      proof -
+        { fix x y z assume "(y, z) \<in> (R \<union> S)\<^sup>*" and "(x, y) \<in> R"
+          then have "(x, z) \<in> (R \<union> S)\<^sup>* O R"
+          proof (induct y z)
+            case rtrancl_refl then show ?case by auto
+          next
+            case (rtrancl_into_rtrancl a b c)
+            then have "(x, c) \<in> ((R \<union> S)\<^sup>* O (R \<union> S)\<^sup>*) O R" using assms by blast
+            then show ?case by simp
+          qed }
+        then show ?thesis by auto
+      qed
+    then have "R O S\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R" using rtrancl_Un_subset by blast
+    then have "?S \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R" by (simp add: relcomp_mono rtrancl_mono)
+    also have "\<dots> = (R \<union> S)\<^sup>* O R" by (simp add: O_assoc[symmetric])
+    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R O (R \<union> S)\<^sup>*" by (simp add: O_assoc[symmetric] relcomp_mono)
+    also have "\<dots> \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R" using * by (simp add: relcomp_mono)
+    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R" by (simp add: O_assoc[symmetric])
+    then have "(?S O (R \<union> S)\<^sup>*) `` A \<subseteq> ((R \<union> S)\<^sup>* O R) `` A" by (simp add: Image_mono)
+    moreover have "?X \<subseteq> (?S O (R \<union> S)\<^sup>*) `` A" using A by (auto simp: relcomp_Image)
+    ultimately have "?X \<subseteq> R `` ?X" by (auto simp: relcomp_Image)
+    then have "?X = {}" using \<open>wf R\<close> by (simp add: wfE_pf)
+    moreover have "A \<subseteq> ?X" by auto
+    ultimately show "A = {}" by simp
+  qed
+qed
+
+corollary wf_relcomp_compatible:
   assumes "wf R" and "R O S \<subseteq> S O R"
   shows "wf (S O R)"
-proof (rule wfI_pf)
-  fix A assume A: "A \<subseteq> (S O R) `` A"
-  {
-    fix n have "(S ^^ n) `` A \<subseteq> R `` (S ^^ Suc n) `` A"
-    proof (induction n)
-      case 0 show ?case using A by (simp add: relcomp_Image)
-    next
-      case (Suc n)
-      then have "S `` (S ^^ n) `` A \<subseteq> S `` R `` (S ^^ Suc n) `` A"
-        by (simp add: Image_mono)
-      also have "\<dots> \<subseteq> R `` S `` (S ^^ Suc n) `` A" using assms(2)
-        by (simp add: Image_mono O_assoc relcomp_Image[symmetric] relcomp_mono)
-      finally show ?case by (simp add: relcomp_Image)
-    qed
-  }
-  then have "(\<Union>n. (S ^^ n) `` A) \<subseteq> R `` (\<Union>n. (S ^^ n) `` A)" by blast
-  then have "(\<Union>n. (S ^^ n) `` A) = {}"
-    using assms(1) by (simp only: wfE_pf)
-  then show "A = {}" using relpow.simps(1) by blast
+proof -
+  have "R O S \<subseteq> (R \<union> S)\<^sup>* O R"
+    using assms by blast
+  then have "wf (S\<^sup>* O R O S\<^sup>*)"
+    by (simp add: assms qc_wf_relto_iff)
+  then show ?thesis
+    by (rule Wellfounded.wf_subset) blast
 qed
 
 
@@ -486,7 +514,7 @@ lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
 
 lemma wf_less: "wf {(x, y::nat). x < y}"
-  using wf_less_than by (simp add: less_than_def less_eq [symmetric])
+  by (rule Wellfounded.wellorder_class.wf)
 
 
 subsection {* Accessible Part *}
