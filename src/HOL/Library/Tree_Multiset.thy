@@ -23,6 +23,9 @@ by(induction t) auto
 lemma mset_map_tree: "mset_tree (map_tree f t) = image_mset f (mset_tree t)"
 by (induction t) auto
 
+lemma mset_iff_set_tree: "x \<in># mset_tree t \<longleftrightarrow> x \<in> set_tree t"
+by(induction t arbitrary: x) auto
+
 lemma multiset_of_preorder[simp]: "multiset_of (preorder t) = mset_tree t"
 by (induction t) (auto simp: ac_simps)
 
