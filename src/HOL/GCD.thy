@@ -525,9 +525,10 @@ lemma gcd_dvd_prod_nat [iff]: "gcd (m::nat) n dvd k * n"
 lemma finite_divisors_nat[simp]:
   assumes "(m::nat) ~= 0" shows "finite{d. d dvd m}"
 proof-
-  have "finite{d. d <= m}" by(blast intro: bounded_nat_set_is_finite)
+  have "finite{d. d <= m}"
+    by (blast intro: bounded_nat_set_is_finite)
   from finite_subset[OF _ this] show ?thesis using assms
-    by(bestsimp intro!:dvd_imp_le)
+    by (metis Collect_mono dvd_imp_le neq0_conv)
 qed
 
 lemma finite_divisors_int[simp]:
@@ -536,7 +537,7 @@ proof-
   have "{d. abs d <= abs i} = {- abs i .. abs i}" by(auto simp:abs_if)
   hence "finite{d. abs d <= abs i}" by simp
   from finite_subset[OF _ this] show ?thesis using assms
-    by(bestsimp intro!:dvd_imp_le_int)
+    by (simp add: dvd_imp_le_int subset_iff)
 qed
 
 lemma Max_divisors_self_nat[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
