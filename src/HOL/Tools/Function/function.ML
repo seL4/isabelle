@@ -156,9 +156,13 @@ fun gen_add_function do_print prep default_constraint fixspec eqns config tac lt
     |> afterqed [[pattern_thm]]
   end
 
+val default_constraint_any = Type_Infer.anyT @{sort type};
+val default_constraint_any' = YXML.string_of_body (Term_XML.Encode.typ default_constraint_any);
+
 val add_function =
-  gen_add_function false Specification.check_spec (Type_Infer.anyT @{sort type})
-fun add_function_cmd a b c d int = gen_add_function int Specification.read_spec "_::type" a b c d
+  gen_add_function false Specification.check_spec default_constraint_any
+fun add_function_cmd a b c d int =
+  gen_add_function int Specification.read_spec default_constraint_any' a b c d
 
 fun gen_function do_print prep default_constraint fixspec eqns config lthy =
   let
@@ -171,8 +175,9 @@ fun gen_function do_print prep default_constraint fixspec eqns config lthy =
   end
 
 val function =
-  gen_function false Specification.check_spec (Type_Infer.anyT @{sort type})
-fun function_cmd a b c int = gen_function int Specification.read_spec "_::type" a b c
+  gen_function false Specification.check_spec default_constraint_any
+fun function_cmd a b c int =
+  gen_function int Specification.read_spec default_constraint_any' a b c
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
