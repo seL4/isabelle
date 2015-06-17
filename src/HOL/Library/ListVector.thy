@@ -1,16 +1,16 @@
 (*  Author: Tobias Nipkow, 2007 *)
 
-section {* Lists as vectors *}
+section \<open>Lists as vectors\<close>
 
 theory ListVector
 imports List Main
 begin
 
-text{* \noindent
+text\<open>\noindent
 A vector-space like structure of lists and arithmetic operations on them.
-Is only a vector space if restricted to lists of the same length. *}
+Is only a vector space if restricted to lists of the same length.\<close>
 
-text{* Multiplication with a scalar: *}
+text\<open>Multiplication with a scalar:\<close>
 
 abbreviation scale :: "('a::times) \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "*\<^sub>s" 70)
 where "x *\<^sub>s xs \<equiv> map (op * x) xs"
@@ -18,7 +18,7 @@ where "x *\<^sub>s xs \<equiv> map (op * x) xs"
 lemma scale1[simp]: "(1::'a::monoid_mult) *\<^sub>s xs = xs"
 by (induct xs) simp_all
 
-subsection {* @{text"+"} and @{text"-"} *}
+subsection \<open>@{text"+"} and @{text"-"}\<close>
 
 fun zipwith0 :: "('a::zero \<Rightarrow> 'b::zero \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 where

@@ -3,13 +3,13 @@
     Author:     Brian Huffman
 *)
 
-section{* Polynomials and Differentiation *}
+section\<open>Polynomials and Differentiation\<close>
 
 theory Poly_Deriv
 imports Deriv Polynomial
 begin
 
-subsection {* Derivatives of univariate polynomials *}
+subsection \<open>Derivatives of univariate polynomials\<close>
 
 function pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly"
 where
@@ -95,7 +95,7 @@ by (rule DERIV_cong, rule DERIV_add, auto)
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
   by (induct p, auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
-text{* Consequences of the derivative theorem above*}
+text\<open>Consequences of the derivative theorem above\<close>
 
 lemma poly_differentiable[simp]: "(%x. poly p x) differentiable (at x::real filter)"
 apply (simp add: real_differentiable_def)
@@ -122,7 +122,7 @@ apply (rule_tac x = z in exI)
 apply (auto simp add: mult_left_cancel poly_DERIV [THEN DERIV_unique])
 done
 
-text{*Lemmas for Derivatives*}
+text\<open>Lemmas for Derivatives\<close>
 
 lemma order_unique_lemma:
   fixes p :: "'a::idom poly"
@@ -178,7 +178,7 @@ proof -
      by (metis * nd dvd_mult_cancel_right field_power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
   qed
   then show ?thesis
-    by (metis `n = Suc n'` pe)
+    by (metis \<open>n = Suc n'\<close> pe)
 qed
 
 lemma order_decomp:
@@ -215,7 +215,7 @@ proof -
     done
 qed
 
-text{*Now justify the standard squarefree decomposition, i.e. f / gcd(f,f'). *}
+text\<open>Now justify the standard squarefree decomposition, i.e. f / gcd(f,f').\<close>
 
 lemma order_divides: "[:-a, 1:] ^ n dvd p \<longleftrightarrow> p = 0 \<or> n \<le> order a p"
 apply (cases "p = 0", auto)
@@ -232,31 +232,31 @@ lemma poly_squarefree_decomp_order:
   shows "order a q = (if order a p = 0 then 0 else 1)"
 proof (rule classical)
   assume 1: "order a q \<noteq> (if order a p = 0 then 0 else 1)"
-  from `pderiv p \<noteq> 0` have "p \<noteq> 0" by auto
+  from \<open>pderiv p \<noteq> 0\<close> have "p \<noteq> 0" by auto
   with p have "order a p = order a q + order a d"
     by (simp add: order_mult)
   with 1 have "order a p \<noteq> 0" by (auto split: if_splits)
   have "order a (pderiv p) = order a e + order a d"
-    using `pderiv p \<noteq> 0` `pderiv p = e * d` by (simp add: order_mult)
+    using \<open>pderiv p \<noteq> 0\<close> \<open>pderiv p = e * d\<close> by (simp add: order_mult)
   have "order a p = Suc (order a (pderiv p))"
-    using `pderiv p \<noteq> 0` `order a p \<noteq> 0` by (rule order_pderiv)
-  have "d \<noteq> 0" using `p \<noteq> 0` `p = q * d` by simp
+    using \<open>pderiv p \<noteq> 0\<close> \<open>order a p \<noteq> 0\<close> by (rule order_pderiv)
+  have "d \<noteq> 0" using \<open>p \<noteq> 0\<close> \<open>p = q * d\<close> by simp
   have "([:-a, 1:] ^ (order a (pderiv p))) dvd d"
     apply (simp add: d)
     apply (rule dvd_add)
     apply (rule dvd_mult)
-    apply (simp add: order_divides `p \<noteq> 0`
-           `order a p = Suc (order a (pderiv p))`)
+    apply (simp add: order_divides \<open>p \<noteq> 0\<close>
+           \<open>order a p = Suc (order a (pderiv p))\<close>)
     apply (rule dvd_mult)
     apply (simp add: order_divides)
     done
   then have "order a (pderiv p) \<le> order a d"
-    using `d \<noteq> 0` by (simp add: order_divides)
+    using \<open>d \<noteq> 0\<close> by (simp add: order_divides)
   show ?thesis
-    using `order a p = order a q + order a d`
-    using `order a (pderiv p) = order a e + order a d`
-    using `order a p = Suc (order a (pderiv p))`
-    using `order a (pderiv p) \<le> order a d`
+    using \<open>order a p = order a q + order a d\<close>
+    using \<open>order a (pderiv p) = order a e + order a d\<close>
+    using \<open>order a p = Suc (order a (pderiv p))\<close>
+    using \<open>order a (pderiv p) \<le> order a d\<close>
     by auto
 qed
 
@@ -298,11 +298,11 @@ lemma poly_squarefree_decomp:
     and "d = r * p + s * pderiv p"
   shows "rsquarefree q & (\<forall>a. (poly q a = 0) = (poly p a = 0))"
 proof -
-  from `pderiv p \<noteq> 0` have "p \<noteq> 0" by auto
-  with `p = q * d` have "q \<noteq> 0" by simp
+  from \<open>pderiv p \<noteq> 0\<close> have "p \<noteq> 0" by auto
+  with \<open>p = q * d\<close> have "q \<noteq> 0" by simp
   have "\<forall>a. order a q = (if order a p = 0 then 0 else 1)"
     using assms by (rule poly_squarefree_decomp_order2)
-  with `p \<noteq> 0` `q \<noteq> 0` show ?thesis
+  with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> show ?thesis
     by (simp add: rsquarefree_def order_root)
 qed
 

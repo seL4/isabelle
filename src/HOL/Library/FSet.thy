@@ -4,13 +4,13 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-section {* Type of finite sets defined as a subtype of sets *}
+section \<open>Type of finite sets defined as a subtype of sets\<close>
 
 theory FSet
 imports Conditionally_Complete_Lattices
 begin
 
-subsection {* Definition of the type *}
+subsection \<open>Definition of the type\<close>
 
 typedef 'a fset = "{A :: 'a set. finite A}"  morphisms fset Abs_fset
 by auto
@@ -18,7 +18,7 @@ by auto
 setup_lifting type_definition_fset
 
 
-subsection {* Basic operations and type class instantiations *}
+subsection \<open>Basic operations and type class instantiations\<close>
 
 (* FIXME transfer and right_total vs. bi_total *)
 instantiation fset :: (finite) finite
@@ -153,7 +153,7 @@ abbreviation fuminus :: "'a::finite fset \<Rightarrow> 'a fset" ("|-| _" [81] 80
 declare top_fset.rep_eq[simp]
 
 
-subsection {* Other operations *}
+subsection \<open>Other operations\<close>
 
 lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is insert parametric Lifting_Set.insert_transfer
   by simp
@@ -199,7 +199,7 @@ lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightar
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 
 
-subsection {* Transferred lemmas from Set.thy *}
+subsection \<open>Transferred lemmas from Set.thy\<close>
 
 lemmas fset_eqI = set_eqI[Transfer.transferred]
 lemmas fset_eq_iff[no_atp] = set_eq_iff[Transfer.transferred]
@@ -439,14 +439,14 @@ lemmas ffmember_filter[simp] = member_filter[Transfer.transferred]
 lemmas fequalityI = equalityI[Transfer.transferred]
 
 
-subsection {* Additional lemmas*}
+subsection \<open>Additional lemmas\<close>
 
-subsubsection {* @{text fsingleton} *}
+subsubsection \<open>@{text fsingleton}\<close>
 
 lemmas fsingletonE = fsingletonD [elim_format]
 
 
-subsubsection {* @{text femepty} *}
+subsubsection \<open>@{text femepty}\<close>
 
 lemma fempty_ffilter[simp]: "ffilter (\<lambda>_. False) A = {||}"
 by transfer auto
@@ -456,7 +456,7 @@ lemma femptyE [elim!]: "a |\<in>| {||} \<Longrightarrow> P"
   by simp
 
 
-subsubsection {* @{text fset} *}
+subsubsection \<open>@{text fset}\<close>
 
 lemmas fset_simps[simp] = bot_fset.rep_eq finsert.rep_eq
 
@@ -479,7 +479,7 @@ lemmas union_fset[simp] = sup_fset.rep_eq
 lemmas minus_fset[simp] = minus_fset.rep_eq
 
 
-subsubsection {* @{text filter_fset} *}
+subsubsection \<open>@{text filter_fset}\<close>
 
 lemma subset_ffilter: 
   "ffilter P A |\<subseteq>| ffilter Q A = (\<forall> x. x |\<in>| A \<longrightarrow> P x \<longrightarrow> Q x)"
@@ -495,7 +495,7 @@ lemma pfsubset_ffilter:
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 
 
-subsubsection {* @{text finsert} *}
+subsubsection \<open>@{text finsert}\<close>
 
 (* FIXME, transferred doesn't work here *)
 lemma set_finsert:
@@ -507,13 +507,13 @@ lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finser
   by (rule_tac x = "A |-| {|a|}" in exI, blast)
 
 
-subsubsection {* @{text fimage} *}
+subsubsection \<open>@{text fimage}\<close>
 
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
 
 
-subsubsection {* bounded quantification *}
+subsubsection \<open>bounded quantification\<close>
 
 lemma bex_simps [simp, no_atp]:
   "\<And>A P Q. fBex A (\<lambda>x. P x \<and> Q) = (fBex A P \<and> Q)" 
@@ -544,7 +544,7 @@ by (transfer, simp)+
 end
 
 
-subsubsection {* @{text fcard} *}
+subsubsection \<open>@{text fcard}\<close>
 
 (* FIXME: improve transferred to handle bounded meta quantification *)
 
@@ -627,7 +627,7 @@ lemma fcard_pfsubset: "A |\<subseteq>| B \<Longrightarrow> fcard A < fcard B \<L
 by transfer (rule card_psubset)
 
 
-subsubsection {* @{text ffold} *}
+subsubsection \<open>@{text ffold}\<close>
 
 (* FIXME: improve transferred to handle bounded meta quantification *)
 
@@ -686,7 +686,7 @@ begin
 end
 
 
-subsection {* Choice in fsets *}
+subsection \<open>Choice in fsets\<close>
 
 lemma fset_choice: 
   assumes "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
@@ -694,7 +694,7 @@ lemma fset_choice:
   using assms by transfer metis
 
 
-subsection {* Induction and Cases rules for fsets *}
+subsection \<open>Induction and Cases rules for fsets\<close>
 
 lemma fset_exhaust [case_names empty insert, cases type: fset]:
   assumes fempty_case: "S = {||} \<Longrightarrow> P" 
@@ -760,9 +760,9 @@ lemma fset_induct2:
   done
 
 
-subsection {* Setup for Lifting/Transfer *}
+subsection \<open>Setup for Lifting/Transfer\<close>
 
-subsubsection {* Relator and predicator properties *}
+subsubsection \<open>Relator and predicator properties\<close>
 
 lift_definition rel_fset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" is rel_set
 parametric rel_set_transfer .
@@ -800,9 +800,9 @@ proof -
   ultimately show ?thesis by metis
 qed
 
-subsubsection {* Transfer rules for the Transfer package *}
+subsubsection \<open>Transfer rules for the Transfer package\<close>
 
-text {* Unconditional transfer rules *}
+text \<open>Unconditional transfer rules\<close>
 
 context
 begin
@@ -854,7 +854,7 @@ lemma bind_transfer [transfer_rule]:
   using assms unfolding rel_fun_def
   using bind_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
-text {* Rules requiring bi-unique, bi-total or right-total relations *}
+text \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
 
 lemma fmember_transfer [transfer_rule]:
   assumes "bi_unique A"
@@ -913,7 +913,7 @@ lifting_update fset.lifting
 lifting_forget fset.lifting
 
 
-subsection {* BNF setup *}
+subsection \<open>BNF setup\<close>
 
 context
 includes fset.lifting
@@ -940,9 +940,9 @@ proof
   hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
   show ?R unfolding Grp_def relcompp.simps conversep.simps
   proof (intro CollectI case_prodI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
-    from * show "a = fimage fst R'" using conjunct1[OF `?L`]
+    from * show "a = fimage fst R'" using conjunct1[OF \<open>?L\<close>]
       by (transfer, auto simp add: image_def Int_def split: prod.splits)
-    from * show "b = fimage snd R'" using conjunct2[OF `?L`]
+    from * show "b = fimage snd R'" using conjunct2[OF \<open>?L\<close>]
       by (transfer, auto simp add: image_def Int_def split: prod.splits)
   qed (auto simp add: *)
 next
@@ -980,7 +980,7 @@ end
 lemmas [simp] = fset.map_comp fset.map_id fset.set_map
 
 
-subsection {* Size setup *}
+subsection \<open>Size setup\<close>
 
 context includes fset.lifting begin
 lift_definition size_fset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a fset \<Rightarrow> nat" is "\<lambda>f. setsum (Suc \<circ> f)" .
@@ -1004,15 +1004,15 @@ lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = s
   apply (subst fun_eq_iff)
   including fset.lifting by transfer (auto intro: setsum.reindex_cong subset_inj_on)
   
-setup {*
+setup \<open>
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
   @{thms size_fset_simps size_fset_overloaded_simps} @{thms fset_size_o_map}
-*}
+\<close>
 
 lifting_update fset.lifting
 lifting_forget fset.lifting
 
-subsection {* Advanced relator customization *}
+subsection \<open>Advanced relator customization\<close>
 
 (* Set vs. sum relators: *)
 

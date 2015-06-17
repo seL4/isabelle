@@ -2,13 +2,13 @@
     Authors:    Jeremy Avigad and Kevin Donnelly
 *)
 
-section {* Big O notation *}
+section \<open>Big O notation\<close>
 
 theory BigO
 imports Complex_Main Function_Algebras Set_Algebras
 begin
 
-text {*
+text \<open>
 This library is designed to support asymptotic ``big O'' calculations,
 i.e.~reasoning with expressions of the form $f = O(g)$ and $f = g +
 O(h)$.  An earlier version of this library is described in detail in
@@ -30,9 +30,9 @@ inclusion, to use the automated reasoners effectively with the library
 one should redeclare the theorem @{text "subsetI"} as an intro rule,
 rather than as an @{text "intro!"} rule, for example, using
 \isa{\isakeyword{declare}}~@{text "subsetI [del, intro]"}.
-*}
+\<close>
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(1O'(_'))")
   where "O(f:: 'a \<Rightarrow> 'b) = {h. \<exists>c. \<forall>x. abs (h x) \<le> c * abs (f x)}"
@@ -558,7 +558,7 @@ lemma bigo_compose2: "f =o g +o O(h) \<Longrightarrow>
   done
 
 
-subsection {* Setsum *}
+subsection \<open>Setsum\<close>
 
 lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longrightarrow>
     \<exists>c. \<forall>x. \<forall>y \<in> A x. abs (f x y) \<le> c * (h x y) \<Longrightarrow>
@@ -659,7 +659,7 @@ lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x 
   done
 
 
-subsection {* Misc useful stuff *}
+subsection \<open>Misc useful stuff\<close>
 
 lemma bigo_useful_intro: "A \<subseteq> O(f) \<Longrightarrow> B \<subseteq> O(f) \<Longrightarrow> A + B \<subseteq> O(f)"
   apply (subst bigo_plus_idemp [symmetric])
@@ -712,7 +712,7 @@ lemma bigo_fix2:
   done
 
 
-subsection {* Less than or equal to *}
+subsection \<open>Less than or equal to\<close>
 
 definition lesso :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"  (infixl "<o" 70)
   where "f <o g = (\<lambda>x. max (f x - g x) 0)"

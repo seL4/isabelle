@@ -6,7 +6,7 @@ theory Finite_Lattice
 imports Product_Order
 begin
 
-text {* A non-empty finite lattice is a complete lattice.
+text \<open>A non-empty finite lattice is a complete lattice.
 Since types are never empty in Isabelle/HOL,
 a type of classes @{class finite} and @{class lattice}
 should also have class @{class complete_lattice}.
@@ -15,7 +15,7 @@ that extends classes @{class finite} and @{class lattice}
 with the operators @{const bot}, @{const top}, @{const Inf}, and @{const Sup},
 along with assumptions that define these operators
 in terms of the ones of classes @{class finite} and @{class lattice}.
-The resulting class is a subclass of @{class complete_lattice}. *}
+The resulting class is a subclass of @{class complete_lattice}.\<close>
 
 class finite_lattice_complete = finite + lattice + bot + top + Inf + Sup +
   assumes bot_def: "bot = Inf_fin UNIV"
@@ -23,10 +23,10 @@ class finite_lattice_complete = finite + lattice + bot + top + Inf + Sup +
   assumes Inf_def: "Inf A = Finite_Set.fold inf top A"
   assumes Sup_def: "Sup A = Finite_Set.fold sup bot A"
 
-text {* The definitional assumptions
+text \<open>The definitional assumptions
 on the operators @{const bot} and @{const top}
 of class @{class finite_lattice_complete}
-ensure that they yield bottom and top. *}
+ensure that they yield bottom and top.\<close>
 
 lemma finite_lattice_complete_bot_least: "(bot::'a::finite_lattice_complete) \<le> x"
   by (auto simp: bot_def intro: Inf_fin.coboundedI)
@@ -42,10 +42,10 @@ instance finite_lattice_complete \<subseteq> order_top
 
 instance finite_lattice_complete \<subseteq> bounded_lattice ..
 
-text {* The definitional assumptions
+text \<open>The definitional assumptions
 on the operators @{const Inf} and @{const Sup}
 of class @{class finite_lattice_complete}
-ensure that they yield infimum and supremum. *}
+ensure that they yield infimum and supremum.\<close>
 
 lemma finite_lattice_complete_Inf_empty: "Inf {} = (top :: 'a::finite_lattice_complete)"
   by (simp add: Inf_def)
@@ -101,7 +101,7 @@ qed (auto simp:
   finite_lattice_complete_Inf_empty
   finite_lattice_complete_Sup_empty)
 
-text {* The product of two finite lattices is already a finite lattice. *}
+text \<open>The product of two finite lattices is already a finite lattice.\<close>
 
 lemma finite_bot_prod:
   "(bot :: ('a::finite_lattice_complete \<times> 'b::finite_lattice_complete)) =
@@ -126,8 +126,8 @@ lemma finite_Sup_prod:
 instance prod :: (finite_lattice_complete, finite_lattice_complete) finite_lattice_complete
   by default (auto simp: finite_bot_prod finite_top_prod finite_Inf_prod finite_Sup_prod)
 
-text {* Functions with a finite domain and with a finite lattice as codomain
-already form a finite lattice. *}
+text \<open>Functions with a finite domain and with a finite lattice as codomain
+already form a finite lattice.\<close>
 
 lemma finite_bot_fun: "(bot :: ('a::finite \<Rightarrow> 'b::finite_lattice_complete)) = Inf_fin UNIV"
   by (metis Inf_UNIV Inf_fin_Inf empty_not_UNIV finite_code)
@@ -149,11 +149,11 @@ instance "fun" :: (finite, finite_lattice_complete) finite_lattice_complete
   by default (auto simp: finite_bot_fun finite_top_fun finite_Inf_fun finite_Sup_fun)
 
 
-subsection {* Finite Distributive Lattices *}
+subsection \<open>Finite Distributive Lattices\<close>
 
-text {* A finite distributive lattice is a complete lattice
+text \<open>A finite distributive lattice is a complete lattice
 whose @{const inf} and @{const sup} operators
-distribute over @{const Sup} and @{const Inf}. *}
+distribute over @{const Sup} and @{const Inf}.\<close>
 
 class finite_distrib_lattice_complete =
   distrib_lattice + finite_lattice_complete
@@ -177,42 +177,42 @@ qed (auto simp:
   finite_distrib_lattice_complete_sup_Inf
   finite_distrib_lattice_complete_inf_Sup)
 
-text {* The product of two finite distributive lattices
-is already a finite distributive lattice. *}
+text \<open>The product of two finite distributive lattices
+is already a finite distributive lattice.\<close>
 
 instance prod ::
   (finite_distrib_lattice_complete, finite_distrib_lattice_complete)
   finite_distrib_lattice_complete
   ..
 
-text {* Functions with a finite domain
+text \<open>Functions with a finite domain
 and with a finite distributive lattice as codomain
-already form a finite distributive lattice. *}
+already form a finite distributive lattice.\<close>
 
 instance "fun" ::
   (finite, finite_distrib_lattice_complete) finite_distrib_lattice_complete
   ..
 
 
-subsection {* Linear Orders *}
+subsection \<open>Linear Orders\<close>
 
-text {* A linear order is a distributive lattice.
+text \<open>A linear order is a distributive lattice.
 A type class is defined
 that extends class @{class linorder}
 with the operators @{const inf} and @{const sup},
 along with assumptions that define these operators
 in terms of the ones of class @{class linorder}.
-The resulting class is a subclass of @{class distrib_lattice}. *}
+The resulting class is a subclass of @{class distrib_lattice}.\<close>
 
 class linorder_lattice = linorder + inf + sup +
   assumes inf_def: "inf x y = (if x \<le> y then x else y)"
   assumes sup_def: "sup x y = (if x \<ge> y then x else y)"
 
-text {* The definitional assumptions
+text \<open>The definitional assumptions
 on the operators @{const inf} and @{const sup}
 of class @{class linorder_lattice}
 ensure that they yield infimum and supremum
-and that they distribute over each other. *}
+and that they distribute over each other.\<close>
 
 lemma linorder_lattice_inf_le1: "inf (x::'a::linorder_lattice) y \<le> x"
   unfolding inf_def by (metis (full_types) linorder_linear)
@@ -250,17 +250,17 @@ qed (auto simp:
   linorder_lattice_sup_inf_distrib1)
 
 
-subsection {* Finite Linear Orders *}
+subsection \<open>Finite Linear Orders\<close>
 
-text {* A (non-empty) finite linear order is a complete linear order. *}
+text \<open>A (non-empty) finite linear order is a complete linear order.\<close>
 
 class finite_linorder_complete = linorder_lattice + finite_lattice_complete
 
 instance finite_linorder_complete \<subseteq> complete_linorder ..
 
-text {* A (non-empty) finite linear order is a complete lattice
+text \<open>A (non-empty) finite linear order is a complete lattice
 whose @{const inf} and @{const sup} operators
-distribute over @{const Sup} and @{const Inf}. *}
+distribute over @{const Sup} and @{const Inf}.\<close>
 
 instance finite_linorder_complete \<subseteq> finite_distrib_lattice_complete ..
 

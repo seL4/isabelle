@@ -3,13 +3,13 @@
     Author:     Christian Sternagel, JAIST
 *)
 
-section {* List prefixes, suffixes, and homeomorphic embedding *}
+section \<open>List prefixes, suffixes, and homeomorphic embedding\<close>
 
 theory Sublist
 imports Main
 begin
 
-subsection {* Prefix order on lists *}
+subsection \<open>Prefix order on lists\<close>
 
 definition prefixeq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "prefixeq xs ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
@@ -38,7 +38,7 @@ lemma prefixE' [elim?]:
   assumes "prefix xs ys"
   obtains z zs where "ys = xs @ z # zs"
 proof -
-  from `prefix xs ys` obtain us where "ys = xs @ us" and "xs \<noteq> ys"
+  from \<open>prefix xs ys\<close> obtain us where "ys = xs @ us" and "xs \<noteq> ys"
     unfolding prefix_def prefixeq_def by blast
   with that show ?thesis by (auto simp add: neq_Nil_conv)
 qed
@@ -53,7 +53,7 @@ lemma prefixE [elim?]:
   using assms unfolding prefix_def by blast
 
 
-subsection {* Basic properties of prefixes *}
+subsection \<open>Basic properties of prefixes\<close>
 
 theorem Nil_prefixeq [iff]: "prefixeq [] xs"
   by (simp add: prefixeq_def)
@@ -159,7 +159,7 @@ proof (cases ps)
   then show ?thesis using pfx by simp
 next
   case (Cons a as)
-  note c = `ps = a#as`
+  note c = \<open>ps = a#as\<close>
   show ?thesis
   proof (cases ls)
     case Nil then show ?thesis by (metis append_Nil2 pfx c1 same_prefixeq_nil)
@@ -195,7 +195,7 @@ next
 qed
 
 
-subsection {* Parallel lists *}
+subsection \<open>Parallel lists\<close>
 
 definition parallel :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl "\<parallel>" 50)
   where "(xs \<parallel> ys) = (\<not> prefixeq xs ys \<and> \<not> prefixeq ys xs)"
@@ -262,7 +262,7 @@ lemma parallel_commute: "a \<parallel> b \<longleftrightarrow> b \<parallel> a"
   unfolding parallel_def by auto
 
 
-subsection {* Suffix order on lists *}
+subsection \<open>Suffix order on lists\<close>
 
 definition suffixeq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "suffixeq xs ys = (\<exists>zs. ys = zs @ xs)"
@@ -363,7 +363,7 @@ proof (intro ext iffI)
   show "suffix\<^sup>=\<^sup>= xs ys"
   proof
     assume "xs \<noteq> ys"
-    with `suffixeq xs ys` show "suffix xs ys"
+    with \<open>suffixeq xs ys\<close> show "suffix xs ys"
       by (auto simp: suffixeq_def suffix_def)
   qed
 next
@@ -426,7 +426,7 @@ lemma suffix_lists: "suffix xs ys \<Longrightarrow> ys \<in> lists A \<Longright
   unfolding suffix_def by auto
 
 
-subsection {* Homeomorphic embedding on lists *}
+subsection \<open>Homeomorphic embedding on lists\<close>
 
 inductive list_emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for P :: "('a \<Rightarrow> 'a \<Rightarrow> bool)"
@@ -523,14 +523,14 @@ proof -
     case list_emb_Nil show ?case by blast
   next
     case (list_emb_Cons xs ys y)
-    from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
+    from list_emb_ConsD [OF \<open>list_emb P (y#ys) zs\<close>] obtain us v vs
       where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
     then have "list_emb P ys (v#vs)" by blast
     then have "list_emb P ys zs" unfolding zs by (rule list_emb_append2)
     from list_emb_Cons.IH [OF this] and list_emb_Cons.prems show ?case by auto
   next
     case (list_emb_Cons2 x y xs ys)
-    from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
+    from list_emb_ConsD [OF \<open>list_emb P (y#ys) zs\<close>] obtain us v vs
       where zs: "zs = us @ v # vs" and "P y v" and "list_emb P ys vs" by blast
     with list_emb_Cons2 have "list_emb P xs vs" by auto
     moreover have "P x v"
@@ -538,7 +538,7 @@ proof -
       from zs have "v \<in> set zs" by auto
       moreover have "x \<in> set (x#xs)" and "y \<in> set (y#ys)" by simp_all
       ultimately show ?thesis
-        using `P x y` and `P y v` and list_emb_Cons2
+        using \<open>P x y\<close> and \<open>P y v\<close> and list_emb_Cons2
         by blast
     qed
     ultimately have "list_emb P (x#xs) (v#vs)" by blast
@@ -552,7 +552,7 @@ lemma list_emb_set:
   using assms by (induct) auto
 
 
-subsection {* Sublists (special case of homeomorphic embedding) *}
+subsection \<open>Sublists (special case of homeomorphic embedding)\<close>
 
 abbreviation sublisteq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "sublisteq xs ys \<equiv> list_emb (op =) xs ys"
@@ -623,7 +623,7 @@ lemma list_emb_append_mono:
   done
 
 
-subsection {* Appending elements *}
+subsection \<open>Appending elements\<close>
 
 lemma sublisteq_append [simp]:
   "sublisteq (xs @ zs) (ys @ zs) \<longleftrightarrow> sublisteq xs ys" (is "?l = ?r")
@@ -646,7 +646,7 @@ proof
       { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_emb_Cons2 by auto}
       moreover
       { fix us assume "xs=x#us" "ys=[]" then have ?case using list_emb_Cons2(2) by bestsimp }
-      ultimately show ?case using `op = x y` by (auto simp: Cons_eq_append_conv)
+      ultimately show ?case using \<open>op = x y\<close> by (auto simp: Cons_eq_append_conv)
     qed }
   moreover assume ?l
   ultimately show ?r by blast
@@ -661,7 +661,7 @@ lemma sublisteq_rev_drop_many: "sublisteq xs ys \<Longrightarrow> sublisteq xs (
   by (metis append_Nil2 list_emb_Nil list_emb_append_mono)
 
 
-subsection {* Relation to standard list operations *}
+subsection \<open>Relation to standard list operations\<close>
 
 lemma sublisteq_map:
   assumes "sublisteq xs ys" shows "sublisteq (map f xs) (map f ys)"

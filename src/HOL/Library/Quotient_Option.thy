@@ -2,13 +2,13 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Quotient infrastructure for the option type *}
+section \<open>Quotient infrastructure for the option type\<close>
 
 theory Quotient_Option
 imports Main Quotient_Syntax
 begin
 
-subsection {* Rules for the Quotient package *}
+subsection \<open>Rules for the Quotient package\<close>
 
 lemma rel_option_map1:
   "rel_option R (map_option f x) y \<longleftrightarrow> rel_option (\<lambda>x. R (f x)) x y"

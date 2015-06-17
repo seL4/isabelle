@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Generic reflection and reification *}
+section \<open>Generic reflection and reification\<close>
 
 theory Reflection
 imports Main
@@ -10,13 +10,13 @@ begin
 
 ML_file "~~/src/HOL/Tools/reflection.ML"
 
-method_setup reify = {*
+method_setup reify = \<open>
   Attrib.thms --
     Scan.option (Scan.lift (Args.$$$ "(") |-- Args.term --| Scan.lift (Args.$$$ ")")) >>
       (fn (user_eqs, to) => fn ctxt => SIMPLE_METHOD' (Reflection.default_reify_tac ctxt user_eqs to))
-*} "partial automatic reification"
+\<close> "partial automatic reification"
 
-method_setup reflection = {*
+method_setup reflection = \<open>
 let
   fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
   val onlyN = "only";
@@ -30,7 +30,7 @@ in
   (fn ((user_eqs, user_thms), to) => fn ctxt =>
         SIMPLE_METHOD' (Reflection.default_reflection_tac ctxt user_thms user_eqs to))
 end
-*} "partial automatic reflection"
+\<close> "partial automatic reflection"
 
 end
 

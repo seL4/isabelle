@@ -1,15 +1,15 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Comparing growth of functions on natural numbers by a preorder relation *}
+section \<open>Comparing growth of functions on natural numbers by a preorder relation\<close>
 
 theory Function_Growth
 imports Main Preorder Discrete
 begin
 
-subsection {* Motivation *}
+subsection \<open>Motivation\<close>
 
-text {*
+text \<open>
   When comparing growth of functions in computer science, it is common to adhere
   on Landau Symbols (``O-Notation'').  However these come at the cost of notational
   oddities, particularly writing @{text "f = O(g)"} for @{text "f \<in> O(g)"} etc.
@@ -21,11 +21,11 @@ text {*
   avoid the notational oddities mentioned above but also emphasizes the key insight
   of a growth hierarchy of functions:
   @{text "(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> Discrete.log \<lesssim> Discrete.sqrt \<lesssim> id \<lesssim> \<dots>"}.
-*}
+\<close>
 
-subsection {* Model *}
+subsection \<open>Model\<close>
 
-text {*
+text \<open>
   Our growth functions are of type @{text "\<nat> \<Rightarrow> \<nat>"}.  This is different
   to the usual conventions for Landau symbols for which @{text "\<real> \<Rightarrow> \<real>"}
   would be appropriate, but we argue that @{text "\<real> \<Rightarrow> \<real>"} is more
@@ -33,19 +33,19 @@ text {*
 
   Note that we also restrict the additional coefficients to @{text \<nat>}, something
   we discuss at the particular definitions.
-*}
+\<close>
 
-subsection {* The @{text "\<lesssim>"} relation *}
+subsection \<open>The @{text "\<lesssim>"} relation\<close>
 
 definition less_eq_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<lesssim>" 50)
 where
   "f \<lesssim> g \<longleftrightarrow> (\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m)"
 
-text {*
+text \<open>
   This yields @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.  Note that @{text c} is restricted to
   @{text \<nat>}.  This does not pose any problems since if @{text "f \<in> O(g)"} holds for
   a @{text "c \<in> \<real>"}, it also holds for @{text "\<lceil>c\<rceil> \<in> \<nat>"} by transitivity.
-*}
+\<close>
 
 lemma less_eq_funI [intro?]:
   assumes "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m"
@@ -68,17 +68,17 @@ lemma not_less_eq_funE:
   using assms unfolding less_eq_fun_def linorder_not_le [symmetric] by blast
 
 
-subsection {* The @{text "\<approx>"} relation, the equivalence relation induced by @{text "\<lesssim>"} *}
+subsection \<open>The @{text "\<approx>"} relation, the equivalence relation induced by @{text "\<lesssim>"}\<close>
 
 definition equiv_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<cong>" 50)
 where
   "f \<cong> g \<longleftrightarrow>
     (\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m)"
 
-text {*
+text \<open>
   This yields @{text "f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)"}.  Concerning @{text "c\<^sub>1"} and @{text "c\<^sub>2"}
   restricted to @{typ nat}, see note above on @{text "(\<lesssim>)"}.
-*}
+\<close>
 
 lemma equiv_funI [intro?]:
   assumes "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
@@ -105,7 +105,7 @@ lemma not_equiv_funE:
   using assms unfolding equiv_fun_def linorder_not_le [symmetric] by blast
 
 
-subsection {* The @{text "\<prec>"} relation, the strict part of @{text "\<lesssim>"} *}
+subsection \<open>The @{text "\<prec>"} relation, the strict part of @{text "\<lesssim>"}\<close>
 
 definition less_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<prec>" 50)
 where
@@ -129,11 +129,11 @@ lemma less_funE [elim?]:
     and "\<And>c n. c > 0 \<Longrightarrow> \<exists>m>n. c * f m < g m"
 proof -
   from assms have "f \<lesssim> g" and "\<not> g \<lesssim> f" by (simp_all add: less_fun_def)
-  from `f \<lesssim> g` obtain n c where *:"c > 0" "\<And>m. m > n \<Longrightarrow> f m \<le> c * g m"
+  from \<open>f \<lesssim> g\<close> obtain n c where *:"c > 0" "\<And>m. m > n \<Longrightarrow> f m \<le> c * g m"
     by (rule less_eq_funE) blast
   { fix c n :: nat
     assume "c > 0"
-    with `\<not> g \<lesssim> f` obtain m where "m > n" "c * f m < g m"
+    with \<open>\<not> g \<lesssim> f\<close> obtain m where "m > n" "c * f m < g m"
       by (rule not_less_eq_funE) blast
     then have **: "\<exists>m>n. c * f m < g m" by blast
   } note ** = this
@@ -146,7 +146,7 @@ lemma not_less_funE:
     | d q where "\<And>m. d > 0 \<Longrightarrow> m > q \<Longrightarrow> g q \<le> d * f q"
   using assms unfolding less_fun_def linorder_not_less [symmetric] by blast
 
-text {*
+text \<open>
   I did not find a proof for @{text "f \<prec> g \<longleftrightarrow> f \<in> o(g)"}.  Maybe this only
   holds if @{text f} and/or @{text g} are of a certain class of functions.
   However @{text "f \<in> o(g) \<longrightarrow> f \<prec> g"} is provable, and this yields a
@@ -161,14 +161,14 @@ text {*
   works since @{text c} may become arbitrary small.  Since this is not possible
   within @{term \<nat>}, we push the coefficient to the left hand side instead such
   that it become arbitrary big instead.
-*}
+\<close>
 
 lemma less_fun_strongI:
   assumes "\<And>c. c > 0 \<Longrightarrow> \<exists>n. \<forall>m>n. c * f m < g m"
   shows "f \<prec> g"
 proof (rule less_funI)
   have "1 > (0::nat)" by simp
-  from assms `1 > 0` have "\<exists>n. \<forall>m>n. 1 * f m < g m" .
+  from assms \<open>1 > 0\<close> have "\<exists>n. \<forall>m>n. 1 * f m < g m" .
   then obtain n where *: "\<And>m. m > n \<Longrightarrow> 1 * f m < g m" by blast
   have "\<forall>m>n. f m \<le> 1 * g m"
   proof (rule allI, rule impI)
@@ -177,7 +177,7 @@ proof (rule less_funI)
     with * have "1 * f m < g m" by simp
     then show "f m \<le> 1 * g m" by simp
   qed
-  with `1 > 0` show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
+  with \<open>1 > 0\<close> show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
   fix c n :: nat
   assume "c > 0"
   with assms obtain q where "\<And>m. m > q \<Longrightarrow> c * f m < g m" by blast
@@ -187,9 +187,9 @@ proof (rule less_funI)
 qed
 
 
-subsection {* @{text "\<lesssim>"} is a preorder *}
+subsection \<open>@{text "\<lesssim>"} is a preorder\<close>
 
-text {* This yields all lemmas relating @{text "\<lesssim>"}, @{text "\<prec>"} and @{text "\<cong>"}. *}
+text \<open>This yields all lemmas relating @{text "\<lesssim>"}, @{text "\<prec>"} and @{text "\<cong>"}.\<close>
 
 interpretation fun_order: preorder_equiv less_eq_fun less_fun
   where "preorder_equiv.equiv less_eq_fun = equiv_fun"
@@ -207,10 +207,10 @@ proof -
     assume "f \<lesssim> g" and "g \<lesssim> h"
     show "f \<lesssim> h"
     proof
-      from `f \<lesssim> g` obtain n\<^sub>1 c\<^sub>1
+      from \<open>f \<lesssim> g\<close> obtain n\<^sub>1 c\<^sub>1
         where "c\<^sub>1 > 0" and P\<^sub>1: "\<And>m. m > n\<^sub>1 \<Longrightarrow> f m \<le> c\<^sub>1 * g m"
         by rule blast
-      from `g \<lesssim> h` obtain n\<^sub>2 c\<^sub>2
+      from \<open>g \<lesssim> h\<close> obtain n\<^sub>2 c\<^sub>2
         where "c\<^sub>2 > 0" and P\<^sub>2: "\<And>m. m > n\<^sub>2 \<Longrightarrow> g m \<le> c\<^sub>2 * h m"
         by rule blast
       have "\<forall>m>max n\<^sub>1 n\<^sub>2. f m \<le> (c\<^sub>1 * c\<^sub>2) * h m"
@@ -219,11 +219,11 @@ proof -
         assume Q: "m > max n\<^sub>1 n\<^sub>2"
         from P\<^sub>1 Q have *: "f m \<le> c\<^sub>1 * g m" by simp
         from P\<^sub>2 Q have "g m \<le> c\<^sub>2 * h m" by simp
-        with `c\<^sub>1 > 0` have "c\<^sub>1 * g m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by simp
+        with \<open>c\<^sub>1 > 0\<close> have "c\<^sub>1 * g m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by simp
         with * show "f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by (rule order_trans)
       qed
       then have "\<exists>n. \<forall>m>n. f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by rule
-      moreover from `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "c\<^sub>1 * c\<^sub>2 > 0" by simp
+      moreover from \<open>c\<^sub>1 > 0\<close> \<open>c\<^sub>2 > 0\<close> have "c\<^sub>1 * c\<^sub>2 > 0" by simp
       ultimately show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * h m" by blast
     qed
   qed
@@ -243,7 +243,7 @@ proof -
         assume "m > n"
         with * show "f m \<le> c\<^sub>1 * g m" by simp
       qed
-      with `c\<^sub>1 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
+      with \<open>c\<^sub>1 > 0\<close> have "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
       then have "f \<lesssim> g" ..
       have "\<forall>m>n. g m \<le> c\<^sub>2 * f m"
       proof (rule allI, rule impI)
@@ -251,15 +251,15 @@ proof -
         assume "m > n"
         with * show "g m \<le> c\<^sub>2 * f m" by simp
       qed
-      with `c\<^sub>2 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. g m \<le> c * f m" by blast
+      with \<open>c\<^sub>2 > 0\<close> have "\<exists>c>0. \<exists>n. \<forall>m>n. g m \<le> c * f m" by blast
       then have "g \<lesssim> f" ..
-      from `f \<lesssim> g` and `g \<lesssim> f` show "f \<lesssim> g \<and> g \<lesssim> f" ..
+      from \<open>f \<lesssim> g\<close> and \<open>g \<lesssim> f\<close> show "f \<lesssim> g \<and> g \<lesssim> f" ..
     next
       assume "f \<lesssim> g \<and> g \<lesssim> f"
       then have "f \<lesssim> g" and "g \<lesssim> f" by auto
-      from `f \<lesssim> g` obtain n\<^sub>1 c\<^sub>1 where "c\<^sub>1 > 0"
+      from \<open>f \<lesssim> g\<close> obtain n\<^sub>1 c\<^sub>1 where "c\<^sub>1 > 0"
         and P\<^sub>1: "\<And>m. m > n\<^sub>1 \<Longrightarrow> f m \<le> c\<^sub>1 * g m" by rule blast
-      from `g \<lesssim> f` obtain n\<^sub>2 c\<^sub>2 where "c\<^sub>2 > 0"
+      from \<open>g \<lesssim> f\<close> obtain n\<^sub>2 c\<^sub>2 where "c\<^sub>2 > 0"
         and P\<^sub>2: "\<And>m. m > n\<^sub>2 \<Longrightarrow> g m \<le> c\<^sub>2 * f m" by rule blast
       have "\<forall>m>max n\<^sub>1 n\<^sub>2. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
       proof (rule allI, rule impI)
@@ -269,7 +269,7 @@ proof -
         moreover from P\<^sub>2 Q have "g m \<le> c\<^sub>2 * f m" by simp
         ultimately show "f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m" ..
       qed
-      with `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n.
+      with \<open>c\<^sub>1 > 0\<close> \<open>c\<^sub>2 > 0\<close> have "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n.
         \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m" by blast
       then show "f \<cong> g" ..
     qed
@@ -277,18 +277,18 @@ proof -
 qed
 
 
-subsection {* Simple examples *}
+subsection \<open>Simple examples\<close>
 
-text {*
+text \<open>
   Most of these are left as constructive exercises for the reader.  Note that additional
   preconditions to the functions may be necessary.  The list here is by no means to be
   intended as complete construction set for typical functions, here surely something
   has to be added yet.
-*}
+\<close>
 
-text {* @{prop "(\<lambda>n. f n + k) \<cong> f"} *}
+text \<open>@{prop "(\<lambda>n. f n + k) \<cong> f"}\<close>
 
-text {* @{prop "(\<lambda>n. Suc k * f n) \<cong> f"} *}
+text \<open>@{prop "(\<lambda>n. Suc k * f n) \<cong> f"}\<close>
 
 lemma "f \<lesssim> (\<lambda>n. f n + g n)"
   by rule auto
@@ -312,7 +312,7 @@ proof (rule less_fun_strongI)
   then show "\<exists>n. \<forall>m>n. c * k < Discrete.log m" ..
 qed
   
-text {* @{prop "Discrete.log \<prec> Discrete.sqrt"} *}
+text \<open>@{prop "Discrete.log \<prec> Discrete.sqrt"}\<close>
 
 lemma "Discrete.sqrt \<prec> id"
 proof (rule less_fun_strongI)
@@ -326,7 +326,7 @@ proof (rule less_fun_strongI)
     with mono_sqrt have "Discrete.sqrt ((Suc c)\<^sup>2) \<le> Discrete.sqrt m" by (rule monoE)
     then have "Suc c \<le> Discrete.sqrt m" by simp
     then have "c < Discrete.sqrt m" by simp
-    moreover from `(Suc c)\<^sup>2 < m` have "Discrete.sqrt m > 0" by simp
+    moreover from \<open>(Suc c)\<^sup>2 < m\<close> have "Discrete.sqrt m > 0" by simp
     ultimately have "c * Discrete.sqrt m < Discrete.sqrt m * Discrete.sqrt m" by simp
     also have "\<dots> \<le> m" by (simp add: power2_eq_square [symmetric])
     finally show "c * Discrete.sqrt m < id m" by simp
@@ -340,7 +340,7 @@ lemma "id \<prec> (\<lambda>n. n\<^sup>2)"
 lemma "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. n ^ Suc k)"
   by (rule less_fun_strongI) auto
 
-text {* @{prop "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"} *}
+text \<open>@{prop "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"}\<close>
 
 end
 

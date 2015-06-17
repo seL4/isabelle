@@ -1,12 +1,12 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Common discrete functions *}
+section \<open>Common discrete functions\<close>
 
 theory Discrete
 imports Main
 begin
 
-subsection {* Discrete logarithm *}
+subsection \<open>Discrete logarithm\<close>
 
 fun log :: "nat \<Rightarrow> nat"
   where [simp del]: "log n = (if n < 2 then 0 else Suc (log (n div 2)))"
@@ -59,13 +59,13 @@ proof
       with mn2 have n2_0: "n div 2 \<noteq> 0" by arith
       from False "1.hyps" mn2 have "log (m div 2) \<le> log (n div 2)" by blast
       with m2_0 n2_0 have "log (2 * (m div 2)) \<le> log (2 * (n div 2))" by simp
-      with m2_0 n2_0 `m \<ge> 2` `n \<ge> 2` show ?thesis by (simp only: log_rec [of m] log_rec [of n]) simp
+      with m2_0 n2_0 \<open>m \<ge> 2\<close> \<open>n \<ge> 2\<close> show ?thesis by (simp only: log_rec [of m] log_rec [of n]) simp
     qed
   qed
 qed
 
 
-subsection {* Discrete square root *}
+subsection \<open>Discrete square root\<close>
 
 definition sqrt :: "nat \<Rightarrow> nat"
   where "sqrt n = Max {m. m\<^sup>2 \<le> n}"
@@ -111,7 +111,7 @@ proof
   have *: "0 * 0 \<le> m" by simp
   assume "m \<le> n"
   then show "sqrt m \<le> sqrt n"
-    by (auto intro!: Max_mono `0 * 0 \<le> m` finite_less_ub simp add: power2_eq_square sqrt_def)
+    by (auto intro!: Max_mono \<open>0 * 0 \<le> m\<close> finite_less_ub simp add: power2_eq_square sqrt_def)
 qed
 
 lemma sqrt_greater_zero_iff [simp]: "sqrt n > 0 \<longleftrightarrow> n > 0"
@@ -162,8 +162,8 @@ next
           apply (subst Max_le_iff)
           apply auto
           apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
-          apply (metis `q * q \<le> n`)
-          apply (metis `q * q \<le> n` le_cases mult_le_mono1 mult_le_mono2 order_trans)
+          apply (metis \<open>q * q \<le> n\<close>)
+          apply (metis \<open>q * q \<le> n\<close> le_cases mult_le_mono1 mult_le_mono2 order_trans)
           done
       qed
     qed

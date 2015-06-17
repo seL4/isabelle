@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-section {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
+section \<open>Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums\<close>
 
 theory Old_Datatype
 imports "../Main"
@@ -13,7 +13,7 @@ begin
 ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
 
 
-subsection {* The datatype universe *}
+subsection \<open>The datatype universe\<close>
 
 definition "Node = {p. EX f x k. p = (f :: nat => 'b + nat, x ::'a + nat) & f k = Inr 0}"
 
@@ -21,7 +21,7 @@ typedef ('a, 'b) node = "Node :: ((nat => 'b + nat) * ('a + nat)) set"
   morphisms Rep_Node Abs_Node
   unfolding Node_def by auto
 
-text{*Datatypes will be represented by sets of type @{text node}*}
+text\<open>Datatypes will be represented by sets of type @{text node}\<close>
 
 type_synonym 'a item        = "('a, unit) node set"
 type_synonym ('a, 'b) dtree = "('a, 'b) node set"
@@ -140,7 +140,7 @@ apply (fast intro!: apfst_conv nat.case(2)[THEN trans])
 done
 
 
-subsection{*Freeness: Distinctness of Constructors*}
+subsection\<open>Freeness: Distinctness of Constructors\<close>
 
 (** Scons vs Atom **)
 
@@ -310,7 +310,7 @@ lemma ntrunc_In1 [simp]: "ntrunc (Suc(Suc k)) (In1 M) = In1 (ntrunc (Suc k) M)"
 by (simp add: In1_def)
 
 
-subsection{*Set Constructions*}
+subsection\<open>Set Constructions\<close>
 
 
 (*** Cartesian Product ***)
@@ -520,7 +520,7 @@ lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
   by auto
 
 
-text {* hides popular names *}
+text \<open>hides popular names\<close>
 hide_type (open) node item
 hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Additive group operations on product types *}
+section \<open>Additive group operations on product types\<close>
 
 theory Product_plus
 imports Main
 begin
 
-subsection {* Operations *}
+subsection \<open>Operations\<close>
 
 instantiation prod :: (zero, zero) zero
 begin
@@ -78,7 +78,7 @@ lemma diff_Pair [simp]: "(a, b) - (c, d) = (a - c, b - d)"
 lemma uminus_Pair [simp, code]: "- (a, b) = (- a, - b)"
   unfolding uminus_prod_def by simp
 
-subsection {* Class instances *}
+subsection \<open>Class instances\<close>
 
 instance prod :: (semigroup_add, semigroup_add) semigroup_add
   by default (simp add: prod_eq_iff add.assoc)

@@ -2,13 +2,13 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Quotient infrastructure for the set type *}
+section \<open>Quotient infrastructure for the set type\<close>
 
 theory Quotient_Set
 imports Main Quotient_Syntax
 begin
 
-subsection {* Contravariant set map (vimage) and set relator, rules for the Quotient package *}
+subsection \<open>Contravariant set map (vimage) and set relator, rules for the Quotient package\<close>
 
 definition "rel_vset R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
 

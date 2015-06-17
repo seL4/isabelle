@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Binary Tree *}
+section \<open>Binary Tree\<close>
 
 theory Tree
 imports Main
@@ -14,7 +14,7 @@ datatype 'a tree =
   | "right Leaf = Leaf"
 datatype_compat tree
 
-text{* Can be seen as counting the number of leaves rather than nodes: *}
+text\<open>Can be seen as counting the number of leaves rather than nodes:\<close>
 
 definition size1 :: "'a tree \<Rightarrow> nat" where
 "size1 t = size t + 1"
@@ -92,13 +92,13 @@ lemma inorder_map: "inorder (map_tree f t) = map f (inorder t)"
 by (induction t) auto
 
 
-subsection {* Binary Search Tree predicate *}
+subsection \<open>Binary Search Tree predicate\<close>
 
 fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
 "bst \<langle>\<rangle> \<longleftrightarrow> True" |
 "bst \<langle>l, a, r\<rangle> \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
 
-text{* In case there are duplicates: *}
+text\<open>In case there are duplicates:\<close>
 
 fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
 "bst_eq \<langle>\<rangle> \<longleftrightarrow> True" |

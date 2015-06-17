@@ -2,13 +2,13 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Quotient infrastructure for the sum type *}
+section \<open>Quotient infrastructure for the sum type\<close>
 
 theory Quotient_Sum
 imports Main Quotient_Syntax
 begin
 
-subsection {* Rules for the Quotient package *}
+subsection \<open>Rules for the Quotient package\<close>
 
 lemma rel_sum_map1:
   "rel_sum R1 R2 (map_sum f1 f2 x) y \<longleftrightarrow> rel_sum (\<lambda>x. R1 (f1 x)) (\<lambda>x. R2 (f2 x)) x y"

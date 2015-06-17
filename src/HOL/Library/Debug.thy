@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Debugging facilities for code generated towards Isabelle/ML *}
+section \<open>Debugging facilities for code generated towards Isabelle/ML\<close>
 
 theory Debug
 imports Main
@@ -31,7 +31,7 @@ definition timing :: "String.literal \<Rightarrow> ('a \<Rightarrow> 'b) \<Right
 
 code_printing
   constant trace \<rightharpoonup> (Eval) "Output.tracing"
-| constant flush \<rightharpoonup> (Eval) "Output.tracing/ (@{make'_string} _)" -- {* note indirection via antiquotation *}
+| constant flush \<rightharpoonup> (Eval) "Output.tracing/ (@{make'_string} _)" -- \<open>note indirection via antiquotation\<close>
 | constant timing \<rightharpoonup> (Eval) "Timing.timeap'_msg"
 
 code_reserved Eval Output Timing

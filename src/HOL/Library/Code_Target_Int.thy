@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Implementation of integer numbers by target-language integers *}
+section \<open>Implementation of integer numbers by target-language integers\<close>
 
 theory Code_Target_Int
 imports Main

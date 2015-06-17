@@ -1,6 +1,6 @@
 (* Author: Fabian Immler, TUM *)
 
-section {* Sequence of Properties on Subsequences *}
+section \<open>Sequence of Properties on Subsequences\<close>
 
 theory Diagonal_Subsequence
 imports Complex_Main

@@ -2,15 +2,15 @@
     Author:     Florian Haftmann and Ondrej Kuncar
 *)
 
-section {* An abstract view on maps for code generation. *}
+section \<open>An abstract view on maps for code generation.\<close>
 
 theory Mapping
 imports Main
 begin
 
-subsection {* Parametricity transfer rules *}
+subsection \<open>Parametricity transfer rules\<close>
 
-lemma map_of_foldr: -- {* FIXME move *}
+lemma map_of_foldr: -- \<open>FIXME move\<close>
   "map_of xs = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) xs Map.empty"
   using map_add_map_of_foldr [of Map.empty] by auto
 
@@ -92,7 +92,7 @@ lemma map_parametric:
 end
 
 
-subsection {* Type definition and primitive operations *}
+subsection \<open>Type definition and primitive operations\<close>
 
 typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
   morphisms rep Mapping
@@ -130,13 +130,13 @@ lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd
 declare [[code drop: map]]
 
 
-subsection {* Functorial structure *}
+subsection \<open>Functorial structure\<close>
 
 functor map: map
   by (transfer, auto simp add: fun_eq_iff option.map_comp option.map_id)+
 
 
-subsection {* Derived operations *}
+subsection \<open>Derived operations\<close>
 
 definition ordered_keys :: "('a\<Colon>linorder, 'b) mapping \<Rightarrow> 'a list"
 where
@@ -158,7 +158,7 @@ definition default :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Righ
 where
   "default k v m = (if k \<in> keys m then m else update k v m)"
 
-text {* Manual derivation of transfer rule is non-trivial *}
+text \<open>Manual derivation of transfer rule is non-trivial\<close>
 
 lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is
   "\<lambda>k f m. (case m k of None \<Rightarrow> m
@@ -207,7 +207,7 @@ lemma of_alist_transfer [transfer_rule]:
 end
 
 
-subsection {* Properties *}
+subsection \<open>Properties\<close>
 
 lemma lookup_update:
   "lookup (update k v m) k = Some v" 
@@ -408,7 +408,7 @@ proof transfer
 qed
 
 
-subsection {* Code generator setup *}
+subsection \<open>Code generator setup\<close>
 
 hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
   replace default map_entry map_default tabulate bulkload map of_alist

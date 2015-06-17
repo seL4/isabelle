@@ -5,7 +5,7 @@
 Axiomatic declaration of bounded natural functors.
 *)
 
-section {* Axiomatic Declaration of Bounded Natural Functors *}
+section \<open>Axiomatic Declaration of Bounded Natural Functors\<close>
 
 theory BNF_Axiomatization
 imports Main

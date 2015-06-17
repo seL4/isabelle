@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Cartesian Products as Vector Spaces *}
+section \<open>Cartesian Products as Vector Spaces\<close>
 
 theory Product_Vector
 imports Inner_Product Product_plus
 begin
 
-subsection {* Product is a real vector space *}
+subsection \<open>Product is a real vector space\<close>
 
 instantiation prod :: (real_vector, real_vector) real_vector
 begin
@@ -39,7 +39,7 @@ qed
 
 end
 
-subsection {* Product is a topological space *}
+subsection \<open>Product is a topological space\<close>
 
 instantiation prod :: (topological_space, topological_space) topological_space
 begin
@@ -69,10 +69,10 @@ next
     fix x assume x: "x \<in> S \<inter> T"
     from x have "x \<in> S" by simp
     obtain Sa Sb where A: "open Sa" "open Sb" "x \<in> Sa \<times> Sb" "Sa \<times> Sb \<subseteq> S"
-      using `open S` and `x \<in> S` by (rule open_prod_elim)
+      using \<open>open S\<close> and \<open>x \<in> S\<close> by (rule open_prod_elim)
     from x have "x \<in> T" by simp
     obtain Ta Tb where B: "open Ta" "open Tb" "x \<in> Ta \<times> Tb" "Ta \<times> Tb \<subseteq> T"
-      using `open T` and `x \<in> T` by (rule open_prod_elim)
+      using \<open>open T\<close> and \<open>x \<in> T\<close> by (rule open_prod_elim)
     let ?A = "Sa \<inter> Ta" and ?B = "Sb \<inter> Tb"
     have "open ?A \<and> open ?B \<and> x \<in> ?A \<times> ?B \<and> ?A \<times> ?B \<subseteq> S \<inter> T"
       using A B by (auto simp add: open_Int)
@@ -130,9 +130,9 @@ proof (rule openI)
   fix x assume "x \<in> fst ` S"
   then obtain y where "(x, y) \<in> S" by auto
   then obtain A B where "open A" "open B" "x \<in> A" "y \<in> B" "A \<times> B \<subseteq> S"
-    using `open S` unfolding open_prod_def by auto
-  from `A \<times> B \<subseteq> S` `y \<in> B` have "A \<subseteq> fst ` S" by (rule subset_fst_imageI)
-  with `open A` `x \<in> A` have "open A \<and> x \<in> A \<and> A \<subseteq> fst ` S" by simp
+    using \<open>open S\<close> unfolding open_prod_def by auto
+  from \<open>A \<times> B \<subseteq> S\<close> \<open>y \<in> B\<close> have "A \<subseteq> fst ` S" by (rule subset_fst_imageI)
+  with \<open>open A\<close> \<open>x \<in> A\<close> have "open A \<and> x \<in> A \<and> A \<subseteq> fst ` S" by simp
   then show "\<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> fst ` S" by - (rule exI)
 qed
 
@@ -141,13 +141,13 @@ proof (rule openI)
   fix y assume "y \<in> snd ` S"
   then obtain x where "(x, y) \<in> S" by auto
   then obtain A B where "open A" "open B" "x \<in> A" "y \<in> B" "A \<times> B \<subseteq> S"
-    using `open S` unfolding open_prod_def by auto
-  from `A \<times> B \<subseteq> S` `x \<in> A` have "B \<subseteq> snd ` S" by (rule subset_snd_imageI)
-  with `open B` `y \<in> B` have "open B \<and> y \<in> B \<and> B \<subseteq> snd ` S" by simp
+    using \<open>open S\<close> unfolding open_prod_def by auto
+  from \<open>A \<times> B \<subseteq> S\<close> \<open>x \<in> A\<close> have "B \<subseteq> snd ` S" by (rule subset_snd_imageI)
+  with \<open>open B\<close> \<open>y \<in> B\<close> have "open B \<and> y \<in> B \<and> B \<subseteq> snd ` S" by simp
   then show "\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> snd ` S" by - (rule exI)
 qed
 
-subsubsection {* Continuity of operations *}
+subsubsection \<open>Continuity of operations\<close>
 
 lemma tendsto_fst [tendsto_intros]:
   assumes "(f ---> a) F"
@@ -183,16 +183,16 @@ proof (rule topological_tendstoI)
   then obtain A B where "open A" "open B" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
     unfolding open_prod_def by fast
   have "eventually (\<lambda>x. f x \<in> A) F"
-    using `(f ---> a) F` `open A` `a \<in> A`
+    using \<open>(f ---> a) F\<close> \<open>open A\<close> \<open>a \<in> A\<close>
     by (rule topological_tendstoD)
   moreover
   have "eventually (\<lambda>x. g x \<in> B) F"
-    using `(g ---> b) F` `open B` `b \<in> B`
+    using \<open>(g ---> b) F\<close> \<open>open B\<close> \<open>b \<in> B\<close>
     by (rule topological_tendstoD)
   ultimately
   show "eventually (\<lambda>x. (f x, g x) \<in> S) F"
     by (rule eventually_elim2)
-       (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
+       (simp add: subsetD [OF \<open>A \<times> B \<subseteq> S\<close>])
 qed
 
 lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
@@ -222,7 +222,7 @@ lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (
 lemma isCont_Pair [simp]: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
   by (fact continuous_Pair)
 
-subsubsection {* Separation axioms *}
+subsubsection \<open>Separation axioms\<close>
 
 lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
   by (induct x) simp (* TODO: move elsewhere *)
@@ -254,7 +254,7 @@ proof
     by (fast dest: hausdorff elim: open_vimage_fst open_vimage_snd)
 qed
 
-subsection {* Product is a metric space *}
+subsection \<open>Product is a metric space\<close>
 
 instantiation prod :: (metric_space, metric_space) metric_space
 begin
@@ -289,11 +289,11 @@ next
     proof
       fix x assume "x \<in> S"
       obtain A B where "open A" "open B" "x \<in> A \<times> B" "A \<times> B \<subseteq> S"
-        using `open S` and `x \<in> S` by (rule open_prod_elim)
+        using \<open>open S\<close> and \<open>x \<in> S\<close> by (rule open_prod_elim)
       obtain r where r: "0 < r" "\<forall>y. dist y (fst x) < r \<longrightarrow> y \<in> A"
-        using `open A` and `x \<in> A \<times> B` unfolding open_dist by auto
+        using \<open>open A\<close> and \<open>x \<in> A \<times> B\<close> unfolding open_dist by auto
       obtain s where s: "0 < s" "\<forall>y. dist y (snd x) < s \<longrightarrow> y \<in> B"
-        using `open B` and `x \<in> A \<times> B` unfolding open_dist by auto
+        using \<open>open B\<close> and \<open>x \<in> A \<times> B\<close> unfolding open_dist by auto
       let ?e = "min r s"
       have "0 < ?e \<and> (\<forall>y. dist y x < ?e \<longrightarrow> y \<in> S)"
       proof (intro allI impI conjI)
@@ -307,7 +307,7 @@ next
         hence "fst y \<in> A" and "snd y \<in> B"
           by (simp_all add: r(2) s(2))
         hence "y \<in> A \<times> B" by (induct y, simp)
-        with `A \<times> B \<subseteq> S` show "y \<in> S" ..
+        with \<open>A \<times> B \<subseteq> S\<close> show "y \<in> S" ..
       qed
       thus "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" ..
     qed
@@ -318,23 +318,23 @@ next
       then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
         using * by fast
       def r \<equiv> "e / sqrt 2" and s \<equiv> "e / sqrt 2"
-      from `0 < e` have "0 < r" and "0 < s"
+      from \<open>0 < e\<close> have "0 < r" and "0 < s"
         unfolding r_def s_def by simp_all
-      from `0 < e` have "e = sqrt (r\<^sup>2 + s\<^sup>2)"
+      from \<open>0 < e\<close> have "e = sqrt (r\<^sup>2 + s\<^sup>2)"
         unfolding r_def s_def by (simp add: power_divide)
       def A \<equiv> "{y. dist (fst x) y < r}" and B \<equiv> "{y. dist (snd x) y < s}"
       have "open A" and "open B"
         unfolding A_def B_def by (simp_all add: open_ball)
       moreover have "x \<in> A \<times> B"
         unfolding A_def B_def mem_Times_iff
-        using `0 < r` and `0 < s` by simp
+        using \<open>0 < r\<close> and \<open>0 < s\<close> by simp
       moreover have "A \<times> B \<subseteq> S"
       proof (clarify)
         fix a b assume "a \<in> A" and "b \<in> B"
         hence "dist a (fst x) < r" and "dist b (snd x) < s"
           unfolding A_def B_def by (simp_all add: dist_commute)
         hence "dist (a, b) x < e"
-          unfolding dist_prod_def `e = sqrt (r\<^sup>2 + s\<^sup>2)`
+          unfolding dist_prod_def \<open>e = sqrt (r\<^sup>2 + s\<^sup>2)\<close>
           by (simp add: add_strict_mono power_strict_mono)
         thus "(a, b) \<in> S"
           by (simp add: S)
@@ -361,24 +361,24 @@ proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
   hence "0 < r / sqrt 2" (is "0 < ?s") by simp
   obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < ?s"
-    using metric_CauchyD [OF `Cauchy X` `0 < ?s`] ..
+    using metric_CauchyD [OF \<open>Cauchy X\<close> \<open>0 < ?s\<close>] ..
   obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (Y m) (Y n) < ?s"
-    using metric_CauchyD [OF `Cauchy Y` `0 < ?s`] ..
+    using metric_CauchyD [OF \<open>Cauchy Y\<close> \<open>0 < ?s\<close>] ..
   have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
     using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
   then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
 qed
 
-subsection {* Product is a complete metric space *}
+subsection \<open>Product is a complete metric space\<close>
 
 instance prod :: (complete_space, complete_space) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
   have 1: "(\<lambda>n. fst (X n)) ----> lim (\<lambda>n. fst (X n))"
-    using Cauchy_fst [OF `Cauchy X`]
+    using Cauchy_fst [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   have 2: "(\<lambda>n. snd (X n)) ----> lim (\<lambda>n. snd (X n))"
-    using Cauchy_snd [OF `Cauchy X`]
+    using Cauchy_snd [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
   have "X ----> (lim (\<lambda>n. fst (X n)), lim (\<lambda>n. snd (X n)))"
     using tendsto_Pair [OF 1 2] by simp
@@ -386,7 +386,7 @@ proof
     by (rule convergentI)
 qed
 
-subsection {* Product is a normed vector space *}
+subsection \<open>Product is a normed vector space\<close>
 
 instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
@@ -429,7 +429,7 @@ declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<R
 
 instance prod :: (banach, banach) banach ..
 
-subsubsection {* Pair operations are linear *}
+subsubsection \<open>Pair operations are linear\<close>
 
 lemma bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
@@ -439,7 +439,7 @@ lemma bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-text {* TODO: move to NthRoot *}
+text \<open>TODO: move to NthRoot\<close>
 lemma sqrt_add_le_add_sqrt:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
   shows "sqrt (x + y) \<le> sqrt x + sqrt y"
@@ -474,7 +474,7 @@ proof
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
 qed
 
-subsubsection {* Frechet derivatives involving pairs *}
+subsubsection \<open>Frechet derivatives involving pairs\<close>
 
 lemma has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
@@ -502,7 +502,7 @@ lemma has_derivative_split [derivative_intros]:
   "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
   unfolding split_beta' .
 
-subsection {* Product is an inner product space *}
+subsection \<open>Product is an inner product space\<close>
 
 instantiation prod :: (real_inner, real_inner) real_inner
 begin

@@ -3,18 +3,18 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-section {* Implementation of Red-Black Trees *}
+section \<open>Implementation of Red-Black Trees\<close>
 
 theory RBT_Impl
 imports Main
 begin
 
-text {*
+text \<open>
   For applications, you should use theory @{text RBT} which defines
   an abstract type of red-black tree obeying the invariant.
-*}
+\<close>
 
-subsection {* Datatype of RB trees *}
+subsection \<open>Datatype of RB trees\<close>
 
 datatype color = R | B
 datatype ('a, 'b) rbt = Empty | Branch color "('a, 'b) rbt" 'a 'b "('a, 'b) rbt"
@@ -29,9 +29,9 @@ next
   case (Branch c) with that show thesis by (cases c) blast+
 qed
 
-subsection {* Tree properties *}
+subsection \<open>Tree properties\<close>
 
-subsubsection {* Content of a tree *}
+subsubsection \<open>Content of a tree\<close>
 
 primrec entries :: "('a, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
 where 
@@ -66,7 +66,7 @@ lemma non_empty_rbt_keys:
   "t \<noteq> rbt.Empty \<Longrightarrow> keys t \<noteq> []"
   by (cases t) simp_all
 
-subsubsection {* Search tree properties *}
+subsubsection \<open>Search tree properties\<close>
 
 context ord begin
 
@@ -129,7 +129,7 @@ lemma distinct_keys:
   by (simp add: distinct_entries keys_def)
 
 
-subsubsection {* Tree lookup *}
+subsubsection \<open>Tree lookup\<close>
 
 primrec (in ord) rbt_lookup :: "('a, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b"
 where
@@ -288,7 +288,7 @@ qed
 
 end
 
-subsubsection {* Red-black properties *}
+subsubsection \<open>Red-black properties\<close>
 
 primrec color_of :: "('a, 'b) rbt \<Rightarrow> color"
 where
@@ -305,7 +305,7 @@ where
   "inv1 Empty = True"
 | "inv1 (Branch c lt k v rt) \<longleftrightarrow> inv1 lt \<and> inv1 rt \<and> (c = B \<or> color_of lt = B \<and> color_of rt = B)"
 
-primrec inv1l :: "('a, 'b) rbt \<Rightarrow> bool" -- {* Weaker version *}
+primrec inv1l :: "('a, 'b) rbt \<Rightarrow> bool" -- \<open>Weaker version\<close>
 where
   "inv1l Empty = True"
 | "inv1l (Branch c l k v r) = (inv1 l \<and> inv1 r)"
@@ -329,7 +329,7 @@ theorem Empty_is_rbt [simp]:
 
 end
 
-subsection {* Insertion *}
+subsection \<open>Insertion\<close>
 
 fun (* slow, due to massive case splitting *)
   balance :: "('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"
@@ -549,7 +549,7 @@ by (rule_tac ext) (simp add: rbt_lookup_rbt_insertwk split:option.split)
 
 end
 
-subsection {* Deletion *}
+subsection \<open>Deletion\<close>
 
 lemma bheight_paintR'[simp]: "color_of t = B \<Longrightarrow> bheight (paint R t) = bheight t - 1"
 by (cases t rule: rbt_cases) auto
@@ -894,9 +894,9 @@ proof (induct x lt kt y rt and x lt kt y rt and x t rule: rbt_del_from_left_rbt_
     assume "xx = yy"
     with 2 show ?thesis proof (cases "xx = k")
       case True
-      from 2 `xx = yy` `xx = k` have "rbt_sorted (Branch c aa yy ss bb) \<and> k = yy" by simp
+      from 2 \<open>xx = yy\<close> \<open>xx = k\<close> have "rbt_sorted (Branch c aa yy ss bb) \<and> k = yy" by simp
       hence "\<not> entry_in_tree k v aa" "\<not> entry_in_tree k v bb" by (auto simp: rbt_less_nit rbt_greater_prop)
-      with `xx = yy` 2 `xx = k` show ?thesis by (simp add: combine_in_tree)
+      with \<open>xx = yy\<close> 2 \<open>xx = k\<close> show ?thesis by (simp add: combine_in_tree)
     qed (simp add: combine_in_tree)
   qed simp+
 next    
@@ -917,7 +917,7 @@ next
     case True
     with "4_1" have "yy \<guillemotleft>| bb \<and> k < yy" by simp
     hence "k \<guillemotleft>| bb" by (blast dest: rbt_greater_trans)
-    with "4_1" `xx = k` 
+    with "4_1" \<open>xx = k\<close> 
    have "entry_in_tree k v (Branch R Empty yy ss bb) = entry_in_tree k v Empty" by (auto simp: rbt_greater_nit)
     thus ?thesis by auto
   qed simp+
@@ -947,7 +947,7 @@ next
     case True
     with "6_1" have "aa |\<guillemotleft> yy \<and> k > yy" by simp
     hence "aa |\<guillemotleft> k" by (blast dest: rbt_less_trans)
-    with "6_1" `xx = k` show ?thesis by (auto simp: rbt_less_nit)
+    with "6_1" \<open>xx = k\<close> show ?thesis by (auto simp: rbt_less_nit)
   qed simp
 next
   case ("6_2" xx aa yy ss vaa vbb vdd vc)
@@ -997,7 +997,7 @@ qed
 
 end
 
-subsection {* Modifying existing entries *}
+subsection \<open>Modifying existing entries\<close>
 
 context ord begin
 
@@ -1028,7 +1028,7 @@ theorem (in linorder) rbt_lookup_rbt_map_entry:
   "rbt_lookup (rbt_map_entry k f t) = (rbt_lookup t)(k := map_option f (rbt_lookup t k))"
   by (induct t) (auto split: option.splits simp add: fun_eq_iff)
 
-subsection {* Mapping all entries *}
+subsection \<open>Mapping all entries\<close>
 
 primrec
   map :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'c) rbt"
@@ -1064,7 +1064,7 @@ theorem (in linorder) rbt_lookup_map: "rbt_lookup (map f t) x = map_option (f x)
 
 hide_const (open) map
 
-subsection {* Folding over entries *}
+subsection \<open>Folding over entries\<close>
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" where
   "fold f t = List.fold (case_prod f) (entries t)"
@@ -1094,7 +1094,7 @@ fun foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Right
       s
   )"
 
-subsection {* Bulkloading a tree *}
+subsection \<open>Bulkloading a tree\<close>
 
 definition (in ord) rbt_bulkload :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" where
   "rbt_bulkload xs = foldr (\<lambda>(k, v). rbt_insert k v) xs Empty"
@@ -1114,7 +1114,7 @@ proof -
       by (induct ys) (simp_all add: rbt_bulkload_def rbt_lookup_rbt_insert case_prod_beta)
   from this Empty_is_rbt have
     "rbt_lookup (List.fold (case_prod rbt_insert) (rev xs) Empty) = rbt_lookup Empty ++ map_of xs"
-     by (simp add: `ys = rev xs`)
+     by (simp add: \<open>ys = rev xs\<close>)
   then show ?thesis by (simp add: rbt_bulkload_def rbt_lookup_Empty foldr_conv_fold)
 qed
 
@@ -1122,12 +1122,12 @@ end
 
 
 
-subsection {* Building a RBT from a sorted list *}
+subsection \<open>Building a RBT from a sorted list\<close>
 
-text {* 
+text \<open>
   These functions have been adapted from 
   Andrew W. Appel, Efficient Verified Red-Black Trees (September 2011) 
-*}
+\<close>
 
 fun rbtreeify_f :: "nat \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a, 'b) rbt \<times> ('a \<times> 'b) list"
   and rbtreeify_g :: "nat \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a, 'b) rbt \<times> ('a \<times> 'b) list"
@@ -1264,15 +1264,15 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       hence "length (snd (rbtreeify_f n kvs)) = 
         length (snd (rbtreeify_f (Suc (2 * (n div 2))) kvs))"
         by (simp add: mod_eq_0_iff_dvd)
-      also from "1.prems" `\<not> n \<le> 1` obtain k v kvs' 
+      also from "1.prems" \<open>\<not> n \<le> 1\<close> obtain k v kvs' 
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
-      also have "0 < n div 2" using `\<not> n \<le> 1` by(simp) 
+      also have "0 < n div 2" using \<open>\<not> n \<le> 1\<close> by(simp) 
       note rbtreeify_f_simps(4)[OF this]
       also note kvs[symmetric] 
       also let ?rest1 = "snd (rbtreeify_f (n div 2) kvs)"
       from "1.prems" have "n div 2 \<le> length kvs" by simp
       with False have len: "length ?rest1 = length kvs - n div 2" by(rule IH)
-      with "1.prems" `\<not> n \<le> 1` obtain t1 k' v' kvs''
+      with "1.prems" \<open>\<not> n \<le> 1\<close> obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
       note this also note prod.case also note list.simps(5)
@@ -1290,7 +1290,7 @@ next
   case (2 n kvs)
   show ?case
   proof(cases "n > 1")
-    case False with `0 < n` show ?thesis
+    case False with \<open>0 < n\<close> show ?thesis
       by(cases n kvs rule: nat.exhaust[case_product list.exhaust]) simp_all
   next
     case True
@@ -1304,11 +1304,11 @@ next
         by(metis minus_nat.diff_0 mult_div_cancel)
       also from "2.prems" True obtain k v kvs' 
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
-      also have "0 < n div 2" using `1 < n` by(simp) 
+      also have "0 < n div 2" using \<open>1 < n\<close> by(simp) 
       note rbtreeify_g_simps(3)[OF this]
       also note kvs[symmetric] 
       also let ?rest1 = "snd (rbtreeify_g (n div 2) kvs)"
-      from "2.prems" `1 < n`
+      from "2.prems" \<open>1 < n\<close>
       have "0 < n div 2" "n div 2 \<le> Suc (length kvs)" by simp_all
       with True have len: "length ?rest1 = Suc (length kvs) - n div 2" by(rule IH)
       with "2.prems" obtain t1 k' v' kvs''
@@ -1318,7 +1318,7 @@ next
       also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" unfolding kvs'' by simp
-      with True kvs''[symmetric] refl refl `0 < n div 2`
+      with True kvs''[symmetric] refl refl \<open>0 < n div 2\<close>
       have "length (snd (rbtreeify_g (n div 2) kvs'')) = Suc (length kvs'') - n div 2"
         by(rule IH)
       finally show ?thesis using len[unfolded kvs''] "2.prems" True
@@ -1328,22 +1328,22 @@ next
       hence "length (snd (rbtreeify_g n kvs)) = 
         length (snd (rbtreeify_g (Suc (2 * (n div 2))) kvs))"
         by (simp add: mod_eq_0_iff_dvd)
-      also from "2.prems" `1 < n` obtain k v kvs'
+      also from "2.prems" \<open>1 < n\<close> obtain k v kvs'
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
-      also have "0 < n div 2" using `1 < n` by(simp)
+      also have "0 < n div 2" using \<open>1 < n\<close> by(simp)
       note rbtreeify_g_simps(4)[OF this]
       also note kvs[symmetric] 
       also let ?rest1 = "snd (rbtreeify_f (n div 2) kvs)"
       from "2.prems" have "n div 2 \<le> length kvs" by simp
       with False have len: "length ?rest1 = length kvs - n div 2" by(rule IH)
-      with "2.prems" `1 < n` False obtain t1 k' v' kvs'' 
+      with "2.prems" \<open>1 < n\<close> False obtain t1 k' v' kvs'' 
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm, arith)
       note this also note prod.case also note list.simps(5) 
       also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" False unfolding kvs'' by simp arith
-      with False kvs''[symmetric] refl refl `0 < n div 2`
+      with False kvs''[symmetric] refl refl \<open>0 < n div 2\<close>
       have "length (snd (rbtreeify_g (n div 2) kvs'')) = Suc (length kvs'') - n div 2"
         by(rule IH)
       finally show ?thesis using len[unfolded kvs''] "2.prems" False
@@ -1597,103 +1597,103 @@ lemma rbt_sorted_rbtreeify_f:
   \<Longrightarrow> rbt_sorted (fst (rbtreeify_g n kvs))"
 proof(induction n kvs and n kvs rule: rbtreeify_induct)
   case (f_even n kvs t k v kvs')
-  from rbtreeify_fD[OF `rbtreeify_f n kvs = (t, (k, v) # kvs')` `n \<le> length kvs`]
+  from rbtreeify_fD[OF \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> \<open>n \<le> length kvs\<close>]
   have "entries t = take n kvs"
     and kvs': "drop n kvs = (k, v) # kvs'" by simp_all
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
-  from `sorted (map fst kvs)` kvs'
+  from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
     by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
-  moreover from `distinct (map fst kvs)` kvs'
+  moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
   ultimately have "(\<forall>(x, y) \<in> set (take n kvs). x < k) \<and> (\<forall>(x, y) \<in> set kvs'. k < x)"
     by fastforce
   hence "fst (rbtreeify_f n kvs) |\<guillemotleft> k" "k \<guillemotleft>| fst (rbtreeify_g n kvs')"
-    using `n \<le> Suc (length kvs')` `n \<le> length kvs` set_take_subset[of "n - 1" kvs']
+    using \<open>n \<le> Suc (length kvs')\<close> \<open>n \<le> length kvs\<close> set_take_subset[of "n - 1" kvs']
     by(auto simp add: ord.rbt_greater_prop ord.rbt_less_prop take_map split_def)
-  moreover from `sorted (map fst kvs)` `distinct (map fst kvs)`
+  moreover from \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule f_even.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
-    using `sorted (map fst kvs)` `distinct (map fst kvs)`
+    using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
     by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule f_even.IH)
   ultimately show ?case
-    using `0 < n` `rbtreeify_f n kvs = (t, (k, v) # kvs')` by simp
+    using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
 next
   case (f_odd n kvs t k v kvs')
-  from rbtreeify_fD[OF `rbtreeify_f n kvs = (t, (k, v) # kvs')` `n \<le> length kvs`]
+  from rbtreeify_fD[OF \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> \<open>n \<le> length kvs\<close>]
   have "entries t = take n kvs" 
     and kvs': "drop n kvs = (k, v) # kvs'" by simp_all
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
-  from `sorted (map fst kvs)` kvs'
+  from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
     by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
-  moreover from `distinct (map fst kvs)` kvs'
+  moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
   ultimately have "(\<forall>(x, y) \<in> set (take n kvs). x < k) \<and> (\<forall>(x, y) \<in> set kvs'. k < x)"
     by fastforce
   hence "fst (rbtreeify_f n kvs) |\<guillemotleft> k" "k \<guillemotleft>| fst (rbtreeify_f n kvs')"
-    using `n \<le> length kvs'` `n \<le> length kvs` set_take_subset[of n kvs']
+    using \<open>n \<le> length kvs'\<close> \<open>n \<le> length kvs\<close> set_take_subset[of n kvs']
     by(auto simp add: rbt_greater_prop rbt_less_prop take_map split_def)
-  moreover from `sorted (map fst kvs)` `distinct (map fst kvs)`
+  moreover from \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule f_odd.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
-    using `sorted (map fst kvs)` `distinct (map fst kvs)`
+    using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
     by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
   hence "rbt_sorted (fst (rbtreeify_f n kvs'))" by(rule f_odd.IH)
   ultimately show ?case 
-    using `0 < n` `rbtreeify_f n kvs = (t, (k, v) # kvs')` by simp
+    using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
 next
   case (g_even n kvs t k v kvs')
-  from rbtreeify_gD[OF `rbtreeify_g n kvs = (t, (k, v) # kvs')` `n \<le> Suc (length kvs)`]
+  from rbtreeify_gD[OF \<open>rbtreeify_g n kvs = (t, (k, v) # kvs')\<close> \<open>n \<le> Suc (length kvs)\<close>]
   have t: "entries t = take (n - 1) kvs" 
     and kvs': "drop (n - 1) kvs = (k, v) # kvs'" by simp_all
   hence unfold: "kvs = take (n - 1) kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
-  from `sorted (map fst kvs)` kvs'
+  from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take (n - 1) kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
     by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
-  moreover from `distinct (map fst kvs)` kvs'
+  moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take (n - 1) kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
   ultimately have "(\<forall>(x, y) \<in> set (take (n - 1) kvs). x < k) \<and> (\<forall>(x, y) \<in> set kvs'. k < x)"
     by fastforce
   hence "fst (rbtreeify_g n kvs) |\<guillemotleft> k" "k \<guillemotleft>| fst (rbtreeify_g n kvs')"
-    using `n \<le> Suc (length kvs')` `n \<le> Suc (length kvs)` set_take_subset[of "n - 1" kvs']
+    using \<open>n \<le> Suc (length kvs')\<close> \<open>n \<le> Suc (length kvs)\<close> set_take_subset[of "n - 1" kvs']
     by(auto simp add: rbt_greater_prop rbt_less_prop take_map split_def)
-  moreover from `sorted (map fst kvs)` `distinct (map fst kvs)`
+  moreover from \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
   have "rbt_sorted (fst (rbtreeify_g n kvs))" by(rule g_even.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
-    using `sorted (map fst kvs)` `distinct (map fst kvs)`
+    using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
     by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule g_even.IH)
-  ultimately show ?case using `0 < n` `rbtreeify_g n kvs = (t, (k, v) # kvs')` by simp
+  ultimately show ?case using \<open>0 < n\<close> \<open>rbtreeify_g n kvs = (t, (k, v) # kvs')\<close> by simp
 next
   case (g_odd n kvs t k v kvs')
-  from rbtreeify_fD[OF `rbtreeify_f n kvs = (t, (k, v) # kvs')` `n \<le> length kvs`]
+  from rbtreeify_fD[OF \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> \<open>n \<le> length kvs\<close>]
   have "entries t = take n kvs"
     and kvs': "drop n kvs = (k, v) # kvs'" by simp_all
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
-  from `sorted (map fst kvs)` kvs'
+  from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
     by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
-  moreover from `distinct (map fst kvs)` kvs'
+  moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
   ultimately have "(\<forall>(x, y) \<in> set (take n kvs). x < k) \<and> (\<forall>(x, y) \<in> set kvs'. k < x)"
     by fastforce
   hence "fst (rbtreeify_f n kvs) |\<guillemotleft> k" "k \<guillemotleft>| fst (rbtreeify_g n kvs')"
-    using `n \<le> Suc (length kvs')` `n \<le> length kvs` set_take_subset[of "n - 1" kvs']
+    using \<open>n \<le> Suc (length kvs')\<close> \<open>n \<le> length kvs\<close> set_take_subset[of "n - 1" kvs']
     by(auto simp add: rbt_greater_prop rbt_less_prop take_map split_def)
-  moreover from `sorted (map fst kvs)` `distinct (map fst kvs)`
+  moreover from \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule g_odd.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
-    using `sorted (map fst kvs)` `distinct (map fst kvs)`
+    using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
     by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule g_odd.IH)
   ultimately show ?case
-    using `0 < n` `rbtreeify_f n kvs = (t, (k, v) # kvs')` by simp
+    using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
 qed simp_all
 
 lemma rbt_sorted_rbtreeify: 
@@ -1712,10 +1712,10 @@ by(simp add: map_of_entries[symmetric] rbt_sorted_rbtreeify)
 
 end
 
-text {* 
+text \<open>
   Functions to compare the height of two rbt trees, taken from 
   Andrew W. Appel, Efficient Verified Red-Black Trees (September 2011)
-*}
+\<close>
 
 fun skip_red :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 where
@@ -1761,7 +1761,7 @@ hide_fact (open)
   skip_black_def
   compare_height_def compare_height.simps
 
-subsection {* union and intersection of sorted associative lists *}
+subsection \<open>union and intersection of sorted associative lists\<close>
 
 context ord begin
 
@@ -1995,7 +1995,7 @@ by(auto simp add: rbt_inter_def rbt_lookup_rbt_interwk restrict_map_def split: o
 end
 
 
-subsection {* Code generator setup *}
+subsection \<open>Code generator setup\<close>
 
 lemmas [code] =
   ord.rbt_less_prop
@@ -2022,7 +2022,7 @@ lemmas [code] =
   ord.rbt_map_entry.simps
   ord.rbt_bulkload_def
 
-text {* More efficient implementations for @{term entries} and @{term keys} *}
+text \<open>More efficient implementations for @{term entries} and @{term keys}\<close>
 
 definition gen_entries :: 
   "(('a \<times> 'b) \<times> ('a, 'b) rbt) list \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
@@ -2052,8 +2052,8 @@ lemma keys_code [code]:
   "keys = gen_keys []"
 by(simp add: gen_keys_def fun_eq_iff)
 
-text {* Restore original type constraints for constants *}
-setup {*
+text \<open>Restore original type constraints for constants\<close>
+setup \<open>
   fold Sign.add_const_constraint
     [(@{const_name rbt_less}, SOME @{typ "('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool"}),
      (@{const_name rbt_greater}, SOME @{typ "('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool"}),
@@ -2073,7 +2073,7 @@ setup {*
      (@{const_name rbt_union}, SOME @{typ "('a\<Colon>linorder,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
      (@{const_name rbt_map_entry}, SOME @{typ "'a\<Colon>linorder \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
      (@{const_name rbt_bulkload}, SOME @{typ "('a \<times> 'b) list \<Rightarrow> ('a\<Colon>linorder,'b) rbt"})]
-*}
+\<close>
 
 hide_const (open) R B Empty entries keys fold gen_keys gen_entries
 

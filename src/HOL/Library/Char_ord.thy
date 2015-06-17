@@ -2,7 +2,7 @@
     Author:     Norbert Voelker, Florian Haftmann
 *)
 
-section {* Order on characters *}
+section \<open>Order on characters\<close>
 
 theory Char_ord
 imports Main
@@ -123,7 +123,7 @@ by(simp add: less_eq_literal.rep_eq fun_eq_iff)
 lifting_update literal.lifting
 lifting_forget literal.lifting
 
-text {* Legacy aliasses *}
+text \<open>Legacy aliasses\<close>
 
 lemmas nibble_less_eq_def = less_eq_nibble_def
 lemmas nibble_less_def = less_nibble_def

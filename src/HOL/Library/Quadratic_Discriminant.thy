@@ -20,7 +20,7 @@ lemma complete_square:
 proof -
   have "4 * a\<^sup>2 * x\<^sup>2 + 4 * a * b * x + 4 * a * c = 4 * a * (a * x\<^sup>2 + b * x + c)"
     by (simp add: algebra_simps power2_eq_square)
-  with `a \<noteq> 0`
+  with \<open>a \<noteq> 0\<close>
   have "a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> 4 * a\<^sup>2 * x\<^sup>2 + 4 * a * b * x + 4 * a * c = 0"
     by simp
   thus "a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> (2 * a * x + b)\<^sup>2 = discrim a b c"
@@ -35,8 +35,8 @@ lemma discriminant_negative:
   shows "a * x\<^sup>2 + b * x + c \<noteq> 0"
 proof -
   have "(2 * a * x + b)\<^sup>2 \<ge> 0" by simp
-  with `discrim a b c < 0` have "(2 * a * x + b)\<^sup>2 \<noteq> discrim a b c" by arith
-  with complete_square and `a \<noteq> 0` show "a * x\<^sup>2 + b * x + c \<noteq> 0" by simp
+  with \<open>discrim a b c < 0\<close> have "(2 * a * x + b)\<^sup>2 \<noteq> discrim a b c" by arith
+  with complete_square and \<open>a \<noteq> 0\<close> show "a * x\<^sup>2 + b * x + c \<noteq> 0" by simp
 qed
 
 lemma plus_or_minus_sqrt:
@@ -51,7 +51,7 @@ proof
 next
   assume "x = sqrt y \<or> x = - sqrt y"
   hence "x\<^sup>2 = (sqrt y)\<^sup>2 \<or> x\<^sup>2 = (- sqrt y)\<^sup>2" by auto
-  with `y \<ge> 0` show "x\<^sup>2 = y" by simp
+  with \<open>y \<ge> 0\<close> show "x\<^sup>2 = y" by simp
 qed
 
 lemma divide_non_zero:
@@ -60,10 +60,10 @@ lemma divide_non_zero:
   shows "x * y = z \<longleftrightarrow> y = z / x"
 proof
   assume "x * y = z"
-  with `x \<noteq> 0` show "y = z / x" by (simp add: field_simps)
+  with \<open>x \<noteq> 0\<close> show "y = z / x" by (simp add: field_simps)
 next
   assume "y = z / x"
-  with `x \<noteq> 0` show "x * y = z" by simp
+  with \<open>x \<noteq> 0\<close> show "x * y = z" by simp
 qed
 
 lemma discriminant_nonneg:
@@ -82,7 +82,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> (2 * a) * x = (-b + sqrt (discrim a b c)) \<or>
     (2 * a) * x = (-b - sqrt (discrim a b c))"
     by auto
-  also from `a \<noteq> 0` and divide_non_zero [of "2 * a" x]
+  also from \<open>a \<noteq> 0\<close> and divide_non_zero [of "2 * a" x]
   have "\<dots> \<longleftrightarrow> x = (-b + sqrt (discrim a b c)) / (2 * a) \<or>
     x = (-b - sqrt (discrim a b c)) / (2 * a)"
     by simp
@@ -108,13 +108,13 @@ theorem discriminant_iff:
   x = (-b - sqrt (discrim a b c)) / (2 * a))"
 proof
   assume "a * x\<^sup>2 + b * x + c = 0"
-  with discriminant_negative and `a \<noteq> 0` have "\<not>(discrim a b c < 0)" by auto
+  with discriminant_negative and \<open>a \<noteq> 0\<close> have "\<not>(discrim a b c < 0)" by auto
   hence "discrim a b c \<ge> 0" by simp
-  with discriminant_nonneg and `a * x\<^sup>2 + b * x + c = 0` and `a \<noteq> 0`
+  with discriminant_nonneg and \<open>a * x\<^sup>2 + b * x + c = 0\<close> and \<open>a \<noteq> 0\<close>
   have "x = (-b + sqrt (discrim a b c)) / (2 * a) \<or>
     x = (-b - sqrt (discrim a b c)) / (2 * a)"
     by simp
-  with `discrim a b c \<ge> 0`
+  with \<open>discrim a b c \<ge> 0\<close>
   show "discrim a b c \<ge> 0 \<and>
     (x = (-b + sqrt (discrim a b c)) / (2 * a) \<or>
     x = (-b - sqrt (discrim a b c)) / (2 * a))" ..
@@ -126,7 +126,7 @@ next
     "x = (-b + sqrt (discrim a b c)) / (2 * a) \<or>
     x = (-b - sqrt (discrim a b c)) / (2 * a)"
     by simp_all
-  with discriminant_nonneg and `a \<noteq> 0` show "a * x\<^sup>2 + b * x + c = 0" by simp
+  with discriminant_nonneg and \<open>a \<noteq> 0\<close> show "a * x\<^sup>2 + b * x + c = 0" by simp
 qed
 
 lemma discriminant_nonneg_ex:
@@ -145,9 +145,9 @@ lemma discriminant_pos_ex:
 proof -
   let ?x = "(-b + sqrt (discrim a b c)) / (2 * a)"
   let ?y = "(-b - sqrt (discrim a b c)) / (2 * a)"
-  from `discrim a b c > 0` have "sqrt (discrim a b c) \<noteq> 0" by simp
+  from \<open>discrim a b c > 0\<close> have "sqrt (discrim a b c) \<noteq> 0" by simp
   hence "sqrt (discrim a b c) \<noteq> - sqrt (discrim a b c)" by arith
-  with `a \<noteq> 0` have "?x \<noteq> ?y" by simp
+  with \<open>a \<noteq> 0\<close> have "?x \<noteq> ?y" by simp
   moreover
   from discriminant_nonneg [of a b c ?x]
     and discriminant_nonneg [of a b c ?y]
@@ -162,19 +162,19 @@ lemma discriminant_pos_distinct:
   assumes "a \<noteq> 0" and "discrim a b c > 0"
   shows "\<exists> y. x \<noteq> y \<and> a * y\<^sup>2 + b * y + c = 0"
 proof -
-  from discriminant_pos_ex and `a \<noteq> 0` and `discrim a b c > 0`
+  from discriminant_pos_ex and \<open>a \<noteq> 0\<close> and \<open>discrim a b c > 0\<close>
   obtain w and z where "w \<noteq> z"
     and "a * w\<^sup>2 + b * w + c = 0" and "a * z\<^sup>2 + b * z + c = 0"
     by blast
   show "\<exists> y. x \<noteq> y \<and> a * y\<^sup>2 + b * y + c = 0"
   proof cases
     assume "x = w"
-    with `w \<noteq> z` have "x \<noteq> z" by simp
-    with `a * z\<^sup>2 + b * z + c = 0`
+    with \<open>w \<noteq> z\<close> have "x \<noteq> z" by simp
+    with \<open>a * z\<^sup>2 + b * z + c = 0\<close>
     show "\<exists> y. x \<noteq> y \<and> a * y\<^sup>2 + b * y + c = 0" by auto
   next
     assume "x \<noteq> w"
-    with `a * w\<^sup>2 + b * w + c = 0`
+    with \<open>a * w\<^sup>2 + b * w + c = 0\<close>
     show "\<exists> y. x \<noteq> y \<and> a * y\<^sup>2 + b * y + c = 0" by auto
   qed
 qed

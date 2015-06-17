@@ -2,13 +2,13 @@
     Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
-section {* Abstract type of RBT trees *}
+section \<open>Abstract type of RBT trees\<close>
 
 theory RBT 
 imports Main RBT_Impl
 begin
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
 typedef ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
   morphisms impl_of RBT
@@ -33,7 +33,7 @@ lemma RBT_impl_of [simp, code abstype]:
   "RBT (impl_of t) = t"
   by (simp add: impl_of_inverse)
 
-subsection {* Primitive operations *}
+subsection \<open>Primitive operations\<close>
 
 setup_lifting type_definition_rbt
 
@@ -68,13 +68,13 @@ by (simp add: rbt_union_is_rbt)
 lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"
   is RBT_Impl.foldi .
 
-subsection {* Derived operations *}
+subsection \<open>Derived operations\<close>
 
 definition is_empty :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> bool" where
   [code]: "is_empty t = (case impl_of t of RBT_Impl.Empty \<Rightarrow> True | _ \<Rightarrow> False)"
 
 
-subsection {* Abstract lookup properties *}
+subsection \<open>Abstract lookup properties\<close>
 
 lemma lookup_RBT:
   "is_rbt t \<Longrightarrow> lookup (RBT t) = rbt_lookup t"
@@ -182,11 +182,11 @@ lemma keys_def_alt:
   "keys t = List.map fst (entries t)"
   by transfer (simp add: RBT_Impl.keys_def)
 
-subsection {* Quickcheck generators *}
+subsection \<open>Quickcheck generators\<close>
 
 quickcheck_generator rbt predicate: is_rbt constructors: empty, insert
 
-subsection {* Hide implementation details *}
+subsection \<open>Hide implementation details\<close>
 
 lifting_update rbt.lifting
 lifting_forget rbt.lifting

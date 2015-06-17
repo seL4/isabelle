@@ -2,27 +2,27 @@
     Author:     Brian Huffman
 *)
 
-section {* Inner Product Spaces and the Gradient Derivative *}
+section \<open>Inner Product Spaces and the Gradient Derivative\<close>
 
 theory Inner_Product
 imports "~~/src/HOL/Complex_Main"
 begin
 
-subsection {* Real inner product spaces *}
+subsection \<open>Real inner product spaces\<close>
 
-text {*
+text \<open>
   Temporarily relax type constraints for @{term "open"},
   @{term dist}, and @{term norm}.
-*}
+\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::open set \<Rightarrow> bool"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name "open"}, SOME @{typ "'a::open set \<Rightarrow> bool"})\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::dist \<Rightarrow> 'a \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::dist \<Rightarrow> 'a \<Rightarrow> real"})\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"})\<close>
 
 class real_inner = real_vector + sgn_div_norm + dist_norm + open_dist +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
@@ -46,7 +46,7 @@ lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
 lemma inner_setsum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
   by (cases "finite A", induct set: finite, simp_all add: inner_add_left)
 
-text {* Transfer distributivity rules to right argument. *}
+text \<open>Transfer distributivity rules to right argument.\<close>
 
 lemma inner_add_right: "inner x (y + z) = inner x y + inner x z"
   using inner_add_left [of y z x] by (simp only: inner_commute)
@@ -70,7 +70,7 @@ lemmas inner_add [algebra_simps] = inner_add_left inner_add_right
 lemmas inner_diff [algebra_simps]  = inner_diff_left inner_diff_right
 lemmas inner_scaleR = inner_scaleR_left inner_scaleR_right
 
-text {* Legacy theorem names *}
+text \<open>Legacy theorem names\<close>
 lemmas inner_left_distrib = inner_add_left
 lemmas inner_right_distrib = inner_add_right
 lemmas inner_distrib = inner_left_distrib inner_right_distrib
@@ -141,19 +141,19 @@ qed
 
 end
 
-text {*
+text \<open>
   Re-enable constraints for @{term "open"},
   @{term dist}, and @{term norm}.
-*}
+\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"})\<close>
 
 lemma bounded_bilinear_inner:
   "bounded_bilinear (inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real)"
@@ -199,7 +199,7 @@ lemma differentiable_inner [simp]:
   "f differentiable (at x within s) \<Longrightarrow> g differentiable at x within s \<Longrightarrow> (\<lambda>x. inner (f x) (g x)) differentiable at x within s"
   unfolding differentiable_def by (blast intro: has_derivative_inner)
 
-subsection {* Class instances *}
+subsection \<open>Class instances\<close>
 
 instantiation real :: real_inner
 begin
@@ -263,7 +263,7 @@ lemma complex_inner_ii_right [simp]: "inner x ii = Im x"
   unfolding inner_complex_def by simp
 
 
-subsection {* Gradient derivative *}
+subsection \<open>Gradient derivative\<close>
 
 definition
   gderiv ::
@@ -339,7 +339,7 @@ proof -
     by (intro has_derivative_inner has_derivative_ident)
   have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
     by (simp add: fun_eq_iff inner_commute)
-  have "0 < inner x x" using `x \<noteq> 0` by simp
+  have "0 < inner x x" using \<open>x \<noteq> 0\<close> by simp
   then have 3: "DERIV sqrt (inner x x) :> (inverse (sqrt (inner x x)) / 2)"
     by (rule DERIV_real_sqrt)
   have 4: "(inverse (sqrt (inner x x)) / 2) *\<^sub>R 2 *\<^sub>R x = sgn x"

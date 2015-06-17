@@ -2,13 +2,13 @@
     Author:     Jeremy Avigad and Kevin Donnelly; Florian Haftmann, TUM
 *)
 
-section {* Pointwise instantiation of functions to algebra type classes *}
+section \<open>Pointwise instantiation of functions to algebra type classes\<close>
 
 theory Function_Algebras
 imports Main
 begin
 
-text {* Pointwise operations *}
+text \<open>Pointwise operations\<close>
 
 instantiation "fun" :: (type, plus) plus
 begin
@@ -59,7 +59,7 @@ lemma one_fun_apply [simp]:
   by (simp add: one_fun_def)
 
 
-text {* Additive structures *}
+text \<open>Additive structures\<close>
 
 instance "fun" :: (type, semigroup_add) semigroup_add
   by default (simp add: fun_eq_iff add.assoc)
@@ -89,7 +89,7 @@ instance "fun" :: (type, ab_group_add) ab_group_add
   by default simp_all
 
 
-text {* Multiplicative structures *}
+text \<open>Multiplicative structures\<close>
 
 instance "fun" :: (type, semigroup_mult) semigroup_mult
   by default (simp add: fun_eq_iff mult.assoc)
@@ -104,7 +104,7 @@ instance "fun" :: (type, comm_monoid_mult) comm_monoid_mult
   by default simp
 
 
-text {* Misc *}
+text \<open>Misc\<close>
 
 instance "fun" :: (type, "Rings.dvd") "Rings.dvd" ..
 
@@ -115,7 +115,7 @@ instance "fun" :: (type, zero_neq_one) zero_neq_one
   by default (simp add: fun_eq_iff)
 
 
-text {* Ring structures *}
+text \<open>Ring structures\<close>
 
 instance "fun" :: (type, semiring) semiring
   by default (simp_all add: fun_eq_iff algebra_simps)
@@ -176,7 +176,7 @@ instance "fun" :: (type, comm_ring_1) comm_ring_1 ..
 instance "fun" :: (type, ring_char_0) ring_char_0 ..
 
 
-text {* Ordered structures *}
+text \<open>Ordered structures\<close>
 
 instance "fun" :: (type, ordered_ab_semigroup_add) ordered_ab_semigroup_add
   by default (auto simp add: le_fun_def intro: add_left_mono)

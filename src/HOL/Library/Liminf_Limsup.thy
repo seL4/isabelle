@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {* Liminf and Limsup on complete lattices *}
+section \<open>Liminf and Limsup on complete lattices\<close>
 
 theory Liminf_Limsup
 imports Complex_Main
@@ -30,7 +30,7 @@ lemma INF_pair:
   shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
-subsubsection {* @{text Liminf} and @{text Limsup} *}
+subsubsection \<open>@{text Liminf} and @{text Limsup}\<close>
 
 definition Liminf :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
   "Liminf F f = (SUP P:{P. eventually P F}. INF x:{x. P x}. f x)"
@@ -171,7 +171,7 @@ proof -
       case False
       then have "C \<le> INFIMUM {x. y < X x} X"
         by (intro INF_greatest) auto
-      with `y < C` show ?thesis
+      with \<open>y < C\<close> show ?thesis
         using y by (intro exI[of _ "\<lambda>x. y < X x"]) auto
     qed }
   ultimately show ?thesis
@@ -290,7 +290,7 @@ proof-
   have "\<And>n. (INF m:{n..}. X m) \<le> (INF m:{n..}. (X \<circ> r) m)"
   proof (safe intro!: INF_mono)
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. X ma \<le> (X \<circ> r) m"
-      using seq_suble[OF `subseq r`, of m] by (intro bexI[of _ "r m"]) auto
+      using seq_suble[OF \<open>subseq r\<close>, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis by (auto intro!: SUP_mono simp: liminf_SUP_INF comp_def)
 qed
@@ -303,7 +303,7 @@ proof-
   have "\<And>n. (SUP m:{n..}. (X \<circ> r) m) \<le> (SUP m:{n..}. X m)"
   proof (safe intro!: SUP_mono)
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. (X \<circ> r) m \<le> X ma"
-      using seq_suble[OF `subseq r`, of m] by (intro bexI[of _ "r m"]) auto
+      using seq_suble[OF \<open>subseq r\<close>, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis by (auto intro!: INF_mono simp: limsup_INF_SUP comp_def)
 qed

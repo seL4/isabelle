@@ -2,15 +2,15 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Combinator syntax for generic, open state monads (single-threaded monads) *}
+section \<open>Combinator syntax for generic, open state monads (single-threaded monads)\<close>
 
 theory State_Monad
 imports Main Monad_Syntax
 begin
 
-subsection {* Motivation *}
+subsection \<open>Motivation\<close>
 
-text {*
+text \<open>
   The logic HOL has no notion of constructor classes, so it is not
   possible to model monads the Haskell way in full genericity in
   Isabelle/HOL.
@@ -23,11 +23,11 @@ text {*
   @{url "http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm"} makes
   a good motivating start.  Here we just sketch briefly how those
   monads enter the game of Isabelle/HOL.
-*}
+\<close>
 
-subsection {* State transformations and combinators *}
+subsection \<open>State transformations and combinators\<close>
 
-text {*
+text \<open>
   We classify functions operating on states into two categories:
 
   \begin{description}
@@ -53,12 +53,12 @@ text {*
   in a single-threaded way: after application of a transformation on a
   value of type @{text "\<sigma>"}, the former value should not be used
   again.  To achieve this, we use a set of monad combinators:
-*}
+\<close>
 
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
-text {*
+text \<open>
   Given two transformations @{term f} and @{term g}, they may be
   directly composed using the @{term "op \<circ>>"} combinator, forming a
   forward composition: @{prop "(f \<circ>> g) s = f (g s)"}.
@@ -92,27 +92,27 @@ text {*
     \item The type of states may change due to a transformation.
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Monad laws *}
+subsection \<open>Monad laws\<close>
 
-text {*
+text \<open>
   The common monadic laws hold and may also be used as normalization
   rules for monadic expressions:
-*}
+\<close>
 
 lemmas monad_simp = Pair_scomp scomp_Pair id_fcomp fcomp_id
   scomp_scomp scomp_fcomp fcomp_scomp fcomp_assoc
 
-text {*
+text \<open>
   Evaluation of monadic expressions by force:
-*}
+\<close>
 
 lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
 
 
-subsection {* Do-syntax *}
+subsection \<open>Do-syntax\<close>
 
 nonterminal sdo_binds and sdo_bind
 
@@ -144,8 +144,8 @@ translations
     == "_sdo_final (let p = t in s)"
   "_sdo_block (_sdo_final e)" => "e"
 
-text {*
+text \<open>
   For an example, see @{file "~~/src/HOL/Proofs/Extraction/Higman.thy"}.
-*}
+\<close>
 
 end

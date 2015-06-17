@@ -2,7 +2,7 @@
     Author:     Florian Haftmann
 *)
 
-section {* Code generation of pretty characters (and strings) *}
+section \<open>Code generation of pretty characters (and strings)\<close>
 
 theory Code_Char
 imports Main Char_ord
@@ -15,10 +15,10 @@ code_printing
     and (Haskell) "Prelude.Char"
     and (Scala) "Char"
 
-setup {*
+setup \<open>
   fold String_Code.add_literal_char ["SML", "OCaml", "Haskell", "Scala"] 
   #> String_Code.add_literal_list_string "Haskell"
-*}
+\<close>
 
 code_printing
   class_instance char :: equal \<rightharpoonup>
@@ -107,9 +107,9 @@ code_printing
 |  constant "Orderings.less_eq :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) <= _)"
     and (OCaml) "!((_ : string) <= _)"
-    -- {* Order operations for @{typ String.literal} work in Haskell only 
+    -- \<open>Order operations for @{typ String.literal} work in Haskell only 
           if no type class instance needs to be generated, because String = [Char] in Haskell
-          and @{typ "char list"} need not have the same order as @{typ String.literal}. *}
+          and @{typ "char list"} need not have the same order as @{typ String.literal}.\<close>
     and (Haskell) infix 4 "<="
     and (Scala) infixl 4 "<="
     and (Eval) infixl 6 "<="

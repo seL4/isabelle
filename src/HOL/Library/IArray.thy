@@ -4,14 +4,14 @@ theory IArray
 imports Main
 begin
 
-text{* Immutable arrays are lists wrapped up in an additional constructor.
+text\<open>Immutable arrays are lists wrapped up in an additional constructor.
 There are no update operations. Hence code generation can safely implement
 this type by efficient target language arrays.  Currently only SML is
 provided. Should be extended to other target languages and more operations.
 
 Note that arrays cannot be printed directly but only by turning them into
 lists first. Arrays could be converted back into lists for printing if they
-were wrapped up in an additional constructor. *}
+were wrapped up in an additional constructor.\<close>
 
 datatype 'a iarray = IArray "'a list"
 

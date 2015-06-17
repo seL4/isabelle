@@ -2,7 +2,7 @@
     Author:     Norbert Voelker
 *)
 
-section {* Lexicographic order on product types *}
+section \<open>Lexicographic order on product types\<close>
 
 theory Product_Lexorder
 imports Main
@@ -29,7 +29,7 @@ lemma less_prod_simp [simp, code]:
   "(x1, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 < y2"
   by (simp add: less_prod_def)
 
-text {* A stronger version for partial orders. *}
+text \<open>A stronger version for partial orders.\<close>
 
 lemma less_prod_def':
   fixes x y :: "'a::order \<times> 'b::ord"
@@ -119,7 +119,7 @@ proof
   qed
 qed
 
-text {* Legacy lemma bindings *}
+text \<open>Legacy lemma bindings\<close>
 
 lemmas prod_le_def = less_eq_prod_def
 lemmas prod_less_def = less_prod_def

@@ -3,13 +3,13 @@
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
 *)
 
-section {* More Theorems about the Multiset Order *}
+section \<open>More Theorems about the Multiset Order\<close>
 
 theory Multiset_Order
 imports Multiset
 begin
 
-subsubsection {* Alternative characterizations *}
+subsubsection \<open>Alternative characterizations\<close>
 
 context order
 begin
@@ -65,14 +65,14 @@ proof -
     by default (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
-text {* The Dershowitz--Manna ordering: *}
+text \<open>The Dershowitz--Manna ordering:\<close>
 
 definition less_multiset\<^sub>D\<^sub>M where
   "less_multiset\<^sub>D\<^sub>M M N \<longleftrightarrow>
    (\<exists>X Y. X \<noteq> {#} \<and> X \<le># N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
 
 
-text {* The Huet--Oppen ordering: *}
+text \<open>The Huet--Oppen ordering:\<close>
 
 definition less_multiset\<^sub>H\<^sub>O where
   "less_multiset\<^sub>H\<^sub>O M N \<longleftrightarrow> M \<noteq> N \<and> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
@@ -110,7 +110,7 @@ next
         then show ?thesis by (cases "count P a \<le> count M a") (auto dest: count_a intro: less_trans)
       next
         case False
-        with `y \<noteq> a` have "count P y = count N y" unfolding *(1,2) by simp
+        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2) by simp
         with count_y step(3) obtain z where z: "z > y" "count M z < count N z" by auto
         show ?thesis
         proof (cases "z \<in># K")
@@ -138,7 +138,7 @@ proof -
     unfolding less_multiset\<^sub>D\<^sub>M_def by blast
   then have "(N - X + Y, N - X + X) \<in> mult {(x, y). x < y}"
     by (intro one_step_implies_mult) (auto simp: Bex_def trans_def)
-  with `M = N - X + Y` `X \<le># N` show "(M, N) \<in> mult {(x, y). x < y}"
+  with \<open>M = N - X + Y\<close> \<open>X \<le># N\<close> show "(M, N) \<in> mult {(x, y). x < y}"
     by (metis subset_mset.diff_add)
 qed
 
@@ -158,7 +158,7 @@ proof (intro iffI exI conjI)
     fix k
     assume "k \<in># Y"
     then have "count N k < count M k" unfolding Y_def by auto
-    with `less_multiset\<^sub>H\<^sub>O M N` obtain a where "k < a" and "count M a < count N a"
+    with \<open>less_multiset\<^sub>H\<^sub>O M N\<close> obtain a where "k < a" and "count M a < count N a"
       unfolding less_multiset\<^sub>H\<^sub>O_def by blast
     then show "\<exists>a. a \<in># X \<and> k < a" unfolding X_def by auto
   qed

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Pointwise order on product types *}
+section \<open>Pointwise order on product types\<close>
 
 theory Product_Order
 imports Product_plus Conditionally_Complete_Lattices
 begin
 
-subsection {* Pointwise ordering *}
+subsection \<open>Pointwise ordering\<close>
 
 instantiation prod :: (ord, ord) ord
 begin
@@ -52,7 +52,7 @@ instance prod :: (order, order) order
   by default auto
 
 
-subsection {* Binary infimum and supremum *}
+subsection \<open>Binary infimum and supremum\<close>
 
 instantiation prod :: (inf, inf) inf
 begin
@@ -103,7 +103,7 @@ instance prod :: (distrib_lattice, distrib_lattice) distrib_lattice
   by default (auto simp add: sup_inf_distrib1)
 
 
-subsection {* Top and bottom elements *}
+subsection \<open>Top and bottom elements\<close>
 
 instantiation prod :: (top, top) top
 begin
@@ -155,7 +155,7 @@ instance prod :: (boolean_algebra, boolean_algebra) boolean_algebra
   by default (auto simp add: prod_eqI inf_compl_bot sup_compl_top diff_eq)
 
 
-subsection {* Complete lattice operations *}
+subsection \<open>Complete lattice operations\<close>
 
 instantiation prod :: (Inf, Inf) Inf
 begin
@@ -215,8 +215,8 @@ lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
   unfolding INF_def Inf_prod_def by (simp add: comp_def)
 
 
-text {* Alternative formulations for set infima and suprema over the product
-of two complete lattices: *}
+text \<open>Alternative formulations for set infima and suprema over the product
+of two complete lattices:\<close>
 
 lemma INF_prod_alt_def:
   "INFIMUM A f = (INFIMUM A (fst o f), INFIMUM A (snd o f))"
@@ -227,7 +227,7 @@ lemma SUP_prod_alt_def:
   unfolding SUP_def Sup_prod_def by simp
 
 
-subsection {* Complete distributive lattices *}
+subsection \<open>Complete distributive lattices\<close>
 
 (* Contribution: Alessandro Coglio *)
 

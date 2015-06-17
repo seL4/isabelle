@@ -2,7 +2,7 @@
     Author:     Konrad Slind and Markus Wenzel, TU Muenchen
 *)
 
-section {* TFL: recursive function definitions *}
+section \<open>TFL: recursive function definitions\<close>
 
 theory Old_Recdef
 imports Main
@@ -12,7 +12,7 @@ keywords
   "permissive" "congs" "hints"
 begin
 
-subsection {* Lemmas for TFL *}
+subsection \<open>Lemmas for TFL\<close>
 
 lemma tfl_wf_induct: "ALL R. wf R -->  
        (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
@@ -70,7 +70,7 @@ ML_file "~~/src/HOL/Tools/TFL/post.ML"
 ML_file "~~/src/HOL/Tools/recdef.ML"
 
 
-subsection {* Rule setup *}
+subsection \<open>Rule setup\<close>
 
 lemmas [recdef_simp] =
   inv_image_def
