@@ -50,10 +50,10 @@ next
   from lprod_list have "(?ma, ?mb) \<in> mult R"
     by auto
   with mult_implies_one_step[OF transR] have 
-    "\<exists>I J K. ?mb = I + J \<and> ?ma = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_of K. \<exists>j\<in>set_of J. (k, j) \<in> R)"
+    "\<exists>I J K. ?mb = I + J \<and> ?ma = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> R)"
     by blast
   then obtain I J K where 
-    decomposed: "?mb = I + J \<and> ?ma = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_of K. \<exists>j\<in>set_of J. (k, j) \<in> R)"
+    decomposed: "?mb = I + J \<and> ?ma = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> R)"
     by blast   
   show ?case
   proof (cases "a = b")

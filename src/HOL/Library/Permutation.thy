@@ -136,7 +136,7 @@ lemma multiset_of_eq_perm: "multiset_of xs = multiset_of ys \<longleftrightarrow
   apply (erule perm.trans)
   apply (rule perm_sym)
   apply (erule perm_remove)
-  apply (drule_tac f=set_of in arg_cong)
+  apply (drule_tac f=set_mset in arg_cong)
   apply simp
   done
 

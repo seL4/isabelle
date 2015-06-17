@@ -14,7 +14,7 @@ fun mset_tree :: "'a tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
 "mset_tree (Node l a r) = {#a#} + mset_tree l + mset_tree r"
 
-lemma set_of_mset_tree[simp]: "set_of (mset_tree t) = set_tree t"
+lemma set_mset_tree[simp]: "set_mset (mset_tree t) = set_tree t"
 by(induction t) auto
 
 lemma size_mset_tree[simp]: "size(mset_tree t) = size t"

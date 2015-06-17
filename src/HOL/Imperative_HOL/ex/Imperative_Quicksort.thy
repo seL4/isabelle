@@ -538,7 +538,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         unfolding Array.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
       have part_conds2': "\<forall>j. j \<in> set (subarray l p a h') \<longrightarrow> j \<le> Array.get h' a ! p"
-        by (simp, subst set_of_multiset_of[symmetric], simp)
+        by (simp, subst set_mset_multiset_of[symmetric], simp)
           (* -- These steps are the analogous for the right sublist \<dots> *)
       from quicksort_outer_remains [OF qs1] length_remains
       have right_subarray_remains: "subarray (p + 1) (r + 1) a h1 = subarray (p + 1) (r + 1) a h2"
@@ -549,7 +549,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         unfolding Array.length_def subarray_def by auto
       with right_subarray_remains part_conds2 pivot_unchanged
       have part_conds1': "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h') \<longrightarrow> Array.get h' a ! p \<le> j"
-        by (simp, subst set_of_multiset_of[symmetric], simp)
+        by (simp, subst set_mset_multiset_of[symmetric], simp)
           (* -- Thirdly and finally, we show that the array is sorted
           following from the facts above. *)
       from True pivot 1(5) length_remains have "subarray l (r + 1) a h' = subarray l p a h' @ [Array.get h' a ! p] @ subarray (p + 1) (r + 1) a h'"
