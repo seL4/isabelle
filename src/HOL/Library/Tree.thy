@@ -24,7 +24,7 @@ lemma size1_simps[simp]:
   "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
 by (simp_all add: size1_def)
 
-lemma size_0_iff_Leaf[simp]: "size t = 0 \<longleftrightarrow> t = Leaf"
+lemma size_0_iff_Leaf: "size t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
 
 lemma neq_Leaf_iff: "(t \<noteq> \<langle>\<rangle>) = (\<exists>l a r. t = \<langle>l, a, r\<rangle>)"
