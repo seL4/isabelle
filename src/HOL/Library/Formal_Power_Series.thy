@@ -3151,7 +3151,7 @@ lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..
 
 lemma Vandermonde_pochhammer_lemma:
   fixes a :: "'a::field_char_0"
-  assumes b: "\<forall> j\<in>{0 ..<n}. b \<noteq> of_nat j"
+  assumes b: "\<forall>j\<in>{0 ..<n}. b \<noteq> of_nat j"
   shows "setsum (\<lambda>k. (pochhammer (- a) k * pochhammer (- (of_nat n)) k) /
       (of_nat (fact k) * pochhammer (b - of_nat n + 1) k)) {0..n} =
     pochhammer (- (a + b)) n / pochhammer (- b) n"
@@ -3181,22 +3181,21 @@ proof -
 
     from nz kn [simplified] have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0"
       by (rule pochhammer_neq_0_mono)
-    {
-      assume k0: "k = 0 \<or> n =0"
-      then have "b gchoose (n - k) =
-        (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
-        using kn
-        by (cases "k = 0") (simp_all add: gbinomial_pochhammer)
-    }
-    moreover
-    {
-      assume n0: "n \<noteq> 0" and k0: "k \<noteq> 0"
+
+    consider "k = 0 \<or> n = 0" | "n \<noteq> 0" "k \<noteq> 0" by blast
+    then have "b gchoose (n - k) =
+      (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+    proof cases
+      case 1
+      then show ?thesis
+        using kn by (cases "k = 0") (simp_all add: gbinomial_pochhammer)
+    next
+      case 2
       then obtain m where m: "n = Suc m"
         by (cases n) auto
-      from k0 obtain h where h: "k = Suc h"
+      from \<open>k \<noteq> 0\<close> obtain h where h: "k = Suc h"
         by (cases k) auto
-      have "b gchoose (n - k) =
-        (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+      show ?thesis
       proof (cases "k = n")
         case True
         then show ?thesis
@@ -3274,19 +3273,17 @@ proof -
           using kn' by (simp add: gbinomial_def)
         finally show ?thesis by simp
       qed
-    }
-    ultimately have "b gchoose (n - k) =
+    qed
+    then have "b gchoose (n - k) =
         (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
       "pochhammer (1 + b - of_nat n) k \<noteq> 0 "
       apply (cases "n = 0")
       using nz'
       apply auto
-      apply (cases k)
-      apply auto
       done
   }
   note th00 = this
-  have "?r = ((a + b) gchoose n) * (of_nat (fact n)/ (?m1 n * pochhammer (- b) n))"
+  have "?r = ((a + b) gchoose n) * (of_nat (fact n) / (?m1 n * pochhammer (- b) n))"
     unfolding gbinomial_pochhammer
     using bn0 by (auto simp add: field_simps)
   also have "\<dots> = ?l"
