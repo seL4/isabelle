@@ -884,7 +884,7 @@ corollary image_mset_insert:
   "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
   by simp
 
-lemma set_mset_image_mset [simp]:
+lemma set_image_mset [simp]:
   "set_mset (image_mset f M) = image f (set_mset M)"
   by (induct M) simp_all
 
@@ -928,7 +928,7 @@ text {*
 *}
 
 lemma in_image_mset: "y \<in># {#f x. x \<in># M#} \<longleftrightarrow> y \<in> f ` set_mset M"
-  by (metis mem_set_mset_iff set_mset_image_mset)
+by (metis mem_set_mset_iff set_image_mset)
 
 functor image_mset: image_mset
 proof -
