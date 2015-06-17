@@ -37,67 +37,67 @@ begin
 subsection {* unique factorization: multiset version *}
 
 lemma multiset_prime_factorization_exists [rule_format]: "n > 0 --> 
-    (EX M. (ALL (p::nat) : set_of M. prime p) & n = (PROD i :# M. i))"
+    (EX M. (ALL (p::nat) : set_mset M. prime p) & n = (PROD i :# M. i))"
 proof (rule nat_less_induct, clarify)
   fix n :: nat
-  assume ih: "ALL m < n. 0 < m --> (EX M. (ALL p : set_of M. prime p) & m = 
+  assume ih: "ALL m < n. 0 < m --> (EX M. (ALL p : set_mset M. prime p) & m = 
       (PROD i :# M. i))"
   assume "(n::nat) > 0"
   then have "n = 1 | (n > 1 & prime n) | (n > 1 & ~ prime n)"
     by arith
   moreover {
     assume "n = 1"
-    then have "(ALL p : set_of {#}. prime p) & n = (PROD i :# {#}. i)" by auto
+    then have "(ALL p : set_mset {#}. prime p) & n = (PROD i :# {#}. i)" by auto
   } moreover {
     assume "n > 1" and "prime n"
-    then have "(ALL p : set_of {# n #}. prime p) & n = (PROD i :# {# n #}. i)"
+    then have "(ALL p : set_mset {# n #}. prime p) & n = (PROD i :# {# n #}. i)"
       by auto
   } moreover {
     assume "n > 1" and "~ prime n"
     with not_prime_eq_prod_nat
     obtain m k where n: "n = m * k & 1 < m & m < n & 1 < k & k < n"
       by blast
-    with ih obtain Q R where "(ALL p : set_of Q. prime p) & m = (PROD i:#Q. i)"
-        and "(ALL p: set_of R. prime p) & k = (PROD i:#R. i)"
+    with ih obtain Q R where "(ALL p : set_mset Q. prime p) & m = (PROD i:#Q. i)"
+        and "(ALL p: set_mset R. prime p) & k = (PROD i:#R. i)"
       by blast
-    then have "(ALL p: set_of (Q + R). prime p) & n = (PROD i :# Q + R. i)"
+    then have "(ALL p: set_mset (Q + R). prime p) & n = (PROD i :# Q + R. i)"
       by (auto simp add: n msetprod_Un)
-    then have "EX M. (ALL p : set_of M. prime p) & n = (PROD i :# M. i)"..
+    then have "EX M. (ALL p : set_mset M. prime p) & n = (PROD i :# M. i)"..
   }
-  ultimately show "EX M. (ALL p : set_of M. prime p) & n = (PROD i::nat:#M. i)"
+  ultimately show "EX M. (ALL p : set_mset M. prime p) & n = (PROD i::nat:#M. i)"
     by blast
 qed
 
 lemma multiset_prime_factorization_unique_aux:
   fixes a :: nat
-  assumes "(ALL p : set_of M. prime p)" and
-    "(ALL p : set_of N. prime p)" and
+  assumes "(ALL p : set_mset M. prime p)" and
+    "(ALL p : set_mset N. prime p)" and
     "(PROD i :# M. i) dvd (PROD i:# N. i)"
   shows
     "count M a <= count N a"
 proof cases
-  assume M: "a : set_of M"
+  assume M: "a : set_mset M"
   with assms have a: "prime a" by auto
   with M have "a ^ count M a dvd (PROD i :# M. i)"
     by (auto simp add: msetprod_multiplicity)
   also have "... dvd (PROD i :# N. i)" by (rule assms)
-  also have "... = (PROD i : (set_of N). i ^ (count N i))"
+  also have "... = (PROD i : (set_mset N). i ^ (count N i))"
     by (simp add: msetprod_multiplicity)
-  also have "... = a^(count N a) * (PROD i : (set_of N - {a}). i ^ (count N i))"
+  also have "... = a^(count N a) * (PROD i : (set_mset N - {a}). i ^ (count N i))"
   proof (cases)
-    assume "a : set_of N"
-    then have b: "set_of N = {a} Un (set_of N - {a})"
+    assume "a : set_mset N"
+    then have b: "set_mset N = {a} Un (set_mset N - {a})"
       by auto
     then show ?thesis
       by (subst (1) b, subst setprod.union_disjoint, auto)
   next
-    assume "a ~: set_of N" 
+    assume "a ~: set_mset N" 
     then show ?thesis by auto
   qed
   finally have "a ^ count M a dvd 
-      a^(count N a) * (PROD i : (set_of N - {a}). i ^ (count N i))".
+      a^(count N a) * (PROD i : (set_mset N - {a}). i ^ (count N i))".
   moreover
-  have "coprime (a ^ count M a) (PROD i : (set_of N - {a}). i ^ (count N i))"
+  have "coprime (a ^ count M a) (PROD i : (set_mset N - {a}). i ^ (count N i))"
     apply (subst gcd_commute_nat)
     apply (rule setprod_coprime_nat)
     apply (rule primes_imp_powers_coprime_nat)
@@ -111,13 +111,13 @@ proof cases
     apply auto
     done
 next
-  assume "a ~: set_of M"
+  assume "a ~: set_mset M"
   then show ?thesis by auto
 qed
 
 lemma multiset_prime_factorization_unique:
-  assumes "(ALL (p::nat) : set_of M. prime p)" and
-    "(ALL p : set_of N. prime p)" and
+  assumes "(ALL (p::nat) : set_mset M. prime p)" and
+    "(ALL p : set_mset N. prime p)" and
     "(PROD i :# M. i) = (PROD i:# N. i)"
   shows
     "M = N"
@@ -137,12 +137,12 @@ qed
 definition multiset_prime_factorization :: "nat => nat multiset"
 where
   "multiset_prime_factorization n ==
-     if n > 0 then (THE M. ((ALL p : set_of M. prime p) & 
+     if n > 0 then (THE M. ((ALL p : set_mset M. prime p) & 
        n = (PROD i :# M. i)))
      else {#}"
 
 lemma multiset_prime_factorization: "n > 0 ==>
-    (ALL p : set_of (multiset_prime_factorization n). prime p) &
+    (ALL p : set_mset (multiset_prime_factorization n). prime p) &
        n = (PROD i :# (multiset_prime_factorization n). i)"
   apply (unfold multiset_prime_factorization_def)
   apply clarsimp
@@ -169,7 +169,7 @@ definition multiplicity_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   where "multiplicity_nat p n = count (multiset_prime_factorization n) p"
 
 definition prime_factors_nat :: "nat \<Rightarrow> nat set"
-  where "prime_factors_nat n = set_of (multiset_prime_factorization n)"
+  where "prime_factors_nat n = set_mset (multiset_prime_factorization n)"
 
 instance ..
 
@@ -306,12 +306,12 @@ proof -
     apply force
     apply force
     using assms
-    apply (simp add: set_of_def msetprod_multiplicity)
+    apply (simp add: set_mset_def msetprod_multiplicity)
     done
   with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
     by simp
   with S_eq show ?thesis
-    by (simp add: set_of_def multiset_def prime_factors_nat_def multiplicity_nat_def)
+    by (simp add: set_mset_def multiset_def prime_factors_nat_def multiplicity_nat_def)
 qed
 
 lemma prime_factors_characterization_nat: "S = {p. 0 < f (p::nat)} \<Longrightarrow> 
@@ -435,7 +435,7 @@ lemma multiplicity_nonprime_nat [simp]: "~ prime (p::nat) \<Longrightarrow> mult
   apply (cases "n = 0")
   apply auto
   apply (frule multiset_prime_factorization)
-  apply (auto simp add: set_of_def multiplicity_nat_def)
+  apply (auto simp add: set_mset_def multiplicity_nat_def)
   done
 
 lemma multiplicity_not_factor_nat [simp]: 

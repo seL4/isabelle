@@ -1413,7 +1413,7 @@ qed simp
 lemma pmf_of_multiset[simp]: "pmf pmf_of_multiset x = count M x / size M"
   by transfer rule
 
-lemma set_pmf_of_multiset[simp]: "set_pmf pmf_of_multiset = set_of M"
+lemma set_pmf_of_multiset[simp]: "set_pmf pmf_of_multiset = set_mset M"
   by (auto simp: set_pmf_iff)
 
 end

@@ -47,14 +47,14 @@ proof -
     moreover
     assume "(M, M) \<in> mult {(x, y). x < y}"
     ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
-      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_of K. \<exists>j\<in>set_of J. (k, j) \<in> {(x, y). x < y})"
+      \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
       by (rule mult_implies_one_step)
     then obtain I J K where "M = I + J" and "M = I + K"
-      and "J \<noteq> {#}" and "(\<forall>k\<in>set_of K. \<exists>j\<in>set_of J. (k, j) \<in> {(x, y). x < y})" by blast
-    then have aux1: "K \<noteq> {#}" and aux2: "\<forall>k\<in>set_of K. \<exists>j\<in>set_of K. k < j" by auto
-    have "finite (set_of K)" by simp
+      and "J \<noteq> {#}" and "(\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})" by blast
+    then have aux1: "K \<noteq> {#}" and aux2: "\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset K. k < j" by auto
+    have "finite (set_mset K)" by simp
     moreover note aux2
-    ultimately have "set_of K = {}"
+    ultimately have "set_mset K = {}"
       by (induct rule: finite_induct)
        (simp, metis (mono_tags) insert_absorb insert_iff insert_not_empty less_irrefl less_trans)
     with aux1 show False by simp

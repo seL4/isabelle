@@ -2025,7 +2025,7 @@ by (fast intro: ee_fmset fmset_ee)
 subsubsection {* Interpreting multisets as factorizations *}
 
 lemma (in monoid) mset_fmsetEx:
-  assumes elems: "\<And>X. X \<in> set_of Cs \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
+  assumes elems: "\<And>X. X \<in> set_mset Cs \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
   shows "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> fmset G cs = Cs"
 proof -
   have "\<exists>Cs'. Cs = multiset_of Cs'"
@@ -2062,7 +2062,7 @@ proof -
 qed
 
 lemma (in monoid) mset_wfactorsEx:
-  assumes elems: "\<And>X. X \<in> set_of Cs 
+  assumes elems: "\<And>X. X \<in> set_mset Cs 
                       \<Longrightarrow> \<exists>x. (x \<in> carrier G \<and> irreducible G x) \<and> X = assocs G x"
   shows "\<exists>c cs. c \<in> carrier G \<and> set cs \<subseteq> carrier G \<and> wfactors G cs c \<and> fmset G cs = Cs"
 proof -
@@ -2171,7 +2171,7 @@ proof -
     fix X
     assume "count (fmset G as) X < count (fmset G bs) X"
     hence "0 < count (fmset G bs) X" by simp
-    hence "X \<in> set_of (fmset G bs)" by simp
+    hence "X \<in> set_mset (fmset G bs)" by simp
     hence "X \<in> set (map (assocs G) bs)" by (simp add: fmset_def)
     hence "\<exists>x. x \<in> set bs \<and> X = assocs G x" by (induct bs) auto
     from this obtain x
@@ -2595,8 +2595,8 @@ proof -
                fmset G cs = fmset G as #\<inter> fmset G bs"
   proof (intro mset_wfactorsEx)
     fix X
-    assume "X \<in> set_of (fmset G as #\<inter> fmset G bs)"
-    hence "X \<in> set_of (fmset G as)" by (simp add: multiset_inter_def)
+    assume "X \<in> set_mset (fmset G as #\<inter> fmset G bs)"
+    hence "X \<in> set_mset (fmset G as)" by (simp add: multiset_inter_def)
     hence "X \<in> set (map (assocs G) as)" by (simp add: fmset_def)
     hence "\<exists>x. X = assocs G x \<and> x \<in> set as" by (induct as) auto
     from this obtain x
@@ -2673,12 +2673,12 @@ proof -
                fmset G cs = (fmset G as - fmset G bs) + fmset G bs"
   proof (intro mset_wfactorsEx)
     fix X
-    assume "X \<in> set_of ((fmset G as - fmset G bs) + fmset G bs)"
-    hence "X \<in> set_of (fmset G as) \<or> X \<in> set_of (fmset G bs)"
+    assume "X \<in> set_mset ((fmset G as - fmset G bs) + fmset G bs)"
+    hence "X \<in> set_mset (fmset G as) \<or> X \<in> set_mset (fmset G bs)"
        by (cases "X :# fmset G bs", simp, simp)
     moreover
     {
-      assume "X \<in> set_of (fmset G as)"
+      assume "X \<in> set_mset (fmset G as)"
       hence "X \<in> set (map (assocs G) as)" by (simp add: fmset_def)
       hence "\<exists>x. x \<in> set as \<and> X = assocs G x" by (induct as) auto
       from this obtain x
@@ -2693,7 +2693,7 @@ proof -
     }
     moreover
     {
-      assume "X \<in> set_of (fmset G bs)"
+      assume "X \<in> set_mset (fmset G bs)"
       hence "X \<in> set (map (assocs G) bs)" by (simp add: fmset_def)
       hence "\<exists>x. x \<in> set bs \<and> X = assocs G x" by (induct as) auto
       from this obtain x

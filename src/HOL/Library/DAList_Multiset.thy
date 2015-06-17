@@ -34,7 +34,7 @@ lemma [code, code del]: "msetsum = msetsum" ..
 
 lemma [code, code del]: "msetprod = msetprod" ..
 
-lemma [code, code del]: "set_of = set_of" ..
+lemma [code, code del]: "set_mset = set_mset" ..
 
 lemma [code, code del]: "sorted_list_of_multiset = sorted_list_of_multiset" ..
 
@@ -403,15 +403,15 @@ proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, simp)
 qed
 
 
-lemma set_of_fold: "set_of A = fold_mset insert {} A" (is "_ = fold_mset ?f _ _")
+lemma set_mset_fold: "set_mset A = fold_mset insert {} A" (is "_ = fold_mset ?f _ _")
 proof -
   interpret comp_fun_commute ?f by default auto
   show ?thesis by (induct A) auto
 qed
 
-lemma set_of_Bag[code]:
-  "set_of (Bag ms) = DAList_Multiset.fold (\<lambda>a n. (if n = 0 then (\<lambda>m. m) else insert a)) {} ms"
-  unfolding set_of_fold
+lemma set_mset_Bag[code]:
+  "set_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. (if n = 0 then (\<lambda>m. m) else insert a)) {} ms"
+  unfolding set_mset_fold
 proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, (auto simp: ac_simps)[1])
   fix a n x
   show "(if n = 0 then \<lambda>m. m else insert a) x = (insert a ^^ n) x" (is "?l n = ?r n")
