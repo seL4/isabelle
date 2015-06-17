@@ -5,7 +5,7 @@
 Cardinal notations.
 *)
 
-section {* Cardinal Notations *}
+section \<open>Cardinal Notations\<close>
 
 theory Cardinal_Notations
 imports Main

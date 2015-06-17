@@ -4,13 +4,13 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-section {* Encoding (almost) everything into natural numbers *}
+section \<open>Encoding (almost) everything into natural numbers\<close>
 
 theory Countable
 imports Old_Datatype Rat Nat_Bijection
 begin
 
-subsection {* The class of countable types *}
+subsection \<open>The class of countable types\<close>
 
 class countable =
   assumes ex_inj: "\<exists>to_nat \<Colon> 'a \<Rightarrow> nat. inj to_nat"
@@ -25,7 +25,7 @@ proof (intro_classes, rule exI)
 qed
 
 
-subsection {* Conversion functions *}
+subsection \<open>Conversion functions\<close>
 
 definition to_nat :: "'a\<Colon>countable \<Rightarrow> nat" where
   "to_nat = (SOME f. inj f)"
@@ -50,7 +50,7 @@ lemma from_nat_to_nat [simp]:
   by (simp add: from_nat_def)
 
 
-subsection {* Finite types are countable *}
+subsection \<open>Finite types are countable\<close>
 
 subclass (in finite) countable
 proof
@@ -64,7 +64,7 @@ proof
 qed
 
 
-subsection {* Automatically proving countability of old-style datatypes *}
+subsection \<open>Automatically proving countability of old-style datatypes\<close>
 
 inductive finite_item :: "'a Old_Datatype.item \<Rightarrow> bool" where
   undefined: "finite_item undefined"
@@ -160,7 +160,7 @@ proof
     by - (rule exI)
 qed
 
-ML {*
+ML \<open>
   fun old_countable_datatype_tac ctxt =
     SUBGOAL (fn (goal, _) =>
       let
@@ -191,16 +191,16 @@ ML {*
            etac induct_thm' i,
            REPEAT (resolve_tac ctxt rules i ORELSE atac i)]) 1
       end)
-*}
+\<close>
 
 hide_const (open) finite_item nth_item
 
 
-subsection {* Automatically proving countability of datatypes *}
+subsection \<open>Automatically proving countability of datatypes\<close>
 
 ML_file "bnf_lfp_countable.ML"
 
-ML {*
+ML \<open>
 fun countable_datatype_tac ctxt st =
   (case try (fn () => HEADGOAL (old_countable_datatype_tac ctxt) st) () of
     SOME res => res
@@ -209,54 +209,54 @@ fun countable_datatype_tac ctxt st =
 (* compatibility *)
 fun countable_tac ctxt =
   SELECT_GOAL (countable_datatype_tac ctxt);
-*}
+\<close>
 
-method_setup countable_datatype = {*
+method_setup countable_datatype = \<open>
   Scan.succeed (SIMPLE_METHOD o countable_datatype_tac)
-*} "prove countable class instances for datatypes"
+\<close> "prove countable class instances for datatypes"
 
 
-subsection {* More Countable types *}
+subsection \<open>More Countable types\<close>
 
-text {* Naturals *}
+text \<open>Naturals\<close>
 
 instance nat :: countable
   by (rule countable_classI [of "id"]) simp
 
-text {* Pairs *}
+text \<open>Pairs\<close>
 
 instance prod :: (countable, countable) countable
   by (rule countable_classI [of "\<lambda>(x, y). prod_encode (to_nat x, to_nat y)"])
     (auto simp add: prod_encode_eq)
 
-text {* Sums *}
+text \<open>Sums\<close>
 
 instance sum :: (countable, countable) countable
   by (rule countable_classI [of "(\<lambda>x. case x of Inl a \<Rightarrow> to_nat (False, to_nat a)
                                      | Inr b \<Rightarrow> to_nat (True, to_nat b))"])
     (simp split: sum.split_asm)
 
-text {* Integers *}
+text \<open>Integers\<close>
 
 instance int :: countable
   by (rule countable_classI [of int_encode]) (simp add: int_encode_eq)
 
-text {* Options *}
+text \<open>Options\<close>
 
 instance option :: (countable) countable
   by countable_datatype
 
-text {* Lists *}
+text \<open>Lists\<close>
 
 instance list :: (countable) countable
   by countable_datatype
 
-text {* String literals *}
+text \<open>String literals\<close>
 
 instance String.literal :: countable
   by (rule countable_classI [of "to_nat \<circ> String.explode"]) (auto simp add: explode_inject)
 
-text {* Functions *}
+text \<open>Functions\<close>
 
 instance "fun" :: (finite, countable) countable
 proof
@@ -269,13 +269,13 @@ proof
   qed
 qed
 
-text {* Typereps *}
+text \<open>Typereps\<close>
 
 instance typerep :: countable
   by countable_datatype
 
 
-subsection {* The rationals are countably infinite *}
+subsection \<open>The rationals are countably infinite\<close>
 
 definition nat_to_rat_surj :: "nat \<Rightarrow> rat" where
   "nat_to_rat_surj n = (let (a, b) = prod_decode n in Fract (int_decode a) (int_decode b))"

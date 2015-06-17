@@ -2,17 +2,17 @@
     Author:     Jeremy Avigad and Kevin Donnelly; Florian Haftmann, TUM
 *)
 
-section {* Algebraic operations on sets *}
+section \<open>Algebraic operations on sets\<close>
 
 theory Set_Algebras
 imports Main
 begin
 
-text {*
+text \<open>
   This library lifts operations like addition and multiplication to
   sets.  It was designed to support asymptotic calculations. See the
   comments at the top of theory @{text BigO}.
-*}
+\<close>
 
 instantiation set :: (plus) plus
 begin
@@ -364,7 +364,7 @@ proof (cases "finite I")
     then show ?case by (auto intro!: f)
   next
     case (insert x F)
-    from `finite F` `\<And>i. i \<in> insert x F \<Longrightarrow> P (S i)` have "P (setsum S F)"
+    from \<open>finite F\<close> \<open>\<And>i. i \<in> insert x F \<Longrightarrow> P (S i)\<close> have "P (setsum S F)"
       by induct auto
     with insert show ?case
       by (simp, subst f) auto

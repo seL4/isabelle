@@ -49,17 +49,17 @@ lemma update [simp]:
   assumes "g a = 1"
   shows "G (g(a := b)) = b * G g"
 proof (cases "b = 1")
-  case True with `g a = 1` show ?thesis
+  case True with \<open>g a = 1\<close> show ?thesis
     by (simp add: expand_set) (rule F.cong, auto)
 next
   case False
   moreover have "{a'. a' \<noteq> a \<longrightarrow> g a' \<noteq> 1} = insert a {a. g a \<noteq> 1}"
     by auto
-  moreover from `g a = 1` have "a \<notin> {a. g a \<noteq> 1}"
+  moreover from \<open>g a = 1\<close> have "a \<notin> {a. g a \<noteq> 1}"
     by simp
   moreover have "F.F (\<lambda>a'. if a' = a then b else g a') {a. g a \<noteq> 1} = F.F g {a. g a \<noteq> 1}"
-    by (rule F.cong) (auto simp add: `g a = 1`)
-  ultimately show ?thesis using `finite {a. g a \<noteq> 1}` by (simp add: expand_set)
+    by (rule F.cong) (auto simp add: \<open>g a = 1\<close>)
+  ultimately show ?thesis using \<open>finite {a. g a \<noteq> 1}\<close> by (simp add: expand_set)
 qed
 
 lemma infinite [simp]:
@@ -87,9 +87,9 @@ lemma reindex_cong:
   shows "G g = G h"
 proof -
   from assms have unfold: "h = g \<circ> l" by simp
-  from `bij l` have "inj l" by (rule bij_is_inj)
+  from \<open>bij l\<close> have "inj l" by (rule bij_is_inj)
   then have "inj_on l {a. h a \<noteq> 1}" by (rule subset_inj_on) simp
-  moreover from `bij l` have "{a. g a \<noteq> 1} = l ` {a. h a \<noteq> 1}"
+  moreover from \<open>bij l\<close> have "{a. g a \<noteq> 1} = l ` {a. h a \<noteq> 1}"
     by (auto simp add: image_Collect unfold elim: bij_pointE)
   moreover have "\<And>x. x \<in> {a. h a \<noteq> 1} \<Longrightarrow> g (l x) = h x"
     by (simp add: unfold)
@@ -115,7 +115,7 @@ lemma commute:
   assumes subset: "{a. \<exists>b. g a b \<noteq> 1} \<times> {b. \<exists>a. g a b \<noteq> 1} \<subseteq> C" (is "?A \<times> ?B \<subseteq> C")
   shows "G (\<lambda>a. G (g a)) = G (\<lambda>b. G (\<lambda>a. g a b))"
 proof -
-  from `finite C` subset
+  from \<open>finite C\<close> subset
     have "finite ({a. \<exists>b. g a b \<noteq> 1} \<times> {b. \<exists>a. g a b \<noteq> 1})"
     by (rule rev_finite_subset)
   then have fins:
@@ -143,17 +143,17 @@ lemma cartesian_product:
   assumes subset: "{a. \<exists>b. g a b \<noteq> 1} \<times> {b. \<exists>a. g a b \<noteq> 1} \<subseteq> C" (is "?A \<times> ?B \<subseteq> C")
   shows "G (\<lambda>a. G (g a)) = G (\<lambda>(a, b). g a b)"
 proof -
-  from subset `finite C` have fin_prod: "finite (?A \<times> ?B)"
+  from subset \<open>finite C\<close> have fin_prod: "finite (?A \<times> ?B)"
     by (rule finite_subset)
   from fin_prod have "finite ?A" and "finite ?B"
     by (auto simp add: finite_cartesian_product_iff)
   have *: "G (\<lambda>a. G (g a)) =
     (F.F (\<lambda>a. F.F (g a) {b. \<exists>a. g a b \<noteq> 1}) {a. \<exists>b. g a b \<noteq> 1})"
     apply (subst expand_superset [of "?B"])
-    apply (rule `finite ?B`)
+    apply (rule \<open>finite ?B\<close>)
     apply auto
     apply (subst expand_superset [of "?A"])
-    apply (rule `finite ?A`)
+    apply (rule \<open>finite ?A\<close>)
     apply auto
     apply (erule F.not_neutral_contains_not_neutral)
     apply auto
@@ -166,10 +166,10 @@ proof -
     apply (simp add: *)
     apply (simp add: F.cartesian_product)
     apply (subst expand_superset [of C])
-    apply (rule `finite C`)
+    apply (rule \<open>finite C\<close>)
     apply (simp_all add: **)
     apply (rule F.same_carrierI [of C])
-    apply (rule `finite C`)
+    apply (rule \<open>finite C\<close>)
     apply (simp_all add: subset)
     apply auto
     done
@@ -330,9 +330,9 @@ lemma Prod_any_zero:
   assumes "f a = 0"
   shows "(\<Prod>a. f a) = 0"
 proof -
-  from `f a = 0` have "f a \<noteq> 1" by simp
-  with `f a = 0` have "\<exists>a. f a \<noteq> 1 \<and> f a = 0" by blast
-  with `finite {a. f a \<noteq> 1}` show ?thesis
+  from \<open>f a = 0\<close> have "f a \<noteq> 1" by simp
+  with \<open>f a = 0\<close> have "\<exists>a. f a \<noteq> 1 \<and> f a = 0" by blast
+  with \<open>finite {a. f a \<noteq> 1}\<close> show ?thesis
     by (simp add: Prod_any.expand_set setprod_zero)
 qed
 

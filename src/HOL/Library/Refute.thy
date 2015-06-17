@@ -5,7 +5,7 @@
 Basic setup and documentation for the 'refute' (and 'refute_params') command.
 *)
 
-section {* Refute *}
+section \<open>Refute\<close>
 
 theory Refute
 imports Main
@@ -23,7 +23,7 @@ refute_params
   satsolver = auto,
   no_assms = false]
 
-text {*
+text \<open>
 \small
 \begin{verbatim}
 (* ------------------------------------------------------------------------- *)
@@ -107,6 +107,6 @@ text {*
 (* HOL/ex/Refute_Examples.thy  Examples                                      *)
 (* ------------------------------------------------------------------------- *)
 \end{verbatim}
-*}
+\<close>
 
 end

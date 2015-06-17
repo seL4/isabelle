@@ -2,13 +2,13 @@
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Amine Chaieb, University of Cambridge *)
 
-section {* Definitions of Least Upper Bounds and Greatest Lower Bounds *}
+section \<open>Definitions of Least Upper Bounds and Greatest Lower Bounds\<close>
 
 theory Lub_Glb
 imports Complex_Main
 begin
 
-text {* Thanks to suggestions by James Margetson *}
+text \<open>Thanks to suggestions by James Margetson\<close>
 
 definition setle :: "'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"  (infixl "*<=" 70)
   where "S *<= x = (ALL y: S. y \<le> x)"
@@ -17,7 +17,7 @@ definition setge :: "'a::ord \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "
   where "x <=* S = (ALL y: S. x \<le> y)"
 
 
-subsection {* Rules for the Relations @{text "*<="} and @{text "<=*"} *}
+subsection \<open>Rules for the Relations @{text "*<="} and @{text "<=*"}\<close>
 
 lemma setleI: "ALL y: S. y \<le> x \<Longrightarrow> S *<= x"
   by (simp add: setle_def)
@@ -45,7 +45,7 @@ definition ubs :: "'a set \<Rightarrow> 'a::ord set \<Rightarrow> 'a set"
   where "ubs R S = Collect (isUb R S)"
 
 
-subsection {* Rules about the Operators @{term leastP}, @{term ub} and @{term lub} *}
+subsection \<open>Rules about the Operators @{term leastP}, @{term ub} and @{term lub}\<close>
 
 lemma leastPD1: "leastP P x \<Longrightarrow> P x"
   by (simp add: leastP_def)
@@ -118,7 +118,7 @@ definition lbs :: "'a set \<Rightarrow> 'a::ord set \<Rightarrow> 'a set"
   where "lbs R S = Collect (isLb R S)"
 
 
-subsection {* Rules about the Operators @{term greatestP}, @{term isLb} and @{term isGlb} *}
+subsection \<open>Rules about the Operators @{term greatestP}, @{term isLb} and @{term isGlb}\<close>
 
 lemma greatestPD1: "greatestP P x \<Longrightarrow> P x"
   by (simp add: greatestP_def)
@@ -208,7 +208,7 @@ lemma cSup_unique: "(S::'a :: {conditionally_complete_linorder, no_bot} set) *<=
 lemma cInf_unique: "b <=* (S::'a :: {conditionally_complete_linorder, no_top} set) \<Longrightarrow> (\<forall>b'>b. \<exists>x\<in>S. b' > x) \<Longrightarrow> Inf S = b"
   by (rule cInf_eq) (auto simp: not_le[symmetric] setge_def)
 
-text{* Use completeness of reals (supremum property) to show that any bounded sequence has a least upper bound*}
+text\<open>Use completeness of reals (supremum property) to show that any bounded sequence has a least upper bound\<close>
 
 lemma reals_complete: "\<exists>X. X \<in> S \<Longrightarrow> \<exists>Y. isUb (UNIV::real set) S Y \<Longrightarrow> \<exists>t. isLub (UNIV :: real set) S t"
   by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro!: cSup_upper)

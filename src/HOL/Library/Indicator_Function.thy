@@ -2,7 +2,7 @@
     Author:     Johannes Hoelzl (TU Muenchen)
 *)
 
-section {* Indicator Function *}
+section \<open>Indicator Function\<close>
 
 theory Indicator_Function
 imports Complex_Main
@@ -88,7 +88,7 @@ proof cases
   then have 
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 1"
     "(indicator (\<Union> i. A i) x :: 'a) = 1"
-    using incseqD[OF `incseq A`, of i "n + i" for n] `x \<in> A i` by (auto simp: indicator_def)
+    using incseqD[OF \<open>incseq A\<close>, of i "n + i" for n] \<open>x \<in> A i\<close> by (auto simp: indicator_def)
   then show ?thesis
     by (rule_tac LIMSEQ_offset[of _ i]) simp
 qed (auto simp: indicator_def)
@@ -113,7 +113,7 @@ proof cases
   then have 
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 0"
     "(indicator (\<Inter>i. A i) x :: 'a) = 0"
-    using decseqD[OF `decseq A`, of i "n + i" for n] `x \<notin> A i` by (auto simp: indicator_def)
+    using decseqD[OF \<open>decseq A\<close>, of i "n + i" for n] \<open>x \<notin> A i\<close> by (auto simp: indicator_def)
   then show ?thesis
     by (rule_tac LIMSEQ_offset[of _ i]) simp
 qed (auto simp: indicator_def)

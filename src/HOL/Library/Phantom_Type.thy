@@ -2,7 +2,7 @@
     Author:     Andreas Lochbihler
 *)
 
-section {* A generic phantom type *}
+section \<open>A generic phantom type\<close>
 
 theory Phantom_Type
 imports Main
@@ -21,14 +21,14 @@ syntax "_Phantom" :: "type \<Rightarrow> logic" ("(1Phantom/(1'(_')))")
 translations
   "Phantom('t)" => "CONST phantom :: _ \<Rightarrow> ('t, _) phantom"
 
-typed_print_translation {*
+typed_print_translation \<open>
   let
     fun phantom_tr' ctxt (Type (@{type_name fun}, [_, Type (@{type_name phantom}, [T, _])])) ts =
           list_comb
             (Syntax.const @{syntax_const "_Phantom"} $ Syntax_Phases.term_of_typ ctxt T, ts)
       | phantom_tr' _ _ _ = raise Match;
   in [(@{const_syntax phantom}, phantom_tr')] end
-*}
+\<close>
 
 lemma of_phantom_inject [simp]:
   "of_phantom x = of_phantom y \<longleftrightarrow> x = y"

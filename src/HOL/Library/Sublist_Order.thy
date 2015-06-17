@@ -3,19 +3,19 @@
                 Florian Haftmann, Tobias Nipkow, TU Muenchen
 *)
 
-section {* Sublist Ordering *}
+section \<open>Sublist Ordering\<close>
 
 theory Sublist_Order
 imports Sublist
 begin
 
-text {*
+text \<open>
   This theory defines sublist ordering on lists.
   A list @{text ys} is a sublist of a list @{text xs},
   iff one obtains @{text ys} by erasing some elements from @{text xs}.
-*}
+\<close>
 
-subsection {* Definitions and basic lemmas *}
+subsection \<open>Definitions and basic lemmas\<close>
 
 instantiation list :: (type) ord
 begin

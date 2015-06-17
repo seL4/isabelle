@@ -3,7 +3,7 @@
     Contributions: David Trachtenherz, TU Muenchen
 *)
 
-section {* Extended natural numbers (i.e. with infinity) *}
+section \<open>Extended natural numbers (i.e. with infinity)\<close>
 
 theory Extended_Nat
 imports Main Countable
@@ -18,16 +18,16 @@ notation (xsymbols)
 notation (HTML output)
   infinity  ("\<infinity>")
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
-text {*
+text \<open>
   We extend the standard natural numbers by a special value indicating
   infinity.
-*}
+\<close>
 
 typedef enat = "UNIV :: nat option set" ..
 
-text {* TODO: introduce enat as coinductive datatype, enat is just @{const of_nat} *}
+text \<open>TODO: introduce enat as coinductive datatype, enat is just @{const of_nat}\<close>
 
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"
@@ -70,7 +70,7 @@ primrec the_enat :: "enat \<Rightarrow> nat"
   where "the_enat (enat n) = n"
 
 
-subsection {* Constructors and numbers *}
+subsection \<open>Constructors and numbers\<close>
 
 instantiation enat :: "{zero, one}"
 begin
@@ -141,7 +141,7 @@ lemma eSuc_enat_iff: "eSuc x = enat y \<longleftrightarrow> (\<exists>n. y = Suc
 lemma enat_eSuc_iff: "enat y = eSuc x \<longleftrightarrow> (\<exists>n. y = Suc n \<and> enat n = x)"
   by (cases y) (auto simp: enat_0 eSuc_enat[symmetric])
 
-subsection {* Addition *}
+subsection \<open>Addition\<close>
 
 instantiation enat :: comm_monoid_add
 begin
@@ -186,7 +186,7 @@ lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
 lemma iadd_is_0: "(m + n = (0::enat)) = (m = 0 \<and> n = 0)"
   by (cases m, cases n, simp_all add: zero_enat_def)
 
-subsection {* Multiplication *}
+subsection \<open>Multiplication\<close>
 
 instantiation enat :: comm_semiring_1
 begin
@@ -254,7 +254,7 @@ lemma imult_is_infinity: "((a::enat) * b = \<infinity>) = (a = \<infinity> \<and
   by (auto simp add: times_enat_def zero_enat_def split: enat.split)
 
 
-subsection {* Numerals *}
+subsection \<open>Numerals\<close>
 
 lemma numeral_eq_enat:
   "numeral k = enat (numeral k)"
@@ -273,7 +273,7 @@ lemma numeral_ne_infinity [simp]: "numeral k \<noteq> (\<infinity>::enat)"
 lemma eSuc_numeral [simp]: "eSuc (numeral k) = numeral (k + Num.One)"
   by (simp only: eSuc_plus_1 numeral_plus_one)
 
-subsection {* Subtraction *}
+subsection \<open>Subtraction\<close>
 
 instantiation enat :: minus
 begin
@@ -316,7 +316,7 @@ lemma eSuc_minus_1 [simp]: "eSuc n - 1 = n"
 
 (*lemmas idiff_self_eq_0_enat = idiff_self_eq_0[unfolded zero_enat_def]*)
 
-subsection {* Ordering *}
+subsection \<open>Ordering\<close>
 
 instantiation enat :: linordered_ab_semigroup_add
 begin
@@ -499,7 +499,7 @@ proof (rule finite_subset)
 qed
 
 
-subsection {* Cancellation simprocs *}
+subsection \<open>Cancellation simprocs\<close>
 
 lemma enat_add_left_cancel: "a + b = a + c \<longleftrightarrow> a = (\<infinity>::enat) \<or> b = c"
   unfolding plus_enat_def by (simp split: enat.split)
@@ -510,7 +510,7 @@ lemma enat_add_left_cancel_le: "a + b \<le> a + c \<longleftrightarrow> a = (\<i
 lemma enat_add_left_cancel_less: "a + b < a + c \<longleftrightarrow> a \<noteq> (\<infinity>::enat) \<and> b < c"
   unfolding plus_enat_def by (simp split: enat.split)
 
-ML {*
+ML \<open>
 structure Cancel_Enat_Common =
 struct
   (* copied from src/HOL/Tools/nat_numeral_simprocs.ML *)
@@ -557,25 +557,25 @@ structure Less_Enat_Cancel = ExtractCommonTermFun
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} @{typ enat}
   fun simp_conv _ _ = SOME @{thm enat_add_left_cancel_less}
 )
-*}
+\<close>
 
 simproc_setup enat_eq_cancel
   ("(l::enat) + m = n" | "(l::enat) = m + n") =
-  {* fn phi => fn ctxt => fn ct => Eq_Enat_Cancel.proc ctxt (Thm.term_of ct) *}
+  \<open>fn phi => fn ctxt => fn ct => Eq_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
 
 simproc_setup enat_le_cancel
   ("(l::enat) + m \<le> n" | "(l::enat) \<le> m + n") =
-  {* fn phi => fn ctxt => fn ct => Le_Enat_Cancel.proc ctxt (Thm.term_of ct) *}
+  \<open>fn phi => fn ctxt => fn ct => Le_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
 
 simproc_setup enat_less_cancel
   ("(l::enat) + m < n" | "(l::enat) < m + n") =
-  {* fn phi => fn ctxt => fn ct => Less_Enat_Cancel.proc ctxt (Thm.term_of ct) *}
+  \<open>fn phi => fn ctxt => fn ct => Less_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
 
-text {* TODO: add regression tests for these simprocs *}
+text \<open>TODO: add regression tests for these simprocs\<close>
 
-text {* TODO: add simprocs for combining and cancelling numerals *}
+text \<open>TODO: add simprocs for combining and cancelling numerals\<close>
 
-subsection {* Well-ordering *}
+subsection \<open>Well-ordering\<close>
 
 lemma less_enatE:
   "[| n < enat m; !!k. n = enat k ==> k < m ==> P |] ==> P"
@@ -613,7 +613,7 @@ proof
   show "P n" by (blast intro: enat_less_induct hyp)
 qed
 
-subsection {* Complete Lattice *}
+subsection \<open>Complete Lattice\<close>
 
 instantiation enat :: complete_lattice
 begin
@@ -647,7 +647,7 @@ end
 
 instance enat :: complete_linorder ..
 
-subsection {* Traditional theorem names *}
+subsection \<open>Traditional theorem names\<close>
 
 lemmas enat_defs = zero_enat_def one_enat_def eSuc_def
   plus_enat_def less_eq_enat_def less_enat_def

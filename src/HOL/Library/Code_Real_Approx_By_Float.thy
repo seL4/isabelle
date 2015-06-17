@@ -4,7 +4,7 @@ theory Code_Real_Approx_By_Float
 imports Complex_Main Code_Target_Int
 begin
 
-text{* \textbf{WARNING} This theory implements mathematical reals by machine
+text\<open>\textbf{WARNING} This theory implements mathematical reals by machine
 reals (floats). This is inconsistent. See the proof of False at the end of
 the theory, where an equality on mathematical reals is (incorrectly)
 disproved by mapping it to machine reals.
@@ -12,7 +12,7 @@ disproved by mapping it to machine reals.
 The value command cannot display real results yet.
 
 The only legitimate use of this theory is as a tool for code generation
-purposes. *}
+purposes.\<close>
 
 code_printing
   type_constructor real \<rightharpoonup>

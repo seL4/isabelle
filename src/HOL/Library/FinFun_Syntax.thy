@@ -1,6 +1,6 @@
 (* Author: Andreas Lochbihler, KIT *)
 
-section {* Pretty syntax for almost everywhere constant functions *}
+section \<open>Pretty syntax for almost everywhere constant functions\<close>
 
 theory FinFun_Syntax
 imports FinFun

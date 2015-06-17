@@ -2,7 +2,7 @@ theory Predicate_Compile_Alternative_Defs
 imports Main
 begin
 
-section {* Common constants *}
+section \<open>Common constants\<close>
 
 declare HOL.if_bool_eq_disj[code_pred_inline]
 
@@ -18,23 +18,23 @@ lemma [code_pred_inline]:
   "((A::bool) ~= (B::bool)) = ((A & ~ B) | (B & ~ A))"
 by fast
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name Let}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Let}]\<close>
 
-section {* Pairs *}
+section \<open>Pairs\<close>
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}]\<close>
 
-section {* Filters *}
+section \<open>Filters\<close>
 
 (*TODO: shouldn't this be done by typedef? *)
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name Abs_filter}, @{const_name Rep_filter}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Abs_filter}, @{const_name Rep_filter}]\<close>
 
-section {* Bounded quantifiers *}
+section \<open>Bounded quantifiers\<close>
 
 declare Ball_def[code_pred_inline]
 declare Bex_def[code_pred_inline]
 
-section {* Operations on Predicates *}
+section \<open>Operations on Predicates\<close>
 
 lemma Diff[code_pred_inline]:
   "(A - B) = (%x. A x \<and> \<not> B x)"
@@ -48,16 +48,16 @@ lemma set_equality[code_pred_inline]:
   "A = B \<longleftrightarrow> (\<forall>x. A x \<longrightarrow> B x) \<and> (\<forall>x. B x \<longrightarrow> A x)"
   by (auto simp add: fun_eq_iff)
 
-section {* Setup for Numerals *}
+section \<open>Setup for Numerals\<close>
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name numeral}] *}
-setup {* Predicate_Compile_Data.keep_functions [@{const_name numeral}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name numeral}]\<close>
+setup \<open>Predicate_Compile_Data.keep_functions [@{const_name numeral}]\<close>
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name mod}, @{const_name times}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name mod}, @{const_name times}]\<close>
 
-section {* Arithmetic operations *}
+section \<open>Arithmetic operations\<close>
 
-subsection {* Arithmetic on naturals and integers *}
+subsection \<open>Arithmetic on naturals and integers\<close>
 
 definition plus_eq_nat :: "nat => nat => nat => bool"
 where
@@ -79,7 +79,7 @@ definition subtract
 where
   [code_unfold]: "subtract x y = y - x"
 
-setup {*
+setup \<open>
 let
   val Fun = Predicate_Compile_Aux.Fun
   val Input = Predicate_Compile_Aux.Input
@@ -141,9 +141,9 @@ in
   #> Predicate_Compile_Fun.add_function_predicate_translation
       (@{term "minus :: int => int => int"}, @{term "minus_eq_int"})
 end
-*}
+\<close>
 
-subsection {* Inductive definitions for ordering on naturals *}
+subsection \<open>Inductive definitions for ordering on naturals\<close>
 
 inductive less_nat
 where
@@ -175,9 +175,9 @@ apply (case_tac y) apply (auto intro: less_eq_nat.intros)
 apply (induct rule: less_eq_nat.induct)
 apply auto done
 
-section {* Alternative list definitions *}
+section \<open>Alternative list definitions\<close>
 
-subsection {* Alternative rules for @{text length} *}
+subsection \<open>Alternative rules for @{text length}\<close>
 
 definition size_list' :: "'a list => nat"
 where "size_list' = size"
@@ -191,7 +191,7 @@ declare size_list'_simps[code_pred_def]
 declare size_list'_def[symmetric, code_pred_inline]
 
 
-subsection {* Alternative rules for @{text list_all2} *}
+subsection \<open>Alternative rules for @{text list_all2}\<close>
 
 lemma list_all2_NilI [code_pred_intro]: "list_all2 P [] []"
 by auto
@@ -212,11 +212,11 @@ proof -
     done
 qed
 
-section {* Setup for String.literal *}
+section \<open>Setup for String.literal\<close>
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name "STR"}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name "STR"}]\<close>
 
-section {* Simplification rules for optimisation *}
+section \<open>Simplification rules for optimisation\<close>
 
 lemma [code_pred_simp]: "\<not> False == True"
 by auto

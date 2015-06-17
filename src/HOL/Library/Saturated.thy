@@ -4,13 +4,13 @@
     Author:     Florian Haftmann
 *)
 
-section {* Saturated arithmetic *}
+section \<open>Saturated arithmetic\<close>
 
 theory Saturated
 imports Numeral_Type "~~/src/HOL/Word/Type_Length"
 begin
 
-subsection {* The type of saturated naturals *}
+subsection \<open>The type of saturated naturals\<close>
 
 typedef ('a::len) sat = "{.. len_of TYPE('a)}"
   morphisms nat_of Abs_sat
@@ -116,7 +116,7 @@ instance proof
     proof(cases "c = 0")
       case True thus ?thesis by (simp add: sat_eq_iff)
     next
-      case False with `a \<noteq> 0` show ?thesis
+      case False with \<open>a \<noteq> 0\<close> show ?thesis
         by (simp add: sat_eq_iff nat_mult_min_left nat_mult_min_right mult.assoc min.assoc min.absorb2)
     qed
   qed

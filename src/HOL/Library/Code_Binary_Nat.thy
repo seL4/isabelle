@@ -2,22 +2,22 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Implementation of natural numbers as binary numerals *}
+section \<open>Implementation of natural numbers as binary numerals\<close>
 
 theory Code_Binary_Nat
 imports Code_Abstract_Nat
 begin
 
-text {*
+text \<open>
   When generating code for functions on natural numbers, the
   canonical representation using @{term "0::nat"} and
   @{term Suc} is unsuitable for computations involving large
   numbers.  This theory refines the representation of
   natural numbers for code generation to use binary
   numerals, which do not grow linear in size but logarithmic.
-*}
+\<close>
 
-subsection {* Representation *}
+subsection \<open>Representation\<close>
 
 code_datatype "0::nat" nat_of_num
 
@@ -38,7 +38,7 @@ lemma [code]:
   by simp
 
 
-subsection {* Basic arithmetic *}
+subsection \<open>Basic arithmetic\<close>
 
 lemma [code, code del]:
   "(plus :: nat \<Rightarrow> _) = plus" ..
@@ -49,7 +49,7 @@ lemma plus_nat_code [code]:
   "0 + n = (n::nat)"
   by (simp_all add: nat_of_num_numeral)
 
-text {* Bounded subtraction needs some auxiliary *}
+text \<open>Bounded subtraction needs some auxiliary\<close>
 
 definition dup :: "nat \<Rightarrow> nat" where
   "dup n = n + n"
@@ -140,7 +140,7 @@ lemma divmod_nat_code [code]:
   by (simp_all add: prod_eq_iff nat_of_num_numeral del: div_nat_numeral mod_nat_numeral)
 
 
-subsection {* Conversions *}
+subsection \<open>Conversions\<close>
 
 lemma [code, code del]:
   "of_nat = of_nat" ..

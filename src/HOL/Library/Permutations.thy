@@ -2,13 +2,13 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section {* Permutations, both general and specifically on finite sets.*}
+section \<open>Permutations, both general and specifically on finite sets.\<close>
 
 theory Permutations
 imports Binomial
 begin
 
-subsection {* Transpositions *}
+subsection \<open>Transpositions\<close>
 
 lemma swap_id_idempotent [simp]:
   "Fun.swap a b id \<circ> Fun.swap a b id = id"
@@ -23,7 +23,7 @@ lemma swap_id_eq:
   by (simp add: Fun.swap_def)
 
 
-subsection {* Basic consequences of the definition *}
+subsection \<open>Basic consequences of the definition\<close>
 
 definition permutes  (infixr "permutes" 41)
   where "(p permutes S) \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)"
@@ -96,7 +96,7 @@ lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T
   by (simp add: Ball_def permutes_def) metis
 
 
-subsection {* Group properties *}
+subsection \<open>Group properties\<close>
 
 lemma permutes_id: "id permutes S"
   unfolding permutes_def by simp
@@ -116,7 +116,7 @@ lemma permutes_inv_inv:
   by blast
 
 
-subsection {* The number of permutations on a finite set *}
+subsection \<open>The number of permutations on a finite set\<close>
 
 lemma permutes_insert_lemma:
   assumes pS: "p permutes (insert a S)"
@@ -186,13 +186,13 @@ next
     from permutes_insert[of x F]
     have xfgpF': "?xF = ?g ` ?pF'" .
     have Fs: "card F = n - 1"
-      using `x \<notin> F` H0 `finite F` by auto
+      using \<open>x \<notin> F\<close> H0 \<open>finite F\<close> by auto
     from insert.hyps Fs have pFs: "card ?pF = fact (n - 1)"
-      using `finite F` by auto
+      using \<open>finite F\<close> by auto
     then have "finite ?pF"
       by (auto intro: card_ge_0_finite)
     then have pF'f: "finite ?pF'"
-      using H0 `finite F`
+      using H0 \<open>finite F\<close>
       apply (simp only: Collect_split Collect_mem_eq)
       apply (rule finite_cartesian_product)
       apply simp_all
@@ -208,14 +208,14 @@ next
         from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F"
           "p permutes F" "q permutes F"
           by auto
-        from ths(4) `x \<notin> F` eq have "b = ?g (b,p) x"
+        from ths(4) \<open>x \<notin> F\<close> eq have "b = ?g (b,p) x"
           unfolding permutes_def
           by (auto simp add: Fun.swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = ?g (c,q) x"
-          using ths(5) `x \<notin> F` eq
+          using ths(5) \<open>x \<notin> F\<close> eq
           by (auto simp add: swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = c"
-          using ths(5) `x \<notin> F`
+          using ths(5) \<open>x \<notin> F\<close>
           unfolding permutes_def
           by (auto simp add: Fun.swap_def fun_upd_def fun_eq_iff)
         finally have bc: "b = c" .
@@ -234,15 +234,15 @@ next
       then show ?thesis
         unfolding inj_on_def by blast
     qed
-    from `x \<notin> F` H0 have n0: "n \<noteq> 0"
-      using `finite F` by auto
+    from \<open>x \<notin> F\<close> H0 have n0: "n \<noteq> 0"
+      using \<open>finite F\<close> by auto
     then have "\<exists>m. n = Suc m"
       by presburger
     then obtain m where n[simp]: "n = Suc m"
       by blast
     from pFs H0 have xFc: "card ?xF = fact n"
       unfolding xfgpF' card_image[OF ginj]
-      using `finite F` `finite ?pF`
+      using \<open>finite F\<close> \<open>finite ?pF\<close>
       apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
       apply simp
       done
@@ -262,26 +262,26 @@ lemma finite_permutations:
   by (auto intro: card_ge_0_finite)
 
 
-subsection {* Permutations of index set for iterated operations *}
+subsection \<open>Permutations of index set for iterated operations\<close>
 
 lemma (in comm_monoid_set) permute:
   assumes "p permutes S"
   shows "F g S = F (g \<circ> p) S"
 proof -
-  from `p permutes S` have "inj p"
+  from \<open>p permutes S\<close> have "inj p"
     by (rule permutes_inj)
   then have "inj_on p S"
     by (auto intro: subset_inj_on)
   then have "F g (p ` S) = F (g \<circ> p) S"
     by (rule reindex)
-  moreover from `p permutes S` have "p ` S = S"
+  moreover from \<open>p permutes S\<close> have "p ` S = S"
     by (rule permutes_image)
   ultimately show ?thesis
     by simp
 qed
 
 
-subsection {* Various combinations of transpositions with 2, 1 and 0 common elements *}
+subsection \<open>Various combinations of transpositions with 2, 1 and 0 common elements\<close>
 
 lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>
   Fun.swap a b id \<circ> Fun.swap a c id = Fun.swap b c id \<circ> Fun.swap a b id"
@@ -296,7 +296,7 @@ lemma swap_id_independent: "a \<noteq> c \<Longrightarrow> a \<noteq> d \<Longri
   by (simp add: fun_eq_iff Fun.swap_def)
 
 
-subsection {* Permutations as transposition sequences *}
+subsection \<open>Permutations as transposition sequences\<close>
 
 inductive swapidseq :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
 where
@@ -308,7 +308,7 @@ declare id[unfolded id_def, simp]
 definition "permutation p \<longleftrightarrow> (\<exists>n. swapidseq n p)"
 
 
-subsection {* Some closure properties of the set of permutations, with lengths *}
+subsection \<open>Some closure properties of the set of permutations, with lengths\<close>
 
 lemma permutation_id[simp]: "permutation id"
   unfolding permutation_def by (rule exI[where x=0]) simp
@@ -391,7 +391,7 @@ lemma permutation_inverse: "permutation p \<Longrightarrow> permutation (inv p)"
   using permutation_def swapidseq_inverse by blast
 
 
-subsection {* The identity map only has even transposition sequences *}
+subsection \<open>The identity map only has even transposition sequences\<close>
 
 lemma symmetry_lemma:
   assumes "\<And>a b c d. P a b c d \<Longrightarrow> P a b d c"
@@ -519,7 +519,7 @@ qed
 lemma swapidseq_identity_even:
   assumes "swapidseq n (id :: 'a \<Rightarrow> 'a)"
   shows "even n"
-  using `swapidseq n id`
+  using \<open>swapidseq n id\<close>
 proof (induct n rule: nat_less_induct)
   fix n
   assume H: "\<forall>m<n. swapidseq m (id::'a \<Rightarrow> 'a) \<longrightarrow> even m" "swapidseq n (id :: 'a \<Rightarrow> 'a)"
@@ -544,7 +544,7 @@ proof (induct n rule: nat_less_induct)
 qed
 
 
-subsection {* Therefore we have a welldefined notion of parity *}
+subsection \<open>Therefore we have a welldefined notion of parity\<close>
 
 definition "evenperm p = even (SOME n. swapidseq n p)"
 
@@ -573,7 +573,7 @@ lemma evenperm_unique:
   done
 
 
-subsection {* And it has the expected composition properties *}
+subsection \<open>And it has the expected composition properties\<close>
 
 lemma evenperm_id[simp]: "evenperm id = True"
   by (rule evenperm_unique[where n = 0]) simp_all
@@ -608,7 +608,7 @@ proof -
 qed
 
 
-subsection {* A more abstract characterization of permutations *}
+subsection \<open>A more abstract characterization of permutations\<close>
 
 lemma bij_iff: "bij f \<longleftrightarrow> (\<forall>x. \<exists>!y. f y = x)"
   unfolding bij_def inj_on_def surj_def
@@ -647,7 +647,7 @@ proof -
     let ?S = "insert a (insert b {x. p x \<noteq> x})"
     from comp_Suc.hyps(2) have fS: "finite ?S"
       by simp
-    from `a \<noteq> b` have th: "{x. (Fun.swap a b id \<circ> p) x \<noteq> x} \<subseteq> ?S"
+    from \<open>a \<noteq> b\<close> have th: "{x. (Fun.swap a b id \<circ> p) x \<noteq> x} \<subseteq> ?S"
       by (auto simp add: Fun.swap_def)
     from finite_subset[OF th fS] show ?case  .
   qed
@@ -744,7 +744,7 @@ proof -
 qed
 
 
-subsection {* Relation to "permutes" *}
+subsection \<open>Relation to "permutes"\<close>
 
 lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. finite S \<and> p permutes S)"
   unfolding permutation permutes_def bij_iff[symmetric]
@@ -757,7 +757,7 @@ lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. fi
   done
 
 
-subsection {* Hence a sort of induction principle composing by swaps *}
+subsection \<open>Hence a sort of induction principle composing by swaps\<close>
 
 lemma permutes_induct: "finite S \<Longrightarrow> P id \<Longrightarrow>
   (\<And> a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> P p \<Longrightarrow> P p \<Longrightarrow> permutation p \<Longrightarrow> P (Fun.swap a b id \<circ> p)) \<Longrightarrow>
@@ -788,7 +788,7 @@ next
 qed
 
 
-subsection {* Sign of a permutation as a real number *}
+subsection \<open>Sign of a permutation as a real number\<close>
 
 definition "sign p = (if evenperm p then (1::int) else -1)"
 
@@ -811,7 +811,7 @@ lemma sign_idempotent: "sign p * sign p = 1"
   by (simp add: sign_def)
 
 
-subsection {* More lemmas about permutations *}
+subsection \<open>More lemmas about permutations\<close>
 
 lemma permutes_natset_le:
   fixes S :: "'a::wellorder set"
@@ -995,7 +995,7 @@ proof -
 qed
 
 
-subsection {* Sum over a set of permutations (could generalize to iteration) *}
+subsection \<open>Sum over a set of permutations (could generalize to iteration)\<close>
 
 lemma setsum_over_permutations_insert:
   assumes fS: "finite S"

@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Canonical order on option type *}
+section \<open>Canonical order on option type\<close>
 
 theory Option_ord
 imports Option Main
@@ -104,7 +104,7 @@ instance option :: (wellorder) wellorder proof
   proof -
     fix z
     assume "\<And>x. z = Some x \<Longrightarrow> (P o Some) x"
-    with `P None` show "P z" by (cases z) simp_all
+    with \<open>P None\<close> show "P z" by (cases z) simp_all
   qed
   show "P z" proof (cases z rule: P_Some)
     case (Some w)
@@ -114,7 +114,7 @@ instance option :: (wellorder) wellorder proof
         fix y :: "'a option"
         assume "y < Some x"
         show "P y" proof (cases y rule: P_Some)
-          case (Some v) with `y < Some x` have "v < x" by simp
+          case (Some v) with \<open>y < Some x\<close> have "v < x" by simp
           with less show "(P o Some) v" .
         qed
       qed

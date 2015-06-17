@@ -3,13 +3,13 @@
     Author:     Alexander Krauss
 *)
 
-section {* A general ``while'' combinator *}
+section \<open>A general ``while'' combinator\<close>
 
 theory While_Combinator
 imports Main
 begin
 
-subsection {* Partial version *}
+subsection \<open>Partial version\<close>
 
 definition while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
 "while_option b c s = (if (\<exists>k. ~ b ((c ^^ k) s))
@@ -24,23 +24,23 @@ proof cases
   proof (cases "\<exists>k. ~ b ((c ^^ k) s)")
     case True
     then obtain k where 1: "~ b ((c ^^ k) s)" ..
-    with `b s` obtain l where "k = Suc l" by (cases k) auto
+    with \<open>b s\<close> obtain l where "k = Suc l" by (cases k) auto
     with 1 have "~ b ((c ^^ l) (c s))" by (auto simp: funpow_swap1)
     then have 2: "\<exists>l. ~ b ((c ^^ l) (c s))" ..
     from 1
     have "(LEAST k. ~ b ((c ^^ k) s)) = Suc (LEAST l. ~ b ((c ^^ Suc l) s))"
-      by (rule Least_Suc) (simp add: `b s`)
+      by (rule Least_Suc) (simp add: \<open>b s\<close>)
     also have "... = Suc (LEAST l. ~ b ((c ^^ l) (c s)))"
       by (simp add: funpow_swap1)
     finally
     show ?thesis 
-      using True 2 `b s` by (simp add: funpow_swap1 while_option_def)
+      using True 2 \<open>b s\<close> by (simp add: funpow_swap1 while_option_def)
   next
     case False
     then have "~ (\<exists>l. ~ b ((c ^^ Suc l) s))" by blast
     then have "~ (\<exists>l. ~ b ((c ^^ l) (c s)))"
       by (simp add: funpow_swap1)
-    with False  `b s` show ?thesis by (simp add: while_option_def)
+    with False  \<open>b s\<close> show ?thesis by (simp add: while_option_def)
   qed
 next
   assume [simp]: "~ b s"
@@ -148,7 +148,7 @@ next
       and "b ((c ^^ k) s) = b' ((c' ^^ k) (f s))"
       and "P ((c ^^ k) s)"
         by (induct k) (auto simp: b' assms)
-      with `k \<le> k'`
+      with \<open>k \<le> k'\<close>
       have "b ((c ^^ k) s)"
       and "f ((c ^^ k) s) = (c' ^^ k) (f s)"
       and "P ((c ^^ k) s)"
@@ -171,7 +171,7 @@ next
   proof (rule funpow_commute, clarify)
     fix k assume "k < ?k"
     hence TestTrue: "b ((c ^^ k) s)" by (auto dest: not_less_Least)
-    from `k < ?k` have "P ((c ^^ k) s)"
+    from \<open>k < ?k\<close> have "P ((c ^^ k) s)"
     proof (induct k)
       case 0 thus ?case by (auto simp: assms)
     next
@@ -192,7 +192,7 @@ lemma while_option_commute:
 by(rule while_option_commute_invariant[where P = "\<lambda>_. True"])
   (auto simp add: assms)
 
-subsection {* Total version *}
+subsection \<open>Total version\<close>
 
 definition while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 where "while b c s = the (while_option b c s)"
@@ -207,9 +207,9 @@ lemma def_while_unfold:
 unfolding fdef by (fact while_unfold)
 
 
-text {*
+text \<open>
  The proof rule for @{term while}, where @{term P} is the invariant.
-*}
+\<close>
 
 theorem while_rule_lemma:
   assumes invariant: "!!s. P s ==> b s ==> P (c s)"
@@ -238,7 +238,7 @@ theorem while_rule:
   apply blast
   done
 
-text{* Proving termination: *}
+text\<open>Proving termination:\<close>
 
 theorem wf_while_option_Some:
   assumes "wf {(t, s). (P s \<and> b s) \<and> t = c s}"
@@ -267,8 +267,8 @@ shows "(!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < 
   \<Longrightarrow> P s \<Longrightarrow> EX t. while_option b c s = Some t"
 by(blast intro: wf_while_option_Some[OF wf_if_measure, of P b f])
 
-text{* Kleene iteration starting from the empty set and assuming some finite
-bounding set: *}
+text\<open>Kleene iteration starting from the empty set and assuming some finite
+bounding set:\<close>
 
 lemma while_option_finite_subset_Some: fixes C :: "'a set"
   assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
@@ -279,7 +279,7 @@ proof(rule measure_while_option_Some[where
   show "(f A \<subseteq> C \<and> f A \<subseteq> f (f A)) \<and> card C - card (f A) < card C - card A"
     (is "?L \<and> ?R")
   proof
-    show ?L by(metis A(1) assms(2) monoD[OF `mono f`])
+    show ?L by(metis A(1) assms(2) monoD[OF \<open>mono f\<close>])
     show ?R by (metis A assms(2,3) card_seteq diff_less_mono2 equalityI linorder_le_less_linear rev_finite_subset)
   qed
 qed simp
@@ -300,12 +300,12 @@ lemma lfp_while:
 unfolding while_def using assms by (rule lfp_the_while_option) blast
 
 
-text{* Computing the reflexive, transitive closure by iterating a successor
+text\<open>Computing the reflexive, transitive closure by iterating a successor
 function. Stops when an element is found that dos not satisfy the test.
 
 More refined (and hence more efficient) versions can be found in ITP 2011 paper
 by Nipkow (the theories are in the AFP entry Flyspeck by Nipkow)
-and the AFP article Executable Transitive Closures by René Thiemann. *}
+and the AFP article Executable Transitive Closures by René Thiemann.\<close>
 
 context
 fixes p :: "'a \<Rightarrow> bool"

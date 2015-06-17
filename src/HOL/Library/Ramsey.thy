@@ -8,13 +8,13 @@ theory Ramsey
 imports Main Infinite_Set
 begin
 
-subsection{* Finite Ramsey theorem(s) *}
+subsection\<open>Finite Ramsey theorem(s)\<close>
 
-text{* To distinguish the finite and infinite ones, lower and upper case
+text\<open>To distinguish the finite and infinite ones, lower and upper case
 names are used.
 
 This is the most basic version in terms of cliques and independent
-sets, i.e. the version for graphs and 2 colours. *}
+sets, i.e. the version for graphs and 2 colours.\<close>
 
 definition "clique V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> {v,w} : E)"
 definition "indep V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> \<not> {v,w} : E)"
@@ -35,19 +35,19 @@ next
   { assume "m=0"
     have ?case (is "EX r. ?R r")
     proof
-      show "?R 1" using `m=0`
+      show "?R 1" using \<open>m=0\<close>
         by (simp add:clique_def)(metis card.empty emptyE empty_subsetI)
     qed
   } moreover
   { assume "n=0"
     have ?case (is "EX r. ?R r")
     proof
-      show "?R 1" using `n=0`
+      show "?R 1" using \<open>n=0\<close>
         by (simp add:indep_def)(metis card.empty emptyE empty_subsetI)
     qed
   } moreover
   { assume "m\<noteq>0" "n\<noteq>0"
-    then have "k = (m - 1) + n" "k = m + (n - 1)" using `Suc k = m+n` by auto
+    then have "k = (m - 1) + n" "k = m + (n - 1)" using \<open>Suc k = m+n\<close> by auto
     from Suc(1)[OF this(1)] Suc(1)[OF this(2)]
     obtain r1 r2 where "r1\<ge>1" "r2\<ge>1" "?R (m - 1) n r1" "?R m (n - 1) r2"
       by auto
@@ -57,56 +57,56 @@ next
     proof clarify
       fix V :: "'a set" and E :: "'a set set"
       assume "finite V" "r1+r2 \<le> card V"
-      with `r1\<ge>1` have "V \<noteq> {}" by auto
+      with \<open>r1\<ge>1\<close> have "V \<noteq> {}" by auto
       then obtain v where "v : V" by blast
       let ?M = "{w : V. w\<noteq>v & {v,w} : E}"
       let ?N = "{w : V. w\<noteq>v & {v,w} ~: E}"
-      have "V = insert v (?M \<union> ?N)" using `v : V` by auto
+      have "V = insert v (?M \<union> ?N)" using \<open>v : V\<close> by auto
       then have "card V = card(insert v (?M \<union> ?N))" by metis
-      also have "\<dots> = card ?M + card ?N + 1" using `finite V`
+      also have "\<dots> = card ?M + card ?N + 1" using \<open>finite V\<close>
         by(fastforce intro: card_Un_disjoint)
       finally have "card V = card ?M + card ?N + 1" .
-      then have "r1+r2 \<le> card ?M + card ?N + 1" using `r1+r2 \<le> card V` by simp
+      then have "r1+r2 \<le> card ?M + card ?N + 1" using \<open>r1+r2 \<le> card V\<close> by simp
       then have "r1 \<le> card ?M \<or> r2 \<le> card ?N" by arith
       moreover
       { assume "r1 \<le> card ?M"
-        moreover have "finite ?M" using `finite V` by auto
-        ultimately have "?EX ?M E (m - 1) n" using `?R (m - 1) n r1` by blast
+        moreover have "finite ?M" using \<open>finite V\<close> by auto
+        ultimately have "?EX ?M E (m - 1) n" using \<open>?R (m - 1) n r1\<close> by blast
         then obtain R where "R \<subseteq> ?M" "v ~: R" and
           CI: "card R = m - 1 \<and> clique R E \<or>
                card R = n \<and> indep R E" (is "?C \<or> ?I")
           by blast
-        have "R <= V" using `R <= ?M` by auto
-        have "finite R" using `finite V` `R \<subseteq> V` by (metis finite_subset)
+        have "R <= V" using \<open>R <= ?M\<close> by auto
+        have "finite R" using \<open>finite V\<close> \<open>R \<subseteq> V\<close> by (metis finite_subset)
         { assume "?I"
-          with `R <= V` have "?EX V E m n" by blast
+          with \<open>R <= V\<close> have "?EX V E m n" by blast
         } moreover
         { assume "?C"
-          then have "clique (insert v R) E" using `R <= ?M`
+          then have "clique (insert v R) E" using \<open>R <= ?M\<close>
            by(auto simp:clique_def insert_commute)
           moreover have "card(insert v R) = m"
-            using `?C` `finite R` `v ~: R` `m\<noteq>0` by simp
-          ultimately have "?EX V E m n" using `R <= V` `v : V` by blast
+            using \<open>?C\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>m\<noteq>0\<close> by simp
+          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by blast
         } ultimately have "?EX V E m n" using CI by blast
       } moreover
       { assume "r2 \<le> card ?N"
-        moreover have "finite ?N" using `finite V` by auto
-        ultimately have "?EX ?N E m (n - 1)" using `?R m (n - 1) r2` by blast
+        moreover have "finite ?N" using \<open>finite V\<close> by auto
+        ultimately have "?EX ?N E m (n - 1)" using \<open>?R m (n - 1) r2\<close> by blast
         then obtain R where "R \<subseteq> ?N" "v ~: R" and
           CI: "card R = m \<and> clique R E \<or>
                card R = n - 1 \<and> indep R E" (is "?C \<or> ?I")
           by blast
-        have "R <= V" using `R <= ?N` by auto
-        have "finite R" using `finite V` `R \<subseteq> V` by (metis finite_subset)
+        have "R <= V" using \<open>R <= ?N\<close> by auto
+        have "finite R" using \<open>finite V\<close> \<open>R \<subseteq> V\<close> by (metis finite_subset)
         { assume "?C"
-          with `R <= V` have "?EX V E m n" by blast
+          with \<open>R <= V\<close> have "?EX V E m n" by blast
         } moreover
         { assume "?I"
-          then have "indep (insert v R) E" using `R <= ?N`
+          then have "indep (insert v R) E" using \<open>R <= ?N\<close>
             by(auto simp:indep_def insert_commute)
           moreover have "card(insert v R) = n"
-            using `?I` `finite R` `v ~: R` `n\<noteq>0` by simp
-          ultimately have "?EX V E m n" using `R <= V` `v : V` by blast
+            using \<open>?I\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>n\<noteq>0\<close> by simp
+          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by blast
         } ultimately have "?EX V E m n" using CI by blast
       } ultimately show "?EX V E m n" by blast
     qed
@@ -115,12 +115,12 @@ next
 qed
 
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
-subsubsection {* ``Axiom'' of Dependent Choice *}
+subsubsection \<open>``Axiom'' of Dependent Choice\<close>
 
 primrec choice :: "('a => bool) => ('a * 'a) set => nat => 'a" where
-  --{*An integer-indexed chain of choices*}
+  --\<open>An integer-indexed chain of choices\<close>
     choice_0:   "choice P r 0 = (SOME x. P x)"
   | choice_Suc: "choice P r (Suc n) = (SOME y. P y & (choice P r n, y) \<in> r)"
 
@@ -154,15 +154,15 @@ next
 qed
 
 
-subsubsection {* Partitions of a Set *}
+subsubsection \<open>Partitions of a Set\<close>
 
 definition part :: "nat => nat => 'a set => ('a set => nat) => bool"
-  --{*the function @{term f} partitions the @{term r}-subsets of the typically
-       infinite set @{term Y} into @{term s} distinct categories.*}
+  --\<open>the function @{term f} partitions the @{term r}-subsets of the typically
+       infinite set @{term Y} into @{term s} distinct categories.\<close>
 where
   "part r s Y f = (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s)"
 
-text{*For induction, we decrease the value of @{term r} in partitions.*}
+text\<open>For induction, we decrease the value of @{term r} in partitions.\<close>
 lemma part_Suc_imp_part:
      "[| infinite Y; part (Suc r) s Y f; y \<in> Y |]
       ==> part r s (Y - {y}) (%u. f (insert y u))"
@@ -175,7 +175,7 @@ lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f"
   unfolding part_def by blast
 
 
-subsection {* Ramsey's Theorem: Infinitary Version *}
+subsection \<open>Ramsey's Theorem: Infinitary Version\<close>
 
 lemma Ramsey_induction:
   fixes s and r::nat
@@ -334,12 +334,12 @@ proof -
 qed
 
 
-subsection {* Disjunctive Well-Foundedness *}
+subsection \<open>Disjunctive Well-Foundedness\<close>
 
-text {*
+text \<open>
   An application of Ramsey's theorem to program termination. See
   @{cite "Podelski-Rybalchenko"}.
-*}
+\<close>
 
 definition disj_wf :: "('a * 'a)set => bool"
   where "disj_wf r = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i))"
@@ -363,8 +363,8 @@ apply (simp add: transition_idx_def doubleton_eq_iff conj_disj_distribR
 apply (erule LeastI)
 done
 
-text{*To be equal to the union of some well-founded relations is equivalent
-to being the subset of such a union.*}
+text\<open>To be equal to the union of some well-founded relations is equivalent
+to being the subset of such a union.\<close>
 lemma disj_wf:
      "disj_wf(r) = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r \<subseteq> (\<Union>i<n. T i))"
 apply (auto simp add: disj_wf_def)

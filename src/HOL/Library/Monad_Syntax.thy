@@ -2,17 +2,17 @@
    Author: Christian Sternagel, University of Innsbruck
 *)
 
-section {* Monad notation for arbitrary types *}
+section \<open>Monad notation for arbitrary types\<close>
 
 theory Monad_Syntax
 imports Main "~~/src/Tools/Adhoc_Overloading"
 begin
 
-text {*
+text \<open>
   We provide a convenient do-notation for monadic expressions
   well-known from Haskell.  @{const Let} is printed
   specially in do-expressions.
-*}
+\<close>
 
 consts
   bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd" (infixr ">>=" 54)

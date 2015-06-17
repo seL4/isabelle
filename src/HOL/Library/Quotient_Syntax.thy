@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Pretty syntax for Quotient operations *}
+section \<open>Pretty syntax for Quotient operations\<close>
 
 theory Quotient_Syntax
 imports Main

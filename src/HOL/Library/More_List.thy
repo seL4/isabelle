@@ -304,7 +304,7 @@ proof
       with last_conv_nth_default [of ?ys dflt]
       have "last ?ys = nth_default dflt ?ys (length ?ys - 1)"
         by auto
-      moreover from `?ys \<noteq> []` no_trailing_strip_while [of "HOL.eq dflt" ys]
+      moreover from \<open>?ys \<noteq> []\<close> no_trailing_strip_while [of "HOL.eq dflt" ys]
         have "last ?ys \<noteq> dflt" by (simp add: no_trailing_unfold)
       ultimately have "nth_default dflt ?xs (length ?ys - 1) \<noteq> dflt"
         using eq by simp

@@ -2,13 +2,13 @@
     Author:     Brian Huffman, Andreas Lochbihler
 *)
 
-section {* Cardinality of types *}
+section \<open>Cardinality of types\<close>
 
 theory Cardinality
 imports Phantom_Type
 begin
 
-subsection {* Preliminary lemmas *}
+subsection \<open>Preliminary lemmas\<close>
 (* These should be moved elsewhere *)
 
 lemma (in type_definition) univ:
@@ -37,18 +37,18 @@ proof -
     by(auto simp add: type_definition.univ[OF type_definition_literal] infinite_UNIV_listI dest: finite_imageD)
 qed
 
-subsection {* Cardinalities of types *}
+subsection \<open>Cardinalities of types\<close>
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
 translations "CARD('t)" => "CONST card (CONST UNIV \<Colon> 't set)"
 
-print_translation {*
+print_translation \<open>
   let
     fun card_univ_tr' ctxt [Const (@{const_syntax UNIV}, Type (_, [T]))] =
       Syntax.const @{syntax_const "_type_card"} $ Syntax_Phases.term_of_typ ctxt T
   in [(@{const_syntax card}, card_univ_tr')] end
-*}
+\<close>
 
 lemma card_prod [simp]: "CARD('a \<times> 'b) = CARD('a) * CARD('b)"
   unfolding UNIV_Times_UNIV [symmetric] by (simp only: card_cartesian_product)
@@ -161,9 +161,9 @@ qed
 lemma card_literal: "CARD(String.literal) = 0"
 by(simp add: card_eq_0_iff infinite_literal)
 
-subsection {* Classes with at least 1 and 2  *}
+subsection \<open>Classes with at least 1 and 2\<close>
 
-text {* Class finite already captures "at least 1" *}
+text \<open>Class finite already captures "at least 1"\<close>
 
 lemma zero_less_card_finite [simp]: "0 < CARD('a::finite)"
   unfolding neq0_conv [symmetric] by simp
@@ -171,7 +171,7 @@ lemma zero_less_card_finite [simp]: "0 < CARD('a::finite)"
 lemma one_le_card_finite [simp]: "Suc 0 \<le> CARD('a::finite)"
   by (simp add: less_Suc_eq_le [symmetric])
 
-text {* Class for cardinality "at least 2" *}
+text \<open>Class for cardinality "at least 2"\<close>
 
 class card2 = finite + 
   assumes two_le_card: "2 \<le> CARD('a)"
@@ -183,7 +183,7 @@ lemma one_less_int_card: "1 < int CARD('a::card2)"
   using one_less_card [where 'a='a] by simp
 
 
-subsection {* A type class for deciding finiteness of types *}
+subsection \<open>A type class for deciding finiteness of types\<close>
 
 type_synonym 'a finite_UNIV = "('a, bool) phantom"
 
@@ -196,7 +196,7 @@ lemma finite_UNIV_code [code_unfold]:
   \<longleftrightarrow> of_phantom (finite_UNIV :: 'a finite_UNIV)"
 by(simp add: finite_UNIV)
 
-subsection {* A type class for computing the cardinality of types *}
+subsection \<open>A type class for computing the cardinality of types\<close>
 
 definition is_list_UNIV :: "'a list \<Rightarrow> bool"
 where "is_list_UNIV xs = (let c = CARD('a) in if c = 0 then False else size (remdups xs) = c)"
@@ -211,7 +211,7 @@ class card_UNIV = finite_UNIV +
   fixes card_UNIV :: "'a card_UNIV"
   assumes card_UNIV: "card_UNIV = Phantom('a) CARD('a)"
 
-subsection {* Instantiations for @{text "card_UNIV"} *}
+subsection \<open>Instantiations for @{text "card_UNIV"}\<close>
 
 instantiation nat :: card_UNIV begin
 definition "finite_UNIV = Phantom(nat) False"
@@ -396,9 +396,9 @@ instance
   by intro_classes (simp_all add: UNIV_finite_5 card_UNIV_finite_5_def finite_UNIV_finite_5_def)
 end
 
-subsection {* Code setup for sets *}
+subsection \<open>Code setup for sets\<close>
 
-text {*
+text \<open>
   Implement @{term "CARD('a)"} via @{term card_UNIV} and provide
   implementations for @{term "finite"}, @{term "card"}, @{term "op \<subseteq>"}, 
   and @{term "op ="}if the calling context already provides @{class finite_UNIV}
@@ -406,7 +406,7 @@ text {*
   always via @{term card_UNIV}, we would require instances of essentially all 
   element types, i.e., a lot of instantiation proofs and -- at run time --
   possibly slow dictionary constructions.
-*}
+\<close>
 
 definition card_UNIV' :: "'a card_UNIV"
 where [code del]: "card_UNIV' = Phantom('a) CARD('a)"
@@ -491,13 +491,13 @@ qed
 
 end
 
-text {* 
+text \<open>
   Provide more informative exceptions than Match for non-rewritten cases.
   If generated code raises one these exceptions, then a code equation calls
   the mentioned operator for an element type that is not an instance of
   @{class card_UNIV} and is therefore not implemented via @{term card_UNIV}.
   Constrain the element type with sort @{class card_UNIV} to change this.
-*}
+\<close>
 
 lemma card_coset_error [code]:
   "card (List.coset xs) = 

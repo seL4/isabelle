@@ -1,14 +1,14 @@
 (* Author: Tobias Nipkow *)
 
-section {* Multiset of Elements of Binary Tree *}
+section \<open>Multiset of Elements of Binary Tree\<close>
 
 theory Tree_Multiset
 imports Multiset Tree
 begin
 
-text{* Kept separate from theory @{theory Tree} to avoid importing all of
+text\<open>Kept separate from theory @{theory Tree} to avoid importing all of
 theory @{theory Multiset} into @{theory Tree}. Should be merged if
-@{theory Multiset} ever becomes part of @{theory Main}. *}
+@{theory Multiset} ever becomes part of @{theory Main}.\<close>
 
 fun mset_tree :: "'a tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |

@@ -2,13 +2,13 @@
     Author:     Florian Haftmann, TUM
 *)
 
-section {* Pointwise instantiation of functions to division *}
+section \<open>Pointwise instantiation of functions to division\<close>
 
 theory Function_Division
 imports Function_Algebras
 begin
 
-subsection {* Syntactic with division *}
+subsection \<open>Syntactic with division\<close>
 
 instantiation "fun" :: (type, inverse) inverse
 begin
@@ -29,12 +29,12 @@ lemma divide_fun_apply [simp]:
   "(f / g) x = f x / g x"
   by (simp add: divide_fun_def)
 
-text {*
+text \<open>
   Unfortunately, we cannot lift this operations to algebraic type
   classes for division: being different from the constant
   zero function @{term "f \<noteq> 0"} is too weak as precondition.
   So we must introduce our own set of lemmas.
-*}
+\<close>
 
 abbreviation zero_free :: "('b \<Rightarrow> 'a::field) \<Rightarrow> bool" where
   "zero_free f \<equiv> \<not> (\<exists>x. f x = 0)"
@@ -54,12 +54,12 @@ lemma fun_divide_inverse:
   shows "f / g = f * inverse g"
   by (simp add: fun_eq_iff divide_inverse)
 
-text {* Feel free to extend this. *}
+text \<open>Feel free to extend this.\<close>
 
-text {*
+text \<open>
   Another possibility would be a reformulation of the division type
   classes to user a @{term zero_free} predicate rather than
   a direct @{term "a \<noteq> 0"} condition.
-*}
+\<close>
 
 end

@@ -2,7 +2,7 @@
     Author:     Ondrej Kuncar
 *)
 
-section {* Implementation of sets using RBT trees *}
+section \<open>Implementation of sets using RBT trees\<close>
 
 theory RBT_Set
 imports RBT Product_Lexorder
@@ -16,7 +16,7 @@ begin
   own equations using RBT trees. 
 *)
 
-section {* Definition of code datatype constructors *}
+section \<open>Definition of code datatype constructors\<close>
 
 definition Set :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set" 
   where "Set t = {x . RBT.lookup t x = Some ()}"
@@ -25,7 +25,7 @@ definition Coset :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set"
   where [simp]: "Coset t = - Set t"
 
 
-section {* Deletion of already existing code equations *}
+section \<open>Deletion of already existing code equations\<close>
 
 lemma [code, code del]:
   "Set.empty = Set.empty" ..
@@ -141,10 +141,10 @@ lemma [code, code del]:
 lemma [code, code del]: 
   "List.Bleast = List.Bleast" ..
 
-section {* Lemmas *}
+section \<open>Lemmas\<close>
 
 
-subsection {* Auxiliary lemmas *}
+subsection \<open>Auxiliary lemmas\<close>
 
 lemma [simp]: "x \<noteq> Some () \<longleftrightarrow> x = None"
 by (auto simp: not_Some_eq[THEN iffD1])
@@ -158,7 +158,7 @@ by (simp add: Set_set_keys)
 lemma set_keys: "Set t = set(RBT.keys t)"
 by (simp add: Set_set_keys lookup_keys)
 
-subsection {* fold and filter *}
+subsection \<open>fold and filter\<close>
 
 lemma finite_fold_rbt_fold_eq:
   assumes "comp_fun_commute f" 
@@ -198,7 +198,7 @@ by (simp add: fold_keys_def Set_filter_fold rbt_filter_def
   finite_fold_fold_keys[OF comp_fun_commute_filter_fold])
 
 
-subsection {* foldi and Ball *}
+subsection \<open>foldi and Ball\<close>
 
 lemma Ball_False: "RBT_Impl.fold (\<lambda>k v s. s \<and> P k) t False = False"
 by (induction t) auto
@@ -214,7 +214,7 @@ lemma foldi_fold_conj: "RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<an
 unfolding fold_keys_def including rbt.lifting by transfer (rule rbt_foldi_fold_conj)
 
 
-subsection {* foldi and Bex *}
+subsection \<open>foldi and Bex\<close>
 
 lemma Bex_True: "RBT_Impl.fold (\<lambda>k v s. s \<or> P k) t True = True"
 by (induction t) auto
@@ -230,7 +230,7 @@ lemma foldi_fold_disj: "RBT.foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<o
 unfolding fold_keys_def including rbt.lifting by transfer (rule rbt_foldi_fold_disj)
 
 
-subsection {* folding over non empty trees and selecting the minimal and maximal element *}
+subsection \<open>folding over non empty trees and selecting the minimal and maximal element\<close>
 
 (** concrete **)
 
@@ -438,7 +438,7 @@ lemma finite_fold1_fold1_keys:
   assumes "\<not> RBT.is_empty t"
   shows "semilattice_set.F f (Set t) = fold1_keys f t"
 proof -
-  from `semilattice f` interpret semilattice_set f by (rule semilattice_set.intro)
+  from \<open>semilattice f\<close> interpret semilattice_set f by (rule semilattice_set.intro)
   show ?thesis using assms 
     by (auto simp: fold1_keys_def_alt set_keys fold_def_alt non_empty_keys set_eq_fold [symmetric])
 qed
@@ -521,7 +521,7 @@ qed
 
 end
 
-section {* Code equations *}
+section \<open>Code equations\<close>
 
 code_datatype Set Coset
 
@@ -564,7 +564,7 @@ lemma union_Set [code]:
 proof -
   interpret comp_fun_idem Set.insert
     by (fact comp_fun_idem_insert)
-  from finite_fold_fold_keys[OF `comp_fun_commute Set.insert`]
+  from finite_fold_fold_keys[OF \<open>comp_fun_commute Set.insert\<close>]
   show ?thesis by (auto simp add: union_fold_insert)
 qed
 
@@ -577,7 +577,7 @@ lemma minus_Set [code]:
 proof -
   interpret comp_fun_idem Set.remove
     by (fact comp_fun_idem_remove)
-  from finite_fold_fold_keys[OF `comp_fun_commute Set.remove`]
+  from finite_fold_fold_keys[OF \<open>comp_fun_commute Set.remove\<close>]
   show ?thesis by (auto simp add: minus_fold_remove)
 qed
 
@@ -648,7 +648,7 @@ proof -
     by (auto simp: Set_def lookup.abs_eq[OF **] dest!: * split: rbt.split)
 qed
 
-text {* A frequent case -- avoid intermediate sets *}
+text \<open>A frequent case -- avoid intermediate sets\<close>
 lemma [code_unfold]:
   "Set t1 \<subseteq> Set t2 \<longleftrightarrow> RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> k \<in> Set t2) t1 True"
 by (simp add: subset_code Ball_Set)

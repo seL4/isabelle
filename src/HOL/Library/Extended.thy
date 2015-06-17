@@ -90,8 +90,8 @@ declare one_extended_def[symmetric, code_post]
 instantiation extended :: (plus)plus
 begin
 
-text {* The following definition of of addition is totalized
-to make it asociative and commutative. Normally the sum of plus and minus infinity is undefined. *}
+text \<open>The following definition of of addition is totalized
+to make it asociative and commutative. Normally the sum of plus and minus infinity is undefined.\<close>
 
 fun plus_extended where
 "Fin x + Fin y = Fin(x+y)" |
@@ -155,7 +155,7 @@ lemma minus_extended_simps[simp]:
 by (simp_all add: minus_extended_def)
 
 
-text{* Numerals: *}
+text\<open>Numerals:\<close>
 
 instance extended :: ("{ab_semigroup_add,one}")numeral ..
 

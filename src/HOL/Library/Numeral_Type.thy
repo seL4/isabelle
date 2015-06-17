@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Numeral Syntax for Types *}
+section \<open>Numeral Syntax for Types\<close>
 
 theory Numeral_Type
 imports Cardinality
 begin
 
-subsection {* Numeral Types *}
+subsection \<open>Numeral Types\<close>
 
 typedef num0 = "UNIV :: nat set" ..
 typedef num1 = "UNIV :: unit set" ..
@@ -70,7 +70,7 @@ proof
     by simp
 qed
 
-subsection {* Locales for for modular arithmetic subtypes *}
+subsection \<open>Locales for for modular arithmetic subtypes\<close>
 
 locale mod_type =
   fixes n :: int
@@ -179,12 +179,12 @@ by (cases x rule: cases) simp
 end
 
 
-subsection {* Ring class instances *}
+subsection \<open>Ring class instances\<close>
 
-text {*
+text \<open>
   Unfortunately @{text ring_1} instance is not possible for
   @{typ num1}, since 0 and 1 are not distinct.
-*}
+\<close>
 
 instantiation num1 :: "{comm_ring,comm_monoid_mult,numeral}"
 begin
@@ -273,7 +273,7 @@ interpretation bit1:
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
   ..
 
-text {* Set up cases, induction, and arithmetic *}
+text \<open>Set up cases, induction, and arithmetic\<close>
 
 lemmas bit0_cases [case_names of_int, cases type: bit0] = bit0.cases
 lemmas bit1_cases [case_names of_int, cases type: bit1] = bit1.cases
@@ -287,7 +287,7 @@ lemmas bit1_iszero_numeral [simp] = bit1.iszero_numeral
 lemmas [simp] = eq_numeral_iff_iszero [where 'a="'a bit0"] for dummy :: "'a::finite"
 lemmas [simp] = eq_numeral_iff_iszero [where 'a="'a bit1"] for dummy :: "'a::finite"
 
-subsection {* Order instances *}
+subsection \<open>Order instances\<close>
 
 instantiation bit0 and bit1 :: (finite) linorder begin
 definition "a < b \<longleftrightarrow> Rep_bit0 a < Rep_bit0 b"
@@ -316,9 +316,9 @@ next
     by(rule wf_wellorderI) intro_classes
 qed
 
-subsection {* Code setup and type classes for code generation *}
+subsection \<open>Code setup and type classes for code generation\<close>
 
-text {* Code setup for @{typ num0} and @{typ num1} *}
+text \<open>Code setup for @{typ num0} and @{typ num1}\<close>
 
 definition Num0 :: num0 where "Num0 = Abs_num0 0"
 code_datatype Num0
@@ -366,7 +366,7 @@ instance
 end
 
 
-text {* Code setup for @{typ "'a bit0"} and @{typ "'a bit1"} *}
+text \<open>Code setup for @{typ "'a bit0"} and @{typ "'a bit1"}\<close>
 
 declare
   bit0.Rep_inverse[code abstype]
@@ -465,7 +465,7 @@ definition "card_UNIV = Phantom('a bit1) (1 + 2 * of_phantom (card_UNIV :: 'a ca
 instance by intro_classes (simp_all add: card_UNIV_bit0_def card_UNIV_bit1_def card_UNIV)
 end
 
-subsection {* Syntax *}
+subsection \<open>Syntax\<close>
 
 syntax
   "_NumeralType" :: "num_token => type"  ("_")
@@ -476,7 +476,7 @@ translations
   (type) "1" == (type) "num1"
   (type) "0" == (type) "num0"
 
-parse_translation {*
+parse_translation \<open>
   let
     fun mk_bintype n =
       let
@@ -495,9 +495,9 @@ parse_translation {*
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
   in [(@{syntax_const "_NumeralType"}, K numeral_tr)] end;
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
   let
     fun int_of [] = 0
       | int_of (b :: bs) = b + 2 * int_of bs;
@@ -521,9 +521,9 @@ print_translation {*
    [(@{type_syntax bit0}, K (bit_tr' 0)),
     (@{type_syntax bit1}, K (bit_tr' 1))]
   end;
-*}
+\<close>
 
-subsection {* Examples *}
+subsection \<open>Examples\<close>
 
 lemma "CARD(0) = 0" by simp
 lemma "CARD(17) = 17" by simp

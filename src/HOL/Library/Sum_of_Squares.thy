@@ -3,8 +3,8 @@
     Author:     Philipp Meyer, TU Muenchen
 *)
 
-section {* A decision procedure for universal multivariate real arithmetic
-  with addition, multiplication and ordering using semidefinite programming *}
+section \<open>A decision procedure for universal multivariate real arithmetic
+  with addition, multiplication and ordering using semidefinite programming\<close>
 
 theory Sum_of_Squares
 imports Complex_Main
