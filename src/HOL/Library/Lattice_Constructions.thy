@@ -7,7 +7,7 @@ theory Lattice_Constructions
 imports Main
 begin
 
-subsection {* Values extended by a bottom element *}
+subsection \<open>Values extended by a bottom element\<close>
 
 datatype 'a bot = Value 'a | Bot
 
@@ -106,7 +106,7 @@ end
 instance bot :: (lattice) bounded_lattice_bot
 by(intro_classes)(simp add: bot_bot_def)
 
-section {* Values extended by a top element *}
+section \<open>Values extended by a top element\<close>
 
 datatype 'a top = Value 'a | Top
 
@@ -205,7 +205,7 @@ end
 instance top :: (lattice) bounded_lattice_top
 by(intro_classes)(simp add: top_top_def)
 
-subsection {* Values extended by a top and a bottom element *}
+subsection \<open>Values extended by a top and a bottom element\<close>
 
 datatype 'a flat_complete_lattice = Value 'a | Bot | Top
 
@@ -296,12 +296,12 @@ proof
     from this have "(THE v. A - {Top} = {Value v}) = v"
       by (auto intro!: the1_equality)
     moreover
-    from `x : A` `A - {Top} = {Value v}` have "x = Top \<or> x = Value v"
+    from \<open>x : A\<close> \<open>A - {Top} = {Value v}\<close> have "x = Top \<or> x = Value v"
       by auto
     ultimately have "Value (THE v. A - {Top} = {Value v}) <= x"
       by auto
   }
-  from `x : A` this show "Inf A <= x"
+  from \<open>x : A\<close> this show "Inf A <= x"
     unfolding Inf_flat_complete_lattice_def
     by fastforce
 next
@@ -355,12 +355,12 @@ next
     from this have "(THE v. A - {Bot} = {Value v}) = v"
       by (auto intro!: the1_equality)
     moreover
-    from `x : A` `A - {Bot} = {Value v}` have "x = Bot \<or> x = Value v"
+    from \<open>x : A\<close> \<open>A - {Bot} = {Value v}\<close> have "x = Bot \<or> x = Value v"
       by auto
     ultimately have "x <= Value (THE v. A - {Bot} = {Value v})"
       by auto
   }
-  from `x : A` this show "x <= Sup A"
+  from \<open>x : A\<close> this show "x <= Sup A"
     unfolding Sup_flat_complete_lattice_def
     by fastforce
 next

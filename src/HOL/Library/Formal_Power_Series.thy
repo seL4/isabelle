@@ -2,13 +2,13 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section{* A formalization of formal power series *}
+section\<open>A formalization of formal power series\<close>
 
 theory Formal_Power_Series
 imports Complex_Main
 begin
 
-subsection {* The type of formal power series*}
+subsection \<open>The type of formal power series\<close>
 
 typedef 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
   morphisms fps_nth Abs_fps
@@ -25,8 +25,8 @@ lemma fps_ext: "(\<And>n. p $ n = q $ n) \<Longrightarrow> p = q"
 lemma fps_nth_Abs_fps [simp]: "Abs_fps f $ n = f n"
   by (simp add: Abs_fps_inverse)
 
-text{* Definition of the basic elements 0 and 1 and the basic operations of addition,
-  negation and multiplication *}
+text\<open>Definition of the basic elements 0 and 1 and the basic operations of addition,
+  negation and multiplication\<close>
 
 instantiation fps :: (zero) zero
 begin
@@ -120,8 +120,8 @@ lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
-subsection{* Formal power series form a commutative ring with unity, if the range of sequences
-  they represent is a commutative ring with unity*}
+subsection\<open>Formal power series form a commutative ring with unity, if the range of sequences
+  they represent is a commutative ring with unity\<close>
 
 instance fps :: (semigroup_add) semigroup_add
 proof
@@ -248,7 +248,7 @@ qed
 
 instance fps :: (semiring_0_cancel) semiring_0_cancel ..
 
-subsection {* Selection of the nth power of the implicit variable in the infinite sum*}
+subsection \<open>Selection of the nth power of the implicit variable in the infinite sum\<close>
 
 lemma fps_nonzero_nth: "f \<noteq> 0 \<longleftrightarrow> (\<exists> n. f $n \<noteq> 0)"
   by (simp add: expand_fps_eq)
@@ -282,7 +282,7 @@ next
   then show ?thesis by simp
 qed
 
-subsection{* Injection of the basic ring elements and multiplication by scalars *}
+subsection\<open>Injection of the basic ring elements and multiplication by scalars\<close>
 
 definition "fps_const c = Abs_fps (\<lambda>n. if n = 0 then c else 0)"
 
@@ -329,7 +329,7 @@ lemma fps_mult_left_const_nth [simp]: "(fps_const (c::'a::semiring_1) * f)$n = c
 lemma fps_mult_right_const_nth [simp]: "(f * fps_const (c::'a::semiring_1))$n = f$n * c"
   by (simp add: fps_mult_nth mult_delta_right setsum.delta')
 
-subsection {* Formal power series form an integral domain*}
+subsection \<open>Formal power series form an integral domain\<close>
 
 instance fps :: (ring) ring ..
 
@@ -373,7 +373,7 @@ lemma numeral_fps_const: "numeral k = fps_const (numeral k)"
 lemma neg_numeral_fps_const: "- numeral k = fps_const (- numeral k)"
   by (simp only: numeral_fps_const fps_const_neg)
 
-subsection{* The eXtractor series X*}
+subsection\<open>The eXtractor series X\<close>
 
 lemma minus_one_power_iff: "(- (1::'a::comm_ring_1)) ^ n = (if even n then 1 else - 1)"
   by (induct n) auto
@@ -428,7 +428,7 @@ lemma X_power_mult_right_nth:
   by (metis X_power_mult_nth mult.commute)
 
 
-subsection{* Formal Power series form a metric space *}
+subsection\<open>Formal Power series form a metric space\<close>
 
 definition (in dist) "ball x r = {y. dist y x < r}"
 
@@ -533,7 +533,7 @@ qed
 
 end
 
-text{* The infinite sums and justification of the notation in textbooks*}
+text\<open>The infinite sums and justification of the notation in textbooks\<close>
 
 lemma reals_power_lt_ex:
   fixes x y :: real
@@ -628,7 +628,7 @@ proof -
 qed
 
 
-subsection{* Inverses of formal power series *}
+subsection\<open>Inverses of formal power series\<close>
 
 declare setsum.cong[fundef_cong]
 
@@ -778,7 +778,7 @@ lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field)))
   done
 
 
-subsection {* Formal Derivatives, and the MacLaurin theorem around 0 *}
+subsection \<open>Formal Derivatives, and the MacLaurin theorem around 0\<close>
 
 definition "fps_deriv f = Abs_fps (\<lambda>n. of_nat (n + 1) * f $ (n + 1))"
 
@@ -966,7 +966,7 @@ lemma fps_deriv_maclauren_0:
   by (induct k arbitrary: f) (auto simp add: field_simps of_nat_mult)
 
 
-subsection {* Powers *}
+subsection \<open>Powers\<close>
 
 lemma fps_power_zeroth_eq_one: "a$0 =1 \<Longrightarrow> a^n $ 0 = (1::'a::semiring_1)"
   by (induct n) (auto simp add: expand_fps_eq fps_mult_nth)
@@ -977,9 +977,9 @@ proof (induct n)
   then show ?case by simp
 next
   case (Suc n)
-  note h = Suc.hyps[OF `a$0 = 1`]
+  note h = Suc.hyps[OF \<open>a$0 = 1\<close>]
   show ?case unfolding power_Suc fps_mult_nth
-    using h `a$0 = 1` fps_power_zeroth_eq_one[OF `a$0=1`]
+    using h \<open>a$0 = 1\<close> fps_power_zeroth_eq_one[OF \<open>a$0=1\<close>]
     by (simp add: field_simps)
 qed
 
@@ -1224,7 +1224,7 @@ proof -
 qed
 
 
-subsection{* Integration *}
+subsection\<open>Integration\<close>
 
 definition fps_integral :: "'a::field_char_0 fps \<Rightarrow> 'a \<Rightarrow> 'a fps"
   where "fps_integral a a0 = Abs_fps (\<lambda>n. if n = 0 then a0 else (a$(n - 1) / of_nat n))"
@@ -1247,7 +1247,7 @@ proof -
 qed
 
 
-subsection {* Composition of FPSs *}
+subsection \<open>Composition of FPSs\<close>
 
 definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps" (infixl "oo" 55)
   where "a oo b = Abs_fps (\<lambda>n. setsum (\<lambda>i. a$i * (b^i$n)) {0..n})"
@@ -1272,9 +1272,9 @@ lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: 'a
   by (simp add: fps_eq_iff fps_compose_def mult_delta_left setsum.delta not_le)
 
 
-subsection {* Rules from Herbert Wilf's Generatingfunctionology*}
+subsection \<open>Rules from Herbert Wilf's Generatingfunctionology\<close>
 
-subsubsection {* Rule 1 *}
+subsubsection \<open>Rule 1\<close>
   (* {a_{n+k}}_0^infty Corresponds to (f - setsum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift:
@@ -1312,7 +1312,7 @@ proof -
 qed
 
 
-subsubsection {* Rule 2*}
+subsubsection \<open>Rule 2\<close>
 
   (* We can not reach the form of Wilf, but still near to it using rewrite rules*)
   (* If f reprents {a_n} and P is a polynomial, then
@@ -1344,9 +1344,9 @@ lemma fps_mult_XD_shift:
   by (induct k arbitrary: a) (simp_all add: XD_def fps_eq_iff field_simps del: One_nat_def)
 
 
-subsubsection {* Rule 3 is trivial and is given by @{text fps_times_def} *}
+subsubsection \<open>Rule 3 is trivial and is given by @{text fps_times_def}\<close>
 
-subsubsection {* Rule 5 --- summation and "division" by (1 - X) *}
+subsubsection \<open>Rule 5 --- summation and "division" by (1 - X)\<close>
 
 lemma fps_divide_X_minus1_setsum_lemma:
   "a = ((1::'a::comm_ring_1 fps) - X) * Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
@@ -1407,8 +1407,8 @@ proof -
 qed
 
 
-subsubsection{* Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
-  finite product of FPS, also the relvant instance of powers of a FPS*}
+subsubsection\<open>Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
+  finite product of FPS, also the relvant instance of powers of a FPS\<close>
 
 definition "natpermute n k = {l :: nat list. length l = k \<and> listsum l = n}"
 
@@ -1576,7 +1576,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-text {* The general form *}
+text \<open>The general form\<close>
 lemma fps_setprod_nth:
   fixes m :: nat
     and a :: "nat \<Rightarrow> 'a::comm_ring_1 fps"
@@ -1631,7 +1631,7 @@ proof (induct m arbitrary: n rule: nat_less_induct)
   qed
 qed
 
-text{* The special form for powers *}
+text\<open>The special form for powers\<close>
 lemma fps_power_nth_Suc:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
@@ -1715,7 +1715,7 @@ next
 qed
 
 
-subsection {* Radicals *}
+subsection \<open>Radicals\<close>
 
 declare setprod.cong [fundef_cong]
 
@@ -2267,7 +2267,7 @@ lemma radical_inverse:
   using radical_divide[where k=k and r=r and a=1 and b=a, OF k ] ra0 r1 a0
   by (simp add: divide_inverse fps_divide_def)
 
-subsection{* Derivative of composition *}
+subsection\<open>Derivative of composition\<close>
 
 lemma fps_compose_deriv:
   fixes a :: "'a::idom fps"
@@ -2338,7 +2338,7 @@ next
 qed
 
 
-subsection {* Finite FPS (i.e. polynomials) and X *}
+subsection \<open>Finite FPS (i.e. polynomials) and X\<close>
 
 lemma fps_poly_sum_X:
   assumes z: "\<forall>i > n. a$i = (0::'a::comm_ring_1)"
@@ -2354,7 +2354,7 @@ proof -
 qed
 
 
-subsection{* Compositional inverses *}
+subsection\<open>Compositional inverses\<close>
 
 fun compinv :: "'a fps \<Rightarrow> nat \<Rightarrow> 'a::field"
 where
@@ -2853,9 +2853,9 @@ proof -
     unfolding fps_inv_right[OF a0 a1] by simp
 qed
 
-subsection{* Elementary series *}
+subsection\<open>Elementary series\<close>
 
-subsubsection{* Exponential series *}
+subsubsection\<open>Exponential series\<close>
 
 definition "E x = Abs_fps (\<lambda>n. x^n / of_nat (fact n))"
 
@@ -2970,7 +2970,7 @@ lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
   done
 
 
-subsubsection{* Logarithmic series *}
+subsubsection\<open>Logarithmic series\<close>
 
 lemma Abs_fps_if_0:
   "Abs_fps(\<lambda>n. if n=0 then (v::'a::ring_1) else f n) = fps_const v + X * Abs_fps (\<lambda>n. f (Suc n))"
@@ -3032,7 +3032,7 @@ proof-
 qed
 
 
-subsubsection{* Binomial series *}
+subsubsection\<open>Binomial series\<close>
 
 definition "fps_binomial a = Abs_fps (\<lambda>n. a gchoose n)"
 
@@ -3145,7 +3145,7 @@ proof-
   show ?thesis by (simp add: fps_inverse_def)
 qed
 
-text{* Vandermonde's Identity as a consequence *}
+text\<open>Vandermonde's Identity as a consequence\<close>
 lemma gbinomial_Vandermonde:
   "setsum (\<lambda>k. (a gchoose k) * (b gchoose (n - k))) {0..n} = (a + b) gchoose n"
 proof -
@@ -3354,7 +3354,7 @@ proof -
 qed
 
 
-subsubsection{* Formal trigonometric functions  *}
+subsubsection\<open>Formal trigonometric functions\<close>
 
 definition "fps_sin (c::'a::field_char_0) =
   Abs_fps (\<lambda>n. if even n then 0 else (- 1) ^((n - 1) div 2) * c^n /(of_nat (fact n)))"
@@ -3544,7 +3544,7 @@ proof -
     done
 qed
 
-text {* Connection to E c over the complex numbers --- Euler and De Moivre*}
+text \<open>Connection to E c over the complex numbers --- Euler and De Moivre\<close>
 lemma Eii_sin_cos: "E (ii * c) = fps_cos c + fps_const ii * fps_sin c "
   (is "?l = ?r")
 proof -
@@ -3607,7 +3607,7 @@ lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat 
   by (simp add: ac_simps)
 
 
-subsection {* Hypergeometric series *}
+subsection \<open>Hypergeometric series\<close>
 
 definition "F as bs (c::'a::{field_char_0,field}) =
   Abs_fps (\<lambda>n. (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
@@ -3731,8 +3731,8 @@ proof (rule ccontr)
   with assms have "i < (LEAST n. f $ n \<noteq> g $ n)"
     by (simp add: split_if_asm dist_fps_def)
   also have "\<dots> \<le> j"
-    using `f $ j \<noteq> g $ j` by (auto intro: Least_le)
-  finally show False using `j \<le> i` by simp
+    using \<open>f $ j \<noteq> g $ j\<close> by (auto intro: Least_le)
+  finally show False using \<open>j \<le> i\<close> by simp
 qed
 
 lemma nth_equal_imp_dist_less:
@@ -3744,7 +3744,7 @@ proof (cases "f = g")
   with assms have "dist f g = inverse (2 ^ (LEAST n. f $ n \<noteq> g $ n))"
     by (simp add: split_if_asm dist_fps_def)
   moreover
-  from assms `\<exists>n. f $ n \<noteq> g $ n` have "i < (LEAST n. f $ n \<noteq> g $ n)"
+  from assms \<open>\<exists>n. f $ n \<noteq> g $ n\<close> have "i < (LEAST n. f $ n \<noteq> g $ n)"
     by (metis (mono_tags) LeastI not_less)
   ultimately show ?thesis by simp
 qed simp
@@ -3759,7 +3759,7 @@ proof
   {
     fix i
     have "0 < inverse ((2::real)^i)" by simp
-    from metric_CauchyD[OF `Cauchy X` this] dist_less_imp_nth_equal
+    from metric_CauchyD[OF \<open>Cauchy X\<close> this] dist_less_imp_nth_equal
     have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. X M $ j = X m $ j" by blast
   }
   then obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j" by metis
@@ -3776,7 +3776,7 @@ proof
         unfolding eventually_nhds
         apply clarsimp
         apply (rule FalseE)
-        apply auto --{*slow*}
+        apply auto --\<open>slow\<close>
         done
       then obtain i where "inverse (2 ^ i) < e" by (auto simp: eventually_sequentially)
       have "eventually (\<lambda>x. M i \<le> x) sequentially" by (auto simp: eventually_sequentially)
@@ -3789,7 +3789,7 @@ proof
           using M by (metis nat_le_linear)
         ultimately have "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < inverse (2 ^ i)"
           using M by (force simp: dist_less_eq_nth_equal)
-        also note `inverse (2 ^ i) < e`
+        also note \<open>inverse (2 ^ i) < e\<close>
         finally show "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < e" .
       qed
     qed

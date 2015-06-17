@@ -1,12 +1,12 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Futures and parallel lists for code generated towards Isabelle/ML *}
+section \<open>Futures and parallel lists for code generated towards Isabelle/ML\<close>
 
 theory Parallel
 imports Main
 begin
 
-subsection {* Futures *}
+subsection \<open>Futures\<close>
 
 datatype 'a future = fork "unit \<Rightarrow> 'a"
 
@@ -26,7 +26,7 @@ code_printing
 code_reserved Eval Future future
 
 
-subsection {* Parallel lists *}
+subsection \<open>Parallel lists\<close>
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
   [simp]: "map = List.map"

@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Thomas M Rasmussen and Norbert Voelker
 *)
 
-section {* Permutations *}
+section \<open>Permutations\<close>
 
 theory Permutation
 imports Multiset
@@ -19,13 +19,13 @@ lemma perm_refl [iff]: "l <~~> l"
   by (induct l) auto
 
 
-subsection {* Some examples of rule induction on permutations *}
+subsection \<open>Some examples of rule induction on permutations\<close>
 
 lemma xperm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
   by (induct xs == "[] :: 'a list" ys pred: perm) simp_all
 
 
-text {* \medskip This more general theorem is easier to understand! *}
+text \<open>\medskip This more general theorem is easier to understand!\<close>
 
 lemma perm_length: "xs <~~> ys \<Longrightarrow> length xs = length ys"
   by (induct pred: perm) simp_all
@@ -37,9 +37,9 @@ lemma perm_sym: "xs <~~> ys \<Longrightarrow> ys <~~> xs"
   by (induct pred: perm) auto
 
 
-subsection {* Ways of making new permutations *}
+subsection \<open>Ways of making new permutations\<close>
 
-text {* We can insert the head anywhere in the list. *}
+text \<open>We can insert the head anywhere in the list.\<close>
 
 lemma perm_append_Cons: "a # xs @ ys <~~> xs @ a # ys"
   by (induct xs) auto
@@ -66,7 +66,7 @@ lemma perm_append2: "xs <~~> ys \<Longrightarrow> xs @ l <~~> ys @ l"
   by (blast intro!: perm_append_swap perm_append1)
 
 
-subsection {* Further results *}
+subsection \<open>Further results\<close>
 
 lemma perm_empty [iff]: "[] <~~> xs \<longleftrightarrow> xs = []"
   by (blast intro: perm_empty_imp)
@@ -86,13 +86,13 @@ lemma perm_sing_eq2 [iff]: "[y] <~~> ys \<longleftrightarrow> ys = [y]"
   by (blast dest: perm_sym)
 
 
-subsection {* Removing elements *}
+subsection \<open>Removing elements\<close>
 
 lemma perm_remove: "x \<in> set ys \<Longrightarrow> ys <~~> x # remove1 x ys"
   by (induct ys) auto
 
 
-text {* \medskip Congruence rule *}
+text \<open>\medskip Congruence rule\<close>
 
 lemma perm_remove_perm: "xs <~~> ys \<Longrightarrow> remove1 z xs <~~> remove1 z ys"
   by (induct pred: perm) auto
@@ -116,7 +116,7 @@ lemma perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~>
   apply (safe intro!: perm_append2)
   apply (rule append_perm_imp_perm)
   apply (rule perm_append_swap [THEN perm.trans])
-    -- {* the previous step helps this @{text blast} call succeed quickly *}
+    -- \<open>the previous step helps this @{text blast} call succeed quickly\<close>
   apply (blast intro: perm_append_swap)
   done
 
@@ -241,7 +241,7 @@ next
     assume "i < length xs"
     with bij have "f i < length ys"
       unfolding bij_betw_def by force
-    with `i < length xs` show "xs ! i = zs ! (g \<circ> f) i"
+    with \<open>i < length xs\<close> show "xs ! i = zs ! (g \<circ> f) i"
       using trans(1,3)[THEN perm_length] perm by auto
   qed
 qed

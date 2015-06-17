@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-section {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
+section \<open>Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers\<close>
 
 theory Old_SMT
 imports "../Real" "../Word/Word"
@@ -14,9 +14,9 @@ ML_file "Old_SMT/old_smt_failure.ML"
 ML_file "Old_SMT/old_smt_config.ML"
 
 
-subsection {* Triggers for quantifier instantiation *}
+subsection \<open>Triggers for quantifier instantiation\<close>
 
-text {*
+text \<open>
 Some SMT solvers support patterns as a quantifier instantiation
 heuristics.  Patterns may either be positive terms (tagged by "pat")
 triggering quantifier instantiations -- when the solver finds a
@@ -29,7 +29,7 @@ A list of multipatterns is called a trigger, and their multipatterns
 act disjunctively during quantifier instantiation.  Each multipattern
 should mention at least all quantified variables of the preceding
 quantifier block.
-*}
+\<close>
 
 typedecl pattern
 
@@ -40,17 +40,17 @@ consts
 definition trigger :: "pattern list list \<Rightarrow> bool \<Rightarrow> bool" where "trigger _ P = P"
 
 
-subsection {* Quantifier weights *}
+subsection \<open>Quantifier weights\<close>
 
-text {*
+text \<open>
 Weight annotations to quantifiers influence the priority of quantifier
 instantiations.  They should be handled with care for solvers, which support
 them, because incorrect choices of weights might render a problem unsolvable.
-*}
+\<close>
 
 definition weight :: "int \<Rightarrow> bool \<Rightarrow> bool" where "weight _ P = P"
 
-text {*
+text \<open>
 Weights must be non-negative.  The value @{text 0} is equivalent to providing
 no weight at all.
 
@@ -63,32 +63,32 @@ quantifier has triggers).  Valid usages of weights are as follows:
 \item
 @{term "\<forall>x. weight 3 (P x)"}
 \end{itemize}
-*}
+\<close>
 
 
-subsection {* Higher-order encoding *}
+subsection \<open>Higher-order encoding\<close>
 
-text {*
+text \<open>
 Application is made explicit for constants occurring with varying
 numbers of arguments.  This is achieved by the introduction of the
 following constant.
-*}
+\<close>
 
 definition fun_app where "fun_app f = f"
 
-text {*
+text \<open>
 Some solvers support a theory of arrays which can be used to encode
 higher-order functions.  The following set of lemmas specifies the
 properties of such (extensional) arrays.
-*}
+\<close>
 
 lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other
   fun_upd_upd fun_app_def
 
 
-subsection {* First-order logic *}
+subsection \<open>First-order logic\<close>
 
-text {*
+text \<open>
 Some SMT solvers only accept problems in first-order logic, i.e.,
 where formulas and terms are syntactically separated. When
 translating higher-order into first-order problems, all
@@ -98,13 +98,13 @@ occurrences as head symbols in atoms (i.e., as predicate symbols) are
 turned into terms by logically equating such atoms with @{term True}.
 For technical reasons, @{term True} and @{term False} occurring inside
 terms are replaced by the following constants.
-*}
+\<close>
 
 definition term_true where "term_true = True"
 definition term_false where "term_false = False"
 
 
-subsection {* Integer division and modulo for Z3 *}
+subsection \<open>Integer division and modulo for Z3\<close>
 
 definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
   "z3div k l = (if 0 \<le> l then k div l else -(k div (-l)))"
@@ -113,7 +113,7 @@ definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
   "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
 
 
-subsection {* Setup *}
+subsection \<open>Setup\<close>
 
 ML_file "Old_SMT/old_smt_builtin.ML"
 ML_file "Old_SMT/old_smt_datatypes.ML"
@@ -131,33 +131,33 @@ ML_file "Old_SMT/old_z3_proof_reconstruction.ML"
 ML_file "Old_SMT/old_z3_model.ML"
 ML_file "Old_SMT/old_smt_setup_solvers.ML"
 
-setup {*
+setup \<open>
   Old_SMT_Config.setup #>
   Old_SMT_Normalize.setup #>
   Old_SMTLIB_Interface.setup #>
   Old_Z3_Interface.setup #>
   Old_SMT_Setup_Solvers.setup
-*}
+\<close>
 
-method_setup old_smt = {*
+method_setup old_smt = \<open>
   Scan.optional Attrib.thms [] >>
     (fn thms => fn ctxt =>
       METHOD (fn facts => HEADGOAL (Old_SMT_Solver.smt_tac ctxt (thms @ facts))))
-*} "apply an SMT solver to the current goal"
+\<close> "apply an SMT solver to the current goal"
 
 
-subsection {* Configuration *}
+subsection \<open>Configuration\<close>
 
-text {*
+text \<open>
 The current configuration can be printed by the command
 @{text old_smt_status}, which shows the values of most options.
-*}
+\<close>
 
 
 
-subsection {* General configuration options *}
+subsection \<open>General configuration options\<close>
 
-text {*
+text \<open>
 The option @{text old_smt_solver} can be used to change the target SMT
 solver.  The possible values can be obtained from the @{text old_smt_status}
 command.
@@ -166,82 +166,82 @@ Due to licensing restrictions, Yices and Z3 are not installed/enabled
 by default.  Z3 is free for non-commercial applications and can be enabled
 by setting the @{text OLD_Z3_NON_COMMERCIAL} environment variable to
 @{text yes}.
-*}
+\<close>
 
 declare [[ old_smt_solver = z3 ]]
 
-text {*
+text \<open>
 Since SMT solvers are potentially non-terminating, there is a timeout
 (given in seconds) to restrict their runtime.  A value greater than
 120 (seconds) is in most cases not advisable.
-*}
+\<close>
 
 declare [[ old_smt_timeout = 20 ]]
 
-text {*
+text \<open>
 SMT solvers apply randomized heuristics.  In case a problem is not
 solvable by an SMT solver, changing the following option might help.
-*}
+\<close>
 
 declare [[ old_smt_random_seed = 1 ]]
 
-text {*
+text \<open>
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
 solvers are fully trusted without additional checks.  The following
 option can cause the SMT solver to run in proof-producing mode, giving
 a checkable certificate.  This is currently only implemented for Z3.
-*}
+\<close>
 
 declare [[ old_smt_oracle = false ]]
 
-text {*
+text \<open>
 Each SMT solver provides several commandline options to tweak its
 behaviour.  They can be passed to the solver by setting the following
 options.
-*}
+\<close>
 
 declare [[ old_cvc3_options = "" ]]
 declare [[ old_yices_options = "" ]]
 declare [[ old_z3_options = "" ]]
 
-text {*
+text \<open>
 Enable the following option to use built-in support for datatypes and
 records.  Currently, this is only implemented for Z3 running in oracle
 mode.
-*}
+\<close>
 
 declare [[ old_smt_datatypes = false ]]
 
-text {*
+text \<open>
 The SMT method provides an inference mechanism to detect simple triggers
 in quantified formulas, which might increase the number of problems
 solvable by SMT solvers (note: triggers guide quantifier instantiations
 in the SMT solver).  To turn it on, set the following option.
-*}
+\<close>
 
 declare [[ old_smt_infer_triggers = false ]]
 
-text {*
+text \<open>
 The SMT method monomorphizes the given facts, that is, it tries to
 instantiate all schematic type variables with fixed types occurring
 in the problem.  This is a (possibly nonterminating) fixed-point
 construction whose cycles are limited by the following option.
-*}
+\<close>
 
 declare [[ monomorph_max_rounds = 5 ]]
 
-text {*
+text \<open>
 In addition, the number of generated monomorphic instances is limited
 by the following option.
-*}
+\<close>
 
 declare [[ monomorph_max_new_instances = 500 ]]
 
 
 
-subsection {* Certificates *}
+subsection \<open>Certificates\<close>
 
-text {*
+text \<open>
 By setting the option @{text old_smt_certificates} to the name of a file,
 all following applications of an SMT solver a cached in that file.
 Any further application of the same SMT solver (using the very same
@@ -253,11 +253,11 @@ practice to use the name of the current theory (with ending
 @{text ".certs"} instead of @{text ".thy"}) as the certificates file.
 Certificate files should be used at most once in a certain theory context,
 to avoid race conditions with other concurrent accesses.
-*}
+\<close>
 
 declare [[ old_smt_certificates = "" ]]
 
-text {*
+text \<open>
 The option @{text old_smt_read_only_certificates} controls whether only
 stored certificates are should be used or invocation of an SMT solver
 is allowed.  When set to @{text true}, no SMT solver will ever be
@@ -265,50 +265,50 @@ invoked and only the existing certificates found in the configured
 cache are used;  when set to @{text false} and there is no cached
 certificate for some proposition, then the configured SMT solver is
 invoked.
-*}
+\<close>
 
 declare [[ old_smt_read_only_certificates = false ]]
 
 
 
-subsection {* Tracing *}
+subsection \<open>Tracing\<close>
 
-text {*
+text \<open>
 The SMT method, when applied, traces important information.  To
 make it entirely silent, set the following option to @{text false}.
-*}
+\<close>
 
 declare [[ old_smt_verbose = true ]]
 
-text {*
+text \<open>
 For tracing the generated problem file given to the SMT solver as
 well as the returned result of the solver, the option
 @{text old_smt_trace} should be set to @{text true}.
-*}
+\<close>
 
 declare [[ old_smt_trace = false ]]
 
-text {*
+text \<open>
 From the set of assumptions given to the SMT solver, those assumptions
 used in the proof are traced when the following option is set to
 @{term true}.  This only works for Z3 when it runs in non-oracle mode
 (see options @{text old_smt_solver} and @{text old_smt_oracle} above).
-*}
+\<close>
 
 declare [[ old_smt_trace_used_facts = false ]]
 
 
 
-subsection {* Schematic rules for Z3 proof reconstruction *}
+subsection \<open>Schematic rules for Z3 proof reconstruction\<close>
 
-text {*
+text \<open>
 Several prof rules of Z3 are not very well documented.  There are two
 lemma groups which can turn failing Z3 proof reconstruction attempts
 into succeeding ones: the facts in @{text z3_rule} are tried prior to
 any implemented reconstruction procedure for all uncertain Z3 proof
 rules;  the facts in @{text z3_simp} are only fed to invocations of
 the simplifier when reconstructing theory-specific proof steps.
-*}
+\<close>
 
 lemmas [old_z3_rule] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps

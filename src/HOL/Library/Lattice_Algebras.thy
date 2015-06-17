@@ -1,6 +1,6 @@
 (* Author: Steven Obua, TU Muenchen *)
 
-section {* Various algebraic structures combined with a lattice *}
+section \<open>Various algebraic structures combined with a lattice\<close>
 
 theory Lattice_Algebras
 imports Complex_Main
@@ -110,7 +110,7 @@ proof -
 qed
 
 
-subsection {* Positive Part, Negative Part, Absolute Value *}
+subsection \<open>Positive Part, Negative Part, Absolute Value\<close>
 
 definition nprt :: "'a \<Rightarrow> 'a"
   where "nprt x = inf x 0"
@@ -444,7 +444,7 @@ proof -
     by (rule abs_ge_minus_self)
   then have "c + (- b) \<le> c + \<bar>b\<bar>"
     by (rule add_left_mono)
-  with `a \<le> c + (- b)` show ?thesis
+  with \<open>a \<le> c + (- b)\<close> show ?thesis
     by (rule order_trans)
 qed
 

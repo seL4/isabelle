@@ -6,13 +6,13 @@
     Author:     Alexander Krauss
 *)
 
-section {* Bijections between natural numbers and other types *}
+section \<open>Bijections between natural numbers and other types\<close>
 
 theory Nat_Bijection
 imports Main
 begin
 
-subsection {* Type @{typ "nat \<times> nat"} *}
+subsection \<open>Type @{typ "nat \<times> nat"}\<close>
 
 text "Triangle numbers: 0, 1, 3, 6, 10, 15, ..."
 
@@ -32,7 +32,7 @@ definition
 where
   "prod_encode = (\<lambda>(m, n). triangle (m + n) + m)"
 
-text {* In this auxiliary function, @{term "triangle k + m"} is an invariant. *}
+text \<open>In this auxiliary function, @{term "triangle k + m"} is an invariant.\<close>
 
 fun
   prod_decode_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
@@ -96,7 +96,7 @@ by (rule inj_prod_encode [THEN inj_eq])
 lemma prod_decode_eq: "prod_decode x = prod_decode y \<longleftrightarrow> x = y"
 by (rule inj_prod_decode [THEN inj_eq])
 
-text {* Ordering properties *}
+text \<open>Ordering properties\<close>
 
 lemma le_prod_encode_1: "a \<le> prod_encode (a, b)"
 unfolding prod_encode_def by simp
@@ -105,7 +105,7 @@ lemma le_prod_encode_2: "b \<le> prod_encode (a, b)"
 unfolding prod_encode_def by (induct b, simp_all)
 
 
-subsection {* Type @{typ "nat + nat"} *}
+subsection \<open>Type @{typ "nat + nat"}\<close>
 
 definition
   sum_encode  :: "nat + nat \<Rightarrow> nat"
@@ -149,7 +149,7 @@ lemma sum_decode_eq: "sum_decode x = sum_decode y \<longleftrightarrow> x = y"
 by (rule inj_sum_decode [THEN inj_eq])
 
 
-subsection {* Type @{typ "int"} *}
+subsection \<open>Type @{typ "int"}\<close>
 
 definition
   int_encode :: "int \<Rightarrow> nat"
@@ -193,7 +193,7 @@ lemma int_decode_eq: "int_decode x = int_decode y \<longleftrightarrow> x = y"
 by (rule inj_int_decode [THEN inj_eq])
 
 
-subsection {* Type @{typ "nat list"} *}
+subsection \<open>Type @{typ "nat list"}\<close>
 
 fun
   list_encode :: "nat list \<Rightarrow> nat"
@@ -249,9 +249,9 @@ lemma list_decode_eq: "list_decode x = list_decode y \<longleftrightarrow> x = y
 by (rule inj_list_decode [THEN inj_eq])
 
 
-subsection {* Finite sets of naturals *}
+subsection \<open>Finite sets of naturals\<close>
 
-subsubsection {* Preliminaries *}
+subsubsection \<open>Preliminaries\<close>
 
 lemma finite_vimage_Suc_iff: "finite (Suc -` F) \<longleftrightarrow> finite F"
 apply (safe intro!: finite_vimageI inj_Suc)
@@ -274,7 +274,7 @@ lemma div2_even_ext_nat:
   and "even x \<longleftrightarrow> even y"
   shows "x = y"
 proof -
-  from `even x \<longleftrightarrow> even y` have "x mod 2 = y mod 2"
+  from \<open>even x \<longleftrightarrow> even y\<close> have "x mod 2 = y mod 2"
     by (simp only: even_iff_mod_2_eq_zero) auto
   with assms have "x div 2 * 2 + x mod 2 = y div 2 * 2 + y mod 2"
     by simp
@@ -283,7 +283,7 @@ proof -
 qed
 
 
-subsubsection {* From sets to naturals *}
+subsubsection \<open>From sets to naturals\<close>
 
 definition
   set_encode :: "nat set \<Rightarrow> nat"
@@ -314,7 +314,7 @@ done
 
 lemmas set_encode_div_2 = set_encode_vimage_Suc [symmetric]
 
-subsubsection {* From naturals to sets *}
+subsubsection \<open>From naturals to sets\<close>
 
 definition
   set_decode :: "nat \<Rightarrow> nat set"
@@ -358,7 +358,7 @@ apply (simp add: set_decode_div_2)
 apply (simp add: finite_vimage_Suc_iff)
 done
 
-subsubsection {* Proof of isomorphism *}
+subsubsection \<open>Proof of isomorphism\<close>
 
 lemma set_decode_inverse [simp]: "set_encode (set_decode n) = n"
 apply (induct n rule: nat_less_induct)

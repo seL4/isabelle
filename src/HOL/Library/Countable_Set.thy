@@ -3,13 +3,13 @@
     Author:     Andrei Popescu
 *)
 
-section {* Countable sets *}
+section \<open>Countable sets\<close>
 
 theory Countable_Set
 imports Countable Infinite_Set
 begin
 
-subsection {* Predicate for countable sets *}
+subsection \<open>Predicate for countable sets\<close>
 
 definition countable :: "'a set \<Rightarrow> bool" where
   "countable S \<longleftrightarrow> (\<exists>f::'a \<Rightarrow> nat. inj_on f S)"
@@ -49,18 +49,18 @@ lemma countable_subset: "A \<subseteq> B \<Longrightarrow> countable B \<Longrig
 lemma countableI_type[intro, simp]: "countable (A:: 'a :: countable set)"
   using countableI[of to_nat A] by auto
 
-subsection {* Enumerate a countable set *}
+subsection \<open>Enumerate a countable set\<close>
 
 lemma countableE_infinite:
   assumes "countable S" "infinite S"
   obtains e :: "'a \<Rightarrow> nat" where "bij_betw e S UNIV"
 proof -
   obtain f :: "'a \<Rightarrow> nat" where "inj_on f S"
-    using `countable S` by (rule countableE)
+    using \<open>countable S\<close> by (rule countableE)
   then have "bij_betw f S (f`S)"
     unfolding bij_betw_def by simp
   moreover
-  from `inj_on f S` `infinite S` have inf_fS: "infinite (f`S)"
+  from \<open>inj_on f S\<close> \<open>infinite S\<close> have inf_fS: "infinite (f`S)"
     by (auto dest: finite_imageD)
   then have "bij_betw (the_inv_into UNIV (enumerate (f`S))) (f`S) UNIV"
     by (intro bij_betw_the_inv_into bij_enumerate)
@@ -73,7 +73,7 @@ lemma countable_enum_cases:
   assumes "countable S"
   obtains (finite) f :: "'a \<Rightarrow> nat" where "finite S" "bij_betw f S {..<card S}"
         | (infinite) f :: "'a \<Rightarrow> nat" where "infinite S" "bij_betw f S UNIV"
-  using ex_bij_betw_finite_nat[of S] countableE_infinite `countable S`
+  using ex_bij_betw_finite_nat[of S] countableE_infinite \<open>countable S\<close>
   by (cases "finite S") (auto simp add: atLeast0LessThan)
 
 definition to_nat_on :: "'a set \<Rightarrow> 'a \<Rightarrow> nat" where
@@ -164,7 +164,7 @@ lemma from_nat_into_inject[simp]:
 lemma inj_on_from_nat_into: "inj_on from_nat_into ({A. A \<noteq> {} \<and> countable A})"
   unfolding inj_on_def by auto
 
-subsection {* Closure properties of countability *}
+subsection \<open>Closure properties of countability\<close>
 
 lemma countable_SIGMA[intro, simp]:
   "countable I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (A i)) \<Longrightarrow> countable (SIGMA i : I. A i)"
@@ -292,7 +292,7 @@ lemma countable_Collect_finite_subset:
 lemma countable_set_option [simp]: "countable (set_option x)"
 by(cases x) auto
 
-subsection {* Misc lemmas *}
+subsection \<open>Misc lemmas\<close>
 
 lemma countable_all:
   assumes S: "countable S"
@@ -306,13 +306,13 @@ proof -  show thesis
     apply (auto simp: image_iff Ball_def intro: from_nat_into split: split_if_asm)
   proof -
     fix x n assume "x \<in> X" "\<forall>i m. m \<le> i \<longrightarrow> x \<noteq> from_nat_into X m"
-    with from_nat_into_surj[OF `countable X` `x \<in> X`]
+    with from_nat_into_surj[OF \<open>countable X\<close> \<open>x \<in> X\<close>]
     show False
       by auto
   qed
 qed
 
-subsection {* Uncountable *}
+subsection \<open>Uncountable\<close>
 
 abbreviation uncountable where
   "uncountable A \<equiv> \<not> countable A"

@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-section {* Continuity and iterations (of set transformers) *}
+section \<open>Continuity and iterations (of set transformers)\<close>
 
 theory Order_Continuity
 imports Main
@@ -34,7 +34,7 @@ text \<open>
   and have the advantage that these names are duals.
 \<close>
 
-subsection {* Continuity for complete lattices *}
+subsection \<open>Continuity for complete lattices\<close>
 
 definition
   sup_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
@@ -59,7 +59,7 @@ qed
 lemma sup_continuous_lfp:
   assumes "sup_continuous F" shows "lfp F = (SUP i. (F ^^ i) bot)" (is "lfp F = ?U")
 proof (rule antisym)
-  note mono = sup_continuous_mono[OF `sup_continuous F`]
+  note mono = sup_continuous_mono[OF \<open>sup_continuous F\<close>]
   show "?U \<le> lfp F"
   proof (rule SUP_least)
     fix i show "(F ^^ i) bot \<le> lfp F"
@@ -84,7 +84,7 @@ proof (rule antisym)
       thus ?thesis by (auto simp add: mono_iff_le_Suc)
     qed
     hence "F ?U = (SUP i. (F ^^ Suc i) bot)"
-      using `sup_continuous F` by (simp add: sup_continuous_def)
+      using \<open>sup_continuous F\<close> by (simp add: sup_continuous_def)
     also have "\<dots> \<le> ?U"
       by (fast intro: SUP_least SUP_upper)
     finally show "F ?U \<le> ?U" .
@@ -127,7 +127,7 @@ qed
 lemma inf_continuous_gfp:
   assumes "inf_continuous F" shows "gfp F = (INF i. (F ^^ i) top)" (is "gfp F = ?U")
 proof (rule antisym)
-  note mono = inf_continuous_mono[OF `inf_continuous F`]
+  note mono = inf_continuous_mono[OF \<open>inf_continuous F\<close>]
   show "gfp F \<le> ?U"
   proof (rule INF_greatest)
     fix i show "gfp F \<le> (F ^^ i) top"
@@ -154,7 +154,7 @@ proof (rule antisym)
     have "?U \<le> (INF i. (F ^^ Suc i) top)"
       by (fast intro: INF_greatest INF_lower)
     also have "\<dots> \<le> F ?U"
-      by (simp add: inf_continuousD `inf_continuous F` *)
+      by (simp add: inf_continuousD \<open>inf_continuous F\<close> *)
     finally show "?U \<le> F ?U" .
   qed
 qed

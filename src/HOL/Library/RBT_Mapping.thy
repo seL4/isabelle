@@ -2,14 +2,14 @@
     Author:     Florian Haftmann and Ondrej Kuncar
 *)
 
-section {* Implementation of mappings with Red-Black Trees *}
+section \<open>Implementation of mappings with Red-Black Trees\<close>
 
 (*<*)
 theory RBT_Mapping
 imports RBT Mapping
 begin
 
-subsection {* Implementation of mappings *}
+subsection \<open>Implementation of mappings\<close>
 
 context includes rbt.lifting begin
 lift_definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is RBT.lookup .
@@ -89,15 +89,15 @@ end
 
 (*>*)
 
-text {* 
+text \<open>
   This theory defines abstract red-black trees as an efficient
   representation of finite maps, backed by the implementation
   in @{theory RBT_Impl}.
-*}
+\<close>
 
-subsection {* Data type and invariant *}
+subsection \<open>Data type and invariant\<close>
 
-text {*
+text \<open>
   The type @{typ "('k, 'v) RBT_Impl.rbt"} denotes red-black trees with
   keys of type @{typ "'k"} and values of type @{typ "'v"}. To function
   properly, the key type musorted belong to the @{text "linorder"}
@@ -118,11 +118,11 @@ text {*
   operations. Furthermore, it implements the lookup functionality for
   the data structure: It is executable and the lookup is performed in
   $O(\log n)$.  
-*}
+\<close>
 
-subsection {* Operations *}
+subsection \<open>Operations\<close>
 
-text {*
+text \<open>
   Currently, the following operations are supported:
 
   @{term_type [display] "RBT.empty"}
@@ -148,12 +148,12 @@ text {*
 
   @{term_type [display] "RBT.fold"}
   Folds over all entries in a tree. $O(n)$
-*}
+\<close>
 
 
-subsection {* Invariant preservation *}
+subsection \<open>Invariant preservation\<close>
 
-text {*
+text \<open>
   \noindent
   @{thm Empty_is_rbt}\hfill(@{text "Empty_is_rbt"})
 
@@ -174,12 +174,12 @@ text {*
 
   \noindent
   @{thm rbt_union_is_rbt}\hfill(@{text "union_is_rbt"})
-*}
+\<close>
 
 
-subsection {* Map Semantics *}
+subsection \<open>Map Semantics\<close>
 
-text {*
+text \<open>
   \noindent
   \underline{@{text "lookup_empty"}}
   @{thm [display] lookup_empty}
@@ -204,6 +204,6 @@ text {*
   \underline{@{text "lookup_map"}}
   @{thm [display] lookup_map}
   \vspace{1ex}
-*}
+\<close>
 
 end

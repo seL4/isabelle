@@ -52,9 +52,9 @@ lemma less_fun_trans:
   assumes "less_fun f g" and "less_fun g h"
   shows "less_fun f h"
 proof (rule less_funI)
-  from `less_fun f g` obtain k1 where k1: "f k1 < g k1" "\<And>k'. k' < k1 \<Longrightarrow> f k' = g k'"
+  from \<open>less_fun f g\<close> obtain k1 where k1: "f k1 < g k1" "\<And>k'. k' < k1 \<Longrightarrow> f k' = g k'"
     by (blast elim!: less_funE) 
-  from `less_fun g h` obtain k2 where k2: "g k2 < h k2" "\<And>k'. k' < k2 \<Longrightarrow> g k' = h k'"
+  from \<open>less_fun g h\<close> obtain k2 where k2: "g k2 < h k2" "\<And>k'. k' < k2 \<Longrightarrow> g k' = h k'"
     by (blast elim!: less_funE) 
   show "\<exists>k. f k < h k \<and> (\<forall>k'<k. f k' = h k')"
   proof (cases k1 k2 rule: linorder_cases)
@@ -85,7 +85,7 @@ proof -
     then have "q \<in> K" and "\<And>k. k \<in> K \<Longrightarrow> k \<ge> q" by auto
     then have "\<And>k. \<not> k \<ge> q \<Longrightarrow> k \<notin> K" by blast
     then have *: "\<And>k. k < q \<Longrightarrow> f k = g k" by (simp add: K_def)
-    from `q \<in> K` have "f q \<noteq> g q" by (simp add: K_def)
+    from \<open>q \<in> K\<close> have "f q \<noteq> g q" by (simp add: K_def)
     then have "f q < g q \<or> f q > g q" by auto
     with * have "less_fun f g \<or> less_fun g f"
       by (auto intro!: less_funI)

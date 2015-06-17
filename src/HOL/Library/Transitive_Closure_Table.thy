@@ -1,6 +1,6 @@
 (* Author: Stefan Berghofer, Lukas Bulwahn, TU Muenchen *)
 
-section {* A table-based implementation of the reflexive transitive closure *}
+section \<open>A table-based implementation of the reflexive transitive closure\<close>
 
 theory Transitive_Closure_Table
 imports Main
@@ -22,9 +22,9 @@ proof
     then show ?case ..
   next
     case (step x z)
-    from `\<exists>xs. rtrancl_path r z xs y`
+    from \<open>\<exists>xs. rtrancl_path r z xs y\<close>
     obtain xs where "rtrancl_path r z xs y" ..
-    with `r x z` have "rtrancl_path r x (z # xs) y"
+    with \<open>r x z\<close> have "rtrancl_path r x (z # xs) y"
       by (rule rtrancl_path.step)
     then show ?case ..
   qed
@@ -37,7 +37,7 @@ next
     show ?case by (rule rtranclp.rtrancl_refl)
   next
     case (step x y ys z)
-    from `r x y` `r\<^sup>*\<^sup>* y z` show ?case
+    from \<open>r x y\<close> \<open>r\<^sup>*\<^sup>* y z\<close> show ?case
       by (rule converse_rtranclp_into_rtranclp)
   qed
 qed
@@ -53,7 +53,7 @@ next
   case (step x y xs)
   then have "rtrancl_path r y (xs @ ys) z"
     by simp
-  with `r x y` have "rtrancl_path r x (y # (xs @ ys)) z"
+  with \<open>r x y\<close> have "rtrancl_path r x (y # (xs @ ys)) z"
     by (rule rtrancl_path.step)
   then show ?case by simp
 qed
@@ -83,7 +83,7 @@ next
       by (rule rtrancl_path.step)
     then have "rtrancl_path r x ((a # as) @ [y]) y"
       by simp
-    then show ?thesis using `rtrancl_path r y ys z`
+    then show ?thesis using \<open>rtrancl_path r y ys z\<close>
       by (rule Cons(2))
   qed
 qed
@@ -96,7 +96,7 @@ proof (induct xs rule: measure_induct_rule [of length])
   show ?case
   proof (cases "distinct (x # xs)")
     case True
-    with `rtrancl_path r x xs y` show ?thesis by (rule less)
+    with \<open>rtrancl_path r x xs y\<close> show ?thesis by (rule less)
   next
     case False
     then have "\<exists>as bs cs a. x # xs = as @ [a] @ bs @ [a] @ cs"
@@ -108,7 +108,7 @@ proof (induct xs rule: measure_induct_rule [of length])
       case Nil
       with xxs have x: "x = a" and xs: "xs = bs @ a # cs"
         by auto
-      from x xs `rtrancl_path r x xs y` have cs: "rtrancl_path r x cs y"
+      from x xs \<open>rtrancl_path r x xs y\<close> have cs: "rtrancl_path r x cs y"
         by (auto elim: rtrancl_path_appendE)
       from xs have "length cs < length xs" by simp
       then show ?thesis
@@ -117,7 +117,7 @@ proof (induct xs rule: measure_induct_rule [of length])
       case (Cons d ds)
       with xxs have xs: "xs = ds @ a # (bs @ [a] @ cs)"
         by auto
-      with `rtrancl_path r x xs y` obtain xa: "rtrancl_path r x (ds @ [a]) a"
+      with \<open>rtrancl_path r x xs y\<close> obtain xa: "rtrancl_path r x (ds @ [a]) a"
         and ay: "rtrancl_path r a (bs @ a # cs) y"
         by (auto elim: rtrancl_path_appendE)
       from ay have "rtrancl_path r a cs y" by (auto elim: rtrancl_path_appendE)
@@ -152,7 +152,7 @@ next
     by auto
   ultimately have "rtrancl_tab r (x # ys) y z"
     by (rule step)
-  with `x \<notin> set ys` `r x y`
+  with \<open>x \<notin> set ys\<close> \<open>r x y\<close>
   show ?case by (rule rtrancl_tab.step)
 qed
 

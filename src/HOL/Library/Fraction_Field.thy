@@ -2,16 +2,16 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section{* A formalization of the fraction field of any integral domain;
-         generalization of theory Rat from int to any integral domain *}
+section\<open>A formalization of the fraction field of any integral domain;
+         generalization of theory Rat from int to any integral domain\<close>
 
 theory Fraction_Field
 imports Main
 begin
 
-subsection {* General fractions construction *}
+subsection \<open>General fractions construction\<close>
 
-subsubsection {* Construction of the type of fractions *}
+subsubsection \<open>Construction of the type of fractions\<close>
 
 definition fractrel :: "(('a::idom * 'a ) * ('a * 'a)) set" where
   "fractrel = {(x, y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
@@ -69,7 +69,7 @@ lemma fractrel_in_fract [simp]: "snd x \<noteq> 0 \<Longrightarrow> fractrel `` 
 declare Abs_fract_inject [simp] Abs_fract_inverse [simp]
 
 
-subsubsection {* Representation and basic operations *}
+subsubsection \<open>Representation and basic operations\<close>
 
 definition Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract"
   where "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
@@ -210,12 +210,12 @@ next
   case False
   then obtain a b where "q = Fract a b" and "b \<noteq> 0" by (cases q) auto
   with False have "0 \<noteq> Fract a b" by simp
-  with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_fract_def eq_fract)
-  with Fract `q = Fract a b` `b \<noteq> 0` show thesis by auto
+  with \<open>b \<noteq> 0\<close> have "a \<noteq> 0" by (simp add: Zero_fract_def eq_fract)
+  with Fract \<open>q = Fract a b\<close> \<open>b \<noteq> 0\<close> show thesis by auto
 qed
 
 
-subsubsection {* The field of rational numbers *}
+subsubsection \<open>The field of rational numbers\<close>
 
 context idom
 begin
@@ -264,7 +264,7 @@ qed
 end
 
 
-subsubsection {* The ordered field of fractions over an ordered idom *}
+subsubsection \<open>The ordered field of fractions over an ordered idom\<close>
 
 lemma le_congruent2:
   "(\<lambda>x y::'a \<times> 'a::linordered_idom.

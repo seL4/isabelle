@@ -5,18 +5,18 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-section {* Extended real number line *}
+section \<open>Extended real number line\<close>
 
 theory Extended_Real
 imports Complex_Main Extended_Nat Liminf_Limsup Order_Continuity
 begin
 
-text {*
+text \<open>
 
 This should be part of @{theory Extended_Nat} or @{theory Order_Continuity}, but then the
 AFP-entry @{text "Jinja_Thread"} fails, as it does overload certain named from @{theory Complex_Main}.
 
-*}
+\<close>
 
 lemma continuous_at_left_imp_sup_continuous:
   fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
@@ -169,14 +169,14 @@ next
 qed
 
 
-text {*
+text \<open>
 
 For more lemmas about the extended real numbers go to
   @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
 
-*}
+\<close>
 
-subsection {* Definition and basic properties *}
+subsection \<open>Definition and basic properties\<close>
 
 datatype ereal = ereal real | PInfty | MInfty
 
@@ -760,7 +760,7 @@ proof safe
     assume "\<not> ?thesis"
     then have "\<And>i. i \<in> P \<Longrightarrow> f i \<noteq> \<infinity>"
       by auto
-    with `finite P` have "setsum f P \<noteq> \<infinity>"
+    with \<open>finite P\<close> have "setsum f P \<noteq> \<infinity>"
       by induct auto
     with * show False
       by auto
@@ -1121,9 +1121,9 @@ proof -
     {
       assume "e \<noteq> \<infinity>"
       then obtain r where "e = ereal r"
-        using `e > 0` by (cases e) auto
+        using \<open>e > 0\<close> by (cases e) auto
       then have "x \<le> y + e"
-        using assms[rule_format, of r] `e>0` by auto
+        using assms[rule_format, of r] \<open>e>0\<close> by auto
     }
     ultimately have "x \<le> y + e"
       by blast
@@ -1199,7 +1199,7 @@ next
 qed
 
 
-subsubsection {* Power *}
+subsubsection \<open>Power\<close>
 
 lemma ereal_power[simp]: "(ereal x) ^ n = ereal (x^n)"
   by (induct n) (auto simp: one_ereal_def)
@@ -1223,7 +1223,7 @@ lemma zero_le_power_ereal[simp]:
   using assms by (induct n) (auto simp: ereal_zero_le_0_iff)
 
 
-subsubsection {* Subtraction *}
+subsubsection \<open>Subtraction\<close>
 
 lemma ereal_minus_minus_image[simp]:
   fixes S :: "ereal set"
@@ -1391,7 +1391,7 @@ lemma ereal_minus_eq_PInfty_iff:
   by (cases x y rule: ereal2_cases) simp_all
 
 
-subsubsection {* Division *}
+subsubsection \<open>Division\<close>
 
 instantiation ereal :: inverse
 begin
@@ -1627,7 +1627,7 @@ proof (cases "\<exists>x. \<forall>a\<in>S. a \<le> ereal x")
   show ?thesis
   proof (cases "S \<noteq> {-\<infinity>} \<and> S \<noteq> {}")
     case True
-    with `\<infinity> \<notin> S` obtain x where x: "x \<in> S" "\<bar>x\<bar> \<noteq> \<infinity>"
+    with \<open>\<infinity> \<notin> S\<close> obtain x where x: "x \<in> S" "\<bar>x\<bar> \<noteq> \<infinity>"
       by auto
     obtain s where s: "\<forall>x\<in>ereal -` S. x \<le> s" "\<And>z. (\<forall>x\<in>ereal -` S. x \<le> z) \<Longrightarrow> s \<le> z"
     proof (atomize_elim, rule complete_real)
@@ -1640,12 +1640,12 @@ proof (cases "\<exists>x. \<forall>a\<in>S. a \<le> ereal x")
     proof (safe intro!: exI[of _ "ereal s"])
       fix y
       assume "y \<in> S"
-      with s `\<infinity> \<notin> S` show "y \<le> ereal s"
+      with s \<open>\<infinity> \<notin> S\<close> show "y \<le> ereal s"
         by (cases y) auto
     next
       fix z
       assume "\<forall>y\<in>S. y \<le> z"
-      with `S \<noteq> {-\<infinity>} \<and> S \<noteq> {}` show "ereal s \<le> z"
+      with \<open>S \<noteq> {-\<infinity>} \<and> S \<noteq> {}\<close> show "ereal s \<le> z"
         by (cases z) (auto intro!: s)
     qed
   next
@@ -1773,14 +1773,14 @@ proof cases
   show ?thesis
   proof (rule filterlim_cong[THEN iffD1, OF refl refl _ tendsto_const])
     have "0 < x \<or> x < 0"
-      using `x \<noteq> 0` by (auto simp add: neq_iff)
+      using \<open>x \<noteq> 0\<close> by (auto simp add: neq_iff)
     then show "eventually (\<lambda>x'. c * x = c * f x') F"
     proof
       assume "0 < x" from order_tendstoD(1)[OF f this] show ?thesis
-        by eventually_elim (insert `0<x` `\<bar>c\<bar> = \<infinity>`, auto)
+        by eventually_elim (insert \<open>0<x\<close> \<open>\<bar>c\<bar> = \<infinity>\<close>, auto)
     next
       assume "x < 0" from order_tendstoD(2)[OF f this] show ?thesis
-        by eventually_elim (insert `x<0` `\<bar>c\<bar> = \<infinity>`, auto)
+        by eventually_elim (insert \<open>x<0\<close> \<open>\<bar>c\<bar> = \<infinity>\<close>, auto)
     qed
   qed
 qed (rule tendsto_cmult_ereal[OF _ f])
@@ -1941,12 +1941,12 @@ proof cases
   moreover then have "\<And>i. i \<in> I \<Longrightarrow> f i = -\<infinity>"
     unfolding Sup_eq_MInfty Sup_image_eq[symmetric] by auto
   ultimately show ?thesis
-    by (cases c) (auto simp: `I \<noteq> {}`)
+    by (cases c) (auto simp: \<open>I \<noteq> {}\<close>)
 next
   assume "(SUP i:I. f i) \<noteq> - \<infinity>" then show ?thesis
     unfolding Sup_image_eq[symmetric]
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
-       (auto simp: continuous_at_within continuous_at mono_def ereal_add_mono `I \<noteq> {}` `c \<noteq> -\<infinity>`)
+       (auto simp: continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
 qed
 
 lemma SUP_ereal_add_right:
@@ -1963,17 +1963,17 @@ lemma SUP_ereal_minus_right:
 lemma SUP_ereal_minus_left:
   assumes "I \<noteq> {}" "c \<noteq> \<infinity>"
   shows "(SUP i:I. f i - c:: ereal) = (SUP i:I. f i) - c"
-  using SUP_ereal_add_left[OF `I \<noteq> {}`, of "-c" f] by (simp add: `c \<noteq> \<infinity>` minus_ereal_def)
+  using SUP_ereal_add_left[OF \<open>I \<noteq> {}\<close>, of "-c" f] by (simp add: \<open>c \<noteq> \<infinity>\<close> minus_ereal_def)
 
 lemma INF_ereal_minus_right:
   assumes "I \<noteq> {}" and "\<bar>c\<bar> \<noteq> \<infinity>"
   shows "(INF i:I. c - f i) = c - (SUP i:I. f i::ereal)"
 proof -
   { fix b have "(-c) + b = - (c - b)"
-      using `\<bar>c\<bar> \<noteq> \<infinity>` by (cases c b rule: ereal2_cases) auto }
+      using \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close> by (cases c b rule: ereal2_cases) auto }
   note * = this
   show ?thesis
-    using SUP_ereal_add_right[OF `I \<noteq> {}`, of "-c" f] `\<bar>c\<bar> \<noteq> \<infinity>`
+    using SUP_ereal_add_right[OF \<open>I \<noteq> {}\<close>, of "-c" f] \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close>
     by (auto simp add: * ereal_SUP_uminus_eq)
 qed
 
@@ -1981,7 +1981,7 @@ lemma SUP_ereal_le_addI:
   fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>i. f i + y \<le> z" and "y \<noteq> -\<infinity>"
   shows "SUPREMUM UNIV f + y \<le> z"
-  unfolding SUP_ereal_add_left[OF UNIV_not_empty `y \<noteq> -\<infinity>`, symmetric]
+  unfolding SUP_ereal_add_left[OF UNIV_not_empty \<open>y \<noteq> -\<infinity>\<close>, symmetric]
   by (rule SUP_least assms)+
 
 lemma SUP_combine:
@@ -2069,7 +2069,7 @@ next
   assume "(SUP i:I. f i) \<noteq> 0" then show ?thesis
     unfolding SUP_def
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. c * x"])
-       (auto simp: mono_def continuous_at continuous_at_within `I \<noteq> {}`
+       (auto simp: mono_def continuous_at continuous_at_within \<open>I \<noteq> {}\<close>
              intro!: ereal_mult_left_mono c)
 qed
 
@@ -2093,7 +2093,7 @@ lemma Sup_countable_SUP:
   shows "\<exists>f::nat \<Rightarrow> ereal. incseq f \<and> range f \<subseteq> A \<and> Sup A = (SUP i. f i)"
 proof cases
   assume "Sup A = -\<infinity>"
-  with `A \<noteq> {}` have "A = {-\<infinity>}"
+  with \<open>A \<noteq> {}\<close> have "A = {-\<infinity>}"
     by (auto simp: Sup_eq_MInfty)
   then show ?thesis
     by (auto intro!: exI[of _ "\<lambda>_. -\<infinity>"] simp: bot_ereal_def)
@@ -2120,7 +2120,7 @@ next
   have "(SUP i. f i) = Sup A"
   proof (rule tendsto_unique)
     show "f ----> (SUP i. f i)"
-      by (rule LIMSEQ_SUP `incseq f`)+
+      by (rule LIMSEQ_SUP \<open>incseq f\<close>)+
     show "f ----> Sup A"
       using l f
       by (intro tendsto_sandwich[OF _ _ l_Sup tendsto_const])
@@ -2322,7 +2322,7 @@ lemma ereal_open_cont_interval:
     and "\<bar>x\<bar> \<noteq> \<infinity>"
   obtains e where "e > 0" and "{x-e <..< x+e} \<subseteq> S"
 proof -
-  from `open S`
+  from \<open>open S\<close>
   have "open (ereal -` S)"
     by (rule ereal_openE)
   then obtain e where "e > 0" and e: "\<And>y. dist y (real x) < e \<Longrightarrow> ereal y \<in> S"
@@ -2330,7 +2330,7 @@ proof -
   show thesis
   proof (intro that subsetI)
     show "0 < ereal e"
-      using `0 < e` by auto
+      using \<open>0 < e\<close> by auto
     fix y
     assume "y \<in> {x - ereal e<..<x + ereal e}"
     with assms obtain t where "y = ereal t" "dist t (real x) < e"
@@ -2354,7 +2354,7 @@ proof -
     by auto
 qed
 
-subsubsection {* Convergent sequences *}
+subsubsection \<open>Convergent sequences\<close>
 
 lemma lim_real_of_ereal[simp]:
   assumes lim: "(f ---> ereal x) net"
@@ -2477,7 +2477,7 @@ lemma tendsto_ereal_realD:
 proof (intro topological_tendstoI)
   fix S
   assume S: "open S" "x \<in> S"
-  with `x \<noteq> 0` have "open (S - {0})" "x \<in> S - {0}"
+  with \<open>x \<noteq> 0\<close> have "open (S - {0})" "x \<in> S - {0}"
     by auto
   from tendsto[THEN topological_tendstoD, OF this]
   show "eventually (\<lambda>x. f x \<in> S) net"
@@ -2618,7 +2618,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
   assume "open S" and "x \<in> S"
   then have "open (ereal -` S)"
     unfolding open_ereal_def by auto
-  with `x \<in> S` obtain r where "0 < r" and dist: "\<And>y. dist y rx < r \<Longrightarrow> ereal y \<in> S"
+  with \<open>x \<in> S\<close> obtain r where "0 < r" and dist: "\<And>y. dist y rx < r \<Longrightarrow> ereal y \<in> S"
     unfolding open_real_def rx by auto
   then obtain n where
     upper: "\<And>N. n \<le> N \<Longrightarrow> u N < x + ereal r" and
@@ -2628,19 +2628,19 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
   proof (safe intro!: exI[of _ n])
     fix N
     assume "n \<le> N"
-    from upper[OF this] lower[OF this] assms `0 < r`
+    from upper[OF this] lower[OF this] assms \<open>0 < r\<close>
     have "u N \<notin> {\<infinity>,(-\<infinity>)}"
       by auto
     then obtain ra where ra_def: "(u N) = ereal ra"
       by (cases "u N") auto
     then have "rx < ra + r" and "ra < rx + r"
-      using rx assms `0 < r` lower[OF `n \<le> N`] upper[OF `n \<le> N`]
+      using rx assms \<open>0 < r\<close> lower[OF \<open>n \<le> N\<close>] upper[OF \<open>n \<le> N\<close>]
       by auto
     then have "dist (real (u N)) rx < r"
       using rx ra_def
       by (auto simp: dist_real_def abs_diff_less_iff field_simps)
     from dist[OF this] show "u N \<in> S"
-      using `u N  \<notin> {\<infinity>, -\<infinity>}`
+      using \<open>u N  \<notin> {\<infinity>, -\<infinity>}\<close>
       by (auto simp: ereal_real split: split_if_asm)
   qed
 qed
@@ -2665,7 +2665,7 @@ proof
     assume "r > 0"
     then obtain N where "\<forall>n\<ge>N. u n \<in> {x - r <..< x + r}"
        apply (subst tendsto_obtains_N[of u x "{x - r <..< x + r}"])
-       using lim ereal_between[of x r] assms `r > 0`
+       using lim ereal_between[of x r] assms \<open>r > 0\<close>
        apply auto
        done
     then have "\<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r"
@@ -2768,7 +2768,7 @@ next
   qed
 qed
 
-subsubsection {* Tests for code generator *}
+subsubsection \<open>Tests for code generator\<close>
 
 (* A small list of simple arithmetic expressions *)
 

@@ -2,41 +2,41 @@
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 *)
 
-section {* Avoidance of pattern matching on natural numbers *}
+section \<open>Avoidance of pattern matching on natural numbers\<close>
 
 theory Code_Abstract_Nat
 imports Main
 begin
 
-text {*
+text \<open>
   When natural numbers are implemented in another than the
   conventional inductive @{term "0::nat"}/@{term Suc} representation,
   it is necessary to avoid all pattern matching on natural numbers
   altogether.  This is accomplished by this theory (up to a certain
   extent).
-*}
+\<close>
 
-subsection {* Case analysis *}
+subsection \<open>Case analysis\<close>
 
-text {*
+text \<open>
   Case analysis on natural numbers is rephrased using a conditional
   expression:
-*}
+\<close>
 
 lemma [code, code_unfold]:
   "case_nat = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
   by (auto simp add: fun_eq_iff dest!: gr0_implies_Suc)
 
 
-subsection {* Preprocessors *}
+subsection \<open>Preprocessors\<close>
 
-text {*
+text \<open>
   The term @{term "Suc n"} is no longer a valid pattern.  Therefore,
   all occurrences of this term in a position where a pattern is
   expected (i.e.~on the left-hand side of a code equation) must be
   eliminated.  This can be accomplished -- as far as possible -- by
   applying the following transformation rule:
-*}
+\<close>
 
 lemma Suc_if_eq:
   assumes "\<And>n. f (Suc n) \<equiv> h n"
@@ -44,12 +44,12 @@ lemma Suc_if_eq:
   shows "f n \<equiv> if n = 0 then g else h (n - 1)"
   by (rule eq_reflection) (cases n, insert assms, simp_all)
 
-text {*
+text \<open>
   The rule above is built into a preprocessor that is plugged into
   the code generator.
-*}
+\<close>
 
-setup {*
+setup \<open>
 let
 
 val Suc_if_eq = Thm.incr_indexes 1 @{thm Suc_if_eq};
@@ -111,6 +111,6 @@ in
   Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
 
 end;
-*}
+\<close>
 
 end

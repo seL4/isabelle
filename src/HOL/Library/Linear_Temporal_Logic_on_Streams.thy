@@ -3,13 +3,13 @@
     Author:     Dmitriy Traytel, TU Muenchen
 *)
 
-section {* Linear Temporal Logic on Streams *}
+section \<open>Linear Temporal Logic on Streams\<close>
 
 theory Linear_Temporal_Logic_on_Streams
   imports Stream Sublist Extended_Nat Infinite_Set
 begin
 
-section{* Preliminaries *}
+section\<open>Preliminaries\<close>
 
 lemma shift_prefix:
 assumes "xl @- xs = yl @- ys" and "length xl \<le> length yl"
@@ -26,7 +26,7 @@ using shift_prefix[OF assms] apply(cases "length xl \<le> length yl")
 by (metis, metis assms nat_le_linear shift_prefix)
 
 
-section{* Linear temporal logic *}
+section\<open>Linear temporal logic\<close>
 
 (* Propositional connectives: *)
 abbreviation (input) IMPL (infix "impl" 60)
@@ -587,7 +587,7 @@ lemma holds_eq2[simp]: "holds (\<lambda>y. y = x) = HLD {x}"
 lemma not_holds_eq[simp]: "holds (- op = x) = not (HLD {x})"
   by rule (auto simp: HLD_iff)
 
-text {* Strong until *}
+text \<open>Strong until\<close>
 
 inductive suntil (infix "suntil" 60) for \<phi> \<psi> where
   base: "\<psi> \<omega> \<Longrightarrow> (\<phi> suntil \<psi>) \<omega>"

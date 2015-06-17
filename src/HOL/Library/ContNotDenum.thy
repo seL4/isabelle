@@ -3,15 +3,15 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {* Non-denumerability of the Continuum. *}
+section \<open>Non-denumerability of the Continuum.\<close>
 
 theory ContNotDenum
 imports Complex_Main Countable_Set
 begin
 
-subsection {* Abstract *}
+subsection \<open>Abstract\<close>
 
-text {* The following document presents a proof that the Continuum is
+text \<open>The following document presents a proof that the Continuum is
 uncountable. It is formalised in the Isabelle/Isar theorem proving
 system.
 
@@ -28,14 +28,14 @@ argument. Informally it states that an intersection of countable
 closed intervals (where each successive interval is a subset of the
 last) is non-empty. We then assume a surjective function @{text
 "f: \<nat> \<Rightarrow> \<real>"} exists and find a real x such that x is not in the range of f
-by generating a sequence of closed intervals then using the NIP. *}
+by generating a sequence of closed intervals then using the NIP.\<close>
 
 theorem real_non_denum: "\<not> (\<exists>f :: nat \<Rightarrow> real. surj f)"
 proof
   assume "\<exists>f::nat \<Rightarrow> real. surj f"
   then obtain f :: "nat \<Rightarrow> real" where "surj f" ..
 
-  txt {* First we construct a sequence of nested intervals, ignoring @{term "range f"}. *}
+  txt \<open>First we construct a sequence of nested intervals, ignoring @{term "range f"}.\<close>
 
   have "\<forall>a b c::real. a < b \<longrightarrow> (\<exists>ka kb. ka < kb \<and> {ka..kb} \<subseteq> {a..b} \<and> c \<notin> {ka..kb})"
     using assms
@@ -55,7 +55,7 @@ proof
     "\<And>n. ivl (Suc n) = (i (fst (ivl n)) (snd (ivl n)) (f n), j (fst (ivl n)) (snd (ivl n)) (f n))"
     unfolding ivl_def by simp_all
 
-  txt {* This is a decreasing sequence of non-empty intervals. *}
+  txt \<open>This is a decreasing sequence of non-empty intervals.\<close>
 
   { fix n have "fst (ivl n) < snd (ivl n)"
       by (induct n) (auto intro!: ij) }
@@ -64,7 +64,7 @@ proof
   have "decseq I"
     unfolding I_def decseq_Suc_iff ivl fst_conv snd_conv by (intro ij allI less)
 
-  txt {* Now we apply the finite intersection property of compact sets. *}
+  txt \<open>Now we apply the finite intersection property of compact sets.\<close>
 
   have "I 0 \<inter> (\<Inter>i. I i) \<noteq> {}"
   proof (rule compact_imp_fip_image)
@@ -72,7 +72,7 @@ proof
     have "{} \<subset> I (Max (insert 0 S))"
       unfolding I_def using less[of "Max (insert 0 S)"] by auto
     also have "I (Max (insert 0 S)) \<subseteq> (\<Inter>i\<in>insert 0 S. I i)"
-      using fin decseqD[OF `decseq I`, of _ "Max (insert 0 S)"] by (auto simp: Max_ge_iff)
+      using fin decseqD[OF \<open>decseq I\<close>, of _ "Max (insert 0 S)"] by (auto simp: Max_ge_iff)
     also have "(\<Inter>i\<in>insert 0 S. I i) = I 0 \<inter> (\<Inter>i\<in>S. I i)"
       by auto
     finally show "I 0 \<inter> (\<Inter>i\<in>S. I i) \<noteq> {}"
@@ -80,7 +80,7 @@ proof
   qed (auto simp: I_def)
   then obtain x where "\<And>n. x \<in> I n"
     by blast
-  moreover from `surj f` obtain j where "x = f j"
+  moreover from \<open>surj f\<close> obtain j where "x = f j"
     by blast
   ultimately have "f j \<in> I (Suc j)"
     by blast
@@ -124,7 +124,7 @@ next
   show "uncountable {a<..<b}"
   proof -
     obtain f where "bij_betw f {a <..< b} {-pi/2<..<pi/2}"
-      using bij_betw_open_intervals[OF `a < b`, of "-pi/2" "pi/2"] by auto
+      using bij_betw_open_intervals[OF \<open>a < b\<close>, of "-pi/2" "pi/2"] by auto
     then show ?thesis
       by (metis bij_betw_tan uncountable_bij_betw uncountable_UNIV_real)
   qed

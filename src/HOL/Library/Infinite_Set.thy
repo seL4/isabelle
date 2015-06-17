@@ -2,7 +2,7 @@
     Author:     Stephan Merz
 *)
 
-section {* Infinite Sets and Related Concepts *}
+section \<open>Infinite Sets and Related Concepts\<close>
 
 theory Infinite_Set
 imports Main
@@ -10,19 +10,19 @@ begin
 
 subsection "Infinite Sets"
 
-text {*
+text \<open>
   Some elementary facts about infinite sets, mostly by Stephan Merz.
   Beware! Because "infinite" merely abbreviates a negation, these
   lemmas may not work well with @{text "blast"}.
-*}
+\<close>
 
 abbreviation infinite :: "'a set \<Rightarrow> bool"
   where "infinite S \<equiv> \<not> finite S"
 
-text {*
+text \<open>
   Infinite sets are non-empty, and if we remove some elements from an
   infinite set, the result is still infinite.
-*}
+\<close>
 
 lemma infinite_imp_nonempty: "infinite S \<Longrightarrow> S \<noteq> {}"
   by auto
@@ -62,10 +62,10 @@ proof
   with S show False by simp
 qed
 
-text {*
+text \<open>
   As a concrete example, we prove that the set of natural numbers is
   infinite.
-*}
+\<close>
 
 lemma infinite_nat_iff_unbounded_le: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
   using frequently_cofinite[of "\<lambda>x. x \<in> S"]
@@ -84,11 +84,11 @@ lemma finite_nat_iff_bounded_le: "finite (S::nat set) \<longleftrightarrow> (\<e
 lemma finite_nat_bounded: "finite (S::nat set) \<Longrightarrow> \<exists>k. S \<subseteq> {..<k}"
   by (simp add: finite_nat_iff_bounded)
 
-text {*
+text \<open>
   For a set of natural numbers to be infinite, it is enough to know
   that for any number larger than some @{text k}, there is some larger
   number that is an element of the set.
-*}
+\<close>
 
 lemma unbounded_k_infinite: "\<forall>m>k. \<exists>n>m. n \<in> S \<Longrightarrow> infinite (S::nat set)"
   by (metis (full_types) infinite_nat_iff_unbounded_le le_imp_less_Suc not_less
@@ -106,12 +106,12 @@ proof
   then show False by simp
 qed
 
-text {*
+text \<open>
   For any function with infinite domain and finite range there is some
   element that is the image of infinitely many domain elements.  In
   particular, any infinite sequence of elements from a finite set
   contains some element that occurs infinitely often.
-*}
+\<close>
 
 lemma inf_img_fin_dom':
   assumes img: "finite (f ` A)" and dom: "infinite A"
@@ -142,11 +142,11 @@ lemma inf_img_fin_domE:
 
 subsection "Infinitely Many and Almost All"
 
-text {*
+text \<open>
   We often need to reason about the existence of infinitely many
   (resp., all but finitely many) objects satisfying some predicate, so
   we introduce corresponding binders and their proof rules.
-*}
+\<close>
 
 (* The following two lemmas are available as filter-rules, but not in the simp-set *)
 lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)" by (fact not_frequently)
@@ -167,7 +167,7 @@ lemma MOST_imp_iff: "MOST x. P x \<Longrightarrow> (MOST x. P x \<longrightarrow
 lemma INFM_conjI: "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
   by (rule frequently_rev_mp[of P]) (auto elim: eventually_elim1)
 
-text {* Properties of quantifiers with injective functions. *}
+text \<open>Properties of quantifiers with injective functions.\<close>
 
 lemma INFM_inj: "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM x. P x"
   using finite_vimageI[of "{x. P x}" f] by (auto simp: frequently_cofinite)
@@ -175,7 +175,7 @@ lemma INFM_inj: "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM 
 lemma MOST_inj: "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
   using finite_vimageI[of "{x. \<not> P x}" f] by (auto simp: eventually_cofinite)
 
-text {* Properties of quantifiers with singletons. *}
+text \<open>Properties of quantifiers with singletons.\<close>
 
 lemma not_INFM_eq [simp]:
   "\<not> (INFM x. x = a)"
@@ -202,7 +202,7 @@ lemma MOST_eq_imp:
   "MOST x. a = x \<longrightarrow> P x"
   unfolding eventually_cofinite by simp_all
 
-text {* Properties of quantifiers over the naturals. *}
+text \<open>Properties of quantifiers over the naturals.\<close>
 
 lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n>m. P n)"
   by (auto simp add: eventually_cofinite finite_nat_iff_bounded_le subset_eq not_le[symmetric])
@@ -251,9 +251,9 @@ lemmas MOST_iff_finiteNeg = MOST_iff_cofinite
 
 subsection "Enumeration of an Infinite Set"
 
-text {*
+text \<open>
   The set's element type must be wellordered (e.g. the natural numbers).
-*}
+\<close>
 
 text \<open>
   Could be generalized to
@@ -304,7 +304,7 @@ proof (induct n)
 next
   case (Suc n)
   then have "n \<le> enumerate S n" by simp
-  also note enumerate_mono[of n "Suc n", OF _ `infinite S`]
+  also note enumerate_mono[of n "Suc n", OF _ \<open>infinite S\<close>]
   finally show ?case by simp
 qed
 
@@ -323,10 +323,10 @@ proof (induct n arbitrary: S)
 next
   case (Suc n S)
   show ?case
-    using enumerate_mono[OF zero_less_Suc `infinite S`, of n] `infinite S`
+    using enumerate_mono[OF zero_less_Suc \<open>infinite S\<close>, of n] \<open>infinite S\<close>
     apply (subst (1 2) enumerate_Suc')
     apply (subst Suc)
-    using `infinite S`
+    using \<open>infinite S\<close>
     apply simp
     apply (intro arg_cong[where f = Least] ext)
     apply (auto simp: enumerate_Suc'[symmetric])
@@ -354,7 +354,7 @@ proof (induct s rule: less_induct)
   next
     assume *: "\<not> (\<exists>y\<in>S. y < s)"
     then have "\<forall>t\<in>S. s \<le> t" by auto
-    with `s \<in> S` show ?thesis
+    with \<open>s \<in> S\<close> show ?thesis
       by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
   qed
 qed
@@ -365,22 +365,22 @@ lemma bij_enumerate:
   shows "bij_betw (enumerate S) UNIV S"
 proof -
   have "\<And>n m. n \<noteq> m \<Longrightarrow> enumerate S n \<noteq> enumerate S m"
-    using enumerate_mono[OF _ `infinite S`] by (auto simp: neq_iff)
+    using enumerate_mono[OF _ \<open>infinite S\<close>] by (auto simp: neq_iff)
   then have "inj (enumerate S)"
     by (auto simp: inj_on_def)
   moreover have "\<forall>s \<in> S. \<exists>i. enumerate S i = s"
     using enumerate_Ex[OF S] by auto
-  moreover note `infinite S`
+  moreover note \<open>infinite S\<close>
   ultimately show ?thesis
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
 
 subsection "Miscellaneous"
 
-text {*
+text \<open>
   A few trivial lemmas about sets that contain at most one element.
   These simplify the reasoning about deterministic automata.
-*}
+\<close>
 
 definition atmost_one :: "'a set \<Rightarrow> bool"
   where "atmost_one S \<longleftrightarrow> (\<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x = y)"

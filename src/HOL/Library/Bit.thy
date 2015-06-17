@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* The Field of Integers mod 2 *}
+section \<open>The Field of Integers mod 2\<close>
 
 theory Bit
 imports Main
 begin
 
-subsection {* Bits as a datatype *}
+subsection \<open>Bits as a datatype\<close>
 
 typedef bit = "UNIV :: bool set"
   morphisms set Bit
@@ -96,7 +96,7 @@ lemma [code]:
   by (simp_all add: equal set_iff)  
 
   
-subsection {* Type @{typ bit} forms a field *}
+subsection \<open>Type @{typ bit} forms a field\<close>
 
 instantiation bit :: field
 begin
@@ -134,7 +134,7 @@ lemma bit_add_self: "x + x = (0 :: bit)"
 lemma bit_mult_eq_1_iff [simp]: "x * y = (1 :: bit) \<longleftrightarrow> x = 1 \<and> y = 1"
   unfolding times_bit_def by (simp split: bit.split)
 
-text {* Not sure whether the next two should be simp rules. *}
+text \<open>Not sure whether the next two should be simp rules.\<close>
 
 lemma bit_add_eq_0_iff: "x + y = (0 :: bit) \<longleftrightarrow> x = y"
   unfolding plus_bit_def by (simp split: bit.split)
@@ -143,9 +143,9 @@ lemma bit_add_eq_1_iff: "x + y = (1 :: bit) \<longleftrightarrow> x \<noteq> y"
   unfolding plus_bit_def by (simp split: bit.split)
 
 
-subsection {* Numerals at type @{typ bit} *}
+subsection \<open>Numerals at type @{typ bit}\<close>
 
-text {* All numerals reduce to either 0 or 1. *}
+text \<open>All numerals reduce to either 0 or 1.\<close>
 
 lemma bit_minus1 [simp]: "- 1 = (1 :: bit)"
   by (simp only: uminus_bit_def)
@@ -160,7 +160,7 @@ lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
   by (simp only: numeral_Bit1 bit_add_self add_0_left)
 
 
-subsection {* Conversion from @{typ bit} *}
+subsection \<open>Conversion from @{typ bit}\<close>
 
 context zero_neq_one
 begin

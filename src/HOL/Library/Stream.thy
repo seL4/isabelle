@@ -6,7 +6,7 @@
 Infinite streams.
 *)
 
-section {* Infinite Streams *}
+section \<open>Infinite Streams\<close>
 
 theory Stream
 imports "~~/src/HOL/Library/Nat_Bijection"
@@ -42,7 +42,7 @@ using assms by induct (metis stream.sel(1), auto)
 lemma smap_ctr: "smap f s = x ## s' \<longleftrightarrow> f (shd s) = x \<and> smap f (stl s) = s'"
   by (cases s) simp
 
-subsection {* prepend list to stream *}
+subsection \<open>prepend list to stream\<close>
 
 primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infixr "@-" 65) where
   "shift [] s = s"
@@ -66,7 +66,7 @@ lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
   by (induct xs) auto
 
 
-subsection {* set of streams with elements in some fixed set *}
+subsection \<open>set of streams with elements in some fixed set\<close>
 
 coinductive_set
   streams :: "'a set \<Rightarrow> 'a stream set"
@@ -106,7 +106,7 @@ lemma streams_sset:
   assumes "s \<in> streams A"
   shows "sset s \<subseteq> A"
 proof
-  fix x assume "x \<in> sset s" from this `s \<in> streams A` show "x \<in> A"
+  fix x assume "x \<in> sset s" from this \<open>s \<in> streams A\<close> show "x \<in> A"
     by (induct s) (auto intro: streams_shd streams_stl)
 qed
 
@@ -128,7 +128,7 @@ lemma streams_empty: "streams {} = {}"
 lemma streams_UNIV[simp]: "streams UNIV = UNIV"
   by (auto simp: streams_iff_sset)
 
-subsection {* nth, take, drop for streams *}
+subsection \<open>nth, take, drop for streams\<close>
 
 primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
   "s !! 0 = shd s"
@@ -271,7 +271,7 @@ next
 qed
 
 
-subsection {* unary predicates lifted to streams *}
+subsection \<open>unary predicates lifted to streams\<close>
 
 definition "stream_all P s = (\<forall>p. P (s !! p))"
 
@@ -285,7 +285,7 @@ lemma stream_all_Stream: "stream_all P (x ## X) \<longleftrightarrow> P x \<and>
   by simp
 
 
-subsection {* recurring stream out of a list *}
+subsection \<open>recurring stream out of a list\<close>
 
 primcorec cycle :: "'a list \<Rightarrow> 'a stream" where
   "shd (cycle xs) = hd xs"
@@ -336,7 +336,7 @@ lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (r
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])
 
 
-subsection {* iterated application of a function *}
+subsection \<open>iterated application of a function\<close>
 
 primcorec siterate where
   "shd (siterate f x) = x"
@@ -361,7 +361,7 @@ lemma smap_siterate: "smap f (siterate f x) = siterate f (f x)"
   by (coinduction arbitrary: x) auto
 
 
-subsection {* stream repeating a single element *}
+subsection \<open>stream repeating a single element\<close>
 
 abbreviation "sconst \<equiv> siterate id"
 
@@ -379,7 +379,7 @@ proof
     case Eq_stream
     then have "shd s = x" "sset (stl s) \<subseteq> {x}" by (case_tac [!] s) auto
     then have "sset (stl s) = {x}" by (cases "stl s") auto
-    with `shd s = x` show ?case by auto
+    with \<open>shd s = x\<close> show ?case by auto
   qed
 qed simp
 
@@ -393,7 +393,7 @@ lemma sconst_streams: "x \<in> A \<Longrightarrow> sconst x \<in> streams A"
   by (simp add: streams_iff_sset)
 
 
-subsection {* stream of natural numbers *}
+subsection \<open>stream of natural numbers\<close>
 
 abbreviation "fromN \<equiv> siterate Suc"
 
@@ -411,7 +411,7 @@ lemma stream_smap_nats: "s = smap (snth s) nats"
   using stream_smap_fromN[where n = 0] by simp
 
 
-subsection {* flatten a stream of lists *}
+subsection \<open>flatten a stream of lists\<close>
 
 primcorec flat where
   "shd (flat ws) = hd (shd ws)"
@@ -435,7 +435,7 @@ lemma sset_flat[simp]: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarro
 proof safe
   fix x assume ?P "x : ?L"
   then obtain m where "x = flat s !! m" by (metis image_iff sset_range)
-  with `?P` obtain n m' where "x = s !! n ! m'" "m' < length (s !! n)"
+  with \<open>?P\<close> obtain n m' where "x = s !! n ! m'" "m' < length (s !! n)"
   proof (atomize_elim, induct m arbitrary: s rule: less_induct)
     case (less y)
     thus ?case
@@ -463,7 +463,7 @@ next
 qed
 
 
-subsection {* merge a stream of streams *}
+subsection \<open>merge a stream of streams\<close>
 
 definition smerge :: "'a stream stream \<Rightarrow> 'a stream" where
   "smerge ss = flat (smap (\<lambda>n. map (\<lambda>s. s !! n) (stake (Suc n) ss) @ stake n (ss !! n)) nats)"
@@ -496,7 +496,7 @@ next
 qed
 
 
-subsection {* product of two streams *}
+subsection \<open>product of two streams\<close>
 
 definition sproduct :: "'a stream \<Rightarrow> 'b stream \<Rightarrow> ('a \<times> 'b) stream" where
   "sproduct s1 s2 = smerge (smap (\<lambda>x. smap (Pair x) s2) s1)"
@@ -505,7 +505,7 @@ lemma sset_sproduct: "sset (sproduct s1 s2) = sset s1 \<times> sset s2"
   unfolding sproduct_def sset_smerge by (auto simp: stream.set_map)
 
 
-subsection {* interleave two streams *}
+subsection \<open>interleave two streams\<close>
 
 primcorec sinterleave where
   "shd (sinterleave s1 s2) = shd s1"
@@ -542,7 +542,7 @@ next
 qed
 
 
-subsection {* zip *}
+subsection \<open>zip\<close>
 
 primcorec szip where
   "shd (szip s1 s2) = (shd s1, shd s2)"
@@ -570,7 +570,7 @@ lemma smap_szip_snd:
   by (coinduction arbitrary: s1 s2) auto
 
 
-subsection {* zip via function *}
+subsection \<open>zip via function\<close>
 
 primcorec smap2 where
   "shd (smap2 f s1 s2) = f (shd s1) (shd s2)"

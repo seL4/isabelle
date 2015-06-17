@@ -9,7 +9,7 @@ imports Main
 keywords "test_code" :: diag
 begin
 
-subsection {* YXML encoding for @{typ Code_Evaluation.term} *}
+subsection \<open>YXML encoding for @{typ Code_Evaluation.term}\<close>
 
 datatype (plugins del: code size "quickcheck") yxml_of_term = YXML
 
@@ -24,7 +24,7 @@ definition yot_append :: "yxml_of_term \<Rightarrow> yxml_of_term \<Rightarrow> 
 definition yot_concat :: "yxml_of_term list \<Rightarrow> yxml_of_term"
   where [code del]: "yot_concat _ = YXML"
 
-text {* Serialise @{typ yxml_of_term} to native string of target language *}
+text \<open>Serialise @{typ yxml_of_term} to native string of target language\<close>
 
 code_printing type_constructor yxml_of_term
   \<rightharpoonup>  (SML) "string"
@@ -52,11 +52,11 @@ code_printing type_constructor yxml_of_term
   and (Haskell) "Prelude.concat"
   and (Scala) "_.mkString(\"\")"
 
-text {*
+text \<open>
   Stripped-down implementations of Isabelle's XML tree with YXML encoding
   as defined in @{file "~~/src/Pure/PIDE/xml.ML"}, @{file "~~/src/Pure/PIDE/yxml.ML"}
   sufficient to encode @{typ "Code_Evaluation.term"} as in @{file "~~/src/Pure/term_xml.ML"}.
-*}
+\<close>
 
 datatype (plugins del: code size "quickcheck") xml_tree = XML_Tree
 
@@ -64,7 +64,7 @@ lemma xml_tree_anything: "x = (y :: xml_tree)"
 by(cases x y rule: xml_tree.exhaust[case_product xml_tree.exhaust])(simp)
 
 context begin
-local_setup {* Local_Theory.map_background_naming (Name_Space.mandatory_path "xml") *}
+local_setup \<open>Local_Theory.map_background_naming (Name_Space.mandatory_path "xml")\<close>
 
 type_synonym attributes = "(String.literal \<times> String.literal) list"
 type_synonym body = "xml_tree list"
@@ -112,10 +112,10 @@ by(rule yot_anything)+
 definition yxml_string_of_body :: "xml.body \<Rightarrow> yxml_of_term"
 where "yxml_string_of_body ts = foldr yxml_string_of_xml_tree ts yot_empty"
 
-text {*
+text \<open>
   Encoding @{typ Code_Evaluation.term} into XML trees
   as defined in @{file "~~/src/Pure/term_xml.ML"}
-*}
+\<close>
 
 definition xml_of_typ :: "Typerep.typerep \<Rightarrow> xml.body"
 where [code del]: "xml_of_typ _ = [XML_Tree]"
@@ -131,17 +131,17 @@ lemma xml_of_term_code [code]:
   "xml_of_term (Code_Evaluation.Const x ty) = [xml.tagged (STR ''0'') (Some x) (xml_of_typ ty)]"
   "xml_of_term (Code_Evaluation.App t1 t2)  = [xml.tagged (STR ''5'') None [xml.node (xml_of_term t1), xml.node (xml_of_term t2)]]"
   "xml_of_term (Code_Evaluation.Abs x ty t) = [xml.tagged (STR ''4'') (Some x) [xml.node (xml_of_typ ty), xml.node (xml_of_term t)]]"
-  -- {*
+  -- \<open>
     FIXME: @{const Code_Evaluation.Free} is used only in @{theory Quickcheck_Narrowing} to represent
     uninstantiated parameters in constructors. Here, we always translate them to @{ML Free} variables.
-  *}
+\<close>
   "xml_of_term (Code_Evaluation.Free x ty)  = [xml.tagged (STR ''1'') (Some x) (xml_of_typ ty)]"
 by(simp_all add: xml_of_term_def xml_tree_anything)
 
 definition yxml_string_of_term :: "Code_Evaluation.term \<Rightarrow> yxml_of_term"
 where "yxml_string_of_term = yxml_string_of_body \<circ> xml_of_term"
 
-subsection {* Test engine and drivers *}
+subsection \<open>Test engine and drivers\<close>
 
 ML_file "code_test.ML"
 

@@ -6,14 +6,14 @@
 Type of (at most) countable sets.
 *)
 
-section {* Type of (at Most) Countable Sets *}
+section \<open>Type of (at Most) Countable Sets\<close>
 
 theory Countable_Set_Type
 imports Countable_Set Cardinal_Notations Conditionally_Complete_Lattices
 begin
 
 
-subsection{* Cardinal stuff *}
+subsection\<open>Cardinal stuff\<close>
 
 lemma countable_card_of_nat: "countable A \<longleftrightarrow> |A| \<le>o |UNIV::nat set|"
   unfolding countable_def card_of_ordLeq[symmetric] by auto
@@ -54,7 +54,7 @@ assumes AB: "|A| <o |B|" and B: "countable B"
 shows "countable A"
 using countable_ordLeq[OF ordLess_imp_ordLeq[OF AB] B] .
 
-subsection {* The type of countable sets *}
+subsection \<open>The type of countable sets\<close>
 
 typedef 'a cset = "{A :: 'a set. countable A}" morphisms rcset acset
   by (rule exI[of _ "{}"]) simp
@@ -366,13 +366,13 @@ lemmas cUN_mono = UN_mono[Transfer.transferred]
 lemmas cimage_cUN = image_UN[Transfer.transferred]
 lemmas cUN_csingleton [simp] = UN_singleton[Transfer.transferred]
 
-subsection {* Additional lemmas*}
+subsection \<open>Additional lemmas\<close>
 
-subsubsection {* @{text cempty} *}
+subsubsection \<open>@{text cempty}\<close>
 
 lemma cemptyE [elim!]: "cin a cempty \<Longrightarrow> P" by simp
 
-subsubsection {* @{text cinsert} *}
+subsubsection \<open>@{text cinsert}\<close>
 
 lemma countable_insert_iff: "countable (insert x A) \<longleftrightarrow> countable A"
 by (metis Diff_eq_empty_iff countable_empty countable_insert subset_insertI uncountable_minus_countable)
@@ -385,12 +385,12 @@ using assms by transfer(erule Set.set_insert, simp add: countable_insert_iff)
 lemma mk_disjoint_cinsert: "cin a A \<Longrightarrow> \<exists>B. A = cinsert a B \<and> \<not> cin a B"
   by (rule exI[where x = "cDiff A (csingle a)"]) blast
 
-subsubsection {* @{text cimage} *}
+subsubsection \<open>@{text cimage}\<close>
 
 lemma subset_cimage_iff: "csubset_eq B (cimage f A) \<longleftrightarrow> (\<exists>AA. csubset_eq AA A \<and> B = cimage f AA)"
 by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE) 
 
-subsubsection {* bounded quantification *}
+subsubsection \<open>bounded quantification\<close>
 
 lemma cBex_simps [simp, no_atp]:
   "\<And>A P Q. cBex A (\<lambda>x. P x \<and> Q) = (cBex A P \<and> Q)" 
@@ -418,15 +418,15 @@ apply (simp only: atomize_all atomize_imp)
 apply (rule equal_intr_rule)
 by (transfer, simp)+
 
-subsubsection {* @{const cUnion} *}
+subsubsection \<open>@{const cUnion}\<close>
 
 lemma cUNION_cimage: "cUNION (cimage f A) g = cUNION A (g \<circ> f)"
 including cset.lifting by transfer auto
 
 
-subsection {* Setup for Lifting/Transfer *}
+subsection \<open>Setup for Lifting/Transfer\<close>
 
-subsubsection {* Relator and predicator properties *}
+subsubsection \<open>Relator and predicator properties\<close>
 
 lift_definition rel_cset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a cset \<Rightarrow> 'b cset \<Rightarrow> bool"
   is rel_set parametric rel_set_transfer .
@@ -451,9 +451,9 @@ unfolding rel_fun_def by transfer(erule rel_set_UNION, simp add: rel_fun_def)
 lemma rel_cset_csingle_iff [simp]: "rel_cset R (csingle x) (csingle y) \<longleftrightarrow> R x y"
 by transfer(auto simp add: rel_set_def)
 
-subsubsection {* Transfer rules for the Transfer package *}
+subsubsection \<open>Transfer rules for the Transfer package\<close>
 
-text {* Unconditional transfer rules *}
+text \<open>Unconditional transfer rules\<close>
 
 context begin interpretation lifting_syntax .
 
@@ -489,7 +489,7 @@ lemma rel_cset_parametric [transfer_rule]:
   using rel_set_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred, where A = A and B = B]
   by simp
 
-text {* Rules requiring bi-unique, bi-total or right-total relations *}
+text \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
 
 lemma cin_parametric [transfer_rule]:
   "bi_unique A \<Longrightarrow> (A ===> rel_cset A ===> op =) cin cin"
@@ -516,7 +516,7 @@ end
 lifting_update cset.lifting
 lifting_forget cset.lifting
 
-subsection {* Registration as BNF *}
+subsection \<open>Registration as BNF\<close>
 
 lemma card_of_countable_sets_range:
 fixes A :: "'a set"
@@ -568,8 +568,8 @@ proof
   hence *: "rcset R' = ?L'" unfolding R'_def by (intro rcset_to_rcset)
   thus ?R unfolding Grp_def relcompp.simps conversep.simps including cset.lifting
   proof (intro CollectI case_prodI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
-    from * `?L` show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)
-    from * `?L` show "b = cimage snd R'" by transfer (auto simp: image_def Collect_Int_Times)
+    from * \<open>?L\<close> show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)
+    from * \<open>?L\<close> show "b = cimage snd R'" by transfer (auto simp: image_def Collect_Int_Times)
   qed simp_all
 next
   assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps

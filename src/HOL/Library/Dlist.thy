@@ -1,12 +1,12 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Lists with elements distinct as canonical example for datatype invariants *}
+section \<open>Lists with elements distinct as canonical example for datatype invariants\<close>
 
 theory Dlist
 imports Main
 begin
 
-subsection {* The type of distinct lists *}
+subsection \<open>The type of distinct lists\<close>
 
 typedef 'a dlist = "{xs::'a list. distinct xs}"
   morphisms list_of_dlist Abs_dlist
@@ -22,7 +22,7 @@ lemma dlist_eqI:
   "list_of_dlist dxs = list_of_dlist dys \<Longrightarrow> dxs = dys"
   by (simp add: dlist_eq_iff)
 
-text {* Formal, totalized constructor for @{typ "'a dlist"}: *}
+text \<open>Formal, totalized constructor for @{typ "'a dlist"}:\<close>
 
 definition Dlist :: "'a list \<Rightarrow> 'a dlist" where
   "Dlist xs = Abs_dlist (remdups xs)"
@@ -44,7 +44,7 @@ lemma Dlist_list_of_dlist [simp, code abstype]:
   by (simp add: Dlist_def list_of_dlist_inverse distinct_remdups_id)
 
 
-text {* Fundamental operations: *}
+text \<open>Fundamental operations:\<close>
 
 definition empty :: "'a dlist" where
   "empty = Dlist []"
@@ -62,7 +62,7 @@ definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarro
   "filter P dxs = Dlist (List.filter P (list_of_dlist dxs))"
 
 
-text {* Derived operations: *}
+text \<open>Derived operations:\<close>
 
 definition null :: "'a dlist \<Rightarrow> bool" where
   "null dxs = List.null (list_of_dlist dxs)"
@@ -80,7 +80,7 @@ definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dli
   "foldr f dxs = List.foldr f (list_of_dlist dxs)"
 
 
-subsection {* Executable version obeying invariant *}
+subsection \<open>Executable version obeying invariant\<close>
 
 lemma list_of_dlist_empty [simp, code abstract]:
   "list_of_dlist empty = []"
@@ -103,7 +103,7 @@ lemma list_of_dlist_filter [simp, code abstract]:
   by (simp add: filter_def)
 
 
-text {* Explicit executable conversion *}
+text \<open>Explicit executable conversion\<close>
 
 definition dlist_of_list [simp]:
   "dlist_of_list = Dlist"
@@ -113,7 +113,7 @@ lemma [code abstract]:
   by simp
 
 
-text {* Equality *}
+text \<open>Equality\<close>
 
 instantiation dlist :: (equal) equal
 begin
@@ -132,7 +132,7 @@ lemma [code nbe]:
   by (fact equal_refl)
 
 
-subsection {* Induction principle and case distinction *}
+subsection \<open>Induction principle and case distinction\<close>
 
 lemma dlist_induct [case_names empty insert, induct type: dlist]:
   assumes empty: "P empty"
@@ -141,7 +141,7 @@ lemma dlist_induct [case_names empty insert, induct type: dlist]:
 proof (cases dxs)
   case (Abs_dlist xs)
   then have "distinct xs" and dxs: "dxs = Dlist xs" by (simp_all add: Dlist_def distinct_remdups_id)
-  from `distinct xs` have "P (Dlist xs)"
+  from \<open>distinct xs\<close> have "P (Dlist xs)"
   proof (induct xs)
     case Nil from empty show ?case by (simp add: empty_def)
   next
@@ -176,13 +176,13 @@ proof (cases dxs)
 qed
 
 
-subsection {* Functorial structure *}
+subsection \<open>Functorial structure\<close>
 
 functor map: map
   by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
 
 
-subsection {* Quickcheck generators *}
+subsection \<open>Quickcheck generators\<close>
 
 quickcheck_generator dlist predicate: distinct constructors: empty, insert
 

@@ -4,13 +4,13 @@
     Author:     Florian Haftmann
 *)
 
-section {* Polynomials as type over a ring structure *}
+section \<open>Polynomials as type over a ring structure\<close>
 
 theory Polynomial
 imports Main GCD "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Infinite_Set"
 begin
 
-subsection {* Auxiliary: operations for lists (later) representing coefficients *}
+subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
 
 definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "##" 65)
 where
@@ -50,7 +50,7 @@ lemma tl_cCons [simp]:
   "tl (x ## xs) = xs"
   by (simp add: cCons_def)
 
-subsection {* Definition of type @{text poly} *}
+subsection \<open>Definition of type @{text poly}\<close>
 
 typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
   morphisms coeff Abs_poly by (auto intro!: ALL_MOST)
@@ -67,7 +67,7 @@ lemma MOST_coeff_eq_0: "\<forall>\<^sub>\<infinity> n. coeff p n = 0"
   using coeff [of p] by simp
 
 
-subsection {* Degree of a polynomial *}
+subsection \<open>Degree of a polynomial\<close>
 
 definition degree :: "'a::zero poly \<Rightarrow> nat"
 where
@@ -94,7 +94,7 @@ lemma less_degree_imp: "n < degree p \<Longrightarrow> \<exists>i>n. coeff p i \
   unfolding degree_def by (drule not_less_Least, simp)
 
 
-subsection {* The zero polynomial *}
+subsection \<open>The zero polynomial\<close>
 
 instantiation poly :: (zero) zero
 begin
@@ -119,21 +119,21 @@ lemma leading_coeff_neq_0:
   shows "coeff p (degree p) \<noteq> 0"
 proof (cases "degree p")
   case 0
-  from `p \<noteq> 0` have "\<exists>n. coeff p n \<noteq> 0"
+  from \<open>p \<noteq> 0\<close> have "\<exists>n. coeff p n \<noteq> 0"
     by (simp add: poly_eq_iff)
   then obtain n where "coeff p n \<noteq> 0" ..
   hence "n \<le> degree p" by (rule le_degree)
-  with `coeff p n \<noteq> 0` and `degree p = 0`
+  with \<open>coeff p n \<noteq> 0\<close> and \<open>degree p = 0\<close>
   show "coeff p (degree p) \<noteq> 0" by simp
 next
   case (Suc n)
-  from `degree p = Suc n` have "n < degree p" by simp
+  from \<open>degree p = Suc n\<close> have "n < degree p" by simp
   hence "\<exists>i>n. coeff p i \<noteq> 0" by (rule less_degree_imp)
   then obtain i where "n < i" and "coeff p i \<noteq> 0" by fast
-  from `degree p = Suc n` and `n < i` have "degree p \<le> i" by simp
-  also from `coeff p i \<noteq> 0` have "i \<le> degree p" by (rule le_degree)
+  from \<open>degree p = Suc n\<close> and \<open>n < i\<close> have "degree p \<le> i" by simp
+  also from \<open>coeff p i \<noteq> 0\<close> have "i \<le> degree p" by (rule le_degree)
   finally have "degree p = i" .
-  with `coeff p i \<noteq> 0` show "coeff p (degree p) \<noteq> 0" by simp
+  with \<open>coeff p i \<noteq> 0\<close> show "coeff p (degree p) \<noteq> 0" by simp
 qed
 
 lemma leading_coeff_0_iff [simp]:
@@ -141,7 +141,7 @@ lemma leading_coeff_0_iff [simp]:
   by (cases "p = 0", simp, simp add: leading_coeff_neq_0)
 
 
-subsection {* List-style constructor for polynomials *}
+subsection \<open>List-style constructor for polynomials\<close>
 
 lift_definition pCons :: "'a::zero \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>a p. case_nat a (coeff p)"
@@ -228,24 +228,24 @@ proof (induct p rule: measure_induct_rule [where f=degree])
     then have "degree (pCons a q) = Suc (degree q)"
       by (rule degree_pCons_eq)
     then have "degree q < degree p"
-      using `p = pCons a q` by simp
+      using \<open>p = pCons a q\<close> by simp
     then show "P q"
       by (rule less.hyps)
   qed
   have "P (pCons a q)"
   proof (cases "a \<noteq> 0 \<or> q \<noteq> 0")
     case True
-    with `P q` show ?thesis by (auto intro: pCons)
+    with \<open>P q\<close> show ?thesis by (auto intro: pCons)
   next
     case False
     with zero show ?thesis by simp
   qed
   then show ?case
-    using `p = pCons a q` by simp
+    using \<open>p = pCons a q\<close> by simp
 qed
 
 
-subsection {* List-style syntax for polynomials *}
+subsection \<open>List-style syntax for polynomials\<close>
 
 syntax
   "_poly" :: "args \<Rightarrow> 'a poly"  ("[:(_):]")
@@ -256,7 +256,7 @@ translations
   "[:x:]" <= "CONST pCons x (_constrain 0 t)"
 
 
-subsection {* Representation of polynomials by lists of coefficients *}
+subsection \<open>Representation of polynomials by lists of coefficients\<close>
 
 primrec Poly :: "'a::zero list \<Rightarrow> 'a poly"
 where
@@ -399,7 +399,7 @@ lemma is_zero_null [code_abbrev]:
   by (simp add: is_zero_def null_def)
 
 
-subsection {* Fold combinator for polynomials *}
+subsection \<open>Fold combinator for polynomials\<close>
 
 definition fold_coeffs :: "('a::zero \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a poly \<Rightarrow> 'b \<Rightarrow> 'b"
 where
@@ -426,11 +426,11 @@ lemma fold_coeffs_pCons_not_0_0_eq [simp]:
   by (simp add: fold_coeffs_def)
 
 
-subsection {* Canonical morphism on polynomials -- evaluation *}
+subsection \<open>Canonical morphism on polynomials -- evaluation\<close>
 
 definition poly :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)" -- {* The Horner Schema *}
+  "poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)" -- \<open>The Horner Schema\<close>
 
 lemma poly_0 [simp]:
   "poly 0 x = 0"
@@ -441,7 +441,7 @@ lemma poly_pCons [simp]:
   by (cases "p = 0 \<and> a = 0") (auto simp add: poly_def)
 
 
-subsection {* Monomials *}
+subsection \<open>Monomials\<close>
 
 lift_definition monom :: "'a \<Rightarrow> nat \<Rightarrow> 'a::zero poly"
   is "\<lambda>a m n. if m = n then a else 0"
@@ -491,7 +491,7 @@ lemma poly_monom:
     (induct n, simp_all add: mult.left_commute poly_def)
 
 
-subsection {* Addition and subtraction *}
+subsection \<open>Addition and subtraction\<close>
 
 instantiation poly :: (comm_monoid_add) comm_monoid_add
 begin
@@ -700,7 +700,7 @@ lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
 
-subsection {* Multiplication by a constant, polynomial multiplication and the unit polynomial *}
+subsection \<open>Multiplication by a constant, polynomial multiplication and the unit polynomial\<close>
 
 lift_definition smult :: "'a::comm_semiring_0 \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>a p n. a * coeff p n"
@@ -908,7 +908,7 @@ lemma poly_power [simp]:
   by (induct n) simp_all
 
 
-subsection {* Lemmas about divisibility *}
+subsection \<open>Lemmas about divisibility\<close>
 
 lemma dvd_smult: "p dvd q \<Longrightarrow> p dvd smult a q"
 proof -
@@ -948,7 +948,7 @@ lemma smult_dvd_iff:
   by (auto elim: smult_dvd smult_dvd_cancel)
 
 
-subsection {* Polynomials form an integral domain *}
+subsection \<open>Polynomials form an integral domain\<close>
 
 lemma coeff_mult_degree_sum:
   "coeff (p * q) (degree p + degree q) =
@@ -963,7 +963,7 @@ proof
         coeff p (degree p) * coeff q (degree q)"
     by (rule coeff_mult_degree_sum)
   also have "coeff p (degree p) * coeff q (degree q) \<noteq> 0"
-    using `p \<noteq> 0` and `q \<noteq> 0` by simp
+    using \<open>p \<noteq> 0\<close> and \<open>q \<noteq> 0\<close> by simp
   finally have "\<exists>n. coeff (p * q) n \<noteq> 0" ..
   thus "p * q \<noteq> 0" by (simp add: poly_eq_iff)
 qed
@@ -981,7 +981,7 @@ lemma dvd_imp_degree_le:
   by (erule dvdE, simp add: degree_mult_eq)
 
 
-subsection {* Polynomials form an ordered integral domain *}
+subsection \<open>Polynomials form an ordered integral domain\<close>
 
 definition pos_poly :: "'a::linordered_idom poly \<Rightarrow> bool"
 where
@@ -1097,14 +1097,14 @@ qed
 
 end
 
-text {* TODO: Simplification rules for comparisons *}
+text \<open>TODO: Simplification rules for comparisons\<close>
 
 
-subsection {* Synthetic division and polynomial roots *}
+subsection \<open>Synthetic division and polynomial roots\<close>
 
-text {*
+text \<open>
   Synthetic division is simply division by the linear polynomial @{term "x - c"}.
-*}
+\<close>
 
 definition synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
 where
@@ -1201,11 +1201,11 @@ next
     then obtain a where "poly p a = 0" ..
     then have "[:-a, 1:] dvd p" by (simp only: poly_eq_0_iff_dvd)
     then obtain k where k: "p = [:-a, 1:] * k" ..
-    with `p \<noteq> 0` have "k \<noteq> 0" by auto
+    with \<open>p \<noteq> 0\<close> have "k \<noteq> 0" by auto
     with k have "degree p = Suc (degree k)"
       by (simp add: degree_mult_eq del: mult_pCons_left)
-    with `Suc n = degree p` have "n = degree k" by simp
-    then have "finite {x. poly k x = 0}" using `k \<noteq> 0` by (rule Suc.hyps)
+    with \<open>Suc n = degree p\<close> have "n = degree k" by simp
+    then have "finite {x. poly k x = 0}" using \<open>k \<noteq> 0\<close> by (rule Suc.hyps)
     then have "finite (insert a {x. poly k x = 0})" by simp
     then show "finite {x. poly p x = 0}"
       by (simp add: k Collect_disj_eq del: mult_pCons_left)
@@ -1235,7 +1235,7 @@ lemma poly_all_0_iff_0:
   by (auto simp add: poly_eq_poly_eq_iff [symmetric])
 
 
-subsection {* Long division of polynomials *}
+subsection \<open>Long division of polynomials\<close>
 
 definition pdivmod_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
 where
@@ -1255,22 +1255,22 @@ lemma eq_zero_or_degree_less:
   shows "p = 0 \<or> degree p < n"
 proof (cases n)
   case 0
-  with `degree p \<le> n` and `coeff p n = 0`
+  with \<open>degree p \<le> n\<close> and \<open>coeff p n = 0\<close>
   have "coeff p (degree p) = 0" by simp
   then have "p = 0" by simp
   then show ?thesis ..
 next
   case (Suc m)
   have "\<forall>i>n. coeff p i = 0"
-    using `degree p \<le> n` by (simp add: coeff_eq_0)
+    using \<open>degree p \<le> n\<close> by (simp add: coeff_eq_0)
   then have "\<forall>i\<ge>n. coeff p i = 0"
-    using `coeff p n = 0` by (simp add: le_less)
+    using \<open>coeff p n = 0\<close> by (simp add: le_less)
   then have "\<forall>i>m. coeff p i = 0"
-    using `n = Suc m` by (simp add: less_eq_Suc_le)
+    using \<open>n = Suc m\<close> by (simp add: less_eq_Suc_le)
   then have "degree p \<le> m"
     by (rule degree_le)
   then have "degree p < n"
-    using `n = Suc m` by (simp add: less_Suc_eq_le)
+    using \<open>n = Suc m\<close> by (simp add: less_Suc_eq_le)
   then show ?thesis ..
 qed
 
@@ -1298,12 +1298,12 @@ proof -
     qed
   next
     show "coeff ?r (degree y) = 0"
-      using `y \<noteq> 0` unfolding b by simp
+      using \<open>y \<noteq> 0\<close> unfolding b by simp
   qed
 
   from 1 2 show ?thesis
     unfolding pdivmod_rel_def
-    using `y \<noteq> 0` by simp
+    using \<open>y \<noteq> 0\<close> by simp
 qed
 
 lemma pdivmod_rel_exists: "\<exists>q r. pdivmod_rel x y q r"
@@ -1339,7 +1339,7 @@ next
     with r3 have "degree (r2 - r1) < degree y" by simp
     also have "degree y \<le> degree (q1 - q2) + degree y" by simp
     also have "\<dots> = degree ((q1 - q2) * y)"
-      using `q1 \<noteq> q2` by (simp add: degree_mult_eq)
+      using \<open>q1 \<noteq> q2\<close> by (simp add: degree_mult_eq)
     also have "\<dots> = degree (r2 - r1)"
       using q3 by simp
     finally have "degree (r2 - r1) < degree (r2 - r1)" .
@@ -1426,7 +1426,7 @@ next
     case False then show ?thesis by auto
   next
     case True then have "y \<noteq> 0" and "z \<noteq> 0" by auto
-    with `x \<noteq> 0`
+    with \<open>x \<noteq> 0\<close>
     have "\<And>q r. pdivmod_rel y z q r \<Longrightarrow> pdivmod_rel (x * y) (x * z) q (x * r)"
       by (auto simp add: pdivmod_rel_def algebra_simps)
         (rule classical, simp add: degree_mult_eq)
@@ -1611,7 +1611,7 @@ lemma pdivmod_fold_coeffs [code]:
   done
 
 
-subsection {* Order of polynomial roots *}
+subsection \<open>Order of polynomial roots\<close>
 
 definition order :: "'a::idom \<Rightarrow> 'a poly \<Rightarrow> nat"
 where
@@ -1674,7 +1674,7 @@ apply (metis dvd_power dvd_trans order_1)
 done
 
 
-subsection {* GCD of polynomials *}
+subsection \<open>GCD of polynomials\<close>
 
 instantiation poly :: (field) gcd
 begin
@@ -1745,12 +1745,12 @@ proof (cases "p = 0")
 next
   case False with coeff have "q \<noteq> 0" by auto
   have degree: "degree p = degree q"
-    using `p dvd q` `q dvd p` `p \<noteq> 0` `q \<noteq> 0`
+    using \<open>p dvd q\<close> \<open>q dvd p\<close> \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close>
     by (intro order_antisym dvd_imp_degree_le)
 
-  from `p dvd q` obtain a where a: "q = p * a" ..
-  with `q \<noteq> 0` have "a \<noteq> 0" by auto
-  with degree a `p \<noteq> 0` have "degree a = 0"
+  from \<open>p dvd q\<close> obtain a where a: "q = p * a" ..
+  with \<open>q \<noteq> 0\<close> have "a \<noteq> 0" by auto
+  with degree a \<open>p \<noteq> 0\<close> have "degree a = 0"
     by (simp add: degree_mult_eq)
   with coeff a show "p = q"
     by (cases a, auto split: if_splits)
@@ -1805,7 +1805,7 @@ lemma poly_gcd_code [code]:
   by (simp add: gcd_poly.simps)
 
 
-subsection {* Composition of polynomials *}
+subsection \<open>Composition of polynomials\<close>
 
 definition pcompose :: "'a::comm_semiring_0 poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
 where
