@@ -1381,20 +1381,25 @@ by(rule measure_eqI)(simp_all add: nn_integral_pmf[symmetric] emeasure_uniform_c
 
 subsubsection \<open> Geometric Distribution \<close>
 
-lift_definition geometric_pmf :: "nat pmf" is "\<lambda>n. 1 / 2^Suc n"
+context
+  fixes p :: real assumes p[arith]: "0 < p" "p \<le> 1"
+begin
+
+lift_definition geometric_pmf :: "nat pmf" is "\<lambda>n. (1 - p)^n * p"
 proof
-  note geometric_sums[of "1 / 2"]
-  note sums_mult[OF this, of "1 / 2"]
-  from sums_suminf_ereal[OF this]
-  show "(\<integral>\<^sup>+ x. ereal (1 / 2 ^ Suc x) \<partial>count_space UNIV) = 1"
+  have "(\<Sum>i. ereal (p * (1 - p) ^ i)) = ereal (p * (1 / (1 - (1 - p))))"
+    by (intro sums_suminf_ereal sums_mult geometric_sums) auto
+  then show "(\<integral>\<^sup>+ x. ereal ((1 - p)^x * p) \<partial>count_space UNIV) = 1"
     by (simp add: nn_integral_count_space_nat field_simps)
 qed simp
 
-lemma pmf_geometric[simp]: "pmf geometric_pmf n = 1 / 2^Suc n"
+lemma pmf_geometric[simp]: "pmf geometric_pmf n = (1 - p)^n * p"
   by transfer rule
 
-lemma set_pmf_geometric[simp]: "set_pmf geometric_pmf = UNIV"
-  by (auto simp: set_pmf_iff)
+end
+
+lemma set_pmf_geometric: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (geometric_pmf p) = UNIV"
+  by (auto simp: set_pmf_iff) 
 
 subsubsection \<open> Uniform Multiset Distribution \<close>
 
