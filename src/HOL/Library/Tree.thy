@@ -24,6 +24,9 @@ lemma size1_simps[simp]:
   "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
 by (simp_all add: size1_def)
 
+lemma size_0_iff_Leaf[simp]: "size t = 0 \<longleftrightarrow> t = Leaf"
+by(cases t) auto
+
 lemma neq_Leaf_iff: "(t \<noteq> \<langle>\<rangle>) = (\<exists>l a r. t = \<langle>l, a, r\<rangle>)"
 by (cases t) auto
 
@@ -124,6 +127,14 @@ apply (induction t)
  apply simp
 apply(fastforce elim: order.asym)
 done
+
+
+subsection "The heap predicate"
+
+fun heap :: "'a::linorder tree \<Rightarrow> bool" where
+"heap Leaf = True" |
+"heap (Node l m r) =
+  (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 
 subsection "Function @{text mirror}"
