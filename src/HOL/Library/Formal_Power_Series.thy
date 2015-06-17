@@ -2,11 +2,12 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section\<open>A formalization of formal power series\<close>
+section \<open>A formalization of formal power series\<close>
 
 theory Formal_Power_Series
 imports Complex_Main
 begin
+
 
 subsection \<open>The type of formal power series\<close>
 
@@ -25,16 +26,13 @@ lemma fps_ext: "(\<And>n. p $ n = q $ n) \<Longrightarrow> p = q"
 lemma fps_nth_Abs_fps [simp]: "Abs_fps f $ n = f n"
   by (simp add: Abs_fps_inverse)
 
-text\<open>Definition of the basic elements 0 and 1 and the basic operations of addition,
-  negation and multiplication\<close>
+text \<open>Definition of the basic elements 0 and 1 and the basic operations of addition,
+  negation and multiplication.\<close>
 
 instantiation fps :: (zero) zero
 begin
-
-definition fps_zero_def:
-  "0 = Abs_fps (\<lambda>n. 0)"
-
-instance ..
+  definition fps_zero_def: "0 = Abs_fps (\<lambda>n. 0)"
+  instance ..
 end
 
 lemma fps_zero_nth [simp]: "0 $ n = 0"
@@ -42,11 +40,8 @@ lemma fps_zero_nth [simp]: "0 $ n = 0"
 
 instantiation fps :: ("{one, zero}") one
 begin
-
-definition fps_one_def:
-  "1 = Abs_fps (\<lambda>n. if n = 0 then 1 else 0)"
-
-instance ..
+  definition fps_one_def: "1 = Abs_fps (\<lambda>n. if n = 0 then 1 else 0)"
+  instance ..
 end
 
 lemma fps_one_nth [simp]: "1 $ n = (if n = 0 then 1 else 0)"
@@ -54,11 +49,8 @@ lemma fps_one_nth [simp]: "1 $ n = (if n = 0 then 1 else 0)"
 
 instantiation fps :: (plus) plus
 begin
-
-definition fps_plus_def:
-  "op + = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n + g $ n))"
-
-instance ..
+  definition fps_plus_def: "op + = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n + g $ n))"
+  instance ..
 end
 
 lemma fps_add_nth [simp]: "(f + g) $ n = f $ n + g $ n"
@@ -66,11 +58,8 @@ lemma fps_add_nth [simp]: "(f + g) $ n = f $ n + g $ n"
 
 instantiation fps :: (minus) minus
 begin
-
-definition fps_minus_def:
-  "op - = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n - g $ n))"
-
-instance ..
+  definition fps_minus_def: "op - = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n - g $ n))"
+  instance ..
 end
 
 lemma fps_sub_nth [simp]: "(f - g) $ n = f $ n - g $ n"
@@ -78,11 +67,8 @@ lemma fps_sub_nth [simp]: "(f - g) $ n = f $ n - g $ n"
 
 instantiation fps :: (uminus) uminus
 begin
-
-definition fps_uminus_def:
-  "uminus = (\<lambda>f. Abs_fps (\<lambda>n. - (f $ n)))"
-
-instance ..
+  definition fps_uminus_def: "uminus = (\<lambda>f. Abs_fps (\<lambda>n. - (f $ n)))"
+  instance ..
 end
 
 lemma fps_neg_nth [simp]: "(- f) $ n = - (f $ n)"
@@ -90,11 +76,8 @@ lemma fps_neg_nth [simp]: "(- f) $ n = - (f $ n)"
 
 instantiation fps :: ("{comm_monoid_add, times}") times
 begin
-
-definition fps_times_def:
-  "op * = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
-
-instance ..
+  definition fps_times_def: "op * = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
+  instance ..
 end
 
 lemma fps_mult_nth: "(f * g) $ n = (\<Sum>i=0..n. f$i * g$(n - i))"
@@ -120,7 +103,8 @@ lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
-subsection\<open>Formal power series form a commutative ring with unity, if the range of sequences
+
+subsection \<open>Formal power series form a commutative ring with unity, if the range of sequences
   they represent is a commutative ring with unity\<close>
 
 instance fps :: (semigroup_add) semigroup_add
@@ -193,22 +177,28 @@ qed
 instance fps :: (semiring_1) monoid_mult
 proof
   fix a :: "'a fps"
-  show "1 * a = a" by (simp add: fps_ext fps_mult_nth mult_delta_left setsum.delta)
-  show "a * 1 = a" by (simp add: fps_ext fps_mult_nth mult_delta_right setsum.delta')
+  show "1 * a = a"
+    by (simp add: fps_ext fps_mult_nth mult_delta_left setsum.delta)
+  show "a * 1 = a"
+    by (simp add: fps_ext fps_mult_nth mult_delta_right setsum.delta')
 qed
 
 instance fps :: (cancel_semigroup_add) cancel_semigroup_add
 proof
   fix a b c :: "'a fps"
-  { assume "a + b = a + c" then show "b = c" by (simp add: expand_fps_eq) }
-  { assume "b + a = c + a" then show "b = c" by (simp add: expand_fps_eq) }
+  show "b = c" if "a + b = a + c"
+    using that by (simp add: expand_fps_eq)
+  show "b = c" if "b + a = c + a"
+    using that by (simp add: expand_fps_eq)
 qed
 
 instance fps :: (cancel_ab_semigroup_add) cancel_ab_semigroup_add
 proof
   fix a b c :: "'a fps"
-  show "a + b - a = b" by (simp add: expand_fps_eq)
-  show "a - b - c = a - (b + c)" by (simp add: expand_fps_eq diff_diff_eq)
+  show "a + b - a = b"
+    by (simp add: expand_fps_eq)
+  show "a - b - c = a - (b + c)"
+    by (simp add: expand_fps_eq diff_diff_eq)
 qed
 
 instance fps :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..
@@ -242,11 +232,14 @@ qed
 instance fps :: (semiring_0) semiring_0
 proof
   fix a :: "'a fps"
-  show "0 * a = 0" by (simp add: fps_ext fps_mult_nth)
-  show "a * 0 = 0" by (simp add: fps_ext fps_mult_nth)
+  show "0 * a = 0"
+    by (simp add: fps_ext fps_mult_nth)
+  show "a * 0 = 0"
+    by (simp add: fps_ext fps_mult_nth)
 qed
 
 instance fps :: (semiring_0_cancel) semiring_0_cancel ..
+
 
 subsection \<open>Selection of the nth power of the implicit variable in the infinite sum\<close>
 
@@ -254,20 +247,22 @@ lemma fps_nonzero_nth: "f \<noteq> 0 \<longleftrightarrow> (\<exists> n. f $n \<
   by (simp add: expand_fps_eq)
 
 lemma fps_nonzero_nth_minimal: "f \<noteq> 0 \<longleftrightarrow> (\<exists>n. f $ n \<noteq> 0 \<and> (\<forall>m < n. f $ m = 0))"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   let ?n = "LEAST n. f $ n \<noteq> 0"
-  assume "f \<noteq> 0"
-  then have "\<exists>n. f $ n \<noteq> 0"
-    by (simp add: fps_nonzero_nth)
-  then have "f $ ?n \<noteq> 0"
-    by (rule LeastI_ex)
-  moreover have "\<forall>m<?n. f $ m = 0"
-    by (auto dest: not_less_Least)
-  ultimately have "f $ ?n \<noteq> 0 \<and> (\<forall>m<?n. f $ m = 0)" ..
-  then show "\<exists>n. f $ n \<noteq> 0 \<and> (\<forall>m<n. f $ m = 0)" ..
-next
-  assume "\<exists>n. f $ n \<noteq> 0 \<and> (\<forall>m<n. f $ m = 0)"
-  then show "f \<noteq> 0" by (auto simp add: expand_fps_eq)
+  show ?rhs if ?lhs
+  proof -
+    from that have "\<exists>n. f $ n \<noteq> 0"
+      by (simp add: fps_nonzero_nth)
+    then have "f $ ?n \<noteq> 0"
+      by (rule LeastI_ex)
+    moreover have "\<forall>m<?n. f $ m = 0"
+      by (auto dest: not_less_Least)
+    ultimately have "f $ ?n \<noteq> 0 \<and> (\<forall>m<?n. f $ m = 0)" ..
+    then show ?thesis ..
+  qed
+  show ?lhs if ?rhs
+    using that by (auto simp add: expand_fps_eq)
 qed
 
 lemma fps_eq_iff: "f = g \<longleftrightarrow> (\<forall>n. f $ n = g $n)"
@@ -282,7 +277,8 @@ next
   then show ?thesis by simp
 qed
 
-subsection\<open>Injection of the basic ring elements and multiplication by scalars\<close>
+
+subsection \<open>Injection of the basic ring elements and multiplication by scalars\<close>
 
 definition "fps_const c = Abs_fps (\<lambda>n. if n = 0 then c else 0)"
 
@@ -329,6 +325,7 @@ lemma fps_mult_left_const_nth [simp]: "(fps_const (c::'a::semiring_1) * f)$n = c
 lemma fps_mult_right_const_nth [simp]: "(f * fps_const (c::'a::semiring_1))$n = f$n * c"
   by (simp add: fps_mult_nth mult_delta_right setsum.delta')
 
+
 subsection \<open>Formal power series form an integral domain\<close>
 
 instance fps :: (ring) ring ..
@@ -342,24 +339,29 @@ instance fps :: (comm_ring_1) comm_ring_1
 instance fps :: (ring_no_zero_divisors) ring_no_zero_divisors
 proof
   fix a b :: "'a fps"
-  assume a0: "a \<noteq> 0" and b0: "b \<noteq> 0"
-  then obtain i j where i: "a$i\<noteq>0" "\<forall>k<i. a$k=0" and j: "b$j \<noteq>0" "\<forall>k<j. b$k =0"
+  assume "a \<noteq> 0" and "b \<noteq> 0"
+  then obtain i j where i: "a $ i \<noteq> 0" "\<forall>k<i. a $ k = 0" and j: "b $ j \<noteq> 0" "\<forall>k<j. b $ k =0"
     unfolding fps_nonzero_nth_minimal
     by blast+
-  have "(a * b) $ (i+j) = (\<Sum>k=0..i+j. a$k * b$(i+j-k))"
+  have "(a * b) $ (i + j) = (\<Sum>k=0..i+j. a $ k * b $ (i + j - k))"
     by (rule fps_mult_nth)
-  also have "\<dots> = (a$i * b$(i+j-i)) + (\<Sum>k\<in>{0..i+j}-{i}. a$k * b$(i+j-k))"
+  also have "\<dots> = (a $ i * b $ (i + j - i)) + (\<Sum>k\<in>{0..i+j} - {i}. a $ k * b $ (i + j - k))"
     by (rule setsum.remove) simp_all
-  also have "(\<Sum>k\<in>{0..i+j}-{i}. a$k * b$(i+j-k)) = 0"
-    proof (rule setsum.neutral [rule_format])
-      fix k assume "k \<in> {0..i+j} - {i}"
-      then have "k < i \<or> i+j-k < j" by auto
-      then show "a$k * b$(i+j-k) = 0" using i j by auto
-    qed
-  also have "a$i * b$(i+j-i) + 0 = a$i * b$j" by simp
-  also have "a$i * b$j \<noteq> 0" using i j by simp
+  also have "(\<Sum>k\<in>{0..i+j}-{i}. a $ k * b $ (i + j - k)) = 0"
+  proof (rule setsum.neutral [rule_format])
+    fix k assume "k \<in> {0..i+j} - {i}"
+    then have "k < i \<or> i+j-k < j"
+      by auto
+    then show "a $ k * b $ (i + j - k) = 0"
+      using i j by auto
+  qed
+  also have "a $ i * b $ (i + j - i) + 0 = a $ i * b $ j"
+    by simp
+  also have "a $ i * b $ j \<noteq> 0"
+    using i j by simp
   finally have "(a*b) $ (i+j) \<noteq> 0" .
-  then show "a*b \<noteq> 0" unfolding fps_nonzero_nth by blast
+  then show "a * b \<noteq> 0"
+    unfolding fps_nonzero_nth by blast
 qed
 
 instance fps :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
@@ -373,7 +375,8 @@ lemma numeral_fps_const: "numeral k = fps_const (numeral k)"
 lemma neg_numeral_fps_const: "- numeral k = fps_const (- numeral k)"
   by (simp only: numeral_fps_const fps_const_neg)
 
-subsection\<open>The eXtractor series X\<close>
+
+subsection \<open>The eXtractor series X\<close>
 
 lemma minus_one_power_iff: "(- (1::'a::comm_ring_1)) ^ n = (if even n then 1 else - 1)"
   by (induct n) auto
@@ -388,10 +391,12 @@ proof (cases "n = 0")
     by (simp add: fps_mult_nth)
   also have "\<dots> = f $ (n - 1)"
     using False by (simp add: X_def mult_delta_left setsum.delta)
-  finally show ?thesis using False by simp
+  finally show ?thesis
+    using False by simp
 next
   case True
-  then show ?thesis by (simp add: fps_mult_nth X_def)
+  then show ?thesis
+    by (simp add: fps_mult_nth X_def)
 qed
 
 lemma X_mult_right_nth[simp]:
@@ -404,18 +409,18 @@ proof (induct k)
   then show ?case by (simp add: X_def fps_eq_iff)
 next
   case (Suc k)
-  {
-    fix m
-    have "(X^Suc k) $ m = (if m = 0 then 0::'a else (X^k) $ (m - 1))"
+  have "(X^Suc k) $ m = (if m = Suc k then 1::'a else 0)" for m
+  proof -
+    have "(X^Suc k) $ m = (if m = 0 then 0 else (X^k) $ (m - 1))"
       by (simp del: One_nat_def)
-    then have "(X^Suc k) $ m = (if m = Suc k then 1::'a else 0)"
+    then show ?thesis
       using Suc.hyps by (auto cong del: if_weak_cong)
-  }
-  then show ?case by (simp add: fps_eq_iff)
+  qed
+  then show ?case
+    by (simp add: fps_eq_iff)
 qed
 
-lemma X_power_mult_nth:
-    "(X^k * (f :: 'a::comm_ring_1 fps)) $n = (if n < k then 0 else f $ (n - k))"
+lemma X_power_mult_nth: "(X^k * (f :: 'a::comm_ring_1 fps)) $n = (if n < k then 0 else f $ (n - k))"
   apply (induct k arbitrary: n)
   apply simp
   unfolding power_Suc mult.assoc
@@ -428,7 +433,7 @@ lemma X_power_mult_right_nth:
   by (metis X_power_mult_nth mult.commute)
 
 
-subsection\<open>Formal Power series form a metric space\<close>
+subsection \<open>Formal Power series form a metric space\<close>
 
 definition (in dist) "ball x r = {y. dist y x < r}"
 
@@ -460,59 +465,49 @@ definition open_fps_def: "open (S :: 'a fps set) = (\<forall>a \<in> S. \<exists
 
 instance
 proof
-  fix S :: "'a fps set"
-  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)" for S :: "'a fps set"
     by (auto simp add: open_fps_def ball_def subset_eq)
-next
-  {
-    fix a b :: "'a fps"
-    {
-      assume "a = b"
-      then have "\<not> (\<exists>n. a $ n \<noteq> b $ n)" by simp
-      then have "dist a b = 0" by (simp add: dist_fps_def)
-    }
-    moreover
-    {
-      assume d: "dist a b = 0"
-      then have "\<forall>n. a$n = b$n"
-        by - (rule ccontr, simp add: dist_fps_def)
-      then have "a = b" by (simp add: fps_eq_iff)
-    }
-    ultimately show "dist a b =0 \<longleftrightarrow> a = b" by blast
-  }
-  note th = this
-  from th have th'[simp]: "\<And>a::'a fps. dist a a = 0" by simp
-  fix a b c :: "'a fps"
-  {
+  show th: "dist a b = 0 \<longleftrightarrow> a = b" for a b :: "'a fps"
+  proof
     assume "a = b"
+    then have "\<not> (\<exists>n. a $ n \<noteq> b $ n)" by simp
+    then show "dist a b = 0" by (simp add: dist_fps_def)
+  next
+    assume d: "dist a b = 0"
+    then have "\<forall>n. a$n = b$n"
+      by - (rule ccontr, simp add: dist_fps_def)
+    then show "a = b" by (simp add: fps_eq_iff)
+  qed
+  then have th'[simp]: "dist a a = 0" for a :: "'a fps"
+    by simp
+
+  fix a b c :: "'a fps"
+  consider "a = b" | "c = a \<or> c = b" | "a \<noteq> b" "a \<noteq> c" "b \<noteq> c" by blast
+  then show "dist a b \<le> dist a c + dist b c"
+  proof cases
+    case 1
     then have "dist a b = 0" unfolding th .
-    then have "dist a b \<le> dist a c + dist b c"
+    then show ?thesis
       using dist_fps_ge0 [of a c] dist_fps_ge0 [of b c] by simp
-  }
-  moreover
-  {
-    assume "c = a \<or> c = b"
-    then have "dist a b \<le> dist a c + dist b c"
+  next
+    case 2
+    then show ?thesis
       by (cases "c = a") (simp_all add: th dist_fps_sym)
-  }
-  moreover
-  {
-    assume ab: "a \<noteq> b" and ac: "a \<noteq> c" and bc: "b \<noteq> c"
+  next
+    case 3
     def n \<equiv> "\<lambda>a b::'a fps. LEAST n. a$n \<noteq> b$n"
     then have n': "\<And>m a b. m < n a b \<Longrightarrow> a$m = b$m"
       by (auto dest: not_less_Least)
-
-    from ab ac bc
-    have dab: "dist a b = inverse (2 ^ n a b)"
+    from 3 have dab: "dist a b = inverse (2 ^ n a b)"
       and dac: "dist a c = inverse (2 ^ n a c)"
       and dbc: "dist b c = inverse (2 ^ n b c)"
       by (simp_all add: dist_fps_def n_def fps_eq_iff)
-    from ab ac bc have nz: "dist a b \<noteq> 0" "dist a c \<noteq> 0" "dist b c \<noteq> 0"
+    from 3 have nz: "dist a b \<noteq> 0" "dist a c \<noteq> 0" "dist b c \<noteq> 0"
       unfolding th by simp_all
     from nz have pos: "dist a b > 0" "dist a c > 0" "dist b c > 0"
       using dist_fps_ge0[of a b] dist_fps_ge0[of a c] dist_fps_ge0[of b c]
       by auto
-    have th1: "\<And>n. (2::real)^n >0" by auto
+    have th1: "\<And>n. (2::real)^n > 0" by auto
     {
       assume h: "dist a b > dist a c + dist b c"
       then have gt: "dist a b > dist a c" "dist a b > dist b c"
@@ -522,18 +517,17 @@ next
       from n'[OF gtn(2)] n'(1)[OF gtn(1)]
       have "a $ n a b = b $ n a b" by simp
       moreover have "a $ n a b \<noteq> b $ n a b"
-         unfolding n_def by (rule LeastI_ex) (insert ab, simp add: fps_eq_iff)
+         unfolding n_def by (rule LeastI_ex) (insert \<open>a \<noteq> b\<close>, simp add: fps_eq_iff)
       ultimately have False by contradiction
     }
-    then have "dist a b \<le> dist a c + dist b c"
+    then show ?thesis
       by (auto simp add: not_le[symmetric])
-  }
-  ultimately show "dist a b \<le> dist a c + dist b c" by blast
+  qed
 qed
 
 end
 
-text\<open>The infinite sums and justification of the notation in textbooks\<close>
+text \<open>The infinite sums and justification of the notation in textbooks\<close>
 
 lemma reals_power_lt_ex:
   fixes x y :: real
@@ -584,51 +578,48 @@ lemma fps_notation: "(\<lambda>n. setsum (\<lambda>i. fps_const(a$i) * X^i) {0..
 proof -
   {
     fix r :: real
-    assume rp: "r > 0"
-    have th0: "(2::real) > 1" by simp
-    from reals_power_lt_ex[OF rp th0]
-    obtain n0 where n0: "(1/2)^n0 < r" "n0 > 0" by blast
-    {
-      fix n :: nat
-      assume nn0: "n \<ge> n0"
-      then have thnn0: "(1/2)^n \<le> (1/2 :: real)^n0"
-        by (simp add: divide_simps)
+    assume "r > 0"
+    obtain n0 where n0: "(1/2)^n0 < r" "n0 > 0"
+      using reals_power_lt_ex[OF \<open>r > 0\<close>, of 2] by auto
+    have "\<exists>n0. \<forall>n \<ge> n0. dist (?s n) a < r"
+    proof -
       {
-        assume "?s n = a"
-        then have "dist (?s n) a < r"
-          unfolding dist_eq_0_iff[of "?s n" a, symmetric]
-          using rp by (simp del: dist_eq_0_iff)
-      }
-      moreover
-      {
-        assume neq: "?s n \<noteq> a"
-        def k \<equiv> "LEAST i. ?s n $ i \<noteq> a $ i"
-        from neq have dth: "dist (?s n) a = (1/2)^k"
-          by (auto simp add: dist_fps_def inverse_eq_divide power_divide k_def fps_eq_iff)
-
-        from neq have kn: "k > n"
-          by (auto simp: fps_sum_rep_nth not_le k_def fps_eq_iff
+        fix n :: nat
+        assume nn0: "n \<ge> n0"
+        then have thnn0: "(1/2)^n \<le> (1/2 :: real)^n0"
+          by (simp add: divide_simps)
+        have "dist (?s n) a < r"
+        proof (cases "?s n = a")
+          case True
+          then show ?thesis
+            unfolding dist_eq_0_iff[of "?s n" a, symmetric]
+            using \<open>r > 0\<close> by (simp del: dist_eq_0_iff)
+        next
+          case False
+          def k \<equiv> "LEAST i. ?s n $ i \<noteq> a $ i"
+          from False have dth: "dist (?s n) a = (1/2)^k"
+            by (auto simp add: dist_fps_def inverse_eq_divide power_divide k_def fps_eq_iff)
+          from False have kn: "k > n"
+            by (auto simp: fps_sum_rep_nth not_le k_def fps_eq_iff
               split: split_if_asm intro: LeastI2_ex)
-        then have "dist (?s n) a < (1/2)^n"
-          unfolding dth by (simp add: divide_simps)
-        also have "\<dots> \<le> (1/2)^n0"
-          using nn0 by (simp add: divide_simps)
-        also have "\<dots> < r"
-          using n0 by simp
-        finally have "dist (?s n) a < r" .
+          then have "dist (?s n) a < (1/2)^n"
+            unfolding dth by (simp add: divide_simps)
+          also have "\<dots> \<le> (1/2)^n0"
+            using nn0 by (simp add: divide_simps)
+          also have "\<dots> < r"
+            using n0 by simp
+          finally show ?thesis .
+        qed
       }
-      ultimately have "dist (?s n) a < r"
-        by blast
-    }
-    then have "\<exists>n0. \<forall> n \<ge> n0. dist (?s n) a < r"
-      by blast
+      then show ?thesis by blast
+    qed
   }
   then show ?thesis
     unfolding lim_sequentially by blast
 qed
 
 
-subsection\<open>Inverses of formal power series\<close>
+subsection \<open>Inverses of formal power series\<close>
 
 declare setsum.cong[fundef_cong]
 
@@ -640,11 +631,9 @@ where
   "natfun_inverse f 0 = inverse (f$0)"
 | "natfun_inverse f n = - inverse (f$0) * setsum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}"
 
-definition
-  fps_inverse_def: "inverse f = (if f $ 0 = 0 then 0 else Abs_fps (natfun_inverse f))"
+definition fps_inverse_def: "inverse f = (if f $ 0 = 0 then 0 else Abs_fps (natfun_inverse f))"
 
-definition
-  fps_divide_def: "divide = (\<lambda>(f::'a fps) g. f * inverse g)"
+definition fps_divide_def: "divide = (\<lambda>(f::'a fps) g. f * inverse g)"
 
 instance ..
 
@@ -670,9 +659,8 @@ proof -
     by (simp add: fps_inverse_def)
   from f0 have th0: "(inverse f * f) $ 0 = 1"
     by (simp add: fps_mult_nth fps_inverse_def)
-  {
-    fix n :: nat
-    assume np: "n > 0"
+  have "(inverse f * f)$n = 0" if np: "n > 0" for n
+  proof -
     from np have eq: "{0..n} = {0} \<union> {1 .. n}"
       by auto
     have d: "{0} \<inter> {1 .. n} = {}"
@@ -689,31 +677,26 @@ proof -
       by (simp add: eq)
     also have "\<dots> = 0"
       unfolding th1 ifn by simp
-    finally have "(inverse f * f)$n = 0"
-      unfolding c .
-  }
+    finally show ?thesis unfolding c .
+  qed
   with th0 show ?thesis
     by (simp add: fps_eq_iff)
 qed
 
-lemma fps_inverse_0_iff[simp]: "(inverse f)$0 = (0::'a::division_ring) \<longleftrightarrow> f$0 = 0"
+lemma fps_inverse_0_iff[simp]: "(inverse f) $ 0 = (0::'a::division_ring) \<longleftrightarrow> f $ 0 = 0"
   by (simp add: fps_inverse_def nonzero_imp_inverse_nonzero)
 
-lemma fps_inverse_eq_0_iff[simp]: "inverse f = (0:: ('a::field) fps) \<longleftrightarrow> f $0 = 0"
-proof -
-  {
-    assume "f $ 0 = 0"
-    then have "inverse f = 0"
-      by (simp add: fps_inverse_def)
-  }
-  moreover
-  {
-    assume h: "inverse f = 0"
+lemma fps_inverse_eq_0_iff[simp]: "inverse f = (0:: ('a::field) fps) \<longleftrightarrow> f $ 0 = 0"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show ?lhs if ?rhs
+    using that by (simp add: fps_inverse_def)
+  show ?rhs if h: ?lhs
+  proof (rule ccontr)
     assume c: "f $0 \<noteq> 0"
-    from inverse_mult_eq_1[OF c] h have False
+    from inverse_mult_eq_1[OF c] h show False
       by simp
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma fps_inverse_idempotent[intro]:
@@ -771,8 +754,8 @@ proof -
     done
 qed
 
-lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field)))
-    = Abs_fps (\<lambda>n. if n= 0 then 1 else if n=1 then - 1 else 0)"
+lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field))) =
+    Abs_fps (\<lambda>n. if n= 0 then 1 else if n=1 then - 1 else 0)"
   apply (rule fps_inverse_unique)
   apply (simp_all add: fps_eq_iff fps_mult_nth setsum_zero_lemma)
   done
@@ -872,24 +855,27 @@ qed
 
 lemma fps_deriv_eq_0_iff [simp]:
   "fps_deriv f = 0 \<longleftrightarrow> f = fps_const (f$0 :: 'a::{idom,semiring_char_0})"
-proof -
-  {
-    assume "f = fps_const (f$0)"
-    then have "fps_deriv f = fps_deriv (fps_const (f$0))" by simp
-    then have "fps_deriv f = 0" by simp
-  }
-  moreover
-  {
-    assume z: "fps_deriv f = 0"
-    then have "\<forall>n. (fps_deriv f)$n = 0" by simp
-    then have "\<forall>n. f$(n+1) = 0" by (simp del: of_nat_Suc of_nat_add One_nat_def)
-    then have "f = fps_const (f$0)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show ?lhs if ?rhs
+  proof -
+    from that have "fps_deriv f = fps_deriv (fps_const (f$0))"
+      by simp
+    then show ?thesis
+      by simp
+  qed
+  show ?rhs if ?lhs
+  proof -
+    from that have "\<forall>n. (fps_deriv f)$n = 0"
+      by simp
+    then have "\<forall>n. f$(n+1) = 0"
+      by (simp del: of_nat_Suc of_nat_add One_nat_def)
+    then show ?thesis
       apply (clarsimp simp add: fps_eq_iff fps_const_def)
       apply (erule_tac x="n - 1" in allE)
       apply simp
       done
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma fps_deriv_eq_iff:
@@ -900,7 +886,8 @@ proof -
     by simp
   also have "\<dots> \<longleftrightarrow> f - g = fps_const ((f - g) $ 0)"
     unfolding fps_deriv_eq_0_iff ..
-  finally show ?thesis by (simp add: field_simps)
+  finally show ?thesis
+    by (simp add: field_simps)
 qed
 
 lemma fps_deriv_eq_iff_ex:
@@ -977,9 +964,8 @@ proof (induct n)
   then show ?case by simp
 next
   case (Suc n)
-  note h = Suc.hyps[OF \<open>a$0 = 1\<close>]
   show ?case unfolding power_Suc fps_mult_nth
-    using h \<open>a$0 = 1\<close> fps_power_zeroth_eq_one[OF \<open>a$0=1\<close>]
+    using Suc.hyps[OF \<open>a$0 = 1\<close>] \<open>a$0 = 1\<close> fps_power_zeroth_eq_one[OF \<open>a$0=1\<close>]
     by (simp add: field_simps)
 qed
 
@@ -1000,53 +986,41 @@ lemma startsby_zero_power_iff[simp]: "a^n $0 = (0::'a::idom) \<longleftrightarro
   done
 
 lemma startsby_zero_power_prefix:
-  assumes a0: "a $0 = (0::'a::idom)"
+  assumes a0: "a $ 0 = (0::'a::idom)"
   shows "\<forall>n < k. a ^ k $ n = 0"
   using a0
 proof (induct k rule: nat_less_induct)
   fix k
   assume H: "\<forall>m<k. a $0 =  0 \<longrightarrow> (\<forall>n<m. a ^ m $ n = 0)" and a0: "a $ 0 = 0"
-  let ?ths = "\<forall>m<k. a ^ k $ m = 0"
-  {
-    assume "k = 0"
-    then have ?ths by simp
-  }
-  moreover
-  {
-    fix l
-    assume k: "k = Suc l"
-    {
-      fix m
-      assume mk: "m < k"
-      {
-        assume "m = 0"
-        then have "a^k $ m = 0"
-          using startsby_zero_power[of a k] k a0 by simp
-      }
-      moreover
-      {
-        assume m0: "m \<noteq> 0"
-        have "a ^k $ m = (a^l * a) $m"
-          by (simp add: k mult.commute)
-        also have "\<dots> = (\<Sum>i = 0..m. a ^ l $ i * a $ (m - i))"
-          by (simp add: fps_mult_nth)
-        also have "\<dots> = 0"
-          apply (rule setsum.neutral)
-          apply auto
-          apply (case_tac "x = m")
-          using a0 apply simp
-          apply (rule H[rule_format])
-          using a0 k mk apply auto
-          done
-        finally have "a^k $ m = 0" .
-      }
-      ultimately have "a^k $ m = 0"
-        by blast
-    }
-    then have ?ths by blast
-  }
-  ultimately show ?ths
-    by (cases k) auto
+  show "\<forall>m<k. a ^ k $ m = 0"
+  proof (cases k)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc l)
+    have "a^k $ m = 0" if mk: "m < k" for m
+    proof (cases "m = 0")
+      case True
+      then show ?thesis
+        using startsby_zero_power[of a k] Suc a0 by simp
+    next
+      case False
+      have "a ^k $ m = (a^l * a) $m"
+        by (simp add: Suc mult.commute)
+      also have "\<dots> = (\<Sum>i = 0..m. a ^ l $ i * a $ (m - i))"
+        by (simp add: fps_mult_nth)
+      also have "\<dots> = 0"
+        apply (rule setsum.neutral)
+        apply auto
+        apply (case_tac "x = m")
+        using a0 apply simp
+        apply (rule H[rule_format])
+        using a0 Suc mk apply auto
+        done
+      finally show ?thesis .
+    qed
+    then show ?thesis by blast
+  qed
 qed
 
 lemma startsby_zero_setsum_depends:
@@ -1089,37 +1063,31 @@ qed
 lemma fps_inverse_power:
   fixes a :: "'a::field fps"
   shows "inverse (a^n) = inverse a ^ n"
-proof -
-  {
-    assume a0: "a$0 = 0"
-    then have eq: "inverse a = 0"
+proof (cases "a$0 = 0")
+  case True
+  then have eq: "inverse a = 0"
+    by (simp add: fps_inverse_def)
+  consider "n = 0" | "n > 0" by blast
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis by simp
+  next
+    case 2
+    from startsby_zero_power[OF True 2] eq show ?thesis
       by (simp add: fps_inverse_def)
-    {
-      assume "n = 0"
-      then have ?thesis by simp
-    }
-    moreover
-    {
-      assume n: "n > 0"
-      from startsby_zero_power[OF a0 n] eq a0 n have ?thesis
-        by (simp add: fps_inverse_def)
-    }
-    ultimately have ?thesis by blast
-  }
-  moreover
-  {
-    assume a0: "a$0 \<noteq> 0"
-    have ?thesis
-      apply (rule fps_inverse_unique)
-      apply (simp add: a0)
-      unfolding power_mult_distrib[symmetric]
-      apply (rule ssubst[where t = "a * inverse a" and s= 1])
-      apply simp_all
-      apply (subst mult.commute)
-      apply (rule inverse_mult_eq_1[OF a0])
-      done
-  }
-  ultimately show ?thesis by blast
+  qed
+next
+  case False
+  show ?thesis
+    apply (rule fps_inverse_unique)
+    apply (simp add: False)
+    unfolding power_mult_distrib[symmetric]
+    apply (rule ssubst[where t = "a * inverse a" and s= 1])
+    apply simp_all
+    apply (subst mult.commute)
+    apply (rule inverse_mult_eq_1[OF False])
+    done
 qed
 
 lemma fps_deriv_power:
@@ -1158,35 +1126,42 @@ lemma fps_inverse_mult:
   fixes a :: "'a::field fps"
   shows "inverse (a * b) = inverse a * inverse b"
 proof -
-  {
-    assume a0: "a$0 = 0"
-    then have ab0: "(a*b)$0 = 0" by (simp add: fps_mult_nth)
-    from a0 ab0 have th: "inverse a = 0" "inverse (a*b) = 0" by simp_all
-    have ?thesis unfolding th by simp
-  }
-  moreover
-  {
-    assume b0: "b$0 = 0"
-    then have ab0: "(a*b)$0 = 0" by (simp add: fps_mult_nth)
-    from b0 ab0 have th: "inverse b = 0" "inverse (a*b) = 0" by simp_all
-    have ?thesis unfolding th by simp
-  }
-  moreover
-  {
-    assume a0: "a$0 \<noteq> 0" and b0: "b$0 \<noteq> 0"
-    from a0 b0 have ab0:"(a*b) $ 0 \<noteq> 0" by (simp  add: fps_mult_nth)
+  consider "a $ 0 = 0" | "b $ 0 = 0" | "a $ 0 \<noteq> 0" "b $ 0 \<noteq> 0"
+    by blast
+  then show ?thesis
+  proof cases
+    case 1
+    then have "(a * b) $ 0 = 0"
+      by (simp add: fps_mult_nth)
+    with 1 have th: "inverse a = 0" "inverse (a * b) = 0"
+      by simp_all
+    show ?thesis
+      unfolding th by simp
+  next
+    case 2
+    then have "(a * b) $ 0 = 0"
+      by (simp add: fps_mult_nth)
+    with 2 have th: "inverse b = 0" "inverse (a * b) = 0"
+      by simp_all
+    show ?thesis
+      unfolding th by simp
+  next
+    case 3
+    then have ab0:"(a * b) $ 0 \<noteq> 0"
+      by (simp add: fps_mult_nth)
     from inverse_mult_eq_1[OF ab0]
-    have "inverse (a*b) * (a*b) * inverse a * inverse b = 1 * inverse a * inverse b" by simp
+    have "inverse (a*b) * (a*b) * inverse a * inverse b = 1 * inverse a * inverse b"
+      by simp
     then have "inverse (a*b) * (inverse a * a) * (inverse b * b) = inverse a * inverse b"
       by (simp add: field_simps)
-    then have ?thesis using inverse_mult_eq_1[OF a0] inverse_mult_eq_1[OF b0] by simp
-  }
-  ultimately show ?thesis by blast
+    then show ?thesis
+      using inverse_mult_eq_1[OF \<open>a $ 0 \<noteq> 0\<close>] inverse_mult_eq_1[OF \<open>b $ 0 \<noteq> 0\<close>] by simp
+  qed
 qed
 
 lemma fps_inverse_deriv':
   fixes a :: "'a::field fps"
-  assumes a0: "a$0 \<noteq> 0"
+  assumes a0: "a $ 0 \<noteq> 0"
   shows "fps_deriv (inverse a) = - fps_deriv a / a\<^sup>2"
   using fps_inverse_deriv[OF a0]
   unfolding power2_eq_square fps_divide_def fps_inverse_mult
@@ -1212,9 +1187,8 @@ lemma fps_inverse_gp': "inverse (Abs_fps (\<lambda>n. 1::'a::field)) = 1 - X"
 lemma fps_nth_deriv_X[simp]: "fps_nth_deriv n X = (if n = 0 then X else if n=1 then 1 else 0)"
   by (cases n) simp_all
 
-
-lemma fps_inverse_X_plus1:
-  "inverse (1 + X) = Abs_fps (\<lambda>n. (- (1::'a::field)) ^ n)" (is "_ = ?r")
+lemma fps_inverse_X_plus1: "inverse (1 + X) = Abs_fps (\<lambda>n. (- (1::'a::field)) ^ n)"
+  (is "_ = ?r")
 proof -
   have eq: "(1 + X) * ?r = 1"
     unfolding minus_one_power_iff
@@ -1224,7 +1198,7 @@ proof -
 qed
 
 
-subsection\<open>Integration\<close>
+subsection \<open>Integration\<close>
 
 definition fps_integral :: "'a::field_char_0 fps \<Rightarrow> 'a \<Rightarrow> 'a fps"
   where "fps_integral a a0 = Abs_fps (\<lambda>n. if n = 0 then a0 else (a$(n - 1) / of_nat n))"
@@ -1249,7 +1223,7 @@ qed
 
 subsection \<open>Composition of FPSs\<close>
 
-definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps" (infixl "oo" 55)
+definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps"  (infixl "oo" 55)
   where "a oo b = Abs_fps (\<lambda>n. setsum (\<lambda>i. a$i * (b^i$n)) {0..n})"
 
 lemma fps_compose_nth: "(a oo b)$n = setsum (\<lambda>i. a$i * (b^i$n)) {0..n}"
@@ -1258,8 +1232,7 @@ lemma fps_compose_nth: "(a oo b)$n = setsum (\<lambda>i. a$i * (b^i$n)) {0..n}"
 lemma fps_compose_X[simp]: "a oo X = (a :: 'a::comm_ring_1 fps)"
   by (simp add: fps_ext fps_compose_def mult_delta_right setsum.delta')
 
-lemma fps_const_compose[simp]:
-  "fps_const (a::'a::comm_ring_1) oo b = fps_const a"
+lemma fps_const_compose[simp]: "fps_const (a::'a::comm_ring_1) oo b = fps_const a"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum.delta)
 
 lemma numeral_compose[simp]: "(numeral k :: 'a::comm_ring_1 fps) oo b = numeral k"
@@ -1282,33 +1255,36 @@ lemma fps_power_mult_eq_shift:
     Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a::comm_ring_1) * X^i) {0 .. k}"
   (is "?lhs = ?rhs")
 proof -
-  { fix n :: nat
+  have "?lhs $ n = ?rhs $ n" for n :: nat
+  proof -
     have "?lhs $ n = (if n < Suc k then 0 else a n)"
       unfolding X_power_mult_nth by auto
     also have "\<dots> = ?rhs $ n"
     proof (induct k)
       case 0
-      then show ?case by (simp add: fps_setsum_nth)
+      then show ?case
+        by (simp add: fps_setsum_nth)
     next
       case (Suc k)
-      note th = Suc.hyps[symmetric]
       have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n =
         (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} -
           fps_const (a (Suc k)) * X^ Suc k) $ n"
         by (simp add: field_simps)
       also have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * X^ Suc k)$n"
-        using th unfolding fps_sub_nth by simp
+        using Suc.hyps[symmetric] unfolding fps_sub_nth by simp
       also have "\<dots> = (if n < Suc (Suc k) then 0 else a n)"
         unfolding X_power_mult_right_nth
         apply (auto simp add: not_less fps_const_def)
         apply (rule cong[of a a, OF refl])
         apply arith
         done
-      finally show ?case by simp
+      finally show ?case
+        by simp
     qed
-    finally have "?lhs $ n = ?rhs $ n" .
-  }
-  then show ?thesis by (simp add: fps_eq_iff)
+    finally show ?thesis .
+  qed
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 
@@ -1338,13 +1314,15 @@ lemma XDN_linear:
 lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)"
   by (simp add: fps_eq_iff)
 
-
 lemma fps_mult_XD_shift:
   "(XD ^^ k) (a :: 'a::comm_ring_1 fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
   by (induct k arbitrary: a) (simp_all add: XD_def fps_eq_iff field_simps del: One_nat_def)
 
 
-subsubsection \<open>Rule 3 is trivial and is given by @{text fps_times_def}\<close>
+subsubsection \<open>Rule 3\<close>
+
+text \<open>Rule 3 is trivial and is given by @{text fps_times_def}.\<close>
+
 
 subsubsection \<open>Rule 5 --- summation and "division" by (1 - X)\<close>
 
@@ -1354,39 +1332,33 @@ proof -
   let ?sa = "Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
   have th0: "\<And>i. (1 - (X::'a fps)) $ i = (if i = 0 then 1 else if i = 1 then - 1 else 0)"
     by simp
-  {
-    fix n :: nat
-    {
-      assume "n = 0"
-      then have "a $ n = ((1 - X) * ?sa) $ n"
-        by (simp add: fps_mult_nth)
-    }
-    moreover
-    {
-      assume n0: "n \<noteq> 0"
-      then have u: "{0} \<union> ({1} \<union> {2..n}) = {0..n}" "{1} \<union> {2..n} = {1..n}"
-        "{0..n - 1} \<union> {n} = {0..n}"
-        by (auto simp: set_eq_iff)
-      have d: "{0} \<inter> ({1} \<union> {2..n}) = {}" "{1} \<inter> {2..n} = {}" "{0..n - 1} \<inter> {n} = {}"
-        using n0 by simp_all
-      have f: "finite {0}" "finite {1}" "finite {2 .. n}"
-        "finite {0 .. n - 1}" "finite {n}" by simp_all
-      have "((1 - X) * ?sa) $ n = setsum (\<lambda>i. (1 - X)$ i * ?sa $ (n - i)) {0 .. n}"
-        by (simp add: fps_mult_nth)
-      also have "\<dots> = a$n"
-        unfolding th0
-        unfolding setsum.union_disjoint[OF f(1) finite_UnI[OF f(2,3)] d(1), unfolded u(1)]
-        unfolding setsum.union_disjoint[OF f(2) f(3) d(2)]
-        apply (simp)
-        unfolding setsum.union_disjoint[OF f(4,5) d(3), unfolded u(3)]
-        apply simp
-        done
-      finally have "a$n = ((1 - X) * ?sa) $ n"
-        by simp
-    }
-    ultimately have "a$n = ((1 - X) * ?sa) $ n"
-      by blast
-  }
+  have "a$n = ((1 - X) * ?sa) $ n" for n
+  proof (cases "n = 0")
+    case True
+    then show ?thesis
+      by (simp add: fps_mult_nth)
+  next
+    case False
+    then have u: "{0} \<union> ({1} \<union> {2..n}) = {0..n}" "{1} \<union> {2..n} = {1..n}"
+      "{0..n - 1} \<union> {n} = {0..n}"
+      by (auto simp: set_eq_iff)
+    have d: "{0} \<inter> ({1} \<union> {2..n}) = {}" "{1} \<inter> {2..n} = {}" "{0..n - 1} \<inter> {n} = {}"
+      using False by simp_all
+    have f: "finite {0}" "finite {1}" "finite {2 .. n}"
+      "finite {0 .. n - 1}" "finite {n}" by simp_all
+    have "((1 - X) * ?sa) $ n = setsum (\<lambda>i. (1 - X)$ i * ?sa $ (n - i)) {0 .. n}"
+      by (simp add: fps_mult_nth)
+    also have "\<dots> = a$n"
+      unfolding th0
+      unfolding setsum.union_disjoint[OF f(1) finite_UnI[OF f(2,3)] d(1), unfolded u(1)]
+      unfolding setsum.union_disjoint[OF f(2) f(3) d(2)]
+      apply (simp)
+      unfolding setsum.union_disjoint[OF f(4,5) d(3), unfolded u(3)]
+      apply simp
+      done
+    finally show ?thesis
+      by simp
+  qed
   then show ?thesis
     unfolding fps_eq_iff by blast
 qed
@@ -1407,7 +1379,7 @@ proof -
 qed
 
 
-subsubsection\<open>Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
+subsubsection \<open>Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
   finite product of FPS, also the relvant instance of powers of a FPS\<close>
 
 definition "natpermute n k = {l :: nat list. length l = k \<and> listsum l = n}"
@@ -1631,7 +1603,7 @@ proof (induct m arbitrary: n rule: nat_less_induct)
   qed
 qed
 
-text\<open>The special form for powers\<close>
+text \<open>The special form for powers\<close>
 lemma fps_power_nth_Suc:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
@@ -1672,30 +1644,28 @@ lemma fps_compose_inj_right:
   shows "(b oo a = c oo a) \<longleftrightarrow> b = c"
   (is "?lhs \<longleftrightarrow>?rhs")
 proof
-  assume ?rhs
-  then show "?lhs" by simp
-next
-  assume h: ?lhs
-  {
-    fix n
-    have "b$n = c$n"
+  show ?lhs if ?rhs using that by simp
+  show ?rhs if ?lhs
+  proof -
+    have "b$n = c$n" for n
     proof (induct n rule: nat_less_induct)
       fix n
       assume H: "\<forall>m<n. b$m = c$m"
-      {
-        assume n0: "n=0"
-        from h have "(b oo a)$n = (c oo a)$n" by simp
-        then have "b$n = c$n" using n0 by (simp add: fps_compose_nth)
-      }
-      moreover
-      {
-        fix n1 assume n1: "n = Suc n1"
+      show "b$n = c$n"
+      proof (cases n)
+        case 0
+        from \<open>?lhs\<close> have "(b oo a)$n = (c oo a)$n"
+          by simp
+        then show ?thesis
+          using 0 by (simp add: fps_compose_nth)
+      next
+        case (Suc n1)
         have f: "finite {0 .. n1}" "finite {n}" by simp_all
-        have eq: "{0 .. n1} \<union> {n} = {0 .. n}" using n1 by auto
-        have d: "{0 .. n1} \<inter> {n} = {}" using n1 by auto
+        have eq: "{0 .. n1} \<union> {n} = {0 .. n}" using Suc by auto
+        have d: "{0 .. n1} \<inter> {n} = {}" using Suc by auto
         have seq: "(\<Sum>i = 0..n1. b $ i * a ^ i $ n) = (\<Sum>i = 0..n1. c $ i * a ^ i $ n)"
           apply (rule setsum.cong)
-          using H n1
+          using H Suc
           apply auto
           done
         have th0: "(b oo a) $n = (\<Sum>i = 0..n1. c $ i * a ^ i $ n) + b$n * (a$1)^n"
@@ -1706,12 +1676,12 @@ next
           unfolding fps_compose_nth setsum.union_disjoint[OF f d, unfolded eq]
           using startsby_zero_power_nth_same[OF a0]
           by simp
-        from h[unfolded fps_eq_iff, rule_format, of n] th0 th1 a1
-        have "b$n = c$n" by auto
-      }
-      ultimately show "b$n = c$n" by (cases n) auto
-    qed}
-  then show ?rhs by (simp add: fps_eq_iff)
+        from \<open>?lhs\<close>[unfolded fps_eq_iff, rule_format, of n] th0 th1 a1
+        show ?thesis by auto
+      qed
+    qed
+    then show ?rhs by (simp add: fps_eq_iff)
+  qed
 qed
 
 
@@ -1777,7 +1747,7 @@ lemma fps_radical0[simp]: "fps_radical r 0 a = 1"
   apply auto
   done
 
-lemma fps_radical_nth_0[simp]: "fps_radical r n a $ 0 = (if n=0 then 1 else r n (a$0))"
+lemma fps_radical_nth_0[simp]: "fps_radical r n a $ 0 = (if n = 0 then 1 else r n (a$0))"
   by (cases n) (simp_all add: fps_radical_def)
 
 lemma fps_radical_power_nth[simp]:
@@ -1797,8 +1767,10 @@ next
     apply (subgoal_tac "replicate k 0 ! x = 0")
     apply (auto intro: nth_replicate simp del: replicate.simps)
     done
-  also have "\<dots> = a$0" using r Suc by (simp add: setprod_constant)
-  finally show ?thesis using Suc by simp
+  also have "\<dots> = a$0"
+    using r Suc by (simp add: setprod_constant)
+  finally show ?thesis
+    using Suc by simp
 qed
 
 lemma natpermute_max_card:
@@ -1806,15 +1778,17 @@ lemma natpermute_max_card:
   shows "card {xs \<in> natpermute n (k+1). n \<in> set xs} = k + 1"
   unfolding natpermute_contain_maximal
 proof -
-  let ?A= "\<lambda>i. {replicate (k + 1) 0[i := n]}"
+  let ?A = "\<lambda>i. {replicate (k + 1) 0[i := n]}"
   let ?K = "{0 ..k}"
-  have fK: "finite ?K" by simp
-  have fAK: "\<forall>i\<in>?K. finite (?A i)" by auto
+  have fK: "finite ?K"
+    by simp
+  have fAK: "\<forall>i\<in>?K. finite (?A i)"
+    by auto
   have d: "\<forall>i\<in> ?K. \<forall>j\<in> ?K. i \<noteq> j \<longrightarrow>
     {replicate (k + 1) 0[i := n]} \<inter> {replicate (k + 1) 0[j := n]} = {}"
   proof clarify
     fix i j
-    assume i: "i \<in> ?K" and j: "j\<in> ?K" and ij: "i\<noteq>j"
+    assume i: "i \<in> ?K" and j: "j \<in> ?K" and ij: "i \<noteq> j"
     {
       assume eq: "replicate (k+1) 0 [i:=n] = replicate (k+1) 0 [j:= n]"
       have "(replicate (k+1) 0 [i:=n] ! i) = n"
@@ -1842,60 +1816,55 @@ proof -
   {
     assume r0: "(r (Suc k) (a$0)) ^ Suc k = a$0"
     from a0 r0 have r00: "r (Suc k) (a$0) \<noteq> 0" by auto
-    {
-      fix z
-      have "?r ^ Suc k $ z = a$z"
-      proof (induct z rule: nat_less_induct)
-        fix n
-        assume H: "\<forall>m<n. ?r ^ Suc k $ m = a$m"
-        {
-          assume "n = 0"
-          then have "?r ^ Suc k $ n = a $n"
-            using fps_radical_power_nth[of r "Suc k" a, OF r0] by simp
-        }
-        moreover
-        {
-          fix n1 assume n1: "n = Suc n1"
-          have nz: "n \<noteq> 0" using n1 by arith
-          let ?Pnk = "natpermute n (k + 1)"
-          let ?Pnkn = "{xs \<in> ?Pnk. n \<in> set xs}"
-          let ?Pnknn = "{xs \<in> ?Pnk. n \<notin> set xs}"
-          have eq: "?Pnkn \<union> ?Pnknn = ?Pnk" by blast
-          have d: "?Pnkn \<inter> ?Pnknn = {}" by blast
-          have f: "finite ?Pnkn" "finite ?Pnknn"
-            using finite_Un[of ?Pnkn ?Pnknn, unfolded eq]
-            by (metis natpermute_finite)+
-          let ?f = "\<lambda>v. \<Prod>j\<in>{0..k}. ?r $ v ! j"
-          have "setsum ?f ?Pnkn = setsum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
-          proof (rule setsum.cong)
-            fix v assume v: "v \<in> {xs \<in> natpermute n (k + 1). n \<in> set xs}"
-            let ?ths = "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
-              fps_radical r (Suc k) a $ n * r (Suc k) (a $ 0) ^ k"
-            from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
-              unfolding natpermute_contain_maximal by auto
-            have "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
-                (\<Prod>j\<in>{0..k}. if j = i then fps_radical r (Suc k) a $ n else r (Suc k) (a$0))"
-              apply (rule setprod.cong, simp)
-              using i r0
-              apply (simp del: replicate.simps)
-              done
-            also have "\<dots> = (fps_radical r (Suc k) a $ n) * r (Suc k) (a$0) ^ k"
-              using i r0 by (simp add: setprod_gen_delta)
-            finally show ?ths .
-          qed rule
-          then have "setsum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
-            by (simp add: natpermute_max_card[OF nz, simplified])
-          also have "\<dots> = a$n - setsum ?f ?Pnknn"
-            unfolding n1 using r00 a0 by (simp add: field_simps fps_radical_def del: of_nat_Suc)
-          finally have fn: "setsum ?f ?Pnkn = a$n - setsum ?f ?Pnknn" .
-          have "(?r ^ Suc k)$n = setsum ?f ?Pnkn + setsum ?f ?Pnknn"
-            unfolding fps_power_nth_Suc setsum.union_disjoint[OF f d, unfolded eq] ..
-          also have "\<dots> = a$n" unfolding fn by simp
-          finally have "?r ^ Suc k $ n = a $n" .
-        }
-        ultimately  show "?r ^ Suc k $ n = a $n" by (cases n) auto
+    have "?r ^ Suc k $ z = a$z" for z
+    proof (induct z rule: nat_less_induct)
+      fix n
+      assume H: "\<forall>m<n. ?r ^ Suc k $ m = a$m"
+      show "?r ^ Suc k $ n = a $n"
+      proof (cases n)
+        case 0
+        then show ?thesis
+          using fps_radical_power_nth[of r "Suc k" a, OF r0] by simp
+      next
+        case (Suc n1)
+        then have "n \<noteq> 0" by simp
+        let ?Pnk = "natpermute n (k + 1)"
+        let ?Pnkn = "{xs \<in> ?Pnk. n \<in> set xs}"
+        let ?Pnknn = "{xs \<in> ?Pnk. n \<notin> set xs}"
+        have eq: "?Pnkn \<union> ?Pnknn = ?Pnk" by blast
+        have d: "?Pnkn \<inter> ?Pnknn = {}" by blast
+        have f: "finite ?Pnkn" "finite ?Pnknn"
+          using finite_Un[of ?Pnkn ?Pnknn, unfolded eq]
+          by (metis natpermute_finite)+
+        let ?f = "\<lambda>v. \<Prod>j\<in>{0..k}. ?r $ v ! j"
+        have "setsum ?f ?Pnkn = setsum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
+        proof (rule setsum.cong)
+          fix v assume v: "v \<in> {xs \<in> natpermute n (k + 1). n \<in> set xs}"
+          let ?ths = "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
+            fps_radical r (Suc k) a $ n * r (Suc k) (a $ 0) ^ k"
+          from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
+            unfolding natpermute_contain_maximal by auto
+          have "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
+              (\<Prod>j\<in>{0..k}. if j = i then fps_radical r (Suc k) a $ n else r (Suc k) (a$0))"
+            apply (rule setprod.cong, simp)
+            using i r0
+            apply (simp del: replicate.simps)
+            done
+          also have "\<dots> = (fps_radical r (Suc k) a $ n) * r (Suc k) (a$0) ^ k"
+            using i r0 by (simp add: setprod_gen_delta)
+          finally show ?ths .
+        qed rule
+        then have "setsum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
+          by (simp add: natpermute_max_card[OF \<open>n \<noteq> 0\<close>, simplified])
+        also have "\<dots> = a$n - setsum ?f ?Pnknn"
+          unfolding Suc using r00 a0 by (simp add: field_simps fps_radical_def del: of_nat_Suc)
+        finally have fn: "setsum ?f ?Pnkn = a$n - setsum ?f ?Pnknn" .
+        have "(?r ^ Suc k)$n = setsum ?f ?Pnkn + setsum ?f ?Pnknn"
+          unfolding fps_power_nth_Suc setsum.union_disjoint[OF f d, unfolded eq] ..
+        also have "\<dots> = a$n" unfolding fn by simp
+        finally show ?thesis .
       qed
-    }
+    qed
     then have ?thesis using r0 by (simp add: fps_eq_iff)
   }
   moreover
@@ -1964,7 +1933,8 @@ qed
 
 *)
 lemma eq_divide_imp':
-  fixes c :: "'a::field" shows "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
+  fixes c :: "'a::field"
+  shows "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
   by (simp add: field_simps)
 
 lemma radical_unique:
@@ -1972,35 +1942,27 @@ lemma radical_unique:
     and a0: "r (Suc k) (b$0 ::'a::field_char_0) = a$0"
     and b0: "b$0 \<noteq> 0"
   shows "a^(Suc k) = b \<longleftrightarrow> a = fps_radical r (Suc k) b"
-proof -
-  let ?r = "fps_radical r (Suc k) b"
-  have r00: "r (Suc k) (b$0) \<noteq> 0" using b0 r0 by auto
-  {
-    assume H: "a = ?r"
-    from H have "a^Suc k = b"
-      using power_radical[OF b0, of r k, unfolded r0] by simp
-  }
-  moreover
-  {
-    assume H: "a^Suc k = b"
+    (is "?lhs \<longleftrightarrow> ?rhs" is "_ \<longleftrightarrow> a = ?r")
+proof
+  show ?lhs if ?rhs
+    using that using power_radical[OF b0, of r k, unfolded r0] by simp
+  show ?rhs if ?lhs
+  proof -
+    have r00: "r (Suc k) (b$0) \<noteq> 0" using b0 r0 by auto
     have ceq: "card {0..k} = Suc k" by simp
     from a0 have a0r0: "a$0 = ?r$0" by simp
-    {
+    have "a $ n = ?r $ n" for n
+    proof (induct n rule: nat_less_induct)
       fix n
-      have "a $ n = ?r $ n"
-      proof (induct n rule: nat_less_induct)
-        fix n
-        assume h: "\<forall>m<n. a$m = ?r $m"
-        {
-          assume "n = 0"
-          then have "a$n = ?r $n" using a0 by simp
-        }
-        moreover
-        {
-          fix n1
-          assume n1: "n = Suc n1"
-          have fK: "finite {0..k}" by simp
-        have nz: "n \<noteq> 0" using n1 by arith
+      assume h: "\<forall>m<n. a$m = ?r $m"
+      show "a$n = ?r $ n"
+      proof (cases n)
+        case 0
+        then show ?thesis using a0 by simp
+      next
+        case (Suc n1)
+        have fK: "finite {0..k}" by simp
+        have nz: "n \<noteq> 0" using Suc by simp
         let ?Pnk = "natpermute n (Suc k)"
         let ?Pnkn = "{xs \<in> ?Pnk. n \<in> set xs}"
         let ?Pnknn = "{xs \<in> ?Pnk. n \<notin> set xs}"
@@ -2034,9 +1996,9 @@ proof -
         proof (rule setsum.cong, rule refl, rule setprod.cong, simp)
           fix xs i
           assume xs: "xs \<in> ?Pnknn" and i: "i \<in> {0..k}"
-          {
-            assume c: "n \<le> xs ! i"
-            from xs i have "xs !i \<noteq> n"
+          have False if c: "n \<le> xs ! i"
+          proof -
+            from xs i have "xs ! i \<noteq> n"
               by (auto simp add: in_set_conv_nth natpermute_def)
             with c have c': "n < xs!i" by arith
             have fths: "finite {0 ..< i}" "finite {i}" "finite {i+1..<Suc k}"
@@ -2053,14 +2015,14 @@ proof -
               unfolding eqs  setsum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
               unfolding setsum.union_disjoint[OF fths(2) fths(3) d(2)]
               by simp
-            finally have False using c' by simp
-          }
+            finally show ?thesis using c' by simp
+          qed
           then have thn: "xs!i < n" by presburger
           from h[rule_format, OF thn] show "a$(xs !i) = ?r$(xs!i)" .
         qed
         have th00: "\<And>x::'a. of_nat (Suc k) * (x * inverse (of_nat (Suc k))) = x"
           by (simp add: field_simps del: of_nat_Suc)
-        from H have "b$n = a^Suc k $ n"
+        from \<open>?lhs\<close> have "b$n = a^Suc k $ n"
           by (simp add: fps_eq_iff)
         also have "a ^ Suc k$n = setsum ?g ?Pnkn + setsum ?g ?Pnknn"
           unfolding fps_power_nth_Suc
@@ -2077,18 +2039,15 @@ proof -
           apply (simp del: of_nat_Suc)
           apply (simp add: ac_simps)
           done
-        then have "a$n = ?r $n"
+        then show ?thesis
           apply (simp del: of_nat_Suc)
-          unfolding fps_radical_def n1
-          apply (simp add: field_simps n1 th00 del: of_nat_Suc)
+          unfolding fps_radical_def Suc
+          apply (simp add: field_simps Suc th00 del: of_nat_Suc)
           done
-        }
-        ultimately show "a$n = ?r $ n" by (cases n) auto
       qed
-    }
-    then have "a = ?r" by (simp add: fps_eq_iff)
-  }
-  ultimately show ?thesis by blast
+    qed
+    then show ?rhs by (simp add: fps_eq_iff)
+  qed
 qed
 
 
@@ -2148,27 +2107,26 @@ lemma radical_mult_distrib:
     fps_radical r (k) (a*b) = fps_radical r (k) a * fps_radical r (k) (b)"
 proof -
   {
-    assume  r0': "r k ((a * b) $ 0) = r k (a $ 0) * r k (b $ 0)"
-    from r0' have r0: "(r (k) ((a*b)$0)) ^ k = (a*b)$0"
+    assume r0': "r k ((a * b) $ 0) = r k (a $ 0) * r k (b $ 0)"
+    then have r0: "(r (k) ((a*b)$0)) ^ k = (a*b)$0"
       by (simp add: fps_mult_nth ra0 rb0 power_mult_distrib)
-    {
-      assume "k = 0"
-      then have ?thesis using r0' by simp
-    }
-    moreover
-    {
-      fix h assume k: "k = Suc h"
+    have ?thesis
+    proof (cases k)
+      case 0
+      then show ?thesis using r0' by simp
+    next
+      case (Suc h)
       let ?ra = "fps_radical r (Suc h) a"
       let ?rb = "fps_radical r (Suc h) b"
       have th0: "r (Suc h) ((a * b) $ 0) = (fps_radical r (Suc h) a * fps_radical r (Suc h) b) $ 0"
-        using r0' k by (simp add: fps_mult_nth)
+        using r0' Suc by (simp add: fps_mult_nth)
       have ab0: "(a*b) $ 0 \<noteq> 0"
         using a0 b0 by (simp add: fps_mult_nth)
-      from radical_unique[of r h "a*b" "fps_radical r (Suc h) a * fps_radical r (Suc h) b", OF r0[unfolded k] th0 ab0, symmetric]
-        iffD1[OF power_radical[of _ r], OF a0 ra0[unfolded k]] iffD1[OF power_radical[of _ r], OF b0 rb0[unfolded k]] k r0'
-      have ?thesis by (auto simp add: power_mult_distrib simp del: power_Suc)
-    }
-    ultimately have ?thesis by (cases k) auto
+      from radical_unique[of r h "a*b" "fps_radical r (Suc h) a * fps_radical r (Suc h) b", OF r0[unfolded Suc] th0 ab0, symmetric]
+        iffD1[OF power_radical[of _ r], OF a0 ra0[unfolded Suc]] iffD1[OF power_radical[of _ r], OF b0 rb0[unfolded Suc]] Suc r0'
+      show ?thesis
+        by (auto simp add: power_mult_distrib simp del: power_Suc)
+    qed
   }
   moreover
   {
@@ -2222,26 +2180,26 @@ lemma radical_divide:
   shows "r k ((a $ 0) / (b$0)) = r k (a$0) / r k (b $ 0) \<longleftrightarrow>
     fps_radical r k (a/b) = fps_radical r k a / fps_radical r k b"
   (is "?lhs = ?rhs")
-proof -
+proof
   let ?r = "fps_radical r k"
   from kp obtain h where k: "k = Suc h" by (cases k) auto
   have ra0': "r k (a$0) \<noteq> 0" using a0 ra0 k by auto
   have rb0': "r k (b$0) \<noteq> 0" using b0 rb0 k by auto
 
-  {
-    assume ?rhs
-    then have "?r (a/b) $ 0 = (?r a / ?r b)$0" by simp
-    then have ?lhs using k a0 b0 rb0'
-      by (simp add: fps_divide_def fps_mult_nth fps_inverse_def divide_inverse)
-  }
-  moreover
-  {
-    assume h: ?lhs
+  show ?lhs if ?rhs
+  proof -
+    from that have "?r (a/b) $ 0 = (?r a / ?r b)$0"
+      by simp
+    then show ?thesis
+      using k a0 b0 rb0' by (simp add: fps_divide_def fps_mult_nth fps_inverse_def divide_inverse)
+  qed
+  show ?rhs if ?lhs
+  proof -
     from a0 b0 have ab0[simp]: "(a/b)$0 = a$0 / b$0"
       by (simp add: fps_divide_def fps_mult_nth divide_inverse fps_inverse_def)
     have th0: "r k ((a/b)$0) ^ k = (a/b)$0"
-      by (simp add: h nonzero_power_divide[OF rb0'] ra0 rb0)
-    from a0 b0 ra0' rb0' kp h
+      by (simp add: \<open>?lhs\<close> nonzero_power_divide[OF rb0'] ra0 rb0)
+    from a0 b0 ra0' rb0' kp \<open>?lhs\<close>
     have th1: "r k ((a / b) $ 0) = (fps_radical r k a / fps_radical r k b) $ 0"
       by (simp add: fps_divide_def fps_mult_nth fps_inverse_def divide_inverse)
     from a0 b0 ra0' rb0' kp have ab0': "(a / b) $ 0 \<noteq> 0"
@@ -2251,9 +2209,8 @@ proof -
     have th2: "(?r a / ?r b)^k = a/b"
       by (simp add: fps_divide_def power_mult_distrib fps_inverse_power[symmetric])
     from iffD1[OF radical_unique[where r=r and a="?r a / ?r b" and b="a/b" and k=h], symmetric, unfolded k[symmetric], OF th0 th1 ab0' th2]
-    have ?rhs .
-  }
-  ultimately show ?thesis by blast
+    show ?thesis .
+  qed
 qed
 
 lemma radical_inverse:
@@ -2267,15 +2224,16 @@ lemma radical_inverse:
   using radical_divide[where k=k and r=r and a=1 and b=a, OF k ] ra0 r1 a0
   by (simp add: divide_inverse fps_divide_def)
 
-subsection\<open>Derivative of composition\<close>
+
+subsection \<open>Derivative of composition\<close>
 
 lemma fps_compose_deriv:
   fixes a :: "'a::idom fps"
   assumes b0: "b$0 = 0"
   shows "fps_deriv (a oo b) = ((fps_deriv a) oo b) * fps_deriv b"
 proof -
-  {
-    fix n
+  have "(fps_deriv (a oo b))$n = (((fps_deriv a) oo b) * (fps_deriv b)) $n" for n
+  proof -
     have "(fps_deriv (a oo b))$n = setsum (\<lambda>i. a $ i * (fps_deriv (b^i))$n) {0.. Suc n}"
       by (simp add: fps_compose_def field_simps setsum_right_distrib del: of_nat_Suc)
     also have "\<dots> = setsum (\<lambda>i. a$i * ((fps_const (of_nat i)) * (fps_deriv b * (b^(i - 1))))$n) {0.. Suc n}"
@@ -2314,9 +2272,9 @@ proof -
       apply (rule setsum.cong, rule refl)+
       apply simp
       done
-    finally have "(fps_deriv (a oo b))$n = (((fps_deriv a) oo b) * (fps_deriv b)) $n"
+    finally show ?thesis
       unfolding th0 by simp
-  }
+  qed
   then show ?thesis by (simp add: fps_eq_iff)
 qed
 
@@ -2325,10 +2283,10 @@ lemma fps_mult_X_plus_1_nth:
 proof (cases n)
   case 0
   then show ?thesis
-    by (simp add: fps_mult_nth )
+    by (simp add: fps_mult_nth)
 next
   case (Suc m)
-  have "((1+X)*a) $n = setsum (\<lambda>i. (1+X)$i * a$(n-i)) {0..n}"
+  have "((1 + X)*a) $ n = setsum (\<lambda>i. (1 + X) $ i * a $ (n - i)) {0..n}"
     by (simp add: fps_mult_nth)
   also have "\<dots> = setsum (\<lambda>i. (1+X)$i * a$(n-i)) {0.. 1}"
     unfolding Suc by (rule setsum.mono_neutral_right) auto
@@ -2341,20 +2299,18 @@ qed
 subsection \<open>Finite FPS (i.e. polynomials) and X\<close>
 
 lemma fps_poly_sum_X:
-  assumes z: "\<forall>i > n. a$i = (0::'a::comm_ring_1)"
+  assumes "\<forall>i > n. a$i = (0::'a::comm_ring_1)"
   shows "a = setsum (\<lambda>i. fps_const (a$i) * X^i) {0..n}" (is "a = ?r")
 proof -
-  {
-    fix i
-    have "a$i = ?r$i"
-      unfolding fps_setsum_nth fps_mult_left_const_nth X_power_nth
-      by (simp add: mult_delta_right setsum.delta' z)
-  }
-  then show ?thesis unfolding fps_eq_iff by blast
+  have "a$i = ?r$i" for i
+    unfolding fps_setsum_nth fps_mult_left_const_nth X_power_nth
+    by (simp add: mult_delta_right setsum.delta' assms)
+  then show ?thesis
+    unfolding fps_eq_iff by blast
 qed
 
 
-subsection\<open>Compositional inverses\<close>
+subsection \<open>Compositional inverses\<close>
 
 fun compinv :: "'a fps \<Rightarrow> nat \<Rightarrow> 'a::field"
 where
@@ -2370,30 +2326,28 @@ lemma fps_inv:
   shows "fps_inv a oo a = X"
 proof -
   let ?i = "fps_inv a oo a"
-  {
+  have "?i $n = X$n" for n
+  proof (induct n rule: nat_less_induct)
     fix n
-    have "?i $n = X$n"
-    proof (induct n rule: nat_less_induct)
-      fix n
-      assume h: "\<forall>m<n. ?i$m = X$m"
-      show "?i $ n = X$n"
-      proof (cases n)
-        case 0
-        then show ?thesis using a0
-          by (simp add: fps_compose_nth fps_inv_def)
-      next
-        case (Suc n1)
-        have "?i $ n = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
-          by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
-        also have "\<dots> = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
-          (X$ Suc n1 - setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
-          using a0 a1 Suc by (simp add: fps_inv_def)
-        also have "\<dots> = X$n" using Suc by simp
-        finally show ?thesis .
-      qed
+    assume h: "\<forall>m<n. ?i$m = X$m"
+    show "?i $ n = X$n"
+    proof (cases n)
+      case 0
+      then show ?thesis using a0
+        by (simp add: fps_compose_nth fps_inv_def)
+    next
+      case (Suc n1)
+      have "?i $ n = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
+        by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
+      also have "\<dots> = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
+        (X$ Suc n1 - setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
+        using a0 a1 Suc by (simp add: fps_inv_def)
+      also have "\<dots> = X$n" using Suc by simp
+      finally show ?thesis .
     qed
-  }
-  then show ?thesis by (simp add: fps_eq_iff)
+  qed
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 
@@ -2411,30 +2365,28 @@ lemma fps_ginv:
   shows "fps_ginv b a oo a = b"
 proof -
   let ?i = "fps_ginv b a oo a"
-  {
+  have "?i $n = b$n" for n
+  proof (induct n rule: nat_less_induct)
     fix n
-    have "?i $n = b$n"
-    proof (induct n rule: nat_less_induct)
-      fix n
-      assume h: "\<forall>m<n. ?i$m = b$m"
-      show "?i $ n = b$n"
-      proof (cases n)
-        case 0
-        then show ?thesis using a0
-          by (simp add: fps_compose_nth fps_ginv_def)
-      next
-        case (Suc n1)
-        have "?i $ n = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
-          by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
-        also have "\<dots> = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} +
-          (b$ Suc n1 - setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
-          using a0 a1 Suc by (simp add: fps_ginv_def)
-        also have "\<dots> = b$n" using Suc by simp
-        finally show ?thesis .
-      qed
+    assume h: "\<forall>m<n. ?i$m = b$m"
+    show "?i $ n = b$n"
+    proof (cases n)
+      case 0
+      then show ?thesis using a0
+        by (simp add: fps_compose_nth fps_ginv_def)
+    next
+      case (Suc n1)
+      have "?i $ n = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
+        by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
+      also have "\<dots> = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} +
+        (b$ Suc n1 - setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
+        using a0 a1 Suc by (simp add: fps_ginv_def)
+      also have "\<dots> = b$n" using Suc by simp
+      finally show ?thesis .
     qed
-  }
-  then show ?thesis by (simp add: fps_eq_iff)
+  qed
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 lemma fps_inv_ginv: "fps_inv = fps_ginv X"
@@ -2463,7 +2415,8 @@ proof (cases "finite S")
   case True
   show ?thesis
   proof (rule finite_induct[OF True])
-    show "setsum f {} oo a = (\<Sum>i\<in>{}. f i oo a)" by simp
+    show "setsum f {} oo a = (\<Sum>i\<in>{}. f i oo a)"
+      by simp
   next
     fix x F
     assume fF: "finite F"
@@ -2569,12 +2522,9 @@ qed
 
 lemma fps_compose_mult_distrib_lemma:
   assumes c0: "c$0 = (0::'a::idom)"
-  shows "((a oo c) * (b oo c))$n =
-    setsum (\<lambda>s. setsum (\<lambda>i. a$i * b$(s - i) * (c^s) $ n) {0..s}) {0..n}"
-    (is "?l = ?r")
+  shows "((a oo c) * (b oo c))$n = setsum (\<lambda>s. setsum (\<lambda>i. a$i * b$(s - i) * (c^s) $ n) {0..s}) {0..n}"
   unfolding product_composition_lemma[OF c0 c0] power_add[symmetric]
   unfolding setsum_pair_less_iff[where a = "\<lambda>k. a$k" and b="\<lambda>m. b$m" and c="\<lambda>s. (c ^ s)$n" and n = n] ..
-
 
 lemma fps_compose_mult_distrib:
   assumes c0: "c $ 0 = (0::'a::idom)"
@@ -2596,7 +2546,6 @@ lemma fps_compose_setprod_distrib:
 lemma fps_compose_power:
   assumes c0: "c$0 = (0::'a::idom)"
   shows "(a oo c)^n = a^n oo c"
-  (is "?l = ?r")
 proof (cases n)
   case 0
   then show ?thesis by simp
@@ -2699,8 +2648,8 @@ lemma fps_compose_assoc:
     and b0: "b$0 = 0"
   shows "a oo (b oo c) = a oo b oo c" (is "?l = ?r")
 proof -
-  {
-    fix n
+  have "?l$n = ?r$n" for n
+  proof -
     have "?l$n = (setsum (\<lambda>i. (fps_const (a$i) * b^i) oo c) {0..n})$n"
       by (simp add: fps_compose_nth fps_compose_power[OF c0] fps_const_mult_apply_left
         setsum_right_distrib mult.assoc fps_setsum_nth)
@@ -2714,9 +2663,10 @@ proof -
       apply (auto simp add: not_le)
       apply (erule startsby_zero_power_prefix[OF b0, rule_format])
       done
-    finally have "?l$n = ?r$n" .
-  }
-  then show ?thesis by (simp add: fps_eq_iff)
+    finally show ?thesis .
+  qed
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 
@@ -2729,23 +2679,23 @@ proof (cases k)
   then show ?thesis by simp
 next
   case (Suc h)
-  {
-    fix n
-    {
-      assume kn: "k>n"
-      then have "?l $ n = ?r $n" using a0 startsby_zero_power_prefix[OF a0] Suc
+  have "?l $ n = ?r $n" for n
+  proof -
+    consider "k > n" | "k \<le> n" by arith
+    then show ?thesis
+    proof cases
+      case 1
+      then show ?thesis
+        using a0 startsby_zero_power_prefix[OF a0] Suc
         by (simp add: fps_compose_nth del: power_Suc)
-    }
-    moreover
-    {
-      assume kn: "k \<le> n"
-      then have "?l$n = ?r$n"
+    next
+      case 2
+      then show ?thesis
         by (simp add: fps_compose_nth mult_delta_left setsum.delta)
-    }
-    moreover have "k >n \<or> k\<le> n"  by arith
-    ultimately have "?l$n = ?r$n"  by blast
-  }
-  then show ?thesis unfolding fps_eq_iff by blast
+    qed
+  qed
+  then show ?thesis
+    unfolding fps_eq_iff by blast
 qed
 
 lemma fps_inv_right:
@@ -2755,32 +2705,38 @@ lemma fps_inv_right:
 proof -
   let ?ia = "fps_inv a"
   let ?iaa = "a oo fps_inv a"
-  have th0: "?ia $ 0 = 0" by (simp add: fps_inv_def)
-  have th1: "?iaa $ 0 = 0" using a0 a1
-    by (simp add: fps_inv_def fps_compose_nth)
-  have th2: "X$0 = 0" by simp
-  from fps_inv[OF a0 a1] have "a oo (fps_inv a oo a) = a oo X" by simp
+  have th0: "?ia $ 0 = 0"
+    by (simp add: fps_inv_def)
+  have th1: "?iaa $ 0 = 0"
+    using a0 a1 by (simp add: fps_inv_def fps_compose_nth)
+  have th2: "X$0 = 0"
+    by simp
+  from fps_inv[OF a0 a1] have "a oo (fps_inv a oo a) = a oo X"
+    by simp
   then have "(a oo fps_inv a) oo a = X oo a"
     by (simp add: fps_compose_assoc[OF a0 th0] X_fps_compose_startby0[OF a0])
-  with fps_compose_inj_right[OF a0 a1]
-  show ?thesis by simp
+  with fps_compose_inj_right[OF a0 a1] show ?thesis
+    by simp
 qed
 
 lemma fps_inv_deriv:
-  assumes a0:"a$0 = (0::'a::field)"
+  assumes a0: "a$0 = (0::'a::field)"
     and a1: "a$1 \<noteq> 0"
   shows "fps_deriv (fps_inv a) = inverse (fps_deriv a oo fps_inv a)"
 proof -
   let ?ia = "fps_inv a"
   let ?d = "fps_deriv a oo ?ia"
   let ?dia = "fps_deriv ?ia"
-  have ia0: "?ia$0 = 0" by (simp add: fps_inv_def)
-  have th0: "?d$0 \<noteq> 0" using a1 by (simp add: fps_compose_nth)
+  have ia0: "?ia$0 = 0"
+    by (simp add: fps_inv_def)
+  have th0: "?d$0 \<noteq> 0"
+    using a1 by (simp add: fps_compose_nth)
   from fps_inv_right[OF a0 a1] have "?d * ?dia = 1"
     by (simp add: fps_compose_deriv[OF ia0, of a, symmetric] )
-  then have "inverse ?d * ?d * ?dia = inverse ?d * 1" by simp
-  with inverse_mult_eq_1 [OF th0]
-  show "?dia = inverse ?d" by simp
+  then have "inverse ?d * ?d * ?dia = inverse ?d * 1"
+    by simp
+  with inverse_mult_eq_1 [OF th0] show "?dia = inverse ?d"
+    by simp
 qed
 
 lemma fps_inv_idempotent:
@@ -2789,15 +2745,20 @@ lemma fps_inv_idempotent:
   shows "fps_inv (fps_inv a) = a"
 proof -
   let ?r = "fps_inv"
-  have ra0: "?r a $ 0 = 0" by (simp add: fps_inv_def)
-  from a1 have ra1: "?r a $ 1 \<noteq> 0" by (simp add: fps_inv_def field_simps)
-  have X0: "X$0 = 0" by simp
+  have ra0: "?r a $ 0 = 0"
+    by (simp add: fps_inv_def)
+  from a1 have ra1: "?r a $ 1 \<noteq> 0"
+    by (simp add: fps_inv_def field_simps)
+  have X0: "X$0 = 0"
+    by simp
   from fps_inv[OF ra0 ra1] have "?r (?r a) oo ?r a = X" .
-  then have "?r (?r a) oo ?r a oo a = X oo a" by simp
+  then have "?r (?r a) oo ?r a oo a = X oo a"
+    by simp
   then have "?r (?r a) oo (?r a oo a) = a"
     unfolding X_fps_compose_startby0[OF a0]
     unfolding fps_compose_assoc[OF a0 ra0, symmetric] .
-  then show ?thesis unfolding fps_inv[OF a0 a1] by simp
+  then show ?thesis
+    unfolding fps_inv[OF a0 a1] by simp
 qed
 
 lemma fps_ginv_ginv:
@@ -2808,11 +2769,14 @@ lemma fps_ginv_ginv:
   shows "fps_ginv b (fps_ginv c a) = b oo a oo fps_inv c"
 proof -
   let ?r = "fps_ginv"
-  from c0 have rca0: "?r c a $0 = 0" by (simp add: fps_ginv_def)
-  from a1 c1 have rca1: "?r c a $ 1 \<noteq> 0" by (simp add: fps_ginv_def field_simps)
+  from c0 have rca0: "?r c a $0 = 0"
+    by (simp add: fps_ginv_def)
+  from a1 c1 have rca1: "?r c a $ 1 \<noteq> 0"
+    by (simp add: fps_ginv_def field_simps)
   from fps_ginv[OF rca0 rca1]
   have "?r b (?r c a) oo ?r c a = b" .
-  then have "?r b (?r c a) oo ?r c a oo a = b oo a" by simp
+  then have "?r b (?r c a) oo ?r c a oo a = b oo a"
+    by simp
   then have "?r b (?r c a) oo (?r c a oo a) = b oo a"
     apply (subst fps_compose_assoc)
     using a0 c0
@@ -2820,13 +2784,15 @@ proof -
     done
   then have "?r b (?r c a) oo c = b oo a"
     unfolding fps_ginv[OF a0 a1] .
-  then have "?r b (?r c a) oo c oo fps_inv c= b oo a oo fps_inv c" by simp
+  then have "?r b (?r c a) oo c oo fps_inv c= b oo a oo fps_inv c"
+    by simp
   then have "?r b (?r c a) oo (c oo fps_inv c) = b oo a oo fps_inv c"
     apply (subst fps_compose_assoc)
     using a0 c0
     apply (auto simp add: fps_inv_def)
     done
-  then show ?thesis unfolding fps_inv_right[OF c0 c1] by simp
+  then show ?thesis
+    unfolding fps_inv_right[OF c0 c1] by simp
 qed
 
 lemma fps_ginv_deriv:
@@ -2838,14 +2804,19 @@ proof -
   let ?iXa = "fps_ginv X a"
   let ?d = "fps_deriv"
   let ?dia = "?d ?ia"
-  have iXa0: "?iXa $ 0 = 0" by (simp add: fps_ginv_def)
-  have da0: "?d a $ 0 \<noteq> 0" using a1 by simp
-  from fps_ginv[OF a0 a1, of b] have "?d (?ia oo a) = fps_deriv b" by simp
-  then have "(?d ?ia oo a) * ?d a = ?d b" unfolding fps_compose_deriv[OF a0] .
-  then have "(?d ?ia oo a) * ?d a * inverse (?d a) = ?d b * inverse (?d a)" by simp
+  have iXa0: "?iXa $ 0 = 0"
+    by (simp add: fps_ginv_def)
+  have da0: "?d a $ 0 \<noteq> 0"
+    using a1 by simp
+  from fps_ginv[OF a0 a1, of b] have "?d (?ia oo a) = fps_deriv b"
+    by simp
+  then have "(?d ?ia oo a) * ?d a = ?d b"
+    unfolding fps_compose_deriv[OF a0] .
+  then have "(?d ?ia oo a) * ?d a * inverse (?d a) = ?d b * inverse (?d a)"
+    by simp
   then have "(?d ?ia oo a) * (inverse (?d a) * ?d a) = ?d b / ?d a"
     by (simp add: fps_divide_def)
-  then have "(?d ?ia oo a) oo ?iXa =  (?d b / ?d a) oo ?iXa "
+  then have "(?d ?ia oo a) oo ?iXa =  (?d b / ?d a) oo ?iXa"
     unfolding inverse_mult_eq_1[OF da0] by simp
   then have "?d ?ia oo (a oo ?iXa) =  (?d b / ?d a) oo ?iXa"
     unfolding fps_compose_assoc[OF iXa0 a0] .
@@ -2853,57 +2824,58 @@ proof -
     unfolding fps_inv_right[OF a0 a1] by simp
 qed
 
-subsection\<open>Elementary series\<close>
 
-subsubsection\<open>Exponential series\<close>
+subsection \<open>Elementary series\<close>
+
+subsubsection \<open>Exponential series\<close>
 
 definition "E x = Abs_fps (\<lambda>n. x^n / of_nat (fact n))"
 
 lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::field_char_0) * E a" (is "?l = ?r")
 proof -
-  {
-    fix n
-    have "?l$n = ?r $ n"
-      apply (auto simp add: E_def field_simps power_Suc[symmetric]
-        simp del: fact.simps of_nat_Suc power_Suc)
-      apply (simp add: of_nat_mult field_simps)
-      done
-  }
-  then show ?thesis by (simp add: fps_eq_iff)
+  have "?l$n = ?r $ n" for n
+    apply (auto simp add: E_def field_simps power_Suc[symmetric]
+      simp del: fact.simps of_nat_Suc power_Suc)
+    apply (simp add: of_nat_mult field_simps)
+    done
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 lemma E_unique_ODE:
   "fps_deriv a = fps_const c * a \<longleftrightarrow> a = fps_const (a$0) * E (c::'a::field_char_0)"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume d: ?lhs
-  from d have th: "\<And>n. a $ Suc n = c * a$n / of_nat (Suc n)"
-    by (simp add: fps_deriv_def fps_eq_iff field_simps del: of_nat_Suc)
-  {
-    fix n
-    have "a$n = a$0 * c ^ n/ (fact n)"
-      apply (induct n)
-      apply simp
-      unfolding th
-      using fact_gt_zero
-      apply (simp add: field_simps del: of_nat_Suc fact_Suc)
-      apply simp
-      done
-  }
-  note th' = this
-  show ?rhs by (auto simp add: fps_eq_iff fps_const_mult_left E_def intro: th')
-next
-  assume h: ?rhs
-  show ?lhs
-    by (metis E_deriv fps_deriv_mult_const_left h mult.left_commute)
+  show ?rhs if ?lhs
+  proof -
+    from that have th: "\<And>n. a $ Suc n = c * a$n / of_nat (Suc n)"
+      by (simp add: fps_deriv_def fps_eq_iff field_simps del: of_nat_Suc)
+    have th': "a$n = a$0 * c ^ n/ (fact n)" for n
+    proof (induct n)
+      case 0
+      then show ?case by simp
+    next
+      case Suc
+      then show ?case
+        unfolding th
+        using fact_gt_zero
+        apply (simp add: field_simps del: of_nat_Suc fact_Suc)
+        apply simp
+        done
+    qed
+    show ?thesis
+      by (auto simp add: fps_eq_iff fps_const_mult_left E_def intro: th')
+  qed
+  show ?lhs if ?rhs
+    using that by (metis E_deriv fps_deriv_mult_const_left mult.left_commute)
 qed
 
 lemma E_add_mult: "E (a + b) = E (a::'a::field_char_0) * E b" (is "?l = ?r")
 proof -
-  have "fps_deriv (?r) = fps_const (a+b) * ?r"
+  have "fps_deriv ?r = fps_const (a + b) * ?r"
     by (simp add: fps_const_add[symmetric] field_simps del: fps_const_add)
-  then have "?r = ?l" apply (simp only: E_unique_ODE)
-    by (simp add: fps_mult_nth E_def)
+  then have "?r = ?l"
+    by (simp only: E_unique_ODE) (simp add: fps_mult_nth E_def)
   then show ?thesis ..
 qed
 
@@ -2928,19 +2900,20 @@ lemma X_compose_E[simp]: "X oo E (a::'a::field) = E a - 1"
   by (simp add: fps_eq_iff X_fps_compose)
 
 lemma LE_compose:
-  assumes a: "a\<noteq>0"
+  assumes a: "a \<noteq> 0"
   shows "fps_inv (E a - 1) oo (E a - 1) = X"
     and "(E a - 1) oo fps_inv (E a - 1) = X"
 proof -
   let ?b = "E a - 1"
-  have b0: "?b $ 0 = 0" by simp
-  have b1: "?b $ 1 \<noteq> 0" by (simp add: a)
+  have b0: "?b $ 0 = 0"
+    by simp
+  have b1: "?b $ 1 \<noteq> 0"
+    by (simp add: a)
   from fps_inv[OF b0 b1] show "fps_inv (E a - 1) oo (E a - 1) = X" .
   from fps_inv_right[OF b0 b1] show "(E a - 1) oo fps_inv (E a - 1) = X" .
 qed
 
-lemma fps_const_inverse:
-  "a \<noteq> 0 \<Longrightarrow> inverse (fps_const (a::'a::field)) = fps_const (inverse a)"
+lemma fps_const_inverse: "a \<noteq> 0 \<Longrightarrow> inverse (fps_const (a::'a::field)) = fps_const (inverse a)"
   apply (auto simp add: fps_eq_iff fps_inverse_def)
   apply (case_tac n)
   apply auto
@@ -2960,8 +2933,8 @@ proof -
   have th0: "E ?ck ^ (Suc k) = E c" unfolding E_power_mult eq0 ..
   have th: "r (Suc k) (E c $0) ^ Suc k = E c $ 0"
     "r (Suc k) (E c $ 0) = E ?ck $ 0" "E c $ 0 \<noteq> 0" using r by simp_all
-  from th0 radical_unique[where r=r and k=k, OF th]
-  show ?thesis by auto
+  from th0 radical_unique[where r=r and k=k, OF th] show ?thesis
+    by auto
 qed
 
 lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
@@ -2970,10 +2943,11 @@ lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
   done
 
 
-subsubsection\<open>Logarithmic series\<close>
+subsubsection \<open>Logarithmic series\<close>
 
 lemma Abs_fps_if_0:
-  "Abs_fps(\<lambda>n. if n=0 then (v::'a::ring_1) else f n) = fps_const v + X * Abs_fps (\<lambda>n. f (Suc n))"
+  "Abs_fps (\<lambda>n. if n = 0 then (v::'a::ring_1) else f n) =
+    fps_const v + X * Abs_fps (\<lambda>n. f (Suc n))"
   by (auto simp add: fps_eq_iff)
 
 definition L :: "'a::field_char_0 \<Rightarrow> 'a fps"
@@ -2983,7 +2957,7 @@ lemma fps_deriv_L: "fps_deriv (L c) = fps_const (1/c) * inverse (1 + X)"
   unfolding fps_inverse_X_plus1
   by (simp add: L_def fps_eq_iff del: of_nat_Suc)
 
-lemma L_nth: "L c $ n = (if n=0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
+lemma L_nth: "L c $ n = (if n = 0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
   by (simp add: L_def field_simps)
 
 lemma L_0[simp]: "L c $ 0 = 0" by (simp add: L_def)
@@ -3032,7 +3006,7 @@ proof-
 qed
 
 
-subsubsection\<open>Binomial series\<close>
+subsubsection \<open>Binomial series\<close>
 
 definition "fps_binomial a = Abs_fps (\<lambda>n. a gchoose n)"
 
@@ -3043,65 +3017,68 @@ lemma fps_binomial_ODE_unique:
   fixes c :: "'a::field_char_0"
   shows "fps_deriv a = (fps_const c * a) / (1 + X) \<longleftrightarrow> a = fps_const (a$0) * fps_binomial c"
   (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
+proof
   let ?da = "fps_deriv a"
   let ?x1 = "(1 + X):: 'a fps"
   let ?l = "?x1 * ?da"
   let ?r = "fps_const c * a"
-  have x10: "?x1 $ 0 \<noteq> 0" by simp
-  have "?l = ?r \<longleftrightarrow> inverse ?x1 * ?l = inverse ?x1 * ?r" by simp
-  also have "\<dots> \<longleftrightarrow> ?da = (fps_const c * a) / ?x1"
-    apply (simp only: fps_divide_def  mult.assoc[symmetric] inverse_mult_eq_1[OF x10])
-    apply (simp add: field_simps)
-    done
-  finally have eq: "?l = ?r \<longleftrightarrow> ?lhs" by simp
-  moreover
-  {assume h: "?l = ?r"
-    {fix n
-      from h have lrn: "?l $ n = ?r$n" by simp
 
-      from lrn
-      have "a$ Suc n = ((c - of_nat n) / of_nat (Suc n)) * a $n"
+  have eq: "?l = ?r \<longleftrightarrow> ?lhs"
+  proof -
+    have x10: "?x1 $ 0 \<noteq> 0" by simp
+    have "?l = ?r \<longleftrightarrow> inverse ?x1 * ?l = inverse ?x1 * ?r" by simp
+    also have "\<dots> \<longleftrightarrow> ?da = (fps_const c * a) / ?x1"
+      apply (simp only: fps_divide_def  mult.assoc[symmetric] inverse_mult_eq_1[OF x10])
+      apply (simp add: field_simps)
+      done
+    finally show ?thesis .
+  qed
+
+  show ?rhs if ?lhs
+  proof -
+    from eq that have h: "?l = ?r" ..
+    have th0: "a$ Suc n = ((c - of_nat n) / of_nat (Suc n)) * a $n" for n
+    proof -
+      from h have "?l $ n = ?r $ n" by simp
+      then show ?thesis
         apply (simp add: field_simps del: of_nat_Suc)
-        by (cases n, simp_all add: field_simps del: of_nat_Suc)
-    }
-    note th0 = this
-    {
-      fix n
-      have "a$n = (c gchoose n) * a$0"
-      proof (induct n)
-        case 0
-        then show ?case by simp
-      next
-        case (Suc m)
-        then show ?case unfolding th0
-          apply (simp add: field_simps del: of_nat_Suc)
-          unfolding mult.assoc[symmetric] gbinomial_mult_1
-          apply (simp add: field_simps)
-          done
-      qed
-    }
-    note th1 = this
-    have ?rhs
+        apply (cases n)
+        apply (simp_all add: field_simps del: of_nat_Suc)
+        done
+    qed
+    have th1: "a $ n = (c gchoose n) * a $ 0" for n
+    proof (induct n)
+      case 0
+      then show ?case by simp
+    next
+      case (Suc m)
+      then show ?case
+        unfolding th0
+        apply (simp add: field_simps del: of_nat_Suc)
+        unfolding mult.assoc[symmetric] gbinomial_mult_1
+        apply (simp add: field_simps)
+        done
+    qed
+    show ?thesis
       apply (simp add: fps_eq_iff)
       apply (subst th1)
       apply (simp add: field_simps)
       done
-  }
-  moreover
-  {
-    assume h: ?rhs
-    have th00: "\<And>x y. x * (a$0 * y) = a$0 * (x*y)"
+  qed
+
+  show ?lhs if ?rhs
+  proof -
+    have th00: "x * (a $ 0 * y) = a $ 0 * (x * y)" for x y
       by (simp add: mult.commute)
     have "?l = ?r"
-      apply (subst h)
-      apply (subst (2) h)
+      apply (subst \<open>?rhs\<close>)
+      apply (subst (2) \<open>?rhs\<close>)
       apply (clarsimp simp add: fps_eq_iff field_simps)
       unfolding mult.assoc[symmetric] th00 gbinomial_mult_1
       apply (simp add: field_simps gbinomial_mult_1)
       done
-  }
-  ultimately show ?thesis by blast
+    with eq show ?thesis ..
+  qed
 qed
 
 lemma fps_binomial_deriv: "fps_deriv (fps_binomial c) = fps_const c * fps_binomial c / (1 + X)"
@@ -3145,7 +3122,7 @@ proof-
   show ?thesis by (simp add: fps_inverse_def)
 qed
 
-text\<open>Vandermonde's Identity as a consequence\<close>
+text \<open>Vandermonde's Identity as a consequence\<close>
 lemma gbinomial_Vandermonde:
   "setsum (\<lambda>k. (a gchoose k) * (b gchoose (n - k))) {0..n} = (a + b) gchoose n"
 proof -
@@ -3164,8 +3141,8 @@ lemma binomial_Vandermonde:
   apply simp
   done
 
-lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2*n) choose n"
-  using binomial_Vandermonde[of n n n,symmetric]
+lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2 * n) choose n"
+  using binomial_Vandermonde[of n n n, symmetric]
   unfolding mult_2
   apply (simp add: power2_eq_square)
   apply (rule setsum.cong)
@@ -3183,22 +3160,24 @@ proof -
   let ?m1 = "\<lambda>m. (- 1 :: 'a) ^ m"
   let ?f = "\<lambda>m. of_nat (fact m)"
   let ?p = "\<lambda>(x::'a). pochhammer (- x)"
-  from b have bn0: "?p b n \<noteq> 0" unfolding pochhammer_eq_0_iff by simp
+  from b have bn0: "?p b n \<noteq> 0"
+    unfolding pochhammer_eq_0_iff by simp
   {
     fix k
     assume kn: "k \<in> {0..n}"
-    {
-      assume c:"pochhammer (b - of_nat n + 1) n = 0"
+    have nz: "pochhammer (1 + b - of_nat n) n \<noteq> 0"
+    proof
+      assume "pochhammer (1 + b - of_nat n) n = 0"
+      then have c: "pochhammer (b - of_nat n + 1) n = 0"
+        by (simp add: algebra_simps)
       then obtain j where j: "j < n" "b - of_nat n + 1 = - of_nat j"
         unfolding pochhammer_eq_0_iff by blast
       from j have "b = of_nat n - of_nat j - of_nat 1"
         by (simp add: algebra_simps)
       then have "b = of_nat (n - j - 1)"
         using j kn by (simp add: of_nat_diff)
-      with b have False using j by auto
-    }
-    then have nz: "pochhammer (1 + b - of_nat n) n \<noteq> 0"
-      by (auto simp add: algebra_simps)
+      with b show False using j by auto
+    qed
 
     from nz kn [simplified] have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0"
       by (rule pochhammer_neq_0_mono)
@@ -3212,24 +3191,26 @@ proof -
     moreover
     {
       assume n0: "n \<noteq> 0" and k0: "k \<noteq> 0"
-      then obtain m where m: "n = Suc m" by (cases n) auto
-      from k0 obtain h where h: "k = Suc h" by (cases k) auto
-      {
-        assume "k = n"
-        then have "b gchoose (n - k) =
-          (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+      then obtain m where m: "n = Suc m"
+        by (cases n) auto
+      from k0 obtain h where h: "k = Suc h"
+        by (cases k) auto
+      have "b gchoose (n - k) =
+        (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+      proof (cases "k = n")
+        case True
+        then show ?thesis
           using pochhammer_minus'[where k=k and b=b]
           apply (simp add: pochhammer_same)
           using bn0
           apply (simp add: field_simps power_add[symmetric])
           done
-      }
-      moreover
-      {
-        assume nk: "k \<noteq> n"
+      next
+        case False
+        with kn have kn': "k < n"
+          by simp
         have m1nk: "?m1 n = setprod (\<lambda>i. - 1) {0..m}" "?m1 k = setprod (\<lambda>i. - 1) {0..h}"
           by (simp_all add: setprod_constant m h)
-        from kn nk have kn': "k < n" by simp
         have bnz0: "pochhammer (b - of_nat n + 1) k \<noteq> 0"
           using bn0 kn
           unfolding pochhammer_eq_0_iff
@@ -3291,14 +3272,8 @@ proof -
         also have "\<dots> = b gchoose (n - k)"
           unfolding th1 th2
           using kn' by (simp add: gbinomial_def)
-        finally have "b gchoose (n - k) =
-          (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
-          by simp
-      }
-      ultimately
-      have "b gchoose (n - k) =
-        (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
-        by (cases "k = n") auto
+        finally show ?thesis by simp
+      qed
     }
     ultimately have "b gchoose (n - k) =
         (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
@@ -3338,7 +3313,7 @@ proof -
   let ?b = "c + of_nat n - 1"
   have h: "\<forall> j \<in>{0..< n}. ?b \<noteq> of_nat j" using c
     apply (auto simp add: algebra_simps of_nat_diff)
-    apply (erule_tac x= "n - j - 1" in ballE)
+    apply (erule_tac x = "n - j - 1" in ballE)
     apply (auto simp add: of_nat_diff algebra_simps)
     done
   have th0: "pochhammer (- (?a + ?b)) n = (- 1)^n * pochhammer (c - a) n"
@@ -3350,11 +3325,12 @@ proof -
   have nz: "pochhammer c n \<noteq> 0" using c
     by (simp add: pochhammer_eq_0_iff)
   from Vandermonde_pochhammer_lemma[where a = "?a" and b="?b" and n=n, OF h, unfolded th0 th1]
-  show ?thesis using nz by (simp add: field_simps setsum_right_distrib)
+  show ?thesis
+    using nz by (simp add: field_simps setsum_right_distrib)
 qed
 
 
-subsubsection\<open>Formal trigonometric functions\<close>
+subsubsection \<open>Formal trigonometric functions\<close>
 
 definition "fps_sin (c::'a::field_char_0) =
   Abs_fps (\<lambda>n. if even n then 0 else (- 1) ^((n - 1) div 2) * c^n /(of_nat (fact n)))"
@@ -3367,52 +3343,58 @@ lemma fps_sin_deriv:
   (is "?lhs = ?rhs")
 proof (rule fps_ext)
   fix n :: nat
-  {
-    assume en: "even n"
+  show "?lhs $ n = ?rhs $ n"
+  proof (cases "even n")
+    case True
     have "?lhs$n = of_nat (n+1) * (fps_sin c $ (n+1))" by simp
     also have "\<dots> = of_nat (n+1) * ((- 1)^(n div 2) * c^Suc n / of_nat (fact (Suc n)))"
-      using en by (simp add: fps_sin_def)
+      using True by (simp add: fps_sin_def)
     also have "\<dots> = (- 1)^(n div 2) * c^Suc n * (of_nat (n+1) / (of_nat (Suc n) * of_nat (fact n)))"
       unfolding fact_Suc of_nat_mult
       by (simp add: field_simps del: of_nat_add of_nat_Suc)
     also have "\<dots> = (- 1)^(n div 2) *c^Suc n / of_nat (fact n)"
       by (simp add: field_simps del: of_nat_add of_nat_Suc)
-    finally have "?lhs $n = ?rhs$n" using en
-      by (simp add: fps_cos_def field_simps)
-  }
-  then show "?lhs $ n = ?rhs $ n"
-    by (cases "even n") (simp_all add: fps_deriv_def fps_sin_def fps_cos_def)
+    finally show ?thesis
+      using True by (simp add: fps_cos_def field_simps)
+  next
+    case False
+    then show ?thesis
+      by (simp_all add: fps_deriv_def fps_sin_def fps_cos_def)
+  qed
 qed
 
 lemma fps_cos_deriv: "fps_deriv (fps_cos c) = fps_const (- c)* (fps_sin c)"
   (is "?lhs = ?rhs")
 proof (rule fps_ext)
-  have th0: "\<And>n. - ((- 1::'a) ^ n) = (- 1)^Suc n" by simp
-  have th1: "\<And>n. odd n \<Longrightarrow> Suc ((n - 1) div 2) = Suc n div 2"
-    by (case_tac n, simp_all)
-  fix n::nat
-  {
-    assume en: "odd n"
-    from en have n0: "n \<noteq>0 " by presburger
+  have th0: "- ((- 1::'a) ^ n) = (- 1)^Suc n" for n
+    by simp
+  show "?lhs $ n = ?rhs $ n" for n
+  proof (cases "even n")
+    case False
+    then have n0: "n \<noteq> 0" by presburger
+    from False have th1: "Suc ((n - 1) div 2) = Suc n div 2"
+      by (cases n) simp_all
     have "?lhs$n = of_nat (n+1) * (fps_cos c $ (n+1))" by simp
     also have "\<dots> = of_nat (n+1) * ((- 1)^((n + 1) div 2) * c^Suc n / of_nat (fact (Suc n)))"
-      using en by (simp add: fps_cos_def)
+      using False by (simp add: fps_cos_def)
     also have "\<dots> = (- 1)^((n + 1) div 2)*c^Suc n * (of_nat (n+1) / (of_nat (Suc n) * of_nat (fact n)))"
       unfolding fact_Suc of_nat_mult
       by (simp add: field_simps del: of_nat_add of_nat_Suc)
     also have "\<dots> = (- 1)^((n + 1) div 2) * c^Suc n / of_nat (fact n)"
       by (simp add: field_simps del: of_nat_add of_nat_Suc)
     also have "\<dots> = (- ((- 1)^((n - 1) div 2))) * c^Suc n / of_nat (fact n)"
-      unfolding th0 unfolding th1[OF en] by simp
-    finally have "?lhs $n = ?rhs$n" using en
-      by (simp add: fps_sin_def field_simps)
-  }
-  then show "?lhs $ n = ?rhs $ n"
-    by (cases "even n") (simp_all add: fps_deriv_def fps_sin_def fps_cos_def)
+      unfolding th0 unfolding th1 by simp
+    finally show ?thesis
+      using False by (simp add: fps_sin_def field_simps)
+  next
+    case True
+    then show ?thesis
+      by (simp_all add: fps_deriv_def fps_sin_def fps_cos_def)
+  qed
 qed
 
-lemma fps_sin_cos_sum_of_squares:
-  "(fps_cos c)\<^sup>2 + (fps_sin c)\<^sup>2 = 1" (is "?lhs = 1")
+lemma fps_sin_cos_sum_of_squares: "(fps_cos c)\<^sup>2 + (fps_sin c)\<^sup>2 = 1"
+  (is "?lhs = _")
 proof -
   have "fps_deriv ?lhs = 0"
     apply (simp add:  fps_deriv_power fps_sin_deriv fps_cos_deriv)
@@ -3432,9 +3414,10 @@ lemma fps_sin_nth_1 [simp]: "fps_sin c $ 1 = c"
   unfolding fps_sin_def by simp
 
 lemma fps_sin_nth_add_2:
-  "fps_sin c $ (n + 2) = - (c * c * fps_sin c $ n / (of_nat(n+1) * of_nat(n+2)))"
+    "fps_sin c $ (n + 2) = - (c * c * fps_sin c $ n / (of_nat (n + 1) * of_nat (n + 2)))"
   unfolding fps_sin_def
-  apply (cases n, simp)
+  apply (cases n)
+  apply simp
   apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
   apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
   done
@@ -3446,7 +3429,7 @@ lemma fps_cos_nth_1 [simp]: "fps_cos c $ 1 = 0"
   unfolding fps_cos_def by simp
 
 lemma fps_cos_nth_add_2:
-  "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat(n+1) * of_nat(n+2)))"
+  "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat (n + 1) * of_nat (n + 2)))"
   unfolding fps_cos_def
   apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
   apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
@@ -3545,27 +3528,25 @@ proof -
 qed
 
 text \<open>Connection to E c over the complex numbers --- Euler and De Moivre\<close>
-lemma Eii_sin_cos: "E (ii * c) = fps_cos c + fps_const ii * fps_sin c "
+
+lemma Eii_sin_cos: "E (ii * c) = fps_cos c + fps_const ii * fps_sin c"
   (is "?l = ?r")
 proof -
-  { fix n :: nat
-    {
-      assume en: "even n"
-      from en obtain m where m: "n = 2 * m" ..
-
-      have "?l $n = ?r$n"
-        by (simp add: m fps_sin_def fps_cos_def power_mult_distrib power_mult power_minus [of "c ^ 2"])
-    }
-    moreover
-    {
-      assume "odd n"
-      then obtain m where m: "n = 2 * m + 1" ..
-      have "?l $n = ?r$n"
-        by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
-          power_mult power_minus [of "c ^ 2"])
-    }
-    ultimately have "?l $n = ?r$n"  by blast
-  } then show ?thesis by (simp add: fps_eq_iff)
+  have "?l $ n = ?r $ n" for n
+  proof (cases "even n")
+    case True
+    then obtain m where m: "n = 2 * m" ..
+    show ?thesis
+      by (simp add: m fps_sin_def fps_cos_def power_mult_distrib power_mult power_minus [of "c ^ 2"])
+  next
+    case False
+    then obtain m where m: "n = 2 * m + 1" ..
+    show ?thesis
+      by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
+        power_mult power_minus [of "c ^ 2"])
+  qed
+  then show ?thesis
+    by (simp add: fps_eq_iff)
 qed
 
 lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c"
@@ -3582,8 +3563,8 @@ proof -
   have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2"
     by (simp add: numeral_fps_const)
   show ?thesis
-  unfolding Eii_sin_cos minus_mult_commute
-  by (simp add: fps_sin_even fps_cos_odd numeral_fps_const fps_divide_def fps_const_inverse th)
+    unfolding Eii_sin_cos minus_mult_commute
+    by (simp add: fps_sin_even fps_cos_odd numeral_fps_const fps_divide_def fps_const_inverse th)
 qed
 
 lemma fps_sin_Eii: "fps_sin c = (E (ii * c) - E (- ii * c)) / fps_const (2*ii)"
@@ -3602,7 +3583,9 @@ lemma fps_tan_Eii:
   apply simp
   done
 
-lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat n * a) + fps_const ii * fps_sin (of_nat n * a)"
+lemma fps_demoivre:
+  "(fps_cos a + fps_const ii * fps_sin a)^n =
+    fps_cos (of_nat n * a) + fps_const ii * fps_sin (of_nat n * a)"
   unfolding Eii_sin_cos[symmetric] E_power_mult
   by (simp add: ac_simps)
 
@@ -3648,7 +3631,7 @@ qed
 lemma F_B[simp]: "F [-a] [] (- 1) = fps_binomial a"
   by (simp add: fps_eq_iff gbinomial_pochhammer algebra_simps)
 
-lemma F_0[simp]: "F as bs c $0 = 1"
+lemma F_0[simp]: "F as bs c $ 0 = 1"
   apply simp
   apply (subgoal_tac "\<forall>as. foldl (\<lambda>(r::'a) (a::'a). r) 1 as = 1")
   apply auto
@@ -3674,8 +3657,10 @@ lemma F_rec:
 lemma XD_nth[simp]: "XD a $ n = (if n = 0 then 0 else of_nat n * a$n)"
   by (simp add: XD_def)
 
-lemma XD_0th[simp]: "XD a $ 0 = 0" by simp
-lemma XD_Suc[simp]:" XD a $ Suc n = of_nat (Suc n) * a $ Suc n" by simp
+lemma XD_0th[simp]: "XD a $ 0 = 0"
+  by simp
+lemma XD_Suc[simp]:" XD a $ Suc n = of_nat (Suc n) * a $ Suc n"
+  by simp
 
 definition "XDp c a = XD a + fps_const c * a"
 
@@ -3739,6 +3724,9 @@ lemma nth_equal_imp_dist_less:
   assumes "\<And>j. j \<le> i \<Longrightarrow> f $ j = g $ j"
   shows "dist f g < inverse (2 ^ i)"
 proof (cases "f = g")
+  case True
+  then show ?thesis by simp
+next
   case False
   then have "\<exists>n. f $ n \<noteq> g $ n" by (simp add: fps_eq_iff)
   with assms have "dist f g = inverse (2 ^ (LEAST n. f $ n \<noteq> g $ n))"
@@ -3747,7 +3735,7 @@ proof (cases "f = g")
   from assms \<open>\<exists>n. f $ n \<noteq> g $ n\<close> have "i < (LEAST n. f $ n \<noteq> g $ n)"
     by (metis (mono_tags) LeastI not_less)
   ultimately show ?thesis by simp
-qed simp
+qed
 
 lemma dist_less_eq_nth_equal: "dist f g < inverse (2 ^ i) \<longleftrightarrow> (\<forall>j \<le> i. f $ j = g $ j)"
   using dist_less_imp_nth_equal nth_equal_imp_dist_less by blast
@@ -3756,14 +3744,17 @@ instance fps :: (comm_ring_1) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a fps"
   assume "Cauchy X"
-  {
-    fix i
-    have "0 < inverse ((2::real)^i)" by simp
-    from metric_CauchyD[OF \<open>Cauchy X\<close> this] dist_less_imp_nth_equal
-    have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. X M $ j = X m $ j" by blast
-  }
-  then obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j" by metis
-  then have "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j" by metis
+  obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j"
+  proof -
+    have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. X M $ j = X m $ j" for i
+    proof -
+      have "0 < inverse ((2::real)^i)" by simp
+      from metric_CauchyD[OF \<open>Cauchy X\<close> this] dist_less_imp_nth_equal
+      show ?thesis by blast
+    qed
+    then show ?thesis using that by metis
+  qed
+
   show "convergent X"
   proof (rule convergentI)
     show "X ----> Abs_fps (\<lambda>i. X (M i) $ i)"
@@ -3776,18 +3767,19 @@ proof
         unfolding eventually_nhds
         apply clarsimp
         apply (rule FalseE)
-        apply auto --\<open>slow\<close>
+        apply auto -- \<open>slow\<close>
         done
-      then obtain i where "inverse (2 ^ i) < e" by (auto simp: eventually_sequentially)
-      have "eventually (\<lambda>x. M i \<le> x) sequentially" by (auto simp: eventually_sequentially)
+      then obtain i where "inverse (2 ^ i) < e"
+        by (auto simp: eventually_sequentially)
+      have "eventually (\<lambda>x. M i \<le> x) sequentially"
+        by (auto simp: eventually_sequentially)
       then show "eventually (\<lambda>x. dist (X x) (Abs_fps (\<lambda>i. X (M i) $ i)) < e) sequentially"
       proof eventually_elim
         fix x
-        assume "M i \<le> x"
-        moreover
-        have "\<And>j. j \<le> i \<Longrightarrow> X (M i) $ j = X (M j) $ j"
-          using M by (metis nat_le_linear)
-        ultimately have "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < inverse (2 ^ i)"
+        assume x: "M i \<le> x"
+        have "X (M i) $ j = X (M j) $ j" if "j \<le> i" for j
+          using M that by (metis nat_le_linear)
+        with x have "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < inverse (2 ^ i)"
           using M by (force simp: dist_less_eq_nth_equal)
         also note \<open>inverse (2 ^ i) < e\<close>
         finally show "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < e" .
