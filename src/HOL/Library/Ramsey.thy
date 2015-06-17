@@ -86,7 +86,7 @@ next
            by(auto simp:clique_def insert_commute)
           moreover have "card(insert v R) = m"
             using \<open>?C\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>m\<noteq>0\<close> by simp
-          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by blast
+          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by (metis insert_subset)
         } ultimately have "?EX V E m n" using CI by blast
       } moreover
       { assume "r2 \<le> card ?N"
@@ -106,7 +106,7 @@ next
             by(auto simp:indep_def insert_commute)
           moreover have "card(insert v R) = n"
             using \<open>?I\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>n\<noteq>0\<close> by simp
-          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by blast
+          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by (metis insert_subset)
         } ultimately have "?EX V E m n" using CI by blast
       } ultimately show "?EX V E m n" by blast
     qed
