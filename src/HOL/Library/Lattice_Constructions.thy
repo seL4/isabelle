@@ -255,13 +255,13 @@ lemma [simp]: "y \<le> Top"
   unfolding less_eq_flat_complete_lattice_def by (auto split: flat_complete_lattice.splits)
 
 lemma greater_than_two_values:
-  assumes "a \<noteq> aa" "Value a \<le> z" "Value aa \<le> z"
+  assumes "a \<noteq> b" "Value a \<le> z" "Value b \<le> z"
   shows "z = Top"
   using assms
   by (cases z) (auto simp add: less_eq_flat_complete_lattice_def)
 
 lemma lesser_than_two_values:
-  assumes "a \<noteq> aa" "z \<le> Value a" "z \<le> Value aa"
+  assumes "a \<noteq> b" "z \<le> Value a" "z \<le> Value b"
   shows "z = Bot"
   using assms
   by (cases z) (auto simp add: less_eq_flat_complete_lattice_def)
@@ -358,41 +358,55 @@ proof
 next
   fix z :: "'a flat_complete_lattice"
   fix A
-  assume z: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  {
-    fix v
-    assume *: "A - {Top} = {Value v}"
-    then have "(THE v. A - {Top} = {Value v}) = v"
-      by (auto intro!: the1_equality)
-    with * have "z \<le> Value (THE v::'a. A - {Top} = {Value v})"
-      using z by auto
-  }
-  moreover
-  {
-    assume not_one_value: "A \<noteq> {}" "A \<noteq> {Top}" "\<not> (\<exists>v::'a. A - {Top} = {Value v})"
-    have "z \<le> Bot"
-    proof (cases "A - {Top} = {Bot}")
-      case True
-      with z show ?thesis
-        by auto
+  show "z \<le> Inf A" if z: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
+  proof -
+    consider "A = {} \<or> A = {Top}"
+      | "A \<noteq> {}" "A \<noteq> {Top}" "\<exists>v. A - {Top} = {Value v}"
+      | "A \<noteq> {}" "A \<noteq> {Top}" "\<not> (\<exists>v. A - {Top} = {Value v})"
+      by blast
+    then show ?thesis
+    proof cases
+      case 1
+      then have "Inf A = Top"
+        unfolding Inf_flat_complete_lattice_def by auto
+      then show ?thesis by simp
     next
-      case False
-      from not_one_value
-      obtain a1 where a1: "a1 \<in> A - {Top}" by auto
-      from not_one_value False a1
-      obtain a2 where "a2 \<in> A - {Top} \<and> a1 \<noteq> a2"
-        by (cases a1) auto
-      with a1 z[of "a1"] z[of "a2"] show ?thesis
-        apply (cases a1)
-        apply auto
-        apply (cases a2)
-        apply auto
-        apply (auto dest!: lesser_than_two_values)
-        done
+      case 2
+      then obtain v where v1: "A - {Top} = {Value v}"
+        by auto
+      then have v2: "(THE v. A - {Top} = {Value v}) = v"
+        by (auto intro!: the1_equality)
+      from 2 v2 have Inf: "Inf A = Value v"
+        unfolding Inf_flat_complete_lattice_def by simp
+      from v1 have "Value v \<in> A" by blast
+      then have "z \<le> Value v" by (rule z)
+      with Inf show ?thesis by simp
+    next
+      case 3
+      then have Inf: "Inf A = Bot"
+        unfolding Inf_flat_complete_lattice_def by auto
+      have "z \<le> Bot"
+      proof (cases "A - {Top} = {Bot}")
+        case True
+        then have "Bot \<in> A" by blast
+        then show ?thesis by (rule z)
+      next
+        case False
+        from 3 obtain a1 where a1: "a1 \<in> A - {Top}"
+          by auto
+        from 3 False a1 obtain a2 where "a2 \<in> A - {Top} \<and> a1 \<noteq> a2"
+          by (cases a1) auto
+        with a1 z[of "a1"] z[of "a2"] show ?thesis
+          apply (cases a1)
+          apply auto
+          apply (cases a2)
+          apply auto
+          apply (auto dest!: lesser_than_two_values)
+          done
+      qed
+      with Inf show ?thesis by simp
     qed
-  }
-  ultimately show "z \<le> Inf A"
-    using z unfolding Inf_flat_complete_lattice_def by auto  -- slow
+  qed
 next
   fix x :: "'a flat_complete_lattice"
   fix A
@@ -414,40 +428,54 @@ next
 next
   fix z :: "'a flat_complete_lattice"
   fix A
-  assume z: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  {
-    fix v
-    assume "A - {Bot} = {Value v}"
-    moreover
-    then have "(THE v. A - {Bot} = {Value v}) = v"
-      by (auto intro!: the1_equality)
-    ultimately have "Value (THE v::'a. A - {Bot} = {Value v}) \<le> z"
-      using z by auto
-  }
-  moreover
-  {
-    assume not_one_value: "A \<noteq> {}" "A \<noteq> {Bot}" "\<not> (\<exists>v::'a. A - {Bot} = {Value v})"
-    have "Top \<le> z"
-    proof (cases "A - {Bot} = {Top}")
-      case True
-      with z show ?thesis
-        by auto
+  show "Sup A \<le> z" if z: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
+  proof -
+    consider "A = {} \<or> A = {Bot}"
+      | "A \<noteq> {}" "A \<noteq> {Bot}" "\<exists>v. A - {Bot} = {Value v}"
+      | "A \<noteq> {}" "A \<noteq> {Bot}" "\<not> (\<exists>v. A - {Bot} = {Value v})"
+      by blast
+    then show ?thesis
+    proof cases
+      case 1
+      then have "Sup A = Bot"
+        unfolding Sup_flat_complete_lattice_def by auto
+      then show ?thesis by simp
     next
-      case False
-      from not_one_value obtain a1 where a1: "a1 \<in> A - {Bot}"
+      case 2
+      then obtain v where v1: "A - {Bot} = {Value v}"
         by auto
-      from not_one_value False a1 obtain a2 where "a2 \<in> A - {Bot} \<and> a1 \<noteq> a2"
-        by (cases a1) auto
-      with a1 z[of "a1"] z[of "a2"] show ?thesis
-        apply (cases a1)
-        apply auto
-        apply (cases a2)
-        apply (auto dest!: greater_than_two_values)
-        done
+      then have v2: "(THE v. A - {Bot} = {Value v}) = v"
+        by (auto intro!: the1_equality)
+      from 2 v2 have Sup: "Sup A = Value v"
+        unfolding Sup_flat_complete_lattice_def by simp
+      from v1 have "Value v \<in> A" by blast
+      then have "Value v \<le> z" by (rule z)
+      with Sup show ?thesis by simp
+    next
+      case 3
+      then have Sup: "Sup A = Top"
+        unfolding Sup_flat_complete_lattice_def by auto
+      have "Top \<le> z"
+      proof (cases "A - {Bot} = {Top}")
+        case True
+        then have "Top \<in> A" by blast
+        then show ?thesis by (rule z)
+      next
+        case False
+        from 3 obtain a1 where a1: "a1 \<in> A - {Bot}"
+          by auto
+        from 3 False a1 obtain a2 where "a2 \<in> A - {Bot} \<and> a1 \<noteq> a2"
+          by (cases a1) auto
+        with a1 z[of "a1"] z[of "a2"] show ?thesis
+          apply (cases a1)
+          apply auto
+          apply (cases a2)
+          apply (auto dest!: greater_than_two_values)
+          done
+      qed
+      with Sup show ?thesis by simp
     qed
-  }
-  ultimately show "Sup A \<le> z"
-    using z unfolding Sup_flat_complete_lattice_def by auto  -- slow
+  qed
 next
   show "Inf {} = (top :: 'a flat_complete_lattice)"
     by (simp add: Inf_flat_complete_lattice_def top_flat_complete_lattice_def)
