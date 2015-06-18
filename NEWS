@@ -117,6 +117,7 @@ not available during instantiation.
     INCOMPATIBILITY.
   - Renamed conversions:
       set_of ~> set_mset
+      multiset_of_set ~> mset_set
     INCOMPATIBILITY
   - Renamed lemmas:
       mset_le_def ~> subseteq_mset_def
