@@ -1093,27 +1093,27 @@ lemma multiset_of_map:
   "multiset_of (map f xs) = image_mset f (multiset_of xs)"
   by (induct xs) simp_all
 
-definition multiset_of_set :: "'a set \<Rightarrow> 'a multiset"
+definition mset_set :: "'a set \<Rightarrow> 'a multiset"
 where
-  "multiset_of_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
+  "mset_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
 
-interpretation multiset_of_set!: folding "\<lambda>x M. {#x#} + M" "{#}"
+interpretation mset_set!: folding "\<lambda>x M. {#x#} + M" "{#}"
 where
-  "folding.F (\<lambda>x M. {#x#} + M) {#} = multiset_of_set"
+  "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set"
 proof -
   interpret comp_fun_commute "\<lambda>x M. {#x#} + M" by default (simp add: fun_eq_iff ac_simps)
   show "folding (\<lambda>x M. {#x#} + M)" by default (fact comp_fun_commute)
-  from multiset_of_set_def show "folding.F (\<lambda>x M. {#x#} + M) {#} = multiset_of_set" ..
+  from mset_set_def show "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set" ..
 qed
 
-lemma count_multiset_of_set [simp]:
-  "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (multiset_of_set A) x = 1" (is "PROP ?P")
-  "\<not> finite A \<Longrightarrow> count (multiset_of_set A) x = 0" (is "PROP ?Q")
-  "x \<notin> A \<Longrightarrow> count (multiset_of_set A) x = 0" (is "PROP ?R")
+lemma count_mset_set [simp]:
+  "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (mset_set A) x = 1" (is "PROP ?P")
+  "\<not> finite A \<Longrightarrow> count (mset_set A) x = 0" (is "PROP ?Q")
+  "x \<notin> A \<Longrightarrow> count (mset_set A) x = 0" (is "PROP ?R")
 proof -
   { fix A
     assume "x \<notin> A"
-    have "count (multiset_of_set A) x = 0"
+    have "count (mset_set A) x = 0"
     proof (cases "finite A")
       case False then show ?thesis by simp
     next
@@ -1122,9 +1122,9 @@ proof -
   } note * = this
   then show "PROP ?P" "PROP ?Q" "PROP ?R"
   by (auto elim!: Set.set_insert)
-qed -- \<open>TODO: maybe define @{const multiset_of_set} also in terms of @{const Abs_multiset}\<close>
+qed -- \<open>TODO: maybe define @{const mset_set} also in terms of @{const Abs_multiset}\<close>
 
-lemma elem_multiset_of_set[simp, intro]: "finite A \<Longrightarrow> x \<in># multiset_of_set A \<longleftrightarrow> x \<in> A"
+lemma elem_mset_set[simp, intro]: "finite A \<Longrightarrow> x \<in># mset_set A \<longleftrightarrow> x \<in> A"
   by (induct A rule: finite_induct) simp_all
 
 context linorder
@@ -1156,29 +1156,27 @@ end
 
 lemma multiset_of_sorted_list_of_multiset [simp]:
   "multiset_of (sorted_list_of_multiset M) = M"
-  by (induct M) simp_all
+by (induct M) simp_all
 
 lemma sorted_list_of_multiset_multiset_of [simp]:
   "sorted_list_of_multiset (multiset_of xs) = sort xs"
-  by (induct xs) simp_all
+by (induct xs) simp_all
 
-lemma finite_set_mset_multiset_of_set:
-  assumes "finite A"
-  shows "set_mset (multiset_of_set A) = A"
-  using assms by (induct A) simp_all
+lemma finite_set_mset_mset_set[simp]:
+  "finite A \<Longrightarrow> set_mset (mset_set A) = A"
+by (induct A rule: finite_induct) simp_all
 
-lemma infinite_set_mset_multiset_of_set:
-  assumes "\<not> finite A"
-  shows "set_mset (multiset_of_set A) = {}"
-  using assms by simp
+lemma infinite_set_mset_mset_set:
+  "\<not> finite A \<Longrightarrow> set_mset (mset_set A) = {}"
+by simp
 
 lemma set_sorted_list_of_multiset [simp]:
   "set (sorted_list_of_multiset M) = set_mset M"
-  by (induct M) (simp_all add: set_insort)
+by (induct M) (simp_all add: set_insort)
 
-lemma sorted_list_of_multiset_of_set [simp]:
-  "sorted_list_of_multiset (multiset_of_set A) = sorted_list_of_set A"
-  by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
+lemma sorted_list_of_mset_set [simp]:
+  "sorted_list_of_multiset (mset_set A) = sorted_list_of_set A"
+by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
 
 
 subsection \<open>Big operators\<close>
@@ -1242,7 +1240,7 @@ proof -
 qed
 
 lemma setsum_unfold_msetsum:
-  "setsum f A = msetsum (image_mset f (multiset_of_set A))"
+  "setsum f A = msetsum (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 end
@@ -1316,7 +1314,7 @@ lemma msetprod_Un:
   by (fact msetprod.union)
 
 lemma setprod_unfold_msetprod:
-  "setprod f A = msetprod (image_mset f (multiset_of_set A))"
+  "setprod f A = msetprod (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 lemma msetprod_multiplicity:
@@ -2137,7 +2135,7 @@ declare set_mset_multiset_of [code]
 declare sorted_list_of_multiset_multiset_of [code]
 
 lemma [code]: -- \<open>not very efficient, but representation-ignorant!\<close>
-  "multiset_of_set A = multiset_of (sorted_list_of_set A)"
+  "mset_set A = multiset_of (sorted_list_of_set A)"
   apply (cases "finite A")
   apply simp_all
   apply (induct A rule: finite_induct)
