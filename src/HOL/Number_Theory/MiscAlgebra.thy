@@ -1,8 +1,8 @@
 (*  Title:      HOL/Number_Theory/MiscAlgebra.thy
     Author:     Jeremy Avigad
-
-These are things that can be added to the Algebra library.
 *)
+
+section \<open>Things that can be added to the Algebra library\<close>
 
 theory MiscAlgebra
 imports
@@ -10,26 +10,25 @@ imports
   "~~/src/HOL/Algebra/FiniteProduct"
 begin
 
-(* finiteness stuff *)
+subsection \<open>Finiteness stuff\<close>
 
 lemma bounded_set1_int [intro]: "finite {(x::int). a < x & x < b & P x}"
   apply (subgoal_tac "{x. a < x & x < b & P x} <= {a<..<b}")
   apply (erule finite_subset)
   apply auto
-done
+  done
 
 
-(* The rest is for the algebra libraries *)
+subsection \<open>The rest is for the algebra libraries\<close>
 
-(* These go in Group.thy. *)
+subsubsection \<open>These go in Group.thy\<close>
 
-(*
+text \<open>
   Show that the units in any monoid give rise to a group.
 
   The file Residues.thy provides some infrastructure to use
   facts about the unit group within the ring locale.
-*)
-
+\<close>
 
 definition units_of :: "('a, 'b) monoid_scheme => 'a monoid" where
   "units_of G == (| carrier = Units G,
@@ -83,8 +82,7 @@ lemma units_of_mult: "mult(units_of G) = mult G"
 lemma units_of_one: "one(units_of G) = one G"
   unfolding units_of_def by auto
 
-lemma (in monoid) units_of_inv: "x : Units G ==>
-    m_inv (units_of G) x = m_inv G x"
+lemma (in monoid) units_of_inv: "x : Units G ==> m_inv (units_of G) x = m_inv G x"
   apply (rule sym)
   apply (subst m_inv_def)
   apply (rule the1_equality)
@@ -103,14 +101,12 @@ lemma (in monoid) units_of_inv: "x : Units G ==>
   apply (subst units_of_mult [symmetric])
   apply (subst units_of_one [symmetric])
   apply (erule group.l_inv, assumption)
-done
+  done
 
-lemma (in group) inj_on_const_mult: "a: (carrier G) ==>
-    inj_on (%x. a \<otimes> x) (carrier G)"
+lemma (in group) inj_on_const_mult: "a: (carrier G) ==> inj_on (%x. a \<otimes> x) (carrier G)"
   unfolding inj_on_def by auto
 
-lemma (in group) surj_const_mult: "a : (carrier G) ==>
-    (%x. a \<otimes> x) ` (carrier G) = (carrier G)"
+lemma (in group) surj_const_mult: "a : (carrier G) ==> (%x. a \<otimes> x) ` (carrier G) = (carrier G)"
   apply (auto simp add: image_def)
   apply (rule_tac x = "(m_inv G a) \<otimes> x" in bexI)
   apply auto
@@ -120,8 +116,8 @@ lemma (in group) surj_const_mult: "a : (carrier G) ==>
   apply auto
   done
 
-lemma (in group) l_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
-    (x \<otimes> a = x) = (a = one G)"
+lemma (in group) l_cancel_one [simp]:
+    "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow> (x \<otimes> a = x) = (a = one G)"
   apply auto
   apply (subst l_cancel [symmetric])
   prefer 4
@@ -139,7 +135,6 @@ lemma (in group) r_cancel_one [simp]: "x : carrier G \<Longrightarrow> a : carri
   done
 
 (* Is there a better way to do this? *)
-
 lemma (in group) l_cancel_one' [simp]: "x : carrier G \<Longrightarrow> a : carrier G \<Longrightarrow>
     (x = x \<otimes> a) = (a = one G)"
   apply (subst eq_commute)
@@ -173,10 +168,9 @@ proof -
 qed
 
 
-(* Miscellaneous *)
+subsubsection \<open>Miscellaneous\<close>
 
-lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> ~= \<one>\<^bsub>R\<^esub> \<Longrightarrow> ALL x : carrier R - {\<zero>\<^bsub>R\<^esub>}.
-    x : Units R \<Longrightarrow> field R"
+lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> ~= \<one>\<^bsub>R\<^esub> \<Longrightarrow> \<forall>x \<in> carrier R - {\<zero>\<^bsub>R\<^esub>}. x \<in> Units R \<Longrightarrow> field R"
   apply (unfold_locales)
   apply (insert cring_axioms, auto)
   apply (rule trans)
@@ -239,10 +233,10 @@ lemma (in ring) inv_eq_neg_one_eq: "x : Units R \<Longrightarrow> (inv x = \<omi
   done
 
 lemma (in monoid) inv_eq_one_eq: "x : Units G \<Longrightarrow> (inv x = \<one>) = (x = \<one>)"
-by (metis Units_inv_inv inv_one)
+  by (metis Units_inv_inv inv_one)
 
 
-(* This goes in FiniteProduct *)
+subsubsection \<open>This goes in FiniteProduct\<close>
 
 lemma (in comm_monoid) finprod_UN_disjoint:
   "finite I \<Longrightarrow> (ALL i:I. finite (A i)) \<longrightarrow> (ALL i:I. ALL j:I. i ~= j \<longrightarrow>
@@ -276,17 +270,13 @@ lemma (in comm_monoid) finprod_one:
 (* need better simplification rules for rings *)
 (* the next one holds more generally for abelian groups *)
 
-lemma (in cring) sum_zero_eq_neg:
-    "x : carrier R \<Longrightarrow> y : carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
-by (metis minus_equality)
+lemma (in cring) sum_zero_eq_neg: "x : carrier R \<Longrightarrow> y : carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
+  by (metis minus_equality)
 
-(* there's a name conflict -- maybe "domain" should be
-   "integral_domain" *)
-
-lemma (in Ring.domain) square_eq_one:
+lemma (in domain) square_eq_one:
   fixes x
-  assumes [simp]: "x : carrier R" and
-    "x \<otimes> x = \<one>"
+  assumes [simp]: "x : carrier R"
+    and "x \<otimes> x = \<one>"
   shows "x = \<one> | x = \<ominus>\<one>"
 proof -
   have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = x \<otimes> x \<oplus> \<ominus> \<one>"
@@ -308,23 +298,22 @@ proof -
     done
 qed
 
-lemma (in Ring.domain) inv_eq_self: "x : Units R \<Longrightarrow>
-    x = inv x \<Longrightarrow> x = \<one> | x = \<ominus> \<one>"
-by (metis Units_closed Units_l_inv square_eq_one)
+lemma (in Ring.domain) inv_eq_self: "x : Units R \<Longrightarrow> x = inv x \<Longrightarrow> x = \<one> \<or> x = \<ominus>\<one>"
+  by (metis Units_closed Units_l_inv square_eq_one)
 
 
-(*
+text \<open>
   The following translates theorems about groups to the facts about
   the units of a ring. (The list should be expanded as more things are
   needed.)
-*)
+\<close>
 
-lemma (in ring) finite_ring_finite_units [intro]:
-    "finite (carrier R) \<Longrightarrow> finite (Units R)"
+lemma (in ring) finite_ring_finite_units [intro]: "finite (carrier R) \<Longrightarrow> finite (Units R)"
   by (rule finite_subset) auto
 
 lemma (in monoid) units_of_pow:
-    "x : Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> (n::nat) = x (^)\<^bsub>G\<^esub> n"
+  fixes n :: nat
+  shows "x \<in> Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> n = x (^)\<^bsub>G\<^esub> n"
   apply (induct n)
   apply (auto simp add: units_group group.is_monoid
     monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult)
