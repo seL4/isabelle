@@ -225,13 +225,6 @@ sig
     proto_def: term,
     extracta: (thm * term list) list,
     pats: pattern list}
-  val lazyR_def: theory -> xstring -> thm list -> term list ->
-   {theory: theory,
-    rules: thm,
-    R: term,
-    SV: term list,
-    full_pats_TCs: (term * term list) list,
-    patterns : pattern list}
   val mk_induction: theory ->
     {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
   val postprocess: Proof.context -> bool ->
@@ -246,8 +239,6 @@ sig
     {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * Proof.context
   val define: bool -> thm list -> thm list -> xstring -> string -> string list -> Proof.context ->
     {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * Proof.context
-  val defer_i: thm list -> xstring -> term list -> theory -> thm * theory
-  val defer: thm list -> xstring -> string list -> theory -> thm * theory
 end;
 
 signature OLD_RECDEF =
@@ -266,13 +257,6 @@ sig
       * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((binding * term) * attribute list) list ->
     theory -> theory * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (Facts.ref * Token.src list) list
-    -> theory -> theory * {induct_rules: thm}
-  val defer_recdef_i: xstring -> term list -> thm list -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Token.src list -> xstring -> int option -> bool ->
-    local_theory -> Proof.state
-  val recdef_tc_i: bstring * Token.src list -> string -> int option -> bool ->
-    local_theory -> Proof.state
 end;
 
 structure Old_Recdef: OLD_RECDEF =
@@ -2209,74 +2193,6 @@ fun wfrec_eqns thy fid tflCongs eqns =
  end;
 
 
-(*---------------------------------------------------------------------------
- * Define the constant after extracting the termination conditions. The
- * wellfounded relation used in the definition is computed by using the
- * choice operator on the extracted conditions (plus the condition that
- * such a relation must be wellfounded).
- *---------------------------------------------------------------------------*)
-
-fun lazyR_def thy fid tflCongs eqns =
- let val {proto_def,WFR,pats,extracta,SV} =
-           wfrec_eqns thy fid tflCongs eqns
-     val R1 = USyntax.rand WFR
-     val f = #lhs(USyntax.dest_eq proto_def)
-     val (extractants,TCl) = ListPair.unzip extracta
-     val _ = if !trace
-                 then writeln (cat_lines ("Extractants =" ::
-                  map (Display.string_of_thm_global thy) extractants))
-                 else ()
-     val TCs = fold_rev (union (op aconv)) TCl []
-     val full_rqt = WFR::TCs
-     val R' = USyntax.mk_select{Bvar=R1, Body=USyntax.list_mk_conj full_rqt}
-     val R'abs = USyntax.rand R'
-     val proto_def' = subst_free[(R1,R')] proto_def
-     val _ = if !trace then writeln ("proto_def' = " ^
-                                         Syntax.string_of_term_global
-                                         thy proto_def')
-                           else ()
-     val {lhs,rhs} = USyntax.dest_eq proto_def'
-     val (c,args) = USyntax.strip_comb lhs
-     val (name,Ty) = dest_atom c
-     val defn = const_def thy (name, Ty, USyntax.list_mk_abs (args,rhs))
-     val ([def0], thy') =
-       thy
-       |> Global_Theory.add_defs false
-            [Thm.no_attributes (Binding.name (Thm.def_name fid), defn)]
-     val def = Thm.unvarify_global def0;
-     val ctxt' = Syntax.init_pretty_global thy';
-     val _ =
-       if !trace then writeln ("DEF = " ^ Display.string_of_thm ctxt' def)
-       else ()
-     (* val fconst = #lhs(USyntax.dest_eq(concl def))  *)
-     val tych = Thry.typecheck thy'
-     val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
-         (*lcp: a lot of object-logic inference to remove*)
-     val baz = Rules.DISCH_ALL
-                 (fold_rev Rules.DISCH full_rqt_prop
-                  (Rules.LIST_CONJ extractants))
-     val _ = if !trace then writeln ("baz = " ^ Display.string_of_thm ctxt' baz) else ()
-     val SV' = map tych SV;
-     val SVrefls = map Thm.reflexive SV'
-     val def0 = (fold (fn x => fn th => Rules.rbeta(Thm.combination th x))
-                   SVrefls def)
-                RS meta_eq_to_obj_eq
-     val def' = Rules.MP (Rules.SPEC (tych R') (Rules.GEN ctxt' (tych R1) baz)) def0
-     val body_th = Rules.LIST_CONJ (map Rules.ASSUME full_rqt_prop)
-     val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
-                       theory Hilbert_Choice*)
-         ML_Context.thm "Hilbert_Choice.tfl_some"
-         handle ERROR msg => cat_error msg
-    "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
-     val bar = Rules.MP (Rules.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
- in {theory = thy', R=R1, SV=SV,
-     rules = fold (fn a => fn b => Rules.MP b a) (Rules.CONJUNCTS bar) def',
-     full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
-     patterns = pats}
- end;
-
-
-
 (*----------------------------------------------------------------------------
  *
  *                           INDUCTION THEOREM
@@ -2860,32 +2776,6 @@ fun define strict congs wfs fid R seqs ctxt =
     (Syntax.read_term ctxt R) (map (Syntax.read_term ctxt) seqs) ctxt
       handle Utils.ERR {mesg,...} => error mesg;
 
-
-(*---------------------------------------------------------------------------
- *
- *     Definitions with synthesized termination relation
- *
- *---------------------------------------------------------------------------*)
-
-fun func_of_cond_eqn tm =
-  #1 (USyntax.strip_comb (#lhs (USyntax.dest_eq (#2 (USyntax.strip_forall (#2 (USyntax.strip_imp tm)))))));
-
-fun defer_i congs fid eqs thy =
- let
-     val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
-     val f = func_of_cond_eqn (concl (Rules.CONJUNCT1 rules handle Utils.ERR _ => rules));
-     val _ = writeln "Proving induction theorem ...";
-     val induction = Prim.mk_induction theory
-                        {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
- in
-   (*return the conjoined induction rule and recursion equations,
-     with assumptions remaining to discharge*)
-   (Drule.export_without_context (induction RS (rules RS conjI)), theory)
- end
-
-fun defer congs fid seqs thy =
-  defer_i congs fid (map (Syntax.read_term_global thy) seqs) thy
-    handle Utils.ERR {mesg,...} => error mesg;
 end;
 
 end;
@@ -3066,55 +2956,6 @@ fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y
 
 
 
-(** defer_recdef(_i) **)
-
-fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
-  let
-    val name = Sign.intern_const thy raw_name;
-    val bname = Long_Name.base_name name;
-
-    val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
-
-    val congs = eval_thms (Proof_Context.init_global thy) raw_congs;
-    val (induct_rules, thy2) = tfl_fn congs name eqs thy;
-    val ([induct_rules'], thy3) =
-      thy2
-      |> Sign.add_path bname
-      |> Global_Theory.add_thms [((Binding.name "induct_rules", induct_rules), [])]
-      ||> Sign.parent_path;
-  in (thy3, {induct_rules = induct_rules'}) end;
-
-val defer_recdef = gen_defer_recdef Tfl.defer Attrib.eval_thms;
-val defer_recdef_i = gen_defer_recdef Tfl.defer_i (K I);
-
-
-
-(** recdef_tc(_i) **)
-
-fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
-  let
-    val thy = Proof_Context.theory_of lthy;
-    val name = prep_name thy raw_name;
-    val atts = map (prep_att lthy) raw_atts;
-    val tcs =
-      (case get_recdef thy name of
-        NONE => error ("No recdef definition of constant: " ^ quote name)
-      | SOME {tcs, ...} => tcs);
-    val i = the_default 1 opt_i;
-    val tc = nth tcs (i - 1) handle General.Subscript =>
-      error ("No termination condition #" ^ string_of_int i ^
-        " in recdef definition of " ^ quote name);
-  in
-    Specification.theorem "" NONE (K I)
-      (Binding.concealed (Binding.name bname), atts) [] []
-      (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
-  end;
-
-val recdef_tc = gen_recdef_tc Attrib.check_src Sign.intern_const;
-val recdef_tc_i = gen_recdef_tc (K I) (K I);
-
-
-
 (** package setup **)
 
 (* setup theory *)
@@ -3146,24 +2987,5 @@ val recdef_decl =
 val _ =
   Outer_Syntax.command @{command_keyword recdef} "define general recursive functions (obsolete TFL)"
     (recdef_decl >> Toplevel.theory);
-
-
-val defer_recdef_decl =
-  Parse.name -- Scan.repeat1 Parse.prop --
-  Scan.optional
-    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse.xthms1 --| @{keyword ")"})) []
-  >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
-
-val _ =
-  Outer_Syntax.command @{command_keyword defer_recdef}
-    "defer general recursive functions (obsolete TFL)"
-    (defer_recdef_decl >> Toplevel.theory);
-
-val _ =
-  Outer_Syntax.local_theory_to_proof' @{command_keyword recdef_tc}
-    "recommence proof of termination condition (obsolete TFL)"
-    ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.xname --
-        Scan.option (@{keyword "("} |-- Parse.nat --| @{keyword ")"})
-      >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 
 end;
