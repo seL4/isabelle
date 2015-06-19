@@ -338,8 +338,8 @@ next
   case True
   then have "\<And>x y. x \<in> set (remdups xs) \<Longrightarrow> y \<in> set (remdups xs) \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     by (rule rsp_foldE)
-  moreover from assms have "multiset_of (remdups xs) = multiset_of (remdups ys)"
-    by (simp add: set_eq_iff_multiset_of_remdups_eq)
+  moreover from assms have "mset (remdups xs) = mset (remdups ys)"
+    by (simp add: set_eq_iff_mset_remdups_eq)
   ultimately have "fold f (remdups xs) = fold f (remdups ys)"
     by (rule fold_multiset_equiv)
   with True show ?thesis by (simp add: fold_once_fold_remdups)

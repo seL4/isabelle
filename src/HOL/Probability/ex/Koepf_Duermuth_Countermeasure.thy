@@ -239,9 +239,9 @@ lemma t_eq_imp_bij_func:
   assumes "t xs = t ys"
   shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
 proof -
-  have "count (multiset_of xs) = count (multiset_of ys)"
-    using assms by (simp add: fun_eq_iff count_multiset_of t_def)
-  then have "xs <~~> ys" unfolding multiset_of_eq_perm count_inject .
+  have "count (mset xs) = count (mset ys)"
+    using assms by (simp add: fun_eq_iff count_mset t_def)
+  then have "xs <~~> ys" unfolding mset_eq_perm count_inject .
   then show ?thesis by (rule permutation_Ex_bij)
 qed
 

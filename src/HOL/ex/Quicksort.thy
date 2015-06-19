@@ -21,7 +21,7 @@ lemma [code]:
   by (simp_all add: not_le)
 
 lemma quicksort_permutes [simp]:
-  "multiset_of (quicksort xs) = multiset_of xs"
+  "mset (quicksort xs) = mset xs"
   by (induct xs rule: quicksort.induct) (simp_all add: ac_simps)
 
 lemma set_quicksort [simp]: "set (quicksort xs) = set xs"

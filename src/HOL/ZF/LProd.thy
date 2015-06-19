@@ -34,7 +34,7 @@ lemma lprod_subset_elem: "(as, bs) \<in> lprod S \<Longrightarrow> S \<subseteq>
 lemma lprod_subset: "S \<subseteq> R \<Longrightarrow> lprod S \<subseteq> lprod R"
   by (auto intro: lprod_subset_elem)
 
-lemma lprod_implies_mult: "(as, bs) \<in> lprod R \<Longrightarrow> trans R \<Longrightarrow> (multiset_of as, multiset_of bs) \<in> mult R"
+lemma lprod_implies_mult: "(as, bs) \<in> lprod R \<Longrightarrow> trans R \<Longrightarrow> (mset as, mset bs) \<in> mult R"
 proof (induct as bs rule: lprod.induct)
   case (lprod_single a b)
   note step = one_step_implies_mult[
@@ -43,9 +43,9 @@ proof (induct as bs rule: lprod.induct)
 next
   case (lprod_list ah at bh bt a b)
   then have transR: "trans R" by auto
-  have as: "multiset_of (ah @ a # at) = multiset_of (ah @ at) + {#a#}" (is "_ = ?ma + _")
+  have as: "mset (ah @ a # at) = mset (ah @ at) + {#a#}" (is "_ = ?ma + _")
     by (simp add: algebra_simps)
-  have bs: "multiset_of (bh @ b # bt) = multiset_of (bh @ bt) + {#b#}" (is "_ = ?mb + _")
+  have bs: "mset (bh @ b # bt) = mset (bh @ bt) + {#b#}" (is "_ = ?mb + _")
     by (simp add: algebra_simps)
   from lprod_list have "(?ma, ?mb) \<in> mult R"
     by auto
@@ -86,9 +86,9 @@ lemma wf_lprod[simp,intro]:
   assumes wf_R: "wf R"
   shows "wf (lprod R)"
 proof -
-  have subset: "lprod (R^+) \<subseteq> inv_image (mult (R^+)) multiset_of"
+  have subset: "lprod (R^+) \<subseteq> inv_image (mult (R^+)) mset"
     by (auto simp add: lprod_implies_mult trans_trancl)
-  note lprodtrancl = wf_subset[OF wf_inv_image[where r="mult (R^+)" and f="multiset_of", 
+  note lprodtrancl = wf_subset[OF wf_inv_image[where r="mult (R^+)" and f="mset", 
     OF wf_mult[OF wf_trancl[OF wf_R]]], OF subset]
   note lprod = wf_subset[OF lprodtrancl, where p="lprod R", OF lprod_subset, simplified]
   show ?thesis by (auto intro: lprod)

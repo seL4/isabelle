@@ -34,11 +34,11 @@ lemma effect_swapI [effect_intros]:
 
 lemma swap_permutes:
   assumes "effect (swap a i j) h h' rs"
-  shows "multiset_of (Array.get h' a) 
-  = multiset_of (Array.get h a)"
+  shows "mset (Array.get h' a) 
+  = mset (Array.get h a)"
   using assms
   unfolding swap_def
-  by (auto simp add: Array.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: effect_bindE effect_nthE effect_returnE effect_updE)
+  by (auto simp add: Array.length_def mset_swap dest: sym [of _ "h'"] elim!: effect_bindE effect_nthE effect_returnE effect_updE)
 
 function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
@@ -59,8 +59,8 @@ declare part1.simps[simp del]
 
 lemma part_permutes:
   assumes "effect (part1 a l r p) h h' rs"
-  shows "multiset_of (Array.get h' a) 
-  = multiset_of (Array.get h a)"
+  shows "mset (Array.get h' a) 
+  = mset (Array.get h a)"
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
@@ -244,8 +244,8 @@ declare partition.simps[simp del]
 
 lemma partition_permutes:
   assumes "effect (partition a l r) h h' rs"
-  shows "multiset_of (Array.get h' a) 
-  = multiset_of (Array.get h a)"
+  shows "mset (Array.get h' a) 
+  = mset (Array.get h a)"
 proof -
     from assms part_permutes swap_permutes show ?thesis
       unfolding partition.simps
@@ -424,8 +424,8 @@ declare quicksort.simps[simp del]
 
 lemma quicksort_permutes:
   assumes "effect (quicksort a l r) h h' rs"
-  shows "multiset_of (Array.get h' a) 
-  = multiset_of (Array.get h a)"
+  shows "mset (Array.get h' a) 
+  = mset (Array.get h a)"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
@@ -533,23 +533,23 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         and part_conds2: "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h1) \<longrightarrow> Array.get h1 a ! p \<le> j"
         by (auto simp add: all_in_set_subarray_conv)
       from quicksort_outer_remains [OF qs1] quicksort_permutes [OF qs1] True
-        length_remains 1(5) pivot multiset_of_sublist [of l p "Array.get h1 a" "Array.get h2 a"]
-      have multiset_partconds1: "multiset_of (subarray l p a h2) = multiset_of (subarray l p a h1)"
+        length_remains 1(5) pivot mset_sublist [of l p "Array.get h1 a" "Array.get h2 a"]
+      have multiset_partconds1: "mset (subarray l p a h2) = mset (subarray l p a h1)"
         unfolding Array.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
       have part_conds2': "\<forall>j. j \<in> set (subarray l p a h') \<longrightarrow> j \<le> Array.get h' a ! p"
-        by (simp, subst set_mset_multiset_of[symmetric], simp)
+        by (simp, subst set_mset_mset[symmetric], simp)
           (* -- These steps are the analogous for the right sublist \<dots> *)
       from quicksort_outer_remains [OF qs1] length_remains
       have right_subarray_remains: "subarray (p + 1) (r + 1) a h1 = subarray (p + 1) (r + 1) a h2"
         by (auto simp add: subarray_eq_samelength_iff)
       from quicksort_outer_remains [OF qs2] quicksort_permutes [OF qs2] True
-        length_remains 1(5) pivot multiset_of_sublist [of "p + 1" "r + 1" "Array.get h2 a" "Array.get h' a"]
-      have multiset_partconds2: "multiset_of (subarray (p + 1) (r + 1) a h') = multiset_of (subarray (p + 1) (r + 1) a h2)"
+        length_remains 1(5) pivot mset_sublist [of "p + 1" "r + 1" "Array.get h2 a" "Array.get h' a"]
+      have multiset_partconds2: "mset (subarray (p + 1) (r + 1) a h') = mset (subarray (p + 1) (r + 1) a h2)"
         unfolding Array.length_def subarray_def by auto
       with right_subarray_remains part_conds2 pivot_unchanged
       have part_conds1': "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h') \<longrightarrow> Array.get h' a ! p \<le> j"
-        by (simp, subst set_mset_multiset_of[symmetric], simp)
+        by (simp, subst set_mset_mset[symmetric], simp)
           (* -- Thirdly and finally, we show that the array is sorted
           following from the facts above. *)
       from True pivot 1(5) length_remains have "subarray l (r + 1) a h' = subarray l p a h' @ [Array.get h' a ! p] @ subarray (p + 1) (r + 1) a h'"

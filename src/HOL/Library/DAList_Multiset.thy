@@ -267,7 +267,7 @@ qed
 
 declare multiset_inter_def [code]
 declare sup_subset_mset_def [code]
-declare multiset_of.simps [code]
+declare mset.simps [code]
 
 
 fun fold_impl :: "('a \<Rightarrow> nat \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a \<times> nat) list \<Rightarrow> 'b"

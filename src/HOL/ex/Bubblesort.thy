@@ -41,7 +41,7 @@ next
     by(auto simp: size_bubble_min dest!: bubble_minD_size split: list.splits if_splits)
 qed
 
-lemma mset_bubble_min: "multiset_of (bubble_min xs) = multiset_of xs"
+lemma mset_bubble_min: "mset (bubble_min xs) = mset xs"
 apply(induction xs rule: bubble_min.induct)
   apply simp
  apply simp
@@ -49,19 +49,19 @@ apply (auto simp: add_eq_conv_ex split: list.split)
 done
 
 lemma bubble_minD_mset:
-  "bubble_min (xs) = ys \<Longrightarrow> multiset_of xs = multiset_of ys"
+  "bubble_min (xs) = ys \<Longrightarrow> mset xs = mset ys"
 by(auto simp: mset_bubble_min)
 
 lemma mset_bubblesort:
-  "multiset_of (bubblesort xs) = multiset_of xs"
+  "mset (bubblesort xs) = mset xs"
 apply(induction xs rule: bubblesort.induct)
   apply simp
  apply simp
 by(auto split: list.splits if_splits dest: bubble_minD_mset)
-  (metis add_eq_conv_ex mset_bubble_min multiset_of.simps(2))
+  (metis add_eq_conv_ex mset_bubble_min mset.simps(2))
 
 lemma set_bubblesort: "set (bubblesort xs) = set xs"
-by(rule mset_bubblesort[THEN multiset_of_eq_setD])
+by(rule mset_bubblesort[THEN mset_eq_setD])
 
 lemma bubble_min_min: "bubble_min xs = y#ys \<Longrightarrow> z \<in> set ys \<Longrightarrow> y \<le> z"
 apply(induction xs arbitrary: y ys z rule: bubble_min.induct)

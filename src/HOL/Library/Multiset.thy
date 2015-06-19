@@ -963,46 +963,46 @@ lemma image_mset_cong_pair:
 
 subsection \<open>Further conversions\<close>
 
-primrec multiset_of :: "'a list \<Rightarrow> 'a multiset" where
-  "multiset_of [] = {#}" |
-  "multiset_of (a # x) = multiset_of x + {# a #}"
+primrec mset :: "'a list \<Rightarrow> 'a multiset" where
+  "mset [] = {#}" |
+  "mset (a # x) = mset x + {# a #}"
 
 lemma in_multiset_in_set:
-  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
+  "x \<in># mset xs \<longleftrightarrow> x \<in> set xs"
   by (induct xs) simp_all
 
-lemma count_multiset_of:
-  "count (multiset_of xs) x = length (filter (\<lambda>y. x = y) xs)"
+lemma count_mset:
+  "count (mset xs) x = length (filter (\<lambda>y. x = y) xs)"
   by (induct xs) simp_all
 
-lemma multiset_of_zero_iff[simp]: "(multiset_of x = {#}) = (x = [])"
+lemma mset_zero_iff[simp]: "(mset x = {#}) = (x = [])"
   by (induct x) auto
 
-lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
+lemma mset_zero_iff_right[simp]: "({#} = mset x) = (x = [])"
 by (induct x) auto
 
-lemma set_mset_multiset_of[simp]: "set_mset (multiset_of x) = set x"
+lemma set_mset_mset[simp]: "set_mset (mset x) = set x"
 by (induct x) auto
 
-lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
+lemma mem_set_multiset_eq: "x \<in> set xs = (x :# mset xs)"
 by (induct xs) auto
 
-lemma size_multiset_of [simp]: "size (multiset_of xs) = length xs"
+lemma size_mset [simp]: "size (mset xs) = length xs"
   by (induct xs) simp_all
 
-lemma multiset_of_append [simp]:
-  "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
+lemma mset_append [simp]:
+  "mset (xs @ ys) = mset xs + mset ys"
   by (induct xs arbitrary: ys) (auto simp: ac_simps)
 
-lemma multiset_of_filter:
-  "multiset_of (filter P xs) = {#x :# multiset_of xs. P x #}"
+lemma mset_filter:
+  "mset (filter P xs) = {#x :# mset xs. P x #}"
   by (induct xs) simp_all
 
-lemma multiset_of_rev [simp]:
-  "multiset_of (rev xs) = multiset_of xs"
+lemma mset_rev [simp]:
+  "mset (rev xs) = mset xs"
   by (induct xs) simp_all
 
-lemma surj_multiset_of: "surj multiset_of"
+lemma surj_mset: "surj mset"
 apply (unfold surj_def)
 apply (rule allI)
 apply (rule_tac M = y in multiset_induct)
@@ -1011,72 +1011,72 @@ apply (rule_tac x = "x # xa" in exI)
 apply auto
 done
 
-lemma set_count_greater_0: "set x = {a. count (multiset_of x) a > 0}"
+lemma set_count_greater_0: "set x = {a. count (mset x) a > 0}"
 by (induct x) auto
 
 lemma distinct_count_atmost_1:
-  "distinct x = (! a. count (multiset_of x) a = (if a \<in> set x then 1 else 0))"
+  "distinct x = (! a. count (mset x) a = (if a \<in> set x then 1 else 0))"
 apply (induct x, simp, rule iffI, simp_all)
 apply (rename_tac a b)
 apply (rule conjI)
-apply (simp_all add: set_mset_multiset_of [THEN sym] del: set_mset_multiset_of)
+apply (simp_all add: set_mset_mset [THEN sym] del: set_mset_mset)
 apply (erule_tac x = a in allE, simp, clarify)
 apply (erule_tac x = aa in allE, simp)
 done
 
-lemma multiset_of_eq_setD:
-  "multiset_of xs = multiset_of ys \<Longrightarrow> set xs = set ys"
+lemma mset_eq_setD:
+  "mset xs = mset ys \<Longrightarrow> set xs = set ys"
 by (rule) (auto simp add:multiset_eq_iff set_count_greater_0)
 
-lemma set_eq_iff_multiset_of_eq_distinct:
+lemma set_eq_iff_mset_eq_distinct:
   "distinct x \<Longrightarrow> distinct y \<Longrightarrow>
-    (set x = set y) = (multiset_of x = multiset_of y)"
+    (set x = set y) = (mset x = mset y)"
 by (auto simp: multiset_eq_iff distinct_count_atmost_1)
 
-lemma set_eq_iff_multiset_of_remdups_eq:
-   "(set x = set y) = (multiset_of (remdups x) = multiset_of (remdups y))"
+lemma set_eq_iff_mset_remdups_eq:
+   "(set x = set y) = (mset (remdups x) = mset (remdups y))"
 apply (rule iffI)
-apply (simp add: set_eq_iff_multiset_of_eq_distinct[THEN iffD1])
+apply (simp add: set_eq_iff_mset_eq_distinct[THEN iffD1])
 apply (drule distinct_remdups [THEN distinct_remdups
-      [THEN set_eq_iff_multiset_of_eq_distinct [THEN iffD2]]])
+      [THEN set_eq_iff_mset_eq_distinct [THEN iffD2]]])
 apply simp
 done
 
-lemma multiset_of_compl_union [simp]:
-  "multiset_of [x\<leftarrow>xs. P x] + multiset_of [x\<leftarrow>xs. \<not>P x] = multiset_of xs"
+lemma mset_compl_union [simp]:
+  "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
   by (induct xs) (auto simp: ac_simps)
 
-lemma nth_mem_multiset_of: "i < length ls \<Longrightarrow> (ls ! i) :# multiset_of ls"
+lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) :# mset ls"
 apply (induct ls arbitrary: i)
  apply simp
 apply (case_tac i)
  apply auto
 done
 
-lemma multiset_of_remove1[simp]:
-  "multiset_of (remove1 a xs) = multiset_of xs - {#a#}"
+lemma mset_remove1[simp]:
+  "mset (remove1 a xs) = mset xs - {#a#}"
 by (induct xs) (auto simp add: multiset_eq_iff)
 
-lemma multiset_of_eq_length:
-  assumes "multiset_of xs = multiset_of ys"
+lemma mset_eq_length:
+  assumes "mset xs = mset ys"
   shows "length xs = length ys"
-  using assms by (metis size_multiset_of)
+  using assms by (metis size_mset)
 
-lemma multiset_of_eq_length_filter:
-  assumes "multiset_of xs = multiset_of ys"
+lemma mset_eq_length_filter:
+  assumes "mset xs = mset ys"
   shows "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) ys)"
-  using assms by (metis count_multiset_of)
+  using assms by (metis count_mset)
 
 lemma fold_multiset_equiv:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
-    and equiv: "multiset_of xs = multiset_of ys"
+    and equiv: "mset xs = mset ys"
   shows "List.fold f xs = List.fold f ys"
 using f equiv [symmetric]
 proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
-  then have *: "set ys = set (x # xs)" by (blast dest: multiset_of_eq_setD)
+  then have *: "set ys = set (x # xs)" by (blast dest: mset_eq_setD)
   have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     by (rule Cons.prems(1)) (simp_all add: *)
   moreover from * have "x \<in> set ys" by simp
@@ -1085,12 +1085,12 @@ next
   ultimately show ?case by simp
 qed
 
-lemma multiset_of_insort [simp]:
-  "multiset_of (insort x xs) = multiset_of xs + {#x#}"
+lemma mset_insort [simp]:
+  "mset (insort x xs) = mset xs + {#x#}"
   by (induct xs) (simp_all add: ac_simps)
 
-lemma multiset_of_map:
-  "multiset_of (map f xs) = image_mset f (multiset_of xs)"
+lemma mset_map:
+  "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
 definition mset_set :: "'a set \<Rightarrow> 'a multiset"
@@ -1154,12 +1154,12 @@ qed
 
 end
 
-lemma multiset_of_sorted_list_of_multiset [simp]:
-  "multiset_of (sorted_list_of_multiset M) = M"
+lemma mset_sorted_list_of_multiset [simp]:
+  "mset (sorted_list_of_multiset M) = M"
 by (induct M) simp_all
 
-lemma sorted_list_of_multiset_multiset_of [simp]:
-  "sorted_list_of_multiset (multiset_of xs) = sort xs"
+lemma sorted_list_of_multiset_mset [simp]:
+  "sorted_list_of_multiset (mset xs) = sort xs"
 by (induct xs) simp_all
 
 lemma finite_set_mset_mset_set[simp]:
@@ -1386,12 +1386,12 @@ subsubsection \<open>Lists\<close>
 context linorder
 begin
 
-lemma multiset_of_insort [simp]:
-  "multiset_of (insort_key k x xs) = {#x#} + multiset_of xs"
+lemma mset_insort [simp]:
+  "mset (insort_key k x xs) = {#x#} + mset xs"
   by (induct xs) (simp_all add: ac_simps)
 
-lemma multiset_of_sort [simp]:
-  "multiset_of (sort_key k xs) = multiset_of xs"
+lemma mset_sort [simp]:
+  "mset (sort_key k xs) = mset xs"
   by (induct xs) (simp_all add: ac_simps)
 
 text \<open>
@@ -1400,7 +1400,7 @@ text \<open>
 \<close>
 
 lemma properties_for_sort_key:
-  assumes "multiset_of ys = multiset_of xs"
+  assumes "mset ys = mset xs"
   and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
   and "sorted (map f ys)"
   shows "sort_key f xs = ys"
@@ -1420,14 +1420,14 @@ next
 qed
 
 lemma properties_for_sort:
-  assumes multiset: "multiset_of ys = multiset_of xs"
+  assumes multiset: "mset ys = mset xs"
   and "sorted ys"
   shows "sort xs = ys"
 proof (rule properties_for_sort_key)
-  from multiset show "multiset_of ys = multiset_of xs" .
+  from multiset show "mset ys = mset xs" .
   from \<open>sorted ys\<close> show "sorted (map (\<lambda>x. x) ys)" by simp
   from multiset have "\<And>k. length (filter (\<lambda>y. k = y) ys) = length (filter (\<lambda>x. k = x) xs)"
-    by (rule multiset_of_eq_length_filter)
+    by (rule mset_eq_length_filter)
   then have "\<And>k. replicate (length (filter (\<lambda>y. k = y) ys)) k = replicate (length (filter (\<lambda>x. k = x) xs)) k"
     by simp
   then show "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
@@ -1439,8 +1439,8 @@ lemma sort_key_by_quicksort:
     @ [x\<leftarrow>xs. f x = f (xs ! (length xs div 2))]
     @ sort_key f [x\<leftarrow>xs. f x > f (xs ! (length xs div 2))]" (is "sort_key f ?lhs = ?rhs")
 proof (rule properties_for_sort_key)
-  show "multiset_of ?rhs = multiset_of ?lhs"
-    by (rule multiset_eqI) (auto simp add: multiset_of_filter)
+  show "mset ?rhs = mset ?lhs"
+    by (rule multiset_eqI) (auto simp add: mset_filter)
 next
   show "sorted (map f ?rhs)"
     by (auto simp add: sorted_append intro: sorted_map_same)
@@ -1523,11 +1523,11 @@ end
 
 hide_const (open) part
 
-lemma multiset_of_remdups_le: "multiset_of (remdups xs) \<le># multiset_of xs"
+lemma mset_remdups_le: "mset (remdups xs) \<le># mset xs"
   by (induct xs) (auto intro: subset_mset.order_trans)
 
-lemma multiset_of_update:
-  "i < length ls \<Longrightarrow> multiset_of (ls[i := v]) = multiset_of ls - {#ls ! i#} + {#v#}"
+lemma mset_update:
+  "i < length ls \<Longrightarrow> mset (ls[i := v]) = mset ls - {#ls ! i#} + {#v#}"
 proof (induct ls arbitrary: i)
   case Nil then show ?case by simp
 next
@@ -1544,15 +1544,15 @@ next
       apply (subst add.assoc [symmetric])
       apply simp
       apply (rule mset_le_multiset_union_diff_commute)
-      apply (simp add: mset_le_single nth_mem_multiset_of)
+      apply (simp add: mset_le_single nth_mem_mset)
       done
   qed
 qed
 
-lemma multiset_of_swap:
+lemma mset_swap:
   "i < length ls \<Longrightarrow> j < length ls \<Longrightarrow>
-    multiset_of (ls[j := ls ! i, i := ls ! j]) = multiset_of ls"
-  by (cases "i = j") (simp_all add: multiset_of_update nth_mem_multiset_of)
+    mset (ls[j := ls ! i, i := ls ! j]) = mset ls"
+  by (cases "i = j") (simp_all add: mset_update nth_mem_mset)
 
 
 subsection \<open>The multiset order\<close>
@@ -2071,51 +2071,51 @@ Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
 
 subsection \<open>Naive implementation using lists\<close>
 
-code_datatype multiset_of
+code_datatype mset
 
 lemma [code]:
-  "{#} = multiset_of []"
+  "{#} = mset []"
   by simp
 
 lemma [code]:
-  "{#x#} = multiset_of [x]"
+  "{#x#} = mset [x]"
   by simp
 
 lemma union_code [code]:
-  "multiset_of xs + multiset_of ys = multiset_of (xs @ ys)"
+  "mset xs + mset ys = mset (xs @ ys)"
   by simp
 
 lemma [code]:
-  "image_mset f (multiset_of xs) = multiset_of (map f xs)"
-  by (simp add: multiset_of_map)
+  "image_mset f (mset xs) = mset (map f xs)"
+  by (simp add: mset_map)
 
 lemma [code]:
-  "filter_mset f (multiset_of xs) = multiset_of (filter f xs)"
-  by (simp add: multiset_of_filter)
+  "filter_mset f (mset xs) = mset (filter f xs)"
+  by (simp add: mset_filter)
 
 lemma [code]:
-  "multiset_of xs - multiset_of ys = multiset_of (fold remove1 ys xs)"
+  "mset xs - mset ys = mset (fold remove1 ys xs)"
   by (rule sym, induct ys arbitrary: xs) (simp_all add: diff_add diff_right_commute)
 
 lemma [code]:
-  "multiset_of xs #\<inter> multiset_of ys =
-    multiset_of (snd (fold (\<lambda>x (ys, zs).
+  "mset xs #\<inter> mset ys =
+    mset (snd (fold (\<lambda>x (ys, zs).
       if x \<in> set ys then (remove1 x ys, x # zs) else (ys, zs)) xs (ys, [])))"
 proof -
-  have "\<And>zs. multiset_of (snd (fold (\<lambda>x (ys, zs).
+  have "\<And>zs. mset (snd (fold (\<lambda>x (ys, zs).
     if x \<in> set ys then (remove1 x ys, x # zs) else (ys, zs)) xs (ys, zs))) =
-      (multiset_of xs #\<inter> multiset_of ys) + multiset_of zs"
+      (mset xs #\<inter> mset ys) + mset zs"
     by (induct xs arbitrary: ys)
       (auto simp add: mem_set_multiset_eq inter_add_right1 inter_add_right2 ac_simps)
   then show ?thesis by simp
 qed
 
 lemma [code]:
-  "multiset_of xs #\<union> multiset_of ys =
-    multiset_of (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, [])))"
+  "mset xs #\<union> mset ys =
+    mset (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, [])))"
 proof -
-  have "\<And>zs. multiset_of (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, zs))) =
-      (multiset_of xs #\<union> multiset_of ys) + multiset_of zs"
+  have "\<And>zs. mset (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, zs))) =
+      (mset xs #\<union> mset ys) + mset zs"
     by (induct xs arbitrary: ys) (simp_all add: multiset_eq_iff)
   then show ?thesis by simp
 qed
@@ -2123,26 +2123,26 @@ qed
 declare in_multiset_in_set [code_unfold]
 
 lemma [code]:
-  "count (multiset_of xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
+  "count (mset xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
 proof -
-  have "\<And>n. fold (\<lambda>y. if x = y then Suc else id) xs n = count (multiset_of xs) x + n"
+  have "\<And>n. fold (\<lambda>y. if x = y then Suc else id) xs n = count (mset xs) x + n"
     by (induct xs) simp_all
   then show ?thesis by simp
 qed
 
-declare set_mset_multiset_of [code]
+declare set_mset_mset [code]
 
-declare sorted_list_of_multiset_multiset_of [code]
+declare sorted_list_of_multiset_mset [code]
 
 lemma [code]: -- \<open>not very efficient, but representation-ignorant!\<close>
-  "mset_set A = multiset_of (sorted_list_of_set A)"
+  "mset_set A = mset (sorted_list_of_set A)"
   apply (cases "finite A")
   apply simp_all
   apply (induct A rule: finite_induct)
   apply (simp_all add: add.commute)
   done
 
-declare size_multiset_of [code]
+declare size_mset [code]
 
 fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where
   "ms_lesseq_impl [] ys = Some (ys \<noteq> [])"
@@ -2150,9 +2150,9 @@ fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" 
      None \<Rightarrow> None
    | Some (ys1,_,ys2) \<Rightarrow> ms_lesseq_impl xs (ys1 @ ys2))"
 
-lemma ms_lesseq_impl: "(ms_lesseq_impl xs ys = None \<longleftrightarrow> \<not> multiset_of xs \<le># multiset_of ys) \<and>
-  (ms_lesseq_impl xs ys = Some True \<longleftrightarrow> multiset_of xs <# multiset_of ys) \<and>
-  (ms_lesseq_impl xs ys = Some False \<longrightarrow> multiset_of xs = multiset_of ys)"
+lemma ms_lesseq_impl: "(ms_lesseq_impl xs ys = None \<longleftrightarrow> \<not> mset xs \<le># mset ys) \<and>
+  (ms_lesseq_impl xs ys = Some True \<longleftrightarrow> mset xs <# mset ys) \<and>
+  (ms_lesseq_impl xs ys = Some False \<longrightarrow> mset xs = mset ys)"
 proof (induct xs arbitrary: ys)
   case (Nil ys)
   show ?case by (auto simp: mset_less_empty_nonempty)
@@ -2163,13 +2163,13 @@ next
     case None
     hence x: "x \<notin> set ys" by (simp add: extract_None_iff)
     {
-      assume "multiset_of (x # xs) \<le># multiset_of ys"
+      assume "mset (x # xs) \<le># mset ys"
       from set_mset_mono[OF this] x have False by simp
     } note nle = this
     moreover
     {
-      assume "multiset_of (x # xs) <# multiset_of ys"
-      hence "multiset_of (x # xs) \<le># multiset_of ys" by auto
+      assume "mset (x # xs) <# mset ys"
+      hence "mset (x # xs) \<le># mset ys" by auto
       from nle[OF this] have False .
     }
     ultimately show ?thesis using None by auto
@@ -2178,7 +2178,7 @@ next
     obtain ys1 y ys2 where res: "res = (ys1,y,ys2)" by (cases res, auto)
     note Some = Some[unfolded res]
     from extract_SomeE[OF Some] have "ys = ys1 @ x # ys2" by simp
-    hence id: "multiset_of ys = multiset_of (ys1 @ ys2) + {#x#}"
+    hence id: "mset ys = mset (ys1 @ ys2) + {#x#}"
       by (auto simp: ac_simps)
     show ?thesis unfolding ms_lesseq_impl.simps
       unfolding Some option.simps split
@@ -2188,10 +2188,10 @@ next
   qed
 qed
 
-lemma [code]: "multiset_of xs \<le># multiset_of ys \<longleftrightarrow> ms_lesseq_impl xs ys \<noteq> None"
+lemma [code]: "mset xs \<le># mset ys \<longleftrightarrow> ms_lesseq_impl xs ys \<noteq> None"
   using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
 
-lemma [code]: "multiset_of xs <# multiset_of ys \<longleftrightarrow> ms_lesseq_impl xs ys = Some True"
+lemma [code]: "mset xs <# mset ys \<longleftrightarrow> ms_lesseq_impl xs ys = Some True"
   using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
 
 instantiation multiset :: (equal) equal
@@ -2199,7 +2199,7 @@ begin
 
 definition
   [code del]: "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
-lemma [code]: "HOL.equal (multiset_of xs) (multiset_of ys) \<longleftrightarrow> ms_lesseq_impl xs ys = Some False"
+lemma [code]: "HOL.equal (mset xs) (mset ys) \<longleftrightarrow> ms_lesseq_impl xs ys = Some False"
   unfolding equal_multiset_def
   using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
 
@@ -2208,13 +2208,13 @@ instance
 end
 
 lemma [code]:
-  "msetsum (multiset_of xs) = listsum xs"
+  "msetsum (mset xs) = listsum xs"
   by (induct xs) (simp_all add: add.commute)
 
 lemma [code]:
-  "msetprod (multiset_of xs) = fold times xs 1"
+  "msetprod (mset xs) = fold times xs 1"
 proof -
-  have "\<And>x. fold times xs x = msetprod (multiset_of xs) * x"
+  have "\<And>x. fold times xs x = msetprod (mset xs) * x"
     by (induct xs) (simp_all add: mult.assoc)
   then show ?thesis by simp
 qed
@@ -2229,7 +2229,7 @@ text \<open>Quickcheck generators\<close>
 definition (in term_syntax)
   msetify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
     \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
-  [code_unfold]: "msetify xs = Code_Evaluation.valtermify multiset_of {\<cdot>} xs"
+  [code_unfold]: "msetify xs = Code_Evaluation.valtermify mset {\<cdot>} xs"
 
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
@@ -2264,12 +2264,12 @@ hide_const (open) msetify
 subsection \<open>BNF setup\<close>
 
 definition rel_mset where
-  "rel_mset R X Y \<longleftrightarrow> (\<exists>xs ys. multiset_of xs = X \<and> multiset_of ys = Y \<and> list_all2 R xs ys)"
+  "rel_mset R X Y \<longleftrightarrow> (\<exists>xs ys. mset xs = X \<and> mset ys = Y \<and> list_all2 R xs ys)"
 
-lemma multiset_of_zip_take_Cons_drop_twice:
+lemma mset_zip_take_Cons_drop_twice:
   assumes "length xs = length ys" "j \<le> length xs"
-  shows "multiset_of (zip (take j xs @ x # drop j xs) (take j ys @ y # drop j ys)) =
-    multiset_of (zip xs ys) + {#(x, y)#}"
+  shows "mset (zip (take j xs @ x # drop j xs) (take j ys @ y # drop j ys)) =
+    mset (zip xs ys) + {#(x, y)#}"
 using assms
 proof (induct xs ys arbitrary: x y j rule: list_induct2)
   case Nil
@@ -2288,17 +2288,17 @@ next
       by (case_tac j) simp
     hence "k \<le> length xs"
       using Cons.prems by auto
-    hence "multiset_of (zip (take k xs @ x # drop k xs) (take k ys @ y # drop k ys)) =
-      multiset_of (zip xs ys) + {#(x, y)#}"
+    hence "mset (zip (take k xs @ x # drop k xs) (take k ys @ y # drop k ys)) =
+      mset (zip xs ys) + {#(x, y)#}"
       by (rule Cons.hyps(2))
     thus ?thesis
       unfolding k by (auto simp: add.commute union_lcomm)
   qed
 qed
 
-lemma ex_multiset_of_zip_left:
-  assumes "length xs = length ys" "multiset_of xs' = multiset_of xs"
-  shows "\<exists>ys'. length ys' = length xs' \<and> multiset_of (zip xs' ys') = multiset_of (zip xs ys)"
+lemma ex_mset_zip_left:
+  assumes "length xs = length ys" "mset xs' = mset xs"
+  shows "\<exists>ys'. length ys' = length xs' \<and> mset (zip xs' ys') = mset (zip xs ys)"
 using assms
 proof (induct xs ys arbitrary: xs' rule: list_induct2)
   case Nil
@@ -2307,57 +2307,57 @@ proof (induct xs ys arbitrary: xs' rule: list_induct2)
 next
   case (Cons x xs y ys xs')
   obtain j where j_len: "j < length xs'" and nth_j: "xs' ! j = x"
-    by (metis Cons.prems in_set_conv_nth list.set_intros(1) multiset_of_eq_setD)
+    by (metis Cons.prems in_set_conv_nth list.set_intros(1) mset_eq_setD)
 
   def xsa \<equiv> "take j xs' @ drop (Suc j) xs'"
-  have "multiset_of xs' = {#x#} + multiset_of xsa"
+  have "mset xs' = {#x#} + mset xsa"
     unfolding xsa_def using j_len nth_j
     by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id Cons_nth_drop_Suc
-      multiset_of.simps(2) union_code add.commute)
-  hence ms_x: "multiset_of xsa = multiset_of xs"
-    by (metis Cons.prems add.commute add_right_imp_eq multiset_of.simps(2))
+      mset.simps(2) union_code add.commute)
+  hence ms_x: "mset xsa = mset xs"
+    by (metis Cons.prems add.commute add_right_imp_eq mset.simps(2))
   then obtain ysa where
-    len_a: "length ysa = length xsa" and ms_a: "multiset_of (zip xsa ysa) = multiset_of (zip xs ys)"
+    len_a: "length ysa = length xsa" and ms_a: "mset (zip xsa ysa) = mset (zip xs ys)"
     using Cons.hyps(2) by blast
 
   def ys' \<equiv> "take j ysa @ y # drop j ysa"
   have xs': "xs' = take j xsa @ x # drop j xsa"
     using ms_x j_len nth_j Cons.prems xsa_def
     by (metis append_eq_append_conv append_take_drop_id diff_Suc_Suc Cons_nth_drop_Suc length_Cons
-      length_drop size_multiset_of)
+      length_drop size_mset)
   have j_len': "j \<le> length xsa"
     using j_len xs' xsa_def
     by (metis add_Suc_right append_take_drop_id length_Cons length_append less_eq_Suc_le not_less)
   have "length ys' = length xs'"
     unfolding ys'_def using Cons.prems len_a ms_x
-    by (metis add_Suc_right append_take_drop_id length_Cons length_append multiset_of_eq_length)
-  moreover have "multiset_of (zip xs' ys') = multiset_of (zip (x # xs) (y # ys))"
+    by (metis add_Suc_right append_take_drop_id length_Cons length_append mset_eq_length)
+  moreover have "mset (zip xs' ys') = mset (zip (x # xs) (y # ys))"
     unfolding xs' ys'_def
-    by (rule trans[OF multiset_of_zip_take_Cons_drop_twice])
+    by (rule trans[OF mset_zip_take_Cons_drop_twice])
       (auto simp: len_a ms_a j_len' add.commute)
   ultimately show ?case
     by blast
 qed
 
 lemma list_all2_reorder_left_invariance:
-  assumes rel: "list_all2 R xs ys" and ms_x: "multiset_of xs' = multiset_of xs"
-  shows "\<exists>ys'. list_all2 R xs' ys' \<and> multiset_of ys' = multiset_of ys"
+  assumes rel: "list_all2 R xs ys" and ms_x: "mset xs' = mset xs"
+  shows "\<exists>ys'. list_all2 R xs' ys' \<and> mset ys' = mset ys"
 proof -
   have len: "length xs = length ys"
     using rel list_all2_conv_all_nth by auto
   obtain ys' where
-    len': "length xs' = length ys'" and ms_xy: "multiset_of (zip xs' ys') = multiset_of (zip xs ys)"
-    using len ms_x by (metis ex_multiset_of_zip_left)
+    len': "length xs' = length ys'" and ms_xy: "mset (zip xs' ys') = mset (zip xs ys)"
+    using len ms_x by (metis ex_mset_zip_left)
   have "list_all2 R xs' ys'"
-    using assms(1) len' ms_xy unfolding list_all2_iff by (blast dest: multiset_of_eq_setD)
-  moreover have "multiset_of ys' = multiset_of ys"
-    using len len' ms_xy map_snd_zip multiset_of_map by metis
+    using assms(1) len' ms_xy unfolding list_all2_iff by (blast dest: mset_eq_setD)
+  moreover have "mset ys' = mset ys"
+    using len len' ms_xy map_snd_zip mset_map by metis
   ultimately show ?thesis
     by blast
 qed
 
-lemma ex_multiset_of: "\<exists>xs. multiset_of xs = X"
-  by (induct X) (simp, metis multiset_of.simps(2))
+lemma ex_mset: "\<exists>xs. mset xs = X"
+  by (induct X) (simp, metis mset.simps(2))
 
 bnf "'a multiset"
   map: image_mset
@@ -2403,19 +2403,19 @@ next
     unfolding rel_mset_def[abs_def] BNF_Def.Grp_def OO_def
     apply (rule ext)+
     apply auto
-     apply (rule_tac x = "multiset_of (zip xs ys)" in exI; auto)
-        apply (metis list_all2_lengthD map_fst_zip multiset_of_map)
+     apply (rule_tac x = "mset (zip xs ys)" in exI; auto)
+        apply (metis list_all2_lengthD map_fst_zip mset_map)
        apply (auto simp: list_all2_iff)[1]
-      apply (metis list_all2_lengthD map_snd_zip multiset_of_map)
+      apply (metis list_all2_lengthD map_snd_zip mset_map)
      apply (auto simp: list_all2_iff)[1]
     apply (rename_tac XY)
-    apply (cut_tac X = XY in ex_multiset_of)
+    apply (cut_tac X = XY in ex_mset)
     apply (erule exE)
     apply (rename_tac xys)
     apply (rule_tac x = "map fst xys" in exI)
-    apply (auto simp: multiset_of_map)
+    apply (auto simp: mset_map)
     apply (rule_tac x = "map snd xys" in exI)
-    apply (auto simp: multiset_of_map list_all2I subset_eq zip_map_fst_snd)
+    apply (auto simp: mset_map list_all2I subset_eq zip_map_fst_snd)
     done
 next
   show "\<And>z. z \<in> set_mset {#} \<Longrightarrow> False"

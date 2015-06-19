@@ -471,26 +471,26 @@ lemma ball_in_set_sublist'_conv: "(\<forall>j \<in> set (sublist' l r xs). P j) 
 unfolding set_sublist' by blast
 
 
-lemma multiset_of_sublist:
+lemma mset_sublist:
 assumes l_r: "l \<le> r \<and> r \<le> List.length xs"
 assumes left: "\<forall> i. i < l \<longrightarrow> (xs::'a list) ! i = ys ! i"
 assumes right: "\<forall> i. i \<ge> r \<longrightarrow> (xs::'a list) ! i = ys ! i"
-assumes multiset: "multiset_of xs = multiset_of ys"
-  shows "multiset_of (sublist' l r xs) = multiset_of (sublist' l r ys)"
+assumes multiset: "mset xs = mset ys"
+  shows "mset (sublist' l r xs) = mset (sublist' l r ys)"
 proof -
   from l_r have xs_def: "xs = (sublist' 0 l xs) @ (sublist' l r xs) @ (sublist' r (List.length xs) xs)" (is "_ = ?xs_long") 
     by (simp add: sublist'_append)
-  from multiset have length_eq: "List.length xs = List.length ys" by (rule multiset_of_eq_length)
+  from multiset have length_eq: "List.length xs = List.length ys" by (rule mset_eq_length)
   with l_r have ys_def: "ys = (sublist' 0 l ys) @ (sublist' l r ys) @ (sublist' r (List.length ys) ys)" (is "_ = ?ys_long") 
     by (simp add: sublist'_append)
-  from xs_def ys_def multiset have "multiset_of ?xs_long = multiset_of ?ys_long" by simp
+  from xs_def ys_def multiset have "mset ?xs_long = mset ?ys_long" by simp
   moreover
   from left l_r length_eq have "sublist' 0 l xs = sublist' 0 l ys"
     by (auto simp add: length_sublist' nth_sublist' intro!: nth_equalityI)
   moreover
   from right l_r length_eq have "sublist' r (List.length xs) xs = sublist' r (List.length ys) ys"
     by (auto simp add: length_sublist' nth_sublist' intro!: nth_equalityI)
-  ultimately show ?thesis by (simp add: multiset_of_append)
+  ultimately show ?thesis by (simp add: mset_append)
 qed
 
 

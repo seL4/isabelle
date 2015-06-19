@@ -116,8 +116,9 @@ not available during instantiation.
     (e.g. add_mono ~> subset_mset.add_mono).
     INCOMPATIBILITY.
   - Renamed conversions:
-      set_of ~> set_mset
+      multiset_of ~> mset
       multiset_of_set ~> mset_set
+      set_of ~> set_mset
     INCOMPATIBILITY
   - Renamed lemmas:
       mset_le_def ~> subseteq_mset_def

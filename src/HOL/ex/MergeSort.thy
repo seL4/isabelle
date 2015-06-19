@@ -19,8 +19,8 @@ where
 | "merge xs [] = xs"
 | "merge [] ys = ys"
 
-lemma multiset_of_merge [simp]:
-  "multiset_of (merge xs ys) = multiset_of xs + multiset_of ys"
+lemma mset_merge [simp]:
+  "mset (merge xs ys) = mset xs + mset ys"
   by (induct xs ys rule: merge.induct) (simp_all add: ac_simps)
 
 lemma set_merge [simp]:
@@ -42,14 +42,14 @@ lemma sorted_msort:
   "sorted (msort xs)"
   by (induct xs rule: msort.induct) simp_all
 
-lemma multiset_of_msort:
-  "multiset_of (msort xs) = multiset_of xs"
+lemma mset_msort:
+  "mset (msort xs) = mset xs"
   by (induct xs rule: msort.induct)
-    (simp_all, metis append_take_drop_id drop_Suc_Cons multiset_of.simps(2) multiset_of_append take_Suc_Cons)
+    (simp_all, metis append_take_drop_id drop_Suc_Cons mset.simps(2) mset_append take_Suc_Cons)
 
 theorem msort_sort:
   "sort = msort"
-  by (rule ext, rule properties_for_sort) (fact multiset_of_msort sorted_msort)+
+  by (rule ext, rule properties_for_sort) (fact mset_msort sorted_msort)+
 
 end
 

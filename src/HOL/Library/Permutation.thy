@@ -120,7 +120,7 @@ lemma perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~>
   apply (blast intro: perm_append_swap)
   done
 
-lemma multiset_of_eq_perm: "multiset_of xs = multiset_of ys \<longleftrightarrow> xs <~~> ys"
+lemma mset_eq_perm: "mset xs = mset ys \<longleftrightarrow> xs <~~> ys"
   apply (rule iffI)
   apply (erule_tac [2] perm.induct)
   apply (simp_all add: union_ac)
@@ -140,15 +140,15 @@ lemma multiset_of_eq_perm: "multiset_of xs = multiset_of ys \<longleftrightarrow
   apply simp
   done
 
-lemma multiset_of_le_perm_append: "multiset_of xs \<le># multiset_of ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
-  apply (auto simp: multiset_of_eq_perm[THEN sym] mset_le_exists_conv)
-  apply (insert surj_multiset_of)
+lemma mset_le_perm_append: "mset xs \<le># mset ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
+  apply (auto simp: mset_eq_perm[THEN sym] mset_le_exists_conv)
+  apply (insert surj_mset)
   apply (drule surjD)
   apply (blast intro: sym)+
   done
 
 lemma perm_set_eq: "xs <~~> ys \<Longrightarrow> set xs = set ys"
-  by (metis multiset_of_eq_perm multiset_of_eq_setD)
+  by (metis mset_eq_perm mset_eq_setD)
 
 lemma perm_distinct_iff: "xs <~~> ys \<Longrightarrow> distinct xs = distinct ys"
   apply (induct pred: perm)

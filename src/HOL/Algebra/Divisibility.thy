@@ -1063,9 +1063,9 @@ lemma perm_setP:
   shows "P (set bs)"
 proof -
   from perm
-      have "multiset_of as = multiset_of bs"
-      by (simp add: multiset_of_eq_perm)
-  hence "set as = set bs" by (rule multiset_of_eq_setD)
+      have "mset as = mset bs"
+      by (simp add: mset_eq_perm)
+  hence "set as = set bs" by (rule mset_eq_setD)
   with as
       show "P (set bs)" by simp
 qed
@@ -1792,7 +1792,7 @@ abbreviation
   "assocs G x == eq_closure_of (division_rel G) {x}"
 
 definition
-  "fmset G as = multiset_of (map (\<lambda>a. assocs G a) as)"
+  "fmset G as = mset (map (\<lambda>a. assocs G a) as)"
 
 
 text {* Helper lemmas *}
@@ -1840,7 +1840,7 @@ lemma (in monoid) fmset_perm_cong:
   assumes prm: "as <~~> bs"
   shows "fmset G as = fmset G bs"
 using perm_map[OF prm]
-by (simp add: multiset_of_eq_perm fmset_def)
+by (simp add: mset_eq_perm fmset_def)
 
 lemma (in comm_monoid_cancel) eqc_listassoc_cong:
   assumes "as [\<sim>] bs"
@@ -1923,9 +1923,9 @@ proof -
     and p3: "map (assocs G) as <~~> map (assocs G) bs"
 
   from p1
-      have "multiset_of (map (assocs G) as) = multiset_of ys"
-      by (simp add: multiset_of_eq_perm)
-  hence setys: "set (map (assocs G) as) = set ys" by (rule multiset_of_eq_setD)
+      have "mset (map (assocs G) as) = mset ys"
+      by (simp add: mset_eq_perm)
+  hence setys: "set (map (assocs G) as) = set ys" by (rule mset_eq_setD)
 
   have "set (map (assocs G) as) = { assocs G x | x. x \<in> set as}" by clarsimp fast
   with setys have "set ys \<subseteq> { assocs G x | x. x \<in> set as}" by simp
@@ -1980,7 +1980,7 @@ lemma (in comm_monoid_cancel) fmset_ee:
 proof -
   from mset
       have mpp: "map (assocs G) as <~~> map (assocs G) bs"
-      by (simp add: fmset_def multiset_of_eq_perm)
+      by (simp add: fmset_def mset_eq_perm)
 
   have "\<exists>cas. cas = map (assocs G) as" by simp
   from this obtain cas where cas: "cas = map (assocs G) as" by simp
@@ -2003,7 +2003,7 @@ proof -
       and tm: "map (assocs G) as' = map (assocs G) bs"
       by auto
   from tm have lene: "length as' = length bs" by (rule map_eq_imp_length_eq)
-  from tp have "set as = set as'" by (simp add: multiset_of_eq_perm multiset_of_eq_setD)
+  from tp have "set as = set as'" by (simp add: mset_eq_perm mset_eq_setD)
   with ascarr
       have as'carr: "set as' \<subseteq> carrier G" by simp
 
@@ -2028,13 +2028,13 @@ lemma (in monoid) mset_fmsetEx:
   assumes elems: "\<And>X. X \<in> set_mset Cs \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
   shows "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> fmset G cs = Cs"
 proof -
-  have "\<exists>Cs'. Cs = multiset_of Cs'"
-      by (rule surjE[OF surj_multiset_of], fast)
+  have "\<exists>Cs'. Cs = mset Cs'"
+      by (rule surjE[OF surj_mset], fast)
   from this obtain Cs'
-      where Cs: "Cs = multiset_of Cs'"
+      where Cs: "Cs = mset Cs'"
       by auto
 
-  have "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> multiset_of (map (assocs G) cs) = Cs"
+  have "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> mset (map (assocs G) cs) = Cs"
   using elems
   unfolding Cs
     apply (induct Cs', simp)
@@ -2042,7 +2042,7 @@ proof -
     fix a Cs' cs 
     assume ih: "\<And>X. X = a \<or> X \<in> set Cs' \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
       and csP: "\<forall>x\<in>set cs. P x"
-      and mset: "multiset_of (map (assocs G) cs) = multiset_of Cs'"
+      and mset: "mset (map (assocs G) cs) = mset Cs'"
     from ih
         have "\<exists>x. P x \<and> a = assocs G x" by fast
     from this obtain c
@@ -2052,11 +2052,11 @@ proof -
     from cP csP
         have tP: "\<forall>x\<in>set (c#cs). P x" by simp
     from mset a
-    have "multiset_of (map (assocs G) (c#cs)) = multiset_of Cs' + {#a#}" by simp
+    have "mset (map (assocs G) (c#cs)) = mset Cs' + {#a#}" by simp
     from tP this
     show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and>
-               multiset_of (map (assocs G) cs) =
-               multiset_of Cs' + {#a#}" by fast
+               mset (map (assocs G) cs) =
+               mset Cs' + {#a#}" by fast
   qed
   thus ?thesis by (simp add: fmset_def)
 qed

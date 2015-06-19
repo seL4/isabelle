@@ -17,7 +17,7 @@ primrec tokens :: "nat list => nat" where
   "tokens [] = 0"
 | "tokens (x#xs) = x + tokens xs"
 
-abbreviation (input) "bag_of \<equiv> multiset_of"
+abbreviation (input) "bag_of \<equiv> mset"
 
 lemma setsum_fun_mono [rule_format]:
      "!!f :: nat=>nat.  

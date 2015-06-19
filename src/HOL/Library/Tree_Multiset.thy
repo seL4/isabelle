@@ -26,10 +26,10 @@ by (induction t) auto
 lemma mset_iff_set_tree: "x \<in># mset_tree t \<longleftrightarrow> x \<in> set_tree t"
 by(induction t arbitrary: x) auto
 
-lemma multiset_of_preorder[simp]: "multiset_of (preorder t) = mset_tree t"
+lemma mset_preorder[simp]: "mset (preorder t) = mset_tree t"
 by (induction t) (auto simp: ac_simps)
 
-lemma multiset_of_inorder[simp]: "multiset_of (inorder t) = mset_tree t"
+lemma mset_inorder[simp]: "mset (inorder t) = mset_tree t"
 by (induction t) (auto simp: ac_simps)
 
 lemma map_mirror: "mset_tree (mirror t) = mset_tree t"
