@@ -1,4 +1,4 @@
-(* Author: Stefan Berghofer, Lukas Bulwahn, TU Muenchen *)
+(*  Author: Stefan Berghofer, Lukas Bulwahn, TU Muenchen  *)
 
 section \<open>A table-based implementation of the reflexive transitive closure\<close>
 
@@ -12,10 +12,10 @@ where
   base: "rtrancl_path r x [] x"
 | step: "r x y \<Longrightarrow> rtrancl_path r y ys z \<Longrightarrow> rtrancl_path r x (y # ys) z"
 
-lemma rtranclp_eq_rtrancl_path: "r\<^sup>*\<^sup>* x y = (\<exists>xs. rtrancl_path r x xs y)"
+lemma rtranclp_eq_rtrancl_path: "r\<^sup>*\<^sup>* x y \<longleftrightarrow> (\<exists>xs. rtrancl_path r x xs y)"
 proof
-  assume "r\<^sup>*\<^sup>* x y"
-  then show "\<exists>xs. rtrancl_path r x xs y"
+  show "\<exists>xs. rtrancl_path r x xs y" if "r\<^sup>*\<^sup>* x y"
+    using that
   proof (induct rule: converse_rtranclp_induct)
     case base
     have "rtrancl_path r y [] y" by (rule rtrancl_path.base)
@@ -28,23 +28,25 @@ proof
       by (rule rtrancl_path.step)
     then show ?case ..
   qed
-next
-  assume "\<exists>xs. rtrancl_path r x xs y"
-  then obtain xs where "rtrancl_path r x xs y" ..
-  then show "r\<^sup>*\<^sup>* x y"
-  proof induct
-    case (base x)
-    show ?case by (rule rtranclp.rtrancl_refl)
-  next
-    case (step x y ys z)
-    from \<open>r x y\<close> \<open>r\<^sup>*\<^sup>* y z\<close> show ?case
-      by (rule converse_rtranclp_into_rtranclp)
+  show "r\<^sup>*\<^sup>* x y" if "\<exists>xs. rtrancl_path r x xs y"
+  proof -
+    from that obtain xs where "rtrancl_path r x xs y" ..
+    then show ?thesis
+    proof induct
+      case (base x)
+      show ?case
+        by (rule rtranclp.rtrancl_refl)
+    next
+      case (step x y ys z)
+      from \<open>r x y\<close> \<open>r\<^sup>*\<^sup>* y z\<close> show ?case
+        by (rule converse_rtranclp_into_rtranclp)
+    qed
   qed
 qed
 
 lemma rtrancl_path_trans:
   assumes xy: "rtrancl_path r x xs y"
-  and yz: "rtrancl_path r y ys z"
+    and yz: "rtrancl_path r y ys z"
   shows "rtrancl_path r x (xs @ ys) z" using xy yz
 proof (induct arbitrary: z)
   case (base x)
@@ -60,7 +62,8 @@ qed
 
 lemma rtrancl_path_appendE:
   assumes xz: "rtrancl_path r x (xs @ y # ys) z"
-  obtains "rtrancl_path r x (xs @ [y]) y" and "rtrancl_path r y ys z" using xz
+  obtains "rtrancl_path r x (xs @ [y]) y" and "rtrancl_path r y ys z"
+  using xz
 proof (induct xs arbitrary: x)
   case Nil
   then have "rtrancl_path r x (y # ys) z" by simp
@@ -69,13 +72,13 @@ proof (induct xs arbitrary: x)
   from xy have "rtrancl_path r x [y] y"
     by (rule rtrancl_path.step [OF _ rtrancl_path.base])
   then have "rtrancl_path r x ([] @ [y]) y" by simp
-  then show ?thesis using yz by (rule Nil)
+  then show thesis using yz by (rule Nil)
 next
   case (Cons a as)
   then have "rtrancl_path r x (a # (as @ y # ys)) z" by simp
   then obtain xa: "r x a" and az: "rtrancl_path r a (as @ y # ys) z"
     by cases auto
-  show ?thesis
+  show thesis
   proof (rule Cons(1) [OF _ az])
     assume "rtrancl_path r y ys z"
     assume "rtrancl_path r a (as @ [y]) y"
@@ -83,14 +86,15 @@ next
       by (rule rtrancl_path.step)
     then have "rtrancl_path r x ((a # as) @ [y]) y"
       by simp
-    then show ?thesis using \<open>rtrancl_path r y ys z\<close>
+    then show thesis using \<open>rtrancl_path r y ys z\<close>
       by (rule Cons(2))
   qed
 qed
 
 lemma rtrancl_path_distinct:
   assumes xy: "rtrancl_path r x xs y"
-  obtains xs' where "rtrancl_path r x xs' y" and "distinct (x # xs')" using xy
+  obtains xs' where "rtrancl_path r x xs' y" and "distinct (x # xs')"
+  using xy
 proof (induct xs rule: measure_induct_rule [of length])
   case (less xs)
   show ?case
@@ -138,56 +142,68 @@ where
 
 lemma rtrancl_path_imp_rtrancl_tab:
   assumes path: "rtrancl_path r x xs y"
-  and x: "distinct (x # xs)"
-  and ys: "({x} \<union> set xs) \<inter> set ys = {}"
-  shows "rtrancl_tab r ys x y" using path x ys
+    and x: "distinct (x # xs)"
+    and ys: "({x} \<union> set xs) \<inter> set ys = {}"
+  shows "rtrancl_tab r ys x y"
+  using path x ys
 proof (induct arbitrary: ys)
   case base
-  show ?case by (rule rtrancl_tab.base)
+  show ?case
+    by (rule rtrancl_tab.base)
 next
   case (step x y zs z)
-  then have "x \<notin> set ys" by auto
-  from step have "distinct (y # zs)" by simp
+  then have "x \<notin> set ys"
+    by auto
+  from step have "distinct (y # zs)"
+    by simp
   moreover from step have "({y} \<union> set zs) \<inter> set (x # ys) = {}"
     by auto
   ultimately have "rtrancl_tab r (x # ys) y z"
     by (rule step)
-  with \<open>x \<notin> set ys\<close> \<open>r x y\<close>
-  show ?case by (rule rtrancl_tab.step)
+  with \<open>x \<notin> set ys\<close> \<open>r x y\<close> show ?case
+    by (rule rtrancl_tab.step)
 qed
 
 lemma rtrancl_tab_imp_rtrancl_path:
   assumes tab: "rtrancl_tab r ys x y"
-  obtains xs where "rtrancl_path r x xs y" using tab
+  obtains xs where "rtrancl_path r x xs y"
+  using tab
 proof induct
   case base
-  from rtrancl_path.base show ?case by (rule base)
+  from rtrancl_path.base show ?case
+    by (rule base)
 next
-  case step show ?case by (iprover intro: step rtrancl_path.step)
+  case step
+  show ?case
+    by (iprover intro: step rtrancl_path.step)
 qed
 
-lemma rtranclp_eq_rtrancl_tab_nil: "r\<^sup>*\<^sup>* x y = rtrancl_tab r [] x y"
+lemma rtranclp_eq_rtrancl_tab_nil: "r\<^sup>*\<^sup>* x y \<longleftrightarrow> rtrancl_tab r [] x y"
 proof
-  assume "r\<^sup>*\<^sup>* x y"
-  then obtain xs where "rtrancl_path r x xs y"
-    by (auto simp add: rtranclp_eq_rtrancl_path)
-  then obtain xs' where xs': "rtrancl_path r x xs' y"
-    and distinct: "distinct (x # xs')"
-    by (rule rtrancl_path_distinct)
-  have "({x} \<union> set xs') \<inter> set [] = {}" by simp
-  with xs' distinct show "rtrancl_tab r [] x y"
-    by (rule rtrancl_path_imp_rtrancl_tab)
-next
-  assume "rtrancl_tab r [] x y"
-  then obtain xs where "rtrancl_path r x xs y"
-    by (rule rtrancl_tab_imp_rtrancl_path)
-  then show "r\<^sup>*\<^sup>* x y"
-    by (auto simp add: rtranclp_eq_rtrancl_path)
+  show "rtrancl_tab r [] x y" if "r\<^sup>*\<^sup>* x y"
+  proof -
+    from that obtain xs where "rtrancl_path r x xs y"
+      by (auto simp add: rtranclp_eq_rtrancl_path)
+    then obtain xs' where xs': "rtrancl_path r x xs' y" and distinct: "distinct (x # xs')"
+      by (rule rtrancl_path_distinct)
+    have "({x} \<union> set xs') \<inter> set [] = {}"
+      by simp
+    with xs' distinct show ?thesis
+      by (rule rtrancl_path_imp_rtrancl_tab)
+  qed
+  show "r\<^sup>*\<^sup>* x y" if "rtrancl_tab r [] x y"
+  proof -
+    from that obtain xs where "rtrancl_path r x xs y"
+      by (rule rtrancl_tab_imp_rtrancl_path)
+    then show ?thesis
+      by (auto simp add: rtranclp_eq_rtrancl_path)
+  qed
 qed
 
-declare rtranclp_rtrancl_eq[code del]
-declare rtranclp_eq_rtrancl_tab_nil[THEN iffD2, code_pred_intro]
+declare rtranclp_rtrancl_eq [code del]
+declare rtranclp_eq_rtrancl_tab_nil [THEN iffD2, code_pred_intro]
 
-code_pred rtranclp using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastforce
+code_pred rtranclp
+  using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastforce
 
 end
