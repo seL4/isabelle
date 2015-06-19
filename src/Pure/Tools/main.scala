@@ -47,7 +47,7 @@ object Main
             options.string("jedit_logic"))
 
           if (Build.build(options = options, build_heap = true, no_build = true,
-              dirs = dirs, sessions = List(session)) == 0)
+              dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0)
             system_dialog.return_code(0)
           else {
             system_dialog.title("Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")")

@@ -21,7 +21,7 @@ object Build_Console
   {
     if (no_build ||
         Build.build(options = options, build_heap = true, no_build = true,
-          dirs = dirs, sessions = List(session)) == 0) 0
+          dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0) 0
     else {
       progress.echo("Build started for Isabelle/" + session + " ...")
       Build.build(options = options, progress = progress, build_heap = true,
