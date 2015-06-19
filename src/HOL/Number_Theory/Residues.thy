@@ -14,7 +14,7 @@ begin
 subsection \<open>A locale for residue rings\<close>
 
 definition residue_ring :: "int \<Rightarrow> int ring"
-  where
+where
   "residue_ring m =
     \<lparr>carrier = {0..m - 1},
      mult = \<lambda>x y. (x * y) mod m,
@@ -160,10 +160,10 @@ lemma pow_cong: "(x mod m) (^) n = x^n mod m"
 lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
   by (metis mod_minus_eq res_neg_eq)
 
-lemma (in residues) prod_cong: "finite A \<Longrightarrow> (\<Otimes> i:A. (f i) mod m) = (\<Prod>i\<in>A. f i) mod m"
+lemma (in residues) prod_cong: "finite A \<Longrightarrow> (\<Otimes>i\<in>A. (f i) mod m) = (\<Prod>i\<in>A. f i) mod m"
   by (induct set: finite) (auto simp: one_cong mult_cong)
 
-lemma (in residues) sum_cong: "finite A \<Longrightarrow> (\<Oplus> i:A. (f i) mod m) = (\<Sum>i\<in>A. f i) mod m"
+lemma (in residues) sum_cong: "finite A \<Longrightarrow> (\<Oplus>i\<in>A. (f i) mod m) = (\<Sum>i\<in>A. f i) mod m"
   by (induct set: finite) (auto simp: zero_cong add_cong)
 
 lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrightarrow> a mod m \<in> Units R"
@@ -176,21 +176,19 @@ lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrighta
   apply (metis gcd_int.commute gcd_red_int)
   done
 
-lemma res_eq_to_cong: "((a mod m) = (b mod m)) = [a = b] (mod (m::int))"
+lemma res_eq_to_cong: "(a mod m) = (b mod m) \<longleftrightarrow> [a = b] (mod m)"
   unfolding cong_int_def by auto
 
 
-text \<open>Simplifying with these will translate a ring equation in R to a
-   congruence.\<close>
+text \<open>Simplifying with these will translate a ring equation in R to a congruence.\<close>
 lemmas res_to_cong_simps = add_cong mult_cong pow_cong one_cong
     prod_cong sum_cong neg_cong res_eq_to_cong
 
 text \<open>Other useful facts about the residue ring.\<close>
-
 lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
   apply (simp add: res_one_eq res_neg_eq)
   apply (metis add.commute add_diff_cancel mod_mod_trivial one_add_one uminus_add_conv_diff
-            zero_neq_one zmod_zminus1_eq_if)
+    zero_neq_one zmod_zminus1_eq_if)
   done
 
 end
@@ -261,16 +259,16 @@ lemma prime_phi:
   assumes "2 \<le> p" "phi p = p - 1"
   shows "prime p"
 proof -
-  have "{x. 0 < x \<and> x < p \<and> coprime x p} = {1..p - 1}"
+  have *: "{x. 0 < x \<and> x < p \<and> coprime x p} = {1..p - 1}"
     using assms unfolding phi_def_nat
     by (intro card_seteq) fastforce+
-  then have cop: "\<And>x::nat. x \<in> {1..p - 1} \<Longrightarrow> coprime x p"
-    by blast
-  have False if *: "1 < x" "x < p" and "x dvd p" for x :: nat
+  have False if **: "1 < x" "x < p" and "x dvd p" for x :: nat
   proof -
+    from * have cop: "x \<in> {1..p - 1} \<Longrightarrow> coprime x p"
+      by blast
     have "coprime x p"
       apply (rule cop)
-      using * apply auto
+      using ** apply auto
       done
     with \<open>x dvd p\<close> \<open>1 < x\<close> show ?thesis
       by auto
@@ -324,8 +322,7 @@ qed
 
 *)
 
-(* outside the locale, we can relax the restriction m > 1 *)
-
+text \<open>Outside the locale, we can relax the restriction @{text "m > 1"}.\<close>
 lemma euler_theorem:
   assumes "m \<ge> 0"
     and "gcd a m = 1"
@@ -434,7 +431,8 @@ proof -
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
-    by (metis of_nat_fact Divides.transfer_int_nat_functions(2) cong_int_def res_neg_eq res_one_eq)
+    by (metis of_nat_fact Divides.transfer_int_nat_functions(2)
+      cong_int_def res_neg_eq res_one_eq)
 qed
 
 lemma wilson_theorem:
