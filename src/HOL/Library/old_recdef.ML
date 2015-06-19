@@ -597,7 +597,7 @@ fun dest_const(Const(s,ty)) = {Name = s, Ty = ty}
 fun dest_comb(t1 $ t2) = {Rator = t1, Rand = t2}
   | dest_comb _ =  raise USYN_ERR "dest_comb" "not a comb";
 
-fun dest_abs used (a as Abs(s, ty, M)) =
+fun dest_abs used (a as Abs(s, ty, _)) =
      let
        val s' = singleton (Name.variant_list used) s;
        val v = Free(s', ty);
@@ -854,7 +854,6 @@ val dest_eq     = dest_binop @{const_name HOL.eq}
 val dest_imp    = dest_binop @{const_name HOL.implies}
 val dest_conj   = dest_binop @{const_name HOL.conj}
 val dest_disj   = dest_binop @{const_name HOL.disj}
-val dest_select = dest_binder @{const_name Eps}
 val dest_exists = dest_binder @{const_name Ex}
 val dest_forall = dest_binder @{const_name All}
 
@@ -862,7 +861,6 @@ val dest_forall = dest_binder @{const_name All}
 
 val is_eq     = can dest_eq
 val is_imp    = can dest_imp
-val is_select = can dest_select
 val is_forall = can dest_forall
 val is_exists = can dest_exists
 val is_neg    = can dest_neg
@@ -1022,7 +1020,7 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
  *---------------------------------------------------------------------------*)
 local
   val prop = Thm.prop_of disjI1
-  val [P,Q] = Misc_Legacy.term_vars prop
+  val [_,Q] = Misc_Legacy.term_vars prop
   val disj1 = Thm.forall_intr (Thm.cterm_of @{context} Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj1)
@@ -1294,7 +1292,7 @@ fun Forall v M = USyntax.mk_forall{Bvar=v, Body=M};
 fun is_cong thm =
   case (Thm.prop_of thm) of
     (Const(@{const_name Pure.imp},_)$(Const(@{const_name Trueprop},_)$ _) $
-      (Const(@{const_name Pure.eq},_) $ (Const (@{const_name Wfrec.cut},_) $ _ $ _ $ a $ x) $ _)) =>
+      (Const(@{const_name Pure.eq},_) $ (Const (@{const_name Wfrec.cut},_) $ _ $ _ $ _ $ _) $ _)) =>
         false
   | _ => true;
 
@@ -1319,9 +1317,6 @@ fun strip_all used fm =
         in ((Bvar::bvs), core, used'')
         end
    else ([], fm, used);
-
-fun break_all(Const(@{const_name Pure.all},_) $ Abs (_,_,body)) = body
-  | break_all _ = raise RULES_ERR "break_all" "not a !!";
 
 fun list_break_all(Const(@{const_name Pure.all},_) $ Abs (s,ty,body)) =
      let val (L,core) = list_break_all body
@@ -2711,7 +2706,7 @@ fun meta_outer ctxt =
 val spec'=
   Rule_Insts.read_instantiate @{context} [((("x", 0), Position.none), "P::'b=>bool")] [] spec;
 
-fun simplify_defn ctxt strict congs wfs id pats def0 =
+fun simplify_defn ctxt strict congs wfs pats def0 =
   let
     val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
     val {rules, rows, TCs, full_pats_TCs} = Prim.post_definition ctxt congs (def, pats)
@@ -2767,7 +2762,7 @@ fun define_i strict congs wfs fid R eqs ctxt =
     val (def, thy') = Prim.wfrec_definition0 fid R functional thy
     val ctxt' = Proof_Context.transfer thy' ctxt
     val (lhs, _) = Logic.dest_equals (Thm.prop_of def)
-    val {induct, rules, tcs} = simplify_defn ctxt' strict congs wfs fid pats def
+    val {induct, rules, tcs} = simplify_defn ctxt' strict congs wfs pats def
     val rules' = if strict then derive_init_eqs ctxt' rules eqs else rules
   in ({lhs = lhs, rules = rules', induct = induct, tcs = tcs}, ctxt') end;
 
@@ -2820,7 +2815,7 @@ fun add_cong raw_thm congs =
 
 fun del_cong raw_thm congs =
   let
-    val (c, thm) = prep_cong raw_thm;
+    val (c, _) = prep_cong raw_thm;
     val _ = if AList.defined (op =) congs c
       then ()
       else warning ("No recdef congruence rule for " ^ quote c);
