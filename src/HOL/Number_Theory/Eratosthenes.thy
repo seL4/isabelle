@@ -2,14 +2,14 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* The sieve of Eratosthenes *}
+section \<open>The sieve of Eratosthenes\<close>
 
 theory Eratosthenes
 imports Main Primes
 begin
 
 
-subsection {* Preliminary: strict divisibility *}
+subsection \<open>Preliminary: strict divisibility\<close>
 
 context dvd
 begin
@@ -20,9 +20,9 @@ where
 
 end
 
-subsection {* Main corpus *}
+subsection \<open>Main corpus\<close>
 
-text {* The sieve is modelled as a list of booleans, where @{const False} means \emph{marked out}. *}
+text \<open>The sieve is modelled as a list of booleans, where @{const False} means \emph{marked out}.\<close>
 
 type_synonym marks = "bool list"
 
@@ -58,7 +58,7 @@ lemma sorted_list_of_set_numbers_of_marks:
     intro!: sorted_filter distinct_filter inj_onI sorted_distinct_set_unique)
 
 
-text {* Marking out multiples in a sieve  *}
+text \<open>Marking out multiples in a sieve\<close>
  
 definition mark_out :: "nat \<Rightarrow> marks \<Rightarrow> marks"
 where
@@ -78,7 +78,7 @@ lemma numbers_of_marks_mark_out:
     nth_enumerate_eq less_eq_dvd_minus)
 
 
-text {* Auxiliary operation for efficient implementation  *}
+text \<open>Auxiliary operation for efficient implementation\<close>
 
 definition mark_out_aux :: "nat \<Rightarrow> nat \<Rightarrow> marks \<Rightarrow> marks"
 where
@@ -104,15 +104,15 @@ proof -
         assume "\<not> q > 0"
         with q show False by simp
       qed
-      with `n > 0` have "Suc n * q \<ge> 2" by (auto simp add: gr0_conv_Suc)
+      with \<open>n > 0\<close> have "Suc n * q \<ge> 2" by (auto simp add: gr0_conv_Suc)
       with q have a: "a = Suc n * q - 2" by simp
       with B have "q + n * q < n + n + 2"
         by auto
       then have "m * q < m * 2" by (simp add: m_def)
-      with `m > 0` have "q < 2" by simp
-      with `q > 0` have "q = 1" by simp
+      with \<open>m > 0\<close> have "q < 2" by simp
+      with \<open>q > 0\<close> have "q = 1" by simp
       with a have "a = n - 1" by simp
-      with `n > 0` C show False by simp
+      with \<open>n > 0\<close> C show False by simp
     qed
   } note aux = this 
   show ?thesis
@@ -157,7 +157,7 @@ proof -
 qed
 
 
-text {* Main entry point to sieve *}
+text \<open>Main entry point to sieve\<close>
 
 fun sieve :: "nat \<Rightarrow> marks \<Rightarrow> marks"
 where
@@ -165,7 +165,7 @@ where
 | "sieve n (False # bs) = False # sieve (Suc n) bs"
 | "sieve n (True # bs) = True # sieve (Suc n) (mark_out n bs)"
 
-text {*
+text \<open>
   There are the following possible optimisations here:
 
   \begin{itemize}
@@ -179,7 +179,7 @@ text {*
   \end{itemize}
 
   This is left as an constructive exercise to the reader.
-*}
+\<close>
 
 lemma numbers_of_marks_sieve:
   "numbers_of_marks (Suc n) (sieve n bs) =
@@ -199,15 +199,15 @@ next
     assume "n > 0 \<and> n - 1 \<in> M"
     then have "n > 0" and "n - 1 \<in> M" by auto
     then have "Suc (n - 1) \<in> Suc ` M" by blast
-    with `n > 0` show "n \<in> Suc ` M" by simp
+    with \<open>n > 0\<close> show "n \<in> Suc ` M" by simp
   qed
   { fix m :: nat
     assume "Suc (Suc n) \<le> m" and "m dvd Suc n"
-    from `m dvd Suc n` obtain q where "Suc n = m * q" ..
-    with `Suc (Suc n) \<le> m` have "Suc (m * q) \<le> m" by simp
+    from \<open>m dvd Suc n\<close> obtain q where "Suc n = m * q" ..
+    with \<open>Suc (Suc n) \<le> m\<close> have "Suc (m * q) \<le> m" by simp
     then have "m * q < m" by arith
     then have "q = 0" by simp
-    with `Suc n = m * q` have False by simp
+    with \<open>Suc n = m * q\<close> have False by simp
   } note aux1 = this
   { fix m q :: nat
     assume "\<forall>q>0. 1 < q \<longrightarrow> Suc n < q \<longrightarrow> q \<le> Suc (n + length bs)
@@ -219,7 +219,7 @@ next
     then have "\<not> Suc n dvd q" by (auto elim: dvdE)
     moreover assume "Suc n < q" and "q \<le> Suc (n + length bs)"
       and "bs ! (q - Suc (Suc n))"
-    moreover note `q dvd m`
+    moreover note \<open>q dvd m\<close>
     ultimately have "m dvd q" by (auto intro: *)
   } note aux2 = this
   from 3 show ?case
@@ -234,7 +234,7 @@ next
 qed
 
 
-text {* Relation of the sieve algorithm to actual primes *}
+text \<open>Relation of the sieve algorithm to actual primes\<close>
 
 definition primes_upto :: "nat \<Rightarrow> nat list"
 where
@@ -267,11 +267,11 @@ next
     assume *: "\<forall>m\<in>{Suc (Suc 0)..<Suc n}. m dvd q \<longrightarrow> q dvd m"
       and "m dvd q" and "m \<noteq> 1"
     have "m = q" proof (cases "m = 0")
-      case True with `m dvd q` show ?thesis by simp
+      case True with \<open>m dvd q\<close> show ?thesis by simp
     next
-      case False with `m \<noteq> 1` have "Suc (Suc 0) \<le> m" by arith
-      with `m < Suc n` * `m dvd q` have "q dvd m" by simp
-      with `m dvd q` show ?thesis by (simp add: dvd.eq_iff)
+      case False with \<open>m \<noteq> 1\<close> have "Suc (Suc 0) \<le> m" by arith
+      with \<open>m < Suc n\<close> * \<open>m dvd q\<close> have "q dvd m" by simp
+      with \<open>m dvd q\<close> show ?thesis by (simp add: dvd.eq_iff)
     qed
   }
   then have aux: "\<And>m q. Suc (Suc 0) \<le> q \<Longrightarrow>
@@ -303,7 +303,7 @@ lemma prime_in_primes_upto:
   by (simp add: set_primes_upto)
 
 
-subsection {* Application: smallest prime beyond a certain number *}
+subsection \<open>Application: smallest prime beyond a certain number\<close>
 
 definition smallest_prime_beyond :: "nat \<Rightarrow> nat"
 where
@@ -348,7 +348,7 @@ proof -
     def A \<equiv> "{p. p \<le> n \<and> prime p \<and> m \<le> p}"
     assume assms: "m \<le> p" "prime p" "p \<le> n"
     then have "smallest_prime_beyond m \<le> p" by (auto intro: smallest_prime_beyond_smallest)
-    from this `p \<le> n` have *: "smallest_prime_beyond m \<le> n" by (rule order_trans)
+    from this \<open>p \<le> n\<close> have *: "smallest_prime_beyond m \<le> n" by (rule order_trans)
     from assms have ex: "\<exists>p\<le>n. prime p \<and> m \<le> p" by auto
     then have "finite A" by (auto simp add: A_def)
     with * have "Min A = smallest_prime_beyond m"

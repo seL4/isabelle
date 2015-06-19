@@ -2,13 +2,13 @@
     Author:     Amine Chaieb
 *)
 
-section {* Pocklington's Theorem for Primes *}
+section \<open>Pocklington's Theorem for Primes\<close>
 
 theory Pocklington
 imports Residues
 begin
 
-subsection{*Lemmas about previously defined terms*}
+subsection\<open>Lemmas about previously defined terms\<close>
 
 lemma prime: 
   "prime p \<longleftrightarrow> p \<noteq> 0 \<and> p\<noteq>1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
@@ -52,7 +52,7 @@ proof-
 qed
 
 
-subsection{*Some basic theorems about solving congruences*}
+subsection\<open>Some basic theorems about solving congruences\<close>
 
 lemma cong_solve: 
   fixes n::nat assumes an: "coprime a n" shows "\<exists>x. [a * x = b] (mod n)"
@@ -135,7 +135,7 @@ proof-
 qed
 
 
-subsection{*Lucas's theorem*}
+subsection\<open>Lucas's theorem\<close>
 
 lemma phi_limit_strong: "phi(n) \<le> n - 1"
 proof -
@@ -291,7 +291,7 @@ proof-
 qed
 
 
-subsection{*Definition of the order of a number mod n (0 in non-coprime case)*}
+subsection\<open>Definition of the order of a number mod n (0 in non-coprime case)\<close>
 
 definition "ord n a = (if coprime n a then Least (\<lambda>d. d > 0 \<and> [a ^d = 1] (mod n)) else 0)"
 
@@ -442,7 +442,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-subsection{*Another trivial primality characterization*}
+subsection\<open>Another trivial primality characterization\<close>
 
 lemma prime_prime_factor:
   "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n)" 
@@ -530,7 +530,7 @@ proof-
 qed
 
 
-subsection{*Pocklington theorem*}
+subsection\<open>Pocklington theorem\<close>
 
 lemma pocklington_lemma:
   assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and an: "[a^ (n - 1) = 1] (mod n)"
@@ -666,7 +666,7 @@ proof-
 qed
 
 
-subsection{*Prime factorizations*}
+subsection\<open>Prime factorizations\<close>
 
 (* FIXME some overlap with material in UniqueFactorization, class unique_factorization *)
 

@@ -25,7 +25,7 @@ Tobias Nipkow cleaned up a lot.
 *)
 
 
-section {* Primes *}
+section \<open>Primes\<close>
 
 theory Primes
 imports "~~/src/HOL/GCD" "~~/src/HOL/Binomial"
@@ -40,7 +40,7 @@ definition prime :: "nat \<Rightarrow> bool"
 lemmas prime_nat_def = prime_def
 
 
-subsection {* Primes *}
+subsection \<open>Primes\<close>
 
 lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   apply (auto simp add: prime_nat_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
@@ -126,7 +126,7 @@ lemma prime_dvd_power_int_iff:
   by (cases n) (auto elim: prime_dvd_power_int)
 
 
-subsubsection {* Make prime naively executable *}
+subsubsection \<open>Make prime naively executable\<close>
 
 lemma zero_not_prime_nat [simp]: "~prime (0::nat)"
   by (simp add: prime_nat_def)
@@ -152,7 +152,7 @@ lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
   by simp
 
-text{* A bit of regression testing: *}
+text\<open>A bit of regression testing:\<close>
 
 lemma "prime(97::nat)" by simp
 lemma "prime(997::nat)" by eval
@@ -181,7 +181,7 @@ lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prim
     nat_dvd_not_less neq0_conv prime_nat_def)
   done
 
-text {* One property of coprimality is easier to prove via prime factors. *}
+text \<open>One property of coprimality is easier to prove via prime factors.\<close>
 
 lemma prime_divprod_pow_nat:
   assumes p: "prime p" and ab: "coprime a b" and pab: "p^n dvd a * b"
@@ -222,7 +222,7 @@ proof-
 qed
 
 
-subsection {* Infinitely many primes *}
+subsection \<open>Infinitely many primes\<close>
 
 lemma next_prime_bound: "\<exists>p. prime p \<and> n < p \<and> p <= fact n + 1"
 proof-
@@ -231,18 +231,18 @@ proof-
   obtain p where "prime p" and "p dvd fact n + 1" by auto
   then have "p \<le> fact n + 1" apply (intro dvd_imp_le) apply auto done
   { assume "p \<le> n"
-    from `prime p` have "p \<ge> 1"
+    from \<open>prime p\<close> have "p \<ge> 1"
       by (cases p, simp_all)
-    with `p <= n` have "p dvd fact n"
+    with \<open>p <= n\<close> have "p dvd fact n"
       by (intro dvd_fact)
-    with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
+    with \<open>p dvd fact n + 1\<close> have "p dvd fact n + 1 - fact n"
       by (rule dvd_diff_nat)
     then have "p dvd 1" by simp
     then have "p <= 1" by auto
-    moreover from `prime p` have "p > 1" by auto
+    moreover from \<open>prime p\<close> have "p > 1" by auto
     ultimately have False by auto}
   then have "n < p" by presburger
-  with `prime p` and `p <= fact n + 1` show ?thesis by auto
+  with \<open>prime p\<close> and \<open>p <= fact n + 1\<close> show ?thesis by auto
 qed
 
 lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)"
@@ -259,9 +259,9 @@ proof
     by auto
 qed
 
-subsection{*Powers of Primes*}
+subsection\<open>Powers of Primes\<close>
 
-text{*Versions for type nat only*}
+text\<open>Versions for type nat only\<close>
 
 lemma prime_product:
   fixes p::nat
@@ -271,7 +271,7 @@ proof -
   from assms have
     "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
     unfolding prime_nat_def by auto
-  from `1 < p * q` have "p \<noteq> 0" by (cases p) auto
+  from \<open>1 < p * q\<close> have "p \<noteq> 0" by (cases p) auto
   then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
   have "p dvd p * q" by simp
   then have "p = 1 \<or> p = p * q" by (rule P)
@@ -370,7 +370,7 @@ next
   thus "\<exists>i\<le>k. d = p ^ i \<Longrightarrow> d dvd p ^ k" by blast
 qed
 
-subsection {*Chinese Remainder Theorem Variants*}
+subsection \<open>Chinese Remainder Theorem Variants\<close>
 
 lemma bezout_gcd_nat:
   fixes a::nat shows "\<exists>x y. a * x - b * y = gcd a b \<or> b * x - a * y = gcd a b"
@@ -391,7 +391,7 @@ proof-
 qed
 
 
-text {* A binary form of the Chinese Remainder Theorem. *}
+text \<open>A binary form of the Chinese Remainder Theorem.\<close>
 
 lemma chinese_remainder:
   fixes a::nat  assumes ab: "coprime a b" and a: "a \<noteq> 0" and b: "b \<noteq> 0"
@@ -411,7 +411,7 @@ proof-
   thus ?thesis by blast
 qed
 
-text {* Primality *}
+text \<open>Primality\<close>
 
 lemma coprime_bezout_strong:
   fixes a::nat assumes "coprime a b"  "b \<noteq> 1"

@@ -5,7 +5,7 @@ An algebraic treatment of residue rings, and resulting proofs of
 Euler's theorem and Wilson's theorem.
 *)
 
-section {* Residue rings *}
+section \<open>Residue rings\<close>
 
 theory Residues
 imports UniqueFactorization MiscAlgebra
@@ -248,7 +248,7 @@ sublocale residues_prime < field
 *)
 
 
-subsection{* Euler's theorem *}
+subsection\<open>Euler's theorem\<close>
 
 (* the definition of the phi function *)
 
@@ -276,9 +276,9 @@ proof -
       apply (rule cop)
       using * apply auto
       done
-    with `x dvd p` `1 < x` have "False" by auto }
+    with \<open>x dvd p\<close> \<open>1 < x\<close> have "False" by auto }
   then show ?thesis
-    using `2 \<le> p`
+    using \<open>2 \<le> p\<close>
     by (simp add: prime_def)
        (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0
               not_numeral_le_zero one_dvd)
@@ -374,7 +374,7 @@ using fermat_theorem [of p a] assms
 by (metis int_1 of_nat_power transfer_int_nat_cong zdvd_int)
 
 
-subsection {* Wilson's theorem *}
+subsection \<open>Wilson's theorem\<close>
 
 lemma (in field) inv_pair_lemma: "x : Units R \<Longrightarrow> y : Units R \<Longrightarrow>
     {x, inv x} ~= {y, inv y} \<Longrightarrow> {x, inv x} Int {y, inv y} = {}"

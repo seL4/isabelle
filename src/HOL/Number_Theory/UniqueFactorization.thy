@@ -8,7 +8,7 @@ factorization due to Thomas Marthedal Rasmussen, and, building on
 that, by Jeremy Avigad and David Gray.  
 *)
 
-section {* UniqueFactorization *}
+section \<open>UniqueFactorization\<close>
 
 theory UniqueFactorization
 imports Cong "~~/src/HOL/Library/Multiset"
@@ -34,7 +34,7 @@ begin
 *)
 
 
-subsection {* unique factorization: multiset version *}
+subsection \<open>unique factorization: multiset version\<close>
 
 lemma multiset_prime_factorization_exists [rule_format]: "n > 0 --> 
     (EX M. (ALL (p::nat) : set_mset M. prime p) & n = (PROD i :# M. i))"
@@ -154,7 +154,7 @@ lemma multiset_prime_factorization: "n > 0 ==>
 done
 
 
-subsection {* Prime factors and multiplicity for nats and ints *}
+subsection \<open>Prime factors and multiplicity for nats and ints\<close>
 
 class unique_factorization =
   fixes multiplicity :: "'a \<Rightarrow> 'a \<Rightarrow> nat"
@@ -191,7 +191,7 @@ instance ..
 end
 
 
-subsection {* Set up transfer *}
+subsection \<open>Set up transfer\<close>
 
 lemma transfer_nat_int_prime_factors: "prime_factors (nat n) = nat ` prime_factors n"
   unfolding prime_factors_int_def
@@ -228,7 +228,7 @@ declare transfer_morphism_int_nat[transfer add return:
   transfer_int_nat_multiplicity]
 
 
-subsection {* Properties of prime factors and multiplicity for nats and ints *}
+subsection \<open>Properties of prime factors and multiplicity for nats and ints\<close>
 
 lemma prime_factors_ge_0_int [elim]: "p : prime_factors (n::int) \<Longrightarrow> p >= 0"
   unfolding prime_factors_int_def by auto
@@ -308,7 +308,7 @@ proof -
     using assms
     apply (simp add: set_mset_def msetprod_multiplicity)
     done
-  with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
+  with \<open>f \<in> multiset\<close> have "count (multiset_prime_factorization n) = f"
     by simp
   with S_eq show ?thesis
     by (simp add: set_mset_def multiset_def prime_factors_nat_def multiplicity_nat_def)
@@ -710,7 +710,7 @@ lemma multiplicity_eq_int:
   done
 
 
-subsection {* An application *}
+subsection \<open>An application\<close>
 
 lemma gcd_eq_nat: 
   assumes pos [arith]: "x > 0" "y > 0"

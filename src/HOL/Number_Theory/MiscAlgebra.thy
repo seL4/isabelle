@@ -291,7 +291,7 @@ lemma (in Ring.domain) square_eq_one:
 proof -
   have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = x \<otimes> x \<oplus> \<ominus> \<one>"
     by (simp add: ring_simprules)
-  also from `x \<otimes> x = \<one>` have "\<dots> = \<zero>"
+  also from \<open>x \<otimes> x = \<one>\<close> have "\<dots> = \<zero>"
     by (simp add: ring_simprules)
   finally have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = \<zero>" .
   then have "(x \<oplus> \<one>) = \<zero> | (x \<oplus> \<ominus> \<one>) = \<zero>"

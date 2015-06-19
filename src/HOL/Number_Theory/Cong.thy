@@ -23,13 +23,13 @@ these, revised and tidied them, made the development uniform for the
 natural numbers and the integers, and added a number of new theorems.
 *)
 
-section {* Congruence *}
+section \<open>Congruence\<close>
 
 theory Cong
 imports Primes
 begin
 
-subsection {* Turn off @{text One_nat_def} *}
+subsection \<open>Turn off @{text One_nat_def}\<close>
 
 lemma power_eq_one_eq_nat [simp]: "((x::nat)^m = 1) = (m = 0 | x = 1)"
   by (induct m) auto
@@ -37,7 +37,7 @@ lemma power_eq_one_eq_nat [simp]: "((x::nat)^m = 1) = (m = 0 | x = 1)"
 declare mod_pos_pos_trivial [simp]
 
 
-subsection {* Main definitions *}
+subsection \<open>Main definitions\<close>
 
 class cong =
   fixes cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" ("(1[_ = _] '(()mod _'))")
@@ -74,7 +74,7 @@ instance ..
 end
 
 
-subsection {* Set up Transfer *}
+subsection \<open>Set up Transfer\<close>
 
 
 lemma transfer_nat_int_cong:
@@ -97,7 +97,7 @@ declare transfer_morphism_int_nat[transfer add return:
     transfer_int_nat_cong]
 
 
-subsection {* Congruence *}
+subsection \<open>Congruence\<close>
 
 (* was zcong_0, etc. *)
 lemma cong_0_nat [simp, presburger]: "([(a::nat) = b] (mod 0)) = (a = b)"
@@ -633,20 +633,20 @@ proof -
   have "[?x = u1 * 1 + u2 * 0] (mod m1)"
     apply (rule cong_add_nat)
     apply (rule cong_scalar2_nat)
-    apply (rule `[b1 = 1] (mod m1)`)
+    apply (rule \<open>[b1 = 1] (mod m1)\<close>)
     apply (rule cong_scalar2_nat)
-    apply (rule `[b2 = 0] (mod m1)`)
+    apply (rule \<open>[b2 = 0] (mod m1)\<close>)
     done
   then have "[?x = u1] (mod m1)" by simp
   have "[?x = u1 * 0 + u2 * 1] (mod m2)"
     apply (rule cong_add_nat)
     apply (rule cong_scalar2_nat)
-    apply (rule `[b1 = 0] (mod m2)`)
+    apply (rule \<open>[b1 = 0] (mod m2)\<close>)
     apply (rule cong_scalar2_nat)
-    apply (rule `[b2 = 1] (mod m2)`)
+    apply (rule \<open>[b2 = 1] (mod m2)\<close>)
     done
   then have "[?x = u2] (mod m2)" by simp
-  with `[?x = u1] (mod m1)` show ?thesis by blast
+  with \<open>[?x = u1] (mod m1)\<close> show ?thesis by blast
 qed
 
 lemma binary_chinese_remainder_int:
@@ -661,20 +661,20 @@ proof -
   have "[?x = u1 * 1 + u2 * 0] (mod m1)"
     apply (rule cong_add_int)
     apply (rule cong_scalar2_int)
-    apply (rule `[b1 = 1] (mod m1)`)
+    apply (rule \<open>[b1 = 1] (mod m1)\<close>)
     apply (rule cong_scalar2_int)
-    apply (rule `[b2 = 0] (mod m1)`)
+    apply (rule \<open>[b2 = 0] (mod m1)\<close>)
     done
   then have "[?x = u1] (mod m1)" by simp
   have "[?x = u1 * 0 + u2 * 1] (mod m2)"
     apply (rule cong_add_int)
     apply (rule cong_scalar2_int)
-    apply (rule `[b1 = 0] (mod m2)`)
+    apply (rule \<open>[b1 = 0] (mod m2)\<close>)
     apply (rule cong_scalar2_int)
-    apply (rule `[b2 = 1] (mod m2)`)
+    apply (rule \<open>[b2 = 1] (mod m2)\<close>)
     done
   then have "[?x = u2] (mod m2)" by simp
-  with `[?x = u1] (mod m1)` show ?thesis by blast
+  with \<open>[?x = u1] (mod m1)\<close> show ?thesis by blast
 qed
 
 lemma cong_modulus_mult_nat: "[(x::nat) = y] (mod m * n) \<Longrightarrow>
@@ -712,7 +712,7 @@ proof -
   have one: "[?x = u1] (mod m1)"
     apply (rule cong_trans_nat)
     prefer 2
-    apply (rule `[y = u1] (mod m1)`)
+    apply (rule \<open>[y = u1] (mod m1)\<close>)
     apply (rule cong_modulus_mult_nat)
     apply (rule cong_mod_nat)
     using nz apply auto
@@ -720,7 +720,7 @@ proof -
   have two: "[?x = u2] (mod m2)"
     apply (rule cong_trans_nat)
     prefer 2
-    apply (rule `[y = u2] (mod m2)`)
+    apply (rule \<open>[y = u2] (mod m2)\<close>)
     apply (subst mult.commute)
     apply (rule cong_modulus_mult_nat)
     apply (rule cong_mod_nat)
@@ -733,19 +733,19 @@ proof -
     assume "[z = u1] (mod m1)" and  "[z = u2] (mod m2)"
     have "[?x = z] (mod m1)"
       apply (rule cong_trans_nat)
-      apply (rule `[?x = u1] (mod m1)`)
+      apply (rule \<open>[?x = u1] (mod m1)\<close>)
       apply (rule cong_sym_nat)
-      apply (rule `[z = u1] (mod m1)`)
+      apply (rule \<open>[z = u1] (mod m1)\<close>)
       done
     moreover have "[?x = z] (mod m2)"
       apply (rule cong_trans_nat)
-      apply (rule `[?x = u2] (mod m2)`)
+      apply (rule \<open>[?x = u2] (mod m2)\<close>)
       apply (rule cong_sym_nat)
-      apply (rule `[z = u2] (mod m2)`)
+      apply (rule \<open>[z = u2] (mod m2)\<close>)
       done
     ultimately have "[?x = z] (mod m1 * m2)"
       by (auto intro: coprime_cong_mult_nat a)
-    with `z < m1 * m2` `?x < m1 * m2` show "z = ?x"
+    with \<open>z < m1 * m2\<close> \<open>?x < m1 * m2\<close> show "z = ?x"
       apply (intro cong_less_modulus_unique_nat)
       apply (auto, erule cong_sym_nat)
       done

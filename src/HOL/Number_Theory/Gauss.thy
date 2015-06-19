@@ -3,7 +3,7 @@
 Ported by lcp but unfinished
 *)
 
-section {* Gauss' Lemma *}
+section \<open>Gauss' Lemma\<close>
 
 theory Gauss
 imports Residues
@@ -38,7 +38,7 @@ definition "E = C \<inter> {(int p - 1) div 2 <..}"
 definition "F = (\<lambda>x. (int p - x)) ` E"
 
 
-subsection {* Basic properties of p *}
+subsection \<open>Basic properties of p\<close>
 
 lemma odd_p: "odd p"
 by (metis p_prime p_ge_2 prime_odd_nat)
@@ -60,7 +60,7 @@ lemma p_odd_int: obtains z::int where "int p = 2*z+1" "0<z"
   by (auto simp add: even_iff_mod_2_eq_zero) (metis p_eq2)
 
 
-subsection {* Basic Properties of the Gauss Sets *}
+subsection \<open>Basic Properties of the Gauss Sets\<close>
 
 lemma finite_A: "finite (A)"
 by (auto simp add: A_def)
@@ -208,7 +208,7 @@ lemma A_prod_relprime: "gcd (setprod id A) p = 1"
   by (metis id_def all_A_relprime setprod_coprime_int)
 
 
-subsection {* Relationships Between Gauss Sets *}
+subsection \<open>Relationships Between Gauss Sets\<close>
 
 lemma StandardRes_inj_on_ResSet: "ResSet m X \<Longrightarrow> (inj_on (\<lambda>b. b mod m) X)"
   by (auto simp add: ResSet_def inj_on_def cong_int_def)
@@ -315,7 +315,7 @@ proof -
 qed
 
 
-subsection {* Gauss' Lemma *}
+subsection \<open>Gauss' Lemma\<close>
 
 lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
 by (metis (no_types) minus_minus mult.commute mult.left_commute power_minus power_one)
