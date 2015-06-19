@@ -930,25 +930,6 @@ end;
 
 
 
-(*** notable theorems ***)
-
-structure Thms =
-struct
-  val WFREC_COROLLARY = @{thm tfl_wfrec};
-  val WF_INDUCTION_THM = @{thm tfl_wf_induct};
-  val CUT_DEF = @{thm tfl_cut_def};
-  val eqT = @{thm tfl_eq_True};
-  val rev_eq_mp = @{thm tfl_rev_eq_mp};
-  val simp_thm = @{thm tfl_simp_thm};
-  val P_imp_P_iff_True = @{thm tfl_P_imp_P_iff_True};
-  val imp_trans = @{thm tfl_imp_trans};
-  val disj_assoc = @{thm tfl_disj_assoc};
-  val tfl_disjE = @{thm tfl_disjE};
-  val choose_thm = @{thm tfl_exE};
-end;
-
-
-
 (*** emulation of HOL inference rules for TFL ***)
 
 structure Rules: RULES =
@@ -1030,7 +1011,7 @@ fun UNDISCH thm =
 
 fun PROVE_HYP ath bth = MP (DISCH (cconcl ath) bth) ath;
 
-fun IMP_TRANS th1 th2 = th2 RS (th1 RS Thms.imp_trans)
+fun IMP_TRANS th1 th2 = th2 RS (th1 RS @{thm tfl_imp_trans})
   handle THM (msg, _, _) => raise RULES_ERR "IMP_TRANS" msg;
 
 
@@ -1109,7 +1090,7 @@ fun DISJ_CASES th1 th2 th3 =
     val th2' = DISCH disj1 th2;
     val th3' = DISCH disj2 th3;
   in
-    th3' RS (th2' RS (th1 RS Thms.tfl_disjE))
+    th3' RS (th2' RS (th1 RS @{thm tfl_disjE}))
       handle THM (msg, _, _) => raise RULES_ERR "DISJ_CASES" msg
   end;
 
@@ -1237,7 +1218,7 @@ fun CHOOSE ctxt (fvar, exth) fact =
     val t$u = Thm.term_of redex
     val residue = Thm.cterm_of ctxt (Term.betapply (t, u))
   in
-    GEN ctxt fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
+    GEN ctxt fvar (DISCH residue fact) RS (exth RS @{thm tfl_exE})
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg
   end;
 
@@ -1312,7 +1293,7 @@ fun simpl_conv ctxt thl ctm =
  rew_conv (ctxt addsimps thl) ctm RS meta_eq_to_obj_eq;
 
 
-fun RIGHT_ASSOC ctxt = rewrite_rule ctxt [Thms.disj_assoc];
+fun RIGHT_ASSOC ctxt = rewrite_rule ctxt @{thms tfl_disj_assoc};
 
 
 
@@ -2087,7 +2068,7 @@ fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
 
 local
   val f_eq_wfrec_R_M =
-    #ant(USyntax.dest_imp(#2(USyntax.strip_forall (concl Thms.WFREC_COROLLARY))))
+    #ant(USyntax.dest_imp(#2(USyntax.strip_forall (concl @{thm tfl_wfrec}))))
   val {lhs=f, rhs} = USyntax.dest_eq f_eq_wfrec_R_M
   val _ = dest_Free f
   val (wfrec,_) = USyntax.strip_comb rhs
@@ -2142,7 +2123,7 @@ fun post_definition ctxt meta_tflCongs (def, pats) =
  let val thy = Proof_Context.theory_of ctxt
      val tych = Thry.typecheck thy
      val f = #lhs(USyntax.dest_eq(concl def))
-     val corollary = Rules.MATCH_MP Thms.WFREC_COROLLARY def
+     val corollary = Rules.MATCH_MP @{thm tfl_wfrec} def
      val pats' = filter given pats
      val given_pats = map pat_of pats'
      val rows = map row_of_pat pats'
@@ -2163,7 +2144,7 @@ fun post_definition ctxt meta_tflCongs (def, pats) =
      val extract =
       Rules.CONTEXT_REWRITE_RULE ctxt (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
-     val rules0 = map (rewrite_rule ctxt [Thms.CUT_DEF]) rules
+     val rules0 = map (rewrite_rule ctxt @{thms tfl_cut_def}) rules
      val mk_cond_rule = Rules.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
      val rules1 = Rules.LIST_CONJ(map mk_cond_rule rules0)
  in
@@ -2203,7 +2184,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
                  else ()
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
-     val WFREC_THM0 = Rules.ISPEC (tych functional) Thms.WFREC_COROLLARY
+     val WFREC_THM0 = Rules.ISPEC (tych functional) @{thm tfl_wfrec}
      val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
      val R = Free (singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] eqns)) Rname,
                    Rtype)
@@ -2518,14 +2499,14 @@ fun LEFT_ABS_VSTRUCT ctxt tych thm =
 (*----------------------------------------------------------------------------
  * Input : f, R,  and  [(pat1,TCs1),..., (patn,TCsn)]
  *
- * Instantiates WF_INDUCTION_THM, getting Sinduct and then tries to prove
+ * Instantiates tfl_wf_induct, getting Sinduct and then tries to prove
  * recursion induction (Rinduct) by proving the antecedent of Sinduct from
  * the antecedent of Rinduct.
  *---------------------------------------------------------------------------*)
 fun mk_induction thy {fconst, R, SV, pat_TCs_list} =
 let val ctxt = Proof_Context.init_global thy
     val tych = Thry.typecheck thy
-    val Sinduction = Rules.UNDISCH (Rules.ISPEC (tych R) Thms.WF_INDUCTION_THM)
+    val Sinduction = Rules.UNDISCH (Rules.ISPEC (tych R) @{thm tfl_wf_induct})
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
@@ -2580,7 +2561,7 @@ fun simplify_induction thy hth ind =
           if (can (Thry.match_term thy asm) tc)
           then Rules.UNDISCH
                  (Rules.MATCH_MP
-                     (Rules.MATCH_MP Thms.simp_thm (Rules.DISCH (tych asm) ind))
+                     (Rules.MATCH_MP @{thm tfl_simp_thm} (Rules.DISCH (tych asm) ind))
                      hth)
          else loop rst
   in loop asl
@@ -2623,7 +2604,7 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
     * The termination condition (tc) is simplified to |- tc = tc' (there
     * might not be a change!) and then 3 attempts are made:
     *
-    *   1. if |- tc = T, then eliminate it with eqT; otherwise,
+    *   1. if |- tc = T, then eliminate it with tfl_eq_True; otherwise,
     *   2. apply the terminator to tc'. If |- tc' = T then eliminate; else
     *   3. replace tc by tc' in both the rules and the induction theorem.
     *---------------------------------------------------------------------*)
@@ -2634,14 +2615,14 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
            val tc_eq = simplifier tc1
            val _ = trace_thms ctxt "result: " [tc_eq]
        in
-       elim_tc (Rules.MATCH_MP Thms.eqT tc_eq) (r,ind)
+       elim_tc (Rules.MATCH_MP @{thm tfl_eq_True} tc_eq) (r,ind)
        handle Utils.ERR _ =>
-        (elim_tc (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
+        (elim_tc (Rules.MATCH_MP(Rules.MATCH_MP @{thm tfl_rev_eq_mp} tc_eq)
                   (Rules.prove ctxt strict (HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq)),
                            terminator)))
                  (r,ind)
          handle Utils.ERR _ =>
-          (Rules.UNDISCH(Rules.MATCH_MP (Rules.MATCH_MP Thms.simp_thm r) tc_eq),
+          (Rules.UNDISCH(Rules.MATCH_MP (Rules.MATCH_MP @{thm tfl_simp_thm} r) tc_eq),
            simplify_induction thy tc_eq ind))
        end
 
@@ -2662,9 +2643,9 @@ fun postprocess ctxt strict {wf_tac, terminator, simplifier} {rules,induction,TC
       let val tc_eq = simplifier (tych (#2 (USyntax.strip_forall tc)))
       in
       Rules.GEN_ALL ctxt
-       (Rules.MATCH_MP Thms.eqT tc_eq
+       (Rules.MATCH_MP @{thm tfl_eq_True} tc_eq
         handle Utils.ERR _ =>
-          (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
+          (Rules.MATCH_MP(Rules.MATCH_MP @{thm tfl_rev_eq_mp} tc_eq)
                       (Rules.prove ctxt strict (HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq)),
                                terminator))
             handle Utils.ERR _ => tc_eq))
