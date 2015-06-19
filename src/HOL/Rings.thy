@@ -440,25 +440,10 @@ qed
 
 end
 
-class ring_no_zero_divisors = ring + semiring_no_zero_divisors
+class semiring_no_zero_divisors_cancel = semiring_no_zero_divisors +
+  assumes mult_cancel_right [simp]: "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
+    and mult_cancel_left [simp]: "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
 begin
-
-text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp]:
-  "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
-proof -
-  have "(a * c = b * c) = ((a - b) * c = 0)"
-    by (simp add: algebra_simps)
-  thus ?thesis by (simp add: disj_commute)
-qed
-
-lemma mult_cancel_left [simp]:
-  "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
-proof -
-  have "(c * a = c * b) = (c * (a - b) = 0)"
-    by (simp add: algebra_simps)
-  thus ?thesis by simp
-qed
 
 lemma mult_left_cancel:
   "c \<noteq> 0 \<Longrightarrow> c * a = c * b \<longleftrightarrow> a = b"
@@ -467,6 +452,26 @@ lemma mult_left_cancel:
 lemma mult_right_cancel:
   "c \<noteq> 0 \<Longrightarrow> a * c = b * c \<longleftrightarrow> a = b"
   by simp 
+
+end
+
+class ring_no_zero_divisors = ring + semiring_no_zero_divisors
+begin
+
+subclass semiring_no_zero_divisors_cancel
+proof
+  fix a b c
+  have "a * c = b * c \<longleftrightarrow> (a - b) * c = 0"
+    by (simp add: algebra_simps)
+  also have "\<dots> \<longleftrightarrow> c = 0 \<or> a = b"
+    by auto
+  finally show "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b" .
+  have "c * a = c * b \<longleftrightarrow> c * (a - b) = 0"
+    by (simp add: algebra_simps)
+  also have "\<dots> \<longleftrightarrow> c = 0 \<or> a = b"
+    by auto
+  finally show "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b" .
+qed
 
 end
 
@@ -531,7 +536,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> (a = b \<or> a = - b)"
+lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> a = b \<or> a = - b"
 proof
   assume "a * a = b * b"
   then have "(a - b) * (a + b) = 0"
@@ -593,6 +598,33 @@ begin
 lemma nonzero_mult_divide_cancel_left [simp]:
   "a \<noteq> 0 \<Longrightarrow> (a * b) div a = b"
   using nonzero_mult_divide_cancel_right [of a b] by (simp add: ac_simps)
+
+subclass semiring_no_zero_divisors_cancel
+proof
+  fix a b c
+  { fix a b c
+    show "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
+    proof (cases "c = 0")
+      case True then show ?thesis by simp
+    next
+      case False
+      { assume "a * c = b * c"
+        then have "a * c div c = b * c div c"
+          by simp
+        with False have "a = b"
+          by simp
+      } then show ?thesis by auto
+    qed
+  }
+  from this [of a c b]
+  show "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
+    by (simp add: ac_simps)
+qed
+
+lemma div_self [simp]:
+  assumes "a \<noteq> 0"
+  shows "a div a = 1"
+  using assms nonzero_mult_divide_cancel_left [of a 1] by simp
 
 end
 

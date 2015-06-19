@@ -9,34 +9,6 @@ begin
 context semidom_divide
 begin
 
-lemma mult_cancel_right [simp]:
-  "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
-proof (cases "c = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  { assume "a * c = b * c"
-    then have "a * c div c = b * c div c"
-      by simp
-    with False have "a = b"
-      by simp
-  } then show ?thesis by auto
-qed
-
-lemma mult_cancel_left [simp]:
-  "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
-  using mult_cancel_right [of a c b] by (simp add: ac_simps)
-
-end
-
-context semidom_divide
-begin 
- 
-lemma div_self [simp]:
-  assumes "a \<noteq> 0"
-  shows "a div a = 1"
-  using assms nonzero_mult_divide_cancel_left [of a 1] by simp
-
 lemma dvd_div_mult_self [simp]:
   "a dvd b \<Longrightarrow> b div a * a = b"
   by (cases "a = 0") (auto elim: dvdE simp add: ac_simps)

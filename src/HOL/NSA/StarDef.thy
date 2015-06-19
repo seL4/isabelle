@@ -816,24 +816,21 @@ instance star :: (linordered_cancel_ab_semigroup_add) linordered_cancel_ab_semig
 subsection {* Ring and field classes *}
 
 instance star :: (semiring) semiring
-apply (intro_classes)
-apply (transfer, rule distrib_right)
-apply (transfer, rule distrib_left)
-done
+  by (intro_classes; transfer) (fact distrib_right distrib_left)+
 
 instance star :: (semiring_0) semiring_0 
-by intro_classes (transfer, simp)+
+  by (intro_classes; transfer) simp_all
 
 instance star :: (semiring_0_cancel) semiring_0_cancel ..
 
 instance star :: (comm_semiring) comm_semiring 
-by (intro_classes, transfer, rule distrib_right)
+  by (intro_classes; transfer) (fact distrib_right)
 
 instance star :: (comm_semiring_0) comm_semiring_0 ..
 instance star :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..
 
 instance star :: (zero_neq_one) zero_neq_one
-by (intro_classes, transfer, rule zero_neq_one)
+  by (intro_classes; transfer) (fact zero_neq_one)
 
 instance star :: (semiring_1) semiring_1 ..
 instance star :: (comm_semiring_1) comm_semiring_1 ..
@@ -841,10 +838,13 @@ instance star :: (comm_semiring_1) comm_semiring_1 ..
 declare dvd_def [transfer_refold]
 
 instance star :: (comm_semiring_1_diff_distrib) comm_semiring_1_diff_distrib
-by intro_classes (transfer, fact right_diff_distrib')
+  by (intro_classes; transfer) (fact right_diff_distrib')
 
 instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors
-by (intro_classes, transfer, rule no_zero_divisors)
+  by (intro_classes; transfer) (fact no_zero_divisors)
+
+instance star :: (semiring_no_zero_divisors_cancel) semiring_no_zero_divisors_cancel
+  by (intro_classes; transfer) simp_all
 
 instance star :: (semiring_1_cancel) semiring_1_cancel ..
 instance star :: (comm_semiring_1_cancel) comm_semiring_1_cancel ..
@@ -853,21 +853,12 @@ instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
 instance star :: (semidom) semidom ..
+
 instance star :: (semidom_divide) semidom_divide
-proof
-  show "\<And>b a :: 'a star. b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
-    by transfer simp
-  show "\<And>a :: 'a star. a div 0 = 0"
-    by transfer simp
-qed
+  by (intro_classes; transfer) simp_all
+
 instance star :: (semiring_div) semiring_div
-apply intro_classes
-apply(transfer, rule mod_div_equality)
-apply(transfer, rule div_by_0)
-apply(transfer, rule div_0)
-apply(transfer, erule div_mult_self1)
-apply(transfer, erule div_mult_mult1)
-done
+  by (intro_classes; transfer) (simp_all add: mod_div_equality)
 
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
@@ -875,57 +866,43 @@ instance star :: (idom) idom ..
 instance star :: (idom_divide) idom_divide ..
 
 instance star :: (division_ring) division_ring
-apply (intro_classes)
-apply (transfer, erule left_inverse)
-apply (transfer, erule right_inverse)
-apply (transfer, fact divide_inverse)
-apply (transfer, fact inverse_zero)
-done
+  by (intro_classes; transfer) (simp_all add: divide_inverse)
 
 instance star :: (field) field
-apply (intro_classes)
-apply (transfer, erule left_inverse)
-apply (transfer, rule divide_inverse)
-apply (transfer, fact inverse_zero)
-done
+  by (intro_classes; transfer) (simp_all add: divide_inverse)
 
 instance star :: (ordered_semiring) ordered_semiring
-apply (intro_classes)
-apply (transfer, erule (1) mult_left_mono)
-apply (transfer, erule (1) mult_right_mono)
-done
+  by (intro_classes; transfer) (fact mult_left_mono mult_right_mono)+
 
 instance star :: (ordered_cancel_semiring) ordered_cancel_semiring ..
 
 instance star :: (linordered_semiring_strict) linordered_semiring_strict
-apply (intro_classes)
-apply (transfer, erule (1) mult_strict_left_mono)
-apply (transfer, erule (1) mult_strict_right_mono)
-done
+  by (intro_classes; transfer) (fact mult_strict_left_mono mult_strict_right_mono)+
 
 instance star :: (ordered_comm_semiring) ordered_comm_semiring
-by (intro_classes, transfer, rule mult_left_mono)
+  by (intro_classes; transfer) (fact mult_left_mono)
 
 instance star :: (ordered_cancel_comm_semiring) ordered_cancel_comm_semiring ..
 
 instance star :: (linordered_comm_semiring_strict) linordered_comm_semiring_strict
-by (intro_classes, transfer, rule mult_strict_left_mono)
+  by (intro_classes; transfer) (fact mult_strict_left_mono)
 
 instance star :: (ordered_ring) ordered_ring ..
+
 instance star :: (ordered_ring_abs) ordered_ring_abs
-  by intro_classes  (transfer, rule abs_eq_mult)
+  by (intro_classes; transfer) (fact abs_eq_mult)
 
 instance star :: (abs_if) abs_if
-by (intro_classes, transfer, rule abs_if)
+  by (intro_classes; transfer) (fact abs_if)
 
 instance star :: (sgn_if) sgn_if
-by (intro_classes, transfer, rule sgn_if)
+  by (intro_classes; transfer) (fact sgn_if)
 
 instance star :: (linordered_ring_strict) linordered_ring_strict ..
 instance star :: (ordered_comm_ring) ordered_comm_ring ..
 
 instance star :: (linordered_semidom) linordered_semidom
-by (intro_classes, transfer, rule zero_less_one)
+  by (intro_classes; transfer) (fact zero_less_one)
 
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..

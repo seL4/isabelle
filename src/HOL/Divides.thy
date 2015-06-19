@@ -131,9 +131,6 @@ qed
 lemma mod_self [simp]: "a mod a = 0"
   using mod_mult_self2_is_0 [of 1] by simp
 
-lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
-  using div_mult_self2_is_id [of _ 1] by simp
-
 lemma div_add_self1 [simp]:
   assumes "b \<noteq> 0"
   shows "(b + a) div b = a div b + 1"

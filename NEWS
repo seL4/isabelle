@@ -92,11 +92,14 @@ INCOMPATIBILITY in exotic situations.
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
 
+* Tightened specification of class semiring_no_zero_divisors.  Slight
+INCOMPATIBILITY.
+
 * Former constants Fields.divide (_ / _) and Divides.div (_ div _)
 are logically unified to Rings.divide in syntactic type class
 Rings.divide, with infix syntax (_ div _).  Infix syntax (_ / _)
 for field division is added later as abbreviation in class Fields.inverse.
-INCOMPATIBILITY,  instantiatios must refer to Rings.divide rather
+INCOMPATIBILITY,  instantiations must refer to Rings.divide rather
 than the former separate constants, hence infix syntax (_ / _) is usually
 not available during instantiation.
 
