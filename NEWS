@@ -139,6 +139,9 @@ not available during instantiation.
     less_eq_multiset_def
     INCOMPATIBILITY
 
+* Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
+command. Minor INCOMPATIBILITY, use 'function' instead.
+
 
 
 New in Isabelle2015 (May 2015)

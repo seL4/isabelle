@@ -7,14 +7,13 @@ section \<open>TFL: recursive function definitions\<close>
 theory Old_Recdef
 imports Main
 keywords
-  "recdef" "defer_recdef" :: thy_decl and
-  "recdef_tc" :: thy_goal and
+  "recdef" :: thy_decl and
   "permissive" "congs" "hints"
 begin
 
 subsection \<open>Lemmas for TFL\<close>
 
-lemma tfl_wf_induct: "ALL R. wf R -->  
+lemma tfl_wf_induct: "ALL R. wf R -->
        (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
 apply clarify
 apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
@@ -58,16 +57,7 @@ lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
 lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
-ML_file "~~/src/HOL/Tools/TFL/casesplit.ML"
-ML_file "~~/src/HOL/Tools/TFL/utils.ML"
-ML_file "~~/src/HOL/Tools/TFL/usyntax.ML"
-ML_file "~~/src/HOL/Tools/TFL/dcterm.ML"
-ML_file "~~/src/HOL/Tools/TFL/thms.ML"
-ML_file "~~/src/HOL/Tools/TFL/rules.ML"
-ML_file "~~/src/HOL/Tools/TFL/thry.ML"
-ML_file "~~/src/HOL/Tools/TFL/tfl.ML"
-ML_file "~~/src/HOL/Tools/TFL/post.ML"
-ML_file "~~/src/HOL/Tools/recdef.ML"
+ML_file "old_recdef.ML"
 
 
 subsection \<open>Rule setup\<close>
@@ -81,7 +71,7 @@ lemmas [recdef_simp] =
 
 lemmas [recdef_cong] =
   if_cong let_cong image_cong INF_cong SUP_cong bex_cong ball_cong imp_cong
-  map_cong filter_cong takeWhile_cong dropWhile_cong foldl_cong foldr_cong 
+  map_cong filter_cong takeWhile_cong dropWhile_cong foldl_cong foldr_cong
 
 lemmas [recdef_wf] =
   wf_trancl
