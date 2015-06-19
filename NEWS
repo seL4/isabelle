@@ -95,6 +95,12 @@ INCOMPATIBILITY in exotic situations.
 * Tightened specification of class semiring_no_zero_divisors.  Slight
 INCOMPATIBILITY.
 
+* Class algebraic_semidom introduced common algebraic notions of
+integral (semi)domains like units and associated elements.  Although
+logically subsumed by fields, is is not a super class of these
+in order not to burden fields with notions that are trivial there.
+INCOMPATIBILITY.
+
 * Former constants Fields.divide (_ / _) and Divides.div (_ div _)
 are logically unified to Rings.divide in syntactic type class
 Rings.divide, with infix syntax (_ div _).  Infix syntax (_ / _)

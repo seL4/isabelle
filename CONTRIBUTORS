@@ -10,6 +10,10 @@ Contributions to this Isabelle version
   Generic partial division in rings as inverse operation
   of multiplication.
 
+* Summer 2015: Manuel Eberl and Florian Haftmann, TUM
+  Type class hierarchy with common algebraic notions of
+  integral (semi)domains like units and associated elements.
+
 
 Contributions to Isabelle2015
 -----------------------------
