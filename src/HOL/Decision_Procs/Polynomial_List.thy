@@ -498,7 +498,7 @@ proof -
     by simp
 qed
 
-lemma (in idom_char_0) poly_zero: "poly p = poly [] \<longleftrightarrow> list_all (\<lambda>c. c = 0) p"
+lemma (in idom_char_0) poly_zero: "poly p = poly [] \<longleftrightarrow> (\<forall>c \<in> set p. c = 0)"
   apply (induct p)
   apply simp
   apply (rule iffI)
@@ -506,7 +506,7 @@ lemma (in idom_char_0) poly_zero: "poly p = poly [] \<longleftrightarrow> list_a
   apply auto
   done
 
-lemma (in idom_char_0) poly_0: "list_all (\<lambda>c. c = 0) p \<Longrightarrow> poly p x = 0"
+lemma (in idom_char_0) poly_0: "\<forall>c \<in> set p. c = 0 \<Longrightarrow> poly p x = 0"
   unfolding poly_zero[symmetric] by simp
 
 
@@ -873,7 +873,7 @@ lemma (in semiring_0) poly_normalize[simp]: "poly (pnormalize p) = poly p"
 
 text \<open>The degree of a polynomial.\<close>
 
-lemma (in semiring_0) lemma_degree_zero: "list_all (\<lambda>c. c = 0) p \<longleftrightarrow> pnormalize p = []"
+lemma (in semiring_0) lemma_degree_zero: "(\<forall>c \<in> set p. c = 0) \<longleftrightarrow> pnormalize p = []"
   by (induct p) auto
 
 lemma (in idom_char_0) degree_zero:
@@ -916,7 +916,7 @@ proof
       by (simp only: poly_minus poly_add algebra_simps) (simp add: algebra_simps)
     then have "poly ((c # cs) +++ -- (d # ds)) = poly []"
       by (simp add: fun_eq_iff)
-    then have "c = d" and "list_all (\<lambda>x. x = 0) ((cs +++ -- ds))"
+    then have "c = d" and "\<forall>x \<in> set (cs +++ -- ds). x = 0"
       unfolding poly_zero by (simp_all add: poly_minus_def algebra_simps)
     from this(2) have "poly (cs +++ -- ds) x = 0" for x
       unfolding poly_zero[symmetric] by simp

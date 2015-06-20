@@ -1217,7 +1217,7 @@ proof (induct "maxindex p" arbitrary: p n0 rule: less_induct)
       then have "poly (polypoly' (?ts @ xs) p) = poly []"
         by auto
       then have "\<forall>c \<in> set (coefficients p). Ipoly (?ts @ xs) (decrpoly c) = 0"
-        using poly_zero[where ?'a='a] by (simp add: polypoly'_def list_all_iff)
+        using poly_zero[where ?'a='a] by (simp add: polypoly'_def)
       with coefficients_head[of p, symmetric]
       have th0: "Ipoly (?ts @ xs) ?hd = 0"
         by simp
