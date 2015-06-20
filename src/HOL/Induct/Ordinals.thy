@@ -17,39 +17,39 @@ text \<open>
 datatype ordinal =
     Zero
   | Succ ordinal
-  | Limit "nat => ordinal"
+  | Limit "nat \<Rightarrow> ordinal"
 
-primrec pred :: "ordinal => nat => ordinal option"
+primrec pred :: "ordinal \<Rightarrow> nat \<Rightarrow> ordinal option"
 where
   "pred Zero n = None"
 | "pred (Succ a) n = Some a"
 | "pred (Limit f) n = Some (f n)"
 
-abbreviation (input) iter :: "('a => 'a) => nat => ('a => 'a)"
+abbreviation (input) iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> 'a)"
   where "iter f n \<equiv> f ^^ n"
 
-definition OpLim :: "(nat => (ordinal => ordinal)) => (ordinal => ordinal)"
+definition OpLim :: "(nat \<Rightarrow> (ordinal \<Rightarrow> ordinal)) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"
   where "OpLim F a = Limit (\<lambda>n. F n a)"
 
-definition OpItw :: "(ordinal => ordinal) => (ordinal => ordinal)"  ("\<Squnion>")
+definition OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  ("\<Squnion>")
   where "\<Squnion>f = OpLim (iter f)"
 
-primrec cantor :: "ordinal => ordinal => ordinal"
+primrec cantor :: "ordinal \<Rightarrow> ordinal \<Rightarrow> ordinal"
 where
   "cantor a Zero = Succ a"
 | "cantor a (Succ b) = \<Squnion>(\<lambda>x. cantor x b) a"
 | "cantor a (Limit f) = Limit (\<lambda>n. cantor a (f n))"
 
-primrec Nabla :: "(ordinal => ordinal) => (ordinal => ordinal)"  ("\<nabla>")
+primrec Nabla :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  ("\<nabla>")
 where
   "\<nabla>f Zero = f Zero"
 | "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"
 | "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
 
-definition deriv :: "(ordinal => ordinal) => (ordinal => ordinal)"
+definition deriv :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"
   where "deriv f = \<nabla>(\<Squnion>f)"
 
-primrec veblen :: "ordinal => ordinal => ordinal"
+primrec veblen :: "ordinal \<Rightarrow> ordinal \<Rightarrow> ordinal"
 where
   "veblen Zero = \<nabla>(OpLim (iter (cantor Zero)))"
 | "veblen (Succ a) = \<nabla>(OpLim (iter (veblen a)))"

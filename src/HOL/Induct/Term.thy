@@ -15,8 +15,8 @@ datatype ('a, 'b) "term" =
 
 text \<open>\medskip Substitution function on terms\<close>
 
-primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
-  and subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list"
+primrec subst_term :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term \<Rightarrow> ('a, 'b) term"
+  and subst_term_list :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term list \<Rightarrow> ('a, 'b) term list"
 where
   "subst_term f (Var a) = f a"
 | "subst_term f (App b ts) = App b (subst_term_list f ts)"
@@ -37,8 +37,8 @@ and "subst_term_list (subst_term f1 \<circ> f2) ts =
 text \<open>\medskip Alternative induction rule\<close>
 
 lemma
-  assumes var: "!!v. P (Var v)"
-    and app: "!!f ts. (\<forall>t \<in> set ts. P t) ==> P (App f ts)"
+  assumes var: "\<And>v. P (Var v)"
+    and app: "\<And>f ts. (\<forall>t \<in> set ts. P t) \<Longrightarrow> P (App f ts)"
   shows term_induct2: "P t"
     and "\<forall>t \<in> set ts. P t"
   apply (induct t and ts rule: subst_term.induct subst_term_list.induct)

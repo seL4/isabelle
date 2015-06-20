@@ -22,8 +22,8 @@ and 'a bexp =
 
 text \<open>\medskip Evaluation of arithmetic and boolean expressions\<close>
 
-primrec evala :: "('a => nat) => 'a aexp => nat"
-  and evalb :: "('a => nat) => 'a bexp => bool"
+primrec evala :: "('a \<Rightarrow> nat) \<Rightarrow> 'a aexp \<Rightarrow> nat"
+  and evalb :: "('a \<Rightarrow> nat) \<Rightarrow> 'a bexp \<Rightarrow> bool"
 where
   "evala env (IF b a1 a2) = (if evalb env b then evala env a1 else evala env a2)"
 | "evala env (Sum a1 a2) = evala env a1 + evala env a2"
@@ -38,8 +38,8 @@ where
 
 text \<open>\medskip Substitution on arithmetic and boolean expressions\<close>
 
-primrec substa :: "('a => 'b aexp) => 'a aexp => 'b aexp"
-  and substb :: "('a => 'b aexp) => 'a bexp => 'b bexp"
+primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
+  and substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp"
 where
   "substa f (IF b a1 a2) = IF (substb f b) (substa f a1) (substa f a2)"
 | "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
