@@ -33,7 +33,7 @@ then
   fi
 
   if [ -z "$USER_HOME" ]; then
-    USER_HOME="$(cygpath -u "$HOMEDRIVE\\$HOMEPATH")"
+    USER_HOME="$(cygpath -u "$USERPROFILE")"
   fi
 
   function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
