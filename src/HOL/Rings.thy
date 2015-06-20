@@ -811,7 +811,8 @@ proof -
 qed
   
 
-text \<open>Associated elements in a ring – an equivalence relation induced by the quasi-order divisibility \<close>
+text \<open>Associated elements in a ring --- an equivalence relation induced
+  by the quasi-order divisibility.\<close>
 
 definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
 where
