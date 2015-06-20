@@ -26,13 +26,13 @@ datatype 'a polex =
 
 text \<open>Interpretation functions for the shadow syntax.\<close>
 
-primrec Ipol :: "'a::{comm_ring_1} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
+primrec Ipol :: "'a::comm_ring_1 list \<Rightarrow> 'a pol \<Rightarrow> 'a"
 where
     "Ipol l (Pc c) = c"
   | "Ipol l (Pinj i P) = Ipol (drop i l) P"
   | "Ipol l (PX P x Q) = Ipol l P * (hd l)^x + Ipol (drop 1 l) Q"
 
-primrec Ipolex :: "'a::{comm_ring_1} list \<Rightarrow> 'a polex \<Rightarrow> 'a"
+primrec Ipolex :: "'a::comm_ring_1 list \<Rightarrow> 'a polex \<Rightarrow> 'a"
 where
     "Ipolex l (Pol P) = Ipol l P"
   | "Ipolex l (Add P Q) = Ipolex l P + Ipolex l Q"
@@ -45,10 +45,11 @@ text \<open>Create polynomial normalized polynomials given normalized inputs.\<c
 
 definition mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
 where
-  "mkPinj x P = (case P of
-    Pc c \<Rightarrow> Pc c |
-    Pinj y P \<Rightarrow> Pinj (x + y) P |
-    PX p1 y p2 \<Rightarrow> Pinj x P)"
+  "mkPinj x P =
+    (case P of
+      Pc c \<Rightarrow> Pc c
+    | Pinj y P \<Rightarrow> Pinj (x + y) P
+    | PX p1 y p2 \<Rightarrow> Pinj x P)"
 
 definition mkPX :: "'a::comm_ring pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
 where
@@ -89,7 +90,7 @@ where
 by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)") auto
 
-function mul :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<otimes>" 70)
+function mul :: "'a::comm_ring pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<otimes>" 70)
 where
   "Pc a \<otimes> Pc b = Pc (a * b)"
 | "Pc c \<otimes> Pinj i P =
@@ -101,17 +102,20 @@ where
 | "PX P i Q \<otimes> Pc c =
     (if c = 0 then Pc 0 else mkPX (P \<otimes> Pc c) i (Q \<otimes> Pc c))"
 | "Pinj x P \<otimes> Pinj y Q =
-    (if x = y then mkPinj x (P \<otimes> Q) else
+    (if x = y then mkPinj x (P \<otimes> Q)
+     else
        (if x > y then mkPinj y (Pinj (x-y) P \<otimes> Q)
-         else mkPinj x (Pinj (y - x) Q \<otimes> P)))"
+        else mkPinj x (Pinj (y - x) Q \<otimes> P)))"
 | "Pinj x P \<otimes> PX Q y R =
-    (if x = 0 then P \<otimes> PX Q y R else
+    (if x = 0 then P \<otimes> PX Q y R
+     else
        (if x = 1 then mkPX (Pinj x P \<otimes> Q) y (R \<otimes> P)
-         else mkPX (Pinj x P \<otimes> Q) y (R \<otimes> Pinj (x - 1) P)))"
+        else mkPX (Pinj x P \<otimes> Q) y (R \<otimes> Pinj (x - 1) P)))"
 | "PX P x R \<otimes> Pinj y Q =
-    (if y = 0 then PX P x R \<otimes> Q else
+    (if y = 0 then PX P x R \<otimes> Q
+     else
        (if y = 1 then mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Q)
-         else mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Pinj (y - 1) Q)))"
+        else mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Pinj (y - 1) Q)))"
 | "PX P1 x P2 \<otimes> PX Q1 y Q2 =
     mkPX (P1 \<otimes> Q1) (x + y) (P2 \<otimes> Q2) \<oplus>
       (mkPX (P1 \<otimes> mkPinj 1 Q2) x (Pc 0) \<oplus>
@@ -121,18 +125,18 @@ termination by (relation "measure (\<lambda>(x, y). size x + size y)")
   (auto simp add: mkPinj_def split: pol.split)
 
 text \<open>Negation\<close>
-primrec neg :: "'a::{comm_ring} pol \<Rightarrow> 'a pol"
+primrec neg :: "'a::comm_ring pol \<Rightarrow> 'a pol"
 where
   "neg (Pc c) = Pc (-c)"
 | "neg (Pinj i P) = Pinj i (neg P)"
 | "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
 text \<open>Substraction\<close>
-definition sub :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<ominus>" 65)
+definition sub :: "'a::comm_ring pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<ominus>" 65)
   where "sub P Q = P \<oplus> neg Q"
 
 text \<open>Square for Fast Exponentation\<close>
-primrec sqr :: "'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
+primrec sqr :: "'a::comm_ring_1 pol \<Rightarrow> 'a pol"
 where
   "sqr (Pc c) = Pc (c * c)"
 | "sqr (Pinj i P) = mkPinj i (sqr P)"
@@ -141,30 +145,29 @@ where
 
 text \<open>Fast Exponentation\<close>
 
-fun pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
+fun pow :: "nat \<Rightarrow> 'a::comm_ring_1 pol \<Rightarrow> 'a pol"
 where
   pow_if [simp del]: "pow n P =
-   (if n = 0 then Pc 1 else if even n then pow (n div 2) (sqr P)
+   (if n = 0 then Pc 1
+    else if even n then pow (n div 2) (sqr P)
     else P \<otimes> pow (n div 2) (sqr P))"
 
-lemma pow_simps [simp]:    
+lemma pow_simps [simp]:
   "pow 0 P = Pc 1"
   "pow (2 * n) P = pow n (sqr P)"
   "pow (Suc (2 * n)) P = P \<otimes> pow n (sqr P)"
   by (simp_all add: pow_if)
 
-lemma even_pow:
-  "even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
+lemma even_pow: "even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
   by (erule evenE) simp
 
-lemma odd_pow:
-  "odd n \<Longrightarrow> pow n P = P \<otimes> pow (n div 2) (sqr P)"
+lemma odd_pow: "odd n \<Longrightarrow> pow n P = P \<otimes> pow (n div 2) (sqr P)"
   by (erule oddE) simp
 
-  
+
 text \<open>Normalization of polynomial expressions\<close>
 
-primrec norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
+primrec norm :: "'a::comm_ring_1 polex \<Rightarrow> 'a pol"
 where
   "norm (Pol P) = P"
 | "norm (Add P Q) = norm P \<oplus> norm Q"
@@ -204,36 +207,35 @@ proof (induct P Q arbitrary: l rule: add.induct)
   qed
 next
   case (7 x P Q y R)
-  have "x = 0 \<or> x = 1 \<or> x > 1" by arith
-  moreover
-  { assume "x = 0" with 7 have ?case by simp }
-  moreover
-  { assume "x = 1" with 7 have ?case by (simp add: algebra_simps) }
-  moreover
-  { assume "x > 1" from 7 have ?case by (cases x) simp_all }
-  ultimately show ?case by blast
+  consider "x = 0" | "x = 1" | "x > 1" by arith
+  then show ?case
+  proof cases
+    case 1
+    with 7 show ?thesis by simp
+  next
+    case 2
+    with 7 show ?thesis by (simp add: algebra_simps)
+  next
+    case 3
+    from 7 show ?thesis by (cases x) simp_all
+  qed
 next
   case (8 P x R y Q)
-  have "y = 0 \<or> y = 1 \<or> y > 1" by arith
-  moreover
-  { assume "y = 0" with 8 have ?case by simp }
-  moreover
-  { assume "y = 1" with 8 have ?case by simp }
-  moreover
-  { assume "y > 1" with 8 have ?case by simp }
-  ultimately show ?case by blast
+  then show ?case by simp
 next
   case (9 P1 x P2 Q1 y Q2)
-  show ?case
-  proof (rule linorder_cases)
-    assume a: "x < y" hence "EX d. d + x = y" by arith
-    with 9 a show ?case by (auto simp add: mkPX_ci power_add algebra_simps)
+  consider "x = y" | d where "d + x = y" | d where "d + y = x"
+    by atomize_elim arith
+  then show ?case
+  proof cases
+    case 1
+    with 9 show ?thesis by (simp add: mkPX_ci algebra_simps)
   next
-    assume a: "y < x" hence "EX d. d + y = x" by arith
-    with 9 a show ?case by (auto simp add: power_add mkPX_ci algebra_simps)
+    case 2
+    with 9 show ?thesis by (auto simp add: mkPX_ci power_add algebra_simps)
   next
-    assume "x = y"
-    with 9 show ?case by (simp add: mkPX_ci algebra_simps)
+    case 3
+    with 9 show ?thesis by (auto simp add: power_add mkPX_ci algebra_simps)
   qed
 qed (auto simp add: algebra_simps)
 
@@ -257,19 +259,25 @@ proof (induct n arbitrary: P rule: less_induct)
   case (less k)
   show ?case
   proof (cases "k = 0")
-    case True then show ?thesis by simp
+    case True
+    then show ?thesis by simp
   next
-    case False then have "k > 0" by simp
+    case False
+    then have "k > 0" by simp
     then have "k div 2 < k" by arith
     with less have *: "Ipol ls (pow (k div 2) (sqr P)) = Ipol ls (sqr P) ^ (k div 2)"
       by simp
     show ?thesis
     proof (cases "even k")
-      case True with * show ?thesis
-        by (simp add: even_pow sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] even_two_times_div_two)
+      case True
+      with * show ?thesis
+        by (simp add: even_pow sqr_ci power_mult_distrib power_add [symmetric]
+          mult_2 [symmetric] even_two_times_div_two)
     next
-      case False with * show ?thesis
-        by (simp add: odd_pow mul_ci sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] power_Suc [symmetric])
+      case False
+      with * show ?thesis
+        by (simp add: odd_pow mul_ci sqr_ci power_mult_distrib power_add [symmetric]
+          mult_2 [symmetric] power_Suc [symmetric])
     qed
   qed
 qed
@@ -283,8 +291,10 @@ lemma norm_eq:
   assumes "norm P1 = norm P2"
   shows "Ipolex l P1 = Ipolex l P2"
 proof -
-  from assms have "Ipol l (norm P1) = Ipol l (norm P2)" by simp
-  then show ?thesis by (simp only: norm_ci)
+  from assms have "Ipol l (norm P1) = Ipol l (norm P2)"
+    by simp
+  then show ?thesis
+    by (simp only: norm_ci)
 qed
 
 
