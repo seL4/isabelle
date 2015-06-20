@@ -7,7 +7,7 @@ imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
-section {* Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"} *}
+section \<open>Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"}\<close>
 
 declare real_of_int_floor_cancel [simp del]
 
@@ -63,7 +63,7 @@ next
   assume "?r" hence "(i\<Colon>int) dvd \<lfloor>x\<Colon>real\<rfloor>" ..
   hence "\<exists> k. real (floor x) = real (i*k)" 
     by (simp only: real_of_int_inject) (simp add: dvd_def)
-  thus ?l using `?r` by (simp add: rdvd_def)
+  thus ?l using \<open>?r\<close> by (simp add: rdvd_def)
 qed
 
 lemma int_rdvd_iff: "(real (i::int) rdvd real t) = (i dvd t)"
@@ -1450,8 +1450,8 @@ lemma qelim_ci:
   by (induct p rule: qelim.induct) (auto simp del: simpfm.simps)
 
 
-text {* The @{text "\<int>"} Part *}
-text{* Linearity for fm where Bound 0 ranges over @{text "\<int>"} *}
+text \<open>The @{text "\<int>"} Part\<close>
+text\<open>Linearity for fm where Bound 0 ranges over @{text "\<int>"}\<close>
 
 function zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*) where
   "zsplit0 (C c) = (0,C c)"
@@ -1955,10 +1955,10 @@ next
   ultimately show ?case by blast
 qed auto
 
-text{* plusinf : Virtual substitution of @{text "+\<infinity>"}
+text\<open>plusinf : Virtual substitution of @{text "+\<infinity>"}
        minusinf: Virtual substitution of @{text "-\<infinity>"}
        @{text "\<delta>"} Compute lcm @{text "d| Dvd d  c*x+t \<in> p"}
-       @{text "d_\<delta>"} checks if a given l divides all the ds above*}
+       @{text "d_\<delta>"} checks if a given l divides all the ds above\<close>
 
 fun minusinf:: "fm \<Rightarrow> fm" where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)" 
@@ -3294,9 +3294,9 @@ lemma mirror_\<alpha>_\<rho>:   assumes lp: "iszlfm p (a#bs)"
   using lp
   by (induct p rule: mirror.induct) (simp_all add: split_def image_Un)
   
-text {* The @{text "\<real>"} part*}
+text \<open>The @{text "\<real>"} part\<close>
 
-text{* Linearity for fm where Bound 0 ranges over @{text "\<real>"}*}
+text\<open>Linearity for fm where Bound 0 ranges over @{text "\<real>"}\<close>
 consts
   isrlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
 recdef isrlfm "measure size"
@@ -3983,10 +3983,10 @@ proof (induct p)
     { assume cn1:"numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4007,10 +4007,10 @@ next
     { assume cn1:"numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4031,10 +4031,10 @@ next
     { assume cn1: "numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4055,10 +4055,10 @@ next
     { assume cn1:"numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4079,10 +4079,10 @@ next
     { assume cn1:"numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4103,10 +4103,10 @@ next
     { assume cn1:"numgcd (CN 0 c (simpnum e)) \<noteq> 1" and cnz:"numgcd (CN 0 c (simpnum e)) \<noteq> 0"
       with numgcd_pos[where t="CN 0 c (simpnum e)"]
       have th1:"numgcd (CN 0 c (simpnum e)) > 0" by simp
-      from `c > 0` have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
+      from \<open>c > 0\<close> have th:"numgcd (CN 0 c (simpnum e)) \<le> c" 
         by (simp add: numgcd_def)
-      from `c > 0` have th': "c\<noteq>0" by auto
-      from `c > 0` have cp: "c \<ge> 0" by simp
+      from \<open>c > 0\<close> have th': "c\<noteq>0" by auto
+      from \<open>c > 0\<close> have cp: "c \<ge> 0" by simp
       from zdiv_mono2[OF cp th1 th, simplified div_self[OF th']]
       have "0 < c div numgcd (CN 0 c (simpnum e))" by simp
     }
@@ -4769,7 +4769,7 @@ next
   ultimately show "?E" by blast
 qed
 
-text{* The overall Part *}
+text\<open>The overall Part\<close>
 
 lemma real_ex_int_real01:
   shows "(\<exists> (x::real). P x) = (\<exists> (i::int) (u::real). 0\<le> u \<and> u< 1 \<and> P (real i + u))"
@@ -5518,21 +5518,21 @@ definition
 definition
   "problem4 = E (And (Ge (Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg (Bound 0))))))"
 
-ML_val {* @{code mircfrqe} @{code problem1} *}
-ML_val {* @{code mirlfrqe} @{code problem1} *}
-ML_val {* @{code mircfrqe} @{code problem2} *}
-ML_val {* @{code mirlfrqe} @{code problem2} *}
-ML_val {* @{code mircfrqe} @{code problem3} *}
-ML_val {* @{code mirlfrqe} @{code problem3} *}
-ML_val {* @{code mircfrqe} @{code problem4} *}
-ML_val {* @{code mirlfrqe} @{code problem4} *}
+ML_val \<open>@{code mircfrqe} @{code problem1}\<close>
+ML_val \<open>@{code mirlfrqe} @{code problem1}\<close>
+ML_val \<open>@{code mircfrqe} @{code problem2}\<close>
+ML_val \<open>@{code mirlfrqe} @{code problem2}\<close>
+ML_val \<open>@{code mircfrqe} @{code problem3}\<close>
+ML_val \<open>@{code mirlfrqe} @{code problem3}\<close>
+ML_val \<open>@{code mircfrqe} @{code problem4}\<close>
+ML_val \<open>@{code mirlfrqe} @{code problem4}\<close>
 
 
 (*code_reflect Mir
   functions mircfrqe mirlfrqe
   file "mir.ML"*)
 
-oracle mirfr_oracle = {*
+oracle mirfr_oracle = \<open>
 let
 
 val mk_C = @{code C} o @{code int_of_integer};
@@ -5657,14 +5657,14 @@ in
     val t' = term_of_fm vs (qe (fm_of_term vs t));
   in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
-*}
+\<close>
 
 ML_file "mir_tac.ML"
 
-method_setup mir = {*
+method_setup mir = \<open>
   Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Mir_Tac.mir_tac ctxt (not q)))
-*} "decision procedure for MIR arithmetic"
+\<close> "decision procedure for MIR arithmetic"
 
 
 lemma "\<forall>x::real. (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"

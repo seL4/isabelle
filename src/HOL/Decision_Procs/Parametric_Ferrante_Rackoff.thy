@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-section{* A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008 *}
+section\<open>A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008\<close>
 
 theory Parametric_Ferrante_Rackoff
 imports
@@ -13,7 +13,7 @@ imports
   "~~/src/HOL/Library/Old_Recdef"
 begin
 
-subsection {* Terms *}
+subsection \<open>Terms\<close>
 
 datatype tm = CP poly | Bound nat | Add tm tm | Mul poly tm
   | Neg tm | Sub tm tm | CNP nat poly tm
@@ -491,7 +491,7 @@ lemma isnpoly_fst_split0:
     (auto simp  add: polyadd_norm polysub_norm polyneg_norm polymul_norm Let_def split_def)
 
 
-subsection{* Formulae *}
+subsection\<open>Formulae\<close>
 
 datatype fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
@@ -1623,7 +1623,7 @@ lemma qelim:
   by (induct p rule: qelim.induct) auto
 
 
-subsection {* Core Procedure *}
+subsection \<open>Core Procedure\<close>
 
 fun minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
 where
@@ -2646,7 +2646,7 @@ next
 qed
 
 
-section {* First implementation : Naive by encoding all case splits locally *}
+section \<open>First implementation : Naive by encoding all case splits locally\<close>
 
 definition "msubsteq c t d s a r =
   evaldjf (split conj)
@@ -3481,7 +3481,7 @@ proof -
 qed
 
 
-section {* Second implemenation: Case splits not local *}
+section \<open>Second implemenation: Case splits not local\<close>
 
 lemma fr_eq2:
   assumes lp: "islin p"
@@ -4000,7 +4000,7 @@ proof -
     unfolding frpar2_def by (auto simp add: prep)
 qed
 
-oracle frpar_oracle = {*
+oracle frpar_oracle = \<open>
 let
 
 fun binopT T = T --> T --> T;
@@ -4159,9 +4159,9 @@ in
       (frpar_procedure alternative ty ps (Thm.term_of ct))
 
 end
-*}
+\<close>
 
-ML {*
+ML \<open>
 structure Parametric_Ferrante_Rackoff =
 struct
 
@@ -4186,15 +4186,15 @@ fun method alternative =
   end;
 
 end;
-*}
+\<close>
 
-method_setup frpar = {*
+method_setup frpar = \<open>
   Parametric_Ferrante_Rackoff.method false
-*} "parametric QE for linear Arithmetic over fields"
+\<close> "parametric QE for linear Arithmetic over fields"
 
-method_setup frpar2 = {*
+method_setup frpar2 = \<open>
   Parametric_Ferrante_Rackoff.method true
-*} "parametric QE for linear Arithmetic over fields, Version 2"
+\<close> "parametric QE for linear Arithmetic over fields, Version 2"
 
 lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y + 1) * x < 0"
   apply (frpar type: 'a pars: y)
@@ -4212,7 +4212,7 @@ lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y 
   apply simp
   done
 
-text{* Collins/Jones Problem *}
+text\<open>Collins/Jones Problem\<close>
 (*
 lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
 proof-
@@ -4230,7 +4230,7 @@ apply (frpar type: "'a::{linordered_field, number_ring}" pars: "t::'a::{linorder
 oops
 *)
 
-text{* Collins/Jones Problem *}
+text\<open>Collins/Jones Problem\<close>
 
 (*
 lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"

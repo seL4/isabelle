@@ -2,13 +2,13 @@
     Author:     Amine Chaieb
 *)
 
-section {* Univariate Polynomials as lists *}
+section \<open>Univariate Polynomials as lists\<close>
 
 theory Polynomial_List
 imports Complex_Main
 begin
 
-text{* Application of polynomial as a function. *}
+text\<open>Application of polynomial as a function.\<close>
 
 primrec (in semiring_0) poly :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a"
 where
@@ -16,38 +16,38 @@ where
 | poly_Cons: "poly (h#t) x = h + x * poly t x"
 
 
-subsection{*Arithmetic Operations on Polynomials*}
+subsection\<open>Arithmetic Operations on Polynomials\<close>
 
-text{*addition*}
+text\<open>addition\<close>
 
 primrec (in semiring_0) padd :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "+++" 65)
 where
   padd_Nil:  "[] +++ l2 = l2"
 | padd_Cons: "(h#t) +++ l2 = (if l2 = [] then h#t else (h + hd l2)#(t +++ tl l2))"
 
-text{*Multiplication by a constant*}
+text\<open>Multiplication by a constant\<close>
 primrec (in semiring_0) cmult :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "%*" 70) where
   cmult_Nil:  "c %* [] = []"
 | cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
 
-text{*Multiplication by a polynomial*}
+text\<open>Multiplication by a polynomial\<close>
 primrec (in semiring_0) pmult :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "***" 70)
 where
   pmult_Nil:  "[] *** l2 = []"
 | pmult_Cons: "(h#t) *** l2 = (if t = [] then h %* l2
                               else (h %* l2) +++ ((0) # (t *** l2)))"
 
-text{*Repeated multiplication by a polynomial*}
+text\<open>Repeated multiplication by a polynomial\<close>
 primrec (in semiring_0) mulexp :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a  list \<Rightarrow> 'a list" where
   mulexp_zero:  "mulexp 0 p q = q"
 | mulexp_Suc:   "mulexp (Suc n) p q = p *** mulexp n p q"
 
-text{*Exponential*}
+text\<open>Exponential\<close>
 primrec (in semiring_1) pexp :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list"  (infixl "%^" 80) where
   pexp_0:   "p %^ 0 = [1]"
 | pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"
 
-text{*Quotient related value of dividing a polynomial by x + a*}
+text\<open>Quotient related value of dividing a polynomial by x + a\<close>
 (* Useful for divisor properties in inductive proofs *)
 primrec (in field) "pquot" :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list"
 where
@@ -55,7 +55,7 @@ where
 | pquot_Cons: "pquot (h#t) a =
     (if t = [] then [h] else (inverse(a) * (h - hd( pquot t a)))#(pquot t a))"
 
-text{*normalization of polynomials (remove extra 0 coeff)*}
+text\<open>normalization of polynomials (remove extra 0 coeff)\<close>
 primrec (in semiring_0) pnormalize :: "'a list \<Rightarrow> 'a list" where
   pnormalize_Nil:  "pnormalize [] = []"
 | pnormalize_Cons: "pnormalize (h#p) =
@@ -63,7 +63,7 @@ primrec (in semiring_0) pnormalize :: "'a list \<Rightarrow> 'a list" where
 
 definition (in semiring_0) "pnormal p = ((pnormalize p = p) \<and> p \<noteq> [])"
 definition (in semiring_0) "nonconstant p = (pnormal p \<and> (\<forall>x. p \<noteq> [x]))"
-text{*Other definitions*}
+text\<open>Other definitions\<close>
 
 definition (in ring_1) poly_minus :: "'a list \<Rightarrow> 'a list" ("-- _" [80] 80)
   where "-- p = (- 1) %* p"
@@ -80,15 +80,15 @@ lemma (in semiring_0) dividesE:
   obtains q where "poly p2 = poly (p1 *** q)"
   using assms by (auto simp add: divides_def)
 
-    --{*order of a polynomial*}
+    --\<open>order of a polynomial\<close>
 definition (in ring_1) order :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
   "order a p = (SOME n. ([-a, 1] %^ n) divides p \<and> ~ (([-a, 1] %^ (Suc n)) divides p))"
 
-     --{*degree of a polynomial*}
+     --\<open>degree of a polynomial\<close>
 definition (in semiring_0) degree :: "'a list \<Rightarrow> nat"
   where "degree p = length (pnormalize p) - 1"
 
-     --{*squarefree polynomials --- NB with respect to real roots only.*}
+     --\<open>squarefree polynomials --- NB with respect to real roots only.\<close>
 definition (in ring_1) rsquarefree :: "'a list \<Rightarrow> bool"
   where "rsquarefree p \<longleftrightarrow> poly p \<noteq> poly [] \<and> (\<forall>a. order a p = 0 \<or> order a p = 1)"
 
@@ -113,7 +113,7 @@ lemma (in semiring_1) poly_ident_mult[simp]: "1 %* t = t" by (induct t) auto
 lemma (in semiring_0) poly_simple_add_Cons[simp]: "[a] +++ ((0)#t) = (a#t)"
   by simp
 
-text{*Handy general properties*}
+text\<open>Handy general properties\<close>
 
 lemma (in comm_semiring_0) padd_commut: "b +++ a = a +++ b"
 proof (induct b arbitrary: a)
@@ -143,7 +143,7 @@ lemma (in ring_1) pmult_by_x[simp]: "[0, 1] *** t = ((0)#t)"
   apply (case_tac t, auto)
   done
 
-text{*properties of evaluation of polynomials.*}
+text\<open>properties of evaluation of polynomials.\<close>
 
 lemma (in semiring_0) poly_add: "poly (p1 +++ p2) x = poly p1 x + poly p2 x"
 proof(induct p1 arbitrary: p2)
@@ -186,7 +186,7 @@ subclass (in field_char_0) idom_char_0 ..
 lemma (in comm_ring_1) poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
   by (induct n) (auto simp add: poly_cmult poly_mult)
 
-text{*More Polynomial Evaluation Lemmas*}
+text\<open>More Polynomial Evaluation Lemmas\<close>
 
 lemma (in semiring_0) poly_add_rzero[simp]: "poly (a +++ []) x = poly a x"
   by simp
@@ -200,8 +200,8 @@ lemma (in semiring_0) poly_mult_Nil2[simp]: "poly (p *** []) x = 0"
 lemma (in comm_semiring_1) poly_exp_add: "poly (p %^ (n + d)) x = poly( p %^ n *** p %^ d) x"
   by (induct n) (auto simp add: poly_mult mult.assoc)
 
-subsection{*Key Property: if @{term "f(a) = 0"} then @{term "(x - a)"} divides
- @{term "p(x)"} *}
+subsection\<open>Key Property: if @{term "f(a) = 0"} then @{term "(x - a)"} divides
+ @{term "p(x)"}\<close>
 
 lemma (in comm_ring_1) lemma_poly_linear_rem: "\<forall>h. \<exists>q r. h#t = [r] +++ [-a, 1] *** q"
 proof(induct t)
@@ -261,7 +261,7 @@ lemma (in semiring_0) lemma_poly_length_mult2[simp]: "\<forall>h k. length (k %*
 lemma (in ring_1) poly_length_mult[simp]: "length([-a,1] *** q) = Suc (length q)"
   by auto
 
-subsection{*Polynomial length*}
+subsection\<open>Polynomial length\<close>
 
 lemma (in semiring_0) poly_cmult_length[simp]: "length (a %* p) = length p"
   by (induct p) auto
@@ -279,12 +279,12 @@ lemma (in idom) poly_mult_not_eq_poly_Nil[simp]:
 lemma (in idom) poly_mult_eq_zero_disj: "poly (p *** q) x = 0 \<longleftrightarrow> poly p x = 0 \<or> poly q x = 0"
   by (auto simp add: poly_mult)
 
-text{*Normalisation Properties*}
+text\<open>Normalisation Properties\<close>
 
 lemma (in semiring_0) poly_normalized_nil: "(pnormalize p = []) --> (poly p x = 0)"
   by (induct p) auto
 
-text{*A nontrivial polynomial of degree n has no more than n roots*}
+text\<open>A nontrivial polynomial of degree n has no more than n roots\<close>
 lemma (in idom) poly_roots_index_lemma:
    assumes p: "poly p x \<noteq> poly [] x" and n: "length p = n"
   shows "\<exists>i. \<forall>x. poly p x = 0 \<longrightarrow> (\<exists>m\<le>n. x = i m)"
@@ -389,7 +389,7 @@ next
   show "poly p \<noteq> poly []" using F UNIV_ring_char_0_infinte by auto
 qed
 
-text{*Entirety and Cancellation for polynomials*}
+text\<open>Entirety and Cancellation for polynomials\<close>
 
 lemma (in idom_char_0) poly_entire_lemma2:
   assumes p0: "poly p \<noteq> poly []"
@@ -451,7 +451,7 @@ lemma (in comm_ring_1) poly_prime_eq_zero[simp]: "poly [a,1] \<noteq> poly []"
 lemma (in idom) poly_exp_prime_eq_zero: "poly ([a, 1] %^ n) \<noteq> poly []"
   by auto
 
-text{*A more constructive notion of polynomials being trivial*}
+text\<open>A more constructive notion of polynomials being trivial\<close>
 
 lemma (in idom_char_0) poly_zero_lemma': "poly (h # t) = poly [] \<Longrightarrow> h = 0 \<and> poly t = poly []"
   apply (simp add: fun_eq)
@@ -482,7 +482,7 @@ lemma (in idom_char_0) poly_0: "list_all (\<lambda>c. c = 0) p \<Longrightarrow>
 
 
 
-text{*Basics of divisibility.*}
+text\<open>Basics of divisibility.\<close>
 
 lemma (in idom) poly_primes:
   "[a, 1] divides (p *** q) \<longleftrightarrow> [a, 1] divides p \<or> [a, 1] divides q"
@@ -565,7 +565,7 @@ lemma (in semiring_0) poly_divides_zero2 [simp]: "q divides []"
   apply (auto simp add: fun_eq)
   done
 
-text{*At last, we can consider the order of a root.*}
+text\<open>At last, we can consider the order of a root.\<close>
 
 lemma (in idom_char_0) poly_order_exists_lemma:
   assumes lp: "length p = d"
@@ -650,7 +650,7 @@ proof -
         assume "\<not> poly (mulexp 0 [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc 0 *** m)"
         then have "poly q a = 0"
           by (simp add: poly_add poly_cmult)
-        with `poly q a \<noteq> 0` show False by simp
+        with \<open>poly q a \<noteq> 0\<close> show False by simp
       qed
     next
       case (Suc n) show ?case
@@ -674,7 +674,7 @@ lemma (in idom_char_0) poly_order:
               simp del: pmult_Cons pexp_Suc)
   done
 
-text{*Order*}
+text\<open>Order\<close>
 
 lemma some1_equalityD: "n = (SOME n. P n) \<Longrightarrow> \<exists>!n. P n \<Longrightarrow> P n"
   by (blast intro: someI2)
@@ -745,7 +745,7 @@ lemma (in idom_char_0) order_decomp:
   apply (auto simp add: poly_mult fun_eq poly_exp ac_simps simp del: pmult_Cons)
   done
 
-text{*Important composition properties of orders.*}
+text\<open>Important composition properties of orders.\<close>
 lemma order_mult:
   "poly (p *** q) \<noteq> poly [] \<Longrightarrow>
     order a (p *** q) = order a p + order (a::'a::{idom_char_0}) q"
@@ -822,12 +822,12 @@ lemma (in idom_char_0) rsquarefree_decomp:
   done
 
 
-text{*Normalization of a polynomial.*}
+text\<open>Normalization of a polynomial.\<close>
 
 lemma (in semiring_0) poly_normalize[simp]: "poly (pnormalize p) = poly p"
   by (induct p) (auto simp add: fun_eq)
 
-text{*The degree of a polynomial.*}
+text\<open>The degree of a polynomial.\<close>
 
 lemma (in semiring_0) lemma_degree_zero: "list_all (%c. c = 0) p \<longleftrightarrow> pnormalize p = []"
   by (induct p) auto
@@ -1032,13 +1032,13 @@ proof -
     by auto
 qed
 
-text{*Tidier versions of finiteness of roots.*}
+text\<open>Tidier versions of finiteness of roots.\<close>
 
 lemma (in idom_char_0) poly_roots_finite_set:
   "poly p \<noteq> poly [] \<Longrightarrow> finite {x. poly p x = 0}"
   unfolding poly_roots_finite .
 
-text{*bound for polynomial.*}
+text\<open>bound for polynomial.\<close>
 
 lemma poly_mono: "abs(x) \<le> k \<Longrightarrow> abs(poly p (x::'a::{linordered_idom})) \<le> poly (map abs p) k"
   apply (induct p)

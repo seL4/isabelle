@@ -7,7 +7,7 @@ imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
-section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
+section \<open>Quantifier elimination for @{text "\<real> (0, 1, +, <)"}\<close>
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
@@ -1914,9 +1914,9 @@ definition ferrack_test :: "unit \<Rightarrow> fm" where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-ML_val {* @{code ferrack_test} () *}
+ML_val \<open>@{code ferrack_test} ()\<close>
 
-oracle linr_oracle = {*
+oracle linr_oracle = \<open>
 let
 
 val mk_C = @{code C} o @{code int_of_integer};
@@ -2001,14 +2001,14 @@ in fn (ctxt, t) =>
     val t' = (term_of_fm vs o @{code linrqe} o fm_of_term vs) t;
   in (Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
-*}
+\<close>
 
 ML_file "ferrack_tac.ML"
 
-method_setup rferrack = {*
+method_setup rferrack = \<open>
   Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Ferrack_Tac.linr_tac ctxt (not q)))
-*} "decision procedure for linear real arithmetic"
+\<close> "decision procedure for linear real arithmetic"
 
 
 lemma

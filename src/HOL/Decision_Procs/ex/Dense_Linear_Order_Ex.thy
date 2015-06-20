@@ -1,6 +1,6 @@
 (* Author:     Amine Chaieb, TU Muenchen *)
 
-section {* Examples for Ferrante and Rackoff's quantifier elimination procedure *}
+section \<open>Examples for Ferrante and Rackoff's quantifier elimination procedure\<close>
 
 theory Dense_Linear_Order_Ex
 imports "../Dense_Linear_Order"

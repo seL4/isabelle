@@ -5,13 +5,13 @@ method.  As long as the reified atomic polynomials of type 'a pol are
 in normal form, the cring method is complete.
 *)
 
-section {* Proof of the relative completeness of method comm-ring *}
+section \<open>Proof of the relative completeness of method comm-ring\<close>
 
 theory Commutative_Ring_Complete
 imports Commutative_Ring
 begin
 
-text {* Formalization of normal form *}
+text \<open>Formalization of normal form\<close>
 fun isnorm :: "'a::comm_ring pol \<Rightarrow> bool"
 where
   "isnorm (Pc c) \<longleftrightarrow> True"
@@ -101,7 +101,7 @@ next
     by (cases x) auto
 qed
 
-text {* mkPX conserves normalizedness (@{text "_cn"}) *}
+text \<open>mkPX conserves normalizedness (@{text "_cn"})\<close>
 lemma mkPX_cn:
   assumes "x \<noteq> 0"
     and "isnorm P"
@@ -125,7 +125,7 @@ next
     by (cases x) (auto simp add: mkPX_def norm_PXtrans2[of P1 y _ Q _], cases P2, auto)
 qed
 
-text {* add conserves normalizedness *}
+text \<open>add conserves normalizedness\<close>
 lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<oplus> Q)"
 proof (induct P Q rule: add.induct)
   case (2 c i P2)
@@ -164,7 +164,7 @@ next
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     moreover
-    from 6 `x < y` y have "isnorm (Pinj d Q2)"
+    from 6 \<open>x < y\<close> y have "isnorm (Pinj d Q2)"
       by (cases d, simp, cases Q2, auto)
     ultimately have ?case by (simp add: mkPinj_cn)
   }
@@ -188,7 +188,7 @@ next
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     moreover
-    from 6 `x > y` x have "isnorm (Pinj d P2)"
+    from 6 \<open>x > y\<close> x have "isnorm (Pinj d P2)"
       by (cases d) (simp, cases P2, auto)
     ultimately have ?case by (simp add: mkPinj_cn)
   }
@@ -204,8 +204,8 @@ next
     assume "x = 1"
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 `x = 1` have "isnorm (R \<oplus> P2)" by simp
-    with 7 `x = 1` have ?case
+    with 7 \<open>x = 1\<close> have "isnorm (R \<oplus> P2)" by simp
+    with 7 \<open>x = 1\<close> have ?case
       by (simp add: norm_PXtrans[of Q2 y _])
   }
   moreover {
@@ -215,7 +215,7 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with 7 X have "isnorm (Pinj (x - 1) P2)" by (cases P2) auto
     with 7 X NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" by simp
-    with `isnorm (PX Q2 y R)` X have ?case
+    with \<open>isnorm (PX Q2 y R)\<close> X have ?case
       by (simp add: norm_PXtrans[of Q2 y _])
   }
   ultimately show ?case by blast
@@ -231,9 +231,9 @@ next
     assume "x = 1"
     with 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 `x = 1` have "isnorm (R \<oplus> P2)"
+    with 8 \<open>x = 1\<close> have "isnorm (R \<oplus> P2)"
       by simp
-    with 8 `x = 1` have ?case
+    with 8 \<open>x = 1\<close> have ?case
       by (simp add: norm_PXtrans[of Q2 y _])
   }
   moreover {
@@ -244,9 +244,9 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with 8 X have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 8 `x > 1` NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
+    with 8 \<open>x > 1\<close> NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
       by simp
-    with `isnorm (PX Q2 y R)` X have ?case
+    with \<open>isnorm (PX Q2 y R)\<close> X have ?case
       by (simp add: norm_PXtrans[of Q2 y _])
   }
   ultimately show ?case by blast
@@ -288,7 +288,7 @@ next
     assume "x = y"
     with 9 NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<oplus> Q2)" "isnorm (P1 \<oplus> Q1)"
       by auto
-    with `x = y` Y0 have ?case
+    with \<open>x = y\<close> Y0 have ?case
       by (simp add: mkPX_cn)
   }
   moreover {
@@ -319,7 +319,7 @@ next
   ultimately show ?case by blast
 qed simp
 
-text {* mul concerves normalizedness *}
+text \<open>mul concerves normalizedness\<close>
 lemma mul_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<otimes> Q)"
 proof (induct P Q rule: mul.induct)
   case (2 c i P2)
@@ -357,7 +357,7 @@ next
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     moreover
-    from 6 `x < y` y have "isnorm (Pinj d Q2)"
+    from 6 \<open>x < y\<close> y have "isnorm (Pinj d Q2)"
       by (cases d) (simp, cases Q2, auto)
     ultimately have ?case by (simp add: mkPinj_cn)
   }
@@ -386,7 +386,7 @@ next
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     moreover
-    from 6 `x > y` x have "isnorm (Pinj d P2)"
+    from 6 \<open>x > y\<close> x have "isnorm (Pinj d P2)"
       by (cases d) (simp, cases P2, auto)
     ultimately have ?case by (simp add: mkPinj_cn)
   }
@@ -404,9 +404,9 @@ next
     assume "x = 1"
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 `x = 1` have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 7 \<open>x = 1\<close> have "isnorm (R \<otimes> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
-    with 7 `x = 1` Y0 have ?case
+    with 7 \<open>x = 1\<close> Y0 have ?case
       by (simp add: mkPX_cn)
   }
   moreover {
@@ -444,9 +444,9 @@ next
     assume "x = 1"
     from 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 `x = 1` have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 8 \<open>x = 1\<close> have "isnorm (R \<otimes> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
-    with 8 `x = 1` Y0 have ?case
+    with 8 \<open>x = 1\<close> Y0 have ?case
       by (simp add: mkPX_cn)
   }
   moreover {
@@ -490,7 +490,7 @@ next
   then show ?case by (simp add: add_cn)
 qed simp
 
-text {* neg conserves normalizedness *}
+text \<open>neg conserves normalizedness\<close>
 lemma neg_cn: "isnorm P \<Longrightarrow> isnorm (neg P)"
 proof (induct P)
   case (Pinj i P2)
@@ -514,11 +514,11 @@ next
   qed (cases x, auto)
 qed simp
 
-text {* sub conserves normalizedness *}
+text \<open>sub conserves normalizedness\<close>
 lemma sub_cn: "isnorm p \<Longrightarrow> isnorm q \<Longrightarrow> isnorm (p \<ominus> q)"
   by (simp add: sub_def add_cn neg_cn)
 
-text {* sqr conserves normalizizedness *}
+text \<open>sqr conserves normalizizedness\<close>
 lemma sqr_cn: "isnorm P \<Longrightarrow> isnorm (sqr P)"
 proof (induct P)
   case Pc
@@ -538,7 +538,7 @@ next
     by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
 qed
 
-text {* pow conserves normalizedness *}
+text \<open>pow conserves normalizedness\<close>
 lemma pow_cn: "isnorm P \<Longrightarrow> isnorm (pow n P)"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)

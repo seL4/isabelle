@@ -18,7 +18,7 @@ begin
 datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num
   | Mul int num
 
-primrec num_size :: "num \<Rightarrow> nat" -- {* A size for num to make inductive proofs simpler *}
+primrec num_size :: "num \<Rightarrow> nat" -- \<open>A size for num to make inductive proofs simpler\<close>
 where
   "num_size (C c) = 1"
 | "num_size (Bound n) = 1"
@@ -44,7 +44,7 @@ datatype fm  =
   | Closed nat | NClosed nat
 
 
-fun fmsize :: "fm \<Rightarrow> nat"  -- {* A size for fm *}
+fun fmsize :: "fm \<Rightarrow> nat"  -- \<open>A size for fm\<close>
 where
   "fmsize (NOT p) = 1 + fmsize p"
 | "fmsize (And p q) = 1 + fmsize p + fmsize q"
@@ -60,7 +60,7 @@ where
 lemma fmsize_pos: "fmsize p > 0"
   by (induct p rule: fmsize.induct) simp_all
 
-primrec Ifm :: "bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"  -- {* Semantics of formulae (fm) *}
+primrec Ifm :: "bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"  -- \<open>Semantics of formulae (fm)\<close>
 where
   "Ifm bbs bs T \<longleftrightarrow> True"
 | "Ifm bbs bs F \<longleftrightarrow> False"
@@ -113,7 +113,7 @@ lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
   by (induct p arbitrary: bs rule: prep.induct) auto
 
 
-fun qfree :: "fm \<Rightarrow> bool"  -- {* Quantifier freeness *}
+fun qfree :: "fm \<Rightarrow> bool"  -- \<open>Quantifier freeness\<close>
 where
   "qfree (E p) \<longleftrightarrow> False"
 | "qfree (A p) \<longleftrightarrow> False"
@@ -125,9 +125,9 @@ where
 | "qfree p \<longleftrightarrow> True"
 
 
-text {* Boundedness and substitution *}
+text \<open>Boundedness and substitution\<close>
 
-primrec numbound0 :: "num \<Rightarrow> bool"  -- {* a num is INDEPENDENT of Bound 0 *}
+primrec numbound0 :: "num \<Rightarrow> bool"  -- \<open>a num is INDEPENDENT of Bound 0\<close>
 where
   "numbound0 (C c) \<longleftrightarrow> True"
 | "numbound0 (Bound n) \<longleftrightarrow> n > 0"
@@ -142,7 +142,7 @@ lemma numbound0_I:
   shows "Inum (b # bs) a = Inum (b' # bs) a"
   using nb by (induct a rule: num.induct) (auto simp add: gr0_conv_Suc)
 
-primrec bound0 :: "fm \<Rightarrow> bool" -- {* A Formula is independent of Bound 0 *}
+primrec bound0 :: "fm \<Rightarrow> bool" -- \<open>A Formula is independent of Bound 0\<close>
 where
   "bound0 T \<longleftrightarrow> True"
 | "bound0 F \<longleftrightarrow> True"
@@ -188,7 +188,7 @@ lemma numsubst0_I':
   "numbound0 a \<Longrightarrow> Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
   by (induct t rule: numsubst0.induct) (auto simp: nth_Cons' numbound0_I[where b="b" and b'="b'"])
 
-primrec subst0:: "num \<Rightarrow> fm \<Rightarrow> fm"  -- {* substitue a num into a formula for Bound 0 *}
+primrec subst0:: "num \<Rightarrow> fm \<Rightarrow> fm"  -- \<open>substitue a num into a formula for Bound 0\<close>
 where
   "subst0 t T = T"
 | "subst0 t F = F"
@@ -254,7 +254,7 @@ lemma decr:
 lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
   by (induct p) simp_all
 
-fun isatom :: "fm \<Rightarrow> bool"  -- {* test for atomicity *}
+fun isatom :: "fm \<Rightarrow> bool"  -- \<open>test for atomicity\<close>
 where
   "isatom T \<longleftrightarrow> True"
 | "isatom F \<longleftrightarrow> True"
@@ -399,9 +399,9 @@ proof clarify
 qed
 
 
-text {* Simplification *}
+text \<open>Simplification\<close>
 
-text {* Algebraic simplifications for nums *}
+text \<open>Algebraic simplifications for nums\<close>
 
 fun bnds :: "num \<Rightarrow> nat list"
 where
@@ -864,7 +864,7 @@ lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
   by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
     (case_tac "simpnum a", auto)+
 
-text {* Generic quantifier elimination *}
+text \<open>Generic quantifier elimination\<close>
 function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
 where
   "qelim (E p) = (\<lambda>qe. DJ qe (qelim p qe))"
@@ -886,9 +886,9 @@ lemma qelim_ci:
     (auto simp add: not disj conj iff imp not_qf disj_qf conj_qf imp_qf iff_qf
       simpfm simpfm_qf simp del: simpfm.simps)
 
-text {* Linearity for fm where Bound 0 ranges over @{text "\<int>"} *}
+text \<open>Linearity for fm where Bound 0 ranges over @{text "\<int>"}\<close>
 
-fun zsplit0 :: "num \<Rightarrow> int \<times> num"  -- {* splits the bounded from the unbounded part *}
+fun zsplit0 :: "num \<Rightarrow> int \<times> num"  -- \<open>splits the bounded from the unbounded part\<close>
 where
   "zsplit0 (C c) = (0, C c)"
 | "zsplit0 (Bound n) = (if n = 0 then (1, C 0) else (0, Bound n))"
@@ -1021,7 +1021,7 @@ next
     by simp
 qed
 
-consts iszlfm :: "fm \<Rightarrow> bool"  -- {* Linearity test for fm *}
+consts iszlfm :: "fm \<Rightarrow> bool"  -- \<open>Linearity test for fm\<close>
 recdef iszlfm "measure size"
   "iszlfm (And p q) \<longleftrightarrow> iszlfm p \<and> iszlfm q"
   "iszlfm (Or p q) \<longleftrightarrow> iszlfm p \<and> iszlfm q"
@@ -1038,7 +1038,7 @@ recdef iszlfm "measure size"
 lemma zlin_qfree: "iszlfm p \<Longrightarrow> qfree p"
   by (induct p rule: iszlfm.induct) auto
 
-consts zlfm :: "fm \<Rightarrow> fm"  -- {* Linearity transformation for fm *}
+consts zlfm :: "fm \<Rightarrow> fm"  -- \<open>Linearity transformation for fm\<close>
 recdef zlfm "measure fmsize"
   "zlfm (And p q) = And (zlfm p) (zlfm q)"
   "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
@@ -1231,7 +1231,7 @@ next
     assume "j = 0"
     then have z: "zlfm (Dvd j a) = (zlfm (Eq a))"
       by (simp add: Let_def)
-    then have ?case using 11 `j = 0`
+    then have ?case using 11 \<open>j = 0\<close>
       by (simp del: zlfm.simps)
   }
   moreover
@@ -1282,7 +1282,7 @@ next
     then have z: "zlfm (NDvd j a) = zlfm (NEq a)"
       by (simp add: Let_def)
     then have ?case
-      using assms 12 `j = 0` by (simp del: zlfm.simps)
+      using assms 12 \<open>j = 0\<close> by (simp del: zlfm.simps)
   }
   moreover
   {
@@ -1316,7 +1316,7 @@ next
   ultimately show ?case by blast
 qed auto
 
-consts minusinf :: "fm \<Rightarrow> fm" -- {* Virtual substitution of @{text "-\<infinity>"} *}
+consts minusinf :: "fm \<Rightarrow> fm" -- \<open>Virtual substitution of @{text "-\<infinity>"}\<close>
 recdef minusinf "measure size"
   "minusinf (And p q) = And (minusinf p) (minusinf q)"
   "minusinf (Or p q) = Or (minusinf p) (minusinf q)"
@@ -1331,7 +1331,7 @@ recdef minusinf "measure size"
 lemma minusinf_qfree: "qfree p \<Longrightarrow> qfree (minusinf p)"
   by (induct p rule: minusinf.induct) auto
 
-consts plusinf :: "fm \<Rightarrow> fm"  -- {* Virtual substitution of @{text "+\<infinity>"} *}
+consts plusinf :: "fm \<Rightarrow> fm"  -- \<open>Virtual substitution of @{text "+\<infinity>"}\<close>
 recdef plusinf "measure size"
   "plusinf (And p q) = And (plusinf p) (plusinf q)"
   "plusinf (Or p q) = Or (plusinf p) (plusinf q)"
@@ -1343,7 +1343,7 @@ recdef plusinf "measure size"
   "plusinf (Ge  (CN 0 c e)) = T"
   "plusinf p = p"
 
-consts \<delta> :: "fm \<Rightarrow> int"  -- {* Compute @{text "lcm {d| N\<^sup>? Dvd c*x+t \<in> p}"} *}
+consts \<delta> :: "fm \<Rightarrow> int"  -- \<open>Compute @{text "lcm {d| N\<^sup>? Dvd c*x+t \<in> p}"}\<close>
 recdef \<delta> "measure size"
   "\<delta> (And p q) = lcm (\<delta> p) (\<delta> q)"
   "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)"
@@ -1351,7 +1351,7 @@ recdef \<delta> "measure size"
   "\<delta> (NDvd i (CN 0 c e)) = i"
   "\<delta> p = 1"
 
-consts d_\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  -- {* check if a given l divides all the ds above *}
+consts d_\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  -- \<open>check if a given l divides all the ds above\<close>
 recdef d_\<delta> "measure size"
   "d_\<delta> (And p q) = (\<lambda>d. d_\<delta> p d \<and> d_\<delta> q d)"
   "d_\<delta> (Or p q) = (\<lambda>d. d_\<delta> p d \<and> d_\<delta> q d)"
@@ -1412,7 +1412,7 @@ next
 qed simp_all
 
 
-consts a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  -- {* adjust the coefficients of a formula *}
+consts a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  -- \<open>adjust the coefficients of a formula\<close>
 recdef a_\<beta> "measure size"
   "a_\<beta> (And p q) = (\<lambda>k. And (a_\<beta> p k) (a_\<beta> q k))"
   "a_\<beta> (Or p q) = (\<lambda>k. Or (a_\<beta> p k) (a_\<beta> q k))"
@@ -1426,7 +1426,7 @@ recdef a_\<beta> "measure size"
   "a_\<beta> (NDvd i (CN 0 c e))=(\<lambda>k. NDvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
   "a_\<beta> p = (\<lambda>k. p)"
 
-consts d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  -- {* test if all coeffs c of c divide a given l *}
+consts d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  -- \<open>test if all coeffs c of c divide a given l\<close>
 recdef d_\<beta> "measure size"
   "d_\<beta> (And p q) = (\<lambda>k. (d_\<beta> p k) \<and> (d_\<beta> q k))"
   "d_\<beta> (Or p q) = (\<lambda>k. (d_\<beta> p k) \<and> (d_\<beta> q k))"
@@ -1440,7 +1440,7 @@ recdef d_\<beta> "measure size"
   "d_\<beta> (NDvd i (CN 0 c e))=(\<lambda>k. c dvd k)"
   "d_\<beta> p = (\<lambda>k. True)"
 
-consts \<zeta> :: "fm \<Rightarrow> int"  -- {* computes the lcm of all coefficients of x *}
+consts \<zeta> :: "fm \<Rightarrow> int"  -- \<open>computes the lcm of all coefficients of x\<close>
 recdef \<zeta> "measure size"
   "\<zeta> (And p q) = lcm (\<zeta> p) (\<zeta> q)"
   "\<zeta> (Or p q) = lcm (\<zeta> p) (\<zeta> q)"
@@ -1492,7 +1492,7 @@ recdef mirror "measure size"
   "mirror (NDvd i (CN 0 c e)) = NDvd i (CN 0 c (Neg e))"
   "mirror p = p"
 
-text {* Lemmas for the correctness of @{text "\<sigma>_\<rho>"} *}
+text \<open>Lemmas for the correctness of @{text "\<sigma>_\<rho>"}\<close>
 
 lemma dvd1_eq1:
   fixes x :: int
@@ -2370,7 +2370,7 @@ proof -
 qed
 
 
-text {* Cooper's Algorithm *}
+text \<open>Cooper's Algorithm\<close>
 
 definition cooper :: "fm \<Rightarrow> fm"
 where
@@ -2500,13 +2500,13 @@ definition cooper_test :: "unit \<Rightarrow> fm"
       pa (E (A (Imp (Ge (Sub (Bound 0) (Bound 1)))
         (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0))) (Bound 2))))))))"
 
-ML_val {* @{code cooper_test} () *}
+ML_val \<open>@{code cooper_test} ()\<close>
 
 (*code_reflect Cooper_Procedure
   functions pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
   file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
 
-oracle linzqe_oracle = {*
+oracle linzqe_oracle = \<open>
 let
 
 fun num_of_term vs (t as Free (xn, xT)) =
@@ -2649,17 +2649,17 @@ in
       val t' = term_of_fm ps vs (@{code pa} (fm_of_term ps vs t));
     in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
-*}
+\<close>
 
 ML_file "cooper_tac.ML"
 
-method_setup cooper = {*
+method_setup cooper = \<open>
   Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Cooper_Tac.linz_tac ctxt (not q)))
-*} "decision procedure for linear integer arithmetic"
+\<close> "decision procedure for linear integer arithmetic"
 
 
-text {* Tests *}
+text \<open>Tests\<close>
 
 lemma "\<exists>(j::int). \<forall>x\<ge>j. \<exists>a b. x = 3*a+5*b"
   by cooper

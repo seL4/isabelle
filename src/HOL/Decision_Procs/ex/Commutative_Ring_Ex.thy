@@ -1,6 +1,6 @@
 (*  Author:     Bernhard Haeupler *)
 
-section {* Some examples demonstrating the comm-ring method *}
+section \<open>Some examples demonstrating the comm-ring method\<close>
 
 theory Commutative_Ring_Ex
 imports "../Commutative_Ring"

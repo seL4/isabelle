@@ -2,8 +2,8 @@
     Author      : Amine Chaieb, TU Muenchen
 *)
 
-section {* Dense linear order without endpoints
-  and a quantifier elimination procedure in Ferrante and Rackoff style *}
+section \<open>Dense linear order without endpoints
+  and a quantifier elimination procedure in Ferrante and Rackoff style\<close>
 
 theory Dense_Linear_Order
 imports Main
@@ -32,7 +32,7 @@ lemma gather_simps[no_atp]:
 lemma gather_start [no_atp]: "(\<exists>x. P x) \<equiv> (\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y\<in> {}. x < y) \<and> P x)" 
   by simp
 
-text{* Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}*}
+text\<open>Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}\<close>
 lemma minf_lt[no_atp]:  "\<exists>z . \<forall>x. x < z \<longrightarrow> (x < t \<longleftrightarrow> True)" by auto
 lemma minf_gt[no_atp]: "\<exists>z . \<forall>x. x < z \<longrightarrow>  (t < x \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
@@ -44,7 +44,7 @@ lemma minf_eq[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x = t \
 lemma minf_neq[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
 lemma minf_P[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (P \<longleftrightarrow> P)" by blast
 
-text{* Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"}*}
+text\<open>Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"}\<close>
 lemma pinf_gt[no_atp]:  "\<exists>z. \<forall>x. z < x \<longrightarrow> (t < x \<longleftrightarrow> True)" by auto
 lemma pinf_lt[no_atp]: "\<exists>z. \<forall>x. z < x \<longrightarrow>  (x < t \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
@@ -239,7 +239,7 @@ qed
 end
 
 
-section {* The classical QE after Langford for dense linear orders *}
+section \<open>The classical QE after Langford for dense linear orders\<close>
 
 context unbounded_dense_linorder
 begin
@@ -324,14 +324,14 @@ lemma ex_distrib[no_atp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\
 lemmas dnf_simps[no_atp] = weak_dnf_simps nnf_simps ex_distrib
 
 ML_file "langford.ML"
-method_setup dlo = {*
+method_setup dlo = \<open>
   Scan.succeed (SIMPLE_METHOD' o Langford.dlo_tac)
-*} "Langford's algorithm for quantifier elimination in dense linear orders"
+\<close> "Langford's algorithm for quantifier elimination in dense linear orders"
 
 
-section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields *}
+section \<open>Contructive dense linear orders yield QE for linear arithmetic over ordered Fields\<close>
 
-text {* Linear order without upper bounds *}
+text \<open>Linear order without upper bounds\<close>
 
 locale linorder_stupid_syntax = linorder
 begin
@@ -350,7 +350,7 @@ begin
 
 lemma ge_ex[no_atp]: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
 
-text {* Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"} *}
+text \<open>Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"}\<close>
 lemma pinf_conj[no_atp]:
   assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
   and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
@@ -392,7 +392,7 @@ qed
 
 end
 
-text {* Linear order without upper bounds *}
+text \<open>Linear order without upper bounds\<close>
 
 locale linorder_no_lb = linorder_stupid_syntax +
   assumes lt_ex: "\<exists>y. less y x"
@@ -401,7 +401,7 @@ begin
 lemma le_ex[no_atp]: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
 
 
-text {* Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"} *}
+text \<open>Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}\<close>
 lemma minf_conj[no_atp]:
   assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
     and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
@@ -551,7 +551,7 @@ declare ferrack_axiom [ferrack minf: minf_thms pinf: pinf_thms
     nmi: nmi_thms npi: npi_thms lindense:
     lin_dense_thms qe: fr_eq atoms: atoms]
 
-declaration {*
+declaration \<open>
 let
   fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
   fun generic_whatis phi =
@@ -582,18 +582,18 @@ in
   Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
     {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
 end
-*}
+\<close>
 
 end
 
 ML_file "ferrante_rackoff.ML"
 
-method_setup ferrack = {*
+method_setup ferrack = \<open>
   Scan.succeed (SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
-*} "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
+\<close> "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
 
 
-subsection {* Ferrante and Rackoff algorithm over ordered fields *}
+subsection \<open>Ferrante and Rackoff algorithm over ordered fields\<close>
 
 lemma neg_prod_lt:"(c\<Colon>'a\<Colon>linordered_field) < 0 \<Longrightarrow> ((c*x < 0) == (x > 0))"
 proof -
@@ -702,7 +702,7 @@ interpretation class_dense_linordered_field: constr_dense_linorder
    "\<lambda> x y. 1/2 * ((x::'a::{linordered_field}) + y)"
   by unfold_locales (dlo, dlo, auto)
 
-declaration{*
+declaration\<open>
 let
   fun earlier [] x y = false
     | earlier (h::t) x y =
@@ -933,7 +933,7 @@ in
 Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}
   {isolate_conv = field_isolate_conv, whatis = classfield_whatis, simpset = class_field_ss}
 end
-*}
+\<close>
 (*
 lemma upper_bound_finite_set:
   assumes fS: "finite S"

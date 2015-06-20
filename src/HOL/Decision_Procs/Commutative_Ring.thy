@@ -3,13 +3,13 @@
 Proving equalities in commutative rings done "right" in Isabelle/HOL.
 *)
 
-section {* Proving equalities in commutative rings *}
+section \<open>Proving equalities in commutative rings\<close>
 
 theory Commutative_Ring
 imports Main
 begin
 
-text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}
+text \<open>Syntax of multivariate polynomials (pol) and polynomial expressions.\<close>
 
 datatype 'a pol =
     Pc 'a
@@ -24,7 +24,7 @@ datatype 'a polex =
   | Pow "'a polex" nat
   | Neg "'a polex"
 
-text {* Interpretation functions for the shadow syntax. *}
+text \<open>Interpretation functions for the shadow syntax.\<close>
 
 primrec Ipol :: "'a::{comm_ring_1} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
 where
@@ -41,7 +41,7 @@ where
   | "Ipolex l (Pow p n) = Ipolex l p ^ n"
   | "Ipolex l (Neg P) = - Ipolex l P"
 
-text {* Create polynomial normalized polynomials given normalized inputs. *}
+text \<open>Create polynomial normalized polynomials given normalized inputs.\<close>
 
 definition mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
 where
@@ -58,7 +58,7 @@ where
     | Pinj j R \<Rightarrow> PX P i Q
     | PX P2 i2 Q2 \<Rightarrow> if Q2 = Pc 0 then PX P2 (i + i2) Q else PX P i Q)"
 
-text {* Defining the basic ring operations on normalized polynomials *}
+text \<open>Defining the basic ring operations on normalized polynomials\<close>
 
 lemma pol_size_nz[simp]: "size (p :: 'a pol) \<noteq> 0"
   by (cases p) simp_all
@@ -120,18 +120,18 @@ by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)")
   (auto simp add: mkPinj_def split: pol.split)
 
-text {* Negation*}
+text \<open>Negation\<close>
 primrec neg :: "'a::{comm_ring} pol \<Rightarrow> 'a pol"
 where
   "neg (Pc c) = Pc (-c)"
 | "neg (Pinj i P) = Pinj i (neg P)"
 | "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
-text {* Substraction *}
+text \<open>Substraction\<close>
 definition sub :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<ominus>" 65)
   where "sub P Q = P \<oplus> neg Q"
 
-text {* Square for Fast Exponentation *}
+text \<open>Square for Fast Exponentation\<close>
 primrec sqr :: "'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
   "sqr (Pc c) = Pc (c * c)"
@@ -139,7 +139,7 @@ where
 | "sqr (PX A x B) =
     mkPX (sqr A) (x + x) (sqr B) \<oplus> mkPX (Pc (1 + 1) \<otimes> A \<otimes> mkPinj 1 B) x (Pc 0)"
 
-text {* Fast Exponentation *}
+text \<open>Fast Exponentation\<close>
 
 fun pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
@@ -162,7 +162,7 @@ lemma odd_pow:
   by (erule oddE) simp
 
   
-text {* Normalization of polynomial expressions *}
+text \<open>Normalization of polynomial expressions\<close>
 
 primrec norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
 where
@@ -173,21 +173,21 @@ where
 | "norm (Pow P n) = pow n (norm P)"
 | "norm (Neg P) = neg (norm P)"
 
-text {* mkPinj preserve semantics *}
+text \<open>mkPinj preserve semantics\<close>
 lemma mkPinj_ci: "Ipol l (mkPinj a B) = Ipol l (Pinj a B)"
   by (induct B) (auto simp add: mkPinj_def algebra_simps)
 
-text {* mkPX preserves semantics *}
+text \<open>mkPX preserves semantics\<close>
 lemma mkPX_ci: "Ipol l (mkPX A b C) = Ipol l (PX A b C)"
   by (cases A) (auto simp add: mkPX_def mkPinj_ci power_add algebra_simps)
 
-text {* Correctness theorems for the implemented operations *}
+text \<open>Correctness theorems for the implemented operations\<close>
 
-text {* Negation *}
+text \<open>Negation\<close>
 lemma neg_ci: "Ipol l (neg P) = -(Ipol l P)"
   by (induct P arbitrary: l) auto
 
-text {* Addition *}
+text \<open>Addition\<close>
 lemma add_ci: "Ipol l (P \<oplus> Q) = Ipol l P + Ipol l Q"
 proof (induct P Q arbitrary: l rule: add.induct)
   case (6 x P y Q)
@@ -237,21 +237,21 @@ next
   qed
 qed (auto simp add: algebra_simps)
 
-text {* Multiplication *}
+text \<open>Multiplication\<close>
 lemma mul_ci: "Ipol l (P \<otimes> Q) = Ipol l P * Ipol l Q"
   by (induct P Q arbitrary: l rule: mul.induct)
     (simp_all add: mkPX_ci mkPinj_ci algebra_simps add_ci power_add)
 
-text {* Substraction *}
+text \<open>Substraction\<close>
 lemma sub_ci: "Ipol l (P \<ominus> Q) = Ipol l P - Ipol l Q"
   by (simp add: add_ci neg_ci sub_def)
 
-text {* Square *}
+text \<open>Square\<close>
 lemma sqr_ci: "Ipol ls (sqr P) = Ipol ls P * Ipol ls P"
   by (induct P arbitrary: ls)
     (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci algebra_simps power_add)
 
-text {* Power *}
+text \<open>Power\<close>
 lemma pow_ci: "Ipol ls (pow n P) = Ipol ls P ^ n"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)
@@ -274,11 +274,11 @@ proof (induct n arbitrary: P rule: less_induct)
   qed
 qed
 
-text {* Normalization preserves semantics  *}
+text \<open>Normalization preserves semantics\<close>
 lemma norm_ci: "Ipolex l Pe = Ipol l (norm Pe)"
   by (induct Pe) (simp_all add: add_ci sub_ci mul_ci neg_ci pow_ci)
 
-text {* Reflection lemma: Key to the (incomplete) decision procedure *}
+text \<open>Reflection lemma: Key to the (incomplete) decision procedure\<close>
 lemma norm_eq:
   assumes "norm P1 = norm P2"
   shows "Ipolex l P1 = Ipolex l P2"
@@ -290,8 +290,8 @@ qed
 
 ML_file "commutative_ring_tac.ML"
 
-method_setup comm_ring = {*
+method_setup comm_ring = \<open>
   Scan.succeed (SIMPLE_METHOD' o Commutative_Ring_Tac.tac)
-*} "reflective decision procedure for equalities over commutative rings"
+\<close> "reflective decision procedure for equalities over commutative rings"
 
 end

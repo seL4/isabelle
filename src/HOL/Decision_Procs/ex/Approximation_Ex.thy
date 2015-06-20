@@ -4,7 +4,7 @@ theory Approximation_Ex
 imports Complex_Main "../Approximation"
 begin
 
-text {*
+text \<open>
 
 Here are some examples how to use the approximation method.
 
@@ -31,7 +31,7 @@ To use taylor series expansion specify the variable to derive. You need to
 specify the amount of derivations to compute. When using taylor series expansion
 only one variable can be used.
 
-*}
+\<close>
 
 section "Compute some transcendental values"
 

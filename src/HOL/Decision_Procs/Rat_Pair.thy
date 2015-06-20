@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-section {* Rational numbers as pairs *}
+section \<open>Rational numbers as pairs\<close>
 
 theory Rat_Pair
 imports Complex_Main
@@ -66,7 +66,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-text {* Arithmetic over Num *}
+text \<open>Arithmetic over Num\<close>
 
 definition Nadd :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl "+\<^sub>N" 60) where
   "Nadd = (\<lambda>(a,b) (a',b'). if a = 0 \<or> b = 0 then normNum(a',b')
@@ -129,7 +129,7 @@ lemma isnormNum_int[simp]:
   by (simp_all add: isnormNum_def)
 
 
-text {* Relations over Num *}
+text \<open>Relations over Num\<close>
 
 definition Nlt0:: "Num \<Rightarrow> bool"  ("0>\<^sub>N")
   where "Nlt0 = (\<lambda>(a,b). a < 0)"
@@ -206,7 +206,7 @@ proof -
     by (simp only: of_int_mult[symmetric] of_int_add [symmetric])
   then have "of_int x / of_int d = ?t / of_int d"
     using cong[OF refl[of ?f] eq] by simp
-  then show ?thesis by (simp add: add_divide_distrib algebra_simps `d ~= 0`)
+  then show ?thesis by (simp add: add_divide_distrib algebra_simps \<open>d ~= 0\<close>)
 qed
 
 lemma of_int_div: "(d::int) ~= 0 ==> d dvd n ==>

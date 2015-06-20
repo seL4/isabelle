@@ -2,13 +2,13 @@
     Author:     Amine Chaieb
 *)
 
-section {* Implementation and verification of multivariate polynomials *}
+section \<open>Implementation and verification of multivariate polynomials\<close>
 
 theory Reflected_Multivariate_Polynomial
 imports Complex_Main Rat_Pair Polynomial_List
 begin
 
-subsection{* Datatype of polynomial expressions *}
+subsection\<open>Datatype of polynomial expressions\<close>
 
 datatype poly = C Num | Bound nat | Add poly poly | Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
@@ -17,7 +17,7 @@ abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub
 abbreviation poly_p :: "int \<Rightarrow> poly" ("'((_)')\<^sub>p") where "(i)\<^sub>p \<equiv> C (i)\<^sub>N"
 
 
-subsection{* Boundedness, substitution and all that *}
+subsection\<open>Boundedness, substitution and all that\<close>
 
 primrec polysize:: "poly \<Rightarrow> nat"
 where
@@ -30,7 +30,7 @@ where
 | "polysize (Pw p n) = 1 + polysize p"
 | "polysize (CN c n p) = 4 + polysize c + polysize p"
 
-primrec polybound0:: "poly \<Rightarrow> bool" -- {* a poly is INDEPENDENT of Bound 0 *}
+primrec polybound0:: "poly \<Rightarrow> bool" -- \<open>a poly is INDEPENDENT of Bound 0\<close>
 where
   "polybound0 (C c) \<longleftrightarrow> True"
 | "polybound0 (Bound n) \<longleftrightarrow> n > 0"
@@ -41,7 +41,7 @@ where
 | "polybound0 (Pw p n) \<longleftrightarrow> polybound0 p"
 | "polybound0 (CN c n p) \<longleftrightarrow> n \<noteq> 0 \<and> polybound0 c \<and> polybound0 p"
 
-primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" -- {* substitute a poly into a poly for Bound 0 *}
+primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" -- \<open>substitute a poly into a poly for Bound 0\<close>
 where
   "polysubst0 t (C c) = C c"
 | "polysubst0 t (Bound n) = (if n = 0 then t else Bound n)"
@@ -66,7 +66,7 @@ where
 | "decrpoly a = a"
 
 
-subsection{* Degrees and heads and coefficients *}
+subsection\<open>Degrees and heads and coefficients\<close>
 
 fun degree :: "poly \<Rightarrow> nat"
 where
@@ -110,7 +110,7 @@ where
 | "headconst (C n) = n"
 
 
-subsection{* Operations for normalization *}
+subsection\<open>Operations for normalization\<close>
 
 declare if_cong[fundef_cong del]
 declare let_cong[fundef_cong del]
@@ -195,7 +195,7 @@ where
      in if h = 0\<^sub>N then (p, False) else (C (Ninv h) *\<^sub>p p, 0>\<^sub>N h))"
 
 
-subsection {* Pseudo-division *}
+subsection \<open>Pseudo-division\<close>
 
 definition shift1 :: "poly \<Rightarrow> poly"
   where "shift1 p = CN 0\<^sub>p 0 p"
@@ -233,7 +233,7 @@ where
 | "poly_deriv p = 0\<^sub>p"
 
 
-subsection{* Semantics of the polynomial representation *}
+subsection\<open>Semantics of the polynomial representation\<close>
 
 primrec Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0,field,power}"
 where
@@ -259,7 +259,7 @@ lemma Ipoly_CRat: "Ipoly bs (C (i, j)) = of_int i / of_int j"
 lemmas RIpoly_eqs = Ipoly.simps(2-7) Ipoly_CInt Ipoly_CRat
 
 
-subsection {* Normal form and normalization *}
+subsection \<open>Normal form and normalization\<close>
 
 fun isnpolyh:: "poly \<Rightarrow> nat \<Rightarrow> bool"
 where
@@ -273,7 +273,7 @@ lemma isnpolyh_mono: "n' \<le> n \<Longrightarrow> isnpolyh p n \<Longrightarrow
 definition isnpoly :: "poly \<Rightarrow> bool"
   where "isnpoly p = isnpolyh p 0"
 
-text{* polyadd preserves normal forms *}
+text\<open>polyadd preserves normal forms\<close>
 
 lemma polyadd_normh: "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> isnpolyh (polyadd p q) (min n0 n1)"
 proof (induct p q arbitrary: n0 n1 rule: polyadd.induct)
@@ -380,7 +380,7 @@ lemma polyadd[simp]: "Ipoly bs (polyadd p q) = Ipoly bs p + Ipoly bs q"
 lemma polyadd_norm: "isnpoly p \<Longrightarrow> isnpoly q \<Longrightarrow> isnpoly (polyadd p q)"
   using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp
 
-text{* The degree of addition and other general lemmas needed for the normal form of polymul *}
+text\<open>The degree of addition and other general lemmas needed for the normal form of polymul\<close>
 
 lemma polyadd_different_degreen:
   assumes "isnpolyh p n0"
@@ -720,7 +720,7 @@ proof (cases "headconst p = 0\<^sub>N", simp_all add: headconst_zero[OF np])
 qed
 
 
-text{* polyneg is a negation and preserves normal forms *}
+text\<open>polyneg is a negation and preserves normal forms\<close>
 
 lemma polyneg[simp]: "Ipoly bs (polyneg p) = - Ipoly bs p"
   by (induct p rule: polyneg.induct) auto
@@ -738,7 +738,7 @@ lemma polyneg_norm: "isnpoly p \<Longrightarrow> isnpoly (polyneg p)"
   using isnpoly_def polyneg_normh by simp
 
 
-text{* polysub is a substraction and preserves normal forms *}
+text\<open>polysub is a substraction and preserves normal forms\<close>
 
 lemma polysub[simp]: "Ipoly bs (polysub p q) = Ipoly bs p - Ipoly bs q"
   by (simp add: polysub_def)
@@ -762,7 +762,7 @@ lemma polysub_0:
   by (induct p q arbitrary: n0 n1 rule:polyadd.induct)
     (auto simp: Nsub0[simplified Nsub_def] Let_def)
 
-text{* polypow is a power function and preserves normal forms *}
+text\<open>polypow is a power function and preserves normal forms\<close>
 
 lemma polypow[simp]:
   "Ipoly bs (polypow n p) = (Ipoly bs p :: 'a::{field_char_0,field}) ^ n"
@@ -830,7 +830,7 @@ lemma polypow_norm:
   shows "isnpoly p \<Longrightarrow> isnpoly (polypow k p)"
   by (simp add: polypow_normh isnpoly_def)
 
-text{* Finally the whole normalization *}
+text\<open>Finally the whole normalization\<close>
 
 lemma polynate [simp]:
   "Ipoly bs (polynate p) = (Ipoly bs p :: 'a ::{field_char_0,field})"
@@ -843,7 +843,7 @@ lemma polynate_norm[simp]:
      (simp_all add: polyadd_norm polymul_norm polysub_norm polyneg_norm polypow_norm,
       simp_all add: isnpoly_def)
 
-text{* shift1 *}
+text\<open>shift1\<close>
 
 
 lemma shift1: "Ipoly bs (shift1 p) = Ipoly bs (Mul (Bound 0) p)"
@@ -905,7 +905,7 @@ lemma behead_isnpolyh:
   using assms by (induct p rule: behead.induct) (auto simp add: Let_def isnpolyh_mono)
 
 
-subsection {* Miscellaneous lemmas about indexes, decrementation, substitution  etc ... *}
+subsection \<open>Miscellaneous lemmas about indexes, decrementation, substitution  etc ...\<close>
 
 lemma isnpolyh_polybound0: "isnpolyh p (Suc n) \<Longrightarrow> polybound0 p"
 proof (induct p arbitrary: n rule: poly.induct, auto)
@@ -913,7 +913,7 @@ proof (induct p arbitrary: n rule: poly.induct, auto)
   then have "n = Suc (n - 1)"
     by simp
   then have "isnpolyh p (Suc (n - 1))"
-    using `isnpolyh p n` by simp
+    using \<open>isnpolyh p n\<close> by simp
   with goal1(2) show ?case
     by simp
 qed
@@ -1078,7 +1078,7 @@ lemma wf_bs_polysub: "wf_bs bs p \<Longrightarrow> wf_bs bs q \<Longrightarrow> 
   using wf_bs_polyadd wf_bs_polyneg by blast
 
 
-subsection {* Canonicity of polynomial representation, see lemma isnpolyh_unique *}
+subsection \<open>Canonicity of polynomial representation, see lemma isnpolyh_unique\<close>
 
 definition "polypoly bs p = map (Ipoly bs) (coefficients p)"
 definition "polypoly' bs p = map (Ipoly bs \<circ> decrpoly) (coefficients p)"
@@ -1165,7 +1165,7 @@ lemma isnpolyh_zero_iff:
   using nq eq
 proof (induct "maxindex p" arbitrary: p n0 rule: less_induct)
   case less
-  note np = `isnpolyh p n0` and zp = `\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)`
+  note np = \<open>isnpolyh p n0\<close> and zp = \<open>\<forall>bs. wf_bs bs p \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = (0::'a)\<close>
   {
     assume nz: "maxindex p = 0"
     then obtain c where "p = C c"
@@ -1254,7 +1254,7 @@ proof auto
 qed
 
 
-text{* consequences of unicity on the algorithms for polynomial normalization *}
+text\<open>consequences of unicity on the algorithms for polynomial normalization\<close>
 
 lemma polyadd_commute:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
@@ -1328,7 +1328,7 @@ lemma poly_nate_poly:
   unfolding poly_nate_polypoly' by auto
 
 
-subsection{* heads, degrees and all that *}
+subsection\<open>heads, degrees and all that\<close>
 
 lemma degree_eq_degreen0: "degree p = degreen p 0"
   by (induct p rule: degree.induct) simp_all
@@ -1647,7 +1647,7 @@ lemma polyneg_head: "isnpolyh p n \<Longrightarrow> head (polyneg p) = polyneg (
   by (induct p arbitrary: n rule: degree.induct) auto
 
 
-subsection {* Correctness of polynomial pseudo division *}
+subsection \<open>Correctness of polynomial pseudo division\<close>
 
 lemma polydivide_aux_properties:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
@@ -1668,7 +1668,7 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
   let ?p' = "funpow (degree s - n) shift1 p"
   let ?xdn = "funpow (degree s - n) shift1 (1)\<^sub>p"
   let ?akk' = "a ^\<^sub>p (k' - k)"
-  note ns = `isnpolyh s n1`
+  note ns = \<open>isnpolyh s n1\<close>
   from np have np0: "isnpolyh p 0"
     using isnpolyh_mono[where n="n0" and n'="0" and p="p"] by simp
   have np': "isnpolyh ?p' 0"
@@ -1973,7 +1973,7 @@ proof -
 qed
 
 
-subsection {* More about polypoly and pnormal etc *}
+subsection \<open>More about polypoly and pnormal etc\<close>
 
 definition "isnonconstant p \<longleftrightarrow> \<not> isconstant p"
 
@@ -2071,7 +2071,7 @@ next
 qed
 
 
-section {* Swaps ; Division by a certain variable *}
+section \<open>Swaps ; Division by a certain variable\<close>
 
 primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly"
 where
