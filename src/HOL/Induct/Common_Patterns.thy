@@ -2,13 +2,13 @@
     Author:     Makarius
 *)
 
-section {* Common patterns of induction *}
+section \<open>Common patterns of induction\<close>
 
 theory Common_Patterns
 imports Main
 begin
 
-text {*
+text \<open>
   The subsequent Isar proof schemes illustrate common proof patterns
   supported by the generic @{text "induct"} method.
 
@@ -19,80 +19,80 @@ text {*
   several rules.  Working with inductive predicates is similar, but
   involves explicit facts about membership, instead of implicit
   syntactic typing.
-*}
+\<close>
 
 
-subsection {* Variations on statement structure *}
+subsection \<open>Variations on statement structure\<close>
 
-subsubsection {* Local facts and parameters *}
+subsubsection \<open>Local facts and parameters\<close>
 
-text {*
+text \<open>
   Augmenting a problem by additional facts and locally fixed variables
   is a bread-and-butter method in many applications.  This is where
   unwieldy object-level @{text "\<forall>"} and @{text "\<longrightarrow>"} used to occur in
   the past.  The @{text "induct"} method works with primary means of
   the proof language instead.
-*}
+\<close>
 
 lemma
   fixes n :: nat
     and x :: 'a
   assumes "A n x"
-  shows "P n x" using `A n x`
+  shows "P n x" using \<open>A n x\<close>
 proof (induct n arbitrary: x)
   case 0
-  note prem = `A 0 x`
+  note prem = \<open>A 0 x\<close>
   show "P 0 x" sorry
 next
   case (Suc n)
-  note hyp = `\<And>x. A n x \<Longrightarrow> P n x`
-    and prem = `A (Suc n) x`
+  note hyp = \<open>\<And>x. A n x \<Longrightarrow> P n x\<close>
+    and prem = \<open>A (Suc n) x\<close>
   show "P (Suc n) x" sorry
 qed
 
 
-subsubsection {* Local definitions *}
+subsubsection \<open>Local definitions\<close>
 
-text {*
+text \<open>
   Here the idea is to turn sub-expressions of the problem into a
   defined induction variable.  This is often accompanied with fixing
   of auxiliary parameters in the original expression, otherwise the
   induction step would refer invariably to particular entities.  This
   combination essentially expresses a partially abstracted
   representation of inductive expressions.
-*}
+\<close>
 
 lemma
   fixes a :: "'a \<Rightarrow> nat"
   assumes "A (a x)"
-  shows "P (a x)" using `A (a x)`
+  shows "P (a x)" using \<open>A (a x)\<close>
 proof (induct n \<equiv> "a x" arbitrary: x)
   case 0
-  note prem = `A (a x)`
-    and defn = `0 = a x`
+  note prem = \<open>A (a x)\<close>
+    and defn = \<open>0 = a x\<close>
   show "P (a x)" sorry
 next
   case (Suc n)
-  note hyp = `\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)`
-    and prem = `A (a x)`
-    and defn = `Suc n = a x`
+  note hyp = \<open>\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)\<close>
+    and prem = \<open>A (a x)\<close>
+    and defn = \<open>Suc n = a x\<close>
   show "P (a x)" sorry
 qed
 
-text {*
+text \<open>
   Observe how the local definition @{text "n = a x"} recurs in the
   inductive cases as @{text "0 = a x"} and @{text "Suc n = a x"},
   according to underlying induction rule.
-*}
+\<close>
 
 
-subsubsection {* Simple simultaneous goals *}
+subsubsection \<open>Simple simultaneous goals\<close>
 
-text {*
+text \<open>
   The most basic simultaneous induction operates on several goals
   one-by-one, where each case refers to induction hypotheses that are
   duplicated according to the number of conclusions.
-*}
+\<close>
 
 lemma
   fixes n :: nat
@@ -105,18 +105,18 @@ next
   show "Q 0" sorry
 next
   case (Suc n) case 1
-  note hyps = `P n` `Q n`
+  note hyps = \<open>P n\<close> \<open>Q n\<close>
   show "P (Suc n)" sorry
 next
   case (Suc n) case 2
-  note hyps = `P n` `Q n`
+  note hyps = \<open>P n\<close> \<open>Q n\<close>
   show "Q (Suc n)" sorry
 qed
 
-text {*
+text \<open>
   The split into subcases may be deferred as follows -- this is
   particularly relevant for goal statements with local premises.
-*}
+\<close>
 
 lemma
   fixes n :: nat
@@ -126,32 +126,32 @@ proof (induct n)
   case 0
   {
     case 1
-    note `A 0`
+    note \<open>A 0\<close>
     show "P 0" sorry
   next
     case 2
-    note `B 0`
+    note \<open>B 0\<close>
     show "Q 0" sorry
   }
 next
   case (Suc n)
-  note `A n \<Longrightarrow> P n`
-    and `B n \<Longrightarrow> Q n`
+  note \<open>A n \<Longrightarrow> P n\<close>
+    and \<open>B n \<Longrightarrow> Q n\<close>
   {
     case 1
-    note `A (Suc n)`
+    note \<open>A (Suc n)\<close>
     show "P (Suc n)" sorry
   next
     case 2
-    note `B (Suc n)`
+    note \<open>B (Suc n)\<close>
     show "Q (Suc n)" sorry
   }
 qed
 
 
-subsubsection {* Compound simultaneous goals *}
+subsubsection \<open>Compound simultaneous goals\<close>
 
-text {*
+text \<open>
   The following pattern illustrates the slightly more complex
   situation of simultaneous goals with individual local assumptions.
   In compound simultaneous statements like this, local assumptions
@@ -159,7 +159,7 @@ text {*
   framework.  In contrast, local parameters do not require separate
   @{text "\<And>"} prefixes here, but may be moved into the common context
   of the whole statement.
-*}
+\<close>
 
 lemma
   fixes n :: nat
@@ -171,42 +171,42 @@ proof (induct n arbitrary: x y)
   case 0
   {
     case 1
-    note prem = `A 0 x`
+    note prem = \<open>A 0 x\<close>
     show "P 0 x" sorry
   }
   {
     case 2
-    note prem = `B 0 y`
+    note prem = \<open>B 0 y\<close>
     show "Q 0 y" sorry
   }
 next
   case (Suc n)
-  note hyps = `\<And>x. A n x \<Longrightarrow> P n x` `\<And>y. B n y \<Longrightarrow> Q n y`
+  note hyps = \<open>\<And>x. A n x \<Longrightarrow> P n x\<close> \<open>\<And>y. B n y \<Longrightarrow> Q n y\<close>
   then have some_intermediate_result sorry
   {
     case 1
-    note prem = `A (Suc n) x`
+    note prem = \<open>A (Suc n) x\<close>
     show "P (Suc n) x" sorry
   }
   {
     case 2
-    note prem = `B (Suc n) y`
+    note prem = \<open>B (Suc n) y\<close>
     show "Q (Suc n) y" sorry
   }
 qed
 
-text {*
+text \<open>
   Here @{text "induct"} provides again nested cases with numbered
   sub-cases, which allows to share common parts of the body context.
   In typical applications, there could be a long intermediate proof of
   general consequences of the induction hypotheses, before finishing
   each conclusion separately.
-*}
+\<close>
 
 
-subsection {* Multiple rules *}
+subsection \<open>Multiple rules\<close>
 
-text {*
+text \<open>
   Multiple induction rules emerge from mutual definitions of
   datatypes, inductive predicates, functions etc.  The @{text
   "induct"} method accepts replicated arguments (with @{text "and"}
@@ -216,18 +216,18 @@ text {*
   The goal statement essentially follows the same arrangement,
   although it might be subdivided into simultaneous sub-problems as
   before!
-*}
+\<close>
 
 datatype foo = Foo1 nat | Foo2 bar
   and bar = Bar1 bool | Bar2 bazar
   and bazar = Bazar foo
 
-text {*
+text \<open>
   The pack of induction rules for this datatype is: @{thm [display]
   foo.induct [no_vars] bar.induct [no_vars] bazar.induct [no_vars]}
 
   This corresponds to the following basic proof pattern:
-*}
+\<close>
 
 lemma
   fixes foo :: foo
@@ -241,25 +241,25 @@ proof (induct foo and bar and bazar)
   show "P (Foo1 n)" sorry
 next
   case (Foo2 bar)
-  note `Q bar`
+  note \<open>Q bar\<close>
   show "P (Foo2 bar)" sorry
 next
   case (Bar1 b)
   show "Q (Bar1 b)" sorry
 next
   case (Bar2 bazar)
-  note `R bazar`
+  note \<open>R bazar\<close>
   show "Q (Bar2 bazar)" sorry
 next
   case (Bazar foo)
-  note `P foo`
+  note \<open>P foo\<close>
   show "R (Bazar foo)" sorry
 qed
 
-text {*
+text \<open>
   This can be combined with the previous techniques for compound
   statements, e.g.\ like this.
-*}
+\<close>
 
 lemma
   fixes x :: 'a and y :: 'b and z :: 'c
@@ -279,12 +279,12 @@ proof (induct foo and bar and bazar arbitrary: x and y and z)
   oops
 
 
-subsection {* Inductive predicates *}
+subsection \<open>Inductive predicates\<close>
 
-text {*
+text \<open>
   The most basic form of induction involving predicates (or sets)
   essentially eliminates a given membership fact.
-*}
+\<close>
 
 inductive Even :: "nat \<Rightarrow> bool" where
   zero: "Even 0"
@@ -299,22 +299,22 @@ proof induct
   show "P 0" sorry
 next
   case (double n)
-  note `Even n` and `P n`
+  note \<open>Even n\<close> and \<open>P n\<close>
   show "P (2 * n)" sorry
 qed
 
-text {*
+text \<open>
   Alternatively, an initial rule statement may be proven as follows,
   performing ``in-situ'' elimination with explicit rule specification.
-*}
+\<close>
 
 lemma "Even n \<Longrightarrow> P n"
 proof (induct rule: Even.induct)
   oops
 
-text {*
+text \<open>
   Simultaneous goals do not introduce anything new.
-*}
+\<close>
 
 lemma
   assumes "Even n"
@@ -331,7 +331,7 @@ proof induct
   }
 next
   case (double n)
-  note `Even n` and `P1 n` and `P2 n`
+  note \<open>Even n\<close> and \<open>P1 n\<close> and \<open>P2 n\<close>
   {
     case 1
     show "P1 (2 * n)" sorry
@@ -341,11 +341,11 @@ next
   }
 qed
 
-text {*
+text \<open>
   Working with mutual rules requires special care in composing the
   statement as a two-level conjunction, using lists of propositions
   separated by @{text "and"}.  For example:
-*}
+\<close>
 
 inductive Evn :: "nat \<Rightarrow> bool" and Odd :: "nat \<Rightarrow> bool"
 where
@@ -367,28 +367,28 @@ proof (induct rule: Evn_Odd.inducts)
   { case 3 show "P3 0" sorry }
 next
   case (succ_Evn n)
-  note `Evn n` and `P1 n` `P2 n` `P3 n`
+  note \<open>Evn n\<close> and \<open>P1 n\<close> \<open>P2 n\<close> \<open>P3 n\<close>
   { case 1 show "Q1 (Suc n)" sorry }
   { case 2 show "Q2 (Suc n)" sorry }
 next
   case (succ_Odd n)
-  note `Odd n` and `Q1 n` `Q2 n`
+  note \<open>Odd n\<close> and \<open>Q1 n\<close> \<open>Q2 n\<close>
   { case 1 show "P1 (Suc n)" sorry }
   { case 2 show "P2 (Suc n)" sorry }
   { case 3 show "P3 (Suc n)" sorry }
 qed
 
 
-text {*
+text \<open>
   Cases and hypotheses in each case can be named explicitly.
-*}
+\<close>
 
 inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r
 where
   refl: "star r x x"
 | step: "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
-text {* Underscores are replaced by the default name hyps: *}
+text \<open>Underscores are replaced by the default name hyps:\<close>
 
 lemmas star_induct = star.induct [case_names base step[r _ IH]]
 

@@ -3,11 +3,11 @@
     Copyright   1994  TU Muenchen & University of Cambridge
 *)
 
-section {* Meta-theory of propositional logic *}
+section \<open>Meta-theory of propositional logic\<close>
 
 theory PropLog imports Main begin
 
-text {*
+text \<open>
   Datatype definition of propositional logic formulae and inductive
   definition of the propositional tautologies.
 
@@ -16,9 +16,9 @@ text {*
 
   Prove: If @{text "H |= p"} then @{text "G |= p"} where @{text "G \<in>
   Fin(H)"}
-*}
+\<close>
 
-subsection {* The datatype of propositions *}
+subsection \<open>The datatype of propositions\<close>
 
 datatype 'a pl =
   false |
@@ -26,7 +26,7 @@ datatype 'a pl =
   imp "'a pl" "'a pl" (infixr "->" 90)
 
 
-subsection {* The proof system *}
+subsection \<open>The proof system\<close>
 
 inductive thms :: "['a pl set, 'a pl] => bool"  (infixl "|-" 50)
   for H :: "'a pl set"
@@ -38,9 +38,9 @@ where
 | MP: "[| H |- p->q; H |- p |] ==> H |- q"
 
 
-subsection {* The semantics *}
+subsection \<open>The semantics\<close>
 
-subsubsection {* Semantics of propositional logic. *}
+subsubsection \<open>Semantics of propositional logic.\<close>
 
 primrec eval :: "['a set, 'a pl] => bool"  ("_[[_]]" [100,0] 100)
 where
@@ -48,10 +48,10 @@ where
 | "tt[[#v]] = (v \<in> tt)"
 | eval_imp: "tt[[p->q]] = (tt[[p]] --> tt[[q]])"
 
-text {*
+text \<open>
   A finite set of hypotheses from @{text t} and the @{text Var}s in
   @{text p}.
-*}
+\<close>
 
 primrec hyps :: "['a pl, 'a set] => 'a pl set"
 where
@@ -60,18 +60,18 @@ where
 | "hyps (p->q) tt = hyps p tt Un hyps q tt"
 
 
-subsubsection {* Logical consequence *}
+subsubsection \<open>Logical consequence\<close>
 
-text {*
+text \<open>
   For every valuation, if all elements of @{text H} are true then so
   is @{text p}.
-*}
+\<close>
 
 definition sat :: "['a pl set, 'a pl] => bool"  (infixl "|=" 50)
   where "H |= p = (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
 
 
-subsection {* Proof theory of propositional logic *}
+subsection \<open>Proof theory of propositional logic\<close>
 
 lemma thms_mono: "G<=H ==> thms(G) <= thms(H)"
 apply (rule predicate1I)
@@ -80,14 +80,14 @@ apply (auto intro: thms.intros)
 done
 
 lemma thms_I: "H |- p->p"
-  -- {*Called @{text I} for Identity Combinator, not for Introduction. *}
+  -- \<open>Called @{text I} for Identity Combinator, not for Introduction.\<close>
 by (best intro: thms.K thms.S thms.MP)
 
 
-subsubsection {* Weakening, left and right *}
+subsubsection \<open>Weakening, left and right\<close>
 
 lemma weaken_left: "[| G \<subseteq> H;  G|-p |] ==> H|-p"
-  -- {* Order of premises is convenient with @{text THEN} *}
+  -- \<open>Order of premises is convenient with @{text THEN}\<close>
   by (erule thms_mono [THEN predicate1D])
 
 lemma weaken_left_insert: "G |- p \<Longrightarrow> insert a G |- p"
@@ -103,7 +103,7 @@ lemma weaken_right: "H |- q ==> H |- p->q"
 by (fast intro: thms.K thms.MP)
 
 
-subsubsection {* The deduction theorem *}
+subsubsection \<open>The deduction theorem\<close>
 
 theorem deduction: "insert p H |- q  ==>  H |- p->q"
 apply (induct set: thms)
@@ -112,7 +112,7 @@ apply (fast intro: thms_I thms.H thms.K thms.S thms.DN
 done
 
 
-subsubsection {* The cut rule *}
+subsubsection \<open>The cut rule\<close>
 
 lemma cut: "insert p H |- q \<Longrightarrow> H |- p \<Longrightarrow> H |- q"
 by (rule thms.MP) (rule deduction)
@@ -124,15 +124,15 @@ lemma thms_notE: "H |- p -> false \<Longrightarrow> H |- p \<Longrightarrow> H |
 by (rule thms_falseE) (rule thms.MP)
 
 
-subsubsection {* Soundness of the rules wrt truth-table semantics *}
+subsubsection \<open>Soundness of the rules wrt truth-table semantics\<close>
 
 theorem soundness: "H |- p ==> H |= p"
 by (induct set: thms) (auto simp: sat_def)
 
 
-subsection {* Completeness *}
+subsection \<open>Completeness\<close>
 
-subsubsection {* Towards the completeness proof *}
+subsubsection \<open>Towards the completeness proof\<close>
 
 lemma false_imp: "H |- p->false ==> H |- p->q"
 apply (rule deduction)
@@ -146,7 +146,7 @@ apply (metis H MP insert_iff weaken_left_insert)
 done
 
 lemma hyps_thms_if: "hyps p tt |- (if tt[[p]] then p else p->false)"
-  -- {* Typical example of strengthening the induction statement. *}
+  -- \<open>Typical example of strengthening the induction statement.\<close>
 apply simp
 apply (induct p)
 apply (simp_all add: thms_I thms.H)
@@ -155,21 +155,21 @@ apply (blast intro: weaken_left_Un1 weaken_left_Un2 weaken_right
 done
 
 lemma sat_thms_p: "{} |= p ==> hyps p tt |- p"
-  -- {* Key lemma for completeness; yields a set of assumptions
-        satisfying @{text p} *}
+  -- \<open>Key lemma for completeness; yields a set of assumptions
+        satisfying @{text p}\<close>
 unfolding sat_def
 by (metis (full_types) empty_iff hyps_thms_if)
 
-text {*
+text \<open>
   For proving certain theorems in our new propositional logic.
-*}
+\<close>
 
 declare deduction [intro!]
 declare thms.H [THEN thms.MP, intro]
 
-text {*
+text \<open>
   The excluded middle in the form of an elimination rule.
-*}
+\<close>
 
 lemma thms_excluded_middle: "H |- (p->q) -> ((p->false)->q) -> q"
 apply (rule deduction [THEN deduction])
@@ -178,29 +178,29 @@ done
 
 lemma thms_excluded_middle_rule:
     "[| insert p H |- q;  insert (p->false) H |- q |] ==> H |- q"
-  -- {* Hard to prove directly because it requires cuts *}
+  -- \<open>Hard to prove directly because it requires cuts\<close>
 by (rule thms_excluded_middle [THEN thms.MP, THEN thms.MP], auto)
 
 
-subsection{* Completeness -- lemmas for reducing the set of assumptions*}
+subsection\<open>Completeness -- lemmas for reducing the set of assumptions\<close>
 
-text {*
+text \<open>
   For the case @{prop "hyps p t - insert #v Y |- p"} we also have @{prop
   "hyps p t - {#v} \<subseteq> hyps p (t-{v})"}.
-*}
+\<close>
 
 lemma hyps_Diff: "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})"
 by (induct p) auto
 
-text {*
+text \<open>
   For the case @{prop "hyps p t - insert (#v -> Fls) Y |- p"} we also have
   @{prop "hyps p t-{#v->Fls} \<subseteq> hyps p (insert v t)"}.
-*}
+\<close>
 
 lemma hyps_insert: "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})"
 by (induct p) auto
 
-text {* Two lemmas for use with @{text weaken_left} *}
+text \<open>Two lemmas for use with @{text weaken_left}\<close>
 
 lemma insert_Diff_same: "B-C <= insert a (B-insert a C)"
 by fast
@@ -208,10 +208,10 @@ by fast
 lemma insert_Diff_subset2: "insert a (B-{c}) - D <= insert a (B-insert c D)"
 by fast
 
-text {*
+text \<open>
   The set @{term "hyps p t"} is finite, and elements have the form
   @{term "#v"} or @{term "#v->Fls"}.
-*}
+\<close>
 
 lemma hyps_finite: "finite(hyps p t)"
 by (induct p) auto
@@ -223,34 +223,34 @@ lemma Diff_weaken_left: "A \<subseteq> C \<Longrightarrow> A - B |- p \<Longrigh
   by (rule Diff_mono [OF _ subset_refl, THEN weaken_left])
 
 
-subsubsection {* Completeness theorem *}
+subsubsection \<open>Completeness theorem\<close>
 
-text {*
+text \<open>
   Induction on the finite set of assumptions @{term "hyps p t0"}.  We
   may repeatedly subtract assumptions until none are left!
-*}
+\<close>
 
 lemma completeness_0_lemma:
     "{} |= p ==> \<forall>t. hyps p t - hyps p t0 |- p"
 apply (rule hyps_subset [THEN hyps_finite [THEN finite_subset_induct]])
  apply (simp add: sat_thms_p, safe)
- txt{*Case @{text"hyps p t-insert(#v,Y) |- p"} *}
+ txt\<open>Case @{text"hyps p t-insert(#v,Y) |- p"}\<close>
  apply (iprover intro: thms_excluded_middle_rule
                      insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left]
                      hyps_Diff [THEN Diff_weaken_left])
-txt{*Case @{text"hyps p t-insert(#v -> false,Y) |- p"} *}
+txt\<open>Case @{text"hyps p t-insert(#v -> false,Y) |- p"}\<close>
  apply (iprover intro: thms_excluded_middle_rule
                      insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left]
                      hyps_insert [THEN Diff_weaken_left])
 done
 
-text{*The base case for completeness*}
+text\<open>The base case for completeness\<close>
 lemma completeness_0:  "{} |= p ==> {} |- p"
   by (metis Diff_cancel completeness_0_lemma)
 
-text{*A semantic analogue of the Deduction Theorem*}
+text\<open>A semantic analogue of the Deduction Theorem\<close>
 lemma sat_imp: "insert p H |= q ==> H |= p->q"
 by (auto simp: sat_def)
 

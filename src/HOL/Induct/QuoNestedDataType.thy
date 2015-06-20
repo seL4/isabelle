@@ -3,13 +3,13 @@
     Copyright   2004  University of Cambridge
 *)
 
-section{*Quotienting a Free Algebra Involving Nested Recursion*}
+section\<open>Quotienting a Free Algebra Involving Nested Recursion\<close>
 
 theory QuoNestedDataType imports Main begin
 
-subsection{*Defining the Free Algebra*}
+subsection\<open>Defining the Free Algebra\<close>
 
-text{*Messages with encryption and decryption as free constructors.*}
+text\<open>Messages with encryption and decryption as free constructors.\<close>
 datatype
      freeExp = VAR  nat
              | PLUS  freeExp freeExp
@@ -17,11 +17,11 @@ datatype
 
 datatype_compat freeExp
 
-text{*The equivalence relation, which makes PLUS associative.*}
+text\<open>The equivalence relation, which makes PLUS associative.\<close>
 
-text{*The first rule is the desired equation. The next three rules
+text\<open>The first rule is the desired equation. The next three rules
 make the equations applicable to subterms. The last two rules are symmetry
-and transitivity.*}
+and transitivity.\<close>
 inductive_set
   exprel :: "(freeExp * freeExp) set"
   and exp_rel :: "[freeExp, freeExp] => bool"  (infixl "\<sim>" 50)
@@ -36,7 +36,7 @@ inductive_set
   monos listrel_mono
 
 
-text{*Proving that it is an equivalence relation*}
+text\<open>Proving that it is an equivalence relation\<close>
 
 lemma exprel_refl: "X \<sim> X"
   and list_exprel_refl: "(Xs,Xs) \<in> listrel(exprel)"
@@ -67,14 +67,14 @@ by (blast intro: exprel.intros listrel.intros)
 
 
 
-subsection{*Some Functions on the Free Algebra*}
+subsection\<open>Some Functions on the Free Algebra\<close>
 
-subsubsection{*The Set of Variables*}
+subsubsection\<open>The Set of Variables\<close>
 
-text{*A function to return the set of variables present in a message.  It will
+text\<open>A function to return the set of variables present in a message.  It will
 be lifted to the initial algebra, to serve as an example of that process.
 Note that the "free" refers to the free datatype rather than to the concept
-of a free variable.*}
+of a free variable.\<close>
 primrec freevars :: "freeExp \<Rightarrow> nat set" 
   and freevars_list :: "freeExp list \<Rightarrow> nat set" where
   "freevars (VAR N) = {N}"
@@ -84,9 +84,9 @@ primrec freevars :: "freeExp \<Rightarrow> nat set"
 | "freevars_list [] = {}"
 | "freevars_list (X # Xs) = freevars X \<union> freevars_list Xs"
 
-text{*This theorem lets us prove that the vars function respects the
+text\<open>This theorem lets us prove that the vars function respects the
 equivalence relation.  It also helps us prove that Variable
-  (the abstract constructor) is injective*}
+  (the abstract constructor) is injective\<close>
 theorem exprel_imp_eq_freevars: "U \<sim> V \<Longrightarrow> freevars U = freevars V"
 apply (induct set: exprel) 
 apply (erule_tac [4] listrel.induct) 
@@ -95,9 +95,9 @@ done
 
 
 
-subsubsection{*Functions for Freeness*}
+subsubsection\<open>Functions for Freeness\<close>
 
-text{*A discriminator function to distinguish vars, sums and function calls*}
+text\<open>A discriminator function to distinguish vars, sums and function calls\<close>
 primrec freediscrim :: "freeExp \<Rightarrow> int" where
   "freediscrim (VAR N) = 0"
 | "freediscrim (PLUS X Y) = 1"
@@ -108,8 +108,8 @@ theorem exprel_imp_eq_freediscrim:
   by (induct set: exprel) auto
 
 
-text{*This function, which returns the function name, is used to
-prove part of the injectivity property for FnCall.*}
+text\<open>This function, which returns the function name, is used to
+prove part of the injectivity property for FnCall.\<close>
 primrec freefun :: "freeExp \<Rightarrow> nat" where
   "freefun (VAR N) = 0"
 | "freefun (PLUS X Y) = 0"
@@ -120,8 +120,8 @@ theorem exprel_imp_eq_freefun:
   by (induct set: exprel) (simp_all add: listrel.intros)
 
 
-text{*This function, which returns the list of function arguments, is used to
-prove part of the injectivity property for FnCall.*}
+text\<open>This function, which returns the list of function arguments, is used to
+prove part of the injectivity property for FnCall.\<close>
 primrec freeargs :: "freeExp \<Rightarrow> freeExp list" where
   "freeargs (VAR N) = []"
 | "freeargs (PLUS X Y) = []"
@@ -143,7 +143,7 @@ proof -
 qed
 
 
-subsection{*The Initial Algebra: A Quotiented Message Type*}
+subsection\<open>The Initial Algebra: A Quotiented Message Type\<close>
 
 definition "Exp = UNIV//exprel"
 
@@ -151,7 +151,7 @@ typedef exp = Exp
   morphisms Rep_Exp Abs_Exp
   unfolding Exp_def by (auto simp add: quotient_def)
 
-text{*The abstract message constructors*}
+text\<open>The abstract message constructors\<close>
 
 definition
   Var :: "nat \<Rightarrow> exp" where
@@ -168,14 +168,14 @@ definition
        Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel `` {FNCALL F Us})"
 
 
-text{*Reduces equality of equivalence classes to the @{term exprel} relation:
-  @{term "(exprel `` {x} = exprel `` {y}) = ((x,y) \<in> exprel)"} *}
+text\<open>Reduces equality of equivalence classes to the @{term exprel} relation:
+  @{term "(exprel `` {x} = exprel `` {y}) = ((x,y) \<in> exprel)"}\<close>
 lemmas equiv_exprel_iff = eq_equiv_class_iff [OF equiv_exprel UNIV_I UNIV_I]
 
 declare equiv_exprel_iff [simp]
 
 
-text{*All equivalence classes belong to set of representatives*}
+text\<open>All equivalence classes belong to set of representatives\<close>
 lemma [simp]: "exprel``{U} \<in> Exp"
 by (auto simp add: Exp_def quotient_def intro: exprel_refl)
 
@@ -184,13 +184,13 @@ apply (rule inj_on_inverseI)
 apply (erule Abs_Exp_inverse)
 done
 
-text{*Reduces equality on abstractions to equality on representatives*}
+text\<open>Reduces equality on abstractions to equality on representatives\<close>
 declare inj_on_Abs_Exp [THEN inj_on_iff, simp]
 
 declare Abs_Exp_inverse [simp]
 
 
-text{*Case analysis on the representation of a exp as an equivalence class.*}
+text\<open>Case analysis on the representation of a exp as an equivalence class.\<close>
 lemma eq_Abs_Exp [case_names Abs_Exp, cases type: exp]:
      "(!!U. z = Abs_Exp(exprel``{U}) ==> P) ==> P"
 apply (rule Rep_Exp [of z, unfolded Exp_def, THEN quotientE])
@@ -199,8 +199,8 @@ apply (auto simp add: Rep_Exp_inverse intro: exprel_refl)
 done
 
 
-subsection{*Every list of abstract expressions can be expressed in terms of a
-  list of concrete expressions*}
+subsection\<open>Every list of abstract expressions can be expressed in terms of a
+  list of concrete expressions\<close>
 
 definition
   Abs_ExpList :: "freeExp list => exp list" where
@@ -225,7 +225,7 @@ lemma eq_Abs_ExpList [case_names Abs_ExpList]:
 by (rule exE [OF ExpList_rep], blast) 
 
 
-subsubsection{*Characteristic Equations for the Abstract Constructors*}
+subsubsection\<open>Characteristic Equations for the Abstract Constructors\<close>
 
 lemma Plus: "Plus (Abs_Exp(exprel``{U})) (Abs_Exp(exprel``{V})) = 
              Abs_Exp (exprel``{PLUS U V})"
@@ -236,12 +236,12 @@ proof -
     by (simp add: Plus_def UN_equiv_class2 [OF equiv_exprel equiv_exprel])
 qed
 
-text{*It is not clear what to do with FnCall: it's argument is an abstraction
+text\<open>It is not clear what to do with FnCall: it's argument is an abstraction
 of an @{typ "exp list"}. Is it just Nil or Cons? What seems to work best is to
-regard an @{typ "exp list"} as a @{term "listrel exprel"} equivalence class*}
+regard an @{typ "exp list"} as a @{term "listrel exprel"} equivalence class\<close>
 
-text{*This theorem is easily proved but never used. There's no obvious way
-even to state the analogous result, @{text FnCall_Cons}.*}
+text\<open>This theorem is easily proved but never used. There's no obvious way
+even to state the analogous result, @{text FnCall_Cons}.\<close>
 lemma FnCall_Nil: "FnCall F [] = Abs_Exp (exprel``{FNCALL F []})"
   by (simp add: FnCall_def)
 
@@ -273,13 +273,13 @@ proof -
 qed
 
 
-text{*Establishing this equation is the point of the whole exercise*}
+text\<open>Establishing this equation is the point of the whole exercise\<close>
 theorem Plus_assoc: "Plus X (Plus Y Z) = Plus (Plus X Y) Z"
 by (cases X, cases Y, cases Z, simp add: Plus exprel.ASSOC)
 
 
 
-subsection{*The Abstract Function to Return the Set of Variables*}
+subsection\<open>The Abstract Function to Return the Set of Variables\<close>
 
 definition
   vars :: "exp \<Rightarrow> nat set" where
@@ -288,13 +288,13 @@ definition
 lemma vars_respects: "freevars respects exprel"
 by (auto simp add: congruent_def exprel_imp_eq_freevars) 
 
-text{*The extension of the function @{term vars} to lists*}
+text\<open>The extension of the function @{term vars} to lists\<close>
 primrec vars_list :: "exp list \<Rightarrow> nat set" where
   "vars_list []    = {}"
 | "vars_list(E#Es) = vars E \<union> vars_list Es"
 
 
-text{*Now prove the three equations for @{term vars}*}
+text\<open>Now prove the three equations for @{term vars}\<close>
 
 lemma vars_Variable [simp]: "vars (Var N) = {N}"
 by (simp add: vars_def Var_def 
@@ -320,12 +320,12 @@ lemma vars_FnCall_Cons: "vars (FnCall F (X#Xs)) = vars X \<union> vars_list Xs"
 by simp
 
 
-subsection{*Injectivity Properties of Some Constructors*}
+subsection\<open>Injectivity Properties of Some Constructors\<close>
 
 lemma VAR_imp_eq: "VAR m \<sim> VAR n \<Longrightarrow> m = n"
 by (drule exprel_imp_eq_freevars, simp)
 
-text{*Can also be proved using the function @{term vars}*}
+text\<open>Can also be proved using the function @{term vars}\<close>
 lemma Var_Var_eq [iff]: "(Var m = Var n) = (m = n)"
 by (auto simp add: Var_def exprel_refl dest: VAR_imp_eq)
 
@@ -344,7 +344,7 @@ apply (auto simp add: FnCall Var_def)
 apply (drule exprel_imp_eq_freediscrim, simp)
 done
 
-subsection{*Injectivity of @{term FnCall}*}
+subsection\<open>Injectivity of @{term FnCall}\<close>
 
 definition
   "fun" :: "exp \<Rightarrow> nat" where
@@ -362,8 +362,8 @@ definition
   args :: "exp \<Rightarrow> exp list" where
   "args X = the_elem (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
 
-text{*This result can probably be generalized to arbitrary equivalence
-relations, but with little benefit here.*}
+text\<open>This result can probably be generalized to arbitrary equivalence
+relations, but with little benefit here.\<close>
 lemma Abs_ExpList_eq:
      "(y, z) \<in> listrel exprel \<Longrightarrow> Abs_ExpList (y) = Abs_ExpList (z)"
   by (induct set: listrel) simp_all
@@ -389,9 +389,9 @@ next
 qed
 
 
-subsection{*The Abstract Discriminator*}
-text{*However, as @{text FnCall_Var_neq_Var} illustrates, we don't need this
-function in order to prove discrimination theorems.*}
+subsection\<open>The Abstract Discriminator\<close>
+text\<open>However, as @{text FnCall_Var_neq_Var} illustrates, we don't need this
+function in order to prove discrimination theorems.\<close>
 
 definition
   discrim :: "exp \<Rightarrow> int" where
@@ -400,7 +400,7 @@ definition
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"
 by (auto simp add: congruent_def exprel_imp_eq_freediscrim) 
 
-text{*Now prove the four equations for @{term discrim}*}
+text\<open>Now prove the four equations for @{term discrim}\<close>
 
 lemma discrim_Var [simp]: "discrim (Var N) = 0"
 by (simp add: discrim_def Var_def 
@@ -419,7 +419,7 @@ apply (simp add: discrim_def FnCall
 done
 
 
-text{*The structural induction rule for the abstract type*}
+text\<open>The structural induction rule for the abstract type\<close>
 theorem exp_inducts:
   assumes V:    "\<And>nat. P1 (Var nat)"
       and P:    "\<And>exp1 exp2. \<lbrakk>P1 exp1; P1 exp2\<rbrakk> \<Longrightarrow> P1 (Plus exp1 exp2)"

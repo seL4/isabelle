@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer,  TU Muenchen
 *)
 
-section {* Terms over a given alphabet *}
+section \<open>Terms over a given alphabet\<close>
 
 theory Term
 imports Main
@@ -13,7 +13,7 @@ datatype ('a, 'b) "term" =
   | App 'b "('a, 'b) term list"
 
 
-text {* \medskip Substitution function on terms *}
+text \<open>\medskip Substitution function on terms\<close>
 
 primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
   and subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list"
@@ -24,7 +24,7 @@ where
 | "subst_term_list f (t # ts) = subst_term f t # subst_term_list f ts"
 
 
-text {* \medskip A simple theorem about composition of substitutions *}
+text \<open>\medskip A simple theorem about composition of substitutions\<close>
 
 lemma subst_comp:
   "subst_term (subst_term f1 \<circ> f2) t =
@@ -34,7 +34,7 @@ and "subst_term_list (subst_term f1 \<circ> f2) ts =
   by (induct t and ts rule: subst_term.induct subst_term_list.induct) simp_all
 
 
-text {* \medskip Alternative induction rule *}
+text \<open>\medskip Alternative induction rule\<close>
 
 lemma
   assumes var: "!!v. P (Var v)"

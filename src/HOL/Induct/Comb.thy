@@ -3,22 +3,22 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* Combinatory Logic example: the Church-Rosser Theorem *}
+section \<open>Combinatory Logic example: the Church-Rosser Theorem\<close>
 
 theory Comb imports Main begin
 
-text {*
+text \<open>
   Curiously, combinators do not include free variables.
 
   Example taken from @{cite camilleri92}.
 
 HOL system proofs may be found in the HOL distribution at
    .../contrib/rule-induction/cl.ml
-*}
+\<close>
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
-text {* Datatype definition of combinators @{text S} and @{text K}. *}
+text \<open>Datatype definition of combinators @{text S} and @{text K}.\<close>
 
 datatype comb = K
               | S
@@ -28,10 +28,10 @@ notation (xsymbols)
   Ap  (infixl "\<bullet>" 90)
 
 
-text {*
+text \<open>
   Inductive definition of contractions, @{text "-1->"} and
   (multi-step) reductions, @{text "--->"}.
-*}
+\<close>
 
 inductive_set
   contract :: "(comb*comb) set"
@@ -47,10 +47,10 @@ abbreviation
   contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50) where
   "x ---> y == (x,y) \<in> contract^*"
 
-text {*
+text \<open>
   Inductive definition of parallel contractions, @{text "=1=>"} and
   (multi-step) parallel reductions, @{text "===>"}.
-*}
+\<close>
 
 inductive_set
   parcontract :: "(comb*comb) set"
@@ -66,9 +66,9 @@ abbreviation
   parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50) where
   "x ===> y == (x,y) \<in> parcontract^*"
 
-text {*
+text \<open>
   Misc definitions.
-*}
+\<close>
 
 definition
   I :: comb where
@@ -76,18 +76,18 @@ definition
 
 definition
   diamond   :: "('a * 'a)set => bool" where
-    --{*confluence; Lambda/Commutation treats this more abstractly*}
+    --\<open>confluence; Lambda/Commutation treats this more abstractly\<close>
   "diamond(r) = (\<forall>x y. (x,y) \<in> r --> 
                   (\<forall>y'. (x,y') \<in> r --> 
                     (\<exists>z. (y,z) \<in> r & (y',z) \<in> r)))"
 
 
-subsection {*Reflexive/Transitive closure preserves Church-Rosser property*}
+subsection \<open>Reflexive/Transitive closure preserves Church-Rosser property\<close>
 
-text{*So does the Transitive closure, with a similar proof*}
+text\<open>So does the Transitive closure, with a similar proof\<close>
 
-text{*Strip lemma.  
-   The induction hypothesis covers all but the last diamond of the strip.*}
+text\<open>Strip lemma.  
+   The induction hypothesis covers all but the last diamond of the strip.\<close>
 lemma diamond_strip_lemmaE [rule_format]: 
     "[| diamond(r);  (x,y) \<in> r^* |] ==>   
           \<forall>y'. (x,y') \<in> r --> (\<exists>z. (y',z) \<in> r^* & (y,z) \<in> r)"
@@ -105,9 +105,9 @@ apply (meson rtrancl_trans r_into_rtrancl diamond_strip_lemmaE)
 done
 
 
-subsection {* Non-contraction results *}
+subsection \<open>Non-contraction results\<close>
 
-text {* Derive a case for each combinator constructor. *}
+text \<open>Derive a case for each combinator constructor.\<close>
 
 inductive_cases
       K_contractE [elim!]: "K -1-> r"
@@ -133,15 +133,15 @@ apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_trans)+
 done
 
-text {*Counterexample to the diamond property for @{term "x -1-> y"}*}
+text \<open>Counterexample to the diamond property for @{term "x -1-> y"}\<close>
 
 lemma not_diamond_contract: "~ diamond(contract)"
 by (unfold diamond_def, metis S_contractE contract.K) 
 
 
-subsection {* Results about Parallel Contraction *}
+subsection \<open>Results about Parallel Contraction\<close>
 
-text {* Derive a case for each combinator constructor. *}
+text \<open>Derive a case for each combinator constructor.\<close>
 
 inductive_cases
       K_parcontractE [elim!]: "K =1=> r"
@@ -152,7 +152,7 @@ declare parcontract.intros [intro]
 
 (*** Basic properties of parallel contraction ***)
 
-subsection {* Basic properties of parallel contraction *}
+subsection \<open>Basic properties of parallel contraction\<close>
 
 lemma K1_parcontractD [dest!]: "K##x =1=> z ==> (\<exists>x'. z = K##x' & x =1=> x')"
 by blast
@@ -164,24 +164,24 @@ lemma S2_parcontractD [dest!]:
      "S##x##y =1=> z ==> (\<exists>x' y'. z = S##x'##y' & x =1=> x' & y =1=> y')"
 by blast
 
-text{*The rules above are not essential but make proofs much faster*}
+text\<open>The rules above are not essential but make proofs much faster\<close>
 
-text{*Church-Rosser property for parallel contraction*}
+text\<open>Church-Rosser property for parallel contraction\<close>
 lemma diamond_parcontract: "diamond parcontract"
 apply (unfold diamond_def)
 apply (rule impI [THEN allI, THEN allI])
 apply (erule parcontract.induct, fast+)
 done
 
-text {*
+text \<open>
   \medskip Equivalence of @{prop "p ---> q"} and @{prop "p ===> q"}.
-*}
+\<close>
 
 lemma contract_subset_parcontract: "contract <= parcontract"
 by (auto, erule contract.induct, blast+)
 
-text{*Reductions: simply throw together reflexivity, transitivity and
-  the one-step reductions*}
+text\<open>Reductions: simply throw together reflexivity, transitivity and
+  the one-step reductions\<close>
 
 declare r_into_rtrancl [intro]  rtrancl_trans [intro]
 

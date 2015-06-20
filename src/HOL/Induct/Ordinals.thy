@@ -2,17 +2,17 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-section {* Ordinals *}
+section \<open>Ordinals\<close>
 
 theory Ordinals
 imports Main
 begin
 
-text {*
+text \<open>
   Some basic definitions of ordinal numbers.  Draws an Agda
   development (in Martin-L\"of type theory) by Peter Hancock (see
   @{url "http://www.dcs.ed.ac.uk/home/pgh/chat.html"}).
-*}
+\<close>
 
 datatype ordinal =
     Zero

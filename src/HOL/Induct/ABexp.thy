@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Arithmetic and boolean expressions *}
+section \<open>Arithmetic and boolean expressions\<close>
 
 theory ABexp
 imports Main
@@ -20,7 +20,7 @@ and 'a bexp =
   | Neg "'a bexp"
 
 
-text {* \medskip Evaluation of arithmetic and boolean expressions *}
+text \<open>\medskip Evaluation of arithmetic and boolean expressions\<close>
 
 primrec evala :: "('a => nat) => 'a aexp => nat"
   and evalb :: "('a => nat) => 'a bexp => bool"
@@ -36,7 +36,7 @@ where
 | "evalb env (Neg b) = (\<not> evalb env b)"
 
 
-text {* \medskip Substitution on arithmetic and boolean expressions *}
+text \<open>\medskip Substitution on arithmetic and boolean expressions\<close>
 
 primrec substa :: "('a => 'b aexp) => 'a aexp => 'b aexp"
   and substb :: "('a => 'b aexp) => 'a bexp => 'b bexp"
@@ -55,7 +55,7 @@ lemma subst1_aexp:
   "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"
 and subst1_bexp:
   "evalb env (substb (Var (v := a')) b) = evalb (env (v := evala env a')) b"
-    --  {* one variable *}
+    --  \<open>one variable\<close>
   by (induct a and b) simp_all
 
 lemma subst_all_aexp:

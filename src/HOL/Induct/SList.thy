@@ -21,7 +21,7 @@ such as
 datatype 'a m = Node 'a * 'a m list
 *)
 
-section {* Extended List Theory (old) *}
+section \<open>Extended List Theory (old)\<close>
 
 theory SList
 imports Sexp
@@ -377,7 +377,7 @@ done
 
 (* setting up rewrite sets *)
 
-text{*Better to have a single theorem with a conjunctive conclusion.*}
+text\<open>Better to have a single theorem with a conjunctive conclusion.\<close>
 declare def_list_rec_NilCons [OF list_case_def, simp]
 
 (** list_case **)

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {* Infinitely branching trees *}
+section \<open>Infinitely branching trees\<close>
 
 theory Tree
 imports Main
@@ -32,11 +32,11 @@ lemma exists_map:
   by (induct ts) auto
 
 
-subsection{*The Brouwer ordinals, as in ZF/Induct/Brouwer.thy.*}
+subsection\<open>The Brouwer ordinals, as in ZF/Induct/Brouwer.thy.\<close>
 
 datatype brouwer = Zero | Succ "brouwer" | Lim "nat => brouwer"
 
-text{*Addition of ordinals*}
+text\<open>Addition of ordinals\<close>
 primrec add :: "[brouwer,brouwer] => brouwer"
 where
   "add i Zero = i"
@@ -46,7 +46,7 @@ where
 lemma add_assoc: "add (add i j) k = add i (add j k)"
   by (induct k) auto
 
-text{*Multiplication of ordinals*}
+text\<open>Multiplication of ordinals\<close>
 primrec mult :: "[brouwer,brouwer] => brouwer"
 where
   "mult i Zero = Zero"
@@ -59,14 +59,14 @@ lemma add_mult_distrib: "mult i (add j k) = add (mult i j) (mult i k)"
 lemma mult_assoc: "mult (mult i j) k = mult i (mult j k)"
   by (induct k) (auto simp add: add_mult_distrib)
 
-text{*We could probably instantiate some axiomatic type classes and use
-the standard infix operators.*}
+text\<open>We could probably instantiate some axiomatic type classes and use
+the standard infix operators.\<close>
 
-subsection{*A WF Ordering for The Brouwer ordinals (Michael Compton)*}
+subsection\<open>A WF Ordering for The Brouwer ordinals (Michael Compton)\<close>
 
-text{*To use the function package we need an ordering on the Brouwer
+text\<open>To use the function package we need an ordering on the Brouwer
   ordinals.  Start with a predecessor relation and form its transitive 
-  closure. *} 
+  closure.\<close> 
 
 definition brouwer_pred :: "(brouwer * brouwer) set"
   where "brouwer_pred = (\<Union>i. {(m,n). n = Succ m \<or> (EX f. n = Lim f & m = f i)})"
@@ -86,7 +86,7 @@ lemma [simp]: "(j, Succ j) : brouwer_order"
 lemma [simp]: "(f n, Lim f) : brouwer_order"
   by(auto simp add: brouwer_order_def brouwer_pred_def)
 
-text{*Example of a general function*}
+text\<open>Example of a general function\<close>
 
 function add2 :: "brouwer \<Rightarrow> brouwer \<Rightarrow> brouwer"
 where

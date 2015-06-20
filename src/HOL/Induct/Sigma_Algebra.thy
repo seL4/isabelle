@@ -2,17 +2,17 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Sigma algebras *}
+section \<open>Sigma algebras\<close>
 
 theory Sigma_Algebra
 imports Main
 begin
 
-text {*
+text \<open>
   This is just a tiny example demonstrating the use of inductive
   definitions in classical mathematics.  We define the least @{text
   \<sigma>}-algebra over a given set of sets.
-*}
+\<close>
 
 inductive_set \<sigma>_algebra :: "'a set set => 'a set set" for A :: "'a set set"
 where
@@ -21,11 +21,11 @@ where
 | complement: "a \<in> \<sigma>_algebra A ==> -a \<in> \<sigma>_algebra A"
 | Union: "(!!i::nat. a i \<in> \<sigma>_algebra A) ==> (\<Union>i. a i) \<in> \<sigma>_algebra A"
 
-text {*
+text \<open>
   The following basic facts are consequences of the closure properties
   of any @{text \<sigma>}-algebra, merely using the introduction rules, but
   no induction nor cases.
-*}
+\<close>
 
 theorem sigma_algebra_empty: "{} \<in> \<sigma>_algebra A"
 proof -
