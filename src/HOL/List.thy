@@ -181,13 +181,11 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 "find _ [] = None" |
 "find P (x#xs) = (if P x then Some x else find P xs)"
 
-hide_const (open) find
-
-primrec count :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
-"count [] y = 0" |
-"count (x#xs) y = (if x=y then count xs y + 1 else count xs y)"
-
-hide_const (open) count
+text \<open>In the context of multisets, @{text count_list} is equivalent to
+  @{term "count o mset"} and it it advisable to use the latter.\<close>
+primrec count_list :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
+"count_list [] y = 0" |
+"count_list (x#xs) y = (if x=y then count_list xs y + 1 else count_list xs y)"
 
 definition
    "extract" :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> ('a list * 'a * 'a list) option"
@@ -304,7 +302,7 @@ text{*
 @{lemma "List.union [2,3,4] [0::int,1,2] = [4,3,0,1,2]" by (simp add: List.insert_def List.union_def)}\\
 @{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
 @{lemma "List.find (%i::int. i>0) [0,1,0,2] = Some 1" by simp}\\
-@{lemma "List.count [0,1,0,2::int] 0 = 2" by (simp)}\\
+@{lemma "count_list [0,1,0,2::int] 0 = 2" by (simp)}\\
 @{lemma "List.extract (%i::int. i>0) [0,0] = None" by(simp add: extract_def)}\\
 @{lemma "List.extract (%i::int. i>0) [0,1,0,2] = Some([0], 1, [0,2])" by(simp add: extract_def)}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
@@ -3717,16 +3715,16 @@ lemma find_dropWhile:
 by (induct xs) simp_all
 
 
-subsubsection {* @{const List.count} *}
+subsubsection {* @{const count_list} *}
 
-lemma count_notin[simp]: "x \<notin> set xs \<Longrightarrow> List.count xs x = 0"
+lemma count_notin[simp]: "x \<notin> set xs \<Longrightarrow> count_list xs x = 0"
 by (induction xs) auto
 
-lemma count_le_length: "List.count xs x \<le> length xs"
+lemma count_le_length: "count_list xs x \<le> length xs"
 by (induction xs) auto
 
 lemma setsum_count_set:
-  "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> setsum (List.count xs) X = length xs"
+  "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> setsum (count_list xs) X = length xs"
 apply(induction xs arbitrary: X)
  apply simp
 apply (simp add: setsum.If_cases)

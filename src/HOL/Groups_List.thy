@@ -238,15 +238,15 @@ lemma (in monoid_add) listsum_setsum_nth:
   using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
 lemma listsum_map_eq_setsum_count:
-  "listsum (map f xs) = setsum (\<lambda>x. List.count xs x * f x) (set xs)"
+  "listsum (map f xs) = setsum (\<lambda>x. count_list xs x * f x) (set xs)"
 proof(induction xs)
   case (Cons x xs)
   show ?case (is "?l = ?r")
   proof cases
     assume "x \<in> set xs"
-    have "?l = f x + (\<Sum>x\<in>set xs. List.count xs x * f x)" by (simp add: Cons.IH)
+    have "?l = f x + (\<Sum>x\<in>set xs. count_list xs x * f x)" by (simp add: Cons.IH)
     also have "set xs = insert x (set xs - {x})" using `x \<in> set xs`by blast
-    also have "f x + (\<Sum>x\<in>insert x (set xs - {x}). List.count xs x * f x) = ?r"
+    also have "f x + (\<Sum>x\<in>insert x (set xs - {x}). count_list xs x * f x) = ?r"
       by (simp add: setsum.insert_remove eq_commute)
     finally show ?thesis .
   next
@@ -258,9 +258,9 @@ qed simp
 
 lemma listsum_map_eq_setsum_count2:
 assumes "set xs \<subseteq> X" "finite X"
-shows "listsum (map f xs) = setsum (\<lambda>x. List.count xs x * f x) X"
+shows "listsum (map f xs) = setsum (\<lambda>x. count_list xs x * f x) X"
 proof-
-  let ?F = "\<lambda>x. List.count xs x * f x"
+  let ?F = "\<lambda>x. count_list xs x * f x"
   have "setsum ?F X = setsum ?F (set xs \<union> (X - set xs))"
     using Un_absorb1[OF assms(1)] by(simp)
   also have "\<dots> = setsum ?F (set xs)"
