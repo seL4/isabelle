@@ -66,6 +66,11 @@ fun prover_description verbose name num_facts =
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
 
+fun add_chained [] t = t
+  | add_chained chained ((t as Const (@{const_name Pure.all}, _)) $ Abs (s, T, u)) =
+    t $ Abs (s, T, add_chained chained u)
+  | add_chained chained t = Logic.list_implies (chained, t)
+
 fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, methss) =
   if timeout = Time.zeroTime then
     (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
@@ -73,11 +78,10 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
     let
       val ctxt = Proof.context_of state
 
-      val {facts = chained, goal, ...} = Proof.goal state
       val fact_names = map fst used_facts
-
-      val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
-      val goal_t = Logic.list_implies (map Thm.prop_of chained @ hyp_ts, concl_t)
+      val {facts = chained, goal, ...} = Proof.goal state
+      val goal_t = Logic.get_goal (Thm.prop_of goal) i
+        |> add_chained (map Thm.prop_of chained)
 
       fun try_methss [] [] = (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
         | try_methss ress [] =

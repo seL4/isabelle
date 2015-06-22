@@ -132,7 +132,7 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
       (case xs of
         [] => t
       | _ =>
-        (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
+        (* proof obligation: !!thesis. (!!x1...xn. t ==> thesis) ==> thesis
            (cf. "~~/src/Pure/Isar/obtain.ML") *)
         let
           val frees = map Free xs
@@ -140,10 +140,10 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
             Free (singleton (Variable.variant_frees ctxt frees) ("thesis", HOLogic.boolT))
           val thesis_prop = HOLogic.mk_Trueprop thesis
 
-          (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
+          (* !!x1...xn. t ==> thesis *)
           val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
         in
-          (* !!thesis. (!!x1..xn. t ==> thesis) ==> thesis *)
+          (* !!thesis. (!!x1...xn. t ==> thesis) ==> thesis *)
           Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
         end)
 
