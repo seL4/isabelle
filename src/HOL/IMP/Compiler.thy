@@ -146,7 +146,7 @@ lemma exec_appendL_if[intro]:
    \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')"
 by (drule exec_appendL[where P'=P']) simp
 
-text{* Split the execution of a compound program up into the excution of its
+text{* Split the execution of a compound program up into the execution of its
 parts: *}
 
 lemma exec_append_trans[intro]:
