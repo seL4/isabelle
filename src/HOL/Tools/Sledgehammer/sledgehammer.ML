@@ -71,9 +71,11 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
     (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
   else
     let
+      val ctxt = Proof.context_of state
+
+      val {facts = chained, goal, ...} = Proof.goal state
       val fact_names = map fst used_facts
 
-      val {context = ctxt, facts = chained, goal} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
       val goal_t = Logic.list_implies (map Thm.prop_of chained @ hyp_ts, concl_t)
 
