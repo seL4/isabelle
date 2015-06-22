@@ -105,24 +105,24 @@ sig
   val global_skip_proof: bool -> state -> context
   val global_done_proof: state -> context
   val internal_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
-    Proof_Context.mode -> string -> Method.text option ->
+    Proof_Context.mode -> bool -> string -> Method.text option ->
     (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
     (Thm.binding * (term * term list) list) list -> state -> thm list * state
-  val have: Method.text option -> (context * thm list list -> state -> state) ->
+  val have: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
-  val have_cmd: Method.text option -> (context * thm list list -> state -> state) ->
+  val have_cmd: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
-  val show: Method.text option -> (context * thm list list -> state -> state) ->
+  val show: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
     (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
-  val show_cmd: Method.text option -> (context * thm list list -> state -> state) ->
+  val show_cmd: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
@@ -982,11 +982,14 @@ fun export_binds ctxt' ctxt binds =
 
 in
 
-fun local_goal print_results prep_att prep_propp prep_var
+fun local_goal print_results prep_att prep_propp prep_var strict_asm
     kind before_qed after_qed raw_fixes raw_assumes raw_shows state =
   let
     val ctxt = context_of state;
 
+    val add_assumes =
+      Assumption.add_assms
+        (if strict_asm then Assumption.assume_export else Assumption.presume_export);
     val (assumes_bindings, shows_bindings) =
       apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
     val (assumes_propp, shows_propp) = apply2 (map snd) (raw_assumes, raw_shows);
@@ -1012,8 +1015,7 @@ fun local_goal print_results prep_att prep_propp prep_var
 
         (*prems*)
         val (that_fact, goal_ctxt) = params_ctxt
-          |> fold_burrow (Assumption.add_assms Assumption.assume_export)
-              ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
+          |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
           |> (fn (premss, ctxt') =>
               let
                 val prems = Assumption.local_prems_of ctxt' ctxt;
@@ -1132,12 +1134,12 @@ fun internal_goal print_results mode =
 local
 
 fun gen_have prep_att prep_propp prep_var
-    before_qed after_qed fixes assumes shows int =
+    strict_asm before_qed after_qed fixes assumes shows int =
   local_goal (Proof_Display.print_results int (Position.thread_data ()))
-    prep_att prep_propp prep_var "have" before_qed after_qed fixes assumes shows;
+    prep_att prep_propp prep_var strict_asm "have" before_qed after_qed fixes assumes shows;
 
 fun gen_show prep_att prep_propp prep_var
-    before_qed after_qed fixes assumes shows int state =
+    strict_asm before_qed after_qed fixes assumes shows int state =
   let
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
@@ -1168,7 +1170,7 @@ fun gen_show prep_att prep_propp prep_var
       |> after_qed (result_ctxt, results);
   in
     state
-    |> local_goal print_results prep_att prep_propp prep_var
+    |> local_goal print_results prep_att prep_propp prep_var strict_asm
       "show" before_qed after_qed' fixes assumes shows
     ||> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of

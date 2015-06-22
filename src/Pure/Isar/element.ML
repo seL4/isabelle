@@ -291,7 +291,7 @@ fun proof_local cmd goal_ctxt int after_qed propp =
       after_qed (burrow (Proof_Context.export result_ctxt (Proof.context_of state')) results) state';
   in
     Proof.map_context (K goal_ctxt) #>
-    Proof.internal_goal (K (K ())) (Proof_Context.get_mode goal_ctxt) cmd
+    Proof.internal_goal (K (K ())) (Proof_Context.get_mode goal_ctxt) true cmd
       NONE after_qed' [] [] (map (pair Thm.empty_binding) propp) #> snd
   end;
 

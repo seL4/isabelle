@@ -159,7 +159,7 @@ fun gen_consider prep_obtains raw_obtains int state =
     val atts = Rule_Cases.cases_open :: obtains_attributes raw_obtains;
   in
     state
-    |> Proof.have NONE (K I)
+    |> Proof.have true NONE (K I)
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
       [((Binding.empty, atts), [(thesis, [])])] int
@@ -233,7 +233,7 @@ fun gen_obtain prep_att prep_var prep_propp
       end;
   in
     state
-    |> Proof.have NONE after_qed
+    |> Proof.have true NONE after_qed
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
       [(Thm.empty_binding, [(thesis, [])])] int
@@ -409,7 +409,7 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.begin_block
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
-    |> Proof.internal_goal print_result Proof_Context.mode_schematic "guess"
+    |> Proof.internal_goal print_result Proof_Context.mode_schematic true "guess"
       (SOME before_qed) after_qed
       [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
     |> snd

@@ -29,7 +29,7 @@ consts
   (*Unions*)
   inl       :: "i\<Rightarrow>i"
   inr       :: "i\<Rightarrow>i"
-  when      :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
+  "when"    :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
   (*General Sum and Binary Product*)
   Sum       :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
   fst       :: "i\<Rightarrow>i"
