@@ -91,7 +91,7 @@ fun free_aware_rule_attribute args f =
     if exists is_free_thm (thm :: args) then dummy_free_thm
     else f context thm);
 
-fun free_aware_attribute thy {handle_all_errs,declaration} src (context, thm) =
+fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
   let
     val src' = Token.init_assignable_src src;
     fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
@@ -270,16 +270,16 @@ fun empty_named_thm named_thm ctxt =
 fun dummy_named_thm named_thm ctxt =
   let
     val ctxt' = empty_named_thm named_thm ctxt;
-    val (_,ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
+    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
   in ctxt'' end;
 
 fun parse_method_args method_names =
   let
-    fun bind_method (name, text) ctxt = 
-    let
-      val method = method_evaluate text;
-      val inner_update = method o update_dynamic_method (name,K (method ctxt));
-    in update_dynamic_method (name,inner_update) ctxt end;
+    fun bind_method (name, text) ctxt =
+      let
+        val method = method_evaluate text;
+        val inner_update = method o update_dynamic_method (name, K (method ctxt));
+      in update_dynamic_method (name, inner_update) ctxt end;
 
     fun do_parse t = parse_method >> pair t;
     fun rep [] x = Scan.succeed [] x
@@ -349,7 +349,7 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
       (parse_term_args args --
         parse_method_args method_names --|
         (Scan.depend (fn context =>
-              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context,())) --
+              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context, ())) --
          Method.sections modifiers) >> eval);
 
     val lthy3 = lthy2
