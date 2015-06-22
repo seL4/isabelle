@@ -342,33 +342,28 @@ fun export_with_params ctxt morphism (SOME ts, params) thm env =
         val outer_env = morphism_env morphism env;
         val thm' = Morphism.thm morphism thm;
       in inst_thm ctxt outer_env params ts thm' end
-  | export_with_params _ morphism (NONE,_) thm _ = Morphism.thm morphism thm;
+  | export_with_params _ morphism (NONE, _) thm _ = Morphism.thm morphism thm;
 
 fun match_filter_env is_newly_fixed pat_vars fixes params env =
   let
     val param_vars = map Term.dest_Var params;
 
     val tenv = Envir.term_env env;
-
     val params' = map (fn (xi, _) => Vartab.lookup tenv xi) param_vars;
 
     val fixes_vars = map Term.dest_Var fixes;
 
     val all_vars = Vartab.keys tenv;
-
     val extra_vars = subtract (fn ((xi, _), xi') => xi = xi') fixes_vars all_vars;
 
     val tenv' = tenv |> fold (Vartab.delete_safe) extra_vars;
-
     val env' =
       Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv', tyenv = Envir.type_env env}
 
-    val all_params_bound = forall (fn SOME (_, Free (x,_)) => is_newly_fixed x | _ => false) params';
-
+    val all_params_bound = forall (fn SOME (_, Free (x, _)) => is_newly_fixed x | _ => false) params';
     val all_params_distinct = not (has_duplicates (op =) params');
 
     val pat_fixes = inter (eq_fst (op =)) fixes_vars pat_vars;
-
     val all_pat_fixes_bound = forall (fn (xi, _) => is_some (Vartab.lookup tenv' xi)) pat_fixes;
   in
     if all_params_bound andalso all_pat_fixes_bound andalso all_params_distinct
@@ -413,7 +408,7 @@ fun hyp_from_premid ctxt (ident, prem) =
     val ct = Drule.mk_term (hyp) |> Thm.cprop_of;
   in Drule.protect (Conjunction.mk_conjunction (ident, ct)) end;
 
-fun hyp_from_ctermid ctxt (ident,cterm) =
+fun hyp_from_ctermid ctxt (ident, cterm) =
   let
     val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
   in Drule.protect (Conjunction.mk_conjunction (ident, cterm)) end;
@@ -468,13 +463,13 @@ fun get_thinned_prems goal =
     fun prem_from_hyp hyp goal =
     let
       val asm = Thm.assume hyp;
-      val (identt,ct) = asm |> Goal.conclude |> Thm.cprop_of |> Conjunction.dest_conjunction;
+      val (identt, ct) = asm |> Goal.conclude |> Thm.cprop_of |> Conjunction.dest_conjunction;
       val ident = HOLogic.dest_number (Thm.term_of identt |> Logic.dest_term) |> snd;
       val thm = Conjunction.intr (solve_term identt) (solve_term ct) |> Goal.protect 0
       val goal' = Thm.implies_elim (Thm.implies_intr hyp goal) thm;
     in
-      (SOME (ident,ct),goal')
-    end handle TERM _ => (NONE,goal) | THM _ => (NONE,goal);
+      (SOME (ident, ct), goal')
+    end handle TERM _ => (NONE, goal) | THM _ => (NONE, goal);
   in
     fold_map prem_from_hyp chyps goal
     |>> map_filter I
@@ -486,7 +481,7 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
   let
     val {context, params, prems, asms, concl, schematics} = focus;
 
-    val (prem_ids,ctxt') = context
+    val (prem_ids, ctxt') = context
       |> add_focus_params params
       |> add_focus_schematics (snd schematics)
       |> fold_map add_focus_prem (rev prems)
@@ -495,12 +490,13 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
 
     val ctxt'' = fold add_premid_hyp local_prems ctxt';
   in
-    (prem_ids,{context = ctxt'',
-     params = params,
-     prems = prems,
-     concl = concl,
-     schematics = schematics,
-     asms = asms})
+    (prem_ids,
+      {context = ctxt'',
+       params = params,
+       prems = prems,
+       concl = concl,
+       schematics = schematics,
+       asms = asms})
   end;
 
 
@@ -541,32 +537,32 @@ fun consistent_env env =
     forall (fn (_, (T, t)) => Envir.norm_type tyenv T = fastype_of t) (Vartab.dest tenv)
   end;
 
-fun term_eq_wrt (env1,env2) (t1,t2) =
+fun term_eq_wrt (env1, env2) (t1, t2) =
   Envir.eta_contract (Envir.norm_term env1 t1) aconv
   Envir.eta_contract (Envir.norm_term env2 t2);
 
-fun type_eq_wrt (env1,env2) (T1,T2) =
-  Envir.norm_type (Envir.type_env env1) T1 = Envir.norm_type (Envir.type_env env2) T2
+fun type_eq_wrt (env1, env2) (T1, T2) =
+  Envir.norm_type (Envir.type_env env1) T1 = Envir.norm_type (Envir.type_env env2) T2;
 
 
 fun eq_env (env1, env2) =
     Envir.maxidx_of env1 = Envir.maxidx_of env1 andalso
     ListPair.allEq (fn ((var, (_, t)), (var', (_, t'))) =>
-        (var = var' andalso term_eq_wrt (env1,env2) (t,t')))
+        (var = var' andalso term_eq_wrt (env1, env2) (t, t')))
       (apply2 Vartab.dest (Envir.term_env env1, Envir.term_env env2))
     andalso
     ListPair.allEq (fn ((var, (_, T)), (var', (_, T'))) =>
-        var = var' andalso type_eq_wrt (env1,env2) (T,T'))
+        var = var' andalso type_eq_wrt (env1, env2) (T, T'))
       (apply2 Vartab.dest (Envir.type_env env1, Envir.type_env env2));
 
 
-fun merge_env (env1,env2) =
+fun merge_env (env1, env2) =
   let
     val tenv =
       Vartab.merge (eq_snd (term_eq_wrt (env1, env2))) (Envir.term_env env1, Envir.term_env env2);
     val tyenv =
       Vartab.merge (eq_snd (type_eq_wrt (env1, env2)) andf eq_fst (op =))
-        (Envir.type_env env1,Envir.type_env env2);
+        (Envir.type_env env1, Envir.type_env env2);
     val maxidx = Int.max (Envir.maxidx_of env1, Envir.maxidx_of env2);
   in Envir.Envir {maxidx = maxidx, tenv = tenv, tyenv = tyenv} end;
 
@@ -600,7 +596,7 @@ fun match_facts ctxt fixes prop_pats get =
     fun do_cut n = if n = ~1 then I else Seq.take n;
 
     val raw_thmss = map (get o snd) prop_pats;
-    val (thmss,ctxt') = fold_burrow import_with_tags raw_thmss ctxt;
+    val (thmss, ctxt') = fold_burrow import_with_tags raw_thmss ctxt;
 
     val newly_fixed = Variable.is_newly_fixed ctxt' ctxt;
 
@@ -619,7 +615,7 @@ fun match_facts ctxt fixes prop_pats get =
           |> Seq.filter consistent_env
           |> Seq.map_filter (fn env' =>
               (case match_filter_env newly_fixed pat_vars fixes params env' of
-                SOME env'' => SOME (export_with_params ctxt morphism (ts,params) thm env',env'')
+                SOME env'' => SOME (export_with_params ctxt morphism (ts, params) thm env', env'')
               | NONE => NONE))
           |> Seq.map (apfst (Thm.map_tags (K (Thm.get_tags thm))))
           |> deduplicate (eq_pair Thm.eq_thm_prop eq_env) []
@@ -642,7 +638,7 @@ fun match_facts ctxt fixes prop_pats get =
                         Seq_retrieve envthms (fn (env, _) => eq_env (env, env'));
                     in
                       (case result of
-                        SOME (_,thms) => SOME ((env', thm :: thms), maximal_set tail seq' envthms')
+                        SOME (_, thms) => SOME ((env', thm :: thms), maximal_set tail seq' envthms')
                       | NONE => Seq.pull (maximal_set (tail @ [(env', [thm])]) seq' envthms'))
                     end
                  | NONE => Seq.pull (Seq.append envthms (Seq.of_list tail))));
@@ -660,8 +656,8 @@ fun match_facts ctxt fixes prop_pats get =
         else
           let
             fun just_one (thm, env') =
-              (case try_merge (env,env') of
-                SOME env'' => SOME ((pat,[thm]) :: pats, env'')
+              (case try_merge (env, env') of
+                SOME env'' => SOME ((pat, [thm]) :: pats, env'')
               | NONE => NONE);
           in fold (fn seq => Seq.append (Seq.map_filter just_one seq)) thmenvs Seq.empty end);
 
@@ -713,9 +709,9 @@ fun real_match using ctxt fixes m text pats goal =
               | Match_Concl => g
               | _ => raise Fail "Match kind fell through");
 
-            val (goal_thins,goal) = get_thinned_prems goal;
+            val (goal_thins, goal) = get_thinned_prems goal;
 
-            val ((local_premids,{context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
+            val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
               focus_cases (K Subgoal.focus_prems) (focus_concl) ctxt 1 goal
               |>> augment_focus;
 
@@ -725,7 +721,7 @@ fun real_match using ctxt fixes m text pats goal =
                   make_fact_matches focus_ctxt
                     (Item_Net.retrieve (focus_prems focus_ctxt |> snd)
                      #> filter_out (member (eq_fst (op =)) goal_thins)
-                     #> is_local ? filter (fn (p,_) => exists (fn id' => id' = p) local_premids)
+                     #> is_local ? filter (fn (p, _) => exists (fn id' => id' = p) local_premids)
                      #> order_list))
                 (fn _ =>
                   make_term_matches focus_ctxt (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
@@ -735,7 +731,7 @@ fun real_match using ctxt fixes m text pats goal =
 
             fun do_retrofit inner_ctxt goal' =
               let
-                val (goal'_thins,goal') = get_thinned_prems goal';
+                val (goal'_thins, goal') = get_thinned_prems goal';
 
                 val thinned_prems =
                   ((subtract (eq_fst (op =))
@@ -750,7 +746,7 @@ fun real_match using ctxt fixes m text pats goal =
                   thinned_prems @
                   map (fn (id, prem) => (id, (NONE, SOME prem))) (goal'_thins @ goal_thins);
 
-                val (thinned_local_prems,thinned_extra_prems) =
+                val (thinned_local_prems, thinned_extra_prems) =
                   List.partition (fn (id, _) => member (op =) local_premids id) all_thinned_prems;
 
                 val local_thins =
@@ -795,9 +791,8 @@ fun real_match using ctxt fixes m text pats goal =
 val match_parser =
   parse_match_kind :-- (fn kind =>
       Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
-    (fn (matches, bodies) => fn ctxt => fn using => fn goal =>
-      if Method_Closure.is_dummy goal then Seq.empty
-      else
+    (fn (matches, bodies) => fn ctxt => fn using =>
+      Method.RUNTIME (fn st =>
         let
           fun exec (pats, fixes, text) goal =
             let
@@ -805,7 +800,7 @@ val match_parser =
                 fold Variable.declare_term fixes ctxt
                 |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
             in real_match using ctxt' fixes matches text pats goal end;
-        in Seq.flat (Seq.FIRST (map exec bodies) goal) end);
+        in Seq.flat (Seq.FIRST (map exec bodies) st) end));
 
 val _ =
   Theory.setup

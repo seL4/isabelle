@@ -12,7 +12,7 @@ theory Pure
     "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "private" "qualified" "shows"
-    "structure" "unchecked" "where" "|"
+    "structure" "unchecked" "where" "when" "|"
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""

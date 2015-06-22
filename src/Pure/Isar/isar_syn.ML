@@ -491,28 +491,28 @@ val _ = theorem @{command_keyword schematic_corollary} true Thm.corollaryK;
 
 
 val structured_statement =
-  Parse_Spec.statement -- Parse_Spec.if_statement -- Parse.for_fixes
-    >> (fn ((shows, assumes), fixes) => (fixes, assumes, shows));
+  Parse_Spec.statement -- Parse_Spec.cond_statement -- Parse.for_fixes
+    >> (fn ((shows, (strict, assumes)), fixes) => (strict, fixes, assumes, shows));
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
-    (structured_statement >> (fn (a, b, c) =>
-      Toplevel.proof' (fn int => Proof.have_cmd NONE (K I) a b c int #> #2)));
+    (structured_statement >> (fn (a, b, c, d) =>
+      Toplevel.proof' (fn int => Proof.have_cmd a NONE (K I) b c d int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword show} "state local goal, to refine pending subgoals"
-    (structured_statement >> (fn (a, b, c) =>
-      Toplevel.proof' (fn int => Proof.show_cmd NONE (K I) a b c int #> #2)));
+    (structured_statement >> (fn (a, b, c, d) =>
+      Toplevel.proof' (fn int => Proof.show_cmd a NONE (K I) b c d int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword hence} "old-style alias of \"then have\""
-    (structured_statement >> (fn (a, b, c) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd NONE (K I) a b c int #> #2)));
+    (structured_statement >> (fn (a, b, c, d) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd a NONE (K I) b c d int #> #2)));
 
 val _ =
   Outer_Syntax.command @{command_keyword thus} "old-style alias of  \"then show\""
-    (structured_statement >> (fn (a, b, c) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd NONE (K I) a b c int #> #2)));
+    (structured_statement >> (fn (a, b, c, d) =>
+      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd a NONE (K I) b c d int #> #2)));
 
 
 (* facts *)

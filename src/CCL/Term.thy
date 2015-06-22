@@ -17,7 +17,7 @@ consts
 
   inl        :: "i\<Rightarrow>i"
   inr        :: "i\<Rightarrow>i"
-  when       :: "[i,i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i"
+  "when"     :: "[i,i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i"
 
   split      :: "[i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
   fst        :: "i\<Rightarrow>i"

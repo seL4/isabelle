@@ -130,4 +130,33 @@ begin
   qed
 end
 
+
+subsection \<open>Suffices-to-show\<close>
+
+notepad
+begin
+  fix A B C
+  assume r: "A \<Longrightarrow> B \<Longrightarrow> C"
+
+  have C
+  proof -
+    show ?thesis when A (is ?A) and B (is ?B)
+      using that by (rule r)
+    show ?A sorry
+    show ?B sorry
+  qed
+next
+  fix a :: 'a
+  fix A :: "'a \<Rightarrow> bool"
+  fix C
+
+  have C
+  proof -
+    show ?thesis when "A x" (is ?A) for x :: 'a  -- \<open>abstract @{term x}\<close>
+      using that sorry
+    show "?A a"  -- \<open>concrete @{term a}\<close>
+      sorry
+  qed
+end
+
 end

@@ -427,12 +427,14 @@ text \<open>
      @@{command schematic_corollary}) (stmt | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
-      stmt (@'if' stmt)? @{syntax for_fixes}
+      stmt cond_stmt @{syntax for_fixes}
     ;
     @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
 
     stmt: (@{syntax props} + @'and')
+    ;
+    cond_stmt: ((@'if' | @'when') stmt)?
     ;
     statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
       conclusion
@@ -516,10 +518,10 @@ text \<open>
   @{variable_ref "?thesis"}) to be bound automatically, see also
   \secref{sec:term-abbrev}.
 
-  Structured goal statements involving @{keyword_ref "if"} define the
-  special fact @{fact_ref that} to refer to these assumptions in the proof
-  body. The user may provide separate names according to the syntax of the
-  statement.
+  Structured goal statements involving @{keyword_ref "if"} or @{keyword_ref
+  "when"} define the special fact @{fact_ref that} to refer to these
+  assumptions in the proof body. The user may provide separate names
+  according to the syntax of the statement.
 \<close>
 
 

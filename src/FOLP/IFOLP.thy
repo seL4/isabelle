@@ -50,7 +50,7 @@ consts
  split          :: "[p, [p,p]=>p] =>p"
  inl            :: "p=>p"
  inr            :: "p=>p"
- when           :: "[p, p=>p, p=>p]=>p"
+ "when"         :: "[p, p=>p, p=>p]=>p"
  lambda         :: "(p => p) => p"      (binder "lam " 55)
  App            :: "[p,p]=>p"           (infixl "`" 60)
  alll           :: "['a=>p]=>p"         (binder "all " 55)

@@ -10,7 +10,6 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val is_dummy: thm -> bool
   val tag_free_thm: thm -> thm
   val is_free_thm: thm -> bool
   val dummy_free_thm: thm
@@ -71,11 +70,6 @@ val put_recursive_method = Local_Data.map o apsnd o K;
 
 (* free thm *)
 
-fun is_dummy thm =
-  (case try Logic.dest_term (Thm.concl_of (perhaps (try Goal.conclude) thm)) of
-    NONE => false
-  | SOME t => Term.is_dummy_pattern t);
-
 val free_thmN = "Method_Closure.free_thm";
 fun tag_free_thm thm = Thm.tag_rule (free_thmN, "") thm;
 
@@ -91,7 +85,7 @@ fun free_aware_rule_attribute args f =
     if exists is_free_thm (thm :: args) then dummy_free_thm
     else f context thm);
 
-fun free_aware_attribute thy {handle_all_errs,declaration} src (context, thm) =
+fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
   let
     val src' = Token.init_assignable_src src;
     fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
@@ -233,12 +227,9 @@ fun evaluate_named_theorems ctxt =
           Token.Fact (SOME name, evaluate_dynamic_thm ctxt name)
       | x => x);
 
-fun method_evaluate text ctxt : Method.method = fn facts => fn st =>
-  let
-    val ctxt' = Config.put Method.closure false ctxt;
-  in
-    if is_dummy st then Seq.empty
-    else Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st
+fun method_evaluate text ctxt facts =
+  let val ctxt' = Config.put Method.closure false ctxt in
+    Method.RUNTIME (fn st => Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st)
   end;
 
 fun evaluate_method_def fix_env raw_text ctxt =
@@ -270,16 +261,16 @@ fun empty_named_thm named_thm ctxt =
 fun dummy_named_thm named_thm ctxt =
   let
     val ctxt' = empty_named_thm named_thm ctxt;
-    val (_,ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
+    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
   in ctxt'' end;
 
 fun parse_method_args method_names =
   let
-    fun bind_method (name, text) ctxt = 
-    let
-      val method = method_evaluate text;
-      val inner_update = method o update_dynamic_method (name,K (method ctxt));
-    in update_dynamic_method (name,inner_update) ctxt end;
+    fun bind_method (name, text) ctxt =
+      let
+        val method = method_evaluate text;
+        val inner_update = method o update_dynamic_method (name, K (method ctxt));
+      in update_dynamic_method (name, inner_update) ctxt end;
 
     fun do_parse t = parse_method >> pair t;
     fun rep [] x = Scan.succeed [] x
@@ -349,7 +340,7 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
       (parse_term_args args --
         parse_method_args method_names --|
         (Scan.depend (fn context =>
-              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context,())) --
+              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context, ())) --
          Method.sections modifiers) >> eval);
 
     val lthy3 = lthy2

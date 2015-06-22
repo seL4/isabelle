@@ -87,7 +87,7 @@ fun read_instantiate_no_thm ctxt insts fixes =
       map snd type_insts
       |> Syntax.read_typs ctxt1;
 
-    val typ_insts' = map2 (fn (xi, _) => fn T => (xi,T)) type_insts typs;
+    val typ_insts' = map2 (fn (xi, _) => fn T => (xi, T)) type_insts typs;
 
     val terms =
       map snd term_insts
@@ -95,7 +95,7 @@ fun read_instantiate_no_thm ctxt insts fixes =
 
     val term_insts' = map2 (fn (xi, _) => fn t => (xi, t)) term_insts terms;
 
-  in (typ_insts',term_insts') end;
+  in (typ_insts', term_insts') end;
 
 
 datatype rule_inst =
@@ -153,7 +153,7 @@ fun close_unchecked_insts context ((insts, concl_inst), fixes) =
     val _ =
       (insts', term_insts)
       |> ListPair.app (fn (SOME p, SOME t) => Parse_Tools.the_parse_fun p t | _ => ());
-    val (insts'',concl_insts'') = chop (length insts) term_insts;
+    val (insts'', concl_insts'') = chop (length insts) term_insts;
    in Unchecked_Term_Insts (insts'', concl_insts'') end;
 
 fun read_of_insts checked context ((insts, concl_insts), fixes) =
