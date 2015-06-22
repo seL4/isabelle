@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-section\<open>A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008\<close>
+section \<open>A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008\<close>
 
 theory Parametric_Ferrante_Rackoff
 imports
@@ -18,7 +18,7 @@ subsection \<open>Terms\<close>
 datatype tm = CP poly | Bound nat | Add tm tm | Mul poly tm
   | Neg tm | Sub tm tm | CNP nat poly tm
 
-(* A size for poly to make inductive proofs simpler*)
+text \<open>A size for poly to make inductive proofs simpler.\<close>
 primrec tmsize :: "tm \<Rightarrow> nat"
 where
   "tmsize (CP c) = polysize c"
@@ -29,8 +29,8 @@ where
 | "tmsize (Mul c a) = 1 + polysize c + tmsize a"
 | "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
-(* Semantics of terms tm *)
-primrec Itm :: "'a::{field_char_0, field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
+text \<open>Semantics of terms tm.\<close>
+primrec Itm :: "'a::{field_char_0,field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
 where
   "Itm vs bs (CP c) = (Ipoly vs c)"
 | "Itm vs bs (Bound n) = bs!n"
@@ -60,7 +60,7 @@ where
 | "tmboundslt n (Sub a b) = (tmboundslt n a \<and> tmboundslt n b)"
 | "tmboundslt n (Mul i a) = tmboundslt n a"
 
-primrec tmbound0 :: "tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound 0 *)
+primrec tmbound0 :: "tm \<Rightarrow> bool"  -- \<open>a tm is INDEPENDENT of Bound 0\<close>
 where
   "tmbound0 (CP c) = True"
 | "tmbound0 (Bound n) = (n>0)"
@@ -74,9 +74,9 @@ lemma tmbound0_I:
   assumes nb: "tmbound0 a"
   shows "Itm vs (b#bs) a = Itm vs (b'#bs) a"
   using nb
-  by (induct a rule: tm.induct,auto)
+  by (induct a rule: tm.induct) auto
 
-primrec tmbound :: "nat \<Rightarrow> tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound n *)
+primrec tmbound :: "nat \<Rightarrow> tm \<Rightarrow> bool"  -- \<open>a tm is INDEPENDENT of Bound n\<close>
 where
   "tmbound n (CP c) = True"
 | "tmbound n (Bound m) = (n \<noteq> m)"
@@ -146,8 +146,7 @@ lemma removen_same: "n \<ge> length xs \<Longrightarrow> removen n xs = xs"
 lemma nth_length_exceeds: "n \<ge> length xs \<Longrightarrow> xs!n = []!(n - length xs)"
   by (induct xs arbitrary: n) auto
 
-lemma removen_length:
-  "length (removen n xs) = (if n \<ge> length xs then length xs else length xs - 1)"
+lemma removen_length: "length (removen n xs) = (if n \<ge> length xs then length xs else length xs - 1)"
   by (induct xs arbitrary: n, auto)
 
 lemma removen_nth:
@@ -160,44 +159,45 @@ proof (induct xs arbitrary: n m)
   case Nil
   then show ?case by simp
 next
-  case (Cons x xs n m)
-  {
-    assume nxs: "n \<ge> length (x#xs)"
-    then have ?case using removen_same[OF nxs] by simp
-  }
-  moreover
-  {
-    assume nxs: "\<not> (n \<ge> length (x#xs))"
-    {
-      assume mln: "m < n"
-      then have ?case using Cons by (cases m) auto
-    }
-    moreover
-    {
-      assume mln: "\<not> (m < n)"
-      {
-        assume mxs: "m \<le> length (x#xs)"
-        then have ?case using Cons by (cases m) auto
-      }
-      moreover
-      {
-        assume mxs: "\<not> (m \<le> length (x#xs))"
-        have th: "length (removen n (x#xs)) = length xs"
-          using removen_length[where n="n" and xs="x#xs"] nxs by simp
-        with mxs have mxs':"m \<ge> length (removen n (x#xs))"
+  case (Cons x xs)
+  let ?l = "length (x # xs)"
+  consider "n \<ge> ?l" | "n < ?l" by arith
+  then show ?case
+  proof cases
+    case 1 
+    then show ?thesis
+      using removen_same[OF 1] by simp
+  next
+    case 2
+    consider "m < n" | "m \<ge> n" by arith
+    then show ?thesis
+    proof cases
+      case 1
+      then show ?thesis
+        using Cons by (cases m) auto
+    next
+      case 2
+      consider "m \<le> ?l" | "m > ?l" by arith
+      then show ?thesis
+      proof cases
+        case 1
+        then show ?thesis
+          using Cons by (cases m) auto
+      next
+        case 2
+        have th: "length (removen n (x # xs)) = length xs"
+          using removen_length[where n = n and xs= "x # xs"] \<open>n < ?l\<close> by simp
+        with \<open>m > ?l\<close> have "m \<ge> length (removen n (x # xs))"
           by auto
-        then have "(removen n (x#xs))!m = [] ! (m - length xs)"
-          using th nth_length_exceeds[OF mxs'] by auto
-        then have th: "(removen n (x#xs))!m = [] ! (m - (length (x#xs) - 1))"
+        from th nth_length_exceeds[OF this] have "(removen n (x # xs))!m = [] ! (m - length xs)"
+           by auto
+        then have "(removen n (x # xs))!m = [] ! (m - (length (x # xs) - 1))"
           by auto
-        then have ?case
-          using nxs mln mxs by auto
-      }
-      ultimately have ?case by blast
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
+        then show ?thesis
+          using \<open>n < ?l\<close> \<open>m > ?l\<close> \<open>m > ?l\<close> by auto
+      qed
+    qed
+  qed
 qed
 
 lemma decrtm:
@@ -217,7 +217,7 @@ where
 | "tmsubst0 t (Sub a b) = Sub (tmsubst0 t a) (tmsubst0 t b)"
 | "tmsubst0 t (Mul i a) = Mul i (tmsubst0 t a)"
 
-lemma tmsubst0: "Itm vs (x#bs) (tmsubst0 t a) = Itm vs ((Itm vs (x#bs) t)#bs) a"
+lemma tmsubst0: "Itm vs (x # bs) (tmsubst0 t a) = Itm vs (Itm vs (x # bs) t # bs) a"
   by (induct a rule: tm.induct) auto
 
 lemma tmsubst0_nb: "tmbound0 t \<Longrightarrow> tmbound0 (tmsubst0 t a)"
@@ -256,7 +256,8 @@ lemma tmsubst_nb:
 lemma incrtm0_tmbound: "tmbound n t \<Longrightarrow> tmbound (Suc n) (incrtm0 t)"
   by (induct t) auto
 
-(* Simplification *)
+
+text \<open>Simplification.\<close>
 
 consts tmadd:: "tm \<times> tm \<Rightarrow> tm"
 recdef tmadd "measure (\<lambda>(t,s). size t + size s)"
@@ -272,9 +273,13 @@ recdef tmadd "measure (\<lambda>(t,s). size t + size s)"
   "tmadd (a, b) = Add a b"
 
 lemma tmadd[simp]: "Itm vs bs (tmadd (t, s)) = Itm vs bs (Add t s)"
-  apply (induct t s rule: tmadd.induct, simp_all add: Let_def)
-  apply (case_tac "c1 +\<^sub>p c2 = 0\<^sub>p",case_tac "n1 \<le> n2", simp_all)
-  apply (case_tac "n1 = n2", simp_all add: field_simps)
+  apply (induct t s rule: tmadd.induct)
+  apply (simp_all add: Let_def)
+  apply (case_tac "c1 +\<^sub>p c2 = 0\<^sub>p")
+  apply (case_tac "n1 \<le> n2")
+  apply simp_all
+  apply (case_tac "n1 = n2")
+  apply (simp_all add: field_simps)
   apply (simp only: distrib_left[symmetric])
   apply (auto simp del: polyadd simp add: polyadd[symmetric])
   done
@@ -311,7 +316,7 @@ lemma tmmul_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (tmmul t i
   by (induct t arbitrary: i rule: tmmul.induct) (auto simp add: Let_def)
 
 lemma tmmul_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "allpolys isnpoly t \<Longrightarrow> isnpoly c \<Longrightarrow> allpolys isnpoly (tmmul t c)"
   by (induct t rule: tmmul.induct) (simp_all add: Let_def polymul_norm)
 
@@ -337,7 +342,7 @@ lemma [simp]: "isnpoly (C (-1, 1))"
   unfolding isnpoly_def by simp
 
 lemma tmneg_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly (tmneg t)"
   unfolding tmneg_def by auto
 
@@ -354,7 +359,7 @@ lemma tmsub_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n s \<Longri
   using tmsub_def by simp
 
 lemma tmsub_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmsub t s)"
   unfolding tmsub_def by (simp add: isnpoly_def)
 
@@ -371,7 +376,7 @@ where
     (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
 
 lemma polynate_stupid:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a)"
   apply (subst polynate[symmetric])
   apply simp
@@ -390,17 +395,17 @@ lemma simptm_nlt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (simptm t
   by (induct t rule: simptm.induct) (auto simp add: Let_def)
 
 lemma [simp]: "isnpoly 0\<^sub>p"
-  and [simp]: "isnpoly (C(1,1))"
+  and [simp]: "isnpoly (C (1, 1))"
   by (simp_all add: isnpoly_def)
 
 lemma simptm_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "allpolys isnpoly (simptm p)"
   by (induct p rule: simptm.induct) (auto simp add: Let_def)
 
 declare let_cong[fundef_cong del]
 
-fun split0 :: "tm \<Rightarrow> (poly \<times> tm)"
+fun split0 :: "tm \<Rightarrow> poly \<times> tm"
 where
   "split0 (Bound 0) = ((1)\<^sub>p, CP 0\<^sub>p)"
 | "split0 (CNP 0 c t) = (let (c', t') = split0 t in (c +\<^sub>p c', t'))"
@@ -420,7 +425,7 @@ lemma split0_stupid[simp]: "\<exists>x y. (x, y) = split0 p"
   done
 
 lemma split0:
-  "tmbound 0 (snd (split0 t)) \<and> (Itm vs bs (CNP 0 (fst (split0 t)) (snd (split0 t))) = Itm vs bs t)"
+  "tmbound 0 (snd (split0 t)) \<and> Itm vs bs (CNP 0 (fst (split0 t)) (snd (split0 t))) = Itm vs bs t"
   apply (induct t rule: split0.induct)
   apply simp
   apply (simp add: Let_def split_def field_simps)
@@ -445,7 +450,7 @@ proof -
 qed
 
 lemma split0_nb0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "split0 t = (c',t') \<Longrightarrow>  tmbound 0 t'"
 proof -
   fix c' t'
@@ -457,7 +462,7 @@ proof -
 qed
 
 lemma split0_nb0'[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "tmbound0 (snd (split0 t))"
   using split0_nb0[of t "fst (split0 t)" "snd (split0 t)"]
   by (simp add: tmbound0_tmbound_iff)
@@ -485,13 +490,13 @@ lemma allpolys_split0: "allpolys isnpoly p \<Longrightarrow> allpolys isnpoly (s
   by (induct p rule: split0.induct) (auto simp  add: isnpoly_def Let_def split_def)
 
 lemma isnpoly_fst_split0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "allpolys isnpoly p \<Longrightarrow> isnpoly (fst (split0 p))"
   by (induct p rule: split0.induct)
     (auto simp  add: polyadd_norm polysub_norm polyneg_norm polymul_norm Let_def split_def)
 
 
-subsection\<open>Formulae\<close>
+subsection \<open>Formulae\<close>
 
 datatype fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
@@ -514,7 +519,7 @@ lemma fmsize_pos[termination_simp]: "fmsize p > 0"
   by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-primrec Ifm ::"'a::{linordered_field} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
+primrec Ifm ::"'a::linordered_field list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
 where
   "Ifm vs bs T = True"
 | "Ifm vs bs F = False"
@@ -731,27 +736,27 @@ lemma decr:
   using bnd nb nle
 proof (induct p arbitrary: bs m rule: fm.induct)
   case (E p bs m)
-  { fix x
+  have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p" for x
+  proof -
     from E
     have bnd: "boundslt (length (x#bs)) p"
       and nb: "bound (Suc m) p"
       and nle: "Suc m < length (x#bs)"
       by auto
-    from E(1)[OF bnd nb nle]
-    have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p" .
-  }
+    from E(1)[OF bnd nb nle] show ?thesis .
+  qed
   then show ?case by auto
 next
   case (A p bs m)
-  { fix x
+  have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p" for x
+  proof -
     from A
     have bnd: "boundslt (length (x#bs)) p"
       and nb: "bound (Suc m) p"
       and nle: "Suc m < length (x#bs)"
       by auto
-    from A(1)[OF bnd nb nle]
-    have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p" .
-  }
+    from A(1)[OF bnd nb nle] show ?thesis .
+  qed
   then show ?case by auto
 qed (auto simp add: decrtm removen_nth)
 
@@ -807,8 +812,9 @@ lemma subst:
   using nb nlm
 proof (induct p arbitrary: bs n t rule: fm.induct)
   case (E p bs n)
-  {
-    fix x
+  have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
+        Ifm vs (x#bs[n:= Itm vs bs t]) p" for x
+  proof -
     from E have bn: "boundslt (length (x#bs)) p"
       by simp
     from E have nlm: "Suc n \<le> length (x#bs)"
@@ -817,15 +823,15 @@ proof (induct p arbitrary: bs n t rule: fm.induct)
     have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
         Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p"
       by simp
-    then have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
-        Ifm vs (x#bs[n:= Itm vs bs t]) p"
+    then show ?thesis
       by (simp add: incrtm0[where x="x" and bs="bs" and t="t"])
-  }
+  qed
   then show ?case by simp
 next
   case (A p bs n)
-  {
-    fix x
+  have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
+        Ifm vs (x#bs[n:= Itm vs bs t]) p" for x
+  proof -
     from A have bn: "boundslt (length (x#bs)) p"
       by simp
     from A have nlm: "Suc n \<le> length (x#bs)"
@@ -834,10 +840,9 @@ next
     have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
         Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p"
       by simp
-    then have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) =
-        Ifm vs (x#bs[n:= Itm vs bs t]) p"
+    then show ?thesis
       by (simp add: incrtm0[where x="x" and bs="bs" and t="t"])
-  }
+  qed
   then show ?case by simp
 qed (auto simp add: tmsubst)
 
@@ -894,7 +899,7 @@ lemma iff_blt[simp]: "boundslt n p \<Longrightarrow> boundslt n q \<Longrightarr
 lemma decr0_qf: "bound0 p \<Longrightarrow> qfree (decr0 p)"
   by (induct p) simp_all
 
-fun isatom :: "fm \<Rightarrow> bool" (* test for atomicity *)
+fun isatom :: "fm \<Rightarrow> bool"  -- \<open>test for atomicity\<close>
 where
   "isatom T = True"
 | "isatom F = True"
@@ -918,8 +923,13 @@ definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow>
   where "evaldjf f ps \<equiv> foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm vs bs (djf f p q) = Ifm vs bs (Or (f p) q)"
-  by (cases "q=T", simp add: djf_def,cases "q=F", simp add: djf_def)
-    (cases "f p", simp_all add: Let_def djf_def)
+  apply (cases "q = T")
+  apply (simp add: djf_def)
+  apply (cases "q = F")
+  apply (simp add: djf_def)
+  apply (cases "f p")
+  apply (simp_all add: Let_def djf_def)
+  done
 
 lemma evaldjf_ex: "Ifm vs bs (evaldjf f ps) \<longleftrightarrow> (\<exists>p \<in> set ps. Ifm vs bs (f p))"
   by (induct ps) (simp_all add: evaldjf_def djf_Or)
@@ -927,12 +937,22 @@ lemma evaldjf_ex: "Ifm vs bs (evaldjf f ps) \<longleftrightarrow> (\<exists>p \<
 lemma evaldjf_bound0:
   assumes nb: "\<forall>x\<in> set xs. bound0 (f x)"
   shows "bound0 (evaldjf f xs)"
-  using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto)
+  using nb
+  apply (induct xs)
+  apply (auto simp add: evaldjf_def djf_def Let_def)
+  apply (case_tac "f a")
+  apply auto
+  done
 
 lemma evaldjf_qf:
   assumes nb: "\<forall>x\<in> set xs. qfree (f x)"
   shows "qfree (evaldjf f xs)"
-  using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto)
+  using nb
+  apply (induct xs)
+  apply (auto simp add: evaldjf_def djf_def Let_def)
+  apply (case_tac "f a")
+  apply auto
+  done
 
 fun disjuncts :: "fm \<Rightarrow> fm list"
 where
@@ -952,8 +972,8 @@ proof -
     by (simp only: list_all_iff)
 qed
 
-lemma disjuncts_qf: "qfree p \<Longrightarrow> \<forall>q\<in> set (disjuncts p). qfree q"
-proof-
+lemma disjuncts_qf: "qfree p \<Longrightarrow> \<forall>q \<in> set (disjuncts p). qfree q"
+proof -
   assume qf: "qfree p"
   then have "list_all qfree (disjuncts p)"
     by (induct p rule: disjuncts.induct) auto
@@ -1026,7 +1046,7 @@ where
       (yes, no) = partition bound0 cjs
      in conj (decr0 (list_conj yes)) (f (list_conj no)))"
 
-lemma conjuncts_qf: "qfree p \<Longrightarrow> \<forall>q\<in> set (conjuncts p). qfree q"
+lemma conjuncts_qf: "qfree p \<Longrightarrow> \<forall>q \<in> set (conjuncts p). qfree q"
 proof -
   assume qf: "qfree p"
   then have "list_all qfree (conjuncts p)"
@@ -1146,7 +1166,7 @@ definition "simpeq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then eq
 definition "simpneq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then neq s else NEq (CNP 0 c s))"
 
 lemma simplt_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "islin (simplt t)"
   unfolding simplt_def
   using split0_nb0'
@@ -1154,7 +1174,7 @@ lemma simplt_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly])
 
 lemma simple_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "islin (simple t)"
   unfolding simple_def
   using split0_nb0'
@@ -1162,7 +1182,7 @@ lemma simple_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] le_lin)
 
 lemma simpeq_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "islin (simpeq t)"
   unfolding simpeq_def
   using split0_nb0'
@@ -1170,7 +1190,7 @@ lemma simpeq_islin[simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] eq_lin)
 
 lemma simpneq_islin[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "islin (simpneq t)"
   unfolding simpneq_def
   using split0_nb0'
@@ -1181,7 +1201,7 @@ lemma really_stupid: "\<not> (\<forall>c1 s'. (c1, s') \<noteq> split0 s)"
   by (cases "split0 s") auto
 
 lemma split0_npoly:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
     and n: "allpolys isnpoly t"
   shows "isnpoly (fst (split0 t))"
     and "allpolys isnpoly (snd (split0 t))"
@@ -1195,20 +1215,18 @@ proof -
   have n: "allpolys isnpoly (simptm t)"
     by simp
   let ?t = "simptm t"
-  {
-    assume "fst (split0 ?t) = 0\<^sub>p"
-    then have ?thesis
+  show ?thesis
+  proof (cases "fst (split0 ?t) = 0\<^sub>p")
+    case True
+    then show ?thesis
       using split0[of "simptm t" vs bs] lt[OF split0_npoly(2)[OF n], of vs bs]
       by (simp add: simplt_def Let_def split_def lt)
-  }
-  moreover
-  {
-    assume "fst (split0 ?t) \<noteq> 0\<^sub>p"
-    then have ?thesis
-      using  split0[of "simptm t" vs bs]
+  next
+    case False
+    then show ?thesis
+      using split0[of "simptm t" vs bs]
       by (simp add: simplt_def Let_def split_def)
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma simple[simp]: "Ifm vs bs (simple t) = Ifm vs bs (Le t)"
@@ -1216,20 +1234,18 @@ proof -
   have n: "allpolys isnpoly (simptm t)"
     by simp
   let ?t = "simptm t"
-  {
-    assume "fst (split0 ?t) = 0\<^sub>p"
-    then have ?thesis
+  show ?thesis
+  proof (cases "fst (split0 ?t) = 0\<^sub>p")
+    case True
+    then show ?thesis
       using split0[of "simptm t" vs bs] le[OF split0_npoly(2)[OF n], of vs bs]
       by (simp add: simple_def Let_def split_def le)
-  }
-  moreover
-  {
-    assume "fst (split0 ?t) \<noteq> 0\<^sub>p"
-    then have ?thesis
+  next
+    case False
+    then show ?thesis
       using split0[of "simptm t" vs bs]
       by (simp add: simple_def Let_def split_def)
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma simpeq[simp]: "Ifm vs bs (simpeq t) = Ifm vs bs (Eq t)"
@@ -1237,19 +1253,17 @@ proof -
   have n: "allpolys isnpoly (simptm t)"
     by simp
   let ?t = "simptm t"
-  {
-    assume "fst (split0 ?t) = 0\<^sub>p"
-    then have ?thesis
+  show ?thesis
+  proof (cases "fst (split0 ?t) = 0\<^sub>p")
+    case True
+    then show ?thesis
       using split0[of "simptm t" vs bs] eq[OF split0_npoly(2)[OF n], of vs bs]
       by (simp add: simpeq_def Let_def split_def)
-  }
-  moreover
-  {
-    assume "fst (split0 ?t) \<noteq> 0\<^sub>p"
-    then have ?thesis using  split0[of "simptm t" vs bs]
+  next
+    case False
+    then show ?thesis using  split0[of "simptm t" vs bs]
       by (simp add: simpeq_def Let_def split_def)
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma simpneq[simp]: "Ifm vs bs (simpneq t) = Ifm vs bs (NEq t)"
@@ -1257,19 +1271,17 @@ proof -
   have n: "allpolys isnpoly (simptm t)"
     by simp
   let ?t = "simptm t"
-  {
-    assume "fst (split0 ?t) = 0\<^sub>p"
-    then have ?thesis
+  show ?thesis
+  proof (cases "fst (split0 ?t) = 0\<^sub>p")
+    case True
+    then show ?thesis
       using split0[of "simptm t" vs bs] neq[OF split0_npoly(2)[OF n], of vs bs]
       by (simp add: simpneq_def Let_def split_def)
-  }
-  moreover
-  {
-    assume "fst (split0 ?t) \<noteq> 0\<^sub>p"
-    then have ?thesis
+  next
+    case False
+    then show ?thesis
       using split0[of "simptm t" vs bs] by (simp add: simpneq_def Let_def split_def)
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 lemma lt_nb: "tmbound0 t \<Longrightarrow> bound0 (lt t)"
@@ -1305,7 +1317,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
   done
 
 lemma simplt_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simplt t)"
 proof (simp add: simplt_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1326,7 +1338,7 @@ proof (simp add: simplt_def Let_def split_def)
 qed
 
 lemma simple_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simple t)"
 proof(simp add: simple_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1347,7 +1359,7 @@ proof(simp add: simple_def Let_def split_def)
 qed
 
 lemma simpeq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpeq t)"
 proof (simp add: simpeq_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1368,7 +1380,7 @@ proof (simp add: simpeq_def Let_def split_def)
 qed
 
 lemma simpneq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpneq t)"
 proof (simp add: simpneq_def Let_def split_def)
   assume nb: "tmbound0 t"
@@ -1474,15 +1486,15 @@ proof clarify
     by blast+
   from cno_qf yes_qf have qf: "qfree (CJNB qe p)"
     by (simp add: CJNB_def Let_def split_def)
-  {
-    fix bs
+  have "Ifm vs bs p = ((Ifm vs bs ?cyes) \<and> (Ifm vs bs ?cno))" for bs
+  proof -
     from conjuncts have "Ifm vs bs p = (\<forall>q\<in> set ?cjs. Ifm vs bs q)"
       by blast
     also have "\<dots> = ((\<forall>q\<in> set ?yes. Ifm vs bs q) \<and> (\<forall>q\<in> set ?no. Ifm vs bs q))"
       using partition_set[OF part] by auto
-    finally have "Ifm vs bs p = ((Ifm vs bs ?cyes) \<and> (Ifm vs bs ?cno))"
+    finally show ?thesis
       using list_conj[of vs bs] by simp
-  }
+  qed
   then have "Ifm vs bs (E p) = (\<exists>x. (Ifm vs (x#bs) ?cyes) \<and> (Ifm vs (x#bs) ?cno))"
     by simp
   also fix y have "\<dots> = (\<exists>x. (Ifm vs (y#bs) ?cyes) \<and> (Ifm vs (x#bs) ?cno))"
@@ -1526,7 +1538,7 @@ lemma simpfm[simp]: "Ifm vs bs (simpfm p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: simpfm.induct) auto
 
 lemma simpfm_bound0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "bound0 p \<Longrightarrow> bound0 (simpfm p)"
   by (induct p rule: simpfm.induct) auto
 
@@ -1551,12 +1563,20 @@ lemma eq_qf[simp]: "qfree (eq t)"
   apply auto
   done
 
-lemma neq_qf[simp]: "qfree (neq t)" by (simp add: neq_def)
+lemma neq_qf[simp]: "qfree (neq t)"
+  by (simp add: neq_def)
 
-lemma simplt_qf[simp]: "qfree (simplt t)" by (simp add: simplt_def Let_def split_def)
-lemma simple_qf[simp]: "qfree (simple t)" by (simp add: simple_def Let_def split_def)
-lemma simpeq_qf[simp]: "qfree (simpeq t)" by (simp add: simpeq_def Let_def split_def)
-lemma simpneq_qf[simp]: "qfree (simpneq t)" by (simp add: simpneq_def Let_def split_def)
+lemma simplt_qf[simp]: "qfree (simplt t)"
+  by (simp add: simplt_def Let_def split_def)
+
+lemma simple_qf[simp]: "qfree (simple t)"
+  by (simp add: simple_def Let_def split_def)
+
+lemma simpeq_qf[simp]: "qfree (simpeq t)"
+  by (simp add: simpeq_def Let_def split_def)
+
+lemma simpneq_qf[simp]: "qfree (simpneq t)"
+  by (simp add: simpneq_def Let_def split_def)
 
 lemma simpfm_qf[simp]: "qfree p \<Longrightarrow> qfree (simpfm p)"
   by (induct p rule: simpfm.induct) auto
@@ -1567,7 +1587,7 @@ lemma conj_lin: "islin p \<Longrightarrow> islin q \<Longrightarrow> islin (conj
   by (simp add: conj_def)
 
 lemma
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (simp_all add: conj_lin disj_lin)
 
@@ -1596,13 +1616,13 @@ recdef prep "measure fmsize"
   "prep (Imp p q) = prep (Or (NOT p) q)"
   "prep (Iff p q) = disj (prep (And p q)) (prep (And (NOT p) (NOT q)))"
   "prep p = p"
-(hints simp add: fmsize_pos)
+  (hints simp add: fmsize_pos)
 
 lemma prep: "Ifm vs bs (prep p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: prep.induct) auto
 
 
-(* Generic quantifier elimination *)
+text \<open>Generic quantifier elimination.\<close>
 function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
 where
   "qelim (E p) = (\<lambda>qe. DJ (CJNB qe) (qelim p qe))"
@@ -1613,7 +1633,7 @@ where
 | "qelim (Imp p q) = (\<lambda>qe. imp (qelim p qe) (qelim q qe))"
 | "qelim (Iff p q) = (\<lambda>qe. iff (qelim p qe) (qelim q qe))"
 | "qelim p = (\<lambda>y. simpfm p)"
-by pat_completeness simp_all
+  by pat_completeness simp_all
 termination by (relation "measure fmsize") auto
 
 lemma qelim:
@@ -1625,7 +1645,7 @@ lemma qelim:
 
 subsection \<open>Core Procedure\<close>
 
-fun minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
+fun minusinf:: "fm \<Rightarrow> fm"  -- \<open>Virtual substitution of -\<infinity>\<close>
 where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)"
 | "minusinf (Or p q) = disj (minusinf p) (minusinf q)"
@@ -1635,7 +1655,7 @@ where
 | "minusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP (~\<^sub>p c)))"
 | "minusinf p = p"
 
-fun plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
+fun plusinf:: "fm \<Rightarrow> fm"  -- \<open>Virtual substitution of +\<infinity>\<close>
 where
   "plusinf (And p q) = conj (plusinf p) (plusinf q)"
 | "plusinf (Or p q) = disj (plusinf p) (plusinf q)"
@@ -1673,43 +1693,41 @@ next
   let ?c = "Ipoly vs c"
   fix y
   let ?e = "Itm vs (y#bs) e"
-  have "?c = 0 \<or> ?c > 0 \<or> ?c < 0" by arith
-  moreover {
-    assume "?c = 0"
-    then have ?case
+  consider "?c = 0" | "?c > 0" | "?c < 0" by arith
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis
       using eq[OF nc(2), of vs] eq[OF nc(1), of vs] by auto
-  }
-  moreover {
-    assume cp: "?c > 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x < - ?e"
-        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
+  next
+    case 2
+    have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x < - ?e"
+        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
-      then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
+      then show ?thesis
         using eqs tmbound0_I[OF nbe, where b="y" and b'="x" and vs=vs and bs=bs] by auto
-    }
-    then have ?case by auto
-  }
-  moreover {
-    assume cp: "?c < 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x > - ?e"
-        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
+    qed
+    then show ?thesis by auto
+  next
+    case 3
+    have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x > - ?e"
+        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
-      then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
+      then show ?thesis
         using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto
-    }
-    then have ?case by auto
-  }
-  ultimately show ?case by blast
+    qed
+    then show ?thesis by auto
+  qed
 next
   case (4 c e)
   then have nbe: "tmbound0 e"
@@ -1720,44 +1738,42 @@ next
   let ?c = "Ipoly vs c"
   fix y
   let ?e = "Itm vs (y#bs) e"
-  have "?c=0 \<or> ?c > 0 \<or> ?c < 0"
+  consider "?c = 0" | "?c > 0" | "?c < 0"
     by arith
-  moreover {
-    assume "?c = 0"
-    then have ?case
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis
       using eqs by auto
-  }
-  moreover {
-    assume cp: "?c > 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x < - ?e"
-        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
+  next
+    case 2
+    have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x < - ?e"
+        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
-      then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
+      then show ?thesis
         using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto
-    }
-    then have ?case by auto
-  }
-  moreover {
-    assume cp: "?c < 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x > - ?e"
-        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
+    qed
+    then show ?thesis by auto
+  next
+    case 3
+    have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x > - ?e"
+        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
-      then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
+      then show ?thesis
         using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto
-    }
-    then have ?case by auto
-  }
-  ultimately show ?case by blast
+    qed
+    then show ?thesis by auto
+  qed
 next
   case (5 c e)
   then have nbe: "tmbound0 e"
@@ -1770,42 +1786,40 @@ next
   let ?c = "Ipoly vs c"
   fix y
   let ?e = "Itm vs (y#bs) e"
-  have "?c=0 \<or> ?c > 0 \<or> ?c < 0"
+  consider "?c = 0" | "?c > 0" | "?c < 0"
     by arith
-  moreover {
-    assume "?c = 0"
-    then have ?case using eqs by auto
-  }
-  moreover {
-    assume cp: "?c > 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x < - ?e"
-        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis using eqs by auto
+  next
+    case 2
+    have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x < - ?e"
+        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0" by simp
-      then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto
-    }
-    then have ?case by auto
-  }
-  moreover {
-    assume cp: "?c < 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x > - ?e"
-        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
+      then show ?thesis
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs by auto
+    qed
+    then show ?thesis by auto
+  next
+    case 3
+    have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x > - ?e"
+        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
-      then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
-        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] cp by auto
-    }
-    then have ?case by auto
-  }
-  ultimately show ?case by blast
+      then show ?thesis
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> by auto
+    qed
+    then show ?thesis by auto
+  qed
 next
   case (6 c e)
   then have nbe: "tmbound0 e"
@@ -1818,44 +1832,42 @@ next
   let ?c = "Ipoly vs c"
   fix y
   let ?e = "Itm vs (y#bs) e"
-  have "?c = 0 \<or> ?c > 0 \<or> ?c < 0" by arith
-  moreover {
-    assume "?c = 0"
-    then have ?case using eqs by auto
-  }
-  moreover {
-    assume cp: "?c > 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x < - ?e"
-        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
+  consider "?c = 0" | "?c > 0" | "?c < 0" by arith
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis using eqs by auto
+  next
+    case 2
+    have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x < - ?e"
+        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
-      then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs
+      then show ?thesis
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs
         by auto
-    }
-    then have ?case by auto
-  }
-  moreover {
-    assume cp: "?c < 0"
-    {
-      fix x
-      assume xz: "x < -?e / ?c"
-      then have "?c * x > - ?e"
-        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
+    qed
+    then show ?thesis by auto
+  next
+    case 3
+    have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
+      if "x < -?e / ?c" for x
+    proof -
+      from that have "?c * x > - ?e"
+        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
-      then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs
+      then show ?thesis
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> eqs
         by auto
-    }
-    then have ?case by auto
-  }
-  ultimately show ?case by blast
+    qed
+    then show ?thesis by auto
+  qed
 qed auto
 
 lemma plusinf_inf:
@@ -2173,7 +2185,7 @@ lemma plusinf_uset0:
     and nmi: "\<not> (Ifm vs (x#bs) (plusinf p))"
     and ex: "Ifm vs (x#bs) p" (is "?I x p")
   shows "\<exists>(c, s) \<in> set (uset p). x \<le> - Itm vs (x#bs) s / Ipoly vs c"
-proof-
+proof -
   have "\<exists>(c, s) \<in> set (uset p).
       Ipoly vs c < 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s \<or>
       Ipoly vs c > 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s"
@@ -3379,7 +3391,7 @@ proof -
 qed
 
 lemma simpfm_lin:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (auto simp add: conj_lin disj_lin)
 
@@ -3704,7 +3716,7 @@ lemma msubstpos_nb:
     (auto simp add: msubsteq2_nb msubstltpos_nb msubstlepos_nb)
 
 lemma msubstneg_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubstneg p c t)"
@@ -3713,7 +3725,7 @@ lemma msubstneg_nb:
     (auto simp add: msubsteq2_nb msubstltneg_nb msubstleneg_nb)
 
 lemma msubst2_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0, field})"
+  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubst2 p c t)"
@@ -4196,7 +4208,7 @@ method_setup frpar2 = \<open>
   Parametric_Ferrante_Rackoff.method true
 \<close> "parametric QE for linear Arithmetic over fields, Version 2"
 
-lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y + 1) * x < 0"
+lemma "\<exists>(x::'a::linordered_field). y \<noteq> -1 \<longrightarrow> (y + 1) * x < 0"
   apply (frpar type: 'a pars: y)
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
@@ -4204,7 +4216,7 @@ lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y 
   apply simp
   done
 
-lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+lemma "\<exists>(x::'a::linordered_field). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
   apply (frpar2 type: 'a pars: y)
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
@@ -4212,10 +4224,10 @@ lemma "\<exists>(x::'a::{linordered_field}). y \<noteq> -1 \<longrightarrow> (y 
   apply simp
   done
 
-text\<open>Collins/Jones Problem\<close>
+text \<open>Collins/Jones Problem\<close>
 (*
 lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
-proof-
+proof -
   have "(\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: field_simps)
 have "?rhs"
@@ -4230,11 +4242,11 @@ apply (frpar type: "'a::{linordered_field, number_ring}" pars: "t::'a::{linorder
 oops
 *)
 
-text\<open>Collins/Jones Problem\<close>
+text \<open>Collins/Jones Problem\<close>
 
 (*
 lemma "\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0"
-proof-
+proof -
   have "(\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < (2 - 3*r) *(a^2 + b^2) + (2*a)*r \<and> (2 - 3*r) *(a^2 + b^2) + 4*a*r - 2*a - r < 0) \<longleftrightarrow> (\<exists>(r::'a::{linordered_field, number_ring}). 0 < r \<and> r < 1 \<and> 0 < 2 *(a^2 + b^2) - (3*(a^2 + b^2)) * r + (2*a)*r \<and> 2*(a^2 + b^2) - (3*(a^2 + b^2) - 4*a + 1)*r - 2*a < 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 by (simp add: field_simps)
 have "?rhs"
