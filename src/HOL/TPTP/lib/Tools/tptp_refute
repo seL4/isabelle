@@ -23,6 +23,8 @@ SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 TIMEOUT=$1
 shift
 
+isabelle build -b HOL-TPTP
+
 for FILE in "$@"
 do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \

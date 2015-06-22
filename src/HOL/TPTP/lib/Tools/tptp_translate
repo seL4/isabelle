@@ -23,6 +23,8 @@ SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 
 args=("$@")
 
+isabelle build -b HOL-TPTP
+
 echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
 ML {* ATP_Problem_Import.translate_tptp_file @{theory} \"${args[0]}\" \"${args[1]}\" *} end" \
   > /tmp/$SCRATCH.thy
