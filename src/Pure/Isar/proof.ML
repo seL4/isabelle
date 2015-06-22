@@ -162,8 +162,8 @@ and goal =
     goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
     after_qed:
-      ((context * thm list list) -> state -> state) *
-      ((context * thm list list) -> context -> context)};
+      (context * thm list list -> state -> state) *
+      (context * thm list list -> context -> context)};
 
 fun make_goal (statement, using, goal, before_qed, after_qed) =
   Goal {statement = statement, using = using, goal = goal,
@@ -234,11 +234,13 @@ val put_thms = map_context oo Proof_Context.put_thms;
 val get_facts = #facts o top;
 
 fun the_facts state =
-  (case get_facts state of SOME facts => facts
+  (case get_facts state of
+    SOME facts => facts
   | NONE => error "No current facts available");
 
 fun the_fact state =
-  (case the_facts state of [thm] => thm
+  (case the_facts state of
+    [thm] => thm
   | _ => error "Single theorem expected");
 
 fun put_facts facts =
@@ -336,11 +338,13 @@ fun map_goal f g h (State stack) =
       in State (Stack.make nd' (node' :: nodes')) end
   | _ => State stack);
 
-fun provide_goal goal = map_goal I (fn (statement, using, _, before_qed, after_qed) =>
-  (statement, using, goal, before_qed, after_qed)) I;
+fun provide_goal goal =
+  map_goal I (fn (statement, using, _, before_qed, after_qed) =>
+    (statement, using, goal, before_qed, after_qed)) I;
 
-fun using_facts using = map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
-  (statement, using, goal, before_qed, after_qed)) I;
+fun using_facts using =
+  map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
+    (statement, using, goal, before_qed, after_qed)) I;
 
 local
   fun find i state =
@@ -463,7 +467,8 @@ in
 fun refine_goals print_rule result_ctxt result state =
   let
     val (goal_ctxt, (_, goal)) = get_goal state;
-    fun refine rule st = (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
+    fun refine rule st =
+      (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
   in
     result
     |> Proof_Context.goal_export result_ctxt goal_ctxt
@@ -484,11 +489,11 @@ fun conclude_goal ctxt goal propss =
         error "Bad background theory of goal state";
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
-    fun lost_structure () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);
+    fun err_lost () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);
 
     val th =
       (Goal.conclude (if length (flat propss) > 1 then Thm.norm_proof goal else goal)
-        handle THM _ => lost_structure ())
+        handle THM _ => err_lost ())
       |> Drule.flexflex_unique (SOME ctxt)
       |> Thm.check_shyps (Variable.sorts_of ctxt)
       |> Thm.check_hyps (Context.Proof ctxt);
@@ -497,7 +502,7 @@ fun conclude_goal ctxt goal propss =
     val results =
       Conjunction.elim_balanced (length goal_propss) th
       |> map2 Conjunction.elim_balanced (map length goal_propss)
-      handle THM _ => lost_structure ();
+      handle THM _ => err_lost ();
     val _ =
       Unify.matches_list (Context.Proof ctxt) (flat goal_propss) (map Thm.prop_of (flat results))
         orelse error ("Proved a different theorem:\n" ^ Display.string_of_thm ctxt th);
@@ -505,7 +510,7 @@ fun conclude_goal ctxt goal propss =
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss
       | recover_result [] [] = []
-      | recover_result _ _ = lost_structure ();
+      | recover_result _ _ = err_lost ();
   in recover_result propss results end;
 
 val finished_goal_error = "Failed to finish proof";
