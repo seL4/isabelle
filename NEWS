@@ -62,6 +62,19 @@ chained facts.  This is particularly useful with 'consider':
     then show ?thesis <proof>
   qed
 
+* Nesting of Isar goal structure has been clarified: the context after
+the initial backwards refinement is retained for the whole proof, within
+all its context sections (as indicated via 'next'). This is e.g.
+relevant for 'using', 'including', 'supply':
+
+  have "A \<and> A" if a: A for A
+    supply [simp] = a
+  proof
+    show A by simp
+  next
+    show A by simp
+  qed
+
 
 *** Pure ***
 

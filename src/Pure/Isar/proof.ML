@@ -392,9 +392,7 @@ fun pretty_state state =
     val position_markup = Position.markup (Position.thread_data ()) Markup.position;
   in
     [Pretty.block
-      [Pretty.mark_str (position_markup, "proof"),
-        Pretty.str (" (" ^ mode_name mode ^ "): depth " ^ string_of_int (level state div 2 - 1))],
-      Pretty.str ""] @
+      [Pretty.mark_str (position_markup, "proof"), Pretty.str (" (" ^ mode_name mode ^ ")")]] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
        pretty_sep (pretty_facts ctxt "" facts) (prt_goal (try find_goal state))
@@ -841,7 +839,11 @@ val end_notepad =
 fun proof opt_text =
   assert_backward
   #> refine (the_default Method.default_text opt_text)
-  #> Seq.map (using_facts [] #> enter_forward);
+  #> Seq.map
+    (using_facts []
+      #> enter_forward
+      #> open_block
+      #> reset_goal);
 
 fun proof_results arg =
   Seq.APPEND (proof (Method.text arg) #> Seq.make_results,
@@ -925,17 +927,11 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     val chaining = can assert_chain state;
     val pos = Position.thread_data ();
 
-    val goal_state =
-      state
-      |> assert_forward_or_chain
-      |> enter_forward
-      |> open_block
-      |> map_context (K goal_ctxt);
     val goal_props = flat goal_propss;
-
     val vars = implicit_vars goal_props;
     val propss' = vars :: goal_propss;
     val goal_propss = filter_out null propss';
+
     val goal =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
       |> Thm.cterm_of goal_ctxt
@@ -945,15 +941,19 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     val after_qed' = after_qed |>> (fn after_local => fn results =>
       map_context (fold Variable.maybe_bind_term result_binds) #> after_local results);
   in
-    goal_state
-    |> map_context (init_context #> Variable.set_body true)
+    state
+    |> assert_forward_or_chain
+    |> enter_forward
+    |> open_block
+    |> enter_backward
+    |> map_context
+      (K goal_ctxt
+        #> init_context
+        #> Variable.set_body true
+        #> Proof_Context.auto_bind_goal goal_props)
     |> set_goal (make_goal (statement, [], Goal.init goal, before_qed, after_qed'))
-    |> map_context (Proof_Context.auto_bind_goal goal_props)
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
-    |> open_block
-    |> reset_goal
-    |> enter_backward
     |> not (null vars) ? refine_terms (length goal_propss)
     |> null goal_props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
