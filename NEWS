@@ -75,6 +75,9 @@ relevant for 'using', 'including', 'supply':
     show A by simp
   qed
 
+* Method "sleep" succeeds after a real-time delay (in seconds). This is
+occasionally useful for demonstration and testing purposes.
+
 
 *** Pure ***
 

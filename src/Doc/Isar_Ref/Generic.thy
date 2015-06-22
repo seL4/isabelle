@@ -67,11 +67,14 @@ text \<open>
     @{method_def frule}@{text "\<^sup>*"} & : & @{text method} \\
     @{method_def intro} & : & @{text method} \\
     @{method_def elim} & : & @{text method} \\
-    @{method_def succeed} & : & @{text method} \\
     @{method_def fail} & : & @{text method} \\
+    @{method_def succeed} & : & @{text method} \\
+    @{method_def sleep} & : & @{text method} \\
   \end{matharray}
 
   @{rail \<open>
+    @@{method sleep} @{syntax real}
+    ;
     (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thmrefs}
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
@@ -114,13 +117,17 @@ text \<open>
   this allows fine-tuned decomposition of a proof problem, in contrast
   to common automated tools.
 
+  \item @{method fail} yields an empty result sequence; it is the
+  identity of the ``@{text "|"}'' method combinator (cf.\
+  \secref{sec:proof-meth}).
+
   \item @{method succeed} yields a single (unchanged) result; it is
   the identity of the ``@{text ","}'' method combinator (cf.\
   \secref{sec:proof-meth}).
 
-  \item @{method fail} yields an empty result sequence; it is the
-  identity of the ``@{text "|"}'' method combinator (cf.\
-  \secref{sec:proof-meth}).
+  \item @{method sleep}~@{text s} succeeds after a real-time delay of @{text
+  s} seconds. This is occasionally useful for demonstration and testing
+  purposes.
 
   \end{description}
 

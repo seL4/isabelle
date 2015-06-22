@@ -69,6 +69,7 @@ sig
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val detect_closure_state: thm -> bool
   val RUNTIME: cases_tactic -> cases_tactic
+  val sleep: Time.time -> cases_tactic
   val evaluate: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
   val modifier: attribute -> Position.T -> modifier
@@ -431,6 +432,8 @@ fun detect_closure_state st =
 fun RUNTIME (tac: cases_tactic) st =
   if detect_closure_state st then Seq.empty else tac st;
 
+fun sleep t = RUNTIME (fn st => (OS.Process.sleep t; Seq.single ([], st)));
+
 
 (* evaluate method text *)
 
@@ -670,6 +673,8 @@ end;
 val _ = Theory.setup
  (setup @{binding fail} (Scan.succeed (K fail)) "force failure" #>
   setup @{binding succeed} (Scan.succeed (K succeed)) "succeed" #>
+  setup @{binding sleep} (Scan.lift Parse.real >> (fn s => fn _ => fn _ => sleep (seconds s)))
+    "succeed after delay (in seconds)" #>
   setup @{binding "-"} (Scan.succeed (K insert_facts))
     "do nothing (insert current facts only)" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
