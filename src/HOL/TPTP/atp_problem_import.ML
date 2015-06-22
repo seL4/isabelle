@@ -243,7 +243,7 @@ fun auto_etc_tac ctxt timeout assms i =
     (auto_tac ctxt THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) assms ATP_Proof.spassN))
   ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "z3" (smt_solver_tac "z3" ctxt i)
-  ORELSE SOLVE_TIMEOUT (timeout div 20) "cvc3" (smt_solver_tac "cvc3" ctxt i)
+  ORELSE SOLVE_TIMEOUT (timeout div 20) "cvc4" (smt_solver_tac "cvc4" ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "best" (best_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "force" (force_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "meson" (Meson.meson_tac ctxt [] i)
