@@ -14,7 +14,8 @@ local
 fun trace_method parser print =
   Scan.lift (Args.mode "dummy") -- parser >>
     (fn (dummy, x) => fn ctxt => SIMPLE_METHOD (fn st =>
-      (if dummy orelse not (Method_Closure.is_dummy st) then tracing (print ctxt x) else ();
+      (if dummy orelse not (Method.detect_closure_state st)
+       then tracing (print ctxt x) else ();
        all_tac st)));
 
 fun setup_trace_method binding parser print =

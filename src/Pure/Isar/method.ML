@@ -67,6 +67,8 @@ sig
   val method_closure: Proof.context -> Token.src -> Token.src
   val closure: bool Config.T
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
+  val detect_closure_state: thm -> bool
+  val RUNTIME: cases_tactic -> cases_tactic
   val evaluate: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
   val modifier: attribute -> Position.T -> modifier
@@ -417,6 +419,17 @@ fun method_cmd ctxt =
   check_src ctxt #>
   Config.get ctxt closure ? method_closure ctxt #>
   method ctxt;
+
+
+(* closure vs. runtime state *)
+
+fun detect_closure_state st =
+  (case try Logic.dest_term (Thm.concl_of (perhaps (try Goal.conclude) st)) of
+    NONE => false
+  | SOME t => Term.is_dummy_pattern t);
+
+fun RUNTIME (tac: cases_tactic) st =
+  if detect_closure_state st then Seq.empty else tac st;
 
 
 (* evaluate method text *)

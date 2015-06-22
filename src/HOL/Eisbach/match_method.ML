@@ -791,9 +791,8 @@ fun real_match using ctxt fixes m text pats goal =
 val match_parser =
   parse_match_kind :-- (fn kind =>
       Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
-    (fn (matches, bodies) => fn ctxt => fn using => fn goal =>
-      if Method_Closure.is_dummy goal then Seq.empty
-      else
+    (fn (matches, bodies) => fn ctxt => fn using =>
+      Method.RUNTIME (fn st =>
         let
           fun exec (pats, fixes, text) goal =
             let
@@ -801,7 +800,7 @@ val match_parser =
                 fold Variable.declare_term fixes ctxt
                 |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
             in real_match using ctxt' fixes matches text pats goal end;
-        in Seq.flat (Seq.FIRST (map exec bodies) goal) end);
+        in Seq.flat (Seq.FIRST (map exec bodies) st) end));
 
 val _ =
   Theory.setup

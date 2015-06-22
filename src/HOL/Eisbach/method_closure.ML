@@ -10,7 +10,6 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val is_dummy: thm -> bool
   val tag_free_thm: thm -> thm
   val is_free_thm: thm -> bool
   val dummy_free_thm: thm
@@ -70,11 +69,6 @@ val put_recursive_method = Local_Data.map o apsnd o K;
 
 
 (* free thm *)
-
-fun is_dummy thm =
-  (case try Logic.dest_term (Thm.concl_of (perhaps (try Goal.conclude) thm)) of
-    NONE => false
-  | SOME t => Term.is_dummy_pattern t);
 
 val free_thmN = "Method_Closure.free_thm";
 fun tag_free_thm thm = Thm.tag_rule (free_thmN, "") thm;
@@ -233,12 +227,9 @@ fun evaluate_named_theorems ctxt =
           Token.Fact (SOME name, evaluate_dynamic_thm ctxt name)
       | x => x);
 
-fun method_evaluate text ctxt : Method.method = fn facts => fn st =>
-  let
-    val ctxt' = Config.put Method.closure false ctxt;
-  in
-    if is_dummy st then Seq.empty
-    else Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st
+fun method_evaluate text ctxt facts =
+  let val ctxt' = Config.put Method.closure false ctxt in
+    Method.RUNTIME (fn st => Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st)
   end;
 
 fun evaluate_method_def fix_env raw_text ctxt =
