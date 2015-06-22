@@ -73,14 +73,14 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method sleep} @{syntax real}
-    ;
     (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thmrefs}
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
       ('(' @{syntax nat} ')')? @{syntax thmrefs}
     ;
     (@@{method intro} | @@{method elim}) @{syntax thmrefs}?
+    ;
+    @@{method sleep} @{syntax real}
   \<close>}
 
   \begin{description}
