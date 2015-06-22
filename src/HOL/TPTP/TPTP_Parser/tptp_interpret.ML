@@ -288,9 +288,19 @@ fun interpret_type config thy type_map thf_ty =
             Type_Ind => @{typ ind}
           | Type_Bool => HOLogic.boolT
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
+          (*FIXME these types are currently unsupported, so they're treated as
+          individuals*)
+          (*
           | Type_Int => @{typ int}
           | Type_Rat => @{typ rat}
           | Type_Real => @{typ real}
+          *)
+          | Type_Int =>
+              interpret_type config thy type_map (Defined_type Type_Ind)
+          | Type_Rat =>
+              interpret_type config thy type_map (Defined_type Type_Ind)
+          | Type_Real =>
+              interpret_type config thy type_map (Defined_type Type_Ind)
           | Type_Dummy => dummyT)
      | Sum_type _ =>
          raise MISINTERPRET_TYPE (*FIXME*)
@@ -305,13 +315,17 @@ fun interpret_type config thy type_map thf_ty =
 
 fun permute_type_args perm Ts = map (nth Ts) perm
 
-fun the_const thy const_map str tyargs =
+fun the_const config thy const_map str tyargs =
   (case AList.lookup (op =) const_map str of
       SOME (Const (s, _), tyarg_perm) =>
       Sign.mk_const thy (s, permute_type_args tyarg_perm tyargs)
-    | _ => raise MISINTERPRET_TERM
-        ("Could not find the interpretation of this constant in the \
-          \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, [])))
+    | _ =>
+      if const_exists config thy str then
+        Sign.mk_const thy ((Sign.full_name thy (mk_binding config str)), [])
+      else
+        raise MISINTERPRET_TERM
+            ("Could not find the interpretation of this constant in the \
+              \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, [])))
 
 (*Eta-expands n-ary function.
  "str" is the name of an Isabelle/HOL constant*)
@@ -360,6 +374,7 @@ fun arity_of interpreted_symbol = case interpreted_symbol of
 fun type_arity_of_symbol thy config (Uninterpreted n) =
     let val s = full_name thy config n in
       length (Sign.const_typargs thy (s, Sign.the_const_type thy s))
+      handle TYPE _ => 0
     end
   | type_arity_of_symbol _ _ _ = 0
 
@@ -368,7 +383,7 @@ fun interpret_symbol config const_map symb tyargs thy =
      Uninterpreted n =>
        (*Constant would have been added to the map at the time of
        declaration*)
-       the_const thy const_map n tyargs
+       the_const config thy const_map n tyargs
    | Interpreted_ExtraLogic interpreted_symbol =>
        (*FIXME not interpreting*)
        Sign.mk_const thy ((Sign.full_name thy (mk_binding config
@@ -513,10 +528,10 @@ fun interpret_term formula_level config language const_map var_types type_map
                 var_types type_map (hd tptp_ts)))
            | _ =>
               let
-                val typ_arity = type_arity_of_symbol thy config symb
+                val typ_arity = type_arity_of_symbol thy' config symb
                 val (tptp_type_args, tptp_term_args) = chop typ_arity tptp_ts
                 val tyargs =
-                  map (interpret_type config thy type_map o termtype_to_type)
+                  map (interpret_type config thy' type_map o termtype_to_type)
                     tptp_type_args
               in
                 (*apply symb to tptp_ts*)
@@ -564,12 +579,27 @@ fun interpret_term formula_level config language const_map var_types type_map
   | Term_Num (number_kind, num) =>
       let
         (*FIXME hack*)
+        (*
         val tptp_type = case number_kind of
             Int_num => Type_Int
           | Real_num => Type_Real
           | Rat_num => Type_Rat
         val T = interpret_type config thy type_map (Defined_type tptp_type)
       in (HOLogic.mk_number T (the (Int.fromString num)), thy) end
+      *)
+
+       val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
+       val prefix = case number_kind of
+           Int_num => "intn_"
+         | Real_num => "realn_"
+         | Rat_num => "ratn_"
+       val const_name = prefix ^ num
+     in
+       if const_exists config thy const_name then
+         (Sign.mk_const thy ((Sign.full_name thy (mk_binding config const_name)), []), thy)
+       else
+         declare_constant config const_name ind_type thy
+     end
   | Term_Distinct_Object str =>
       declare_constant config ("do_" ^ str)
         (interpret_type config thy type_map (Defined_type Type_Ind)) thy
