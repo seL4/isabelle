@@ -154,7 +154,8 @@ instance "fun" :: (type, comm_semiring_1) comm_semiring_1 ..
 
 instance "fun" :: (type, semiring_1_cancel) semiring_1_cancel ..
 
-instance "fun" :: (type, comm_semiring_1_cancel) comm_semiring_1_cancel ..
+instance "fun" :: (type, comm_semiring_1_cancel) comm_semiring_1_cancel 
+  by default (auto simp add: times_fun_def algebra_simps)
 
 instance "fun" :: (type, semiring_char_0) semiring_char_0
 proof

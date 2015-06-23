@@ -95,7 +95,7 @@ by (rule not_sym) (rule zero_neq_one)
 
 definition of_bool :: "bool \<Rightarrow> 'a"
 where
-  "of_bool p = (if p then 1 else 0)" 
+  "of_bool p = (if p then 1 else 0)"
 
 lemma of_bool_eq [simp, code]:
   "of_bool False = 0"
@@ -113,8 +113,8 @@ lemma split_of_bool [split]:
 lemma split_of_bool_asm:
   "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
   by (cases p) simp_all
-  
-end  
+
+end
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
@@ -130,7 +130,7 @@ lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
   unfolding dvd_def ..
 
 lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>k. a = b * k \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding dvd_def by blast 
+  unfolding dvd_def by blast
 
 end
 
@@ -165,7 +165,7 @@ lemma dvd_mult [simp]:
 
 lemma dvd_mult2 [simp]:
   "a dvd b \<Longrightarrow> a dvd (b * c)"
-  using dvd_mult [of a b c] by (simp add: ac_simps) 
+  using dvd_mult [of a b c] by (simp add: ac_simps)
 
 lemma dvd_triv_right [simp]:
   "a dvd b * a"
@@ -193,7 +193,7 @@ lemma dvd_mult_left:
 lemma dvd_mult_right:
   "a * b dvd c \<Longrightarrow> b dvd c"
   using dvd_mult_left [of b a c] by (simp add: ac_simps)
-  
+
 end
 
 class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
@@ -237,19 +237,14 @@ subclass semiring_1 ..
 
 end
 
-class comm_semiring_1_cancel = comm_semiring + cancel_comm_monoid_add
-  + zero_neq_one + comm_monoid_mult
+class comm_semiring_1_cancel = comm_semiring + cancel_comm_monoid_add +
+                               zero_neq_one + comm_monoid_mult +
+  assumes right_diff_distrib' [algebra_simps]: "a * (b - c) = a * b - a * c"
 begin
 
 subclass semiring_1_cancel ..
 subclass comm_semiring_0_cancel ..
 subclass comm_semiring_1 ..
-
-end
-
-class comm_semiring_1_diff_distrib = comm_semiring_1_cancel +
-  assumes right_diff_distrib' [algebra_simps]: "a * (b - c) = a * b - a * c"
-begin
 
 lemma left_diff_distrib' [algebra_simps]:
   "(b - c) * a = b * a - c * a"
@@ -266,7 +261,7 @@ proof -
     then obtain d where "a * c + b = a * d" ..
     then have "a * c + b - a * c = a * d - a * c" by simp
     then have "b = a * d - a * c" by simp
-    then have "b = a * (d - c)" by (simp add: algebra_simps) 
+    then have "b = a * (d - c)" by (simp add: algebra_simps)
     then show ?Q ..
   qed
   then show "a dvd c * a + b \<longleftrightarrow> a dvd b" by (simp add: ac_simps)
@@ -314,10 +309,10 @@ subclass semiring_0_cancel ..
 text {* Distribution rules *}
 
 lemma minus_mult_left: "- (a * b) = - a * b"
-by (rule minus_unique) (simp add: distrib_right [symmetric]) 
+by (rule minus_unique) (simp add: distrib_right [symmetric])
 
 lemma minus_mult_right: "- (a * b) = a * - b"
-by (rule minus_unique) (simp add: distrib_left [symmetric]) 
+by (rule minus_unique) (simp add: distrib_left [symmetric])
 
 text{*Extract signs from products*}
 lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
@@ -380,9 +375,7 @@ class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult
 begin
 
 subclass ring_1 ..
-subclass comm_semiring_1_cancel ..
-
-subclass comm_semiring_1_diff_distrib
+subclass comm_semiring_1_cancel
   by unfold_locales (simp add: algebra_simps)
 
 lemma dvd_minus_iff [simp]: "x dvd - y \<longleftrightarrow> x dvd y"
@@ -447,11 +440,11 @@ begin
 
 lemma mult_left_cancel:
   "c \<noteq> 0 \<Longrightarrow> c * a = c * b \<longleftrightarrow> a = b"
-  by simp 
+  by simp
 
 lemma mult_right_cancel:
   "c \<noteq> 0 \<Longrightarrow> a * c = b * c \<longleftrightarrow> a = b"
-  by simp 
+  by simp
 
 end
 
@@ -496,7 +489,7 @@ by (insert mult_cancel_right [of 1 c b], force)
 lemma mult_cancel_right2 [simp]:
   "a * c = c \<longleftrightarrow> c = 0 \<or> a = 1"
 by (insert mult_cancel_right [of a c 1], simp)
- 
+
 lemma mult_cancel_left1 [simp]:
   "c = c * b \<longleftrightarrow> c = 0 \<or> b = 1"
 by (insert mult_cancel_left [of c 1 b], force)
@@ -507,7 +500,7 @@ by (insert mult_cancel_left [of c a 1], simp)
 
 end
 
-class semidom = comm_semiring_1_diff_distrib + semiring_no_zero_divisors
+class semidom = comm_semiring_1_cancel + semiring_no_zero_divisors
 
 class idom = comm_ring_1 + semiring_no_zero_divisors
 begin
@@ -553,10 +546,10 @@ end
 text {*
   The theory of partially ordered rings is taken from the books:
   \begin{itemize}
-  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
+  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979
   \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
   \end{itemize}
-  Most of the used notions can also be looked up in 
+  Most of the used notions can also be looked up in
   \begin{itemize}
   \item @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
@@ -640,7 +633,7 @@ lemma dvd_div_mult_self [simp]:
 lemma dvd_mult_div_cancel [simp]:
   "a dvd b \<Longrightarrow> a * (b div a) = b"
   using dvd_div_mult_self [of a b] by (simp add: ac_simps)
-  
+
 lemma div_mult_swap:
   assumes "c dvd b"
   shows "a * (b div c) = (a * b) div c"
@@ -658,7 +651,7 @@ lemma dvd_div_mult:
   shows "b div c * a = (b * a) div c"
   using assms div_mult_swap [of c b a] by (simp add: ac_simps)
 
-  
+
 text \<open>Units: invertible elements in a ring\<close>
 
 abbreviation is_unit :: "'a \<Rightarrow> bool"
@@ -669,7 +662,7 @@ lemma not_is_unit_0 [simp]:
   "\<not> is_unit 0"
   by simp
 
-lemma unit_imp_dvd [dest]: 
+lemma unit_imp_dvd [dest]:
   "is_unit b \<Longrightarrow> b dvd a"
   by (rule dvd_trans [of _ 1]) simp_all
 
@@ -716,8 +709,8 @@ qed
 
 lemma unit_prod [intro]:
   "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a * b)"
-  by (subst mult_1_left [of 1, symmetric]) (rule mult_dvd_mono) 
-  
+  by (subst mult_1_left [of 1, symmetric]) (rule mult_dvd_mono)
+
 lemma unit_div [intro]:
   "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a div b)"
   by (erule is_unitE [of b a]) (simp add: ac_simps unit_prod)
@@ -794,7 +787,7 @@ lemma unit_eq_div2:
 lemma unit_mult_left_cancel:
   assumes "is_unit a"
   shows "a * b = a * c \<longleftrightarrow> b = c" (is "?P \<longleftrightarrow> ?Q")
-  using assms mult_cancel_left [of a b c] by auto 
+  using assms mult_cancel_left [of a b c] by auto
 
 lemma unit_mult_right_cancel:
   "is_unit a \<Longrightarrow> b * a = c * a \<longleftrightarrow> b = c"
@@ -809,12 +802,12 @@ proof -
     by (rule unit_mult_right_cancel)
   with assms show ?thesis by simp
 qed
-  
+
 
 text \<open>Associated elements in a ring --- an equivalence relation induced
   by the quasi-order divisibility.\<close>
 
-definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
+definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 where
   "associated a b \<longleftrightarrow> a dvd b \<and> b dvd a"
 
@@ -877,10 +870,10 @@ next
   then have "is_unit c" by auto
   with `a = c * b` that show thesis by blast
 qed
-  
-lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff 
+
+lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff
   dvd_div_unit_iff unit_div_mult_swap unit_div_commute
-  unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel 
+  unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel
   unit_eq_div1 unit_eq_div2
 
 end
@@ -919,10 +912,10 @@ lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarro
 using mult_right_mono [of a 0 b] by simp
 
 text {* Legacy - use @{text mult_nonpos_nonneg} *}
-lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0" 
+lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0"
 by (drule mult_right_mono [of b 0], auto)
 
-lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> 0" 
+lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> 0"
 by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
 
 end
@@ -937,7 +930,7 @@ subclass ordered_comm_monoid_add ..
 lemma mult_left_less_imp_less:
   "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
 by (force simp add: mult_left_mono not_le [symmetric])
- 
+
 lemma mult_right_less_imp_less:
   "a * c < b * c \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
 by (force simp add: mult_right_mono not_le [symmetric])
@@ -980,7 +973,7 @@ qed
 lemma mult_left_le_imp_le:
   "c * a \<le> c * b \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
 by (force simp add: mult_strict_left_mono _not_less [symmetric])
- 
+
 lemma mult_right_le_imp_le:
   "a * c \<le> b * c \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
 by (force simp add: mult_strict_right_mono not_less [symmetric])
@@ -995,7 +988,7 @@ lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
 using mult_strict_right_mono [of a 0 b] by simp
 
 text {* Legacy - use @{text mult_neg_pos} *}
-lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0" 
+lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
 by (drule mult_strict_right_mono [of b 0], auto)
 
 lemma zero_less_mult_pos:
@@ -1072,7 +1065,7 @@ qed
 
 end
 
-class ordered_comm_semiring = comm_semiring_0 + ordered_ab_semigroup_add + 
+class ordered_comm_semiring = comm_semiring_0 + ordered_ab_semigroup_add +
   assumes comm_mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
 begin
 
@@ -1118,7 +1111,7 @@ qed
 
 end
 
-class ordered_ring = ring + ordered_cancel_semiring 
+class ordered_ring = ring + ordered_cancel_semiring
 begin
 
 subclass ordered_ab_group_add ..
@@ -1239,7 +1232,7 @@ lemma mult_less_0_iff:
 
 lemma mult_le_0_iff:
   "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
-  apply (insert zero_le_mult_iff [of "-a" b]) 
+  apply (insert zero_le_mult_iff [of "-a" b])
   apply force
   done
 
@@ -1252,26 +1245,26 @@ text{*These ``disjunction'' versions produce two cases when the comparison is
 lemma mult_less_cancel_right_disj:
   "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
   apply (cases "c = 0")
-  apply (auto simp add: neq_iff mult_strict_right_mono 
+  apply (auto simp add: neq_iff mult_strict_right_mono
                       mult_strict_right_mono_neg)
-  apply (auto simp add: not_less 
+  apply (auto simp add: not_less
                       not_le [symmetric, of "a*c"]
                       not_le [symmetric, of a])
   apply (erule_tac [!] notE)
-  apply (auto simp add: less_imp_le mult_right_mono 
+  apply (auto simp add: less_imp_le mult_right_mono
                       mult_right_mono_neg)
   done
 
 lemma mult_less_cancel_left_disj:
   "c * a < c * b \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
   apply (cases "c = 0")
-  apply (auto simp add: neq_iff mult_strict_left_mono 
+  apply (auto simp add: neq_iff mult_strict_left_mono
                       mult_strict_left_mono_neg)
-  apply (auto simp add: not_less 
+  apply (auto simp add: not_less
                       not_le [symmetric, of "c*a"]
                       not_le [symmetric, of a])
   apply (erule_tac [!] notE)
-  apply (auto simp add: less_imp_le mult_left_mono 
+  apply (auto simp add: less_imp_le mult_left_mono
                       mult_left_mono_neg)
   done
 
@@ -1328,26 +1321,35 @@ end
 
 class linordered_semidom = semidom + linordered_comm_semiring_strict +
   assumes zero_less_one [simp]: "0 < 1"
+  assumes le_add_diff_inverse2 [simp]: "b \<le> a \<Longrightarrow> a - b + b = a"
 begin
 
+text {* Addition is the inverse of subtraction. *}
+
+lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
+  by (frule le_add_diff_inverse2) (simp add: add.commute)
+
+lemma add_diff_inverse: "~ a<b \<Longrightarrow> b + (a - b) = a"
+  by simp
+  
 lemma pos_add_strict:
   shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
   using add_strict_mono [of 0 a b c] by simp
 
 lemma zero_le_one [simp]: "0 \<le> 1"
-by (rule zero_less_one [THEN less_imp_le]) 
+by (rule zero_less_one [THEN less_imp_le])
 
 lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
-by (simp add: not_le) 
+by (simp add: not_le)
 
 lemma not_one_less_zero [simp]: "\<not> 1 < 0"
-by (simp add: not_less) 
+by (simp add: not_less)
 
 lemma less_1_mult:
   assumes "1 < m" and "1 < n"
   shows "1 < m * n"
   using assms mult_strict_mono [of 1 m 1 n]
-    by (simp add:  less_trans [OF zero_less_one]) 
+    by (simp add:  less_trans [OF zero_less_one])
 
 lemma mult_left_le: "c \<le> 1 \<Longrightarrow> 0 \<le> a \<Longrightarrow> a * c \<le> a"
   using mult_left_mono[of c 1 a] by simp
@@ -1371,7 +1373,9 @@ subclass linordered_semidom
 proof
   have "0 \<le> 1 * 1" by (rule zero_le_square)
   thus "0 < 1" by (simp add: le_less)
-qed 
+  show "\<And>b a. b \<le> a \<Longrightarrow> a - b + b = a"
+    by simp
+qed
 
 lemma linorder_neqE_linordered_idom:
   assumes "x \<noteq> y" obtains "x < y" | "y < x"
@@ -1461,7 +1465,7 @@ lemma dvd_if_abs_eq:
 by(subst abs_dvd_iff[symmetric]) simp
 
 text {* The following lemmas can be proven in more general structures, but
-are dangerous as simp rules in absence of @{thm neg_equal_zero}, 
+are dangerous as simp rules in absence of @{thm neg_equal_zero},
 @{thm neg_less_pos}, @{thm neg_less_eq_nonneg}. *}
 
 lemma equation_minus_iff_1 [simp, no_atp]:
@@ -1559,12 +1563,12 @@ subclass ordered_ring_abs proof
 qed (auto simp add: abs_if not_less mult_less_0_iff)
 
 lemma abs_mult:
-  "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>" 
+  "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
   by (rule abs_eq_mult) auto
 
 lemma abs_mult_self:
   "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
-  by (simp add: abs_if) 
+  by (simp add: abs_if)
 
 lemma abs_mult_less:
   "\<bar>a\<bar> < c \<Longrightarrow> \<bar>b\<bar> < d \<Longrightarrow> \<bar>a\<bar> * \<bar>b\<bar> < c * d"
@@ -1572,11 +1576,11 @@ proof -
   assume ac: "\<bar>a\<bar> < c"
   hence cpos: "0<c" by (blast intro: le_less_trans abs_ge_zero)
   assume "\<bar>b\<bar> < d"
-  thus ?thesis by (simp add: ac cpos mult_strict_mono) 
+  thus ?thesis by (simp add: ac cpos mult_strict_mono)
 qed
 
 lemma abs_less_iff:
-  "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < b" 
+  "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < b"
   by (simp add: less_le abs_le_iff) (auto simp add: abs_if)
 
 lemma abs_mult_pos:

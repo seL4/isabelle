@@ -282,9 +282,24 @@ instance proof
   show "n * m = m * n" by (induct n) simp_all
   show "(n * m) * q = n * (m * q)" by (induct n) (simp_all add: add_mult_distrib)
   show "(n + m) * q = n * q + m * q" by (rule add_mult_distrib)
+next
+  fix k m n :: nat
+  show "k * ((m::nat) - n) = (k * m) - (k * n)"
+    by (induct m n rule: diff_induct) simp_all
 qed
 
 end
+
+text {* Difference distributes over multiplication *}
+
+lemma diff_mult_distrib:
+  "((m::nat) - n) * k = (m * k) - (n * k)"
+  by (fact left_diff_distrib')
+
+lemma diff_mult_distrib2:
+  "k * ((m::nat) - n) = (k * m) - (k * n)"
+  by (fact right_diff_distrib')
+
 
 subsubsection {* Addition *}
 
@@ -363,24 +378,6 @@ lemma diff_add_0: "n - (n + m) = (0::nat)"
 
 lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
   unfolding One_nat_def by simp
-
-text {* Difference distributes over multiplication *}
-
-instance nat :: comm_semiring_1_diff_distrib
-proof
-  fix k m n :: nat
-  show "k * ((m::nat) - n) = (k * m) - (k * n)"
-    by (induct m n rule: diff_induct) simp_all
-qed
-
-lemma diff_mult_distrib:
-  "((m::nat) - n) * k = (m * k) - (n * k)"
-  by (fact left_diff_distrib')
-  
-lemma diff_mult_distrib2:
-  "k * ((m::nat) - n) = (k * m) - (k * n)"
-  by (fact right_diff_distrib')
-
 
 subsubsection {* Multiplication *}
 
@@ -488,7 +485,7 @@ lemma Suc_lessD: "Suc m < n \<Longrightarrow> m < n"
 instance
 proof
   fix n m :: nat
-  show "n < m \<longleftrightarrow> n \<le> m \<and> \<not> m \<le> n" 
+  show "n < m \<longleftrightarrow> n \<le> m \<and> \<not> m \<le> n"
   proof (induct n arbitrary: m)
     case 0 then show ?case by (cases m) (simp_all add: less_eq_Suc_le)
   next
@@ -550,7 +547,7 @@ lemma less_not_refl: "~ n < (n::nat)"
   by (rule order_less_irrefl)
 
 lemma less_not_refl2: "n < m ==> m \<noteq> (n::nat)"
-  by (rule not_sym) (rule less_imp_neq) 
+  by (rule not_sym) (rule less_imp_neq)
 
 lemma less_not_refl3: "(s::nat) < t ==> s \<noteq> t"
   by (rule less_imp_neq)
@@ -594,7 +591,7 @@ lemma nat_less_cases: assumes major: "(m::nat) < n ==> P n m"
 subsubsection {* Inductive (?) properties *}
 
 lemma Suc_lessI: "m < n ==> Suc m \<noteq> n ==> Suc m < n"
-  unfolding less_eq_Suc_le [of m] le_less by simp 
+  unfolding less_eq_Suc_le [of m] le_less by simp
 
 lemma lessE:
   assumes major: "i < k"
@@ -783,6 +780,12 @@ apply (induct_tac m)
 apply (simp_all add: add_less_mono)
 done
 
+text {* Addition is the inverse of subtraction:
+  if @{term "n \<le> m"} then @{term "n + (m - n) = m"}. *}
+lemma add_diff_inverse_nat: "~  m < n ==> n + (m - n) = (m::nat)"
+by (induct m n rule: diff_induct) simp_all
+
+
 text{*The naturals form an ordered @{text semidom}*}
 instance nat :: linordered_semidom
 proof
@@ -790,7 +793,9 @@ proof
   show "\<And>m n q :: nat. m \<le> n \<Longrightarrow> q + m \<le> q + n" by simp
   show "\<And>m n q :: nat. m < n \<Longrightarrow> 0 < q \<Longrightarrow> q * m < q * n" by (simp add: mult_less_mono2)
   show "\<And>m n :: nat. m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> m * n \<noteq> 0" by simp
-qed
+  show "\<And>m n :: nat. n \<le> m ==> (m - n) + n = (m::nat)"
+    by (simp add: add_diff_inverse_nat add.commute linorder_not_less)
+qed 
 
 
 subsubsection {* @{term min} and @{term max} *}
@@ -989,7 +994,7 @@ lemma infinite_descent:
   "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
 by (induct n rule: less_induct) auto
 
-lemma infinite_descent0[case_names 0 smaller]: 
+lemma infinite_descent0[case_names 0 smaller]:
   "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
 by (rule infinite_descent) (case_tac "n>0", auto)
 
@@ -1111,17 +1116,6 @@ by (force simp del: add_Suc_right
 
 
 subsubsection {* More results about difference *}
-
-text {* Addition is the inverse of subtraction:
-  if @{term "n \<le> m"} then @{term "n + (m - n) = m"}. *}
-lemma add_diff_inverse: "~  m < n ==> n + (m - n) = (m::nat)"
-by (induct m n rule: diff_induct) simp_all
-
-lemma le_add_diff_inverse [simp]: "n \<le> m ==> n + (m - n) = (m::nat)"
-by (simp add: add_diff_inverse linorder_not_less)
-
-lemma le_add_diff_inverse2 [simp]: "n \<le> m ==> (m - n) + n = (m::nat)"
-by (simp add: add.commute)
 
 lemma Suc_diff_le: "n \<le> m ==> Suc m - n = Suc (m - n)"
 by (induct m n rule: diff_induct) simp_all
@@ -1490,8 +1484,8 @@ lemma of_nat_neq_0 [simp]:
 
 lemma of_nat_0_neq [simp]:
   "0 \<noteq> of_nat (Suc n)"
-  unfolding of_nat_0_eq_iff by simp  
-  
+  unfolding of_nat_0_eq_iff by simp
+
 end
 
 context linordered_semidom
@@ -1770,7 +1764,7 @@ by (simp split add: nat_diff_split)
 lemma min_diff: "min (m - (i::nat)) (n - i) = min m n - i"
 by auto
 
-lemma inj_on_diff_nat: 
+lemma inj_on_diff_nat:
   assumes k_le_n: "\<forall>n \<in> N. k \<le> (n::nat)"
   shows "inj_on (\<lambda>n. n - k) N"
 proof (rule inj_onI)
@@ -1980,7 +1974,7 @@ subsection {* Aliases *}
 
 lemma nat_mult_1: "(1::nat) * n = n"
   by (fact mult_1_left)
- 
+
 lemma nat_mult_1_right: "n * (1::nat) = n"
   by (fact mult_1_right)
 

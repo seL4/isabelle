@@ -868,8 +868,6 @@ qed
 
 end
 
-instance poly :: (comm_semiring_1_cancel) comm_semiring_1_cancel ..
-
 instance poly :: (comm_ring) comm_ring ..
 
 instance poly :: (comm_ring_1) comm_ring_1 ..

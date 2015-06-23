@@ -11,7 +11,7 @@ begin
 
 subsection {* Ring structures with parity and @{text even}/@{text odd} predicates *}
 
-class semiring_parity = comm_semiring_1_diff_distrib + numeral +
+class semiring_parity = comm_semiring_1_cancel + numeral +
   assumes odd_one [simp]: "\<not> 2 dvd 1"
   assumes odd_even_add: "\<not> 2 dvd a \<Longrightarrow> \<not> 2 dvd b \<Longrightarrow> 2 dvd a + b"
   assumes even_multD: "2 dvd a * b \<Longrightarrow> 2 dvd a \<or> 2 dvd b"

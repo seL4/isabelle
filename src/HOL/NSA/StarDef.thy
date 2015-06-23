@@ -837,7 +837,7 @@ instance star :: (comm_semiring_1) comm_semiring_1 ..
 
 declare dvd_def [transfer_refold]
 
-instance star :: (comm_semiring_1_diff_distrib) comm_semiring_1_diff_distrib
+instance star :: (comm_semiring_1_cancel) comm_semiring_1_cancel
   by (intro_classes; transfer) (fact right_diff_distrib')
 
 instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors
@@ -847,7 +847,6 @@ instance star :: (semiring_no_zero_divisors_cancel) semiring_no_zero_divisors_ca
   by (intro_classes; transfer) simp_all
 
 instance star :: (semiring_1_cancel) semiring_1_cancel ..
-instance star :: (comm_semiring_1_cancel) comm_semiring_1_cancel ..
 instance star :: (ring) ring ..
 instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
@@ -902,7 +901,10 @@ instance star :: (linordered_ring_strict) linordered_ring_strict ..
 instance star :: (ordered_comm_ring) ordered_comm_ring ..
 
 instance star :: (linordered_semidom) linordered_semidom
-  by (intro_classes; transfer) (fact zero_less_one)
+  apply intro_classes
+  apply(transfer, fact zero_less_one)
+  apply(transfer, fact le_add_diff_inverse2)
+  done
 
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..
@@ -1005,7 +1007,6 @@ done
 
 instance star :: (semiring_numeral_div) semiring_numeral_div
 apply intro_classes
-apply(transfer, fact semiring_numeral_div_class.le_add_diff_inverse2)
 apply(transfer, fact semiring_numeral_div_class.div_less)
 apply(transfer, fact semiring_numeral_div_class.mod_less)
 apply(transfer, fact semiring_numeral_div_class.div_positive)
