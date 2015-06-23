@@ -292,6 +292,9 @@ fun extract_params mode default_params override_params =
 fun get_params mode = extract_params mode o default_raw_params mode
 fun default_params thy = get_params Normal thy o map (apsnd single)
 
+val silence_state =
+  Proof.map_contexts (Try0.silence_methods false #> Config.put SMT_Config.verbose false)
+
 (* Sledgehammer the given subgoal *)
 
 val default_learn_prover_timeout = 2.0
@@ -314,7 +317,7 @@ fun hammer_away override_params output_result subcommand opt_i fact_override sta
         end
     val state = state0
       |> (if null inserts then I else Proof.refine_insert inserts #> Proof.set_facts keep_chained)
-      |> Proof.map_contexts (Try0.silence_methods false #> Config.put SMT_Config.verbose false)
+      |> silence_state
 
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -324,9 +327,8 @@ fun hammer_away override_params output_result subcommand opt_i fact_override sta
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        ignore
-          (run_sledgehammer
-            (get_params Normal thy override_params) Normal output_result i fact_override state)
+        ignore (run_sledgehammer
+          (get_params Normal thy override_params) Normal output_result i fact_override state)
       end
     else if subcommand = messagesN then
       messages opt_i
@@ -400,7 +402,7 @@ fun try_sledgehammer auto state =
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override state
+    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (silence_state state)
   end
 
 val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
