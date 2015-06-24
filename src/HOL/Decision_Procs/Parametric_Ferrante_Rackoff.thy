@@ -164,11 +164,10 @@ next
   consider "n \<ge> ?l" | "n < ?l" by arith
   then show ?case
   proof cases
-    case 1 
-    then show ?thesis
-      using removen_same[OF 1] by simp
+    case 1
+    with removen_same[OF this] show ?thesis by simp
   next
-    case 2
+    case nl: 2
     consider "m < n" | "m \<ge> n" by arith
     then show ?thesis
     proof cases
@@ -184,17 +183,17 @@ next
         then show ?thesis
           using Cons by (cases m) auto
       next
-        case 2
+        case ml: 2
         have th: "length (removen n (x # xs)) = length xs"
-          using removen_length[where n = n and xs= "x # xs"] \<open>n < ?l\<close> by simp
-        with \<open>m > ?l\<close> have "m \<ge> length (removen n (x # xs))"
+          using removen_length[where n = n and xs= "x # xs"] nl by simp
+        with ml have "m \<ge> length (removen n (x # xs))"
           by auto
         from th nth_length_exceeds[OF this] have "(removen n (x # xs))!m = [] ! (m - length xs)"
            by auto
         then have "(removen n (x # xs))!m = [] ! (m - (length (x # xs) - 1))"
           by auto
         then show ?thesis
-          using \<open>n < ?l\<close> \<open>m > ?l\<close> \<open>m > ?l\<close> by auto
+          using ml nl by auto
       qed
     qed
   qed
@@ -1699,12 +1698,12 @@ next
     then show ?thesis
       using eq[OF nc(2), of vs] eq[OF nc(1), of vs] by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
@@ -1713,12 +1712,12 @@ next
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
@@ -1745,12 +1744,12 @@ next
     then show ?thesis
       using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
@@ -1759,12 +1758,12 @@ next
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
@@ -1792,30 +1791,30 @@ next
     case 1
     then show ?thesis using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0" by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs by auto
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs by auto
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then show ?thesis
-        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> by auto
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] c by auto
     qed
     then show ?thesis by auto
   qed
@@ -1837,32 +1836,32 @@ next
     case 1
     then show ?thesis using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using pos_less_divide_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs
         by auto
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
       if "x < -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using neg_less_divide_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_less_divide_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> eqs
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs
         by auto
     qed
     then show ?thesis by auto
@@ -1904,12 +1903,12 @@ next
     then show ?thesis
       using eq[OF nc(2), of vs] eq[OF nc(1), of vs] by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using pos_divide_less_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
@@ -1918,12 +1917,12 @@ next
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using neg_divide_less_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0" by simp
       then show ?thesis
@@ -1947,12 +1946,12 @@ next
     case 1
     then show ?thesis using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using pos_divide_less_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
@@ -1961,12 +1960,12 @@ next
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using neg_divide_less_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
@@ -1993,31 +1992,31 @@ next
     case 1
     then show ?thesis using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using pos_divide_less_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs by auto
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs by auto
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using neg_divide_less_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then show ?thesis
-        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> by auto
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] c by auto
     qed
     then show ?thesis by auto
   qed
@@ -2039,31 +2038,31 @@ next
     case 1
     then show ?thesis using eqs by auto
   next
-    case 2
+    case c: 2
     have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x > - ?e"
-        using pos_divide_less_eq[OF \<open>?c > 0\<close>, where a="x" and b="-?e"]
+        using pos_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c > 0\<close> eqs by auto
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs by auto
     qed
     then show ?thesis by auto
   next
-    case 3
+    case c: 3
     have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
       if "x > -?e / ?c" for x
     proof -
       from that have "?c * x < - ?e"
-        using neg_divide_less_eq[OF \<open>?c < 0\<close>, where a="x" and b="-?e"]
+        using neg_divide_less_eq[OF c, where a="x" and b="-?e"]
         by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then show ?thesis
-        using tmbound0_I[OF nbe, where b="y" and b'="x"] \<open>?c < 0\<close> eqs by auto
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] c eqs by auto
     qed
     then show ?thesis by auto
   qed
@@ -2234,8 +2233,6 @@ proof (induct p rule: islin.induct)
     by simp
   then have ycs: "y < - ?Nt x s / ?N c \<or> y > -?Nt x s / ?N c"
     by auto
-  have ccs: "?N c = 0 \<or> ?N c < 0 \<or> ?N c > 0"
-    by dlo
   consider "?N c = 0" | "?N c > 0" | "?N c < 0" by arith
   then show ?case
   proof cases
@@ -2243,15 +2240,15 @@ proof (induct p rule: islin.induct)
     then show ?thesis
       using px by (simp add: tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"])
   next
-    case 2
-    from px pos_less_divide_eq[OF 2, where a="x" and b="-?Nt x s"]
+    case N: 2
+    from px pos_less_divide_eq[OF N, where a="x" and b="-?Nt x s"]
     have px': "x < - ?Nt x s / ?N c"
       by (auto simp add: not_less field_simps)
     from ycs show ?thesis
     proof
       assume y: "y < - ?Nt x s / ?N c"
       then have "y * ?N c < - ?Nt x s"
-        by (simp add: pos_less_divide_eq[OF 2, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: pos_less_divide_eq[OF N, where a="y" and b="-?Nt x s", symmetric])
       then have "?N c * y + ?Nt x s < 0"
         by (simp add: field_simps)
       then show ?thesis using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"]
@@ -2267,15 +2264,15 @@ proof (induct p rule: islin.induct)
       then show ?thesis ..
     qed
   next
-    case 3
-    from px neg_divide_less_eq[OF 3, where a="x" and b="-?Nt x s"]
+    case N: 3
+    from px neg_divide_less_eq[OF N, where a="x" and b="-?Nt x s"]
     have px': "x > - ?Nt x s / ?N c"
       by (auto simp add: not_less field_simps)
     from ycs show ?thesis
     proof
       assume y: "y > - ?Nt x s / ?N c"
       then have "y * ?N c < - ?Nt x s"
-        by (simp add: neg_divide_less_eq[OF 3, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: neg_divide_less_eq[OF N, where a="y" and b="-?Nt x s", symmetric])
       then have "?N c * y + ?Nt x s < 0"
         by (simp add: field_simps)
       then show ?thesis using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"]
@@ -2310,15 +2307,15 @@ next
     then show ?thesis
       using px by (simp add: tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"])
   next
-    case 2
-    from px pos_le_divide_eq[OF 2, where a="x" and b="-?Nt x s"]
+    case N: 2
+    from px pos_le_divide_eq[OF N, where a="x" and b="-?Nt x s"]
     have px': "x \<le> - ?Nt x s / ?N c"
       by (simp add: not_less field_simps)
     from ycs show ?thesis
     proof
       assume y: "y < - ?Nt x s / ?N c"
       then have "y * ?N c < - ?Nt x s"
-        by (simp add: pos_less_divide_eq[OF 2, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: pos_less_divide_eq[OF N, where a="y" and b="-?Nt x s", symmetric])
       then have "?N c * y + ?Nt x s < 0"
         by (simp add: field_simps)
       then show ?thesis
@@ -2334,15 +2331,15 @@ next
       then show ?thesis ..
     qed
   next
-    case 3
-    from px neg_divide_le_eq[OF 3, where a="x" and b="-?Nt x s"]
+    case N: 3
+    from px neg_divide_le_eq[OF N, where a="x" and b="-?Nt x s"]
     have px': "x >= - ?Nt x s / ?N c"
       by (simp add: field_simps)
     from ycs show ?thesis
     proof
       assume y: "y > - ?Nt x s / ?N c"
       then have "y * ?N c < - ?Nt x s"
-        by (simp add: neg_divide_less_eq[OF 3, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: neg_divide_less_eq[OF N, where a="y" and b="-?Nt x s", symmetric])
       then have "?N c * y + ?Nt x s < 0"
         by (simp add: field_simps)
       then show ?thesis
@@ -2537,7 +2534,7 @@ proof -
       then obtain t2u t2n where t2uU: "(t2n, t2u) \<in> ?U"
         and t2u: "t2 = - ?Nt a t2u / ?N t2n"
         by blast
-      have "t1 < t2" 
+      have "t1 < t2"
         using \<open>t1 < a\<close> \<open>a < t2\<close> by simp
       let ?u = "(t1 + t2) / 2"
       have "t1 < ?u"
@@ -2585,7 +2582,7 @@ proof
       then show ?thesis by blast
     next
       case 2
-      from inf_uset[OF lp 2] have ?F
+      from inf_uset[OF lp this] have ?F
         using \<open>?E\<close> by blast
       then show ?thesis by blast
     qed
@@ -2660,7 +2657,7 @@ proof -
     then show ?thesis
       by (simp add: r[of 0] msubsteq_def Let_def evaldjf_ex)
   next
-    case 2
+    case cd: 2
     then have th: "(- ?t / ?c + - ?s / ?d)/2 = -?s / (2*?d)"
       by simp
     have "?rhs = Ifm vs (-?s / (2*?d) # bs) (Eq (CNP 0 a r))"
@@ -2668,34 +2665,35 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r = 0"
       by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (-?s / (2*?d)) + ?r) = 0"
-      using \<open>?d \<noteq> 0\<close> mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
+      using cd(2) mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2 * ?d * ?r= 0"
       by (simp add: field_simps distrib_left[of "2*?d"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r = 0"
-      using \<open>?d \<noteq> 0\<close> by simp
+      using cd(2) by simp
     finally show ?thesis
-      using 2
+      using cd
       by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubsteq_def Let_def evaldjf_ex)
   next
-    case 3
-    from \<open>?d = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2 * ?c)"
+    case cd: 3
+    from cd(2) have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2 * ?c)"
       by simp
     have "?rhs = Ifm vs (-?t / (2*?c) # bs) (Eq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r = 0"
       by (simp add: r[of "- (?t/ (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (-?t / (2 * ?c)) + ?r) = 0"
-      using \<open>?c \<noteq> 0\<close> mult_cancel_left[of "2 * ?c" "(?a * (-?t / (2 * ?c)) + ?r)" 0] by simp
+      using cd(1) mult_cancel_left[of "2 * ?c" "(?a * (-?t / (2 * ?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2 * ?c) / (2 * ?c) + 2 * ?c * ?r= 0"
       by (simp add: field_simps distrib_left[of "2 * ?c"] del: distrib_left)
-    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2 * ?c * ?r = 0" using \<open>?c \<noteq> 0\<close> by simp
-    finally show ?thesis using 3
+    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2 * ?c * ?r = 0"
+      using cd(1) by simp
+    finally show ?thesis using cd
       by (simp add: r[of "- (?t/ (2 * ?c))"] msubsteq_def Let_def evaldjf_ex)
   next
-    case 4
-    then have dc: "?c * ?d * 2 \<noteq> 0"
+    case cd: 4
+    then have cd2: "?c * ?d * 2 \<noteq> 0"
       by simp
-    from add_frac_eq[OF 4, of "- ?t" "- ?s"]
+    from add_frac_eq[OF cd, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2 * ?c * ?d)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Eq (CNP 0 a r))"
@@ -2703,12 +2701,13 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r = 0"
       by (simp add: r [of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) = 0"
-      using 4 mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2 * ?c * ?d)) + ?r" 0]
+      using cd mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2 * ?c * ?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2 * ?c * ?d * ?r = 0"
-      using nonzero_mult_divide_cancel_left [OF dc] 4
+      using nonzero_mult_divide_cancel_left [OF cd2] cd
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
-    finally show ?thesis using 4
+    finally show ?thesis
+      using cd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubsteq_def Let_def evaldjf_ex field_simps)
   qed
@@ -2765,43 +2764,43 @@ proof -
     then show ?thesis
       by (simp add: r[of 0] msubstneq_def Let_def evaldjf_ex)
   next
-    case 2
-    from \<open>?c = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = -?s / (2 * ?d)"
+    case cd: 2
+    from cd(1) have th: "(- ?t / ?c + - ?s / ?d)/2 = -?s / (2 * ?d)"
       by simp
     have "?rhs = Ifm vs (-?s / (2*?d) # bs) (NEq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r \<noteq> 0"
       by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
     also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) \<noteq> 0"
-      using \<open>?d \<noteq> 0\<close> mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
+      using cd(2) mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r\<noteq> 0"
       by (simp add: field_simps distrib_left[of "2*?d"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r \<noteq> 0"
-      using \<open>?d \<noteq> 0\<close> by simp
+      using cd(2) by simp
     finally show ?thesis
-      using 2
+      using cd
       by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"] msubstneq_def Let_def evaldjf_ex)
   next
-    case 3
-    from \<open>?d = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2*?c)"
+    case cd: 3
+    from cd(2) have th: "(- ?t / ?c + - ?s / ?d)/2 = -?t / (2*?c)"
       by simp
     have "?rhs = Ifm vs (-?t / (2*?c) # bs) (NEq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r \<noteq> 0"
       by (simp add: r[of "- (?t/ (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) \<noteq> 0"
-      using \<open>?c \<noteq> 0\<close> mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
+      using cd(1) mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r \<noteq> 0"
       by (simp add: field_simps distrib_left[of "2*?c"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r \<noteq> 0"
-      using \<open>?c \<noteq> 0\<close> by simp
+      using cd(1) by simp
     finally show ?thesis
-      using 3 by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex)
+      using cd by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex)
   next
-    case 4
-    then have dc: "?c * ?d *2 \<noteq> 0"
+    case cd: 4
+    then have cd2: "?c * ?d * 2 \<noteq> 0"
       by simp
-    from add_frac_eq[OF 4, of "- ?t" "- ?s"]
+    from add_frac_eq[OF cd, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c * ?s )/ (2 * ?c * ?d)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (NEq (CNP 0 a r))"
@@ -2809,13 +2808,13 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r \<noteq> 0"
       by (simp add: r [of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) \<noteq> 0"
-      using 4 mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
+      using cd mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0"
-      using nonzero_mult_divide_cancel_left[OF dc] 4
+      using nonzero_mult_divide_cancel_left[OF cd2] cd
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
-      using 4
+      using cd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubstneq_def Let_def evaldjf_ex field_simps)
   qed
@@ -2882,12 +2881,12 @@ proof -
     then show ?thesis
       using nc nd by (simp add: polyneg_norm lt r[of 0] msubstlt_def Let_def evaldjf_ex)
   next
-    case 2
-    then have dc': "2 *?c * ?d > 0"
+    case cd: 2
+    then have cd2: "2 * ?c * ?d > 0"
       by simp
-    from 2 have c: "?c \<noteq> 0" and d: "?d \<noteq> 0"
+    from cd have c: "?c \<noteq> 0" and d: "?d \<noteq> 0"
       by auto
-    from dc' have dc'': "\<not> 2 * ?c * ?d < 0" by simp
+    from cd2 have cd2': "\<not> 2 * ?c * ?d < 0" by simp
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s )/ (2 * ?c * ?d)"
       by (simp add: field_simps)
@@ -2896,20 +2895,21 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r < 0"
       by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) < 0"
-      using dc' dc''
+      using cd2 cd2'
         mult_less_cancel_left_disj[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r < 0"
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
-    finally show ?thesis using 2 c d nc nd dc'
+    finally show ?thesis
+      using cd c d nc nd cd2'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   next
-    case 3
-    then have dc': "2 * ?c * ?d < 0"
+    case cd: 3
+    then have cd2: "2 * ?c * ?d < 0"
       by (simp add: mult_less_0_iff field_simps)
-    from 3 have c: "?c \<noteq> 0" and d: "?d \<noteq> 0"
+    from cd have c: "?c \<noteq> 0" and d: "?d \<noteq> 0"
       by auto
     from add_frac_eq[OF c d, of "- ?t" "- ?s"]
     have th: "(- ?t / ?c + - ?s / ?d)/2 = - (?d * ?t + ?c* ?s) / (2 * ?c * ?d)"
@@ -2919,103 +2919,108 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2 * ?c * ?d)) + ?r < 0"
       by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c * ?s )/ (2 * ?c * ?d)) + ?r) > 0"
-      using dc' order_less_not_sym[OF dc']
+      using cd2 order_less_not_sym[OF cd2]
         mult_less_cancel_left_disj[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2 * ?c * ?d * ?r < 0"
       using nonzero_mult_divide_cancel_left[of "2 * ?c * ?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
-    finally show ?thesis using 3 c d nc nd
+    finally show ?thesis
+      using cd c d nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   next
-    case 4
-    from \<open>?c > 0\<close> have c'': "2 * ?c > 0"
+    case cd: 4
+    from cd(1) have c'': "2 * ?c > 0"
       by (simp add: zero_less_mult_iff)
-    from \<open>?c > 0\<close> have c': "2 * ?c \<noteq> 0"
+    from cd(1) have c': "2 * ?c \<noteq> 0"
       by simp
-    from \<open>?d = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2 * ?c)"
+    from cd(2) have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2 * ?c)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2 * ?c) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2 * ?c))+ ?r < 0"
       by (simp add: r[of "- (?t / (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) < 0"
-      using \<open>?c > 0\<close> mult_less_cancel_left_disj[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c''
+      using cd(1) mult_less_cancel_left_disj[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c''
         order_less_not_sym[OF c'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?t + 2 * ?c * ?r < 0"
       using nonzero_mult_divide_cancel_left[OF c'] \<open>?c > 0\<close>
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
-    finally show ?thesis using 4 nc nd
+    finally show ?thesis
+      using cd nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
   next
-    case 5
-    from \<open>?c < 0\<close> have c': "2 * ?c \<noteq> 0"
+    case cd: 5
+    from cd(1) have c': "2 * ?c \<noteq> 0"
       by simp
-    from \<open>?c < 0\<close> have c'': "2 * ?c < 0"
+    from cd(1) have c'': "2 * ?c < 0"
       by (simp add: mult_less_0_iff)
-    from \<open>?d = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2 * ?c)"
+    from cd(2) have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?t / (2 * ?c)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2*?c))+ ?r < 0"
       by (simp add: r[of "- (?t / (2*?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) > 0"
-      using \<open>?c < 0\<close> order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
+      using cd(1) order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
         mult_less_cancel_left_disj[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r < 0"
-      using nonzero_mult_divide_cancel_left[OF c'] \<open>?c < 0\<close> order_less_not_sym[OF c'']
+      using nonzero_mult_divide_cancel_left[OF c'] cd(1) order_less_not_sym[OF c'']
           less_imp_neq[OF c''] c''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
-    finally show ?thesis using 5 nc nd
+    finally show ?thesis
+      using cd nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
   next
-    case 6
-    from \<open>?d > 0\<close> have d'': "2 * ?d > 0"
+    case cd: 6
+    from cd(2) have d'': "2 * ?d > 0"
       by (simp add: zero_less_mult_iff)
-    from \<open>?d > 0\<close> have d': "2 * ?d \<noteq> 0"
+    from cd(2) have d': "2 * ?d \<noteq> 0"
       by simp
-    from \<open>?c = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2 * ?d)"
+    from cd(1) have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2 * ?d)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2 * ?d) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?s / (2 * ?d))+ ?r < 0"
       by (simp add: r[of "- (?s / (2 * ?d))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (- ?s / (2 * ?d))+ ?r) < 0"
-      using \<open>?d > 0\<close> mult_less_cancel_left_disj[of "2 * ?d" "?a * (- ?s / (2 * ?d))+ ?r" 0] d' d''
+      using cd(2) mult_less_cancel_left_disj[of "2 * ?d" "?a * (- ?s / (2 * ?d))+ ?r" 0] d' d''
         order_less_not_sym[OF d'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?s+  2 * ?d * ?r < 0"
-      using nonzero_mult_divide_cancel_left[OF d'] \<open>?d > 0\<close>
+      using nonzero_mult_divide_cancel_left[OF d'] cd(2)
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
-    finally show ?thesis using 6 nc nd
+    finally show ?thesis
+      using cd nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
   next
-    case 7
-    from \<open>?d < 0\<close> have d': "2 * ?d \<noteq> 0"
+    case cd: 7
+    from cd(2) have d': "2 * ?d \<noteq> 0"
       by simp
-    from \<open>?d < 0\<close> have d'': "2 * ?d < 0"
+    from cd(2) have d'': "2 * ?d < 0"
       by (simp add: mult_less_0_iff)
-    from \<open>?c = 0\<close> have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"
+    from cd(1) have th: "(- ?t / ?c + - ?s / ?d)/2 = - ?s / (2*?d)"
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2 * ?d) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?s / (2 * ?d)) + ?r < 0"
       by (simp add: r[of "- (?s / (2 * ?d))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (- ?s / (2 * ?d)) + ?r) > 0"
-      using \<open>?d < 0\<close> order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
+      using cd(2) order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
         mult_less_cancel_left_disj[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ?s -  2 * ?d * ?r < 0"
-      using nonzero_mult_divide_cancel_left[OF d'] \<open>?d < 0\<close> order_less_not_sym[OF d'']
+      using nonzero_mult_divide_cancel_left[OF d'] cd(2) order_less_not_sym[OF d'']
           less_imp_neq[OF d''] d''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
-    finally show ?thesis using 7 nc nd
+    finally show ?thesis
+      using cd nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
   qed

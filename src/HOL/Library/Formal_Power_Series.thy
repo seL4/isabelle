@@ -494,15 +494,15 @@ proof
     then show ?thesis
       by (cases "c = a") (simp_all add: th dist_fps_sym)
   next
-    case 3
+    case neq: 3
     def n \<equiv> "\<lambda>a b::'a fps. LEAST n. a$n \<noteq> b$n"
     then have n': "\<And>m a b. m < n a b \<Longrightarrow> a$m = b$m"
       by (auto dest: not_less_Least)
-    from 3 have dab: "dist a b = inverse (2 ^ n a b)"
+    from neq have dab: "dist a b = inverse (2 ^ n a b)"
       and dac: "dist a c = inverse (2 ^ n a c)"
       and dbc: "dist b c = inverse (2 ^ n b c)"
       by (simp_all add: dist_fps_def n_def fps_eq_iff)
-    from 3 have nz: "dist a b \<noteq> 0" "dist a c \<noteq> 0" "dist b c \<noteq> 0"
+    from neq have nz: "dist a b \<noteq> 0" "dist a c \<noteq> 0" "dist b c \<noteq> 0"
       unfolding th by simp_all
     from nz have pos: "dist a b > 0" "dist a c > 0" "dist b c > 0"
       using dist_fps_ge0[of a b] dist_fps_ge0[of a c] dist_fps_ge0[of b c]
@@ -1073,7 +1073,7 @@ proof (cases "a$0 = 0")
     then show ?thesis by simp
   next
     case 2
-    from startsby_zero_power[OF True 2] eq show ?thesis
+    from startsby_zero_power[OF True this] eq show ?thesis
       by (simp add: fps_inverse_def)
   qed
 next
@@ -1129,23 +1129,23 @@ proof -
     by blast
   then show ?thesis
   proof cases
-    case 1
+    case a: 1
     then have "(a * b) $ 0 = 0"
       by (simp add: fps_mult_nth)
-    with 1 have th: "inverse a = 0" "inverse (a * b) = 0"
+    with a have th: "inverse a = 0" "inverse (a * b) = 0"
       by simp_all
     show ?thesis
       unfolding th by simp
   next
-    case 2
+    case b: 2
     then have "(a * b) $ 0 = 0"
       by (simp add: fps_mult_nth)
-    with 2 have th: "inverse b = 0" "inverse (a * b) = 0"
+    with b have th: "inverse b = 0" "inverse (a * b) = 0"
       by simp_all
     show ?thesis
       unfolding th by simp
   next
-    case 3
+    case ab: 3
     then have ab0:"(a * b) $ 0 \<noteq> 0"
       by (simp add: fps_mult_nth)
     from inverse_mult_eq_1[OF ab0]
@@ -1154,7 +1154,7 @@ proof -
     then have "inverse (a*b) * (inverse a * a) * (inverse b * b) = inverse a * inverse b"
       by (simp add: field_simps)
     then show ?thesis
-      using inverse_mult_eq_1[OF \<open>a $ 0 \<noteq> 0\<close>] inverse_mult_eq_1[OF \<open>b $ 0 \<noteq> 0\<close>] by simp
+      using inverse_mult_eq_1[OF ab(1)] inverse_mult_eq_1[OF ab(2)] by simp
   qed
 qed
 
@@ -1168,7 +1168,7 @@ lemma fps_inverse_deriv':
 
 lemma inverse_mult_eq_1':
   assumes f0: "f$0 \<noteq> (0::'a::field)"
-  shows "f * inverse f= 1"
+  shows "f * inverse f = 1"
   by (metis mult.commute inverse_mult_eq_1 f0)
 
 lemma fps_divide_deriv:
@@ -3190,7 +3190,8 @@ proof -
     from nz kn [simplified] have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0"
       by (rule pochhammer_neq_0_mono)
 
-    consider "k = 0 \<or> n = 0" | "n \<noteq> 0" "k \<noteq> 0" by blast
+    consider "k = 0 \<or> n = 0" | "k \<noteq> 0" "n \<noteq> 0"
+      by blast
     then have "b gchoose (n - k) =
       (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
     proof cases
@@ -3198,10 +3199,10 @@ proof -
       then show ?thesis
         using kn by (cases "k = 0") (simp_all add: gbinomial_pochhammer)
     next
-      case 2
+      case neq: 2
       then obtain m where m: "n = Suc m"
         by (cases n) auto
-      from \<open>k \<noteq> 0\<close> obtain h where h: "k = Suc h"
+      from neq(1) obtain h where h: "k = Suc h"
         by (cases k) auto
       show ?thesis
       proof (cases "k = n")

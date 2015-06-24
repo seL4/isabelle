@@ -42,7 +42,7 @@ proof (induct n rule: nat_less_induct)
   assume "n > 0"
   then consider "n = 1" | "n > 1" "prime n" | "n > 1" "\<not> prime n"
     by arith
-  then show "\<exists>M. (\<forall>p \<in> set_mset M. prime p) \<and> n = (\<Prod>i::nat\<in>#M. i)"
+  then show "\<exists>M. (\<forall>p \<in> set_mset M. prime p) \<and> n = (\<Prod>i\<in>#M. i)"
   proof cases
     case 1
     then have "(\<forall>p\<in>set_mset {#}. prime p) \<and> n = (\<Prod>i \<in># {#}. i)"

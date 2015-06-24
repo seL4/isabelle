@@ -571,10 +571,10 @@ proof -
     by blast
   then show ?thesis
   proof cases
-    case 1
+    case u: 1
     have "between u u = u" by (simp add: between_same)
-    with 1 have "P (between u u)" by simp
-    with 1 show ?thesis by blast
+    with u have "P (between u u)" by simp
+    with u show ?thesis by blast
   next
     case 2
     note t1M = \<open>t1 \<in> U\<close> and t2M = \<open>t2\<in> U\<close>
@@ -622,10 +622,10 @@ proof -
       then show ?thesis
       proof cases
         case 1
-        show ?thesis by (rule minf_ex[OF mi 1])
+        from minf_ex[OF mi this] show ?thesis .
       next
         case 2
-        show ?thesis by (rule pinf_ex[OF pi 2])
+        from pinf_ex[OF pi this] show ?thesis .
       next
         case 3
         then show ?thesis by blast

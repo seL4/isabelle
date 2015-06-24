@@ -1005,28 +1005,28 @@ proof -
     by (cases "degree p") auto
   then show ?thesis
   proof cases
-    case 1
+    case p: 1
     then have eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> q = 0"
       by (auto simp add: poly_all_0_iff_0)
     {
       assume "p dvd (q ^ (degree p))"
       then obtain r where r: "q ^ (degree p) = p * r" ..
-      from r 1 have False by simp
+      from r p have False by simp
     }
-    with eq 1 show ?thesis by blast
+    with eq p show ?thesis by blast
   next
-    case 2
+    case dp: 2
     then obtain k where k: "p = [:k:]" "k \<noteq> 0"
       by (cases p) (simp split: if_splits)
     then have th1: "\<forall>x. poly p x \<noteq> 0"
       by simp
-    from k 2(2) have "q ^ (degree p) = p * [:1/k:]"
+    from k dp(2) have "q ^ (degree p) = p * [:1/k:]"
       by (simp add: one_poly_def)
     then have th2: "p dvd (q ^ (degree p))" ..
-    from 2(1) th1 th2 show ?thesis
+    from dp(1) th1 th2 show ?thesis
       by blast
   next
-    case 3
+    case dp: 3
     have False if dvd: "p dvd (q ^ (Suc n))" and h: "poly p x = 0" "poly q x \<noteq> 0" for x
     proof -
       from dvd obtain u where u: "q ^ (Suc n) = p * u" ..
@@ -1035,8 +1035,8 @@ proof -
       with u h(1) show ?thesis
         by (simp only: poly_mult) simp
     qed
-    with 3 nullstellensatz_lemma[of p q "degree p"]
-    show ?thesis by auto
+    with dp nullstellensatz_lemma[of p q "degree p"] show ?thesis
+      by auto
   qed
 qed
 

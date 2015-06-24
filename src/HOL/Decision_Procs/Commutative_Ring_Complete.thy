@@ -185,30 +185,30 @@ next
   consider "x < y" | "x = y" | "x > y" by arith
   then show ?case
   proof cases
-    case 1
+    case xy: 1
     then obtain d where y: "y = d + x"
       by atomize_elim arith
     from 6 have *: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    from 6 1 y have "isnorm (Pinj d Q2)"
+    from 6 xy y have "isnorm (Pinj d Q2)"
       by (cases d, simp, cases Q2, auto)
     with 6 X0 y * show ?thesis
       by (simp add: mkPinj_cn)
   next
-    case 2
+    case xy: 2
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    with 2 6 Y0 show ?thesis
+    with xy 6 Y0 show ?thesis
       by (simp add: mkPinj_cn)
   next
-    case 3
+    case xy: 3
     then obtain d where x: "x = d + y"
       by atomize_elim arith
     from 6 have *: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    from 6 3 x have "isnorm (Pinj d P2)"
+    from 6 xy x have "isnorm (Pinj d P2)"
       by (cases d) (simp, cases P2, auto)
-    with 3 6 Y0 * x show ?thesis by (simp add: mkPinj_cn)
+    with xy 6 Y0 * x show ?thesis by (simp add: mkPinj_cn)
   qed
 next
   case (7 x P2 Q2 y R)
@@ -216,26 +216,26 @@ next
     by atomize_elim arith
   then show ?case
   proof cases
-    case 1
+    case x: 1
     with 7 show ?thesis
       by (auto simp add: norm_Pinj_0_False)
   next
-    case 2
+    case x: 2
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 2 have "isnorm (R \<oplus> P2)"
+    with 7 x have "isnorm (R \<oplus> P2)"
       by simp
-    with 7 2 show ?thesis
+    with 7 x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
   next
-    case 3
+    case x: 3
     with 7 have NR: "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 3 have "isnorm (Pinj (x - 1) P2)"
+    with 7 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 7 3 NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
+    with 7 x NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
       by simp
-    with \<open>isnorm (PX Q2 y R)\<close> 3 show ?thesis
+    with \<open>isnorm (PX Q2 y R)\<close> x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
   qed
 next
@@ -248,21 +248,21 @@ next
     with 8 show ?thesis
       by (auto simp add: norm_Pinj_0_False)
   next
-    case 2
+    case x: 2
     with 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 2 have "isnorm (R \<oplus> P2)"
+    with 8 x have "isnorm (R \<oplus> P2)"
       by simp
-    with 8 2 show ?thesis
+    with 8 x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
   next
-    case 3
+    case x: 3
     then obtain d where x: "x = Suc (Suc d)" by atomize_elim arith
     with 8 have NR: "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with 8 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 8 3 NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
+    with 8 x NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
       by simp
     with \<open>isnorm (PX Q2 y R)\<close> x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
@@ -278,54 +278,54 @@ next
   consider "y < x" | "x = y" | "x < y" by arith
   then show ?case
   proof cases
-    case 1
+    case xy: 1
     then obtain d where x: "x = d + y"
       by atomize_elim arith
     have "isnorm (PX P1 d (Pc 0))"
     proof (cases P1)
       case (PX p1 y p2)
-      with 9 1 x show ?thesis
+      with 9 xy x show ?thesis
         by (cases d) (simp, cases p2, auto)
     next
       case Pc
-      with 9 1 x show ?thesis
+      with 9 xy x show ?thesis
         by (cases d) auto
     next
       case Pinj
-      with 9 1 x show ?thesis
+      with 9 xy x show ?thesis
         by (cases d) auto
     qed
-    with 9 NQ1 NP1 NP2 NQ2 1 x have "isnorm (P2 \<oplus> Q2)" "isnorm (PX P1 (x - y) (Pc 0) \<oplus> Q1)"
+    with 9 NQ1 NP1 NP2 NQ2 xy x have "isnorm (P2 \<oplus> Q2)" "isnorm (PX P1 (x - y) (Pc 0) \<oplus> Q1)"
       by auto
-    with Y0 1 x show ?thesis
+    with Y0 xy x show ?thesis
       by (simp add: mkPX_cn)
   next
-    case 2
+    case xy: 2
     with 9 NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<oplus> Q2)" "isnorm (P1 \<oplus> Q1)"
       by auto
-    with 2 Y0 show ?thesis
+    with xy Y0 show ?thesis
       by (simp add: mkPX_cn)
   next
-    case 3
+    case xy: 3
     then obtain d where y: "y = d + x"
       by atomize_elim arith
     have "isnorm (PX Q1 d (Pc 0))"
     proof (cases Q1)
       case (PX p1 y p2)
-      with 9 3 y show ?thesis
+      with 9 xy y show ?thesis
         by (cases d) (simp, cases p2, auto)
     next
       case Pc
-      with 9 3 y show ?thesis
+      with 9 xy y show ?thesis
         by (cases d) auto
     next
       case Pinj
-      with 9 3 y show ?thesis
+      with 9 xy y show ?thesis
         by (cases d) auto
     qed
-    with 9 NQ1 NP1 NP2 NQ2 3 y have "isnorm (P2 \<oplus> Q2)" "isnorm (PX Q1 (y - x) (Pc 0) \<oplus> P1)"
+    with 9 NQ1 NP1 NP2 NQ2 xy y have "isnorm (P2 \<oplus> Q2)" "isnorm (PX Q1 (y - x) (Pc 0) \<oplus> P1)"
       by auto
-    with X0 3 y show ?thesis
+    with X0 xy y show ?thesis
       by (simp add: mkPX_cn)
   qed
 qed
@@ -376,14 +376,14 @@ next
   consider "x < y" | "x = y" | "x > y" by arith
   then show ?case
   proof cases
-    case 1
+    case xy: 1
     then obtain d where y: "y = d + x"
       by atomize_elim arith
     from 6 have *: "x > 0"
       by (cases x) (auto simp add: norm_Pinj_0_False)
     from 6 have **: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    from 6 1 y have "isnorm (Pinj d Q2)"
+    from 6 xy y have "isnorm (Pinj d Q2)"
       apply (cases d)
       apply simp
       apply (cases Q2)
@@ -392,28 +392,28 @@ next
     with 6 * ** y show ?thesis
       by (simp add: mkPinj_cn)
   next
-    case 2
+    case xy: 2
     from 6 have *: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     from 6 have **: "y > 0"
       by (cases y) (auto simp add: norm_Pinj_0_False)
-    with 6 2 * **show ?thesis
+    with 6 xy * ** show ?thesis
       by (simp add: mkPinj_cn)
   next
-    case 3
+    case xy: 3
     then obtain d where x: "x = d + y"
       by atomize_elim arith
     from 6 have *: "y > 0"
       by (cases y) (auto simp add: norm_Pinj_0_False)
     from 6 have **: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    from 6 3 x have "isnorm (Pinj d P2)"
+    from 6 xy x have "isnorm (Pinj d P2)"
       apply (cases d)
       apply simp
       apply (cases P2)
       apply auto
       done
-    with 6 3 * ** x show ?thesis
+    with 6 xy * ** x show ?thesis
       by (simp add: mkPinj_cn)
   qed
 next
@@ -427,22 +427,22 @@ next
     with 7 show ?thesis
       by (auto simp add: norm_Pinj_0_False)
   next
-    case 2
+    case x: 2
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 2 have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 7 x have "isnorm (R \<otimes> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
-    with 7 2 Y0 show ?thesis
+    with 7 x Y0 show ?thesis
       by (simp add: mkPX_cn)
   next
-    case 3
+    case x: 3
     from 7 have *: "isnorm R" "isnorm Q2"
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
-    from 7 3 have "isnorm (Pinj (x - 1) P2)"
+    from 7 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 7 3 * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
+    with 7 x * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
       by auto
-    with Y0 3 show ?thesis
+    with Y0 x show ?thesis
       by (simp add: mkPX_cn)
   qed
 next
@@ -457,22 +457,22 @@ next
     with 8 show ?thesis
       by (auto simp add: norm_Pinj_0_False)
   next
-    case 2
+    case x: 2
     from 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 2 have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 8 x have "isnorm (R \<otimes> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
-    with 8 2 Y0 show ?thesis
+    with 8 x Y0 show ?thesis
       by (simp add: mkPX_cn)
   next
-    case 3
+    case x: 3
     from 8 have *: "isnorm R" "isnorm Q2"
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
-    from 8 3 have "isnorm (Pinj (x - 1) P2)"
+    from 8 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 8 3 * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
+    with 8 x * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
       by auto
-    with Y0 3 show ?thesis
+    with Y0 x show ?thesis
       by (simp add: mkPX_cn)
   qed
 next

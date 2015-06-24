@@ -32,44 +32,45 @@ declare gcd_dvd1_int[presburger] gcd_dvd2_int[presburger]
 lemma normNum_isnormNum [simp]: "isnormNum (normNum x)"
 proof -
   obtain a b where x: "x = (a, b)" by (cases x)
-  consider "a = 0 \<or> b = 0" | "a \<noteq> 0" "b \<noteq> 0" by blast
+  consider "a = 0 \<or> b = 0" | "a \<noteq> 0" "b \<noteq> 0"
+    by blast
   then show ?thesis
   proof cases
     case 1
     then show ?thesis
       by (simp add: x normNum_def isnormNum_def)
   next
-    case 2
+    case ab: 2
     let ?g = "gcd a b"
     let ?a' = "a div ?g"
     let ?b' = "b div ?g"
     let ?g' = "gcd ?a' ?b'"
-    from 2 have "?g \<noteq> 0" by simp  with gcd_ge_0_int[of a b]
-    have gpos: "?g > 0" by arith
+    from ab have "?g \<noteq> 0" by simp
+    with gcd_ge_0_int[of a b] have gpos: "?g > 0" by arith
     have gdvd: "?g dvd a" "?g dvd b" by arith+
-    from dvd_mult_div_cancel[OF gdvd(1)] dvd_mult_div_cancel[OF gdvd(2)] 2
+    from dvd_mult_div_cancel[OF gdvd(1)] dvd_mult_div_cancel[OF gdvd(2)] ab
     have nz': "?a' \<noteq> 0" "?b' \<noteq> 0" by - (rule notI, simp)+
-    from 2 have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith
+    from ab have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith
     from div_gcd_coprime_int[OF stupid] have gp1: "?g' = 1" .
-    from 2 consider "b < 0" | "b > 0" by arith
+    from ab consider "b < 0" | "b > 0" by arith
     then show ?thesis
     proof cases
-      case 1
+      case b: 1
       have False if b': "?b' \<ge> 0"
       proof -
         from gpos have th: "?g \<ge> 0" by arith
         from mult_nonneg_nonneg[OF th b'] dvd_mult_div_cancel[OF gdvd(2)]
-        show ?thesis using 1 by arith
+        show ?thesis using b by arith
       qed
       then have b': "?b' < 0" by (presburger add: linorder_not_le[symmetric])
-      from \<open>a \<noteq> 0\<close> nz' 1 b' gp1 show ?thesis
+      from ab(1) nz' b b' gp1 show ?thesis
         by (simp add: x isnormNum_def normNum_def Let_def split_def)
     next
-      case 2
+      case b: 2
       then have "?b' \<ge> 0"
         by (presburger add: pos_imp_zdiv_nonneg_iff[OF gpos])
       with nz' have b': "?b' > 0" by arith
-      from 2 b' \<open>a \<noteq> 0\<close> nz' gp1 show ?thesis
+      from b b' ab(1) nz' gp1 show ?thesis
         by (simp add: x isnormNum_def normNum_def Let_def split_def)
     qed
   qed
@@ -129,11 +130,11 @@ proof -
     then show ?thesis
       using yn x y by (simp add: isnormNum_def Let_def Nmul_def split_def)
   next
-    case 3
+    case aa': 3
     then have bp: "b > 0" "b' > 0"
       using xn yn x y by (simp_all add: isnormNum_def)
     from bp have "x *\<^sub>N y = normNum (a * a', b * b')"
-      using x y 3 bp by (simp add: Nmul_def Let_def split_def normNum_def)
+      using x y aa' bp by (simp add: Nmul_def Let_def split_def normNum_def)
     then show ?thesis by simp
   qed
 qed
@@ -192,7 +193,7 @@ proof
     case 2
     with na nb have pos: "b > 0" "b' > 0"
       by (simp_all add: x y isnormNum_def)
-    from H \<open>b \<noteq> 0\<close> \<open>b' \<noteq> 0\<close> have eq: "a * b' = a'*b"
+    from H \<open>b \<noteq> 0\<close> \<open>b' \<noteq> 0\<close> have eq: "a * b' = a' * b"
       by (simp add: x y INum_def eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
     from \<open>a \<noteq> 0\<close> \<open>a' \<noteq> 0\<close> na nb
     have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"
@@ -251,9 +252,9 @@ proof -
     then show ?thesis
       by (simp add: x INum_def normNum_def split_def Let_def)
   next
-    case 2
+    case ab: 2
     let ?g = "gcd a b"
-    from 2 have g: "?g \<noteq> 0"by simp
+    from ab have g: "?g \<noteq> 0"by simp
     from of_int_div[OF g, where ?'a = 'a] show ?thesis
       by (auto simp add: x INum_def normNum_def split_def Let_def)
   qed
@@ -289,7 +290,7 @@ proof -
       apply simp_all
       done
   next
-    case 2
+    case neq: 2
     show ?thesis
     proof (cases "a * b' + b * a' = 0")
       case True
@@ -299,8 +300,8 @@ proof -
           of_int b * of_int a' / (of_int b * of_int b') = ?z"
         by (simp add: add_divide_distrib)
       then have th: "of_int a / of_int b + of_int a' / of_int b' = ?z"
-        using 2 by simp
-      from True 2 show ?thesis
+        using neq by simp
+      from True neq show ?thesis
         by (simp add: x y th Nadd_def normNum_def INum_def split_def)
     next
       case False
@@ -308,7 +309,7 @@ proof -
       have gz: "?g \<noteq> 0"
         using False by simp
       show ?thesis
-        using 2 False gz
+        using neq False gz
           of_int_div [where ?'a = 'a, OF gz gcd_dvd1 [of "a * b' + b * a'" "b * b'"]]
           of_int_div [where ?'a = 'a, OF gz gcd_dvd2 [of "a * b' + b * a'" "b * b'"]]
         by (simp add: x y Nadd_def INum_def normNum_def Let_def) (simp add: field_simps)
@@ -335,11 +336,11 @@ proof -
       apply simp_all
       done
   next
-    case 2
+    case neq: 2
     let ?g = "gcd (a * a') (b * b')"
     have gz: "?g \<noteq> 0"
-      using 2 by simp
-    from 2 of_int_div [where ?'a = 'a, OF gz gcd_dvd1 [of "a * a'" "b * b'"]]
+      using neq by simp
+    from neq of_int_div [where ?'a = 'a, OF gz gcd_dvd1 [of "a * a'" "b * b'"]]
       of_int_div [where ?'a = 'a , OF gz gcd_dvd2 [of "a * a'" "b * b'"]]
     show ?thesis
       by (simp add: Nmul_def x y Let_def INum_def)
