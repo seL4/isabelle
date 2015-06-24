@@ -241,10 +241,10 @@ proof -
   from appending.prems show thesis
   proof(cases)
     case nil
-    from alt_nil nil show thesis by auto
+    from appending.alt_nil nil show thesis by auto
   next
     case cons
-    from alt_cons cons show thesis by fastforce
+    from appending.alt_cons cons show thesis by fastforce
   qed
 qed
 
@@ -270,17 +270,17 @@ proof -
   from ya_even.prems show thesis
   proof (cases)
     case even_zero
-    from even_zero even_0 show thesis by simp
+    from even_zero ya_even.even_0 show thesis by simp
   next
     case even_plus1
-    from even_plus1 even_Suc show thesis by simp
+    from even_plus1 ya_even.even_Suc show thesis by simp
   qed
 next
   case ya_odd
   from ya_odd.prems show thesis
   proof (cases)
     case odd_plus1
-    from odd_plus1 odd_Suc show thesis by simp
+    from odd_plus1 ya_odd.odd_Suc show thesis by simp
   qed
 qed
 

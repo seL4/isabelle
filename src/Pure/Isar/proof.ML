@@ -71,10 +71,8 @@ sig
   val using_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
   val unfolding_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
-  val invoke_case: (string * Position.T) * binding option list * attribute list ->
-    state -> state
-  val invoke_case_cmd: (string * Position.T) * binding option list * Token.src list ->
-    state -> state
+  val case_: Thm.binding * ((string * Position.T) * binding option list) -> state -> state
+  val case_cmd: Attrib.binding * ((string * Position.T) * binding option list) -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
@@ -767,24 +765,28 @@ end;
 
 local
 
-fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
+fun gen_case internal prep_att ((raw_binding, raw_atts), ((name, pos), xs)) state =
   let
-    val atts = map (prep_att (context_of state)) raw_atts;
+    val ctxt = context_of state;
+
+    val binding = if Binding.is_empty raw_binding then Binding.make (name, pos) else raw_binding;
+    val atts = map (prep_att ctxt) raw_atts;
+
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt internal (name, pos) xs));
     val assumptions =
-      asms |> map (fn (b, ts) => ((Binding.set_pos pos b, atts), map (rpair []) ts));
+      asms |> map (fn (a, ts) => ((Binding.qualified true a binding, []), map (rpair []) ts));
   in
     state'
     |> assume assumptions
     |> map_context (fold Variable.unbind_term Auto_Bind.no_facts)
-    |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
+    |> `the_facts |-> (fn thms => note_thmss [((binding, atts), [(thms, [])])])
   end;
 
 in
 
-val invoke_case = gen_invoke_case true (K I);
-val invoke_case_cmd = gen_invoke_case false Attrib.attribute_cmd;
+val case_ = gen_case true (K I);
+val case_cmd = gen_case false Attrib.attribute_cmd;
 
 end;
 

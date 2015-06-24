@@ -1620,9 +1620,6 @@ val _ =
     Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
       "adding alternative introduction rules for code generation of inductive predicates")
 
-fun qualified_binding a =
-  Binding.qualify true (Long_Name.qualifier a) (Binding.name (Long_Name.base_name a));
-
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
 (* FIXME ... this is important to avoid changing the background theory below *)
 fun generic_code_pred prep_const options raw_const lthy =
@@ -1641,14 +1638,14 @@ fun generic_code_pred prep_const options raw_const lthy =
       in mk_casesrule lthy' pred intros end
     val cases_rules = map mk_cases preds
     val cases =
-      map2 (fn pred_name => fn case_rule => Rule_Cases.Case {fixes = [],
-        assumes =
-          (Binding.name "that", tl (Logic.strip_imp_prems case_rule)) ::
-          map_filter (fn (fact_name, fact) =>
-              Option.map (fn a => (qualified_binding a, [fact])) fact_name)
-            ((SOME (Long_Name.base_name pred_name ^ ".prems") :: names_of ctxt' pred_name) ~~
-              Logic.strip_imp_prems case_rule),
-        binds = [], cases = []}) preds cases_rules
+      map2 (fn pred_name => fn case_rule =>
+        Rule_Cases.Case {
+          fixes = [],
+          assumes =
+            ("that", tl (Logic.strip_imp_prems case_rule)) ::
+            map_filter (fn (fact_name, fact) => Option.map (fn a => (a, [fact])) fact_name)
+              ((SOME "prems" :: names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule),
+          binds = [], cases = []}) preds cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
       |> fold Variable.auto_fixes cases_rules

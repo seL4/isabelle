@@ -222,22 +222,22 @@ proof -
   case eval
   from eval.prems show thesis
   proof(cases (no_simp))
-    case LAcc with LAcc_code show ?thesis by auto
+    case LAcc with eval.LAcc_code show ?thesis by auto
   next
     case (Call a b c d e f g h i j k l m n o p q r s t u v s4)
-    with Call_code show ?thesis
+    with eval.Call_code show ?thesis
       by(cases "s4") auto
-  qed(erule (3) that[OF refl]|assumption)+
+  qed(erule (3) eval.that[OF refl]|assumption)+
 next
   case evals
   from evals.prems show thesis
-    by(cases (no_simp))(erule (3) that[OF refl]|assumption)+
+    by(cases (no_simp))(erule (3) evals.that[OF refl]|assumption)+
 next
   case exec
   from exec.prems show thesis
   proof(cases (no_simp))
-    case LoopT thus ?thesis by(rule LoopT_code[OF refl])
-  qed(erule (2) that[OF refl]|assumption)+
+    case LoopT thus ?thesis by(rule exec.LoopT_code[OF refl])
+  qed(erule (2) exec.that[OF refl]|assumption)+
 qed
 
 end

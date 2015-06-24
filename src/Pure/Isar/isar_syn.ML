@@ -595,11 +595,11 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword case} "invoke local context"
-    ((@{keyword "("} |--
-      Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
-        --| @{keyword ")"}) ||
-      Parse.position Parse.xname >> rpair []) -- Parse.opt_attribs >> (fn ((c, xs), atts) =>
-        Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
+    (Parse_Spec.opt_thm_name ":" --
+      (@{keyword "("} |--
+        Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
+          --| @{keyword ")"}) ||
+        Parse.position Parse.xname >> rpair []) >> (Toplevel.proof o Proof.case_cmd));
 
 
 (* proof structure *)

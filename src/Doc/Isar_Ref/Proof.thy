@@ -1061,11 +1061,8 @@ text \<open>
   later.
 
   @{rail \<open>
-    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) *) ')')
+    @@{command case} @{syntax thmdecl}? (nameref | '(' nameref (('_' | @{syntax name}) *) ')')
     ;
-    caseref: nameref attributes?
-    ;
-
     @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
     ;
     @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
@@ -1077,12 +1074,18 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
+  \item @{command "case"}~@{text "a: (c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
   context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an
-  appropriate proof method (such as @{method_ref cases} and
-  @{method_ref induct}).  The command ``@{command "case"}~@{text "(c
-  x\<^sub>1 \<dots> x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
-  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''.
+  appropriate proof method (such as @{method_ref cases} and @{method_ref
+  induct}). The command ``@{command "case"}~@{text "a: (c x\<^sub>1 \<dots> x\<^sub>m)"}''
+  abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"}~@{command
+  "assume"}~@{text "a.c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''. Each local fact is qualified by the
+  prefix @{text "a"}, and all such facts are collectively bound to the name
+  @{text a}.
+
+  The fact name is specification @{text a} is optional, the default is to
+  re-use @{text c}. So @{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} is the same
+  as @{command "case"}~@{text "c: (c x\<^sub>1 \<dots> x\<^sub>m)"}.
 
   \item @{command "print_cases"} prints all local contexts of the
   current state, using Isar proof language notation.

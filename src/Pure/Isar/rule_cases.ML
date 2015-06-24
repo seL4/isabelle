@@ -22,7 +22,7 @@ sig
   include BASIC_RULE_CASES
   datatype T = Case of
    {fixes: (binding * typ) list,
-    assumes: (binding * term list) list,
+    assumes: (string * term list) list,
     binds: (indexname * term option) list,
     cases: (string * T) list}
   val case_hypsN: string
@@ -65,7 +65,7 @@ struct
 
 datatype T = Case of
  {fixes: (binding * typ) list,
-  assumes: (binding * term list) list,
+  assumes: (string * term list) list,
   binds: (indexname * term option) list,
   cases: (string * T) list};
 
@@ -94,22 +94,21 @@ fun extract_fixes NONE prop = (strip_params prop, [])
   | extract_fixes (SOME outline) prop =
       chop (length (Logic.strip_params outline)) (strip_params prop);
 
-fun extract_assumes _ _ NONE prop = ([(Binding.empty, Logic.strip_assums_hyp prop)], [])
-  | extract_assumes qualifier hyp_names (SOME outline) prop =
+fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
+  | extract_assumes hyp_names (SOME outline) prop =
       let
-        val qual = Binding.qualify true qualifier o Binding.name;
         val (hyps, prems) =
           chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
-        fun extract ((hyp_name, hyp) :: rest) = (qual hyp_name, hyp :: map snd rest);
+        fun extract ((hyp_name, hyp) :: rest) = (hyp_name, hyp :: map snd rest);
         val (hyps1, hyps2) = chop (length hyp_names) hyps;
         val pairs1 = if null hyps1 then [] else hyp_names ~~ hyps1;
         val pairs = pairs1 @ map (pair case_hypsN) hyps2;
         val named_hyps = map extract (partition_eq (eq_fst op =) pairs);
-      in (named_hyps, [(qual case_premsN, prems)]) end;
+      in (named_hyps, [(case_premsN, prems)]) end;
 
 fun bindings args = map (apfst Binding.name) args;
 
-fun extract_case ctxt (case_outline, raw_prop) name hyp_names concls =
+fun extract_case ctxt (case_outline, raw_prop) hyp_names concls =
   let
     val props = Logic.dest_conjunctions (Drule.norm_hhf (Proof_Context.theory_of ctxt) raw_prop);
     val len = length props;
@@ -125,7 +124,7 @@ fun extract_case ctxt (case_outline, raw_prop) name hyp_names concls =
             fold_rev Term.abs fixes1
               (app (map (Term.dummy_pattern o #2) fixes2) (fold_rev Term.abs fixes2 t));
         val (assumes1, assumes2) =
-          extract_assumes name hyp_names case_outline prop
+          extract_assumes hyp_names case_outline prop
           |> apply2 (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = Object_Logic.drop_judgment ctxt (Logic.strip_assums_concl prop);
@@ -162,7 +161,7 @@ fun make ctxt rule_struct prop cases =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
-      | SOME p => (name, extract_case ctxt p name hyp_names concls)) :: cs, i - 1);
+      | SOME p => (name, extract_case ctxt p hyp_names concls)) :: cs, i - 1);
   in fold_rev add_case (drop (Int.max (n - nprems, 0)) cases) ([], n) |> #1 end;
 
 in
