@@ -3,7 +3,7 @@
 section \<open>Abstract euclidean algorithm\<close>
 
 theory Euclidean_Algorithm
-imports Complex_Main
+imports Complex_Main "~~/src/HOL/Library/Polynomial"
 begin
   
 text \<open>
@@ -1563,6 +1563,44 @@ next
 next
   case goal6 then show ?case by (auto split: abs_split simp: zsgn_def)
 qed (auto simp: sgn_times split: abs_split)
+
+end
+
+instantiation poly :: (field) euclidean_semiring
+begin
+
+definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
+  where "euclidean_size = (degree :: 'a poly \<Rightarrow> nat)"
+
+definition normalization_factor_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "normalization_factor p = monom (coeff p (degree p)) 0"
+
+instance
+proof (default, unfold euclidean_size_poly_def normalization_factor_poly_def)
+  fix p q :: "'a poly"
+  assume "q \<noteq> 0" and "\<not> q dvd p"
+  then show "degree (p mod q) < degree q"
+    using degree_mod_less [of q p] by (simp add: mod_eq_0_iff_dvd)
+next
+  fix p q :: "'a poly"
+  assume "q \<noteq> 0"
+  from \<open>q \<noteq> 0\<close> show "degree p \<le> degree (p * q)"
+    by (rule degree_mult_right_le)
+  from \<open>q \<noteq> 0\<close> show "is_unit (monom (coeff q (degree q)) 0)"
+    by (auto intro: is_unit_monom_0)
+next
+  fix p :: "'a poly"
+  show "monom (coeff p (degree p)) 0 = p" if "is_unit p"
+    using that by (fact is_unit_monom_trival)
+next
+  fix p q :: "'a poly"
+  show "monom (coeff (p * q) (degree (p * q))) 0 =
+    monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
+    by (simp add: monom_0 coeff_degree_mult)
+next
+  show "monom (coeff 0 (degree 0)) 0 = 0"
+    by simp
+qed
 
 end
 
