@@ -1245,7 +1245,11 @@ fun check_case ctxt internal (name, pos) fxs =
   let
     val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, {legacy}), _)) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
-    val _ = if legacy then Context_Position.report ctxt pos Markup.improper else ();
+    val _ =
+      if legacy then
+        legacy_feature ("Bad case " ^ quote name ^ Position.here pos ^
+          " -- use proof method \"goals\" instead")
+      else ();
 
     val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) fxs;
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
