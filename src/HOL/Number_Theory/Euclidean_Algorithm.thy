@@ -1527,14 +1527,19 @@ definition [simp]:
 definition [simp]:
   "normalization_factor_int = (sgn :: int \<Rightarrow> int)"
 
-instance proof
-  case goal2 then show ?case by (auto simp add: abs_mult nat_mult_distrib)
+instance
+proof (default, goals)
+  case 2
+  then show ?case by (auto simp add: abs_mult nat_mult_distrib)
 next
-  case goal3 then show ?case by (simp add: zsgn_def)
+  case 3
+  then show ?case by (simp add: zsgn_def)
 next
-  case goal5 then show ?case by (auto simp: zsgn_def)
+  case 5
+  then show ?case by (auto simp: zsgn_def)
 next
-  case goal6 then show ?case by (auto split: abs_split simp: zsgn_def)
+  case 6
+  then show ?case by (auto split: abs_split simp: zsgn_def)
 qed (auto simp: sgn_times split: abs_split)
 
 end

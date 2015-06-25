@@ -154,22 +154,22 @@ qed
 lemma sigma_finite_embed_measure:
   assumes "sigma_finite_measure M" and inj: "inj f"
   shows "sigma_finite_measure (embed_measure M f)"
-proof
-  case goal1
+proof -
   from assms(1) interpret sigma_finite_measure M .
   from sigma_finite_countable obtain A where
       A_props: "countable A" "A \<subseteq> sets M" "\<Union>A = space M" "\<And>X. X\<in>A \<Longrightarrow> emeasure M X \<noteq> \<infinity>" by blast
-  show ?case
-  proof (intro exI[of _ "op ` f`A"] conjI allI)
-    from A_props show "countable (op ` f`A)" by auto
-    from inj and A_props show "op ` f`A \<subseteq> sets (embed_measure M f)" 
-      by (auto simp: sets_embed_measure)
-    from A_props and inj show "\<Union>(op ` f`A) = space (embed_measure M f)"
-      by (auto simp: space_embed_measure intro!: imageI)
-    from A_props and inj show "\<forall>a\<in>op ` f ` A. emeasure (embed_measure M f) a \<noteq> \<infinity>"
-      by (intro ballI, subst emeasure_embed_measure)
-         (auto simp: inj_vimage_image_eq intro: in_sets_embed_measure)
-  qed
+  from A_props have "countable (op ` f`A)" by auto
+  moreover
+  from inj and A_props have "op ` f`A \<subseteq> sets (embed_measure M f)" 
+    by (auto simp: sets_embed_measure)
+  moreover
+  from A_props and inj have "\<Union>(op ` f`A) = space (embed_measure M f)"
+    by (auto simp: space_embed_measure intro!: imageI)
+  moreover
+  from A_props and inj have "\<forall>a\<in>op ` f ` A. emeasure (embed_measure M f) a \<noteq> \<infinity>"
+    by (intro ballI, subst emeasure_embed_measure)
+       (auto simp: inj_vimage_image_eq intro: in_sets_embed_measure)
+  ultimately show ?thesis by - (default, blast)
 qed
 
 lemma embed_measure_count_space':

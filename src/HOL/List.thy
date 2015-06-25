@@ -2308,19 +2308,29 @@ lemma takeWhile_eq_take_P_nth:
   "\<lbrakk> \<And> i. \<lbrakk> i < n ; i < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) ; n < length xs \<Longrightarrow> \<not> P (xs ! n) \<rbrakk> \<Longrightarrow>
   takeWhile P xs = take n xs"
 proof (induct xs arbitrary: n)
+  case Nil
+  thus ?case by simp
+next
   case (Cons x xs)
-  thus ?case
+  show ?case
   proof (cases n)
-    case (Suc n') note this[simp]
+    case 0
+    with Cons show ?thesis by simp
+  next
+    case [simp]: (Suc n')
     have "P x" using Cons.prems(1)[of 0] by simp
     moreover have "takeWhile P xs = take n' xs"
     proof (rule Cons.hyps)
-      case goal1 thus "P (xs ! i)" using Cons.prems(1)[of "Suc i"] by simp
-    next case goal2 thus ?case using Cons by auto
+      fix i
+      assume "i < n'" "i < length xs"
+      thus "P (xs ! i)" using Cons.prems(1)[of "Suc i"] by simp
+    next
+      assume "n' < length xs"
+      thus "\<not> P (xs ! n')" using Cons by auto
     qed
     ultimately show ?thesis by simp
-   qed simp
-qed simp
+   qed
+qed
 
 lemma nth_length_takeWhile:
   "length (takeWhile P xs) < length xs \<Longrightarrow> \<not> P (xs ! length (takeWhile P xs))"

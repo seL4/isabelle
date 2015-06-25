@@ -1022,11 +1022,12 @@ proof -
     Pxyz x * log b (Pxz (fst x, snd (snd x)) / (Px (fst x) * Pz (snd (snd x)))) =
     Pxyz x * log b (Pxyz x * Pz (snd (snd x)) / (Pxz (fst x, snd (snd x)) * Pyz (snd x))) "
   proof eventually_elim
-    case (goal1 x)
+    case (elim x)
     show ?case
     proof cases
       assume "Pxyz x \<noteq> 0"
-      with goal1 have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))" "0 < Pyz (snd x)" "0 < Pxyz x"
+      with elim have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))"
+        "0 < Pyz (snd x)" "0 < Pxyz x"
         by auto
       then show ?thesis
         using b_gt_1 by (simp add: log_simps less_imp_le field_simps)
@@ -1252,11 +1253,12 @@ proof -
     Pxyz x * log b (Pxz (fst x, snd (snd x)) / (Px (fst x) * Pz (snd (snd x)))) =
     Pxyz x * log b (Pxyz x * Pz (snd (snd x)) / (Pxz (fst x, snd (snd x)) * Pyz (snd x))) "
   proof eventually_elim
-    case (goal1 x)
+    case (elim x)
     show ?case
     proof cases
       assume "Pxyz x \<noteq> 0"
-      with goal1 have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))" "0 < Pyz (snd x)" "0 < Pxyz x"
+      with elim have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))"
+        "0 < Pyz (snd x)" "0 < Pxyz x"
         by auto
       then show ?thesis
         using b_gt_1 by (simp add: log_simps less_imp_le field_simps)
@@ -1730,11 +1732,11 @@ proof -
     Pxy x * log b (Pxy x / (Px (fst x) * Py (snd x)))"
     (is "AE x in _. ?f x = ?g x")
   proof eventually_elim
-    case (goal1 x)
+    case (elim x)
     show ?case
     proof cases
       assume "Pxy x \<noteq> 0"
-      with goal1 have "0 < Px (fst x)" "0 < Py (snd x)" "0 < Pxy x"
+      with elim have "0 < Px (fst x)" "0 < Py (snd x)" "0 < Pxy x"
         by auto
       then show ?thesis
         using b_gt_1 by (simp add: log_simps less_imp_le field_simps)

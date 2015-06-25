@@ -233,11 +233,13 @@ subsection \<open>Complete distributive lattices\<close>
 
 instance prod ::
   (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
-proof
-  case goal1 thus ?case
+proof (default, goals)
+  case 1
+  then show ?case
     by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF comp_def)
 next
-  case goal2 thus ?case
+  case 2
+  then show ?case
     by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP comp_def)
 qed
 

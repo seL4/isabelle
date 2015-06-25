@@ -1134,44 +1134,56 @@ qed
 lemma (in sigma_finite_measure) sigma_finite_disjoint:
   obtains A :: "nat \<Rightarrow> 'a set"
   where "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And>i. emeasure M (A i) \<noteq> \<infinity>" "disjoint_family A"
-proof atomize_elim
-  case goal1
+proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
     range: "range A \<subseteq> sets M" and
     space: "(\<Union>i. A i) = space M" and
     measure: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
     using sigma_finite by auto
-  note range' = sets.range_disjointed_sets[OF range] range
-  { fix i
-    have "emeasure M (disjointed A i) \<le> emeasure M (A i)"
-      using range' disjointed_subset[of A i] by (auto intro!: emeasure_mono)
-    then have "emeasure M (disjointed A i) \<noteq> \<infinity>"
-      using measure[of i] by auto }
-  with disjoint_family_disjointed UN_disjointed_eq[of A] space range'
-  show ?case by (auto intro!: exI[of _ "disjointed A"])
+  show thesis
+  proof (rule that[of "disjointed A"])
+    show "range (disjointed A) \<subseteq> sets M"
+      by (rule sets.range_disjointed_sets[OF range])
+    show "(\<Union>i. disjointed A i) = space M"
+      and "disjoint_family (disjointed A)"
+      using disjoint_family_disjointed UN_disjointed_eq[of A] space range
+      by auto
+    show "emeasure M (disjointed A i) \<noteq> \<infinity>" for i
+    proof -
+      have "emeasure M (disjointed A i) \<le> emeasure M (A i)"
+        using range disjointed_subset[of A i] by (auto intro!: emeasure_mono)
+      then show ?thesis using measure[of i] by auto
+    qed
+  qed
 qed
 
 lemma (in sigma_finite_measure) sigma_finite_incseq:
   obtains A :: "nat \<Rightarrow> 'a set"
   where "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And>i. emeasure M (A i) \<noteq> \<infinity>" "incseq A"
-proof atomize_elim
-  case goal1
+proof -
   obtain F :: "nat \<Rightarrow> 'a set" where
     F: "range F \<subseteq> sets M" "(\<Union>i. F i) = space M" "\<And>i. emeasure M (F i) \<noteq> \<infinity>"
     using sigma_finite by auto
-  then show ?case
-  proof (intro exI[of _ "\<lambda>n. \<Union>i\<le>n. F i"] conjI allI)
-    from F have "\<And>x. x \<in> space M \<Longrightarrow> \<exists>i. x \<in> F i" by auto
-    then show "(\<Union>n. \<Union> i\<le>n. F i) = space M"
-      using F by fastforce
-  next
-    fix n
-    have "emeasure M (\<Union> i\<le>n. F i) \<le> (\<Sum>i\<le>n. emeasure M (F i))" using F
-      by (auto intro!: emeasure_subadditive_finite)
-    also have "\<dots> < \<infinity>"
-      using F by (auto simp: setsum_Pinfty)
-    finally show "emeasure M (\<Union> i\<le>n. F i) \<noteq> \<infinity>" by simp
-  qed (force simp: incseq_def)+
+  show thesis
+  proof (rule that[of "\<lambda>n. \<Union>i\<le>n. F i"])
+    show "range (\<lambda>n. \<Union>i\<le>n. F i) \<subseteq> sets M"
+      using F by (force simp: incseq_def)
+    show "(\<Union>n. \<Union>i\<le>n. F i) = space M"
+    proof -
+      from F have "\<And>x. x \<in> space M \<Longrightarrow> \<exists>i. x \<in> F i" by auto
+      with F show ?thesis by fastforce
+    qed
+    show "emeasure M (\<Union> i\<le>n. F i) \<noteq> \<infinity>" for n
+    proof -
+      have "emeasure M (\<Union> i\<le>n. F i) \<le> (\<Sum>i\<le>n. emeasure M (F i))"
+        using F by (auto intro!: emeasure_subadditive_finite)
+      also have "\<dots> < \<infinity>"
+        using F by (auto simp: setsum_Pinfty)
+      finally show ?thesis by simp
+    qed
+    show "incseq (\<lambda>n. \<Union>i\<le>n. F i)"
+      by (force simp: incseq_def)
+  qed
 qed
 
 subsection {* Measure space induced by distribution of @{const measurable}-functions *}

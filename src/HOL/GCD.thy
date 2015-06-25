@@ -1451,17 +1451,19 @@ by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric]
 
 subsection {* The complete divisibility lattice *}
 
-interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
-proof
-  case goal3 thus ?case by(metis gcd_unique_nat)
+interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m)"
+proof (default, goals)
+  case 3
+  thus ?case by(metis gcd_unique_nat)
 qed auto
 
-interpretation lcm_semilattice_nat: semilattice_sup lcm "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
-proof
-  case goal3 thus ?case by(metis lcm_unique_nat)
+interpretation lcm_semilattice_nat: semilattice_sup lcm "op dvd" "(\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m)"
+proof (default, goals)
+  case 3
+  thus ?case by(metis lcm_unique_nat)
 qed auto
 
-interpretation gcd_lcm_lattice_nat: lattice gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)" lcm ..
+interpretation gcd_lcm_lattice_nat: lattice gcd "op dvd" "(\<lambda>m n::nat. m dvd n & ~ n dvd m)" lcm ..
 
 text{* Lifting gcd and lcm to sets (Gcd/Lcm).
 Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
@@ -1522,23 +1524,28 @@ qed simp
 
 interpretation gcd_lcm_complete_lattice_nat:
   complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
-where
-  "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
+where "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
   and "Sup.SUPREMUM Lcm A f = Lcm (f ` A)"
 proof -
   show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
-  proof
-    case goal1 thus ?case by (simp add: Gcd_nat_def)
+  proof (default, goals)
+    case 1
+    thus ?case by (simp add: Gcd_nat_def)
   next
-    case goal2 thus ?case by (simp add: Gcd_nat_def)
+    case 2
+    thus ?case by (simp add: Gcd_nat_def)
   next
-    case goal5 show ?case by (simp add: Gcd_nat_def Lcm_nat_infinite)
+    case 5
+    show ?case by (simp add: Gcd_nat_def Lcm_nat_infinite)
   next
-    case goal6 show ?case by (simp add: Lcm_nat_empty)
+    case 6
+    show ?case by (simp add: Lcm_nat_empty)
   next
-    case goal3 thus ?case by simp
+    case 3
+    thus ?case by simp
   next
-    case goal4 thus ?case by simp
+    case 4
+    thus ?case by simp
   qed
   then interpret gcd_lcm_complete_lattice_nat:
     complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .

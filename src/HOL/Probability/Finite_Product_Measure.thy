@@ -192,20 +192,22 @@ lemma Pi_cong_sets:
 lemma PiM_cong:
   assumes "I = J" "\<And>x. x \<in> I \<Longrightarrow> M x = N x"
   shows "PiM I M = PiM J N"
-unfolding PiM_def
-proof (rule extend_measure_cong)
-  case goal1 show ?case using assms
+  unfolding PiM_def
+proof (rule extend_measure_cong, goals)
+  case 1
+  show ?case using assms
     by (subst assms(1), intro PiE_cong[of J "\<lambda>i. space (M i)" "\<lambda>i. space (N i)"]) simp_all
 next
-  case goal2
+  case 2
   have "\<And>K. K \<subseteq> J \<Longrightarrow> (\<Pi> j\<in>K. sets (M j)) = (\<Pi> j\<in>K. sets (N j))"
     using assms by (intro Pi_cong_sets) auto
   thus ?case by (auto simp: assms)
 next
-  case goal3 show ?case using assms 
+  case 3
+  show ?case using assms 
     by (intro ext) (auto simp: prod_emb_def dest: PiE_mem)
 next
-  case (goal4 x)
+  case (4 x)
   thus ?case using assms 
     by (auto intro!: setprod.cong split: split_if_asm)
 qed
