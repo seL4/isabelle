@@ -424,8 +424,8 @@ fun get th =
       (case lookup_cases_hyp_names th of
         NONE => replicate (length cases) []
       | SOME names => names);
-    fun regroup ((name,concls),hyps) = ((name,hyps),concls)
-  in (map regroup (cases ~~ cases_hyps), n) end;
+    fun regroup (name, concls) hyps = ((name, hyps), concls);
+  in (map2 regroup cases cases_hyps, n) end;
 
 
 (* params *)
