@@ -470,23 +470,39 @@ lemma eq_set_code [code]:
   in if n = 0 then False else 
         let xs' = remdups xs; ys' = remdups ys 
         in length xs' + length ys' = n \<and> (\<forall>x \<in> set xs'. x \<notin> set ys') \<and> (\<forall>y \<in> set ys'. y \<notin> set xs')"
-  shows "eq_set (List.coset xs) (set ys) \<longleftrightarrow> rhs" (is ?thesis1)
-  and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs" (is ?thesis2)
-  and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis3)
-  and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis4)
-proof -
-  show ?thesis1 (is "?lhs \<longleftrightarrow> ?rhs")
-  proof
-    assume ?lhs thus ?rhs
-      by(auto simp add: rhs_def Let_def List.card_set[symmetric] card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
-  next
-    assume ?rhs
-    moreover have "\<lbrakk> \<forall>y\<in>set xs. y \<notin> set ys; \<forall>x\<in>set ys. x \<notin> set xs \<rbrakk> \<Longrightarrow> set xs \<inter> set ys = {}" by blast
-    ultimately show ?lhs
-      by(auto simp add: rhs_def Let_def List.card_set[symmetric] card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"] dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
-  qed
-  thus ?thesis2 unfolding eq_set_def by blast
-  show ?thesis3 ?thesis4 unfolding eq_set_def List.coset_def by blast+
+  shows "eq_set (List.coset xs) (set ys) \<longleftrightarrow> rhs"
+  and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs"
+  and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
+  and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
+proof goals
+  {
+    case 1
+    show ?case (is "?lhs \<longleftrightarrow> ?rhs")
+    proof
+      show ?rhs if ?lhs
+        using that
+        by (auto simp add: rhs_def Let_def List.card_set[symmetric]
+          card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV
+          Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
+      show ?lhs if ?rhs
+      proof - 
+        have "\<lbrakk> \<forall>y\<in>set xs. y \<notin> set ys; \<forall>x\<in>set ys. x \<notin> set xs \<rbrakk> \<Longrightarrow> set xs \<inter> set ys = {}" by blast
+        with that show ?thesis
+          by (auto simp add: rhs_def Let_def List.card_set[symmetric]
+            card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"]
+            dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
+      qed
+    qed
+  }
+  moreover
+  case 2
+  ultimately show ?case unfolding eq_set_def by blast
+next
+  case 3
+  show ?case unfolding eq_set_def List.coset_def by blast
+next
+  case 4
+  show ?case unfolding eq_set_def List.coset_def by blast
 qed
 
 end

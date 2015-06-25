@@ -119,15 +119,20 @@ proof -
 qed
 
 lemma mark_out_aux_simps [simp, code]:
-  "mark_out_aux n m [] = []" (is ?thesis1)
-  "mark_out_aux n 0 (b # bs) = False # mark_out_aux n n bs" (is ?thesis2)
-  "mark_out_aux n (Suc m) (b # bs) = b # mark_out_aux n m bs" (is ?thesis3)
-proof -
-  show ?thesis1
+  "mark_out_aux n m [] = []"
+  "mark_out_aux n 0 (b # bs) = False # mark_out_aux n n bs"
+  "mark_out_aux n (Suc m) (b # bs) = b # mark_out_aux n m bs"
+proof goals
+  case 1
+  show ?case
     by (simp add: mark_out_aux_def)
-  show ?thesis2
+next
+  case 2
+  show ?case
     by (auto simp add: mark_out_code [symmetric] mark_out_aux_def mark_out_def
       enumerate_Suc_eq in_set_enumerate_eq less_eq_dvd_minus)
+next
+  case 3
   { def v \<equiv> "Suc m" and w \<equiv> "Suc n"
     fix q
     assume "m + n \<le> q"
@@ -150,7 +155,7 @@ proof -
       Suc n dvd Suc (Suc (q + n - m mod Suc n))"
       by (simp add: v_def w_def Suc_diff_le trans_le_add2)
   }
-  then show ?thesis3
+  then show ?case
     by (auto simp add: mark_out_aux_def
       enumerate_Suc_eq in_set_enumerate_eq not_less)
 qed

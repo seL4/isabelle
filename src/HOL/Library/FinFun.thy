@@ -1320,11 +1320,10 @@ where
 lemma set_finfun_to_list [simp]: "set (finfun_to_list f) = {x. finfun_dom f $ x}" (is ?thesis1)
   and sorted_finfun_to_list: "sorted (finfun_to_list f)" (is ?thesis2)
   and distinct_finfun_to_list: "distinct (finfun_to_list f)" (is ?thesis3)
-proof -
-  have "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
+proof (atomize (full))
+  show "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
     unfolding finfun_to_list_def
     by(rule theI')(rule finite_sorted_distinct_unique finite_finfun_dom)+
-  thus ?thesis1 ?thesis2 ?thesis3 by simp_all
 qed
 
 lemma finfun_const_False_conv_bot: "op $ (K$ False) = bot"
