@@ -139,9 +139,6 @@ by (simp add: divide_inverse)
 lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / a = 1"
 by (simp add: divide_inverse)
 
-lemma divide_zero_left [simp]: "0 / a = 0"
-by (simp add: divide_inverse)
-
 lemma inverse_eq_divide [field_simps, divide_simps]: "inverse a = 1 / a"
 by (simp add: divide_inverse)
 

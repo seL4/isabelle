@@ -244,6 +244,17 @@ proof (induct p rule: measure_induct_rule [where f=degree])
     using \<open>p = pCons a q\<close> by simp
 qed
 
+lemma degree_eq_zeroE:
+  fixes p :: "'a::zero poly"
+  assumes "degree p = 0"
+  obtains a where "p = pCons a 0"
+proof -
+  obtain a q where p: "p = pCons a q" by (cases p)
+  with assms have "q = 0" by (cases "q = 0") simp_all
+  with p have "p = pCons a 0" by simp
+  with that show thesis .
+qed
+
 
 subsection \<open>List-style syntax for polynomials\<close>
 
@@ -297,7 +308,7 @@ proof -
   }
   note * = this
   show ?thesis
-    by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt One_nat_def del: upt_Suc)
+    by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt del: upt_Suc)
 qed
 
 lemma not_0_cCons_eq [simp]:
@@ -876,6 +887,10 @@ lemma coeff_1 [simp]: "coeff 1 n = (if n = 0 then 1 else 0)"
   unfolding one_poly_def
   by (simp add: coeff_pCons split: nat.split)
 
+lemma monom_eq_1 [simp]:
+  "monom 1 0 = 1"
+  by (simp add: monom_0 one_poly_def)
+  
 lemma degree_1 [simp]: "degree 1 = 0"
   unfolding one_poly_def
   by (rule degree_pCons_0)
@@ -972,6 +987,18 @@ lemma degree_mult_eq:
 apply (rule order_antisym [OF degree_mult_le le_degree])
 apply (simp add: coeff_mult_degree_sum)
 done
+
+lemma degree_mult_right_le:
+  fixes p q :: "'a::idom poly"
+  assumes "q \<noteq> 0"
+  shows "degree p \<le> degree (p * q)"
+  using assms by (cases "p = 0") (simp_all add: degree_mult_eq)
+
+lemma coeff_degree_mult:
+  fixes p q :: "'a::idom poly"
+  shows "coeff (p * q) (degree (p * q)) =
+    coeff q (degree q) * coeff p (degree p)"
+  by (cases "p = 0 \<or> q = 0") (auto simp add: degree_mult_eq coeff_mult_degree_sum)
 
 lemma dvd_imp_degree_le:
   fixes p q :: "'a::idom poly"
@@ -1436,6 +1463,48 @@ qed
 
 end
 
+lemma is_unit_monom_0:
+  fixes a :: "'a::field"
+  assumes "a \<noteq> 0"
+  shows "is_unit (monom a 0)"
+proof
+  from assms show "1 = monom a 0 * monom (1 / a) 0"
+    by (simp add: mult_monom)
+qed
+
+lemma is_unit_triv:
+  fixes a :: "'a::field"
+  assumes "a \<noteq> 0"
+  shows "is_unit [:a:]"
+  using assms by (simp add: is_unit_monom_0 monom_0 [symmetric])
+
+lemma is_unit_iff_degree:
+  assumes "p \<noteq> 0"
+  shows "is_unit p \<longleftrightarrow> degree p = 0" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q
+  then obtain a where "p = [:a:]" by (rule degree_eq_zeroE)
+  with assms show ?P by (simp add: is_unit_triv)
+next
+  assume ?P
+  then obtain q where "q \<noteq> 0" "p * q = 1" ..
+  then have "degree (p * q) = degree 1"
+    by simp
+  with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> have "degree p + degree q = 0"
+    by (simp add: degree_mult_eq)
+  then show ?Q by simp
+qed
+
+lemma is_unit_pCons_iff:
+  "is_unit (pCons a p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0" (is "?P \<longleftrightarrow> ?Q")
+  by (cases "p = 0") (auto simp add: is_unit_triv is_unit_iff_degree)
+
+lemma is_unit_monom_trival:
+  fixes p :: "'a::field poly"
+  assumes "is_unit p"
+  shows "monom (coeff p (degree p)) 0 = p"
+  using assms by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
+
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
   using pdivmod_rel [of x y]
@@ -1833,4 +1902,3 @@ done
 no_notation cCons (infixr "##" 65)
 
 end
-

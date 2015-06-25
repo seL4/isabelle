@@ -859,6 +859,23 @@ apply (auto simp add: abs_if nat_mult_distrib [symmetric]
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
 
+lemma int_in_range_abs [simp]:
+  "int n \<in> range abs"
+proof (rule range_eqI)
+  show "int n = \<bar>int n\<bar>"
+    by simp
+qed
+
+lemma range_abs_Nats [simp]:
+  "range abs = (\<nat> :: int set)"
+proof -
+  have "\<bar>k\<bar> \<in> \<nat>" for k :: int
+    by (cases k) simp_all
+  moreover have "k \<in> range abs" if "k \<in> \<nat>" for k :: int
+    using that by induct simp
+  ultimately show ?thesis by blast
+qed  
+
 lemma Suc_nat_eq_nat_zadd1: "(0::int) <= z ==> Suc (nat z) = nat (1 + z)"
 apply (rule sym)
 apply (simp add: nat_eq_iff)

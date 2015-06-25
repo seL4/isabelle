@@ -619,6 +619,16 @@ lemma div_self [simp]:
   shows "a div a = 1"
   using assms nonzero_mult_divide_cancel_left [of a 1] by simp
 
+lemma divide_zero_left [simp]:
+  "0 div a = 0"
+proof (cases "a = 0")
+  case True then show ?thesis by simp
+next
+  case False then have "a * 0 div a = 0"
+    by (rule nonzero_mult_divide_cancel_left)
+  then show ?thesis by simp
+qed 
+
 end
 
 class idom_divide = idom + semidom_divide
@@ -650,6 +660,16 @@ lemma dvd_div_mult:
   assumes "c dvd b"
   shows "b div c * a = (b * a) div c"
   using assms div_mult_swap [of c b a] by (simp add: ac_simps)
+
+lemma dvd_div_mult2_eq:
+  assumes "b * c dvd a"
+  shows "a div (b * c) = a div b div c"
+using assms proof
+  fix k
+  assume "a = b * c * k"
+  then show ?thesis
+    by (cases "b = 0 \<or> c = 0") (auto, simp add: ac_simps)
+qed
 
 
 text \<open>Units: invertible elements in a ring\<close>
@@ -801,6 +821,17 @@ proof -
   then have "b * (1 div a) = c * (1 div a) \<longleftrightarrow> b = c"
     by (rule unit_mult_right_cancel)
   with assms show ?thesis by simp
+qed
+
+lemma is_unit_div_mult2_eq:
+  assumes "is_unit b" and "is_unit c"
+  shows "a div (b * c) = a div b div c"
+proof -
+  from assms have "is_unit (b * c)" by (simp add: unit_prod)
+  then have "b * c dvd a"
+    by (rule unit_imp_dvd)
+  then show ?thesis
+    by (rule dvd_div_mult2_eq)
 qed
 
 
