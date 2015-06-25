@@ -17,6 +17,7 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
+  val goals_tac: Proof.context -> string list -> cases_tactic
   val cheating: Proof.context -> bool -> method
   val intro: Proof.context -> thm list -> method
   val elim: Proof.context -> thm list -> method
@@ -124,6 +125,17 @@ fun SIMPLE_METHOD'' quant tac = METHOD (fn facts => quant (insert_tac facts THEN
 val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
 
 end;
+
+
+(* goals as cases *)
+
+fun goals_tac ctxt case_names st =
+  let
+    val cases =
+      (if null case_names then map string_of_int (1 upto Thm.nprems_of st) else case_names)
+      |> map (rpair [] o rpair [])
+      |> Rule_Cases.make_common ctxt (Thm.prop_of (Rule_Cases.internalize_params st));
+  in Seq.single (cases, st) end;
 
 
 (* cheating *)
@@ -676,9 +688,21 @@ val _ = Theory.setup
   setup @{binding sleep} (Scan.lift Parse.real >> (fn s => fn _ => fn _ => sleep (seconds s)))
     "succeed after delay (in seconds)" #>
   setup @{binding "-"} (Scan.succeed (K insert_facts))
-    "do nothing (insert current facts only)" #>
+    "insert current facts, nothing else" #>
+  setup @{binding goals} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
+    METHOD_CASES (fn facts =>
+      Seq.THEN (ALLGOALS (insert_tac facts), fn st =>
+        let
+          val _ =
+            (case drop (Thm.nprems_of st) names of
+              [] => ()
+            | bad => (* FIXME Seq.Error *)
+                error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+                  Position.here (Position.set_range (Token.range_of bad))));
+        in goals_tac ctxt (map Token.content_of names) st end))))
+    "insert facts and bind cases for goals" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
-    "insert theorems, ignoring facts (improper)" #>
+    "insert theorems, ignoring facts" #>
   setup @{binding intro} (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
     "repeatedly apply introduction rules" #>
   setup @{binding elim} (Attrib.thms >> (fn ths => fn ctxt => elim ctxt ths))
