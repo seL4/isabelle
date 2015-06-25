@@ -157,14 +157,15 @@ next
     note b = this(1) and body = this(2) and inv = this(3)
     hence k': "f ((c ^^ k') s) = (c' ^^ k') (f s)" by auto
     ultimately show ?thesis unfolding Suc using b
-    proof (intro Least_equality[symmetric])
-      case goal1
+    proof (intro Least_equality[symmetric], goals)
+      case 1
       hence Test: "\<not> b' (f ((c ^^ Suc k') s))"
         by (auto simp: BodyCommute inv b)
       have "P ((c ^^ Suc k') s)" by (auto simp: Invariant inv b)
       with Test show ?case by (auto simp: TestCommute)
     next
-      case goal2 thus ?case by (metis not_less_eq_eq)
+      case 2
+      thus ?case by (metis not_less_eq_eq)
     qed
   qed
   have "f ((c ^^ ?k) s) = (c' ^^ ?k') (f s)" unfolding *

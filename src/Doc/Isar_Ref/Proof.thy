@@ -818,6 +818,7 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\[0.5ex]
     @{method_def "-"} & : & @{text method} \\
+    @{method_def "goals"} & : & @{text method} \\
     @{method_def "fact"} & : & @{text method} \\
     @{method_def "assumption"} & : & @{text method} \\
     @{method_def "this"} & : & @{text method} \\
@@ -832,6 +833,8 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
+    @@{method goals} (@{syntax name}*)
+    ;
     @@{method fact} @{syntax thmrefs}?
     ;
     @@{method (Pure) rule} @{syntax thmrefs}?
@@ -861,12 +864,23 @@ text \<open>
   rule declarations of the classical reasoner
   (\secref{sec:classical}).
 
-  \item ``@{method "-"}'' (minus) does nothing but insert the forward
-  chaining facts as premises into the goal.  Note that command
-  @{command_ref "proof"} without any method actually performs a single
-  reduction step using the @{method_ref (Pure) rule} method; thus a plain
-  \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
-  "-"}'' rather than @{command "proof"} alone.
+  \item ``@{method "-"}'' (minus) inserts the forward chaining facts as
+  premises into the goal, and nothing else.
+
+  Note that command @{command_ref "proof"} without any method actually
+  performs a single reduction step using the @{method_ref (Pure) rule}
+  method; thus a plain \emph{do-nothing} proof step would be ``@{command
+  "proof"}~@{text "-"}'' rather than @{command "proof"} alone.
+
+  \item @{method "goals"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} is like ``@{method "-"}'', but
+  the current subgoals are turned into cases within the context (see also
+  \secref{sec:cases-induct}). The specified case names are used if present;
+  otherwise cases are numbered starting from 1.
+
+  Invoking cases in the subsequent proof body via the @{command_ref case}
+  command will @{command fix} goal parameters, @{command assume} goal
+  premises, and @{command let} variable @{variable_ref ?case} refer to the
+  conclusion.
 
   \item @{method "fact"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} composes some fact from
   @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (or implicitly from the current proof context)

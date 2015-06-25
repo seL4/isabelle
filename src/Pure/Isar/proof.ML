@@ -422,8 +422,8 @@ fun apply_method text ctxt state =
     |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
-          (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases ctxt goal') #>
-           Proof_Context.update_cases true meth_cases)
+          (Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal') #>
+           Proof_Context.update_cases meth_cases)
           (K (statement, using, goal', before_qed, after_qed)) I));
 
 in

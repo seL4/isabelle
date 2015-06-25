@@ -377,16 +377,26 @@ proof -
      done
   } note B = this
   show "full (Suc n) t \<Longrightarrow> dfull n (del k t)"
-  proof (induct k t arbitrary: n rule: del.induct)
-    { case goal1 thus "dfull n (del (Some k) Empty)" by simp }
-    { case goal2 thus "dfull n (del None (Branch2 Empty p Empty))" by simp }
-    { case goal3 thus "dfull n (del None (Branch3 Empty p Empty q Empty))"
-        by simp }
-    { case goal4 thus "dfull n (del (Some v) (Branch2 Empty p Empty))"
-        by (simp split: ord.split) }
-    { case goal5 thus "dfull n (del (Some v) (Branch3 Empty p Empty q Empty))"
-        by (simp split: ord.split) }
-    { case goal26 thus ?case by simp }
+  proof (induct k t arbitrary: n rule: del.induct, goals)
+    case (1 k n)
+    thus "dfull n (del (Some k) Empty)" by simp
+  next
+    case (2 p n)
+    thus "dfull n (del None (Branch2 Empty p Empty))" by simp
+  next
+    case (3 p q n)
+    thus "dfull n (del None (Branch3 Empty p Empty q Empty))" by simp
+  next
+    case (4 v p n)
+    thus "dfull n (del (Some v) (Branch2 Empty p Empty))"
+      by (simp split: ord.split)
+  next
+    case (5 v p q n)
+    thus "dfull n (del (Some v) (Branch3 Empty p Empty q Empty))"
+      by (simp split: ord.split)
+  next
+    case (26 n)
+    thus ?case by simp
   qed (fact A | fact B)+
 qed
 

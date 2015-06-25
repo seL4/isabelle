@@ -1337,22 +1337,25 @@ lemma kuhn_lemma:
   obtains q where "\<forall>i<n. q i < p"
     and "\<forall>i<n. \<exists>r s. (\<forall>j<n. q j \<le> r j \<and> r j \<le> q j + 1) \<and> (\<forall>j<n. q j \<le> s j \<and> s j \<le> q j + 1) \<and> label r i \<noteq> label s i"
 proof -
-  let ?rl = "reduced n\<circ>label"
+  let ?rl = "reduced n \<circ> label"
   let ?A = "{s. ksimplex p n s \<and> ?rl ` s = {..n}}"
   have "odd (card ?A)"
     using assms by (intro kuhn_combinatorial[of p n label]) auto
   then have "?A \<noteq> {}"
-    by (intro notI) simp
+    by fastforce
   then obtain s b u where "kuhn_simplex p n b u s" and rl: "?rl ` s = {..n}"
     by (auto elim: ksimplex.cases)
   interpret kuhn_simplex p n b u s by fact
 
   show ?thesis
   proof (intro that[of b] allI impI)
-    fix i assume "i < n" then show "b i < p"
+    fix i
+    assume "i < n"
+    then show "b i < p"
       using base by auto
   next
-    case goal2
+    fix i
+    assume "i < n"
     then have "i \<in> {.. n}" "Suc i \<in> {.. n}"
       by auto
     then obtain u v where u: "u \<in> s" "Suc i = ?rl u" and v: "v \<in> s" "i = ?rl v"
@@ -1363,10 +1366,11 @@ proof -
         u(2)[symmetric] v(2)[symmetric] \<open>i < n\<close>
       by auto
     moreover
-    { fix j assume "j < n"
-      then have "b j \<le> u j" "u j \<le> b j + 1" "b j \<le> v j" "v j \<le> b j + 1"
-        using base_le[OF \<open>u\<in>s\<close>] le_Suc_base[OF \<open>u\<in>s\<close>] base_le[OF \<open>v\<in>s\<close>] le_Suc_base[OF \<open>v\<in>s\<close>] by auto }
-    ultimately show ?case
+    have "b j \<le> u j" "u j \<le> b j + 1" "b j \<le> v j" "v j \<le> b j + 1" if "j < n" for j
+      using that base_le[OF \<open>u\<in>s\<close>] le_Suc_base[OF \<open>u\<in>s\<close>] base_le[OF \<open>v\<in>s\<close>] le_Suc_base[OF \<open>v\<in>s\<close>]
+      by auto
+    ultimately show "\<exists>r s. (\<forall>j<n. b j \<le> r j \<and> r j \<le> b j + 1) \<and>
+        (\<forall>j<n. b j \<le> s j \<and> s j \<le> b j + 1) \<and> label r i \<noteq> label s i"
       by blast
   qed
 qed
@@ -1392,23 +1396,20 @@ proof -
     apply rule
     apply rule
   proof -
-    case goal1
+    fix x x'
     let ?R = "\<lambda>y::nat.
-      (P x \<and> Q xa \<and> x xa = 0 \<longrightarrow> y = 0) \<and>
-      (P x \<and> Q xa \<and> x xa = 1 \<longrightarrow> y = 1) \<and>
-      (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x xa \<le> (f x) xa) \<and>
-      (P x \<and> Q xa \<and> y = 1 \<longrightarrow> (f x) xa \<le> x xa)"
-    {
-      assume "P x" and "Q xa"
-      then have "0 \<le> f x xa \<and> f x xa \<le> 1"
-        using assms(2)[rule_format,of "f x" xa]
-        apply (drule_tac assms(1)[rule_format])
-        apply auto
-        done
-    }
+      (P x \<and> Q x' \<and> x x' = 0 \<longrightarrow> y = 0) \<and>
+      (P x \<and> Q x' \<and> x x' = 1 \<longrightarrow> y = 1) \<and>
+      (P x \<and> Q x' \<and> y = 0 \<longrightarrow> x x' \<le> (f x) x') \<and>
+      (P x \<and> Q x' \<and> y = 1 \<longrightarrow> (f x) x' \<le> x x')"
+    have "0 \<le> f x x' \<and> f x x' \<le> 1" if "P x" "Q x'"
+      using assms(2)[rule_format,of "f x" x'] that
+      apply (drule_tac assms(1)[rule_format])
+      apply auto
+      done
     then have "?R 0 \<or> ?R 1"
       by auto
-    then show ?case
+    then show "\<exists>y\<le>1. ?R y"
       by auto
   qed
 qed
@@ -1988,17 +1989,17 @@ lemma no_retraction_cball:
   assumes "e > 0"
   shows "\<not> (frontier (cball a e) retract_of (cball a e))"
 proof
-  case goal1
-  have *: "\<And>xa. a - (2 *\<^sub>R a - xa) = - (a - xa)"
+  assume *: "frontier (cball a e) retract_of (cball a e)"
+  have **: "\<And>xa. a - (2 *\<^sub>R a - xa) = - (a - xa)"
     using scaleR_left_distrib[of 1 1 a] by auto
   obtain x where x:
       "x \<in> {x. norm (a - x) = e}"
       "2 *\<^sub>R a - x = x"
-    apply (rule retract_fixpoint_property[OF goal1, of "\<lambda>x. scaleR 2 a - x"])
+    apply (rule retract_fixpoint_property[OF *, of "\<lambda>x. scaleR 2 a - x"])
     apply (blast intro: brouwer_ball[OF assms])
     apply (intro continuous_intros)
     unfolding frontier_cball subset_eq Ball_def image_iff dist_norm
-    apply (auto simp add: * norm_minus_commute)
+    apply (auto simp add: ** norm_minus_commute)
     done
   then have "scaleR 2 a = scaleR 1 x + scaleR 1 x"
     by (auto simp add: algebra_simps)

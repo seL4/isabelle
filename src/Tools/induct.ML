@@ -74,8 +74,7 @@ sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  type case_data = (((string * string list) * string list) list * int) (* FIXME -> rule_cases.ML *)
-  val gen_induct_tac: (case_data * thm -> case_data * thm) ->
+  val gen_induct_tac: ((Rule_Cases.info * int) * thm -> (Rule_Cases.info * int) * thm) ->
     Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
@@ -127,15 +126,15 @@ fun swap_params_conv ctxt i j cv =
     fun conv1 0 ctxt = Conv.forall_conv (cv o snd) ctxt
       | conv1 k ctxt =
           Conv.rewr_conv @{thm swap_params} then_conv
-          Conv.forall_conv (conv1 (k - 1) o snd) ctxt
+          Conv.forall_conv (conv1 (k - 1) o snd) ctxt;
     fun conv2 0 ctxt = conv1 j ctxt
-      | conv2 k ctxt = Conv.forall_conv (conv2 (k - 1) o snd) ctxt
+      | conv2 k ctxt = Conv.forall_conv (conv2 (k - 1) o snd) ctxt;
   in conv2 i ctxt end;
 
 fun swap_prems_conv 0 = Conv.all_conv
   | swap_prems_conv i =
       Conv.implies_concl_conv (swap_prems_conv (i - 1)) then_conv
-      Conv.rewr_conv Drule.swap_prems_eq
+      Conv.rewr_conv Drule.swap_prems_eq;
 
 fun find_eq ctxt t =
   let
@@ -622,7 +621,9 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
             val xs = rename_params (Logic.strip_params A);
             val xs' =
               (case filter (fn x' => x' = x) xs of
-                [] => xs | [_] => xs | _ => index 1 xs);
+                [] => xs
+              | [_] => xs
+              | _ => index 1 xs);
           in Logic.list_rename_params xs' A end;
         fun rename_prop prop =
           let val (As, C) = Logic.strip_horn prop
@@ -733,8 +734,6 @@ fun get_inductT ctxt insts =
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
 
-type case_data = (((string * string list) * string list) list * int);
-
 fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
   SUBGOAL_CASES (fn (_, i) =>
     let
@@ -778,7 +777,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
                 val adefs = nth_list atomized_defs (j - 1);
                 val frees = fold (Term.add_frees o Thm.prop_of) adefs [];
                 val xs = nth_list arbitrary (j - 1);
-                val k = nth concls (j - 1) + more_consumes
+                val k = nth concls (j - 1) + more_consumes;
               in
                 Method.insert_tac (more_facts @ adefs) THEN'
                   (if simp then

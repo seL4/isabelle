@@ -2202,7 +2202,6 @@ proof -
   have pt_x: "pt TYPE('x) TYPE('x)" by (force intro: at_pt_inst at)
   show ?thesis
   proof (rule equalityI)
-    case goal1
     show "pi\<bullet>(\<Union>x\<in>X. f x) \<subseteq> (\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x)"
       apply(auto simp add: perm_set_def)
       apply(rule_tac x="pi\<bullet>xb" in exI)
@@ -2218,7 +2217,6 @@ proof -
       apply(rule pt_fun_app_eq[OF pt, OF at])
       done
   next
-    case goal2
     show "(\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x) \<subseteq> pi\<bullet>(\<Union>x\<in>X. f x)"
       apply(auto simp add: perm_set_def)
       apply(rule_tac x="(rev pi)\<bullet>x" in exI)

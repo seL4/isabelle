@@ -908,13 +908,13 @@ lemma behead_isnpolyh:
 subsection \<open>Miscellaneous lemmas about indexes, decrementation, substitution  etc ...\<close>
 
 lemma isnpolyh_polybound0: "isnpolyh p (Suc n) \<Longrightarrow> polybound0 p"
-proof (induct p arbitrary: n rule: poly.induct, auto)
-  case (goal1 c n p n')
+proof (induct p arbitrary: n rule: poly.induct, auto, goals)
+  case prems: (1 c n p n')
   then have "n = Suc (n - 1)"
     by simp
   then have "isnpolyh p (Suc (n - 1))"
     using \<open>isnpolyh p n\<close> by simp
-  with goal1(2) show ?case
+  with prems(2) show ?case
     by simp
 qed
 

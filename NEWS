@@ -77,6 +77,13 @@ form "case (c xs) [attributes]" is no longer supported. Rare
 INCOMPATIBILITY, need to adapt uses of case facts in exotic situations,
 and always put attributes in front.
 
+* Proof method "goals" turns the current subgoals into cases within the
+context; the conclusion is bound to variable ?case in each case.
+
+* The undocumented feature of implicit cases goal1, goal2, goal3, etc.
+is marked as legacy, and will be removed eventually. Note that proof
+method "goals" achieves a similar effect within regular Isar.
+
 * Nesting of Isar goal structure has been clarified: the context after
 the initial backwards refinement is retained for the whole proof, within
 all its context sections (as indicated via 'next'). This is e.g.

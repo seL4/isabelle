@@ -294,27 +294,32 @@ lemma rbt_min_opt_is_min:
 using assms 
 proof (induction t rule: rbt_min_opt_induct)
   case empty
-    then show ?case by simp
+  then show ?case by simp
 next
   case left_empty
-    then show ?case by (auto intro: key_le_right simp del: rbt_sorted.simps)
+  then show ?case by (auto intro: key_le_right simp del: rbt_sorted.simps)
 next
   case (left_non_empty c t1 k v t2 y)
-    then have "y = k \<or> y \<in> set (RBT_Impl.keys t1) \<or> y \<in> set (RBT_Impl.keys t2)" by auto
-    with left_non_empty show ?case 
-    proof(elim disjE)
-      case goal1 then show ?case 
-        by (auto simp add: rbt_min_opt_Branch intro: left_le_key rbt_min_opt_in_set)
-    next
-      case goal2 with left_non_empty show ?case by (auto simp add: rbt_min_opt_Branch)
-    next 
-      case goal3 show ?case
-      proof -
-        from goal3 have "rbt_min_opt t1 \<le> k" by (simp add: left_le_key rbt_min_opt_in_set)
-        moreover from goal3 have "k \<le> y" by (simp add: key_le_right)
-        ultimately show ?thesis using goal3 by (simp add: rbt_min_opt_Branch)
-      qed
-    qed
+  then consider "y = k" | "y \<in> set (RBT_Impl.keys t1)" | "y \<in> set (RBT_Impl.keys t2)"
+    by auto
+  then show ?case 
+  proof cases
+    case 1
+    with left_non_empty show ?thesis
+      by (auto simp add: rbt_min_opt_Branch intro: left_le_key rbt_min_opt_in_set)
+  next
+    case 2
+    with left_non_empty show ?thesis
+      by (auto simp add: rbt_min_opt_Branch)
+  next 
+    case y: 3
+    have "rbt_min_opt t1 \<le> k"
+      using left_non_empty by (simp add: left_le_key rbt_min_opt_in_set)
+    moreover have "k \<le> y"
+      using left_non_empty y by (simp add: key_le_right)
+    ultimately show ?thesis
+      using left_non_empty y by (simp add: rbt_min_opt_Branch)
+  qed
 qed
 
 lemma rbt_min_eq_rbt_min_opt:
@@ -388,27 +393,32 @@ lemma rbt_max_opt_is_max:
 using assms 
 proof (induction t rule: rbt_max_opt_induct)
   case empty
-    then show ?case by simp
+  then show ?case by simp
 next
   case right_empty
-    then show ?case by (auto intro: left_le_key simp del: rbt_sorted.simps)
+  then show ?case by (auto intro: left_le_key simp del: rbt_sorted.simps)
 next
   case (right_non_empty c t1 k v t2 y)
-    then have "y = k \<or> y \<in> set (RBT_Impl.keys t2) \<or> y \<in> set (RBT_Impl.keys t1)" by auto
-    with right_non_empty show ?case 
-    proof(elim disjE)
-      case goal1 then show ?case 
-        by (auto simp add: rbt_max_opt_Branch intro: key_le_right rbt_max_opt_in_set)
-    next
-      case goal2 with right_non_empty show ?case by (auto simp add: rbt_max_opt_Branch)
-    next 
-      case goal3 show ?case
-      proof -
-        from goal3 have "rbt_max_opt t2 \<ge> k" by (simp add: key_le_right rbt_max_opt_in_set)
-        moreover from goal3 have "y \<le> k" by (simp add: left_le_key)
-        ultimately show ?thesis using goal3 by (simp add: rbt_max_opt_Branch)
-      qed
-    qed
+  then consider "y = k" | "y \<in> set (RBT_Impl.keys t2)" | "y \<in> set (RBT_Impl.keys t1)"
+    by auto
+  then show ?case 
+  proof cases
+    case 1
+    with right_non_empty show ?thesis
+      by (auto simp add: rbt_max_opt_Branch intro: key_le_right rbt_max_opt_in_set)
+  next
+    case 2
+    with right_non_empty show ?thesis
+      by (auto simp add: rbt_max_opt_Branch)
+  next 
+    case y: 3
+    have "rbt_max_opt t2 \<ge> k"
+      using right_non_empty by (simp add: key_le_right rbt_max_opt_in_set)
+    moreover have "y \<le> k"
+      using right_non_empty y by (simp add: left_le_key)
+    ultimately show ?thesis
+      using right_non_empty by (simp add: rbt_max_opt_Branch)
+  qed
 qed
 
 lemma rbt_max_eq_rbt_max_opt:

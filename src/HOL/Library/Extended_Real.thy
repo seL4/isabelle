@@ -333,11 +333,11 @@ function plus_ereal where
 | "ereal r + -\<infinity> = - \<infinity>"
 | "-\<infinity> + ereal p = -(\<infinity>::ereal)"
 | "-\<infinity> + -\<infinity> = -(\<infinity>::ereal)"
-proof -
-  case (goal1 P x)
+proof goals
+  case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto
-  with goal1 show P
+  with prems show P
    by (cases rule: ereal2_cases[of a b]) auto
 qed auto
 termination by default (rule wf_empty)
@@ -437,10 +437,10 @@ where
 | "ereal x    < \<infinity>           \<longleftrightarrow> True"
 | "        -\<infinity> < ereal r     \<longleftrightarrow> True"
 | "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
-proof -
-  case (goal1 P x)
+proof goals
+  case prems: (1 P x)
   then obtain a b where "x = (a,b)" by (cases x) auto
-  with goal1 show P by (cases rule: ereal2_cases[of a b]) auto
+  with prems show P by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
 
@@ -860,11 +860,11 @@ function times_ereal where
 | "-(\<infinity>::ereal) * \<infinity> = -\<infinity>"
 | "(\<infinity>::ereal) * -\<infinity> = -\<infinity>"
 | "-(\<infinity>::ereal) * -\<infinity> = \<infinity>"
-proof -
-  case (goal1 P x)
+proof goals
+  case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto
-  with goal1 show P
+  with prems show P
     by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
