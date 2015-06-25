@@ -27,10 +27,9 @@ sig
     cases: (string * T) list}
   val case_hypsN: string
   val strip_params: term -> (string * typ) list
-  val make_common: Proof.context -> term ->
-    ((string * string list) * string list) list -> cases
-  val make_nested: Proof.context -> term -> term ->
-    ((string * string list) * string list) list -> cases
+  type info = ((string * string list) * string list) list
+  val make_common: Proof.context -> term -> info -> cases
+  val make_nested: Proof.context -> term -> term -> info -> cases
   val apply: term list -> T -> T
   val consume: Proof.context -> thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
@@ -51,7 +50,7 @@ sig
   val cases_open: attribute
   val internalize_params: thm -> thm
   val save: thm -> thm -> thm
-  val get: thm -> ((string * string list) * string list) list * int
+  val get: thm -> info * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
   val mutual_rule: Proof.context -> thm list -> (int list * thm) option
@@ -76,6 +75,8 @@ val case_hypsN = "hyps";
 val case_premsN = "prems";
 
 val strip_params = map (apfst (perhaps (try Name.dest_skolem))) o Logic.strip_params;
+
+type info = ((string * string list) * string list) list;
 
 local
 
@@ -221,13 +222,13 @@ fun unfold_prems_concls ctxt defs th =
 
 in
 
-fun consume ctxt defs facts ((xx, n), th) =
+fun consume ctxt defs facts ((a, n), th) =
   let val m = Int.min (length facts, n) in
     th
     |> unfold_prems ctxt n defs
     |> unfold_prems_concls ctxt defs
     |> Drule.multi_resolve (SOME ctxt) (take m facts)
-    |> Seq.map (pair (xx, (n - m, drop m facts)))
+    |> Seq.map (pair (a, (n - m, drop m facts)))
   end;
 
 end;

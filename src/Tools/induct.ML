@@ -74,8 +74,7 @@ sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  type case_data = (((string * string list) * string list) list * int) (* FIXME -> rule_cases.ML *)
-  val gen_induct_tac: (case_data * thm -> case_data * thm) ->
+  val gen_induct_tac: ((Rule_Cases.info * int) * thm -> (Rule_Cases.info * int) * thm) ->
     Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
@@ -734,8 +733,6 @@ fun get_inductT ctxt insts =
 
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
-
-type case_data = (((string * string list) * string list) list * int);
 
 fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts =
   SUBGOAL_CASES (fn (_, i) =>
