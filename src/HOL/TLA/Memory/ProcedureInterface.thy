@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* Procedure interface for RPC-Memory components *}
+section \<open>Procedure interface for RPC-Memory components\<close>
 
 theory ProcedureInterface
 imports "../TLA" RPCMemoryParams
@@ -14,40 +14,40 @@ typedecl ('a,'r) chan
      rather than a single array-valued variable because the
      notation gets a little simpler.
   *)
-type_synonym ('a,'r) channel =" (PrIds => ('a,'r) chan) stfun"
+type_synonym ('a,'r) channel =" (PrIds \<Rightarrow> ('a,'r) chan) stfun"
 
 consts
   (* data-level functions *)
-  cbit          :: "('a,'r) chan => bit"
-  rbit          :: "('a,'r) chan => bit"
-  arg           :: "('a,'r) chan => 'a"
-  res           :: "('a,'r) chan => 'r"
+  cbit          :: "('a,'r) chan \<Rightarrow> bit"
+  rbit          :: "('a,'r) chan \<Rightarrow> bit"
+  arg           :: "('a,'r) chan \<Rightarrow> 'a"
+  res           :: "('a,'r) chan \<Rightarrow> 'r"
 
   (* state functions *)
-  caller        :: "('a,'r) channel => (PrIds => (bit * 'a)) stfun"
-  rtrner        :: "('a,'r) channel => (PrIds => (bit * 'r)) stfun"
+  caller        :: "('a,'r) channel \<Rightarrow> (PrIds \<Rightarrow> (bit * 'a)) stfun"
+  rtrner        :: "('a,'r) channel \<Rightarrow> (PrIds \<Rightarrow> (bit * 'r)) stfun"
 
   (* state predicates *)
-  Calling   :: "('a,'r) channel => PrIds => stpred"
+  Calling   :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> stpred"
 
   (* actions *)
-  ACall      :: "('a,'r) channel => PrIds => 'a stfun => action"
-  AReturn    :: "('a,'r) channel => PrIds => 'r stfun => action"
+  ACall      :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'a stfun \<Rightarrow> action"
+  AReturn    :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'r stfun \<Rightarrow> action"
 
   (* temporal formulas *)
-  PLegalCaller      :: "('a,'r) channel => PrIds => temporal"
-  LegalCaller       :: "('a,'r) channel => temporal"
-  PLegalReturner    :: "('a,'r) channel => PrIds => temporal"
-  LegalReturner     :: "('a,'r) channel => temporal"
+  PLegalCaller      :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> temporal"
+  LegalCaller       :: "('a,'r) channel \<Rightarrow> temporal"
+  PLegalReturner    :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> temporal"
+  LegalReturner     :: "('a,'r) channel \<Rightarrow> temporal"
 
   (* slice through array-valued state function *)
-  slice        :: "('a => 'b) stfun => 'a => 'b stfun"
+  slice        :: "('a \<Rightarrow> 'b) stfun \<Rightarrow> 'a \<Rightarrow> 'b stfun"
 
 syntax
-  "_slice"    :: "[lift, 'a] => lift"      ("(_!_)" [70,70] 70)
+  "_slice"    :: "[lift, 'a] \<Rightarrow> lift"      ("(_!_)" [70,70] 70)
 
-  "_Call"     :: "['a, 'b, lift] => lift"    ("(Call _ _ _)" [90,90,90] 90)
-  "_Return"   :: "['a, 'b, lift] => lift"    ("(Return _ _ _)" [90,90,90] 90)
+  "_Call"     :: "['a, 'b, lift] \<Rightarrow> lift"    ("(Call _ _ _)" [90,90,90] 90)
+  "_Return"   :: "['a, 'b, lift] \<Rightarrow> lift"    ("(Return _ _ _)" [90,90,90] 90)
 
 translations
   "_slice"  ==  "CONST slice"
@@ -58,23 +58,23 @@ translations
 defs
   slice_def:     "(PRED (x!i)) s == x s i"
 
-  caller_def:    "caller ch   == %s p. (cbit (ch s p), arg (ch s p))"
-  rtrner_def:    "rtrner ch   == %s p. (rbit (ch s p), res (ch s p))"
+  caller_def:    "caller ch   == \<lambda>s p. (cbit (ch s p), arg (ch s p))"
+  rtrner_def:    "rtrner ch   == \<lambda>s p. (rbit (ch s p), res (ch s p))"
 
-  Calling_def:   "Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
-  Call_def:      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
-                                     & (cbit<ch!p>$ ~= $rbit<ch!p>)
-                                     & (arg<ch!p>$ = $v)"
+  Calling_def:   "Calling ch p  == PRED cbit< ch!p > \<noteq> rbit< ch!p >"
+  Call_def:      "(ACT Call ch p v)   == ACT  \<not> $Calling ch p
+                                     \<and> (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
+                                     \<and> (arg<ch!p>$ = $v)"
   Return_def:    "(ACT Return ch p v) == ACT  $Calling ch p
-                                     & (rbit<ch!p>$ = $cbit<ch!p>)
-                                     & (res<ch!p>$ = $v)"
+                                     \<and> (rbit<ch!p>$ = $cbit<ch!p>)
+                                     \<and> (res<ch!p>$ = $v)"
   PLegalCaller_def:      "PLegalCaller ch p == TEMP
-                             Init(~ Calling ch p)
-                             & [][ ? a. Call ch p a ]_((caller ch)!p)"
-  LegalCaller_def:       "LegalCaller ch == TEMP (! p. PLegalCaller ch p)"
+                             Init(\<not> Calling ch p)
+                             \<and> \<box>[\<exists>a. Call ch p a ]_((caller ch)!p)"
+  LegalCaller_def:       "LegalCaller ch == TEMP (\<forall>p. PLegalCaller ch p)"
   PLegalReturner_def:    "PLegalReturner ch p == TEMP
-                                [][ ? v. Return ch p v ]_((rtrner ch)!p)"
-  LegalReturner_def:     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
+                                \<box>[\<exists>v. Return ch p v ]_((rtrner ch)!p)"
+  LegalReturner_def:     "LegalReturner ch == TEMP (\<forall>p. PLegalReturner ch p)"
 
 declare slice_def [simp]
 
@@ -82,10 +82,10 @@ lemmas Procedure_defs = caller_def rtrner_def Calling_def Call_def Return_def
   PLegalCaller_def LegalCaller_def PLegalReturner_def LegalReturner_def
 
 (* Calls and returns change their subchannel *)
-lemma Call_changed: "|- Call ch p v --> <Call ch p v>_((caller ch)!p)"
+lemma Call_changed: "\<turnstile> Call ch p v \<longrightarrow> <Call ch p v>_((caller ch)!p)"
   by (auto simp: angle_def Call_def caller_def Calling_def)
 
-lemma Return_changed: "|- Return ch p v --> <Return ch p v>_((rtrner ch)!p)"
+lemma Return_changed: "\<turnstile> Return ch p v \<longrightarrow> <Return ch p v>_((rtrner ch)!p)"
   by (auto simp: angle_def Return_def rtrner_def Calling_def)
 
 end

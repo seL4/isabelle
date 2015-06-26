@@ -126,7 +126,7 @@ abbreviation
   "LUB n. t n == lub (range t)"
 
 notation (xsymbols)
-  Lub  (binder "\<Squnion> " 10)
+  Lub  (binder "\<Squnion>" 10)
 
 text {* access to some definition as inference rule *}
 

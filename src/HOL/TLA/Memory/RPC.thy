@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: RPC specification *}
+section \<open>RPC-Memory example: RPC specification\<close>
 
 theory RPC
 imports RPCParameters ProcedureInterface Memory
@@ -10,65 +10,65 @@ begin
 
 type_synonym rpcSndChType = "(rpcOp,Vals) channel"
 type_synonym rpcRcvChType = "memChType"
-type_synonym rpcStType = "(PrIds => rpcState) stfun"
+type_synonym rpcStType = "(PrIds \<Rightarrow> rpcState) stfun"
 
 consts
   (* state predicates *)
-  RPCInit      :: "rpcRcvChType => rpcStType => PrIds => stpred"
+  RPCInit      :: "rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> stpred"
 
   (* actions *)
-  RPCFwd     :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => action"
-  RPCReject  :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => action"
-  RPCFail    :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => action"
-  RPCReply   :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => action"
-  RPCNext    :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => action"
+  RPCFwd     :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> action"
+  RPCReject  :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> action"
+  RPCFail    :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> action"
+  RPCReply   :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> action"
+  RPCNext    :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> action"
 
   (* temporal *)
-  RPCIPSpec   :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => temporal"
-  RPCISpec   :: "rpcSndChType => rpcRcvChType => rpcStType => temporal"
+  RPCIPSpec   :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> PrIds \<Rightarrow> temporal"
+  RPCISpec   :: "rpcSndChType \<Rightarrow> rpcRcvChType \<Rightarrow> rpcStType \<Rightarrow> temporal"
 
 defs
-  RPCInit_def:       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) & ~Calling rcv p)"
+  RPCInit_def:       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) \<and> \<not>Calling rcv p)"
 
   RPCFwd_def:        "RPCFwd send rcv rst p == ACT
                          $(Calling send p)
-                         & $(rst!p) = # rpcA
-                         & IsLegalRcvArg<arg<$(send!p)>>
-                         & Call rcv p RPCRelayArg<arg<send!p>>
-                         & (rst!p)$ = # rpcB
-                         & unchanged (rtrner send!p)"
+                         \<and> $(rst!p) = # rpcA
+                         \<and> IsLegalRcvArg<arg<$(send!p)>>
+                         \<and> Call rcv p RPCRelayArg<arg<send!p>>
+                         \<and> (rst!p)$ = # rpcB
+                         \<and> unchanged (rtrner send!p)"
 
   RPCReject_def:     "RPCReject send rcv rst p == ACT
                            $(rst!p) = # rpcA
-                         & ~IsLegalRcvArg<arg<$(send!p)>>
-                         & Return send p #BadCall
-                         & unchanged ((rst!p), (caller rcv!p))"
+                         \<and> \<not>IsLegalRcvArg<arg<$(send!p)>>
+                         \<and> Return send p #BadCall
+                         \<and> unchanged ((rst!p), (caller rcv!p))"
 
   RPCFail_def:       "RPCFail send rcv rst p == ACT
-                           ~$(Calling rcv p)
-                         & Return send p #RPCFailure
-                         & (rst!p)$ = #rpcA
-                         & unchanged (caller rcv!p)"
+                           \<not>$(Calling rcv p)
+                         \<and> Return send p #RPCFailure
+                         \<and> (rst!p)$ = #rpcA
+                         \<and> unchanged (caller rcv!p)"
 
   RPCReply_def:      "RPCReply send rcv rst p == ACT
-                           ~$(Calling rcv p)
-                         & $(rst!p) = #rpcB
-                         & Return send p res<rcv!p>
-                         & (rst!p)$ = #rpcA
-                         & unchanged (caller rcv!p)"
+                           \<not>$(Calling rcv p)
+                         \<and> $(rst!p) = #rpcB
+                         \<and> Return send p res<rcv!p>
+                         \<and> (rst!p)$ = #rpcA
+                         \<and> unchanged (caller rcv!p)"
 
   RPCNext_def:       "RPCNext send rcv rst p == ACT
                         (  RPCFwd send rcv rst p
-                         | RPCReject send rcv rst p
-                         | RPCFail send rcv rst p
-                         | RPCReply send rcv rst p)"
+                         \<or> RPCReject send rcv rst p
+                         \<or> RPCFail send rcv rst p
+                         \<or> RPCReply send rcv rst p)"
 
   RPCIPSpec_def:     "RPCIPSpec send rcv rst p == TEMP
                            Init RPCInit rcv rst p
-                         & [][ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
-                         & WF(RPCNext send rcv rst p)_(rst!p, rtrner send!p, caller rcv!p)"
+                         \<and> \<box>[ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
+                         \<and> WF(RPCNext send rcv rst p)_(rst!p, rtrner send!p, caller rcv!p)"
 
-  RPCISpec_def:      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
+  RPCISpec_def:      "RPCISpec send rcv rst == TEMP (\<forall>p. RPCIPSpec send rcv rst p)"
 
 
 lemmas RPC_action_defs =
@@ -81,33 +81,33 @@ lemmas RPC_temp_defs = RPCIPSpec_def RPCISpec_def
    unanswered call for that process.
 *)
 
-lemma RPCidle: "|- ~$(Calling send p) --> ~RPCNext send rcv rst p"
+lemma RPCidle: "\<turnstile> \<not>$(Calling send p) \<longrightarrow> \<not>RPCNext send rcv rst p"
   by (auto simp: Return_def RPC_action_defs)
 
-lemma RPCbusy: "|- $(Calling rcv p) & $(rst!p) = #rpcB --> ~RPCNext send rcv rst p"
+lemma RPCbusy: "\<turnstile> $(Calling rcv p) \<and> $(rst!p) = #rpcB \<longrightarrow> \<not>RPCNext send rcv rst p"
   by (auto simp: RPC_action_defs)
 
 (* RPC failure actions are visible. *)
-lemma RPCFail_vis: "|- RPCFail send rcv rst p -->  
+lemma RPCFail_vis: "\<turnstile> RPCFail send rcv rst p \<longrightarrow>  
     <RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p)"
   by (auto dest!: Return_changed [temp_use] simp: angle_def RPCNext_def RPCFail_def)
 
-lemma RPCFail_Next_enabled: "|- Enabled (RPCFail send rcv rst p) -->  
+lemma RPCFail_Next_enabled: "\<turnstile> Enabled (RPCFail send rcv rst p) \<longrightarrow>  
     Enabled (<RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p))"
   by (force elim!: enabled_mono [temp_use] RPCFail_vis [temp_use])
 
 (* Enabledness of some actions *)
-lemma RPCFail_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
-    |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
-  by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
+lemma RPCFail_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
+    \<turnstile> \<not>Calling rcv p \<and> Calling send p \<longrightarrow> Enabled (RPCFail send rcv rst p)"
+  by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
-    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
-lemma RPCReply_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
-      |- ~Calling rcv p & Calling send p & rst!p = #rpcB  
-         --> Enabled (RPCReply send rcv rst p)"
-  by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
+lemma RPCReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
+      \<turnstile> \<not>Calling rcv p \<and> Calling send p \<and> rst!p = #rpcB  
+         \<longrightarrow> Enabled (RPCReply send rcv rst p)"
+  by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
-    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 end

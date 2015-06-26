@@ -2,64 +2,64 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* A simple FIFO buffer (synchronous communication, interleaving) *}
+section \<open>A simple FIFO buffer (synchronous communication, interleaving)\<close>
 
 theory Buffer
-imports TLA
+imports "../TLA"
 begin
 
 consts
   (* actions *)
-  BInit     :: "'a stfun => 'a list stfun => 'a stfun => stpred"
-  Enq       :: "'a stfun => 'a list stfun => 'a stfun => action"
-  Deq       :: "'a stfun => 'a list stfun => 'a stfun => action"
-  Next      :: "'a stfun => 'a list stfun => 'a stfun => action"
+  BInit     :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> stpred"
+  Enq       :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+  Deq       :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+  Next      :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
 
   (* temporal formulas *)
-  IBuffer   :: "'a stfun => 'a list stfun => 'a stfun => temporal"
-  Buffer    :: "'a stfun => 'a stfun => temporal"
+  IBuffer   :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
+  Buffer    :: "'a stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
 
 defs
   BInit_def:   "BInit ic q oc    == PRED q = #[]"
-  Enq_def:     "Enq ic q oc      == ACT (ic$ ~= $ic)
-                                     & (q$ = $q @ [ ic$ ])
-                                     & (oc$ = $oc)"
-  Deq_def:     "Deq ic q oc      == ACT ($q ~= #[])
-                                     & (oc$ = hd< $q >)
-                                     & (q$ = tl< $q >)
-                                     & (ic$ = $ic)"
-  Next_def:    "Next ic q oc     == ACT (Enq ic q oc | Deq ic q oc)"
+  Enq_def:     "Enq ic q oc      == ACT (ic$ \<noteq> $ic)
+                                     \<and> (q$ = $q @ [ ic$ ])
+                                     \<and> (oc$ = $oc)"
+  Deq_def:     "Deq ic q oc      == ACT ($q \<noteq> #[])
+                                     \<and> (oc$ = hd< $q >)
+                                     \<and> (q$ = tl< $q >)
+                                     \<and> (ic$ = $ic)"
+  Next_def:    "Next ic q oc     == ACT (Enq ic q oc \<or> Deq ic q oc)"
   IBuffer_def: "IBuffer ic q oc  == TEMP Init (BInit ic q oc)
-                                      & [][Next ic q oc]_(ic,q,oc)
-                                      & WF(Deq ic q oc)_(ic,q,oc)"
-  Buffer_def:  "Buffer ic oc     == TEMP (EEX q. IBuffer ic q oc)"
+                                      \<and> \<box>[Next ic q oc]_(ic,q,oc)
+                                      \<and> WF(Deq ic q oc)_(ic,q,oc)"
+  Buffer_def:  "Buffer ic oc     == TEMP (\<exists>\<exists>q. IBuffer ic q oc)"
 
 
 (* ---------------------------- Data lemmas ---------------------------- *)
 
 (*FIXME: move to theory List? Maybe as (tl xs = xs) = (xs = [])"?*)
-lemma tl_not_self [simp]: "xs ~= [] ==> tl xs ~= xs"
+lemma tl_not_self [simp]: "xs \<noteq> [] \<Longrightarrow> tl xs \<noteq> xs"
   by (auto simp: neq_Nil_conv)
 
 
 (* ---------------------------- Action lemmas ---------------------------- *)
 
 (* Dequeue is visible *)
-lemma Deq_visible: "|- <Deq ic q oc>_(ic,q,oc) = Deq ic q oc"
+lemma Deq_visible: "\<turnstile> <Deq ic q oc>_(ic,q,oc) = Deq ic q oc"
   apply (unfold angle_def Deq_def)
   apply (safe, simp (asm_lr))+
   done
 
 (* Enabling condition for dequeue -- NOT NEEDED *)
 lemma Deq_enabled: 
-    "!!q. basevars (ic,q,oc) ==> |- Enabled (<Deq ic q oc>_(ic,q,oc)) = (q ~= #[])"
+    "\<And>q. basevars (ic,q,oc) \<Longrightarrow> \<turnstile> Enabled (<Deq ic q oc>_(ic,q,oc)) = (q \<noteq> #[])"
   apply (unfold Deq_visible [temp_rewrite])
   apply (force elim!: base_enabled [temp_use] enabledE [temp_use] simp: Deq_def)
   done
 
 (* For the left-to-right implication, we don't need the base variable stuff *)
 lemma Deq_enabledE: 
-    "|- Enabled (<Deq ic q oc>_(ic,q,oc)) --> (q ~= #[])"
+    "\<turnstile> Enabled (<Deq ic q oc>_(ic,q,oc)) \<longrightarrow> (q \<noteq> #[])"
   apply (unfold Deq_visible [temp_rewrite])
   apply (auto elim!: enabledE simp add: Deq_def)
   done

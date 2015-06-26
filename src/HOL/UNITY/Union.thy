@@ -47,8 +47,8 @@ syntax
   "_JOIN1"     :: "[pttrns, 'b set] => 'b set"         ("(3JN _./ _)" 10)
   "_JOIN"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3JN _:_./ _)" 10)
 syntax (xsymbols)
-  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion> _./ _)" 10)
-  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _\<in>_./ _)" 10)
+  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion>_./ _)" 10)
+  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion>_\<in>_./ _)" 10)
 
 translations
   "JN x: A. B" == "CONST JOIN A (%x. B)"

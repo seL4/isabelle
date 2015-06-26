@@ -408,20 +408,20 @@ next
 qed
 
 lemma Ex_inj_on_UNION_Sigma:
-  "\<exists>f. (inj_on f (\<Union> i \<in> I. A i) \<and> f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i))"
+  "\<exists>f. (inj_on f (\<Union>i \<in> I. A i) \<and> f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i))"
 proof
   let ?phi = "\<lambda> a i. i \<in> I \<and> a \<in> A i"
   let ?sm = "\<lambda> a. SOME i. ?phi a i"
   let ?f = "\<lambda>a. (?sm a, a)"
-  have "inj_on ?f (\<Union> i \<in> I. A i)" unfolding inj_on_def by auto
+  have "inj_on ?f (\<Union>i \<in> I. A i)" unfolding inj_on_def by auto
   moreover
   { { fix i a assume "i \<in> I" and "a \<in> A i"
       hence "?sm a \<in> I \<and> a \<in> A(?sm a)" using someI[of "?phi a" i] by auto
     }
-    hence "?f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i)" by auto
+    hence "?f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i)" by auto
   }
   ultimately
-  show "inj_on ?f (\<Union> i \<in> I. A i) \<and> ?f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i)"
+  show "inj_on ?f (\<Union>i \<in> I. A i) \<and> ?f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i)"
   by auto
 qed
 

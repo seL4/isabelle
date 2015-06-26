@@ -257,7 +257,7 @@ proof-
 qed
 
 corollary Fr_subtr:
-"Fr ns tr = \<Union> {Fr ns tr' | tr'. subtr ns tr' tr}"
+"Fr ns tr = \<Union>{Fr ns tr' | tr'. subtr ns tr' tr}"
 unfolding Fr_def proof safe
   fix t assume t: "inFr ns tr t"  hence "root tr \<in> ns" by (rule inFr_root_in)
   thus "t \<in> \<Union>{{t. inFr ns tr' t} |tr'. subtr ns tr' tr}"
@@ -272,7 +272,7 @@ using assms apply(induct rule: inFr.induct) apply safe
   by (metis (lifting) subtr.Step)
 
 corollary Fr_subtr_cont:
-"Fr ns tr = \<Union> {Inl -` cont tr' | tr'. subtr ns tr' tr}"
+"Fr ns tr = \<Union>{Inl -` cont tr' | tr'. subtr ns tr' tr}"
 unfolding Fr_def
 apply safe
 apply (frule inFr_subtr)
@@ -290,7 +290,7 @@ proof-
 qed
 
 corollary Itr_subtr:
-"Itr ns tr = \<Union> {Itr ns tr' | tr'. subtr ns tr' tr}"
+"Itr ns tr = \<Union>{Itr ns tr' | tr'. subtr ns tr' tr}"
 unfolding Itr_def apply safe
 apply (metis (lifting, mono_tags) UnionI inItr_root_in mem_Collect_eq subtr.Refl)
 by (metis subtr_inItr)
@@ -1121,7 +1121,7 @@ lemma regular_Fr:
 assumes r: "regular tr" and In: "root tr \<in> ns"
 shows "Fr ns tr =
        Inl -` (cont tr) \<union>
-       \<Union> {Fr (ns - {root tr}) tr' | tr'. Inr tr' \<in> cont tr}"
+       \<Union>{Fr (ns - {root tr}) tr' | tr'. Inr tr' \<in> cont tr}"
 unfolding Fr_def
 using In inFr.Base regular_inFr[OF assms] apply safe
 apply (simp, metis (full_types) mem_Collect_eq)
@@ -1161,7 +1161,7 @@ by (metis assms wf_cont subtrOf)
 lemma Lr_rec_in:
 assumes n: "n \<in> ns"
 shows "Lr ns n \<subseteq>
-{Inl -` tns \<union> (\<Union> {K n' | n'. Inr n' \<in> tns}) | tns K.
+{Inl -` tns \<union> (\<Union>{K n' | n'. Inr n' \<in> tns}) | tns K.
     (n,tns) \<in> P \<and>
     (\<forall> n'. Inr n' \<in> tns \<longrightarrow> K n' \<in> Lr (ns - {n}) n')}"
 (is "Lr ns n \<subseteq> {?F tns K | tns K. (n,tns) \<in> P \<and> ?\<phi> tns K}")
@@ -1207,7 +1207,7 @@ qed
 lemma L_rec_in:
 assumes n: "n \<in> ns"
 shows "
-{Inl -` tns \<union> (\<Union> {K n' | n'. Inr n' \<in> tns}) | tns K.
+{Inl -` tns \<union> (\<Union>{K n' | n'. Inr n' \<in> tns}) | tns K.
     (n,tns) \<in> P \<and>
     (\<forall> n'. Inr n' \<in> tns \<longrightarrow> K n' \<in> L (ns - {n}) n')}
  \<subseteq> L ns n"
@@ -1247,7 +1247,7 @@ by (metis finite_N Diff_UNIV Diff_infinite_finite card_Diff1_less finite.emptyI)
 function LL where
 "LL ns n =
  (if n \<notin> ns then {{}} else
- {Inl -` tns \<union> (\<Union> {K n' | n'. Inr n' \<in> tns}) | tns K.
+ {Inl -` tns \<union> (\<Union>{K n' | n'. Inr n' \<in> tns}) | tns K.
     (n,tns) \<in> P \<and>
     (\<forall> n'. Inr n' \<in> tns \<longrightarrow> K n' \<in> LL (ns - {n}) n')})"
 by(pat_completeness, auto)

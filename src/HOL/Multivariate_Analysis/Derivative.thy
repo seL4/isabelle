@@ -879,7 +879,7 @@ proof -
         have "\<forall>\<^sub>F x1 in ?F. norm (f x1 - f y) \<le> (\<phi> x1 - \<phi> y) + e * \<bar>x1 - y\<bar>"
           (is "\<forall>\<^sub>F x1 in ?F. ?le' x1")
         proof eventually_elim
-          case elim
+          case (elim x1)
           from norm_triangle_ineq2[THEN order_trans, OF elim(1)]
           have "norm (f x1 - f y) \<le> norm (f' y) * \<bar>x1 - y\<bar> + e2 * \<bar>x1 - y\<bar>"
             by (simp add: ac_simps)

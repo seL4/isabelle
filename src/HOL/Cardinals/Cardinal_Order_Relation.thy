@@ -715,7 +715,7 @@ where "nlists A n \<equiv> {l. set l \<le> A \<and> length l = n}"
 lemma lists_def2: "lists A = {l. set l \<le> A}"
 using in_listsI by blast
 
-lemma lists_UNION_nlists: "lists A = (\<Union> n. nlists A n)"
+lemma lists_UNION_nlists: "lists A = (\<Union>n. nlists A n)"
 unfolding lists_def2 nlists_def by blast
 
 lemma card_of_lists: "|A| \<le>o |lists A|"
@@ -1455,7 +1455,7 @@ lemma Func_Pfunc:
 unfolding Func_option_def Pfunc_def by auto
 
 lemma Pfunc_Func_option:
-"Pfunc A B = (\<Union> A' \<in> Pow A. Func_option A' B)"
+"Pfunc A B = (\<Union>A' \<in> Pow A. Func_option A' B)"
 proof safe
   fix f assume f: "f \<in> Pfunc A B"
   show "f \<in> (\<Union>A'\<in>Pow A. Func_option A' B)"
@@ -1504,7 +1504,7 @@ lemma card_of_Pfunc_Pow_Func_option:
 assumes "B \<noteq> {}"
 shows "|Pfunc A B| \<le>o |Pow A <*> Func_option A B|"
 proof-
-  have "|Pfunc A B| =o |\<Union> A' \<in> Pow A. Func_option A' B|" (is "_ =o ?K")
+  have "|Pfunc A B| =o |\<Union>A' \<in> Pow A. Func_option A' B|" (is "_ =o ?K")
     unfolding Pfunc_Func_option by(rule card_of_refl)
   also have "?K \<le>o |Sigma (Pow A) (\<lambda> A'. Func_option A' B)|" using card_of_UNION_Sigma .
   also have "|Sigma (Pow A) (\<lambda> A'. Func_option A' B)| \<le>o |Pow A <*> Func_option A B|"
@@ -1635,14 +1635,14 @@ proof-
 qed
 
 lemma relChain_stabilize:
-assumes rc: "relChain r As" and AsB: "(\<Union> i \<in> Field r. As i) \<subseteq> B" and Br: "|B| <o r"
+assumes rc: "relChain r As" and AsB: "(\<Union>i \<in> Field r. As i) \<subseteq> B" and Br: "|B| <o r"
 and ir: "\<not>finite (Field r)" and cr: "Card_order r"
 shows "\<exists> i \<in> Field r. As (succ r i) = As i"
 proof(rule ccontr, auto)
   have 0: "wo_rel r" and 00: "Well_order r"
   unfolding wo_rel_def by (metis card_order_on_well_order_on cr)+
   have L: "isLimOrd r" using ir cr by (metis card_order_infinite_isLimOrd)
-  have AsBs: "(\<Union> i \<in> Field r. As (succ r i)) \<subseteq> B"
+  have AsBs: "(\<Union>i \<in> Field r. As (succ r i)) \<subseteq> B"
   using AsB L apply safe by (metis "0" UN_I set_mp wo_rel.isLimOrd_succ)
   assume As_s: "\<forall>i\<in>Field r. As (succ r i) \<noteq> As i"
   have 1: "\<forall>i j. (i,j) \<in> r \<and> i \<noteq> j \<longrightarrow> As i \<subset> As j"
@@ -1719,7 +1719,7 @@ unfolding stable_def proof safe
    obtain j0 where j0: "j0 \<in> Field r" using Fi by auto
    def g \<equiv> "\<lambda> a. if F a \<noteq> {} then gg a else j0"
    have g: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u),g a) \<in> r" using gg unfolding g_def by auto
-   hence 1: "Field r \<subseteq> (\<Union> a \<in> A. under r (g a))"
+   hence 1: "Field r \<subseteq> (\<Union>a \<in> A. under r (g a))"
    using f[symmetric] unfolding under_def image_def by auto
    have gA: "g ` A \<subseteq> Field r" using gg j0 unfolding Field_def g_def by auto
    moreover have "cofinal (g ` A) r" unfolding cofinal_def proof safe
@@ -1751,10 +1751,10 @@ unfolding regularCard_def proof safe
   {assume Kr: "|K| <o r"
    then obtain f where "\<forall> a \<in> Field r. f a \<in> K \<and> a \<noteq> f a \<and> (a, f a) \<in> r"
    using cof unfolding cofinal_def by metis
-   hence "Field r \<subseteq> (\<Union> a \<in> K. underS r a)" unfolding underS_def by auto
-   hence "r \<le>o |\<Union> a \<in> K. underS r a|" using cr
+   hence "Field r \<subseteq> (\<Union>a \<in> K. underS r a)" unfolding underS_def by auto
+   hence "r \<le>o |\<Union>a \<in> K. underS r a|" using cr
    by (metis Card_order_iff_ordLeq_card_of card_of_mono1 ordLeq_transitive)
-   also have "|\<Union> a \<in> K. underS r a| \<le>o |SIGMA a: K. underS r a|" by (rule card_of_UNION_Sigma)
+   also have "|\<Union>a \<in> K. underS r a| \<le>o |SIGMA a: K. underS r a|" by (rule card_of_UNION_Sigma)
    also
    {have "\<forall> a \<in> K. |underS r a| <o r" using K by (metis card_of_underS cr subsetD)
     hence "|SIGMA a: K. underS r a| <o r" using st Kr unfolding stable_def by auto
@@ -1818,9 +1818,9 @@ by (metis CARD INF cardSuc_Card_order cardSuc_finite)
 lemma stable_UNION:
 assumes ST: "stable r" and A_LESS: "|A| <o r" and
         F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
-shows "|\<Union> a \<in> A. F a| <o r"
+shows "|\<Union>a \<in> A. F a| <o r"
 proof-
-  have "|\<Union> a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
+  have "|\<Union>a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
   using card_of_UNION_Sigma by blast
   thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
 qed

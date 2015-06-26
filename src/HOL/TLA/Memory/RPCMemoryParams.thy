@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* Basic declarations for the RPC-memory example *}
+section \<open>Basic declarations for the RPC-memory example\<close>
 
 theory RPCMemoryParams
 imports Main

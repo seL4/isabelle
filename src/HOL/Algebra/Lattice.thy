@@ -589,7 +589,7 @@ qed
 lemma (in weak_upper_semilattice) finite_sup_insertI:
   assumes P: "!!l. least L l (Upper L (insert x A)) ==> P l"
     and xA: "finite A"  "x \<in> carrier L"  "A \<subseteq> carrier L"
-  shows "P (\<Squnion> (insert x A))"
+  shows "P (\<Squnion>(insert x A))"
 proof (cases "A = {}")
   case True with P and xA show ?thesis
     by (simp add: finite_sup_least)
@@ -828,7 +828,7 @@ qed
 lemma (in weak_lower_semilattice) finite_inf_insertI:
   assumes P: "!!i. greatest L i (Lower L (insert x A)) ==> P i"
     and xA: "finite A"  "x \<in> carrier L"  "A \<subseteq> carrier L"
-  shows "P (\<Sqinter> (insert x A))"
+  shows "P (\<Sqinter>(insert x A))"
 proof (cases "A = {}")
   case True with P and xA show ?thesis
     by (simp add: finite_inf_greatest)
@@ -856,7 +856,7 @@ lemma (in weak_lower_semilattice) meet_right:
 
 lemma (in weak_lower_semilattice) inf_of_two_greatest:
   "[| x \<in> carrier L; y \<in> carrier L |] ==>
-  greatest L (\<Sqinter> {x, y}) (Lower L {x, y})"
+  greatest L (\<Sqinter>{x, y}) (Lower L {x, y})"
 proof (unfold inf_def)
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
   with inf_of_two_exists obtain s where "greatest L s (Lower L {x, y})" by fast
@@ -904,8 +904,8 @@ lemma (in weak_lower_semilattice) weak_meet_assoc:
 proof -
   (* FIXME: improved simp, see weak_join_assoc above *)
   have "(x \<sqinter> y) \<sqinter> z = z \<sqinter> (x \<sqinter> y)" by (simp only: meet_comm)
-  also from L have "... .= \<Sqinter> {z, x, y}" by (simp add: weak_meet_assoc_lemma)
-  also from L have "... = \<Sqinter> {x, y, z}" by (simp add: insert_commute)
+  also from L have "... .= \<Sqinter>{z, x, y}" by (simp add: weak_meet_assoc_lemma)
+  also from L have "... = \<Sqinter>{x, y, z}" by (simp add: insert_commute)
   also from L have "... .= x \<sqinter> (y \<sqinter> z)" by (simp add: weak_meet_assoc_lemma [symmetric])
   finally show ?thesis by (simp add: L)
 qed
@@ -1286,15 +1286,15 @@ proof (rule partial_order.complete_latticeI)
 next
   fix B
   assume "B \<subseteq> carrier ?L"
-  then have "least ?L (\<Union> B) (Upper ?L B)"
+  then have "least ?L (\<Union>B) (Upper ?L B)"
     by (fastforce intro!: least_UpperI simp: Upper_def)
   then show "EX s. least ?L s (Upper ?L B)" ..
 next
   fix B
   assume "B \<subseteq> carrier ?L"
-  then have "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
-    txt {* @{term "\<Inter> B"} is not the infimum of @{term B}:
-      @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
+  then have "greatest ?L (\<Inter>B \<inter> A) (Lower ?L B)"
+    txt {* @{term "\<Inter>B"} is not the infimum of @{term B}:
+      @{term "\<Inter>{} = UNIV"} which is in general bigger than @{term "A"}! *}
     by (fastforce intro!: greatest_LowerI simp: Lower_def)
   then show "EX i. greatest ?L i (Lower ?L B)" ..
 qed

@@ -172,17 +172,17 @@ proof (induct S)
   case empty thus ?case using f by (auto simp: positive_def)
 next
   case (insert x F)
-  hence in_M: "A x \<in> M" "(\<Union> i\<in>F. A i) \<in> M" "(\<Union> i\<in>F. A i) - A x \<in> M" using A by force+
-  have subs: "(\<Union> i\<in>F. A i) - A x \<subseteq> (\<Union> i\<in>F. A i)" by auto
-  have "(\<Union> i\<in>(insert x F). A i) = A x \<union> ((\<Union> i\<in>F. A i) - A x)" by auto
-  hence "f (\<Union> i\<in>(insert x F). A i) = f (A x \<union> ((\<Union> i\<in>F. A i) - A x))"
+  hence in_M: "A x \<in> M" "(\<Union>i\<in>F. A i) \<in> M" "(\<Union>i\<in>F. A i) - A x \<in> M" using A by force+
+  have subs: "(\<Union>i\<in>F. A i) - A x \<subseteq> (\<Union>i\<in>F. A i)" by auto
+  have "(\<Union>i\<in>(insert x F). A i) = A x \<union> ((\<Union>i\<in>F. A i) - A x)" by auto
+  hence "f (\<Union>i\<in>(insert x F). A i) = f (A x \<union> ((\<Union>i\<in>F. A i) - A x))"
     by simp
-  also have "\<dots> = f (A x) + f ((\<Union> i\<in>F. A i) - A x)"
+  also have "\<dots> = f (A x) + f ((\<Union>i\<in>F. A i) - A x)"
     using f(2) by (rule additiveD) (insert in_M, auto)
-  also have "\<dots> \<le> f (A x) + f (\<Union> i\<in>F. A i)"
+  also have "\<dots> \<le> f (A x) + f (\<Union>i\<in>F. A i)"
     using additive_increasing[OF f] in_M subs by (auto simp: increasing_def intro: add_left_mono)
   also have "\<dots> \<le> f (A x) + (\<Sum>i\<in>F. f (A i))" using insert by (auto intro: add_left_mono)
-  finally show "f (\<Union> i\<in>(insert x F). A i) \<le> (\<Sum>i\<in>(insert x F). f (A i))" using insert by simp
+  finally show "f (\<Union>i\<in>(insert x F). A i) \<le> (\<Sum>i\<in>(insert x F). f (A i))" using insert by simp
 qed
 
 lemma (in ring_of_sets) countably_additive_additive:
@@ -292,7 +292,7 @@ next
   have *: "(\<Union>n. (\<Union>i<n. A i)) = (\<Union>i. A i)" by auto
   have "(\<lambda>n. f (\<Union>i<n. A i)) ----> f (\<Union>i. A i)"
   proof (unfold *[symmetric], intro cont[rule_format])
-    show "range (\<lambda>i. \<Union> i<i. A i) \<subseteq> M" "(\<Union>i. \<Union> i<i. A i) \<in> M"
+    show "range (\<lambda>i. \<Union>i<i. A i) \<subseteq> M" "(\<Union>i. \<Union>i<i. A i) \<in> M"
       using A * by auto
   qed (force intro!: incseq_SucI)
   moreover have "\<And>n. f (\<Union>i<n. A i) = (\<Sum>i<n. f (A i))"
@@ -657,10 +657,10 @@ lemma emeasure_eq_0:
 
 lemma emeasure_UN_eq_0:
   assumes "\<And>i::nat. emeasure M (N i) = 0" and "range N \<subseteq> sets M"
-  shows "emeasure M (\<Union> i. N i) = 0"
+  shows "emeasure M (\<Union>i. N i) = 0"
 proof -
-  have "0 \<le> emeasure M (\<Union> i. N i)" using assms by auto
-  moreover have "emeasure M (\<Union> i. N i) \<le> 0"
+  have "0 \<le> emeasure M (\<Union>i. N i)" using assms by auto
+  moreover have "emeasure M (\<Union>i. N i) \<le> 0"
     using emeasure_subadditive_countably[OF assms(2)] assms(1) by simp
   ultimately show ?thesis by simp
 qed
@@ -1173,9 +1173,9 @@ proof -
       from F have "\<And>x. x \<in> space M \<Longrightarrow> \<exists>i. x \<in> F i" by auto
       with F show ?thesis by fastforce
     qed
-    show "emeasure M (\<Union> i\<le>n. F i) \<noteq> \<infinity>" for n
+    show "emeasure M (\<Union>i\<le>n. F i) \<noteq> \<infinity>" for n
     proof -
-      have "emeasure M (\<Union> i\<le>n. F i) \<le> (\<Sum>i\<le>n. emeasure M (F i))"
+      have "emeasure M (\<Union>i\<le>n. F i) \<le> (\<Sum>i\<le>n. emeasure M (F i))"
         using F by (auto intro!: emeasure_subadditive_finite)
       also have "\<dots> < \<infinity>"
         using F by (auto simp: setsum_Pinfty)
@@ -1579,12 +1579,12 @@ lemma (in finite_measure) measure_eq_bigunion_image:
   assumes "range f \<subseteq> sets M" "range g \<subseteq> sets M"
   assumes "disjoint_family f" "disjoint_family g"
   assumes "\<And> n :: nat. measure M (f n) = measure M (g n)"
-  shows "measure M (\<Union> i. f i) = measure M (\<Union> i. g i)"
+  shows "measure M (\<Union>i. f i) = measure M (\<Union>i. g i)"
 using assms
 proof -
-  have a: "(\<lambda> i. measure M (f i)) sums (measure M (\<Union> i. f i))"
+  have a: "(\<lambda> i. measure M (f i)) sums (measure M (\<Union>i. f i))"
     by (rule finite_measure_UNION[OF assms(1,3)])
-  have b: "(\<lambda> i. measure M (g i)) sums (measure M (\<Union> i. g i))"
+  have b: "(\<lambda> i. measure M (g i)) sums (measure M (\<Union>i. g i))"
     by (rule finite_measure_UNION[OF assms(2,4)])
   show ?thesis using sums_unique[OF b] sums_unique[OF a] assms by simp
 qed
@@ -1592,9 +1592,9 @@ qed
 lemma (in finite_measure) measure_countably_zero:
   assumes "range c \<subseteq> sets M"
   assumes "\<And> i. measure M (c i) = 0"
-  shows "measure M (\<Union> i :: nat. c i) = 0"
+  shows "measure M (\<Union>i :: nat. c i) = 0"
 proof (rule antisym)
-  show "measure M (\<Union> i :: nat. c i) \<le> 0"
+  show "measure M (\<Union>i :: nat. c i) \<le> 0"
     using finite_measure_subadditive_countably[OF assms(1)] by (simp add: assms(2))
 qed (simp add: measure_nonneg)
 
@@ -1633,12 +1633,12 @@ lemma (in finite_measure) measure_real_sum_image_fn:
   assumes "\<And> x. x \<in> s \<Longrightarrow> e \<inter> f x \<in> sets M"
   assumes "finite s"
   assumes disjoint: "\<And> x y. \<lbrakk>x \<in> s ; y \<in> s ; x \<noteq> y\<rbrakk> \<Longrightarrow> f x \<inter> f y = {}"
-  assumes upper: "space M \<subseteq> (\<Union> i \<in> s. f i)"
+  assumes upper: "space M \<subseteq> (\<Union>i \<in> s. f i)"
   shows "measure M e = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
 proof -
-  have e: "e = (\<Union> i \<in> s. e \<inter> f i)"
+  have e: "e = (\<Union>i \<in> s. e \<inter> f i)"
     using `e \<in> sets M` sets.sets_into_space upper by blast
-  hence "measure M e = measure M (\<Union> i \<in> s. e \<inter> f i)" by simp
+  hence "measure M e = measure M (\<Union>i \<in> s. e \<inter> f i)" by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
   proof (rule finite_measure_finite_Union)
     show "finite s" by fact

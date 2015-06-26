@@ -604,7 +604,7 @@ lemma analytic_on_subset: "f analytic_on s \<Longrightarrow> t \<subseteq> s \<L
 lemma analytic_on_Un: "f analytic_on (s \<union> t) \<longleftrightarrow> f analytic_on s \<and> f analytic_on t"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_Union: "f analytic_on (\<Union> s) \<longleftrightarrow> (\<forall>t \<in> s. f analytic_on t)"
+lemma analytic_on_Union: "f analytic_on (\<Union>s) \<longleftrightarrow> (\<forall>t \<in> s. f analytic_on t)"
   by (auto simp: analytic_on_def)
 
 lemma analytic_on_UN: "f analytic_on (\<Union>i\<in>I. s i) \<longleftrightarrow> (\<forall>i\<in>I. f analytic_on (s i))"

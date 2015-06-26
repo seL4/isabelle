@@ -26,7 +26,7 @@ lemma UNION_inj_on_ofilter:
 assumes WELL: "Well_order r" and
         OF: "\<And> i. i \<in> I \<Longrightarrow> wo_rel.ofilter r (A i)" and
        INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
-shows "inj_on f (\<Union> i \<in> I. A i)"
+shows "inj_on f (\<Union>i \<in> I. A i)"
 proof-
   have "wo_rel r" using WELL by (simp add: wo_rel_def)
   hence "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i <= A j \<or> A j <= A i"
@@ -487,7 +487,7 @@ proof-
   have Well': "wo_rel r'" using WELL' unfolding wo_rel_def .
   have OF: "wo_rel.ofilter r (underS r a)"
   by (auto simp add: Well wo_rel.underS_ofilter)
-  hence UN: "underS r a = (\<Union>  b \<in> underS r a. under r b)"
+  hence UN: "underS r a = (\<Union>b \<in> underS r a. under r b)"
   using Well wo_rel.ofilter_under_UNION[of r "underS r a"] by blast
   (* Gather facts about elements of underS r a *)
   {fix b assume *: "b \<in> underS r a"
@@ -520,13 +520,13 @@ proof-
   (*  *)
   have OF': "wo_rel.ofilter r' (f`(underS r a))"
   proof-
-    have "f`(underS r a) = f`(\<Union>  b \<in> underS r a. under r b)"
+    have "f`(underS r a) = f`(\<Union>b \<in> underS r a. under r b)"
     using UN by auto
-    also have "\<dots> = (\<Union>  b \<in> underS r a. f`(under r b))" by blast
-    also have "\<dots> = (\<Union>  b \<in> underS r a. (under r' (f b)))"
+    also have "\<dots> = (\<Union>b \<in> underS r a. f`(under r b))" by blast
+    also have "\<dots> = (\<Union>b \<in> underS r a. (under r' (f b)))"
     using bFact by auto
     finally
-    have "f`(underS r a) = (\<Union>  b \<in> underS r a. (under r' (f b)))" .
+    have "f`(underS r a) = (\<Union>b \<in> underS r a. (under r' (f b)))" .
     thus ?thesis
     using Well' bFact
           wo_rel.ofilter_UNION[of r' "underS r a" "\<lambda> b. under r' (f b)"] by fastforce

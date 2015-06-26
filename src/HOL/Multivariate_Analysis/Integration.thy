@@ -648,7 +648,7 @@ lemma gauge_inter[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow>
 lemma gauge_inters:
   assumes "finite s"
     and "\<forall>d\<in>s. gauge (f d)"
-  shows "gauge (\<lambda>x. \<Inter> {f d x | d. d \<in> s})"
+  shows "gauge (\<lambda>x. \<Inter>{f d x | d. d \<in> s})"
 proof -
   have *: "\<And>x. {f d x |d. d \<in> s} = (\<lambda>d. f d x) ` s"
     by auto
@@ -871,7 +871,7 @@ lemma elementary_inters:
   assumes "finite f"
     and "f \<noteq> {}"
     and "\<forall>s\<in>f. \<exists>p. p division_of (s::('a::euclidean_space) set)"
-  shows "\<exists>p. p division_of (\<Inter> f)"
+  shows "\<exists>p. p division_of (\<Inter>f)"
   using assms
 proof (induct f rule: finite_induct)
   case (insert x f)
@@ -1066,7 +1066,7 @@ next
       done }
   then have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
     by (meson Diff_subset division_of_subset)
-  then have "\<exists>d. d division_of \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)"
+  then have "\<exists>d. d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)"
     apply -
     apply (rule elementary_inters [OF finite_imageI[OF p(1)]])
     apply (auto simp: False elementary_inters [OF finite_imageI[OF p(1)]])
@@ -1669,7 +1669,7 @@ lemma fine_inter: "(\<lambda>x. d1 x \<inter> d2 x) fine p \<longleftrightarrow>
   unfolding fine_def by auto
 
 lemma fine_inters:
- "(\<lambda>x. \<Inter> {f d x | d.  d \<in> s}) fine p \<longleftrightarrow> (\<forall>d\<in>s. (f d) fine p)"
+ "(\<lambda>x. \<Inter>{f d x | d.  d \<in> s}) fine p \<longleftrightarrow> (\<forall>d\<in>s. (f d) fine p)"
   unfolding fine_def by blast
 
 lemma fine_union: "d fine p1 \<Longrightarrow> d fine p2 \<Longrightarrow> d fine (p1 \<union> p2)"
@@ -1851,7 +1851,7 @@ proof -
       by (blast intro: that)
   }
   assume as: "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d)"
-  have "P (\<Union> ?A)"
+  have "P (\<Union>?A)"
   proof (rule UN_cases)
     let ?B = "(\<lambda>s. cbox (\<Sum>i\<in>Basis. (if i \<in> s then a\<bullet>i else (a\<bullet>i + b\<bullet>i) / 2) *\<^sub>R i::'a)
       (\<Sum>i\<in>Basis. (if i \<in> s then (a\<bullet>i + b\<bullet>i) / 2 else b\<bullet>i) *\<^sub>R i)) ` {s. s \<subseteq> Basis}"
@@ -1926,7 +1926,7 @@ proof -
       qed
     qed
   qed
-  also have "\<Union> ?A = cbox a b"
+  also have "\<Union>?A = cbox a b"
   proof (rule set_eqI,rule)
     fix x
     assume "x \<in> \<Union>?A"

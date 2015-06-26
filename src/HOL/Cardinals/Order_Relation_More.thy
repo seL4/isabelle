@@ -133,12 +133,12 @@ by(unfold Above_def Field_def, auto)
 
 lemma Refl_under_Under:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
-shows "Under r A = (\<Inter> a \<in> A. under r a)"
+shows "Under r A = (\<Inter>a \<in> A. under r a)"
 proof
-  show "Under r A \<subseteq> (\<Inter> a \<in> A. under r a)"
+  show "Under r A \<subseteq> (\<Inter>a \<in> A. under r a)"
   by(unfold Under_def under_def, auto)
 next
-  show "(\<Inter> a \<in> A. under r a) \<subseteq> Under r A"
+  show "(\<Inter>a \<in> A. under r a) \<subseteq> Under r A"
   proof(auto)
     fix x
     assume *: "\<forall>xa \<in> A. x \<in> under r xa"
@@ -157,12 +157,12 @@ qed
 
 lemma Refl_underS_UnderS:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
-shows "UnderS r A = (\<Inter> a \<in> A. underS r a)"
+shows "UnderS r A = (\<Inter>a \<in> A. underS r a)"
 proof
-  show "UnderS r A \<subseteq> (\<Inter> a \<in> A. underS r a)"
+  show "UnderS r A \<subseteq> (\<Inter>a \<in> A. underS r a)"
   by(unfold UnderS_def underS_def, auto)
 next
-  show "(\<Inter> a \<in> A. underS r a) \<subseteq> UnderS r A"
+  show "(\<Inter>a \<in> A. underS r a) \<subseteq> UnderS r A"
   proof(auto)
     fix x
     assume *: "\<forall>xa \<in> A. x \<in> underS r xa"
@@ -181,12 +181,12 @@ qed
 
 lemma Refl_above_Above:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
-shows "Above r A = (\<Inter> a \<in> A. above r a)"
+shows "Above r A = (\<Inter>a \<in> A. above r a)"
 proof
-  show "Above r A \<subseteq> (\<Inter> a \<in> A. above r a)"
+  show "Above r A \<subseteq> (\<Inter>a \<in> A. above r a)"
   by(unfold Above_def above_def, auto)
 next
-  show "(\<Inter> a \<in> A. above r a) \<subseteq> Above r A"
+  show "(\<Inter>a \<in> A. above r a) \<subseteq> Above r A"
   proof(auto)
     fix x
     assume *: "\<forall>xa \<in> A. x \<in> above r xa"
@@ -205,12 +205,12 @@ qed
 
 lemma Refl_aboveS_AboveS:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
-shows "AboveS r A = (\<Inter> a \<in> A. aboveS r a)"
+shows "AboveS r A = (\<Inter>a \<in> A. aboveS r a)"
 proof
-  show "AboveS r A \<subseteq> (\<Inter> a \<in> A. aboveS r a)"
+  show "AboveS r A \<subseteq> (\<Inter>a \<in> A. aboveS r a)"
   by(unfold AboveS_def aboveS_def, auto)
 next
-  show "(\<Inter> a \<in> A. aboveS r a) \<subseteq> AboveS r A"
+  show "(\<Inter>a \<in> A. aboveS r a) \<subseteq> AboveS r A"
   proof(auto)
     fix x
     assume *: "\<forall>xa \<in> A. x \<in> aboveS r xa"

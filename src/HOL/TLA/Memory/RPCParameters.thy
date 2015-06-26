@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: RPC parameters *}
+section \<open>RPC-Memory example: RPC parameters\<close>
 
 theory RPCParameters
 imports MemoryParameters
@@ -25,23 +25,23 @@ consts
      is legal for the receiver (i.e., the memory). This can now be a little
      simpler than for the generic RPC component. RelayArg returns an arbitrary
      memory call for illegal arguments. *)
-  IsLegalRcvArg  :: "rpcOp => bool"
-  RPCRelayArg    :: "rpcOp => memOp"
+  IsLegalRcvArg  :: "rpcOp \<Rightarrow> bool"
+  RPCRelayArg    :: "rpcOp \<Rightarrow> memOp"
 
 axiomatization where
   (* RPCFailure is different from MemVals and exceptions *)
-  RFNoMemVal:        "RPCFailure ~: MemVal" and
-  NotAResultNotRF:   "NotAResult ~= RPCFailure" and
-  OKNotRF:           "OK ~= RPCFailure" and
-  BANotRF:           "BadArg ~= RPCFailure"
+  RFNoMemVal:        "RPCFailure \<notin> MemVal" and
+  NotAResultNotRF:   "NotAResult \<noteq> RPCFailure" and
+  OKNotRF:           "OK \<noteq> RPCFailure" and
+  BANotRF:           "BadArg \<noteq> RPCFailure"
 
 defs
   IsLegalRcvArg_def: "IsLegalRcvArg ra ==
-                         case ra of (memcall m) => True
-                                  | (othercall v) => False"
+                         case ra of (memcall m) \<Rightarrow> True
+                                  | (othercall v) \<Rightarrow> False"
   RPCRelayArg_def:   "RPCRelayArg ra ==
-                         case ra of (memcall m) => m
-                                  | (othercall v) => undefined"
+                         case ra of (memcall m) \<Rightarrow> m
+                                  | (othercall v) \<Rightarrow> undefined"
 
 lemmas [simp] = RFNoMemVal NotAResultNotRF OKNotRF BANotRF
   NotAResultNotRF [symmetric] OKNotRF [symmetric] BANotRF [symmetric]

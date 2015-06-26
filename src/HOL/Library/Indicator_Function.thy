@@ -87,18 +87,18 @@ proof cases
     by auto
   then have 
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 1"
-    "(indicator (\<Union> i. A i) x :: 'a) = 1"
+    "(indicator (\<Union>i. A i) x :: 'a) = 1"
     using incseqD[OF \<open>incseq A\<close>, of i "n + i" for n] \<open>x \<in> A i\<close> by (auto simp: indicator_def)
   then show ?thesis
     by (rule_tac LIMSEQ_offset[of _ i]) simp
 qed (auto simp: indicator_def)
 
 lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union> i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Union>i. A i) x"
+  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Union>i. A i) x"
 proof -
-  have "(\<lambda>k. indicator (\<Union> i<k. A i) x::'a) ----> indicator (\<Union>k. \<Union> i<k. A i) x"
+  have "(\<lambda>k. indicator (\<Union>i<k. A i) x::'a) ----> indicator (\<Union>k. \<Union>i<k. A i) x"
     by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def intro: less_le_trans)
-  also have "(\<Union>k. \<Union> i<k. A i) = (\<Union>i. A i)"
+  also have "(\<Union>k. \<Union>i<k. A i) = (\<Union>i. A i)"
     by auto
   finally show ?thesis .
 qed
@@ -123,7 +123,7 @@ lemma LIMSEQ_indicator_INT:
 proof -
   have "(\<lambda>k. indicator (\<Inter>i<k. A i) x::'a) ----> indicator (\<Inter>k. \<Inter>i<k. A i) x"
     by (intro LIMSEQ_indicator_decseq) (auto simp: decseq_def intro: less_le_trans)
-  also have "(\<Inter>k. \<Inter> i<k. A i) = (\<Inter>i. A i)"
+  also have "(\<Inter>k. \<Inter>i<k. A i) = (\<Inter>i. A i)"
     by auto
   finally show ?thesis .
 qed

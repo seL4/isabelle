@@ -1433,7 +1433,7 @@ qed
 
 lemma insert_partition:
   "\<lbrakk> x \<notin> F; \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<rbrakk>
-  \<Longrightarrow> x \<inter> \<Union> F = {}"
+  \<Longrightarrow> x \<inter> \<Union>F = {}"
 by auto
 
 lemma finite_psubset_induct[consumes 1, case_names psubset]:
@@ -1486,13 +1486,13 @@ qed
 text{* main cardinality theorem *}
 lemma card_partition [rule_format]:
   "finite C ==>
-     finite (\<Union> C) -->
+     finite (\<Union>C) -->
      (\<forall>c\<in>C. card c = k) -->
      (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->
-     k * card(C) = card (\<Union> C)"
+     k * card(C) = card (\<Union>C)"
 apply (erule finite_induct, simp)
 apply (simp add: card_Un_disjoint insert_partition 
-       finite_subset [of _ "\<Union> (insert x F)"])
+       finite_subset [of _ "\<Union>(insert x F)"])
 done
 
 lemma card_eq_UNIV_imp_eq_UNIV:

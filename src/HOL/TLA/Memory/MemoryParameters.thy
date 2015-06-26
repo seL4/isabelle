@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: Memory parameters *}
+section \<open>RPC-Memory example: Memory parameters\<close>
 
 theory MemoryParameters
 imports RPCMemoryParams
@@ -27,20 +27,20 @@ consts
 
 axiomatization where
   (* basic assumptions about the above constants and predicates *)
-  BadArgNoMemVal:    "BadArg ~: MemVal" and
-  MemFailNoMemVal:   "MemFailure ~: MemVal" and
+  BadArgNoMemVal:    "BadArg \<notin> MemVal" and
+  MemFailNoMemVal:   "MemFailure \<notin> MemVal" and
   InitValMemVal:     "InitVal : MemVal" and
-  NotAResultNotVal:  "NotAResult ~: MemVal" and
-  NotAResultNotOK:   "NotAResult ~= OK" and
-  NotAResultNotBA:   "NotAResult ~= BadArg" and
-  NotAResultNotMF:   "NotAResult ~= MemFailure"
+  NotAResultNotVal:  "NotAResult \<notin> MemVal" and
+  NotAResultNotOK:   "NotAResult \<noteq> OK" and
+  NotAResultNotBA:   "NotAResult \<noteq> BadArg" and
+  NotAResultNotMF:   "NotAResult \<noteq> MemFailure"
 
 lemmas [simp] =
   BadArgNoMemVal MemFailNoMemVal InitValMemVal NotAResultNotVal
   NotAResultNotOK NotAResultNotBA NotAResultNotMF
   NotAResultNotOK [symmetric] NotAResultNotBA [symmetric] NotAResultNotMF [symmetric]
 
-lemma MemValNotAResultE: "[| x : MemVal; (x ~= NotAResult ==> P) |] ==> P"
+lemma MemValNotAResultE: "\<lbrakk> x \<in> MemVal; (x \<noteq> NotAResult \<Longrightarrow> P) \<rbrakk> \<Longrightarrow> P"
   using NotAResultNotVal by blast
 
 end

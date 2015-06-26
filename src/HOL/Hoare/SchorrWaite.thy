@@ -17,7 +17,7 @@ definition
 
 definition
   relS :: "('a \<Rightarrow> 'a ref) set \<Rightarrow> ('a \<times> 'a) set"
-  where "relS M = (\<Union> m \<in> M. rel m)"
+  where "relS M = (\<Union>m \<in> M. rel m)"
 
 definition
   addrs :: "'a ref set \<Rightarrow> 'a set"

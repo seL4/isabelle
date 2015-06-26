@@ -17,7 +17,7 @@ lemma UNION_bij_betw_ofilter:
 assumes WELL: "Well_order r" and
         OF: "\<And> i. i \<in> I \<Longrightarrow> ofilter r (A i)" and
        BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
-shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
+shows "bij_betw f (\<Union>i \<in> I. A i) (\<Union>i \<in> I. A' i)"
 proof-
   have "wo_rel r" using WELL by (simp add: wo_rel_def)
   hence "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i"

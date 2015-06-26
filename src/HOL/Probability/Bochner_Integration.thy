@@ -83,7 +83,7 @@ proof -
         by (rule finite_subset) auto }
     
     { fix N i n x assume "i \<le> N" "n \<le> N" "x \<in> B i n"
-      then have 1: "\<exists>m\<le>N. x \<in> (\<Union> n\<le>N. B m n)" by auto
+      then have 1: "\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)" by auto
       from m[OF this] obtain n where n: "m N x \<le> N" "n \<le> N" "x \<in> B (m N x) n" by auto
       moreover
       def L \<equiv> "LEAST n. x \<in> B (m N x) n"

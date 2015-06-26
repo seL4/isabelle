@@ -804,7 +804,7 @@ proof -
     with Ca Cb have "Ca \<inter> Cb \<subseteq> {{}}" by auto
     then have C_Int_cases: "Ca \<inter> Cb = {{}} \<or> Ca \<inter> Cb = {}" by auto
 
-    from `a \<inter> b = {}` have "\<mu>' (\<Union> (Ca \<union> Cb)) = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c)"
+    from `a \<inter> b = {}` have "\<mu>' (\<Union>(Ca \<union> Cb)) = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c)"
       using Ca Cb by (intro \<mu>') (auto intro!: disjoint_union)
     also have "\<dots> = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c) + (\<Sum>c\<in>Ca \<inter> Cb. \<mu> c)"
       using C_Int_cases volume_empty[OF `volume M \<mu>`] by (elim disjE) simp_all
@@ -915,7 +915,7 @@ proof -
         then have "disjoint_family f"
           by (auto simp: disjoint_family_on_def f_def)
         moreover
-        have Ai_eq: "A i = (\<Union> x<card C. f x)"
+        have Ai_eq: "A i = (\<Union>x<card C. f x)"
           using f C Ai unfolding bij_betw_def by (simp add: Union_image_eq[symmetric])
         then have "\<Union>range f = A i"
           using f C Ai unfolding bij_betw_def by (auto simp: f_def)

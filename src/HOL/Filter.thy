@@ -245,7 +245,9 @@ ML {*
         (@{thm allI} RS @{thm always_eventually})
         |> fold (fn thm1 => fn thm2 => thm2 RS thm1) mp_thms
         |> fold (fn _ => fn thm => @{thm impI} RS thm) facts
-      val cases_prop = Thm.prop_of (raw_elim_thm RS Goal.init (Thm.cterm_of ctxt goal))
+      val cases_prop =
+        Thm.prop_of
+          (Rule_Cases.internalize_params (raw_elim_thm RS Goal.init (Thm.cterm_of ctxt goal)))
       val cases = Rule_Cases.make_common ctxt cases_prop [(("elim", []), [])]
     in
       CASES cases (rtac raw_elim_thm i)
