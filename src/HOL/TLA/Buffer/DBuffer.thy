@@ -29,17 +29,17 @@ where
   (* the concatenation of the two buffers *)
   qc_def:         "PRED qc == PRED (q2 @ q1)" and
 
-  DBInit_def:     "DBInit   == PRED (BInit inp q1 mid  &  BInit mid q2 out)" and
-  DBEnq_def:      "DBEnq    == ACT  Enq inp q1 mid  &  unchanged (q2,out)" and
-  DBDeq_def:      "DBDeq    == ACT  Deq mid q2 out  &  unchanged (inp,q1)" and
+  DBInit_def:     "DBInit   == PRED (BInit inp q1 mid  \<and>  BInit mid q2 out)" and
+  DBEnq_def:      "DBEnq    == ACT  Enq inp q1 mid  \<and>  unchanged (q2,out)" and
+  DBDeq_def:      "DBDeq    == ACT  Deq mid q2 out  \<and>  unchanged (inp,q1)" and
   DBPass_def:     "DBPass   == ACT  Deq inp q1 mid
-                                 & (q2$ = $q2 @ [ mid$ ])
-                                 & (out$ = $out)" and
-  DBNext_def:     "DBNext   == ACT  (DBEnq | DBDeq | DBPass)" and
+                                 \<and> (q2$ = $q2 @ [ mid$ ])
+                                 \<and> (out$ = $out)" and
+  DBNext_def:     "DBNext   == ACT  (DBEnq \<or> DBDeq \<or> DBPass)" and
   DBuffer_def:    "DBuffer  == TEMP Init DBInit
-                                 & \<box>[DBNext]_(inp,mid,out,q1,q2)
-                                 & WF(DBDeq)_(inp,mid,out,q1,q2)
-                                 & WF(DBPass)_(inp,mid,out,q1,q2)"
+                                 \<and> \<box>[DBNext]_(inp,mid,out,q1,q2)
+                                 \<and> WF(DBDeq)_(inp,mid,out,q1,q2)
+                                 \<and> WF(DBPass)_(inp,mid,out,q1,q2)"
 
 
 declare qc_def [simp]
@@ -109,8 +109,8 @@ lemma DBPass_enabled:
 *)
 
 (* Condition (1a) *)
-lemma DBFair_1a: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
-         \<longrightarrow> (qc \<noteq> #[] & q2 = #[] \<leadsto> q2 \<noteq> #[])"
+lemma DBFair_1a: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) \<and> WF(DBPass)_(inp,mid,out,q1,q2)  
+         \<longrightarrow> (qc \<noteq> #[] \<and> q2 = #[] \<leadsto> q2 \<noteq> #[])"
   apply (rule WF1)
     apply (force simp: db_defs)
    apply (force simp: angle_def DBPass_def)
@@ -118,7 +118,7 @@ lemma DBFair_1a: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(
   done
 
 (* Condition (1) *)
-lemma DBFair_1: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
+lemma DBFair_1: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) \<and> WF(DBPass)_(inp,mid,out,q1,q2)  
          \<longrightarrow> (Enabled (<Deq inp qc out>_(inp,qc,out)) \<leadsto> q2 \<noteq> #[])"
   apply clarsimp
   apply (rule leadsto_classical [temp_use])
@@ -130,7 +130,7 @@ lemma DBFair_1: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(i
   done
 
 (* Condition (2) *)
-lemma DBFair_2: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBDeq)_(inp,mid,out,q1,q2)  
+lemma DBFair_2: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) \<and> WF(DBDeq)_(inp,mid,out,q1,q2)  
          \<longrightarrow> (q2 \<noteq> #[] \<leadsto> DBDeq)"
   apply (rule WF_leadsto)
     apply (force simp: DBDeq_enabled [temp_use])
@@ -139,8 +139,8 @@ lemma DBFair_2: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBDeq)_(in
   done
 
 (* High-level fairness *)
-lemma DBFair: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
-                                        & WF(DBDeq)_(inp,mid,out,q1,q2)   
+lemma DBFair: "\<turnstile> \<box>[DBNext]_(inp,mid,out,q1,q2) \<and> WF(DBPass)_(inp,mid,out,q1,q2)  
+                                        \<and> WF(DBDeq)_(inp,mid,out,q1,q2)   
          \<longrightarrow> WF(Deq inp qc out)_(inp,qc,out)"
   apply (auto simp del: qc_def intro!: leadsto_WF [temp_use]
     DBFair_1 [temp_use, THEN [2] LatticeTransitivity [temp_use]]

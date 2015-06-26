@@ -63,14 +63,14 @@ defs
 
   Calling_def:   "Calling ch p  == PRED cbit< ch!p > \<noteq> rbit< ch!p >"
   Call_def:      "(ACT Call ch p v)   == ACT  \<not> $Calling ch p
-                                     & (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
-                                     & (arg<ch!p>$ = $v)"
+                                     \<and> (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
+                                     \<and> (arg<ch!p>$ = $v)"
   Return_def:    "(ACT Return ch p v) == ACT  $Calling ch p
-                                     & (rbit<ch!p>$ = $cbit<ch!p>)
-                                     & (res<ch!p>$ = $v)"
+                                     \<and> (rbit<ch!p>$ = $cbit<ch!p>)
+                                     \<and> (res<ch!p>$ = $v)"
   PLegalCaller_def:      "PLegalCaller ch p == TEMP
                              Init(\<not> Calling ch p)
-                             & \<box>[\<exists>a. Call ch p a ]_((caller ch)!p)"
+                             \<and> \<box>[\<exists>a. Call ch p a ]_((caller ch)!p)"
   LegalCaller_def:       "LegalCaller ch == TEMP (\<forall>p. PLegalCaller ch p)"
   PLegalReturner_def:    "PLegalReturner ch p == TEMP
                                 \<box>[\<exists>v. Return ch p v ]_((rtrner ch)!p)"

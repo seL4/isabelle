@@ -53,10 +53,10 @@ translations
   "_SqAct"           ==   "CONST SqAct"
   "_AnAct"           ==   "CONST AnAct"
   "_Enabled"         ==   "CONST enabled"
-  "w |= [A]_v"       <=   "_SqAct A v w"
-  "w |= <A>_v"       <=   "_AnAct A v w"
-  "s |= Enabled A"   <=   "_Enabled A s"
-  "w |= unchanged f" <=   "_unchanged f w"
+  "w \<Turnstile> [A]_v"       <=   "_SqAct A v w"
+  "w \<Turnstile> <A>_v"       <=   "_AnAct A v w"
+  "s \<Turnstile> Enabled A"   <=   "_Enabled A s"
+  "w \<Turnstile> unchanged f" <=   "_unchanged f w"
 
 axiomatization where
   unl_before:    "(ACT $v) (s,t) \<equiv> v s" and
@@ -161,8 +161,8 @@ lemma angleE [elim]: "\<lbrakk> (s,t) \<Turnstile> <A>_v; \<lbrakk> A (s,t); v t
   done
 
 lemma square_simulation:
-   "\<And>f. \<lbrakk> \<turnstile> unchanged f & \<not>B \<longrightarrow> unchanged g;
-            \<turnstile> A & \<not>unchanged g \<longrightarrow> B
+   "\<And>f. \<lbrakk> \<turnstile> unchanged f \<and> \<not>B \<longrightarrow> unchanged g;
+            \<turnstile> A \<and> \<not>unchanged g \<longrightarrow> B
          \<rbrakk> \<Longrightarrow> \<turnstile> [A]_f \<longrightarrow> [B]_g"
   apply clarsimp
   apply (erule squareE)
@@ -210,29 +210,29 @@ lemma enabled_mono2:
   apply (erule maj)
   done
 
-lemma enabled_disj1: "\<turnstile> Enabled F \<longrightarrow> Enabled (F | G)"
+lemma enabled_disj1: "\<turnstile> Enabled F \<longrightarrow> Enabled (F \<or> G)"
   by (auto elim!: enabled_mono)
 
-lemma enabled_disj2: "\<turnstile> Enabled G \<longrightarrow> Enabled (F | G)"
+lemma enabled_disj2: "\<turnstile> Enabled G \<longrightarrow> Enabled (F \<or> G)"
   by (auto elim!: enabled_mono)
 
-lemma enabled_conj1: "\<turnstile> Enabled (F & G) \<longrightarrow> Enabled F"
+lemma enabled_conj1: "\<turnstile> Enabled (F \<and> G) \<longrightarrow> Enabled F"
   by (auto elim!: enabled_mono)
 
-lemma enabled_conj2: "\<turnstile> Enabled (F & G) \<longrightarrow> Enabled G"
+lemma enabled_conj2: "\<turnstile> Enabled (F \<and> G) \<longrightarrow> Enabled G"
   by (auto elim!: enabled_mono)
 
 lemma enabled_conjE:
-    "\<lbrakk> s \<Turnstile> Enabled (F & G); \<lbrakk> s \<Turnstile> Enabled F; s \<Turnstile> Enabled G \<rbrakk> \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+    "\<lbrakk> s \<Turnstile> Enabled (F \<and> G); \<lbrakk> s \<Turnstile> Enabled F; s \<Turnstile> Enabled G \<rbrakk> \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   apply (frule enabled_conj1 [action_use])
   apply (drule enabled_conj2 [action_use])
   apply simp
   done
 
-lemma enabled_disjD: "\<turnstile> Enabled (F | G) \<longrightarrow> Enabled F | Enabled G"
+lemma enabled_disjD: "\<turnstile> Enabled (F \<or> G) \<longrightarrow> Enabled F \<or> Enabled G"
   by (auto simp add: enabled_def)
 
-lemma enabled_disj: "\<turnstile> Enabled (F | G) = (Enabled F | Enabled G)"
+lemma enabled_disj: "\<turnstile> Enabled (F \<or> G) = (Enabled F \<or> Enabled G)"
   apply clarsimp
   apply (rule iffI)
    apply (erule enabled_disjD [action_use])
@@ -294,7 +294,7 @@ method_setup enabled = {*
 
 lemma
   assumes "basevars (x,y,z)"
-  shows "\<turnstile> x \<longrightarrow> Enabled ($x & (y$ = #False))"
+  shows "\<turnstile> x \<longrightarrow> Enabled ($x \<and> (y$ = #False))"
   apply (enabled assms)
   apply auto
   done

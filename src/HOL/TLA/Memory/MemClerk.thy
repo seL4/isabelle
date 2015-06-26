@@ -16,50 +16,50 @@ type_synonym mClkStType = "(PrIds \<Rightarrow> mClkState) stfun"
 definition
   (* state predicates *)
   MClkInit      :: "mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> stpred"
-  where "MClkInit rcv cst p = PRED (cst!p = #clkA  &  \<not>Calling rcv p)"
+  where "MClkInit rcv cst p = PRED (cst!p = #clkA  \<and>  \<not>Calling rcv p)"
 
 definition
   (* actions *)
   MClkFwd       :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> action"
   where "MClkFwd send rcv cst p = ACT
                            $Calling send p
-                         & $(cst!p) = #clkA
-                         & Call rcv p MClkRelayArg<arg<send!p>>
-                         & (cst!p)$ = #clkB
-                         & unchanged (rtrner send!p)"
+                         \<and> $(cst!p) = #clkA
+                         \<and> Call rcv p MClkRelayArg<arg<send!p>>
+                         \<and> (cst!p)$ = #clkB
+                         \<and> unchanged (rtrner send!p)"
 
 definition
   MClkRetry     :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> action"
   where "MClkRetry send rcv cst p = ACT
                            $(cst!p) = #clkB
-                         & res<$(rcv!p)> = #RPCFailure
-                         & Call rcv p MClkRelayArg<arg<send!p>>
-                         & unchanged (cst!p, rtrner send!p)"
+                         \<and> res<$(rcv!p)> = #RPCFailure
+                         \<and> Call rcv p MClkRelayArg<arg<send!p>>
+                         \<and> unchanged (cst!p, rtrner send!p)"
 
 definition
   MClkReply     :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> action"
   where "MClkReply send rcv cst p = ACT
                            \<not>$Calling rcv p
-                         & $(cst!p) = #clkB
-                         & Return send p MClkReplyVal<res<rcv!p>>
-                         & (cst!p)$ = #clkA
-                         & unchanged (caller rcv!p)"
+                         \<and> $(cst!p) = #clkB
+                         \<and> Return send p MClkReplyVal<res<rcv!p>>
+                         \<and> (cst!p)$ = #clkA
+                         \<and> unchanged (caller rcv!p)"
 
 definition
   MClkNext      :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> action"
   where "MClkNext send rcv cst p = ACT
                         (  MClkFwd send rcv cst p
-                         | MClkRetry send rcv cst p
-                         | MClkReply send rcv cst p)"
+                         \<or> MClkRetry send rcv cst p
+                         \<or> MClkReply send rcv cst p)"
 
 definition
   (* temporal *)
   MClkIPSpec    :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> PrIds \<Rightarrow> temporal"
   where "MClkIPSpec send rcv cst p = TEMP
                            Init MClkInit rcv cst p
-                         & \<box>[ MClkNext send rcv cst p ]_(cst!p, rtrner send!p, caller rcv!p)
-                         & WF(MClkFwd send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)
-                         & SF(MClkReply send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)"
+                         \<and> \<box>[ MClkNext send rcv cst p ]_(cst!p, rtrner send!p, caller rcv!p)
+                         \<and> WF(MClkFwd send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)
+                         \<and> SF(MClkReply send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)"
 
 definition
   MClkISpec     :: "mClkSndChType \<Rightarrow> mClkRcvChType \<Rightarrow> mClkStType \<Rightarrow> temporal"
@@ -73,7 +73,7 @@ lemmas MC_temp_defs = MClkIPSpec_def MClkISpec_def
 (* The Clerk engages in an action for process p only if there is an outstanding,
    unanswered call for that process.
 *)
-lemma MClkidle: "\<turnstile> \<not>$Calling send p & $(cst!p) = #clkA \<longrightarrow> \<not>MClkNext send rcv cst p"
+lemma MClkidle: "\<turnstile> \<not>$Calling send p \<and> $(cst!p) = #clkA \<longrightarrow> \<not>MClkNext send rcv cst p"
   by (auto simp: Return_def MC_action_defs)
 
 lemma MClkbusy: "\<turnstile> $Calling rcv p \<longrightarrow> \<not>MClkNext send rcv cst p"
@@ -83,7 +83,7 @@ lemma MClkbusy: "\<turnstile> $Calling rcv p \<longrightarrow> \<not>MClkNext se
 (* Enabledness of actions *)
 
 lemma MClkFwd_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \<Longrightarrow>  
-      \<turnstile> Calling send p & \<not>Calling rcv p & cst!p = #clkA   
+      \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkA   
          \<longrightarrow> Enabled (MClkFwd send rcv cst p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm MClkFwd_def},
     @{thm Call_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
@@ -98,7 +98,7 @@ lemma MClkReply_change: "\<turnstile> MClkReply send rcv cst p \<longrightarrow>
   by (auto simp: angle_def MClkReply_def elim: Return_changed [temp_use])
 
 lemma MClkReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \<Longrightarrow>  
-      \<turnstile> Calling send p & \<not>Calling rcv p & cst!p = #clkB   
+      \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkB   
          \<longrightarrow> Enabled (<MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
   apply (tactic {* action_simp_tac @{context}
     [@{thm MClkReply_change} RSN (2, @{thm enabled_mono})] [] 1 *})

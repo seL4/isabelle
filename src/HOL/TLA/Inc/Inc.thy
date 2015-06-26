@@ -5,7 +5,7 @@
 section {* Lamport's "increment" example *}
 
 theory Inc
-imports TLA
+imports "../TLA"
 begin
 
 (* program counter as an enumeration type *)
@@ -45,38 +45,38 @@ where
   Inc_base:      "basevars (x, y, sem, pc1, pc2)" and
 
   (* definitions for high-level program *)
-  InitPhi_def:   "InitPhi == PRED x = # 0 & y = # 0" and
-  M1_def:        "M1      == ACT  x$ = Suc<$x> & y$ = $y" and
-  M2_def:        "M2      == ACT  y$ = Suc<$y> & x$ = $x" and
-  Phi_def:       "Phi     == TEMP Init InitPhi & \<box>[M1 | M2]_(x,y)
-                                 & WF(M1)_(x,y) & WF(M2)_(x,y)" and
+  InitPhi_def:   "InitPhi == PRED x = # 0 \<and> y = # 0" and
+  M1_def:        "M1      == ACT  x$ = Suc<$x> \<and> y$ = $y" and
+  M2_def:        "M2      == ACT  y$ = Suc<$y> \<and> x$ = $x" and
+  Phi_def:       "Phi     == TEMP Init InitPhi \<and> \<box>[M1 \<or> M2]_(x,y)
+                                 \<and> WF(M1)_(x,y) \<and> WF(M2)_(x,y)" and
 
   (* definitions for low-level program *)
-  InitPsi_def:   "InitPsi == PRED pc1 = #a & pc2 = #a
-                                 & x = # 0 & y = # 0 & sem = # 1" and
-  alpha1_def:    "alpha1  == ACT  $pc1 = #a & pc1$ = #b & $sem = Suc<sem$>
-                                 & unchanged(x,y,pc2)" and
-  alpha2_def:    "alpha2  == ACT  $pc2 = #a & pc2$ = #b & $sem = Suc<sem$>
-                                 & unchanged(x,y,pc1)" and
-  beta1_def:     "beta1   == ACT  $pc1 = #b & pc1$ = #g & x$ = Suc<$x>
-                                 & unchanged(y,sem,pc2)" and
-  beta2_def:     "beta2   == ACT  $pc2 = #b & pc2$ = #g & y$ = Suc<$y>
-                                 & unchanged(x,sem,pc1)" and
-  gamma1_def:    "gamma1  == ACT  $pc1 = #g & pc1$ = #a & sem$ = Suc<$sem>
-                                 & unchanged(x,y,pc2)" and
-  gamma2_def:    "gamma2  == ACT  $pc2 = #g & pc2$ = #a & sem$ = Suc<$sem>
-                                 & unchanged(x,y,pc1)" and
-  N1_def:        "N1      == ACT  (alpha1 | beta1 | gamma1)" and
-  N2_def:        "N2      == ACT  (alpha2 | beta2 | gamma2)" and
+  InitPsi_def:   "InitPsi == PRED pc1 = #a \<and> pc2 = #a
+                                 \<and> x = # 0 \<and> y = # 0 \<and> sem = # 1" and
+  alpha1_def:    "alpha1  == ACT  $pc1 = #a \<and> pc1$ = #b \<and> $sem = Suc<sem$>
+                                 \<and> unchanged(x,y,pc2)" and
+  alpha2_def:    "alpha2  == ACT  $pc2 = #a \<and> pc2$ = #b \<and> $sem = Suc<sem$>
+                                 \<and> unchanged(x,y,pc1)" and
+  beta1_def:     "beta1   == ACT  $pc1 = #b \<and> pc1$ = #g \<and> x$ = Suc<$x>
+                                 \<and> unchanged(y,sem,pc2)" and
+  beta2_def:     "beta2   == ACT  $pc2 = #b \<and> pc2$ = #g \<and> y$ = Suc<$y>
+                                 \<and> unchanged(x,sem,pc1)" and
+  gamma1_def:    "gamma1  == ACT  $pc1 = #g \<and> pc1$ = #a \<and> sem$ = Suc<$sem>
+                                 \<and> unchanged(x,y,pc2)" and
+  gamma2_def:    "gamma2  == ACT  $pc2 = #g \<and> pc2$ = #a \<and> sem$ = Suc<$sem>
+                                 \<and> unchanged(x,y,pc1)" and
+  N1_def:        "N1      == ACT  (alpha1 \<or> beta1 \<or> gamma1)" and
+  N2_def:        "N2      == ACT  (alpha2 \<or> beta2 \<or> gamma2)" and
   Psi_def:       "Psi     == TEMP Init InitPsi
-                               & \<box>[N1 | N2]_(x,y,sem,pc1,pc2)
-                               & SF(N1)_(x,y,sem,pc1,pc2)
-                               & SF(N2)_(x,y,sem,pc1,pc2)" and
+                               \<and> \<box>[N1 \<or> N2]_(x,y,sem,pc1,pc2)
+                               \<and> SF(N1)_(x,y,sem,pc1,pc2)
+                               \<and> SF(N2)_(x,y,sem,pc1,pc2)" and
 
-  PsiInv1_def:  "PsiInv1  == PRED sem = # 1 & pc1 = #a & pc2 = #a" and
-  PsiInv2_def:  "PsiInv2  == PRED sem = # 0 & pc1 = #a & (pc2 = #b | pc2 = #g)" and
-  PsiInv3_def:  "PsiInv3  == PRED sem = # 0 & pc2 = #a & (pc1 = #b | pc1 = #g)" and
-  PsiInv_def:   "PsiInv   == PRED (PsiInv1 | PsiInv2 | PsiInv3)"
+  PsiInv1_def:  "PsiInv1  == PRED sem = # 1 \<and> pc1 = #a \<and> pc2 = #a" and
+  PsiInv2_def:  "PsiInv2  == PRED sem = # 0 \<and> pc1 = #a \<and> (pc2 = #b \<or> pc2 = #g)" and
+  PsiInv3_def:  "PsiInv3  == PRED sem = # 0 \<and> pc2 = #a \<and> (pc1 = #b \<or> pc1 = #g)" and
+  PsiInv_def:   "PsiInv   == PRED (PsiInv1 \<or> PsiInv2 \<or> PsiInv3)"
 
 
 lemmas PsiInv_defs = PsiInv_def PsiInv1_def PsiInv2_def PsiInv3_def
@@ -89,25 +89,25 @@ lemmas Psi_defs = Psi_def InitPsi_def N1_def N2_def alpha1_def alpha2_def
 lemma PsiInv_Init: "\<turnstile> InitPsi \<longrightarrow> PsiInv"
   by (auto simp: InitPsi_def PsiInv_defs)
 
-lemma PsiInv_alpha1: "\<turnstile> alpha1 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_alpha1: "\<turnstile> alpha1 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: alpha1_def PsiInv_defs)
 
-lemma PsiInv_alpha2: "\<turnstile> alpha2 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_alpha2: "\<turnstile> alpha2 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: alpha2_def PsiInv_defs)
 
-lemma PsiInv_beta1: "\<turnstile> beta1 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_beta1: "\<turnstile> beta1 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: beta1_def PsiInv_defs)
 
-lemma PsiInv_beta2: "\<turnstile> beta2 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_beta2: "\<turnstile> beta2 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: beta2_def PsiInv_defs)
 
-lemma PsiInv_gamma1: "\<turnstile> gamma1 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_gamma1: "\<turnstile> gamma1 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: gamma1_def PsiInv_defs)
 
-lemma PsiInv_gamma2: "\<turnstile> gamma2 & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_gamma2: "\<turnstile> gamma2 \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: gamma2_def PsiInv_defs)
 
-lemma PsiInv_stutter: "\<turnstile> unchanged (x,y,sem,pc1,pc2) & $PsiInv \<longrightarrow> PsiInv$"
+lemma PsiInv_stutter: "\<turnstile> unchanged (x,y,sem,pc1,pc2) \<and> $PsiInv \<longrightarrow> PsiInv$"
   by (auto simp: PsiInv_defs)
 
 lemma PsiInv: "\<turnstile> Psi \<longrightarrow> \<box>PsiInv"
@@ -132,7 +132,7 @@ lemma "\<turnstile> Psi \<longrightarrow> \<box>PsiInv"
 lemma Init_sim: "\<turnstile> Psi \<longrightarrow> Init InitPhi"
   by (auto simp: InitPhi_def Psi_def InitPsi_def Init_def)
 
-lemma Step_sim: "\<turnstile> Psi \<longrightarrow> \<box>[M1 | M2]_(x,y)"
+lemma Step_sim: "\<turnstile> Psi \<longrightarrow> \<box>[M1 \<or> M2]_(x,y)"
   by (auto simp: square_def M1_def M2_def Psi_defs elim!: STL4E [temp_use])
 
 
@@ -154,7 +154,7 @@ lemma Step_sim: "\<turnstile> Psi \<longrightarrow> \<box>[M1 | M2]_(x,y)"
    the auxiliary lemmas are very similar.
 *)
 
-lemma Stuck_at_b: "\<turnstile> \<box>[(N1 | N2) & \<not> beta1]_(x,y,sem,pc1,pc2) \<longrightarrow> stable(pc1 = #b)"
+lemma Stuck_at_b: "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not> beta1]_(x,y,sem,pc1,pc2) \<longrightarrow> stable(pc1 = #b)"
   by (auto elim!: Stable squareE simp: Psi_defs)
 
 lemma N1_enabled_at_g: "\<turnstile> pc1 = #g \<longrightarrow> Enabled (<N1>_(x,y,sem,pc1,pc2))"
@@ -166,7 +166,7 @@ lemma N1_enabled_at_g: "\<turnstile> pc1 = #g \<longrightarrow> Enabled (<N1>_(x
   done
 
 lemma g1_leadsto_a1:
-  "\<turnstile> \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N1)_(x,y,sem,pc1,pc2) & \<box>#True  
+  "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box>#True  
     \<longrightarrow> (pc1 = #g \<leadsto> pc1 = #a)"
   apply (rule SF1)
     apply (tactic
@@ -188,7 +188,7 @@ lemma N2_enabled_at_g: "\<turnstile> pc2 = #g \<longrightarrow> Enabled (<N2>_(x
   done
 
 lemma g2_leadsto_a2:
-  "\<turnstile> \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
+  "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N2)_(x,y,sem,pc1,pc2) \<and> \<box>#True  
     \<longrightarrow> (pc2 = #g \<leadsto> pc2 = #a)"
   apply (rule SF1)
   apply (tactic {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
@@ -207,7 +207,7 @@ lemma N2_enabled_at_b: "\<turnstile> pc2 = #b \<longrightarrow> Enabled (<N2>_(x
   done
 
 lemma b2_leadsto_g2:
-  "\<turnstile> \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
+  "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N2)_(x,y,sem,pc1,pc2) \<and> \<box>#True  
     \<longrightarrow> (pc2 = #b \<leadsto> pc2 = #g)"
   apply (rule SF1)
     apply (tactic
@@ -220,8 +220,8 @@ lemma b2_leadsto_g2:
 
 (* Combine above lemmas: the second component will eventually reach pc2 = a *)
 lemma N2_leadsto_a:
-  "\<turnstile> \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
-    \<longrightarrow> (pc2 = #a | pc2 = #b | pc2 = #g \<leadsto> pc2 = #a)"
+  "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N2)_(x,y,sem,pc1,pc2) \<and> \<box>#True  
+    \<longrightarrow> (pc2 = #a \<or> pc2 = #b \<or> pc2 = #g \<leadsto> pc2 = #a)"
   apply (auto intro!: LatticeDisjunctionIntro [temp_use])
     apply (rule LatticeReflexivity [temp_use])
    apply (rule LatticeTransitivity [temp_use])
@@ -230,7 +230,7 @@ lemma N2_leadsto_a:
 
 (* Get rid of disjunction on the left-hand side of \<leadsto> above. *)
 lemma N2_live:
-  "\<turnstile> \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2)  
+  "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N2)_(x,y,sem,pc1,pc2)  
     \<longrightarrow> \<diamond>(pc2 = #a)"
   apply (auto simp: Init_defs intro!: N2_leadsto_a [temp_use, THEN [2] leadsto_init [temp_use]])
   apply (case_tac "pc2 (st1 sigma)")
@@ -240,7 +240,7 @@ lemma N2_live:
 (* Now prove that the first component will eventually reach pc1 = b from pc1 = a *)
 
 lemma N1_enabled_at_both_a:
-  "\<turnstile> pc2 = #a & (PsiInv & pc1 = #a) \<longrightarrow> Enabled (<N1>_(x,y,sem,pc1,pc2))"
+  "\<turnstile> pc2 = #a \<and> (PsiInv \<and> pc1 = #a) \<longrightarrow> Enabled (<N1>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = alpha1 in enabled_mono)
   apply (enabled Inc_base)
@@ -249,8 +249,8 @@ lemma N1_enabled_at_both_a:
   done
 
 lemma a1_leadsto_b1:
-  "\<turnstile> \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))       
-         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+  "\<turnstile> \<box>($PsiInv \<and> [(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2))       
+         \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box> SF(N2)_(x,y,sem,pc1,pc2)   
          \<longrightarrow> (pc1 = #a \<leadsto> pc1 = #b)"
   apply (rule SF1)
   apply (tactic {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
@@ -263,9 +263,9 @@ lemma a1_leadsto_b1:
 
 (* Combine the leadsto properties for N1: it will arrive at pc1 = b *)
 
-lemma N1_leadsto_b: "\<turnstile> \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))              
-         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
-         \<longrightarrow> (pc1 = #b | pc1 = #g | pc1 = #a \<leadsto> pc1 = #b)"
+lemma N1_leadsto_b: "\<turnstile> \<box>($PsiInv \<and> [(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2))              
+         \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+         \<longrightarrow> (pc1 = #b \<or> pc1 = #g \<or> pc1 = #a \<leadsto> pc1 = #b)"
   apply (auto intro!: LatticeDisjunctionIntro [temp_use])
     apply (rule LatticeReflexivity [temp_use])
    apply (rule LatticeTransitivity [temp_use])
@@ -273,8 +273,8 @@ lemma N1_leadsto_b: "\<turnstile> \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,
       simp: split_box_conj)
   done
 
-lemma N1_live: "\<turnstile> \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))              
-         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+lemma N1_live: "\<turnstile> \<box>($PsiInv \<and> [(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2))              
+         \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box> SF(N2)_(x,y,sem,pc1,pc2)   
          \<longrightarrow> \<diamond>(pc1 = #b)"
   apply (auto simp: Init_defs intro!: N1_leadsto_b [temp_use, THEN [2] leadsto_init [temp_use]])
   apply (case_tac "pc1 (st1 sigma)")
@@ -291,8 +291,8 @@ lemma N1_enabled_at_b: "\<turnstile> pc1 = #b \<longrightarrow> Enabled (<N1>_(x
 
 (* Now assemble the bits and pieces to prove that Psi is fair. *)
 
-lemma Fair_M1_lemma: "\<turnstile> \<box>($PsiInv & [(N1 | N2)]_(x,y,sem,pc1,pc2))    
-         & SF(N1)_(x,y,sem,pc1,pc2) & \<box>SF(N2)_(x,y,sem,pc1,pc2)   
+lemma Fair_M1_lemma: "\<turnstile> \<box>($PsiInv \<and> [(N1 \<or> N2)]_(x,y,sem,pc1,pc2))    
+         \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box>SF(N2)_(x,y,sem,pc1,pc2)   
          \<longrightarrow> SF(M1)_(x,y)"
   apply (rule_tac B = beta1 and P = "PRED pc1 = #b" in SF2)
    (* action premises *)

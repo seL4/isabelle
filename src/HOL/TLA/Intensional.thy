@@ -43,8 +43,8 @@ syntax
   "_constrain"  :: "[lift, type] \<Rightarrow> lift"                ("(_::_)" [4, 0] 3)
   ""            :: "lift \<Rightarrow> liftargs"                    ("_")
   "_liftargs"   :: "[lift, liftargs] \<Rightarrow> liftargs"        ("_,/ _")
-  "_Valid"      :: "lift \<Rightarrow> bool"                        ("(|- _)" 5)
-  "_holdsAt"    :: "['a, lift] \<Rightarrow> bool"                  ("(_ |= _)" [100,10] 10)
+  "_Valid"      :: "lift \<Rightarrow> bool"                        ("(\<turnstile> _)" 5)
+  "_holdsAt"    :: "['a, lift] \<Rightarrow> bool"                  ("(_ \<Turnstile> _)" [100,10] 10)
 
   (* Syntax for lifted expressions outside the scope of \<turnstile> or |= *)
   "_LIFT"       :: "lift \<Rightarrow> 'a"                          ("LIFT _")
@@ -57,11 +57,11 @@ syntax
 
   (* concrete syntax for common infix functions: reuse same symbol *)
   "_liftEqu"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ =/ _)" [50,51] 50)
-  "_liftNeq"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ ~=/ _)" [50,51] 50)
-  "_liftNot"    :: "lift \<Rightarrow> lift"                        ("(~ _)" [40] 40)
-  "_liftAnd"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ &/ _)" [36,35] 35)
-  "_liftOr"     :: "[lift, lift] \<Rightarrow> lift"                ("(_ |/ _)" [31,30] 30)
-  "_liftImp"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ -->/ _)" [26,25] 25)
+  "_liftNeq"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ \<noteq>/ _)" [50,51] 50)
+  "_liftNot"    :: "lift \<Rightarrow> lift"                        ("(\<not> _)" [40] 40)
+  "_liftAnd"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ \<and>/ _)" [36,35] 35)
+  "_liftOr"     :: "[lift, lift] \<Rightarrow> lift"                ("(_ \<or>/ _)" [31,30] 30)
+  "_liftImp"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ \<longrightarrow>/ _)" [26,25] 25)
   "_liftIf"     :: "[lift, lift, lift] \<Rightarrow> lift"          ("(if (_)/ then (_)/ else (_))" 10)
   "_liftPlus"   :: "[lift, lift] \<Rightarrow> lift"                ("(_ +/ _)" [66,65] 65)
   "_liftMinus"  :: "[lift, lift] \<Rightarrow> lift"                ("(_ -/ _)" [66,65] 65)
@@ -69,9 +69,9 @@ syntax
   "_liftDiv"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ div _)" [71,70] 70)
   "_liftMod"    :: "[lift, lift] \<Rightarrow> lift"                ("(_ mod _)" [71,70] 70)
   "_liftLess"   :: "[lift, lift] \<Rightarrow> lift"                ("(_/ < _)"  [50, 51] 50)
-  "_liftLeq"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ <= _)" [50, 51] 50)
-  "_liftMem"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ : _)" [50, 51] 50)
-  "_liftNotMem" :: "[lift, lift] \<Rightarrow> lift"                ("(_/ ~: _)" [50, 51] 50)
+  "_liftLeq"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<le> _)" [50, 51] 50)
+  "_liftMem"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<in> _)" [50, 51] 50)
+  "_liftNotMem" :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<notin> _)" [50, 51] 50)
   "_liftFinset" :: "liftargs \<Rightarrow> lift"                    ("{(_)}")
   (** TODO: syntax for lifted collection / comprehension **)
   "_liftPair"   :: "[lift,liftargs] \<Rightarrow> lift"                   ("(1'(_,/ _'))")
@@ -81,12 +81,9 @@ syntax
   "_liftList" :: "liftargs \<Rightarrow> lift"                      ("[(_)]")
 
   (* Rigid quantification (syntax level) *)
-  "_ARAll"  :: "[idts, lift] \<Rightarrow> lift"                    ("(3! _./ _)" [0, 10] 10)
-  "_AREx"   :: "[idts, lift] \<Rightarrow> lift"                    ("(3? _./ _)" [0, 10] 10)
-  "_AREx1"  :: "[idts, lift] \<Rightarrow> lift"                    ("(3?! _./ _)" [0, 10] 10)
-  "_RAll" :: "[idts, lift] \<Rightarrow> lift"                      ("(3ALL _./ _)" [0, 10] 10)
-  "_REx"  :: "[idts, lift] \<Rightarrow> lift"                      ("(3EX _./ _)" [0, 10] 10)
-  "_REx1" :: "[idts, lift] \<Rightarrow> lift"                      ("(3EX! _./ _)" [0, 10] 10)
+  "_RAll" :: "[idts, lift] \<Rightarrow> lift"                      ("(3\<forall>_./ _)" [0, 10] 10)
+  "_REx"  :: "[idts, lift] \<Rightarrow> lift"                      ("(3\<exists>_./ _)" [0, 10] 10)
+  "_REx1" :: "[idts, lift] \<Rightarrow> lift"                      ("(3\<exists>!_./ _)" [0, 10] 10)
 
 translations
   "_const"        == "CONST const"
@@ -97,19 +94,16 @@ translations
   "_RAll x A"     == "Rall x. A"
   "_REx x  A"     == "Rex x. A"
   "_REx1 x  A"    == "Rex! x. A"
-  "_ARAll"        => "_RAll"
-  "_AREx"         => "_REx"
-  "_AREx1"        => "_REx1"
 
-  "w |= A"        => "A w"
-  "LIFT A"        => "A::_=>_"
+  "w \<Turnstile> A"        => "A w"
+  "LIFT A"        => "A::_\<Rightarrow>_"
 
   "_liftEqu"      == "_lift2 (op =)"
   "_liftNeq u v"  == "_liftNot (_liftEqu u v)"
   "_liftNot"      == "_lift (CONST Not)"
-  "_liftAnd"      == "_lift2 (op &)"
-  "_liftOr"       == "_lift2 (op | )"
-  "_liftImp"      == "_lift2 (op -->)"
+  "_liftAnd"      == "_lift2 (op \<and>)"
+  "_liftOr"       == "_lift2 (op \<or>)"
+  "_liftImp"      == "_lift2 (op \<longrightarrow>)"
   "_liftIf"       == "_lift3 (CONST If)"
   "_liftPlus"     == "_lift2 (op +)"
   "_liftMinus"    == "_lift2 (op -)"
@@ -117,8 +111,8 @@ translations
   "_liftDiv"      == "_lift2 (op div)"
   "_liftMod"      == "_lift2 (op mod)"
   "_liftLess"     == "_lift2 (op <)"
-  "_liftLeq"      == "_lift2 (op <=)"
-  "_liftMem"      == "_lift2 (op :)"
+  "_liftLeq"      == "_lift2 (op \<le>)"
+  "_liftMem"      == "_lift2 (op \<in>)"
   "_liftNotMem x xs"   == "_liftNot (_liftMem x xs)"
   "_liftFinset (_liftargs x xs)"  == "_lift2 (CONST insert) x (_liftFinset xs)"
   "_liftFinset x" == "_lift2 (CONST insert) x (_const {})"
@@ -131,29 +125,14 @@ translations
 
 
 
-  "w |= ~A"       <= "_liftNot A w"
-  "w |= A & B"    <= "_liftAnd A B w"
-  "w |= A | B"    <= "_liftOr A B w"
-  "w |= A --> B"  <= "_liftImp A B w"
-  "w |= u = v"    <= "_liftEqu u v w"
-  "w |= ALL x. A"   <= "_RAll x A w"
-  "w |= EX x. A"   <= "_REx x A w"
-  "w |= EX! x. A"  <= "_REx1 x A w"
-
-syntax (xsymbols)
-  "_Valid"      :: "lift \<Rightarrow> bool"                        ("(\<turnstile> _)" 5)
-  "_holdsAt"    :: "['a, lift] \<Rightarrow> bool"                  ("(_ \<Turnstile> _)" [100,10] 10)
-  "_liftNeq"    :: "[lift, lift] \<Rightarrow> lift"                (infixl "\<noteq>" 50)
-  "_liftNot"    :: "lift \<Rightarrow> lift"                        ("\<not> _" [40] 40)
-  "_liftAnd"    :: "[lift, lift] \<Rightarrow> lift"                (infixr "\<and>" 35)
-  "_liftOr"     :: "[lift, lift] \<Rightarrow> lift"                (infixr "\<or>" 30)
-  "_liftImp"    :: "[lift, lift] \<Rightarrow> lift"                (infixr "\<longrightarrow>" 25)
-  "_RAll"       :: "[idts, lift] \<Rightarrow> lift"                ("(3\<forall>_./ _)" [0, 10] 10)
-  "_REx"        :: "[idts, lift] \<Rightarrow> lift"                ("(3\<exists>_./ _)" [0, 10] 10)
-  "_REx1"       :: "[idts, lift] \<Rightarrow> lift"                ("(3\<exists>!_./ _)" [0, 10] 10)
-  "_liftLeq"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<le> _)" [50, 51] 50)
-  "_liftMem"    :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<in> _)" [50, 51] 50)
-  "_liftNotMem" :: "[lift, lift] \<Rightarrow> lift"                ("(_/ \<notin> _)" [50, 51] 50)
+  "w \<Turnstile> \<not>A"       <= "_liftNot A w"
+  "w \<Turnstile> A \<and> B"    <= "_liftAnd A B w"
+  "w \<Turnstile> A \<or> B"    <= "_liftOr A B w"
+  "w \<Turnstile> A \<longrightarrow> B"  <= "_liftImp A B w"
+  "w \<Turnstile> u = v"    <= "_liftEqu u v w"
+  "w \<Turnstile> \<forall>x. A"   <= "_RAll x A w"
+  "w \<Turnstile> \<exists>x. A"   <= "_REx x A w"
+  "w \<Turnstile> \<exists>!x. A"  <= "_REx1 x A w"
 
 defs
   Valid_def:   "\<turnstile> A    ==  \<forall>w. w \<Turnstile> A"
@@ -164,7 +143,7 @@ defs
   unl_lift3:   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
 
   unl_Rall:    "w \<Turnstile> \<forall>x. A x  ==  \<forall>x. (w \<Turnstile> A x)"
-  unl_Rex:     "w \<Turnstile> \<exists>x. A x   ==  \<exists> x. (w \<Turnstile> A x)"
+  unl_Rex:     "w \<Turnstile> \<exists>x. A x   ==  \<exists>x. (w \<Turnstile> A x)"
   unl_Rex1:    "w \<Turnstile> \<exists>!x. A x  ==  \<exists>!x. (w \<Turnstile> A x)"
 
 
@@ -202,15 +181,15 @@ lemma int_simps:
   "\<turnstile> (#True \<longrightarrow> P) = P"  "\<turnstile> (#False \<longrightarrow> P) = #True"
   "\<turnstile> (P \<longrightarrow> #True) = #True"  "\<turnstile> (P \<longrightarrow> P) = #True"
   "\<turnstile> (P \<longrightarrow> #False) = (\<not>P)"  "\<turnstile> (P \<longrightarrow> \<not>P) = (\<not>P)"
-  "\<turnstile> (P & #True) = P"  "\<turnstile> (#True & P) = P"
-  "\<turnstile> (P & #False) = #False"  "\<turnstile> (#False & P) = #False"
-  "\<turnstile> (P & P) = P"  "\<turnstile> (P & \<not>P) = #False"  "\<turnstile> (\<not>P & P) = #False"
-  "\<turnstile> (P | #True) = #True"  "\<turnstile> (#True | P) = #True"
-  "\<turnstile> (P | #False) = P"  "\<turnstile> (#False | P) = P"
-  "\<turnstile> (P | P) = P"  "\<turnstile> (P | \<not>P) = #True"  "\<turnstile> (\<not>P | P) = #True"
+  "\<turnstile> (P \<and> #True) = P"  "\<turnstile> (#True \<and> P) = P"
+  "\<turnstile> (P \<and> #False) = #False"  "\<turnstile> (#False \<and> P) = #False"
+  "\<turnstile> (P \<and> P) = P"  "\<turnstile> (P \<and> \<not>P) = #False"  "\<turnstile> (\<not>P \<and> P) = #False"
+  "\<turnstile> (P \<or> #True) = #True"  "\<turnstile> (#True \<or> P) = #True"
+  "\<turnstile> (P \<or> #False) = P"  "\<turnstile> (#False \<or> P) = P"
+  "\<turnstile> (P \<or> P) = P"  "\<turnstile> (P \<or> \<not>P) = #True"  "\<turnstile> (\<not>P \<or> P) = #True"
   "\<turnstile> (\<forall>x. P) = P"  "\<turnstile> (\<exists>x. P) = P"
   "\<turnstile> (\<not>Q \<longrightarrow> \<not>P) = (P \<longrightarrow> Q)"
-  "\<turnstile> (P|Q \<longrightarrow> R) = ((P\<longrightarrow>R)&(Q\<longrightarrow>R))"
+  "\<turnstile> (P\<or>Q \<longrightarrow> R) = ((P\<longrightarrow>R)\<and>(Q\<longrightarrow>R))"
   apply (unfold Valid_def intensional_rews)
   apply blast+
   done

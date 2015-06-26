@@ -5,7 +5,7 @@
 section {* A simple FIFO buffer (synchronous communication, interleaving) *}
 
 theory Buffer
-imports TLA
+imports "../TLA"
 begin
 
 consts
@@ -22,16 +22,16 @@ consts
 defs
   BInit_def:   "BInit ic q oc    == PRED q = #[]"
   Enq_def:     "Enq ic q oc      == ACT (ic$ \<noteq> $ic)
-                                     & (q$ = $q @ [ ic$ ])
-                                     & (oc$ = $oc)"
+                                     \<and> (q$ = $q @ [ ic$ ])
+                                     \<and> (oc$ = $oc)"
   Deq_def:     "Deq ic q oc      == ACT ($q \<noteq> #[])
-                                     & (oc$ = hd< $q >)
-                                     & (q$ = tl< $q >)
-                                     & (ic$ = $ic)"
-  Next_def:    "Next ic q oc     == ACT (Enq ic q oc | Deq ic q oc)"
+                                     \<and> (oc$ = hd< $q >)
+                                     \<and> (q$ = tl< $q >)
+                                     \<and> (ic$ = $ic)"
+  Next_def:    "Next ic q oc     == ACT (Enq ic q oc \<or> Deq ic q oc)"
   IBuffer_def: "IBuffer ic q oc  == TEMP Init (BInit ic q oc)
-                                      & \<box>[Next ic q oc]_(ic,q,oc)
-                                      & WF(Deq ic q oc)_(ic,q,oc)"
+                                      \<and> \<box>[Next ic q oc]_(ic,q,oc)
+                                      \<and> WF(Deq ic q oc)_(ic,q,oc)"
   Buffer_def:  "Buffer ic oc     == TEMP (\<exists>\<exists>q. IBuffer ic q oc)"
 
 

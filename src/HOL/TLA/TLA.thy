@@ -24,15 +24,15 @@ consts
 
   (** concrete syntax **)
 syntax
-  "_Box"     :: "lift \<Rightarrow> lift"                        ("([]_)" [40] 40)
-  "_Dmd"     :: "lift \<Rightarrow> lift"                        ("(<>_)" [40] 40)
-  "_leadsto" :: "[lift,lift] \<Rightarrow> lift"                 ("(_ ~> _)" [23,22] 22)
+  "_Box"     :: "lift \<Rightarrow> lift"                        ("(\<box>_)" [40] 40)
+  "_Dmd"     :: "lift \<Rightarrow> lift"                        ("(\<diamond>_)" [40] 40)
+  "_leadsto" :: "[lift,lift] \<Rightarrow> lift"                 ("(_ \<leadsto> _)" [23,22] 22)
   "_stable"  :: "lift \<Rightarrow> lift"                        ("(stable/ _)")
   "_WF"      :: "[lift,lift] \<Rightarrow> lift"                 ("(WF'(_')'_(_))" [0,60] 55)
   "_SF"      :: "[lift,lift] \<Rightarrow> lift"                 ("(SF'(_')'_(_))" [0,60] 55)
 
-  "_EEx"     :: "[idts, lift] \<Rightarrow> lift"                ("(3EEX _./ _)" [0,10] 10)
-  "_AAll"    :: "[idts, lift] \<Rightarrow> lift"                ("(3AALL _./ _)" [0,10] 10)
+  "_EEx"     :: "[idts, lift] \<Rightarrow> lift"                ("(3\<exists>\<exists> _./ _)" [0,10] 10)
+  "_AAll"    :: "[idts, lift] \<Rightarrow> lift"                ("(3\<forall>\<forall> _./ _)" [0,10] 10)
 
 translations
   "_Box"      ==   "CONST Box"
@@ -44,21 +44,14 @@ translations
   "_EEx v A"  ==   "Eex v. A"
   "_AAll v A" ==   "Aall v. A"
 
-  "sigma |= []F"         <= "_Box F sigma"
-  "sigma |= <>F"         <= "_Dmd F sigma"
-  "sigma |= F ~> G"      <= "_leadsto F G sigma"
-  "sigma |= stable P"    <= "_stable P sigma"
-  "sigma |= WF(A)_v"     <= "_WF A v sigma"
-  "sigma |= SF(A)_v"     <= "_SF A v sigma"
-  "sigma |= EEX x. F"    <= "_EEx x F sigma"
-  "sigma |= AALL x. F"    <= "_AAll x F sigma"
-
-syntax (xsymbols)
-  "_Box"     :: "lift \<Rightarrow> lift"                        ("(\<box>_)" [40] 40)
-  "_Dmd"     :: "lift \<Rightarrow> lift"                        ("(\<diamond>_)" [40] 40)
-  "_leadsto" :: "[lift,lift] \<Rightarrow> lift"                 ("(_ \<leadsto> _)" [23,22] 22)
-  "_EEx"     :: "[idts, lift] \<Rightarrow> lift"                ("(3\<exists>\<exists> _./ _)" [0,10] 10)
-  "_AAll"    :: "[idts, lift] \<Rightarrow> lift"                ("(3\<forall>\<forall> _./ _)" [0,10] 10)
+  "sigma \<Turnstile> \<box>F"         <= "_Box F sigma"
+  "sigma \<Turnstile> \<diamond>F"         <= "_Dmd F sigma"
+  "sigma \<Turnstile> F \<leadsto> G"      <= "_leadsto F G sigma"
+  "sigma \<Turnstile> stable P"    <= "_stable P sigma"
+  "sigma \<Turnstile> WF(A)_v"     <= "_WF A v sigma"
+  "sigma \<Turnstile> SF(A)_v"     <= "_SF A v sigma"
+  "sigma \<Turnstile> \<exists>\<exists>x. F"    <= "_EEx x F sigma"
+  "sigma \<Turnstile> \<forall>\<forall>x. F"    <= "_AAll x F sigma"
 
 axiomatization where
   (* Definitions of derived operators *)
@@ -77,11 +70,11 @@ axiomatization where
   normalT:    "\<And>F G. \<turnstile> \<box>(F \<longrightarrow> G) \<longrightarrow> (\<box>F \<longrightarrow> \<box>G)" and    (* polymorphic *)
   reflT:      "\<And>F. \<turnstile> \<box>F \<longrightarrow> F" and         (* F::temporal *)
   transT:     "\<And>F. \<turnstile> \<box>F \<longrightarrow> \<box>\<box>F" and     (* polymorphic *)
-  linT:       "\<And>F G. \<turnstile> \<diamond>F & \<diamond>G \<longrightarrow> (\<diamond>(F & \<diamond>G)) | (\<diamond>(G & \<diamond>F))" and
-  discT:      "\<And>F. \<turnstile> \<box>(F \<longrightarrow> \<diamond>(\<not>F & \<diamond>F)) \<longrightarrow> (F \<longrightarrow> \<box>\<diamond>F)" and
+  linT:       "\<And>F G. \<turnstile> \<diamond>F \<and> \<diamond>G \<longrightarrow> (\<diamond>(F \<and> \<diamond>G)) \<or> (\<diamond>(G \<and> \<diamond>F))" and
+  discT:      "\<And>F. \<turnstile> \<box>(F \<longrightarrow> \<diamond>(\<not>F \<and> \<diamond>F)) \<longrightarrow> (F \<longrightarrow> \<box>\<diamond>F)" and
   primeI:     "\<And>P. \<turnstile> \<box>P \<longrightarrow> Init P`" and
   primeE:     "\<And>P F. \<turnstile> \<box>(Init P \<longrightarrow> \<box>F) \<longrightarrow> Init P` \<longrightarrow> (F \<longrightarrow> \<box>F)" and
-  indT:       "\<And>P F. \<turnstile> \<box>(Init P & \<not>\<box>F \<longrightarrow> Init P` & F) \<longrightarrow> Init P \<longrightarrow> \<box>F" and
+  indT:       "\<And>P F. \<turnstile> \<box>(Init P \<and> \<not>\<box>F \<longrightarrow> Init P` \<and> F) \<longrightarrow> Init P \<longrightarrow> \<box>F" and
   allT:       "\<And>F. \<turnstile> (\<forall>x. \<box>(F x)) = (\<box>(\<forall> x. F x))"
 
 axiomatization where
@@ -93,7 +86,7 @@ axiomatization where
   eexE:       "\<lbrakk> sigma \<Turnstile> (\<exists>\<exists>x. F x); basevars vs;
                  (\<And>x. \<lbrakk> basevars (x, vs); sigma \<Turnstile> F x \<rbrakk> \<Longrightarrow> (G sigma)::bool)
               \<rbrakk> \<Longrightarrow> G sigma" and
-  history:    "\<turnstile> \<exists>\<exists>h. Init(h = ha) & \<box>(\<forall>x. $h = #x \<longrightarrow> h` = hb x)"
+  history:    "\<turnstile> \<exists>\<exists>h. Init(h = ha) \<and> \<box>(\<forall>x. $h = #x \<longrightarrow> h` = hb x)"
 
 
 (* Specialize intensional introduction/elimination rules for temporal formulas *)
@@ -255,9 +248,9 @@ lemma DmdImplE: "\<lbrakk> sigma \<Turnstile> \<diamond>F; \<turnstile> F \<long
   by (erule (1) DmdImpl [temp_use])
 
 (* ------------------------ STL5 ------------------------------------------- *)
-lemma STL5: "\<turnstile> (\<box>F & \<box>G) = (\<box>(F & G))"
+lemma STL5: "\<turnstile> (\<box>F \<and> \<box>G) = (\<box>(F \<and> G))"
   apply auto
-  apply (subgoal_tac "sigma \<Turnstile> \<box> (G \<longrightarrow> (F & G))")
+  apply (subgoal_tac "sigma \<Turnstile> \<box> (G \<longrightarrow> (F \<and> G))")
      apply (erule normalT [temp_use])
      apply (fastforce elim!: STL4E [temp_use])+
   done
@@ -273,7 +266,7 @@ lemmas split_box_conj = STL5 [temp_unlift, symmetric]
 lemma box_conjE:
   assumes "sigma \<Turnstile> \<box>F"
      and "sigma \<Turnstile> \<box>G"
-  and "sigma \<Turnstile> \<box>(F&G) \<Longrightarrow> PROP R"
+  and "sigma \<Turnstile> \<box>(F\<and>G) \<Longrightarrow> PROP R"
   shows "PROP R"
   by (rule assms STL5 [temp_unlift, THEN iffD1] conjI)+
 
@@ -317,7 +310,7 @@ method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac
 *)
 lemmas all_box = allT [temp_unlift, symmetric]
 
-lemma DmdOr: "\<turnstile> (\<diamond>(F | G)) = (\<diamond>F | \<diamond>G)"
+lemma DmdOr: "\<turnstile> (\<diamond>(F \<or> G)) = (\<diamond>F \<or> \<diamond>G)"
   apply (auto simp add: dmd_def split_box_conj [try_rewrite])
   apply (erule contrapos_np, merge_box, fastforce elim!: STL4E [temp_use])+
   done
@@ -327,7 +320,7 @@ lemma exT: "\<turnstile> (\<exists>x. \<diamond>(F x)) = (\<diamond>(\<exists>x.
 
 lemmas ex_dmd = exT [temp_unlift, symmetric]
 
-lemma STL4Edup: "\<And>sigma. \<lbrakk> sigma \<Turnstile> \<box>A; sigma \<Turnstile> \<box>F; \<turnstile> F & \<box>A \<longrightarrow> G \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>G"
+lemma STL4Edup: "\<And>sigma. \<lbrakk> sigma \<Turnstile> \<box>A; sigma \<Turnstile> \<box>F; \<turnstile> F \<and> \<box>A \<longrightarrow> G \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>G"
   apply (erule dup_boxE)
   apply merge_box
   apply (erule STL4E)
@@ -346,7 +339,7 @@ lemma DmdImpl2:
 lemma InfImpl:
   assumes 1: "sigma \<Turnstile> \<box>\<diamond>F"
     and 2: "sigma \<Turnstile> \<box>G"
-    and 3: "\<turnstile> F & G \<longrightarrow> H"
+    and 3: "\<turnstile> F \<and> G \<longrightarrow> H"
   shows "sigma \<Turnstile> \<box>\<diamond>H"
   apply (insert 1 2)
   apply (erule_tac F = G in dup_boxE)
@@ -356,7 +349,7 @@ lemma InfImpl:
 
 (* ------------------------ STL6 ------------------------------------------- *)
 (* Used in the proof of STL6, but useful in itself. *)
-lemma BoxDmd: "\<turnstile> \<box>F & \<diamond>G \<longrightarrow> \<diamond>(\<box>F & G)"
+lemma BoxDmd: "\<turnstile> \<box>F \<and> \<diamond>G \<longrightarrow> \<diamond>(\<box>F \<and> G)"
   apply (unfold dmd_def)
   apply clarsimp
   apply (erule dup_boxE)
@@ -366,14 +359,14 @@ lemma BoxDmd: "\<turnstile> \<box>F & \<diamond>G \<longrightarrow> \<diamond>(\
   done
 
 (* weaker than BoxDmd, but more polymorphic (and often just right) *)
-lemma BoxDmd_simple: "\<turnstile> \<box>F & \<diamond>G \<longrightarrow> \<diamond>(F & G)"
+lemma BoxDmd_simple: "\<turnstile> \<box>F \<and> \<diamond>G \<longrightarrow> \<diamond>(F \<and> G)"
   apply (unfold dmd_def)
   apply clarsimp
   apply merge_box
   apply (fastforce elim!: notE STL4E [temp_use])
   done
 
-lemma BoxDmd2_simple: "\<turnstile> \<box>F & \<diamond>G \<longrightarrow> \<diamond>(G & F)"
+lemma BoxDmd2_simple: "\<turnstile> \<box>F \<and> \<diamond>G \<longrightarrow> \<diamond>(G \<and> F)"
   apply (unfold dmd_def)
   apply clarsimp
   apply merge_box
@@ -383,13 +376,13 @@ lemma BoxDmd2_simple: "\<turnstile> \<box>F & \<diamond>G \<longrightarrow> \<di
 lemma DmdImpldup:
   assumes 1: "sigma \<Turnstile> \<box>A"
     and 2: "sigma \<Turnstile> \<diamond>F"
-    and 3: "\<turnstile> \<box>A & F \<longrightarrow> G"
+    and 3: "\<turnstile> \<box>A \<and> F \<longrightarrow> G"
   shows "sigma \<Turnstile> \<diamond>G"
   apply (rule 2 [THEN 1 [THEN BoxDmd [temp_use]], THEN DmdImplE])
   apply (rule 3)
   done
 
-lemma STL6: "\<turnstile> \<diamond>\<box>F & \<diamond>\<box>G \<longrightarrow> \<diamond>\<box>(F & G)"
+lemma STL6: "\<turnstile> \<diamond>\<box>F \<and> \<diamond>\<box>G \<longrightarrow> \<diamond>\<box>(F \<and> G)"
   apply (auto simp: STL5 [temp_rewrite, symmetric])
   apply (drule linT [temp_use])
    apply assumption
@@ -444,7 +437,7 @@ lemmas more_temp_simps1 =
 lemma BoxDmdBox: "\<turnstile> (\<box>\<diamond>\<box>F) = (\<diamond>\<box>F)"
   apply (auto dest!: STL2 [temp_use])
   apply (rule ccontr)
-  apply (subgoal_tac "sigma \<Turnstile> \<diamond>\<box>\<box>F & \<diamond>\<box>\<not>\<box>F")
+  apply (subgoal_tac "sigma \<Turnstile> \<diamond>\<box>\<box>F \<and> \<diamond>\<box>\<not>\<box>F")
    apply (erule thin_rl)
    apply auto
     apply (drule STL6 [temp_use])
@@ -463,7 +456,7 @@ lemmas more_temp_simps2 = more_temp_simps1 BoxDmdBox [temp_rewrite] DmdBoxDmd [t
 
 (* ------------------------ Miscellaneous ----------------------------------- *)
 
-lemma BoxOr: "\<And>sigma. \<lbrakk> sigma \<Turnstile> \<box>F | \<box>G \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>(F | G)"
+lemma BoxOr: "\<And>sigma. \<lbrakk> sigma \<Turnstile> \<box>F \<or> \<box>G \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>(F \<or> G)"
   by (fastforce elim!: STL4E [temp_use])
 
 (* "persistently implies infinitely often" *)
@@ -476,7 +469,7 @@ lemma DBImplBD: "\<turnstile> \<diamond>\<box>F \<longrightarrow> \<box>\<diamon
   apply simp
   done
 
-lemma BoxDmdDmdBox: "\<turnstile> \<box>\<diamond>F & \<diamond>\<box>G \<longrightarrow> \<box>\<diamond>(F & G)"
+lemma BoxDmdDmdBox: "\<turnstile> \<box>\<diamond>F \<and> \<diamond>\<box>G \<longrightarrow> \<box>\<diamond>(F \<and> G)"
   apply clarsimp
   apply (rule ccontr)
   apply (unfold more_temp_simps2)
@@ -494,11 +487,11 @@ lemma BoxDmdDmdBox: "\<turnstile> \<box>\<diamond>F & \<diamond>\<box>G \<longri
 section "priming"
 
 (* ------------------------ TLA2 ------------------------------------------- *)
-lemma STL2_pr: "\<turnstile> \<box>P \<longrightarrow> Init P & Init P`"
+lemma STL2_pr: "\<turnstile> \<box>P \<longrightarrow> Init P \<and> Init P`"
   by (fastforce intro!: STL2_gen [temp_use] primeI [temp_use])
 
 (* Auxiliary lemma allows priming of boxed actions *)
-lemma BoxPrime: "\<turnstile> \<box>P \<longrightarrow> \<box>($P & P$)"
+lemma BoxPrime: "\<turnstile> \<box>P \<longrightarrow> \<box>($P \<and> P$)"
   apply clarsimp
   apply (erule dup_boxE)
   apply (unfold boxInit_act)
@@ -507,7 +500,7 @@ lemma BoxPrime: "\<turnstile> \<box>P \<longrightarrow> \<box>($P & P$)"
   done
 
 lemma TLA2:
-  assumes "\<turnstile> $P & P$ \<longrightarrow> A"
+  assumes "\<turnstile> $P \<and> P$ \<longrightarrow> A"
   shows "\<turnstile> \<box>P \<longrightarrow> \<box>A"
   apply clarsimp
   apply (drule BoxPrime [temp_use])
@@ -515,7 +508,7 @@ lemma TLA2:
     elim!: STL4E [temp_use])
   done
 
-lemma TLA2E: "\<lbrakk> sigma \<Turnstile> \<box>P; \<turnstile> $P & P$ \<longrightarrow> A \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>A"
+lemma TLA2E: "\<lbrakk> sigma \<Turnstile> \<box>P; \<turnstile> $P \<and> P$ \<longrightarrow> A \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>A"
   by (erule (1) TLA2 [temp_use])
 
 lemma DmdPrime: "\<turnstile> (\<diamond>P`) \<longrightarrow> (\<diamond>P)"
@@ -529,7 +522,7 @@ lemmas PrimeDmd = InitDmd_gen [temp_use, THEN DmdPrime [temp_use]]
 section "stable, invariant"
 
 lemma ind_rule:
-   "\<lbrakk> sigma \<Turnstile> \<box>H; sigma \<Turnstile> Init P; \<turnstile> H \<longrightarrow> (Init P & \<not>\<box>F \<longrightarrow> Init(P`) & F) \<rbrakk>
+   "\<lbrakk> sigma \<Turnstile> \<box>H; sigma \<Turnstile> Init P; \<turnstile> H \<longrightarrow> (Init P \<and> \<not>\<box>F \<longrightarrow> Init(P`) \<and> F) \<rbrakk>
     \<Longrightarrow> sigma \<Turnstile> \<box>F"
   apply (rule indT [temp_use])
    apply (erule (2) STL4E)
@@ -552,12 +545,12 @@ lemma INV1:
   done
 
 lemma StableT:
-    "\<And>P. \<turnstile> $P & A \<longrightarrow> P` \<Longrightarrow> \<turnstile> \<box>A \<longrightarrow> stable P"
+    "\<And>P. \<turnstile> $P \<and> A \<longrightarrow> P` \<Longrightarrow> \<turnstile> \<box>A \<longrightarrow> stable P"
   apply (unfold stable_def)
   apply (fastforce elim!: STL4E [temp_use])
   done
 
-lemma Stable: "\<lbrakk> sigma \<Turnstile> \<box>A; \<turnstile> $P & A --> P` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> stable P"
+lemma Stable: "\<lbrakk> sigma \<Turnstile> \<box>A; \<turnstile> $P \<and> A \<longrightarrow> P` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> stable P"
   by (erule (1) StableT [temp_use])
 
 (* Generalization of INV1 *)
@@ -568,7 +561,7 @@ lemma StableBox: "\<turnstile> (stable P) \<longrightarrow> \<box>(Init P \<long
   apply (force simp: stable_def elim: STL4E [temp_use] INV1 [temp_use])
   done
 
-lemma DmdStable: "\<turnstile> (stable P) & \<diamond>P \<longrightarrow> \<diamond>\<box>P"
+lemma DmdStable: "\<turnstile> (stable P) \<and> \<diamond>P \<longrightarrow> \<diamond>\<box>P"
   apply clarsimp
   apply (rule DmdImpl2)
    prefer 2
@@ -609,7 +602,7 @@ method_setup auto_invariant = {*
   Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o auto_inv_tac))
 *}
 
-lemma unless: "\<turnstile> \<box>($P \<longrightarrow> P` | Q`) \<longrightarrow> (stable P) | \<diamond>Q"
+lemma unless: "\<turnstile> \<box>($P \<longrightarrow> P` \<or> Q`) \<longrightarrow> (stable P) \<or> \<diamond>Q"
   apply (unfold dmd_def)
   apply (clarsimp dest!: BoxPrime [temp_use])
   apply merge_box
@@ -622,13 +615,13 @@ lemma unless: "\<turnstile> \<box>($P \<longrightarrow> P` | Q`) \<longrightarro
 section "recursive expansions"
 
 (* Recursive expansions of \<box> and \<diamond> for state predicates *)
-lemma BoxRec: "\<turnstile> (\<box>P) = (Init P & \<box>P`)"
+lemma BoxRec: "\<turnstile> (\<box>P) = (Init P \<and> \<box>P`)"
   apply (auto intro!: STL2_gen [temp_use])
    apply (fastforce elim!: TLA2E [temp_use])
   apply (auto simp: stable_def elim!: INV1 [temp_use] STL4E [temp_use])
   done
 
-lemma DmdRec: "\<turnstile> (\<diamond>P) = (Init P | \<diamond>P`)"
+lemma DmdRec: "\<turnstile> (\<diamond>P) = (Init P \<or> \<diamond>P`)"
   apply (unfold dmd_def BoxRec [temp_rewrite])
   apply (auto simp: Init_simps)
   done
@@ -643,7 +636,7 @@ lemma InfinitePrime: "\<turnstile> (\<box>\<diamond>P) = (\<box>\<diamond>P`)"
    apply (rule DBImplBD [temp_use])
    apply (subgoal_tac "sigma \<Turnstile> \<diamond>\<box>P")
     apply (fastforce elim!: DmdImplE [temp_use] TLA2E [temp_use])
-   apply (subgoal_tac "sigma \<Turnstile> \<diamond>\<box> (\<diamond>P & \<box>\<not>P`)")
+   apply (subgoal_tac "sigma \<Turnstile> \<diamond>\<box> (\<diamond>P \<and> \<box>\<not>P`)")
     apply (force simp: boxInit_stp [temp_use]
       elim!: DmdImplE [temp_use] STL4E [temp_use] DmdRec2 [temp_use])
    apply (force intro!: STL6 [temp_use] simp: more_temp_simps3)
@@ -651,7 +644,7 @@ lemma InfinitePrime: "\<turnstile> (\<box>\<diamond>P) = (\<box>\<diamond>P`)"
   done
 
 lemma InfiniteEnsures:
-  "\<lbrakk> sigma \<Turnstile> \<box>N; sigma \<Turnstile> \<box>\<diamond>A; \<turnstile> A & N \<longrightarrow> P` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>\<diamond>P"
+  "\<lbrakk> sigma \<Turnstile> \<box>N; sigma \<Turnstile> \<box>\<diamond>A; \<turnstile> A \<and> N \<longrightarrow> P` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>\<diamond>P"
   apply (unfold InfinitePrime [temp_rewrite])
   apply (rule InfImpl)
     apply assumption+
@@ -661,12 +654,12 @@ lemma InfiniteEnsures:
 section "fairness"
 
 (* alternative definitions of fairness *)
-lemma WF_alt: "\<turnstile> WF(A)_v = (\<box>\<diamond>\<not>Enabled(<A>_v) | \<box>\<diamond><A>_v)"
+lemma WF_alt: "\<turnstile> WF(A)_v = (\<box>\<diamond>\<not>Enabled(<A>_v) \<or> \<box>\<diamond><A>_v)"
   apply (unfold WF_def dmd_def)
   apply fastforce
   done
 
-lemma SF_alt: "\<turnstile> SF(A)_v = (\<diamond>\<box>\<not>Enabled(<A>_v) | \<box>\<diamond><A>_v)"
+lemma SF_alt: "\<turnstile> SF(A)_v = (\<diamond>\<box>\<not>Enabled(<A>_v) \<or> \<box>\<diamond><A>_v)"
   apply (unfold SF_def dmd_def)
   apply fastforce
   done
@@ -702,7 +695,7 @@ fun box_fair_tac ctxt =
 
 section "\<leadsto>"
 
-lemma leadsto_init: "\<turnstile> (Init F) & (F \<leadsto> G) \<longrightarrow> \<diamond>G"
+lemma leadsto_init: "\<turnstile> (Init F) \<and> (F \<leadsto> G) \<longrightarrow> \<diamond>G"
   apply (unfold leadsto_def)
   apply (auto dest!: STL2 [temp_use])
   done
@@ -723,7 +716,7 @@ lemma streett_leadsto: "\<turnstile> (\<box>\<diamond>Init F \<longrightarrow> \
   apply (fastforce elim!: DmdImplE [temp_use] STL4E [temp_use])
   done
 
-lemma leadsto_infinite: "\<turnstile> \<box>\<diamond>F & (F \<leadsto> G) \<longrightarrow> \<box>\<diamond>G"
+lemma leadsto_infinite: "\<turnstile> \<box>\<diamond>F \<and> (F \<leadsto> G) \<longrightarrow> \<box>\<diamond>G"
   apply clarsimp
   apply (erule InitDmd [temp_use, THEN streett_leadsto [temp_unlift, THEN iffD2, THEN mp]])
   apply (simp add: dmdInitD)
@@ -743,7 +736,7 @@ lemma leadsto_WF: "\<turnstile> (Enabled(<A>_v) \<leadsto> <A>_v) \<longrightarr
 (* introduce an invariant into the proof of a leadsto assertion.
    \<box>I \<longrightarrow> ((P \<leadsto> Q)  =  (P /\ I \<leadsto> Q))
 *)
-lemma INV_leadsto: "\<turnstile> \<box>I & (P & I \<leadsto> Q) \<longrightarrow> (P \<leadsto> Q)"
+lemma INV_leadsto: "\<turnstile> \<box>I \<and> (P \<and> I \<leadsto> Q) \<longrightarrow> (P \<leadsto> Q)"
   apply (unfold leadsto_def)
   apply clarsimp
   apply (erule STL4Edup)
@@ -751,12 +744,12 @@ lemma INV_leadsto: "\<turnstile> \<box>I & (P & I \<leadsto> Q) \<longrightarrow
   apply (auto simp: Init_simps dest!: STL2_gen [temp_use])
   done
 
-lemma leadsto_classical: "\<turnstile> (Init F & \<box>\<not>G \<leadsto> G) \<longrightarrow> (F \<leadsto> G)"
+lemma leadsto_classical: "\<turnstile> (Init F \<and> \<box>\<not>G \<leadsto> G) \<longrightarrow> (F \<leadsto> G)"
   apply (unfold leadsto_def dmd_def)
   apply (force simp: Init_simps elim!: STL4E [temp_use])
   done
 
-lemma leadsto_false: "\<turnstile> (F \<leadsto> #False) = (\<box>~F)"
+lemma leadsto_false: "\<turnstile> (F \<leadsto> #False) = (\<box>\<not>F)"
   apply (unfold leadsto_def)
   apply (simp add: boxNotInitD)
   done
@@ -781,7 +774,7 @@ lemma ImplLeadsto_simple: "\<And>F G. \<turnstile> F \<longrightarrow> G \<Longr
   by (auto simp: Init_def intro!: ImplLeadsto_gen [temp_use] necT [temp_use])
 
 lemma EnsuresLeadsto:
-  assumes "\<turnstile> A & $P \<longrightarrow> Q`"
+  assumes "\<turnstile> A \<and> $P \<longrightarrow> Q`"
   shows "\<turnstile> \<box>A \<longrightarrow> (P \<leadsto> Q)"
   apply (unfold leadsto_def)
   apply (clarsimp elim!: INV_leadsto [temp_use])
@@ -797,15 +790,15 @@ lemma EnsuresLeadsto2: "\<turnstile> \<box>($P \<longrightarrow> Q`) \<longright
   done
 
 lemma ensures:
-  assumes 1: "\<turnstile> $P & N \<longrightarrow> P` | Q`"
-    and 2: "\<turnstile> ($P & N) & A \<longrightarrow> Q`"
-  shows "\<turnstile> \<box>N & \<box>(\<box>P \<longrightarrow> \<diamond>A) \<longrightarrow> (P \<leadsto> Q)"
+  assumes 1: "\<turnstile> $P \<and> N \<longrightarrow> P` \<or> Q`"
+    and 2: "\<turnstile> ($P \<and> N) \<and> A \<longrightarrow> Q`"
+  shows "\<turnstile> \<box>N \<and> \<box>(\<box>P \<longrightarrow> \<diamond>A) \<longrightarrow> (P \<leadsto> Q)"
   apply (unfold leadsto_def)
   apply clarsimp
   apply (erule STL4Edup)
    apply assumption
   apply clarsimp
-  apply (subgoal_tac "sigmaa \<Turnstile> \<box>($P \<longrightarrow> P` | Q`) ")
+  apply (subgoal_tac "sigmaa \<Turnstile> \<box>($P \<longrightarrow> P` \<or> Q`) ")
    apply (drule unless [temp_use])
    apply (clarsimp dest!: INV1 [temp_use])
   apply (rule 2 [THEN DmdImpl, temp_use, THEN DmdPrime [temp_use]])
@@ -815,16 +808,16 @@ lemma ensures:
   done
 
 lemma ensures_simple:
-  "\<lbrakk> \<turnstile> $P & N \<longrightarrow> P` | Q`;
-      \<turnstile> ($P & N) & A \<longrightarrow> Q`
-   \<rbrakk> \<Longrightarrow> \<turnstile> \<box>N & \<box>\<diamond>A \<longrightarrow> (P \<leadsto> Q)"
+  "\<lbrakk> \<turnstile> $P \<and> N \<longrightarrow> P` \<or> Q`;
+      \<turnstile> ($P \<and> N) \<and> A \<longrightarrow> Q`
+   \<rbrakk> \<Longrightarrow> \<turnstile> \<box>N \<and> \<box>\<diamond>A \<longrightarrow> (P \<leadsto> Q)"
   apply clarsimp
   apply (erule (2) ensures [temp_use])
   apply (force elim!: STL4E [temp_use])
   done
 
 lemma EnsuresInfinite:
-    "\<lbrakk> sigma \<Turnstile> \<box>\<diamond>P; sigma \<Turnstile> \<box>A; \<turnstile> A & $P \<longrightarrow> Q` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>\<diamond>Q"
+    "\<lbrakk> sigma \<Turnstile> \<box>\<diamond>P; sigma \<Turnstile> \<box>A; \<turnstile> A \<and> $P \<longrightarrow> Q` \<rbrakk> \<Longrightarrow> sigma \<Turnstile> \<box>\<diamond>Q"
   apply (erule leadsto_infinite [temp_use])
   apply (erule EnsuresLeadsto [temp_use])
   apply assumption
@@ -839,7 +832,7 @@ lemma LatticeReflexivity: "\<turnstile> F \<leadsto> F"
   apply (rule necT InitDmd_gen)+
   done
 
-lemma LatticeTransitivity: "\<turnstile> (G \<leadsto> H) & (F \<leadsto> G) \<longrightarrow> (F \<leadsto> H)"
+lemma LatticeTransitivity: "\<turnstile> (G \<leadsto> H) \<and> (F \<leadsto> G) \<longrightarrow> (F \<leadsto> H)"
   apply (unfold leadsto_def)
   apply clarsimp
   apply (erule dup_boxE) (* \<box>\<box>(Init G \<longrightarrow> H) *)
@@ -852,47 +845,47 @@ lemma LatticeTransitivity: "\<turnstile> (G \<leadsto> H) & (F \<leadsto> G) \<l
   apply (simp add: dmdInitD)
   done
 
-lemma LatticeDisjunctionElim1: "\<turnstile> (F | G \<leadsto> H) \<longrightarrow> (F \<leadsto> H)"
+lemma LatticeDisjunctionElim1: "\<turnstile> (F \<or> G \<leadsto> H) \<longrightarrow> (F \<leadsto> H)"
   apply (unfold leadsto_def)
   apply (auto simp: Init_simps elim!: STL4E [temp_use])
   done
 
-lemma LatticeDisjunctionElim2: "\<turnstile> (F | G \<leadsto> H) \<longrightarrow> (G \<leadsto> H)"
+lemma LatticeDisjunctionElim2: "\<turnstile> (F \<or> G \<leadsto> H) \<longrightarrow> (G \<leadsto> H)"
   apply (unfold leadsto_def)
   apply (auto simp: Init_simps elim!: STL4E [temp_use])
   done
 
-lemma LatticeDisjunctionIntro: "\<turnstile> (F \<leadsto> H) & (G \<leadsto> H) \<longrightarrow> (F | G \<leadsto> H)"
+lemma LatticeDisjunctionIntro: "\<turnstile> (F \<leadsto> H) \<and> (G \<leadsto> H) \<longrightarrow> (F \<or> G \<leadsto> H)"
   apply (unfold leadsto_def)
   apply clarsimp
   apply merge_box
   apply (auto simp: Init_simps elim!: STL4E [temp_use])
   done
 
-lemma LatticeDisjunction: "\<turnstile> (F | G \<leadsto> H) = ((F \<leadsto> H) & (G \<leadsto> H))"
+lemma LatticeDisjunction: "\<turnstile> (F \<or> G \<leadsto> H) = ((F \<leadsto> H) \<and> (G \<leadsto> H))"
   by (auto intro: LatticeDisjunctionIntro [temp_use]
     LatticeDisjunctionElim1 [temp_use]
     LatticeDisjunctionElim2 [temp_use])
 
-lemma LatticeDiamond: "\<turnstile> (A \<leadsto> B | C) & (B \<leadsto> D) & (C \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
+lemma LatticeDiamond: "\<turnstile> (A \<leadsto> B \<or> C) \<and> (B \<leadsto> D) \<and> (C \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
   apply clarsimp
-  apply (subgoal_tac "sigma \<Turnstile> (B | C) \<leadsto> D")
-  apply (erule_tac G = "LIFT (B | C)" in LatticeTransitivity [temp_use])
+  apply (subgoal_tac "sigma \<Turnstile> (B \<or> C) \<leadsto> D")
+  apply (erule_tac G = "LIFT (B \<or> C)" in LatticeTransitivity [temp_use])
    apply (fastforce intro!: LatticeDisjunctionIntro [temp_use])+
   done
 
-lemma LatticeTriangle: "\<turnstile> (A \<leadsto> D | B) & (B \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
+lemma LatticeTriangle: "\<turnstile> (A \<leadsto> D \<or> B) \<and> (B \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
   apply clarsimp
-  apply (subgoal_tac "sigma \<Turnstile> (D | B) \<leadsto> D")
-   apply (erule_tac G = "LIFT (D | B)" in LatticeTransitivity [temp_use])
+  apply (subgoal_tac "sigma \<Turnstile> (D \<or> B) \<leadsto> D")
+   apply (erule_tac G = "LIFT (D \<or> B)" in LatticeTransitivity [temp_use])
   apply assumption
   apply (auto intro: LatticeDisjunctionIntro [temp_use] LatticeReflexivity [temp_use])
   done
 
-lemma LatticeTriangle2: "\<turnstile> (A \<leadsto> B | D) & (B \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
+lemma LatticeTriangle2: "\<turnstile> (A \<leadsto> B \<or> D) \<and> (B \<leadsto> D) \<longrightarrow> (A \<leadsto> D)"
   apply clarsimp
-  apply (subgoal_tac "sigma \<Turnstile> B | D \<leadsto> D")
-   apply (erule_tac G = "LIFT (B | D)" in LatticeTransitivity [temp_use])
+  apply (subgoal_tac "sigma \<Turnstile> B \<or> D \<leadsto> D")
+   apply (erule_tac G = "LIFT (B \<or> D)" in LatticeTransitivity [temp_use])
    apply assumption
   apply (auto intro: LatticeDisjunctionIntro [temp_use] LatticeReflexivity [temp_use])
   done
@@ -901,10 +894,10 @@ lemma LatticeTriangle2: "\<turnstile> (A \<leadsto> B | D) & (B \<leadsto> D) \<
 section "Fairness rules"
 
 lemma WF1:
-  "\<lbrakk> \<turnstile> $P & N  \<longrightarrow> P` | Q`;
-      \<turnstile> ($P & N) & <A>_v \<longrightarrow> Q`;
-      \<turnstile> $P & N \<longrightarrow> $(Enabled(<A>_v)) \<rbrakk>
-  \<Longrightarrow> \<turnstile> \<box>N & WF(A)_v \<longrightarrow> (P \<leadsto> Q)"
+  "\<lbrakk> \<turnstile> $P \<and> N  \<longrightarrow> P` \<or> Q`;
+      \<turnstile> ($P \<and> N) \<and> <A>_v \<longrightarrow> Q`;
+      \<turnstile> $P \<and> N \<longrightarrow> $(Enabled(<A>_v)) \<rbrakk>
+  \<Longrightarrow> \<turnstile> \<box>N \<and> WF(A)_v \<longrightarrow> (P \<leadsto> Q)"
   apply (clarsimp dest!: BoxWFI [temp_use])
   apply (erule (2) ensures [temp_use])
   apply (erule (1) STL4Edup)
@@ -917,10 +910,10 @@ lemma WF1:
 
 (* Sometimes easier to use; designed for action B rather than state predicate Q *)
 lemma WF_leadsto:
-  assumes 1: "\<turnstile> N & $P \<longrightarrow> $Enabled (<A>_v)"
-    and 2: "\<turnstile> N & <A>_v \<longrightarrow> B"
-    and 3: "\<turnstile> \<box>(N & [~A]_v) \<longrightarrow> stable P"
-  shows "\<turnstile> \<box>N & WF(A)_v \<longrightarrow> (P \<leadsto> B)"
+  assumes 1: "\<turnstile> N \<and> $P \<longrightarrow> $Enabled (<A>_v)"
+    and 2: "\<turnstile> N \<and> <A>_v \<longrightarrow> B"
+    and 3: "\<turnstile> \<box>(N \<and> [\<not>A]_v) \<longrightarrow> stable P"
+  shows "\<turnstile> \<box>N \<and> WF(A)_v \<longrightarrow> (P \<leadsto> B)"
   apply (unfold leadsto_def)
   apply (clarsimp dest!: BoxWFI [temp_use])
   apply (erule (1) STL4Edup)
@@ -939,10 +932,10 @@ lemma WF_leadsto:
   done
 
 lemma SF1:
-  "\<lbrakk> \<turnstile> $P & N  \<longrightarrow> P` | Q`;
-      \<turnstile> ($P & N) & <A>_v \<longrightarrow> Q`;
-      \<turnstile> \<box>P & \<box>N & \<box>F \<longrightarrow> \<diamond>Enabled(<A>_v) \<rbrakk>
-  \<Longrightarrow> \<turnstile> \<box>N & SF(A)_v & \<box>F \<longrightarrow> (P \<leadsto> Q)"
+  "\<lbrakk> \<turnstile> $P \<and> N  \<longrightarrow> P` \<or> Q`;
+      \<turnstile> ($P \<and> N) \<and> <A>_v \<longrightarrow> Q`;
+      \<turnstile> \<box>P \<and> \<box>N \<and> \<box>F \<longrightarrow> \<diamond>Enabled(<A>_v) \<rbrakk>
+  \<Longrightarrow> \<turnstile> \<box>N \<and> SF(A)_v \<and> \<box>F \<longrightarrow> (P \<leadsto> Q)"
   apply (clarsimp dest!: BoxSFI [temp_use])
   apply (erule (2) ensures [temp_use])
   apply (erule_tac F = F in dup_boxE)
@@ -957,11 +950,11 @@ lemma SF1:
   done
 
 lemma WF2:
-  assumes 1: "\<turnstile> N & <B>_f \<longrightarrow> <M>_g"
-    and 2: "\<turnstile> $P & P` & <N & A>_f \<longrightarrow> B"
-    and 3: "\<turnstile> P & Enabled(<M>_g) \<longrightarrow> Enabled(<A>_f)"
-    and 4: "\<turnstile> \<box>(N & [~B]_f) & WF(A)_f & \<box>F & \<diamond>\<box>Enabled(<M>_g) \<longrightarrow> \<diamond>\<box>P"
-  shows "\<turnstile> \<box>N & WF(A)_f & \<box>F \<longrightarrow> WF(M)_g"
+  assumes 1: "\<turnstile> N \<and> <B>_f \<longrightarrow> <M>_g"
+    and 2: "\<turnstile> $P \<and> P` \<and> <N \<and> A>_f \<longrightarrow> B"
+    and 3: "\<turnstile> P \<and> Enabled(<M>_g) \<longrightarrow> Enabled(<A>_f)"
+    and 4: "\<turnstile> \<box>(N \<and> [\<not>B]_f) \<and> WF(A)_f \<and> \<box>F \<and> \<diamond>\<box>Enabled(<M>_g) \<longrightarrow> \<diamond>\<box>P"
+  shows "\<turnstile> \<box>N \<and> WF(A)_f \<and> \<box>F \<longrightarrow> WF(M)_g"
   apply (clarsimp dest!: BoxWFI [temp_use] BoxDmdBox [temp_use, THEN iffD2]
     simp: WF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
@@ -970,7 +963,7 @@ lemma WF2:
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
   apply (rule classical)
-  apply (subgoal_tac "sigmaa \<Turnstile> \<diamond> (($P & P` & N) & <A>_f)")
+  apply (subgoal_tac "sigmaa \<Turnstile> \<diamond> (($P \<and> P` \<and> N) \<and> <A>_f)")
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
@@ -982,7 +975,7 @@ lemma WF2:
   apply (erule_tac V = "sigmaa \<Turnstile> \<diamond>\<box>P" in thin_rl)
   apply (erule_tac V = "sigmaa \<Turnstile> \<box>F" in thin_rl)
   apply (drule BoxWFI [temp_use])
-  apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
+  apply (erule_tac F = "ACT N \<and> [\<not>B]_f" in dup_boxE)
   apply merge_temp_box
   apply (erule DmdImpldup)
    apply assumption
@@ -995,11 +988,11 @@ lemma WF2:
   done
 
 lemma SF2:
-  assumes 1: "\<turnstile> N & <B>_f \<longrightarrow> <M>_g"
-    and 2: "\<turnstile> $P & P` & <N & A>_f \<longrightarrow> B"
-    and 3: "\<turnstile> P & Enabled(<M>_g) \<longrightarrow> Enabled(<A>_f)"
-    and 4: "\<turnstile> \<box>(N & [~B]_f) & SF(A)_f & \<box>F & \<box>\<diamond>Enabled(<M>_g) \<longrightarrow> \<diamond>\<box>P"
-  shows "\<turnstile> \<box>N & SF(A)_f & \<box>F \<longrightarrow> SF(M)_g"
+  assumes 1: "\<turnstile> N \<and> <B>_f \<longrightarrow> <M>_g"
+    and 2: "\<turnstile> $P \<and> P` \<and> <N \<and> A>_f \<longrightarrow> B"
+    and 3: "\<turnstile> P \<and> Enabled(<M>_g) \<longrightarrow> Enabled(<A>_f)"
+    and 4: "\<turnstile> \<box>(N \<and> [\<not>B]_f) \<and> SF(A)_f \<and> \<box>F \<and> \<box>\<diamond>Enabled(<M>_g) \<longrightarrow> \<diamond>\<box>P"
+  shows "\<turnstile> \<box>N \<and> SF(A)_f \<and> \<box>F \<longrightarrow> SF(M)_g"
   apply (clarsimp dest!: BoxSFI [temp_use] simp: 2 [try_rewrite] SF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
   apply (erule_tac F = "TEMP \<diamond>Enabled (<M>_g) " in dup_boxE)
@@ -1008,7 +1001,7 @@ lemma SF2:
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
   apply (rule classical)
-  apply (subgoal_tac "sigmaa \<Turnstile> \<diamond> (($P & P` & N) & <A>_f)")
+  apply (subgoal_tac "sigmaa \<Turnstile> \<diamond> (($P \<and> P` \<and> N) \<and> <A>_f)")
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
@@ -1018,7 +1011,7 @@ lemma SF2:
   apply (erule_tac V = "sigmaa \<Turnstile> \<box>F" in thin_rl)
   apply (drule BoxSFI [temp_use])
   apply (erule_tac F = "TEMP \<diamond>Enabled (<M>_g)" in dup_boxE)
-  apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
+  apply (erule_tac F = "ACT N \<and> [\<not>B]_f" in dup_boxE)
   apply merge_temp_box
   apply (erule DmdImpldup)
    apply assumption
@@ -1037,19 +1030,19 @@ section "Well-founded orderings"
 
 lemma wf_leadsto:
   assumes 1: "wf r"
-    and 2: "\<And>x. sigma \<Turnstile> F x \<leadsto> (G | (\<exists>y. #((y,x):r) & F y))    "
+    and 2: "\<And>x. sigma \<Turnstile> F x \<leadsto> (G \<or> (\<exists>y. #((y,x)\<in>r) \<and> F y))    "
   shows "sigma \<Turnstile> F x \<leadsto> G"
   apply (rule 1 [THEN wf_induct])
   apply (rule LatticeTriangle [temp_use])
    apply (rule 2)
   apply (auto simp: leadsto_exists [try_rewrite])
-  apply (case_tac "(y,x) :r")
+  apply (case_tac "(y,x) \<in> r")
    apply force
   apply (force simp: leadsto_def Init_simps intro!: necT [temp_use])
   done
 
 (* If r is well-founded, state function v cannot decrease forever *)
-lemma wf_not_box_decrease: "\<And>r. wf r \<Longrightarrow> \<turnstile> \<box>[ (v`, $v) : #r ]_v \<longrightarrow> \<diamond>\<box>[#False]_v"
+lemma wf_not_box_decrease: "\<And>r. wf r \<Longrightarrow> \<turnstile> \<box>[ (v`, $v) \<in> #r ]_v \<longrightarrow> \<diamond>\<box>[#False]_v"
   apply clarsimp
   apply (rule ccontr)
   apply (subgoal_tac "sigma \<Turnstile> (\<exists>x. v=#x) \<leadsto> #False")
@@ -1070,7 +1063,7 @@ lemmas wf_not_dmd_box_decrease =
 *)
 lemma wf_box_dmd_decrease:
   assumes 1: "wf r"
-  shows "\<turnstile> \<box>\<diamond>((v`, $v) : #r) \<longrightarrow> \<box>\<diamond><(v`, $v) \<notin> #r>_v"
+  shows "\<turnstile> \<box>\<diamond>((v`, $v) \<in> #r) \<longrightarrow> \<box>\<diamond><(v`, $v) \<notin> #r>_v"
   apply clarsimp
   apply (rule ccontr)
   apply (simp add: not_angle [try_rewrite] more_temp_simps)
@@ -1089,7 +1082,7 @@ lemma wf_box_dmd_decrease:
 *)
 lemma nat_box_dmd_decrease: "\<And>n::nat stfun. \<turnstile> \<box>\<diamond>(n` < $n) \<longrightarrow> \<box>\<diamond>($n < n`)"
   apply clarsimp
-  apply (subgoal_tac "sigma \<Turnstile> \<box>\<diamond><~ ((n`,$n) : #less_than) >_n")
+  apply (subgoal_tac "sigma \<Turnstile> \<box>\<diamond><\<not> ((n`,$n) \<in> #less_than)>_n")
    apply (erule thin_rl)
    apply (erule STL4E)
    apply (rule DmdImpl)
@@ -1141,9 +1134,9 @@ lemma historyI:
   assumes 1: "sigma \<Turnstile> Init I"
     and 2: "sigma \<Turnstile> \<box>N"
     and 3: "basevars vs"
-    and 4: "\<And>h. basevars(h,vs) \<Longrightarrow> \<turnstile> I & h = ha \<longrightarrow> HI h"
+    and 4: "\<And>h. basevars(h,vs) \<Longrightarrow> \<turnstile> I \<and> h = ha \<longrightarrow> HI h"
     and 5: "\<And>h s t. \<lbrakk> basevars(h,vs); N (s,t); h t = hb (h s) (s,t) \<rbrakk> \<Longrightarrow> HN h (s,t)"
-  shows "sigma \<Turnstile> \<exists>\<exists>h. Init (HI h) & \<box>(HN h)"
+  shows "sigma \<Turnstile> \<exists>\<exists>h. Init (HI h) \<and> \<box>(HN h)"
   apply (rule history [temp_use, THEN eexE])
   apply (rule 3)
   apply (rule eexI [temp_use])
@@ -1161,7 +1154,7 @@ lemma historyI:
    example of a history variable: existence of a clock
 *)
 
-lemma "\<turnstile> \<exists>\<exists>h. Init(h = #True) & \<box>(h` = (~$h))"
+lemma "\<turnstile> \<exists>\<exists>h. Init(h = #True) \<and> \<box>(h` = (\<not>$h))"
   apply (rule tempI)
   apply (rule historyI)
   apply (force simp: Init_defs intro!: unit_base [temp_use] necT [temp_use])+

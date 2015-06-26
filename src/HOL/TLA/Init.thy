@@ -30,7 +30,7 @@ syntax
 translations
   "TEMP F"   => "(F::behavior \<Rightarrow> _)"
   "_Init"    == "CONST Initial"
-  "sigma |= Init F"  <= "_Init F sigma"
+  "sigma \<Turnstile> Init F"  <= "_Init F sigma"
 
 defs
   Init_def:    "sigma \<Turnstile> Init F  ==  (first_world sigma) \<Turnstile> F"
@@ -48,8 +48,8 @@ lemma const_simps [int_rewrite, simp]:
 lemma Init_simps1 [int_rewrite]:
   "\<And>F. \<turnstile> (Init \<not>F) = (\<not> Init F)"
   "\<turnstile> (Init (P \<longrightarrow> Q)) = (Init P \<longrightarrow> Init Q)"
-  "\<turnstile> (Init (P & Q)) = (Init P & Init Q)"
-  "\<turnstile> (Init (P | Q)) = (Init P | Init Q)"
+  "\<turnstile> (Init (P \<and> Q)) = (Init P \<and> Init Q)"
+  "\<turnstile> (Init (P \<or> Q)) = (Init P \<or> Init Q)"
   "\<turnstile> (Init (P = Q)) = ((Init P) = (Init Q))"
   "\<turnstile> (Init (\<forall>x. F x)) = (\<forall>x. (Init F x))"
   "\<turnstile> (Init (\<exists>x. F x)) = (\<exists>x. (Init F x))"
