@@ -61,7 +61,7 @@ lemma base_pair1: "\<And>x y. basevars (x,y) \<Longrightarrow> basevars x"
   apply (rule equalityI)
    apply (rule subset_UNIV)
   apply (rule subsetI)
-  apply (drule_tac c = "(xa, arbitrary) " in basevars)
+  apply (drule_tac c = "(xa, _) " in basevars)
   apply auto
   done
 
@@ -70,7 +70,7 @@ lemma base_pair2: "\<And>x y. basevars (x,y) \<Longrightarrow> basevars y"
   apply (rule equalityI)
    apply (rule subset_UNIV)
   apply (rule subsetI)
-  apply (drule_tac c = "(arbitrary, xa) " in basevars)
+  apply (drule_tac c = "(_, xa) " in basevars)
   apply auto
   done
 
