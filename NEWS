@@ -126,6 +126,7 @@ INCOMPATIBILITY in exotic situations.
   - Proof reconstruction has been improved, to minimize the incidence of
     cases where Sledgehammer gives a proof that does not work.
   - Auto Sledgehammer now minimizes and preplays the results.
+  - The URL for remote provers on SystemOnTPTP has been updated.
 
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
