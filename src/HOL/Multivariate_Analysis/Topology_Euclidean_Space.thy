@@ -413,7 +413,7 @@ class polish_space = complete_space + second_countable_topology
 subsection \<open>General notion of a topology as a value\<close>
 
 definition "istopology L \<longleftrightarrow>
-  L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union> K))"
+  L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union>K))"
 
 typedef 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
@@ -462,7 +462,7 @@ lemma openin_empty[simp]: "openin U {}"
 lemma openin_Int[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<inter> T)"
   using openin_clauses by simp
 
-lemma openin_Union[intro]: "(\<forall>S \<in>K. openin U S) \<Longrightarrow> openin U (\<Union> K)"
+lemma openin_Union[intro]: "(\<forall>S \<in>K. openin U S) \<Longrightarrow> openin U (\<Union>K)"
   using openin_clauses by simp
 
 lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<union> T)"
@@ -501,13 +501,13 @@ lemma closedin_topspace[intro, simp]: "closedin U (topspace U)"
 lemma closedin_Un[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longrightarrow> closedin U (S \<union> T)"
   by (auto simp add: Diff_Un closedin_def)
 
-lemma Diff_Inter[intro]: "A - \<Inter>S = \<Union> {A - s|s. s\<in>S}"
+lemma Diff_Inter[intro]: "A - \<Inter>S = \<Union>{A - s|s. s\<in>S}"
   by auto
 
 lemma closedin_Inter[intro]:
   assumes Ke: "K \<noteq> {}"
     and Kc: "\<forall>S \<in>K. closedin U S"
-  shows "closedin U (\<Inter> K)"
+  shows "closedin U (\<Inter>K)"
   using Ke Kc unfolding closedin_def Diff_Inter by auto
 
 lemma closedin_Int[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longrightarrow> closedin U (S \<inter> T)"
@@ -575,7 +575,7 @@ proof -
       by blast
     have "\<Union>K = (\<Union>Sk) \<inter> V"
       using Sk by auto
-    moreover have "openin U (\<Union> Sk)"
+    moreover have "openin U (\<Union>Sk)"
       using Sk by (auto simp add: subset_eq)
     ultimately have "?L (\<Union>K)" by blast
   }

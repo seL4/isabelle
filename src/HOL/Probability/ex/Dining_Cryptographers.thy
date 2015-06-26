@@ -289,12 +289,12 @@ proof -
   have [simp]: "length xs = n" using assms
     by (auto simp: dc_crypto inversion_def [abs_def])
 
-  have "{dc \<in> dc_crypto. inversion dc = xs} = (\<Union> i < n. ?set i)"
+  have "{dc \<in> dc_crypto. inversion dc = xs} = (\<Union>i < n. ?set i)"
     unfolding dc_crypto payer_def by auto
-  also have "\<dots> = (\<Union> ?sets)" by auto
-  finally have eq_Union: "{dc \<in> dc_crypto. inversion dc = xs} = (\<Union> ?sets)" by simp
+  also have "\<dots> = (\<Union>?sets)" by auto
+  finally have eq_Union: "{dc \<in> dc_crypto. inversion dc = xs} = (\<Union>?sets)" by simp
 
-  have card_double: "2 * card ?sets = card (\<Union> ?sets)"
+  have card_double: "2 * card ?sets = card (\<Union>?sets)"
   proof (rule card_partition)
     show "finite ?sets" by simp
     { fix i assume "i < n"

@@ -297,8 +297,8 @@ lemma vimage_ordLeq:
 assumes "|A| \<le>o k" and "\<forall> a \<in> A. |vimage f {a}| \<le>o k" and "Cinfinite k"
 shows "|vimage f A| \<le>o k"
 proof-
-  have "vimage f A = (\<Union> a \<in> A. vimage f {a})" by auto
-  also have "|\<Union> a \<in> A. vimage f {a}| \<le>o k"
+  have "vimage f A = (\<Union>a \<in> A. vimage f {a})" by auto
+  also have "|\<Union>a \<in> A. vimage f {a}| \<le>o k"
   using UNION_Cinfinite_bound[OF assms] .
   finally show ?thesis .
 qed

@@ -437,7 +437,7 @@ lemma ofilter_Un[simp]: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow
 unfolding ofilter_def by blast
 
 lemma ofilter_INTER:
-"\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> ofilter(A i)\<rbrakk> \<Longrightarrow> ofilter (\<Inter> i \<in> I. A i)"
+"\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> ofilter(A i)\<rbrakk> \<Longrightarrow> ofilter (\<Inter>i \<in> I. A i)"
 unfolding ofilter_def by blast
 
 lemma ofilter_Inter:

@@ -2888,8 +2888,8 @@ lemma big_inter_eqvt:
   and   X::"('a::pt_name) set set"
   and   pi2::"coname prm"
   and   Y::"('b::pt_coname) set set"
-  shows "(pi1\<bullet>(\<Inter> X)) = \<Inter> (pi1\<bullet>X)"
-  and   "(pi2\<bullet>(\<Inter> Y)) = \<Inter> (pi2\<bullet>Y)"
+  shows "(pi1\<bullet>(\<Inter>X)) = \<Inter>(pi1\<bullet>X)"
+  and   "(pi2\<bullet>(\<Inter>Y)) = \<Inter>(pi2\<bullet>Y)"
 apply(auto simp add: perm_set_def)
 apply(rule_tac x="(rev pi1)\<bullet>x" in exI)
 apply(perm_simp)

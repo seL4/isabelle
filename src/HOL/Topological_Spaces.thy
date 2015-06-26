@@ -20,7 +20,7 @@ class "open" =
 class topological_space = "open" +
   assumes open_UNIV [simp, intro]: "open UNIV"
   assumes open_Int [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
-  assumes open_Union [intro]: "\<forall>S\<in>K. open S \<Longrightarrow> open (\<Union> K)"
+  assumes open_Union [intro]: "\<forall>S\<in>K. open S \<Longrightarrow> open (\<Union>K)"
 begin
 
 definition
@@ -66,7 +66,7 @@ lemma closed_Int [continuous_intros, intro]: "closed S \<Longrightarrow> closed 
 lemma closed_INT [continuous_intros, intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
   unfolding closed_def by auto
 
-lemma closed_Inter [continuous_intros, intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
+lemma closed_Inter [continuous_intros, intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter>K)"
   unfolding closed_def uminus_Inf by auto
 
 lemma closed_Union [continuous_intros, intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
@@ -1067,12 +1067,12 @@ proof -
       by (auto simp: decseq_def)
     show "\<And>n. x \<in> (\<Inter>i\<le>n. A i)" "\<And>n. open (\<Inter>i\<le>n. A i)"
       using A by auto
-    show "nhds x = (INF n. principal (\<Inter> i\<le>n. A i))"
+    show "nhds x = (INF n. principal (\<Inter>i\<le>n. A i))"
       using A unfolding nhds_def
       apply (intro INF_eq)
       apply simp_all
       apply force
-      apply (intro exI[of _ "\<Inter> i\<le>n. A i" for n] conjI open_INT)
+      apply (intro exI[of _ "\<Inter>i\<le>n. A i" for n] conjI open_INT)
       apply auto
       done
   qed
@@ -1521,7 +1521,7 @@ definition compact :: "'a set \<Rightarrow> bool" where
     "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
 
 lemma compactI:
-  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union> C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union> C'"
+  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union>C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union>C'"
   shows "compact s"
   unfolding compact_eq_heine_borel using assms by metis
 
@@ -1584,8 +1584,8 @@ next
 qed
 
 lemma compact_imp_fip:
-  "compact s \<Longrightarrow> \<forall>t \<in> f. closed t \<Longrightarrow> \<forall>f'. finite f' \<and> f' \<subseteq> f \<longrightarrow> (s \<inter> (\<Inter> f') \<noteq> {}) \<Longrightarrow>
-    s \<inter> (\<Inter> f) \<noteq> {}"
+  "compact s \<Longrightarrow> \<forall>t \<in> f. closed t \<Longrightarrow> \<forall>f'. finite f' \<and> f' \<subseteq> f \<longrightarrow> (s \<inter> (\<Inter>f') \<noteq> {}) \<Longrightarrow>
+    s \<inter> (\<Inter>f) \<noteq> {}"
   unfolding compact_fip by auto
 
 lemma compact_imp_fip_image:

@@ -478,20 +478,20 @@ next
 qed
 
 lemma ofilter_UNION:
-"(\<And> i. i \<in> I \<Longrightarrow> ofilter(A i)) \<Longrightarrow> ofilter (\<Union> i \<in> I. A i)"
+"(\<And> i. i \<in> I \<Longrightarrow> ofilter(A i)) \<Longrightarrow> ofilter (\<Union>i \<in> I. A i)"
 unfolding ofilter_def by blast
 
 lemma ofilter_under_UNION:
 assumes "ofilter A"
-shows "A = (\<Union> a \<in> A. under a)"
+shows "A = (\<Union>a \<in> A. under a)"
 proof
   have "\<forall>a \<in> A. under a \<le> A"
   using assms ofilter_def by auto
-  thus "(\<Union> a \<in> A. under a) \<le> A" by blast
+  thus "(\<Union>a \<in> A. under a) \<le> A" by blast
 next
   have "\<forall>a \<in> A. a \<in> under a"
   using REFL Refl_under_in[of r] assms ofilter_def[of A] by blast
-  thus "A \<le> (\<Union> a \<in> A. under a)" by blast
+  thus "A \<le> (\<Union>a \<in> A. under a)" by blast
 qed
 
 subsubsection{* Other properties *}

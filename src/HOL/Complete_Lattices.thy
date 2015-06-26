@@ -1204,7 +1204,7 @@ lemma Union_image_eq:
   "\<Union>(B ` A) = (\<Union>x\<in>A. B x)"
   by (fact Sup_image_eq)
 
-lemma Union_SetCompr_eq: "\<Union> {f x| x. P x} = {a. \<exists>x. P x \<and> a \<in> f x}"
+lemma Union_SetCompr_eq: "\<Union>{f x| x. P x} = {a. \<exists>x. P x \<and> a \<in> f x}"
   by blast
 
 lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<exists>x\<in>A. b \<in> B x)"
@@ -1360,7 +1360,7 @@ lemma inj_on_INTER:
 lemma inj_on_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
          INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
-  shows "inj_on f (\<Union> i \<in> I. A i)"
+  shows "inj_on f (\<Union>i \<in> I. A i)"
 proof -
   {
     fix i j x y
@@ -1390,11 +1390,11 @@ qed
 lemma bij_betw_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
          BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
-  shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
+  shows "bij_betw f (\<Union>i \<in> I. A i) (\<Union>i \<in> I. A' i)"
 proof (unfold bij_betw_def, auto)
   have "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
   using BIJ bij_betw_def[of f] by auto
-  thus "inj_on f (\<Union> i \<in> I. A i)"
+  thus "inj_on f (\<Union>i \<in> I. A i)"
   using CH inj_on_UNION_chain[of I A f] by auto
 next
   fix i x

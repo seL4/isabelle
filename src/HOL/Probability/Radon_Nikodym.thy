@@ -625,7 +625,7 @@ proof -
       next
         case (Suc n)
         with `?O n \<in> ?Q` `?O (Suc n) \<in> ?Q`
-            emeasure_Diff[OF _ _ _ O_mono, of N n] emeasure_nonneg[of N "(\<Union> x\<le>n. Q' x)"]
+            emeasure_Diff[OF _ _ _ O_mono, of N n] emeasure_nonneg[of N "(\<Union>x\<le>n. Q' x)"]
         show ?thesis
           by (auto simp: sets_eq ereal_minus_eq_PInfty_iff Q_def)
       qed }

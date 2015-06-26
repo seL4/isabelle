@@ -282,15 +282,15 @@ proof -
       have Y_notempty: "\<And>n. n \<ge> 1 \<Longrightarrow> (Y n) \<noteq> {}"
       proof -
         fix n::nat assume "n \<ge> 1" hence "Y n \<subseteq> Z n" by fact
-        have "Y n = (\<Inter> i\<in>{1..n}. emb I (J n) (emb (J n) (J i) (K i)))" using J J_mono
+        have "Y n = (\<Inter>i\<in>{1..n}. emb I (J n) (emb (J n) (J i) (K i)))" using J J_mono
           by (auto simp: Y_def Z'_def)
-        also have "\<dots> = prod_emb I (\<lambda>_. borel) (J n) (\<Inter> i\<in>{1..n}. emb (J n) (J i) (K i))"
+        also have "\<dots> = prod_emb I (\<lambda>_. borel) (J n) (\<Inter>i\<in>{1..n}. emb (J n) (J i) (K i))"
           using `n \<ge> 1`
           by (subst prod_emb_INT) auto
         finally
         have Y_emb:
           "Y n = prod_emb I (\<lambda>_. borel) (J n)
-            (\<Inter> i\<in>{1..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))" .
+            (\<Inter>i\<in>{1..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))" .
         hence "Y n \<in> ?G" using J J_mono K_sets `n \<ge> 1` by (intro generatorI[OF _ _ _ _ Y_emb]) auto
         hence "\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>" unfolding Y_emb using J J_mono K_sets `n \<ge> 1`
           by (subst mu_G_eq) (auto simp: limP_finite proj_sets mu_G_eq)
@@ -317,11 +317,11 @@ proof -
             (auto dest!: bspec[where x=n]
             simp: extensional_restrict emeasure_eq_measure prod_emb_iff simp del: limP_finite
             intro!: measure_Diff[symmetric] set_mp[OF K_B])
-        also have subs: "Z n - Y n \<subseteq> (\<Union> i\<in>{1..n}. (Z i - Z' i))" using Z' Z `n \<ge> 1`
+        also have subs: "Z n - Y n \<subseteq> (\<Union>i\<in>{1..n}. (Z i - Z' i))" using Z' Z `n \<ge> 1`
           unfolding Y_def by (force simp: decseq_def)
-        have "Z n - Y n \<in> ?G" "(\<Union> i\<in>{1..n}. (Z i - Z' i)) \<in> ?G"
+        have "Z n - Y n \<in> ?G" "(\<Union>i\<in>{1..n}. (Z i - Z' i)) \<in> ?G"
           using `Z' _ \<in> ?G` `Z _ \<in> ?G` `Y _ \<in> ?G` by auto
-        hence "\<mu>G (Z n - Y n) \<le> \<mu>G (\<Union> i\<in>{1..n}. (Z i - Z' i))"
+        hence "\<mu>G (Z n - Y n) \<le> \<mu>G (\<Union>i\<in>{1..n}. (Z i - Z' i))"
           using subs G.additive_increasing[OF positive_mu_G[OF `I \<noteq> {}`] additive_mu_G[OF `I \<noteq> {}`]]
           unfolding increasing_def by auto
         also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. \<mu>G (Z i - Z' i))" using `Z _ \<in> ?G` `Z' _ \<in> ?G`

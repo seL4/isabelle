@@ -384,7 +384,7 @@ lemma affine_sing[intro]: "affine {x}"
 lemma affine_UNIV[intro]: "affine UNIV"
   unfolding affine_def by auto
 
-lemma affine_Inter[intro]: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter> f)"
+lemma affine_Inter[intro]: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter>f)"
   unfolding affine_def by auto
 
 lemma affine_Int[intro]: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine (s \<inter> t)"
@@ -4552,7 +4552,7 @@ lemma separating_hyperplane_set_0:
   shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>x\<in>s. 0 \<le> inner a x)"
 proof -
   let ?k = "\<lambda>c. {x::'a. 0 \<le> inner c x}"
-  have "frontier (cball 0 1) \<inter> (\<Inter> (?k ` s)) \<noteq> {}"
+  have "frontier (cball 0 1) \<inter> (\<Inter>(?k ` s)) \<noteq> {}"
     apply (rule compact_imp_fip)
     apply (rule compact_frontier[OF compact_cball])
     defer
@@ -4758,7 +4758,7 @@ subsection \<open>Convex set as intersection of halfspaces\<close>
 lemma convex_halfspace_intersection:
   fixes s :: "('a::euclidean_space) set"
   assumes "closed s" "convex s"
-  shows "s = \<Inter> {h. s \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
+  shows "s = \<Inter>{h. s \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
   apply (rule set_eqI)
   apply rule
   unfolding Inter_iff Ball_def mem_Collect_eq
@@ -4935,7 +4935,7 @@ lemma helly_induct:
   fixes f :: "'a::euclidean_space set set"
   assumes "card f = n"
     and "n \<ge> DIM('a) + 1"
-    and "\<forall>s\<in>f. convex s" "\<forall>t\<subseteq>f. card t = DIM('a) + 1 \<longrightarrow> \<Inter> t \<noteq> {}"
+    and "\<forall>s\<in>f. convex s" "\<forall>t\<subseteq>f. card t = DIM('a) + 1 \<longrightarrow> \<Inter>t \<noteq> {}"
   shows "\<Inter>f \<noteq> {}"
   using assms
 proof (induct n arbitrary: f)
@@ -5033,7 +5033,7 @@ qed
 lemma helly:
   fixes f :: "'a::euclidean_space set set"
   assumes "card f \<ge> DIM('a) + 1" "\<forall>s\<in>f. convex s"
-    and "\<forall>t\<subseteq>f. card t = DIM('a) + 1 \<longrightarrow> \<Inter> t \<noteq> {}"
+    and "\<forall>t\<subseteq>f. card t = DIM('a) + 1 \<longrightarrow> \<Inter>t \<noteq> {}"
   shows "\<Inter>f \<noteq> {}"
   apply (rule helly_induct)
   using assms
@@ -7756,7 +7756,7 @@ proof -
   have "\<Inter>{closure S |S. S \<in> I} \<le> closure (\<Inter>{rel_interior S |S. S \<in> I})"
     using convex_closure_rel_interior_inter assms by auto
   moreover
-  have "closure (\<Inter>{rel_interior S |S. S \<in> I}) \<le> closure (\<Inter> I)"
+  have "closure (\<Inter>{rel_interior S |S. S \<in> I}) \<le> closure (\<Inter>I)"
     using rel_interior_inter_aux closure_mono[of "\<Inter>{rel_interior S |S. S \<in> I}" "\<Inter>I"]
     by auto
   ultimately show ?thesis
@@ -8750,7 +8750,7 @@ next
     done
   ultimately have "convex hull (\<Union>(K ` I)) \<supseteq> K0"
     unfolding K0_def
-    using hull_minimal[of _ "convex hull (\<Union> (K ` I))" "cone"]
+    using hull_minimal[of _ "convex hull (\<Union>(K ` I))" "cone"]
     by blast
   then have "K0 = convex hull (\<Union>(K ` I))"
     using geq by auto

@@ -1051,10 +1051,10 @@ by (auto simp add: card_of_Times_infinite ordIso_symmetric)
 lemma card_of_UNION_ordLeq_infinite:
 assumes INF: "\<not>finite B" and
         LEQ_I: "|I| \<le>o |B|" and LEQ: "\<forall>i \<in> I. |A i| \<le>o |B|"
-shows "|\<Union> i \<in> I. A i| \<le>o |B|"
+shows "|\<Union>i \<in> I. A i| \<le>o |B|"
 proof(cases "I = {}", simp add: card_of_empty)
   assume *: "I \<noteq> {}"
-  have "|\<Union> i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
+  have "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
   using card_of_UNION_Sigma by blast
   moreover have "|SIGMA i : I. A i| \<le>o |B|"
   using assms card_of_Sigma_ordLeq_infinite by blast
@@ -1064,14 +1064,14 @@ qed
 corollary card_of_UNION_ordLeq_infinite_Field:
 assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
         LEQ_I: "|I| \<le>o r" and LEQ: "\<forall>i \<in> I. |A i| \<le>o r"
-shows "|\<Union> i \<in> I. A i| \<le>o r"
+shows "|\<Union>i \<in> I. A i| \<le>o r"
 proof-
   let ?B  = "Field r"
   have 1: "r =o |?B| \<and> |?B| =o r" using r card_of_Field_ordIso
   ordIso_symmetric by blast
   hence "|I| \<le>o |?B|"  "\<forall>i \<in> I. |A i| \<le>o |?B|"
   using LEQ_I LEQ ordLeq_ordIso_trans by blast+
-  hence  "|\<Union> i \<in> I. A i| \<le>o |?B|" using INF LEQ
+  hence  "|\<Union>i \<in> I. A i| \<le>o |?B|" using INF LEQ
   card_of_UNION_ordLeq_infinite by blast
   thus ?thesis using 1 ordLeq_ordIso_trans by blast
 qed

@@ -91,7 +91,7 @@ lemmas ch2ch_cont = cont2mono [THEN ch2ch_monofun]
 text {* continuity implies preservation of lubs *}
 
 lemma cont2contlubE:
-  "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion> i. Y i) = (\<Squnion> i. f (Y i))"
+  "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))"
 apply (rule lub_eqI [symmetric])
 apply (erule (1) contE)
 done

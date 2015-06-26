@@ -1888,9 +1888,9 @@ lemma supp_is_inter:
   assumes  pt: "pt TYPE('a) TYPE('x)"
   and      at: "at TYPE ('x)"
   and      fs: "fs TYPE('a) TYPE('x)"
-  shows "((supp x)::'x set) = (\<Inter> {S. finite S \<and> S supports x})"
+  shows "((supp x)::'x set) = (\<Inter>{S. finite S \<and> S supports x})"
 proof (rule equalityI)
-  show "((supp x)::'x set) \<subseteq> (\<Inter> {S. finite S \<and> S supports x})"
+  show "((supp x)::'x set) \<subseteq> (\<Inter>{S. finite S \<and> S supports x})"
   proof (clarify)
     fix S c
     assume b: "c\<in>((supp x)::'x set)" and "finite (S::'x set)" and "S supports x"
@@ -1898,7 +1898,7 @@ proof (rule equalityI)
     with b show "c\<in>S" by force
   qed
 next
-  show "(\<Inter> {S. finite S \<and> S supports x}) \<subseteq> ((supp x)::'x set)"
+  show "(\<Inter>{S. finite S \<and> S supports x}) \<subseteq> ((supp x)::'x set)"
   proof (clarify, simp)
     fix c
     assume d: "\<forall>(S::'x set). finite S \<and> S supports x \<longrightarrow> c\<in>S"
