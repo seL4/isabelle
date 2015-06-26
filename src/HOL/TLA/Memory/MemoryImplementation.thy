@@ -10,7 +10,7 @@ begin
 
 datatype histState = histA | histB
 
-type_synonym histType = "(PrIds => histState) stfun"  (* the type of the history variable *)
+type_synonym histType = "(PrIds \<Rightarrow> histState) stfun"  (* the type of the history variable *)
 
 consts
   (* the specification *)
@@ -32,15 +32,15 @@ consts
 
 definition
   (* auxiliary predicates *)
-  MVOKBARF      :: "Vals => bool"
+  MVOKBARF      :: "Vals \<Rightarrow> bool"
   where "MVOKBARF v <-> (v : MemVal) | (v = OK) | (v = BadArg) | (v = RPCFailure)"
 
 definition
-  MVOKBA        :: "Vals => bool"
+  MVOKBA        :: "Vals \<Rightarrow> bool"
   where "MVOKBA v <-> (v : MemVal) | (v = OK) | (v = BadArg)"
 
 definition
-  MVNROKBA      :: "Vals => bool"
+  MVNROKBA      :: "Vals \<Rightarrow> bool"
   where "MVNROKBA v <-> (v : MemVal) | (v = NotAResult) | (v = OK) | (v = BadArg)"
 
 definition
@@ -49,30 +49,30 @@ definition
   where "e p = PRED (caller memCh!p)"
 
 definition
-  c             :: "PrIds => (mClkState * (bit * Vals) * (bit * rpcOp)) stfun"
+  c             :: "PrIds \<Rightarrow> (mClkState * (bit * Vals) * (bit * rpcOp)) stfun"
   where "c p = PRED (cst!p, rtrner memCh!p, caller crCh!p)"
 
 definition
-  r             :: "PrIds => (rpcState * (bit * Vals) * (bit * memOp)) stfun"
+  r             :: "PrIds \<Rightarrow> (rpcState * (bit * Vals) * (bit * memOp)) stfun"
   where "r p = PRED (rst!p, rtrner crCh!p, caller rmCh!p)"
 
 definition
-  m             :: "PrIds => ((bit * Vals) * Vals) stfun"
+  m             :: "PrIds \<Rightarrow> ((bit * Vals) * Vals) stfun"
   where "m p = PRED (rtrner rmCh!p, ires!p)"
 
 definition
   (* the environment action *)
-  ENext         :: "PrIds => action"
+  ENext         :: "PrIds \<Rightarrow> action"
   where "ENext p = ACT (\<exists>l. #l : #MemLoc & Call memCh p #(read l))"
 
 
 definition
   (* specification of the history variable *)
-  HInit         :: "histType => PrIds => stpred"
+  HInit         :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "HInit rmhist p = PRED rmhist!p = #histA"
 
 definition
-  HNext         :: "histType => PrIds => action"
+  HNext         :: "histType \<Rightarrow> PrIds \<Rightarrow> action"
   where "HNext rmhist p = ACT (rmhist!p)$ =
                      (if (MemReturn rmCh ires p | RPCFail crCh rmCh rst p)
                       then #histB
@@ -81,39 +81,39 @@ definition
                            else $(rmhist!p))"
 
 definition
-  HistP         :: "histType => PrIds => temporal"
+  HistP         :: "histType \<Rightarrow> PrIds \<Rightarrow> temporal"
   where "HistP rmhist p = (TEMP Init HInit rmhist p
                            & \<box>[HNext rmhist p]_(c p,r p,m p, rmhist!p))"
 
 definition
-  Hist          :: "histType => temporal"
+  Hist          :: "histType \<Rightarrow> temporal"
   where "Hist rmhist = TEMP (\<forall>p. HistP rmhist p)"
 
 definition
   (* the implementation *)
-  IPImp          :: "PrIds => temporal"
+  IPImp          :: "PrIds \<Rightarrow> temporal"
   where "IPImp p = (TEMP (  Init \<not>Calling memCh p & \<box>[ENext p]_(e p)
                        & MClkIPSpec memCh crCh cst p
                        & RPCIPSpec crCh rmCh rst p
                        & RPSpec rmCh mm ires p
-                       & (\<forall>l. #l : #MemLoc --> MSpec rmCh mm ires l)))"
+                       & (\<forall>l. #l : #MemLoc \<longrightarrow> MSpec rmCh mm ires l)))"
 
 definition
-  ImpInit        :: "PrIds => stpred"
+  ImpInit        :: "PrIds \<Rightarrow> stpred"
   where "ImpInit p = PRED (  \<not>Calling memCh p
                           & MClkInit crCh cst p
                           & RPCInit rmCh rst p
                           & PInit ires p)"
 
 definition
-  ImpNext        :: "PrIds => action"
+  ImpNext        :: "PrIds \<Rightarrow> action"
   where "ImpNext p = (ACT  [ENext p]_(e p)
                        & [MClkNext memCh crCh cst p]_(c p)
                        & [RPCNext crCh rmCh rst p]_(r p)
                        & [RNext rmCh mm ires p]_(m p))"
 
 definition
-  ImpLive        :: "PrIds => temporal"
+  ImpLive        :: "PrIds \<Rightarrow> temporal"
   where "ImpLive p = (TEMP  WF(MClkFwd memCh crCh cst p)_(c p)
                         & SF(MClkReply memCh crCh cst p)_(c p)
                         & WF(RPCNext crCh rmCh rst p)_(r p)
@@ -134,16 +134,16 @@ definition
      NB: The second conjunct of the definition in the paper is taken care of by
      the type definitions. The last conjunct is asserted separately as the memory
      invariant MemInv, proved in Memory.thy. *)
-  S :: "histType => bool => bool => bool => mClkState => rpcState => histState => histState => PrIds => stpred"
+  S :: "histType \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> mClkState \<Rightarrow> rpcState \<Rightarrow> histState \<Rightarrow> histState \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S rmhist ecalling ccalling rcalling cs rs hs1 hs2 p = (PRED
                 Calling memCh p = #ecalling
               & Calling crCh p  = #ccalling
-              & (#ccalling --> arg<crCh!p> = MClkRelayArg<arg<memCh!p>>)
-              & (\<not> #ccalling & cst!p = #clkB --> MVOKBARF<res<crCh!p>>)
+              & (#ccalling \<longrightarrow> arg<crCh!p> = MClkRelayArg<arg<memCh!p>>)
+              & (\<not> #ccalling & cst!p = #clkB \<longrightarrow> MVOKBARF<res<crCh!p>>)
               & Calling rmCh p  = #rcalling
-              & (#rcalling --> arg<rmCh!p> = RPCRelayArg<arg<crCh!p>>)
-              & (\<not> #rcalling --> ires!p = #NotAResult)
-              & (\<not> #rcalling & rst!p = #rpcB --> MVOKBA<res<rmCh!p>>)
+              & (#rcalling \<longrightarrow> arg<rmCh!p> = RPCRelayArg<arg<crCh!p>>)
+              & (\<not> #rcalling \<longrightarrow> ires!p = #NotAResult)
+              & (\<not> #rcalling & rst!p = #rpcB \<longrightarrow> MVOKBA<res<rmCh!p>>)
               & cst!p = #cs
               & rst!p = #rs
               & (rmhist!p = #hs1 | rmhist!p = #hs2)
@@ -151,37 +151,37 @@ definition
 
 definition
   (* predicates S1 -- S6 define special instances of S *)
-  S1            :: "histType => PrIds => stpred"
+  S1            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S1 rmhist p = S rmhist False False False clkA rpcA histA histA p"
 
 definition
-  S2            :: "histType => PrIds => stpred"
+  S2            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S2 rmhist p = S rmhist True False False clkA rpcA histA histA p"
 
 definition
-  S3            :: "histType => PrIds => stpred"
+  S3            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S3 rmhist p = S rmhist True True False clkB rpcA histA histB p"
 
 definition
-  S4            :: "histType => PrIds => stpred"
+  S4            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S4 rmhist p = S rmhist True True True clkB rpcB histA histB p"
 
 definition
-  S5            :: "histType => PrIds => stpred"
+  S5            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S5 rmhist p = S rmhist True True False clkB rpcB histB histB p"
 
 definition
-  S6            :: "histType => PrIds => stpred"
+  S6            :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "S6 rmhist p = S rmhist True False False clkB rpcA histB histB p"
 
 definition
   (* The invariant asserts that the system is always in one of S1 - S6, for every p *)
-  ImpInv         :: "histType => PrIds => stpred"
+  ImpInv         :: "histType \<Rightarrow> PrIds \<Rightarrow> stpred"
   where "ImpInv rmhist p = (PRED (S1 rmhist p | S2 rmhist p | S3 rmhist p
                                 | S4 rmhist p | S5 rmhist p | S6 rmhist p))"
 
 definition
-  resbar        :: "histType => resType"        (* refinement mapping *)
+  resbar        :: "histType \<Rightarrow> resType"        (* refinement mapping *)
   where"resbar rmhist s p =
                   (if (S1 rmhist p s | S2 rmhist p s)
                    then ires s p
@@ -241,8 +241,8 @@ ML {* val temp_elim = make_elim oo temp_use *}
 
 section "History variable"
 
-lemma HistoryLemma: "|- Init(\<forall>p. ImpInit p) & \<box>(\<forall>p. ImpNext p)
-         --> (\<exists>\<exists>rmhist. Init(\<forall>p. HInit rmhist p)
+lemma HistoryLemma: "\<turnstile> Init(\<forall>p. ImpInit p) & \<box>(\<forall>p. ImpNext p)
+         \<longrightarrow> (\<exists>\<exists>rmhist. Init(\<forall>p. HInit rmhist p)
                           & \<box>(\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p)))"
   apply clarsimp
   apply (rule historyI)
@@ -255,7 +255,7 @@ lemma HistoryLemma: "|- Init(\<forall>p. ImpInit p) & \<box>(\<forall>p. ImpNext
   apply (erule fun_cong)
   done
 
-lemma History: "|- Implementation --> (\<exists>\<exists>rmhist. Hist rmhist)"
+lemma History: "\<turnstile> Implementation \<longrightarrow> (\<exists>\<exists>rmhist. Hist rmhist)"
   apply clarsimp
   apply (rule HistoryLemma [temp_use, THEN eex_mono])
     prefer 3
@@ -274,14 +274,14 @@ section "The safety part"
 
 (* RPCFailure notin MemVals U {OK,BadArg} *)
 
-lemma MVOKBAnotRF: "MVOKBA x ==> x \<noteq> RPCFailure"
+lemma MVOKBAnotRF: "MVOKBA x \<Longrightarrow> x \<noteq> RPCFailure"
   apply (unfold MVOKBA_def)
   apply auto
   done
 
 (* NotAResult notin MemVals U {OK,BadArg,RPCFailure} *)
 
-lemma MVOKBARFnotNR: "MVOKBARF x ==> x \<noteq> NotAResult"
+lemma MVOKBARFnotNR: "MVOKBARF x \<Longrightarrow> x \<noteq> NotAResult"
   apply (unfold MVOKBARF_def)
   apply auto
   done
@@ -294,32 +294,32 @@ lemma MVOKBARFnotNR: "MVOKBARF x ==> x \<noteq> NotAResult"
 *)
 
 (* --- not used ---
-lemma S1_excl: "|- S1 rmhist p --> S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p &
+lemma S1_excl: "\<turnstile> S1 rmhist p \<longrightarrow> S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p &
     \<not>S4 rmhist p & \<not>S5 rmhist p & \<not>S6 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 *)
 
-lemma S2_excl: "|- S2 rmhist p --> S2 rmhist p & \<not>S1 rmhist p"
+lemma S2_excl: "\<turnstile> S2 rmhist p \<longrightarrow> S2 rmhist p & \<not>S1 rmhist p"
   by (auto simp: S_def S1_def S2_def)
 
-lemma S3_excl: "|- S3 rmhist p --> S3 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p"
+lemma S3_excl: "\<turnstile> S3 rmhist p \<longrightarrow> S3 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def)
 
-lemma S4_excl: "|- S4 rmhist p --> S4 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p"
+lemma S4_excl: "\<turnstile> S4 rmhist p \<longrightarrow> S4 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def)
 
-lemma S5_excl: "|- S5 rmhist p --> S5 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
+lemma S5_excl: "\<turnstile> S5 rmhist p \<longrightarrow> S5 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
                          & \<not>S3 rmhist p & \<not>S4 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def)
 
-lemma S6_excl: "|- S6 rmhist p --> S6 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
+lemma S6_excl: "\<turnstile> S6 rmhist p \<longrightarrow> S6 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
                          & \<not>S3 rmhist p & \<not>S4 rmhist p & \<not>S5 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 
 
 (* ==================== Lemmas about the environment ============================== *)
 
-lemma Envbusy: "|- $(Calling memCh p) --> \<not>ENext p"
+lemma Envbusy: "\<turnstile> $(Calling memCh p) \<longrightarrow> \<not>ENext p"
   by (auto simp: ENext_def Call_def)
 
 (* ==================== Lemmas about the implementation's states ==================== *)
@@ -331,25 +331,25 @@ lemma Envbusy: "|- $(Calling memCh p) --> \<not>ENext p"
 
 (* ------------------------------ State S1 ---------------------------------------- *)
 
-lemma S1Env: "|- ENext p & $(S1 rmhist p) & unchanged (c p, r p, m p, rmhist!p)
-         --> (S2 rmhist p)$"
+lemma S1Env: "\<turnstile> ENext p & $(S1 rmhist p) & unchanged (c p, r p, m p, rmhist!p)
+         \<longrightarrow> (S2 rmhist p)$"
   by (force simp: ENext_def Call_def c_def r_def m_def
     caller_def rtrner_def MVNROKBA_def S_def S1_def S2_def Calling_def)
 
-lemma S1ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S1 rmhist p) --> unchanged (c p)"
+lemma S1ClerkUnch: "\<turnstile> [MClkNext memCh crCh cst p]_(c p) & $(S1 rmhist p) \<longrightarrow> unchanged (c p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] dest!: MClkidle [temp_use] simp: S_def S1_def)
 
-lemma S1RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $(S1 rmhist p) --> unchanged (r p)"
+lemma S1RPCUnch: "\<turnstile> [RPCNext crCh rmCh rst p]_(r p) & $(S1 rmhist p) \<longrightarrow> unchanged (r p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] dest!: RPCidle [temp_use] simp: S_def S1_def)
 
-lemma S1MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S1 rmhist p) --> unchanged (m p)"
+lemma S1MemUnch: "\<turnstile> [RNext rmCh mm ires p]_(m p) & $(S1 rmhist p) \<longrightarrow> unchanged (m p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] dest!: Memoryidle [temp_use] simp: S_def S1_def)
 
-lemma S1Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S1 rmhist p)
-         --> unchanged (rmhist!p)"
+lemma S1Hist: "\<turnstile> [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S1 rmhist p)
+         \<longrightarrow> unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm HNext_def}, @{thm S_def},
     @{thm S1_def}, @{thm MemReturn_def}, @{thm RPCFail_def}, @{thm MClkReply_def},
     @{thm Return_def}]) [] [temp_use @{context} @{thm squareE}] 1 *})
@@ -357,88 +357,88 @@ lemma S1Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S1 rmhist p)
 
 (* ------------------------------ State S2 ---------------------------------------- *)
 
-lemma S2EnvUnch: "|- [ENext p]_(e p) & $(S2 rmhist p) --> unchanged (e p)"
+lemma S2EnvUnch: "\<turnstile> [ENext p]_(e p) & $(S2 rmhist p) \<longrightarrow> unchanged (e p)"
   by (auto dest!: Envbusy [temp_use] simp: S_def S2_def)
 
-lemma S2Clerk: "|- MClkNext memCh crCh cst p & $(S2 rmhist p) --> MClkFwd memCh crCh cst p"
+lemma S2Clerk: "\<turnstile> MClkNext memCh crCh cst p & $(S2 rmhist p) \<longrightarrow> MClkFwd memCh crCh cst p"
   by (auto simp: MClkNext_def MClkRetry_def MClkReply_def S_def S2_def)
 
-lemma S2Forward: "|- $(S2 rmhist p) & MClkFwd memCh crCh cst p
+lemma S2Forward: "\<turnstile> $(S2 rmhist p) & MClkFwd memCh crCh cst p
          & unchanged (e p, r p, m p, rmhist!p)
-         --> (S3 rmhist p)$"
+         \<longrightarrow> (S3 rmhist p)$"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm MClkFwd_def},
     @{thm Call_def}, @{thm e_def}, @{thm r_def}, @{thm m_def}, @{thm caller_def},
     @{thm rtrner_def}, @{thm S_def}, @{thm S2_def}, @{thm S3_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S2RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $(S2 rmhist p) --> unchanged (r p)"
+lemma S2RPCUnch: "\<turnstile> [RPCNext crCh rmCh rst p]_(r p) & $(S2 rmhist p) \<longrightarrow> unchanged (r p)"
   by (auto simp: S_def S2_def dest!: RPCidle [temp_use])
 
-lemma S2MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S2 rmhist p) --> unchanged (m p)"
+lemma S2MemUnch: "\<turnstile> [RNext rmCh mm ires p]_(m p) & $(S2 rmhist p) \<longrightarrow> unchanged (m p)"
   by (auto simp: S_def S2_def dest!: Memoryidle [temp_use])
 
-lemma S2Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S2 rmhist p)
-         --> unchanged (rmhist!p)"
+lemma S2Hist: "\<turnstile> [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S2 rmhist p)
+         \<longrightarrow> unchanged (rmhist!p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] simp: HNext_def MemReturn_def RPCFail_def
     MClkReply_def Return_def S_def S2_def)
 
 (* ------------------------------ State S3 ---------------------------------------- *)
 
-lemma S3EnvUnch: "|- [ENext p]_(e p) & $(S3 rmhist p) --> unchanged (e p)"
+lemma S3EnvUnch: "\<turnstile> [ENext p]_(e p) & $(S3 rmhist p) \<longrightarrow> unchanged (e p)"
   by (auto dest!: Envbusy [temp_use] simp: S_def S3_def)
 
-lemma S3ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S3 rmhist p) --> unchanged (c p)"
+lemma S3ClerkUnch: "\<turnstile> [MClkNext memCh crCh cst p]_(c p) & $(S3 rmhist p) \<longrightarrow> unchanged (c p)"
   by (auto dest!: MClkbusy [temp_use] simp: square_def S_def S3_def)
 
-lemma S3LegalRcvArg: "|- S3 rmhist p --> IsLegalRcvArg<arg<crCh!p>>"
+lemma S3LegalRcvArg: "\<turnstile> S3 rmhist p \<longrightarrow> IsLegalRcvArg<arg<crCh!p>>"
   by (auto simp: IsLegalRcvArg_def MClkRelayArg_def S_def S3_def)
 
-lemma S3RPC: "|- RPCNext crCh rmCh rst p & $(S3 rmhist p)
-         --> RPCFwd crCh rmCh rst p | RPCFail crCh rmCh rst p"
+lemma S3RPC: "\<turnstile> RPCNext crCh rmCh rst p & $(S3 rmhist p)
+         \<longrightarrow> RPCFwd crCh rmCh rst p | RPCFail crCh rmCh rst p"
   apply clarsimp
   apply (frule S3LegalRcvArg [action_use])
   apply (auto simp: RPCNext_def RPCReject_def RPCReply_def S_def S3_def)
   done
 
-lemma S3Forward: "|- RPCFwd crCh rmCh rst p & HNext rmhist p & $(S3 rmhist p)
+lemma S3Forward: "\<turnstile> RPCFwd crCh rmCh rst p & HNext rmhist p & $(S3 rmhist p)
          & unchanged (e p, c p, m p)
-         --> (S4 rmhist p)$ & unchanged (rmhist!p)"
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCFwd_def},
     @{thm HNext_def}, @{thm MemReturn_def}, @{thm RPCFail_def},
     @{thm MClkReply_def}, @{thm Return_def}, @{thm Call_def}, @{thm e_def},
     @{thm c_def}, @{thm m_def}, @{thm caller_def}, @{thm rtrner_def}, @{thm S_def},
     @{thm S3_def}, @{thm S4_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S3Fail: "|- RPCFail crCh rmCh rst p & $(S3 rmhist p) & HNext rmhist p
+lemma S3Fail: "\<turnstile> RPCFail crCh rmCh rst p & $(S3 rmhist p) & HNext rmhist p
          & unchanged (e p, c p, m p)
-         --> (S6 rmhist p)$"
+         \<longrightarrow> (S6 rmhist p)$"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm HNext_def},
     @{thm RPCFail_def}, @{thm Return_def}, @{thm e_def}, @{thm c_def},
     @{thm m_def}, @{thm caller_def}, @{thm rtrner_def}, @{thm MVOKBARF_def},
     @{thm S_def}, @{thm S3_def}, @{thm S6_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S3MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S3 rmhist p) --> unchanged (m p)"
+lemma S3MemUnch: "\<turnstile> [RNext rmCh mm ires p]_(m p) & $(S3 rmhist p) \<longrightarrow> unchanged (m p)"
   by (auto simp: S_def S3_def dest!: Memoryidle [temp_use])
 
-lemma S3Hist: "|- HNext rmhist p & $(S3 rmhist p) & unchanged (r p) --> unchanged (rmhist!p)"
+lemma S3Hist: "\<turnstile> HNext rmhist p & $(S3 rmhist p) & unchanged (r p) \<longrightarrow> unchanged (rmhist!p)"
   by (auto simp: HNext_def MemReturn_def RPCFail_def MClkReply_def
     Return_def r_def rtrner_def S_def S3_def Calling_def)
 
 (* ------------------------------ State S4 ---------------------------------------- *)
 
-lemma S4EnvUnch: "|- [ENext p]_(e p) & $(S4 rmhist p) --> unchanged (e p)"
+lemma S4EnvUnch: "\<turnstile> [ENext p]_(e p) & $(S4 rmhist p) \<longrightarrow> unchanged (e p)"
   by (auto simp: S_def S4_def dest!: Envbusy [temp_use])
 
-lemma S4ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S4 rmhist p) --> unchanged (c p)"
+lemma S4ClerkUnch: "\<turnstile> [MClkNext memCh crCh cst p]_(c p) & $(S4 rmhist p) \<longrightarrow> unchanged (c p)"
   by (auto simp: S_def S4_def dest!: MClkbusy [temp_use])
 
-lemma S4RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $(S4 rmhist p) --> unchanged (r p)"
+lemma S4RPCUnch: "\<turnstile> [RPCNext crCh rmCh rst p]_(r p) & $(S4 rmhist p) \<longrightarrow> unchanged (r p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] dest!: RPCbusy [temp_use] simp: S_def S4_def)
 
-lemma S4ReadInner: "|- ReadInner rmCh mm ires p l & $(S4 rmhist p) & unchanged (e p, c p, r p)
+lemma S4ReadInner: "\<turnstile> ReadInner rmCh mm ires p l & $(S4 rmhist p) & unchanged (e p, c p, r p)
          & HNext rmhist p & $(MemInv mm l)
-         --> (S4 rmhist p)$ & unchanged (rmhist!p)"
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm ReadInner_def},
     @{thm GoodRead_def}, @{thm BadRead_def}, @{thm HNext_def}, @{thm MemReturn_def},
     @{thm RPCFail_def}, @{thm MClkReply_def}, @{thm Return_def}, @{thm e_def},
@@ -446,105 +446,105 @@ lemma S4ReadInner: "|- ReadInner rmCh mm ires p l & $(S4 rmhist p) & unchanged (
     @{thm MVNROKBA_def}, @{thm S_def}, @{thm S4_def}, @{thm RdRequest_def},
     @{thm Calling_def}, @{thm MemInv_def}]) [] [] 1 *})
 
-lemma S4Read: "|- Read rmCh mm ires p & $(S4 rmhist p) & unchanged (e p, c p, r p)
+lemma S4Read: "\<turnstile> Read rmCh mm ires p & $(S4 rmhist p) & unchanged (e p, c p, r p)
          & HNext rmhist p & (\<forall>l. $MemInv mm l)
-         --> (S4 rmhist p)$ & unchanged (rmhist!p)"
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (auto simp: Read_def dest!: S4ReadInner [temp_use])
 
-lemma S4WriteInner: "|- WriteInner rmCh mm ires p l v & $(S4 rmhist p) & unchanged (e p, c p, r p)           & HNext rmhist p
-         --> (S4 rmhist p)$ & unchanged (rmhist!p)"
+lemma S4WriteInner: "\<turnstile> WriteInner rmCh mm ires p l v & $(S4 rmhist p) & unchanged (e p, c p, r p)           & HNext rmhist p
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm WriteInner_def},
     @{thm GoodWrite_def}, @{thm BadWrite_def}, @{thm HNext_def}, @{thm MemReturn_def},
     @{thm RPCFail_def}, @{thm MClkReply_def}, @{thm Return_def}, @{thm e_def},
     @{thm c_def}, @{thm r_def}, @{thm rtrner_def}, @{thm caller_def}, @{thm MVNROKBA_def},
     @{thm S_def}, @{thm S4_def}, @{thm WrRequest_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S4Write: "|- Write rmCh mm ires p l & $(S4 rmhist p) & unchanged (e p, c p, r p)
+lemma S4Write: "\<turnstile> Write rmCh mm ires p l & $(S4 rmhist p) & unchanged (e p, c p, r p)
          & (HNext rmhist p)
-         --> (S4 rmhist p)$ & unchanged (rmhist!p)"
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (auto simp: Write_def dest!: S4WriteInner [temp_use])
 
-lemma WriteS4: "|- $ImpInv rmhist p & Write rmCh mm ires p l --> $S4 rmhist p"
+lemma WriteS4: "\<turnstile> $ImpInv rmhist p & Write rmCh mm ires p l \<longrightarrow> $S4 rmhist p"
   by (auto simp: Write_def WriteInner_def ImpInv_def
     WrRequest_def S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 
-lemma S4Return: "|- MemReturn rmCh ires p & $S4 rmhist p & unchanged (e p, c p, r p)
+lemma S4Return: "\<turnstile> MemReturn rmCh ires p & $S4 rmhist p & unchanged (e p, c p, r p)
          & HNext rmhist p
-         --> (S5 rmhist p)$"
+         \<longrightarrow> (S5 rmhist p)$"
   by (auto simp: HNext_def MemReturn_def Return_def e_def c_def r_def
     rtrner_def caller_def MVNROKBA_def MVOKBA_def S_def S4_def S5_def Calling_def)
 
-lemma S4Hist: "|- HNext rmhist p & $S4 rmhist p & (m p)$ = $(m p) --> (rmhist!p)$ = $(rmhist!p)"
+lemma S4Hist: "\<turnstile> HNext rmhist p & $S4 rmhist p & (m p)$ = $(m p) \<longrightarrow> (rmhist!p)$ = $(rmhist!p)"
   by (auto simp: HNext_def MemReturn_def RPCFail_def MClkReply_def
     Return_def m_def rtrner_def S_def S4_def Calling_def)
 
 (* ------------------------------ State S5 ---------------------------------------- *)
 
-lemma S5EnvUnch: "|- [ENext p]_(e p) & $(S5 rmhist p) --> unchanged (e p)"
+lemma S5EnvUnch: "\<turnstile> [ENext p]_(e p) & $(S5 rmhist p) \<longrightarrow> unchanged (e p)"
   by (auto simp: S_def S5_def dest!: Envbusy [temp_use])
 
-lemma S5ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S5 rmhist p) --> unchanged (c p)"
+lemma S5ClerkUnch: "\<turnstile> [MClkNext memCh crCh cst p]_(c p) & $(S5 rmhist p) \<longrightarrow> unchanged (c p)"
   by (auto simp: S_def S5_def dest!: MClkbusy [temp_use])
 
-lemma S5RPC: "|- RPCNext crCh rmCh rst p & $(S5 rmhist p)
-         --> RPCReply crCh rmCh rst p | RPCFail crCh rmCh rst p"
+lemma S5RPC: "\<turnstile> RPCNext crCh rmCh rst p & $(S5 rmhist p)
+         \<longrightarrow> RPCReply crCh rmCh rst p | RPCFail crCh rmCh rst p"
   by (auto simp: RPCNext_def RPCReject_def RPCFwd_def S_def S5_def)
 
-lemma S5Reply: "|- RPCReply crCh rmCh rst p & $(S5 rmhist p) & unchanged (e p, c p, m p,rmhist!p)
-       --> (S6 rmhist p)$"
+lemma S5Reply: "\<turnstile> RPCReply crCh rmCh rst p & $(S5 rmhist p) & unchanged (e p, c p, m p,rmhist!p)
+       \<longrightarrow> (S6 rmhist p)$"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
     @{thm Return_def}, @{thm e_def}, @{thm c_def}, @{thm m_def}, @{thm MVOKBA_def},
     @{thm MVOKBARF_def}, @{thm caller_def}, @{thm rtrner_def}, @{thm S_def},
     @{thm S5_def}, @{thm S6_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S5Fail: "|- RPCFail crCh rmCh rst p & $(S5 rmhist p) & unchanged (e p, c p, m p,rmhist!p)
-         --> (S6 rmhist p)$"
+lemma S5Fail: "\<turnstile> RPCFail crCh rmCh rst p & $(S5 rmhist p) & unchanged (e p, c p, m p,rmhist!p)
+         \<longrightarrow> (S6 rmhist p)$"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
     @{thm Return_def}, @{thm e_def}, @{thm c_def}, @{thm m_def},
     @{thm MVOKBARF_def}, @{thm caller_def}, @{thm rtrner_def},
     @{thm S_def}, @{thm S5_def}, @{thm S6_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S5MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S5 rmhist p) --> unchanged (m p)"
+lemma S5MemUnch: "\<turnstile> [RNext rmCh mm ires p]_(m p) & $(S5 rmhist p) \<longrightarrow> unchanged (m p)"
   by (auto simp: S_def S5_def dest!: Memoryidle [temp_use])
 
-lemma S5Hist: "|- [HNext rmhist p]_(c p, r p, m p, rmhist!p) & $(S5 rmhist p)
-         --> (rmhist!p)$ = $(rmhist!p)"
+lemma S5Hist: "\<turnstile> [HNext rmhist p]_(c p, r p, m p, rmhist!p) & $(S5 rmhist p)
+         \<longrightarrow> (rmhist!p)$ = $(rmhist!p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] simp: HNext_def MemReturn_def RPCFail_def
     MClkReply_def Return_def S_def S5_def)
 
 (* ------------------------------ State S6 ---------------------------------------- *)
 
-lemma S6EnvUnch: "|- [ENext p]_(e p) & $(S6 rmhist p) --> unchanged (e p)"
+lemma S6EnvUnch: "\<turnstile> [ENext p]_(e p) & $(S6 rmhist p) \<longrightarrow> unchanged (e p)"
   by (auto simp: S_def S6_def dest!: Envbusy [temp_use])
 
-lemma S6Clerk: "|- MClkNext memCh crCh cst p & $(S6 rmhist p)
-         --> MClkRetry memCh crCh cst p | MClkReply memCh crCh cst p"
+lemma S6Clerk: "\<turnstile> MClkNext memCh crCh cst p & $(S6 rmhist p)
+         \<longrightarrow> MClkRetry memCh crCh cst p | MClkReply memCh crCh cst p"
   by (auto simp: MClkNext_def MClkFwd_def S_def S6_def)
 
-lemma S6Retry: "|- MClkRetry memCh crCh cst p & HNext rmhist p & $S6 rmhist p
+lemma S6Retry: "\<turnstile> MClkRetry memCh crCh cst p & HNext rmhist p & $S6 rmhist p
          & unchanged (e p,r p,m p)
-         --> (S3 rmhist p)$ & unchanged (rmhist!p)"
+         \<longrightarrow> (S3 rmhist p)$ & unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm HNext_def},
     @{thm MClkReply_def}, @{thm MClkRetry_def}, @{thm Call_def}, @{thm Return_def},
     @{thm e_def}, @{thm r_def}, @{thm m_def}, @{thm caller_def}, @{thm rtrner_def},
     @{thm S_def}, @{thm S6_def}, @{thm S3_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S6Reply: "|- MClkReply memCh crCh cst p & HNext rmhist p & $S6 rmhist p
+lemma S6Reply: "\<turnstile> MClkReply memCh crCh cst p & HNext rmhist p & $S6 rmhist p
          & unchanged (e p,r p,m p)
-         --> (S1 rmhist p)$"
+         \<longrightarrow> (S1 rmhist p)$"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm HNext_def},
     @{thm MemReturn_def}, @{thm RPCFail_def}, @{thm Return_def}, @{thm MClkReply_def},
     @{thm e_def}, @{thm r_def}, @{thm m_def}, @{thm caller_def}, @{thm rtrner_def},
     @{thm S_def}, @{thm S6_def}, @{thm S1_def}, @{thm Calling_def}]) [] [] 1 *})
 
-lemma S6RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $S6 rmhist p --> unchanged (r p)"
+lemma S6RPCUnch: "\<turnstile> [RPCNext crCh rmCh rst p]_(r p) & $S6 rmhist p \<longrightarrow> unchanged (r p)"
   by (auto simp: S_def S6_def dest!: RPCidle [temp_use])
 
-lemma S6MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S6 rmhist p) --> unchanged (m p)"
+lemma S6MemUnch: "\<turnstile> [RNext rmCh mm ires p]_(m p) & $(S6 rmhist p) \<longrightarrow> unchanged (m p)"
   by (auto simp: S_def S6_def dest!: Memoryidle [temp_use])
 
-lemma S6Hist: "|- HNext rmhist p & $S6 rmhist p & (c p)$ = $(c p) --> (rmhist!p)$ = $(rmhist!p)"
+lemma S6Hist: "\<turnstile> HNext rmhist p & $S6 rmhist p & (c p)$ = $(c p) \<longrightarrow> (rmhist!p)$ = $(rmhist!p)"
   by (auto simp: HNext_def MClkReply_def Return_def c_def rtrner_def S_def S6_def Calling_def)
 
 
@@ -554,7 +554,7 @@ section "Correctness of predicate-action diagram"
 (* ========== Step 1.1 ================================================= *)
 (* The implementation's initial condition implies the state predicate S1 *)
 
-lemma Step1_1: "|- ImpInit p & HInit rmhist p --> S1 rmhist p"
+lemma Step1_1: "\<turnstile> ImpInit p & HInit rmhist p \<longrightarrow> S1 rmhist p"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] simp: MVNROKBA_def
     MClkInit_def RPCInit_def PInit_def HInit_def ImpInit_def S_def S1_def)
@@ -562,9 +562,9 @@ lemma Step1_1: "|- ImpInit p & HInit rmhist p --> S1 rmhist p"
 (* ========== Step 1.2 ================================================== *)
 (* Figure 16 is a predicate-action diagram for the implementation. *)
 
-lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_1: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          & \<not>unchanged (e p, c p, r p, m p, rmhist!p)  & $S1 rmhist p
-         --> (S2 rmhist p)$ & ENext p & unchanged (c p, r p, m p)"
+         \<longrightarrow> (S2 rmhist p)$ & ENext p & unchanged (c p, r p, m p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
       (map (temp_elim @{context})
         [@{thm S1ClerkUnch}, @{thm S1RPCUnch}, @{thm S1MemUnch}, @{thm S1Hist}]) 1 *})
@@ -572,9 +572,9 @@ lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
    apply (auto elim!: squareE [temp_use] intro!: S1Env [temp_use])
   done
 
-lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_2: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S2 rmhist p
-         --> (S3 rmhist p)$ & MClkFwd memCh crCh cst p
+         \<longrightarrow> (S3 rmhist p)$ & MClkFwd memCh crCh cst p
              & unchanged (e p, r p, m p, rmhist!p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
     (map (temp_elim @{context})
@@ -583,9 +583,9 @@ lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
    apply (auto elim!: squareE [temp_use] intro!: S2Clerk [temp_use] S2Forward [temp_use])
   done
 
-lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_3: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S3 rmhist p
-         --> ((S4 rmhist p)$ & RPCFwd crCh rmCh rst p & unchanged (e p, c p, m p, rmhist!p))
+         \<longrightarrow> ((S4 rmhist p)$ & RPCFwd crCh rmCh rst p & unchanged (e p, c p, m p, rmhist!p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
     (map (temp_elim @{context}) [@{thm S3EnvUnch}, @{thm S3ClerkUnch}, @{thm S3MemUnch}]) 1 *})
@@ -595,10 +595,10 @@ lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
    apply (auto dest!: S3Hist [temp_use])
   done
 
-lemma Step1_2_4: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_4: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
               & \<not>unchanged (e p, c p, r p, m p, rmhist!p)
               & $S4 rmhist p & (\<forall>l. $(MemInv mm l))
-         --> ((S4 rmhist p)$ & Read rmCh mm ires p & unchanged (e p, c p, r p, rmhist!p))
+         \<longrightarrow> ((S4 rmhist p)$ & Read rmCh mm ires p & unchanged (e p, c p, r p, rmhist!p))
              | ((S4 rmhist p)$ & (\<exists>l. Write rmCh mm ires p l) & unchanged (e p, c p, r p, rmhist!p))
              | ((S5 rmhist p)$ & MemReturn rmCh ires p & unchanged (e p, c p, r p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
@@ -609,9 +609,9 @@ lemma Step1_2_4: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   apply (auto dest!: S4Hist [temp_use])
   done
 
-lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_5: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
               & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S5 rmhist p
-         --> ((S6 rmhist p)$ & RPCReply crCh rmCh rst p & unchanged (e p, c p, m p))
+         \<longrightarrow> ((S6 rmhist p)$ & RPCReply crCh rmCh rst p & unchanged (e p, c p, m p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
     (map (temp_elim @{context}) [@{thm S5EnvUnch}, @{thm S5ClerkUnch}, @{thm S5MemUnch}, @{thm S5Hist}]) 1 *})
@@ -620,9 +620,9 @@ lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
    apply (auto elim!: squareE [temp_use] dest!: S5Reply [temp_use] S5Fail [temp_use])
   done
 
-lemma Step1_2_6: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
+lemma Step1_2_6: "\<turnstile> [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
               & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S6 rmhist p
-         --> ((S1 rmhist p)$ & MClkReply memCh crCh cst p & unchanged (e p, r p, m p))
+         \<longrightarrow> ((S1 rmhist p)$ & MClkReply memCh crCh cst p & unchanged (e p, r p, m p))
              | ((S3 rmhist p)$ & MClkRetry memCh crCh cst p & unchanged (e p,r p,m p,rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
     (map (temp_elim @{context}) [@{thm S6EnvUnch}, @{thm S6RPCUnch}, @{thm S6MemUnch}]) 1 *})
@@ -637,7 +637,7 @@ lemma Step1_2_6: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
 
 section "Initialization (Step 1.3)"
 
-lemma Step1_3: "|- S1 rmhist p --> PInit (resbar rmhist) p"
+lemma Step1_3: "\<turnstile> S1 rmhist p \<longrightarrow> PInit (resbar rmhist) p"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm resbar_def},
     @{thm PInit_def}, @{thm S_def}, @{thm S1_def}]) [] [] 1 *})
 
@@ -648,30 +648,30 @@ lemma Step1_3: "|- S1 rmhist p --> PInit (resbar rmhist) p"
 
 section "Step simulation (Step 1.4)"
 
-lemma Step1_4_1: "|- ENext p & $S1 rmhist p & (S2 rmhist p)$ & unchanged (c p, r p, m p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p)"
+lemma Step1_4_1: "\<turnstile> ENext p & $S1 rmhist p & (S2 rmhist p)$ & unchanged (c p, r p, m p)
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p)"
   using [[fast_solver]]
   by (auto elim!: squareE [temp_use] simp: c_def r_def m_def resbar_def)
 
-lemma Step1_4_2: "|- MClkFwd memCh crCh cst p & $S2 rmhist p & (S3 rmhist p)$
+lemma Step1_4_2: "\<turnstile> MClkFwd memCh crCh cst p & $S2 rmhist p & (S3 rmhist p)$
          & unchanged (e p, r p, m p, rmhist!p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p)"
   by (tactic {* action_simp_tac
     (@{context} addsimps [@{thm MClkFwd_def}, @{thm e_def}, @{thm r_def}, @{thm m_def},
     @{thm resbar_def}, @{thm S_def}, @{thm S2_def}, @{thm S3_def}]) [] [] 1 *})
 
-lemma Step1_4_3a: "|- RPCFwd crCh rmCh rst p & $S3 rmhist p & (S4 rmhist p)$
+lemma Step1_4_3a: "\<turnstile> RPCFwd crCh rmCh rst p & $S3 rmhist p & (S4 rmhist p)$
          & unchanged (e p, c p, m p, rmhist!p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (drule S3_excl [temp_use] S4_excl [temp_use])+
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm e_def},
     @{thm c_def}, @{thm m_def}, @{thm resbar_def}, @{thm S_def}, @{thm S3_def}]) [] [] 1 *})
   done
 
-lemma Step1_4_3b: "|- RPCFail crCh rmCh rst p & $S3 rmhist p & (S6 rmhist p)$
+lemma Step1_4_3b: "\<turnstile> RPCFail crCh rmCh rst p & $S3 rmhist p & (S6 rmhist p)$
          & unchanged (e p, c p, m p)
-         --> MemFail memCh (resbar rmhist) p"
+         \<longrightarrow> MemFail memCh (resbar rmhist) p"
   apply clarsimp
   apply (drule S6_excl [temp_use])
   apply (auto simp: RPCFail_def MemFail_def e_def c_def m_def resbar_def)
@@ -679,9 +679,9 @@ lemma Step1_4_3b: "|- RPCFail crCh rmCh rst p & $S3 rmhist p & (S6 rmhist p)$
    apply (auto simp: Return_def)
   done
 
-lemma Step1_4_4a1: "|- $S4 rmhist p & (S4 rmhist p)$ & ReadInner rmCh mm ires p l
+lemma Step1_4_4a1: "\<turnstile> $S4 rmhist p & (S4 rmhist p)$ & ReadInner rmCh mm ires p l
          & unchanged (e p, c p, r p, rmhist!p) & $MemInv mm l
-         --> ReadInner memCh mm (resbar rmhist) p l"
+         \<longrightarrow> ReadInner memCh mm (resbar rmhist) p l"
   apply clarsimp
   apply (drule S4_excl [temp_use])+
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ReadInner_def},
@@ -693,14 +693,14 @@ lemma Step1_4_4a1: "|- $S4 rmhist p & (S4 rmhist p)$ & ReadInner rmCh mm ires p 
                 [] [@{thm impE}, @{thm MemValNotAResultE}]) *})
   done
 
-lemma Step1_4_4a: "|- Read rmCh mm ires p & $S4 rmhist p & (S4 rmhist p)$
+lemma Step1_4_4a: "\<turnstile> Read rmCh mm ires p & $S4 rmhist p & (S4 rmhist p)$
          & unchanged (e p, c p, r p, rmhist!p) & (\<forall>l. $(MemInv mm l))
-         --> Read memCh mm (resbar rmhist) p"
+         \<longrightarrow> Read memCh mm (resbar rmhist) p"
   by (force simp: Read_def elim!: Step1_4_4a1 [temp_use])
 
-lemma Step1_4_4b1: "|- $S4 rmhist p & (S4 rmhist p)$ & WriteInner rmCh mm ires p l v
+lemma Step1_4_4b1: "\<turnstile> $S4 rmhist p & (S4 rmhist p)$ & WriteInner rmCh mm ires p l v
          & unchanged (e p, c p, r p, rmhist!p)
-         --> WriteInner memCh mm (resbar rmhist) p l v"
+         \<longrightarrow> WriteInner memCh mm (resbar rmhist) p l v"
   apply clarsimp
   apply (drule S4_excl [temp_use])+
   apply (tactic {* action_simp_tac (@{context} addsimps
@@ -712,14 +712,14 @@ lemma Step1_4_4b1: "|- $S4 rmhist p & (S4 rmhist p)$ & WriteInner rmCh mm ires p
       @{thm S4_def}, @{thm WrRequest_def}]) [] []) *})
   done
 
-lemma Step1_4_4b: "|- Write rmCh mm ires p l & $S4 rmhist p & (S4 rmhist p)$
+lemma Step1_4_4b: "\<turnstile> Write rmCh mm ires p l & $S4 rmhist p & (S4 rmhist p)$
          & unchanged (e p, c p, r p, rmhist!p)
-         --> Write memCh mm (resbar rmhist) p l"
+         \<longrightarrow> Write memCh mm (resbar rmhist) p l"
   by (force simp: Write_def elim!: Step1_4_4b1 [temp_use])
 
-lemma Step1_4_4c: "|- MemReturn rmCh ires p & $S4 rmhist p & (S5 rmhist p)$
+lemma Step1_4_4c: "\<turnstile> MemReturn rmCh ires p & $S4 rmhist p & (S5 rmhist p)$
          & unchanged (e p, c p, r p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm e_def},
     @{thm c_def}, @{thm r_def}, @{thm resbar_def}]) [] [] 1 *})
   apply (drule S4_excl [temp_use] S5_excl [temp_use])+
@@ -727,27 +727,27 @@ lemma Step1_4_4c: "|- MemReturn rmCh ires p & $S4 rmhist p & (S5 rmhist p)$
   apply (auto elim!: squareE [temp_use] simp: MemReturn_def Return_def)
   done
 
-lemma Step1_4_5a: "|- RPCReply crCh rmCh rst p & $S5 rmhist p & (S6 rmhist p)$
+lemma Step1_4_5a: "\<turnstile> RPCReply crCh rmCh rst p & $S5 rmhist p & (S6 rmhist p)$
          & unchanged (e p, c p, m p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (drule S5_excl [temp_use] S6_excl [temp_use])+
   apply (auto simp: e_def c_def m_def resbar_def)
    apply (auto simp: RPCReply_def Return_def S5_def S_def dest!: MVOKBAnotRF [temp_use])
   done
 
-lemma Step1_4_5b: "|- RPCFail crCh rmCh rst p & $S5 rmhist p & (S6 rmhist p)$
+lemma Step1_4_5b: "\<turnstile> RPCFail crCh rmCh rst p & $S5 rmhist p & (S6 rmhist p)$
          & unchanged (e p, c p, m p)
-         --> MemFail memCh (resbar rmhist) p"
+         \<longrightarrow> MemFail memCh (resbar rmhist) p"
   apply clarsimp
   apply (drule S6_excl [temp_use])
   apply (auto simp: e_def c_def m_def RPCFail_def Return_def MemFail_def resbar_def)
    apply (auto simp: S5_def S_def)
   done
 
-lemma Step1_4_6a: "|- MClkReply memCh crCh cst p & $S6 rmhist p & (S1 rmhist p)$
+lemma Step1_4_6a: "\<turnstile> MClkReply memCh crCh cst p & $S6 rmhist p & (S1 rmhist p)$
          & unchanged (e p, r p, m p)
-         --> MemReturn memCh (resbar rmhist) p"
+         \<longrightarrow> MemReturn memCh (resbar rmhist) p"
   apply clarsimp
   apply (drule S6_excl [temp_use])+
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm e_def},
@@ -758,9 +758,9 @@ lemma Step1_4_6a: "|- MClkReply memCh crCh cst p & $S6 rmhist p & (S1 rmhist p)$
       [@{thm MClkReplyVal_def}, @{thm S6_def}, @{thm S_def}]) [] [@{thm MVOKBARFnotNR}]) *})
   done
 
-lemma Step1_4_6b: "|- MClkRetry memCh crCh cst p & $S6 rmhist p & (S3 rmhist p)$
+lemma Step1_4_6b: "\<turnstile> MClkRetry memCh crCh cst p & $S6 rmhist p & (S3 rmhist p)$
          & unchanged (e p, r p, m p, rmhist!p)
-         --> MemFail memCh (resbar rmhist) p"
+         \<longrightarrow> MemFail memCh (resbar rmhist) p"
   apply clarsimp
   apply (drule S3_excl [temp_use])+
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm e_def}, @{thm r_def},
@@ -768,12 +768,12 @@ lemma Step1_4_6b: "|- MClkRetry memCh crCh cst p & $S6 rmhist p & (S3 rmhist p)$
    apply (auto simp: S6_def S_def)
   done
 
-lemma S_lemma: "|- unchanged (e p, c p, r p, m p, rmhist!p)
-         --> unchanged (S rmhist ec cc rc cs rs hs1 hs2 p)"
+lemma S_lemma: "\<turnstile> unchanged (e p, c p, r p, m p, rmhist!p)
+         \<longrightarrow> unchanged (S rmhist ec cc rc cs rs hs1 hs2 p)"
   by (auto simp: e_def c_def r_def m_def caller_def rtrner_def S_def Calling_def)
 
-lemma Step1_4_7H: "|- unchanged (e p, c p, r p, m p, rmhist!p)
-         --> unchanged (rtrner memCh!p, S1 rmhist p, S2 rmhist p, S3 rmhist p,
+lemma Step1_4_7H: "\<turnstile> unchanged (e p, c p, r p, m p, rmhist!p)
+         \<longrightarrow> unchanged (rtrner memCh!p, S1 rmhist p, S2 rmhist p, S3 rmhist p,
                         S4 rmhist p, S5 rmhist p, S6 rmhist p)"
   apply clarsimp
   apply (rule conjI)
@@ -781,8 +781,8 @@ lemma Step1_4_7H: "|- unchanged (e p, c p, r p, m p, rmhist!p)
   apply (force simp: S1_def S2_def S3_def S4_def S5_def S6_def intro!: S_lemma [temp_use])
   done
 
-lemma Step1_4_7: "|- unchanged (e p, c p, r p, m p, rmhist!p)
-         --> unchanged (rtrner memCh!p, resbar rmhist!p, S1 rmhist p, S2 rmhist p,
+lemma Step1_4_7: "\<turnstile> unchanged (e p, c p, r p, m p, rmhist!p)
+         \<longrightarrow> unchanged (rtrner memCh!p, resbar rmhist!p, S1 rmhist p, S2 rmhist p,
                         S3 rmhist p, S4 rmhist p, S5 rmhist p, S6 rmhist p)"
   apply (rule actionI)
   apply (unfold action_rews)
@@ -798,7 +798,7 @@ ML {*
 fun split_idle_tac ctxt =
   SELECT_GOAL
    (TRY (rtac @{thm actionI} 1) THEN
-    Induct_Tacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" [] NONE 1 THEN
+    Induct_Tacs.case_tac ctxt "(s,t) \<Turnstile> unchanged (e p, c p, r p, m p, rmhist!p)" [] NONE 1 THEN
     rewrite_goals_tac ctxt @{thms action_rews} THEN
     forward_tac ctxt [temp_use ctxt @{thm Step1_4_7}] 1 THEN
     asm_full_simp_tac ctxt 1);
@@ -816,42 +816,42 @@ method_setup split_idle = {*
 
 (* Steps that leave all variables unchanged are safe, so I may assume
    that some variable changes in the proof that a step is safe. *)
-lemma unchanged_safe: "|- (\<not>unchanged (e p, c p, r p, m p, rmhist!p)
-             --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p))
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma unchanged_safe: "\<turnstile> (\<not>unchanged (e p, c p, r p, m p, rmhist!p)
+             \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p))
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply (split_idle simp: square_def)
   apply force
   done
 (* turn into (unsafe, looping!) introduction rule *)
 lemmas unchanged_safeI = impI [THEN unchanged_safe [action_use]]
 
-lemma S1safe: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma S1safe: "\<turnstile> $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (rule idle_squareI)
   apply (auto dest!: Step1_2_1 [temp_use] Step1_4_1 [temp_use])
   done
 
-lemma S2safe: "|- $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma S2safe: "\<turnstile> $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (rule idle_squareI)
   apply (auto dest!: Step1_2_2 [temp_use] Step1_4_2 [temp_use])
   done
 
-lemma S3safe: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma S3safe: "\<turnstile> $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (auto dest!: Step1_2_3 [temp_use])
   apply (auto simp: square_def UNext_def dest!: Step1_4_3a [temp_use] Step1_4_3b [temp_use])
   done
 
-lemma S4safe: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+lemma S4safe: "\<turnstile> $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          & (\<forall>l. $(MemInv mm l))
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (auto dest!: Step1_2_4 [temp_use])
@@ -859,16 +859,16 @@ lemma S4safe: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhi
        dest!: Step1_4_4a [temp_use] Step1_4_4b [temp_use] Step1_4_4c [temp_use])
   done
 
-lemma S5safe: "|- $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma S5safe: "\<turnstile> $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (auto dest!: Step1_2_5 [temp_use])
   apply (auto simp: square_def UNext_def dest!: Step1_4_5a [temp_use] Step1_4_5b [temp_use])
   done
 
-lemma S6safe: "|- $S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma S6safe: "\<turnstile> $S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
   apply (auto dest!: Step1_2_6 [temp_use])
@@ -889,8 +889,8 @@ section "The liveness part"
 
 (* ------------------------------ State S1 ------------------------------ *)
 
-lemma S1_successors: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> (S1 rmhist p)$ | (S2 rmhist p)$"
+lemma S1_successors: "\<turnstile> $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> (S1 rmhist p)$ | (S2 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_1 [temp_use])
   done
@@ -899,199 +899,199 @@ lemma S1_successors: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
    by entering the state S1 infinitely often.
 *)
 
-lemma S1_RNextdisabled: "|- S1 rmhist p -->
+lemma S1_RNextdisabled: "\<turnstile> S1 rmhist p \<longrightarrow>
          \<not>Enabled (<RNext memCh mm (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def},
     @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}, temp_elim @{context} @{thm Memoryidle}] 1 *})
   apply force
   done
 
-lemma S1_Returndisabled: "|- S1 rmhist p -->
+lemma S1_Returndisabled: "\<turnstile> S1 rmhist p \<longrightarrow>
          \<not>Enabled (<MemReturn memCh (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def}, @{thm MemReturn_def},
     @{thm Return_def}, @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}] 1 *})
 
-lemma RNext_fair: "|- \<box>\<diamond>S1 rmhist p
-         --> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
+lemma RNext_fair: "\<turnstile> \<box>\<diamond>S1 rmhist p
+         \<longrightarrow> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: WF_alt [try_rewrite] intro!: S1_RNextdisabled [temp_use]
     elim!: STL4E [temp_use] DmdImplE [temp_use])
 
-lemma Return_fair: "|- \<box>\<diamond>S1 rmhist p
-         --> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
+lemma Return_fair: "\<turnstile> \<box>\<diamond>S1 rmhist p
+         \<longrightarrow> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: WF_alt [try_rewrite]
     intro!: S1_Returndisabled [temp_use] elim!: STL4E [temp_use] DmdImplE [temp_use])
 
 (* ------------------------------ State S2 ------------------------------ *)
 
-lemma S2_successors: "|- $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> (S2 rmhist p)$ | (S3 rmhist p)$"
+lemma S2_successors: "\<turnstile> $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> (S2 rmhist p)$ | (S3 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_2 [temp_use])
   done
 
-lemma S2MClkFwd_successors: "|- ($S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S2MClkFwd_successors: "\<turnstile> ($S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & <MClkFwd memCh crCh cst p>_(c p)
-         --> (S3 rmhist p)$"
+         \<longrightarrow> (S3 rmhist p)$"
   by (auto simp: angle_def dest!: Step1_2_2 [temp_use])
 
-lemma S2MClkFwd_enabled: "|- $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> $Enabled (<MClkFwd memCh crCh cst p>_(c p))"
+lemma S2MClkFwd_enabled: "\<turnstile> $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> $Enabled (<MClkFwd memCh crCh cst p>_(c p))"
   apply (auto simp: c_def intro!: MClkFwd_ch_enabled [temp_use] MClkFwd_enabled [temp_use])
      apply (cut_tac MI_base)
      apply (blast dest: base_pair)
     apply (simp_all add: S_def S2_def)
   done
 
-lemma S2_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S2_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(MClkFwd memCh crCh cst p)_(c p)
-         --> (S2 rmhist p \<leadsto> S3 rmhist p)"
+         \<longrightarrow> (S2 rmhist p \<leadsto> S3 rmhist p)"
   by (rule WF1 S2_successors S2MClkFwd_successors S2MClkFwd_enabled)+
 
 (* ------------------------------ State S3 ------------------------------ *)
 
-lemma S3_successors: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> (S3 rmhist p)$ | (S4 rmhist p | S6 rmhist p)$"
+lemma S3_successors: "\<turnstile> $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> (S3 rmhist p)$ | (S4 rmhist p | S6 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_3 [temp_use])
   done
 
-lemma S3RPC_successors: "|- ($S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S3RPC_successors: "\<turnstile> ($S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & <RPCNext crCh rmCh rst p>_(r p)
-         --> (S4 rmhist p | S6 rmhist p)$"
+         \<longrightarrow> (S4 rmhist p | S6 rmhist p)$"
   apply (auto simp: angle_def dest!: Step1_2_3 [temp_use])
   done
 
-lemma S3RPC_enabled: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> $Enabled (<RPCNext crCh rmCh rst p>_(r p))"
+lemma S3RPC_enabled: "\<turnstile> $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> $Enabled (<RPCNext crCh rmCh rst p>_(r p))"
   apply (auto simp: r_def intro!: RPCFail_Next_enabled [temp_use] RPCFail_enabled [temp_use])
     apply (cut_tac MI_base)
     apply (blast dest: base_pair)
    apply (simp_all add: S_def S3_def)
   done
 
-lemma S3_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S3_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(RPCNext crCh rmCh rst p)_(r p)
-         --> (S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p)"
+         \<longrightarrow> (S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p)"
   by (rule WF1 S3_successors S3RPC_successors S3RPC_enabled)+
 
 (* ------------- State S4 -------------------------------------------------- *)
 
-lemma S4_successors: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+lemma S4_successors: "\<turnstile> $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
         & (\<forall>l. $MemInv mm l)
-        --> (S4 rmhist p)$ | (S5 rmhist p)$"
+        \<longrightarrow> (S4 rmhist p)$ | (S5 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
   done
 
 (* --------- State S4a: S4 /\ (ires p = NotAResult) ------------------------ *)
 
-lemma S4a_successors: "|- $(S4 rmhist p & ires!p = #NotAResult)
+lemma S4a_successors: "\<turnstile> $(S4 rmhist p & ires!p = #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (\<forall>l. $MemInv mm l)
-         --> (S4 rmhist p & ires!p = #NotAResult)$
+         \<longrightarrow> (S4 rmhist p & ires!p = #NotAResult)$
              | ((S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
   done
 
-lemma S4aRNext_successors: "|- ($(S4 rmhist p & ires!p = #NotAResult)
+lemma S4aRNext_successors: "\<turnstile> ($(S4 rmhist p & ires!p = #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (\<forall>l. $MemInv mm l))
          & <RNext rmCh mm ires p>_(m p)
-         --> ((S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)$"
+         \<longrightarrow> ((S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)$"
   by (auto simp: angle_def
     dest!: Step1_2_4 [temp_use] ReadResult [temp_use] WriteResult [temp_use])
 
-lemma S4aRNext_enabled: "|- $(S4 rmhist p & ires!p = #NotAResult)
+lemma S4aRNext_enabled: "\<turnstile> $(S4 rmhist p & ires!p = #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l)
-         --> $Enabled (<RNext rmCh mm ires p>_(m p))"
+         \<longrightarrow> $Enabled (<RNext rmCh mm ires p>_(m p))"
   apply (auto simp: m_def intro!: RNext_enabled [temp_use])
    apply (cut_tac MI_base)
    apply (blast dest: base_pair)
   apply (simp add: S_def S4_def)
   done
 
-lemma S4a_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+lemma S4a_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          & (\<forall>l. $MemInv mm l)) & WF(RNext rmCh mm ires p)_(m p)
-         --> (S4 rmhist p & ires!p = #NotAResult
+         \<longrightarrow> (S4 rmhist p & ires!p = #NotAResult
               \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)"
   by (rule WF1 S4a_successors S4aRNext_successors S4aRNext_enabled)+
 
 (* ---------- State S4b: S4 /\ (ires p # NotAResult) --------------------------- *)
 
-lemma S4b_successors: "|- $(S4 rmhist p & ires!p \<noteq> #NotAResult)
+lemma S4b_successors: "\<turnstile> $(S4 rmhist p & ires!p \<noteq> #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l)
-         --> (S4 rmhist p & ires!p \<noteq> #NotAResult)$ | (S5 rmhist p)$"
+         \<longrightarrow> (S4 rmhist p & ires!p \<noteq> #NotAResult)$ | (S5 rmhist p)$"
   apply (split_idle simp: m_def)
   apply (auto dest!: WriteResult [temp_use] Step1_2_4 [temp_use] ReadResult [temp_use])
   done
 
-lemma S4bReturn_successors: "|- ($(S4 rmhist p & ires!p \<noteq> #NotAResult)
+lemma S4bReturn_successors: "\<turnstile> ($(S4 rmhist p & ires!p \<noteq> #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          & (\<forall>l. $MemInv mm l)) & <MemReturn rmCh ires p>_(m p)
-         --> (S5 rmhist p)$"
+         \<longrightarrow> (S5 rmhist p)$"
   by (force simp: angle_def dest!: Step1_2_4 [temp_use] dest: ReturnNotReadWrite [temp_use])
 
-lemma S4bReturn_enabled: "|- $(S4 rmhist p & ires!p \<noteq> #NotAResult)
+lemma S4bReturn_enabled: "\<turnstile> $(S4 rmhist p & ires!p \<noteq> #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          & (\<forall>l. $MemInv mm l)
-         --> $Enabled (<MemReturn rmCh ires p>_(m p))"
+         \<longrightarrow> $Enabled (<MemReturn rmCh ires p>_(m p))"
   apply (auto simp: m_def intro!: MemReturn_enabled [temp_use])
    apply (cut_tac MI_base)
    apply (blast dest: base_pair)
   apply (simp add: S_def S4_def)
   done
 
-lemma S4b_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l))
+lemma S4b_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l))
          & WF(MemReturn rmCh ires p)_(m p)
-         --> (S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p)"
+         \<longrightarrow> (S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p)"
   by (rule WF1 S4b_successors S4bReturn_successors S4bReturn_enabled)+
 
 (* ------------------------------ State S5 ------------------------------ *)
 
-lemma S5_successors: "|- $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> (S5 rmhist p)$ | (S6 rmhist p)$"
+lemma S5_successors: "\<turnstile> $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> (S5 rmhist p)$ | (S6 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_5 [temp_use])
   done
 
-lemma S5RPC_successors: "|- ($S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S5RPC_successors: "\<turnstile> ($S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & <RPCNext crCh rmCh rst p>_(r p)
-         --> (S6 rmhist p)$"
+         \<longrightarrow> (S6 rmhist p)$"
   by (auto simp: angle_def dest!: Step1_2_5 [temp_use])
 
-lemma S5RPC_enabled: "|- $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> $Enabled (<RPCNext crCh rmCh rst p>_(r p))"
+lemma S5RPC_enabled: "\<turnstile> $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> $Enabled (<RPCNext crCh rmCh rst p>_(r p))"
   apply (auto simp: r_def intro!: RPCFail_Next_enabled [temp_use] RPCFail_enabled [temp_use])
     apply (cut_tac MI_base)
     apply (blast dest: base_pair)
    apply (simp_all add: S_def S5_def)
   done
 
-lemma S5_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S5_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(RPCNext crCh rmCh rst p)_(r p)
-         --> (S5 rmhist p \<leadsto> S6 rmhist p)"
+         \<longrightarrow> (S5 rmhist p \<leadsto> S6 rmhist p)"
   by (rule WF1 S5_successors S5RPC_successors S5RPC_enabled)+
 
 (* ------------------------------ State S6 ------------------------------ *)
 
-lemma S6_successors: "|- $S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         --> (S1 rmhist p)$ | (S3 rmhist p)$ | (S6 rmhist p)$"
+lemma S6_successors: "\<turnstile> $S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         \<longrightarrow> (S1 rmhist p)$ | (S3 rmhist p)$ | (S6 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_6 [temp_use])
   done
 
 lemma S6MClkReply_successors:
-  "|- ($S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+  "\<turnstile> ($S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & <MClkReply memCh crCh cst p>_(c p)
-         --> (S1 rmhist p)$"
+         \<longrightarrow> (S1 rmhist p)$"
   by (auto simp: angle_def dest!: Step1_2_6 [temp_use] MClkReplyNotRetry [temp_use])
 
 lemma MClkReplyS6:
-  "|- $ImpInv rmhist p & <MClkReply memCh crCh cst p>_(c p) --> $S6 rmhist p"
+  "\<turnstile> $ImpInv rmhist p & <MClkReply memCh crCh cst p>_(c p) \<longrightarrow> $S6 rmhist p"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def},
     @{thm MClkReply_def}, @{thm Return_def}, @{thm ImpInv_def}, @{thm S_def},
     @{thm S1_def}, @{thm S2_def}, @{thm S3_def}, @{thm S4_def}, @{thm S5_def}]) [] [] 1 *})
 
-lemma S6MClkReply_enabled: "|- S6 rmhist p --> Enabled (<MClkReply memCh crCh cst p>_(c p))"
+lemma S6MClkReply_enabled: "\<turnstile> S6 rmhist p \<longrightarrow> Enabled (<MClkReply memCh crCh cst p>_(c p))"
   apply (auto simp: c_def intro!: MClkReply_enabled [temp_use])
      apply (cut_tac MI_base)
      apply (blast dest: base_pair)
@@ -1099,11 +1099,11 @@ lemma S6MClkReply_enabled: "|- S6 rmhist p --> Enabled (<MClkReply memCh crCh cs
       addsimps [@{thm S_def}, @{thm S6_def}]) [] []) *})
   done
 
-lemma S6_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(ImpInv rmhist p))
+lemma S6_live: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(ImpInv rmhist p))
          & SF(MClkReply memCh crCh cst p)_(c p) & \<box>\<diamond>(S6 rmhist p)
-         --> \<box>\<diamond>(S1 rmhist p)"
+         \<longrightarrow> \<box>\<diamond>(S1 rmhist p)"
   apply clarsimp
-  apply (subgoal_tac "sigma |= \<box>\<diamond> (<MClkReply memCh crCh cst p>_ (c p))")
+  apply (subgoal_tac "sigma \<Turnstile> \<box>\<diamond> (<MClkReply memCh crCh cst p>_ (c p))")
    apply (erule InfiniteEnsures)
     apply assumption
    apply (tactic {* action_simp_tac @{context} []
@@ -1115,23 +1115,23 @@ lemma S6_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) &
 
 (* --------------- aggregate leadsto properties----------------------------- *)
 
-lemma S5S6LeadstoS6: "sigma |= S5 rmhist p \<leadsto> S6 rmhist p
-      ==> sigma |= (S5 rmhist p | S6 rmhist p) \<leadsto> S6 rmhist p"
+lemma S5S6LeadstoS6: "sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p
+      \<Longrightarrow> sigma \<Turnstile> (S5 rmhist p | S6 rmhist p) \<leadsto> S6 rmhist p"
   by (auto intro!: LatticeDisjunctionIntro [temp_use] LatticeReflexivity [temp_use])
 
-lemma S4bS5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
-         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
-      ==> sigma |= (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p
+lemma S4bS5S6LeadstoS6: "\<lbrakk> sigma \<Turnstile> S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p
                     \<leadsto> S6 rmhist p"
   by (auto intro!: LatticeDisjunctionIntro [temp_use]
     S5S6LeadstoS6 [temp_use] intro: LatticeTransitivity [temp_use])
 
-lemma S4S5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p = #NotAResult
+lemma S4S5S6LeadstoS6: "\<lbrakk> sigma \<Turnstile> S4 rmhist p & ires!p = #NotAResult
                   \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
-         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
-      ==> sigma |= S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
-  apply (subgoal_tac "sigma |= (S4 rmhist p & ires!p = #NotAResult) |
+         sigma \<Turnstile> S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
+  apply (subgoal_tac "sigma \<Turnstile> (S4 rmhist p & ires!p = #NotAResult) |
     (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p")
    apply (erule_tac G = "PRED ((S4 rmhist p & ires!p = #NotAResult) |
      (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p)" in
@@ -1144,12 +1144,12 @@ lemma S4S5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p = #NotAResult
   apply (auto intro!: S4bS5S6LeadstoS6 [temp_use])
   done
 
-lemma S3S4S5S6LeadstoS6: "[| sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
-         sigma |= S4 rmhist p & ires!p = #NotAResult
+lemma S3S4S5S6LeadstoS6: "\<lbrakk> sigma \<Turnstile> S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
+         sigma \<Turnstile> S4 rmhist p & ires!p = #NotAResult
                   \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
-         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
-      ==> sigma |= S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
+         sigma \<Turnstile> S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
   apply (rule LatticeDisjunctionIntro [temp_use])
    apply (erule LatticeTriangle2 [temp_use])
    apply (rule S4S5S6LeadstoS6 [THEN LatticeTransitivity [temp_use]])
@@ -1157,13 +1157,13 @@ lemma S3S4S5S6LeadstoS6: "[| sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rm
         intro: ImplLeadsto_gen [temp_use] simp: Init_defs)
   done
 
-lemma S2S3S4S5S6LeadstoS6: "[| sigma |= S2 rmhist p \<leadsto> S3 rmhist p;
-         sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
-         sigma |= S4 rmhist p & ires!p = #NotAResult
+lemma S2S3S4S5S6LeadstoS6: "\<lbrakk> sigma \<Turnstile> S2 rmhist p \<leadsto> S3 rmhist p;
+         sigma \<Turnstile> S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
+         sigma \<Turnstile> S4 rmhist p & ires!p = #NotAResult
                   \<leadsto> S4 rmhist p & ires!p \<noteq> #NotAResult | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
-         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
-      ==> sigma |= S2 rmhist p | S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p
+         sigma \<Turnstile> S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> S2 rmhist p | S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p
                    \<leadsto> S6 rmhist p"
   apply (rule LatticeDisjunctionIntro [temp_use])
    apply (rule LatticeTransitivity [temp_use])
@@ -1173,14 +1173,14 @@ lemma S2S3S4S5S6LeadstoS6: "[| sigma |= S2 rmhist p \<leadsto> S3 rmhist p;
          intro: ImplLeadsto_gen [temp_use] simp: Init_defs)
   done
 
-lemma NotS1LeadstoS6: "[| sigma |= \<box>ImpInv rmhist p;
-         sigma |= S2 rmhist p \<leadsto> S3 rmhist p;
-         sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
-         sigma |= S4 rmhist p & ires!p = #NotAResult
+lemma NotS1LeadstoS6: "\<lbrakk> sigma \<Turnstile> \<box>ImpInv rmhist p;
+         sigma \<Turnstile> S2 rmhist p \<leadsto> S3 rmhist p;
+         sigma \<Turnstile> S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
+         sigma \<Turnstile> S4 rmhist p & ires!p = #NotAResult
                   \<leadsto> S4 rmhist p & ires!p \<noteq> #NotAResult | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
-         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
-      ==> sigma |= \<not>S1 rmhist p \<leadsto> S6 rmhist p"
+         sigma \<Turnstile> S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma \<Turnstile> S5 rmhist p \<leadsto> S6 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> \<not>S1 rmhist p \<leadsto> S6 rmhist p"
   apply (rule S2S3S4S5S6LeadstoS6 [THEN LatticeTransitivity [temp_use]])
        apply assumption+
   apply (erule INV_leadsto [temp_use])
@@ -1189,9 +1189,9 @@ lemma NotS1LeadstoS6: "[| sigma |= \<box>ImpInv rmhist p;
   apply (auto simp: ImpInv_def Init_defs intro!: necT [temp_use])
   done
 
-lemma S1Infinite: "[| sigma |= \<not>S1 rmhist p \<leadsto> S6 rmhist p;
-         sigma |= \<box>\<diamond>S6 rmhist p --> \<box>\<diamond>S1 rmhist p |]
-      ==> sigma |= \<box>\<diamond>S1 rmhist p"
+lemma S1Infinite: "\<lbrakk> sigma \<Turnstile> \<not>S1 rmhist p \<leadsto> S6 rmhist p;
+         sigma \<Turnstile> \<box>\<diamond>S6 rmhist p \<longrightarrow> \<box>\<diamond>S1 rmhist p \<rbrakk>
+      \<Longrightarrow> sigma \<Turnstile> \<box>\<diamond>S1 rmhist p"
   apply (rule classical)
   apply (tactic {* asm_lr_simp_tac (@{context} addsimps
     [temp_use @{context} @{thm NotBox}, temp_rewrite @{context} @{thm NotDmd}]) 1 *})
@@ -1204,12 +1204,12 @@ section "Refinement proof (step 1.5)"
    a. memory invariant
    b. "implementation invariant": always in states S1,...,S6
 *)
-lemma Step1_5_1a: "|- IPImp p --> (\<forall>l. \<box>$MemInv mm l)"
+lemma Step1_5_1a: "\<turnstile> IPImp p \<longrightarrow> (\<forall>l. \<box>$MemInv mm l)"
   by (auto simp: IPImp_def box_stp_act [temp_use] intro!: MemoryInvariantAll [temp_use])
 
-lemma Step1_5_1b: "|- Init(ImpInit p & HInit rmhist p) & \<box>(ImpNext p)
+lemma Step1_5_1b: "\<turnstile> Init(ImpInit p & HInit rmhist p) & \<box>(ImpNext p)
          & \<box>[HNext rmhist p]_(c p, r p, m p, rmhist!p) & \<box>(\<forall>l. $MemInv mm l)
-         --> \<box>ImpInv rmhist p"
+         \<longrightarrow> \<box>ImpInv rmhist p"
   apply invariant
    apply (auto simp: Init_def ImpInv_def box_stp_act [temp_use]
      dest!: Step1_1 [temp_use] dest: S1_successors [temp_use] S2_successors [temp_use]
@@ -1218,25 +1218,25 @@ lemma Step1_5_1b: "|- Init(ImpInit p & HInit rmhist p) & \<box>(ImpNext p)
   done
 
 (*** Initialization ***)
-lemma Step1_5_2a: "|- Init(ImpInit p & HInit rmhist p) --> Init(PInit (resbar rmhist) p)"
+lemma Step1_5_2a: "\<turnstile> Init(ImpInit p & HInit rmhist p) \<longrightarrow> Init(PInit (resbar rmhist) p)"
   by (auto simp: Init_def intro!: Step1_1 [temp_use] Step1_3  [temp_use])
 
 (*** step simulation ***)
-lemma Step1_5_2b: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
+lemma Step1_5_2b: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
          & $ImpInv rmhist p & (\<forall>l. $MemInv mm l))
-         --> \<box>[UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> \<box>[UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: ImpInv_def elim!: STL4E [temp_use]
     dest!: S1safe [temp_use] S2safe [temp_use] S3safe [temp_use] S4safe [temp_use]
     S5safe [temp_use] S6safe [temp_use])
 
 (*** Liveness ***)
-lemma GoodImpl: "|- IPImp p & HistP rmhist p
-         -->   Init(ImpInit p & HInit rmhist p)
+lemma GoodImpl: "\<turnstile> IPImp p & HistP rmhist p
+         \<longrightarrow>   Init(ImpInit p & HInit rmhist p)
              & \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
              & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p)
              & ImpLive p"
   apply clarsimp
-    apply (subgoal_tac "sigma |= Init (ImpInit p & HInit rmhist p) & \<box> (ImpNext p) &
+    apply (subgoal_tac "sigma \<Turnstile> Init (ImpInit p & HInit rmhist p) & \<box> (ImpNext p) &
       \<box>[HNext rmhist p]_ (c p, r p, m p, rmhist!p) & \<box> (\<forall>l. $MemInv mm l)")
    apply (auto simp: split_box_conj [try_rewrite] box_stp_act [try_rewrite]
        dest!: Step1_5_1b [temp_use])
@@ -1251,10 +1251,10 @@ lemma GoodImpl: "|- IPImp p & HistP rmhist p
   done
 
 (* The implementation is infinitely often in state S1... *)
-lemma Step1_5_3a: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+lemma Step1_5_3a: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
          & \<box>(\<forall>l. $MemInv mm l)
          & \<box>($ImpInv rmhist p) & ImpLive p
-         --> \<box>\<diamond>S1 rmhist p"
+         \<longrightarrow> \<box>\<diamond>S1 rmhist p"
   apply (clarsimp simp: ImpLive_def)
   apply (rule S1Infinite)
    apply (force simp: split_box_conj [try_rewrite] box_stp_act [try_rewrite]
@@ -1264,18 +1264,18 @@ lemma Step1_5_3a: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist
   done
 
 (* ... and therefore satisfies the fairness requirements of the specification *)
-lemma Step1_5_3b: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+lemma Step1_5_3b: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
          & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p) & ImpLive p
-         --> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto intro!: RNext_fair [temp_use] Step1_5_3a [temp_use])
 
-lemma Step1_5_3c: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+lemma Step1_5_3c: "\<turnstile> \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
          & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p) & ImpLive p
-         --> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
+         \<longrightarrow> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto intro!: Return_fair [temp_use] Step1_5_3a [temp_use])
 
 (* QED step of step 1 *)
-lemma Step1: "|- IPImp p & HistP rmhist p --> UPSpec memCh mm (resbar rmhist) p"
+lemma Step1: "\<turnstile> IPImp p & HistP rmhist p --> UPSpec memCh mm (resbar rmhist) p"
   by (auto simp: UPSpec_def split_box_conj [temp_use]
     dest!: GoodImpl [temp_use] intro!: Step1_5_2a [temp_use] Step1_5_2b [temp_use]
     Step1_5_3b [temp_use] Step1_5_3c [temp_use])
@@ -1283,10 +1283,10 @@ lemma Step1: "|- IPImp p & HistP rmhist p --> UPSpec memCh mm (resbar rmhist) p"
 (* ------------------------------ Step 2 ------------------------------ *)
 section "Step 2"
 
-lemma Step2_2a: "|- Write rmCh mm ires p l & ImpNext p
+lemma Step2_2a: "\<turnstile> Write rmCh mm ires p l & ImpNext p
          & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
          & $ImpInv rmhist p
-         --> (S4 rmhist p)$ & unchanged (e p, c p, r p, rmhist!p)"
+         \<longrightarrow> (S4 rmhist p)$ & unchanged (e p, c p, r p, rmhist!p)"
   apply clarsimp
   apply (drule WriteS4 [action_use])
    apply assumption
@@ -1296,26 +1296,26 @@ lemma Step2_2a: "|- Write rmCh mm ires p l & ImpNext p
      apply (auto simp: square_def dest: S4Write [temp_use])
   done
 
-lemma Step2_2: "|-   (\<forall>p. ImpNext p)
+lemma Step2_2: "\<turnstile>   (\<forall>p. ImpNext p)
          & (\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
          & (\<forall>p. $ImpInv rmhist p)
          & [\<exists>q. Write rmCh mm ires q l]_(mm!l)
-         --> [\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
+         \<longrightarrow> [\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
   apply (auto intro!: squareCI elim!: squareE)
   apply (assumption | rule exI Step1_4_4b [action_use])+
     apply (force intro!: WriteS4 [temp_use])
    apply (auto dest!: Step2_2a [temp_use])
   done
 
-lemma Step2_lemma: "|- \<box>(  (\<forall>p. ImpNext p)
+lemma Step2_lemma: "\<turnstile> \<box>(  (\<forall>p. ImpNext p)
             & (\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
             & (\<forall>p. $ImpInv rmhist p)
             & [\<exists>q. Write rmCh mm ires q l]_(mm!l))
-         --> \<box>[\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
+         \<longrightarrow> \<box>[\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
   by (force elim!: STL4E [temp_use] dest!: Step2_2 [temp_use])
 
-lemma Step2: "|- #l : #MemLoc & (\<forall>p. IPImp p & HistP rmhist p)
-         --> MSpec memCh mm (resbar rmhist) l"
+lemma Step2: "\<turnstile> #l : #MemLoc & (\<forall>p. IPImp p & HistP rmhist p)
+         \<longrightarrow> MSpec memCh mm (resbar rmhist) l"
   apply (auto simp: MSpec_def)
    apply (force simp: IPImp_def MSpec_def)
   apply (auto intro!: Step2_lemma [temp_use] simp: split_box_conj [temp_use] all_box [temp_use])
@@ -1334,12 +1334,12 @@ section "Memory implementation"
 (* Implementation of internal specification by combination of implementation
    and history variable with explicit refinement mapping
 *)
-lemma Impl_IUSpec: "|- Implementation & Hist rmhist --> IUSpec memCh mm (resbar rmhist)"
+lemma Impl_IUSpec: "\<turnstile> Implementation & Hist rmhist \<longrightarrow> IUSpec memCh mm (resbar rmhist)"
   by (auto simp: IUSpec_def Implementation_def IPImp_def MClkISpec_def
     RPCISpec_def IRSpec_def Hist_def intro!: Step1 [temp_use] Step2 [temp_use])
 
 (* The main theorem: introduce hiding and eliminate history variable. *)
-lemma Implementation: "|- Implementation --> USpec memCh"
+lemma Implementation: "\<turnstile> Implementation \<longrightarrow> USpec memCh"
   apply clarsimp
   apply (frule History [temp_use])
   apply (auto simp: USpec_def intro: eexI [temp_use] Impl_IUSpec [temp_use]

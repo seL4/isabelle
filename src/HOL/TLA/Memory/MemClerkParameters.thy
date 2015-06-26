@@ -17,12 +17,12 @@ type_synonym mClkRcvArgType = "rpcOp"
 
 definition
   (* translate a memory call to an RPC call *)
-  MClkRelayArg     :: "memOp => rpcOp"
+  MClkRelayArg     :: "memOp \<Rightarrow> rpcOp"
   where "MClkRelayArg marg = memcall marg"
 
 definition
   (* translate RPC failures to memory failures *)
-  MClkReplyVal     :: "Vals => Vals"
+  MClkReplyVal     :: "Vals \<Rightarrow> Vals"
   where "MClkReplyVal v = (if v = RPCFailure then MemFailure else v)"
 
 end

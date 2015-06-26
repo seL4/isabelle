@@ -25,8 +25,8 @@ consts
      is legal for the receiver (i.e., the memory). This can now be a little
      simpler than for the generic RPC component. RelayArg returns an arbitrary
      memory call for illegal arguments. *)
-  IsLegalRcvArg  :: "rpcOp => bool"
-  RPCRelayArg    :: "rpcOp => memOp"
+  IsLegalRcvArg  :: "rpcOp \<Rightarrow> bool"
+  RPCRelayArg    :: "rpcOp \<Rightarrow> memOp"
 
 axiomatization where
   (* RPCFailure is different from MemVals and exceptions *)
@@ -37,11 +37,11 @@ axiomatization where
 
 defs
   IsLegalRcvArg_def: "IsLegalRcvArg ra ==
-                         case ra of (memcall m) => True
-                                  | (othercall v) => False"
+                         case ra of (memcall m) \<Rightarrow> True
+                                  | (othercall v) \<Rightarrow> False"
   RPCRelayArg_def:   "RPCRelayArg ra ==
-                         case ra of (memcall m) => m
-                                  | (othercall v) => undefined"
+                         case ra of (memcall m) \<Rightarrow> m
+                                  | (othercall v) \<Rightarrow> undefined"
 
 lemmas [simp] = RFNoMemVal NotAResultNotRF OKNotRF BANotRF
   NotAResultNotRF [symmetric] OKNotRF [symmetric] BANotRF [symmetric]

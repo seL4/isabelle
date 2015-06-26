@@ -9,46 +9,46 @@ imports MemoryParameters ProcedureInterface
 begin
 
 type_synonym memChType = "(memOp, Vals) channel"
-type_synonym memType = "(Locs => Vals) stfun"  (* intention: MemLocs => MemVals *)
-type_synonym resType = "(PrIds => Vals) stfun"
+type_synonym memType = "(Locs \<Rightarrow> Vals) stfun"  (* intention: MemLocs \<Rightarrow> MemVals *)
+type_synonym resType = "(PrIds \<Rightarrow> Vals) stfun"
 
 consts
   (* state predicates *)
-  MInit      :: "memType => Locs => stpred"
-  PInit      :: "resType => PrIds => stpred"
+  MInit      :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
+  PInit      :: "resType \<Rightarrow> PrIds \<Rightarrow> stpred"
   (* auxiliary predicates: is there a pending read/write request for
      some process id and location/value? *)
-  RdRequest  :: "memChType => PrIds => Locs => stpred"
-  WrRequest  :: "memChType => PrIds => Locs => Vals => stpred"
+  RdRequest  :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> stpred"
+  WrRequest  :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> stpred"
 
   (* actions *)
-  GoodRead   :: "memType => resType => PrIds => Locs => action"
-  BadRead    :: "memType => resType => PrIds => Locs => action"
-  ReadInner  :: "memChType => memType => resType => PrIds => Locs => action"
-  Read       :: "memChType => memType => resType => PrIds => action"
-  GoodWrite  :: "memType => resType => PrIds => Locs => Vals => action"
-  BadWrite   :: "memType => resType => PrIds => Locs => Vals => action"
-  WriteInner :: "memChType => memType => resType => PrIds => Locs => Vals => action"
-  Write      :: "memChType => memType => resType => PrIds => Locs => action"
-  MemReturn  :: "memChType => resType => PrIds => action"
-  MemFail    :: "memChType => resType => PrIds => action"
-  RNext      :: "memChType => memType => resType => PrIds => action"
-  UNext      :: "memChType => memType => resType => PrIds => action"
+  GoodRead   :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  BadRead    :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  ReadInner  :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  Read       :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  GoodWrite  :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  BadWrite   :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  WriteInner :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  Write      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  MemReturn  :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  MemFail    :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  RNext      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  UNext      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
 
   (* temporal formulas *)
-  RPSpec     :: "memChType => memType => resType => PrIds => temporal"
-  UPSpec     :: "memChType => memType => resType => PrIds => temporal"
-  MSpec      :: "memChType => memType => resType => Locs => temporal"
-  IRSpec     :: "memChType => memType => resType => temporal"
-  IUSpec     :: "memChType => memType => resType => temporal"
+  RPSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
+  UPSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
+  MSpec      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> Locs \<Rightarrow> temporal"
+  IRSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
+  IUSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
 
-  RSpec      :: "memChType => resType => temporal"
-  USpec      :: "memChType => temporal"
+  RSpec      :: "memChType \<Rightarrow> resType \<Rightarrow> temporal"
+  USpec      :: "memChType \<Rightarrow> temporal"
 
   (* memory invariant: in the paper, the invariant is hidden in the definition of
      the predicate S used in the implementation proof, but it is easier to verify
      at this level. *)
-  MemInv    :: "memType => Locs => stpred"
+  MemInv    :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
 
 defs
   MInit_def:         "MInit mm l == PRED mm!l = #InitVal"
@@ -119,15 +119,15 @@ defs
                         & \<box>[ \<exists>p. Write ch mm rs p l ]_(mm!l)"
   IRSpec_def:        "IRSpec ch mm rs == TEMP
                         (\<forall>p. RPSpec ch mm rs p)
-                        & (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        & (\<forall>l. #l : #MemLoc \<longrightarrow> MSpec ch mm rs l)"
   IUSpec_def:        "IUSpec ch mm rs == TEMP
                         (\<forall>p. UPSpec ch mm rs p)
-                        & (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        & (\<forall>l. #l : #MemLoc \<longrightarrow> MSpec ch mm rs l)"
 
   RSpec_def:         "RSpec ch rs == TEMP (\<exists>\<exists>mm. IRSpec ch mm rs)"
   USpec_def:         "USpec ch == TEMP (\<exists>\<exists>mm rs. IUSpec ch mm rs)"
 
-  MemInv_def:        "MemInv mm l == PRED  #l : #MemLoc --> mm!l : #MemVal"
+  MemInv_def:        "MemInv mm l == PRED  #l : #MemLoc \<longrightarrow> mm!l : #MemVal"
 
 lemmas RM_action_defs =
   MInit_def PInit_def RdRequest_def WrRequest_def MemInv_def
@@ -142,19 +142,19 @@ lemmas UM_temp_defs = UPSpec_def MSpec_def IUSpec_def
 
 
 (* The reliable memory is an implementation of the unreliable one *)
-lemma ReliableImplementsUnReliable: "|- IRSpec ch mm rs --> IUSpec ch mm rs"
+lemma ReliableImplementsUnReliable: "\<turnstile> IRSpec ch mm rs \<longrightarrow> IUSpec ch mm rs"
   by (force simp: UNext_def UPSpec_def IUSpec_def RM_temp_defs elim!: STL4E [temp_use] squareE)
 
 (* The memory spec implies the memory invariant *)
-lemma MemoryInvariant: "|- MSpec ch mm rs l --> \<box>(MemInv mm l)"
+lemma MemoryInvariant: "\<turnstile> MSpec ch mm rs l \<longrightarrow> \<box>(MemInv mm l)"
   by (auto_invariant simp: RM_temp_defs RM_action_defs)
 
 (* The invariant is trivial for non-locations *)
-lemma NonMemLocInvariant: "|- #l \<notin> #MemLoc --> \<box>(MemInv mm l)"
+lemma NonMemLocInvariant: "\<turnstile> #l \<notin> #MemLoc \<longrightarrow> \<box>(MemInv mm l)"
   by (auto simp: MemInv_def intro!: necT [temp_use])
 
 lemma MemoryInvariantAll:
-    "|- (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l) --> (\<forall>l. \<box>(MemInv mm l))"
+    "\<turnstile> (\<forall>l. #l : #MemLoc \<longrightarrow> MSpec ch mm rs l) \<longrightarrow> (\<forall>l. \<box>(MemInv mm l))"
   apply clarify
   apply (auto elim!: MemoryInvariant [temp_use] NonMemLocInvariant [temp_use])
   done
@@ -164,17 +164,17 @@ lemma MemoryInvariantAll:
    We need this only for the reliable memory.
 *)
 
-lemma Memoryidle: "|- \<not>$(Calling ch p) --> \<not> RNext ch mm rs p"
+lemma Memoryidle: "\<turnstile> \<not>$(Calling ch p) \<longrightarrow> \<not> RNext ch mm rs p"
   by (auto simp: Return_def RM_action_defs)
 
 (* Enabledness conditions *)
 
-lemma MemReturn_change: "|- MemReturn ch rs p --> <MemReturn ch rs p>_(rtrner ch ! p, rs!p)"
+lemma MemReturn_change: "\<turnstile> MemReturn ch rs p \<longrightarrow> <MemReturn ch rs p>_(rtrner ch ! p, rs!p)"
   by (force simp: MemReturn_def angle_def)
 
-lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) ==>
-      |- Calling ch p & (rs!p \<noteq> #NotAResult)
-         --> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
+lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarrow>
+      \<turnstile> Calling ch p & (rs!p \<noteq> #NotAResult)
+         \<longrightarrow> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
   apply (tactic
     {* action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1 *})
   apply (tactic
@@ -182,34 +182,34 @@ lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) ==>
       @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
   done
 
-lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) ==>
-      |- Calling ch p & (arg<ch!p> = #(read l)) --> Enabled (ReadInner ch mm rs p l)"
+lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarrow>
+      \<turnstile> Calling ch p & (arg<ch!p> = #(read l)) \<longrightarrow> Enabled (ReadInner ch mm rs p l)"
   apply (case_tac "l : MemLoc")
   apply (force simp: ReadInner_def GoodRead_def BadRead_def RdRequest_def
     intro!: exI elim!: base_enabled [temp_use])+
   done
 
-lemma WriteInner_enabled: "\<And>p. basevars (mm!l, rtrner ch ! p, rs!p) ==>
-      |- Calling ch p & (arg<ch!p> = #(write l v))
-         --> Enabled (WriteInner ch mm rs p l v)"
+lemma WriteInner_enabled: "\<And>p. basevars (mm!l, rtrner ch ! p, rs!p) \<Longrightarrow>
+      \<turnstile> Calling ch p & (arg<ch!p> = #(write l v))
+         \<longrightarrow> Enabled (WriteInner ch mm rs p l v)"
   apply (case_tac "l:MemLoc & v:MemVal")
   apply (force simp: WriteInner_def GoodWrite_def BadWrite_def WrRequest_def
     intro!: exI elim!: base_enabled [temp_use])+
   done
 
-lemma ReadResult: "|- Read ch mm rs p & (\<forall>l. $(MemInv mm l)) --> (rs!p)` \<noteq> #NotAResult"
+lemma ReadResult: "\<turnstile> Read ch mm rs p & (\<forall>l. $(MemInv mm l)) \<longrightarrow> (rs!p)` \<noteq> #NotAResult"
   by (force simp: Read_def ReadInner_def GoodRead_def BadRead_def MemInv_def)
 
-lemma WriteResult: "|- Write ch mm rs p l --> (rs!p)` \<noteq> #NotAResult"
+lemma WriteResult: "\<turnstile> Write ch mm rs p l \<longrightarrow> (rs!p)` \<noteq> #NotAResult"
   by (auto simp: Write_def WriteInner_def GoodWrite_def BadWrite_def)
 
-lemma ReturnNotReadWrite: "|- (\<forall>l. $MemInv mm l) & MemReturn ch rs p
-         --> \<not> Read ch mm rs p & (\<forall>l. \<not> Write ch mm rs p l)"
+lemma ReturnNotReadWrite: "\<turnstile> (\<forall>l. $MemInv mm l) & MemReturn ch rs p
+         \<longrightarrow> \<not> Read ch mm rs p & (\<forall>l. \<not> Write ch mm rs p l)"
   by (auto simp: MemReturn_def dest!: WriteResult [temp_use] ReadResult [temp_use])
 
-lemma RWRNext_enabled: "|- (rs!p = #NotAResult) & (!l. MemInv mm l)
+lemma RWRNext_enabled: "\<turnstile> (rs!p = #NotAResult) & (!l. MemInv mm l)
          & Enabled (Read ch mm rs p | (\<exists>l. Write ch mm rs p l))
-         --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
+         \<longrightarrow> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   by (force simp: RNext_def angle_def elim!: enabled_mono2
     dest: ReadResult [temp_use] WriteResult [temp_use])
 
@@ -217,9 +217,9 @@ lemma RWRNext_enabled: "|- (rs!p = #NotAResult) & (!l. MemInv mm l)
 (* Combine previous lemmas: the memory can make a visible step if there is an
    outstanding call for which no result has been produced.
 *)
-lemma RNext_enabled: "\<And>p. \<forall>l. basevars (mm!l, rtrner ch!p, rs!p) ==>
-      |- (rs!p = #NotAResult) & Calling ch p & (\<forall>l. MemInv mm l)
-         --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
+lemma RNext_enabled: "\<And>p. \<forall>l. basevars (mm!l, rtrner ch!p, rs!p) \<Longrightarrow>
+      \<turnstile> (rs!p = #NotAResult) & Calling ch p & (\<forall>l. MemInv mm l)
+         \<longrightarrow> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
   apply (case_tac "arg (ch w p)")
    apply (tactic {* action_simp_tac (@{context} addsimps [@{thm Read_def},

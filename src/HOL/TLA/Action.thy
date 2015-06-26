@@ -12,40 +12,40 @@ begin
 
 (** abstract syntax **)
 
-type_synonym 'a trfun = "(state * state) => 'a"
+type_synonym 'a trfun = "(state * state) \<Rightarrow> 'a"
 type_synonym action   = "bool trfun"
 
 instance prod :: (world, world) world ..
 
 consts
   (** abstract syntax **)
-  before        :: "'a stfun => 'a trfun"
-  after         :: "'a stfun => 'a trfun"
-  unch          :: "'a stfun => action"
+  before        :: "'a stfun \<Rightarrow> 'a trfun"
+  after         :: "'a stfun \<Rightarrow> 'a trfun"
+  unch          :: "'a stfun \<Rightarrow> action"
 
-  SqAct         :: "[action, 'a stfun] => action"
-  AnAct         :: "[action, 'a stfun] => action"
-  enabled       :: "action => stpred"
+  SqAct         :: "[action, 'a stfun] \<Rightarrow> action"
+  AnAct         :: "[action, 'a stfun] \<Rightarrow> action"
+  enabled       :: "action \<Rightarrow> stpred"
 
 (** concrete syntax **)
 
 syntax
   (* Syntax for writing action expressions in arbitrary contexts *)
-  "_ACT"        :: "lift => 'a"                      ("(ACT _)")
+  "_ACT"        :: "lift \<Rightarrow> 'a"                      ("(ACT _)")
 
-  "_before"     :: "lift => lift"                    ("($_)"  [100] 99)
-  "_after"      :: "lift => lift"                    ("(_$)"  [100] 99)
-  "_unchanged"  :: "lift => lift"                    ("(unchanged _)" [100] 99)
+  "_before"     :: "lift \<Rightarrow> lift"                    ("($_)"  [100] 99)
+  "_after"      :: "lift \<Rightarrow> lift"                    ("(_$)"  [100] 99)
+  "_unchanged"  :: "lift \<Rightarrow> lift"                    ("(unchanged _)" [100] 99)
 
   (*** Priming: same as "after" ***)
-  "_prime"      :: "lift => lift"                    ("(_`)" [100] 99)
+  "_prime"      :: "lift \<Rightarrow> lift"                    ("(_`)" [100] 99)
 
-  "_SqAct"      :: "[lift, lift] => lift"            ("([_]'_(_))" [0,1000] 99)
-  "_AnAct"      :: "[lift, lift] => lift"            ("(<_>'_(_))" [0,1000] 99)
-  "_Enabled"    :: "lift => lift"                    ("(Enabled _)" [100] 100)
+  "_SqAct"      :: "[lift, lift] \<Rightarrow> lift"            ("([_]'_(_))" [0,1000] 99)
+  "_AnAct"      :: "[lift, lift] \<Rightarrow> lift"            ("(<_>'_(_))" [0,1000] 99)
+  "_Enabled"    :: "lift \<Rightarrow> lift"                    ("(Enabled _)" [100] 100)
 
 translations
-  "ACT A"            =>   "(A::state*state => _)"
+  "ACT A"            =>   "(A::state*state \<Rightarrow> _)"
   "_before"          ==   "CONST before"
   "_after"           ==   "CONST after"
   "_prime"           =>   "_after"
@@ -59,16 +59,16 @@ translations
   "w |= unchanged f" <=   "_unchanged f w"
 
 axiomatization where
-  unl_before:    "(ACT $v) (s,t) == v s" and
-  unl_after:     "(ACT v$) (s,t) == v t" and
+  unl_before:    "(ACT $v) (s,t) \<equiv> v s" and
+  unl_after:     "(ACT v$) (s,t) \<equiv> v t" and
 
-  unchanged_def: "(s,t) |= unchanged v == (v t = v s)"
+  unchanged_def: "(s,t) \<Turnstile> unchanged v \<equiv> (v t = v s)"
 
 defs
-  square_def:    "ACT [A]_v == ACT (A | unchanged v)"
-  angle_def:     "ACT <A>_v == ACT (A & \<not> unchanged v)"
+  square_def:    "ACT [A]_v \<equiv> ACT (A \<or> unchanged v)"
+  angle_def:     "ACT <A>_v \<equiv> ACT (A \<and> \<not> unchanged v)"
 
-  enabled_def:   "s |= Enabled A  ==  \<exists>u. (s,u) |= A"
+  enabled_def:   "s \<Turnstile> Enabled A  \<equiv>  \<exists>u. (s,u) \<Turnstile> A"
 
 
 (* The following assertion specializes "intI" for any world type
@@ -76,22 +76,22 @@ defs
 *)
 
 lemma actionI [intro!]:
-  assumes "\<And>s t. (s,t) |= A"
-  shows "|- A"
+  assumes "\<And>s t. (s,t) \<Turnstile> A"
+  shows "\<turnstile> A"
   apply (rule assms intI prod.induct)+
   done
 
-lemma actionD [dest]: "|- A ==> (s,t) |= A"
+lemma actionD [dest]: "\<turnstile> A \<Longrightarrow> (s,t) \<Turnstile> A"
   apply (erule intD)
   done
 
 lemma pr_rews [int_rewrite]:
-  "|- (#c)` = #c"
-  "\<And>f. |- f<x>` = f<x` >"
-  "\<And>f. |- f<x,y>` = f<x`,y` >"
-  "\<And>f. |- f<x,y,z>` = f<x`,y`,z` >"
-  "|- (\<forall>x. P x)` = (\<forall>x. (P x)`)"
-  "|- (\<exists>x. P x)` = (\<exists>x. (P x)`)"
+  "\<turnstile> (#c)` = #c"
+  "\<And>f. \<turnstile> f<x>` = f<x` >"
+  "\<And>f. \<turnstile> f<x,y>` = f<x`,y` >"
+  "\<And>f. \<turnstile> f<x,y,z>` = f<x`,y`,z` >"
+  "\<turnstile> (\<forall>x. P x)` = (\<forall>x. (P x)`)"
+  "\<turnstile> (\<exists>x. P x)` = (\<exists>x. (P x)`)"
   by (rule actionI, unfold unl_after intensional_rews, rule refl)+
 
 
@@ -112,7 +112,7 @@ fun action_unlift ctxt th =
   (rewrite_rule ctxt @{thms action_rews} (th RS @{thm actionD}))
     handle THM _ => int_unlift ctxt th;
 
-(* Turn  |- A = B  into meta-level rewrite rule  A == B *)
+(* Turn  \<turnstile> A = B  into meta-level rewrite rule  A == B *)
 val action_rewrite = int_rewrite
 
 fun action_use ctxt th =
@@ -132,69 +132,69 @@ attribute_setup action_use =
 
 (* =========================== square / angle brackets =========================== *)
 
-lemma idle_squareI: "(s,t) |= unchanged v ==> (s,t) |= [A]_v"
+lemma idle_squareI: "(s,t) \<Turnstile> unchanged v \<Longrightarrow> (s,t) \<Turnstile> [A]_v"
   by (simp add: square_def)
 
-lemma busy_squareI: "(s,t) |= A ==> (s,t) |= [A]_v"
+lemma busy_squareI: "(s,t) \<Turnstile> A \<Longrightarrow> (s,t) \<Turnstile> [A]_v"
   by (simp add: square_def)
 
 lemma squareE [elim]:
-  "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)"
+  "\<lbrakk> (s,t) \<Turnstile> [A]_v; A (s,t) \<Longrightarrow> B (s,t); v t = v s \<Longrightarrow> B (s,t) \<rbrakk> \<Longrightarrow> B (s,t)"
   apply (unfold square_def action_rews)
   apply (erule disjE)
   apply simp_all
   done
 
-lemma squareCI [intro]: "[| v t \<noteq> v s ==> A (s,t) |] ==> (s,t) |= [A]_v"
+lemma squareCI [intro]: "\<lbrakk> v t \<noteq> v s \<Longrightarrow> A (s,t) \<rbrakk> \<Longrightarrow> (s,t) \<Turnstile> [A]_v"
   apply (unfold square_def action_rews)
   apply (rule disjCI)
   apply (erule (1) meta_mp)
   done
 
-lemma angleI [intro]: "\<And>s t. [| A (s,t); v t \<noteq> v s |] ==> (s,t) |= <A>_v"
+lemma angleI [intro]: "\<And>s t. \<lbrakk> A (s,t); v t \<noteq> v s \<rbrakk> \<Longrightarrow> (s,t) \<Turnstile> <A>_v"
   by (simp add: angle_def)
 
-lemma angleE [elim]: "[| (s,t) |= <A>_v; [| A (s,t); v t \<noteq> v s |] ==> R |] ==> R"
+lemma angleE [elim]: "\<lbrakk> (s,t) \<Turnstile> <A>_v; \<lbrakk> A (s,t); v t \<noteq> v s \<rbrakk> \<Longrightarrow> R \<rbrakk> \<Longrightarrow> R"
   apply (unfold angle_def action_rews)
   apply (erule conjE)
   apply simp
   done
 
 lemma square_simulation:
-   "\<And>f. [| |- unchanged f & \<not>B --> unchanged g;
-            |- A & \<not>unchanged g --> B
-         |] ==> |- [A]_f --> [B]_g"
+   "\<And>f. \<lbrakk> \<turnstile> unchanged f & \<not>B \<longrightarrow> unchanged g;
+            \<turnstile> A & \<not>unchanged g \<longrightarrow> B
+         \<rbrakk> \<Longrightarrow> \<turnstile> [A]_f \<longrightarrow> [B]_g"
   apply clarsimp
   apply (erule squareE)
   apply (auto simp add: square_def)
   done
 
-lemma not_square: "|- (\<not> [A]_v) = <\<not>A>_v"
+lemma not_square: "\<turnstile> (\<not> [A]_v) = <\<not>A>_v"
   by (auto simp: square_def angle_def)
 
-lemma not_angle: "|- (\<not> <A>_v) = [\<not>A]_v"
+lemma not_angle: "\<turnstile> (\<not> <A>_v) = [\<not>A]_v"
   by (auto simp: square_def angle_def)
 
 
 (* ============================== Facts about ENABLED ============================== *)
 
-lemma enabledI: "|- A --> $Enabled A"
+lemma enabledI: "\<turnstile> A \<longrightarrow> $Enabled A"
   by (auto simp add: enabled_def)
 
-lemma enabledE: "[| s |= Enabled A; \<And>u. A (s,u) ==> Q |] ==> Q"
+lemma enabledE: "\<lbrakk> s \<Turnstile> Enabled A; \<And>u. A (s,u) \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   apply (unfold enabled_def)
   apply (erule exE)
   apply simp
   done
 
-lemma notEnabledD: "|- \<not>$Enabled G --> \<not> G"
+lemma notEnabledD: "\<turnstile> \<not>$Enabled G \<longrightarrow> \<not> G"
   by (auto simp add: enabled_def)
 
 (* Monotonicity *)
 lemma enabled_mono:
-  assumes min: "s |= Enabled F"
-    and maj: "|- F --> G"
-  shows "s |= Enabled G"
+  assumes min: "s \<Turnstile> Enabled F"
+    and maj: "\<turnstile> F \<longrightarrow> G"
+  shows "s \<Turnstile> Enabled G"
   apply (rule min [THEN enabledE])
   apply (rule enabledI [action_use])
   apply (erule maj [action_use])
@@ -202,50 +202,50 @@ lemma enabled_mono:
 
 (* stronger variant *)
 lemma enabled_mono2:
-  assumes min: "s |= Enabled F"
-    and maj: "\<And>t. F (s,t) ==> G (s,t)"
-  shows "s |= Enabled G"
+  assumes min: "s \<Turnstile> Enabled F"
+    and maj: "\<And>t. F (s,t) \<Longrightarrow> G (s,t)"
+  shows "s \<Turnstile> Enabled G"
   apply (rule min [THEN enabledE])
   apply (rule enabledI [action_use])
   apply (erule maj)
   done
 
-lemma enabled_disj1: "|- Enabled F --> Enabled (F | G)"
+lemma enabled_disj1: "\<turnstile> Enabled F \<longrightarrow> Enabled (F | G)"
   by (auto elim!: enabled_mono)
 
-lemma enabled_disj2: "|- Enabled G --> Enabled (F | G)"
+lemma enabled_disj2: "\<turnstile> Enabled G \<longrightarrow> Enabled (F | G)"
   by (auto elim!: enabled_mono)
 
-lemma enabled_conj1: "|- Enabled (F & G) --> Enabled F"
+lemma enabled_conj1: "\<turnstile> Enabled (F & G) \<longrightarrow> Enabled F"
   by (auto elim!: enabled_mono)
 
-lemma enabled_conj2: "|- Enabled (F & G) --> Enabled G"
+lemma enabled_conj2: "\<turnstile> Enabled (F & G) \<longrightarrow> Enabled G"
   by (auto elim!: enabled_mono)
 
 lemma enabled_conjE:
-    "[| s |= Enabled (F & G); [| s |= Enabled F; s |= Enabled G |] ==> Q |] ==> Q"
+    "\<lbrakk> s \<Turnstile> Enabled (F & G); \<lbrakk> s \<Turnstile> Enabled F; s \<Turnstile> Enabled G \<rbrakk> \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   apply (frule enabled_conj1 [action_use])
   apply (drule enabled_conj2 [action_use])
   apply simp
   done
 
-lemma enabled_disjD: "|- Enabled (F | G) --> Enabled F | Enabled G"
+lemma enabled_disjD: "\<turnstile> Enabled (F | G) \<longrightarrow> Enabled F | Enabled G"
   by (auto simp add: enabled_def)
 
-lemma enabled_disj: "|- Enabled (F | G) = (Enabled F | Enabled G)"
+lemma enabled_disj: "\<turnstile> Enabled (F | G) = (Enabled F | Enabled G)"
   apply clarsimp
   apply (rule iffI)
    apply (erule enabled_disjD [action_use])
   apply (erule disjE enabled_disj1 [action_use] enabled_disj2 [action_use])+
   done
 
-lemma enabled_ex: "|- Enabled (\<exists>x. F x) = (\<exists>x. Enabled (F x))"
+lemma enabled_ex: "\<turnstile> Enabled (\<exists>x. F x) = (\<exists>x. Enabled (F x))"
   by (force simp add: enabled_def)
 
 
 (* A rule that combines enabledI and baseE, but generates fewer instantiations *)
 lemma base_enabled:
-    "[| basevars vs; \<exists>c. \<forall>u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
+    "\<lbrakk> basevars vs; \<exists>c. \<forall>u. vs u = c \<longrightarrow> A(s,u) \<rbrakk> \<Longrightarrow> s \<Turnstile> Enabled A"
   apply (erule exE)
   apply (erule baseE)
   apply (rule enabledI [action_use])
@@ -294,7 +294,7 @@ method_setup enabled = {*
 
 lemma
   assumes "basevars (x,y,z)"
-  shows "|- x --> Enabled ($x & (y$ = #False))"
+  shows "\<turnstile> x \<longrightarrow> Enabled ($x & (y$ = #False))"
   apply (enabled assms)
   apply auto
   done

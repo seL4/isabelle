@@ -40,7 +40,7 @@ lemmas [simp] =
   NotAResultNotOK NotAResultNotBA NotAResultNotMF
   NotAResultNotOK [symmetric] NotAResultNotBA [symmetric] NotAResultNotMF [symmetric]
 
-lemma MemValNotAResultE: "[| x : MemVal; (x \<noteq> NotAResult ==> P) |] ==> P"
+lemma MemValNotAResultE: "\<lbrakk> x \<in> MemVal; (x \<noteq> NotAResult \<Longrightarrow> P) \<rbrakk> \<Longrightarrow> P"
   using NotAResultNotVal by blast
 
 end
