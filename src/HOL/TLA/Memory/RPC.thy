@@ -28,7 +28,7 @@ consts
   RPCISpec   :: "rpcSndChType => rpcRcvChType => rpcStType => temporal"
 
 defs
-  RPCInit_def:       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) & ~Calling rcv p)"
+  RPCInit_def:       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) & \<not>Calling rcv p)"
 
   RPCFwd_def:        "RPCFwd send rcv rst p == ACT
                          $(Calling send p)
@@ -40,18 +40,18 @@ defs
 
   RPCReject_def:     "RPCReject send rcv rst p == ACT
                            $(rst!p) = # rpcA
-                         & ~IsLegalRcvArg<arg<$(send!p)>>
+                         & \<not>IsLegalRcvArg<arg<$(send!p)>>
                          & Return send p #BadCall
                          & unchanged ((rst!p), (caller rcv!p))"
 
   RPCFail_def:       "RPCFail send rcv rst p == ACT
-                           ~$(Calling rcv p)
+                           \<not>$(Calling rcv p)
                          & Return send p #RPCFailure
                          & (rst!p)$ = #rpcA
                          & unchanged (caller rcv!p)"
 
   RPCReply_def:      "RPCReply send rcv rst p == ACT
-                           ~$(Calling rcv p)
+                           \<not>$(Calling rcv p)
                          & $(rst!p) = #rpcB
                          & Return send p res<rcv!p>
                          & (rst!p)$ = #rpcA
@@ -65,10 +65,10 @@ defs
 
   RPCIPSpec_def:     "RPCIPSpec send rcv rst p == TEMP
                            Init RPCInit rcv rst p
-                         & [][ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
+                         & \<box>[ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
                          & WF(RPCNext send rcv rst p)_(rst!p, rtrner send!p, caller rcv!p)"
 
-  RPCISpec_def:      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
+  RPCISpec_def:      "RPCISpec send rcv rst == TEMP (\<forall>p. RPCIPSpec send rcv rst p)"
 
 
 lemmas RPC_action_defs =
@@ -81,10 +81,10 @@ lemmas RPC_temp_defs = RPCIPSpec_def RPCISpec_def
    unanswered call for that process.
 *)
 
-lemma RPCidle: "|- ~$(Calling send p) --> ~RPCNext send rcv rst p"
+lemma RPCidle: "|- \<not>$(Calling send p) --> \<not>RPCNext send rcv rst p"
   by (auto simp: Return_def RPC_action_defs)
 
-lemma RPCbusy: "|- $(Calling rcv p) & $(rst!p) = #rpcB --> ~RPCNext send rcv rst p"
+lemma RPCbusy: "|- $(Calling rcv p) & $(rst!p) = #rpcB --> \<not>RPCNext send rcv rst p"
   by (auto simp: RPC_action_defs)
 
 (* RPC failure actions are visible. *)
@@ -97,14 +97,14 @@ lemma RPCFail_Next_enabled: "|- Enabled (RPCFail send rcv rst p) -->
   by (force elim!: enabled_mono [temp_use] RPCFail_vis [temp_use])
 
 (* Enabledness of some actions *)
-lemma RPCFail_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
-    |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
+lemma RPCFail_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
+    |- \<not>Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
 
-lemma RPCReply_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
-      |- ~Calling rcv p & Calling send p & rst!p = #rpcB  
+lemma RPCReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
+      |- \<not>Calling rcv p & Calling send p & rst!p = #rpcB  
          --> Enabled (RPCReply send rcv rst p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]

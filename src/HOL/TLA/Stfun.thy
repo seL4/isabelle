@@ -50,13 +50,13 @@ defs
   basevars_def:  "stvars vs == range vs = UNIV"
 
 
-lemma basevars: "!!vs. basevars vs ==> EX u. vs u = c"
+lemma basevars: "\<And>vs. basevars vs ==> \<exists>u. vs u = c"
   apply (unfold basevars_def)
   apply (rule_tac b = c and f = vs in rangeE)
    apply auto
   done
 
-lemma base_pair1: "!!x y. basevars (x,y) ==> basevars x"
+lemma base_pair1: "\<And>x y. basevars (x,y) ==> basevars x"
   apply (simp (no_asm) add: basevars_def)
   apply (rule equalityI)
    apply (rule subset_UNIV)
@@ -65,7 +65,7 @@ lemma base_pair1: "!!x y. basevars (x,y) ==> basevars x"
   apply auto
   done
 
-lemma base_pair2: "!!x y. basevars (x,y) ==> basevars y"
+lemma base_pair2: "\<And>x y. basevars (x,y) ==> basevars y"
   apply (simp (no_asm) add: basevars_def)
   apply (rule equalityI)
    apply (rule subset_UNIV)
@@ -74,7 +74,7 @@ lemma base_pair2: "!!x y. basevars (x,y) ==> basevars y"
   apply auto
   done
 
-lemma base_pair: "!!x y. basevars (x,y) ==> basevars x & basevars y"
+lemma base_pair: "\<And>x y. basevars (x,y) ==> basevars x & basevars y"
   apply (rule conjI)
   apply (erule base_pair1)
   apply (erule base_pair2)
@@ -89,7 +89,7 @@ lemma unit_base: "basevars (v::unit stfun)"
   apply auto
   done
 
-lemma baseE: "[| basevars v; !!x. v x = c ==> Q |] ==> Q"
+lemma baseE: "[| basevars v; \<And>x. v x = c ==> Q |] ==> Q"
   apply (erule basevars [THEN exE])
   apply blast
   done
@@ -99,7 +99,7 @@ lemma baseE: "[| basevars v; !!x. v x = c ==> Q |] ==> Q"
    The following shows that there should not be duplicates in a "stvars" tuple:
 *)
 
-lemma "!!v. basevars (v::bool stfun, v) ==> False"
+lemma "\<And>v. basevars (v::bool stfun, v) ==> False"
   apply (erule baseE)
   apply (subgoal_tac "(LIFT (v,v)) x = (True, False)")
    prefer 2

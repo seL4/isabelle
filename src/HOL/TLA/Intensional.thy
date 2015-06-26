@@ -39,7 +39,7 @@ syntax
   ""            :: "var => lift"                         ("_")
   "_applC"      :: "[lift, cargs] => lift"               ("(1_/ _)" [1000, 1000] 999)
   ""            :: "lift => lift"                        ("'(_')")
-  "_lambda"     :: "[idts, 'a] => lift"                  ("(3%_./ _)" [0, 3] 3)
+  "_lambda"     :: "[idts, 'a] => lift"                  ("(3\<lambda>_./ _)" [0, 3] 3)
   "_constrain"  :: "[lift, type] => lift"                ("(_::_)" [4, 0] 3)
   ""            :: "lift => liftargs"                    ("_")
   "_liftargs"   :: "[lift, liftargs] => liftargs"        ("_,/ _")
@@ -155,29 +155,17 @@ syntax (xsymbols)
   "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
   "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
 
-syntax (HTML output)
-  "_liftNeq"    :: "[lift, lift] => lift"                (infixl "\<noteq>" 50)
-  "_liftNot"    :: "lift => lift"                        ("\<not> _" [40] 40)
-  "_liftAnd"    :: "[lift, lift] => lift"                (infixr "\<and>" 35)
-  "_liftOr"     :: "[lift, lift] => lift"                (infixr "\<or>" 30)
-  "_RAll"       :: "[idts, lift] => lift"                ("(3\<forall>_./ _)" [0, 10] 10)
-  "_REx"        :: "[idts, lift] => lift"                ("(3\<exists>_./ _)" [0, 10] 10)
-  "_REx1"       :: "[idts, lift] => lift"                ("(3\<exists>!_./ _)" [0, 10] 10)
-  "_liftLeq"    :: "[lift, lift] => lift"                ("(_/ \<le> _)" [50, 51] 50)
-  "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
-  "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
-
 defs
-  Valid_def:   "|- A    ==  ALL w. w |= A"
+  Valid_def:   "|- A    ==  \<forall>w. w |= A"
 
   unl_con:     "LIFT #c w  ==  c"
   unl_lift:    "lift f x w == f (x w)"
   unl_lift2:   "LIFT f<x, y> w == f (x w) (y w)"
   unl_lift3:   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
 
-  unl_Rall:    "w |= ALL x. A x  ==  ALL x. (w |= A x)"
-  unl_Rex:     "w |= EX x. A x   ==  EX x. (w |= A x)"
-  unl_Rex1:    "w |= EX! x. A x  ==  EX! x. (w |= A x)"
+  unl_Rall:    "w |= \<forall>x. A x  ==  \<forall>x. (w |= A x)"
+  unl_Rex:     "w |= \<exists>x. A x   ==  \<exists> x. (w |= A x)"
+  unl_Rex1:    "w |= \<exists>!x. A x  ==  \<exists>!x. (w |= A x)"
 
 
 subsection {* Lemmas and tactics for "intensional" logics. *}
@@ -192,7 +180,7 @@ lemma inteq_reflection: "|- x=y  ==>  (x==y)"
   apply (erule spec)
   done
 
-lemma intI [intro!]: "(!!w. w |= A) ==> |- A"
+lemma intI [intro!]: "(\<And>w. w |= A) ==> |- A"
   apply (unfold Valid_def)
   apply (rule allI)
   apply (erule meta_spec)
@@ -207,21 +195,21 @@ lemma intD [dest]: "|- A ==> w |= A"
 
 lemma int_simps:
   "|- (x=x) = #True"
-  "|- (~#True) = #False"  "|- (~#False) = #True"  "|- (~~ P) = P"
-  "|- ((~P) = P) = #False"  "|- (P = (~P)) = #False"
-  "|- (P ~= Q) = (P = (~Q))"
+  "|- (\<not>#True) = #False"  "|- (\<not>#False) = #True"  "|- (\<not>\<not> P) = P"
+  "|- ((\<not>P) = P) = #False"  "|- (P = (\<not>P)) = #False"
+  "|- (P \<noteq> Q) = (P = (\<not>Q))"
   "|- (#True=P) = P"  "|- (P=#True) = P"
   "|- (#True --> P) = P"  "|- (#False --> P) = #True"
   "|- (P --> #True) = #True"  "|- (P --> P) = #True"
-  "|- (P --> #False) = (~P)"  "|- (P --> ~P) = (~P)"
+  "|- (P --> #False) = (\<not>P)"  "|- (P --> \<not>P) = (\<not>P)"
   "|- (P & #True) = P"  "|- (#True & P) = P"
   "|- (P & #False) = #False"  "|- (#False & P) = #False"
-  "|- (P & P) = P"  "|- (P & ~P) = #False"  "|- (~P & P) = #False"
+  "|- (P & P) = P"  "|- (P & \<not>P) = #False"  "|- (\<not>P & P) = #False"
   "|- (P | #True) = #True"  "|- (#True | P) = #True"
   "|- (P | #False) = P"  "|- (#False | P) = P"
-  "|- (P | P) = P"  "|- (P | ~P) = #True"  "|- (~P | P) = #True"
-  "|- (! x. P) = P"  "|- (? x. P) = P"
-  "|- (~Q --> ~P) = (P --> Q)"
+  "|- (P | P) = P"  "|- (P | \<not>P) = #True"  "|- (\<not>P | P) = #True"
+  "|- (\<forall>x. P) = P"  "|- (\<exists>x. P) = P"
+  "|- (\<not>Q --> \<not>P) = (P --> Q)"
   "|- (P|Q --> R) = ((P-->R)&(Q-->R))"
   apply (unfold Valid_def intensional_rews)
   apply blast+
@@ -296,10 +284,10 @@ attribute_setup flatten = {* Scan.succeed (Thm.rule_attribute (K flatten)) *}
 attribute_setup int_use =
   {* Scan.succeed (Thm.rule_attribute (int_use o Context.proof_of)) *}
 
-lemma Not_Rall: "|- (~(! x. F x)) = (? x. ~F x)"
+lemma Not_Rall: "|- (\<not>(\<forall>x. F x)) = (\<exists>x. \<not>F x)"
   by (simp add: Valid_def)
 
-lemma Not_Rex: "|- (~ (? x. F x)) = (! x. ~ F x)"
+lemma Not_Rex: "|- (\<not> (\<exists>x. F x)) = (\<forall>x. \<not> F x)"
   by (simp add: Valid_def)
 
 end

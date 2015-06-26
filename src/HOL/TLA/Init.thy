@@ -36,9 +36,9 @@ defs
   Init_def:    "sigma |= Init F  ==  (first_world sigma) |= F"
 
 defs (overloaded)
-  fw_temp_def: "first_world == %sigma. sigma"
+  fw_temp_def: "first_world == \<lambda>sigma. sigma"
   fw_stp_def:  "first_world == st1"
-  fw_act_def:  "first_world == %sigma. (st1 sigma, st2 sigma)"
+  fw_act_def:  "first_world == \<lambda>sigma. (st1 sigma, st2 sigma)"
 
 lemma const_simps [int_rewrite, simp]:
   "|- (Init #True) = #True"
@@ -46,14 +46,14 @@ lemma const_simps [int_rewrite, simp]:
   by (auto simp: Init_def)
 
 lemma Init_simps1 [int_rewrite]:
-  "!!F. |- (Init ~F) = (~ Init F)"
+  "\<And>F. |- (Init \<not>F) = (\<not> Init F)"
   "|- (Init (P --> Q)) = (Init P --> Init Q)"
   "|- (Init (P & Q)) = (Init P & Init Q)"
   "|- (Init (P | Q)) = (Init P | Init Q)"
   "|- (Init (P = Q)) = ((Init P) = (Init Q))"
-  "|- (Init (!x. F x)) = (!x. (Init F x))"
-  "|- (Init (? x. F x)) = (? x. (Init F x))"
-  "|- (Init (?! x. F x)) = (?! x. (Init F x))"
+  "|- (Init (\<forall>x. F x)) = (\<forall>x. (Init F x))"
+  "|- (Init (\<exists>x. F x)) = (\<exists>x. (Init F x))"
+  "|- (Init (\<exists>!x. F x)) = (\<exists>!x. (Init F x))"
   by (auto simp: Init_def)
 
 lemma Init_stp_act: "|- (Init $P) = (Init P)"

@@ -27,20 +27,20 @@ consts
 
 axiomatization where
   (* basic assumptions about the above constants and predicates *)
-  BadArgNoMemVal:    "BadArg ~: MemVal" and
-  MemFailNoMemVal:   "MemFailure ~: MemVal" and
+  BadArgNoMemVal:    "BadArg \<notin> MemVal" and
+  MemFailNoMemVal:   "MemFailure \<notin> MemVal" and
   InitValMemVal:     "InitVal : MemVal" and
-  NotAResultNotVal:  "NotAResult ~: MemVal" and
-  NotAResultNotOK:   "NotAResult ~= OK" and
-  NotAResultNotBA:   "NotAResult ~= BadArg" and
-  NotAResultNotMF:   "NotAResult ~= MemFailure"
+  NotAResultNotVal:  "NotAResult \<notin> MemVal" and
+  NotAResultNotOK:   "NotAResult \<noteq> OK" and
+  NotAResultNotBA:   "NotAResult \<noteq> BadArg" and
+  NotAResultNotMF:   "NotAResult \<noteq> MemFailure"
 
 lemmas [simp] =
   BadArgNoMemVal MemFailNoMemVal InitValMemVal NotAResultNotVal
   NotAResultNotOK NotAResultNotBA NotAResultNotMF
   NotAResultNotOK [symmetric] NotAResultNotBA [symmetric] NotAResultNotMF [symmetric]
 
-lemma MemValNotAResultE: "[| x : MemVal; (x ~= NotAResult ==> P) |] ==> P"
+lemma MemValNotAResultE: "[| x : MemVal; (x \<noteq> NotAResult ==> P) |] ==> P"
   using NotAResultNotVal by blast
 
 end

@@ -63,31 +63,31 @@ defs
                         #l : #MemLoc & ((rs!p)$ = $(mm!l))"
   (* a read that raises BadArg *)
   BadRead_def:       "BadRead mm rs p l == ACT
-                        #l ~: #MemLoc & ((rs!p)$ = #BadArg)"
+                        #l \<notin> #MemLoc & ((rs!p)$ = #BadArg)"
   (* the read action with l visible *)
   ReadInner_def:     "ReadInner ch mm rs p l == ACT
                          $(RdRequest ch p l)
                          & (GoodRead mm rs p l  |  BadRead mm rs p l)
                          & unchanged (rtrner ch ! p)"
   (* the read action with l quantified *)
-  Read_def:          "Read ch mm rs p == ACT (EX l. ReadInner ch mm rs p l)"
+  Read_def:          "Read ch mm rs p == ACT (\<exists>l. ReadInner ch mm rs p l)"
 
   (* similar definitions for the write action *)
   GoodWrite_def:     "GoodWrite mm rs p l v == ACT
                         #l : #MemLoc & #v : #MemVal
                         & ((mm!l)$ = #v) & ((rs!p)$ = #OK)"
   BadWrite_def:      "BadWrite mm rs p l v == ACT
-                        ~ (#l : #MemLoc & #v : #MemVal)
+                        \<not> (#l : #MemLoc & #v : #MemVal)
                         & ((rs!p)$ = #BadArg) & unchanged (mm!l)"
   WriteInner_def:    "WriteInner ch mm rs p l v == ACT
                         $(WrRequest ch p l v)
                         & (GoodWrite mm rs p l v  |  BadWrite mm rs p l v)
                         & unchanged (rtrner ch ! p)"
-  Write_def:         "Write ch mm rs p l == ACT (EX v. WriteInner ch mm rs p l v)"
+  Write_def:         "Write ch mm rs p l == ACT (\<exists>v. WriteInner ch mm rs p l v)"
 
   (* the return action *)
   MemReturn_def:     "MemReturn ch rs p == ACT
-                       (   ($(rs!p) ~= #NotAResult)
+                       (   ($(rs!p) \<noteq> #NotAResult)
                         & ((rs!p)$ = #NotAResult)
                         & Return ch p (rs!p))"
 
@@ -99,33 +99,33 @@ defs
   (* next-state relations for reliable / unreliable memory *)
   RNext_def:         "RNext ch mm rs p == ACT
                        (  Read ch mm rs p
-                        | (EX l. Write ch mm rs p l)
+                        | (\<exists>l. Write ch mm rs p l)
                         | MemReturn ch rs p)"
   UNext_def:         "UNext ch mm rs p == ACT
                         (RNext ch mm rs p | MemFail ch rs p)"
 
   RPSpec_def:        "RPSpec ch mm rs p == TEMP
                         Init(PInit rs p)
-                        & [][ RNext ch mm rs p ]_(rtrner ch ! p, rs!p)
+                        & \<box>[ RNext ch mm rs p ]_(rtrner ch ! p, rs!p)
                         & WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
                         & WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
   UPSpec_def:        "UPSpec ch mm rs p == TEMP
                         Init(PInit rs p)
-                        & [][ UNext ch mm rs p ]_(rtrner ch ! p, rs!p)
+                        & \<box>[ UNext ch mm rs p ]_(rtrner ch ! p, rs!p)
                         & WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
                         & WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
   MSpec_def:         "MSpec ch mm rs l == TEMP
                         Init(MInit mm l)
-                        & [][ EX p. Write ch mm rs p l ]_(mm!l)"
+                        & \<box>[ \<exists>p. Write ch mm rs p l ]_(mm!l)"
   IRSpec_def:        "IRSpec ch mm rs == TEMP
-                        (ALL p. RPSpec ch mm rs p)
-                        & (ALL l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        (\<forall>p. RPSpec ch mm rs p)
+                        & (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l)"
   IUSpec_def:        "IUSpec ch mm rs == TEMP
-                        (ALL p. UPSpec ch mm rs p)
-                        & (ALL l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        (\<forall>p. UPSpec ch mm rs p)
+                        & (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l)"
 
-  RSpec_def:         "RSpec ch rs == TEMP (EEX mm. IRSpec ch mm rs)"
-  USpec_def:         "USpec ch == TEMP (EEX mm rs. IUSpec ch mm rs)"
+  RSpec_def:         "RSpec ch rs == TEMP (\<exists>\<exists>mm. IRSpec ch mm rs)"
+  USpec_def:         "USpec ch == TEMP (\<exists>\<exists>mm rs. IUSpec ch mm rs)"
 
   MemInv_def:        "MemInv mm l == PRED  #l : #MemLoc --> mm!l : #MemVal"
 
@@ -146,15 +146,15 @@ lemma ReliableImplementsUnReliable: "|- IRSpec ch mm rs --> IUSpec ch mm rs"
   by (force simp: UNext_def UPSpec_def IUSpec_def RM_temp_defs elim!: STL4E [temp_use] squareE)
 
 (* The memory spec implies the memory invariant *)
-lemma MemoryInvariant: "|- MSpec ch mm rs l --> [](MemInv mm l)"
+lemma MemoryInvariant: "|- MSpec ch mm rs l --> \<box>(MemInv mm l)"
   by (auto_invariant simp: RM_temp_defs RM_action_defs)
 
 (* The invariant is trivial for non-locations *)
-lemma NonMemLocInvariant: "|- #l ~: #MemLoc --> [](MemInv mm l)"
+lemma NonMemLocInvariant: "|- #l \<notin> #MemLoc --> \<box>(MemInv mm l)"
   by (auto simp: MemInv_def intro!: necT [temp_use])
 
 lemma MemoryInvariantAll:
-    "|- (ALL l. #l : #MemLoc --> MSpec ch mm rs l) --> (ALL l. [](MemInv mm l))"
+    "|- (\<forall>l. #l : #MemLoc --> MSpec ch mm rs l) --> (\<forall>l. \<box>(MemInv mm l))"
   apply clarify
   apply (auto elim!: MemoryInvariant [temp_use] NonMemLocInvariant [temp_use])
   done
@@ -164,7 +164,7 @@ lemma MemoryInvariantAll:
    We need this only for the reliable memory.
 *)
 
-lemma Memoryidle: "|- ~$(Calling ch p) --> ~ RNext ch mm rs p"
+lemma Memoryidle: "|- \<not>$(Calling ch p) --> \<not> RNext ch mm rs p"
   by (auto simp: Return_def RM_action_defs)
 
 (* Enabledness conditions *)
@@ -172,8 +172,8 @@ lemma Memoryidle: "|- ~$(Calling ch p) --> ~ RNext ch mm rs p"
 lemma MemReturn_change: "|- MemReturn ch rs p --> <MemReturn ch rs p>_(rtrner ch ! p, rs!p)"
   by (force simp: MemReturn_def angle_def)
 
-lemma MemReturn_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
-      |- Calling ch p & (rs!p ~= #NotAResult)
+lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) ==>
+      |- Calling ch p & (rs!p \<noteq> #NotAResult)
          --> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
   apply (tactic
     {* action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1 *})
@@ -182,14 +182,14 @@ lemma MemReturn_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
       @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
   done
 
-lemma ReadInner_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
+lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) ==>
       |- Calling ch p & (arg<ch!p> = #(read l)) --> Enabled (ReadInner ch mm rs p l)"
   apply (case_tac "l : MemLoc")
   apply (force simp: ReadInner_def GoodRead_def BadRead_def RdRequest_def
     intro!: exI elim!: base_enabled [temp_use])+
   done
 
-lemma WriteInner_enabled: "!!p. basevars (mm!l, rtrner ch ! p, rs!p) ==>
+lemma WriteInner_enabled: "\<And>p. basevars (mm!l, rtrner ch ! p, rs!p) ==>
       |- Calling ch p & (arg<ch!p> = #(write l v))
          --> Enabled (WriteInner ch mm rs p l v)"
   apply (case_tac "l:MemLoc & v:MemVal")
@@ -197,18 +197,18 @@ lemma WriteInner_enabled: "!!p. basevars (mm!l, rtrner ch ! p, rs!p) ==>
     intro!: exI elim!: base_enabled [temp_use])+
   done
 
-lemma ReadResult: "|- Read ch mm rs p & (!l. $(MemInv mm l)) --> (rs!p)` ~= #NotAResult"
+lemma ReadResult: "|- Read ch mm rs p & (\<forall>l. $(MemInv mm l)) --> (rs!p)` \<noteq> #NotAResult"
   by (force simp: Read_def ReadInner_def GoodRead_def BadRead_def MemInv_def)
 
-lemma WriteResult: "|- Write ch mm rs p l --> (rs!p)` ~= #NotAResult"
+lemma WriteResult: "|- Write ch mm rs p l --> (rs!p)` \<noteq> #NotAResult"
   by (auto simp: Write_def WriteInner_def GoodWrite_def BadWrite_def)
 
-lemma ReturnNotReadWrite: "|- (ALL l. $MemInv mm l) & MemReturn ch rs p
-         --> ~ Read ch mm rs p & (ALL l. ~ Write ch mm rs p l)"
+lemma ReturnNotReadWrite: "|- (\<forall>l. $MemInv mm l) & MemReturn ch rs p
+         --> \<not> Read ch mm rs p & (\<forall>l. \<not> Write ch mm rs p l)"
   by (auto simp: MemReturn_def dest!: WriteResult [temp_use] ReadResult [temp_use])
 
 lemma RWRNext_enabled: "|- (rs!p = #NotAResult) & (!l. MemInv mm l)
-         & Enabled (Read ch mm rs p | (? l. Write ch mm rs p l))
+         & Enabled (Read ch mm rs p | (\<exists>l. Write ch mm rs p l))
          --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   by (force simp: RNext_def angle_def elim!: enabled_mono2
     dest: ReadResult [temp_use] WriteResult [temp_use])
@@ -217,8 +217,8 @@ lemma RWRNext_enabled: "|- (rs!p = #NotAResult) & (!l. MemInv mm l)
 (* Combine previous lemmas: the memory can make a visible step if there is an
    outstanding call for which no result has been produced.
 *)
-lemma RNext_enabled: "!!p. !l. basevars (mm!l, rtrner ch!p, rs!p) ==>
-      |- (rs!p = #NotAResult) & Calling ch p & (!l. MemInv mm l)
+lemma RNext_enabled: "\<And>p. \<forall>l. basevars (mm!l, rtrner ch!p, rs!p) ==>
+      |- (rs!p = #NotAResult) & Calling ch p & (\<forall>l. MemInv mm l)
          --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
   apply (case_tac "arg (ch w p)")

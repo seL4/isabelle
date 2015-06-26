@@ -1,4 +1,4 @@
-(*  Title:      HOL/TLA/Action.thy 
+(*  Title:      HOL/TLA/Action.thy
     Author:     Stephan Merz
     Copyright:  1998 University of Munich
 *)
@@ -66,9 +66,9 @@ axiomatization where
 
 defs
   square_def:    "ACT [A]_v == ACT (A | unchanged v)"
-  angle_def:     "ACT <A>_v == ACT (A & ~ unchanged v)"
+  angle_def:     "ACT <A>_v == ACT (A & \<not> unchanged v)"
 
-  enabled_def:   "s |= Enabled A  ==  EX u. (s,u) |= A"
+  enabled_def:   "s |= Enabled A  ==  \<exists>u. (s,u) |= A"
 
 
 (* The following assertion specializes "intI" for any world type
@@ -76,7 +76,7 @@ defs
 *)
 
 lemma actionI [intro!]:
-  assumes "!!s t. (s,t) |= A"
+  assumes "\<And>s t. (s,t) |= A"
   shows "|- A"
   apply (rule assms intI prod.induct)+
   done
@@ -87,11 +87,11 @@ lemma actionD [dest]: "|- A ==> (s,t) |= A"
 
 lemma pr_rews [int_rewrite]:
   "|- (#c)` = #c"
-  "!!f. |- f<x>` = f<x` >"
-  "!!f. |- f<x,y>` = f<x`,y` >"
-  "!!f. |- f<x,y,z>` = f<x`,y`,z` >"
-  "|- (! x. P x)` = (! x. (P x)`)"
-  "|- (? x. P x)` = (? x. (P x)`)"
+  "\<And>f. |- f<x>` = f<x` >"
+  "\<And>f. |- f<x,y>` = f<x`,y` >"
+  "\<And>f. |- f<x,y,z>` = f<x`,y`,z` >"
+  "|- (\<forall>x. P x)` = (\<forall>x. (P x)`)"
+  "|- (\<exists>x. P x)` = (\<exists>x. (P x)`)"
   by (rule actionI, unfold unl_after intensional_rews, rule refl)+
 
 
@@ -137,7 +137,7 @@ lemma idle_squareI: "(s,t) |= unchanged v ==> (s,t) |= [A]_v"
 
 lemma busy_squareI: "(s,t) |= A ==> (s,t) |= [A]_v"
   by (simp add: square_def)
-  
+
 lemma squareE [elim]:
   "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)"
   apply (unfold square_def action_rews)
@@ -145,34 +145,34 @@ lemma squareE [elim]:
   apply simp_all
   done
 
-lemma squareCI [intro]: "[| v t ~= v s ==> A (s,t) |] ==> (s,t) |= [A]_v"
+lemma squareCI [intro]: "[| v t \<noteq> v s ==> A (s,t) |] ==> (s,t) |= [A]_v"
   apply (unfold square_def action_rews)
   apply (rule disjCI)
   apply (erule (1) meta_mp)
   done
 
-lemma angleI [intro]: "!!s t. [| A (s,t); v t ~= v s |] ==> (s,t) |= <A>_v"
+lemma angleI [intro]: "\<And>s t. [| A (s,t); v t \<noteq> v s |] ==> (s,t) |= <A>_v"
   by (simp add: angle_def)
 
-lemma angleE [elim]: "[| (s,t) |= <A>_v; [| A (s,t); v t ~= v s |] ==> R |] ==> R"
+lemma angleE [elim]: "[| (s,t) |= <A>_v; [| A (s,t); v t \<noteq> v s |] ==> R |] ==> R"
   apply (unfold angle_def action_rews)
   apply (erule conjE)
   apply simp
   done
 
 lemma square_simulation:
-   "!!f. [| |- unchanged f & ~B --> unchanged g;    
-            |- A & ~unchanged g --> B               
+   "\<And>f. [| |- unchanged f & \<not>B --> unchanged g;
+            |- A & \<not>unchanged g --> B
          |] ==> |- [A]_f --> [B]_g"
   apply clarsimp
   apply (erule squareE)
   apply (auto simp add: square_def)
   done
 
-lemma not_square: "|- (~ [A]_v) = <~A>_v"
+lemma not_square: "|- (\<not> [A]_v) = <\<not>A>_v"
   by (auto simp: square_def angle_def)
 
-lemma not_angle: "|- (~ <A>_v) = [~A]_v"
+lemma not_angle: "|- (\<not> <A>_v) = [\<not>A]_v"
   by (auto simp: square_def angle_def)
 
 
@@ -181,13 +181,13 @@ lemma not_angle: "|- (~ <A>_v) = [~A]_v"
 lemma enabledI: "|- A --> $Enabled A"
   by (auto simp add: enabled_def)
 
-lemma enabledE: "[| s |= Enabled A; !!u. A (s,u) ==> Q |] ==> Q"
+lemma enabledE: "[| s |= Enabled A; \<And>u. A (s,u) ==> Q |] ==> Q"
   apply (unfold enabled_def)
   apply (erule exE)
   apply simp
   done
 
-lemma notEnabledD: "|- ~$Enabled G --> ~ G"
+lemma notEnabledD: "|- \<not>$Enabled G --> \<not> G"
   by (auto simp add: enabled_def)
 
 (* Monotonicity *)
@@ -203,7 +203,7 @@ lemma enabled_mono:
 (* stronger variant *)
 lemma enabled_mono2:
   assumes min: "s |= Enabled F"
-    and maj: "!!t. F (s,t) ==> G (s,t)"
+    and maj: "\<And>t. F (s,t) ==> G (s,t)"
   shows "s |= Enabled G"
   apply (rule min [THEN enabledE])
   apply (rule enabledI [action_use])
@@ -239,13 +239,13 @@ lemma enabled_disj: "|- Enabled (F | G) = (Enabled F | Enabled G)"
   apply (erule disjE enabled_disj1 [action_use] enabled_disj2 [action_use])+
   done
 
-lemma enabled_ex: "|- Enabled (EX x. F x) = (EX x. Enabled (F x))"
+lemma enabled_ex: "|- Enabled (\<exists>x. F x) = (\<exists>x. Enabled (F x))"
   by (force simp add: enabled_def)
 
 
 (* A rule that combines enabledI and baseE, but generates fewer instantiations *)
 lemma base_enabled:
-    "[| basevars vs; EX c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
+    "[| basevars vs; \<exists>c. \<forall>u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
   apply (erule exE)
   apply (erule baseE)
   apply (rule enabledI [action_use])

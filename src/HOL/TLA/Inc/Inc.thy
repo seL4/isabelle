@@ -48,7 +48,7 @@ where
   InitPhi_def:   "InitPhi == PRED x = # 0 & y = # 0" and
   M1_def:        "M1      == ACT  x$ = Suc<$x> & y$ = $y" and
   M2_def:        "M2      == ACT  y$ = Suc<$y> & x$ = $x" and
-  Phi_def:       "Phi     == TEMP Init InitPhi & [][M1 | M2]_(x,y)
+  Phi_def:       "Phi     == TEMP Init InitPhi & \<box>[M1 | M2]_(x,y)
                                  & WF(M1)_(x,y) & WF(M2)_(x,y)" and
 
   (* definitions for low-level program *)
@@ -69,7 +69,7 @@ where
   N1_def:        "N1      == ACT  (alpha1 | beta1 | gamma1)" and
   N2_def:        "N2      == ACT  (alpha2 | beta2 | gamma2)" and
   Psi_def:       "Psi     == TEMP Init InitPsi
-                               & [][N1 | N2]_(x,y,sem,pc1,pc2)
+                               & \<box>[N1 | N2]_(x,y,sem,pc1,pc2)
                                & SF(N1)_(x,y,sem,pc1,pc2)
                                & SF(N2)_(x,y,sem,pc1,pc2)" and
 
@@ -110,7 +110,7 @@ lemma PsiInv_gamma2: "|- gamma2 & $PsiInv --> PsiInv$"
 lemma PsiInv_stutter: "|- unchanged (x,y,sem,pc1,pc2) & $PsiInv --> PsiInv$"
   by (auto simp: PsiInv_defs)
 
-lemma PsiInv: "|- Psi --> []PsiInv"
+lemma PsiInv: "|- Psi --> \<box>PsiInv"
   apply (invariant simp: Psi_def)
    apply (force simp: PsiInv_Init [try_rewrite] Init_def)
   apply (auto intro: PsiInv_alpha1 [try_rewrite] PsiInv_alpha2 [try_rewrite]
@@ -123,7 +123,7 @@ lemma PsiInv: "|- Psi --> []PsiInv"
    More realistic examples require user guidance anyway.
 *)
 
-lemma "|- Psi --> []PsiInv"
+lemma "|- Psi --> \<box>PsiInv"
   by (auto_invariant simp: PsiInv_defs Psi_defs)
 
 
@@ -132,7 +132,7 @@ lemma "|- Psi --> []PsiInv"
 lemma Init_sim: "|- Psi --> Init InitPhi"
   by (auto simp: InitPhi_def Psi_def InitPsi_def Init_def)
 
-lemma Step_sim: "|- Psi --> [][M1 | M2]_(x,y)"
+lemma Step_sim: "|- Psi --> \<box>[M1 | M2]_(x,y)"
   by (auto simp: square_def M1_def M2_def Psi_defs elim!: STL4E [temp_use])
 
 
@@ -154,7 +154,7 @@ lemma Step_sim: "|- Psi --> [][M1 | M2]_(x,y)"
    the auxiliary lemmas are very similar.
 *)
 
-lemma Stuck_at_b: "|- [][(N1 | N2) & ~ beta1]_(x,y,sem,pc1,pc2) --> stable(pc1 = #b)"
+lemma Stuck_at_b: "|- \<box>[(N1 | N2) & \<not> beta1]_(x,y,sem,pc1,pc2) --> stable(pc1 = #b)"
   by (auto elim!: Stable squareE simp: Psi_defs)
 
 lemma N1_enabled_at_g: "|- pc1 = #g --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
@@ -166,14 +166,14 @@ lemma N1_enabled_at_g: "|- pc1 = #g --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
   done
 
 lemma g1_leadsto_a1:
-  "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N1)_(x,y,sem,pc1,pc2) & []#True  
-    --> (pc1 = #g ~> pc1 = #a)"
+  "|- \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N1)_(x,y,sem,pc1,pc2) & \<box>#True  
+    --> (pc1 = #g \<leadsto> pc1 = #a)"
   apply (rule SF1)
     apply (tactic
       {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
    apply (tactic
       {* action_simp_tac (@{context} addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1 *})
-  (* reduce |- []A --> <>Enabled B  to  |- A --> Enabled B *)
+  (* reduce |- \<box>A --> \<diamond>Enabled B  to  |- A --> Enabled B *)
   apply (auto intro!: InitDmd_gen [temp_use] N1_enabled_at_g [temp_use]
     dest!: STL2_gen [temp_use] simp: Init_def)
   done
@@ -188,8 +188,8 @@ lemma N2_enabled_at_g: "|- pc2 = #g --> Enabled (<N2>_(x,y,sem,pc1,pc2))"
   done
 
 lemma g2_leadsto_a2:
-  "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & []#True  
-    --> (pc2 = #g ~> pc2 = #a)"
+  "|- \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
+    --> (pc2 = #g \<leadsto> pc2 = #a)"
   apply (rule SF1)
   apply (tactic {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
   apply (tactic {* action_simp_tac (@{context} addsimps @{thm angle_def} :: @{thms Psi_defs})
@@ -207,8 +207,8 @@ lemma N2_enabled_at_b: "|- pc2 = #b --> Enabled (<N2>_(x,y,sem,pc1,pc2))"
   done
 
 lemma b2_leadsto_g2:
-  "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & []#True  
-    --> (pc2 = #b ~> pc2 = #g)"
+  "|- \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
+    --> (pc2 = #b \<leadsto> pc2 = #g)"
   apply (rule SF1)
     apply (tactic
       {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
@@ -220,18 +220,18 @@ lemma b2_leadsto_g2:
 
 (* Combine above lemmas: the second component will eventually reach pc2 = a *)
 lemma N2_leadsto_a:
-  "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & []#True  
-    --> (pc2 = #a | pc2 = #b | pc2 = #g ~> pc2 = #a)"
+  "|- \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & \<box>#True  
+    --> (pc2 = #a | pc2 = #b | pc2 = #g \<leadsto> pc2 = #a)"
   apply (auto intro!: LatticeDisjunctionIntro [temp_use])
     apply (rule LatticeReflexivity [temp_use])
    apply (rule LatticeTransitivity [temp_use])
   apply (auto intro!: b2_leadsto_g2 [temp_use] g2_leadsto_a2 [temp_use])
   done
 
-(* Get rid of disjunction on the left-hand side of ~> above. *)
+(* Get rid of disjunction on the left-hand side of \<leadsto> above. *)
 lemma N2_live:
-  "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2)  
-    --> <>(pc2 = #a)"
+  "|- \<box>[(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2)  
+    --> \<diamond>(pc2 = #a)"
   apply (auto simp: Init_defs intro!: N2_leadsto_a [temp_use, THEN [2] leadsto_init [temp_use]])
   apply (case_tac "pc2 (st1 sigma)")
     apply auto
@@ -249,9 +249,9 @@ lemma N1_enabled_at_both_a:
   done
 
 lemma a1_leadsto_b1:
-  "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))       
-         & SF(N1)_(x,y,sem,pc1,pc2) & [] SF(N2)_(x,y,sem,pc1,pc2)   
-         --> (pc1 = #a ~> pc1 = #b)"
+  "|- \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))       
+         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+         --> (pc1 = #a \<leadsto> pc1 = #b)"
   apply (rule SF1)
   apply (tactic {* action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
   apply (tactic
@@ -263,9 +263,9 @@ lemma a1_leadsto_b1:
 
 (* Combine the leadsto properties for N1: it will arrive at pc1 = b *)
 
-lemma N1_leadsto_b: "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))              
-         & SF(N1)_(x,y,sem,pc1,pc2) & [] SF(N2)_(x,y,sem,pc1,pc2)   
-         --> (pc1 = #b | pc1 = #g | pc1 = #a ~> pc1 = #b)"
+lemma N1_leadsto_b: "|- \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))              
+         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+         --> (pc1 = #b | pc1 = #g | pc1 = #a \<leadsto> pc1 = #b)"
   apply (auto intro!: LatticeDisjunctionIntro [temp_use])
     apply (rule LatticeReflexivity [temp_use])
    apply (rule LatticeTransitivity [temp_use])
@@ -273,9 +273,9 @@ lemma N1_leadsto_b: "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))
       simp: split_box_conj)
   done
 
-lemma N1_live: "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))              
-         & SF(N1)_(x,y,sem,pc1,pc2) & [] SF(N2)_(x,y,sem,pc1,pc2)   
-         --> <>(pc1 = #b)"
+lemma N1_live: "|- \<box>($PsiInv & [(N1 | N2) & \<not>beta1]_(x,y,sem,pc1,pc2))              
+         & SF(N1)_(x,y,sem,pc1,pc2) & \<box> SF(N2)_(x,y,sem,pc1,pc2)   
+         --> \<diamond>(pc1 = #b)"
   apply (auto simp: Init_defs intro!: N1_leadsto_b [temp_use, THEN [2] leadsto_init [temp_use]])
   apply (case_tac "pc1 (st1 sigma)")
     apply auto
@@ -291,8 +291,8 @@ lemma N1_enabled_at_b: "|- pc1 = #b --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
 
 (* Now assemble the bits and pieces to prove that Psi is fair. *)
 
-lemma Fair_M1_lemma: "|- []($PsiInv & [(N1 | N2)]_(x,y,sem,pc1,pc2))    
-         & SF(N1)_(x,y,sem,pc1,pc2) & []SF(N2)_(x,y,sem,pc1,pc2)   
+lemma Fair_M1_lemma: "|- \<box>($PsiInv & [(N1 | N2)]_(x,y,sem,pc1,pc2))    
+         & SF(N1)_(x,y,sem,pc1,pc2) & \<box>SF(N2)_(x,y,sem,pc1,pc2)   
          --> SF(M1)_(x,y)"
   apply (rule_tac B = beta1 and P = "PRED pc1 = #b" in SF2)
    (* action premises *)

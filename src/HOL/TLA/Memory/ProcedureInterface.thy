@@ -58,23 +58,23 @@ translations
 defs
   slice_def:     "(PRED (x!i)) s == x s i"
 
-  caller_def:    "caller ch   == %s p. (cbit (ch s p), arg (ch s p))"
-  rtrner_def:    "rtrner ch   == %s p. (rbit (ch s p), res (ch s p))"
+  caller_def:    "caller ch   == \<lambda>s p. (cbit (ch s p), arg (ch s p))"
+  rtrner_def:    "rtrner ch   == \<lambda>s p. (rbit (ch s p), res (ch s p))"
 
-  Calling_def:   "Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
-  Call_def:      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
-                                     & (cbit<ch!p>$ ~= $rbit<ch!p>)
+  Calling_def:   "Calling ch p  == PRED cbit< ch!p > \<noteq> rbit< ch!p >"
+  Call_def:      "(ACT Call ch p v)   == ACT  \<not> $Calling ch p
+                                     & (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
                                      & (arg<ch!p>$ = $v)"
   Return_def:    "(ACT Return ch p v) == ACT  $Calling ch p
                                      & (rbit<ch!p>$ = $cbit<ch!p>)
                                      & (res<ch!p>$ = $v)"
   PLegalCaller_def:      "PLegalCaller ch p == TEMP
-                             Init(~ Calling ch p)
-                             & [][ ? a. Call ch p a ]_((caller ch)!p)"
-  LegalCaller_def:       "LegalCaller ch == TEMP (! p. PLegalCaller ch p)"
+                             Init(\<not> Calling ch p)
+                             & \<box>[\<exists>a. Call ch p a ]_((caller ch)!p)"
+  LegalCaller_def:       "LegalCaller ch == TEMP (\<forall>p. PLegalCaller ch p)"
   PLegalReturner_def:    "PLegalReturner ch p == TEMP
-                                [][ ? v. Return ch p v ]_((rtrner ch)!p)"
-  LegalReturner_def:     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
+                                \<box>[\<exists>v. Return ch p v ]_((rtrner ch)!p)"
+  LegalReturner_def:     "LegalReturner ch == TEMP (\<forall>p. PLegalReturner ch p)"
 
 declare slice_def [simp]
 

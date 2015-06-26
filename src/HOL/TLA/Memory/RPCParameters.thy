@@ -30,10 +30,10 @@ consts
 
 axiomatization where
   (* RPCFailure is different from MemVals and exceptions *)
-  RFNoMemVal:        "RPCFailure ~: MemVal" and
-  NotAResultNotRF:   "NotAResult ~= RPCFailure" and
-  OKNotRF:           "OK ~= RPCFailure" and
-  BANotRF:           "BadArg ~= RPCFailure"
+  RFNoMemVal:        "RPCFailure \<notin> MemVal" and
+  NotAResultNotRF:   "NotAResult \<noteq> RPCFailure" and
+  OKNotRF:           "OK \<noteq> RPCFailure" and
+  BANotRF:           "BadArg \<noteq> RPCFailure"
 
 defs
   IsLegalRcvArg_def: "IsLegalRcvArg ra ==

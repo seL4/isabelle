@@ -37,7 +37,7 @@ where
                                  & (out$ = $out)" and
   DBNext_def:     "DBNext   == ACT  (DBEnq | DBDeq | DBPass)" and
   DBuffer_def:    "DBuffer  == TEMP Init DBInit
-                                 & [][DBNext]_(inp,mid,out,q1,q2)
+                                 & \<box>[DBNext]_(inp,mid,out,q1,q2)
                                  & WF(DBDeq)_(inp,mid,out,q1,q2)
                                  & WF(DBPass)_(inp,mid,out,q1,q2)"
 
@@ -72,7 +72,7 @@ lemma DBDeq_visible: "|- <DBDeq>_(inp,mid,out,q1,q2) = DBDeq"
   done
 
 lemma DBDeq_enabled: 
-    "|- Enabled (<DBDeq>_(inp,mid,out,q1,q2)) = (q2 ~= #[])"
+    "|- Enabled (<DBDeq>_(inp,mid,out,q1,q2)) = (q2 \<noteq> #[])"
   apply (unfold DBDeq_visible [action_rewrite])
   apply (force intro!: DB_base [THEN base_enabled, temp_use]
     elim!: enabledE simp: angle_def DBDeq_def Deq_def)
@@ -82,7 +82,7 @@ lemma DBPass_visible: "|- <DBPass>_(inp,mid,out,q1,q2) = DBPass"
   by (auto simp: angle_def DBPass_def Deq_def)
 
 lemma DBPass_enabled: 
-    "|- Enabled (<DBPass>_(inp,mid,out,q1,q2)) = (q1 ~= #[])"
+    "|- Enabled (<DBPass>_(inp,mid,out,q1,q2)) = (q1 \<noteq> #[])"
   apply (unfold DBPass_visible [action_rewrite])
   apply (force intro!: DB_base [THEN base_enabled, temp_use]
     elim!: enabledE simp: angle_def DBPass_def Deq_def)
@@ -90,15 +90,15 @@ lemma DBPass_enabled:
 
 
 (* The plan for proving weak fairness at the higher level is to prove
-   (0)  DBuffer => (Enabled (Deq inp qc out) ~> (Deq inp qc out))
+   (0)  DBuffer => (Enabled (Deq inp qc out) \<leadsto> (Deq inp qc out))
    which is in turn reduced to the two leadsto conditions
-   (1)  DBuffer => (Enabled (Deq inp qc out) ~> q2 ~= [])
-   (2)  DBuffer => (q2 ~= [] ~> DBDeq)
+   (1)  DBuffer => (Enabled (Deq inp qc out) \<leadsto> q2 \<noteq> [])
+   (2)  DBuffer => (q2 \<noteq> [] \<leadsto> DBDeq)
    and the fact that DBDeq implies <Deq inp qc out>_(inp,qc,out)
-   (and therefore DBDeq ~> <Deq inp qc out>_(inp,qc,out) trivially holds).
+   (and therefore DBDeq \<leadsto> <Deq inp qc out>_(inp,qc,out) trivially holds).
 
    Condition (1) is reduced to
-   (1a) DBuffer => (qc ~= [] /\ q2 = [] ~> q2 ~= [])
+   (1a) DBuffer => (qc \<noteq> [] /\ q2 = [] \<leadsto> q2 \<noteq> [])
    by standard leadsto rules (leadsto_classical) and rule Deq_enabledE.
 
    Both (1a) and (2) are proved from DBuffer's WF conditions by standard
@@ -109,8 +109,8 @@ lemma DBPass_enabled:
 *)
 
 (* Condition (1a) *)
-lemma DBFair_1a: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
-         --> (qc ~= #[] & q2 = #[] ~> q2 ~= #[])"
+lemma DBFair_1a: "|- \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
+         --> (qc \<noteq> #[] & q2 = #[] \<leadsto> q2 \<noteq> #[])"
   apply (rule WF1)
     apply (force simp: db_defs)
    apply (force simp: angle_def DBPass_def)
@@ -118,8 +118,8 @@ lemma DBFair_1a: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1
   done
 
 (* Condition (1) *)
-lemma DBFair_1: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
-         --> (Enabled (<Deq inp qc out>_(inp,qc,out)) ~> q2 ~= #[])"
+lemma DBFair_1: "|- \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
+         --> (Enabled (<Deq inp qc out>_(inp,qc,out)) \<leadsto> q2 \<noteq> #[])"
   apply clarsimp
   apply (rule leadsto_classical [temp_use])
   apply (rule DBFair_1a [temp_use, THEN LatticeTransitivity [temp_use]])
@@ -130,8 +130,8 @@ lemma DBFair_1: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,
   done
 
 (* Condition (2) *)
-lemma DBFair_2: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBDeq)_(inp,mid,out,q1,q2)  
-         --> (q2 ~= #[] ~> DBDeq)"
+lemma DBFair_2: "|- \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBDeq)_(inp,mid,out,q1,q2)  
+         --> (q2 \<noteq> #[] \<leadsto> DBDeq)"
   apply (rule WF_leadsto)
     apply (force simp: DBDeq_enabled [temp_use])
    apply (force simp: angle_def)
@@ -139,7 +139,7 @@ lemma DBFair_2: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBDeq)_(inp,mid,out,q1,q
   done
 
 (* High-level fairness *)
-lemma DBFair: "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
+lemma DBFair: "|- \<box>[DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2)  
                                         & WF(DBDeq)_(inp,mid,out,q1,q2)   
          --> WF(Deq inp qc out)_(inp,qc,out)"
   apply (auto simp del: qc_def intro!: leadsto_WF [temp_use]

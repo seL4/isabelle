@@ -63,7 +63,7 @@ definition
 definition
   (* the environment action *)
   ENext         :: "PrIds => action"
-  where "ENext p = ACT (? l. #l : #MemLoc & Call memCh p #(read l))"
+  where "ENext p = ACT (\<exists>l. #l : #MemLoc & Call memCh p #(read l))"
 
 
 definition
@@ -83,24 +83,24 @@ definition
 definition
   HistP         :: "histType => PrIds => temporal"
   where "HistP rmhist p = (TEMP Init HInit rmhist p
-                           & [][HNext rmhist p]_(c p,r p,m p, rmhist!p))"
+                           & \<box>[HNext rmhist p]_(c p,r p,m p, rmhist!p))"
 
 definition
   Hist          :: "histType => temporal"
-  where "Hist rmhist = TEMP (ALL p. HistP rmhist p)"
+  where "Hist rmhist = TEMP (\<forall>p. HistP rmhist p)"
 
 definition
   (* the implementation *)
   IPImp          :: "PrIds => temporal"
-  where "IPImp p = (TEMP (  Init ~Calling memCh p & [][ENext p]_(e p)
+  where "IPImp p = (TEMP (  Init \<not>Calling memCh p & \<box>[ENext p]_(e p)
                        & MClkIPSpec memCh crCh cst p
                        & RPCIPSpec crCh rmCh rst p
                        & RPSpec rmCh mm ires p
-                       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l)))"
+                       & (\<forall>l. #l : #MemLoc --> MSpec rmCh mm ires l)))"
 
 definition
   ImpInit        :: "PrIds => stpred"
-  where "ImpInit p = PRED (  ~Calling memCh p
+  where "ImpInit p = PRED (  \<not>Calling memCh p
                           & MClkInit crCh cst p
                           & RPCInit rmCh rst p
                           & PInit ires p)"
@@ -122,7 +122,7 @@ definition
 
 definition
   Implementation :: "temporal"
-  where "Implementation = (TEMP ( (ALL p. Init (~Calling memCh p) & [][ENext p]_(e p))
+  where "Implementation = (TEMP ( (\<forall>p. Init (\<not>Calling memCh p) & \<box>[ENext p]_(e p))
                                & MClkISpec memCh crCh cst
                                & RPCISpec crCh rmCh rst
                                & IRSpec rmCh mm ires))"
@@ -139,11 +139,11 @@ definition
                 Calling memCh p = #ecalling
               & Calling crCh p  = #ccalling
               & (#ccalling --> arg<crCh!p> = MClkRelayArg<arg<memCh!p>>)
-              & (~ #ccalling & cst!p = #clkB --> MVOKBARF<res<crCh!p>>)
+              & (\<not> #ccalling & cst!p = #clkB --> MVOKBARF<res<crCh!p>>)
               & Calling rmCh p  = #rcalling
               & (#rcalling --> arg<rmCh!p> = RPCRelayArg<arg<crCh!p>>)
-              & (~ #rcalling --> ires!p = #NotAResult)
-              & (~ #rcalling & rst!p = #rpcB --> MVOKBA<res<rmCh!p>>)
+              & (\<not> #rcalling --> ires!p = #NotAResult)
+              & (\<not> #rcalling & rst!p = #rpcB --> MVOKBA<res<rmCh!p>>)
               & cst!p = #cs
               & rst!p = #rs
               & (rmhist!p = #hs1 | rmhist!p = #hs2)
@@ -241,9 +241,9 @@ ML {* val temp_elim = make_elim oo temp_use *}
 
 section "History variable"
 
-lemma HistoryLemma: "|- Init(ALL p. ImpInit p) & [](ALL p. ImpNext p)
-         --> (EEX rmhist. Init(ALL p. HInit rmhist p)
-                          & [](ALL p. [HNext rmhist p]_(c p, r p, m p, rmhist!p)))"
+lemma HistoryLemma: "|- Init(\<forall>p. ImpInit p) & \<box>(\<forall>p. ImpNext p)
+         --> (\<exists>\<exists>rmhist. Init(\<forall>p. HInit rmhist p)
+                          & \<box>(\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p)))"
   apply clarsimp
   apply (rule historyI)
       apply assumption+
@@ -255,7 +255,7 @@ lemma HistoryLemma: "|- Init(ALL p. ImpInit p) & [](ALL p. ImpNext p)
   apply (erule fun_cong)
   done
 
-lemma History: "|- Implementation --> (EEX rmhist. Hist rmhist)"
+lemma History: "|- Implementation --> (\<exists>\<exists>rmhist. Hist rmhist)"
   apply clarsimp
   apply (rule HistoryLemma [temp_use, THEN eex_mono])
     prefer 3
@@ -274,14 +274,14 @@ section "The safety part"
 
 (* RPCFailure notin MemVals U {OK,BadArg} *)
 
-lemma MVOKBAnotRF: "MVOKBA x ==> x ~= RPCFailure"
+lemma MVOKBAnotRF: "MVOKBA x ==> x \<noteq> RPCFailure"
   apply (unfold MVOKBA_def)
   apply auto
   done
 
 (* NotAResult notin MemVals U {OK,BadArg,RPCFailure} *)
 
-lemma MVOKBARFnotNR: "MVOKBARF x ==> x ~= NotAResult"
+lemma MVOKBARFnotNR: "MVOKBARF x ==> x \<noteq> NotAResult"
   apply (unfold MVOKBARF_def)
   apply auto
   done
@@ -294,32 +294,32 @@ lemma MVOKBARFnotNR: "MVOKBARF x ==> x ~= NotAResult"
 *)
 
 (* --- not used ---
-lemma S1_excl: "|- S1 rmhist p --> S1 rmhist p & ~S2 rmhist p & ~S3 rmhist p &
-    ~S4 rmhist p & ~S5 rmhist p & ~S6 rmhist p"
+lemma S1_excl: "|- S1 rmhist p --> S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p &
+    \<not>S4 rmhist p & \<not>S5 rmhist p & \<not>S6 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 *)
 
-lemma S2_excl: "|- S2 rmhist p --> S2 rmhist p & ~S1 rmhist p"
+lemma S2_excl: "|- S2 rmhist p --> S2 rmhist p & \<not>S1 rmhist p"
   by (auto simp: S_def S1_def S2_def)
 
-lemma S3_excl: "|- S3 rmhist p --> S3 rmhist p & ~S1 rmhist p & ~S2 rmhist p"
+lemma S3_excl: "|- S3 rmhist p --> S3 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def)
 
-lemma S4_excl: "|- S4 rmhist p --> S4 rmhist p & ~S1 rmhist p & ~S2 rmhist p & ~S3 rmhist p"
+lemma S4_excl: "|- S4 rmhist p --> S4 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p & \<not>S3 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def)
 
-lemma S5_excl: "|- S5 rmhist p --> S5 rmhist p & ~S1 rmhist p & ~S2 rmhist p
-                         & ~S3 rmhist p & ~S4 rmhist p"
+lemma S5_excl: "|- S5 rmhist p --> S5 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
+                         & \<not>S3 rmhist p & \<not>S4 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def)
 
-lemma S6_excl: "|- S6 rmhist p --> S6 rmhist p & ~S1 rmhist p & ~S2 rmhist p
-                         & ~S3 rmhist p & ~S4 rmhist p & ~S5 rmhist p"
+lemma S6_excl: "|- S6 rmhist p --> S6 rmhist p & \<not>S1 rmhist p & \<not>S2 rmhist p
+                         & \<not>S3 rmhist p & \<not>S4 rmhist p & \<not>S5 rmhist p"
   by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 
 
 (* ==================== Lemmas about the environment ============================== *)
 
-lemma Envbusy: "|- $(Calling memCh p) --> ~ENext p"
+lemma Envbusy: "|- $(Calling memCh p) --> \<not>ENext p"
   by (auto simp: ENext_def Call_def)
 
 (* ==================== Lemmas about the implementation's states ==================== *)
@@ -447,7 +447,7 @@ lemma S4ReadInner: "|- ReadInner rmCh mm ires p l & $(S4 rmhist p) & unchanged (
     @{thm Calling_def}, @{thm MemInv_def}]) [] [] 1 *})
 
 lemma S4Read: "|- Read rmCh mm ires p & $(S4 rmhist p) & unchanged (e p, c p, r p)
-         & HNext rmhist p & (!l. $MemInv mm l)
+         & HNext rmhist p & (\<forall>l. $MemInv mm l)
          --> (S4 rmhist p)$ & unchanged (rmhist!p)"
   by (auto simp: Read_def dest!: S4ReadInner [temp_use])
 
@@ -563,7 +563,7 @@ lemma Step1_1: "|- ImpInit p & HInit rmhist p --> S1 rmhist p"
 (* Figure 16 is a predicate-action diagram for the implementation. *)
 
 lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-         & ~unchanged (e p, c p, r p, m p, rmhist!p)  & $S1 rmhist p
+         & \<not>unchanged (e p, c p, r p, m p, rmhist!p)  & $S1 rmhist p
          --> (S2 rmhist p)$ & ENext p & unchanged (c p, r p, m p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
       (map (temp_elim @{context})
@@ -573,7 +573,7 @@ lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   done
 
 lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-         & ~unchanged (e p, c p, r p, m p, rmhist!p) & $S2 rmhist p
+         & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S2 rmhist p
          --> (S3 rmhist p)$ & MClkFwd memCh crCh cst p
              & unchanged (e p, r p, m p, rmhist!p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
@@ -584,7 +584,7 @@ lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   done
 
 lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-         & ~unchanged (e p, c p, r p, m p, rmhist!p) & $S3 rmhist p
+         & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S3 rmhist p
          --> ((S4 rmhist p)$ & RPCFwd crCh rmCh rst p & unchanged (e p, c p, m p, rmhist!p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
@@ -596,10 +596,10 @@ lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   done
 
 lemma Step1_2_4: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-              & ~unchanged (e p, c p, r p, m p, rmhist!p)
-              & $S4 rmhist p & (!l. $(MemInv mm l))
+              & \<not>unchanged (e p, c p, r p, m p, rmhist!p)
+              & $S4 rmhist p & (\<forall>l. $(MemInv mm l))
          --> ((S4 rmhist p)$ & Read rmCh mm ires p & unchanged (e p, c p, r p, rmhist!p))
-             | ((S4 rmhist p)$ & (? l. Write rmCh mm ires p l) & unchanged (e p, c p, r p, rmhist!p))
+             | ((S4 rmhist p)$ & (\<exists>l. Write rmCh mm ires p l) & unchanged (e p, c p, r p, rmhist!p))
              | ((S5 rmhist p)$ & MemReturn rmCh ires p & unchanged (e p, c p, r p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
     (map (temp_elim @{context}) [@{thm S4EnvUnch}, @{thm S4ClerkUnch}, @{thm S4RPCUnch}]) 1 *})
@@ -610,7 +610,7 @@ lemma Step1_2_4: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   done
 
 lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-              & ~unchanged (e p, c p, r p, m p, rmhist!p) & $S5 rmhist p
+              & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S5 rmhist p
          --> ((S6 rmhist p)$ & RPCReply crCh rmCh rst p & unchanged (e p, c p, m p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
@@ -621,7 +621,7 @@ lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   done
 
 lemma Step1_2_6: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
-              & ~unchanged (e p, c p, r p, m p, rmhist!p) & $S6 rmhist p
+              & \<not>unchanged (e p, c p, r p, m p, rmhist!p) & $S6 rmhist p
          --> ((S1 rmhist p)$ & MClkReply memCh crCh cst p & unchanged (e p, r p, m p))
              | ((S3 rmhist p)$ & MClkRetry memCh crCh cst p & unchanged (e p,r p,m p,rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
@@ -694,7 +694,7 @@ lemma Step1_4_4a1: "|- $S4 rmhist p & (S4 rmhist p)$ & ReadInner rmCh mm ires p 
   done
 
 lemma Step1_4_4a: "|- Read rmCh mm ires p & $S4 rmhist p & (S4 rmhist p)$
-         & unchanged (e p, c p, r p, rmhist!p) & (!l. $(MemInv mm l))
+         & unchanged (e p, c p, r p, rmhist!p) & (\<forall>l. $(MemInv mm l))
          --> Read memCh mm (resbar rmhist) p"
   by (force simp: Read_def elim!: Step1_4_4a1 [temp_use])
 
@@ -816,7 +816,7 @@ method_setup split_idle = {*
 
 (* Steps that leave all variables unchanged are safe, so I may assume
    that some variable changes in the proof that a step is safe. *)
-lemma unchanged_safe: "|- (~unchanged (e p, c p, r p, m p, rmhist!p)
+lemma unchanged_safe: "|- (\<not>unchanged (e p, c p, r p, m p, rmhist!p)
              --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p))
          --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply (split_idle simp: square_def)
@@ -850,7 +850,7 @@ lemma S3safe: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhi
   done
 
 lemma S4safe: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         & (!l. $(MemInv mm l))
+         & (\<forall>l. $(MemInv mm l))
          --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   apply clarsimp
   apply (rule unchanged_safeI)
@@ -900,23 +900,23 @@ lemma S1_successors: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
 *)
 
 lemma S1_RNextdisabled: "|- S1 rmhist p -->
-         ~Enabled (<RNext memCh mm (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
+         \<not>Enabled (<RNext memCh mm (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def},
     @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}, temp_elim @{context} @{thm Memoryidle}] 1 *})
   apply force
   done
 
 lemma S1_Returndisabled: "|- S1 rmhist p -->
-         ~Enabled (<MemReturn memCh (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
+         \<not>Enabled (<MemReturn memCh (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def}, @{thm MemReturn_def},
     @{thm Return_def}, @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}] 1 *})
 
-lemma RNext_fair: "|- []<>S1 rmhist p
+lemma RNext_fair: "|- \<box>\<diamond>S1 rmhist p
          --> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: WF_alt [try_rewrite] intro!: S1_RNextdisabled [temp_use]
     elim!: STL4E [temp_use] DmdImplE [temp_use])
 
-lemma Return_fair: "|- []<>S1 rmhist p
+lemma Return_fair: "|- \<box>\<diamond>S1 rmhist p
          --> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: WF_alt [try_rewrite]
     intro!: S1_Returndisabled [temp_use] elim!: STL4E [temp_use] DmdImplE [temp_use])
@@ -942,9 +942,9 @@ lemma S2MClkFwd_enabled: "|- $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r 
     apply (simp_all add: S_def S2_def)
   done
 
-lemma S2_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S2_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(MClkFwd memCh crCh cst p)_(c p)
-         --> (S2 rmhist p ~> S3 rmhist p)"
+         --> (S2 rmhist p \<leadsto> S3 rmhist p)"
   by (rule WF1 S2_successors S2MClkFwd_successors S2MClkFwd_enabled)+
 
 (* ------------------------------ State S3 ------------------------------ *)
@@ -969,15 +969,15 @@ lemma S3RPC_enabled: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
    apply (simp_all add: S_def S3_def)
   done
 
-lemma S3_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S3_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(RPCNext crCh rmCh rst p)_(r p)
-         --> (S3 rmhist p ~> S4 rmhist p | S6 rmhist p)"
+         --> (S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p)"
   by (rule WF1 S3_successors S3RPC_successors S3RPC_enabled)+
 
 (* ------------- State S4 -------------------------------------------------- *)
 
 lemma S4_successors: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-        & (ALL l. $MemInv mm l)
+        & (\<forall>l. $MemInv mm l)
         --> (S4 rmhist p)$ | (S5 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
@@ -986,22 +986,22 @@ lemma S4_successors: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
 (* --------- State S4a: S4 /\ (ires p = NotAResult) ------------------------ *)
 
 lemma S4a_successors: "|- $(S4 rmhist p & ires!p = #NotAResult)
-         & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (ALL l. $MemInv mm l)
+         & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (\<forall>l. $MemInv mm l)
          --> (S4 rmhist p & ires!p = #NotAResult)$
-             | ((S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p)$"
+             | ((S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)$"
   apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
   done
 
 lemma S4aRNext_successors: "|- ($(S4 rmhist p & ires!p = #NotAResult)
-         & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (ALL l. $MemInv mm l))
+         & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (\<forall>l. $MemInv mm l))
          & <RNext rmCh mm ires p>_(m p)
-         --> ((S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p)$"
+         --> ((S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)$"
   by (auto simp: angle_def
     dest!: Step1_2_4 [temp_use] ReadResult [temp_use] WriteResult [temp_use])
 
 lemma S4aRNext_enabled: "|- $(S4 rmhist p & ires!p = #NotAResult)
-         & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (ALL l. $MemInv mm l)
+         & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l)
          --> $Enabled (<RNext rmCh mm ires p>_(m p))"
   apply (auto simp: m_def intro!: RNext_enabled [temp_use])
    apply (cut_tac MI_base)
@@ -1009,30 +1009,30 @@ lemma S4aRNext_enabled: "|- $(S4 rmhist p & ires!p = #NotAResult)
   apply (simp add: S_def S4_def)
   done
 
-lemma S4a_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         & (ALL l. $MemInv mm l)) & WF(RNext rmCh mm ires p)_(m p)
+lemma S4a_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
+         & (\<forall>l. $MemInv mm l)) & WF(RNext rmCh mm ires p)_(m p)
          --> (S4 rmhist p & ires!p = #NotAResult
-              ~> (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p)"
+              \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p)"
   by (rule WF1 S4a_successors S4aRNext_successors S4aRNext_enabled)+
 
 (* ---------- State S4b: S4 /\ (ires p # NotAResult) --------------------------- *)
 
-lemma S4b_successors: "|- $(S4 rmhist p & ires!p ~= #NotAResult)
-         & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (ALL l. $MemInv mm l)
-         --> (S4 rmhist p & ires!p ~= #NotAResult)$ | (S5 rmhist p)$"
+lemma S4b_successors: "|- $(S4 rmhist p & ires!p \<noteq> #NotAResult)
+         & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l)
+         --> (S4 rmhist p & ires!p \<noteq> #NotAResult)$ | (S5 rmhist p)$"
   apply (split_idle simp: m_def)
   apply (auto dest!: WriteResult [temp_use] Step1_2_4 [temp_use] ReadResult [temp_use])
   done
 
-lemma S4bReturn_successors: "|- ($(S4 rmhist p & ires!p ~= #NotAResult)
+lemma S4bReturn_successors: "|- ($(S4 rmhist p & ires!p \<noteq> #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         & (ALL l. $MemInv mm l)) & <MemReturn rmCh ires p>_(m p)
+         & (\<forall>l. $MemInv mm l)) & <MemReturn rmCh ires p>_(m p)
          --> (S5 rmhist p)$"
   by (force simp: angle_def dest!: Step1_2_4 [temp_use] dest: ReturnNotReadWrite [temp_use])
 
-lemma S4bReturn_enabled: "|- $(S4 rmhist p & ires!p ~= #NotAResult)
+lemma S4bReturn_enabled: "|- $(S4 rmhist p & ires!p \<noteq> #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
-         & (ALL l. $MemInv mm l)
+         & (\<forall>l. $MemInv mm l)
          --> $Enabled (<MemReturn rmCh ires p>_(m p))"
   apply (auto simp: m_def intro!: MemReturn_enabled [temp_use])
    apply (cut_tac MI_base)
@@ -1040,9 +1040,9 @@ lemma S4bReturn_enabled: "|- $(S4 rmhist p & ires!p ~= #NotAResult)
   apply (simp add: S_def S4_def)
   done
 
-lemma S4b_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (!l. $MemInv mm l))
+lemma S4b_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (\<forall>l. $MemInv mm l))
          & WF(MemReturn rmCh ires p)_(m p)
-         --> (S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p)"
+         --> (S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p)"
   by (rule WF1 S4b_successors S4bReturn_successors S4bReturn_enabled)+
 
 (* ------------------------------ State S5 ------------------------------ *)
@@ -1066,9 +1066,9 @@ lemma S5RPC_enabled: "|- $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
    apply (simp_all add: S_def S5_def)
   done
 
-lemma S5_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
+lemma S5_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
          & WF(RPCNext crCh rmCh rst p)_(r p)
-         --> (S5 rmhist p ~> S6 rmhist p)"
+         --> (S5 rmhist p \<leadsto> S6 rmhist p)"
   by (rule WF1 S5_successors S5RPC_successors S5RPC_enabled)+
 
 (* ------------------------------ State S6 ------------------------------ *)
@@ -1099,11 +1099,11 @@ lemma S6MClkReply_enabled: "|- S6 rmhist p --> Enabled (<MClkReply memCh crCh cs
       addsimps [@{thm S_def}, @{thm S6_def}]) [] []) *})
   done
 
-lemma S6_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(ImpInv rmhist p))
-         & SF(MClkReply memCh crCh cst p)_(c p) & []<>(S6 rmhist p)
-         --> []<>(S1 rmhist p)"
+lemma S6_live: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(ImpInv rmhist p))
+         & SF(MClkReply memCh crCh cst p)_(c p) & \<box>\<diamond>(S6 rmhist p)
+         --> \<box>\<diamond>(S1 rmhist p)"
   apply clarsimp
-  apply (subgoal_tac "sigma |= []<> (<MClkReply memCh crCh cst p>_ (c p))")
+  apply (subgoal_tac "sigma |= \<box>\<diamond> (<MClkReply memCh crCh cst p>_ (c p))")
    apply (erule InfiniteEnsures)
     apply assumption
    apply (tactic {* action_simp_tac @{context} []
@@ -1115,26 +1115,26 @@ lemma S6_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(I
 
 (* --------------- aggregate leadsto properties----------------------------- *)
 
-lemma S5S6LeadstoS6: "sigma |= S5 rmhist p ~> S6 rmhist p
-      ==> sigma |= (S5 rmhist p | S6 rmhist p) ~> S6 rmhist p"
+lemma S5S6LeadstoS6: "sigma |= S5 rmhist p \<leadsto> S6 rmhist p
+      ==> sigma |= (S5 rmhist p | S6 rmhist p) \<leadsto> S6 rmhist p"
   by (auto intro!: LatticeDisjunctionIntro [temp_use] LatticeReflexivity [temp_use])
 
-lemma S4bS5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p;
-         sigma |= S5 rmhist p ~> S6 rmhist p |]
-      ==> sigma |= (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p | S6 rmhist p
-                    ~> S6 rmhist p"
+lemma S4bS5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
+      ==> sigma |= (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p
+                    \<leadsto> S6 rmhist p"
   by (auto intro!: LatticeDisjunctionIntro [temp_use]
     S5S6LeadstoS6 [temp_use] intro: LatticeTransitivity [temp_use])
 
 lemma S4S5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p = #NotAResult
-                  ~> (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p;
-         sigma |= S5 rmhist p ~> S6 rmhist p |]
-      ==> sigma |= S4 rmhist p | S5 rmhist p | S6 rmhist p ~> S6 rmhist p"
+                  \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p;
+         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
+      ==> sigma |= S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
   apply (subgoal_tac "sigma |= (S4 rmhist p & ires!p = #NotAResult) |
-    (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p | S6 rmhist p ~> S6 rmhist p")
+    (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p")
    apply (erule_tac G = "PRED ((S4 rmhist p & ires!p = #NotAResult) |
-     (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p | S6 rmhist p)" in
+     (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p | S6 rmhist p)" in
      LatticeTransitivity [temp_use])
    apply (force simp: Init_defs intro!: ImplLeadsto_gen [temp_use] necT [temp_use])
   apply (rule LatticeDisjunctionIntro [temp_use])
@@ -1144,12 +1144,12 @@ lemma S4S5S6LeadstoS6: "[| sigma |= S4 rmhist p & ires!p = #NotAResult
   apply (auto intro!: S4bS5S6LeadstoS6 [temp_use])
   done
 
-lemma S3S4S5S6LeadstoS6: "[| sigma |= S3 rmhist p ~> S4 rmhist p | S6 rmhist p;
+lemma S3S4S5S6LeadstoS6: "[| sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
          sigma |= S4 rmhist p & ires!p = #NotAResult
-                  ~> (S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p;
-         sigma |= S5 rmhist p ~> S6 rmhist p |]
-      ==> sigma |= S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p ~> S6 rmhist p"
+                  \<leadsto> (S4 rmhist p & ires!p \<noteq> #NotAResult) | S5 rmhist p;
+         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
+      ==> sigma |= S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p \<leadsto> S6 rmhist p"
   apply (rule LatticeDisjunctionIntro [temp_use])
    apply (erule LatticeTriangle2 [temp_use])
    apply (rule S4S5S6LeadstoS6 [THEN LatticeTransitivity [temp_use]])
@@ -1157,14 +1157,14 @@ lemma S3S4S5S6LeadstoS6: "[| sigma |= S3 rmhist p ~> S4 rmhist p | S6 rmhist p;
         intro: ImplLeadsto_gen [temp_use] simp: Init_defs)
   done
 
-lemma S2S3S4S5S6LeadstoS6: "[| sigma |= S2 rmhist p ~> S3 rmhist p;
-         sigma |= S3 rmhist p ~> S4 rmhist p | S6 rmhist p;
+lemma S2S3S4S5S6LeadstoS6: "[| sigma |= S2 rmhist p \<leadsto> S3 rmhist p;
+         sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
          sigma |= S4 rmhist p & ires!p = #NotAResult
-                  ~> S4 rmhist p & ires!p ~= #NotAResult | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p;
-         sigma |= S5 rmhist p ~> S6 rmhist p |]
+                  \<leadsto> S4 rmhist p & ires!p \<noteq> #NotAResult | S5 rmhist p;
+         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
       ==> sigma |= S2 rmhist p | S3 rmhist p | S4 rmhist p | S5 rmhist p | S6 rmhist p
-                   ~> S6 rmhist p"
+                   \<leadsto> S6 rmhist p"
   apply (rule LatticeDisjunctionIntro [temp_use])
    apply (rule LatticeTransitivity [temp_use])
     prefer 2 apply assumption
@@ -1173,14 +1173,14 @@ lemma S2S3S4S5S6LeadstoS6: "[| sigma |= S2 rmhist p ~> S3 rmhist p;
          intro: ImplLeadsto_gen [temp_use] simp: Init_defs)
   done
 
-lemma NotS1LeadstoS6: "[| sigma |= []ImpInv rmhist p;
-         sigma |= S2 rmhist p ~> S3 rmhist p;
-         sigma |= S3 rmhist p ~> S4 rmhist p | S6 rmhist p;
+lemma NotS1LeadstoS6: "[| sigma |= \<box>ImpInv rmhist p;
+         sigma |= S2 rmhist p \<leadsto> S3 rmhist p;
+         sigma |= S3 rmhist p \<leadsto> S4 rmhist p | S6 rmhist p;
          sigma |= S4 rmhist p & ires!p = #NotAResult
-                  ~> S4 rmhist p & ires!p ~= #NotAResult | S5 rmhist p;
-         sigma |= S4 rmhist p & ires!p ~= #NotAResult ~> S5 rmhist p;
-         sigma |= S5 rmhist p ~> S6 rmhist p |]
-      ==> sigma |= ~S1 rmhist p ~> S6 rmhist p"
+                  \<leadsto> S4 rmhist p & ires!p \<noteq> #NotAResult | S5 rmhist p;
+         sigma |= S4 rmhist p & ires!p \<noteq> #NotAResult \<leadsto> S5 rmhist p;
+         sigma |= S5 rmhist p \<leadsto> S6 rmhist p |]
+      ==> sigma |= \<not>S1 rmhist p \<leadsto> S6 rmhist p"
   apply (rule S2S3S4S5S6LeadstoS6 [THEN LatticeTransitivity [temp_use]])
        apply assumption+
   apply (erule INV_leadsto [temp_use])
@@ -1189,9 +1189,9 @@ lemma NotS1LeadstoS6: "[| sigma |= []ImpInv rmhist p;
   apply (auto simp: ImpInv_def Init_defs intro!: necT [temp_use])
   done
 
-lemma S1Infinite: "[| sigma |= ~S1 rmhist p ~> S6 rmhist p;
-         sigma |= []<>S6 rmhist p --> []<>S1 rmhist p |]
-      ==> sigma |= []<>S1 rmhist p"
+lemma S1Infinite: "[| sigma |= \<not>S1 rmhist p \<leadsto> S6 rmhist p;
+         sigma |= \<box>\<diamond>S6 rmhist p --> \<box>\<diamond>S1 rmhist p |]
+      ==> sigma |= \<box>\<diamond>S1 rmhist p"
   apply (rule classical)
   apply (tactic {* asm_lr_simp_tac (@{context} addsimps
     [temp_use @{context} @{thm NotBox}, temp_rewrite @{context} @{thm NotDmd}]) 1 *})
@@ -1204,12 +1204,12 @@ section "Refinement proof (step 1.5)"
    a. memory invariant
    b. "implementation invariant": always in states S1,...,S6
 *)
-lemma Step1_5_1a: "|- IPImp p --> (ALL l. []$MemInv mm l)"
+lemma Step1_5_1a: "|- IPImp p --> (\<forall>l. \<box>$MemInv mm l)"
   by (auto simp: IPImp_def box_stp_act [temp_use] intro!: MemoryInvariantAll [temp_use])
 
-lemma Step1_5_1b: "|- Init(ImpInit p & HInit rmhist p) & [](ImpNext p)
-         & [][HNext rmhist p]_(c p, r p, m p, rmhist!p) & [](ALL l. $MemInv mm l)
-         --> []ImpInv rmhist p"
+lemma Step1_5_1b: "|- Init(ImpInit p & HInit rmhist p) & \<box>(ImpNext p)
+         & \<box>[HNext rmhist p]_(c p, r p, m p, rmhist!p) & \<box>(\<forall>l. $MemInv mm l)
+         --> \<box>ImpInv rmhist p"
   apply invariant
    apply (auto simp: Init_def ImpInv_def box_stp_act [temp_use]
      dest!: Step1_1 [temp_use] dest: S1_successors [temp_use] S2_successors [temp_use]
@@ -1222,9 +1222,9 @@ lemma Step1_5_2a: "|- Init(ImpInit p & HInit rmhist p) --> Init(PInit (resbar rm
   by (auto simp: Init_def intro!: Step1_1 [temp_use] Step1_3  [temp_use])
 
 (*** step simulation ***)
-lemma Step1_5_2b: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
-         & $ImpInv rmhist p & (!l. $MemInv mm l))
-         --> [][UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
+lemma Step1_5_2b: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
+         & $ImpInv rmhist p & (\<forall>l. $MemInv mm l))
+         --> \<box>[UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
   by (auto simp: ImpInv_def elim!: STL4E [temp_use]
     dest!: S1safe [temp_use] S2safe [temp_use] S3safe [temp_use] S4safe [temp_use]
     S5safe [temp_use] S6safe [temp_use])
@@ -1232,12 +1232,12 @@ lemma Step1_5_2b: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p)
 (*** Liveness ***)
 lemma GoodImpl: "|- IPImp p & HistP rmhist p
          -->   Init(ImpInit p & HInit rmhist p)
-             & [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-             & [](ALL l. $MemInv mm l) & []($ImpInv rmhist p)
+             & \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+             & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p)
              & ImpLive p"
   apply clarsimp
-    apply (subgoal_tac "sigma |= Init (ImpInit p & HInit rmhist p) & [] (ImpNext p) &
-      [][HNext rmhist p]_ (c p, r p, m p, rmhist!p) & [] (ALL l. $MemInv mm l)")
+    apply (subgoal_tac "sigma |= Init (ImpInit p & HInit rmhist p) & \<box> (ImpNext p) &
+      \<box>[HNext rmhist p]_ (c p, r p, m p, rmhist!p) & \<box> (\<forall>l. $MemInv mm l)")
    apply (auto simp: split_box_conj [try_rewrite] box_stp_act [try_rewrite]
        dest!: Step1_5_1b [temp_use])
       apply (force simp: IPImp_def MClkIPSpec_def RPCIPSpec_def RPSpec_def
@@ -1251,10 +1251,10 @@ lemma GoodImpl: "|- IPImp p & HistP rmhist p
   done
 
 (* The implementation is infinitely often in state S1... *)
-lemma Step1_5_3a: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-         & [](ALL l. $MemInv mm l)
-         & []($ImpInv rmhist p) & ImpLive p
-         --> []<>S1 rmhist p"
+lemma Step1_5_3a: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+         & \<box>(\<forall>l. $MemInv mm l)
+         & \<box>($ImpInv rmhist p) & ImpLive p
+         --> \<box>\<diamond>S1 rmhist p"
   apply (clarsimp simp: ImpLive_def)
   apply (rule S1Infinite)
    apply (force simp: split_box_conj [try_rewrite] box_stp_act [try_rewrite]
@@ -1264,13 +1264,13 @@ lemma Step1_5_3a: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
   done
 
 (* ... and therefore satisfies the fairness requirements of the specification *)
-lemma Step1_5_3b: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-         & [](ALL l. $MemInv mm l) & []($ImpInv rmhist p) & ImpLive p
+lemma Step1_5_3b: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+         & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p) & ImpLive p
          --> WF(RNext memCh mm (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto intro!: RNext_fair [temp_use] Step1_5_3a [temp_use])
 
-lemma Step1_5_3c: "|- [](ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-         & [](ALL l. $MemInv mm l) & []($ImpInv rmhist p) & ImpLive p
+lemma Step1_5_3c: "|- \<box>(ImpNext p & [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+         & \<box>(\<forall>l. $MemInv mm l) & \<box>($ImpInv rmhist p) & ImpLive p
          --> WF(MemReturn memCh (resbar rmhist) p)_(rtrner memCh!p, resbar rmhist!p)"
   by (auto intro!: Return_fair [temp_use] Step1_5_3a [temp_use])
 
@@ -1296,25 +1296,25 @@ lemma Step2_2a: "|- Write rmCh mm ires p l & ImpNext p
      apply (auto simp: square_def dest: S4Write [temp_use])
   done
 
-lemma Step2_2: "|-   (ALL p. ImpNext p)
-         & (ALL p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-         & (ALL p. $ImpInv rmhist p)
-         & [EX q. Write rmCh mm ires q l]_(mm!l)
-         --> [EX q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
+lemma Step2_2: "|-   (\<forall>p. ImpNext p)
+         & (\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+         & (\<forall>p. $ImpInv rmhist p)
+         & [\<exists>q. Write rmCh mm ires q l]_(mm!l)
+         --> [\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
   apply (auto intro!: squareCI elim!: squareE)
   apply (assumption | rule exI Step1_4_4b [action_use])+
     apply (force intro!: WriteS4 [temp_use])
    apply (auto dest!: Step2_2a [temp_use])
   done
 
-lemma Step2_lemma: "|- [](  (ALL p. ImpNext p)
-            & (ALL p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
-            & (ALL p. $ImpInv rmhist p)
-            & [EX q. Write rmCh mm ires q l]_(mm!l))
-         --> [][EX q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
+lemma Step2_lemma: "|- \<box>(  (\<forall>p. ImpNext p)
+            & (\<forall>p. [HNext rmhist p]_(c p, r p, m p, rmhist!p))
+            & (\<forall>p. $ImpInv rmhist p)
+            & [\<exists>q. Write rmCh mm ires q l]_(mm!l))
+         --> \<box>[\<exists>q. Write memCh mm (resbar rmhist) q l]_(mm!l)"
   by (force elim!: STL4E [temp_use] dest!: Step2_2 [temp_use])
 
-lemma Step2: "|- #l : #MemLoc & (ALL p. IPImp p & HistP rmhist p)
+lemma Step2: "|- #l : #MemLoc & (\<forall>p. IPImp p & HistP rmhist p)
          --> MSpec memCh mm (resbar rmhist) l"
   apply (auto simp: MSpec_def)
    apply (force simp: IPImp_def MSpec_def)
