@@ -119,7 +119,7 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
   show "(\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r j ys i) \<and>
     (\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys k)"
   proof
-    show "\<And>j. list_all (\<lambda>x. x < Suc i) xs \<Longrightarrow> is_path' r j xs k \<Longrightarrow>
+    have "\<And>j. list_all (\<lambda>x. x < Suc i) xs \<Longrightarrow> is_path' r j xs k \<Longrightarrow>
       \<not> list_all (\<lambda>x. x < i) xs \<Longrightarrow>
     \<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r j ys i" (is "PROP ?ih xs")
     proof (induct xs)
@@ -151,7 +151,8 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
         qed
       qed
     qed
-    show "\<And>k. list_all (\<lambda>x. x < Suc i) xs \<Longrightarrow> is_path' r j xs k \<Longrightarrow>
+    from this asms show "\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r j ys i" .
+    have "\<And>k. list_all (\<lambda>x. x < Suc i) xs \<Longrightarrow> is_path' r j xs k \<Longrightarrow>
       \<not> list_all (\<lambda>x. x < i) xs \<Longrightarrow>
       \<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys k" (is "PROP ?ih xs")
     proof (induct xs rule: rev_induct)
@@ -184,7 +185,8 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
         qed
       qed
     qed
-  qed (rule asms)+
+    from this asms show "\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys k" .
+  qed
 qed
 
 theorem lemma5':

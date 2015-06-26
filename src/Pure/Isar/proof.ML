@@ -458,6 +458,14 @@ fun FINDGOAL tac st =
   let fun find i n = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1) n)
   in find 1 (Thm.nprems_of st) st end;
 
+fun protect_prem i th =
+  Thm.bicompose NONE {flatten = false, match = false, incremented = true}
+    (false, Drule.incr_indexes th Drule.protectD, 1) i th
+  |> Seq.hd;
+
+fun protect_prems th =
+  fold_rev protect_prem (1 upto Thm.nprems_of th) th;
+
 in
 
 fun refine_goals print_rule result_ctxt result state =
@@ -467,6 +475,7 @@ fun refine_goals print_rule result_ctxt result state =
       (print_rule goal_ctxt rule; FINDGOAL (goal_tac goal_ctxt rule) st);
   in
     result
+    |> map (Raw_Simplifier.norm_hhf result_ctxt #> protect_prems)
     |> Proof_Context.goal_export result_ctxt goal_ctxt
     |> (fn rules => Seq.lift provide_goal (EVERY (map refine rules) goal) state)
   end;
@@ -1284,4 +1293,3 @@ fun global_future_terminal_proof meths =
 end;
 
 end;
-

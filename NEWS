@@ -42,6 +42,20 @@ corresponds to a raw proof block like this:
 The keyword 'when' may be used instead of 'if', to indicate 'presume'
 instead of 'assume' above.
 
+* The meaning of 'show' with Pure rule statements has changed: premises
+are treated in the sense of 'assume', instead of 'presume'. This means,
+a goal like "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x" can be solved completely as follows:
+
+  show "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
+
+or:
+
+  show "C x" if "A x" "B x" for x
+
+Rare INCOMPATIBILITY, the old behaviour may be recovered as follows:
+
+  show "C x" when "A x" "B x" for x
+
 * New command 'supply' supports fact definitions during goal refinement
 ('apply' scripts).
 

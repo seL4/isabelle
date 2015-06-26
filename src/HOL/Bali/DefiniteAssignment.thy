@@ -1055,7 +1055,7 @@ lemma da_monotone:
   shows "(nrm A \<subseteq> nrm A') \<and> (\<forall> l. (brk A l \<subseteq> brk A' l))"
 proof -
   from da
-  show "\<And> B' A'. \<lbrakk>Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'; B \<subseteq> B'\<rbrakk> 
+  have "\<And> B' A'. \<lbrakk>Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'; B \<subseteq> B'\<rbrakk> 
                   \<Longrightarrow> (nrm A \<subseteq> nrm A') \<and> (\<forall> l. (brk A l \<subseteq> brk A' l))"
        (is "PROP ?Hyp Env B t A")  
   proof (induct)
@@ -1326,7 +1326,8 @@ proof -
   next
     case Cons thus ?case by (elim da_elim_cases) auto
   qed
-qed (rule da', rule `B \<subseteq> B'`)
+  from this [OF da' `B \<subseteq> B'`] show ?thesis .
+qed
   
 lemma da_weaken:     
   assumes da: "Env\<turnstile> B \<guillemotright>t\<guillemotright> A" and "B \<subseteq> B'" 
@@ -1334,7 +1335,7 @@ lemma da_weaken:
 proof -
   note assigned.select_convs [Pure.intro]
   from da  
-  show "\<And> B'. B \<subseteq> B' \<Longrightarrow> \<exists> A'. Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" (is "PROP ?Hyp Env B t")
+  have "\<And> B'. B \<subseteq> B' \<Longrightarrow> \<exists> A'. Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" (is "PROP ?Hyp Env B t")
   proof (induct) 
     case Skip thus ?case by (iprover intro: da.Skip)
   next
@@ -1799,7 +1800,8 @@ proof -
       by (iprover intro: da.Cons)
     thus ?case ..
   qed
-qed (rule `B \<subseteq> B'`)
+  from this [OF `B \<subseteq> B'`] show ?thesis .
+qed
 
 (* Remarks about the proof style:
 

@@ -423,8 +423,8 @@ proof
     show ?L
     proof
       fix x assume x: "x \<in> H"
-      show "- a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> \<bar>b\<bar> \<le> a" for a b :: real
-        by arith
+      show "\<bar>b\<bar> \<le> a" when "- a \<le> b" "b \<le> a" for a b :: real
+        using that by arith
       from \<open>linearform H h\<close> and H x
       have "- h x = h (- x)" by (rule linearform.neg [symmetric])
       also

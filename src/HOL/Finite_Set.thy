@@ -167,7 +167,8 @@ next
     also have "insert x (A - {x}) = A" using x by (rule insert_Diff)
     finally show ?thesis .
   next
-    show "A \<subseteq> F ==> ?thesis" by fact
+    show ?thesis when "A \<subseteq> F"
+      using that by fact
     assume "x \<notin> A"
     with A show "A \<subseteq> F" by (simp add: subset_insert_iff)
   qed

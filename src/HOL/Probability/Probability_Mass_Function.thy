@@ -1043,52 +1043,53 @@ proof -
   show "\<And>f::'a \<Rightarrow> 'b. set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
     by (rule pmf_set_map)
 
-  { fix p :: "'s pmf"
+  show "(card_of (set_pmf p), natLeq) \<in> ordLeq" for p :: "'s pmf"
+  proof -
     have "(card_of (set_pmf p), card_of (UNIV :: nat set)) \<in> ordLeq"
       by (rule card_of_ordLeqI[where f="to_nat_on (set_pmf p)"])
          (auto intro: countable_set_pmf)
     also have "(card_of (UNIV :: nat set), natLeq) \<in> ordLeq"
       by (metis Field_natLeq card_of_least natLeq_Well_order)
-    finally show "(card_of (set_pmf p), natLeq) \<in> ordLeq" . }
+    finally show ?thesis .
+  qed
 
   show "\<And>R. rel_pmf R =
          (BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf fst))\<inverse>\<inverse> OO
          BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf snd)"
      by (auto simp add: fun_eq_iff BNF_Def.Grp_def OO_def rel_pmf.simps)
 
-  { fix p :: "'a pmf" and f :: "'a \<Rightarrow> 'b" and g x
-    assume p: "\<And>z. z \<in> set_pmf p \<Longrightarrow> f z = g z"
-      and x: "x \<in> set_pmf p"
-    thus "f x = g x" by simp }
-
-  fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
-  { fix p q r
-    assume pq: "rel_pmf R p q"
-      and qr:"rel_pmf S q r"
-    from pq obtain pq where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y"
-      and p: "p = map_pmf fst pq" and q: "q = map_pmf snd pq" by cases auto
-    from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
-      and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
-
-    def pr \<equiv> "bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy}) (\<lambda>yz. return_pmf (fst xy, snd yz)))"
-    have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {yz. fst yz = y} \<noteq> {}"
-      by (force simp: q')
-
-    have "rel_pmf (R OO S) p r"
-    proof (rule rel_pmf.intros)
-      fix x z assume "(x, z) \<in> pr"
-      then have "\<exists>y. (x, y) \<in> pq \<and> (y, z) \<in> qr"
-        by (auto simp: q pr_welldefined pr_def split_beta)
-      with pq qr show "(R OO S) x z"
-        by blast
-    next
-      have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {yz. fst yz = y}))"
-        by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_pmf_comp)
-      then show "map_pmf snd pr = r"
-        unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) (auto simp: eq_commute)
-    qed (simp add: pr_def map_bind_pmf split_beta map_pmf_def[symmetric] p map_pmf_comp) }
-  then show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
-    by(auto simp add: le_fun_def)
+  show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
+    for R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
+  proof -
+    { fix p q r
+      assume pq: "rel_pmf R p q"
+        and qr:"rel_pmf S q r"
+      from pq obtain pq where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> R x y"
+        and p: "p = map_pmf fst pq" and q: "q = map_pmf snd pq" by cases auto
+      from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
+        and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
+  
+      def pr \<equiv> "bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy}) (\<lambda>yz. return_pmf (fst xy, snd yz)))"
+      have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {yz. fst yz = y} \<noteq> {}"
+        by (force simp: q')
+  
+      have "rel_pmf (R OO S) p r"
+      proof (rule rel_pmf.intros)
+        fix x z assume "(x, z) \<in> pr"
+        then have "\<exists>y. (x, y) \<in> pq \<and> (y, z) \<in> qr"
+          by (auto simp: q pr_welldefined pr_def split_beta)
+        with pq qr show "(R OO S) x z"
+          by blast
+      next
+        have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {yz. fst yz = y}))"
+          by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_pmf_comp)
+        then show "map_pmf snd pr = r"
+          unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) (auto simp: eq_commute)
+      qed (simp add: pr_def map_bind_pmf split_beta map_pmf_def[symmetric] p map_pmf_comp)
+    }
+    then show ?thesis
+      by(auto simp add: le_fun_def)
+  qed
 qed (fact natLeq_card_order natLeq_cinfinite)+
 
 lemma rel_pmf_conj[simp]:
