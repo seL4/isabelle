@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: specification of the memory clerk *}
+section \<open>RPC-Memory example: specification of the memory clerk\<close>
 
 theory MemClerk
 imports Memory RPC MemClerkParameters
@@ -85,9 +85,9 @@ lemma MClkbusy: "\<turnstile> $Calling rcv p \<longrightarrow> \<not>MClkNext se
 lemma MClkFwd_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \<Longrightarrow>  
       \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkA   
          \<longrightarrow> Enabled (MClkFwd send rcv cst p)"
-  by (tactic {* action_simp_tac (@{context} addsimps [@{thm MClkFwd_def},
+  by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm MClkFwd_def},
     @{thm Call_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
-    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 lemma MClkFwd_ch_enabled: "\<turnstile> Enabled (MClkFwd send rcv cst p)  \<longrightarrow>   
          Enabled (<MClkFwd send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
@@ -100,11 +100,11 @@ lemma MClkReply_change: "\<turnstile> MClkReply send rcv cst p \<longrightarrow>
 lemma MClkReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \<Longrightarrow>  
       \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkB   
          \<longrightarrow> Enabled (<MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
-  apply (tactic {* action_simp_tac @{context}
-    [@{thm MClkReply_change} RSN (2, @{thm enabled_mono})] [] 1 *})
-  apply (tactic {* action_simp_tac (@{context} addsimps
+  apply (tactic \<open>action_simp_tac @{context}
+    [@{thm MClkReply_change} RSN (2, @{thm enabled_mono})] [] 1\<close>)
+  apply (tactic \<open>action_simp_tac (@{context} addsimps
     [@{thm MClkReply_def}, @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}])
-    [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 
 lemma MClkReplyNotRetry: "\<turnstile> MClkReply send rcv cst p \<longrightarrow> \<not>MClkRetry send rcv cst p"

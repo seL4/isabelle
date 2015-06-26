@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: RPC specification *}
+section \<open>RPC-Memory example: RPC specification\<close>
 
 theory RPC
 imports RPCParameters ProcedureInterface Memory
@@ -99,15 +99,15 @@ lemma RPCFail_Next_enabled: "\<turnstile> Enabled (RPCFail send rcv rst p) \<lon
 (* Enabledness of some actions *)
 lemma RPCFail_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
     \<turnstile> \<not>Calling rcv p \<and> Calling send p \<longrightarrow> Enabled (RPCFail send rcv rst p)"
-  by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
+  by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
-    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 lemma RPCReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
       \<turnstile> \<not>Calling rcv p \<and> Calling send p \<and> rst!p = #rpcB  
          \<longrightarrow> Enabled (RPCReply send rcv rst p)"
-  by (tactic {* action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
+  by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
     @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
-    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 end

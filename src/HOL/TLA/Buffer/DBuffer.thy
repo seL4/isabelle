@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* Two FIFO buffers in a row, with interleaving assumption *}
+section \<open>Two FIFO buffers in a row, with interleaving assumption\<close>
 
 theory DBuffer
 imports Buffer
@@ -59,7 +59,7 @@ lemma DB_step_simulation: "\<turnstile> [DBNext]_(inp,mid,out,q1,q2) \<longright
   apply (rule square_simulation)
    apply clarsimp
   apply (tactic
-    {* action_simp_tac (@{context} addsimps (@{thm hd_append} :: @{thms db_defs})) [] [] 1 *})
+    \<open>action_simp_tac (@{context} addsimps (@{thm hd_append} :: @{thms db_defs})) [] [] 1\<close>)
   done
 
 

@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: Parameters of the memory clerk *}
+section \<open>RPC-Memory example: Parameters of the memory clerk\<close>
 
 theory MemClerkParameters
 imports RPCParameters

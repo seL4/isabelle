@@ -3,8 +3,8 @@
     Copyright:  1998 University of Munich
 *)
 
-section {* A framework for "intensional" (possible-world based) logics
-  on top of HOL, with lifting of constants and functions *}
+section \<open>A framework for "intensional" (possible-world based) logics
+  on top of HOL, with lifting of constants and functions\<close>
 
 theory Intensional
 imports Main
@@ -147,7 +147,7 @@ defs
   unl_Rex1:    "w \<Turnstile> \<exists>!x. A x  ==  \<exists>!x. (w \<Turnstile> A x)"
 
 
-subsection {* Lemmas and tactics for "intensional" logics. *}
+subsection \<open>Lemmas and tactics for "intensional" logics.\<close>
 
 lemmas intensional_rews [simp] =
   unl_con unl_lift unl_lift2 unl_lift3 unl_Rall unl_Rex unl_Rex1
@@ -203,7 +203,7 @@ lemma TrueW [simp]: "\<turnstile> #True"
 
 (* ======== Functions to "unlift" intensional implications into HOL rules ====== *)
 
-ML {*
+ML \<open>
 (* Basic unlifting introduces a parameter "w" and applies basic rewrites, e.g.
    \<turnstile> F = G    becomes   F w = G w
    \<turnstile> F \<longrightarrow> G  becomes   F w \<longrightarrow> G w
@@ -253,15 +253,15 @@ fun int_use ctxt th =
       Const _ $ (Const (@{const_name Valid}, _) $ _) =>
               (flatten (int_unlift ctxt th) handle THM _ => th)
     | _ => th
-*}
+\<close>
 
 attribute_setup int_unlift =
-  {* Scan.succeed (Thm.rule_attribute (int_unlift o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (int_unlift o Context.proof_of))\<close>
 attribute_setup int_rewrite =
-  {* Scan.succeed (Thm.rule_attribute (int_rewrite o Context.proof_of)) *}
-attribute_setup flatten = {* Scan.succeed (Thm.rule_attribute (K flatten)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (int_rewrite o Context.proof_of))\<close>
+attribute_setup flatten = \<open>Scan.succeed (Thm.rule_attribute (K flatten))\<close>
 attribute_setup int_use =
-  {* Scan.succeed (Thm.rule_attribute (int_use o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (int_use o Context.proof_of))\<close>
 
 lemma Not_Rall: "\<turnstile> (\<not>(\<forall>x. F x)) = (\<exists>x. \<not>F x)"
   by (simp add: Valid_def)

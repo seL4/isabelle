@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* Procedure interface for RPC-Memory components *}
+section \<open>Procedure interface for RPC-Memory components\<close>
 
 theory ProcedureInterface
 imports "../TLA" RPCMemoryParams

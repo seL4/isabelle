@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-section {* The temporal level of TLA *}
+section \<open>The temporal level of TLA\<close>
 
 theory TLA
 imports Init
@@ -102,7 +102,7 @@ lemma tempD [dest]: "\<turnstile> (F::temporal) \<Longrightarrow> sigma \<Turnst
 
 (* ======== Functions to "unlift" temporal theorems ====== *)
 
-ML {*
+ML \<open>
 (* The following functions are specialized versions of the corresponding
    functions defined in theory Intensional in that they introduce a
    "world" parameter of type "behavior".
@@ -121,16 +121,16 @@ fun temp_use ctxt th =
   | _ => th;
 
 fun try_rewrite ctxt th = temp_rewrite ctxt th handle THM _ => temp_use ctxt th;
-*}
+\<close>
 
 attribute_setup temp_unlift =
-  {* Scan.succeed (Thm.rule_attribute (temp_unlift o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (temp_unlift o Context.proof_of))\<close>
 attribute_setup temp_rewrite =
-  {* Scan.succeed (Thm.rule_attribute (temp_rewrite o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (temp_rewrite o Context.proof_of))\<close>
 attribute_setup temp_use =
-  {* Scan.succeed (Thm.rule_attribute (temp_use o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (temp_use o Context.proof_of))\<close>
 attribute_setup try_rewrite =
-  {* Scan.succeed (Thm.rule_attribute (try_rewrite o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (try_rewrite o Context.proof_of))\<close>
 
 
 (* ------------------------------------------------------------------------- *)
@@ -283,7 +283,7 @@ lemmas box_conjE_act = box_conjE [where 'a = "state * state"]
 
 lemma box_thin: "\<lbrakk> sigma \<Turnstile> \<box>F; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
-ML {*
+ML \<open>
 fun merge_box_tac i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE} i, atac i, etac @{thm box_thin} i])
 
@@ -298,12 +298,12 @@ fun merge_stp_box_tac ctxt i =
 fun merge_act_box_tac ctxt i =
   REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
     Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "state * state")] [] @{thm box_thin} i])
-*}
+\<close>
 
-method_setup merge_box = {* Scan.succeed (K (SIMPLE_METHOD' merge_box_tac)) *}
-method_setup merge_temp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac) *}
-method_setup merge_stp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac) *}
-method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac) *}
+method_setup merge_box = \<open>Scan.succeed (K (SIMPLE_METHOD' merge_box_tac))\<close>
+method_setup merge_temp_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac)\<close>
+method_setup merge_stp_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac)\<close>
+method_setup merge_act_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac)\<close>
 
 (* rewrite rule to push universal quantification through box:
       (sigma \<Turnstile> \<box>(\<forall>x. F x)) = (\<forall>x. (sigma \<Turnstile> \<box>F x))
@@ -571,7 +571,7 @@ lemma DmdStable: "\<turnstile> (stable P) \<and> \<diamond>P \<longrightarrow> \
 
 (* ---------------- (Semi-)automatic invariant tactics ---------------------- *)
 
-ML {*
+ML \<open>
 (* inv_tac reduces goals of the form ... \<Longrightarrow> sigma \<Turnstile> \<box>P *)
 fun inv_tac ctxt =
   SELECT_GOAL
@@ -592,15 +592,15 @@ fun auto_inv_tac ctxt =
     (inv_tac ctxt 1 THEN
       (TRYALL (action_simp_tac
         (ctxt addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
-*}
+\<close>
 
-method_setup invariant = {*
+method_setup invariant = \<open>
   Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o inv_tac))
-*}
+\<close>
 
-method_setup auto_invariant = {*
+method_setup auto_invariant = \<open>
   Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o auto_inv_tac))
-*}
+\<close>
 
 lemma unless: "\<turnstile> \<box>($P \<longrightarrow> P` \<or> Q`) \<longrightarrow> (stable P) \<or> \<diamond>Q"
   apply (unfold dmd_def)
@@ -685,10 +685,10 @@ lemma SFImplWF: "\<turnstile> SF(A)_v \<longrightarrow> WF(A)_v"
   done
 
 (* A tactic that "boxes" all fairness conditions. Apply more_temp_simps to "unbox". *)
-ML {*
+ML \<open>
 fun box_fair_tac ctxt =
   SELECT_GOAL (REPEAT (dresolve_tac ctxt [@{thm BoxWFI}, @{thm BoxSFI}] 1))
-*}
+\<close>
 
 
 (* ------------------------------ leads-to ------------------------------ *)

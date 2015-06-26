@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-section {* The action level of TLA as an Isabelle theory *}
+section \<open>The action level of TLA as an Isabelle theory\<close>
 
 theory Action
 imports Stfun
@@ -102,7 +102,7 @@ lemmas action_rews = act_rews intensional_rews
 
 (* ================ Functions to "unlift" action theorems into HOL rules ================ *)
 
-ML {*
+ML \<open>
 (* The following functions are specialized versions of the corresponding
    functions defined in Intensional.ML in that they introduce a
    "world" parameter of the form (s,t) and apply additional rewrites.
@@ -120,14 +120,14 @@ fun action_use ctxt th =
       Const _ $ (Const (@{const_name Valid}, _) $ _) =>
               (flatten (action_unlift ctxt th) handle THM _ => th)
     | _ => th;
-*}
+\<close>
 
 attribute_setup action_unlift =
-  {* Scan.succeed (Thm.rule_attribute (action_unlift o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (action_unlift o Context.proof_of))\<close>
 attribute_setup action_rewrite =
-  {* Scan.succeed (Thm.rule_attribute (action_rewrite o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (action_rewrite o Context.proof_of))\<close>
 attribute_setup action_use =
-  {* Scan.succeed (Thm.rule_attribute (action_use o Context.proof_of)) *}
+  \<open>Scan.succeed (Thm.rule_attribute (action_use o Context.proof_of))\<close>
 
 
 (* =========================== square / angle brackets =========================== *)
@@ -256,7 +256,7 @@ lemma base_enabled:
 
 (* ======================= action_simp_tac ============================== *)
 
-ML {*
+ML \<open>
 (* A dumb simplification-based tactic with just a little first-order logic:
    should plug in only "very safe" rules that can be applied blindly.
    Note that it applies whatever simplifications are currently active.
@@ -267,11 +267,11 @@ fun action_simp_tac ctxt intros elims =
                                     @ [refl,impI,conjI,@{thm actionI},@{thm intI},allI]))
                       ORELSE' (eresolve_tac ctxt ((map (action_use ctxt) elims)
                                              @ [conjE,disjE,exE]))));
-*}
+\<close>
 
 (* ---------------- enabled_tac: tactic to prove (Enabled A) -------------------- *)
 
-ML {*
+ML \<open>
 (* "Enabled A" can be proven as follows:
    - Assume that we know which state variables are "base variables"
      this should be expressed by a theorem of the form "basevars (x,y,z,...)".
@@ -284,11 +284,11 @@ ML {*
 
 fun enabled_tac ctxt base_vars =
   clarsimp_tac (ctxt addSIs [base_vars RS @{thm base_enabled}]);
-*}
+\<close>
 
-method_setup enabled = {*
+method_setup enabled = \<open>
   Attrib.thm >> (fn th => fn ctxt => SIMPLE_METHOD' (enabled_tac ctxt th))
-*}
+\<close>
 
 (* Example *)
 

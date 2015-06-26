@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* RPC-Memory example: Memory specification *}
+section \<open>RPC-Memory example: Memory specification\<close>
 
 theory Memory
 imports MemoryParameters ProcedureInterface
@@ -176,10 +176,10 @@ lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarr
       \<turnstile> Calling ch p \<and> (rs!p \<noteq> #NotAResult)
          \<longrightarrow> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
   apply (tactic
-    {* action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1 *})
+    \<open>action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1\<close>)
   apply (tactic
-    {* action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm Return_def},
-      @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
+    \<open>action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm Return_def},
+      @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 
 lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarrow>
@@ -222,13 +222,13 @@ lemma RNext_enabled: "\<And>p. \<forall>l. basevars (mm!l, rtrner ch!p, rs!p) \<
          \<longrightarrow> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
   apply (case_tac "arg (ch w p)")
-   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm Read_def},
-     temp_rewrite @{context} @{thm enabled_ex}]) [@{thm ReadInner_enabled}, exI] [] 1 *})
+   apply (tactic \<open>action_simp_tac (@{context} addsimps [@{thm Read_def},
+     temp_rewrite @{context} @{thm enabled_ex}]) [@{thm ReadInner_enabled}, exI] [] 1\<close>)
    apply (force dest: base_pair [temp_use])
   apply (erule contrapos_np)
-  apply (tactic {* action_simp_tac (@{context} addsimps [@{thm Write_def},
+  apply (tactic \<open>action_simp_tac (@{context} addsimps [@{thm Write_def},
     temp_rewrite @{context} @{thm enabled_ex}])
-    [@{thm WriteInner_enabled}, exI] [] 1 *})
+    [@{thm WriteInner_enabled}, exI] [] 1\<close>)
   done
 
 end

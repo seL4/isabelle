@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-section {* A simple FIFO buffer (synchronous communication, interleaving) *}
+section \<open>A simple FIFO buffer (synchronous communication, interleaving)\<close>
 
 theory Buffer
 imports "../TLA"
