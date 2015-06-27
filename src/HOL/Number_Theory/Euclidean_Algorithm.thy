@@ -242,6 +242,76 @@ lemma gcd_eucl_code [code]:
 
 end
 
+class euclidean_ring = euclidean_semiring + idom
+begin
+
+function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times> 'a" where
+  "euclid_ext a b = 
+     (if b = 0 then 
+        let c = 1 div normalization_factor a in (c, 0, a * c)
+      else if b dvd a then
+        let c = 1 div normalization_factor b in (0, c, b * c)
+      else
+        case euclid_ext b (a mod b) of
+            (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
+  by pat_completeness simp
+termination
+  by (relation "measure (euclidean_size \<circ> snd)") (simp_all add: mod_size_less)
+
+declare euclid_ext.simps [simp del]
+
+lemma euclid_ext_0: 
+  "euclid_ext a 0 = (1 div normalization_factor a, 0, a div normalization_factor a)"
+  by (simp add: euclid_ext.simps [of a 0])
+
+lemma euclid_ext_left_0: 
+  "euclid_ext 0 a = (0, 1 div normalization_factor a, a div normalization_factor a)"
+  by (simp add: euclid_ext.simps [of 0 a])
+
+lemma euclid_ext_non_0: 
+  "b \<noteq> 0 \<Longrightarrow> euclid_ext a b = (case euclid_ext b (a mod b) of
+    (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
+  by (cases "b dvd a")
+    (simp_all add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
+
+lemma euclid_ext_code [code]:
+  "euclid_ext a b = (if b = 0 then (1 div normalization_factor a, 0, a div normalization_factor a)
+    else let (s, t, c) = euclid_ext b (a mod b) in  (t, s - t * (a div b), c))"
+  by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
+
+lemma euclid_ext_correct:
+  "case euclid_ext a b of (s, t, c) \<Rightarrow> s * a + t * b = c"
+proof (induct a b rule: gcd_eucl_induct)
+  case (zero a) then show ?case
+    by (simp add: euclid_ext_0 ac_simps)
+next
+  case (mod a b)
+  obtain s t c where stc: "euclid_ext b (a mod b) = (s,t,c)"
+    by (cases "euclid_ext b (a mod b)") blast
+  with mod have "c = s * b + t * (a mod b)" by simp
+  also have "... = t * ((a div b) * b + a mod b) + (s - t * (a div b)) * b"
+    by (simp add: algebra_simps) 
+  also have "(a div b) * b + a mod b = a" using mod_div_equality .
+  finally show ?case
+    by (subst euclid_ext.simps) (simp add: stc mod ac_simps)
+qed
+
+definition euclid_ext' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
+where
+  "euclid_ext' a b = (case euclid_ext a b of (s, t, _) \<Rightarrow> (s, t))"
+
+lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div normalization_factor a, 0)" 
+  by (simp add: euclid_ext'_def euclid_ext_0)
+
+lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div normalization_factor a)" 
+  by (simp add: euclid_ext'_def euclid_ext_left_0)
+  
+lemma euclid_ext'_non_0: "b \<noteq> 0 \<Longrightarrow> euclid_ext' a b = (snd (euclid_ext' b (a mod b)),
+  fst (euclid_ext' b (a mod b)) - snd (euclid_ext' b (a mod b)) * (a div b))"
+  by (simp add: euclid_ext'_def euclid_ext_non_0 split_def)
+
+end
+
 class euclidean_semiring_gcd = euclidean_semiring + gcd + Gcd +
   assumes gcd_gcd_eucl: "gcd = gcd_eucl" and lcm_lcm_eucl: "lcm = lcm_eucl"
   assumes Gcd_Gcd_eucl: "Gcd = Gcd_eucl" and Lcm_Lcm_eucl: "Lcm = Lcm_eucl"
@@ -1415,76 +1485,6 @@ text \<open>
   A Euclidean ring is a Euclidean semiring with additive inverses. It provides a 
   few more lemmas; in particular, Bezout's lemma holds for any Euclidean ring.
 \<close>
-
-class euclidean_ring = euclidean_semiring + idom
-begin
-
-function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times> 'a" where
-  "euclid_ext a b = 
-     (if b = 0 then 
-        let c = 1 div normalization_factor a in (c, 0, a * c)
-      else if b dvd a then
-        let c = 1 div normalization_factor b in (0, c, b * c)
-      else
-        case euclid_ext b (a mod b) of
-            (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by pat_completeness simp
-termination
-  by (relation "measure (euclidean_size \<circ> snd)") (simp_all add: mod_size_less)
-
-declare euclid_ext.simps [simp del]
-
-lemma euclid_ext_0: 
-  "euclid_ext a 0 = (1 div normalization_factor a, 0, a div normalization_factor a)"
-  by (simp add: euclid_ext.simps [of a 0])
-
-lemma euclid_ext_left_0: 
-  "euclid_ext 0 a = (0, 1 div normalization_factor a, a div normalization_factor a)"
-  by (simp add: euclid_ext.simps [of 0 a])
-
-lemma euclid_ext_non_0: 
-  "b \<noteq> 0 \<Longrightarrow> euclid_ext a b = (case euclid_ext b (a mod b) of
-    (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by (cases "b dvd a")
-    (simp_all add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
-
-lemma euclid_ext_code [code]:
-  "euclid_ext a b = (if b = 0 then (1 div normalization_factor a, 0, a div normalization_factor a)
-    else let (s, t, c) = euclid_ext b (a mod b) in  (t, s - t * (a div b), c))"
-  by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
-
-lemma euclid_ext_correct:
-  "case euclid_ext a b of (s, t, c) \<Rightarrow> s * a + t * b = c"
-proof (induct a b rule: gcd_eucl_induct)
-  case (zero a) then show ?case
-    by (simp add: euclid_ext_0 ac_simps)
-next
-  case (mod a b)
-  obtain s t c where stc: "euclid_ext b (a mod b) = (s,t,c)"
-    by (cases "euclid_ext b (a mod b)") blast
-  with mod have "c = s * b + t * (a mod b)" by simp
-  also have "... = t * ((a div b) * b + a mod b) + (s - t * (a div b)) * b"
-    by (simp add: algebra_simps) 
-  also have "(a div b) * b + a mod b = a" using mod_div_equality .
-  finally show ?case
-    by (subst euclid_ext.simps) (simp add: stc mod ac_simps)
-qed
-
-definition euclid_ext' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
-where
-  "euclid_ext' a b = (case euclid_ext a b of (s, t, _) \<Rightarrow> (s, t))"
-
-lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div normalization_factor a, 0)" 
-  by (simp add: euclid_ext'_def euclid_ext_0)
-
-lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div normalization_factor a)" 
-  by (simp add: euclid_ext'_def euclid_ext_left_0)
-  
-lemma euclid_ext'_non_0: "b \<noteq> 0 \<Longrightarrow> euclid_ext' a b = (snd (euclid_ext' b (a mod b)),
-  fst (euclid_ext' b (a mod b)) - snd (euclid_ext' b (a mod b)) * (a div b))"
-  by (simp add: euclid_ext'_def euclid_ext_non_0 split_def)
-
-end
 
 class euclidean_ring_gcd = euclidean_semiring_gcd + idom
 begin
