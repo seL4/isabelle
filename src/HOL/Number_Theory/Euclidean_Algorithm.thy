@@ -23,7 +23,7 @@ class euclidean_semiring = semiring_div +
   fixes euclidean_size :: "'a \<Rightarrow> nat"
   fixes normalization_factor :: "'a \<Rightarrow> 'a"
   assumes mod_size_less: 
-    "b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> euclidean_size (a mod b) < euclidean_size b"
+    "b \<noteq> 0 \<Longrightarrow> euclidean_size (a mod b) < euclidean_size b"
   assumes size_mult_mono:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size (a * b) \<ge> euclidean_size a"
   assumes normalization_factor_is_unit [intro,simp]: 
@@ -145,7 +145,7 @@ lemmas normalization_factor_dvd_iff [simp] =
 
 lemma euclidean_division:
   fixes a :: 'a and b :: 'a
-  assumes "b \<noteq> 0" and "\<not> b dvd a"
+  assumes "b \<noteq> 0"
   obtains s and t where "a = s * b + t" 
     and "euclidean_size t < euclidean_size b"
 proof -
@@ -174,7 +174,6 @@ qed
 function gcd_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "gcd_eucl a b = (if b = 0 then a div normalization_factor a
-    else if b dvd a then b div normalization_factor b
     else gcd_eucl b (a mod b))"
   by pat_completeness simp
 termination
@@ -193,15 +192,8 @@ proof (induct a b rule: gcd_eucl.induct)
     case True then show "P a b" by simp (rule H1)
   next
     case False
-    have "P b (a mod b)"
-    proof (cases "b dvd a")
-      case False with \<open>b \<noteq> 0\<close> show "P b (a mod b)"
-        by (rule "1.hyps")
-    next
-      case True then have "a mod b = 0"
-        by (simp add: mod_eq_0_iff_dvd)
-      then show "P b (a mod b)" by simp (rule H1)
-    qed
+    then have "P b (a mod b)"
+      by (rule "1.hyps")
     with \<open>b \<noteq> 0\<close> show "P a b"
       by (blast intro: H2)
   qed
@@ -231,16 +223,11 @@ lemma gcd_eucl_0:
 
 lemma gcd_eucl_0_left:
   "gcd_eucl 0 a = a div normalization_factor a"
-  by (simp add: gcd_eucl.simps [of 0 a])
+  by (simp_all add: gcd_eucl_0 gcd_eucl.simps [of 0 a])
 
 lemma gcd_eucl_non_0:
   "b \<noteq> 0 \<Longrightarrow> gcd_eucl a b = gcd_eucl b (a mod b)"
-  by (cases "b dvd a")
-    (simp_all add: gcd_eucl.simps [of a b] gcd_eucl.simps [of b 0])
-
-lemma gcd_eucl_code [code]:
-  "gcd_eucl a b = (if b = 0 then a div normalization_factor a else gcd_eucl b (a mod b))"
-  by (auto simp add: gcd_eucl_non_0 gcd_eucl_0 gcd_eucl_0_left) 
+  by (simp add: gcd_eucl.simps [of a b] gcd_eucl.simps [of b 0])
 
 end
 
@@ -251,8 +238,6 @@ function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times
   "euclid_ext a b = 
      (if b = 0 then 
         let c = 1 div normalization_factor a in (c, 0, a * c)
-      else if b dvd a then
-        let c = 1 div normalization_factor b in (0, c, b * c)
       else
         case euclid_ext b (a mod b) of
             (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
@@ -268,13 +253,12 @@ lemma euclid_ext_0:
 
 lemma euclid_ext_left_0: 
   "euclid_ext 0 a = (0, 1 div normalization_factor a, a div normalization_factor a)"
-  by (simp add: euclid_ext.simps [of 0 a])
+  by (simp add: euclid_ext_0 euclid_ext.simps [of 0 a])
 
 lemma euclid_ext_non_0: 
   "b \<noteq> 0 \<Longrightarrow> euclid_ext a b = (case euclid_ext b (a mod b) of
     (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by (cases "b dvd a")
-    (simp_all add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
+  by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
 
 lemma euclid_ext_code [code]:
   "euclid_ext a b = (if b = 0 then (1 div normalization_factor a, 0, a div normalization_factor a)
@@ -1607,36 +1591,58 @@ instantiation poly :: (field) euclidean_ring
 begin
 
 definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
-  where "euclidean_size = (degree :: 'a poly \<Rightarrow> nat)"
+  where "euclidean_size p = (if p = 0 then 0 else Suc (degree p))"
 
 definition normalization_factor_poly :: "'a poly \<Rightarrow> 'a poly"
   where "normalization_factor p = monom (coeff p (degree p)) 0"
 
+lemma euclidean_size_poly_0 [simp]:
+  "euclidean_size (0::'a poly) = 0"
+  by (simp add: euclidean_size_poly_def)
+
+lemma euclidean_size_poly_not_0 [simp]:
+  "p \<noteq> 0 \<Longrightarrow> euclidean_size p = Suc (degree p)"
+  by (simp add: euclidean_size_poly_def)
+
 instance
-proof (default, unfold euclidean_size_poly_def normalization_factor_poly_def)
+proof
   fix p q :: "'a poly"
-  assume "q \<noteq> 0" and "\<not> q dvd p"
-  then show "degree (p mod q) < degree q"
-    using degree_mod_less [of q p] by (simp add: mod_eq_0_iff_dvd)
+  assume "q \<noteq> 0"
+  then have "p mod q = 0 \<or> degree (p mod q) < degree q"
+    by (rule degree_mod_less [of q p])  
+  with \<open>q \<noteq> 0\<close> show "euclidean_size (p mod q) < euclidean_size q"
+    by (cases "p mod q = 0") simp_all
 next
   fix p q :: "'a poly"
   assume "q \<noteq> 0"
-  from \<open>q \<noteq> 0\<close> show "degree p \<le> degree (p * q)"
+  from \<open>q \<noteq> 0\<close> have "degree p \<le> degree (p * q)"
     by (rule degree_mult_right_le)
-  from \<open>q \<noteq> 0\<close> show "is_unit (monom (coeff q (degree q)) 0)"
+  with \<open>q \<noteq> 0\<close> show "euclidean_size p \<le> euclidean_size (p * q)"
+    by (cases "p = 0") simp_all
+  from \<open>q \<noteq> 0\<close> have "is_unit (monom (coeff q (degree q)) 0)"
     by (auto intro: is_unit_monom_0)
+  then show "is_unit (normalization_factor q)"
+    by (simp add: normalization_factor_poly_def)
 next
   fix p :: "'a poly"
-  show "monom (coeff p (degree p)) 0 = p" if "is_unit p"
-    using that by (fact is_unit_monom_trival)
+  assume "is_unit p"
+  then have "monom (coeff p (degree p)) 0 = p"
+    by (fact is_unit_monom_trival)
+  then show "normalization_factor p = p"
+    by (simp add: normalization_factor_poly_def)
 next
   fix p q :: "'a poly"
-  show "monom (coeff (p * q) (degree (p * q))) 0 =
+  have "monom (coeff (p * q) (degree (p * q))) 0 =
     monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
     by (simp add: monom_0 coeff_degree_mult)
+  then show "normalization_factor (p * q) =
+    normalization_factor p * normalization_factor q"
+    by (simp add: normalization_factor_poly_def)
 next
-  show "monom (coeff 0 (degree 0)) 0 = 0"
+  have "monom (coeff 0 (degree 0)) 0 = 0"
     by simp
+  then show "normalization_factor 0 = (0::'a poly)"
+    by (simp add: normalization_factor_poly_def)
 qed
 
 end
