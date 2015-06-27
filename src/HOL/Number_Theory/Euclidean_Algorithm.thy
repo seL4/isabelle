@@ -82,27 +82,29 @@ lemma mult_div_normalization [simp]:
   by (cases "a = 0") simp_all
 
 lemma associated_iff_normed_eq:
-  "associated a b \<longleftrightarrow> a div normalization_factor a = b div normalization_factor b"
-proof (cases "b = 0", simp, cases "a = 0", metis associated_0(1) normalization_0_iff, rule iffI)
-  let ?nf = normalization_factor
-  assume "a \<noteq> 0" "b \<noteq> 0" "a div ?nf a = b div ?nf b"
-  hence "a = b * (?nf a div ?nf b)"
-    apply (subst (asm) unit_eq_div1, blast, subst (asm) unit_div_commute, blast)
-    apply (subst div_mult_swap, simp, simp)
-    done
-  with \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close> have "\<exists>c. is_unit c \<and> a = c * b"
-    by (intro exI[of _ "?nf a div ?nf b"], force simp: mult_ac)
-  then obtain c where "is_unit c" and "a = c * b" by blast
-  then show "associated a b" by (rule is_unit_associatedI) 
+  "associated a b \<longleftrightarrow> a div normalization_factor a = b div normalization_factor b" (is "?P \<longleftrightarrow> ?Q")
+proof (cases "a = 0 \<or> b = 0")
+  case True then show ?thesis by (auto dest: sym)
 next
-  let ?nf = normalization_factor
-  assume "a \<noteq> 0" "b \<noteq> 0" "associated a b"
-  then obtain c where "is_unit c" and "a = c * b" by (blast elim: associated_is_unitE)
-  then show "a div ?nf a = b div ?nf b"
-    apply (simp only: \<open>a = c * b\<close> normalization_factor_mult normalization_factor_unit)
-    apply (rule div_mult_mult1, force)
-    done
+  case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
+  show ?thesis
+  proof
+    assume ?Q
+    from \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close>
+    have "is_unit (normalization_factor a div normalization_factor b)"
+      by auto
+    moreover from \<open>?Q\<close> \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close>
+    have "a = (normalization_factor a div normalization_factor b) * b"
+      by (simp add: ac_simps div_mult_swap unit_eq_div1)
+    ultimately show "associated a b" by (rule is_unit_associatedI) 
+  next
+    assume ?P
+    then obtain c where "is_unit c" and "a = c * b"
+      by (blast elim: associated_is_unitE)
+    then show ?Q
+      by (auto simp add: normalization_factor_mult normalization_factor_unit)
   qed
+qed
 
 lemma normed_associated_imp_eq:
   "associated a b \<Longrightarrow> normalization_factor a \<in> {0, 1} \<Longrightarrow> normalization_factor b \<in> {0, 1} \<Longrightarrow> a = b"
