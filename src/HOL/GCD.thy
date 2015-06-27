@@ -1510,6 +1510,10 @@ lemma Gcd_empty [simp]:
   "Gcd {} = 0"
   by (rule dvd_0_left, rule dvd_Gcd) simp
 
+lemma Gcd_set [code_unfold]:
+  "Gcd (set as) = foldr gcd as 0"
+  by (induct as) simp_all
+  
 end
 
 lemma dvd_Lcm_nat [simp]:
@@ -1643,7 +1647,7 @@ lemma Lcm_set_nat [code, code_unfold]:
   "Lcm (set ns) = fold lcm ns (1::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Sup_set_fold)
 
-lemma Gcd_set_nat [code, code_unfold]:
+lemma Gcd_set_nat [code]:
   "Gcd (set ns) = fold gcd ns (0::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Inf_set_fold)
 
@@ -1706,7 +1710,7 @@ lemma Lcm_set_int [code, code_unfold]:
   "Lcm (set xs) = fold lcm xs (1::int)"
   by (induct xs rule: rev_induct) (simp_all add: lcm_commute_int)
 
-lemma Gcd_set_int [code, code_unfold]:
+lemma Gcd_set_int [code]:
   "Gcd (set xs) = fold gcd xs (0::int)"
   by (induct xs rule: rev_induct) (simp_all add: gcd_commute_int)
 
