@@ -756,10 +756,10 @@ lemma gcd_coprime_exists_int:
 done
 
 lemma coprime_exp_nat: "coprime (d::nat) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n, simp_all add: power_Suc coprime_mult_nat)
+  by (induct n) (simp_all add: coprime_mult_nat)
 
 lemma coprime_exp_int: "coprime (d::int) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n, simp_all add: power_Suc coprime_mult_int)
+  by (induct n) (simp_all add: coprime_mult_int)
 
 lemma coprime_exp2_nat [intro]: "coprime (a::nat) b \<Longrightarrow> coprime (a^n) (b^m)"
   by (simp add: coprime_exp_nat gcd_nat.commute)
@@ -888,7 +888,7 @@ proof-
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n"
       using dvd_trans[of a' "a'^n" "b'^n"] by simp
-    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute power_Suc)
+    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
     from coprime_dvd_mult_int[OF coprime_exp_int [OF ab'(3), of m]] th1
     have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
@@ -1500,6 +1500,18 @@ instance ..
 
 end
 
+class semiring_Gcd = semiring_gcd + Gcd +
+  assumes Gcd_dvd: "a \<in> A \<Longrightarrow> Gcd A dvd a"
+    and dvd_Gcd: "\<forall>b\<in>A. a dvd b \<Longrightarrow> a dvd Gcd A"
+    and Gcd_insert [simp]: "Gcd (insert a A) = gcd a (Gcd A)"
+begin
+
+lemma Gcd_empty [simp]:
+  "Gcd {} = 0"
+  by (rule dvd_0_left, rule dvd_Gcd) simp
+
+end
+
 lemma dvd_Lcm_nat [simp]:
   fixes M :: "nat set"
   assumes "m \<in> M"
@@ -1559,16 +1571,9 @@ declare gcd_lcm_complete_lattice_nat.Sup_image_eq [simp del]
 lemma Lcm_empty_nat: "Lcm {} = (1::nat)"
   by (fact Lcm_nat_empty)
 
-lemma Gcd_empty_nat: "Gcd {} = (0::nat)"
-  by (fact gcd_lcm_complete_lattice_nat.Inf_empty) (* already simp *)
-
 lemma Lcm_insert_nat [simp]:
   shows "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
   by (fact gcd_lcm_complete_lattice_nat.Sup_insert)
-
-lemma Gcd_insert_nat [simp]:
-  shows "Gcd (insert (n::nat) N) = gcd n (Gcd N)"
-  by (fact gcd_lcm_complete_lattice_nat.Inf_insert)
 
 lemma Lcm0_iff[simp]: "finite (M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> Lcm M = 0 \<longleftrightarrow> 0 : M"
 by(induct rule:finite_ne_induct) auto
@@ -1576,15 +1581,17 @@ by(induct rule:finite_ne_induct) auto
 lemma Lcm_eq_0[simp]: "finite (M::nat set) \<Longrightarrow> 0 : M \<Longrightarrow> Lcm M = 0"
 by (metis Lcm0_iff empty_iff)
 
-lemma Gcd_dvd_nat [simp]:
-  fixes M :: "nat set"
-  assumes "m \<in> M" shows "Gcd M dvd m"
-  using assms by (fact gcd_lcm_complete_lattice_nat.Inf_lower)
-
-lemma dvd_Gcd_nat[simp]:
-  fixes M :: "nat set"
-  assumes "\<forall>m\<in>M. n dvd m" shows "n dvd Gcd M"
-  using assms by (simp only: gcd_lcm_complete_lattice_nat.Inf_greatest)
+instance nat :: semiring_Gcd
+proof
+  show "Gcd N dvd n" if "n \<in> N" for N and n :: nat
+    using that by (fact gcd_lcm_complete_lattice_nat.Inf_lower)
+next
+  show "n dvd Gcd N" if "\<forall>m\<in>N. n dvd m" for N and n :: nat
+    using that by (simp only: gcd_lcm_complete_lattice_nat.Inf_greatest)
+next
+  show "Gcd (insert n N) = gcd n (Gcd N)" for N and n :: nat
+    by simp
+qed
 
 text{* Alternative characterizations of Gcd: *}
 
@@ -1592,12 +1599,12 @@ lemma Gcd_eq_Max: "finite(M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrigh
 apply(rule antisym)
  apply(rule Max_ge)
   apply (metis all_not_in_conv finite_divisors_nat finite_INT)
- apply simp
+ apply (simp add: Gcd_dvd)
 apply (rule Max_le_iff[THEN iffD2])
   apply (metis all_not_in_conv finite_divisors_nat finite_INT)
  apply fastforce
 apply clarsimp
-apply (metis Gcd_dvd_nat Max_in dvd_0_left dvd_Gcd_nat dvd_imp_le linorder_antisym_conv3 not_less0)
+apply (metis Gcd_dvd Max_in dvd_0_left dvd_Gcd dvd_imp_le linorder_antisym_conv3 not_less0)
 done
 
 lemma Gcd_remove0_nat: "finite M \<Longrightarrow> Gcd M = Gcd (M - {0::nat})"
@@ -1676,16 +1683,9 @@ end
 lemma Lcm_empty_int [simp]: "Lcm {} = (1::int)"
   by (simp add: Lcm_int_def)
 
-lemma Gcd_empty_int [simp]: "Gcd {} = (0::int)"
-  by (simp add: Gcd_int_def)
-
 lemma Lcm_insert_int [simp]:
   shows "Lcm (insert (n::int) N) = lcm n (Lcm N)"
   by (simp add: Lcm_int_def lcm_int_def)
-
-lemma Gcd_insert_int [simp]:
-  shows "Gcd (insert (n::int) N) = gcd n (Gcd N)"
-  by (simp add: Gcd_int_def gcd_int_def)
 
 lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat (abs x) dvd nat (abs y)"
   by (simp add: zdvd_int)
@@ -1699,16 +1699,9 @@ lemma Lcm_dvd_int [simp]:
   assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
   using assms by (simp add: Lcm_int_def dvd_int_iff)
 
-lemma Gcd_dvd_int [simp]:
-  fixes M :: "int set"
-  assumes "m \<in> M" shows "Gcd M dvd m"
-  using assms by (simp add: Gcd_int_def dvd_int_iff)
-
-lemma dvd_Gcd_int[simp]:
-  fixes M :: "int set"
-  assumes "\<forall>m\<in>M. n dvd m" shows "n dvd Gcd M"
-  using assms by (simp add: Gcd_int_def dvd_int_iff)
-
+instance int :: semiring_Gcd
+  by intro_classes (simp_all add: Gcd_int_def gcd_int_def dvd_int_iff Gcd_dvd dvd_Gcd)
+  
 lemma Lcm_set_int [code, code_unfold]:
   "Lcm (set xs) = fold lcm xs (1::int)"
   by (induct xs rule: rev_induct) (simp_all add: lcm_commute_int)
@@ -1728,5 +1721,16 @@ lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int]
   and gcd_dvd2_int = gcd_dvd2 [where ?'a = int]
   and gcd_greatest_int = gcd_greatest [where ?'a = int]
 
-end
+lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
+  and dvd_Gcd_nat [simp] = dvd_Gcd [where ?'a = nat]
 
+lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]
+  and dvd_Gcd_int [simp] = dvd_Gcd [where ?'a = int]
+
+lemmas Gcd_empty_nat = Gcd_empty [where ?'a = nat]
+  and Gcd_insert_nat = Gcd_insert [where ?'a = nat]
+
+lemmas Gcd_empty_int = Gcd_empty [where ?'a = int]
+  and Gcd_insert_int = Gcd_insert [where ?'a = int]
+
+end
