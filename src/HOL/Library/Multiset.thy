@@ -305,7 +305,7 @@ lemma mset_le_add_left [simp]: "(A::'a multiset) \<le># A + B"
 lemma mset_le_add_right [simp]: "B \<le># (A::'a multiset) + B"
   unfolding subseteq_mset_def by auto
 
-lemma mset_le_single: "a :# B \<Longrightarrow> {#a#} \<le># B"
+lemma mset_le_single: "a \<in># B \<Longrightarrow> {#a#} \<le># B"
   by (simp add: subseteq_mset_def)
 
 lemma multiset_diff_union_assoc:
@@ -510,7 +510,7 @@ translations
 subsubsection \<open>Set of elements\<close>
 
 definition set_mset :: "'a multiset \<Rightarrow> 'a set"
-  where "set_mset M = {x. x :# M}"
+  where "set_mset M = {x. x \<in># M}"
 
 lemma set_mset_empty [simp]: "set_mset {#} = {}"
 by (simp add: set_mset_def)
@@ -524,16 +524,16 @@ by (auto simp add: set_mset_def)
 lemma set_mset_eq_empty_iff [simp]: "(set_mset M = {}) = (M = {#})"
 by (auto simp add: set_mset_def multiset_eq_iff)
 
-lemma mem_set_mset_iff [simp]: "(x \<in> set_mset M) = (x :# M)"
+lemma mem_set_mset_iff [simp]: "(x \<in> set_mset M) = (x \<in># M)"
 by (auto simp add: set_mset_def)
 
-lemma set_mset_filter [simp]: "set_mset {# x:#M. P x #} = set_mset M \<inter> {x. P x}"
+lemma set_mset_filter [simp]: "set_mset {# x\<in>#M. P x #} = set_mset M \<inter> {x. P x}"
 by (auto simp add: set_mset_def)
 
 lemma finite_set_mset [iff]: "finite (set_mset M)"
   using count [of M] by (simp add: multiset_def set_mset_def)
 
-lemma finite_Collect_mem [iff]: "finite {x. x :# M}"
+lemma finite_Collect_mem [iff]: "finite {x. x \<in># M}"
   unfolding set_mset_def[symmetric] by simp
 
 lemma set_mset_mono: "A \<le># B \<Longrightarrow> set_mset A \<subseteq> set_mset B"
@@ -605,7 +605,7 @@ by (auto simp add: size_multiset_overloaded_def)
 lemma nonempty_has_size: "(S \<noteq> {#}) = (0 < size S)"
 by (metis gr0I gr_implies_not0 size_empty size_eq_0_iff_empty)
 
-lemma size_eq_Suc_imp_elem: "size M = Suc n \<Longrightarrow> \<exists>a. a :# M"
+lemma size_eq_Suc_imp_elem: "size M = Suc n \<Longrightarrow> \<exists>a. a \<in># M"
 apply (unfold size_multiset_overloaded_eq)
 apply (drule setsum_SucD)
 apply auto
@@ -665,7 +665,7 @@ lemma multiset_cases [cases type]:
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
 
-lemma multiset_partition: "M = {# x:#M. P x #} + {# x:#M. \<not> P x #}"
+lemma multiset_partition: "M = {# x\<in>#M. P x #} + {# x\<in>#M. \<not> P x #}"
 apply (subst multiset_eq_iff)
 apply auto
 done
@@ -816,9 +816,9 @@ text \<open>
 subsection \<open>Image\<close>
 
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
-  "image_mset f = fold_mset (plus o single o f) {#}"
+  "image_mset f = fold_mset (plus \<circ> single \<circ> f) {#}"
 
-lemma comp_fun_commute_mset_image: "comp_fun_commute (plus o single o f)"
+lemma comp_fun_commute_mset_image: "comp_fun_commute (plus \<circ> single \<circ> f)"
 proof
 qed (simp add: ac_simps fun_eq_iff)
 
@@ -827,14 +827,14 @@ lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
 
 lemma image_mset_single [simp]: "image_mset f {#x#} = {#f x#}"
 proof -
-  interpret comp_fun_commute "plus o single o f"
+  interpret comp_fun_commute "plus \<circ> single \<circ> f"
     by (fact comp_fun_commute_mset_image)
   show ?thesis by (simp add: image_mset_def)
 qed
 
 lemma image_mset_union [simp]: "image_mset f (M + N) = image_mset f M + image_mset f N"
 proof -
-  interpret comp_fun_commute "plus o single o f"
+  interpret comp_fun_commute "plus \<circ> single \<circ> f"
     by (fact comp_fun_commute_mset_image)
   show ?thesis by (induct N) (simp_all add: image_mset_def ac_simps)
 qed
@@ -876,10 +876,10 @@ translations
   "{#e | x\<in>#M. P#}" \<rightharpoonup> "{#e. x \<in># {# x\<in>#M. P#}#}"
 
 text \<open>
-  This allows to write not just filters like @{term "{#x:#M. x<c#}"}
-  but also images like @{term "{#x+x. x:#M #}"} and @{term [source]
-  "{#x+x|x:#M. x<c#}"}, where the latter is currently displayed as
-  @{term "{#x+x|x:#M. x<c#}"}.
+  This allows to write not just filters like @{term "{#x\<in>#M. x<c#}"}
+  but also images like @{term "{#x+x. x\<in>#M #}"} and @{term [source]
+  "{#x+x|x\<in>#M. x<c#}"}, where the latter is currently displayed as
+  @{term "{#x+x|x\<in>#M. x<c#}"}.
 \<close>
 
 lemma in_image_mset: "y \<in># {#f x. x \<in># M#} \<longleftrightarrow> y \<in> f ` set_mset M"
@@ -939,7 +939,7 @@ by (induct x) auto
 lemma set_mset_mset[simp]: "set_mset (mset x) = set x"
 by (induct x) auto
 
-lemma mem_set_multiset_eq: "x \<in> set xs = (x :# mset xs)"
+lemma mem_set_multiset_eq: "x \<in> set xs = (x \<in># mset xs)"
 by (induct xs) auto
 
 lemma size_mset [simp]: "size (mset xs) = length xs"
@@ -948,7 +948,7 @@ lemma size_mset [simp]: "size (mset xs) = length xs"
 lemma mset_append [simp]: "mset (xs @ ys) = mset xs + mset ys"
   by (induct xs arbitrary: ys) (auto simp: ac_simps)
 
-lemma mset_filter: "mset (filter P xs) = {#x :# mset xs. P x #}"
+lemma mset_filter: "mset (filter P xs) = {#x \<in># mset xs. P x #}"
   by (induct xs) simp_all
 
 lemma mset_rev [simp]:
@@ -997,7 +997,7 @@ done
 lemma mset_compl_union [simp]: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
   by (induct xs) (auto simp: ac_simps)
 
-lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) :# mset ls"
+lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
 apply (induct ls arbitrary: i)
  apply simp
 apply (case_tac i)
@@ -1501,7 +1501,7 @@ subsubsection \<open>Well-foundedness\<close>
 
 definition mult1 :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult1 r = {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
-      (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r)}"
+      (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r)}"
 
 definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult r = (mult1 r)\<^sup>+"
@@ -1511,10 +1511,10 @@ by (simp add: mult1_def)
 
 lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r \<Longrightarrow>
     (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
-    (\<exists>K. (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K)"
+    (\<exists>K. (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K)"
   (is "_ \<Longrightarrow> ?case1 (mult1 r) \<or> ?case2")
 proof (unfold mult1_def)
-  let ?r = "\<lambda>K a. \<forall>b. b :# K \<longrightarrow> (b, a) \<in> r"
+  let ?r = "\<lambda>K a. \<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r"
   let ?R = "\<lambda>N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and> ?r K a"
   let ?case1 = "?case1 {(N, M). ?R N M}"
 
@@ -1556,7 +1556,7 @@ proof
       fix N
       assume "(N, M0 + {#a#}) \<in> ?R"
       then have "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
-          (\<exists>K. (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K))"
+          (\<exists>K. (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K))"
         by (rule less_add)
       then show "N \<in> ?W"
       proof (elim exE disjE conjE)
@@ -1567,7 +1567,7 @@ proof
       next
         fix K
         assume N: "N = M0 + K"
-        assume "\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r"
+        assume "\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r"
         then have "M0 + K \<in> ?W"
         proof (induct K)
           case empty
@@ -1629,7 +1629,7 @@ lemma mult_implies_one_step:
 apply (unfold mult_def mult1_def set_mset_def)
 apply (erule converse_trancl_induct, clarify)
  apply (rule_tac x = M0 in exI, simp, clarify)
-apply (case_tac "a :# K")
+apply (case_tac "a \<in># K")
  apply (rule_tac x = I in exI)
  apply (simp (no_asm))
  apply (rule_tac x = "(K - {#a#}) + Ka" in exI)
@@ -1638,7 +1638,7 @@ apply (case_tac "a :# K")
  apply (simp add: diff_union_single_conv)
  apply (simp (no_asm_use) add: trans_def)
  apply blast
-apply (subgoal_tac "a :# I")
+apply (subgoal_tac "a \<in># I")
  apply (rule_tac x = "I - {#a#}" in exI)
  apply (rule_tac x = "J + {#a#}" in exI)
  apply (rule_tac x = "K + Ka" in exI)
@@ -1649,7 +1649,7 @@ apply (subgoal_tac "a :# I")
   apply (simp add: multiset_eq_iff split: nat_diff_split)
  apply (simp (no_asm_use) add: trans_def)
  apply blast
-apply (subgoal_tac "a :# (M0 + {#a#})")
+apply (subgoal_tac "a \<in># (M0 + {#a#})")
  apply simp
 apply (simp (no_asm))
 done
@@ -1672,8 +1672,8 @@ apply (erule_tac P = "\<forall>k \<in> set_mset K. P k" for P in rev_mp)
 apply (erule ssubst)
 apply (simp add: Ball_def, auto)
 apply (subgoal_tac
-  "((I + {# x :# K. (x, a) \<in> r #}) + {# x :# K. (x, a) \<notin> r #},
-    (I + {# x :# K. (x, a) \<in> r #}) + J') \<in> mult r")
+  "((I + {# x \<in># K. (x, a) \<in> r #}) + {# x \<in># K. (x, a) \<notin> r #},
+    (I + {# x \<in># K. (x, a) \<in> r #}) + J') \<in> mult r")
  prefer 2
  apply force
 apply (simp (no_asm_use) add: add.assoc [symmetric] mult_def)
