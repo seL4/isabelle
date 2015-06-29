@@ -813,7 +813,7 @@ step': "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
 text{*
 The single @{text r} step is performed after rather than before the @{text star'}
 steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"} and
-@{prop "star r x y \<Longrightarrow> star r' x y"}. You may need lemmas.
+@{prop "star r x y \<Longrightarrow> star' r x y"}. You may need lemmas.
 Note that rule induction fails
 if the assumption about the inductive predicate is not the first assumption.
 \endexercise
