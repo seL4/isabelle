@@ -7,17 +7,17 @@ document overlays.
 
 signature QUERY_OPERATION =
 sig
-  val register: string ->
+  val register: {name: string, pri: int} ->
     ({state: Toplevel.state, args: string list, output_result: string -> unit} -> unit) -> unit
 end;
 
 structure Query_Operation: QUERY_OPERATION =
 struct
 
-fun register name f =
+fun register {name, pri} f =
   Command.print_function name
     (fn {args = instance :: args, ...} =>
-        SOME {delay = NONE, pri = 0, persistent = false, strict = false,
+        SOME {delay = NONE, pri = pri, persistent = false, strict = false,
           print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
             let
               fun result s = Output.result [(Markup.instanceN, instance)] [s];
