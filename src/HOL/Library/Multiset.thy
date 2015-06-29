@@ -1509,19 +1509,19 @@ definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
 by (simp add: mult1_def)
 
-lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r \<Longrightarrow>
-    (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
-    (\<exists>K. (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K)"
-  (is "_ \<Longrightarrow> ?case1 (mult1 r) \<or> ?case2")
-proof (unfold mult1_def)
+lemma less_add:
+  assumes mult1: "(N, M0 + {#a#}) \<in> mult1 r"
+  shows
+    "(\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
+     (\<exists>K. (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K)"
+proof -
   let ?r = "\<lambda>K a. \<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r"
   let ?R = "\<lambda>N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and> ?r K a"
-  let ?case1 = "?case1 {(N, M). ?R N M}"
-
-  assume "(N, M0 + {#a#}) \<in> {(N, M). ?R N M}"
-  then obtain a' M0' K where M0: "M0 + {#a#} = M0' + {#a'#}" and N: "N = M0' + K" and r: "?r K a'"
-    by auto
-  show "?case1 \<or> ?case2"
+  obtain a' M0' K where M0: "M0 + {#a#} = M0' + {#a'#}"
+    and N: "N = M0' + K"
+    and r: "?r K a'"
+    using mult1 unfolding mult1_def by auto
+  show ?thesis (is "?case1 \<or> ?case2")
   proof -
     from M0 consider "M0 = M0'" "a = a'"
       | K' where "M0 = K' + {#a'#}" "M0' = K' + {#a#}"
@@ -1536,13 +1536,15 @@ proof (unfold mult1_def)
       case 2
       from N 2(2) have n: "N = K' + K + {#a#}" by (simp add: ac_simps)
       with r 2(1) have "?R (K' + K) M0" by blast
-      with n have ?case1 by simp
+      with n have ?case1 by (simp add: mult1_def)
       then show ?thesis ..
     qed
   qed
 qed
 
-lemma all_accessible: "wf r \<Longrightarrow> \<forall>M. M \<in> Wellfounded.acc (mult1 r)"
+lemma all_accessible:
+  assumes "wf r"
+  shows "\<forall>M. M \<in> Wellfounded.acc (mult1 r)"
 proof
   let ?R = "mult1 r"
   let ?W = "Wellfounded.acc ?R"
@@ -1555,20 +1557,18 @@ proof
     proof (rule accI [of "M0 + {#a#}"])
       fix N
       assume "(N, M0 + {#a#}) \<in> ?R"
-      then have "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
-          (\<exists>K. (\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K))"
-        by (rule less_add)
+      then consider M where "(M, M0) \<in> ?R" "N = M + {#a#}"
+        | K where "\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r" "N = M0 + K"
+        by atomize_elim (rule less_add)
       then show "N \<in> ?W"
-      proof (elim exE disjE conjE)
-        fix M assume "(M, M0) \<in> ?R" and N: "N = M + {#a#}"
+      proof cases
+        case 1
         from acc_hyp have "(M, M0) \<in> ?R \<longrightarrow> M + {#a#} \<in> ?W" ..
         from this and \<open>(M, M0) \<in> ?R\<close> have "M + {#a#} \<in> ?W" ..
-        then show "N \<in> ?W" by (simp only: N)
+        then show "N \<in> ?W" by (simp only: \<open>N = M + {#a#}\<close>)
       next
-        fix K
-        assume N: "N = M0 + K"
-        assume "\<forall>b. b \<in># K \<longrightarrow> (b, a) \<in> r"
-        then have "M0 + K \<in> ?W"
+        case 2
+        from this(1) have "M0 + K \<in> ?W"
         proof (induct K)
           case empty
           from M0 show "M0 + {#} \<in> ?W" by simp
@@ -1580,14 +1580,12 @@ proof
           ultimately have "(M0 + K) + {#x#} \<in> ?W" ..
           then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: add.assoc)
         qed
-        then show "N \<in> ?W" by (simp only: N)
+        then show "N \<in> ?W" by (simp only: 2(2))
       qed
     qed
   } note tedious_reasoning = this
 
-  assume wf: "wf r"
-  fix M
-  show "M \<in> ?W"
+  show "M \<in> ?W" for M
   proof (induct M)
     show "{#} \<in> ?W"
     proof (rule accI)
@@ -1596,7 +1594,7 @@ proof
     qed
 
     fix M a assume "M \<in> ?W"
-    from wf have "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
+    from \<open>wf r\<close> have "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
     proof induct
       fix a
       assume r: "\<And>b. (b, a) \<in> r \<Longrightarrow> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
