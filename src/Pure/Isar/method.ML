@@ -69,6 +69,7 @@ sig
   val closure: bool Config.T
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val detect_closure_state: thm -> bool
+  val STATIC: (unit -> unit) -> cases_tactic
   val RUNTIME: cases_tactic -> cases_tactic
   val sleep: Time.time -> cases_tactic
   val evaluate: text -> Proof.context -> method
@@ -434,12 +435,15 @@ fun method_cmd ctxt =
   method ctxt;
 
 
-(* closure vs. runtime state *)
+(* static vs. runtime state *)
 
 fun detect_closure_state st =
   (case try Logic.dest_term (Thm.concl_of (perhaps (try Goal.conclude) st)) of
     NONE => false
   | SOME t => Term.is_dummy_pattern t);
+
+fun STATIC test st =
+  if detect_closure_state st then (test (); Seq.single ([], st)) else Seq.empty;
 
 fun RUNTIME (tac: cases_tactic) st =
   if detect_closure_state st then Seq.empty else tac st;
@@ -696,9 +700,12 @@ val _ = Theory.setup
           val _ =
             (case drop (Thm.nprems_of st) names of
               [] => ()
-            | bad => (* FIXME Seq.Error *)
-                error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
-                  Position.here (Position.set_range (Token.range_of bad))));
+            | bad =>
+                if detect_closure_state st then ()
+                else
+                  (* FIXME Seq.Error *)
+                  error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+                    Position.here (Position.set_range (Token.range_of bad))));
         in goals_tac ctxt (map Token.content_of names) st end))))
     "insert facts and bind cases for goals" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
