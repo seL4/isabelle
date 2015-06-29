@@ -14,9 +14,9 @@ begin
 
 subsection \<open>The type of multisets\<close>
 
-definition "multiset = {f :: 'a => nat. finite {x. f x > 0}}"
+definition "multiset = {f :: 'a \<Rightarrow> nat. finite {x. f x > 0}}"
 
-typedef 'a multiset = "multiset :: ('a => nat) set"
+typedef 'a multiset = "multiset :: ('a \<Rightarrow> nat) set"
   morphisms count Abs_multiset
   unfolding multiset_def
 proof
@@ -25,34 +25,27 @@ qed
 
 setup_lifting type_definition_multiset
 
-abbreviation Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
+abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"  ("(_/ :# _)" [50, 51] 50) where
   "a :# M == 0 < count M a"
 
 notation (xsymbols)
   Melem (infix "\<in>#" 50)
 
-lemma multiset_eq_iff:
-  "M = N \<longleftrightarrow> (\<forall>a. count M a = count N a)"
+lemma multiset_eq_iff: "M = N \<longleftrightarrow> (\<forall>a. count M a = count N a)"
   by (simp only: count_inject [symmetric] fun_eq_iff)
 
-lemma multiset_eqI:
-  "(\<And>x. count A x = count B x) \<Longrightarrow> A = B"
+lemma multiset_eqI: "(\<And>x. count A x = count B x) \<Longrightarrow> A = B"
   using multiset_eq_iff by auto
 
-text \<open>
- \medskip Preservation of the representing set @{term multiset}.
-\<close>
+text \<open>Preservation of the representing set @{term multiset}.\<close>
 
-lemma const0_in_multiset:
-  "(\<lambda>a. 0) \<in> multiset"
+lemma const0_in_multiset: "(\<lambda>a. 0) \<in> multiset"
   by (simp add: multiset_def)
 
-lemma only1_in_multiset:
-  "(\<lambda>b. if b = a then n else 0) \<in> multiset"
+lemma only1_in_multiset: "(\<lambda>b. if b = a then n else 0) \<in> multiset"
   by (simp add: multiset_def)
 
-lemma union_preserves_multiset:
-  "M \<in> multiset \<Longrightarrow> N \<in> multiset \<Longrightarrow> (\<lambda>a. M a + N a) \<in> multiset"
+lemma union_preserves_multiset: "M \<in> multiset \<Longrightarrow> N \<in> multiset \<Longrightarrow> (\<lambda>a. M a + N a) \<in> multiset"
   by (simp add: multiset_def)
 
 lemma diff_preserves_multiset:
@@ -92,10 +85,10 @@ by (rule const0_in_multiset)
 abbreviation Mempty :: "'a multiset" ("{#}") where
   "Mempty \<equiv> 0"
 
-lift_definition plus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
+lift_definition plus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda>M N. (\<lambda>a. M a + N a)"
 by (rule union_preserves_multiset)
 
-lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
+lift_definition minus_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
 by (rule diff_preserves_multiset)
 
 instance
@@ -103,11 +96,11 @@ instance
 
 end
 
-lift_definition single :: "'a => 'a multiset" is "\<lambda>a b. if b = a then 1 else 0"
+lift_definition single :: "'a \<Rightarrow> 'a multiset" is "\<lambda>a b. if b = a then 1 else 0"
 by (rule only1_in_multiset)
 
 syntax
-  "_multiset" :: "args => 'a multiset"    ("{#(_)#}")
+  "_multiset" :: "args \<Rightarrow> 'a multiset"    ("{#(_)#}")
 translations
   "{#x, xs#}" == "{#x#} + {#xs#}"
   "{#x#}" == "CONST single x"
@@ -133,7 +126,7 @@ instantiation multiset :: (type) comm_monoid_diff
 begin
 
 instance
-by default (transfer, simp add: fun_eq_iff)+
+  by default (transfer; simp add: fun_eq_iff)
 
 end
 
@@ -153,27 +146,25 @@ lemma diff_union_cancelL [simp]: "N + M - N = (M::'a multiset)"
   by (fact add_diff_cancel_left')
 
 lemma diff_right_commute:
-  "(M::'a multiset) - N - Q = M - Q - N"
+  fixes M N Q :: "'a multiset"
+  shows "M - N - Q = M - Q - N"
   by (fact diff_right_commute)
 
 lemma diff_add:
-  "(M::'a multiset) - (N + Q) = M - N - Q"
+  fixes M N Q :: "'a multiset"
+  shows "M - (N + Q) = M - N - Q"
   by (rule sym) (fact diff_diff_add)
 
-lemma insert_DiffM:
-  "x \<in># M \<Longrightarrow> {#x#} + (M - {#x#}) = M"
+lemma insert_DiffM: "x \<in># M \<Longrightarrow> {#x#} + (M - {#x#}) = M"
   by (clarsimp simp: multiset_eq_iff)
 
-lemma insert_DiffM2 [simp]:
-  "x \<in># M \<Longrightarrow> M - {#x#} + {#x#} = M"
+lemma insert_DiffM2 [simp]: "x \<in># M \<Longrightarrow> M - {#x#} + {#x#} = M"
   by (clarsimp simp: multiset_eq_iff)
 
-lemma diff_union_swap:
-  "a \<noteq> b \<Longrightarrow> M - {#a#} + {#b#} = M + {#b#} - {#a#}"
+lemma diff_union_swap: "a \<noteq> b \<Longrightarrow> M - {#a#} + {#b#} = M + {#b#} - {#a#}"
   by (auto simp add: multiset_eq_iff)
 
-lemma diff_union_single_conv:
-  "a \<in># J \<Longrightarrow> I + J - {#a#} = I + (J - {#a#})"
+lemma diff_union_single_conv: "a \<in># J \<Longrightarrow> I + J - {#a#} = I + (J - {#a#})"
   by (simp add: multiset_eq_iff)
 
 
@@ -194,45 +185,39 @@ lemma empty_eq_union [iff]: "{#} = M + N \<longleftrightarrow> M = {#} \<and> N 
 lemma multi_self_add_other_not_self [simp]: "M = M + {#x#} \<longleftrightarrow> False"
   by (auto simp add: multiset_eq_iff)
 
-lemma diff_single_trivial:
-  "\<not> x \<in># M \<Longrightarrow> M - {#x#} = M"
+lemma diff_single_trivial: "\<not> x \<in># M \<Longrightarrow> M - {#x#} = M"
   by (auto simp add: multiset_eq_iff)
 
-lemma diff_single_eq_union:
-  "x \<in># M \<Longrightarrow> M - {#x#} = N \<longleftrightarrow> M = N + {#x#}"
+lemma diff_single_eq_union: "x \<in># M \<Longrightarrow> M - {#x#} = N \<longleftrightarrow> M = N + {#x#}"
   by auto
 
-lemma union_single_eq_diff:
-  "M + {#x#} = N \<Longrightarrow> M = N - {#x#}"
+lemma union_single_eq_diff: "M + {#x#} = N \<Longrightarrow> M = N - {#x#}"
   by (auto dest: sym)
 
-lemma union_single_eq_member:
-  "M + {#x#} = N \<Longrightarrow> x \<in># N"
+lemma union_single_eq_member: "M + {#x#} = N \<Longrightarrow> x \<in># N"
   by auto
 
-lemma union_is_single:
-  "M + N = {#a#} \<longleftrightarrow> M = {#a#} \<and> N={#} \<or> M = {#} \<and> N = {#a#}" (is "?lhs = ?rhs")
+lemma union_is_single: "M + N = {#a#} \<longleftrightarrow> M = {#a#} \<and> N={#} \<or> M = {#} \<and> N = {#a#}"
+  (is "?lhs = ?rhs")
 proof
-  assume ?rhs then show ?lhs by auto
-next
-  assume ?lhs then show ?rhs
-    by (simp add: multiset_eq_iff split:if_splits) (metis add_is_1)
+  show ?lhs if ?rhs using that by auto
+  show ?rhs if ?lhs
+    using that by (simp add: multiset_eq_iff split: if_splits) (metis add_is_1)
 qed
 
-lemma single_is_union:
-  "{#a#} = M + N \<longleftrightarrow> {#a#} = M \<and> N = {#} \<or> M = {#} \<and> {#a#} = N"
+lemma single_is_union: "{#a#} = M + N \<longleftrightarrow> {#a#} = M \<and> N = {#} \<or> M = {#} \<and> {#a#} = N"
   by (auto simp add: eq_commute [of "{#a#}" "M + N"] union_is_single)
 
 lemma add_eq_conv_diff:
-  "M + {#a#} = N + {#b#} \<longleftrightarrow> M = N \<and> a = b \<or> M = N - {#a#} + {#b#} \<and> N = M - {#b#} + {#a#}"  (is "?lhs = ?rhs")
+  "M + {#a#} = N + {#b#} \<longleftrightarrow> M = N \<and> a = b \<or> M = N - {#a#} + {#b#} \<and> N = M - {#b#} + {#a#}"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 (* shorter: by (simp add: multiset_eq_iff) fastforce *)
 proof
-  assume ?rhs then show ?lhs
-  by (auto simp add: add.assoc add.commute [of "{#b#}"])
-    (drule sym, simp add: add.assoc [symmetric])
-next
-  assume ?lhs
-  show ?rhs
+  show ?lhs if ?rhs
+    using that
+    by (auto simp add: add.assoc add.commute [of "{#b#}"])
+      (drule sym, simp add: add.assoc [symmetric])
+  show ?rhs if ?lhs
   proof (cases "a = b")
     case True with \<open>?lhs\<close> show ?thesis by simp
   next
@@ -261,12 +246,12 @@ lemma add_eq_conv_ex:
     (M = N \<and> a = b \<or> (\<exists>K. M = K + {#b#} \<and> N = K + {#a#}))"
   by (auto simp add: add_eq_conv_diff)
 
-lemma multi_member_split:
-  "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
+lemma multi_member_split: "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
   by (rule_tac x = "M - {#x#}" in exI, simp)
 
 lemma multiset_add_sub_el_shuffle:
-  assumes "c \<in># B" and "b \<noteq> c"
+  assumes "c \<in># B"
+    and "b \<noteq> c"
   shows "B - {#c#} + {#b#} = B + {#b#} - {#c#}"
 proof -
   from \<open>c \<in># B\<close> obtain A where B: "B = A + {#c#}"
@@ -291,15 +276,13 @@ notation (xsymbols) subseteq_mset (infix "\<subseteq>#" 50)
 
 notation (xsymbols) subset_mset (infix "\<subset>#" 50)
 
-interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op <=#" "op <#"
+interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by default (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
 
-lemma mset_less_eqI:
-  "(\<And>x. count A x \<le> count B x) \<Longrightarrow> A \<le># B"
+lemma mset_less_eqI: "(\<And>x. count A x \<le> count B x) \<Longrightarrow> A \<le># B"
   by (simp add: subseteq_mset_def)
 
-lemma mset_le_exists_conv:
-  "(A::'a multiset) \<le># B \<longleftrightarrow> (\<exists>C. B = A + C)"
+lemma mset_le_exists_conv: "(A::'a multiset) \<le># B \<longleftrightarrow> (\<exists>C. B = A + C)"
 apply (unfold subseteq_mset_def, rule iffI, rule_tac x = "B - A" in exI)
 apply (auto intro: multiset_eq_iff [THEN iffD2])
 done
@@ -307,36 +290,32 @@ done
 interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" "op -" 0 "op \<le>#" "op <#"
   by default (simp, fact mset_le_exists_conv)
 
-lemma mset_le_mono_add_right_cancel [simp]:
-  "(A::'a multiset) + C \<le># B + C \<longleftrightarrow> A \<le># B"
+lemma mset_le_mono_add_right_cancel [simp]: "(A::'a multiset) + C \<le># B + C \<longleftrightarrow> A \<le># B"
   by (fact subset_mset.add_le_cancel_right)
 
-lemma mset_le_mono_add_left_cancel [simp]:
-  "C + (A::'a multiset) \<le># C + B \<longleftrightarrow> A \<le># B"
+lemma mset_le_mono_add_left_cancel [simp]: "C + (A::'a multiset) \<le># C + B \<longleftrightarrow> A \<le># B"
   by (fact subset_mset.add_le_cancel_left)
 
-lemma mset_le_mono_add:
-  "(A::'a multiset) \<le># B \<Longrightarrow> C \<le># D \<Longrightarrow> A + C \<le># B + D"
+lemma mset_le_mono_add: "(A::'a multiset) \<le># B \<Longrightarrow> C \<le># D \<Longrightarrow> A + C \<le># B + D"
   by (fact subset_mset.add_mono)
 
-lemma mset_le_add_left [simp]:
-  "(A::'a multiset) \<le># A + B"
+lemma mset_le_add_left [simp]: "(A::'a multiset) \<le># A + B"
   unfolding subseteq_mset_def by auto
 
-lemma mset_le_add_right [simp]:
-  "B \<le># (A::'a multiset) + B"
+lemma mset_le_add_right [simp]: "B \<le># (A::'a multiset) + B"
   unfolding subseteq_mset_def by auto
 
-lemma mset_le_single:
-  "a :# B \<Longrightarrow> {#a#} \<le># B"
+lemma mset_le_single: "a :# B \<Longrightarrow> {#a#} \<le># B"
   by (simp add: subseteq_mset_def)
 
 lemma multiset_diff_union_assoc:
-  "C \<le># B \<Longrightarrow> (A::'a multiset) + B - C = A + (B - C)"
+  fixes A B C D :: "'a multiset"
+  shows "C \<le># B \<Longrightarrow> A + B - C = A + (B - C)"
   by (simp add: subset_mset.diff_add_assoc)
 
 lemma mset_le_multiset_union_diff_commute:
-  "B \<le># A \<Longrightarrow> (A::'a multiset) - B + C = A + C - B"
+  fixes A B C D :: "'a multiset"
+  shows "B \<le># A \<Longrightarrow> A - B + C = A + C - B"
 by (simp add: subset_mset.add_diff_assoc2)
 
 lemma diff_le_self[simp]: "(M::'a multiset) - N \<le># M"
@@ -387,12 +366,10 @@ lemma multi_psub_self[simp]: "(A::'a multiset) <# A = False"
 lemma mset_less_add_bothsides: "N + {#x#} <# M + {#x#} \<Longrightarrow> N <# M"
   by (fact subset_mset.add_less_imp_less_right)
 
-lemma mset_less_empty_nonempty:
-  "{#} <# S \<longleftrightarrow> S \<noteq> {#}"
+lemma mset_less_empty_nonempty: "{#} <# S \<longleftrightarrow> S \<noteq> {#}"
   by (auto simp: subset_mset_def subseteq_mset_def)
 
-lemma mset_less_diff_self:
-  "c \<in># B \<Longrightarrow> B - {#c#} <# B"
+lemma mset_less_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} <# B"
   by (auto simp: subset_mset_def subseteq_mset_def multiset_eq_iff)
 
 
@@ -410,7 +387,8 @@ qed
 
 
 lemma multiset_inter_count [simp]:
-  "count ((A::'a multiset) #\<inter> B) x = min (count A x) (count B x)"
+  fixes A B :: "'a multiset"
+  shows "count (A #\<inter> B) x = min (count A x) (count B x)"
   by (simp add: multiset_inter_def)
 
 lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
@@ -429,28 +407,22 @@ proof (rule multiset_eqI)
     by auto
 qed
 
-lemma empty_inter [simp]:
-  "{#} #\<inter> M = {#}"
+lemma empty_inter [simp]: "{#} #\<inter> M = {#}"
   by (simp add: multiset_eq_iff)
 
-lemma inter_empty [simp]:
-  "M #\<inter> {#} = {#}"
+lemma inter_empty [simp]: "M #\<inter> {#} = {#}"
   by (simp add: multiset_eq_iff)
 
-lemma inter_add_left1:
-  "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = M #\<inter> N"
+lemma inter_add_left1: "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = M #\<inter> N"
   by (simp add: multiset_eq_iff)
 
-lemma inter_add_left2:
-  "x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = (M #\<inter> (N - {#x#})) + {#x#}"
+lemma inter_add_left2: "x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = (M #\<inter> (N - {#x#})) + {#x#}"
   by (simp add: multiset_eq_iff)
 
-lemma inter_add_right1:
-  "\<not> x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = N #\<inter> M"
+lemma inter_add_right1: "\<not> x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = N #\<inter> M"
   by (simp add: multiset_eq_iff)
 
-lemma inter_add_right2:
-  "x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = ((N - {#x#}) #\<inter> M) + {#x#}"
+lemma inter_add_right2: "x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = ((N - {#x#}) #\<inter> M) + {#x#}"
   by (simp add: multiset_eq_iff)
 
 
@@ -465,32 +437,25 @@ proof -
     by default (auto simp add: sup_subset_mset_def subseteq_mset_def aux)
 qed
 
-lemma sup_subset_mset_count [simp]:
-  "count (A #\<union> B) x = max (count A x) (count B x)"
+lemma sup_subset_mset_count [simp]: "count (A #\<union> B) x = max (count A x) (count B x)"
   by (simp add: sup_subset_mset_def)
 
-lemma empty_sup [simp]:
-  "{#} #\<union> M = M"
+lemma empty_sup [simp]: "{#} #\<union> M = M"
   by (simp add: multiset_eq_iff)
 
-lemma sup_empty [simp]:
-  "M #\<union> {#} = M"
+lemma sup_empty [simp]: "M #\<union> {#} = M"
   by (simp add: multiset_eq_iff)
 
-lemma sup_add_left1:
-  "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> N) + {#x#}"
+lemma sup_add_left1: "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> N) + {#x#}"
   by (simp add: multiset_eq_iff)
 
-lemma sup_add_left2:
-  "x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> (N - {#x#})) + {#x#}"
+lemma sup_add_left2: "x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> (N - {#x#})) + {#x#}"
   by (simp add: multiset_eq_iff)
 
-lemma sup_add_right1:
-  "\<not> x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = (N #\<union> M) + {#x#}"
+lemma sup_add_right1: "\<not> x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = (N #\<union> M) + {#x#}"
   by (simp add: multiset_eq_iff)
 
-lemma sup_add_right2:
-  "x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = ((N - {#x#}) #\<union> M) + {#x#}"
+lemma sup_add_right2: "x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = ((N - {#x#}) #\<union> M) + {#x#}"
   by (simp add: multiset_eq_iff)
 
 subsubsection \<open>Subset is an order\<close>
@@ -504,34 +469,29 @@ lift_definition filter_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multise
 is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
 by (rule filter_preserves_multiset)
 
-lemma count_filter_mset [simp]:
-  "count (filter_mset P M) a = (if P a then count M a else 0)"
+lemma count_filter_mset [simp]: "count (filter_mset P M) a = (if P a then count M a else 0)"
   by (simp add: filter_mset.rep_eq)
 
-lemma filter_empty_mset [simp]:
-  "filter_mset P {#} = {#}"
+lemma filter_empty_mset [simp]: "filter_mset P {#} = {#}"
   by (rule multiset_eqI) simp
 
-lemma filter_single_mset [simp]:
-  "filter_mset P {#x#} = (if P x then {#x#} else {#})"
+lemma filter_single_mset [simp]: "filter_mset P {#x#} = (if P x then {#x#} else {#})"
   by (rule multiset_eqI) simp
 
-lemma filter_union_mset [simp]:
-  "filter_mset P (M + N) = filter_mset P M + filter_mset P N"
+lemma filter_union_mset [simp]: "filter_mset P (M + N) = filter_mset P M + filter_mset P N"
   by (rule multiset_eqI) simp
 
-lemma filter_diff_mset [simp]:
-  "filter_mset P (M - N) = filter_mset P M - filter_mset P N"
+lemma filter_diff_mset [simp]: "filter_mset P (M - N) = filter_mset P M - filter_mset P N"
   by (rule multiset_eqI) simp
 
-lemma filter_inter_mset [simp]:
-  "filter_mset P (M #\<inter> N) = filter_mset P M #\<inter> filter_mset P N"
+lemma filter_inter_mset [simp]: "filter_mset P (M #\<inter> N) = filter_mset P M #\<inter> filter_mset P N"
   by (rule multiset_eqI) simp
 
 lemma multiset_filter_subset[simp]: "filter_mset f M \<le># M"
   by (simp add: mset_less_eqI)
 
-lemma multiset_filter_mono: assumes "A \<le># B"
+lemma multiset_filter_mono:
+  assumes "A \<le># B"
   shows "filter_mset f A \<le># filter_mset f B"
 proof -
   from assms[unfolded mset_le_exists_conv]
@@ -549,8 +509,8 @@ translations
 
 subsubsection \<open>Set of elements\<close>
 
-definition set_mset :: "'a multiset => 'a set" where
-  "set_mset M = {x. x :# M}"
+definition set_mset :: "'a multiset \<Rightarrow> 'a set"
+  where "set_mset M = {x. x :# M}"
 
 lemma set_mset_empty [simp]: "set_mset {#} = {}"
 by (simp add: set_mset_def)
@@ -595,10 +555,13 @@ definition size_multiset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a multiset \<
 
 lemmas size_multiset_eq = size_multiset_def[unfolded wcount_def]
 
-instantiation multiset :: (type) size begin
+instantiation multiset :: (type) size
+begin
+
 definition size_multiset where
   size_multiset_overloaded_def: "size_multiset = Multiset.size_multiset (\<lambda>_. 0)"
 instance ..
+
 end
 
 lemmas size_multiset_overloaded_eq =
@@ -642,7 +605,7 @@ by (auto simp add: size_multiset_overloaded_def)
 lemma nonempty_has_size: "(S \<noteq> {#}) = (0 < size S)"
 by (metis gr0I gr_implies_not0 size_empty size_eq_0_iff_empty)
 
-lemma size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
+lemma size_eq_Suc_imp_elem: "size M = Suc n \<Longrightarrow> \<exists>a. a :# M"
 apply (unfold size_multiset_overloaded_eq)
 apply (drule setsum_SucD)
 apply auto
@@ -658,12 +621,14 @@ proof -
   then show ?thesis by blast
 qed
 
-lemma size_mset_mono: assumes "A \<le># B"
-  shows "size A \<le> size(B::_ multiset)"
+lemma size_mset_mono:
+  fixes A B :: "'a multiset"
+  assumes "A \<le># B"
+  shows "size A \<le> size B"
 proof -
   from assms[unfolded mset_le_exists_conv]
   obtain C where B: "B = A + C" by auto
-  show ?thesis unfolding B by (induct C, auto)
+  show ?thesis unfolding B by (induct C) auto
 qed
 
 lemma size_filter_mset_lesseq[simp]: "size (filter_mset f M) \<le> size M"
@@ -746,10 +711,10 @@ apply (rule ih, auto)
 done
 
 lemma multi_subset_induct [consumes 2, case_names empty add]:
-assumes "F \<le># A"
-  and empty: "P {#}"
-  and insert: "\<And>a F. a \<in># A \<Longrightarrow> P F \<Longrightarrow> P (F + {#a#})"
-shows "P F"
+  assumes "F \<le># A"
+    and empty: "P {#}"
+    and insert: "\<And>a F. a \<in># A \<Longrightarrow> P F \<Longrightarrow> P (F + {#a#})"
+  shows "P F"
 proof -
   from \<open>F \<le># A\<close>
   show ?thesis
@@ -774,15 +739,13 @@ definition fold_mset :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b
 where
   "fold_mset f s M = Finite_Set.fold (\<lambda>x. f x ^^ count M x) s (set_mset M)"
 
-lemma fold_mset_empty [simp]:
-  "fold_mset f s {#} = s"
+lemma fold_mset_empty [simp]: "fold_mset f s {#} = s"
   by (simp add: fold_mset_def)
 
 context comp_fun_commute
 begin
 
-lemma fold_mset_insert:
-  "fold_mset f s (M + {#x#}) = f x (fold_mset f s M)"
+lemma fold_mset_insert: "fold_mset f s (M + {#x#}) = f x (fold_mset f s M)"
 proof -
   interpret mset: comp_fun_commute "\<lambda>y. f y ^^ count M y"
     by (fact comp_fun_commute_funpow)
@@ -808,19 +771,16 @@ proof -
   qed
 qed
 
-corollary fold_mset_single [simp]:
-  "fold_mset f s {#x#} = f x s"
+corollary fold_mset_single [simp]: "fold_mset f s {#x#} = f x s"
 proof -
   have "fold_mset f s ({#} + {#x#}) = f x s" by (simp only: fold_mset_insert) simp
   then show ?thesis by simp
 qed
 
-lemma fold_mset_fun_left_comm:
-  "f x (fold_mset f s M) = fold_mset f (f x s) M"
+lemma fold_mset_fun_left_comm: "f x (fold_mset f s M) = fold_mset f (f x s) M"
   by (induct M) (simp_all add: fold_mset_insert fun_left_comm)
 
-lemma fold_mset_union [simp]:
-  "fold_mset f s (M + N) = fold_mset f (fold_mset f s M) N"
+lemma fold_mset_union [simp]: "fold_mset f s (M + N) = fold_mset f (fold_mset f s M) N"
 proof (induct M)
   case empty then show ?case by simp
 next
@@ -832,10 +792,11 @@ qed
 
 lemma fold_mset_fusion:
   assumes "comp_fun_commute g"
-  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
+    and *: "\<And>x y. h (g x y) = f x (h y)"
+  shows "h (fold_mset g w A) = fold_mset f (h w) A"
 proof -
   interpret comp_fun_commute g by (fact assms)
-  show "PROP ?P" by (induct A) auto
+  from * show ?thesis by (induct A) auto
 qed
 
 end
@@ -857,8 +818,7 @@ subsection \<open>Image\<close>
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
   "image_mset f = fold_mset (plus o single o f) {#}"
 
-lemma comp_fun_commute_mset_image:
-  "comp_fun_commute (plus o single o f)"
+lemma comp_fun_commute_mset_image: "comp_fun_commute (plus o single o f)"
 proof
 qed (simp add: ac_simps fun_eq_iff)
 
@@ -872,35 +832,30 @@ proof -
   show ?thesis by (simp add: image_mset_def)
 qed
 
-lemma image_mset_union [simp]:
-  "image_mset f (M + N) = image_mset f M + image_mset f N"
+lemma image_mset_union [simp]: "image_mset f (M + N) = image_mset f M + image_mset f N"
 proof -
   interpret comp_fun_commute "plus o single o f"
     by (fact comp_fun_commute_mset_image)
   show ?thesis by (induct N) (simp_all add: image_mset_def ac_simps)
 qed
 
-corollary image_mset_insert:
-  "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
+corollary image_mset_insert: "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
   by simp
 
-lemma set_image_mset [simp]:
-  "set_mset (image_mset f M) = image f (set_mset M)"
+lemma set_image_mset [simp]: "set_mset (image_mset f M) = image f (set_mset M)"
   by (induct M) simp_all
 
-lemma size_image_mset [simp]:
-  "size (image_mset f M) = size M"
+lemma size_image_mset [simp]: "size (image_mset f M) = size M"
   by (induct M) simp_all
 
-lemma image_mset_is_empty_iff [simp]:
-  "image_mset f M = {#} \<longleftrightarrow> M = {#}"
+lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow> M = {#}"
   by (cases M) auto
 
 syntax
   "_comprehension1_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
       ("({#_/. _ :# _#})")
 translations
-  "{#e. x:#M#}" == "CONST image_mset (%x. e) M"
+  "{#e. x:#M#}" == "CONST image_mset (\<lambda>x. e) M"
 
 syntax (xsymbols)
   "_comprehension2_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
@@ -912,13 +867,13 @@ syntax
   "_comprehension3_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
       ("({#_/ | _ :# _./ _#})")
 translations
-  "{#e | x:#M. P#}" => "{#e. x :# {# x:#M. P#}#}"
+  "{#e | x:#M. P#}" \<rightharpoonup> "{#e. x :# {# x:#M. P#}#}"
 
 syntax
   "_comprehension4_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
       ("({#_/ | _ \<in># _./ _#})")
 translations
-  "{#e | x\<in>#M. P#}" => "{#e. x \<in># {# x\<in>#M. P#}#}"
+  "{#e | x\<in>#M. P#}" \<rightharpoonup> "{#e. x \<in># {# x\<in>#M. P#}#}"
 
 text \<open>
   This allows to write not just filters like @{term "{#x:#M. x<c#}"}
@@ -990,12 +945,10 @@ by (induct xs) auto
 lemma size_mset [simp]: "size (mset xs) = length xs"
   by (induct xs) simp_all
 
-lemma mset_append [simp]:
-  "mset (xs @ ys) = mset xs + mset ys"
+lemma mset_append [simp]: "mset (xs @ ys) = mset xs + mset ys"
   by (induct xs arbitrary: ys) (auto simp: ac_simps)
 
-lemma mset_filter:
-  "mset (filter P xs) = {#x :# mset xs. P x #}"
+lemma mset_filter: "mset (filter P xs) = {#x :# mset xs. P x #}"
   by (induct xs) simp_all
 
 lemma mset_rev [simp]:
@@ -1015,7 +968,7 @@ lemma set_count_greater_0: "set x = {a. count (mset x) a > 0}"
 by (induct x) auto
 
 lemma distinct_count_atmost_1:
-  "distinct x = (! a. count (mset x) a = (if a \<in> set x then 1 else 0))"
+  "distinct x = (\<forall>a. count (mset x) a = (if a \<in> set x then 1 else 0))"
 apply (induct x, simp, rule iffI, simp_all)
 apply (rename_tac a b)
 apply (rule conjI)
@@ -1024,8 +977,7 @@ apply (erule_tac x = a in allE, simp, clarify)
 apply (erule_tac x = aa in allE, simp)
 done
 
-lemma mset_eq_setD:
-  "mset xs = mset ys \<Longrightarrow> set xs = set ys"
+lemma mset_eq_setD: "mset xs = mset ys \<Longrightarrow> set xs = set ys"
 by (rule) (auto simp add:multiset_eq_iff set_count_greater_0)
 
 lemma set_eq_iff_mset_eq_distinct:
@@ -1042,8 +994,7 @@ apply (drule distinct_remdups [THEN distinct_remdups
 apply simp
 done
 
-lemma mset_compl_union [simp]:
-  "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
+lemma mset_compl_union [simp]: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
   by (induct xs) (auto simp: ac_simps)
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) :# mset ls"
@@ -1053,8 +1004,7 @@ apply (case_tac i)
  apply auto
 done
 
-lemma mset_remove1[simp]:
-  "mset (remove1 a xs) = mset xs - {#a#}"
+lemma mset_remove1[simp]: "mset (remove1 a xs) = mset xs - {#a#}"
 by (induct xs) (auto simp add: multiset_eq_iff)
 
 lemma mset_eq_length:
@@ -1071,7 +1021,7 @@ lemma fold_multiset_equiv:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     and equiv: "mset xs = mset ys"
   shows "List.fold f xs = List.fold f ys"
-using f equiv [symmetric]
+  using f equiv [symmetric]
 proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
@@ -1085,12 +1035,10 @@ next
   ultimately show ?case by simp
 qed
 
-lemma mset_insort [simp]:
-  "mset (insort x xs) = mset xs + {#x#}"
+lemma mset_insort [simp]: "mset (insort x xs) = mset xs + {#x#}"
   by (induct xs) (simp_all add: ac_simps)
 
-lemma mset_map:
-  "mset (map f xs) = image_mset f (mset xs)"
+lemma mset_map: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
 definition mset_set :: "'a set \<Rightarrow> 'a multiset"
@@ -1111,15 +1059,12 @@ lemma count_mset_set [simp]:
   "\<not> finite A \<Longrightarrow> count (mset_set A) x = 0" (is "PROP ?Q")
   "x \<notin> A \<Longrightarrow> count (mset_set A) x = 0" (is "PROP ?R")
 proof -
-  { fix A
-    assume "x \<notin> A"
-    have "count (mset_set A) x = 0"
-    proof (cases "finite A")
-      case False then show ?thesis by simp
-    next
-      case True from True \<open>x \<notin> A\<close> show ?thesis by (induct A) auto
-    qed
-  } note * = this
+  have *: "count (mset_set A) x = 0" if "x \<notin> A" for A
+  proof (cases "finite A")
+    case False then show ?thesis by simp
+  next
+    case True from True \<open>x \<notin> A\<close> show ?thesis by (induct A) auto
+  qed
   then show "PROP ?P" "PROP ?Q" "PROP ?R"
   by (auto elim!: Set.set_insert)
 qed -- \<open>TODO: maybe define @{const mset_set} also in terms of @{const Abs_multiset}\<close>
@@ -1188,11 +1133,9 @@ locale comm_monoid_mset = comm_monoid
 begin
 
 definition F :: "'a multiset \<Rightarrow> 'a"
-where
-  eq_fold: "F M = fold_mset f 1 M"
+  where eq_fold: "F M = fold_mset f 1 M"
 
-lemma empty [simp]:
-  "F {#} = 1"
+lemma empty [simp]: "F {#} = 1"
   by (simp add: eq_fold)
 
 lemma singleton [simp]:
@@ -1203,8 +1146,7 @@ proof -
   show ?thesis by (simp add: eq_fold)
 qed
 
-lemma union [simp]:
-  "F (M + N) = F M * F N"
+lemma union [simp]: "F (M + N) = F M * F N"
 proof -
   interpret comp_fun_commute f
     by default (simp add: fun_eq_iff left_commute)
@@ -1228,12 +1170,10 @@ context comm_monoid_add
 begin
 
 definition msetsum :: "'a multiset \<Rightarrow> 'a"
-where
-  "msetsum = comm_monoid_mset.F plus 0"
+  where "msetsum = comm_monoid_mset.F plus 0"
 
 sublocale msetsum!: comm_monoid_mset plus 0
-where
-  "comm_monoid_mset.F plus 0 = msetsum"
+  where "comm_monoid_mset.F plus 0 = msetsum"
 proof -
   show "comm_monoid_mset plus 0" ..
   from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
@@ -1290,15 +1230,13 @@ context comm_monoid_mult
 begin
 
 definition msetprod :: "'a multiset \<Rightarrow> 'a"
-where
-  "msetprod = comm_monoid_mset.F times 1"
+  where "msetprod = comm_monoid_mset.F times 1"
 
 sublocale msetprod!: comm_monoid_mset times 1
-where
-  "comm_monoid_mset.F times 1 = msetprod"
+  where "comm_monoid_mset.F times 1 = msetprod"
 proof -
   show "comm_monoid_mset times 1" ..
-  from msetprod_def show "comm_monoid_mset.F times 1 = msetprod" ..
+  show "comm_monoid_mset.F times 1 = msetprod" using msetprod_def ..
 qed
 
 lemma msetprod_empty:
@@ -1401,10 +1339,10 @@ text \<open>
 
 lemma properties_for_sort_key:
   assumes "mset ys = mset xs"
-  and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
-  and "sorted (map f ys)"
+    and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
+    and "sorted (map f ys)"
   shows "sort_key f xs = ys"
-using assms
+  using assms
 proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
@@ -1421,7 +1359,7 @@ qed
 
 lemma properties_for_sort:
   assumes multiset: "mset ys = mset xs"
-  and "sorted ys"
+    and "sorted ys"
   shows "sort xs = ys"
 proof (rule properties_for_sort_key)
   from multiset show "mset ys = mset xs" .
@@ -1441,7 +1379,6 @@ lemma sort_key_by_quicksort:
 proof (rule properties_for_sort_key)
   show "mset ?rhs = mset ?lhs"
     by (rule multiset_eqI) (auto simp add: mset_filter)
-next
   show "sorted (map f ?rhs)"
     by (auto simp add: sorted_append intro: sorted_map_same)
 next
@@ -1493,11 +1430,14 @@ lemma part_code [code]:
   by (auto simp add: part_def Let_def split_def)
 
 lemma sort_key_by_quicksort_code [code]:
-  "sort_key f xs = (case xs of [] \<Rightarrow> []
+  "sort_key f xs =
+    (case xs of
+      [] \<Rightarrow> []
     | [x] \<Rightarrow> xs
     | [x, y] \<Rightarrow> (if f x \<le> f y then xs else [y, x])
-    | _ \<Rightarrow> (let (lts, eqs, gts) = part f (f (xs ! (length xs div 2))) xs
-       in sort_key f lts @ eqs @ sort_key f gts))"
+    | _ \<Rightarrow>
+        let (lts, eqs, gts) = part f (f (xs ! (length xs div 2))) xs
+        in sort_key f lts @ eqs @ sort_key f gts)"
 proof (cases xs)
   case Nil then show ?thesis by simp
 next
@@ -1559,79 +1499,75 @@ subsection \<open>The multiset order\<close>
 
 subsubsection \<open>Well-foundedness\<close>
 
-definition mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
+definition mult1 :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult1 r = {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
-      (\<forall>b. b :# K --> (b, a) \<in> r)}"
+      (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r)}"
 
-definition mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
+definition mult :: "('a \<times> 'a) set \<Rightarrow> ('a multiset \<times> 'a multiset) set" where
   "mult r = (mult1 r)\<^sup>+"
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
 by (simp add: mult1_def)
 
-lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r ==>
+lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r \<Longrightarrow>
     (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
-    (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K)"
+    (\<exists>K. (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K)"
   (is "_ \<Longrightarrow> ?case1 (mult1 r) \<or> ?case2")
 proof (unfold mult1_def)
-  let ?r = "\<lambda>K a. \<forall>b. b :# K --> (b, a) \<in> r"
+  let ?r = "\<lambda>K a. \<forall>b. b :# K \<longrightarrow> (b, a) \<in> r"
   let ?R = "\<lambda>N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and> ?r K a"
   let ?case1 = "?case1 {(N, M). ?R N M}"
 
   assume "(N, M0 + {#a#}) \<in> {(N, M). ?R N M}"
-  then have "\<exists>a' M0' K.
-      M0 + {#a#} = M0' + {#a'#} \<and> N = M0' + K \<and> ?r K a'" by simp
-  then show "?case1 \<or> ?case2"
-  proof (elim exE conjE)
-    fix a' M0' K
-    assume N: "N = M0' + K" and r: "?r K a'"
-    assume "M0 + {#a#} = M0' + {#a'#}"
-    then have "M0 = M0' \<and> a = a' \<or>
-        (\<exists>K'. M0 = K' + {#a'#} \<and> M0' = K' + {#a#})"
-      by (simp only: add_eq_conv_ex)
+  then obtain a' M0' K where M0: "M0 + {#a#} = M0' + {#a'#}" and N: "N = M0' + K" and r: "?r K a'"
+    by auto
+  show "?case1 \<or> ?case2"
+  proof -
+    from M0 consider "M0 = M0'" "a = a'"
+      | K' where "M0 = K' + {#a'#}" "M0' = K' + {#a#}"
+      by atomize_elim (simp only: add_eq_conv_ex)
     then show ?thesis
-    proof (elim disjE conjE exE)
-      assume "M0 = M0'" "a = a'"
+    proof cases
+      case 1
       with N r have "?r K a \<and> N = M0 + K" by simp
-      then have ?case2 .. then show ?thesis ..
+      then have ?case2 ..
+      then show ?thesis ..
     next
-      fix K'
-      assume "M0' = K' + {#a#}"
-      with N have n: "N = K' + K + {#a#}" by (simp add: ac_simps)
-
-      assume "M0 = K' + {#a'#}"
-      with r have "?R (K' + K) M0" by blast
-      with n have ?case1 by simp then show ?thesis ..
+      case 2
+      from N 2(2) have n: "N = K' + K + {#a#}" by (simp add: ac_simps)
+      with r 2(1) have "?R (K' + K) M0" by blast
+      with n have ?case1 by simp
+      then show ?thesis ..
     qed
   qed
 qed
 
-lemma all_accessible: "wf r ==> \<forall>M. M \<in> Wellfounded.acc (mult1 r)"
+lemma all_accessible: "wf r \<Longrightarrow> \<forall>M. M \<in> Wellfounded.acc (mult1 r)"
 proof
   let ?R = "mult1 r"
   let ?W = "Wellfounded.acc ?R"
   {
     fix M M0 a
     assume M0: "M0 \<in> ?W"
-      and wf_hyp: "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
-      and acc_hyp: "\<forall>M. (M, M0) \<in> ?R --> M + {#a#} \<in> ?W"
+      and wf_hyp: "\<And>b. (b, a) \<in> r \<Longrightarrow> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
+      and acc_hyp: "\<forall>M. (M, M0) \<in> ?R \<longrightarrow> M + {#a#} \<in> ?W"
     have "M0 + {#a#} \<in> ?W"
     proof (rule accI [of "M0 + {#a#}"])
       fix N
       assume "(N, M0 + {#a#}) \<in> ?R"
       then have "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
-          (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K))"
+          (\<exists>K. (\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r) \<and> N = M0 + K))"
         by (rule less_add)
       then show "N \<in> ?W"
       proof (elim exE disjE conjE)
         fix M assume "(M, M0) \<in> ?R" and N: "N = M + {#a#}"
-        from acc_hyp have "(M, M0) \<in> ?R --> M + {#a#} \<in> ?W" ..
+        from acc_hyp have "(M, M0) \<in> ?R \<longrightarrow> M + {#a#} \<in> ?W" ..
         from this and \<open>(M, M0) \<in> ?R\<close> have "M + {#a#} \<in> ?W" ..
         then show "N \<in> ?W" by (simp only: N)
       next
         fix K
         assume N: "N = M0 + K"
-        assume "\<forall>b. b :# K --> (b, a) \<in> r"
+        assume "\<forall>b. b :# K \<longrightarrow> (b, a) \<in> r"
         then have "M0 + K \<in> ?W"
         proof (induct K)
           case empty
@@ -1663,7 +1599,7 @@ proof
     from wf have "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
     proof induct
       fix a
-      assume r: "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
+      assume r: "\<And>b. (b, a) \<in> r \<Longrightarrow> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
       show "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
       proof
         fix M assume "M \<in> ?W"
@@ -1675,10 +1611,10 @@ proof
   qed
 qed
 
-theorem wf_mult1: "wf r ==> wf (mult1 r)"
+theorem wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
 by (rule acc_wfI) (rule all_accessible)
 
-theorem wf_mult: "wf r ==> wf (mult r)"
+theorem wf_mult: "wf r \<Longrightarrow> wf (mult r)"
 unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
 
 
@@ -1687,7 +1623,7 @@ subsubsection \<open>Closure-free presentation\<close>
 text \<open>One direction.\<close>
 
 lemma mult_implies_one_step:
-  "trans r ==> (M, N) \<in> mult r ==>
+  "trans r \<Longrightarrow> (M, N) \<in> mult r \<Longrightarrow>
     \<exists>I J K. N = I + J \<and> M = I + K \<and> J \<noteq> {#} \<and>
     (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r)"
 apply (unfold mult_def mult1_def set_mset_def)
@@ -1719,9 +1655,9 @@ apply (simp (no_asm))
 done
 
 lemma one_step_implies_mult_aux:
-  "trans r ==>
-    \<forall>I J K. (size J = n \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r))
-      --> (I + K, I + J) \<in> mult r"
+  "trans r \<Longrightarrow>
+    \<forall>I J K. size J = n \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r)
+      \<longrightarrow> (I + K, I + J) \<in> mult r"
 apply (induct_tac n, auto)
 apply (frule size_eq_Suc_imp_eq_union, clarify)
 apply (rename_tac "J'", simp)
@@ -1750,8 +1686,8 @@ apply (simp add: ac_simps)
 done
 
 lemma one_step_implies_mult:
-  "trans r ==> J \<noteq> {#} ==> \<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r
-    ==> (I + K, I + J) \<in> mult r"
+  "trans r \<Longrightarrow> J \<noteq> {#} \<Longrightarrow> \<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r
+    \<Longrightarrow> (I + K, I + J) \<in> mult r"
 using one_step_implies_mult_aux by blast
 
 
@@ -1768,9 +1704,8 @@ notation (xsymbols) le_multiset (infix "#\<subseteq>#" 50)
 
 interpretation multiset_order: order le_multiset less_multiset
 proof -
-  have irrefl: "\<And>M :: 'a multiset. \<not> M #\<subset># M"
+  have irrefl: "\<not> M #\<subset># M" for M :: "'a multiset"
   proof
-    fix M :: "'a multiset"
     assume "M #\<subset># M"
     then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
     have "trans {(x'::'a, x). x' < x}"
@@ -1794,13 +1729,13 @@ proof -
     by default (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
-lemma mult_less_irrefl [elim!]: "M #\<subset># (M::'a::order multiset) ==> R"
+lemma mult_less_irrefl [elim!]: "M #\<subset># (M::'a::order multiset) \<Longrightarrow> R"
   by simp
 
 
 subsubsection \<open>Monotonicity of multiset union\<close>
 
-lemma mult1_union: "(B, D) \<in> mult1 r ==> (C + B, C + D) \<in> mult1 r"
+lemma mult1_union: "(B, D) \<in> mult1 r \<Longrightarrow> (C + B, C + D) \<in> mult1 r"
 apply (unfold mult1_def)
 apply auto
 apply (rule_tac x = a in exI)
@@ -1808,26 +1743,26 @@ apply (rule_tac x = "C + M0" in exI)
 apply (simp add: add.assoc)
 done
 
-lemma union_less_mono2: "B #\<subset># D ==> C + B #\<subset># C + (D::'a::order multiset)"
+lemma union_less_mono2: "B #\<subset># D \<Longrightarrow> C + B #\<subset># C + (D::'a::order multiset)"
 apply (unfold less_multiset_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)
 done
 
-lemma union_less_mono1: "B #\<subset># D ==> B + C #\<subset># D + (C::'a::order multiset)"
+lemma union_less_mono1: "B #\<subset># D \<Longrightarrow> B + C #\<subset># D + (C::'a::order multiset)"
 apply (subst add.commute [of B C])
 apply (subst add.commute [of D C])
 apply (erule union_less_mono2)
 done
 
 lemma union_less_mono:
-  "A #\<subset># C ==> B #\<subset># D ==> A + B #\<subset># C + (D::'a::order multiset)"
+  fixes A B C D :: "'a::order multiset"
+  shows "A #\<subset># C \<Longrightarrow> B #\<subset># D \<Longrightarrow> A + B #\<subset># C + D"
   by (blast intro!: union_less_mono1 union_less_mono2 multiset_order.less_trans)
 
 interpretation multiset_order: ordered_ab_semigroup_add plus le_multiset less_multiset
-proof
-qed (auto simp add: le_multiset_def intro: union_less_mono2)
+  by default (auto simp add: le_multiset_def intro: union_less_mono2)
 
 
 subsubsection \<open>Termination proofs with multiset orders\<close>
@@ -1868,7 +1803,7 @@ lemma pw_leq_split:
   assumes "pw_leq X Y"
   shows "\<exists>A B Z. X = A + Z \<and> Y = B + Z \<and> ((set_mset A, set_mset B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
   using assms
-proof (induct)
+proof induct
   case pw_leq_empty thus ?case by auto
 next
   case (pw_leq_step x y X Y)
@@ -1876,26 +1811,24 @@ next
     [simp]: "X = A + Z" "Y = B + Z"
       and 1[simp]: "(set_mset A, set_mset B) \<in> max_strict \<or> (B = {#} \<and> A = {#})"
     by auto
-  from pw_leq_step have "x = y \<or> (x, y) \<in> pair_less"
+  from pw_leq_step consider "x = y" | "(x, y) \<in> pair_less"
     unfolding pair_leq_def by auto
   thus ?case
-  proof
-    assume [simp]: "x = y"
-    have
-      "{#x#} + X = A + ({#y#}+Z)
-      \<and> {#y#} + Y = B + ({#y#}+Z)
-      \<and> ((set_mset A, set_mset B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
+  proof cases
+    case [simp]: 1
+    have "{#x#} + X = A + ({#y#}+Z) \<and> {#y#} + Y = B + ({#y#}+Z) \<and>
+      ((set_mset A, set_mset B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
       by (auto simp: ac_simps)
-    thus ?case by (intro exI)
+    thus ?thesis by blast
   next
-    assume A: "(x, y) \<in> pair_less"
+    case 2
     let ?A' = "{#x#} + A" and ?B' = "{#y#} + B"
     have "{#x#} + X = ?A' + Z"
       "{#y#} + Y = ?B' + Z"
       by (auto simp add: ac_simps)
     moreover have
       "(set_mset ?A', set_mset ?B') \<in> max_strict"
-      using 1 A unfolding max_strict_def
+      using 1 2 unfolding max_strict_def
       by (auto elim!: max_ext.cases)
     ultimately show ?thesis by blast
   qed
@@ -1904,8 +1837,8 @@ qed
 lemma
   assumes pwleq: "pw_leq Z Z'"
   shows ms_strictI: "(set_mset A, set_mset B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_strict"
-  and   ms_weakI1:  "(set_mset A, set_mset B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_weak"
-  and   ms_weakI2:  "(Z + {#}, Z' + {#}) \<in> ms_weak"
+    and ms_weakI1:  "(set_mset A, set_mset B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_weak"
+    and ms_weakI2:  "(Z + {#}, Z' + {#}) \<in> ms_weak"
 proof -
   from pw_leq_split[OF pwleq]
   obtain A' B' Z''
@@ -1925,7 +1858,7 @@ proof -
       assume [simp]: "A' = {#} \<and> B' = {#}"
       show ?thesis by (rule smsI) (auto intro: max)
     qed
-    thus "(Z + A, Z' + B) \<in> ms_strict" by (simp add:ac_simps)
+    thus "(Z + A, Z' + B) \<in> ms_strict" by (simp add: ac_simps)
     thus "(Z + A, Z' + B) \<in> ms_weak" by (simp add: ms_weak_def)
   }
   from mx_or_empty
@@ -1939,45 +1872,45 @@ and nonempty_single: "{# x #} \<noteq> {#}"
 by auto
 
 setup \<open>
-let
-  fun msetT T = Type (@{type_name multiset}, [T]);
+  let
+    fun msetT T = Type (@{type_name multiset}, [T]);
 
-  fun mk_mset T [] = Const (@{const_abbrev Mempty}, msetT T)
-    | mk_mset T [x] = Const (@{const_name single}, T --> msetT T) $ x
-    | mk_mset T (x :: xs) =
-          Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
-                mk_mset T [x] $ mk_mset T xs
+    fun mk_mset T [] = Const (@{const_abbrev Mempty}, msetT T)
+      | mk_mset T [x] = Const (@{const_name single}, T --> msetT T) $ x
+      | mk_mset T (x :: xs) =
+            Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
+                  mk_mset T [x] $ mk_mset T xs
 
-  fun mset_member_tac m i =
-      (if m <= 0 then
-           rtac @{thm multi_member_this} i ORELSE rtac @{thm multi_member_last} i
-       else
-           rtac @{thm multi_member_skip} i THEN mset_member_tac (m - 1) i)
+    fun mset_member_tac m i =
+      if m <= 0 then
+        rtac @{thm multi_member_this} i ORELSE rtac @{thm multi_member_last} i
+      else
+        rtac @{thm multi_member_skip} i THEN mset_member_tac (m - 1) i
 
-  val mset_nonempty_tac =
+    val mset_nonempty_tac =
       rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
 
-  fun regroup_munion_conv ctxt =
-    Function_Lib.regroup_conv ctxt @{const_abbrev Mempty} @{const_name plus}
-      (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
+    fun regroup_munion_conv ctxt =
+      Function_Lib.regroup_conv ctxt @{const_abbrev Mempty} @{const_name plus}
+        (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
-  fun unfold_pwleq_tac i =
-    (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
-      ORELSE (rtac @{thm pw_leq_lstep} i)
-      ORELSE (rtac @{thm pw_leq_empty} i)
+    fun unfold_pwleq_tac i =
+      (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
+        ORELSE (rtac @{thm pw_leq_lstep} i)
+        ORELSE (rtac @{thm pw_leq_empty} i)
 
-  val set_mset_simps = [@{thm set_mset_empty}, @{thm set_mset_single}, @{thm set_mset_union},
-                      @{thm Un_insert_left}, @{thm Un_empty_left}]
-in
-  ScnpReconstruct.multiset_setup (ScnpReconstruct.Multiset
-  {
-    msetT=msetT, mk_mset=mk_mset, mset_regroup_conv=regroup_munion_conv,
-    mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
-    mset_pwleq_tac=unfold_pwleq_tac, set_of_simps=set_mset_simps,
-    smsI'= @{thm ms_strictI}, wmsI2''= @{thm ms_weakI2}, wmsI1= @{thm ms_weakI1},
-    reduction_pair= @{thm ms_reduction_pair}
-  })
-end
+    val set_mset_simps = [@{thm set_mset_empty}, @{thm set_mset_single}, @{thm set_mset_union},
+                        @{thm Un_insert_left}, @{thm Un_empty_left}]
+  in
+    ScnpReconstruct.multiset_setup (ScnpReconstruct.Multiset
+    {
+      msetT=msetT, mk_mset=mk_mset, mset_regroup_conv=regroup_munion_conv,
+      mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
+      mset_pwleq_tac=unfold_pwleq_tac, set_of_simps=set_mset_simps,
+      smsI'= @{thm ms_strictI}, wmsI2''= @{thm ms_weakI2}, wmsI1= @{thm ms_weakI1},
+      reduction_pair= @{thm ms_reduction_pair}
+    })
+  end
 \<close>
 
 
@@ -2022,50 +1955,41 @@ lemmas multiset_inter_ac =
   multiset_inter_assoc
   multiset_inter_left_commute
 
-lemma mult_less_not_refl:
-  "\<not> M #\<subset># (M::'a::order multiset)"
+lemma mult_less_not_refl: "\<not> M #\<subset># (M::'a::order multiset)"
   by (fact multiset_order.less_irrefl)
 
-lemma mult_less_trans:
-  "K #\<subset># M ==> M #\<subset># N ==> K #\<subset># (N::'a::order multiset)"
+lemma mult_less_trans: "K #\<subset># M \<Longrightarrow> M #\<subset># N \<Longrightarrow> K #\<subset># (N::'a::order multiset)"
   by (fact multiset_order.less_trans)
 
-lemma mult_less_not_sym:
-  "M #\<subset># N ==> \<not> N #\<subset># (M::'a::order multiset)"
+lemma mult_less_not_sym: "M #\<subset># N \<Longrightarrow> \<not> N #\<subset># (M::'a::order multiset)"
   by (fact multiset_order.less_not_sym)
 
-lemma mult_less_asym:
-  "M #\<subset># N ==> (\<not> P ==> N #\<subset># (M::'a::order multiset)) ==> P"
+lemma mult_less_asym: "M #\<subset># N \<Longrightarrow> (\<not> P \<Longrightarrow> N #\<subset># (M::'a::order multiset)) \<Longrightarrow> P"
   by (fact multiset_order.less_asym)
 
-ML \<open>
-fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T]))
-                      (Const _ $ t') =
-    let
-      val (maybe_opt, ps) =
-        Nitpick_Model.dest_plain_fun t' ||> op ~~
-        ||> map (apsnd (snd o HOLogic.dest_number))
-      fun elems_for t =
-        case AList.lookup (op =) ps t of
-          SOME n => replicate n t
-        | NONE => [Const (maybe_name, elem_T --> elem_T) $ t]
-    in
-      case maps elems_for (all_values elem_T) @
-           (if maybe_opt then [Const (Nitpick_Model.unrep (), elem_T)]
-            else []) of
-        [] => Const (@{const_name zero_class.zero}, T)
-      | ts => foldl1 (fn (t1, t2) =>
-                         Const (@{const_name plus_class.plus}, T --> T --> T)
-                         $ t1 $ t2)
-                     (map (curry (op $) (Const (@{const_name single},
-                                                elem_T --> T))) ts)
-    end
-  | multiset_postproc _ _ _ _ t = t
-\<close>
-
 declaration \<open>
-Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
-    multiset_postproc
+  let
+    fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T])) (Const _ $ t') =
+          let
+            val (maybe_opt, ps) =
+              Nitpick_Model.dest_plain_fun t'
+              ||> op ~~
+              ||> map (apsnd (snd o HOLogic.dest_number))
+            fun elems_for t =
+              (case AList.lookup (op =) ps t of
+                SOME n => replicate n t
+              | NONE => [Const (maybe_name, elem_T --> elem_T) $ t])
+          in
+            (case maps elems_for (all_values elem_T) @
+                 (if maybe_opt then [Const (Nitpick_Model.unrep (), elem_T)] else []) of
+              [] => Const (@{const_name zero_class.zero}, T)
+            | ts =>
+                foldl1 (fn (t1, t2) =>
+                    Const (@{const_name plus_class.plus}, T --> T --> T) $ t1 $ t2)
+                  (map (curry (op $) (Const (@{const_name single}, elem_T --> T))) ts))
+          end
+      | multiset_postproc _ _ _ _ t = t
+  in Nitpick_Model.register_term_postprocessor @{typ "'a multiset"} multiset_postproc end
 \<close>
 
 
@@ -2073,28 +1997,22 @@ subsection \<open>Naive implementation using lists\<close>
 
 code_datatype mset
 
-lemma [code]:
-  "{#} = mset []"
+lemma [code]: "{#} = mset []"
   by simp
 
-lemma [code]:
-  "{#x#} = mset [x]"
+lemma [code]: "{#x#} = mset [x]"
   by simp
 
-lemma union_code [code]:
-  "mset xs + mset ys = mset (xs @ ys)"
+lemma union_code [code]: "mset xs + mset ys = mset (xs @ ys)"
   by simp
 
-lemma [code]:
-  "image_mset f (mset xs) = mset (map f xs)"
+lemma [code]: "image_mset f (mset xs) = mset (map f xs)"
   by (simp add: mset_map)
 
-lemma [code]:
-  "filter_mset f (mset xs) = mset (filter f xs)"
+lemma [code]: "filter_mset f (mset xs) = mset (filter f xs)"
   by (simp add: mset_filter)
 
-lemma [code]:
-  "mset xs - mset ys = mset (fold remove1 ys xs)"
+lemma [code]: "mset xs - mset ys = mset (fold remove1 ys xs)"
   by (rule sym, induct ys arbitrary: xs) (simp_all add: diff_add diff_right_commute)
 
 lemma [code]:
@@ -2122,8 +2040,7 @@ qed
 
 declare in_multiset_in_set [code_unfold]
 
-lemma [code]:
-  "count (mset xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
+lemma [code]: "count (mset xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
 proof -
   have "\<And>n. fold (\<lambda>y. if x = y then Suc else id) xs n = count (mset xs) x + n"
     by (induct xs) simp_all
@@ -2207,12 +2124,10 @@ instance
   by default (simp add: equal_multiset_def)
 end
 
-lemma [code]:
-  "msetsum (mset xs) = listsum xs"
+lemma [code]: "msetsum (mset xs) = listsum xs"
   by (induct xs) (simp_all add: add.commute)
 
-lemma [code]:
-  "msetprod (mset xs) = fold times xs 1"
+lemma [code]: "msetprod (mset xs) = fold times xs 1"
 proof -
   have "\<And>x. fold times xs x = msetprod (mset xs) * x"
     by (induct xs) (simp_all add: mult.assoc)
@@ -2270,7 +2185,7 @@ lemma mset_zip_take_Cons_drop_twice:
   assumes "length xs = length ys" "j \<le> length xs"
   shows "mset (zip (take j xs @ x # drop j xs) (take j ys @ y # drop j ys)) =
     mset (zip xs ys) + {#(x, y)#}"
-using assms
+  using assms
 proof (induct xs ys arbitrary: x y j rule: list_induct2)
   case Nil
   thus ?case
@@ -2368,38 +2283,30 @@ bnf "'a multiset"
 proof -
   show "image_mset id = id"
     by (rule image_mset.id)
-next
-  show "\<And>f g. image_mset (g \<circ> f) = image_mset g \<circ> image_mset f"
+  show "image_mset (g \<circ> f) = image_mset g \<circ> image_mset f" for f g
     unfolding comp_def by (rule ext) (simp add: comp_def image_mset.compositionality)
-next
-  fix X :: "'a multiset"
-  show "\<And>f g. (\<And>z. z \<in> set_mset X \<Longrightarrow> f z = g z) \<Longrightarrow> image_mset f X = image_mset g X"
-    by (induct X, (simp (no_asm))+,
+  show "(\<And>z. z \<in> set_mset X \<Longrightarrow> f z = g z) \<Longrightarrow> image_mset f X = image_mset g X" for f g X
+    by (induct X) (simp_all (no_asm),
       metis One_nat_def Un_iff count_single mem_set_mset_iff set_mset_union zero_less_Suc)
-next
-  show "\<And>f. set_mset \<circ> image_mset f = op ` f \<circ> set_mset"
+  show "set_mset \<circ> image_mset f = op ` f \<circ> set_mset" for f
     by auto
-next
   show "card_order natLeq"
     by (rule natLeq_card_order)
-next
   show "BNF_Cardinal_Arithmetic.cinfinite natLeq"
     by (rule natLeq_cinfinite)
-next
-  show "\<And>X. ordLeq3 (card_of (set_mset X)) natLeq"
+  show "ordLeq3 (card_of (set_mset X)) natLeq" for X
     by transfer
       (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
-next
-  show "\<And>R S. rel_mset R OO rel_mset S \<le> rel_mset (R OO S)"
+  show "rel_mset R OO rel_mset S \<le> rel_mset (R OO S)" for R S
     unfolding rel_mset_def[abs_def] OO_def
     apply clarify
     apply (rename_tac X Z Y xs ys' ys zs)
     apply (drule_tac xs = ys' and ys = zs and xs' = ys in list_all2_reorder_left_invariance)
-    by (auto intro: list_all2_trans)
-next
-  show "\<And>R. rel_mset R =
+    apply (auto intro: list_all2_trans)
+    done
+  show "rel_mset R =
     (BNF_Def.Grp {x. set_mset x \<subseteq> {(x, y). R x y}} (image_mset fst))\<inverse>\<inverse> OO
-    BNF_Def.Grp {x. set_mset x \<subseteq> {(x, y). R x y}} (image_mset snd)"
+    BNF_Def.Grp {x. set_mset x \<subseteq> {(x, y). R x y}} (image_mset snd)" for R
     unfolding rel_mset_def[abs_def] BNF_Def.Grp_def OO_def
     apply (rule ext)+
     apply auto
@@ -2417,12 +2324,12 @@ next
     apply (rule_tac x = "map snd xys" in exI)
     apply (auto simp: mset_map list_all2I subset_eq zip_map_fst_snd)
     done
-next
-  show "\<And>z. z \<in> set_mset {#} \<Longrightarrow> False"
+  show "z \<in> set_mset {#} \<Longrightarrow> False" for z
     by auto
 qed
 
-inductive rel_mset' where
+inductive rel_mset'
+where
   Zero[intro]: "rel_mset' R {#} {#}"
 | Plus[intro]: "\<lbrakk>R a b; rel_mset' R M N\<rbrakk> \<Longrightarrow> rel_mset' R (M + {#a#}) (N + {#b#})"
 
@@ -2435,27 +2342,25 @@ declare multiset.count_inverse[simp]
 declare union_preserves_multiset[simp]
 
 lemma rel_mset_Plus:
-assumes ab: "R a b" and MN: "rel_mset R M N"
-shows "rel_mset R (M + {#a#}) (N + {#b#})"
-proof-
-  {fix y assume "R a b" and "set_mset y \<subseteq> {(x, y). R x y}"
-   hence "\<exists>ya. image_mset fst y + {#a#} = image_mset fst ya \<and>
-               image_mset snd y + {#b#} = image_mset snd ya \<and>
-               set_mset ya \<subseteq> {(x, y). R x y}"
-   apply(intro exI[of _ "y + {#(a,b)#}"]) by auto
-  }
+  assumes ab: "R a b"
+    and MN: "rel_mset R M N"
+  shows "rel_mset R (M + {#a#}) (N + {#b#})"
+proof -
+  have "\<exists>ya. image_mset fst y + {#a#} = image_mset fst ya \<and>
+    image_mset snd y + {#b#} = image_mset snd ya \<and>
+    set_mset ya \<subseteq> {(x, y). R x y}"
+    if "R a b" and "set_mset y \<subseteq> {(x, y). R x y}" for y
+    using that by (intro exI[of _ "y + {#(a,b)#}"]) auto
   thus ?thesis
   using assms
   unfolding multiset.rel_compp_Grp Grp_def by blast
 qed
 
-lemma rel_mset'_imp_rel_mset:
-  "rel_mset' R M N \<Longrightarrow> rel_mset R M N"
+lemma rel_mset'_imp_rel_mset: "rel_mset' R M N \<Longrightarrow> rel_mset R M N"
 apply(induct rule: rel_mset'.induct)
 using rel_mset_Zero rel_mset_Plus by auto
 
-lemma rel_mset_size:
-  "rel_mset R M N \<Longrightarrow> size M = size N"
+lemma rel_mset_size: "rel_mset R M N \<Longrightarrow> size M = size N"
 unfolding multiset.rel_compp_Grp Grp_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
@@ -2469,12 +2374,13 @@ apply(induct N rule: multiset_induct)
 done
 
 lemma multiset_induct2_size[consumes 1, case_names empty add]:
-assumes c: "size M = size N"
-and empty: "P {#} {#}"
-and add: "\<And>M N a b. P M N \<Longrightarrow> P (M + {#a#}) (N + {#b#})"
-shows "P M N"
+  assumes c: "size M = size N"
+    and empty: "P {#} {#}"
+    and add: "\<And>M N a b. P M N \<Longrightarrow> P (M + {#a#}) (N + {#b#})"
+  shows "P M N"
 using c proof(induct M arbitrary: N rule: measure_induct_rule[of size])
-  case (less M)  show ?case
+  case (less M)
+  show ?case
   proof(cases "M = {#}")
     case True hence "N = {#}" using less.prems by auto
     thus ?thesis using True empty by auto
@@ -2488,67 +2394,67 @@ using c proof(induct M arbitrary: N rule: measure_induct_rule[of size])
 qed
 
 lemma msed_map_invL:
-assumes "image_mset f (M + {#a#}) = N"
-shows "\<exists>N1. N = N1 + {#f a#} \<and> image_mset f M = N1"
-proof-
+  assumes "image_mset f (M + {#a#}) = N"
+  shows "\<exists>N1. N = N1 + {#f a#} \<and> image_mset f M = N1"
+proof -
   have "f a \<in># N"
-  using assms multiset.set_map[of f "M + {#a#}"] by auto
+    using assms multiset.set_map[of f "M + {#a#}"] by auto
   then obtain N1 where N: "N = N1 + {#f a#}" using multi_member_split by metis
   have "image_mset f M = N1" using assms unfolding N by simp
   thus ?thesis using N by blast
 qed
 
 lemma msed_map_invR:
-assumes "image_mset f M = N + {#b#}"
-shows "\<exists>M1 a. M = M1 + {#a#} \<and> f a = b \<and> image_mset f M1 = N"
-proof-
+  assumes "image_mset f M = N + {#b#}"
+  shows "\<exists>M1 a. M = M1 + {#a#} \<and> f a = b \<and> image_mset f M1 = N"
+proof -
   obtain a where a: "a \<in># M" and fa: "f a = b"
-  using multiset.set_map[of f M] unfolding assms
-  by (metis image_iff mem_set_mset_iff union_single_eq_member)
+    using multiset.set_map[of f M] unfolding assms
+    by (metis image_iff mem_set_mset_iff union_single_eq_member)
   then obtain M1 where M: "M = M1 + {#a#}" using multi_member_split by metis
   have "image_mset f M1 = N" using assms unfolding M fa[symmetric] by simp
   thus ?thesis using M fa by blast
 qed
 
 lemma msed_rel_invL:
-assumes "rel_mset R (M + {#a#}) N"
-shows "\<exists>N1 b. N = N1 + {#b#} \<and> R a b \<and> rel_mset R M N1"
-proof-
+  assumes "rel_mset R (M + {#a#}) N"
+  shows "\<exists>N1 b. N = N1 + {#b#} \<and> R a b \<and> rel_mset R M N1"
+proof -
   obtain K where KM: "image_mset fst K = M + {#a#}"
-  and KN: "image_mset snd K = N" and sK: "set_mset K \<subseteq> {(a, b). R a b}"
-  using assms
-  unfolding multiset.rel_compp_Grp Grp_def by auto
+    and KN: "image_mset snd K = N" and sK: "set_mset K \<subseteq> {(a, b). R a b}"
+    using assms
+    unfolding multiset.rel_compp_Grp Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and a: "fst ab = a"
-  and K1M: "image_mset fst K1 = M" using msed_map_invR[OF KM] by auto
+    and K1M: "image_mset fst K1 = M" using msed_map_invR[OF KM] by auto
   obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "image_mset snd K1 = N1"
-  using msed_map_invL[OF KN[unfolded K]] by auto
+    using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
   have "rel_mset R M N1" using sK K1M K1N1
-  unfolding K multiset.rel_compp_Grp Grp_def by auto
+    unfolding K multiset.rel_compp_Grp Grp_def by auto
   thus ?thesis using N Rab by auto
 qed
 
 lemma msed_rel_invR:
-assumes "rel_mset R M (N + {#b#})"
-shows "\<exists>M1 a. M = M1 + {#a#} \<and> R a b \<and> rel_mset R M1 N"
-proof-
+  assumes "rel_mset R M (N + {#b#})"
+  shows "\<exists>M1 a. M = M1 + {#a#} \<and> R a b \<and> rel_mset R M1 N"
+proof -
   obtain K where KN: "image_mset snd K = N + {#b#}"
-  and KM: "image_mset fst K = M" and sK: "set_mset K \<subseteq> {(a, b). R a b}"
-  using assms
-  unfolding multiset.rel_compp_Grp Grp_def by auto
+    and KM: "image_mset fst K = M" and sK: "set_mset K \<subseteq> {(a, b). R a b}"
+    using assms
+    unfolding multiset.rel_compp_Grp Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and b: "snd ab = b"
-  and K1N: "image_mset snd K1 = N" using msed_map_invR[OF KN] by auto
+    and K1N: "image_mset snd K1 = N" using msed_map_invR[OF KN] by auto
   obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "image_mset fst K1 = M1"
-  using msed_map_invL[OF KM[unfolded K]] by auto
+    using msed_map_invL[OF KM[unfolded K]] by auto
   have Rab: "R (fst ab) b" using sK b unfolding K by auto
   have "rel_mset R M1 N" using sK K1N K1M1
-  unfolding K multiset.rel_compp_Grp Grp_def by auto
+    unfolding K multiset.rel_compp_Grp Grp_def by auto
   thus ?thesis using M Rab by auto
 qed
 
 lemma rel_mset_imp_rel_mset':
-assumes "rel_mset R M N"
-shows "rel_mset' R M N"
+  assumes "rel_mset R M N"
+  shows "rel_mset' R M N"
 using assms proof(induct M arbitrary: N rule: measure_induct_rule[of size])
   case (less M)
   have c: "size M = size N" using rel_mset_size[OF less.prems] .
@@ -2559,19 +2465,18 @@ using assms proof(induct M arbitrary: N rule: measure_induct_rule[of size])
   next
     case False then obtain M1 a where M: "M = M1 + {#a#}" by (metis multi_nonempty_split)
     obtain N1 b where N: "N = N1 + {#b#}" and R: "R a b" and ms: "rel_mset R M1 N1"
-    using msed_rel_invL[OF less.prems[unfolded M]] by auto
+      using msed_rel_invL[OF less.prems[unfolded M]] by auto
     have "rel_mset' R M1 N1" using less.hyps[of M1 N1] ms unfolding M by simp
     thus ?thesis using rel_mset'.Plus[of R a b, OF R] unfolding M N by simp
   qed
 qed
 
-lemma rel_mset_rel_mset':
-"rel_mset R M N = rel_mset' R M N"
+lemma rel_mset_rel_mset': "rel_mset R M N = rel_mset' R M N"
 using rel_mset_imp_rel_mset' rel_mset'_imp_rel_mset by auto
 
-(* The main end product for rel_mset: inductive characterization *)
+text \<open>The main end product for rel_mset: inductive characterization:\<close>
 theorems rel_mset_induct[case_names empty add, induct pred: rel_mset] =
-         rel_mset'.induct[unfolded rel_mset_rel_mset'[symmetric]]
+  rel_mset'.induct[unfolded rel_mset_rel_mset'[symmetric]]
 
 
 subsection \<open>Size setup\<close>
@@ -2580,10 +2485,10 @@ lemma multiset_size_o_map: "size_multiset g \<circ> image_mset f = size_multiset
   unfolding o_apply by (rule ext) (induct_tac, auto)
 
 setup \<open>
-BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
-  @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
-    size_union}
-  @{thms multiset_size_o_map}
+  BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
+    @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
+      size_union}
+    @{thms multiset_size_o_map}
 \<close>
 
 hide_const (open) wcount
