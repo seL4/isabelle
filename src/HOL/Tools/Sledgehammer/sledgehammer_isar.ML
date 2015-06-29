@@ -147,7 +147,7 @@ val systematic_methods =
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
 val skolem_methods = Moura_Method :: systematic_methods
 
-fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
+fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
   let
     val _ = if debug then writeln "Constructing Isar proof..." else ()
@@ -407,20 +407,23 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                #> relabel_isar_proof_nicely
                #> rationalize_obtains_in_isar_proofs ctxt)
       in
-        (case add_isar_steps (steps_of_isar_proof isar_proof) 0 of
-          1 =>
+        (case (num_chained, add_isar_steps (steps_of_isar_proof isar_proof) 0) of
+          (0, 1) =>
           one_line_proof_text ctxt 0
             (if play_outcome_ord (play_outcome, one_line_play) = LESS then
                (case isar_proof of
                  Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
-                 let val used_facts' = filter (member (op =) gfs o fst) used_facts in
+                 let
+                   val used_facts' = filter (fn (s, (sc, _)) =>
+                     member (op =) gfs s andalso sc <> Chained) used_facts
+                 in
                    ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
                  end)
              else
                one_line_params) ^
           (if isar_proofs = SOME true then "\n(No Isar proof available.)"
            else "")
-        | num_steps =>
+        | (_, num_steps) =>
           let
             val msg =
               (if verbose then [string_of_int num_steps ^ " step" ^ plural_s num_steps] else []) @
@@ -453,7 +456,7 @@ fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as ((_, preplay), _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
-     isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
+     isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
    else
      one_line_proof_text ctxt num_chained) one_line_params
 
