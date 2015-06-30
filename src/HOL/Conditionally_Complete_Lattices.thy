@@ -302,10 +302,10 @@ lemma cINF_lower2: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarr
 lemma cSUP_upper2: "bdd_above (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> u \<le> f x \<Longrightarrow> u \<le> SUPREMUM A f"
   by (auto intro: cSUP_upper assms order_trans)
 
-lemma cSUP_const: "A \<noteq> {} \<Longrightarrow> (SUP x:A. c) = c"
+lemma cSUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (SUP x:A. c) = c"
   by (intro antisym cSUP_least) (auto intro: cSUP_upper)
 
-lemma cINF_const: "A \<noteq> {} \<Longrightarrow> (INF x:A. c) = c"
+lemma cINF_const [simp]: "A \<noteq> {} \<Longrightarrow> (INF x:A. c) = c"
   by (intro antisym cINF_greatest) (auto intro: cINF_lower)
 
 lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> u \<le> INFIMUM A f \<longleftrightarrow> (\<forall>x\<in>A. u \<le> f x)"
@@ -633,5 +633,17 @@ proof -
     unfolding greaterThanAtMost_def greaterThanLessThan_def atLeastAtMost_def atLeastLessThan_def
     by (elim exE disjE) auto
 qed
+
+lemma cSUP_eq_cINF_D:
+  fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
+  assumes eq: "(SUP x:A. f x) = (INF x:A. f x)"
+     and bdd: "bdd_above (f ` A)" "bdd_below (f ` A)"
+     and a: "a \<in> A"
+  shows "f a = (INF x:A. f x)"
+apply (rule antisym)
+using a bdd
+apply (auto simp: cINF_lower)
+apply (metis eq cSUP_upper)
+done 
 
 end

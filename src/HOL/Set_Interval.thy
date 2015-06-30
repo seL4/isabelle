@@ -810,15 +810,25 @@ lemma atLeastLessThan_nat_numeral:  --{*Evaluation for specific numerals*}
 subsubsection {* Image *}
 
 lemma image_add_atLeastAtMost:
-  "(%n::nat. n+k) ` {i..j} = {i+k..j+k}" (is "?A = ?B")
+  fixes k ::"'a::linordered_semidom"
+  shows "(\<lambda>n. n+k) ` {i..j} = {i+k..j+k}" (is "?A = ?B")
 proof
   show "?A \<subseteq> ?B" by auto
 next
   show "?B \<subseteq> ?A"
   proof
     fix n assume a: "n : ?B"
-    hence "n - k : {i..j}" by auto
-    moreover have "n = (n - k) + k" using a by auto
+    hence "n - k : {i..j}"
+      by (auto simp: add_le_imp_le_diff add_le_add_imp_diff_le)
+    moreover have "n = (n - k) + k" using a
+    proof -
+      have "k + i \<le> n"
+        by (metis a add.commute atLeastAtMost_iff)
+      hence "k + (n - k) = n"
+        by (metis (no_types) ab_semigroup_add_class.add_ac(1) add_diff_cancel_left' le_add_diff_inverse)
+      thus ?thesis
+        by (simp add: add.commute)
+    qed
     ultimately show "n : ?A" by blast
   qed
 qed

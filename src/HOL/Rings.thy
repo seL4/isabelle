@@ -1362,7 +1362,30 @@ lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
 
 lemma add_diff_inverse: "~ a<b \<Longrightarrow> b + (a - b) = a"
   by simp
-  
+
+lemma add_le_imp_le_diff: 
+  shows "i + k \<le> n \<Longrightarrow> i \<le> n - k"
+  apply (subst add_le_cancel_right [where c=k, symmetric])
+  apply (frule le_add_diff_inverse2)
+  apply (simp only: add.assoc [symmetric])
+  using add_implies_diff by fastforce
+
+lemma add_le_add_imp_diff_le: 
+  assumes a1: "i + k \<le> n"
+      and a2: "n \<le> j + k"
+  shows "\<lbrakk>i + k \<le> n; n \<le> j + k\<rbrakk> \<Longrightarrow> n - k \<le> j"
+proof -
+  have "n - (i + k) + (i + k) = n"
+    using a1 by simp
+  moreover have "n - k = n - k - i + i"
+    using a1 by (simp add: add_le_imp_le_diff)
+  ultimately show ?thesis
+    using a2
+    apply (simp add: add.assoc [symmetric])
+    apply (rule add_le_imp_le_diff [of _ k "j+k", simplified add_diff_cancel_right'])
+    by (simp add: add.commute diff_diff_add)
+qed
+
 lemma pos_add_strict:
   shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
   using add_strict_mono [of 0 a b c] by simp

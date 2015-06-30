@@ -448,6 +448,11 @@ lemmas real_sqrt_ge_1_iff [simp] = real_sqrt_le_iff [where x=1, unfolded real_sq
 lemmas real_sqrt_le_1_iff [simp] = real_sqrt_le_iff [where y=1, unfolded real_sqrt_one]
 lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, unfolded real_sqrt_one]
 
+lemma sqrt_add_le_add_sqrt:
+  assumes "0 \<le> x" "0 \<le> y"
+  shows "sqrt (x + y) \<le> sqrt x + sqrt y"
+by (rule power2_le_imp_le) (simp_all add: power2_sum assms)
+
 lemma isCont_real_sqrt: "isCont sqrt x"
 unfolding sqrt_def by (rule isCont_real_root)
 

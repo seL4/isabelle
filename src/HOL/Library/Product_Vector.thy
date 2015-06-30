@@ -213,6 +213,9 @@ lemma continuous_on_snd[continuous_intros]: "continuous_on s f \<Longrightarrow>
 lemma continuous_on_Pair[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. (f x, g x))"
   unfolding continuous_on_def by (auto intro: tendsto_Pair)
 
+lemma continuous_on_swap[continuous_intros]: "continuous_on A prod.swap"
+  by (simp add: prod.swap_def continuous_on_fst continuous_on_snd continuous_on_Pair continuous_on_id)
+
 lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
   by (fact continuous_fst)
 
@@ -253,6 +256,9 @@ proof
   thus "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
     by (fast dest: hausdorff elim: open_vimage_fst open_vimage_snd)
 qed
+
+lemma isCont_swap[continuous_intros]: "isCont prod.swap a"
+  using continuous_on_eq_continuous_within continuous_on_swap by blast
 
 subsection \<open>Product is a metric space\<close>
 
@@ -439,15 +445,6 @@ lemma bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-text \<open>TODO: move to NthRoot\<close>
-lemma sqrt_add_le_add_sqrt:
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "sqrt (x + y) \<le> sqrt x + sqrt y"
-apply (rule power2_le_imp_le)
-apply (simp add: power2_sum x y)
-apply (simp add: x y)
-done
-
 lemma bounded_linear_Pair:
   assumes f: "bounded_linear f"
   assumes g: "bounded_linear g"
@@ -540,6 +537,12 @@ end
 
 lemma inner_Pair_0: "inner x (0, b) = inner (snd x) b" "inner x (a, 0) = inner (fst x) a"
     by (cases x, simp)+
+
+lemma 
+  fixes x :: "'a::real_normed_vector"
+  shows norm_Pair1 [simp]: "norm (0,x) = norm x" 
+    and norm_Pair2 [simp]: "norm (x,0) = norm x"
+by (auto simp: norm_Pair)
 
 
 end

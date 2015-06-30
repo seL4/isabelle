@@ -840,6 +840,18 @@ lemma box_def: "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> 
     "x \<in> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i)"
   by (auto simp: box_eucl_less eucl_less_def cbox_def)
 
+lemma cbox_Pair_eq: "cbox (a, c) (b, d) = cbox a b \<times> cbox c d"
+  by (force simp: cbox_def Basis_prod_def)
+
+lemma cbox_Pair_iff [iff]: "(x, y) \<in> cbox (a, c) (b, d) \<longleftrightarrow> x \<in> cbox a b \<and> y \<in> cbox c d"
+  by (force simp: cbox_Pair_eq)
+
+lemma cbox_Pair_eq_0: "cbox (a, c) (b, d) = {} \<longleftrightarrow> cbox a b = {} \<or> cbox c d = {}"
+  by (force simp: cbox_Pair_eq)
+
+lemma swap_cbox_Pair [simp]: "prod.swap ` cbox (c, a) (d, b) = cbox (a,c) (b,d)"
+  by auto
+
 lemma mem_box_real[simp]:
   "(x::real) \<in> box a b \<longleftrightarrow> a < x \<and> x < b"
   "(x::real) \<in> cbox a b \<longleftrightarrow> a \<le> x \<and> x \<le> b"
@@ -2794,6 +2806,11 @@ proof -
     by (auto intro!: exI[of _ "b + norm a"])
 qed
 
+lemma bounded_uminus [simp]:
+  fixes X :: "'a::euclidean_space set"
+  shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"
+by (auto simp: bounded_def dist_norm; rule_tac x="-x" in exI; force simp add: add.commute norm_minus_commute)
+
 
 text\<open>Some theorems on sups and infs using the notion "bounded".\<close>
 
@@ -2808,7 +2825,15 @@ lemma bounded_imp_bdd_below: "bounded S \<Longrightarrow> bdd_below (S :: real s
   by (auto simp: bounded_def bdd_below_def dist_real_def)
      (metis abs_le_D1 add.commute diff_le_eq)
 
-(* TODO: remove the following lemmas about Inf and Sup, is now in conditionally complete lattice *)
+lemma bounded_inner_imp_bdd_above:
+  assumes "bounded s" 
+    shows "bdd_above ((\<lambda>x. x \<bullet> a) ` s)"
+by (simp add: assms bounded_imp_bdd_above bounded_linear_image bounded_linear_inner_left)
+
+lemma bounded_inner_imp_bdd_below:
+  assumes "bounded s" 
+    shows "bdd_below ((\<lambda>x. x \<bullet> a) ` s)"
+by (simp add: assms bounded_imp_bdd_below bounded_linear_image bounded_linear_inner_left)
 
 lemma bounded_has_Sup:
   fixes S :: "real set"

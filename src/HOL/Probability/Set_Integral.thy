@@ -10,7 +10,7 @@ theory Set_Integral
   imports Bochner_Integration Lebesgue_Measure
 begin
 
-(* 
+(*
     Notation
 *)
 
@@ -67,8 +67,8 @@ syntax
 translations
 "LBINT x:A. f" == "CONST set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
 
-(* 
-    Basic properties 
+(*
+    Basic properties
 *)
 
 (*
@@ -93,13 +93,13 @@ qed
 
 lemma set_integrable_cong_AE:
     "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow>
-    AE x \<in> A in M. f x = g x \<Longrightarrow> A \<in> sets M \<Longrightarrow> 
+    AE x \<in> A in M. f x = g x \<Longrightarrow> A \<in> sets M \<Longrightarrow>
     set_integrable M A f = set_integrable M A g"
   by (rule integrable_cong_AE) auto
 
-lemma set_integrable_subset: 
+lemma set_integrable_subset:
   fixes M A B and f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
-  assumes "set_integrable M A f" "B \<in> sets M" "B \<subseteq> A"  
+  assumes "set_integrable M A f" "B \<in> sets M" "B \<subseteq> A"
   shows "set_integrable M B f"
 proof -
   have "set_integrable M B (\<lambda>x. indicator A x *\<^sub>R f x)"
@@ -114,17 +114,17 @@ qed
 lemma set_integral_scaleR_right [simp]: "LINT t:A|M. a *\<^sub>R f t = a *\<^sub>R (LINT t:A|M. f t)"
   by (subst integral_scaleR_right[symmetric]) (auto intro!: integral_cong)
 
-lemma set_integral_mult_right [simp]: 
+lemma set_integral_mult_right [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
   shows "LINT t:A|M. a * f t = a * (LINT t:A|M. f t)"
   by (subst integral_mult_right_zero[symmetric]) (auto intro!: integral_cong)
 
-lemma set_integral_mult_left [simp]: 
+lemma set_integral_mult_left [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
   shows "LINT t:A|M. f t * a = (LINT t:A|M. f t) * a"
   by (subst integral_mult_left_zero[symmetric]) (auto intro!: integral_cong)
 
-lemma set_integral_divide_zero [simp]: 
+lemma set_integral_divide_zero [simp]:
   fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
   shows "LINT t:A|M. f t / a = (LINT t:A|M. f t) / a"
   by (subst integral_divide_zero[symmetric], intro integral_cong)
@@ -198,7 +198,7 @@ lemma set_integral_mono:
   shows "(LINT x:A|M. f x) \<le> (LINT x:A|M. g x)"
 using assms by (auto intro: integral_mono split: split_indicator)
 
-lemma set_integral_mono_AE: 
+lemma set_integral_mono_AE:
   fixes f g :: "_ \<Rightarrow> real"
   assumes "set_integrable M A f" "set_integrable M A g"
     "AE x \<in> A in M. f x \<le> g x"
@@ -210,12 +210,12 @@ lemma set_integrable_abs: "set_integrable M A f \<Longrightarrow> set_integrable
 
 lemma set_integrable_abs_iff:
   fixes f :: "_ \<Rightarrow> real"
-  shows "set_borel_measurable M A f \<Longrightarrow> set_integrable M A (\<lambda>x. \<bar>f x\<bar>) = set_integrable M A f" 
+  shows "set_borel_measurable M A f \<Longrightarrow> set_integrable M A (\<lambda>x. \<bar>f x\<bar>) = set_integrable M A f"
   by (subst (2) integrable_abs_iff[symmetric]) (simp_all add: abs_mult ac_simps)
 
 lemma set_integrable_abs_iff':
   fixes f :: "_ \<Rightarrow> real"
-  shows "f \<in> borel_measurable M \<Longrightarrow> A \<in> sets M \<Longrightarrow> 
+  shows "f \<in> borel_measurable M \<Longrightarrow> A \<in> sets M \<Longrightarrow>
     set_integrable M A (\<lambda>x. \<bar>f x\<bar>) = set_integrable M A f"
 by (intro set_integrable_abs_iff) auto
 
@@ -303,7 +303,7 @@ proof -
   then have f': "set_borel_measurable M (A \<union> B) f"
     by (rule borel_measurable_integrable)
   have "LINT x:A\<union>B|M. f x = LINT x:(A - A \<inter> B) \<union> (B - A \<inter> B)|M. f x"
-  proof (rule set_integral_cong_set)  
+  proof (rule set_integral_cong_set)
     show "AE x in M. (x \<in> A - A \<inter> B \<union> (B - A \<inter> B)) = (x \<in> A \<union> B)"
       using ae by auto
     show "set_borel_measurable M (A - A \<inter> B \<union> (B - A \<inter> B)) f"
@@ -389,7 +389,7 @@ proof (subst integral_suminf[symmetric])
     fix n
     show "0 \<le> LINT x|M. norm (indicator (A n) x *\<^sub>R f x)"
       using norm_f by (auto intro!: integral_nonneg_AE)
-    
+
     have "(\<Sum>i<n. LINT x|M. norm (indicator (A i) x *\<^sub>R f x)) =
       (\<Sum>i<n. set_lebesgue_integral M (A i) (\<lambda>x. norm (f x)))"
       by (simp add: abs_mult)
@@ -423,7 +423,7 @@ proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Un
   then show "\<And>i. set_borel_measurable M (A i) f" "set_borel_measurable M (\<Union>i. A i) f"
     "set_integrable M (\<Union>i. A i) (\<lambda>x. norm (f x))"
     using intgbl integrable_norm[OF intgbl] by auto
-  
+
   { fix x i assume "x \<in> A i"
     with A have "(\<lambda>xa. indicator (A xa) x::real) ----> 1 \<longleftrightarrow> (\<lambda>xa. 1::real) ----> 1"
       by (intro filterlim_cong refl)
@@ -431,7 +431,7 @@ proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Un
   then show "AE x in M. (\<lambda>i. indicator (A i) x *\<^sub>R f x) ----> indicator (\<Union>i. A i) x *\<^sub>R f x"
     by (intro AE_I2 tendsto_intros) (auto split: split_indicator)
 qed (auto split: split_indicator)
-        
+
 (* Can the int0 hypothesis be dropped? *)
 lemma set_integral_cont_down:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
@@ -549,7 +549,7 @@ proof -
   have "(f has_integral F b - F a) {a .. b}"
     by (intro fundamental_theorem_of_calculus ballI assms) auto
   then have "(?f has_integral F b - F a) {a .. b}"
-    by (subst has_integral_eq_eq[where g=f]) auto
+    by (subst has_integral_cong[where g=f]) auto
   then have "(?f has_integral F b - F a) UNIV"
     by (intro has_integral_on_superset[where t=UNIV and s="{a..b}"]) auto
   ultimately show "integral\<^sup>L lborel ?f = F b - F a"
