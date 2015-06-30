@@ -210,9 +210,6 @@ fun assert_bottom b state =
 val context_of = #context o top;
 val theory_of = Proof_Context.theory_of o context_of;
 
-fun map_node_context f =
-  map_node (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
-
 fun map_context f =
   map_top (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
@@ -319,40 +316,37 @@ fun has_bottom_goal (State stack) =
 
 (* nested goal *)
 
-fun map_goal f g h (State stack) =
+fun map_goal f (State stack) =
   (case Stack.dest stack of
-    (Node {context, facts, mode, goal = SOME goal}, node :: nodes) =>
+    (Node {context = ctxt, facts, mode, goal = SOME goal}, node :: nodes) =>
       let
         val Goal {statement, using, goal, before_qed, after_qed} = goal;
-        val goal' = make_goal (g (statement, using, goal, before_qed, after_qed));
-        val node' = map_node_context h node;
-        val stack' = Stack.make (make_node (f context, facts, mode, SOME goal')) (node' :: nodes);
-      in State stack' end
-  | (nd, node :: nodes) =>
+        val (ctxt', statement', using', goal', before_qed', after_qed') =
+          f (ctxt, statement, using, goal, before_qed, after_qed);
+        val goal' = make_goal (statement', using', goal', before_qed', after_qed');
+      in State (Stack.make (make_node (ctxt', facts, mode, SOME goal')) (node :: nodes)) end
+  | (top_node, node :: nodes) =>
       let
-        val nd' = map_node_context f nd;
-        val State stack' = map_goal f g h (State (Stack.make node nodes));
+        val State stack' = map_goal f (State (Stack.make node nodes));
         val (node', nodes') = Stack.dest stack';
-      in State (Stack.make nd' (node' :: nodes')) end
+      in State (Stack.make top_node (node' :: nodes')) end
   | _ => State stack);
 
 fun provide_goal goal =
-  map_goal I (fn (statement, using, _, before_qed, after_qed) =>
-    (statement, using, goal, before_qed, after_qed)) I;
+  map_goal (fn (ctxt, statement, using, _, before_qed, after_qed) =>
+    (ctxt, statement, using, goal, before_qed, after_qed));
 
 fun using_facts using =
-  map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
-    (statement, using, goal, before_qed, after_qed)) I;
+  map_goal (fn (ctxt, statement, _, goal, before_qed, after_qed) =>
+    (ctxt, statement, using, goal, before_qed, after_qed));
 
-local
-  fun find i state =
-    (case try current_goal state of
-      SOME (ctxt, goal) => (ctxt, (i, goal))
-    | NONE => find (i + 1) (close_block state handle ERROR _ => error "No proof goal"));
-in val find_goal = find 0 end;
+fun find_goal state =
+  (case try current_goal state of
+    SOME ctxt_goal => ctxt_goal
+  | NONE => find_goal (close_block state handle ERROR _ => error "No proof goal"));
 
 fun get_goal state =
-  let val (ctxt, (_, {using, goal, ...})) = find_goal state
+  let val (ctxt, {using, goal, ...}) = find_goal state
   in (ctxt, (using, goal)) end;
 
 
@@ -375,7 +369,7 @@ fun pretty_state state =
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun prt_goal (SOME (_, (_, {statement = _, using, goal, before_qed = _, after_qed = _}))) =
+    fun prt_goal (SOME (_, {statement = _, using, goal, before_qed = _, after_qed = _})) =
           pretty_sep
             (pretty_facts ctxt "using"
               (if mode <> Backward orelse null using then NONE else SOME using))
@@ -417,14 +411,16 @@ fun goal_cases ctxt st =
   Rule_Cases.make_common ctxt (Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
 fun apply_method text ctxt state =
-  #2 (#2 (find_goal state)) |> (fn {statement, using, goal, before_qed, after_qed} =>
+  find_goal state |> (fn (goal_ctxt, {statement, using, goal, before_qed, after_qed}) =>
     Method.evaluate text ctxt using goal
     |> Seq.map (fn (meth_cases, goal') =>
-      state
-      |> map_goal
-          (Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal') #>
-           Proof_Context.update_cases meth_cases)
-          (K (statement, using, goal', before_qed, after_qed)) I));
+      let
+        val goal_ctxt' = goal_ctxt
+          |> Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal')
+          |> Proof_Context.update_cases meth_cases;
+        val state' = state
+          |> map_goal (K (goal_ctxt', statement, using, goal', before_qed, after_qed));
+      in state' end));
 
 in
 
@@ -750,11 +746,11 @@ fun gen_using f g prep_att prep_fact args state =
     (fn ctxt => ctxt |> Proof_Context.note_thmss ""
       (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) (no_binding args)))
   |> (fn (named_facts, state') =>
-    state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
+    state' |> map_goal (fn (goal_ctxt, statement, using, goal, before_qed, after_qed) =>
       let
         val ctxt = context_of state';
         val ths = maps snd named_facts;
-      in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end) I);
+      in (goal_ctxt, statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
 fun unfold_using ctxt ths = map (Local_Defs.unfold ctxt ths);
@@ -1205,13 +1201,13 @@ end;
 (* relevant proof states *)
 
 fun schematic_goal state =
-  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state
+  let val (_, {statement = (_, _, prop), ...}) = find_goal state
   in Goal.is_schematic prop end;
 
 fun is_relevant state =
   (case try find_goal state of
     NONE => true
-  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
+  | SOME (_, {statement = (_, _, prop), goal, ...}) =>
       Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
 
 
@@ -1238,7 +1234,7 @@ in
 fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
-    val (goal_ctxt, (_, goal_info)) = find_goal state;
+    val (goal_ctxt, goal_info) = find_goal state;
     val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
@@ -1249,14 +1245,14 @@ fun future_proof fork_proof state =
     val result_ctxt =
       state
       |> map_context reset_result
-      |> map_goal I (K ((kind, [[], [prop]], prop), using, goal, before_qed, after_qed')) I
+      |> map_goal (K (goal_ctxt, (kind, [[], [prop]], prop), using, goal, before_qed, after_qed'))
       |> fork_proof;
 
     val future_thm = Future.map (the_result o snd) result_ctxt;
     val finished_goal = Goal.protect 0 (Goal.future_result goal_ctxt future_thm prop);
     val state' =
       state
-      |> map_goal I (K (statement, using, finished_goal, NONE, after_qed)) I;
+      |> map_goal (K (goal_ctxt, statement, using, finished_goal, NONE, after_qed));
   in (Future.map fst result_ctxt, state') end;
 
 end;

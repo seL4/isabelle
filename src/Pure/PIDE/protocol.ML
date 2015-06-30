@@ -94,7 +94,7 @@ val _ =
             (singleton o Future.forks)
              {name = "Document.update/remove", group = NONE,
               deps = maps Future.group_snapshot (maps Execution.peek removed),
-              pri = 1, interrupts = false}
+              pri = Task_Queue.urgent_pri + 2, interrupts = false}
              (fn () => (Execution.purge removed; List.app Isabelle_Process.reset_tracing removed));
 
           val _ =

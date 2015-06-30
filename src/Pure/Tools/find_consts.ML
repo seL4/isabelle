@@ -163,14 +163,15 @@ end;
 (* PIDE query operation *)
 
 val _ =
-  Query_Operation.register "find_consts" (fn {state, args, output_result} =>
-    (case try Toplevel.context_of state of
-      SOME ctxt =>
-        let
-          val [query_arg] = args;
-          val query = read_query Position.none query_arg;
-        in output_result (Pretty.string_of (pretty_consts ctxt query)) end
-    | NONE => error "Unknown context"));
+  Query_Operation.register {name = "find_consts", pri = Task_Queue.urgent_pri}
+    (fn {state, args, output_result} =>
+      (case try Toplevel.context_of state of
+        SOME ctxt =>
+          let
+            val [query_arg] = args;
+            val query = read_query Position.none query_arg;
+          in output_result (Pretty.string_of (pretty_consts ctxt query)) end
+      | NONE => error "Unknown context"));
 
 end;
 

@@ -408,7 +408,7 @@ fun try_sledgehammer auto state =
 val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
 
 val _ =
-  Query_Operation.register sledgehammerN (fn {state = st, args, output_result} =>
+  Query_Operation.register {name = sledgehammerN, pri = 0} (fn {state = st, args, output_result} =>
     (case try Toplevel.proof_of st of
       SOME state =>
         let

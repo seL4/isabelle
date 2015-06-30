@@ -159,7 +159,7 @@ val ML_statistics = Unsynchronized.ref false;
 fun report_status () = (*requires SYNCHRONIZED*)
   if ! ML_statistics then
     let
-      val {ready, pending, running, passive} = Task_Queue.status (! queue);
+      val {ready, pending, running, passive, urgent} = Task_Queue.status (! queue);
       val total = length (! workers);
       val active = count_workers Working;
       val waiting = count_workers Waiting;
@@ -169,6 +169,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
         ("tasks_pending", Markup.print_int pending),
         ("tasks_running", Markup.print_int running),
         ("tasks_passive", Markup.print_int passive),
+        ("tasks_urgent", Markup.print_int urgent),
         ("workers_total", Markup.print_int total),
         ("workers_active", Markup.print_int active),
         ("workers_waiting", Markup.print_int waiting)] @
@@ -245,12 +246,12 @@ fun worker_next () = (*requires SYNCHRONIZED*)
     (Unsynchronized.change workers (AList.delete Thread.equal (Thread.self ()));
      signal work_available;
      NONE)
-  else if count_workers Working > ! max_active then
-    (worker_wait Sleeping work_available; worker_next ())
   else
-    (case Unsynchronized.change_result queue (Task_Queue.dequeue (Thread.self ())) of
-      NONE => (worker_wait Sleeping work_available; worker_next ())
-    | some => (signal work_available; some));
+    let val urgent_only = count_workers Working > ! max_active in
+      (case Unsynchronized.change_result queue (Task_Queue.dequeue (Thread.self ()) urgent_only) of
+        NONE => (worker_wait Sleeping work_available; worker_next ())
+      | some => (signal work_available; some))
+    end;
 
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next ()) of

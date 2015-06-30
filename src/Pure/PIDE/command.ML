@@ -350,7 +350,7 @@ val _ =
   print_function "Execution.print"
     (fn {args, exec_id, ...} =>
       if null args then
-        SOME {delay = NONE, pri = 1, persistent = false, strict = false,
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 2, persistent = false, strict = false,
           print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
       else NONE);
 
@@ -358,7 +358,7 @@ val _ =
   print_function "print_state"
     (fn {keywords, command_name, ...} =>
       if Keyword.is_printed keywords command_name then
-        SOME {delay = NONE, pri = 1, persistent = false, strict = false,
+        SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
           print_fn = fn _ => fn st => if Toplevel.is_proof st then Toplevel.print_state st else ()}
       else NONE);
 
