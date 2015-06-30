@@ -2472,7 +2472,7 @@ qed
 lemma rel_mset_rel_mset': "rel_mset R M N = rel_mset' R M N"
 using rel_mset_imp_rel_mset' rel_mset'_imp_rel_mset by auto
 
-text \<open>The main end product for rel_mset: inductive characterization:\<close>
+text \<open>The main end product for @{const rel_mset}: inductive characterization:\<close>
 theorems rel_mset_induct[case_names empty add, induct pred: rel_mset] =
   rel_mset'.induct[unfolded rel_mset_rel_mset'[symmetric]]
 
