@@ -762,23 +762,23 @@ fun standard_intro_classes_tac ctxt facts st =
     (intro_classes_tac ctxt [] ORELSE Locale.intro_locales_tac true ctxt []) st
   else no_tac st;
 
-fun standard_tac rules ctxt facts =
-  HEADGOAL (Method.some_rule_tac ctxt rules facts) ORELSE
+fun standard_tac ctxt facts =
+  HEADGOAL (Method.some_rule_tac ctxt [] facts) ORELSE
   standard_intro_classes_tac ctxt facts;
 
-fun default_tac rules ctxt facts st =
+fun default_tac ctxt facts st =
   (if Method.detect_closure_state st then
     legacy_feature
       ("Old method \"default\"; use \"standard\" instead" ^ Position.here (Position.thread_data ()))
    else ();
-   standard_tac rules ctxt facts st);
+   standard_tac ctxt facts st);
 
 val _ = Theory.setup
  (Method.setup @{binding intro_classes} (Scan.succeed (METHOD o intro_classes_tac))
     "back-chain introduction rules of classes" #>
-  Method.setup @{binding standard} (Attrib.thms >> (METHOD oo standard_tac))
+  Method.setup @{binding standard} (Scan.succeed (METHOD o standard_tac))
     "standard proof step: Pure intro/elim rule or class introduction" #>
-  Method.setup @{binding default} (Attrib.thms >> (METHOD oo default_tac))
+  Method.setup @{binding default} (Scan.succeed (METHOD o default_tac))
     "standard proof step: Pure intro/elim rule or class introduction (legacy)");
 
 
