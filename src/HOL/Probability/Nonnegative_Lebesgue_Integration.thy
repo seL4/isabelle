@@ -1547,25 +1547,25 @@ qed
 
 lemma sup_continuous_nn_integral:
   assumes f: "\<And>y. sup_continuous (f y)"
-  assumes [measurable]: "\<And>F x. (\<lambda>y. f y F x) \<in> borel_measurable (M x)"
-  shows "sup_continuous (\<lambda>F x. (\<integral>\<^sup>+y. f y F x \<partial>M x))"
+  assumes [measurable]: "\<And>x. (\<lambda>y. f y x) \<in> borel_measurable M"
+  shows "sup_continuous (\<lambda>x. (\<integral>\<^sup>+y. f y x \<partial>M))"
   unfolding sup_continuous_def
 proof safe
-  fix C :: "nat \<Rightarrow> 'b \<Rightarrow> ereal" assume C: "incseq C"
-  then show "(\<lambda>x. \<integral>\<^sup>+ y. f y (SUPREMUM UNIV C) x \<partial>M x) = (SUP i. (\<lambda>x. \<integral>\<^sup>+ y. f y (C i) x \<partial>M x))"
-    using sup_continuous_mono[OF f]
-    by (simp add: sup_continuousD[OF f C] fun_eq_iff nn_integral_monotone_convergence_SUP mono_def le_fun_def)
+  fix C :: "nat \<Rightarrow> 'b" assume C: "incseq C"
+  with sup_continuous_mono[OF f] show "(\<integral>\<^sup>+ y. f y (SUPREMUM UNIV C) \<partial>M) = (SUP i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
+    unfolding sup_continuousD[OF f C]
+    by (subst nn_integral_monotone_convergence_SUP) (auto simp: mono_def le_fun_def)
 qed
 
 lemma inf_continuous_nn_integral:
   assumes f: "\<And>y. inf_continuous (f y)"
-  assumes [measurable]: "\<And>F x. (\<lambda>y. f y F x) \<in> borel_measurable (M x)"
-  assumes bnd: "\<And>x F. (\<integral>\<^sup>+ y. f y F x \<partial>M x) \<noteq> \<infinity>"
-  shows "inf_continuous (\<lambda>F x. (\<integral>\<^sup>+y. f y F x \<partial>M x))"
+  assumes [measurable]: "\<And>x. (\<lambda>y. f y x) \<in> borel_measurable M"
+  assumes bnd: "\<And>x. (\<integral>\<^sup>+ y. f y x \<partial>M) \<noteq> \<infinity>"
+  shows "inf_continuous (\<lambda>x. (\<integral>\<^sup>+y. f y x \<partial>M))"
   unfolding inf_continuous_def
 proof safe
-  fix C :: "nat \<Rightarrow> 'b \<Rightarrow> ereal" assume C: "decseq C"
-  then show "(\<lambda>x. \<integral>\<^sup>+ y. f y (INFIMUM UNIV C) x \<partial>M x) = (INF i. (\<lambda>x. \<integral>\<^sup>+ y. f y (C i) x \<partial>M x))"
+  fix C :: "nat \<Rightarrow> 'b" assume C: "decseq C"
+  then show "(\<integral>\<^sup>+ y. f y (INFIMUM UNIV C) \<partial>M) = (INF i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
     using inf_continuous_mono[OF f]
     by (auto simp add: inf_continuousD[OF f C] fun_eq_iff antimono_def mono_def le_fun_def bnd
              intro!:  nn_integral_monotone_convergence_INF)

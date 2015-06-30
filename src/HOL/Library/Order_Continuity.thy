@@ -37,14 +37,13 @@ text \<open>
 subsection \<open>Continuity for complete lattices\<close>
 
 definition
-  sup_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
+  sup_continuous :: "('a::complete_lattice \<Rightarrow> 'b::complete_lattice) \<Rightarrow> bool" where
   "sup_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. mono M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 lemma sup_continuousD: "sup_continuous F \<Longrightarrow> mono M \<Longrightarrow> F (SUP i::nat. M i) = (SUP i. F (M i))"
   by (auto simp: sup_continuous_def)
 
 lemma sup_continuous_mono:
-  fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
   assumes [simp]: "sup_continuous F" shows "mono F"
 proof
   fix A B :: "'a" assume [simp]: "A \<le> B"
@@ -54,6 +53,25 @@ proof
     by (auto simp: sup_continuousD mono_def intro!: SUP_cong)
   finally show "F A \<le> F B"
     by (simp add: SUP_nat_binary le_iff_sup)
+qed
+
+lemma sup_continuous_intros:
+  shows sup_continuous_const: "sup_continuous (\<lambda>x. c)"
+    and sup_continuous_id: "sup_continuous (\<lambda>x. x)"
+    and sup_continuous_apply: "sup_continuous (\<lambda>f. f x)"
+    and sup_continuous_fun: "(\<And>s. sup_continuous (\<lambda>x. P x s)) \<Longrightarrow> sup_continuous P"
+ by (auto simp: sup_continuous_def)
+
+lemma sup_continuous_compose:
+  assumes f: "sup_continuous f" and g: "sup_continuous g"
+  shows "sup_continuous (\<lambda>x. f (g x))"
+  unfolding sup_continuous_def
+proof safe
+  fix M :: "nat \<Rightarrow> 'c" assume "mono M"
+  moreover then have "mono (\<lambda>i. g (M i))"
+    using sup_continuous_mono[OF g] by (auto simp: mono_def)
+  ultimately show "f (g (SUPREMUM UNIV M)) = (SUP i. f (g (M i)))"
+    by (auto simp: sup_continuous_def g[THEN sup_continuousD] f[THEN sup_continuousD])
 qed
 
 lemma sup_continuous_lfp:
@@ -105,14 +123,13 @@ proof -
 qed
 
 definition
-  inf_continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
+  inf_continuous :: "('a::complete_lattice \<Rightarrow> 'b::complete_lattice) \<Rightarrow> bool" where
   "inf_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. antimono M \<longrightarrow> F (INF i. M i) = (INF i. F (M i)))"
 
 lemma inf_continuousD: "inf_continuous F \<Longrightarrow> antimono M \<Longrightarrow> F (INF i::nat. M i) = (INF i. F (M i))"
   by (auto simp: inf_continuous_def)
 
 lemma inf_continuous_mono:
-  fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
   assumes [simp]: "inf_continuous F" shows "mono F"
 proof
   fix A B :: "'a" assume [simp]: "A \<le> B"
@@ -122,6 +139,25 @@ proof
     by (auto simp: inf_continuousD antimono_def intro!: INF_cong)
   finally show "F A \<le> F B"
     by (simp add: INF_nat_binary le_iff_inf inf_commute)
+qed
+
+lemma inf_continuous_intros:
+  shows inf_continuous_const: "inf_continuous (\<lambda>x. c)"
+    and inf_continuous_id: "inf_continuous (\<lambda>x. x)"
+    and inf_continuous_apply: "inf_continuous (\<lambda>f. f x)"
+    and inf_continuous_fun: "(\<And>s. inf_continuous (\<lambda>x. P x s)) \<Longrightarrow> inf_continuous P"
+ by (auto simp: inf_continuous_def)
+
+lemma inf_continuous_compose:
+  assumes f: "inf_continuous f" and g: "inf_continuous g"
+  shows "inf_continuous (\<lambda>x. f (g x))"
+  unfolding inf_continuous_def
+proof safe
+  fix M :: "nat \<Rightarrow> 'c" assume "antimono M"
+  moreover then have "antimono (\<lambda>i. g (M i))"
+    using inf_continuous_mono[OF g] by (auto simp: mono_def antimono_def)
+  ultimately show "f (g (INFIMUM UNIV M)) = (INF i. f (g (M i)))"
+    by (auto simp: inf_continuous_def g[THEN inf_continuousD] f[THEN inf_continuousD])
 qed
 
 lemma inf_continuous_gfp:
