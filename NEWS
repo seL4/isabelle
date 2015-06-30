@@ -97,12 +97,29 @@ form "case (c xs) [attributes]" is no longer supported. Rare
 INCOMPATIBILITY, need to adapt uses of case facts in exotic situations,
 and always put attributes in front.
 
+* The standard proof method of commands 'proof' and '..' is now called
+"standard" to make semantically clear what it is; the old name "default"
+is still available as legacy for some time. Documentation now explains
+'..' more accurately as "by standard" instead of "by rule".
+
 * Proof method "goals" turns the current subgoals into cases within the
 context; the conclusion is bound to variable ?case in each case.
+For example:
+
+lemma "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
+  and "\<And>y z. U y \<Longrightarrow> V u \<Longrightarrow> W y z"
+proof goals
+  case prems: 1
+  then show ?case using prems sorry
+next
+  case prems: 2
+  then show ?case using prems sorry
+qed
 
 * The undocumented feature of implicit cases goal1, goal2, goal3, etc.
-is marked as legacy, and will be removed eventually. Note that proof
-method "goals" achieves a similar effect within regular Isar.
+is marked as legacy, and will be removed eventually. The proof method
+"goals" achieves a similar effect within regular Isar; often it can be
+done more adequately by other means (e.g. 'consider').
 
 * Nesting of Isar goal structure has been clarified: the context after
 the initial backwards refinement is retained for the whole proof, within

@@ -53,7 +53,7 @@ text \<open>
   \begin{tabular}{rcl}
     @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} & @{text "\<equiv>"} &
       @{command "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"} \\
-    @{command ".."} & @{text "\<equiv>"} & @{command "by"}~@{text rule} \\
+    @{command ".."} & @{text "\<equiv>"} & @{command "by"}~@{text standard} \\
     @{command "."} & @{text "\<equiv>"} & @{command "by"}~@{text this} \\
     @{command "hence"} & @{text "\<equiv>"} & @{command "then"}~@{command "have"} \\
     @{command "thus"} & @{text "\<equiv>"} & @{command "then"}~@{command "show"} \\
@@ -116,7 +116,7 @@ text \<open>
     @{method assumption} & apply some assumption \\
     @{method this} & apply current facts \\
     @{method rule}~@{text a} & apply some rule  \\
-    @{method rule} & apply standard rule (default for @{command "proof"}) \\
+    @{method standard} & apply standard rule (default for @{command "proof"}) \\
     @{method contradiction} & apply @{text "\<not>"} elimination rule (any order) \\
     @{method cases}~@{text t} & case analysis (provides cases) \\
     @{method induct}~@{text x} & proof by induction (provides cases) \\[2ex]

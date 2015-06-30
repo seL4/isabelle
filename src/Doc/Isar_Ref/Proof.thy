@@ -706,6 +706,7 @@ text \<open>
     @{command_def ".."} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
     @{command_def "."} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
     @{command_def "sorry"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{method_def standard} & : & @{text method} \\
   \end{matharray}
 
   Arbitrary goal refinement via tactics is considered harmful.
@@ -740,11 +741,11 @@ text \<open>
   an intelligible manner.
 
   Unless given explicitly by the user, the default initial method is
-  @{method_ref (Pure) rule} (or its classical variant @{method_ref
-  rule}), which applies a single standard elimination or introduction
-  rule according to the topmost symbol involved.  There is no separate
-  default terminal method.  Any remaining goals are always solved by
-  assumption in the very last step.
+  @{method standard}, which subsumes at least @{method_ref (Pure) rule} or
+  its classical variant @{method_ref (HOL) rule}. These methods apply a
+  single standard elimination or introduction rule according to the topmost
+  logical connective involved. There is no separate default terminal method.
+  Any remaining goals are always solved by assumption in the very last step.
 
   @{rail \<open>
     @@{command proof} method?
@@ -784,9 +785,9 @@ text \<open>
   @{text "apply"}~@{text "m\<^sub>1"}) is already sufficient to see the
   problem.
 
-  \item ``@{command ".."}'' is a \emph{default
-  proof}\index{proof!default}; it abbreviates @{command "by"}~@{text
-  "rule"}.
+  \item ``@{command ".."}'' is a \emph{standard
+  proof}\index{proof!standard}; it abbreviates @{command "by"}~@{text
+  "standard"}.
 
   \item ``@{command "."}'' is a \emph{trivial
   proof}\index{proof!trivial}; it abbreviates @{command "by"}~@{text
@@ -802,6 +803,19 @@ text \<open>
 
   The most important application of @{command "sorry"} is to support
   experimentation and top-down proof development.
+
+  \item @{method standard} refers to the default refinement step of some
+  Isar language elements (notably @{command proof} and ``@{command ".."}'').
+  It is \emph{dynamically scoped}, so the behaviour depends on the
+  application environment.
+
+  In Isabelle/Pure, @{method standard} performs elementary introduction~/
+  elimination steps (@{method_ref (Pure) rule}), introduction of type
+  classes (@{method_ref intro_classes}) and locales (@{method_ref
+  intro_locales}).
+
+  In Isabelle/HOL, @{method standard} also takes classical rules into
+  account (cf.\ \secref{sec:classical}).
 
   \end{description}
 \<close>
@@ -910,12 +924,12 @@ text \<open>
   before applying it to the goal.  Thus @{method (Pure) rule} without facts
   is plain introduction, while with facts it becomes elimination.
 
-  When no arguments are given, the @{method (Pure) rule} method tries to pick
-  appropriate rules automatically, as declared in the current context
-  using the @{attribute (Pure) intro}, @{attribute (Pure) elim},
-  @{attribute (Pure) dest} attributes (see below).  This is the
-  default behavior of @{command "proof"} and ``@{command ".."}''
-  (double-dot) steps (see \secref{sec:proof-steps}).
+  When no arguments are given, the @{method (Pure) rule} method tries to
+  pick appropriate rules automatically, as declared in the current context
+  using the @{attribute (Pure) intro}, @{attribute (Pure) elim}, @{attribute
+  (Pure) dest} attributes (see below). This is included in the standard
+  behaviour of @{command "proof"} and ``@{command ".."}'' (double-dot) steps
+  (see \secref{sec:proof-steps}).
 
   \item @{attribute (Pure) intro}, @{attribute (Pure) elim}, and
   @{attribute (Pure) dest} declare introduction, elimination, and

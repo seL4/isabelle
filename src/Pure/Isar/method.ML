@@ -50,7 +50,7 @@ sig
   val map_source: (Token.src -> Token.src) -> text -> text
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
-  val default_text: text
+  val standard_text: text
   val this_text: text
   val done_text: text
   val sorry_text: bool -> text
@@ -335,7 +335,7 @@ fun map_source f (Source src) = Source (f src)
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
-val default_text = Source (Token.src ("default", Position.none) []);
+val standard_text = Source (Token.src ("standard", Position.none) []);
 val this_text = Basic this;
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);

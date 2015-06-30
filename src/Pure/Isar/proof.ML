@@ -845,7 +845,7 @@ val end_notepad =
 
 fun proof opt_text =
   assert_backward
-  #> refine (the_default Method.default_text opt_text)
+  #> refine (the_default Method.standard_text opt_text)
   #> Seq.map
     (using_facts []
       #> enter_forward
@@ -1109,12 +1109,12 @@ fun terminal_proof qeds initial terminal =
 in
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
-val local_default_proof = local_terminal_proof ((Method.default_text, Position.no_range), NONE);
+val local_default_proof = local_terminal_proof ((Method.standard_text, Position.no_range), NONE);
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
-val global_default_proof = global_terminal_proof ((Method.default_text, Position.no_range), NONE);
+val global_default_proof = global_terminal_proof ((Method.standard_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
 val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
 

@@ -531,13 +531,13 @@ text \<open>
   @{attribute (Pure) dest}, followed by those declared as @{attribute
   (Pure) intro}.
 
-  The default method for @{command proof} is ``@{method (Pure) rule}''
+  The default method for @{command proof} is ``@{method standard}''
   (arguments picked from the context), for @{command qed} it is
-  ``@{method "-"}''.  Further abbreviations for terminal proof steps
+  ``@{method "succeed"}''.  Further abbreviations for terminal proof steps
   are ``@{command "by"}~@{text "method\<^sub>1 method\<^sub>2"}'' for
   ``@{command proof}~@{text "method\<^sub>1"}~@{command qed}~@{text
   "method\<^sub>2"}'', and ``@{command ".."}'' for ``@{command
-  "by"}~@{method (Pure) rule}, and ``@{command "."}'' for ``@{command
+  "by"}~@{method standard}, and ``@{command "."}'' for ``@{command
   "by"}~@{method this}''.  The @{command unfolding} element operates
   directly on the current facts and goal by applying equalities.
 
