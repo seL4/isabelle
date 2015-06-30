@@ -48,7 +48,7 @@ sig
 
   (*tactics*)
   val intro_classes_tac: Proof.context -> thm list -> tactic
-  val default_intro_tac: Proof.context -> thm list -> tactic
+  val standard_intro_classes_tac: Proof.context -> thm list -> tactic
 
   (*diagnostics*)
   val pretty_specification: theory -> class -> Pretty.T list
@@ -743,6 +743,7 @@ fun instance_arity_cmd raw_arities thy =
   end;
 
 
+
 (** tactics and methods **)
 
 fun intro_classes_tac ctxt facts st =
@@ -756,20 +757,29 @@ fun intro_classes_tac ctxt facts st =
     Method.intros_tac ctxt (class_trivs @ class_intros @ assm_intros) facts st
   end;
 
-fun default_intro_tac ctxt [] =
-      COND Thm.no_prems no_tac
-        (intro_classes_tac ctxt [] ORELSE Locale.intro_locales_tac true ctxt [])
-  | default_intro_tac _ _ = no_tac;
+fun standard_intro_classes_tac ctxt facts st =
+  if null facts andalso not (Thm.no_prems st) then
+    (intro_classes_tac ctxt [] ORELSE Locale.intro_locales_tac true ctxt []) st
+  else no_tac st;
 
-fun default_tac rules ctxt facts =
+fun standard_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac ctxt rules facts) ORELSE
-    default_intro_tac ctxt facts;
+  standard_intro_classes_tac ctxt facts;
+
+fun default_tac rules ctxt facts st =
+  (if Method.detect_closure_state st then
+    legacy_feature
+      ("Old method \"default\"; use \"standard\" instead" ^ Position.here (Position.thread_data ()))
+   else ();
+   standard_tac rules ctxt facts st);
 
 val _ = Theory.setup
  (Method.setup @{binding intro_classes} (Scan.succeed (METHOD o intro_classes_tac))
     "back-chain introduction rules of classes" #>
+  Method.setup @{binding standard} (Attrib.thms >> (METHOD oo standard_tac))
+    "standard proof step: Pure intro/elim rule or class introduction" #>
   Method.setup @{binding default} (Attrib.thms >> (METHOD oo default_tac))
-    "apply some intro/elim rule");
+    "standard proof step: Pure intro/elim rule or class introduction (legacy)");
 
 
 

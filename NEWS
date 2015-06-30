@@ -97,6 +97,11 @@ form "case (c xs) [attributes]" is no longer supported. Rare
 INCOMPATIBILITY, need to adapt uses of case facts in exotic situations,
 and always put attributes in front.
 
+* The standard proof method of commands 'proof' and '..' is now called
+"standard" to make semantically clear what it is; the old name "default"
+is still available as legacy for some time. Documentation now explains
+'..' more accurately as "by standard" instead of "by rule".
+
 * Proof method "goals" turns the current subgoals into cases within the
 context; the conclusion is bound to variable ?case in each case.
 For example:
