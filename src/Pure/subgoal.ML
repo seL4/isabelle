@@ -15,11 +15,13 @@ sig
   type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
     asms: cterm list, concl: cterm, schematics: (ctyp * ctyp) list * (cterm * cterm) list}
   val focus_params: Proof.context -> int -> thm -> focus * thm
+  val focus_params_fixed: Proof.context -> int -> thm -> focus * thm
   val focus_prems: Proof.context -> int -> thm -> focus * thm
   val focus: Proof.context -> int -> thm -> focus * thm
   val retrofit: Proof.context -> Proof.context -> (string * cterm) list -> cterm list ->
     int -> thm -> thm -> thm Seq.seq
   val FOCUS_PARAMS: (focus -> tactic) -> Proof.context -> int -> tactic
+  val FOCUS_PARAMS_FIXED: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS_PREMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
@@ -63,6 +65,7 @@ fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   end;
 
 val focus_params = gen_focus (false, false);
+val focus_params_fixed = gen_focus (false, true);
 val focus_prems = gen_focus (true, false);
 val focus = gen_focus (true, true);
 
@@ -149,6 +152,7 @@ fun GEN_FOCUS flags tac ctxt i st =
     in Seq.lifts (retrofit ctxt' ctxt params asms i) (tac args st') st end;
 
 val FOCUS_PARAMS = GEN_FOCUS (false, false);
+val FOCUS_PARAMS_FIXED = GEN_FOCUS (false, true);
 val FOCUS_PREMS = GEN_FOCUS (true, false);
 val FOCUS = GEN_FOCUS (true, true);
 
@@ -159,7 +163,7 @@ fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
 local
 
-fun gen_focus prep_atts raw_result_binding raw_prems_binding params state =
+fun gen_subgoal prep_atts raw_result_binding raw_prems_binding params state =
   let
     val _ = Proof.assert_backward state;
     val {context = ctxt, facts = facts, goal = st} = Proof.raw_goal state;
@@ -174,7 +178,8 @@ fun gen_focus prep_atts raw_result_binding raw_prems_binding params state =
     val _ = List.app check_param params;
 
     val _ = if Thm.no_prems st then error "No subgoals!" else ();
-    val subgoal_focus = #1 (focus ctxt 1 st);  (* FIXME clarify prems/params *)
+    val subgoal_focus =
+      #1 ((if do_prems then focus else focus_params_fixed) ctxt 1 st);
 
     fun after_qed (ctxt'', [[result]]) =
       Proof.end_block #> (fn state' =>
@@ -209,8 +214,8 @@ fun gen_focus prep_atts raw_result_binding raw_prems_binding params state =
 
 in
 
-val subgoal = gen_focus Attrib.attribute;
-val subgoal_cmd = gen_focus Attrib.attribute_cmd;
+val subgoal = gen_subgoal Attrib.attribute;
+val subgoal_cmd = gen_subgoal Attrib.attribute_cmd;
 
 end;
 
