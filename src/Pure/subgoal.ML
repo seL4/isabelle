@@ -166,7 +166,9 @@ local
 fun gen_subgoal prep_atts raw_result_binding raw_prems_binding params state =
   let
     val _ = Proof.assert_backward state;
-    val {context = ctxt, facts = facts, goal = st} = Proof.raw_goal state;
+
+    val state1 = state |> Proof.refine_insert [];
+    val {context = ctxt, facts = facts, goal = st} = Proof.raw_goal state1;
 
     val result_binding = apsnd (map (prep_atts ctxt)) raw_result_binding;
     val (prems_binding, do_prems) =
@@ -199,7 +201,7 @@ fun gen_subgoal prep_atts raw_result_binding raw_prems_binding params state =
       #> Proof.reset_facts
       #> Proof.enter_backward;
   in
-    state
+    state1
     |> Proof.enter_forward
     |> Proof.using_facts []
     |> Proof.begin_block
