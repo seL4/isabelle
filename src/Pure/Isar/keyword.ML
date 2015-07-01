@@ -28,8 +28,9 @@ sig
   val prf_decl: string
   val prf_asm: string
   val prf_asm_goal: string
-  val prf_asm_goal_script: string
   val prf_script: string
+  val prf_script_goal: string
+  val prf_script_asm_goal: string
   type spec = (string * string list) * string list
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
@@ -95,13 +96,15 @@ val prf_chain = "prf_chain";
 val prf_decl = "prf_decl";
 val prf_asm = "prf_asm";
 val prf_asm_goal = "prf_asm_goal";
-val prf_asm_goal_script = "prf_asm_goal_script";
 val prf_script = "prf_script";
+val prf_script_goal = "prf_script_goal";
+val prf_script_asm_goal = "prf_script_asm_goal";
 
 val kinds =
   [diag, document_heading, document_body, document_raw, thy_begin, thy_end, thy_load, thy_decl,
     thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
+    prf_script_asm_goal];
 
 
 (* specifications *)
@@ -239,19 +242,21 @@ val is_theory_body = command_category
 
 val is_proof = command_category
   [qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
+    prf_script_asm_goal];
 
 val is_proof_body = command_category
   [diag, document_heading, document_body, document_raw, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
+    prf_script_asm_goal];
 
 val is_theory_goal = command_category [thy_goal];
-val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];
+val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_script_goal, prf_script_asm_goal];
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
 
 val is_proof_asm = command_category [prf_asm, prf_asm_goal];
-val is_improper = command_category [qed_script, prf_script, prf_asm_goal_script];
+val is_improper = command_category [qed_script, prf_script, prf_script_goal, prf_script_asm_goal];
 
 fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;
 
