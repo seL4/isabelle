@@ -6055,16 +6055,22 @@ proof cases
     by (auto intro!: derivative_eq_intros has_vector_derivative)
 qed (auto intro!: derivative_eq_intros has_vector_derivative)
 
-lemma taylor_integral:
+lemma
   fixes f::"real\<Rightarrow>'a::banach"
   assumes "p>0"
   and f0: "Df 0 = f"
   and Df: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     (Df m has_vector_derivative Df (Suc m) t) (at t within {a .. b})"
   and ivl: "a \<le> b"
-  shows "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) +
-    integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)"
-proof -
+  defines "i \<equiv> \<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x"
+  shows taylor_has_integral:
+    "(i has_integral f b - (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)) {a..b}"
+  and taylor_integral:
+    "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) + integral {a..b} i"
+  and taylor_integrable:
+    "i integrable_on {a .. b}"
+proof goals
+  case 1
   interpret bounded_bilinear "scaleR::real\<Rightarrow>'a\<Rightarrow>'a"
     by (rule bounded_bilinear_scaleR)
   def g \<equiv> "\<lambda>s. (b - s)^(p - 1)/fact (p - 1)"
@@ -6085,29 +6091,26 @@ proof -
     unfolding Dg_def
     by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def
       fact_eq real_eq_of_nat[symmetric] divide_simps)
+  let ?sum = "\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t"
   from setsum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
       OF \<open>p > 0\<close> g0 Dg f0 Df]
   have deriv: "\<And>t. a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
-    ((\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t) has_vector_derivative
+    (?sum has_vector_derivative
       g t *\<^sub>R Df p t - (- 1) ^ p *\<^sub>R Dg p t *\<^sub>R f t) (at t within {a..b})"
     by auto
   from fundamental_theorem_of_calculus[rule_format, OF \<open>a \<le> b\<close> deriv]
-  have ftc: "integral {a..b} (\<lambda>x. g x *\<^sub>R Df p x - (- 1) ^ p *\<^sub>R Dg p x *\<^sub>R f x) =
-    (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i b *\<^sub>R Df (p - Suc i) b) -
-    (\<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i a *\<^sub>R Df (p - Suc i) a)"
-    unfolding atLeastAtMost_iff by (auto dest!: integral_unique)
-  def p' \<equiv> "p - 1"
-  have p': "p = Suc p'" using \<open>p > 0\<close> by (simp add: p'_def)
-  have Dgp': "Dg p' = (\<lambda>_. (- 1) ^ p')"
-    by (auto simp: Dg_def p')
-  have one: "\<And>p'. (- 1::real) ^ p' * (- 1) ^ p' = 1"
-    "\<And>p' k. (- 1::real) ^ p' * ((- 1) ^ p' * k) = k"
-    by (simp_all add: power_mult_distrib[symmetric] )
-  from ftc
-  have "f b =
-    (\<Sum>i<p. ((b - a) ^ (p' - i) / fact (p' - i)) *\<^sub>R Df (p' - i) a) +
-     integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)"
-    by (simp add: p' assms Dgp' one Dg_def g_def zero_power)
+  have "(i has_integral ?sum b - ?sum a) {a .. b}"
+    by (simp add: i_def g_def Dg_def)
+  also
+  have one: "(- 1) ^ p' * (- 1) ^ p' = (1::real)"
+    and "{..<p} \<inter> {i. p = Suc i} = {p - 1}"
+    for p'
+    using `p > 0`
+    by (auto simp: power_mult_distrib[symmetric])
+  then have "?sum b = f b"
+    using Suc_pred'[OF `p > 0`]
+    by (simp add: diff_eq_eq Dg_def power_0_left le_Suc_eq if_distrib
+        cond_application_beta setsum.If_cases f0)
   also
   have "{..<p} = (\<lambda>x. p - x - 1) ` {..<p}"
   proof safe
@@ -6116,11 +6119,12 @@ proof -
     thus "x \<in> (\<lambda>x. p - x - 1) ` {..<p}"
       by (auto intro!: image_eqI[where x = "p - x - 1"])
   qed simp
-  from _ this have "(\<Sum>i<p. ((b - a) ^ (p' - i) / fact (p' - i)) *\<^sub>R Df (p' - i) a) =
-    (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
-    by (rule setsum.reindex_cong) (auto simp add: p' inj_on_def)
-  finally show "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) +
-    integral {a..b} (\<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x)" .
+  from _ this
+  have "?sum a = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
+    by (rule setsum.reindex_cong) (auto simp add: inj_on_def Dg_def one)
+  finally show c: ?case .
+  case 2 show ?case using c integral_unique by force
+  case 3 show ?case using c by force
 qed
 
 
