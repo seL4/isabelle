@@ -190,7 +190,9 @@ fun gen_focus prep_atts raw_result_binding raw_prems_binding params state =
             |> Seq.hd)
           |> Proof.map_context
             (#2 o Proof_Context.note_thmss "" [(result_binding, [(results', [])])])
-        end);
+        end)
+      #> Proof.reset_facts
+      #> Proof.enter_backward;
   in
     state
     |> Proof.enter_forward
