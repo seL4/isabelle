@@ -25,9 +25,9 @@ sig
   val FOCUS_PREMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
-  val subgoal: Attrib.binding -> Attrib.binding option -> (binding * mixfix) list ->
+  val subgoal: Attrib.binding -> Attrib.binding option -> string option list ->
     Proof.state -> focus * Proof.state
-  val subgoal_cmd: Attrib.binding -> Attrib.binding option -> (binding * mixfix) list ->
+  val subgoal_cmd: Attrib.binding -> Attrib.binding option -> string option list ->
     Proof.state -> focus * Proof.state
 end;
 
@@ -163,7 +163,32 @@ fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
 local
 
-fun gen_subgoal prep_atts raw_result_binding raw_prems_binding params state =
+fun rename_params ctxt param_specs st =
+  let
+    val _ = if Thm.no_prems st then error "No subgoals!" else ();
+    val (A, C) = Logic.dest_implies (Thm.prop_of st);
+
+    val params =
+      map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars A)
+      |> Term.variant_frees A |> map #1;
+    val _ =
+      (case drop (length params) param_specs of
+        [] => ()
+      | bad => error ("Excessive subgoal parameters: " ^ commas_quote (map (the_default "_") bad)));
+
+    fun rename_list (SOME x :: xs) (y :: ys) =
+          (Proof_Context.cert_var (Binding.name x, NONE, NoSyn) ctxt; x :: rename_list xs ys)
+      | rename_list (NONE :: xs) (y :: ys) = y :: rename_list xs ys
+      | rename_list _ ys = ys;
+
+    fun rename_prop (x :: xs) ((c as Const ("Pure.all", _)) $ Abs (_, T, t)) =
+          (c $ Abs (x, T, rename_prop xs t))
+      | rename_prop [] t = t;
+  in
+    Thm.renamed_prop (Logic.mk_implies (rename_prop (rename_list param_specs params) A, C)) st
+  end;
+
+fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state =
   let
     val _ = Proof.assert_backward state;
 
@@ -176,12 +201,9 @@ fun gen_subgoal prep_atts raw_result_binding raw_prems_binding params state =
         SOME (b, raw_atts) => ((b, map (prep_atts ctxt) raw_atts), true)
       | NONE => ((Binding.empty, []), false));
 
-    fun check_param (b, mx) = ignore (Proof_Context.cert_var (b, NONE, mx) ctxt);
-    val _ = List.app check_param params;
-
-    val _ = if Thm.no_prems st then error "No subgoals!" else ();
-    val subgoal_focus =
-      #1 ((if do_prems then focus else focus_params_fixed) ctxt 1 st);
+    val (subgoal_focus, _) =
+      rename_params ctxt param_specs st
+      |> (if do_prems then focus else focus_params_fixed) ctxt 1;
 
     fun after_qed (ctxt'', [[result]]) =
       Proof.end_block #> (fn state' =>

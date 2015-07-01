@@ -687,11 +687,8 @@ val opt_fact_binding =
   Scan.optional (Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty)
     Attrib.empty_binding;
 
-val params =
-  Parse.binding -- Parse.mixfix' >> single || Scan.repeat1 Parse.binding >> map (rpair NoSyn);
-
 val for_params =
-  Scan.optional (@{keyword "for"} |-- Parse.!!! (Parse.and_list1 params >> flat)) [];
+  Scan.optional (@{keyword "for"} |-- Parse.!!! (Scan.repeat1 (Parse.maybe Parse.name))) [];
 
 in
 
