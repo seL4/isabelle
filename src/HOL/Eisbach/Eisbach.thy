@@ -9,7 +9,6 @@ imports Main
 keywords
   "method" :: thy_decl and
   "conclusion"
-  "premises"
   "declares"
   "methods"
   "\<bar>" "\<Rightarrow>"

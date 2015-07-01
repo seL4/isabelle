@@ -1,9 +1,13 @@
 (*  Title:      Pure/subgoal.ML
     Author:     Makarius
+    Author:     Daniel Matichuk, NICTA/UNSW
 
 Tactical operations with explicit subgoal focus, based on canonical
 proof decomposition.  The "visible" part of the text within the
 context is fixed, the remaining goal may be schematic.
+
+Isar subgoal command for proof structure within unstructured proof
+scripts.
 *)
 
 signature SUBGOAL =
@@ -19,6 +23,10 @@ sig
   val FOCUS_PREMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
+  val subgoal: Attrib.binding -> Attrib.binding option -> (binding * mixfix) list ->
+    Proof.state -> focus * Proof.state
+  val subgoal_cmd: Attrib.binding -> Attrib.binding option -> (binding * mixfix) list ->
+    Proof.state -> focus * Proof.state
 end;
 
 structure Subgoal: SUBGOAL =
@@ -146,7 +154,64 @@ val FOCUS = GEN_FOCUS (true, true);
 
 fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
+
+(* Isar subgoal command *)
+
+local
+
+fun gen_focus prep_atts raw_result_binding raw_prems_binding params state =
+  let
+    val _ = Proof.assert_backward state;
+    val {context = ctxt, facts = facts, goal = st} = Proof.raw_goal state;
+
+    val result_binding = apsnd (map (prep_atts ctxt)) raw_result_binding;
+    val (prems_binding, do_prems) =
+      (case raw_prems_binding of
+        SOME (b, raw_atts) => ((b, map (prep_atts ctxt) raw_atts), true)
+      | NONE => ((Binding.empty, []), false));
+
+    fun check_param (b, mx) = ignore (Proof_Context.cert_var (b, NONE, mx) ctxt);
+    val _ = List.app check_param params;
+
+    val _ = if Thm.no_prems st then error "No subgoals!" else ();
+    val subgoal_focus = #1 (focus ctxt 1 st);  (* FIXME clarify prems/params *)
+
+    fun after_qed (ctxt'', [[result]]) =
+      Proof.end_block #> (fn state' =>
+        let
+          val ctxt' = Proof.context_of state';
+          val results' =
+            Proof_Context.export ctxt'' ctxt' (Conjunction.elim_conjunctions result);
+        in
+          state'
+          |> Proof.refine_primitive (fn _ => fn _ =>
+            retrofit ctxt'' ctxt' (#params subgoal_focus) (#asms subgoal_focus) 1
+              (Goal.protect 0 result) st
+            |> Seq.hd)
+          |> Proof.map_context
+            (#2 o Proof_Context.note_thmss "" [(result_binding, [(results', [])])])
+        end);
+  in
+    state
+    |> Proof.enter_forward
+    |> Proof.using_facts []
+    |> Proof.begin_block
+    |> Proof.map_context (fn _ =>
+      #context subgoal_focus
+      |> Proof_Context.note_thmss "" [(prems_binding, [(#prems subgoal_focus, [])])] |> #2)
+    |> Proof.internal_goal (K (K ())) (Proof_Context.get_mode ctxt) true "subgoal"
+        NONE after_qed [] [] [(Thm.empty_binding, [(Thm.term_of (#concl subgoal_focus), [])])] |> #2
+    |> Proof.using_facts facts
+    |> pair subgoal_focus
+  end;
+
+in
+
+val subgoal = gen_focus Attrib.attribute;
+val subgoal_cmd = gen_focus Attrib.attribute_cmd;
+
+end;
+
 end;
 
 val SUBPROOF = Subgoal.SUBPROOF;
-

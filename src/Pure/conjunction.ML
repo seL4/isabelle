@@ -19,6 +19,7 @@ sig
   val intr: thm -> thm -> thm
   val intr_balanced: thm list -> thm
   val elim: thm -> thm * thm
+  val elim_conjunctions: thm -> thm list
   val elim_balanced: int -> thm -> thm list
   val curry_balanced: int -> thm -> thm
   val uncurry_balanced: int -> thm -> thm
@@ -117,6 +118,11 @@ fun elim th =
   end;
 
 end;
+
+fun elim_conjunctions th =
+  (case try elim th of
+    NONE => [th]
+  | SOME (th1, th2) => elim_conjunctions th1 @ elim_conjunctions th2);
 
 
 (* balanced conjuncts *)
