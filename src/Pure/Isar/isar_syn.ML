@@ -688,7 +688,11 @@ val opt_fact_binding =
     Attrib.empty_binding;
 
 val for_params =
-  Scan.optional (@{keyword "for"} |-- Parse.!!! (Scan.repeat1 (Parse.maybe Parse.name))) [];
+  Scan.optional
+    (@{keyword "for"} |--
+      Parse.!!! ((Scan.option Parse.dots >> is_some) --
+        (Scan.repeat1 (Parse.position (Parse.maybe Parse.name)))))
+    (false, []);
 
 in
 

@@ -1241,7 +1241,7 @@ fun case_result c ctxt =
 
 val apply_case = apfst fst oo case_result;
 
-fun check_case ctxt internal (name, pos) fxs =
+fun check_case ctxt internal (name, pos) param_specs =
   let
     val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, {legacy}), _)) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
@@ -1251,12 +1251,12 @@ fun check_case ctxt internal (name, pos) fxs =
           " -- use proof method \"goals\" instead")
       else ();
 
-    val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) fxs;
+    val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) param_specs;
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] =
           error ("Too many parameters for case " ^ quote name ^ Position.here pos);
-    val fixes' = replace fxs fixes;
+    val fixes' = replace param_specs fixes;
     val binds' = map drop_schematic binds;
   in
     if null (fold (Term.add_tvarsT o snd) fixes []) andalso

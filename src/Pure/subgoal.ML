@@ -25,10 +25,10 @@ sig
   val FOCUS_PREMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
-  val subgoal: Attrib.binding -> Attrib.binding option -> string option list ->
-    Proof.state -> focus * Proof.state
-  val subgoal_cmd: Attrib.binding -> Attrib.binding option -> string option list ->
-    Proof.state -> focus * Proof.state
+  val subgoal: Attrib.binding -> Attrib.binding option ->
+    bool * (string option * Position.T) list -> Proof.state -> focus * Proof.state
+  val subgoal_cmd: Attrib.binding -> Attrib.binding option ->
+    bool * (string option * Position.T) list -> Proof.state -> focus * Proof.state
 end;
 
 structure Subgoal: SUBGOAL =
@@ -163,30 +163,38 @@ fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
 local
 
-fun rename_params ctxt param_specs st =
+fun rename_params ctxt (param_suffix, raw_param_specs) st =
   let
     val _ = if Thm.no_prems st then error "No subgoals!" else ();
-    val (A, C) = Logic.dest_implies (Thm.prop_of st);
+    val (subgoal, goal') = Logic.dest_implies (Thm.prop_of st);
+    val subgoal_params =
+      map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars subgoal)
+      |> Term.variant_frees subgoal |> map #1;
 
-    val params =
-      map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars A)
-      |> Term.variant_frees A |> map #1;
+    val n = length subgoal_params;
+    val m = length raw_param_specs;
     val _ =
-      (case drop (length params) param_specs of
-        [] => ()
-      | bad => error ("Excessive subgoal parameters: " ^ commas_quote (map (the_default "_") bad)));
+      m <= n orelse
+        error ("Excessive subgoal parameter specification" ^
+          Position.here_list (map snd (drop n raw_param_specs)));
 
-    fun rename_list (SOME x :: xs) (y :: ys) =
-          (Proof_Context.cert_var (Binding.name x, NONE, NoSyn) ctxt; x :: rename_list xs ys)
-      | rename_list (NONE :: xs) (y :: ys) = y :: rename_list xs ys
+    val param_specs =
+      raw_param_specs |> map
+        (fn (NONE, _) => NONE
+          | (SOME x, pos) =>
+              let val b = #1 (#1 (Proof_Context.cert_var (Binding.make (x, pos), NONE, NoSyn) ctxt))
+              in SOME (Variable.check_name b) end)
+      |> param_suffix ? append (replicate (n - m) NONE);
+
+    fun rename_list (opt_x :: xs) (y :: ys) = (the_default y opt_x :: rename_list xs ys)
       | rename_list _ ys = ys;
 
     fun rename_prop (x :: xs) ((c as Const ("Pure.all", _)) $ Abs (_, T, t)) =
           (c $ Abs (x, T, rename_prop xs t))
       | rename_prop [] t = t;
-  in
-    Thm.renamed_prop (Logic.mk_implies (rename_prop (rename_list param_specs params) A, C)) st
-  end;
+
+    val subgoal' = rename_prop (rename_list param_specs subgoal_params) subgoal;
+  in Thm.renamed_prop (Logic.mk_implies (subgoal', goal')) st end;
 
 fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state =
   let
