@@ -33,10 +33,12 @@ sig
   val enter_chain: state -> state
   val enter_backward: state -> state
   val has_bottom_goal: state -> bool
+  val using_facts: thm list -> state -> state
   val pretty_state: state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
+  val refine_primitive: (Proof.context -> thm -> thm) -> state -> state
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
@@ -429,6 +431,9 @@ fun refine_end text state = apply_method text (#1 (find_goal state)) state;
 
 fun refine_insert ths =
   Seq.hd o refine (Method.Basic (K (Method.insert ths)));
+
+fun refine_primitive r =  (* FIXME Seq.Error!? *)
+  Seq.hd o refine (Method.Basic (fn ctxt => fn _ => EMPTY_CASES (PRIMITIVE (r ctxt))));
 
 end;
 

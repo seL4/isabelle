@@ -1,9 +1,13 @@
-(*  Title:      Pure/subgoal.ML
+(*  Title:      Pure/Isar/subgoal.ML
     Author:     Makarius
+    Author:     Daniel Matichuk, NICTA/UNSW
 
 Tactical operations with explicit subgoal focus, based on canonical
 proof decomposition.  The "visible" part of the text within the
 context is fixed, the remaining goal may be schematic.
+
+Isar subgoal command for proof structure within unstructured proof
+scripts.
 *)
 
 signature SUBGOAL =
@@ -11,14 +15,20 @@ sig
   type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
     asms: cterm list, concl: cterm, schematics: (ctyp * ctyp) list * (cterm * cterm) list}
   val focus_params: Proof.context -> int -> thm -> focus * thm
+  val focus_params_fixed: Proof.context -> int -> thm -> focus * thm
   val focus_prems: Proof.context -> int -> thm -> focus * thm
   val focus: Proof.context -> int -> thm -> focus * thm
   val retrofit: Proof.context -> Proof.context -> (string * cterm) list -> cterm list ->
     int -> thm -> thm -> thm Seq.seq
   val FOCUS_PARAMS: (focus -> tactic) -> Proof.context -> int -> tactic
+  val FOCUS_PARAMS_FIXED: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS_PREMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
+  val subgoal: Attrib.binding -> Attrib.binding option ->
+    bool * (string option * Position.T) list -> Proof.state -> focus * Proof.state
+  val subgoal_cmd: Attrib.binding -> Attrib.binding option ->
+    bool * (string option * Position.T) list -> Proof.state -> focus * Proof.state
 end;
 
 structure Subgoal: SUBGOAL =
@@ -33,7 +43,7 @@ fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   let
     val st = raw_st
       |> Thm.transfer (Proof_Context.theory_of ctxt)
-      |> Simplifier.norm_hhf_protect ctxt;
+      |> Raw_Simplifier.norm_hhf_protect ctxt;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
     val ((params, goal), ctxt2) = Variable.focus_cterm (Thm.cprem_of st' i) ctxt1;
 
@@ -55,6 +65,7 @@ fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   end;
 
 val focus_params = gen_focus (false, false);
+val focus_params_fixed = gen_focus (false, true);
 val focus_prems = gen_focus (true, false);
 val focus = gen_focus (true, true);
 
@@ -141,12 +152,105 @@ fun GEN_FOCUS flags tac ctxt i st =
     in Seq.lifts (retrofit ctxt' ctxt params asms i) (tac args st') st end;
 
 val FOCUS_PARAMS = GEN_FOCUS (false, false);
+val FOCUS_PARAMS_FIXED = GEN_FOCUS (false, true);
 val FOCUS_PREMS = GEN_FOCUS (true, false);
 val FOCUS = GEN_FOCUS (true, true);
 
 fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
+
+(* Isar subgoal command *)
+
+local
+
+fun rename_params ctxt (param_suffix, raw_param_specs) st =
+  let
+    val _ = if Thm.no_prems st then error "No subgoals!" else ();
+    val (subgoal, goal') = Logic.dest_implies (Thm.prop_of st);
+    val subgoal_params =
+      map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars subgoal)
+      |> Term.variant_frees subgoal |> map #1;
+
+    val n = length subgoal_params;
+    val m = length raw_param_specs;
+    val _ =
+      m <= n orelse
+        error ("Excessive subgoal parameter specification" ^
+          Position.here_list (map snd (drop n raw_param_specs)));
+
+    val param_specs =
+      raw_param_specs |> map
+        (fn (NONE, _) => NONE
+          | (SOME x, pos) =>
+              let val b = #1 (#1 (Proof_Context.cert_var (Binding.make (x, pos), NONE, NoSyn) ctxt))
+              in SOME (Variable.check_name b) end)
+      |> param_suffix ? append (replicate (n - m) NONE);
+
+    fun rename_list (opt_x :: xs) (y :: ys) = (the_default y opt_x :: rename_list xs ys)
+      | rename_list _ ys = ys;
+
+    fun rename_prop (x :: xs) ((c as Const ("Pure.all", _)) $ Abs (_, T, t)) =
+          (c $ Abs (x, T, rename_prop xs t))
+      | rename_prop [] t = t;
+
+    val subgoal' = rename_prop (rename_list param_specs subgoal_params) subgoal;
+  in Thm.renamed_prop (Logic.mk_implies (subgoal', goal')) st end;
+
+fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state =
+  let
+    val _ = Proof.assert_backward state;
+
+    val state1 = state |> Proof.refine_insert [];
+    val {context = ctxt, facts = facts, goal = st} = Proof.raw_goal state1;
+
+    val result_binding = apsnd (map (prep_atts ctxt)) raw_result_binding;
+    val (prems_binding, do_prems) =
+      (case raw_prems_binding of
+        SOME (b, raw_atts) => ((b, map (prep_atts ctxt) raw_atts), true)
+      | NONE => ((Binding.empty, []), false));
+
+    val (subgoal_focus, _) =
+      rename_params ctxt param_specs st
+      |> (if do_prems then focus else focus_params_fixed) ctxt 1;
+
+    fun after_qed (ctxt'', [[result]]) =
+      Proof.end_block #> (fn state' =>
+        let
+          val ctxt' = Proof.context_of state';
+          val results' =
+            Proof_Context.export ctxt'' ctxt' (Conjunction.elim_conjunctions result);
+        in
+          state'
+          |> Proof.refine_primitive (fn _ => fn _ =>
+            retrofit ctxt'' ctxt' (#params subgoal_focus) (#asms subgoal_focus) 1
+              (Goal.protect 0 result) st
+            |> Seq.hd)
+          |> Proof.map_context
+            (#2 o Proof_Context.note_thmss "" [(result_binding, [(results', [])])])
+        end)
+      #> Proof.reset_facts
+      #> Proof.enter_backward;
+  in
+    state1
+    |> Proof.enter_forward
+    |> Proof.using_facts []
+    |> Proof.begin_block
+    |> Proof.map_context (fn _ =>
+      #context subgoal_focus
+      |> Proof_Context.note_thmss "" [(prems_binding, [(#prems subgoal_focus, [])])] |> #2)
+    |> Proof.internal_goal (K (K ())) (Proof_Context.get_mode ctxt) true "subgoal"
+        NONE after_qed [] [] [(Thm.empty_binding, [(Thm.term_of (#concl subgoal_focus), [])])] |> #2
+    |> Proof.using_facts facts
+    |> pair subgoal_focus
+  end;
+
+in
+
+val subgoal = gen_subgoal Attrib.attribute;
+val subgoal_cmd = gen_subgoal Attrib.attribute_cmd;
+
+end;
+
 end;
 
 val SUBPROOF = Subgoal.SUBPROOF;
-

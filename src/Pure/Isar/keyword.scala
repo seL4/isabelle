@@ -35,8 +35,9 @@ object Keyword
   val PRF_DECL = "prf_decl"
   val PRF_ASM = "prf_asm"
   val PRF_ASM_GOAL = "prf_asm_goal"
-  val PRF_ASM_GOAL_SCRIPT = "prf_asm_goal_script"
   val PRF_SCRIPT = "prf_script"
+  val PRF_SCRIPT_GOAL = "prf_script_goal"
+  val PRF_SCRIPT_ASM_GOAL = "prf_script_asm_goal"
 
 
   /* command categories */
@@ -63,14 +64,16 @@ object Keyword
 
   val proof =
     Set(QED, QED_SCRIPT, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
-      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
+      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
+      PRF_SCRIPT_ASM_GOAL)
 
   val proof_body =
     Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
-      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
+      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
+      PRF_SCRIPT_ASM_GOAL)
 
   val theory_goal = Set(THY_GOAL)
-  val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT)
+  val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_SCRIPT_GOAL, PRF_SCRIPT_ASM_GOAL)
   val qed = Set(QED, QED_SCRIPT, QED_BLOCK)
   val qed_global = Set(QED_GLOBAL)
 

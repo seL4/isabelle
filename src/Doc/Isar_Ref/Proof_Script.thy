@@ -88,6 +88,103 @@ text \<open>
 \<close>
 
 
+section \<open>Explicit subgoal structure\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def "subgoal"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{command subgoal} @{syntax thmbind}? prems? params?
+    ;
+    prems: @'premises' @{syntax thmbind}?
+    ;
+    params: @'for' '\<dots>'? (('_' | @{syntax name})+)
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "subgoal"} allows to impose some structure on backward
+  refinements, to avoid proof scripts degenerating into long of @{command
+  apply} sequences.
+
+  The current goal state, which is essentially a hidden part of the Isar/VM
+  configurtation, is turned into a proof context and remaining conclusion.
+  This correponds to @{command fix}~/ @{command assume}~/ @{command show} in
+  structured proofs, but the text of the parameters, premises and conclusion
+  is not given explicitly.
+
+  Goal parameters may be specified separately, in order to allow referring
+  to them in the proof body: ``@{command subgoal}~@{keyword "for"}~@{text "x
+  y z"}'' names a \emph{prefix}, and ``@{command subgoal}~@{keyword
+  "for"}~@{text "\<dots> x y z"}'' names a \emph{suffix} of goal parameters. The
+  latter uses a literal @{verbatim "\<dots>"} symbol as notation. Parameter
+  positions may be skipped via dummies (underscore). Unspecified names
+  remain internal, and thus inaccessible in the proof text.
+
+  ``@{command subgoal}~@{keyword "premises"}~@{text prems}'' indicates that
+  goal premises should be turned into assumptions of the context (otherwise
+  the remaining conclusion is a Pure implication). The fact name and
+  attributes are optional; the particular name ``@{text prems}'' is a common
+  convention for the premises of an arbitrary goal context in proof scripts.
+
+  ``@{command subgoal}~@{text result}'' indicates a fact name for the result
+  of a proven subgoal. Thus it may be re-used in further reasoning, similar
+  to the result of @{command show} in structured Isar proofs.
+
+  \end{description}
+
+  Here are some abstract examples:
+\<close>
+
+lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
+  and "\<And>u v. X u \<Longrightarrow> Y v"
+  subgoal sorry
+  subgoal sorry
+  done
+
+lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
+  and "\<And>u v. X u \<Longrightarrow> Y v"
+  subgoal for x y z sorry
+  subgoal for u v sorry
+  done
+
+lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
+  and "\<And>u v. X u \<Longrightarrow> Y v"
+  subgoal premises for x y z
+    using \<open>A x\<close> \<open>B y\<close>
+    sorry
+  subgoal premises for u v
+    using \<open>X u\<close>
+    sorry
+  done
+
+lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
+  and "\<And>u v. X u \<Longrightarrow> Y v"
+  subgoal r premises prems for x y z
+  proof -
+    have "A x" by (fact prems)
+    moreover have "B y" by (fact prems)
+    ultimately show ?thesis sorry
+  qed
+  subgoal premises prems for u v
+  proof -
+    have "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z" by (fact r)
+    moreover
+    have "X u" by (fact prems)
+    ultimately show ?thesis sorry
+  qed
+  done
+
+lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
+  subgoal premises prems for \<dots> z
+  proof -
+    from prems show "C z" sorry
+  qed
+  done
+
+
 section \<open>Tactics: improper proof methods \label{sec:tactics}\<close>
 
 text \<open>

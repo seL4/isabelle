@@ -23,6 +23,7 @@ sig
   val short_ident: string parser
   val long_ident: string parser
   val sym_ident: string parser
+  val dots: string parser
   val minus: string parser
   val term_var: string parser
   val type_ident: string parser
@@ -220,7 +221,10 @@ fun reserved x =
   group (fn () => "reserved identifier " ^ quote x)
     (RESET_VALUE (Scan.one (Token.ident_with (fn y => x = y)) >> Token.content_of));
 
+val dots = sym_ident :-- (fn "\\<dots>" => Scan.succeed () | _ => Scan.fail) >> #1;
+
 val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
+
 val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
 fun maybe scan = underscore >> K NONE || scan >> SOME;
 

@@ -679,6 +679,33 @@ val _ =
         Toplevel.skip_proof (fn i => i + 1))));
 
 
+(* subgoal focus *)
+
+local
+
+val opt_fact_binding =
+  Scan.optional (Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty)
+    Attrib.empty_binding;
+
+val for_params =
+  Scan.optional
+    (@{keyword "for"} |--
+      Parse.!!! ((Scan.option Parse.dots >> is_some) --
+        (Scan.repeat1 (Parse.position (Parse.maybe Parse.name)))))
+    (false, []);
+
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword subgoal}
+    "focus on first subgoal within backward refinement"
+    (opt_fact_binding -- (Scan.option (@{keyword "premises"} |-- Parse.!!! opt_fact_binding)) --
+      for_params >> (fn ((a, b), c) =>
+        Toplevel.proofs (Seq.make_results o Seq.single o #2 o Subgoal.subgoal_cmd a b c)));
+
+end;
+
+
 (* proof navigation *)
 
 fun report_back () =

@@ -11,7 +11,7 @@ theory Pure
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
     "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
-    "overloaded" "pervasive" "private" "qualified" "shows"
+    "overloaded" "pervasive" "premises" "private" "qualified" "shows"
     "structure" "unchecked" "where" "when" "|"
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
@@ -57,7 +57,7 @@ theory Pure
   and "fix" "assume" "presume" "def" :: prf_asm % "proof"
   and "consider" :: prf_goal % "proof"
   and "obtain" :: prf_asm_goal % "proof"
-  and "guess" :: prf_asm_goal_script % "proof"
+  and "guess" :: prf_script_asm_goal % "proof"
   and "let" "write" :: prf_decl % "proof"
   and "case" :: prf_asm % "proof"
   and "{" :: prf_open % "proof"
@@ -69,6 +69,7 @@ theory Pure
   and "oops" :: qed_global % "proof"
   and "defer" "prefer" "apply" :: prf_script % "proof"
   and "apply_end" :: prf_script % "proof" == ""
+  and "subgoal" :: prf_script_goal % "proof"
   and "proof" :: prf_block % "proof"
   and "also" "moreover" :: prf_decl % "proof"
   and "finally" "ultimately" :: prf_chain % "proof"
