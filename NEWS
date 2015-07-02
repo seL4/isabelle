@@ -102,6 +102,11 @@ and always put attributes in front.
 is still available as legacy for some time. Documentation now explains
 '..' more accurately as "by standard" instead of "by rule".
 
+* Command 'subgoal' allows to impose some structure on backward
+refinements, to avoid proof scripts degenerating into long of 'apply'
+sequences. Further explanations and examples are given in the isar-ref
+manual.
+
 * Proof method "goals" turns the current subgoals into cases within the
 context; the conclusion is bound to variable ?case in each case.
 For example:

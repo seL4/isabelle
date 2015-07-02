@@ -438,6 +438,9 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   @{rail \<open>
     @{syntax_def axmdecl}: @{syntax name} @{syntax attributes}? ':'
     ;
+    @{syntax_def thmbind}:
+      @{syntax name} @{syntax attributes} | @{syntax name} | @{syntax attributes}
+    ;
     @{syntax_def thmdecl}: thmbind ':'
     ;
     @{syntax_def thmdef}: thmbind '='
@@ -448,9 +451,6 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
       '[' @{syntax attributes} ']'
     ;
     @{syntax_def thmrefs}: @{syntax thmref} +
-    ;
-
-    thmbind: @{syntax name} @{syntax attributes} | @{syntax name} | @{syntax attributes}
     ;
     selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
   \<close>}
