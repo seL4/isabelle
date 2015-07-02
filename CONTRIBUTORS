@@ -6,13 +6,16 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Summer 2015: Daniel Matichuk, NICTA and Makarius Wenzel
+  Isar subgoal command for proof structure within unstructured proof
+  scripts.
+
 * Summer 2015: Florian Haftmann, TUM
-  Generic partial division in rings as inverse operation
-  of multiplication.
+  Generic partial division in rings as inverse operation of multiplication.
 
 * Summer 2015: Manuel Eberl and Florian Haftmann, TUM
-  Type class hierarchy with common algebraic notions of
-  integral (semi)domains like units and associated elements.
+  Type class hierarchy with common algebraic notions of integral
+  (semi)domains like units and associated elements.
 
 
 Contributions to Isabelle2015
