@@ -3,9 +3,66 @@
 section \<open>Abstract euclidean algorithm\<close>
 
 theory Euclidean_Algorithm
-imports Complex_Main "~~/src/HOL/Library/Polynomial"
+imports Complex_Main "~~/src/HOL/Library/Polynomial" "~~/src/HOL/Number_Theory/Normalization_Semidom"
 begin
-  
+
+lemma is_unit_polyE:
+  assumes "is_unit p"
+  obtains a where "p = monom a 0" and "a \<noteq> 0"
+proof -
+  obtain a q where "p = pCons a q" by (cases p)
+  with assms have "p = [:a:]" and "a \<noteq> 0"
+    by (simp_all add: is_unit_pCons_iff)
+  with that show thesis by (simp add: monom_0)
+qed
+
+instantiation poly :: (field) normalization_semidom
+begin
+
+definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "normalize_poly p = smult (1 / coeff p (degree p)) p"
+
+definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "unit_factor_poly p = monom (coeff p (degree p)) 0"
+
+instance
+proof
+  fix p :: "'a poly"
+  show "unit_factor p * normalize p = p"
+    by (simp add: normalize_poly_def unit_factor_poly_def)
+      (simp only: mult_smult_left [symmetric] smult_monom, simp)
+next
+  show "normalize 0 = (0::'a poly)"
+    by (simp add: normalize_poly_def)
+next
+  show "unit_factor 0 = (0::'a poly)"
+    by (simp add: unit_factor_poly_def)
+next
+  fix p :: "'a poly"
+  assume "is_unit p"
+  then obtain a where "p = monom a 0" and "a \<noteq> 0"
+    by (rule is_unit_polyE)
+  then show "normalize p = 1"
+    by (auto simp add: normalize_poly_def smult_monom degree_monom_eq)
+next
+  fix p q :: "'a poly"
+  assume "q \<noteq> 0"
+  from \<open>q \<noteq> 0\<close> have "is_unit (monom (coeff q (degree q)) 0)"
+    by (auto intro: is_unit_monom_0)
+  then show "is_unit (unit_factor q)"
+    by (simp add: unit_factor_poly_def)
+next
+  fix p q :: "'a poly"
+  have "monom (coeff (p * q) (degree (p * q))) 0 =
+    monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
+    by (simp add: monom_0 coeff_degree_mult)
+  then show "unit_factor (p * q) =
+    unit_factor p * unit_factor q"
+    by (simp add: unit_factor_poly_def)
+qed
+
+end
+
 text \<open>
   A Euclidean semiring is a semiring upon which the Euclidean algorithm can be
   implemented. It must provide:
@@ -13,135 +70,17 @@ text \<open>
   \item division with remainder
   \item a size function such that @{term "size (a mod b) < size b"} 
         for any @{term "b \<noteq> 0"}
-  \item a normalization factor such that two associated numbers are equal iff 
-        they are the same when divd by their normalization factors.
   \end{itemize}
   The existence of these functions makes it possible to derive gcd and lcm functions 
   for any Euclidean semiring.
 \<close> 
-class euclidean_semiring = semiring_div + 
+class euclidean_semiring = semiring_div + normalization_semidom + 
   fixes euclidean_size :: "'a \<Rightarrow> nat"
-  fixes normalization_factor :: "'a \<Rightarrow> 'a"
   assumes mod_size_less: 
     "b \<noteq> 0 \<Longrightarrow> euclidean_size (a mod b) < euclidean_size b"
   assumes size_mult_mono:
-    "b \<noteq> 0 \<Longrightarrow> euclidean_size (a * b) \<ge> euclidean_size a"
-  assumes normalization_factor_is_unit [intro,simp]: 
-    "a \<noteq> 0 \<Longrightarrow> is_unit (normalization_factor a)"
-  assumes normalization_factor_mult: "normalization_factor (a * b) = 
-    normalization_factor a * normalization_factor b"
-  assumes normalization_factor_unit: "is_unit a \<Longrightarrow> normalization_factor a = a"
-  assumes normalization_factor_0 [simp]: "normalization_factor 0 = 0"
+    "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
-
-lemma normalization_factor_dvd [simp]:
-  "a \<noteq> 0 \<Longrightarrow> normalization_factor a dvd b"
-  by (rule unit_imp_dvd, simp)
-    
-lemma normalization_factor_1 [simp]:
-  "normalization_factor 1 = 1"
-  by (simp add: normalization_factor_unit)
-
-lemma normalization_factor_0_iff [simp]:
-  "normalization_factor a = 0 \<longleftrightarrow> a = 0"
-proof
-  assume "normalization_factor a = 0"
-  hence "\<not> is_unit (normalization_factor a)"
-    by simp
-  then show "a = 0" by auto
-qed simp
-
-lemma normalization_factor_pow:
-  "normalization_factor (a ^ n) = normalization_factor a ^ n"
-  by (induct n) (simp_all add: normalization_factor_mult power_Suc2)
-
-lemma normalization_correct [simp]:
-  "normalization_factor (a div normalization_factor a) = (if a = 0 then 0 else 1)"
-proof (cases "a = 0", simp)
-  assume "a \<noteq> 0"
-  let ?nf = "normalization_factor"
-  from normalization_factor_is_unit[OF \<open>a \<noteq> 0\<close>] have "?nf a \<noteq> 0"
-    by auto
-  have "?nf (a div ?nf a) * ?nf (?nf a) = ?nf (a div ?nf a * ?nf a)" 
-    by (simp add: normalization_factor_mult)
-  also have "a div ?nf a * ?nf a = a" using \<open>a \<noteq> 0\<close>
-    by simp
-  also have "?nf (?nf a) = ?nf a" using \<open>a \<noteq> 0\<close> 
-    normalization_factor_is_unit normalization_factor_unit by simp
-  finally have "normalization_factor (a div normalization_factor a) = 1"  
-    using \<open>?nf a \<noteq> 0\<close> by (metis div_mult_self2_is_id div_self)
-  with \<open>a \<noteq> 0\<close> show ?thesis by simp
-qed
-
-lemma normalization_0_iff [simp]:
-  "a div normalization_factor a = 0 \<longleftrightarrow> a = 0"
-  by (cases "a = 0", simp, subst unit_eq_div1, blast, simp)
-
-lemma mult_div_normalization [simp]:
-  "b * (1 div normalization_factor a) = b div normalization_factor a"
-  by (cases "a = 0") simp_all
-
-lemma associated_iff_normed_eq:
-  "associated a b \<longleftrightarrow> a div normalization_factor a = b div normalization_factor b" (is "?P \<longleftrightarrow> ?Q")
-proof (cases "a = 0 \<or> b = 0")
-  case True then show ?thesis by (auto dest: sym)
-next
-  case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
-  show ?thesis
-  proof
-    assume ?Q
-    from \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close>
-    have "is_unit (normalization_factor a div normalization_factor b)"
-      by auto
-    moreover from \<open>?Q\<close> \<open>a \<noteq> 0\<close> \<open>b \<noteq> 0\<close>
-    have "a = (normalization_factor a div normalization_factor b) * b"
-      by (simp add: ac_simps div_mult_swap unit_eq_div1)
-    ultimately show "associated a b" by (rule is_unit_associatedI) 
-  next
-    assume ?P
-    then obtain c where "is_unit c" and "a = c * b"
-      by (blast elim: associated_is_unitE)
-    then show ?Q
-      by (auto simp add: normalization_factor_mult normalization_factor_unit)
-  qed
-qed
-
-lemma normed_associated_imp_eq:
-  "associated a b \<Longrightarrow> normalization_factor a \<in> {0, 1} \<Longrightarrow> normalization_factor b \<in> {0, 1} \<Longrightarrow> a = b"
-  by (simp add: associated_iff_normed_eq, elim disjE, simp_all)
-
-lemma normed_dvd [iff]:
-  "a div normalization_factor a dvd a"
-proof (cases "a = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  then have "a = a div normalization_factor a * normalization_factor a"
-    by (auto intro: unit_div_mult_self)
-  then show ?thesis ..
-qed
-
-lemma dvd_normed [iff]:
-  "a dvd a div normalization_factor a"
-proof (cases "a = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  then have "a div normalization_factor a = a * (1 div normalization_factor a)"
-    by (auto intro: unit_mult_div_div)
-  then show ?thesis ..
-qed
-
-lemma associated_normed:
-  "associated (a div normalization_factor a) a"
-  by (rule associatedI) simp_all
-
-lemma normalization_factor_dvd' [simp]:
-  "normalization_factor a dvd a"
-  by (cases "a = 0", simp_all)
-
-lemmas normalization_factor_dvd_iff [simp] =
-  unit_dvd_iff [OF normalization_factor_is_unit]
 
 lemma euclidean_division:
   fixes a :: 'a and b :: 'a
@@ -173,8 +112,7 @@ qed
 
 function gcd_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "gcd_eucl a b = (if b = 0 then a div normalization_factor a
-    else gcd_eucl b (a mod b))"
+  "gcd_eucl a b = (if b = 0 then normalize a else gcd_eucl b (a mod b))"
   by pat_completeness simp
 termination
   by (relation "measure (euclidean_size \<circ> snd)") (simp_all add: mod_size_less)
@@ -201,7 +139,7 @@ qed
 
 definition lcm_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "lcm_eucl a b = a * b div (gcd_eucl a b * normalization_factor (a * b))"
+  "lcm_eucl a b = normalize (a * b) div gcd_eucl a b"
 
 definition Lcm_eucl :: "'a set \<Rightarrow> 'a" -- \<open>
   Somewhat complicated definition of Lcm that has the advantage of working
@@ -210,7 +148,7 @@ where
   "Lcm_eucl A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then
      let l = SOME l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l =
        (LEAST n. \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)
-       in l div normalization_factor l
+       in normalize l 
       else 0)"
 
 definition Gcd_eucl :: "'a set \<Rightarrow> 'a"
@@ -218,11 +156,11 @@ where
   "Gcd_eucl A = Lcm_eucl {d. \<forall>a\<in>A. d dvd a}"
 
 lemma gcd_eucl_0:
-  "gcd_eucl a 0 = a div normalization_factor a"
+  "gcd_eucl a 0 = normalize a"
   by (simp add: gcd_eucl.simps [of a 0])
 
 lemma gcd_eucl_0_left:
-  "gcd_eucl 0 a = a div normalization_factor a"
+  "gcd_eucl 0 a = normalize a"
   by (simp_all add: gcd_eucl_0 gcd_eucl.simps [of 0 a])
 
 lemma gcd_eucl_non_0:
@@ -237,7 +175,7 @@ begin
 function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times> 'a" where
   "euclid_ext a b = 
      (if b = 0 then 
-        let c = 1 div normalization_factor a in (c, 0, a * c)
+        (1 div unit_factor a, 0, normalize a)
       else
         case euclid_ext b (a mod b) of
             (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
@@ -248,11 +186,11 @@ termination
 declare euclid_ext.simps [simp del]
 
 lemma euclid_ext_0: 
-  "euclid_ext a 0 = (1 div normalization_factor a, 0, a div normalization_factor a)"
+  "euclid_ext a 0 = (1 div unit_factor a, 0, normalize a)"
   by (simp add: euclid_ext.simps [of a 0])
 
 lemma euclid_ext_left_0: 
-  "euclid_ext 0 a = (0, 1 div normalization_factor a, a div normalization_factor a)"
+  "euclid_ext 0 a = (0, 1 div unit_factor a, normalize a)"
   by (simp add: euclid_ext_0 euclid_ext.simps [of 0 a])
 
 lemma euclid_ext_non_0: 
@@ -261,7 +199,7 @@ lemma euclid_ext_non_0:
   by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
 
 lemma euclid_ext_code [code]:
-  "euclid_ext a b = (if b = 0 then (1 div normalization_factor a, 0, a div normalization_factor a)
+  "euclid_ext a b = (if b = 0 then (1 div unit_factor a, 0, normalize a)
     else let (s, t, c) = euclid_ext b (a mod b) in  (t, s - t * (a div b), c))"
   by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
 
@@ -286,10 +224,10 @@ definition euclid_ext' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
 where
   "euclid_ext' a b = (case euclid_ext a b of (s, t, _) \<Rightarrow> (s, t))"
 
-lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div normalization_factor a, 0)" 
+lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div unit_factor a, 0)" 
   by (simp add: euclid_ext'_def euclid_ext_0)
 
-lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div normalization_factor a)" 
+lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div unit_factor a)" 
   by (simp add: euclid_ext'_def euclid_ext_left_0)
   
 lemma euclid_ext'_non_0: "b \<noteq> 0 \<Longrightarrow> euclid_ext' a b = (snd (euclid_ext' b (a mod b)),
@@ -304,11 +242,11 @@ class euclidean_semiring_gcd = euclidean_semiring + gcd + Gcd +
 begin
 
 lemma gcd_0_left:
-  "gcd 0 a = a div normalization_factor a"
+  "gcd 0 a = normalize a"
   unfolding gcd_gcd_eucl by (fact gcd_eucl_0_left)
 
 lemma gcd_0:
-  "gcd a 0 = a div normalization_factor a"
+  "gcd a 0 = normalize a"
   unfolding gcd_gcd_eucl by (fact gcd_eucl_0)
 
 lemma gcd_non_0:
@@ -347,15 +285,16 @@ lemma gcd_zero [simp]:
   "gcd a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
   by (metis dvd_0_left dvd_refl gcd_dvd1 gcd_dvd2 gcd_greatest)+
 
-lemma normalization_factor_gcd [simp]:
-  "normalization_factor (gcd a b) = (if a = 0 \<and> b = 0 then 0 else 1)" (is "?f a b = ?g a b")
+lemma unit_factor_gcd [simp]:
+  "unit_factor (gcd a b) = (if a = 0 \<and> b = 0 then 0 else 1)" (is "?f a b = ?g a b")
   by (induct a b rule: gcd_eucl_induct)
     (auto simp add: gcd_0 gcd_non_0)
 
 lemma gcdI:
-  "k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> (\<And>l. l dvd a \<Longrightarrow> l dvd b \<Longrightarrow> l dvd k)
-    \<Longrightarrow> normalization_factor k = (if k = 0 then 0 else 1) \<Longrightarrow> k = gcd a b"
-  by (intro normed_associated_imp_eq) (auto simp: associated_def intro: gcd_greatest)
+  assumes "c dvd a" and "c dvd b" and greatest: "\<And>d. d dvd a \<Longrightarrow> d dvd b \<Longrightarrow> d dvd c"
+    and "unit_factor c = (if c = 0 then 0 else 1)"
+  shows "c = gcd a b"
+  by (rule associated_eqI) (auto simp: assms associated_def intro: gcd_greatest)
 
 sublocale gcd!: abel_semigroup gcd
 proof
@@ -369,7 +308,7 @@ proof
     moreover have "gcd (gcd a b) c dvd c" by simp
     ultimately show "gcd (gcd a b) c dvd gcd b c"
       by (rule gcd_greatest)
-    show "normalization_factor (gcd (gcd a b) c) =  (if gcd (gcd a b) c = 0 then 0 else 1)"
+    show "unit_factor (gcd (gcd a b) c) =  (if gcd (gcd a b) c = 0 then 0 else 1)"
       by auto
     fix l assume "l dvd a" and "l dvd gcd b c"
     with dvd_trans[OF _ gcd_dvd1] and dvd_trans[OF _ gcd_dvd2]
@@ -384,7 +323,7 @@ next
 qed
 
 lemma gcd_unique: "d dvd a \<and> d dvd b \<and> 
-    normalization_factor d = (if d = 0 then 0 else 1) \<and>
+    unit_factor d = (if d = 0 then 0 else 1) \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   by (rule, auto intro: gcdI simp: gcd_greatest)
 
@@ -398,30 +337,30 @@ lemma gcd_1 [simp]: "gcd a 1 = 1"
   by (rule sym, rule gcdI, simp_all)
 
 lemma gcd_proj2_if_dvd: 
-  "b dvd a \<Longrightarrow> gcd a b = b div normalization_factor b"
+  "b dvd a \<Longrightarrow> gcd a b = normalize b"
   by (cases "b = 0", simp_all add: dvd_eq_mod_eq_0 gcd_non_0 gcd_0)
 
 lemma gcd_proj1_if_dvd: 
-  "a dvd b \<Longrightarrow> gcd a b = a div normalization_factor a"
+  "a dvd b \<Longrightarrow> gcd a b = normalize a"
   by (subst gcd.commute, simp add: gcd_proj2_if_dvd)
 
-lemma gcd_proj1_iff: "gcd m n = m div normalization_factor m \<longleftrightarrow> m dvd n"
+lemma gcd_proj1_iff: "gcd m n = normalize m \<longleftrightarrow> m dvd n"
 proof
-  assume A: "gcd m n = m div normalization_factor m"
+  assume A: "gcd m n = normalize m"
   show "m dvd n"
   proof (cases "m = 0")
     assume [simp]: "m \<noteq> 0"
-    from A have B: "m = gcd m n * normalization_factor m"
+    from A have B: "m = gcd m n * unit_factor m"
       by (simp add: unit_eq_div2)
     show ?thesis by (subst B, simp add: mult_unit_dvd_iff)
   qed (insert A, simp)
 next
   assume "m dvd n"
-  then show "gcd m n = m div normalization_factor m" by (rule gcd_proj1_if_dvd)
+  then show "gcd m n = normalize m" by (rule gcd_proj1_if_dvd)
 qed
   
-lemma gcd_proj2_iff: "gcd m n = n div normalization_factor n \<longleftrightarrow> n dvd m"
-  by (subst gcd.commute, simp add: gcd_proj1_iff)
+lemma gcd_proj2_iff: "gcd m n = normalize n \<longleftrightarrow> n dvd m"
+  using gcd_proj1_iff [of n m] by (simp add: ac_simps)
 
 lemma gcd_mod1 [simp]:
   "gcd (a mod b) b = gcd a b"
@@ -432,20 +371,19 @@ lemma gcd_mod2 [simp]:
   by (rule gcdI, simp, metis dvd_mod_iff gcd_dvd1 gcd_dvd2, simp_all add: gcd_greatest dvd_mod_iff)
          
 lemma gcd_mult_distrib': 
-  "c div normalization_factor c * gcd a b = gcd (c * a) (c * b)"
+  "normalize c * gcd a b = gcd (c * a) (c * b)"
 proof (cases "c = 0")
   case True then show ?thesis by (simp_all add: gcd_0)
 next
-  case False then have [simp]: "is_unit (normalization_factor c)" by simp
+  case False then have [simp]: "is_unit (unit_factor c)" by simp
   show ?thesis
   proof (induct a b rule: gcd_eucl_induct)
     case (zero a) show ?case
     proof (cases "a = 0")
       case True then show ?thesis by (simp add: gcd_0)
     next
-      case False then have "is_unit (normalization_factor a)" by simp
-      then show ?thesis
-        by (simp add: gcd_0 unit_div_commute unit_div_mult_swap normalization_factor_mult is_unit_div_mult2_eq)
+      case False
+      then show ?thesis by (simp add: gcd_0 normalize_mult)
     qed
     case (mod a b)
     then show ?case by (simp add: mult_mod_right gcd.commute)
@@ -453,14 +391,15 @@ next
 qed
 
 lemma gcd_mult_distrib:
-  "k * gcd a b = gcd (k*a) (k*b) * normalization_factor k"
+  "k * gcd a b = gcd (k * a) (k * b) * unit_factor k"
 proof-
-  let ?nf = "normalization_factor"
-  from gcd_mult_distrib' 
-    have "gcd (k*a) (k*b) = k div ?nf k * gcd a b" ..
-  also have "... = k * gcd a b div ?nf k"
-    by (metis dvd_div_mult dvd_eq_mod_eq_0 mod_0 normalization_factor_dvd)
-  finally show ?thesis
+  have "normalize k * gcd a b = gcd (k * a) (k * b)"
+    by (simp add: gcd_mult_distrib')
+  then have "normalize k * gcd a b * unit_factor k = gcd (k * a) (k * b) * unit_factor k"
+    by simp
+  then have "normalize k * unit_factor k * gcd a b  = gcd (k * a) (k * b) * unit_factor k"
+    by (simp only: ac_simps)
+  then show ?thesis
     by simp
 qed
 
@@ -499,7 +438,7 @@ lemma gcd_mult_unit1: "is_unit a \<Longrightarrow> gcd (b * a) c = gcd b c"
   apply (rule dvd_trans, rule gcd_dvd1, simp add: unit_simps)
   apply (rule gcd_dvd2)
   apply (rule gcd_greatest, simp add: unit_simps, assumption)
-  apply (subst normalization_factor_gcd, simp add: gcd_0)
+  apply (subst unit_factor_gcd, simp add: gcd_0)
   done
 
 lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
@@ -511,7 +450,25 @@ lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
 lemma gcd_div_unit2: "is_unit a \<Longrightarrow> gcd b (c div a) = gcd b c"
   by (erule is_unitE [of _ c]) (simp add: gcd_mult_unit2)
 
-lemma gcd_idem: "gcd a a = a div normalization_factor a"
+lemma normalize_gcd_left [simp]:
+  "gcd (normalize a) b = gcd a b"
+proof (cases "a = 0")
+  case True then show ?thesis
+    by simp
+next
+  case False then have "is_unit (unit_factor a)"
+    by simp
+  moreover have "normalize a = a div unit_factor a"
+    by simp
+  ultimately show ?thesis
+    by (simp only: gcd_div_unit1)
+qed
+
+lemma normalize_gcd_right [simp]:
+  "gcd a (normalize b) = gcd a b"
+  using normalize_gcd_left [of b a] by (simp add: ac_simps)
+
+lemma gcd_idem: "gcd a a = normalize a"
   by (cases "a = 0") (simp add: gcd_0_left, rule sym, rule gcdI, simp_all)
 
 lemma gcd_right_idem: "gcd (gcd a b) b = gcd a b"
@@ -543,7 +500,7 @@ lemma coprime_dvd_mult:
   assumes "gcd c b = 1" and "c dvd a * b"
   shows "c dvd a"
 proof -
-  let ?nf = "normalization_factor"
+  let ?nf = "unit_factor"
   from assms gcd_mult_distrib [of a c b] 
     have A: "a = gcd (a * c) (a * b) * ?nf a" by simp
   from \<open>c dvd a * b\<close> show ?thesis by (subst A, simp_all add: gcd_greatest)
@@ -561,7 +518,7 @@ proof (rule gcdI)
   with A show "gcd a b dvd c" by (rule dvd_trans)
   have "gcd c d dvd d" by simp
   with A show "gcd a b dvd d" by (rule dvd_trans)
-  show "normalization_factor (gcd a b) = (if gcd a b = 0 then 0 else 1)"
+  show "unit_factor (gcd a b) = (if gcd a b = 0 then 0 else 1)"
     by simp
   fix l assume "l dvd c" and "l dvd d"
   hence "l dvd gcd c d" by (rule gcd_greatest)
@@ -727,8 +684,8 @@ next
     using div_gcd_coprime by (subst sym, auto simp: div_gcd_coprime)
   hence "(gcd a b) ^ n = (gcd a b) ^ n * ..." by simp
   also note gcd_mult_distrib
-  also have "normalization_factor ((gcd a b)^n) = 1"
-    by (simp add: normalization_factor_pow A)
+  also have "unit_factor ((gcd a b)^n) = 1"
+    by (simp add: unit_factor_power A)
   also have "(gcd a b)^n * (a div gcd a b)^n = a^n"
     by (subst ac_simps, subst div_power, simp, rule dvd_div_mult_self, rule dvd_power_same, simp)
   also have "(gcd a b)^n * (b div gcd a b)^n = b^n"
@@ -850,29 +807,20 @@ proof -
 qed
 
 lemma lcm_gcd:
-  "lcm a b = a * b div (gcd a b * normalization_factor (a*b))"
-  by (simp only: lcm_lcm_eucl gcd_gcd_eucl lcm_eucl_def)
+  "lcm a b = normalize (a * b) div gcd a b"
+  by (simp add: lcm_lcm_eucl gcd_gcd_eucl lcm_eucl_def)
 
 lemma lcm_gcd_prod:
-  "lcm a b * gcd a b = a * b div normalization_factor (a*b)"
-proof (cases "a * b = 0")
-  let ?nf = normalization_factor
-  assume "a * b \<noteq> 0"
-  hence "gcd a b \<noteq> 0" by simp
-  from lcm_gcd have "lcm a b * gcd a b = gcd a b * (a * b div (?nf (a*b) * gcd a b))" 
-    by (simp add: mult_ac)
-  also from \<open>a * b \<noteq> 0\<close> have "... = a * b div ?nf (a*b)"
-    by (simp add: div_mult_swap mult.commute)
-  finally show ?thesis .
-qed (auto simp add: lcm_gcd)
+  "lcm a b * gcd a b = normalize (a * b)"
+  by (simp add: lcm_gcd)
 
 lemma lcm_dvd1 [iff]:
   "a dvd lcm a b"
 proof (cases "a*b = 0")
   assume "a * b \<noteq> 0"
   hence "gcd a b \<noteq> 0" by simp
-  let ?c = "1 div normalization_factor (a * b)"
-  from \<open>a * b \<noteq> 0\<close> have [simp]: "is_unit (normalization_factor (a * b))" by simp
+  let ?c = "1 div unit_factor (a * b)"
+  from \<open>a * b \<noteq> 0\<close> have [simp]: "is_unit (unit_factor (a * b))" by simp
   from lcm_gcd_prod[of a b] have "lcm a b * gcd a b = a * ?c * b"
     by (simp add: div_mult_swap unit_div_commute)
   hence "lcm a b * gcd a b div gcd a b = a * ?c * b div gcd a b" by simp
@@ -886,7 +834,7 @@ qed (auto simp add: lcm_gcd)
 lemma lcm_least:
   "\<lbrakk>a dvd k; b dvd k\<rbrakk> \<Longrightarrow> lcm a b dvd k"
 proof (cases "k = 0")
-  let ?nf = normalization_factor
+  let ?nf = unit_factor
   assume "k \<noteq> 0"
   hence "is_unit (?nf k)" by simp
   hence "?nf k \<noteq> 0" by (metis not_is_unit_0)
@@ -928,7 +876,7 @@ qed simp
 lemma lcm_zero:
   "lcm a b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
 proof -
-  let ?nf = normalization_factor
+  let ?nf = unit_factor
   {
     assume "a \<noteq> 0" "b \<noteq> 0"
     hence "a * b div ?nf (a * b) \<noteq> 0" by (simp add: no_zero_divisors)
@@ -945,42 +893,26 @@ lemmas lcm_0_iff = lcm_zero
 
 lemma gcd_lcm: 
   assumes "lcm a b \<noteq> 0"
-  shows "gcd a b = a * b div (lcm a b * normalization_factor (a * b))"
-proof-
-  from assms have "gcd a b \<noteq> 0" by (simp add: lcm_zero)
-  let ?c = "normalization_factor (a * b)"
-  from \<open>lcm a b \<noteq> 0\<close> have "?c \<noteq> 0" by (intro notI, simp add: lcm_zero no_zero_divisors)
-  hence "is_unit ?c" by simp
-  from lcm_gcd_prod [of a b] have "gcd a b = a * b div ?c div lcm a b"
-    by (subst (2) div_mult_self2_is_id[OF \<open>lcm a b \<noteq> 0\<close>, symmetric], simp add: mult_ac)
-  also from \<open>is_unit ?c\<close> have "... = a * b div (lcm a b * ?c)"
-    by (metis \<open>?c \<noteq> 0\<close> div_mult_mult1 dvd_mult_div_cancel mult_commute normalization_factor_dvd')
-  finally show ?thesis .
+  shows "gcd a b = normalize (a * b) div lcm a b"
+proof -
+  have "lcm a b * gcd a b = normalize (a * b)"
+    by (fact lcm_gcd_prod)
+  with assms show ?thesis
+    by (metis nonzero_mult_divide_cancel_left)
 qed
 
-lemma normalization_factor_lcm [simp]:
-  "normalization_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
-proof (cases "a = 0 \<or> b = 0")
-  case True then show ?thesis
-    by (auto simp add: lcm_gcd) 
-next
-  case False
-  let ?nf = normalization_factor
-  from lcm_gcd_prod[of a b] 
-    have "?nf (lcm a b) * ?nf (gcd a b) = ?nf (a*b) div ?nf (a*b)"
-    by (metis div_by_0 div_self normalization_correct normalization_factor_0 normalization_factor_mult)
-  also have "... = (if a*b = 0 then 0 else 1)"
-    by simp
-  finally show ?thesis using False by simp
-qed
+lemma unit_factor_lcm [simp]:
+  "unit_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
+  by (simp add: dvd_unit_factor_div lcm_gcd)
 
 lemma lcm_dvd2 [iff]: "b dvd lcm a b"
   using lcm_dvd1 [of b a] by (simp add: lcm_gcd ac_simps)
 
 lemma lcmI:
-  "\<lbrakk>a dvd k; b dvd k; \<And>l. a dvd l \<Longrightarrow> b dvd l \<Longrightarrow> k dvd l;
-    normalization_factor k = (if k = 0 then 0 else 1)\<rbrakk> \<Longrightarrow> k = lcm a b"
-  by (intro normed_associated_imp_eq) (auto simp: associated_def intro: lcm_least)
+  assumes "a dvd c" and "b dvd c" and "\<And>d. a dvd d \<Longrightarrow> b dvd d \<Longrightarrow> c dvd d"
+    and "unit_factor c = (if c = 0 then 0 else 1)"
+  shows "c = lcm a b"
+  by (rule associated_eqI) (auto simp: assms associated_def intro: lcm_least)
 
 sublocale lcm!: abel_semigroup lcm
 proof
@@ -1030,8 +962,8 @@ next
   assume "is_unit a \<and> is_unit b"
   hence "a dvd 1" and "b dvd 1" by simp_all
   hence "is_unit (lcm a b)" by (rule lcm_least)
-  hence "lcm a b = normalization_factor (lcm a b)"
-    by (subst normalization_factor_unit, simp_all)
+  hence "lcm a b = unit_factor (lcm a b)"
+    by (blast intro: sym is_unit_unit_factor)
   also have "\<dots> = 1" using \<open>is_unit a \<and> is_unit b\<close>
     by auto
   finally show "lcm a b = 1" .
@@ -1047,7 +979,7 @@ lemma lcm_0 [simp]:
 
 lemma lcm_unique:
   "a dvd d \<and> b dvd d \<and> 
-  normalization_factor d = (if d = 0 then 0 else 1) \<and>
+  unit_factor d = (if d = 0 then 0 else 1) \<and>
   (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by (rule, auto intro: lcmI simp: lcm_least lcm_zero)
 
@@ -1060,43 +992,43 @@ lemma dvd_lcm_I2 [simp]:
   by (metis lcm_dvd2 dvd_trans)
 
 lemma lcm_1_left [simp]:
-  "lcm 1 a = a div normalization_factor a"
+  "lcm 1 a = normalize a"
   by (cases "a = 0") (simp, rule sym, rule lcmI, simp_all)
 
 lemma lcm_1_right [simp]:
-  "lcm a 1 = a div normalization_factor a"
+  "lcm a 1 = normalize a"
   using lcm_1_left [of a] by (simp add: ac_simps)
 
 lemma lcm_coprime:
-  "gcd a b = 1 \<Longrightarrow> lcm a b = a * b div normalization_factor (a*b)"
+  "gcd a b = 1 \<Longrightarrow> lcm a b = normalize (a * b)"
   by (subst lcm_gcd) simp
 
 lemma lcm_proj1_if_dvd: 
-  "b dvd a \<Longrightarrow> lcm a b = a div normalization_factor a"
+  "b dvd a \<Longrightarrow> lcm a b = normalize a"
   by (cases "a = 0") (simp, rule sym, rule lcmI, simp_all)
 
 lemma lcm_proj2_if_dvd: 
-  "a dvd b \<Longrightarrow> lcm a b = b div normalization_factor b"
+  "a dvd b \<Longrightarrow> lcm a b = normalize b"
   using lcm_proj1_if_dvd [of a b] by (simp add: ac_simps)
 
 lemma lcm_proj1_iff:
-  "lcm m n = m div normalization_factor m \<longleftrightarrow> n dvd m"
+  "lcm m n = normalize m \<longleftrightarrow> n dvd m"
 proof
-  assume A: "lcm m n = m div normalization_factor m"
+  assume A: "lcm m n = normalize m"
   show "n dvd m"
   proof (cases "m = 0")
     assume [simp]: "m \<noteq> 0"
-    from A have B: "m = lcm m n * normalization_factor m"
+    from A have B: "m = lcm m n * unit_factor m"
       by (simp add: unit_eq_div2)
     show ?thesis by (subst B, simp)
   qed simp
 next
   assume "n dvd m"
-  then show "lcm m n = m div normalization_factor m" by (rule lcm_proj1_if_dvd)
+  then show "lcm m n = normalize m" by (rule lcm_proj1_if_dvd)
 qed
 
 lemma lcm_proj2_iff:
-  "lcm m n = n div normalization_factor n \<longleftrightarrow> m dvd n"
+  "lcm m n = normalize n \<longleftrightarrow> m dvd n"
   using lcm_proj1_iff [of n m] by (simp add: ac_simps)
 
 lemma euclidean_size_lcm_le1: 
@@ -1138,7 +1070,7 @@ lemma lcm_mult_unit1:
   apply (rule dvd_trans[of _ "b * a"], simp, rule lcm_dvd1)
   apply (rule lcm_dvd2)
   apply (rule lcm_least, simp add: unit_simps, assumption)
-  apply (subst normalization_factor_lcm, simp add: lcm_zero)
+  apply (subst unit_factor_lcm, simp add: lcm_zero)
   done
 
 lemma lcm_mult_unit2:
@@ -1152,6 +1084,24 @@ lemma lcm_div_unit1:
 lemma lcm_div_unit2:
   "is_unit a \<Longrightarrow> lcm b (c div a) = lcm b c"
   by (erule is_unitE [of _ c]) (simp add: lcm_mult_unit2)
+
+lemma normalize_lcm_left [simp]:
+  "lcm (normalize a) b = lcm a b"
+proof (cases "a = 0")
+  case True then show ?thesis
+    by simp
+next
+  case False then have "is_unit (unit_factor a)"
+    by simp
+  moreover have "normalize a = a div unit_factor a"
+    by simp
+  ultimately show ?thesis
+    by (simp only: lcm_div_unit1)
+qed
+
+lemma normalize_lcm_right [simp]:
+  "lcm a (normalize b) = lcm a b"
+  using normalize_lcm_left [of b a] by (simp add: ac_simps)
 
 lemma lcm_left_idem:
   "lcm a (lcm a b) = lcm a b"
@@ -1182,12 +1132,12 @@ next
 qed
 
 lemma dvd_Lcm [simp]: "a \<in> A \<Longrightarrow> a dvd Lcm A"
-  and Lcm_dvd [simp]: "(\<forall>a\<in>A. a dvd l') \<Longrightarrow> Lcm A dvd l'"
-  and normalization_factor_Lcm [simp]: 
-          "normalization_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)"
+  and Lcm_least: "(\<And>a. a \<in> A \<Longrightarrow> a dvd b) \<Longrightarrow> Lcm A dvd b"
+  and unit_factor_Lcm [simp]: 
+          "unit_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)"
 proof -
   have "(\<forall>a\<in>A. a dvd Lcm A) \<and> (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> Lcm A dvd l') \<and>
-    normalization_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)" (is ?thesis)
+    unit_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)" (is ?thesis)
   proof (cases "\<exists>l. l \<noteq>  0 \<and> (\<forall>a\<in>A. a dvd l)")
     case False
     hence "Lcm A = 0" by (auto simp: Lcm_Lcm_eucl Lcm_eucl_def)
@@ -1229,39 +1179,42 @@ proof -
       hence "l dvd l'" by (blast dest: dvd_gcd_D2)
     }
 
-    with \<open>(\<forall>a\<in>A. a dvd l)\<close> and normalization_factor_is_unit[OF \<open>l \<noteq> 0\<close>] and \<open>l \<noteq> 0\<close>
-      have "(\<forall>a\<in>A. a dvd l div normalization_factor l) \<and> 
-        (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> l div normalization_factor l dvd l') \<and>
-        normalization_factor (l div normalization_factor l) = 
-        (if l div normalization_factor l = 0 then 0 else 1)"
+    with \<open>(\<forall>a\<in>A. a dvd l)\<close> and unit_factor_is_unit[OF \<open>l \<noteq> 0\<close>] and \<open>l \<noteq> 0\<close>
+      have "(\<forall>a\<in>A. a dvd normalize l) \<and> 
+        (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> normalize l dvd l') \<and>
+        unit_factor (normalize l) = 
+        (if normalize l = 0 then 0 else 1)"
       by (auto simp: unit_simps)
-    also from True have "l div normalization_factor l = Lcm A"
+    also from True have "normalize l = Lcm A"
       by (simp add: Lcm_Lcm_eucl Lcm_eucl_def Let_def n_def l_def)
     finally show ?thesis .
   qed
   note A = this
 
   {fix a assume "a \<in> A" then show "a dvd Lcm A" using A by blast}
-  {fix l' assume "\<forall>a\<in>A. a dvd l'" then show "Lcm A dvd l'" using A by blast}
-  from A show "normalization_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)" by blast
+  {fix b assume "\<And>a. a \<in> A \<Longrightarrow> a dvd b" then show "Lcm A dvd b" using A by blast}
+  from A show "unit_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)" by blast
 qed
-    
+
+lemma normalize_Lcm [simp]:
+  "normalize (Lcm A) = Lcm A"
+  by (cases "Lcm A = 0") (auto intro: associated_eqI)
+
 lemma LcmI:
-  "(\<And>a. a\<in>A \<Longrightarrow> a dvd l) \<Longrightarrow> (\<And>l'. (\<forall>a\<in>A. a dvd l') \<Longrightarrow> l dvd l') \<Longrightarrow>
-      normalization_factor l = (if l = 0 then 0 else 1) \<Longrightarrow> l = Lcm A"
-  by (intro normed_associated_imp_eq)
-    (auto intro: Lcm_dvd dvd_Lcm simp: associated_def)
+  assumes "\<And>a. a \<in> A \<Longrightarrow> a dvd b" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> a dvd c) \<Longrightarrow> b dvd c"
+    and "unit_factor b = (if b = 0 then 0 else 1)" shows "b = Lcm A"
+  by (rule associated_eqI) (auto simp: assms associated_def intro: Lcm_least)
 
 lemma Lcm_subset:
   "A \<subseteq> B \<Longrightarrow> Lcm A dvd Lcm B"
-  by (blast intro: Lcm_dvd dvd_Lcm)
+  by (blast intro: Lcm_least dvd_Lcm)
 
 lemma Lcm_Un:
   "Lcm (A \<union> B) = lcm (Lcm A) (Lcm B)"
   apply (rule lcmI)
   apply (blast intro: Lcm_subset)
   apply (blast intro: Lcm_subset)
-  apply (intro Lcm_dvd ballI, elim UnE)
+  apply (intro Lcm_least ballI, elim UnE)
   apply (rule dvd_trans, erule dvd_Lcm, assumption)
   apply (rule dvd_trans, erule dvd_Lcm, assumption)
   apply simp
@@ -1279,7 +1232,7 @@ lemma Lcm_no_units:
 proof -
   have "(A - {a. is_unit a}) \<union> {a\<in>A. is_unit a} = A" by blast
   hence "Lcm A = lcm (Lcm (A - {a. is_unit a})) (Lcm {a\<in>A. is_unit a})"
-    by (simp add: Lcm_Un[symmetric])
+    by (simp add: Lcm_Un [symmetric])
   also have "Lcm {a\<in>A. is_unit a} = 1" by (simp add: Lcm_1_iff)
   finally show ?thesis by simp
 qed
@@ -1309,8 +1262,8 @@ proof
       apply (simp add: l\<^sub>0_props)
       done
     from someI_ex[OF this] have "l \<noteq> 0" unfolding l_def by simp_all
-    hence "l div normalization_factor l \<noteq> 0" by simp
-    also from ex have "l div normalization_factor l = Lcm A"
+    hence "normalize l \<noteq> 0" by simp
+    also from ex have "normalize l = Lcm A"
        by (simp only: Lcm_Lcm_eucl Lcm_eucl_def n_def l_def if_True Let_def)
     finally show False using \<open>Lcm A = 0\<close> by contradiction
   qed
@@ -1350,8 +1303,8 @@ lemma Lcm_insert [simp]:
 proof (rule lcmI)
   fix l assume "a dvd l" and "Lcm A dvd l"
   hence "\<forall>a\<in>A. a dvd l" by (blast intro: dvd_trans dvd_Lcm)
-  with \<open>a dvd l\<close> show "Lcm (insert a A) dvd l" by (force intro: Lcm_dvd)
-qed (auto intro: Lcm_dvd dvd_Lcm)
+  with \<open>a dvd l\<close> show "Lcm (insert a A) dvd l" by (force intro: Lcm_least)
+qed (auto intro: Lcm_least dvd_Lcm)
  
 lemma Lcm_finite:
   assumes "finite A"
@@ -1364,32 +1317,31 @@ lemma Lcm_set [code_unfold]:
   using comp_fun_idem.fold_set_fold[OF comp_fun_idem_lcm] Lcm_finite by (simp add: ac_simps)
 
 lemma Lcm_singleton [simp]:
-  "Lcm {a} = a div normalization_factor a"
+  "Lcm {a} = normalize a"
   by simp
 
 lemma Lcm_2 [simp]:
   "Lcm {a,b} = lcm a b"
-  by (simp only: Lcm_insert Lcm_empty lcm_1_right)
-    (cases "b = 0", simp, rule lcm_div_unit2, simp)
+  by simp
 
 lemma Lcm_coprime:
   assumes "finite A" and "A \<noteq> {}" 
   assumes "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> gcd a b = 1"
-  shows "Lcm A = \<Prod>A div normalization_factor (\<Prod>A)"
+  shows "Lcm A = normalize (\<Prod>A)"
 using assms proof (induct rule: finite_ne_induct)
   case (insert a A)
   have "Lcm (insert a A) = lcm a (Lcm A)" by simp
-  also from insert have "Lcm A = \<Prod>A div normalization_factor (\<Prod>A)" by blast
+  also from insert have "Lcm A = normalize (\<Prod>A)" by blast
   also have "lcm a \<dots> = lcm a (\<Prod>A)" by (cases "\<Prod>A = 0") (simp_all add: lcm_div_unit2)
   also from insert have "gcd a (\<Prod>A) = 1" by (subst gcd.commute, intro setprod_coprime) auto
-  with insert have "lcm a (\<Prod>A) = \<Prod>(insert a A) div normalization_factor (\<Prod>(insert a A))"
+  with insert have "lcm a (\<Prod>A) = normalize (\<Prod>(insert a A))"
     by (simp add: lcm_coprime)
   finally show ?case .
 qed simp
       
 lemma Lcm_coprime':
   "card A \<noteq> 0 \<Longrightarrow> (\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> gcd a b = 1)
-    \<Longrightarrow> Lcm A = \<Prod>A div normalization_factor (\<Prod>A)"
+    \<Longrightarrow> Lcm A = normalize (\<Prod>A)"
   by (rule Lcm_coprime) (simp_all add: card_eq_0_iff)
 
 lemma Gcd_Lcm:
@@ -1397,31 +1349,35 @@ lemma Gcd_Lcm:
   by (simp add: Gcd_Gcd_eucl Lcm_Lcm_eucl Gcd_eucl_def)
 
 lemma Gcd_dvd [simp]: "a \<in> A \<Longrightarrow> Gcd A dvd a"
-  and dvd_Gcd [simp]: "(\<forall>a\<in>A. g' dvd a) \<Longrightarrow> g' dvd Gcd A"
-  and normalization_factor_Gcd [simp]: 
-    "normalization_factor (Gcd A) = (if Gcd A = 0 then 0 else 1)"
+  and Gcd_greatest: "(\<And>a. a \<in> A \<Longrightarrow> b dvd a) \<Longrightarrow> b dvd Gcd A"
+  and unit_factor_Gcd [simp]: 
+    "unit_factor (Gcd A) = (if Gcd A = 0 then 0 else 1)"
 proof -
   fix a assume "a \<in> A"
-  hence "Lcm {d. \<forall>a\<in>A. d dvd a} dvd a" by (intro Lcm_dvd) blast
+  hence "Lcm {d. \<forall>a\<in>A. d dvd a} dvd a" by (intro Lcm_least) blast
   then show "Gcd A dvd a" by (simp add: Gcd_Lcm)
 next
-  fix g' assume "\<forall>a\<in>A. g' dvd a"
+  fix g' assume "\<And>a. a \<in> A \<Longrightarrow> g' dvd a"
   hence "g' dvd Lcm {d. \<forall>a\<in>A. d dvd a}" by (intro dvd_Lcm) blast
   then show "g' dvd Gcd A" by (simp add: Gcd_Lcm)
 next
-  show "normalization_factor (Gcd A) = (if Gcd A = 0 then 0 else 1)"
+  show "unit_factor (Gcd A) = (if Gcd A = 0 then 0 else 1)"
     by (simp add: Gcd_Lcm)
 qed
 
+lemma normalize_Gcd [simp]:
+  "normalize (Gcd A) = Gcd A"
+  by (cases "Gcd A = 0") (auto intro: associated_eqI)
+
 lemma GcdI:
-  "(\<And>a. a\<in>A \<Longrightarrow> l dvd a) \<Longrightarrow> (\<And>l'. (\<forall>a\<in>A. l' dvd a) \<Longrightarrow> l' dvd l) \<Longrightarrow>
-    normalization_factor l = (if l = 0 then 0 else 1) \<Longrightarrow> l = Gcd A"
-  by (intro normed_associated_imp_eq)
-    (auto intro: Gcd_dvd dvd_Gcd simp: associated_def)
+  assumes "\<And>a. a \<in> A \<Longrightarrow> b dvd a" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> c dvd a) \<Longrightarrow> c dvd b"
+    and "unit_factor b = (if b = 0 then 0 else 1)"
+  shows "b = Gcd A"
+  by (rule associated_eqI) (auto simp: assms associated_def intro: Gcd_greatest)
 
 lemma Lcm_Gcd:
   "Lcm A = Gcd {m. \<forall>a\<in>A. a dvd m}"
-  by (rule LcmI[symmetric]) (auto intro: dvd_Gcd Gcd_dvd)
+  by (rule LcmI[symmetric]) (auto intro: dvd_Gcd Gcd_greatest)
 
 lemma Gcd_0_iff:
   "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}"
@@ -1443,8 +1399,8 @@ lemma Gcd_insert [simp]:
 proof (rule gcdI)
   fix l assume "l dvd a" and "l dvd Gcd A"
   hence "\<forall>a\<in>A. l dvd a" by (blast intro: dvd_trans Gcd_dvd)
-  with \<open>l dvd a\<close> show "l dvd Gcd (insert a A)" by (force intro: Gcd_dvd)
-qed auto
+  with \<open>l dvd a\<close> show "l dvd Gcd (insert a A)" by (force intro: Gcd_dvd Gcd_greatest)
+qed (auto intro: Gcd_greatest)
 
 lemma Gcd_finite:
   assumes "finite A"
@@ -1456,11 +1412,11 @@ lemma Gcd_set [code_unfold]:
   "Gcd (set xs) = fold gcd xs 0"
   using comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd] Gcd_finite by (simp add: ac_simps)
 
-lemma Gcd_singleton [simp]: "Gcd {a} = a div normalization_factor a"
+lemma Gcd_singleton [simp]: "Gcd {a} = normalize a"
   by (simp add: gcd_0)
 
 lemma Gcd_2 [simp]: "Gcd {a,b} = gcd a b"
-  by (simp only: Gcd_insert Gcd_empty gcd_0) (cases "b = 0", simp, rule gcd_div_unit2, simp)
+  by (simp add: gcd_0)
 
 subclass semiring_gcd
   by unfold_locales (simp_all add: gcd_greatest_iff)
@@ -1554,7 +1510,7 @@ definition [simp]:
   "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
 
 definition [simp]:
-  "normalization_factor_nat (n::nat) = (if n = 0 then 0 else 1 :: nat)"
+  "unit_factor_nat (n::nat) = (if n = 0 then 0 else 1 :: nat)"
 
 instance proof
 qed simp_all
@@ -1568,22 +1524,10 @@ definition [simp]:
   "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
 
 definition [simp]:
-  "normalization_factor_int = (sgn :: int \<Rightarrow> int)"
+  "unit_factor_int = (sgn :: int \<Rightarrow> int)"
 
 instance
-proof (default, goals)
-  case 2
-  then show ?case by (auto simp add: abs_mult nat_mult_distrib)
-next
-  case 3
-  then show ?case by (simp add: zsgn_def)
-next
-  case 5
-  then show ?case by (auto simp: zsgn_def)
-next
-  case 6
-  then show ?case by (auto split: abs_split simp: zsgn_def)
-qed (auto simp: sgn_times split: abs_split)
+by standard (auto simp add: abs_mult nat_mult_distrib sgn_times split: abs_split)
 
 end
 
@@ -1593,8 +1537,9 @@ begin
 definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
   where "euclidean_size p = (if p = 0 then 0 else Suc (degree p))"
 
-definition normalization_factor_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "normalization_factor p = monom (coeff p (degree p)) 0"
+lemma euclidenan_size_poly_minus_one_degree [simp]:
+  "euclidean_size p - 1 = degree p"
+  by (simp add: euclidean_size_poly_def)
 
 lemma euclidean_size_poly_0 [simp]:
   "euclidean_size (0::'a poly) = 0"
@@ -1619,30 +1564,6 @@ next
     by (rule degree_mult_right_le)
   with \<open>q \<noteq> 0\<close> show "euclidean_size p \<le> euclidean_size (p * q)"
     by (cases "p = 0") simp_all
-  from \<open>q \<noteq> 0\<close> have "is_unit (monom (coeff q (degree q)) 0)"
-    by (auto intro: is_unit_monom_0)
-  then show "is_unit (normalization_factor q)"
-    by (simp add: normalization_factor_poly_def)
-next
-  fix p :: "'a poly"
-  assume "is_unit p"
-  then have "monom (coeff p (degree p)) 0 = p"
-    by (fact is_unit_monom_trival)
-  then show "normalization_factor p = p"
-    by (simp add: normalization_factor_poly_def)
-next
-  fix p q :: "'a poly"
-  have "monom (coeff (p * q) (degree (p * q))) 0 =
-    monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
-    by (simp add: monom_0 coeff_degree_mult)
-  then show "normalization_factor (p * q) =
-    normalization_factor p * normalization_factor q"
-    by (simp add: normalization_factor_poly_def)
-next
-  have "monom (coeff 0 (degree 0)) 0 = 0"
-    by simp
-  then show "normalization_factor 0 = (0::'a poly)"
-    by (simp add: normalization_factor_poly_def)
 qed
 
 end
