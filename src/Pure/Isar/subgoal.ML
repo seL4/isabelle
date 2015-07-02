@@ -1,4 +1,4 @@
-(*  Title:      Pure/subgoal.ML
+(*  Title:      Pure/Isar/subgoal.ML
     Author:     Makarius
     Author:     Daniel Matichuk, NICTA/UNSW
 
@@ -43,7 +43,7 @@ fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   let
     val st = raw_st
       |> Thm.transfer (Proof_Context.theory_of ctxt)
-      |> Simplifier.norm_hhf_protect ctxt;
+      |> Raw_Simplifier.norm_hhf_protect ctxt;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
     val ((params, goal), ctxt2) = Variable.focus_cterm (Thm.cprem_of st' i) ctxt1;
 

@@ -262,6 +262,7 @@ use "Isar/method.ML";
 use "Isar/proof.ML";
 use "Isar/element.ML";
 use "Isar/obtain.ML";
+use "Isar/subgoal.ML";
 
 (*local theories and targets*)
 use "Isar/locale.ML";
@@ -316,8 +317,6 @@ use "PIDE/document.ML";
 
 (*theory and proof operations*)
 use "Isar/isar_cmd.ML";
-
-use "subgoal.ML";
 
 
 (* Isabelle/Isar system *)
