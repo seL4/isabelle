@@ -2185,6 +2185,40 @@ lemma ereal_of_enat_mult:
 lemmas ereal_of_enat_pushin = ereal_of_enat_add ereal_of_enat_sub ereal_of_enat_mult
 lemmas ereal_of_enat_pushout = ereal_of_enat_pushin[symmetric]
 
+lemma ereal_of_enat_Sup:
+  assumes "A \<noteq> {}" shows "ereal_of_enat (Sup A) = (SUP a : A. ereal_of_enat a)"
+proof (intro antisym mono_Sup)
+  show "ereal_of_enat (Sup A) \<le> (SUP a : A. ereal_of_enat a)"
+  proof cases
+    assume "finite A"
+    with `A \<noteq> {}` obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
+      using Max_in[of A] by (auto simp: Sup_enat_def simp del: Max_in)
+    then show ?thesis
+      by (auto intro: SUP_upper)
+  next
+    assume "\<not> finite A"
+    have [simp]: "(SUP a : A. ereal_of_enat a) = top"
+      unfolding SUP_eq_top_iff
+    proof safe
+      fix x :: ereal assume "x < top"
+      then obtain n :: nat where "x < n"
+        using less_PInf_Ex_of_nat top_ereal_def by auto
+      obtain a where "a \<in> A - enat ` {.. n}"
+        by (metis `\<not> finite A` all_not_in_conv finite_Diff2 finite_atMost finite_imageI finite.emptyI)
+      then have "a \<in> A" "ereal n \<le> ereal_of_enat a"
+        by (auto simp: image_iff Ball_def)
+           (metis enat_iless enat_ord_simps(1) ereal_of_enat_less_iff ereal_of_enat_simps(1) less_le not_less)
+      with `x < n` show "\<exists>i\<in>A. x < ereal_of_enat i"
+        by (auto intro!: bexI[of _ a])
+    qed
+    show ?thesis
+      by simp
+  qed
+qed (simp add: mono_def)
+
+lemma ereal_of_enat_SUP:
+  "A \<noteq> {} \<Longrightarrow> ereal_of_enat (SUP a:A. f a) = (SUP a : A. ereal_of_enat (f a))"
+  using ereal_of_enat_Sup[of "f`A"] by auto
 
 subsection "Limits on @{typ ereal}"
 
@@ -2771,14 +2805,31 @@ qed
 lemma not_MInfty_nonneg[simp]: "0 \<le> (x::ereal) \<Longrightarrow> x \<noteq> - \<infinity>"
   by auto
 
-lemma sup_continuous_add_left[order_continuous_intros]: "0 \<le> c \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x + c :: ereal)"
-  by (auto simp: sup_continuous_def SUP_ereal_add_left)
+lemma sup_continuous_add[order_continuous_intros]:
+  fixes f g :: "'a::complete_lattice \<Rightarrow> ereal"
+  assumes nn: "\<And>x. 0 \<le> f x" "\<And>x. 0 \<le> g x" and cont: "sup_continuous f" "sup_continuous g"
+  shows "sup_continuous (\<lambda>x. f x + g x)"
+  unfolding sup_continuous_def
+proof safe
+  fix M :: "nat \<Rightarrow> 'a" assume "incseq M"
+  then show "f (SUP i. M i) + g (SUP i. M i) = (SUP i. f (M i) + g (M i))"
+    using SUP_ereal_add_pos[of "\<lambda>i. f (M i)" "\<lambda>i. g (M i)"] nn
+      cont[THEN sup_continuous_mono] cont[THEN sup_continuousD]
+    by (auto simp: mono_def)
+qed
 
-lemma sup_continuous_add_right[order_continuous_intros]: "0 \<le> c \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. c + f x :: ereal)"
-  using sup_continuous_add_left by (simp add: ac_simps)
-
-lemma sup_continuous_multc[order_continuous_intros]: "0 \<le> c \<Longrightarrow> c < \<infinity> \<Longrightarrow> sup_continuous (\<lambda>f s. f s * c :: ereal)"
+lemma sup_continuous_mult_right[order_continuous_intros]:
+  "0 \<le> c \<Longrightarrow> c < \<infinity> \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x * c :: ereal)"
   by (cases c) (auto simp: sup_continuous_def fun_eq_iff Sup_ereal_mult_right')
+
+lemma sup_continuous_mult_left[order_continuous_intros]:
+  "0 \<le> c \<Longrightarrow> c < \<infinity> \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. c * f x :: ereal)"
+  using sup_continuous_mult_right[of c f] by (simp add: mult_ac)
+
+lemma sup_continuous_ereal_of_enat[order_continuous_intros]:
+  assumes f: "sup_continuous f" shows "sup_continuous (\<lambda>x. ereal_of_enat (f x))"
+  by (rule sup_continuous_compose[OF _ f])
+     (auto simp: sup_continuous_def ereal_of_enat_SUP)
 
 subsubsection \<open>Tests for code generator\<close>
 
