@@ -70,6 +70,7 @@ sig
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_of_thm: thm -> theory
+  val theory_name_of_thm: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
@@ -391,6 +392,7 @@ fun merge_thys2 (Thm (_, {thy = thy1, ...})) (Thm (_, {thy = thy2, ...})) =
 (* basic components *)
 
 val theory_of_thm = #thy o rep_thm;
+val theory_name_of_thm = Context.theory_name o #thy o rep_thm;
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val hyps_of = #hyps o rep_thm;

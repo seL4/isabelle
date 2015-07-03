@@ -58,7 +58,7 @@ fun extract_suggestions line =
   | _ => ("", []))
 
 fun has_thm_thy th thy =
-  Context.theory_name thy = Context.theory_name (Thm.theory_of_thm th)
+  Context.theory_name thy = Thm.theory_name_of_thm th
 
 fun has_thys thys th = exists (has_thm_thy th) thys
 

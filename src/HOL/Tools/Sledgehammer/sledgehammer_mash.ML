@@ -740,14 +740,12 @@ end
 fun elided_backquote_thm threshold th =
   elide_string threshold (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
 
-val thy_name_of_thm = Context.theory_name o Thm.theory_of_thm
-
 fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
-        SOME suf => Long_Name.implode [thy_name_of_thm th, suf, elided_backquote_thm 50 th]
+        SOME suf => Long_Name.implode [Thm.theory_name_of_thm th, suf, elided_backquote_thm 50 th]
       | NONE => hint)
     end
   else
@@ -1073,10 +1071,10 @@ fun attach_parents_to_facts _ [] = []
           let
             val chunks = app_hd (cons th) chunks
             val chunks_and_parents' =
-              if thm_less_eq (th, th') andalso thy_name_of_thm th = thy_name_of_thm th' then
-                (chunks, [nickname_of_thm th])
-              else
-                chunks_and_parents_for chunks th'
+              if thm_less_eq (th, th') andalso
+                Thm.theory_name_of_thm th = Thm.theory_name_of_thm th'
+              then (chunks, [nickname_of_thm th])
+              else chunks_and_parents_for chunks th'
           in
             (parents, fact) :: do_facts chunks_and_parents' facts
           end
@@ -1158,8 +1156,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
 
     val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
 
-    fun fact_has_right_theory (_, th) =
-      thy_name = Context.theory_name (Thm.theory_of_thm th)
+    fun fact_has_right_theory (_, th) = thy_name = Thm.theory_name_of_thm th
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [Thm.prop_of th]
