@@ -230,7 +230,6 @@ apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
 apply (simp_all)
 done
 
-
 text{*Definition forms of @{text gfp_unfold} and @{text coinduct}, 
     to control unfolding*}
 
@@ -283,15 +282,6 @@ proof (rule antisym)
   qed
 qed
 
-lemma lfp_square:
-  assumes "mono f" shows "lfp f = lfp (\<lambda>x. f (f x))"
-proof (rule antisym)
-  show "lfp f \<le> lfp (\<lambda>x. f (f x))"
-    by (intro lfp_lowerbound) (simp add: assms lfp_rolling)
-  show "lfp (\<lambda>x. f (f x)) \<le> lfp f"
-    by (intro lfp_lowerbound) (simp add: lfp_unfold[OF assms, symmetric])
-qed
-
 lemma lfp_lfp:
   assumes f: "\<And>x y w z. x \<le> y \<Longrightarrow> w \<le> z \<Longrightarrow> f x w \<le> f y z"
   shows "lfp (\<lambda>x. lfp (f x)) = lfp (\<lambda>x. f x x)"
@@ -328,15 +318,6 @@ proof (rule antisym)
     ultimately show "u \<le> g (gfp (\<lambda>x. f (g x)))"
       by auto
   qed
-qed
-
-lemma gfp_square:
-  assumes "mono f" shows "gfp f = gfp (\<lambda>x. f (f x))"
-proof (rule antisym)
-  show "gfp (\<lambda>x. f (f x)) \<le> gfp f"
-    by (intro gfp_upperbound) (simp add: assms gfp_rolling)
-  show "gfp f \<le> gfp (\<lambda>x. f (f x))"
-    by (intro gfp_upperbound) (simp add: gfp_unfold[OF assms, symmetric])
 qed
 
 lemma gfp_gfp:

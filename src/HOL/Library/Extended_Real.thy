@@ -8,7 +8,7 @@
 section \<open>Extended real number line\<close>
 
 theory Extended_Real
-imports Complex_Main Extended_Nat Liminf_Limsup Order_Continuity
+imports Complex_Main Extended_Nat Liminf_Limsup
 begin
 
 text \<open>
@@ -2767,6 +2767,18 @@ next
     finally show "?lhs \<le> ?rhs" .
   qed
 qed
+
+lemma not_MInfty_nonneg[simp]: "0 \<le> (x::ereal) \<Longrightarrow> x \<noteq> - \<infinity>"
+  by auto
+
+lemma sup_continuous_add_left[order_continuous_intros]: "0 \<le> c \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x + c :: ereal)"
+  by (auto simp: sup_continuous_def SUP_ereal_add_left)
+
+lemma sup_continuous_add_right[order_continuous_intros]: "0 \<le> c \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. c + f x :: ereal)"
+  using sup_continuous_add_left by (simp add: ac_simps)
+
+lemma sup_continuous_multc[order_continuous_intros]: "0 \<le> c \<Longrightarrow> c < \<infinity> \<Longrightarrow> sup_continuous (\<lambda>f s. f s * c :: ereal)"
+  by (cases c) (auto simp: sup_continuous_def fun_eq_iff Sup_ereal_mult_right')
 
 subsubsection \<open>Tests for code generator\<close>
 

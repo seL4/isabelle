@@ -548,7 +548,7 @@ lemma Lim_emeasure_decseq:
   using LIMSEQ_INF[OF decseq_emeasure, OF A]
   using INF_emeasure_decseq[OF A fin] by simp
 
-lemma emeasure_lfp[consumes 1, case_names cont measurable]:
+lemma emeasure_lfp'[consumes 1, case_names cont measurable]:
   assumes "P M"
   assumes cont: "sup_continuous F"
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> Measurable.pred N A) \<Longrightarrow> Measurable.pred M (F A)"
@@ -573,6 +573,20 @@ proof -
   ultimately show ?thesis
     by (subst SUP_emeasure_incseq) auto
 qed
+
+lemma emeasure_lfp:
+  assumes [simp]: "\<And>s. sets (M s) = sets N"
+  assumes cont: "sup_continuous F" "sup_continuous f"
+  assumes nonneg: "\<And>P s. 0 \<le> f P s"
+  assumes meas: "\<And>P. Measurable.pred N P \<Longrightarrow> Measurable.pred N (F P)"
+  assumes iter: "\<And>P s. Measurable.pred N P \<Longrightarrow> emeasure (M s) {x\<in>space N. F P x} = f (\<lambda>s. emeasure (M s) {x\<in>space N. P x}) s"
+  shows "emeasure (M s) {x\<in>space N. lfp F x} = lfp f s"
+proof (subst lfp_transfer_bounded[where \<alpha>="\<lambda>F s. emeasure (M s) {x\<in>space N. F x}" and g=f and f=F and P="Measurable.pred N", symmetric])
+  fix C assume "incseq C" "\<And>i. Measurable.pred N (C i)"
+  then show "(\<lambda>s. emeasure (M s) {x \<in> space N. (SUP i. C i) x}) = (SUP i. (\<lambda>s. emeasure (M s) {x \<in> space N. C i x}))"
+    unfolding SUP_apply[abs_def]
+    by (subst SUP_emeasure_incseq) (auto simp: mono_def fun_eq_iff intro!: arg_cong2[where f=emeasure])
+qed (auto simp add: iter nonneg le_fun_def SUP_apply[abs_def] intro!: meas cont)
 
 lemma emeasure_subadditive:
   assumes [measurable]: "A \<in> sets M" "B \<in> sets M"
@@ -1254,7 +1268,7 @@ proof (subst (1 2) emeasure_Collect_distr[symmetric, where X=f])
   have "emeasure (distr M' M f) {x \<in> space (distr M' M f). lfp F x} =
     (SUP i. emeasure (distr M' M f) {x \<in> space (distr M' M f). (F ^^ i) (\<lambda>x. False) x})"
     using `P M`
-  proof (coinduction arbitrary: M rule: emeasure_lfp)
+  proof (coinduction arbitrary: M rule: emeasure_lfp')
     case (measurable A N) then have "\<And>N. P N \<Longrightarrow> Measurable.pred (distr M' N f) A"
       by metis
     then have "\<And>N. P N \<Longrightarrow> Measurable.pred N A"
@@ -1661,6 +1675,26 @@ proof (rule finite_measureI)
   have "f -` space M' \<inter> space M = space M" using f by (auto dest: measurable_space)
   with f show "emeasure (distr M M' f) (space (distr M M' f)) \<noteq> \<infinity>" by (auto simp: emeasure_distr)
 qed
+
+lemma emeasure_gfp[consumes 1, case_names cont measurable]:
+  assumes sets[simp]: "\<And>s. sets (M s) = sets N"
+  assumes "\<And>s. finite_measure (M s)"
+  assumes cont: "inf_continuous F" "inf_continuous f"
+  assumes meas: "\<And>P. Measurable.pred N P \<Longrightarrow> Measurable.pred N (F P)"
+  assumes iter: "\<And>P s. Measurable.pred N P \<Longrightarrow> emeasure (M s) {x\<in>space N. F P x} = f (\<lambda>s. emeasure (M s) {x\<in>space N. P x}) s"
+  assumes bound: "\<And>P. f P \<le> f (\<lambda>s. emeasure (M s) (space (M s)))"
+  shows "emeasure (M s) {x\<in>space N. gfp F x} = gfp f s"
+proof (subst gfp_transfer_bounded[where \<alpha>="\<lambda>F s. emeasure (M s) {x\<in>space N. F x}" and g=f and f=F and
+    P="Measurable.pred N", symmetric])
+  interpret finite_measure "M s" for s by fact
+  fix C assume "decseq C" "\<And>i. Measurable.pred N (C i)"
+  then show "(\<lambda>s. emeasure (M s) {x \<in> space N. (INF i. C i) x}) = (INF i. (\<lambda>s. emeasure (M s) {x \<in> space N. C i x}))"
+    unfolding INF_apply[abs_def]
+    by (subst INF_emeasure_decseq) (auto simp: antimono_def fun_eq_iff intro!: arg_cong2[where f=emeasure])
+next
+  show "f x \<le> (\<lambda>s. emeasure (M s) {x \<in> space N. F top x})" for x
+    using bound[of x] sets_eq_imp_space_eq[OF sets] by (simp add: iter)
+qed (auto simp add: iter le_fun_def INF_apply[abs_def] intro!: meas cont)
 
 subsection {* Counting space *}
 

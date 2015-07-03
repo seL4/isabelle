@@ -1545,7 +1545,7 @@ proof -
   finally show ?thesis unfolding nn_integral_max_0 .
 qed
 
-lemma sup_continuous_nn_integral:
+lemma sup_continuous_nn_integral[order_continuous_intros]:
   assumes f: "\<And>y. sup_continuous (f y)"
   assumes [measurable]: "\<And>x. (\<lambda>y. f y x) \<in> borel_measurable M"
   shows "sup_continuous (\<lambda>x. (\<integral>\<^sup>+y. f y x \<partial>M))"
@@ -1557,7 +1557,7 @@ proof safe
     by (subst nn_integral_monotone_convergence_SUP) (auto simp: mono_def le_fun_def)
 qed
 
-lemma inf_continuous_nn_integral:
+lemma inf_continuous_nn_integral[order_continuous_intros]:
   assumes f: "\<And>y. inf_continuous (f y)"
   assumes [measurable]: "\<And>x. (\<lambda>y. f y x) \<in> borel_measurable M"
   assumes bnd: "\<And>x. (\<integral>\<^sup>+ y. f y x \<partial>M) \<noteq> \<infinity>"
@@ -1739,122 +1739,57 @@ proof -
 qed
 
 lemma nn_integral_lfp:
-  assumes sets: "\<And>s. sets (M s) = sets N"
+  assumes sets[simp]: "\<And>s. sets (M s) = sets N"
   assumes f: "sup_continuous f"
-  assumes meas: "\<And>F. F \<in> borel_measurable N \<Longrightarrow> f F \<in> borel_measurable N"
-  assumes nonneg: "\<And>F s. 0 \<le> g F s"
   assumes g: "sup_continuous g"
+  assumes nonneg: "\<And>F s. 0 \<le> g F s"
+  assumes meas: "\<And>F. F \<in> borel_measurable N \<Longrightarrow> f F \<in> borel_measurable N"
   assumes step: "\<And>F s. F \<in> borel_measurable N \<Longrightarrow> integral\<^sup>N (M s) (f F) = g (\<lambda>s. integral\<^sup>N (M s) F) s"
   shows "(\<integral>\<^sup>+\<omega>. lfp f \<omega> \<partial>M s) = lfp g s"
-proof (rule antisym)
-  show "lfp g s \<le> (\<integral>\<^sup>+\<omega>. lfp f \<omega> \<partial>M s)"
-  proof (induction arbitrary: s rule: lfp_ordinal_induct[OF sup_continuous_mono[OF g]])
-    case (1 F) then show ?case
-      apply (subst lfp_unfold[OF sup_continuous_mono[OF f]])
-      apply (subst step)
-      apply (rule borel_measurable_lfp[OF f])
-      apply (rule meas)
-      apply assumption+
-      apply (rule monoD[OF sup_continuous_mono[OF g], THEN le_funD])
-      apply (simp add: le_fun_def)
-      done
-  qed (auto intro: SUP_least)
-
-  have lfp_nonneg: "\<And>s. 0 \<le> lfp g s"
-    by (subst lfp_unfold[OF sup_continuous_mono[OF g]]) (rule nonneg)
-
-  { fix i have "((f ^^ i) bot) \<in> borel_measurable N"
-      by (induction i) (simp_all add: meas) }
-
-  have "(\<integral>\<^sup>+\<omega>. lfp f \<omega> \<partial>M s) = (\<integral>\<^sup>+\<omega>. (SUP i. (f ^^ i) bot \<omega>) \<partial>M s)"
-    by (simp add: sup_continuous_lfp f)
-  also have "\<dots> = (SUP i. \<integral>\<^sup>+\<omega>. (f ^^ i) bot \<omega> \<partial>M s)"
-  proof (rule nn_integral_monotone_convergence_SUP)
-    show "incseq (\<lambda>i. (f ^^ i) bot)"
-      using f[THEN sup_continuous_mono] by (rule mono_funpow)
-    show "\<And>i. ((f ^^ i) bot) \<in> borel_measurable (M s)"
-      unfolding measurable_cong_sets[OF sets refl] by fact
-  qed
-  also have "\<dots> \<le> lfp g s"
-  proof (rule SUP_least)
-    fix i show "integral\<^sup>N (M s) ((f ^^ i) bot) \<le> lfp g s"
-    proof (induction i arbitrary: s)
-      case 0 then show ?case
-        by (simp add: nn_integral_const_nonpos lfp_nonneg)
-    next
-      case (Suc n)
-      show ?case
-        apply (simp del: bot_apply)
-        apply (subst step)
-        apply fact
-        apply (subst lfp_unfold[OF sup_continuous_mono[OF g]])
-        apply (rule monoD[OF sup_continuous_mono[OF g], THEN le_funD])
-        apply (rule le_funI)
-        apply (rule Suc)
-        done
-    qed
-  qed
-  finally show "(\<integral>\<^sup>+\<omega>. lfp f \<omega> \<partial>M s) \<le> lfp g s" .
-qed
+proof (subst lfp_transfer_bounded[where \<alpha>="\<lambda>F s. \<integral>\<^sup>+x. F x \<partial>M s" and g=g and f=f and P="\<lambda>f. f \<in> borel_measurable N", symmetric])
+  fix C :: "nat \<Rightarrow> 'b \<Rightarrow> ereal" assume "incseq C" "\<And>i. C i \<in> borel_measurable N"
+  then show "(\<lambda>s. \<integral>\<^sup>+x. (SUP i. C i) x \<partial>M s) = (SUP i. (\<lambda>s. \<integral>\<^sup>+x. C i x \<partial>M s))"
+    unfolding SUP_apply[abs_def]
+    by (subst nn_integral_monotone_convergence_SUP)
+       (auto simp: mono_def fun_eq_iff intro!: arg_cong2[where f=emeasure] cong: measurable_cong_sets)
+next
+  show "\<And>x. (\<lambda>s. integral\<^sup>N (M s) bot) \<le> g x"
+    by (subst nn_integral_max_0[symmetric])
+       (simp add: sup_ereal_def[symmetric] le_fun_def nonneg del: sup_ereal_def)
+qed (auto simp add: step nonneg le_fun_def SUP_apply[abs_def] bot_fun_def intro!: meas f g)
 
 lemma nn_integral_gfp:
-  assumes sets: "\<And>s. sets (M s) = sets N"
-  assumes f: "inf_continuous f"
+  assumes sets[simp]: "\<And>s. sets (M s) = sets N"
+  assumes f: "inf_continuous f" and g: "inf_continuous g"
   assumes meas: "\<And>F. F \<in> borel_measurable N \<Longrightarrow> f F \<in> borel_measurable N"
-  assumes bound: "\<And>F s. (\<integral>\<^sup>+x. f F x \<partial>M s) < \<infinity>"
+  assumes bound: "\<And>F s. F \<in> borel_measurable N \<Longrightarrow> (\<integral>\<^sup>+x. f F x \<partial>M s) < \<infinity>"
   assumes non_zero: "\<And>s. emeasure (M s) (space (M s)) \<noteq> 0"
-  assumes g: "inf_continuous g"
   assumes step: "\<And>F s. F \<in> borel_measurable N \<Longrightarrow> integral\<^sup>N (M s) (f F) = g (\<lambda>s. integral\<^sup>N (M s) F) s"
   shows "(\<integral>\<^sup>+\<omega>. gfp f \<omega> \<partial>M s) = gfp g s"
-proof (rule antisym)
-  show "(\<integral>\<^sup>+\<omega>. gfp f \<omega> \<partial>M s) \<le> gfp g s"
-  proof (induction arbitrary: s rule: gfp_ordinal_induct[OF inf_continuous_mono[OF g]])
-    case (1 F) then show ?case
-      apply (subst gfp_unfold[OF inf_continuous_mono[OF f]])
-      apply (subst step)
-      apply (rule borel_measurable_gfp[OF f])
-      apply (rule meas)
-      apply assumption+
-      apply (rule monoD[OF inf_continuous_mono[OF g], THEN le_funD])
-      apply (simp add: le_fun_def)
-      done
-  qed (auto intro: INF_greatest)
-
-  { fix i have "((f ^^ i) top) \<in> borel_measurable N"
-      by (induction i) (simp_all add: meas) }
-
-  have "(\<integral>\<^sup>+\<omega>. gfp f \<omega> \<partial>M s) = (\<integral>\<^sup>+\<omega>. (INF i. (f ^^ i) top \<omega>) \<partial>M s)"
-    by (simp add: inf_continuous_gfp f)
-  also have "\<dots> = (INF i. \<integral>\<^sup>+\<omega>. (f ^^ i) top \<omega> \<partial>M s)"
-  proof (rule nn_integral_monotone_convergence_INF)
-    show "decseq (\<lambda>i. (f ^^ i) top)"
-      using f[THEN inf_continuous_mono] by (rule antimono_funpow)
-    show "\<And>i. ((f ^^ i) top) \<in> borel_measurable (M s)"
-      unfolding measurable_cong_sets[OF sets refl] by fact
-    show "integral\<^sup>N (M s) ((f ^^ 1) top) < \<infinity>"
-      using bound[of s top] by simp
-  qed
-  also have "\<dots> \<ge> gfp g s"
-  proof (rule INF_greatest)
-    fix i show "gfp g s \<le> integral\<^sup>N (M s) ((f ^^ i) top)"
-    proof (induction i arbitrary: s)
-      case 0 with non_zero[of s] show ?case
-        by (simp add: top_ereal_def less_le emeasure_nonneg)
-    next
-      case (Suc n)
-      show ?case
-        apply (simp del: top_apply)
-        apply (subst step)
-        apply fact
-        apply (subst gfp_unfold[OF inf_continuous_mono[OF g]])
-        apply (rule monoD[OF inf_continuous_mono[OF g], THEN le_funD])
-        apply (rule le_funI)
-        apply (rule Suc)
-        done
-    qed
-  qed
-  finally show "gfp g s \<le> (\<integral>\<^sup>+\<omega>. gfp f \<omega> \<partial>M s)" .
-qed
+proof (subst gfp_transfer_bounded[where \<alpha>="\<lambda>F s. \<integral>\<^sup>+x. F x \<partial>M s" and g=g and f=f
+    and P="\<lambda>F. F \<in> borel_measurable N \<and> (\<forall>s. (\<integral>\<^sup>+x. F x \<partial>M s) < \<infinity>)", symmetric])
+  fix C :: "nat \<Rightarrow> 'b \<Rightarrow> ereal" assume "decseq C" "\<And>i. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)"
+  then show "(\<lambda>s. \<integral>\<^sup>+x. (INF i. C i) x \<partial>M s) = (INF i. (\<lambda>s. \<integral>\<^sup>+x. C i x \<partial>M s))"
+    unfolding INF_apply[abs_def]
+    by (subst nn_integral_monotone_convergence_INF)
+       (auto simp: mono_def fun_eq_iff intro!: arg_cong2[where f=emeasure] cong: measurable_cong_sets)
+next
+  show "\<And>x. g x \<le> (\<lambda>s. integral\<^sup>N (M s) (f top))"
+    by (subst step)
+       (auto simp add: top_fun_def top_ereal_def less_le emeasure_nonneg non_zero le_fun_def
+             cong del: if_cong intro!: monoD[OF inf_continuous_mono[OF g], THEN le_funD])
+next
+  fix C assume "\<And>i::nat. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)" "decseq C"
+  with bound show "INFIMUM UNIV C \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (INFIMUM UNIV C) < \<infinity>)"
+    unfolding INF_apply[abs_def]
+    by (subst nn_integral_monotone_convergence_INF)
+       (auto cong: measurable_cong_sets intro!: borel_measurable_INF
+             simp: INF_less_iff simp del: ereal_infty_less(1))
+next
+  show "\<And>x. x \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) x < \<infinity>) \<Longrightarrow>
+         (\<lambda>s. integral\<^sup>N (M s) (f x)) = g (\<lambda>s. integral\<^sup>N (M s) x)"
+    by (subst step) auto
+qed (insert bound, auto simp add: le_fun_def INF_apply[abs_def] top_fun_def intro!: meas f g)
 
 subsection {* Integral under concrete measures *}
 

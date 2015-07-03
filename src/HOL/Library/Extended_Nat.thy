@@ -6,7 +6,7 @@
 section \<open>Extended natural numbers (i.e. with infinity)\<close>
 
 theory Extended_Nat
-imports Main Countable
+imports Main Countable Order_Continuity
 begin
 
 class infinity =
@@ -472,6 +472,17 @@ apply (rule exI)
 apply (erule (1) le_less_trans)
 done
 
+lemma eSuc_max: "eSuc (max x y) = max (eSuc x) (eSuc y)"
+  by (simp add: eSuc_def split: enat.split)
+
+lemma eSuc_Max: 
+  assumes "finite A" "A \<noteq> {}"
+  shows "eSuc (Max A) = Max (eSuc ` A)"
+using assms proof induction
+  case (insert x A)
+  thus ?case by(cases "A = {}")(simp_all add: eSuc_max)
+qed simp
+
 instantiation enat :: "{order_bot, order_top}"
 begin
 
@@ -646,6 +657,12 @@ qed (simp_all add:
 end
 
 instance enat :: complete_linorder ..
+
+lemma eSuc_Sup: "A \<noteq> {} \<Longrightarrow> eSuc (Sup A) = Sup (eSuc ` A)"
+  by(auto simp add: Sup_enat_def eSuc_Max inj_on_def dest: finite_imageD)
+
+lemma sup_continuous_eSuc: "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. eSuc (f x))"
+  using  eSuc_Sup[of "_ ` UNIV"] by (auto simp: sup_continuous_def)
 
 subsection \<open>Traditional theorem names\<close>
 

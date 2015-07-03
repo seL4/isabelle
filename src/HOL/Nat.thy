@@ -1416,6 +1416,42 @@ next
     using Kleene_iter_lpfp[OF assms(1)] lfp_unfold[OF assms(1)] by simp
 qed
 
+lemma mono_pow:
+  fixes f :: "'a \<Rightarrow> 'a::complete_lattice"
+  shows "mono f \<Longrightarrow> mono (f ^^ n)"
+  by (induction n) (auto simp: mono_def)
+
+lemma lfp_funpow:
+  assumes f: "mono f" shows "lfp (f ^^ Suc n) = lfp f"
+proof (rule antisym)
+  show "lfp f \<le> lfp (f ^^ Suc n)"
+  proof (rule lfp_lowerbound)
+    have "f (lfp (f ^^ Suc n)) = lfp (\<lambda>x. f ((f ^^ n) x))"
+      unfolding funpow_Suc_right by (simp add: lfp_rolling f mono_pow comp_def)
+    then show "f (lfp (f ^^ Suc n)) \<le> lfp (f ^^ Suc n)"
+      by (simp add: comp_def)
+  qed
+  have "(f^^n) (lfp f) = lfp f" for n
+    by (induction n) (auto intro: f lfp_unfold[symmetric])
+  then show "lfp (f^^Suc n) \<le> lfp f"
+    by (intro lfp_lowerbound) (simp del: funpow.simps)
+qed
+
+lemma gfp_funpow:
+  assumes f: "mono f" shows "gfp (f ^^ Suc n) = gfp f"
+proof (rule antisym)
+  show "gfp f \<ge> gfp (f ^^ Suc n)"
+  proof (rule gfp_upperbound)
+    have "f (gfp (f ^^ Suc n)) = gfp (\<lambda>x. f ((f ^^ n) x))"
+      unfolding funpow_Suc_right by (simp add: gfp_rolling f mono_pow comp_def)
+    then show "f (gfp (f ^^ Suc n)) \<ge> gfp (f ^^ Suc n)"
+      by (simp add: comp_def)
+  qed
+  have "(f^^n) (gfp f) = gfp f" for n
+    by (induction n) (auto intro: f gfp_unfold[symmetric])
+  then show "gfp (f^^Suc n) \<ge> gfp f"
+    by (intro gfp_upperbound) (simp del: funpow.simps)
+qed
 
 subsection {* Embedding of the naturals into any @{text semiring_1}: @{term of_nat} *}
 

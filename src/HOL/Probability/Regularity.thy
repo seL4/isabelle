@@ -55,7 +55,7 @@ next
     assume "\<not> y \<le> x" hence "y > x" by simp hence "y \<noteq> - \<infinity>" by auto
     hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using `y \<noteq> \<infinity>` by auto
     have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using `y > x` f_fin f_nonneg approx[where e = 1] A_notempty
-      apply auto by (metis ereal_infty_less_eq(2) f_le_y)
+      by auto
     def e \<equiv> "real ((y - x) / 2)"
     have e: "y > x + e" "e > 0" using `y > x` y_fin x_fin by (auto simp: e_def field_simps)
     from approx[OF `e > 0`] obtain i where i: "i \<in> A" "x + e \<ge> f i" by blast
