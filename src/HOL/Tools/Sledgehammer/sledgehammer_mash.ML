@@ -52,7 +52,7 @@ sig
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash : Proof.context -> params -> string -> string -> fact list -> thm ->
     prover_result
-  val features_of : Proof.context -> theory -> stature -> term list -> string list
+  val features_of : Proof.context -> string -> stature -> term list -> string list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
@@ -922,12 +922,10 @@ val term_max_depth = 2
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt thy (scope, _) ts =
-  let val thy_name = Context.theory_name thy in
-    thy_feature_of thy_name ::
-    term_features_of ctxt thy_name term_max_depth type_max_depth ts
-    |> scope <> Global ? cons local_feature
-  end
+fun features_of ctxt thy_name (scope, _) ts =
+  thy_feature_of thy_name ::
+  term_features_of ctxt thy_name term_max_depth type_max_depth ts
+  |> scope <> Global ? cons local_feature
 
 (* Too many dependencies is a sign that a decision procedure is at work. There is not much to learn
    from such proofs. *)
@@ -1160,13 +1158,14 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [Thm.prop_of th]
-      |> features_of ctxt (Thm.theory_of_thm th) stature
+      |> features_of ctxt (Thm.theory_name_of_thm th) stature
       |> map (rpair (weight * factor))
 
     val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
       peek_state ctxt
 
-    val goal_feats0 = features_of ctxt thy (Local, General) (concl_t :: hyp_ts)
+    val goal_feats0 =
+      features_of ctxt (Context.theory_name thy) (Local, General) (concl_t :: hyp_ts)
     val chained_feats = chained
       |> map (rpair 1.0)
       |> map (chained_or_extra_features_of chained_feature_factor)
@@ -1263,7 +1262,7 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = features_of ctxt thy (Local, General) [t]
+        val feats = features_of ctxt (Context.theory_name thy) (Local, General) [t]
         val facts = rev_sort_list_prefix (crude_thm_ord o apply2 snd) 1 facts
       in
         map_state ctxt
@@ -1373,7 +1372,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               (learns, (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats = features_of ctxt (Thm.theory_of_thm th) stature [Thm.prop_of th]
+              val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
               val deps = these (deps_of status th)
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns

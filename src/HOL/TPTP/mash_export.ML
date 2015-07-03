@@ -98,7 +98,7 @@ fun generate_features ctxt thys file_name =
     fun do_fact ((_, stature), th) =
       let
         val name = nickname_of_thm th
-        val feats = features_of ctxt (Thm.theory_of_thm th) stature [Thm.prop_of th]
+        val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
         val s = encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
       in
         File.append path s
@@ -188,14 +188,14 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
-          val goal_feats = features_of ctxt (Thm.theory_of_thm th) stature [Thm.prop_of th]
+          val goal_feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th isar_deps
 
           fun extra_features_of (((_, stature), th), weight) =
             [Thm.prop_of th]
-            |> features_of ctxt (Thm.theory_of_thm th) stature
+            |> features_of ctxt (Thm.theory_name_of_thm th) stature
             |> map (rpair (weight * extra_feature_factor))
 
           val query =
