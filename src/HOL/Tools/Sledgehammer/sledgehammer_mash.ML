@@ -66,7 +66,7 @@ sig
   val weight_facts_steeply : 'a list -> ('a * real) list
   val find_mash_suggestions : Proof.context -> int -> string list -> ('a * thm) list ->
     ('a * thm) list -> ('a * thm) list -> ('a * thm) list * ('a * thm) list
-  val mash_suggested_facts : Proof.context -> theory -> params -> int -> term list -> term ->
+  val mash_suggested_facts : Proof.context -> string -> params -> int -> term list -> term ->
     raw_fact list -> fact list * fact list
 
   val mash_unlearn : unit -> unit
@@ -1145,9 +1145,8 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
-fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts concl_t facts =
   let
-    val thy_name = Context.theory_name thy
     val algorithm = the_mash_algorithm ()
 
     val facts = facts
@@ -1167,7 +1166,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
       peek_state ctxt
 
     val goal_feats0 =
-      features_of ctxt (Context.theory_name thy) (Local, General) (concl_t :: hyp_ts)
+      features_of ctxt thy_name (Local, General) (concl_t :: hyp_ts)
     val chained_feats = chained
       |> map (rpair 1.0)
       |> map (chained_or_extra_features_of chained_feature_factor)
@@ -1513,7 +1512,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
     [("", [])]
   else
     let
-      val thy = Proof_Context.theory_of ctxt
+      val thy_name = Context.theory_name (Proof_Context.theory_of ctxt)
 
       fun maybe_launch_thread exact min_num_facts_to_learn =
         if not (Async_Manager_Legacy.has_running_threads MaShN) andalso
@@ -1576,8 +1575,8 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
          |> weight_facts_steeply, [])
 
       fun mash () =
-        mash_suggested_facts ctxt thy params (generous_max_suggestions max_facts) hyp_ts concl_t
-          facts
+        mash_suggested_facts ctxt thy_name params
+          (generous_max_suggestions max_facts) hyp_ts concl_t facts
         |>> weight_facts_steeply
 
       val mess =

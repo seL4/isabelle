@@ -7,7 +7,7 @@ NOTE
   - Makes use of the PolyML structure.
 *)
 
-theory TPTP_Proof_Reconstruction_Test
+theory TPTP_Proof_Reconstruction_Test_Units
 imports TPTP_Test TPTP_Proof_Reconstruction
 begin
 
@@ -482,16 +482,7 @@ lemma "\<forall>SV49\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
              (\<not> SEU602_2_bnd_in (SEU602_2_bnd_sK7_E SV49) SEU602_2_bnd_sK2_SY17)) =
             False"
 (*FIXME this (and similar) tests are getting the "Bad background theory of goal state" error since upgrading to Isabelle2013-2.*)
-by (tactic {*fn thm =>
-  let
-    val ctxt =
-      theory_of_thm thm
-      |> Context.Theory
-      |> Context.proof_of
-  in nonfull_extcnf_combined_tac ctxt [Extuni_Func, Existential_Var] thm
-  end*})
-(*by (tactic {*nonfull_extcnf_combined_tac @{context} [Extuni_Func, Existential_Var]*})*)
-oops
+by (tactic {*nonfull_extcnf_combined_tac @{context} [Extuni_Func, Existential_Var]*})
 
 consts
   SEV405_5_bnd_sK1_SY2 :: "(TPTP_Interpret.ind \<Rightarrow> bool) \<Rightarrow> TPTP_Interpret.ind"
