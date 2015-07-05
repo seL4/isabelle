@@ -56,7 +56,7 @@ fun mk_eq_True (_: Proof.context) r =
   (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)
 *)
 
-fun lift_meta_eq_to_obj_eq i st =
+fun lift_meta_eq_to_obj_eq ctxt i st =
   let
     fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
@@ -69,7 +69,7 @@ fun lift_meta_eq_to_obj_eq i st =
         val mk_simp_implies = fold_rev (fn R => fn S =>
           Const (@{const_name HOL.simp_implies}, propT --> propT --> propT) $ R $ S) Ps;
       in
-        Goal.prove_global (Thm.theory_of_thm st) []
+        Goal.prove_global (Proof_Context.theory_of ctxt) []
           [mk_simp_implies @{prop "(x::'a) == y"}]
           (mk_simp_implies @{prop "(x::'a) = y"})
           (fn {context = ctxt, prems} => EVERY
@@ -85,7 +85,7 @@ fun lift_meta_eq_to_obj_eq i st =
 fun mk_meta_cong ctxt rl =
   let
     val rl' = Seq.hd (TRYALL (fn i => fn st =>
-      resolve_tac ctxt [lift_meta_eq_to_obj_eq i st] i st) rl)
+      resolve_tac ctxt [lift_meta_eq_to_obj_eq ctxt i st] i st) rl)
   in
     mk_meta_eq rl' handle THM _ =>
       if can Logic.dest_equals (Thm.concl_of rl') then rl'
