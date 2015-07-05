@@ -195,7 +195,9 @@ local
   fun on_cprop f thm = f (Thm.cprop_of thm)
   fun precomp2 f g thm = (on_cprem 1 f thm, on_cprem 2 g thm, f, g, thm)
   fun comp2 (cv1, cv2, f, g, rule) thm1 thm2 =
-    Thm.instantiate ([], [(cv1, on_cprop f thm1), (cv2, on_cprop g thm2)]) rule
+    Thm.instantiate ([],
+      [(dest_Var (Thm.term_of cv1), on_cprop f thm1),
+       (dest_Var (Thm.term_of cv2), on_cprop g thm2)]) rule
     |> Old_Z3_Proof_Tools.discharge thm1 |> Old_Z3_Proof_Tools.discharge thm2
 
   fun d1 ct = Thm.dest_arg ct and d2 ct = Thm.dest_arg (Thm.dest_arg ct)
@@ -303,7 +305,7 @@ local
           |> (fn (nlit, plit) => nlit COMP (plit COMP contra_rule)))
     end
 
-  val falseE_v = Thm.dest_arg (Thm.dest_arg (Thm.cprop_of @{thm FalseE}))
+  val falseE_v = dest_Var (Thm.term_of (Thm.dest_arg (Thm.dest_arg (Thm.cprop_of @{thm FalseE}))))
   fun contra_right ct = Thm.instantiate ([], [(falseE_v, ct)]) @{thm FalseE}
 in
 fun contradict conj ct =

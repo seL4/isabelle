@@ -346,16 +346,17 @@ fun has_too_many_clauses ctxt t =
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, generalize using Variable.export. *)
 local  
-  val spec_var = Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))));
-  val spec_varT = Thm.typ_of_cterm spec_var;
-  fun name_of (Const (@{const_name All}, _) $ Abs(x,_,_)) = x | name_of _ = Name.uu;
+  val spec_var =
+    Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))))
+    |> Thm.term_of |> dest_Var;
+  fun name_of (Const (@{const_name All}, _) $ Abs(x, _, _)) = x | name_of _ = Name.uu;
 in  
   fun freeze_spec th ctxt =
     let
       val ([x], ctxt') =
         Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (Thm.concl_of th))] ctxt;
       val spec' = spec
-        |> Thm.instantiate ([], [(spec_var, Thm.cterm_of ctxt' (Free (x, spec_varT)))]);
+        |> Thm.instantiate ([], [(spec_var, Thm.cterm_of ctxt' (Free (x, snd spec_var)))]);
     in (th RS spec', ctxt') end
 end;
 

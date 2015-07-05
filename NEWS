@@ -234,6 +234,12 @@ not available during instantiation.
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
 
+** ML **
+
+* Thm.instantiate (and derivatives) no longer require the LHS of the
+instantiation to be certified: plain variables are given directly.
+
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------

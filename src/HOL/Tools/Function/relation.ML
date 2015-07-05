@@ -18,8 +18,7 @@ struct
 fun inst_state_tac ctxt inst =
   SUBGOAL (fn (goal, _) =>
     (case Term.add_vars goal [] of
-      [v as (_, T)] =>
-        PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of ctxt (Var v), Thm.cterm_of ctxt (inst T))]))
+      [v as (_, T)] => PRIMITIVE (Thm.instantiate ([], [(v, Thm.cterm_of ctxt (inst T))]))
     | _ => no_tac));
 
 fun relation_tac ctxt rel i =
@@ -39,9 +38,7 @@ fun inst_state_infer_tac ctxt rel =
             |> map_types Type_Infer.paramify_vars
             |> Type.constraint T
             |> Syntax.check_term ctxt;
-        in
-          PRIMITIVE (Thm.instantiate ([], [(Thm.cterm_of ctxt (Var v), Thm.cterm_of ctxt rel')]))
-        end
+        in PRIMITIVE (Thm.instantiate ([], [(v, Thm.cterm_of ctxt rel')])) end
     | _ => no_tac));
 
 fun relation_infer_tac ctxt rel i =

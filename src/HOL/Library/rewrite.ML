@@ -265,15 +265,13 @@ fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
   let
     fun instantiate_normalize_env ctxt env thm =
       let
-        fun certs f = map (apply2 (f ctxt))
         val prop = Thm.prop_of thm
         val norm_type = Envir.norm_type o Envir.type_env
         val insts = Term.add_vars prop []
-          |> map (fn x as (s,T) => (Var (s, norm_type env T), Envir.norm_term env (Var x)))
-          |> certs Thm.cterm_of
+          |> map (fn x as (s, T) =>
+              ((s, norm_type env T), Thm.cterm_of ctxt (Envir.norm_term env (Var x))))
         val tyinsts = Term.add_tvars prop []
-          |> map (fn x => (TVar x, norm_type env (TVar x)))
-          |> certs Thm.ctyp_of
+          |> map (fn x => (x, Thm.ctyp_of ctxt (norm_type env (TVar x))))
       in Drule.instantiate_normalize (tyinsts, insts) thm end
     
     fun unify_with_rhs context to env thm =

@@ -150,10 +150,10 @@ in (Thm.lambda x o Thm.dest_arg o Thm.dest_arg) eq end;
 
 val get_pmi = get_pmi_term o Thm.cprop_of;
 
-val p_v' = @{cpat "?P' :: int => bool"};
-val q_v' = @{cpat "?Q' :: int => bool"};
-val p_v = @{cpat "?P:: int => bool"};
-val q_v = @{cpat "?Q:: int => bool"};
+val p_v' = (("P'", 0), @{typ "int \<Rightarrow> bool"});
+val q_v' = (("Q'", 0), @{typ "int \<Rightarrow> bool"});
+val p_v = (("P", 0), @{typ "int \<Rightarrow> bool"});
+val q_v = (("Q", 0), @{typ "int \<Rightarrow> bool"});
 
 fun myfwd (th1, th2, th3) p q
       [(th_1,th_2,th_3), (th_1',th_2',th_3')] =
@@ -430,11 +430,13 @@ val emptyIS = @{cterm "{}::int set"};
 val insert_tm = @{cterm "insert :: int => _"};
 fun mkISet cts = fold_rev (Thm.apply insert_tm #> Thm.apply) cts emptyIS;
 val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
-val [A_tm,B_tm] = map (fn th => Thm.cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
-                                      |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg)
-                      [asetP,bsetP];
+val [A_v,B_v] =
+  map (fn th => Thm.cprop_of th |> funpow 2 Thm.dest_arg
+    |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
+    |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg
+    |> Thm.term_of |> dest_Var) [asetP, bsetP];
 
-val D_tm = @{cpat "?D::int"};
+val D_v = (("D", 0), @{typ int});
 
 fun cooperex_conv ctxt vs q =
 let
@@ -501,16 +503,16 @@ let
    if length (distinct (op aconv) bl) <= length (distinct (op aconv) al)
    then
     (bl,b0,decomp_minf,
-     fn B => (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(B_tm,B), (D_tm,cd)]) th) dp)
+     fn B => (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(B_v,B), (D_v,cd)]) th) dp)
                      [bseteq,bsetneq,bsetlt, bsetle, bsetgt,bsetge])@
-                   (map (Thm.instantiate ([],[(B_tm,B), (D_tm,cd)]))
+                   (map (Thm.instantiate ([],[(B_v,B), (D_v,cd)]))
                         [bsetdvd,bsetndvd,bsetP,infDdvd, infDndvd,bsetconj,
                          bsetdisj,infDconj, infDdisj]),
                        cpmi)
      else (al,a0,decomp_pinf,fn A =>
-          (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(A_tm,A), (D_tm,cd)]) th) dp)
+          (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(A_v,A), (D_v,cd)]) th) dp)
                    [aseteq,asetneq,asetlt, asetle, asetgt,asetge])@
-                   (map (Thm.instantiate ([],[(A_tm,A), (D_tm,cd)]))
+                   (map (Thm.instantiate ([],[(A_v,A), (D_v,cd)]))
                    [asetdvd,asetndvd, asetP, infDdvd, infDndvd,asetconj,
                          asetdisj,infDconj, infDdisj]),cppi)
  val cpth =

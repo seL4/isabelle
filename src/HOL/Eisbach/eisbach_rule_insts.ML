@@ -57,7 +57,7 @@ fun instantiate_xis insts thm =
 
     fun add_inst (xi, t) (Ts, ts) =
       (case AList.lookup (op =) tyvars xi of
-        SOME S => ((certT (TVar (xi, S)), certT (Logic.dest_type t)) :: Ts, ts)
+        SOME S => (((xi, S), certT (Logic.dest_type t)) :: Ts, ts)
       | NONE =>
           (case AList.lookup (op =) tvars xi of
             SOME T => (Ts, (cert (Var (xi, T)), cert t) :: ts)

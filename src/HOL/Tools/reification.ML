@@ -169,9 +169,9 @@ fun decomp_reify da cgns (ct, ctxt) bds =
           val (fnvs, invs) = List.partition (fn ((vn, _),_) => member (op =) vns vn) (Vartab.dest tmenv);
           val (fts, its) =
             (map (snd o snd) fnvs,
-             map (fn ((vn, vi), (tT, t)) => apply2 (Thm.cterm_of ctxt) (Var ((vn, vi), tT), t)) invs);
+             map (fn ((vn, vi), (tT, t)) => (((vn, vi), tT), Thm.cterm_of ctxt t)) invs);
           val ctyenv =
-            map (fn ((vn, vi), (s, ty)) => apply2 (Thm.ctyp_of ctxt) (TVar ((vn, vi), s), ty))
+            map (fn ((vn, vi), (s, ty)) => (((vn, vi), s), Thm.ctyp_of ctxt ty))
               (Vartab.dest tyenv);
         in
           ((map (Thm.cterm_of ctxt) fts ~~ replicate (length fts) ctxt,
@@ -203,7 +203,7 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
         val sbst = Envir.subst_term (tyenv, tmenv);
         val sbsT = Envir.subst_type tyenv;
         val subst_ty =
-          map (fn (n, (s, t)) => apply2 (Thm.ctyp_of ctxt'') (TVar (n, s), t)) (Vartab.dest tyenv)
+          map (fn (n, (s, t)) => ((n, s), Thm.ctyp_of ctxt'' t)) (Vartab.dest tyenv)
         val tml = Vartab.dest tmenv;
         val (subst_ns, bds) = fold_map
           (fn (Const _ $ _ $ n, Var (xn0, _)) => fn bds =>
@@ -230,7 +230,9 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
           let
             val ih = Drule.cterm_rule (Thm.instantiate (subst_ty, []));
           in map (apply2 ih) (subst_ns @ subst_vs @ cts) end;
-        val th = (Drule.instantiate_normalize (subst_ty, substt) eq) RS sym;
+        val th =
+          (Drule.instantiate_normalize (subst_ty, map (apfst (dest_Var o Thm.term_of)) substt) eq)
+            RS sym;
       in (hd (Variable.export ctxt'' ctxt [th]), bds) end)
       handle Pattern.MATCH => tryeqs eqs (ct, ctxt) bds);
 
@@ -266,10 +268,7 @@ fun mk_congs ctxt eqs =
       let
         val (_, _ :: vs) = eq |> Thm.prop_of |> HOLogic.dest_Trueprop
           |> HOLogic.dest_eq |> fst |> strip_comb;
-        val subst =
-          map_filter
-            (fn (v as Var (_, T)) => SOME (Thm.cterm_of ctxt' v, subst T)
-              | _ => NONE) vs;
+        val subst = map_filter (fn Var v => SOME (v, subst (#2 v)) | _ => NONE) vs;
       in Thm.instantiate ([], subst) eq end;
     val (ps, congs) = map_split (mk_congeq ctxt' fs o prep_eq) eqs;
     val bds = AList.make (K ([], [])) tys;
@@ -285,9 +284,10 @@ fun conv ctxt eqs ct =
       | is_list_var _ = false;
     val vars = th |> Thm.prop_of |> Logic.dest_equals |> snd
       |> strip_comb |> snd |> filter is_list_var;
-    val vs = map (fn v as Var (_, T) =>
+    val vs = map (fn Var (v as (_, T)) =>
       (v, the (AList.lookup Type.could_unify bds' T) |> snd |> HOLogic.mk_list (dest_listT T))) vars;
-    val th' = Drule.instantiate_normalize ([], map (apply2 (Thm.cterm_of ctxt)) vs) th;
+    val th' =
+      Drule.instantiate_normalize ([], map (apsnd (Thm.cterm_of ctxt)) vs) th;
     val th'' = Thm.symmetric (dereify ctxt [] (Thm.lhs_of th'));
   in Thm.transitive th'' th' end;
 

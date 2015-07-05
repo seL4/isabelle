@@ -625,7 +625,10 @@ local
       val vs = frees_of ctxt (Thm.term_of ct)
       val (thm, ctxt') = f (fold_rev mk_forall vs ct) ctxt
       val vars_of = get_vars Term.add_vars Var (K true) ctxt'
-    in (Thm.instantiate ([], vars_of (Thm.prop_of thm) ~~ vs) thm, ctxt') end
+    in
+      (Thm.instantiate ([], map (dest_Var o Thm.term_of) (vars_of (Thm.prop_of thm)) ~~ vs) thm,
+        ctxt')
+    end
 
   val sk_rules = @{lemma
     "c = (SOME x. P x) ==> (EX x. P x) = P c"

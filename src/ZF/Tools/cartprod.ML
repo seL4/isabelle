@@ -109,7 +109,7 @@ fun split_rule_var ctxt (Var(v,_), Type("fun",[T1,T2]), rl) =
       in
         remove_split ctxt
           (Drule.instantiate_normalize ([],
-            [apply2 (Thm.cterm_of ctxt) (Var(v, Ind_Syntax.iT-->T2), newt)]) rl)
+            [((v, Ind_Syntax.iT-->T2), Thm.cterm_of ctxt newt)]) rl)
       end
   | split_rule_var _ (t,T,rl) = rl;
 

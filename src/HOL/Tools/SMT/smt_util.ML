@@ -171,7 +171,7 @@ fun mk_const_pat thy name destT =
 val destT1 = hd o Thm.dest_ctyp
 val destT2 = hd o tl o Thm.dest_ctyp
 
-fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (cTs ~~ cUs, []) ct
+fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (map (dest_TVar o Thm.typ_of) cTs ~~ cUs, []) ct
 fun instT cU (cT, ct) = instTs [cU] ([cT], ct)
 fun instT' ct = instT (Thm.ctyp_of_cterm ct)
 

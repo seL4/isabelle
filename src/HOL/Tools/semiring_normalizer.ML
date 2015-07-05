@@ -238,7 +238,7 @@ fun dest_binop ct ct' =
   if is_binop ct ct' then Thm.dest_binop ct'
   else raise CTERM ("dest_binop: bad binop", [ct, ct'])
 
-fun inst_thm inst = Thm.instantiate ([], inst);
+fun inst_thm inst = Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) inst);
 
 val dest_number = Thm.term_of #> HOLogic.dest_number #> snd;
 val is_number = can dest_number;
@@ -300,7 +300,7 @@ val (neg_mul, sub_add, sub_tm, neg_tm, dest_sub, cx', cy') =
         val sub_tm = Thm.dest_fun (Thm.dest_fun sub_pat)
         val neg_tm = Thm.dest_fun neg_pat
         val dest_sub = dest_binop sub_tm
-      in (neg_mul,sub_add,sub_tm,neg_tm,dest_sub, neg_mul |> concl |> Thm.dest_arg,
+      in (neg_mul, sub_add, sub_tm, neg_tm, dest_sub, neg_mul |> concl |> Thm.dest_arg,
           sub_add |> concl |> Thm.dest_arg |> Thm.dest_arg)
       end
     | _ => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), true_tm, true_tm));
@@ -760,7 +760,7 @@ fun polynomial_pow_conv ctxt =
 fun polynomial_neg_conv ctxt tm =
    let val (l,r) = Thm.dest_comb tm in
         if not (l aconvc neg_tm) then raise CTERM ("polynomial_neg_conv",[tm]) else
-        let val th1 = inst_thm [(cx',r)] neg_mul
+        let val th1 = inst_thm [(cx', r)] neg_mul
             val th2 = Thm.transitive th1 (Conv.arg1_conv semiring_mul_conv (concl th1))
         in Thm.transitive th2 (polynomial_monomial_mul_conv ctxt (concl th2))
         end
@@ -770,7 +770,7 @@ fun polynomial_neg_conv ctxt tm =
 (* Subtraction.                                                              *)
 fun polynomial_sub_conv ctxt tm =
   let val (l,r) = dest_sub tm
-      val th1 = inst_thm [(cx',l),(cy',r)] sub_add
+      val th1 = inst_thm [(cx', l), (cy', r)] sub_add
       val (tm1,tm2) = Thm.dest_comb(concl th1)
       val th2 = Drule.arg_cong_rule tm1 (polynomial_neg_conv ctxt tm2)
   in Thm.transitive th1 (Thm.transitive th2 (polynomial_add_conv ctxt (concl th2)))

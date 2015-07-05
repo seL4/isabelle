@@ -35,7 +35,7 @@ local
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
-    in Thm.instantiate ([], [(cv, ct)]) thm end
+    in Thm.instantiate ([], [(dest_Var (Thm.term_of cv), ct)]) thm end
 in
 
 fun instantiate_elim thm =
@@ -199,8 +199,10 @@ local
 
   fun insert_trigger_conv [] ct = Conv.all_conv ct
     | insert_trigger_conv ctss ct =
-        let val (ctr, cp) = Thm.dest_binop (Thm.rhs_of trigger_eq) ||> rpair ct
-        in Thm.instantiate ([], [cp, (ctr, mk_trigger ctss)]) trigger_eq end
+        let
+          val (ctr, cp) = Thm.dest_binop (Thm.rhs_of trigger_eq) ||> rpair ct
+          val inst = map (apfst (dest_Var o Thm.term_of)) [cp, (ctr, mk_trigger ctss)]
+        in Thm.instantiate ([], inst) trigger_eq end
 
   fun infer_trigger_eq_conv outer_ctxt (ctxt, cvs) ct =
     let

@@ -47,8 +47,10 @@ sig
   val lambda: cterm -> cterm -> cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val incr_indexes_cterm: int -> cterm -> cterm
-  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val match: cterm * cterm ->
+    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+  val first_order_match: cterm * cterm ->
+    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   (*theorems*)
   val rep_thm: thm ->
    {thy: theory,
@@ -120,8 +122,10 @@ sig
   val equal_elim: thm -> thm -> thm
   val flexflex_rule: Proof.context option -> thm -> thm Seq.seq
   val generalize: string list * string list -> int -> thm -> thm
-  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
-  val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
+  val instantiate: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
+    thm -> thm
+  val instantiate_cterm: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
+    cterm -> cterm
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val strip_shyps: thm -> thm
@@ -312,12 +316,10 @@ fun gen_match match
     val (Tinsts, tinsts) = match thy (t1, t2) (Vartab.empty, Vartab.empty);
     val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst ((a, i), (S, T)) =
-      (Ctyp {T = TVar ((a, i), S), thy = thy, maxidx = i, sorts = sorts},
-       Ctyp {T = T, thy = thy, maxidx = maxidx2, sorts = sorts});
-    fun mk_ctinst ((x, i), (T, t)) =
-      let val T = Envir.subst_type Tinsts T in
-        (Cterm {t = Var ((x, i), T), T = T, thy = thy, maxidx = i, sorts = sorts},
-         Cterm {t = t, T = T, thy = thy, maxidx = maxidx2, sorts = sorts})
+      (((a, i), S), Ctyp {T = T, thy = thy, maxidx = maxidx2, sorts = sorts});
+    fun mk_ctinst ((x, i), (U, t)) =
+      let val T = Envir.subst_type Tinsts U in
+        (((x, i), T), Cterm {t = t, T = T, thy = thy, maxidx = maxidx2, sorts = sorts})
       end;
   in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
 
@@ -1091,37 +1093,28 @@ local
 fun pretty_typing thy t T = Pretty.block
   [Syntax.pretty_term_global thy t, Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ_global thy T];
 
-fun add_inst (ct, cu) (thy, sorts) =
+fun add_inst (v as (_, T), cu) (thy, sorts) =
   let
-    val Cterm {t = t, T = T, ...} = ct;
-    val Cterm {t = u, T = U, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
-    val thy' = Theory.merge (thy, merge_thys0 ct cu);
+    val Cterm {t = u, T = U, thy = thy2, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
+    val thy' = Theory.merge (thy, thy2);
     val sorts' = Sorts.union sorts_u sorts;
   in
-    (case t of Var v =>
-      if T = U then ((v, (u, maxidx_u)), (thy', sorts'))
-      else raise TYPE (Pretty.string_of (Pretty.block
+    if T = U then ((v, (u, maxidx_u)), (thy', sorts'))
+    else
+      raise TYPE (Pretty.string_of (Pretty.block
        [Pretty.str "instantiate: type conflict",
-        Pretty.fbrk, pretty_typing thy' t T,
-        Pretty.fbrk, pretty_typing thy' u U]), [T, U], [t, u])
-    | _ => raise TYPE (Pretty.string_of (Pretty.block
-       [Pretty.str "instantiate: not a variable",
-        Pretty.fbrk, Syntax.pretty_term_global thy' t]), [], [t]))
+        Pretty.fbrk, pretty_typing thy' (Var v) T,
+        Pretty.fbrk, pretty_typing thy' u U]), [T, U], [Var v, u])
   end;
 
-fun add_instT (cT, cU) (thy, sorts) =
+fun add_instT (v as (_, S), cU) (thy, sorts) =
   let
-    val Ctyp {T, thy = thy1, ...} = cT
-    and Ctyp {T = U, thy = thy2, sorts = sorts_U, maxidx = maxidx_U, ...} = cU;
-    val thy' = Theory.merge (thy, Theory.merge (thy1, thy2));
+    val Ctyp {T = U, thy = thy2, sorts = sorts_U, maxidx = maxidx_U, ...} = cU;
+    val thy' = Theory.merge (thy, thy2);
     val sorts' = Sorts.union sorts_U sorts;
   in
-    (case T of TVar (v as (_, S)) =>
-      if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (thy', sorts'))
-      else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy' S, [U], [])
-    | _ => raise TYPE (Pretty.string_of (Pretty.block
-        [Pretty.str "instantiate: not a type variable",
-         Pretty.fbrk, Syntax.pretty_typ_global thy' T]), [T], []))
+    if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (thy', sorts'))
+    else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy' S, [U], [])
   end;
 
 in

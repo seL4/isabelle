@@ -440,10 +440,9 @@ val _ =
 
 val focus_schematics = #2 o Focus_Data.get;
 
-fun add_focus_schematics cterms =
+fun add_focus_schematics schematics =
   (Focus_Data.map o @{apply 3(2)})
-    (fold (fn (Var (xi, T), t) => Vartab.update_new (xi, (T, t)))
-      (map (apply2 Thm.term_of) cterms));
+    (fold (fn ((xi, T), ct) => Vartab.update_new (xi, (T, Thm.term_of ct))) schematics);
 
 
 (* focus params *)

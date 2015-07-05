@@ -656,7 +656,8 @@ text %mlref \<open>
   @{index_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
   @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
-  @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
+  @{index_ML Thm.instantiate: "((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
+  -> thm -> thm"} \\
   @{index_ML Thm.add_axiom: "Proof.context ->
   binding * term -> theory -> (string * thm) * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->

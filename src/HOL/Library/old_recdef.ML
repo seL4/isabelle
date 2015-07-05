@@ -304,15 +304,15 @@ fun mk_casesplit_goal_thm ctxt (vstr,ty) gt =
             (Pv, Dv,
              Sign.typ_match thy (Dty, ty) Vartab.empty)
           | _ => error "not a valid case thm";
-      val type_cinsts = map (fn (ixn, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (ixn, S), T))
+      val type_cinsts = map (fn (ixn, (S, T)) => ((ixn, S), Thm.ctyp_of ctxt T))
         (Vartab.dest type_insts);
-      val cPv = Thm.cterm_of ctxt (Envir.subst_term_types type_insts Pv);
-      val cDv = Thm.cterm_of ctxt (Envir.subst_term_types type_insts Dv);
+      val Pv = dest_Var (Envir.subst_term_types type_insts Pv);
+      val Dv = dest_Var (Envir.subst_term_types type_insts Dv);
     in
       Conv.fconv_rule Drule.beta_eta_conversion
          (case_thm
             |> Thm.instantiate (type_cinsts, [])
-            |> Thm.instantiate ([], [(cPv, abs_ct), (cDv, free_ct)]))
+            |> Thm.instantiate ([], [(Pv, abs_ct), (Dv, free_ct)]))
     end;
 
 
@@ -1124,11 +1124,11 @@ fun DISJ_CASESL disjth thl =
 local (* this is fragile *)
   val prop = Thm.prop_of spec
   val x = hd (tl (Misc_Legacy.term_vars prop))
-  val cTV = Thm.ctyp_of @{context} (type_of x)
+  val TV = dest_TVar (type_of x)
   val gspec = Thm.forall_intr (Thm.cterm_of @{context} x) spec
 in
 fun SPEC tm thm =
-   let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_cterm tm)], []) gspec
+   let val gspec' = Drule.instantiate_normalize ([(TV, Thm.ctyp_of_cterm tm)], []) gspec
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
@@ -1141,11 +1141,11 @@ val ISPECL = fold ISPEC;
 local
   val prop = Thm.prop_of allI
   val [P] = Misc_Legacy.add_term_vars (prop, [])
-  fun cty_theta ctxt = map (fn (i, (S, ty)) => apply2 (Thm.ctyp_of ctxt) (TVar (i, S), ty))
+  fun cty_theta ctxt = map (fn (i, (S, ty)) => ((i, S), Thm.ctyp_of ctxt ty))
   fun ctm_theta ctxt =
     map (fn (i, (_, tm2)) =>
       let val ctm2 = Thm.cterm_of ctxt tm2
-      in (Thm.cterm_of ctxt (Var (i, Thm.typ_of_cterm ctm2)), ctm2) end)
+      in ((i, Thm.typ_of_cterm ctm2), ctm2) end)
   fun certify ctxt (ty_theta,tm_theta) =
     (cty_theta ctxt (Vartab.dest ty_theta),
      ctm_theta ctxt (Vartab.dest tm_theta))

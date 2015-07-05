@@ -49,7 +49,7 @@ val numeralT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm numeral
 val uminus = @{cpat "uminus"};
 val uminusT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm uminus));
 
-fun instT T V = Thm.instantiate_cterm ([(V, T)], []);
+fun instT T V = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of V), T)], []);
 
 in
 

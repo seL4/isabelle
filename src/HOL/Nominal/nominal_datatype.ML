@@ -1390,13 +1390,13 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
       end);
 
     val induct_aux' = Thm.instantiate ([],
-      map (fn (s, v as Var (_, T)) =>
-        (Thm.global_cterm_of thy9 v, Thm.global_cterm_of thy9 (Free (s, T))))
+      map (fn (s, Var (v as (_, T))) =>
+        (v, Thm.global_cterm_of thy9 (Free (s, T))))
           (pnames ~~ map head_of (HOLogic.dest_conj
              (HOLogic.dest_Trueprop (Thm.concl_of induct_aux)))) @
       map (fn (_, f) =>
         let val f' = Logic.varify_global f
-        in (Thm.global_cterm_of thy9 f',
+        in (dest_Var f',
           Thm.global_cterm_of thy9 (Const (@{const_name Nominal.supp}, fastype_of f')))
         end) fresh_fs) induct_aux;
 
@@ -1562,7 +1562,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
             (augment_sort thy1 pt_cp_sort
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
             (fn {context = ctxt, ...} => dtac (Thm.instantiate ([],
-                 [(Thm.global_cterm_of thy11 (Var (("pi", 0), permT)),
+                 [((("pi", 0), permT),
                    Thm.global_cterm_of thy11 (Const (@{const_name rev}, permT --> permT) $ pi))]) th) 1 THEN
                NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
@@ -1653,7 +1653,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                     SUBPROOF (fn {prems = prems', params = [(_, a), (_, b)], ...} => EVERY
                       [cut_facts_tac [rec_prem] 1,
                        rtac (Thm.instantiate ([],
-                         [(Thm.global_cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
+                         [((("pi", 0), mk_permT aT),
                            Thm.global_cterm_of thy11
                             (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th) 1,
                        asm_simp_tac (put_simpset HOL_ss context addsimps
@@ -1872,8 +1872,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                             val l = find_index (equal T) dt_atomTs;
                             val th = nth (nth rec_equiv_thms' l) k;
                             val th' = Thm.instantiate ([],
-                              [(Thm.global_cterm_of thy11 (Var (("pi", 0), U)),
-                                Thm.global_cterm_of thy11 p)]) th;
+                              [((("pi", 0), U), Thm.global_cterm_of thy11 p)]) th;
                           in rtac th' 1 end;
                         val th' = Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))

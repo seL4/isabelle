@@ -573,8 +573,8 @@ fun dest_env ctxt env =
     val pairs = Vartab.dest (Envir.term_env env);
     val types = Vartab.dest (Envir.type_env env);
     val ts = map (Thm.cterm_of ctxt o Envir.norm_term env o #2 o #2) pairs;
-    val xs = map2 (curry (Thm.cterm_of ctxt o Var)) (map #1 pairs) (map Thm.typ_of_cterm ts);
-  in (map (fn (xi, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (xi, S), T)) types, xs ~~ ts) end;
+    val xs = map #1 pairs ~~ map Thm.typ_of_cterm ts;
+  in (map (fn (ai, (S, T)) => ((ai, S), Thm.ctyp_of ctxt T)) types, xs ~~ ts) end;
 
 in
 

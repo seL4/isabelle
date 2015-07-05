@@ -109,7 +109,7 @@ fun mk_inst ctxt vars =
     val max = fold (Integer.max o fst) vars 0
     val ns = fst (Variable.variant_fixes (replicate (max + 1) var_prefix) ctxt)
     fun mk (i, v) =
-      (v, Thm.cterm_of ctxt (Free (nth ns i, Thm.typ_of_cterm v)))
+      (dest_Var (Thm.term_of v), Thm.cterm_of ctxt (Free (nth ns i, Thm.typ_of_cterm v)))
   in map mk vars end
 
 fun close ctxt (ct, vars) =
@@ -161,7 +161,10 @@ local
         if null vars then ([], vars)
         else fold part vars ([], [])
 
-    in (Thm.instantiate_cterm ([], inst) ct, (maxidx', vars' @ all_vars)) end
+    in
+      (Thm.instantiate_cterm ([], map (apfst (dest_Var o Thm.term_of)) inst) ct,
+        (maxidx', vars' @ all_vars))
+    end
 in
 fun mk_fun f ts =
   let val (cts, (_, vars)) = fold_map prep ts (0, [])

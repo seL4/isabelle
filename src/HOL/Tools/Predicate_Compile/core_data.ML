@@ -232,10 +232,10 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
 
     fun instantiate i n ({context = ctxt2, prems, ...}: Subgoal.focus) =
       let
-        fun term_pair_of (ix, (ty, t)) = (Var (ix, ty), t)
+        fun inst_pair_of (ix, (ty, t)) = ((ix, ty), t)
         fun inst_of_matches tts =
           fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
-          |> snd |> Vartab.dest |> map (apply2 (Thm.cterm_of ctxt2) o term_pair_of)
+          |> snd |> Vartab.dest |> map (apsnd (Thm.cterm_of ctxt2) o inst_pair_of)
         val (cases, (eqs, prems1)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
           rewrite_rule ctxt2 (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))

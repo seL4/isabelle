@@ -69,8 +69,8 @@ fun convs cv ct =
 
 local
 
-val A = read_prop "A" and vA = read_prop "?A";
-val B = read_prop "B" and vB = read_prop "?B";
+val A = read_prop "A" and vA = (("A", 0), propT);
+val B = read_prop "B" and vB = (("B", 0), propT);
 val C = read_prop "C";
 val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A &&& B";

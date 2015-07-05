@@ -62,12 +62,12 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val global_certify_inst: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
-    (ctyp * ctyp) list * (cterm * cterm) list
+    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   val global_certify_instantiate: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
   val certify_inst: Proof.context ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
-    (ctyp * ctyp) list * (cterm * cterm) list
+    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   val certify_instantiate: Proof.context ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
   val forall_intr_frees: thm -> thm
@@ -357,15 +357,15 @@ end;
 (* certify_instantiate *)
 
 fun global_certify_inst thy (instT, inst) =
- (map (fn (v, T) => apply2 (Thm.global_ctyp_of thy) (TVar v, T)) instT,
-  map (fn (v, t) => apply2 (Thm.global_cterm_of thy) (Var v, t)) inst);
+ (map (apsnd (Thm.global_ctyp_of thy)) instT,
+  map (apsnd (Thm.global_cterm_of thy)) inst);
 
 fun global_certify_instantiate thy insts th =
   Thm.instantiate (global_certify_inst thy insts) th;
 
 fun certify_inst ctxt (instT, inst) =
- (map (fn (v, T) => apply2 (Thm.ctyp_of ctxt) (TVar v, T)) instT,
-  map (fn (v, t) => apply2 (Thm.cterm_of ctxt) (Var v, t)) inst);
+ (map (apsnd (Thm.ctyp_of ctxt)) instT,
+  map (apsnd (Thm.cterm_of ctxt)) inst);
 
 fun certify_instantiate ctxt insts th =
   Thm.instantiate (certify_inst ctxt insts) th;
@@ -446,10 +446,12 @@ fun rename_boundvars pat obj th =
 
 fun stripped_sorts thy t =
   let
-    val tfrees = rev (map TFree (Term.add_tfrees t []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT (length tfrees));
-    val strip = tfrees ~~ tfrees';
-    val recover = map (apply2 (Thm.global_ctyp_of thy o Logic.varifyT_global) o swap) strip;
+    val tfrees = rev (Term.add_tfrees t []);
+    val tfrees' = map (fn a => (a, [])) (Name.invent Name.context Name.aT (length tfrees));
+    val recover =
+      map2 (fn (a', S') => fn (a, S) => (((a', 0), S'), Thm.global_ctyp_of thy (TVar ((a, 0), S))))
+        tfrees' tfrees;
+    val strip = map (apply2 TFree) (tfrees ~~ tfrees');
     val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
   in (strip, recover, t') end;
 

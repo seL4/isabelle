@@ -607,9 +607,9 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
   let
     val n = Thm.nprems_of coind;
     val m = Thm.nprems_of (hd rel_monos) - n;
-    fun mk_inst phi = (phi, mk_union (phi, HOLogic.eq_const (fst (dest_pred2T (fastype_of phi)))))
-      |> apply2 (Thm.cterm_of ctxt);
-    val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map (mk_inst o Var);
+    fun mk_inst phi =
+      (phi, Thm.cterm_of ctxt (mk_union (Var phi, HOLogic.eq_const (fst (dest_pred2T (#2 phi))))))
+    val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map mk_inst;
     fun mk_unfold rel_eq rel_mono =
       let
         val eq = iffD2 OF [rel_eq RS @{thm predicate2_eqD}, refl];

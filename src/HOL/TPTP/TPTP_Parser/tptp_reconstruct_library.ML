@@ -570,14 +570,14 @@ fun diff_and_instantiate ctxt scheme_thm scheme_t instance_t =
       diff (Proof_Context.theory_of ctxt) (scheme_t, instance_t)
 
     (*valuation of type variables*)
-    val typeval = map (apply2 (Thm.ctyp_of ctxt)) type_pairing
+    val typeval = map (fn (v, T) => (dest_TVar v, Thm.ctyp_of ctxt T)) type_pairing
 
     val typeval_env =
       map (apfst dest_TVar) type_pairing
     (*valuation of term variables*)
     val termval =
-      map (apfst (type_devar typeval_env)) term_pairing
-      |> map (apply2 (Thm.cterm_of ctxt))
+      map (apfst (dest_Var o type_devar typeval_env)) term_pairing
+      |> map (apsnd (Thm.cterm_of ctxt))
   in
     Thm.instantiate (typeval, termval) scheme_thm
   end

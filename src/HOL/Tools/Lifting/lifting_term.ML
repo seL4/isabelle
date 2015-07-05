@@ -310,7 +310,7 @@ fun force_qty_type ctxt qty quot_thm =
     val thy = Proof_Context.theory_of ctxt
     val (_, qty_schematic) = quot_thm_rty_qty quot_thm
     val match_env = Sign.typ_match thy (qty_schematic, qty) Vartab.empty
-    fun prep_ty (x, (S, ty)) = apply2 (Thm.ctyp_of ctxt) (TVar (x, S), ty)
+    fun prep_ty (x, (S, ty)) = ((x, S), Thm.ctyp_of ctxt ty)
     val ty_inst = Vartab.fold (cons o prep_ty) match_env []
   in
     Thm.instantiate (ty_inst, []) quot_thm

@@ -95,7 +95,11 @@ fun instantiate ctxt instTs insts =
     fun mapT_and_recertify ct =
       (Thm.cterm_of ctxt (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct)));
     val insts' = map (apfst mapT_and_recertify) insts;
-  in Thm.instantiate (instTs, insts') end;
+  in
+    Thm.instantiate
+     (map (apfst (dest_TVar o Thm.typ_of)) instTs,
+      map (apfst (dest_Var o Thm.term_of)) insts')
+  end;
 
 fun tvar_clash ixn S S' =
   raise TYPE ("Type variable has two distinct sorts", [TVar (ixn, S), TVar (ixn, S')], []);
@@ -145,9 +149,9 @@ fun discharge ctxt prems rule =
     val (tyinsts,insts) =
       fold naive_cterm_first_order_match (Thm.prems_of rule ~~ map Thm.cprop_of prems) ([], []);
     val tyinsts' =
-      map (fn (v, (S, U)) => apply2 (Thm.ctyp_of ctxt) (TVar (v, S), U)) tyinsts;
+      map (fn (v, (S, U)) => ((v, S), Thm.ctyp_of ctxt U)) tyinsts;
     val insts' =
-      map (fn (idxn, ct) => (Thm.cterm_of ctxt (Var (idxn, Thm.typ_of_cterm ct)), ct)) insts;
+      map (fn (idxn, ct) => ((idxn, Thm.typ_of_cterm ct), ct)) insts;
     val rule' = Thm.instantiate (tyinsts', insts') rule;
   in fold Thm.elim_implies prems rule' end;
 
@@ -286,7 +290,7 @@ local
         @{thm subtract_Tip} |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
         |> Thm.dest_comb |> #2;
       val [alpha] = ct |> Thm.ctyp_of_cterm |> Thm.dest_ctyp;
-    in (alpha, #1 (dest_Var (Thm.term_of ct))) end;
+    in (dest_TVar (Thm.typ_of alpha), #1 (dest_Var (Thm.term_of ct))) end;
 in
 
 fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
@@ -296,7 +300,7 @@ fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
       in
         Thm.instantiate
           ([(alpha, Thm.ctyp_of ctxt alphaI)],
-           [(Thm.cterm_of ctxt (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
+           [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
       end
   | subtractProver ctxt (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
       let

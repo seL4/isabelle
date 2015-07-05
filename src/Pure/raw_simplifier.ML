@@ -1044,8 +1044,9 @@ fun congc prover ctxt maxt cong t =
             then NONE else SOME thm2'))
   end;
 
-val (cA, (cB, cC)) =
-  apsnd Thm.dest_equals (Thm.dest_implies (hd (cprems_of Drule.imp_cong)));
+val vA = (("A", 0), propT);
+val vB = (("B", 0), propT);
+val vC = (("C", 0), propT);
 
 fun transitive1 NONE NONE = NONE
   | transitive1 (SOME thm1) NONE = SOME thm1
@@ -1177,7 +1178,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
         val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
         val eq' =
           Thm.implies_elim
-            (Thm.instantiate ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
+            (Thm.instantiate ([], [(vA, prem), (vB, lhs), (vC, rhs)]) Drule.imp_cong)
             (Thm.implies_intr prem eq);
       in
         if not r then eq'
@@ -1188,9 +1189,9 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
           in
             Thm.transitive
               (Thm.transitive
-                (Thm.instantiate ([], [(cA, prem'), (cB, prem), (cC, concl)]) Drule.swap_prems_eq)
+                (Thm.instantiate ([], [(vA, prem'), (vB, prem), (vC, concl)]) Drule.swap_prems_eq)
                 eq')
-              (Thm.instantiate ([], [(cA, prem), (cB, prem''), (cC, concl)]) Drule.swap_prems_eq)
+              (Thm.instantiate ([], [(vA, prem), (vB, prem''), (vC, concl)]) Drule.swap_prems_eq)
           end
       end
 

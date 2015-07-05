@@ -258,8 +258,9 @@ fun int_flip v eq =
 
 local
  val pth_zero = @{thm norm_zero}
- val tv_n = (Thm.ctyp_of_cterm o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
-             pth_zero
+ val tv_n =
+  (dest_TVar o Thm.typ_of_cterm o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of)
+    pth_zero
  val concl = Thm.dest_arg o Thm.cprop_of
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) =
   let
@@ -356,7 +357,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val shs = filter (member (fn (t,th) => t aconvc Thm.cprop_of th) asl) (#hyps (Thm.crep_thm th1))
   val th11 = hd (Variable.export ctxt' ctxt [fold Thm.implies_intr shs th1])
   val cps = map (swap o Thm.dest_equals) (cprems_of th11)
-  val th12 = Drule.instantiate_normalize ([], cps) th11
+  val th12 = Drule.instantiate_normalize ([], map (apfst (dest_Var o Thm.term_of)) cps) th11
   val th13 = fold Thm.elim_implies (map (Thm.reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])
  end

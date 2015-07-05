@@ -20,7 +20,8 @@ sig
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
-  val instantiate_normalize: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
+    thm -> thm
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
@@ -613,11 +614,9 @@ val termI =
 
 fun mk_term ct =
   let
-    val thy = Thm.theory_of_cterm ct;
-    val T = Thm.typ_of_cterm ct;
-    val instT = apply2 (Thm.global_ctyp_of thy) (TVar (("'a", 0), []), T);
-    val x = Thm.global_cterm_of thy (Var (("x", 0), T));
-  in Thm.instantiate ([instT], [(x, ct)]) termI end;
+    val cT = Thm.ctyp_of_cterm ct;
+    val T = Thm.typ_of cT;
+  in Thm.instantiate ([((("'a", 0), []), cT)], [((("x", 0), T), ct)]) termI end;
 
 fun dest_term th =
   let val cprop = strip_imp_concl (Thm.cprop_of th) in
@@ -767,9 +766,9 @@ fun cterm_instantiate [] th = th
         val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
-            cons (apply2 (Thm.global_ctyp_of thy) (TVar (xi, S), Envir.norm_type tye T))) tye [];
+            cons ((xi, S), Thm.global_ctyp_of thy (Envir.norm_type tye T))) tye [];
         val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
-      in instantiate_normalize (instT, inst) th end
+      in instantiate_normalize (instT, map (apfst (Thm.term_of #> dest_Var)) inst) th end
       handle TERM (msg, _) => raise THM (msg, 0, [th])
         | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 end;
@@ -784,27 +783,18 @@ fun instantiate' cTs cts thm =
         map_filter (Option.map Thm.typ_of) cTs,
         map_filter (Option.map Thm.term_of) cts);
 
-    fun inst_of (v, ct) =
-      (Thm.global_cterm_of (Thm.theory_of_cterm ct) (Var v), ct)
-        handle TYPE (msg, _, _) => err msg;
-
-    fun tyinst_of (v, cT) =
-      (Thm.global_ctyp_of (Thm.theory_of_ctyp cT) (TVar v), cT)
-        handle TYPE (msg, _, _) => err msg;
-
     fun zip_vars xs ys =
       zip_options xs ys handle ListPair.UnequalLengths =>
         err "more instantiations than variables in thm";
 
-    (*instantiate types first!*)
     val thm' =
       if forall is_none cTs then thm
-      else Thm.instantiate
-        (map tyinst_of (zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
+      else
+        Thm.instantiate ((zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
     val thm'' =
       if forall is_none cts then thm'
-      else Thm.instantiate
-        ([], map inst_of (zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts)) thm';
+      else
+        Thm.instantiate ([], zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts) thm';
     in thm'' end;
 
 
