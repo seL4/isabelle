@@ -157,11 +157,10 @@ fun abs cv th =
     meta_mp i th4
   end
 
-fun freezeT thm =
+fun freezeT thy thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
-    val thy = Thm.theory_of_thm thm
   in
     Thm.instantiate ((tvars ~~ map (Thm.global_ctyp_of thy) tfrees), []) thm
   end
@@ -175,7 +174,7 @@ fun def' constname rhs thy =
     val eq = Logic.mk_equals (Const (Sign.full_name thy1 constbinding, typ), rhs)
     val (thms, thy2) = Global_Theory.add_defs false
       [((Binding.suffix_name "_hldef" constbinding, eq), [])] thy1
-    val def_thm = freezeT (hd thms)
+    val def_thm = freezeT thy1 (hd thms)
   in
     (meta_eq_to_obj_eq def_thm, thy2)
   end
@@ -223,7 +222,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
      Typedef.add_typedef_global false (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
        (SOME (Binding.name rep_name, Binding.name abs_name)) (fn _ => rtac th2 1) thy
     val aty = #abs_type (#1 typedef_info)
-    val th = freezeT (#type_definition (#2 typedef_info))
+    val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
@@ -369,7 +368,7 @@ fun process_line str tstate =
       | process (thy, state) (#"M", [s]) =
           let
             val ctxt = Variable.set_body false (Proof_Context.init_global thy)
-            val thm = freezeT (Global_Theory.get_thm thy s)
+            val thm = freezeT thy (Global_Theory.get_thm thy s)
             val ((_, [th']), _) = Variable.import true [thm] ctxt
           in
             setth th' (thy, state)
