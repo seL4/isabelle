@@ -9,14 +9,13 @@ values accordingly. Instantiations in re-interpretation are done with
 Drule.cterm_instantiate.
 *)
 
-structure Eisbach_Rule_Insts : sig end =
+structure Eisbach_Rule_Insts: sig end =
 struct
 
 fun restore_tags thm = Thm.map_tags (K (Thm.get_tags thm));
 
-fun add_thm_insts thm =
+fun add_thm_insts ctxt thm =
   let
-    val thy = Thm.theory_of_thm thm;
     val tyvars = Thm.fold_terms Term.add_tvars thm [];
     val tyvars' = tyvars |> map (Logic.mk_term o Logic.mk_type o TVar);
 
@@ -24,7 +23,7 @@ fun add_thm_insts thm =
     val tvars' = tvars  |> map (Logic.mk_term o Var);
 
     val conj =
-      Logic.mk_conjunction_list (tyvars' @ tvars') |> Thm.global_cterm_of thy |> Drule.mk_term;
+      Logic.mk_conjunction_list (tyvars' @ tvars') |> Thm.cterm_of ctxt |> Drule.mk_term;
   in
     ((tyvars, tvars), Conjunction.intr thm conj)
   end;
@@ -48,19 +47,17 @@ fun get_thm_insts thm =
     (thm', insts')
   end;
 
-fun instantiate_xis insts thm =
+fun instantiate_xis ctxt insts thm =
   let
     val tyvars = Thm.fold_terms Term.add_tvars thm [];
     val tvars = Thm.fold_terms Term.add_vars thm [];
-    val cert = Thm.global_cterm_of (Thm.theory_of_thm thm);
-    val certT = Thm.global_ctyp_of (Thm.theory_of_thm thm);
 
     fun add_inst (xi, t) (Ts, ts) =
       (case AList.lookup (op =) tyvars xi of
-        SOME S => (((xi, S), certT (Logic.dest_type t)) :: Ts, ts)
+        SOME S => (((xi, S), Thm.ctyp_of ctxt (Logic.dest_type t)) :: Ts, ts)
       | NONE =>
           (case AList.lookup (op =) tvars xi of
-            SOME T => (Ts, (cert (Var (xi, T)), cert t) :: ts)
+            SOME T => (Ts, (Thm.cterm_of ctxt (Var (xi, T)), Thm.cterm_of ctxt t) :: ts)
           | NONE => error "indexname not found in thm"));
 
     val (cTinsts, cinsts) = fold add_inst insts ([], []);
@@ -187,7 +184,7 @@ fun read_instantiate_closed ctxt (Named_Insts (insts, fixes)) thm  =
       let
         val insts' = map (fn ((v, t), _) => ((v, Position.none), t)) insts;
 
-        val (thm_insts, thm') = add_thm_insts thm
+        val (thm_insts, thm') = add_thm_insts ctxt thm;
         val (thm'', thm_insts') =
           Rule_Insts.where_rule ctxt insts' fixes thm'
           |> get_thm_insts;
@@ -215,8 +212,9 @@ fun read_instantiate_closed ctxt (Named_Insts (insts, fixes)) thm  =
         val (ts', ctxt'') = Variable.import_terms false ts ctxt';
         val ts'' = Variable.export_terms ctxt'' ctxt ts';
         val insts' = ListPair.zip (xis, ts'');
-      in instantiate_xis insts' thm end
-  | read_instantiate_closed _ (Term_Insts insts) thm = instantiate_xis insts thm;
+      in instantiate_xis ctxt insts' thm end
+  | read_instantiate_closed ctxt (Term_Insts insts) thm =
+      instantiate_xis ctxt insts thm;
 
 val _ =
   Theory.setup
