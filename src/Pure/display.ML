@@ -21,10 +21,8 @@ sig
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thm_item: Proof.context -> thm -> Pretty.T
   val pretty_thm_global: theory -> thm -> Pretty.T
-  val pretty_thm_without_context: thm -> Pretty.T
   val string_of_thm: Proof.context -> thm -> string
   val string_of_thm_global: theory -> thm -> string
-  val string_of_thm_without_context: thm -> string
   val pretty_full_theory: bool -> theory -> Pretty.T list
 end;
 
@@ -82,11 +80,8 @@ fun pretty_thm_item ctxt th = Pretty.item [pretty_thm ctxt th];
 fun pretty_thm_global thy =
   pretty_thm_raw (Syntax.init_pretty_global thy) {quote = false, show_hyps = false};
 
-fun pretty_thm_without_context th = pretty_thm_global (Thm.theory_of_thm th) th;
-
 val string_of_thm = Pretty.string_of oo pretty_thm;
 val string_of_thm_global = Pretty.string_of oo pretty_thm_global;
-val string_of_thm_without_context = Pretty.string_of o pretty_thm_without_context;
 
 
 
