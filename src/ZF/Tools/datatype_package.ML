@@ -17,7 +17,7 @@ type datatype_result =
     recursor_eqns : thm list,          (*equations for the recursor*)
     free_iffs  : thm list,             (*freeness rewrite rules*)
     free_SEs   : thm list,             (*freeness destruct rules*)
-    mk_free    : string -> thm};       (*function to make freeness theorems*)
+    mk_free    : Proof.context -> string -> thm};    (*function to make freeness theorems*)
 
 signature DATATYPE_ARG =
 sig
@@ -343,10 +343,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Typical theorems have the form ~con1=con2, con1=con2==>False,
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
-  fun mk_free s =
+  fun mk_free ctxt s =
     let
-      val thy = Thm.theory_of_thm elim;
-      val ctxt = Proof_Context.init_global thy;
+      val thy = Proof_Context.theory_of ctxt;
     in
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn {context = ctxt', ...} => EVERY
