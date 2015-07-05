@@ -82,7 +82,9 @@ schematic_lemma Plus_cong: "[| p : a = x;  q: b = y |] ==> ?p : a + b = x + y"
 lemmas nat_congs = Suc_cong Plus_cong
 
 ML {*
-  val add_ss = FOLP_ss addcongs @{thms nat_congs} addrews [@{thm add_0}, @{thm add_Suc}]
+  val add_ss =
+    FOLP_ss addcongs @{thms nat_congs}
+    |> fold (addrew @{context}) @{thms add_0 add_Suc}
 *}
 
 schematic_lemma add_assoc: "?p : (k+m)+n = k+(m+n)"

@@ -24,14 +24,14 @@ sig
 end;
 
 
-infix 4 addrews addcongs delrews delcongs setauto;
+infix 4 addcongs delrews delcongs setauto;
 
 signature SIMP =
 sig
   type simpset
   val empty_ss  : simpset
   val addcongs  : simpset * thm list -> simpset
-  val addrews   : simpset * thm list -> simpset
+  val addrew    : Proof.context -> thm -> simpset -> simpset
   val delcongs  : simpset * thm list -> simpset
   val delrews   : simpset * thm list -> simpset
   val dest_ss   : simpset -> thm list * thm list
@@ -220,15 +220,13 @@ fun add_norm_tags congs =
     in add_norms(congs,ccs,new_asms) end;
 
 fun normed_rews congs =
-  let val add_norms = add_norm_tags congs in
-    fn thm =>
+  let
+    val add_norms = add_norm_tags congs
+    fun normed ctxt thm =
       let
-        val ctxt =
-          Thm.theory_of_thm thm
-          |> Proof_Context.init_global
-          |> Variable.declare_thm thm;
+        val ctxt' = Variable.declare_thm thm ctxt;
       in Variable.tradeT (K (map (add_norms o mk_trans) o maps mk_rew_rules)) ctxt [thm] end
-  end;
+  in normed end;
 
 fun NORM norm_lhs_tac = EVERY'[rtac red2 , norm_lhs_tac, refl_tac];
 
@@ -241,7 +239,7 @@ datatype simpset =
         SS of {auto_tac: int -> tactic,
                congs: thm list,
                cong_net: thm Net.net,
-               mk_simps: thm -> thm list,
+               mk_simps: Proof.context -> thm -> thm list,
                simps: (thm * thm list) list,
                simp_net: thm Net.net}
 
@@ -259,13 +257,11 @@ fun insert_thm_warn th net =
 
 val insert_thms = fold_rev insert_thm_warn;
 
-fun addrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
-let val thms = mk_simps thm
+fun addrew ctxt thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
+let val thms = mk_simps ctxt thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
-
-fun ss addrews thms = fold addrew thms ss;
 
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
