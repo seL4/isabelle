@@ -35,7 +35,7 @@ sig
   val delcongs  : simpset * thm list -> simpset
   val delrews   : simpset * thm list -> simpset
   val dest_ss   : simpset -> thm list * thm list
-  val print_ss  : simpset -> unit
+  val print_ss  : Proof.context -> simpset -> unit
   val setauto   : simpset * (int -> tactic) -> simpset
   val ASM_SIMP_CASE_TAC : simpset -> int -> tactic
   val ASM_SIMP_TAC      : simpset -> int -> tactic
@@ -249,13 +249,11 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 (** Insertion of congruences and rewrites **)
 
 (*insert a thm in a thm net*)
-fun insert_thm_warn th net =
+fun insert_thm th net =
   Net.insert_term Thm.eq_thm_prop (Thm.concl_of th, th) net
-  handle Net.INSERT =>
-    (writeln ("Duplicate rewrite or congruence rule:\n" ^
-        Display.string_of_thm_without_context th); net);
+    handle Net.INSERT => net;
 
-val insert_thms = fold_rev insert_thm_warn;
+val insert_thms = fold_rev insert_thm;
 
 fun addrew ctxt thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let val thms = mk_simps ctxt thm
@@ -273,13 +271,11 @@ end;
 (** Deletion of congruences and rewrites **)
 
 (*delete a thm from a thm net*)
-fun delete_thm_warn th net =
+fun delete_thm th net =
   Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net
-  handle Net.DELETE =>
-    (writeln ("No such rewrite or congruence rule:\n" ^
-        Display.string_of_thm_without_context th); net);
+    handle Net.DELETE => net;
 
-val delete_thms = fold_rev delete_thm_warn;
+val delete_thms = fold_rev delete_thm;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = fold (remove Thm.eq_thm_prop) thms congs
@@ -291,9 +287,7 @@ end;
 fun delrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let fun find((p as (th,ths))::ps',ps) =
           if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
-      | find([],simps') =
-          (writeln ("No such rewrite or congruence rule:\n" ^
-              Display.string_of_thm_without_context thm); ([], simps'))
+      | find([],simps') = ([], simps')
     val (thms,simps') = find(simps,[])
 in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = simps', simp_net = delete_thms thms simp_net }
@@ -311,10 +305,10 @@ fun op setauto(SS{congs,cong_net,mk_simps,simps,simp_net,...}, auto_tac) =
 
 fun dest_ss(SS{congs,simps,...}) = (congs, map #1 simps);
 
-fun print_ss(SS{congs,simps,...}) =
+fun print_ss ctxt (SS{congs,simps,...}) =
   writeln (cat_lines
-   (["Congruences:"] @ map Display.string_of_thm_without_context congs @
-    ["Rewrite Rules:"] @ map (Display.string_of_thm_without_context o #1) simps));
+   (["Congruences:"] @ map (Display.string_of_thm ctxt) congs @
+    ["Rewrite Rules:"] @ map (Display.string_of_thm ctxt o #1) simps));
 
 
 (* Rewriting with conditionals *)
@@ -436,12 +430,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = fold_rev lhs_insert_thm rwrls anet;
-    in  if !tracing andalso not(null new_rws)
-        then writeln (cat_lines
-          ("Adding rewrites:" :: map Display.string_of_thm_without_context new_rws))
-        else ();
-        (ss,thm,anet',anet::ats,cs)
-    end;
+    in (ss,thm,anet',anet::ats,cs) end;
 
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
       SOME(thm',seq') =>
