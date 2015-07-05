@@ -37,13 +37,13 @@ sig
   val dest_ss   : simpset -> thm list * thm list
   val print_ss  : Proof.context -> simpset -> unit
   val setauto   : simpset * (int -> tactic) -> simpset
-  val ASM_SIMP_CASE_TAC : simpset -> int -> tactic
-  val ASM_SIMP_TAC      : simpset -> int -> tactic
+  val ASM_SIMP_CASE_TAC : Proof.context -> simpset -> int -> tactic
+  val ASM_SIMP_TAC      : Proof.context -> simpset -> int -> tactic
   val CASE_TAC          : simpset -> int -> tactic
-  val SIMP_CASE2_TAC    : simpset -> int -> tactic
-  val SIMP_THM          : simpset -> thm -> thm
-  val SIMP_TAC          : simpset -> int -> tactic
-  val SIMP_CASE_TAC     : simpset -> int -> tactic
+  val SIMP_CASE2_TAC    : Proof.context -> simpset -> int -> tactic
+  val SIMP_THM          : Proof.context -> simpset -> thm -> thm
+  val SIMP_TAC          : Proof.context -> simpset -> int -> tactic
+  val SIMP_CASE_TAC     : Proof.context -> simpset -> int -> tactic
   val mk_congs          : theory -> string list -> thm list
   val mk_typed_congs    : theory -> (string * string) list -> thm list
 (* temporarily disabled:
@@ -375,26 +375,25 @@ fun prepare_goal i st =
     in variants_abs (params, Logic.strip_assums_concl subgi) end;
 
 (*print lhs of conclusion of subgoal i*)
-fun pr_goal_lhs i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st)
-             (lhs_of (prepare_goal i st)));
+fun pr_goal_lhs ctxt i st =
+    writeln (Syntax.string_of_term ctxt (lhs_of (prepare_goal i st)));
 
 (*print conclusion of subgoal i*)
-fun pr_goal_concl i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st) (prepare_goal i st))
+fun pr_goal_concl ctxt i st =
+    writeln (Syntax.string_of_term ctxt (prepare_goal i st))
 
 (*print subgoals i to j (inclusive)*)
-fun pr_goals (i,j) st =
+fun pr_goals ctxt (i,j) st =
     if i>j then ()
-    else (pr_goal_concl i st;  pr_goals (i+1,j) st);
+    else (pr_goal_concl ctxt i st;  pr_goals ctxt (i+1,j) st);
 
 (*Print rewrite for tracing; i=subgoal#, n=number of new subgoals,
   thm=old state, thm'=new state *)
-fun pr_rew (i,n,thm,thm',not_asms) =
+fun pr_rew ctxt (i,n,thm,thm',not_asms) =
     if !tracing
     then (if not_asms then () else writeln"Assumption used in";
-          pr_goal_lhs i thm; writeln"->"; pr_goal_lhs (i+n) thm';
-          if n>0 then (writeln"Conditions:"; pr_goals (i, i+n-1) thm')
+          pr_goal_lhs ctxt i thm; writeln"->"; pr_goal_lhs ctxt (i+n) thm';
+          if n>0 then (writeln"Conditions:"; pr_goals ctxt (i, i+n-1) thm')
           else ();
           writeln"" )
     else ();
@@ -407,7 +406,8 @@ fun strip_varify(Const(@{const_name Pure.imp}, _) $ H $ B, n, vs) =
         strip_varify(t,n,Var(("?",length vs),T)::vs)
   | strip_varify  _  = [];
 
-fun execute(ss,if_fl,auto_tac,cong_tac,net,i,thm) = let
+fun execute ctxt (ss,if_fl,auto_tac,cong_tac,net,i,thm) =
+let
 
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
@@ -426,7 +426,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-        val thms = map (Thm.trivial o Thm.global_cterm_of(Thm.theory_of_thm thm)) As;
+        val thms = map (Thm.trivial o Thm.cterm_of ctxt) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = fold_rev lhs_insert_thm rwrls anet;
@@ -435,7 +435,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
       SOME(thm',seq') =>
             let val n = (Thm.nprems_of thm') - (Thm.nprems_of thm)
-            in pr_rew(i,n,thm,thm',more);
+            in pr_rew ctxt (i,n,thm,thm',more);
                if n=0 then (SIMP_LHS::ss, thm', anet, ats, cs)
                else ((replicate n PROVE) @ (POP_CS::SIMP_LHS::ss),
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
@@ -451,7 +451,7 @@ fun try_true(thm,ss,anet,ats,cs) =
     | NONE => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
               in if !tracing
                  then (writeln"*** Failed to prove precondition. Normal form:";
-                       pr_goal_concl i thm;  writeln"")
+                       pr_goal_concl ctxt i thm;  writeln"")
                  else ();
                  rew(seq,thm0,ss0,anet0,ats0,cs0,more)
               end;
@@ -480,30 +480,30 @@ fun exec(state as (s::ss, thm, _, _, _)) =
 in exec(ss, thm, Net.empty, [], []) end;
 
 
-fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
+fun EXEC_TAC ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn i =>
     (fn thm =>
      if i <= 0 orelse Thm.nprems_of thm < i then Seq.empty
-     else Seq.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
+     else Seq.single(execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
     THEN TRY(auto_tac i)
 end;
 
-val SIMP_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,REFL,STOP],false);
-val SIMP_CASE_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
+fun SIMP_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,REFL,STOP],false);
+fun SIMP_CASE_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
 
-val ASM_SIMP_TAC = EXEC_TAC([ASMS(0),MK_EQ,SIMP_LHS,REFL,STOP],false);
-val ASM_SIMP_CASE_TAC = EXEC_TAC([ASMS(0),MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
+fun ASM_SIMP_TAC ctxt = EXEC_TAC ctxt ([ASMS(0),MK_EQ,SIMP_LHS,REFL,STOP],false);
+fun ASM_SIMP_CASE_TAC ctxt = EXEC_TAC ctxt ([ASMS(0),MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
 
-val SIMP_CASE2_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,IF,REFL,STOP],true);
+fun SIMP_CASE2_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,IF,REFL,STOP],true);
 
-fun REWRITE (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
+fun REWRITE ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn thm => let val state = thm RSN (2,red1)
-             in execute(ss,fl,auto_tac,cong_tac,simp_net,1,state) end
+             in execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,1,state) end
 end;
 
-val SIMP_THM = REWRITE ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
+fun SIMP_THM ctxt = REWRITE ctxt ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
 
 
 (* Compute Congruence rules for individual constants using the substition

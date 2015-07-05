@@ -89,19 +89,19 @@ ML {*
 
 schematic_lemma add_assoc: "?p : (k+m)+n = k+(m+n)"
 apply (rule_tac n = k in induct)
-apply (tactic {* SIMP_TAC add_ss 1 *})
-apply (tactic {* ASM_SIMP_TAC add_ss 1 *})
+apply (tactic {* SIMP_TAC @{context} add_ss 1 *})
+apply (tactic {* ASM_SIMP_TAC @{context} add_ss 1 *})
 done
 
 schematic_lemma add_0_right: "?p : m+0 = m"
 apply (rule_tac n = m in induct)
-apply (tactic {* SIMP_TAC add_ss 1 *})
-apply (tactic {* ASM_SIMP_TAC add_ss 1 *})
+apply (tactic {* SIMP_TAC @{context} add_ss 1 *})
+apply (tactic {* ASM_SIMP_TAC @{context} add_ss 1 *})
 done
 
 schematic_lemma add_Suc_right: "?p : m+Suc(n) = Suc(m+n)"
 apply (rule_tac n = m in induct)
-apply (tactic {* ALLGOALS (ASM_SIMP_TAC add_ss) *})
+apply (tactic {* ALLGOALS (ASM_SIMP_TAC @{context} add_ss) *})
 done
 
 (*mk_typed_congs appears not to work with FOLP's version of subst*)
