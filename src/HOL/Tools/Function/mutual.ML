@@ -12,7 +12,7 @@ sig
     -> term list
     -> local_theory
     -> ((thm (* goalstate *)
-        * (thm -> Function_Common.function_result) (* proof continuation *)
+        * (Proof.context -> thm -> Function_Common.function_result) (* proof continuation *)
        ) * local_theory)
 end
 
@@ -310,7 +310,7 @@ fun prepare_function_mutual config defname fixes eqss lthy =
 
     val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 
-    val cont' = mk_partial_rules_mutual lthy'' cont mutual'
+    fun cont' ctxt = mk_partial_rules_mutual lthy'' (cont ctxt) mutual'
   in
     ((goalstate, cont'), lthy'')
   end

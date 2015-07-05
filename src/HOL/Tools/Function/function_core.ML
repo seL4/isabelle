@@ -15,7 +15,7 @@ sig
     -> local_theory
     -> (term   (* f *)
         * thm  (* goalstate *)
-        * (thm -> Function_Common.function_result) (* continuation *)
+        * (Proof.context -> thm -> Function_Common.function_result) (* continuation *)
        ) * local_theory
 
 end
@@ -893,11 +893,8 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
       (prove_stuff lthy globals G f R xclauses complete compat
          compat_store G_elim) f_defthm
 
-    fun mk_partial_rules provedgoal =
+    fun mk_partial_rules newctxt provedgoal =
       let
-        val newthy = Thm.theory_of_thm provedgoal (*FIXME*)
-        val newctxt = Proof_Context.init_global newthy (*FIXME*)
-
         val (graph_is_function, complete_thm) =
           provedgoal
           |> Conjunction.elim

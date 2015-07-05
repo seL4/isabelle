@@ -98,7 +98,7 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
 
     fun afterqed [[proof]] lthy =
       let
-        val result = cont (Thm.close_derivation proof)
+        val result = cont lthy (Thm.close_derivation proof)
         val FunctionResult {fs, R, dom, psimps, simple_pinducts,
                 termination, domintros, cases, ...} = result
 
