@@ -2404,25 +2404,23 @@ text \<open>
 chapter \<open>Executable code\<close>
 
 text \<open>For validation purposes, it is often useful to \emph{execute}
-  specifications.  In principle, execution could be simulated by
-  Isabelle's inference kernel, i.e. by a combination of resolution and
-  simplification.  Unfortunately, this approach is rather inefficient.
-  A more efficient way of executing specifications is to translate
-  them into a functional programming language such as ML.
+  specifications. In principle, execution could be simulated by Isabelle's
+  inference kernel, i.e. by a combination of resolution and simplification.
+  Unfortunately, this approach is rather inefficient. A more efficient way
+  of executing specifications is to translate them into a functional
+  programming language such as ML.
 
-  Isabelle provides a generic framework to support code generation
-  from executable specifications.  Isabelle/HOL instantiates these
-  mechanisms in a way that is amenable to end-user applications.  Code
-  can be generated for functional programs (including overloading
-  using type classes) targeting SML @{cite SML}, OCaml @{cite OCaml},
-  Haskell @{cite "haskell-revised-report"} and Scala
-  @{cite "scala-overview-tech-report"}.  Conceptually, code generation is
-  split up in three steps: \emph{selection} of code theorems,
-  \emph{translation} into an abstract executable view and
-  \emph{serialization} to a specific \emph{target language}.
-  Inductive specifications can be executed using the predicate
-  compiler which operates within HOL.  See @{cite "isabelle-codegen"} for
-  an introduction.
+  Isabelle provides a generic framework to support code generation from
+  executable specifications. Isabelle/HOL instantiates these mechanisms in a
+  way that is amenable to end-user applications. Code can be generated for
+  functional programs (including overloading using type classes) targeting
+  SML @{cite SML}, OCaml @{cite OCaml}, Haskell @{cite
+  "haskell-revised-report"} and Scala @{cite "scala-overview-tech-report"}.
+  Conceptually, code generation is split up in three steps: \emph{selection}
+  of code theorems, \emph{translation} into an abstract executable view and
+  \emph{serialization} to a specific \emph{target language}. Inductive
+  specifications can be executed using the predicate compiler which operates
+  within HOL. See @{cite "isabelle-codegen"} for an introduction.
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -2448,240 +2446,200 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
        ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
         ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
     ;
-
     const: @{syntax term}
     ;
-
     constexpr: ( const | 'name._' | '_' )
     ;
-
     typeconstructor: @{syntax nameref}
     ;
-
     class: @{syntax nameref}
     ;
-
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
-
     @@{attribute (HOL) code} ( 'del' | 'equation' | 'abstype' | 'abstract'
       | 'drop:' ( const + ) | 'abort:' ( const + ) )?
     ;
-
     @@{command (HOL) code_datatype} ( const + )
     ;
-
     @@{attribute (HOL) code_unfold} ( 'del' ) ?
     ;
-
     @@{attribute (HOL) code_post} ( 'del' ) ?
     ;
-
     @@{attribute (HOL) code_abbrev}
     ;
-
     @@{command (HOL) code_thms} ( constexpr + ) ?
     ;
-
     @@{command (HOL) code_deps} ( constexpr + ) ?
     ;
-
     @@{command (HOL) code_reserved} target ( @{syntax string} + )
     ;
-
     symbol_const: ( @'constant' const )
     ;
-
     symbol_typeconstructor: ( @'type_constructor' typeconstructor )
     ;
-
     symbol_class: ( @'type_class' class )
     ;
-
     symbol_class_relation: ( @'class_relation' class ( '<' | '\<subseteq>' ) class )
     ;
-
     symbol_class_instance: ( @'class_instance' typeconstructor @'::' class )
     ;
-
     symbol_module: ( @'code_module' name )
     ;
-
     syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
     ;
-
     printing_const: symbol_const ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' syntax ? + @'and' )
     ;
-
     printing_typeconstructor: symbol_typeconstructor ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' syntax ? + @'and' )
     ;
-
     printing_class: symbol_class ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' )
     ;
-
     printing_class_relation: symbol_class_relation ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' )
     ;
-
     printing_class_instance: symbol_class_instance ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' '-' ? + @'and' )
     ;
-
     printing_module: symbol_module ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' ( @{syntax string} ( @'attach' ( const + ) ) ? ) ? + @'and' )
     ;
-
     @@{command (HOL) code_printing} ( ( printing_const | printing_typeconstructor
       | printing_class | printing_class_relation | printing_class_instance
       | printing_module ) + '|' )
     ;
-
     @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
       | symbol_class | symbol_class_relation | symbol_class_instance
       | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' ) + '|' )
     ;
-
     @@{command (HOL) code_monad} const const target
     ;
-
     @@{command (HOL) code_reflect} @{syntax string} \<newline>
       ( @'datatypes' ( @{syntax string} '=' ( '_' | ( @{syntax string} + '|' ) + @'and' ) ) ) ? \<newline>
       ( @'functions' ( @{syntax string} + ) ) ? ( @'file' @{syntax string} ) ?
     ;
-
     @@{command (HOL) code_pred} \<newline> ('(' @'modes' ':' modedecl ')')? \<newline> const
     ;
-
     modedecl: (modes | ((const ':' modes) \<newline>
         (@'and' ((const ':' modes @'and') +))?))
     ;
-
     modes: mode @'as' const
   \<close>}
 
   \begin{description}
 
-  \item @{command (HOL) "export_code"} generates code for a given list
-  of constants in the specified target language(s).  If no
-  serialization instruction is given, only abstract code is generated
-  internally.
+  \item @{command (HOL) "export_code"} generates code for a given list of
+  constants in the specified target language(s). If no serialization
+  instruction is given, only abstract code is generated internally.
 
-  Constants may be specified by giving them literally, referring to
-  all executable constants within a certain theory by giving @{text
-  "name._"}, or referring to \emph{all} executable constants currently
-  available by giving @{text "_"}.
+  Constants may be specified by giving them literally, referring to all
+  executable constants within a certain theory by giving @{text "name._"},
+  or referring to \emph{all} executable constants currently available by
+  giving @{text "_"}.
 
-  By default, exported identifiers are minimized per module.  This
-  can be suppressed by prepending @{keyword "open"} before the list
-  of contants.
+  By default, exported identifiers are minimized per module. This can be
+  suppressed by prepending @{keyword "open"} before the list of constants.
 
-  By default, for each involved theory one corresponding name space
-  module is generated.  Alternatively, a module name may be specified
-  after the @{keyword "module_name"} keyword; then \emph{all} code is
-  placed in this module.
+  By default, for each involved theory one corresponding name space module
+  is generated. Alternatively, a module name may be specified after the
+  @{keyword "module_name"} keyword; then \emph{all} code is placed in this
+  module.
 
   For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification
   refers to a single file; for \emph{Haskell}, it refers to a whole
-  directory, where code is generated in multiple files reflecting the
-  module hierarchy.  Omitting the file specification denotes standard
-  output.
+  directory, where code is generated in multiple files reflecting the module
+  hierarchy. Omitting the file specification denotes standard output.
 
-  Serializers take an optional list of arguments in parentheses.
-  For \emph{Haskell} a module name prefix may be given using the
-  ``@{text "root:"}'' argument; ``@{text string_classes}'' adds a
-  ``@{verbatim "deriving (Read, Show)"}'' clause to each appropriate
-  datatype declaration.
+  Serializers take an optional list of arguments in parentheses. For
+  \emph{Haskell} a module name prefix may be given using the ``@{text
+  "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
+  "deriving (Read, Show)"}'' clause to each appropriate datatype
+  declaration.
 
-  \item @{attribute (HOL) code} declare code equations for code
-  generation.  Variant @{text "code equation"} declares a conventional
-  equation as code equation.  Variants @{text "code abstype"} and
-  @{text "code abstract"} declare abstract datatype certificates or
-  code equations on abstract datatype representations respectively.
-  Vanilla @{text "code"} falls back to @{text "code equation"}
-  or @{text "code abstype"} depending on the syntactic shape
-  of the underlying equation.  Variant @{text "code del"}
+  \item @{attribute (HOL) code} declare code equations for code generation.
+  Variant @{text "code equation"} declares a conventional equation as code
+  equation. Variants @{text "code abstype"} and @{text "code abstract"}
+  declare abstract datatype certificates or code equations on abstract
+  datatype representations respectively. Vanilla @{text "code"} falls back
+  to @{text "code equation"} or @{text "code abstype"} depending on the
+  syntactic shape of the underlying equation. Variant @{text "code del"}
   deselects a code equation for code generation.
 
-  Variants @{text "code drop:"} and @{text "code abort:"} take
-  a list of constant as arguments and drop all code equations declared
-  for them.  In the case of {text abort}, these constants then are
-  are not required to have a definition by means of code equations;
-  if needed these are implemented by program abort (exception) instead.
+  Variants @{text "code drop:"} and @{text "code abort:"} take a list of
+  constant as arguments and drop all code equations declared for them. In
+  the case of {text abort}, these constants then are are not required to
+  have a definition by means of code equations; if needed these are
+  implemented by program abort (exception) instead.
 
-  Usually packages introducing code equations provide a reasonable
-  default setup for selection.
+  Usually packages introducing code equations provide a reasonable default
+  setup for selection.
 
-  \item @{command (HOL) "code_datatype"} specifies a constructor set
-  for a logical type.
+  \item @{command (HOL) "code_datatype"} specifies a constructor set for a
+  logical type.
 
-  \item @{command (HOL) "print_codesetup"} gives an overview on
-  selected code equations and code generator datatypes.
+  \item @{command (HOL) "print_codesetup"} gives an overview on selected
+  code equations and code generator datatypes.
 
-  \item @{attribute (HOL) code_unfold} declares (or with option
-  ``@{text "del"}'' removes) theorems which during preprocessing
-  are applied as rewrite rules to any code equation or evaluation
-  input.
+  \item @{attribute (HOL) code_unfold} declares (or with option ``@{text
+  "del"}'' removes) theorems which during preprocessing are applied as
+  rewrite rules to any code equation or evaluation input.
 
   \item @{attribute (HOL) code_post} declares (or with option ``@{text
   "del"}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
   \item @{attribute (HOL) code_abbrev} declares (or with option ``@{text
-  "del"}'' removes) equations which are
-  applied as rewrite rules to any result of an evaluation and
-  symmetrically during preprocessing to any code equation or evaluation
-  input.
+  "del"}'' removes) equations which are applied as rewrite rules to any
+  result of an evaluation and symmetrically during preprocessing to any code
+  equation or evaluation input.
 
   \item @{command (HOL) "print_codeproc"} prints the setup of the code
   generator preprocessor.
 
-  \item @{command (HOL) "code_thms"} prints a list of theorems
-  representing the corresponding program containing all given
-  constants after preprocessing.
+  \item @{command (HOL) "code_thms"} prints a list of theorems representing
+  the corresponding program containing all given constants after
+  preprocessing.
 
-  \item @{command (HOL) "code_deps"} visualizes dependencies of
-  theorems representing the corresponding program containing all given
-  constants after preprocessing.
+  \item @{command (HOL) "code_deps"} visualizes dependencies of theorems
+  representing the corresponding program containing all given constants
+  after preprocessing.
 
   \item @{command (HOL) "code_reserved"} declares a list of names as
-  reserved for a given target, preventing it to be shadowed by any
-  generated code.
+  reserved for a given target, preventing it to be shadowed by any generated
+  code.
 
   \item @{command (HOL) "code_printing"} associates a series of symbols
-  (constants, type constructors, classes, class relations, instances,
-  module names) with target-specific serializations; omitting a serialization
+  (constants, type constructors, classes, class relations, instances, module
+  names) with target-specific serializations; omitting a serialization
   deletes an existing serialization.
 
-  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
-  to generate monadic code for Haskell.
+  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism to
+  generate monadic code for Haskell.
 
   \item @{command (HOL) "code_identifier"} associates a a series of symbols
-  (constants, type constructors, classes, class relations, instances,
-  module names) with target-specific hints how these symbols shall be named.
-  These hints gain precedence over names for symbols with no hints at all.
-  Conflicting hints are subject to name disambiguation.
-  \emph{Warning:} It is at the discretion
-  of the user to ensure that name prefixes of identifiers in compound
-  statements like type classes or datatypes are still the same.
+  (constants, type constructors, classes, class relations, instances, module
+  names) with target-specific hints how these symbols shall be named. These
+  hints gain precedence over names for symbols with no hints at all.
+  Conflicting hints are subject to name disambiguation. \emph{Warning:} It
+  is at the discretion of the user to ensure that name prefixes of
+  identifiers in compound statements like type classes or datatypes are
+  still the same.
 
   \item @{command (HOL) "code_reflect"} without a ``@{text "file"}''
-  argument compiles code into the system runtime environment and
-  modifies the code generator setup that future invocations of system
-  runtime code generation referring to one of the ``@{text
-  "datatypes"}'' or ``@{text "functions"}'' entities use these
-  precompiled entities.  With a ``@{text "file"}'' argument, the
-  corresponding code is generated into that specified file without
-  modifying the code generator setup.
+  argument compiles code into the system runtime environment and modifies
+  the code generator setup that future invocations of system runtime code
+  generation referring to one of the ``@{text "datatypes"}'' or ``@{text
+  "functions"}'' entities use these precompiled entities. With a ``@{text
+  "file"}'' argument, the corresponding code is generated into that
+  specified file without modifying the code generator setup.
 
-  \item @{command (HOL) "code_pred"} creates code equations for a
-    predicate given a set of introduction rules. Optional mode
-    annotations determine which arguments are supposed to be input or
-    output. If alternative introduction rules are declared, one must
-    prove a corresponding elimination rule.
+  \item @{command (HOL) "code_pred"} creates code equations for a predicate
+  given a set of introduction rules. Optional mode annotations determine
+  which arguments are supposed to be input or output. If alternative
+  introduction rules are declared, one must prove a corresponding
+  elimination rule.
 
   \end{description}
 \<close>
