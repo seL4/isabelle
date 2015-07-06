@@ -340,7 +340,6 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
-    val _ = message lthy "Quickchecking..."
     fun strip (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
@@ -390,8 +389,9 @@ fun pretty_counterex ctxt auto NONE =
         val header =
           Pretty.para
             (tool_name auto ^ " found a " ^
-              (if genuine then "counterexample:"
-               else "potentially spurious counterexample due to underspecified functions:") ^
+              (if genuine then "counterexample"
+               else "potentially spurious counterexample due to underspecified functions") ^
+              (if null cex then "." else ":") ^
               Config.get ctxt tag);
         fun pretty_cex (x, t) =
           Pretty.block [Pretty.str (x ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t];
