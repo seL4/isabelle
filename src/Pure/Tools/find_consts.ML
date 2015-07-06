@@ -49,10 +49,11 @@ fun filter_const _ _ NONE = NONE
 fun pretty_criterion (b, c) =
   let
     fun prfx s = if b then s else "-" ^ s;
+    val show_pat = quote o Input.source_content o Syntax.read_input;
   in
     (case c of
-      Strict pat => Pretty.str (prfx "strict: " ^ quote pat)
-    | Loose pat => Pretty.str (prfx (quote pat))
+      Strict pat => Pretty.str (prfx "strict: " ^ show_pat pat)
+    | Loose pat => Pretty.str (prfx (show_pat pat))
     | Name name => Pretty.str (prfx "name: " ^ quote name))
   end;
 
