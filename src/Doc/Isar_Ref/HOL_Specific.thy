@@ -1,7 +1,13 @@
 theory HOL_Specific
-imports Base "~~/src/HOL/Library/Old_Datatype" "~~/src/HOL/Library/Old_Recdef"
-  "~~/src/Tools/Adhoc_Overloading" "~~/src/HOL/Library/Dlist"  "~~/src/HOL/Library/FSet"
+imports
+  Base
+  "~~/src/HOL/Library/Old_Datatype"
+  "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/Tools/Adhoc_Overloading"
+  "~~/src/HOL/Library/Dlist"
+  "~~/src/HOL/Library/FSet"
 begin
+
 
 chapter \<open>Higher-Order Logic\<close>
 
@@ -171,12 +177,10 @@ text \<open>A (co)inductive definition of @{text R} provides the following
 
   \end{description}
 
-  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are
-  defined simultaneously, the list of introduction rules is called
-  @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the case analysis rules are
-  called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the list
-  of mutual induction rules is called @{text
-  "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
+  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are defined simultaneously,
+  the list of introduction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the
+  case analysis rules are called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the
+  list of mutual induction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
 \<close>
 
 
@@ -236,8 +240,8 @@ where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> a
 (*<*)end(*>*)
 
 text \<open>Common logical connectives can be easily characterized as
-non-recursive inductive definitions with parameters, but without
-arguments.\<close>
+  non-recursive inductive definitions with parameters, but without
+  arguments.\<close>
 
 (*<*)experiment begin(*>*)
 inductive AND for A B :: bool
@@ -251,12 +255,12 @@ inductive EXISTS for B :: "'a \<Rightarrow> bool"
 where "B a \<Longrightarrow> EXISTS B"
 (*<*)end(*>*)
 
-text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by
-  the @{command inductive} package coincide with the expected
-  elimination rules for Natural Deduction.  Already in the original
-  article by Gerhard Gentzen @{cite "Gentzen:1935"} there is a hint that
-  each connective can be characterized by its introductions, and the
-  elimination can be constructed systematically.\<close>
+text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by the
+  @{command inductive} package coincide with the expected elimination rules
+  for Natural Deduction. Already in the original article by Gerhard Gentzen
+  @{cite "Gentzen:1935"} there is a hint that each connective can be
+  characterized by its introductions, and the elimination can be constructed
+  systematically.\<close>
 
 
 section \<open>Recursive functions \label{sec:recursion}\<close>
@@ -288,101 +292,98 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes (see also @{command_ref (HOL) datatype}).
-  The given @{text equations} specify reduction rules that are produced
-  by instantiating the generic combinator for primitive recursion that
-  is available for each datatype.
+  \item @{command (HOL) "primrec"} defines primitive recursive functions
+  over datatypes (see also @{command_ref (HOL) datatype}). The given @{text
+  equations} specify reduction rules that are produced by instantiating the
+  generic combinator for primitive recursion that is available for each
+  datatype.
 
   Each equation needs to be of the form:
 
   @{text [display] "f x\<^sub>1 \<dots> x\<^sub>m (C y\<^sub>1 \<dots> y\<^sub>k) z\<^sub>1 \<dots> z\<^sub>n = rhs"}
 
-  such that @{text C} is a datatype constructor, @{text rhs} contains
-  only the free variables on the left-hand side (or from the context),
-  and all recursive occurrences of @{text "f"} in @{text "rhs"} are of
-  the form @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}.  At most one
-  reduction rule for each constructor can be given.  The order does
-  not matter.  For missing constructors, the function is defined to
-  return a default value, but this equation is made difficult to
-  access for users.
+  such that @{text C} is a datatype constructor, @{text rhs} contains only
+  the free variables on the left-hand side (or from the context), and all
+  recursive occurrences of @{text "f"} in @{text "rhs"} are of the form
+  @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}. At most one reduction rule for
+  each constructor can be given. The order does not matter. For missing
+  constructors, the function is defined to return a default value, but this
+  equation is made difficult to access for users.
 
-  The reduction rules are declared as @{attribute simp} by default,
-  which enables standard proof methods like @{method simp} and
-  @{method auto} to normalize expressions of @{text "f"} applied to
-  datatype constructions, by simulating symbolic computation via
-  rewriting.
+  The reduction rules are declared as @{attribute simp} by default, which
+  enables standard proof methods like @{method simp} and @{method auto} to
+  normalize expressions of @{text "f"} applied to datatype constructions, by
+  simulating symbolic computation via rewriting.
 
-  \item @{command (HOL) "function"} defines functions by general
-  wellfounded recursion. A detailed description with examples can be
-  found in @{cite "isabelle-function"}. The function is specified by a
-  set of (possibly conditional) recursive equations with arbitrary
-  pattern matching. The command generates proof obligations for the
-  completeness and the compatibility of patterns.
+  \item @{command (HOL) "function"} defines functions by general wellfounded
+  recursion. A detailed description with examples can be found in @{cite
+  "isabelle-function"}. The function is specified by a set of (possibly
+  conditional) recursive equations with arbitrary pattern matching. The
+  command generates proof obligations for the completeness and the
+  compatibility of patterns.
 
   The defined function is considered partial, and the resulting
-  simplification rules (named @{text "f.psimps"}) and induction rule
-  (named @{text "f.pinduct"}) are guarded by a generated domain
-  predicate @{text "f_dom"}. The @{command (HOL) "termination"}
-  command can then be used to establish that the function is total.
+  simplification rules (named @{text "f.psimps"}) and induction rule (named
+  @{text "f.pinduct"}) are guarded by a generated domain predicate @{text
+  "f_dom"}. The @{command (HOL) "termination"} command can then be used to
+  establish that the function is total.
 
-  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
-  (HOL) "function"}~@{text "(sequential)"}'', followed by automated
-  proof attempts regarding pattern matching and termination.  See
-  @{cite "isabelle-function"} for further details.
+  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
+  "function"}~@{text "(sequential)"}'', followed by automated proof attempts
+  regarding pattern matching and termination. See @{cite
+  "isabelle-function"} for further details.
 
-  \item @{command (HOL) "termination"}~@{text f} commences a
-  termination proof for the previously defined function @{text f}.  If
-  this is omitted, the command refers to the most recent function
-  definition.  After the proof is closed, the recursive equations and
-  the induction principle is established.
+  \item @{command (HOL) "termination"}~@{text f} commences a termination
+  proof for the previously defined function @{text f}. If this is omitted,
+  the command refers to the most recent function definition. After the proof
+  is closed, the recursive equations and the induction principle is
+  established.
 
-  \item @{command (HOL) "fun_cases"} generates specialized elimination
-  rules for function equations. It expects one or more function equations
-  and produces rules that eliminate the given equalities, following the cases
+  \item @{command (HOL) "fun_cases"} generates specialized elimination rules
+  for function equations. It expects one or more function equations and
+  produces rules that eliminate the given equalities, following the cases
   given in the function definition.
+
   \end{description}
 
   Recursive definitions introduced by the @{command (HOL) "function"}
-  command accommodate reasoning by induction (cf.\ @{method induct}):
-  rule @{text "f.induct"} refers to a specific induction rule, with
-  parameters named according to the user-specified equations. Cases
-  are numbered starting from 1.  For @{command (HOL) "primrec"}, the
-  induction principle coincides with structural recursion on the
-  datatype where the recursion is carried out.
+  command accommodate reasoning by induction (cf.\ @{method induct}): rule
+  @{text "f.induct"} refers to a specific induction rule, with parameters
+  named according to the user-specified equations. Cases are numbered
+  starting from 1. For @{command (HOL) "primrec"}, the induction principle
+  coincides with structural recursion on the datatype where the recursion is
+  carried out.
 
-  The equations provided by these packages may be referred later as
-  theorem list @{text "f.simps"}, where @{text f} is the (collective)
-  name of the functions defined.  Individual equations may be named
-  explicitly as well.
+  The equations provided by these packages may be referred later as theorem
+  list @{text "f.simps"}, where @{text f} is the (collective) name of the
+  functions defined. Individual equations may be named explicitly as well.
 
-  The @{command (HOL) "function"} command accepts the following
-  options.
+  The @{command (HOL) "function"} command accepts the following options.
 
   \begin{description}
 
   \item @{text sequential} enables a preprocessor which disambiguates
-  overlapping patterns by making them mutually disjoint.  Earlier
-  equations take precedence over later ones.  This allows to give the
-  specification in a format very similar to functional programming.
-  Note that the resulting simplification and induction rules
-  correspond to the transformed specification, not the one given
-  originally. This usually means that each equation given by the user
-  may result in several theorems.  Also note that this automatic
-  transformation only works for ML-style datatype patterns.
+  overlapping patterns by making them mutually disjoint. Earlier equations
+  take precedence over later ones. This allows to give the specification in
+  a format very similar to functional programming. Note that the resulting
+  simplification and induction rules correspond to the transformed
+  specification, not the one given originally. This usually means that each
+  equation given by the user may result in several theorems. Also note that
+  this automatic transformation only works for ML-style datatype patterns.
 
-  \item @{text domintros} enables the automated generation of
-  introduction rules for the domain predicate. While mostly not
-  needed, they can be helpful in some proofs about partial functions.
+  \item @{text domintros} enables the automated generation of introduction
+  rules for the domain predicate. While mostly not needed, they can be
+  helpful in some proofs about partial functions.
 
   \end{description}
 \<close>
 
+
 subsubsection \<open>Example: evaluation of expressions\<close>
 
-text \<open>Subsequently, we define mutual datatypes for arithmetic and
-  boolean expressions, and use @{command primrec} for evaluation
-  functions that follow the same recursive structure.\<close>
+text \<open>Subsequently, we define mutual datatypes for arithmetic and boolean
+  expressions, and use @{command primrec} for evaluation functions that
+  follow the same recursive structure.\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a aexp =
@@ -413,13 +414,13 @@ where
 
 text \<open>Since the value of an expression depends on the value of its
   variables, the functions @{const evala} and @{const evalb} take an
-  additional parameter, an \emph{environment} that maps variables to
-  their values.
+  additional parameter, an \emph{environment} that maps variables to their
+  values.
 
-  \medskip Substitution on expressions can be defined similarly.  The
-  mapping @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a
-  parameter is lifted canonically on the types @{typ "'a aexp"} and
-  @{typ "'a bexp"}, respectively.
+  \medskip Substitution on expressions can be defined similarly. The mapping
+  @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted
+  canonically on the types @{typ "'a aexp"} and @{typ "'a bexp"},
+  respectively.
 \<close>
 
 primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
@@ -434,10 +435,10 @@ where
 | "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
 | "substb f (Neg b) = Neg (substb f b)"
 
-text \<open>In textbooks about semantics one often finds substitution
-  theorems, which express the relationship between substitution and
-  evaluation.  For @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove
-  such a theorem by mutual induction, followed by simplification.
+text \<open>In textbooks about semantics one often finds substitution theorems,
+  which express the relationship between substitution and evaluation. For
+  @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove such a theorem by
+  mutual induction, followed by simplification.
 \<close>
 
 lemma subst_one:
@@ -487,9 +488,8 @@ lemma "subst_term (subst_term f1 \<circ> f2) t =
 
 subsubsection \<open>Example: a map function for infinitely branching trees\<close>
 
-text \<open>Defining functions on infinitely branching datatypes by
-  primitive recursion is just as easy.
-\<close>
+text \<open>Defining functions on infinitely branching datatypes by primitive
+  recursion is just as easy.\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
@@ -499,11 +499,12 @@ where
   "map_tree f (Atom a) = Atom (f a)"
 | "map_tree f (Branch ts) = Branch (\<lambda>x. map_tree f (ts x))"
 
-text \<open>Note that all occurrences of functions such as @{text ts}
-  above must be applied to an argument.  In particular, @{term
-  "map_tree f \<circ> ts"} is not allowed here.\<close>
+text \<open>Note that all occurrences of functions such as @{text ts} above must
+  be applied to an argument. In particular, @{term "map_tree f \<circ> ts"} is not
+  allowed here.
 
-text \<open>Here is a simple composition lemma for @{term map_tree}:\<close>
+  \medskip Here is a simple composition lemma for @{term map_tree}:
+\<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
   by (induct t) simp_all
@@ -645,7 +646,6 @@ text \<open>
   definitions.
 
   \end{description}
-
 \<close>
 
 
@@ -745,9 +745,8 @@ text \<open>
 
 subsubsection \<open>Examples\<close>
 
-text \<open>We define a type of finite sequences, with slightly different
-  names than the existing @{typ "'a list"} that is already in @{theory
-  Main}:\<close>
+text \<open>We define a type of finite sequences, with slightly different names
+  than the existing @{typ "'a list"} that is already in @{theory Main}:\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a seq = Empty | Seq 'a "'a seq"
@@ -902,33 +901,30 @@ text \<open>
 
 subsection \<open>Record operations\<close>
 
-text \<open>
-  Any record definition of the form presented above produces certain
-  standard operations.  Selectors and updates are provided for any
-  field, including the improper one ``@{text more}''.  There are also
-  cumulative record constructor functions.  To simplify the
-  presentation below, we assume for now that @{text "(\<alpha>\<^sub>1, \<dots>,
-  \<alpha>\<^sub>m) t"} is a root record with fields @{text "c\<^sub>1 ::
-  \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
+text \<open>Any record definition of the form presented above produces certain
+  standard operations. Selectors and updates are provided for any field,
+  including the improper one ``@{text more}''. There are also cumulative
+  record constructor functions. To simplify the presentation below, we
+  assume for now that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} is a root record with fields
+  @{text "c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
 
-  \medskip \textbf{Selectors} and \textbf{updates} are available for
-  any field (including ``@{text more}''):
+  \medskip \textbf{Selectors} and \textbf{updates} are available for any
+  field (including ``@{text more}''):
 
   \begin{matharray}{lll}
     @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
     @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
   \end{matharray}
 
-  There is special syntax for application of updates: @{text "r\<lparr>x :=
-  a\<rparr>"} abbreviates term @{text "x_update a r"}.  Further notation for
-  repeated updates is also available: @{text "r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z :=
-  c\<rparr>"} may be written @{text "r\<lparr>x := a, y := b, z := c\<rparr>"}.  Note that
-  because of postfix notation the order of fields shown here is
-  reverse than in the actual term.  Since repeated updates are just
-  function applications, fields may be freely permuted in @{text "\<lparr>x
-  := a, y := b, z := c\<rparr>"}, as far as logical equality is concerned.
-  Thus commutativity of independent updates can be proven within the
-  logic for any two fields, but not as a general theorem.
+  There is special syntax for application of updates: @{text "r\<lparr>x := a\<rparr>"}
+  abbreviates term @{text "x_update a r"}. Further notation for repeated
+  updates is also available: @{text "r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z := c\<rparr>"} may be
+  written @{text "r\<lparr>x := a, y := b, z := c\<rparr>"}. Note that because of postfix
+  notation the order of fields shown here is reverse than in the actual
+  term. Since repeated updates are just function applications, fields may be
+  freely permuted in @{text "\<lparr>x := a, y := b, z := c\<rparr>"}, as far as logical
+  equality is concerned. Thus commutativity of independent updates can be
+  proven within the logic for any two fields, but not as a general theorem.
 
   \medskip The \textbf{make} operation provides a cumulative record
   constructor function:
@@ -937,15 +933,14 @@ text \<open>
     @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{matharray}
 
-  \medskip We now reconsider the case of non-root records, which are
-  derived of some parent.  In general, the latter may depend on
-  another parent as well, resulting in a list of \emph{ancestor
-  records}.  Appending the lists of fields of all ancestors results in
-  a certain field prefix.  The record package automatically takes care
-  of this by lifting operations over this context of ancestor fields.
-  Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has ancestor
-  fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"},
-  the above record operations will get the following types:
+  \medskip We now reconsider the case of non-root records, which are derived
+  of some parent. In general, the latter may depend on another parent as
+  well, resulting in a list of \emph{ancestor records}. Appending the lists
+  of fields of all ancestors results in a certain field prefix. The record
+  package automatically takes care of this by lifting operations over this
+  context of ancestor fields. Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has
+  ancestor fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"}, the above record
+  operations will get the following types:
 
   \medskip
   \begin{tabular}{lll}
@@ -959,11 +954,11 @@ text \<open>
   \medskip
 
   \noindent Some further operations address the extension aspect of a
-  derived record scheme specifically: @{text "t.fields"} produces a
-  record fragment consisting of exactly the new fields introduced here
-  (the result may serve as a more part elsewhere); @{text "t.extend"}
-  takes a fixed record and adds a given more part; @{text
-  "t.truncate"} restricts a record scheme to a fixed record.
+  derived record scheme specifically: @{text "t.fields"} produces a record
+  fragment consisting of exactly the new fields introduced here (the result
+  may serve as a more part elsewhere); @{text "t.extend"} takes a fixed
+  record and adds a given more part; @{text "t.truncate"} restricts a record
+  scheme to a fixed record.
 
   \medskip
   \begin{tabular}{lll}
@@ -974,8 +969,8 @@ text \<open>
   \end{tabular}
   \medskip
 
-  \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide
-  for root records.
+  \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide for
+  root records.
 \<close>
 
 
@@ -989,41 +984,40 @@ text \<open>
 
   \begin{enumerate}
 
-  \item Standard conversions for selectors or updates applied to
-  record constructor terms are made part of the default Simplifier
-  context; thus proofs by reduction of basic operations merely require
-  the @{method simp} method without further arguments.  These rules
-  are available as @{text "t.simps"}, too.
+  \item Standard conversions for selectors or updates applied to record
+  constructor terms are made part of the default Simplifier context; thus
+  proofs by reduction of basic operations merely require the @{method simp}
+  method without further arguments. These rules are available as @{text
+  "t.simps"}, too.
 
-  \item Selectors applied to updated records are automatically reduced
-  by an internal simplification procedure, which is also part of the
-  standard Simplifier setup.
+  \item Selectors applied to updated records are automatically reduced by an
+  internal simplification procedure, which is also part of the standard
+  Simplifier setup.
 
-  \item Inject equations of a form analogous to @{prop "(x, y) = (x',
-  y') \<equiv> x = x' \<and> y = y'"} are declared to the Simplifier and Classical
-  Reasoner as @{attribute iff} rules.  These rules are available as
-  @{text "t.iffs"}.
+  \item Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv>
+  x = x' \<and> y = y'"} are declared to the Simplifier and Classical Reasoner as
+  @{attribute iff} rules. These rules are available as @{text "t.iffs"}.
 
-  \item The introduction rule for record equality analogous to @{text
-  "x r = x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier,
-  and as the basic rule context as ``@{attribute intro}@{text "?"}''.
-  The rule is called @{text "t.equality"}.
+  \item The introduction rule for record equality analogous to @{text "x r =
+  x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier, and as the
+  basic rule context as ``@{attribute intro}@{text "?"}''. The rule is
+  called @{text "t.equality"}.
 
   \item Representations of arbitrary record expressions as canonical
   constructor terms are provided both in @{method cases} and @{method
   induct} format (cf.\ the generic proof methods of the same name,
-  \secref{sec:cases-induct}).  Several variations are available, for
-  fixed records, record schemes, more parts etc.
+  \secref{sec:cases-induct}). Several variations are available, for fixed
+  records, record schemes, more parts etc.
 
-  The generic proof methods are sufficiently smart to pick the most
-  sensible rule according to the type of the indicated record
-  expression: users just need to apply something like ``@{text "(cases
-  r)"}'' to a certain proof problem.
+  The generic proof methods are sufficiently smart to pick the most sensible
+  rule according to the type of the indicated record expression: users just
+  need to apply something like ``@{text "(cases r)"}'' to a certain proof
+  problem.
 
-  \item The derived record operations @{text "t.make"}, @{text
-  "t.fields"}, @{text "t.extend"}, @{text "t.truncate"} are \emph{not}
-  treated automatically, but usually need to be expanded by hand,
-  using the collective fact @{text "t.defs"}.
+  \item The derived record operations @{text "t.make"}, @{text "t.fields"},
+  @{text "t.extend"}, @{text "t.truncate"} are \emph{not} treated
+  automatically, but usually need to be expanded by hand, using the
+  collective fact @{text "t.defs"}.
 
   \end{enumerate}
 \<close>
@@ -1032,6 +1026,7 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>See @{file "~~/src/HOL/ex/Records.thy"}, for example.\<close>
+
 
 section \<open>Typedef axiomatization \label{sec:hol-typedef}\<close>
 
@@ -1187,30 +1182,28 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to
-  prove and register properties about the functorial structure of type
-  constructors.  These properties then can be used by other packages
-  to deal with those type constructors in certain type constructions.
-  Characteristic theorems are noted in the current local theory.  By
-  default, they are prefixed with the base name of the type
-  constructor, an explicit prefix can be given alternatively.
+  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to prove and
+  register properties about the functorial structure of type constructors.
+  These properties then can be used by other packages to deal with those
+  type constructors in certain type constructions. Characteristic theorems
+  are noted in the current local theory. By default, they are prefixed with
+  the base name of the type constructor, an explicit prefix can be given
+  alternatively.
 
   The given term @{text "m"} is considered as \emph{mapper} for the
-  corresponding type constructor and must conform to the following
-  type pattern:
+  corresponding type constructor and must conform to the following type
+  pattern:
 
   \begin{matharray}{lll}
     @{text "m"} & @{text "::"} &
       @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t"} \\
   \end{matharray}
 
-  \noindent where @{text t} is the type constructor, @{text
-  "\<^vec>\<alpha>\<^sub>n"} and @{text "\<^vec>\<beta>\<^sub>n"} are distinct
-  type variables free in the local theory and @{text "\<sigma>\<^sub>1"},
-  \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text "\<alpha>\<^sub>1 \<Rightarrow>
-  \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots,
-  @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text "\<beta>\<^sub>n \<Rightarrow>
-  \<alpha>\<^sub>n"}.
+  \noindent where @{text t} is the type constructor, @{text "\<^vec>\<alpha>\<^sub>n"}
+  and @{text "\<^vec>\<beta>\<^sub>n"} are distinct type variables free in the local
+  theory and @{text "\<sigma>\<^sub>1"}, \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text
+  "\<alpha>\<^sub>1 \<Rightarrow> \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots, @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text
+  "\<beta>\<^sub>n \<Rightarrow> \<alpha>\<^sub>n"}.
 
   \end{description}
 \<close>
