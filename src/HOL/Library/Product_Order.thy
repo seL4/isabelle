@@ -49,7 +49,7 @@ proof
 qed
 
 instance prod :: (order, order) order
-  by default auto
+  by standard auto
 
 
 subsection \<open>Binary infimum and supremum\<close>
@@ -57,8 +57,7 @@ subsection \<open>Binary infimum and supremum\<close>
 instantiation prod :: (inf, inf) inf
 begin
 
-definition
-  "inf x y = (inf (fst x) (fst y), inf (snd x) (snd y))"
+definition "inf x y = (inf (fst x) (fst y), inf (snd x) (snd y))"
 
 lemma inf_Pair_Pair [simp]: "inf (a, b) (c, d) = (inf a c, inf b d)"
   unfolding inf_prod_def by simp
@@ -69,11 +68,12 @@ lemma fst_inf [simp]: "fst (inf x y) = inf (fst x) (fst y)"
 lemma snd_inf [simp]: "snd (inf x y) = inf (snd x) (snd y)"
   unfolding inf_prod_def by simp
 
-instance proof qed
+instance ..
+
 end
 
 instance prod :: (semilattice_inf, semilattice_inf) semilattice_inf
-  by default auto
+  by standard auto
 
 
 instantiation prod :: (sup, sup) sup
@@ -91,16 +91,17 @@ lemma fst_sup [simp]: "fst (sup x y) = sup (fst x) (fst y)"
 lemma snd_sup [simp]: "snd (sup x y) = sup (snd x) (snd y)"
   unfolding sup_prod_def by simp
 
-instance proof qed
+instance ..
+
 end
 
 instance prod :: (semilattice_sup, semilattice_sup) semilattice_sup
-  by default auto
+  by standard auto
 
 instance prod :: (lattice, lattice) lattice ..
 
 instance prod :: (distrib_lattice, distrib_lattice) distrib_lattice
-  by default (auto simp add: sup_inf_distrib1)
+  by standard (auto simp add: sup_inf_distrib1)
 
 
 subsection \<open>Top and bottom elements\<close>
@@ -125,7 +126,7 @@ lemma Pair_top_top: "(top, top) = top"
   unfolding top_prod_def by simp
 
 instance prod :: (order_top, order_top) order_top
-  by default (auto simp add: top_prod_def)
+  by standard (auto simp add: top_prod_def)
 
 instantiation prod :: (bot, bot) bot
 begin
@@ -147,12 +148,12 @@ lemma Pair_bot_bot: "(bot, bot) = bot"
   unfolding bot_prod_def by simp
 
 instance prod :: (order_bot, order_bot) order_bot
-  by default (auto simp add: bot_prod_def)
+  by standard (auto simp add: bot_prod_def)
 
 instance prod :: (bounded_lattice, bounded_lattice) bounded_lattice ..
 
 instance prod :: (boolean_algebra, boolean_algebra) boolean_algebra
-  by default (auto simp add: prod_eqI inf_compl_bot sup_compl_top diff_eq)
+  by standard (auto simp add: prod_eqI inf_compl_bot sup_compl_top diff_eq)
 
 
 subsection \<open>Complete lattice operations\<close>
@@ -160,28 +161,28 @@ subsection \<open>Complete lattice operations\<close>
 instantiation prod :: (Inf, Inf) Inf
 begin
 
-definition
-  "Inf A = (INF x:A. fst x, INF x:A. snd x)"
+definition "Inf A = (INF x:A. fst x, INF x:A. snd x)"
 
-instance proof qed
+instance ..
+
 end
 
 instantiation prod :: (Sup, Sup) Sup
 begin
 
-definition
-  "Sup A = (SUP x:A. fst x, SUP x:A. snd x)"
+definition "Sup A = (SUP x:A. fst x, SUP x:A. snd x)"
 
-instance proof qed
+instance ..
+
 end
 
 instance prod :: (conditionally_complete_lattice, conditionally_complete_lattice)
     conditionally_complete_lattice
-  by default (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
+  by standard (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
     INF_def SUP_def simp del: Inf_image_eq Sup_image_eq intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
 
 instance prod :: (complete_lattice, complete_lattice) complete_lattice
-  by default (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
+  by standard (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
     INF_lower SUP_upper le_INF_iff SUP_le_iff bot_prod_def top_prod_def)
 
 lemma fst_Sup: "fst (Sup A) = (SUP x:A. fst x)"
@@ -231,9 +232,8 @@ subsection \<open>Complete distributive lattices\<close>
 
 (* Contribution: Alessandro Coglio *)
 
-instance prod ::
-  (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
-proof (default, goals)
+instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
+proof (standard, goals)
   case 1
   then show ?case
     by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF comp_def)

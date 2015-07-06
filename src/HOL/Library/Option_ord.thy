@@ -62,59 +62,61 @@ lemma less_option_None_Some_code [code]: "None < Some x \<longleftrightarrow> Tr
 lemma less_option_Some [simp, code]: "Some x < Some y \<longleftrightarrow> x < y"
   by (simp add: less_option_def)
 
-instance proof
-qed (auto simp add: less_eq_option_def less_option_def less_le_not_le elim: order_trans split: option.splits)
+instance
+  by standard
+    (auto simp add: less_eq_option_def less_option_def less_le_not_le
+      elim: order_trans split: option.splits)
 
-end 
+end
 
-instance option :: (order) order proof
-qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
+instance option :: (order) order
+  by standard (auto simp add: less_eq_option_def less_option_def split: option.splits)
 
-instance option :: (linorder) linorder proof
-qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
+instance option :: (linorder) linorder
+  by standard (auto simp add: less_eq_option_def less_option_def split: option.splits)
 
 instantiation option :: (order) order_bot
 begin
 
-definition bot_option where
-  "\<bottom> = None"
+definition bot_option where "\<bottom> = None"
 
-instance proof
-qed (simp add: bot_option_def)
+instance
+  by standard (simp add: bot_option_def)
 
 end
 
 instantiation option :: (order_top) order_top
 begin
 
-definition top_option where
-  "\<top> = Some \<top>"
+definition top_option where "\<top> = Some \<top>"
 
-instance proof
-qed (simp add: top_option_def less_eq_option_def split: option.split)
+instance
+  by standard (simp add: top_option_def less_eq_option_def split: option.split)
 
 end
 
-instance option :: (wellorder) wellorder proof
-  fix P :: "'a option \<Rightarrow> bool" and z :: "'a option"
+instance option :: (wellorder) wellorder
+proof
+  fix P :: "'a option \<Rightarrow> bool"
+  fix z :: "'a option"
   assume H: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
   have "P None" by (rule H) simp
-  then have P_Some [case_names Some]:
-    "\<And>z. (\<And>x. z = Some x \<Longrightarrow> (P o Some) x) \<Longrightarrow> P z"
-  proof -
-    fix z
-    assume "\<And>x. z = Some x \<Longrightarrow> (P o Some) x"
-    with \<open>P None\<close> show "P z" by (cases z) simp_all
-  qed
-  show "P z" proof (cases z rule: P_Some)
+  then have P_Some [case_names Some]: "P z" if "\<And>x. z = Some x \<Longrightarrow> (P o Some) x" for z
+    using \<open>P None\<close> that by (cases z) simp_all
+  show "P z"
+  proof (cases z rule: P_Some)
     case (Some w)
-    show "(P o Some) w" proof (induct rule: less_induct)
+    show "(P o Some) w"
+    proof (induct rule: less_induct)
       case (less x)
-      have "P (Some x)" proof (rule H)
+      have "P (Some x)"
+      proof (rule H)
         fix y :: "'a option"
         assume "y < Some x"
-        show "P y" proof (cases y rule: P_Some)
-          case (Some v) with \<open>y < Some x\<close> have "v < x" by simp
+        show "P y"
+        proof (cases y rule: P_Some)
+          case (Some v)
+          with \<open>y < Some x\<close> have "v < x" by simp
           with less show "(P o Some) v" .
         qed
       qed
@@ -129,16 +131,13 @@ begin
 definition inf_option where
   "x \<sqinter> y = (case x of None \<Rightarrow> None | Some x \<Rightarrow> (case y of None \<Rightarrow> None | Some y \<Rightarrow> Some (x \<sqinter> y)))"
 
-lemma inf_None_1 [simp, code]:
-  "None \<sqinter> y = None"
+lemma inf_None_1 [simp, code]: "None \<sqinter> y = None"
   by (simp add: inf_option_def)
 
-lemma inf_None_2 [simp, code]:
-  "x \<sqinter> None = None"
+lemma inf_None_2 [simp, code]: "x \<sqinter> None = None"
   by (cases x) (simp_all add: inf_option_def)
 
-lemma inf_Some [simp, code]:
-  "Some x \<sqinter> Some y = Some (x \<sqinter> y)"
+lemma inf_Some [simp, code]: "Some x \<sqinter> Some y = Some (x \<sqinter> y)"
   by (simp add: inf_option_def)
 
 instance ..
@@ -151,52 +150,41 @@ begin
 definition sup_option where
   "x \<squnion> y = (case x of None \<Rightarrow> y | Some x' \<Rightarrow> (case y of None \<Rightarrow> x | Some y \<Rightarrow> Some (x' \<squnion> y)))"
 
-lemma sup_None_1 [simp, code]:
-  "None \<squnion> y = y"
+lemma sup_None_1 [simp, code]: "None \<squnion> y = y"
   by (simp add: sup_option_def)
 
-lemma sup_None_2 [simp, code]:
-  "x \<squnion> None = x"
+lemma sup_None_2 [simp, code]: "x \<squnion> None = x"
   by (cases x) (simp_all add: sup_option_def)
 
-lemma sup_Some [simp, code]:
-  "Some x \<squnion> Some y = Some (x \<squnion> y)"
+lemma sup_Some [simp, code]: "Some x \<squnion> Some y = Some (x \<squnion> y)"
   by (simp add: sup_option_def)
 
 instance ..
 
 end
 
-instantiation option :: (semilattice_inf) semilattice_inf
-begin
-
-instance proof
+instance option :: (semilattice_inf) semilattice_inf
+proof
   fix x y z :: "'a option"
   show "x \<sqinter> y \<le> x"
-    by - (cases x, simp_all, cases y, simp_all)
+    by (cases x, simp_all, cases y, simp_all)
   show "x \<sqinter> y \<le> y"
-    by - (cases x, simp_all, cases y, simp_all)
+    by (cases x, simp_all, cases y, simp_all)
   show "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<sqinter> z"
-    by - (cases x, simp_all, cases y, simp_all, cases z, simp_all)
+    by (cases x, simp_all, cases y, simp_all, cases z, simp_all)
 qed
-  
-end
 
-instantiation option :: (semilattice_sup) semilattice_sup
-begin
-
-instance proof
+instance option :: (semilattice_sup) semilattice_sup
+proof
   fix x y z :: "'a option"
   show "x \<le> x \<squnion> y"
-    by - (cases x, simp_all, cases y, simp_all)
+    by (cases x, simp_all, cases y, simp_all)
   show "y \<le> x \<squnion> y"
-    by - (cases x, simp_all, cases y, simp_all)
+    by (cases x, simp_all, cases y, simp_all)
   fix x y z :: "'a option"
   show "y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<squnion> z \<le> x"
-    by - (cases y, simp_all, cases z, simp_all, cases x, simp_all)
+    by (cases y, simp_all, cases z, simp_all, cases x, simp_all)
 qed
-
-end
 
 instance option :: (lattice) lattice ..
 
@@ -210,8 +198,8 @@ instance option :: (distrib_lattice) distrib_lattice
 proof
   fix x y z :: "'a option"
   show "x \<squnion> y \<sqinter> z = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-    by - (cases x, simp_all, cases y, simp_all, cases z, simp_all add: sup_inf_distrib1 inf_commute)
-qed 
+    by (cases x, simp_all, cases y, simp_all, cases z, simp_all add: sup_inf_distrib1 inf_commute)
+qed
 
 instantiation option :: (complete_lattice) complete_lattice
 begin
@@ -219,22 +207,20 @@ begin
 definition Inf_option :: "'a option set \<Rightarrow> 'a option" where
   "\<Sqinter>A = (if None \<in> A then None else Some (\<Sqinter>Option.these A))"
 
-lemma None_in_Inf [simp]:
-  "None \<in> A \<Longrightarrow> \<Sqinter>A = None"
+lemma None_in_Inf [simp]: "None \<in> A \<Longrightarrow> \<Sqinter>A = None"
   by (simp add: Inf_option_def)
 
 definition Sup_option :: "'a option set \<Rightarrow> 'a option" where
   "\<Squnion>A = (if A = {} \<or> A = {None} then None else Some (\<Squnion>Option.these A))"
 
-lemma empty_Sup [simp]:
-  "\<Squnion>{} = None"
+lemma empty_Sup [simp]: "\<Squnion>{} = None"
   by (simp add: Sup_option_def)
 
-lemma singleton_None_Sup [simp]:
-  "\<Squnion>{None} = None"
+lemma singleton_None_Sup [simp]: "\<Squnion>{None} = None"
   by (simp add: Sup_option_def)
 
-instance proof
+instance
+proof
   fix x :: "'a option" and A
   assume "x \<in> A"
   then show "\<Sqinter>A \<le> x"
@@ -274,10 +260,9 @@ next
   qed
 next
   show "\<Squnion>{} = (\<bottom>::'a option)"
-  by (auto simp: bot_option_def)
-next
+    by (auto simp: bot_option_def)
   show "\<Sqinter>{} = (\<top>::'a option)"
-  by (auto simp: top_option_def Inf_option_def)
+    by (auto simp: top_option_def Inf_option_def)
 qed
 
 end
@@ -298,10 +283,8 @@ lemma Some_SUP:
   "A \<noteq> {} \<Longrightarrow> Some (\<Squnion>x\<in>A. f x) = (\<Squnion>x\<in>A. Some (f x))"
   using Some_Sup [of "f ` A"] by (simp add: comp_def)
 
-instantiation option :: (complete_distrib_lattice) complete_distrib_lattice
-begin
-
-instance proof
+instance option :: (complete_distrib_lattice) complete_distrib_lattice
+proof
   fix a :: "'a option" and B
   show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
   proof (cases a)
@@ -354,14 +337,7 @@ instance proof
   qed
 qed
 
-end
-
-instantiation option :: (complete_linorder) complete_linorder
-begin
-
-instance ..
-
-end
+instance option :: (complete_linorder) complete_linorder ..
 
 
 no_notation
@@ -379,4 +355,3 @@ no_syntax (xsymbols)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 end
-

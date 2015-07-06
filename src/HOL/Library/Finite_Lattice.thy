@@ -32,13 +32,13 @@ lemma finite_lattice_complete_bot_least: "(bot::'a::finite_lattice_complete) \<l
   by (auto simp: bot_def intro: Inf_fin.coboundedI)
 
 instance finite_lattice_complete \<subseteq> order_bot
-  by default (auto simp: finite_lattice_complete_bot_least)
+  by standard (auto simp: finite_lattice_complete_bot_least)
 
 lemma finite_lattice_complete_top_greatest: "(top::'a::finite_lattice_complete) \<ge> x"
   by (auto simp: top_def Sup_fin.coboundedI)
 
 instance finite_lattice_complete \<subseteq> order_top
-  by default (auto simp: finite_lattice_complete_top_greatest)
+  by standard (auto simp: finite_lattice_complete_top_greatest)
 
 instance finite_lattice_complete \<subseteq> bounded_lattice ..
 
@@ -124,7 +124,7 @@ lemma finite_Sup_prod:
   by (metis Sup_fold_sup finite_code)
 
 instance prod :: (finite_lattice_complete, finite_lattice_complete) finite_lattice_complete
-  by default (auto simp: finite_bot_prod finite_top_prod finite_Inf_prod finite_Sup_prod)
+  by standard (auto simp: finite_bot_prod finite_top_prod finite_Inf_prod finite_Sup_prod)
 
 text \<open>Functions with a finite domain and with a finite lattice as codomain
 already form a finite lattice.\<close>
@@ -146,7 +146,7 @@ lemma finite_Sup_fun:
   by (metis Sup_fold_sup finite_code)
 
 instance "fun" :: (finite, finite_lattice_complete) finite_lattice_complete
-  by default (auto simp: finite_bot_fun finite_top_fun finite_Inf_fun finite_Sup_fun)
+  by standard (auto simp: finite_bot_fun finite_top_fun finite_Inf_fun finite_Sup_fun)
 
 
 subsection \<open>Finite Distributive Lattices\<close>

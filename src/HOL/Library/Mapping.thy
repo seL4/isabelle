@@ -183,8 +183,8 @@ begin
 definition
   "HOL.equal m1 m2 \<longleftrightarrow> (\<forall>k. lookup m1 k = lookup m2 k)"
 
-instance proof
-qed (unfold equal_mapping_def, transfer, auto)
+instance
+  by standard (unfold equal_mapping_def, transfer, auto)
 
 end
 

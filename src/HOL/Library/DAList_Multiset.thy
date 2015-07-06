@@ -390,7 +390,7 @@ lemma msetprod_Bag[code]: "msetprod (Bag ms) = DAList_Multiset.fold (\<lambda>a 
 
 lemma size_fold: "size A = fold_mset (\<lambda>_. Suc) 0 A" (is "_ = fold_mset ?f _ _")
 proof -
-  interpret comp_fun_commute ?f by default auto
+  interpret comp_fun_commute ?f by standard auto
   show ?thesis by (induct A) auto
 qed
 
@@ -405,7 +405,7 @@ qed
 
 lemma set_mset_fold: "set_mset A = fold_mset insert {} A" (is "_ = fold_mset ?f _ _")
 proof -
-  interpret comp_fun_commute ?f by default auto
+  interpret comp_fun_commute ?f by standard auto
   show ?thesis by (induct A) auto
 qed
 

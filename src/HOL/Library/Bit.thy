@@ -123,8 +123,8 @@ lemmas field_bit_defs =
   plus_bit_def times_bit_def minus_bit_def uminus_bit_def
   divide_bit_def inverse_bit_def
 
-instance proof
-qed (unfold field_bit_defs, auto split: bit.split)
+instance
+  by standard (auto simp: field_bit_defs split: bit.split)
 
 end
 

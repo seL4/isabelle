@@ -23,7 +23,7 @@ subsection \<open>Basic operations and type class instantiations\<close>
 (* FIXME transfer and right_total vs. bi_total *)
 instantiation fset :: (finite) finite
 begin
-instance by default (transfer, simp)
+instance by (standard; transfer; simp)
 end
 
 instantiation fset :: (type) "{bounded_lattice_bot, distrib_lattice, minus}"
@@ -54,7 +54,7 @@ lift_definition minus_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fs
   by simp
 
 instance
-by default (transfer, auto)+
+  by (standard; transfer; auto)+
 
 end
 
@@ -132,9 +132,12 @@ end
 instantiation fset :: (finite) complete_lattice 
 begin
 
-lift_definition top_fset :: "'a fset" is UNIV parametric right_total_UNIV_transfer UNIV_transfer by simp
+lift_definition top_fset :: "'a fset" is UNIV parametric right_total_UNIV_transfer UNIV_transfer
+  by simp
 
-instance by default (transfer, auto)+
+instance
+  by (standard; transfer; auto)
+
 end
 
 instantiation fset :: (finite) complete_boolean_algebra
@@ -143,7 +146,8 @@ begin
 lift_definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" is uminus 
   parametric right_total_Compl_transfer Compl_transfer by simp
 
-instance by (default, simp_all only: INF_def SUP_def) (transfer, simp add: Compl_partition Diff_eq)+
+instance
+  by (standard, simp_all only: INF_def SUP_def) (transfer, simp add: Compl_partition Diff_eq)+
 
 end
 

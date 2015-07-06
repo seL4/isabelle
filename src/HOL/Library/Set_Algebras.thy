@@ -64,28 +64,28 @@ abbreviation (input) elt_set_eq :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" 
   "x =o A \<equiv> x \<in> A"
 
 instance set :: (semigroup_add) semigroup_add
-  by default (force simp add: set_plus_def add.assoc)
+  by standard (force simp add: set_plus_def add.assoc)
 
 instance set :: (ab_semigroup_add) ab_semigroup_add
-  by default (force simp add: set_plus_def add.commute)
+  by standard (force simp add: set_plus_def add.commute)
 
 instance set :: (monoid_add) monoid_add
-  by default (simp_all add: set_plus_def)
+  by standard (simp_all add: set_plus_def)
 
 instance set :: (comm_monoid_add) comm_monoid_add
-  by default (simp_all add: set_plus_def)
+  by standard (simp_all add: set_plus_def)
 
 instance set :: (semigroup_mult) semigroup_mult
-  by default (force simp add: set_times_def mult.assoc)
+  by standard (force simp add: set_times_def mult.assoc)
 
 instance set :: (ab_semigroup_mult) ab_semigroup_mult
-  by default (force simp add: set_times_def mult.commute)
+  by standard (force simp add: set_times_def mult.commute)
 
 instance set :: (monoid_mult) monoid_mult
-  by default (simp_all add: set_times_def)
+  by standard (simp_all add: set_times_def)
 
 instance set :: (comm_monoid_mult) comm_monoid_mult
-  by default (simp_all add: set_times_def)
+  by standard (simp_all add: set_times_def)
 
 lemma set_plus_intro [intro]: "a \<in> C \<Longrightarrow> b \<in> D \<Longrightarrow> a + b \<in> C + D"
   by (auto simp add: set_plus_def)

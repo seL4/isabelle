@@ -34,8 +34,10 @@ definition enat :: "nat \<Rightarrow> enat" where
  
 instantiation enat :: infinity
 begin
-  definition "\<infinity> = Abs_enat None"
-  instance proof qed
+
+definition "\<infinity> = Abs_enat None"
+instance ..
+
 end
 
 instance enat :: countable
@@ -156,7 +158,8 @@ lemma plus_enat_simps [simp, code]:
     and "q + \<infinity> = \<infinity>"
   by (simp_all add: plus_enat_def split: enat.splits)
 
-instance proof
+instance
+proof
   fix n m q :: enat
   show "n + m + q = n + (m + q)"
     by (cases n m q rule: enat3_cases) auto
@@ -203,7 +206,8 @@ lemma times_enat_simps [simp, code]:
   unfolding times_enat_def zero_enat_def
   by (simp_all split: enat.split)
 
-instance proof
+instance
+proof
   fix a b c :: enat
   show "(a * b) * c = a * (b * c)"
     unfolding times_enat_def zero_enat_def
@@ -242,7 +246,8 @@ lemma of_nat_eq_enat: "of_nat n = enat n"
   apply (simp add: plus_1_eSuc eSuc_enat)
   done
 
-instance enat :: semiring_char_0 proof
+instance enat :: semiring_char_0
+proof
   have "inj enat" by (rule injI) simp
   then show "inj (\<lambda>n. of_nat n :: enat)" by (simp add: of_nat_eq_enat)
 qed
@@ -355,8 +360,8 @@ lemma enat_ord_code [code]:
   "(\<infinity>::enat) < q \<longleftrightarrow> False"
   by simp_all
 
-instance by default
-  (auto simp add: less_eq_enat_def less_enat_def plus_enat_def split: enat.splits)
+instance
+  by standard (auto simp add: less_eq_enat_def less_enat_def plus_enat_def split: enat.splits)
 
 end
 
@@ -486,14 +491,11 @@ qed simp
 instantiation enat :: "{order_bot, order_top}"
 begin
 
-definition bot_enat :: enat where
-  "bot_enat = 0"
+definition bot_enat :: enat where "bot_enat = 0"
+definition top_enat :: enat where "top_enat = \<infinity>"
 
-definition top_enat :: enat where
-  "top_enat = \<infinity>"
-
-instance proof
-qed (simp_all add: bot_enat_def top_enat_def)
+instance
+  by standard (simp_all add: bot_enat_def top_enat_def)
 
 end
 
@@ -502,10 +504,11 @@ lemma finite_enat_bounded:
   shows "finite A"
 proof (rule finite_subset)
   show "finite (enat ` {..n})" by blast
-
   have "A \<subseteq> {..enat n}" using le_fin by fastforce
   also have "\<dots> \<subseteq> enat ` {..n}"
-    by (rule subsetI) (case_tac x, auto)
+    apply (rule subsetI)
+    subgoal for x by (cases x) auto
+    done
   finally show "A \<subseteq> enat ` {..n}" .
 qed
 

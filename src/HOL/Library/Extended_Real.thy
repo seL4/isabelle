@@ -257,7 +257,7 @@ function real_ereal :: "ereal \<Rightarrow> real" where
 | "real_ereal \<infinity> = 0"
 | "real_ereal (-\<infinity>) = 0"
   by (auto intro: ereal_cases)
-termination by default (rule wf_empty)
+termination by standard (rule wf_empty)
 
 instance ..
 end
@@ -340,7 +340,7 @@ proof goals
   with prems show P
    by (cases rule: ereal2_cases[of a b]) auto
 qed auto
-termination by default (rule wf_empty)
+termination by standard (rule wf_empty)
 
 lemma Infty_neq_0[simp]:
   "(\<infinity>::ereal) \<noteq> 0" "0 \<noteq> (\<infinity>::ereal)"
@@ -509,7 +509,7 @@ lemma ereal_dense2: "x < y \<Longrightarrow> \<exists>z. x < ereal z \<and> erea
   using lt_ex gt_ex dense by (cases x y rule: ereal2_cases) auto
 
 instance ereal :: dense_linorder
-  by default (blast dest: ereal_dense2)
+  by standard (blast dest: ereal_dense2)
 
 instance ereal :: ordered_ab_semigroup_add
 proof
@@ -848,7 +848,7 @@ function sgn_ereal :: "ereal \<Rightarrow> ereal" where
 | "sgn (\<infinity>::ereal) = 1"
 | "sgn (-\<infinity>::ereal) = -1"
 by (auto intro: ereal_cases)
-termination by default (rule wf_empty)
+termination by standard (rule wf_empty)
 
 function times_ereal where
   "ereal r * ereal p = ereal (r * p)"
@@ -1602,7 +1602,7 @@ begin
 
 definition [simp]: "sup x y = (max x y :: ereal)"
 definition [simp]: "inf x y = (min x y :: ereal)"
-instance by default simp_all
+instance by standard simp_all
 
 end
 
@@ -1706,7 +1706,7 @@ definition "open_ereal" :: "ereal set \<Rightarrow> bool" where
   open_ereal_generated: "open_ereal = generate_topology (range lessThan \<union> range greaterThan)"
 
 instance
-  by default (simp add: open_ereal_generated)
+  by standard (simp add: open_ereal_generated)
 
 end
 

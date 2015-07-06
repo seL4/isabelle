@@ -74,7 +74,7 @@ definition "(inf \<Colon> 'a list \<Rightarrow> _) = min"
 definition "(sup \<Colon> 'a list \<Rightarrow> _) = max"
 
 instance
-  by default (auto simp add: inf_list_def sup_list_def max_min_distrib2)
+  by standard (auto simp add: inf_list_def sup_list_def max_min_distrib2)
 
 end
 
@@ -102,7 +102,7 @@ begin
 definition "bot = []"
 
 instance
-  by default (simp add: bot_list_def)
+  by standard (simp add: bot_list_def)
 
 end
 

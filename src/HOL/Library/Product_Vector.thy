@@ -25,7 +25,8 @@ lemma snd_scaleR [simp]: "snd (scaleR r A) = scaleR r (snd A)"
 lemma scaleR_Pair [simp]: "scaleR r (a, b) = (scaleR r a, scaleR r b)"
   unfolding scaleR_prod_def by simp
 
-instance proof
+instance
+proof
   fix a b :: real and x y :: "'a \<times> 'b"
   show "scaleR a (x + y) = scaleR a x + scaleR a y"
     by (simp add: prod_eq_iff scaleR_right_distrib)
@@ -58,7 +59,8 @@ lemma open_prod_intro:
   shows "open S"
 using assms unfolding open_prod_def by fast
 
-instance proof
+instance
+proof
   show "open (UNIV :: ('a \<times> 'b) set)"
     unfolding open_prod_def by auto
 next
@@ -277,7 +279,8 @@ lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
 lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
   unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge2)
 
-instance proof
+instance
+proof
   fix x y :: "'a \<times> 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
     unfolding dist_prod_def prod_eq_iff by simp
@@ -406,7 +409,8 @@ definition sgn_prod_def:
 lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<^sup>2 + (norm b)\<^sup>2)"
   unfolding norm_prod_def by simp
 
-instance proof
+instance
+proof
   fix r :: real and x y :: "'a \<times> 'b"
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_prod_def
@@ -510,7 +514,8 @@ definition inner_prod_def:
 lemma inner_Pair [simp]: "inner (a, b) (c, d) = inner a c + inner b d"
   unfolding inner_prod_def by simp
 
-instance proof
+instance
+proof
   fix r :: real
   fix x y z :: "'a::real_inner \<times> 'b::real_inner"
   show "inner x y = inner y x"

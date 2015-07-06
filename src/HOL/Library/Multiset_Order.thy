@@ -62,7 +62,7 @@ proof -
   have trans: "\<And>K M N :: 'a multiset. ?less K M \<Longrightarrow> ?less M N \<Longrightarrow> ?less K N"
     unfolding mult_def by (blast intro: trancl_trans)
   show "class.order ?le ?less"
-    by default (auto simp add: le_multiset_def irrefl dest: trans)
+    by standard (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 
 text \<open>The Dershowitz--Manna ordering:\<close>

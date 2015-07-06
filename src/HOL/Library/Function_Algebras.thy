@@ -62,46 +62,45 @@ lemma one_fun_apply [simp]:
 text \<open>Additive structures\<close>
 
 instance "fun" :: (type, semigroup_add) semigroup_add
-  by default (simp add: fun_eq_iff add.assoc)
+  by standard (simp add: fun_eq_iff add.assoc)
 
 instance "fun" :: (type, cancel_semigroup_add) cancel_semigroup_add
-  by default (simp_all add: fun_eq_iff)
+  by standard (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, ab_semigroup_add) ab_semigroup_add
-  by default (simp add: fun_eq_iff add.commute)
+  by standard (simp add: fun_eq_iff add.commute)
 
 instance "fun" :: (type, cancel_ab_semigroup_add) cancel_ab_semigroup_add
-  by default (simp_all add: fun_eq_iff diff_diff_eq)
+  by standard (simp_all add: fun_eq_iff diff_diff_eq)
 
 instance "fun" :: (type, monoid_add) monoid_add
-  by default (simp_all add: fun_eq_iff)
+  by standard (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, comm_monoid_add) comm_monoid_add
-  by default simp
+  by standard simp
 
 instance "fun" :: (type, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
 instance "fun" :: (type, group_add) group_add
-  by default
-    (simp_all add: fun_eq_iff)
+  by standard (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, ab_group_add) ab_group_add
-  by default simp_all
+  by standard simp_all
 
 
 text \<open>Multiplicative structures\<close>
 
 instance "fun" :: (type, semigroup_mult) semigroup_mult
-  by default (simp add: fun_eq_iff mult.assoc)
+  by standard (simp add: fun_eq_iff mult.assoc)
 
 instance "fun" :: (type, ab_semigroup_mult) ab_semigroup_mult
-  by default (simp add: fun_eq_iff mult.commute)
+  by standard (simp add: fun_eq_iff mult.commute)
 
 instance "fun" :: (type, monoid_mult) monoid_mult
-  by default (simp_all add: fun_eq_iff)
+  by standard (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, comm_monoid_mult) comm_monoid_mult
-  by default simp
+  by standard simp
 
 
 text \<open>Misc\<close>
@@ -109,19 +108,19 @@ text \<open>Misc\<close>
 instance "fun" :: (type, "Rings.dvd") "Rings.dvd" ..
 
 instance "fun" :: (type, mult_zero) mult_zero
-  by default (simp_all add: fun_eq_iff)
+  by standard (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, zero_neq_one) zero_neq_one
-  by default (simp add: fun_eq_iff)
+  by standard (simp add: fun_eq_iff)
 
 
 text \<open>Ring structures\<close>
 
 instance "fun" :: (type, semiring) semiring
-  by default (simp_all add: fun_eq_iff algebra_simps)
+  by standard (simp_all add: fun_eq_iff algebra_simps)
 
 instance "fun" :: (type, comm_semiring) comm_semiring
-  by default (simp add: fun_eq_iff  algebra_simps)
+  by standard (simp add: fun_eq_iff  algebra_simps)
 
 instance "fun" :: (type, semiring_0) semiring_0 ..
 
@@ -155,7 +154,7 @@ instance "fun" :: (type, comm_semiring_1) comm_semiring_1 ..
 instance "fun" :: (type, semiring_1_cancel) semiring_1_cancel ..
 
 instance "fun" :: (type, comm_semiring_1_cancel) comm_semiring_1_cancel 
-  by default (auto simp add: times_fun_def algebra_simps)
+  by standard (auto simp add: times_fun_def algebra_simps)
 
 instance "fun" :: (type, semiring_char_0) semiring_char_0
 proof
@@ -180,23 +179,22 @@ instance "fun" :: (type, ring_char_0) ring_char_0 ..
 text \<open>Ordered structures\<close>
 
 instance "fun" :: (type, ordered_ab_semigroup_add) ordered_ab_semigroup_add
-  by default (auto simp add: le_fun_def intro: add_left_mono)
+  by standard (auto simp add: le_fun_def intro: add_left_mono)
 
 instance "fun" :: (type, ordered_cancel_ab_semigroup_add) ordered_cancel_ab_semigroup_add ..
 
 instance "fun" :: (type, ordered_ab_semigroup_add_imp_le) ordered_ab_semigroup_add_imp_le
-  by default (simp add: le_fun_def)
+  by standard (simp add: le_fun_def)
 
 instance "fun" :: (type, ordered_comm_monoid_add) ordered_comm_monoid_add ..
 
 instance "fun" :: (type, ordered_ab_group_add) ordered_ab_group_add ..
 
 instance "fun" :: (type, ordered_semiring) ordered_semiring
-  by default
-    (auto simp add: le_fun_def intro: mult_left_mono mult_right_mono)
+  by standard (auto simp add: le_fun_def intro: mult_left_mono mult_right_mono)
 
 instance "fun" :: (type, ordered_comm_semiring) ordered_comm_semiring
-  by default (fact mult_left_mono)
+  by standard (fact mult_left_mono)
 
 instance "fun" :: (type, ordered_cancel_semiring) ordered_cancel_semiring ..
 

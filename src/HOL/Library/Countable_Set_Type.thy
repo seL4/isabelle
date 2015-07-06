@@ -94,7 +94,8 @@ is inter parametric inter_transfer by simp
 lift_definition minus_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset"
 is minus parametric Diff_transfer by simp
 
-instance by default(transfer, fastforce)+
+instance by standard (transfer; auto)+
+
 end
 
 abbreviation cempty :: "'a cset" where "cempty \<equiv> bot"
@@ -536,14 +537,15 @@ apply (rule card_of_ordLeqI[of "\<lambda> a. {a}"]) unfolding inj_on_def by auto
 
 lemma finite_countable_subset:
 "finite {X. X \<subseteq> A \<and> countable X} \<longleftrightarrow> finite A"
-apply default
+apply (rule iffI)
  apply (erule contrapos_pp)
  apply (rule card_of_ordLeq_infinite)
  apply (rule ordLeq_countable_subsets)
  apply assumption
 apply (rule finite_Collect_conjI)
 apply (rule disjI1)
-by (erule finite_Collect_subsets)
+apply (erule finite_Collect_subsets)
+done
 
 lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
   including cset.lifting

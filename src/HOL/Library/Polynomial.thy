@@ -392,13 +392,12 @@ begin
 definition
   [code]: "HOL.equal (p::'a poly) q \<longleftrightarrow> HOL.equal (coeffs p) (coeffs q)"
 
-instance proof
-qed (simp add: equal equal_poly_def coeffs_eq_iff)
+instance
+  by standard (simp add: equal equal_poly_def coeffs_eq_iff)
 
 end
 
-lemma [code nbe]:
-  "HOL.equal (p :: _ poly) p \<longleftrightarrow> True"
+lemma [code nbe]: "HOL.equal (p :: _ poly) p \<longleftrightarrow> True"
   by (fact equal_refl)
 
 definition is_zero :: "'a::zero poly \<Rightarrow> bool"
@@ -510,15 +509,16 @@ begin
 lift_definition plus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n + coeff q n"
 proof -
-  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n + coeff q n = 0"
+  fix q p :: "'a poly"
+  show "\<forall>\<^sub>\<infinity>n. coeff p n + coeff q n = 0"
     using MOST_coeff_eq_0[of p] MOST_coeff_eq_0[of q] by eventually_elim simp
 qed
 
-lemma coeff_add [simp]:
-  "coeff (p + q) n = coeff p n + coeff q n"
+lemma coeff_add [simp]: "coeff (p + q) n = coeff p n + coeff q n"
   by (simp add: plus_poly.rep_eq)
 
-instance proof
+instance
+proof
   fix p q r :: "'a poly"
   show "(p + q) + r = p + (q + r)"
     by (simp add: poly_eq_iff add.assoc)
@@ -536,15 +536,16 @@ begin
 lift_definition minus_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p q n. coeff p n - coeff q n"
 proof -
-  fix q p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. coeff p n - coeff q n = 0"
+  fix q p :: "'a poly"
+  show "\<forall>\<^sub>\<infinity>n. coeff p n - coeff q n = 0"
     using MOST_coeff_eq_0[of p] MOST_coeff_eq_0[of q] by eventually_elim simp
 qed
 
-lemma coeff_diff [simp]:
-  "coeff (p - q) n = coeff p n - coeff q n"
+lemma coeff_diff [simp]: "coeff (p - q) n = coeff p n - coeff q n"
   by (simp add: minus_poly.rep_eq)
 
-instance proof
+instance
+proof
   fix p q r :: "'a poly"
   show "p + q - p = q"
     by (simp add: poly_eq_iff)
@@ -560,14 +561,16 @@ begin
 lift_definition uminus_poly :: "'a poly \<Rightarrow> 'a poly"
   is "\<lambda>p n. - coeff p n"
 proof -
-  fix p :: "'a poly" show "\<forall>\<^sub>\<infinity>n. - coeff p n = 0"
+  fix p :: "'a poly"
+  show "\<forall>\<^sub>\<infinity>n. - coeff p n = 0"
     using MOST_coeff_eq_0 by simp
 qed
 
 lemma coeff_minus [simp]: "coeff (- p) n = - coeff p n"
   by (simp add: uminus_poly.rep_eq)
 
-instance proof
+instance
+proof
   fix p q :: "'a poly"
   show "- p + p = 0"
     by (simp add: poly_eq_iff)
@@ -663,7 +666,8 @@ proof -
   { fix xs ys :: "'a list" and n
     have "nth_default 0 (plus_coeffs xs ys) n = nth_default 0 xs n + nth_default 0 ys n"
     proof (induct xs ys arbitrary: n rule: plus_coeffs.induct)
-      case (3 x xs y ys n) then show ?case by (cases n) (auto simp add: cCons_def)
+      case (3 x xs y ys n)
+      then show ?case by (cases n) (auto simp add: cCons_def)
     qed simp_all }
   note * = this
   { fix xs ys :: "'a list"
@@ -825,7 +829,8 @@ lemma mult_poly_add_left:
   shows "(p + q) * r = p * r + q * r"
   by (induct r) (simp add: mult_poly_0, simp add: smult_distribs algebra_simps)
 
-instance proof
+instance
+proof
   fix p q r :: "'a poly"
   show 0: "0 * p = 0"
     by (rule mult_poly_0_left)
@@ -861,18 +866,17 @@ apply (simp add: coeff_eq_0 coeff_pCons split: nat.split)
 done
 
 lemma mult_monom: "monom a m * monom b n = monom (a * b) (m + n)"
-  by (induct m, simp add: monom_0 smult_monom, simp add: monom_Suc)
+  by (induct m) (simp add: monom_0 smult_monom, simp add: monom_Suc)
 
 instantiation poly :: (comm_semiring_1) comm_semiring_1
 begin
 
-definition one_poly_def:
-  "1 = pCons 1 0"
+definition one_poly_def: "1 = pCons 1 0"
 
-instance proof
-  fix p :: "'a poly" show "1 * p = p"
+instance
+proof
+  show "1 * p = p" for p :: "'a poly"
     unfolding one_poly_def by simp
-next
   show "0 \<noteq> (1::'a poly)"
     unfolding one_poly_def by simp
 qed
@@ -1063,8 +1067,9 @@ definition
 definition
   "sgn (x::'a poly) = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
-instance proof
-  fix x y :: "'a poly"
+instance
+proof
+  fix x y z :: "'a poly"
   show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
     unfolding less_eq_poly_def less_poly_def
     apply safe
@@ -1072,50 +1077,34 @@ instance proof
     apply (drule (1) pos_poly_add)
     apply simp
     done
-next
-  fix x :: "'a poly" show "x \<le> x"
+  show "x \<le> x"
     unfolding less_eq_poly_def by simp
-next
-  fix x y z :: "'a poly"
-  assume "x \<le> y" and "y \<le> z" thus "x \<le> z"
+  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
     unfolding less_eq_poly_def
     apply safe
     apply (drule (1) pos_poly_add)
     apply (simp add: algebra_simps)
     done
-next
-  fix x y :: "'a poly"
-  assume "x \<le> y" and "y \<le> x" thus "x = y"
+  show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     unfolding less_eq_poly_def
     apply safe
     apply (drule (1) pos_poly_add)
     apply simp
     done
-next
-  fix x y z :: "'a poly"
-  assume "x \<le> y" thus "z + x \<le> z + y"
+  show "x \<le> y \<Longrightarrow> z + x \<le> z + y"
     unfolding less_eq_poly_def
     apply safe
     apply (simp add: algebra_simps)
     done
-next
-  fix x y :: "'a poly"
   show "x \<le> y \<or> y \<le> x"
     unfolding less_eq_poly_def
     using pos_poly_total [of "x - y"]
     by auto
-next
-  fix x y z :: "'a poly"
-  assume "x < y" and "0 < z"
-  thus "z * x < z * y"
+  show "x < y \<Longrightarrow> 0 < z \<Longrightarrow> z * x < z * y"
     unfolding less_poly_def
     by (simp add: right_diff_distrib [symmetric] pos_poly_mult)
-next
-  fix x :: "'a poly"
   show "\<bar>x\<bar> = (if x < 0 then - x else x)"
     by (rule abs_poly_def)
-next
-  fix x :: "'a poly"
   show "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
     by (rule sgn_poly_def)
 qed
@@ -1410,7 +1399,8 @@ proof -
     by (simp add: div_poly_eq mod_poly_eq)
 qed
 
-instance proof
+instance
+proof
   fix x y :: "'a poly"
   show "x div y * y + x mod y = x"
     using pdivmod_rel [of x y]

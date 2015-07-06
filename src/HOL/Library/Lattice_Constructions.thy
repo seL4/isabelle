@@ -51,16 +51,16 @@ lemma less_bot_Value [simp, code]: "Value x < Value y \<longleftrightarrow> x < 
   by (simp add: less_bot_def)
 
 instance
-  by default
+  by standard
     (auto simp add: less_eq_bot_def less_bot_def less_le_not_le elim: order_trans split: bot.splits)
 
 end
 
 instance bot :: (order) order
-  by default (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
+  by standard (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
 
 instance bot :: (linorder) linorder
-  by default (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
+  by standard (auto simp add: less_eq_bot_def less_bot_def split: bot.splits)
 
 instantiation bot :: (order) bot
 begin
@@ -88,7 +88,7 @@ where
         | Value v' \<Rightarrow> Value (inf v v')))"
 
 instance
-  by default (auto simp add: inf_bot_def less_eq_bot_def split: bot.splits)
+  by standard (auto simp add: inf_bot_def less_eq_bot_def split: bot.splits)
 
 end
 
@@ -106,7 +106,7 @@ where
         | Value v' \<Rightarrow> Value (sup v v')))"
 
 instance
-  by default (auto simp add: sup_bot_def less_eq_bot_def split: bot.splits)
+  by standard (auto simp add: sup_bot_def less_eq_bot_def split: bot.splits)
 
 end
 
@@ -158,16 +158,16 @@ lemma less_top_Value [simp, code]: "Value x < Value y \<longleftrightarrow> x < 
   by (simp add: less_top_def)
 
 instance
-  by default
+  by standard
     (auto simp add: less_eq_top_def less_top_def less_le_not_le elim: order_trans split: top.splits)
 
 end
 
 instance top :: (order) order
-  by default (auto simp add: less_eq_top_def less_top_def split: top.splits)
+  by standard (auto simp add: less_eq_top_def less_top_def split: top.splits)
 
 instance top :: (linorder) linorder
-  by default (auto simp add: less_eq_top_def less_top_def split: top.splits)
+  by standard (auto simp add: less_eq_top_def less_top_def split: top.splits)
 
 instantiation top :: (order) top
 begin
@@ -195,7 +195,7 @@ where
         | Value v' \<Rightarrow> Value (inf v v')))"
 
 instance
-  by default (auto simp add: inf_top_def less_eq_top_def split: top.splits)
+  by standard (auto simp add: inf_top_def less_eq_top_def split: top.splits)
 
 end
 
@@ -213,12 +213,12 @@ where
         | Value v' \<Rightarrow> Value (sup v v')))"
 
 instance
-  by default (auto simp add: sup_top_def less_eq_top_def split: top.splits)
+  by standard (auto simp add: sup_top_def less_eq_top_def split: top.splits)
 
 end
 
 instance top :: (lattice) bounded_lattice_top
-  by default (simp add: top_top_def)
+  by standard (simp add: top_top_def)
 
 
 subsection \<open>Values extended by a top and a bottom element\<close>
@@ -267,7 +267,7 @@ lemma lesser_than_two_values:
   by (cases z) (auto simp add: less_eq_flat_complete_lattice_def)
 
 instance
-  by default
+  by standard
     (auto simp add: less_eq_flat_complete_lattice_def less_flat_complete_lattice_def
       split: flat_complete_lattice.splits)
 
@@ -313,7 +313,7 @@ where
     | Top \<Rightarrow> Top)"
 
 instance
-  by default
+  by standard
     (auto simp add: inf_flat_complete_lattice_def sup_flat_complete_lattice_def
       less_eq_flat_complete_lattice_def split: flat_complete_lattice.splits)
 

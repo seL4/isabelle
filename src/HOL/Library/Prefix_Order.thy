@@ -14,7 +14,8 @@ begin
 definition "(xs::'a list) \<le> ys \<equiv> prefixeq xs ys"
 definition "(xs::'a list) < ys \<equiv> xs \<le> ys \<and> \<not> (ys \<le> xs)"
 
-instance by (default, unfold less_eq_list_def less_list_def) auto
+instance
+  by standard (auto simp: less_eq_list_def less_list_def)
 
 end
 

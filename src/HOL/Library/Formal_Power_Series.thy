@@ -218,7 +218,7 @@ proof
 qed
 
 instance fps :: (zero_neq_one) zero_neq_one
-  by default (simp add: expand_fps_eq)
+  by standard (simp add: expand_fps_eq)
 
 instance fps :: (semiring_0) semiring
 proof

@@ -93,7 +93,7 @@ begin
 definition "HOL.equal (xs :: ('a, 'b) alist) ys == impl_of xs = impl_of ys"
 
 instance
-  by default (simp add: equal_alist_def impl_of_inject)
+  by standard (simp add: equal_alist_def impl_of_inject)
 
 end
 

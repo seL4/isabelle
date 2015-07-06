@@ -192,8 +192,8 @@ begin
 lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
   by (induct x, induct y) simp
 
-instance proof
-qed (simp_all add: num1_eq_iff)
+instance
+  by standard (simp_all add: num1_eq_iff)
 
 end
 

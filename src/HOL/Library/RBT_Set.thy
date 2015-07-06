@@ -621,14 +621,17 @@ by (auto simp add: Set_filter_rbt_filter)
 lemma image_Set [code]:
   "image f (Set t) = fold_keys (\<lambda>k A. Set.insert (f k) A) t {}"
 proof -
-  have "comp_fun_commute (\<lambda>k. Set.insert (f k))" by default auto
-  then show ?thesis by (auto simp add: image_fold_insert intro!: finite_fold_fold_keys)
+  have "comp_fun_commute (\<lambda>k. Set.insert (f k))"
+    by standard auto
+  then show ?thesis
+    by (auto simp add: image_fold_insert intro!: finite_fold_fold_keys)
 qed
 
 lemma Ball_Set [code]:
   "Ball (Set t) P \<longleftrightarrow> RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> P k) t True"
 proof -
-  have "comp_fun_commute (\<lambda>k s. s \<and> P k)" by default auto
+  have "comp_fun_commute (\<lambda>k s. s \<and> P k)"
+    by standard auto
   then show ?thesis 
     by (simp add: foldi_fold_conj[symmetric] Ball_fold finite_fold_fold_keys)
 qed
@@ -636,7 +639,8 @@ qed
 lemma Bex_Set [code]:
   "Bex (Set t) P \<longleftrightarrow> RBT.foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<or> P k) t False"
 proof -
-  have "comp_fun_commute (\<lambda>k s. s \<or> P k)" by default auto
+  have "comp_fun_commute (\<lambda>k s. s \<or> P k)"
+    by standard auto
   then show ?thesis 
     by (simp add: foldi_fold_disj[symmetric] Bex_fold finite_fold_fold_keys)
 qed
@@ -670,7 +674,8 @@ lemma card_Set [code]:
 lemma setsum_Set [code]:
   "setsum f (Set xs) = fold_keys (plus o f) xs 0"
 proof -
-  have "comp_fun_commute (\<lambda>x. op + (f x))" by default (auto simp: ac_simps)
+  have "comp_fun_commute (\<lambda>x. op + (f x))"
+    by standard (auto simp: ac_simps)
   then show ?thesis 
     by (auto simp add: setsum.eq_fold finite_fold_fold_keys o_def)
 qed
@@ -695,23 +700,23 @@ proof -
     by(auto split: rbt.split unit.split color.split)
 qed
 
-lemma Pow_Set [code]:
-  "Pow (Set t) = fold_keys (\<lambda>x A. A \<union> Set.insert x ` A) t {{}}"
-by (simp add: Pow_fold finite_fold_fold_keys[OF comp_fun_commute_Pow_fold])
+lemma Pow_Set [code]: "Pow (Set t) = fold_keys (\<lambda>x A. A \<union> Set.insert x ` A) t {{}}"
+  by (simp add: Pow_fold finite_fold_fold_keys[OF comp_fun_commute_Pow_fold])
 
 lemma product_Set [code]:
   "Product_Type.product (Set t1) (Set t2) = 
     fold_keys (\<lambda>x A. fold_keys (\<lambda>y. Set.insert (x, y)) t2 A) t1 {}"
 proof -
-  have *:"\<And>x. comp_fun_commute (\<lambda>y. Set.insert (x, y))" by default auto
+  have *: "comp_fun_commute (\<lambda>y. Set.insert (x, y))" for x
+    by standard auto
   show ?thesis using finite_fold_fold_keys[OF comp_fun_commute_product_fold, of "Set t2" "{}" "t1"]  
     by (simp add: product_fold Product_Type.product_def finite_fold_fold_keys[OF *])
 qed
 
-lemma Id_on_Set [code]:
-  "Id_on (Set t) =  fold_keys (\<lambda>x. Set.insert (x, x)) t {}"
+lemma Id_on_Set [code]: "Id_on (Set t) =  fold_keys (\<lambda>x. Set.insert (x, x)) t {}"
 proof -
-  have "comp_fun_commute (\<lambda>x. Set.insert (x, x))" by default auto
+  have "comp_fun_commute (\<lambda>x. Set.insert (x, x))"
+    by standard auto
   then show ?thesis
     by (auto simp add: Id_on_fold intro!: finite_fold_fold_keys)
 qed
@@ -728,10 +733,12 @@ lemma relcomp_Set[code]:
   "(Set t1) O (Set t2) = fold_keys 
     (\<lambda>(x,y) A. fold_keys (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') t2 A) t1 {}"
 proof -
-  interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
+  interpret comp_fun_idem Set.insert
+    by (fact comp_fun_idem_insert)
   have *: "\<And>x y. comp_fun_commute (\<lambda>(w, z) A'. if y = w then Set.insert (x, z) A' else A')"
-    by default (auto simp add: fun_eq_iff)
-  show ?thesis using finite_fold_fold_keys[OF comp_fun_commute_relcomp_fold, of "Set t2" "{}" t1]
+    by standard (auto simp add: fun_eq_iff)
+  show ?thesis
+    using finite_fold_fold_keys[OF comp_fun_commute_relcomp_fold, of "Set t2" "{}" t1]
     by (simp add: relcomp_fold finite_fold_fold_keys[OF *])
 qed
 
@@ -759,11 +766,13 @@ lemma Inf_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
   shows "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
 proof -
-  have "comp_fun_commute (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" by default (simp add: fun_eq_iff ac_simps)
+  have "comp_fun_commute (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)"
+    by standard (simp add: fun_eq_iff ac_simps)
   then have "t \<noteq> RBT.empty \<Longrightarrow> Finite_Set.fold min top (Set t) = fold1_keys min t"
     by (simp add: finite_fold_fold_keys fold_keys_min_top_eq)
   then show ?thesis 
-    by (auto simp add: Inf_fold_inf inf_min empty_Set[symmetric] r_min_eq_r_min_opt[symmetric] r_min_alt_def)
+    by (auto simp add: Inf_fold_inf inf_min empty_Set[symmetric]
+      r_min_eq_r_min_opt[symmetric] r_min_alt_def)
 qed
 
 definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a" where [code del]: "Inf' x = Inf x"
@@ -775,7 +784,7 @@ lemma INF_Set_fold [code]:
   shows "INFIMUM (Set t) f = fold_keys (inf \<circ> f) t top"
 proof -
   have "comp_fun_commute ((inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
-    by default (auto simp add: fun_eq_iff ac_simps)
+    by standard (auto simp add: fun_eq_iff ac_simps)
   then show ?thesis
     by (auto simp: INF_fold_inf finite_fold_fold_keys)
 qed
@@ -800,14 +809,17 @@ lemma Sup_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
   shows "Sup (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
 proof -
-  have "comp_fun_commute (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" by default (simp add: fun_eq_iff ac_simps)
+  have "comp_fun_commute (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)"
+    by standard (simp add: fun_eq_iff ac_simps)
   then have "t \<noteq> RBT.empty \<Longrightarrow> Finite_Set.fold max bot (Set t) = fold1_keys max t"
     by (simp add: finite_fold_fold_keys fold_keys_max_bot_eq)
   then show ?thesis 
-    by (auto simp add: Sup_fold_sup sup_max empty_Set[symmetric] r_max_eq_r_max_opt[symmetric] r_max_alt_def)
+    by (auto simp add: Sup_fold_sup sup_max empty_Set[symmetric]
+      r_max_eq_r_max_opt[symmetric] r_max_alt_def)
 qed
 
-definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a" where [code del]: "Sup' x = Sup x"
+definition Sup' :: "'a :: {linorder,complete_lattice} set \<Rightarrow> 'a"
+  where [code del]: "Sup' x = Sup x"
 declare Sup'_def[symmetric, code_unfold]
 declare Sup_Set_fold[folded Sup'_def, code]
 
@@ -816,30 +828,34 @@ lemma SUP_Set_fold [code]:
   shows "SUPREMUM (Set t) f = fold_keys (sup \<circ> f) t bot"
 proof -
   have "comp_fun_commute ((sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
-    by default (auto simp add: fun_eq_iff ac_simps)
+    by standard (auto simp add: fun_eq_iff ac_simps)
   then show ?thesis
     by (auto simp: SUP_fold_sup finite_fold_fold_keys)
 qed
 
-lemma sorted_list_set[code]:
-  "sorted_list_of_set (Set t) = RBT.keys t"
-by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
+lemma sorted_list_set[code]: "sorted_list_of_set (Set t) = RBT.keys t"
+  by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
 lemma Bleast_code [code]:
- "Bleast (Set t) P = (case filter P (RBT.keys t) of
-    x#xs \<Rightarrow> x |
-    [] \<Rightarrow> abort_Bleast (Set t) P)"
+  "Bleast (Set t) P =
+    (case filter P (RBT.keys t) of
+      x # xs \<Rightarrow> x
+    | [] \<Rightarrow> abort_Bleast (Set t) P)"
 proof (cases "filter P (RBT.keys t)")
-  case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
+  case Nil
+  thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
 next
   case (Cons x ys)
   have "(LEAST x. x \<in> Set t \<and> P x) = x"
   proof (rule Least_equality)
-    show "x \<in> Set t \<and> P x" using Cons[symmetric]
-      by(auto simp add: set_keys Cons_eq_filter_iff)
+    show "x \<in> Set t \<and> P x"
+      using Cons[symmetric]
+      by (auto simp add: set_keys Cons_eq_filter_iff)
     next
-      fix y assume "y : Set t \<and> P y"
-      then show "x \<le> y" using Cons[symmetric]
+      fix y
+      assume "y \<in> Set t \<and> P y"
+      then show "x \<le> y"
+        using Cons[symmetric]
         by(auto simp add: set_keys Cons_eq_filter_iff)
           (metis sorted_Cons sorted_append sorted_keys)
   qed

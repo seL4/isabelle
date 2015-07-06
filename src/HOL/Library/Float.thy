@@ -237,8 +237,8 @@ definition sup_float::"float\<Rightarrow>float\<Rightarrow>float"
 where "sup_float a b = max a b"
 
 instance
-  by default
-     (transfer, simp_all add: inf_float_def sup_float_def real_of_float_min real_of_float_max)+
+  by (standard; transfer; simp add: inf_float_def sup_float_def real_of_float_min real_of_float_max)
+
 end
 
 lemma float_numeral[simp]: "real (numeral x :: float) = numeral x"

@@ -199,6 +199,7 @@ lemma differentiable_inner [simp]:
   "f differentiable (at x within s) \<Longrightarrow> g differentiable at x within s \<Longrightarrow> (\<lambda>x. inner (f x) (g x)) differentiable at x within s"
   unfolding differentiable_def by (blast intro: has_derivative_inner)
 
+
 subsection \<open>Class instances\<close>
 
 instantiation real :: real_inner
@@ -206,7 +207,8 @@ begin
 
 definition inner_real_def [simp]: "inner = op *"
 
-instance proof
+instance
+proof
   fix x y z r :: real
   show "inner x y = inner y x"
     unfolding inner_real_def by (rule mult.commute)
@@ -230,7 +232,8 @@ begin
 definition inner_complex_def:
   "inner x y = Re x * Re y + Im x * Im y"
 
-instance proof
+instance
+proof
   fix x y z :: complex and r :: real
   show "inner x y = inner y x"
     unfolding inner_complex_def by (simp add: mult.commute)

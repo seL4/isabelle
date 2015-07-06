@@ -81,41 +81,56 @@ lemma uminus_Pair [simp, code]: "- (a, b) = (- a, - b)"
 subsection \<open>Class instances\<close>
 
 instance prod :: (semigroup_add, semigroup_add) semigroup_add
-  by default (simp add: prod_eq_iff add.assoc)
+  by standard (simp add: prod_eq_iff add.assoc)
 
 instance prod :: (ab_semigroup_add, ab_semigroup_add) ab_semigroup_add
-  by default (simp add: prod_eq_iff add.commute)
+  by standard (simp add: prod_eq_iff add.commute)
 
 instance prod :: (monoid_add, monoid_add) monoid_add
-  by default (simp_all add: prod_eq_iff)
+  by standard (simp_all add: prod_eq_iff)
 
 instance prod :: (comm_monoid_add, comm_monoid_add) comm_monoid_add
-  by default (simp add: prod_eq_iff)
+  by standard (simp add: prod_eq_iff)
 
-instance prod ::
-  (cancel_semigroup_add, cancel_semigroup_add) cancel_semigroup_add
-    by default (simp_all add: prod_eq_iff)
+instance prod :: (cancel_semigroup_add, cancel_semigroup_add) cancel_semigroup_add
+    by standard (simp_all add: prod_eq_iff)
 
-instance prod ::
-  (cancel_ab_semigroup_add, cancel_ab_semigroup_add) cancel_ab_semigroup_add
-    by default (simp_all add: prod_eq_iff diff_diff_eq)
+instance prod :: (cancel_ab_semigroup_add, cancel_ab_semigroup_add) cancel_ab_semigroup_add
+    by standard (simp_all add: prod_eq_iff diff_diff_eq)
 
-instance prod ::
-  (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..
+instance prod :: (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
 instance prod :: (group_add, group_add) group_add
-  by default (simp_all add: prod_eq_iff)
+  by standard (simp_all add: prod_eq_iff)
 
 instance prod :: (ab_group_add, ab_group_add) ab_group_add
-  by default (simp_all add: prod_eq_iff)
+  by standard (simp_all add: prod_eq_iff)
 
 lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
-by (cases "finite A", induct set: finite, simp_all)
+proof (cases "finite A")
+  case True
+  then show ?thesis by induct simp_all
+next
+  case False
+  then show ?thesis by simp
+qed
 
 lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
-by (cases "finite A", induct set: finite, simp_all)
+proof (cases "finite A")
+  case True
+  then show ?thesis by induct simp_all
+next
+  case False
+  then show ?thesis by simp
+qed
 
 lemma setsum_prod: "(\<Sum>x\<in>A. (f x, g x)) = (\<Sum>x\<in>A. f x, \<Sum>x\<in>A. g x)"
-by (cases "finite A", induct set: finite) (simp_all add: zero_prod_def)
+proof (cases "finite A")
+  case True
+  then show ?thesis by induct (simp_all add: zero_prod_def)
+next
+  case False
+  then show ?thesis by (simp add: zero_prod_def)
+qed
 
 end

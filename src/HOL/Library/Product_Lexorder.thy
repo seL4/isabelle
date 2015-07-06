@@ -37,13 +37,13 @@ lemma less_prod_def':
   by (auto simp add: less_prod_def le_less)
 
 instance prod :: (preorder, preorder) preorder
-  by default (auto simp: less_eq_prod_def less_prod_def less_le_not_le intro: order_trans)
+  by standard (auto simp: less_eq_prod_def less_prod_def less_le_not_le intro: order_trans)
 
 instance prod :: (order, order) order
-  by default (auto simp add: less_eq_prod_def)
+  by standard (auto simp add: less_eq_prod_def)
 
 instance prod :: (linorder, linorder) linorder
-  by default (auto simp: less_eq_prod_def)
+  by standard (auto simp: less_eq_prod_def)
 
 instantiation prod :: (linorder, linorder) distrib_lattice
 begin
@@ -55,7 +55,7 @@ definition
   "(sup :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = max"
 
 instance
-  by default (auto simp add: inf_prod_def sup_prod_def max_min_distrib2)
+  by standard (auto simp add: inf_prod_def sup_prod_def max_min_distrib2)
 
 end
 
@@ -70,7 +70,7 @@ instance ..
 end
 
 instance prod :: (order_bot, order_bot) order_bot
-  by default (auto simp add: bot_prod_def)
+  by standard (auto simp add: bot_prod_def)
 
 instantiation prod :: (top, top) top
 begin
@@ -83,7 +83,7 @@ instance ..
 end
 
 instance prod :: (order_top, order_top) order_top
-  by default (auto simp add: top_prod_def)
+  by standard (auto simp add: top_prod_def)
 
 instance prod :: (wellorder, wellorder) wellorder
 proof
