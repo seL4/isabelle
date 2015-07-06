@@ -1776,256 +1776,6 @@ text \<open>
 
 chapter \<open>Proof tools\<close>
 
-section \<open>Coercive subtyping\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{attribute_def (HOL) coercion} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
-  \end{matharray}
-
-  Coercive subtyping allows the user to omit explicit type
-  conversions, also called \emph{coercions}.  Type inference will add
-  them as necessary when parsing a term. See
-  @{cite "traytel-berghofer-nipkow-2011"} for details.
-
-  @{rail \<open>
-    @@{attribute (HOL) coercion} (@{syntax term})?
-    ;
-    @@{attribute (HOL) coercion_map} (@{syntax term})?
-  \<close>}
-
-  \begin{description}
-
-  \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
-  coercion function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} where @{text "\<sigma>\<^sub>1"} and
-  @{text "\<sigma>\<^sub>2"} are type constructors without arguments.  Coercions are
-  composed by the inference algorithm if needed.  Note that the type
-  inference algorithm is complete only if the registered coercions
-  form a lattice.
-
-  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
-  new map function to lift coercions through type constructors. The
-  function @{text "map"} must conform to the following type pattern
-
-  \begin{matharray}{lll}
-    @{text "map"} & @{text "::"} &
-      @{text "f\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^sub>n \<Rightarrow> (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Rightarrow> (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t"} \\
-  \end{matharray}
-
-  where @{text "t"} is a type constructor and @{text "f\<^sub>i"} is of type
-  @{text "\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i"} or @{text "\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i"}.  Registering a map function
-  overwrites any existing map function for this particular type
-  constructor.
-
-  \item @{attribute (HOL) "coercion_enabled"} enables the coercion
-  inference algorithm.
-
-  \end{description}
-\<close>
-
-
-section \<open>Arithmetic proof support\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def (HOL) arith} & : & @{text method} \\
-    @{attribute_def (HOL) arith} & : & @{text attribute} \\
-    @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item @{method (HOL) arith} decides linear arithmetic problems (on
-  types @{text nat}, @{text int}, @{text real}).  Any current facts
-  are inserted into the goal before running the procedure.
-
-  \item @{attribute (HOL) arith} declares facts that are supplied to
-  the arithmetic provers implicitly.
-
-  \item @{attribute (HOL) arith_split} attribute declares case split
-  rules to be expanded before @{method (HOL) arith} is invoked.
-
-  \end{description}
-
-  Note that a simpler (but faster) arithmetic prover is already
-  invoked by the Simplifier.
-\<close>
-
-
-section \<open>Intuitionistic proof search\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def (HOL) iprover} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{method (HOL) iprover} (@{syntax rulemod} *)
-  \<close>}
-
-  \begin{description}
-
-  \item @{method (HOL) iprover} performs intuitionistic proof search,
-  depending on specifically declared rules from the context, or given
-  as explicit arguments.  Chained facts are inserted into the goal
-  before commencing proof search.
-
-  Rules need to be classified as @{attribute (Pure) intro},
-  @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
-  ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
-  applied aggressively (without considering back-tracking later).
-  Rules declared with ``@{text "?"}'' are ignored in proof search (the
-  single-step @{method (Pure) rule} method still observes these).  An
-  explicit weight annotation may be given as well; otherwise the
-  number of rule premises will be taken into account here.
-
-  \end{description}
-\<close>
-
-
-section \<open>Model Elimination and Resolution\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def (HOL) "meson"} & : & @{text method} \\
-    @{method_def (HOL) "metis"} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{method (HOL) meson} @{syntax thmrefs}?
-    ;
-    @@{method (HOL) metis}
-      ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
-      @{syntax thmrefs}?
-  \<close>}
-
-  \begin{description}
-
-  \item @{method (HOL) meson} implements Loveland's model elimination
-  procedure @{cite "loveland-78"}.  See @{file
-  "~~/src/HOL/ex/Meson_Test.thy"} for examples.
-
-  \item @{method (HOL) metis} combines ordered resolution and ordered
-  paramodulation to find first-order (or mildly higher-order) proofs.
-  The first optional argument specifies a type encoding; see the
-  Sledgehammer manual @{cite "isabelle-sledgehammer"} for details.  The
-  directory @{file "~~/src/HOL/Metis_Examples"} contains several small
-  theories developed to a large extent using @{method (HOL) metis}.
-
-  \end{description}
-\<close>
-
-
-section \<open>Algebraic reasoning via Gr\"obner bases\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def (HOL) "algebra"} & : & @{text method} \\
-    @{attribute_def (HOL) algebra} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{method (HOL) algebra}
-      ('add' ':' @{syntax thmrefs})?
-      ('del' ':' @{syntax thmrefs})?
-    ;
-    @@{attribute (HOL) algebra} (() | 'add' | 'del')
-  \<close>}
-
-  \begin{description}
-
-  \item @{method (HOL) algebra} performs algebraic reasoning via
-  Gr\"obner bases, see also @{cite "Chaieb-Wenzel:2007"} and
-  @{cite \<open>\S3.2\<close> "Chaieb-thesis"}. The method handles deals with two main
-  classes of problems:
-
-  \begin{enumerate}
-
-  \item Universal problems over multivariate polynomials in a
-  (semi)-ring/field/idom; the capabilities of the method are augmented
-  according to properties of these structures. For this problem class
-  the method is only complete for algebraically closed fields, since
-  the underlying method is based on Hilbert's Nullstellensatz, where
-  the equivalence only holds for algebraically closed fields.
-
-  The problems can contain equations @{text "p = 0"} or inequations
-  @{text "q \<noteq> 0"} anywhere within a universal problem statement.
-
-  \item All-exists problems of the following restricted (but useful)
-  form:
-
-  @{text [display] "\<forall>x\<^sub>1 \<dots> x\<^sub>n.
-    e\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<and> \<dots> \<and> e\<^sub>m(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<longrightarrow>
-    (\<exists>y\<^sub>1 \<dots> y\<^sub>k.
-      p\<^sub>1\<^sub>1(x\<^sub>1, \<dots> ,x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>1\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0 \<and>
-      \<dots> \<and>
-      p\<^sub>t\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>t\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0)"}
-
-  Here @{text "e\<^sub>1, \<dots>, e\<^sub>n"} and the @{text "p\<^sub>i\<^sub>j"} are multivariate
-  polynomials only in the variables mentioned as arguments.
-
-  \end{enumerate}
-
-  The proof method is preceded by a simplification step, which may be
-  modified by using the form @{text "(algebra add: ths\<^sub>1 del: ths\<^sub>2)"}.
-  This acts like declarations for the Simplifier
-  (\secref{sec:simplifier}) on a private simpset for this tool.
-
-  \item @{attribute algebra} (as attribute) manages the default
-  collection of pre-simplification rules of the above proof method.
-
-  \end{description}
-\<close>
-
-
-subsubsection \<open>Example\<close>
-
-text \<open>The subsequent example is from geometry: collinearity is
-  invariant by rotation.\<close>
-
-(*<*)experiment begin(*>*)
-type_synonym point = "int \<times> int"
-
-fun collinear :: "point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bool" where
-  "collinear (Ax, Ay) (Bx, By) (Cx, Cy) \<longleftrightarrow>
-    (Ax - Bx) * (By - Cy) = (Ay - By) * (Bx - Cx)"
-
-lemma collinear_inv_rotation:
-  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<^sup>2 + s\<^sup>2 = 1"
-  shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
-    (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
-  using assms by (algebra add: collinear.simps)
-(*<*)end(*>*)
-
-text \<open>
- See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
-\<close>
-
-
-section \<open>Coherent Logic\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{method_def (HOL) "coherent"} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{method (HOL) coherent} @{syntax thmrefs}?
-  \<close>}
-
-  \begin{description}
-
-  \item @{method (HOL) coherent} solves problems of \emph{Coherent
-  Logic} @{cite "Bezem-Coquand:2005"}, which covers applications in
-  confluence theory, lattice theory and projective geometry.  See
-  @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
-
-  \end{description}
-\<close>
-
-
 section \<open>Proving propositions\<close>
 
 text \<open>
@@ -2313,6 +2063,256 @@ text \<open>
   optional argument. If not provided, it checks the current theory.
   Options to the internal quickcheck invocations can be changed with
   common configuration declarations.
+
+  \end{description}
+\<close>
+
+
+section \<open>Coercive subtyping\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{attribute_def (HOL) coercion} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
+  \end{matharray}
+
+  Coercive subtyping allows the user to omit explicit type
+  conversions, also called \emph{coercions}.  Type inference will add
+  them as necessary when parsing a term. See
+  @{cite "traytel-berghofer-nipkow-2011"} for details.
+
+  @{rail \<open>
+    @@{attribute (HOL) coercion} (@{syntax term})?
+    ;
+    @@{attribute (HOL) coercion_map} (@{syntax term})?
+  \<close>}
+
+  \begin{description}
+
+  \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
+  coercion function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} where @{text "\<sigma>\<^sub>1"} and
+  @{text "\<sigma>\<^sub>2"} are type constructors without arguments.  Coercions are
+  composed by the inference algorithm if needed.  Note that the type
+  inference algorithm is complete only if the registered coercions
+  form a lattice.
+
+  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
+  new map function to lift coercions through type constructors. The
+  function @{text "map"} must conform to the following type pattern
+
+  \begin{matharray}{lll}
+    @{text "map"} & @{text "::"} &
+      @{text "f\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^sub>n \<Rightarrow> (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Rightarrow> (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t"} \\
+  \end{matharray}
+
+  where @{text "t"} is a type constructor and @{text "f\<^sub>i"} is of type
+  @{text "\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i"} or @{text "\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i"}.  Registering a map function
+  overwrites any existing map function for this particular type
+  constructor.
+
+  \item @{attribute (HOL) "coercion_enabled"} enables the coercion
+  inference algorithm.
+
+  \end{description}
+\<close>
+
+
+section \<open>Arithmetic proof support\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def (HOL) arith} & : & @{text method} \\
+    @{attribute_def (HOL) arith} & : & @{text attribute} \\
+    @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{method (HOL) arith} decides linear arithmetic problems (on
+  types @{text nat}, @{text int}, @{text real}).  Any current facts
+  are inserted into the goal before running the procedure.
+
+  \item @{attribute (HOL) arith} declares facts that are supplied to
+  the arithmetic provers implicitly.
+
+  \item @{attribute (HOL) arith_split} attribute declares case split
+  rules to be expanded before @{method (HOL) arith} is invoked.
+
+  \end{description}
+
+  Note that a simpler (but faster) arithmetic prover is already
+  invoked by the Simplifier.
+\<close>
+
+
+section \<open>Intuitionistic proof search\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def (HOL) iprover} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{method (HOL) iprover} (@{syntax rulemod} *)
+  \<close>}
+
+  \begin{description}
+
+  \item @{method (HOL) iprover} performs intuitionistic proof search,
+  depending on specifically declared rules from the context, or given
+  as explicit arguments.  Chained facts are inserted into the goal
+  before commencing proof search.
+
+  Rules need to be classified as @{attribute (Pure) intro},
+  @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
+  ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
+  applied aggressively (without considering back-tracking later).
+  Rules declared with ``@{text "?"}'' are ignored in proof search (the
+  single-step @{method (Pure) rule} method still observes these).  An
+  explicit weight annotation may be given as well; otherwise the
+  number of rule premises will be taken into account here.
+
+  \end{description}
+\<close>
+
+
+section \<open>Model Elimination and Resolution\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "meson"} & : & @{text method} \\
+    @{method_def (HOL) "metis"} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{method (HOL) meson} @{syntax thmrefs}?
+    ;
+    @@{method (HOL) metis}
+      ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
+      @{syntax thmrefs}?
+  \<close>}
+
+  \begin{description}
+
+  \item @{method (HOL) meson} implements Loveland's model elimination
+  procedure @{cite "loveland-78"}.  See @{file
+  "~~/src/HOL/ex/Meson_Test.thy"} for examples.
+
+  \item @{method (HOL) metis} combines ordered resolution and ordered
+  paramodulation to find first-order (or mildly higher-order) proofs.
+  The first optional argument specifies a type encoding; see the
+  Sledgehammer manual @{cite "isabelle-sledgehammer"} for details.  The
+  directory @{file "~~/src/HOL/Metis_Examples"} contains several small
+  theories developed to a large extent using @{method (HOL) metis}.
+
+  \end{description}
+\<close>
+
+
+section \<open>Algebraic reasoning via Gr\"obner bases\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "algebra"} & : & @{text method} \\
+    @{attribute_def (HOL) algebra} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{method (HOL) algebra}
+      ('add' ':' @{syntax thmrefs})?
+      ('del' ':' @{syntax thmrefs})?
+    ;
+    @@{attribute (HOL) algebra} (() | 'add' | 'del')
+  \<close>}
+
+  \begin{description}
+
+  \item @{method (HOL) algebra} performs algebraic reasoning via
+  Gr\"obner bases, see also @{cite "Chaieb-Wenzel:2007"} and
+  @{cite \<open>\S3.2\<close> "Chaieb-thesis"}. The method handles deals with two main
+  classes of problems:
+
+  \begin{enumerate}
+
+  \item Universal problems over multivariate polynomials in a
+  (semi)-ring/field/idom; the capabilities of the method are augmented
+  according to properties of these structures. For this problem class
+  the method is only complete for algebraically closed fields, since
+  the underlying method is based on Hilbert's Nullstellensatz, where
+  the equivalence only holds for algebraically closed fields.
+
+  The problems can contain equations @{text "p = 0"} or inequations
+  @{text "q \<noteq> 0"} anywhere within a universal problem statement.
+
+  \item All-exists problems of the following restricted (but useful)
+  form:
+
+  @{text [display] "\<forall>x\<^sub>1 \<dots> x\<^sub>n.
+    e\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<and> \<dots> \<and> e\<^sub>m(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<longrightarrow>
+    (\<exists>y\<^sub>1 \<dots> y\<^sub>k.
+      p\<^sub>1\<^sub>1(x\<^sub>1, \<dots> ,x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>1\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0 \<and>
+      \<dots> \<and>
+      p\<^sub>t\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>t\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0)"}
+
+  Here @{text "e\<^sub>1, \<dots>, e\<^sub>n"} and the @{text "p\<^sub>i\<^sub>j"} are multivariate
+  polynomials only in the variables mentioned as arguments.
+
+  \end{enumerate}
+
+  The proof method is preceded by a simplification step, which may be
+  modified by using the form @{text "(algebra add: ths\<^sub>1 del: ths\<^sub>2)"}.
+  This acts like declarations for the Simplifier
+  (\secref{sec:simplifier}) on a private simpset for this tool.
+
+  \item @{attribute algebra} (as attribute) manages the default
+  collection of pre-simplification rules of the above proof method.
+
+  \end{description}
+\<close>
+
+
+subsubsection \<open>Example\<close>
+
+text \<open>The subsequent example is from geometry: collinearity is
+  invariant by rotation.\<close>
+
+(*<*)experiment begin(*>*)
+type_synonym point = "int \<times> int"
+
+fun collinear :: "point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bool" where
+  "collinear (Ax, Ay) (Bx, By) (Cx, Cy) \<longleftrightarrow>
+    (Ax - Bx) * (By - Cy) = (Ay - By) * (Bx - Cx)"
+
+lemma collinear_inv_rotation:
+  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<^sup>2 + s\<^sup>2 = 1"
+  shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
+    (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
+  using assms by (algebra add: collinear.simps)
+(*<*)end(*>*)
+
+text \<open>
+ See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
+\<close>
+
+
+section \<open>Coherent Logic\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "coherent"} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{method (HOL) coherent} @{syntax thmrefs}?
+  \<close>}
+
+  \begin{description}
+
+  \item @{method (HOL) coherent} solves problems of \emph{Coherent
+  Logic} @{cite "Bezem-Coquand:2005"}, which covers applications in
+  confluence theory, lattice theory and projective geometry.  See
+  @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
 
   \end{description}
 \<close>
