@@ -1387,27 +1387,32 @@ text \<open>
   \begin{description}
 
   \item @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
-  with a user-defined type. The command supports two modes. The first one is
-  a low-level mode when the user must provide as a first argument of
-  @{command (HOL) "setup_lifting"} a quotient theorem @{term "Quotient R Abs
-  Rep T"}. The package configures a transfer rule for equality, a domain
-  transfer rules and sets up the @{command_def (HOL) "lift_definition"}
-  command to work with the abstract type. An optional theorem @{term "reflp
-  R"}, which certifies that the equivalence relation R is total, can be
-  provided as a second argument. This allows the package to generate
-  stronger transfer rules. And finally, the parametricity theorem for @{term
-  R} can be provided as a third argument. This allows the package to
-  generate a stronger transfer rule for equality.
+  with a user-defined type. The command supports two modes.
+
+  \begin{enumerate}
+
+  \item The first one is a low-level mode when the user must provide as a
+  first argument of @{command (HOL) "setup_lifting"} a quotient theorem
+  @{term "Quotient R Abs Rep T"}. The package configures a transfer rule for
+  equality, a domain transfer rules and sets up the @{command_def (HOL)
+  "lift_definition"} command to work with the abstract type. An optional
+  theorem @{term "reflp R"}, which certifies that the equivalence relation R
+  is total, can be provided as a second argument. This allows the package to
+  generate stronger transfer rules. And finally, the parametricity theorem
+  for @{term R} can be provided as a third argument. This allows the package
+  to generate a stronger transfer rule for equality.
 
   Users generally will not prove the @{text Quotient} theorem manually for
   new types, as special commands exist to automate the process.
 
-  \medskip When a new subtype is defined by @{command (HOL) typedef},
-  @{command (HOL) "lift_definition"} can be used in its second mode, where
-  only the @{term type_definition} theorem @{term "type_definition Rep Abs
-  A"} is used as an argument of the command. The command internally proves
-  the corresponding @{term Quotient} theorem and registers it with @{command
+  \item When a new subtype is defined by @{command (HOL) typedef}, @{command
+  (HOL) "lift_definition"} can be used in its second mode, where only the
+  @{term type_definition} theorem @{term "type_definition Rep Abs A"} is
+  used as an argument of the command. The command internally proves the
+  corresponding @{term Quotient} theorem and registers it with @{command
   (HOL) setup_lifting} using its first mode.
+
+  \end{enumerate}
 
   For quotients, the command @{command (HOL) quotient_type} can be used. The
   command defines a new quotient type and similarly to the previous case,
