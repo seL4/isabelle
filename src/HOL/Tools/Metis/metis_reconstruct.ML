@@ -174,7 +174,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
 fun incr_type_indexes ctxt inc th =
   let
     val tvs = Term.add_tvars (Thm.full_prop_of th) []
-    fun inc_tvar ((a, i), s) = apply2 (Thm.ctyp_of ctxt) (TVar ((a, i), s), TVar ((a, i + inc), s))
+    fun inc_tvar ((a, i), s) = (((a, i), s), Thm.ctyp_of ctxt (TVar ((a, i + inc), s)))
   in
     Thm.instantiate (map inc_tvar tvs, []) th
   end
@@ -211,7 +211,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           |> rpair (Envir.empty ~1)
           |-> fold (Pattern.unify (Context.Proof ctxt))
           |> Envir.type_env |> Vartab.dest
-          |> map (fn (x, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (x, S), T))
+          |> map (fn (x, (S, T)) => ((x, S), Thm.ctyp_of ctxt T))
       in
         (* The unifier, which is invoked from "Thm.bicompose", will sometimes refuse to unify
            "?a::?'a" with "?a::?'b" or "?a::nat" and throw a "TERM" exception (with "add_ffpair" as
@@ -400,8 +400,8 @@ fun flexflex_first_order ctxt th =
         val thy = Proof_Context.theory_of ctxt
         val (tyenv, tenv) = fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
   
-        fun mkT (v, (S, T)) = apply2 (Thm.ctyp_of ctxt) (TVar (v, S), T)
-        fun mk (v, (T, t)) = apply2 (Thm.cterm_of ctxt) (Var (v, Envir.subst_type tyenv T), t)
+        fun mkT (v, (S, T)) = ((v, S), Thm.ctyp_of ctxt T)
+        fun mk (v, (T, t)) = ((v, Envir.subst_type tyenv T), Thm.cterm_of ctxt t)
   
         val instsT = Vartab.fold (cons o mkT) tyenv []
         val insts = Vartab.fold (cons o mk) tenv []
@@ -570,11 +570,11 @@ fun instantiate_forall_tac ctxt t i st =
             Envir.Envir {maxidx = Vartab.fold (Integer.max o snd o fst) tyenv 0,
               tenv = Vartab.empty, tyenv = tyenv}
           val ty_inst =
-            Vartab.fold (fn (x, (S, T)) => cons (apply2 (Thm.ctyp_of ctxt) (TVar (x, S), T)))
+            Vartab.fold (fn (x, (S, T)) => cons (((x, S), Thm.ctyp_of ctxt T)))
               tyenv []
           val t_inst = [apply2 (Thm.cterm_of ctxt o Envir.norm_term env) (Var var, t')]
         in
-          Drule.instantiate_normalize (ty_inst, t_inst) th
+          Drule.instantiate_normalize (ty_inst, map (apfst (dest_Var o Thm.term_of)) t_inst) th
         end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var")
   in

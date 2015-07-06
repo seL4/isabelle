@@ -12,8 +12,9 @@ scripts.
 
 signature SUBGOAL =
 sig
-  type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
-    asms: cterm list, concl: cterm, schematics: (ctyp * ctyp) list * (cterm * cterm) list}
+  type focus =
+   {context: Proof.context, params: (string * cterm) list, prems: thm list, asms: cterm list,
+    concl: cterm, schematics: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list}
   val focus_params: Proof.context -> int -> thm -> focus * thm
   val focus_params_fixed: Proof.context -> int -> thm -> focus * thm
   val focus_prems: Proof.context -> int -> thm -> focus * thm
@@ -36,8 +37,9 @@ struct
 
 (* focus *)
 
-type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
-  asms: cterm list, concl: cterm, schematics: (ctyp * ctyp) list * (cterm * cterm) list};
+type focus =
+ {context: Proof.context, params: (string * cterm) list, prems: thm list, asms: cterm list,
+  concl: cterm, schematics: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list};
 
 fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   let
@@ -100,7 +102,7 @@ fun lift_import idx params th ctxt =
     val (inst1, inst2) =
       split_list (map (apply2 (apply2 (Thm.cterm_of ctxt))) (map2 var_inst vars ys));
 
-    val th'' = Thm.instantiate ([], inst1) th';
+    val th'' = Thm.instantiate ([], map (apfst (Term.dest_Var o Thm.term_of)) inst1) th';
   in ((inst2, th''), ctxt'') end;
 
 (*

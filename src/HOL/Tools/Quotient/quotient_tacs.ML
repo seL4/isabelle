@@ -72,20 +72,16 @@ fun solve_quotient_assm ctxt thm =
   | _ => error "Solve_quotient_assm failed. Possibly a quotient theorem is missing."
 
 
-fun prep_trm thy (x, (T, t)) =
-  (Thm.global_cterm_of thy (Var (x, T)), Thm.global_cterm_of thy t)
-
-fun prep_ty thy (x, (S, ty)) =
-  (Thm.global_ctyp_of thy (TVar (x, S)), Thm.global_ctyp_of thy ty)
-
 fun get_match_inst thy pat trm =
   let
     val univ = Unify.matchers (Context.Theory thy) [(pat, trm)]
     val SOME (env, _) = Seq.pull univ           (* raises Bind, if no unifier *) (* FIXME fragile *)
     val tenv = Vartab.dest (Envir.term_env env)
     val tyenv = Vartab.dest (Envir.type_env env)
+    fun prep_ty (x, (S, ty)) = ((x, S), Thm.global_ctyp_of thy ty)
+    fun prep_trm (x, (T, t)) = ((x, T), Thm.global_cterm_of thy t)
   in
-    (map (prep_ty thy) tyenv, map (prep_trm thy) tenv)
+    (map prep_ty tyenv, map prep_trm tenv)
   end
 
 (* Calculates the instantiations for the lemmas:
@@ -480,7 +476,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
           then make_inst_id (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
           else make_inst (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
         val thm4 =
-          Drule.instantiate_normalize ([], [(Thm.cterm_of ctxt insp, Thm.cterm_of ctxt inst)]) thm3
+          Drule.instantiate_normalize ([], [(dest_Var insp, Thm.cterm_of ctxt inst)]) thm3
       in
         Conv.rewr_conv thm4 ctrm
       end

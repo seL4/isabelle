@@ -271,12 +271,13 @@ fun import_export_proof ctxt (name, raw_th) =
       |>> map Logic.dest_type;
 
     val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
-    val inst = filter (is_Var o fst) (vars ~~ frees);
-    val cinstT = instT
-      |> map (apply2 (Thm.ctyp_of ctxt) o apfst TVar);
-    val cinst = inst
-      |> map (apply2 (Thm.cterm_of ctxt o Term.map_types (Term_Subst.instantiateT instT)));
-    val result' = Thm.instantiate (cinstT, cinst) result;
+    val inst =
+      map_filter
+        (fn (Var (xi, T), t) =>
+          SOME ((xi, Term_Subst.instantiateT instT T),
+            Thm.cterm_of ctxt (Term.map_types (Term_Subst.instantiateT instT) t))
+        | _ => NONE) (vars ~~ frees);
+    val result' = Thm.instantiate (map (apsnd (Thm.ctyp_of ctxt)) instT, inst) result;
 
     (*import assumes/defines*)
     val result'' =

@@ -205,7 +205,7 @@ fun mk_to_pred_inst ctxt fs =
       val x' = map_type
         (K (Ts @ HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
     in
-      (Thm.cterm_of ctxt x,
+      (dest_Var x,
        Thm.cterm_of ctxt (fold_rev (Term.abs o pair "x") Ts
          (HOLogic.Collect_const U $
             HOLogic.mk_psplits ps U HOLogic.boolT
@@ -367,7 +367,7 @@ fun to_set thms context thm =
         val T = HOLogic.mk_ptupleT ps Us;
         val x' = map_type (K (Rs ---> HOLogic.mk_setT T)) x
       in
-        (Thm.cterm_of ctxt x,
+        (dest_Var x,
          Thm.cterm_of ctxt (fold_rev (Term.abs o pair "x") Ts
           (HOLogic.mk_mem (HOLogic.mk_ptuple ps T (map Bound (k downto 0)),
              list_comb (x', map Bound (l - 1 downto k + 1))))))

@@ -592,11 +592,10 @@ fun transfer_rule_of_term ctxt equiv t : thm =
     fun prep a = the (AList.lookup (op =) tab a)
     val thm = transfer_rule_of_terms fst ctxt' tab s t
     val binsts = bool_insts (if equiv then 0 else 1) (s, t)
-    val cbool = @{ctyp bool}
-    val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
-    fun tinst (a, _) = (Thm.ctyp_of ctxt' (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) = apply2 (Thm.cterm_of ctxt') (Var (Name.clean_index (prep a, idx), relT), t)
+    fun tinst (a, _) = (((a, idx), @{sort type}), @{ctyp bool})
+    fun inst (a, t) =
+      ((Name.clean_index (prep a, idx), @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}), Thm.cterm_of ctxt' t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx
@@ -616,11 +615,10 @@ fun transfer_rule_of_lhs ctxt t : thm =
     fun prep a = the (AList.lookup (op =) tab a)
     val thm = transfer_rule_of_terms snd ctxt' tab t s
     val binsts = bool_insts 1 (s, t)
-    val cbool = @{ctyp bool}
-    val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
-    fun tinst (a, _) = (Thm.ctyp_of ctxt' (TVar ((a, idx), @{sort type})), cbool)
-    fun inst (a, t) = apply2 (Thm.cterm_of ctxt') (Var (Name.clean_index (prep a, idx), relT), t)
+    fun tinst (a, _) = (((a, idx), @{sort type}), @{ctyp bool})
+    fun inst (a, t) =
+      ((Name.clean_index (prep a, idx), @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}), Thm.cterm_of ctxt' t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx

@@ -78,9 +78,9 @@ open FOLP_Simp;
 
 val auto_ss = empty_ss setauto ares_tac [@{thm TrueI}];
 
-val IFOLP_ss = auto_ss addcongs FOLP_congs addrews IFOLP_rews;
+val IFOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew @{context}) IFOLP_rews;
 
 
 val FOLP_rews = IFOLP_rews @ @{thms cla_rews};
 
-val FOLP_ss = auto_ss addcongs FOLP_congs addrews FOLP_rews;
+val FOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew @{context}) FOLP_rews;

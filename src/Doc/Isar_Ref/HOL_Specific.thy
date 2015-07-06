@@ -1,7 +1,13 @@
 theory HOL_Specific
-imports Base "~~/src/HOL/Library/Old_Datatype" "~~/src/HOL/Library/Old_Recdef"
-  "~~/src/Tools/Adhoc_Overloading" "~~/src/HOL/Library/Dlist"  "~~/src/HOL/Library/FSet"
+imports
+  Base
+  "~~/src/HOL/Library/Old_Datatype"
+  "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/Tools/Adhoc_Overloading"
+  "~~/src/HOL/Library/Dlist"
+  "~~/src/HOL/Library/FSet"
 begin
+
 
 chapter \<open>Higher-Order Logic\<close>
 
@@ -52,9 +58,7 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   nicely, but they also mean that HOL requires some sophistication
   from the user.  In particular, an understanding of Hindley-Milner
   type-inference with type-classes, which are both used extensively in
-  the standard libraries and applications.  Beginners can set
-  @{attribute show_types} or even @{attribute show_sorts} to get more
-  explicit information about the result of type-inference.\<close>
+  the standard libraries and applications.\<close>
 
 
 chapter \<open>Derived specification elements\<close>
@@ -171,12 +175,10 @@ text \<open>A (co)inductive definition of @{text R} provides the following
 
   \end{description}
 
-  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are
-  defined simultaneously, the list of introduction rules is called
-  @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the case analysis rules are
-  called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the list
-  of mutual induction rules is called @{text
-  "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
+  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are defined simultaneously,
+  the list of introduction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the
+  case analysis rules are called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the
+  list of mutual induction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
 \<close>
 
 
@@ -236,8 +238,8 @@ where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> a
 (*<*)end(*>*)
 
 text \<open>Common logical connectives can be easily characterized as
-non-recursive inductive definitions with parameters, but without
-arguments.\<close>
+  non-recursive inductive definitions with parameters, but without
+  arguments.\<close>
 
 (*<*)experiment begin(*>*)
 inductive AND for A B :: bool
@@ -251,12 +253,12 @@ inductive EXISTS for B :: "'a \<Rightarrow> bool"
 where "B a \<Longrightarrow> EXISTS B"
 (*<*)end(*>*)
 
-text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by
-  the @{command inductive} package coincide with the expected
-  elimination rules for Natural Deduction.  Already in the original
-  article by Gerhard Gentzen @{cite "Gentzen:1935"} there is a hint that
-  each connective can be characterized by its introductions, and the
-  elimination can be constructed systematically.\<close>
+text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by the
+  @{command inductive} package coincide with the expected elimination rules
+  for Natural Deduction. Already in the original article by Gerhard Gentzen
+  @{cite "Gentzen:1935"} there is a hint that each connective can be
+  characterized by its introductions, and the elimination can be constructed
+  systematically.\<close>
 
 
 section \<open>Recursive functions \label{sec:recursion}\<close>
@@ -288,101 +290,98 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes (see also @{command_ref (HOL) datatype}).
-  The given @{text equations} specify reduction rules that are produced
-  by instantiating the generic combinator for primitive recursion that
-  is available for each datatype.
+  \item @{command (HOL) "primrec"} defines primitive recursive functions
+  over datatypes (see also @{command_ref (HOL) datatype}). The given @{text
+  equations} specify reduction rules that are produced by instantiating the
+  generic combinator for primitive recursion that is available for each
+  datatype.
 
   Each equation needs to be of the form:
 
   @{text [display] "f x\<^sub>1 \<dots> x\<^sub>m (C y\<^sub>1 \<dots> y\<^sub>k) z\<^sub>1 \<dots> z\<^sub>n = rhs"}
 
-  such that @{text C} is a datatype constructor, @{text rhs} contains
-  only the free variables on the left-hand side (or from the context),
-  and all recursive occurrences of @{text "f"} in @{text "rhs"} are of
-  the form @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}.  At most one
-  reduction rule for each constructor can be given.  The order does
-  not matter.  For missing constructors, the function is defined to
-  return a default value, but this equation is made difficult to
-  access for users.
+  such that @{text C} is a datatype constructor, @{text rhs} contains only
+  the free variables on the left-hand side (or from the context), and all
+  recursive occurrences of @{text "f"} in @{text "rhs"} are of the form
+  @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}. At most one reduction rule for
+  each constructor can be given. The order does not matter. For missing
+  constructors, the function is defined to return a default value, but this
+  equation is made difficult to access for users.
 
-  The reduction rules are declared as @{attribute simp} by default,
-  which enables standard proof methods like @{method simp} and
-  @{method auto} to normalize expressions of @{text "f"} applied to
-  datatype constructions, by simulating symbolic computation via
-  rewriting.
+  The reduction rules are declared as @{attribute simp} by default, which
+  enables standard proof methods like @{method simp} and @{method auto} to
+  normalize expressions of @{text "f"} applied to datatype constructions, by
+  simulating symbolic computation via rewriting.
 
-  \item @{command (HOL) "function"} defines functions by general
-  wellfounded recursion. A detailed description with examples can be
-  found in @{cite "isabelle-function"}. The function is specified by a
-  set of (possibly conditional) recursive equations with arbitrary
-  pattern matching. The command generates proof obligations for the
-  completeness and the compatibility of patterns.
+  \item @{command (HOL) "function"} defines functions by general wellfounded
+  recursion. A detailed description with examples can be found in @{cite
+  "isabelle-function"}. The function is specified by a set of (possibly
+  conditional) recursive equations with arbitrary pattern matching. The
+  command generates proof obligations for the completeness and the
+  compatibility of patterns.
 
   The defined function is considered partial, and the resulting
-  simplification rules (named @{text "f.psimps"}) and induction rule
-  (named @{text "f.pinduct"}) are guarded by a generated domain
-  predicate @{text "f_dom"}. The @{command (HOL) "termination"}
-  command can then be used to establish that the function is total.
+  simplification rules (named @{text "f.psimps"}) and induction rule (named
+  @{text "f.pinduct"}) are guarded by a generated domain predicate @{text
+  "f_dom"}. The @{command (HOL) "termination"} command can then be used to
+  establish that the function is total.
 
-  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
-  (HOL) "function"}~@{text "(sequential)"}'', followed by automated
-  proof attempts regarding pattern matching and termination.  See
-  @{cite "isabelle-function"} for further details.
+  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
+  "function"}~@{text "(sequential)"}'', followed by automated proof attempts
+  regarding pattern matching and termination. See @{cite
+  "isabelle-function"} for further details.
 
-  \item @{command (HOL) "termination"}~@{text f} commences a
-  termination proof for the previously defined function @{text f}.  If
-  this is omitted, the command refers to the most recent function
-  definition.  After the proof is closed, the recursive equations and
-  the induction principle is established.
+  \item @{command (HOL) "termination"}~@{text f} commences a termination
+  proof for the previously defined function @{text f}. If this is omitted,
+  the command refers to the most recent function definition. After the proof
+  is closed, the recursive equations and the induction principle is
+  established.
 
-  \item @{command (HOL) "fun_cases"} generates specialized elimination
-  rules for function equations. It expects one or more function equations
-  and produces rules that eliminate the given equalities, following the cases
+  \item @{command (HOL) "fun_cases"} generates specialized elimination rules
+  for function equations. It expects one or more function equations and
+  produces rules that eliminate the given equalities, following the cases
   given in the function definition.
+
   \end{description}
 
   Recursive definitions introduced by the @{command (HOL) "function"}
-  command accommodate reasoning by induction (cf.\ @{method induct}):
-  rule @{text "f.induct"} refers to a specific induction rule, with
-  parameters named according to the user-specified equations. Cases
-  are numbered starting from 1.  For @{command (HOL) "primrec"}, the
-  induction principle coincides with structural recursion on the
-  datatype where the recursion is carried out.
+  command accommodate reasoning by induction (cf.\ @{method induct}): rule
+  @{text "f.induct"} refers to a specific induction rule, with parameters
+  named according to the user-specified equations. Cases are numbered
+  starting from 1. For @{command (HOL) "primrec"}, the induction principle
+  coincides with structural recursion on the datatype where the recursion is
+  carried out.
 
-  The equations provided by these packages may be referred later as
-  theorem list @{text "f.simps"}, where @{text f} is the (collective)
-  name of the functions defined.  Individual equations may be named
-  explicitly as well.
+  The equations provided by these packages may be referred later as theorem
+  list @{text "f.simps"}, where @{text f} is the (collective) name of the
+  functions defined. Individual equations may be named explicitly as well.
 
-  The @{command (HOL) "function"} command accepts the following
-  options.
+  The @{command (HOL) "function"} command accepts the following options.
 
   \begin{description}
 
   \item @{text sequential} enables a preprocessor which disambiguates
-  overlapping patterns by making them mutually disjoint.  Earlier
-  equations take precedence over later ones.  This allows to give the
-  specification in a format very similar to functional programming.
-  Note that the resulting simplification and induction rules
-  correspond to the transformed specification, not the one given
-  originally. This usually means that each equation given by the user
-  may result in several theorems.  Also note that this automatic
-  transformation only works for ML-style datatype patterns.
+  overlapping patterns by making them mutually disjoint. Earlier equations
+  take precedence over later ones. This allows to give the specification in
+  a format very similar to functional programming. Note that the resulting
+  simplification and induction rules correspond to the transformed
+  specification, not the one given originally. This usually means that each
+  equation given by the user may result in several theorems. Also note that
+  this automatic transformation only works for ML-style datatype patterns.
 
-  \item @{text domintros} enables the automated generation of
-  introduction rules for the domain predicate. While mostly not
-  needed, they can be helpful in some proofs about partial functions.
+  \item @{text domintros} enables the automated generation of introduction
+  rules for the domain predicate. While mostly not needed, they can be
+  helpful in some proofs about partial functions.
 
   \end{description}
 \<close>
 
+
 subsubsection \<open>Example: evaluation of expressions\<close>
 
-text \<open>Subsequently, we define mutual datatypes for arithmetic and
-  boolean expressions, and use @{command primrec} for evaluation
-  functions that follow the same recursive structure.\<close>
+text \<open>Subsequently, we define mutual datatypes for arithmetic and boolean
+  expressions, and use @{command primrec} for evaluation functions that
+  follow the same recursive structure.\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a aexp =
@@ -413,13 +412,13 @@ where
 
 text \<open>Since the value of an expression depends on the value of its
   variables, the functions @{const evala} and @{const evalb} take an
-  additional parameter, an \emph{environment} that maps variables to
-  their values.
+  additional parameter, an \emph{environment} that maps variables to their
+  values.
 
-  \medskip Substitution on expressions can be defined similarly.  The
-  mapping @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a
-  parameter is lifted canonically on the types @{typ "'a aexp"} and
-  @{typ "'a bexp"}, respectively.
+  \medskip Substitution on expressions can be defined similarly. The mapping
+  @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted
+  canonically on the types @{typ "'a aexp"} and @{typ "'a bexp"},
+  respectively.
 \<close>
 
 primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
@@ -434,10 +433,10 @@ where
 | "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
 | "substb f (Neg b) = Neg (substb f b)"
 
-text \<open>In textbooks about semantics one often finds substitution
-  theorems, which express the relationship between substitution and
-  evaluation.  For @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove
-  such a theorem by mutual induction, followed by simplification.
+text \<open>In textbooks about semantics one often finds substitution theorems,
+  which express the relationship between substitution and evaluation. For
+  @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove such a theorem by
+  mutual induction, followed by simplification.
 \<close>
 
 lemma subst_one:
@@ -487,9 +486,8 @@ lemma "subst_term (subst_term f1 \<circ> f2) t =
 
 subsubsection \<open>Example: a map function for infinitely branching trees\<close>
 
-text \<open>Defining functions on infinitely branching datatypes by
-  primitive recursion is just as easy.
-\<close>
+text \<open>Defining functions on infinitely branching datatypes by primitive
+  recursion is just as easy.\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
@@ -499,11 +497,12 @@ where
   "map_tree f (Atom a) = Atom (f a)"
 | "map_tree f (Branch ts) = Branch (\<lambda>x. map_tree f (ts x))"
 
-text \<open>Note that all occurrences of functions such as @{text ts}
-  above must be applied to an argument.  In particular, @{term
-  "map_tree f \<circ> ts"} is not allowed here.\<close>
+text \<open>Note that all occurrences of functions such as @{text ts} above must
+  be applied to an argument. In particular, @{term "map_tree f \<circ> ts"} is not
+  allowed here.
 
-text \<open>Here is a simple composition lemma for @{term map_tree}:\<close>
+  \medskip Here is a simple composition lemma for @{term map_tree}:
+\<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
   by (induct t) simp_all
@@ -645,7 +644,6 @@ text \<open>
   definitions.
 
   \end{description}
-
 \<close>
 
 
@@ -701,6 +699,80 @@ text \<open>
 \<close>
 
 
+section \<open>Adhoc overloading of constants\<close>
+
+text \<open>
+  \begin{tabular}{rcll}
+  @{command_def "adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+  @{command_def "no_adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+  @{attribute_def "show_variants"} & : & @{text "attribute"} & default @{text false} \\
+  \end{tabular}
+
+  \medskip
+
+  Adhoc overloading allows to overload a constant depending on
+  its type. Typically this involves the introduction of an
+  uninterpreted constant (used for input and output) and the addition
+  of some variants (used internally). For examples see
+  @{file "~~/src/HOL/ex/Adhoc_Overloading_Examples.thy"} and
+  @{file "~~/src/HOL/Library/Monad_Syntax.thy"}.
+
+  @{rail \<open>
+    (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
+      (@{syntax nameref} (@{syntax term} + ) + @'and')
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
+  associates variants with an existing constant.
+
+  \item @{command "no_adhoc_overloading"} is similar to
+  @{command "adhoc_overloading"}, but removes the specified variants
+  from the present context.
+
+  \item @{attribute "show_variants"} controls printing of variants
+  of overloaded constants. If enabled, the internally used variants
+  are printed instead of their respective overloaded constants. This
+  is occasionally useful to check whether the system agrees with a
+  user's expectations about derived variants.
+
+  \end{description}
+\<close>
+
+
+section \<open>Definition by specification \label{sec:hol-specification}\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{command (HOL) specification} '(' (decl +) ')' \<newline>
+      (@{syntax thmdecl}? @{syntax prop} +)
+    ;
+    decl: (@{syntax name} ':')? @{syntax term} ('(' @'overloaded' ')')?
+  \<close>}
+
+  \begin{description}
+
+  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
+  goal stating the existence of terms with the properties specified to
+  hold for the constants given in @{text decls}.  After finishing the
+  proof, the theory will be augmented with definitions for the given
+  constants, as well as with theorems stating the properties for these
+  constants.
+
+  @{text decl} declares a constant to be defined by the
+  specification given.  The definition for the constant @{text c} is
+  bound to the name @{text c_def} unless a theorem name is given in
+  the declaration.  Overloaded constants should be declared as such.
+
+  \end{description}
+\<close>
+
+
 section \<open>Old-style datatypes \label{sec:hol-datatype}\<close>
 
 text \<open>
@@ -745,9 +817,8 @@ text \<open>
 
 subsubsection \<open>Examples\<close>
 
-text \<open>We define a type of finite sequences, with slightly different
-  names than the existing @{typ "'a list"} that is already in @{theory
-  Main}:\<close>
+text \<open>We define a type of finite sequences, with slightly different names
+  than the existing @{typ "'a list"} that is already in @{theory Main}:\<close>
 
 (*<*)experiment begin(*>*)
 datatype 'a seq = Empty | Seq 'a "'a seq"
@@ -902,33 +973,30 @@ text \<open>
 
 subsection \<open>Record operations\<close>
 
-text \<open>
-  Any record definition of the form presented above produces certain
-  standard operations.  Selectors and updates are provided for any
-  field, including the improper one ``@{text more}''.  There are also
-  cumulative record constructor functions.  To simplify the
-  presentation below, we assume for now that @{text "(\<alpha>\<^sub>1, \<dots>,
-  \<alpha>\<^sub>m) t"} is a root record with fields @{text "c\<^sub>1 ::
-  \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
+text \<open>Any record definition of the form presented above produces certain
+  standard operations. Selectors and updates are provided for any field,
+  including the improper one ``@{text more}''. There are also cumulative
+  record constructor functions. To simplify the presentation below, we
+  assume for now that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} is a root record with fields
+  @{text "c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
 
-  \medskip \textbf{Selectors} and \textbf{updates} are available for
-  any field (including ``@{text more}''):
+  \medskip \textbf{Selectors} and \textbf{updates} are available for any
+  field (including ``@{text more}''):
 
   \begin{matharray}{lll}
     @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
     @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
   \end{matharray}
 
-  There is special syntax for application of updates: @{text "r\<lparr>x :=
-  a\<rparr>"} abbreviates term @{text "x_update a r"}.  Further notation for
-  repeated updates is also available: @{text "r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z :=
-  c\<rparr>"} may be written @{text "r\<lparr>x := a, y := b, z := c\<rparr>"}.  Note that
-  because of postfix notation the order of fields shown here is
-  reverse than in the actual term.  Since repeated updates are just
-  function applications, fields may be freely permuted in @{text "\<lparr>x
-  := a, y := b, z := c\<rparr>"}, as far as logical equality is concerned.
-  Thus commutativity of independent updates can be proven within the
-  logic for any two fields, but not as a general theorem.
+  There is special syntax for application of updates: @{text "r\<lparr>x := a\<rparr>"}
+  abbreviates term @{text "x_update a r"}. Further notation for repeated
+  updates is also available: @{text "r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z := c\<rparr>"} may be
+  written @{text "r\<lparr>x := a, y := b, z := c\<rparr>"}. Note that because of postfix
+  notation the order of fields shown here is reverse than in the actual
+  term. Since repeated updates are just function applications, fields may be
+  freely permuted in @{text "\<lparr>x := a, y := b, z := c\<rparr>"}, as far as logical
+  equality is concerned. Thus commutativity of independent updates can be
+  proven within the logic for any two fields, but not as a general theorem.
 
   \medskip The \textbf{make} operation provides a cumulative record
   constructor function:
@@ -937,15 +1005,14 @@ text \<open>
     @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{matharray}
 
-  \medskip We now reconsider the case of non-root records, which are
-  derived of some parent.  In general, the latter may depend on
-  another parent as well, resulting in a list of \emph{ancestor
-  records}.  Appending the lists of fields of all ancestors results in
-  a certain field prefix.  The record package automatically takes care
-  of this by lifting operations over this context of ancestor fields.
-  Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has ancestor
-  fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"},
-  the above record operations will get the following types:
+  \medskip We now reconsider the case of non-root records, which are derived
+  of some parent. In general, the latter may depend on another parent as
+  well, resulting in a list of \emph{ancestor records}. Appending the lists
+  of fields of all ancestors results in a certain field prefix. The record
+  package automatically takes care of this by lifting operations over this
+  context of ancestor fields. Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has
+  ancestor fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"}, the above record
+  operations will get the following types:
 
   \medskip
   \begin{tabular}{lll}
@@ -959,11 +1026,11 @@ text \<open>
   \medskip
 
   \noindent Some further operations address the extension aspect of a
-  derived record scheme specifically: @{text "t.fields"} produces a
-  record fragment consisting of exactly the new fields introduced here
-  (the result may serve as a more part elsewhere); @{text "t.extend"}
-  takes a fixed record and adds a given more part; @{text
-  "t.truncate"} restricts a record scheme to a fixed record.
+  derived record scheme specifically: @{text "t.fields"} produces a record
+  fragment consisting of exactly the new fields introduced here (the result
+  may serve as a more part elsewhere); @{text "t.extend"} takes a fixed
+  record and adds a given more part; @{text "t.truncate"} restricts a record
+  scheme to a fixed record.
 
   \medskip
   \begin{tabular}{lll}
@@ -974,8 +1041,8 @@ text \<open>
   \end{tabular}
   \medskip
 
-  \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide
-  for root records.
+  \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide for
+  root records.
 \<close>
 
 
@@ -989,41 +1056,40 @@ text \<open>
 
   \begin{enumerate}
 
-  \item Standard conversions for selectors or updates applied to
-  record constructor terms are made part of the default Simplifier
-  context; thus proofs by reduction of basic operations merely require
-  the @{method simp} method without further arguments.  These rules
-  are available as @{text "t.simps"}, too.
+  \item Standard conversions for selectors or updates applied to record
+  constructor terms are made part of the default Simplifier context; thus
+  proofs by reduction of basic operations merely require the @{method simp}
+  method without further arguments. These rules are available as @{text
+  "t.simps"}, too.
 
-  \item Selectors applied to updated records are automatically reduced
-  by an internal simplification procedure, which is also part of the
-  standard Simplifier setup.
+  \item Selectors applied to updated records are automatically reduced by an
+  internal simplification procedure, which is also part of the standard
+  Simplifier setup.
 
-  \item Inject equations of a form analogous to @{prop "(x, y) = (x',
-  y') \<equiv> x = x' \<and> y = y'"} are declared to the Simplifier and Classical
-  Reasoner as @{attribute iff} rules.  These rules are available as
-  @{text "t.iffs"}.
+  \item Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv>
+  x = x' \<and> y = y'"} are declared to the Simplifier and Classical Reasoner as
+  @{attribute iff} rules. These rules are available as @{text "t.iffs"}.
 
-  \item The introduction rule for record equality analogous to @{text
-  "x r = x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier,
-  and as the basic rule context as ``@{attribute intro}@{text "?"}''.
-  The rule is called @{text "t.equality"}.
+  \item The introduction rule for record equality analogous to @{text "x r =
+  x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier, and as the
+  basic rule context as ``@{attribute intro}@{text "?"}''. The rule is
+  called @{text "t.equality"}.
 
   \item Representations of arbitrary record expressions as canonical
   constructor terms are provided both in @{method cases} and @{method
   induct} format (cf.\ the generic proof methods of the same name,
-  \secref{sec:cases-induct}).  Several variations are available, for
-  fixed records, record schemes, more parts etc.
+  \secref{sec:cases-induct}). Several variations are available, for fixed
+  records, record schemes, more parts etc.
 
-  The generic proof methods are sufficiently smart to pick the most
-  sensible rule according to the type of the indicated record
-  expression: users just need to apply something like ``@{text "(cases
-  r)"}'' to a certain proof problem.
+  The generic proof methods are sufficiently smart to pick the most sensible
+  rule according to the type of the indicated record expression: users just
+  need to apply something like ``@{text "(cases r)"}'' to a certain proof
+  problem.
 
-  \item The derived record operations @{text "t.make"}, @{text
-  "t.fields"}, @{text "t.extend"}, @{text "t.truncate"} are \emph{not}
-  treated automatically, but usually need to be expanded by hand,
-  using the collective fact @{text "t.defs"}.
+  \item The derived record operations @{text "t.make"}, @{text "t.fields"},
+  @{text "t.extend"}, @{text "t.truncate"} are \emph{not} treated
+  automatically, but usually need to be expanded by hand, using the
+  collective fact @{text "t.defs"}.
 
   \end{enumerate}
 \<close>
@@ -1032,6 +1098,7 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>See @{file "~~/src/HOL/ex/Records.thy"}, for example.\<close>
+
 
 section \<open>Typedef axiomatization \label{sec:hol-typedef}\<close>
 
@@ -1187,30 +1254,28 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to
-  prove and register properties about the functorial structure of type
-  constructors.  These properties then can be used by other packages
-  to deal with those type constructors in certain type constructions.
-  Characteristic theorems are noted in the current local theory.  By
-  default, they are prefixed with the base name of the type
-  constructor, an explicit prefix can be given alternatively.
+  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to prove and
+  register properties about the functorial structure of type constructors.
+  These properties then can be used by other packages to deal with those
+  type constructors in certain type constructions. Characteristic theorems
+  are noted in the current local theory. By default, they are prefixed with
+  the base name of the type constructor, an explicit prefix can be given
+  alternatively.
 
   The given term @{text "m"} is considered as \emph{mapper} for the
-  corresponding type constructor and must conform to the following
-  type pattern:
+  corresponding type constructor and must conform to the following type
+  pattern:
 
   \begin{matharray}{lll}
     @{text "m"} & @{text "::"} &
       @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t"} \\
   \end{matharray}
 
-  \noindent where @{text t} is the type constructor, @{text
-  "\<^vec>\<alpha>\<^sub>n"} and @{text "\<^vec>\<beta>\<^sub>n"} are distinct
-  type variables free in the local theory and @{text "\<sigma>\<^sub>1"},
-  \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text "\<alpha>\<^sub>1 \<Rightarrow>
-  \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots,
-  @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text "\<beta>\<^sub>n \<Rightarrow>
-  \<alpha>\<^sub>n"}.
+  \noindent where @{text t} is the type constructor, @{text "\<^vec>\<alpha>\<^sub>n"}
+  and @{text "\<^vec>\<beta>\<^sub>n"} are distinct type variables free in the local
+  theory and @{text "\<sigma>\<^sub>1"}, \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text
+  "\<alpha>\<^sub>1 \<Rightarrow> \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots, @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text
+  "\<beta>\<^sub>n \<Rightarrow> \<alpha>\<^sub>n"}.
 
   \end{description}
 \<close>
@@ -1240,29 +1305,28 @@ text \<open>
     @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
   \end{matharray}
 
-  The quotient package defines a new quotient type given a raw type
-  and a partial equivalence relation. The package also historically 
-  includes automation for transporting definitions and theorems. 
-  But most of this automation was superseded by the Lifting and Transfer
-  packages. The user should consider using these two new packages for
-  lifting definitions and transporting theorems.
+  The quotient package defines a new quotient type given a raw type and a
+  partial equivalence relation. The package also historically includes
+  automation for transporting definitions and theorems. But most of this
+  automation was superseded by the Lifting (\secref{sec:lifting}) and
+  Transfer (\secref{sec:transfer}) packages. The user should consider using
+  these two new packages for lifting definitions and transporting theorems.
 
   @{rail \<open>
-    @@{command (HOL) quotient_type} (spec)
+    @@{command (HOL) quotient_type} @{syntax typespec} @{syntax mixfix}? '='
+      quot_type \<newline> quot_morphisms? quot_parametric?
     ;
-    spec: @{syntax typespec} @{syntax mixfix}? '=' \<newline>
-     @{syntax type} '/' ('partial' ':')? @{syntax term} \<newline>
-     (@'morphisms' @{syntax name} @{syntax name})? (@'parametric' @{syntax thmref})?
-  \<close>}
-
-  @{rail \<open>
+    quot_type: @{syntax type} '/' ('partial' ':')? @{syntax term}
+    ;
+    quot_morphisms: @'morphisms' @{syntax name} @{syntax name}
+    ;
+    quot_parametric: @'parametric' @{syntax thmref}
+    ;
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
     @{syntax term} 'is' @{syntax term}
     ;
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-  \<close>}
-
-  @{rail \<open>
+    ;
     @@{method (HOL) lifting} @{syntax thmrefs}?
     ;
     @@{method (HOL) lifting_setup} @{syntax thmrefs}?
@@ -1270,175 +1334,92 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "quotient_type"} defines a new quotient type @{text \<tau>}. The
-  injection from a quotient type to a raw type is called @{text
+  \item @{command (HOL) "quotient_type"} defines a new quotient type @{text
+  \<tau>}. The injection from a quotient type to a raw type is called @{text
   rep_\<tau>}, its inverse @{text abs_\<tau>} unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names. @{command
-  (HOL) "quotient_type"} requires the user to prove that the relation
-  is an equivalence relation (predicate @{text equivp}), unless the
-  user specifies explicitly @{text partial} in which case the
-  obligation is @{text part_equivp}.  A quotient defined with @{text
-  partial} is weaker in the sense that less things can be proved
-  automatically.
+  "morphisms"} specification provides alternative names. @{command (HOL)
+  "quotient_type"} requires the user to prove that the relation is an
+  equivalence relation (predicate @{text equivp}), unless the user specifies
+  explicitly @{text partial} in which case the obligation is @{text
+  part_equivp}. A quotient defined with @{text partial} is weaker in the
+  sense that less things can be proved automatically.
 
   The command internally proves a Quotient theorem and sets up the Lifting
-  package by the command @{command (HOL) setup_lifting}. Thus the Lifting 
+  package by the command @{command (HOL) setup_lifting}. Thus the Lifting
   and Transfer packages can be used also with quotient types defined by
-  @{command (HOL) "quotient_type"} without any extra set-up. The parametricity 
-  theorem for the equivalence relation R can be provided as an extra argument 
-  of the command and is passed to the corresponding internal call of @{command (HOL) setup_lifting}.
-  This theorem allows the Lifting package to generate a stronger transfer rule for equality.
-  
+  @{command (HOL) "quotient_type"} without any extra set-up. The
+  parametricity theorem for the equivalence relation R can be provided as an
+  extra argument of the command and is passed to the corresponding internal
+  call of @{command (HOL) setup_lifting}. This theorem allows the Lifting
+  package to generate a stronger transfer rule for equality.
+
   \end{description}
 
-  The most of the rest of the package was superseded by the Lifting and Transfer
-  packages. The user should consider using these two new packages for
-  lifting definitions and transporting theorems.
+  Most of the rest of the package was superseded by the Lifting
+  (\secref{sec:lifting}) and Transfer (\secref{sec:transfer}) packages.
 
-  \begin{description}  
+  \begin{description}
 
-  \item @{command (HOL) "quotient_definition"} defines a constant on
-  the quotient type.
+  \item @{command (HOL) "quotient_definition"} defines a constant on the
+  quotient type.
 
-  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map
-  functions.
+  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map functions.
 
   \item @{command (HOL) "print_quotientsQ3"} prints quotients.
 
   \item @{command (HOL) "print_quotconsts"} prints quotient constants.
 
   \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
-    methods match the current goal with the given raw theorem to be
-    lifted producing three new subgoals: regularization, injection and
-    cleaning subgoals. @{method (HOL) "lifting"} tries to apply the
-    heuristics for automatically solving these three subgoals and
-    leaves only the subgoals unsolved by the heuristics to the user as
-    opposed to @{method (HOL) "lifting_setup"} which leaves the three
-    subgoals unsolved.
+  methods match the current goal with the given raw theorem to be lifted
+  producing three new subgoals: regularization, injection and cleaning
+  subgoals. @{method (HOL) "lifting"} tries to apply the heuristics for
+  automatically solving these three subgoals and leaves only the subgoals
+  unsolved by the heuristics to the user as opposed to @{method (HOL)
+  "lifting_setup"} which leaves the three subgoals unsolved.
 
-  \item @{method (HOL) "descending"} and @{method (HOL)
-    "descending_setup"} try to guess a raw statement that would lift
-    to the current subgoal. Such statement is assumed as a new subgoal
-    and @{method (HOL) "descending"} continues in the same way as
-    @{method (HOL) "lifting"} does. @{method (HOL) "descending"} tries
-    to solve the arising regularization, injection and cleaning
-    subgoals with the analogous method @{method (HOL)
-    "descending_setup"} which leaves the four unsolved subgoals.
+  \item @{method (HOL) "descending"} and @{method (HOL) "descending_setup"}
+  try to guess a raw statement that would lift to the current subgoal. Such
+  statement is assumed as a new subgoal and @{method (HOL) "descending"}
+  continues in the same way as @{method (HOL) "lifting"} does. @{method
+  (HOL) "descending"} tries to solve the arising regularization, injection
+  and cleaning subgoals with the analogous method @{method (HOL)
+  "descending_setup"} which leaves the four unsolved subgoals.
 
   \item @{method (HOL) "partiality_descending"} finds the regularized
-    theorem that would lift to the current subgoal, lifts it and
-    leaves as a subgoal. This method can be used with partial
-    equivalence quotients where the non regularized statements would
-    not be true. @{method (HOL) "partiality_descending_setup"} leaves
-    the injection and cleaning subgoals unchanged.
+  theorem that would lift to the current subgoal, lifts it and leaves as a
+  subgoal. This method can be used with partial equivalence quotients where
+  the non regularized statements would not be true. @{method (HOL)
+  "partiality_descending_setup"} leaves the injection and cleaning subgoals
+  unchanged.
 
-  \item @{method (HOL) "regularize"} applies the regularization
-    heuristics to the current subgoal.
+  \item @{method (HOL) "regularize"} applies the regularization heuristics
+  to the current subgoal.
 
-  \item @{method (HOL) "injection"} applies the injection heuristics
-    to the current goal using the stored quotient respectfulness
-    theorems.
+  \item @{method (HOL) "injection"} applies the injection heuristics to the
+  current goal using the stored quotient respectfulness theorems.
 
-  \item @{method (HOL) "cleaning"} applies the injection cleaning
-    heuristics to the current subgoal using the stored quotient
-    preservation theorems.
+  \item @{method (HOL) "cleaning"} applies the injection cleaning heuristics
+  to the current subgoal using the stored quotient preservation theorems.
 
-  \item @{attribute (HOL) quot_lifted} attribute tries to
-    automatically transport the theorem to the quotient type.
-    The attribute uses all the defined quotients types and quotient
-    constants often producing undesired results or theorems that
-    cannot be lifted.
+  \item @{attribute (HOL) quot_lifted} attribute tries to automatically
+  transport the theorem to the quotient type. The attribute uses all the
+  defined quotients types and quotient constants often producing undesired
+  results or theorems that cannot be lifted.
 
-  \item @{attribute (HOL) quot_respect} and @{attribute (HOL)
-    quot_preserve} attributes declare a theorem as a respectfulness
-    and preservation theorem respectively.  These are stored in the
-    local theory store and used by the @{method (HOL) "injection"}
-    and @{method (HOL) "cleaning"} methods respectively.
+  \item @{attribute (HOL) quot_respect} and @{attribute (HOL) quot_preserve}
+  attributes declare a theorem as a respectfulness and preservation theorem
+  respectively. These are stored in the local theory store and used by the
+  @{method (HOL) "injection"} and @{method (HOL) "cleaning"} methods
+  respectively.
 
-  \item @{attribute (HOL) quot_thm} declares that a certain theorem
-    is a quotient extension theorem. Quotient extension theorems
-    allow for quotienting inside container types. Given a polymorphic
-    type that serves as a container, a map function defined for this
-    container using @{command (HOL) "functor"} and a relation
-    map defined for for the container type, the quotient extension
-    theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3
-    (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
-    are stored in a database and are used all the steps of lifting
-    theorems.
-
-  \end{description}
-\<close>
-
-
-section \<open>Definition by specification \label{sec:hol-specification}\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{command (HOL) specification} '(' (decl +) ')' \<newline>
-      (@{syntax thmdecl}? @{syntax prop} +)
-    ;
-    decl: (@{syntax name} ':')? @{syntax term} ('(' @'overloaded' ')')?
-  \<close>}
-
-  \begin{description}
-
-  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
-  goal stating the existence of terms with the properties specified to
-  hold for the constants given in @{text decls}.  After finishing the
-  proof, the theory will be augmented with definitions for the given
-  constants, as well as with theorems stating the properties for these
-  constants.
-
-  @{text decl} declares a constant to be defined by the
-  specification given.  The definition for the constant @{text c} is
-  bound to the name @{text c_def} unless a theorem name is given in
-  the declaration.  Overloaded constants should be declared as such.
-
-  \end{description}
-\<close>
-
-
-section \<open>Adhoc overloading of constants\<close>
-
-text \<open>
-  \begin{tabular}{rcll}
-  @{command_def "adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{command_def "no_adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{attribute_def "show_variants"} & : & @{text "attribute"} & default @{text false} \\
-  \end{tabular}
-
-  \medskip
-
-  Adhoc overloading allows to overload a constant depending on
-  its type. Typically this involves the introduction of an
-  uninterpreted constant (used for input and output) and the addition
-  of some variants (used internally). For examples see
-  @{file "~~/src/HOL/ex/Adhoc_Overloading_Examples.thy"} and
-  @{file "~~/src/HOL/Library/Monad_Syntax.thy"}.
-
-  @{rail \<open>
-    (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
-      (@{syntax nameref} (@{syntax term} + ) + @'and')
-  \<close>}
-
-  \begin{description}
-
-  \item @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
-  associates variants with an existing constant.
-
-  \item @{command "no_adhoc_overloading"} is similar to
-  @{command "adhoc_overloading"}, but removes the specified variants
-  from the present context.
-  
-  \item @{attribute "show_variants"} controls printing of variants
-  of overloaded constants. If enabled, the internally used variants
-  are printed instead of their respective overloaded constants. This
-  is occasionally useful to check whether the system agrees with a
-  user's expectations about derived variants.
+  \item @{attribute (HOL) quot_thm} declares that a certain theorem is a
+  quotient extension theorem. Quotient extension theorems allow for
+  quotienting inside container types. Given a polymorphic type that serves
+  as a container, a map function defined for this container using @{command
+  (HOL) "functor"} and a relation map defined for for the container type,
+  the quotient extension theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow>
+  Quotient3 (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
+  are stored in a database and are used all the steps of lifting theorems.
 
   \end{description}
 \<close>
@@ -1446,31 +1427,244 @@ text \<open>
 
 chapter \<open>Proof tools\<close>
 
-section \<open>Adhoc tuples\<close>
+
+section \<open>Lifting package \label{sec:lifting}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+    @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "lifting_forget"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "lifting_update"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
+    @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\
   \end{matharray}
 
+  The Lifting package allows users to lift terms of the raw type to the
+  abstract type, which is a necessary step in building a library for an
+  abstract type. Lifting defines a new constant by combining coercion
+  functions (@{term Abs} and @{term Rep}) with the raw term. It also proves
+  an appropriate transfer rule for the Transfer (\secref{sec:transfer})
+  package and, if possible, an equation for the code generator.
+
+  The Lifting package provides two main commands: @{command (HOL)
+  "setup_lifting"} for initializing the package to work with a new type, and
+  @{command (HOL) "lift_definition"} for lifting constants. The Lifting
+  package works with all four kinds of type abstraction: type copies,
+  subtypes, total quotients and partial quotients.
+
+  Theoretical background can be found in @{cite
+  "Huffman-Kuncar:2013:lifting_transfer"}.
+
   @{rail \<open>
-    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
+    @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
+      (@'parametric' @{syntax thmref})?
+    ;
+    @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? \<newline>
+      @{syntax name} '::' @{syntax type} @{syntax mixfix}? 'is' @{syntax term} \<newline>
+      (@'parametric' (@{syntax thmref}+))?
+    ;
+    @@{command (HOL) lifting_forget} @{syntax nameref}
+    ;
+    @@{command (HOL) lifting_update} @{syntax nameref}
+    ;
+    @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?
   \<close>}
 
   \begin{description}
 
-  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
-  arguments in function applications to be represented canonically
-  according to their tuple type structure.
+  \item @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
+  with a user-defined type. The command supports two modes. The first one is
+  a low-level mode when the user must provide as a first argument of
+  @{command (HOL) "setup_lifting"} a quotient theorem @{term "Quotient R Abs
+  Rep T"}. The package configures a transfer rule for equality, a domain
+  transfer rules and sets up the @{command_def (HOL) "lift_definition"}
+  command to work with the abstract type. An optional theorem @{term "reflp
+  R"}, which certifies that the equivalence relation R is total, can be
+  provided as a second argument. This allows the package to generate
+  stronger transfer rules. And finally, the parametricity theorem for R can
+  be provided as a third argument. This allows the package to generate a
+  stronger transfer rule for equality.
 
-  Note that this operation tends to invent funny names for new local
-  parameters introduced.
+  Users generally will not prove the @{text Quotient} theorem manually for
+  new types, as special commands exist to automate the process.
+
+  When a new subtype is defined by @{command (HOL) typedef}, @{command (HOL)
+  "lift_definition"} can be used in its second mode, where only the
+  type_definition theorem @{text "type_definition Rep Abs A"} is used as an
+  argument of the command. The command internally proves the corresponding
+  Quotient theorem and registers it with @{command (HOL) setup_lifting}
+  using its first mode.
+
+  For quotients, the command @{command (HOL) quotient_type} can be used. The
+  command defines a new quotient type and similarly to the previous case,
+  the corresponding Quotient theorem is proved and registered by @{command
+  (HOL) setup_lifting}.
+
+  The command @{command (HOL) "setup_lifting"} also sets up the code
+  generator for the new type. Later on, when a new constant is defined by
+  @{command (HOL) "lift_definition"}, the Lifting package proves and
+  registers a code equation (if there is one) for the new constant.
+
+  \item @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL)
+  "is"} @{text t} Defines a new function @{text f} with an abstract type
+  @{text \<tau>} in terms of a corresponding operation @{text t} on a
+  representation type. More formally, if @{text "t :: \<sigma>"}, then the command
+  builds a term @{text "F"} as a corresponding combination of abstraction
+  and representation functions such that @{text "F :: \<sigma> \<Rightarrow> \<tau>" } and defines
+  @{text f} is as @{text "f \<equiv> F t"}. The term @{text t} does not have to be
+  necessarily a constant but it can be any term.
+
+  The command opens a proof environment and the user must discharge a
+  respectfulness proof obligation. For a type copy, i.e., a typedef with
+  @{text UNIV}, the obligation is discharged automatically. The proof goal
+  is presented in a user-friendly, readable form. A respectfulness theorem
+  in the standard format @{text f.rsp} and a transfer rule @{text
+  f.transfer} for the Transfer package are generated by the package.
+
+  The user can specify a parametricity theorems for @{text t} after the
+  keyword @{keyword "parametric"}, which allows the command to generate
+  parametric transfer rules for @{text f}.
+
+  For each constant defined through trivial quotients (type copies or
+  subtypes) @{text f.rep_eq} is generated. The equation is a code
+  certificate that defines @{text f} using the representation function.
+
+  For each constant @{text f.abs_eq} is generated. The equation is
+  unconditional for total quotients. The equation defines @{text f} using
+  the abstraction function.
+
+  Integration with [@{attribute code} abstract]: For subtypes (e.g.,
+  corresponding to a datatype invariant, such as @{typ "'a dlist"}),
+  @{command (HOL) "lift_definition"} uses a code certificate theorem @{text
+  f.rep_eq} as a code equation. Because of the limitation of the code
+  generator, @{text f.rep_eq} cannot be used as a code equation if the
+  subtype occurs inside the result type rather than at the top level (e.g.,
+  function returning @{typ "'a dlist option"} vs. @{typ "'a dlist"}). In
+  this case, an extension of @{command (HOL) "lift_definition"} can be
+  invoked by specifying the flag @{text "code_dt"}. This extension enables
+  code execution through series of internal type and lifting definitions if
+  the return type @{text "\<tau>"} meets the following inductive conditions:
+  \begin{description} \item @{text "\<tau>"} is a type variable \item @{text "\<tau> =
+  \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, where @{text "\<kappa>"} is an abstract type constructor and
+  @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"} do not contain abstract types (i.e., @{typ "int
+  dlist"} is allowed whereas @{typ "int dlist dlist"} not) \item @{text "\<tau> =
+  \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that was defined as a
+  (co)datatype whose constructor argument types do not contain either
+  non-free datatypes or the function type. \end{description}
+
+  Integration with [@{attribute code} equation]: For total quotients,
+  @{command (HOL) "lift_definition"} uses @{text f.abs_eq} as a code
+  equation.
+
+  \item @{command (HOL) lifting_forget} and @{command (HOL) lifting_update}
+  These two commands serve for storing and deleting the set-up of the
+  Lifting package and corresponding transfer rules defined by this package.
+  This is useful for hiding of type construction details of an abstract type
+  when the construction is finished but it still allows additions to this
+  construction when this is later necessary.
+
+  Whenever the Lifting package is set up with a new abstract type @{text
+  "\<tau>"} by @{command_def (HOL) "lift_definition"}, the package defines a new
+  bundle that is called @{text "\<tau>.lifting"}. This bundle already includes
+  set-up for the Lifting package. The new transfer rules introduced by
+  @{command (HOL) "lift_definition"} can be stored in the bundle by the
+  command @{command (HOL) "lifting_update"} @{text "\<tau>.lifting"}.
+
+  The command @{command (HOL) "lifting_forget"} @{text "\<tau>.lifting"} deletes
+  set-up of the Lifting package for @{text \<tau>} and deletes all the transfer
+  rules that were introduced by @{command (HOL) "lift_definition"} using
+  @{text \<tau>} as an abstract type.
+
+  The stored set-up in a bundle can be reintroduced by the Isar commands for
+  including a bundle (@{command "include"}, @{keyword "includes"} and
+  @{command "including"}).
+
+  \item @{command (HOL) "print_quot_maps"} prints stored quotient map
+  theorems.
+
+  \item @{command (HOL) "print_quotients"} prints stored quotient theorems.
+
+  \item @{attribute (HOL) quot_map} registers a quotient map theorem, a
+  theorem showing how to "lift" quotients over type constructors. E.g.,
+  @{term "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image
+  Rep) (rel_set T)"}. For examples see @{file "~~/src/HOL/Lifting_Set.thy"}
+  or @{file "~~/src/HOL/Lifting.thy"}. This property is proved automatically
+  if the involved type is BNF without dead variables.
+
+  \item @{attribute (HOL) relator_eq_onp} registers a theorem that shows
+  that a relator applied to an equality restricted by a predicate @{term P}
+  (i.e., @{term "eq_onp P"}) is equal to a predicator applied to the @{term
+  P}. The combinator @{const eq_onp} is used for internal encoding of proper
+  subtypes. Such theorems allows the package to hide @{text eq_onp} from a
+  user in a user-readable form of a respectfulness theorem. For examples see
+  @{file "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
+  This property is proved automatically if the involved type is BNF without
+  dead variables.
+
+  \item @{attribute (HOL) "relator_mono"} registers a property describing a
+  monotonicity of a relator. E.g., @{term "A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B"}.
+  This property is needed for proving a stronger transfer rule in
+  @{command_def (HOL) "lift_definition"} when a parametricity theorem for
+  the raw term is specified and also for the reflexivity prover. For
+  examples see @{file "~~/src/HOL/Lifting_Set.thy"} or @{file
+  "~~/src/HOL/Lifting.thy"}. This property is proved automatically if the
+  involved type is BNF without dead variables.
+
+  \item @{attribute (HOL) "relator_distr"} registers a property describing a
+  distributivity of the relation composition and a relator. E.g., @{text
+  "rel_set R \<circ>\<circ> rel_set S = rel_set (R \<circ>\<circ> S)"}. This property is needed for
+  proving a stronger transfer rule in @{command_def (HOL) "lift_definition"}
+  when a parametricity theorem for the raw term is specified. When this
+  equality does not hold unconditionally (e.g., for the function type), the
+  user can specified each direction separately and also register multiple
+  theorems with different set of assumptions. This attribute can be used
+  only after the monotonicity property was already registered by @{attribute
+  (HOL) "relator_mono"}. For examples see @{file
+  "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}. This
+  property is proved automatically if the involved type is BNF without dead
+  variables.
+
+  \item @{attribute (HOL) quot_del} deletes a corresponding Quotient theorem
+  from the Lifting infrastructure and thus de-register the corresponding
+  quotient. This effectively causes that @{command (HOL) lift_definition}
+  will not do any lifting for the corresponding type. This attribute is
+  rather used for low-level manipulation with set-up of the Lifting package
+  because @{command (HOL) lifting_forget} is preferred for normal usage.
+
+  \item @{attribute (HOL) lifting_restore} @{text "Quotient_thm pcr_def
+  pcr_cr_eq_thm"} registers the Quotient theorem @{text Quotient_thm} in the
+  Lifting infrastructure and thus sets up lifting for an abstract type
+  @{text \<tau>} (that is defined by @{text Quotient_thm}). Optional theorems
+  @{text pcr_def} and @{text pcr_cr_eq_thm} can be specified to register the
+  parametrized correspondence relation for @{text \<tau>}. E.g., for @{typ "'a
+  dlist"}, @{text pcr_def} is @{text "pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
+  cr_dlist"} and @{text pcr_cr_eq_thm} is @{text "pcr_dlist op= = op="}.
+  This attribute is rather used for low-level manipulation with set-up of
+  the Lifting package because using of the bundle @{text \<tau>.lifting} together
+  with the commands @{command (HOL) lifting_forget} and @{command (HOL)
+  lifting_update} is preferred for normal usage.
+
+  \item Integration with the BNF package @{cite "isabelle-datatypes"}: As
+  already mentioned, the theorems that are registered by the following
+  attributes are proved and registered automatically if the involved type is
+  BNF without dead variables: @{attribute (HOL) quot_map}, @{attribute (HOL)
+  relator_eq_onp}, @{attribute (HOL) "relator_mono"}, @{attribute (HOL)
+  "relator_distr"}. Also the definition of a relator and predicator is
+  provided automatically. Moreover, if the BNF represents a datatype,
+  simplification rules for a predicator are again proved automatically.
 
   \end{description}
 \<close>
 
 
-section \<open>Transfer package\<close>
+section \<open>Transfer package \label{sec:transfer}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
@@ -1487,318 +1681,81 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) "transfer"} method replaces the current subgoal
-    with a logically equivalent one that uses different types and
-    constants. The replacement of types and constants is guided by the
-    database of transfer rules. Goals are generalized over all free
-    variables by default; this is necessary for variables whose types
-    change, but can be overridden for specific variables with e.g.
-    @{text "transfer fixing: x y z"}.
+  \item @{method (HOL) "transfer"} method replaces the current subgoal with
+  a logically equivalent one that uses different types and constants. The
+  replacement of types and constants is guided by the database of transfer
+  rules. Goals are generalized over all free variables by default; this is
+  necessary for variables whose types change, but can be overridden for
+  specific variables with e.g. @{text "transfer fixing: x y z"}.
 
-  \item @{method (HOL) "transfer'"} is a variant of @{method (HOL)
-    transfer} that allows replacing a subgoal with one that is
-    logically stronger (rather than equivalent). For example, a
-    subgoal involving equality on a quotient type could be replaced
-    with a subgoal involving equality (instead of the corresponding
-    equivalence relation) on the underlying raw type.
+  \item @{method (HOL) "transfer'"} is a variant of @{method (HOL) transfer}
+  that allows replacing a subgoal with one that is logically stronger
+  (rather than equivalent). For example, a subgoal involving equality on a
+  quotient type could be replaced with a subgoal involving equality (instead
+  of the corresponding equivalence relation) on the underlying raw type.
 
-  \item @{method (HOL) "transfer_prover"} method assists with proving
-    a transfer rule for a new constant, provided the constant is
-    defined in terms of other constants that already have transfer
-    rules. It should be applied after unfolding the constant
-    definitions.
+  \item @{method (HOL) "transfer_prover"} method assists with proving a
+  transfer rule for a new constant, provided the constant is defined in
+  terms of other constants that already have transfer rules. It should be
+  applied after unfolding the constant definitions.
 
-  \item @{attribute (HOL) "untransferred"} proves the same equivalent theorem
-     as @{method (HOL) "transfer"} internally does.
+  \item @{attribute (HOL) "untransferred"} proves the same equivalent
+  theorem as @{method (HOL) "transfer"} internally does.
 
   \item @{attribute (HOL) Transfer.transferred} works in the opposite
-    direction than @{method (HOL) "transfer'"}. E.g., given the transfer
-    relation @{text "ZN x n \<equiv> (x = int n)"}, corresponding transfer rules and the theorem
-    @{text "\<forall>x::int \<in> {0..}. x < x + 1"}, the attribute would prove 
-    @{text "\<forall>n::nat. n < n + 1"}. The attribute is still in experimental
-    phase of development.
+  direction than @{method (HOL) "transfer'"}. E.g., given the transfer
+  relation @{text "ZN x n \<equiv> (x = int n)"}, corresponding transfer rules and
+  the theorem @{text "\<forall>x::int \<in> {0..}. x < x + 1"}, the attribute would
+  prove @{text "\<forall>n::nat. n < n + 1"}. The attribute is still in experimental
+  phase of development.
 
-  \item @{attribute (HOL) "transfer_rule"} attribute maintains a
-    collection of transfer rules, which relate constants at two
-    different types. Typical transfer rules may relate different type
-    instances of the same polymorphic constant, or they may relate an
-    operation on a raw type to a corresponding operation on an
-    abstract type (quotient or subtype). For example:
+  \item @{attribute (HOL) "transfer_rule"} attribute maintains a collection
+  of transfer rules, which relate constants at two different types. Typical
+  transfer rules may relate different type instances of the same polymorphic
+  constant, or they may relate an operation on a raw type to a corresponding
+  operation on an abstract type (quotient or subtype). For example:
 
-    @{text "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"}\\
+    @{text "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"} \\
     @{text "(cr_int ===> cr_int ===> cr_int) (\<lambda>(x,y) (u,v). (x+u, y+v)) plus"}
 
-    Lemmas involving predicates on relations can also be registered
-    using the same attribute. For example:
+  Lemmas involving predicates on relations can also be registered using the
+  same attribute. For example:
 
-    @{text "bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct"}\\
+    @{text "bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct"} \\
     @{text "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (rel_prod A B)"}
 
-    Preservation of predicates on relations (@{text "bi_unique, bi_total,
-    right_unique, right_total, left_unique, left_total"}) with the respect to a relator
-    is proved automatically if the involved type is BNF
-    @{cite "isabelle-datatypes"} without dead variables.
+  Preservation of predicates on relations (@{text "bi_unique, bi_total,
+  right_unique, right_total, left_unique, left_total"}) with the respect to
+  a relator is proved automatically if the involved type is BNF @{cite
+  "isabelle-datatypes"} without dead variables.
 
-  \item @{attribute (HOL) "transfer_domain_rule"} attribute maintains a collection
-    of rules, which specify a domain of a transfer relation by a predicate.
-    E.g., given the transfer relation @{text "ZN x n \<equiv> (x = int n)"}, 
-    one can register the following transfer domain rule: 
-    @{text "Domainp ZN = (\<lambda>x. x \<ge> 0)"}. The rules allow the package to produce
-    more readable transferred goals, e.g., when quantifiers are transferred.
+  \item @{attribute (HOL) "transfer_domain_rule"} attribute maintains a
+  collection of rules, which specify a domain of a transfer relation by a
+  predicate. E.g., given the transfer relation @{text "ZN x n \<equiv> (x = int
+  n)"}, one can register the following transfer domain rule: @{text "Domainp
+  ZN = (\<lambda>x. x \<ge> 0)"}. The rules allow the package to produce more readable
+  transferred goals, e.g., when quantifiers are transferred.
 
-  \item @{attribute (HOL) relator_eq} attribute collects identity laws
-    for relators of various type constructors, e.g. @{term "rel_set
-    (op =) = (op =)"}. The @{method (HOL) transfer} method uses these
-    lemmas to infer transfer rules for non-polymorphic constants on
-    the fly. For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}. 
-    This property is proved automatically if the involved type is BNF without dead variables.
+  \item @{attribute (HOL) relator_eq} attribute collects identity laws for
+  relators of various type constructors, e.g. @{term "rel_set (op =) = (op
+  =)"}. The @{method (HOL) transfer} method uses these lemmas to infer
+  transfer rules for non-polymorphic constants on the fly. For examples see
+  @{file "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
+  This property is proved automatically if the involved type is BNF without
+  dead variables.
 
-  \item @{attribute_def (HOL) "relator_domain"} attribute collects rules 
-    describing domains of relators by predicators. E.g., 
-    @{term "Domainp (rel_set T) = (\<lambda>A. Ball A (Domainp T))"}. This allows the package 
-    to lift transfer domain rules through type constructors. For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-    This property is proved automatically if the involved type is BNF without dead variables.
+  \item @{attribute_def (HOL) "relator_domain"} attribute collects rules
+  describing domains of relators by predicators. E.g., @{term "Domainp
+  (rel_set T) = (\<lambda>A. Ball A (Domainp T))"}. This allows the package to lift
+  transfer domain rules through type constructors. For examples see @{file
+  "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}. This
+  property is proved automatically if the involved type is BNF without dead
+  variables.
 
   \end{description}
 
-  Theoretical background can be found in @{cite "Huffman-Kuncar:2013:lifting_transfer"}.
-\<close>
-
-
-section \<open>Lifting package\<close>
-
-text \<open>
-  The Lifting package allows users to lift terms of the raw type to the abstract type, which is 
-  a necessary step in building a library for an abstract type. Lifting defines a new constant 
-  by combining coercion functions (Abs and Rep) with the raw term. It also proves an appropriate 
-  transfer rule for the Transfer package and, if possible, an equation for the code generator.
-
-  The Lifting package provides two main commands: @{command (HOL) "setup_lifting"} for initializing 
-  the package to work with a new type, and @{command (HOL) "lift_definition"} for lifting constants. 
-  The Lifting package works with all four kinds of type abstraction: type copies, subtypes, 
-  total quotients and partial quotients.
-
-  Theoretical background can be found in @{cite "Huffman-Kuncar:2013:lifting_transfer"}.
-
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "lifting_forget"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lifting_update"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
-    @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\   
-  \end{matharray}
-
-  @{rail \<open>
-    @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
-      (@'parametric' @{syntax thmref})?
-  \<close>}
-
-  @{rail \<open>
-    @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? @{syntax name} '::' @{syntax type}  \<newline>  
-      @{syntax mixfix}? 'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?
-  \<close>}
-
-  @{rail \<open>
-    @@{command (HOL) lifting_forget} @{syntax nameref}
-  \<close>}
-
-  @{rail \<open>
-    @@{command (HOL) lifting_update} @{syntax nameref}
-  \<close>}
-
-  @{rail \<open>
-    @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?
-  \<close>}
-
-  \begin{description}
-
-  \item @{command (HOL) "setup_lifting"} Sets up the Lifting package
-    to work with a user-defined type. 
-    The command supports two modes. The first one is a low-level mode when 
-    the user must provide as a first
-    argument of @{command (HOL) "setup_lifting"} a
-    quotient theorem @{term "Quotient R Abs Rep T"}. The
-    package configures a transfer rule for equality, a domain transfer
-    rules and sets up the @{command_def (HOL) "lift_definition"}
-    command to work with the abstract type. An optional theorem @{term "reflp R"}, which certifies that 
-    the equivalence relation R is total,
-    can be provided as a second argument. This allows the package to generate stronger transfer
-    rules. And finally, the parametricity theorem for R can be provided as a third argument.
-    This allows the package to generate a stronger transfer rule for equality.
-
-    Users generally will not prove the @{text Quotient} theorem manually for 
-    new types, as special commands exist to automate the process.
-    
-    When a new subtype is defined by @{command (HOL) typedef}, @{command (HOL) "lift_definition"} 
-    can be used in its
-    second mode, where only the type_definition theorem @{text "type_definition Rep Abs A"}
-    is used as an argument of the command. The command internally proves the corresponding 
-    Quotient theorem and registers it with @{command (HOL) setup_lifting} using its first mode.
-
-    For quotients, the command @{command (HOL) quotient_type} can be used. The command defines 
-    a new quotient type and similarly to the previous case, the corresponding Quotient theorem is proved 
-    and registered by @{command (HOL) setup_lifting}.
-    
-    The command @{command (HOL) "setup_lifting"} also sets up the code generator
-    for the new type. Later on, when a new constant is defined by @{command (HOL) "lift_definition"},
-    the Lifting package proves and registers a code equation (if there is one) for the new constant.
-
-  \item @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL) "is"} @{text t}
-    Defines a new function @{text f} with an abstract type @{text \<tau>}
-    in terms of a corresponding operation @{text t} on a
-    representation type. More formally, if @{text "t :: \<sigma>"}, then
-    the command builds a term @{text "F"} as a corresponding combination of abstraction 
-    and representation functions such that @{text "F :: \<sigma> \<Rightarrow> \<tau>" } and 
-    defines @{text f} is as @{text "f \<equiv> F t"}.
-    The term @{text t} does not have to be necessarily a constant but it can be any term.
-
-    The command opens a proof environment and the user must discharge 
-    a respectfulness proof obligation. For a type copy, i.e., a typedef with @{text
-    UNIV}, the obligation is discharged automatically. The proof goal is
-    presented in a user-friendly, readable form. A respectfulness
-    theorem in the standard format @{text f.rsp} and a transfer rule
-    @{text f.transfer} for the Transfer package are generated by the
-    package.
-
-    The user can specify a parametricity theorems for @{text t} after the keyword 
-    @{keyword "parametric"}, which allows the command
-    to generate parametric transfer rules for @{text f}.
-
-    For each constant defined through trivial quotients (type copies or
-    subtypes) @{text f.rep_eq} is generated. The equation is a code certificate
-    that defines @{text f} using the representation function.
-
-    For each constant @{text f.abs_eq} is generated. The equation is unconditional
-    for total quotients. The equation defines @{text f} using
-    the abstraction function.
-
-    Integration with [@{attribute code} abstract]: For subtypes (e.g.,
-    corresponding to a datatype invariant, such as @{typ "'a dlist"}), @{command
-    (HOL) "lift_definition"} uses a code certificate theorem
-    @{text f.rep_eq} as a code equation. Because of the limitation of the code generator,
-    @{text f.rep_eq} cannot be used as a code equation if the subtype occurs inside the result
-    type rather than at the top level (e.g., function returning @{typ "'a dlist option"} vs. 
-    @{typ "'a dlist"}). In this case, an extension of @{command
-    (HOL) "lift_definition"} can be invoked by specifying the flag @{text "code_dt"}. This
-    extension enables code execution through series of internal type and lifting definitions 
-    if the return type @{text "\<tau>"} meets the following inductive conditions:
-    \begin{description}
-      \item  @{text "\<tau>"} is a type variable
-      \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, where @{text "\<kappa>"} is an abstract type constructor 
-        and @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"} do not contain abstract types (i.e., @{typ "int dlist"} is allowed 
-        whereas @{typ "int dlist dlist"} not)
-      \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that was defined as a 
-        (co)datatype whose constructor argument types do not contain either non-free datatypes 
-        or the function type.
-    \end{description}
-
-    Integration with [@{attribute code} equation]: For total quotients, @{command
-    (HOL) "lift_definition"} uses @{text f.abs_eq} as a code equation.
-
-  \item @{command (HOL) lifting_forget} and  @{command (HOL) lifting_update}
-    These two commands serve for storing and deleting the set-up of
-    the Lifting package and corresponding transfer rules defined by this package.
-    This is useful for hiding of type construction details of an abstract type 
-    when the construction is finished but it still allows additions to this construction
-    when this is later necessary.
-
-    Whenever the Lifting package is set up with a new abstract type @{text "\<tau>"} by  
-    @{command_def (HOL) "lift_definition"}, the package defines a new bundle
-    that is called @{text "\<tau>.lifting"}. This bundle already includes set-up for the Lifting package. 
-    The new transfer rules
-    introduced by @{command (HOL) "lift_definition"} can be stored in the bundle by
-    the command @{command (HOL) "lifting_update"} @{text "\<tau>.lifting"}.
-
-    The command @{command (HOL) "lifting_forget"} @{text "\<tau>.lifting"} deletes set-up of the Lifting 
-    package
-    for @{text \<tau>} and deletes all the transfer rules that were introduced
-    by @{command (HOL) "lift_definition"} using @{text \<tau>} as an abstract type.
-
-    The stored set-up in a bundle can be reintroduced by the Isar commands for including a bundle
-    (@{command "include"}, @{keyword "includes"} and @{command "including"}).
-
-  \item @{command (HOL) "print_quot_maps"} prints stored quotient map
-    theorems.
-
-  \item @{command (HOL) "print_quotients"} prints stored quotient
-    theorems.
-
-  \item @{attribute (HOL) quot_map} registers a quotient map
-    theorem, a theorem showing how to "lift" quotients over type constructors. 
-    E.g., @{term "Quotient R Abs Rep T \<Longrightarrow> 
-    Quotient (rel_set R) (image Abs) (image Rep) (rel_set T)"}. 
-    For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-    This property is proved automatically if the involved type is BNF without dead variables.
-
-  \item @{attribute (HOL) relator_eq_onp} registers a theorem that
-    shows that a relator applied to an equality restricted by a predicate @{term P} (i.e., @{term
-    "eq_onp P"}) is equal 
-    to a predicator applied to the @{term P}. The combinator @{const eq_onp} is used for 
-    internal encoding of proper subtypes. Such theorems allows the package to hide @{text
-    eq_onp} from a user in a user-readable form of a
-    respectfulness theorem. For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-    This property is proved automatically if the involved type is BNF without dead variables.
-
-  \item @{attribute (HOL) "relator_mono"} registers a property describing a monotonicity of a relator.
-    E.g., @{term "A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B"}. 
-    This property is needed for proving a stronger transfer rule in @{command_def (HOL) "lift_definition"}
-    when a parametricity theorem for the raw term is specified and also for the reflexivity prover.
-    For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-    This property is proved automatically if the involved type is BNF without dead variables.
-
-  \item @{attribute (HOL) "relator_distr"} registers a property describing a distributivity
-    of the relation composition and a relator. E.g., 
-    @{text "rel_set R \<circ>\<circ> rel_set S = rel_set (R \<circ>\<circ> S)"}. 
-    This property is needed for proving a stronger transfer rule in @{command_def (HOL) "lift_definition"}
-    when a parametricity theorem for the raw term is specified.
-    When this equality does not hold unconditionally (e.g., for the function type), the user can specified
-    each direction separately and also register multiple theorems with different set of assumptions.
-    This attribute can be used only after the monotonicity property was already registered by
-    @{attribute (HOL) "relator_mono"}. For examples see @{file
-    "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-    This property is proved automatically if the involved type is BNF without dead variables.
-
-  \item @{attribute (HOL) quot_del} deletes a corresponding Quotient theorem
-    from the Lifting infrastructure and thus de-register the corresponding quotient. 
-    This effectively causes that @{command (HOL) lift_definition}  will not
-    do any lifting for the corresponding type. This attribute is rather used for low-level
-    manipulation with set-up of the Lifting package because @{command (HOL) lifting_forget} is
-    preferred for normal usage.
-
-  \item @{attribute (HOL) lifting_restore} @{text "Quotient_thm pcr_def pcr_cr_eq_thm"} 
-    registers the Quotient theorem @{text Quotient_thm} in the Lifting infrastructure 
-    and thus sets up lifting for an abstract type @{text \<tau>} (that is defined by @{text Quotient_thm}).
-    Optional theorems @{text pcr_def} and @{text pcr_cr_eq_thm} can be specified to register 
-    the parametrized
-    correspondence relation for @{text \<tau>}. E.g., for @{typ "'a dlist"}, @{text pcr_def} is
-    @{text "pcr_dlist A \<equiv> list_all2 A \<circ>\<circ> cr_dlist"} and @{text pcr_cr_eq_thm} is 
-    @{text "pcr_dlist op= = op="}.
-    This attribute is rather used for low-level
-    manipulation with set-up of the Lifting package because using of the bundle @{text \<tau>.lifting} 
-    together with the commands @{command (HOL) lifting_forget} and @{command (HOL) lifting_update} is
-    preferred for normal usage.
-
-  \item Integration with the BNF package @{cite "isabelle-datatypes"}:
-    As already mentioned, the theorems that are registered
-    by the following attributes are proved and registered automatically if the involved type
-    is BNF without dead variables: @{attribute (HOL) quot_map}, @{attribute (HOL) relator_eq_onp}, 
-    @{attribute (HOL) "relator_mono"}, @{attribute (HOL) "relator_distr"}. Also the definition of a 
-    relator and predicator is provided automatically. Moreover, if the BNF represents a datatype, 
-    simplification rules for a predicator are again proved automatically.
-  
-  \end{description}
+  Theoretical background can be found in @{cite
+  "Huffman-Kuncar:2013:lifting_transfer"}.
 \<close>
 
 
@@ -2264,10 +2221,10 @@ text \<open>
   them back into Isabelle terms for displaying counterexamples.
     \begin{description}
     \item[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
-      and @{class full_exhaustive} implement the testing. They take a 
+      and @{class full_exhaustive} implement the testing. They take a
       testing function as a parameter, which takes a value of type @{typ "'a"}
       and optionally produces a counterexample, and a size parameter for the test values.
-      In @{class full_exhaustive}, the testing function parameter additionally 
+      In @{class full_exhaustive}, the testing function parameter additionally
       expects a lazy term reconstruction in the type @{typ Code_Evaluation.term}
       of the tested value.
 
@@ -2280,7 +2237,7 @@ text \<open>
       value of the given size and a lazy term reconstruction of the value
       in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
       is defined in theory @{theory Random}.
-      
+
     \item[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
       using the type classes @{class narrowing} and @{class partial_term_of}.
       Variables in the current goal are initially represented as symbolic variables.
@@ -2397,6 +2354,31 @@ text \<open>
   for later use.  The @{keyword "for"} argument of the @{method (HOL)
   ind_cases} method allows to specify a list of variables that should
   be generalized before applying the resulting rule.
+
+  \end{description}
+\<close>
+
+
+
+section \<open>Adhoc tuples\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
+  \<close>}
+
+  \begin{description}
+
+  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
+  arguments in function applications to be represented canonically
+  according to their tuple type structure.
+
+  Note that this operation tends to invent funny names for new local
+  parameters introduced.
 
   \end{description}
 \<close>
@@ -2614,7 +2596,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   if needed these are implemented by program abort (exception) instead.
 
   Usually packages introducing code equations provide a reasonable
-  default setup for selection.  
+  default setup for selection.
 
   \item @{command (HOL) "code_datatype"} specifies a constructor set
   for a logical type.

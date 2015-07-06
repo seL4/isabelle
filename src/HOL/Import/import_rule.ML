@@ -157,15 +157,12 @@ fun abs cv th =
     meta_mp i th4
   end
 
-fun freezeT thm =
+fun freezeT thy thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
-    val tvars = map TVar tvars
-    val thy = Thm.theory_of_thm thm
-    fun inst ty = Thm.global_ctyp_of thy ty
   in
-    Thm.instantiate ((map inst tvars ~~ map inst tfrees), []) thm
+    Thm.instantiate ((tvars ~~ map (Thm.global_ctyp_of thy) tfrees), []) thm
   end
 
 fun def' constname rhs thy =
@@ -177,7 +174,7 @@ fun def' constname rhs thy =
     val eq = Logic.mk_equals (Const (Sign.full_name thy1 constbinding, typ), rhs)
     val (thms, thy2) = Global_Theory.add_defs false
       [((Binding.suffix_name "_hldef" constbinding, eq), [])] thy1
-    val def_thm = freezeT (hd thms)
+    val def_thm = freezeT thy1 (hd thms)
   in
     (meta_eq_to_obj_eq def_thm, thy2)
   end
@@ -225,7 +222,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
      Typedef.add_typedef_global false (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
        (SOME (Binding.name rep_name, Binding.name abs_name)) (fn _ => rtac th2 1) thy
     val aty = #abs_type (#1 typedef_info)
-    val th = freezeT (#type_definition (#2 typedef_info))
+    val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
@@ -264,11 +261,12 @@ fun inst_type lambda th thy =
     val tys_before = Term.add_tfrees (Thm.prop_of th) []
     val th1 = Thm.varifyT_global th
     val tys_after = Term.add_tvars (Thm.prop_of th1) []
-    val tyinst = map2 (fn bef => fn iS =>
-       (case try (assoc (TFree bef)) lambda of
-              SOME cty => (Thm.global_ctyp_of thy (TVar iS), cty)
-            | NONE => (Thm.global_ctyp_of thy (TVar iS), Thm.global_ctyp_of thy (TFree bef))
-       )) tys_before tys_after
+    val tyinst =
+      map2 (fn bef => fn iS =>
+        (case try (assoc (TFree bef)) lambda of
+          SOME cty => (iS, cty)
+        | NONE => (iS, Thm.global_ctyp_of thy (TFree bef))))
+      tys_before tys_after
   in
     Thm.instantiate (tyinst,[]) th1
   end
@@ -334,9 +332,7 @@ fun store_thm binding thm thy =
     val tns = map (fn (_, _) => "'") tvs
     val nms = fst (fold_map Name.variant tns (Variable.names_of ctxt))
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val cvs = map (Thm.ctyp_of ctxt) vs
-    val ctvs = map (Thm.ctyp_of ctxt) (map TVar tvs)
-    val thm' = Thm.instantiate ((ctvs ~~ cvs), []) thm
+    val thm' = Thm.instantiate ((tvs ~~ map (Thm.ctyp_of ctxt) vs), []) thm
   in
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
   end
@@ -372,7 +368,7 @@ fun process_line str tstate =
       | process (thy, state) (#"M", [s]) =
           let
             val ctxt = Variable.set_body false (Proof_Context.init_global thy)
-            val thm = freezeT (Global_Theory.get_thm thy s)
+            val thm = freezeT thy (Global_Theory.get_thm thy s)
             val ((_, [th']), _) = Variable.import true [thm] ctxt
           in
             setth th' (thy, state)

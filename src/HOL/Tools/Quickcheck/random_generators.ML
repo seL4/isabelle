@@ -73,7 +73,9 @@ val eq = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg |> T
 val lhs = eq |> Thm.dest_arg1;
 val pt_random_aux = lhs |> Thm.dest_fun;
 val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
-val aT = pt_random_aux |> Thm.ctyp_of_cterm |> dest_ctyp_nth 1;
+val a_v =
+  pt_random_aux |> Thm.ctyp_of_cterm |> dest_ctyp_nth 1
+  |> Thm.typ_of |> dest_TVar;
 
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},
   @{thm Suc_natural_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
@@ -89,7 +91,7 @@ fun random_aux_primrec eq lthy =
       (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
     val icT = Thm.ctyp_of lthy iT;
-    val inst = Thm.instantiate_cterm ([(aT, icT)], []);
+    val inst = Thm.instantiate_cterm ([(a_v, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
     val eqs0 = [subst_v @{term "0::natural"} eq,
@@ -98,11 +100,11 @@ fun random_aux_primrec eq lthy =
     val ((_, (_, eqs2)), lthy') = lthy
       |> BNF_LFP_Compat.primrec_simple
         [((Binding.concealed (Binding.name random_aux), T), NoSyn)] eqs1;
-    val cT_random_aux = inst pt_random_aux;
-    val cT_rhs = inst pt_rhs;
+    val cT_random_aux = inst pt_random_aux |> Thm.term_of |> dest_Var;
+    val cT_rhs = inst pt_rhs |> Thm.term_of |> dest_Var;
     val rule = @{thm random_aux_rec}
       |> Drule.instantiate_normalize
-        ([(aT, icT)],
+        ([(a_v, icT)],
           [(cT_random_aux, Thm.cterm_of lthy' t_random_aux),
            (cT_rhs, Thm.cterm_of lthy' t_rhs)]);
     fun tac ctxt =

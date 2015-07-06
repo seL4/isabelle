@@ -334,7 +334,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 
     val instT =
       fold (Term.add_tvarsT o #2) params []
-      |> map (TVar #> (fn T => apply2 (Thm.ctyp_of ctxt) (T, norm_type T)));
+      |> map (fn v => (v, Thm.ctyp_of ctxt (norm_type (TVar v))));
     val closed_rule = rule
       |> Thm.forall_intr (Thm.cterm_of ctxt (Free thesis_var))
       |> Thm.instantiate (instT, []);

@@ -100,20 +100,20 @@ fun match ctxt pat t =
   (Vartab.empty, Vartab.empty)
   |> Pattern.first_order_match (Proof_Context.theory_of ctxt) (pat, t)
 
-fun gen_certify_inst sel mk cert ctxt thm t =
+fun gen_certify_inst sel cert ctxt thm t =
   let
     val inst = match ctxt (dest_thm thm) (dest_prop t)
-    fun cert_inst (ix, (a, b)) = (cert (mk (ix, a)), cert b)
+    fun cert_inst (ix, (a, b)) = ((ix, a), cert b)
   in Vartab.fold (cons o cert_inst) (sel inst) [] end
 
 fun match_instantiateT ctxt t thm =
   if Term.exists_type (Term.exists_subtype Term.is_TVar) (dest_thm thm) then
-    Thm.instantiate (gen_certify_inst fst TVar (Thm.ctyp_of ctxt) ctxt thm t, []) thm
+    Thm.instantiate (gen_certify_inst fst (Thm.ctyp_of ctxt) ctxt thm t, []) thm
   else thm
 
 fun match_instantiate ctxt t thm =
   let val thm' = match_instantiateT ctxt t thm in
-    Thm.instantiate ([], gen_certify_inst snd Var (Thm.cterm_of ctxt) ctxt thm' t) thm'
+    Thm.instantiate ([], gen_certify_inst snd (Thm.cterm_of ctxt) ctxt thm' t) thm'
   end
 
 fun apply_rule ctxt t =

@@ -685,7 +685,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
       let
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
-        val rho_As = map (apply2 (Thm.ctyp_of lthy)) (map Logic.varifyT_global As ~~ As);
+        val rho_As =
+          map (fn (T, U) => (dest_TVar T, Thm.ctyp_of lthy U))
+            (map Logic.varifyT_global As ~~ As);
 
         fun inst_thm t thm =
           Drule.instantiate' [] [SOME (Thm.cterm_of lthy t)]

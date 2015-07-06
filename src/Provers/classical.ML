@@ -282,12 +282,12 @@ fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
-fun string_of_thm NONE = Display.string_of_thm_without_context
-  | string_of_thm (SOME context) = Display.string_of_thm (Context.proof_of context);
+fun bad_thm (SOME context) msg th =
+      error (msg ^ "\n" ^ Display.string_of_thm (Context.proof_of context) th)
+  | bad_thm NONE msg th = raise THM (msg, 0, [th]);
 
-fun make_elim context th =
-  if has_fewer_prems 1 th then
-    error ("Ill-formed destruction rule\n" ^ string_of_thm context th)
+fun make_elim opt_context th =
+  if has_fewer_prems 1 th then bad_thm opt_context "Ill-formed destruction rule" th
   else Tactic.make_elim th;
 
 fun warn_thm (SOME (Context.Proof ctxt)) msg th =
@@ -295,31 +295,31 @@ fun warn_thm (SOME (Context.Proof ctxt)) msg th =
       then warning (msg ^ Display.string_of_thm ctxt th) else ()
   | warn_thm _ _ _ = ();
 
-fun warn_rules context msg rules th =
-  Item_Net.member rules th andalso (warn_thm context msg th; true);
+fun warn_rules opt_context msg rules th =
+  Item_Net.member rules th andalso (warn_thm opt_context msg th; true);
 
-fun warn_claset context th (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
-  warn_rules context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
-  warn_rules context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
-  warn_rules context "Rule already declared as introduction (intro)\n" hazIs th orelse
-  warn_rules context "Rule already declared as elimination (elim)\n" hazEs th;
+fun warn_claset opt_context th (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+  warn_rules opt_context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
+  warn_rules opt_context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
+  warn_rules opt_context "Rule already declared as introduction (intro)\n" hazIs th orelse
+  warn_rules opt_context "Rule already declared as elimination (elim)\n" hazEs th;
 
 
 (*** Safe rules ***)
 
-fun addSI w context th
+fun addSI w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn_rules context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
+  if warn_rules opt_context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = flat_rule ctxt th;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition Thm.no_prems [th'];
       val nI = Item_Net.length safeIs + 1;
       val nE = Item_Net.length safeEs;
-      val _ = warn_claset context th cs;
+      val _ = warn_claset opt_context th cs;
     in
       CS
        {safeIs = Item_Net.update th safeIs,
@@ -335,21 +335,20 @@ fun addSI w context th
         xtra_netpair = insert' (the_default 0 w) (nI,nE) ([th], []) xtra_netpair}
     end;
 
-fun addSE w context th
+fun addSE w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn_rules context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
-  else if has_fewer_prems 1 th then
-    error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
+  if warn_rules opt_context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
+  else if has_fewer_prems 1 th then bad_thm opt_context "Ill-formed elimination rule" th
   else
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = classical_rule ctxt (flat_rule ctxt th);
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (fn rl => Thm.nprems_of rl=1) [th'];
       val nI = Item_Net.length safeIs;
       val nE = Item_Net.length safeEs + 1;
-      val _ = warn_claset context th cs;
+      val _ = warn_claset opt_context th cs;
     in
       CS
        {safeEs = Item_Net.update th safeEs,
@@ -365,22 +364,22 @@ fun addSE w context th
         xtra_netpair = insert' (the_default 0 w) (nI,nE) ([], [th]) xtra_netpair}
     end;
 
-fun addSD w context th = addSE w context (make_elim context th);
+fun addSD w opt_context th = addSE w opt_context (make_elim opt_context th);
 
 
 (*** Hazardous (unsafe) rules ***)
 
-fun addI w context th
+fun addI w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn_rules context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
+  if warn_rules opt_context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = flat_rule ctxt th;
       val nI = Item_Net.length hazIs + 1;
       val nE = Item_Net.length hazEs;
-      val _ = warn_claset context th cs;
+      val _ = warn_claset opt_context th cs;
     in
       CS
        {hazIs = Item_Net.update th hazIs,
@@ -396,21 +395,20 @@ fun addI w context th
         xtra_netpair = insert' (the_default 1 w) (nI, nE) ([th], []) xtra_netpair}
     end
     handle THM ("RSN: no unifiers", _, _) => (*from dup_intr*)  (* FIXME !? *)
-      error ("Ill-formed introduction rule\n" ^ string_of_thm context th);
+      bad_thm opt_context "Ill-formed introduction rule" th;
 
-fun addE w context th
+fun addE w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn_rules context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
-  else if has_fewer_prems 1 th then
-    error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
+  if warn_rules opt_context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
+  else if has_fewer_prems 1 th then bad_thm opt_context "Ill-formed elimination rule" th
   else
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = classical_rule ctxt (flat_rule ctxt th);
       val nI = Item_Net.length hazIs;
       val nE = Item_Net.length hazEs + 1;
-      val _ = warn_claset context th cs;
+      val _ = warn_claset opt_context th cs;
     in
       CS
        {hazEs = Item_Net.update th hazEs,
@@ -426,7 +424,7 @@ fun addE w context th
         xtra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) xtra_netpair}
     end;
 
-fun addD w context th = addE w context (make_elim context th);
+fun addD w opt_context th = addE w opt_context (make_elim opt_context th);
 
 
 
@@ -435,12 +433,12 @@ fun addD w context th = addE w context (make_elim context th);
         to insert.
 ***)
 
-fun delSI context th
+fun delSI opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeIs th then
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = flat_rule ctxt th;
       val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th'];
     in
@@ -459,12 +457,12 @@ fun delSI context th
     end
   else cs;
 
-fun delSE context th
+fun delSE opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeEs th then
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = classical_rule ctxt (flat_rule ctxt th);
       val (safe0_rls, safep_rls) = List.partition (fn rl => Thm.nprems_of rl = 1) [th'];
     in
@@ -483,12 +481,12 @@ fun delSE context th
     end
   else cs;
 
-fun delI context th
+fun delI opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazIs th then
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = flat_rule ctxt th;
     in
       CS
@@ -506,14 +504,14 @@ fun delI context th
     end
   else cs
   handle THM ("RSN: no unifiers", _, _) => (*from dup_intr*)  (* FIXME !? *)
-    error ("Ill-formed introduction rule\n" ^ string_of_thm context th);
+    bad_thm opt_context "Ill-formed introduction rule" th;
 
-fun delE context th
+fun delE opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazEs th then
     let
-      val ctxt = default_context context th;
+      val ctxt = default_context opt_context th;
       val th' = classical_rule ctxt (flat_rule ctxt th);
     in
       CS
@@ -532,17 +530,17 @@ fun delE context th
   else cs;
 
 (*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
-fun delrule context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+fun delrule opt_context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
   let val th' = Tactic.make_elim th in
     if Item_Net.member safeIs th orelse Item_Net.member safeEs th orelse
       Item_Net.member hazIs th orelse Item_Net.member hazEs th orelse
       Item_Net.member safeEs th' orelse Item_Net.member hazEs th'
     then
-      delSI context th
-        (delSE context th
-          (delI context th
-            (delE context th (delSE context th' (delE context th' cs)))))
-    else (warn_thm context "Undeclared classical rule\n" th; cs)
+      delSI opt_context th
+        (delSE opt_context th
+          (delI opt_context th
+            (delE opt_context th (delSE opt_context th' (delE opt_context th' cs)))))
+    else (warn_thm opt_context "Undeclared classical rule\n" th; cs)
   end;
 
 
@@ -858,7 +856,8 @@ fun deepen_tac ctxt = DEEPEN (2, 10) (safe_depth_tac ctxt);
 (* attributes *)
 
 fun attrib f =
-  Thm.declaration_attribute (fn th => fn context => map_cs (f (SOME context) th) context);
+  Thm.declaration_attribute (fn th => fn opt_context =>
+    map_cs (f (SOME opt_context) th) opt_context);
 
 val safe_elim = attrib o addSE;
 val safe_intro = attrib o addSI;
@@ -868,8 +867,8 @@ val haz_intro = attrib o addI;
 val haz_dest = attrib o addD;
 
 val rule_del =
-  Thm.declaration_attribute (fn th => fn context =>
-    context |> map_cs (delrule (SOME context) th) |>
+  Thm.declaration_attribute (fn th => fn opt_context =>
+    opt_context |> map_cs (delrule (SOME opt_context) th) |>
     Thm.attribute_declaration Context_Rules.rule_del th);
 
 

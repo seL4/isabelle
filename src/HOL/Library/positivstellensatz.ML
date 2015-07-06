@@ -483,7 +483,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun real_not_eq_conv ct =
       let
         val (l,r) = dest_eq (Thm.dest_arg ct)
-        val th = Thm.instantiate ([],[(@{cpat "?x::real"},l),(@{cpat "?y::real"},r)]) neq_th
+        val th = Thm.instantiate ([],[((("x", 0), @{typ real}),l),((("y", 0), @{typ real}),r)]) neq_th
         val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
         val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
@@ -729,9 +729,9 @@ local
       val pth_max = instantiate' [SOME @{ctyp real}] [] max_split
       val pth_min = instantiate' [SOME @{ctyp real}] [] min_split
       val abs_tm = @{cterm "abs :: real => _"}
-      val p_tm = @{cpat "?P :: real => bool"}
-      val x_tm = @{cpat "?x :: real"}
-      val y_tm = @{cpat "?y::real"}
+      val p_v = (("P", 0), @{typ "real \<Rightarrow> bool"})
+      val x_v = (("x", 0), @{typ real})
+      val y_v = (("y", 0), @{typ real})
       val is_max = is_binop @{cterm "max :: real => _"}
       val is_min = is_binop @{cterm "min :: real => _"}
       fun is_abs t = is_comb t andalso Thm.dest_fun t aconvc abs_tm
@@ -746,16 +746,16 @@ local
 
       val elim_abs = eliminate_construct is_abs
         (fn p => fn ax =>
-          Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax)]) pth_abs)
+          Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax)]) pth_abs)
       val elim_max = eliminate_construct is_max
         (fn p => fn ax =>
           let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax), (y_tm,y)])
+          in Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
                              pth_max end)
       val elim_min = eliminate_construct is_min
         (fn p => fn ax =>
           let val (ax,y) = Thm.dest_comb ax
-          in Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax), (y_tm,y)])
+          in Thm.instantiate ([], [(p_v,p), (x_v, Thm.dest_arg ax), (y_v,y)])
                              pth_min end)
     in first_conv [elim_abs, elim_max, elim_min, all_conv]
     end;

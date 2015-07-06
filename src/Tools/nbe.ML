@@ -101,11 +101,10 @@ fun lift_triv_classes_conv ctxt conv ct =
     val vs_tab = map mk_entry (Term.add_tfrees (Thm.term_of ct) []);
     fun instantiate thm =
       let
-        val cert_tvars = map (Thm.ctyp_of ctxt o TVar) (Term.add_tvars
-          ((fst o Logic.dest_equals o Logic.strip_imp_concl o Thm.prop_of) thm) []);
-        val instantiation =
-          map2 (fn cert_tvar => fn (_, (_, (cT, _))) => (cert_tvar, cT)) cert_tvars vs_tab;
-      in Thm.instantiate (instantiation, []) thm end;
+        val tvars =
+          Term.add_tvars (#1 (Logic.dest_equals (Logic.strip_imp_concl (Thm.prop_of thm)))) [];
+        val instT = map2 (fn v => fn (_, (_, (cT, _))) => (v, cT)) tvars vs_tab;
+      in Thm.instantiate (instT, []) thm end;
     fun of_class (TFree (v, _), class) =
           the (AList.lookup (op =) ((snd o snd o the o AList.lookup (op =) vs_tab) v) class)
       | of_class (T, _) = error ("Bad type " ^ Syntax.string_of_typ ctxt T);

@@ -24,26 +24,26 @@ sig
 end;
 
 
-infix 4 addrews addcongs delrews delcongs setauto;
+infix 4 addcongs delrews delcongs setauto;
 
 signature SIMP =
 sig
   type simpset
   val empty_ss  : simpset
   val addcongs  : simpset * thm list -> simpset
-  val addrews   : simpset * thm list -> simpset
+  val addrew    : Proof.context -> thm -> simpset -> simpset
   val delcongs  : simpset * thm list -> simpset
   val delrews   : simpset * thm list -> simpset
   val dest_ss   : simpset -> thm list * thm list
-  val print_ss  : simpset -> unit
+  val print_ss  : Proof.context -> simpset -> unit
   val setauto   : simpset * (int -> tactic) -> simpset
-  val ASM_SIMP_CASE_TAC : simpset -> int -> tactic
-  val ASM_SIMP_TAC      : simpset -> int -> tactic
+  val ASM_SIMP_CASE_TAC : Proof.context -> simpset -> int -> tactic
+  val ASM_SIMP_TAC      : Proof.context -> simpset -> int -> tactic
   val CASE_TAC          : simpset -> int -> tactic
-  val SIMP_CASE2_TAC    : simpset -> int -> tactic
-  val SIMP_THM          : simpset -> thm -> thm
-  val SIMP_TAC          : simpset -> int -> tactic
-  val SIMP_CASE_TAC     : simpset -> int -> tactic
+  val SIMP_CASE2_TAC    : Proof.context -> simpset -> int -> tactic
+  val SIMP_THM          : Proof.context -> simpset -> thm -> thm
+  val SIMP_TAC          : Proof.context -> simpset -> int -> tactic
+  val SIMP_CASE_TAC     : Proof.context -> simpset -> int -> tactic
   val mk_congs          : theory -> string list -> thm list
   val mk_typed_congs    : theory -> (string * string) list -> thm list
 (* temporarily disabled:
@@ -220,15 +220,13 @@ fun add_norm_tags congs =
     in add_norms(congs,ccs,new_asms) end;
 
 fun normed_rews congs =
-  let val add_norms = add_norm_tags congs in
-    fn thm =>
+  let
+    val add_norms = add_norm_tags congs
+    fun normed ctxt thm =
       let
-        val ctxt =
-          Thm.theory_of_thm thm
-          |> Proof_Context.init_global
-          |> Variable.declare_thm thm;
+        val ctxt' = Variable.declare_thm thm ctxt;
       in Variable.tradeT (K (map (add_norms o mk_trans) o maps mk_rew_rules)) ctxt [thm] end
-  end;
+  in normed end;
 
 fun NORM norm_lhs_tac = EVERY'[rtac red2 , norm_lhs_tac, refl_tac];
 
@@ -241,7 +239,7 @@ datatype simpset =
         SS of {auto_tac: int -> tactic,
                congs: thm list,
                cong_net: thm Net.net,
-               mk_simps: thm -> thm list,
+               mk_simps: Proof.context -> thm -> thm list,
                simps: (thm * thm list) list,
                simp_net: thm Net.net}
 
@@ -251,21 +249,17 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 (** Insertion of congruences and rewrites **)
 
 (*insert a thm in a thm net*)
-fun insert_thm_warn th net =
+fun insert_thm th net =
   Net.insert_term Thm.eq_thm_prop (Thm.concl_of th, th) net
-  handle Net.INSERT =>
-    (writeln ("Duplicate rewrite or congruence rule:\n" ^
-        Display.string_of_thm_without_context th); net);
+    handle Net.INSERT => net;
 
-val insert_thms = fold_rev insert_thm_warn;
+val insert_thms = fold_rev insert_thm;
 
-fun addrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
-let val thms = mk_simps thm
+fun addrew ctxt thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
+let val thms = mk_simps ctxt thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
-
-fun ss addrews thms = fold addrew thms ss;
 
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
@@ -277,13 +271,11 @@ end;
 (** Deletion of congruences and rewrites **)
 
 (*delete a thm from a thm net*)
-fun delete_thm_warn th net =
+fun delete_thm th net =
   Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net
-  handle Net.DELETE =>
-    (writeln ("No such rewrite or congruence rule:\n" ^
-        Display.string_of_thm_without_context th); net);
+    handle Net.DELETE => net;
 
-val delete_thms = fold_rev delete_thm_warn;
+val delete_thms = fold_rev delete_thm;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = fold (remove Thm.eq_thm_prop) thms congs
@@ -295,9 +287,7 @@ end;
 fun delrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let fun find((p as (th,ths))::ps',ps) =
           if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
-      | find([],simps') =
-          (writeln ("No such rewrite or congruence rule:\n" ^
-              Display.string_of_thm_without_context thm); ([], simps'))
+      | find([],simps') = ([], simps')
     val (thms,simps') = find(simps,[])
 in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = simps', simp_net = delete_thms thms simp_net }
@@ -315,10 +305,10 @@ fun op setauto(SS{congs,cong_net,mk_simps,simps,simp_net,...}, auto_tac) =
 
 fun dest_ss(SS{congs,simps,...}) = (congs, map #1 simps);
 
-fun print_ss(SS{congs,simps,...}) =
+fun print_ss ctxt (SS{congs,simps,...}) =
   writeln (cat_lines
-   (["Congruences:"] @ map Display.string_of_thm_without_context congs @
-    ["Rewrite Rules:"] @ map (Display.string_of_thm_without_context o #1) simps));
+   (["Congruences:"] @ map (Display.string_of_thm ctxt) congs @
+    ["Rewrite Rules:"] @ map (Display.string_of_thm ctxt o #1) simps));
 
 
 (* Rewriting with conditionals *)
@@ -385,26 +375,25 @@ fun prepare_goal i st =
     in variants_abs (params, Logic.strip_assums_concl subgi) end;
 
 (*print lhs of conclusion of subgoal i*)
-fun pr_goal_lhs i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st)
-             (lhs_of (prepare_goal i st)));
+fun pr_goal_lhs ctxt i st =
+    writeln (Syntax.string_of_term ctxt (lhs_of (prepare_goal i st)));
 
 (*print conclusion of subgoal i*)
-fun pr_goal_concl i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st) (prepare_goal i st))
+fun pr_goal_concl ctxt i st =
+    writeln (Syntax.string_of_term ctxt (prepare_goal i st))
 
 (*print subgoals i to j (inclusive)*)
-fun pr_goals (i,j) st =
+fun pr_goals ctxt (i,j) st =
     if i>j then ()
-    else (pr_goal_concl i st;  pr_goals (i+1,j) st);
+    else (pr_goal_concl ctxt i st;  pr_goals ctxt (i+1,j) st);
 
 (*Print rewrite for tracing; i=subgoal#, n=number of new subgoals,
   thm=old state, thm'=new state *)
-fun pr_rew (i,n,thm,thm',not_asms) =
+fun pr_rew ctxt (i,n,thm,thm',not_asms) =
     if !tracing
     then (if not_asms then () else writeln"Assumption used in";
-          pr_goal_lhs i thm; writeln"->"; pr_goal_lhs (i+n) thm';
-          if n>0 then (writeln"Conditions:"; pr_goals (i, i+n-1) thm')
+          pr_goal_lhs ctxt i thm; writeln"->"; pr_goal_lhs ctxt (i+n) thm';
+          if n>0 then (writeln"Conditions:"; pr_goals ctxt (i, i+n-1) thm')
           else ();
           writeln"" )
     else ();
@@ -417,7 +406,8 @@ fun strip_varify(Const(@{const_name Pure.imp}, _) $ H $ B, n, vs) =
         strip_varify(t,n,Var(("?",length vs),T)::vs)
   | strip_varify  _  = [];
 
-fun execute(ss,if_fl,auto_tac,cong_tac,net,i,thm) = let
+fun execute ctxt (ss,if_fl,auto_tac,cong_tac,net,i,thm) =
+let
 
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
@@ -436,21 +426,16 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-        val thms = map (Thm.trivial o Thm.global_cterm_of(Thm.theory_of_thm thm)) As;
+        val thms = map (Thm.trivial o Thm.cterm_of ctxt) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = fold_rev lhs_insert_thm rwrls anet;
-    in  if !tracing andalso not(null new_rws)
-        then writeln (cat_lines
-          ("Adding rewrites:" :: map Display.string_of_thm_without_context new_rws))
-        else ();
-        (ss,thm,anet',anet::ats,cs)
-    end;
+    in (ss,thm,anet',anet::ats,cs) end;
 
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
       SOME(thm',seq') =>
             let val n = (Thm.nprems_of thm') - (Thm.nprems_of thm)
-            in pr_rew(i,n,thm,thm',more);
+            in pr_rew ctxt (i,n,thm,thm',more);
                if n=0 then (SIMP_LHS::ss, thm', anet, ats, cs)
                else ((replicate n PROVE) @ (POP_CS::SIMP_LHS::ss),
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
@@ -466,7 +451,7 @@ fun try_true(thm,ss,anet,ats,cs) =
     | NONE => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
               in if !tracing
                  then (writeln"*** Failed to prove precondition. Normal form:";
-                       pr_goal_concl i thm;  writeln"")
+                       pr_goal_concl ctxt i thm;  writeln"")
                  else ();
                  rew(seq,thm0,ss0,anet0,ats0,cs0,more)
               end;
@@ -495,30 +480,30 @@ fun exec(state as (s::ss, thm, _, _, _)) =
 in exec(ss, thm, Net.empty, [], []) end;
 
 
-fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
+fun EXEC_TAC ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn i =>
     (fn thm =>
      if i <= 0 orelse Thm.nprems_of thm < i then Seq.empty
-     else Seq.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
+     else Seq.single(execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
     THEN TRY(auto_tac i)
 end;
 
-val SIMP_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,REFL,STOP],false);
-val SIMP_CASE_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
+fun SIMP_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,REFL,STOP],false);
+fun SIMP_CASE_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
 
-val ASM_SIMP_TAC = EXEC_TAC([ASMS(0),MK_EQ,SIMP_LHS,REFL,STOP],false);
-val ASM_SIMP_CASE_TAC = EXEC_TAC([ASMS(0),MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
+fun ASM_SIMP_TAC ctxt = EXEC_TAC ctxt ([ASMS(0),MK_EQ,SIMP_LHS,REFL,STOP],false);
+fun ASM_SIMP_CASE_TAC ctxt = EXEC_TAC ctxt ([ASMS(0),MK_EQ,SIMP_LHS,IF,REFL,STOP],false);
 
-val SIMP_CASE2_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,IF,REFL,STOP],true);
+fun SIMP_CASE2_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,IF,REFL,STOP],true);
 
-fun REWRITE (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
+fun REWRITE ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
 in fn thm => let val state = thm RSN (2,red1)
-             in execute(ss,fl,auto_tac,cong_tac,simp_net,1,state) end
+             in execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,1,state) end
 end;
 
-val SIMP_THM = REWRITE ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
+fun SIMP_THM ctxt = REWRITE ctxt ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
 
 
 (* Compute Congruence rules for individual constants using the substition

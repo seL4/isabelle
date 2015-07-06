@@ -44,10 +44,10 @@ val ctp_false = Thm.cterm_of @{theory_context HOL} (HOLogic.mk_Trueprop @{term F
    "Sledgehammer_Util".) *)
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
-    @{const Trueprop} $ (v as Var (_, @{typ bool})) =>
-      Thm.instantiate ([], [(Thm.cterm_of @{theory_context HOL} v, cfalse)]) th
-  | v as Var(_, @{typ prop}) =>
-      Thm.instantiate ([], [(Thm.cterm_of @{theory_context HOL} v, ctp_false)]) th
+    @{const Trueprop} $ (Var (v as (_, @{typ bool}))) =>
+      Thm.instantiate ([], [(v, cfalse)]) th
+  | Var (v as (_, @{typ prop})) =>
+      Thm.instantiate ([], [(v, ctp_false)]) th
   | _ => th)
 
 
@@ -375,9 +375,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
        th ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], map (apply2 (Thm.cterm_of ctxt))
-                               [(Var (("i", 0), @{typ nat}),
-                                 HOLogic.mk_nat ax_no)])
+      Thm.instantiate ([], [((("i", 0), @{typ nat}), Thm.cterm_of ctxt (HOLogic.mk_nat ax_no))])
                       (zero_var_indexes @{thm skolem_COMBK_D})
       RS Thm.implies_intr ct th
   in

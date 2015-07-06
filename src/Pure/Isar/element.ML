@@ -201,7 +201,7 @@ fun standard_elim ctxt th =
     SOME C =>
       let
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val th' = Thm.instantiate ([], [apply2 (Thm.cterm_of ctxt) (C, thesis)]) th;
+        val th' = Thm.instantiate ([], [(Term.dest_Var C, Thm.cterm_of ctxt thesis)]) th;
       in (th', true) end
   | NONE => (th, false));
 
@@ -340,7 +340,7 @@ fun pretty_witness ctxt witn =
 fun instantiate_tfrees thy subst th =
   let
     val idx = Thm.maxidx_of th + 1;
-    fun cert_inst (a, (S, T)) = apply2 (Thm.global_ctyp_of thy) (TVar ((a, idx), S), T);
+    fun cert_inst (a, (S, T)) = (((a, idx), S), Thm.global_ctyp_of thy T);
 
     fun add_inst (a, S) insts =
       if AList.defined (op =) insts a then insts

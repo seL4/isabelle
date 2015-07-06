@@ -179,10 +179,10 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate
-           (map (fn (ixn, (S, T)) => apply2 (Thm.ctyp_of ctxt) (TVar (ixn, S), T)) (Vartab.dest tye),
+           (map (fn (ixn, (S, T)) => ((ixn, S), Thm.ctyp_of ctxt T)) (Vartab.dest tye),
             map (fn (ixn, (T, t)) =>
-              apply2 (Thm.cterm_of ctxt) (Var (ixn, Envir.subst_type tye T), t)) (Vartab.dest env) @
-            map (fn (ixnT, t) => apply2 (Thm.cterm_of ctxt) (Var ixnT, t)) insts) th)
+              ((ixn, Envir.subst_type tye T), Thm.cterm_of ctxt t)) (Vartab.dest env) @
+            map (fn (ixnT, t) => (ixnT, Thm.cterm_of ctxt t)) insts) th)
         (map (nth asms) is);
     val (_, cases) = dest_elim (Thm.prop_of th');
   in

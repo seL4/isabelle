@@ -950,8 +950,8 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
     val tactic =
       if is_none var_opt then no_tac
       else
-        fold (curry (op APPEND)) (map (instantiate_tac (the var_opt)) skolem_cts) no_tac
-
+        fold (curry (op APPEND))
+          (map (instantiate_tac (dest_Var (Thm.term_of (the var_opt)))) skolem_cts) no_tac
   in
     tactic st
   end

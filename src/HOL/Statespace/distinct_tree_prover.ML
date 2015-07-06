@@ -18,7 +18,7 @@ sig
   val subtractProver : Proof.context -> term -> cterm -> thm -> thm
   val distinct_simproc : string list -> simproc
 
-  val discharge : thm list -> thm -> thm
+  val discharge : Proof.context -> thm list -> thm -> thm
 end;
 
 structure DistinctTreeProver : DISTINCT_TREE_PROVER =
@@ -95,7 +95,11 @@ fun instantiate ctxt instTs insts =
     fun mapT_and_recertify ct =
       (Thm.cterm_of ctxt (Term.map_types (Term.map_type_tvar substT) (Thm.term_of ct)));
     val insts' = map (apfst mapT_and_recertify) insts;
-  in Thm.instantiate (instTs, insts') end;
+  in
+    Thm.instantiate
+     (map (apfst (dest_TVar o Thm.typ_of)) instTs,
+      map (apfst (dest_Var o Thm.term_of)) insts')
+  end;
 
 fun tvar_clash ixn S S' =
   raise TYPE ("Type variable has two distinct sorts", [TVar (ixn, S), TVar (ixn, S')], []);
@@ -140,18 +144,14 @@ fun naive_cterm_first_order_match (t, ct) env =
   in mtch env (t, ct) end;
 
 
-fun discharge prems rule =
+fun discharge ctxt prems rule =
   let
-    val thy = Thm.theory_of_thm (hd prems);
     val (tyinsts,insts) =
       fold naive_cterm_first_order_match (Thm.prems_of rule ~~ map Thm.cprop_of prems) ([], []);
-
     val tyinsts' =
-      map (fn (v, (S, U)) =>
-        (Thm.global_ctyp_of thy (TVar (v, S)), Thm.global_ctyp_of thy U)) tyinsts;
+      map (fn (v, (S, U)) => ((v, S), Thm.ctyp_of ctxt U)) tyinsts;
     val insts' =
-      map (fn (idxn, ct) =>
-        (Thm.global_cterm_of thy (Var (idxn, Thm.typ_of_cterm ct)), ct)) insts;
+      map (fn (idxn, ct) => ((idxn, Thm.typ_of_cterm ct), ct)) insts;
     val rule' = Thm.instantiate (tyinsts', insts') rule;
   in fold Thm.elim_implies prems rule' end;
 
@@ -203,7 +203,7 @@ fun distinctTreeProver ctxt dist_thm x_path y_path =
          let
            val rule =
             (case p of Left => @{thm all_distinct_left} | Right => @{thm all_distinct_right})
-         in dist_subtree ps (discharge [thm] rule) end;
+         in dist_subtree ps (discharge ctxt [thm] rule) end;
 
     val (ps, x_rest, y_rest) = split_common_prefix x_path y_path;
     val dist_subtree_thm = dist_subtree ps dist_thm;
@@ -227,7 +227,7 @@ fun distinctTreeProver ctxt dist_thm x_path y_path =
                 instantiate ctxt
                   [(Thm.ctyp_of_cterm x_in_set_left, xT)]
                   [(x_in_set_left, x), (r_in_set_left, r)] @{thm in_set_left};
-            in discharge [in_set_l] in_set_left' end
+            in discharge ctxt [in_set_l] in_set_left' end
         | Right :: ps' =>
             let
               val in_set_r = in_set ps' r;
@@ -235,15 +235,17 @@ fun distinctTreeProver ctxt dist_thm x_path y_path =
                 instantiate ctxt
                   [(Thm.ctyp_of_cterm x_in_set_right, xT)]
                   [(x_in_set_right, x), (l_in_set_right, l)] @{thm in_set_right};
-            in discharge [in_set_r] in_set_right' end)
+            in discharge ctxt [in_set_r] in_set_right' end)
       end;
 
   fun in_set' [] = raise TERM ("distinctTreeProver", [])
     | in_set' (Left :: ps) = in_set ps l
     | in_set' (Right :: ps) = in_set ps r;
 
-  fun distinct_lr node_in_set Left = discharge [dist_subtree_thm, node_in_set] @{thm distinct_left}
-    | distinct_lr node_in_set Right = discharge [dist_subtree_thm, node_in_set] @{thm distinct_right}
+  fun distinct_lr node_in_set Left =
+        discharge ctxt [dist_subtree_thm, node_in_set] @{thm distinct_left}
+    | distinct_lr node_in_set Right =
+        discharge ctxt [dist_subtree_thm, node_in_set] @{thm distinct_right}
 
   val (swap, neq) =
     (case x_rest of
@@ -262,22 +264,24 @@ fun distinctTreeProver ctxt dist_thm x_path y_path =
             in
               (case xr of
                 Left =>
-                  (false, discharge [dist_subtree_thm, x_in_set, y_in_set] @{thm distinct_left_right})
+                  (false,
+                    discharge ctxt [dist_subtree_thm, x_in_set, y_in_set] @{thm distinct_left_right})
               | Right =>
-                  (true, discharge [dist_subtree_thm, y_in_set, x_in_set] @{thm distinct_left_right}))
+                  (true,
+                    discharge ctxt [dist_subtree_thm, y_in_set, x_in_set] @{thm distinct_left_right}))
            end));
-  in if swap then discharge [neq] @{thm swap_neq} else neq end;
+  in if swap then discharge ctxt [neq] @{thm swap_neq} else neq end;
 
 
-fun deleteProver dist_thm [] = @{thm delete_root} OF [dist_thm]
-  | deleteProver dist_thm (p::ps) =
+fun deleteProver _ dist_thm [] = @{thm delete_root} OF [dist_thm]
+  | deleteProver ctxt dist_thm (p::ps) =
       let
         val dist_rule =
           (case p of Left => @{thm all_distinct_left} | Right => @{thm all_distinct_right});
-        val dist_thm' = discharge [dist_thm] dist_rule;
+        val dist_thm' = discharge ctxt [dist_thm] dist_rule;
         val del_rule = (case p of Left => @{thm delete_left} | Right => @{thm delete_right});
-        val del = deleteProver dist_thm' ps;
-      in discharge [dist_thm, del] del_rule end;
+        val del = deleteProver ctxt dist_thm' ps;
+      in discharge ctxt [dist_thm, del] del_rule end;
 
 local
   val (alpha, v) =
@@ -286,7 +290,7 @@ local
         @{thm subtract_Tip} |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2
         |> Thm.dest_comb |> #2;
       val [alpha] = ct |> Thm.ctyp_of_cterm |> Thm.dest_ctyp;
-    in (alpha, #1 (dest_Var (Thm.term_of ct))) end;
+    in (dest_TVar (Thm.typ_of alpha), #1 (dest_Var (Thm.term_of ct))) end;
 in
 
 fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
@@ -296,20 +300,20 @@ fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
       in
         Thm.instantiate
           ([(alpha, Thm.ctyp_of ctxt alphaI)],
-           [(Thm.cterm_of ctxt (Var (v, treeT alphaI)), ct')]) @{thm subtract_Tip}
+           [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
       end
   | subtractProver ctxt (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
       let
         val ct' = dist_thm |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
         val (_, [cl, _, _, cr]) = Drule.strip_comb ct;
         val ps = the (find_tree x (Thm.term_of ct'));
-        val del_tree = deleteProver dist_thm ps;
-        val dist_thm' = discharge [del_tree, dist_thm] @{thm delete_Some_all_distinct};
+        val del_tree = deleteProver ctxt dist_thm ps;
+        val dist_thm' = discharge ctxt [del_tree, dist_thm] @{thm delete_Some_all_distinct};
         val sub_l = subtractProver ctxt (Thm.term_of cl) cl (dist_thm');
         val sub_r =
           subtractProver ctxt (Thm.term_of cr) cr
-            (discharge [sub_l, dist_thm'] @{thm subtract_Some_all_distinct_res});
-      in discharge [del_tree, sub_l, sub_r] @{thm subtract_Node} end;
+            (discharge ctxt [sub_l, dist_thm'] @{thm subtract_Some_all_distinct_res});
+      in discharge ctxt [del_tree, sub_l, sub_r] @{thm subtract_Node} end;
 
 end;
 

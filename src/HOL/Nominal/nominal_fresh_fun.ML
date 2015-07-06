@@ -31,7 +31,10 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
 fun res_inst_tac_term ctxt =
-  gen_res_inst_tac_term ctxt (curry Thm.instantiate);
+  gen_res_inst_tac_term ctxt (fn instT => fn inst =>
+    Thm.instantiate
+     (map (apfst (dest_TVar o Thm.typ_of)) instT,
+      map (apfst (dest_Var o Thm.term_of)) inst));
 
 fun res_inst_tac_term' ctxt =
   gen_res_inst_tac_term ctxt (K Drule.cterm_instantiate) [];
@@ -146,10 +149,10 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
     fun inst_fresh vars params i st =
    let val vars' = Misc_Legacy.term_vars (Thm.prop_of st);
    in case subtract (op =) vars vars' of
-     [x] =>
+     [Var v] =>
       Seq.single
         (Thm.instantiate ([],
-          [apply2 (Thm.cterm_of ctxt) (x, fold_rev Term.abs params (Bound 0))]) st)
+          [(v, Thm.cterm_of ctxt (fold_rev Term.abs params (Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in

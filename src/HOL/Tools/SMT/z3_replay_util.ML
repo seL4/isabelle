@@ -15,7 +15,7 @@ sig
   val discharge: thm -> thm -> thm
 
   (*a faster COMP*)
-  type compose_data
+  type compose_data = cterm list * (cterm -> cterm list) * thm
   val precompose: (cterm -> cterm list) -> thm -> compose_data
   val precompose2: (cterm -> cterm * cterm) -> thm -> compose_data
   val compose: compose_data -> thm -> thm
@@ -71,11 +71,12 @@ type compose_data = cterm list * (cterm -> cterm list) * thm
 
 fun list2 (x, y) = [x, y]
 
-fun precompose f rule = (f (Thm.cprem_of rule 1), f, rule)
-fun precompose2 f rule = precompose (list2 o f) rule
+fun precompose f rule : compose_data = (f (Thm.cprem_of rule 1), f, rule)
+fun precompose2 f rule : compose_data = precompose (list2 o f) rule
 
 fun compose (cvs, f, rule) thm =
-  discharge thm (Thm.instantiate ([], cvs ~~ f (Thm.cprop_of thm)) rule)
+  discharge thm
+    (Thm.instantiate ([], map (dest_Var o Thm.term_of) cvs ~~ f (Thm.cprop_of thm)) rule)
 
 
 (* simpset *)

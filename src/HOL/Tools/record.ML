@@ -1755,7 +1755,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([apply2 (Thm.global_ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+          ([((("'a", 0), @{sort equal}), Thm.global_ctyp_of thy (Logic.varifyT_global extT))], [])
         |> Axclass.unoverload thy;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =

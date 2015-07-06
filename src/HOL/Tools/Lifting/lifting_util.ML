@@ -145,7 +145,7 @@ fun map_interrupt f l =
 fun instT_thm ctxt env =
   let
     val cinst = env |> Vartab.dest 
-      |> map (fn (x, (S, T)) => (Thm.ctyp_of ctxt (TVar (x, S)), Thm.ctyp_of ctxt T));
+      |> map (fn (x, (S, T)) => ((x, S), Thm.ctyp_of ctxt T));
   in
     Thm.instantiate (cinst, [])
   end;

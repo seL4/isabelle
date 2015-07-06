@@ -78,9 +78,9 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
                |> HOLogic.mk_list @{typ nat}
                |> Thm.cterm_of ctxt
      in
-       (rtac (Thm.instantiate ([], [(@{cpat "?n::nat"}, n),
-                                   (@{cpat "?prec::nat"}, p),
-                                   (@{cpat "?ss::nat list"}, s)])
+       (rtac (Thm.instantiate ([], [((("n", 0), @{typ nat}), n),
+                                   ((("prec", 0), @{typ nat}), p),
+                                   ((("ss", 0), @{typ "nat list"}), s)])
             @{thm "approx_form"}) i
         THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
      end
@@ -95,9 +95,9 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
        val s = vs |> map lookup_splitting |> hd
             |> Thm.cterm_of ctxt
      in
-       rtac (Thm.instantiate ([], [(@{cpat "?s::nat"}, s),
-                                   (@{cpat "?t::nat"}, t),
-                                   (@{cpat "?prec::nat"}, p)])
+       rtac (Thm.instantiate ([], [((("s", 0), @{typ nat}), s),
+                                   ((("t", 0), @{typ nat}), t),
+                                   ((("prec", 0), @{typ nat}), p)])
             @{thm "approx_tse_form"}) i st
      end
   end

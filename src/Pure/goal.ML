@@ -60,9 +60,7 @@ struct
   -------- (init)
   C ==> #C
 *)
-val init =
-  let val A = #1 (Thm.dest_implies (Thm.cprop_of Drule.protectI))
-  in fn C => Thm.instantiate ([], [(A, C)]) Drule.protectI end;
+fun init C = Thm.instantiate ([], [((("A", 0), propT), C)]) Drule.protectI;
 
 (*
   A1 ==> ... ==> An ==> C
@@ -134,8 +132,7 @@ fun future_result ctxt result prop =
     val fixes = map (Thm.cterm_of ctxt) xs;
 
     val tfrees = fold Term.add_tfrees (prop :: As) [];
-    val instT =
-      map (fn (a, S) => apply2 (Thm.ctyp_of ctxt) (TVar ((a, 0), S), TFree (a, S))) tfrees;
+    val instT = map (fn (a, S) => (((a, 0), S), Thm.ctyp_of ctxt (TFree (a, S)))) tfrees;
 
     val global_prop =
       Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop)))

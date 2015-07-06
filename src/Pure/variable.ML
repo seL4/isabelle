@@ -71,10 +71,11 @@ sig
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
-  val importT: thm list -> Proof.context -> ((ctyp * ctyp) list * thm list) * Proof.context
+  val importT: thm list -> Proof.context ->
+    (((indexname * sort) * ctyp) list * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import: bool -> thm list -> Proof.context ->
-    (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context
+    ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val focus_params: term -> Proof.context -> (string list * (string * typ) list) * Proof.context

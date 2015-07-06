@@ -329,10 +329,8 @@ map length just_the_thms;
 *}
 
 ML {*
-(*given a thm, show us the axioms in its thy*)
-val axms_of_thy_of_thm =
-  Thm.theory_of_thm
-  #> ` Theory.axioms_of
+val axms_of_thy =
+  `Theory.axioms_of
   #> apsnd cterm_of
   #> swap
   #> apsnd (map snd)
@@ -351,14 +349,8 @@ else
   *}
 
 ML {*
-fun leo2_tac_wrap prob_name step i = fn st =>
-  let
-    val ctxt =
-      Thm.theory_of_thm st
-      |> Proof_Context.init_global
-  in
-    rtac (interpret_leo2_inference ctxt prob_name step) i st
-  end
+fun leo2_tac_wrap ctxt prob_name step i st =
+  rtac (interpret_leo2_inference ctxt prob_name step) i st
 *}
 
 (*FIXME move these examples elsewhere*)

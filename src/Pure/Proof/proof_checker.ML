@@ -78,8 +78,8 @@ fun thm_of_proof thy =
           let
             val tvars = Term.add_tvars (Thm.full_prop_of thm) [] |> rev;
             val (fmap, thm') = Thm.varifyT_global' [] thm;
-            val ctye = map (apply2 (Thm.global_ctyp_of thy))
-              (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
+            val ctye =
+              (tvars @ map (fn ((_, S), ixn) => (ixn, S)) fmap ~~ map (Thm.global_ctyp_of thy) Ts);
           in
             Thm.instantiate (ctye, []) (forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
@@ -118,7 +118,7 @@ fun thm_of_proof thy =
                 handle THM (s, _, _) => appl_error thy pretty_term vs Hs s prf t
               end
 
-          | thm_of (vs, names) Hs (AbsP (s, SOME t, prf)) =
+          | thm_of (vs, names) Hs (AbsP (_, SOME t, prf)) =
               let
                 val ct = Thm.global_cterm_of thy (Term.subst_bounds (map Free vs, t));
                 val thm = thm_of (vs, names) (Thm.assume ct :: Hs) prf;

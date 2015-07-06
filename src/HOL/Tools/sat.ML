@@ -73,8 +73,6 @@ val counter = Unsynchronized.ref 0;
 val resolution_thm =
   @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
 
-val cP = Thm.cterm_of @{context} (Var (("P", 0), HOLogic.boolT));
-
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)
 (*      thereby treating integers that represent the same atom (positively   *)
@@ -173,7 +171,7 @@ fun resolve_raw_clauses _ [] =
                 val cLit =
                   snd (Thm.dest_comb (if hyp1_is_neg then hyp2 else hyp1))  (* strip Trueprop *)
               in
-                Thm.instantiate ([], [(cP, cLit)]) resolution_thm
+                Thm.instantiate ([], [((("P", 0), HOLogic.boolT), cLit)]) resolution_thm
               end
 
             val _ =

@@ -42,7 +42,7 @@ fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
 fun split_rule_var' ctxt (t as Var (v, Type ("fun", [T1, T2]))) rl =
       let val T' = HOLogic.flatten_tupleT T1 ---> T2;
           val newt = ap_split T1 T2 (Var (v, T'));
-      in Thm.instantiate ([], [apply2 (Thm.cterm_of ctxt) (t, newt)]) rl end
+      in Thm.instantiate ([], [(dest_Var t, Thm.cterm_of ctxt newt)]) rl end
   | split_rule_var' _ _ rl = rl;
 
 
@@ -65,15 +65,15 @@ fun complete_split_rule_var ctxt (t as Var (v, T), ts) (rl, vs) =
                 val ys = Name.variant_list xs (replicate (length Ts) a);
               in
                 (xs @ ys,
-                  apply2 (Thm.cterm_of ctxt)
-                    (v, HOLogic.mk_ptuple (HOLogic.flat_tupleT_paths T) T
-                      (map (Var o apfst (rpair 0)) (ys ~~ Ts))) :: insts)
+                  (dest_Var v,
+                    Thm.cterm_of ctxt (HOLogic.mk_ptuple (HOLogic.flat_tupleT_paths T) T
+                      (map (Var o apfst (rpair 0)) (ys ~~ Ts)))) :: insts)
               end
           | mk_tuple _ x = x;
         val newt = ap_split' Us U (Var (v, T'));
         val (vs', insts) = fold mk_tuple ts (vs, []);
       in
-        (Drule.instantiate_normalize ([], [apply2 (Thm.cterm_of ctxt) (t, newt)] @ insts) rl, vs')
+        (Drule.instantiate_normalize ([], ((v, T), Thm.cterm_of ctxt newt) :: insts) rl, vs')
       end
   | complete_split_rule_var _ _ x = x;
 

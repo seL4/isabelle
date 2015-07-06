@@ -13,8 +13,9 @@ end
 structure Find_Unused_Assms : FIND_UNUSED_ASSMS =
 struct
 
-fun thms_of thy thy_name = Global_Theory.all_thms_of thy false
-  |> filter (fn (_, th) => Context.theory_name (Thm.theory_of_thm th) = thy_name)
+fun thms_of thy thy_name =
+  Global_Theory.all_thms_of thy false
+  |> filter (fn (_, th) => Thm.theory_name_of_thm th = thy_name)
 
 fun do_while P f s list =
   if P s then

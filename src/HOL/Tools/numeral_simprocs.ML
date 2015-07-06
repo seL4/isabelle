@@ -595,8 +595,8 @@ local
 
  fun prove_nz ctxt T t =
     let
-      val z = Thm.instantiate_cterm ([(zT,T)],[]) zr
-      val eq = Thm.instantiate_cterm ([(eqT,T)],[]) geq
+      val z = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of zT), T)],[]) zr
+      val eq = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of eqT), T)],[]) geq
       val th = Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
            (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
                   (Thm.apply (Thm.apply eq t) z)))

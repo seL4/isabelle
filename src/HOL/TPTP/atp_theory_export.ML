@@ -166,7 +166,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val facts =
       Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) true false
                                   Keyword.empty_keywords [] [] css_table
-      |> sort (Sledgehammer_MaSh.crude_thm_ord o apply2 snd)
+      |> sort (Sledgehammer_MaSh.crude_thm_ord ctxt o apply2 snd)
     val problem =
       facts
       |> map (fn ((_, loc), th) =>

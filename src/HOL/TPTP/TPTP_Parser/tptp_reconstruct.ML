@@ -1029,12 +1029,14 @@ local
         val thy = Proof_Context.theory_of ctxt
         val pannot = get_pannot_of_prob thy prob_name
 
+(* FIXME !???!
         fun rtac_wrap thm_f i = fn st =>
           let
             val thy = Thm.theory_of_thm st
           in
             rtac (thm_f thy) i st
           end
+*)
 
         (*Some nodes don't have an inference name, such as the conjecture,
           definitions and axioms. Such nodes shouldn't appear in the
@@ -1063,14 +1065,7 @@ local
              let
                fun thm ctxt'' = prover_tac ctxt'' prob_name (hd skel |> stock_to_string)
                val reconstructed_inference = thm ctxt'
-               val rec_inf_tac = fn st =>
-                 let
-                   val ctxt =
-                     Thm.theory_of_thm st
-                     |> Proof_Context.init_global
-                 in
-                   HEADGOAL (rtac (thm ctxt)) st
-                 end
+               fun rec_inf_tac st = HEADGOAL (rtac (thm ctxt')) st
              in (reconstructed_inference,
                  rec_inf_tac)
              end)
@@ -1157,14 +1152,16 @@ local
                                 else
                                   let
                                     val maybe_thm = ignore_interpretation_exn try_make_step ctxt
+(* FIXME !???!
                                     val ctxt' =
                                       if is_some maybe_thm then
                                         the maybe_thm
                                         |> #1
                                         |> Thm.theory_of_thm |> Proof_Context.init_global
                                       else ctxt
+*)
                                   in
-                                    (maybe_thm, ctxt')
+                                    (maybe_thm, ctxt)
                                   end
                           in (thm, (node, thm) :: memo, ctxt') end
                       | SOME maybe_thm => (maybe_thm, memo, ctxt)
@@ -1183,8 +1180,7 @@ local
                   (hd skel,
                    Thm.prop_of (def_thm thy)
                    |> SOME,
-                   SOME (def_thm thy,
-                         HEADGOAL (rtac_wrap def_thm))) :: rest memo ctxt
+                   SOME (def_thm thy, HEADGOAL (rtac (def_thm thy)))) :: rest memo ctxt
                 end
             | Axiom n =>
                 let

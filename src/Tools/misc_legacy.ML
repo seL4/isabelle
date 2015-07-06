@@ -173,9 +173,9 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
           then ((v, T), true, free_of "METAHYP2_" (v, T))
           else ((v, T), false, free_of "METAHYP2_" (v, map #2 params ---> T))
       (*Instantiate subgoal vars by Free applied to params*)
-      fun mk_ctpair (v, in_concl, u) =
-          if in_concl then apply2 (Thm.cterm_of ctxt) (Var v, u)
-          else apply2 (Thm.cterm_of ctxt) (Var v, list_comb (u, fparams))
+      fun mk_inst (v, in_concl, u) =
+          if in_concl then (v, Thm.cterm_of ctxt u)
+          else (v, Thm.cterm_of ctxt (list_comb (u, fparams)))
       (*Restore Vars with higher type and index*)
       fun mk_subgoal_swap_ctpair (((a, i), T), in_concl, u as Free (_, U)) =
           if in_concl then apply2 (Thm.cterm_of ctxt) (u, Var ((a, i), T))
@@ -191,7 +191,7 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
               fold Term.add_vars (Logic.strip_imp_prems prop) []
             and concl_vars = Term.add_vars (Logic.strip_imp_concl prop) []
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
-            val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
+            val st' = Thm.instantiate ([], map mk_inst subgoal_insts) st
             val emBs = map (Thm.cterm_of ctxt o embed) (Thm.prems_of st')
             val Cth  = implies_elim_list st' (map (elim o Thm.assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
@@ -269,7 +269,7 @@ fun freeze_thaw_robust ctxt th =
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
                      |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
-         in  (Thm.instantiate ([],insts) fth, thaw)  end
+         in  (Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) insts) fth, thaw)  end
  end;
 
 (*Basic version of the function above. No option to rename Vars apart in thaw.
@@ -291,7 +291,7 @@ fun freeze_thaw ctxt th =
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)
                      |> forall_elim_list (map #1 insts)
-         in  (Thm.instantiate ([],insts) fth, thaw)  end
+         in  (Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) insts) fth, thaw)  end
  end;
 
 end;

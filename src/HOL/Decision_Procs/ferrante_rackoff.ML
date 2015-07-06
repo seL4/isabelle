@@ -58,6 +58,7 @@ let
    funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
      (funpow 4 Thm.dest_arg (Thm.cprop_of (hd minf)))
    |> Thm.dest_binop |> apply2 Thm.dest_binop |> apfst (apply2 Thm.dest_fun)
+   |> apply2 (apply2 (dest_Var o Thm.term_of))
 
  fun myfwd (th1, th2, th3, th4, th5) p1 p2
       [(th_1,th_2,th_3,th_4,th_5), (th_1',th_2',th_3',th_4',th_5')] =
@@ -73,7 +74,7 @@ let
   in (fw true th1 th_1 th_1', fw false th2 th_2 th_2',
       fw true th3 th_3 th_3', fw false th4 th_4 th_4', fw true th5 th_5 th_5')
   end
- val U_v = (Thm.dest_arg o Thm.dest_arg o Thm.dest_arg1) (Thm.cprop_of qe)
+ val U_v = dest_Var (Thm.term_of (Thm.dest_arg (Thm.dest_arg (Thm.dest_arg1 (Thm.cprop_of qe)))))
  fun main vs p =
   let
    val ((xn,ce),(x,fm)) = (case Thm.term_of p of
