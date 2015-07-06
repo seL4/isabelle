@@ -1281,36 +1281,22 @@ text \<open>
 \<close>
 
 
-section \<open>Quotient types\<close>
+section \<open>Quotient types with lifting and transfer\<close>
+
+text \<open>The quotient package defines a new quotient type given a raw type and
+  a partial equivalence relation (\secref{sec:quotient-type}). The package
+  also historically includes automation for transporting definitions and
+  theorems (\secref{sec:old-quotient}), but most of this automation was
+  superseded by the Lifting (\secref{sec:lifting}) and Transfer
+  (\secref{sec:transfer}) packages.\<close>
+
+
+subsection \<open>Quotient type definition \label{sec:quotient-type}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "print_quotmapsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotientsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
-    @{method_def (HOL) "lifting"} & : & @{text method} \\
-    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
-    @{method_def (HOL) "descending"} & : & @{text method} \\
-    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "regularize"} & : & @{text method} \\
-    @{method_def (HOL) "injection"} & : & @{text method} \\
-    @{method_def (HOL) "cleaning"} & : & @{text method} \\
-    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
   \end{matharray}
-
-  The quotient package defines a new quotient type given a raw type and a
-  partial equivalence relation. The package also historically includes
-  automation for transporting definitions and theorems. But most of this
-  automation was superseded by the Lifting (\secref{sec:lifting}) and
-  Transfer (\secref{sec:transfer}) packages. The user should consider using
-  these two new packages for lifting definitions and transporting theorems.
 
   @{rail \<open>
     @@{command (HOL) quotient_type} @{syntax typespec} @{syntax mixfix}? '='
@@ -1321,15 +1307,6 @@ text \<open>
     quot_morphisms: @'morphisms' @{syntax name} @{syntax name}
     ;
     quot_parametric: @'parametric' @{syntax thmref}
-    ;
-    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
-    @{syntax term} 'is' @{syntax term}
-    ;
-    constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-    ;
-    @@{method (HOL) lifting} @{syntax thmrefs}?
-    ;
-    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
   \<close>}
 
   \begin{description}
@@ -1354,97 +1331,12 @@ text \<open>
   package to generate a stronger transfer rule for equality.
 
   \end{description}
-
-  Most of the rest of the package was superseded by the Lifting
-  (\secref{sec:lifting}) and Transfer (\secref{sec:transfer}) packages.
-
-  \begin{description}
-
-  \item @{command (HOL) "quotient_definition"} defines a constant on the
-  quotient type.
-
-  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map functions.
-
-  \item @{command (HOL) "print_quotientsQ3"} prints quotients.
-
-  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
-
-  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
-  methods match the current goal with the given raw theorem to be lifted
-  producing three new subgoals: regularization, injection and cleaning
-  subgoals. @{method (HOL) "lifting"} tries to apply the heuristics for
-  automatically solving these three subgoals and leaves only the subgoals
-  unsolved by the heuristics to the user as opposed to @{method (HOL)
-  "lifting_setup"} which leaves the three subgoals unsolved.
-
-  \item @{method (HOL) "descending"} and @{method (HOL) "descending_setup"}
-  try to guess a raw statement that would lift to the current subgoal. Such
-  statement is assumed as a new subgoal and @{method (HOL) "descending"}
-  continues in the same way as @{method (HOL) "lifting"} does. @{method
-  (HOL) "descending"} tries to solve the arising regularization, injection
-  and cleaning subgoals with the analogous method @{method (HOL)
-  "descending_setup"} which leaves the four unsolved subgoals.
-
-  \item @{method (HOL) "partiality_descending"} finds the regularized
-  theorem that would lift to the current subgoal, lifts it and leaves as a
-  subgoal. This method can be used with partial equivalence quotients where
-  the non regularized statements would not be true. @{method (HOL)
-  "partiality_descending_setup"} leaves the injection and cleaning subgoals
-  unchanged.
-
-  \item @{method (HOL) "regularize"} applies the regularization heuristics
-  to the current subgoal.
-
-  \item @{method (HOL) "injection"} applies the injection heuristics to the
-  current goal using the stored quotient respectfulness theorems.
-
-  \item @{method (HOL) "cleaning"} applies the injection cleaning heuristics
-  to the current subgoal using the stored quotient preservation theorems.
-
-  \item @{attribute (HOL) quot_lifted} attribute tries to automatically
-  transport the theorem to the quotient type. The attribute uses all the
-  defined quotients types and quotient constants often producing undesired
-  results or theorems that cannot be lifted.
-
-  \item @{attribute (HOL) quot_respect} and @{attribute (HOL) quot_preserve}
-  attributes declare a theorem as a respectfulness and preservation theorem
-  respectively. These are stored in the local theory store and used by the
-  @{method (HOL) "injection"} and @{method (HOL) "cleaning"} methods
-  respectively.
-
-  \item @{attribute (HOL) quot_thm} declares that a certain theorem is a
-  quotient extension theorem. Quotient extension theorems allow for
-  quotienting inside container types. Given a polymorphic type that serves
-  as a container, a map function defined for this container using @{command
-  (HOL) "functor"} and a relation map defined for for the container type,
-  the quotient extension theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow>
-  Quotient3 (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
-  are stored in a database and are used all the steps of lifting theorems.
-
-  \end{description}
 \<close>
 
 
-chapter \<open>Proof tools\<close>
-
-section \<open>Lifting package \label{sec:lifting}\<close>
+subsection \<open>Lifting package \label{sec:lifting}\<close>
 
 text \<open>
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "lifting_forget"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lifting_update"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
-    @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\
-  \end{matharray}
-
   The Lifting package allows users to lift terms of the raw type to the
   abstract type, which is a necessary step in building a library for an
   abstract type. Lifting defines a new constant by combining coercion
@@ -1460,6 +1352,21 @@ text \<open>
 
   Theoretical background can be found in @{cite
   "Huffman-Kuncar:2013:lifting_transfer"}.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "lifting_forget"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "lifting_update"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
+    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
+    @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\
+  \end{matharray}
 
   @{rail \<open>
     @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
@@ -1671,7 +1578,7 @@ text \<open>
 \<close>
 
 
-section \<open>Transfer package \label{sec:transfer}\<close>
+subsection \<open>Transfer package \label{sec:transfer}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
@@ -1765,6 +1672,109 @@ text \<open>
   "Huffman-Kuncar:2013:lifting_transfer"}.
 \<close>
 
+
+subsection \<open>Old-style definitions for quotient types \label{sec:old-quotient}\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "print_quotmapsQ3"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotientsQ3"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
+    @{method_def (HOL) "lifting"} & : & @{text method} \\
+    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
+    @{method_def (HOL) "descending"} & : & @{text method} \\
+    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "regularize"} & : & @{text method} \\
+    @{method_def (HOL) "injection"} & : & @{text method} \\
+    @{method_def (HOL) "cleaning"} & : & @{text method} \\
+    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
+    @{syntax term} 'is' @{syntax term}
+    ;
+    constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
+    ;
+    @@{method (HOL) lifting} @{syntax thmrefs}?
+    ;
+    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
+  \<close>}
+
+  \begin{description}
+
+  \item @{command (HOL) "quotient_definition"} defines a constant on the
+  quotient type.
+
+  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map functions.
+
+  \item @{command (HOL) "print_quotientsQ3"} prints quotients.
+
+  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
+
+  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
+  methods match the current goal with the given raw theorem to be lifted
+  producing three new subgoals: regularization, injection and cleaning
+  subgoals. @{method (HOL) "lifting"} tries to apply the heuristics for
+  automatically solving these three subgoals and leaves only the subgoals
+  unsolved by the heuristics to the user as opposed to @{method (HOL)
+  "lifting_setup"} which leaves the three subgoals unsolved.
+
+  \item @{method (HOL) "descending"} and @{method (HOL) "descending_setup"}
+  try to guess a raw statement that would lift to the current subgoal. Such
+  statement is assumed as a new subgoal and @{method (HOL) "descending"}
+  continues in the same way as @{method (HOL) "lifting"} does. @{method
+  (HOL) "descending"} tries to solve the arising regularization, injection
+  and cleaning subgoals with the analogous method @{method (HOL)
+  "descending_setup"} which leaves the four unsolved subgoals.
+
+  \item @{method (HOL) "partiality_descending"} finds the regularized
+  theorem that would lift to the current subgoal, lifts it and leaves as a
+  subgoal. This method can be used with partial equivalence quotients where
+  the non regularized statements would not be true. @{method (HOL)
+  "partiality_descending_setup"} leaves the injection and cleaning subgoals
+  unchanged.
+
+  \item @{method (HOL) "regularize"} applies the regularization heuristics
+  to the current subgoal.
+
+  \item @{method (HOL) "injection"} applies the injection heuristics to the
+  current goal using the stored quotient respectfulness theorems.
+
+  \item @{method (HOL) "cleaning"} applies the injection cleaning heuristics
+  to the current subgoal using the stored quotient preservation theorems.
+
+  \item @{attribute (HOL) quot_lifted} attribute tries to automatically
+  transport the theorem to the quotient type. The attribute uses all the
+  defined quotients types and quotient constants often producing undesired
+  results or theorems that cannot be lifted.
+
+  \item @{attribute (HOL) quot_respect} and @{attribute (HOL) quot_preserve}
+  attributes declare a theorem as a respectfulness and preservation theorem
+  respectively. These are stored in the local theory store and used by the
+  @{method (HOL) "injection"} and @{method (HOL) "cleaning"} methods
+  respectively.
+
+  \item @{attribute (HOL) quot_thm} declares that a certain theorem is a
+  quotient extension theorem. Quotient extension theorems allow for
+  quotienting inside container types. Given a polymorphic type that serves
+  as a container, a map function defined for this container using @{command
+  (HOL) "functor"} and a relation map defined for for the container type,
+  the quotient extension theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow>
+  Quotient3 (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
+  are stored in a database and are used all the steps of lifting theorems.
+
+  \end{description}
+\<close>
+
+
+chapter \<open>Proof tools\<close>
 
 section \<open>Coercive subtyping\<close>
 
