@@ -12,7 +12,7 @@ subsection {* Relator and predicator properties *}
 
 lemma rel_setD1: "\<lbrakk> rel_set R A B; x \<in> A \<rbrakk> \<Longrightarrow> \<exists>y \<in> B. R x y"
   and rel_setD2: "\<lbrakk> rel_set R A B; y \<in> B \<rbrakk> \<Longrightarrow> \<exists>x \<in> A. R x y"
-by(simp_all add: rel_set_def)
+  by (simp_all add: rel_set_def)
 
 lemma rel_set_conversep [simp]: "rel_set A\<inverse>\<inverse> = (rel_set A)\<inverse>\<inverse>"
   unfolding rel_set_def by auto
@@ -23,33 +23,33 @@ lemma rel_set_eq [relator_eq]: "rel_set (op =) = (op =)"
 lemma rel_set_mono[relator_mono]:
   assumes "A \<le> B"
   shows "rel_set A \<le> rel_set B"
-using assms unfolding rel_set_def by blast
+  using assms unfolding rel_set_def by blast
 
 lemma rel_set_OO[relator_distr]: "rel_set R OO rel_set S = rel_set (R OO S)"
   apply (rule sym)
-  apply (intro ext, rename_tac X Z)
-  apply (rule iffI)
-  apply (rule_tac b="{y. (\<exists>x\<in>X. R x y) \<and> (\<exists>z\<in>Z. S y z)}" in relcomppI)
-  apply (simp add: rel_set_def, fast)
-  apply (simp add: rel_set_def, fast)
-  apply (simp add: rel_set_def, fast)
+  apply (intro ext)
+  subgoal for X Z
+    apply (rule iffI)
+    apply (rule relcomppI [where b="{y. (\<exists>x\<in>X. R x y) \<and> (\<exists>z\<in>Z. S y z)}"])
+    apply (simp add: rel_set_def, fast)+
+    done
   done
 
 lemma Domainp_set[relator_domain]:
   "Domainp (rel_set T) = (\<lambda>A. Ball A (Domainp T))"
-unfolding rel_set_def Domainp_iff[abs_def]
-apply (intro ext)
-apply (rule iffI) 
-apply blast
-apply (rename_tac A, rule_tac x="{y. \<exists>x\<in>A. T x y}" in exI, fast)
-done
+  unfolding rel_set_def Domainp_iff[abs_def]
+  apply (intro ext)
+  apply (rule iffI) 
+  apply blast
+  subgoal for A by (rule exI [where x="{y. \<exists>x\<in>A. T x y}"]) fast
+  done
 
 lemma left_total_rel_set[transfer_rule]: 
   "left_total A \<Longrightarrow> left_total (rel_set A)"
   unfolding left_total_def rel_set_def
   apply safe
-  apply (rename_tac X, rule_tac x="{y. \<exists>x\<in>X. A x y}" in exI, fast)
-done
+  subgoal for X by (rule exI [where x="{y. \<exists>x\<in>X. A x y}"]) fast
+  done
 
 lemma left_unique_rel_set[transfer_rule]: 
   "left_unique A \<Longrightarrow> left_unique (rel_set A)"
@@ -58,7 +58,7 @@ lemma left_unique_rel_set[transfer_rule]:
 
 lemma right_total_rel_set [transfer_rule]:
   "right_total A \<Longrightarrow> right_total (rel_set A)"
-using left_total_rel_set[of "A\<inverse>\<inverse>"] by simp
+  using left_total_rel_set[of "A\<inverse>\<inverse>"] by simp
 
 lemma right_unique_rel_set [transfer_rule]:
   "right_unique A \<Longrightarrow> right_unique (rel_set A)"
@@ -66,7 +66,7 @@ lemma right_unique_rel_set [transfer_rule]:
 
 lemma bi_total_rel_set [transfer_rule]:
   "bi_total A \<Longrightarrow> bi_total (rel_set A)"
-by(simp add: bi_total_alt_def left_total_rel_set right_total_rel_set)
+  by(simp add: bi_total_alt_def left_total_rel_set right_total_rel_set)
 
 lemma bi_unique_rel_set [transfer_rule]:
   "bi_unique A \<Longrightarrow> bi_unique (rel_set A)"
@@ -103,8 +103,10 @@ lemma Quotient_set[quot_map]:
   shows "Quotient (rel_set R) (image Abs) (image Rep) (rel_set T)"
   using assms unfolding Quotient_alt_def4
   apply (simp add: rel_set_OO[symmetric])
-  apply (simp add: rel_set_def, fast)
+  apply (simp add: rel_set_def)
+  apply fast
   done
+
 
 subsection {* Transfer rules for the Transfer package *}
 
@@ -112,6 +114,7 @@ subsubsection {* Unconditional transfer rules *}
 
 context
 begin
+
 interpretation lifting_syntax .
 
 lemma empty_transfer [transfer_rule]: "(rel_set A) {} {}"
@@ -147,11 +150,20 @@ lemma Bex_transfer [transfer_rule]:
 
 lemma Pow_transfer [transfer_rule]:
   "(rel_set A ===> rel_set (rel_set A)) Pow Pow"
-  apply (rule rel_funI, rename_tac X Y, rule rel_setI)
-  apply (rename_tac X', rule_tac x="{y\<in>Y. \<exists>x\<in>X'. A x y}" in rev_bexI, clarsimp)
-  apply (simp add: rel_set_def, fast)
-  apply (rename_tac Y', rule_tac x="{x\<in>X. \<exists>y\<in>Y'. A x y}" in rev_bexI, clarsimp)
-  apply (simp add: rel_set_def, fast)
+  apply (rule rel_funI)
+  apply (rule rel_setI)
+  subgoal for X Y X'
+    apply (rule rev_bexI [where x="{y\<in>Y. \<exists>x\<in>X'. A x y}"])
+    apply clarsimp
+    apply (simp add: rel_set_def)
+    apply fast
+    done
+  subgoal for X Y Y'
+    apply (rule rev_bexI [where x="{x\<in>X. \<exists>y\<in>Y'. A x y}"])
+    apply clarsimp
+    apply (simp add: rel_set_def)
+    apply fast
+    done
   done
 
 lemma rel_set_transfer [transfer_rule]:
@@ -257,8 +269,8 @@ lemma vimage_parametric [transfer_rule]:
 lemma Image_parametric [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_set (rel_prod A B) ===> rel_set A ===> rel_set B) op `` op ``"
-by(intro rel_funI rel_setI)
-  (force dest: rel_setD1 bi_uniqueDr[OF assms], force dest: rel_setD2 bi_uniqueDl[OF assms])
+  by (intro rel_funI rel_setI)
+    (force dest: rel_setD1 bi_uniqueDr[OF assms], force dest: rel_setD2 bi_uniqueDl[OF assms])
 
 end
 
@@ -266,7 +278,7 @@ lemma (in comm_monoid_set) F_parametric [transfer_rule]:
   fixes A :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
   assumes "bi_unique A"
   shows "rel_fun (rel_fun A (op =)) (rel_fun (rel_set A) (op =)) F F"
-proof(rule rel_funI)+
+proof (rule rel_funI)+
   fix f :: "'b \<Rightarrow> 'a" and g S T
   assume "rel_fun A (op =) f g" "rel_set A S T"
   with `bi_unique A` obtain i where "bij_betw i S T" "\<And>x. x \<in> S \<Longrightarrow> f x = g (i x)"
@@ -281,6 +293,6 @@ lemmas setprod_parametric = setprod.F_parametric
 lemma rel_set_UNION:
   assumes [transfer_rule]: "rel_set Q A B" "rel_fun Q (rel_set R) f g"
   shows "rel_set R (UNION A f) (UNION B g)"
-by transfer_prover
+  by transfer_prover
 
 end
