@@ -134,9 +134,9 @@ fun find_consts ctxt args = Pretty.writeln (pretty_consts ctxt args);
 local
 
 val criterion =
-  Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Strict ||
   Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
-  Parse.xname >> Loose;
+  Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.typ) >> Strict ||
+  Parse.typ >> Loose;
 
 val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
