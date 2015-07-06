@@ -28,13 +28,23 @@ lemma removeAll_commute:
 
 lemma remdups_hd_notin_tl:
   "remdups dl = h # t \<Longrightarrow> h \<notin> set t"
-  by (induct dl arbitrary: h t)
-     (case_tac [!] "a \<in> set dl", auto)
+proof (induct dl arbitrary: h t)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a dl)
+  then show ?case by (cases "a \<in> set dl") auto
+qed
 
 lemma remdups_repeat:
   "remdups dl = h # t \<Longrightarrow> t = remdups t"
-  by (induct dl arbitrary: h t, case_tac [!] "a \<in> set dl")
-     (simp_all, metis remdups_remdups)
+proof (induct dl arbitrary: h t)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a dl)
+  then show ?case by (cases "a \<in> set dl") (auto simp: remdups_remdups)
+qed
 
 lemma remdups_nil_noteq_cons:
   "remdups (h # t) \<noteq> remdups []"
@@ -89,7 +99,7 @@ definition [simp]: "card_remdups = length \<circ> remdups"
 definition [simp]: "foldr_remdups f xs e = foldr f (remdups xs) e"
 
 quotient_definition empty where "empty :: 'a dlist"
-  is "Nil" done
+  is "Nil" .
 
 quotient_definition insert where "insert :: 'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist"
   is "Cons" by (metis (mono_tags) List.insert_def dlist_eq_def remdups.simps(2) set_remdups)
@@ -150,7 +160,7 @@ lemma dlist_not_memb_remove:
   by descending (simp add: List.member_def)
 
 lemma dlist_no_memb_remove_insert:
-"\<not> member dl x \<Longrightarrow> remove x (insert x dl) = dl"
+  "\<not> member dl x \<Longrightarrow> remove x (insert x dl) = dl"
   by descending (simp add: List.member_def)
 
 lemma dlist_remove_empty:
@@ -270,19 +280,15 @@ lemma dlist_card_induct:
 
 lemma dlist_cases:
   "dl = empty \<or> (\<exists>h t. dl = insert h t \<and> \<not> member t h)"
-  apply (descending, simp add: List.member_def)
-  by (metis list.exhaust remdups_eq_nil_iff remdups_hd_notin_tl remdups_repeat)
+  by descending
+    (metis List.member_def dlist_eq_def hd_Cons_tl list_of_dlist_dlist remdups_hd_notin_tl remdups_list_of_dlist)
 
 lemma dlist_exhaust:
-  assumes "y = empty \<Longrightarrow> P"
-      and "\<And>a dl. y = insert a dl \<Longrightarrow> P"
-    shows "P"
-  using assms by (lifting list.exhaust)
+  obtains "y = empty" | a dl where "y = insert a dl"
+  by (lifting list.exhaust)
 
 lemma dlist_exhaust_stronger:
-  assumes "y = empty \<Longrightarrow> P"
-      and "\<And>a dl. y = insert a dl \<Longrightarrow> \<not> member dl a \<Longrightarrow> P"
-    shows "P"
-  using assms by (metis dlist_cases)
+  obtains "y = empty" | a dl where "y = insert a dl" "\<not> member dl a"
+  by (metis dlist_cases)
 
 end
