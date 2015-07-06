@@ -58,9 +58,7 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   nicely, but they also mean that HOL requires some sophistication
   from the user.  In particular, an understanding of Hindley-Milner
   type-inference with type-classes, which are both used extensively in
-  the standard libraries and applications.  Beginners can set
-  @{attribute show_types} or even @{attribute show_sorts} to get more
-  explicit information about the result of type-inference.\<close>
+  the standard libraries and applications.\<close>
 
 
 chapter \<open>Derived specification elements\<close>
