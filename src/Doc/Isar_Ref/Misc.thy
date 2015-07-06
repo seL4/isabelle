@@ -27,14 +27,14 @@ text \<open>
       @@{command print_theorems} |
       @@{command print_facts}) ('!'?)
     ;
-    @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thmcriterion * )
+    @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thm_criterion*)
     ;
-    thmcriterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
+    thm_criterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
     ;
-    @@{command find_consts} (constcriterion * )
+    @@{command find_consts} (const_criterion*)
     ;
-    constcriterion: ('-'?)
+    const_criterion: ('-'?)
       ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
     ;
     @@{command thm_deps} @{syntax thmrefs}
