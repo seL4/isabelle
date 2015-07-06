@@ -1465,22 +1465,15 @@ text \<open>
   @{rail \<open>
     @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
       (@'parametric' @{syntax thmref})?
-  \<close>}
-
-  @{rail \<open>
-    @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? @{syntax name} '::' @{syntax type}  \<newline>
-      @{syntax mixfix}? 'is' @{syntax term} (@'parametric' (@{syntax thmref}+))?
-  \<close>}
-
-  @{rail \<open>
+    ;
+    @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? \<newline>
+      @{syntax name} '::' @{syntax type} @{syntax mixfix}? 'is' @{syntax term} \<newline>
+      (@'parametric' (@{syntax thmref}+))?
+    ;
     @@{command (HOL) lifting_forget} @{syntax nameref}
-  \<close>}
-
-  @{rail \<open>
+    ;
     @@{command (HOL) lifting_update} @{syntax nameref}
-  \<close>}
-
-  @{rail \<open>
+    ;
     @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?
   \<close>}
 
