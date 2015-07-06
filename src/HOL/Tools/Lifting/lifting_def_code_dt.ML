@@ -801,16 +801,17 @@ fun lift_def_cmd_with_err_handling (params, (raw_var, rhs_raw, par_xthms)) lthy 
 val parse_param = Parse.name
 val parse_params = Scan.optional (Args.parens (Parse.list parse_param)) [];
 
-(* parser and command *)
-val liftdef_parser =
-  parse_params --
-  (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix') >> Parse.triple2)
-    --| @{keyword "is"} -- Parse.term --
-      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1)
+
+(* command syntax *)
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword "lift_definition"}
     "definition for constants over the quotient type"
-      (liftdef_parser >> lift_def_cmd_with_err_handling)
+    (parse_params --
+      (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')
+          >> Parse.triple2) --
+        (@{keyword "is"} |-- Parse.term) --
+        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1)
+     >> lift_def_cmd_with_err_handling);
 
 end

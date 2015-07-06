@@ -6,10 +6,10 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
-  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) * 
+  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) *
     ((binding * binding) option * thm option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
 
-  val quotient_type: (string list * binding * mixfix) * (typ * term * bool) * 
+  val quotient_type: (string list * binding * mixfix) * (typ * term * bool) *
     ((binding * binding) option * thm option) -> Proof.context -> Proof.state
 
   val quotient_type_cmd: (((((string list * binding) * mixfix) * string) * (bool * string)) *
@@ -22,8 +22,8 @@ struct
 
 (*** definition of quotient types ***)
 
-val mem_def1 = @{lemma "y : Collect S ==> S y" by simp}
-val mem_def2 = @{lemma "S y ==> y : Collect S" by simp}
+val mem_def1 = @{lemma "y \<in> Collect S \<Longrightarrow> S y" by simp}
+val mem_def2 = @{lemma "S y \<Longrightarrow> y \<in> Collect S" by simp}
 
 (* constructs the term {c. EX (x::rty). rel x x \<and> c = Collect (rel x)} *)
 fun typedef_term rel rty lthy =
@@ -76,7 +76,7 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
     Goal.prove lthy [] [] goal
       (fn {context = ctxt, ...} => typedef_quot_type_tac ctxt equiv_thm typedef_info)
   end
-   
+
 open Lifting_Util
 
 infix 0 MRSL
@@ -91,12 +91,12 @@ fun define_cr_rel equiv_thm abs_fun lthy =
       in
         Envir.subst_term_types ty_inst rel
       end
-  
+
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
     val abs_fun_graph = HOLogic.mk_eq(abs_fun $ Bound 1, Bound 0)
     val Abs_body = (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
       Const (@{const_name equivp}, _) $ _ => abs_fun_graph
-      | Const (@{const_name part_equivp}, _) $ rel => 
+      | Const (@{const_name part_equivp}, _) $ rel =>
         HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
       | _ => error "unsupported equivalence theorem"
       )
@@ -138,7 +138,7 @@ fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
     val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o Thm.prop_of) quot_thm
     val (qtyp, rtyp) = (dest_funT o fastype_of) rep
     val qty_full_name = (fst o dest_Type) qtyp
-    val quotients = {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm, 
+    val quotients = {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm,
       quot_thm = quot_thm }
     fun quot_info phi = Quotient_Info.transform_quotients phi quotients
     val abs_rep = {abs = abs, rep = rep}
@@ -200,7 +200,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, op
     val equiv_thm_name = Binding.suffix_name "_equivp" qty_name
 
     (* storing the quotients *)
-    val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm, 
+    val quotients = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm,
       quot_thm = quotient_thm}
 
     val lthy4 = lthy3
@@ -333,20 +333,18 @@ fun quotient_type_cmd spec lthy =
     quotient_type spec' lthy
   end
 
-val partial = Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false
 
-val quotspec_parser =
-     (Parse.type_args -- Parse.binding) --
-      (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
-      Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
-        (@{keyword "/"} |-- (partial -- Parse.term))  --
-        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-          -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
+(* command syntax *)
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword quotient_type}
     "quotient type definitions (require equivalence proofs)"
-      (quotspec_parser >> quotient_type_cmd)
+      (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
+      (Parse.type_args -- Parse.binding --
+        Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) -- (@{keyword "/"} |--
+          Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false -- Parse.term) --
+        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) --
+        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
+      >> quotient_type_cmd)
 
-
-end;
+end

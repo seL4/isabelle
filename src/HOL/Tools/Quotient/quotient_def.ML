@@ -203,15 +203,13 @@ val quotient_def = gen_quotient_def Proof_Context.cert_var (K I)
 val quotient_def_cmd = gen_quotient_def Proof_Context.read_var Syntax.parse_term
 
 
-(* parser and command *)
-val quotdef_parser =
-  Scan.option Parse_Spec.constdecl --
-    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| @{keyword "is"} -- Parse.term))
+(* command syntax *)
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword quotient_definition}
     "definition for constants over the quotient type"
-      (quotdef_parser >> quotient_def_cmd)
+      (Scan.option Parse_Spec.constdecl --
+        Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term -- (@{keyword "is"} |-- Parse.term)))
+        >> quotient_def_cmd);
 
-
-end; (* structure *)
+end;
