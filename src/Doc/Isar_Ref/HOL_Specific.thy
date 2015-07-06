@@ -1506,7 +1506,7 @@ text \<open>
   \item @{command (HOL) "print_quotients"} prints stored quotient theorems.
 
   \item @{attribute (HOL) quot_map} registers a quotient map theorem, a
-  theorem showing how to "lift" quotients over type constructors. E.g.\
+  theorem showing how to ``lift'' quotients over type constructors. E.g.\
   @{term "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image
   Rep) (rel_set T)"}. For examples see @{file "~~/src/HOL/Lifting_Set.thy"}
   or @{file "~~/src/HOL/Lifting.thy"}. This property is proved automatically
@@ -1559,11 +1559,11 @@ text \<open>
   @{text pcr_def} and @{text pcr_cr_eq_thm} can be specified to register the
   parametrized correspondence relation for @{text \<tau>}. E.g.\ for @{typ "'a
   dlist"}, @{text pcr_def} is @{text "pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
-  cr_dlist"} and @{text pcr_cr_eq_thm} is @{text "pcr_dlist op= = op="}.
-  This attribute is rather used for low-level manipulation with set-up of
-  the Lifting package because using of the bundle @{text \<tau>.lifting} together
-  with the commands @{command (HOL) lifting_forget} and @{command (HOL)
-  lifting_update} is preferred for normal usage.
+  cr_dlist"} and @{text pcr_cr_eq_thm} is @{text "pcr_dlist (op =) = (op
+  =)"}. This attribute is rather used for low-level manipulation with set-up
+  of the Lifting package because using of the bundle @{text \<tau>.lifting}
+  together with the commands @{command (HOL) lifting_forget} and @{command
+  (HOL) lifting_update} is preferred for normal usage.
 
   \item Integration with the BNF package @{cite "isabelle-datatypes"}: As
   already mentioned, the theorems that are registered by the following
