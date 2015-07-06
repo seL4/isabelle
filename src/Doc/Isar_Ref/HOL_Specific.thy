@@ -1313,21 +1313,20 @@ text \<open>
   lifting definitions and transporting theorems.
 
   @{rail \<open>
-    @@{command (HOL) quotient_type} (spec)
+    @@{command (HOL) quotient_type} @{syntax typespec} @{syntax mixfix}? '='
+      quot_type \<newline> quot_morphisms? quot_parametric?
     ;
-    spec: @{syntax typespec} @{syntax mixfix}? '=' \<newline>
-     @{syntax type} '/' ('partial' ':')? @{syntax term} \<newline>
-     (@'morphisms' @{syntax name} @{syntax name})? (@'parametric' @{syntax thmref})?
-  \<close>}
-
-  @{rail \<open>
+    quot_type: @{syntax type} '/' ('partial' ':')? @{syntax term}
+    ;
+    quot_morphisms: @'morphisms' @{syntax name} @{syntax name}
+    ;
+    quot_parametric: @'parametric' @{syntax thmref}
+    ;
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
     @{syntax term} 'is' @{syntax term}
     ;
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-  \<close>}
-
-  @{rail \<open>
+    ;
     @@{method (HOL) lifting} @{syntax thmrefs}?
     ;
     @@{method (HOL) lifting_setup} @{syntax thmrefs}?
