@@ -1449,9 +1449,9 @@ text \<open>
   The Lifting package allows users to lift terms of the raw type to the
   abstract type, which is a necessary step in building a library for an
   abstract type. Lifting defines a new constant by combining coercion
-  functions (Abs and Rep) with the raw term. It also proves an appropriate
-  transfer rule for the Transfer package and, if possible, an equation for
-  the code generator.
+  functions (@{term Abs} and @{term Rep}) with the raw term. It also proves
+  an appropriate transfer rule for the Transfer (\secref{sec:transfer})
+  package and, if possible, an equation for the code generator.
 
   The Lifting package provides two main commands: @{command (HOL)
   "setup_lifting"} for initializing the package to work with a new type, and
