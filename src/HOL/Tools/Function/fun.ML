@@ -158,8 +158,7 @@ fun gen_add_fun add lthy =
       Pat_Completeness.pat_completeness_tac ctxt 1
       THEN auto_tac ctxt
     fun prove_termination lthy =
-      Function.prove_termination NONE
-        (Function_Common.termination_prover_tac lthy) lthy
+      Function.prove_termination NONE (Function_Common.termination_prover_tac false lthy) lthy
   in
     lthy
     |> add pat_completeness_auto |> snd

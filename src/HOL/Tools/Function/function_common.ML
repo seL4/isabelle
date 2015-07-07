@@ -82,8 +82,9 @@ sig
   val store_termination_rule : thm -> Context.generic -> Context.generic
   val get_functions : Proof.context -> (term * info) Item_Net.T
   val add_function_data : info -> Context.generic -> Context.generic
-  val termination_prover_tac : Proof.context -> tactic
-  val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
+  val termination_prover_tac : bool -> Proof.context -> tactic
+  val set_termination_prover : (bool -> Proof.context -> tactic) -> Context.generic ->
+    Context.generic
   val get_preproc: Proof.context -> preproc
   val set_preproc: preproc -> Context.generic -> Context.generic
   datatype function_result = FunctionResult of
@@ -262,7 +263,7 @@ structure Data = Generic_Data
   type T =
     thm list *
     (term * info) Item_Net.T *
-    (Proof.context -> tactic) *
+    (bool -> Proof.context -> tactic) *
     preproc
   val empty: T =
    ([],
@@ -288,7 +289,7 @@ fun add_function_data (info : info as {fs, termination, ...}) =
   (Data.map o @{apply 4(2)}) (fold (fn f => Item_Net.update (f, info)) fs)
   #> store_termination_rule termination
 
-fun termination_prover_tac ctxt = #3 (Data.get (Context.Proof ctxt)) ctxt
+fun termination_prover_tac quiet ctxt = #3 (Data.get (Context.Proof ctxt)) quiet ctxt
 val set_termination_prover = Data.map o @{apply 4(3)} o K
 
 val get_preproc = #4 o Data.get o Context.Proof

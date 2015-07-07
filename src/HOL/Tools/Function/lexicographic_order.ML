@@ -216,6 +216,6 @@ fun lexicographic_order_tac quiet ctxt =
 val _ =
   Theory.setup
     (Context.theory_map
-      (Function_Common.set_termination_prover (lexicographic_order_tac false)))
+      (Function_Common.set_termination_prover lexicographic_order_tac))
 
 end;
