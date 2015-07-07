@@ -53,7 +53,7 @@ sig
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> (typ list -> typ -> typ -> term -> term) ->
     typ list -> typ -> typ -> term -> term
-  val expand_to_ctr_term: Proof.context -> string -> typ list -> term -> term
+  val expand_to_ctr_term: Proof.context -> typ -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
     typ list -> term -> term
   val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
@@ -392,17 +392,16 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
     (if has_call t0 then massage_any_call else massage_noncall) bound_Ts U T t0
   end;
 
-fun expand_to_ctr_term ctxt s Ts t =
+fun expand_to_ctr_term ctxt (T as Type (s, Ts)) t =
   (case ctr_sugar_of ctxt s of
-    SOME {ctrs, casex, ...} =>
-    Term.list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
+    SOME {ctrs, casex, ...} => Term.list_comb (mk_case Ts T casex, map (mk_ctr Ts) ctrs) $ t
   | NONE => raise Fail "expand_to_ctr_term");
 
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
-    Type (s, Ts) =>
+    T as Type (s, _) =>
     massage_let_if_case_corec ctxt has_call (fn _ => fn t =>
-      if can (dest_ctr ctxt s) t then t else expand_to_ctr_term ctxt s Ts t) bound_Ts t
+      if can (dest_ctr ctxt s) t then t else expand_to_ctr_term ctxt T t) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
