@@ -104,6 +104,10 @@ lemma rtranclp_mono: "r \<le> s ==> r^** \<le> s^**"
    apply (rule_tac [2] rtranclp.rtrancl_into_rtrancl, blast+)
   done
 
+lemma mono_rtranclp[mono]:
+   "(\<And>a b. x a b \<longrightarrow> y a b) \<Longrightarrow> x^** a b \<longrightarrow> y^** a b"
+   using rtranclp_mono[of x y] by auto
+
 lemmas rtrancl_mono = rtranclp_mono [to_set]
 
 theorem rtranclp_induct [consumes 1, case_names base step, induct set: rtranclp]:
