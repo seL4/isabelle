@@ -77,6 +77,9 @@ object Keyword
   val qed = Set(QED, QED_SCRIPT, QED_BLOCK)
   val qed_global = Set(QED_GLOBAL)
 
+  val proof_open = proof_goal + PRF_OPEN
+  val proof_close = qed + PRF_CLOSE
+
 
 
   /** keyword tables **/

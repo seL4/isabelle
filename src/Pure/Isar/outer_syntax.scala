@@ -164,16 +164,11 @@ final class Outer_Syntax private(
       ((structure.span_depth, structure.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
-            if (tok.is_command_kind(keywords, Keyword.theory_goal))
-              (2, 1)
-            else if (tok.is_command_kind(keywords, Keyword.theory))
-              (1, 0)
-            else if (tok.is_command_kind(keywords, Keyword.proof_goal) || tok.is_begin_block)
-              (y + 2, y + 1)
-            else if (tok.is_command_kind(keywords, Keyword.qed) || tok.is_end_block)
-              (y + 1, y - 1)
-            else if (tok.is_command_kind(keywords, Keyword.qed_global))
-              (1, 0)
+            if (tok.is_command_kind(keywords, Keyword.theory_goal)) (2, 1)
+            else if (tok.is_command_kind(keywords, Keyword.theory)) (1, 0)
+            else if (tok.is_command_kind(keywords, Keyword.proof_open)) (y + 2, y + 1)
+            else if (tok.is_command_kind(keywords, Keyword.proof_close)) (y + 1, y - 1)
+            else if (tok.is_command_kind(keywords, Keyword.qed_global)) (1, 0)
             else (x, y)
           }
           else (x, y)
