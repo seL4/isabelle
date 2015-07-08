@@ -1363,8 +1363,17 @@ lemma Gcd_2 [simp]: "Gcd {a,b} = gcd a b"
   by (simp add: gcd_0)
 
 subclass semiring_gcd
-  by unfold_locales (simp_all add: gcd_greatest_iff)
-  
+  apply standard
+  using gcd_right_idem
+  apply (simp_all add: lcm_gcd gcd_greatest_iff gcd_proj1_if_dvd)
+  done
+
+subclass semiring_Gcd
+  by standard (simp_all add: Gcd_greatest)
+
+subclass semiring_Lcm
+  by standard (simp add: Lcm_Gcd)
+
 end
 
 text \<open>
@@ -1382,7 +1391,7 @@ subclass ring_gcd ..
 lemma euclid_ext_gcd [simp]:
   "(case euclid_ext a b of (_, _ , t) \<Rightarrow> t) = gcd a b"
   by (induct a b rule: gcd_eucl_induct)
-    (simp_all add: euclid_ext_0 gcd_0 euclid_ext_non_0 ac_simps split: prod.split prod.split_asm)
+    (simp_all add: euclid_ext_0 euclid_ext_non_0 ac_simps split: prod.split prod.split_asm)
 
 lemma euclid_ext_gcd' [simp]:
   "euclid_ext a b = (r, s, t) \<Longrightarrow> t = gcd a b"
@@ -1453,9 +1462,6 @@ begin
 definition [simp]:
   "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
 
-definition [simp]:
-  "unit_factor_nat (n::nat) = (if n = 0 then 0 else 1 :: nat)"
-
 instance proof
 qed simp_all
 
@@ -1467,11 +1473,8 @@ begin
 definition [simp]:
   "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
 
-definition [simp]:
-  "unit_factor_int = (sgn :: int \<Rightarrow> int)"
-
 instance
-by standard (auto simp add: abs_mult nat_mult_distrib sgn_times split: abs_split)
+by standard (auto simp add: abs_mult nat_mult_distrib split: abs_split)
 
 end
 

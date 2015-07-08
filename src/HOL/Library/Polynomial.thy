@@ -1832,7 +1832,7 @@ lemma poly_gcd_greatest:
 lemma dvd_poly_gcd_iff [iff]:
   fixes k x y :: "_ poly"
   shows "k dvd gcd x y \<longleftrightarrow> k dvd x \<and> k dvd y"
-  by (blast intro!: poly_gcd_greatest intro: dvd_trans)
+  by (auto intro!: poly_gcd_greatest intro: dvd_trans [of _ "gcd x y"])
 
 lemma poly_gcd_monic:
   fixes x y :: "_ poly"
