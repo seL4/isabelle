@@ -295,7 +295,7 @@ local
   fun tac prove ctxt rules =
     CONVERSION (SMT_Normalize.atomize_conv ctxt)
     THEN' rtac @{thm ccontr}
-    THEN' SUBPROOF (fn {context = ctxt, prems, ...} => resolve (prove ctxt (rules @ prems))) ctxt
+    THEN' SUBPROOF (fn {context = ctxt', prems, ...} => resolve (prove ctxt' (rules @ prems))) ctxt
 in
 
 val smt_tac = tac safe_solve

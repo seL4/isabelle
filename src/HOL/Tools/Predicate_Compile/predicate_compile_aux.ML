@@ -947,7 +947,7 @@ fun instantiated_case_rewrite thy Tcon =
     val U = TFree ("'u", @{sort type})
     val y = Free (yname, U)
     val f' = absdummy (U --> T') (Bound 0 $ y)
-    val th' = Thm.certify_instantiate ctxt
+    val th' = Thm.certify_instantiate ctxt'
       ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
        [((fst (dest_Var f), (U --> T') --> T'), f')]) th
     val [th'] = Variable.export (Variable.declare_thm th' ctxt') ctxt [th']
