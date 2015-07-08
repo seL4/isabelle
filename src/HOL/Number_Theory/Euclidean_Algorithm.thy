@@ -794,15 +794,15 @@ sublocale lcm!: abel_semigroup lcm ..
 
 lemma dvd_lcm_D1:
   "lcm m n dvd k \<Longrightarrow> m dvd k"
-  by (rule dvd_trans, rule lcm_dvd1, assumption)
+  by (rule dvd_trans, rule dvd_lcm1, assumption)
 
 lemma dvd_lcm_D2:
   "lcm m n dvd k \<Longrightarrow> n dvd k"
-  by (rule dvd_trans, rule lcm_dvd2, assumption)
+  by (rule dvd_trans, rule dvd_lcm2, assumption)
 
 lemma gcd_dvd_lcm [simp]:
   "gcd a b dvd lcm a b"
-  by (metis dvd_trans gcd_dvd2 lcm_dvd2)
+  using gcd_dvd2 by (rule dvd_lcmI2)
 
 lemma lcm_1_iff:
   "lcm a b = 1 \<longleftrightarrow> is_unit a \<and> is_unit b"
@@ -829,14 +829,6 @@ lemma lcm_unique:
   normalize d = d \<and>
   (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by rule (auto intro: lcmI simp: lcm_least lcm_zero)
-
-lemma dvd_lcm_I1 [simp]:
-  "k dvd m \<Longrightarrow> k dvd lcm m n"
-  by (metis lcm_dvd1 dvd_trans)
-
-lemma dvd_lcm_I2 [simp]:
-  "k dvd n \<Longrightarrow> k dvd lcm m n"
-  by (metis lcm_dvd2 dvd_trans)
 
 lemma lcm_coprime:
   "gcd a b = 1 \<Longrightarrow> lcm a b = normalize (a * b)"
@@ -874,8 +866,8 @@ lemma euclidean_size_lcm_le1:
   assumes "a \<noteq> 0" and "b \<noteq> 0"
   shows "euclidean_size a \<le> euclidean_size (lcm a b)"
 proof -
-  have "a dvd lcm a b" by (rule lcm_dvd1)
-  then obtain c where A: "lcm a b = a * c" unfolding dvd_def by blast
+  have "a dvd lcm a b" by (rule dvd_lcm1)
+  then obtain c where A: "lcm a b = a * c" ..
   with \<open>a \<noteq> 0\<close> and \<open>b \<noteq> 0\<close> have "c \<noteq> 0" by (auto simp: lcm_zero)
   then show ?thesis by (subst A, intro size_mult_mono)
 qed
@@ -905,12 +897,7 @@ lemma euclidean_size_lcm_less2:
 
 lemma lcm_mult_unit1:
   "is_unit a \<Longrightarrow> lcm (b * a) c = lcm b c"
-  apply (rule lcmI)
-  apply (rule dvd_trans[of _ "b * a"], simp, rule lcm_dvd1)
-  apply (rule lcm_dvd2)
-  apply (rule lcm_least, simp add: unit_simps, assumption)
-  apply simp
-  done
+  by (rule associated_eqI) (simp_all add: mult_unit_dvd_iff dvd_lcmI1)
 
 lemma lcm_mult_unit2:
   "is_unit a \<Longrightarrow> lcm b (c * a) = lcm b c"
@@ -944,22 +931,11 @@ lemma normalize_lcm_right [simp]:
 
 lemma lcm_left_idem:
   "lcm a (lcm a b) = lcm a b"
-  apply (rule lcmI)
-  apply simp
-  apply (subst lcm.assoc [symmetric], rule lcm_dvd2)
-  apply (rule lcm_least, assumption)
-  apply (erule (1) lcm_least)
-  apply (auto simp: lcm_zero)
-  done
+  by (rule associated_eqI) simp_all
 
 lemma lcm_right_idem:
   "lcm (lcm a b) b = lcm a b"
-  apply (rule lcmI)
-  apply (subst lcm.assoc, rule lcm_dvd1)
-  apply (rule lcm_dvd2)
-  apply (rule lcm_least, erule (1) lcm_least, assumption)
-  apply (auto simp: lcm_zero)
-  done
+  by (rule associated_eqI) simp_all
 
 lemma comp_fun_idem_lcm: "comp_fun_idem lcm"
 proof
@@ -1012,10 +988,10 @@ proof -
         also note \<open>euclidean_size l = n\<close>
         finally show "euclidean_size (gcd l l') \<le> n" .
       qed
-      ultimately have "euclidean_size l = euclidean_size (gcd l l')" 
+      ultimately have *: "euclidean_size l = euclidean_size (gcd l l')" 
         by (intro le_antisym, simp_all add: \<open>euclidean_size l = n\<close>)
-      with \<open>l \<noteq> 0\<close> have "l dvd gcd l l'"
-        using dvd_euclidean_size_eq_imp_dvd by auto
+      from \<open>l \<noteq> 0\<close> have "l dvd gcd l l'"
+        by (rule dvd_euclidean_size_eq_imp_dvd) (auto simp add: *)
       hence "l dvd l'" by (blast dest: dvd_gcd_D2)
     }
 

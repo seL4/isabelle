@@ -18,7 +18,7 @@ proof
   assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
-    and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
+    and "coprime m n" by (rule Rats_abs_nat_div_natE)
   have eq: "m\<^sup>2 = p * n\<^sup>2"
   proof -
     from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
@@ -38,9 +38,8 @@ proof
     then have "p dvd n\<^sup>2" ..
     with \<open>prime p\<close> show "p dvd n" by (rule prime_dvd_power_nat)
   qed
-  then have "p dvd gcd m n" ..
-  with gcd have "p dvd 1" by simp
-  then have "p \<le> 1" by (simp add: dvd_imp_le)
+  then have "p dvd gcd m n" by simp
+  with \<open>coprime m n\<close> have "p = 1" by simp
   with p show False by simp
 qed
 
@@ -64,7 +63,7 @@ proof
   assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
-    and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
+    and "coprime m n" by (rule Rats_abs_nat_div_natE)
   from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
   then have "m\<^sup>2 = (sqrt p)\<^sup>2 * n\<^sup>2"
     by (auto simp add: power2_eq_square)
@@ -79,8 +78,7 @@ proof
   then have "p dvd n\<^sup>2" ..
   with \<open>prime p\<close> have "p dvd n" by (rule prime_dvd_power_nat)
   with dvd_m have "p dvd gcd m n" by (rule gcd_greatest_nat)
-  with gcd have "p dvd 1" by simp
-  then have "p \<le> 1" by (simp add: dvd_imp_le)
+  with \<open>coprime m n\<close> have "p = 1" by simp
   with p show False by simp
 qed
 

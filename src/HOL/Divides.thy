@@ -118,8 +118,8 @@ lemma mod_mult_self1_is_0 [simp]: "b * a mod b = 0"
 lemma mod_mult_self2_is_0 [simp]: "a * b mod b = 0"
   using mod_mult_self1 [of 0 a b] by simp
 
-lemma div_by_1 [simp]: "a div 1 = a"
-  using div_mult_self2_is_id [of 1 a] zero_neq_one by simp
+lemma div_by_1: "a div 1 = a"
+  by (fact divide_1)
 
 lemma mod_by_1 [simp]: "a mod 1 = 0"
 proof -
@@ -377,20 +377,6 @@ lemma mult_mod_left: "(a mod b) * c = (a * c) mod (b * c)"
 
 lemma mult_mod_right: "c * (a mod b) = (c * a) mod (c * b)"
   by (fact mod_mult_mult1 [symmetric])
-
-lemma dvd_times_left_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
-  assumes "c \<noteq> 0"
-  shows "c * a dvd c * b \<longleftrightarrow> a dvd b"
-proof -
-  have "(c * b) mod (c * a) = 0 \<longleftrightarrow> b mod a = 0" (is "?P \<longleftrightarrow> ?Q")
-    using assms by (simp add: mod_mult_mult1)
-  then show ?thesis by (simp add: mod_eq_0_iff_dvd)
-qed
-
-lemma dvd_times_right_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
-  assumes "c \<noteq> 0"
-  shows "a * c dvd b * c \<longleftrightarrow> a dvd b"
-  using assms dvd_times_left_cancel_iff [of c a b] by (simp add: ac_simps)
 
 lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod n)"
   unfolding dvd_def by (auto simp add: mod_mult_mult1)

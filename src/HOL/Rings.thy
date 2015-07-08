@@ -629,6 +629,44 @@ next
   then show ?thesis by simp
 qed 
 
+lemma divide_1 [simp]:
+  "a div 1 = a"
+  using nonzero_mult_divide_cancel_left [of 1 a] by simp
+
+lemma dvd_times_left_cancel_iff [simp]:
+  assumes "a \<noteq> 0"
+  shows "a * b dvd a * c \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P then obtain d where "a * c = a * b * d" ..
+  with assms have "c = b * d" by (simp add: ac_simps)
+  then show ?Q ..
+next
+  assume ?Q then obtain d where "c = b * d" .. 
+  then have "a * c = a * b * d" by (simp add: ac_simps)
+  then show ?P ..
+qed
+  
+lemma dvd_times_right_cancel_iff [simp]:
+  assumes "a \<noteq> 0"
+  shows "b * a dvd c * a \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
+using dvd_times_left_cancel_iff [of a b c] assms by (simp add: ac_simps)
+  
+lemma div_dvd_iff_mult:
+  assumes "b \<noteq> 0" and "b dvd a"
+  shows "a div b dvd c \<longleftrightarrow> a dvd c * b"
+proof -
+  from \<open>b dvd a\<close> obtain d where "a = b * d" ..
+  with \<open>b \<noteq> 0\<close> show ?thesis by (simp add: ac_simps)
+qed
+
+lemma dvd_div_iff_mult:
+  assumes "c \<noteq> 0" and "c dvd b"
+  shows "a dvd b div c \<longleftrightarrow> a * c dvd b"
+proof -
+  from \<open>c dvd b\<close> obtain d where "b = c * d" ..
+  with \<open>c \<noteq> 0\<close> show ?thesis by (simp add: mult.commute [of a])
+qed
+
 end
 
 class idom_divide = idom + semidom_divide
