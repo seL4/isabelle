@@ -182,11 +182,21 @@ proof -
 qed
 
 lemma order_decomp:
-     "p \<noteq> 0
-      ==> \<exists>q. p = [:-a, 1:] ^ (order a p) * q &
-                ~([:-a, 1:] dvd q)"
-apply (drule order [where a=a])
-by (metis dvdE dvd_mult_cancel_left power_Suc2)
+  assumes "p \<noteq> 0"
+  shows "\<exists>q. p = [:- a, 1:] ^ order a p * q \<and> \<not> [:- a, 1:] dvd q"
+proof -
+  from assms have A: "[:- a, 1:] ^ order a p dvd p"
+    and B: "\<not> [:- a, 1:] ^ Suc (order a p) dvd p" by (auto dest: order)
+  from A obtain q where C: "p = [:- a, 1:] ^ order a p * q" ..
+  with B have "\<not> [:- a, 1:] ^ Suc (order a p) dvd [:- a, 1:] ^ order a p * q"
+    by simp
+  then have "\<not> [:- a, 1:] ^ order a p * [:- a, 1:] dvd [:- a, 1:] ^ order a p * q"
+    by simp
+  then have D: "\<not> [:- a, 1:] dvd q"
+    using idom_class.dvd_mult_cancel_left [of "[:- a, 1:] ^ order a p" "[:- a, 1:]" q]
+    by auto
+  from C D show ?thesis by blast
+qed
 
 lemma order_pderiv: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
       ==> (order a p = Suc (order a (pderiv p)))"

@@ -228,16 +228,15 @@ lemma gcd_zero [simp]:
   "gcd a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
   by (metis dvd_0_left dvd_refl gcd_dvd1 gcd_dvd2 gcd_greatest)+
 
-lemma unit_factor_gcd [simp]:
-  "unit_factor (gcd a b) = (if a = 0 \<and> b = 0 then 0 else 1)" (is "?f a b = ?g a b")
-  by (induct a b rule: gcd_eucl_induct)
-    (auto simp add: gcd_0 gcd_non_0)
+lemma normalize_gcd [simp]:
+  "normalize (gcd a b) = gcd a b"
+  by (induct a b rule: gcd_eucl_induct) (simp_all add: gcd_0 gcd_non_0)
 
 lemma gcdI:
   assumes "c dvd a" and "c dvd b" and greatest: "\<And>d. d dvd a \<Longrightarrow> d dvd b \<Longrightarrow> d dvd c"
-    and "unit_factor c = (if c = 0 then 0 else 1)"
+    and "normalize c = c"
   shows "c = gcd a b"
-  by (rule associated_eqI) (auto simp: assms associated_def intro: gcd_greatest)
+  by (rule associated_eqI) (auto simp: assms intro: gcd_greatest)
 
 sublocale gcd!: abel_semigroup gcd
 proof
@@ -251,10 +250,10 @@ proof
     moreover have "gcd (gcd a b) c dvd c" by simp
     ultimately show "gcd (gcd a b) c dvd gcd b c"
       by (rule gcd_greatest)
-    show "unit_factor (gcd (gcd a b) c) =  (if gcd (gcd a b) c = 0 then 0 else 1)"
+    show "normalize (gcd (gcd a b) c) = gcd (gcd a b) c"
       by auto
     fix l assume "l dvd a" and "l dvd gcd b c"
-    with dvd_trans[OF _ gcd_dvd1] and dvd_trans[OF _ gcd_dvd2]
+    with dvd_trans [OF _ gcd_dvd1] and dvd_trans [OF _ gcd_dvd2]
       have "l dvd b" and "l dvd c" by blast+
     with \<open>l dvd a\<close> show "l dvd gcd (gcd a b) c"
       by (intro gcd_greatest)
@@ -266,9 +265,9 @@ next
 qed
 
 lemma gcd_unique: "d dvd a \<and> d dvd b \<and> 
-    unit_factor d = (if d = 0 then 0 else 1) \<and>
+    normalize d = d \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
-  by (rule, auto intro: gcdI simp: gcd_greatest)
+  by rule (auto intro: gcdI simp: gcd_greatest)
 
 lemma gcd_dvd_prod: "gcd a b dvd k * b"
   using mult_dvd_mono [of 1] by auto
@@ -378,10 +377,9 @@ lemma euclidean_size_gcd_less2:
 
 lemma gcd_mult_unit1: "is_unit a \<Longrightarrow> gcd (b * a) c = gcd b c"
   apply (rule gcdI)
+  apply simp_all
   apply (rule dvd_trans, rule gcd_dvd1, simp add: unit_simps)
-  apply (rule gcd_dvd2)
   apply (rule gcd_greatest, simp add: unit_simps, assumption)
-  apply (subst unit_factor_gcd, simp add: gcd_0)
   done
 
 lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
@@ -461,7 +459,7 @@ proof (rule gcdI)
   with A show "gcd a b dvd c" by (rule dvd_trans)
   have "gcd c d dvd d" by simp
   with A show "gcd a b dvd d" by (rule dvd_trans)
-  show "unit_factor (gcd a b) = (if gcd a b = 0 then 0 else 1)"
+  show "normalize (gcd a b) = gcd a b"
     by simp
   fix l assume "l dvd c" and "l dvd d"
   hence "l dvd gcd c d" by (rule gcd_greatest)
@@ -484,22 +482,27 @@ qed
 
 lemma coprime_crossproduct:
   assumes [simp]: "gcd a d = 1" "gcd b c = 1"
-  shows "associated (a * c) (b * d) \<longleftrightarrow> associated a b \<and> associated c d" (is "?lhs \<longleftrightarrow> ?rhs")
+  shows "normalize (a * c) = normalize (b * d) \<longleftrightarrow> normalize a  = normalize b \<and> normalize c = normalize d"
+    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?rhs then show ?lhs unfolding associated_def by (fast intro: mult_dvd_mono)
+  assume ?rhs
+  then have "a dvd b" "b dvd a" "c dvd d" "d dvd c" by (simp_all add: associated_iff_dvd)
+  then have "a * c dvd b * d" "b * d dvd a * c" by (fast intro: mult_dvd_mono)+
+  then show ?lhs by (simp add: associated_iff_dvd)
 next
   assume ?lhs
-  from \<open>?lhs\<close> have "a dvd b * d" unfolding associated_def by (metis dvd_mult_left) 
+  then have dvd: "a * c dvd b * d" "b * d dvd a * c" by (simp_all add: associated_iff_dvd)
+  then have "a dvd b * d" by (metis dvd_mult_left) 
   hence "a dvd b" by (simp add: coprime_dvd_mult_iff)
-  moreover from \<open>?lhs\<close> have "b dvd a * c" unfolding associated_def by (metis dvd_mult_left) 
+  moreover from dvd have "b dvd a * c" by (metis dvd_mult_left) 
   hence "b dvd a" by (simp add: coprime_dvd_mult_iff)
-  moreover from \<open>?lhs\<close> have "c dvd d * b" 
-    unfolding associated_def by (auto dest: dvd_mult_right simp add: ac_simps)
+  moreover from dvd have "c dvd d * b" 
+    by (auto dest: dvd_mult_right simp add: ac_simps)
   hence "c dvd d" by (simp add: coprime_dvd_mult_iff gcd.commute)
-  moreover from \<open>?lhs\<close> have "d dvd c * a"
-    unfolding associated_def by (auto dest: dvd_mult_right simp add: ac_simps)
+  moreover from dvd have "d dvd c * a"
+    by (auto dest: dvd_mult_right simp add: ac_simps)
   hence "d dvd c" by (simp add: coprime_dvd_mult_iff gcd.commute)
-  ultimately show ?rhs unfolding associated_def by simp
+  ultimately show ?rhs by (simp add: associated_iff_dvd)
 qed
 
 lemma gcd_add1 [simp]:
@@ -616,19 +619,29 @@ lemma coprime_exp2 [intro]:
   apply assumption
   done
 
+lemma lcm_gcd:
+  "lcm a b = normalize (a * b) div gcd a b"
+  by (simp add: lcm_lcm_eucl gcd_gcd_eucl lcm_eucl_def)
+
+subclass semiring_gcd
+  apply standard
+  using gcd_right_idem
+  apply (simp_all add: lcm_gcd gcd_greatest_iff gcd_proj1_if_dvd)
+  done
+
 lemma gcd_exp:
-  "gcd (a^n) (b^n) = (gcd a b) ^ n"
+  "gcd (a ^ n) (b ^ n) = gcd a b ^ n"
 proof (cases "a = 0 \<and> b = 0")
-  assume "a = 0 \<and> b = 0"
-  then show ?thesis by (cases n, simp_all add: gcd_0_left)
+  case True
+  then show ?thesis by (cases n) simp_all
 next
-  assume A: "\<not>(a = 0 \<and> b = 0)"
-  hence "1 = gcd ((a div gcd a b)^n) ((b div gcd a b)^n)"
-    using div_gcd_coprime by (subst sym, auto simp: div_gcd_coprime)
-  hence "(gcd a b) ^ n = (gcd a b) ^ n * ..." by simp
+  case False
+  then have "1 = gcd ((a div gcd a b) ^ n) ((b div gcd a b) ^ n)"
+    using div_gcd_coprime by (subst sym) (auto simp: div_gcd_coprime)
+  then have "gcd a b ^ n = gcd a b ^ n * ..." by simp
   also note gcd_mult_distrib
-  also have "unit_factor ((gcd a b)^n) = 1"
-    by (simp add: unit_factor_power A)
+  also have "unit_factor (gcd a b ^ n) = 1"
+    using False by (auto simp add: unit_factor_power unit_factor_gcd)
   also have "(gcd a b)^n * (a div gcd a b)^n = a^n"
     by (subst ac_simps, subst div_power, simp, rule dvd_div_mult_self, rule dvd_power_same, simp)
   also have "(gcd a b)^n * (b div gcd a b)^n = b^n"
@@ -749,16 +762,6 @@ proof -
     by (simp add: ac_simps)
 qed
 
-lemma lcm_gcd:
-  "lcm a b = normalize (a * b) div gcd a b"
-  by (simp add: lcm_lcm_eucl gcd_gcd_eucl lcm_eucl_def)
-
-subclass semiring_gcd
-  apply standard
-  using gcd_right_idem
-  apply (simp_all add: lcm_gcd gcd_greatest_iff gcd_proj1_if_dvd)
-  done
-
 lemma lcm_gcd_prod:
   "lcm a b * gcd a b = normalize (a * b)"
   by (simp add: lcm_gcd)
@@ -783,9 +786,9 @@ declare unit_factor_lcm [simp]
 
 lemma lcmI:
   assumes "a dvd c" and "b dvd c" and "\<And>d. a dvd d \<Longrightarrow> b dvd d \<Longrightarrow> c dvd d"
-    and "unit_factor c = (if c = 0 then 0 else 1)"
+    and "normalize c = c"
   shows "c = lcm a b"
-  by (rule associated_eqI) (auto simp: assms intro: associatedI lcm_least)
+  by (rule associated_eqI) (auto simp: assms intro: lcm_least)
 
 sublocale lcm!: abel_semigroup lcm ..
 
@@ -823,9 +826,9 @@ lemma lcm_0:
 
 lemma lcm_unique:
   "a dvd d \<and> b dvd d \<and> 
-  unit_factor d = (if d = 0 then 0 else 1) \<and>
+  normalize d = d \<and>
   (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (rule, auto intro: lcmI simp: lcm_least lcm_zero)
+  by rule (auto intro: lcmI simp: lcm_least lcm_zero)
 
 lemma dvd_lcm_I1 [simp]:
   "k dvd m \<Longrightarrow> k dvd lcm m n"
@@ -906,7 +909,7 @@ lemma lcm_mult_unit1:
   apply (rule dvd_trans[of _ "b * a"], simp, rule lcm_dvd1)
   apply (rule lcm_dvd2)
   apply (rule lcm_least, simp add: unit_simps, assumption)
-  apply (subst unit_factor_lcm, simp add: lcm_zero)
+  apply simp
   done
 
 lemma lcm_mult_unit2:
@@ -1035,12 +1038,19 @@ qed
 
 lemma normalize_Lcm [simp]:
   "normalize (Lcm A) = Lcm A"
-  by (cases "Lcm A = 0") (auto intro: associated_eqI)
+proof (cases "Lcm A = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  have "unit_factor (Lcm A) * normalize (Lcm A) = Lcm A"
+    by (fact unit_factor_mult_normalize)
+  with False show ?thesis by simp
+qed
 
 lemma LcmI:
   assumes "\<And>a. a \<in> A \<Longrightarrow> a dvd b" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> a dvd c) \<Longrightarrow> b dvd c"
-    and "unit_factor b = (if b = 0 then 0 else 1)" shows "b = Lcm A"
-  by (rule associated_eqI) (auto simp: assms associated_def intro: Lcm_least)
+    and "normalize b = b" shows "b = Lcm A"
+  by (rule associated_eqI) (auto simp: assms intro: Lcm_least)
 
 lemma Lcm_subset:
   "A \<subseteq> B \<Longrightarrow> Lcm A dvd Lcm B"
@@ -1204,16 +1214,23 @@ qed
 
 lemma normalize_Gcd [simp]:
   "normalize (Gcd A) = Gcd A"
-  by (cases "Gcd A = 0") (auto intro: associated_eqI)
+proof (cases "Gcd A = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  have "unit_factor (Gcd A) * normalize (Gcd A) = Gcd A"
+    by (fact unit_factor_mult_normalize)
+  with False show ?thesis by simp
+qed
 
 subclass semiring_Gcd
   by standard (simp_all add: Gcd_greatest)
 
 lemma GcdI:
   assumes "\<And>a. a \<in> A \<Longrightarrow> b dvd a" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> c dvd a) \<Longrightarrow> c dvd b"
-    and "unit_factor b = (if b = 0 then 0 else 1)"
+    and "normalize b = b"
   shows "b = Gcd A"
-  by (rule associated_eqI) (auto simp: assms associated_def intro: Gcd_greatest)
+  by (rule associated_eqI) (auto simp: assms intro: Gcd_greatest)
 
 lemma Lcm_Gcd:
   "Lcm A = Gcd {m. \<forall>a\<in>A. a dvd m}"

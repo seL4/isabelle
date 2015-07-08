@@ -1001,7 +1001,7 @@ lemma rat_inverse_code [code abstract]:
     in if a = 0 then (0, 1) else (sgn a * b, \<bar>a\<bar>))"
 proof (cases p)
   case (Fract a b) then show ?thesis
-    by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract gcd_int.commute)
+    by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract gcd.commute)
 qed
 
 lemma rat_divide_code [code abstract]:

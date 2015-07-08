@@ -67,7 +67,7 @@ lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (cases m)
   apply (auto simp add: fib_add)
   apply (metis gcd_commute_nat mult.commute coprime_fib_Suc_nat
-    gcd_add_mult_nat gcd_mult_cancel_nat gcd_nat.commute)
+    gcd_add_mult_nat gcd_mult_cancel_nat gcd.commute)
   done
 
 lemma gcd_fib_diff: "m \<le> n \<Longrightarrow> gcd (fib m) (fib (n - m)) = gcd (fib m) (fib n)"

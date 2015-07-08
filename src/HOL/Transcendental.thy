@@ -3602,11 +3602,15 @@ next
     done
 qed
 
-lemma sin_zero_iff_int2: "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = real n * pi)"
+lemma sin_zero_iff_int2:
+  "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = real n * pi)"
   apply (simp only: sin_zero_iff_int)
   apply (safe elim!: evenE)
   apply (simp_all add: field_simps)
-  using dvd_triv_left by fastforce
+  apply (subst real_numeral(1) [symmetric])
+  apply (simp only: real_of_int_mult [symmetric] real_of_int_inject)
+  apply auto
+  done
 
 lemma cos_monotone_0_pi:
   assumes "0 \<le> y" and "y < x" and "x \<le> pi"

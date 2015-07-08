@@ -636,6 +636,13 @@ class idom_divide = idom + semidom_divide
 class algebraic_semidom = semidom_divide
 begin
 
+text \<open>
+  Class @{class algebraic_semidom} enriches a integral domain
+  by notions from algebra, like units in a ring.
+  It is a separate class to avoid spoiling fields with notions
+  which are degenerated there.
+\<close>
+
 lemma dvd_div_mult_self [simp]:
   "a dvd b \<Longrightarrow> b div a * a = b"
   by (cases "a = 0") (auto elim: dvdE simp add: ac_simps)
@@ -834,83 +841,10 @@ proof -
     by (rule dvd_div_mult2_eq)
 qed
 
-
-text \<open>Associated elements in a ring --- an equivalence relation induced
-  by the quasi-order divisibility.\<close>
-
-definition associated :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-where
-  "associated a b \<longleftrightarrow> a dvd b \<and> b dvd a"
-
-lemma associatedI:
-  "a dvd b \<Longrightarrow> b dvd a \<Longrightarrow> associated a b"
-  by (simp add: associated_def)
-
-lemma associatedD1:
-  "associated a b \<Longrightarrow> a dvd b"
-  by (simp add: associated_def)
-
-lemma associatedD2:
-  "associated a b \<Longrightarrow> b dvd a"
-  by (simp add: associated_def)
-
-lemma associated_refl [simp]:
-  "associated a a"
-  by (auto intro: associatedI)
-
-lemma associated_sym:
-  "associated b a \<longleftrightarrow> associated a b"
-  by (auto intro: associatedI dest: associatedD1 associatedD2)
-
-lemma associated_trans:
-  "associated a b \<Longrightarrow> associated b c \<Longrightarrow> associated a c"
-  by (auto intro: associatedI dvd_trans dest: associatedD1 associatedD2)
-
-lemma associated_0 [simp]:
-  "associated 0 b \<longleftrightarrow> b = 0"
-  "associated a 0 \<longleftrightarrow> a = 0"
-  by (auto dest: associatedD1 associatedD2)
-
-lemma associated_unit:
-  "associated a b \<Longrightarrow> is_unit a \<Longrightarrow> is_unit b"
-  using dvd_unit_imp_unit by (auto dest!: associatedD1 associatedD2)
-
-lemma is_unit_associatedI:
-  assumes "is_unit c" and "a = c * b"
-  shows "associated a b"
-proof (rule associatedI)
-  from `a = c * b` show "b dvd a" by auto
-  from `is_unit c` obtain d where "c * d = 1" by (rule is_unitE)
-  moreover from `a = c * b` have "d * a = d * (c * b)" by simp
-  ultimately have "b = a * d" by (simp add: ac_simps)
-  then show "a dvd b" ..
-qed
-
-lemma associated_is_unitE:
-  assumes "associated a b"
-  obtains c where "is_unit c" and "a = c * b"
-proof (cases "b = 0")
-  case True with assms have "is_unit 1" and "a = 1 * b" by simp_all
-  with that show thesis .
-next
-  case False
-  from assms have "a dvd b" and "b dvd a" by (auto dest: associatedD1 associatedD2)
-  then obtain c d where "b = a * d" and "a = b * c" by (blast elim: dvdE)
-  then have "a = c * b" and "(c * d) * b = 1 * b" by (simp_all add: ac_simps)
-  with False have "c * d = 1" using mult_cancel_right [of "c * d" b 1] by simp
-  then have "is_unit c" by auto
-  with `a = c * b` that show thesis by blast
-qed
-
 lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff
   dvd_div_unit_iff unit_div_mult_swap unit_div_commute
   unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel
   unit_eq_div1 unit_eq_div2
-
-end
-
-context algebraic_semidom
-begin
 
 lemma is_unit_divide_mult_cancel_left:
   assumes "a \<noteq> 0" and "is_unit b"
@@ -940,6 +874,16 @@ class normalization_semidom = algebraic_semidom +
     "a \<noteq> 0 \<Longrightarrow> is_unit (unit_factor a)"
   assumes unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
 begin
+
+text \<open>
+  Class @{class normalization_semidom} cultivates the idea that
+  each integral domain can be split into equivalence classes
+  whose representants are associated, i.e. divide each other.
+  @{const normalize} specifies a canonical representant for each equivalence
+  class.  The rationale behind this is that it is easier to reason about equality
+  than equivalences, hence we prefer to think about equality of normalized
+  values rather than associated elements.
+\<close>
 
 lemma unit_factor_dvd [simp]:
   "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd b"
@@ -1140,54 +1084,74 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma associated_normalize_left [simp]:
-  "associated (normalize a) b \<longleftrightarrow> associated a b"
-  by (auto simp add: associated_def)
+text \<open>
+  We avoid an explicit definition of associated elements but prefer
+  explicit normalisation instead.  In theory we could define an abbreviation
+  like @{prop "associated a b \<longleftrightarrow> normalize a = normalize b"} but this is
+  counterproductive without suggestive infix syntax, which we do not want
+  to sacrifice for this purpose here.
+\<close>
 
-lemma associated_normalize_right [simp]:
-  "associated a (normalize b) \<longleftrightarrow> associated a b"
-  by (auto simp add: associated_def)
-
-lemma associated_iff_normalize:
-  "associated a b \<longleftrightarrow> normalize a = normalize b" (is "?P \<longleftrightarrow> ?Q")
+lemma associatedI:
+  assumes "a dvd b" and "b dvd a"
+  shows "normalize a = normalize b"
 proof (cases "a = 0 \<or> b = 0")
-  case True then show ?thesis by auto
+  case True with assms show ?thesis by auto
 next
   case False
-  show ?thesis
-  proof
-    assume ?P then show ?Q
-      by (rule associated_is_unitE) (simp add: normalize_mult is_unit_normalize)
+  from \<open>a dvd b\<close> obtain c where b: "b = a * c" ..
+  moreover from \<open>b dvd a\<close> obtain d where a: "a = b * d" ..
+  ultimately have "b * 1 = b * (c * d)" by (simp add: ac_simps)
+  with False have "1 = c * d"
+    unfolding mult_cancel_left by simp
+  then have "is_unit c" and "is_unit d" by auto
+  with a b show ?thesis by (simp add: normalize_mult is_unit_normalize)
+qed
+
+lemma associatedD1:
+  "normalize a = normalize b \<Longrightarrow> a dvd b"
+  using dvd_normalize_iff [of _ b, symmetric] normalize_dvd_iff [of a _, symmetric]
+  by simp
+
+lemma associatedD2:
+  "normalize a = normalize b \<Longrightarrow> b dvd a"
+  using dvd_normalize_iff [of _ a, symmetric] normalize_dvd_iff [of b _, symmetric]
+  by simp
+
+lemma associated_unit:
+  "normalize a = normalize b \<Longrightarrow> is_unit a \<Longrightarrow> is_unit b"
+  using dvd_unit_imp_unit by (auto dest!: associatedD1 associatedD2)
+
+lemma associated_iff_dvd:
+  "normalize a = normalize b \<longleftrightarrow> a dvd b \<and> b dvd a" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q then show ?P by (auto intro!: associatedI)
+next
+  assume ?P
+  then have "unit_factor a * normalize a = unit_factor a * normalize b"
+    by simp
+  then have *: "normalize b * unit_factor a = a"
+    by (simp add: ac_simps)
+  show ?Q
+  proof (cases "a = 0 \<or> b = 0")
+    case True with \<open>?P\<close> show ?thesis by auto
   next
-    from False have *: "is_unit (unit_factor a div unit_factor b)"
-      by auto
-    assume ?Q then have "unit_factor a * normalize a = unit_factor a * normalize b"
-      by simp
-    then have "a = unit_factor a * (b div unit_factor b)"
-      by simp
-    with False have "a = (unit_factor a div unit_factor b) * b"
-      by (simp add: unit_div_commute unit_div_mult_swap [symmetric])
-    with * show ?P 
-      by (rule is_unit_associatedI)
+    case False 
+    then have "b dvd normalize b * unit_factor a" and "normalize b * unit_factor a dvd b"
+      by (simp_all add: mult_unit_dvd_iff dvd_mult_unit_iff)
+    with * show ?thesis by simp
   qed
 qed
 
 lemma associated_eqI:
-  assumes "associated a b"
-  assumes "a \<noteq> 0 \<Longrightarrow> unit_factor a = 1" and "b \<noteq> 0 \<Longrightarrow> unit_factor b = 1"
+  assumes "a dvd b" and "b dvd a"
+  assumes "normalize a = a" and "normalize b = b"
   shows "a = b"
-proof (cases "a = 0")
-  case True with assms show ?thesis by simp
-next
-  case False with assms have "b \<noteq> 0" by auto
-  with False assms have "unit_factor a = unit_factor b"
-    by simp
-  moreover from assms have "normalize a = normalize b"
-    by (simp add: associated_iff_normalize)
-  ultimately have "unit_factor a * normalize a = unit_factor b * normalize b"
-    by simp
-  then show ?thesis
-    by simp
+proof -
+  from assms have "normalize a = normalize b"
+    unfolding associated_iff_dvd by simp
+  with \<open>normalize a = a\<close> have "a = normalize b" by simp
+  with \<open>normalize b = b\<close> show "a = b" by simp
 qed
 
 end

@@ -74,16 +74,6 @@ qed
 
 end
 
-context algebraic_semidom
-begin
-
-lemma associated_1 [simp]:
-  "associated 1 a \<longleftrightarrow> is_unit a"
-  "associated a 1 \<longleftrightarrow> is_unit a"
-  by (auto simp add: associated_def)
-
-end
-
 declare One_nat_def [simp del]
 
 subsection {* GCD and LCM definitions *}
@@ -116,29 +106,11 @@ lemma gcd_greatest_iff [iff]:
 
 lemma gcd_0_left [simp]:
   "gcd 0 a = normalize a"
-proof (rule associated_eqI)
-  show "associated (gcd 0 a) (normalize a)"
-    by (auto intro!: associatedI gcd_greatest)
-  show "unit_factor (gcd 0 a) = 1" if "gcd 0 a \<noteq> 0"
-  proof -
-    from that have "unit_factor (normalize (gcd 0 a)) = 1"
-      by (rule unit_factor_normalize)
-    then show ?thesis by simp
-  qed
-qed simp
+  by (rule associated_eqI) simp_all
 
 lemma gcd_0_right [simp]:
   "gcd a 0 = normalize a"
-proof (rule associated_eqI)
-  show "associated (gcd a 0) (normalize a)"
-    by (auto intro!: associatedI gcd_greatest)
-  show "unit_factor (gcd a 0) = 1" if "gcd a 0 \<noteq> 0"
-  proof -
-    from that have "unit_factor (normalize (gcd a 0)) = 1"
-      by (rule unit_factor_normalize)
-    then show ?thesis by simp
-  qed
-qed simp
+  by (rule associated_eqI) simp_all
   
 lemma gcd_eq_0_iff [simp]:
   "gcd a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0" (is "?P \<longleftrightarrow> ?Q")
@@ -169,7 +141,7 @@ sublocale gcd!: abel_semigroup gcd
 proof
   fix a b c
   show "gcd a b = gcd b a"
-    by (rule associated_eqI) (auto intro: associatedI gcd_greatest simp add: unit_factor_gcd)
+    by (rule associated_eqI) simp_all
   from gcd_dvd1 have "gcd (gcd a b) c dvd a"
     by (rule dvd_trans) simp
   moreover from gcd_dvd1 have "gcd (gcd a b) c dvd b"
@@ -182,10 +154,8 @@ proof
     by (rule dvd_trans) simp
   ultimately have P2: "gcd a (gcd b c) dvd gcd (gcd a b) c"
     by (auto intro!: gcd_greatest)
-  from P1 P2 have "associated (gcd (gcd a b) c) (gcd a (gcd b c))"
-    by (rule associatedI)
-  then show "gcd (gcd a b) c = gcd a (gcd b c)"
-    by (rule associated_eqI) (simp_all add: unit_factor_gcd)
+  from P1 P2 show "gcd (gcd a b) c = gcd a (gcd b c)"
+    by (rule associated_eqI) simp_all
 qed
 
 lemma gcd_self [simp]:
@@ -193,15 +163,13 @@ lemma gcd_self [simp]:
 proof -
   have "a dvd gcd a a"
     by (rule gcd_greatest) simp_all
-  then have "associated (gcd a a) (normalize a)"
-    by (auto intro: associatedI)
   then show ?thesis
-    by (auto intro: associated_eqI simp add: unit_factor_gcd)
+    by (auto intro: associated_eqI)
 qed
     
 lemma coprime_1_left [simp]:
   "coprime 1 a"
-  by (rule associated_eqI) (simp_all add: unit_factor_gcd)
+  by (rule associated_eqI) simp_all
 
 lemma coprime_1_right [simp]:
   "coprime a 1"
@@ -218,7 +186,7 @@ next
   moreover from calculation False have "gcd (c * a) (c * b) dvd c * gcd a b"
     by (metis div_dvd_iff_mult dvd_mult_left gcd_dvd1 gcd_dvd2 gcd_greatest mult_commute)
   ultimately have "normalize (gcd (c * a) (c * b)) = normalize (c * gcd a b)"
-    by - (rule associated_eqI, auto intro: associated_eqI associatedI simp add: unit_factor_gcd)
+    by (auto intro: associated_eqI)
   then show ?thesis by (simp add: normalize_mult)
 qed
 
@@ -318,14 +286,15 @@ proof
   fix a b c
   show "lcm a b = lcm b a"
     by (simp add: lcm_gcd ac_simps normalize_mult dvd_normalize_div)
-  have "associated (lcm (lcm a b) c) (lcm a (lcm b c))"
-    by (auto intro!: associatedI lcm_least
+  have "lcm (lcm a b) c dvd lcm a (lcm b c)"
+    and "lcm a (lcm b c) dvd lcm (lcm a b) c"
+    by (auto intro: lcm_least
       dvd_trans [of b "lcm b c" "lcm a (lcm b c)"]
       dvd_trans [of c "lcm b c" "lcm a (lcm b c)"]
       dvd_trans [of a "lcm a b" "lcm (lcm a b) c"]
       dvd_trans [of b "lcm a b" "lcm (lcm a b) c"])
   then show "lcm (lcm a b) c = lcm a (lcm b c)"
-    by (rule associated_eqI) (simp_all add: unit_factor_lcm lcm_eq_0_iff)
+    by (rule associated_eqI) simp_all
 qed
 
 lemma lcm_self [simp]:
@@ -333,10 +302,8 @@ lemma lcm_self [simp]:
 proof -
   have "lcm a a dvd a"
     by (rule lcm_least) simp_all
-  then have "associated (lcm a a) (normalize a)"
-    by (auto intro: associatedI)
   then show ?thesis
-    by (rule associated_eqI) (auto simp add: unit_factor_lcm)
+    by (auto intro: associated_eqI)
 qed
 
 lemma gcd_mult_lcm [simp]:
@@ -471,10 +438,8 @@ proof -
       ultimately show ?thesis by (blast intro: dvd_trans)
     qed
   qed
-  ultimately have "associated (Gcd (insert a A)) (gcd a (Gcd A))"
-    by (rule associatedI)
-  then show ?thesis
-    by (rule associated_eqI) (auto simp add: unit_factor_gcd unit_factor_Gcd)
+  ultimately show ?thesis
+    by (auto intro: associated_eqI)
 qed
 
 lemma dvd_Gcd: -- \<open>FIXME remove\<close>
@@ -507,10 +472,10 @@ proof -
     ultimately show "Gcd (normalize ` A) dvd a"
       by simp
   qed
-  then have "associated (Gcd (normalize ` A)) (Gcd A)"
-    by (auto intro!: associatedI Gcd_greatest intro: Gcd_dvd)
+  then have "Gcd (normalize ` A) dvd Gcd A" and "Gcd A dvd Gcd (normalize ` A)"
+    by (auto intro!: Gcd_greatest intro: Gcd_dvd)
   then show ?thesis
-    by (rule associated_eqI) (simp_all add: unit_factor_Gcd, auto dest!: bspec)
+    by (auto intro: associated_eqI)
 qed
 
 lemma Lcm_least:
@@ -604,10 +569,8 @@ proof (rule sym)
       ultimately show ?thesis by (blast intro: dvd_trans)
     qed
   qed
-  ultimately have "associated (lcm a (Lcm A)) (Lcm (insert a A))"
-    by (rule associatedI)
-  then show "lcm a (Lcm A) = Lcm (insert a A)"
-    by (rule associated_eqI) (simp_all add: unit_factor_lcm unit_factor_Lcm lcm_eq_0_iff)
+  ultimately show "lcm a (Lcm A) = Lcm (insert a A)"
+    by (rule associated_eqI) (simp_all add: lcm_eq_0_iff)
 qed
   
 lemma Lcm_set [code_unfold]:

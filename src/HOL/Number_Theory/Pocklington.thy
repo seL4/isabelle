@@ -98,9 +98,9 @@ lemma cong_solve_unique_nontrivial:
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = a] (mod p)"
 proof-
   from pa have ap: "coprime a p"
-    by (metis gcd_nat.commute) 
+    by (metis gcd.commute) 
   have px:"coprime x p"
-    by (metis gcd_nat.commute p prime x0 xp)
+    by (metis gcd.commute p prime x0 xp)
   obtain y where y: "y < p" "[x * y = a] (mod p)" "\<forall>z. z < p \<and> [x * z = a] (mod p) \<longrightarrow> z = y"
     by (metis cong_solve_unique neq0_conv p prime_gt_0_nat px)
   {assume y0: "y = 0"
@@ -114,7 +114,7 @@ qed
 lemma cong_unique_inverse_prime:
   assumes p: "prime p" and x0: "0 < x" and xp: "x < p"
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = 1] (mod p)"
-by (metis cong_solve_unique_nontrivial gcd_lcm_complete_lattice_nat.inf_bot_left gcd_nat.commute assms) 
+by (metis cong_solve_unique_nontrivial gcd_lcm_complete_lattice_nat.inf_bot_left gcd.commute assms) 
 
 lemma chinese_remainder_coprime_unique:
   fixes a::nat 
@@ -157,7 +157,7 @@ proof -
     by auto
   also have "... \<le> card {x. 0 < x \<and> x < n \<and> coprime x n}"
     apply (rule card_mono) using assms
-    by auto (metis dual_order.antisym gcd_1_int gcd_int.commute int_one_le_iff_zero_less)
+    by auto (metis dual_order.antisym gcd_1_int gcd.commute int_one_le_iff_zero_less)
   also have "... = phi n"
     by (simp add: phi_def)
   finally show ?thesis .
@@ -242,7 +242,7 @@ proof-
   from mod_less_divisor[of n 1] n01 have onen: "1 mod n = 1" by simp
   from lucas_coprime_lemma[OF n01(3) an1] cong_imp_coprime_nat an1
   have an: "coprime a n" "coprime (a^(n - 1)) n"
-    by (auto simp add: coprime_exp_nat gcd_nat.commute)
+    by (auto simp add: coprime_exp_nat gcd.commute)
   {assume H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "EX m. ?P m")
     from H0[unfolded nat_exists_least_iff[of ?P]] obtain m where
       m: "0 < m" "m < n - 1" "[a ^ m = 1] (mod n)" "\<forall>k <m. \<not>?P k" by blast
@@ -251,7 +251,7 @@ proof-
       let ?y = "a^ ((n - 1) div m * m)"
       note mdeq = mod_div_equality[of "(n - 1)" m]
       have yn: "coprime ?y n"
-        by (metis an(1) coprime_exp_nat gcd_nat.commute)
+        by (metis an(1) coprime_exp_nat gcd.commute)
       have "?y mod n = (a^m)^((n - 1) div m) mod n"
         by (simp add: algebra_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n"
@@ -310,7 +310,7 @@ proof-
   moreover
   {assume "n\<noteq>0 \<and> n\<noteq>1" hence n2:"n \<ge> 2" by arith
     from assms have na': "coprime a n"
-      by (metis gcd_nat.commute)
+      by (metis gcd.commute)
     from phi_lowerbound_1_nat[OF n2] euler_theorem_nat [OF na']
     have ex: "\<exists>m>0. ?P m" by - (rule exI[where x="phi n"], auto) }
   ultimately have ex: "\<exists>m>0. ?P m" by blast
@@ -367,7 +367,7 @@ next
       obtain p where p: "p dvd n" "p dvd a" "p \<noteq> 1" by auto
       from lh
       obtain q1 q2 where q12:"a ^ d + n * q1 = 1 + n * q2"
-        by (metis H d0 gcd_nat.commute lucas_coprime_lemma) 
+        by (metis H d0 gcd.commute lucas_coprime_lemma) 
       hence "a ^ d + n * q1 - n * q2 = 1" by simp
       with dvd_diff_nat [OF dvd_add [OF divides_rexp]]  dvd_mult2  d' p
       have "p dvd 1"
@@ -404,7 +404,7 @@ qed
 
 lemma order_divides_phi: 
   fixes n::nat shows "coprime n a \<Longrightarrow> ord n a dvd phi n"
-  by (metis ord_divides euler_theorem_nat gcd_nat.commute)
+  by (metis ord_divides euler_theorem_nat gcd.commute)
 
 lemma order_divides_expdiff:
   fixes n::nat and a::nat assumes na: "coprime n a"
@@ -415,11 +415,11 @@ proof-
     hence "\<exists>c. d = e + c" by presburger
     then obtain c where c: "d = e + c" by presburger
     from na have an: "coprime a n"
-      by (metis gcd_nat.commute)
+      by (metis gcd.commute)
     have aen: "coprime (a^e) n"
-      by (metis coprime_exp_nat gcd_nat.commute na)      
+      by (metis coprime_exp_nat gcd.commute na)      
     have acn: "coprime (a^c) n"
-      by (metis coprime_exp_nat gcd_nat.commute na) 
+      by (metis coprime_exp_nat gcd.commute na) 
     have "[a^d = a^e] (mod n) \<longleftrightarrow> [a^(e + c) = a^(e + 0)] (mod n)"
       using c by simp
     also have "\<dots> \<longleftrightarrow> [a^e* a^c = a^e *a^0] (mod n)" by (simp add: power_add)
@@ -588,7 +588,7 @@ proof -
            gcd_lcm_complete_lattice_nat.top_greatest pn)} 
   hence cpa: "coprime p a" by auto
   have arp: "coprime (a^r) p"
-    by (metis coprime_exp_nat cpa gcd_nat.commute) 
+    by (metis coprime_exp_nat cpa gcd.commute) 
   from euler_theorem_nat[OF arp, simplified ord_divides] o phip
   have "q dvd (p - 1)" by simp
   then obtain d where d:"p - 1 = q * d" 

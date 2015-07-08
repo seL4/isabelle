@@ -44,7 +44,7 @@ subsection \<open>Primes\<close>
 
 lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   apply (auto simp add: prime_nat_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
-  apply (metis dvd_eq_mod_eq_0 even_Suc even_iff_mod_2_eq_zero mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
+  apply (metis dvd_eq_mod_eq_0 even_Suc mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
   done
 
 (* FIXME Is there a better way to handle these, rather than making them elim rules? *)
@@ -159,11 +159,11 @@ lemma "prime(997::nat)" by eval
 
 
 lemma prime_imp_power_coprime_nat: "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  by (metis coprime_exp_nat gcd_nat.commute prime_imp_coprime_nat)
+  by (metis coprime_exp_nat gcd.commute prime_imp_coprime_nat)
 
 lemma prime_imp_power_coprime_int:
   fixes a::int shows "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  by (metis coprime_exp_int gcd_int.commute prime_imp_coprime_int)
+  by (metis coprime_exp_int gcd.commute prime_imp_coprime_int)
 
 lemma primes_coprime_nat: "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   by (metis gcd_nat.absorb1 gcd_nat.absorb2 prime_imp_coprime_nat)
@@ -375,7 +375,7 @@ subsection \<open>Chinese Remainder Theorem Variants\<close>
 lemma bezout_gcd_nat:
   fixes a::nat shows "\<exists>x y. a * x - b * y = gcd a b \<or> b * x - a * y = gcd a b"
   using bezout_nat[of a b]
-by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd_nat.commute
+by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd.commute
   gcd_nat.right_neutral mult_0)
 
 lemma gcd_bezout_sum_nat:
@@ -423,7 +423,7 @@ lemma bezout_prime:
   shows "\<exists>x y. a*x = Suc (p*y)"
 proof-
   have ap: "coprime a p"
-    by (metis gcd_nat.commute p pa prime_imp_coprime_nat)
+    by (metis gcd.commute p pa prime_imp_coprime_nat)
   from coprime_bezout_strong[OF ap] show ?thesis
     by (metis Suc_eq_plus1 gcd_lcm_complete_lattice_nat.bot.extremum pa)
 qed

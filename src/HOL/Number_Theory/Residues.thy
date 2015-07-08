@@ -166,15 +166,20 @@ lemma (in residues) prod_cong: "finite A \<Longrightarrow> (\<Otimes>i\<in>A. (f
 lemma (in residues) sum_cong: "finite A \<Longrightarrow> (\<Oplus>i\<in>A. (f i) mod m) = (\<Sum>i\<in>A. f i) mod m"
   by (induct set: finite) (auto simp: zero_cong add_cong)
 
-lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrightarrow> a mod m \<in> Units R"
-  apply (subst res_units_eq)
-  apply auto
-  apply (insert pos_mod_sign [of m a])
-  apply (subgoal_tac "a mod m \<noteq> 0")
-  apply arith
-  apply auto
-  apply (metis gcd_int.commute gcd_red_int)
-  done
+lemma mod_in_res_units [simp]:
+  assumes "1 < m" and "coprime a m"
+  shows "a mod m \<in> Units R"
+proof (cases "a mod m = 0")
+  case True with assms show ?thesis
+    by (auto simp add: res_units_eq gcd_red_int [symmetric])
+next
+  case False
+  from assms have "0 < m" by simp
+  with pos_mod_sign [of m a] have "0 \<le> a mod m" .
+  with False have "0 < a mod m" by simp
+  with assms show ?thesis
+    by (auto simp add: res_units_eq gcd_red_int [symmetric] ac_simps)
+qed
 
 lemma res_eq_to_cong: "(a mod m) = (b mod m) \<longleftrightarrow> [a = b] (mod m)"
   unfolding cong_int_def by auto
@@ -354,10 +359,7 @@ lemma fermat_theorem:
   shows "[a^(p - 1) = 1] (mod p)"
 proof -
   from assms have "[a ^ phi p = 1] (mod p)"
-    apply (intro euler_theorem)
-    apply (metis of_nat_0_le_iff)
-    apply (metis gcd_int.commute prime_imp_coprime_int)
-    done
+    by (auto intro!: euler_theorem dest!: prime_imp_coprime_int simp add: ac_simps)
   also have "phi p = nat p - 1"
     by (rule phi_prime) (rule assms)
   finally show ?thesis

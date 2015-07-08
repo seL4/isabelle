@@ -523,20 +523,6 @@ lemma equivp_transp:
   "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   by (erule equivpE, erule transpE)
 
-
-subsection \<open>Prominent examples\<close>
-
-lemma equivp_associated:
-  "equivp associated"
-proof (rule equivpI)
-  show "reflp associated"
-    by (rule reflpI) simp
-  show "symp associated"
-    by (rule sympI) (simp add: associated_sym)
-  show "transp associated"
-    by (rule transpI) (fact associated_trans)
-qed
-
 hide_const (open) proj
 
 end

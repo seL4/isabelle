@@ -186,11 +186,19 @@ INCOMPATIBILITY in exotic situations.
 * Tightened specification of class semiring_no_zero_divisors.  Slight
 INCOMPATIBILITY.
 
-* Class algebraic_semidom introduced common algebraic notions of
-integral (semi)domains like units and associated elements.  Although
+* Class algebraic_semidom introduces common algebraic notions of
+integral (semi)domains, particularly units.  Although
 logically subsumed by fields, is is not a super class of these
 in order not to burden fields with notions that are trivial there.
-INCOMPATIBILITY.
+
+* Class normalization_semidom specifies canonical representants
+for equivalence classes of associated elements in an integral
+(semi)domain.  This formalizes associated elements as well.
+
+* Abstract specification of gcd/lcm operations in classes semiring_gcd,
+semiring_Gcd, semiring_Lcd.  Minor INCOMPATIBILITY: facts gcd_nat.commute
+and gcd_int.commute are subsumed by gcd.commute, as well as gcd_nat.assoc
+and gcd_int.assoc by gcd.assoc.
 
 * Former constants Fields.divide (_ / _) and Divides.div (_ div _)
 are logically unified to Rings.divide in syntactic type class
