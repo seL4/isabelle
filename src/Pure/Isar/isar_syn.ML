@@ -674,9 +674,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword proof} "backward proof step"
     (Scan.option Method.parse >> (fn m =>
-      (Option.map Method.report m;
-        Toplevel.actual_proof (Proof_Node.applys (Proof.proof_results m)) o
-        Toplevel.skip_proof (fn i => i + 1))));
+      (Option.map Method.report m; Toplevel.proofs (Proof.proof_results m))));
 
 
 (* subgoal focus *)
@@ -715,7 +713,7 @@ val _ =
   Outer_Syntax.command @{command_keyword back} "explicit backtracking of proof command"
     (Scan.succeed
      (Toplevel.actual_proof (fn prf => (report_back (); Proof_Node.back prf)) o
-      Toplevel.skip_proof (fn h => (report_back (); h))));
+      Toplevel.skip_proof report_back));
 
 
 

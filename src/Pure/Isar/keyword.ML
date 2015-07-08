@@ -62,6 +62,8 @@ sig
   val is_proof_goal: keywords -> string -> bool
   val is_qed: keywords -> string -> bool
   val is_qed_global: keywords -> string -> bool
+  val is_proof_open: keywords -> string -> bool
+  val is_proof_close: keywords -> string -> bool
   val is_proof_asm: keywords -> string -> bool
   val is_improper: keywords -> string -> bool
   val is_printed: keywords -> string -> bool
@@ -254,6 +256,10 @@ val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_script_goal, prf_script_asm_goal];
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
+
+val is_proof_open =
+  command_category [prf_goal, prf_asm_goal, prf_script_goal, prf_script_asm_goal, prf_open];
+val is_proof_close = command_category [qed, qed_script, qed_block, prf_close];
 
 val is_proof_asm = command_category [prf_asm, prf_asm_goal];
 val is_improper = command_category [qed_script, prf_script, prf_script_goal, prf_script_asm_goal];
