@@ -21,7 +21,7 @@ sig
   val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
   val pretty: Proof.context -> code_graph -> Pretty.T
-  val obtain: bool -> theory -> string list -> term list -> code_algebra * code_graph
+  val obtain: bool -> Proof.context -> string list -> term list -> code_algebra * code_graph
   val dynamic_conv: Proof.context
     -> (code_algebra -> code_graph -> term -> conv) -> conv
   val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'b)
@@ -536,15 +536,15 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain ignore_cache thy consts ts = apsnd snd
-  (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy)
-    (extend_arities_eqngr (Proof_Context.init_global thy) consts ts));
+fun obtain ignore_cache ctxt consts ts = apsnd snd
+  (Wellsorted.change_yield (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
+    (extend_arities_eqngr ctxt consts ts));
 
 fun dynamic_evaluator eval ctxt t =
   let
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t [];
-    val (algebra, eqngr) = obtain false (Proof_Context.theory_of ctxt) consts [t];
+    val (algebra, eqngr) = obtain false ctxt consts [t];
   in eval algebra eqngr t end;
 
 fun dynamic_conv ctxt conv =
@@ -555,12 +555,12 @@ fun dynamic_value ctxt lift_postproc evaluator =
 
 fun static_conv { ctxt, consts } conv =
   let
-    val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
+    val (algebra, eqngr) = obtain true ctxt consts [];
   in Sandwich.conversion (value_sandwich ctxt) (conv { algebra = algebra, eqngr = eqngr }) end;
 
 fun static_value { ctxt, lift_postproc, consts } evaluator =
   let
-    val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
+    val (algebra, eqngr) = obtain true ctxt consts [];
   in Sandwich.evaluation (value_sandwich ctxt) lift_postproc (evaluator { algebra = algebra, eqngr = eqngr }) end;
 
 
