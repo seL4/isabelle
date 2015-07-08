@@ -399,7 +399,7 @@ lemma Gcd_empty [simp]:
   by (rule dvd_0_left, rule Gcd_greatest) simp
 
 lemma Gcd_0_iff [simp]:
-  "Gcd A = 0 \<longleftrightarrow> (\<forall>a\<in>A. a = 0)" (is "?P \<longleftrightarrow> ?Q")
+  "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}" (is "?P \<longleftrightarrow> ?Q")
 proof
   assume ?P
   show ?Q
@@ -407,7 +407,8 @@ proof
     fix a
     assume "a \<in> A"
     then have "Gcd A dvd a" by (rule Gcd_dvd)
-    with \<open>?P\<close> show "a = 0" by simp
+    with \<open>?P\<close> have "a = 0" by simp
+    then show "a \<in> {0}" by simp
   qed
 next
   assume ?Q
@@ -415,7 +416,7 @@ next
   proof (rule Gcd_greatest)
     fix a
     assume "a \<in> A"
-    with \<open>?Q\<close> have "a = 0" by simp
+    with \<open>?Q\<close> have "a = 0" by auto
     then show "0 dvd a" by simp
   qed
   then show ?P by simp
@@ -424,7 +425,7 @@ qed
 lemma unit_factor_Gcd:
   "unit_factor (Gcd A) = (if \<forall>a\<in>A. a = 0 then 0 else 1)"
 proof (cases "Gcd A = 0")
-  case True then show ?thesis by simp
+  case True then show ?thesis by auto
 next
   case False
   from unit_factor_mult_normalize
@@ -432,7 +433,7 @@ next
   then have "unit_factor (Gcd A) * Gcd A = Gcd A" by simp
   then have "unit_factor (Gcd A) * Gcd A div Gcd A = Gcd A div Gcd A" by simp
   with False have "unit_factor (Gcd A) = 1" by simp
-  with False show ?thesis by simp
+  with False show ?thesis by auto
 qed
 
 lemma Gcd_UNIV [simp]:
@@ -473,7 +474,7 @@ proof -
   ultimately have "associated (Gcd (insert a A)) (gcd a (Gcd A))"
     by (rule associatedI)
   then show ?thesis
-    by (rule associated_eqI) (simp_all add: unit_factor_gcd unit_factor_Gcd)
+    by (rule associated_eqI) (auto simp add: unit_factor_gcd unit_factor_Gcd)
 qed
 
 lemma dvd_Gcd: -- \<open>FIXME remove\<close>
@@ -509,7 +510,7 @@ proof -
   then have "associated (Gcd (normalize ` A)) (Gcd A)"
     by (auto intro!: associatedI Gcd_greatest intro: Gcd_dvd)
   then show ?thesis
-    by (rule associated_eqI) (simp_all add: unit_factor_Gcd)
+    by (rule associated_eqI) (simp_all add: unit_factor_Gcd, auto dest!: bspec)
 qed
 
 lemma Lcm_least:

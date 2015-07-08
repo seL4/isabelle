@@ -753,84 +753,19 @@ lemma lcm_gcd:
   "lcm a b = normalize (a * b) div gcd a b"
   by (simp add: lcm_lcm_eucl gcd_gcd_eucl lcm_eucl_def)
 
+subclass semiring_gcd
+  apply standard
+  using gcd_right_idem
+  apply (simp_all add: lcm_gcd gcd_greatest_iff gcd_proj1_if_dvd)
+  done
+
 lemma lcm_gcd_prod:
   "lcm a b * gcd a b = normalize (a * b)"
   by (simp add: lcm_gcd)
 
-lemma lcm_dvd1 [iff]:
-  "a dvd lcm a b"
-proof (cases "a*b = 0")
-  assume "a * b \<noteq> 0"
-  hence "gcd a b \<noteq> 0" by simp
-  let ?c = "1 div unit_factor (a * b)"
-  from \<open>a * b \<noteq> 0\<close> have [simp]: "is_unit (unit_factor (a * b))" by simp
-  from lcm_gcd_prod[of a b] have "lcm a b * gcd a b = a * ?c * b"
-    by (simp add: div_mult_swap unit_div_commute)
-  hence "lcm a b * gcd a b div gcd a b = a * ?c * b div gcd a b" by simp
-  with \<open>gcd a b \<noteq> 0\<close> have "lcm a b = a * ?c * b div gcd a b"
-    by (subst (asm) div_mult_self2_is_id, simp_all)
-  also have "... = a * (?c * b div gcd a b)"
-    by (metis div_mult_swap gcd_dvd2 mult_assoc)
-  finally show ?thesis by (rule dvdI)
-qed (auto simp add: lcm_gcd)
-
-lemma lcm_least:
-  "\<lbrakk>a dvd k; b dvd k\<rbrakk> \<Longrightarrow> lcm a b dvd k"
-proof (cases "k = 0")
-  let ?nf = unit_factor
-  assume "k \<noteq> 0"
-  hence "is_unit (?nf k)" by simp
-  hence "?nf k \<noteq> 0" by (metis not_is_unit_0)
-  assume A: "a dvd k" "b dvd k"
-  hence "gcd a b \<noteq> 0" using \<open>k \<noteq> 0\<close> by auto
-  from A obtain r s where ar: "k = a * r" and bs: "k = b * s" 
-    unfolding dvd_def by blast
-  with \<open>k \<noteq> 0\<close> have "r * s \<noteq> 0"
-    by auto (drule sym [of 0], simp)
-  hence "is_unit (?nf (r * s))" by simp
-  let ?c = "?nf k div ?nf (r*s)"
-  from \<open>is_unit (?nf k)\<close> and \<open>is_unit (?nf (r * s))\<close> have "is_unit ?c" by (rule unit_div)
-  hence "?c \<noteq> 0" using not_is_unit_0 by fast 
-  from ar bs have "k * k * gcd s r = ?nf k * k * gcd (k * s) (k * r)"
-    by (subst mult_assoc, subst gcd_mult_distrib[of k s r], simp only: ac_simps)
-  also have "... = ?nf k * k * gcd ((r*s) * a) ((r*s) * b)"
-    by (subst (3) \<open>k = a * r\<close>, subst (3) \<open>k = b * s\<close>, simp add: algebra_simps)
-  also have "... = ?c * r*s * k * gcd a b" using \<open>r * s \<noteq> 0\<close>
-    by (subst gcd_mult_distrib'[symmetric], simp add: algebra_simps unit_simps)
-  finally have "(a*r) * (b*s) * gcd s r = ?c * k * r * s * gcd a b"
-    by (subst ar[symmetric], subst bs[symmetric], simp add: mult_ac)
-  hence "a * b * gcd s r * (r * s) = ?c * k * gcd a b * (r * s)"
-    by (simp add: algebra_simps)
-  hence "?c * k * gcd a b = a * b * gcd s r" using \<open>r * s \<noteq> 0\<close>
-    by (metis div_mult_self2_is_id)
-  also have "... = lcm a b * gcd a b * gcd s r * ?nf (a*b)"
-    by (subst lcm_gcd_prod[of a b], metis gcd_mult_distrib gcd_mult_distrib') 
-  also have "... = lcm a b * gcd s r * ?nf (a*b) * gcd a b"
-    by (simp add: algebra_simps)
-  finally have "k * ?c = lcm a b * gcd s r * ?nf (a*b)" using \<open>gcd a b \<noteq> 0\<close>
-    by (metis mult.commute div_mult_self2_is_id)
-  hence "k = lcm a b * (gcd s r * ?nf (a*b)) div ?c" using \<open>?c \<noteq> 0\<close>
-    by (metis div_mult_self2_is_id mult_assoc) 
-  also have "... = lcm a b * (gcd s r * ?nf (a*b) div ?c)" using \<open>is_unit ?c\<close>
-    by (simp add: unit_simps)
-  finally show ?thesis by (rule dvdI)
-qed simp
-
 lemma lcm_zero:
   "lcm a b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
-proof -
-  let ?nf = unit_factor
-  {
-    assume "a \<noteq> 0" "b \<noteq> 0"
-    hence "a * b div ?nf (a * b) \<noteq> 0" by (simp add: no_zero_divisors)
-    moreover from \<open>a \<noteq> 0\<close> and \<open>b \<noteq> 0\<close> have "gcd a b \<noteq> 0" by simp
-    ultimately have "lcm a b \<noteq> 0" using lcm_gcd_prod[of a b] by (intro notI, simp)
-  } moreover {
-    assume "a = 0 \<or> b = 0"
-    hence "lcm a b = 0" by (elim disjE, simp_all add: lcm_gcd)
-  }
-  ultimately show ?thesis by blast
-qed
+  by (fact lcm_eq_0_iff)
 
 lemmas lcm_0_iff = lcm_zero
 
@@ -844,46 +779,15 @@ proof -
     by (metis nonzero_mult_divide_cancel_left)
 qed
 
-lemma unit_factor_lcm [simp]:
-  "unit_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
-  by (simp add: dvd_unit_factor_div lcm_gcd)
-
-lemma lcm_dvd2 [iff]: "b dvd lcm a b"
-  using lcm_dvd1 [of b a] by (simp add: lcm_gcd ac_simps)
+declare unit_factor_lcm [simp]
 
 lemma lcmI:
   assumes "a dvd c" and "b dvd c" and "\<And>d. a dvd d \<Longrightarrow> b dvd d \<Longrightarrow> c dvd d"
     and "unit_factor c = (if c = 0 then 0 else 1)"
   shows "c = lcm a b"
-  by (rule associated_eqI)
-    (auto simp: assms associated_def intro: lcm_least, simp_all add: lcm_gcd)
+  by (rule associated_eqI) (auto simp: assms intro: associatedI lcm_least)
 
-sublocale lcm!: abel_semigroup lcm
-proof
-  fix a b c
-  show "lcm (lcm a b) c = lcm a (lcm b c)"
-  proof (rule lcmI)
-    have "a dvd lcm a b" and "lcm a b dvd lcm (lcm a b) c" by simp_all
-    then show "a dvd lcm (lcm a b) c" by (rule dvd_trans)
-    
-    have "b dvd lcm a b" and "lcm a b dvd lcm (lcm a b) c" by simp_all
-    hence "b dvd lcm (lcm a b) c" by (rule dvd_trans)
-    moreover have "c dvd lcm (lcm a b) c" by simp
-    ultimately show "lcm b c dvd lcm (lcm a b) c" by (rule lcm_least)
-
-    fix l assume "a dvd l" and "lcm b c dvd l"
-    have "b dvd lcm b c" by simp
-    from this and \<open>lcm b c dvd l\<close> have "b dvd l" by (rule dvd_trans)
-    have "c dvd lcm b c" by simp
-    from this and \<open>lcm b c dvd l\<close> have "c dvd l" by (rule dvd_trans)
-    from \<open>a dvd l\<close> and \<open>b dvd l\<close> have "lcm a b dvd l" by (rule lcm_least)
-    from this and \<open>c dvd l\<close> show "lcm (lcm a b) c dvd l" by (rule lcm_least)
-  qed (simp add: lcm_zero)
-next
-  fix a b
-  show "lcm a b = lcm b a"
-    by (simp add: lcm_gcd ac_simps)
-qed
+sublocale lcm!: abel_semigroup lcm ..
 
 lemma dvd_lcm_D1:
   "lcm m n dvd k \<Longrightarrow> m dvd k"
@@ -913,13 +817,9 @@ next
   finally show "lcm a b = 1" .
 qed
 
-lemma lcm_0_left [simp]:
-  "lcm 0 a = 0"
-  by (rule sym, rule lcmI, simp_all)
-
-lemma lcm_0 [simp]:
+lemma lcm_0:
   "lcm a 0 = 0"
-  by (rule sym, rule lcmI, simp_all)
+  by (fact lcm_0_right)
 
 lemma lcm_unique:
   "a dvd d \<and> b dvd d \<and> 
@@ -934,14 +834,6 @@ lemma dvd_lcm_I1 [simp]:
 lemma dvd_lcm_I2 [simp]:
   "k dvd n \<Longrightarrow> k dvd lcm m n"
   by (metis lcm_dvd2 dvd_trans)
-
-lemma lcm_1_left [simp]:
-  "lcm 1 a = normalize a"
-  by (cases "a = 0") (simp, rule sym, rule lcmI, simp_all)
-
-lemma lcm_1_right [simp]:
-  "lcm a 1 = normalize a"
-  using lcm_1_left [of a] by (simp add: ac_simps)
 
 lemma lcm_coprime:
   "gcd a b = 1 \<Longrightarrow> lcm a b = normalize (a * b)"
@@ -1119,7 +1011,8 @@ proof -
       qed
       ultimately have "euclidean_size l = euclidean_size (gcd l l')" 
         by (intro le_antisym, simp_all add: \<open>euclidean_size l = n\<close>)
-      with \<open>l \<noteq> 0\<close> have "l dvd gcd l l'" by (blast intro: dvd_euclidean_size_eq_imp_dvd)
+      with \<open>l \<noteq> 0\<close> have "l dvd gcd l l'"
+        using dvd_euclidean_size_eq_imp_dvd by auto
       hence "l dvd l'" by (blast dest: dvd_gcd_D2)
     }
 
@@ -1246,7 +1139,7 @@ lemma Lcm_insert [simp]:
   "Lcm (insert a A) = lcm a (Lcm A)"
 proof (rule lcmI)
   fix l assume "a dvd l" and "Lcm A dvd l"
-  hence "\<forall>a\<in>A. a dvd l" by (blast intro: dvd_trans dvd_Lcm)
+  then have "\<forall>a\<in>A. a dvd l" by (auto intro: dvd_trans [of _ "Lcm A" l])
   with \<open>a dvd l\<close> show "Lcm (insert a A) dvd l" by (force intro: Lcm_least)
 qed (auto intro: Lcm_least dvd_Lcm)
  
@@ -1313,6 +1206,9 @@ lemma normalize_Gcd [simp]:
   "normalize (Gcd A) = Gcd A"
   by (cases "Gcd A = 0") (auto intro: associated_eqI)
 
+subclass semiring_Gcd
+  by standard (simp_all add: Gcd_greatest)
+
 lemma GcdI:
   assumes "\<And>a. a \<in> A \<Longrightarrow> b dvd a" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> c dvd a) \<Longrightarrow> c dvd b"
     and "unit_factor b = (if b = 0 then 0 else 1)"
@@ -1323,28 +1219,12 @@ lemma Lcm_Gcd:
   "Lcm A = Gcd {m. \<forall>a\<in>A. a dvd m}"
   by (rule LcmI[symmetric]) (auto intro: dvd_Gcd Gcd_greatest)
 
-lemma Gcd_0_iff:
-  "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}"
-  apply (rule iffI)
-  apply (rule subsetI, drule Gcd_dvd, simp)
-  apply (auto intro: GcdI[symmetric])
-  done
-
-lemma Gcd_empty [simp]:
-  "Gcd {} = 0"
-  by (simp add: Gcd_0_iff)
+subclass semiring_Lcm
+  by standard (simp add: Lcm_Gcd)
 
 lemma Gcd_1:
   "1 \<in> A \<Longrightarrow> Gcd A = 1"
-  by (intro GcdI[symmetric]) (auto intro: Gcd_dvd dvd_Gcd)
-
-lemma Gcd_insert [simp]:
-  "Gcd (insert a A) = gcd a (Gcd A)"
-proof (rule gcdI)
-  fix l assume "l dvd a" and "l dvd Gcd A"
-  hence "\<forall>a\<in>A. l dvd a" by (blast intro: dvd_trans Gcd_dvd)
-  with \<open>l dvd a\<close> show "l dvd Gcd (insert a A)" by (force intro: Gcd_dvd Gcd_greatest)
-qed (auto intro: Gcd_greatest)
+  by (auto intro!: Gcd_eq_1_I)
 
 lemma Gcd_finite:
   assumes "finite A"
@@ -1357,22 +1237,10 @@ lemma Gcd_set [code_unfold]:
   using comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd] Gcd_finite by (simp add: ac_simps)
 
 lemma Gcd_singleton [simp]: "Gcd {a} = normalize a"
-  by (simp add: gcd_0)
+  by simp
 
 lemma Gcd_2 [simp]: "Gcd {a,b} = gcd a b"
-  by (simp add: gcd_0)
-
-subclass semiring_gcd
-  apply standard
-  using gcd_right_idem
-  apply (simp_all add: lcm_gcd gcd_greatest_iff gcd_proj1_if_dvd)
-  done
-
-subclass semiring_Gcd
-  by standard (simp_all add: Gcd_greatest)
-
-subclass semiring_Lcm
-  by standard (simp add: Lcm_Gcd)
+  by simp
 
 end
 
@@ -1514,5 +1382,20 @@ next
 qed
 
 end
+
+(*instance nat :: euclidean_semiring_gcd
+proof (standard, auto intro!: ext)
+  fix m n :: nat
+  show *: "gcd m n = gcd_eucl m n"
+  proof (induct m n rule: gcd_eucl_induct)
+    case zero then show ?case by (simp add: gcd_eucl_0)
+  next
+    case (mod m n)
+    with gcd_eucl_non_0 [of n m, symmetric]
+    show ?case by (simp add: gcd_non_0_nat)
+  qed
+  show "lcm m n = lcm_eucl m n"
+    by (simp add: lcm_eucl_def lcm_gcd * [symmetric] lcm_nat_def)
+qed*)
 
 end
