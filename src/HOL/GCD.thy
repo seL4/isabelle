@@ -100,9 +100,17 @@ class semiring_gcd = normalization_semidom + gcd +
     and lcm_gcd: "lcm a b = normalize (a * b) div gcd a b"
 begin    
 
-lemma gcd_greatest_iff [iff]:
+lemma gcd_greatest_iff [simp]:
   "a dvd gcd b c \<longleftrightarrow> a dvd b \<and> a dvd c"
   by (blast intro!: gcd_greatest intro: dvd_trans)
+
+lemma gcd_dvdI1:
+  "a dvd c \<Longrightarrow> gcd a b dvd c"
+  by (rule dvd_trans) (rule gcd_dvd1)
+
+lemma gcd_dvdI2:
+  "b dvd c \<Longrightarrow> gcd a b dvd c"
+  by (rule dvd_trans) (rule gcd_dvd2)
 
 lemma gcd_0_left [simp]:
   "gcd 0 a = normalize a"
@@ -202,7 +210,7 @@ lemma mult_gcd_right:
   "gcd a b * c = gcd (a * c) (b * c) * unit_factor c"
   using mult_gcd_left [of c a b] by (simp add: ac_simps)
 
-lemma lcm_dvd1 [iff]:
+lemma dvd_lcm1 [iff]:
   "a dvd lcm a b"
 proof -
   have "normalize (a * b) div gcd a b = normalize a * (normalize b div gcd a b)"
@@ -211,7 +219,7 @@ proof -
     by (simp add: lcm_gcd)
 qed
   
-lemma lcm_dvd2 [iff]:
+lemma dvd_lcm2 [iff]:
   "b dvd lcm a b"
 proof -
   have "normalize (a * b) div gcd a b = normalize b * (normalize a div gcd a b)"
@@ -219,6 +227,14 @@ proof -
   then show ?thesis
     by (simp add: lcm_gcd)
 qed
+
+lemma dvd_lcmI1:
+  "a dvd b \<Longrightarrow> a dvd lcm b c"
+  by (rule dvd_trans) (assumption, blast) 
+
+lemma dvd_lcmI2:
+  "a dvd c \<Longrightarrow> a dvd lcm b c"
+  by (rule dvd_trans) (assumption, blast)
 
 lemma lcm_least:
   assumes "a dvd c" and "b dvd c"
@@ -246,7 +262,7 @@ next
   qed
 qed
 
-lemma lcm_least_iff [iff]:
+lemma lcm_least_iff [simp]:
   "lcm a b dvd c \<longleftrightarrow> a dvd c \<and> b dvd c"
   by (blast intro!: lcm_least intro: dvd_trans)
 
@@ -822,18 +838,21 @@ lemma gcd_le1_int [simp]: "a > 0 \<Longrightarrow> gcd (a::int) b \<le> a"
 lemma gcd_le2_int [simp]: "b > 0 \<Longrightarrow> gcd (a::int) b \<le> b"
   by (rule zdvd_imp_le, auto)
 
-lemma gcd_greatest_iff_nat [iff]: "(k dvd gcd (m::nat) n) =
-    (k dvd m & k dvd n)"
-  by (blast intro!: gcd_greatest intro: dvd_trans)
+lemma gcd_greatest_iff_nat:
+  "(k dvd gcd (m::nat) n) = (k dvd m & k dvd n)"
+  by (fact gcd_greatest_iff)
 
-lemma gcd_greatest_iff_int: "((k::int) dvd gcd m n) = (k dvd m & k dvd n)"
-  by (blast intro!: gcd_greatest intro: dvd_trans)
+lemma gcd_greatest_iff_int:
+  "((k::int) dvd gcd m n) = (k dvd m & k dvd n)"
+  by (fact gcd_greatest_iff)
 
-lemma gcd_zero_nat [simp]: "(gcd (m::nat) n = 0) = (m = 0 & n = 0)"
-  by (simp only: dvd_0_left_iff [symmetric] gcd_greatest_iff_nat)
+lemma gcd_zero_nat: 
+  "(gcd (m::nat) n = 0) = (m = 0 & n = 0)"
+  by (fact gcd_eq_0_iff)
 
-lemma gcd_zero_int [simp]: "(gcd (m::int) n = 0) = (m = 0 & n = 0)"
-  by (auto simp add: gcd_int_def)
+lemma gcd_zero_int [simp]:
+  "(gcd (m::int) n = 0) = (m = 0 & n = 0)"
+  by (fact gcd_eq_0_iff)
 
 lemma gcd_pos_nat [simp]: "(gcd (m::nat) n > 0) = (m ~= 0 | n ~= 0)"
   by (insert gcd_zero_nat [of m n], arith)
@@ -1042,8 +1061,7 @@ by (metis gcd_commute_int gcd_red_int mod_mult_self1 add.commute)
 (* to do: differences, and all variations of addition rules
     as simplification rules for nat and int *)
 
-(* FIXME remove iff *)
-lemma gcd_dvd_prod_nat [iff]: "gcd (m::nat) n dvd k * n"
+lemma gcd_dvd_prod_nat: "gcd (m::nat) n dvd k * n"
   using mult_dvd_mono [of 1] by auto
 
 (* to do: add the three variations of these, and for ints? *)
@@ -1799,39 +1817,16 @@ lemma lcm_least_int:
   by (rule lcm_least)
 
 lemma lcm_dvd1_nat: "(m::nat) dvd lcm m n"
-proof (cases m)
-  case 0 then show ?thesis by simp
-next
-  case (Suc _)
-  then have mpos: "m > 0" by simp
-  show ?thesis
-  proof (cases n)
-    case 0 then show ?thesis by simp
-  next
-    case (Suc _)
-    then have npos: "n > 0" by simp
-    have "gcd m n dvd n" by simp
-    then obtain k where "n = gcd m n * k" using dvd_def by auto
-    then have "m * n div gcd m n = m * (gcd m n * k) div gcd m n"
-      by (simp add: ac_simps)
-    also have "\<dots> = m * k" using mpos npos gcd_zero_nat by simp
-    finally show ?thesis by (simp add: lcm_nat_def)
-  qed
-qed
+  by (fact dvd_lcm1)
 
 lemma lcm_dvd1_int: "(m::int) dvd lcm m n"
-  apply (subst lcm_abs_int)
-  apply (rule dvd_trans)
-  prefer 2
-  apply (rule lcm_dvd1_nat [transferred])
-  apply auto
-done
+  by (fact dvd_lcm1)
 
 lemma lcm_dvd2_nat: "(n::nat) dvd lcm m n"
-  by (rule lcm_dvd2)
+  by (fact dvd_lcm2)
 
 lemma lcm_dvd2_int: "(n::int) dvd lcm m n"
-  by (rule lcm_dvd2)
+  by (fact dvd_lcm2)
 
 lemma dvd_lcm_I1_nat[simp]: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
 by(metis lcm_dvd1_nat dvd_trans)
