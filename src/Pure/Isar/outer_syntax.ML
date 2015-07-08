@@ -45,7 +45,7 @@ fun err_dup_command name ps =
 
 datatype command_parser =
   Parser of (Toplevel.transition -> Toplevel.transition) parser |
-  Limited_Parser of
+  Restricted_Parser of
     (bool * Position.T) option -> (Toplevel.transition -> Toplevel.transition) parser;
 
 datatype command = Command of
@@ -147,8 +147,8 @@ fun command (name, pos) comment parse =
 
 fun local_theory_command trans command_keyword comment parse =
   raw_command command_keyword comment
-    (Limited_Parser (fn limited =>
-      Parse.opt_target -- parse >> (fn (target, f) => trans limited target f)));
+    (Restricted_Parser (fn restricted =>
+      Parse.opt_target -- parse >> (fn (target, f) => trans restricted target f)));
 
 val local_theory' = local_theory_command Toplevel.local_theory';
 val local_theory = local_theory_command Toplevel.local_theory;
@@ -178,9 +178,9 @@ fun parse_command thy =
       (case lookup_commands thy name of
         SOME (Command {command_parser = Parser parse, ...}) =>
           Parse.!!! (command_tags |-- parse) >> (fn f => f tr0)
-      | SOME (Command {command_parser = Limited_Parser parse, ...}) =>
-          before_command :|-- (fn limited =>
-            Parse.!!! (command_tags |-- parse limited)) >> (fn f => f tr0)
+      | SOME (Command {command_parser = Restricted_Parser parse, ...}) =>
+          before_command :|-- (fn restricted =>
+            Parse.!!! (command_tags |-- parse restricted)) >> (fn f => f tr0)
       | NONE =>
           Scan.fail_with (fn _ => fn _ =>
             let
