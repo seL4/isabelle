@@ -103,7 +103,7 @@ val default_congs =
 (* Called on the INSTANTIATED branches of the congruence rule *)
 fun mk_branch ctxt t =
   let
-    val ((params, impl), ctxt') = Variable.focus t ctxt
+    val ((params, impl), ctxt') = Variable.focus NONE t ctxt
     val (assms, concl) = Logic.strip_horn impl
   in
     (ctxt', map #2 params, assms, rhs_of concl)

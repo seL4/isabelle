@@ -304,7 +304,7 @@ fun DROP_CASES (tac: cases_tactic) : tactic =
 
 fun prep_fact_pat ((x, args), pat) ctxt =
   let
-    val ((params, pat'), ctxt') = Variable.focus pat ctxt;
+    val ((params, pat'), ctxt') = Variable.focus NONE pat ctxt;
     val params' = map (Free o snd) params;
 
     val morphism =
@@ -500,10 +500,10 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
 
 
 (* Fix schematics in the goal *)
-fun focus_concl ctxt i goal =
+fun focus_concl ctxt i bindings goal =
   let
     val ({context = ctxt', concl, params, prems, asms, schematics}, goal') =
-      Subgoal.focus_params ctxt i goal;
+      Subgoal.focus_params ctxt i bindings goal;
 
     val (inst, ctxt'') = Variable.import_inst true [Thm.term_of concl] ctxt';
     val (_, schematic_terms) = Thm.certify_inst ctxt'' inst;
@@ -711,7 +711,7 @@ fun real_match using ctxt fixes m text pats goal =
             val (goal_thins, goal) = get_thinned_prems goal;
 
             val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
-              focus_cases (K Subgoal.focus_prems) (focus_concl) ctxt 1 goal
+              focus_cases (K Subgoal.focus_prems) focus_concl ctxt 1 NONE goal
               |>> augment_focus;
 
             val texts =

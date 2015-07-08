@@ -93,7 +93,7 @@ fun find_tname ctxt var As =
 fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
-    val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
+    val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i NONE state
     val tn = find_tname ctxt' var (map Thm.term_of asms)
     val rule =
         if exh then #exhaustion (datatype_info thy tn)

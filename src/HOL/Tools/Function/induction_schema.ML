@@ -53,7 +53,7 @@ fun mk_relT T = HOLogic.mk_setT (HOLogic.mk_prodT (T, T))
 
 fun dest_hhf ctxt t =
   let
-    val ((params, imp), ctxt') = Variable.focus t ctxt
+    val ((params, imp), ctxt') = Variable.focus NONE t ctxt
   in
     (ctxt', map #2 params, Logic.strip_imp_prems imp, Logic.strip_imp_concl imp)
   end

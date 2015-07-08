@@ -32,7 +32,7 @@ lemma problem_25:
   apply (tactic {* cut_tac xsko25 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val ctxt = @{context};
-    val [_, sko25] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val [_, sko25] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses25 = Meson.make_clauses ctxt [sko25];   (*7 clauses*)
     val horns25 = Meson.make_horns clauses25;     (*16 Horn clauses*)
     val go25 :: _ = Meson.gocls clauses25;
@@ -56,7 +56,7 @@ lemma problem_26:
   apply (tactic {* cut_tac xsko26 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val ctxt = @{context};
-    val [_, sko26] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val [_, sko26] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses26 = Meson.make_clauses ctxt [sko26];
     val _ = @{assert} (length clauses26 = 9);
     val horns26 = Meson.make_horns clauses26;
@@ -83,7 +83,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
   apply (tactic {* cut_tac xsko43 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
     val ctxt = @{context};
-    val [_, sko43] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val [_, sko43] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses43 = Meson.make_clauses ctxt [sko43];
     val _ = @{assert} (length clauses43 = 6);
     val horns43 = Meson.make_horns clauses43;

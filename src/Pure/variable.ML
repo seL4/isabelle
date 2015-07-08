@@ -78,10 +78,14 @@ sig
     ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
-  val focus_params: term -> Proof.context -> (string list * (string * typ) list) * Proof.context
-  val focus: term -> Proof.context -> ((string * (string * typ)) list * term) * Proof.context
-  val focus_cterm: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
-  val focus_subgoal: int -> thm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
+  val focus_params: binding list option -> term -> Proof.context ->
+    (string list * (string * typ) list) * Proof.context
+  val focus: binding list option -> term -> Proof.context ->
+    ((string * (string * typ)) list * term) * Proof.context
+  val focus_cterm: binding list option -> cterm -> Proof.context ->
+    ((string * cterm) list * cterm) * Proof.context
+  val focus_subgoal: binding list option -> int -> thm -> Proof.context ->
+    ((string * cterm) list * cterm) * Proof.context
   val warn_extra_tfrees: Proof.context -> Proof.context -> unit
   val polymorphic_types: Proof.context -> term list -> (indexname * sort) list * term list
   val polymorphic: Proof.context -> term list -> term list
@@ -616,18 +620,21 @@ val trade = gen_trade (import true) export;
 
 (* focus on outermost parameters: !!x y z. B *)
 
-fun focus_params t ctxt =
+fun focus_params bindings t ctxt =
   let
     val (xs, Ts) =
       split_list (Term.variant_frees t (Term.strip_all_vars t));  (*as they are printed :-*)
-    val (xs', ctxt') = variant_fixes xs ctxt;
+    val (xs', ctxt') =
+      (case bindings of
+        SOME bs => ctxt |> set_body true |> add_fixes_binding bs ||> restore_body ctxt
+      | NONE => ctxt |> variant_fixes xs);
     val ps = xs' ~~ Ts;
     val ctxt'' = ctxt' |> fold (declare_constraints o Free) ps;
   in ((xs, ps), ctxt'') end;
 
-fun focus t ctxt =
+fun focus bindings t ctxt =
   let
-    val ((xs, ps), ctxt') = focus_params t ctxt;
+    val ((xs, ps), ctxt') = focus_params bindings t ctxt;
     val t' = Term.subst_bounds (rev (map Free ps), Term.strip_all_body t);
   in (((xs ~~ ps), t'), ctxt') end;
 
@@ -635,20 +642,20 @@ fun forall_elim_prop t prop =
   Thm.beta_conversion false (Thm.apply (Thm.dest_arg prop) t)
   |> Thm.cprop_of |> Thm.dest_arg;
 
-fun focus_cterm goal ctxt =
+fun focus_cterm bindings goal ctxt =
   let
-    val ((xs, ps), ctxt') = focus_params (Thm.term_of goal) ctxt;
+    val ((xs, ps), ctxt') = focus_params bindings (Thm.term_of goal) ctxt;
     val ps' = map (Thm.cterm_of ctxt' o Free) ps;
     val goal' = fold forall_elim_prop ps' goal;
   in ((xs ~~ ps', goal'), ctxt') end;
 
-fun focus_subgoal i st =
+fun focus_subgoal bindings i st =
   let
     val all_vars = Thm.fold_terms Term.add_vars st [];
   in
     fold (unbind_term o #1) all_vars #>
     fold (declare_constraints o Var) all_vars #>
-    focus_cterm (Thm.cprem_of st i)
+    focus_cterm bindings (Thm.cprem_of st i)
   end;
 
 
