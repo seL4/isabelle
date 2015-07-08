@@ -22,6 +22,7 @@ sig
   val qed_global: string
   val prf_goal: string
   val prf_block: string
+  val next_block: string
   val prf_open: string
   val prf_close: string
   val prf_chain: string
@@ -92,6 +93,7 @@ val qed_block = "qed_block";
 val qed_global = "qed_global";
 val prf_goal = "prf_goal";
 val prf_block = "prf_block";
+val next_block = "next_block";
 val prf_open = "prf_open";
 val prf_close = "prf_close";
 val prf_chain = "prf_chain";
@@ -104,9 +106,9 @@ val prf_script_asm_goal = "prf_script_asm_goal";
 
 val kinds =
   [diag, document_heading, document_body, document_raw, thy_begin, thy_end, thy_load, thy_decl,
-    thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
-    prf_script_asm_goal];
+    thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block,
+    next_block, prf_open, prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script,
+    prf_script_goal, prf_script_asm_goal];
 
 
 (* specifications *)
@@ -243,13 +245,13 @@ val is_theory_body = command_category
   [thy_load, thy_decl, thy_decl_block, thy_goal];
 
 val is_proof = command_category
-  [qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
+  [qed, qed_script, qed_block, qed_global, prf_goal, prf_block, next_block, prf_open,
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
     prf_script_asm_goal];
 
 val is_proof_body = command_category
-  [diag, document_heading, document_body, document_raw, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
+  [diag, document_heading, document_body, document_raw, prf_block, next_block, prf_open,
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
     prf_script_asm_goal];
 
 val is_theory_goal = command_category [thy_goal];
