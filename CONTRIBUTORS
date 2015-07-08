@@ -15,7 +15,8 @@ Contributions to this Isabelle version
 
 * Summer 2015: Manuel Eberl and Florian Haftmann, TUM
   Type class hierarchy with common algebraic notions of integral
-  (semi)domains like units and associated elements.
+  (semi)domains like units, associated elements and normalization
+  wrt. units.
 
 
 Contributions to Isabelle2015

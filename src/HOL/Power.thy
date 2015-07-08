@@ -306,6 +306,19 @@ lemma power2_eq_iff: "x\<^sup>2 = y\<^sup>2 \<longleftrightarrow> x = y \<or> x 
 
 end
 
+context normalization_semidom
+begin
+
+lemma normalize_power:
+  "normalize (a ^ n) = normalize a ^ n"
+  by (induct n) (simp_all add: normalize_mult)
+
+lemma unit_factor_power:
+  "unit_factor (a ^ n) = unit_factor a ^ n"
+  by (induct n) (simp_all add: unit_factor_mult)
+
+end
+
 context division_ring
 begin
 

@@ -1034,6 +1034,25 @@ qed
 
 end
 
+instantiation nat :: normalization_semidom
+begin
+
+definition normalize_nat
+  where [simp]: "normalize = (id :: nat \<Rightarrow> nat)"
+
+definition unit_factor_nat
+  where "unit_factor n = (if n = 0 then 0 else 1 :: nat)"
+
+lemma unit_factor_simps [simp]:
+  "unit_factor 0 = (0::nat)"
+  "unit_factor (Suc n) = 1"
+  by (simp_all add: unit_factor_nat_def)
+
+instance
+  by standard (simp_all add: unit_factor_nat_def)
+  
+end
+
 lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
   let (q, r) = divmod_nat (m - n) n in (Suc q, r))"
   by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
@@ -1890,6 +1909,27 @@ lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto
 
+instantiation int :: normalization_semidom
+begin
+
+definition normalize_int
+  where [simp]: "normalize = (abs :: int \<Rightarrow> int)"
+
+definition unit_factor_int
+  where [simp]: "unit_factor = (sgn :: int \<Rightarrow> int)"
+
+instance
+proof
+  fix k :: int
+  assume "k \<noteq> 0"
+  then have "\<bar>sgn k\<bar> = 1"
+    by (cases "0::int" k rule: linorder_cases) simp_all
+  then show "is_unit (unit_factor k)"
+    by simp
+qed (simp_all add: sgn_times mult_sgn_abs)
+  
+end
+  
 text{*Basic laws about division and remainder*}
 
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"

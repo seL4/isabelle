@@ -7,7 +7,7 @@
 section \<open>Polynomials as type over a ring structure\<close>
 
 theory Polynomial
-imports Main GCD "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Infinite_Set"
+imports Main "~~/src/HOL/GCD" "~~/src/HOL/Library/More_List" "~~/src/HOL/Library/Infinite_Set"
 begin
 
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
@@ -1494,6 +1494,63 @@ lemma is_unit_monom_trival:
   assumes "is_unit p"
   shows "monom (coeff p (degree p)) 0 = p"
   using assms by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
+
+lemma is_unit_polyE:
+  assumes "is_unit p"
+  obtains a where "p = monom a 0" and "a \<noteq> 0"
+proof -
+  obtain a q where "p = pCons a q" by (cases p)
+  with assms have "p = [:a:]" and "a \<noteq> 0"
+    by (simp_all add: is_unit_pCons_iff)
+  with that show thesis by (simp add: monom_0)
+qed
+
+instantiation poly :: (field) normalization_semidom
+begin
+
+definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "normalize_poly p = smult (1 / coeff p (degree p)) p"
+
+definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "unit_factor_poly p = monom (coeff p (degree p)) 0"
+
+instance
+proof
+  fix p :: "'a poly"
+  show "unit_factor p * normalize p = p"
+    by (simp add: normalize_poly_def unit_factor_poly_def)
+      (simp only: mult_smult_left [symmetric] smult_monom, simp)
+next
+  show "normalize 0 = (0::'a poly)"
+    by (simp add: normalize_poly_def)
+next
+  show "unit_factor 0 = (0::'a poly)"
+    by (simp add: unit_factor_poly_def)
+next
+  fix p :: "'a poly"
+  assume "is_unit p"
+  then obtain a where "p = monom a 0" and "a \<noteq> 0"
+    by (rule is_unit_polyE)
+  then show "normalize p = 1"
+    by (auto simp add: normalize_poly_def smult_monom degree_monom_eq)
+next
+  fix p q :: "'a poly"
+  assume "q \<noteq> 0"
+  from \<open>q \<noteq> 0\<close> have "is_unit (monom (coeff q (degree q)) 0)"
+    by (auto intro: is_unit_monom_0)
+  then show "is_unit (unit_factor q)"
+    by (simp add: unit_factor_poly_def)
+next
+  fix p q :: "'a poly"
+  have "monom (coeff (p * q) (degree (p * q))) 0 =
+    monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
+    by (simp add: monom_0 coeff_degree_mult)
+  then show "unit_factor (p * q) =
+    unit_factor p * unit_factor q"
+    by (simp add: unit_factor_poly_def)
+qed
+
+end
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
