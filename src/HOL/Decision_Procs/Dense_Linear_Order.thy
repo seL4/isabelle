@@ -256,26 +256,36 @@ proof -
   have xb: "x \<le> ?b"
     using xMne fxM by auto
   have "?a \<in> ?Mx"
-    using Max_in[OF fMx Mxne] by simp then have ainS: "?a \<in> S" using MxS by blast
+    using Max_in[OF fMx Mxne] by simp
+  then have ainS: "?a \<in> S"
+    using MxS by blast
   have "?b \<in> ?xM"
-    using Min_in[OF fxM xMne] by simp then have binS: "?b \<in> S" using xMS by blast
+    using Min_in[OF fxM xMne] by simp
+  then have binS: "?b \<in> S"
+    using xMS by blast
   have noy: "\<forall>y. ?a < y \<and> y < ?b \<longrightarrow> y \<notin> S"
   proof clarsimp
     fix y
     assume ay: "?a < y" and yb: "y < ?b" and yS: "y \<in> S"
-    from yS have "y \<in> ?Mx \<or> y \<in> ?xM" by (auto simp add: linear)
+    from yS have "y \<in> ?Mx \<or> y \<in> ?xM"
+      by (auto simp add: linear)
     then show False
     proof
       assume "y \<in> ?Mx"
-      then have "y \<le> ?a" using Mxne fMx by auto
-      with ay show ?thesis by (simp add: not_le[symmetric])
+      then have "y \<le> ?a"
+        using Mxne fMx by auto
+      with ay show ?thesis
+        by (simp add: not_le[symmetric])
     next
       assume "y \<in> ?xM"
-      then have "?b \<le> y" using xMne fxM by auto
-      with yb show ?thesis by (simp add: not_le[symmetric])
+      then have "?b \<le> y"
+        using xMne fxM by auto
+      with yb show ?thesis
+        by (simp add: not_le[symmetric])
     qed
   qed
-  from ainS binS noy ax xb px show ?thesis by blast
+  from ainS binS noy ax xb px show ?thesis
+    by blast
 qed
 
 lemma finite_set_intervals2[no_atp]:
@@ -319,7 +329,8 @@ lemma dlo_qe_bnds[no_atp]:
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> (\<forall>l \<in> L. \<forall>u \<in> U. l < u)"
 proof (simp only: atomize_eq, rule iffI)
   assume H: "\<exists>x. (\<forall>y\<in>L. y < x) \<and> (\<forall>y\<in>U. x < y)"
-  then obtain x where xL: "\<forall>y\<in>L. y < x" and xU: "\<forall>y\<in>U. x < y" by blast
+  then obtain x where xL: "\<forall>y\<in>L. y < x" and xU: "\<forall>y\<in>U. x < y"
+    by blast
   have "l < u" if l: "l \<in> L" and u: "u \<in> U" for l u
   proof -
     have "l < x" using xL l by blast
@@ -331,13 +342,20 @@ next
   assume H: "\<forall>l\<in>L. \<forall>u\<in>U. l < u"
   let ?ML = "Max L"
   let ?MU = "Min U"
-  from fL ne have th1: "?ML \<in> L" and th1': "\<forall>l\<in>L. l \<le> ?ML" by auto
-  from fU neU have th2: "?MU \<in> U" and th2': "\<forall>u\<in>U. ?MU \<le> u" by auto
-  from th1 th2 H have "?ML < ?MU" by auto
-  with dense obtain w where th3: "?ML < w" and th4: "w < ?MU" by blast
-  from th3 th1' have "\<forall>l \<in> L. l < w" by auto
-  moreover from th4 th2' have "\<forall>u \<in> U. w < u" by auto
-  ultimately show "\<exists>x. (\<forall>y\<in>L. y < x) \<and> (\<forall>y\<in>U. x < y)" by auto
+  from fL ne have th1: "?ML \<in> L" and th1': "\<forall>l\<in>L. l \<le> ?ML"
+    by auto
+  from fU neU have th2: "?MU \<in> U" and th2': "\<forall>u\<in>U. ?MU \<le> u"
+    by auto
+  from th1 th2 H have "?ML < ?MU"
+    by auto
+  with dense obtain w where th3: "?ML < w" and th4: "w < ?MU"
+    by blast
+  from th3 th1' have "\<forall>l \<in> L. l < w"
+    by auto
+  moreover from th4 th2' have "\<forall>u \<in> U. w < u"
+    by auto
+  ultimately show "\<exists>x. (\<forall>y\<in>L. y < x) \<and> (\<forall>y\<in>U. x < y)"
+    by auto
 qed
 
 lemma dlo_qe_noub[no_atp]:
@@ -345,10 +363,14 @@ lemma dlo_qe_noub[no_atp]:
     and fL: "finite L"
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> {}. x < y)) \<equiv> True"
 proof (simp add: atomize_eq)
-  from gt_ex[of "Max L"] obtain M where M: "Max L < M" by blast
-  from ne fL have "\<forall>x \<in> L. x \<le> Max L" by simp
-  with M have "\<forall>x\<in>L. x < M" by (auto intro: le_less_trans)
-  then show "\<exists>x. \<forall>y\<in>L. y < x" by blast
+  from gt_ex[of "Max L"] obtain M where M: "Max L < M"
+    by blast
+  from ne fL have "\<forall>x \<in> L. x \<le> Max L"
+    by simp
+  with M have "\<forall>x\<in>L. x < M"
+    by (auto intro: le_less_trans)
+  then show "\<exists>x. \<forall>y\<in>L. y < x"
+    by blast
 qed
 
 lemma dlo_qe_nolb[no_atp]:
@@ -356,10 +378,14 @@ lemma dlo_qe_nolb[no_atp]:
     and fU: "finite U"
   shows "(\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> True"
 proof (simp add: atomize_eq)
-  from lt_ex[of "Min U"] obtain M where M: "M < Min U" by blast
-  from ne fU have "\<forall>x \<in> U. Min U \<le> x" by simp
-  with M have "\<forall>x\<in>U. M < x" by (auto intro: less_le_trans)
-  then show "\<exists>x. \<forall>y\<in>U. x < y" by blast
+  from lt_ex[of "Min U"] obtain M where M: "M < Min U"
+    by blast
+  from ne fU have "\<forall>x \<in> U. Min U \<le> x"
+    by simp
+  with M have "\<forall>x\<in>U. M < x"
+    by (auto intro: less_le_trans)
+  then show "\<exists>x. \<forall>y\<in>U. x < y"
+    by blast
 qed
 
 lemma exists_neq[no_atp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq> x"
@@ -386,14 +412,15 @@ lemmas dnf[no_atp] = conj_disj_distribL conj_disj_distribR
 lemmas weak_dnf_simps[no_atp] = simp_thms dnf
 
 lemma nnf_simps[no_atp]:
-  "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)"
-  "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)"
-  "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
-  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))"
-  "(\<not> \<not>(P)) = P"
+  "(\<not> (P \<and> Q)) \<longleftrightarrow> (\<not> P \<or> \<not> Q)"
+  "(\<not> (P \<or> Q)) \<longleftrightarrow> (\<not> P \<and> \<not> Q)"
+  "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q)"
+  "(P \<longleftrightarrow> Q) \<longleftrightarrow> ((P \<and> Q) \<or> (\<not> P \<and> \<not> Q))"
+  "(\<not> \<not> P) \<longleftrightarrow> P"
   by blast+
 
-lemma ex_distrib[no_atp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x. P x) \<or> (\<exists>x. Q x))" by blast
+lemma ex_distrib[no_atp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x. P x) \<or> (\<exists>x. Q x))"
+  by blast
 
 lemmas dnf_simps[no_atp] = weak_dnf_simps nnf_simps ex_distrib
 
@@ -431,14 +458,18 @@ lemma pinf_conj[no_atp]:
     and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
 proof -
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-     and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
-     by blast
-  from gt_ex obtain z where z:"ord.max less_eq z1 z2 \<sqsubset> z" by blast
-  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z" by simp_all
+  from ex1 ex2 obtain z1 and z2
+    where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+    and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+    by blast
+  from gt_ex obtain z where z:"ord.max less_eq z1 z2 \<sqsubset> z"
+    by blast
+  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z"
+    by simp_all
   have "(P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2')" if H: "z \<sqsubset> x" for x
     using less_trans[OF zz1 H] less_trans[OF zz2 H] z1 zz1 z2 zz2 by auto
-  then show ?thesis by blast
+  then show ?thesis
+    by blast
 qed
 
 lemma pinf_disj[no_atp]:
@@ -446,13 +477,18 @@ lemma pinf_disj[no_atp]:
     and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
 proof-
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-     and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from gt_ex obtain z where z:"ord.max less_eq z1 z2 \<sqsubset> z" by blast
-  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z" by simp_all
+  from ex1 ex2 obtain z1 and z2
+    where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+    and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+    by blast
+  from gt_ex obtain z where z: "ord.max less_eq z1 z2 \<sqsubset> z"
+    by blast
+  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z"
+    by simp_all
   have "(P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2')" if H: "z \<sqsubset> x" for x
     using less_trans[OF zz1 H] less_trans[OF zz2 H] z1 zz1 z2 zz2 by auto
-  then show ?thesis by blast
+  then show ?thesis
+    by blast
 qed
 
 lemma pinf_ex[no_atp]:
@@ -460,9 +496,12 @@ lemma pinf_ex[no_atp]:
     and p1: P1
   shows "\<exists>x. P x"
 proof -
-  from ex obtain z where z: "\<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
-  from gt_ex obtain x where x: "z \<sqsubset> x" by blast
-  from z x p1 show ?thesis by blast
+  from ex obtain z where z: "\<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)"
+    by blast
+  from gt_ex obtain x where x: "z \<sqsubset> x"
+    by blast
+  from z x p1 show ?thesis
+    by blast
 qed
 
 end
@@ -473,7 +512,8 @@ locale linorder_no_lb = linorder_stupid_syntax +
   assumes lt_ex: "\<exists>y. less y x"
 begin
 
-lemma le_ex[no_atp]: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
+lemma le_ex[no_atp]: "\<exists>y. y \<sqsubseteq> x"
+  using lt_ex by auto
 
 
 text \<open>Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}\<close>
@@ -482,14 +522,18 @@ lemma minf_conj[no_atp]:
     and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
 proof -
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+  from ex1 ex2 obtain z1 and z2
+    where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
     and z2: "\<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
     by blast
-  from lt_ex obtain z where z:"z \<sqsubset> ord.min less_eq z1 z2" by blast
-  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2" by simp_all
+  from lt_ex obtain z where z: "z \<sqsubset> ord.min less_eq z1 z2"
+    by blast
+  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2"
+    by simp_all
   have "(P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2')" if H: "x \<sqsubset> z" for x
     using less_trans[OF H zz1] less_trans[OF H zz2] z1 zz1 z2 zz2 by auto
-  then show ?thesis by blast
+  then show ?thesis
+    by blast
 qed
 
 lemma minf_disj[no_atp]:
@@ -497,13 +541,18 @@ lemma minf_disj[no_atp]:
     and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
 proof -
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-    and z2: "\<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from lt_ex obtain z where z:"z \<sqsubset> ord.min less_eq z1 z2" by blast
-  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2" by simp_all
+  from ex1 ex2 obtain z1 and z2
+    where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+    and z2: "\<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+    by blast
+  from lt_ex obtain z where z: "z \<sqsubset> ord.min less_eq z1 z2"
+    by blast
+  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2"
+    by simp_all
   have "(P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2')" if H: "x \<sqsubset> z" for x
     using less_trans[OF H zz1] less_trans[OF H zz2] z1 zz1 z2 zz2 by auto
-  then show ?thesis by blast
+  then show ?thesis
+    by blast
 qed
 
 lemma minf_ex[no_atp]:
@@ -511,9 +560,12 @@ lemma minf_ex[no_atp]:
     and p1: P1
   shows "\<exists>x. P x"
 proof -
-  from ex obtain z where z: "\<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
-  from lt_ex obtain x where x: "x \<sqsubset> z" by blast
-  from z x p1 show ?thesis by blast
+  from ex obtain z where z: "\<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)"
+    by blast
+  from lt_ex obtain x where x: "x \<sqsubset> z"
+    by blast
+  from z x p1 show ?thesis
+    by blast
 qed
 
 end
@@ -526,12 +578,17 @@ locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
 begin
 
 sublocale dlo: unbounded_dense_linorder
-  apply unfold_locales
-  using gt_ex lt_ex between_less
-  apply auto
-  apply (rule_tac x="between x y" in exI)
-  apply simp
-  done
+proof (unfold_locales, goals)
+  case (1 x y)
+  then show ?case
+    using between_less [of x y] by auto
+next
+  case 2
+  then show ?case by (rule lt_ex)
+next
+  case 3
+  then show ?case by (rule gt_ex)
+qed
 
 lemma rinf_U[no_atp]:
   assumes fU: "finite U"

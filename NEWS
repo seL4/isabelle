@@ -247,6 +247,12 @@ command. Minor INCOMPATIBILITY, use 'function' instead.
 * Thm.instantiate (and derivatives) no longer require the LHS of the
 instantiation to be certified: plain variables are given directly.
 
+* Subgoal.SUBPROOF and Subgoal.FOCUS combinators use anonymous
+quasi-bound variables (like the Simplifier), instead of accidentally
+named local fixes. This has the potential to improve stability of proof
+tools, but can also cause INCOMPATIBILITY for tools that don't observe
+the proof context discipline.
+
 
 
 New in Isabelle2015 (May 2015)

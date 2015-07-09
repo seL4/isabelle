@@ -194,16 +194,18 @@ text \<open>Addition\<close>
 lemma add_ci: "Ipol l (P \<oplus> Q) = Ipol l P + Ipol l Q"
 proof (induct P Q arbitrary: l rule: add.induct)
   case (6 x P y Q)
+  consider "x < y" | "x = y" | "x > y" by arith
+  then
   show ?case
-  proof (rule linorder_cases)
-    assume "x < y"
-    with 6 show ?case by (simp add: mkPinj_ci algebra_simps)
+  proof cases
+    case 1
+    with 6 show ?thesis by (simp add: mkPinj_ci algebra_simps)
   next
-    assume "x = y"
-    with 6 show ?case by (simp add: mkPinj_ci)
+    case 2
+    with 6 show ?thesis by (simp add: mkPinj_ci)
   next
-    assume "x > y"
-    with 6 show ?case by (simp add: mkPinj_ci algebra_simps)
+    case 3
+    with 6 show ?thesis by (simp add: mkPinj_ci algebra_simps)
   qed
 next
   case (7 x P Q y R)
@@ -257,13 +259,14 @@ text \<open>Power\<close>
 lemma pow_ci: "Ipol ls (pow n P) = Ipol ls P ^ n"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)
+  consider "k = 0" | "k > 0" by arith
+  then
   show ?case
-  proof (cases "k = 0")
-    case True
+  proof cases
+    case 1
     then show ?thesis by simp
   next
-    case False
-    then have "k > 0" by simp
+    case 2
     then have "k div 2 < k" by arith
     with less have *: "Ipol ls (pow (k div 2) (sqr P)) = Ipol ls (sqr P) ^ (k div 2)"
       by simp

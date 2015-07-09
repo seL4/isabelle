@@ -274,11 +274,10 @@ lemma numsubst0_numbound0:
   assumes "numbound0 t"
   shows "numbound0 (numsubst0 t a)"
   using assms
-  apply (induct a)
-  apply simp_all
-  apply (rename_tac nat a b, case_tac nat)
-  apply simp_all
-  done
+proof (induct a)
+  case (CN n _ _)
+  then show ?case by (cases n) simp_all
+qed simp_all
 
 lemma subst0_bound0:
   assumes qf: "qfree p"
@@ -457,12 +456,14 @@ apply pat_completeness apply auto*)
 lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
   apply (induct t s rule: numadd.induct)
   apply (simp_all add: Let_def)
-  apply (case_tac "c1 + c2 = 0")
-  apply (case_tac "n1 \<le> n2")
-  apply simp_all
-   apply (case_tac "n1 = n2")
-    apply (simp_all add: algebra_simps)
-  apply (simp add: distrib_right[symmetric])
+  subgoal for n1 c1 r1 n2 c2 r2
+    apply (cases "c1 + c2 = 0")
+    apply (cases "n1 \<le> n2")
+    apply simp_all
+     apply (cases "n1 = n2")
+      apply (simp_all add: algebra_simps)
+    apply (simp add: distrib_right[symmetric])
+    done
   done
 
 lemma numadd_nb: "numbound0 t \<Longrightarrow> numbound0 s \<Longrightarrow> numbound0 (numadd (t, s))"
@@ -531,12 +532,12 @@ lemma not_bn: "bound0 p \<Longrightarrow> bound0 (not p)"
   by (cases p) auto
 
 definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
-  where
-    "conj p q =
-      (if p = F \<or> q = F then F
-       else if p = T then q
-       else if q = T then p
-       else And p q)"
+where
+  "conj p q =
+    (if p = F \<or> q = F then F
+     else if p = T then q
+     else if q = T then p
+     else And p q)"
 
 lemma conj: "Ifm bbs bs (conj p q) = Ifm bbs bs (And p q)"
   by (cases "p = F \<or> q = F", simp_all add: conj_def) (cases p, simp_all)
@@ -548,12 +549,12 @@ lemma conj_nb: "bound0 p \<Longrightarrow> bound0 q \<Longrightarrow> bound0 (co
   using conj_def by auto
 
 definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
-  where
-    "disj p q =
-      (if p = T \<or> q = T then T
-       else if p = F then q
-       else if q = F then p
-       else Or p q)"
+where
+  "disj p q =
+    (if p = T \<or> q = T then T
+     else if p = F then q
+     else if q = F then p
+     else Or p q)"
 
 lemma disj: "Ifm bbs bs (disj p q) = Ifm bbs bs (Or p q)"
   by (cases "p = T \<or> q = T", simp_all add: disj_def) (cases p, simp_all)
@@ -565,12 +566,12 @@ lemma disj_nb: "bound0 p \<Longrightarrow> bound0 q \<Longrightarrow> bound0 (di
   using disj_def by auto
 
 definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
-  where
-    "imp p q =
-      (if p = F \<or> q = T then T
-       else if p = T then q
-       else if q = F then not p
-       else Imp p q)"
+where
+  "imp p q =
+    (if p = F \<or> q = T then T
+     else if p = T then q
+     else if q = F then not p
+     else Imp p q)"
 
 lemma imp: "Ifm bbs bs (imp p q) = Ifm bbs bs (Imp p q)"
   by (cases "p = F \<or> q = T", simp_all add: imp_def, cases p) (simp_all add: not)
@@ -633,188 +634,155 @@ proof (induct p rule: simpfm.induct)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case using sa
-      by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case
-      using sa by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (7 a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case using sa
-      by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case
-      using sa by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (8 a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case using sa
-      by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case
-      using sa by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (9 a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case using sa
-      by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa
-      by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (10 a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case
-      using sa by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case
-      using sa by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (11 a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    fix v
-    assume "?sa = C v"
-    then have ?case using sa
-      by simp
-  }
-  moreover {
-    assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case
-      using sa by (cases ?sa) (simp_all add: Let_def)
-  }
-  ultimately show ?case by blast
+  consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+  then show ?case
+  proof cases
+    case 1
+    with sa show ?thesis by simp
+  next
+    case 2
+    with sa show ?thesis by (cases ?sa) (simp_all add: Let_def)
+  qed
 next
   case (12 i a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    assume "i = 0"
-    then have ?case using "12.hyps"
-      by (simp add: dvd_def Let_def)
-  }
-  moreover
-  {
-    assume i1: "abs i = 1"
-    from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-    have ?case
-      using i1
+  consider "i = 0" | "abs i = 1" | "i \<noteq> 0" "abs i \<noteq> 1" by blast
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis
+      using "12.hyps" by (simp add: dvd_def Let_def)
+  next
+    case 2
+    with one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+    show ?thesis
       apply (cases "i = 0")
       apply (simp_all add: Let_def)
       apply (cases "i > 0")
       apply simp_all
       done
-  }
-  moreover
-  {
-    assume inz: "i \<noteq> 0" and cond: "abs i \<noteq> 1"
-    {
-      fix v
-      assume "?sa = C v"
-      then have ?case
-        using sa[symmetric] inz cond
+  next
+    case i: 3
+    consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+    then show ?thesis
+    proof cases
+      case 1
+      with sa[symmetric] i show ?thesis
         by (cases "abs i = 1") auto
-    }
-    moreover
-    {
-      assume "\<not> (\<exists>v. ?sa = C v)"
+    next
+      case 2
       then have "simpfm (Dvd i a) = Dvd i ?sa"
-        using inz cond by (cases ?sa) (auto simp add: Let_def)
-      then have ?case
-        using sa by simp
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
+        using i by (cases ?sa) (auto simp add: Let_def)
+      with sa show ?thesis by simp
+    qed
+  qed
 next
   case (13 i a)
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  {
-    assume "i = 0"
-    then have ?case using "13.hyps"
-      by (simp add: dvd_def Let_def)
-  }
-  moreover
-  {
-    assume i1: "abs i = 1"
-    from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-    have ?case
-      using i1
+  consider "i = 0" | "abs i = 1" | "i \<noteq> 0" "abs i \<noteq> 1" by blast
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis
+      using "13.hyps" by (simp add: dvd_def Let_def)
+  next
+    case 2
+    with one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+    show ?thesis
       apply (cases "i = 0")
       apply (simp_all add: Let_def)
       apply (cases "i > 0")
       apply simp_all
       done
-  }
-  moreover
-  {
-    assume inz: "i \<noteq> 0" and cond: "abs i \<noteq> 1"
-    {
-      fix v
-      assume "?sa = C v"
-      then have ?case
-        using sa[symmetric] inz cond by (cases "abs i = 1") auto
-    }
-    moreover
-    {
-      assume "\<not> (\<exists>v. ?sa = C v)"
+  next
+    case i: 3
+    consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
+    then show ?thesis
+    proof cases
+      case 1
+      with sa[symmetric] i show ?thesis
+        by (cases "abs i = 1") auto
+    next
+      case 2
       then have "simpfm (NDvd i a) = NDvd i ?sa"
-        using inz cond by (cases ?sa) (auto simp add: Let_def)
-      then have ?case using sa
-        by simp
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
+        using i by (cases ?sa) (auto simp add: Let_def)
+      with sa show ?thesis by simp
+    qed
+  qed
 qed (simp_all add: conj disj imp iff not)
 
 lemma simpfm_bound0: "bound0 p \<Longrightarrow> bound0 (simpfm p)"
@@ -861,8 +829,10 @@ next
 qed (auto simp add: disj_def imp_def iff_def conj_def not_bn)
 
 lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
-  by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
-    (case_tac "simpnum a", auto)+
+  apply (induct p rule: simpfm.induct)
+  apply (auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
+  apply (case_tac "simpnum a", auto)+
+  done
 
 text \<open>Generic quantifier elimination\<close>
 function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
@@ -923,17 +893,16 @@ next
   let ?j = "fst (zsplit0 a)"
   let ?b = "snd (zsplit0 a)"
   have abj: "zsplit0 a = (?j, ?b)" by simp
-  {
-    assume "m \<noteq> 0"
-    with 3(1)[OF abj] 3(2) have ?case
+  show ?case
+  proof (cases "m = 0")
+    case False
+    with 3(1)[OF abj] 3(2) show ?thesis
       by (auto simp add: Let_def split_def)
-  }
-  moreover
-  {
-    assume m0: "m = 0"
+  next
+    case m: True
     with abj have th: "a' = ?b \<and> n = i + ?j"
       using 3 by (simp add: Let_def split_def)
-    from abj 3 m0 have th2: "(?I x (CN 0 ?j ?b) = ?I x a) \<and> ?N ?b"
+    from abj 3 m have th2: "(?I x (CN 0 ?j ?b) = ?I x a) \<and> ?N ?b"
       by blast
     from th have "?I x (CN 0 n a') = ?I x (CN 0 (i + ?j) ?b)"
       by simp
@@ -941,10 +910,9 @@ next
       by (simp add: distrib_right)
     finally have "?I x (CN 0 n a') = ?I  x (CN 0 i a)"
       using th2 by simp
-    with th2 th have ?case using m0
+    with th2 th m show ?thesis
       by blast
-  }
-  ultimately show ?case by blast
+  qed
 next
   case (4 t n a)
   let ?nt = "fst (zsplit0 t)"
@@ -1110,7 +1078,7 @@ recdef zlfm "measure fmsize"
 lemma zlfm_I:
   assumes qfp: "qfree p"
   shows "Ifm bbs (i # bs) (zlfm p) = Ifm bbs (i # bs) p \<and> iszlfm (zlfm p)"
-  (is "?I (?l p) = ?I p \<and> ?L (?l p)")
+    (is "?I (?l p) = ?I p \<and> ?L (?l p)")
   using qfp
 proof (induct p rule: zlfm.induct)
   case (5 a)
@@ -1126,8 +1094,7 @@ proof (induct p rule: zlfm.induct)
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (6 a)
@@ -1143,8 +1110,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (7 a)
@@ -1160,8 +1126,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (8 a)
@@ -1177,8 +1142,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (9 a)
@@ -1194,8 +1158,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (10 a)
@@ -1211,8 +1174,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
+    subgoal for nat a b by (cases nat) auto
     done
 next
   case (11 j a)
@@ -1224,46 +1186,36 @@ next
   have Ia: "Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r"
     by auto
   let ?N = "\<lambda>t. Inum (i#bs) t"
-  have "j = 0 \<or> (j \<noteq> 0 \<and> ?c = 0) \<or> (j \<noteq> 0 \<and> ?c > 0) \<or> (j \<noteq> 0 \<and> ?c < 0)"
+  consider "j = 0" | "j \<noteq> 0" "?c = 0" | "j \<noteq> 0" "?c > 0" | "j \<noteq> 0" "?c < 0"
     by arith
-  moreover
-  {
-    assume "j = 0"
+  then show ?case
+  proof cases
+    case 1
     then have z: "zlfm (Dvd j a) = (zlfm (Eq a))"
       by (simp add: Let_def)
-    then have ?case using 11 \<open>j = 0\<close>
+    with 11 \<open>j = 0\<close> show ?thesis
       by (simp del: zlfm.simps)
-  }
-  moreover
-  {
-    assume "?c = 0" and "j \<noteq> 0"
-    then have ?case
-      using zsplit0_I[OF spl, where x="i" and bs="bs"]
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
-    done
-  }
-  moreover
-  {
-    assume cp: "?c > 0" and jnz: "j \<noteq> 0"
+  next
+    case 2
+    with zsplit0_I[OF spl, where x="i" and bs="bs"] show ?thesis
+      apply (auto simp add: Let_def split_def algebra_simps)
+      apply (cases "?r")
+      apply auto
+      subgoal for nat a b by (cases nat) auto
+      done
+  next
+    case 3
     then have l: "?L (?l (Dvd j a))"
       by (simp add: nb Let_def split_def)
-    then have ?case
-      using Ia cp jnz by (simp add: Let_def split_def)
-  }
-  moreover
-  { 
-    assume cn: "?c < 0" and jnz: "j \<noteq> 0"
-    then have l: "?L (?l (Dvd j a))"
-      by (simp add: nb Let_def split_def)
-    then have ?case
-      using Ia cn jnz dvd_minus_iff[of "abs j" "?c*i + ?N ?r"]
+    with Ia 3 show ?thesis
       by (simp add: Let_def split_def)
-  }
-  ultimately show ?case by blast
+  next
+    case 4
+    then have l: "?L (?l (Dvd j a))"
+      by (simp add: nb Let_def split_def)
+    with Ia 4 dvd_minus_iff[of "abs j" "?c*i + ?N ?r"] show ?thesis
+      by (simp add: Let_def split_def)
+  qed
 next
   case (12 j a)
   let ?c = "fst (zsplit0 a)"
@@ -1274,46 +1226,36 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r"
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
-  have "j = 0 \<or> (j \<noteq> 0 \<and> ?c = 0) \<or> (j \<noteq> 0 \<and> ?c > 0) \<or> (j \<noteq> 0 \<and> ?c < 0)"
+  consider "j = 0" | "j \<noteq> 0" "?c = 0" | "j \<noteq> 0" "?c > 0" | "j \<noteq> 0" "?c < 0"
     by arith
-  moreover
-  {
-    assume "j = 0"
+  then show ?case
+  proof cases
+    case 1
     then have z: "zlfm (NDvd j a) = zlfm (NEq a)"
       by (simp add: Let_def)
-    then have ?case
-      using assms 12 \<open>j = 0\<close> by (simp del: zlfm.simps)
-  }
-  moreover
-  {
-    assume "?c = 0" and "j \<noteq> 0"
-    then have ?case
-      using zsplit0_I[OF spl, where x="i" and bs="bs"]
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    apply (rename_tac nat a b, case_tac nat)
-    apply auto
-    done
-  }
-  moreover
-  {
-    assume cp: "?c > 0" and jnz: "j \<noteq> 0"
+    with assms 12 \<open>j = 0\<close> show ?thesis
+      by (simp del: zlfm.simps)
+  next
+    case 2
+    with zsplit0_I[OF spl, where x="i" and bs="bs"] show ?thesis
+      apply (auto simp add: Let_def split_def algebra_simps)
+      apply (cases "?r")
+      apply auto
+      subgoal for nat a b by (cases nat) auto
+      done
+  next
+    case 3
     then have l: "?L (?l (Dvd j a))"
       by (simp add: nb Let_def split_def)
-    then have ?case using Ia cp jnz
+    with Ia 3 show ?thesis
       by (simp add: Let_def split_def)
-  }
-  moreover
-  {
-    assume cn: "?c < 0" and jnz: "j \<noteq> 0"
+  next
+    case 4
     then have l: "?L (?l (Dvd j a))"
       by (simp add: nb Let_def split_def)
-    then have ?case
-      using Ia cn jnz dvd_minus_iff[of "abs j" "?c*i + ?N ?r"]
+    with Ia 4 dvd_minus_iff[of "abs j" "?c*i + ?N ?r"] show ?thesis
       by (simp add: Let_def split_def)
-  }
-  ultimately show ?case by blast
+  qed
 qed auto
 
 consts minusinf :: "fm \<Rightarrow> fm" -- \<open>Virtual substitution of @{text "-\<infinity>"}\<close>
@@ -1508,11 +1450,15 @@ lemma minusinf_inf:
 proof (induct p rule: minusinf.induct)
   case (1 p q)
   then show ?case
-    by auto (rule_tac x = "min z za" in exI, simp)
+    apply auto
+    subgoal for z z' by (rule exI [where x = "min z z'"]) simp
+    done
 next
   case (2 p q)
   then show ?case
-    by auto (rule_tac x = "min z za" in exI, simp)
+    apply auto
+    subgoal for z z' by (rule exI [where x = "min z z'"]) simp
+    done
 next
   case (3 c e)
   then have c1: "c = 1" and nb: "numbound0 e"
@@ -1955,10 +1901,8 @@ next
     by simp
   also have "\<dots> \<longleftrightarrow> (\<exists>k::int. (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c) * 0)"
     by (simp add: algebra_simps)
-  also
-  fix k
-  have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
-    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp
+  also have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k" for k] ldcp
     by simp
   also have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e = j * k)"
     by simp
@@ -1988,10 +1932,8 @@ next
     by simp
   also have "\<dots> \<longleftrightarrow> (\<exists>k::int. (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c) * 0)"
     by (simp add: algebra_simps)
-  also
-  fix k
-  have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
-    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp
+  also have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k" for k] ldcp
     by simp
   also have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e = j * k)"
     by simp
@@ -2041,21 +1983,20 @@ next
   then have p: "Ifm bbs (x # bs) (Gt (CN 0 c e))" and c1: "c=1" and bn: "numbound0 e"
     by simp_all
   let ?e = "Inum (x # bs) e"
-  {
-    assume "(x - d) + ?e > 0"
-    then have ?case
+  show ?case
+  proof (cases "(x - d) + ?e > 0")
+    case True
+    then show ?thesis
       using c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] by simp
-  }
-  moreover
-  {
-    assume H: "\<not> (x - d) + ?e > 0"
+  next
+    case False
     let ?v = "Neg e"
     have vb: "?v \<in> set (\<beta> (Gt (CN 0 c e)))"
       by simp
     from 7(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
     have nob: "\<not> (\<exists>j\<in> {1 ..d}. x = - ?e + j)"
       by auto
-    from H p have "x + ?e > 0 \<and> x + ?e \<le> d"
+    from False p have "x + ?e > 0 \<and> x + ?e \<le> d"
       by (simp add: c1)
     then have "x + ?e \<ge> 1 \<and> x + ?e \<le> d"
       by simp
@@ -2063,32 +2004,29 @@ next
       by simp
     then have "\<exists>j::int \<in> {1 .. d}. x = (- ?e + j)"
       by (simp add: algebra_simps)
-    with nob have ?case
+    with nob show ?thesis
       by auto
-  }
-  ultimately show ?case
-    by blast
+  qed
 next
   case (8 c e)
   then have p: "Ifm bbs (x # bs) (Ge (CN 0 c e))" and c1: "c = 1" and bn: "numbound0 e"
     by simp_all
   let ?e = "Inum (x # bs) e"
-  {
-    assume "(x - d) + ?e \<ge> 0"
-    then have ?case
+  show ?case
+  proof (cases "(x - d) + ?e \<ge> 0")
+    case True
+    then show ?thesis
       using c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"]
       by simp
-  }
-  moreover
-  {
-    assume H: "\<not> (x - d) + ?e \<ge> 0"
+  next
+    case False
     let ?v = "Sub (C (- 1)) e"
     have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))"
       by simp
     from 8(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
     have nob: "\<not> (\<exists>j\<in> {1 ..d}. x =  - ?e - 1 + j)"
       by auto
-    from H p have "x + ?e \<ge> 0 \<and> x + ?e < d"
+    from False p have "x + ?e \<ge> 0 \<and> x + ?e < d"
       by (simp add: c1)
     then have "x + ?e +1 \<ge> 1 \<and> x + ?e + 1 \<le> d"
       by simp
@@ -2096,11 +2034,9 @@ next
       by simp
     then have "\<exists>j::int \<in> {1 .. d}. x= - ?e - 1 + j"
       by (simp add: algebra_simps)
-    with nob have ?case
+    with nob show ?thesis
       by simp
-  }
-  ultimately show ?case
-    by blast
+  qed
 next
   case (3 c e)
   then
@@ -2115,9 +2051,10 @@ next
   from p have "x= - ?e"
     by (simp add: c1) with 3(5)
   show ?case
-    using dp
-    by simp (erule ballE[where x="1"],
-      simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
+    using dp apply simp
+    apply (erule ballE[where x="1"])
+    apply (simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
+    done
 next
   case (4 c e)
   then
@@ -2129,22 +2066,19 @@ next
   let ?v="Neg e"
   have vb: "?v \<in> set (\<beta> (NEq (CN 0 c e)))"
     by simp
-  {
-    assume "x - d + Inum (((x -d)) # bs) e \<noteq> 0"
-    then have ?case by (simp add: c1)
-  }
-  moreover
-  {
-    assume H: "x - d + Inum ((x - d) # bs) e = 0"
+  show ?case
+  proof (cases "x - d + Inum ((x - d) # bs) e = 0")
+    case False
+    then show ?thesis by (simp add: c1)
+  next
+    case True
     then have "x = - Inum ((x - d) # bs) e + d"
       by simp
     then have "x = - Inum (a # bs) e + d"
       by (simp add: numbound0_I[OF bn,where b="x - d"and b'="a"and bs="bs"])
-     with 4(5) have ?case
+     with 4(5) show ?thesis
       using dp by simp
-  }
-  ultimately show ?case
-    by blast
+  qed
 next
   case (9 j c e)
   then
@@ -2185,18 +2119,17 @@ qed (auto simp add: numbound0_I[where bs="bs" and b="(x - d)" and b'="x"] gr0_co
 
 lemma \<beta>':
   assumes lp: "iszlfm p"
-  and u: "d_\<beta> p 1"
-  and d: "d_\<delta> p d"
-  and dp: "d > 0"
+    and u: "d_\<beta> p 1"
+    and d: "d_\<delta> p d"
+    and dp: "d > 0"
   shows "\<forall>x. \<not> (\<exists>j::int \<in> {1 .. d}. \<exists>b \<in> set(\<beta> p). Ifm bbs ((Inum (a#bs) b + j) #bs) p) \<longrightarrow>
     Ifm bbs (x # bs) p \<longrightarrow> Ifm bbs ((x - d) # bs) p" (is "\<forall>x. ?b \<longrightarrow> ?P x \<longrightarrow> ?P (x - d)")
 proof clarify
   fix x
-  assume nb: "?b"
-    and px: "?P x"
+  assume nb: "?b" and px: "?P x"
   then have nb2: "\<not> (\<exists>j::int \<in> {1 .. d}. \<exists>b \<in> Inum (a # bs) ` set (\<beta> p). x = b + j)"
     by auto
-  from  \<beta>[OF lp u d dp nb2 px] show "?P (x -d )" .
+  show "?P (x - d)" by (rule \<beta>[OF lp u d dp nb2 px])
 qed
 
 lemma cpmi_eq:
@@ -2295,16 +2228,12 @@ where
 
 lemma unit:
   assumes qf: "qfree p"
-  shows "\<And>q B d. unit p = (q, B, d) \<Longrightarrow>
-    ((\<exists>x. Ifm bbs (x # bs) p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x # bs) q)) \<and>
+  fixes q B d
+  assumes qBd: "unit p = (q, B, d)"
+  shows "((\<exists>x. Ifm bbs (x # bs) p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x # bs) q)) \<and>
     (Inum (i # bs)) ` set B = (Inum (i # bs)) ` set (\<beta> q) \<and> d_\<beta> q 1 \<and> d_\<delta> q d \<and> d > 0 \<and>
     iszlfm q \<and> (\<forall>b\<in> set B. numbound0 b)"
 proof -
-  fix q B d
-  assume qBd: "unit p = (q,B,d)"
-  let ?thes = "((\<exists>x. Ifm bbs (x#bs) p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x#bs) q)) \<and>
-    Inum (i#bs) ` set B = Inum (i#bs) ` set (\<beta> q) \<and>
-    d_\<beta> q 1 \<and> d_\<delta> q d \<and> 0 < d \<and> iszlfm q \<and> (\<forall>b\<in> set B. numbound0 b)"
   let ?I = "\<lambda>x p. Ifm bbs (x#bs) p"
   let ?p' = "zlfm p"
   let ?l = "\<zeta> ?p'"
@@ -2338,19 +2267,18 @@ proof -
     by (simp add: simpnum_numbound0)
   from \<alpha>_l[OF lq] have A_nb: "\<forall>b\<in> set ?A'. numbound0 b"
     by (simp add: simpnum_numbound0)
-  {
-    assume "length ?B' \<le> length ?A'"
+  show ?thesis
+  proof (cases "length ?B' \<le> length ?A'")
+    case True
     then have q: "q = ?q" and "B = ?B'" and d: "d = ?d"
       using qBd by (auto simp add: Let_def unit_def)
     with BB' B_nb
     have b: "?N ` (set B) = ?N ` set (\<beta> q)" and bn: "\<forall>b\<in> set B. numbound0 b"
       by simp_all
-    with pq_ex dp uq dd lq q d have ?thes
+    with pq_ex dp uq dd lq q d show ?thesis
       by simp
-  }
-  moreover
-  {
-    assume "\<not> (length ?B' \<le> length ?A')"
+  next
+    case False
     then have q:"q=mirror ?q" and "B = ?A'" and d:"d = ?d"
       using qBd by (auto simp add: Let_def unit_def)
     with AA' mirror_\<alpha>_\<beta>[OF lq] A_nb have b:"?N ` (set B) = ?N ` set (\<beta> q)"
@@ -2363,10 +2291,9 @@ proof -
       by auto
     from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq: "d_\<delta> q d"
       by auto
-    from pqm_eq b bn uq lq' dp dq q dp d have ?thes
+    from pqm_eq b bn uq lq' dp dq q dp d show ?thesis
       by simp
-  }
-  ultimately show ?thes by blast
+  qed
 qed
 
 
@@ -2389,8 +2316,8 @@ where
 
 lemma cooper:
   assumes qf: "qfree p"
-  shows "((\<exists>x. Ifm bbs (x#bs) p) = (Ifm bbs bs (cooper p))) \<and> qfree (cooper p)"
-  (is "(?lhs = ?rhs) \<and> _")
+  shows "(\<exists>x. Ifm bbs (x#bs) p) = Ifm bbs bs (cooper p) \<and> qfree (cooper p)"
+    (is "?lhs = ?rhs \<and> _")
 proof -
   let ?I = "\<lambda>x p. Ifm bbs (x#bs) p"
   let ?q = "fst (unit p)"
@@ -2466,26 +2393,24 @@ proof -
   also have "\<dots> \<longleftrightarrow> Ifm bbs bs (decr (disj ?md ?qd))"
     by (simp only: decr [OF mdqdb])
   finally have mdqd2: "?lhs \<longleftrightarrow> Ifm bbs bs (decr (disj ?md ?qd))" .
-  {
-    assume mdT: "?md = T"
+  show ?thesis
+  proof (cases "?md = T")
+    case True
     then have cT: "cooper p = T"
       by (simp only: cooper_def unit_def split_def Let_def if_True) simp
-    from mdT have lhs: "?lhs"
+    from True have lhs: "?lhs"
       using mdqd by simp
-    from mdT have "?rhs"
+    from True have "?rhs"
       by (simp add: cooper_def unit_def split_def)
-    with lhs cT have ?thesis
+    with lhs cT show ?thesis
       by simp
-  }
-  moreover
-  {
-    assume mdT: "?md \<noteq> T"
+  next
+    case False
     then have "cooper p = decr (disj ?md ?qd)"
       by (simp only: cooper_def unit_def split_def Let_def if_False)
-    with mdqd2 decr_qf[OF mdqdb] have ?thesis
+    with mdqd2 decr_qf[OF mdqdb] show ?thesis
       by simp
-  }
-  ultimately show ?thesis by blast
+  qed
 qed
 
 definition pa :: "fm \<Rightarrow> fm"

@@ -78,6 +78,9 @@ sig
     ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
+  val is_bound_focus: Proof.context -> bool
+  val set_bound_focus: bool -> Proof.context -> Proof.context
+  val restore_bound_focus: Proof.context -> Proof.context -> Proof.context
   val focus_params: binding list option -> term -> Proof.context ->
     (string list * (string * typ) list) * Proof.context
   val focus: binding list option -> term -> Proof.context ->
@@ -447,12 +450,19 @@ fun add_fixes_binding bs ctxt =
       else (xs, fold Name.declare xs names);
   in ctxt |> new_fixes names' xs xs' (map Binding.pos_of bs) end;
 
+fun bound_fixes xs ctxt =
+  let
+    val (xs', ctxt') = fold_map next_bound xs ctxt;
+    val no_ps = replicate (length xs) Position.none;
+  in ctxt' |> new_fixes (names_of ctxt') (map #1 xs) (map (#1 o dest_Free) xs') no_ps end;
+
 fun variant_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
     val xs = map (fn x => Name.clean x |> Name.is_internal x ? Name.internal) raw_xs;
     val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
-  in ctxt |> new_fixes names' xs xs' (replicate (length xs) Position.none) end;
+    val no_ps = replicate (length xs) Position.none;
+  in ctxt |> new_fixes names' xs xs' no_ps end;
 
 end;
 
@@ -620,17 +630,24 @@ val trade = gen_trade (import true) export;
 
 (* focus on outermost parameters: !!x y z. B *)
 
+val bound_focus =
+  Config.bool (Config.declare ("bound_focus", @{here}) (K (Config.Bool false)));
+
+fun is_bound_focus ctxt = Config.get ctxt bound_focus;
+val set_bound_focus = Config.put bound_focus;
+fun restore_bound_focus ctxt = set_bound_focus (is_bound_focus ctxt);
+
 fun focus_params bindings t ctxt =
   let
-    val (xs, Ts) =
-      split_list (Term.variant_frees t (Term.strip_all_vars t));  (*as they are printed :-*)
+    val ps = Term.variant_frees t (Term.strip_all_vars t);  (*as they are printed :-*)
+    val (xs, Ts) = split_list ps;
     val (xs', ctxt') =
       (case bindings of
         SOME bs => ctxt |> set_body true |> add_fixes_binding bs ||> restore_body ctxt
-      | NONE => ctxt |> variant_fixes xs);
-    val ps = xs' ~~ Ts;
-    val ctxt'' = ctxt' |> fold (declare_constraints o Free) ps;
-  in ((xs, ps), ctxt'') end;
+      | NONE => if is_bound_focus ctxt then bound_fixes ps ctxt else variant_fixes xs ctxt);
+    val ps' = xs' ~~ Ts;
+    val ctxt'' = ctxt' |> fold (declare_constraints o Free) ps';
+  in ((xs, ps'), ctxt'') end;
 
 fun focus bindings t ctxt =
   let

@@ -150,7 +150,8 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
 fun GEN_FOCUS flags tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
-    let val (args as {context = ctxt', params, asms, ...}, st') = gen_focus flags ctxt i NONE st;
+    let val (args as {context = ctxt', params, asms, ...}, st') =
+      gen_focus flags (ctxt |> Variable.set_bound_focus true) i NONE st;
     in Seq.lifts (retrofit ctxt' ctxt params asms i) (tac args st') st end;
 
 val FOCUS_PARAMS = GEN_FOCUS (false, false);
