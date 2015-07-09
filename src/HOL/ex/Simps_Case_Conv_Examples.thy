@@ -75,6 +75,11 @@ lemma
   "test (Some x) y = x"
   by (fact test_simps1)+
 
+text {* Single-constructor patterns*}
+case_of_simps fst_conv_simps: fst_conv
+lemma "fst x = (case x of (a,b) \<Rightarrow> a)"
+  by (fact fst_conv_simps)
+
 text {* Partial split of case *}
 simps_of_case nosplit_simps2: nosplit_def (splits: list.split)
 lemma

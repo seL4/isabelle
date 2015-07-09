@@ -22,10 +22,12 @@ fun collect_Tcons (Type (name,Ts)) = name :: maps collect_Tcons Ts
   | collect_Tcons (TFree _) = []
   | collect_Tcons (TVar _) = []
 
-fun get_split_ths ctxt = collect_Tcons
+fun get_type_infos ctxt =
+    maps collect_Tcons
     #> distinct (op =)
     #> map_filter (Ctr_Sugar.ctr_sugar_of ctxt)
-    #> map #split
+
+fun get_split_ths ctxt = get_type_infos ctxt #> map #split
 
 val strip_eq = Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq
 
@@ -36,16 +38,18 @@ local
     | transpose ([] :: xss) = transpose xss
     | transpose xss = map hd xss :: transpose (map tl xss);
 
-  fun same_fun (ts as _ $ _ :: _) =
+  fun same_fun single_ctrs (ts as _ $ _ :: _) =
       let
         val (fs, argss) = map strip_comb ts |> split_list
         val f = hd fs
-      in if forall (fn x => f = x) fs then SOME (f, argss) else NONE end
-    | same_fun _ = NONE
+        fun is_single_ctr (Const (name, _)) = member (op =) single_ctrs name
+          | is_single_ctr _ = false
+      in if not (is_single_ctr f) andalso forall (fn x => f = x) fs then SOME (f, argss) else NONE end
+    | same_fun _ _ = NONE
 
   (* pats must be non-empty *)
-  fun split_pat pats ctxt =
-      case same_fun pats of
+  fun split_pat single_ctrs pats ctxt =
+      case same_fun single_ctrs pats of
         NONE =>
           let
             val (name, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
@@ -54,13 +58,13 @@ local
       | SOME (f, argss) =>
           let
             val (((def_pats, def_frees), case_patss), ctxt') =
-              split_pats argss ctxt
+              split_pats single_ctrs argss ctxt
             val def_pat = list_comb (f, def_pats)
           in (((def_pat, flat def_frees), case_patss), ctxt') end
   and
-      split_pats patss ctxt =
+      split_pats single_ctrs patss ctxt =
         let
-          val (splitted, ctxt') = fold_map split_pat (transpose patss) ctxt
+          val (splitted, ctxt') = fold_map (split_pat single_ctrs) (transpose patss) ctxt
           val r = splitted |> split_list |> apfst split_list |> apsnd (transpose #> map flat)
         in (r, ctxt') end
 
@@ -74,13 +78,16 @@ local
 *)
 fun build_case_t fun_t lhss rhss ctxt =
   let
+    val single_ctrs =
+      get_type_infos ctxt (map fastype_of (flat lhss))
+      |> map_filter (fn ti => case #ctrs ti of [Const (name, _)] => SOME name | _ => NONE)
     val (((def_pats, def_frees), case_patss), ctxt') =
-      split_pats lhss ctxt
+      split_pats single_ctrs lhss ctxt
     val pattern = map HOLogic.mk_tuple case_patss
     val case_arg = HOLogic.mk_tuple (flat def_frees)
     val cases = Case_Translation.make_case ctxt' Case_Translation.Warning Name.context
       case_arg (pattern ~~ rhss)
-    val split_thms = get_split_ths ctxt' (fastype_of case_arg)
+    val split_thms = get_split_ths ctxt' [fastype_of case_arg]
     val t = (list_comb (fun_t, def_pats), cases)
       |> HOLogic.mk_eq
       |> HOLogic.mk_Trueprop
@@ -196,7 +203,7 @@ fun gen_to_simps ctxt splitthms thm =
 fun to_simps ctxt thm =
   let
     val T = thm |> strip_eq |> fst |> strip_comb |> fst |> fastype_of
-    val splitthms = get_split_ths ctxt T
+    val splitthms = get_split_ths ctxt [T]
   in gen_to_simps ctxt splitthms thm end
 
 
