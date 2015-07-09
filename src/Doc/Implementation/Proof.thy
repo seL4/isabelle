@@ -109,7 +109,7 @@ text %mlref \<open>
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
   ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context"} \\
-  @{index_ML Variable.focus: "term -> Proof.context ->
+  @{index_ML Variable.focus: "binding list option -> term -> Proof.context ->
   ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
@@ -153,8 +153,8 @@ text %mlref \<open>
   should be accessible to the user, otherwise newly introduced names
   are marked as ``internal'' (\secref{sec:names}).
 
-  \item @{ML Variable.focus}~@{text B} decomposes the outermost @{text
-  "\<And>"} prefix of proposition @{text "B"}.
+  \item @{ML Variable.focus}~@{text "bindings B"} decomposes the outermost @{text
+  "\<And>"} prefix of proposition @{text "B"}, using the given name bindings.
 
   \end{description}
 \<close>
@@ -394,9 +394,12 @@ text %mlref \<open>
   Proof.context -> int -> tactic"} \\
   @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.focus: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
-  @{index_ML Subgoal.focus_prems: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
-  @{index_ML Subgoal.focus_params: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus: "Proof.context -> int -> binding list option ->
+  thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_prems: "Proof.context -> int -> binding list option ->
+  thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_params: "Proof.context -> int -> binding list option ->
+  thm -> Subgoal.focus * thm"} \\
   \end{mldecls}
 
   \begin{mldecls}
@@ -473,7 +476,7 @@ begin
     ML_val
      \<open>val {goal, context = goal_ctxt, ...} = @{Isar.goal};
       val (focus as {params, asms, concl, ...}, goal') =
-        Subgoal.focus goal_ctxt 1 goal;
+        Subgoal.focus goal_ctxt 1 (SOME [@{binding x}]) goal;
       val [A, B] = #prems focus;
       val [(_, x)] = #params focus;\<close>
     sorry

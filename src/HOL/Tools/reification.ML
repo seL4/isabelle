@@ -23,11 +23,12 @@ fun rewrite_with ctxt eqs = Simplifier.rewrite (put_simpset HOL_basic_ss ctxt ad
 
 val pure_subst = @{lemma "x == y ==> PROP P y ==> PROP P x" by simp}
 
-fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { concl, ... } =>
+fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn {context = ctxt', concl, ...} =>
   let
-    val ct = case some_t
-     of NONE => Thm.dest_arg concl
-      | SOME t => Thm.cterm_of ctxt t
+    val ct =
+      (case some_t of
+        NONE => Thm.dest_arg concl
+      | SOME t => Thm.cterm_of ctxt' t)
     val thm = conv ct;
   in
     if Thm.is_reflexive thm then no_tac

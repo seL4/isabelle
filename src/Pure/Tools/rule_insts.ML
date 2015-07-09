@@ -218,7 +218,7 @@ fun goal_context goal ctxt =
     val ((_, params), ctxt') = ctxt
       |> Variable.declare_constraints goal
       |> Variable.improper_fixes
-      |> Variable.focus_params goal
+      |> Variable.focus_params NONE goal
       ||> Variable.restore_proper_fixes ctxt;
   in (params, ctxt') end;
 

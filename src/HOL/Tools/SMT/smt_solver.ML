@@ -252,7 +252,7 @@ fun smt_filter ctxt0 goal xfacts i time_limit =
   let
     val ctxt = ctxt0 |> Config.put SMT_Config.timeout (Time.toReal time_limit)
 
-    val ({context = ctxt, prems, concl, ...}, _) = Subgoal.focus ctxt i goal
+    val ({context = ctxt, prems, concl, ...}, _) = Subgoal.focus ctxt i NONE goal
     fun negate ct = Thm.dest_comb ct ||> Thm.apply @{cterm Not} |-> Thm.apply
     val cprop =
       (case try negate (Thm.rhs_of (SMT_Normalize.atomize_conv ctxt concl)) of
@@ -295,7 +295,7 @@ local
   fun tac prove ctxt rules =
     CONVERSION (SMT_Normalize.atomize_conv ctxt)
     THEN' rtac @{thm ccontr}
-    THEN' SUBPROOF (fn {context = ctxt, prems, ...} => resolve (prove ctxt (rules @ prems))) ctxt
+    THEN' SUBPROOF (fn {context = ctxt', prems, ...} => resolve (prove ctxt' (rules @ prems))) ctxt
 in
 
 val smt_tac = tac safe_solve

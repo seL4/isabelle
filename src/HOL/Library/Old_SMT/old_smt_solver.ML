@@ -281,7 +281,7 @@ fun smt_filter_preprocess ctxt facts goal xwthms i =
       |> Config.put Old_SMT_Config.oracle false
       |> Config.put Old_SMT_Config.filter_only_facts true
 
-    val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
+    val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i NONE goal
     fun negate ct = Thm.dest_comb ct ||> Thm.apply cnot |-> Thm.apply
     val cprop =
       (case try negate (Thm.rhs_of (Old_SMT_Normalize.atomize_conv ctxt' concl)) of

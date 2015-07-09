@@ -275,7 +275,7 @@ fun result tac facts ctxt =
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
     val obtain_rule =
       Thm.forall_elim (Thm.cterm_of ctxt (Logic.varify_global (Free thesis_var))) rule';
-    val ((params, stmt), fix_ctxt) = Variable.focus_cterm (Thm.cprem_of obtain_rule 1) ctxt';
+    val ((params, stmt), fix_ctxt) = Variable.focus_cterm NONE (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
       Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
         (Drule.strip_imp_prems stmt) fix_ctxt;

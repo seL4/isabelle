@@ -29,6 +29,7 @@ object Keyword
   val QED_GLOBAL = "qed_global"
   val PRF_GOAL = "prf_goal"
   val PRF_BLOCK = "prf_block"
+  val NEXT_BLOCK = "next_block"
   val PRF_OPEN = "prf_open"
   val PRF_CLOSE = "prf_close"
   val PRF_CHAIN = "prf_chain"
@@ -63,19 +64,22 @@ object Keyword
   val theory_body = Set(THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 
   val proof =
-    Set(QED, QED_SCRIPT, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
-      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
+    Set(QED, QED_SCRIPT, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, NEXT_BLOCK, PRF_OPEN,
+      PRF_CLOSE, PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
       PRF_SCRIPT_ASM_GOAL)
 
   val proof_body =
-    Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
-      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
+    Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW, PRF_BLOCK, NEXT_BLOCK, PRF_OPEN,
+      PRF_CLOSE, PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT, PRF_SCRIPT_GOAL,
       PRF_SCRIPT_ASM_GOAL)
 
   val theory_goal = Set(THY_GOAL)
   val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_SCRIPT_GOAL, PRF_SCRIPT_ASM_GOAL)
   val qed = Set(QED, QED_SCRIPT, QED_BLOCK)
   val qed_global = Set(QED_GLOBAL)
+
+  val proof_open = proof_goal + PRF_OPEN
+  val proof_close = qed + PRF_CLOSE
 
 
 

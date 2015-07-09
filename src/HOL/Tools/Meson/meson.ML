@@ -709,7 +709,7 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
             resolve_tac ctxt @{thms ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [skolemize_prems_tac ctxt negs,
+                      EVERY1 [skolemize_prems_tac ctxt' negs,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 

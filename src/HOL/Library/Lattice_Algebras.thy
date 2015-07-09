@@ -145,7 +145,8 @@ lemma zero_le_pprt[simp]: "0 \<le> pprt a"
 lemma nprt_le_zero[simp]: "nprt a \<le> 0"
   by (simp add: nprt_def)
 
-lemma le_eq_neg: "a \<le> - b \<longleftrightarrow> a + b \<le> 0" (is "?l = ?r")
+lemma le_eq_neg: "a \<le> - b \<longleftrightarrow> a + b \<le> 0"
+  (is "?l = ?r")
 proof
   assume ?l
   then show ?r
@@ -177,25 +178,24 @@ lemma pprt_eq_0 [simp, no_atp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
 lemma nprt_eq_0 [simp, no_atp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
   by (simp add: nprt_def inf_absorb2)
 
-lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
+lemma sup_0_imp_0:
+  assumes "sup a (- a) = 0"
+  shows "a = 0"
 proof -
-  {
-    fix a :: 'a
-    assume hyp: "sup a (- a) = 0"
-    then have "sup a (- a) + a = a"
+  have p: "0 \<le> a" if "sup a (- a) = 0" for a :: 'a
+  proof -
+    from that have "sup a (- a) + a = a"
       by simp
     then have "sup (a + a) 0 = a"
       by (simp add: add_sup_distrib_right)
     then have "sup (a + a) 0 \<le> a"
       by simp
-    then have "0 \<le> a"
+    then show ?thesis
       by (blast intro: order_trans inf_sup_ord)
-  }
-  note p = this
-  assume hyp:"sup a (-a) = 0"
-  then have hyp2:"sup (-a) (-(-a)) = 0"
+  qed
+  from assms have **: "sup (-a) (-(-a)) = 0"
     by (simp add: sup_commute)
-  from p[OF hyp] p[OF hyp2] show "a = 0"
+  from p[OF assms] p[OF **] show "a = 0"
     by simp
 qed
 
@@ -217,49 +217,50 @@ lemma sup_0_eq_0 [simp, no_atp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
   apply simp
   done
 
-lemma zero_le_double_add_iff_zero_le_single_add [simp]:
-  "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
+lemma zero_le_double_add_iff_zero_le_single_add [simp]: "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "0 \<le> a + a"
-  then have a: "inf (a + a) 0 = 0"
-    by (simp add: inf_commute inf_absorb1)
-  have "inf a 0 + inf a 0 = inf (inf (a + a) 0) a"  (is "?l=_")
-    by (simp add: add_sup_inf_distribs inf_aci)
-  then have "?l = 0 + inf a 0"
-    by (simp add: a, simp add: inf_commute)
-  then have "inf a 0 = 0"
-    by (simp only: add_right_cancel)
-  then show "0 \<le> a"
-    unfolding le_iff_inf by (simp add: inf_commute)
-next
-  assume a: "0 \<le> a"
-  show "0 \<le> a + a"
-    by (simp add: add_mono[OF a a, simplified])
+  show ?rhs if ?lhs
+  proof -
+    from that have a: "inf (a + a) 0 = 0"
+      by (simp add: inf_commute inf_absorb1)
+    have "inf a 0 + inf a 0 = inf (inf (a + a) 0) a"  (is "?l=_")
+      by (simp add: add_sup_inf_distribs inf_aci)
+    then have "?l = 0 + inf a 0"
+      by (simp add: a, simp add: inf_commute)
+    then have "inf a 0 = 0"
+      by (simp only: add_right_cancel)
+    then show ?thesis
+      unfolding le_iff_inf by (simp add: inf_commute)
+  qed
+  show ?lhs if ?rhs
+    by (simp add: add_mono[OF that that, simplified])
 qed
 
 lemma double_zero [simp]: "a + a = 0 \<longleftrightarrow> a = 0"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume assm: "a + a = 0"
-  then have "a + a + - a = - a"
-    by simp
-  then have "a + (a + - a) = - a"
-    by (simp only: add.assoc)
-  then have a: "- a = a"
-    by simp
-  show "a = 0"
-    apply (rule antisym)
-    apply (unfold neg_le_iff_le [symmetric, of a])
-    unfolding a
-    apply simp
-    unfolding zero_le_double_add_iff_zero_le_single_add [symmetric, of a]
-    unfolding assm
-    unfolding le_less
-    apply simp_all
-    done
-next
-  assume "a = 0"
-  then show "a + a = 0"
-    by simp
+  show ?rhs if ?lhs
+  proof -
+    from that have "a + a + - a = - a"
+      by simp
+    then have "a + (a + - a) = - a"
+      by (simp only: add.assoc)
+    then have a: "- a = a"
+      by simp
+    show ?thesis
+      apply (rule antisym)
+      apply (unfold neg_le_iff_le [symmetric, of a])
+      unfolding a
+      apply simp
+      unfolding zero_le_double_add_iff_zero_le_single_add [symmetric, of a]
+      unfolding that
+      unfolding le_less
+      apply simp_all
+      done
+  qed
+  show ?lhs if ?rhs
+    using that by simp
 qed
 
 lemma zero_less_double_add_iff_zero_less_single_add [simp]: "0 < a + a \<longleftrightarrow> 0 < a"
@@ -281,19 +282,17 @@ next
     done
 qed
 
-lemma double_add_le_zero_iff_single_add_le_zero [simp]:
-  "a + a \<le> 0 \<longleftrightarrow> a \<le> 0"
+lemma double_add_le_zero_iff_single_add_le_zero [simp]: "a + a \<le> 0 \<longleftrightarrow> a \<le> 0"
 proof -
   have "a + a \<le> 0 \<longleftrightarrow> 0 \<le> - (a + a)"
-    by (subst le_minus_iff, simp)
+    by (subst le_minus_iff) simp
   moreover have "\<dots> \<longleftrightarrow> a \<le> 0"
     by (simp only: minus_add_distrib zero_le_double_add_iff_zero_le_single_add) simp
   ultimately show ?thesis
     by blast
 qed
 
-lemma double_add_less_zero_iff_single_less_zero [simp]:
-  "a + a < 0 \<longleftrightarrow> a < 0"
+lemma double_add_less_zero_iff_single_less_zero [simp]: "a + a < 0 \<longleftrightarrow> a < 0"
 proof -
   have "a + a < 0 \<longleftrightarrow> 0 < - (a + a)"
     by (subst less_minus_iff) simp
@@ -316,8 +315,8 @@ qed
 
 lemma minus_le_self_iff: "- a \<le> a \<longleftrightarrow> 0 \<le> a"
 proof -
-  from add_le_cancel_left [of "uminus a" zero "plus a a"]
   have "- a \<le> a \<longleftrightarrow> 0 \<le> a + a"
+    using add_le_cancel_left [of "uminus a" zero "plus a a"]
     by (simp add: add.assoc[symmetric])
   then show ?thesis
     by simp
@@ -370,15 +369,14 @@ qed
 
 subclass ordered_ab_group_add_abs
 proof
-  have abs_ge_zero [simp]: "\<And>a. 0 \<le> \<bar>a\<bar>"
+  have abs_ge_zero [simp]: "0 \<le> \<bar>a\<bar>" for a
   proof -
-    fix a b
     have a: "a \<le> \<bar>a\<bar>" and b: "- a \<le> \<bar>a\<bar>"
       by (auto simp add: abs_lattice)
     show "0 \<le> \<bar>a\<bar>"
       by (rule add_mono [OF a b, simplified])
   qed
-  have abs_leI: "\<And>a b. a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
+  have abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b" for a b
     by (simp add: abs_lattice le_supI)
   fix a b
   show "0 \<le> \<bar>a\<bar>"
@@ -387,15 +385,12 @@ proof
     by (auto simp add: abs_lattice)
   show "\<bar>-a\<bar> = \<bar>a\<bar>"
     by (simp add: abs_lattice sup_commute)
-  {
-    assume "a \<le> b"
-    then show "- a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
-      by (rule abs_leI)
-  }
+  show "- a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b" if "a \<le> b"
+    using that by (rule abs_leI)
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
   proof -
     have g: "\<bar>a\<bar> + \<bar>b\<bar> = sup (a + b) (sup (- a - b) (sup (- a + b) (a + (- b))))"
-      (is "_=sup ?m ?n")
+      (is "_ = sup ?m ?n")
       by (simp add: abs_lattice add_sup_inf_distribs ac_simps)
     have a: "a + b \<le> sup ?m ?n"
       by simp
@@ -420,25 +415,23 @@ qed
 end
 
 lemma sup_eq_if:
-  fixes a :: "'a::{lattice_ab_group_add, linorder}"
+  fixes a :: "'a::{lattice_ab_group_add,linorder}"
   shows "sup a (- a) = (if a < 0 then - a else a)"
-proof -
-  note add_le_cancel_right [of a a "- a", symmetric, simplified]
-  moreover note add_le_cancel_right [of "-a" a a, symmetric, simplified]
-  then show ?thesis by (auto simp: sup_max max.absorb1 max.absorb2)
-qed
+  using add_le_cancel_right [of a a "- a", symmetric, simplified]
+    and add_le_cancel_right [of "-a" a a, symmetric, simplified]
+  by (auto simp: sup_max max.absorb1 max.absorb2)
 
 lemma abs_if_lattice:
-  fixes a :: "'a::{lattice_ab_group_add_abs, linorder}"
+  fixes a :: "'a::{lattice_ab_group_add_abs,linorder}"
   shows "\<bar>a\<bar> = (if a < 0 then - a else a)"
   by auto
 
 lemma estimate_by_abs:
   fixes a b c :: "'a::lattice_ab_group_add_abs"
-  shows "a + b \<le> c \<Longrightarrow> a \<le> c + \<bar>b\<bar>"
+  assumes "a + b \<le> c"
+  shows "a \<le> c + \<bar>b\<bar>"
 proof -
-  assume "a + b \<le> c"
-  then have "a \<le> c + (- b)"
+  from assms have "a \<le> c + (- b)"
     by (simp add: algebra_simps)
   have "- b \<le> \<bar>b\<bar>"
     by (rule abs_ge_minus_self)
@@ -464,15 +457,12 @@ proof -
   let ?y = "pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
   have a: "\<bar>a\<bar> * \<bar>b\<bar> = ?x"
     by (simp only: abs_prts[of a] abs_prts[of b] algebra_simps)
-  {
-    fix u v :: 'a
-    have bh: "u = a \<Longrightarrow> v = b \<Longrightarrow>
-              u * v = pprt a * pprt b + pprt a * nprt b +
-                      nprt a * pprt b + nprt a * nprt b"
-      apply (subst prts[of u], subst prts[of v])
-      apply (simp add: algebra_simps)
-      done
-  }
+  have bh: "u = a \<Longrightarrow> v = b \<Longrightarrow>
+            u * v = pprt a * pprt b + pprt a * nprt b +
+                    nprt a * pprt b + nprt a * nprt b" for u v :: 'a
+    apply (subst prts[of u], subst prts[of v])
+    apply (simp add: algebra_simps)
+    done
   note b = this[OF refl[of a] refl[of b]]
   have xy: "- ?x \<le> ?y"
     apply simp
@@ -552,9 +542,7 @@ lemma mult_le_prts:
     pprt a2 * pprt b2 + pprt a1 * nprt b2 + nprt a2 * pprt b1 + nprt a1 * nprt b1"
 proof -
   have "a * b = (pprt a + nprt a) * (pprt b + nprt b)"
-    apply (subst prts[symmetric])+
-    apply simp
-    done
+    by (subst prts[symmetric])+ simp
   then have "a * b = pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
     by (simp add: algebra_simps)
   moreover have "pprt a * pprt b \<le> pprt a2 * pprt b2"
@@ -587,9 +575,7 @@ proof -
       by simp
   qed
   ultimately show ?thesis
-    apply -
-    apply (rule add_mono | simp)+
-    done
+    by - (rule add_mono | simp)+
 qed
 
 lemma mult_ge_prts:
@@ -607,7 +593,8 @@ proof -
     by auto
   from mult_le_prts[of "- a2" "- a" "- a1" "b1" b "b2",
     OF a1 a2 assms(3) assms(4), simplified nprt_neg pprt_neg]
-  have le: "- (a * b) \<le> - nprt a1 * pprt b2 + - nprt a2 * nprt b2 +
+  have le: "- (a * b) \<le>
+    - nprt a1 * pprt b2 + - nprt a2 * nprt b2 +
     - pprt a1 * pprt b1 + - pprt a2 * nprt b1"
     by simp
   then have "- (- nprt a1 * pprt b2 + - nprt a2 * nprt b2 +

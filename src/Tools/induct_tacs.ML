@@ -68,7 +68,7 @@ fun induct_tac ctxt varss opt_rules i st =
   let
     val goal = Thm.cprem_of st i;
     val (_, goal_ctxt) = Rule_Insts.goal_context (Thm.term_of goal) ctxt
-    and ((_, goal'), _) = Variable.focus_cterm goal ctxt;
+    and ((_, goal'), _) = Variable.focus_cterm NONE goal ctxt;
     val (prems, concl) = Logic.strip_horn (Thm.term_of goal');
 
     fun induct_var name =

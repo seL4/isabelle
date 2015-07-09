@@ -62,7 +62,7 @@ theory Pure
   and "case" :: prf_asm % "proof"
   and "{" :: prf_open % "proof"
   and "}" :: prf_close % "proof"
-  and "next" :: prf_block % "proof"
+  and "next" :: next_block % "proof"
   and "qed" :: qed_block % "proof"
   and "by" ".." "." "sorry" :: "qed" % "proof"
   and "done" :: "qed_script" % "proof"

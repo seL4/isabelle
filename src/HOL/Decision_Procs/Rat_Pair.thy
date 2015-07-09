@@ -328,13 +328,7 @@ proof -
   proof cases
     case 1
     then show ?thesis
-      apply (cases "a = 0")
-      apply (simp_all add: x y Nmul_def INum_def Let_def)
-      apply (cases "b = 0")
-      apply simp_all
-      apply (cases "a' = 0")
-      apply simp_all
-      done
+      by (auto simp add: x y Nmul_def INum_def)
   next
     case neq: 2
     let ?g = "gcd (a * a') (b * b')"
@@ -347,21 +341,21 @@ proof -
   qed
 qed
 
-lemma Nneg[simp]: "INum (~\<^sub>N x) = - (INum x ::'a::field)"
+lemma Nneg[simp]: "INum (~\<^sub>N x) = - (INum x :: 'a::field)"
   by (simp add: Nneg_def split_def INum_def)
 
-lemma Nsub[simp]: "INum (x -\<^sub>N y) = INum x - (INum y:: 'a :: {field_char_0,field})"
+lemma Nsub[simp]: "INum (x -\<^sub>N y) = INum x - (INum y:: 'a::{field_char_0,field})"
   by (simp add: Nsub_def split_def)
 
-lemma Ninv[simp]: "INum (Ninv x) = (1::'a :: field) / (INum x)"
+lemma Ninv[simp]: "INum (Ninv x) = (1 :: 'a::field) / INum x"
   by (simp add: Ninv_def INum_def split_def)
 
-lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y ::'a :: {field_char_0,field})"
+lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y :: 'a::{field_char_0,field})"
   by (simp add: Ndiv_def)
 
 lemma Nlt0_iff[simp]:
   assumes nx: "isnormNum x"
-  shows "((INum x :: 'a::{field_char_0,linordered_field})< 0) = 0>\<^sub>N x"
+  shows "((INum x :: 'a::{field_char_0,linordered_field}) < 0) = 0>\<^sub>N x"
 proof -
   obtain a b where x: "x = (a, b)" by (cases x)
   show ?thesis
@@ -401,7 +395,7 @@ qed
 
 lemma Ngt0_iff[simp]:
   assumes nx: "isnormNum x"
-  shows "((INum x :: 'a::{field_char_0,linordered_field})> 0) = 0<\<^sub>N x"
+  shows "((INum x :: 'a::{field_char_0,linordered_field}) > 0) = 0<\<^sub>N x"
 proof -
   obtain a b where x: "x = (a, b)" by (cases x)
   show ?thesis
@@ -421,7 +415,7 @@ qed
 
 lemma Nge0_iff[simp]:
   assumes nx: "isnormNum x"
-  shows "((INum x :: 'a::{field_char_0,linordered_field}) \<ge> 0) = 0\<le>\<^sub>N x"
+  shows "(INum x :: 'a::{field_char_0,linordered_field}) \<ge> 0 \<longleftrightarrow> 0\<le>\<^sub>N x"
 proof -
   obtain a b where x: "x = (a, b)" by (cases x)
   show ?thesis
@@ -442,12 +436,12 @@ qed
 lemma Nlt_iff[simp]:
   assumes nx: "isnormNum x"
     and ny: "isnormNum y"
-  shows "((INum x :: 'a::{field_char_0,linordered_field}) < INum y) = (x <\<^sub>N y)"
+  shows "((INum x :: 'a::{field_char_0,linordered_field}) < INum y) \<longleftrightarrow> x <\<^sub>N y"
 proof -
   let ?z = "0::'a"
-  have "((INum x ::'a) < INum y) = (INum (x -\<^sub>N y) < ?z)"
+  have "((INum x ::'a) < INum y) \<longleftrightarrow> INum (x -\<^sub>N y) < ?z"
     using nx ny by simp
-  also have "\<dots> = (0>\<^sub>N (x -\<^sub>N y))"
+  also have "\<dots> \<longleftrightarrow> 0>\<^sub>N (x -\<^sub>N y)"
     using Nlt0_iff[OF Nsub_normN[OF ny]] by simp
   finally show ?thesis
     by (simp add: Nlt_def)
@@ -456,11 +450,11 @@ qed
 lemma Nle_iff[simp]:
   assumes nx: "isnormNum x"
     and ny: "isnormNum y"
-  shows "((INum x :: 'a::{field_char_0,linordered_field})\<le> INum y) = (x \<le>\<^sub>N y)"
+  shows "((INum x :: 'a::{field_char_0,linordered_field}) \<le> INum y) \<longleftrightarrow> x \<le>\<^sub>N y"
 proof -
-  have "((INum x ::'a) \<le> INum y) = (INum (x -\<^sub>N y) \<le> (0::'a))"
+  have "((INum x ::'a) \<le> INum y) \<longleftrightarrow> INum (x -\<^sub>N y) \<le> (0::'a)"
     using nx ny by simp
-  also have "\<dots> = (0\<ge>\<^sub>N (x -\<^sub>N y))"
+  also have "\<dots> \<longleftrightarrow> 0\<ge>\<^sub>N (x -\<^sub>N y)"
     using Nle0_iff[OF Nsub_normN[OF ny]] by simp
   finally show ?thesis
     by (simp add: Nle_def)
@@ -508,7 +502,7 @@ lemma normNum_nilpotent[simp]:
   shows "normNum (normNum x) = normNum x"
   by simp
 
-lemma normNum0[simp]: "normNum (0,b) = 0\<^sub>N" "normNum (a,0) = 0\<^sub>N"
+lemma normNum0[simp]: "normNum (0, b) = 0\<^sub>N" "normNum (a, 0) = 0\<^sub>N"
   by (simp_all add: normNum_def)
 
 lemma normNum_Nadd:
@@ -520,29 +514,40 @@ lemma Nadd_normNum1[simp]:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "normNum x +\<^sub>N y = x +\<^sub>N y"
 proof -
-  have n: "isnormNum (normNum x +\<^sub>N y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: 'a)" by simp
-  also have "\<dots> = INum (x +\<^sub>N y)" by simp
-  finally show ?thesis using isnormNum_unique[OF n] by simp
+  have n: "isnormNum (normNum x +\<^sub>N y)" "isnormNum (x +\<^sub>N y)"
+    by simp_all
+  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: 'a)"
+    by simp
+  also have "\<dots> = INum (x +\<^sub>N y)"
+    by simp
+  finally show ?thesis
+    using isnormNum_unique[OF n] by simp
 qed
 
 lemma Nadd_normNum2[simp]:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "x +\<^sub>N normNum y = x +\<^sub>N y"
 proof -
-  have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: 'a)" by simp
-  also have "\<dots> = INum (x +\<^sub>N y)" by simp
-  finally show ?thesis using isnormNum_unique[OF n] by simp
+  have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)"
+    by simp_all
+  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: 'a)"
+    by simp
+  also have "\<dots> = INum (x +\<^sub>N y)"
+    by simp
+  finally show ?thesis
+    using isnormNum_unique[OF n] by simp
 qed
 
 lemma Nadd_assoc:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
   shows "x +\<^sub>N y +\<^sub>N z = x +\<^sub>N (y +\<^sub>N z)"
 proof -
-  have n: "isnormNum (x +\<^sub>N y +\<^sub>N z)" "isnormNum (x +\<^sub>N (y +\<^sub>N z))" by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
-  with isnormNum_unique[OF n] show ?thesis by simp
+  have n: "isnormNum (x +\<^sub>N y +\<^sub>N z)" "isnormNum (x +\<^sub>N (y +\<^sub>N z))"
+    by simp_all
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)"
+    by simp
+  with isnormNum_unique[OF n] show ?thesis
+    by simp
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
@@ -557,8 +562,10 @@ lemma Nmul_assoc:
 proof -
   from nx ny nz have n: "isnormNum (x *\<^sub>N y *\<^sub>N z)" "isnormNum (x *\<^sub>N (y *\<^sub>N z))"
     by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
-  with isnormNum_unique[OF n] show ?thesis by simp
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)"
+    by simp
+  with isnormNum_unique[OF n] show ?thesis
+    by simp
 qed
 
 lemma Nsub0:
@@ -568,9 +575,12 @@ lemma Nsub0:
   shows "x -\<^sub>N y = 0\<^sub>N \<longleftrightarrow> x = y"
 proof -
   from isnormNum_unique[where 'a = 'a, OF Nsub_normN[OF y], where y="0\<^sub>N"]
-  have "(x -\<^sub>N y = 0\<^sub>N) = (INum (x -\<^sub>N y) = (INum 0\<^sub>N :: 'a)) " by simp
-  also have "\<dots> = (INum x = (INum y :: 'a))" by simp
-  also have "\<dots> = (x = y)" using x y by simp
+  have "x -\<^sub>N y = 0\<^sub>N \<longleftrightarrow> INum (x -\<^sub>N y) = (INum 0\<^sub>N :: 'a)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> INum x = (INum y :: 'a)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> x = y"
+    using x y by simp
   finally show ?thesis .
 qed
 

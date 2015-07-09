@@ -215,7 +215,7 @@ fun thm_name kind th prts =
 
 fun obtain prop ctxt =
   let
-    val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
+    val ((ps, prop'), ctxt') = Variable.focus NONE prop ctxt;
     fun fix (x, T) = (Binding.name (Variable.revert_fixed ctxt' x), SOME T, NoSyn);
     val xs = map (fix o #2) ps;
     val As = Logic.strip_imp_prems prop';

@@ -441,9 +441,8 @@ fun comprehension_conv ctxt ct =
       THEN' REPEAT_DETERM o eresolve_tac ctxt @{thms exE}
       THEN' eresolve_tac ctxt @{thms conjE}
       THEN' REPEAT_DETERM o eresolve_tac ctxt @{thms Pair_inject}
-      THEN' Subgoal.FOCUS (fn {prems, ...} =>
-        (* FIXME inner context!? *)
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps (filter is_eq prems)) 1) ctxt
+      THEN' Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
+        simp_tac (put_simpset HOL_basic_ss ctxt' addsimps (filter is_eq prems)) 1) ctxt
       THEN' TRY o assume_tac ctxt
   in
     case try mk_term (Thm.term_of ct) of

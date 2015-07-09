@@ -69,8 +69,9 @@ sig
   val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val actual_proof: (Proof_Node.T -> Proof_Node.T) -> transition -> transition
-  val skip_proof: (int -> int) -> transition -> transition
-  val skip_proof_to_theory: (int -> bool) -> transition -> transition
+  val skip_proof: (unit -> unit) -> transition -> transition
+  val skip_proof_open: transition -> transition
+  val skip_proof_close: transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val add_hook: (transition -> state -> state -> unit) -> unit
@@ -510,16 +511,24 @@ fun proof' f = proofs' ((Seq.single o Seq.Result) oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
 
+
+(* skipped proofs *)
+
 fun actual_proof f = transaction (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
 fun skip_proof f = transaction (fn _ =>
-  (fn Skipped_Proof (h, x) => Skipped_Proof (f h, x)
+  (fn skip as Skipped_Proof _ => (f (); skip)
     | _ => raise UNDEF));
 
-fun skip_proof_to_theory pred = transaction (fn _ =>
-  (fn Skipped_Proof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
+val skip_proof_open = transaction (fn _ =>
+  (fn Skipped_Proof (d, x) => Skipped_Proof (d + 1, x)
+    | _ => raise UNDEF));
+
+val skip_proof_close = transaction (fn _ =>
+  (fn Skipped_Proof (0, (gthy, _)) => Theory (gthy, NONE)
+    | Skipped_Proof (d, x) => Skipped_Proof (d - 1, x)
     | _ => raise UNDEF));
 
 

@@ -15,10 +15,10 @@ sig
   type focus =
    {context: Proof.context, params: (string * cterm) list, prems: thm list, asms: cterm list,
     concl: cterm, schematics: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list}
-  val focus_params: Proof.context -> int -> thm -> focus * thm
-  val focus_params_fixed: Proof.context -> int -> thm -> focus * thm
-  val focus_prems: Proof.context -> int -> thm -> focus * thm
-  val focus: Proof.context -> int -> thm -> focus * thm
+  val focus_params: Proof.context -> int -> binding list option -> thm -> focus * thm
+  val focus_params_fixed: Proof.context -> int -> binding list option -> thm -> focus * thm
+  val focus_prems: Proof.context -> int -> binding list option -> thm -> focus * thm
+  val focus: Proof.context -> int -> binding list option -> thm -> focus * thm
   val retrofit: Proof.context -> Proof.context -> (string * cterm) list -> cterm list ->
     int -> thm -> thm -> thm Seq.seq
   val FOCUS_PARAMS: (focus -> tactic) -> Proof.context -> int -> tactic
@@ -41,13 +41,13 @@ type focus =
  {context: Proof.context, params: (string * cterm) list, prems: thm list, asms: cterm list,
   concl: cterm, schematics: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list};
 
-fun gen_focus (do_prems, do_concl) ctxt i raw_st =
+fun gen_focus (do_prems, do_concl) ctxt i bindings raw_st =
   let
     val st = raw_st
       |> Thm.transfer (Proof_Context.theory_of ctxt)
       |> Raw_Simplifier.norm_hhf_protect ctxt;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
-    val ((params, goal), ctxt2) = Variable.focus_cterm (Thm.cprem_of st' i) ctxt1;
+    val ((params, goal), ctxt2) = Variable.focus_cterm bindings (Thm.cprem_of st' i) ctxt1;
 
     val (asms, concl) =
       if do_prems then (Drule.strip_imp_prems goal, Drule.strip_imp_concl goal)
@@ -150,7 +150,7 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
 fun GEN_FOCUS flags tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
-    let val (args as {context = ctxt', params, asms, ...}, st') = gen_focus flags ctxt i st;
+    let val (args as {context = ctxt', params, asms, ...}, st') = gen_focus flags ctxt i NONE st;
     in Seq.lifts (retrofit ctxt' ctxt params asms i) (tac args st') st end;
 
 val FOCUS_PARAMS = GEN_FOCUS (false, false);
@@ -165,10 +165,10 @@ fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
 local
 
-fun rename_params ctxt (param_suffix, raw_param_specs) st =
+fun param_bindings ctxt (param_suffix, raw_param_specs) st =
   let
     val _ = if Thm.no_prems st then error "No subgoals!" else ();
-    val (subgoal, goal') = Logic.dest_implies (Thm.prop_of st);
+    val subgoal = #1 (Logic.dest_implies (Thm.prop_of st));
     val subgoal_params =
       map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars subgoal)
       |> Term.variant_frees subgoal |> map #1;
@@ -184,19 +184,16 @@ fun rename_params ctxt (param_suffix, raw_param_specs) st =
       raw_param_specs |> map
         (fn (NONE, _) => NONE
           | (SOME x, pos) =>
-              let val b = #1 (#1 (Proof_Context.cert_var (Binding.make (x, pos), NONE, NoSyn) ctxt))
-              in SOME (Variable.check_name b) end)
+              let
+                val b = #1 (#1 (Proof_Context.cert_var (Binding.make (x, pos), NONE, NoSyn) ctxt));
+                val _ = Variable.check_name b;
+              in SOME b end)
       |> param_suffix ? append (replicate (n - m) NONE);
 
-    fun rename_list (opt_x :: xs) (y :: ys) = (the_default y opt_x :: rename_list xs ys)
-      | rename_list _ ys = ys;
-
-    fun rename_prop (x :: xs) ((c as Const ("Pure.all", _)) $ Abs (_, T, t)) =
-          (c $ Abs (x, T, rename_prop xs t))
-      | rename_prop [] t = t;
-
-    val subgoal' = rename_prop (rename_list param_specs subgoal_params) subgoal;
-  in Thm.renamed_prop (Logic.mk_implies (subgoal', goal')) st end;
+    fun bindings (SOME x :: xs) (_ :: ys) = x :: bindings xs ys
+      | bindings (NONE :: xs) (y :: ys) = Binding.name y :: bindings xs ys
+      | bindings _ ys = map Binding.name ys;
+  in bindings param_specs subgoal_params end;
 
 fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state =
   let
@@ -212,8 +209,8 @@ fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state
       | NONE => ((Binding.empty, []), false));
 
     val (subgoal_focus, _) =
-      rename_params ctxt param_specs st
-      |> (if do_prems then focus else focus_params_fixed) ctxt 1;
+      (if do_prems then focus else focus_params_fixed) ctxt
+        1 (SOME (param_bindings ctxt param_specs st)) st;
 
     fun after_qed (ctxt'', [[result]]) =
       Proof.end_block #> (fn state' =>

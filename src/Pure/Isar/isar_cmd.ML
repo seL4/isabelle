@@ -182,8 +182,6 @@ val local_immediate_proof = Toplevel.proof Proof.local_immediate_proof;
 val local_done_proof = Toplevel.proof Proof.local_done_proof;
 val local_skip_proof = Toplevel.proof' Proof.local_skip_proof;
 
-val skip_local_qed = Toplevel.skip_proof (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF);
-
 
 (* global endings *)
 
@@ -194,12 +192,10 @@ val global_immediate_proof = Toplevel.end_proof (K Proof.global_immediate_proof)
 val global_skip_proof = Toplevel.end_proof Proof.global_skip_proof;
 val global_done_proof = Toplevel.end_proof (K Proof.global_done_proof);
 
-val skip_global_qed = Toplevel.skip_proof_to_theory (fn n => n = 1);
-
 
 (* common endings *)
 
-fun qed m = local_qed m o global_qed m o skip_local_qed o skip_global_qed;
+fun qed m = local_qed m o global_qed m;
 fun terminal_proof m = local_terminal_proof m o global_terminal_proof m;
 val default_proof = local_default_proof o global_default_proof;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
