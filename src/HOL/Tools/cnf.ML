@@ -539,9 +539,9 @@ fun weakening_tac ctxt i =
 
 fun cnf_rewrite_tac ctxt i =
   (* cut the CNF formulas as new premises *)
-  Subgoal.FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
     let
-      val cnf_thms = map (make_cnf_thm ctxt o HOLogic.dest_Trueprop o Thm.prop_of) prems
+      val cnf_thms = map (make_cnf_thm ctxt' o HOLogic.dest_Trueprop o Thm.prop_of) prems
       val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnf_thms ~~ prems)
     in
       cut_facts_tac cut_thms 1
@@ -561,9 +561,9 @@ fun cnf_rewrite_tac ctxt i =
 
 fun cnfx_rewrite_tac ctxt i =
   (* cut the CNF formulas as new premises *)
-  Subgoal.FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
     let
-      val cnfx_thms = map (make_cnfx_thm ctxt o HOLogic.dest_Trueprop o Thm.prop_of) prems
+      val cnfx_thms = map (make_cnfx_thm ctxt' o HOLogic.dest_Trueprop o Thm.prop_of) prems
       val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnfx_thms ~~ prems)
     in
       cut_facts_tac cut_thms 1

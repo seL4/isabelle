@@ -219,13 +219,7 @@ sig
     rows: int list,
     TCs: term list list,
     full_pats_TCs: (term * term list) list}
-  val wfrec_eqns: theory -> xstring -> thm list -> term list ->
-   {WFR: term,
-    SV: term list,
-    proto_def: term,
-    extracta: (thm * term list) list,
-    pats: pattern list}
-  val mk_induction: theory ->
+  val mk_induction: Proof.context ->
     {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
   val postprocess: Proof.context -> bool ->
     {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm} ->
@@ -2134,60 +2128,6 @@ fun post_definition ctxt meta_tflCongs (def, pats) =
  end;
 
 
-(*---------------------------------------------------------------------------
- * Perform the extraction without making the definition. Definition and
- * extraction commute for the non-nested case.  (Deferred recdefs)
- *
- * The purpose of wfrec_eqns is merely to instantiate the recursion theorem
- * and extract termination conditions: no definition is made.
- *---------------------------------------------------------------------------*)
-
-fun wfrec_eqns thy fid tflCongs eqns =
- let val ctxt = Proof_Context.init_global thy
-     val {lhs,rhs} = USyntax.dest_eq (hd eqns)
-     val (f,args) = USyntax.strip_comb lhs
-     val (fname,_) = dest_atom f
-     val (SV,_) = front_last args    (* SV = schematic variables *)
-     val g = list_comb(f,SV)
-     val h = Free(fname,type_of g)
-     val eqns1 = map (subst_free[(g,h)]) eqns
-     val {functional as Abs(x, Ty, _),  pats} = mk_functional thy eqns1
-     val given_pats = givens pats
-     (* val f = Free(x,Ty) *)
-     val Type("fun", [f_dty, f_rty]) = Ty
-     val _ = if x<>fid then
-                        raise TFL_ERR "wfrec_eqns"
-                                      ("Expected a definition of " ^
-                                      quote fid ^ " but found one of " ^
-                                      quote x)
-                 else ()
-     val (case_rewrites,context_congs) = extraction_thms thy
-     val tych = Thry.typecheck thy
-     val WFREC_THM0 = Rules.ISPEC (tych functional) @{thm tfl_wfrec}
-     val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
-     val R = Free (singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] eqns)) Rname,
-                   Rtype)
-     val WFREC_THM = Rules.ISPECL [tych R, tych g] WFREC_THM0
-     val ([proto_def, WFR],_) = USyntax.strip_imp(concl WFREC_THM)
-     val _ =
-           if !trace then
-               writeln ("ORIGINAL PROTO_DEF: " ^
-                          Syntax.string_of_term_global thy proto_def)
-           else ()
-     val R1 = USyntax.rand WFR
-     val corollary' = Rules.UNDISCH (Rules.UNDISCH WFREC_THM)
-     val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary') given_pats
-     val corollaries' = map (rewrite_rule ctxt case_rewrites) corollaries
-     val extract =
-      Rules.CONTEXT_REWRITE_RULE ctxt (f, R1::SV, @{thm cut_apply}, tflCongs @ context_congs)
- in {proto_def = proto_def,
-     SV=SV,
-     WFR=WFR,
-     pats=pats,
-     extracta = map extract corollaries'}
- end;
-
-
 (*----------------------------------------------------------------------------
  *
  *                           INDUCTION THEOREM
@@ -2238,9 +2178,9 @@ fun alpha_ex_unroll (xlist, tm) =
  *
  *---------------------------------------------------------------------------*)
 
-fun mk_case ty_info usednames thy =
+fun mk_case ctxt ty_info usednames =
  let
- val ctxt = Proof_Context.init_global thy
+ val thy = Proof_Context.theory_of ctxt
  val divide = ipartition (gvvariant usednames)
  val tych = Thry.typecheck thy
  fun tych_binding(x,y) = (tych x, tych y)
@@ -2290,8 +2230,8 @@ fun mk_case ty_info usednames thy =
  end;
 
 
-fun complete_cases thy =
- let val ctxt = Proof_Context.init_global thy
+fun complete_cases ctxt =
+ let val thy = Proof_Context.theory_of ctxt
      val tych = Thry.typecheck thy
      val ty_info = Thry.induct_info thy
  in fn pats =>
@@ -2310,8 +2250,8 @@ fun complete_cases thy =
  Rules.GEN ctxt (tych a)
        (Rules.RIGHT_ASSOC ctxt
           (Rules.CHOOSE ctxt (tych v, ex_th0)
-                (mk_case ty_info (vname::aname::names)
-                 thy {path=[v], rows=rows})))
+                (mk_case ctxt ty_info (vname::aname::names)
+                 {path=[v], rows=rows})))
  end end;
 
 
@@ -2414,12 +2354,13 @@ fun LEFT_ABS_VSTRUCT ctxt tych thm =
  * recursion induction (Rinduct) by proving the antecedent of Sinduct from
  * the antecedent of Rinduct.
  *---------------------------------------------------------------------------*)
-fun mk_induction thy {fconst, R, SV, pat_TCs_list} =
-let val ctxt = Proof_Context.init_global thy
+fun mk_induction ctxt {fconst, R, SV, pat_TCs_list} =
+let
+    val thy = Proof_Context.theory_of ctxt
     val tych = Thry.typecheck thy
     val Sinduction = Rules.UNDISCH (Rules.ISPEC (tych R) @{thm tfl_wf_induct})
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
-    val case_thm = complete_cases thy pats
+    val case_thm = complete_cases ctxt pats
     val domain = (type_of o hd) pats
     val Pname = singleton (Name.variant_list (List.foldr (Library.foldr Misc_Legacy.add_term_names)
                               [] (pats::TCsl))) "P"
@@ -2451,7 +2392,6 @@ in
    Rules.GEN ctxt (tych P) (Rules.DISCH (tych(concl Rinduct_assum)) dc')
 end
 handle Utils.ERR _ => raise TFL_ERR "mk_induction" "failed derivation";
-
 
 
 
@@ -2661,7 +2601,7 @@ fun proof_stage ctxt strict wfs {f, R, rules, full_pats_TCs, TCs} =
   let
     val _ = writeln "Proving induction theorem ..."
     val ind =
-      Prim.mk_induction (Proof_Context.theory_of ctxt)
+      Prim.mk_induction ctxt
         {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
     val _ = writeln "Postprocessing ...";
     val {rules, induction, nested_tcs} =

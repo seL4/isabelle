@@ -129,29 +129,38 @@ next
     by (cases a) (simp_all add: add.commute)
 qed
 
-lemma (in comm_semiring_0) padd_assoc: "\<forall>b c. (a +++ b) +++ c = a +++ (b +++ c)"
-  apply (induct a)
-  apply simp
-  apply clarify
-  apply (case_tac b)
-  apply (simp_all add: ac_simps)
-  done
+lemma (in comm_semiring_0) padd_assoc: "(a +++ b) +++ c = a +++ (b +++ c)"
+proof (induct a arbitrary: b c)
+  case Nil
+  then show ?case
+    by simp
+next
+  case Cons
+  then show ?case
+    by (cases b) (simp_all add: ac_simps)
+qed
 
 lemma (in semiring_0) poly_cmult_distr: "a %* (p +++ q) = a %* p +++ a %* q"
-  apply (induct p arbitrary: q)
-  apply simp
-  apply (case_tac q)
-  apply (simp_all add: distrib_left)
-  done
+proof (induct p arbitrary: q)
+  case Nil
+  then show ?case
+    by simp
+next
+  case Cons
+  then show ?case
+    by (cases q) (simp_all add: distrib_left)
+qed
 
 lemma (in ring_1) pmult_by_x[simp]: "[0, 1] *** t = 0 # t"
-  apply (induct t)
-  apply simp
-  apply (auto simp add: padd_commut)
-  apply (case_tac t)
-  apply auto
-  done
-
+proof (induct t)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons a t)
+  then show ?case
+    by (cases t) (auto simp add: padd_commut)
+qed
 
 text \<open>Properties of evaluation of polynomials.\<close>
 
@@ -167,18 +176,21 @@ next
 qed
 
 lemma (in comm_semiring_0) poly_cmult: "poly (c %* p) x = c * poly p x"
-  apply (induct p)
-  apply (case_tac [2] "x = zero")
-  apply (auto simp add: distrib_left ac_simps)
-  done
+proof (induct p)
+  case Nil
+  then show ?case
+    by simp
+next
+  case Cons
+  then show ?case
+    by (cases "x = zero") (auto simp add: distrib_left ac_simps)
+qed
 
 lemma (in comm_semiring_0) poly_cmult_map: "poly (map (op * c) p) x = c * poly p x"
   by (induct p) (auto simp add: distrib_left ac_simps)
 
 lemma (in comm_ring_1) poly_minus: "poly (-- p) x = - (poly p x)"
-  apply (simp add: poly_minus_def)
-  apply (auto simp add: poly_cmult)
-  done
+  by (simp add: poly_minus_def) (auto simp add: poly_cmult)
 
 lemma (in comm_semiring_0) poly_mult: "poly (p1 *** p2) x = poly p1 x * poly p2 x"
 proof (induct p1 arbitrary: p2)
@@ -186,7 +198,7 @@ proof (induct p1 arbitrary: p2)
   then show ?case
     by simp
 next
-  case (Cons a as p2)
+  case (Cons a as)
   then show ?case
     by (cases as) (simp_all add: poly_cmult poly_add distrib_right distrib_left ac_simps)
 qed
@@ -216,16 +228,16 @@ lemma (in comm_semiring_1) poly_exp_add: "poly (p %^ (n + d)) x = poly (p %^ n *
 
 subsection \<open>Key Property: if @{term "f a = 0"} then @{term "(x - a)"} divides @{term "p(x)"}.\<close>
 
-lemma (in comm_ring_1) lemma_poly_linear_rem: "\<forall>h. \<exists>q r. h#t = [r] +++ [-a, 1] *** q"
-proof (induct t)
+lemma (in comm_ring_1) lemma_poly_linear_rem: "\<exists>q r. h#t = [r] +++ [-a, 1] *** q"
+proof (induct t arbitrary: h)
   case Nil
-  have "[h] = [h] +++ [- a, 1] *** []" for h by simp
+  have "[h] = [h] +++ [- a, 1] *** []" by simp
   then show ?case by blast
 next
   case (Cons  x xs)
-  have "\<exists>q r. h # x # xs = [r] +++ [-a, 1] *** q" for h
+  have "\<exists>q r. h # x # xs = [r] +++ [-a, 1] *** q"
   proof -
-    from Cons.hyps obtain q r where qr: "x # xs = [r] +++ [- a, 1] *** q"
+    from Cons obtain q r where qr: "x # xs = [r] +++ [- a, 1] *** q"
       by blast
     have "h # x # xs = [a * r + h] +++ [-a, 1] *** (r # q)"
       using qr by (cases q) (simp_all add: algebra_simps)
@@ -237,7 +249,7 @@ qed
 lemma (in comm_ring_1) poly_linear_rem: "\<exists>q r. h#t = [r] +++ [-a, 1] *** q"
   using lemma_poly_linear_rem [where t = t and a = a] by auto
 
-lemma (in comm_ring_1) poly_linear_divides: "(poly p a = 0) \<longleftrightarrow> p = [] \<or> (\<exists>q. p = [-a, 1] *** q)"
+lemma (in comm_ring_1) poly_linear_divides: "poly p a = 0 \<longleftrightarrow> p = [] \<or> (\<exists>q. p = [-a, 1] *** q)"
 proof (cases p)
   case Nil
   then show ?thesis by simp
@@ -264,12 +276,12 @@ next
 qed
 
 lemma (in semiring_0) lemma_poly_length_mult[simp]:
-  "\<forall>h k a. length (k %* p +++  (h # (a %* p))) = Suc (length p)"
-  by (induct p) auto
+  "length (k %* p +++  (h # (a %* p))) = Suc (length p)"
+  by (induct p arbitrary: h k a) auto
 
 lemma (in semiring_0) lemma_poly_length_mult2[simp]:
-  "\<forall>h k. length (k %* p +++  (h # p)) = Suc (length p)"
-  by (induct p) auto
+  "length (k %* p +++  (h # p)) = Suc (length p)"
+  by (induct p arbitrary: h k) auto
 
 lemma (in ring_1) poly_length_mult[simp]: "length([-a,1] *** q) = Suc (length q)"
   by auto
@@ -281,9 +293,9 @@ lemma (in semiring_0) poly_cmult_length[simp]: "length (a %* p) = length p"
   by (induct p) auto
 
 lemma (in semiring_0) poly_add_length: "length (p1 +++ p2) = max (length p1) (length p2)"
-  by (induct p1 arbitrary: p2) (simp_all, arith)
+  by (induct p1 arbitrary: p2) auto
 
-lemma (in semiring_0) poly_root_mult_length[simp]: "length([a,b] *** p) = Suc (length p)"
+lemma (in semiring_0) poly_root_mult_length[simp]: "length ([a, b] *** p) = Suc (length p)"
   by (simp add: poly_add_length)
 
 lemma (in idom) poly_mult_not_eq_poly_Nil[simp]:
@@ -301,15 +313,15 @@ lemma (in semiring_0) poly_normalized_nil: "pnormalize p = [] \<longrightarrow> 
 
 text \<open>A nontrivial polynomial of degree n has no more than n roots.\<close>
 lemma (in idom) poly_roots_index_lemma:
-  assumes p: "poly p x \<noteq> poly [] x"
-    and n: "length p = n"
+  assumes "poly p x \<noteq> poly [] x"
+    and "length p = n"
   shows "\<exists>i. \<forall>x. poly p x = 0 \<longrightarrow> (\<exists>m\<le>n. x = i m)"
-  using p n
+  using assms
 proof (induct n arbitrary: p x)
   case 0
   then show ?case by simp
 next
-  case (Suc n p x)
+  case (Suc n)
   have False if C: "\<And>i. \<exists>x. poly p x = 0 \<and> (\<forall>m\<le>Suc n. x \<noteq> i m)"
   proof -
     from Suc.prems have p0: "poly p x \<noteq> 0" "p \<noteq> []"
@@ -325,14 +337,14 @@ next
       using q Suc.prems(2) by simp
     from q p0 have qx: "poly q x \<noteq> poly [] x"
       by (auto simp add: poly_mult poly_add poly_cmult)
-    from Suc.hyps[OF qx lg] obtain i where i: "\<forall>x. poly q x = 0 \<longrightarrow> (\<exists>m\<le>n. x = i m)"
+    from Suc.hyps[OF qx lg] obtain i where i: "\<And>x. poly q x = 0 \<longrightarrow> (\<exists>m\<le>n. x = i m)"
       by blast
     let ?i = "\<lambda>m. if m = Suc n then a else i m"
     from C[of ?i] obtain y where y: "poly p y = 0" "\<forall>m\<le> Suc n. y \<noteq> ?i m"
       by blast
     from y have "y = a \<or> poly q y = 0"
       by (simp only: q poly_mult_eq_zero_disj poly_add) (simp add: algebra_simps)
-    with i[rule_format, of y] y(1) y(2) show ?thesis
+    with i[of y] y(1) y(2) show ?thesis
       apply auto
       apply (erule_tac x = "m" in allE)
       apply auto
@@ -343,12 +355,13 @@ qed
 
 
 lemma (in idom) poly_roots_index_length:
-  "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>i. \<forall>x. (poly p x = 0) \<longrightarrow> (\<exists>n. n \<le> length p \<and> x = i n)"
+  "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>i. \<forall>x. poly p x = 0 \<longrightarrow> (\<exists>n. n \<le> length p \<and> x = i n)"
   by (blast intro: poly_roots_index_lemma)
 
 lemma (in idom) poly_roots_finite_lemma1:
-  "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>N i. \<forall>x. (poly p x = 0) \<longrightarrow> (\<exists>n::nat. n < N \<and> x = i n)"
-  apply (drule poly_roots_index_length, safe)
+  "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>N i. \<forall>x. poly p x = 0 \<longrightarrow> (\<exists>n::nat. n < N \<and> x = i n)"
+  apply (drule poly_roots_index_length)
+  apply safe
   apply (rule_tac x = "Suc (length p)" in exI)
   apply (rule_tac x = i in exI)
   apply (simp add: less_Suc_eq_le)
@@ -358,8 +371,10 @@ lemma (in idom) idom_finite_lemma:
   assumes "\<forall>x. P x \<longrightarrow> (\<exists>n. n < length j \<and> x = j!n)"
   shows "finite {x. P x}"
 proof -
-  from assms have "{x. P x} \<subseteq> set j" by auto
-  then show ?thesis using finite_subset by auto
+  from assms have "{x. P x} \<subseteq> set j"
+    by auto
+  then show ?thesis
+    using finite_subset by auto
 qed
 
 lemma (in idom) poly_roots_finite_lemma2:
@@ -379,7 +394,8 @@ proof
   assume F: "finite (UNIV :: 'a set)"
   have "finite (UNIV :: nat set)"
   proof (rule finite_imageD)
-    have "of_nat ` UNIV \<subseteq> UNIV" by simp
+    have "of_nat ` UNIV \<subseteq> UNIV"
+      by simp
     then show "finite (of_nat ` UNIV :: 'a set)"
       using F by (rule finite_subset)
     show "inj (of_nat :: nat \<Rightarrow> 'a)"
@@ -499,12 +515,18 @@ proof -
 qed
 
 lemma (in idom_char_0) poly_zero: "poly p = poly [] \<longleftrightarrow> (\<forall>c \<in> set p. c = 0)"
-  apply (induct p)
-  apply simp
-  apply (rule iffI)
-  apply (drule poly_zero_lemma')
-  apply auto
-  done
+proof (induct p)
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  show ?case
+    apply (rule iffI)
+    apply (drule poly_zero_lemma')
+    using Cons
+    apply auto
+    done
+qed
 
 lemma (in idom_char_0) poly_0: "\<forall>c \<in> set p. c = 0 \<Longrightarrow> poly p x = 0"
   unfolding poly_zero[symmetric] by simp
@@ -594,10 +616,10 @@ lemma (in semiring_0) poly_divides_zero2 [simp]: "q divides []"
 text \<open>At last, we can consider the order of a root.\<close>
 
 lemma (in idom_char_0) poly_order_exists_lemma:
-  assumes lp: "length p = d"
-    and p: "poly p \<noteq> poly []"
+  assumes "length p = d"
+    and "poly p \<noteq> poly []"
   shows "\<exists>n q. p = mulexp n [-a, 1] q \<and> poly q a \<noteq> 0"
-  using lp p
+  using assms
 proof (induct d arbitrary: p)
   case 0
   then show ?case by simp
@@ -613,15 +635,15 @@ next
     from True[unfolded poly_linear_divides] pN obtain q where q: "p = [-a, 1] *** q"
       by blast
     from q h True have qh: "length q = n" "poly q \<noteq> poly []"
-      apply -
-      apply simp
+      apply simp_all
       apply (simp only: fun_eq_iff)
       apply (rule ccontr)
       apply (simp add: fun_eq_iff poly_add poly_cmult)
       done
     from Suc.hyps[OF qh] obtain m r where mr: "q = mulexp m [-a,1] r" "poly r a \<noteq> 0"
       by blast
-    from mr q have "p = mulexp (Suc m) [-a,1] r \<and> poly r a \<noteq> 0" by simp
+    from mr q have "p = mulexp (Suc m) [-a,1] r \<and> poly r a \<noteq> 0"
+      by simp
     then show ?thesis by blast
   next
     case False
@@ -680,7 +702,7 @@ proof -
       case 0
       show ?case
       proof (rule ccontr)
-        assume "\<not> poly (mulexp 0 [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc 0 *** m)"
+        assume "\<not> ?thesis"
         then have "poly q a = 0"
           by (simp add: poly_add poly_cmult)
         with \<open>poly q a \<noteq> 0\<close> show False
@@ -689,7 +711,7 @@ proof -
     next
       case (Suc n)
       show ?case
-        by (rule pexp_Suc [THEN ssubst], rule ccontr)
+        by (rule pexp_Suc [THEN ssubst])
           (simp add: poly_mult_left_cancel poly_mult_assoc Suc del: pmult_Cons pexp_Suc)
     qed
     ultimately show False by simp
@@ -906,8 +928,7 @@ lemma (in semiring_0) pnormal_last_length: "0 < length p \<Longrightarrow> last 
 lemma (in semiring_0) pnormal_id: "pnormal p \<longleftrightarrow> 0 < length p \<and> last p \<noteq> 0"
   using pnormal_last_length pnormal_length pnormal_last_nonzero by blast
 
-lemma (in idom_char_0) poly_Cons_eq:
-  "poly (c # cs) = poly (d # ds) \<longleftrightarrow> c = d \<and> poly cs = poly ds"
+lemma (in idom_char_0) poly_Cons_eq: "poly (c # cs) = poly (d # ds) \<longleftrightarrow> c = d \<and> poly cs = poly ds"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show ?rhs if ?lhs
@@ -974,11 +995,12 @@ lemma (in semiring_0) last_linear_mul_lemma:
   "last ((a %* p) +++ (x # (b %* p))) = (if p = [] then x else b * last p)"
   apply (induct p arbitrary: a x b)
   apply auto
-  apply (rename_tac a p aa x b)
-  apply (subgoal_tac "padd (cmult aa p) (times b a # cmult b p) \<noteq> []")
-  apply simp
-  apply (induct_tac p)
-  apply auto
+  subgoal for a p c x b
+    apply (subgoal_tac "padd (cmult c p) (times b a # cmult b p) \<noteq> []")
+    apply simp
+    apply (induct p)
+    apply auto
+    done
   done
 
 lemma (in semiring_1) last_linear_mul:
@@ -1097,13 +1119,18 @@ text \<open>Bound for polynomial.\<close>
 lemma poly_mono:
   fixes x :: "'a::linordered_idom"
   shows "abs x \<le> k \<Longrightarrow> abs (poly p x) \<le> poly (map abs p) k"
-  apply (induct p)
-  apply auto
-  apply (rename_tac a p)
-  apply (rule_tac y = "abs a + abs (x * poly p x)" in order_trans)
-  apply (rule abs_triangle_ineq)
-  apply (auto intro!: mult_mono simp add: abs_mult)
-  done
+proof (induct p)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a p)
+  then show ?case
+    apply auto
+    apply (rule_tac y = "abs a + abs (x * poly p x)" in order_trans)
+    apply (rule abs_triangle_ineq)
+    apply (auto intro!: mult_mono simp add: abs_mult)
+    done
+qed
 
 lemma (in semiring_0) poly_Sing: "poly [c] x = c"
   by simp

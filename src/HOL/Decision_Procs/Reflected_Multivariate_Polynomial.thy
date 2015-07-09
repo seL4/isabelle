@@ -8,7 +8,7 @@ theory Reflected_Multivariate_Polynomial
 imports Complex_Main Rat_Pair Polynomial_List
 begin
 
-subsection\<open>Datatype of polynomial expressions\<close>
+subsection \<open>Datatype of polynomial expressions\<close>
 
 datatype poly = C Num | Bound nat | Add poly poly | Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
@@ -66,7 +66,7 @@ where
 | "decrpoly a = a"
 
 
-subsection\<open>Degrees and heads and coefficients\<close>
+subsection \<open>Degrees and heads and coefficients\<close>
 
 fun degree :: "poly \<Rightarrow> nat"
 where
@@ -78,7 +78,8 @@ where
   "head (CN c 0 p) = head p"
 | "head p = p"
 
-(* More general notions of degree and head *)
+text \<open>More general notions of degree and head.\<close>
+
 fun degreen :: "poly \<Rightarrow> nat \<Rightarrow> nat"
 where
   "degreen (CN c n p) = (\<lambda>m. if n = m then 1 + degreen p n else 0)"
@@ -110,7 +111,7 @@ where
 | "headconst (C n) = n"
 
 
-subsection\<open>Operations for normalization\<close>
+subsection \<open>Operations for normalization\<close>
 
 declare if_cong[fundef_cong del]
 declare let_cong[fundef_cong del]
@@ -179,7 +180,7 @@ where
 | "polynate (Pw p n) = polynate p ^\<^sub>p n"
 | "polynate (CN c n p) = polynate (Add c (Mul (Bound n) p))"
 | "polynate (C c) = C (normNum c)"
-by pat_completeness auto
+  by pat_completeness auto
 termination by (relation "measure polysize") auto
 
 fun poly_cmul :: "Num \<Rightarrow> poly \<Rightarrow> poly"
@@ -233,7 +234,7 @@ where
 | "poly_deriv p = 0\<^sub>p"
 
 
-subsection\<open>Semantics of the polynomial representation\<close>
+subsection \<open>Semantics of the polynomial representation\<close>
 
 primrec Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0,field,power}"
 where
@@ -246,8 +247,7 @@ where
 | "Ipoly bs (Pw t n) = Ipoly bs t ^ n"
 | "Ipoly bs (CN c n p) = Ipoly bs c + (bs!n) * Ipoly bs p"
 
-abbreviation Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{field_char_0,field,power}"
-    ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
+abbreviation Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{field_char_0,field,power}"  ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
   where "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<equiv> Ipoly bs p"
 
 lemma Ipoly_CInt: "Ipoly bs (C (i, 1)) = of_int i"
@@ -273,14 +273,14 @@ lemma isnpolyh_mono: "n' \<le> n \<Longrightarrow> isnpolyh p n \<Longrightarrow
 definition isnpoly :: "poly \<Rightarrow> bool"
   where "isnpoly p = isnpolyh p 0"
 
-text\<open>polyadd preserves normal forms\<close>
+text \<open>polyadd preserves normal forms\<close>
 
 lemma polyadd_normh: "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> isnpolyh (polyadd p q) (min n0 n1)"
 proof (induct p q arbitrary: n0 n1 rule: polyadd.induct)
   case (2 ab c' n' p' n0 n1)
   from 2 have  th1: "isnpolyh (C ab) (Suc n')"
     by simp
-  from 2(3) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1"
+  from 2(3) have th2: "isnpolyh c' (Suc n')" and nplen1: "n' \<ge> n1"
     by simp_all
   with isnpolyh_mono have cp: "isnpolyh c' (Suc n')"
     by simp
@@ -314,11 +314,11 @@ next
     by simp
   from 4 have n'gen1: "n' \<ge> n1"
     by simp
-  have "n < n' \<or> n' < n \<or> n = n'"
-    by auto
-  moreover
-  {
-    assume eq: "n = n'"
+  consider (eq) "n = n'" | (lt) "n < n'" | (gt) "n > n'"
+    by arith
+  then show ?case
+  proof cases
+    case eq
     with "4.hyps"(3)[OF nc nc']
     have ncc':"isnpolyh (c +\<^sub>p c') (Suc n)"
       by auto
@@ -329,12 +329,10 @@ next
       by simp
     have minle: "min n0 n1 \<le> n'"
       using ngen0 n'gen1 eq by simp
-    from minle npp' ncc'n01 4 eq ngen0 n'gen1 ncc' have ?case
+    from minle npp' ncc'n01 4 eq ngen0 n'gen1 ncc' show ?thesis
       by (simp add: Let_def)
-  }
-  moreover
-  {
-    assume lt: "n < n'"
+  next
+    case lt
     have "min n0 n1 \<le> n0"
       by simp
     with 4 lt have th1:"min n0 n1 \<le> n"
@@ -347,12 +345,10 @@ next
       by arith
     from "4.hyps"(1)[OF th21 th22] have "isnpolyh (polyadd c (CN c' n' p')) (Suc n)"
       using th23 by simp
-    with 4 lt th1 have ?case
+    with 4 lt th1 show ?thesis
       by simp
-  }
-  moreover
-  {
-    assume gt: "n' < n"
+  next
+    case gt
     then have gt': "n' < n \<and> \<not> n < n'"
       by simp
     have "min n0 n1 \<le> n1"
@@ -367,10 +363,9 @@ next
       by arith
     from "4.hyps"(2)[OF th22 th21] have "isnpolyh (polyadd (CN c n p) c') (Suc n')"
       using th23 by simp
-    with 4 gt th1 have ?case
+    with 4 gt th1 show ?thesis
       by simp
-  }
-  ultimately show ?case by blast
+  qed
 qed auto
 
 lemma polyadd[simp]: "Ipoly bs (polyadd p q) = Ipoly bs p + Ipoly bs q"
@@ -378,9 +373,9 @@ lemma polyadd[simp]: "Ipoly bs (polyadd p q) = Ipoly bs p + Ipoly bs q"
      (auto simp add: Let_def field_simps distrib_left[symmetric] simp del: distrib_left_NO_MATCH)
 
 lemma polyadd_norm: "isnpoly p \<Longrightarrow> isnpoly q \<Longrightarrow> isnpoly (polyadd p q)"
-  using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp
+  using polyadd_normh[of p 0 q 0] isnpoly_def by simp
 
-text\<open>The degree of addition and other general lemmas needed for the normal form of polymul\<close>
+text \<open>The degree of addition and other general lemmas needed for the normal form of polymul.\<close>
 
 lemma polyadd_different_degreen:
   assumes "isnpolyh p n0"
@@ -391,17 +386,13 @@ lemma polyadd_different_degreen:
   using assms
 proof (induct p q arbitrary: m n0 n1 rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1)
-  have "n' = n \<or> n < n' \<or> n' < n" by arith
-  then show ?case
-  proof (elim disjE)
-    assume [simp]: "n' = n"
-    from 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
+  show ?case
+  proof (cases "n = n'")
+    case True
+    with 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
     show ?thesis by (auto simp: Let_def)
   next
-    assume "n < n'"
-    with 4 show ?thesis by auto
-  next
-    assume "n' < n"
+    case False
     with 4 show ?thesis by auto
   qed
 qed auto
@@ -441,13 +432,15 @@ next
     by (cases n) auto
 next
   case (4 c n p c' n' p' n0 n1 m)
-  have "n' = n \<or> n < n' \<or> n' < n" by arith
-  then show ?case
-  proof (elim disjE)
-    assume [simp]: "n' = n"
-    from 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
+  show ?case
+  proof (cases "n = n'")
+    case True
+    with 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
     show ?thesis by (auto simp: Let_def)
-  qed simp_all
+  next
+    case False
+    then show ?thesis by simp
+  qed
 qed auto
 
 lemma polyadd_eq_const_degreen:
@@ -458,26 +451,16 @@ lemma polyadd_eq_const_degreen:
   using assms
 proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1 x)
-  {
-    assume nn': "n' < n"
-    then have ?case using 4 by simp
-  }
-  moreover
-  {
-    assume nn': "\<not> n' < n"
-    then have "n < n' \<or> n = n'" by arith
-    moreover { assume "n < n'" with 4 have ?case by simp }
-    moreover
-    {
-      assume eq: "n = n'"
-      then have ?case using 4
-        apply (cases "p +\<^sub>p p' = 0\<^sub>p")
-        apply (auto simp add: Let_def)
-        done
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
+  consider "n = n'" | "n > n' \<or> n < n'" by arith
+  then show ?case
+  proof cases
+    case 1
+    with 4 show ?thesis
+      by (cases "p +\<^sub>p p' = 0\<^sub>p") (auto simp add: Let_def)
+  next
+    case 2
+    with 4 show ?thesis by auto
+  qed
 qed simp_all
 
 lemma polymul_properties:
@@ -500,7 +483,7 @@ proof (induct p q arbitrary: n0 n1 m rule: polymul.induct)
     then show ?case by auto
   next
     case (3 n0 n1)
-    then show ?case  using "2.hyps" by auto
+    then show ?case using "2.hyps" by auto
   }
 next
   case (3 c n p c')
@@ -720,7 +703,7 @@ proof (cases "headconst p = 0\<^sub>N", simp_all add: headconst_zero[OF np])
 qed
 
 
-text\<open>polyneg is a negation and preserves normal forms\<close>
+text \<open>polyneg is a negation and preserves normal forms\<close>
 
 lemma polyneg[simp]: "Ipoly bs (polyneg p) = - Ipoly bs p"
   by (induct p rule: polyneg.induct) auto
@@ -738,7 +721,7 @@ lemma polyneg_norm: "isnpoly p \<Longrightarrow> isnpoly (polyneg p)"
   using isnpoly_def polyneg_normh by simp
 
 
-text\<open>polysub is a substraction and preserves normal forms\<close>
+text \<open>polysub is a substraction and preserves normal forms\<close>
 
 lemma polysub[simp]: "Ipoly bs (polysub p q) = Ipoly bs p - Ipoly bs q"
   by (simp add: polysub_def)
@@ -762,7 +745,7 @@ lemma polysub_0:
   by (induct p q arbitrary: n0 n1 rule:polyadd.induct)
     (auto simp: Nsub0[simplified Nsub_def] Let_def)
 
-text\<open>polypow is a power function and preserves normal forms\<close>
+text \<open>polypow is a power function and preserves normal forms\<close>
 
 lemma polypow[simp]:
   "Ipoly bs (polypow n p) = (Ipoly bs p :: 'a::{field_char_0,field}) ^ n"
@@ -830,7 +813,7 @@ lemma polypow_norm:
   shows "isnpoly p \<Longrightarrow> isnpoly (polypow k p)"
   by (simp add: polypow_normh isnpoly_def)
 
-text\<open>Finally the whole normalization\<close>
+text \<open>Finally the whole normalization\<close>
 
 lemma polynate [simp]:
   "Ipoly bs (polynate p) = (Ipoly bs p :: 'a ::{field_char_0,field})"
@@ -843,7 +826,7 @@ lemma polynate_norm[simp]:
      (simp_all add: polyadd_norm polymul_norm polysub_norm polyneg_norm polypow_norm,
       simp_all add: isnpoly_def)
 
-text\<open>shift1\<close>
+text \<open>shift1\<close>
 
 
 lemma shift1: "Ipoly bs (shift1 p) = Ipoly bs (Mul (Bound 0) p)"
@@ -1254,7 +1237,7 @@ proof auto
 qed
 
 
-text\<open>consequences of unicity on the algorithms for polynomial normalization\<close>
+text \<open>consequences of unicity on the algorithms for polynomial normalization\<close>
 
 lemma polyadd_commute:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
@@ -1328,7 +1311,7 @@ lemma poly_nate_poly:
   unfolding poly_nate_polypoly' by auto
 
 
-subsection\<open>heads, degrees and all that\<close>
+subsection \<open>heads, degrees and all that\<close>
 
 lemma degree_eq_degreen0: "degree p = degreen p 0"
   by (induct p rule: degree.induct) simp_all

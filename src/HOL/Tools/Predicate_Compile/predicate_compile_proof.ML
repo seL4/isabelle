@@ -145,20 +145,20 @@ fun prove_match options ctxt nargs out_ts =
     THEN trace_tac ctxt options "after prove_match:"
     THEN (DETERM (TRY
            (rtac eval_if_P 1
-           THEN (SUBPROOF (fn {prems, ...} =>
+           THEN (SUBPROOF (fn {prems, context = ctxt', ...} =>
              (REPEAT_DETERM (rtac @{thm conjI} 1
-             THEN (SOLVED (asm_simp_tac (put_simpset HOL_basic_ss' ctxt) 1))))
-             THEN trace_tac ctxt options "if condition to be solved:"
-             THEN asm_simp_tac (put_simpset HOL_basic_ss' ctxt) 1
+             THEN (SOLVED (asm_simp_tac (put_simpset HOL_basic_ss' ctxt') 1))))
+             THEN trace_tac ctxt' options "if condition to be solved:"
+             THEN asm_simp_tac (put_simpset HOL_basic_ss' ctxt') 1
              THEN TRY (
                 let
                   val prems' = maps dest_conjunct_prem (take nargs prems)
                 in
-                  rewrite_goal_tac ctxt
+                  rewrite_goal_tac ctxt'
                     (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
                 end
              THEN REPEAT_DETERM (rtac @{thm refl} 1))
-             THEN trace_tac ctxt options "after if simp; in SUBPROOF") ctxt 1))))
+             THEN trace_tac ctxt' options "after if simp; in SUBPROOF") ctxt 1))))
     THEN trace_tac ctxt options "after if simplification"
   end;
 

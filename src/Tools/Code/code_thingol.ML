@@ -790,7 +790,8 @@ fun consts_program_internal thy permissive consts =
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr permissive);
   in
-    invoke_generation permissive thy (Code_Preproc.obtain false thy consts [])
+    invoke_generation permissive thy
+      (Code_Preproc.obtain false (Proof_Context.init_global thy) consts [])
       generate_consts consts
     |> snd
   end;
@@ -918,7 +919,7 @@ fun read_const_exprs ctxt const_exprs =
 
 fun code_depgr ctxt consts =
   let
-    val (_, eqngr) = Code_Preproc.obtain true ((Proof_Context.theory_of ctxt)) consts [];
+    val (_, eqngr) = Code_Preproc.obtain true ctxt consts [];
     val all_consts = Graph.all_succs eqngr consts;
   in Graph.restrict (member (op =) all_consts) eqngr end;
 
