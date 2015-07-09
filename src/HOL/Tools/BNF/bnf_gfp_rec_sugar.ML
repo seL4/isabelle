@@ -44,7 +44,18 @@ sig
      fp_nesting_map_comps: thm list,
      ctr_specs: corec_ctr_spec list}
 
+  val abstract_over_list: term list -> term -> term
   val abs_tuple_balanced: term list -> term -> term
+
+  val mk_conjs: term list -> term
+  val mk_disjs: term list -> term
+  val mk_dnf: term list list -> term
+  val conjuncts_s: term -> term list
+  val s_not: term -> term
+  val s_not_conj: term list -> term list
+  val s_conjs: term list -> term
+  val s_disjs: term list -> term
+  val s_dnf: term list list -> term list
 
   val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
     term -> 'a -> 'a
@@ -161,7 +172,24 @@ type corec_spec =
 
 exception NO_MAP of term;
 
+fun abstract_over_list rev_vs =
+  let
+    val vs = rev rev_vs;
+
+    fun abs n (t $ u) = abs n t $ abs n u
+      | abs n (Abs (s, T, t)) = Abs (s, T, abs (n + 1) t)
+      | abs n t =
+        let val j = find_index (curry (op =) t) vs in
+          if j < 0 then t else Bound (n + j)
+        end;
+  in
+    abs 0
+  end;
+
 val abs_tuple_balanced = HOLogic.tupled_lambda o mk_tuple_balanced;
+
+fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) =
+  Ts ---> T;
 
 fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
 
@@ -307,8 +335,6 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
 
 fun massage_let_if_case_corec ctxt has_call massage_leaf bound_Ts t0 =
   massage_let_if_case ctxt has_call massage_leaf (K (unexpected_corec_call ctxt [t0])) bound_Ts t0;
-
-fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
 fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_Ts U T t0 =
   let
@@ -562,16 +588,6 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
 val undef_const = Const (@{const_name undefined}, dummyT);
 
-fun abstract vs =
-  let
-    fun abs n (t $ u) = abs n t $ abs n u
-      | abs n (Abs (s, T, t)) = Abs (s, T, abs (n + 1) t)
-      | abs n t =
-        let val j = find_index (curry (op =) t) vs in
-          if j < 0 then t else Bound (n + j)
-        end;
-  in abs 0 end;
-
 type coeqn_data_disc =
   {fun_name: string,
    fun_T: typ,
@@ -687,7 +703,7 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
         if exists is_catch_all_prem prems0 then error_at ctxt [concl] "Superfluous premises"
         else false);
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
-    val prems = map (abstract (List.rev fun_args)) prems0;
+    val prems = map (abstract_over_list fun_args) prems0;
     val actual_prems =
       (if catch_all orelse sequential then maps s_not_conj matchedss else []) @
       (if catch_all then [] else prems);
@@ -697,7 +713,7 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
 
     val user_eqn =
       (actual_prems, concl)
-      |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop o abstract (List.rev fun_args)
+      |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop o abstract_over_list fun_args
       |> curry Logic.list_all (map dest_Free fun_args) o Logic.list_implies;
 
     val _ = check_extra_frees ctxt fun_args fun_names user_eqn;
@@ -755,7 +771,7 @@ fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec
         (NONE, matchedsss)
       else
         apfst SOME (dissect_coeqn_disc ctxt fun_names sequentials basic_ctr_specss eqn_pos
-          (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt prems disc_concl matchedsss);
+          (SOME (abstract_over_list fun_args rhs)) code_rhs_opt prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg))
@@ -764,7 +780,8 @@ fun dissect_coeqn_ctr ctxt fun_names sequentials (basic_ctr_specss : basic_corec
 
     val eqns_data_sel =
       map (dissect_coeqn_sel ctxt fun_names basic_ctr_specss eqn_pos
-        (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn0 (SOME ctr)) sel_concls;
+          (SOME (abstract_over_list fun_args rhs)) code_rhs_opt eqn0 (SOME ctr))
+        sel_concls;
   in
     (the_list eqn_data_disc_opt @ eqns_data_sel, matchedsss')
   end;
@@ -798,7 +815,7 @@ fun dissect_coeqn_code ctxt has_call fun_names basic_ctr_specss eqn_pos eqn0 con
     val sequentials = replicate (length fun_names) false;
   in
     @{fold_map 2} (dissect_coeqn_ctr ctxt fun_names sequentials basic_ctr_specss eqn_pos eqn0
-        (SOME (abstract (List.rev fun_args) rhs)))
+        (SOME (abstract_over_list fun_args rhs)))
       ctr_premss ctr_concls matchedsss
   end;
 
@@ -920,14 +937,14 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
             rewrite bound_Ts t0
           end;
 
-      fun massage_noncall bound_Ts U T t =
+      fun massage_noncall U T t =
         build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
 
       val bound_Ts = List.rev (map fastype_of fun_args);
     in
       fn t =>
       rhs_term
-      |> massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_Ts
+      |> massage_nested_corec_call ctxt has_call massage_call (K massage_noncall) bound_Ts
         (range_type (fastype_of t)) (fastype_of1 (bound_Ts, rhs_term))
       |> abs_tuple_balanced fun_args
     end);
@@ -1271,7 +1288,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
             val goal =
               applied_fun_of fun_name fun_T fun_args
               |> curry betapply sel
-              |> rpair (abstract (List.rev fun_args) rhs_term)
+              |> rpair (abstract_over_list fun_args rhs_term)
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
@@ -1314,7 +1331,8 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 | NONE =>
                   filter (curry (op =) ctr o #ctr) sel_eqns
                   |> fst o finds (op = o apsnd #sel) sels
-                  |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
+                  |> map (snd #> (fn [x] => (#fun_args x, #rhs_term x))
+                    #-> abstract_over_list)
                   |> curry Term.list_comb ctr)
                 |> curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                 |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
@@ -1373,8 +1391,8 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                             val t =
                               filter (curry (op =) ctr o #ctr) sel_eqns
                               |> fst o finds (op = o apsnd #sel) sels
-                              |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x))
-                                #-> abstract)
+                              |> map (snd #> (fn [x] => (#fun_args x, #rhs_term x))
+                                #-> abstract_over_list)
                               |> curry Term.list_comb ctr;
                           in
                             SOME (prems, t)
