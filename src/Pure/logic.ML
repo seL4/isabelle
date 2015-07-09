@@ -452,12 +452,12 @@ fun strip_assums_hyp B =
 
 (*Strips assumptions in goal, yielding conclusion.   *)
 fun strip_assums_concl (Const("Pure.imp", _) $ H $ B) = strip_assums_concl B
-  | strip_assums_concl (Const("Pure.all",_)$Abs(a,T,t)) = strip_assums_concl t
+  | strip_assums_concl (Const("Pure.all", _) $ Abs (a, T, t)) = strip_assums_concl t
   | strip_assums_concl B = B;
 
 (*Make a list of all the parameters in a subgoal, even if nested*)
 fun strip_params (Const("Pure.imp", _) $ H $ B) = strip_params B
-  | strip_params (Const("Pure.all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
+  | strip_params (Const("Pure.all", _) $ Abs (a, T, t)) = (a, T) :: strip_params t
   | strip_params B = [];
 
 (*test for nested meta connectives in prems*)
