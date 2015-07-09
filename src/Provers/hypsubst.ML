@@ -61,7 +61,7 @@ exception EQ_VAR;
 
 (*Simplifier turns Bound variables to special Free variables:
   change it back (any Bound variable will do)*)
-fun contract t =
+fun inspect_contract t =
   (case Envir.eta_contract t of
     Free (a, T) => if Name.is_bound a then Bound 0 else Free (a, T)
   | t' => t');
@@ -84,7 +84,7 @@ fun inspect_pair bnd novars (t, u) =
   if novars andalso (has_tvars t orelse has_tvars u)
   then raise Match   (*variables in the type!*)
   else
-    (case (contract t, contract u) of
+    (case apply2 inspect_contract (t, u) of
       (Bound i, _) =>
         if loose_bvar1 (u, i) orelse novars andalso has_vars u
         then raise Match
@@ -165,7 +165,7 @@ val ssubst = Drule.zero_var_indexes (Data.sym RS Data.subst);
 
 fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>
-      Data.dest_Trueprop #> Data.dest_eq #> apply2 contract) (Thm.term_of cBi) of
+      Data.dest_Trueprop #> Data.dest_eq #> apply2 Envir.eta_contract) (Thm.term_of cBi) of
     SOME (t, t') =>
       let
         val Bi = Thm.term_of cBi;
