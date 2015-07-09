@@ -39,8 +39,7 @@ lemma norm_PX2: "isnorm (PX P i Q) \<Longrightarrow> isnorm Q"
   apply auto
   apply (cases P)
   apply auto
-  apply (rename_tac pol2, case_tac pol2)
-  apply auto
+  subgoal for \<dots> pol2 by (cases pol2) auto
   done
 
 lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
@@ -48,8 +47,7 @@ lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
   apply auto
   apply (cases P)
   apply auto
-  apply (rename_tac pol2, case_tac pol2)
-  apply auto
+  subgoal for \<dots> pol2 by (cases pol2) auto
   done
 
 lemma mkPinj_cn: "y \<noteq> 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
@@ -161,8 +159,7 @@ next
     apply simp
     apply (cases P2)
     apply auto
-    apply (rename_tac pol2, case_tac pol2)
-    apply auto
+    subgoal for \<dots> pol2 by (cases pol2) auto
     done
 next
   case (5 P2 i Q2 c)
@@ -173,8 +170,7 @@ next
     apply simp
     apply (cases P2)
     apply auto
-    apply (rename_tac pol2, case_tac pol2)
-    apply auto
+    subgoal for \<dots> pol2 by (cases pol2) auto
     done
 next
   case (6 x P2 y Q2)
