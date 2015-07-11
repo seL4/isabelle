@@ -1702,490 +1702,758 @@ qed
 
 lemma lin_dense:
   assumes lp: "isrlfm p"
-  and noS: "\<forall>t. l < t \<and> t< u \<longrightarrow> t \<notin> (\<lambda>(t,n). Inum (x#bs) t / real n) ` set (uset p)"
-  (is "\<forall>t. _ \<and> _ \<longrightarrow> t \<notin> (\<lambda>(t,n). ?N x t / real n ) ` (?U p)")
-  and lx: "l < x" and xu:"x < u" and px:" Ifm (x#bs) p"
-  and ly: "l < y" and yu: "y < u"
+    and noS: "\<forall>t. l < t \<and> t< u \<longrightarrow> t \<notin> (\<lambda>(t,n). Inum (x#bs) t / real n) ` set (uset p)"
+      (is "\<forall>t. _ \<and> _ \<longrightarrow> t \<notin> (\<lambda>(t,n). ?N x t / real n ) ` (?U p)")
+    and lx: "l < x"
+    and xu:"x < u"
+    and px:" Ifm (x#bs) p"
+    and ly: "l < y" and yu: "y < u"
   shows "Ifm (y#bs) p"
-using lp px noS
+  using lp px noS
 proof (induct p rule: isrlfm.induct)
-  case (5 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp+
-  from 5 have "x * real c + ?N x e < 0" by (simp add: algebra_simps)
+  case (5 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from 5 have "x * real c + ?N x e < 0"
+    by (simp add: algebra_simps)
   then have pxc: "x < (- ?N x e) / real c"
     by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="-?N x e"])
-  from 5 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-  then have "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-  moreover {assume y: "y < (-?N x e)/ real c"
+  from 5 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+    by auto
+  then consider "y < (-?N x e)/ real c" | "y > (- ?N x e) / real c"
+    by atomize_elim auto
+  then show ?case
+  proof cases
+    case y: 1
     then have "y * real c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e < 0" by (simp add: algebra_simps)
-    then have ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-  moreover {assume y: "y > (- ?N x e) / real c"
-    with yu have eu: "u > (- ?N x e) / real c" by auto
-    with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
-    with lx pxc have "False" by auto
-    then have ?case by simp }
-  ultimately show ?case by blast
+    then have "real c * y + ?N x e < 0"
+      by (simp add: algebra_simps)
+    then show ?thesis
+      using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
+  next
+    case y: 2
+    with yu have eu: "u > (- ?N x e) / real c"
+      by auto
+    with noSc ly yu have "(- ?N x e) / real c \<le> l"
+      by (cases "(- ?N x e) / real c > l") auto
+    with lx pxc have False
+      by auto
+    then show ?thesis ..
+  qed
 next
-  case (6 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp +
-  from 6 have "x * real c + ?N x e \<le> 0" by (simp add: algebra_simps)
+  case (6 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from 6 have "x * real c + ?N x e \<le> 0"
+    by (simp add: algebra_simps)
   then have pxc: "x \<le> (- ?N x e) / real c"
     by (simp only: pos_le_divide_eq[OF cp, where a="x" and b="-?N x e"])
-  from 6 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-  then have "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-  moreover {assume y: "y < (-?N x e)/ real c"
+  from 6 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+    by auto
+  then consider "y < (- ?N x e) / real c" | "y > (-?N x e) / real c"
+    by atomize_elim auto
+  then show ?case
+  proof cases
+    case y: 1
     then have "y * real c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e < 0" by (simp add: algebra_simps)
-    then have ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-  moreover {assume y: "y > (- ?N x e) / real c"
-    with yu have eu: "u > (- ?N x e) / real c" by auto
-    with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
-    with lx pxc have "False" by auto
-    then have ?case by simp }
-  ultimately show ?case by blast
+    then have "real c * y + ?N x e < 0"
+      by (simp add: algebra_simps)
+    then show ?thesis
+      using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
+  next
+    case y: 2
+    with yu have eu: "u > (- ?N x e) / real c"
+      by auto
+    with noSc ly yu have "(- ?N x e) / real c \<le> l"
+      by (cases "(- ?N x e) / real c > l") auto
+    with lx pxc have False
+      by auto
+    then show ?thesis ..
+  qed
 next
-  case (7 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp+
-  from 7 have "x * real c + ?N x e > 0" by (simp add: algebra_simps)
+  case (7 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from 7 have "x * real c + ?N x e > 0"
+    by (simp add: algebra_simps)
   then have pxc: "x > (- ?N x e) / real c"
     by (simp only: pos_divide_less_eq[OF cp, where a="x" and b="-?N x e"])
-  from 7 have noSc: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-  then have "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-  moreover {assume y: "y > (-?N x e)/ real c"
+  from 7 have noSc: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+    by auto
+  then consider "y > (- ?N x e) / real c" | "y < (-?N x e) / real c"
+    by atomize_elim auto
+  then show ?case
+  proof cases
+    case 1
     then have "y * real c > - ?N x e"
       by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e > 0" by (simp add: algebra_simps)
-    then have ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-  moreover {assume y: "y < (- ?N x e) / real c"
-    with ly have eu: "l < (- ?N x e) / real c" by auto
-    with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
-    with xu pxc have "False" by auto
-    then have ?case by simp }
-  ultimately show ?case by blast
+    then have "real c * y + ?N x e > 0"
+      by (simp add: algebra_simps)
+    then show ?thesis
+      using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
+  next
+    case 2
+    with ly have eu: "l < (- ?N x e) / real c"
+      by auto
+    with noSc ly yu have "(- ?N x e) / real c \<ge> u"
+      by (cases "(- ?N x e) / real c > l") auto
+    with xu pxc have False by auto
+    then show ?thesis ..
+  qed
 next
-  case (8 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp+
-  from 8 have "x * real c + ?N x e \<ge> 0" by (simp add: algebra_simps)
+  case (8 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from 8 have "x * real c + ?N x e \<ge> 0"
+    by (simp add: algebra_simps)
   then have pxc: "x \<ge> (- ?N x e) / real c"
     by (simp only: pos_divide_le_eq[OF cp, where a="x" and b="-?N x e"])
-  from 8 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-  then have "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-  moreover {assume y: "y > (-?N x e)/ real c"
+  from 8 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+    by auto
+  then consider "y > (- ?N x e) / real c" | "y < (-?N x e) / real c"
+    by atomize_elim auto
+  then show ?case
+  proof cases
+    case 1
     then have "y * real c > - ?N x e"
       by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
     then have "real c * y + ?N x e > 0" by (simp add: algebra_simps)
-    then have ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-  moreover {assume y: "y < (- ?N x e) / real c"
-    with ly have eu: "l < (- ?N x e) / real c" by auto
-    with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
-    with xu pxc have "False" by auto
-    then have ?case by simp }
-  ultimately show ?case by blast
+    then show ?thesis
+      using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
+  next
+    case 2
+    with ly have eu: "l < (- ?N x e) / real c"
+      by auto
+    with noSc ly yu have "(- ?N x e) / real c \<ge> u"
+      by (cases "(- ?N x e) / real c > l") auto
+    with xu pxc have False
+      by auto
+    then show ?thesis ..
+  qed
 next
-  case (3 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp+
-  from cp have cnz: "real c \<noteq> 0" by simp
-  from 3 have "x * real c + ?N x e = 0" by (simp add: algebra_simps)
+  case (3 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from cp have cnz: "real c \<noteq> 0"
+    by simp
+  from 3 have "x * real c + ?N x e = 0"
+    by (simp add: algebra_simps)
   then have pxc: "x = (- ?N x e) / real c"
     by (simp only: nonzero_eq_divide_eq[OF cnz, where a="x" and b="-?N x e"])
-  from 3 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with lx xu have yne: "x \<noteq> - ?N x e / real c" by auto
-  with pxc show ?case by simp
+  from 3 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with lx xu have yne: "x \<noteq> - ?N x e / real c"
+    by auto
+  with pxc show ?case
+    by simp
 next
-  case (4 c e) then have cp: "real c > 0" and nb: "numbound0 e" by simp+
-  from cp have cnz: "real c \<noteq> 0" by simp
-  from 4 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  case (4 c e)
+  then have cp: "real c > 0" and nb: "numbound0 e"
+    by simp_all
+  from cp have cnz: "real c \<noteq> 0"
+    by simp
+  from 4 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+    by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+    by auto
   then have "y* real c \<noteq> -?N x e"
     by (simp only: nonzero_eq_divide_eq[OF cnz, where a="y" and b="-?N x e"]) simp
-  then have "y* real c + ?N x e \<noteq> 0" by (simp add: algebra_simps)
+  then have "y* real c + ?N x e \<noteq> 0"
+    by (simp add: algebra_simps)
   then show ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"]
     by (simp add: algebra_simps)
 qed (auto simp add: numbound0_I[where bs="bs" and b="y" and b'="x"])
 
 lemma finite_set_intervals:
-  assumes px: "P (x::real)"
-  and lx: "l \<le> x" and xu: "x \<le> u"
-  and linS: "l\<in> S" and uinS: "u \<in> S"
-  and fS:"finite S" and lS: "\<forall>x\<in> S. l \<le> x" and Su: "\<forall>x\<in> S. x \<le> u"
+  fixes x :: real
+  assumes px: "P x"
+    and lx: "l \<le> x"
+    and xu: "x \<le> u"
+    and linS: "l\<in> S"
+    and uinS: "u \<in> S"
+    and fS: "finite S"
+    and lS: "\<forall>x\<in> S. l \<le> x"
+    and Su: "\<forall>x\<in> S. x \<le> u"
   shows "\<exists>a \<in> S. \<exists>b \<in> S. (\<forall>y. a < y \<and> y < b \<longrightarrow> y \<notin> S) \<and> a \<le> x \<and> x \<le> b \<and> P x"
 proof -
   let ?Mx = "{y. y\<in> S \<and> y \<le> x}"
   let ?xM = "{y. y\<in> S \<and> x \<le> y}"
   let ?a = "Max ?Mx"
   let ?b = "Min ?xM"
-  have MxS: "?Mx \<subseteq> S" by blast
-  then have fMx: "finite ?Mx" using fS finite_subset by auto
-  from lx linS have linMx: "l \<in> ?Mx" by blast
-  then have Mxne: "?Mx \<noteq> {}" by blast
-  have xMS: "?xM \<subseteq> S" by blast
-  then have fxM: "finite ?xM" using fS finite_subset by auto
-  from xu uinS have linxM: "u \<in> ?xM" by blast
-  then have xMne: "?xM \<noteq> {}" by blast
-  have ax:"?a \<le> x" using Mxne fMx by auto
-  have xb:"x \<le> ?b" using xMne fxM by auto
-  have "?a \<in> ?Mx" using Max_in[OF fMx Mxne] by simp then have ainS: "?a \<in> S" using MxS by blast
-  have "?b \<in> ?xM" using Min_in[OF fxM xMne] by simp then have binS: "?b \<in> S" using xMS by blast
-  have noy:"\<forall>y. ?a < y \<and> y < ?b \<longrightarrow> y \<notin> S"
-  proof(clarsimp)
+  have MxS: "?Mx \<subseteq> S"
+    by blast
+  then have fMx: "finite ?Mx"
+    using fS finite_subset by auto
+  from lx linS have linMx: "l \<in> ?Mx"
+    by blast
+  then have Mxne: "?Mx \<noteq> {}"
+    by blast
+  have xMS: "?xM \<subseteq> S"
+    by blast
+  then have fxM: "finite ?xM"
+    using fS finite_subset by auto
+  from xu uinS have linxM: "u \<in> ?xM"
+    by blast
+  then have xMne: "?xM \<noteq> {}"
+    by blast
+  have ax:"?a \<le> x"
+    using Mxne fMx by auto
+  have xb:"x \<le> ?b"
+    using xMne fxM by auto
+  have "?a \<in> ?Mx"
+    using Max_in[OF fMx Mxne] by simp
+  then have ainS: "?a \<in> S"
+    using MxS by blast
+  have "?b \<in> ?xM"
+    using Min_in[OF fxM xMne] by simp
+  then have binS: "?b \<in> S"
+    using xMS by blast
+  have noy: "\<forall>y. ?a < y \<and> y < ?b \<longrightarrow> y \<notin> S"
+  proof clarsimp
     fix y
     assume ay: "?a < y" and yb: "y < ?b" and yS: "y \<in> S"
-    from yS have "y\<in> ?Mx \<or> y\<in> ?xM" by auto
-    moreover {assume "y \<in> ?Mx" then have "y \<le> ?a" using Mxne fMx by auto with ay have "False" by simp}
-    moreover {assume "y \<in> ?xM" then have "y \<ge> ?b" using xMne fxM by auto with yb have "False" by simp}
-    ultimately show "False" by blast
+    from yS consider "y \<in> ?Mx" | "y \<in> ?xM"
+      by atomize_elim auto
+    then show False
+    proof cases
+      case 1
+      then have "y \<le> ?a"
+        using Mxne fMx by auto
+      with ay show ?thesis by simp
+    next
+      case 2
+      then have "y \<ge> ?b"
+        using xMne fxM by auto
+      with yb show ?thesis by simp
+    qed
   qed
-  from ainS binS noy ax xb px show ?thesis by blast
+  from ainS binS noy ax xb px show ?thesis
+    by blast
 qed
 
 lemma rinf_uset:
   assumes lp: "isrlfm p"
-  and nmi: "\<not> (Ifm (x#bs) (minusinf p))" (is "\<not> (Ifm (x#bs) (?M p))")
-  and npi: "\<not> (Ifm (x#bs) (plusinf p))" (is "\<not> (Ifm (x#bs) (?P p))")
-  and ex: "\<exists>x.  Ifm (x#bs) p" (is "\<exists>x. ?I x p")
-  shows "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). ?I ((Inum (x#bs) l / real n + Inum (x#bs) s / real m) / 2) p"
+    and nmi: "\<not> (Ifm (x # bs) (minusinf p))"  (is "\<not> (Ifm (x # bs) (?M p))")
+    and npi: "\<not> (Ifm (x # bs) (plusinf p))"  (is "\<not> (Ifm (x # bs) (?P p))")
+    and ex: "\<exists>x. Ifm (x # bs) p"  (is "\<exists>x. ?I x p")
+  shows "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p).
+    ?I ((Inum (x#bs) l / real n + Inum (x#bs) s / real m) / 2) p"
 proof -
-  let ?N = "\<lambda>x t. Inum (x#bs) t"
+  let ?N = "\<lambda>x t. Inum (x # bs) t"
   let ?U = "set (uset p)"
-  from ex obtain a where pa: "?I a p" by blast
+  from ex obtain a where pa: "?I a p"
+    by blast
   from bound0_I[OF rminusinf_bound0[OF lp], where bs="bs" and b="x" and b'="a"] nmi
-  have nmi': "\<not> (?I a (?M p))" by simp
+  have nmi': "\<not> (?I a (?M p))"
+    by simp
   from bound0_I[OF rplusinf_bound0[OF lp], where bs="bs" and b="x" and b'="a"] npi
-  have npi': "\<not> (?I a (?P p))" by simp
+  have npi': "\<not> (?I a (?P p))"
+    by simp
   have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). ?I ((?N a l/real n + ?N a s /real m) / 2) p"
   proof -
     let ?M = "(\<lambda>(t,c). ?N a t / real c) ` ?U"
-    have fM: "finite ?M" by auto
+    have fM: "finite ?M"
+      by auto
     from rminusinf_uset[OF lp nmi pa] rplusinf_uset[OF lp npi pa]
-    have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). a \<le> ?N x l / real n \<and> a \<ge> ?N x s / real m" by blast
-    then obtain "t" "n" "s" "m" where
-      tnU: "(t,n) \<in> ?U" and smU: "(s,m) \<in> ?U"
-      and xs1: "a \<le> ?N x s / real m" and tx1: "a \<ge> ?N x t / real n" by blast
-    from uset_l[OF lp] tnU smU numbound0_I[where bs="bs" and b="x" and b'="a"] xs1 tx1 have xs: "a \<le> ?N a s / real m" and tx: "a \<ge> ?N a t / real n" by auto
-    from tnU have Mne: "?M \<noteq> {}" by auto
-    then have Une: "?U \<noteq> {}" by simp
+    have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). a \<le> ?N x l / real n \<and> a \<ge> ?N x s / real m"
+      by blast
+    then obtain "t" "n" "s" "m"
+      where tnU: "(t,n) \<in> ?U"
+        and smU: "(s,m) \<in> ?U"
+        and xs1: "a \<le> ?N x s / real m"
+        and tx1: "a \<ge> ?N x t / real n"
+      by blast
+    from uset_l[OF lp] tnU smU numbound0_I[where bs="bs" and b="x" and b'="a"] xs1 tx1
+    have xs: "a \<le> ?N a s / real m" and tx: "a \<ge> ?N a t / real n"
+      by auto
+    from tnU have Mne: "?M \<noteq> {}"
+      by auto
+    then have Une: "?U \<noteq> {}"
+      by simp
     let ?l = "Min ?M"
     let ?u = "Max ?M"
-    have linM: "?l \<in> ?M" using fM Mne by simp
-    have uinM: "?u \<in> ?M" using fM Mne by simp
-    have tnM: "?N a t / real n \<in> ?M" using tnU by auto
-    have smM: "?N a s / real m \<in> ?M" using smU by auto
-    have lM: "\<forall>t\<in> ?M. ?l \<le> t" using Mne fM by auto
-    have Mu: "\<forall>t\<in> ?M. t \<le> ?u" using Mne fM by auto
-    have "?l \<le> ?N a t / real n" using tnM Mne by simp then have lx: "?l \<le> a" using tx by simp
-    have "?N a s / real m \<le> ?u" using smM Mne by simp then have xu: "a \<le> ?u" using xs by simp
+    have linM: "?l \<in> ?M"
+      using fM Mne by simp
+    have uinM: "?u \<in> ?M"
+      using fM Mne by simp
+    have tnM: "?N a t / real n \<in> ?M"
+      using tnU by auto
+    have smM: "?N a s / real m \<in> ?M"
+      using smU by auto
+    have lM: "\<forall>t\<in> ?M. ?l \<le> t"
+      using Mne fM by auto
+    have Mu: "\<forall>t\<in> ?M. t \<le> ?u"
+      using Mne fM by auto
+    have "?l \<le> ?N a t / real n"
+      using tnM Mne by simp
+    then have lx: "?l \<le> a"
+      using tx by simp
+    have "?N a s / real m \<le> ?u"
+      using smM Mne by simp
+    then have xu: "a \<le> ?u"
+      using xs by simp
     from finite_set_intervals2[where P="\<lambda>x. ?I x p",OF pa lx xu linM uinM fM lM Mu]
-    have "(\<exists>s\<in> ?M. ?I s p) \<or>
-      (\<exists>t1\<in> ?M. \<exists>t2 \<in> ?M. (\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M) \<and> t1 < a \<and> a < t2 \<and> ?I a p)" .
-    moreover { fix u assume um: "u\<in> ?M" and pu: "?I u p"
-      then have "\<exists>(tu,nu) \<in> ?U. u = ?N a tu / real nu" by auto
-      then obtain "tu" "nu" where tuU: "(tu,nu) \<in> ?U" and tuu:"u= ?N a tu / real nu" by blast
-      have "(u + u) / 2 = u" by auto with pu tuu
-      have "?I (((?N a tu / real nu) + (?N a tu / real nu)) / 2) p" by simp
-      with tuU have ?thesis by blast}
-    moreover{
-      assume "\<exists>t1\<in> ?M. \<exists>t2 \<in> ?M. (\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M) \<and> t1 < a \<and> a < t2 \<and> ?I a p"
-      then obtain t1 and t2 where t1M: "t1 \<in> ?M" and t2M: "t2\<in> ?M"
-        and noM: "\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" and t1x: "t1 < a" and xt2: "a < t2" and px: "?I a p"
+    consider u where "u \<in> ?M" "?I u p"
+      | t1 t2 where "t1 \<in> ?M" "t2 \<in> ?M" "\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" "t1 < a" "a < t2" "?I a p"
+      by blast
+    then show ?thesis
+    proof cases
+      case 1
+      note um = \<open>u \<in> ?M\<close> and pu = \<open>?I u p\<close>
+      then have "\<exists>(tu,nu) \<in> ?U. u = ?N a tu / real nu"
+        by auto
+      then obtain tu nu where tuU: "(tu, nu) \<in> ?U" and tuu: "u= ?N a tu / real nu"
         by blast
-      from t1M have "\<exists>(t1u,t1n) \<in> ?U. t1 = ?N a t1u / real t1n" by auto
-      then obtain "t1u" "t1n" where t1uU: "(t1u,t1n) \<in> ?U" and t1u: "t1 = ?N a t1u / real t1n" by blast
-      from t2M have "\<exists>(t2u,t2n) \<in> ?U. t2 = ?N a t2u / real t2n" by auto
-      then obtain "t2u" "t2n" where t2uU: "(t2u,t2n) \<in> ?U" and t2u: "t2 = ?N a t2u / real t2n" by blast
-      from t1x xt2 have t1t2: "t1 < t2" by simp
+      have "(u + u) / 2 = u"
+        by auto
+      with pu tuu have "?I (((?N a tu / real nu) + (?N a tu / real nu)) / 2) p"
+        by simp
+      with tuU show ?thesis by blast
+    next
+      case 2
+      note t1M = \<open>t1 \<in> ?M\<close> and t2M = \<open>t2\<in> ?M\<close>
+        and noM = \<open>\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M\<close>
+        and t1x = \<open>t1 < a\<close> and xt2 = \<open>a < t2\<close> and px = \<open>?I a p\<close>
+      from t1M have "\<exists>(t1u,t1n) \<in> ?U. t1 = ?N a t1u / real t1n"
+        by auto
+      then obtain t1u t1n where t1uU: "(t1u, t1n) \<in> ?U" and t1u: "t1 = ?N a t1u / real t1n"
+        by blast
+      from t2M have "\<exists>(t2u,t2n) \<in> ?U. t2 = ?N a t2u / real t2n"
+        by auto
+      then obtain t2u t2n where t2uU: "(t2u, t2n) \<in> ?U" and t2u: "t2 = ?N a t2u / real t2n"
+        by blast
+      from t1x xt2 have t1t2: "t1 < t2"
+        by simp
       let ?u = "(t1 + t2) / 2"
-      from less_half_sum[OF t1t2] gt_half_sum[OF t1t2] have t1lu: "t1 < ?u" and ut2: "?u < t2" by auto
+      from less_half_sum[OF t1t2] gt_half_sum[OF t1t2] have t1lu: "t1 < ?u" and ut2: "?u < t2"
+        by auto
       from lin_dense[OF lp noM t1x xt2 px t1lu ut2] have "?I ?u p" .
-      with t1uU t2uU t1u t2u have ?thesis by blast}
-    ultimately show ?thesis by blast
+      with t1uU t2uU t1u t2u show ?thesis
+        by blast
+    qed
   qed
-  then obtain "l" "n" "s"  "m" where lnU: "(l,n) \<in> ?U" and smU:"(s,m) \<in> ?U"
-    and pu: "?I ((?N a l / real n + ?N a s / real m) / 2) p" by blast
-  from lnU smU uset_l[OF lp] have nbl: "numbound0 l" and nbs: "numbound0 s" by auto
+  then obtain l n s m where lnU: "(l, n) \<in> ?U" and smU:"(s, m) \<in> ?U"
+    and pu: "?I ((?N a l / real n + ?N a s / real m) / 2) p"
+    by blast
+  from lnU smU uset_l[OF lp] have nbl: "numbound0 l" and nbs: "numbound0 s"
+    by auto
   from numbound0_I[OF nbl, where bs="bs" and b="a" and b'="x"]
     numbound0_I[OF nbs, where bs="bs" and b="a" and b'="x"] pu
-  have "?I ((?N x l / real n + ?N x s / real m) / 2) p" by simp
-  with lnU smU
-  show ?thesis by auto
+  have "?I ((?N x l / real n + ?N x s / real m) / 2) p"
+    by simp
+  with lnU smU show ?thesis
+    by auto
 qed
+
+
     (* The Ferrante - Rackoff Theorem *)
 
 theorem fr_eq:
   assumes lp: "isrlfm p"
-  shows "(\<exists>x. Ifm (x#bs) p) = ((Ifm (x#bs) (minusinf p)) \<or> (Ifm (x#bs) (plusinf p)) \<or> (\<exists>(t,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). Ifm ((((Inum (x#bs) t)/  real n + (Inum (x#bs) s) / real m) /2)#bs) p))"
-  (is "(\<exists>x. ?I x p) = (?M \<or> ?P \<or> ?F)" is "?E = ?D")
+  shows "(\<exists>x. Ifm (x#bs) p) \<longleftrightarrow>
+    Ifm (x # bs) (minusinf p) \<or> Ifm (x # bs) (plusinf p) \<or>
+      (\<exists>(t,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p).
+        Ifm ((((Inum (x # bs) t) / real n + (Inum (x # bs) s) / real m) / 2) # bs) p)"
+  (is "(\<exists>x. ?I x p) \<longleftrightarrow> (?M \<or> ?P \<or> ?F)" is "?E = ?D")
 proof
   assume px: "\<exists>x. ?I x p"
-  have "?M \<or> ?P \<or> (\<not> ?M \<and> \<not> ?P)" by blast
-  moreover {assume "?M \<or> ?P" then have "?D" by blast}
-  moreover {assume nmi: "\<not> ?M" and npi: "\<not> ?P"
-    from rinf_uset[OF lp nmi npi] have "?F" using px by blast then have "?D" by blast}
-  ultimately show "?D" by blast
+  consider "?M \<or> ?P" | "\<not> ?M" "\<not> ?P" by blast
+  then show ?D
+  proof cases
+    case 1
+    then show ?thesis by blast
+  next
+    case 2
+    from rinf_uset[OF lp this] have ?F
+      using px by blast
+    then show ?thesis by blast
+  qed
 next
-  assume "?D"
-  moreover {assume m:"?M" from rminusinf_ex[OF lp m] have "?E" .}
-  moreover {assume p: "?P" from rplusinf_ex[OF lp p] have "?E" . }
-  moreover {assume f:"?F" then have "?E" by blast}
-  ultimately show "?E" by blast
+  assume ?D
+  then consider ?M | ?P | ?F by blast
+  then show ?E
+  proof cases
+    case 1
+    from rminusinf_ex[OF lp this] show ?thesis .
+  next
+    case 2
+    from rplusinf_ex[OF lp this] show ?thesis .
+  next
+    case 3
+    then show ?thesis by blast
+  qed
 qed
 
 
 lemma fr_equsubst:
   assumes lp: "isrlfm p"
-  shows "(\<exists>x. Ifm (x#bs) p) = ((Ifm (x#bs) (minusinf p)) \<or> (Ifm (x#bs) (plusinf p)) \<or> (\<exists>(t,k) \<in> set (uset p). \<exists>(s,l) \<in> set (uset p). Ifm (x#bs) (usubst p (Add(Mul l t) (Mul k s) , 2*k*l))))"
-  (is "(\<exists>x. ?I x p) = (?M \<or> ?P \<or> ?F)" is "?E = ?D")
+  shows "(\<exists>x. Ifm (x # bs) p) \<longleftrightarrow>
+    (Ifm (x # bs) (minusinf p) \<or> Ifm (x # bs) (plusinf p) \<or>
+      (\<exists>(t,k) \<in> set (uset p). \<exists>(s,l) \<in> set (uset p).
+        Ifm (x#bs) (usubst p (Add (Mul l t) (Mul k s), 2 * k * l))))"
+  (is "(\<exists>x. ?I x p) \<longleftrightarrow> ?M \<or> ?P \<or> ?F" is "?E = ?D")
 proof
   assume px: "\<exists>x. ?I x p"
-  have "?M \<or> ?P \<or> (\<not> ?M \<and> \<not> ?P)" by blast
-  moreover {assume "?M \<or> ?P" then have "?D" by blast}
-  moreover {assume nmi: "\<not> ?M" and npi: "\<not> ?P"
-    let ?f ="\<lambda>(t,n). Inum (x#bs) t / real n"
-    let ?N = "\<lambda>t. Inum (x#bs) t"
-    {fix t n s m assume "(t,n)\<in> set (uset p)" and "(s,m) \<in> set (uset p)"
-      with uset_l[OF lp] have tnb: "numbound0 t" and np:"real n > 0" and snb: "numbound0 s" and mp:"real m > 0"
+  consider "?M \<or> ?P" | "\<not> ?M" "\<not> ?P" by blast
+  then show ?D
+  proof cases
+    case 1
+    then show ?thesis by blast
+  next
+    case 2
+    let ?f = "\<lambda>(t,n). Inum (x # bs) t / real n"
+    let ?N = "\<lambda>t. Inum (x # bs) t"
+    {
+      fix t n s m
+      assume "(t, n) \<in> set (uset p)" and "(s, m) \<in> set (uset p)"
+      with uset_l[OF lp] have tnb: "numbound0 t"
+        and np: "real n > 0" and snb: "numbound0 s" and mp: "real m > 0"
         by auto
       let ?st = "Add (Mul m t) (Mul n s)"
-      from np mp have mnp: "real (2*n*m) > 0" by (simp add: mult.commute)
-      from tnb snb have st_nb: "numbound0 ?st" by simp
-      have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
+      from np mp have mnp: "real (2 * n * m) > 0"
+        by (simp add: mult.commute)
+      from tnb snb have st_nb: "numbound0 ?st"
+        by simp
+      have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
         using mnp mp np by (simp add: algebra_simps add_divide_distrib)
       from usubst_I[OF lp mnp st_nb, where x="x" and bs="bs"]
-      have "?I x (usubst p (?st,2*n*m)) = ?I ((?N t / real n + ?N s / real m) /2) p" by (simp only: st[symmetric])}
-    with rinf_uset[OF lp nmi npi px] have "?F" by blast then have "?D" by blast}
-  ultimately show "?D" by blast
+      have "?I x (usubst p (?st, 2 * n * m)) = ?I ((?N t / real n + ?N s / real m) / 2) p"
+        by (simp only: st[symmetric])
+    }
+    with rinf_uset[OF lp 2 px] have ?F
+      by blast
+    then show ?thesis
+      by blast
+  qed
 next
-  assume "?D"
-  moreover {assume m:"?M" from rminusinf_ex[OF lp m] have "?E" .}
-  moreover {assume p: "?P" from rplusinf_ex[OF lp p] have "?E" . }
-  moreover {fix t k s l assume "(t,k) \<in> set (uset p)" and "(s,l) \<in> set (uset p)"
-    and px:"?I x (usubst p (Add (Mul l t) (Mul k s), 2*k*l))"
-    with uset_l[OF lp] have tnb: "numbound0 t" and np:"real k > 0" and snb: "numbound0 s" and mp:"real l > 0" by auto
+  assume ?D
+  then consider ?M | ?P | t k s l where "(t, k) \<in> set (uset p)" "(s, l) \<in> set (uset p)"
+    "?I x (usubst p (Add (Mul l t) (Mul k s), 2 * k * l))"
+    by blast
+  then show ?E
+  proof cases
+    case 1
+    from rminusinf_ex[OF lp this] show ?thesis .
+  next
+    case 2
+    from rplusinf_ex[OF lp this] show ?thesis .
+  next
+    case 3
+    with uset_l[OF lp] have tnb: "numbound0 t" and np: "real k > 0"
+      and snb: "numbound0 s" and mp: "real l > 0"
+      by auto
     let ?st = "Add (Mul l t) (Mul k s)"
-    from np mp have mnp: "real (2*k*l) > 0" by (simp add: mult.commute)
-    from tnb snb have st_nb: "numbound0 ?st" by simp
-    from usubst_I[OF lp mnp st_nb, where bs="bs"] px have "?E" by auto}
-  ultimately show "?E" by blast
+    from np mp have mnp: "real (2 * k * l) > 0"
+      by (simp add: mult.commute)
+    from tnb snb have st_nb: "numbound0 ?st"
+      by simp
+    from usubst_I[OF lp mnp st_nb, where bs="bs"]
+      \<open>?I x (usubst p (Add (Mul l t) (Mul k s), 2 * k * l))\<close> show ?thesis
+      by auto
+  qed
 qed
 
 
     (* Implement the right hand side of Ferrante and Rackoff's Theorem. *)
-definition ferrack :: "fm \<Rightarrow> fm" where
-  "ferrack p = (let p' = rlfm (simpfm p); mp = minusinf p'; pp = plusinf p'
-                in if (mp = T \<or> pp = T) then T else
-                   (let U = remdups(map simp_num_pair
-                     (map (\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m))
-                           (alluopairs (uset p'))))
-                    in decr (disj mp (disj pp (evaldjf (simpfm \<circ> (usubst p')) U)))))"
+definition ferrack :: "fm \<Rightarrow> fm"
+where
+  "ferrack p =
+   (let
+      p' = rlfm (simpfm p);
+      mp = minusinf p';
+      pp = plusinf p'
+    in
+      if mp = T \<or> pp = T then T
+      else
+       (let U = remdups (map simp_num_pair
+         (map (\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2 * n * m))
+               (alluopairs (uset p'))))
+        in decr (disj mp (disj pp (evaldjf (simpfm \<circ> usubst p') U)))))"
 
 lemma uset_cong_aux:
-  assumes Ul: "\<forall>(t,n) \<in> set U. numbound0 t \<and> n >0"
-  shows "((\<lambda>(t,n). Inum (x#bs) t /real n) ` (set (map (\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m)) (alluopairs U)))) = ((\<lambda>((t,n),(s,m)). (Inum (x#bs) t /real n + Inum (x#bs) s /real m)/2) ` (set U \<times> set U))"
+  assumes Ul: "\<forall>(t,n) \<in> set U. numbound0 t \<and> n > 0"
+  shows "((\<lambda>(t,n). Inum (x # bs) t / real n) `
+    (set (map (\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s), 2 * n * m)) (alluopairs U)))) =
+    ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) ` (set U \<times> set U))"
   (is "?lhs = ?rhs")
-proof(auto)
+proof auto
   fix t n s m
-  assume "((t,n),(s,m)) \<in> set (alluopairs U)"
-  then have th: "((t,n),(s,m)) \<in> (set U \<times> set U)"
+  assume "((t, n), (s, m)) \<in> set (alluopairs U)"
+  then have th: "((t, n), (s, m)) \<in> set U \<times> set U"
     using alluopairs_set1[where xs="U"] by blast
-  let ?N = "\<lambda>t. Inum (x#bs) t"
-  let ?st= "Add (Mul m t) (Mul n s)"
-  from Ul th have mnz: "m \<noteq> 0" by auto
-  from Ul th have  nnz: "n \<noteq> 0" by auto
-  have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mnz nnz by (simp add: algebra_simps add_divide_distrib)
-
-  then show "(real m *  Inum (x # bs) t + real n * Inum (x # bs) s) /
-       (2 * real n * real m)
-       \<in> (\<lambda>((t, n), s, m).
-             (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) `
-         (set U \<times> set U)"using mnz nnz th
+  let ?N = "\<lambda>t. Inum (x # bs) t"
+  let ?st = "Add (Mul m t) (Mul n s)"
+  from Ul th have mnz: "m \<noteq> 0"
+    by auto
+  from Ul th have nnz: "n \<noteq> 0"
+    by auto
+  have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+    using mnz nnz by (simp add: algebra_simps add_divide_distrib)
+  then show "(real m *  Inum (x # bs) t + real n * Inum (x # bs) s) / (2 * real n * real m)
+      \<in> (\<lambda>((t, n), s, m). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) `
+         (set U \<times> set U)"
+    using mnz nnz th
     apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
-    by (rule_tac x="(s,m)" in bexI,simp_all)
-  (rule_tac x="(t,n)" in bexI,simp_all add: mult.commute)
+    apply (rule_tac x="(s,m)" in bexI)
+    apply simp_all
+    apply (rule_tac x="(t,n)" in bexI)
+    apply (simp_all add: mult.commute)
+    done
 next
   fix t n s m
-  assume tnU: "(t,n) \<in> set U" and smU:"(s,m) \<in> set U"
-  let ?N = "\<lambda>t. Inum (x#bs) t"
-  let ?st= "Add (Mul m t) (Mul n s)"
-  from Ul smU have mnz: "m \<noteq> 0" by auto
-  from Ul tnU have  nnz: "n \<noteq> 0" by auto
-  have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mnz nnz by (simp add: algebra_simps add_divide_distrib)
- let ?P = "\<lambda>(t',n') (s',m'). (Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 = (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m')/2"
- have Pc:"\<forall>a b. ?P a b = ?P b a"
-   by auto
- from Ul alluopairs_set1 have Up:"\<forall>((t,n),(s,m)) \<in> set (alluopairs U). n \<noteq> 0 \<and> m \<noteq> 0" by blast
- from alluopairs_ex[OF Pc, where xs="U"] tnU smU
- have th':"\<exists>((t',n'),(s',m')) \<in> set (alluopairs U). ?P (t',n') (s',m')"
-   by blast
- then obtain t' n' s' m' where ts'_U: "((t',n'),(s',m')) \<in> set (alluopairs U)"
-   and Pts': "?P (t',n') (s',m')" by blast
- from ts'_U Up have mnz': "m' \<noteq> 0" and nnz': "n'\<noteq> 0" by auto
- let ?st' = "Add (Mul m' t') (Mul n' s')"
-   have st': "(?N t' / real n' + ?N s' / real m')/2 = ?N ?st' / real (2*n'*m')"
-   using mnz' nnz' by (simp add: algebra_simps add_divide_distrib)
- from Pts' have
-   "(Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 = (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m')/2" by simp
- also have "\<dots> = ((\<lambda>(t, n). Inum (x # bs) t / real n) ((\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ((t',n'),(s',m'))))" by (simp add: st')
- finally show "(Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2
-          \<in> (\<lambda>(t, n). Inum (x # bs) t / real n) `
-            (\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) `
-            set (alluopairs U)"
-   using ts'_U by blast
+  assume tnU: "(t, n) \<in> set U" and smU: "(s, m) \<in> set U"
+  let ?N = "\<lambda>t. Inum (x # bs) t"
+  let ?st = "Add (Mul m t) (Mul n s)"
+  from Ul smU have mnz: "m \<noteq> 0"
+    by auto
+  from Ul tnU have nnz: "n \<noteq> 0"
+    by auto
+  have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+    using mnz nnz by (simp add: algebra_simps add_divide_distrib)
+  let ?P = "\<lambda>(t',n') (s',m'). (Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 =
+    (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m') / 2"
+  have Pc:"\<forall>a b. ?P a b = ?P b a"
+    by auto
+  from Ul alluopairs_set1 have Up:"\<forall>((t,n),(s,m)) \<in> set (alluopairs U). n \<noteq> 0 \<and> m \<noteq> 0"
+    by blast
+  from alluopairs_ex[OF Pc, where xs="U"] tnU smU
+  have th':"\<exists>((t',n'),(s',m')) \<in> set (alluopairs U). ?P (t',n') (s',m')"
+    by blast
+  then obtain t' n' s' m' where ts'_U: "((t',n'),(s',m')) \<in> set (alluopairs U)"
+    and Pts': "?P (t', n') (s', m')"
+    by blast
+  from ts'_U Up have mnz': "m' \<noteq> 0" and nnz': "n'\<noteq> 0"
+    by auto
+  let ?st' = "Add (Mul m' t') (Mul n' s')"
+  have st': "(?N t' / real n' + ?N s' / real m') / 2 = ?N ?st' / real (2 * n' * m')"
+    using mnz' nnz' by (simp add: algebra_simps add_divide_distrib)
+  from Pts' have "(Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2 =
+    (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m') / 2"
+    by simp
+  also have "\<dots> = (\<lambda>(t, n). Inum (x # bs) t / real n)
+      ((\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ((t', n'), (s', m')))"
+    by (simp add: st')
+  finally show "(Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2
+    \<in> (\<lambda>(t, n). Inum (x # bs) t / real n) `
+      (\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ` set (alluopairs U)"
+    using ts'_U by blast
 qed
 
 lemma uset_cong:
   assumes lp: "isrlfm p"
-  and UU': "((\<lambda>(t,n). Inum (x#bs) t /real n) ` U') = ((\<lambda>((t,n),(s,m)). (Inum (x#bs) t /real n + Inum (x#bs) s /real m)/2) ` (U \<times> U))" (is "?f ` U' = ?g ` (U\<times>U)")
-  and U: "\<forall>(t,n) \<in> U. numbound0 t \<and> n > 0"
-  and U': "\<forall>(t,n) \<in> U'. numbound0 t \<and> n > 0"
-  shows "(\<exists>(t,n) \<in> U. \<exists>(s,m) \<in> U. Ifm (x#bs) (usubst p (Add (Mul m t) (Mul n s),2*n*m))) = (\<exists>(t,n) \<in> U'. Ifm (x#bs) (usubst p (t,n)))"
-  (is "?lhs = ?rhs")
+    and UU': "((\<lambda>(t,n). Inum (x # bs) t / real n) ` U') =
+      ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) ` (U \<times> U))"
+      (is "?f ` U' = ?g ` (U \<times> U)")
+    and U: "\<forall>(t,n) \<in> U. numbound0 t \<and> n > 0"
+    and U': "\<forall>(t,n) \<in> U'. numbound0 t \<and> n > 0"
+  shows "(\<exists>(t,n) \<in> U. \<exists>(s,m) \<in> U. Ifm (x # bs) (usubst p (Add (Mul m t) (Mul n s), 2 * n * m))) =
+    (\<exists>(t,n) \<in> U'. Ifm (x # bs) (usubst p (t, n)))"
+    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?lhs
-  then obtain t n s m where tnU: "(t,n) \<in> U" and smU:"(s,m) \<in> U" and
-    Pst: "Ifm (x#bs) (usubst p (Add (Mul m t) (Mul n s),2*n*m))" by blast
-  let ?N = "\<lambda>t. Inum (x#bs) t"
-  from tnU smU U have tnb: "numbound0 t" and np: "n > 0"
-    and snb: "numbound0 s" and mp:"m > 0"  by auto
-  let ?st= "Add (Mul m t) (Mul n s)"
-  from np mp have mnp: "real (2*n*m) > 0"
-      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
-    from tnb snb have stnb: "numbound0 ?st" by simp
-  have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mp np by (simp add: algebra_simps add_divide_distrib)
-  from tnU smU UU' have "?g ((t,n),(s,m)) \<in> ?f ` U'" by blast
-  then have "\<exists>(t',n') \<in> U'. ?g ((t,n),(s,m)) = ?f (t',n')"
-    by auto (rule_tac x="(a,b)" in bexI, auto)
-  then obtain t' n' where tnU': "(t',n') \<in> U'" and th: "?g ((t,n),(s,m)) = ?f (t',n')" by blast
-  from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0" by auto
-  from usubst_I[OF lp mnp stnb, where bs="bs" and x="x"] Pst
-  have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p" by simp
-  from conjunct1[OF usubst_I[OF lp np' tnb', where bs="bs" and x="x"], symmetric] th[simplified split_def fst_conv snd_conv,symmetric] Pst2[simplified st[symmetric]]
-  have "Ifm (x # bs) (usubst p (t', n')) " by (simp only: st)
-  then show ?rhs using tnU' by auto
-next
-  assume ?rhs
-  then obtain t' n' where tnU': "(t',n') \<in> U'" and Pt': "Ifm (x # bs) (usubst p (t', n'))"
-    by blast
-  from tnU' UU' have "?f (t',n') \<in> ?g ` (U\<times>U)" by blast
-  then have "\<exists>((t,n),(s,m)) \<in> (U\<times>U). ?f (t',n') = ?g ((t,n),(s,m))"
-    by auto (rule_tac x="(a,b)" in bexI, auto)
-  then obtain t n s m where tnU: "(t,n) \<in> U" and smU:"(s,m) \<in> U" and
-    th: "?f (t',n') = ?g((t,n),(s,m)) "by blast
+  show ?rhs if ?lhs
+  proof -
+    from that obtain t n s m where tnU: "(t, n) \<in> U" and smU: "(s, m) \<in> U"
+      and Pst: "Ifm (x # bs) (usubst p (Add (Mul m t) (Mul n s), 2 * n * m))"
+      by blast
     let ?N = "\<lambda>t. Inum (x#bs) t"
-  from tnU smU U have tnb: "numbound0 t" and np: "n > 0"
-    and snb: "numbound0 s" and mp:"m > 0"  by auto
-  let ?st= "Add (Mul m t) (Mul n s)"
-  from np mp have mnp: "real (2*n*m) > 0"
+    from tnU smU U have tnb: "numbound0 t" and np: "n > 0"
+      and snb: "numbound0 s" and mp: "m > 0"
+      by auto
+    let ?st = "Add (Mul m t) (Mul n s)"
+    from np mp have mnp: "real (2 * n * m) > 0"
       by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
-    from tnb snb have stnb: "numbound0 ?st" by simp
-  have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mp np by (simp add: algebra_simps add_divide_distrib)
-  from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0" by auto
-  from usubst_I[OF lp np' tnb', where bs="bs" and x="x",simplified th[simplified split_def fst_conv snd_conv] st] Pt'
-  have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p" by simp
-  with usubst_I[OF lp mnp stnb, where x="x" and bs="bs"] tnU smU show ?lhs by blast
+    from tnb snb have stnb: "numbound0 ?st"
+      by simp
+    have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+      using mp np by (simp add: algebra_simps add_divide_distrib)
+    from tnU smU UU' have "?g ((t, n), (s, m)) \<in> ?f ` U'"
+      by blast
+    then have "\<exists>(t',n') \<in> U'. ?g ((t, n), (s, m)) = ?f (t', n')"
+      apply auto
+      apply (rule_tac x="(a, b)" in bexI)
+      apply auto
+      done
+    then obtain t' n' where tnU': "(t',n') \<in> U'" and th: "?g ((t, n), (s, m)) = ?f (t', n')"
+      by blast
+    from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0"
+      by auto
+    from usubst_I[OF lp mnp stnb, where bs="bs" and x="x"] Pst
+    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p"
+      by simp
+    from conjunct1[OF usubst_I[OF lp np' tnb', where bs="bs" and x="x"], symmetric]
+      th[simplified split_def fst_conv snd_conv,symmetric] Pst2[simplified st[symmetric]]
+    have "Ifm (x # bs) (usubst p (t', n'))"
+      by (simp only: st)
+    then show ?thesis
+      using tnU' by auto
+  qed
+  show ?lhs if ?rhs
+  proof -
+    from that obtain t' n' where tnU': "(t', n') \<in> U'" and Pt': "Ifm (x # bs) (usubst p (t', n'))"
+      by blast
+    from tnU' UU' have "?f (t', n') \<in> ?g ` (U \<times> U)"
+      by blast
+    then have "\<exists>((t,n),(s,m)) \<in> U \<times> U. ?f (t', n') = ?g ((t, n), (s, m))"
+      apply auto
+      apply (rule_tac x="(a,b)" in bexI)
+      apply auto
+      done
+    then obtain t n s m where tnU: "(t, n) \<in> U" and smU: "(s, m) \<in> U" and
+      th: "?f (t', n') = ?g ((t, n), (s, m))"
+      by blast
+    let ?N = "\<lambda>t. Inum (x # bs) t"
+    from tnU smU U have tnb: "numbound0 t" and np: "n > 0"
+      and snb: "numbound0 s" and mp: "m > 0"
+      by auto
+    let ?st = "Add (Mul m t) (Mul n s)"
+    from np mp have mnp: "real (2 * n * m) > 0"
+      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
+    from tnb snb have stnb: "numbound0 ?st"
+      by simp
+    have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+      using mp np by (simp add: algebra_simps add_divide_distrib)
+    from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0"
+      by auto
+    from usubst_I[OF lp np' tnb', where bs="bs" and x="x",simplified
+      th[simplified split_def fst_conv snd_conv] st] Pt'
+    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p"
+      by simp
+    with usubst_I[OF lp mnp stnb, where x="x" and bs="bs"] tnU smU
+    show ?thesis by blast
+  qed
 qed
 
 lemma ferrack:
   assumes qf: "qfree p"
-  shows "qfree (ferrack p) \<and> ((Ifm bs (ferrack p)) = (\<exists>x. Ifm (x#bs) p))"
-  (is "_ \<and> (?rhs = ?lhs)")
+  shows "qfree (ferrack p) \<and> (Ifm bs (ferrack p) \<longleftrightarrow> (\<exists>x. Ifm (x # bs) p))"
+  (is "_ \<and> (?rhs \<longleftrightarrow> ?lhs)")
 proof -
-  let ?I = "\<lambda>x p. Ifm (x#bs) p"
+  let ?I = "\<lambda>x p. Ifm (x # bs) p"
   fix x
-  let ?N = "\<lambda>t. Inum (x#bs) t"
+  let ?N = "\<lambda>t. Inum (x # bs) t"
   let ?q = "rlfm (simpfm p)"
   let ?U = "uset ?q"
   let ?Up = "alluopairs ?U"
-  let ?g = "\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m)"
+  let ?g = "\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s), 2 * n * m)"
   let ?S = "map ?g ?Up"
   let ?SS = "map simp_num_pair ?S"
   let ?Y = "remdups ?SS"
-  let ?f= "(\<lambda>(t,n). ?N t / real n)"
-  let ?h = "\<lambda>((t,n),(s,m)). (?N t/real n + ?N s/ real m) /2"
-  let ?F = "\<lambda>p. \<exists>a \<in> set (uset p). \<exists>b \<in> set (uset p). ?I x (usubst p (?g(a,b)))"
+  let ?f = "\<lambda>(t,n). ?N t / real n"
+  let ?h = "\<lambda>((t,n),(s,m)). (?N t / real n + ?N s / real m) / 2"
+  let ?F = "\<lambda>p. \<exists>a \<in> set (uset p). \<exists>b \<in> set (uset p). ?I x (usubst p (?g (a, b)))"
   let ?ep = "evaldjf (simpfm \<circ> (usubst ?q)) ?Y"
-  from rlfm_I[OF simpfm_qf[OF qf]] have lq: "isrlfm ?q" by blast
-  from alluopairs_set1[where xs="?U"] have UpU: "set ?Up \<le> (set ?U \<times> set ?U)" by simp
+  from rlfm_I[OF simpfm_qf[OF qf]] have lq: "isrlfm ?q"
+    by blast
+  from alluopairs_set1[where xs="?U"] have UpU: "set ?Up \<subseteq> set ?U \<times> set ?U"
+    by simp
   from uset_l[OF lq] have U_l: "\<forall>(t,n) \<in> set ?U. numbound0 t \<and> n > 0" .
   from U_l UpU
-  have "\<forall>((t,n),(s,m)) \<in> set ?Up. numbound0 t \<and> n> 0 \<and> numbound0 s \<and> m > 0" by auto
-  then have Snb: "\<forall>(t,n) \<in> set ?S. numbound0 t \<and> n > 0 " by auto
+  have "\<forall>((t,n),(s,m)) \<in> set ?Up. numbound0 t \<and> n> 0 \<and> numbound0 s \<and> m > 0"
+    by auto
+  then have Snb: "\<forall>(t,n) \<in> set ?S. numbound0 t \<and> n > 0 "
+    by auto
   have Y_l: "\<forall>(t,n) \<in> set ?Y. numbound0 t \<and> n > 0"
   proof -
-    { fix t n assume tnY: "(t,n) \<in> set ?Y"
-      then have "(t,n) \<in> set ?SS" by simp
-      then have "\<exists>(t',n') \<in> set ?S. simp_num_pair (t',n') = (t,n)"
-        by (auto simp add: split_def simp del: map_map)
-           (rule_tac x="((aa,ba),(ab,bb))" in bexI, simp_all)
-      then obtain t' n' where tn'S: "(t',n') \<in> set ?S" and tns: "simp_num_pair (t',n') = (t,n)" by blast
-      from tn'S Snb have tnb: "numbound0 t'" and np: "n' > 0" by auto
-      from simp_num_pair_l[OF tnb np tns]
-      have "numbound0 t \<and> n > 0" . }
+    have "numbound0 t \<and> n > 0" if tnY: "(t, n) \<in> set ?Y" for t n
+    proof -
+      from that have "(t,n) \<in> set ?SS"
+        by simp
+      then have "\<exists>(t',n') \<in> set ?S. simp_num_pair (t', n') = (t, n)"
+        apply (auto simp add: split_def simp del: map_map)
+        apply (rule_tac x="((aa,ba),(ab,bb))" in bexI)
+        apply simp_all
+        done
+      then obtain t' n' where tn'S: "(t', n') \<in> set ?S" and tns: "simp_num_pair (t', n') = (t, n)"
+        by blast
+      from tn'S Snb have tnb: "numbound0 t'" and np: "n' > 0"
+        by auto
+      from simp_num_pair_l[OF tnb np tns] show ?thesis .
+    qed
     then show ?thesis by blast
   qed
 
   have YU: "(?f ` set ?Y) = (?h ` (set ?U \<times> set ?U))"
   proof -
-     from simp_num_pair_ci[where bs="x#bs"] have
-    "\<forall>x. (?f \<circ> simp_num_pair) x = ?f x" by auto
-     then have th: "?f \<circ> simp_num_pair = ?f" using ext by blast
-    have "(?f ` set ?Y) = ((?f \<circ> simp_num_pair) ` set ?S)" by (simp add: comp_assoc image_comp)
-    also have "\<dots> = (?f ` set ?S)" by (simp add: th)
-    also have "\<dots> = ((?f \<circ> ?g) ` set ?Up)"
+    from simp_num_pair_ci[where bs="x#bs"] have "\<forall>x. (?f \<circ> simp_num_pair) x = ?f x"
+      by auto
+    then have th: "?f \<circ> simp_num_pair = ?f"
+      by auto
+    have "(?f ` set ?Y) = ((?f \<circ> simp_num_pair) ` set ?S)"
+      by (simp add: comp_assoc image_comp)
+    also have "\<dots> = ?f ` set ?S"
+      by (simp add: th)
+    also have "\<dots> = (?f \<circ> ?g) ` set ?Up"
       by (simp only: set_map o_def image_comp)
-    also have "\<dots> = (?h ` (set ?U \<times> set ?U))"
-      using uset_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_comp] by blast
+    also have "\<dots> = ?h ` (set ?U \<times> set ?U)"
+      using uset_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_comp]
+      by blast
     finally show ?thesis .
   qed
-  have "\<forall>(t,n) \<in> set ?Y. bound0 (simpfm (usubst ?q (t,n)))"
+  have "\<forall>(t,n) \<in> set ?Y. bound0 (simpfm (usubst ?q (t, n)))"
   proof -
-    { fix t n assume tnY: "(t,n) \<in> set ?Y"
-      with Y_l have tnb: "numbound0 t" and np: "real n > 0" by auto
-      from usubst_I[OF lq np tnb]
-    have "bound0 (usubst ?q (t,n))"  by simp then have "bound0 (simpfm (usubst ?q (t,n)))"
-      using simpfm_bound0 by simp}
+    have "bound0 (simpfm (usubst ?q (t, n)))" if tnY: "(t,n) \<in> set ?Y" for t n
+    proof -
+      from Y_l that have tnb: "numbound0 t" and np: "real n > 0"
+        by auto
+      from usubst_I[OF lq np tnb] have "bound0 (usubst ?q (t, n))"
+        by simp
+      then show ?thesis
+        using simpfm_bound0 by simp
+    qed
     then show ?thesis by blast
   qed
-  then have ep_nb: "bound0 ?ep"  using evaldjf_bound0[where xs="?Y" and f="simpfm \<circ> (usubst ?q)"] by auto
+  then have ep_nb: "bound0 ?ep"
+    using evaldjf_bound0[where xs="?Y" and f="simpfm \<circ> (usubst ?q)"] by auto
   let ?mp = "minusinf ?q"
   let ?pp = "plusinf ?q"
   let ?M = "?I x ?mp"
   let ?P = "?I x ?pp"
   let ?res = "disj ?mp (disj ?pp ?ep)"
-  from rminusinf_bound0[OF lq] rplusinf_bound0[OF lq] ep_nb
-  have nbth: "bound0 ?res" by auto
+  from rminusinf_bound0[OF lq] rplusinf_bound0[OF lq] ep_nb have nbth: "bound0 ?res"
+    by auto
 
-  from conjunct1[OF rlfm_I[OF simpfm_qf[OF qf]]] simpfm
-
-  have th: "?lhs = (\<exists>x. ?I x ?q)" by auto
+  from conjunct1[OF rlfm_I[OF simpfm_qf[OF qf]]] simpfm have th: "?lhs = (\<exists>x. ?I x ?q)"
+    by auto
   from th fr_equsubst[OF lq, where bs="bs" and x="x"] have lhfr: "?lhs = (?M \<or> ?P \<or> ?F ?q)"
     by (simp only: split_def fst_conv snd_conv)
   also have "\<dots> = (?M \<or> ?P \<or> (\<exists>(t,n) \<in> set ?Y. ?I x (simpfm (usubst ?q (t,n)))))"
-    using uset_cong[OF lq YU U_l Y_l]  by (simp only: split_def fst_conv snd_conv simpfm)
+    using uset_cong[OF lq YU U_l Y_l] by (simp only: split_def fst_conv snd_conv simpfm)
   also have "\<dots> = (Ifm (x#bs) ?res)"
     using evaldjf_ex[where ps="?Y" and bs = "x#bs" and f="simpfm \<circ> (usubst ?q)",symmetric]
     by (simp add: split_def pair_collapse)
-  finally have lheq: "?lhs =  (Ifm bs (decr ?res))" using decr[OF nbth] by blast
-  then have lr: "?lhs = ?rhs" apply (unfold ferrack_def Let_def)
+  finally have lheq: "?lhs = Ifm bs (decr ?res)"
+    using decr[OF nbth] by blast
+  then have lr: "?lhs = ?rhs"
+    unfolding ferrack_def Let_def
     by (cases "?mp = T \<or> ?pp = T", auto) (simp add: disj_def)+
-  from decr_qf[OF nbth] have "qfree (ferrack p)" by (auto simp add: Let_def ferrack_def)
-  with lr show ?thesis by blast
+  from decr_qf[OF nbth] have "qfree (ferrack p)"
+    by (auto simp add: Let_def ferrack_def)
+  with lr show ?thesis
+    by blast
 qed
 
-definition linrqe:: "fm \<Rightarrow> fm" where
-  "linrqe p = qelim (prep p) ferrack"
+definition linrqe:: "fm \<Rightarrow> fm"
+  where "linrqe p = qelim (prep p) ferrack"
 
 theorem linrqe: "Ifm bs (linrqe p) = Ifm bs p \<and> qfree (linrqe p)"
-using ferrack qelim_ci prep
-unfolding linrqe_def by auto
+  using ferrack qelim_ci prep
+  unfolding linrqe_def by auto
 
-definition ferrack_test :: "unit \<Rightarrow> fm" where
-  "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
-    (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
+definition ferrack_test :: "unit \<Rightarrow> fm"
+where
+  "ferrack_test u =
+    linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
+      (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
 ML_val \<open>@{code ferrack_test} ()\<close>
 
