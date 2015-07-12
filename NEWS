@@ -172,6 +172,8 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Quickcheck setup for finite sets.
+
 * Discontinued simp_legacy_precond. Potential INCOMPATIBILITY.
 
 * Sledgehammer:

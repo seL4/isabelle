@@ -1081,4 +1081,72 @@ next
   qed
 qed
 
+
+subsection \<open>Quickcheck setup\<close>
+
+text \<open>Setup adapted from sets.\<close>
+
+notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
+
+definition (in term_syntax) [code_unfold]:
+"valterm_femptyset = Code_Evaluation.valtermify ({||} :: ('a :: typerep) fset)"
+
+definition (in term_syntax) [code_unfold]:
+"valtermify_finsert x s = Code_Evaluation.valtermify finsert {\<cdot>} (x :: ('a :: typerep * _)) {\<cdot>} s"
+
+instantiation fset :: (exhaustive) exhaustive
+begin
+
+fun exhaustive_fset where
+"exhaustive_fset f i = (if i = 0 then None else (f {||} orelse exhaustive_fset (\<lambda>A. f A orelse Quickcheck_Exhaustive.exhaustive (\<lambda>x. if x |\<in>| A then None else f (finsert x A)) (i - 1)) (i - 1)))"
+
+instance ..
+
+end
+
+instantiation fset :: (full_exhaustive) full_exhaustive
+begin
+
+fun full_exhaustive_fset where
+"full_exhaustive_fset f i = (if i = 0 then None else (f valterm_femptyset orelse full_exhaustive_fset (\<lambda>A. f A orelse Quickcheck_Exhaustive.full_exhaustive (\<lambda>x. if fst x |\<in>| fst A then None else f (valtermify_finsert x A)) (i - 1)) (i - 1)))"
+
+instance ..
+
+end
+
+no_notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
+
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+instantiation fset :: (random) random
+begin
+
+fun random_aux_fset :: "natural \<Rightarrow> natural \<Rightarrow> natural \<times> natural \<Rightarrow> ('a fset \<times> (unit \<Rightarrow> term)) \<times> natural \<times> natural" where
+"random_aux_fset 0 j = Quickcheck_Random.collapse (Random.select_weight [(1, Pair valterm_femptyset)])" |
+"random_aux_fset (Code_Numeral.Suc i) j =
+  Quickcheck_Random.collapse (Random.select_weight
+    [(1, Pair valterm_femptyset),
+     (Code_Numeral.Suc i,
+      Quickcheck_Random.random j \<circ>\<rightarrow> (\<lambda>x. random_aux_fset i j \<circ>\<rightarrow> (\<lambda>s. Pair (valtermify_finsert x s))))])"
+
+lemma [code]:
+  "random_aux_fset i j =
+    Quickcheck_Random.collapse (Random.select_weight [(1, Pair valterm_femptyset),
+      (i, Quickcheck_Random.random j \<circ>\<rightarrow> (\<lambda>x. random_aux_fset (i - 1) j \<circ>\<rightarrow> (\<lambda>s. Pair (valtermify_finsert x s))))])"
+proof (induct i rule: natural.induct)
+  case zero
+  show ?case by (subst select_weight_drop_zero[symmetric]) (simp add: less_natural_def)
+next
+  case (Suc i)
+  show ?case by (simp only: random_aux_fset.simps Suc_natural_minus_one)
+qed
+
+definition "random_fset i = random_aux_fset i i"
+
+instance ..
+
+end
+
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
 end
