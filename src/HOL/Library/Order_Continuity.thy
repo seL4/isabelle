@@ -144,28 +144,16 @@ proof (rule antisym)
   qed
 qed
 
-lemma lfp_transfer:
-  assumes \<alpha>: "sup_continuous \<alpha>" and f: "sup_continuous f" and g: "sup_continuous g"
-  assumes [simp]: "\<alpha> bot = bot" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
-  shows "\<alpha> (lfp f) = lfp g"
-proof -
-  have "\<alpha> (lfp f) = (SUP i. \<alpha> ((f^^i) bot))"
-    unfolding sup_continuous_lfp[OF f] by (intro f \<alpha> sup_continuousD mono_funpow sup_continuous_mono)
-  moreover have "\<alpha> ((f^^i) bot) = (g^^i) bot" for i
-    by (induction i; simp)
-  ultimately show ?thesis
-    unfolding sup_continuous_lfp[OF g] by simp
-qed
-
 lemma lfp_transfer_bounded:
   assumes P: "P bot" "\<And>x. P x \<Longrightarrow> P (f x)" "\<And>M. (\<And>i. P (M i)) \<Longrightarrow> P (SUP i::nat. M i)"
   assumes \<alpha>: "\<And>M. mono M \<Longrightarrow> (\<And>i::nat. P (M i)) \<Longrightarrow> \<alpha> (SUP i. M i) = (SUP i. \<alpha> (M i))"
   assumes f: "sup_continuous f" and g: "sup_continuous g"
-  assumes [simp]: "\<And>x. P x \<Longrightarrow> \<alpha> (f x) = g (\<alpha> x)"
+  assumes [simp]: "\<And>x. P x \<Longrightarrow> x \<le> lfp f \<Longrightarrow> \<alpha> (f x) = g (\<alpha> x)"
   assumes g_bound: "\<And>x. \<alpha> bot \<le> g x"
   shows "\<alpha> (lfp f) = lfp g"
 proof (rule antisym)
   note mono_g = sup_continuous_mono[OF g]
+  note mono_f = sup_continuous_mono[OF f]
   have lfp_bound: "\<alpha> bot \<le> lfp g"
     by (subst lfp_unfold[OF mono_g]) (rule g_bound)
 
@@ -182,6 +170,13 @@ proof (rule antisym)
   have P_lfp: "P (lfp f)"
     using P_pow unfolding sup_continuous_lfp[OF f] by (auto intro!: P)
 
+  have iter_le_lfp: "(f ^^ n) bot \<le> lfp f" for n
+    apply (induction n)
+    apply simp
+    apply (subst lfp_unfold[OF mono_f])
+    apply (auto intro!: monoD[OF mono_f])
+    done
+
   have "\<alpha> (lfp f) = (SUP i. \<alpha> ((f^^i) bot))"
     unfolding sup_continuous_lfp[OF f] using incseq_pow P_pow by (rule \<alpha>)
   also have "\<dots> \<le> lfp g"
@@ -189,7 +184,7 @@ proof (rule antisym)
     fix i show "\<alpha> ((f^^i) bot) \<le> lfp g"
     proof (induction i)
       case (Suc n) then show ?case
-        by (subst lfp_unfold[OF mono_g]) (simp add: monoD[OF mono_g] P_pow)
+        by (subst lfp_unfold[OF mono_g]) (simp add: monoD[OF mono_g] P_pow iter_le_lfp)
     qed (simp add: lfp_bound)
   qed
   finally show "\<alpha> (lfp f) \<le> lfp g" .
@@ -201,6 +196,11 @@ proof (rule antisym)
          (simp add: monoD[OF mono_g] P_lfp)
   qed (auto intro: Sup_least)
 qed
+
+lemma lfp_transfer:
+  "sup_continuous \<alpha> \<Longrightarrow> sup_continuous f \<Longrightarrow> sup_continuous g \<Longrightarrow>
+    (\<And>x. \<alpha> bot \<le> g x) \<Longrightarrow> (\<And>x. x \<le> lfp f \<Longrightarrow> \<alpha> (f x) = g (\<alpha> x)) \<Longrightarrow> \<alpha> (lfp f) = lfp g"
+  by (rule lfp_transfer_bounded[where P=top]) (auto dest: sup_continuousD)
 
 definition
   inf_continuous :: "('a::complete_lattice \<Rightarrow> 'b::complete_lattice) \<Rightarrow> bool" where

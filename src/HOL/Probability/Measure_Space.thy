@@ -579,7 +579,7 @@ lemma emeasure_lfp:
   assumes cont: "sup_continuous F" "sup_continuous f"
   assumes nonneg: "\<And>P s. 0 \<le> f P s"
   assumes meas: "\<And>P. Measurable.pred N P \<Longrightarrow> Measurable.pred N (F P)"
-  assumes iter: "\<And>P s. Measurable.pred N P \<Longrightarrow> emeasure (M s) {x\<in>space N. F P x} = f (\<lambda>s. emeasure (M s) {x\<in>space N. P x}) s"
+  assumes iter: "\<And>P s. Measurable.pred N P \<Longrightarrow> P \<le> lfp F \<Longrightarrow> emeasure (M s) {x\<in>space N. F P x} = f (\<lambda>s. emeasure (M s) {x\<in>space N. P x}) s"
   shows "emeasure (M s) {x\<in>space N. lfp F x} = lfp f s"
 proof (subst lfp_transfer_bounded[where \<alpha>="\<lambda>F s. emeasure (M s) {x\<in>space N. F x}" and g=f and f=F and P="Measurable.pred N", symmetric])
   fix C assume "incseq C" "\<And>i. Measurable.pred N (C i)"
