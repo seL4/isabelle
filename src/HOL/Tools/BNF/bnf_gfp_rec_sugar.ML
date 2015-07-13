@@ -1520,11 +1520,13 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
               fun_names (take actual_nn thmss))
           |> filter_out (null o fst o hd o snd);
+
+        val fun_ts0 = map fst def_infos;
       in
         lthy
-        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat sel_thmss)
-        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat ctr_thmss)
-        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat code_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat sel_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat ctr_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat code_thmss)
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes)
         |> snd
         |> (fn lthy =>
