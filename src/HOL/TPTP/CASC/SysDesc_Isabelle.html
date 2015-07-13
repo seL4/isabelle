@@ -43,12 +43,11 @@ following tactics sequentially:
 <DT> <tt>sledgehammer</tt>
 <DD> Invokes the following sequence of provers as oracles via Sledgehammer:
 	<UL>
-	<LI> <tt>satallax</tt>&mdash;Satallax 2.4 [<A HREF="#References">Bro12</A>] (<em>demo only</em>);
-	<LI> <tt>leo2</tt>&mdash;LEO-II 1.3.2 [<A HREF="#References">BPTF08</A>] (<em>demo only</em>);
+	<LI> <tt>satallax</tt>&mdash;Satallax 2.7 [<A HREF="#References">Bro12</A>] (<em>demo only</em>);
+	<LI> <tt>leo2</tt>&mdash;LEO-II 1.6.2 [<A HREF="#References">BPTF08</A>] (<em>demo only</em>);
 	<LI> <tt>spass</tt>&mdash;SPASS 3.8ds [<A HREF="#References">BPWW12</A>];
-	<LI> <tt>vampire</tt>&mdash;Vampire 1.8 (revision 1435) [<A HREF="#References">RV02</A>];
-	<LI> <tt>e</tt>&mdash;E 1.4 [<A HREF="#References">Sch04</A>];
-	<LI> <tt>z3_tptp</tt>&mdash;Z3 3.2 with TPTP syntax [<A HREF="#References">dMB08</A>].
+	<LI> <tt>vampire</tt>&mdash;Vampire 3.0 (revision 1803) [<A HREF="#References">RV02</A>];
+	<LI> <tt>e</tt>&mdash;E 1.8 [<A HREF="#References">Sch04</A>];
 	</UL>
 <DT> <tt>nitpick</tt>
 <DD> For problems involving only the type <tt>$o</tt> of Booleans, checks
@@ -64,9 +63,9 @@ following tactics sequentially:
 	 [<A HREF="#References">Pau94</A>] under one roof; then invoke Sledgehammer
      with SPASS on any subgoals that emerge.
 <DT> <tt>z3</tt>
-<DD> Invokes the SMT solver Z3 3.2 [<A HREF="#References">dMB08</A>].
-<DT> <tt>cvc3</tt>
-<DD> Invokes the SMT solver CVC3 2.2 [<A HREF="#References">BT07</A>].
+<DD> Invokes the SMT solver Z3 4.4.0-prerelease [<A HREF="#References">dMB08</A>].
+<DT> <tt>cvc4</tt>
+<DD> Invokes the SMT solver CVC4 1.5-prerelease [<A HREF="#References">BT07</A>].
 <DT> <tt>fast</tt>
 <DD> Searches for a proof using sequent-style reasoning, performing a
      depth-first search [<A HREF="#References">Pau94</A>]. Unlike
