@@ -1112,6 +1112,21 @@ lemma emeasure_eq_0_AE: "AE x in M. \<not> P x \<Longrightarrow> emeasure M {x\<
   using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"]
   by (cases "{x\<in>space M. P x} \<in> sets M") (simp_all add: emeasure_notin_sets)
 
+lemma emeasure_add_AE:
+  assumes [measurable]: "A \<in> sets M" "B \<in> sets M" "C \<in> sets M"
+  assumes 1: "AE x in M. x \<in> C \<longleftrightarrow> x \<in> A \<or> x \<in> B"
+  assumes 2: "AE x in M. \<not> (x \<in> A \<and> x \<in> B)"
+  shows "emeasure M C = emeasure M A + emeasure M B"
+proof -
+  have "emeasure M C = emeasure M (A \<union> B)"
+    by (rule emeasure_eq_AE) (insert 1, auto)
+  also have "\<dots> = emeasure M A + emeasure M (B - A)"
+    by (subst plus_emeasure) auto
+  also have "emeasure M (B - A) = emeasure M B"
+    by (rule emeasure_eq_AE) (insert 2, auto)
+  finally show ?thesis .
+qed
+
 subsection {* @{text \<sigma>}-finite Measures *}
 
 locale sigma_finite_measure =
