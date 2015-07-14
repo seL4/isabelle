@@ -18,7 +18,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [-l targets] settings1 [settings2 ...]"
+  echo "Usage: $PRG [-x SESSION] [-l SESSIONS] settings1 [settings2 ...]"
   echo
   echo "  Runs isabelle build for specified settings."
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
@@ -47,6 +47,7 @@ function fail()
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
 # build args and nice setup for different target platforms
+BUILD_OPTS=""
 BUILD_ARGS="-v"
 NICE="nice"
 case $HOSTNAME in
@@ -64,6 +65,13 @@ ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isabelle"
 [ -x $ISABELLE_TOOL ] || fail "Cannot run $ISABELLE_TOOL"
 
 ISABELLE_HOME="$($ISABELLE_TOOL getenv -b ISABELLE_HOME)"
+
+if [ "$1" = "-x" ]; then
+  shift
+  [ "$#" -lt 2 ] && usage
+  BUILD_OPTS="$BUILD_OPTS -x $1"
+  shift
+fi
 
 if [ "$1" = "-l" ]; then
   shift
@@ -122,7 +130,7 @@ for SETTINGS in $@; do
 
     cp $DISTPREFIX/Isabelle/etc/settings.orig $DISTPREFIX/Isabelle/etc/settings
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    (ulimit -t $MAXTIME; $NICE "$ISABELLE_TOOL" build $BUILD_ARGS >> $TESTLOG 2>&1)
+    (ulimit -t $MAXTIME; $NICE "$ISABELLE_TOOL" build $BUILD_OPTS -- $BUILD_ARGS >> $TESTLOG 2>&1)
 
     if [ $? -eq 0 ]
     then
