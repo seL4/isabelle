@@ -100,7 +100,7 @@ mkdir -p $RUNNING
 
 ## spawn test runs
 
-$SSH lxbroy10 "$MAKEALL $HOME/settings/at64-poly"
+$SSH lxbroy10 "$MAKEALL -x HOL-Proofs $HOME/settings/at64-poly"
 sleep 15
 $SSH lxbroy4 "
   $MAKEALL -l HOL-Library $HOME/settings/at-poly;
