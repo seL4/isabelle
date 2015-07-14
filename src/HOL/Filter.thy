@@ -602,8 +602,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma eventually_gt_at_top:
-  "eventually (\<lambda>x. (c::_::unbounded_dense_linorder) < x) at_top"
+lemma eventually_at_top_not_equal: "eventually (\<lambda>x::'a::{no_top, linorder}. x \<noteq> c) at_top"
+  unfolding eventually_at_top_dense by auto
+
+lemma eventually_gt_at_top: "eventually (\<lambda>x. (c::_::{no_top, linorder}) < x) at_top"
   unfolding eventually_at_top_dense by auto
 
 definition at_bot :: "('a::order) filter"
@@ -630,6 +632,9 @@ proof -
     by (intro INF_eq) (auto intro: less_imp_le simp: Iic_subset_Iio_iff lt_ex)
   finally show ?thesis .
 qed
+
+lemma eventually_at_bot_not_equal: "eventually (\<lambda>x::'a::{no_bot, linorder}. x \<noteq> c) at_bot"
+  unfolding eventually_at_bot_dense by auto
 
 lemma eventually_gt_at_bot:
   "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
@@ -777,6 +782,21 @@ lemma filtermap_mono_strong: "inj f \<Longrightarrow> filtermap f F \<le> filter
 
 lemma filtermap_eq_strong: "inj f \<Longrightarrow> filtermap f F = filtermap f G \<longleftrightarrow> F = G"
   by (simp add: filtermap_mono_strong eq_iff)
+
+lemma filtermap_fun_inverse:
+  assumes g: "filterlim g F G"
+  assumes f: "filterlim f G F"
+  assumes ev: "eventually (\<lambda>x. f (g x) = x) G"
+  shows "filtermap f F = G"
+proof (rule antisym)
+  show "filtermap f F \<le> G"
+    using f unfolding filterlim_def .
+  have "G = filtermap f (filtermap g G)"
+    using ev by (auto elim: eventually_elim2 simp: filter_eq_iff eventually_filtermap)
+  also have "\<dots> \<le> filtermap f F"
+    using g by (intro filtermap_mono) (simp add: filterlim_def)
+  finally show "G \<le> filtermap f F" .
+qed
 
 lemma filterlim_principal:
   "(LIM x F. f x :> principal S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F)"

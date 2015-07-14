@@ -2016,6 +2016,13 @@ lemma ln_at_top: "LIM x at_top. ln (x::real) :> at_top"
   by (rule filterlim_at_top_at_top[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
      (auto intro: eventually_gt_at_top)
 
+lemma filtermap_ln_at_top: "filtermap (ln::real \<Rightarrow> real) at_top = at_top"
+  by (intro filtermap_fun_inverse[of exp] exp_at_top ln_at_top) auto
+
+lemma filtermap_exp_at_top: "filtermap (exp::real \<Rightarrow> real) at_top = at_top"
+  by (intro filtermap_fun_inverse[of ln] exp_at_top ln_at_top)
+     (auto simp: eventually_at_top_dense)
+
 lemma tendsto_power_div_exp_0: "((\<lambda>x. x ^ k / exp x) ---> (0::real)) at_top"
 proof (induct k)
   case 0
