@@ -1423,6 +1423,61 @@ lemma continuous_on_compose2:
   "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> t = f ` s \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
   using continuous_on_compose[of s f g] by (simp add: comp_def)
 
+lemma continuous_on_generate_topology:
+  assumes *: "open = generate_topology X"
+  assumes **: "\<And>B. B \<in> X \<Longrightarrow> \<exists>C. open C \<and> C \<inter> A = f -` B \<inter> A"
+  shows "continuous_on A f"
+  unfolding continuous_on_open_invariant
+proof safe
+  fix B :: "'a set" assume "open B" then show "\<exists>C. open C \<and> C \<inter> A = f -` B \<inter> A"
+    unfolding *
+  proof induction
+    case (UN K)
+    then obtain C where "\<And>k. k \<in> K \<Longrightarrow> open (C k)" "\<And>k. k \<in> K \<Longrightarrow> C k \<inter> A = f -` k \<inter> A"
+      by metis
+    then show ?case
+      by (intro exI[of _ "\<Union>k\<in>K. C k"]) blast
+  qed (auto intro: **)
+qed
+
+lemma continuous_onI_mono:
+  fixes f :: "'a::linorder_topology \<Rightarrow> 'b::{dense_order, linorder_topology}"
+  assumes "open (f`A)"
+  assumes mono: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  shows "continuous_on A f"
+proof (rule continuous_on_generate_topology[OF open_generated_order], safe)
+  have monoD: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x < f y \<Longrightarrow> x < y"
+    by (auto simp: not_le[symmetric] mono)
+
+  { fix a b assume "a \<in> A" "f a < b"
+    moreover
+    with open_right[OF \<open>open (f`A)\<close>, of "f a" b] obtain y where "f a < y" "{f a ..< y} \<subseteq> f`A"
+      by auto
+    moreover then obtain z where "f a < z" "z < min b y"
+      using dense[of "f a" "min b y"] \<open>f a < y\<close> \<open>f a < b\<close> by auto
+    moreover then obtain c where "z = f c" "c \<in> A"
+      using \<open>{f a ..< y} \<subseteq> f`A\<close>[THEN subsetD, of z] by (auto simp: less_imp_le)
+    ultimately have "\<exists>x. x \<in> A \<and> f x < b \<and> a < x"
+      by (auto intro!: exI[of _ c] simp: monoD) }
+  then show "\<exists>C. open C \<and> C \<inter> A = f -` {..<b} \<inter> A" for b
+    by (intro exI[of _ "(\<Union>x\<in>{x\<in>A. f x < b}. {..< x})"])
+       (auto intro: le_less_trans[OF mono] less_imp_le)
+
+  { fix a b assume "a \<in> A" "b < f a"
+    moreover
+    with open_left[OF \<open>open (f`A)\<close>, of "f a" b] obtain y where "y < f a" "{y <.. f a} \<subseteq> f`A"
+      by auto
+    moreover then obtain z where "max b y < z" "z < f a"
+      using dense[of "max b y" "f a"] \<open>y < f a\<close> \<open>b < f a\<close> by auto
+    moreover then obtain c where "z = f c" "c \<in> A"
+      using \<open>{y <.. f a} \<subseteq> f`A\<close>[THEN subsetD, of z] by (auto simp: less_imp_le)
+    ultimately have "\<exists>x. x \<in> A \<and> b < f x \<and> x < a"
+      by (auto intro!: exI[of _ c] simp: monoD) }
+  then show "\<exists>C. open C \<and> C \<inter> A = f -` {b <..} \<inter> A" for b
+    by (intro exI[of _ "(\<Union>x\<in>{x\<in>A. b < f x}. {x <..})"])
+       (auto intro: less_le_trans[OF _ mono] less_imp_le)
+qed
+
 subsubsection {* Continuity at a point *}
 
 definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where

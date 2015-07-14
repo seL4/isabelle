@@ -1697,6 +1697,7 @@ proof
   show "\<exists>a b::ereal. a \<noteq> b"
     using zero_neq_one by blast
 qed
+
 subsubsection "Topological space"
 
 instantiation ereal :: linear_continuum_topology
@@ -1710,14 +1711,17 @@ instance
 
 end
 
+lemma continuous_on_compose': 
+  "continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow> f`s \<subseteq> t \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
+  using continuous_on_compose[of s f g] continuous_on_subset[of t g "f`s"] by auto
+
+lemma continuous_on_ereal[continuous_intros]:
+  assumes f: "continuous_on s f" shows "continuous_on s (\<lambda>x. ereal (f x))"
+  by (rule continuous_on_compose'[OF f continuous_onI_mono[of ereal UNIV]]) auto
+
 lemma tendsto_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. ereal (f x)) ---> ereal x) F"
-  apply (rule tendsto_compose[where g=ereal])
-  apply (auto intro!: order_tendstoI simp: eventually_at_topological)
-  apply (rule_tac x="case a of MInfty \<Rightarrow> UNIV | ereal x \<Rightarrow> {x <..} | PInfty \<Rightarrow> {}" in exI)
-  apply (auto split: ereal.split) []
-  apply (rule_tac x="case a of MInfty \<Rightarrow> {} | ereal x \<Rightarrow> {..< x} | PInfty \<Rightarrow> UNIV" in exI)
-  apply (auto split: ereal.split) []
-  done
+  using isCont_tendsto_compose[of x ereal f F] continuous_on_ereal[of UNIV "\<lambda>x. x"]
+  by (simp add: continuous_on_eq_continuous_at)
 
 lemma tendsto_uminus_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. - f x::ereal) ---> - x) F"
   apply (rule tendsto_compose[where g=uminus])
@@ -1807,9 +1811,6 @@ lemma tendsto_add_left_ereal[tendsto_intros, simp, intro]:
 
 lemma continuous_at_ereal[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. ereal (f x))"
   unfolding continuous_def by auto
-
-lemma continuous_on_ereal[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. ereal (f x))"
-  unfolding continuous_on_def by auto
 
 lemma ereal_Sup:
   assumes *: "\<bar>SUP a:A. ereal a\<bar> \<noteq> \<infinity>"
