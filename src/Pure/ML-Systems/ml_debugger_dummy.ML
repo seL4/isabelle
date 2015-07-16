@@ -6,8 +6,6 @@ ML debugger interface -- dummy version.
 
 signature ML_DEBUGGER =
 sig
-  type compiler_parameters
-  val compiler_parameters: compiler_parameters
   type location
   val on_entry: (string * location -> unit) option -> unit
   val on_exit: (string * location -> unit) option -> unit
@@ -24,12 +22,6 @@ end;
 
 structure ML_Debugger: ML_DEBUGGER =
 struct
-
-(* compiler parameters *)
-
-type compiler_parameters = unit;
-val compiler_parameters = ();
-
 
 (* hooks *)
 
@@ -54,3 +46,6 @@ fun debug_location () = fail ();
 fun debug_name_space () = fail ();
 
 end;
+
+
+fun ml_debugger_parameters (_: bool) = [];

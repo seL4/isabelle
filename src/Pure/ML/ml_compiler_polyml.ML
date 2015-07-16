@@ -183,7 +183,8 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
+     ml_debugger_parameters (ML_Options.debugger_enabled opt_context);
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())

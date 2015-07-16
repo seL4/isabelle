@@ -7,12 +7,6 @@ ML debugger interface -- Poly/ML 5.5.3, or later.
 structure ML_Debugger: ML_DEBUGGER =
 struct
 
-(* compiler parameters *)
-
-type compiler_parameters = PolyML.Compiler.compilerParameters;
-val compiler_parameters = PolyML.Compiler.CPDebug true;
-
-
 (* hooks *)
 
 type location = PolyML.location;
@@ -35,3 +29,6 @@ val debug_location = PolyML.DebuggerInterface.debugLocation;
 val debug_name_space = PolyML.DebuggerInterface.debugNameSpace;
 
 end;
+
+fun ml_debugger_parameters false = []
+  | ml_debugger_parameters true = [PolyML.Compiler.CPDebug true];
