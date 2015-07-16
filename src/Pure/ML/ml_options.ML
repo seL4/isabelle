@@ -11,6 +11,9 @@ sig
   val exception_trace_raw: Config.raw
   val exception_trace: bool Config.T
   val exception_trace_enabled: Context.generic option -> bool
+  val debugger_raw: Config.raw
+  val debugger: bool Config.T
+  val debugger_enabled: Context.generic option -> bool
   val print_depth_raw: Config.raw
   val print_depth: int Config.T
   val get_print_depth: unit -> int
@@ -35,6 +38,16 @@ val exception_trace = Config.bool exception_trace_raw;
 fun exception_trace_enabled NONE =
       (Options.default_bool (Config.name_of exception_trace_raw) handle ERROR _ => false)
   | exception_trace_enabled (SOME context) = Config.get_generic context exception_trace;
+
+
+(* debugger *)
+
+val debugger_raw = Config.declare_option ("ML_debugger", @{here});
+val debugger = Config.bool debugger_raw;
+
+fun debugger_enabled NONE =
+      (Options.default_bool (Config.name_of debugger_raw) handle ERROR _ => false)
+  | debugger_enabled (SOME context) = Config.get_generic context debugger;
 
 
 (* print depth *)

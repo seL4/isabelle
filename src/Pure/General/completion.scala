@@ -199,7 +199,8 @@ object Completion
             if (kind == "") (name, quote(decode(name)))
             else
              (Long_Name.qualify(kind, name),
-              Word.implode(Word.explode('_', kind)) + " " + quote(decode(name)))
+              Word.implode(Word.explode('_', kind)) +
+              (if (xname == name) "" else " " + quote(decode(name))))
           description = List(xname1, "(" + descr_name + ")")
         } yield Item(range, original, full_name, description, xname1, 0, true)
 

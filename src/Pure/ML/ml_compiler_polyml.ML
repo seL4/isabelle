@@ -43,13 +43,26 @@ fun report_parse_tree redirect depth space parse_tree =
           in cons (pos, markup, fn () => "") end
       end;
 
+    fun reported_completions loc names =
+      let val pos = Exn_Properties.position_of loc in
+        if is_reported pos andalso not (null names) then
+          let
+            val completion = Completion.names pos (map (fn a => (a, ("ML", a))) names);
+            val xml = Completion.encode completion;
+          in cons (pos, fn () => Markup.completion, fn () => YXML.string_of_body xml) end
+        else I
+      end;
+
     fun reported loc (PolyML.PTtype types) = reported_types loc types
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
       | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
       | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
       | reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
       | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
-      | reported _ _ = I
+      | reported loc pt =
+          (case ML_Parse_Tree.completions pt of
+            SOME names => reported_completions loc names
+          | NONE => I)
     and reported_tree (loc, props) = fold (reported loc) props;
 
     val persistent_reports = reported_tree parse_tree [];
@@ -183,7 +196,8 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
+     ml_debugger_parameters (ML_Options.debugger_enabled opt_context);
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
