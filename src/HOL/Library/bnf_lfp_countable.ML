@@ -23,17 +23,17 @@ open BNF_FP_Def_Sugar
 
 val countableS = @{sort countable};
 
-fun nchotomy_tac nchotomy =
-  HEADGOAL (rtac (nchotomy RS @{thm all_reg[rotated]}) THEN'
+fun nchotomy_tac ctxt nchotomy =
+  HEADGOAL (rtac ctxt (nchotomy RS @{thm all_reg[rotated]}) THEN'
     REPEAT_ALL_NEW (resolve0_tac [allI, impI] ORELSE' eresolve0_tac [exE, disjE]));
 
-fun meta_spec_mp_tac 0 = K all_tac
-  | meta_spec_mp_tac depth =
-    dtac meta_spec THEN' meta_spec_mp_tac (depth - 1) THEN' dtac meta_mp THEN' atac;
+fun meta_spec_mp_tac ctxt 0 = K all_tac
+  | meta_spec_mp_tac ctxt depth =
+    dtac ctxt meta_spec THEN' meta_spec_mp_tac ctxt (depth - 1) THEN' dtac ctxt meta_mp THEN' atac;
 
-val use_induction_hypothesis_tac =
+fun use_induction_hypothesis_tac ctxt =
   DEEPEN (1, 64 (* large number *))
-    (fn depth => meta_spec_mp_tac depth THEN' etac allE THEN' etac impE THEN' atac THEN' atac) 0;
+    (fn depth => meta_spec_mp_tac ctxt depth THEN' etac ctxt allE THEN' etac ctxt impE THEN' atac THEN' atac) 0;
 
 val same_ctr_simps = @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split
   id_apply snd_conv simp_thms};
@@ -42,29 +42,29 @@ val distinct_ctrs_simps = @{thms sum_encode_eq sum.inject sum.distinct simp_thms
 fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
   HEADGOAL (asm_full_simp_tac
       (ss_only (injects @ recs @ map_congs' @ same_ctr_simps) ctxt) THEN_MAYBE'
-    TRY o REPEAT_ALL_NEW (rtac conjI) THEN_ALL_NEW
+    TRY o REPEAT_ALL_NEW (rtac ctxt conjI) THEN_ALL_NEW
     REPEAT_ALL_NEW (eresolve_tac ctxt (conjE :: inj_map_strongs')) THEN_ALL_NEW
-    (atac ORELSE' use_induction_hypothesis_tac));
+    (atac ORELSE' use_induction_hypothesis_tac ctxt));
 
 fun distinct_ctrs_tac ctxt recs =
   HEADGOAL (asm_full_simp_tac (ss_only (recs @ distinct_ctrs_simps) ctxt));
 
 fun mk_encode_injective_tac ctxt n nchotomy injects recs map_comps' inj_map_strongs' =
   let val ks = 1 upto n in
-    EVERY (maps (fn k => nchotomy_tac nchotomy :: map (fn k' =>
+    EVERY (maps (fn k => nchotomy_tac ctxt nchotomy :: map (fn k' =>
       if k = k' then same_ctr_tac ctxt injects recs map_comps' inj_map_strongs'
       else distinct_ctrs_tac ctxt recs) ks) ks)
   end;
 
 fun mk_encode_injectives_tac ctxt ns induct nchotomys injectss recss map_comps' inj_map_strongs' =
-  HEADGOAL (rtac induct) THEN
+  HEADGOAL (rtac ctxt induct) THEN
   EVERY (@{map 4} (fn n => fn nchotomy => fn injects => fn recs =>
       mk_encode_injective_tac ctxt n nchotomy injects recs map_comps' inj_map_strongs')
     ns nchotomys injectss recss);
 
 fun endgame_tac ctxt encode_injectives =
   unfold_thms_tac ctxt @{thms inj_on_def ball_UNIV} THEN
-  ALLGOALS (rtac exI THEN' rtac allI THEN' resolve_tac ctxt encode_injectives);
+  ALLGOALS (rtac ctxt exI THEN' rtac ctxt allI THEN' resolve_tac ctxt encode_injectives);
 
 fun encode_sumN n k t =
   Balanced_Tree.access {init = t,

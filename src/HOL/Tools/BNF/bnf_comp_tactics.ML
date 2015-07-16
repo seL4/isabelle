@@ -8,28 +8,28 @@ Tactics for composition of bounded natural functors.
 
 signature BNF_COMP_TACTICS =
 sig
-  val mk_comp_bd_card_order_tac: thm list -> thm -> tactic
-  val mk_comp_bd_cinfinite_tac: thm -> thm -> tactic
+  val mk_comp_bd_card_order_tac: Proof.context -> thm list -> thm -> tactic
+  val mk_comp_bd_cinfinite_tac: Proof.context -> thm -> thm -> tactic
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
-  val mk_comp_map_comp0_tac: thm -> thm -> thm list -> tactic
+  val mk_comp_map_comp0_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_comp_map_cong0_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
-  val mk_comp_map_id0_tac: thm -> thm -> thm list -> tactic
+  val mk_comp_map_id0_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
   val mk_comp_set_bd_tac: Proof.context -> thm -> thm option -> thm -> thm list -> tactic
   val mk_comp_set_map0_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_comp_wit_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
 
-  val kill_in_alt_tac: tactic
+  val kill_in_alt_tac: Proof.context -> tactic
   val mk_kill_map_cong0_tac: Proof.context -> int -> int -> thm -> tactic
 
-  val empty_natural_tac: tactic
-  val lift_in_alt_tac: tactic
-  val mk_lift_set_bd_tac: thm -> tactic
+  val empty_natural_tac: Proof.context -> tactic
+  val lift_in_alt_tac: Proof.context -> tactic
+  val mk_lift_set_bd_tac: Proof.context -> thm -> tactic
 
-  val mk_permute_in_alt_tac: ''a list -> ''a list -> tactic
+  val mk_permute_in_alt_tac: Proof.context -> ''a list -> ''a list -> tactic
 
-  val mk_le_rel_OO_tac: thm -> thm -> thm list -> tactic
-  val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
+  val mk_le_rel_OO_tac: Proof.context -> thm -> thm -> thm list -> tactic
+  val mk_simple_rel_OO_Grp_tac: Proof.context -> thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
   val mk_simplified_set_tac: Proof.context -> thm -> tactic
   val bd_ordIso_natLeq_tac: tactic
@@ -52,96 +52,96 @@ val trans_o_apply = @{thm trans[OF o_apply]};
 fun mk_comp_set_alt_tac ctxt collect_set_map =
   unfold_thms_tac ctxt @{thms comp_assoc} THEN
   unfold_thms_tac ctxt [collect_set_map RS sym] THEN
-  rtac refl 1;
+  rtac ctxt refl 1;
 
-fun mk_comp_map_id0_tac Gmap_id0 Gmap_cong0 map_id0s =
-  EVERY' ([rtac @{thm ext}, rtac (Gmap_cong0 RS trans)] @
-    map (fn thm => rtac (thm RS fun_cong)) map_id0s @ [rtac (Gmap_id0 RS fun_cong)]) 1;
+fun mk_comp_map_id0_tac ctxt Gmap_id0 Gmap_cong0 map_id0s =
+  EVERY' ([rtac ctxt @{thm ext}, rtac ctxt (Gmap_cong0 RS trans)] @
+    map (fn thm => rtac ctxt (thm RS fun_cong)) map_id0s @ [rtac ctxt (Gmap_id0 RS fun_cong)]) 1;
 
-fun mk_comp_map_comp0_tac Gmap_comp0 Gmap_cong0 map_comp0s =
-  EVERY' ([rtac @{thm ext}, rtac sym, rtac trans_o_apply,
-    rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans), rtac Gmap_cong0] @
-    map (fn thm => rtac (thm RS sym RS fun_cong)) map_comp0s) 1;
+fun mk_comp_map_comp0_tac ctxt Gmap_comp0 Gmap_cong0 map_comp0s =
+  EVERY' ([rtac ctxt @{thm ext}, rtac ctxt sym, rtac ctxt trans_o_apply,
+    rtac ctxt (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans), rtac ctxt Gmap_cong0] @
+    map (fn thm => rtac ctxt (thm RS sym RS fun_cong)) map_comp0s) 1;
 
 fun mk_comp_set_map0_tac ctxt set'_eq_set Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
   unfold_thms_tac ctxt [set'_eq_set] THEN
-  EVERY' ([rtac @{thm ext}] @
-    replicate 3 (rtac trans_o_apply) @
-    [rtac (arg_cong_Union RS trans),
-     rtac (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
-     rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans),
-     rtac Gmap_cong0] @
-     map (fn thm => rtac (thm RS fun_cong)) set_map0s @
-     [rtac (Gset_map0 RS comp_eq_dest_lhs), rtac sym, rtac trans_o_apply,
-     rtac trans_image_cong_o_apply, rtac trans_image_cong_o_apply,
-     rtac (@{thm image_cong} OF [Gset_map0 RS comp_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
-     rtac @{thm trans[OF comp_eq_dest[OF Union_natural[symmetric]]]}, rtac arg_cong_Union,
-     rtac @{thm trans[OF comp_eq_dest_lhs[OF image_o_collect[symmetric]]]},
-     rtac @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
-     [REPEAT_DETERM_N (length set_map0s) o EVERY' [rtac @{thm trans[OF image_insert]},
-        rtac @{thm arg_cong2[of _ _ _ _ insert]}, rtac @{thm ext}, rtac trans_o_apply,
-        rtac trans_image_cong_o_apply, rtac @{thm trans[OF image_image]},
-        rtac @{thm sym[OF trans[OF o_apply]]}, rtac @{thm image_cong[OF refl o_apply]}],
-     rtac @{thm image_empty}]) 1;
+  EVERY' ([rtac ctxt @{thm ext}] @
+    replicate 3 (rtac ctxt trans_o_apply) @
+    [rtac ctxt (arg_cong_Union RS trans),
+     rtac ctxt (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
+     rtac ctxt (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans),
+     rtac ctxt Gmap_cong0] @
+     map (fn thm => rtac ctxt (thm RS fun_cong)) set_map0s @
+     [rtac ctxt (Gset_map0 RS comp_eq_dest_lhs), rtac ctxt sym, rtac ctxt trans_o_apply,
+     rtac ctxt trans_image_cong_o_apply, rtac ctxt trans_image_cong_o_apply,
+     rtac ctxt (@{thm image_cong} OF [Gset_map0 RS comp_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
+     rtac ctxt @{thm trans[OF comp_eq_dest[OF Union_natural[symmetric]]]}, rtac ctxt arg_cong_Union,
+     rtac ctxt @{thm trans[OF comp_eq_dest_lhs[OF image_o_collect[symmetric]]]},
+     rtac ctxt @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
+     [REPEAT_DETERM_N (length set_map0s) o EVERY' [rtac ctxt @{thm trans[OF image_insert]},
+        rtac ctxt @{thm arg_cong2[of _ _ _ _ insert]}, rtac ctxt @{thm ext}, rtac ctxt trans_o_apply,
+        rtac ctxt trans_image_cong_o_apply, rtac ctxt @{thm trans[OF image_image]},
+        rtac ctxt @{thm sym[OF trans[OF o_apply]]}, rtac ctxt @{thm image_cong[OF refl o_apply]}],
+     rtac ctxt @{thm image_empty}]) 1;
 
 fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
   let
      val n = length comp_set_alts;
   in
     unfold_thms_tac ctxt set'_eq_sets THEN
-    (if n = 0 then rtac refl 1
-    else rtac map_cong0 1 THEN
+    (if n = 0 then rtac ctxt refl 1
+    else rtac ctxt map_cong0 1 THEN
       EVERY' (map_index (fn (i, map_cong0) =>
-        rtac map_cong0 THEN' EVERY' (map_index (fn (k, set_alt) =>
-          EVERY' [select_prem_tac n (dtac @{thm meta_spec}) (k + 1), etac meta_mp,
-            rtac (equalityD2 RS set_mp), rtac (set_alt RS fun_cong RS trans),
-            rtac trans_o_apply, rtac (@{thm collect_def} RS arg_cong_Union),
-            rtac @{thm UnionI}, rtac @{thm UN_I}, REPEAT_DETERM_N i o rtac @{thm insertI2},
-            rtac @{thm insertI1}, rtac (o_apply RS equalityD2 RS set_mp),
-            etac @{thm imageI}, atac])
+        rtac ctxt map_cong0 THEN' EVERY' (map_index (fn (k, set_alt) =>
+          EVERY' [select_prem_tac ctxt n (dtac ctxt @{thm meta_spec}) (k + 1), etac ctxt meta_mp,
+            rtac ctxt (equalityD2 RS set_mp), rtac ctxt (set_alt RS fun_cong RS trans),
+            rtac ctxt trans_o_apply, rtac ctxt (@{thm collect_def} RS arg_cong_Union),
+            rtac ctxt @{thm UnionI}, rtac ctxt @{thm UN_I}, REPEAT_DETERM_N i o rtac ctxt @{thm insertI2},
+            rtac ctxt @{thm insertI1}, rtac ctxt (o_apply RS equalityD2 RS set_mp),
+            etac ctxt @{thm imageI}, atac])
           comp_set_alts))
       map_cong0s) 1)
   end;
 
-fun mk_comp_bd_card_order_tac Fbd_card_orders Gbd_card_order =
-  rtac @{thm natLeq_card_order} 1 ORELSE
+fun mk_comp_bd_card_order_tac ctxt Fbd_card_orders Gbd_card_order =
+  rtac ctxt @{thm natLeq_card_order} 1 ORELSE
   let
     val (card_orders, last_card_order) = split_last Fbd_card_orders;
-    fun gen_before thm = rtac @{thm card_order_csum} THEN' rtac thm;
+    fun gen_before thm = rtac ctxt @{thm card_order_csum} THEN' rtac ctxt thm;
   in
-    (rtac @{thm card_order_cprod} THEN'
-    WRAP' gen_before (K (K all_tac)) card_orders (rtac last_card_order) THEN'
-    rtac Gbd_card_order) 1
+    (rtac ctxt @{thm card_order_cprod} THEN'
+    WRAP' gen_before (K (K all_tac)) card_orders (rtac ctxt last_card_order) THEN'
+    rtac ctxt Gbd_card_order) 1
   end;
 
-fun mk_comp_bd_cinfinite_tac Fbd_cinfinite Gbd_cinfinite =
-  (rtac @{thm natLeq_cinfinite} ORELSE'
-   rtac @{thm cinfinite_cprod} THEN'
-   ((K (TRY ((rtac @{thm cinfinite_csum} THEN' rtac disjI1) 1)) THEN'
-     ((rtac @{thm cinfinite_csum} THEN' rtac disjI1 THEN' rtac Fbd_cinfinite) ORELSE'
-      rtac Fbd_cinfinite)) ORELSE'
-    rtac Fbd_cinfinite) THEN'
-   rtac Gbd_cinfinite) 1;
+fun mk_comp_bd_cinfinite_tac ctxt Fbd_cinfinite Gbd_cinfinite =
+  (rtac ctxt @{thm natLeq_cinfinite} ORELSE'
+   rtac ctxt @{thm cinfinite_cprod} THEN'
+   ((K (TRY ((rtac ctxt @{thm cinfinite_csum} THEN' rtac ctxt disjI1) 1)) THEN'
+     ((rtac ctxt @{thm cinfinite_csum} THEN' rtac ctxt disjI1 THEN' rtac ctxt Fbd_cinfinite) ORELSE'
+      rtac ctxt Fbd_cinfinite)) ORELSE'
+    rtac ctxt Fbd_cinfinite) THEN'
+   rtac ctxt Gbd_cinfinite) 1;
 
 fun mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
   let
     val (bds, last_bd) = split_last Gset_Fset_bds;
     fun gen_before bd =
-      rtac ctrans THEN' rtac @{thm Un_csum} THEN'
-      rtac ctrans THEN' rtac @{thm csum_mono} THEN'
-      rtac bd;
-    fun gen_after _ = rtac @{thm ordIso_imp_ordLeq} THEN' rtac @{thm cprod_csum_distrib1};
+      rtac ctxt ctrans THEN' rtac ctxt @{thm Un_csum} THEN'
+      rtac ctxt ctrans THEN' rtac ctxt @{thm csum_mono} THEN'
+      rtac ctxt bd;
+    fun gen_after _ = rtac ctxt @{thm ordIso_imp_ordLeq} THEN' rtac ctxt @{thm cprod_csum_distrib1};
   in
     (case bd_ordIso_natLeq_opt of
-      SOME thm => rtac (thm RSN (2, @{thm ordLeq_ordIso_trans})) 1
+      SOME thm => rtac ctxt (thm RSN (2, @{thm ordLeq_ordIso_trans})) 1
     | NONE => all_tac) THEN
     unfold_thms_tac ctxt [set'_eq_set, comp_set_alt] THEN
-    rtac @{thm comp_set_bd_Union_o_collect} 1 THEN
+    rtac ctxt @{thm comp_set_bd_Union_o_collect} 1 THEN
     unfold_thms_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
-    (rtac ctrans THEN'
-     WRAP' gen_before gen_after bds (rtac last_bd) THEN'
-     rtac @{thm ordIso_imp_ordLeq} THEN'
-     rtac @{thm cprod_com}) 1
+    (rtac ctxt ctrans THEN'
+     WRAP' gen_before gen_after bds (rtac ctxt last_bd) THEN'
+     rtac ctxt @{thm ordIso_imp_ordLeq} THEN'
+     rtac ctxt @{thm cprod_com}) 1
   end;
 
 val comp_in_alt_thms = @{thms o_apply collect_def image_insert image_empty Union_insert UN_insert
@@ -152,84 +152,85 @@ fun mk_comp_in_alt_tac ctxt comp_set_alts =
   unfold_thms_tac ctxt comp_set_alts THEN
   unfold_thms_tac ctxt comp_in_alt_thms THEN
   unfold_thms_tac ctxt @{thms set_eq_subset} THEN
-  rtac conjI 1 THEN
+  rtac ctxt conjI 1 THEN
   REPEAT_DETERM (
-    rtac @{thm subsetI} 1 THEN
+    rtac ctxt @{thm subsetI} 1 THEN
     unfold_thms_tac ctxt @{thms mem_Collect_eq Ball_def} THEN
-    (REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
+    (REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
      REPEAT_DETERM (CHANGED ((
-       (rtac conjI THEN' (atac ORELSE' rtac subset_UNIV)) ORELSE'
+       (rtac ctxt conjI THEN' (atac ORELSE' rtac ctxt subset_UNIV)) ORELSE'
        atac ORELSE'
-       (rtac subset_UNIV)) 1)) ORELSE rtac subset_UNIV 1));
+       (rtac ctxt subset_UNIV)) 1)) ORELSE rtac ctxt subset_UNIV 1));
 
 val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def UN_insert UN_empty Un_empty_right
   Union_image_insert Union_image_empty};
 
 fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
   unfold_thms_tac ctxt set'_eq_sets THEN
-  ALLGOALS (dtac @{thm in_Union_o_assoc}) THEN
+  ALLGOALS (dtac ctxt @{thm in_Union_o_assoc}) THEN
   unfold_thms_tac ctxt [collect_set_map] THEN
   unfold_thms_tac ctxt comp_wit_thms THEN
   REPEAT_DETERM ((atac ORELSE'
     REPEAT_DETERM o eresolve_tac ctxt @{thms UnionE UnE} THEN'
-    etac imageE THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
-    (etac FalseE ORELSE'
+    etac ctxt imageE THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
+    (etac ctxt FalseE ORELSE'
     hyp_subst_tac ctxt THEN'
     dresolve_tac ctxt Fwit_thms THEN'
-    (etac FalseE ORELSE' atac))) 1);
+    (etac ctxt FalseE ORELSE' atac))) 1);
 
 
 (* Kill operation *)
 
 fun mk_kill_map_cong0_tac ctxt n m map_cong0 =
-  (rtac map_cong0 THEN' EVERY' (replicate n (rtac refl)) THEN'
+  (rtac ctxt map_cong0 THEN' EVERY' (replicate n (rtac ctxt refl)) THEN'
     EVERY' (replicate m (Goal.assume_rule_tac ctxt))) 1;
 
-val kill_in_alt_tac =
-  ((rtac @{thm Collect_cong} THEN' rtac iffI) 1 THEN
-  REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac conjI ORELSE'
-    rtac conjI THEN' rtac subset_UNIV) 1)) THEN
-  (rtac subset_UNIV ORELSE' atac) 1 THEN
-  REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac conjI ORELSE' atac) 1))) ORELSE
-  ((rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
-    REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac subset_UNIV 1));
+fun kill_in_alt_tac ctxt =
+  ((rtac ctxt @{thm Collect_cong} THEN' rtac ctxt iffI) 1 THEN
+  REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE'
+    rtac ctxt conjI THEN' rtac ctxt subset_UNIV) 1)) THEN
+  (rtac ctxt subset_UNIV ORELSE' atac) 1 THEN
+  REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' atac) 1))) ORELSE
+  ((rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
+    REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt subset_UNIV 1));
 
 
 (* Lift operation *)
 
-val empty_natural_tac = rtac @{thm empty_natural} 1;
+fun empty_natural_tac ctxt = rtac ctxt @{thm empty_natural} 1;
 
-fun mk_lift_set_bd_tac bd_Card_order = (rtac @{thm Card_order_empty} THEN' rtac bd_Card_order) 1;
+fun mk_lift_set_bd_tac ctxt bd_Card_order =
+  (rtac ctxt @{thm Card_order_empty} THEN' rtac ctxt bd_Card_order) 1;
 
-val lift_in_alt_tac =
-  ((rtac @{thm Collect_cong} THEN' rtac iffI) 1 THEN
-  REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac conjI ORELSE' atac) 1)) THEN
-  REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac conjI ORELSE'
-    rtac conjI THEN' rtac @{thm empty_subsetI}) 1)) THEN
-  (rtac @{thm empty_subsetI} ORELSE' atac) 1) ORELSE
-  ((rtac sym THEN' rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
-    REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac @{thm empty_subsetI} 1));
+fun lift_in_alt_tac ctxt =
+  ((rtac ctxt @{thm Collect_cong} THEN' rtac ctxt iffI) 1 THEN
+  REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' atac) 1)) THEN
+  REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE'
+    rtac ctxt conjI THEN' rtac ctxt @{thm empty_subsetI}) 1)) THEN
+  (rtac ctxt @{thm empty_subsetI} ORELSE' atac) 1) ORELSE
+  ((rtac ctxt sym THEN' rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
+    REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt @{thm empty_subsetI} 1));
 
 
 (* Permute operation *)
 
-fun mk_permute_in_alt_tac src dest =
-  (rtac @{thm Collect_cong} THEN'
-  mk_rotate_eq_tac (rtac refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
+fun mk_permute_in_alt_tac ctxt src dest =
+  (rtac ctxt @{thm Collect_cong} THEN'
+  mk_rotate_eq_tac ctxt (rtac ctxt refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
     dest src) 1;
 
 
 (* Miscellaneous *)
 
-fun mk_le_rel_OO_tac outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
-  EVERY' (map rtac (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono :: inner_le_rel_OOs)) 1;
+fun mk_le_rel_OO_tac ctxt outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
+  EVERY' (map (rtac ctxt) (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono :: inner_le_rel_OOs)) 1;
 
-fun mk_simple_rel_OO_Grp_tac rel_OO_Grp in_alt_thm =
-  rtac (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
+fun mk_simple_rel_OO_Grp_tac ctxt rel_OO_Grp in_alt_thm =
+  rtac ctxt (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve0_tac (@{thm emptyE} :: wit_thms));
 
@@ -244,7 +245,7 @@ val simplified_set_simps =
 
 fun mk_simplified_set_tac ctxt collect_set_map =
   unfold_thms_tac ctxt (collect_set_map :: @{thms comp_assoc}) THEN
-  unfold_thms_tac ctxt simplified_set_simps THEN rtac refl 1;
+  unfold_thms_tac ctxt simplified_set_simps THEN rtac ctxt refl 1;
 
 val bd_ordIso_natLeq_tac =
   HEADGOAL (REPEAT_DETERM o resolve0_tac

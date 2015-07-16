@@ -31,11 +31,11 @@ fun Quotient_tac bnf ctxt i =
     val rel_conversep_sym = rel_conversep_of_bnf bnf RS sym
   in
     EVERY' [SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm Quotient_alt_def5}]), 
-      REPEAT_DETERM o (etac conjE), rtac conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt [rel_Grp_UNIV_sym]),
-      rtac rel_mono THEN_ALL_NEW assume_tac ctxt, rtac conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt
-        [rel_conversep_sym, rel_Grp_UNIV_sym]), rtac rel_mono THEN_ALL_NEW assume_tac ctxt,
+      REPEAT_DETERM o (etac ctxt conjE), rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt [rel_Grp_UNIV_sym]),
+      rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt, rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt
+        [rel_conversep_sym, rel_Grp_UNIV_sym]), rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt,
       SELECT_GOAL (Local_Defs.unfold_tac ctxt [rel_conversep_sym, rel_OO_of_bnf bnf RS sym]),
-      hyp_subst_tac ctxt, rtac refl] i
+      hyp_subst_tac ctxt, rtac ctxt refl] i
   end
 
 fun mk_Quotient args =

@@ -462,7 +462,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs,
             fp_pre_map_defs, fp_xtor_co_recs, fp_rec_o_maps, map_thms, fp_Rep_o_Abss,
             Rep_o_Abss]) THEN
-          CONJ_WRAP (K (HEADGOAL (rtac refl))) bnfs;
+          CONJ_WRAP (K (HEADGOAL (rtac ctxt refl))) bnfs;
       in
         Library.foldr1 HOLogic.mk_conj goals
         |> HOLogic.mk_Trueprop

@@ -1154,7 +1154,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
             val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
-            Goal.prove_sorry lthy [] [] goal (K (mk_collect_set_map_tac (#set_map0 axioms)))
+            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} => 
+              mk_collect_set_map_tac ctxt (#set_map0 axioms))
             |> Thm.close_derivation
           end;
 
@@ -1168,7 +1169,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 (Logic.list_implies (prems_mono, HOLogic.mk_Trueprop
                   (mk_leq (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
           in
-            Goal.prove_sorry lthy [] [] in_mono_goal (K (mk_in_mono_tac live))
+            Goal.prove_sorry lthy [] [] in_mono_goal (fn {context = ctxt, prems = _} =>
+              mk_in_mono_tac ctxt live)
             |> Thm.close_derivation
           end;
 
@@ -1183,7 +1185,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                   mk_Trueprop_eq (mk_in As bnf_sets_As CA', mk_in As_copy bnf_sets_As CA')));
           in
             Goal.prove_sorry lthy [] [] in_cong_goal
-              (K ((TRY o hyp_subst_tac lthy THEN' rtac refl) 1))
+              (fn {context = ctxt, prems = _} => (TRY o hyp_subst_tac ctxt THEN' rtac ctxt refl) 1)
             |> Thm.close_derivation
           end;
 
@@ -1217,8 +1219,9 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val concl = HOLogic.mk_Trueprop (mk_inj (Term.list_comb (bnf_map_AsBs, fs)));
             val goal = fold_rev Logic.all fs (Logic.list_implies (prems, concl));
           in
-            Goal.prove_sorry lthy [] [] goal (fn _ => mk_inj_map_tac live (Lazy.force map_id)
-              (Lazy.force map_comp) (#map_cong0 axioms) (Lazy.force map_cong))
+            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+              mk_inj_map_tac ctxt live (Lazy.force map_id) (Lazy.force map_comp) (#map_cong0 axioms)
+                (Lazy.force map_cong))
             |> Thm.close_derivation
           end;
 
@@ -1295,7 +1298,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
-              (K (mk_rel_mono_tac rel_OO_Grps (Lazy.force in_mono)))
+              (fn {context = ctxt, prems = _} =>
+                mk_rel_mono_tac ctxt rel_OO_Grps (Lazy.force in_mono))
             |> Thm.close_derivation
           end;
 
@@ -1306,7 +1310,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
-              (fn _ => (TRY o hyp_subst_tac lthy THEN' rtac refl) 1)
+              (fn {context = ctxt, prems = _} => (TRY o hyp_subst_tac ctxt THEN' rtac ctxt refl) 1)
             |> Thm.close_derivation
           end;
 
@@ -1317,7 +1321,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           Goal.prove_sorry lthy [] []
             (mk_Trueprop_eq (Term.list_comb (relAsAs, map HOLogic.eq_const As'),
               HOLogic.eq_const CA'))
-            (K (mk_rel_eq_tac live (Lazy.force rel_Grp) (Lazy.force rel_cong) (#map_id0 axioms)))
+            (fn {context = ctxt, prems = _} =>
+              mk_rel_eq_tac ctxt live (Lazy.force rel_Grp) (Lazy.force rel_cong) (#map_id0 axioms))
           |> Thm.close_derivation;
 
         val rel_eq = Lazy.lazy mk_rel_eq;
@@ -1336,7 +1341,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (K (mk_rel_conversep_tac le_thm (Lazy.force rel_mono)))
+              (fn {context = ctxt, prems = _} =>
+                mk_rel_conversep_tac ctxt le_thm (Lazy.force rel_mono))
             |> Thm.close_derivation
           end;
 

@@ -708,7 +708,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
               HOLogic.mk_Trueprop (HOLogic.mk_all (fst u', snd u',
                 Library.foldr1 HOLogic.mk_disj exist_xs_u_eq_ctrs));
           in
-            Goal.prove_sorry lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
+            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+              mk_nchotomy_tac ctxt n exhaust_thm)
             |> Thm.close_derivation
           end;
 
@@ -737,7 +738,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
             (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
-             Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
+             Goal.prove_sorry lthy [] [] weak_goal (fn {context = ctxt, prems = _} =>
+               etac ctxt arg_cong 1))
             |> apply2 (singleton (Proof_Context.export names_lthy lthy) #>
               Thm.close_derivation)
           end;
@@ -823,7 +825,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   val m = the_single ms;
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                    mk_unique_disc_def_tac ctxt m uexhaust_thm)
                   |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
@@ -886,7 +889,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                          HOLogic.mk_Trueprop (HOLogic.mk_not udisc')))];
 
                   fun prove tac goal =
-                    Goal.prove_sorry lthy [] [] goal (K tac)
+                    Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} => tac ctxt)
                     |> Thm.close_derivation;
 
                   val half_pairss = mk_half_pairss (`I (ms ~~ discD_thms ~~ udiscs));
@@ -894,12 +897,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   val half_goalss = map mk_goal half_pairss;
                   val half_thmss =
                     @{map 3} (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
-                        fn disc_thm => [prove (mk_half_distinct_disc_tac lthy m discD disc_thm) goal])
+                        fn disc_thm => [prove (fn ctxt =>
+                          mk_half_distinct_disc_tac ctxt m discD disc_thm) goal])
                       half_goalss half_pairss (flat disc_thmss');
 
                   val other_half_goalss = map (mk_goal o map swap) half_pairss;
                   val other_half_thmss =
-                    map2 (map2 (prove o mk_other_half_distinct_disc_tac)) half_thmss
+                    map2 (map2 (fn thm => prove (fn ctxt =>
+                        mk_other_half_distinct_disc_tac ctxt thm))) half_thmss
                       other_half_goalss;
                 in
                   join_halves n half_thmss other_half_thmss ||> `transpose
@@ -911,8 +916,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   fun mk_prem udisc = mk_imp_p [HOLogic.mk_Trueprop udisc];
                   val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem udiscs));
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_exhaust_disc_tac n exhaust_thm discI_thms)
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                    mk_exhaust_disc_tac ctxt n exhaust_thm discI_thms)
                   |> Thm.close_derivation
                 end;
 
@@ -946,8 +951,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   fun mk_prem usel_ctr = mk_imp_p [mk_Trueprop_eq (u, usel_ctr)];
                   val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem usel_ctrs));
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_exhaust_sel_tac n exhaust_disc_thm swapped_all_collapse_thms)
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                    mk_exhaust_sel_tac ctxt n exhaust_disc_thm swapped_all_collapse_thms)
                   |> Thm.close_derivation
                 end;
 

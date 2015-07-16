@@ -153,7 +153,7 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
 
     fun tac ctxt =
       unfold_thms_tac ctxt (@{thms o_apply fst_conv snd_conv} @ rec_defs @ flat rec0_thmss) THEN
-      HEADGOAL (rtac refl);
+      HEADGOAL (rtac ctxt refl);
 
     fun prove goal =
       Goal.prove_sorry ctxt [] [] goal (tac o #context)

@@ -63,15 +63,15 @@ val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
 fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
-  HEADGOAL (rtac (rec_o_map RS trans) THEN'
+  HEADGOAL (rtac ctxt (rec_o_map RS trans) THEN'
     asm_simp_tac (ss_only (inj_maps @ size_maps @ size_gen_o_map_simps) ctxt)) THEN
-  IF_UNSOLVED (unfold_thms_tac ctxt @{thms id_def o_def} THEN HEADGOAL (rtac refl));
+  IF_UNSOLVED (unfold_thms_tac ctxt @{thms id_def o_def} THEN HEADGOAL (rtac ctxt refl));
 
 fun mk_size_neq ctxt cts exhaust sizes =
-  HEADGOAL (rtac (Ctr_Sugar_Util.cterm_instantiate_pos (map SOME cts) exhaust)) THEN
+  HEADGOAL (rtac ctxt (Ctr_Sugar_Util.cterm_instantiate_pos (map SOME cts) exhaust)) THEN
   ALLGOALS (hyp_subst_tac ctxt) THEN
   Ctr_Sugar_Tactics.unfold_thms_tac ctxt (@{thm neq0_conv} :: sizes) THEN
-  ALLGOALS (REPEAT_DETERM o (rtac @{thm zero_less_Suc} ORELSE' rtac @{thm trans_less_add2}));
+  ALLGOALS (REPEAT_DETERM o (rtac ctxt @{thm zero_less_Suc} ORELSE' rtac ctxt @{thm trans_less_add2}));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
         fp_res = {bnfs = fp_bnfs, ...}, fp_nesting_bnfs, live_nesting_bnfs, ...} : fp_sugar) :: _)

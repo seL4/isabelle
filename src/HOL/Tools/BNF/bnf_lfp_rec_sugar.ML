@@ -493,9 +493,9 @@ fun find_rec_calls has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
 
 fun mk_primrec_tac ctxt num_extra_args map_ident0s map_comps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
-  HEADGOAL (rtac (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
+  HEADGOAL (rtac ctxt (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
   unfold_thms_tac ctxt (nested_simps ctxt @ map_ident0s @ map_comps) THEN
-  HEADGOAL (rtac refl);
+  HEADGOAL (rtac ctxt refl);
 
 fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
   let

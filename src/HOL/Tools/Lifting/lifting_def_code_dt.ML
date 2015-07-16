@@ -218,7 +218,7 @@ fun lift qty (quot_thm, (lthy, rel_eq_onps)) =
   end;
 
 fun case_tac rule ctxt i st =
-  (Subgoal.FOCUS_PARAMS (fn {params, ...} => HEADGOAL(rtac
+  (Subgoal.FOCUS_PARAMS (fn {params, ...} => HEADGOAL(rtac ctxt
     (Ctr_Sugar_Util.cterm_instantiate_pos [SOME (params |> hd |> snd)] rule))) ctxt i st);
 
 fun bundle_name_of_bundle_binding binding phi context  =
@@ -283,7 +283,8 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val rsp_norm = Conv.fconv_rule rel_eq_onps_conv rsp
             val f'_rsp_goal = HOLogic.mk_Trueprop (f'_rsp_rel $ rhs $ rhs);
             val f'_rsp = Goal.prove_sorry lthy [] [] f'_rsp_goal
-              (K (HEADGOAL (CONVERSION (rel_eq_onps_conv) THEN' rtac rsp_norm)))
+              (fn {context = ctxt, prems = _} =>
+                HEADGOAL (CONVERSION (rel_eq_onps_conv) THEN' rtac ctxt rsp_norm))
               |> Thm.close_derivation
             val (f'_lift_def, lthy) = add_lift_def ld_no_notes f'_var f'_qty rhs f'_rsp [] lthy
             val f'_lift_def = inst_of_lift_def lthy f'_qty f'_lift_def
@@ -295,7 +296,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val f_alt_def_goal = HOLogic.mk_Trueprop (HOLogic.mk_eq (f_alt_def_goal_lhs, f_alt_def_goal_rhs));
             fun f_alt_def_tac ctxt i =
               EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o Transfer.transfer_tac true ctxt,
-                SELECT_GOAL (Local_Defs.unfold_tac ctxt [id_apply]), rtac refl] i;
+                SELECT_GOAL (Local_Defs.unfold_tac ctxt [id_apply]), rtac ctxt refl] i;
             val rep_isom_transfer = transfer_of_rep_isom_data rep_isom_data
             val (_, transfer_lthy) = Proof_Context.note_thmss "" [((Binding.empty, []),
               [([rep_isom_transfer], [Transfer.transfer_add])])] lthy
@@ -322,7 +323,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun eq_onp_to_top_tac ctxt = SELECT_GOAL (Local_Defs.unfold_tac ctxt 
       (@{thm eq_onp_top_eq_eq[symmetric]} :: Lifting_Info.get_relator_eq_onp_rules ctxt))
     fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
-      THEN' (rtac @{thm id_transfer}));
+      THEN' (rtac ctxt @{thm id_transfer}));
 
     val (rep_isom_lift_def, lthy) = lift_def ld_no_notes (Binding.qualified true "Rep_isom" uTname, NoSyn)
       (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac [] lthy
@@ -408,11 +409,11 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun lift_sel_tac exhaust_rule dt_rules wits ctxt i =
         (Method.insert_tac wits THEN' 
          eq_onp_to_top_tac ctxt THEN' (* normalize *)
-         rtac unfold_lift_sel_rsp THEN'
+         rtac ctxt unfold_lift_sel_rsp THEN'
          case_tac exhaust_rule ctxt THEN_ALL_NEW (
         EVERY' [hyp_subst_tac ctxt, (* does not kill wits because = was rewritten to eq_onp top *)
         Raw_Simplifier.rewrite_goal_tac ctxt (map safe_mk_meta_eq dt_rules), 
-        REPEAT_DETERM o etac conjE, atac])) i
+        REPEAT_DETERM o etac ctxt conjE, atac])) i
     val pred_simps = Transfer.lookup_pred_data lthy (Tname rty) |> the |> Transfer.pred_simps
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
     val sel_names = map (fn (k, xs) => map (fn k' => Binding.qualified true
@@ -437,7 +438,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms eq_onp_top_eq_eq}) (* normalize *), 
           Raw_Simplifier.rewrite_goal_tac ctxt 
           (map safe_mk_meta_eq @{thms id_apply simp_thms Ball_def}),
-         rtac TrueI] i;
+         rtac ctxt TrueI] i;
 
     val (_, transfer_lthy) = Proof_Context.note_thmss "" [((Binding.empty, []),
       [(@{thms right_total_UNIV_transfer},[Transfer.transfer_add]),
@@ -508,7 +509,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
         in
           EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o (Transfer.transfer_tac true ctxt),
             case_tac exhaust ctxt THEN_ALL_NEW EVERY' [hyp_subst_tac ctxt,
-              Raw_Simplifier.rewrite_goal_tac ctxt simp_rules, rtac TrueI ]] i
+              Raw_Simplifier.rewrite_goal_tac ctxt simp_rules, rtac ctxt TrueI ]] i
         end
     end
     
@@ -777,7 +778,7 @@ fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
               let
                 val internal_rsp_thm = Goal.prove lthy [] [] prsp_tm 
                     (fn {context = ctxt, ...} =>
-                      rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
+                      rtac ctxt readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
               in
                 after_qed internal_rsp_thm lthy
               end

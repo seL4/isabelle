@@ -896,8 +896,8 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
             []
           else
             Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-              (K (mk_disc_transfer_tac (the_single rel_sel_thms) (the_single exhaust_discs)
-                 (flat (flat distinct_discsss))))
+              (fn {context = ctxt, prems = _} => mk_disc_transfer_tac ctxt (the_single rel_sel_thms)
+                 (the_single exhaust_discs) (flat (flat distinct_discsss)))
             |> Conjunction.elim_balanced (length goals)
             |> Proof_Context.export names_lthy lthy
             |> map Thm.close_derivation
