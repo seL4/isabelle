@@ -201,9 +201,6 @@ lemma Int_stable_pair_measure_generator: "Int_stable {a \<times> b | a b. a \<in
   unfolding Int_stable_def
   by safe (auto simp add: times_Int_times)
 
-lemma disjoint_family_vimageI: "disjoint_family F \<Longrightarrow> disjoint_family (\<lambda>i. f -` F i)"
-  by (auto simp: disjoint_family_on_def)
-
 lemma (in finite_measure) finite_measure_cut_measurable:
   assumes [measurable]: "Q \<in> sets (N \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N"
@@ -221,7 +218,7 @@ proof (induct rule: sigma_sets_induct_disjoint)
 next
   case (union F)
   then have "\<And>x. emeasure M (Pair x -` (\<Union>i. F i)) = (\<Sum>i. ?s (F i) x)"
-    by (simp add: suminf_emeasure disjoint_family_vimageI subset_eq vimage_UN sets_pair_measure[symmetric])
+    by (simp add: suminf_emeasure disjoint_family_on_vimageI subset_eq vimage_UN sets_pair_measure[symmetric])
   with union show ?case
     unfolding sets_pair_measure[symmetric] by simp
 qed (auto simp add: if_distrib Int_def[symmetric] intro!: measurable_If)

@@ -14,6 +14,7 @@ imports
   "~~/src/HOL/Library/FuncSet"
   "~~/src/HOL/Library/Indicator_Function"
   "~~/src/HOL/Library/Extended_Real"
+  "~~/src/HOL/Library/Disjoint_Sets"
 begin
 
 text {* Sigma algebras are an elementary concept in measure
@@ -34,46 +35,6 @@ lemma (in subset_class) sets_into_space: "x \<in> M \<Longrightarrow> x \<subset
   by (metis PowD contra_subsetD space_closed)
 
 subsubsection {* Semiring of sets *}
-
-definition "disjoint A \<longleftrightarrow> (\<forall>a\<in>A. \<forall>b\<in>A. a \<noteq> b \<longrightarrow> a \<inter> b = {})"
-
-lemma disjointI:
-  "(\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}) \<Longrightarrow> disjoint A"
-  unfolding disjoint_def by auto
-
-lemma disjointD:
-  "disjoint A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}"
-  unfolding disjoint_def by auto
-
-lemma disjoint_empty[iff]: "disjoint {}"
-  by (auto simp: disjoint_def)
-
-lemma disjoint_union: 
-  assumes C: "disjoint C" and B: "disjoint B" and disj: "\<Union>C \<inter> \<Union>B = {}"
-  shows "disjoint (C \<union> B)"
-proof (rule disjointI)
-  fix c d assume sets: "c \<in> C \<union> B" "d \<in> C \<union> B" and "c \<noteq> d"
-  show "c \<inter> d = {}"
-  proof cases
-    assume "(c \<in> C \<and> d \<in> C) \<or> (c \<in> B \<and> d \<in> B)"
-    then show ?thesis
-    proof 
-      assume "c \<in> C \<and> d \<in> C" with `c \<noteq> d` C show "c \<inter> d = {}"
-        by (auto simp: disjoint_def)
-    next
-      assume "c \<in> B \<and> d \<in> B" with `c \<noteq> d` B show "c \<inter> d = {}"
-        by (auto simp: disjoint_def)
-    qed
-  next
-    assume "\<not> ((c \<in> C \<and> d \<in> C) \<or> (c \<in> B \<and> d \<in> B))"
-    with sets have "(c \<subseteq> \<Union>C \<and> d \<subseteq> \<Union>B) \<or> (c \<subseteq> \<Union>B \<and> d \<subseteq> \<Union>C)"
-      by auto
-    with disj show "c \<inter> d = {}" by auto
-  qed
-qed
-
-lemma disjoint_singleton [simp]: "disjoint {A}"
-by(simp add: disjoint_def)
 
 locale semiring_of_sets = subset_class +
   assumes empty_sets[iff]: "{} \<in> M"
@@ -787,101 +748,6 @@ proof
   qed
 qed
 
-subsubsection "Disjoint families"
-
-definition
-  disjoint_family_on  where
-  "disjoint_family_on A S \<longleftrightarrow> (\<forall>m\<in>S. \<forall>n\<in>S. m \<noteq> n \<longrightarrow> A m \<inter> A n = {})"
-
-abbreviation
-  "disjoint_family A \<equiv> disjoint_family_on A UNIV"
-
-lemma range_subsetD: "range f \<subseteq> B \<Longrightarrow> f i \<in> B"
-  by blast
-
-lemma disjoint_family_onD: "disjoint_family_on A I \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
-  by (auto simp: disjoint_family_on_def)
-
-lemma Int_Diff_disjoint: "A \<inter> B \<inter> (A - B) = {}"
-  by blast
-
-lemma Int_Diff_Un: "A \<inter> B \<union> (A - B) = A"
-  by blast
-
-lemma disjoint_family_subset:
-     "disjoint_family A \<Longrightarrow> (!!x. B x \<subseteq> A x) \<Longrightarrow> disjoint_family B"
-  by (force simp add: disjoint_family_on_def)
-
-lemma disjoint_family_on_bisimulation:
-  assumes "disjoint_family_on f S"
-  and "\<And>n m. n \<in> S \<Longrightarrow> m \<in> S \<Longrightarrow> n \<noteq> m \<Longrightarrow> f n \<inter> f m = {} \<Longrightarrow> g n \<inter> g m = {}"
-  shows "disjoint_family_on g S"
-  using assms unfolding disjoint_family_on_def by auto
-
-lemma disjoint_family_on_mono:
-  "A \<subseteq> B \<Longrightarrow> disjoint_family_on f B \<Longrightarrow> disjoint_family_on f A"
-  unfolding disjoint_family_on_def by auto
-
-lemma disjoint_family_Suc:
-  assumes Suc: "!!n. A n \<subseteq> A (Suc n)"
-  shows "disjoint_family (\<lambda>i. A (Suc i) - A i)"
-proof -
-  {
-    fix m
-    have "!!n. A n \<subseteq> A (m+n)"
-    proof (induct m)
-      case 0 show ?case by simp
-    next
-      case (Suc m) thus ?case
-        by (metis Suc_eq_plus1 assms add.commute add.left_commute subset_trans)
-    qed
-  }
-  hence "!!m n. m < n \<Longrightarrow> A m \<subseteq> A n"
-    by (metis add.commute le_add_diff_inverse nat_less_le)
-  thus ?thesis
-    by (auto simp add: disjoint_family_on_def)
-      (metis insert_absorb insert_subset le_SucE le_antisym not_leE)
-qed
-
-lemma setsum_indicator_disjoint_family:
-  fixes f :: "'d \<Rightarrow> 'e::semiring_1"
-  assumes d: "disjoint_family_on A P" and "x \<in> A j" and "finite P" and "j \<in> P"
-  shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
-proof -
-  have "P \<inter> {i. x \<in> A i} = {j}"
-    using d `x \<in> A j` `j \<in> P` unfolding disjoint_family_on_def
-    by auto
-  thus ?thesis
-    unfolding indicator_def
-    by (simp add: if_distrib setsum.If_cases[OF `finite P`])
-qed
-
-definition disjointed :: "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow> 'a set "
-  where "disjointed A n = A n - (\<Union>i\<in>{0..<n}. A i)"
-
-lemma finite_UN_disjointed_eq: "(\<Union>i\<in>{0..<n}. disjointed A i) = (\<Union>i\<in>{0..<n}. A i)"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n)
-  thus ?case by (simp add: atLeastLessThanSuc disjointed_def)
-qed
-
-lemma UN_disjointed_eq: "(\<Union>i. disjointed A i) = (\<Union>i. A i)"
-  apply (rule UN_finite2_eq [where k=0])
-  apply (simp add: finite_UN_disjointed_eq)
-  done
-
-lemma less_disjoint_disjointed: "m<n \<Longrightarrow> disjointed A m \<inter> disjointed A n = {}"
-  by (auto simp add: disjointed_def)
-
-lemma disjoint_family_disjointed: "disjoint_family (disjointed A)"
-  by (simp add: disjoint_family_on_def)
-     (metis neq_iff Int_commute less_disjoint_disjointed)
-
-lemma disjointed_subset: "disjointed A n \<subseteq> A n"
-  by (auto simp add: disjointed_def)
-
 lemma (in ring_of_sets) UNION_in_sets:
   fixes A:: "nat \<Rightarrow> 'a set"
   assumes A: "range A \<subseteq> M"
@@ -907,18 +773,6 @@ lemma (in algebra) range_disjointed_sets':
   "range A \<subseteq> M \<Longrightarrow> range (disjointed A) \<subseteq> M"
   using range_disjointed_sets .
 
-lemma disjointed_0[simp]: "disjointed A 0 = A 0"
-  by (simp add: disjointed_def)
-
-lemma incseq_Un:
-  "incseq A \<Longrightarrow> (\<Union>i\<le>n. A i) = A n"
-  unfolding incseq_def by auto
-
-lemma disjointed_incseq:
-  "incseq A \<Longrightarrow> disjointed A (Suc n) = A (Suc n) - A n"
-  using incseq_Un[of A]
-  by (simp add: disjointed_def atLeastLessThanSuc_atLeastAtMost atLeast0AtMost)
-
 lemma sigma_algebra_disjoint_iff:
   "sigma_algebra \<Omega> M \<longleftrightarrow> algebra \<Omega> M \<and>
     (\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i::nat. A i) \<in> M)"
@@ -933,20 +787,6 @@ proof (auto simp add: sigma_algebra_iff)
   hence "(\<Union>i. disjointed A i) \<in> M"
     by (simp add: algebra.range_disjointed_sets'[of \<Omega>] M A disjoint_family_disjointed)
   thus "(\<Union>i::nat. A i) \<in> M" by (simp add: UN_disjointed_eq)
-qed
-
-lemma disjoint_family_on_disjoint_image:
-  "disjoint_family_on A I \<Longrightarrow> disjoint (A ` I)"
-  unfolding disjoint_family_on_def disjoint_def by force
-
-lemma disjoint_image_disjoint_family_on:
-  assumes d: "disjoint (A ` I)" and i: "inj_on A I"
-  shows "disjoint_family_on A I"
-  unfolding disjoint_family_on_def
-proof (intro ballI impI)
-  fix n m assume nm: "m \<in> I" "n \<in> I" and "n \<noteq> m"
-  with i[THEN inj_onD, of n m] show "A n \<inter> A m = {}"
-    by (intro disjointD[OF d]) auto
 qed
 
 subsubsection {* Ring generated by a semiring *}

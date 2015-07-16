@@ -14,6 +14,7 @@ imports
   Countable_Set_Type
   Debug
   Diagonal_Subsequence
+  Disjoint_Sets
   Dlist
   Extended
   Extended_Nat

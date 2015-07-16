@@ -41,6 +41,19 @@ proof cases
   show ?thesis using * by simp
 qed simp
 
+lemma setsum_indicator_disjoint_family:
+  fixes f :: "'d \<Rightarrow> 'e::semiring_1"
+  assumes d: "disjoint_family_on A P" and "x \<in> A j" and "finite P" and "j \<in> P"
+  shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
+proof -
+  have "P \<inter> {i. x \<in> A i} = {j}"
+    using d `x \<in> A j` `j \<in> P` unfolding disjoint_family_on_def
+    by auto
+  thus ?thesis
+    unfolding indicator_def
+    by (simp add: if_distrib setsum.If_cases[OF `finite P`])
+qed
+
 text {*
   The type for emeasure spaces is already defined in @{theory Sigma_Algebra}, as it is also used to
   represent sigma algebras (with an arbitrary emeasure).
@@ -119,9 +132,9 @@ proof (induct n)
   then have "(\<Sum>i\<le>Suc n. f (disjointed A i)) = f (A n) + f (disjointed A (Suc n))"
     by simp
   also have "\<dots> = f (A n \<union> disjointed A (Suc n))"
-    using A by (subst f(2)[THEN additiveD]) (auto simp: disjointed_incseq)
+    using A by (subst f(2)[THEN additiveD]) (auto simp: disjointed_mono)
   also have "A n \<union> disjointed A (Suc n) = A (Suc n)"
-    using `incseq A` by (auto dest: incseq_SucD simp: disjointed_incseq)
+    using `incseq A` by (auto dest: incseq_SucD simp: disjointed_mono)
   finally show ?case .
 qed simp
 
