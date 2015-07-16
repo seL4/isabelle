@@ -45,9 +45,9 @@ fun report_parse_tree redirect depth space parse_tree =
 
     fun reported_completions loc names =
       let val pos = Exn_Properties.position_of loc in
-        if is_reported pos then
+        if is_reported pos andalso not (null names) then
           let
-            val completion = Completion.names pos (map (fn a => (a, ("ML", ""))) names);
+            val completion = Completion.names pos (map (fn a => (a, ("ML", a))) names);
             val xml = Completion.encode completion;
           in cons (pos, fn () => Markup.completion, fn () => YXML.string_of_body xml) end
         else I
