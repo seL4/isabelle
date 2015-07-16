@@ -1663,6 +1663,25 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
       (transpose setss)
   end;
 
+fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
+  let
+    val n = Thm.nprems_of coind;
+    val m = Thm.nprems_of (hd rel_monos) - n;
+    fun mk_inst phi =
+      (phi, Thm.cterm_of ctxt (mk_union (Var phi, HOLogic.eq_const (fst (dest_pred2T (#2 phi))))));
+    val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map mk_inst;
+    fun mk_unfold rel_eq rel_mono =
+      let
+        val eq = iffD2 OF [rel_eq RS @{thm predicate2_eqD}, refl];
+        val mono = rel_mono OF (replicate m @{thm order_refl} @ replicate n @{thm eq_subset});
+      in mk_vimage2p (eq RS (mono RS @{thm predicate2D})) RS eqTrueI end;
+    val unfolds = map2 mk_unfold rel_eqs rel_monos @ @{thms sup_fun_def sup_bool_def
+      imp_disjL all_conj_distrib subst_eq_imp simp_thms(18,21,35)};
+  in
+    Thm.instantiate ([], insts) coind
+    |> unfold_thms ctxt unfolds
+  end;
+
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, _), cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
     kss mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
