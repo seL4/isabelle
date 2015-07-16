@@ -132,6 +132,15 @@ PolyML.Compiler.maxInlineSize := 80;
 
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
+use "ML-Systems/ml_parse_tree.ML";
+if ML_System.name = "polyml-5.5.3" then use "ML-Systems/ml_parse_tree_polyml-5.5.3.ML" else ();
+
+
+(* ML debugger *)
+
+use "ML-Systems/ml_debugger_dummy.ML";
+if ML_System.name = "polyml-5.5.3" then use "ML-Systems/ml_debugger_polyml-5.5.3.ML" else ();
+
 
 (* ML toplevel pretty printing *)
 
@@ -188,4 +197,3 @@ fun toplevel_pp context (_: string list) pp =
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, " ^
     struct_name ^ ".ML_print_depth ())))))";
-
