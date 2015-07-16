@@ -3186,8 +3186,8 @@ it is always possible to recast mutual specifications to nested ones, which are
 processed more efficiently.
 
 \item
-\emph{Locally fixed types cannot be used in (co)datatype specifications.}
-This limitation can be circumvented by adding type arguments to the local
+\emph{Locally fixed types and terms cannot be used in type specifications.}
+The limitation on types can be circumvented by adding type arguments to the local
 (co)datatypes to abstract over the locally fixed types.
 
 \item
