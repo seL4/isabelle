@@ -6,6 +6,8 @@ session RAW =
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"
     "ML-Systems/exn_trace_polyml-5.5.1.ML"
+    "ML-Systems/ml_debugger_dummy.ML"
+    "ML-Systems/ml_debugger_polyml-5.5.3.ML"
     "ML-Systems/ml_name_space.ML"
     "ML-Systems/ml_positions.ML"
     "ML-Systems/ml_pretty.ML"
