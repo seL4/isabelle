@@ -10,6 +10,7 @@ sig
   val names: Position.T -> (string * (string * string)) list -> T
   val none: T
   val make: string * Position.T -> ((string -> bool) -> (string * (string * string)) list) -> T
+  val encode: T -> XML.body
   val reported_text: T -> string
   val suppress_abbrevs: string -> Markup.T list
 end;
@@ -40,14 +41,18 @@ fun make (name, pos) make_names =
   then names pos (make_names (String.isPrefix (Name.clean name)))
   else none;
 
+fun encode completion =
+  let
+    val {total, names, ...} = dest completion;
+    open XML.Encode;
+  in pair int (list (pair string (pair string string))) (total, names) end;
+
 fun reported_text completion =
-  let val {pos, total, names} = dest completion in
+  let val {pos, names, ...} = dest completion in
     if Position.is_reported pos andalso not (null names) then
       let
         val markup = Position.markup pos Markup.completion;
-        val body = (total, names) |>
-          let open XML.Encode in pair int (list (pair string (pair string string))) end;
-      in YXML.string_of (XML.Elem (markup, body)) end
+      in YXML.string_of (XML.Elem (markup, encode completion)) end
     else ""
   end;
 
