@@ -415,7 +415,7 @@ val _ =
           val [provers_arg, isar_proofs_arg, try0_arg] = args
           val override_params =
             ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-              [("isar_proofs", [isar_proofs_arg]),
+              [("isar_proofs", [if isar_proofs_arg = "true" then "true" else "smart"]),
                ("try0", [try0_arg]),
                ("blocking", ["true"]),
                ("debug", ["false"]),
