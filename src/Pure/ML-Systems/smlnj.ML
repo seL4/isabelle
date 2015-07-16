@@ -162,6 +162,7 @@ end;
 
 
 use "ML-Systems/unsynchronized.ML";
+use "ML-Systems/ml_debugger_dummy.ML";
 
 
 (* ML system operations *)
@@ -178,4 +179,3 @@ fun save_state name =
   else OS.FileSys.rename {old = name ^ "." ^ platform, new = name};
 
 end;
-
