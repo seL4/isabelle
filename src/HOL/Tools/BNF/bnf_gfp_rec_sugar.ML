@@ -368,7 +368,8 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
     and massage_mutual_fun bound_Ts U T t =
       (case t of
         Const (@{const_name comp}, _) $ t1 $ t2 =>
-        mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
+        if has_call t2 then massage_mutual_fun bound_Ts U T t
+        else mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, t2)
       | _ =>
         let
           val j = Term.maxidx_of_term t + 1;
