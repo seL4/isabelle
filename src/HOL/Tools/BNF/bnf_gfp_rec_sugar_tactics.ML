@@ -82,9 +82,11 @@ fun mk_primcorec_assumption_tac ctxt discIs =
     etac ctxt notE THEN' atac ORELSE'
     etac ctxt disjE))));
 
-fun ss_fst_snd_conv ctxt = simpset_of (ss_only @{thms fst_conv snd_conv} ctxt);
+fun ss_fst_snd_conv ctxt =
+  Raw_Simplifier.simpset_of (ss_only @{thms fst_conv snd_conv} ctxt);
 
-fun case_atac ctxt = simp_tac (put_simpset (ss_fst_snd_conv ctxt) ctxt);
+fun case_atac ctxt =
+  Simplifier.full_simp_tac (put_simpset (ss_fst_snd_conv ctxt) ctxt);
 
 fun same_case_tac ctxt m =
   HEADGOAL (if m = 0 then rtac ctxt TrueI
