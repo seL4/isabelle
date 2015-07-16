@@ -366,18 +366,20 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
         massage_map bound_Ts U T t
         handle NO_MAP _ => massage_mutual_fun bound_Ts U T t
     and massage_mutual_fun bound_Ts U T t =
-      (case t of
-        Const (@{const_name comp}, _) $ t1 $ t2 =>
-        if has_call t2 then massage_mutual_fun bound_Ts U T t
-        else mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, t2)
-      | _ =>
-        let
-          val j = Term.maxidx_of_term t + 1;
-          val var = Var ((Name.uu, j), domain_type (fastype_of1 (bound_Ts, t)));
-        in
+      let
+        val j = Term.maxidx_of_term t + 1;
+        val var = Var ((Name.uu, j), domain_type (fastype_of1 (bound_Ts, t)));
+
+        fun massage_body () =
           Term.lambda var (Term.incr_boundvars 1 (massage_any_call bound_Ts U T
-            (betapply (t, var))))
-        end)
+            (betapply (t, var))));
+      in
+        (case t of
+          Const (@{const_name comp}, _) $ t1 $ t2 =>
+          if has_call t2 then massage_body ()
+          else mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, t2)
+        | _ => massage_body ())
+      end
     and massage_any_call bound_Ts U T =
       massage_let_if_case_corec ctxt has_call (fn bound_Ts => fn t =>
         if has_call t then
