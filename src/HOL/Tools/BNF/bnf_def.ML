@@ -82,6 +82,7 @@ sig
   val rel_mono_strong0_of_bnf: bnf -> thm
   val rel_mono_strong_of_bnf: bnf -> thm
   val rel_refl_of_bnf: bnf -> thm
+  val rel_map_of_bnf: bnf -> thm list
   val rel_transfer_of_bnf: bnf -> thm
   val rel_eq_of_bnf: bnf -> thm
   val rel_flip_of_bnf: bnf -> thm
@@ -485,6 +486,7 @@ val rel_mono_of_bnf = Lazy.force o #rel_mono o #facts o rep_bnf;
 val rel_mono_strong0_of_bnf = Lazy.force o #rel_mono_strong0 o #facts o rep_bnf;
 val rel_mono_strong_of_bnf = Lazy.force o #rel_mono_strong o #facts o rep_bnf;
 val rel_refl_of_bnf = Lazy.force o #rel_refl o #facts o rep_bnf;
+val rel_map_of_bnf = Lazy.force o #rel_map o #facts o rep_bnf;
 val rel_transfer_of_bnf = Lazy.force o #rel_transfer o #facts o rep_bnf;
 val rel_Grp_of_bnf = Lazy.force o #rel_Grp o #facts o rep_bnf;
 val rel_conversep_of_bnf = Lazy.force o #rel_conversep o #facts o rep_bnf;
