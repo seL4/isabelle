@@ -86,6 +86,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
   })
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(

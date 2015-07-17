@@ -92,6 +92,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
   })
 
 
