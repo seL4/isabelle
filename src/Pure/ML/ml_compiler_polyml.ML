@@ -93,7 +93,7 @@ fun report_parse_tree redirect depth space parse_tree =
               let val pos = Exn_Properties.position_of loc in
                 if is_reported pos then
                   let val id = serial ();
-                  in cons ((pos, Markup.ML_breakpoint id), (id, b)) end
+                  in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
                 else I
               end
           | NONE => I)
@@ -101,7 +101,11 @@ fun report_parse_tree redirect depth space parse_tree =
 
     val all_breakpoints = rev (breakpoints_tree parse_tree []);
     val _ = Position.reports (map #1 all_breakpoints);
-  in map #2 all_breakpoints end;
+    val _ =
+      if is_some (Context.thread_data ()) then
+        Context.>> (fold (ML_Env.add_breakpoint o #2) all_breakpoints)
+      else ();
+  in () end;
 
 
 (* eval ML source tokens *)
@@ -109,7 +113,7 @@ fun report_parse_tree redirect depth space parse_tree =
 fun eval (flags: flags) pos toks =
   let
     val _ = Secure.secure_mltext ();
-    val space = ML_Env.name_space {SML = #SML flags, exchange = #exchange flags}
+    val space = ML_Env.name_space {SML = #SML flags, exchange = #exchange flags};
     val opt_context = Context.thread_data ();
 
 
@@ -160,8 +164,6 @@ fun eval (flags: flags) pos toks =
           Pretty.string_of (Pretty.from_ML (pretty_ml msg));
       in if hard then err txt else warn txt end;
 
-    val breakpoints = Unsynchronized.ref ([]: (serial * bool Unsynchronized.ref) list);
-
 
     (* results *)
 
@@ -200,8 +202,7 @@ fun eval (flags: flags) pos toks =
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
-      | SOME parse_tree =>
-          breakpoints := report_parse_tree (#redirect flags) depth space parse_tree);
+      | SOME parse_tree => report_parse_tree (#redirect flags) depth space parse_tree);
       (case phase2 of
         NONE => raise STATIC_ERRORS ()
       | SOME code =>
