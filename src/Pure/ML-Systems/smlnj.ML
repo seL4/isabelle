@@ -162,7 +162,7 @@ end;
 
 
 use "ML-Systems/unsynchronized.ML";
-use "ML-Systems/ml_debugger_dummy.ML";
+use "ML-Systems/ml_debugger.ML";
 
 
 (* ML system operations *)

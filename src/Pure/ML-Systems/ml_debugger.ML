@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_debugger_dummy.ML
+(*  Title:      Pure/ML/ml_debugger.ML
     Author:     Makarius
 
-ML debugger interface -- dummy version.
+ML debugger interface.
 *)
 
 signature ML_DEBUGGER =
@@ -46,6 +46,3 @@ fun debug_location () = fail ();
 fun debug_name_space () = fail ();
 
 end;
-
-
-fun ml_debugger_parameters (_: bool) = [];

@@ -29,6 +29,3 @@ val debug_location = PolyML.DebuggerInterface.debugLocation;
 val debug_name_space = PolyML.DebuggerInterface.debugNameSpace;
 
 end;
-
-fun ml_debugger_parameters false = []
-  | ml_debugger_parameters true = [PolyML.Compiler.CPDebug true];
