@@ -42,6 +42,9 @@ object Markup
   val KIND = "kind"
   val Kind = new Properties.String(KIND)
 
+  val SERIAL = "serial"
+  val Serial = new Properties.Long(SERIAL)
+
   val INSTANCE = "instance"
   val Instance = new Properties.String(INSTANCE)
 
@@ -66,6 +69,15 @@ object Markup
 
     def apply(i: Int): Markup = Markup(name, Prop(i))
     def unapply(markup: Markup): Option[Int] =
+      if (markup.name == name) Prop.unapply(markup.properties) else None
+  }
+
+  class Markup_Long(val name: String, prop: String)
+  {
+    private val Prop = new Properties.Long(prop)
+
+    def apply(i: Long): Markup = Markup(name, Prop(i))
+    def unapply(markup: Markup): Option[Long] =
       if (markup.name == name) Prop.unapply(markup.properties) else None
   }
 
@@ -231,7 +243,7 @@ object Markup
   val TEXT_FOLD = "text_fold"
 
 
-  /* ML syntax */
+  /* ML */
 
   val ML_KEYWORD1 = "ML_keyword1"
   val ML_KEYWORD2 = "ML_keyword2"
@@ -250,6 +262,9 @@ object Markup
   val ML_OPEN = "ML_open"
   val ML_STRUCTURE = "ML_structure"
   val ML_TYPING = "ML_typing"
+
+  val ML_BREAKPOINT = "ML_breakpoint"
+  val ML_Breakpoint = new Markup_Long(ML_BREAKPOINT, SERIAL)
 
 
   /* outer syntax */
@@ -340,9 +355,6 @@ object Markup
 
 
   /* messages */
-
-  val SERIAL = "serial"
-  val Serial = new Properties.Long(SERIAL)
 
   val INIT = "init"
   val STATUS = "status"

@@ -19,6 +19,8 @@ sig
   val nameN: string
   val name: string -> T -> T
   val kindN: string
+  val serialN: string
+  val serial_properties: int -> Properties.T
   val instanceN: string
   val languageN: string
   val symbolsN: string
@@ -107,6 +109,7 @@ sig
   val ML_openN: string
   val ML_structureN: string
   val ML_typingN: string val ML_typing: T
+  val ML_breakpointN: string val ML_breakpoint: int -> T
   val antiquotedN: string val antiquoted: T
   val antiquoteN: string val antiquote: T
   val ML_antiquotationN: string
@@ -150,8 +153,6 @@ sig
   val runningN: string val running: T
   val finishedN: string val finished: T
   val failedN: string val failed: T
-  val serialN: string
-  val serial_properties: int -> Properties.T
   val exec_idN: string
   val initN: string
   val statusN: string
@@ -267,6 +268,9 @@ val nameN = "name";
 fun name a = properties [(nameN, a)];
 
 val kindN = "kind";
+
+val serialN = "serial";
+fun serial_properties i = [(serialN, print_int i)];
 
 val instanceN = "instance";
 
@@ -420,7 +424,7 @@ val (sortingN, sorting) = markup_elem "sorting";
 val (typingN, typing) = markup_elem "typing";
 
 
-(* ML syntax *)
+(* ML *)
 
 val (ML_keyword1N, ML_keyword1) = markup_elem "ML_keyword1";
 val (ML_keyword2N, ML_keyword2) = markup_elem "ML_keyword2";
@@ -439,6 +443,8 @@ val ML_defN = "ML_def";
 val ML_openN = "ML_open";
 val ML_structureN = "ML_structure";
 val (ML_typingN, ML_typing) = markup_elem "ML_typing";
+
+val (ML_breakpointN, ML_breakpoint) = markup_int "ML_breakpoint" serialN;
 
 
 (* antiquotations *)
@@ -538,9 +544,6 @@ val (failedN, failed) = markup_elem "failed";
 
 
 (* messages *)
-
-val serialN = "serial";
-fun serial_properties i = [(serialN, print_int i)];
 
 val exec_idN = "exec_id";
 

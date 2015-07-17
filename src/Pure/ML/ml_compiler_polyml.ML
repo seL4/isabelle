@@ -20,6 +20,9 @@ fun report_parse_tree redirect depth space parse_tree =
       | NONE => true);
     fun is_reported pos = is_visible andalso Position.is_reported pos;
 
+
+    (* syntax reports *)
+
     fun reported_types loc types =
       let val pos = Exn_Properties.position_of loc in
         is_reported pos ?
@@ -53,12 +56,12 @@ fun report_parse_tree redirect depth space parse_tree =
         else I
       end;
 
-    fun reported loc (PolyML.PTtype types) = reported_types loc types
+    fun reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
+      | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
+      | reported loc (PolyML.PTtype types) = reported_types loc types
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
       | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
       | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
-      | reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
-      | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
       | reported loc pt =
           (case ML_Parse_Tree.completions pt of
             SOME names => reported_completions loc names
@@ -71,14 +74,34 @@ fun report_parse_tree redirect depth space parse_tree =
       persistent_reports
       |> map (fn (pos, markup, text) => Position.reported_text pos (markup ()) (text ()))
       |> Output.report;
-  in
-    if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
-    then
-      Execution.print
-        {name = "ML_Compiler.report", pos = Position.thread_data (), pri = Task_Queue.urgent_pri}
-        output
-    else output ()
-  end;
+    val _ =
+      if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
+      then
+        Execution.print
+          {name = "ML_Compiler.report", pos = Position.thread_data (), pri = Task_Queue.urgent_pri}
+          output
+      else output ();
+
+
+    (* breakpoints *)
+
+    fun breakpoints _ (PolyML.PTnextSibling tree) = breakpoints_tree (tree ())
+      | breakpoints _ (PolyML.PTfirstChild tree) = breakpoints_tree (tree ())
+      | breakpoints loc pt =
+          (case ML_Parse_Tree.breakpoint pt of
+            SOME b =>
+              let val pos = Exn_Properties.position_of loc in
+                if is_reported pos then
+                  let val id = serial ();
+                  in cons ((pos, Markup.ML_breakpoint id), (id, b)) end
+                else I
+              end
+          | NONE => I)
+    and breakpoints_tree (loc, props) = fold (breakpoints loc) props;
+
+    val all_breakpoints = rev (breakpoints_tree parse_tree []);
+    val _ = Position.reports (map #1 all_breakpoints);
+  in map #2 all_breakpoints end;
 
 
 (* eval ML source tokens *)
@@ -114,7 +137,7 @@ fun eval (flags: flags) pos toks =
       | [] => Position.none);
 
 
-    (* output channels *)
+    (* output *)
 
     val writeln_buffer = Unsynchronized.ref Buffer.empty;
     fun write s = Unsynchronized.change writeln_buffer (Buffer.add s);
@@ -136,6 +159,8 @@ fun eval (flags: flags) pos toks =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg));
       in if hard then err txt else warn txt end;
+
+    val breakpoints = Unsynchronized.ref ([]: (serial * bool Unsynchronized.ref) list);
 
 
     (* results *)
@@ -175,7 +200,8 @@ fun eval (flags: flags) pos toks =
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
-      | SOME parse_tree => report_parse_tree (#redirect flags) depth space parse_tree);
+      | SOME parse_tree =>
+          breakpoints := report_parse_tree (#redirect flags) depth space parse_tree);
       (case phase2 of
         NONE => raise STATIC_ERRORS ()
       | SOME code =>

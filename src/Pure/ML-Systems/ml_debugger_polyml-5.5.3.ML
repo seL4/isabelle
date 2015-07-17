@@ -14,7 +14,7 @@ type location = PolyML.location;
 val on_entry = PolyML.DebuggerInterface.setOnEntry;
 val on_exit = PolyML.DebuggerInterface.setOnExit;
 val on_exit_exception = PolyML.DebuggerInterface.setOnExitException;
-val on_break_point = PolyML.DebuggerInterface.setOnBreakPoint;
+val on_breakpoint = PolyML.DebuggerInterface.setOnBreakPoint;
 
 
 (* debugger operations *)
