@@ -93,6 +93,12 @@ object Isabelle
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
 
+  def debugger_dockable(view: View): Option[Debugger_Dockable] =
+    wm(view).getDockableWindow("isabelle-debugger") match {
+      case dockable: Debugger_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def documentation_dockable(view: View): Option[Documentation_Dockable] =
     wm(view).getDockableWindow("isabelle-documentation") match {
       case dockable: Documentation_Dockable => Some(dockable)
