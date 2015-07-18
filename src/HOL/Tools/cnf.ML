@@ -54,41 +54,41 @@ end;
 structure CNF : CNF =
 struct
 
-val clause2raw_notE      = @{lemma "[| P; ~P |] ==> False" by auto};
-val clause2raw_not_disj  = @{lemma "[| ~P; ~Q |] ==> ~(P | Q)" by auto};
-val clause2raw_not_not   = @{lemma "P ==> ~~P" by auto};
+val clause2raw_notE      = @{lemma "\<lbrakk>P; \<not>P\<rbrakk> \<Longrightarrow> False" by auto};
+val clause2raw_not_disj  = @{lemma "\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> \<not> (P \<or> Q)" by auto};
+val clause2raw_not_not   = @{lemma "P \<Longrightarrow> \<not>\<not> P" by auto};
 
 val iff_refl             = @{lemma "(P::bool) = P" by auto};
 val iff_trans            = @{lemma "[| (P::bool) = Q; Q = R |] ==> P = R" by auto};
-val conj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P & Q) = (P' & Q')" by auto};
-val disj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P | Q) = (P' | Q')" by auto};
+val conj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P \<and> Q) = (P' \<and> Q')" by auto};
+val disj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P \<or> Q) = (P' \<or> Q')" by auto};
 
-val make_nnf_imp         = @{lemma "[| (~P) = P'; Q = Q' |] ==> (P --> Q) = (P' | Q')" by auto};
-val make_nnf_iff         = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (P = Q) = ((P' | NQ) & (NP | Q'))" by auto};
+val make_nnf_imp         = @{lemma "[| (~P) = P'; Q = Q' |] ==> (P \<longrightarrow> Q) = (P' \<or> Q')" by auto};
+val make_nnf_iff         = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (P = Q) = ((P' \<or> NQ) \<and> (NP \<or> Q'))" by auto};
 val make_nnf_not_false   = @{lemma "(~False) = True" by auto};
 val make_nnf_not_true    = @{lemma "(~True) = False" by auto};
-val make_nnf_not_conj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P & Q)) = (P' | Q')" by auto};
-val make_nnf_not_disj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P | Q)) = (P' & Q')" by auto};
-val make_nnf_not_imp     = @{lemma "[| P = P'; (~Q) = Q' |] ==> (~(P --> Q)) = (P' & Q')" by auto};
-val make_nnf_not_iff     = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (~(P = Q)) = ((P' | Q') & (NP | NQ))" by auto};
+val make_nnf_not_conj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P \<and> Q)) = (P' \<or> Q')" by auto};
+val make_nnf_not_disj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P \<or> Q)) = (P' \<and> Q')" by auto};
+val make_nnf_not_imp     = @{lemma "[| P = P'; (~Q) = Q' |] ==> (~(P \<longrightarrow> Q)) = (P' \<and> Q')" by auto};
+val make_nnf_not_iff     = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (~(P = Q)) = ((P' \<or> Q') \<and> (NP \<or> NQ))" by auto};
 val make_nnf_not_not     = @{lemma "P = P' ==> (~~P) = P'" by auto};
 
-val simp_TF_conj_True_l  = @{lemma "[| P = True; Q = Q' |] ==> (P & Q) = Q'" by auto};
-val simp_TF_conj_True_r  = @{lemma "[| P = P'; Q = True |] ==> (P & Q) = P'" by auto};
-val simp_TF_conj_False_l = @{lemma "P = False ==> (P & Q) = False" by auto};
-val simp_TF_conj_False_r = @{lemma "Q = False ==> (P & Q) = False" by auto};
-val simp_TF_disj_True_l  = @{lemma "P = True ==> (P | Q) = True" by auto};
-val simp_TF_disj_True_r  = @{lemma "Q = True ==> (P | Q) = True" by auto};
-val simp_TF_disj_False_l = @{lemma "[| P = False; Q = Q' |] ==> (P | Q) = Q'" by auto};
-val simp_TF_disj_False_r = @{lemma "[| P = P'; Q = False |] ==> (P | Q) = P'" by auto};
+val simp_TF_conj_True_l  = @{lemma "[| P = True; Q = Q' |] ==> (P \<and> Q) = Q'" by auto};
+val simp_TF_conj_True_r  = @{lemma "[| P = P'; Q = True |] ==> (P \<and> Q) = P'" by auto};
+val simp_TF_conj_False_l = @{lemma "P = False ==> (P \<and> Q) = False" by auto};
+val simp_TF_conj_False_r = @{lemma "Q = False ==> (P \<and> Q) = False" by auto};
+val simp_TF_disj_True_l  = @{lemma "P = True ==> (P \<or> Q) = True" by auto};
+val simp_TF_disj_True_r  = @{lemma "Q = True ==> (P \<or> Q) = True" by auto};
+val simp_TF_disj_False_l = @{lemma "[| P = False; Q = Q' |] ==> (P \<or> Q) = Q'" by auto};
+val simp_TF_disj_False_r = @{lemma "[| P = P'; Q = False |] ==> (P \<or> Q) = P'" by auto};
 
-val make_cnf_disj_conj_l = @{lemma "[| (P | R) = PR; (Q | R) = QR |] ==> ((P & Q) | R) = (PR & QR)" by auto};
-val make_cnf_disj_conj_r = @{lemma "[| (P | Q) = PQ; (P | R) = PR |] ==> (P | (Q & R)) = (PQ & PR)" by auto};
+val make_cnf_disj_conj_l = @{lemma "[| (P \<or> R) = PR; (Q \<or> R) = QR |] ==> ((P \<and> Q) \<or> R) = (PR \<and> QR)" by auto};
+val make_cnf_disj_conj_r = @{lemma "[| (P \<or> Q) = PQ; (P \<or> R) = PR |] ==> (P \<or> (Q \<and> R)) = (PQ \<and> PR)" by auto};
 
-val make_cnfx_disj_ex_l  = @{lemma "((EX (x::bool). P x) | Q) = (EX x. P x | Q)" by auto};
-val make_cnfx_disj_ex_r  = @{lemma "(P | (EX (x::bool). Q x)) = (EX x. P | Q x)" by auto};
-val make_cnfx_newlit     = @{lemma "(P | Q) = (EX x. (P | x) & (Q | ~x))" by auto};
-val make_cnfx_ex_cong    = @{lemma "(ALL (x::bool). P x = Q x) ==> (EX x. P x) = (EX x. Q x)" by auto};
+val make_cnfx_disj_ex_l  = @{lemma "((EX (x::bool). P x) \<or> Q) = (EX x. P x \<or> Q)" by auto};
+val make_cnfx_disj_ex_r  = @{lemma "(P \<or> (EX (x::bool). Q x)) = (EX x. P \<or> Q x)" by auto};
+val make_cnfx_newlit     = @{lemma "(P \<or> Q) = (EX x. (P \<or> x) \<and> (Q \<or> ~x))" by auto};
+val make_cnfx_ex_cong    = @{lemma "(ALL (x::bool). P x = Q x) \<Longrightarrow> (EX x. P x) = (EX x. Q x)" by auto};
 
 val weakening_thm        = @{lemma "[| P; Q |] ==> Q" by auto};
 
