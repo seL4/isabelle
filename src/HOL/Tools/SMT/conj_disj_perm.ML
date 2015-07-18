@@ -6,7 +6,7 @@ Tactic to prove equivalence of permutations of conjunctions and disjunctions.
 
 signature CONJ_DISJ_PERM =
 sig
-  val conj_disj_perm_tac: int -> tactic
+  val conj_disj_perm_tac: Proof.context -> int -> tactic
 end
 
 structure Conj_Disj_Perm: CONJ_DISJ_PERM =
@@ -118,10 +118,10 @@ fun prove_conj_disj_perm ct cp =
   | (True, Disj) => contrapos (prove_contradiction_eq false) cp
   | _ => raise CTERM ("prove_conj_disj_perm", [ct]))
 
-val conj_disj_perm_tac = CSUBGOAL (fn (ct, i) => 
+fun conj_disj_perm_tac ctxt = CSUBGOAL (fn (ct, i) => 
   (case Thm.term_of ct of
     @{const HOL.Trueprop} $ (@{const HOL.eq(bool)} $ _ $ _) =>
-      rtac (prove_conj_disj_perm ct (Thm.dest_binop (Thm.dest_arg ct))) i
+      resolve_tac ctxt [prove_conj_disj_perm ct (Thm.dest_binop (Thm.dest_arg ct))] i
   | _ => no_tac))
 
 end

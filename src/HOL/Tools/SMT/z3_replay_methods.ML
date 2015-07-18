@@ -443,9 +443,9 @@ fun if_context_conv ctxt ct =
 fun lift_ite_rewrite ctxt t =
   prove ctxt t (fn ctxt => 
     CONVERSION (HOLogic.Trueprop_conv (Conv.binop_conv (if_context_conv ctxt)))
-    THEN' rtac @{thm refl})
+    THEN' resolve_tac ctxt @{thms refl})
 
-fun prove_conj_disj_perm ctxt t = prove ctxt t (fn _ => Conj_Disj_Perm.conj_disj_perm_tac)
+fun prove_conj_disj_perm ctxt t = prove ctxt t Conj_Disj_Perm.conj_disj_perm_tac
 
 fun rewrite ctxt _ = try_provers ctxt Z3_Proof.Rewrite [
   ("rules", apply_rule ctxt),
@@ -492,8 +492,8 @@ fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
 val quant_inst_rule = @{lemma "~P x | Q ==> ~(ALL x. P x) | Q" by fast}
 
 fun quant_inst ctxt _ t = prove ctxt t (fn _ =>
-  REPEAT_ALL_NEW (rtac quant_inst_rule)
-  THEN' rtac @{thm excluded_middle})
+  REPEAT_ALL_NEW (resolve_tac ctxt [quant_inst_rule])
+  THEN' resolve_tac ctxt @{thms excluded_middle})
 
 
 (* propositional lemma *)

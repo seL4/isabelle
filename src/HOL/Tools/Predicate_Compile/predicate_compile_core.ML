@@ -1106,7 +1106,7 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
           val tac =
             Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
               (@{thm if_False} :: @{thm Predicate.not_pred_eq} :: simprules)) 1
-            THEN rtac @{thm Predicate.singleI} 1
+            THEN resolve_tac ctxt @{thms Predicate.singleI} 1
         in SOME (Goal.prove ctxt (argnames @ hoarg_names') []
             neg_introtrm (fn _ => tac))
         end

@@ -100,7 +100,8 @@ fun mk_map_cong0_tac ctxt m map_cong0 =
 
 fun mk_map_cong0L_tac ctxt passive map_cong0 map_id =
   (rtac ctxt trans THEN' rtac ctxt map_cong0 THEN' EVERY' (replicate passive (rtac ctxt refl))) 1 THEN
-  REPEAT_DETERM (EVERY' [rtac ctxt trans, etac ctxt bspec, atac, rtac ctxt sym, rtac ctxt @{thm id_apply}] 1) THEN
+  REPEAT_DETERM (EVERY' [rtac ctxt trans, etac ctxt bspec, assume_tac ctxt,
+      rtac ctxt sym, rtac ctxt @{thm id_apply}] 1) THEN
   rtac ctxt map_id 1;
 
 end;

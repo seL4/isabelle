@@ -249,7 +249,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         val thesis =
           Thm.instantiate ([], inst_of_matches (Thm.prems_of case_th' ~~ map Thm.prop_of prems2))
             case_th' OF prems2
-      in rtac thesis 1 end
+      in resolve_tac ctxt2 [thesis] 1 end
   in
     Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule
       (fn {context = ctxt1, ...} =>

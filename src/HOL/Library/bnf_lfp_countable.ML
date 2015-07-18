@@ -29,11 +29,13 @@ fun nchotomy_tac ctxt nchotomy =
 
 fun meta_spec_mp_tac ctxt 0 = K all_tac
   | meta_spec_mp_tac ctxt depth =
-    dtac ctxt meta_spec THEN' meta_spec_mp_tac ctxt (depth - 1) THEN' dtac ctxt meta_mp THEN' atac;
+    dtac ctxt meta_spec THEN' meta_spec_mp_tac ctxt (depth - 1) THEN'
+    dtac ctxt meta_mp THEN' assume_tac ctxt;
 
 fun use_induction_hypothesis_tac ctxt =
   DEEPEN (1, 64 (* large number *))
-    (fn depth => meta_spec_mp_tac ctxt depth THEN' etac ctxt allE THEN' etac ctxt impE THEN' atac THEN' atac) 0;
+    (fn depth => meta_spec_mp_tac ctxt depth THEN' etac ctxt allE THEN' etac ctxt impE THEN'
+      assume_tac ctxt THEN' assume_tac ctxt) 0;
 
 val same_ctr_simps = @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split
   id_apply snd_conv simp_thms};
@@ -44,7 +46,7 @@ fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
       (ss_only (injects @ recs @ map_congs' @ same_ctr_simps) ctxt) THEN_MAYBE'
     TRY o REPEAT_ALL_NEW (rtac ctxt conjI) THEN_ALL_NEW
     REPEAT_ALL_NEW (eresolve_tac ctxt (conjE :: inj_map_strongs')) THEN_ALL_NEW
-    (atac ORELSE' use_induction_hypothesis_tac ctxt));
+    (assume_tac ctxt ORELSE' use_induction_hypothesis_tac ctxt));
 
 fun distinct_ctrs_tac ctxt recs =
   HEADGOAL (asm_full_simp_tac (ss_only (recs @ distinct_ctrs_simps) ctxt));

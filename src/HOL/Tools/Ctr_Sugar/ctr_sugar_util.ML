@@ -275,8 +275,8 @@ fun CONJ_WRAP_GEN' conj_tac gen_tac xs =
   let val (butlast, last) = split_last xs;
   in WRAP' (fn thm => conj_tac THEN' gen_tac thm) (K (K all_tac)) butlast (gen_tac last) end;
 
-fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (rtac conjI 1) gen_tac;
-fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
+fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (resolve0_tac [conjI] 1) gen_tac;
+fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (resolve0_tac [conjI]) gen_tac;
 
 fun rtac ctxt thm = resolve_tac ctxt [thm];
 fun etac ctxt thm = eresolve_tac ctxt [thm];

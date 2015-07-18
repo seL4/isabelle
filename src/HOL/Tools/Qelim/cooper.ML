@@ -741,7 +741,7 @@ fun thin_prems_tac ctxt P =
         (case try (fn () =>
             Goal.prove_internal ctxt [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) () of
           NONE => no_tac
-        | SOME r => rtac r i)
+        | SOME r => resolve_tac ctxt [r] i)
     end)
 end;
 
@@ -860,11 +860,11 @@ fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
        else Conv.arg_conv (conv ctxt) p
      val p' = Thm.rhs_of cpth
      val th = Thm.implies_intr p' (Thm.equal_elim (Thm.symmetric cpth) (Thm.assume p'))
-   in rtac th i end
+   in resolve_tac ctxt [th] i end
    handle COOPER _ => no_tac);
 
-fun finish_tac q = SUBGOAL (fn (_, i) =>
-  (if q then I else TRY) (rtac TrueI i));
+fun finish_tac ctxt q = SUBGOAL (fn (_, i) =>
+  (if q then I else TRY) (resolve_tac ctxt [TrueI] i));
 
 fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
   let
@@ -885,7 +885,7 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW nat_to_int_tac ctxt
     THEN_ALL_NEW core_tac ctxt
-    THEN_ALL_NEW finish_tac elim
+    THEN_ALL_NEW finish_tac ctxt elim
   end 1);
 
 

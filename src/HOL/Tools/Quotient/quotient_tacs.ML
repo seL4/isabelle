@@ -61,7 +61,7 @@ val equiv_solver = mk_solver "Equivalence goal solver" equiv_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
-    [rtac @{thm identity_quotient3},
+    [resolve_tac ctxt @{thms identity_quotient3},
      resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_thm}))]))
 
 val quotient_solver = mk_solver "Quotient goal solver" quotient_tac
@@ -250,7 +250,7 @@ val apply_rsp_tac =
               val inst_thm = Drule.instantiate' ty_inst
                 ([NONE, NONE, NONE] @ t_inst) @{thm apply_rspQ3}
             in
-              (rtac inst_thm THEN' SOLVED' (quotient_tac ctxt)) 1
+              (resolve_tac ctxt [inst_thm] THEN' SOLVED' (quotient_tac ctxt)) 1
             end
       | _ => no_tac
     end)
@@ -266,7 +266,7 @@ fun equals_rsp_tac R ctxt =
       in
         case try (Drule.instantiate' [SOME (Thm.ctyp_of ctxt ty)]
             [SOME (Thm.cterm_of ctxt R)]) @{thm equals_rsp} of
-          SOME thm => rtac thm THEN' quotient_tac ctxt
+          SOME thm => resolve_tac ctxt [thm] THEN' quotient_tac ctxt
         | NONE => K no_tac
       end
   | _ => K no_tac
@@ -282,7 +282,7 @@ fun rep_abs_rsp_tac ctxt =
           case try (map (SOME o Thm.cterm_of ctxt)) [rel, abs, rep] of
             SOME t_inst =>
               (case try (Drule.instantiate' ty_inst t_inst) @{thm rep_abs_rsp} of
-                SOME inst_thm => (rtac inst_thm THEN' quotient_tac ctxt) i
+                SOME inst_thm => (resolve_tac ctxt [inst_thm] THEN' quotient_tac ctxt) i
               | NONE => no_tac)
           | NONE => no_tac
         end
@@ -315,48 +315,48 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case bare_concl goal of
       (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
     (Const (@{const_name rel_fun}, _) $ _ $ _) $ (Abs _) $ (Abs _)
-        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
+        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
   | (Const (@{const_name HOL.eq},_) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
-        => rtac @{thm ball_rsp} THEN' dtac @{thm QT_all}
+        => resolve_tac ctxt @{thms ball_rsp} THEN' dresolve_tac ctxt @{thms QT_all}
 
       (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
   | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
+        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
   | Const (@{const_name HOL.eq},_) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-        => rtac @{thm bex_rsp} THEN' dtac @{thm QT_ex}
+        => resolve_tac ctxt @{thms bex_rsp} THEN' dresolve_tac ctxt @{thms QT_ex}
 
       (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
   | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
+        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
   | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)
-        => rtac @{thm bex1_rel_rsp} THEN' quotient_tac ctxt
+        => resolve_tac ctxt @{thms bex1_rel_rsp} THEN' quotient_tac ctxt
 
   | (_ $
       (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
-        => rtac @{thm babs_rsp} THEN' quotient_tac ctxt
+        => resolve_tac ctxt @{thms babs_rsp} THEN' quotient_tac ctxt
 
   | Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
-     (rtac @{thm refl} ORELSE'
+     (resolve_tac ctxt @{thms refl} ORELSE'
       (equals_rsp_tac R ctxt THEN' RANGE [
          quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
 
       (* reflexivity of operators arising from Cong_tac *)
-  | Const (@{const_name HOL.eq},_) $ _ $ _ => rtac @{thm refl}
+  | Const (@{const_name HOL.eq},_) $ _ $ _ => resolve_tac ctxt @{thms refl}
 
      (* respectfulness of constants; in particular of a simple relation *)
   | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
@@ -366,7 +366,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
       (* observe map_fun *)
   | _ $ _ $ _
-      => (rtac @{thm quot_rel_rsp} THEN_ALL_NEW quotient_tac ctxt)
+      => (resolve_tac ctxt @{thms quot_rel_rsp} THEN_ALL_NEW quotient_tac ctxt)
          ORELSE' rep_abs_rsp_tac ctxt
 
   | _ => K no_tac) i)
@@ -388,7 +388,7 @@ fun injection_step_tac ctxt rel_refl =
     assume_tac ctxt,
 
     (* (op =) (%x...) (%y...) ----> (op =) (...) (...) *)
-    rtac @{thm ext} THEN' quot_true_tac ctxt unlam,
+    resolve_tac ctxt @{thms ext} THEN' quot_true_tac ctxt unlam,
 
     (* reflexivity of the basic relations *)
     (* R ... ... *)
@@ -522,7 +522,7 @@ fun clean_tac ctxt =
       map_fun_tac ctxt,
       lambda_prs_tac ctxt,
       simp_tac simpset,
-      TRY o rtac refl]
+      TRY o resolve_tac ctxt [refl]]
   end
 
 
@@ -531,8 +531,8 @@ fun clean_tac ctxt =
 fun inst_spec ctrm =
   Drule.instantiate' [SOME (Thm.ctyp_of_cterm ctrm)] [NONE, SOME ctrm] @{thm spec}
 
-fun inst_spec_tac ctrms =
-  EVERY' (map (dtac o inst_spec) ctrms)
+fun inst_spec_tac ctxt ctrms =
+  EVERY' (map (dresolve_tac ctxt o single o inst_spec) ctrms)
 
 fun all_list xs trm =
   fold (fn (x, T) => fn t' => HOLogic.mk_all (x, T, t')) xs trm
@@ -548,9 +548,9 @@ fun gen_frees_tac ctxt =
       val concl' = apply_under_Trueprop (all_list vrs) concl
       val goal = Logic.mk_implies (concl', concl)
       val rule = Goal.prove ctxt [] [] goal
-        (K (EVERY1 [inst_spec_tac (rev cvrs), assume_tac ctxt]))
+        (K (EVERY1 [inst_spec_tac ctxt (rev cvrs), assume_tac ctxt]))
     in
-      rtac rule i
+      resolve_tac ctxt [rule] i
     end)
 
 
@@ -632,7 +632,7 @@ fun descend_procedure_tac ctxt simps =
         val rtrm = Quotient_Term.derive_rtrm ctxt qtys goal
         val rule = procedure_inst ctxt rtrm  goal
       in
-        rtac rule i
+        resolve_tac ctxt [rule] i
       end)
   end
 
@@ -681,7 +681,7 @@ fun partiality_descend_procedure_tac ctxt simps =
         val rtrm = Quotient_Term.derive_rtrm ctxt qtys goal
         val rule = partiality_procedure_inst ctxt rtrm  goal
       in
-        rtac rule i
+        resolve_tac ctxt [rule] i
       end)
   end
 
@@ -722,7 +722,7 @@ fun lift_procedure_tac ctxt simps rthm =
 
         val rule = procedure_inst ctxt (Thm.prop_of rthm') goal
       in
-        (rtac rule THEN' rtac rthm') i
+        (resolve_tac ctxt [rule] THEN' resolve_tac ctxt [rthm']) i
       end)
   end
 

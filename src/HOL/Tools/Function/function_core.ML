@@ -692,7 +692,7 @@ fun mk_partial_induct_rule ctxt globals R complete_thm clauses =
       subset_induct_rule
       |> Thm.forall_intr (Thm.cterm_of ctxt D)
       |> Thm.forall_elim (Thm.cterm_of ctxt acc_R)
-      |> atac 1 |> Seq.hd
+      |> assume_tac ctxt 1 |> Seq.hd
       |> (curry op COMP) (acc_downward
         |> (instantiate' [SOME (Thm.ctyp_of ctxt domT)] (map (SOME o Thm.cterm_of ctxt) [R, x, z]))
         |> Thm.forall_intr (Thm.cterm_of ctxt z)

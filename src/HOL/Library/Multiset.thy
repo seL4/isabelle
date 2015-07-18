@@ -1898,23 +1898,25 @@ setup \<open>
             Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
                   mk_mset T [x] $ mk_mset T xs
 
-    fun mset_member_tac m i =
+    fun mset_member_tac ctxt m i =
       if m <= 0 then
-        rtac @{thm multi_member_this} i ORELSE rtac @{thm multi_member_last} i
+        resolve_tac ctxt @{thms multi_member_this} i ORELSE
+        resolve_tac ctxt @{thms multi_member_last} i
       else
-        rtac @{thm multi_member_skip} i THEN mset_member_tac (m - 1) i
+        resolve_tac ctxt @{thms multi_member_skip} i THEN mset_member_tac ctxt (m - 1) i
 
-    val mset_nonempty_tac =
-      rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
+    fun mset_nonempty_tac ctxt =
+      resolve_tac ctxt @{thms nonempty_plus} ORELSE'
+      resolve_tac ctxt @{thms nonempty_single}
 
     fun regroup_munion_conv ctxt =
       Function_Lib.regroup_conv ctxt @{const_abbrev Mempty} @{const_name plus}
         (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
-    fun unfold_pwleq_tac i =
-      (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
-        ORELSE (rtac @{thm pw_leq_lstep} i)
-        ORELSE (rtac @{thm pw_leq_empty} i)
+    fun unfold_pwleq_tac ctxt i =
+      (resolve_tac ctxt @{thms pw_leq_step} i THEN (fn st => unfold_pwleq_tac ctxt (i + 1) st))
+        ORELSE (resolve_tac ctxt @{thms pw_leq_lstep} i)
+        ORELSE (resolve_tac ctxt @{thms pw_leq_empty} i)
 
     val set_mset_simps = [@{thm set_mset_empty}, @{thm set_mset_single}, @{thm set_mset_union},
                         @{thm Un_insert_left}, @{thm Un_empty_left}]
@@ -1925,7 +1927,7 @@ setup \<open>
       mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
       mset_pwleq_tac=unfold_pwleq_tac, set_of_simps=set_mset_simps,
       smsI'= @{thm ms_strictI}, wmsI2''= @{thm ms_weakI2}, wmsI1= @{thm ms_weakI1},
-      reduction_pair= @{thm ms_reduction_pair}
+      reduction_pair = @{thm ms_reduction_pair}
     })
   end
 \<close>

@@ -456,7 +456,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val wits = map (fn t => fold absfree (Term.add_frees t []) t)
       (map (fn (I, wit) => Term.list_comb (wit, map (nth xs) I)) bnf_wits);
 
-    fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
+    fun wit_tac ctxt = mk_simple_wit_tac ctxt (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME (Ds @ killedAs))
@@ -547,7 +547,7 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
+    fun wit_tac ctxt = mk_simple_wit_tac ctxt (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME Ds) Binding.empty
@@ -629,7 +629,7 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
+    fun wit_tac ctxt = mk_simple_wit_tac ctxt (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME Ds) Binding.empty
@@ -883,8 +883,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
           (AbsA $ Term.list_comb (t, map Bound (0 upto length I - 1))))
       (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac ctxt = ALLGOALS (dtac ctxt (type_definition RS @{thm type_copy_wit})) THEN
-      mk_simple_wit_tac (wit_thms_of_bnf bnf);
+    fun wit_tac ctxt =
+      ALLGOALS (dtac ctxt (type_definition RS @{thm type_copy_wit})) THEN
+      mk_simple_wit_tac ctxt (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
       bnf_def Hardly_Inline (user_policy Dont_Note) true qualify tacs wit_tac (SOME all_deads)

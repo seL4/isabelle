@@ -9,15 +9,12 @@ sig
   val add_quotient_def:
     ((binding * mixfix) * Attrib.binding) * (term * term) -> thm ->
     local_theory -> Quotient_Info.quotconsts * local_theory
-
   val quotient_def:
     (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
     local_theory -> Proof.state
-
   val quotient_def_cmd:
     (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
     local_theory -> Proof.state
-
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -189,7 +186,9 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
           case thm_list of
             [] => the maybe_proven_rsp_thm
           | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm
-            (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
+            (fn _ =>
+              resolve_tac ctxt [readable_rsp_thm_eq] 1 THEN
+              Proof_Context.fact_tac ctxt [thm] 1)
       in
         snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy)
       end

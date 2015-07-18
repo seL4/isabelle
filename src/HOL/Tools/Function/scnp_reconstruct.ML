@@ -17,9 +17,9 @@ sig
      msetT : typ -> typ,
      mk_mset : typ -> term list -> term,
      mset_regroup_conv : Proof.context -> int list -> conv,
-     mset_member_tac : int -> int -> tactic,
-     mset_nonempty_tac : int -> tactic,
-     mset_pwleq_tac : int -> tactic,
+     mset_member_tac : Proof.context -> int -> int -> tactic,
+     mset_nonempty_tac : Proof.context -> int -> tactic,
+     mset_pwleq_tac : Proof.context -> int -> tactic,
      set_of_simps : thm list,
      smsI' : thm,
      wmsI2'' : thm,
@@ -49,9 +49,9 @@ datatype multiset_setup =
    msetT : typ -> typ,
    mk_mset : typ -> term list -> term,
    mset_regroup_conv : Proof.context -> int list -> conv,
-   mset_member_tac : int -> int -> tactic,
-   mset_nonempty_tac : int -> tactic,
-   mset_pwleq_tac : int -> tactic,
+   mset_member_tac : Proof.context -> int -> int -> tactic,
+   mset_nonempty_tac : Proof.context -> int -> tactic,
+   mset_pwleq_tac : Proof.context -> int -> tactic,
    set_of_simps : thm list,
    smsI' : thm,
    wmsI2'' : thm,
@@ -116,13 +116,13 @@ fun gen_probl D cs =
 
 (* General reduction pair application *)
 fun rem_inv_img ctxt =
-  rtac @{thm subsetI} 1
-  THEN etac @{thm CollectE} 1
-  THEN REPEAT (etac @{thm exE} 1)
+  resolve_tac ctxt @{thms subsetI} 1
+  THEN eresolve_tac ctxt @{thms CollectE} 1
+  THEN REPEAT (eresolve_tac ctxt @{thms exE} 1)
   THEN Local_Defs.unfold_tac ctxt @{thms inv_image_def}
-  THEN rtac @{thm CollectI} 1
-  THEN etac @{thm conjE} 1
-  THEN etac @{thm ssubst} 1
+  THEN resolve_tac ctxt @{thms CollectI} 1
+  THEN eresolve_tac ctxt @{thms conjE} 1
+  THEN eresolve_tac ctxt @{thms ssubst} 1
   THEN Local_Defs.unfold_tac ctxt @{thms split_conv triv_forall_equality sum.case}
 
 
@@ -130,15 +130,15 @@ fun rem_inv_img ctxt =
 
 val setT = HOLogic.mk_setT
 
-fun set_member_tac m i =
-  if m = 0 then rtac @{thm insertI1} i
-  else rtac @{thm insertI2} i THEN set_member_tac (m - 1) i
+fun set_member_tac ctxt m i =
+  if m = 0 then resolve_tac ctxt @{thms insertI1} i
+  else resolve_tac ctxt @{thms insertI2} i THEN set_member_tac ctxt (m - 1) i
 
-val set_nonempty_tac = rtac @{thm insert_not_empty}
+fun set_nonempty_tac ctxt = resolve_tac ctxt @{thms insert_not_empty}
 
-fun set_finite_tac i =
-  rtac @{thm finite.emptyI} i
-  ORELSE (rtac @{thm finite.insertI} i THEN (fn st => set_finite_tac i st))
+fun set_finite_tac ctxt i =
+  resolve_tac ctxt @{thms finite.emptyI} i
+  ORELSE (resolve_tac ctxt @{thms finite.insertI} i THEN (fn st => set_finite_tac ctxt i st))
 
 
 (* Reconstruction *)
@@ -183,7 +183,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
               then if b < a then @{thm pair_lessI2} else @{thm pair_lessI1}
               else if b <= a then @{thm pair_leqI2} else @{thm pair_leqI1}
           in
-            rtac rule 1 THEN PRIMITIVE (Thm.elim_implies stored_thm)
+            resolve_tac ctxt [rule] 1 THEN PRIMITIVE (Thm.elim_implies stored_thm)
             THEN (if tag_flag then Arith_Data.arith_tac ctxt 1 else all_tac)
           end
 
@@ -192,16 +192,16 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 val (empty, step) = ord_intros_max strict
               in
                 if length lq = 0
-                then rtac empty 1 THEN set_finite_tac 1
-                     THEN (if strict then set_nonempty_tac 1 else all_tac)
+                then resolve_tac ctxt [empty] 1 THEN set_finite_tac ctxt 1
+                     THEN (if strict then set_nonempty_tac ctxt 1 else all_tac)
                 else
                   let
                     val (j, b) :: rest = lq
                     val (i, a) = the (covering g strict j)
-                    fun choose xs = set_member_tac (find_index (curry op = (i, a)) xs) 1
+                    fun choose xs = set_member_tac ctxt (find_index (curry op = (i, a)) xs) 1
                     val solve_tac = choose lp THEN less_proof strict (j, b) (i, a)
                   in
-                    rtac step 1 THEN solve_tac THEN steps_tac MAX strict rest lp
+                    resolve_tac ctxt [step] 1 THEN solve_tac THEN steps_tac MAX strict rest lp
                   end
               end
           | steps_tac MIN strict lq lp =
@@ -209,16 +209,16 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 val (empty, step) = ord_intros_min strict
               in
                 if length lp = 0
-                then rtac empty 1
-                     THEN (if strict then set_nonempty_tac 1 else all_tac)
+                then resolve_tac ctxt [empty] 1
+                     THEN (if strict then set_nonempty_tac ctxt 1 else all_tac)
                 else
                   let
                     val (i, a) :: rest = lp
                     val (j, b) = the (covering g strict i)
-                    fun choose xs = set_member_tac (find_index (curry op = (j, b)) xs) 1
+                    fun choose xs = set_member_tac ctxt (find_index (curry op = (j, b)) xs) 1
                     val solve_tac = choose lq THEN less_proof strict (j, b) (i, a)
                   in
-                    rtac step 1 THEN solve_tac THEN steps_tac MIN strict lq rest
+                    resolve_tac ctxt [step] 1 THEN solve_tac THEN steps_tac MIN strict lq rest
                   end
               end
           | steps_tac MS strict lq lp =
@@ -243,10 +243,10 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 end
               in
                 CONVERSION goal_rewrite 1
-                THEN (if strict then rtac smsI' 1
-                      else if qs = lq then rtac wmsI2'' 1
-                      else rtac wmsI1 1)
-                THEN mset_pwleq_tac 1
+                THEN (if strict then resolve_tac ctxt [smsI'] 1
+                      else if qs = lq then resolve_tac ctxt [wmsI2''] 1
+                      else resolve_tac ctxt [wmsI1] 1)
+                THEN mset_pwleq_tac ctxt 1
                 THEN EVERY (map2 (less_proof false) qs ps)
                 THEN (if strict orelse qs <> lq
                       then Local_Defs.unfold_tac ctxt set_of_simps
@@ -275,9 +275,9 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
     in
       PROFILE "Proof Reconstruction"
         (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv ctxt sl))) 1
-         THEN (rtac @{thm reduction_pair_lemma} 1)
-         THEN (rtac @{thm rp_inv_image_rp} 1)
-         THEN (rtac (order_rpair ms_rp label) 1)
+         THEN (resolve_tac ctxt @{thms reduction_pair_lemma} 1)
+         THEN (resolve_tac ctxt @{thms rp_inv_image_rp} 1)
+         THEN (resolve_tac ctxt [order_rpair ms_rp label] 1)
          THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
          THEN unfold_tac ctxt @{thms rp_inv_image_def}
          THEN Local_Defs.unfold_tac ctxt @{thms split_conv fst_conv snd_conv}
@@ -300,7 +300,7 @@ fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
       NONE => no_tac
     | SOME cert =>
         SELECT_GOAL (reconstruct_tac ctxt D cs gp cert) i
-        THEN TRY (rtac @{thm wf_empty} i))
+        THEN TRY (resolve_tac ctxt @{thms wf_empty} i))
   end)
 
 fun gen_decomp_scnp_tac orders autom_tac ctxt =
@@ -315,7 +315,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt =
 fun gen_sizechange_tac orders autom_tac ctxt =
   TRY (Function_Common.termination_rule_tac ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
-  THEN (rtac @{thm wf_empty} 1 ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
+  THEN (resolve_tac ctxt @{thms wf_empty} 1 ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
 
 fun sizechange_tac ctxt autom_tac =
   gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt

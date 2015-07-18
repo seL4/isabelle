@@ -166,8 +166,9 @@ fun introrulify thy ths =
             val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
               THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
-                rtac (Drule.cterm_instantiate [(x, Thm.cterm_of ctxt' (Free y))] @{thm exI}) 1) ps))
-              THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN assume_tac ctxt' 1)
+                resolve_tac ctxt'
+                  [Drule.cterm_instantiate [(x, Thm.cterm_of ctxt' (Free y))] @{thm exI}] 1) ps))
+              THEN REPEAT_DETERM (resolve_tac ctxt' @{thms conjI} 1 THEN assume_tac ctxt' 1)
               THEN TRY (assume_tac ctxt' 1)
           in
             Goal.prove ctxt' (map fst ps) [] introrule (fn _ => tac)
