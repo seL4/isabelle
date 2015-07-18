@@ -128,7 +128,7 @@ fun mk_disc_transfer_tac ctxt rel_sel exhaust_disc distinct_disc =
       HEADGOAL (rtac ctxt (rotate_prems ~1 exhaust_disc) THEN' assume_tac ctxt THEN'
       REPEAT_DETERM o (rotate_tac ~1 THEN' dtac ctxt (rotate_prems 1 iffD) THEN'
         assume_tac ctxt THEN' rotate_tac ~1 THEN'
-        etac ctxt (rotate_prems 1 notE) THEN' eresolve0_tac distinct_disc));
+        etac ctxt (rotate_prems 1 notE) THEN' eresolve_tac ctxt distinct_disc));
   in
     HEADGOAL Goal.conjunction_tac THEN
     REPEAT_DETERM (HEADGOAL (rtac ctxt rel_funI THEN' dtac ctxt (rel_sel RS iffD1) THEN'

@@ -247,7 +247,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val ordIso = Const (@{const_name ordIso}, HOLogic.mk_setT (fastype_of bd_bd'));
           val goal = mk_Trueprop_mem (bd_bd', ordIso);
         in
-          (bd', SOME (Goal.prove_sorry lthy [] [] goal (K bd_ordIso_natLeq_tac)
+          (bd', SOME (Goal.prove_sorry lthy [] [] goal (bd_ordIso_natLeq_tac o #context)
             |> Thm.close_derivation))
         end
       else

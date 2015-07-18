@@ -117,7 +117,7 @@ fun mk_coalg_set_tac ctxt coalg_def =
   dtac ctxt (coalg_def RS iffD1) 1 THEN
   REPEAT_DETERM (etac ctxt conjE 1) THEN
   EVERY' [dtac ctxt rev_bspec, assume_tac ctxt] 1 THEN
-  REPEAT_DETERM (eresolve0_tac [CollectE, conjE] 1) THEN assume_tac ctxt 1;
+  REPEAT_DETERM (eresolve_tac ctxt [CollectE, conjE] 1) THEN assume_tac ctxt 1;
 
 fun mk_mor_elim_tac ctxt mor_def =
   (dtac ctxt (mor_def RS iffD1) THEN'
@@ -226,7 +226,7 @@ fun mk_bis_rel_tac ctxt m bis_def in_rels map_comp0s map_cong0s set_map0ss =
     fun mk_if_tac ((((i, map_comp0), map_cong0), set_map0s), in_rel) =
       EVERY' [rtac ctxt allI, rtac ctxt allI, rtac ctxt impI, dtac ctxt (mk_conjunctN n i),
         etac ctxt allE, etac ctxt allE, etac ctxt impE, assume_tac ctxt, etac ctxt bexE,
-        REPEAT_DETERM o eresolve0_tac [CollectE, conjE],
+        REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE],
         rtac ctxt (in_rel RS iffD2), rtac ctxt exI, rtac ctxt (Drule.rotate_prems 1 conjI),
         CONJ_WRAP' (fn thm => EVERY' [rtac ctxt trans, rtac ctxt trans, rtac ctxt map_comp0, rtac ctxt map_cong0,
           REPEAT_DETERM_N m o rtac ctxt thm, REPEAT_DETERM_N n o rtac ctxt (@{thm comp_id} RS fun_cong),
@@ -246,7 +246,7 @@ fun mk_bis_rel_tac ctxt m bis_def in_rels map_comp0s map_cong0s set_map0ss =
       EVERY' [dtac ctxt (mk_conjunctN n i), rtac ctxt allI, rtac ctxt allI, rtac ctxt impI,
         etac ctxt allE, etac ctxt allE, etac ctxt impE, assume_tac ctxt,
         dtac ctxt (in_rel RS @{thm iffD1}),
-        REPEAT_DETERM o eresolve0_tac ([CollectE, conjE, exE] @
+        REPEAT_DETERM o eresolve_tac ctxt ([CollectE, conjE, exE] @
           @{thms CollectE Collect_split_in_rel_leE}),
         rtac ctxt bexI, rtac ctxt conjI, rtac ctxt trans, rtac ctxt map_comp0, rtac ctxt trans, rtac ctxt map_cong0,
         REPEAT_DETERM_N m o rtac ctxt (@{thm id_comp} RS fun_cong),
@@ -654,7 +654,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
 
 fun mk_congruent_str_final_tac ctxt m lsbisE map_comp_id map_cong0 equiv_LSBISs =
   EVERY' [rtac ctxt @{thm congruentI}, dtac ctxt lsbisE,
-    REPEAT_DETERM o eresolve0_tac [CollectE, conjE, bexE], rtac ctxt (o_apply RS trans),
+    REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE, bexE], rtac ctxt (o_apply RS trans),
     etac ctxt (sym RS arg_cong RS trans), rtac ctxt (map_comp_id RS trans),
     rtac ctxt (map_cong0 RS trans), REPEAT_DETERM_N m o rtac ctxt refl,
     EVERY' (map (fn equiv_LSBIS =>

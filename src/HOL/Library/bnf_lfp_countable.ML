@@ -24,8 +24,8 @@ open BNF_FP_Def_Sugar
 val countableS = @{sort countable};
 
 fun nchotomy_tac ctxt nchotomy =
-  HEADGOAL (rtac ctxt (nchotomy RS @{thm all_reg[rotated]}) THEN'
-    REPEAT_ALL_NEW (resolve0_tac [allI, impI] ORELSE' eresolve0_tac [exE, disjE]));
+  HEADGOAL (resolve_tac ctxt [nchotomy RS @{thm all_reg[rotated]}] THEN'
+    REPEAT_ALL_NEW (resolve_tac ctxt [allI, impI] ORELSE' eresolve_tac ctxt [exE, disjE]));
 
 fun meta_spec_mp_tac ctxt 0 = K all_tac
   | meta_spec_mp_tac ctxt depth =

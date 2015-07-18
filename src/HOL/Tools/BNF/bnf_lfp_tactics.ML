@@ -126,7 +126,7 @@ fun mk_mor_comp_tac ctxt mor_def set_maps map_comp_ids =
     fun mor_tac (set_map, map_comp_id) =
       EVERY' [rtac ctxt ballI, rtac ctxt (o_apply RS trans), rtac ctxt trans,
         rtac ctxt trans, dtac ctxt rev_bspec, assume_tac ctxt, etac ctxt arg_cong,
-         REPEAT o eresolve0_tac [CollectE, conjE], etac ctxt bspec, rtac ctxt CollectI] THEN'
+         REPEAT o eresolve_tac ctxt [CollectE, conjE], etac ctxt bspec, rtac ctxt CollectI] THEN'
       CONJ_WRAP' (fn thm =>
         FIRST' [rtac ctxt subset_UNIV,
           (EVERY' [rtac ctxt ord_eq_le_trans, rtac ctxt thm, rtac ctxt @{thm image_subsetI},
@@ -172,14 +172,14 @@ fun mk_copy_tac ctxt m alg_def mor_def alg_sets set_mapss =
         rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imageE}];
     val alg_tac =
       CONJ_WRAP' (fn (set_maps, alg_set) =>
-        EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve0_tac [CollectE, conjE], rtac ctxt set_mp,
+        EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt set_mp,
           rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imageE[OF bij_betw_the_inv_into]},
           rtac ctxt imageI, etac ctxt alg_set, EVERY' (map set_tac (drop m set_maps))])
       (set_mapss ~~ alg_sets);
 
     val mor_tac = rtac ctxt conjI THEN' CONJ_WRAP' (K (etac ctxt @{thm bij_betwE})) alg_sets THEN'
       CONJ_WRAP' (fn (set_maps, alg_set) =>
-        EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve0_tac [CollectE, conjE],
+        EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE],
           etac ctxt @{thm f_the_inv_into_f_bij_betw}, etac ctxt alg_set,
           EVERY' (map set_tac (drop m set_maps))])
       (set_mapss ~~ alg_sets);
@@ -257,7 +257,7 @@ fun mk_min_algs_card_of_tac ctxt cT ct m worel min_algs in_bds bd_Card_order bd_
       rtac ctxt @{thm csum_absorb1}, rtac ctxt Asuc_Cinfinite, rtac ctxt @{thm ctwo_ordLeq_Cinfinite},
       rtac ctxt Asuc_Cinfinite, rtac ctxt bd_Card_order,
       rtac ctxt @{thm ordIso_imp_ordLeq}, rtac ctxt @{thm cexp_cprod_ordLeq},
-      resolve0_tac @{thms Card_order_csum Card_order_ctwo}, rtac ctxt suc_Cinfinite,
+      resolve_tac ctxt @{thms Card_order_csum Card_order_ctwo}, rtac ctxt suc_Cinfinite,
       rtac ctxt bd_Cnotzero, rtac ctxt @{thm cardSuc_ordLeq}, rtac ctxt bd_Card_order, rtac ctxt Asuc_Cinfinite];
   in
     (rtac ctxt induct THEN'
@@ -276,7 +276,7 @@ fun mk_min_algs_least_tac ctxt cT ct worel min_algs alg_sets =
 
     fun mk_minH_tac (min_alg, alg_set) = EVERY' [rtac ctxt ord_eq_le_trans, etac ctxt min_alg,
       rtac ctxt @{thm Un_least}, minG_tac, rtac ctxt @{thm image_subsetI},
-      REPEAT_DETERM o eresolve0_tac [CollectE, conjE], etac ctxt alg_set,
+      REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], etac ctxt alg_set,
       REPEAT_DETERM o (etac ctxt subset_trans THEN' minG_tac)];
   in
     (rtac ctxt induct THEN'
@@ -290,9 +290,9 @@ fun mk_alg_min_alg_tac ctxt m alg_def min_alg_defs bd_limit bd_Cinfinite
     val n = length min_algs;
     fun mk_cardSuc_UNION_tac set_bds (mono, def) = EVERY'
       [rtac ctxt bexE, rtac ctxt @{thm cardSuc_UNION_Cinfinite}, rtac ctxt bd_Cinfinite, rtac ctxt mono,
-       etac ctxt (def RSN (2, @{thm subset_trans[OF _ equalityD1]})), resolve0_tac set_bds];
+       etac ctxt (def RSN (2, @{thm subset_trans[OF _ equalityD1]})), resolve_tac ctxt set_bds];
     fun mk_conjunct_tac (set_bds, (min_alg, min_alg_def)) =
-      EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve0_tac [CollectE, conjE],
+      EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE],
         EVERY' (map (mk_cardSuc_UNION_tac set_bds) (min_alg_monos ~~ min_alg_defs)), rtac ctxt bexE,
         rtac ctxt bd_limit, REPEAT_DETERM_N (n - 1) o etac ctxt conjI, assume_tac ctxt,
         rtac ctxt (min_alg_def RS @{thm set_mp[OF equalityD2]}),
@@ -339,9 +339,9 @@ fun mk_mor_select_tac ctxt mor_def mor_cong mor_comp mor_incl_min_alg alg_def al
     val mor_tac =
       CONJ_WRAP' (fn thm => EVERY' [rtac ctxt ballI, rtac ctxt thm]) str_init_defs;
     fun alg_epi_tac ((alg_set, str_init_def), set_map) =
-      EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve0_tac [CollectE, conjE], rtac ctxt CollectI,
+      EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt CollectI,
         rtac ctxt ballI, ftac ctxt (alg_select RS bspec), rtac ctxt (str_init_def RS @{thm ssubst_mem}),
-        etac ctxt alg_set, REPEAT_DETERM o EVERY' [rtac ctxt ord_eq_le_trans, resolve0_tac set_map,
+        etac ctxt alg_set, REPEAT_DETERM o EVERY' [rtac ctxt ord_eq_le_trans, resolve_tac ctxt set_map,
           rtac ctxt subset_trans, etac ctxt @{thm image_mono}, rtac ctxt @{thm image_Collect_subsetI}, etac ctxt bspec,
           assume_tac ctxt]];
   in
@@ -358,7 +358,7 @@ fun mk_init_ex_mor_tac ctxt Abs_inverse copy card_of_min_algs mor_Rep mor_comp m
     EVERY' [Method.insert_tac (map (fn thm => thm RS @{thm ex_bij_betw}) card_of_min_algs),
       REPEAT_DETERM o etac ctxt exE, rtac ctxt rev_mp, rtac ctxt copy,
       REPEAT_DETERM_N n o assume_tac ctxt,
-      rtac ctxt impI, REPEAT_DETERM o eresolve0_tac [exE, conjE], REPEAT_DETERM_N n o rtac ctxt exI,
+      rtac ctxt impI, REPEAT_DETERM o eresolve_tac ctxt [exE, conjE], REPEAT_DETERM_N n o rtac ctxt exI,
       rtac ctxt mor_comp, rtac ctxt mor_Rep, rtac ctxt mor_select, rtac ctxt CollectI, REPEAT_DETERM o rtac ctxt exI,
       rtac ctxt conjI, rtac ctxt refl, assume_tac ctxt,
       SELECT_GOAL (unfold_thms_tac ctxt (Abs_inverse :: fst_snd_convs)),
@@ -381,7 +381,7 @@ fun mk_init_unique_mor_tac ctxt cts m
 
     fun mk_alg_tac (ct, (alg_set, (in_mono, (morE, map_cong0)))) =
       EVERY' [rtac ctxt ballI, rtac ctxt CollectI,
-        REPEAT_DETERM o eresolve0_tac [CollectE, conjE], rtac ctxt conjI, rtac ctxt (alg_min_alg RS alg_set),
+        REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt conjI, rtac ctxt (alg_min_alg RS alg_set),
         REPEAT_DETERM_N n o (etac ctxt subset_trans THEN' rtac ctxt @{thm Collect_restrict}),
         rtac ctxt trans, mor_tac morE in_mono,
         rtac ctxt trans, cong_tac ct map_cong0,
@@ -400,7 +400,7 @@ fun mk_init_induct_tac ctxt m alg_def alg_min_alg least_min_algs alg_sets =
     val n = length least_min_algs;
 
     fun mk_alg_tac alg_set = EVERY' [rtac ctxt ballI, rtac ctxt CollectI,
-      REPEAT_DETERM o eresolve0_tac [CollectE, conjE], rtac ctxt conjI, rtac ctxt (alg_min_alg RS alg_set),
+      REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt conjI, rtac ctxt (alg_min_alg RS alg_set),
       REPEAT_DETERM_N n o (etac ctxt subset_trans THEN' rtac ctxt @{thm Collect_restrict}),
       rtac ctxt mp, etac ctxt bspec, rtac ctxt CollectI,
       REPEAT_DETERM_N m o (rtac ctxt conjI THEN' assume_tac ctxt),
@@ -449,7 +449,7 @@ fun mk_fold_unique_mor_tac ctxt type_defs init_unique_mors Reps mor_comp mor_Abs
   let
     fun mk_unique type_def =
       EVERY' [rtac ctxt @{thm surj_fun_eq}, rtac ctxt (type_def RS @{thm type_definition.Abs_image}),
-        rtac ctxt ballI, resolve0_tac init_unique_mors,
+        rtac ctxt ballI, resolve_tac ctxt init_unique_mors,
         EVERY' (map (fn thm => assume_tac ctxt ORELSE' rtac ctxt thm) Reps),
         rtac ctxt mor_comp, rtac ctxt mor_Abs, assume_tac ctxt,
         rtac ctxt mor_comp, rtac ctxt mor_Abs, rtac ctxt mor_fold];

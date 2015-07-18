@@ -87,7 +87,7 @@ val mk_exhaust_disc_tac = mk_exhaust_disc_or_sel_tac;
 
 fun mk_exhaust_sel_tac ctxt n exhaust_disc collapses =
   mk_exhaust_disc_or_sel_tac ctxt n exhaust_disc collapses ORELSE
-  HEADGOAL (etac ctxt meta_mp THEN' resolve0_tac collapses);
+  HEADGOAL (etac ctxt meta_mp THEN' resolve_tac ctxt collapses);
 
 fun mk_collapse_tac ctxt m discD sels =
   HEADGOAL (dtac ctxt discD THEN'

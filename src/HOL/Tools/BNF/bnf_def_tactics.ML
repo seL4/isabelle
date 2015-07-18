@@ -55,13 +55,15 @@ fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac ctxt cong0 THEN'
    REPEAT_DETERM o (dtac ctxt meta_spec THEN' etac ctxt meta_mp THEN' assume_tac ctxt)) 1;
 fun mk_set_map set_map0 = set_map0 RS @{thm comp_eq_dest};
-fun mk_in_mono_tac ctxt n = if n = 0 then rtac ctxt subset_UNIV 1
-  else (rtac ctxt subsetI THEN'
-  rtac ctxt CollectI) 1 THEN
-  REPEAT_DETERM (eresolve0_tac [CollectE, conjE] 1) THEN
-  REPEAT_DETERM_N (n - 1)
-    ((rtac ctxt conjI THEN' etac ctxt subset_trans THEN' assume_tac ctxt) 1) THEN
-  (etac ctxt subset_trans THEN' assume_tac ctxt) 1;
+
+fun mk_in_mono_tac ctxt n =
+  if n = 0 then rtac ctxt subset_UNIV 1
+  else
+   (rtac ctxt subsetI THEN' rtac ctxt CollectI) 1 THEN
+   REPEAT_DETERM (eresolve_tac ctxt [CollectE, conjE] 1) THEN
+   REPEAT_DETERM_N (n - 1)
+     ((rtac ctxt conjI THEN' etac ctxt subset_trans THEN' assume_tac ctxt) 1) THEN
+   (etac ctxt subset_trans THEN' assume_tac ctxt) 1;
 
 fun mk_inj_map_tac ctxt n map_id map_comp map_cong0 map_cong =
   let

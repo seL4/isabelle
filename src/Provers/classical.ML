@@ -157,7 +157,7 @@ fun classical_rule ctxt rule =
       val rule'' =
         rule' |> ALLGOALS (SUBGOAL (fn (goal, i) =>
           if i = 1 orelse redundant_hyp goal
-          then eresolve0_tac [thin_rl] i
+          then eresolve_tac ctxt [thin_rl] i
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
