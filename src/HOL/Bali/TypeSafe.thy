@@ -3889,7 +3889,7 @@ theorem wellformed_eval_induct [consumes 4, case_names Abrupt Skip Expr Lab
 proof -
   note inj_term_simps [simp]
   from eval 
-  show "\<And> L accC T A. \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T;
+  have "\<And>L accC T A. \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T;
                        \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>dom (locals (store s0))\<guillemotright>t\<guillemotright>A\<rbrakk>  
         \<Longrightarrow> P L accC s0 t v s1" (is "PROP ?Hyp s0 t v s1")
   proof (induct)
