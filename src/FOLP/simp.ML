@@ -73,14 +73,14 @@ fun lhs_insert_thm th net =
 (*match subgoal i against possible theorems in the net.
   Similar to match_from_nat_tac, but the net does not contain numbers;
   rewrite rules are not ordered.*)
-fun net_tac net =
-  SUBGOAL(fn (prem,i) =>
-          resolve0_tac (Net.unify_term net (Logic.strip_assums_concl prem)) i);
+fun net_tac ctxt net =
+  SUBGOAL(fn (prem, i) =>
+    resolve_tac ctxt (Net.unify_term net (Logic.strip_assums_concl prem)) i);
 
 (*match subgoal i against possible theorems indexed by lhs in the net*)
-fun lhs_net_tac net =
+fun lhs_net_tac ctxt net =
   SUBGOAL(fn (prem,i) =>
-          biresolve0_tac (Net.unify_term net
+          biresolve_tac ctxt (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
 fun nth_subgoal i thm = nth (Thm.prems_of thm) (i - 1);
@@ -119,7 +119,7 @@ val norms =
 fun lhs_is_NORM(thm,i) = case lhs_of_eq i thm of
         Const(s,_)$_ => member (op =) norms s | _ => false;
 
-val refl_tac = resolve0_tac refl_thms;
+fun refl_tac ctxt = resolve_tac ctxt refl_thms;
 
 fun find_res thms thm =
     let fun find [] = error "Check Simp_Data"
@@ -138,7 +138,7 @@ fun one_result(tac,thm) = case Seq.pull(tac thm) of
         SOME(thm',_) => thm'
       | NONE => raise THM("Simplifier: could not continue", 0, [thm]);
 
-fun res1(thm,thms,i) = one_result(resolve0_tac thms i,thm);
+fun res1 ctxt (thm,thms,i) = one_result (resolve_tac ctxt thms i,thm);
 
 
 (**** Adding "NORM" tags ****)
@@ -186,7 +186,7 @@ fun add_new_asm_vars new_asms =
     in add_vars end;
 
 
-fun add_norms(congs,ccs,new_asms) thm =
+fun add_norms ctxt (congs,ccs,new_asms) thm =
 let val thm' = mk_trans2 thm;
 (* thm': [?z -> l; Prems; r -> ?t] ==> ?z -> ?t *)
     val nops = Thm.nprems_of thm'
@@ -200,35 +200,34 @@ let val thm' = mk_trans2 thm;
         else Misc_Legacy.add_term_frees(asm,hvars)
     val hvars = fold_rev it_asms asms hvars
     val hvs = map (#1 o dest_Var) hvars
-    val refl1_tac = refl_tac 1
     fun norm_step_tac st = st |>
          (case head_of(rhs_of_eq 1 st) of
-            Var(ixn,_) => if member (op =) hvs ixn then refl1_tac
-                          else resolve0_tac normI_thms 1 ORELSE refl1_tac
-          | Const _ => resolve0_tac normI_thms 1 ORELSE
-                       resolve0_tac congs 1 ORELSE refl1_tac
-          | Free _ => resolve0_tac congs 1 ORELSE refl1_tac
-          | _ => refl1_tac)
+            Var(ixn,_) => if member (op =) hvs ixn then refl_tac ctxt 1
+                          else resolve_tac ctxt normI_thms 1 ORELSE refl_tac ctxt 1
+          | Const _ => resolve_tac ctxt normI_thms 1 ORELSE
+                       resolve_tac ctxt congs 1 ORELSE refl_tac ctxt 1
+          | Free _ => resolve_tac ctxt congs 1 ORELSE refl_tac ctxt 1
+          | _ => refl_tac ctxt 1)
     val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
     val SOME(thm'',_) = Seq.pull(add_norm_tac thm')
 in thm'' end;
 
-fun add_norm_tags congs =
+fun add_norm_tags ctxt congs =
     let val ccs = map cong_const congs
         val new_asms = filter (exists not o #2)
                 (ccs ~~ (map (map atomic o Thm.prems_of) congs));
-    in add_norms(congs,ccs,new_asms) end;
+    in add_norms ctxt (congs,ccs,new_asms) end;
 
-fun normed_rews congs =
+fun normed_rews ctxt congs =
   let
-    val add_norms = add_norm_tags congs
-    fun normed ctxt thm =
+    val add_norms = add_norm_tags ctxt congs
+    fun normed thm =
       let
         val ctxt' = Variable.declare_thm thm ctxt;
       in Variable.tradeT (K (map (add_norms o mk_trans) o maps mk_rew_rules)) ctxt [thm] end
   in normed end;
 
-fun NORM ctxt norm_lhs_tac = EVERY' [resolve_tac ctxt [red2], norm_lhs_tac, refl_tac];
+fun NORM ctxt norm_lhs_tac = EVERY' [resolve_tac ctxt [red2], norm_lhs_tac, refl_tac ctxt];
 
 val trans_norms = map mk_trans normE_thms;
 
@@ -244,7 +243,7 @@ datatype simpset =
                simp_net: thm Net.net}
 
 val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
-                  mk_simps=normed_rews[], simps=[], simp_net=Net.empty};
+                  mk_simps = fn ctxt => normed_rews ctxt [], simps=[], simp_net=Net.empty};
 
 (** Insertion of congruences and rewrites **)
 
@@ -265,7 +264,7 @@ fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
 in SS{auto_tac=auto_tac, congs= congs',
       cong_net= insert_thms (map mk_trans thms) cong_net,
-      mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
+      mk_simps = fn ctxt => normed_rews ctxt congs', simps=simps, simp_net=simp_net}
 end;
 
 (** Deletion of congruences and rewrites **)
@@ -281,7 +280,7 @@ fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = fold (remove Thm.eq_thm_prop) thms congs
 in SS{auto_tac=auto_tac, congs= congs',
       cong_net= delete_thms (map mk_trans thms) cong_net,
-      mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
+      mk_simps= fn ctxt => normed_rews ctxt congs', simps=simps, simp_net=simp_net}
 end;
 
 fun delrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
@@ -341,14 +340,15 @@ fun IF1_TAC ctxt cong_tac i =
                 let val test = has_fewer_prems (Thm.nprems_of thm + 1)
                     fun loop thm =
                         COND test no_tac
-                          ((try_rew THEN DEPTH_FIRST test (refl_tac i))
-                           ORELSE (refl_tac i THEN loop)) thm
+                          ((try_rew THEN DEPTH_FIRST test (refl_tac ctxt i))
+                           ORELSE (refl_tac ctxt i THEN loop)) thm
                 in (cong_tac THEN loop) thm end
     in COND (may_match(case_consts,i)) try_rew no_tac end;
 
 fun CASE_TAC ctxt (SS{cong_net,...}) i =
-let val cong_tac = net_tac cong_net i
-in NORM ctxt (IF1_TAC ctxt cong_tac) i end;
+  let val cong_tac = net_tac ctxt cong_net i
+  in NORM ctxt (IF1_TAC ctxt cong_tac) i end;
+
 
 (* Rewriting Automaton *)
 
@@ -411,7 +411,7 @@ let
 
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
-    if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
+    if lhs_is_NORM(thm,i) then (ss, res1 ctxt (thm,trans_norms,i), anet,ats,cs)
     else case Seq.pull(cong_tac i thm) of
             SOME(thm',_) =>
                     let val ps = Thm.prems_of thm
@@ -441,7 +441,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
             end
     | NONE => if more
-            then rew((lhs_net_tac anet i THEN assume_tac ctxt i) thm,
+            then rew((lhs_net_tac ctxt anet i THEN assume_tac ctxt i) thm,
                      thm,ss,anet,ats,cs,false)
             else (ss,thm,anet,ats,cs);
 
@@ -462,12 +462,12 @@ fun if_exp(thm,ss,anet,ats,cs) =
               | NONE => (ss,thm,anet,ats,cs);
 
 fun step(s::ss, thm, anet, ats, cs) = case s of
-          MK_EQ => (ss, res1(thm,[red2],i), anet, ats, cs)
+          MK_EQ => (ss, res1 ctxt (thm,[red2],i), anet, ats, cs)
         | ASMS(a) => add_asms(ss,thm,a,anet,ats,cs)
         | SIMP_LHS => simp_lhs(thm,ss,anet,ats,cs)
-        | REW => rew(net_tac net i thm,thm,ss,anet,ats,cs,true)
-        | REFL => (ss, res1(thm,refl_thms,i), anet, ats, cs)
-        | TRUE => try_true(res1(thm,refl_thms,i),ss,anet,ats,cs)
+        | REW => rew(net_tac ctxt net i thm,thm,ss,anet,ats,cs,true)
+        | REFL => (ss, res1 ctxt (thm,refl_thms,i), anet, ats, cs)
+        | TRUE => try_true(res1 ctxt (thm,refl_thms,i),ss,anet,ats,cs)
         | PROVE => (if if_fl then MK_EQ::SIMP_LHS::IF::TRUE::ss
                     else MK_EQ::SIMP_LHS::TRUE::ss, thm, anet, ats, cs)
         | POP_ARTR => (ss,thm,hd ats,tl ats,cs)
@@ -481,7 +481,7 @@ in exec(ss, thm, Net.empty, [], []) end;
 
 
 fun EXEC_TAC ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
-let val cong_tac = net_tac cong_net
+let val cong_tac = net_tac ctxt cong_net
 in fn i =>
     (fn thm =>
      if i <= 0 orelse Thm.nprems_of thm < i then Seq.empty
@@ -498,7 +498,7 @@ fun ASM_SIMP_CASE_TAC ctxt = EXEC_TAC ctxt ([ASMS(0),MK_EQ,SIMP_LHS,IF,REFL,STOP
 fun SIMP_CASE2_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,IF,REFL,STOP],true);
 
 fun REWRITE ctxt (ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
-let val cong_tac = net_tac cong_net
+let val cong_tac = net_tac ctxt cong_net
 in fn thm => let val state = thm RSN (2,red1)
              in execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,1,state) end
 end;
