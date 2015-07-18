@@ -142,12 +142,12 @@ text {* Restore original typing constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"})
-  , (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"})
-  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"})
-  , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"})
-  , (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"}) ]
+   [(@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"}),
+    (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"}),
+    (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"}),
+    (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"}),
+    (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"}),
+    (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"})]
 *}
 
 ML_file "Tools/domaindef.ML"
