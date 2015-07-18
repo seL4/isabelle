@@ -161,11 +161,11 @@ let
               val rules = prems @ con_rews @ @{thms simp_thms}
               val simplify = asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules)
               fun arg_tac (lazy, _) =
-                  rtac (if lazy then allI else case_UU_allI) 1
+                  resolve_tac ctxt [if lazy then allI else case_UU_allI] 1
               fun tacs ctxt =
                   rewrite_goals_tac ctxt @{thms atomize_all atomize_imp} ::
                   map arg_tac args @
-                  [REPEAT (rtac impI 1), ALLGOALS simplify]
+                  [REPEAT (resolve_tac ctxt [impI] 1), ALLGOALS simplify]
             in
               Goal.prove ctxt [] [] subgoal (EVERY o tacs o #context)
             end
@@ -181,7 +181,7 @@ let
             TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 
             asm_simp_tac (put_simpset take_ss ctxt) 1 THEN
-            (resolve_tac ctxt prems' THEN_ALL_NEW etac spec) 1
+            (resolve_tac ctxt prems' THEN_ALL_NEW eresolve_tac ctxt [spec]) 1
           fun cases_tacs (cons, exhaust) =
             Rule_Insts.res_inst_tac ctxt [((("y", 0), Position.none), "x")] [] exhaust 1 ::
             asm_simp_tac (put_simpset take_ss ctxt addsimps prems) 1 ::
@@ -201,9 +201,9 @@ let
       fun tacf {prems, context = ctxt} =
         let
           fun finite_tac (take_induct, fin_ind) =
-              rtac take_induct 1 THEN
+              resolve_tac ctxt [take_induct] 1 THEN
               (if is_finite then all_tac else resolve_tac ctxt prems 1) THEN
-              (rtac fin_ind THEN_ALL_NEW solve_tac ctxt prems) 1
+              (resolve_tac ctxt [fin_ind] THEN_ALL_NEW solve_tac ctxt prems) 1
           val fin_inds = Project_Rule.projections ctxt finite_ind
         in
           TRY (safe_tac (put_claset HOL_cs ctxt)) THEN
@@ -326,10 +326,10 @@ let
           val prems' = Project_Rule.projections ctxt prem'
           val dests = map (fn th => th RS spec RS spec RS mp) prems'
           fun one_tac (dest, rews) =
-              dtac dest 1 THEN safe_tac (put_claset HOL_cs ctxt) THEN
+              dresolve_tac ctxt [dest] 1 THEN safe_tac (put_claset HOL_cs ctxt) THEN
               ALLGOALS (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps rews))
         in
-          rtac @{thm nat.induct} 1 THEN
+          resolve_tac ctxt @{thms nat.induct} 1 THEN
           simp_tac (put_simpset HOL_ss ctxt addsimps rules) 1 THEN
           safe_tac (put_claset HOL_cs ctxt) THEN
           EVERY (map one_tac (dests ~~ take_rews))
@@ -350,7 +350,7 @@ let
         let
           val rule = hd prems RS coind_lemma
         in
-          rtac take_lemma 1 THEN
+          resolve_tac ctxt [take_lemma] 1 THEN
           asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps (rule :: prems)) 1
         end
     in

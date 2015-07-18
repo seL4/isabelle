@@ -73,8 +73,8 @@ fun prove_cpo
     val cpo_thms = map (Thm.transfer thy) [type_definition, below_def, admissible]
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
-    val tac = rtac (@{thm typedef_cpo} OF cpo_thms) 1
-    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) (K tac) thy
+    fun tac ctxt = resolve_tac ctxt [@{thm typedef_cpo} OF cpo_thms] 1
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) tac thy
     (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy) cpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF cpo_thms')
@@ -112,8 +112,8 @@ fun prove_pcpo
     val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, bottom_mem]
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
-    val tac = rtac (@{thm typedef_pcpo} OF pcpo_thms) 1
-    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) (K tac) thy
+    fun tac ctxt = resolve_tac ctxt [@{thm typedef_pcpo} OF pcpo_thms] 1
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) tac thy
     val pcpo_thms' = map (Thm.transfer thy) pcpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF pcpo_thms')
     val Rep_strict = make @{thm typedef_Rep_strict}
@@ -182,7 +182,7 @@ fun add_podef typ set opt_morphs tac thy =
     val below_def = singleton (Proof_Context.export lthy ctxt_thy) below_ldef
     val thy = lthy
       |> Class.prove_instantiation_exit
-          (K (rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
+          (fn ctxt => resolve_tac ctxt [@{thm typedef_po} OF [type_definition, below_def]] 1)
   in ((info, below_def), thy) end
 
 fun prepare_cpodef
@@ -205,7 +205,7 @@ fun prepare_cpodef
     fun cpodef_result nonempty admissible thy =
       let
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
-          |> add_podef typ set opt_morphs (fn _ => rtac nonempty 1)
+          |> add_podef typ set opt_morphs (fn ctxt => resolve_tac ctxt [nonempty] 1)
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition below_def admissible
       in
@@ -237,7 +237,7 @@ fun prepare_pcpodef
 
     fun pcpodef_result bottom_mem admissible thy =
       let
-        fun tac _ = rtac exI 1 THEN rtac bottom_mem 1
+        fun tac ctxt = resolve_tac ctxt [exI] 1 THEN resolve_tac ctxt [bottom_mem] 1
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
           |> add_podef typ set opt_morphs tac
         val (cpo_info, thy) = thy

@@ -22,7 +22,7 @@ signature CLASSICAL_DATA =
   val not_elim: thm             (* [| ~P;  P |] ==> R *)
   val swap: thm                 (* ~P ==> (~Q ==> P) ==> Q *)
   val sizef : thm -> int        (* size function for BEST_FIRST *)
-  val hyp_subst_tacs: (int -> tactic) list
+  val hyp_subst_tacs: Proof.context -> (int -> tactic) list
   end;
 
 (*Higher precedence than := facilitates use of references*)
@@ -70,7 +70,7 @@ local open Data in
 val imp_elim = make_elim mp;
 
 (*Solve goal that assumes both P and ~P. *)
-fun contr_tac ctxt = etac not_elim THEN'  assume_tac ctxt;
+fun contr_tac ctxt = eresolve_tac ctxt [not_elim] THEN'  assume_tac ctxt;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 fun mp_tac ctxt i = eresolve_tac ctxt ([not_elim,imp_elim]) i  THEN  assume_tac ctxt i;
@@ -84,7 +84,7 @@ fun swapify intrs = intrs RLN (2, [swap]);
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac ctxt rls = 
-    let fun tacf rl = rtac rl ORELSE' etac (rl RSN (2,swap))
+    let fun tacf rl = resolve_tac ctxt [rl] ORELSE' eresolve_tac ctxt [rl RSN (2, swap)]
     in  assume_tac ctxt ORELSE' contr_tac ctxt ORELSE' FIRST' (map tacf rls)
     end;
 
@@ -152,7 +152,7 @@ fun safe_step_tac ctxt (CS{safe0_brls,safep_brls,...}) =
   FIRST' [uniq_assume_tac ctxt,
           uniq_mp_tac ctxt,
           biresolve_tac ctxt safe0_brls,
-          FIRST' hyp_subst_tacs,
+          FIRST' (hyp_subst_tacs ctxt),
           biresolve_tac ctxt safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)

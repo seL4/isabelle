@@ -39,7 +39,7 @@ sig
   val setauto   : simpset * (int -> tactic) -> simpset
   val ASM_SIMP_CASE_TAC : Proof.context -> simpset -> int -> tactic
   val ASM_SIMP_TAC      : Proof.context -> simpset -> int -> tactic
-  val CASE_TAC          : simpset -> int -> tactic
+  val CASE_TAC          : Proof.context -> simpset -> int -> tactic
   val SIMP_CASE2_TAC    : Proof.context -> simpset -> int -> tactic
   val SIMP_THM          : Proof.context -> simpset -> thm -> thm
   val SIMP_TAC          : Proof.context -> simpset -> int -> tactic
@@ -228,7 +228,7 @@ fun normed_rews congs =
       in Variable.tradeT (K (map (add_norms o mk_trans) o maps mk_rew_rules)) ctxt [thm] end
   in normed end;
 
-fun NORM norm_lhs_tac = EVERY'[rtac red2 , norm_lhs_tac, refl_tac];
+fun NORM ctxt norm_lhs_tac = EVERY' [resolve_tac ctxt [red2], norm_lhs_tac, refl_tac];
 
 val trans_norms = map mk_trans normE_thms;
 
@@ -331,9 +331,9 @@ fun if_rewritable ifc i thm =
           | find_if(_) = false;
     in find_if(tm,0) end;
 
-fun IF1_TAC cong_tac i =
+fun IF1_TAC ctxt cong_tac i =
     let fun seq_try (ifth::ifths,ifc::ifcs) thm =
-                (COND (if_rewritable ifc i) (DETERM(rtac ifth i))
+                (COND (if_rewritable ifc i) (DETERM(resolve_tac ctxt [ifth] i))
                         (seq_try(ifths,ifcs))) thm
               | seq_try([],_) thm = no_tac thm
         and try_rew thm = (seq_try(case_rews,case_consts) ORELSE one_subt) thm
@@ -346,9 +346,9 @@ fun IF1_TAC cong_tac i =
                 in (cong_tac THEN loop) thm end
     in COND (may_match(case_consts,i)) try_rew no_tac end;
 
-fun CASE_TAC (SS{cong_net,...}) i =
+fun CASE_TAC ctxt (SS{cong_net,...}) i =
 let val cong_tac = net_tac cong_net i
-in NORM (IF1_TAC cong_tac) i end;
+in NORM ctxt (IF1_TAC ctxt cong_tac) i end;
 
 (* Rewriting Automaton *)
 
@@ -441,7 +441,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
             end
     | NONE => if more
-            then rew((lhs_net_tac anet i THEN atac i) thm,
+            then rew((lhs_net_tac anet i THEN assume_tac ctxt i) thm,
                      thm,ss,anet,ats,cs,false)
             else (ss,thm,anet,ats,cs);
 
@@ -457,7 +457,7 @@ fun try_true(thm,ss,anet,ats,cs) =
               end;
 
 fun if_exp(thm,ss,anet,ats,cs) =
-        case Seq.pull (IF1_TAC (cong_tac i) i thm) of
+        case Seq.pull (IF1_TAC ctxt (cong_tac i) i thm) of
                 SOME(thm',_) => (SIMP_LHS::IF::ss,thm',anet,ats,cs)
               | NONE => (ss,thm,anet,ats,cs);
 

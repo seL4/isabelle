@@ -320,12 +320,12 @@ fun define_take_functions
       in
         Goal.prove_global thy [] [] goal (fn {context = ctxt, ...} =>
          EVERY
-          [rtac @{thm nat.induct} 1,
+          [resolve_tac ctxt @{thms nat.induct} 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
            asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps take_Suc_thms) 1,
-           REPEAT (etac @{thm conjE} 1
+           REPEAT (eresolve_tac ctxt @{thms conjE} 1
                    ORELSE resolve_tac ctxt deflation_rules 1
-                   ORELSE atac 1)])
+                   ORELSE assume_tac ctxt 1)])
       end
     fun conjuncts [] _ = []
       | conjuncts (n::[]) thm = [(n, thm)]
@@ -444,7 +444,7 @@ fun prove_finite_take_induct
             take_Suc_thms @ decisive_abs_rep_thms
             @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map}
         fun tac ctxt = EVERY [
-            rtac @{thm nat.induct} 1,
+            resolve_tac ctxt @{thms nat.induct} 1,
             simp_tac (put_simpset HOL_ss ctxt addsimps rules0) 1,
             asm_simp_tac (put_simpset HOL_ss ctxt addsimps rules1) 1]
       in Goal.prove_global thy [] [] goal (tac o #context) end
@@ -461,7 +461,7 @@ fun prove_finite_take_induct
         fun tac ctxt =
             EVERY [
             rewrite_goals_tac ctxt finite_defs,
-            rtac @{thm lub_ID_finite} 1,
+            resolve_tac ctxt @{thms lub_ID_finite} 1,
             resolve_tac ctxt chain_take_thms 1,
             resolve_tac ctxt lub_take_thms 1,
             resolve_tac ctxt decisive_thms 1]

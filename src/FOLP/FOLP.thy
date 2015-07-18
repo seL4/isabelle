@@ -56,7 +56,7 @@ schematic_lemma impCE:
     and r2: "!!y. y:Q ==> g(y):R"
   shows "?p : R"
   apply (rule excluded_middle [THEN disjE])
-   apply (tactic {* DEPTH_SOLVE (atac 1 ORELSE
+   apply (tactic {* DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
        resolve_tac @{context} [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1) *})
   done
 
@@ -80,8 +80,9 @@ schematic_lemma iffCE:
   apply (insert major)
   apply (unfold iff_def)
   apply (rule conjE)
-  apply (tactic {* DEPTH_SOLVE_1 (etac @{thm impCE} 1 ORELSE
-      eresolve_tac @{context} [@{thm notE}, @{thm impE}] 1 THEN atac 1 ORELSE atac 1 ORELSE
+  apply (tactic {* DEPTH_SOLVE_1 (eresolve_tac @{context} @{thms impCE} 1 ORELSE
+      eresolve_tac @{context} [@{thm notE}, @{thm impE}] 1 THEN assume_tac @{context} 1 ORELSE
+      assume_tac @{context} 1 ORELSE
       resolve_tac @{context} [@{thm r1}, @{thm r2}] 1) *})+
   done
 
@@ -107,7 +108,7 @@ structure Cla = Classical
   val mp = @{thm mp}
   val not_elim = @{thm notE}
   val swap = @{thm swap}
-  val hyp_subst_tacs = [hyp_subst_tac]
+  fun hyp_subst_tacs ctxt = [hyp_subst_tac ctxt]
 );
 open Cla;
 

@@ -540,7 +540,7 @@ method_setup valid_certificate_tac = {*
     (fn i =>
       EVERY [forward_tac ctxt @{thms Gets_certificate_valid} i,
              assume_tac ctxt i,
-             etac conjE i, REPEAT (hyp_subst_tac ctxt i)]))
+             eresolve_tac ctxt [conjE] i, REPEAT (hyp_subst_tac ctxt i)]))
 *}
 
 text{*The @{text "(no_asm)"} attribute is essential, since it retains

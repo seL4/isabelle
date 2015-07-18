@@ -82,7 +82,7 @@ lemma append_assoc:
   apply EQgen
    prefer 2
    apply blast
-  apply (tactic {* DEPTH_SOLVE (etac (XH_to_E @{thm ListsXH}) 1
+  apply (tactic {* DEPTH_SOLVE (eresolve_tac @{context} [XH_to_E @{thm ListsXH}] 1
     THEN EQgen_tac @{context} [] 1) *})
   done
 

@@ -72,7 +72,7 @@ fun proc ctxt t =
   in
     Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
-         [Data.trans_tac ctxt reshape, rtac Data.cancel 1,
+         [Data.trans_tac ctxt reshape, resolve_tac ctxt [Data.cancel] 1,
           Data.numeral_simp_tac ctxt] ctxt prems (t', rhs))
   end
   (* FIXME avoid handling of generic exceptions *)

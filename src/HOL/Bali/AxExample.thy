@@ -47,7 +47,7 @@ fun inst1_tac ctxt s t xs st =
   | NONE => Seq.empty);
 
 fun ax_tac ctxt =
-  REPEAT o rtac allI THEN'
+  REPEAT o resolve_tac ctxt [allI] THEN'
   resolve_tac ctxt
     @{thms ax_Skip ax_StatRef ax_MethdN ax_Alloc ax_Alloc_Arr ax_SXAlloc_Normal ax_derivs.intros(8-)};
 *}

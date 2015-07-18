@@ -250,7 +250,7 @@ method_setup analz_freshCryptK = {*
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
-          REPEAT_FIRST (rtac @{thm analz_image_freshCryptK_lemma}),
+          REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshCryptK_lemma}),
           ALLGOALS (asm_simp_tac
             (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))]))) *}
   "for proving useful rewrite rule"

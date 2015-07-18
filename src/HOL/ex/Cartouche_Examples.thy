@@ -33,7 +33,7 @@ begin
     [OF \<open>x = y\<close>]}.\<close>
 
   have "x = y"
-    by (tactic \<open>rtac @{thm \<open>x = y\<close>} 1\<close>)  -- \<open>more cartouches involving ML\<close>
+    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)  -- \<open>more cartouches involving ML\<close>
 end
 
 
@@ -230,10 +230,10 @@ method_setup ml_tactic = \<open>
 \<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
-  apply (ml_tactic \<open>rtac @{thm impI} 1\<close>)
-  apply (ml_tactic \<open>etac @{thm conjE} 1\<close>)
-  apply (ml_tactic \<open>rtac @{thm conjI} 1\<close>)
-  apply (ml_tactic \<open>ALLGOALS atac\<close>)
+  apply (ml_tactic \<open>resolve_tac @{context} @{thms impI} 1\<close>)
+  apply (ml_tactic \<open>eresolve_tac @{context} @{thms conjE} 1\<close>)
+  apply (ml_tactic \<open>resolve_tac @{context} @{thms conjI} 1\<close>)
+  apply (ml_tactic \<open>ALLGOALS (assume_tac @{context})\<close>)
   done
 
 lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)
@@ -251,14 +251,17 @@ method_setup "cartouche" = \<open>
 \<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
-  apply \<open>rtac @{thm impI} 1\<close>
-  apply \<open>etac @{thm conjE} 1\<close>
-  apply \<open>rtac @{thm conjI} 1\<close>
-  apply \<open>ALLGOALS atac\<close>
+  apply \<open>resolve_tac @{context} @{thms impI} 1\<close>
+  apply \<open>eresolve_tac @{context} @{thms conjE} 1\<close>
+  apply \<open>resolve_tac @{context} @{thms conjI} 1\<close>
+  apply \<open>ALLGOALS (assume_tac @{context})\<close>
   done
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
-  by (\<open>rtac @{thm impI} 1\<close>, \<open>etac @{thm conjE} 1\<close>, \<open>rtac @{thm conjI} 1\<close>, \<open>atac 1\<close>+)
+  by (\<open>resolve_tac @{context} @{thms impI} 1\<close>,
+    \<open>eresolve_tac @{context} @{thms conjE} 1\<close>,
+    \<open>resolve_tac @{context} @{thms conjI} 1\<close>,
+    \<open>assume_tac @{context} 1\<close>+)
 
 
 subsection \<open>ML syntax\<close>

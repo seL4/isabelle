@@ -460,7 +460,9 @@ ML
 {*
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
 fun Always_Int_tac ctxt =
-  dtac @{thm Always_Int_I} THEN' assume_tac ctxt THEN' etac @{thm Always_thin};
+  dresolve_tac ctxt @{thms Always_Int_I} THEN'
+  assume_tac ctxt THEN'
+  eresolve_tac ctxt @{thms Always_thin};
 
 (*Combines a list of invariance THEOREMS into one.*)
 val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I});
@@ -470,26 +472,28 @@ val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I})
 fun constrains_tac ctxt =
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac ctxt 1),
-              REPEAT (etac @{thm Always_ConstrainsI} 1
+              REPEAT (eresolve_tac ctxt @{thms Always_ConstrainsI} 1
                       ORELSE
                       resolve_tac ctxt [@{thm StableI}, @{thm stableI},
                                    @{thm constrains_imp_Constrains}] 1),
-              rtac @{thm constrainsI} 1,
+              resolve_tac ctxt @{thms constrainsI} 1,
               (* Three subgoals *)
               rewrite_goal_tac ctxt [@{thm st_set_def}] 3,
               REPEAT (force_tac ctxt 2),
               full_simp_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems program})) 1,
               ALLGOALS (clarify_tac ctxt),
-              REPEAT (FIRSTGOAL (etac @{thm disjE})),
+              REPEAT (FIRSTGOAL (eresolve_tac ctxt @{thms disjE})),
               ALLGOALS (clarify_tac ctxt),
-              REPEAT (FIRSTGOAL (etac @{thm disjE})),
+              REPEAT (FIRSTGOAL (eresolve_tac ctxt @{thms disjE})),
               ALLGOALS (clarify_tac ctxt),
               ALLGOALS (asm_full_simp_tac ctxt),
               ALLGOALS (clarify_tac ctxt)]);
 
 (*For proving invariants*)
 fun always_tac ctxt i =
-    rtac @{thm AlwaysI} i THEN force_tac ctxt i THEN constrains_tac ctxt i;
+  resolve_tac ctxt @{thms AlwaysI} i THEN
+  force_tac ctxt i
+  THEN constrains_tac ctxt i;
 *}
 
 method_setup safety = {*

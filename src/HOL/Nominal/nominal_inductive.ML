@@ -104,8 +104,8 @@ fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
   | inst_conj_all _ _ _ _ _ = NONE;
 
 fun inst_conj_all_tac ctxt k = EVERY
-  [TRY (EVERY [etac conjE 1, rtac conjI 1, atac 1]),
-   REPEAT_DETERM_N k (etac allE 1),
+  [TRY (EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [conjI] 1, assume_tac ctxt 1]),
+   REPEAT_DETERM_N k (eresolve_tac ctxt [allE] 1),
    simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]) 1];
 
 fun map_term f t u = (case f t u of
@@ -129,9 +129,9 @@ fun map_thm ctxt f tac monos opt th =
     val prop = Thm.prop_of th;
     fun prove t =
       Goal.prove ctxt [] [] t (fn _ =>
-        EVERY [cut_facts_tac [th] 1, etac rev_mp 1,
+        EVERY [cut_facts_tac [th] 1, eresolve_tac ctxt [rev_mp] 1,
           REPEAT_DETERM (FIRSTGOAL (resolve_tac ctxt monos)),
-          REPEAT_DETERM (rtac impI 1 THEN (atac 1 ORELSE tac))])
+          REPEAT_DETERM (resolve_tac ctxt [impI] 1 THEN (assume_tac ctxt 1 ORELSE tac))])
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
 val eta_contract_cterm = Thm.dest_arg o Thm.cprop_of o Thm.eta_conversion;
@@ -300,19 +300,20 @@ fun prove_strong_ind s avoids ctxt =
              resolve_tac ctxt fs_atoms 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn ctxt' => EVERY
-            [etac exE 1,
+            [eresolve_tac ctxt' [exE] 1,
              full_simp_tac (put_simpset HOL_ss ctxt' addsimps (fresh_prod :: fresh_atm)) 1,
              full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]) 1,
-             REPEAT (etac conjE 1)])
+             REPEAT (eresolve_tac ctxt [conjE] 1)])
           [ex] ctxt
       in (freshs1 @ [Thm.term_of cx], freshs2 @ ths, ctxt') end;
 
     fun mk_ind_proof ctxt' thss =
       Goal.prove ctxt' [] prems' concl' (fn {prems = ihyps, context = ctxt} =>
         let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
-          rtac raw_induct 1 THEN
+          resolve_tac context [raw_induct] 1 THEN
           EVERY (maps (fn ((((_, bvars, oprems, _), vc_compat_ths), ihyp), (vs, ihypt)) =>
-            [REPEAT (rtac allI 1), simp_tac (put_simpset eqvt_ss context) 1,
+            [REPEAT (resolve_tac context [allI] 1),
+             simp_tac (put_simpset eqvt_ss context) 1,
              SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
                let
                  val (params', (pis, z)) =
@@ -354,7 +355,7 @@ fun prove_strong_ind s avoids ctxt =
                       if null (preds_of ps t) then (SOME th, mk_pi th)
                       else
                         (map_thm ctxt' (split_conj (K o I) names)
-                           (etac conjunct1 1) monos NONE th,
+                           (eresolve_tac ctxt' [conjunct1] 1) monos NONE th,
                          mk_pi (the (map_thm ctxt' (inst_conj_all names ps (rev pis''))
                            (inst_conj_all_tac ctxt' (length pis'')) monos (SOME t) th))))
                       (gprems ~~ oprems)) |>> map_filter I;
@@ -370,7 +371,7 @@ fun prove_strong_ind s avoids ctxt =
                          (bop (fold_rev (NominalDatatype.mk_perm []) pis lhs)
                             (fold_rev (NominalDatatype.mk_perm []) pis rhs)))
                        (fn _ => simp_tac (put_simpset HOL_basic_ss ctxt'' addsimps
-                          (fresh_bij @ perm_bij)) 1 THEN rtac th' 1)
+                          (fresh_bij @ perm_bij)) 1 THEN resolve_tac ctxt' [th'] 1)
                    in Simplifier.simplify (put_simpset eqvt_ss ctxt'' addsimps fresh_atm) th'' end)
                      vc_compat_ths;
                  val vc_compat_ths'' = NominalDatatype.mk_not_sym vc_compat_ths';
@@ -382,7 +383,8 @@ fun prove_strong_ind s avoids ctxt =
                  val th = Goal.prove ctxt'' [] []
                    (HOLogic.mk_Trueprop (list_comb (P $ hd ts,
                      map (fold (NominalDatatype.mk_perm []) pis') (tl ts))))
-                   (fn _ => EVERY ([simp_tac (put_simpset eqvt_ss ctxt'') 1, rtac ihyp' 1,
+                   (fn _ => EVERY ([simp_tac (put_simpset eqvt_ss ctxt'') 1,
+                     resolve_tac ctxt'' [ihyp'] 1,
                      REPEAT_DETERM_N (Thm.nprems_of ihyp - length gprems)
                        (simp_tac swap_simps_simpset 1),
                      REPEAT_DETERM_N (length gprems)
@@ -398,9 +400,10 @@ fun prove_strong_ind s avoids ctxt =
                in resolve_tac ctxt' final' 1 end) context 1])
                  (prems ~~ thss ~~ ihyps ~~ prems'')))
         in
-          cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
+          cut_facts_tac [th] 1 THEN REPEAT (eresolve_tac ctxt [conjE] 1) THEN
           REPEAT (REPEAT (resolve_tac ctxt [conjI, impI] 1) THEN
-            etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
+            eresolve_tac ctxt [impE] 1 THEN assume_tac ctxt 1 THEN
+            REPEAT (eresolve_tac ctxt @{thms allE_Nil} 1) THEN
             asm_full_simp_tac ctxt 1)
         end) |> singleton (Proof_Context.export ctxt' ctxt);
 
@@ -466,11 +469,11 @@ fun prove_strong_ind s avoids ctxt =
         prems') =
       (name, Goal.prove ctxt' [] (prem :: prems') concl
         (fn {prems = hyp :: hyps, context = ctxt1} =>
-        EVERY (rtac (hyp RS elim) 1 ::
+        EVERY (resolve_tac ctxt1 [hyp RS elim] 1 ::
           map (fn (((_, vc_compat_ths), case_hyp), (_, qs, is, _)) =>
             SUBPROOF (fn {prems = case_hyps, params, context = ctxt2, concl, ...} =>
               if null qs then
-                rtac (first_order_mrs case_hyps case_hyp) 1
+                resolve_tac ctxt2 [first_order_mrs case_hyps case_hyp] 1
               else
                 let
                   val params' = map (Thm.term_of o #2 o nth (rev params)) is;
@@ -518,8 +521,8 @@ fun prove_strong_ind s avoids ctxt =
                     (Drule.strip_imp_concl (hd (cprems_of case_hyp))), obj);
                   val th = Goal.prove ctxt3 [] [] (Thm.term_of concl)
                     (fn {context = ctxt4, ...} =>
-                       rtac (Thm.instantiate inst case_hyp) 1 THEN
-                       SUBPROOF (fn {prems = fresh_hyps, ...} =>
+                       resolve_tac ctxt4 [Thm.instantiate inst case_hyp] 1 THEN
+                       SUBPROOF (fn {context = ctxt5, prems = fresh_hyps, ...} =>
                          let
                            val fresh_hyps' = NominalDatatype.mk_not_sym fresh_hyps;
                            val case_simpset = cases_eqvt_simpset addsimps freshs2' @
@@ -532,8 +535,8 @@ fun prove_strong_ind s avoids ctxt =
                            val case_hyps' = hyps1' @ hyps2'
                          in
                            simp_tac case_simpset 1 THEN
-                           REPEAT_DETERM (TRY (rtac conjI 1) THEN
-                             resolve_tac ctxt4 case_hyps' 1)
+                           REPEAT_DETERM (TRY (resolve_tac ctxt5 [conjI] 1) THEN
+                             resolve_tac ctxt5 case_hyps' 1)
                          end) ctxt4 1)
                   val final = Proof_Context.export ctxt3 ctxt2 [th]
                 in resolve_tac ctxt2 final 1 end) ctxt1 1)
@@ -629,13 +632,13 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
         val res = SUBPROOF (fn {context = ctxt'', prems, params, ...} =>
           let
             val prems' = map (fn th => the_default th (map_thm ctxt''
-              (split_conj (K I) names) (etac conjunct2 1) monos NONE th)) prems;
+              (split_conj (K I) names) (eresolve_tac ctxt'' [conjunct2] 1) monos NONE th)) prems;
             val prems'' = map (fn th => Simplifier.simplify eqvt_simpset
               (mk_perm_bool (Thm.global_cterm_of thy pi) th)) prems';
             val intr' = Drule.cterm_instantiate (map (Thm.global_cterm_of thy) vs ~~
                map (Thm.global_cterm_of thy o NominalDatatype.mk_perm [] pi o Thm.term_of o #2) params)
                intr
-          in (rtac intr' THEN_ALL_NEW (TRY o resolve_tac ctxt'' prems'')) 1
+          in (resolve_tac ctxt'' [intr'] THEN_ALL_NEW (TRY o resolve_tac ctxt'' prems'')) 1
           end) ctxt' 1 st
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
@@ -655,7 +658,7 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
               HOLogic.mk_imp (p, list_comb (h, ts1 @
                 map (NominalDatatype.mk_perm [] pi') ts2))
             end) ps)))
-          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
+          (fn _ => EVERY (resolve_tac ctxt' [raw_induct] 1 :: map (fn intr_vs =>
               full_simp_tac eqvt_simpset 1 THEN
               eqvt_tac pi' intr_vs) intrs')) |>
           singleton (Proof_Context.export ctxt' ctxt)))

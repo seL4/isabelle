@@ -142,7 +142,8 @@ in
         val cs = ContProc.cont_thms lam
         val betas = map (fn c => mk_meta_eq (c RS @{thm beta_cfun})) cs
       in
-        prove thy (def_thm::betas) goal (K [rtac reflexive_thm 1])
+        prove thy (def_thm::betas) goal
+          (fn {context = ctxt, ...} => [resolve_tac ctxt [reflexive_thm] 1])
       end
 end
 
@@ -228,9 +229,9 @@ fun add_constructors
       val goal = mk_trp (foldr1 mk_disj (mk_undef y :: map one_con spec'))
       (* first rules replace "y = bottom \/ P" with "rep$y = bottom \/ P" *)
       fun tacs ctxt = [
-          rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
+          resolve_tac ctxt [iso_locale RS @{thm iso.casedist_rule}] 1,
           rewrite_goals_tac ctxt [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
-          rtac thm3 1]
+          resolve_tac ctxt [thm3] 1]
     in
       val nchotomy = prove thy con_betas goal (tacs o #context)
       val exhaust =
@@ -245,8 +246,8 @@ fun add_constructors
         val rules = @{thms compact_sinl compact_sinr compact_spair
                            compact_up compact_ONE}
         fun tacs ctxt =
-          [rtac (iso_locale RS @{thm iso.compact_abs}) 1,
-           REPEAT (resolve_tac ctxt rules 1 ORELSE atac 1)]
+          [resolve_tac ctxt [iso_locale RS @{thm iso.compact_abs}] 1,
+           REPEAT (resolve_tac ctxt rules 1 ORELSE assume_tac ctxt 1)]
         fun con_compact (con, args) =
           let
             val vs = vars_of args
@@ -709,7 +710,10 @@ fun add_discriminators
     local
       fun dis_strict dis =
         let val goal = mk_trp (mk_strict dis)
-        in prove thy dis_defs goal (K [rtac (hd case_rews) 1]) end
+        in
+          prove thy dis_defs goal
+            (fn {context = ctxt, ...} => [resolve_tac ctxt [hd case_rews] 1])
+        end
     in
       val dis_stricts = map dis_strict dis_consts
     end
@@ -739,9 +743,9 @@ fun add_discriminators
           val x = Free ("x", lhsT)
           val simps = dis_apps @ @{thms dist_eq_tr}
           fun tacs ctxt =
-            [rtac @{thm iffI} 1,
+            [resolve_tac ctxt @{thms iffI} 1,
              asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps dis_stricts) 2,
-             rtac exhaust 1, atac 1,
+             resolve_tac ctxt [exhaust] 1, assume_tac ctxt 1,
              ALLGOALS (asm_full_simp_tac (put_simpset simple_ss ctxt addsimps simps))]
           val goal = mk_trp (mk_eq (mk_undef (dis ` x), mk_undef x))
         in prove thy [] goal (tacs o #context) end

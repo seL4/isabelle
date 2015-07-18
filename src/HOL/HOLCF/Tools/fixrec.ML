@@ -301,7 +301,7 @@ fun fixrec_simp_tac ctxt =
         val unfold_thm = the (Symtab.lookup tab c)
         val rule = unfold_thm RS @{thm ssubst_lhs}
       in
-        CHANGED (rtac rule i THEN eta_tac i THEN asm_simp_tac ctxt i)
+        CHANGED (resolve_tac ctxt [rule] i THEN eta_tac i THEN asm_simp_tac ctxt i)
       end
   in
     SUBGOAL (fn ti => the_default no_tac (try tac ti))
@@ -311,7 +311,7 @@ fun fixrec_simp_tac ctxt =
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
     val rule = unfold_thm RS @{thm ssubst_lhs}
-    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ctxt 1
+    val tac = resolve_tac ctxt [rule] 1 THEN eta_tac 1 THEN asm_simp_tac ctxt 1
     fun prove_term t = Goal.prove ctxt [] [] t (K tac)
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t)
   in

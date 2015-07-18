@@ -227,7 +227,7 @@ ML \<open>
   val config_fast_solver = Attrib.setup_config_bool @{binding fast_solver} (K false);
   val fast_solver = mk_solver "fast_solver" (fn ctxt =>
     if Config.get ctxt config_fast_solver
-    then assume_tac ctxt ORELSE' (etac notE)
+    then assume_tac ctxt ORELSE' (eresolve_tac ctxt [notE])
     else K no_tac);
 \<close>
 
@@ -797,7 +797,7 @@ lemma Step1_4_7: "\<turnstile> unchanged (e p, c p, r p, m p, rmhist!p)
 ML \<open>
 fun split_idle_tac ctxt =
   SELECT_GOAL
-   (TRY (rtac @{thm actionI} 1) THEN
+   (TRY (resolve_tac ctxt @{thms actionI} 1) THEN
     Induct_Tacs.case_tac ctxt "(s,t) \<Turnstile> unchanged (e p, c p, r p, m p, rmhist!p)" [] NONE 1 THEN
     rewrite_goals_tac ctxt @{thms action_rews} THEN
     forward_tac ctxt [temp_use ctxt @{thm Step1_4_7}] 1 THEN

@@ -154,12 +154,12 @@ ML {*
 (*Cut and thin, replacing the right-side formula*)
 fun cutR_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), s)] [] @{thm cut} i THEN
-  rtac @{thm thinR} i
+  resolve_tac ctxt @{thms thinR} i
 
 (*Cut and thin, replacing the left-side formula*)
 fun cutL_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), s)] [] @{thm cut} i THEN
-  rtac @{thm thinL} (i + 1)
+  resolve_tac ctxt @{thms thinL} (i + 1)
 *}
 
 
@@ -244,11 +244,11 @@ method_setup best_dup =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack LK_dup_pack ctxt))) *}
 
 method_setup lem = {*
-  Attrib.thm >> (fn th => fn _ =>
+  Attrib.thm >> (fn th => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
-      rtac (@{thm thinR} RS @{thm cut}) i THEN
-      REPEAT (rtac @{thm thinL} i) THEN
-      rtac th i))
+      resolve_tac ctxt [@{thm thinR} RS @{thm cut}] i THEN
+      REPEAT (resolve_tac ctxt @{thms thinL} i) THEN
+      resolve_tac ctxt [th] i))
 *}
 
 

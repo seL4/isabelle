@@ -278,7 +278,7 @@ done
 
 lemma hoare_sound: "G||-ts ==> G||=ts"
 apply (erule hoare_derivs.induct)
-apply              (tactic {* TRYALL (eresolve_tac @{context} [@{thm Loop_sound_lemma}, @{thm Body_sound_lemma}] THEN_ALL_NEW atac) *})
+apply              (tactic {* TRYALL (eresolve_tac @{context} [@{thm Loop_sound_lemma}, @{thm Body_sound_lemma}] THEN_ALL_NEW assume_tac @{context}) *})
 apply            (unfold hoare_valids_def)
 apply            blast
 apply           blast
@@ -351,7 +351,8 @@ apply        (rule_tac [3] escape, tactic {* clarsimp_tac @{context} 3 *},
   rule_tac [3] P1 = "%Z' s. s= (Z[Loc loc::=fun Z])" in hoare_derivs.Local [THEN conseq1],
   erule_tac [3] conseq12)
 apply         (erule_tac [5] hoare_derivs.Comp, erule_tac [5] conseq12)
-apply         (tactic {* (rtac @{thm hoare_derivs.If} THEN_ALL_NEW etac @{thm conseq12}) 6 *})
+apply         (tactic {* (resolve_tac @{context} @{thms hoare_derivs.If} THEN_ALL_NEW
+                eresolve_tac @{context} @{thms conseq12}) 6 *})
 apply          (rule_tac [8] hoare_derivs.Loop [THEN conseq2], erule_tac [8] conseq12)
 apply           auto
 done
@@ -435,7 +436,7 @@ lemma MGF_lemma2_simult [rule_format (no_asm)]: "[| state_not_singleton; WT_bodi
 apply (frule finite_subset)
 apply (rule finite_dom_body [THEN finite_imageI])
 apply (rotate_tac 2)
-apply (tactic "make_imp_tac 1")
+apply (tactic "make_imp_tac @{context} 1")
 apply (erule finite_induct)
 apply  (clarsimp intro!: hoare_derivs.empty)
 apply (clarsimp intro!: hoare_derivs.insert simp del: range_composition)

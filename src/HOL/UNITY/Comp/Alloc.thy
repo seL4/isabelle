@@ -712,7 +712,7 @@ ML
 fun rename_client_map_tac ctxt =
   EVERY [
     simp_tac (ctxt addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
-    rtac @{thm guarantees_PLam_I} 1,
+    resolve_tac ctxt @{thms guarantees_PLam_I} 1,
     assume_tac ctxt 2,
          (*preserves: routine reasoning*)
     asm_simp_tac (ctxt addsimps [@{thm lift_preserves_sub}]) 2,
@@ -899,9 +899,9 @@ lemma Always_tokens_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.
 text{*safety (1), step 4 (final result!) *}
 theorem System_safety: "System : system_safety"
   apply (unfold system_safety_def)
-  apply (tactic {* rtac (Always_Int_rule [@{thm System_sum_bounded},
+  apply (tactic {* resolve_tac @{context} [Always_Int_rule [@{thm System_sum_bounded},
     @{thm Always_tokens_giv_le_allocGiv}, @{thm Always_tokens_allocRel_le_rel}] RS
-    @{thm Always_weaken}) 1 *})
+    @{thm Always_weaken}] 1 *})
   apply auto
   apply (rule setsum_fun_mono [THEN order_trans])
   apply (drule_tac [2] order_trans)
@@ -942,8 +942,8 @@ text{*progress (2), step 4*}
 lemma System_Bounded_allocAsk: "System : Always {s. ALL i<Nclients.
                           ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}"
   apply (auto simp add: Collect_all_imp_eq)
-  apply (tactic {* rtac (Always_Int_rule [@{thm Always_allocAsk_le_ask},
-    @{thm System_Bounded_ask}] RS @{thm Always_weaken}) 1 *})
+  apply (tactic {* resolve_tac @{context} [Always_Int_rule [@{thm Always_allocAsk_le_ask},
+    @{thm System_Bounded_ask}] RS @{thm Always_weaken}] 1 *})
   apply (auto dest: set_mono)
   done
 

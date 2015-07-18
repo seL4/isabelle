@@ -492,7 +492,7 @@ begin
   ML_prf %"ML"
    \<open>val ctxt0 = @{context};
     val (([(_, x)], [B]), ctxt1) = ctxt0
-      |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];\<close>
+      |> Obtain.result (fn _ => eresolve_tac ctxt0 @{thms exE} 1) [@{thm ex}];\<close>
   ML_prf %"ML"
    \<open>singleton (Proof_Context.export ctxt1 ctxt0) @{thm refl};\<close>
   ML_prf %"ML"

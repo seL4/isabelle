@@ -79,8 +79,8 @@ fun generate_fresh_tac ctxt atom_name = SUBGOAL (fn (goal, _) =>
  in
    fn st =>
    (cut_inst_tac_term' ctxt [(x,s)] exists_fresh' 1 THEN
-   rtac fs_name_thm 1 THEN
-   etac exE 1) st
+   resolve_tac ctxt [fs_name_thm] 1 THEN
+   eresolve_tac ctxt [exE] 1) st
   handle List.Empty  => all_tac st (* if we collected no variables then we do nothing *)
  end) 1;
 
@@ -163,8 +163,8 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
     (* The tactics which solve the subgoals generated
        by the conditionnal rewrite rule. *)
     val post_rewrite_tacs =
-          [rtac pt_name_inst,
-           rtac at_name_inst,
+          [resolve_tac ctxt [pt_name_inst],
+           resolve_tac ctxt [at_name_inst],
            TRY o SOLVED' (NominalPermeq.finite_guess_tac simp_ctxt),
            inst_fresh vars params THEN'
            (TRY o SOLVED' (NominalPermeq.fresh_guess_tac simp_ctxt)) THEN'

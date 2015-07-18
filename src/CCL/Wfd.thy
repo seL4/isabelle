@@ -448,7 +448,7 @@ fun is_rigid_prog t =
 in
 
 fun rcall_tac ctxt i =
-  let fun tac ps rl i = Rule_Insts.res_inst_tac ctxt ps [] rl i THEN atac i
+  let fun tac ps rl i = Rule_Insts.res_inst_tac ctxt ps [] rl i THEN assume_tac ctxt i
   in IHinst tac @{thms rcallTs} i end
   THEN eresolve_tac ctxt @{thms rcall_lemmas} i
 
@@ -468,7 +468,7 @@ fun typechk_tac ctxt rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls)) i
 (*** Clean up Correctness Condictions ***)
 
 fun clean_ccs_tac ctxt =
-  let fun tac ps rl i = Rule_Insts.eres_inst_tac ctxt ps [] rl i THEN atac i in
+  let fun tac ps rl i = Rule_Insts.eres_inst_tac ctxt ps [] rl i THEN assume_tac ctxt i in
     TRY (REPEAT_FIRST (IHinst tac @{thms hyprcallTs} ORELSE'
       eresolve_tac ctxt ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
       hyp_subst_tac ctxt))
@@ -525,7 +525,7 @@ lemma letV:
   apply (rule 1 [THEN canonical])
   apply (tactic {*
     REPEAT (DEPTH_SOLVE_1 (resolve_tac @{context} (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
-      etac @{thm substitute} 1)) *})
+      eresolve_tac @{context} @{thms substitute} 1)) *})
   done
 
 lemma fixV: "f(fix(f)) ---> c \<Longrightarrow> fix(f) ---> c"

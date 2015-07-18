@@ -345,7 +345,7 @@ fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
       Const (@{const_name Trueprop}, _) $
           (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ x $ y)) =>
         (case get_fst_success (neq_x_y ctxt x y) names of
-          SOME neq => rtac neq i
+          SOME neq => resolve_tac ctxt [neq] i
         | NONE => no_tac)
     | _ => no_tac))
 

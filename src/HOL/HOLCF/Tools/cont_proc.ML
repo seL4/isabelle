@@ -102,7 +102,7 @@ fun cont_tac ctxt =
     fun new_cont_tac f' i =
       case all_cont_thms f' of
         [] => no_tac
-      | (c::_) => rtac c i
+      | (c::_) => resolve_tac ctxt [c] i
 
     fun cont_tac_of_term (Const (@{const_name cont}, _) $ f) =
       let

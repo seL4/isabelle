@@ -762,8 +762,8 @@ fun parts_prepare_tac ctxt =
 
 fun analz_prepare_tac ctxt = 
          prepare_tac ctxt THEN
-         dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 18 THEN 
- (*SR_U9*) dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 19 THEN 
+         dresolve_tac ctxt @{thms Gets_imp_knows_Spy_analz_Snd} 18 THEN 
+ (*SR_U9*) dresolve_tac ctxt @{thms Gets_imp_knows_Spy_analz_Snd} 19 THEN 
          REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
@@ -827,7 +827,7 @@ method_setup sc_analz_freshK = {*
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
-          REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
+          REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshK_lemma}),
           ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt
               addsimps [@{thm knows_Spy_Inputs_secureM_srb_Spy},
                   @{thm knows_Spy_Outpts_secureM_srb_Spy},

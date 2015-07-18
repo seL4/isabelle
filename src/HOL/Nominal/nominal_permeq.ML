@@ -218,7 +218,7 @@ val perm_compose_simproc = Simplifier.simproc_global @{theory} "perm_compose"
 fun perm_compose_tac ctxt i = 
   ("analysing permutation compositions on the lhs",
    fn st => EVERY
-     [rtac trans i,
+     [resolve_tac ctxt [trans] i,
       asm_full_simp_tac (empty_simpset ctxt addsimprocs [perm_compose_simproc]) i,
       asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [perm_aux_fold]) i] st);
 
@@ -230,14 +230,15 @@ fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);
 (*     pi o f = rhs                           *)  
 (* is transformed to                          *)
 (*     %x. pi o (f ((rev pi) o x)) = rhs      *)
-fun unfold_perm_fun_def_tac i =
+fun unfold_perm_fun_def_tac ctxt i =
     ("unfolding of permutations on functions", 
-      rtac (perm_fun_def RS meta_eq_to_obj_eq RS trans) i)
+      resolve_tac ctxt [perm_fun_def RS meta_eq_to_obj_eq RS trans] i)
 
 (* applies the ext-rule such that      *)
 (*                                     *)
 (*    f = g   goes to  /\x. f x = g x  *)
-fun ext_fun_tac i = ("extensionality expansion of functions", rtac @{thm ext} i);
+fun ext_fun_tac ctxt i =
+  ("extensionality expansion of functions", resolve_tac ctxt @{thms ext} i);
 
 
 (* perm_extend_simp_tac_i is perm_simp plus additional tactics        *)
@@ -248,13 +249,14 @@ fun perm_extend_simp_tac_i tactical ctxt =
   let fun perm_extend_simp_tac_aux tactical ctxt n = 
           if n=0 then K all_tac
           else DETERM o 
-               (FIRST'[fn i => tactical ctxt ("splitting conjunctions on the rhs", rtac conjI i),
-                       fn i => tactical ctxt (perm_simp asm_full_simp_tac ctxt i),
-                       fn i => tactical ctxt (perm_compose_tac ctxt i),
-                       fn i => tactical ctxt (apply_cong_tac ctxt i), 
-                       fn i => tactical ctxt (unfold_perm_fun_def_tac i),
-                       fn i => tactical ctxt (ext_fun_tac i)]
-                      THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ctxt (n-1))))
+               (FIRST'
+                 [fn i => tactical ctxt ("splitting conjunctions on the rhs", resolve_tac ctxt [conjI] i),
+                  fn i => tactical ctxt (perm_simp asm_full_simp_tac ctxt i),
+                  fn i => tactical ctxt (perm_compose_tac ctxt i),
+                  fn i => tactical ctxt (apply_cong_tac ctxt i), 
+                  fn i => tactical ctxt (unfold_perm_fun_def_tac ctxt i),
+                  fn i => tactical ctxt (ext_fun_tac ctxt i)]
+                THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ctxt (n-1))))
   in perm_extend_simp_tac_aux tactical ctxt 10 end;
 
 
@@ -266,10 +268,10 @@ fun supports_tac_i tactical ctxt i =
      val simps        = [supports_def, Thm.symmetric fresh_def, fresh_prod]
   in
       EVERY [tactical ctxt ("unfolding of supports   ", simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps) i),
-             tactical ctxt ("stripping of foralls    ", REPEAT_DETERM (rtac allI i)),
-             tactical ctxt ("geting rid of the imps  ", rtac impI i),
-             tactical ctxt ("eliminating conjuncts   ", REPEAT_DETERM (etac  conjE i)),
-             tactical ctxt ("applying eqvt_simp      ", eqvt_simp_tac_gen_i asm_full_simp_tac tactical ctxt i )]
+             tactical ctxt ("stripping of foralls    ", REPEAT_DETERM (resolve_tac ctxt [allI] i)),
+             tactical ctxt ("geting rid of the imps  ", resolve_tac ctxt [impI] i),
+             tactical ctxt ("eliminating conjuncts   ", REPEAT_DETERM (eresolve_tac ctxt [conjE] i)),
+             tactical ctxt ("applying eqvt_simp      ", eqvt_simp_tac_gen_i asm_full_simp_tac tactical ctxt i)]
   end;
 
 

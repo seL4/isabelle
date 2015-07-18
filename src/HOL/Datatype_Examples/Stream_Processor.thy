@@ -128,16 +128,27 @@ lemma sp\<^sub>\<mu>_rel_map_map[unfolded vimage2p_def, simp]:
   "rel_sp\<^sub>\<mu> R1 R2 (map_sp\<^sub>\<mu> f1 f2 sp) (map_sp\<^sub>\<mu> g1 g2 sp') =
   rel_sp\<^sub>\<mu> (BNF_Def.vimage2p f1 g1 R1) (BNF_Def.vimage2p f2 g2 R2) sp sp'"
 by (tactic {*
-  let val ks = 1 upto 2;
+  let
+    val ks = 1 upto 2;
+    val ctxt = @{context};
   in
-    BNF_Tactics.unfold_thms_tac @{context}
+    BNF_Tactics.unfold_thms_tac ctxt
       @{thms sp\<^sub>\<mu>.rel_compp sp\<^sub>\<mu>.rel_conversep sp\<^sub>\<mu>.rel_Grp vimage2p_Grp} THEN
-    HEADGOAL (EVERY' [rtac iffI, rtac @{thm relcomppI}, rtac @{thm GrpI}, rtac refl, rtac CollectI,
-      BNF_Util.CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks, rtac @{thm relcomppI}, atac,
-      rtac @{thm conversepI}, rtac @{thm GrpI}, rtac refl, rtac CollectI,
-      BNF_Util.CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks,
-      REPEAT_DETERM o eresolve_tac @{context} @{thms relcomppE conversepE GrpE},
-      hyp_subst_tac @{context}, atac])
+    HEADGOAL (EVERY' [resolve_tac ctxt [iffI],
+      resolve_tac ctxt @{thms relcomppI},
+      resolve_tac ctxt @{thms GrpI},
+      resolve_tac ctxt [refl],
+      resolve_tac ctxt [CollectI],
+      BNF_Util.CONJ_WRAP' (K (resolve_tac ctxt @{thms subset_UNIV})) ks,
+      resolve_tac ctxt @{thms relcomppI}, assume_tac ctxt,
+      resolve_tac ctxt @{thms conversepI},
+      resolve_tac ctxt @{thms GrpI},
+      resolve_tac ctxt [refl],
+      resolve_tac ctxt [CollectI],
+      BNF_Util.CONJ_WRAP' (K (resolve_tac ctxt @{thms subset_UNIV})) ks,
+      REPEAT_DETERM o eresolve_tac ctxt @{thms relcomppE conversepE GrpE},
+      hyp_subst_tac ctxt,
+      assume_tac ctxt])
   end
 *})
 

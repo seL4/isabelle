@@ -183,7 +183,7 @@ lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y ev
 ML
 {*
 fun analz_mono_contra_tac ctxt = 
-  rtac @{thm analz_impI} THEN' 
+  resolve_tac ctxt @{thms analz_impI} THEN' 
   REPEAT1 o (dresolve_tac ctxt @{thms analz_mono_contra})
   THEN' mp_tac ctxt
 *}

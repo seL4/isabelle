@@ -58,12 +58,12 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
     val mypifree = Thm.global_cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp"
   in
-    EVERY1 [tactic ctxt ("iffI applied", rtac @{thm iffI}),
-            tactic ctxt ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
-            tactic ctxt ("solve with orig_thm", etac orig_thm),
+    EVERY1 [tactic ctxt ("iffI applied", resolve_tac ctxt @{thms iffI}),
+            tactic ctxt ("remove pi with perm_boolE", dresolve_tac ctxt @{thms perm_boolE}),
+            tactic ctxt ("solve with orig_thm", eresolve_tac ctxt [orig_thm]),
             tactic ctxt ("applies orig_thm instantiated with rev pi",
-                       dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm)),
-            tactic ctxt ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
+                       dresolve_tac ctxt [Drule.cterm_instantiate [(mypi,mypifree)] orig_thm]),
+            tactic ctxt ("getting rid of the pi on the right", resolve_tac ctxt @{thms perm_boolI}),
             tactic ctxt ("getting rid of all remaining perms",
                        full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps perm_pi_simp))]
   end;

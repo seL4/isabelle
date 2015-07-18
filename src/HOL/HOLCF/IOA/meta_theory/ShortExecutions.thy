@@ -48,9 +48,9 @@ axiomatization where
 
 
 ML {*
-fun thin_tac' j =
+fun thin_tac' ctxt j =
   rotate_tac (j - 1) THEN'
-  etac thin_rl THEN'
+  eresolve_tac ctxt [thin_rl] THEN'
   rotate_tac (~ (j - 1))
 *}
 
@@ -180,7 +180,7 @@ apply (rule take_lemma_less [THEN iffD1])
 apply (intro strip)
 apply (rule mp)
 prefer 2 apply (assumption)
-apply (tactic "thin_tac' 1 1")
+apply (tactic "thin_tac' @{context} 1 1")
 apply (rule_tac x = "s" in spec)
 apply (rule nat_less_induct)
 apply (intro strip)

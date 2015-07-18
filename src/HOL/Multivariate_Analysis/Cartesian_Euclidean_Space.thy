@@ -127,8 +127,8 @@ let
               @{thm vec_lambda_beta}, @{thm vector_scalar_mult_def}])
   fun vector_arith_tac ctxt ths =
     simp_tac (put_simpset ss1 ctxt)
-    THEN' (fn i => rtac @{thm Cartesian_Euclidean_Space.setsum_cong_aux} i
-         ORELSE rtac @{thm setsum.neutral} i
+    THEN' (fn i => resolve_tac ctxt @{thms Cartesian_Euclidean_Space.setsum_cong_aux} i
+         ORELSE resolve_tac ctxt @{thms setsum.neutral} i
          ORELSE simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm vec_eq_iff}]) i)
     (* THEN' TRY o clarify_tac HOL_cs  THEN' (TRY o rtac @{thm iffI}) *)
     THEN' asm_full_simp_tac (put_simpset ss2 ctxt addsimps ths)

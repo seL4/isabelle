@@ -282,13 +282,13 @@ fun canonicalise_qtfr_order ctxt i = fn st =>
          val thm = Goal.prove ctxt [] []
            (Logic.mk_implies (hyp_clause, new_hyp))
            (fn _ =>
-              (REPEAT_DETERM (HEADGOAL (rtac @{thm allI})))
+              (REPEAT_DETERM (HEADGOAL (resolve_tac ctxt @{thms allI})))
               THEN (REPEAT_DETERM
                     (HEADGOAL
                      (nominal_inst_parametermatch_tac ctxt @{thm allE})))
-              THEN HEADGOAL atac)
+              THEN HEADGOAL (assume_tac ctxt))
       in
-        dtac thm i st
+        dresolve_tac ctxt [thm] i st
       end
     end
 *}
@@ -305,8 +305,8 @@ fun is_polarised t =
   (TPTP_Reconstruct.remove_polarity true t; true)
   handle TPTP_Reconstruct.UNPOLARISED _ => false
 
-val polarise_subgoal_hyps =
-  COND' (SOME #> TERMPRED is_polarised (fn _ => true)) (K no_tac) (dtac @{thm polarise})
+fun polarise_subgoal_hyps ctxt =
+  COND' (SOME #> TERMPRED is_polarised (fn _ => true)) (K no_tac) (dresolve_tac ctxt @{thms polarise})
 *}
 
 lemma simp_meta [rule_format]:
@@ -336,10 +336,10 @@ by auto
 
 lemma solved_all_splits: "False = True \<Longrightarrow> False" by simp
 ML {*
-val solved_all_splits_tac =
-  TRY (etac @{thm conjE} 1)
-  THEN rtac @{thm solved_all_splits} 1
-  THEN atac 1
+fun solved_all_splits_tac ctxt =
+  TRY (eresolve_tac ctxt @{thms conjE} 1)
+  THEN resolve_tac ctxt @{thms solved_all_splits} 1
+  THEN assume_tac ctxt 1
 *}
 
 lemma lots_of_logic_expansions_meta [rule_format]:
@@ -433,10 +433,10 @@ fun bind_tac ctxt prob_name ordered_binds =
 
     fun instantiate_tac vars =
       instantiate_vars ctxt vars
-      THEN (HEADGOAL atac)
+      THEN (HEADGOAL (assume_tac ctxt))
   in
     HEADGOAL (canonicalise_qtfr_order ctxt)
-    THEN (REPEAT_DETERM (HEADGOAL (rtac @{thm allI})))
+    THEN (REPEAT_DETERM (HEADGOAL (resolve_tac ctxt @{thms allI})))
     THEN REPEAT_DETERM (HEADGOAL (nominal_inst_parametermatch_tac ctxt @{thm allE}))
     (*now only the variable to instantiate should be left*)
     THEN FIRST (map instantiate_tac ordered_instances)
@@ -470,8 +470,8 @@ fun flip_conclusion_tac ctxt =
   let
     val default_tac =
       (TRY o CHANGED o (rewrite_goal_tac ctxt @{thms prop_normalise}))
-      THEN' rtac @{thm notI}
-      THEN' (REPEAT_DETERM o etac @{thm conjE})
+      THEN' resolve_tac ctxt @{thms notI}
+      THEN' (REPEAT_DETERM o eresolve_tac ctxt @{thms conjE})
       THEN' (TRY o (expander_animal ctxt))
   in
     default_tac ORELSE' resolve_tac ctxt @{thms flip}
@@ -646,8 +646,6 @@ Technique for handling quantifiers:
 ML {*
 fun forall_neg_tac candidate_consts ctxt i = fn st =>
   let
-    val thy = Proof_Context.theory_of ctxt
-
     val gls =
       Thm.prop_of st
       |> Logic.strip_horn
@@ -749,7 +747,7 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
           else
             raise (NO_SKOLEM_DEF (def_name, bnd_name, conclusion)))
   in
-    rtac (Drule.export_without_context thm) i st
+    resolve_tac ctxt [Drule.export_without_context thm] i st
   end
   handle SKOLEM_DEF _ => no_tac st
 *}
@@ -960,12 +958,12 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
 ML {*
 fun new_skolem_tac ctxt consts_candidates =
   let
-    fun tec thm =
-      dtac thm
+    fun tac thm =
+      dresolve_tac ctxt [thm]
       THEN' instantiate_skols ctxt consts_candidates
   in
     if null consts_candidates then K no_tac
-    else FIRST' (map tec @{thms lift_exists})
+    else FIRST' (map tac @{thms lift_exists})
   end
 *}
 
@@ -1142,7 +1140,7 @@ fun extuni_dec_tac ctxt i = fn st =>
             those free variables into logical variables.*)
           |> Thm.forall_intr_frees
           |> Drule.export_without_context
-      in dtac rule i st end
+      in dresolve_tac ctxt [rule] i st end
       handle NO_GOALS => no_tac st
 
     fun closure tac =
@@ -1151,10 +1149,10 @@ fun extuni_dec_tac ctxt i = fn st =>
       SOLVE o (tac THEN' (batter_tac ctxt ORELSE' assume_tac ctxt))
     val search_tac =
       ASAP
-        (rtac @{thm disjI1} APPEND' rtac @{thm disjI2})
+        (resolve_tac ctxt @{thms disjI1} APPEND' resolve_tac ctxt @{thms disjI2})
         (FIRST' (map closure
                   [dresolve_tac ctxt @{thms dec_commut_eq},
-                   dtac @{thm dec_commut_disj},
+                   dresolve_tac ctxt @{thms dec_commut_disj},
                    elim_tac]))
   in
     (CHANGED o search_tac) i st
@@ -1306,14 +1304,15 @@ ML {*
               v
   \<lbrakk>A = True; B = False\<rbrakk> \<Longrightarrow> R
 *)
-fun weak_conj_tac drule =
-  dtac drule THEN' (REPEAT_DETERM o etac @{thm conjE})
+fun weak_conj_tac ctxt drule =
+  dresolve_tac ctxt [drule] THEN'
+  (REPEAT_DETERM o eresolve_tac ctxt @{thms conjE})
 *}
 
 ML {*
-val uncurry_lit_neg_tac =
-  dtac @{lemma "(A \<longrightarrow> B \<longrightarrow> C) = False \<Longrightarrow> (A & B \<longrightarrow> C) = False" by auto}
-  #> REPEAT_DETERM
+fun uncurry_lit_neg_tac ctxt =
+  REPEAT_DETERM o
+    dresolve_tac ctxt [@{lemma "(A \<longrightarrow> B \<longrightarrow> C) = False \<Longrightarrow> (A & B \<longrightarrow> C) = False" by auto}]
 *}
 
 ML {*
@@ -1326,10 +1325,10 @@ fun standard_cnf_tac ctxt i = fn st =>
             let
               val rule = mk_standard_cnf ctxt kind arity;
             in
-              (weak_conj_tac rule THEN' atac) i st
+              (weak_conj_tac ctxt rule THEN' assume_tac ctxt) i st
             end
   in
-    (uncurry_lit_neg_tac
+    (uncurry_lit_neg_tac ctxt
      THEN' TPTP_Reconstruct_Library.reassociate_conjs_tac ctxt
      THEN' core_tactic) i st
   end
@@ -1473,13 +1472,13 @@ fun get_loop_feats (feats : feature list) =
 (*use as elim rule to remove premises*)
 lemma insa_prems: "\<lbrakk>Q; P\<rbrakk> \<Longrightarrow> P" by auto
 ML {*
-fun cleanup_skolem_defs feats =
+fun cleanup_skolem_defs ctxt feats =
   let
     (*remove hypotheses from skolem defs,
      after testing that they look like skolem defs*)
     val dehypothesise_skolem_defs =
       COND' (SOME #> TERMPRED (fn _ => true) conc_is_skolem_def)
-        (REPEAT_DETERM o etac @{thm insa_prems})
+        (REPEAT_DETERM o eresolve_tac ctxt @{thms insa_prems})
         (K no_tac)
   in
     if can_feature (CleanUp [RemoveHypothesesFromSkolemDefs]) feats then
@@ -1497,11 +1496,11 @@ fun remove_duplicates_tac feats =
 
 ML {*
 (*given a goal state, indicates the skolem constants committed-to in it (i.e. appearing in LHS of a skolem definition)*)
-val which_skolem_concs_used = fn st =>
+fun which_skolem_concs_used ctxt = fn st =>
   let
     val feats = [CleanUp [RemoveHypothesesFromSkolemDefs, RemoveDuplicates]]
     val scrubup_tac =
-      cleanup_skolem_defs feats
+      cleanup_skolem_defs ctxt feats
       THEN remove_duplicates_tac feats
   in
     scrubup_tac st
@@ -1547,7 +1546,7 @@ lemma forall_pos_lift:
 (*predicate over the type of the leading quantified variable*)
 
 ML {*
-val extcnf_forall_special_pos_tac =
+fun extcnf_forall_special_pos_tac ctxt =
   let
     val bool =
       ["True", "False"]
@@ -1555,16 +1554,16 @@ val extcnf_forall_special_pos_tac =
     val bool_to_bool =
       ["% _ . True", "% _ . False", "% x . x", "Not"]
 
-    val tecs =
+    val tacs =
       map (fn t_s =>  (* FIXME proper context!? *)
        Rule_Insts.eres_inst_tac @{context} [((("x", 0), Position.none), t_s)] [] @{thm allE}
-       THEN' atac)
+       THEN' assume_tac ctxt)
   in
-    (TRY o etac @{thm forall_pos_lift})
-    THEN' (atac
+    (TRY o eresolve_tac ctxt @{thms forall_pos_lift})
+    THEN' (assume_tac ctxt
            ORELSE' FIRST'
             (*FIXME could check the type of the leading quantified variable, instead of trying everything*)
-            (tecs (bool @ bool_to_bool)))
+            (tacs (bool @ bool_to_bool)))
   end
 *}
 
@@ -1573,9 +1572,9 @@ subsubsection "Emulator"
 
 lemma efq: "[|A = True; A = False|] ==> R" by auto
 ML {*
-val efq_tac =
-  (etac @{thm efq} THEN' atac)
-  ORELSE' atac
+fun efq_tac ctxt =
+  (eresolve_tac ctxt @{thms efq} THEN' assume_tac ctxt)
+  ORELSE' assume_tac ctxt
 *}
 
 ML {*
@@ -1586,13 +1585,13 @@ fun extcnf_combined_main ctxt feats consts_diff =
       consisting of a Skolem definition*)
     fun extcnf_combined_tac' ctxt i = fn st =>
       let
-        val skolem_consts_used_so_far = which_skolem_concs_used st
+        val skolem_consts_used_so_far = which_skolem_concs_used ctxt st
         val consts_diff' = subtract (op =) skolem_consts_used_so_far consts_diff
 
         fun feat_to_tac feat =
           case feat of
-              Close_Branch => trace_tac' ctxt "mark: closer" efq_tac
-            | ConjI => trace_tac' ctxt "mark: conjI" (rtac @{thm conjI})
+              Close_Branch => trace_tac' ctxt "mark: closer" (efq_tac ctxt)
+            | ConjI => trace_tac' ctxt "mark: conjI" (resolve_tac ctxt @{thms conjI})
             | King_Cong => trace_tac' ctxt "mark: expander_animal" (expander_animal ctxt)
             | Break_Hypotheses => trace_tac' ctxt "mark: break_hypotheses" (break_hypotheses_tac ctxt)
             | RemoveRedundantQuantifications => K all_tac
@@ -1603,28 +1602,28 @@ FIXME Building this into the loop instead.. maybe not the ideal choice
                  (REPEAT_DETERM o remove_redundant_quantification_in_lit)
 *)
 
-            | Assumption => atac
+            | Assumption => assume_tac ctxt
 (*FIXME both Existential_Free and Existential_Var run same code*)
             | Existential_Free => trace_tac' ctxt "mark: forall_neg" (exists_tac ctxt feats consts_diff')
             | Existential_Var => trace_tac' ctxt "mark: forall_neg" (exists_tac ctxt feats consts_diff')
             | Universal => trace_tac' ctxt "mark: forall_pos" (forall_tac ctxt feats)
-            | Not_pos => trace_tac' ctxt "mark: not_pos" (dtac @{thm leo2_rules(9)})
-            | Not_neg => trace_tac' ctxt "mark: not_neg" (dtac @{thm leo2_rules(10)})
-            | Or_pos => trace_tac' ctxt "mark: or_pos" (dtac @{thm leo2_rules(5)}) (*could add (6) for negated conjunction*)
-            | Or_neg => trace_tac' ctxt "mark: or_neg" (dtac @{thm leo2_rules(7)})
+            | Not_pos => trace_tac' ctxt "mark: not_pos" (dresolve_tac ctxt @{thms leo2_rules(9)})
+            | Not_neg => trace_tac' ctxt "mark: not_neg" (dresolve_tac ctxt @{thms leo2_rules(10)})
+            | Or_pos => trace_tac' ctxt "mark: or_pos" (dresolve_tac ctxt @{thms leo2_rules(5)}) (*could add (6) for negated conjunction*)
+            | Or_neg => trace_tac' ctxt "mark: or_neg" (dresolve_tac ctxt @{thms leo2_rules(7)})
             | Equal_pos => trace_tac' ctxt "mark: equal_pos" (dresolve_tac ctxt (@{thms eq_pos_bool} @ [@{thm leo2_rules(3)}, @{thm eq_pos_func}]))
             | Equal_neg => trace_tac' ctxt "mark: equal_neg" (dresolve_tac ctxt [@{thm eq_neg_bool}, @{thm leo2_rules(4)}])
             | Donkey_Cong => trace_tac' ctxt "mark: donkey_cong" (simper_animal ctxt THEN' ex_expander_tac ctxt)
 
-            | Extuni_Bool2 => trace_tac' ctxt "mark: extuni_bool2" (dtac @{thm extuni_bool2})
-            | Extuni_Bool1 => trace_tac' ctxt "mark: extuni_bool1" (dtac @{thm extuni_bool1})
-            | Extuni_Bind => trace_tac' ctxt "mark: extuni_triv" (etac @{thm extuni_triv})
-            | Extuni_Triv => trace_tac' ctxt "mark: extuni_triv" (etac @{thm extuni_triv})
+            | Extuni_Bool2 => trace_tac' ctxt "mark: extuni_bool2" (dresolve_tac ctxt @{thms extuni_bool2})
+            | Extuni_Bool1 => trace_tac' ctxt "mark: extuni_bool1" (dresolve_tac ctxt @{thms extuni_bool1})
+            | Extuni_Bind => trace_tac' ctxt "mark: extuni_triv" (eresolve_tac ctxt @{thms extuni_triv})
+            | Extuni_Triv => trace_tac' ctxt "mark: extuni_triv" (eresolve_tac ctxt @{thms extuni_triv})
             | Extuni_Dec => trace_tac' ctxt "mark: extuni_dec_tac" (extuni_dec_tac ctxt)
-            | Extuni_FlexRigid => trace_tac' ctxt "mark: extuni_flex_rigid" (atac ORELSE' asm_full_simp_tac ctxt)
-            | Extuni_Func => trace_tac' ctxt "mark: extuni_func" (dtac @{thm extuni_func})
+            | Extuni_FlexRigid => trace_tac' ctxt "mark: extuni_flex_rigid" (assume_tac ctxt ORELSE' asm_full_simp_tac ctxt)
+            | Extuni_Func => trace_tac' ctxt "mark: extuni_func" (dresolve_tac ctxt @{thms extuni_func})
             | Polarity_switch => trace_tac' ctxt "mark: polarity_switch" (eresolve_tac ctxt @{thms polarity_switch})
-            | Forall_special_pos => trace_tac' ctxt "mark: dorall_special_pos" extcnf_forall_special_pos_tac
+            | Forall_special_pos => trace_tac' ctxt "mark: dorall_special_pos" (extcnf_forall_special_pos_tac ctxt)
 
         val core_tac =
           get_loop_feats feats
@@ -1668,8 +1667,8 @@ val interpreted_consts =
    @{const_name Pure.imp}]
 
 fun strip_qtfrs_tac ctxt =
-  REPEAT_DETERM (HEADGOAL (rtac @{thm allI}))
-  THEN REPEAT_DETERM (HEADGOAL (etac @{thm exE}))
+  REPEAT_DETERM (HEADGOAL (resolve_tac ctxt @{thms allI}))
+  THEN REPEAT_DETERM (HEADGOAL (eresolve_tac ctxt @{thms exE}))
   THEN HEADGOAL (canonicalise_qtfr_order ctxt)
   THEN
     ((REPEAT (HEADGOAL (nominal_inst_parametermatch_tac ctxt @{thm allE})))
@@ -1846,7 +1845,7 @@ fun extcnf_combined_tac ctxt prob_name_opt feats skolem_consts = fn st =>
       then we should be left with skolem definitions:
         absorb them as axioms into the theory.*)
     val cleanup =
-      cleanup_skolem_defs feats
+      cleanup_skolem_defs ctxt feats
       THEN remove_duplicates_tac feats
       THEN (if can_feature AbsorbSkolemDefs feats then
               ALLGOALS (absorb_skolem_def ctxt prob_name_opt)
@@ -1868,9 +1867,9 @@ fun extcnf_combined_tac ctxt prob_name_opt feats skolem_consts = fn st =>
         can be simply eliminated -- they're redundant*)
       (*FIXME instead of just using allE, instantiate to a silly
          term, to remove opportunities for unification.*)
-      THEN (REPEAT_DETERM (etac @{thm allE} 1))
+      THEN (REPEAT_DETERM (eresolve_tac ctxt @{thms allE} 1))
 
-      THEN (REPEAT_DETERM (rtac @{thm allI} 1))
+      THEN (REPEAT_DETERM (resolve_tac ctxt @{thms allI} 1))
 
       THEN (if have_loop_feats then
               REPEAT (CHANGED
@@ -1914,32 +1913,33 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
       discharged.
      *)
     val kill_meta_eqs_tac =
-      dtac @{thm un_meta_polarise}
-      THEN' rtac @{thm meta_polarise}
-      THEN' (REPEAT_DETERM o (etac @{thm conjE}))
-      THEN' (REPEAT_DETERM o (rtac @{thm conjI} ORELSE' atac))
+      dresolve_tac ctxt @{thms un_meta_polarise}
+      THEN' resolve_tac ctxt @{thms meta_polarise}
+      THEN' (REPEAT_DETERM o (eresolve_tac ctxt @{thms conjE}))
+      THEN' (REPEAT_DETERM o (resolve_tac ctxt @{thms conjI} ORELSE' assume_tac ctxt))
 
     val continue_reducing_tac =
-      rtac @{thm meta_eq_to_obj_eq} 1
+      resolve_tac ctxt @{thms meta_eq_to_obj_eq} 1
       THEN (REPEAT_DETERM (ex_expander_tac ctxt 1))
-      THEN TRY (polarise_subgoal_hyps 1) (*no need to REPEAT_DETERM here, since there should only be one hypothesis*)
-      THEN TRY (dtac @{thm eq_reflection} 1)
+      THEN TRY (polarise_subgoal_hyps ctxt 1) (*no need to REPEAT_DETERM here, since there should only be one hypothesis*)
+      THEN TRY (dresolve_tac ctxt @{thms eq_reflection} 1)
       THEN (TRY ((CHANGED o rewrite_goal_tac ctxt
               (@{thm expand_iff} :: @{thms simp_meta})) 1))
-      THEN HEADGOAL (rtac @{thm reflexive}
-                     ORELSE' atac
+      THEN HEADGOAL (resolve_tac ctxt @{thms reflexive}
+                     ORELSE' assume_tac ctxt
                      ORELSE' kill_meta_eqs_tac)
 
     val tactic =
-      (rtac @{thm polarise} 1 THEN atac 1)
+      (resolve_tac ctxt @{thms polarise} 1 THEN assume_tac ctxt 1)
       ORELSE
-        (REPEAT_DETERM (etac @{thm conjE} 1 THEN etac @{thm drop_first_hypothesis} 1)
+        (REPEAT_DETERM (eresolve_tac ctxt @{thms conjE} 1 THEN
+          eresolve_tac ctxt @{thms drop_first_hypothesis} 1)
          THEN PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion)
          THEN (REPEAT_DETERM (ex_expander_tac ctxt 1))
          THEN (TRY ((CHANGED o rewrite_goal_tac ctxt @{thms simp_meta}) 1))
          THEN PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion)
          THEN
-           (HEADGOAL atac
+           (HEADGOAL (assume_tac ctxt)
            ORELSE
             (unfold_tac ctxt depends_on_defs
              THEN IF_UNSOLVED continue_reducing_tac)))
@@ -2117,12 +2117,12 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
         *)
     | "copy" =>
          HEADGOAL
-          (atac
+          (assume_tac ctxt
            ORELSE'
-              (rtac @{thm polarise}
-               THEN' atac))
+              (resolve_tac ctxt @{thms polarise}
+               THEN' assume_tac ctxt))
     | "polarity_switch" => nonfull_extcnf_combined_tac [Polarity_switch]
-    | "solved_all_splits" => solved_all_splits_tac
+    | "solved_all_splits" => solved_all_splits_tac ctxt
     | "extcnf_not_pos" => nonfull_extcnf_combined_tac [Not_pos]
     | "extcnf_forall_pos" => nonfull_extcnf_combined_tac [Universal]
     | "negate_conjecture" => fail ctxt "Should not handle negate_conjecture here"
@@ -2138,7 +2138,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
     | "extuni_bool2" => nonfull_extcnf_combined_tac [Extuni_Bool2]
     | "extuni_bool1" => nonfull_extcnf_combined_tac [Extuni_Bool1]
     | "extuni_dec" =>
-        HEADGOAL atac
+        HEADGOAL (assume_tac ctxt)
         ORELSE nonfull_extcnf_combined_tac [Extuni_Dec]
     | "extuni_bind" => nonfull_extcnf_combined_tac [Extuni_Bind]
     | "extuni_triv" => nonfull_extcnf_combined_tac [Extuni_Triv]
@@ -2161,7 +2161,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
     | "split_preprocessing" =>
          (REPEAT (HEADGOAL (split_simp_tac ctxt)))
          THEN TRY (PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion))
-         THEN HEADGOAL atac
+         THEN HEADGOAL (assume_tac ctxt)
 
     (*FIXME some of these could eventually be handled specially*)
     | "fac_restr" => default_tac

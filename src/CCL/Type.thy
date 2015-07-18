@@ -398,7 +398,7 @@ lemma ci3_AI: "\<lbrakk>mono(Agen); a : A\<rbrakk> \<Longrightarrow> a : lfp(\<l
 
 ML {*
 fun genIs_tac ctxt genXH gen_mono =
-  rtac (genXH RS @{thm iffD2}) THEN'
+  resolve_tac ctxt [genXH RS @{thm iffD2}] THEN'
   simp_tac ctxt THEN'
   TRY o fast_tac
     (ctxt addIs [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
@@ -436,7 +436,7 @@ lemma POgenIs:
 ML {*
 fun POgen_tac ctxt (rla, rlb) i =
   SELECT_GOAL (safe_tac ctxt) i THEN
-  rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
+  resolve_tac ctxt [rlb RS (rla RS @{thm ssubst_pair})] i THEN
   (REPEAT (resolve_tac ctxt
       (@{thms POgenIs} @ [@{thm PO_refl} RS (@{thm POgen_mono} RS @{thm ci3_AI})] @
         (@{thms POgenIs} RL [@{thm POgen_mono} RS @{thm ci3_AgenI}]) @

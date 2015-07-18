@@ -12,7 +12,7 @@ end
 structure Approximation: APPROXIMATION =
 struct
 
-fun reorder_bounds_tac prems i =
+fun reorder_bounds_tac ctxt prems i =
   let
     fun variable_of_bound (Const (@{const_name Trueprop}, _) $
                            (Const (@{const_name Set.member}, _) $
@@ -35,8 +35,8 @@ fun reorder_bounds_tac prems i =
                 |> Graph.strong_conn |> map the_single |> rev
                 |> map_filter (AList.lookup (op =) variable_bounds)
 
-    fun prepend_prem th tac
-      = tac THEN rtac (th RSN (2, @{thm mp})) i
+    fun prepend_prem th tac =
+      tac THEN resolve_tac ctxt [th RSN (2, @{thm mp})] i
   in
     fold prepend_prem order all_tac
   end
@@ -49,9 +49,10 @@ fun approximate ctxt t =
   |> Thm.prop_of |> Logic.dest_equals |> snd;
 
 (* Should be in HOL.thy ? *)
-fun gen_eval_tac conv ctxt = CONVERSION
-  (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
-  THEN' rtac TrueI
+fun gen_eval_tac conv ctxt =
+  CONVERSION
+    (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
+  THEN' resolve_tac ctxt [TrueI]
 
 val form_equations = @{thms interpret_form_equations};
 
@@ -78,10 +79,10 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
                |> HOLogic.mk_list @{typ nat}
                |> Thm.cterm_of ctxt
      in
-       (rtac (Thm.instantiate ([], [((("n", 0), @{typ nat}), n),
+       (resolve_tac ctxt [Thm.instantiate ([], [((("n", 0), @{typ nat}), n),
                                    ((("prec", 0), @{typ nat}), p),
                                    ((("ss", 0), @{typ "nat list"}), s)])
-            @{thm "approx_form"}) i
+            @{thm approx_form}] i
         THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
      end
 
@@ -95,10 +96,10 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
        val s = vs |> map lookup_splitting |> hd
             |> Thm.cterm_of ctxt
      in
-       rtac (Thm.instantiate ([], [((("s", 0), @{typ nat}), s),
+       resolve_tac ctxt [Thm.instantiate ([], [((("s", 0), @{typ nat}), s),
                                    ((("t", 0), @{typ nat}), t),
                                    ((("prec", 0), @{typ nat}), p)])
-            @{thm "approx_tse_form"}) i st
+            @{thm approx_tse_form}] i st
      end
   end
 
@@ -190,8 +191,10 @@ fun apply_tactic ctxt term tactic =
   |> the |> Thm.prems_of |> hd
 
 fun prepare_form ctxt term = apply_tactic ctxt term (
-    REPEAT (FIRST' [etac @{thm intervalE}, etac @{thm meta_eqE}, rtac @{thm impI}] 1)
-    THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems 1) ctxt 1
+    REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
+      eresolve_tac ctxt @{thms meta_eqE},
+      resolve_tac ctxt @{thms impI}] 1)
+    THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems 1) ctxt 1
     THEN DETERM (TRY (filter_prems_tac ctxt (K false) 1)))
 
 fun reify_form ctxt term = apply_tactic ctxt term
@@ -249,10 +252,10 @@ val _ =
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 
 fun approximation_tac prec splitting taylor ctxt i =
-  REPEAT (FIRST' [etac @{thm intervalE},
-                  etac @{thm meta_eqE},
-                  rtac @{thm impI}] i)
-  THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
+  REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
+                  eresolve_tac ctxt @{thms meta_eqE},
+                  resolve_tac ctxt @{thms impI}] i)
+  THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems i) ctxt i
   THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
   THEN DETERM (Reification.tac ctxt form_equations NONE i)
   THEN rewrite_interpret_form_tac ctxt prec splitting taylor i

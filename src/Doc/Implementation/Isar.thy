@@ -365,7 +365,7 @@ begin
   assume a: A and b: B
 
   have "A \<and> B"
-    apply (tactic \<open>rtac @{thm conjI} 1\<close>)
+    apply (tactic \<open>resolve_tac @{context} @{thms conjI} 1\<close>)
     using a apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
     using b apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
     done
@@ -374,7 +374,7 @@ begin
     using a and b
     ML_val \<open>@{Isar.goal}\<close>
     apply (tactic \<open>Method.insert_tac facts 1\<close>)
-    apply (tactic \<open>(rtac @{thm conjI} THEN_ALL_NEW atac) 1\<close>)
+    apply (tactic \<open>(resolve_tac @{context} @{thms conjI} THEN_ALL_NEW assume_tac @{context}) 1\<close>)
     done
 end
 
